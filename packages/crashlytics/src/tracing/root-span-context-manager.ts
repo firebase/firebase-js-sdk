@@ -16,13 +16,19 @@
  */
 
 import { Context, Span, type Tracer, trace, context } from '@opentelemetry/api';
+import { hrTimeToMilliseconds } from '@opentelemetry/core';
+import { ReadableSpan } from '@opentelemetry/sdk-trace-base';
 import { ZoneContextManager } from '@opentelemetry/context-zone';
 
 /**
  * The length of time to wait for activity to cease before closing the root span.
  */
-const QUIESCENCE_WINDOW_MS = 150;
-const UI_RENDER_QUIESCENCE_WINDOW_MS = 17; // the time diff between requestAnimationFrame cycles
+export const QUIESCENCE_WINDOW_MS = 150;
+/**
+ * The length of time to wait for ui render activity to cease before closing the root span.
+ * It is set as the expected time difference between requestAnimationFrame cycles.
+ */
+export const UI_RENDER_QUIESCENCE_WINDOW_MS = 17;
 /**
  * Wrapper around the OpenTelemetry Span that tracks activity and quiescence for a client-side
  * root span.
@@ -31,7 +37,7 @@ export class RootSpan {
   span: Span;
   private rootSpanStartAtMs: number;
   private activeNetworkRequests: number;
-  private lastNetworkActivityMs: number;
+  private lastNetworkActivityMs: number | undefined;
   private prePaintAtMs: number | undefined;
   private postPaintAtMs: number | undefined;
   private interruptedAtMs: number | undefined;
@@ -53,9 +59,12 @@ export class RootSpan {
     this.manager = manager;
     this.tracer = tracer;
 
-    this.rootSpanStartAtMs = Date.now();
+    const sdkSpan = span as unknown as ReadableSpan;
+    this.rootSpanStartAtMs = sdkSpan.startTime
+      ? hrTimeToMilliseconds(sdkSpan.startTime)
+      : Date.now();
 
-    this.lastNetworkActivityMs = this.rootSpanStartAtMs; // set to current start as default
+    this.lastNetworkActivityMs = undefined;
     this.prePaintAtMs = undefined;
     this.postPaintAtMs = undefined;
     this.interruptedAtMs = undefined;
@@ -95,7 +104,10 @@ export class RootSpan {
    * @param timestamp The time of the network activity.
    */
   private recordNetworkActivity(timestamp: number = Date.now()): void {
-    if (timestamp > this.lastNetworkActivityMs) {
+    if (
+      this.lastNetworkActivityMs === undefined ||
+      timestamp > this.lastNetworkActivityMs
+    ) {
       this.lastNetworkActivityMs = timestamp;
       this.quiesce();
     }
@@ -108,14 +120,9 @@ export class RootSpan {
   interrupt(): void {
     this.interruptedAtMs = Date.now();
 
-    if (this.mutationObserver) {
-      this.mutationObserver.disconnect();
-      this.mutationObserver = null;
-    }
+    this.removeMutationObserver();
 
-    this.endUIRenderSpan(
-      Math.min(this.interruptedAtMs, this.postPaintAtMs ?? this.interruptedAtMs)
-    );
+    this.endUIRenderSpan(this.postPaintAtMs ?? this.interruptedAtMs);
 
     // Short-circuit quiescence if network requests have ended
     if (this.activeNetworkRequests === 0) {
@@ -156,18 +163,18 @@ export class RootSpan {
           if (this.prePaintAtMs === undefined) {
             this.prePaintAtMs = currTimestamp;
           } else if (this.postPaintAtMs !== undefined) {
-            const frameDuration = currTimestamp - this.postPaintAtMs;
-            if (frameDuration > UI_RENDER_QUIESCENCE_WINDOW_MS) {
+            const timeSinceRenderEnd = currTimestamp - this.postPaintAtMs;
+            if (timeSinceRenderEnd >= UI_RENDER_QUIESCENCE_WINDOW_MS) {
               this.endUIRenderSpan(this.postPaintAtMs);
               this.prePaintAtMs = currTimestamp;
             }
           }
 
           this.postPaintAtMs = undefined;
-
+          // quiescence does not exist during a pending postPaint callback 
           this.clearRenderQuiesce();
           this.clearQuiesce();
-
+          // any queued timeout callback for a completed quiescence period becomes invalid here
           window.requestAnimationFrame(() => {
             // capture UI activity end in frame 2
             this.postPaintAtMs = Date.now();
@@ -184,6 +191,16 @@ export class RootSpan {
       characterData: true
     });
     return observer;
+  }
+
+  /**
+   * Disconnects and cleans up the DOM mutation observer.
+   */
+  private removeMutationObserver(): void {
+    if (this.mutationObserver) {
+      this.mutationObserver.disconnect();
+      this.mutationObserver = null;
+    }
   }
 
   /**
@@ -204,11 +221,13 @@ export class RootSpan {
     this.clearRenderQuiesce();
 
     this.quiescenceRenderTimerId = setTimeout(() => {
-      this.endUIRenderSpanIfStable();
+      this.endUIRenderSpan();
     }, UI_RENDER_QUIESCENCE_WINDOW_MS);
   }
 
-  // Clears the root span quiescence timer, preventing it from executing.
+  /**
+   * Clears the root span quiescence timer, preventing it from executing.
+   */
   private clearQuiesce(): void {
     if (this.quiescenceTimerId) {
       clearTimeout(this.quiescenceTimerId);
@@ -216,26 +235,13 @@ export class RootSpan {
     }
   }
 
-  // Clears the UI render span quiescence timer, preventing it from executing.
+  /**
+   * Clears the UI render span quiescence timer, preventing it from executing.
+   */
   private clearRenderQuiesce(): void {
     if (this.quiescenceRenderTimerId) {
       clearTimeout(this.quiescenceRenderTimerId);
       this.quiescenceRenderTimerId = null;
-    }
-  }
-
-  /**
-   * Checks if the UI render span is stable (inactive long enough) and ends it if so.
-   */
-  private endUIRenderSpanIfStable(): void {
-    if (this.interruptedAtMs === undefined) {
-      const timeSinceLastRenderActivity =
-        Date.now() - (this.postPaintAtMs ?? this.rootSpanStartAtMs);
-      if (timeSinceLastRenderActivity < UI_RENDER_QUIESCENCE_WINDOW_MS - 5) {
-        this.renderQuiesce(); // keep waiting, UI is not stable yet
-        return;
-      }
-      this.endUIRenderSpan();
     }
   }
 
@@ -245,9 +251,9 @@ export class RootSpan {
    * @param endTimeMs Optional end timestamp. Defaults to the last paint completion time.
    */
   private endUIRenderSpan(
-    endTimeMs: number = this.postPaintAtMs ?? this.rootSpanStartAtMs
+    endTimeMs: number | undefined = this.postPaintAtMs
   ): void {
-    if (this.prePaintAtMs !== undefined) {
+    if (this.prePaintAtMs !== undefined && endTimeMs !== undefined) {
       const parentContext = trace.setSpan(context.active(), this.span);
 
       const uiSpan = this.tracer.startSpan(
@@ -274,18 +280,6 @@ export class RootSpan {
       this.quiesce(); // Keep waiting, there are active network requests
       return;
     }
-
-    const timeSinceLastActivity =
-      Date.now() -
-      Math.max(
-        this.lastNetworkActivityMs,
-        this.postPaintAtMs ?? this.rootSpanStartAtMs
-      );
-    // Subtract 5 milliseconds from quiescence window to account for browser timer imprecision
-    if (timeSinceLastActivity < QUIESCENCE_WINDOW_MS - 5) {
-      this.quiesce(); // Keep waiting, work is not yet stable
-      return;
-    }
     this.endRootSpan();
   }
 
@@ -295,19 +289,27 @@ export class RootSpan {
    */
   private endRootSpan(): void {
     // Clean up the DOM observer to prevent memory leaks
-    if (this.mutationObserver) {
-      this.mutationObserver.disconnect();
-      this.mutationObserver = null;
-    }
+    this.removeMutationObserver();
 
     this.clearQuiesce();
 
     // End the span backdated to the exact millisecond work actually stopped
-    const endTime = Math.max(
-      this.lastNetworkActivityMs,
-      this.postPaintAtMs ?? this.interruptedAtMs ?? this.rootSpanStartAtMs
-    );
-    this.span.end(endTime);
+    const activityTimes: number[] = [];
+    if (this.lastNetworkActivityMs !== undefined) {
+      activityTimes.push(this.lastNetworkActivityMs);
+    }
+    if (this.postPaintAtMs !== undefined) {
+      activityTimes.push(this.postPaintAtMs);
+    } else if (this.interruptedAtMs !== undefined) {
+      activityTimes.push(this.interruptedAtMs);
+    }
+
+    if (activityTimes.length > 0) {
+      const endTime = Math.max(...activityTimes);
+      this.span.end(endTime);
+    } else {
+      this.span.end(this.rootSpanStartAtMs);
+    }
     this.manager.clearRootSpanFromContext(this);
   }
 }

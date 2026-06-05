@@ -17,7 +17,11 @@
 
 import { expect } from 'chai';
 import * as sinon from 'sinon';
-import { RootSpanContextManager } from './root-span-context-manager';
+import {
+  RootSpanContextManager,
+  QUIESCENCE_WINDOW_MS,
+  UI_RENDER_QUIESCENCE_WINDOW_MS
+} from './root-span-context-manager';
 import { Span, Tracer, trace } from '@opentelemetry/api';
 
 const MOCK_TRACE_ID = 'trace-1';
@@ -27,11 +31,11 @@ describe('RootSpanContextManager', () => {
   let sandbox: sinon.SinonSandbox;
   let mockMutationObserver: any;
   let mutationObserverCallback: any;
-  let queuedAnimationFrameCallbacks: any[] = [];
+  let queuedAnimationFrameCallbacks: any[];
 
   const requestAnimationFrameCallbacks = (): void => {
     const callbacks = [...queuedAnimationFrameCallbacks];
-    queuedAnimationFrameCallbacks.length = 0;
+    queuedAnimationFrameCallbacks = [];
     for (const cb of callbacks) {
       cb();
     }
@@ -144,7 +148,7 @@ describe('RootSpanContextManager', () => {
       const rootSpan = manager.startRootSpan(mockTracer as Tracer, 'span-1');
       expect(manager.getActiveRootSpan()).to.equal(rootSpan);
 
-      clock.tick(150); // let quiescence complete
+      clock.tick(QUIESCENCE_WINDOW_MS); // let quiescence complete
 
       expect(mockSpan.end.called).to.be.true;
       expect(manager.getActiveRootSpan()).to.be.undefined;
@@ -157,7 +161,7 @@ describe('RootSpanContextManager', () => {
       clock.tick(100);
       rootSpan.recordNetworkActivityEnd(100);
 
-      clock.tick(150); // let quiescence complete
+      clock.tick(QUIESCENCE_WINDOW_MS); // let quiescence complete
 
       expect(mockSpan.end.calledWith(100)).to.be.true;
       expect(manager.getActiveRootSpan()).to.be.undefined;
@@ -167,17 +171,35 @@ describe('RootSpanContextManager', () => {
       const rootSpan = manager.startRootSpan(mockTracer as Tracer, 'span-1');
 
       rootSpan.recordNetworkActivityStart();
-      clock.tick(150); // let quiescence complete
+      clock.tick(QUIESCENCE_WINDOW_MS); // let quiescence complete
 
       expect(mockSpan.end.called).to.be.false;
 
       rootSpan.recordNetworkActivityEnd();
-      clock.tick(150); // let quiescence complete
+      clock.tick(QUIESCENCE_WINDOW_MS); // let quiescence complete
 
       expect(mockSpan.end.called).to.be.true;
       expect(manager.getActiveRootSpan()).to.be.undefined;
     });
+    it('should not reset timer or set last active timestamp on DOM mutation', () => {
+      if (typeof document === 'undefined') {
+        return;
+      }
+      const rootSpan = manager.startRootSpan(mockTracer as Tracer, 'span-1'); // T = 0
 
+      // Trigger DOM mutation at T = 100
+      clock.tick(100);
+      mutationObserverCallback();
+
+      // Tick to QUIESCENCE_WINDOW_MS (quiescence window completes from start time)
+      clock.tick(QUIESCENCE_WINDOW_MS - 100);
+
+      // Verify root span ended because mutation did not reset the timer
+      expect(mockSpan.end.called).to.be.true;
+      // End time is backdated to the start time (0) because no paint occurred
+      expect((rootSpan.span as any).end.calledWith(0)).to.be.true;
+      expect(manager.getActiveRootSpan()).to.be.undefined;
+    });
     it('should reset timer and set last active timestamp on browser paint', () => {
       if (typeof document === 'undefined') {
         return;
@@ -193,10 +215,10 @@ describe('RootSpanContextManager', () => {
       clock.tick(5);
       requestAnimationFrameCallbacks(); // Frame 2: postPaintAtMs = 110
 
-      clock.tick(90); // T = 200
+      clock.tick(QUIESCENCE_WINDOW_MS - 1);
       expect((rootSpan.span as any).end.called).to.be.false;
 
-      clock.tick(60); // T = 260 (quiescence complete)
+      clock.tick(1); // quiescence complete
       expect((rootSpan.span as any).end.calledWith(110)).to.be.true;
     });
 
@@ -209,81 +231,33 @@ describe('RootSpanContextManager', () => {
       rootSpan.recordNetworkActivityEnd(100);
       rootSpan.recordNetworkActivityEnd(50);
 
-      clock.tick(150); // let quiescence complete
+      clock.tick(QUIESCENCE_WINDOW_MS); // let quiescence complete
 
       expect(mockSpan.end.calledWith(100)).to.be.true;
     });
 
-    it('should capture mutation events after 150ms if the network request ended recently', () => {
+    it('should capture mutation events after the quiescence window has completed if the network request ended recently', () => {
       if (typeof document === 'undefined') {
         return;
       }
       const rootSpan = manager.startRootSpan(mockTracer as Tracer, 'span-1');
 
       rootSpan.recordNetworkActivityStart();
-      clock.tick(145);
+      clock.tick(QUIESCENCE_WINDOW_MS - 5);
       rootSpan.recordNetworkActivityEnd();
 
-      clock.tick(10); // T = 155
+      clock.tick(10);
       mutationObserverCallback();
 
-      clock.tick(5); // T = 160
+      clock.tick(5);
       requestAnimationFrameCallbacks(); // Frame 1
 
-      clock.tick(5); // T = 165
-      requestAnimationFrameCallbacks(); // Frame 2: postPaintAtMs = 165
-
-      clock.tick(150); // let quiescence complete (T = 315)
-
-      expect((rootSpan.span as any).end.calledWith(165)).to.be.true;
-    });
-
-    it('should create a root span that ends at the interruption time if there are no active network requests and an active ui render span', () => {
-      if (typeof document === 'undefined') {
-        return;
-      }
-      const rootSpan = manager.startRootSpan(mockTracer as Tracer, 'span-1'); // T = 0
-
-      // Trigger mutation at T = 100
-      clock.tick(100);
-      mutationObserverCallback();
-
-      // Run Frame 1 at T = 105
       clock.tick(5);
-      requestAnimationFrameCallbacks(); // Frame 1: prePaintAtMs = 105
+      requestAnimationFrameCallbacks(); // Frame 2: postPaintAtMs = QUIESCENCE_WINDOW_MS + 15
 
-      // Interrupt at T = 108
-      clock.tick(3);
-      rootSpan.interrupt();
+      clock.tick(QUIESCENCE_WINDOW_MS); // let quiescence complete
 
-      // Verify that root span was ended with the interruption time (108)
-      expect((rootSpan.span as any).end.calledWith(108)).to.be.true;
-    });
-
-    it('should create a root span that ends at the last ui render time at interruption if there are no active network requests and the ui render span is completed', () => {
-      if (typeof document === 'undefined') {
-        return;
-      }
-      const rootSpan = manager.startRootSpan(mockTracer as Tracer, 'span-1'); // T = 0
-
-      // Trigger mutation at T = 100
-      clock.tick(100);
-      mutationObserverCallback();
-
-      // Run Frame 1 at T = 105
-      clock.tick(5);
-      requestAnimationFrameCallbacks(); // Frame 1: prePaintAtMs = 105
-
-      // Run Frame 2 at T = 110
-      clock.tick(5);
-      requestAnimationFrameCallbacks(); // Frame 2: postPaintAtMs = 110
-
-      // Interrupt at T = 115 before quiescence completes
-      clock.tick(5);
-      rootSpan.interrupt();
-
-      // Verify that root span ended with the last ui render time (110)
-      expect((rootSpan.span as any).end.calledWith(110)).to.be.true;
+      expect((rootSpan.span as any).end.calledWith(QUIESCENCE_WINDOW_MS + 15)).to.be.true;
     });
   });
 
@@ -325,6 +299,54 @@ describe('RootSpanContextManager', () => {
       expect(manager.getRootSpanByTraceId(rootSpan1.getTraceId())).to.be
         .undefined;
     });
+
+    it('should end at the interruption time if there are no active network requests and there is an active ui render span', () => {
+      if (typeof document === 'undefined') {
+        return;
+      }
+      const rootSpan = manager.startRootSpan(mockTracer as Tracer, 'span-1'); // T = 0
+
+      // Trigger mutation at T = 100
+      clock.tick(100);
+      mutationObserverCallback();
+
+      // Run Frame 1 at T = 105
+      clock.tick(5);
+      requestAnimationFrameCallbacks(); // Frame 1: prePaintAtMs = 105
+
+      // Interrupt at T = 108
+      clock.tick(3);
+      rootSpan.interrupt();
+
+      // Verify that root span was ended with the interruption time (108)
+      expect((rootSpan.span as any).end.calledWith(108)).to.be.true;
+    });
+
+    it('should end at the last ui render time if there are no active network requests and the ui render span is completed', () => {
+      if (typeof document === 'undefined') {
+        return;
+      }
+      const rootSpan = manager.startRootSpan(mockTracer as Tracer, 'span-1'); // T = 0
+
+      // Trigger mutation at T = 100
+      clock.tick(100);
+      mutationObserverCallback();
+
+      // Run Frame 1 at T = 105
+      clock.tick(5);
+      requestAnimationFrameCallbacks(); // Frame 1: prePaintAtMs = 105
+
+      // Run Frame 2 at T = 110
+      clock.tick(5);
+      requestAnimationFrameCallbacks(); // Frame 2: postPaintAtMs = 110
+
+      // Interrupt at T = 115 before quiescence completes
+      clock.tick(5);
+      rootSpan.interrupt();
+
+      // Verify that root span ended with the last ui render time (110)
+      expect((rootSpan.span as any).end.calledWith(110)).to.be.true;
+    });
   });
 
   describe('ui render span', () => {
@@ -347,7 +369,7 @@ describe('RootSpanContextManager', () => {
       requestAnimationFrameCallbacks(); // Frame 2: postPaintAtMs = 110
 
       // Let quiescence complete
-      clock.tick(150); // T = 260. Both timers will fire.
+      clock.tick(QUIESCENCE_WINDOW_MS); // Both timers will fire.
 
       // UI Render span was created and ended backdated to 110
       expect(mockTracer.startSpan.calledWith('UI Render')).to.be.true;
@@ -372,32 +394,32 @@ describe('RootSpanContextManager', () => {
       clock.tick(5);
       requestAnimationFrameCallbacks(); // Frame 2: postPaintAtMs = 110
 
-      // Let UI render quiescence complete (16.67ms)
-      clock.tick(20); // T = 130. UI Render span quiescence timer fires.
+      // Let UI render quiescence complete
+      clock.tick(UI_RENDER_QUIESCENCE_WINDOW_MS);
 
       // Verify first UI Render span was created
       expect(mockTracer.startSpan.calledWith('UI Render')).to.be.true;
       expect(mockSpan.end.calledWith(110)).to.be.true;
       const firstUiSpan = mockSpan;
 
-      // Second mutation at T = 140
+      // Second mutation
       clock.tick(10);
       mutationObserverCallback();
 
-      // Run Frame 1 at T = 145
+      // Run Frame 1
       clock.tick(5);
-      requestAnimationFrameCallbacks(); // Frame 1: prePaintAtMs = 145
+      requestAnimationFrameCallbacks(); // Frame 1
 
-      // Run Frame 2 at T = 150
+      // Run Frame 2
       clock.tick(5);
-      requestAnimationFrameCallbacks(); // Frame 2: postPaintAtMs = 150
+      requestAnimationFrameCallbacks(); // Frame 2: postPaintAtMs = 130 + UI_RENDER_QUIESCENCE_WINDOW_MS
 
-      // Let everything quiesce (T = 150 + 150 = 300)
-      clock.tick(150);
+      // Let everything quiesce
+      clock.tick(QUIESCENCE_WINDOW_MS);
 
-      // Second UI Render span ended backdated to 150
+      // Second UI Render span ended backdated to 130 + UI_RENDER_QUIESCENCE_WINDOW_MS
       expect(mockSpan).to.not.equal(firstUiSpan);
-      expect(mockSpan.end.calledWith(150)).to.be.true;
+      expect(mockSpan.end.calledWith(130 + UI_RENDER_QUIESCENCE_WINDOW_MS)).to.be.true;
     });
 
     it('should create two ui render spans if two raf cycles are separated by the quiescence period but the render quiescence timer callback execution is delayed', () => {
@@ -418,14 +440,14 @@ describe('RootSpanContextManager', () => {
       clock.tick(5);
       requestAnimationFrameCallbacks(); // Frame 2: postPaintAtMs = 110
 
-      // Advance clock to T = 130 without running the quiescence timer
-      clock.setSystemTime(130);
+      // Advance clock without running the quiescence timer
+      clock.setSystemTime(110 + UI_RENDER_QUIESCENCE_WINDOW_MS);
 
-      // Second mutation at T = 130
+      // Second mutation
       mutationObserverCallback();
 
-      // Run Frame 1 for mutation 2 at T = 130
-      requestAnimationFrameCallbacks(); // Frame 1: prePaintAtMs = 130 (ends first UI render span backdated to 110)
+      // Run Frame 1 for mutation 2
+      requestAnimationFrameCallbacks(); // Frame 1: prePaintAtMs = 127 (ends first UI render span backdated to 110)
 
       // Verify first UI Render span was created (startTime: 105, endTime: 110)
       expect(
@@ -437,22 +459,23 @@ describe('RootSpanContextManager', () => {
       expect(mockSpan.end.calledWith(110)).to.be.true;
       const firstUiSpan = mockSpan;
 
-      // Run Frame 2 for mutation 2 at T = 135
-      clock.setSystemTime(135);
-      requestAnimationFrameCallbacks(); // Frame 2: postPaintAtMs = 135
+      // Run Frame 2 for mutation 2
+      clock.tick(5);
+      requestAnimationFrameCallbacks(); // Frame 2: postPaintAtMs = 110 + UI_RENDER_QUIESCENCE_WINDOW_MS + 5
 
-      // Let everything quiesce (T = 135 + 150 = 285)
-      clock.tick(150);
+      // Let everything quiesce
+      clock.tick(QUIESCENCE_WINDOW_MS);
 
-      // Verify the second UI Render span was created (startTime: 130, endTime: 135)
+      // Verify the second UI Render span was created
       const uiRenderSpanCalls = mockTracer.startSpan
         .getCalls()
         .filter((c: any) => c.args[0] === 'UI Render');
       expect(uiRenderSpanCalls.length).to.equal(2);
 
       expect(uiRenderSpanCalls[0].args[1]).to.deep.include({ startTime: 105 });
+      expect(uiRenderSpanCalls[1].args[1]).to.deep.include({ startTime: 110 + UI_RENDER_QUIESCENCE_WINDOW_MS });
       expect(mockSpan).to.not.equal(firstUiSpan);
-      expect(mockSpan.end.calledWith(135)).to.be.true;
+      expect(mockSpan.end.calledWith(110 + UI_RENDER_QUIESCENCE_WINDOW_MS + 5)).to.be.true;
     });
 
     it('should create one ui render span if two raf cycles are not separated by the quiescence period', () => {
@@ -485,8 +508,8 @@ describe('RootSpanContextManager', () => {
       clock.tick(5);
       requestAnimationFrameCallbacks(); // Frame 2: postPaintAtMs = 120
 
-      // Let everything quiesce (T = 120 + 150 = 270)
-      clock.tick(150);
+      // Let everything quiesce
+      clock.tick(QUIESCENCE_WINDOW_MS);
 
       // Verify that only one UI Render span was created, starting at 105 and ending at 120
       const uiRenderSpanCalls = mockTracer.startSpan
@@ -518,7 +541,7 @@ describe('RootSpanContextManager', () => {
       requestAnimationFrameCallbacks(); // Frame 2
 
       // Let quiescence complete
-      clock.tick(150);
+      clock.tick(QUIESCENCE_WINDOW_MS);
 
       // Check that UI Render span was created exactly once
       const uiRenderSpanCalls = mockTracer.startSpan
