@@ -57,9 +57,12 @@ export class ChatSession extends ChatSessionBase<
       this._history = params.history;
     }
     if (this.params?.systemInstruction != null) {
-       this.params.systemInstruction = formatSystemInstruction(
-        this.params.systemInstruction
-        );
+      this.params = {
+        ...this.params,
+        systemInstruction: formatSystemInstruction(
+          this.params.systemInstruction
+        )
+      };
     }
   }
 
