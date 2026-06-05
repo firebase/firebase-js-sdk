@@ -165,13 +165,16 @@ export class RootSpan {
           } else if (this.postPaintAtMs !== undefined) {
             const timeSinceRenderEnd = currTimestamp - this.postPaintAtMs;
             if (timeSinceRenderEnd >= UI_RENDER_QUIESCENCE_WINDOW_MS) {
-              this.endUIRenderSpan(this.postPaintAtMs);
+              this.endUIRenderSpan();
               this.prePaintAtMs = currTimestamp;
             }
           }
 
           this.postPaintAtMs = undefined;
-          // quiescence does not exist during a pending postPaint callback
+          /**
+           * Quiescence does not exist during a pending post rAF callback because it is guaranteed
+           * to happen eventually and no waiting period should prevent it (besides an interrupt)
+           */
           this.clearRenderQuiesce();
           this.clearQuiesce();
           // any queued timeout callback for a completed quiescence period becomes invalid here
@@ -294,7 +297,7 @@ export class RootSpan {
     this.clearQuiesce();
 
     // End the span backdated to the exact millisecond work actually stopped
-    const activityTimes: number[] = [];
+    const activityTimes: number[] = [this.rootSpanStartAtMs];
     if (this.lastNetworkActivityMs !== undefined) {
       activityTimes.push(this.lastNetworkActivityMs);
     }
@@ -304,12 +307,9 @@ export class RootSpan {
       activityTimes.push(this.interruptedAtMs);
     }
 
-    if (activityTimes.length > 0) {
-      const endTime = Math.max(...activityTimes);
-      this.span.end(endTime);
-    } else {
-      this.span.end(this.rootSpanStartAtMs);
-    }
+    const endTime = Math.max(...activityTimes);
+    this.span.end(endTime);
+
     this.manager.clearRootSpanFromContext(this);
   }
 }
