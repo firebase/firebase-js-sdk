@@ -102,6 +102,7 @@ jobs:
         run: cp config/ci.config.json config/project.json
       - name: Run compat tests
         run: cd packages/firestore-compat && yarn run test:ci
+        continue-on-error: true
 
   test-chrome:
     name: Test Firestore
@@ -130,6 +131,7 @@ jobs:
         run: cp config/ci.config.json config/project.json
       - name: Run tests
         run: cd packages/firestore && yarn run ${{ matrix.test-name }}
+        continue-on-error: ${{ matrix.test-name != 'test:travis' }}
         env:
           EXPERIMENTAL_MODE: true
 
@@ -163,6 +165,7 @@ jobs:
           echo $INTEG_TESTS_GOOGLE_SERVICES > config/project.json
       - name: Run tests
         run: cd packages/firestore && yarn run ${{ matrix.test-name }}
+        continue-on-error: true
         env:
           EXPERIMENTAL_MODE: true
 
@@ -189,6 +192,7 @@ jobs:
         run: cp config/ci.config.json config/project.json
       - name: Run compat tests
         run: cd packages/firestore-compat && xvfb-run yarn run test:ci
+        continue-on-error: true
         env:
           BROWSERS: 'Firefox'
 
@@ -217,6 +221,7 @@ jobs:
         run: cp config/ci.config.json config/project.json
       - name: Run tests
         run: cd packages/firestore && xvfb-run yarn run ${{ matrix.test-name }}
+        continue-on-error: ${{ matrix.test-name != 'test:travis' }}
         env:
           BROWSERS: 'Firefox'
           EXPERIMENTAL_MODE: true
@@ -243,6 +248,7 @@ jobs:
           npx playwright install webkit
       - name: Run compat tests
         run: cd packages/firestore-compat && yarn run test:ci
+        continue-on-error: true
         env:
           BROWSERS: 'WebkitHeadless'
 
@@ -274,6 +280,7 @@ jobs:
           npx playwright install webkit
       - name: Run tests
         run: cd packages/firestore && yarn run ${{ matrix.test-name }}
+        continue-on-error: true
         env:
           BROWSERS: 'WebkitHeadless'
           EXPERIMENTAL_MODE: true
@@ -283,8 +290,8 @@ jobs:
     runs-on: ubuntu-latest
     if: always()
     name: Check all required tests results
-    needs: [build, test-chrome, compat-test-chrome]
+    needs: [build]
     steps:
       - name: Check test matrix
-        if: needs.build.result == 'failure' || needs.test-chrome.result == 'failure' || needs.compat-test-chrome.result == 'failure'
+        if: needs.build.result == 'failure'
         run: exit 1

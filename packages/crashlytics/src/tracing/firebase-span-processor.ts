@@ -41,6 +41,12 @@ const NETWORK_INSTRUMENTATION_SCOPES = [
 ];
 
 /**
+ * The instrumentation scope for document load activity.
+ */
+const DOCUMENT_LOAD_INSTRUMENTATION_SCOPE =
+  '@opentelemetry/instrumentation-document-load';
+
+/**
  * A SpanProcessor that adds Firebase-specific attributes to spans.
  */
 export class FirebaseSpanProcessor implements SpanProcessor {
@@ -94,11 +100,18 @@ export class FirebaseSpanProcessor implements SpanProcessor {
     const rootSpan = this.rootSpanContextManager.getRootSpanByTraceId(
       span.spanContext().traceId
     );
-    if (rootSpan) {
-      const scopeName = span.instrumentationScope?.name;
-      if (NETWORK_INSTRUMENTATION_SCOPES.includes(scopeName)) {
-        rootSpan.recordNetworkActivityEnd(hrTimeToMilliseconds(span.endTime));
-      }
+    if (!rootSpan) {
+      return;
+    }
+    const scopeName = span.instrumentationScope?.name;
+    if (
+      span.name === 'documentLoad' &&
+      scopeName === DOCUMENT_LOAD_INSTRUMENTATION_SCOPE
+    ) {
+      rootSpan.markDocumentLoaded(hrTimeToMilliseconds(span.endTime));
+    }
+    if (NETWORK_INSTRUMENTATION_SCOPES.includes(scopeName)) {
+      rootSpan.recordNetworkActivityEnd(hrTimeToMilliseconds(span.endTime));
     }
   }
 

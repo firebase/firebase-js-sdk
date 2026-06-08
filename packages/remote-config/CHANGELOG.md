@@ -1,5 +1,11 @@
 # @firebase/remote-config
 
+## 0.8.4
+
+### Patch Changes
+
+- [`4d3f71a`](https://github.com/firebase/firebase-js-sdk/commit/4d3f71a96a07d5a98aaccb7f664cc21a1c9f1cfa) [#9981](https://github.com/firebase/firebase-js-sdk/pull/9981) - Call update experiment when the last running experiment is stopped
+
 ## 0.8.3
 
 ### Patch Changes

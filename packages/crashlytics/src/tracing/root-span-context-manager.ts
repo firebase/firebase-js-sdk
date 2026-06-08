@@ -15,11 +15,19 @@
  * limitations under the License.
  */
 
-import { Context, Span, type Tracer, trace, context } from '@opentelemetry/api';
+import {
+  Context,
+  Span,
+  type Tracer,
+  trace,
+  context,
+  type SpanOptions
+} from '@opentelemetry/api';
 import { hrTimeToMilliseconds } from '@opentelemetry/core';
 import { ReadableSpan } from '@opentelemetry/sdk-trace-base';
 import { ZoneContextManager } from '@opentelemetry/context-zone';
 
+export type RootSpanType = 'app-start' | 'user-interaction';
 /**
  * The length of time to wait for activity to cease before closing the root span.
  */
@@ -37,7 +45,7 @@ export class RootSpan {
   span: Span;
   private rootSpanStartAtMs: number;
   private activeNetworkRequests: number;
-  private lastNetworkActivityMs: number | undefined;
+  private lastBackgroundActivityMs?: number;
   private prePaintAtMs: number | undefined;
   private postPaintAtMs: number | undefined;
   private interruptedAtMs: number | undefined;
@@ -45,6 +53,7 @@ export class RootSpan {
   private quiescenceRenderTimerId: ReturnType<typeof setTimeout> | null;
   private mutationObserver: MutationObserver | null;
   private manager: RootSpanContextManager;
+  private isDocumentLoaded = true;
   private tracer: Tracer;
 
   /**
@@ -52,9 +61,15 @@ export class RootSpan {
    * and starting the root span quiescence tracking.
    * @param span The OpenTelemetry Span wrapped by this instance.
    * @param manager The context manager that manages active root spans.
+   * @param type The type of root span ('app-start' or 'user-interaction').
    * @param tracer The tracer used to start child spans (e.g. UI Render spans).
    */
-  constructor(span: Span, manager: RootSpanContextManager, tracer: Tracer) {
+  constructor(
+    span: Span,
+    manager: RootSpanContextManager,
+    type: RootSpanType,
+    tracer: Tracer
+  ) {
     this.span = span;
     this.manager = manager;
     this.tracer = tracer;
@@ -64,7 +79,7 @@ export class RootSpan {
       ? hrTimeToMilliseconds(sdkSpan.startTime)
       : Date.now();
 
-    this.lastNetworkActivityMs = undefined;
+    this.lastBackgroundActivityMs = undefined;
     this.prePaintAtMs = undefined;
     this.postPaintAtMs = undefined;
     this.interruptedAtMs = undefined;
@@ -72,7 +87,23 @@ export class RootSpan {
     this.quiescenceRenderTimerId = null;
     this.activeNetworkRequests = 0;
     this.mutationObserver = this.createMutationObserver();
-    this.quiesce();
+
+    this.isDocumentLoaded = type !== 'app-start';
+    // for app-start spans, we don't need to start the quiescence timer until after the document
+    // is loaded, to avoid unnecessary timeout loops
+    if (this.isDocumentLoaded) {
+      this.quiesce();
+    }
+  }
+
+  /**
+   * Marks the document load span as completed and triggers a quiescence check.
+   * @param endTimeMs The end timestamp of the document load span.
+   */
+  markDocumentLoaded(endTimeMs: number): void {
+    this.isDocumentLoaded = true;
+    this.setLastBackgroundActivityMs(endTimeMs);
+    this.endRootSpanOrWait();
   }
 
   /**
@@ -80,36 +111,25 @@ export class RootSpan {
    */
   recordNetworkActivityStart(): void {
     this.activeNetworkRequests++;
-    this.recordNetworkActivity();
+    this.setLastBackgroundActivityMs();
   }
 
   /**
    * Indicates that a network request has ended for this root span.
+   * @param endTimeMs Optional end timestamp of the network request.
    */
   recordNetworkActivityEnd(endTimeMs?: number): void {
     this.activeNetworkRequests = Math.max(0, this.activeNetworkRequests - 1);
-    this.recordNetworkActivity(endTimeMs ?? Date.now());
-
-    // Short-circuit quiescence if the root span is interrupted and network requests have ended
-    if (
-      this.interruptedAtMs !== undefined &&
-      this.activeNetworkRequests === 0
-    ) {
-      this.endRootSpan();
-    }
+    this.setLastBackgroundActivityMs(endTimeMs);
+    this.endRootSpanOrWait();
   }
 
-  /**
-   * Records network activity and resets the quiescence timer.
-   * @param timestamp The time of the network activity.
-   */
-  private recordNetworkActivity(timestamp: number = Date.now()): void {
+  private setLastBackgroundActivityMs(timestamp: number = Date.now()): void {
     if (
-      this.lastNetworkActivityMs === undefined ||
-      timestamp > this.lastNetworkActivityMs
+      this.lastBackgroundActivityMs === undefined ||
+      timestamp > this.lastBackgroundActivityMs
     ) {
-      this.lastNetworkActivityMs = timestamp;
-      this.quiesce();
+      this.lastBackgroundActivityMs = timestamp;
     }
   }
 
@@ -120,14 +140,11 @@ export class RootSpan {
   interrupt(): void {
     this.interruptedAtMs = Date.now();
 
-    this.removeMutationObserver();
+    this.clearMutationObserver();
 
     this.endUIRenderSpan(this.postPaintAtMs ?? this.interruptedAtMs);
 
-    // Short-circuit quiescence if network requests have ended
-    if (this.activeNetworkRequests === 0) {
-      this.endRootSpan();
-    }
+    this.endRootSpanOrWait();
   }
 
   /**
@@ -199,11 +216,24 @@ export class RootSpan {
   /**
    * Disconnects and cleans up the DOM mutation observer.
    */
-  private removeMutationObserver(): void {
+  private clearMutationObserver(): void {
     if (this.mutationObserver) {
       this.mutationObserver.disconnect();
       this.mutationObserver = null;
     }
+  }
+
+  private getLastActivityMs(): number {
+    const activityTimes: number[] = [this.rootSpanStartAtMs];
+    if (this.lastBackgroundActivityMs !== undefined) {
+      activityTimes.push(this.lastBackgroundActivityMs);
+    }
+    if (this.postPaintAtMs !== undefined) {
+      activityTimes.push(this.postPaintAtMs);
+    } else if (this.interruptedAtMs !== undefined) {
+      activityTimes.push(this.interruptedAtMs);
+    }
+    return Math.max(...activityTimes);
   }
 
   /**
@@ -213,7 +243,7 @@ export class RootSpan {
     this.clearQuiesce();
 
     this.quiescenceTimerId = setTimeout(() => {
-      this.endRootSpanIfStable();
+      this.endRootSpanOrWait();
     }, QUIESCENCE_WINDOW_MS);
   }
 
@@ -278,38 +308,27 @@ export class RootSpan {
   /**
    * Checks if the root span is stable (both network and UI activity have ceased) and ends it if so.
    */
-  private endRootSpanIfStable(): void {
+  private endRootSpanOrWait(): void {
+    if (!this.isDocumentLoaded) {
+      return; // Do not end yet, the document load has not completed
+    }
     if (this.activeNetworkRequests > 0) {
       this.quiesce(); // Keep waiting, there are active network requests
       return;
     }
-    this.endRootSpan();
-  }
+    const finalEndTime = this.getLastActivityMs();
 
-  /**
-   * Ends the root span, backdating its end time to the last active timestamp,
-   * disconnects the mutation observer, and removes it from the context manager.
-   */
-  private endRootSpan(): void {
-    // Clean up the DOM observer to prevent memory leaks
-    this.removeMutationObserver();
+    if (
+      this.interruptedAtMs === undefined &&
+      Date.now() - finalEndTime < QUIESCENCE_WINDOW_MS
+    ) {
+      this.quiesce(); // Keep waiting, work is not yet stable
+      return;
+    }
 
+    this.clearMutationObserver();
     this.clearQuiesce();
-
-    // End the span backdated to the exact millisecond work actually stopped
-    const activityTimes: number[] = [this.rootSpanStartAtMs];
-    if (this.lastNetworkActivityMs !== undefined) {
-      activityTimes.push(this.lastNetworkActivityMs);
-    }
-    if (this.postPaintAtMs !== undefined) {
-      activityTimes.push(this.postPaintAtMs);
-    } else if (this.interruptedAtMs !== undefined) {
-      activityTimes.push(this.interruptedAtMs);
-    }
-
-    const endTime = Math.max(...activityTimes);
-    this.span.end(endTime);
-
+    this.span.end(finalEndTime);
     this.manager.clearRootSpanFromContext(this);
   }
 }
@@ -325,17 +344,24 @@ export class RootSpanContextManager extends ZoneContextManager {
   /**
    * Starts a new root span, interrupting and clearing the previous active root span if one exists.
    * @param tracer The tracer to start the span.
+   * @param type The type of the root span ('app-start' or 'user-interaction').
    * @param rootSpanName The name of the root span.
+   * @param options Optional configuration options for the span.
    * @returns The newly created RootSpan instance.
    */
-  startRootSpan(tracer: Tracer, rootSpanName: string): RootSpan {
+  startRootSpan(
+    tracer: Tracer,
+    type: RootSpanType,
+    rootSpanName: string,
+    options?: SpanOptions
+  ): RootSpan {
     if (this._activeRootSpan) {
       this._interruptedRootSpans.push(this._activeRootSpan);
       this._activeRootSpan.interrupt();
       this.clearActiveRootSpan();
     }
-    const span = tracer.startSpan(rootSpanName);
-    this._activeRootSpan = new RootSpan(span, this, tracer);
+    const span = tracer.startSpan(rootSpanName, options);
+    this._activeRootSpan = new RootSpan(span, this, type, tracer);
     return this._activeRootSpan;
   }
 

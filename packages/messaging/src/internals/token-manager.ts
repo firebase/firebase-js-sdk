@@ -59,9 +59,6 @@ export async function getTokenInternal(
     p256dh: arrayToBase64(pushSubscription.getKey('p256dh')!)
   };
 
-  // Best-effort cleanup when switching from FID register/unregister to legacy getToken().
-  await removeFidRegistrationBestEffort(messaging.firebaseDependencies);
-
   const tokenDetails = await dbGet(messaging.firebaseDependencies);
   if (!tokenDetails) {
     // No token, get a new one.
@@ -132,10 +129,11 @@ async function revokeFidRegistrationIfStored(
 }
 
 /**
- * This method deletes the token from the database, unsubscribes the token from FCM, and unregisters
- * the push subscription if it exists.
+ * Revokes the app's FCM registration: legacy token (getToken/deleteToken) and/or FID-based
+ * registration (register/unregister), clears local caches, notifies onUnregistered when a stored
+ * FID existed, then unsubscribes the push subscription when present.
  */
-export async function deleteTokenInternal(
+export async function revokeRegistrationInternal(
   messaging: MessagingService
 ): Promise<boolean> {
   const tokenDetails = await dbGet(messaging.firebaseDependencies);
@@ -242,7 +240,25 @@ async function removeFidRegistrationBestEffort(
   }
 }
 
-function notifyOnUnregistered(messaging: MessagingService, fid: string): void {
+export function notifyOnRegistered(
+  messaging: MessagingService,
+  fid: string
+): void {
+  const handler = messaging.onRegisteredHandler;
+  if (!handler) {
+    return;
+  }
+  if (typeof handler === 'function') {
+    handler(fid);
+  } else {
+    handler.next(fid);
+  }
+}
+
+export function notifyOnUnregistered(
+  messaging: MessagingService,
+  fid: string
+): void {
   const handler = messaging.onUnregisteredHandler;
   if (!handler) {
     return;

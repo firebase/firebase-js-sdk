@@ -100,6 +100,7 @@ describe('Top level API', () => {
   let originalSessionStorage: Storage | undefined;
   let originalCrypto: Crypto | undefined;
   let storage: Record<string, string> = {};
+  let getActiveSpanStub: sinon.SinonStub;
 
   beforeEach(() => {
     // Clear the logs before each test.
@@ -133,6 +134,8 @@ describe('Top level API', () => {
 
     // Simulate session creation that now happens in registerCrashlytics
     storage[CRASHLYTICS_SESSION_ID_KEY] = MOCK_SESSION_ID;
+
+    getActiveSpanStub = sinon.stub(trace, 'getActiveSpan').returns(undefined);
   });
 
   afterEach(async () => {
@@ -146,6 +149,7 @@ describe('Top level API', () => {
       writable: true
     });
     delete AUTO_CONSTANTS.appVersion;
+    getActiveSpanStub.restore();
   });
 
   describe('getCrashlytics()', () => {
@@ -365,7 +369,7 @@ describe('Top level API', () => {
     });
 
     it('should propagate trace context', () => {
-      const getActiveSpanStub = sinon.stub(trace, 'getActiveSpan').returns({
+      getActiveSpanStub.returns({
         spanContext: () => ({
           traceId: 'my-trace',
           spanId: 'my-span',
@@ -374,24 +378,20 @@ describe('Top level API', () => {
         })
       } as any);
 
-      try {
-        const error = new Error('This is a test error');
-        error.stack = '...stack trace...';
-        error.name = 'TestError';
+      const error = new Error('This is a test error');
+      error.stack = '...stack trace...';
+      error.name = 'TestError';
 
-        recordError(fakeCrashlytics, error);
+      recordError(fakeCrashlytics, error);
 
-        expect(emittedLogs[0].attributes).to.deep.equal({
-          'error.type': 'TestError',
-          'error.stack': '...stack trace...',
-          [CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION]: 'unset',
-          'logging.googleapis.com/trace': `my-trace`,
-          'logging.googleapis.com/spanId': `my-span`,
-          [CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID
-        });
-      } finally {
-        getActiveSpanStub.restore();
-      }
+      expect(emittedLogs[0].attributes).to.deep.equal({
+        'error.type': 'TestError',
+        'error.stack': '...stack trace...',
+        [CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION]: 'unset',
+        'logging.googleapis.com/trace': `my-trace`,
+        'logging.googleapis.com/spanId': `my-span`,
+        [CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID
+      });
     });
 
     it('should propagate custom attributes', () => {

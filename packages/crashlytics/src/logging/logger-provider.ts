@@ -34,7 +34,10 @@ import { DynamicHeaderProvider, DynamicAttributeProvider } from '../types';
 import { FirebaseApp } from '@firebase/app';
 import { ExportResult } from '@opentelemetry/core';
 import { CrashlyticsOptions } from '../public-types';
-import { DEFAULT_TELEMETRY_REGION } from '../constants';
+import {
+  DEFAULT_TELEMETRY_ENDPOINT,
+  DEFAULT_TELEMETRY_REGION
+} from '../constants';
 
 /**
  * Create a logger provider for the current execution environment.
@@ -47,8 +50,8 @@ export function createLoggerProvider(
   dynamicHeaderProviders: DynamicHeaderProvider[] = [],
   dynamicAttributeProviders: DynamicAttributeProvider[] = []
 ): LoggerProvider {
-  // TODO: change to default endpoint once it exists
-  let endpointUrl = crashlyticsOptions.endpointUrl || 'http://localhost';
+  let endpointUrl =
+    crashlyticsOptions.endpointUrl || DEFAULT_TELEMETRY_ENDPOINT;
 
   const resource = resourceFromAttributes({
     [ATTR_SERVICE_NAME]: 'firebase_telemetry_service'

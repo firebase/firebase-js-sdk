@@ -737,7 +737,7 @@ export interface RetrievalConfig {
 /**
  * Encapsulates configuration for on-device inference.
  *
- * @beta
+ * @public
  */
 export interface OnDeviceParams {
   createOptions?: LanguageModelCreateOptions;
@@ -746,7 +746,7 @@ export interface OnDeviceParams {
 
 /**
  * Configures hybrid inference.
- * @beta
+ * @public
  */
 export interface HybridParams {
   /**

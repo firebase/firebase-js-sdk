@@ -1,5 +1,17 @@
 # @firebase/ai
 
+## 2.13.0
+
+### Minor Changes
+
+- [`f0752a0`](https://github.com/firebase/firebase-js-sdk/commit/f0752a0d69c54e79d0f81b306fe250845da7784f) [#9800](https://github.com/firebase/firebase-js-sdk/pull/9800) - Add `initializeDeviceModel()` method to allow explicit initialization of on-device model in hybrid mode.
+
+- [`bd08cae`](https://github.com/firebase/firebase-js-sdk/commit/bd08cae3d77847211c4bac553fa5fb69a4e5073d) [#9926](https://github.com/firebase/firebase-js-sdk/pull/9926) - Change "beta" (public preview) tags to "public" (generally available) for all hybrid inference features.
+
+### Patch Changes
+
+- [`bd2644b`](https://github.com/firebase/firebase-js-sdk/commit/bd2644b661ecc5043c065ce6e898da1706feafae) [#9956](https://github.com/firebase/firebase-js-sdk/pull/9956) (fixes [#9938](https://github.com/firebase/firebase-js-sdk/issues/9938)) - Fix a bug that caused `ChatSession.sendMessageStream()` and `TemplateChatSession.sendMessageStream()` to send duplicate user turns in the request.
+
 ## 2.12.0
 
 ### Minor Changes

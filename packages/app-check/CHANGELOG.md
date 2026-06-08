@@ -1,5 +1,11 @@
 # @firebase/app-check
 
+## 0.11.4
+
+### Patch Changes
+
+- [`d675580`](https://github.com/firebase/firebase-js-sdk/commit/d675580448169ce69fd0653f1adf141b2ace0439) [#9987](https://github.com/firebase/firebase-js-sdk/pull/9987) - Fix a bug where `getLimitedUseToken()` did not correctly get a limited use token because it did not send the `limited_use` param.
+
 ## 0.11.3
 
 ### Patch Changes
