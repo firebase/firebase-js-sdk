@@ -367,6 +367,26 @@ describe('RootSpanContextManager', () => {
         .undefined;
     });
 
+    it('should end at the last network activity end time if interrupted while quiescing after network activity', () => {
+      const rootSpan1 = manager.startRootSpan(
+        mockTracer as Tracer,
+        'user-interaction',
+        'span-1'
+      );
+      rootSpan1.recordNetworkActivityStart();
+      clock.tick(50);
+      rootSpan1.recordNetworkActivityEnd(50);
+
+      // Advance clock by less than the quiescence window
+      clock.tick(30);
+
+      // Interrupt at T = 80
+      manager.startRootSpan(mockTracer as Tracer, 'user-interaction', 'span-2'); // interruption
+
+      // Should end backdated to the network activity end time (50), not the interruption time (80)
+      expect((rootSpan1.span as any).end.calledWith(50)).to.be.true;
+    });
+
     it('should ignore UI activity after being interrupted', () => {
       const rootSpan1 = manager.startRootSpan(
         mockTracer as Tracer,
@@ -560,6 +580,10 @@ describe('RootSpanContextManager', () => {
     });
 
     it('should create two ui render spans if two raf cycles are separated by the quiescence period but the render quiescence timer callback execution is delayed', () => {
+      // This test validates the safety path for when the browser's rendering pipeline runs before the event loop's macrotask queue.
+      // In theory, when the render quiescence period ends, the timer callback to close the UI render span is placed in the macrotask queue.
+      // However, if a microtask (like a DOM MutationObserver callback) schedules a new animation frame (rAF), that outer rAF callback
+      // can execute before the macrotask timer callback runs, because the browser's rendering pipeline prioritizes rAF callbacks.
       if (typeof document === 'undefined') {
         return;
       }

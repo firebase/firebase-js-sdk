@@ -230,7 +230,11 @@ export class RootSpan {
     }
     if (this.postPaintAtMs !== undefined) {
       activityTimes.push(this.postPaintAtMs);
-    } else if (this.interruptedAtMs !== undefined) {
+    } else if (
+      this.interruptedAtMs !== undefined &&
+      (this.prePaintAtMs !== undefined ||
+        this.lastBackgroundActivityMs === undefined)
+    ) {
       activityTimes.push(this.interruptedAtMs);
     }
     return Math.max(...activityTimes);
