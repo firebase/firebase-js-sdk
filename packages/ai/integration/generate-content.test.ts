@@ -472,7 +472,6 @@ describe('Generate Content', function () {
             expect(groundingMetadata?.groundingChunks).to.exist;
           }
         });
-      });
 
       it('generateContent: code execution', async () => {
         const model = getGenerativeModel(testConfig.ai, {
