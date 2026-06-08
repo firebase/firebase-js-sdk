@@ -20,53 +20,71 @@ import {
   Span,
   type Tracer,
   trace,
-  type SpanOptions,
-  type TimeInput
+  context,
+  type SpanOptions
 } from '@opentelemetry/api';
+import { hrTimeToMilliseconds } from '@opentelemetry/core';
+import { ReadableSpan } from '@opentelemetry/sdk-trace-base';
 import { ZoneContextManager } from '@opentelemetry/context-zone';
-import { timeInputToMilliseconds } from '../helpers';
 
+export type RootSpanType = 'app-start' | 'user-interaction';
 /**
  * The length of time to wait for activity to cease before closing the root span.
  */
-const QUIESCENCE_WINDOW_MS = 150;
-
-export type RootSpanType = 'app-start' | 'user-interaction';
-
+export const QUIESCENCE_WINDOW_MS = 150;
+/**
+ * The length of time to wait for ui render activity to cease before closing the root span.
+ * It is set as the expected time difference between requestAnimationFrame cycles.
+ */
+export const UI_RENDER_QUIESCENCE_WINDOW_MS = 17;
 /**
  * Wrapper around the OpenTelemetry Span that tracks activity and quiescence for a client-side
  * root span.
  */
 export class RootSpan {
   span: Span;
-
+  private rootSpanStartAtMs: number;
   private activeNetworkRequests: number;
-  private startTimeMs: number;
   private lastBackgroundActivityMs?: number;
-  private lastUiActivityMs?: number;
+  private prePaintAtMs: number | undefined;
+  private postPaintAtMs: number | undefined;
+  private interruptedAtMs: number | undefined;
   private quiescenceTimerId: ReturnType<typeof setTimeout> | null;
+  private quiescenceRenderTimerId: ReturnType<typeof setTimeout> | null;
   private mutationObserver: MutationObserver | null;
   private manager: RootSpanContextManager;
-  private isInterrupted = false;
   private isDocumentLoaded = true;
+  private tracer: Tracer;
 
+  /**
+   * Initializes a new RootSpan instance, setting initial activity markers
+   * and starting the root span quiescence tracking.
+   * @param span The OpenTelemetry Span wrapped by this instance.
+   * @param manager The context manager that manages active root spans.
+   * @param type The type of root span ('app-start' or 'user-interaction').
+   * @param tracer The tracer used to start child spans (e.g. UI Render spans).
+   */
   constructor(
-    manager: RootSpanContextManager,
     span: Span,
+    manager: RootSpanContextManager,
     type: RootSpanType,
-    startTimeInput?: TimeInput
+    tracer: Tracer
   ) {
     this.span = span;
     this.manager = manager;
+    this.tracer = tracer;
 
-    this.startTimeMs =
-      startTimeInput !== undefined
-        ? timeInputToMilliseconds(startTimeInput)
-        : Date.now();
+    const sdkSpan = span as unknown as ReadableSpan;
+    this.rootSpanStartAtMs = sdkSpan.startTime
+      ? hrTimeToMilliseconds(sdkSpan.startTime)
+      : Date.now();
+
     this.lastBackgroundActivityMs = undefined;
-    this.lastUiActivityMs = undefined;
-
+    this.prePaintAtMs = undefined;
+    this.postPaintAtMs = undefined;
+    this.interruptedAtMs = undefined;
     this.quiescenceTimerId = null;
+    this.quiescenceRenderTimerId = null;
     this.activeNetworkRequests = 0;
     this.mutationObserver = this.createMutationObserver();
 
@@ -80,6 +98,7 @@ export class RootSpan {
 
   /**
    * Marks the document load span as completed and triggers a quiescence check.
+   * @param endTimeMs The end timestamp of the document load span.
    */
   markDocumentLoaded(endTimeMs: number): void {
     this.isDocumentLoaded = true;
@@ -97,6 +116,7 @@ export class RootSpan {
 
   /**
    * Indicates that a network request has ended for this root span.
+   * @param endTimeMs Optional end timestamp of the network request.
    */
   recordNetworkActivityEnd(endTimeMs?: number): void {
     this.activeNetworkRequests = Math.max(0, this.activeNetworkRequests - 1);
@@ -113,18 +133,17 @@ export class RootSpan {
     }
   }
 
-  private setLastUiActivityMs(timestamp: number = Date.now()): void {
-    if (
-      !this.isInterrupted &&
-      (this.lastUiActivityMs === undefined || timestamp > this.lastUiActivityMs)
-    ) {
-      this.lastUiActivityMs = timestamp;
-    }
-  }
-
+  /**
+   * Interrupts the root span, stopping further UI observation and closing the
+   * active UI render span and the root span itself.
+   */
   interrupt(): void {
-    this.isInterrupted = true;
+    this.interruptedAtMs = Date.now();
+
     this.clearMutationObserver();
+
+    this.endUIRenderSpan(this.postPaintAtMs ?? this.interruptedAtMs);
+
     this.endRootSpanOrWait();
   }
 
@@ -136,6 +155,11 @@ export class RootSpan {
     return this.span.spanContext().traceId;
   }
 
+  /**
+   * Creates a MutationObserver to observe DOM changes, tracking UI render cycles
+   * via requestAnimationFrame to measure paint timings.
+   * @returns A MutationObserver instance, or null if not in a browser environment.
+   */
   private createMutationObserver(): MutationObserver | null {
     if (
       typeof document === 'undefined' ||
@@ -145,17 +169,39 @@ export class RootSpan {
     }
 
     const observer = new MutationObserver(() => {
-      this.setLastUiActivityMs();
-      this.quiesce(); // Refresh quiescence timer due to DOM updates
       if (
         typeof window !== 'undefined' &&
         typeof window.requestAnimationFrame === 'function'
       ) {
         window.requestAnimationFrame(() => {
-          setTimeout(() => {
-            this.setLastUiActivityMs();
-            this.quiesce(); // Refresh quiescence timer due to browser paint
-          }, 0);
+          // capture UI activity start in frame 1
+          const currTimestamp = Date.now();
+
+          if (this.prePaintAtMs === undefined) {
+            this.prePaintAtMs = currTimestamp;
+          } else if (this.postPaintAtMs !== undefined) {
+            const timeSinceRenderEnd = currTimestamp - this.postPaintAtMs;
+            if (timeSinceRenderEnd >= UI_RENDER_QUIESCENCE_WINDOW_MS) {
+              this.endUIRenderSpan();
+              this.prePaintAtMs = currTimestamp;
+            }
+          }
+
+          this.postPaintAtMs = undefined;
+          /**
+           * Quiescence does not exist during a pending post rAF callback because it is guaranteed
+           * to happen eventually and no waiting period should prevent it (besides an interrupt)
+           */
+          this.clearRenderQuiesce();
+          this.clearQuiesce();
+          // any queued timeout callback for a completed quiescence period becomes invalid here
+          window.requestAnimationFrame(() => {
+            // capture UI activity end in frame 2
+            this.postPaintAtMs = Date.now();
+
+            this.renderQuiesce();
+            this.quiesce();
+          });
         });
       }
     });
@@ -167,56 +213,9 @@ export class RootSpan {
     return observer;
   }
 
-  // Triggers the closing of the root span after a quiescence window.
-  private quiesce(): void {
-    this.clearQuiescenceTimer();
-
-    this.quiescenceTimerId = setTimeout(() => {
-      this.endRootSpanOrWait();
-    }, QUIESCENCE_WINDOW_MS);
-  }
-
-  private endRootSpanOrWait(): void {
-    if (!this.isDocumentLoaded) {
-      return; // Do not end yet, the document load has not completed
-    }
-
-    if (this.activeNetworkRequests > 0) {
-      this.quiesce(); // Keep waiting, there are active network requests
-      return;
-    }
-
-    if (
-      !this.isInterrupted &&
-      Date.now() - this.getLastActivityMs() < QUIESCENCE_WINDOW_MS
-    ) {
-      this.quiesce(); // Keep waiting, work is not yet stable
-      return;
-    }
-
-    this.clearMutationObserver();
-    this.clearQuiescenceTimer();
-
-    const finalEndTime = this.getLastActivityMs();
-    this.span.end(finalEndTime);
-    this.manager.clearRootSpanFromContext(this);
-  }
-
-  private getLastActivityMs(): number {
-    if (this.isInterrupted) {
-      return this.lastBackgroundActivityMs ?? this.startTimeMs;
-    }
-    if (
-      this.lastBackgroundActivityMs !== undefined &&
-      this.lastUiActivityMs !== undefined
-    ) {
-      return Math.max(this.lastBackgroundActivityMs, this.lastUiActivityMs);
-    }
-    return (
-      this.lastBackgroundActivityMs ?? this.lastUiActivityMs ?? this.startTimeMs
-    );
-  }
-
+  /**
+   * Disconnects and cleans up the DOM mutation observer.
+   */
   private clearMutationObserver(): void {
     if (this.mutationObserver) {
       this.mutationObserver.disconnect();
@@ -224,10 +223,118 @@ export class RootSpan {
     }
   }
 
-  private clearQuiescenceTimer(): void {
+  private getLastActivityMs(): number {
+    const activityTimes: number[] = [this.rootSpanStartAtMs];
+    if (this.lastBackgroundActivityMs !== undefined) {
+      activityTimes.push(this.lastBackgroundActivityMs);
+    }
+    if (this.postPaintAtMs !== undefined) {
+      activityTimes.push(this.postPaintAtMs);
+    } else if (
+      this.interruptedAtMs !== undefined &&
+      (this.prePaintAtMs !== undefined ||
+        this.lastBackgroundActivityMs === undefined)
+    ) {
+      activityTimes.push(this.interruptedAtMs);
+    }
+    return Math.max(...activityTimes);
+  }
+
+  /**
+   * Triggers the closing of the root span after a quiescence window of inactivity.
+   */
+  private quiesce(): void {
+    this.clearQuiesce();
+
+    this.quiescenceTimerId = setTimeout(() => {
+      this.endRootSpanOrWait();
+    }, QUIESCENCE_WINDOW_MS);
+  }
+
+  /**
+   * Triggers the closing of the UI render span after a render quiescence window of inactivity.
+   */
+  private renderQuiesce(): void {
+    this.clearRenderQuiesce();
+
+    this.quiescenceRenderTimerId = setTimeout(() => {
+      this.endUIRenderSpan();
+    }, UI_RENDER_QUIESCENCE_WINDOW_MS);
+  }
+
+  /**
+   * Clears the root span quiescence timer, preventing it from executing.
+   */
+  private clearQuiesce(): void {
     if (this.quiescenceTimerId) {
       clearTimeout(this.quiescenceTimerId);
+      this.quiescenceTimerId = null;
     }
+  }
+
+  /**
+   * Clears the UI render span quiescence timer, preventing it from executing.
+   */
+  private clearRenderQuiesce(): void {
+    if (this.quiescenceRenderTimerId) {
+      clearTimeout(this.quiescenceRenderTimerId);
+      this.quiescenceRenderTimerId = null;
+    }
+  }
+
+  /**
+   * Starts and immediately ends a 'UI Render' span to capture the duration
+   * of the measured UI rendering work.
+   * @param endTimeMs Optional end timestamp. Defaults to the last paint completion time.
+   */
+  private endUIRenderSpan(
+    endTimeMs: number | undefined = this.postPaintAtMs
+  ): void {
+    if (this.prePaintAtMs !== undefined && endTimeMs !== undefined) {
+      const parentContext = trace.setSpan(context.active(), this.span);
+
+      const uiSpan = this.tracer.startSpan(
+        'UI Render',
+        {
+          startTime: this.prePaintAtMs
+        },
+        parentContext
+      );
+
+      uiSpan.end(endTimeMs);
+
+      this.prePaintAtMs = undefined;
+
+      this.clearRenderQuiesce();
+    }
+  }
+
+  /**
+   * Checks if the root span is stable (both network and UI activity have ceased) and ends it if so.
+   */
+  private endRootSpanOrWait(): void {
+    if (!this.isDocumentLoaded) {
+      return; // Do not end yet, the document load has not completed
+    }
+    if (this.activeNetworkRequests > 0) {
+      this.quiesce(); // Keep waiting, there are active network requests
+      return;
+    }
+
+    const finalEndTime = this.getLastActivityMs();
+
+    if (
+      this.interruptedAtMs === undefined &&
+      Date.now() - finalEndTime < QUIESCENCE_WINDOW_MS
+    ) {
+      this.quiesce(); // Keep waiting, work is not yet stable
+      return;
+    }
+
+    this.clearMutationObserver();
+    this.clearQuiesce();
+    this.span.end(finalEndTime);
+    this.manager.clearRootSpanFromContext(this);
   }
 }
 
@@ -239,6 +346,14 @@ export class RootSpanContextManager extends ZoneContextManager {
   private _interruptedRootSpans: RootSpan[] = [];
   // TODO: cchestnut look into having a store to manage context data not unique to span context
   private _activeAppScreenId: string | undefined;
+  /**
+   * Starts a new root span, interrupting and clearing the previous active root span if one exists.
+   * @param tracer The tracer to start the span.
+   * @param type The type of the root span ('app-start' or 'user-interaction').
+   * @param rootSpanName The name of the root span.
+   * @param options Optional configuration options for the span.
+   * @returns The newly created RootSpan instance.
+   */
   startRootSpan(
     tracer: Tracer,
     type: RootSpanType,
@@ -251,14 +366,23 @@ export class RootSpanContextManager extends ZoneContextManager {
       this.clearActiveRootSpan();
     }
     const span = tracer.startSpan(rootSpanName, options);
-    this._activeRootSpan = new RootSpan(this, span, type, options?.startTime);
+    this._activeRootSpan = new RootSpan(span, this, type, tracer);
     return this._activeRootSpan;
   }
 
+  /**
+   * Returns the currently active RootSpan instance, if any.
+   * @returns The active RootSpan, or undefined.
+   */
   getActiveRootSpan(): RootSpan | undefined {
     return this._activeRootSpan;
   }
 
+  /**
+   * Retrieves a RootSpan (either active or recently interrupted) by its trace ID.
+   * @param traceId The trace ID to match.
+   * @returns The RootSpan if found, or undefined.
+   */
   getRootSpanByTraceId(traceId: string): RootSpan | undefined {
     if (this._activeRootSpan && this._activeRootSpan.getTraceId() === traceId) {
       return this._activeRootSpan;
@@ -267,10 +391,17 @@ export class RootSpanContextManager extends ZoneContextManager {
     }
   }
 
+  /**
+   * Clears the reference to the currently active root span.
+   */
   clearActiveRootSpan(): void {
     this._activeRootSpan = undefined;
   }
 
+  /**
+   * Removes a RootSpan instance from active or interrupted tracking.
+   * @param rootSpan The RootSpan to remove.
+   */
   clearRootSpanFromContext(rootSpan: RootSpan): void {
     if (this._activeRootSpan === rootSpan) {
       this.clearActiveRootSpan();
@@ -282,14 +413,27 @@ export class RootSpanContextManager extends ZoneContextManager {
     }
   }
 
+  /**
+   * Gets the active application screen ID (current page/route).
+   * @returns The screen ID, or undefined.
+   */
   getActiveAppScreenId(): string | undefined {
     return this._activeAppScreenId;
   }
 
+  /**
+   * Sets the active application screen ID (current page/route).
+   * @param activeAppScreenId The screen ID.
+   */
   setActiveAppScreenId(activeAppScreenId: string): void {
     this._activeAppScreenId = activeAppScreenId;
   }
 
+  /**
+   * Overrides ZoneContextManager active context, making the active RootSpan's span
+   * the active Span in the returned Context if there isn't one already.
+   * @returns The current Context.
+   */
   override active(): Context {
     const context = super.active();
     // If the root span is set and there isn't already an active span in context
