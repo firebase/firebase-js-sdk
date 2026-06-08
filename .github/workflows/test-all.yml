@@ -47,6 +47,8 @@ jobs:
       run: |
         npx @puppeteer/browsers install chrome@stable
     - uses: actions/checkout@v4
+      with:
+        persist-credentials: false
     - name: Set up Node (22)
       uses: actions/setup-node@v4
       with:
@@ -81,6 +83,8 @@ jobs:
       run: |
         npx @puppeteer/browsers install chrome@stable
     - uses: actions/checkout@v4
+      with:
+        persist-credentials: false
     - name: Download build archive
       uses: actions/download-artifact@v4
       with:
@@ -145,6 +149,8 @@ jobs:
         echo "::warning ::Previously validated version: ${CHROME_VALIDATED_VERSION} vs. Installed version: $chromeVersionString"
         fi
     - uses: actions/checkout@v4
+      with:
+        persist-credentials: false
     - name: Download build archive
       uses: actions/download-artifact@v4
       with:
@@ -195,6 +201,8 @@ jobs:
       run: |
         npx @puppeteer/browsers install chrome@stable
     - uses: actions/checkout@v4
+      with:
+        persist-credentials: false
     - name: Download build archive
       uses: actions/download-artifact@v4
       with:
@@ -249,6 +257,8 @@ jobs:
       run: |
         npx @puppeteer/browsers install chrome@stable
     - uses: actions/checkout@v4
+      with:
+        persist-credentials: false
     - name: Download build archive
       uses: actions/download-artifact@v4
       with:

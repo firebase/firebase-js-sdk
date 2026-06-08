@@ -70,6 +70,7 @@ jobs:
         # Release script requires git history and tags.
         fetch-depth: 0
         ref: ${{ github.event.inputs.release-branch }}
+        persist-credentials: false
     - name: Yarn install
       run: yarn
     - name: Publish to NPM

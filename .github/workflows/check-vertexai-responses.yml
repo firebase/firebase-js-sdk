@@ -28,6 +28,8 @@ jobs:
       pull-requests: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - name: Clone mock responses
         run: scripts/update_vertexai_responses.sh
       - name: Find cloned and latest versions

@@ -35,6 +35,7 @@ jobs:
         with:
           # This makes Actions fetch all Git history so that Changesets can generate changelogs with the correct commits
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Setup Node.js 20.x
         uses: actions/setup-node@master
