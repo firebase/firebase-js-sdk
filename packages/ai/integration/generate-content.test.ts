@@ -371,8 +371,7 @@ describe('Generate Content', function () {
           'Summarize this website https://berkshirehathaway.com'
         );
         const response = result.response;
-        const urlContextMetadata =
-          response.candidates?.[0].urlContextMetadata;
+        const urlContextMetadata = response.candidates?.[0].urlContextMetadata;
         expect(urlContextMetadata?.urlMetadata).to.exist;
         expect(
           urlContextMetadata?.urlMetadata.length
