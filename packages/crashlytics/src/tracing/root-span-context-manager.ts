@@ -316,6 +316,7 @@ export class RootSpan {
       this.quiesce(); // Keep waiting, there are active network requests
       return;
     }
+
     const finalEndTime = this.getLastActivityMs();
 
     if (
@@ -352,7 +353,7 @@ export class RootSpanContextManager extends ZoneContextManager {
   startRootSpan(
     tracer: Tracer,
     type: RootSpanType,
-    rootSpanName: string,
+    rootSpanName: string = type,
     options?: SpanOptions
   ): RootSpan {
     if (this._activeRootSpan) {
