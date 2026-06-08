@@ -23,6 +23,8 @@ import { registerMessagingInSw } from './helpers/register';
 export * from './interfaces/public-types';
 export {
   onBackgroundMessage,
+  onRegistered,
+  onUnregistered,
   getMessagingInSw as getMessaging,
   experimentalSetDeliveryMetricsExportedToBigQueryEnabled
 } from './api';

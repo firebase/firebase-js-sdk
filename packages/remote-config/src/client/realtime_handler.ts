@@ -21,7 +21,8 @@ import {
   ConfigUpdate,
   ConfigUpdateObserver,
   FetchResponse,
-  FirebaseRemoteConfigObject
+  FirebaseRemoteConfigObject,
+  FirebaseExperimentDescription
 } from '../public_types';
 import { calculateBackoffMillis, FirebaseError } from '@firebase/util';
 import { ERROR_FACTORY, ErrorCode } from '../errors';
@@ -43,6 +44,7 @@ const NO_FAILED_REALTIME_STREAMS = 0;
 const REALTIME_DISABLED_KEY = 'featureDisabled';
 const REALTIME_RETRY_INTERVAL = 'retryIntervalSeconds';
 const TEMPLATE_VERSION_KEY = 'latestTemplateVersionNumber';
+const ROLLOUT_ID_PREFIX = '_exp_rollout';
 
 export class RealtimeHandler {
   constructor(
@@ -326,14 +328,34 @@ export class RealtimeHandler {
    */
   private getChangedParams(
     newConfig: FirebaseRemoteConfigObject,
-    oldConfig: FirebaseRemoteConfigObject
+    oldConfig: FirebaseRemoteConfigObject,
+    newFetchResponse: FetchResponse,
+    oldFetchResponse: FetchResponse | undefined
   ): Set<string> {
     const changedKeys = new Set<string>();
     const newKeys = new Set(Object.keys(newConfig || {}));
     const oldKeys = new Set(Object.keys(oldConfig || {}));
 
+    const newExperiments = newFetchResponse.experiments || [];
+    const oldExperiments = oldFetchResponse?.experiments || [];
+    const newExperimentsMap = this.createExperimentsMap(newExperiments);
+    const oldExperimentsMap = this.createExperimentsMap(oldExperiments);
+
     for (const key of newKeys) {
       if (!oldKeys.has(key) || newConfig[key] !== oldConfig[key]) {
+        changedKeys.add(key);
+      }
+      if (newExperimentsMap.has(key) !== oldExperimentsMap.has(key)) {
+        changedKeys.add(key);
+        continue;
+      }
+      const newExperiment = newExperimentsMap.get(key);
+      const oldExperiment = oldExperimentsMap.get(key);
+      if (
+        newExperiment &&
+        oldExperiment &&
+        !this.areExperimentsEqual(newExperiment, oldExperiment)
+      ) {
         changedKeys.add(key);
       }
     }
@@ -345,6 +367,37 @@ export class RealtimeHandler {
     }
 
     return changedKeys;
+  }
+
+  private areExperimentsEqual(
+    newExperiment: FirebaseExperimentDescription,
+    oldExperiment: FirebaseExperimentDescription
+  ): boolean {
+    return (
+      newExperiment.experimentId === oldExperiment.experimentId &&
+      newExperiment.variantId === oldExperiment.variantId &&
+      newExperiment.timeToLiveMillis === oldExperiment.timeToLiveMillis &&
+      newExperiment.triggerTimeoutMillis === oldExperiment.triggerTimeoutMillis
+    );
+  }
+
+  /** Creates a map where the key is the config key and the value is the experiment description. */
+  private createExperimentsMap(
+    experimentDescriptions: FirebaseExperimentDescription[]
+  ): Map<string, FirebaseExperimentDescription> {
+    const experimentsMap = new Map<string, FirebaseExperimentDescription>();
+    for (const experimentDescription of experimentDescriptions) {
+      if (
+        !experimentDescription.affectedParameterKeys ||
+        experimentDescription.experimentId.startsWith(ROLLOUT_ID_PREFIX)
+      ) {
+        continue;
+      }
+      for (const key of experimentDescription.affectedParameterKeys) {
+        experimentsMap.set(key, experimentDescription);
+      }
+    }
+    return experimentsMap;
   }
 
   private async fetchLatestConfig(
@@ -369,6 +422,8 @@ export class RealtimeHandler {
         fetchAttempt: currentAttempt
       };
 
+      const lastFetchResponse =
+        await this.storage.getLastSuccessfulFetchResponse();
       const fetchResponse: FetchResponse = await this.cachingClient.fetch(
         fetchRequest
       );
@@ -397,7 +452,9 @@ export class RealtimeHandler {
 
       const updatedKeys = this.getChangedParams(
         fetchResponse.config,
-        activatedConfigs
+        activatedConfigs,
+        fetchResponse,
+        lastFetchResponse
       );
 
       if (updatedKeys.size === 0) {

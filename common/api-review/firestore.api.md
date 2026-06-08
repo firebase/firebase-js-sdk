@@ -389,6 +389,9 @@ export interface LoadBundleTaskProgress {
 export { LogLevel }
 
 // @public
+export function maximum(n: number): FieldValue;
+
+// @public
 export interface MemoryCacheSettings {
     garbageCollector?: MemoryGarbageCollector;
 }
@@ -424,6 +427,9 @@ export interface MemoryLruGarbageCollector {
 export function memoryLruGarbageCollector(settings?: {
     cacheSizeBytes?: number;
 }): MemoryLruGarbageCollector;
+
+// @public
+export function minimum(n: number): FieldValue;
 
 // @public
 export function namedQuery(firestore: Firestore, name: string): Promise<Query | null>;

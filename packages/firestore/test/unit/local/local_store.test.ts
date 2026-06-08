@@ -22,6 +22,11 @@ import { User } from '../../../src/auth/user';
 import { BundledDocuments, NamedQuery } from '../../../src/core/bundle';
 import { BundleConverterImpl } from '../../../src/core/bundle_impl';
 import {
+  TargetOrPipeline,
+  toCorePipeline,
+  toPipelineStages
+} from '../../../src/core/pipeline-util';
+import {
   LimitType,
   Query,
   queryEquals,
@@ -29,8 +34,7 @@ import {
   queryWithLimit
 } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
-import { Target } from '../../../src/core/target';
-import { BatchId, TargetId } from '../../../src/core/types';
+import { BatchId, RemoteTargetId, TargetId } from '../../../src/core/types';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { LocalStore } from '../../../src/local/local_store';
 import {
@@ -38,7 +42,7 @@ import {
   localStoreAllocateTarget,
   localStoreApplyBundledDocuments,
   localStoreApplyRemoteEventToLocalCache,
-  localStoreExecuteQuery,
+  localStoreExecuteQuery as prodLocalStoreExecuteQuery,
   localStoreGetHighestUnacknowledgedBatchId,
   localStoreGetTargetData,
   localStoreGetNamedQuery,
@@ -52,10 +56,12 @@ import {
   localStoreReleaseTarget,
   localStoreSaveBundle,
   localStoreSaveNamedQuery,
-  newLocalStore
+  newLocalStore,
+  QueryResult
 } from '../../../src/local/local_store_impl';
 import { LocalViewChanges } from '../../../src/local/local_view_changes';
 import { Persistence } from '../../../src/local/persistence';
+import { TargetData } from '../../../src/local/target_data';
 import {
   DocumentKeySet,
   documentKeySet,
@@ -89,11 +95,13 @@ import {
 import { debugAssert } from '../../../src/util/assert';
 import { ByteString } from '../../../src/util/byte_string';
 import { BATCHID_UNKNOWN } from '../../../src/util/types';
+import { newTestFirestore } from '../../util/api_helpers';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import {
   bundledDocuments,
   bundleMetadata,
   byteStringFromString,
+  castRemoteEvent,
   deletedDoc,
   deleteMutation,
   doc,
@@ -116,8 +124,10 @@ import {
   TestNamedQuery,
   TestSnapshotVersion,
   unknownDoc,
-  version
+  version,
+  addWatchTargets
 } from '../../util/helpers';
+import { pipelineFromStages } from '../../util/pipelines';
 
 import { CountingQueryEngine } from './counting_query_engine';
 import * as persistenceHelpers from './persistence_test_helpers';
@@ -142,7 +152,7 @@ class LocalStoreTester {
     public localStore: LocalStore,
     private readonly persistence: Persistence,
     private readonly queryEngine: CountingQueryEngine,
-    readonly gcIsEager: boolean
+    readonly options: { gcIsEager: boolean; convertToPipeline: boolean }
   ) {
     this.bundleConverter = new BundleConverterImpl(JSON_SERIALIZER);
   }
@@ -288,10 +298,17 @@ class LocalStoreTester {
   }
 
   afterAllocatingQuery(query: Query): LocalStoreTester {
+    if (this.options.convertToPipeline) {
+      return this.afterAllocatingTarget(
+        toCorePipeline(
+          pipelineFromStages(toPipelineStages(query, newTestFirestore()))
+        )
+      );
+    }
     return this.afterAllocatingTarget(queryToTarget(query));
   }
 
-  afterAllocatingTarget(target: Target): LocalStoreTester {
+  afterAllocatingTarget(target: TargetOrPipeline): LocalStoreTester {
     this.prepareNextStep();
 
     this.promiseChain = this.promiseChain.then(() =>
@@ -319,9 +336,13 @@ class LocalStoreTester {
     this.prepareNextStep();
 
     this.promiseChain = this.promiseChain.then(() =>
-      localStoreExecuteQuery(
+      prodLocalStoreExecuteQuery(
         this.localStore,
-        query,
+        this.options.convertToPipeline
+          ? toCorePipeline(
+              pipelineFromStages(toPipelineStages(query, newTestFirestore()))
+            )
+          : query,
         /* usePreviousResults= */ true
       ).then(({ documents }) => {
         this.queryExecutionCount++;
@@ -386,7 +407,7 @@ class LocalStoreTester {
   }
 
   toContainTargetData(
-    target: Target,
+    target: TargetOrPipeline,
     snapshotVersion: number,
     lastLimboFreeSnapshotVersion: number,
     resumeToken: ByteString
@@ -492,7 +513,7 @@ class LocalStoreTester {
   }
 
   toNotContainIfEager(doc: Document): LocalStoreTester {
-    if (this.gcIsEager) {
+    if (this.options.gcIsEager) {
       return this.toNotContain(doc.key.toString());
     } else {
       return this.toContain(doc);
@@ -603,7 +624,30 @@ describe('LocalStore w/ Memory Persistence', () => {
   }
 
   addEqualityMatcher();
-  genericLocalStoreTests(initialize, /* gcIsEager= */ true);
+  genericLocalStoreTests(initialize, {
+    gcIsEager: true,
+    convertToPipeline: false
+  });
+});
+
+describe('LocalStore w/ Memory Persistence and Pipelines', () => {
+  async function initialize(): Promise<LocalStoreComponents> {
+    const queryEngine = new CountingQueryEngine();
+    const persistence = await persistenceHelpers.testMemoryEagerPersistence();
+    const localStore = newLocalStore(
+      persistence,
+      queryEngine,
+      User.UNAUTHENTICATED,
+      JSON_SERIALIZER
+    );
+    return { queryEngine, persistence, localStore };
+  }
+
+  addEqualityMatcher();
+  genericLocalStoreTests(initialize, {
+    gcIsEager: true,
+    convertToPipeline: true
+  });
 });
 
 describe('LocalStore w/ IndexedDB Persistence', () => {
@@ -627,12 +671,45 @@ describe('LocalStore w/ IndexedDB Persistence', () => {
   }
 
   addEqualityMatcher();
-  genericLocalStoreTests(initialize, /* gcIsEager= */ false);
+  genericLocalStoreTests(initialize, {
+    gcIsEager: false,
+    convertToPipeline: false
+  });
+});
+
+describe('LocalStore w/ IndexedDB Persistence and Pipeline', () => {
+  if (!IndexedDbPersistence.isAvailable()) {
+    console.warn(
+      'No IndexedDB. Skipping LocalStore w/ IndexedDB persistence tests.'
+    );
+    return;
+  }
+
+  async function initialize(): Promise<LocalStoreComponents> {
+    const queryEngine = new CountingQueryEngine();
+    const persistence = await persistenceHelpers.testIndexedDbPersistence();
+    const localStore = newLocalStore(
+      persistence,
+      queryEngine,
+      User.UNAUTHENTICATED,
+      JSON_SERIALIZER
+    );
+    return { queryEngine, persistence, localStore };
+  }
+
+  addEqualityMatcher();
+  genericLocalStoreTests(initialize, {
+    gcIsEager: false,
+    convertToPipeline: true
+  });
 });
 
 function genericLocalStoreTests(
   getComponents: () => Promise<LocalStoreComponents>,
-  gcIsEager: boolean
+  options: {
+    gcIsEager: boolean;
+    convertToPipeline: boolean;
+  }
 ): void {
   let persistence: Persistence;
   let localStore: LocalStore;
@@ -651,11 +728,22 @@ function genericLocalStoreTests(
   });
 
   function expectLocalStore(): LocalStoreTester {
-    return new LocalStoreTester(
+    return new LocalStoreTester(localStore, persistence, queryEngine, options);
+  }
+
+  function localStoreExecuteQuery(
+    localStore: LocalStore,
+    query: Query,
+    usePreviousResult: boolean
+  ): Promise<QueryResult> {
+    return prodLocalStoreExecuteQuery(
       localStore,
-      persistence,
-      queryEngine,
-      gcIsEager
+      options.convertToPipeline
+        ? toCorePipeline(
+            pipelineFromStages(toPipelineStages(query, newTestFirestore()))
+          )
+        : query,
+      false
     );
   }
 
@@ -964,7 +1052,7 @@ function genericLocalStoreTests(
   });
 
   // eslint-disable-next-line no-restricted-properties
-  (gcIsEager ? it : it.skip)(
+  (options.gcIsEager ? it : it.skip)(
     'handles SetMutation -> Ack -> PatchMutation -> Reject',
     () => {
       return (
@@ -1016,7 +1104,7 @@ function genericLocalStoreTests(
   });
 
   // eslint-disable-next-line no-restricted-properties
-  (gcIsEager ? it : it.skip)(
+  (options.gcIsEager ? it : it.skip)(
     'collects garbage after ChangeBatch with no target ids',
     () => {
       return expectLocalStore()
@@ -1031,20 +1119,23 @@ function genericLocalStoreTests(
   );
 
   // eslint-disable-next-line no-restricted-properties
-  (gcIsEager ? it : it.skip)('collects garbage after ChangeBatch', () => {
-    const query1 = query('foo');
-    return expectLocalStore()
-      .afterAllocatingQuery(query1)
-      .toReturnTargetId(2)
-      .after(docAddedRemoteEvent(doc('foo/bar', 2, { foo: 'bar' }), [2]))
-      .toContain(doc('foo/bar', 2, { foo: 'bar' }))
-      .after(docUpdateRemoteEvent(doc('foo/bar', 2, { foo: 'baz' }), [], [2]))
-      .toNotContain('foo/bar')
-      .finish();
-  });
+  (options.gcIsEager ? it : it.skip)(
+    'collects garbage after ChangeBatch',
+    () => {
+      const query1 = query('foo');
+      return expectLocalStore()
+        .afterAllocatingQuery(query1)
+        .toReturnTargetId(2)
+        .after(docAddedRemoteEvent(doc('foo/bar', 2, { foo: 'bar' }), [2]))
+        .toContain(doc('foo/bar', 2, { foo: 'bar' }))
+        .after(docUpdateRemoteEvent(doc('foo/bar', 2, { foo: 'baz' }), [], [2]))
+        .toNotContain('foo/bar')
+        .finish();
+    }
+  );
 
   // eslint-disable-next-line no-restricted-properties
-  (gcIsEager ? it : it.skip)(
+  (options.gcIsEager ? it : it.skip)(
     'collects garbage after acknowledged mutation',
     () => {
       const query1 = query('foo');
@@ -1080,40 +1171,43 @@ function genericLocalStoreTests(
   );
 
   // eslint-disable-next-line no-restricted-properties
-  (gcIsEager ? it : it.skip)('collects garbage after rejected mutation', () => {
-    const query1 = query('foo');
-    return (
-      expectLocalStore()
-        .afterAllocatingQuery(query1)
-        .toReturnTargetId(2)
-        .after(docAddedRemoteEvent(doc('foo/bar', 1, { foo: 'old' }), [2]))
-        .after(patchMutation('foo/bar', { foo: 'bar' }))
-        // Release the target so that our target count goes back to 0 and we are considered
-        // up-to-date.
-        .afterReleasingTarget(2)
-        .after(setMutation('foo/bah', { foo: 'bah' }))
-        .after(deleteMutation('foo/baz'))
-        .toContain(doc('foo/bar', 1, { foo: 'bar' }).setHasLocalMutations())
-        .toContain(doc('foo/bah', 0, { foo: 'bah' }).setHasLocalMutations())
-        .toContain(deletedDoc('foo/baz', 0).setHasLocalMutations())
-        .afterRejectingMutation() // patch mutation
-        .toNotContain('foo/bar')
-        .toContain(doc('foo/bah', 0, { foo: 'bah' }).setHasLocalMutations())
-        .toContain(deletedDoc('foo/baz', 0).setHasLocalMutations())
-        .afterRejectingMutation() // set mutation
-        .toNotContain('foo/bar')
-        .toNotContain('foo/bah')
-        .toContain(deletedDoc('foo/baz', 0).setHasLocalMutations())
-        .afterRejectingMutation() // delete mutation
-        .toNotContain('foo/bar')
-        .toNotContain('foo/bah')
-        .toNotContain('foo/baz')
-        .finish()
-    );
-  });
+  (options.gcIsEager ? it : it.skip)(
+    'collects garbage after rejected mutation',
+    () => {
+      const query1 = query('foo');
+      return (
+        expectLocalStore()
+          .afterAllocatingQuery(query1)
+          .toReturnTargetId(2)
+          .after(docAddedRemoteEvent(doc('foo/bar', 1, { foo: 'old' }), [2]))
+          .after(patchMutation('foo/bar', { foo: 'bar' }))
+          // Release the target so that our target count goes back to 0 and we are considered
+          // up-to-date.
+          .afterReleasingTarget(2)
+          .after(setMutation('foo/bah', { foo: 'bah' }))
+          .after(deleteMutation('foo/baz'))
+          .toContain(doc('foo/bar', 1, { foo: 'bar' }).setHasLocalMutations())
+          .toContain(doc('foo/bah', 0, { foo: 'bah' }).setHasLocalMutations())
+          .toContain(deletedDoc('foo/baz', 0).setHasLocalMutations())
+          .afterRejectingMutation() // patch mutation
+          .toNotContain('foo/bar')
+          .toContain(doc('foo/bah', 0, { foo: 'bah' }).setHasLocalMutations())
+          .toContain(deletedDoc('foo/baz', 0).setHasLocalMutations())
+          .afterRejectingMutation() // set mutation
+          .toNotContain('foo/bar')
+          .toNotContain('foo/bah')
+          .toContain(deletedDoc('foo/baz', 0).setHasLocalMutations())
+          .afterRejectingMutation() // delete mutation
+          .toNotContain('foo/bar')
+          .toNotContain('foo/bah')
+          .toNotContain('foo/baz')
+          .finish()
+      );
+    }
+  );
 
   // eslint-disable-next-line no-restricted-properties
-  (gcIsEager ? it : it.skip)('pins documents in the local view', () => {
+  (options.gcIsEager ? it : it.skip)('pins documents in the local view', () => {
     const query1 = query('foo');
     return expectLocalStore()
       .afterAllocatingQuery(query1)
@@ -1144,7 +1238,7 @@ function genericLocalStoreTests(
   });
 
   // eslint-disable-next-line no-restricted-properties
-  (gcIsEager ? it : it.skip)(
+  (options.gcIsEager ? it : it.skip)(
     'throws away documents with unknown target-ids immediately',
     () => {
       const targetId = 321;
@@ -1272,7 +1366,7 @@ function genericLocalStoreTests(
   });
 
   // eslint-disable-next-line no-restricted-properties
-  (gcIsEager ? it.skip : it)('persists resume tokens', async () => {
+  (options.gcIsEager ? it.skip : it)('persists resume tokens', async () => {
     const query1 = query('foo/bar');
     const targetData = await localStoreAllocateTarget(
       localStore,
@@ -1282,17 +1376,26 @@ function genericLocalStoreTests(
     const resumeToken = byteStringFromString('abc');
     const watchChange = new WatchTargetChange(
       WatchTargetChangeState.Current,
-      [targetId],
+      // This test does not use remote_store mapping of target IDs,
+      // so treat the targetId from targetData as a remote target ID.
+      [targetId as RemoteTargetId],
       resumeToken
     );
     const aggregator = new WatchChangeAggregator({
       getRemoteKeysForTarget: () => documentKeySet(),
-      getTargetDataForTarget: () => targetData,
+      getTargetDataForTarget: () => targetData as TargetData<RemoteTargetId>,
       getDatabaseId: () => persistenceHelpers.TEST_DATABASE_ID
     });
+    addWatchTargets(aggregator, [targetId]);
+
     aggregator.handleTargetChange(watchChange);
     const remoteEvent = aggregator.createRemoteEvent(version(1000));
-    await localStoreApplyRemoteEventToLocalCache(localStore, remoteEvent);
+    // This test does not use remote_store mapping of remote events,
+    // so treat the remote event created by the aggregator as an SDK remote event
+    await localStoreApplyRemoteEventToLocalCache(
+      localStore,
+      castRemoteEvent<TargetId>(remoteEvent)
+    );
 
     // Stop listening so that the query should become inactive (but persistent)
     await localStoreReleaseTarget(
@@ -1310,7 +1413,7 @@ function genericLocalStoreTests(
   });
 
   // eslint-disable-next-line no-restricted-properties
-  (gcIsEager ? it.skip : it)(
+  (options.gcIsEager ? it.skip : it)(
     'does not replace resume token with empty resume token',
     async () => {
       const query1 = query('foo/bar');
@@ -1318,7 +1421,7 @@ function genericLocalStoreTests(
         localStore,
         queryToTarget(query1)
       );
-      const targetId = targetData.targetId;
+      const targetId = targetData.targetId as RemoteTargetId;
       const resumeToken = byteStringFromString('abc');
 
       const watchChange1 = new WatchTargetChange(
@@ -1328,12 +1431,16 @@ function genericLocalStoreTests(
       );
       const aggregator1 = new WatchChangeAggregator({
         getRemoteKeysForTarget: () => documentKeySet(),
-        getTargetDataForTarget: () => targetData,
+        getTargetDataForTarget: () => targetData as TargetData<RemoteTargetId>,
         getDatabaseId: () => persistenceHelpers.TEST_DATABASE_ID
       });
+      addWatchTargets(aggregator1, [targetId]);
       aggregator1.handleTargetChange(watchChange1);
       const remoteEvent1 = aggregator1.createRemoteEvent(version(1000));
-      await localStoreApplyRemoteEventToLocalCache(localStore, remoteEvent1);
+      await localStoreApplyRemoteEventToLocalCache(
+        localStore,
+        castRemoteEvent(remoteEvent1)
+      );
 
       const watchChange2 = new WatchTargetChange(
         WatchTargetChangeState.Current,
@@ -1342,12 +1449,16 @@ function genericLocalStoreTests(
       );
       const aggregator2 = new WatchChangeAggregator({
         getRemoteKeysForTarget: () => documentKeySet(),
-        getTargetDataForTarget: () => targetData,
+        getTargetDataForTarget: () => targetData as TargetData<RemoteTargetId>,
         getDatabaseId: () => persistenceHelpers.TEST_DATABASE_ID
       });
+      addWatchTargets(aggregator2, [targetId]);
       aggregator2.handleTargetChange(watchChange2);
       const remoteEvent2 = aggregator2.createRemoteEvent(version(2000));
-      await localStoreApplyRemoteEventToLocalCache(localStore, remoteEvent2);
+      await localStoreApplyRemoteEventToLocalCache(
+        localStore,
+        castRemoteEvent(remoteEvent2)
+      );
 
       // Stop listening so that the query should become inactive (but persistent)
       await localStoreReleaseTarget(
@@ -1384,7 +1495,7 @@ function genericLocalStoreTests(
   });
 
   // eslint-disable-next-line no-restricted-properties
-  (gcIsEager ? it.skip : it)(
+  (options.gcIsEager ? it.skip : it)(
     'handles SetMutation -> Ack -> Transform -> Ack -> Transform',
     () => {
       return expectLocalStore()
@@ -2076,7 +2187,7 @@ function genericLocalStoreTests(
   });
 
   it('saves updateTime as createTime when receives ack for creating a new doc', () => {
-    if (gcIsEager) {
+    if (options.gcIsEager) {
       return;
     }
 
@@ -2096,7 +2207,7 @@ function genericLocalStoreTests(
   });
 
   it('handles createTime for Set -> Ack -> RemoteEvent', () => {
-    if (gcIsEager) {
+    if (options.gcIsEager) {
       return;
     }
 
@@ -2125,7 +2236,7 @@ function genericLocalStoreTests(
   });
 
   it('handles createTime for Set -> RemoteEvent -> Ack', () => {
-    if (gcIsEager) {
+    if (options.gcIsEager) {
       return;
     }
 
@@ -2146,7 +2257,7 @@ function genericLocalStoreTests(
   });
 
   it('saves updateTime as createTime when recreating a deleted doc', async () => {
-    if (gcIsEager) {
+    if (options.gcIsEager) {
       return;
     }
 
@@ -2181,7 +2292,7 @@ function genericLocalStoreTests(
   });
 
   it('document createTime is preserved through Set -> Ack -> Patch -> Ack', () => {
-    if (gcIsEager) {
+    if (options.gcIsEager) {
       return;
     }
 
@@ -2239,7 +2350,7 @@ function genericLocalStoreTests(
   });
 
   it('document createTime is preserved through Doc Added -> Patch -> Ack', () => {
-    if (gcIsEager) {
+    if (options.gcIsEager) {
       return;
     }
     return expectLocalStore()
@@ -2316,7 +2427,7 @@ function genericLocalStoreTests(
   });
 
   it('uses target mapping to execute queries', () => {
-    if (gcIsEager) {
+    if (options.gcIsEager) {
       return;
     }
 
@@ -2380,7 +2491,7 @@ function genericLocalStoreTests(
     await localStoreApplyRemoteEventToLocalCache(
       localStore,
       noChangeEvent(
-        /* targetId= */ targetData.targetId,
+        /* targetId= */ targetData.targetId as RemoteTargetId,
         /* snapshotVersion= */ 10,
         /* resumeToken= */ byteStringFromString('foo')
       )
@@ -2418,7 +2529,7 @@ function genericLocalStoreTests(
       /* keepPersistedTargetData= */ false
     );
 
-    if (!gcIsEager) {
+    if (!options.gcIsEager) {
       cachedTargetData = await persistence.runTransaction(
         'getTargetData',
         'readonly',
@@ -2431,11 +2542,15 @@ function genericLocalStoreTests(
   });
 
   // eslint-disable-next-line no-restricted-properties
-  (gcIsEager ? it.skip : it)(
+  (options.gcIsEager ? it.skip : it)(
     'ignores target mapping after existence filter mismatch',
     async () => {
       const query1 = query('foo', filter('matches', '==', true));
-      const target = queryToTarget(query1);
+      const target = options.convertToPipeline
+        ? toCorePipeline(
+            pipelineFromStages(toPipelineStages(query1, newTestFirestore()))
+          )
+        : queryToTarget(query1);
       const targetId = 2;
 
       return (
@@ -2474,7 +2589,7 @@ function genericLocalStoreTests(
   );
 
   // eslint-disable-next-line no-restricted-properties
-  (gcIsEager ? it.skip : it)(
+  (options.gcIsEager ? it.skip : it)(
     'queries include locally modified documents',
     () => {
       // This test verifies that queries that have a persisted TargetMapping
@@ -2516,7 +2631,7 @@ function genericLocalStoreTests(
   );
 
   // eslint-disable-next-line no-restricted-properties
-  (gcIsEager ? it.skip : it)(
+  (options.gcIsEager ? it.skip : it)(
     'queries include documents from other queries',
     () => {
       // This test verifies that queries that have a persisted TargetMapping
@@ -2569,7 +2684,7 @@ function genericLocalStoreTests(
   );
 
   // eslint-disable-next-line no-restricted-properties
-  (gcIsEager ? it.skip : it)(
+  (options.gcIsEager ? it.skip : it)(
     'queries filter documents that no longer match',
     () => {
       // This test verifies that documents that once matched a query are

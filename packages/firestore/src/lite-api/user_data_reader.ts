@@ -39,6 +39,8 @@ import {
   ArrayRemoveTransformOperation,
   ArrayUnionTransformOperation,
   NumericIncrementTransformOperation,
+  NumericMaximumTransformOperation,
+  NumericMinimumTransformOperation,
   ServerTimestampTransform
 } from '../model/transform_operation';
 import {
@@ -307,7 +309,7 @@ class ParseContextImpl implements ParseContext {
  * classes.
  */
 export class UserDataReader {
-  private readonly serializer: JsonProtoSerializer;
+  readonly serializer: JsonProtoSerializer;
 
   constructor(
     private readonly databaseId: DatabaseId,
@@ -556,7 +558,52 @@ export class NumericIncrementFieldValueImpl extends FieldValue {
   isEqual(other: FieldValue): boolean {
     return (
       other instanceof NumericIncrementFieldValueImpl &&
-      this._operand === other._operand
+      (this._operand === other._operand ||
+        (Number.isNaN(this._operand) && Number.isNaN(other._operand)))
+    );
+  }
+}
+
+export class NumericMinimumFieldValueImpl extends FieldValue {
+  constructor(methodName: string, private readonly _operand: number) {
+    super(methodName);
+  }
+
+  _toFieldTransform(context: ParseContextImpl): FieldTransform {
+    const numericMinimum = new NumericMinimumTransformOperation(
+      context.serializer,
+      toNumber(context.serializer, this._operand)
+    );
+    return new FieldTransform(context.path!, numericMinimum);
+  }
+
+  isEqual(other: FieldValue): boolean {
+    return (
+      other instanceof NumericMinimumFieldValueImpl &&
+      (this._operand === other._operand ||
+        (Number.isNaN(this._operand) && Number.isNaN(other._operand)))
+    );
+  }
+}
+
+export class NumericMaximumFieldValueImpl extends FieldValue {
+  constructor(methodName: string, private readonly _operand: number) {
+    super(methodName);
+  }
+
+  _toFieldTransform(context: ParseContextImpl): FieldTransform {
+    const numericMaximum = new NumericMaximumTransformOperation(
+      context.serializer,
+      toNumber(context.serializer, this._operand)
+    );
+    return new FieldTransform(context.path!, numericMaximum);
+  }
+
+  isEqual(other: FieldValue): boolean {
+    return (
+      other instanceof NumericMaximumFieldValueImpl &&
+      (this._operand === other._operand ||
+        (Number.isNaN(this._operand) && Number.isNaN(other._operand)))
     );
   }
 }
@@ -705,7 +752,8 @@ export function parseQueryValue(
  */
 export function parseData(
   input: unknown,
-  context: ParseContext
+  context: ParseContext,
+  options?: { preferIntegers: boolean }
 ): ProtoValue | null {
   // Unwrap the API type from the Compat SDK. This will return the API type
   // from firestore-exp.
@@ -749,7 +797,7 @@ export function parseData(
       }
       return parseArray(input as unknown[], context);
     } else {
-      return parseScalarValue(input, context);
+      return parseScalarValue(input, context, options);
     }
   }
 }
@@ -830,14 +878,15 @@ function parseSentinelFieldValue(
  */
 export function parseScalarValue(
   value: unknown,
-  context: ParseContext
+  context: ParseContext,
+  options?: { preferIntegers: boolean }
 ): ProtoValue | null {
   value = getModularInstance(value);
 
   if (value === null) {
     return { nullValue: 'NULL_VALUE' };
   } else if (typeof value === 'number') {
-    return toNumber(context.serializer, value);
+    return toNumber(context.serializer, value, options);
   } else if (typeof value === 'boolean') {
     return { booleanValue: value };
   } else if (typeof value === 'string') {

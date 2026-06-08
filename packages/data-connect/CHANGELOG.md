@@ -1,5 +1,27 @@
 ## Unreleased
 
+## 0.7.1
+
+### Patch Changes
+
+- [`51e93fc`](https://github.com/firebase/firebase-js-sdk/commit/51e93fc03fd5e71c2de71a76976dd4e95eb26c68) [#9936](https://github.com/firebase/firebase-js-sdk/pull/9936) - Eliminated the 1-minute delay before closing idle backend connections to save resources.
+
+## 0.7.0
+
+### Minor Changes
+
+- [`714b41d`](https://github.com/firebase/firebase-js-sdk/commit/714b41dcc55339f94f904558ff190c5bdc9ac49f) [#9905](https://github.com/firebase/firebase-js-sdk/pull/9905) - Hardened the Firebase SQL Connect streaming transport with intelligent reconnection, query de-duplication, and resume optimizations.
+
+### Patch Changes
+
+- [`8e384c9`](https://github.com/firebase/firebase-js-sdk/commit/8e384c947de73c7f74346b1c01640f3515a4ef0e) [#9883](https://github.com/firebase/firebase-js-sdk/pull/9883) - Updated dependencies.
+
+- Updated dependencies [[`8e384c9`](https://github.com/firebase/firebase-js-sdk/commit/8e384c947de73c7f74346b1c01640f3515a4ef0e)]:
+  - @firebase/auth-interop-types@0.2.5
+  - @firebase/component@0.7.3
+  - @firebase/logger@0.5.1
+  - @firebase/util@1.15.1
+
 ## 0.6.0
 
 ### Minor Changes

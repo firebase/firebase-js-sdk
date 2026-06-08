@@ -31,6 +31,7 @@ import {
   toStringValue
 } from '../remote/serializer';
 import { hardAssert } from '../util/assert';
+import { Code, FirestoreError } from '../util/error';
 
 import {
   AggregateFunction,
@@ -88,7 +89,10 @@ export class AddFields extends Stage {
     return new OptionsUtil({});
   }
 
-  constructor(private fields: Map<string, Expression>, options: StageOptions) {
+  constructor(
+    public readonly fields: Map<string, Expression>,
+    options: StageOptions
+  ) {
     super(options);
   }
 
@@ -181,8 +185,8 @@ export class Aggregate extends Stage {
   }
 
   constructor(
-    private groups: Map<string, Expression>,
-    private accumulators: Map<string, AggregateFunction>,
+    public readonly groups: Map<string, Expression>,
+    public readonly accumulators: Map<string, AggregateFunction>,
     options: StageOptions
   ) {
     super(options);
@@ -218,7 +222,10 @@ export class Distinct extends Stage {
     return new OptionsUtil({});
   }
 
-  constructor(private groups: Map<string, Expression>, options: StageOptions) {
+  constructor(
+    public readonly groups: Map<string, Expression>,
+    options: StageOptions
+  ) {
     super(options);
   }
 
@@ -252,7 +259,7 @@ export class CollectionSource extends Stage {
     });
   }
 
-  private formattedCollectionPath: string;
+  readonly formattedCollectionPath: string;
 
   constructor(collection: string, options: StageOptions) {
     super(options);
@@ -292,7 +299,7 @@ export class CollectionGroupSource extends Stage {
     });
   }
 
-  constructor(private collectionId: string, options: StageOptions) {
+  constructor(public readonly collectionId: string, options: StageOptions) {
     super(options);
   }
 
@@ -373,13 +380,29 @@ export class DocumentsSource extends Stage {
     return new OptionsUtil({});
   }
 
-  private formattedPaths: string[];
+  readonly formattedPaths: string[];
+  readonly formattedPathsSet: Set<string>;
 
   constructor(docPaths: string[], options: StageOptions) {
     super(options);
-    this.formattedPaths = docPaths.map(path =>
+    if (!docPaths || docPaths.length === 0) {
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        'Empty document paths are not allowed in DocumentsSource'
+      );
+    }
+    const paths = docPaths.map(path =>
       path.startsWith('/') ? path : '/' + path
     );
+    const uniqueDocPaths = new Set(paths);
+    if (uniqueDocPaths.size !== paths.length) {
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        'Duplicate document paths are not allowed in DocumentsSource'
+      );
+    }
+    this.formattedPaths = paths;
+    this.formattedPathsSet = uniqueDocPaths;
   }
 
   /**
@@ -408,7 +431,10 @@ export class Where extends Stage {
     return new OptionsUtil({});
   }
 
-  constructor(private condition: BooleanExpression, options: StageOptions) {
+  constructor(
+    public readonly condition: BooleanExpression,
+    options: StageOptions
+  ) {
     super(options);
   }
 
@@ -484,7 +510,7 @@ export class Limit extends Stage {
     return new OptionsUtil({});
   }
 
-  constructor(private limit: number, options: StageOptions) {
+  constructor(public readonly limit: number, options: StageOptions) {
     hardAssert(
       !isNaN(limit) && limit !== Infinity && limit !== -Infinity,
       0x882c,
@@ -513,7 +539,7 @@ export class Offset extends Stage {
     return new OptionsUtil({});
   }
 
-  constructor(private offset: number, options: StageOptions) {
+  constructor(public readonly offset: number, options: StageOptions) {
     super(options);
   }
 
@@ -570,7 +596,7 @@ export class Sort extends Stage {
     return new OptionsUtil({});
   }
 
-  constructor(private orderings: Ordering[], options: StageOptions) {
+  constructor(public readonly orderings: Ordering[], options: StageOptions) {
     super(options);
   }
 

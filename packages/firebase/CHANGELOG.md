@@ -1,5 +1,86 @@
 # firebase
 
+## 12.14.0
+
+### Minor Changes
+
+- [`3b337b9`](https://github.com/firebase/firebase-js-sdk/commit/3b337b9a91d6fb4dbee14b14e0c67a4b01b5d736) [#9917](https://github.com/firebase/firebase-js-sdk/pull/9917) - Add new API and deprecate old API for creating and deleting fcm registration
+
+- [`f0752a0`](https://github.com/firebase/firebase-js-sdk/commit/f0752a0d69c54e79d0f81b306fe250845da7784f) [#9800](https://github.com/firebase/firebase-js-sdk/pull/9800) - Add `initializeDeviceModel()` method to allow explicit initialization of on-device model in hybrid mode.
+
+- [`d5b0f61`](https://github.com/firebase/firebase-js-sdk/commit/d5b0f6130525b898079ae7ccf73c0931f52c7525) [#9913](https://github.com/firebase/firebase-js-sdk/pull/9913) - Added minimum and maximum FieldValue operations
+
+- [`bd08cae`](https://github.com/firebase/firebase-js-sdk/commit/bd08cae3d77847211c4bac553fa5fb69a4e5073d) [#9926](https://github.com/firebase/firebase-js-sdk/pull/9926) - Change "beta" (public preview) tags to "public" (generally available) for all hybrid inference features.
+
+### Patch Changes
+
+- [`2697919`](https://github.com/firebase/firebase-js-sdk/commit/26979196fec71447a1f635d88a25660a034edb84) [#9845](https://github.com/firebase/firebase-js-sdk/pull/9845) (fixes [#9732](https://github.com/firebase/firebase-js-sdk/issues/9732)) - Updated `_isAvailable()` to use retry logic for the initial IndexedDB availability check, preventing incorrect fallbacks to in-memory persistence in environments where transactions may occasionally drop on startup.
+
+- Updated dependencies [[`3b337b9`](https://github.com/firebase/firebase-js-sdk/commit/3b337b9a91d6fb4dbee14b14e0c67a4b01b5d736), [`bd2644b`](https://github.com/firebase/firebase-js-sdk/commit/bd2644b661ecc5043c065ce6e898da1706feafae), [`2697919`](https://github.com/firebase/firebase-js-sdk/commit/26979196fec71447a1f635d88a25660a034edb84), [`f0752a0`](https://github.com/firebase/firebase-js-sdk/commit/f0752a0d69c54e79d0f81b306fe250845da7784f), [`d5b0f61`](https://github.com/firebase/firebase-js-sdk/commit/d5b0f6130525b898079ae7ccf73c0931f52c7525), [`4d3f71a`](https://github.com/firebase/firebase-js-sdk/commit/4d3f71a96a07d5a98aaccb7f664cc21a1c9f1cfa), [`85f6f4e`](https://github.com/firebase/firebase-js-sdk/commit/85f6f4eac2f72796f449fd028bbb6a68afeb3826), [`d675580`](https://github.com/firebase/firebase-js-sdk/commit/d675580448169ce69fd0653f1adf141b2ace0439), [`bd08cae`](https://github.com/firebase/firebase-js-sdk/commit/bd08cae3d77847211c4bac553fa5fb69a4e5073d), [`51e93fc`](https://github.com/firebase/firebase-js-sdk/commit/51e93fc03fd5e71c2de71a76976dd4e95eb26c68), [`a1a2455`](https://github.com/firebase/firebase-js-sdk/commit/a1a2455b2afa24ed2cd81129cbc55b530b6cae4f)]:
+  - @firebase/messaging@0.13.0
+  - @firebase/app@0.14.13
+  - @firebase/ai@2.13.0
+  - @firebase/auth@1.13.2
+  - @firebase/auth-compat@0.6.7
+  - @firebase/firestore@4.15.0
+  - @firebase/remote-config@0.8.4
+  - @firebase/app-check@0.11.4
+  - @firebase/data-connect@0.7.1
+  - @firebase/messaging-compat@0.2.27
+  - @firebase/functions@0.13.5
+  - @firebase/app-compat@0.5.13
+  - @firebase/firestore-compat@0.4.10
+  - @firebase/remote-config-compat@0.2.25
+  - @firebase/app-check-compat@0.4.4
+  - @firebase/functions-compat@0.4.5
+
+## 12.13.0
+
+### Minor Changes
+
+- [`ffa39f6`](https://github.com/firebase/firebase-js-sdk/commit/ffa39f61c36e9d90a26573f042863e0086ee01e2) [#9795](https://github.com/firebase/firebase-js-sdk/pull/9795) - Added `LiveSession.resumeSession()` to allow resuming a previous `LiveSession`. Also added `contextWindowCompression` feature.
+
+- [`714b41d`](https://github.com/firebase/firebase-js-sdk/commit/714b41dcc55339f94f904558ff190c5bdc9ac49f) [#9905](https://github.com/firebase/firebase-js-sdk/pull/9905) - Hardened the Firebase SQL Connect streaming transport with intelligent reconnection, query de-duplication, and resume optimizations.
+
+- [`86dc0db`](https://github.com/firebase/firebase-js-sdk/commit/86dc0db9218d9ae52282d595007fc60b40c98b6e) [#9819](https://github.com/firebase/firebase-js-sdk/pull/9819) - Added support for `ImageConfig` (aspect ratio and size).
+  Expanded `FinishReason` values to include all currently available values provided by the models.
+
+- [`345c5f6`](https://github.com/firebase/firebase-js-sdk/commit/345c5f6235492b45e84034f364fd95280bd6e428) [#9458](https://github.com/firebase/firebase-js-sdk/pull/9458) - AI Logic : Feature : Added support for Grounding with Google Maps.
+
+### Patch Changes
+
+- [`8e384c9`](https://github.com/firebase/firebase-js-sdk/commit/8e384c947de73c7f74346b1c01640f3515a4ef0e) [#9883](https://github.com/firebase/firebase-js-sdk/pull/9883) - Updated dependencies.
+
+- Updated dependencies [[`96e81ff`](https://github.com/firebase/firebase-js-sdk/commit/96e81ffe9a6efd557685eea7db9d78e5594f43aa), [`ffa39f6`](https://github.com/firebase/firebase-js-sdk/commit/ffa39f61c36e9d90a26573f042863e0086ee01e2), [`402b1f0`](https://github.com/firebase/firebase-js-sdk/commit/402b1f01e67441c51701153031b6e645b71d4875), [`8e384c9`](https://github.com/firebase/firebase-js-sdk/commit/8e384c947de73c7f74346b1c01640f3515a4ef0e), [`714b41d`](https://github.com/firebase/firebase-js-sdk/commit/714b41dcc55339f94f904558ff190c5bdc9ac49f), [`86dc0db`](https://github.com/firebase/firebase-js-sdk/commit/86dc0db9218d9ae52282d595007fc60b40c98b6e), [`345c5f6`](https://github.com/firebase/firebase-js-sdk/commit/345c5f6235492b45e84034f364fd95280bd6e428)]:
+  - @firebase/firestore@4.14.1
+  - @firebase/ai@2.12.0
+  - @firebase/auth-compat@0.6.6
+  - @firebase/analytics@0.10.22
+  - @firebase/analytics-compat@0.2.28
+  - @firebase/app@0.14.12
+  - @firebase/app-check@0.11.3
+  - @firebase/app-check-compat@0.4.3
+  - @firebase/app-compat@0.5.12
+  - @firebase/app-types@0.9.5
+  - @firebase/auth@1.13.1
+  - @firebase/data-connect@0.7.0
+  - @firebase/database@1.1.3
+  - @firebase/database-compat@2.1.4
+  - @firebase/firestore-compat@0.4.9
+  - @firebase/functions@0.13.4
+  - @firebase/functions-compat@0.4.4
+  - @firebase/installations@0.6.22
+  - @firebase/installations-compat@0.2.22
+  - @firebase/messaging@0.12.26
+  - @firebase/messaging-compat@0.2.26
+  - @firebase/performance@0.7.12
+  - @firebase/performance-compat@0.2.25
+  - @firebase/remote-config@0.8.3
+  - @firebase/remote-config-compat@0.2.24
+  - @firebase/storage@0.14.3
+  - @firebase/storage-compat@0.4.3
+  - @firebase/util@1.15.1
+
 ## 12.12.1
 
 ### Patch Changes

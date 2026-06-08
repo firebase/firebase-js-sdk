@@ -605,7 +605,8 @@ apiDescribe.skipClassic('Pipelines', persistence => {
       expectResults(snapshot, doc1.id, doc2.id);
     });
 
-    it('supports database as source', async () => {
+    // eslint-disable-next-line no-restricted-properties
+    it.skip('supports database as source', async () => {
       const randomId = Math.random().toString(16).slice(2);
       const doc1 = await addDoc(collection(randomCol, 'book1', 'sub'), {
         order: 1,

@@ -19,6 +19,7 @@ import { expect } from 'chai';
 import { SinonStub, spy, stub } from 'sinon';
 import {
   setTokenAutoRefreshEnabled,
+  _initializeAppCheckInternal,
   initializeAppCheck,
   getToken,
   onTokenChanged,
@@ -103,8 +104,55 @@ describe('api', () => {
         })
       ).to.throw(/appCheck\/already-initialized/);
     });
+    it('can only be called once (if default then rCV3)', () => {
+      initializeAppCheck(app, {});
+      expect(() =>
+        initializeAppCheck(app, {
+          provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
+        })
+      ).to.throw(/appCheck\/already-initialized/);
+    });
     it('can only be called once (if given different ReCaptchaEnterpriseProviders)', () => {
       initializeAppCheck(app, {
+        provider: new ReCaptchaEnterpriseProvider(FAKE_SITE_KEY)
+      });
+      expect(() =>
+        initializeAppCheck(app, {
+          provider: new ReCaptchaEnterpriseProvider(FAKE_SITE_KEY + 'X')
+        })
+      ).to.throw(/appCheck\/already-initialized/);
+    });
+    it('can only be called once (if default then rCE with different key)', () => {
+      initializeAppCheck(app, {});
+      expect(() =>
+        initializeAppCheck(app, {
+          provider: new ReCaptchaEnterpriseProvider(FAKE_SITE_KEY + 'X')
+        })
+      ).to.throw(/appCheck\/already-initialized/);
+    });
+    it('can only be called once (if rCE with different key then default)', () => {
+      initializeAppCheck(app, {
+        provider: new ReCaptchaEnterpriseProvider(FAKE_SITE_KEY + 'X')
+      });
+      expect(() => initializeAppCheck(app, {})).to.throw(
+        /appCheck\/already-initialized/
+      );
+    });
+    it('throws internal init error if previously initialized by internal SDK', () => {
+      _initializeAppCheckInternal('Product A', app);
+      expect(() =>
+        initializeAppCheck(app, {
+          provider: new ReCaptchaEnterpriseProvider(FAKE_SITE_KEY + 'X')
+        })
+      ).to.throw(
+        /initialized by Product A.*appCheck\/already-internally-initialized/
+      );
+    });
+    it('does not throw internal init error if developer initialized first', () => {
+      initializeAppCheck(app, {
+        provider: new ReCaptchaEnterpriseProvider(FAKE_SITE_KEY)
+      });
+      _initializeAppCheckInternal('Product A', app, {
         provider: new ReCaptchaEnterpriseProvider(FAKE_SITE_KEY)
       });
       expect(() =>
@@ -146,6 +194,28 @@ describe('api', () => {
           provider: new ReCaptchaEnterpriseProvider(FAKE_SITE_KEY)
         })
       ).to.equal(appCheckInstance);
+    });
+    it('can be called multiple times (default provider no options)', () => {
+      const appCheckInstance = initializeAppCheck(app);
+      expect(initializeAppCheck(app)).to.equal(appCheckInstance);
+    });
+    it('can be called multiple times (default provider empty options)', () => {
+      const appCheckInstance = initializeAppCheck(app, {});
+      expect(initializeAppCheck(app, {})).to.equal(appCheckInstance);
+    });
+    it('can be called multiple times (default provider then rCE)', () => {
+      const appCheckInstance = initializeAppCheck(app, {});
+      expect(
+        initializeAppCheck(app, {
+          provider: new ReCaptchaEnterpriseProvider(FAKE_SITE_KEY)
+        })
+      ).to.equal(appCheckInstance);
+    });
+    it('can be called multiple times (rCE then default)', () => {
+      const appCheckInstance = initializeAppCheck(app, {
+        provider: new ReCaptchaEnterpriseProvider(FAKE_SITE_KEY)
+      });
+      expect(initializeAppCheck(app)).to.equal(appCheckInstance);
     });
     it('can be called multiple times (if given equivalent CustomProviders)', () => {
       const appCheckInstance = initializeAppCheck(app, {
@@ -228,6 +298,33 @@ describe('api', () => {
       expect(initReCAPTCHAStub).to.have.been.calledWithExactly(
         app,
         FAKE_SITE_KEY
+      );
+    });
+
+    it('initialize reCAPTCHA when no provider is provided', () => {
+      const initReCAPTCHAStub = stub(reCAPTCHA, 'initializeEnterprise').returns(
+        Promise.resolve({} as any)
+      );
+      initializeAppCheck(app, {});
+      expect(initReCAPTCHAStub).to.have.been.calledWithExactly(
+        app,
+        FAKE_SITE_KEY
+      );
+    });
+
+    it('does not throw if provider passed, and no sitekey in config', () => {
+      app.options.recaptchaSiteKey = undefined;
+      expect(
+        initializeAppCheck(app, {
+          provider: new ReCaptchaEnterpriseProvider(FAKE_SITE_KEY)
+        })
+      ).to.be.instanceOf(AppCheckService);
+    });
+
+    it('throws if no provider and no sitekey in config', () => {
+      app.options.recaptchaSiteKey = undefined;
+      expect(() => initializeAppCheck(app, {})).to.throw(
+        /appCheck\/no-provider/
       );
     });
 

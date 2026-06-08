@@ -52,3 +52,4 @@ export function newTestFirestore(
 
 export * from '../../../src';
 export { PrivateSettings };
+export { DocumentData } from '../../../src/lite-api/reference';

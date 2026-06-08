@@ -94,6 +94,8 @@ https://github.com/firebase/firebase-js-sdk
 |  [setLogLevel(logLevel)](./firestore_.md#setloglevel_d02fda2) | Sets the verbosity of Cloud Firestore logs (debug, error, or silent). |
 |  <b>function(n, ...)</b> |
 |  [increment(n)](./firestore_.md#increment_5685735) | Returns a special value that can be used with [setDoc()](./firestore_lite.md#setdoc_ee215ad) or [updateDoc()](./firestore_lite.md#updatedoc_51a65e3) that tells the server to increment the field's current value by the given value.<!-- -->If either the operand or the current field value uses floating point precision, all arithmetic follows IEEE 754 semantics. If both values are integers, values outside of JavaScript's safe number range (<code>Number.MIN_SAFE_INTEGER</code> to <code>Number.MAX_SAFE_INTEGER</code>) are also subject to precision loss. Furthermore, once processed by the Firestore backend, all integer operations are capped between -2^63 and 2^63-1.<!-- -->If the current field value is not of type <code>number</code>, or if the field does not yet exist, the transformation sets the field to the given value. |
+|  [maximum(n)](./firestore_.md#maximum_5685735) | Returns a special value that can be used with [setDoc()](./firestore_lite.md#setdoc_ee215ad) or [updateDoc()](./firestore_lite.md#updatedoc_51a65e3) that tells the server to set the field to the numeric maximum of the field's current and the given value. |
+|  [minimum(n)](./firestore_.md#minimum_5685735) | Returns a special value that can be used with [setDoc()](./firestore_lite.md#setdoc_ee215ad) or [updateDoc()](./firestore_lite.md#updatedoc_51a65e3) that tells the server to set the field to the numeric minimum of the field's current and the given value. |
 |  <b>function(query, ...)</b> |
 |  [getAggregateFromServer(query, aggregateSpec)](./firestore_.md#getaggregatefromserver_2073a74) | Calculates the specified aggregations over the documents in the result set of the given query without actually downloading the documents.<!-- -->Using this function to perform aggregations is efficient because only the final aggregation values, not the documents' data, are downloaded. This function can perform aggregations of the documents in cases where the result set is prohibitively large to download entirely (thousands of documents).<!-- -->The result received from the server is presented, unaltered, without considering any local state. That is, documents in the local cache are not taken into consideration, neither are local modifications not yet synchronized with the server. Previously-downloaded results, if any, are not used. Every invocation of this function necessarily involves a round trip to the server. |
 |  [getCountFromServer(query)](./firestore_.md#getcountfromserver_4e56953) | Calculates the number of documents in the result set of the given query without actually downloading the documents.<!-- -->Using this function to count the documents is efficient because only the final count, not the documents' data, is downloaded. This function can count the documents in cases where the result set is prohibitively large to download entirely (thousands of documents).<!-- -->The result received from the server is presented, unaltered, without considering any local state. That is, documents in the local cache are not taken into consideration, neither are local modifications not yet synchronized with the server. Previously-downloaded results, if any, are not used. Every invocation of this function necessarily involves a round trip to the server. |
@@ -217,7 +219,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [AggregateSpecData](./firestore_.md#aggregatespecdata) | A type whose keys are taken from an <code>AggregateSpec</code>, and whose values are the result of the aggregation performed by the corresponding <code>AggregateField</code> from the input <code>AggregateSpec</code>. |
 |  [AggregateType](./firestore_.md#aggregatetype) | Union type representing the aggregate type to be performed. |
 |  [ChildUpdateFields](./firestore_.md#childupdatefields) | Helper for calculating the nested fields for a given type T1. This is needed to distribute union types such as <code>undefined &#124; {...}</code> (happens for optional props) or <code>{a: A} &#124; {b: B}</code>.<!-- -->In this use case, <code>V</code> is used to distribute the union types of <code>T[K]</code> on <code>Record</code>, since <code>T[K]</code> is evaluated as an expression and not distributed.<!-- -->See https://www.typescriptlang.org/docs/handbook/advanced-types.html\#distributive-conditional-types |
-|  [DocumentChangeType](./firestore_.md#documentchangetype) | The type of a <code>DocumentChange</code> may be 'added', 'removed', or 'modified'. |
+|  [DocumentChangeType](./firestore_.md#documentchangetype) | The type of <code>DocumentChange</code> may be 'added', 'removed', or 'modified'. |
 |  [FirestoreErrorCode](./firestore_.md#firestoreerrorcode) | The set of Firestore status codes. The codes are the same at the ones exposed by gRPC here: https://github.com/grpc/grpc/blob/master/doc/statuscodes.md<!-- -->Possible values: - 'cancelled': The operation was cancelled (typically by the caller). - 'unknown': Unknown error or an error from a different error domain. - 'invalid-argument': Client specified an invalid argument. Note that this differs from 'failed-precondition'. 'invalid-argument' indicates arguments that are problematic regardless of the state of the system (e.g. an invalid field name). - 'deadline-exceeded': Deadline expired before operation could complete. For operations that change the state of the system, this error may be returned even if the operation has completed successfully. For example, a successful response from a server could have been delayed long enough for the deadline to expire. - 'not-found': Some requested document was not found. - 'already-exists': Some document that we attempted to create already exists. - 'permission-denied': The caller does not have permission to execute the specified operation. - 'resource-exhausted': Some resource has been exhausted, perhaps a per-user quota, or perhaps the entire file system is out of space. - 'failed-precondition': Operation was rejected because the system is not in a state required for the operation's execution. - 'aborted': The operation was aborted, typically due to a concurrency issue like transaction aborts, etc. - 'out-of-range': Operation was attempted past the valid range. - 'unimplemented': Operation is not implemented or not supported/enabled. - 'internal': Internal errors. Means some invariants expected by underlying system has been broken. If you see one of these errors, something is very broken. - 'unavailable': The service is currently unavailable. This is most likely a transient condition and may be corrected by retrying with a backoff. - 'data-loss': Unrecoverable data loss or corruption. - 'unauthenticated': The request does not have valid authentication credentials for the operation. |
 |  [FirestoreLocalCache](./firestore_.md#firestorelocalcache) | Union type from all supported SDK cache layer. |
 |  [ListenSource](./firestore_.md#listensource) | Describe the source a query listens to.<!-- -->Set to <code>default</code> to listen to both cache and server changes. Set to <code>cache</code> to listen to changes in cache only. |
@@ -253,7 +255,7 @@ export declare function getFirestore(app: FirebaseApp): Firestore;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  app | [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | The [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) instance that the returned [Firestore](./firestore_.firestore.md#firestore_class) instance is associated with. |
+|  app | FirebaseApp | The [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) instance that the returned [Firestore](./firestore_.firestore.md#firestore_class) instance is associated with. |
 
 <b>Returns:</b>
 
@@ -278,7 +280,7 @@ export declare function getFirestore(app: FirebaseApp, databaseId: string): Fire
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  app | [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | The [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) instance that the returned [Firestore](./firestore_.firestore.md#firestore_class) instance is associated with. |
+|  app | FirebaseApp | The [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) instance that the returned [Firestore](./firestore_.firestore.md#firestore_class) instance is associated with. |
 |  databaseId | string | The name of the database. |
 
 <b>Returns:</b>
@@ -301,7 +303,7 @@ export declare function initializeFirestore(app: FirebaseApp, settings: Firestor
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  app | [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | The [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) with which the [Firestore](./firestore_.firestore.md#firestore_class) instance will be associated. |
+|  app | FirebaseApp | The [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) with which the [Firestore](./firestore_.firestore.md#firestore_class) instance will be associated. |
 |  settings | [FirestoreSettings](./firestore_.firestoresettings.md#firestoresettings_interface) | A settings object to configure the [Firestore](./firestore_.firestore.md#firestore_class) instance. |
 |  databaseId | string | The name of the database. |
 
@@ -1842,6 +1844,50 @@ export declare function increment(n: number): FieldValue;
 
 The `FieldValue` sentinel for use in a call to `setDoc()` or `updateDoc()`
 
+### maximum(n) {:#maximum_5685735}
+
+Returns a special value that can be used with [setDoc()](./firestore_lite.md#setdoc_ee215ad) or [updateDoc()](./firestore_lite.md#updatedoc_51a65e3) that tells the server to set the field to the numeric maximum of the field's current and the given value.
+
+<b>Signature:</b>
+
+```typescript
+export declare function maximum(n: number): FieldValue;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  n | number | The value to compare to the existing field value. |
+
+<b>Returns:</b>
+
+[FieldValue](./firestore_.fieldvalue.md#fieldvalue_class)
+
+The `FieldValue` sentinel for use in a call to `setDoc()` or `updateDoc()`
+
+### minimum(n) {:#minimum_5685735}
+
+Returns a special value that can be used with [setDoc()](./firestore_lite.md#setdoc_ee215ad) or [updateDoc()](./firestore_lite.md#updatedoc_51a65e3) that tells the server to set the field to the numeric minimum of the field's current and the given value.
+
+<b>Signature:</b>
+
+```typescript
+export declare function minimum(n: number): FieldValue;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  n | number | The value to compare to the existing field value. |
+
+<b>Returns:</b>
+
+[FieldValue](./firestore_.fieldvalue.md#fieldvalue_class)
+
+The `FieldValue` sentinel for use in a call to `setDoc()` or `updateDoc()`
+
 ## function(query, ...)
 
 ### getAggregateFromServer(query, aggregateSpec) {:#getaggregatefromserver_2073a74}
@@ -2914,7 +2960,7 @@ export declare type ChildUpdateFields<K extends string, V> = V extends Record<st
 
 ## DocumentChangeType
 
-The type of a `DocumentChange` may be 'added', 'removed', or 'modified'.
+The type of `DocumentChange` may be 'added', 'removed', or 'modified'.
 
 <b>Signature:</b>
 

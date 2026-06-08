@@ -95,7 +95,8 @@ import {
   UnnestStageOptions,
   WhereStageOptions
 } from './stage_options';
-import { UserData } from './user_data_reader';
+import { UserDataReader, UserData } from './user_data_reader';
+import { AbstractUserDataWriter } from './user_data_writer';
 
 /**
  *
@@ -139,6 +140,8 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    * @internal
    * @private
    * @param _db
+   * @param userDataReader
+   * @param _userDataWriter
    * @param stages
    */
   constructor(
@@ -151,7 +154,17 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
      * @internal
      * @private
      */
-    private stages: Stage[]
+    readonly userDataReader: UserDataReader | undefined,
+    /**
+     * @internal
+     * @private
+     */
+    public _userDataWriter: AbstractUserDataWriter | undefined,
+    /**
+     * @internal
+     * @private
+     */
+    readonly stages: Stage[]
   ) {}
 
   _readUserData(context: ParseContext): void {
@@ -381,6 +394,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
     const convertedExpressions: Map<string, Expression> =
       selectablesToMap(aliasedExpressions);
 
+    // Create stage object
     const stage = new Define(convertedExpressions, options);
 
     return this._addStage(stage);
@@ -1585,7 +1599,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    * @protected
    */
   protected newPipeline(db: Firestore | undefined, stages: Stage[]): Pipeline {
-    return new Pipeline(db, stages);
+    return new Pipeline(db, this.userDataReader, this._userDataWriter, stages);
   }
 }
 
