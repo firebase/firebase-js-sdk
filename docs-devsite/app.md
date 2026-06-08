@@ -345,7 +345,7 @@ export declare function initializeApp(options: FirebaseOptions | string, config?
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  options | [FirebaseOptions](./app.firebaseoptions.md#firebaseoptions_interface) \| string | Options to configure the app's services. |
+|  options | [FirebaseOptions](./app.firebaseoptions.md#firebaseoptions_interface) \| string | A <code>FirebaseOptions</code> object to configure the app's services. This can also be a JSON string respresenting a <code>FirebaseOptions</code> object. |
 |  config | [FirebaseAppSettings](./app.firebaseappsettings.md#firebaseappsettings_interface) | FirebaseApp Configuration |
 
 <b>Returns:</b>

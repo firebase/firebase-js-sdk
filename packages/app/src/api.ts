@@ -136,7 +136,8 @@ export function initializeApp(
 /**
  * Creates and initializes a FirebaseApp instance.
  *
- * @param options - Options to configure the app's services.
+ * @param options - A `FirebaseOptions` object to configure the app's services.
+ *   This can also be a JSON string respresenting a `FirebaseOptions` object.
  * @param config - FirebaseApp Configuration
  *
  * @throws If {@link FirebaseAppSettings.name} is defined but the value is malformed or empty.
