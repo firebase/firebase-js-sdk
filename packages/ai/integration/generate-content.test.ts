@@ -98,14 +98,15 @@ describe('Generate Content', function () {
 
         expect(response.usageMetadata).to.not.be.null;
 
-
         expect(response.usageMetadata!.totalTokenCount).to.be.greaterThan(0);
         expect(response.usageMetadata!.promptTokensDetails).to.not.be.null;
         expect(response.usageMetadata!.promptTokensDetails!.length).to.equal(1);
-        expect(response.usageMetadata!.promptTokensDetails![0].modality).to.equal(Modality.TEXT);
-        expect(response.usageMetadata!.promptTokensDetails![0].tokenCount).to.be.greaterThan(0);
-
-
+        expect(
+          response.usageMetadata!.promptTokensDetails![0].modality
+        ).to.equal(Modality.TEXT);
+        expect(
+          response.usageMetadata!.promptTokensDetails![0].tokenCount
+        ).to.be.greaterThan(0);
       });
 
       it('generateContent: google search grounding', async () => {
@@ -373,16 +374,16 @@ describe('Generate Content', function () {
         const response = result.response;
         const urlContextMetadata = response.candidates?.[0].urlContextMetadata;
         expect(urlContextMetadata?.urlMetadata).to.exist;
-        expect(
-          urlContextMetadata?.urlMetadata.length
-        ).to.be.greaterThanOrEqual(1);
+        expect(urlContextMetadata?.urlMetadata.length).to.be.greaterThanOrEqual(
+          1
+        );
         expect(urlContextMetadata?.urlMetadata[0].retrievedUrl).to.exist;
         expect(urlContextMetadata?.urlMetadata[0].retrievedUrl).to.equal(
           'https://berkshirehathaway.com'
         );
-        expect(
-          urlContextMetadata?.urlMetadata[0].urlRetrievalStatus
-        ).to.equal(URLRetrievalStatus.URL_RETRIEVAL_STATUS_SUCCESS);
+        expect(urlContextMetadata?.urlMetadata[0].urlRetrievalStatus).to.equal(
+          URLRetrievalStatus.URL_RETRIEVAL_STATUS_SUCCESS
+        );
 
         const usageMetadata = response.usageMetadata;
         expect(usageMetadata).to.exist;
@@ -403,21 +404,20 @@ describe('Generate Content', function () {
         );
         const response = result.response;
         const trimmedText = response.text().trim();
-        const urlContextMetadata =
-          response.candidates?.[0].urlContextMetadata;
+        const urlContextMetadata = response.candidates?.[0].urlContextMetadata;
         const groundingMetadata = response.candidates?.[0].groundingMetadata;
         expect(trimmedText.length).to.be.greaterThan(0);
         expect(urlContextMetadata?.urlMetadata).to.exist;
-        expect(
-          urlContextMetadata?.urlMetadata.length
-        ).to.be.greaterThanOrEqual(1);
+        expect(urlContextMetadata?.urlMetadata.length).to.be.greaterThanOrEqual(
+          1
+        );
         expect(urlContextMetadata?.urlMetadata[0].retrievedUrl).to.exist;
         expect(urlContextMetadata?.urlMetadata[0].retrievedUrl).to.equal(
           'https://info.cern.ch/hypertext/WWW/TheProject.html'
         );
-        expect(
-          urlContextMetadata?.urlMetadata[0].urlRetrievalStatus
-        ).to.equal(URLRetrievalStatus.URL_RETRIEVAL_STATUS_SUCCESS);
+        expect(urlContextMetadata?.urlMetadata[0].urlRetrievalStatus).to.equal(
+          URLRetrievalStatus.URL_RETRIEVAL_STATUS_SUCCESS
+        );
         expect(groundingMetadata).to.exist;
         expect(groundingMetadata?.groundingChunks).to.exist;
         expect(
@@ -445,8 +445,7 @@ describe('Generate Content', function () {
           'Recommend 3 books for beginners to read to learn more about the latest advancements in Quantum Computing'
         );
         const response = result.response;
-        const urlContextMetadata =
-          response.candidates?.[0].urlContextMetadata;
+        const urlContextMetadata = response.candidates?.[0].urlContextMetadata;
         const groundingMetadata = response.candidates?.[0].groundingMetadata;
         if (testConfig.ai.backend.backendType === BackendType.GOOGLE_AI) {
           expect(urlContextMetadata?.urlMetadata).to.exist;
