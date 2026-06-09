@@ -43,11 +43,11 @@ export const UI_RENDER_QUIESCENCE_WINDOW_MS = 17;
  */
 export class RootSpan {
   span: Span;
+  private activeUiRenderSpan: Span | undefined;
   private rootSpanStartAtMs: number;
   private activeNetworkRequests: number;
   private lastBackgroundActivityMs?: number;
-  private prePaintAtMs: number | undefined;
-  private postPaintAtMs: number | undefined;
+  private lastUiActivityMs: number | undefined;
   private interruptedAtMs: number | undefined;
   private quiescenceTimerId: ReturnType<typeof setTimeout> | null;
   private quiescenceRenderTimerId: ReturnType<typeof setTimeout> | null;
@@ -80,8 +80,7 @@ export class RootSpan {
       : Date.now();
 
     this.lastBackgroundActivityMs = undefined;
-    this.prePaintAtMs = undefined;
-    this.postPaintAtMs = undefined;
+    this.lastUiActivityMs = undefined;
     this.interruptedAtMs = undefined;
     this.quiescenceTimerId = null;
     this.quiescenceRenderTimerId = null;
@@ -142,7 +141,7 @@ export class RootSpan {
 
     this.clearMutationObserver();
 
-    this.endUIRenderSpan(this.postPaintAtMs ?? this.interruptedAtMs);
+    this.endUIRenderSpan();
 
     this.endRootSpanOrWait();
   }
@@ -175,19 +174,17 @@ export class RootSpan {
       ) {
         window.requestAnimationFrame(() => {
           // capture UI activity start in frame 1
-          const currTimestamp = Date.now();
-
-          if (this.prePaintAtMs === undefined) {
-            this.prePaintAtMs = currTimestamp;
-          } else if (this.postPaintAtMs !== undefined) {
-            const timeSinceRenderEnd = currTimestamp - this.postPaintAtMs;
+          if (!this.activeUiRenderSpan) {
+            this.startUIRenderSpan();
+          } else if (this.lastUiActivityMs !== undefined) {
+            const timeSinceRenderEnd = Date.now() - this.lastUiActivityMs;
             if (timeSinceRenderEnd >= UI_RENDER_QUIESCENCE_WINDOW_MS) {
               this.endUIRenderSpan();
-              this.prePaintAtMs = currTimestamp;
+              this.startUIRenderSpan();
             }
           }
 
-          this.postPaintAtMs = undefined;
+          this.lastUiActivityMs = undefined;
           /**
            * Quiescence does not exist during a pending post rAF callback because it is guaranteed
            * to happen eventually and no waiting period should prevent it (besides an interrupt)
@@ -197,7 +194,7 @@ export class RootSpan {
           // any queued timeout callback for a completed quiescence period becomes invalid here
           window.requestAnimationFrame(() => {
             // capture UI activity end in frame 2
-            this.postPaintAtMs = Date.now();
+            this.lastUiActivityMs = Date.now();
 
             this.renderQuiesce();
             this.quiesce();
@@ -224,19 +221,12 @@ export class RootSpan {
   }
 
   private getLastActivityMs(): number {
-    const activityTimes: number[] = [this.rootSpanStartAtMs];
-    if (this.lastBackgroundActivityMs !== undefined) {
-      activityTimes.push(this.lastBackgroundActivityMs);
-    }
-    if (this.postPaintAtMs !== undefined) {
-      activityTimes.push(this.postPaintAtMs);
-    } else if (
-      this.interruptedAtMs !== undefined &&
-      (this.prePaintAtMs !== undefined ||
-        this.lastBackgroundActivityMs === undefined)
-    ) {
-      activityTimes.push(this.interruptedAtMs);
-    }
+    const activityTimes = [
+      this.rootSpanStartAtMs,
+      this.lastBackgroundActivityMs,
+      this.lastUiActivityMs
+    ].filter((t): t is number => t !== undefined);
+
     return Math.max(...activityTimes);
   }
 
@@ -283,28 +273,29 @@ export class RootSpan {
   }
 
   /**
-   * Starts and immediately ends a 'UI Render' span to capture the duration
-   * of the measured UI rendering work.
-   * @param endTimeMs Optional end timestamp. Defaults to the last paint completion time.
+   * Starts a 'UI Render' child span parented to this root span.
+   * @param startTimeMs The start timestamp of the UI rendering work.
    */
-  private endUIRenderSpan(
-    endTimeMs: number | undefined = this.postPaintAtMs
-  ): void {
-    if (this.prePaintAtMs !== undefined && endTimeMs !== undefined) {
-      const parentContext = trace.setSpan(context.active(), this.span);
+  private startUIRenderSpan(startTimeMs: number = Date.now()): void {
+    const parentContext = trace.setSpan(context.active(), this.span);
+    this.activeUiRenderSpan = this.tracer.startSpan(
+      'UI Render',
+      {
+        startTime: startTimeMs
+      },
+      parentContext
+    );
+  }
 
-      const uiSpan = this.tracer.startSpan(
-        'UI Render',
-        {
-          startTime: this.prePaintAtMs
-        },
-        parentContext
-      );
-
-      uiSpan.end(endTimeMs);
-
-      this.prePaintAtMs = undefined;
-
+  /**
+   * Ends a 'UI Render' child span parented to this root span.
+   */
+  private endUIRenderSpan(): void {
+    if (this.activeUiRenderSpan) {
+      this.lastUiActivityMs =
+        this.lastUiActivityMs ?? this.interruptedAtMs ?? Date.now();
+      this.activeUiRenderSpan.end(this.lastUiActivityMs);
+      this.activeUiRenderSpan = undefined;
       this.clearRenderQuiesce();
     }
   }

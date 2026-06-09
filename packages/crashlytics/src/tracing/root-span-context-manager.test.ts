@@ -243,10 +243,10 @@ describe('RootSpanContextManager', () => {
       mutationObserverCallback();
 
       clock.tick(5);
-      requestAnimationFrameCallbacks(); // Frame 1: prePaintAtMs = 105
+      requestAnimationFrameCallbacks(); // Frame 1: activeUiRenderSpan started at 105
 
       clock.tick(5);
-      requestAnimationFrameCallbacks(); // Frame 2: postPaintAtMs = 110
+      requestAnimationFrameCallbacks(); // Frame 2: lastUiActivityMs = 110
 
       clock.tick(QUIESCENCE_WINDOW_MS - 1);
       expect((rootSpan.span as any).end.called).to.be.false;
@@ -294,7 +294,7 @@ describe('RootSpanContextManager', () => {
       requestAnimationFrameCallbacks(); // Frame 1
 
       clock.tick(5);
-      requestAnimationFrameCallbacks(); // Frame 2: postPaintAtMs = QUIESCENCE_WINDOW_MS + 15
+      requestAnimationFrameCallbacks(); // Frame 2: lastUiActivityMs = QUIESCENCE_WINDOW_MS + 15
 
       clock.tick(QUIESCENCE_WINDOW_MS); // let quiescence complete
 
@@ -464,7 +464,7 @@ describe('RootSpanContextManager', () => {
 
       // Run Frame 1 at T = 105
       clock.tick(5);
-      requestAnimationFrameCallbacks(); // Frame 1: prePaintAtMs = 105
+      requestAnimationFrameCallbacks(); // Frame 1: activeUiRenderSpan started at 105
 
       // Interrupt at T = 108
       clock.tick(3);
@@ -490,11 +490,11 @@ describe('RootSpanContextManager', () => {
 
       // Run Frame 1 at T = 105
       clock.tick(5);
-      requestAnimationFrameCallbacks(); // Frame 1: prePaintAtMs = 105
+      requestAnimationFrameCallbacks(); // Frame 1: activeUiRenderSpan started at 105
 
       // Run Frame 2 at T = 110
       clock.tick(5);
-      requestAnimationFrameCallbacks(); // Frame 2: postPaintAtMs = 110
+      requestAnimationFrameCallbacks(); // Frame 2: lastUiActivityMs = 110
 
       // Interrupt at T = 115 before quiescence completes
       clock.tick(5);
@@ -518,11 +518,11 @@ describe('RootSpanContextManager', () => {
 
       // Run Frame 1 at T = 105
       clock.tick(5);
-      requestAnimationFrameCallbacks(); // Frame 1: prePaintAtMs = 105
+      requestAnimationFrameCallbacks(); // Frame 1: activeUiRenderSpan started at 105
 
       // Run Frame 2 at T = 110
       clock.tick(5);
-      requestAnimationFrameCallbacks(); // Frame 2: postPaintAtMs = 110
+      requestAnimationFrameCallbacks(); // Frame 2: lastUiActivityMs = 110
 
       // Let quiescence complete
       clock.tick(QUIESCENCE_WINDOW_MS); // Both timers will fire.
@@ -544,19 +544,20 @@ describe('RootSpanContextManager', () => {
 
       // Run Frame 1 at T = 105
       clock.tick(5);
-      requestAnimationFrameCallbacks(); // Frame 1: prePaintAtMs = 105
+      requestAnimationFrameCallbacks(); // Frame 1: activeUiRenderSpan started at 105
+
+      const firstUiSpan = mockSpan; // first UI render span has started
 
       // Run Frame 2 at T = 110
       clock.tick(5);
-      requestAnimationFrameCallbacks(); // Frame 2: postPaintAtMs = 110
+      requestAnimationFrameCallbacks(); // Frame 2: lastUiActivityMs = 110
 
       // Let UI render quiescence complete
       clock.tick(UI_RENDER_QUIESCENCE_WINDOW_MS);
 
       // Verify first UI Render span was created
       expect(mockTracer.startSpan.calledWith('UI Render')).to.be.true;
-      expect(mockSpan.end.calledWith(110)).to.be.true;
-      const firstUiSpan = mockSpan;
+      expect(firstUiSpan.end.calledWith(110)).to.be.true;
 
       // Second mutation
       clock.tick(10);
@@ -566,17 +567,19 @@ describe('RootSpanContextManager', () => {
       clock.tick(5);
       requestAnimationFrameCallbacks(); // Frame 1
 
+      const secondUiSpan = mockSpan; // second UI render span has started
+
       // Run Frame 2
       clock.tick(5);
-      requestAnimationFrameCallbacks(); // Frame 2: postPaintAtMs = 130 + UI_RENDER_QUIESCENCE_WINDOW_MS
+      requestAnimationFrameCallbacks(); // Frame 2: lastUiActivityMs = 130 + UI_RENDER_QUIESCENCE_WINDOW_MS
 
       // Let everything quiesce
       clock.tick(QUIESCENCE_WINDOW_MS);
 
       // Second UI Render span ended backdated to 130 + UI_RENDER_QUIESCENCE_WINDOW_MS
-      expect(mockSpan).to.not.equal(firstUiSpan);
-      expect(mockSpan.end.calledWith(130 + UI_RENDER_QUIESCENCE_WINDOW_MS)).to
-        .be.true;
+      expect(secondUiSpan).to.not.equal(firstUiSpan);
+      expect(secondUiSpan.end.calledWith(130 + UI_RENDER_QUIESCENCE_WINDOW_MS))
+        .to.be.true;
     });
 
     it('should create two ui render spans if two raf cycles are separated by the quiescence period but the render quiescence timer callback execution is delayed', () => {
@@ -595,11 +598,13 @@ describe('RootSpanContextManager', () => {
 
       // Run Frame 1 for mutation 1 at T = 105
       clock.tick(5);
-      requestAnimationFrameCallbacks(); // Frame 1: prePaintAtMs = 105
+      requestAnimationFrameCallbacks(); // Frame 1: activeUiRenderSpan started at 105
+
+      const firstUiSpan = mockSpan; // first UI render span has started
 
       // Run Frame 2 for mutation 1 at T = 110
       clock.tick(5);
-      requestAnimationFrameCallbacks(); // Frame 2: postPaintAtMs = 110
+      requestAnimationFrameCallbacks(); // Frame 2: lastUiActivityMs = 110
 
       // Advance clock without running the quiescence timer
       clock.setSystemTime(110 + UI_RENDER_QUIESCENCE_WINDOW_MS);
@@ -608,7 +613,9 @@ describe('RootSpanContextManager', () => {
       mutationObserverCallback();
 
       // Run Frame 1 for mutation 2
-      requestAnimationFrameCallbacks(); // Frame 1: prePaintAtMs = 127 (ends first UI render span backdated to 110)
+      requestAnimationFrameCallbacks(); // Frame 1: activeUiRenderSpan started at 127 (ends first UI render span backdated to 110)
+
+      const secondUiSpan = mockSpan; // second UI render span has started
 
       // Verify first UI Render span was created (startTime: 105, endTime: 110)
       expect(
@@ -617,29 +624,26 @@ describe('RootSpanContextManager', () => {
           sinon.match({ startTime: 105 })
         )
       ).to.be.true;
-      expect(mockSpan.end.calledWith(110)).to.be.true;
-      const firstUiSpan = mockSpan;
+      expect(firstUiSpan.end.calledWith(110)).to.be.true;
 
       // Run Frame 2 for mutation 2
       clock.tick(5);
-      requestAnimationFrameCallbacks(); // Frame 2: postPaintAtMs = 110 + UI_RENDER_QUIESCENCE_WINDOW_MS + 5
+      requestAnimationFrameCallbacks(); // Frame 2: lastUiActivityMs = 110 + UI_RENDER_QUIESCENCE_WINDOW_MS + 5
 
       // Let everything quiesce
       clock.tick(QUIESCENCE_WINDOW_MS);
 
-      // Verify the second UI Render span was created
-      const uiRenderSpanCalls = mockTracer.startSpan
-        .getCalls()
-        .filter((c: any) => c.args[0] === 'UI Render');
-      expect(uiRenderSpanCalls.length).to.equal(2);
-
-      expect(uiRenderSpanCalls[0].args[1]).to.deep.include({ startTime: 105 });
-      expect(uiRenderSpanCalls[1].args[1]).to.deep.include({
-        startTime: 110 + UI_RENDER_QUIESCENCE_WINDOW_MS
-      });
-      expect(mockSpan).to.not.equal(firstUiSpan);
-      expect(mockSpan.end.calledWith(110 + UI_RENDER_QUIESCENCE_WINDOW_MS + 5))
-        .to.be.true;
+      // Verify the second UI Render span was created and ended correctly
+      expect(
+        mockTracer.startSpan.calledWith(
+          'UI Render',
+          sinon.match({ startTime: 110 + UI_RENDER_QUIESCENCE_WINDOW_MS })
+        )
+      ).to.be.true;
+      expect(secondUiSpan).to.not.equal(firstUiSpan);
+      expect(
+        secondUiSpan.end.calledWith(110 + UI_RENDER_QUIESCENCE_WINDOW_MS + 5)
+      ).to.be.true;
     });
 
     it('should create one ui render span if two raf cycles are not separated by the quiescence period', () => {
@@ -654,11 +658,11 @@ describe('RootSpanContextManager', () => {
 
       // Run Frame 1 for mutation 1 at T = 105
       clock.tick(5);
-      requestAnimationFrameCallbacks(); // Frame 1: prePaintAtMs = 105
+      requestAnimationFrameCallbacks(); // Frame 1: activeUiRenderSpan started at 105
 
       // Run Frame 2 for mutation 1 at T = 110
       clock.tick(5);
-      requestAnimationFrameCallbacks(); // Frame 2: postPaintAtMs = 110
+      requestAnimationFrameCallbacks(); // Frame 2: lastUiActivityMs = 110
 
       // Second mutation at T = 112 (within quiescence window of 110)
       clock.tick(2);
@@ -666,11 +670,11 @@ describe('RootSpanContextManager', () => {
 
       // Run Frame 1 for mutation 2 at T = 115
       clock.tick(3);
-      requestAnimationFrameCallbacks(); // Frame 1: prePaintAtMs remains 105, postPaintAtMs reset to undefined
+      requestAnimationFrameCallbacks(); // Frame 1: activeUiRenderSpan created, lastUiActivityMs reset to undefined
 
       // Run Frame 2 for mutation 2 at T = 120
       clock.tick(5);
-      requestAnimationFrameCallbacks(); // Frame 2: postPaintAtMs = 120
+      requestAnimationFrameCallbacks(); // Frame 2: lastUiActivityMs = 120
 
       // Let everything quiesce
       clock.tick(QUIESCENCE_WINDOW_MS);
@@ -731,7 +735,7 @@ describe('RootSpanContextManager', () => {
 
       // Run Frame 1 at T = 105
       clock.tick(5);
-      requestAnimationFrameCallbacks(); // Frame 1: prePaintAtMs = 105
+      requestAnimationFrameCallbacks(); // Frame 1: activeUiRenderSpan started at 105
 
       // Interrupt at T = 108 before Frame 2 runs
       clock.tick(3);
@@ -763,11 +767,11 @@ describe('RootSpanContextManager', () => {
 
       // Run Frame 1 at T = 105
       clock.tick(5);
-      requestAnimationFrameCallbacks(); // Frame 1: prePaintAtMs = 105
+      requestAnimationFrameCallbacks(); // Frame 1: activeUiRenderSpan started at 105
 
       // Run Frame 2 at T = 110
       clock.tick(5);
-      requestAnimationFrameCallbacks(); // Frame 2: postPaintAtMs = 110
+      requestAnimationFrameCallbacks(); // Frame 2: lastUiActivityMs = 110
 
       // Interrupt at T = 115 during quiescence
       clock.tick(5);
