@@ -41,7 +41,8 @@ export const CRASHLYTICS_ATTRIBUTE_KEYS = {
   INSTALLATION_ID: 'app.installation.id',
   TRACE_ID: 'logging.googleapis.com/trace',
   SPAN_ID: 'logging.googleapis.com/spanId',
-  APP_SCREEN_ID: 'app.screen.id'
+  APP_SCREEN_ID: 'app.screen.id',
+  INTERRUPTED_BY_TRACE_ID: 'interrupted_by_trace_id'
 };
 
 /** Label keys for resource attributes in tracing provider */

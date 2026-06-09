@@ -121,7 +121,10 @@ export function recordError(
     Object.assign(customAttributes, frameworkAttributes);
   }
 
-  setCommonLogAttributes(crashlytics, customAttributes);
+  setCommonLogAttributes(
+    customAttributes,
+    (crashlytics as CrashlyticsService).options
+  );
 
   // Merge in any additional attributes. Explicitly provided attributes take precedence over
   // automatically added attributes.
@@ -252,7 +255,10 @@ export function logViewBoundary(
   const logger = loggerProvider.getLogger('view-boundary-logger');
   const customAttributes: AnyValueMap = {};
 
-  setCommonLogAttributes(crashlytics, customAttributes);
+  setCommonLogAttributes(
+    customAttributes,
+    (crashlytics as CrashlyticsService).options
+  );
 
   // Merge in any additional attributes. Explicitly provided attributes take precedence over
   // automatically added attributes.

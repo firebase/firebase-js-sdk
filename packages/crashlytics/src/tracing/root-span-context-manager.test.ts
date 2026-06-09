@@ -19,6 +19,9 @@ import { expect } from 'chai';
 import * as sinon from 'sinon';
 import { RootSpanContextManager } from './root-span-context-manager';
 import { Span, Tracer, trace } from '@opentelemetry/api';
+import { LoggerProvider } from '@opentelemetry/sdk-logs';
+import { Logger, LogRecord, SeverityNumber } from '@opentelemetry/api-logs';
+import { CRASHLYTICS_ATTRIBUTE_KEYS } from '../constants';
 
 const MOCK_TRACE_ID = 'trace-1';
 
@@ -381,6 +384,51 @@ describe('RootSpanContextManager', () => {
       expect((rootSpan1.span as any).end.calledWith(100)).to.be.true;
       expect(manager.getRootSpanByTraceId(rootSpan1.getTraceId())).to.be
         .undefined;
+    });
+
+    it('should log an event when interrupted and associate it with the interrupted span context and the trace id of the interrupting span', () => {
+      const emittedLogs: LogRecord[] = [];
+      const fakeLoggerProvider = {
+        getLogger: () => ({
+          emit: (logRecord: LogRecord) => {
+            emittedLogs.push(logRecord);
+          }
+        })
+      } as unknown as LoggerProvider;
+
+      manager.setLoggerProvider(fakeLoggerProvider, { appVersion: '1.2.3' });
+
+      // Start the first root span (interrupted span)
+      const rootSpan1 = manager.startRootSpan(
+        mockTracer as Tracer,
+        'user-interaction',
+        'span-1'
+      );
+
+      // Start the second root span (interrupting span) which interrupts the first
+      manager.startRootSpan(
+        mockTracer as Tracer,
+        'user-interaction',
+        'span-2'
+      );
+
+      expect(emittedLogs.length).to.equal(1);
+      const log = emittedLogs[0];
+      expect(log.severityNumber).to.equal(SeverityNumber.INFO);
+      expect(log.body).to.equal('Root span interrupted');
+
+      // Check the attributes on the log
+      expect(log.attributes).to.deep.equal({
+        [CRASHLYTICS_ATTRIBUTE_KEYS.TRACE_ID]: 'trace-1',
+        [CRASHLYTICS_ATTRIBUTE_KEYS.SPAN_ID]: 'span-1',
+        [CRASHLYTICS_ATTRIBUTE_KEYS.INTERRUPTED_BY_TRACE_ID]: 'trace-2',
+        [CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION]: '1.2.3'
+      });
+
+      // Verify the log's context has the interrupted span
+      expect(log.context).to.exist;
+      const activeSpan = trace.getSpan(log.context!);
+      expect(activeSpan).to.equal(rootSpan1.span);
     });
   });
 });

@@ -25,7 +25,7 @@ import {
 import { Crashlytics, CrashlyticsOptions } from './public-types';
 import { CrashlyticsService } from './service';
 import { CrashlyticsInternal } from './types';
-import { trace, type TimeInput } from '@opentelemetry/api';
+import { trace, type TimeInput, SpanContext } from '@opentelemetry/api';
 import { hrTimeToMilliseconds, timeInputToHrTime } from '@opentelemetry/core';
 
 /**
@@ -66,13 +66,12 @@ export function getSessionId(): string | undefined {
  * Sets attributes that are common across all logs
  */
 export function setCommonLogAttributes(
-  crashlytics: Crashlytics,
-  customAttributes: AnyValueMap
+  customAttributes: AnyValueMap,
+  options?: CrashlyticsOptions,
+  spanContext?: SpanContext
 ): void {
-  const options =
-    crashlytics instanceof CrashlyticsService ? crashlytics.options : undefined;
   // Add trace metadata
-  const activeSpanContext = trace.getActiveSpan()?.spanContext();
+  const activeSpanContext = spanContext || trace.getActiveSpan()?.spanContext();
   if (activeSpanContext?.traceId) {
     customAttributes[CRASHLYTICS_ATTRIBUTE_KEYS.TRACE_ID] =
       activeSpanContext.traceId;
@@ -109,7 +108,10 @@ export function startNewSession(crashlytics: Crashlytics): void {
       sessionStorage.setItem(CRASHLYTICS_SESSION_ID_KEY, sessionId);
 
       const customAttributes: AnyValueMap = {};
-      setCommonLogAttributes(crashlytics, customAttributes);
+      setCommonLogAttributes(
+        customAttributes,
+        (crashlytics as CrashlyticsService).options
+      );
 
       // Emit session creation log
       const logger = loggerProvider.getLogger('session-logger');

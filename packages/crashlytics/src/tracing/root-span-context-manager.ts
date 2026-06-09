@@ -21,10 +21,18 @@ import {
   type Tracer,
   trace,
   type SpanOptions,
-  type TimeInput
+  type TimeInput,
+  context
 } from '@opentelemetry/api';
+import { SeverityNumber } from '@opentelemetry/api-logs';
+import { LoggerProvider } from '@opentelemetry/sdk-logs';
 import { ZoneContextManager } from '@opentelemetry/context-zone';
-import { timeInputToMilliseconds } from '../helpers';
+import {
+  timeInputToMilliseconds,
+  setCommonLogAttributes
+} from '../helpers';
+import { CRASHLYTICS_ATTRIBUTE_KEYS } from '../constants';
+import { CrashlyticsOptions } from '../public-types';
 
 /**
  * The length of time to wait for activity to cease before closing the root span.
@@ -239,19 +247,60 @@ export class RootSpanContextManager extends ZoneContextManager {
   private _interruptedRootSpans: RootSpan[] = [];
   // TODO: cchestnut look into having a store to manage context data not unique to span context
   private _activeAppScreenId: string | undefined;
+  private _loggerProvider?: LoggerProvider;
+  private _crashlyticsOptions?: CrashlyticsOptions;
+
+  setLoggerProvider(
+    loggerProvider: LoggerProvider,
+    crashlyticsOptions?: CrashlyticsOptions
+  ): void {
+    this._loggerProvider = loggerProvider;
+    this._crashlyticsOptions = crashlyticsOptions;
+  }
+
   startRootSpan(
     tracer: Tracer,
     type: RootSpanType,
     rootSpanName: string = type,
     options?: SpanOptions
   ): RootSpan {
+    let interruptedRootSpan: RootSpan | undefined;
     if (this._activeRootSpan) {
-      this._interruptedRootSpans.push(this._activeRootSpan);
-      this._activeRootSpan.interrupt();
+      interruptedRootSpan = this._activeRootSpan;
+      this._interruptedRootSpans.push(interruptedRootSpan);
+      interruptedRootSpan.interrupt();
       this.clearActiveRootSpan();
     }
     const span = tracer.startSpan(rootSpanName, options);
     this._activeRootSpan = new RootSpan(this, span, type, options?.startTime);
+
+    if (interruptedRootSpan && this._loggerProvider) {
+      const logger = this._loggerProvider.getLogger('interruption-logger');
+      const interruptingTraceId = span.spanContext().traceId;
+
+      const logContext = trace.setSpan(
+        context.active(),
+        interruptedRootSpan.span
+      );
+
+      const customAttributes: Record<string, string> = {
+        [CRASHLYTICS_ATTRIBUTE_KEYS.INTERRUPTED_BY_TRACE_ID]: interruptingTraceId
+      };
+
+      setCommonLogAttributes(
+        customAttributes,
+        this._crashlyticsOptions,
+        interruptedRootSpan.span.spanContext()
+      );
+
+      logger.emit({
+        severityNumber: SeverityNumber.INFO,
+        body: 'Root span interrupted',
+        attributes: customAttributes,
+        context: logContext
+      });
+    }
+
     return this._activeRootSpan;
   }
 

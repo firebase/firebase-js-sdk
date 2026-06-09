@@ -223,7 +223,7 @@ describe('helpers', () => {
       AUTO_CONSTANTS.appVersion = '1.0.0';
 
       try {
-        setCommonLogAttributes(fakeCrashlytics, customAttributes);
+        setCommonLogAttributes(customAttributes, (fakeCrashlytics as any).options);
 
         expect(customAttributes[CRASHLYTICS_ATTRIBUTE_KEYS.TRACE_ID]).to.equal(
           'trace-id-123'
@@ -248,7 +248,7 @@ describe('helpers', () => {
         .returns(undefined);
 
       try {
-        setCommonLogAttributes(fakeCrashlytics, customAttributes);
+        setCommonLogAttributes(customAttributes, (fakeCrashlytics as any).options);
 
         expect(customAttributes[CRASHLYTICS_ATTRIBUTE_KEYS.TRACE_ID]).to.be
           .undefined;
@@ -265,7 +265,7 @@ describe('helpers', () => {
         .returns(undefined);
 
       try {
-        setCommonLogAttributes(fakeCrashlytics, customAttributes);
+        setCommonLogAttributes(customAttributes, (fakeCrashlytics as any).options);
 
         expect(
           customAttributes[CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION]
@@ -281,7 +281,7 @@ describe('helpers', () => {
         .returns(undefined);
 
       try {
-        setCommonLogAttributes(fakeCrashlytics, customAttributes);
+        setCommonLogAttributes(customAttributes, (fakeCrashlytics as any).options);
 
         expect(customAttributes[CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID]).to.be
           .undefined;

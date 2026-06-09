@@ -61,6 +61,7 @@ export function registerCrashlytics(): void {
         );
 
         const contextManager = new RootSpanContextManager();
+        contextManager.setLoggerProvider(loggerProvider, crashlyticsOptions);
         const tracingProvider = createTracingProvider(
           app,
           contextManager,

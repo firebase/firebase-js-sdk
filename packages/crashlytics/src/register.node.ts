@@ -40,6 +40,7 @@ export function registerCrashlytics(): void {
         const app = container.getProvider('app').getImmediate();
         const loggerProvider = createLoggerProvider(app, crashlyticsOptions);
         const contextManager = new RootSpanContextManager();
+        contextManager.setLoggerProvider(loggerProvider, crashlyticsOptions);
         const tracingProvider = createTracingProvider(
           app,
           contextManager,
