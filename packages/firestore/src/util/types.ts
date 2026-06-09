@@ -79,7 +79,7 @@ export interface DocumentLike {
  * property of the Type param T to be set.
  *
  * @example
- * ```
+ * ```typescript
  * type XorY = OneOf<{ x: unknown, y: unknown }>
  * let a = { x: "foo" }           // OK
  * let b = { y: "foo" }           // OK

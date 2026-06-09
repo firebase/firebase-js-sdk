@@ -1264,12 +1264,10 @@ export class Pipeline {
     addFields(options: AddFieldsStageOptions): Pipeline;
     aggregate(accumulator: AliasedAggregate, ...additionalAccumulators: AliasedAggregate[]): Pipeline;
     aggregate(options: AggregateStageOptions): Pipeline;
-    // (undocumented)
     define(aliasedExpression: AliasedExpression, ...additionalExpressions: AliasedExpression[]): Pipeline;
     // (undocumented)
     define(options: DefineStageOptions): Pipeline;
     distinct(group: string | Selectable, ...additionalGroups: Array<string | Selectable>): Pipeline;
-    // (undocumented)
     distinct(options: DistinctStageOptions): Pipeline;
     findNearest(options: FindNearestStageOptions): Pipeline;
     limit(limit: number): Pipeline;
@@ -1288,18 +1286,14 @@ export class Pipeline {
     replaceWith(options: ReplaceWithStageOptions): Pipeline;
     sample(documents: number): Pipeline;
     sample(options: SampleStageOptions): Pipeline;
-    // Warning: (ae-incompatible-release-tags) The symbol "search" is marked as @public, but its signature references "SearchStageOptions" which is marked as @beta
-    //
-    // (undocumented)
+    // @beta
     search(options: SearchStageOptions): Pipeline;
     select(selection: Selectable | string, ...additionalSelections: Array<Selectable | string>): Pipeline;
     select(options: SelectStageOptions): Pipeline;
     sort(ordering: Ordering, ...additionalOrderings: Ordering[]): Pipeline;
     // (undocumented)
     sort(options: SortStageOptions): Pipeline;
-    // (undocumented)
     toArrayExpression(): Expression;
-    // (undocumented)
     toScalarExpression(): Expression;
     union(other: Pipeline): Pipeline;
     // (undocumented)
