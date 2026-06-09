@@ -27,7 +27,6 @@ import { hrTimeToMilliseconds } from '@opentelemetry/core';
 import { ReadableSpan } from '@opentelemetry/sdk-trace-base';
 import { ZoneContextManager } from '@opentelemetry/context-zone';
 
-export type RootSpanType = 'app-start' | 'user-interaction';
 /**
  * The length of time to wait for activity to cease before closing the root span.
  */
@@ -38,6 +37,9 @@ export const QUIESCENCE_WINDOW_MS = 150;
  */
 export const UI_RENDER_QUIESCENCE_WINDOW_MS = 17;
 
+/**
+ * Tracks UI render span activity and quiescence.
+ */
 class UiRenderSpan {
   private activeRenderSpan: Span | undefined;
   private lastRenderCompletedAtMs: number | undefined;
@@ -136,21 +138,56 @@ class UiRenderSpan {
 }
 
 /**
+ * Tracks background span activity, like network requests and document load.
+ */
+class BackgroundSpans {
+  private activeBackgroundSpanIds: Set<string>;
+  private lastBackgroundSpanCompletedAtMs?: number;
+
+  constructor() {
+    this.activeBackgroundSpanIds = new Set<string>();
+    this.lastBackgroundSpanCompletedAtMs = undefined;
+  }
+
+  hasActiveSpans(): boolean {
+    return this.activeBackgroundSpanIds.size > 0;
+  }
+
+  getLastBackgroundSpanCompletedAtMs(): number | undefined {
+    return this.lastBackgroundSpanCompletedAtMs;
+  }
+
+  recordBackgroundSpanStart(span: Span): void {
+    this.activeBackgroundSpanIds.add(span.spanContext().spanId);
+  }
+
+  recordBackgroundSpanEnd(span: ReadableSpan): void {
+    if (this.activeBackgroundSpanIds.delete(span.spanContext().spanId)) {
+      const completedAtMs = hrTimeToMilliseconds(span.endTime);
+      if (
+        this.lastBackgroundSpanCompletedAtMs === undefined ||
+        completedAtMs > this.lastBackgroundSpanCompletedAtMs
+      ) {
+        this.lastBackgroundSpanCompletedAtMs = completedAtMs;
+      }
+    }
+  }
+}
+
+/**
  * Wrapper around the OpenTelemetry Span that tracks activity and quiescence for a client-side
  * root span.
  */
 export class RootSpan {
   span: Span;
-  private uiRenderSpan: UiRenderSpan;
-  private rootSpanStartAtMs: number;
-  private activeNetworkRequests: number;
-  private lastBackgroundActivityMs?: number;
-  private interruptedAtMs: number | undefined;
-  private quiescenceTimerId: ReturnType<typeof setTimeout> | null;
-  private mutationObserver?: MutationObserver;
   private manager: RootSpanContextManager;
-  private isDocumentLoaded = true;
   private tracer: Tracer;
+  private rootSpanStartAtMs: number;
+  private quiescenceTimerId: ReturnType<typeof setTimeout> | null;
+  private backgroundSpans: BackgroundSpans;
+  private uiRenderSpan: UiRenderSpan;
+  private mutationObserver?: MutationObserver;
+  private isInterrupted: boolean = false;
 
   /**
    * Initializes a new RootSpan instance, setting initial activity markers
@@ -163,7 +200,6 @@ export class RootSpan {
   constructor(
     span: Span,
     manager: RootSpanContextManager,
-    type: RootSpanType,
     tracer: Tracer
   ) {
     this.span = span;
@@ -174,11 +210,8 @@ export class RootSpan {
     this.rootSpanStartAtMs = sdkSpan.startTime
       ? hrTimeToMilliseconds(sdkSpan.startTime)
       : Date.now();
-
-    this.lastBackgroundActivityMs = undefined;
-    this.interruptedAtMs = undefined;
     this.quiescenceTimerId = null;
-    this.activeNetworkRequests = 0;
+    this.backgroundSpans = new BackgroundSpans();
     this.uiRenderSpan = new UiRenderSpan(
       this.span,
       this.tracer,
@@ -195,49 +228,17 @@ export class RootSpan {
       });
     }
 
-    this.isDocumentLoaded = type !== 'app-start';
-    // for app-start spans, we don't need to start the quiescence timer until after the document
-    // is loaded, to avoid unnecessary timeout loops
-    if (this.isDocumentLoaded) {
-      this.quiesce();
-    }
+    this.quiesce();
   }
 
-  /**
-   * Marks the document load span as completed and triggers a quiescence check.
-   * @param endTimeMs The end timestamp of the document load span.
-   */
-  markDocumentLoaded(endTimeMs: number): void {
-    this.isDocumentLoaded = true;
-    this.setLastBackgroundActivityMs(endTimeMs);
+  onBackgroundSpanStart(span: Span): void {
+    this.backgroundSpans.recordBackgroundSpanStart(span);
+    this.clearQuiesce();
+  }
+
+  onBackgroundSpanEnd(span: ReadableSpan): void {
+    this.backgroundSpans.recordBackgroundSpanEnd(span);
     this.endRootSpanOrWait();
-  }
-
-  /**
-   * Records network activity start for this root span.
-   */
-  recordNetworkActivityStart(): void {
-    this.activeNetworkRequests++;
-    this.setLastBackgroundActivityMs();
-  }
-
-  /**
-   * Indicates that a network request has ended for this root span.
-   * @param endTimeMs Optional end timestamp of the network request.
-   */
-  recordNetworkActivityEnd(endTimeMs?: number): void {
-    this.activeNetworkRequests = Math.max(0, this.activeNetworkRequests - 1);
-    this.setLastBackgroundActivityMs(endTimeMs);
-    this.endRootSpanOrWait();
-  }
-
-  private setLastBackgroundActivityMs(timestamp: number = Date.now()): void {
-    if (
-      this.lastBackgroundActivityMs === undefined ||
-      timestamp > this.lastBackgroundActivityMs
-    ) {
-      this.lastBackgroundActivityMs = timestamp;
-    }
   }
 
   /**
@@ -245,9 +246,9 @@ export class RootSpan {
    * active UI render span and the root span itself.
    */
   interrupt(): void {
-    this.interruptedAtMs = Date.now();
+    this.isInterrupted = true;
     this.clearMutationObserver();
-    this.uiRenderSpan.interrupt(this.interruptedAtMs);
+    this.uiRenderSpan.interrupt(Date.now());
     this.endRootSpanOrWait();
   }
 
@@ -262,7 +263,7 @@ export class RootSpan {
   private getLastActivityMs(): number {
     const activityTimes = [
       this.rootSpanStartAtMs,
-      this.lastBackgroundActivityMs,
+      this.backgroundSpans.getLastBackgroundSpanCompletedAtMs(),
       this.uiRenderSpan.getLastRenderCompletedAtMs()
     ].filter((t): t is number => t !== undefined);
 
@@ -301,31 +302,19 @@ export class RootSpan {
    * Checks if the root span is stable (both network and UI activity have ceased) and ends it if so.
    */
   private endRootSpanOrWait(): void {
-    if (!this.isDocumentLoaded) {
-      return; // Do not end yet, the document load has not completed
-    }
-    if (this.activeNetworkRequests > 0) {
-      this.quiesce(); // Keep waiting, there are active network requests
+    if (this.backgroundSpans.hasActiveSpans() || this.uiRenderSpan.isActivelyRendering()) {
       return;
     }
 
-    if (this.uiRenderSpan.isActivelyRendering()) {
-      return;
-    }
-
-    const finalEndTime = this.getLastActivityMs();
-
-    if (
-      this.interruptedAtMs === undefined &&
-      Date.now() - finalEndTime < QUIESCENCE_WINDOW_MS
-    ) {
+    const lastActivityAtMs = this.getLastActivityMs();
+    if (!this.isInterrupted && Date.now() - lastActivityAtMs < QUIESCENCE_WINDOW_MS) {
       this.quiesce(); // Keep waiting, work is not yet stable
       return;
     }
 
     this.clearMutationObserver();
     this.clearQuiesce();
-    this.span.end(finalEndTime);
+    this.span.end(lastActivityAtMs);
     this.manager.clearRootSpanFromContext(this);
   }
 }
@@ -348,8 +337,7 @@ export class RootSpanContextManager extends ZoneContextManager {
    */
   startRootSpan(
     tracer: Tracer,
-    type: RootSpanType,
-    rootSpanName: string = type,
+    rootSpanName: string,
     options?: SpanOptions
   ): RootSpan {
     if (this._activeRootSpan) {
@@ -358,7 +346,7 @@ export class RootSpanContextManager extends ZoneContextManager {
       this.clearActiveRootSpan();
     }
     const span = tracer.startSpan(rootSpanName, options);
-    this._activeRootSpan = new RootSpan(span, this, type, tracer);
+    this._activeRootSpan = new RootSpan(span, this, tracer);
     return this._activeRootSpan;
   }
 

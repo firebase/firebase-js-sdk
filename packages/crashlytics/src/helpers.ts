@@ -138,7 +138,7 @@ export function startUserInteractionTrace(
     crashlytics as CrashlyticsInternal;
 
   const tracer = tracingProvider.getTracer(CRASHLYTICS_TRACER_NAME);
-  contextManager.startRootSpan(tracer, 'user-interaction', rootSpanName);
+  contextManager.startRootSpan(tracer, rootSpanName);
 }
 
 /**
