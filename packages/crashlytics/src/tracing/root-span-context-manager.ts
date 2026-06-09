@@ -51,7 +51,7 @@ class UiRenderSpan {
     private tracer: Tracer,
     private onRenderStart: () => void,
     private onRenderEnd: () => void
-  ) { }
+  ) {}
 
   isActivelyRendering(): boolean {
     return this.activeRenderSpan !== undefined;
@@ -74,13 +74,18 @@ class UiRenderSpan {
       typeof window !== 'undefined' &&
       typeof window.requestAnimationFrame === 'function'
     ) {
-      window.requestAnimationFrame(() => { // frame 1
+      window.requestAnimationFrame(() => {
+        // frame 1
         if (this.isInterrupted) {
           return;
         }
         if (!this.activeRenderSpan) {
           this.startUiRenderSpan();
-        } else if (this.lastRenderCompletedAtMs !== undefined && Date.now() - this.lastRenderCompletedAtMs >= UI_RENDER_QUIESCENCE_WINDOW_MS) {
+        } else if (
+          this.lastRenderCompletedAtMs !== undefined &&
+          Date.now() - this.lastRenderCompletedAtMs >=
+            UI_RENDER_QUIESCENCE_WINDOW_MS
+        ) {
           this.endUiRenderSpan();
           this.startUiRenderSpan();
         }
@@ -90,7 +95,8 @@ class UiRenderSpan {
         this.clearEndRenderSpanTimer();
         this.onRenderStart();
 
-        window.requestAnimationFrame(() => { // frame 2
+        window.requestAnimationFrame(() => {
+          // frame 2
           if (this.isInterrupted) {
             return;
           }
@@ -197,11 +203,7 @@ export class RootSpan {
    * @param type The type of root span ('app-start' or 'user-interaction').
    * @param tracer The tracer used to start child spans (e.g. UI Render spans).
    */
-  constructor(
-    span: Span,
-    manager: RootSpanContextManager,
-    tracer: Tracer
-  ) {
+  constructor(span: Span, manager: RootSpanContextManager, tracer: Tracer) {
     this.span = span;
     this.manager = manager;
     this.tracer = tracer;
@@ -219,8 +221,13 @@ export class RootSpan {
       () => this.quiesce()
     );
 
-    if (typeof MutationObserver !== 'undefined' && typeof document !== 'undefined') {
-      this.mutationObserver = new MutationObserver(() => this.uiRenderSpan.onMutation());
+    if (
+      typeof MutationObserver !== 'undefined' &&
+      typeof document !== 'undefined'
+    ) {
+      this.mutationObserver = new MutationObserver(() =>
+        this.uiRenderSpan.onMutation()
+      );
       this.mutationObserver.observe(document.body, {
         childList: true,
         subtree: true,
@@ -302,12 +309,18 @@ export class RootSpan {
    * Checks if the root span is stable (both network and UI activity have ceased) and ends it if so.
    */
   private endRootSpanOrWait(): void {
-    if (this.backgroundSpans.hasActiveSpans() || this.uiRenderSpan.isActivelyRendering()) {
+    if (
+      this.backgroundSpans.hasActiveSpans() ||
+      this.uiRenderSpan.isActivelyRendering()
+    ) {
       return;
     }
 
     const lastActivityAtMs = this.getLastActivityMs();
-    if (!this.isInterrupted && Date.now() - lastActivityAtMs < QUIESCENCE_WINDOW_MS) {
+    if (
+      !this.isInterrupted &&
+      Date.now() - lastActivityAtMs < QUIESCENCE_WINDOW_MS
+    ) {
       this.quiesce(); // Keep waiting, work is not yet stable
       return;
     }

@@ -63,7 +63,10 @@ export class FirebaseSpanProcessor implements SpanProcessor {
     const rootSpan = this.rootSpanContextManager.getRootSpanByTraceId(
       span.spanContext().traceId
     );
-    if (rootSpan && (this.isNetworkSpan(span) || this.isDocumentLoadSpan(span))) {
+    if (
+      rootSpan &&
+      (this.isNetworkSpan(span) || this.isDocumentLoadSpan(span))
+    ) {
       rootSpan.onBackgroundSpanStart(span);
     }
     const activeAppScreenId =
@@ -96,7 +99,10 @@ export class FirebaseSpanProcessor implements SpanProcessor {
     const rootSpan = this.rootSpanContextManager.getRootSpanByTraceId(
       span.spanContext().traceId
     );
-    if (rootSpan && (this.isNetworkSpan(span) || this.isDocumentLoadSpan(span))) {
+    if (
+      rootSpan &&
+      (this.isNetworkSpan(span) || this.isDocumentLoadSpan(span))
+    ) {
       rootSpan.onBackgroundSpanEnd(span);
     }
   }
@@ -106,12 +112,16 @@ export class FirebaseSpanProcessor implements SpanProcessor {
   }
 
   private isNetworkSpan(span: Span | ReadableSpan): boolean {
-    return !!span.instrumentationScope?.name &&
-      NETWORK_INSTRUMENTATION_SCOPES.includes(span.instrumentationScope.name);
+    return (
+      !!span.instrumentationScope?.name &&
+      NETWORK_INSTRUMENTATION_SCOPES.includes(span.instrumentationScope.name)
+    );
   }
 
   private isDocumentLoadSpan(span: Span | ReadableSpan): boolean {
-    return span.name === 'documentLoad' &&
-      span.instrumentationScope?.name === DOCUMENT_LOAD_INSTRUMENTATION_SCOPE;
+    return (
+      span.name === 'documentLoad' &&
+      span.instrumentationScope?.name === DOCUMENT_LOAD_INSTRUMENTATION_SCOPE
+    );
   }
 }
