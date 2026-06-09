@@ -288,17 +288,15 @@ export class RootSpan {
   }
 
   /**
-   * Starts and immediately ends a 'UI Render' span to capture the duration
-   * of the measured UI rendering work.
+   * Ends a 'UI Render' child span parented to this root span.
    */
   private endUIRenderSpan(): void {
     if (this.activeUiRenderSpan) {
-      this.lastUiActivityMs = this.lastUiActivityMs ?? this.interruptedAtMs;
-      if (this.lastUiActivityMs !== undefined) {
-        this.activeUiRenderSpan.end(this.lastUiActivityMs);
-        this.activeUiRenderSpan = undefined;
-        this.clearRenderQuiesce();
-      }
+      this.lastUiActivityMs =
+        this.lastUiActivityMs ?? this.interruptedAtMs ?? Date.now();
+      this.activeUiRenderSpan.end(this.lastUiActivityMs);
+      this.activeUiRenderSpan = undefined;
+      this.clearRenderQuiesce();
     }
   }
 
