@@ -37,21 +37,117 @@ export const QUIESCENCE_WINDOW_MS = 150;
  * It is set as the expected time difference between requestAnimationFrame cycles.
  */
 export const UI_RENDER_QUIESCENCE_WINDOW_MS = 17;
+
+class UiRenderSpan {
+  private activeRenderSpan: Span | undefined;
+  private lastRenderCompletedAtMs: number | undefined;
+  private quiescenceRenderTimerId: ReturnType<typeof setTimeout> | null = null;
+  private isInterrupted = false;
+
+  constructor(
+    private parentSpan: Span,
+    private tracer: Tracer,
+    private onRenderStart: () => void,
+    private onRenderEnd: () => void
+  ) { }
+
+  isActivelyRendering(): boolean {
+    return this.activeRenderSpan !== undefined;
+  }
+
+  getLastRenderCompletedAtMs(): number | undefined {
+    return this.lastRenderCompletedAtMs;
+  }
+
+  interrupt(interruptedAtMs: number): void {
+    this.isInterrupted = true;
+    if (this.activeRenderSpan) {
+      this.lastRenderCompletedAtMs = interruptedAtMs;
+      this.endUiRenderSpan();
+    }
+  }
+
+  onMutation(): void {
+    if (
+      typeof window !== 'undefined' &&
+      typeof window.requestAnimationFrame === 'function'
+    ) {
+      window.requestAnimationFrame(() => { // frame 1
+        if (this.isInterrupted) {
+          return;
+        }
+        if (!this.activeRenderSpan) {
+          this.startUiRenderSpan();
+        } else if (this.lastRenderCompletedAtMs !== undefined && Date.now() - this.lastRenderCompletedAtMs >= UI_RENDER_QUIESCENCE_WINDOW_MS) {
+          this.endUiRenderSpan();
+          this.startUiRenderSpan();
+        }
+
+        // Quiescence does not exist during a pending post rAF callback because it is guaranteed
+        // to happen eventually and no waiting period should prevent it (besides an interrupt)
+        this.clearEndRenderSpanTimer();
+        this.onRenderStart();
+
+        window.requestAnimationFrame(() => { // frame 2
+          if (this.isInterrupted) {
+            return;
+          }
+          this.lastRenderCompletedAtMs = Date.now();
+          this.startEndRenderSpanTimer();
+          this.onRenderEnd();
+        });
+      });
+    }
+  }
+
+  private startEndRenderSpanTimer(): void {
+    this.clearEndRenderSpanTimer();
+
+    this.quiescenceRenderTimerId = setTimeout(() => {
+      this.endUiRenderSpan();
+    }, UI_RENDER_QUIESCENCE_WINDOW_MS);
+  }
+
+  private clearEndRenderSpanTimer(): void {
+    if (this.quiescenceRenderTimerId) {
+      clearTimeout(this.quiescenceRenderTimerId);
+      this.quiescenceRenderTimerId = null;
+    }
+  }
+
+  private startUiRenderSpan(startTimeMs: number = Date.now()): void {
+    const parentContext = trace.setSpan(context.active(), this.parentSpan);
+    this.activeRenderSpan = this.tracer.startSpan(
+      'UI Render',
+      {
+        startTime: startTimeMs
+      },
+      parentContext
+    );
+  }
+
+  private endUiRenderSpan(): void {
+    if (this.activeRenderSpan) {
+      this.activeRenderSpan.end(this.lastRenderCompletedAtMs);
+      this.activeRenderSpan = undefined;
+      this.clearEndRenderSpanTimer();
+    }
+  }
+}
+
 /**
  * Wrapper around the OpenTelemetry Span that tracks activity and quiescence for a client-side
  * root span.
  */
 export class RootSpan {
   span: Span;
-  private activeUiRenderSpan: Span | undefined;
+  private uiRenderSpan: UiRenderSpan;
   private rootSpanStartAtMs: number;
   private activeNetworkRequests: number;
   private lastBackgroundActivityMs?: number;
-  private lastUiActivityMs: number | undefined;
   private interruptedAtMs: number | undefined;
   private quiescenceTimerId: ReturnType<typeof setTimeout> | null;
-  private quiescenceRenderTimerId: ReturnType<typeof setTimeout> | null;
-  private mutationObserver: MutationObserver | null;
+  private mutationObserver?: MutationObserver;
   private manager: RootSpanContextManager;
   private isDocumentLoaded = true;
   private tracer: Tracer;
@@ -80,12 +176,24 @@ export class RootSpan {
       : Date.now();
 
     this.lastBackgroundActivityMs = undefined;
-    this.lastUiActivityMs = undefined;
     this.interruptedAtMs = undefined;
     this.quiescenceTimerId = null;
-    this.quiescenceRenderTimerId = null;
     this.activeNetworkRequests = 0;
-    this.mutationObserver = this.createMutationObserver();
+    this.uiRenderSpan = new UiRenderSpan(
+      this.span,
+      this.tracer,
+      () => this.clearQuiesce(),
+      () => this.quiesce()
+    );
+
+    if (typeof MutationObserver !== 'undefined' && typeof document !== 'undefined') {
+      this.mutationObserver = new MutationObserver(() => this.uiRenderSpan.onMutation());
+      this.mutationObserver.observe(document.body, {
+        childList: true,
+        subtree: true,
+        characterData: true
+      });
+    }
 
     this.isDocumentLoaded = type !== 'app-start';
     // for app-start spans, we don't need to start the quiescence timer until after the document
@@ -138,11 +246,8 @@ export class RootSpan {
    */
   interrupt(): void {
     this.interruptedAtMs = Date.now();
-
     this.clearMutationObserver();
-
-    this.endUIRenderSpan();
-
+    this.uiRenderSpan.interrupt(this.interruptedAtMs);
     this.endRootSpanOrWait();
   }
 
@@ -154,77 +259,11 @@ export class RootSpan {
     return this.span.spanContext().traceId;
   }
 
-  /**
-   * Creates a MutationObserver to observe DOM changes, tracking UI render cycles
-   * via requestAnimationFrame to measure paint timings.
-   * @returns A MutationObserver instance, or null if not in a browser environment.
-   */
-  private createMutationObserver(): MutationObserver | null {
-    if (
-      typeof document === 'undefined' ||
-      typeof MutationObserver === 'undefined'
-    ) {
-      return null; // not in a browser environment
-    }
-
-    const observer = new MutationObserver(() => {
-      if (
-        typeof window !== 'undefined' &&
-        typeof window.requestAnimationFrame === 'function'
-      ) {
-        window.requestAnimationFrame(() => {
-          // capture UI activity start in frame 1
-          if (!this.activeUiRenderSpan) {
-            this.startUIRenderSpan();
-          } else if (this.lastUiActivityMs !== undefined) {
-            const timeSinceRenderEnd = Date.now() - this.lastUiActivityMs;
-            if (timeSinceRenderEnd >= UI_RENDER_QUIESCENCE_WINDOW_MS) {
-              this.endUIRenderSpan();
-              this.startUIRenderSpan();
-            }
-          }
-
-          this.lastUiActivityMs = undefined;
-          /**
-           * Quiescence does not exist during a pending post rAF callback because it is guaranteed
-           * to happen eventually and no waiting period should prevent it (besides an interrupt)
-           */
-          this.clearRenderQuiesce();
-          this.clearQuiesce();
-          // any queued timeout callback for a completed quiescence period becomes invalid here
-          window.requestAnimationFrame(() => {
-            // capture UI activity end in frame 2
-            this.lastUiActivityMs = Date.now();
-
-            this.renderQuiesce();
-            this.quiesce();
-          });
-        });
-      }
-    });
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true,
-      characterData: true
-    });
-    return observer;
-  }
-
-  /**
-   * Disconnects and cleans up the DOM mutation observer.
-   */
-  private clearMutationObserver(): void {
-    if (this.mutationObserver) {
-      this.mutationObserver.disconnect();
-      this.mutationObserver = null;
-    }
-  }
-
   private getLastActivityMs(): number {
     const activityTimes = [
       this.rootSpanStartAtMs,
       this.lastBackgroundActivityMs,
-      this.lastUiActivityMs
+      this.uiRenderSpan.getLastRenderCompletedAtMs()
     ].filter((t): t is number => t !== undefined);
 
     return Math.max(...activityTimes);
@@ -242,17 +281,6 @@ export class RootSpan {
   }
 
   /**
-   * Triggers the closing of the UI render span after a render quiescence window of inactivity.
-   */
-  private renderQuiesce(): void {
-    this.clearRenderQuiesce();
-
-    this.quiescenceRenderTimerId = setTimeout(() => {
-      this.endUIRenderSpan();
-    }, UI_RENDER_QUIESCENCE_WINDOW_MS);
-  }
-
-  /**
    * Clears the root span quiescence timer, preventing it from executing.
    */
   private clearQuiesce(): void {
@@ -262,41 +290,10 @@ export class RootSpan {
     }
   }
 
-  /**
-   * Clears the UI render span quiescence timer, preventing it from executing.
-   */
-  private clearRenderQuiesce(): void {
-    if (this.quiescenceRenderTimerId) {
-      clearTimeout(this.quiescenceRenderTimerId);
-      this.quiescenceRenderTimerId = null;
-    }
-  }
-
-  /**
-   * Starts a 'UI Render' child span parented to this root span.
-   * @param startTimeMs The start timestamp of the UI rendering work.
-   */
-  private startUIRenderSpan(startTimeMs: number = Date.now()): void {
-    const parentContext = trace.setSpan(context.active(), this.span);
-    this.activeUiRenderSpan = this.tracer.startSpan(
-      'UI Render',
-      {
-        startTime: startTimeMs
-      },
-      parentContext
-    );
-  }
-
-  /**
-   * Ends a 'UI Render' child span parented to this root span.
-   */
-  private endUIRenderSpan(): void {
-    if (this.activeUiRenderSpan) {
-      this.lastUiActivityMs =
-        this.lastUiActivityMs ?? this.interruptedAtMs ?? Date.now();
-      this.activeUiRenderSpan.end(this.lastUiActivityMs);
-      this.activeUiRenderSpan = undefined;
-      this.clearRenderQuiesce();
+  private clearMutationObserver(): void {
+    if (this.mutationObserver) {
+      this.mutationObserver.disconnect();
+      this.mutationObserver = undefined;
     }
   }
 
@@ -309,6 +306,10 @@ export class RootSpan {
     }
     if (this.activeNetworkRequests > 0) {
       this.quiesce(); // Keep waiting, there are active network requests
+      return;
+    }
+
+    if (this.uiRenderSpan.isActivelyRendering()) {
       return;
     }
 
