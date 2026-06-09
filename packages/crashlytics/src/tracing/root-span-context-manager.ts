@@ -221,13 +221,12 @@ export class RootSpan {
   }
 
   private getLastActivityMs(): number {
-    const activityTimes: number[] = [this.rootSpanStartAtMs];
-    if (this.lastBackgroundActivityMs !== undefined) {
-      activityTimes.push(this.lastBackgroundActivityMs);
-    }
-    if (this.lastUiActivityMs !== undefined) {
-      activityTimes.push(this.lastUiActivityMs);
-    }
+    const activityTimes = [
+      this.rootSpanStartAtMs,
+      this.lastBackgroundActivityMs,
+      this.lastUiActivityMs
+    ].filter((t): t is number => t !== undefined);
+
     return Math.max(...activityTimes);
   }
 
