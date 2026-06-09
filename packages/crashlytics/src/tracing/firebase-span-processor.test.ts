@@ -20,7 +20,6 @@ import * as sinon from 'sinon';
 import { Span } from '@opentelemetry/sdk-trace-base';
 import { FirebaseSpanProcessor } from './firebase-span-processor';
 import { RootSpan, RootSpanContextManager } from './root-span-context-manager';
-import { hrTimeToMilliseconds } from '@opentelemetry/core';
 import {
   CRASHLYTICS_SESSION_ID_KEY,
   COMMON_SPAN_ATTRIBUTE_KEYS,
@@ -36,8 +35,8 @@ describe('FirebaseSpanProcessor', () => {
   let storage: Record<string, string> = {};
   let mockRootSpanContextManager: RootSpanContextManager;
   let activeRootSpanMock: any;
-  let recordNetworkActivityStartStub: sinon.SinonStub;
-  let recordNetworkActivityEndStub: sinon.SinonStub;
+  let onBackgroundSpanStartStub: sinon.SinonStub;
+  let onBackgroundSpanEndStub: sinon.SinonStub;
 
   beforeEach(() => {
     storage = {};
@@ -53,13 +52,13 @@ describe('FirebaseSpanProcessor', () => {
       writable: true
     });
 
-    recordNetworkActivityStartStub = sinon.stub();
-    recordNetworkActivityEndStub = sinon.stub();
+    onBackgroundSpanStartStub = sinon.stub();
+    onBackgroundSpanEndStub = sinon.stub();
 
     activeRootSpanMock = {
       spanContext: () => ({ traceId: 'traceId1', spanId: 'rootSpan1' }),
-      recordNetworkActivityStart: recordNetworkActivityStartStub,
-      recordNetworkActivityEnd: recordNetworkActivityEndStub
+      onBackgroundSpanStart: onBackgroundSpanStartStub,
+      onBackgroundSpanEnd: onBackgroundSpanEndStub
     };
 
     mockRootSpanContextManager = {
@@ -176,7 +175,7 @@ describe('FirebaseSpanProcessor', () => {
       };
       processor.onStart(mockSpan as Span, {} as any);
 
-      expect(recordNetworkActivityStartStub.calledOnce).to.be.true;
+      expect(onBackgroundSpanStartStub.calledWith(mockSpan)).to.be.true;
     });
 
     it('should record network activity start for xhr instrumentation', () => {
@@ -185,7 +184,7 @@ describe('FirebaseSpanProcessor', () => {
       };
       processor.onStart(mockSpan as Span, {} as any);
 
-      expect(recordNetworkActivityStartStub.calledOnce).to.be.true;
+      expect(onBackgroundSpanStartStub.calledWith(mockSpan)).to.be.true;
     });
 
     it('should not record network activity start for non-network scopes', () => {
@@ -194,7 +193,7 @@ describe('FirebaseSpanProcessor', () => {
       };
       processor.onStart(mockSpan as Span, {} as any);
 
-      expect(recordNetworkActivityStartStub.called).to.be.false;
+      expect(onBackgroundSpanStartStub.called).to.be.false;
     });
 
     it('should record network activity end for fetch instrumentation', () => {
@@ -204,11 +203,7 @@ describe('FirebaseSpanProcessor', () => {
       mockSpan.endTime = [1, 2000000];
       processor.onEnd(mockSpan as any);
 
-      expect(
-        recordNetworkActivityEndStub.calledWith(
-          hrTimeToMilliseconds(mockSpan.endTime)
-        )
-      ).to.be.true;
+      expect(onBackgroundSpanEndStub.calledWith(mockSpan)).to.be.true;
     });
 
     it('should record network activity end for xhr instrumentation', () => {
@@ -218,11 +213,7 @@ describe('FirebaseSpanProcessor', () => {
       mockSpan.endTime = [1, 2000000];
       processor.onEnd(mockSpan as any);
 
-      expect(
-        recordNetworkActivityEndStub.calledWith(
-          hrTimeToMilliseconds(mockSpan.endTime)
-        )
-      ).to.be.true;
+      expect(onBackgroundSpanEndStub.calledWith(mockSpan)).to.be.true;
     });
 
     it('should not record network activity end for non-network scopes', () => {
@@ -231,19 +222,32 @@ describe('FirebaseSpanProcessor', () => {
       };
       processor.onEnd(mockSpan as any);
 
-      expect(recordNetworkActivityEndStub.called).to.be.false;
+      expect(onBackgroundSpanEndStub.called).to.be.false;
     });
   });
 
-  describe('document load completion', () => {
-    let markDocumentLoadedStub: sinon.SinonStub;
+  describe('document load tracking', () => {
+    it('should call onDocumentLoadStart when documentLoad span starts', () => {
+      mockSpan.name = 'documentLoad';
+      mockSpan.instrumentationScope = {
+        name: '@opentelemetry/instrumentation-document-load'
+      };
+      processor.onStart(mockSpan as Span, {} as any);
 
-    beforeEach(() => {
-      markDocumentLoadedStub = sinon.stub();
-      activeRootSpanMock.markDocumentLoaded = markDocumentLoadedStub;
+      expect(onBackgroundSpanStartStub.calledWith(mockSpan)).to.be.true;
     });
 
-    it('should call markDocumentLoaded when documentLoad span ends', () => {
+    it('should not call onDocumentLoadStart when other spans start', () => {
+      mockSpan.name = 'someOtherSpan';
+      mockSpan.instrumentationScope = {
+        name: '@opentelemetry/instrumentation-document-load'
+      };
+      processor.onStart(mockSpan as Span, {} as any);
+
+      expect(onBackgroundSpanStartStub.called).to.be.false;
+    });
+
+    it('should call onDocumentLoadEnd when documentLoad span ends', () => {
       mockSpan.name = 'documentLoad';
       mockSpan.instrumentationScope = {
         name: '@opentelemetry/instrumentation-document-load'
@@ -251,21 +255,17 @@ describe('FirebaseSpanProcessor', () => {
       mockSpan.endTime = [1, 2000000];
       processor.onEnd(mockSpan as any);
 
-      expect(
-        markDocumentLoadedStub.calledWith(
-          hrTimeToMilliseconds(mockSpan.endTime)
-        )
-      ).to.be.true;
+      expect(onBackgroundSpanEndStub.calledWith(mockSpan)).to.be.true;
     });
 
-    it('should not call markDocumentLoaded when other spans end', () => {
+    it('should not call recordBackgroundSpanEnd when other spans end', () => {
       mockSpan.name = 'someOtherSpan';
       mockSpan.instrumentationScope = {
         name: '@opentelemetry/instrumentation-document-load'
       };
       processor.onEnd(mockSpan as any);
 
-      expect(markDocumentLoadedStub.called).to.be.false;
+      expect(onBackgroundSpanEndStub.called).to.be.false;
     });
   });
 });
