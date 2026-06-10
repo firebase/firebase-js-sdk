@@ -34,8 +34,8 @@ import {
   matchRoutes
 } from 'react-router-dom';
 import { CrashlyticsErrorBoundary } from './types';
-import { FRAMEWORK_ATTRIBUTE_KEYS } from '../constants';
-import { CrashlyticsService } from '../service';
+import { TELEMETRY_ATTRIBUTE_KEYS } from '../telemetry-metadata-store';
+import { CrashlyticsInternal } from '../types';
 
 registerCrashlytics();
 
@@ -112,12 +112,12 @@ export function CrashlyticsRoutes({
     : `/${pathFromRoot}`;
 
   React.useEffect(() => {
-    const crashlyticsService = crashlytics as CrashlyticsService;
-    crashlyticsService.frameworkAttributesProvider = () => ({
-      [FRAMEWORK_ATTRIBUTE_KEYS.ROUTE_PATH]: pattern
+    const { telemetryStore } = crashlytics as CrashlyticsInternal;
+    telemetryStore.updateCommonAttributes({
+      [TELEMETRY_ATTRIBUTE_KEYS.ROUTE_PATH]: pattern
     });
     return () => {
-      crashlyticsService.frameworkAttributesProvider = undefined;
+      telemetryStore.deleteCommonAttributes([TELEMETRY_ATTRIBUTE_KEYS.ROUTE_PATH]);
     };
   }, [crashlytics, pattern]);
 
@@ -127,7 +127,7 @@ export function CrashlyticsRoutes({
 
   const onError = (error: Error): void => {
     recordError(crashlytics, error, {
-      [FRAMEWORK_ATTRIBUTE_KEYS.ROUTE_PATH]: pattern
+      [TELEMETRY_ATTRIBUTE_KEYS.ROUTE_PATH]: pattern
     });
   };
 

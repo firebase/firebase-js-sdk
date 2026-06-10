@@ -22,9 +22,9 @@ import { FirebaseSpanProcessor } from './firebase-span-processor';
 import { RootSpan, RootSpanContextManager } from './root-span-context-manager';
 import {
   CRASHLYTICS_SESSION_ID_KEY,
-  COMMON_SPAN_ATTRIBUTE_KEYS,
-  CRASHLYTICS_ATTRIBUTE_KEYS
+  COMMON_SPAN_ATTRIBUTE_KEYS
 } from '../constants';
+import { TelemetryMetadataStore, TELEMETRY_ATTRIBUTE_KEYS } from '../telemetry-metadata-store';
 
 const MOCK_SESSION_ID = 'mock-session-id';
 
@@ -37,6 +37,7 @@ describe('FirebaseSpanProcessor', () => {
   let activeRootSpanMock: any;
   let onResourceFetchSpanStartStub: sinon.SinonStub;
   let onResourceFetchSpanEndStub: sinon.SinonStub;
+  let mockTelemetryStore: TelemetryMetadataStore;
 
   beforeEach(() => {
     storage = {};
@@ -63,11 +64,11 @@ describe('FirebaseSpanProcessor', () => {
 
     mockRootSpanContextManager = {
       getActiveRootSpan: () => activeRootSpanMock as unknown as RootSpan,
-      getRootSpanByTraceId: () => activeRootSpanMock as unknown as RootSpan,
-      getActiveAppScreenId: () => undefined
+      getRootSpanByTraceId: () => activeRootSpanMock as unknown as RootSpan
     } as unknown as RootSpanContextManager;
 
-    processor = new FirebaseSpanProcessor(mockRootSpanContextManager);
+    mockTelemetryStore = new TelemetryMetadataStore();
+    processor = new FirebaseSpanProcessor(mockRootSpanContextManager, mockTelemetryStore);
     mockSpan = {
       attributes: {},
       spanContext: () => ({ traceId: 'traceId1' }),
@@ -104,6 +105,7 @@ describe('FirebaseSpanProcessor', () => {
     it('should add region to resource name if present in options', () => {
       processor = new FirebaseSpanProcessor(
         mockRootSpanContextManager,
+        mockTelemetryStore,
         { region: 'us-central1' },
         { projectId: 'my-project' }
       );
@@ -118,6 +120,7 @@ describe('FirebaseSpanProcessor', () => {
     it('should use default region in resource name if not present in options', () => {
       processor = new FirebaseSpanProcessor(
         mockRootSpanContextManager,
+        mockTelemetryStore,
         {},
         { projectId: 'my-project' }
       );
@@ -131,25 +134,25 @@ describe('FirebaseSpanProcessor', () => {
 
     it('should add active app screen id to span if available', () => {
       const mockScreenId = 'screen-id';
-      (mockRootSpanContextManager as any).getActiveAppScreenId = () =>
-        mockScreenId;
+      mockTelemetryStore.updateCommonAttributes({
+        [TELEMETRY_ATTRIBUTE_KEYS.APP_SCREEN_ID]: mockScreenId
+      });
       processor.onStart(mockSpan as Span, {} as any);
       expect(
-        mockSpan.attributes[CRASHLYTICS_ATTRIBUTE_KEYS.APP_SCREEN_ID]
+        mockSpan.attributes[TELEMETRY_ATTRIBUTE_KEYS.APP_SCREEN_ID]
       ).to.equal(mockScreenId);
     });
 
     it('should not add active app screen id to span if not available', () => {
-      (mockRootSpanContextManager as any).getActiveAppScreenId = () =>
-        undefined;
       processor.onStart(mockSpan as Span, {} as any);
-      expect(mockSpan.attributes[CRASHLYTICS_ATTRIBUTE_KEYS.APP_SCREEN_ID]).to
+      expect(mockSpan.attributes[TELEMETRY_ATTRIBUTE_KEYS.APP_SCREEN_ID]).to
         .be.undefined;
     });
 
     it('should set app version attribute to the configured app version', () => {
       processor = new FirebaseSpanProcessor(
         mockRootSpanContextManager,
+        mockTelemetryStore,
         { appVersion: '1.2.3' },
         {}
       );
@@ -160,7 +163,7 @@ describe('FirebaseSpanProcessor', () => {
     });
 
     it("should set app version attribute to 'unset' if configured app version not available", () => {
-      processor = new FirebaseSpanProcessor(mockRootSpanContextManager, {}, {});
+      processor = new FirebaseSpanProcessor(mockRootSpanContextManager, mockTelemetryStore, {}, {});
       processor.onStart(mockSpan as Span, {} as any);
       expect(
         mockSpan.attributes[COMMON_SPAN_ATTRIBUTE_KEYS.GCP_FIREBASE_APP_VERSION]

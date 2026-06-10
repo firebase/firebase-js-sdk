@@ -31,6 +31,7 @@ import { CRASHLYTICS_TYPE } from './constants';
 import { getSessionId, registerListeners, startNewSession } from './helpers';
 import { CrashlyticsOptions } from './public-types';
 import { RootSpanContextManager } from './tracing/root-span-context-manager';
+import { TelemetryMetadataStore } from './telemetry-metadata-store';
 
 // We only import types from this package elsewhere in the `telemetry` package, so this
 // explicit import is needed here to prevent this module from being tree-shaken out.
@@ -60,10 +61,12 @@ export function registerCrashlytics(): void {
           dynamicAttributeProviders
         );
 
+        const telemetryStore = new TelemetryMetadataStore();
         const contextManager = new RootSpanContextManager();
         const tracingProvider = createTracingProvider(
           app,
           contextManager,
+          telemetryStore,
           crashlyticsOptions,
           dynamicHeaderProviders,
           dynamicAttributeProviders
@@ -73,7 +76,8 @@ export function registerCrashlytics(): void {
           app,
           loggerProvider,
           tracingProvider,
-          contextManager
+          contextManager,
+          telemetryStore
         );
 
         // Immediately track this as a new client session (if one doesn't exist yet)

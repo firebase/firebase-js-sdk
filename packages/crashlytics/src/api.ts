@@ -18,9 +18,9 @@
 import { _getProvider, FirebaseApp, getApp } from '@firebase/app';
 import {
   ALREADY_LOGGED_FLAG,
-  CRASHLYTICS_ATTRIBUTE_KEYS,
   CRASHLYTICS_TYPE
 } from './constants';
+import { TELEMETRY_ATTRIBUTE_KEYS } from './telemetry-metadata-store';
 import { CrashlyticsInternal, ErrorWithSymbol } from './types';
 import { Crashlytics, CrashlyticsOptions } from './public-types';
 import { Provider } from '@firebase/component';
@@ -113,12 +113,11 @@ export function recordError(
   );
   const customAttributes: AnyValueMap = {};
 
-  // Add framework-specific metadata
-  const frameworkAttributesProvider = (crashlytics as CrashlyticsService)
-    .frameworkAttributesProvider;
-  if (frameworkAttributesProvider) {
-    const frameworkAttributes = frameworkAttributesProvider();
-    Object.assign(customAttributes, frameworkAttributes);
+  // Add telemetry-specific metadata from the store
+  const telemetryStore = (crashlytics as CrashlyticsInternal).telemetryStore;
+  if (telemetryStore) {
+    const telemetryAttributes = telemetryStore.getLogAttributes();
+    Object.assign(customAttributes, telemetryAttributes);
   }
 
   setCommonLogAttributes(crashlytics, customAttributes);
@@ -248,7 +247,7 @@ export function logViewBoundary(
   urlTemplate: string,
   attributes?: AnyValueMap
 ): void {
-  const { loggerProvider, contextManager } = crashlytics as CrashlyticsInternal;
+  const { loggerProvider, telemetryStore } = crashlytics as CrashlyticsInternal;
   const logger = loggerProvider.getLogger('view-boundary-logger');
   const customAttributes: AnyValueMap = {};
 
@@ -264,12 +263,14 @@ export function logViewBoundary(
     severityNumber: SeverityNumber.INFO,
     body: 'Navigation event',
     attributes: {
-      [CRASHLYTICS_ATTRIBUTE_KEYS.APP_SCREEN_ID]: urlTemplate,
+      [TELEMETRY_ATTRIBUTE_KEYS.APP_SCREEN_ID]: urlTemplate,
       ...customAttributes
     }
   });
 
-  contextManager.setActiveAppScreenId(urlTemplate);
+  telemetryStore.updateCommonAttributes({
+    [TELEMETRY_ATTRIBUTE_KEYS.APP_SCREEN_ID]: urlTemplate
+  });
 }
 
 export { flush, startUserInteractionTrace };

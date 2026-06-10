@@ -37,8 +37,8 @@ import {
   BrowserTestingModule,
   platformBrowserTesting
 } from '@angular/platform-browser/testing';
-import { CrashlyticsService } from '../service';
-import { FRAMEWORK_ATTRIBUTE_KEYS } from '../constants';
+import { TelemetryMetadataStore, TELEMETRY_ATTRIBUTE_KEYS } from '../telemetry-metadata-store';
+import { CrashlyticsInternal } from '../types';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -54,13 +54,17 @@ describe('FirebaseErrorHandler', () => {
   let app: FirebaseApp;
 
   let fakeCrashlytics: Crashlytics;
+  let mockTelemetryStore: TelemetryMetadataStore;
 
   let recordErrorStub: sinon.SinonStub;
   let getCrashlyticsStub: sinon.SinonStub;
 
   beforeEach(() => {
     app = initializeApp({ projectId: 'p', appId: 'fakeapp' });
-    fakeCrashlytics = {} as Crashlytics;
+    mockTelemetryStore = new TelemetryMetadataStore();
+    fakeCrashlytics = {
+      telemetryStore: mockTelemetryStore
+    } as unknown as Crashlytics;
 
     recordErrorStub = stub(crashlytics, 'recordError');
     getCrashlyticsStub = stub(crashlytics, 'getCrashlytics').returns(
@@ -96,24 +100,26 @@ describe('FirebaseErrorHandler', () => {
     expect(recordErrorStub).to.have.been.calledWith(fakeCrashlytics, testError);
   });
 
-  describe('frameworkAttributesProvider', () => {
+  describe('route attributes tracking', () => {
     it('should report framework attributes', async () => {
       await router.navigate(['/static-route']);
+      errorHandler.handleError(new Error('test'));
 
       expect(
-        (fakeCrashlytics as CrashlyticsService).frameworkAttributesProvider!()
+        (fakeCrashlytics as CrashlyticsInternal).telemetryStore.getLogAttributes()
       ).to.deep.equal({
-        [FRAMEWORK_ATTRIBUTE_KEYS.ROUTE_PATH]: '/static-route'
+        [TELEMETRY_ATTRIBUTE_KEYS.ROUTE_PATH]: '/static-route'
       });
     });
 
     it('should remove dynamic content from route', async () => {
       await router.navigate(['/dynamic/my-name/route']);
+      errorHandler.handleError(new Error('test'));
 
       expect(
-        (fakeCrashlytics as CrashlyticsService).frameworkAttributesProvider!()
+        (fakeCrashlytics as CrashlyticsInternal).telemetryStore.getLogAttributes()
       ).to.deep.equal({
-        [FRAMEWORK_ATTRIBUTE_KEYS.ROUTE_PATH]: '/dynamic/:id/route'
+        [TELEMETRY_ATTRIBUTE_KEYS.ROUTE_PATH]: '/dynamic/:id/route'
       });
     });
   });

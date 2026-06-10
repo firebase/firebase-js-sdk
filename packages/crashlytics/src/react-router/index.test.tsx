@@ -26,7 +26,7 @@ import { CrashlyticsRoutes } from '.';
 import React from 'react';
 import { render } from '@testing-library/react';
 import { MemoryRouter, Route, useNavigate } from 'react-router-dom';
-import { FRAMEWORK_ATTRIBUTE_KEYS } from '../constants';
+import { TELEMETRY_ATTRIBUTE_KEYS } from '../telemetry-metadata-store';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -63,12 +63,16 @@ describe('CrashlyticsRoutes', () => {
   let fakeApp: FirebaseApp;
   let fakeCrashlytics: Crashlytics;
   let emitStub: sinon.SinonStub;
-  let setActiveAppScreenIdStub: sinon.SinonStub;
+  let updateCommonAttributesStub: sinon.SinonStub;
+  let deleteCommonAttributesStub: sinon.SinonStub;
+  let getTraceAttributesStub: sinon.SinonStub;
 
   beforeEach(() => {
     fakeApp = { name: 'fakeApp' } as FirebaseApp;
     emitStub = stub();
-    setActiveAppScreenIdStub = stub();
+    updateCommonAttributesStub = stub();
+    deleteCommonAttributesStub = stub();
+    getTraceAttributesStub = stub().returns({});
 
     fakeCrashlytics = {
       app: fakeApp,
@@ -77,8 +81,11 @@ describe('CrashlyticsRoutes', () => {
           emit: emitStub
         })
       },
-      contextManager: {
-        setActiveAppScreenId: setActiveAppScreenIdStub
+      telemetryStore: {
+        updateCommonAttributes: updateCommonAttributesStub,
+        deleteCommonAttributes: deleteCommonAttributesStub,
+        getTraceAttributes: getTraceAttributesStub,
+        getLogAttributes: stub().returns({})
       }
     } as unknown as Crashlytics;
 
@@ -119,7 +126,7 @@ describe('CrashlyticsRoutes', () => {
       sinon.match
         .instanceOf(Error)
         .and(sinon.match.has('message', 'render error')),
-      sinon.match({ [FRAMEWORK_ATTRIBUTE_KEYS.ROUTE_PATH]: '/' })
+      sinon.match({ [TELEMETRY_ATTRIBUTE_KEYS.ROUTE_PATH]: '/' })
     );
 
     // Verify the error was caught by our TestErrorBoundary (meaning it was re-thrown)
@@ -148,7 +155,7 @@ describe('CrashlyticsRoutes', () => {
       sinon.match
         .instanceOf(Error)
         .and(sinon.match.has('message', 'render error')),
-      sinon.match({ [FRAMEWORK_ATTRIBUTE_KEYS.ROUTE_PATH]: '/users/:id' })
+      sinon.match({ [TELEMETRY_ATTRIBUTE_KEYS.ROUTE_PATH]: '/users/:id' })
     );
 
     // Verify re-throw
@@ -179,7 +186,7 @@ describe('CrashlyticsRoutes', () => {
       sinon.match
         .instanceOf(Error)
         .and(sinon.match.has('message', 'render error')),
-      sinon.match({ [FRAMEWORK_ATTRIBUTE_KEYS.ROUTE_PATH]: '/about' })
+      sinon.match({ [TELEMETRY_ATTRIBUTE_KEYS.ROUTE_PATH]: '/about' })
     );
 
     // Verify re-throw
@@ -188,7 +195,7 @@ describe('CrashlyticsRoutes', () => {
     consoleErrorStub.restore();
   });
 
-  it('registers frameworkAttributesProvider and cleans up on unmount', () => {
+  it('registers route attributes in telemetryStore and cleans up on unmount', () => {
     const { unmount } = render(
       <MemoryRouter initialEntries={['/users/123']}>
         <CrashlyticsRoutes firebaseApp={fakeApp}>
@@ -197,14 +204,14 @@ describe('CrashlyticsRoutes', () => {
       </MemoryRouter>
     );
 
-    const crashlyticsService = fakeCrashlytics as any;
-    expect(crashlyticsService.frameworkAttributesProvider).to.be.a('function');
-    expect(crashlyticsService.frameworkAttributesProvider()).to.deep.equal({
-      [FRAMEWORK_ATTRIBUTE_KEYS.ROUTE_PATH]: '/users/:id'
-    });
+    expect(updateCommonAttributesStub.calledWith({
+      [TELEMETRY_ATTRIBUTE_KEYS.ROUTE_PATH]: '/users/:id'
+    })).to.be.true;
 
     unmount();
-    expect(crashlyticsService.frameworkAttributesProvider).to.be.undefined;
+    expect(deleteCommonAttributesStub.calledWith([
+      TELEMETRY_ATTRIBUTE_KEYS.ROUTE_PATH
+    ])).to.be.true;
   });
 
   it('invokes logViewBoundary on mount and on subsequent navigation events', async () => {

@@ -24,12 +24,12 @@ import {
 import { getAppVersion, getSessionId } from '../helpers';
 import {
   COMMON_SPAN_ATTRIBUTE_KEYS,
-  CRASHLYTICS_ATTRIBUTE_KEYS,
   DEFAULT_TELEMETRY_REGION
 } from '../constants';
 import { CrashlyticsOptions } from '../public-types';
 import { FirebaseOptions } from '@firebase/app';
 import { RootSpanContextManager } from './root-span-context-manager';
+import { TelemetryMetadataStore } from '../telemetry-metadata-store';
 
 /**
  * The instrumentation scopes that are considered network activity.
@@ -51,6 +51,7 @@ const DOCUMENT_LOAD_INSTRUMENTATION_SCOPE =
 export class FirebaseSpanProcessor implements SpanProcessor {
   constructor(
     private rootSpanContextManager: RootSpanContextManager,
+    private telemetryStore: TelemetryMetadataStore,
     private crashlyticsOptions: CrashlyticsOptions = {},
     private firebaseOptions: FirebaseOptions = {}
   ) {}
@@ -69,13 +70,9 @@ export class FirebaseSpanProcessor implements SpanProcessor {
     ) {
       rootSpan.onResourceFetchSpanStart(span);
     }
-    const activeAppScreenId =
-      this.rootSpanContextManager.getActiveAppScreenId();
-    if (activeAppScreenId) {
-      span.setAttribute(
-        CRASHLYTICS_ATTRIBUTE_KEYS.APP_SCREEN_ID,
-        activeAppScreenId
-      );
+    const telemetryAttributes = this.telemetryStore.getTraceAttributes();
+    for (const [key, value] of Object.entries(telemetryAttributes)) {
+      span.setAttribute(key, value);
     }
     const region = this.crashlyticsOptions.region || DEFAULT_TELEMETRY_REGION;
     span.setAttribute(

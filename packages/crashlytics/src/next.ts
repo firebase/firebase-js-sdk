@@ -19,10 +19,8 @@ import { getApp } from '@firebase/app';
 import { recordError, getCrashlytics } from './api';
 import { Instrumentation } from 'next';
 import { CrashlyticsOptions } from './public-types';
-import {
-  FRAMEWORK_ATTRIBUTE_KEYS,
-  NEXTJS_REQUEST_ATTRIBUTE_KEYS
-} from './constants';
+import { NEXTJS_REQUEST_ATTRIBUTE_KEYS } from './constants';
+import { TELEMETRY_ATTRIBUTE_KEYS } from './telemetry-metadata-store';
 
 export { Instrumentation };
 
@@ -48,7 +46,7 @@ export function nextOnRequestError(
     const crashlytics = getCrashlytics(getApp(), crashlyticsOptions);
 
     const attributes = {
-      [FRAMEWORK_ATTRIBUTE_KEYS.ROUTE_PATH]: errorContext.routePath,
+      [TELEMETRY_ATTRIBUTE_KEYS.ROUTE_PATH]: errorContext.routePath,
       [NEXTJS_REQUEST_ATTRIBUTE_KEYS.PATH]: errorRequest.path,
       [NEXTJS_REQUEST_ATTRIBUTE_KEYS.METHOD]: errorRequest.method,
       [NEXTJS_REQUEST_ATTRIBUTE_KEYS.ROUTER_KIND]: errorContext.routerKind,

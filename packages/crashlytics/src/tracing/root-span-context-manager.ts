@@ -340,8 +340,6 @@ export class RootSpan {
 export class RootSpanContextManager extends ZoneContextManager {
   private _activeRootSpan: RootSpan | undefined;
   private _interruptedRootSpans: RootSpan[] = [];
-  // TODO: cchestnut look into having a store to manage context data not unique to span context
-  private _activeAppScreenId: string | undefined;
   /**
    * Starts a new root span, interrupting and clearing the previous active root span if one exists.
    * @param tracer The tracer to start the span.
@@ -406,22 +404,6 @@ export class RootSpanContextManager extends ZoneContextManager {
         rs => rs !== rootSpan
       );
     }
-  }
-
-  /**
-   * Gets the active application screen ID (current page/route).
-   * @returns The screen ID, or undefined.
-   */
-  getActiveAppScreenId(): string | undefined {
-    return this._activeAppScreenId;
-  }
-
-  /**
-   * Sets the active application screen ID (current page/route).
-   * @param activeAppScreenId The screen ID.
-   */
-  setActiveAppScreenId(activeAppScreenId: string): void {
-    this._activeAppScreenId = activeAppScreenId;
   }
 
   /**

@@ -24,6 +24,7 @@ import * as crashlytics from './api';
 import { FirebaseApp } from '@firebase/app';
 import { Crashlytics } from './public-types';
 import { nextOnRequestError } from './next';
+import { TELEMETRY_ATTRIBUTE_KEYS } from './telemetry-metadata-store';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -75,7 +76,7 @@ describe('nextOnRequestError', () => {
       fakeCrashlytics,
       error,
       {
-        'route_path': '/test-path',
+        [TELEMETRY_ATTRIBUTE_KEYS.ROUTE_PATH]: '/test-path',
         'nextjs.path': '/test-path?some=param',
         'nextjs.method': 'GET',
         'nextjs.router_kind': 'Pages Router',

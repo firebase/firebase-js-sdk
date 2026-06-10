@@ -28,6 +28,7 @@ import { createLoggerProvider } from './logging/logger-provider';
 import { createTracingProvider } from './tracing/tracing-provider';
 import { CrashlyticsOptions } from './public-types';
 import { RootSpanContextManager } from './tracing/root-span-context-manager';
+import { TelemetryMetadataStore } from './telemetry-metadata-store';
 
 export function registerCrashlytics(): void {
   _registerComponent(
@@ -39,10 +40,12 @@ export function registerCrashlytics(): void {
         // getImmediate for FirebaseApp will always succeed
         const app = container.getProvider('app').getImmediate();
         const loggerProvider = createLoggerProvider(app, crashlyticsOptions);
+        const telemetryStore = new TelemetryMetadataStore();
         const contextManager = new RootSpanContextManager();
         const tracingProvider = createTracingProvider(
           app,
           contextManager,
+          telemetryStore,
           crashlyticsOptions
         );
 
@@ -50,7 +53,8 @@ export function registerCrashlytics(): void {
           app,
           loggerProvider,
           tracingProvider,
-          contextManager
+          contextManager,
+          telemetryStore
         );
       },
       ComponentType.PUBLIC

@@ -33,6 +33,7 @@ import {
 import { AUTO_CONSTANTS } from './auto-constants';
 import { CrashlyticsService } from './service';
 import { CrashlyticsInternal } from './types';
+import { TelemetryMetadataStore } from './telemetry-metadata-store';
 import { RootSpanContextManager } from './tracing/root-span-context-manager';
 
 const MOCK_SESSION_ID = '00000000-0000-0000-0000-000000000000';
@@ -97,6 +98,8 @@ describe('helpers', () => {
     setLocationKey: () => {}
   } as unknown as RootSpanContextManager;
 
+  const fakeTelemetryStore = new TelemetryMetadataStore();
+
   const fakeCrashlytics: CrashlyticsInternal = {
     app: {
       name: 'DEFAULT',
@@ -108,13 +111,15 @@ describe('helpers', () => {
     },
     loggerProvider: fakeLoggerProvider,
     tracingProvider: fakeTracingProvider,
-    contextManager: fakeContextManager
+    contextManager: fakeContextManager,
+    telemetryStore: fakeTelemetryStore
   };
 
   beforeEach(() => {
     emittedLogs = [];
     flushed = false;
     storage = {};
+    fakeTelemetryStore.clear();
     // @ts-ignore
     originalSessionStorage = global.sessionStorage;
     // @ts-ignore
@@ -189,7 +194,8 @@ describe('helpers', () => {
         fakeCrashlytics.app,
         fakeLoggerProvider,
         fakeTracingProvider,
-        fakeContextManager
+        fakeContextManager,
+        fakeTelemetryStore
       );
       telemetryWithVersion.options = { appVersion: '9.9.9' };
 

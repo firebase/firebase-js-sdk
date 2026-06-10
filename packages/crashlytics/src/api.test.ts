@@ -62,6 +62,8 @@ const fakeLoggerProvider = {
   shutdown: () => Promise.resolve()
 } as unknown as LoggerProvider;
 
+import { TelemetryMetadataStore, TELEMETRY_ATTRIBUTE_KEYS } from './telemetry-metadata-store';
+
 const fakeTracingProvider = {
   getTracer: () => ({
     startActiveSpan: (name: string, fn: (span: any) => any) =>
@@ -76,10 +78,10 @@ const fakeTracingProvider = {
 
 const fakeContextManager = {
   getActiveRootSpan: () => undefined,
-  setRootSpan: () => {},
-  setActiveAppScreenId: () => {},
-  getActiveAppScreenId: () => undefined
+  setRootSpan: () => {}
 } as unknown as RootSpanContextManager;
+
+const fakeTelemetryStore = new TelemetryMetadataStore();
 
 const fakeCrashlytics: CrashlyticsInternal = {
   app: {
@@ -92,7 +94,8 @@ const fakeCrashlytics: CrashlyticsInternal = {
   },
   loggerProvider: fakeLoggerProvider,
   tracingProvider: fakeTracingProvider,
-  contextManager: fakeContextManager
+  contextManager: fakeContextManager,
+  telemetryStore: fakeTelemetryStore
 };
 
 describe('Top level API', () => {
@@ -105,6 +108,7 @@ describe('Top level API', () => {
   beforeEach(() => {
     // Clear the logs before each test.
     emittedLogs.length = 0;
+    fakeTelemetryStore.clear();
     app = getFakeApp();
     storage = {};
 
@@ -273,7 +277,7 @@ describe('Top level API', () => {
       expect(log.severityNumber).to.equal(SeverityNumber.INFO);
       expect(log.body).to.equal('Navigation event');
       expect(
-        log.attributes![CRASHLYTICS_ATTRIBUTE_KEYS.APP_SCREEN_ID]
+        log.attributes![TELEMETRY_ATTRIBUTE_KEYS.APP_SCREEN_ID]
       ).to.equal(urlTemplate);
     });
 
@@ -286,18 +290,22 @@ describe('Top level API', () => {
       const log = emittedLogs[0];
       expect(log.attributes!['custom.attr']).to.equal('value');
       expect(
-        log.attributes![CRASHLYTICS_ATTRIBUTE_KEYS.APP_SCREEN_ID]
+        log.attributes![TELEMETRY_ATTRIBUTE_KEYS.APP_SCREEN_ID]
       ).to.equal(urlTemplate);
     });
 
-    it('should assign new location as active app screen id in root span context manager', () => {
-      const spy = sinon.spy(fakeContextManager, 'setActiveAppScreenId');
+    it('should assign new location as active app screen id in telemetry store', () => {
+      const spy = sinon.spy(fakeTelemetryStore, 'updateCommonAttributes');
       const urlTemplate = '/users/:id';
 
       try {
         logViewBoundary(fakeCrashlytics, urlTemplate);
 
-        expect(spy.calledWith(urlTemplate)).to.be.true;
+        expect(
+          spy.calledWith({
+            [TELEMETRY_ATTRIBUTE_KEYS.APP_SCREEN_ID]: urlTemplate
+          })
+        ).to.be.true;
       } finally {
         spy.restore();
       }
@@ -430,7 +438,8 @@ describe('Top level API', () => {
         fakeCrashlytics.app,
         fakeLoggerProvider,
         fakeTracingProvider,
-        fakeContextManager
+        fakeContextManager,
+        fakeTelemetryStore
       );
       crashlytics.options = {
         appVersion: '1.0.0'
@@ -464,11 +473,10 @@ describe('Top level API', () => {
       error.stack = '...stack trace...';
       error.name = 'TestError';
 
-      (fakeCrashlytics as CrashlyticsService).frameworkAttributesProvider =
-        () => ({
-          'framework_attr1': 'framework attribute #1',
-          'framework_attr2': 'framework attribute #2'
-        });
+      fakeCrashlytics.telemetryStore.updateLogAttributes({
+        'framework_attr1': 'framework attribute #1',
+        'framework_attr2': 'framework attribute #2'
+      });
 
       recordError(fakeCrashlytics, error);
 
@@ -482,6 +490,8 @@ describe('Top level API', () => {
         'framework_attr2': 'framework attribute #2',
         [CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID
       });
+
+      fakeCrashlytics.telemetryStore.deleteLogAttributes(['framework_attr1', 'framework_attr2']);
     });
 
     describe('Session Metadata', () => {

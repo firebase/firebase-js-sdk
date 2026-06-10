@@ -44,6 +44,7 @@ import { FirebaseApp } from '@firebase/app';
 import { FirebaseSpanProcessor } from './firebase-span-processor';
 import type { RootSpanContextManager } from './root-span-context-manager';
 import { JsonTraceSerializer } from '@opentelemetry/otlp-transformer';
+import { TelemetryMetadataStore } from '../telemetry-metadata-store';
 import { FetchTransport } from '../fetch-transport';
 import {
   RESOURCE_ATTRIBUTE_KEYS,
@@ -60,6 +61,7 @@ import { CrashlyticsOptions } from '../public-types';
 export function createTracingProvider(
   app: FirebaseApp,
   rootSpanContextManager: RootSpanContextManager,
+  telemetryStore: TelemetryMetadataStore,
   crashlyticsOptions: CrashlyticsOptions,
   dynamicHeaderProviders: DynamicHeaderProvider[] = [],
   dynamicAttributeProviders: DynamicAttributeProvider[] = []
@@ -116,6 +118,7 @@ export function createTracingProvider(
     spanProcessors: [
       new FirebaseSpanProcessor(
         rootSpanContextManager,
+        telemetryStore,
         crashlyticsOptions,
         app.options
       ),
