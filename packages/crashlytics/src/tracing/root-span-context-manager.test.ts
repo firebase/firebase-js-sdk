@@ -19,6 +19,7 @@ import { expect } from 'chai';
 import * as sinon from 'sinon';
 import {
   RootSpanContextManager,
+  RootSpan,
   QUIESCENCE_WINDOW_MS,
   UI_RENDER_QUIESCENCE_WINDOW_MS
 } from './root-span-context-manager';
@@ -77,6 +78,26 @@ describe('RootSpanContextManager', () => {
   let mockTracer: any;
   let manager: RootSpanContextManager;
 
+  const recordResourceFetchSpanStart = (
+    rootSpan: RootSpan,
+    id: string = 'net-1'
+  ): void => {
+    rootSpan.onResourceFetchSpanStart({
+      spanContext: () => ({ spanId: id })
+    } as any);
+  };
+
+  const recordResourceFetchSpanEnd = (
+    rootSpan: RootSpan,
+    id: string = 'net-1',
+    endTimeMs: number = Date.now()
+  ): void => {
+    rootSpan.onResourceFetchSpanEnd({
+      spanContext: () => ({ spanId: id }),
+      endTime: [Math.floor(endTimeMs / 1000), (endTimeMs % 1000) * 1000000]
+    } as any);
+  };
+
   beforeEach(() => {
     mockTracer = {
       startSpan: sandbox.stub().callsFake((spanName: string) => {
@@ -119,33 +140,21 @@ describe('RootSpanContextManager', () => {
 
   describe('active context', () => {
     it('should contain the active root span', () => {
-      const rootSpan = manager.startRootSpan(
-        mockTracer as Tracer,
-        'user-interaction',
-        'span-1'
-      );
+      const rootSpan = manager.startRootSpan(mockTracer as Tracer, 'span-1');
       const context = manager.active();
       expect(trace.getSpan(context)).to.equal(rootSpan.span);
     });
 
     it('should be updated when a new root span is started', () => {
-      const rootSpan1 = manager.startRootSpan(
-        mockTracer as Tracer,
-        'user-interaction',
-        'span-1'
-      );
+      const rootSpan1 = manager.startRootSpan(mockTracer as Tracer, 'span-1');
       expect(manager.getActiveRootSpan()).to.equal(rootSpan1);
 
-      const rootSpan2 = manager.startRootSpan(
-        mockTracer as Tracer,
-        'user-interaction',
-        'span-2'
-      );
+      const rootSpan2 = manager.startRootSpan(mockTracer as Tracer, 'span-2');
       expect(manager.getActiveRootSpan()).to.equal(rootSpan2);
     });
 
     it('should preserve any custom child spans', () => {
-      manager.startRootSpan(mockTracer as Tracer, 'user-interaction', 'span-1');
+      manager.startRootSpan(mockTracer as Tracer, 'span-1');
 
       const childSpan = {
         spanContext: () => ({ traceId: MOCK_TRACE_ID, spanId: 'child-span' })
@@ -158,11 +167,7 @@ describe('RootSpanContextManager', () => {
 
   describe('user-interaction root span', () => {
     it('should end span after quiescence window', () => {
-      const rootSpan = manager.startRootSpan(
-        mockTracer as Tracer,
-        'user-interaction',
-        'span-1'
-      );
+      const rootSpan = manager.startRootSpan(mockTracer as Tracer, 'span-1');
       expect(manager.getActiveRootSpan()).to.equal(rootSpan);
 
       clock.tick(QUIESCENCE_WINDOW_MS); // let quiescence complete
@@ -172,15 +177,11 @@ describe('RootSpanContextManager', () => {
     });
 
     it('should backdate end time to last active time', () => {
-      const rootSpan = manager.startRootSpan(
-        mockTracer as Tracer,
-        'user-interaction',
-        'span-1'
-      );
+      const rootSpan = manager.startRootSpan(mockTracer as Tracer, 'span-1');
 
-      rootSpan.recordNetworkActivityStart();
+      recordResourceFetchSpanStart(rootSpan);
       clock.tick(100);
-      rootSpan.recordNetworkActivityEnd(100);
+      recordResourceFetchSpanEnd(rootSpan, 'net-1', 100);
 
       clock.tick(QUIESCENCE_WINDOW_MS); // let quiescence complete
 
@@ -189,18 +190,14 @@ describe('RootSpanContextManager', () => {
     });
 
     it('should stay open until network activity ends', () => {
-      const rootSpan = manager.startRootSpan(
-        mockTracer as Tracer,
-        'user-interaction',
-        'span-1'
-      );
+      const rootSpan = manager.startRootSpan(mockTracer as Tracer, 'span-1');
 
-      rootSpan.recordNetworkActivityStart();
+      recordResourceFetchSpanStart(rootSpan);
       clock.tick(QUIESCENCE_WINDOW_MS); // let quiescence complete
 
       expect(mockSpan.end.called).to.be.false;
 
-      rootSpan.recordNetworkActivityEnd();
+      recordResourceFetchSpanEnd(rootSpan);
       clock.tick(QUIESCENCE_WINDOW_MS); // let quiescence complete
 
       expect(mockSpan.end.called).to.be.true;
@@ -210,11 +207,7 @@ describe('RootSpanContextManager', () => {
       if (typeof document === 'undefined') {
         return;
       }
-      const rootSpan = manager.startRootSpan(
-        mockTracer as Tracer,
-        'user-interaction',
-        'span-1'
-      ); // T = 0
+      const rootSpan = manager.startRootSpan(mockTracer as Tracer, 'span-1'); // T = 0
 
       // Trigger DOM mutation at T = 100
       clock.tick(100);
@@ -233,11 +226,7 @@ describe('RootSpanContextManager', () => {
       if (typeof document === 'undefined') {
         return;
       }
-      const rootSpan = manager.startRootSpan(
-        mockTracer as Tracer,
-        'user-interaction',
-        'span-1'
-      );
+      const rootSpan = manager.startRootSpan(mockTracer as Tracer, 'span-1');
 
       clock.tick(100);
       mutationObserverCallback();
@@ -256,17 +245,13 @@ describe('RootSpanContextManager', () => {
     });
 
     it('should not update lastActiveTimeMs if recorded activity timestamp is older', () => {
-      const rootSpan = manager.startRootSpan(
-        mockTracer as Tracer,
-        'user-interaction',
-        'span-1'
-      );
+      const rootSpan = manager.startRootSpan(mockTracer as Tracer, 'span-1');
 
-      rootSpan.recordNetworkActivityStart();
-      rootSpan.recordNetworkActivityStart();
+      recordResourceFetchSpanStart(rootSpan, 'net-1');
+      recordResourceFetchSpanStart(rootSpan, 'net-2');
       clock.tick(100);
-      rootSpan.recordNetworkActivityEnd(100);
-      rootSpan.recordNetworkActivityEnd(50);
+      recordResourceFetchSpanEnd(rootSpan, 'net-1', 100);
+      recordResourceFetchSpanEnd(rootSpan, 'net-2', 50);
 
       clock.tick(QUIESCENCE_WINDOW_MS); // let quiescence complete
 
@@ -277,15 +262,11 @@ describe('RootSpanContextManager', () => {
       if (typeof document === 'undefined') {
         return;
       }
-      const rootSpan = manager.startRootSpan(
-        mockTracer as Tracer,
-        'user-interaction',
-        'span-1'
-      );
+      const rootSpan = manager.startRootSpan(mockTracer as Tracer, 'span-1');
 
-      rootSpan.recordNetworkActivityStart();
+      recordResourceFetchSpanStart(rootSpan);
       clock.tick(QUIESCENCE_WINDOW_MS - 5);
-      rootSpan.recordNetworkActivityEnd();
+      recordResourceFetchSpanEnd(rootSpan);
 
       clock.tick(10);
       mutationObserverCallback();
@@ -305,18 +286,15 @@ describe('RootSpanContextManager', () => {
 
   describe('app-start root span', () => {
     it('should stay open for app-start root span until markDocumentLoaded is called', () => {
-      const rootSpan = manager.startRootSpan(
-        mockTracer as Tracer,
-        'app-start',
-        'span-1'
-      );
+      const rootSpan = manager.startRootSpan(mockTracer as Tracer, 'span-1');
+      recordResourceFetchSpanStart(rootSpan, 'doc-load');
       expect(manager.getActiveRootSpan()).to.equal(rootSpan);
 
       clock.tick(QUIESCENCE_WINDOW_MS); // advance past quiescence window
 
       expect(mockSpan.end.called).to.be.false;
 
-      rootSpan.markDocumentLoaded(100);
+      recordResourceFetchSpanEnd(rootSpan, 'doc-load', 100);
       clock.tick(QUIESCENCE_WINDOW_MS); // let quiescence complete
 
       expect(mockSpan.end.called).to.be.true;
@@ -327,16 +305,16 @@ describe('RootSpanContextManager', () => {
       const rootSpan = manager.startRootSpan(
         mockTracer as Tracer,
         'app-start',
-        'app-start',
         {
           startTime: 50
         }
       );
+      recordResourceFetchSpanStart(rootSpan, 'doc-load');
 
       clock.tick(200);
       expect(mockSpan.end.called).to.be.false;
 
-      rootSpan.markDocumentLoaded(80);
+      recordResourceFetchSpanEnd(rootSpan, 'doc-load', 80);
 
       // Should not end immediately at T = 200 because only 120ms (200 - 80) has elapsed since last activity at T = 80
       expect(mockSpan.end.called).to.be.false;
@@ -351,16 +329,12 @@ describe('RootSpanContextManager', () => {
 
   describe('interrupted root span', () => {
     it('should immediately end user-interaction root span if there are no active network requests', () => {
-      const rootSpan1 = manager.startRootSpan(
-        mockTracer as Tracer,
-        'user-interaction',
-        'span-1'
-      );
-      rootSpan1.recordNetworkActivityStart();
+      const rootSpan1 = manager.startRootSpan(mockTracer as Tracer, 'span-1');
+      recordResourceFetchSpanStart(rootSpan1);
       clock.tick(100);
-      rootSpan1.recordNetworkActivityEnd(100);
+      recordResourceFetchSpanEnd(rootSpan1, 'net-1', 100);
 
-      manager.startRootSpan(mockTracer as Tracer, 'user-interaction', 'span-2'); // interruption
+      manager.startRootSpan(mockTracer as Tracer, 'span-2'); // interruption
 
       expect((rootSpan1.span as any).end.calledWith(100)).to.be.true;
       expect(manager.getRootSpanByTraceId(rootSpan1.getTraceId())).to.be
@@ -368,34 +342,26 @@ describe('RootSpanContextManager', () => {
     });
 
     it('should end at the last network activity end time if interrupted while quiescing after network activity', () => {
-      const rootSpan1 = manager.startRootSpan(
-        mockTracer as Tracer,
-        'user-interaction',
-        'span-1'
-      );
-      rootSpan1.recordNetworkActivityStart();
+      const rootSpan1 = manager.startRootSpan(mockTracer as Tracer, 'span-1');
+      recordResourceFetchSpanStart(rootSpan1);
       clock.tick(50);
-      rootSpan1.recordNetworkActivityEnd(50);
+      recordResourceFetchSpanEnd(rootSpan1, 'net-1', 50);
 
       // Advance clock by less than the quiescence window
       clock.tick(30);
 
       // Interrupt at T = 80
-      manager.startRootSpan(mockTracer as Tracer, 'user-interaction', 'span-2'); // interruption
+      manager.startRootSpan(mockTracer as Tracer, 'span-2'); // interruption
 
       // Should end backdated to the network activity end time (50), not the interruption time (80)
       expect((rootSpan1.span as any).end.calledWith(50)).to.be.true;
     });
 
     it('should ignore UI activity after being interrupted', () => {
-      const rootSpan1 = manager.startRootSpan(
-        mockTracer as Tracer,
-        'user-interaction',
-        'span-1'
-      );
-      rootSpan1.recordNetworkActivityStart();
+      const rootSpan1 = manager.startRootSpan(mockTracer as Tracer, 'span-1');
+      recordResourceFetchSpanStart(rootSpan1);
 
-      manager.startRootSpan(mockTracer as Tracer, 'user-interaction', 'span-2'); // interrupt
+      manager.startRootSpan(mockTracer as Tracer, 'span-2'); // interrupt
 
       // Interrupted root span should still be open and in context, given network requests are open
       expect((rootSpan1.span as any).end.called).to.be.false;
@@ -404,7 +370,7 @@ describe('RootSpanContextManager', () => {
       );
 
       clock.tick(50);
-      rootSpan1.recordNetworkActivityEnd(50);
+      recordResourceFetchSpanEnd(rootSpan1, 'net-1', 50);
       clock.tick(QUIESCENCE_WINDOW_MS - 50);
       if (mutationObserverCallback) {
         // trigger DOM update
@@ -426,13 +392,10 @@ describe('RootSpanContextManager', () => {
     });
 
     it('should stay open for app-start root span if interrupted before document load completes', () => {
-      const rootSpan1 = manager.startRootSpan(
-        mockTracer as Tracer,
-        'app-start',
-        'span-1'
-      );
+      const rootSpan1 = manager.startRootSpan(mockTracer as Tracer, 'span-1');
+      recordResourceFetchSpanStart(rootSpan1, 'doc-load');
 
-      manager.startRootSpan(mockTracer as Tracer, 'user-interaction', 'span-2'); // interruption
+      manager.startRootSpan(mockTracer as Tracer, 'span-2'); // interruption
 
       // Must stay open because document load has not finished, even though there are no network requests!
       expect((rootSpan1.span as any).end.called).to.be.false;
@@ -440,7 +403,7 @@ describe('RootSpanContextManager', () => {
         rootSpan1
       );
 
-      rootSpan1.markDocumentLoaded(100);
+      recordResourceFetchSpanEnd(rootSpan1, 'doc-load', 100);
 
       // Now that document loaded, it should immediately end backdated to document load completion time (100)
       expect((rootSpan1.span as any).end.calledWith(100)).to.be.true;
@@ -452,11 +415,7 @@ describe('RootSpanContextManager', () => {
       if (typeof document === 'undefined') {
         return;
       }
-      const rootSpan = manager.startRootSpan(
-        mockTracer as Tracer,
-        'user-interaction',
-        'span-1'
-      ); // T = 0
+      const rootSpan = manager.startRootSpan(mockTracer as Tracer, 'span-1'); // T = 0
 
       // Trigger mutation at T = 100
       clock.tick(100);
@@ -478,11 +437,7 @@ describe('RootSpanContextManager', () => {
       if (typeof document === 'undefined') {
         return;
       }
-      const rootSpan = manager.startRootSpan(
-        mockTracer as Tracer,
-        'user-interaction',
-        'span-1'
-      ); // T = 0
+      const rootSpan = manager.startRootSpan(mockTracer as Tracer, 'span-1'); // T = 0
 
       // Trigger mutation at T = 100
       clock.tick(100);
@@ -510,7 +465,7 @@ describe('RootSpanContextManager', () => {
       if (typeof document === 'undefined') {
         return;
       }
-      manager.startRootSpan(mockTracer as Tracer, 'user-interaction', 'span-1'); // T = 0
+      manager.startRootSpan(mockTracer as Tracer, 'span-1'); // T = 0
 
       // Trigger mutation at T = 100
       clock.tick(100);
@@ -536,7 +491,7 @@ describe('RootSpanContextManager', () => {
       if (typeof document === 'undefined') {
         return;
       }
-      manager.startRootSpan(mockTracer as Tracer, 'user-interaction', 'span-1'); // T = 0
+      manager.startRootSpan(mockTracer as Tracer, 'span-1'); // T = 0
 
       // First mutation at T = 100
       clock.tick(100);
@@ -590,7 +545,7 @@ describe('RootSpanContextManager', () => {
       if (typeof document === 'undefined') {
         return;
       }
-      manager.startRootSpan(mockTracer as Tracer, 'user-interaction', 'span-1'); // T = 0
+      manager.startRootSpan(mockTracer as Tracer, 'span-1'); // T = 0
 
       // First mutation at T = 100
       clock.tick(100);
@@ -650,7 +605,7 @@ describe('RootSpanContextManager', () => {
       if (typeof document === 'undefined') {
         return;
       }
-      manager.startRootSpan(mockTracer as Tracer, 'user-interaction', 'span-1'); // T = 0
+      manager.startRootSpan(mockTracer as Tracer, 'span-1'); // T = 0
 
       // First mutation at T = 100
       clock.tick(100);
@@ -692,7 +647,7 @@ describe('RootSpanContextManager', () => {
       if (typeof document === 'undefined') {
         return;
       }
-      manager.startRootSpan(mockTracer as Tracer, 'user-interaction', 'span-1'); // T = 0
+      manager.startRootSpan(mockTracer as Tracer, 'span-1'); // T = 0
 
       // Multiple mutations at T = 100
       clock.tick(100);
@@ -723,11 +678,7 @@ describe('RootSpanContextManager', () => {
       if (typeof document === 'undefined') {
         return;
       }
-      const rootSpan = manager.startRootSpan(
-        mockTracer as Tracer,
-        'user-interaction',
-        'span-1'
-      ); // T = 0
+      const rootSpan = manager.startRootSpan(mockTracer as Tracer, 'span-1'); // T = 0
 
       // Trigger mutation at T = 100
       clock.tick(100);
@@ -755,11 +706,7 @@ describe('RootSpanContextManager', () => {
       if (typeof document === 'undefined') {
         return;
       }
-      const rootSpan = manager.startRootSpan(
-        mockTracer as Tracer,
-        'user-interaction',
-        'span-1'
-      ); // T = 0
+      const rootSpan = manager.startRootSpan(mockTracer as Tracer, 'span-1'); // T = 0
 
       // Trigger mutation at T = 100
       clock.tick(100);

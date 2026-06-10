@@ -22,7 +22,6 @@ import {
   Span
 } from '@opentelemetry/sdk-trace-base';
 import { getAppVersion, getSessionId } from '../helpers';
-import { hrTimeToMilliseconds } from '@opentelemetry/core';
 import {
   COMMON_SPAN_ATTRIBUTE_KEYS,
   CRASHLYTICS_ATTRIBUTE_KEYS,
@@ -64,11 +63,11 @@ export class FirebaseSpanProcessor implements SpanProcessor {
     const rootSpan = this.rootSpanContextManager.getRootSpanByTraceId(
       span.spanContext().traceId
     );
-    if (rootSpan) {
-      const scopeName = span.instrumentationScope?.name;
-      if (NETWORK_INSTRUMENTATION_SCOPES.includes(scopeName)) {
-        rootSpan.recordNetworkActivityStart();
-      }
+    if (
+      rootSpan &&
+      (this.isNetworkSpan(span) || this.isDocumentLoadSpan(span))
+    ) {
+      rootSpan.onResourceFetchSpanStart(span);
     }
     const activeAppScreenId =
       this.rootSpanContextManager.getActiveAppScreenId();
@@ -100,22 +99,29 @@ export class FirebaseSpanProcessor implements SpanProcessor {
     const rootSpan = this.rootSpanContextManager.getRootSpanByTraceId(
       span.spanContext().traceId
     );
-    if (!rootSpan) {
-      return;
-    }
-    const scopeName = span.instrumentationScope?.name;
     if (
-      span.name === 'documentLoad' &&
-      scopeName === DOCUMENT_LOAD_INSTRUMENTATION_SCOPE
+      rootSpan &&
+      (this.isNetworkSpan(span) || this.isDocumentLoadSpan(span))
     ) {
-      rootSpan.markDocumentLoaded(hrTimeToMilliseconds(span.endTime));
-    }
-    if (NETWORK_INSTRUMENTATION_SCOPES.includes(scopeName)) {
-      rootSpan.recordNetworkActivityEnd(hrTimeToMilliseconds(span.endTime));
+      rootSpan.onResourceFetchSpanEnd(span);
     }
   }
 
   shutdown(): Promise<void> {
     return Promise.resolve();
+  }
+
+  private isNetworkSpan(span: Span | ReadableSpan): boolean {
+    return (
+      !!span.instrumentationScope?.name &&
+      NETWORK_INSTRUMENTATION_SCOPES.includes(span.instrumentationScope.name)
+    );
+  }
+
+  private isDocumentLoadSpan(span: Span | ReadableSpan): boolean {
+    return (
+      span.name === 'documentLoad' &&
+      span.instrumentationScope?.name === DOCUMENT_LOAD_INSTRUMENTATION_SCOPE
+    );
   }
 }

@@ -162,8 +162,7 @@ export function createTracingProvider(
       performance.timeOrigin || performance.timing?.navigationStart;
   }
 
-  // Start the app-start root span before the document-load library gets registered
-  rootSpanContextManager.startRootSpan(tracer, 'app-start', 'app-start', {
+  rootSpanContextManager.startRootSpan(tracer, 'app-start', {
     startTime: appStartTime
   });
 
