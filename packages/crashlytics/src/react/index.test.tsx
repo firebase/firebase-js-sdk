@@ -179,7 +179,6 @@ describe('FirebaseCrashlytics', () => {
       fireEvent.click(document.querySelector('button')!);
       expect(fakeContextManager.startRootSpan).to.have.been.calledWith(
         fakeTracer,
-        'user-interaction',
         'click button'
       );
     });
@@ -194,7 +193,6 @@ describe('FirebaseCrashlytics', () => {
       fireEvent.click(document.querySelector('a')!);
       expect(fakeContextManager.startRootSpan).to.have.been.calledWith(
         fakeTracer,
-        'user-interaction',
         'click a'
       );
     });
@@ -209,7 +207,6 @@ describe('FirebaseCrashlytics', () => {
       fireEvent.click(document.querySelector('input[type="submit"]')!);
       expect(fakeContextManager.startRootSpan).to.have.been.calledWith(
         fakeTracer,
-        'user-interaction',
         'click input'
       );
     });
@@ -224,7 +221,6 @@ describe('FirebaseCrashlytics', () => {
       fireEvent.click(document.querySelector('input[type="button"]')!);
       expect(fakeContextManager.startRootSpan).to.have.been.calledWith(
         fakeTracer,
-        'user-interaction',
         'click input'
       );
     });
@@ -241,7 +237,6 @@ describe('FirebaseCrashlytics', () => {
       fireEvent.click(document.getElementById('child-span')!);
       expect(fakeContextManager.startRootSpan).to.have.been.calledWith(
         fakeTracer,
-        'user-interaction',
         'click button [id="parent-btn"]'
       );
     });
@@ -257,7 +252,6 @@ describe('FirebaseCrashlytics', () => {
         fireEvent.click(document.getElementById('login-btn')!);
         expect(fakeContextManager.startRootSpan).to.have.been.calledWith(
           fakeTracer,
-          'user-interaction',
           'click button [id="login-btn"]'
         );
       });
@@ -272,7 +266,6 @@ describe('FirebaseCrashlytics', () => {
         fireEvent.click(document.querySelector('[data-testid="login-btn"]')!);
         expect(fakeContextManager.startRootSpan).to.have.been.calledWith(
           fakeTracer,
-          'user-interaction',
           'click button [data-testid="login-btn"]'
         );
       });
@@ -289,7 +282,6 @@ describe('FirebaseCrashlytics', () => {
         );
         expect(fakeContextManager.startRootSpan).to.have.been.calledWith(
           fakeTracer,
-          'user-interaction',
           'click button [data-analytics-id="login-btn"]'
         );
       });
@@ -304,7 +296,6 @@ describe('FirebaseCrashlytics', () => {
         fireEvent.click(document.querySelector('button[name="login-btn"]')!);
         expect(fakeContextManager.startRootSpan).to.have.been.calledWith(
           fakeTracer,
-          'user-interaction',
           'click button [name="login-btn"]'
         );
       });
@@ -321,7 +312,6 @@ describe('FirebaseCrashlytics', () => {
         );
         expect(fakeContextManager.startRootSpan).to.have.been.calledWith(
           fakeTracer,
-          'user-interaction',
           'click button [aria-label="login-btn"]'
         );
       });
@@ -336,7 +326,6 @@ describe('FirebaseCrashlytics', () => {
         fireEvent.click(document.querySelector('button[role="login-btn"]')!);
         expect(fakeContextManager.startRootSpan).to.have.been.calledWith(
           fakeTracer,
-          'user-interaction',
           'click button [role="login-btn"]'
         );
       });

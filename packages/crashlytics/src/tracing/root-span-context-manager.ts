@@ -40,7 +40,7 @@ export const UI_RENDER_QUIESCENCE_WINDOW_MS = 17;
 /**
  * Tracks UI render span activity and quiescence.
  */
-class UiRenderSpan {
+class UiRenderSpanManager {
   private activeRenderSpan: Span | undefined;
   private lastRenderCompletedAtMs: number | undefined;
   private quiescenceRenderTimerId: ReturnType<typeof setTimeout> | null = null;
@@ -64,7 +64,9 @@ class UiRenderSpan {
   interrupt(interruptedAtMs: number): void {
     this.isInterrupted = true;
     if (this.activeRenderSpan) {
-      this.lastRenderCompletedAtMs = interruptedAtMs;
+      if (this.quiescenceRenderTimerId === null) {
+        this.lastRenderCompletedAtMs = interruptedAtMs;
+      }
       this.endUiRenderSpan();
     }
   }
@@ -144,37 +146,37 @@ class UiRenderSpan {
 }
 
 /**
- * Tracks background span activity, like network requests and document load.
+ * Tracks resource fetch span activity, like network requests and document load.
  */
-class BackgroundSpans {
-  private activeBackgroundSpanIds: Set<string>;
-  private lastBackgroundSpanCompletedAtMs?: number;
+class ResourceFetchSpans {
+  private activeSpanIds: Set<string>;
+  private lastSpanCompletedAtMs?: number;
 
   constructor() {
-    this.activeBackgroundSpanIds = new Set<string>();
-    this.lastBackgroundSpanCompletedAtMs = undefined;
+    this.activeSpanIds = new Set<string>();
+    this.lastSpanCompletedAtMs = undefined;
   }
 
   hasActiveSpans(): boolean {
-    return this.activeBackgroundSpanIds.size > 0;
+    return this.activeSpanIds.size > 0;
   }
 
-  getLastBackgroundSpanCompletedAtMs(): number | undefined {
-    return this.lastBackgroundSpanCompletedAtMs;
+  getLastSpanCompletedAtMs(): number | undefined {
+    return this.lastSpanCompletedAtMs;
   }
 
-  recordBackgroundSpanStart(span: Span): void {
-    this.activeBackgroundSpanIds.add(span.spanContext().spanId);
+  recordResourceFetchSpanStart(span: Span): void {
+    this.activeSpanIds.add(span.spanContext().spanId);
   }
 
-  recordBackgroundSpanEnd(span: ReadableSpan): void {
-    if (this.activeBackgroundSpanIds.delete(span.spanContext().spanId)) {
+  recordResourceFetchSpanEnd(span: ReadableSpan): void {
+    if (this.activeSpanIds.delete(span.spanContext().spanId)) {
       const completedAtMs = hrTimeToMilliseconds(span.endTime);
       if (
-        this.lastBackgroundSpanCompletedAtMs === undefined ||
-        completedAtMs > this.lastBackgroundSpanCompletedAtMs
+        this.lastSpanCompletedAtMs === undefined ||
+        completedAtMs > this.lastSpanCompletedAtMs
       ) {
-        this.lastBackgroundSpanCompletedAtMs = completedAtMs;
+        this.lastSpanCompletedAtMs = completedAtMs;
       }
     }
   }
@@ -190,8 +192,8 @@ export class RootSpan {
   private tracer: Tracer;
   private rootSpanStartAtMs: number;
   private quiescenceTimerId: ReturnType<typeof setTimeout> | null;
-  private backgroundSpans: BackgroundSpans;
-  private uiRenderSpan: UiRenderSpan;
+  private resourceFetchSpans: ResourceFetchSpans;
+  private uiRenderSpanManager: UiRenderSpanManager;
   private mutationObserver?: MutationObserver;
   private isInterrupted: boolean = false;
 
@@ -213,8 +215,8 @@ export class RootSpan {
       ? hrTimeToMilliseconds(sdkSpan.startTime)
       : Date.now();
     this.quiescenceTimerId = null;
-    this.backgroundSpans = new BackgroundSpans();
-    this.uiRenderSpan = new UiRenderSpan(
+    this.resourceFetchSpans = new ResourceFetchSpans();
+    this.uiRenderSpanManager = new UiRenderSpanManager(
       this.span,
       this.tracer,
       () => this.clearQuiesce(),
@@ -226,7 +228,7 @@ export class RootSpan {
       typeof document !== 'undefined'
     ) {
       this.mutationObserver = new MutationObserver(() =>
-        this.uiRenderSpan.onMutation()
+        this.uiRenderSpanManager.onMutation()
       );
       this.mutationObserver.observe(document.body, {
         childList: true,
@@ -238,13 +240,13 @@ export class RootSpan {
     this.quiesce();
   }
 
-  onBackgroundSpanStart(span: Span): void {
-    this.backgroundSpans.recordBackgroundSpanStart(span);
+  onResourceFetchSpanStart(span: Span): void {
+    this.resourceFetchSpans.recordResourceFetchSpanStart(span);
     this.clearQuiesce();
   }
 
-  onBackgroundSpanEnd(span: ReadableSpan): void {
-    this.backgroundSpans.recordBackgroundSpanEnd(span);
+  onResourceFetchSpanEnd(span: ReadableSpan): void {
+    this.resourceFetchSpans.recordResourceFetchSpanEnd(span);
     this.endRootSpanOrWait();
   }
 
@@ -255,7 +257,7 @@ export class RootSpan {
   interrupt(): void {
     this.isInterrupted = true;
     this.clearMutationObserver();
-    this.uiRenderSpan.interrupt(Date.now());
+    this.uiRenderSpanManager.interrupt(Date.now());
     this.endRootSpanOrWait();
   }
 
@@ -270,8 +272,8 @@ export class RootSpan {
   private getLastActivityMs(): number {
     const activityTimes = [
       this.rootSpanStartAtMs,
-      this.backgroundSpans.getLastBackgroundSpanCompletedAtMs(),
-      this.uiRenderSpan.getLastRenderCompletedAtMs()
+      this.resourceFetchSpans.getLastSpanCompletedAtMs(),
+      this.uiRenderSpanManager.getLastRenderCompletedAtMs()
     ].filter((t): t is number => t !== undefined);
 
     return Math.max(...activityTimes);
@@ -310,8 +312,8 @@ export class RootSpan {
    */
   private endRootSpanOrWait(): void {
     if (
-      this.backgroundSpans.hasActiveSpans() ||
-      this.uiRenderSpan.isActivelyRendering()
+      this.resourceFetchSpans.hasActiveSpans() ||
+      this.uiRenderSpanManager.isActivelyRendering()
     ) {
       return;
     }

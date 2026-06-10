@@ -35,8 +35,8 @@ describe('FirebaseSpanProcessor', () => {
   let storage: Record<string, string> = {};
   let mockRootSpanContextManager: RootSpanContextManager;
   let activeRootSpanMock: any;
-  let onBackgroundSpanStartStub: sinon.SinonStub;
-  let onBackgroundSpanEndStub: sinon.SinonStub;
+  let onResourceFetchSpanStartStub: sinon.SinonStub;
+  let onResourceFetchSpanEndStub: sinon.SinonStub;
 
   beforeEach(() => {
     storage = {};
@@ -52,13 +52,13 @@ describe('FirebaseSpanProcessor', () => {
       writable: true
     });
 
-    onBackgroundSpanStartStub = sinon.stub();
-    onBackgroundSpanEndStub = sinon.stub();
+    onResourceFetchSpanStartStub = sinon.stub();
+    onResourceFetchSpanEndStub = sinon.stub();
 
     activeRootSpanMock = {
       spanContext: () => ({ traceId: 'traceId1', spanId: 'rootSpan1' }),
-      onBackgroundSpanStart: onBackgroundSpanStartStub,
-      onBackgroundSpanEnd: onBackgroundSpanEndStub
+      onResourceFetchSpanStart: onResourceFetchSpanStartStub,
+      onResourceFetchSpanEnd: onResourceFetchSpanEndStub
     };
 
     mockRootSpanContextManager = {
@@ -175,7 +175,7 @@ describe('FirebaseSpanProcessor', () => {
       };
       processor.onStart(mockSpan as Span, {} as any);
 
-      expect(onBackgroundSpanStartStub.calledWith(mockSpan)).to.be.true;
+      expect(onResourceFetchSpanStartStub.calledWith(mockSpan)).to.be.true;
     });
 
     it('should record network activity start for xhr instrumentation', () => {
@@ -184,7 +184,7 @@ describe('FirebaseSpanProcessor', () => {
       };
       processor.onStart(mockSpan as Span, {} as any);
 
-      expect(onBackgroundSpanStartStub.calledWith(mockSpan)).to.be.true;
+      expect(onResourceFetchSpanStartStub.calledWith(mockSpan)).to.be.true;
     });
 
     it('should not record network activity start for non-network scopes', () => {
@@ -193,7 +193,7 @@ describe('FirebaseSpanProcessor', () => {
       };
       processor.onStart(mockSpan as Span, {} as any);
 
-      expect(onBackgroundSpanStartStub.called).to.be.false;
+      expect(onResourceFetchSpanStartStub.called).to.be.false;
     });
 
     it('should record network activity end for fetch instrumentation', () => {
@@ -203,7 +203,7 @@ describe('FirebaseSpanProcessor', () => {
       mockSpan.endTime = [1, 2000000];
       processor.onEnd(mockSpan as any);
 
-      expect(onBackgroundSpanEndStub.calledWith(mockSpan)).to.be.true;
+      expect(onResourceFetchSpanEndStub.calledWith(mockSpan)).to.be.true;
     });
 
     it('should record network activity end for xhr instrumentation', () => {
@@ -213,7 +213,7 @@ describe('FirebaseSpanProcessor', () => {
       mockSpan.endTime = [1, 2000000];
       processor.onEnd(mockSpan as any);
 
-      expect(onBackgroundSpanEndStub.calledWith(mockSpan)).to.be.true;
+      expect(onResourceFetchSpanEndStub.calledWith(mockSpan)).to.be.true;
     });
 
     it('should not record network activity end for non-network scopes', () => {
@@ -222,7 +222,7 @@ describe('FirebaseSpanProcessor', () => {
       };
       processor.onEnd(mockSpan as any);
 
-      expect(onBackgroundSpanEndStub.called).to.be.false;
+      expect(onResourceFetchSpanEndStub.called).to.be.false;
     });
   });
 
@@ -234,7 +234,7 @@ describe('FirebaseSpanProcessor', () => {
       };
       processor.onStart(mockSpan as Span, {} as any);
 
-      expect(onBackgroundSpanStartStub.calledWith(mockSpan)).to.be.true;
+      expect(onResourceFetchSpanStartStub.calledWith(mockSpan)).to.be.true;
     });
 
     it('should not call onDocumentLoadStart when other spans start', () => {
@@ -244,7 +244,7 @@ describe('FirebaseSpanProcessor', () => {
       };
       processor.onStart(mockSpan as Span, {} as any);
 
-      expect(onBackgroundSpanStartStub.called).to.be.false;
+      expect(onResourceFetchSpanStartStub.called).to.be.false;
     });
 
     it('should call onDocumentLoadEnd when documentLoad span ends', () => {
@@ -255,7 +255,7 @@ describe('FirebaseSpanProcessor', () => {
       mockSpan.endTime = [1, 2000000];
       processor.onEnd(mockSpan as any);
 
-      expect(onBackgroundSpanEndStub.calledWith(mockSpan)).to.be.true;
+      expect(onResourceFetchSpanEndStub.calledWith(mockSpan)).to.be.true;
     });
 
     it('should not call recordBackgroundSpanEnd when other spans end', () => {
@@ -265,7 +265,7 @@ describe('FirebaseSpanProcessor', () => {
       };
       processor.onEnd(mockSpan as any);
 
-      expect(onBackgroundSpanEndStub.called).to.be.false;
+      expect(onResourceFetchSpanEndStub.called).to.be.false;
     });
   });
 });

@@ -67,7 +67,7 @@ export class FirebaseSpanProcessor implements SpanProcessor {
       rootSpan &&
       (this.isNetworkSpan(span) || this.isDocumentLoadSpan(span))
     ) {
-      rootSpan.onBackgroundSpanStart(span);
+      rootSpan.onResourceFetchSpanStart(span);
     }
     const activeAppScreenId =
       this.rootSpanContextManager.getActiveAppScreenId();
@@ -103,7 +103,7 @@ export class FirebaseSpanProcessor implements SpanProcessor {
       rootSpan &&
       (this.isNetworkSpan(span) || this.isDocumentLoadSpan(span))
     ) {
-      rootSpan.onBackgroundSpanEnd(span);
+      rootSpan.onResourceFetchSpanEnd(span);
     }
   }
 
