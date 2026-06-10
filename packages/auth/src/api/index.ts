@@ -157,7 +157,7 @@ export async function _performApiRequest<T, V>(
     }
 
     const query = querystring({
-      ...params
+      ...params,
       key: auth.config.apiKey,
     }).slice(1);
 
