@@ -6,7 +6,7 @@
   "main": "dist/index.cjs.js",
   "exports": {
     ".": {
-      "types": "./dist/rules-unit-testing/index.d.ts",
+      "types": "./dist/index.d.ts",
       "node": {
         "import": "./dist/esm/index.esm.js",
         "require": "./dist/index.cjs.js"
@@ -40,7 +40,9 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "rollup": "2.79.2",
-    "rollup-plugin-typescript2": "0.37.0"
+    "rollup-plugin-typescript2": "0.37.0",
+    "@firebase/util": "1.x",
+    "firebase": "^12.0.0"
   },
   "peerDependencies": {
     "firebase": "^12.0.0"
@@ -50,7 +52,7 @@
     "type": "git",
     "url": "git+https://github.com/firebase/firebase-js-sdk.git"
   },
-  "typings": "dist/rules-unit-testing/index.d.ts",
+  "typings": "dist/index.d.ts",
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   }
