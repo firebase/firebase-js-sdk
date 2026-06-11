@@ -158,7 +158,7 @@ export async function _performApiRequest<T, V>(
 
     const query = querystring({
       ...params,
-      key: auth.config.apiKey,
+      key: auth.config.apiKey
     }).slice(1);
 
     const headers = await (auth as AuthInternal)._getAdditionalHeaders();
