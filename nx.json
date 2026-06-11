@@ -7,5 +7,10 @@
         "cacheableOperations": ["build", "test", "lint", "api-report"]
       }
     }
+  },
+  "targetDefaults": {
+    "build": {
+      "outputs": ["{projectRoot}/dist", "{projectRoot}/temp"]
+    }
   }
 }
