@@ -51,6 +51,7 @@ const PASSKEY_LOOK_UP_ERROR_MESSAGE =
  * @param name - The user's name for passkey.
  * @param manualSignUp - When false, automatically creates an anonymous user if a passkey credential does not exist. Defaults to false.
  * @returns A promise that resolves with a `UserCredential` object.
+ * @public
  */
 export async function signInWithPasskey(
   auth: Auth,
