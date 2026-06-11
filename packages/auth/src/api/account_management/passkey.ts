@@ -45,8 +45,12 @@ export function publicKeyCredentialToJSON(
 ): PublicKeyCredentialJSON {
   // Convert ArrayBuffer to Base64
   function bufferToBase64(buffer: ArrayBuffer): string {
-    const byteArray = Array.from(new Uint8Array(buffer));
-    return btoa(String.fromCharCode.apply(null, byteArray));
+    const byteArray = new Uint8Array(buffer);
+    let binaryStr = '';
+    for (let i = 0; i < byteArray.length; i++) {
+      binaryStr += String.fromCharCode(byteArray[i]);
+    }
+    return btoa(binaryStr);
   }
 
   const clientDataJSON = bufferToBase64(pubKeyCred.response.clientDataJSON);
