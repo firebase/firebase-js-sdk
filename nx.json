@@ -9,7 +9,9 @@
   },
   "targetDefaults": {
     "build": {
+      "dependsOn": ["^build"],
       "outputs": ["{projectRoot}/dist", "{projectRoot}/temp"]
     }
-  }
+  },
+  "analytics": true
 }
