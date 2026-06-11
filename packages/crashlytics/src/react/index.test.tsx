@@ -24,6 +24,7 @@ import { FirebaseApp } from '@firebase/app';
 import { Crashlytics } from '../public-types';
 import { FirebaseCrashlytics } from '.';
 import React from 'react';
+import { AttributesStore } from '../attributes-store';
 import { render } from '@testing-library/react';
 import { ALREADY_LOGGED_FLAG } from '../constants';
 import { ErrorWithSymbol } from '../types';
@@ -73,7 +74,8 @@ describe('FirebaseCrashlytics', () => {
         getLogger: stub().returns({
           emit: emitStub
         })
-      }
+      },
+      attributesStore: new AttributesStore({ projectId: 'fake-project' })
     } as unknown as Crashlytics;
 
     getCrashlyticsStub = stub(crashlytics, 'getCrashlytics').returns(

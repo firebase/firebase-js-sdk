@@ -18,12 +18,17 @@
 import { _FirebaseService, FirebaseApp } from '@firebase/app';
 import { Crashlytics, CrashlyticsOptions } from './public-types';
 import { LoggerProvider } from '@opentelemetry/sdk-logs';
+import { AttributesStore } from './attributes-store';
 
 export class CrashlyticsService implements Crashlytics, _FirebaseService {
   private _options?: CrashlyticsOptions;
   private _frameworkAttributesProvider?: () => Record<string, string>;
 
-  constructor(public app: FirebaseApp, public loggerProvider: LoggerProvider) {}
+  constructor(
+    public app: FirebaseApp,
+    public loggerProvider: LoggerProvider,
+    public attributesStore: AttributesStore
+  ) {}
 
   _delete(): Promise<void> {
     return Promise.resolve();
@@ -31,6 +36,7 @@ export class CrashlyticsService implements Crashlytics, _FirebaseService {
 
   set options(optionsToSet: CrashlyticsOptions) {
     this._options = optionsToSet;
+    this.attributesStore.updateAppVersion(optionsToSet);
   }
 
   get options(): CrashlyticsOptions | undefined {
