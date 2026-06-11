@@ -30,7 +30,8 @@ import {
   createOtlpNetworkExportDelegate
 } from '@opentelemetry/otlp-exporter-base';
 import { FetchTransport } from '../fetch-transport';
-import { DynamicHeaderProvider, DynamicAttributeProvider } from '../types';
+import { DynamicHeaderProvider } from '../types';
+import { AttributesStore } from '../attributes-store';
 import { FirebaseApp } from '@firebase/app';
 import { ExportResult } from '@opentelemetry/core';
 import { CrashlyticsOptions } from '../public-types';
@@ -47,8 +48,8 @@ import {
 export function createLoggerProvider(
   app: FirebaseApp,
   crashlyticsOptions: CrashlyticsOptions,
-  dynamicHeaderProviders: DynamicHeaderProvider[] = [],
-  dynamicAttributeProviders: DynamicAttributeProvider[] = []
+  attributesStore: AttributesStore,
+  dynamicHeaderProviders: DynamicHeaderProvider[] = []
 ): LoggerProvider {
   let endpointUrl =
     crashlyticsOptions.endpointUrl || DEFAULT_TELEMETRY_ENDPOINT;
@@ -70,8 +71,8 @@ export function createLoggerProvider(
         ...(apiKey ? { 'X-Goog-Api-Key': apiKey } : {})
       }
     },
-    dynamicHeaderProviders,
-    dynamicAttributeProviders
+    attributesStore,
+    dynamicHeaderProviders
   );
 
   return new LoggerProvider({
@@ -88,8 +89,8 @@ class OTLPLogExporter
 {
   constructor(
     config: OTLPExporterConfigBase = {},
-    dynamicHeaderProviders: DynamicHeaderProvider[] = [],
-    private dynamicAttributeProviders: DynamicAttributeProvider[] = []
+    private attributesStore: AttributesStore,
+    dynamicHeaderProviders: DynamicHeaderProvider[] = []
   ) {
     super(
       createOtlpNetworkExportDelegate(
@@ -116,20 +117,10 @@ class OTLPLogExporter
     logs: ReadableLogRecord[],
     resultCallback: (result: ExportResult) => void
   ): Promise<void> {
-    const attributes = await Promise.all(
-      this.dynamicAttributeProviders.map(provider => provider.getAttribute())
-    );
-
-    const attributesToApply: Record<string, string> = {};
-    for (const attr of attributes) {
-      if (attr) {
-        attributesToApply[attr[0]] = attr[1];
-      }
-    }
-
-    if (Object.keys(attributesToApply).length > 0) {
+    const installationIdAttribute = await this.attributesStore.getInstallationIdAttribute();
+    if (installationIdAttribute) {
       logs.forEach(log => {
-        Object.assign(log.attributes, attributesToApply);
+        Object.assign(log.attributes, installationIdAttribute);
       });
     }
     super.export(logs, resultCallback);

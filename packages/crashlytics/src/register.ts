@@ -26,9 +26,9 @@ import { CrashlyticsService } from './service';
 import { createLoggerProvider } from './logging/logger-provider';
 import { createTracingProvider } from './tracing/tracing-provider';
 import { AppCheckProvider } from './logging/appcheck-provider';
-import { InstallationIdProvider } from './logging/installation-id-provider';
 import { CRASHLYTICS_TYPE } from './constants';
 import { getSessionId, registerListeners, startNewSession } from './helpers';
+import { AttributesStore, ATTR } from './attributes-store';
 import { CrashlyticsOptions } from './public-types';
 import { RootSpanContextManager } from './tracing/root-span-context-manager';
 
@@ -50,14 +50,22 @@ export function registerCrashlytics(): void {
           'installations-internal'
         );
         const dynamicHeaderProviders = [new AppCheckProvider(appCheckProvider)];
-        const dynamicAttributeProviders = [
-          new InstallationIdProvider(installationsProvider)
-        ];
+        const attributesStore = new AttributesStore(
+          app.options,
+          crashlyticsOptions,
+          installationsProvider
+        );
+
+        const sessionId = getSessionId();
+        if (sessionId) {
+          attributesStore.setCommonAttribute(ATTR.COMMON.SESSION_ID, sessionId);
+        }
+
         const loggerProvider = createLoggerProvider(
           app,
           crashlyticsOptions,
-          dynamicHeaderProviders,
-          dynamicAttributeProviders
+          attributesStore,
+          dynamicHeaderProviders
         );
 
         const contextManager = new RootSpanContextManager();
@@ -65,15 +73,16 @@ export function registerCrashlytics(): void {
           app,
           contextManager,
           crashlyticsOptions,
-          dynamicHeaderProviders,
-          dynamicAttributeProviders
+          attributesStore,
+          dynamicHeaderProviders
         );
 
         const crashlyticsService = new CrashlyticsService(
           app,
           loggerProvider,
           tracingProvider,
-          contextManager
+          contextManager,
+          attributesStore
         );
 
         // Immediately track this as a new client session (if one doesn't exist yet)

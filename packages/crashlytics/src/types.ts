@@ -20,6 +20,7 @@ import { TracerProvider } from '@opentelemetry/api';
 import { Crashlytics } from './public-types';
 import { RootSpanContextManager } from './tracing/root-span-context-manager';
 import { ALREADY_LOGGED_FLAG } from './constants';
+import { AttributesStore } from './attributes-store';
 
 /**
  * An internal interface for the Crashlytics service.
@@ -30,6 +31,7 @@ export interface CrashlyticsInternal extends Crashlytics {
   loggerProvider: LoggerProvider;
   tracingProvider: TracerProvider;
   contextManager: RootSpanContextManager;
+  attributesStore: AttributesStore;
 }
 
 type KeyValuePair = [key: string, value: string];

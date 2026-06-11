@@ -26,8 +26,10 @@ import { name, version } from '../package.json';
 import { CrashlyticsService } from './service';
 import { createLoggerProvider } from './logging/logger-provider';
 import { createTracingProvider } from './tracing/tracing-provider';
+import { AttributesStore, ATTR } from './attributes-store';
 import { CrashlyticsOptions } from './public-types';
 import { RootSpanContextManager } from './tracing/root-span-context-manager';
+import { getSessionId } from './helpers';
 
 export function registerCrashlytics(): void {
   _registerComponent(
@@ -38,19 +40,26 @@ export function registerCrashlytics(): void {
 
         // getImmediate for FirebaseApp will always succeed
         const app = container.getProvider('app').getImmediate();
-        const loggerProvider = createLoggerProvider(app, crashlyticsOptions);
+        const attributesStore = new AttributesStore(crashlyticsOptions);
+        const sessionId = getSessionId();
+        if (sessionId) {
+          attributesStore.setCommonAttribute(ATTR.COMMON.SESSION_ID, sessionId);
+        }
+        const loggerProvider = createLoggerProvider(app, crashlyticsOptions, attributesStore);
         const contextManager = new RootSpanContextManager();
         const tracingProvider = createTracingProvider(
           app,
           contextManager,
-          crashlyticsOptions
+          crashlyticsOptions,
+          attributesStore
         );
 
         return new CrashlyticsService(
           app,
           loggerProvider,
           tracingProvider,
-          contextManager
+          contextManager,
+          attributesStore
         );
       },
       ComponentType.PUBLIC

@@ -20,6 +20,7 @@ import { expect } from 'chai';
 import { FirebaseApp } from '@firebase/app';
 import { RootSpanContextManager } from './root-span-context-manager';
 import { CrashlyticsOptions } from '../public-types';
+import { AttributesStore } from '../attributes-store';
 
 describe('createTracingProvider', () => {
   let mockApp: FirebaseApp;
@@ -44,7 +45,8 @@ describe('createTracingProvider', () => {
     const provider = createTracingProvider(
       mockApp,
       mockRootSpanContextManager,
-      mockCrashlyticsOptions
+      mockCrashlyticsOptions,
+      new AttributesStore(mockCrashlyticsOptions)
     );
     expect(provider).to.be.ok;
   });

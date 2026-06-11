@@ -27,6 +27,7 @@ import { CrashlyticsService } from './service';
 import { CrashlyticsInternal } from './types';
 import { trace, type TimeInput } from '@opentelemetry/api';
 import { hrTimeToMilliseconds, timeInputToHrTime } from '@opentelemetry/core';
+import { ATTR } from './attributes-store';
 
 /**
  * Converts OpenTelemetry TimeInput to milliseconds since epoch.
@@ -62,34 +63,6 @@ export function getSessionId(): string | undefined {
   }
 }
 
-/**
- * Sets attributes that are common across all logs
- */
-export function setCommonLogAttributes(
-  crashlytics: Crashlytics,
-  customAttributes: AnyValueMap
-): void {
-  const options =
-    crashlytics instanceof CrashlyticsService ? crashlytics.options : undefined;
-  // Add trace metadata
-  const activeSpanContext = trace.getActiveSpan()?.spanContext();
-  if (activeSpanContext?.traceId) {
-    customAttributes[CRASHLYTICS_ATTRIBUTE_KEYS.TRACE_ID] =
-      activeSpanContext.traceId;
-    if (activeSpanContext?.spanId) {
-      customAttributes[CRASHLYTICS_ATTRIBUTE_KEYS.SPAN_ID] =
-        activeSpanContext.spanId;
-    }
-  }
-  // Add app version metadata
-  customAttributes[CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION] =
-    getAppVersion(options);
-  // Add session ID metadata
-  const sessionId = getSessionId();
-  if (sessionId) {
-    customAttributes[CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID] = sessionId;
-  }
-}
 
 /**
  * Generate a new session UUID. We record it in two places:
@@ -98,7 +71,7 @@ export function setCommonLogAttributes(
  */
 export function startNewSession(crashlytics: Crashlytics): void {
   // Cast to CrashlyticsInternal to access internal loggerProvider
-  const { loggerProvider } = crashlytics as CrashlyticsInternal;
+  const { loggerProvider, attributesStore } = crashlytics as CrashlyticsInternal;
 
   if (
     typeof sessionStorage !== 'undefined' &&
@@ -107,16 +80,15 @@ export function startNewSession(crashlytics: Crashlytics): void {
     try {
       const sessionId = crypto.randomUUID();
       sessionStorage.setItem(CRASHLYTICS_SESSION_ID_KEY, sessionId);
-
-      const customAttributes: AnyValueMap = {};
-      setCommonLogAttributes(crashlytics, customAttributes);
+      attributesStore.setCommonAttribute(ATTR.COMMON.SESSION_ID, sessionId);
+      attributesStore.setSpanAttribute(ATTR.SPAN.GCP_FIREBASE_SESSION_ID, sessionId);
 
       // Emit session creation log
       const logger = loggerProvider.getLogger('session-logger');
       logger.emit({
         severityNumber: SeverityNumber.DEBUG,
         body: 'Session created',
-        attributes: customAttributes
+        attributes: attributesStore.getLogAttributesAsMap()
       });
     } catch (e) {
       // Ignore errors accessing sessionStorage (e.g. security restrictions)

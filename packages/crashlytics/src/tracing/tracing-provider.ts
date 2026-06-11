@@ -39,7 +39,8 @@ import {
   createOtlpNetworkExportDelegate
 } from '@opentelemetry/otlp-exporter-base';
 import { ReadableSpan, SpanExporter } from '@opentelemetry/sdk-trace-base';
-import { DynamicHeaderProvider, DynamicAttributeProvider } from '../types';
+import { DynamicHeaderProvider } from '../types';
+import { AttributesStore } from '../attributes-store';
 import { FirebaseApp } from '@firebase/app';
 import { FirebaseSpanProcessor } from './firebase-span-processor';
 import type { RootSpanContextManager } from './root-span-context-manager';
@@ -61,8 +62,8 @@ export function createTracingProvider(
   app: FirebaseApp,
   rootSpanContextManager: RootSpanContextManager,
   crashlyticsOptions: CrashlyticsOptions,
-  dynamicHeaderProviders: DynamicHeaderProvider[] = [],
-  dynamicAttributeProviders: DynamicAttributeProvider[] = []
+  attributesStore: AttributesStore,
+  dynamicHeaderProviders: DynamicHeaderProvider[] = []
 ): TracerProvider {
   if (typeof window === 'undefined') {
     return trace.getTracerProvider();
@@ -106,8 +107,8 @@ export function createTracingProvider(
           ...(apiKey ? { 'X-Goog-Api-Key': apiKey } : {})
         }
       },
-      dynamicHeaderProviders,
-      dynamicAttributeProviders
+      attributesStore,
+      dynamicHeaderProviders
     );
   }
 
@@ -117,7 +118,8 @@ export function createTracingProvider(
       new FirebaseSpanProcessor(
         rootSpanContextManager,
         crashlyticsOptions,
-        app.options
+        app.options,
+        attributesStore
       ),
       // TODO: Remove console exporter before we ship
       new SimpleSpanProcessor(new ConsoleSpanExporter()),
@@ -184,8 +186,8 @@ export class OTLPTraceExporter
 {
   constructor(
     config: OTLPExporterConfigBase = {},
-    dynamicHeaderProviders: DynamicHeaderProvider[] = [],
-    private dynamicAttributeProviders: DynamicAttributeProvider[] = []
+    private attributesStore: AttributesStore,
+    dynamicHeaderProviders: DynamicHeaderProvider[] = []
   ) {
     super(
       createOtlpNetworkExportDelegate(
@@ -212,20 +214,10 @@ export class OTLPTraceExporter
     spans: ReadableSpan[],
     resultCallback: (result: ExportResult) => void
   ): Promise<void> {
-    const attributes = await Promise.all(
-      this.dynamicAttributeProviders.map(provider => provider.getAttribute())
-    );
-
-    const attributesToApply: Record<string, string> = {};
-    for (const attr of attributes) {
-      if (attr) {
-        attributesToApply[attr[0]] = attr[1];
-      }
-    }
-
-    if (Object.keys(attributesToApply).length > 0) {
+    const installationIdAttribute = await this.attributesStore.getInstallationIdAttribute();
+    if (installationIdAttribute) {
       spans.forEach(span => {
-        Object.assign(span.attributes, attributesToApply);
+        Object.assign(span.attributes, installationIdAttribute);
       });
     }
     super.export(spans, resultCallback);

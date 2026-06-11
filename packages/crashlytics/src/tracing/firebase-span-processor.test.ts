@@ -20,6 +20,7 @@ import * as sinon from 'sinon';
 import { Span } from '@opentelemetry/sdk-trace-base';
 import { FirebaseSpanProcessor } from './firebase-span-processor';
 import { RootSpan, RootSpanContextManager } from './root-span-context-manager';
+import { AttributesStore } from '../attributes-store';
 import {
   CRASHLYTICS_SESSION_ID_KEY,
   COMMON_SPAN_ATTRIBUTE_KEYS,
@@ -67,7 +68,7 @@ describe('FirebaseSpanProcessor', () => {
       getActiveAppScreenId: () => undefined
     } as unknown as RootSpanContextManager;
 
-    processor = new FirebaseSpanProcessor(mockRootSpanContextManager);
+    processor = new FirebaseSpanProcessor(mockRootSpanContextManager, {}, {}, new AttributesStore({}));
     mockSpan = {
       attributes: {},
       spanContext: () => ({ traceId: 'traceId1' }),
@@ -105,7 +106,8 @@ describe('FirebaseSpanProcessor', () => {
       processor = new FirebaseSpanProcessor(
         mockRootSpanContextManager,
         { region: 'us-central1' },
-        { projectId: 'my-project' }
+        { projectId: 'my-project' },
+        new AttributesStore({ region: 'us-central1' })
       );
       processor.onStart(mockSpan as Span, {} as any);
       expect(
@@ -119,7 +121,8 @@ describe('FirebaseSpanProcessor', () => {
       processor = new FirebaseSpanProcessor(
         mockRootSpanContextManager,
         {},
-        { projectId: 'my-project' }
+        { projectId: 'my-project' },
+        new AttributesStore({})
       );
       processor.onStart(mockSpan as Span, {} as any);
       expect(
@@ -151,7 +154,8 @@ describe('FirebaseSpanProcessor', () => {
       processor = new FirebaseSpanProcessor(
         mockRootSpanContextManager,
         { appVersion: '1.2.3' },
-        {}
+        {},
+        new AttributesStore({ appVersion: '1.2.3' })
       );
       processor.onStart(mockSpan as Span, {} as any);
       expect(
@@ -160,7 +164,7 @@ describe('FirebaseSpanProcessor', () => {
     });
 
     it("should set app version attribute to 'unset' if configured app version not available", () => {
-      processor = new FirebaseSpanProcessor(mockRootSpanContextManager, {}, {});
+      processor = new FirebaseSpanProcessor(mockRootSpanContextManager, {}, {}, new AttributesStore({}));
       processor.onStart(mockSpan as Span, {} as any);
       expect(
         mockSpan.attributes[COMMON_SPAN_ATTRIBUTE_KEYS.GCP_FIREBASE_APP_VERSION]

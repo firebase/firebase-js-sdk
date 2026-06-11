@@ -39,6 +39,7 @@ import { _FirebaseInstallationsInternal } from '@firebase/installations';
 import { AUTO_CONSTANTS } from './auto-constants';
 import { CrashlyticsInternal } from './types';
 import { RootSpanContextManager } from './tracing/root-span-context-manager';
+import { AttributesStore, ATTR } from './attributes-store';
 
 const PROJECT_ID = 'my-project';
 const APP_ID = 'my-appid';
@@ -92,7 +93,8 @@ const fakeCrashlytics: CrashlyticsInternal = {
   },
   loggerProvider: fakeLoggerProvider,
   tracingProvider: fakeTracingProvider,
-  contextManager: fakeContextManager
+  contextManager: fakeContextManager,
+  attributesStore: new AttributesStore({})
 };
 
 describe('Top level API', () => {
@@ -134,6 +136,7 @@ describe('Top level API', () => {
 
     // Simulate session creation that now happens in registerCrashlytics
     storage[CRASHLYTICS_SESSION_ID_KEY] = MOCK_SESSION_ID;
+    fakeCrashlytics.attributesStore = new AttributesStore({});
 
     getActiveSpanStub = sinon.stub(trace, 'getActiveSpan').returns(undefined);
   });
@@ -430,7 +433,8 @@ describe('Top level API', () => {
         fakeCrashlytics.app,
         fakeLoggerProvider,
         fakeTracingProvider,
-        fakeContextManager
+        fakeContextManager,
+        new AttributesStore({})
       );
       crashlytics.options = {
         appVersion: '1.0.0'

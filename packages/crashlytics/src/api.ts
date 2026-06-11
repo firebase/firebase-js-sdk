@@ -29,10 +29,10 @@ import { CrashlyticsService } from './service';
 import {
   flush,
   generateClickSpanName,
-  setCommonLogAttributes,
   startUserInteractionTrace
 } from './helpers';
 import { deepEqual } from '@firebase/util';
+import { ATTR } from './attributes-store';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
@@ -108,10 +108,11 @@ export function recordError(
   }
 
   // Cast to CrashlyticsInternal to access internal loggerProvider
-  const logger = (crashlytics as CrashlyticsInternal).loggerProvider.getLogger(
+  const { loggerProvider, attributesStore } = crashlytics as CrashlyticsInternal;
+  const logger = loggerProvider.getLogger(
     'error-logger'
   );
-  const customAttributes: AnyValueMap = {};
+  const customAttributes: AnyValueMap = attributesStore.getLogAttributesAsMap();
 
   // Add framework-specific metadata
   const frameworkAttributesProvider = (crashlytics as CrashlyticsService)
@@ -120,8 +121,6 @@ export function recordError(
     const frameworkAttributes = frameworkAttributesProvider();
     Object.assign(customAttributes, frameworkAttributes);
   }
-
-  setCommonLogAttributes(crashlytics, customAttributes);
 
   // Merge in any additional attributes. Explicitly provided attributes take precedence over
   // automatically added attributes.
@@ -248,11 +247,10 @@ export function logViewBoundary(
   urlTemplate: string,
   attributes?: AnyValueMap
 ): void {
-  const { loggerProvider, contextManager } = crashlytics as CrashlyticsInternal;
+  const { loggerProvider, contextManager, attributesStore } = crashlytics as CrashlyticsInternal;
   const logger = loggerProvider.getLogger('view-boundary-logger');
-  const customAttributes: AnyValueMap = {};
-
-  setCommonLogAttributes(crashlytics, customAttributes);
+  attributesStore.setCommonAttribute(ATTR.COMMON.APP_SCREEN_ID, urlTemplate);
+  const customAttributes: AnyValueMap = attributesStore.getLogAttributesAsMap();
 
   // Merge in any additional attributes. Explicitly provided attributes take precedence over
   // automatically added attributes.
@@ -268,8 +266,6 @@ export function logViewBoundary(
       ...customAttributes
     }
   });
-
-  contextManager.setActiveAppScreenId(urlTemplate);
 }
 
 export { flush, startUserInteractionTrace };
