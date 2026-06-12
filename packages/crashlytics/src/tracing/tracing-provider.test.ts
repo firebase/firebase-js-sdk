@@ -20,11 +20,13 @@ import { expect } from 'chai';
 import { FirebaseApp } from '@firebase/app';
 import { RootSpanContextManager } from './root-span-context-manager';
 import { CrashlyticsOptions } from '../public-types';
+import { AttributesStore } from '../attributes-store';
 
 describe('createTracingProvider', () => {
   let mockApp: FirebaseApp;
   let mockRootSpanContextManager: RootSpanContextManager;
   let mockCrashlyticsOptions: CrashlyticsOptions;
+  let mockAttributesStore: AttributesStore;
   beforeEach(() => {
     mockApp = {
       options: {
@@ -38,13 +40,15 @@ describe('createTracingProvider', () => {
       startRootSpan: () => ({})
     } as unknown as RootSpanContextManager;
     mockCrashlyticsOptions = {} as CrashlyticsOptions;
+    mockAttributesStore = {} as unknown as AttributesStore;
   });
 
   it('should return a tracer provider instance', () => {
     const provider = createTracingProvider(
       mockApp,
       mockRootSpanContextManager,
-      mockCrashlyticsOptions
+      mockCrashlyticsOptions,
+      mockAttributesStore
     );
     expect(provider).to.be.ok;
   });
