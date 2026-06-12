@@ -37,8 +37,7 @@ import {
   BrowserTestingModule,
   platformBrowserTesting
 } from '@angular/platform-browser/testing';
-import { CrashlyticsService } from '../service';
-import { FRAMEWORK_ATTRIBUTE_KEYS } from '../constants';
+import { ATTR_KEY_ROUTE_PATH, AttributesStore } from '../attributes-store';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -54,13 +53,17 @@ describe('FirebaseErrorHandler', () => {
   let app: FirebaseApp;
 
   let fakeCrashlytics: Crashlytics;
+  let attributesStore: AttributesStore;
 
   let recordErrorStub: sinon.SinonStub;
   let getCrashlyticsStub: sinon.SinonStub;
 
   beforeEach(() => {
     app = initializeApp({ projectId: 'p', appId: 'fakeapp' });
-    fakeCrashlytics = {} as Crashlytics;
+    attributesStore = new AttributesStore(app.options);
+    fakeCrashlytics = {
+      attributesStore
+    } as unknown as Crashlytics;
 
     recordErrorStub = stub(crashlytics, 'recordError');
     getCrashlyticsStub = stub(crashlytics, 'getCrashlytics').returns(
@@ -96,25 +99,21 @@ describe('FirebaseErrorHandler', () => {
     expect(recordErrorStub).to.have.been.calledWith(fakeCrashlytics, testError);
   });
 
-  describe('frameworkAttributesProvider', () => {
-    it('should report framework attributes', async () => {
+  describe('routePath integration', () => {
+    it('should set the routePath attribute', async () => {
       await router.navigate(['/static-route']);
 
-      expect(
-        (fakeCrashlytics as CrashlyticsService).frameworkAttributesProvider!()
-      ).to.deep.equal({
-        [FRAMEWORK_ATTRIBUTE_KEYS.ROUTE_PATH]: '/static-route'
-      });
+      expect(attributesStore.getLogAttributes()[ATTR_KEY_ROUTE_PATH]).to.equal(
+        '/static-route'
+      );
     });
 
     it('should remove dynamic content from route', async () => {
       await router.navigate(['/dynamic/my-name/route']);
 
-      expect(
-        (fakeCrashlytics as CrashlyticsService).frameworkAttributesProvider!()
-      ).to.deep.equal({
-        [FRAMEWORK_ATTRIBUTE_KEYS.ROUTE_PATH]: '/dynamic/:id/route'
-      });
+      expect(attributesStore.getLogAttributes()[ATTR_KEY_ROUTE_PATH]).to.equal(
+        '/dynamic/:id/route'
+      );
     });
   });
 });
