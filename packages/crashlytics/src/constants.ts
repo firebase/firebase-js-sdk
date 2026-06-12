@@ -34,8 +34,7 @@ export const ALREADY_LOGGED_FLAG = Symbol('firebase_crashlytics_logged');
 /** Label keys that we write in all telemetry signal entries. */
 export const CRASHLYTICS_ATTRIBUTE_KEYS = {
   APP_VERSION: 'app.build_id',
-  SESSION_ID: 'session.id',
-  INSTALLATION_ID: 'app.installation.id'
+  SESSION_ID: 'session.id'
 };
 
 /**
