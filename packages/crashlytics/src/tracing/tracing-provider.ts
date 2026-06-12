@@ -217,7 +217,9 @@ export function patchNetworkRequests(
         ? input
         : input instanceof URL
         ? input.href
-        : (input as Request).url;
+        : input instanceof Request
+        ? input.url
+        : String(input || '');
 
     if (
       !shouldIgnore(urlString) &&
@@ -241,7 +243,12 @@ export function patchNetworkRequests(
     ...args: any[]
   ) {
     const url = args[1];
-    const urlString = typeof url === 'string' ? url : (url as URL)?.href || '';
+    const urlString =
+      typeof url === 'string'
+        ? url
+        : url instanceof URL
+        ? url.href
+        : String(url || '');
 
     // apparently otel can't handle an XHR with a URL object so this fixes otel's bug
     if (url instanceof URL) {
