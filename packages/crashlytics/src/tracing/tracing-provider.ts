@@ -39,8 +39,9 @@ import {
   createOtlpNetworkExportDelegate
 } from '@opentelemetry/otlp-exporter-base';
 import { ReadableSpan, SpanExporter } from '@opentelemetry/sdk-trace-base';
-import { DynamicHeaderProvider, DynamicAttributeProvider } from '../types';
+import { DynamicHeaderProvider } from '../types';
 import { FirebaseApp } from '@firebase/app';
+import { AttributesStore } from '../attributes-store';
 import { FirebaseSpanProcessor } from './firebase-span-processor';
 import type { RootSpanContextManager } from './root-span-context-manager';
 import { JsonTraceSerializer } from '@opentelemetry/otlp-transformer';
@@ -61,8 +62,8 @@ export function createTracingProvider(
   app: FirebaseApp,
   rootSpanContextManager: RootSpanContextManager,
   crashlyticsOptions: CrashlyticsOptions,
-  dynamicHeaderProviders: DynamicHeaderProvider[] = [],
-  dynamicAttributeProviders: DynamicAttributeProvider[] = []
+  attributesStore: AttributesStore,
+  dynamicHeaderProviders: DynamicHeaderProvider[] = []
 ): TracerProvider {
   if (typeof window === 'undefined') {
     return trace.getTracerProvider();
@@ -107,7 +108,7 @@ export function createTracingProvider(
         }
       },
       dynamicHeaderProviders,
-      dynamicAttributeProviders
+      attributesStore
     );
   }
 
@@ -270,7 +271,7 @@ export class OTLPTraceExporter
   constructor(
     config: OTLPExporterConfigBase = {},
     dynamicHeaderProviders: DynamicHeaderProvider[] = [],
-    private dynamicAttributeProviders: DynamicAttributeProvider[] = []
+    private attributesStore?: AttributesStore
   ) {
     super(
       createOtlpNetworkExportDelegate(
@@ -297,20 +298,12 @@ export class OTLPTraceExporter
     spans: ReadableSpan[],
     resultCallback: (result: ExportResult) => void
   ): Promise<void> {
-    const attributes = await Promise.all(
-      this.dynamicAttributeProviders.map(provider => provider.getAttribute())
-    );
+    const installationIdAttribute =
+      await this.attributesStore?.getInstallationIdAttribute();
 
-    const attributesToApply: Record<string, string> = {};
-    for (const attr of attributes) {
-      if (attr) {
-        attributesToApply[attr[0]] = attr[1];
-      }
-    }
-
-    if (Object.keys(attributesToApply).length > 0) {
+    if (installationIdAttribute) {
       spans.forEach(span => {
-        Object.assign(span.attributes, attributesToApply);
+        Object.assign(span.attributes, installationIdAttribute);
       });
     }
     super.export(spans, resultCallback);
