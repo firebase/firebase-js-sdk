@@ -49,7 +49,8 @@ export function registerCrashlytics(): void {
         const tracingProvider = createTracingProvider(
           app,
           contextManager,
-          crashlyticsOptions
+          crashlyticsOptions,
+          attributesStore
         );
 
         return new CrashlyticsService(

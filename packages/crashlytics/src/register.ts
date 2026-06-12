@@ -63,8 +63,8 @@ export function registerCrashlytics(): void {
           app,
           contextManager,
           crashlyticsOptions,
-          dynamicHeaderProviders,
-          dynamicAttributeProviders
+          attributesStore,
+          dynamicHeaderProviders
         );
 
         const crashlyticsService = new CrashlyticsService(

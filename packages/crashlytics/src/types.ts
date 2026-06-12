@@ -35,30 +35,6 @@ export interface CrashlyticsInternal extends Crashlytics {
 type KeyValuePair = [key: string, value: string];
 
 /**
- * A type for Cloud Telemetry signal attributes
- *
- * @internal
- */
-export type SignalAttribute = KeyValuePair;
-
-/**
- * An interface for classes that provide dynamic signal attributes.
- *
- * Classes that implement this interface can be used to supply custom headers for logging.
- *
- * @internal
- */
-export interface DynamicAttributeProvider {
-  /**
-   * Returns a record of attributes to be added to a log entry.
-   *
-   * @returns A {@link Promise} that resolves to a {@link SignalAttribute} key-value pair,
-   * or null if no attribute is to be added.
-   */
-  getAttribute(): Promise<SignalAttribute | null>;
-}
-
-/**
  * A type for HTTP Headers
  *
  * @internal
