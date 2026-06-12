@@ -26,10 +26,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # ratchet:actions/checkout@v4
 
       - name: Setup Node.js 20.x
-        uses: actions/setup-node@master
+        uses: actions/setup-node@60c11408891ef62846c29c28c2374afe5c91fad5 # ratchet:actions/setup-node@master
         with:
           node-version: 22.10.0
 
