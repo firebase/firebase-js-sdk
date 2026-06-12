@@ -21,7 +21,7 @@ import {
   W3CTraceContextPropagator,
   ExportResult
 } from '@opentelemetry/core';
-import { TracerProvider, trace } from '@opentelemetry/api';
+import { TracerProvider, trace, context, Tracer } from '@opentelemetry/api';
 import {
   WebTracerProvider,
   BatchSpanProcessor,
@@ -174,7 +174,92 @@ export function createTracingProvider(
     ]
   });
 
+  patchNetworkRequests(
+    tracer,
+    rootSpanContextManager,
+    networkInstrumentationConfig.ignoreUrls
+  );
+
   return provider;
+}
+
+/** @internal */
+export function patchNetworkRequests(
+  tracer: Tracer,
+  rootSpanContextManager: RootSpanContextManager,
+  ignoreUrls: Array<string | RegExp>
+): void {
+  type InstrumentableFunction = (...args: unknown[]) => unknown;
+
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  const shouldIgnore = (url: string): boolean => {
+    return ignoreUrls.some(pattern => {
+      if (typeof pattern === 'string') {
+        return url.includes(pattern);
+      }
+      if (pattern instanceof RegExp) {
+        return pattern.test(url);
+      }
+      return false;
+    });
+  };
+
+  // 1. Instrument fetch
+  const originalFetch = window.fetch as unknown as InstrumentableFunction;
+  window.fetch = function (this: typeof window, ...args: any[]) {
+    const input = args[0];
+    const urlString =
+      typeof input === 'string'
+        ? input
+        : input instanceof URL
+        ? input.href
+        : (input as Request).url;
+
+    if (
+      !shouldIgnore(urlString) &&
+      !rootSpanContextManager.getActiveRootSpan()
+    ) {
+      const rootSpan = rootSpanContextManager.startRootSpan(
+        tracer,
+        'background-network'
+      );
+      const rootContext = trace.setSpan(context.active(), rootSpan.span);
+      return context.with(rootContext, () => originalFetch.apply(this, args));
+    }
+    return originalFetch.apply(this, args);
+  } as unknown as typeof window.fetch;
+
+  // 2. Instrument XMLHttpRequest.prototype.open
+  const originalOpen = XMLHttpRequest.prototype
+    .open as unknown as InstrumentableFunction;
+  XMLHttpRequest.prototype.open = function (
+    this: XMLHttpRequest,
+    ...args: any[]
+  ) {
+    const url = args[1];
+    const urlString = typeof url === 'string' ? url : (url as URL)?.href || '';
+
+    // apparently otel can't handle an XHR with a URL object so this fixes otel's bug
+    if (url instanceof URL) {
+      args[1] = url.href;
+    }
+
+    if (
+      !shouldIgnore(urlString) &&
+      !rootSpanContextManager.getActiveRootSpan()
+    ) {
+      const rootSpan = rootSpanContextManager.startRootSpan(
+        tracer,
+        'background-network'
+      );
+      const rootContext = trace.setSpan(context.active(), rootSpan.span);
+      return context.with(rootContext, () => originalOpen.apply(this, args));
+    }
+    return originalOpen.apply(this, args);
+  } as unknown as typeof XMLHttpRequest.prototype.open;
 }
 
 /** @internal */
