@@ -26,7 +26,6 @@ import { CrashlyticsService } from './service';
 import { createLoggerProvider } from './logging/logger-provider';
 import { createTracingProvider } from './tracing/tracing-provider';
 import { AppCheckProvider } from './logging/appcheck-provider';
-import { InstallationIdProvider } from './logging/installation-id-provider';
 import { CRASHLYTICS_TYPE } from './constants';
 import { getSessionId, registerListeners, startNewSession } from './helpers';
 import { CrashlyticsOptions } from './public-types';
@@ -35,6 +34,7 @@ import { RootSpanContextManager } from './tracing/root-span-context-manager';
 // We only import types from this package elsewhere in the `telemetry` package, so this
 // explicit import is needed here to prevent this module from being tree-shaken out.
 import '@firebase/installations';
+import { AttributesStore } from './attributes-store';
 
 export function registerCrashlytics(): void {
   _registerComponent(
@@ -49,15 +49,13 @@ export function registerCrashlytics(): void {
         const installationsProvider = container.getProvider(
           'installations-internal'
         );
+        const attributesStore = new AttributesStore(installationsProvider);
         const dynamicHeaderProviders = [new AppCheckProvider(appCheckProvider)];
-        const dynamicAttributeProviders = [
-          new InstallationIdProvider(installationsProvider)
-        ];
         const loggerProvider = createLoggerProvider(
           app,
           crashlyticsOptions,
-          dynamicHeaderProviders,
-          dynamicAttributeProviders
+          attributesStore,
+          dynamicHeaderProviders
         );
 
         const contextManager = new RootSpanContextManager();

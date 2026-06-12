@@ -30,7 +30,7 @@ import {
   createOtlpNetworkExportDelegate
 } from '@opentelemetry/otlp-exporter-base';
 import { FetchTransport } from '../fetch-transport';
-import { DynamicHeaderProvider, DynamicAttributeProvider } from '../types';
+import { DynamicHeaderProvider } from '../types';
 import { FirebaseApp } from '@firebase/app';
 import { ExportResult } from '@opentelemetry/core';
 import { CrashlyticsOptions } from '../public-types';
@@ -38,6 +38,7 @@ import {
   DEFAULT_TELEMETRY_ENDPOINT,
   DEFAULT_TELEMETRY_REGION
 } from '../constants';
+import { AttributesStore } from '../attributes-store';
 
 /**
  * Create a logger provider for the current execution environment.
@@ -47,8 +48,8 @@ import {
 export function createLoggerProvider(
   app: FirebaseApp,
   crashlyticsOptions: CrashlyticsOptions,
-  dynamicHeaderProviders: DynamicHeaderProvider[] = [],
-  dynamicAttributeProviders: DynamicAttributeProvider[] = []
+  attributesStore: AttributesStore,
+  dynamicHeaderProviders: DynamicHeaderProvider[] = []
 ): LoggerProvider {
   let endpointUrl =
     crashlyticsOptions.endpointUrl || DEFAULT_TELEMETRY_ENDPOINT;
@@ -71,7 +72,7 @@ export function createLoggerProvider(
       }
     },
     dynamicHeaderProviders,
-    dynamicAttributeProviders
+    attributesStore
   );
 
   return new LoggerProvider({
@@ -89,7 +90,7 @@ class OTLPLogExporter
   constructor(
     config: OTLPExporterConfigBase = {},
     dynamicHeaderProviders: DynamicHeaderProvider[] = [],
-    private dynamicAttributeProviders: DynamicAttributeProvider[] = []
+    private attributesStore: AttributesStore
   ) {
     super(
       createOtlpNetworkExportDelegate(
@@ -116,20 +117,12 @@ class OTLPLogExporter
     logs: ReadableLogRecord[],
     resultCallback: (result: ExportResult) => void
   ): Promise<void> {
-    const attributes = await Promise.all(
-      this.dynamicAttributeProviders.map(provider => provider.getAttribute())
-    );
+    const installationIdAttribute =
+      await this.attributesStore.getInstallationIdAttribute();
 
-    const attributesToApply: Record<string, string> = {};
-    for (const attr of attributes) {
-      if (attr) {
-        attributesToApply[attr[0]] = attr[1];
-      }
-    }
-
-    if (Object.keys(attributesToApply).length > 0) {
+    if (installationIdAttribute) {
       logs.forEach(log => {
-        Object.assign(log.attributes, attributesToApply);
+        Object.assign(log.attributes, installationIdAttribute);
       });
     }
     super.export(logs, resultCallback);

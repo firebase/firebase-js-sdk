@@ -38,7 +38,6 @@ export const ALREADY_LOGGED_FLAG = Symbol('firebase_crashlytics_logged');
 export const CRASHLYTICS_ATTRIBUTE_KEYS = {
   APP_VERSION: 'app.build_id',
   SESSION_ID: 'session.id',
-  INSTALLATION_ID: 'app.installation.id',
   TRACE_ID: 'logging.googleapis.com/trace',
   SPAN_ID: 'logging.googleapis.com/spanId',
   APP_SCREEN_ID: 'app.screen.id'
