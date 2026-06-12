@@ -116,8 +116,9 @@ export function recordError(
       severityNumber: SeverityNumber.ERROR,
       body: error.message,
       attributes: {
-        'error.type': error.name || 'Error',
-        'error.stack': error.stack || 'No stack trace available',
+        'exception.type': error.name || 'Error',
+        'exception.stacktrace': error.stack || 'No stack trace available',
+        'exception.message': error.message,
         ...customAttributes
       }
     });
