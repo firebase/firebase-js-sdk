@@ -33,13 +33,16 @@ import {
 import { Component, ComponentType } from '@firebase/component';
 import { FirebaseAppCheckInternal } from '@firebase/app-check-interop-types';
 import { recordError, flush, getCrashlytics } from './api';
-import { CRASHLYTICS_SESSION_ID_KEY } from './constants';
 import { CrashlyticsService } from './service';
 import { registerCrashlytics } from './register';
 import { _FirebaseInstallationsInternal } from '@firebase/installations';
 import { AUTO_CONSTANTS } from './auto-constants';
 import { CrashlyticsInternal } from './types';
-import { AttributesStore, COMMON_ATTR_KEY } from './attributes-store';
+import {
+  AttributesStore,
+  COMMON_ATTR_KEY,
+  SESSION_STORAGE_SESSION_ID_KEY
+} from './attributes-store';
 
 const PROJECT_ID = 'my-project';
 const APP_ID = 'my-appid';
@@ -103,7 +106,7 @@ describe('Top level API', () => {
     });
 
     // Simulate session creation that now happens in registerCrashlytics
-    storage[CRASHLYTICS_SESSION_ID_KEY] = MOCK_SESSION_ID;
+    storage[SESSION_STORAGE_SESSION_ID_KEY] = MOCK_SESSION_ID;
 
     fakeAttributesStore = new AttributesStore({ projectId: PROJECT_ID });
     fakeCrashlytics = {
@@ -199,16 +202,18 @@ describe('Top level API', () => {
       getCrashlytics(getFakeApp());
 
       // Check if session ID was created in storage
-      expect(storage[CRASHLYTICS_SESSION_ID_KEY]).to.equal(MOCK_SESSION_ID);
+      expect(storage[SESSION_STORAGE_SESSION_ID_KEY]).to.equal(MOCK_SESSION_ID);
     });
 
     it('should not create a new session if one exists', () => {
-      storage[CRASHLYTICS_SESSION_ID_KEY] = 'existing-session';
+      storage[SESSION_STORAGE_SESSION_ID_KEY] = 'existing-session';
       emittedLogs.length = 0;
 
       getCrashlytics(getFakeApp());
 
-      expect(storage[CRASHLYTICS_SESSION_ID_KEY]).to.equal('existing-session');
+      expect(storage[SESSION_STORAGE_SESSION_ID_KEY]).to.equal(
+        'existing-session'
+      );
     });
   });
 
@@ -372,16 +377,12 @@ describe('Top level API', () => {
       });
     });
 
-    it('should retrieve framework-specific attributes', () => {
+    it('should retrieve route path attribute from attributesStore', () => {
       const error = new Error('This is a test error');
       error.stack = '...stack trace...';
       error.name = 'TestError';
 
-      (fakeCrashlytics as CrashlyticsService).frameworkAttributesProvider =
-        () => ({
-          'framework_attr1': 'framework attribute #1',
-          'framework_attr2': 'framework attribute #2'
-        });
+      fakeAttributesStore.setRoutePathProvider(() => '/my-route');
 
       recordError(fakeCrashlytics, error);
 
@@ -391,15 +392,14 @@ describe('Top level API', () => {
         'error.type': 'TestError',
         'error.stack': '...stack trace...',
         [COMMON_ATTR_KEY.APP_VERSION]: 'unset',
-        'framework_attr1': 'framework attribute #1',
-        'framework_attr2': 'framework attribute #2',
+        'route_path': '/my-route',
         [COMMON_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID
       });
     });
 
     describe('Session Metadata', () => {
       it('should retrieve existing session ID from sessionStorage', () => {
-        storage[CRASHLYTICS_SESSION_ID_KEY] = 'existing-session-id';
+        storage[SESSION_STORAGE_SESSION_ID_KEY] = 'existing-session-id';
         fakeAttributesStore = new AttributesStore({ projectId: PROJECT_ID });
         fakeCrashlytics.attributesStore = fakeAttributesStore;
 

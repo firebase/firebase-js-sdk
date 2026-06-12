@@ -32,13 +32,6 @@ export const CRASHLYTICS_SESSION_ID_KEY = 'firebasecrashlytics.sessionid';
 export const ALREADY_LOGGED_FLAG = Symbol('firebase_crashlytics_logged');
 
 /**
- * Label keys that we write in log entries stemming from web framework wrappers.
- */
-export const FRAMEWORK_ATTRIBUTE_KEYS = {
-  ROUTE_PATH: 'route_path'
-};
-
-/**
  * The namespace for Next.js request attributes that we write in telemetry log entries.
  */
 const NEXTJS_ATTRIBUTE_NAMESPACE = 'nextjs';

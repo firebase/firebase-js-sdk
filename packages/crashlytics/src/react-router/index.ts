@@ -33,8 +33,7 @@ import {
   matchRoutes
 } from 'react-router-dom';
 import { CrashlyticsErrorBoundary } from './types';
-import { FRAMEWORK_ATTRIBUTE_KEYS } from '../constants';
-import { CrashlyticsService } from '../service';
+import { CrashlyticsInternal } from '../types';
 
 registerCrashlytics();
 
@@ -111,12 +110,10 @@ export function CrashlyticsRoutes({
     : `/${pathFromRoot}`;
 
   React.useEffect(() => {
-    const crashlyticsService = crashlytics as CrashlyticsService;
-    crashlyticsService.frameworkAttributesProvider = () => ({
-      [FRAMEWORK_ATTRIBUTE_KEYS.ROUTE_PATH]: pattern
-    });
+    const crashlyticsService = crashlytics as CrashlyticsInternal;
+    crashlyticsService.attributesStore.setRoutePathProvider(() => pattern);
     return () => {
-      crashlyticsService.frameworkAttributesProvider = undefined;
+      crashlyticsService.attributesStore.setRoutePathProvider(undefined);
     };
   }, [crashlytics, pattern]);
 
@@ -125,9 +122,7 @@ export function CrashlyticsRoutes({
   }, [crashlytics]);
 
   const onError = (error: Error): void => {
-    recordError(crashlytics, error, {
-      [FRAMEWORK_ATTRIBUTE_KEYS.ROUTE_PATH]: pattern
-    });
+    recordError(crashlytics, error);
   };
 
   return React.createElement(CrashlyticsErrorBoundary, {

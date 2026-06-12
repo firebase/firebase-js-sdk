@@ -105,14 +105,6 @@ export function recordError(
   const logger = loggerProvider.getLogger('error-logger');
   const customAttributes: AnyValueMap = attributesStore.getLogAttributes();
 
-  // Add framework-specific metadata
-  const frameworkAttributesProvider = (crashlytics as CrashlyticsService)
-    .frameworkAttributesProvider;
-  if (frameworkAttributesProvider) {
-    const frameworkAttributes = frameworkAttributesProvider();
-    Object.assign(customAttributes, frameworkAttributes);
-  }
-
   // Merge in any additional attributes. Explicitly provided attributes take precedence over
   // automatically added attributes.
   if (attributes) {

@@ -22,7 +22,6 @@ import { AttributesStore } from './attributes-store';
 
 export class CrashlyticsService implements Crashlytics, _FirebaseService {
   private _options?: CrashlyticsOptions;
-  private _frameworkAttributesProvider?: () => Record<string, string>;
 
   constructor(
     public app: FirebaseApp,
@@ -41,17 +40,5 @@ export class CrashlyticsService implements Crashlytics, _FirebaseService {
 
   get options(): CrashlyticsOptions | undefined {
     return this._options;
-  }
-
-  get frameworkAttributesProvider():
-    | (() => Record<string, string>)
-    | undefined {
-    return this._frameworkAttributesProvider;
-  }
-
-  set frameworkAttributesProvider(
-    provider: (() => Record<string, string>) | undefined
-  ) {
-    this._frameworkAttributesProvider = provider;
   }
 }

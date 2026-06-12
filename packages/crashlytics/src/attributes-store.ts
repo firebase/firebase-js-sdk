@@ -24,6 +24,7 @@ import { AUTO_CONSTANTS } from './auto-constants';
 import { FirebaseOptions } from '@firebase/app-types';
 
 export const ATTR_KEY_INSTALLATION_ID = 'app.installation.id';
+export const ATTR_KEY_ROUTE_PATH = 'route_path';
 export const SESSION_STORAGE_SESSION_ID_KEY = 'firebasecrashlytics.sessionid';
 
 export const COMMON_ATTR_KEY = {
@@ -41,6 +42,7 @@ type CommonAttribute = Record<CommonAttributeKey, AttributeValue>;
  */
 export class AttributesStore {
   private commonAttributes: Partial<CommonAttribute> = {};
+  private _routePathProvider?: () => string;
   private installations: _FirebaseInstallationsInternal | null;
   private _projectId: string | undefined;
   private _iid: string | undefined;
@@ -108,6 +110,14 @@ export class AttributesStore {
   }
 
   /**
+   * Sets the route path provider, which is used to get the current route path.
+   * @param provider The route path provider.
+   */
+  setRoutePathProvider(provider: (() => string) | undefined): void {
+    this._routePathProvider = provider;
+  }
+
+  /**
    * Get the log attributes, including the trace context.
    * @returns The log attributes.
    */
@@ -125,6 +135,7 @@ export class AttributesStore {
 
     return {
       ...this.commonAttributes,
+      ...this.getRoutePathAttribute(),
       ...traceContextAttributes
     } as AnyValueMap;
   }
@@ -153,6 +164,15 @@ export class AttributesStore {
     return {
       [ATTR_KEY_INSTALLATION_ID]: iid
     };
+  }
+
+  private getRoutePathAttribute(): Attribute {
+    const path = this._routePathProvider?.();
+    if (!path) {
+      return {};
+    }
+
+    return { [ATTR_KEY_ROUTE_PATH]: path };
   }
 
   private getSessionIdFromStorage(): string | undefined {
