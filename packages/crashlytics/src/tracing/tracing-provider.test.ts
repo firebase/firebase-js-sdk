@@ -64,7 +64,7 @@ describe('createTracingProvider', () => {
     let originalOpen: typeof XMLHttpRequest.prototype.open;
     let startRootSpanStub: sinon.SinonStub;
     let getActiveRootSpanStub: sinon.SinonStub;
-    let dummySpan: any;
+    let mockSpan: any;
     let activeSpanDuringFetch: any;
     let activeSpanDuringOpen: any;
 
@@ -96,7 +96,7 @@ describe('createTracingProvider', () => {
           activeSpanDuringOpen = trace.getSpan(context.active());
         }) as any;
 
-        dummySpan = {
+        mockSpan = {
           spanContext: () => ({
             traceId: '00000000000000000000000000000001',
             spanId: '0000000000000002',
@@ -106,7 +106,7 @@ describe('createTracingProvider', () => {
 
         startRootSpanStub = sinon
           .stub(mockRootSpanContextManager, 'startRootSpan')
-          .returns({ span: dummySpan } as any);
+          .returns({ span: mockSpan } as any);
         getActiveRootSpanStub = sinon
           .stub(mockRootSpanContextManager, 'getActiveRootSpan')
           .returns(undefined);
@@ -132,7 +132,7 @@ describe('createTracingProvider', () => {
       expect(
         startRootSpanStub.calledWith(sinon.match.any, 'background-network')
       ).to.be.true;
-      expect(activeSpanDuringFetch).to.equal(dummySpan);
+      expect(activeSpanDuringFetch).to.equal(mockSpan);
     });
 
     it('[fetch] should not create a background network root span if a root span is active', () => {
@@ -228,7 +228,7 @@ describe('createTracingProvider', () => {
       expect(
         startRootSpanStub.calledWith(sinon.match.any, 'background-network')
       ).to.be.true;
-      expect(activeSpanDuringOpen).to.equal(dummySpan);
+      expect(activeSpanDuringOpen).to.equal(mockSpan);
     });
 
     it('[XHR] should not create a background network root span if a root span is active', () => {

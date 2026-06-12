@@ -175,6 +175,11 @@ export function createTracingProvider(
     ]
   });
 
+  /*
+   * This monkey patching must be done after instrumentation libs are
+   * registered so that otel network spans aren't created before the
+   * background-network root span.
+   */
   patchNetworkRequests(
     tracer,
     rootSpanContextManager,
@@ -212,14 +217,16 @@ export function patchNetworkRequests(
   const originalFetch = window.fetch as unknown as InstrumentableFunction;
   window.fetch = function (this: typeof window, ...args: any[]) {
     const input = args[0];
-    const urlString =
-      typeof input === 'string'
-        ? input
-        : input instanceof URL
-        ? input.href
-        : input instanceof Request
-        ? input.url
-        : String(input || '');
+    let urlString = '';
+    if (typeof input === 'string') {
+      urlString = input;
+    } else if (input instanceof URL) {
+      urlString = input.href;
+    } else if (input instanceof Request) {
+      urlString = input.url;
+    } else {
+      urlString = String(input || '');
+    }
 
     if (
       !shouldIgnore(urlString) &&
@@ -243,14 +250,20 @@ export function patchNetworkRequests(
     ...args: any[]
   ) {
     const url = args[1];
-    const urlString =
-      typeof url === 'string'
-        ? url
-        : url instanceof URL
-        ? url.href
-        : String(url || '');
+    let urlString = '';
+    if (typeof url === 'string') {
+      urlString = url;
+    } else if (url instanceof URL) {
+      urlString = url.href;
+    } else {
+      urlString = String(url || '');
+    }
 
-    // apparently otel can't handle an XHR with a URL object so this fixes otel's bug
+    /*
+     * There's a bug in OpenTelemetry's XHR instrumentation where passing
+     * a URL object causes a runtime crash, so we normalize it to its
+     * string representation beforehand.
+     */
     if (url instanceof URL) {
       args[1] = url.href;
     }
