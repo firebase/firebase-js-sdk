@@ -20,13 +20,11 @@ import { LoggerProvider } from '@opentelemetry/sdk-logs';
 import { Logger, LogRecord } from '@opentelemetry/api-logs';
 import { isNode } from '@firebase/util';
 import { registerListeners, startNewSession } from './helpers';
-import {
-  CRASHLYTICS_ATTRIBUTE_KEYS,
-  CRASHLYTICS_SESSION_ID_KEY
-} from './constants';
+import { CRASHLYTICS_SESSION_ID_KEY } from './constants';
 import { AUTO_CONSTANTS } from './auto-constants';
 import { CrashlyticsService } from './service';
 import { CrashlyticsInternal } from './types';
+import { AttributesStore, COMMON_ATTR_KEY } from './attributes-store';
 
 const MOCK_SESSION_ID = '00000000-0000-0000-0000-000000000000';
 
@@ -52,17 +50,8 @@ describe('helpers', () => {
     shutdown: () => Promise.resolve()
   } as unknown as LoggerProvider;
 
-  const fakeCrashlytics: CrashlyticsInternal = {
-    app: {
-      name: 'DEFAULT',
-      automaticDataCollectionEnabled: true,
-      options: {
-        projectId: 'my-project',
-        appId: 'my-appid'
-      }
-    },
-    loggerProvider: fakeLoggerProvider
-  };
+  let fakeAttributesStore: AttributesStore;
+  let fakeCrashlytics: CrashlyticsInternal;
 
   beforeEach(() => {
     emittedLogs = [];
@@ -91,6 +80,20 @@ describe('helpers', () => {
       value: cryptoMock,
       writable: true
     });
+
+    fakeAttributesStore = new AttributesStore({ projectId: 'my-project' });
+    fakeCrashlytics = {
+      app: {
+        name: 'DEFAULT',
+        automaticDataCollectionEnabled: true,
+        options: {
+          projectId: 'my-project',
+          appId: 'my-appid'
+        }
+      },
+      loggerProvider: fakeLoggerProvider,
+      attributesStore: fakeAttributesStore
+    };
   });
 
   afterEach(() => {
@@ -118,33 +121,36 @@ describe('helpers', () => {
       expect(storage[CRASHLYTICS_SESSION_ID_KEY]).to.equal(MOCK_SESSION_ID);
       expect(emittedLogs.length).to.equal(1);
       expect(emittedLogs[0].attributes).to.deep.equal({
-        [CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID,
-        [CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION]: 'unset'
+        [COMMON_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID,
+        [COMMON_ATTR_KEY.APP_VERSION]: 'unset'
       });
     });
 
     it('should log app version from AUTO_CONSTANTS', () => {
       AUTO_CONSTANTS.appVersion = '1.2.3';
+      fakeAttributesStore = new AttributesStore({ projectId: 'my-project' });
+      fakeCrashlytics.attributesStore = fakeAttributesStore;
       startNewSession(fakeCrashlytics);
 
       expect(emittedLogs[0].attributes).to.deep.equal({
-        [CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID,
-        [CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION]: '1.2.3'
+        [COMMON_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID,
+        [COMMON_ATTR_KEY.APP_VERSION]: '1.2.3'
       });
     });
 
     it('should log app version from telemetry options', () => {
       const telemetryWithVersion = new CrashlyticsService(
         fakeCrashlytics.app,
-        fakeLoggerProvider
+        fakeLoggerProvider,
+        fakeAttributesStore
       );
       telemetryWithVersion.options = { appVersion: '9.9.9' };
 
       startNewSession(telemetryWithVersion);
 
       expect(emittedLogs[0].attributes).to.deep.equal({
-        [CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID,
-        [CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION]: '9.9.9'
+        [COMMON_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID,
+        [COMMON_ATTR_KEY.APP_VERSION]: '9.9.9'
       });
     });
   });

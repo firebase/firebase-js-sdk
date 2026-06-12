@@ -26,7 +26,7 @@ import { CrashlyticsService } from './service';
 import { createLoggerProvider } from './logging/logger-provider';
 import { AppCheckProvider } from './logging/appcheck-provider';
 import { CRASHLYTICS_TYPE } from './constants';
-import { getSessionId, registerListeners, startNewSession } from './helpers';
+import { registerListeners, startNewSession } from './helpers';
 import { CrashlyticsOptions } from './public-types';
 
 // We only import types from this package elsewhere in the `telemetry` package, so this
@@ -47,7 +47,11 @@ export function registerCrashlytics(): void {
         const installationsProvider = container.getProvider(
           'installations-internal'
         );
-        const attributesStore = new AttributesStore(installationsProvider);
+        const attributesStore = new AttributesStore(
+          app.options,
+          crashlyticsOptions,
+          installationsProvider
+        );
         const dynamicHeaderProviders = [new AppCheckProvider(appCheckProvider)];
         const loggerProvider = createLoggerProvider(
           app,
@@ -56,10 +60,14 @@ export function registerCrashlytics(): void {
           dynamicHeaderProviders
         );
 
-        const crashlyticsService = new CrashlyticsService(app, loggerProvider);
+        const crashlyticsService = new CrashlyticsService(
+          app,
+          loggerProvider,
+          attributesStore
+        );
 
         // Immediately track this as a new client session (if one doesn't exist yet)
-        if (!getSessionId()) {
+        if (!attributesStore.sessionId) {
           startNewSession(crashlyticsService);
         }
 

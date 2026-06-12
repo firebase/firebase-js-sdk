@@ -22,7 +22,7 @@ import { Crashlytics, CrashlyticsOptions } from './public-types';
 import { Provider } from '@firebase/component';
 import { AnyValueMap, SeverityNumber } from '@opentelemetry/api-logs';
 import { CrashlyticsService } from './service';
-import { flush, setCommonLogAttributes } from './helpers';
+import { flush } from './helpers';
 import { deepEqual } from '@firebase/util';
 
 declare module '@firebase/component' {
@@ -100,10 +100,10 @@ export function recordError(
   }
 
   // Cast to CrashlyticsInternal to access internal loggerProvider
-  const logger = (crashlytics as CrashlyticsInternal).loggerProvider.getLogger(
-    'error-logger'
-  );
-  const customAttributes: AnyValueMap = {};
+  const { loggerProvider, attributesStore } =
+    crashlytics as CrashlyticsInternal;
+  const logger = loggerProvider.getLogger('error-logger');
+  const customAttributes: AnyValueMap = attributesStore.getLogAttributes();
 
   // Add framework-specific metadata
   const frameworkAttributesProvider = (crashlytics as CrashlyticsService)
@@ -112,8 +112,6 @@ export function recordError(
     const frameworkAttributes = frameworkAttributesProvider();
     Object.assign(customAttributes, frameworkAttributes);
   }
-
-  setCommonLogAttributes(crashlytics, customAttributes);
 
   // Merge in any additional attributes. Explicitly provided attributes take precedence over
   // automatically added attributes.
