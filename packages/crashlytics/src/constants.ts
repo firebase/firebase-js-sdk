@@ -36,8 +36,6 @@ export const ALREADY_LOGGED_FLAG = Symbol('firebase_crashlytics_logged');
 
 /** Label keys that we write in all telemetry signal entries. */
 export const CRASHLYTICS_ATTRIBUTE_KEYS = {
-  APP_VERSION: 'app.build_id',
-  SESSION_ID: 'session.id',
   TRACE_ID: 'logging.googleapis.com/trace',
   SPAN_ID: 'logging.googleapis.com/spanId',
   APP_SCREEN_ID: 'app.screen.id'
@@ -56,13 +54,6 @@ export const COMMON_SPAN_ATTRIBUTE_KEYS = {
   GCP_RESOURCE_NAME: 'gcp.resource.name',
   GCP_FIREBASE_SESSION_ID: 'gcp.firebase.session_id',
   GCP_FIREBASE_APP_VERSION: 'gcp.firebase.app_version'
-};
-
-/**
- * Label keys that we write in log entries stemming from web framework wrappers.
- */
-export const FRAMEWORK_ATTRIBUTE_KEYS = {
-  ROUTE_PATH: 'route_path'
 };
 
 /**

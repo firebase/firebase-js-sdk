@@ -17,23 +17,20 @@
 
 import { expect } from 'chai';
 import { LoggerProvider } from '@opentelemetry/sdk-logs';
-import { Logger, LogRecord, AnyValueMap } from '@opentelemetry/api-logs';
+import { Logger, LogRecord } from '@opentelemetry/api-logs';
 import { trace, TracerProvider } from '@opentelemetry/api';
 import sinon from 'sinon';
 import { isNode } from '@firebase/util';
 import {
-  registerListeners,
-  startNewSession,
-  setCommonLogAttributes
-} from './helpers';
-import {
   CRASHLYTICS_ATTRIBUTE_KEYS,
   CRASHLYTICS_SESSION_ID_KEY
 } from './constants';
+import { registerListeners, startNewSession } from './helpers';
 import { AUTO_CONSTANTS } from './auto-constants';
 import { CrashlyticsService } from './service';
 import { CrashlyticsInternal } from './types';
 import { RootSpanContextManager } from './tracing/root-span-context-manager';
+import { AttributesStore, COMMON_ATTR_KEY } from './attributes-store';
 
 const MOCK_SESSION_ID = '00000000-0000-0000-0000-000000000000';
 
@@ -97,19 +94,9 @@ describe('helpers', () => {
     setLocationKey: () => {}
   } as unknown as RootSpanContextManager;
 
-  const fakeCrashlytics: CrashlyticsInternal = {
-    app: {
-      name: 'DEFAULT',
-      automaticDataCollectionEnabled: true,
-      options: {
-        projectId: 'my-project',
-        appId: 'my-appid'
-      }
-    },
-    loggerProvider: fakeLoggerProvider,
-    tracingProvider: fakeTracingProvider,
-    contextManager: fakeContextManager
-  };
+  let fakeAttributesStore: AttributesStore;
+  let fakeCrashlytics: CrashlyticsInternal;
+  let getActiveSpanStub: sinon.SinonStub;
 
   beforeEach(() => {
     emittedLogs = [];
@@ -138,6 +125,23 @@ describe('helpers', () => {
       value: cryptoMock,
       writable: true
     });
+
+    fakeAttributesStore = new AttributesStore({ projectId: 'my-project' });
+    fakeCrashlytics = {
+      app: {
+        name: 'DEFAULT',
+        automaticDataCollectionEnabled: true,
+        options: {
+          projectId: 'my-project',
+          appId: 'my-appid'
+        }
+      },
+      loggerProvider: fakeLoggerProvider,
+      tracingProvider: fakeTracingProvider,
+      contextManager: fakeContextManager,
+      attributesStore: fakeAttributesStore
+    };
+    getActiveSpanStub = sinon.stub(trace, 'getActiveSpan').returns(undefined);
   });
 
   afterEach(() => {
@@ -156,6 +160,7 @@ describe('helpers', () => {
       });
     }
     delete AUTO_CONSTANTS.appVersion;
+    getActiveSpanStub.restore();
   });
 
   describe('startNewSession', () => {
@@ -165,8 +170,8 @@ describe('helpers', () => {
       expect(storage[CRASHLYTICS_SESSION_ID_KEY]).to.equal(MOCK_SESSION_ID);
       expect(emittedLogs.length).to.equal(1);
       expect(emittedLogs[0].attributes).to.deep.equal({
-        [CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID,
-        [CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION]: 'unset',
+        [COMMON_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID,
+        [COMMON_ATTR_KEY.APP_VERSION]: 'unset',
         [CRASHLYTICS_ATTRIBUTE_KEYS.TRACE_ID]: 'my-trace',
         [CRASHLYTICS_ATTRIBUTE_KEYS.SPAN_ID]: 'my-span'
       });
@@ -174,11 +179,13 @@ describe('helpers', () => {
 
     it('should log app version from AUTO_CONSTANTS', () => {
       AUTO_CONSTANTS.appVersion = '1.2.3';
+      fakeAttributesStore = new AttributesStore({ projectId: 'my-project' });
+      fakeCrashlytics.attributesStore = fakeAttributesStore;
       startNewSession(fakeCrashlytics);
 
       expect(emittedLogs[0].attributes).to.deep.equal({
-        [CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID,
-        [CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION]: '1.2.3',
+        [COMMON_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID,
+        [COMMON_ATTR_KEY.APP_VERSION]: '1.2.3',
         [CRASHLYTICS_ATTRIBUTE_KEYS.TRACE_ID]: 'my-trace',
         [CRASHLYTICS_ATTRIBUTE_KEYS.SPAN_ID]: 'my-span'
       });
@@ -189,105 +196,19 @@ describe('helpers', () => {
         fakeCrashlytics.app,
         fakeLoggerProvider,
         fakeTracingProvider,
-        fakeContextManager
+        fakeContextManager,
+        fakeAttributesStore
       );
       telemetryWithVersion.options = { appVersion: '9.9.9' };
 
       startNewSession(telemetryWithVersion);
 
       expect(emittedLogs[0].attributes).to.deep.equal({
-        [CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID,
-        [CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION]: '9.9.9',
+        [COMMON_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID,
+        [COMMON_ATTR_KEY.APP_VERSION]: '9.9.9',
         [CRASHLYTICS_ATTRIBUTE_KEYS.TRACE_ID]: 'my-trace',
         [CRASHLYTICS_ATTRIBUTE_KEYS.SPAN_ID]: 'my-span'
       });
-    });
-  });
-
-  describe('setCommonLogAttributes', () => {
-    let customAttributes: AnyValueMap;
-
-    beforeEach(() => {
-      customAttributes = {};
-    });
-
-    it('should assign trace id, span id, app version, and session id to customAttributes if active span', () => {
-      const mockSpan = {
-        spanContext: () => ({ traceId: 'trace-id-123', spanId: 'span-id-456' })
-      };
-      const getActiveSpanStub = sinon
-        .stub(trace, 'getActiveSpan')
-        .returns(mockSpan as any);
-
-      storage[CRASHLYTICS_SESSION_ID_KEY] = 'session-id-789';
-      AUTO_CONSTANTS.appVersion = '1.0.0';
-
-      try {
-        setCommonLogAttributes(fakeCrashlytics, customAttributes);
-
-        expect(customAttributes[CRASHLYTICS_ATTRIBUTE_KEYS.TRACE_ID]).to.equal(
-          'trace-id-123'
-        );
-        expect(customAttributes[CRASHLYTICS_ATTRIBUTE_KEYS.SPAN_ID]).to.equal(
-          'span-id-456'
-        );
-        expect(
-          customAttributes[CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION]
-        ).to.equal('1.0.0');
-        expect(
-          customAttributes[CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID]
-        ).to.equal('session-id-789');
-      } finally {
-        getActiveSpanStub.restore();
-      }
-    });
-
-    it('should not assign attributes for trace id and span id if there is no active span', () => {
-      const getActiveSpanStub = sinon
-        .stub(trace, 'getActiveSpan')
-        .returns(undefined);
-
-      try {
-        setCommonLogAttributes(fakeCrashlytics, customAttributes);
-
-        expect(customAttributes[CRASHLYTICS_ATTRIBUTE_KEYS.TRACE_ID]).to.be
-          .undefined;
-        expect(customAttributes[CRASHLYTICS_ATTRIBUTE_KEYS.SPAN_ID]).to.be
-          .undefined;
-      } finally {
-        getActiveSpanStub.restore();
-      }
-    });
-
-    it("should assign 'unset' to app version if not available", () => {
-      const getActiveSpanStub = sinon
-        .stub(trace, 'getActiveSpan')
-        .returns(undefined);
-
-      try {
-        setCommonLogAttributes(fakeCrashlytics, customAttributes);
-
-        expect(
-          customAttributes[CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION]
-        ).to.equal('unset');
-      } finally {
-        getActiveSpanStub.restore();
-      }
-    });
-
-    it('should not assign any session id if not available', () => {
-      const getActiveSpanStub = sinon
-        .stub(trace, 'getActiveSpan')
-        .returns(undefined);
-
-      try {
-        setCommonLogAttributes(fakeCrashlytics, customAttributes);
-
-        expect(customAttributes[CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID]).to.be
-          .undefined;
-      } finally {
-        getActiveSpanStub.restore();
-      }
     });
   });
 

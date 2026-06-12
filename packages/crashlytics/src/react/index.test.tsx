@@ -24,6 +24,7 @@ import { FirebaseApp } from '@firebase/app';
 import { Crashlytics } from '../public-types';
 import { FirebaseCrashlytics } from '.';
 import React from 'react';
+import { AttributesStore } from '../attributes-store';
 import { render, fireEvent } from '@testing-library/react';
 import { ALREADY_LOGGED_FLAG } from '../constants';
 import { ErrorWithSymbol } from '../types';
@@ -86,7 +87,8 @@ describe('FirebaseCrashlytics', () => {
         })
       },
       tracingProvider: fakeTracingProvider,
-      contextManager: fakeContextManager
+      contextManager: fakeContextManager,
+      attributesStore: new AttributesStore({ projectId: 'fake-project' })
     } as unknown as Crashlytics;
 
     getCrashlyticsStub = stub(crashlytics, 'getCrashlytics').returns(
@@ -121,8 +123,7 @@ describe('FirebaseCrashlytics', () => {
     render(<FirebaseCrashlytics firebaseApp={fakeApp} />);
     const reason = new Error('test rejection');
     const promise = Promise.reject(reason);
-    promise.catch(() => { });
-
+    promise.catch(() => {});
     window.dispatchEvent(
       new PromiseRejectionEvent('unhandledrejection', { reason, promise })
     );

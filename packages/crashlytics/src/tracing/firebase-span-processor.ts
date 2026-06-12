@@ -21,7 +21,7 @@ import {
   ReadableSpan,
   Span
 } from '@opentelemetry/sdk-trace-base';
-import { getAppVersion, getSessionId } from '../helpers';
+import { AttributesStore } from '../attributes-store';
 import {
   COMMON_SPAN_ATTRIBUTE_KEYS,
   CRASHLYTICS_ATTRIBUTE_KEYS,
@@ -51,6 +51,7 @@ const DOCUMENT_LOAD_INSTRUMENTATION_SCOPE =
 export class FirebaseSpanProcessor implements SpanProcessor {
   constructor(
     private rootSpanContextManager: RootSpanContextManager,
+    private attributesStore: AttributesStore,
     private crashlyticsOptions: CrashlyticsOptions = {},
     private firebaseOptions: FirebaseOptions = {}
   ) {}
@@ -82,7 +83,7 @@ export class FirebaseSpanProcessor implements SpanProcessor {
       COMMON_SPAN_ATTRIBUTE_KEYS.GCP_RESOURCE_NAME,
       `//firebasetelemetry.googleapis.com/projects/${this.firebaseOptions.projectId}/locations/${region}/`
     );
-    const sessionId = getSessionId();
+    const sessionId = this.attributesStore.sessionId;
     if (sessionId) {
       span.setAttribute(
         COMMON_SPAN_ATTRIBUTE_KEYS.GCP_FIREBASE_SESSION_ID,
@@ -91,7 +92,7 @@ export class FirebaseSpanProcessor implements SpanProcessor {
     }
     span.setAttribute(
       COMMON_SPAN_ATTRIBUTE_KEYS.GCP_FIREBASE_APP_VERSION,
-      getAppVersion(this.crashlyticsOptions)
+      this.attributesStore.appVersion
     );
   }
 

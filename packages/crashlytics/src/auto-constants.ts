@@ -20,4 +20,4 @@
  * The supported keys are:
  * - appVersion: string indicating the version of source code being deployed (eg. git commit hash)
  */
-export const AUTO_CONSTANTS: Record<string, string> = {};
+export const AUTO_CONSTANTS: Record<string, string | undefined> = {};

@@ -117,6 +117,7 @@ export function createTracingProvider(
     spanProcessors: [
       new FirebaseSpanProcessor(
         rootSpanContextManager,
+        attributesStore,
         crashlyticsOptions,
         app.options
       ),
