@@ -682,7 +682,7 @@ export class RealtimeHandler {
       // If responseCode is null then no connection was made to server and the SDK should still retry.
       if (connectionFailed || response?.ok) {
         await this.retryHttpConnectionWhenBackoffEnds();
-      } else {
+      } else if (!this.isInBackground) {
         const errorMessage = `Unable to connect to the server. HTTP status code: ${responseCode}`;
         const firebaseError = ERROR_FACTORY.create(
           ErrorCode.CONFIG_UPDATE_STREAM_ERROR,
