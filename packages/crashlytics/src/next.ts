@@ -21,7 +21,7 @@ import { recordError, getCrashlytics } from './api';
 import { Instrumentation } from 'next';
 import { CrashlyticsOptions } from './public-types';
 import { NEXTJS_REQUEST_ATTRIBUTE_KEYS } from './constants';
-import { ATTR_KEY_ROUTE_PATH } from './attributes-store';
+import { LOG_ATTR_KEY } from './attributes-store';
 
 export { Instrumentation };
 
@@ -47,7 +47,7 @@ export function nextOnRequestError(
     const crashlytics = getCrashlytics(getApp(), crashlyticsOptions);
 
     const attributes = {
-      [ATTR_KEY_ROUTE_PATH]: errorContext.routePath,
+      [LOG_ATTR_KEY.ROUTE_PATH]: errorContext.routePath,
       [NEXTJS_REQUEST_ATTRIBUTE_KEYS.PATH]: errorRequest.path,
       [NEXTJS_REQUEST_ATTRIBUTE_KEYS.METHOD]: errorRequest.method,
       [NEXTJS_REQUEST_ATTRIBUTE_KEYS.ROUTER_KIND]: errorContext.routerKind,

@@ -16,7 +16,7 @@
  */
 
 import { Provider } from '@firebase/component';
-import { Attributes, AttributeValue, trace } from '@opentelemetry/api';
+import { AttributeValue, trace } from '@opentelemetry/api';
 import { AnyValueMap } from '@opentelemetry/api-logs';
 import { _FirebaseInstallationsInternal } from '@firebase/installations';
 import { CrashlyticsOptions } from './public-types';
@@ -24,28 +24,28 @@ import { AUTO_CONSTANTS } from './auto-constants';
 import { FirebaseOptions } from '@firebase/app-types';
 
 export const ATTR_KEY_INSTALLATION_ID = 'app.installation.id';
-export const ATTR_KEY_ROUTE_PATH = 'route_path';
 export const SESSION_STORAGE_SESSION_ID_KEY = 'firebasecrashlytics.sessionid';
 
-export const COMMON_ATTR_KEY = {
+export const LOG_ATTR_KEY = {
   APP_VERSION: 'app.build_id',
-  SESSION_ID: 'session.id'
+  SESSION_ID: 'session.id',
+  ROUTE_PATH: 'route_path',
+  TRACE: 'logging.googleapis.com/trace',
+  SPAN_ID: 'logging.googleapis.com/spanId'
 };
 
 type Attribute = Record<string, AttributeValue>;
-type CommonAttributeKey =
-  (typeof COMMON_ATTR_KEY)[keyof typeof COMMON_ATTR_KEY];
-type CommonAttribute = Record<CommonAttributeKey, AttributeValue>;
 
 /**
  * A store for Crashlytics specific attributes for telemetry data.
  */
 export class AttributesStore {
-  private commonAttributes: Partial<CommonAttribute> = {};
-  private _routePathProvider?: () => string;
-  private installations: _FirebaseInstallationsInternal | null;
   private _projectId: string | undefined;
+  private _appVersion: string | undefined;
+  private _sessionId: string | undefined;
+  private _installations: _FirebaseInstallationsInternal | null;
   private _iid: string | undefined;
+  private _routePathProvider?: () => string;
 
   constructor(
     firebaseOptions: FirebaseOptions,
@@ -58,18 +58,18 @@ export class AttributesStore {
     // Get session id from storage, if available
     const existingSessionId = this.getSessionIdFromStorage();
     if (existingSessionId) {
-      this.commonAttributes[COMMON_ATTR_KEY.SESSION_ID] = existingSessionId;
+      this._sessionId = existingSessionId;
     }
 
     // Installations provider
-    this.installations =
+    this._installations =
       installationsProvider?.getImmediate({
         optional: true
       }) ?? null;
-    if (!this.installations) {
+    if (!this._installations) {
       void installationsProvider
         ?.get()
-        .then(installations => (this.installations = installations))
+        .then(installations => (this._installations = installations))
         .catch(() => {});
     }
   }
@@ -83,23 +83,21 @@ export class AttributesStore {
       : AUTO_CONSTANTS?.appVersion
       ? AUTO_CONSTANTS.appVersion
       : 'unset';
-    this.commonAttributes[COMMON_ATTR_KEY.APP_VERSION] = appVersion;
+    this._appVersion = appVersion;
   }
 
   /**
    * Get the active session id.
    */
   get sessionId(): string | undefined {
-    return this.commonAttributes[COMMON_ATTR_KEY.SESSION_ID] as
-      | string
-      | undefined;
+    return this._sessionId;
   }
 
   /**
    * Set and persist the session id.
    */
   setSessionId(id: string): void {
-    this.commonAttributes[COMMON_ATTR_KEY.SESSION_ID] = id;
+    this._sessionId = id;
     if (typeof sessionStorage !== 'undefined') {
       try {
         sessionStorage.setItem(SESSION_STORAGE_SESSION_ID_KEY, id);
@@ -118,26 +116,36 @@ export class AttributesStore {
   }
 
   /**
-   * Get the log attributes, including the trace context.
+   * Get the log attributes.
    * @returns The log attributes.
    */
   getLogAttributes(): AnyValueMap {
-    // Trace context is dynamic, so we retrieve it at the time of logging
-    const traceContextAttributes: Attributes = {};
-    const activeSpanContext = trace.getActiveSpan()?.spanContext();
-    if (activeSpanContext?.traceId && activeSpanContext?.spanId) {
-      traceContextAttributes[
-        'logging.googleapis.com/trace'
-      ] = `projects/${this._projectId}/traces/${activeSpanContext.traceId}`;
-      traceContextAttributes['logging.googleapis.com/spanId'] =
-        activeSpanContext.spanId;
+    const attributes: AnyValueMap = {};
+    if (this._appVersion) {
+      attributes[LOG_ATTR_KEY.APP_VERSION] = this._appVersion;
+    }
+    if (this._sessionId) {
+      attributes[LOG_ATTR_KEY.SESSION_ID] = this._sessionId;
     }
 
-    return {
-      ...this.commonAttributes,
-      ...this.getRoutePathAttribute(),
-      ...traceContextAttributes
-    } as AnyValueMap;
+    const activeSpanContext = trace.getActiveSpan()?.spanContext();
+    if (
+      activeSpanContext?.traceId &&
+      activeSpanContext?.spanId &&
+      this._projectId
+    ) {
+      attributes[
+        LOG_ATTR_KEY.TRACE
+      ] = `projects/${this._projectId}/traces/${activeSpanContext.traceId}`;
+      attributes[LOG_ATTR_KEY.SPAN_ID] = activeSpanContext.spanId;
+    }
+
+    const path = this._routePathProvider?.();
+    if (path) {
+      attributes[LOG_ATTR_KEY.ROUTE_PATH] = path;
+    }
+
+    return attributes;
   }
 
   /**
@@ -146,7 +154,7 @@ export class AttributesStore {
    * @returns an attribute object with installation id, or null if installation id is not available
    */
   async getInstallationIdAttribute(): Promise<Attribute | null> {
-    if (!this.installations) {
+    if (!this._installations) {
       return null;
     }
     if (this._iid) {
@@ -155,7 +163,7 @@ export class AttributesStore {
       };
     }
 
-    const iid = await this.installations.getId();
+    const iid = await this._installations.getId();
     if (!iid) {
       return null;
     }
@@ -164,15 +172,6 @@ export class AttributesStore {
     return {
       [ATTR_KEY_INSTALLATION_ID]: iid
     };
-  }
-
-  private getRoutePathAttribute(): Attribute {
-    const path = this._routePathProvider?.();
-    if (!path) {
-      return {};
-    }
-
-    return { [ATTR_KEY_ROUTE_PATH]: path };
   }
 
   private getSessionIdFromStorage(): string | undefined {
