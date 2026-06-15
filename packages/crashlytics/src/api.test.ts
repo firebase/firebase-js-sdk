@@ -230,8 +230,9 @@ describe('Top level API', () => {
       expect(log.severityNumber).to.equal(SeverityNumber.ERROR);
       expect(log.body).to.equal('This is a test error');
       expect(log.attributes).to.deep.equal({
-        'error.type': 'TestError',
-        'error.stack': '...stack trace...',
+        'exception.type': 'TestError',
+        'exception.stacktrace': '...stack trace...',
+        'exception.message': 'This is a test error',
         [COMMON_ATTR_KEY.APP_VERSION]: 'unset',
         [COMMON_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID
       });
@@ -248,8 +249,9 @@ describe('Top level API', () => {
       expect(log.severityNumber).to.equal(SeverityNumber.ERROR);
       expect(log.body).to.equal('error with no stack');
       expect(log.attributes).to.deep.equal({
-        'error.type': 'Error',
-        'error.stack': 'No stack trace available',
+        'exception.type': 'Error',
+        'exception.stacktrace': 'No stack trace available',
+        'exception.message': 'error with no stack',
         [COMMON_ATTR_KEY.APP_VERSION]: 'unset',
         [COMMON_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID
       });
@@ -302,8 +304,9 @@ describe('Top level API', () => {
       await provider.shutdown();
 
       expect(emittedLogs[0].attributes).to.deep.equal({
-        'error.type': 'TestError',
-        'error.stack': '...stack trace...',
+        'exception.type': 'TestError',
+        'exception.stacktrace': '...stack trace...',
+        'exception.message': 'This is a test error',
         [COMMON_ATTR_KEY.APP_VERSION]: 'unset',
         'logging.googleapis.com/trace': `projects/${PROJECT_ID}/traces/my-trace`,
         'logging.googleapis.com/spanId': `my-span`,
@@ -328,8 +331,9 @@ describe('Top level API', () => {
       expect(emittedLogs.length).to.equal(1);
       const log = emittedLogs[0];
       expect(log.attributes).to.deep.equal({
-        'error.type': 'TestError',
-        'error.stack': '...stack trace...',
+        'exception.type': 'TestError',
+        'exception.stacktrace': '...stack trace...',
+        'exception.message': 'This is a test error',
         [COMMON_ATTR_KEY.APP_VERSION]: 'unset',
         strAttr: 'string attribute',
         mapAttr: {
@@ -389,8 +393,9 @@ describe('Top level API', () => {
       expect(emittedLogs.length).to.equal(1);
       const log = emittedLogs[0];
       expect(log.attributes).to.deep.equal({
-        'error.type': 'TestError',
-        'error.stack': '...stack trace...',
+        'exception.type': 'TestError',
+        'exception.stacktrace': '...stack trace...',
+        'exception.message': 'This is a test error',
         [COMMON_ATTR_KEY.APP_VERSION]: 'unset',
         'route_path': '/my-route',
         [COMMON_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID

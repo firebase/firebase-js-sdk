@@ -100,8 +100,9 @@ describe('FirebaseCrashlytics', () => {
     expect(emitStub).to.have.been.calledOnce;
     const log = emitStub.firstCall.args[0];
     expect(log.body).to.equal('test error');
-    expect(log.attributes['error.type']).to.equal('Error');
-    expect(log.attributes['error.stack']).to.be.a('string');
+    expect(log.attributes['exception.type']).to.equal('Error');
+    expect(log.attributes['exception.stacktrace']).to.be.a('string');
+    expect(log.attributes['exception.message']).to.equal('test error');
 
     window.onerror = prevOnError;
   });
@@ -120,8 +121,9 @@ describe('FirebaseCrashlytics', () => {
     expect(emitStub).to.have.been.calledOnce;
     const log = emitStub.firstCall.args[0];
     expect(log.body).to.equal('test rejection');
-    expect(log.attributes['error.type']).to.equal('Error');
-    expect(log.attributes['error.stack']).to.be.a('string');
+    expect(log.attributes['exception.type']).to.equal('Error');
+    expect(log.attributes['exception.stacktrace']).to.be.a('string');
+    expect(log.attributes['exception.message']).to.equal('test rejection');
   });
 
   it('ignores errors that have already been logged by Crashlytics', () => {
