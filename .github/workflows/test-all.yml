@@ -214,7 +214,6 @@ jobs:
     - name: Run unit tests
       run: |
         yarn lerna run test:all:ci --scope '@firebase/firestore*' --stream --concurrency 1
-      continue-on-error: true
       env:
         FIREBASE_TOKEN: ${{ secrets.FIREBASE_CLI_TOKEN }}
         EXPERIMENTAL_MODE: true
@@ -265,7 +264,6 @@ jobs:
       working-directory: integration/firestore
     - run: xvfb-run yarn karma:singlerun
       working-directory: integration/firestore
-      continue-on-error: true
       env:
         FIREBASE_TOKEN: ${{ secrets.FIREBASE_CLI_TOKEN }}
 
