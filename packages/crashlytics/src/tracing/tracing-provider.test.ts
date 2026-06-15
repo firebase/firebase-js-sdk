@@ -164,7 +164,7 @@ describe('createTracingProvider', () => {
     expect(provider).to.be.ok;
   });
 
-  it('should register Fetch and XMLHttpRequest instrumentations with appropriate ignoreUrls', () => {
+  it('should register FetchInstrumentation with appropriate ignoreUrls', () => {
     if (typeof window === 'undefined') {
       return;
     }
@@ -173,6 +173,33 @@ describe('createTracingProvider', () => {
       FetchInstrumentation.prototype,
       'setConfig'
     );
+
+    const mockCrashlyticsOptions = {
+      endpointUrl: 'my-custom-endpoint.url',
+      tracingUrl: 'my-custom-tracing.url'
+    } as CrashlyticsOptions;
+
+    createTracingProvider(
+      mockApp,
+      mockRootSpanContextManager,
+      mockCrashlyticsOptions,
+      mockAttributesStore
+    );
+
+    expect(fetchInstrumentationSpy.called).to.be.true;
+    const fetchConfig = fetchInstrumentationSpy.lastCall.args[0] as any;
+    expect(fetchConfig.ignoreUrls).to.be.an('array').with.lengthOf(2);
+
+    const fetchPatterns = fetchConfig.ignoreUrls.map((r: RegExp) => r.source);
+    expect(fetchPatterns).to.include('my-custom-endpoint\\.url');
+    expect(fetchPatterns).to.include('my-custom-tracing\\.url');
+  });
+
+  it('should register XMLHttpRequestInstrumentation with appropriate ignoreUrls', () => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
     const xhrInstrumentationSpy = sinon.spy(
       XMLHttpRequestInstrumentation.prototype,
       'setConfig'
@@ -190,19 +217,9 @@ describe('createTracingProvider', () => {
       mockAttributesStore
     );
 
-    expect(fetchInstrumentationSpy.called).to.be.true;
     expect(xhrInstrumentationSpy.called).to.be.true;
-
-    const fetchConfig = fetchInstrumentationSpy.lastCall.args[0] as any;
     const xhrConfig = xhrInstrumentationSpy.lastCall.args[0] as any;
-
-    expect(fetchConfig.ignoreUrls).to.be.an('array').with.lengthOf(2);
     expect(xhrConfig.ignoreUrls).to.be.an('array').with.lengthOf(2);
-
-    // Verify both ignoreUrls patterns correspond to our custom endpoints
-    const fetchPatterns = fetchConfig.ignoreUrls.map((r: RegExp) => r.source);
-    expect(fetchPatterns).to.include('my-custom-endpoint\\.url');
-    expect(fetchPatterns).to.include('my-custom-tracing\\.url');
 
     const xhrPatterns = xhrConfig.ignoreUrls.map((r: RegExp) => r.source);
     expect(xhrPatterns).to.include('my-custom-endpoint\\.url');
