@@ -65,7 +65,7 @@ jobs:
           })
           console.log(result)
     - name: Checkout current branch (with history)
-      uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # ratchet:actions/checkout@v4
+      uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
       with:
         # Release script requires git history and tags.
         fetch-depth: 0

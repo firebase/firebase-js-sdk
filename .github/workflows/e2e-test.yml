@@ -35,7 +35,7 @@ jobs:
 
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # ratchet:actions/checkout@v4
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
       - name: Set up Node (22)
         uses: actions/setup-node@60c11408891ef62846c29c28c2374afe5c91fad5 # ratchet:actions/setup-node@master
         with:
