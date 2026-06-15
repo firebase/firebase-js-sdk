@@ -116,7 +116,8 @@ describe('createTracingProvider', () => {
     expect(propagator).to.be.ok;
     expect(propagator instanceof CompositePropagator).to.be.true;
 
-    // Test W3C trace context propagation behavior
+    // Verify that the registered propagator is a W3C trace context propagator
+    // by checking that it injects a W3C spec-compliant 'traceparent' header.
     const spanContext = {
       traceId: '4bf92f3577b34da6a3ce929d0e0e4736',
       spanId: '00f067aa0ba902b7',
@@ -266,7 +267,7 @@ describe('createTracingProvider', () => {
       );
     });
 
-    it('should inject dynamic attributes into exported spans', async () => {
+    it('should inject the installation id attribute into exported spans', async () => {
       const mockAttributesStore = {
         getInstallationIdAttribute: sinon.stub().resolves({
           'installation_id_key': 'installation_id_value'
