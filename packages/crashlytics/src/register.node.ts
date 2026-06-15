@@ -35,12 +35,14 @@ export function registerCrashlytics(): void {
     new Component(
       CRASHLYTICS_TYPE,
       (container, { options }: InstanceFactoryOptions) => {
-        const crashlyticsOptions = options as CrashlyticsOptions;
-        const attributesStore = new AttributesStore();
-
         // getImmediate for FirebaseApp will always succeed
         const app = container.getProvider('app').getImmediate();
+        const crashlyticsOptions = options as CrashlyticsOptions;
         const contextManager = new RootSpanContextManager();
+        const attributesStore = new AttributesStore(
+          app.options,
+          crashlyticsOptions
+        );
         const loggerProvider = createLoggerProvider(
           app,
           crashlyticsOptions,
@@ -57,7 +59,8 @@ export function registerCrashlytics(): void {
           app,
           loggerProvider,
           tracingProvider,
-          contextManager
+          contextManager,
+          attributesStore
         );
       },
       ComponentType.PUBLIC

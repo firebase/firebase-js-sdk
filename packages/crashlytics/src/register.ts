@@ -27,7 +27,7 @@ import { createLoggerProvider } from './logging/logger-provider';
 import { createTracingProvider } from './tracing/tracing-provider';
 import { AppCheckProvider } from './logging/appcheck-provider';
 import { CRASHLYTICS_TYPE } from './constants';
-import { getSessionId, registerListeners, startNewSession } from './helpers';
+import { registerListeners, startNewSession } from './helpers';
 import { CrashlyticsOptions } from './public-types';
 import { RootSpanContextManager } from './tracing/root-span-context-manager';
 
@@ -49,7 +49,11 @@ export function registerCrashlytics(): void {
         const installationsProvider = container.getProvider(
           'installations-internal'
         );
-        const attributesStore = new AttributesStore(installationsProvider);
+        const attributesStore = new AttributesStore(
+          app.options,
+          crashlyticsOptions,
+          installationsProvider
+        );
         const dynamicHeaderProviders = [new AppCheckProvider(appCheckProvider)];
         const loggerProvider = createLoggerProvider(
           app,
@@ -71,11 +75,12 @@ export function registerCrashlytics(): void {
           app,
           loggerProvider,
           tracingProvider,
-          contextManager
+          contextManager,
+          attributesStore
         );
 
         // Immediately track this as a new client session (if one doesn't exist yet)
-        if (!getSessionId()) {
+        if (!attributesStore.sessionId) {
           startNewSession(crashlyticsService);
         }
 

@@ -39,6 +39,11 @@ import { _FirebaseInstallationsInternal } from '@firebase/installations';
 import { AUTO_CONSTANTS } from './auto-constants';
 import { CrashlyticsInternal } from './types';
 import { RootSpanContextManager } from './tracing/root-span-context-manager';
+import {
+  AttributesStore,
+  COMMON_ATTR_KEY,
+  SESSION_STORAGE_SESSION_ID_KEY
+} from './attributes-store';
 
 const PROJECT_ID = 'my-project';
 const APP_ID = 'my-appid';
@@ -62,6 +67,15 @@ const fakeLoggerProvider = {
   shutdown: () => Promise.resolve()
 } as unknown as LoggerProvider;
 
+const fakeApp = {
+  name: 'DEFAULT',
+  automaticDataCollectionEnabled: true,
+  options: {
+    projectId: PROJECT_ID,
+    appId: APP_ID
+  }
+} as FirebaseApp;
+let fakeAttributesStore = new AttributesStore(fakeApp.options);
 const fakeTracingProvider = {
   getTracer: () => ({
     startActiveSpan: (name: string, fn: (span: any) => any) =>
@@ -82,17 +96,11 @@ const fakeContextManager = {
 } as unknown as RootSpanContextManager;
 
 const fakeCrashlytics: CrashlyticsInternal = {
-  app: {
-    name: 'DEFAULT',
-    automaticDataCollectionEnabled: true,
-    options: {
-      projectId: PROJECT_ID,
-      appId: APP_ID
-    }
-  },
+  app: fakeApp,
   loggerProvider: fakeLoggerProvider,
   tracingProvider: fakeTracingProvider,
-  contextManager: fakeContextManager
+  contextManager: fakeContextManager,
+  attributesStore: fakeAttributesStore
 };
 
 describe('Top level API', () => {
@@ -134,6 +142,9 @@ describe('Top level API', () => {
 
     // Simulate session creation that now happens in registerCrashlytics
     storage[CRASHLYTICS_SESSION_ID_KEY] = MOCK_SESSION_ID;
+
+    fakeAttributesStore = new AttributesStore(fakeApp.options);
+    fakeCrashlytics.attributesStore = fakeAttributesStore;
 
     getActiveSpanStub = sinon.stub(trace, 'getActiveSpan').returns(undefined);
   });
@@ -250,16 +261,18 @@ describe('Top level API', () => {
       getCrashlytics(getFakeApp());
 
       // Check if session ID was created in storage
-      expect(storage[CRASHLYTICS_SESSION_ID_KEY]).to.equal(MOCK_SESSION_ID);
+      expect(storage[SESSION_STORAGE_SESSION_ID_KEY]).to.equal(MOCK_SESSION_ID);
     });
 
     it('should not create a new session if one exists', () => {
-      storage[CRASHLYTICS_SESSION_ID_KEY] = 'existing-session';
+      storage[SESSION_STORAGE_SESSION_ID_KEY] = 'existing-session';
       emittedLogs.length = 0;
 
       getCrashlytics(getFakeApp());
 
-      expect(storage[CRASHLYTICS_SESSION_ID_KEY]).to.equal('existing-session');
+      expect(storage[SESSION_STORAGE_SESSION_ID_KEY]).to.equal(
+        'existing-session'
+      );
     });
   });
 
@@ -319,8 +332,8 @@ describe('Top level API', () => {
       expect(log.attributes).to.deep.equal({
         'error.type': 'TestError',
         'error.stack': '...stack trace...',
-        [CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION]: 'unset',
-        [CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID
+        [COMMON_ATTR_KEY.APP_VERSION]: 'unset',
+        [COMMON_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID
       });
     });
 
@@ -337,8 +350,8 @@ describe('Top level API', () => {
       expect(log.attributes).to.deep.equal({
         'error.type': 'Error',
         'error.stack': 'No stack trace available',
-        [CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION]: 'unset',
-        [CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID
+        [COMMON_ATTR_KEY.APP_VERSION]: 'unset',
+        [COMMON_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID
       });
     });
 
@@ -350,8 +363,8 @@ describe('Top level API', () => {
       expect(log.severityNumber).to.equal(SeverityNumber.ERROR);
       expect(log.body).to.equal('a string error');
       expect(log.attributes).to.deep.equal({
-        [CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION]: 'unset',
-        [CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID
+        [COMMON_ATTR_KEY.APP_VERSION]: 'unset',
+        [COMMON_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID
       });
     });
 
@@ -363,8 +376,8 @@ describe('Top level API', () => {
       expect(log.severityNumber).to.equal(SeverityNumber.ERROR);
       expect(log.body).to.equal('Unknown error type: number');
       expect(log.attributes).to.deep.equal({
-        [CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION]: 'unset',
-        [CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID
+        [COMMON_ATTR_KEY.APP_VERSION]: 'unset',
+        [COMMON_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID
       });
     });
 
@@ -387,10 +400,10 @@ describe('Top level API', () => {
       expect(emittedLogs[0].attributes).to.deep.equal({
         'error.type': 'TestError',
         'error.stack': '...stack trace...',
-        [CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION]: 'unset',
-        'logging.googleapis.com/trace': `my-trace`,
+        [COMMON_ATTR_KEY.APP_VERSION]: 'unset',
+        'logging.googleapis.com/trace': `projects/${PROJECT_ID}/traces/my-trace`,
         'logging.googleapis.com/spanId': `my-span`,
-        [CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID
+        [COMMON_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID
       });
     });
 
@@ -413,14 +426,14 @@ describe('Top level API', () => {
       expect(log.attributes).to.deep.equal({
         'error.type': 'TestError',
         'error.stack': '...stack trace...',
-        [CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION]: 'unset',
+        [COMMON_ATTR_KEY.APP_VERSION]: 'unset',
         strAttr: 'string attribute',
         mapAttr: {
           boolAttr: true,
           numAttr: 2
         },
         arrAttr: [1, 2, 3],
-        [CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID
+        [COMMON_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID
       });
     });
 
@@ -430,7 +443,8 @@ describe('Top level API', () => {
         fakeCrashlytics.app,
         fakeLoggerProvider,
         fakeTracingProvider,
-        fakeContextManager
+        fakeContextManager,
+        fakeAttributesStore
       );
       crashlytics.options = {
         appVersion: '1.0.0'
@@ -441,34 +455,32 @@ describe('Top level API', () => {
       expect(emittedLogs.length).to.equal(1);
       const log = emittedLogs[0];
       expect(log.attributes).to.deep.equal({
-        [CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION]: '1.0.0',
-        [CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID
+        [COMMON_ATTR_KEY.APP_VERSION]: '1.0.0',
+        [COMMON_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID
       });
     });
 
     it('should use auto constants if available', () => {
       AUTO_CONSTANTS.appVersion = '1.2.3';
+      fakeAttributesStore = new AttributesStore({ projectId: PROJECT_ID });
+      fakeCrashlytics.attributesStore = fakeAttributesStore;
 
       recordError(fakeCrashlytics, 'a string error');
 
       expect(emittedLogs.length).to.equal(1);
       const log = emittedLogs[0];
       expect(log.attributes).to.deep.equal({
-        [CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION]: '1.2.3',
-        [CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID
+        [COMMON_ATTR_KEY.APP_VERSION]: '1.2.3',
+        [COMMON_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID
       });
     });
 
-    it('should retrieve framework-specific attributes', () => {
+    it('should retrieve route path attribute from attributesStore', () => {
       const error = new Error('This is a test error');
       error.stack = '...stack trace...';
       error.name = 'TestError';
 
-      (fakeCrashlytics as CrashlyticsService).frameworkAttributesProvider =
-        () => ({
-          'framework_attr1': 'framework attribute #1',
-          'framework_attr2': 'framework attribute #2'
-        });
+      fakeAttributesStore.setRoutePathProvider(() => '/my-route');
 
       recordError(fakeCrashlytics, error);
 
@@ -477,22 +489,23 @@ describe('Top level API', () => {
       expect(log.attributes).to.deep.equal({
         'error.type': 'TestError',
         'error.stack': '...stack trace...',
-        [CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION]: 'unset',
-        'framework_attr1': 'framework attribute #1',
-        'framework_attr2': 'framework attribute #2',
-        [CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID
+        [COMMON_ATTR_KEY.APP_VERSION]: 'unset',
+        'route_path': '/my-route',
+        [COMMON_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID
       });
     });
 
     describe('Session Metadata', () => {
       it('should retrieve existing session ID from sessionStorage', () => {
-        storage[CRASHLYTICS_SESSION_ID_KEY] = 'existing-session-id';
+        storage[SESSION_STORAGE_SESSION_ID_KEY] = 'existing-session-id';
+        fakeAttributesStore = new AttributesStore({ projectId: PROJECT_ID });
+        fakeCrashlytics.attributesStore = fakeAttributesStore;
 
         recordError(fakeCrashlytics, 'error');
 
         expect(emittedLogs.length).to.equal(1);
         const log = emittedLogs[0];
-        expect(log.attributes![CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID]).to.equal(
+        expect(log.attributes![COMMON_ATTR_KEY.SESSION_ID]).to.equal(
           'existing-session-id'
         );
       });
@@ -510,12 +523,14 @@ describe('Top level API', () => {
           writable: true
         });
 
+        fakeAttributesStore = new AttributesStore({ projectId: PROJECT_ID });
+        fakeCrashlytics.attributesStore = fakeAttributesStore;
+
         recordError(fakeCrashlytics, 'error');
 
         expect(emittedLogs.length).to.equal(1);
         const log = emittedLogs[0];
-        expect(log.attributes![CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID]).to.be
-          .undefined;
+        expect(log.attributes![COMMON_ATTR_KEY.SESSION_ID]).to.be.undefined;
       });
 
       it('should handle errors when sessionStorage.setItem throws', () => {
@@ -531,12 +546,14 @@ describe('Top level API', () => {
           writable: true
         });
 
+        fakeAttributesStore = new AttributesStore({ projectId: PROJECT_ID });
+        fakeCrashlytics.attributesStore = fakeAttributesStore;
+
         recordError(fakeCrashlytics, 'error');
 
         expect(emittedLogs.length).to.equal(1);
         const log = emittedLogs[0];
-        expect(log.attributes![CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID]).to.be
-          .undefined;
+        expect(log.attributes![COMMON_ATTR_KEY.SESSION_ID]).to.be.undefined;
       });
     });
   });

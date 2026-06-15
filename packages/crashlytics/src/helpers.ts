@@ -15,17 +15,11 @@
  * limitations under the License.
  */
 
-import { AnyValueMap, SeverityNumber } from '@opentelemetry/api-logs';
-import * as constants from './auto-constants';
-import {
-  CRASHLYTICS_ATTRIBUTE_KEYS,
-  CRASHLYTICS_SESSION_ID_KEY,
-  CRASHLYTICS_TRACER_NAME
-} from './constants';
-import { Crashlytics, CrashlyticsOptions } from './public-types';
-import { CrashlyticsService } from './service';
+import { SeverityNumber } from '@opentelemetry/api-logs';
+import { CRASHLYTICS_TRACER_NAME } from './constants';
+import { Crashlytics } from './public-types';
 import { CrashlyticsInternal } from './types';
-import { trace, type TimeInput } from '@opentelemetry/api';
+import { type TimeInput } from '@opentelemetry/api';
 import { hrTimeToMilliseconds, timeInputToHrTime } from '@opentelemetry/core';
 
 /**
@@ -36,80 +30,23 @@ export function timeInputToMilliseconds(time: TimeInput): number {
 }
 
 /**
- * Returns the app version from the provided Telemetry instance, if available.
- */
-export function getAppVersion(
-  crashlyticsOptions: CrashlyticsOptions | undefined
-): string {
-  if (crashlyticsOptions?.appVersion) {
-    return crashlyticsOptions?.appVersion;
-  } else if (constants.AUTO_CONSTANTS?.appVersion) {
-    return constants.AUTO_CONSTANTS.appVersion;
-  }
-  return 'unset';
-}
-
-/**
- * Returns the session ID stored in sessionStorage, if available.
- */
-export function getSessionId(): string | undefined {
-  if (typeof sessionStorage !== 'undefined') {
-    try {
-      return sessionStorage.getItem(CRASHLYTICS_SESSION_ID_KEY) || undefined;
-    } catch (e) {
-      // Ignore errors accessing sessionStorage (e.g. security restrictions)
-    }
-  }
-}
-
-/**
- * Sets attributes that are common across all logs
- */
-export function setCommonLogAttributes(
-  crashlytics: Crashlytics,
-  customAttributes: AnyValueMap
-): void {
-  const options =
-    crashlytics instanceof CrashlyticsService ? crashlytics.options : undefined;
-  // Add trace metadata
-  const activeSpanContext = trace.getActiveSpan()?.spanContext();
-  if (activeSpanContext?.traceId) {
-    customAttributes[CRASHLYTICS_ATTRIBUTE_KEYS.TRACE_ID] =
-      activeSpanContext.traceId;
-    if (activeSpanContext?.spanId) {
-      customAttributes[CRASHLYTICS_ATTRIBUTE_KEYS.SPAN_ID] =
-        activeSpanContext.spanId;
-    }
-  }
-  // Add app version metadata
-  customAttributes[CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION] =
-    getAppVersion(options);
-  // Add session ID metadata
-  const sessionId = getSessionId();
-  if (sessionId) {
-    customAttributes[CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID] = sessionId;
-  }
-}
-
-/**
  * Generate a new session UUID. We record it in two places:
- * 1. The client browser's sessionStorage (if available)
+ * 1. The client browser's sessionStorage (via attributesStore)
  * 2. In Cloud Logging as its own log entry
  */
 export function startNewSession(crashlytics: Crashlytics): void {
   // Cast to CrashlyticsInternal to access internal loggerProvider
-  const { loggerProvider } = crashlytics as CrashlyticsInternal;
-
+  const { loggerProvider, attributesStore } =
+    crashlytics as CrashlyticsInternal;
   if (
     typeof sessionStorage !== 'undefined' &&
     typeof crypto?.randomUUID === 'function'
   ) {
     try {
       const sessionId = crypto.randomUUID();
-      sessionStorage.setItem(CRASHLYTICS_SESSION_ID_KEY, sessionId);
+      attributesStore.setSessionId(sessionId);
 
-      const customAttributes: AnyValueMap = {};
-      setCommonLogAttributes(crashlytics, customAttributes);
+      const customAttributes = attributesStore.getLogAttributes();
 
       // Emit session creation log
       const logger = loggerProvider.getLogger('session-logger');

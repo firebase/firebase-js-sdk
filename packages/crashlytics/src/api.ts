@@ -16,12 +16,12 @@
  */
 
 import { _getProvider, FirebaseApp, getApp } from '@firebase/app';
+import { CrashlyticsInternal, ErrorWithSymbol } from './types';
 import {
-  ALREADY_LOGGED_FLAG,
   CRASHLYTICS_ATTRIBUTE_KEYS,
+  ALREADY_LOGGED_FLAG,
   CRASHLYTICS_TYPE
 } from './constants';
-import { CrashlyticsInternal, ErrorWithSymbol } from './types';
 import { Crashlytics, CrashlyticsOptions } from './public-types';
 import { Provider } from '@firebase/component';
 import { AnyValueMap, SeverityNumber } from '@opentelemetry/api-logs';
@@ -29,7 +29,6 @@ import { CrashlyticsService } from './service';
 import {
   flush,
   generateClickSpanName,
-  setCommonLogAttributes,
   startUserInteractionTrace
 } from './helpers';
 import { deepEqual } from '@firebase/util';
@@ -108,20 +107,10 @@ export function recordError(
   }
 
   // Cast to CrashlyticsInternal to access internal loggerProvider
-  const logger = (crashlytics as CrashlyticsInternal).loggerProvider.getLogger(
-    'error-logger'
-  );
-  const customAttributes: AnyValueMap = {};
-
-  // Add framework-specific metadata
-  const frameworkAttributesProvider = (crashlytics as CrashlyticsService)
-    .frameworkAttributesProvider;
-  if (frameworkAttributesProvider) {
-    const frameworkAttributes = frameworkAttributesProvider();
-    Object.assign(customAttributes, frameworkAttributes);
-  }
-
-  setCommonLogAttributes(crashlytics, customAttributes);
+  const { loggerProvider, attributesStore } =
+    crashlytics as CrashlyticsInternal;
+  const logger = loggerProvider.getLogger('error-logger');
+  const customAttributes: AnyValueMap = attributesStore.getLogAttributes();
 
   // Merge in any additional attributes. Explicitly provided attributes take precedence over
   // automatically added attributes.
@@ -248,11 +237,10 @@ export function logViewBoundary(
   urlTemplate: string,
   attributes?: AnyValueMap
 ): void {
-  const { loggerProvider, contextManager } = crashlytics as CrashlyticsInternal;
+  const { loggerProvider, contextManager, attributesStore } =
+    crashlytics as CrashlyticsInternal;
   const logger = loggerProvider.getLogger('view-boundary-logger');
-  const customAttributes: AnyValueMap = {};
-
-  setCommonLogAttributes(crashlytics, customAttributes);
+  const customAttributes: AnyValueMap = attributesStore.getLogAttributes();
 
   // Merge in any additional attributes. Explicitly provided attributes take precedence over
   // automatically added attributes.

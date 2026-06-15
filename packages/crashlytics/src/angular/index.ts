@@ -21,8 +21,7 @@ import { registerCrashlytics } from '../register';
 import { recordError, getCrashlytics } from '../api';
 import { Crashlytics, CrashlyticsOptions } from '../public-types';
 import { FirebaseApp } from '@firebase/app';
-import { CrashlyticsService } from '../service';
-import { FRAMEWORK_ATTRIBUTE_KEYS } from '../constants';
+import { CrashlyticsInternal } from '../types';
 
 registerCrashlytics();
 
@@ -79,22 +78,15 @@ export class FirebaseErrorHandler implements ErrorHandler {
 
   constructor(app: FirebaseApp, crashlyticsOptions?: CrashlyticsOptions) {
     this.crashlytics = getCrashlytics(app, crashlyticsOptions);
-    (this.crashlytics as CrashlyticsService).frameworkAttributesProvider = () =>
-      this.getAttributes();
+    const attributesStore = (this.crashlytics as CrashlyticsInternal)
+      .attributesStore;
+    attributesStore.setRoutePathProvider(() =>
+      this.getSafeRoutePath(this.router)
+    );
   }
 
   handleError(error: unknown): void {
     recordError(this.crashlytics, error);
-  }
-
-  /**
-   * Returns a record of framework-specific attributes based on the current application state to be
-   * attached to the error log.
-   */
-  private getAttributes(): Record<string, string> {
-    return {
-      [FRAMEWORK_ATTRIBUTE_KEYS.ROUTE_PATH]: this.getSafeRoutePath(this.router)
-    };
   }
 
   /**

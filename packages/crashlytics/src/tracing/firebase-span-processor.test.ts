@@ -20,6 +20,7 @@ import * as sinon from 'sinon';
 import { Span } from '@opentelemetry/sdk-trace-base';
 import { FirebaseSpanProcessor } from './firebase-span-processor';
 import { RootSpan, RootSpanContextManager } from './root-span-context-manager';
+import { AttributesStore } from '../attributes-store';
 import {
   CRASHLYTICS_SESSION_ID_KEY,
   COMMON_SPAN_ATTRIBUTE_KEYS,
@@ -67,7 +68,11 @@ describe('FirebaseSpanProcessor', () => {
       getActiveAppScreenId: () => undefined
     } as unknown as RootSpanContextManager;
 
-    processor = new FirebaseSpanProcessor(mockRootSpanContextManager);
+    const attributesStore = new AttributesStore({ projectId: 'my-project' });
+    processor = new FirebaseSpanProcessor(
+      mockRootSpanContextManager,
+      attributesStore
+    );
     mockSpan = {
       attributes: {},
       spanContext: () => ({ traceId: 'traceId1' }),
@@ -88,6 +93,11 @@ describe('FirebaseSpanProcessor', () => {
   describe('onStart', () => {
     it('should add session id to span if present in storage', () => {
       storage[CRASHLYTICS_SESSION_ID_KEY] = MOCK_SESSION_ID;
+      const attributesStore = new AttributesStore({ projectId: 'my-project' });
+      processor = new FirebaseSpanProcessor(
+        mockRootSpanContextManager,
+        attributesStore
+      );
       processor.onStart(mockSpan as Span, {} as any);
       expect(
         mockSpan.attributes[COMMON_SPAN_ATTRIBUTE_KEYS.GCP_FIREBASE_SESSION_ID]
@@ -95,6 +105,11 @@ describe('FirebaseSpanProcessor', () => {
     });
 
     it('should not add session id if not present in storage', () => {
+      const attributesStore = new AttributesStore({ projectId: 'my-project' });
+      processor = new FirebaseSpanProcessor(
+        mockRootSpanContextManager,
+        attributesStore
+      );
       processor.onStart(mockSpan as Span, {} as any);
       expect(
         mockSpan.attributes[COMMON_SPAN_ATTRIBUTE_KEYS.GCP_FIREBASE_SESSION_ID]
@@ -102,8 +117,10 @@ describe('FirebaseSpanProcessor', () => {
     });
 
     it('should add region to resource name if present in options', () => {
+      const attributesStore = new AttributesStore({ projectId: 'my-project' });
       processor = new FirebaseSpanProcessor(
         mockRootSpanContextManager,
+        attributesStore,
         { region: 'us-central1' },
         { projectId: 'my-project' }
       );
@@ -116,8 +133,10 @@ describe('FirebaseSpanProcessor', () => {
     });
 
     it('should use default region in resource name if not present in options', () => {
+      const attributesStore = new AttributesStore({ projectId: 'my-project' });
       processor = new FirebaseSpanProcessor(
         mockRootSpanContextManager,
+        attributesStore,
         {},
         { projectId: 'my-project' }
       );
@@ -133,6 +152,11 @@ describe('FirebaseSpanProcessor', () => {
       const mockScreenId = 'screen-id';
       (mockRootSpanContextManager as any).getActiveAppScreenId = () =>
         mockScreenId;
+      const attributesStore = new AttributesStore({ projectId: 'my-project' });
+      processor = new FirebaseSpanProcessor(
+        mockRootSpanContextManager,
+        attributesStore
+      );
       processor.onStart(mockSpan as Span, {} as any);
       expect(
         mockSpan.attributes[CRASHLYTICS_ATTRIBUTE_KEYS.APP_SCREEN_ID]
@@ -142,15 +166,24 @@ describe('FirebaseSpanProcessor', () => {
     it('should not add active app screen id to span if not available', () => {
       (mockRootSpanContextManager as any).getActiveAppScreenId = () =>
         undefined;
+      const attributesStore = new AttributesStore({ projectId: 'my-project' });
+      processor = new FirebaseSpanProcessor(
+        mockRootSpanContextManager,
+        attributesStore
+      );
       processor.onStart(mockSpan as Span, {} as any);
       expect(mockSpan.attributes[CRASHLYTICS_ATTRIBUTE_KEYS.APP_SCREEN_ID]).to
         .be.undefined;
     });
 
     it('should set app version attribute to the configured app version', () => {
+      const attributesStore = new AttributesStore(
+        { projectId: 'my-project' },
+        { appVersion: '1.2.3' }
+      );
       processor = new FirebaseSpanProcessor(
         mockRootSpanContextManager,
-        { appVersion: '1.2.3' },
+        attributesStore,
         {}
       );
       processor.onStart(mockSpan as Span, {} as any);
@@ -160,7 +193,16 @@ describe('FirebaseSpanProcessor', () => {
     });
 
     it("should set app version attribute to 'unset' if configured app version not available", () => {
-      processor = new FirebaseSpanProcessor(mockRootSpanContextManager, {}, {});
+      const attributesStore = new AttributesStore(
+        { projectId: 'my-project' },
+        {}
+      );
+      processor = new FirebaseSpanProcessor(
+        mockRootSpanContextManager,
+        attributesStore,
+        {},
+        {}
+      );
       processor.onStart(mockSpan as Span, {} as any);
       expect(
         mockSpan.attributes[COMMON_SPAN_ATTRIBUTE_KEYS.GCP_FIREBASE_APP_VERSION]
