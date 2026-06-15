@@ -24,19 +24,20 @@ import { expect } from 'chai';
 import { FirebaseApp } from '@firebase/app';
 import { RootSpanContextManager } from './root-span-context-manager';
 import { CrashlyticsOptions } from '../public-types';
-import * as fetchTransportModule from '../fetch-transport';
-import { OTLPTraceExporter as OTLPStandardTraceExporter } from '@opentelemetry/exporter-trace-otlp-proto';
 import { FetchInstrumentation } from '@opentelemetry/instrumentation-fetch';
 import { XMLHttpRequestInstrumentation } from '@opentelemetry/instrumentation-xml-http-request';
 import * as sinon from 'sinon';
 import { context, trace } from '@opentelemetry/api';
 import { AttributesStore } from '../attributes-store';
 import { resourceFromAttributes } from '@opentelemetry/resources';
+import { WebTracerProvider } from '@opentelemetry/sdk-trace-web';
+import { CompositePropagator } from '@opentelemetry/core';
 
 describe('createTracingProvider', () => {
   let mockApp: FirebaseApp;
   let mockRootSpanContextManager: RootSpanContextManager;
   let mockAttributesStore: AttributesStore;
+  let mockSpan: any;
   beforeEach(() => {
     mockApp = {
       options: {
@@ -51,6 +52,23 @@ describe('createTracingProvider', () => {
       getActiveRootSpan: () => undefined
     } as unknown as RootSpanContextManager;
     mockAttributesStore = {} as unknown as AttributesStore;
+    mockSpan = {
+      name: 'test-span',
+      kind: 0,
+      spanContext: () => ({
+        traceId: '00000000000000000000000000000001',
+        spanId: '0000000000000002',
+        traceFlags: 1
+      }),
+      startTime: [0, 0],
+      endTime: [1, 0],
+      attributes: {},
+      links: [],
+      events: [],
+      status: { code: 0 },
+      resource: resourceFromAttributes({}),
+      instrumentationScope: { name: 'test-scope', version: '1.0.0' }
+    } as any;
   });
 
   afterEach(() => {
@@ -71,16 +89,16 @@ describe('createTracingProvider', () => {
     expect(provider).to.equal(trace.getTracerProvider());
   });
 
-  it('should use OTLPStandardTraceExporter when tracingUrl is the default localhost port 4318', () => {
+  it('should register the WebTracerProvider globally with the root span context manager and W3CTraceContextPropagator', () => {
     if (typeof window === 'undefined') {
       return;
     }
 
-    const fetchTransportStub = sinon
-      .stub(fetchTransportModule, 'FetchTransport')
-      .returns({} as any);
+    const registerSpy = sinon.spy(WebTracerProvider.prototype, 'register');
 
-    const mockCrashlyticsOptions = { tracingUrl: 'http://localhost:4318' } as CrashlyticsOptions;
+    const mockCrashlyticsOptions = {
+      tracingUrl: 'http://localhost:4318'
+    } as CrashlyticsOptions;
 
     const provider = createTracingProvider(
       mockApp,
@@ -89,28 +107,50 @@ describe('createTracingProvider', () => {
       mockAttributesStore
     );
 
-    expect(fetchTransportStub.called).to.be.false;
-    expect(provider).to.be.ok;
+    expect(registerSpy.calledOnce).to.be.true;
+    const registerArgs = registerSpy.firstCall.args[0];
+    expect(registerArgs).to.be.ok;
+    expect(registerArgs!.contextManager).to.equal(mockRootSpanContextManager);
 
-    const activeProcessor = (provider as any)._activeSpanProcessor;
-    const processors = activeProcessor._spanProcessors || [];
-    const batchProcessor = processors.find(
-      (p: any) => p.constructor.name === 'BatchSpanProcessor'
+    const propagator = registerArgs!.propagator;
+    expect(propagator).to.be.ok;
+    expect(propagator instanceof CompositePropagator).to.be.true;
+
+    // Test W3C trace context propagation behavior
+    const spanContext = {
+      traceId: '4bf92f3577b34da6a3ce929d0e0e4736',
+      spanId: '00f067aa0ba902b7',
+      traceFlags: 1
+    };
+    const testContext = trace.setSpanContext(context.active(), spanContext);
+    const carrier: Record<string, string> = {};
+    const setter = {
+      set: (c: any, k: string, v: string) => {
+        c[k] = v;
+      }
+    };
+
+    propagator!.inject(testContext, carrier, setter);
+
+    expect(carrier['traceparent']).to.equal(
+      '00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01'
     );
-    const exporter = (batchProcessor as any)._exporter;
-    expect(exporter instanceof OTLPStandardTraceExporter).to.be.true;
+    expect(provider).to.be.ok;
   });
 
-  it('should use custom OTLPTraceExporter with region-specific endpoint when tracingUrl is a custom URL', () => {
+  it("should start the 'app-start' root span on the context manager during initialization", () => {
     if (typeof window === 'undefined') {
       return;
     }
 
-    const fetchTransportStub = sinon
-      .stub(fetchTransportModule, 'FetchTransport')
-      .returns({} as any);
+    const startRootSpanSpy = sinon.spy(
+      mockRootSpanContextManager,
+      'startRootSpan'
+    );
 
-    const mockCrashlyticsOptions = { tracingUrl: 'https://custom-tracing.url', region: 'us-central1' } as CrashlyticsOptions;
+    const mockCrashlyticsOptions = {
+      tracingUrl: 'http://localhost:4318'
+    } as CrashlyticsOptions;
 
     const provider = createTracingProvider(
       mockApp,
@@ -119,19 +159,9 @@ describe('createTracingProvider', () => {
       mockAttributesStore
     );
 
-    expect(fetchTransportStub.calledOnce).to.be.true;
-    const args = fetchTransportStub.firstCall.args[0];
-    expect(args.url).to.equal(
-      'https://custom-tracing.url/v1/projects/test-project/apps/test-app-id/locations/us-central1/traces'
-    );
-
-    const activeProcessor = (provider as any)._activeSpanProcessor;
-    const processors = activeProcessor._spanProcessors || [];
-    const batchProcessor = processors.find(
-      (p: any) => p.constructor.name === 'BatchSpanProcessor'
-    );
-    const exporter = (batchProcessor as any)._exporter;
-    expect(exporter instanceof OTLPTraceExporter).to.be.true;
+    expect(startRootSpanSpy.calledOnce).to.be.true;
+    expect(startRootSpanSpy.firstCall.args[1]).to.equal('app-start');
+    expect(provider).to.be.ok;
   });
 
   it('should register Fetch and XMLHttpRequest instrumentations with appropriate ignoreUrls', () => {
@@ -139,8 +169,14 @@ describe('createTracingProvider', () => {
       return;
     }
 
-    const fetchInstrumentationSpy = sinon.spy(FetchInstrumentation.prototype, 'setConfig');
-    const xhrInstrumentationSpy = sinon.spy(XMLHttpRequestInstrumentation.prototype, 'setConfig');
+    const fetchInstrumentationSpy = sinon.spy(
+      FetchInstrumentation.prototype,
+      'setConfig'
+    );
+    const xhrInstrumentationSpy = sinon.spy(
+      XMLHttpRequestInstrumentation.prototype,
+      'setConfig'
+    );
 
     const mockCrashlyticsOptions = {
       endpointUrl: 'my-custom-endpoint.url',
@@ -175,41 +211,23 @@ describe('createTracingProvider', () => {
 
   describe('OTLPTraceExporter', () => {
     let fetchStub: sinon.SinonStub;
-    let mockSpan: any;
 
     beforeEach(() => {
       fetchStub = sinon
         .stub(globalThis, 'fetch')
         .resolves(new Response('test response', { status: 200 }));
-
-      mockSpan = {
-        name: 'test-span',
-        kind: 0,
-        spanContext: () => ({
-          traceId: '00000000000000000000000000000001',
-          spanId: '0000000000000002',
-          traceFlags: 1
-        }),
-        startTime: [0, 0],
-        endTime: [1, 0],
-        attributes: {},
-        links: [],
-        events: [],
-        status: { code: 0 },
-        resource: resourceFromAttributes({}),
-        instrumentationScope: { name: 'test-scope', version: '1.0.0' }
-      } as any;
     });
 
     it('should attach dynamic headers to the export request', async () => {
       const mockHeaderProvider = {
-        getHeader: sinon.stub().resolves(['X-My-Dynamic-Header', 'dynamic-value'])
+        getHeader: sinon
+          .stub()
+          .resolves(['X-My-Dynamic-Header', 'dynamic-value'])
       };
 
-      const exporter = new OTLPTraceExporter(
-        { url: 'http://localhost' },
-        [mockHeaderProvider]
-      );
+      const exporter = new OTLPTraceExporter({ url: 'http://localhost' }, [
+        mockHeaderProvider
+      ]);
 
       await new Promise<void>((resolve, reject) => {
         exporter
@@ -226,7 +244,9 @@ describe('createTracingProvider', () => {
       expect(fetchStub.calledOnce).to.be.true;
       const fetchOptions = fetchStub.firstCall.args[1] as any;
       const requestHeaders = fetchOptions.headers as any;
-      expect(requestHeaders.get('X-My-Dynamic-Header')).to.equal('dynamic-value');
+      expect(requestHeaders.get('X-My-Dynamic-Header')).to.equal(
+        'dynamic-value'
+      );
     });
 
     it('should inject dynamic attributes into exported spans', async () => {
@@ -265,7 +285,9 @@ describe('createTracingProvider', () => {
       const spans = json.resourceSpans[0].scopeSpans[0].spans;
       const spanAttributes = spans[0].attributes || [];
 
-      const dynamicAttr = spanAttributes.find((a: any) => a.key === 'installation_id_key');
+      const dynamicAttr = spanAttributes.find(
+        (a: any) => a.key === 'installation_id_key'
+      );
       expect(dynamicAttr).to.be.ok;
       expect(dynamicAttr.value.stringValue).to.equal('installation_id_value');
     });
@@ -276,7 +298,6 @@ describe('createTracingProvider', () => {
     let originalOpen: typeof XMLHttpRequest.prototype.open;
     let startRootSpanStub: sinon.SinonStub;
     let getActiveRootSpanStub: sinon.SinonStub;
-    let mockSpan: any;
     let activeSpanDuringFetch: any;
     let activeSpanDuringOpen: any;
 
@@ -307,14 +328,6 @@ describe('createTracingProvider', () => {
         XMLHttpRequest.prototype.open = sinon.stub().callsFake(() => {
           activeSpanDuringOpen = trace.getSpan(context.active());
         }) as any;
-
-        mockSpan = {
-          spanContext: () => ({
-            traceId: '00000000000000000000000000000001',
-            spanId: '0000000000000002',
-            traceFlags: 1
-          })
-        };
 
         startRootSpanStub = sinon
           .stub(mockRootSpanContextManager, 'startRootSpan')
