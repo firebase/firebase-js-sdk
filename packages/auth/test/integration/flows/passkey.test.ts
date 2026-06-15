@@ -114,39 +114,53 @@ const getVirtualAuthenticatorDriver = () => {
               'InvalidStateError'
             );
           }
-          return {
-            id: mockCredId,
-            type: 'public-key',
-            rawId: new TextEncoder().encode(mockCredId),
-            response: {
-              clientDataJSON: new TextEncoder().encode(
-                JSON.stringify({
-                  type: 'webauthn.create',
-                  challenge: 'validbase64challenge',
-                  origin: window.location.origin
-                })
-              ),
-              attestationObject: new Uint8Array([1, 2, 3])
-            }
-          } as any;
-        });
-
-        sinon.stub(navigator.credentials, 'get').resolves({
-          id: mockCredId,
-          type: 'public-key',
-          rawId: new TextEncoder().encode(mockCredId),
-          response: {
+          const responseCreate = {
             clientDataJSON: new TextEncoder().encode(
               JSON.stringify({
-                type: 'webauthn.get',
+                type: 'webauthn.create',
                 challenge: 'validbase64challenge',
                 origin: window.location.origin
               })
             ),
-            authenticatorData: new Uint8Array([1, 2, 3]),
-            signature: new Uint8Array([4, 5, 6]),
-            userHandle: new TextEncoder().encode('mockuser')
+            attestationObject: new Uint8Array([1, 2, 3])
+          };
+          if (typeof AuthenticatorAttestationResponse !== 'undefined') {
+            Object.setPrototypeOf(
+              responseCreate,
+              AuthenticatorAttestationResponse.prototype
+            );
           }
+          return {
+            id: mockCredId,
+            type: 'public-key',
+            rawId: new TextEncoder().encode(mockCredId),
+            response: responseCreate
+          } as any;
+        });
+
+        const responseGet = {
+          clientDataJSON: new TextEncoder().encode(
+            JSON.stringify({
+              type: 'webauthn.get',
+              challenge: 'validbase64challenge',
+              origin: window.location.origin
+            })
+          ),
+          authenticatorData: new Uint8Array([1, 2, 3]),
+          signature: new Uint8Array([4, 5, 6]),
+          userHandle: new TextEncoder().encode('mockuser')
+        };
+        if (typeof AuthenticatorAssertionResponse !== 'undefined') {
+          Object.setPrototypeOf(
+            responseGet,
+            AuthenticatorAssertionResponse.prototype
+          );
+        }
+        sinon.stub(navigator.credentials, 'get').resolves({
+          id: mockCredId,
+          type: 'public-key',
+          rawId: new TextEncoder().encode(mockCredId),
+          response: responseGet
         } as any);
       }
       return mockCredId;
