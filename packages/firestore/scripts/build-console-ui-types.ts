@@ -18,7 +18,7 @@
 
 /**
  * @fileoverview Generates and verifies the pipelines_extra_lib.txt file for the Firestore Query Editor.
- * 
+ *
  * 1. Reads the pruned pipelines.d.ts.
  * 2. Uses regex to strip module syntax (import/export).
  * 3. Appends required hardcoded UI types.
@@ -396,7 +396,10 @@ type DocumentData = { [field: string]: any };
 let dtsContent: string = fs.readFileSync(sourceDtsPath, 'utf8');
 
 // Strip multi-line and single-line imports
-dtsContent = dtsContent.replace(/^import\s+[\s\S]*?from\s+['"][^'"]+['"];?\s*$/gm, '');
+dtsContent = dtsContent.replace(
+  /^import\s+[\s\S]*?from\s+['"][^'"]+['"];?\s*$/gm,
+  ''
+);
 dtsContent = dtsContent.replace(/^import\s+['"][^'"]+['"];?\s*$/gm, '');
 
 // Strip bulk exports: export { Foo, Bar };
@@ -453,16 +456,23 @@ try {
 }
 
 if (diagnostics.length > 0) {
-  console.error('ERROR: Type verification failed for Console UI pipeline types!');
+  console.error(
+    'ERROR: Type verification failed for Console UI pipeline types!'
+  );
   console.error(
     'This usually means the hardcoded types in build-console-ui-types.ts drifted from the SDK, or the regex stripped too much.'
   );
 
-  diagnostics.forEach((diag) => {
+  diagnostics.forEach(diag => {
     if (diag.file) {
-      const { line, character } = ts.getLineAndCharacterOfPosition(diag.file, diag.start!);
+      const { line, character } = ts.getLineAndCharacterOfPosition(
+        diag.file,
+        diag.start!
+      );
       const message = ts.flattenDiagnosticMessageText(diag.messageText, '\n');
-      console.error(`${diag.file.fileName} (${line + 1},${character + 1}): ${message}`);
+      console.error(
+        `${diag.file.fileName} (${line + 1},${character + 1}): ${message}`
+      );
     } else {
       console.error(ts.flattenDiagnosticMessageText(diag.messageText, '\n'));
     }
@@ -473,4 +483,6 @@ if (diagnostics.length > 0) {
 
 // Write output
 fs.writeFileSync(destTxtPath, finalContent);
-console.log(`Successfully generated and verified console UI types at ${destTxtPath}`);
+console.log(
+  `Successfully generated and verified console UI types at ${destTxtPath}`
+);

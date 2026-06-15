@@ -1,7 +1,11 @@
 {
   "extends": "../../config/tsconfig.base.json",
   "compilerOptions": {
-    "outDir": "dist"
+    "outDir": "dist",
+    "paths": {
+      "@firebase/app": ["../app/src/index.ts"],
+      "@firebase/app-compat": ["../app-compat/src/index.ts"]
+    }
   },
   "exclude": ["scripts/**/*", "dist/**/*"]
 }

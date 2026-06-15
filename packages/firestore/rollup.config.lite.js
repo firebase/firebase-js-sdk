@@ -33,7 +33,7 @@ const util = require('./rollup.shared');
 const nodePlugins = [
   typescriptPlugin({
     typescript,
-    cacheDir: tmp.dirSync(),
+    cacheDir: tmp.dirSync().name,
     abortOnError: true,
     transformers: [util.removeAssertTransformer]
   }),
@@ -43,7 +43,7 @@ const nodePlugins = [
 const browserPlugins = [
   typescriptPlugin({
     typescript,
-    cacheDir: tmp.dirSync(),
+    cacheDir: tmp.dirSync().name,
     abortOnError: true,
     transformers: [util.removeAssertAndPrefixInternalTransformer]
   }),
