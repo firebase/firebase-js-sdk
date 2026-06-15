@@ -21,7 +21,7 @@ import {
   W3CTraceContextPropagator,
   ExportResult
 } from '@opentelemetry/core';
-import { TracerProvider, trace } from '@opentelemetry/api';
+import { TracerProvider, trace, context, Tracer } from '@opentelemetry/api';
 import {
   WebTracerProvider,
   BatchSpanProcessor,
@@ -175,7 +175,112 @@ export function createTracingProvider(
     ]
   });
 
+  /*
+   * This monkey patching must be done after instrumentation libs are
+   * registered so that otel network spans aren't created before the
+   * background-network root span.
+   */
+  patchNetworkRequests(
+    tracer,
+    rootSpanContextManager,
+    networkInstrumentationConfig.ignoreUrls
+  );
+
   return provider;
+}
+
+/** @internal */
+export function patchNetworkRequests(
+  tracer: Tracer,
+  rootSpanContextManager: RootSpanContextManager,
+  ignoreUrls: Array<string | RegExp>
+): void {
+  type InstrumentableFunction = (...args: unknown[]) => unknown;
+
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  const shouldIgnore = (url: string): boolean => {
+    return ignoreUrls.some(pattern => {
+      if (typeof pattern === 'string') {
+        return url.includes(pattern);
+      }
+      if (pattern instanceof RegExp) {
+        return pattern.test(url);
+      }
+      return false;
+    });
+  };
+
+  // 1. Instrument fetch
+  const originalFetch = window.fetch as unknown as InstrumentableFunction;
+  window.fetch = function (this: typeof window, ...args: any[]) {
+    const input = args[0];
+    let urlString = '';
+    if (typeof input === 'string') {
+      urlString = input;
+    } else if (input instanceof URL) {
+      urlString = input.href;
+    } else if (input instanceof Request) {
+      urlString = input.url;
+    } else {
+      urlString = String(input || '');
+    }
+
+    if (
+      !shouldIgnore(urlString) &&
+      !rootSpanContextManager.getActiveRootSpan()
+    ) {
+      const rootSpan = rootSpanContextManager.startRootSpan(
+        tracer,
+        'background-network'
+      );
+      const rootContext = trace.setSpan(context.active(), rootSpan.span);
+      return context.with(rootContext, () => originalFetch.apply(this, args));
+    }
+    return originalFetch.apply(this, args);
+  } as unknown as typeof window.fetch;
+
+  // 2. Instrument XMLHttpRequest.prototype.open
+  const originalOpen = XMLHttpRequest.prototype
+    .open as unknown as InstrumentableFunction;
+  XMLHttpRequest.prototype.open = function (
+    this: XMLHttpRequest,
+    ...args: any[]
+  ) {
+    const url = args[1];
+    let urlString = '';
+    if (typeof url === 'string') {
+      urlString = url;
+    } else if (url instanceof URL) {
+      urlString = url.href;
+    } else {
+      urlString = String(url || '');
+    }
+
+    /*
+     * There's a bug in OpenTelemetry's XHR instrumentation where passing
+     * a URL object causes a runtime crash, so we normalize it to its
+     * string representation beforehand.
+     */
+    if (url instanceof URL) {
+      args[1] = url.href;
+    }
+
+    if (
+      !shouldIgnore(urlString) &&
+      !rootSpanContextManager.getActiveRootSpan()
+    ) {
+      const rootSpan = rootSpanContextManager.startRootSpan(
+        tracer,
+        'background-network'
+      );
+      const rootContext = trace.setSpan(context.active(), rootSpan.span);
+      return context.with(rootContext, () => originalOpen.apply(this, args));
+    }
+    return originalOpen.apply(this, args);
+  } as unknown as typeof XMLHttpRequest.prototype.open;
 }
 
 /** @internal */
