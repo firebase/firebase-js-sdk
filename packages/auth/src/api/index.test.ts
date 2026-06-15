@@ -356,6 +356,34 @@ describe('api/_performApiRequest', () => {
       );
     });
 
+    it('should translate passkey internal/magic error codes with custom messages to internal-error', async () => {
+      mockEndpoint(
+        Endpoint.SIGN_UP,
+        {
+          error: {
+            code: 400,
+            message: 'Error code: 53 : Internal assertion failed',
+            errors: [
+              {
+                message: 'Error code: 53 : Internal assertion failed'
+              }
+            ]
+          }
+        },
+        400
+      );
+      const promise = _performApiRequest<typeof request, typeof serverResponse>(
+        auth,
+        HttpMethod.POST,
+        Endpoint.SIGN_UP,
+        request
+      );
+      await expect(promise).to.be.rejectedWith(
+        FirebaseError,
+        'auth/internal-error'
+      );
+    });
+
     it('should support custom error handling per endpoint', async () => {
       const mock = mockEndpoint(
         Endpoint.SIGN_UP,
