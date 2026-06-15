@@ -19,6 +19,7 @@ import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 
+// eslint-disable-next-line import/no-extraneous-dependencies
 import {
   createUserWithEmailAndPassword,
   enrollPasskey,
@@ -38,7 +39,7 @@ import {
 use(chaiAsPromised);
 
 // Helper function to check if the current browser is Chrome
-const isChrome = () => {
+const isChrome = (): boolean => {
   if (typeof browser !== 'undefined' && browser.capabilities) {
     const capabilities = browser.capabilities;
     return (
@@ -56,7 +57,7 @@ const isChrome = () => {
 };
 
 // Define a helper/wrapper for virtual authenticator control
-const getVirtualAuthenticatorDriver = () => {
+const getVirtualAuthenticatorDriver = (): any => {
   if (typeof driver !== 'undefined') {
     let authenticatorId: string | null = null;
     return {
@@ -94,7 +95,7 @@ const getVirtualAuthenticatorDriver = () => {
 
   // Karma / Browser fallback: mock navigator.credentials using sinon
   return {
-    addWebAuthnCredential: async (options: any) => {
+    addWebAuthnCredential: async (_options: any) => {
       const mockCredId = 'mock-credential-id';
       let callCount = 0;
 
@@ -198,12 +199,13 @@ const getVirtualAuthenticatorDriver = () => {
   };
 };
 
-const createMockJwt = (uid: string, uniqueSeed: string) => {
+const createMockJwt = (uid: string, uniqueSeed: string): string => {
   const header = btoa(JSON.stringify({ alg: 'none', typ: 'JWT' }));
   const exp = Math.floor(Date.now() / 1000) + 3600;
   const payload = btoa(
     JSON.stringify({
       sub: uid,
+      // eslint-disable-next-line camelcase
       user_id: uid,
       exp,
       iat: exp - 3600,
@@ -220,7 +222,7 @@ const jwtWithoutPasskey = createMockJwt('mock-uid', 'without-passkey');
 
 let currentToken = '';
 
-const setupMockFetch = () => {
+const setupMockFetch = (): void => {
   currentToken = '';
 
   const originalFetch = window.fetch.bind(window);
@@ -347,9 +349,14 @@ const setupMockFetch = () => {
   });
 };
 
-const describeSkipUnlessChrome = isChrome() ? describe : describe.skip;
+describe('Passkey Authentication (Chrome Only)', () => {
+  // eslint-disable-next-line prefer-arrow-callback
+  before(function () {
+    if (!isChrome()) {
+      this.skip();
+    }
+  });
 
-describeSkipUnlessChrome('Passkey Authentication (Chrome Only)', () => {
   let auth: Auth;
 
   beforeEach(() => {
@@ -462,10 +469,10 @@ describeSkipUnlessChrome('Passkey Authentication (Chrome Only)', () => {
         email,
         'password'
       );
-      let user = userCred.user;
+      const user = userCred.user;
 
       const testDriver = getVirtualAuthenticatorDriver();
-      const credId = await testDriver.addWebAuthnCredential({
+      await testDriver.addWebAuthnCredential({
         protocol: 'ctap2',
         transport: 'usb',
         hasResidentKey: true,
@@ -491,7 +498,6 @@ describeSkipUnlessChrome('Passkey Authentication (Chrome Only)', () => {
       await signOut(auth);
       expect(auth.currentUser).to.be.null;
 
-      const testDriver = getVirtualAuthenticatorDriver();
       if (typeof navigator !== 'undefined' && navigator.credentials) {
         if ((navigator.credentials.get as any).restore) {
           (navigator.credentials.get as any).restore();
@@ -542,7 +548,6 @@ describeSkipUnlessChrome('Passkey Authentication (Chrome Only)', () => {
       await signOut(auth);
       expect(auth.currentUser).to.be.null;
 
-      const testDriver = getVirtualAuthenticatorDriver();
       if (typeof navigator !== 'undefined' && navigator.credentials) {
         if ((navigator.credentials.get as any).restore) {
           (navigator.credentials.get as any).restore();
