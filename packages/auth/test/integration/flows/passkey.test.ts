@@ -41,10 +41,16 @@ use(chaiAsPromised);
 const isChrome = () => {
   if (typeof browser !== 'undefined' && browser.capabilities) {
     const capabilities = browser.capabilities;
-    return capabilities.browserName && capabilities.browserName.toLowerCase().includes('chrome');
+    return (
+      capabilities.browserName &&
+      capabilities.browserName.toLowerCase().includes('chrome')
+    );
   }
   if (typeof navigator !== 'undefined') {
-    return navigator.userAgent.toLowerCase().includes('chrome') || navigator.userAgent.toLowerCase().includes('chromium');
+    return (
+      navigator.userAgent.toLowerCase().includes('chrome') ||
+      navigator.userAgent.toLowerCase().includes('chromium')
+    );
   }
   return false;
 };
@@ -52,7 +58,38 @@ const isChrome = () => {
 // Define a helper/wrapper for virtual authenticator control
 const getVirtualAuthenticatorDriver = () => {
   if (typeof driver !== 'undefined') {
-    return driver;
+    let authenticatorId: string | null = null;
+    return {
+      addWebAuthnCredential: async (options: any) => {
+        if (!authenticatorId) {
+          const result = (await driver.addVirtualAuthenticator({
+            protocol: options.protocol || 'ctap2',
+            transport: options.transport || 'usb',
+            hasResidentKey: options.hasResidentKey ?? true,
+            hasUserVerification: options.hasUserVerification ?? true,
+            isUserConsenting: options.isUserConsenting ?? true
+          })) as any;
+          authenticatorId =
+            typeof result === 'string' ? result : result.authenticatorId;
+        }
+
+        const mockCredId = 'mock-credential-id';
+        await driver.addCredential({
+          authenticatorId,
+          credentialId: mockCredId,
+          isResidentCredential: options.hasResidentKey ?? true,
+          rpId: 'localhost',
+          privateKey: 'Base64PrivateKey...',
+          signCount: 0
+        });
+        return mockCredId;
+      },
+      setWebAuthnUserVerified: async (verified: boolean) => {
+        if (authenticatorId) {
+          await driver.setUserVerified(authenticatorId, verified);
+        }
+      }
+    };
   }
 
   // Karma / Browser fallback: mock navigator.credentials using sinon
@@ -72,18 +109,23 @@ const getVirtualAuthenticatorDriver = () => {
         sinon.stub(navigator.credentials, 'create').callsFake(async () => {
           callCount++;
           if (callCount > 1) {
-            throw new DOMException('The credential already exists.', 'InvalidStateError');
+            throw new DOMException(
+              'The credential already exists.',
+              'InvalidStateError'
+            );
           }
           return {
             id: mockCredId,
             type: 'public-key',
             rawId: new TextEncoder().encode(mockCredId),
             response: {
-              clientDataJSON: new TextEncoder().encode(JSON.stringify({
-                type: 'webauthn.create',
-                challenge: 'validbase64challenge',
-                origin: window.location.origin
-              })),
+              clientDataJSON: new TextEncoder().encode(
+                JSON.stringify({
+                  type: 'webauthn.create',
+                  challenge: 'validbase64challenge',
+                  origin: window.location.origin
+                })
+              ),
               attestationObject: new Uint8Array([1, 2, 3])
             }
           } as any;
@@ -94,11 +136,13 @@ const getVirtualAuthenticatorDriver = () => {
           type: 'public-key',
           rawId: new TextEncoder().encode(mockCredId),
           response: {
-            clientDataJSON: new TextEncoder().encode(JSON.stringify({
-              type: 'webauthn.get',
-              challenge: 'validbase64challenge',
-              origin: window.location.origin
-            })),
+            clientDataJSON: new TextEncoder().encode(
+              JSON.stringify({
+                type: 'webauthn.get',
+                challenge: 'validbase64challenge',
+                origin: window.location.origin
+              })
+            ),
             authenticatorData: new Uint8Array([1, 2, 3]),
             signature: new Uint8Array([4, 5, 6]),
             userHandle: new TextEncoder().encode('mockuser')
@@ -118,12 +162,22 @@ const getVirtualAuthenticatorDriver = () => {
             (navigator.credentials.get as any).restore();
           }
 
-          sinon.stub(navigator.credentials, 'create').rejects(
-            new DOMException('The operation either timed out or was not allowed.', 'NotAllowedError')
-          );
-          sinon.stub(navigator.credentials, 'get').rejects(
-            new DOMException('The operation either timed out or was not allowed.', 'NotAllowedError')
-          );
+          sinon
+            .stub(navigator.credentials, 'create')
+            .rejects(
+              new DOMException(
+                'The operation either timed out or was not allowed.',
+                'NotAllowedError'
+              )
+            );
+          sinon
+            .stub(navigator.credentials, 'get')
+            .rejects(
+              new DOMException(
+                'The operation either timed out or was not allowed.',
+                'NotAllowedError'
+              )
+            );
         }
       }
     }
@@ -133,15 +187,17 @@ const getVirtualAuthenticatorDriver = () => {
 const createMockJwt = (uid: string, uniqueSeed: string) => {
   const header = btoa(JSON.stringify({ alg: 'none', typ: 'JWT' }));
   const exp = Math.floor(Date.now() / 1000) + 3600;
-  const payload = btoa(JSON.stringify({
-    sub: uid,
-    user_id: uid,
-    exp,
-    iat: exp - 3600,
-    iss: 'https://securetoken.google.com/emulatedproject',
-    aud: 'emulatedproject',
-    seed: uniqueSeed
-  }));
+  const payload = btoa(
+    JSON.stringify({
+      sub: uid,
+      user_id: uid,
+      exp,
+      iat: exp - 3600,
+      iss: 'https://securetoken.google.com/emulatedproject',
+      aud: 'emulatedproject',
+      seed: uniqueSeed
+    })
+  );
   return `${header}.${payload}.signature`;
 };
 
@@ -164,7 +220,11 @@ const setupMockFetch = () => {
       const resp = {
         credentialCreationOptions: {
           rp: { name: window.location.hostname },
-          user: { id: 'bW9ja3VzZXI=', name: 'mock-user', displayName: 'Mock User' },
+          user: {
+            id: 'bW9ja3VzZXI=',
+            name: 'mock-user',
+            displayName: 'Mock User'
+          },
           challenge: 'validbase64challenge',
           pubKeyCredParams: [{ type: 'public-key', alg: -7 }],
           timeout: 60000,
@@ -209,14 +269,15 @@ const setupMockFetch = () => {
 
     if (url.includes('accounts:lookup')) {
       const token = body.idToken;
-      const passkeys = (token === currentToken)
-        ? [
-            {
-              credentialId: 'mock-credential-id',
-              name: 'Test Device Passkey'
-            }
-          ]
-        : [];
+      const passkeys =
+        token === currentToken
+          ? [
+              {
+                credentialId: 'mock-credential-id',
+                name: 'Test Device Passkey'
+              }
+            ]
+          : [];
       const resp = {
         users: [
           {
@@ -291,7 +352,11 @@ describeSkipUnlessChrome('Passkey Authentication (Chrome Only)', () => {
   describe('enrollPasskey', () => {
     it('enrolls passkey successfully', async () => {
       const email = randomEmail();
-      const userCred = await createUserWithEmailAndPassword(auth, email, 'password');
+      const userCred = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        'password'
+      );
       let user = userCred.user;
 
       const testDriver = getVirtualAuthenticatorDriver();
@@ -310,14 +375,20 @@ describeSkipUnlessChrome('Passkey Authentication (Chrome Only)', () => {
 
       await reload(user);
       const enrolledPasskeys = user.enrolledPasskeys || [];
-      const foundPasskey = enrolledPasskeys.find(p => p.credentialId === credId || p.name === passkeyName);
+      const foundPasskey = enrolledPasskeys.find(
+        p => p.credentialId === credId || p.name === passkeyName
+      );
       expect(foundPasskey).to.not.be.undefined;
       expect(foundPasskey!.name).to.equal(passkeyName);
     });
 
     it('rejects when user cancels during enrollment', async () => {
       const email = randomEmail();
-      const userCred = await createUserWithEmailAndPassword(auth, email, 'password');
+      const userCred = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        'password'
+      );
       const user = userCred.user;
 
       const testDriver = getVirtualAuthenticatorDriver();
@@ -336,7 +407,11 @@ describeSkipUnlessChrome('Passkey Authentication (Chrome Only)', () => {
 
     it('rejects when enrolling an already existing passkey', async () => {
       const email = randomEmail();
-      const userCred = await createUserWithEmailAndPassword(auth, email, 'password');
+      const userCred = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        'password'
+      );
       let user = userCred.user;
 
       const testDriver = getVirtualAuthenticatorDriver();
@@ -361,7 +436,11 @@ describeSkipUnlessChrome('Passkey Authentication (Chrome Only)', () => {
   describe('signInWithPasskey', () => {
     it('signs in with an existing enrolled passkey', async () => {
       const email = randomEmail();
-      const userCred = await createUserWithEmailAndPassword(auth, email, 'password');
+      const userCred = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        'password'
+      );
       let user = userCred.user;
 
       const testDriver = getVirtualAuthenticatorDriver();
@@ -396,9 +475,14 @@ describeSkipUnlessChrome('Passkey Authentication (Chrome Only)', () => {
         if ((navigator.credentials.get as any).restore) {
           (navigator.credentials.get as any).restore();
         }
-        sinon.stub(navigator.credentials, 'get').rejects(
-          new DOMException('The operation either timed out or was not allowed.', 'NotAllowedError')
-        );
+        sinon
+          .stub(navigator.credentials, 'get')
+          .rejects(
+            new DOMException(
+              'The operation either timed out or was not allowed.',
+              'NotAllowedError'
+            )
+          );
 
         const mockCredId = 'new-passkey-credential';
         if ((navigator.credentials.create as any).restore) {
@@ -409,11 +493,13 @@ describeSkipUnlessChrome('Passkey Authentication (Chrome Only)', () => {
           type: 'public-key',
           rawId: new TextEncoder().encode(mockCredId),
           response: {
-            clientDataJSON: new TextEncoder().encode(JSON.stringify({
-              type: 'webauthn.create',
-              challenge: 'validbase64challenge',
-              origin: window.location.origin
-            })),
+            clientDataJSON: new TextEncoder().encode(
+              JSON.stringify({
+                type: 'webauthn.create',
+                challenge: 'validbase64challenge',
+                origin: window.location.origin
+              })
+            ),
             attestationObject: new Uint8Array([1, 2, 3])
           }
         } as any);
@@ -440,9 +526,14 @@ describeSkipUnlessChrome('Passkey Authentication (Chrome Only)', () => {
         if ((navigator.credentials.get as any).restore) {
           (navigator.credentials.get as any).restore();
         }
-        sinon.stub(navigator.credentials, 'get').rejects(
-          new DOMException('The operation either timed out or was not allowed.', 'NotAllowedError')
-        );
+        sinon
+          .stub(navigator.credentials, 'get')
+          .rejects(
+            new DOMException(
+              'The operation either timed out or was not allowed.',
+              'NotAllowedError'
+            )
+          );
       }
 
       const passkeyName = 'Test Device Passkey';
@@ -466,7 +557,11 @@ describeSkipUnlessChrome('Passkey Authentication (Chrome Only)', () => {
   describe('unenrollPasskey', () => {
     it('unenrolls passkey successfully', async () => {
       const email = randomEmail();
-      const userCred = await createUserWithEmailAndPassword(auth, email, 'password');
+      const userCred = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        'password'
+      );
       let user = userCred.user;
 
       const testDriver = getVirtualAuthenticatorDriver();
@@ -485,7 +580,9 @@ describeSkipUnlessChrome('Passkey Authentication (Chrome Only)', () => {
 
       await reload(user);
       const enrolledPasskeys = user.enrolledPasskeys || [];
-      const foundPasskey = enrolledPasskeys.find(p => p.credentialId === credId || p.name === passkeyName);
+      const foundPasskey = enrolledPasskeys.find(
+        p => p.credentialId === credId || p.name === passkeyName
+      );
       expect(foundPasskey).to.not.be.undefined;
       const actualCredId = foundPasskey!.credentialId;
 
@@ -493,13 +590,19 @@ describeSkipUnlessChrome('Passkey Authentication (Chrome Only)', () => {
 
       await reload(user);
       const updatedPasskeys = user.enrolledPasskeys || [];
-      const stillExists = updatedPasskeys.some(p => p.credentialId === actualCredId);
+      const stillExists = updatedPasskeys.some(
+        p => p.credentialId === actualCredId
+      );
       expect(stillExists).to.be.false;
     });
 
     it('rejects when unenrolling unknown credentialId', async () => {
       const email = randomEmail();
-      const userCred = await createUserWithEmailAndPassword(auth, email, 'password');
+      const userCred = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        'password'
+      );
       let user = userCred.user;
 
       const testDriver = getVirtualAuthenticatorDriver();
@@ -518,7 +621,9 @@ describeSkipUnlessChrome('Passkey Authentication (Chrome Only)', () => {
 
       await reload(user);
       const enrolledPasskeys = user.enrolledPasskeys || [];
-      const foundPasskey = enrolledPasskeys.find(p => p.credentialId === credId || p.name === passkeyName);
+      const foundPasskey = enrolledPasskeys.find(
+        p => p.credentialId === credId || p.name === passkeyName
+      );
       expect(foundPasskey).to.not.be.undefined;
       const actualCredId = foundPasskey!.credentialId;
 
@@ -526,7 +631,9 @@ describeSkipUnlessChrome('Passkey Authentication (Chrome Only)', () => {
 
       await reload(user);
       const updatedPasskeys = user.enrolledPasskeys || [];
-      const stillExists = updatedPasskeys.some(p => p.credentialId === actualCredId);
+      const stillExists = updatedPasskeys.some(
+        p => p.credentialId === actualCredId
+      );
       expect(stillExists).to.be.true;
     });
   });

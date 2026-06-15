@@ -28,11 +28,11 @@ module.exports = function (config) {
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
     frameworks: ['mocha'],
     client: Object.assign({}, karmaBase.client, getClientConfig(argv)),
-    capabilities: { 
-      "browserName": "chrome",
-      "webauthn:virtualAuthenticators": true,
-      "webauthn:extension:largeBlob": true,
-      "webauthn:extension:credBlob": true
+    capabilities: {
+      'browserName': 'chrome',
+      'webauthn:virtualAuthenticators': true,
+      'webauthn:extension:largeBlob': true,
+      'webauthn:extension:credBlob': true
     }
   });
 
