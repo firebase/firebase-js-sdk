@@ -58,7 +58,6 @@
   },
   "workspaces": [
     "packages/*",
-    "packages/auth/demo",
     "integration/*",
     "repo-scripts/*"
   ],
@@ -160,8 +159,5 @@
     "watch": "1.0.2",
     "webpack": "5.104.1",
     "yargs": "17.7.2"
-  },
-  "resolutions": {
-    "@babel/traverse": "^7.24.1"
   }
 }
