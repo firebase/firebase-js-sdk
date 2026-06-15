@@ -17,11 +17,7 @@
 
 import { _getProvider, FirebaseApp, getApp } from '@firebase/app';
 import { CrashlyticsInternal, ErrorWithSymbol } from './types';
-import {
-  CRASHLYTICS_ATTRIBUTE_KEYS,
-  ALREADY_LOGGED_FLAG,
-  CRASHLYTICS_TYPE
-} from './constants';
+import { ALREADY_LOGGED_FLAG, CRASHLYTICS_TYPE } from './constants';
 import { Crashlytics, CrashlyticsOptions } from './public-types';
 import { Provider } from '@firebase/component';
 import { AnyValueMap, SeverityNumber } from '@opentelemetry/api-logs';
@@ -32,6 +28,7 @@ import {
   startUserInteractionTrace
 } from './helpers';
 import { deepEqual } from '@firebase/util';
+import { SPAN_ATTR_KEY } from './attributes-store';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
@@ -237,7 +234,7 @@ export function logViewBoundary(
   urlTemplate: string,
   attributes?: AnyValueMap
 ): void {
-  const { loggerProvider, contextManager, attributesStore } =
+  const { loggerProvider, attributesStore } =
     crashlytics as CrashlyticsInternal;
   const logger = loggerProvider.getLogger('view-boundary-logger');
   const customAttributes: AnyValueMap = attributesStore.getLogAttributes();
@@ -252,12 +249,10 @@ export function logViewBoundary(
     severityNumber: SeverityNumber.INFO,
     body: 'Navigation event',
     attributes: {
-      [CRASHLYTICS_ATTRIBUTE_KEYS.APP_SCREEN_ID]: urlTemplate,
+      [SPAN_ATTR_KEY.APP_SCREEN_ID]: urlTemplate,
       ...customAttributes
     }
   });
-
-  contextManager.setActiveAppScreenId(urlTemplate);
 }
 
 export { flush, startUserInteractionTrace };

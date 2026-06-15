@@ -115,29 +115,6 @@ describe('RootSpanContextManager', () => {
     manager = new RootSpanContextManager();
   });
 
-  describe('app screen id tracking', () => {
-    it('should return active app screen id as undefined by default', () => {
-      expect(manager.getActiveAppScreenId()).to.be.undefined;
-    });
-
-    it('should set and get active app screen id', () => {
-      const mockScreenId = 'screen-id';
-      manager.setActiveAppScreenId(mockScreenId);
-      expect(manager.getActiveAppScreenId()).to.equal(mockScreenId);
-    });
-
-    it('should override previous active app screen id', () => {
-      const mockScreenId1 = 'screen-id-1';
-      const mockScreenId2 = 'screen-id-2';
-
-      manager.setActiveAppScreenId(mockScreenId1);
-      expect(manager.getActiveAppScreenId()).to.equal(mockScreenId1);
-
-      manager.setActiveAppScreenId(mockScreenId2);
-      expect(manager.getActiveAppScreenId()).to.equal(mockScreenId2);
-    });
-  });
-
   describe('active context', () => {
     it('should contain the active root span', () => {
       const rootSpan = manager.startRootSpan(mockTracer as Tracer, 'span-1');
