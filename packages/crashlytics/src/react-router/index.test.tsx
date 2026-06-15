@@ -26,7 +26,7 @@ import { CrashlyticsRoutes } from '.';
 import React from 'react';
 import { render } from '@testing-library/react';
 import { MemoryRouter, Route } from 'react-router-dom';
-import { ATTR_KEY_ROUTE_PATH, AttributesStore } from '../attributes-store';
+import { LOG_ATTR_KEY, AttributesStore } from '../attributes-store';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -178,9 +178,9 @@ describe('CrashlyticsRoutes', () => {
       </MemoryRouter>
     );
 
-    expect(fakeAttributesStore.getLogAttributes()[ATTR_KEY_ROUTE_PATH]).to.equal('/users/:id');
+    expect(fakeAttributesStore.getLogAttributes()[LOG_ATTR_KEY.ROUTE_PATH]).to.equal('/users/:id');
 
     unmount();
-    expect(fakeAttributesStore.getLogAttributes()[ATTR_KEY_ROUTE_PATH]).to.be.undefined;
+    expect(fakeAttributesStore.getLogAttributes()[LOG_ATTR_KEY.ROUTE_PATH]).to.be.undefined;
   });
 });
