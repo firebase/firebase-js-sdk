@@ -19,6 +19,9 @@ import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 
+declare const browser: any;
+declare const driver: any;
+
 // eslint-disable-next-line import/no-extraneous-dependencies
 import {
   createUserWithEmailAndPassword,
@@ -230,7 +233,7 @@ const setupMockFetch = (): void => {
   sinon.stub(window, 'fetch').callsFake(async (input, init) => {
     const url = typeof input === 'string' ? input : (input as Request).url;
     const bodyStr = init?.body ? String(init.body) : '';
-    let body = {};
+    let body: any = {};
     if (bodyStr) {
       try {
         body = JSON.parse(bodyStr);

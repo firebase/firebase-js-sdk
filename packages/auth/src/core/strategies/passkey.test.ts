@@ -68,7 +68,7 @@ describe('passkey', async () => {
   });
 
   it('should sign in with passkey', async () => {
-    if (typeof navigator === 'undefined') {
+    if (typeof navigator === 'undefined' || typeof navigator.credentials === 'undefined') {
       return;
     }
     sinon.stub(navigator.credentials, 'get').resolves(mockCredential);
@@ -91,7 +91,7 @@ describe('passkey', async () => {
   });
 
   it('should sign in with manualSignUp set to false', async () => {
-    if (typeof navigator === 'undefined') {
+    if (typeof navigator === 'undefined' || typeof navigator.credentials === 'undefined') {
       return;
     }
     sinon
@@ -161,7 +161,7 @@ describe('passkey', async () => {
   });
 
   it('should fail with no passkey found locally', async () => {
-    if (typeof navigator === 'undefined') {
+    if (typeof navigator === 'undefined' || typeof navigator.credentials === 'undefined') {
       return;
     }
     sinon
@@ -194,7 +194,7 @@ describe('passkey', async () => {
   });
 
   it('should enroll passkey', async () => {
-    if (typeof navigator === 'undefined') {
+    if (typeof navigator === 'undefined' || typeof navigator.credentials === 'undefined') {
       return;
     }
     sinon.stub(navigator.credentials, 'create').resolves(mockCredential);
@@ -238,7 +238,7 @@ describe('passkey', async () => {
   });
 
   it('should enroll passkey failed if failed to create passkey', async () => {
-    if (typeof navigator === 'undefined') {
+    if (typeof navigator === 'undefined' || typeof navigator.credentials === 'undefined') {
       return;
     }
     sinon
