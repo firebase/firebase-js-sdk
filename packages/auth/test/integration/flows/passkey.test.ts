@@ -228,7 +228,14 @@ const setupMockFetch = () => {
   sinon.stub(window, 'fetch').callsFake(async (input, init) => {
     const url = typeof input === 'string' ? input : (input as Request).url;
     const bodyStr = init?.body ? String(init.body) : '';
-    const body = bodyStr ? JSON.parse(bodyStr) : {};
+    let body = {};
+    if (bodyStr) {
+      try {
+        body = JSON.parse(bodyStr);
+      } catch {
+        // Safe fallback for non-JSON bodies
+      }
+    }
 
     if (url.includes('passkeyEnrollment:start')) {
       const resp = {
