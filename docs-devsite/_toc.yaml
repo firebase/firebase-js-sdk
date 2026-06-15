@@ -390,6 +390,8 @@ toc:
     path: /docs/reference/js/auth.oauthprovider.md
   - title: ParsedToken
     path: /docs/reference/js/auth.parsedtoken.md
+  - title: PasskeyInfo
+    path: /docs/reference/js/auth.passkeyinfo.md
   - title: PasswordPolicy
     path: /docs/reference/js/auth.passwordpolicy.md
   - title: PasswordValidationStatus

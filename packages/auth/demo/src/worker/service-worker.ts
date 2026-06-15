@@ -76,16 +76,18 @@ function getOriginFromUrl(url: string): string {
 
 self.addEventListener('install', (event: ExtendableEvent) => {
   // Perform install steps.
-  event.waitUntil(async (): Promise<void> => {
-    const cache = await caches.open(CACHE_NAME);
-    // Add all URLs of resources we want to cache.
-    try {
-      await cache.addAll(urlsToCache);
-    } catch {
-      // Suppress error as some of the files may not be available for the
-      // current page.
-    }
-  });
+  event.waitUntil(
+    (async (): Promise<void> => {
+      const cache = await caches.open(CACHE_NAME);
+      // Add all URLs of resources we want to cache.
+      try {
+        await cache.addAll(urlsToCache);
+      } catch {
+        // Suppress error as some of the files may not be available for the
+        // current page.
+      }
+    })()
+  );
 });
 
 // As this is a test app, let's only return cached data when offline.
@@ -134,10 +136,10 @@ self.addEventListener('fetch', (event: FetchEvent) => {
             return response;
           }
           // If response is valid, clone it and save it to the cache.
-          var responseToCache = response.clone();
+          const responseToCache = response.clone();
           // Save response to cache.
-          caches.open(CACHE_NAME).then(function (cache) {
-            cache.put(event.request, responseToCache);
+          void caches.open(CACHE_NAME).then(cache => {
+            void cache.put(event.request, responseToCache);
           });
           // After caching, return response.
           return response;
@@ -158,16 +160,18 @@ self.addEventListener('fetch', (event: FetchEvent) => {
 self.addEventListener('activate', (event: ExtendableEvent) => {
   // Update this list with all caches that need to remain cached.
   const cacheWhitelist = ['cache-v1'];
-  event.waitUntil(async (): Promise<void> => {
-    const cacheNames = await caches.keys();
-    await Promise.all(
-      cacheNames.map(cacheName => {
-        // Check if cache is not whitelisted above.
-        if (cacheWhitelist.indexOf(cacheName) === -1) {
-          // If not whitelisted, delete it.
-          return caches.delete(cacheName);
-        }
-      })
-    );
-  });
+  event.waitUntil(
+    (async (): Promise<void> => {
+      const cacheNames = await caches.keys();
+      await Promise.all(
+        cacheNames.map(cacheName => {
+          // Check if cache is not whitelisted above.
+          if (cacheWhitelist.indexOf(cacheName) === -1) {
+            // If not whitelisted, delete it.
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    })()
+  );
 });
