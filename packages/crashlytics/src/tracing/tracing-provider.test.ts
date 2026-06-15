@@ -17,21 +17,27 @@
 
 import {
   createTracingProvider,
-  patchNetworkRequests
+  patchNetworkRequests,
+  OTLPTraceExporter
 } from './tracing-provider';
 import { expect } from 'chai';
 import { FirebaseApp } from '@firebase/app';
 import { RootSpanContextManager } from './root-span-context-manager';
 import { CrashlyticsOptions } from '../public-types';
+import { FetchInstrumentation } from '@opentelemetry/instrumentation-fetch';
+import { XMLHttpRequestInstrumentation } from '@opentelemetry/instrumentation-xml-http-request';
 import * as sinon from 'sinon';
 import { context, trace } from '@opentelemetry/api';
 import { AttributesStore } from '../attributes-store';
+import { resourceFromAttributes } from '@opentelemetry/resources';
+import { WebTracerProvider } from '@opentelemetry/sdk-trace-web';
+import { CompositePropagator } from '@opentelemetry/core';
 
 describe('createTracingProvider', () => {
   let mockApp: FirebaseApp;
   let mockRootSpanContextManager: RootSpanContextManager;
-  let mockCrashlyticsOptions: CrashlyticsOptions;
   let mockAttributesStore: AttributesStore;
+  let mockSpan: any;
   beforeEach(() => {
     mockApp = {
       options: {
@@ -45,18 +51,264 @@ describe('createTracingProvider', () => {
       startRootSpan: () => ({}),
       getActiveRootSpan: () => undefined
     } as unknown as RootSpanContextManager;
-    mockCrashlyticsOptions = {} as CrashlyticsOptions;
     mockAttributesStore = {} as unknown as AttributesStore;
+    mockSpan = {
+      name: 'test-span',
+      kind: 0,
+      spanContext: () => ({
+        traceId: '00000000000000000000000000000001',
+        spanId: '0000000000000002',
+        traceFlags: 1
+      }),
+      startTime: [0, 0],
+      endTime: [1, 0],
+      attributes: {},
+      links: [],
+      events: [],
+      status: { code: 0 },
+      resource: resourceFromAttributes({}),
+      instrumentationScope: { name: 'test-scope', version: '1.0.0' }
+    } as any;
   });
 
-  it('should return a tracer provider instance', () => {
+  afterEach(() => {
+    sinon.restore();
+  });
+
+  it('should return a default tracing provider when running in a server/Node environment', () => {
+    if (typeof window !== 'undefined') {
+      return;
+    }
+    const mockCrashlyticsOptions = {} as CrashlyticsOptions;
     const provider = createTracingProvider(
       mockApp,
       mockRootSpanContextManager,
       mockCrashlyticsOptions,
       mockAttributesStore
     );
+    expect(provider).to.equal(trace.getTracerProvider());
+  });
+
+  it('should register the WebTracerProvider globally with the root span context manager and W3CTraceContextPropagator', () => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const registerSpy = sinon.spy(WebTracerProvider.prototype, 'register');
+
+    const mockCrashlyticsOptions = {
+      tracingUrl: 'http://localhost:4318'
+    } as CrashlyticsOptions;
+
+    const provider = createTracingProvider(
+      mockApp,
+      mockRootSpanContextManager,
+      mockCrashlyticsOptions,
+      mockAttributesStore
+    );
+
+    expect(registerSpy.calledOnce).to.be.true;
+    const registerArgs = registerSpy.firstCall.args[0];
+    expect(registerArgs).to.be.ok;
+    expect(registerArgs!.contextManager).to.equal(mockRootSpanContextManager);
+
+    const propagator = registerArgs!.propagator;
+    expect(propagator).to.be.ok;
+    expect(propagator instanceof CompositePropagator).to.be.true;
+
+    // Verify that the registered propagator is a W3C trace context propagator
+    // by checking that it injects a W3C spec-compliant 'traceparent' header.
+    const spanContext = {
+      traceId: '4bf92f3577b34da6a3ce929d0e0e4736',
+      spanId: '00f067aa0ba902b7',
+      traceFlags: 1
+    };
+    const testContext = trace.setSpanContext(context.active(), spanContext);
+    const carrier: Record<string, string> = {};
+    const setter = {
+      set: (c: any, k: string, v: string) => {
+        c[k] = v;
+      }
+    };
+
+    propagator!.inject(testContext, carrier, setter);
+
+    expect(carrier['traceparent']).to.equal(
+      '00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01'
+    );
     expect(provider).to.be.ok;
+  });
+
+  it("should start the 'app-start' root span on the context manager during initialization", () => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const startRootSpanSpy = sinon.spy(
+      mockRootSpanContextManager,
+      'startRootSpan'
+    );
+
+    const mockCrashlyticsOptions = {
+      tracingUrl: 'http://localhost:4318'
+    } as CrashlyticsOptions;
+
+    const provider = createTracingProvider(
+      mockApp,
+      mockRootSpanContextManager,
+      mockCrashlyticsOptions,
+      mockAttributesStore
+    );
+
+    expect(startRootSpanSpy.calledOnce).to.be.true;
+    expect(startRootSpanSpy.firstCall.args[1]).to.equal('app-start');
+    expect(provider).to.be.ok;
+  });
+
+  it('should register FetchInstrumentation with appropriate ignoreUrls', () => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const fetchInstrumentationSpy = sinon.spy(
+      FetchInstrumentation.prototype,
+      'setConfig'
+    );
+
+    const mockCrashlyticsOptions = {
+      endpointUrl: 'my-custom-endpoint.url',
+      tracingUrl: 'my-custom-tracing.url'
+    } as CrashlyticsOptions;
+
+    createTracingProvider(
+      mockApp,
+      mockRootSpanContextManager,
+      mockCrashlyticsOptions,
+      mockAttributesStore
+    );
+
+    expect(fetchInstrumentationSpy.called).to.be.true;
+    const fetchConfig = fetchInstrumentationSpy.lastCall.args[0] as any;
+    expect(fetchConfig.ignoreUrls).to.be.an('array').with.lengthOf(2);
+
+    const fetchPatterns = fetchConfig.ignoreUrls.map((r: RegExp) => r.source);
+    expect(fetchPatterns).to.include('my-custom-endpoint\\.url');
+    expect(fetchPatterns).to.include('my-custom-tracing\\.url');
+  });
+
+  it('should register XMLHttpRequestInstrumentation with appropriate ignoreUrls', () => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const xhrInstrumentationSpy = sinon.spy(
+      XMLHttpRequestInstrumentation.prototype,
+      'setConfig'
+    );
+
+    const mockCrashlyticsOptions = {
+      endpointUrl: 'my-custom-endpoint.url',
+      tracingUrl: 'my-custom-tracing.url'
+    } as CrashlyticsOptions;
+
+    createTracingProvider(
+      mockApp,
+      mockRootSpanContextManager,
+      mockCrashlyticsOptions,
+      mockAttributesStore
+    );
+
+    expect(xhrInstrumentationSpy.called).to.be.true;
+    const xhrConfig = xhrInstrumentationSpy.lastCall.args[0] as any;
+    expect(xhrConfig.ignoreUrls).to.be.an('array').with.lengthOf(2);
+
+    const xhrPatterns = xhrConfig.ignoreUrls.map((r: RegExp) => r.source);
+    expect(xhrPatterns).to.include('my-custom-endpoint\\.url');
+    expect(xhrPatterns).to.include('my-custom-tracing\\.url');
+  });
+
+  describe('OTLPTraceExporter', () => {
+    let fetchStub: sinon.SinonStub;
+
+    beforeEach(() => {
+      fetchStub = sinon
+        .stub(globalThis, 'fetch')
+        .resolves(new Response('test response', { status: 200 }));
+    });
+
+    it('should attach dynamic headers to the export request', async () => {
+      const mockHeaderProvider = {
+        getHeader: sinon
+          .stub()
+          .resolves(['X-My-Dynamic-Header', 'dynamic-value'])
+      };
+
+      const exporter = new OTLPTraceExporter({ url: 'http://localhost' }, [
+        mockHeaderProvider
+      ]);
+
+      await new Promise<void>((resolve, reject) => {
+        exporter
+          .export([mockSpan], res => {
+            if (res.code === 0) {
+              resolve();
+            } else {
+              reject(res.error || new Error('Export failed'));
+            }
+          })
+          .catch(reject);
+      });
+
+      expect(fetchStub.calledOnce).to.be.true;
+      const fetchOptions = fetchStub.firstCall.args[1] as any;
+      const requestHeaders = fetchOptions.headers as any;
+      expect(requestHeaders.get('X-My-Dynamic-Header')).to.equal(
+        'dynamic-value'
+      );
+    });
+
+    it('should inject the installation id attribute into exported spans', async () => {
+      const mockAttributesStore = {
+        getInstallationIdAttribute: sinon.stub().resolves({
+          'installation_id_key': 'installation_id_value'
+        })
+      } as unknown as AttributesStore;
+
+      const exporter = new OTLPTraceExporter(
+        { url: 'http://localhost' },
+        [],
+        mockAttributesStore
+      );
+
+      await new Promise<void>((resolve, reject) => {
+        exporter
+          .export([mockSpan], res => {
+            if (res.code === 0) {
+              resolve();
+            } else {
+              reject(res.error || new Error('Export failed'));
+            }
+          })
+          .catch(reject);
+      });
+
+      expect(fetchStub.calledOnce).to.be.true;
+      const fetchOptions = fetchStub.firstCall.args[1] as any;
+      const requestBodyUint8 = fetchOptions.body;
+
+      // Decode and parse request body
+      const decodedString = new TextDecoder().decode(requestBodyUint8);
+      const json = JSON.parse(decodedString);
+
+      const spans = json.resourceSpans[0].scopeSpans[0].spans;
+      const spanAttributes = spans[0].attributes || [];
+
+      const dynamicAttr = spanAttributes.find(
+        (a: any) => a.key === 'installation_id_key'
+      );
+      expect(dynamicAttr).to.be.ok;
+      expect(dynamicAttr.value.stringValue).to.equal('installation_id_value');
+    });
   });
 
   describe('patchNetworkRequests', () => {
@@ -64,7 +316,6 @@ describe('createTracingProvider', () => {
     let originalOpen: typeof XMLHttpRequest.prototype.open;
     let startRootSpanStub: sinon.SinonStub;
     let getActiveRootSpanStub: sinon.SinonStub;
-    let mockSpan: any;
     let activeSpanDuringFetch: any;
     let activeSpanDuringOpen: any;
 
@@ -96,14 +347,6 @@ describe('createTracingProvider', () => {
           activeSpanDuringOpen = trace.getSpan(context.active());
         }) as any;
 
-        mockSpan = {
-          spanContext: () => ({
-            traceId: '00000000000000000000000000000001',
-            spanId: '0000000000000002',
-            traceFlags: 1
-          })
-        };
-
         startRootSpanStub = sinon
           .stub(mockRootSpanContextManager, 'startRootSpan')
           .returns({ span: mockSpan } as any);
@@ -111,10 +354,6 @@ describe('createTracingProvider', () => {
           .stub(mockRootSpanContextManager, 'getActiveRootSpan')
           .returns(undefined);
       }
-    });
-
-    afterEach(() => {
-      sinon.restore();
     });
 
     it('[fetch] should create a background network root span and run the fetch call under its context if no root span is active', () => {
