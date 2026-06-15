@@ -29,10 +29,6 @@ import {
 import { Component, ComponentType } from '@firebase/component';
 import { FirebaseAppCheckInternal } from '@firebase/app-check-interop-types';
 import { recordError, flush, getCrashlytics, logViewBoundary } from './api';
-import {
-  CRASHLYTICS_ATTRIBUTE_KEYS,
-  CRASHLYTICS_SESSION_ID_KEY
-} from './constants';
 import { CrashlyticsService } from './service';
 import { registerCrashlytics } from './register';
 import { _FirebaseInstallationsInternal } from '@firebase/installations';
@@ -41,7 +37,8 @@ import { CrashlyticsInternal } from './types';
 import { RootSpanContextManager } from './tracing/root-span-context-manager';
 import {
   AttributesStore,
-  COMMON_ATTR_KEY,
+  LOG_ATTR_KEY,
+  SPAN_ATTR_KEY,
   SESSION_STORAGE_SESSION_ID_KEY
 } from './attributes-store';
 
@@ -141,7 +138,7 @@ describe('Top level API', () => {
     });
 
     // Simulate session creation that now happens in registerCrashlytics
-    storage[CRASHLYTICS_SESSION_ID_KEY] = MOCK_SESSION_ID;
+    storage[SESSION_STORAGE_SESSION_ID_KEY] = MOCK_SESSION_ID;
 
     fakeAttributesStore = new AttributesStore(fakeApp.options);
     fakeCrashlytics.attributesStore = fakeAttributesStore;
@@ -285,9 +282,9 @@ describe('Top level API', () => {
       const log = emittedLogs[0];
       expect(log.severityNumber).to.equal(SeverityNumber.INFO);
       expect(log.body).to.equal('Navigation event');
-      expect(
-        log.attributes![CRASHLYTICS_ATTRIBUTE_KEYS.APP_SCREEN_ID]
-      ).to.equal(urlTemplate);
+      expect(log.attributes![SPAN_ATTR_KEY.APP_SCREEN_ID]).to.equal(
+        urlTemplate
+      );
     });
 
     it('should emit a log record with additional attributes if available', () => {
@@ -298,22 +295,9 @@ describe('Top level API', () => {
       expect(emittedLogs.length).to.equal(1);
       const log = emittedLogs[0];
       expect(log.attributes!['custom.attr']).to.equal('value');
-      expect(
-        log.attributes![CRASHLYTICS_ATTRIBUTE_KEYS.APP_SCREEN_ID]
-      ).to.equal(urlTemplate);
-    });
-
-    it('should assign new location as active app screen id in root span context manager', () => {
-      const spy = sinon.spy(fakeContextManager, 'setActiveAppScreenId');
-      const urlTemplate = '/users/:id';
-
-      try {
-        logViewBoundary(fakeCrashlytics, urlTemplate);
-
-        expect(spy.calledWith(urlTemplate)).to.be.true;
-      } finally {
-        spy.restore();
-      }
+      expect(log.attributes![SPAN_ATTR_KEY.APP_SCREEN_ID]).to.equal(
+        urlTemplate
+      );
     });
   });
 
@@ -332,8 +316,8 @@ describe('Top level API', () => {
       expect(log.attributes).to.deep.equal({
         'error.type': 'TestError',
         'error.stack': '...stack trace...',
-        [COMMON_ATTR_KEY.APP_VERSION]: 'unset',
-        [COMMON_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID
+        [LOG_ATTR_KEY.APP_VERSION]: 'unset',
+        [LOG_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID
       });
     });
 
@@ -350,8 +334,8 @@ describe('Top level API', () => {
       expect(log.attributes).to.deep.equal({
         'error.type': 'Error',
         'error.stack': 'No stack trace available',
-        [COMMON_ATTR_KEY.APP_VERSION]: 'unset',
-        [COMMON_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID
+        [LOG_ATTR_KEY.APP_VERSION]: 'unset',
+        [LOG_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID
       });
     });
 
@@ -363,8 +347,8 @@ describe('Top level API', () => {
       expect(log.severityNumber).to.equal(SeverityNumber.ERROR);
       expect(log.body).to.equal('a string error');
       expect(log.attributes).to.deep.equal({
-        [COMMON_ATTR_KEY.APP_VERSION]: 'unset',
-        [COMMON_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID
+        [LOG_ATTR_KEY.APP_VERSION]: 'unset',
+        [LOG_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID
       });
     });
 
@@ -376,8 +360,8 @@ describe('Top level API', () => {
       expect(log.severityNumber).to.equal(SeverityNumber.ERROR);
       expect(log.body).to.equal('Unknown error type: number');
       expect(log.attributes).to.deep.equal({
-        [COMMON_ATTR_KEY.APP_VERSION]: 'unset',
-        [COMMON_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID
+        [LOG_ATTR_KEY.APP_VERSION]: 'unset',
+        [LOG_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID
       });
     });
 
@@ -400,10 +384,10 @@ describe('Top level API', () => {
       expect(emittedLogs[0].attributes).to.deep.equal({
         'error.type': 'TestError',
         'error.stack': '...stack trace...',
-        [COMMON_ATTR_KEY.APP_VERSION]: 'unset',
+        [LOG_ATTR_KEY.APP_VERSION]: 'unset',
         'logging.googleapis.com/trace': `projects/${PROJECT_ID}/traces/my-trace`,
         'logging.googleapis.com/spanId': `my-span`,
-        [COMMON_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID
+        [LOG_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID
       });
     });
 
@@ -426,14 +410,14 @@ describe('Top level API', () => {
       expect(log.attributes).to.deep.equal({
         'error.type': 'TestError',
         'error.stack': '...stack trace...',
-        [COMMON_ATTR_KEY.APP_VERSION]: 'unset',
+        [LOG_ATTR_KEY.APP_VERSION]: 'unset',
         strAttr: 'string attribute',
         mapAttr: {
           boolAttr: true,
           numAttr: 2
         },
         arrAttr: [1, 2, 3],
-        [COMMON_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID
+        [LOG_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID
       });
     });
 
@@ -455,8 +439,8 @@ describe('Top level API', () => {
       expect(emittedLogs.length).to.equal(1);
       const log = emittedLogs[0];
       expect(log.attributes).to.deep.equal({
-        [COMMON_ATTR_KEY.APP_VERSION]: '1.0.0',
-        [COMMON_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID
+        [LOG_ATTR_KEY.APP_VERSION]: '1.0.0',
+        [LOG_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID
       });
     });
 
@@ -470,8 +454,8 @@ describe('Top level API', () => {
       expect(emittedLogs.length).to.equal(1);
       const log = emittedLogs[0];
       expect(log.attributes).to.deep.equal({
-        [COMMON_ATTR_KEY.APP_VERSION]: '1.2.3',
-        [COMMON_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID
+        [LOG_ATTR_KEY.APP_VERSION]: '1.2.3',
+        [LOG_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID
       });
     });
 
@@ -489,9 +473,9 @@ describe('Top level API', () => {
       expect(log.attributes).to.deep.equal({
         'error.type': 'TestError',
         'error.stack': '...stack trace...',
-        [COMMON_ATTR_KEY.APP_VERSION]: 'unset',
+        [LOG_ATTR_KEY.APP_VERSION]: 'unset',
         'route_path': '/my-route',
-        [COMMON_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID
+        [LOG_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID
       });
     });
 
@@ -505,7 +489,7 @@ describe('Top level API', () => {
 
         expect(emittedLogs.length).to.equal(1);
         const log = emittedLogs[0];
-        expect(log.attributes![COMMON_ATTR_KEY.SESSION_ID]).to.equal(
+        expect(log.attributes![LOG_ATTR_KEY.SESSION_ID]).to.equal(
           'existing-session-id'
         );
       });
@@ -530,7 +514,7 @@ describe('Top level API', () => {
 
         expect(emittedLogs.length).to.equal(1);
         const log = emittedLogs[0];
-        expect(log.attributes![COMMON_ATTR_KEY.SESSION_ID]).to.be.undefined;
+        expect(log.attributes![LOG_ATTR_KEY.SESSION_ID]).to.be.undefined;
       });
 
       it('should handle errors when sessionStorage.setItem throws', () => {
@@ -553,7 +537,7 @@ describe('Top level API', () => {
 
         expect(emittedLogs.length).to.equal(1);
         const log = emittedLogs[0];
-        expect(log.attributes![COMMON_ATTR_KEY.SESSION_ID]).to.be.undefined;
+        expect(log.attributes![LOG_ATTR_KEY.SESSION_ID]).to.be.undefined;
       });
     });
   });

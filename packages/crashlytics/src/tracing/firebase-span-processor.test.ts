@@ -20,12 +20,11 @@ import * as sinon from 'sinon';
 import { Span } from '@opentelemetry/sdk-trace-base';
 import { FirebaseSpanProcessor } from './firebase-span-processor';
 import { RootSpan, RootSpanContextManager } from './root-span-context-manager';
-import { AttributesStore } from '../attributes-store';
 import {
-  CRASHLYTICS_SESSION_ID_KEY,
-  COMMON_SPAN_ATTRIBUTE_KEYS,
-  CRASHLYTICS_ATTRIBUTE_KEYS
-} from '../constants';
+  AttributesStore,
+  SESSION_STORAGE_SESSION_ID_KEY,
+  SPAN_ATTR_KEY
+} from '../attributes-store';
 
 const MOCK_SESSION_ID = 'mock-session-id';
 
@@ -64,8 +63,7 @@ describe('FirebaseSpanProcessor', () => {
 
     mockRootSpanContextManager = {
       getActiveRootSpan: () => activeRootSpanMock as unknown as RootSpan,
-      getRootSpanByTraceId: () => activeRootSpanMock as unknown as RootSpan,
-      getActiveAppScreenId: () => undefined
+      getRootSpanByTraceId: () => activeRootSpanMock as unknown as RootSpan
     } as unknown as RootSpanContextManager;
 
     const attributesStore = new AttributesStore({ projectId: 'my-project' });
@@ -78,6 +76,9 @@ describe('FirebaseSpanProcessor', () => {
       spanContext: () => ({ traceId: 'traceId1' }),
       setAttribute: (key: string, value: string) => {
         mockSpan.attributes[key] = value;
+      },
+      setAttributes: (attrs: Record<string, any>) => {
+        Object.assign(mockSpan.attributes, attrs);
       }
     };
   });
@@ -92,7 +93,7 @@ describe('FirebaseSpanProcessor', () => {
 
   describe('onStart', () => {
     it('should add session id to span if present in storage', () => {
-      storage[CRASHLYTICS_SESSION_ID_KEY] = MOCK_SESSION_ID;
+      storage[SESSION_STORAGE_SESSION_ID_KEY] = MOCK_SESSION_ID;
       const attributesStore = new AttributesStore({ projectId: 'my-project' });
       processor = new FirebaseSpanProcessor(
         mockRootSpanContextManager,
@@ -100,7 +101,7 @@ describe('FirebaseSpanProcessor', () => {
       );
       processor.onStart(mockSpan as Span, {} as any);
       expect(
-        mockSpan.attributes[COMMON_SPAN_ATTRIBUTE_KEYS.GCP_FIREBASE_SESSION_ID]
+        mockSpan.attributes[SPAN_ATTR_KEY.GCP_FIREBASE_SESSION_ID]
       ).to.equal(MOCK_SESSION_ID);
     });
 
@@ -111,23 +112,21 @@ describe('FirebaseSpanProcessor', () => {
         attributesStore
       );
       processor.onStart(mockSpan as Span, {} as any);
-      expect(
-        mockSpan.attributes[COMMON_SPAN_ATTRIBUTE_KEYS.GCP_FIREBASE_SESSION_ID]
-      ).to.be.undefined;
+      expect(mockSpan.attributes[SPAN_ATTR_KEY.GCP_FIREBASE_SESSION_ID]).to.be
+        .undefined;
     });
 
     it('should add region to resource name if present in options', () => {
-      const attributesStore = new AttributesStore({ projectId: 'my-project' });
+      const attributesStore = new AttributesStore(
+        { projectId: 'my-project' },
+        { region: 'us-central1' }
+      );
       processor = new FirebaseSpanProcessor(
         mockRootSpanContextManager,
-        attributesStore,
-        { region: 'us-central1' },
-        { projectId: 'my-project' }
+        attributesStore
       );
       processor.onStart(mockSpan as Span, {} as any);
-      expect(
-        mockSpan.attributes[COMMON_SPAN_ATTRIBUTE_KEYS.GCP_RESOURCE_NAME]
-      ).to.equal(
+      expect(mockSpan.attributes[SPAN_ATTR_KEY.GCP_RESOURCE_NAME]).to.equal(
         '//firebasetelemetry.googleapis.com/projects/my-project/locations/us-central1/'
       );
     });
@@ -136,44 +135,35 @@ describe('FirebaseSpanProcessor', () => {
       const attributesStore = new AttributesStore({ projectId: 'my-project' });
       processor = new FirebaseSpanProcessor(
         mockRootSpanContextManager,
-        attributesStore,
-        {},
-        { projectId: 'my-project' }
+        attributesStore
       );
       processor.onStart(mockSpan as Span, {} as any);
-      expect(
-        mockSpan.attributes[COMMON_SPAN_ATTRIBUTE_KEYS.GCP_RESOURCE_NAME]
-      ).to.equal(
+      expect(mockSpan.attributes[SPAN_ATTR_KEY.GCP_RESOURCE_NAME]).to.equal(
         '//firebasetelemetry.googleapis.com/projects/my-project/locations/global/'
       );
     });
 
     it('should add active app screen id to span if available', () => {
-      const mockScreenId = 'screen-id';
-      (mockRootSpanContextManager as any).getActiveAppScreenId = () =>
-        mockScreenId;
       const attributesStore = new AttributesStore({ projectId: 'my-project' });
+      attributesStore.setRoutePathProvider(() => 'mock-screen-id');
       processor = new FirebaseSpanProcessor(
         mockRootSpanContextManager,
         attributesStore
       );
       processor.onStart(mockSpan as Span, {} as any);
-      expect(
-        mockSpan.attributes[CRASHLYTICS_ATTRIBUTE_KEYS.APP_SCREEN_ID]
-      ).to.equal(mockScreenId);
+      expect(mockSpan.attributes[SPAN_ATTR_KEY.APP_SCREEN_ID]).to.equal(
+        'mock-screen-id'
+      );
     });
 
     it('should not add active app screen id to span if not available', () => {
-      (mockRootSpanContextManager as any).getActiveAppScreenId = () =>
-        undefined;
       const attributesStore = new AttributesStore({ projectId: 'my-project' });
       processor = new FirebaseSpanProcessor(
         mockRootSpanContextManager,
         attributesStore
       );
       processor.onStart(mockSpan as Span, {} as any);
-      expect(mockSpan.attributes[CRASHLYTICS_ATTRIBUTE_KEYS.APP_SCREEN_ID]).to
-        .be.undefined;
+      expect(mockSpan.attributes[SPAN_ATTR_KEY.APP_SCREEN_ID]).to.be.undefined;
     });
 
     it('should set app version attribute to the configured app version', () => {
@@ -183,12 +173,11 @@ describe('FirebaseSpanProcessor', () => {
       );
       processor = new FirebaseSpanProcessor(
         mockRootSpanContextManager,
-        attributesStore,
-        {}
+        attributesStore
       );
       processor.onStart(mockSpan as Span, {} as any);
       expect(
-        mockSpan.attributes[COMMON_SPAN_ATTRIBUTE_KEYS.GCP_FIREBASE_APP_VERSION]
+        mockSpan.attributes[SPAN_ATTR_KEY.GCP_FIREBASE_APP_VERSION]
       ).to.equal('1.2.3');
     });
 
@@ -199,13 +188,11 @@ describe('FirebaseSpanProcessor', () => {
       );
       processor = new FirebaseSpanProcessor(
         mockRootSpanContextManager,
-        attributesStore,
-        {},
-        {}
+        attributesStore
       );
       processor.onStart(mockSpan as Span, {} as any);
       expect(
-        mockSpan.attributes[COMMON_SPAN_ATTRIBUTE_KEYS.GCP_FIREBASE_APP_VERSION]
+        mockSpan.attributes[SPAN_ATTR_KEY.GCP_FIREBASE_APP_VERSION]
       ).to.equal('unset');
     });
   });

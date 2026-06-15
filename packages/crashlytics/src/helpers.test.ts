@@ -21,16 +21,16 @@ import { Logger, LogRecord } from '@opentelemetry/api-logs';
 import { trace, TracerProvider } from '@opentelemetry/api';
 import sinon from 'sinon';
 import { isNode } from '@firebase/util';
-import {
-  CRASHLYTICS_ATTRIBUTE_KEYS,
-  CRASHLYTICS_SESSION_ID_KEY
-} from './constants';
 import { registerListeners, startNewSession } from './helpers';
 import { AUTO_CONSTANTS } from './auto-constants';
 import { CrashlyticsService } from './service';
 import { CrashlyticsInternal } from './types';
 import { RootSpanContextManager } from './tracing/root-span-context-manager';
-import { AttributesStore, COMMON_ATTR_KEY } from './attributes-store';
+import {
+  AttributesStore,
+  LOG_ATTR_KEY,
+  SESSION_STORAGE_SESSION_ID_KEY
+} from './attributes-store';
 
 const MOCK_SESSION_ID = '00000000-0000-0000-0000-000000000000';
 
@@ -50,8 +50,8 @@ describe('helpers', () => {
             const spanContext = rootSpan.span.spanContext();
             logRecord.attributes = {
               ...logRecord.attributes,
-              [CRASHLYTICS_ATTRIBUTE_KEYS.TRACE_ID]: spanContext.traceId,
-              [CRASHLYTICS_ATTRIBUTE_KEYS.SPAN_ID]: spanContext.spanId
+              [LOG_ATTR_KEY.TRACE]: spanContext.traceId,
+              [LOG_ATTR_KEY.SPAN_ID]: spanContext.spanId
             };
           }
           emittedLogs.push(logRecord);
@@ -167,13 +167,13 @@ describe('helpers', () => {
     it('should create a new session and log it with app version (unset)', () => {
       startNewSession(fakeCrashlytics);
 
-      expect(storage[CRASHLYTICS_SESSION_ID_KEY]).to.equal(MOCK_SESSION_ID);
+      expect(storage[SESSION_STORAGE_SESSION_ID_KEY]).to.equal(MOCK_SESSION_ID);
       expect(emittedLogs.length).to.equal(1);
       expect(emittedLogs[0].attributes).to.deep.equal({
-        [COMMON_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID,
-        [COMMON_ATTR_KEY.APP_VERSION]: 'unset',
-        [CRASHLYTICS_ATTRIBUTE_KEYS.TRACE_ID]: 'my-trace',
-        [CRASHLYTICS_ATTRIBUTE_KEYS.SPAN_ID]: 'my-span'
+        [LOG_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID,
+        [LOG_ATTR_KEY.APP_VERSION]: 'unset',
+        [LOG_ATTR_KEY.TRACE]: 'my-trace',
+        [LOG_ATTR_KEY.SPAN_ID]: 'my-span'
       });
     });
 
@@ -184,10 +184,10 @@ describe('helpers', () => {
       startNewSession(fakeCrashlytics);
 
       expect(emittedLogs[0].attributes).to.deep.equal({
-        [COMMON_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID,
-        [COMMON_ATTR_KEY.APP_VERSION]: '1.2.3',
-        [CRASHLYTICS_ATTRIBUTE_KEYS.TRACE_ID]: 'my-trace',
-        [CRASHLYTICS_ATTRIBUTE_KEYS.SPAN_ID]: 'my-span'
+        [LOG_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID,
+        [LOG_ATTR_KEY.APP_VERSION]: '1.2.3',
+        [LOG_ATTR_KEY.TRACE]: 'my-trace',
+        [LOG_ATTR_KEY.SPAN_ID]: 'my-span'
       });
     });
 
@@ -204,10 +204,10 @@ describe('helpers', () => {
       startNewSession(telemetryWithVersion);
 
       expect(emittedLogs[0].attributes).to.deep.equal({
-        [COMMON_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID,
-        [COMMON_ATTR_KEY.APP_VERSION]: '9.9.9',
-        [CRASHLYTICS_ATTRIBUTE_KEYS.TRACE_ID]: 'my-trace',
-        [CRASHLYTICS_ATTRIBUTE_KEYS.SPAN_ID]: 'my-span'
+        [LOG_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID,
+        [LOG_ATTR_KEY.APP_VERSION]: '9.9.9',
+        [LOG_ATTR_KEY.TRACE]: 'my-trace',
+        [LOG_ATTR_KEY.SPAN_ID]: 'my-span'
       });
     });
   });

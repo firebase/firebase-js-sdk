@@ -28,18 +28,8 @@ export const DEFAULT_TELEMETRY_ENDPOINT =
 /** Default region for telemetry data. */
 export const DEFAULT_TELEMETRY_REGION = 'global';
 
-/** Key for storing the session ID in sessionStorage. */
-export const CRASHLYTICS_SESSION_ID_KEY = 'firebasecrashlytics.sessionid';
-
 /** Symbol for the internal flag indicating an error has already been logged. */
 export const ALREADY_LOGGED_FLAG = Symbol('firebase_crashlytics_logged');
-
-/** Label keys that we write in all telemetry signal entries. */
-export const CRASHLYTICS_ATTRIBUTE_KEYS = {
-  TRACE_ID: 'logging.googleapis.com/trace',
-  SPAN_ID: 'logging.googleapis.com/spanId',
-  APP_SCREEN_ID: 'app.screen.id'
-};
 
 /** Label keys for resource attributes in tracing provider */
 export const RESOURCE_ATTRIBUTE_KEYS = {
@@ -48,12 +38,6 @@ export const RESOURCE_ATTRIBUTE_KEYS = {
   GCP_FIREBASE_DOMAIN: 'gcp.firebase.domain',
   SERVICE_NAMESPACE: 'service.namespace',
   GCP_PROJECT_ID: 'gcp.project_id'
-};
-
-export const COMMON_SPAN_ATTRIBUTE_KEYS = {
-  GCP_RESOURCE_NAME: 'gcp.resource.name',
-  GCP_FIREBASE_SESSION_ID: 'gcp.firebase.session_id',
-  GCP_FIREBASE_APP_VERSION: 'gcp.firebase.app_version'
 };
 
 /**

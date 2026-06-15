@@ -37,7 +37,7 @@ import {
   BrowserTestingModule,
   platformBrowserTesting
 } from '@angular/platform-browser/testing';
-import { ATTR_KEY_ROUTE_PATH, AttributesStore } from '../attributes-store';
+import { LOG_ATTR_KEY, AttributesStore } from '../attributes-store';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -103,17 +103,17 @@ describe('FirebaseErrorHandler', () => {
     it('should set the routePath attribute', async () => {
       await router.navigate(['/static-route']);
 
-      expect(attributesStore.getLogAttributes()[ATTR_KEY_ROUTE_PATH]).to.equal(
-        '/static-route'
-      );
+      expect(
+        attributesStore.getLogAttributes()[LOG_ATTR_KEY.ROUTE_PATH]
+      ).to.equal('/static-route');
     });
 
     it('should remove dynamic content from route', async () => {
       await router.navigate(['/dynamic/my-name/route']);
 
-      expect(attributesStore.getLogAttributes()[ATTR_KEY_ROUTE_PATH]).to.equal(
-        '/dynamic/:id/route'
-      );
+      expect(
+        attributesStore.getLogAttributes()[LOG_ATTR_KEY.ROUTE_PATH]
+      ).to.equal('/dynamic/:id/route');
     });
   });
 });

@@ -22,13 +22,6 @@ import {
   Span
 } from '@opentelemetry/sdk-trace-base';
 import { AttributesStore } from '../attributes-store';
-import {
-  COMMON_SPAN_ATTRIBUTE_KEYS,
-  CRASHLYTICS_ATTRIBUTE_KEYS,
-  DEFAULT_TELEMETRY_REGION
-} from '../constants';
-import { CrashlyticsOptions } from '../public-types';
-import { FirebaseOptions } from '@firebase/app';
 import { RootSpanContextManager } from './root-span-context-manager';
 
 /**
@@ -51,9 +44,7 @@ const DOCUMENT_LOAD_INSTRUMENTATION_SCOPE =
 export class FirebaseSpanProcessor implements SpanProcessor {
   constructor(
     private rootSpanContextManager: RootSpanContextManager,
-    private attributesStore: AttributesStore,
-    private crashlyticsOptions: CrashlyticsOptions = {},
-    private firebaseOptions: FirebaseOptions = {}
+    private attributesStore: AttributesStore
   ) {}
 
   forceFlush(): Promise<void> {
@@ -70,30 +61,7 @@ export class FirebaseSpanProcessor implements SpanProcessor {
     ) {
       rootSpan.onResourceFetchSpanStart(span);
     }
-    const activeAppScreenId =
-      this.rootSpanContextManager.getActiveAppScreenId();
-    if (activeAppScreenId) {
-      span.setAttribute(
-        CRASHLYTICS_ATTRIBUTE_KEYS.APP_SCREEN_ID,
-        activeAppScreenId
-      );
-    }
-    const region = this.crashlyticsOptions.region || DEFAULT_TELEMETRY_REGION;
-    span.setAttribute(
-      COMMON_SPAN_ATTRIBUTE_KEYS.GCP_RESOURCE_NAME,
-      `//firebasetelemetry.googleapis.com/projects/${this.firebaseOptions.projectId}/locations/${region}/`
-    );
-    const sessionId = this.attributesStore.sessionId;
-    if (sessionId) {
-      span.setAttribute(
-        COMMON_SPAN_ATTRIBUTE_KEYS.GCP_FIREBASE_SESSION_ID,
-        sessionId
-      );
-    }
-    span.setAttribute(
-      COMMON_SPAN_ATTRIBUTE_KEYS.GCP_FIREBASE_APP_VERSION,
-      this.attributesStore.appVersion
-    );
+    span.setAttributes(this.attributesStore.getSpanAttributes());
   }
 
   onEnd(span: ReadableSpan): void {
