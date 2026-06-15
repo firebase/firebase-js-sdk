@@ -30,7 +30,6 @@ import {
   orderBy,
   query,
   limit,
-  startAfter,
   where,
   documentId,
   runTransaction,
@@ -38,8 +37,11 @@ import {
   setDoc
 } from '../util/firebase_export';
 import { apiDescribe, withTestDb } from '../util/helpers';
-import { getTargetBackend, getRunEnterpriseTests } from '../util/settings';
-import { TargetBackend } from '../util/settings';
+import {
+  getTargetBackend,
+  getRunEnterpriseTests,
+  TargetBackend
+} from '../util/settings';
 
 apiDescribe('Large Documents', persistence => {
   before(function () {
@@ -143,6 +145,7 @@ apiDescribe('Large Documents', persistence => {
         const snapshot = await transaction.get(docRef);
         expect(snapshot.exists()).to.be.true;
         transaction.update(docRef, {
+          // eslint-disable-next-line camelcase
           transaction_timestamp: serverTimestamp()
         });
       });
@@ -211,7 +214,7 @@ apiDescribe('Large Documents', persistence => {
         throw new Error(
           'Setting a document exceeding the 16MB limit should fail.'
         );
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('Caught error in oversized payloads:', error);
         expect(error.code).to.equal('invalid-argument');
       }
