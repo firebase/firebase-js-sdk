@@ -44,6 +44,8 @@ export const enum HttpMethod {
   GET = 'GET'
 }
 
+const errorCodesToInternalSet = new Set(['53', '54']);
+
 export const enum HttpHeader {
   CONTENT_TYPE = 'Content-Type',
   X_FIREBASE_LOCALE = 'X-Firebase-Locale',
@@ -236,7 +238,7 @@ export async function _performFetchWithErrorHandling<V>(
       } else if (serverErrorCode === ServerError.USER_DISABLED) {
         throw _makeTaggedError(auth, AuthErrorCode.USER_DISABLED, json);
       }
-      const authError =
+      let authError =
         errorMap[serverErrorCode as ServerError] ||
         (serverErrorCode
           .toLowerCase()
@@ -244,6 +246,10 @@ export async function _performFetchWithErrorHandling<V>(
       if (serverErrorMessage) {
         throw _errorWithCustomMessage(auth, authError, serverErrorMessage);
       } else {
+        const errorCode = serverErrorCode.split(': ')[1];
+        if (errorCode && errorCodesToInternalSet.has(errorCode.trim())) {
+          authError = AuthErrorCode.INTERNAL_ERROR;
+        }
         _fail(auth, authError);
       }
     }

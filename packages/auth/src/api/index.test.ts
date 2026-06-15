@@ -300,6 +300,62 @@ describe('api/_performApiRequest', () => {
       expect(mock.calls[0].request).to.eql(request);
     });
 
+    it('should translate server passkey errors to auth errors', async () => {
+      mockEndpoint(
+        Endpoint.SIGN_UP,
+        {
+          error: {
+            code: 400,
+            message: ServerError.PASSKEY_LIMIT_EXCEEDED,
+            errors: [
+              {
+                message: ServerError.PASSKEY_LIMIT_EXCEEDED
+              }
+            ]
+          }
+        },
+        400
+      );
+      const promise = _performApiRequest<typeof request, typeof serverResponse>(
+        auth,
+        HttpMethod.POST,
+        Endpoint.SIGN_UP,
+        request
+      );
+      await expect(promise).to.be.rejectedWith(
+        FirebaseError,
+        'auth/passkey-limit-exceeded'
+      );
+    });
+
+    it('should translate passkey internal/magic error codes to internal-error', async () => {
+      mockEndpoint(
+        Endpoint.SIGN_UP,
+        {
+          error: {
+            code: 400,
+            message: 'Error code: 53',
+            errors: [
+              {
+                message: 'Error code: 53'
+              }
+            ]
+          }
+        },
+        400
+      );
+      const promise = _performApiRequest<typeof request, typeof serverResponse>(
+        auth,
+        HttpMethod.POST,
+        Endpoint.SIGN_UP,
+        request
+      );
+      await expect(promise).to.be.rejectedWith(
+        FirebaseError,
+        'auth/internal-error'
+      );
+    });
+
     it('should support custom error handling per endpoint', async () => {
       const mock = mockEndpoint(
         Endpoint.SIGN_UP,
