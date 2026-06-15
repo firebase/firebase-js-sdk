@@ -173,7 +173,7 @@ export declare function getFirestore(app: FirebaseApp): Firestore;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  app | [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | The [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) instance that the returned [Firestore](./firestore_.firestore.md#firestore_class) instance is associated with. |
+|  app | FirebaseApp | The [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) instance that the returned [Firestore](./firestore_.firestore.md#firestore_class) instance is associated with. |
 
 <b>Returns:</b>
 
@@ -198,7 +198,7 @@ export declare function getFirestore(app: FirebaseApp, databaseId: string): Fire
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  app | [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | The [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) instance that the returned [Firestore](./firestore_.firestore.md#firestore_class) instance is associated with. |
+|  app | FirebaseApp | The [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) instance that the returned [Firestore](./firestore_.firestore.md#firestore_class) instance is associated with. |
 |  databaseId | string | The name of the database. |
 
 <b>Returns:</b>
@@ -221,7 +221,7 @@ export declare function initializeFirestore(app: FirebaseApp, settings: Settings
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  app | [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | The [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) with which the <code>Firestore</code> instance will be associated. |
+|  app | FirebaseApp | The [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) with which the <code>Firestore</code> instance will be associated. |
 |  settings | [Settings](./firestore_lite.settings.md#settings_interface) | A settings object to configure the <code>Firestore</code> instance. |
 
 <b>Returns:</b>
@@ -247,7 +247,7 @@ export declare function initializeFirestore(app: FirebaseApp, settings: Settings
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  app | [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | The [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) with which the <code>Firestore</code> instance will be associated. |
+|  app | FirebaseApp | The [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) with which the <code>Firestore</code> instance will be associated. |
 |  settings | [Settings](./firestore_lite.settings.md#settings_interface) | A settings object to configure the <code>Firestore</code> instance. |
 |  databaseId | string | The name of the database. |
 

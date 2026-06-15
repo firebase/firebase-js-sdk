@@ -19,6 +19,7 @@ import { isIndexedDBAvailable } from '@firebase/util';
 import { expect } from 'chai';
 
 import { describe } from '../../util/mocha_extensions';
+// Added import
 
 import {
   clearIndexedDbPersistence,
@@ -28,8 +29,10 @@ import {
   DocumentData,
   DocumentReference,
   Firestore,
-  MemoryLocalCache,
+  getDocsFromCache,
+  getDocsFromServer,
   memoryEagerGarbageCollector,
+  MemoryLocalCache,
   memoryLocalCache,
   memoryLruGarbageCollector,
   newTestApp,
@@ -37,17 +40,13 @@ import {
   PersistentLocalCache,
   persistentLocalCache,
   PrivateSettings,
+  Query,
   QuerySnapshot,
   setDoc,
   SnapshotListenOptions,
   terminate,
   WriteBatch,
-  writeBatch,
-  Query,
-  getDocsFromServer,
-  getDocsFromCache,
-  // @ts-ignore internal API usage
-  _AutoId
+  writeBatch
 } from './firebase_export';
 import {
   ALT_PROJECT_ID,
@@ -455,6 +454,16 @@ export function withEmptyTestCollection(
   return withTestCollection(persistence, {}, fn);
 }
 
+function newAutoId(): string {
+  const chars =
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let autoId = '';
+  for (let i = 0; i < 20; i++) {
+    autoId += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return autoId;
+}
+
 // TODO(mikelehen): Once we wipe the database between tests, we can probably
 // return the same collection every time.
 export function withTestCollectionSettings<T>(
@@ -463,7 +472,7 @@ export function withTestCollectionSettings<T>(
   docs: { [key: string]: DocumentData },
   fn: (collection: CollectionReference, db: Firestore) => Promise<T>
 ): Promise<T> {
-  const collectionId = _AutoId.newId();
+  const collectionId = newAutoId();
   return batchCommitDocsToCollection(
     persistence,
     settings,
@@ -597,4 +606,14 @@ export async function checkOnlineAndOfflineResultsMatch(
   if (expectedDocs.length !== 0) {
     expect(expectedDocs).to.deep.equal(toIds(docsFromServer));
   }
+}
+
+export function itIf(
+  condition: boolean | 'only'
+):
+  | Mocha.TestFunction
+  | Mocha.PendingTestFunction
+  | Mocha.ExclusiveTestFunction {
+  // eslint-disable-next-line no-restricted-properties
+  return condition === 'only' ? it.only : condition ? it : it.skip;
 }
