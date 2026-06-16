@@ -98,7 +98,7 @@ describe('Generate Content', function () {
 
         expect(response.usageMetadata).to.not.be.null;
 
-         if (model.model.includes('gemini-3.5-flash')) {
+        if (model.model.includes('gemini-3.5-flash')) {
           expect(response.usageMetadata!.promptTokenCount).to.not.equal(0);
           expect(response.usageMetadata!.candidatesTokenCount).to.not.equal(0);
           expect(response.usageMetadata!.thoughtsTokenCount).to.not.equal(0);
