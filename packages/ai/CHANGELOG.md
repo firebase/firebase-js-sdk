@@ -1,5 +1,13 @@
 # @firebase/ai
 
+## 2.13.1
+
+### Patch Changes
+
+- [`9bef5ab`](https://github.com/firebase/firebase-js-sdk/commit/9bef5ab7128388811ceab412bc26c553efbc6766) [#10035](https://github.com/firebase/firebase-js-sdk/pull/10035) - Deprecated `GoogleMaps.enableWidget`, following the announcement by the Grounding for Google Maps service.
+
+- [`6a9d3d1`](https://github.com/firebase/firebase-js-sdk/commit/6a9d3d1878ed1177d00915123c72e7821e58bdbd) [#10026](https://github.com/firebase/firebase-js-sdk/pull/10026) (fixes [#9006](https://github.com/firebase/firebase-js-sdk/issues/9006)) - Wrap params.systemInstruction with formatSystemInstruction() in the ChatSession constructor.
+
 ## 2.13.0
 
 ### Minor Changes

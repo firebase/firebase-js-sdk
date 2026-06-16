@@ -1,5 +1,28 @@
 # firebase
 
+## 12.15.0
+
+### Minor Changes
+
+- [`043c0ab`](https://github.com/firebase/firebase-js-sdk/commit/043c0ab81018a8237f03b37073413d3b931c1957) [#9929](https://github.com/firebase/firebase-js-sdk/pull/9929) - Merge offline pipeline implementation with one minor API change
+
+- [`420156e`](https://github.com/firebase/firebase-js-sdk/commit/420156ee6eb2f7cfa0c4c188d73138bc7cd3a1f2) [#10023](https://github.com/firebase/firebase-js-sdk/pull/10023) - Add ability to call `initializeAppCheck` without a `provider`. If no `provider` is passed to `initializeAppCheck`, App Check will attempt to initialize with a `ReCaptchaEnterpriseProvider` using the site key found in the `recaptchaSiteKey` field of the Firebase project config.
+
+### Patch Changes
+
+- Updated dependencies [[`043c0ab`](https://github.com/firebase/firebase-js-sdk/commit/043c0ab81018a8237f03b37073413d3b931c1957), [`e389f70`](https://github.com/firebase/firebase-js-sdk/commit/e389f70b1b9b2c3afe1672b4a6b702eceb7c5e41), [`420156e`](https://github.com/firebase/firebase-js-sdk/commit/420156ee6eb2f7cfa0c4c188d73138bc7cd3a1f2), [`9bef5ab`](https://github.com/firebase/firebase-js-sdk/commit/9bef5ab7128388811ceab412bc26c553efbc6766), [`33521f2`](https://github.com/firebase/firebase-js-sdk/commit/33521f204022e09fa32da821ae6445d236bdeb21), [`6a9d3d1`](https://github.com/firebase/firebase-js-sdk/commit/6a9d3d1878ed1177d00915123c72e7821e58bdbd), [`712091c`](https://github.com/firebase/firebase-js-sdk/commit/712091c3962b8b3639775a4150c91d9a3962b57b)]:
+  - @firebase/firestore@4.16.0
+  - @firebase/app-check@0.12.0
+  - @firebase/auth@1.13.3
+  - @firebase/app@0.15.0
+  - @firebase/ai@2.13.1
+  - @firebase/remote-config@0.8.5
+  - @firebase/auth-compat@0.6.8
+  - @firebase/firestore-compat@0.4.11
+  - @firebase/app-check-compat@0.4.5
+  - @firebase/app-compat@0.5.14
+  - @firebase/remote-config-compat@0.2.26
+
 ## 12.14.0
 
 ### Minor Changes

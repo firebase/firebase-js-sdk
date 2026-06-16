@@ -40,7 +40,7 @@
     "yargs": "17.7.2"
   },
   "devDependencies": {
-    "@firebase/app": "0.14.13",
+    "@firebase/app": "0.15.0",
     "@firebase/logger": "0.5.1",
     "@types/webpack": "5.28.5"
   },
