@@ -70,7 +70,7 @@ export class FetchTransport implements IExporterTransport {
     const timeout = setTimeout(() => abortController.abort(), timeoutMillis);
     try {
       const url = new URL(this.parameters.url);
-      const headers = this.parameters.headers;
+      const headers = new Headers(this.parameters.headers);
 
       if (
         this.parameters.dynamicHeaderProviders &&
