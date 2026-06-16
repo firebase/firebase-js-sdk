@@ -43,6 +43,7 @@
     "add-compat-overloads": "ts-node-script ../../scripts/build/create-overloads.ts -i ../firestore/dist/index.d.ts -o dist/src/index.d.ts -a -r Firestore:types.FirebaseFirestore -r CollectionReference:types.CollectionReference -r DocumentReference:types.DocumentReference -r Query:types.Query -r FirebaseApp:FirebaseAppCompat --moduleToEnhance @firebase/firestore"
   },
   "peerDependencies": {
+    "@firebase/app": "0.x",
     "@firebase/app-compat": "0.x"
   },
   "dependencies": {
