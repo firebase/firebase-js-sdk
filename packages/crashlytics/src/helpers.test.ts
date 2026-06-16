@@ -68,17 +68,17 @@ describe('helpers', () => {
   const fakeTracingProvider = {
     getTracer: () => ({
       startSpan: () => ({
-        setAttribute: () => { },
-        end: () => { },
+        setAttribute: () => {},
+        end: () => {},
         spanContext: () => ({ traceId: 'my-trace', spanId: 'my-span' })
       }),
       startActiveSpan: (name: string, fn: (span: any) => any) =>
         fn({
-          end: () => { },
+          end: () => {},
           spanContext: () => ({ traceId: 'my-trace', spanId: 'my-span' })
         })
     }),
-    register: () => { },
+    register: () => {},
     shutdown: () => Promise.resolve()
   } as unknown as TracerProvider;
 
@@ -86,12 +86,12 @@ describe('helpers', () => {
     getActiveRootSpan: () => ({
       span: {
         spanContext: () => ({ traceId: 'my-trace', spanId: 'my-span' }),
-        end: () => { }
+        end: () => {}
       }
     }),
-    setRootSpan: () => { },
+    setRootSpan: () => {},
     getLocationKey: () => undefined,
-    setLocationKey: () => { }
+    setLocationKey: () => {}
   } as unknown as RootSpanContextManager;
 
   let fakeAttributesStore: AttributesStore;

@@ -151,7 +151,7 @@ export function registerGlobalErrorListeners(
   crashlytics: Crashlytics
 ): () => void {
   if (typeof window === 'undefined') {
-    return () => { };
+    return () => {};
   }
 
   const errorListener = (event: ErrorEvent): void => {
@@ -196,7 +196,7 @@ export function registerUserInteractionTraceListener(
   crashlytics: Crashlytics
 ): () => void {
   if (typeof window === 'undefined') {
-    return () => { };
+    return () => {};
   }
   const clickListener = (event: MouseEvent): void => {
     const target = event.target;
