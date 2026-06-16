@@ -699,7 +699,7 @@ export interface GoogleAIGenerateContentResponse {
 
 // @public
 export interface GoogleMaps {
-    // (undocumented)
+    // @deprecated (undocumented)
     enableWidget?: boolean;
 }
 

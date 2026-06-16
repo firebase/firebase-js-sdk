@@ -141,12 +141,18 @@ export function execute(pipeline: Pipeline): Promise<PipelineSnapshot> {
  * Creates and returns a new PipelineSource, which allows specifying the source stage of a {@link @firebase/firestore/pipelines#Pipeline}.
  *
  * @example
- * ```
+ * ```typescript
  * let myPipeline: Pipeline = firestore.pipeline().collection('books');
  * ```
  */
 Firestore.prototype.pipeline = function (): PipelineSource<Pipeline> {
-  return new PipelineSource<Pipeline>(this._databaseId, (stages: Stage[]) => {
-    return new Pipeline(this, stages);
-  });
+  const userDataWriter = new LiteUserDataWriter(this);
+  const userDataReader = newUserDataReader(this);
+  return new PipelineSource<Pipeline>(
+    this._databaseId,
+    userDataReader,
+    (stages: Stage[]) => {
+      return new Pipeline(this, userDataReader, userDataWriter, stages);
+    }
+  );
 };

@@ -19,6 +19,7 @@ import { ErrorFactory, ErrorMap } from '@firebase/util';
 
 export const enum AppCheckError {
   ALREADY_INITIALIZED = 'already-initialized',
+  ALREADY_INTERNALLY_INITIALIZED = 'already-internally-initialized',
   USE_BEFORE_ACTIVATION = 'use-before-activation',
   FETCH_NETWORK_ERROR = 'fetch-network-error',
   FETCH_PARSE_ERROR = 'fetch-parse-error',
@@ -27,6 +28,7 @@ export const enum AppCheckError {
   STORAGE_GET = 'storage-get',
   STORAGE_WRITE = 'storage-set',
   RECAPTCHA_ERROR = 'recaptcha-error',
+  NO_PROVIDER = 'no-provider',
   INITIAL_THROTTLE = 'initial-throttle',
   THROTTLED = 'throttled'
 }
@@ -37,6 +39,10 @@ const ERRORS: ErrorMap<AppCheckError> = {
     'different options. To avoid this error, call initializeAppCheck() with the ' +
     'same options as when it was originally called. This will return the ' +
     'already initialized instance.',
+  [AppCheckError.ALREADY_INTERNALLY_INITIALIZED]:
+    'App Check has already been automatically initialized by {$initializerName} ' +
+    'with default options. If you want to initialize App Check with custom options, ' +
+    'call initializeAppCheck() with those options before initializing {$initializerName}.',
   [AppCheckError.USE_BEFORE_ACTIVATION]:
     'App Check is being used before initializeAppCheck() is called for FirebaseApp {$appName}. ' +
     'Call initializeAppCheck() before instantiating other Firebase services.',
@@ -55,12 +61,16 @@ const ERRORS: ErrorMap<AppCheckError> = {
   [AppCheckError.STORAGE_WRITE]:
     'Error thrown when writing to storage. Original error: {$originalErrorMessage}.',
   [AppCheckError.RECAPTCHA_ERROR]: 'ReCAPTCHA error.',
+  [AppCheckError.NO_PROVIDER]:
+    'No attestation provider was passed to initializeAppCheck() and ' +
+    'no ReCAPTCHA Enterprise site key was found in the Firebase config.',
   [AppCheckError.INITIAL_THROTTLE]: `{$httpStatus} error. Attempts allowed again after {$time}`,
   [AppCheckError.THROTTLED]: `Requests throttled due to previous {$httpStatus} error. Attempts allowed again after {$time}`
 };
 
 interface ErrorParams {
   [AppCheckError.ALREADY_INITIALIZED]: { appName: string };
+  [AppCheckError.ALREADY_INTERNALLY_INITIALIZED]: { initializerName: string };
   [AppCheckError.USE_BEFORE_ACTIVATION]: { appName: string };
   [AppCheckError.FETCH_NETWORK_ERROR]: { originalErrorMessage: string };
   [AppCheckError.FETCH_PARSE_ERROR]: { originalErrorMessage: string };
