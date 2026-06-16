@@ -216,6 +216,40 @@ describe('FetchTransport', () => {
       }, done /* catch any rejections */);
     });
 
+    it('does not accumulate dynamic headers across multiple send calls', async () => {
+      // arrange
+      const fetchStub = sinon
+        .stub(globalThis, 'fetch')
+        .resolves(new Response('test response', { status: 200 }));
+
+      let counter = 1;
+      const dynamicProvider: DynamicHeaderProvider = {
+        getHeader: sinon
+          .stub()
+          .callsFake(() =>
+            Promise.resolve(['dynamic-header', `value-${counter++}`])
+          )
+      };
+
+      const transport = new FetchTransport({
+        ...testTransportParameters,
+        dynamicHeaderProviders: [dynamicProvider]
+      });
+
+      // act
+      await transport.send(testPayload, requestTimeout);
+      await transport.send(testPayload, requestTimeout);
+
+      // assert
+      sinon.assert.calledTwice(fetchStub);
+
+      const firstHeaders = fetchStub.firstCall.args[1]?.headers as Headers;
+      assert.strictEqual(firstHeaders?.get('dynamic-header'), 'value-1');
+
+      const secondHeaders = fetchStub.secondCall.args[1]?.headers as Headers;
+      assert.strictEqual(secondHeaders?.get('dynamic-header'), 'value-2');
+    });
+
     it('handles dynamic header providers that return null', done => {
       // arrange
       const fetchStub = sinon
