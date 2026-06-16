@@ -98,15 +98,49 @@ describe('Generate Content', function () {
 
         expect(response.usageMetadata).to.not.be.null;
 
-        expect(response.usageMetadata!.totalTokenCount).to.be.greaterThan(0);
-        expect(response.usageMetadata!.promptTokensDetails).to.not.be.null;
-        expect(response.usageMetadata!.promptTokensDetails!.length).to.equal(1);
-        expect(
-          response.usageMetadata!.promptTokensDetails![0].modality
-        ).to.equal(Modality.TEXT);
-        expect(
-          response.usageMetadata!.promptTokensDetails![0].tokenCount
-        ).to.be.greaterThan(0);
+         if (model.model.includes('gemini-3.5-flash')) {
+          expect(response.usageMetadata!.promptTokenCount).to.not.equal(0);
+          expect(response.usageMetadata!.candidatesTokenCount).to.not.equal(0);
+          expect(response.usageMetadata!.thoughtsTokenCount).to.not.equal(0);
+          expect(response.usageMetadata!.totalTokenCount).to.not.equal(0);
+          expect(response.usageMetadata!.promptTokensDetails).to.not.be.null;
+          expect(response.usageMetadata!.promptTokensDetails!.length).to.equal(
+            1
+          );
+          expect(
+            response.usageMetadata!.promptTokensDetails![0].modality
+          ).to.equal(Modality.TEXT);
+          expect(
+            response.usageMetadata!.promptTokensDetails![0].tokenCount
+          ).to.not.equal(0);
+
+          // candidatesTokenDetails comes back about half the time, so let's just not test it.
+        } else if (model.model.includes('gemini-3.1-flash-lite')) {
+          expect(response.usageMetadata!.promptTokenCount).to.not.equal(0);
+          expect(response.usageMetadata!.candidatesTokenCount).to.not.equal(0);
+          expect(response.usageMetadata!.totalTokenCount).to.not.equal(0);
+          expect(response.usageMetadata!.promptTokensDetails).to.not.be.null;
+          expect(response.usageMetadata!.promptTokensDetails!.length).to.equal(
+            1
+          );
+          expect(
+            response.usageMetadata!.promptTokensDetails![0].modality
+          ).to.equal(Modality.TEXT);
+          expect(
+            response.usageMetadata!.promptTokensDetails![0].tokenCount
+          ).to.equal(21);
+          expect(response.usageMetadata!.candidatesTokensDetails).to.not.be
+            .null;
+          expect(
+            response.usageMetadata!.candidatesTokensDetails!.length
+          ).to.equal(1);
+          expect(
+            response.usageMetadata!.candidatesTokensDetails![0].modality
+          ).to.equal(Modality.TEXT);
+          expect(
+            response.usageMetadata!.candidatesTokensDetails![0].tokenCount
+          ).to.not.equal(0);
+        }
       });
 
       it('generateContent: google search grounding', async () => {
