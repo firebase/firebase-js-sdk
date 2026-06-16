@@ -64,7 +64,7 @@ const backendNames: Map<BackendType, string> = new Map([
 const modelNames: readonly string[] = [
   'gemini-3.1-flash-lite',
   'gemini-3.5-flash',
-  'gemini-3.1-pro-preview',
+  'gemini-3.1-pro-preview'
 ];
 
 // Used for testing non-AI behavior (e.g. Network requests). Configured to minimize cost.
@@ -80,10 +80,7 @@ export const defaultGenerativeModel = getGenerativeModel(defaultAIInstance, {
 // The Live API requires a different set of models, and they're different for each backend.
 const liveModelNames: Map<BackendType, string[]> = new Map([
   [BackendType.GOOGLE_AI, ['gemini-3.1-flash-live-preview']],
-    [
-    BackendType.VERTEX_AI,
-    ['gemini-3.1-flash-live-preview']
-  ]
+  [BackendType.VERTEX_AI, ['gemini-3.1-flash-live-preview']]
 ]);
 
 /**

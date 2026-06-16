@@ -314,7 +314,7 @@ describe('MODULAR', () => {
       ai = getAI(app, { backend: new VertexAIBackend() });
     });
     it('getGenerativeModel()', async () => {
-       const model = getGenerativeModel(ai, { model: 'gemini-3.5-flash' });
+      const model = getGenerativeModel(ai, { model: 'gemini-3.5-flash' });
       expect(model.model).toMatch(/gemini-3.5-flash$/);
     });
   });
