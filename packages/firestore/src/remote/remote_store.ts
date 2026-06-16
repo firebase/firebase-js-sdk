@@ -840,6 +840,7 @@ function toSdkRemoteEvent(
     sdkTargetChanges,
     sdkTargetMismatches,
     remoteEvent.documentUpdates,
+    remoteEvent.augmentedDocumentUpdates,
     remoteEvent.resolvedLimboDocuments
   );
 }
