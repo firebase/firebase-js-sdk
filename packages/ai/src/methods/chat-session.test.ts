@@ -59,6 +59,44 @@ describe('ChatSession', () => {
   afterEach(() => {
     restore();
   });
+  it('formats systemInstruction if it is provided as a string', () => {
+    const chatSession = new ChatSession(
+      fakeApiSettings,
+      'a-model',
+      fakeChromeAdapter,
+      {
+        systemInstruction: 'be friendly'
+      }
+    );
+    expect(chatSession.params?.systemInstruction).to.deep.equal({
+      role: 'system',
+      parts: [{ text: 'be friendly' }]
+    });
+  });
+  it('leaves systemInstruction unchanged if it is already a Content object', () => {
+    const systemInstruction: Content = {
+      role: 'system',
+      parts: [{ text: 'be friendly' }]
+    };
+    const chatSession = new ChatSession(
+      fakeApiSettings,
+      'a-model',
+      fakeChromeAdapter,
+      { systemInstruction }
+    );
+    expect(chatSession.params?.systemInstruction).to.deep.equal(
+      systemInstruction
+    );
+  });
+  it('leaves systemInstruction as undefined if not provided', () => {
+    const chatSession = new ChatSession(
+      fakeApiSettings,
+      'a-model',
+      fakeChromeAdapter,
+      {}
+    );
+    expect(chatSession.params?.systemInstruction).to.be.undefined;
+  });
   describe('sendMessage()', () => {
     it('sends the correct params to generateContent()', async () => {
       const generateContentStub = stub(
@@ -70,6 +108,10 @@ describe('ChatSession', () => {
         'a-model',
         fakeChromeAdapter,
         {
+          systemInstruction: {
+            role: 'system',
+            parts: [{ text: 'system instruction text' }]
+          },
           history: [
             { role: 'user', parts: [{ text: 'user turn 1' }] },
             { role: 'model', parts: [{ text: 'model turn 1' }] }
@@ -81,7 +123,12 @@ describe('ChatSession', () => {
       expect(generateContentStub).to.be.calledWith(
         fakeApiSettings,
         'a-model',
-        match.any,
+        match({
+          systemInstruction: {
+            role: 'system',
+            parts: [{ text: 'system instruction text' }]
+          }
+        }),
         match.any
       );
       expect(generateContentStub.args[0][2].contents).to.deep.equal([
@@ -230,6 +277,10 @@ describe('ChatSession', () => {
         'a-model',
         fakeChromeAdapter,
         {
+          systemInstruction: {
+            role: 'system',
+            parts: [{ text: 'system instruction text' }]
+          },
           history: [
             { role: 'user', parts: [{ text: 'user turn 1' }] },
             { role: 'model', parts: [{ text: 'model turn 1' }] }
@@ -241,7 +292,12 @@ describe('ChatSession', () => {
       expect(generateContentStreamStub).to.be.calledWith(
         fakeApiSettings,
         'a-model',
-        match.any,
+        match({
+          systemInstruction: {
+            role: 'system',
+            parts: [{ text: 'system instruction text' }]
+          }
+        }),
         match.any
       );
       expect(generateContentStreamStub.args[0][2].contents).to.deep.equal([

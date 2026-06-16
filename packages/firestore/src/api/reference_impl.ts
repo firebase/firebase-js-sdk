@@ -35,7 +35,7 @@ import {
   firestoreClientListen,
   firestoreClientWrite
 } from '../core/firestore_client';
-import { newQueryForPath, Query as InternalQuery } from '../core/query';
+import { Query as InternalQuery, newQueryForPath } from '../core/query';
 import { ViewSnapshot } from '../core/view_snapshot';
 import { FieldPath } from '../lite-api/field_path';
 import { validateHasExplicitOrderByForLimitToLast } from '../lite-api/query';
@@ -199,6 +199,10 @@ export function getDocFromServer<
  */
 export function getDocs<AppModelType, DbModelType extends DocumentData>(
   query: Query<AppModelType, DbModelType>
+): Promise<QuerySnapshot<AppModelType, DbModelType>>;
+
+export function getDocs<AppModelType, DbModelType extends DocumentData>(
+  query: Query<AppModelType, DbModelType>
 ): Promise<QuerySnapshot<AppModelType, DbModelType>> {
   query = cast<Query<AppModelType, DbModelType>>(query, Query);
   const firestore = cast(query.firestore, Firestore);
@@ -214,7 +218,7 @@ export function getDocs<AppModelType, DbModelType extends DocumentData>(
       new QuerySnapshot<AppModelType, DbModelType>(
         firestore,
         userDataWriter,
-        query,
+        query as Query<AppModelType, DbModelType>,
         snapshot
       )
   );
@@ -737,6 +741,7 @@ export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
   onError?: (error: FirestoreError) => void,
   onCompletion?: () => void
 ): Unsubscribe;
+
 export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
   reference:
     | Query<AppModelType, DbModelType>
@@ -1154,6 +1159,21 @@ export function onSnapshotResume<
       `unsupported bundle source: ${json.bundleSource}`
     );
   }
+}
+
+export interface PipelineListenOptions {
+  /**
+   * Include a change even if only the metadata of the query or of a document
+   * changed. Default is false.
+   */
+  readonly includeMetadataChanges?: boolean;
+
+  /**
+   * Set the source the query listens to. Default to "default", which
+   * listens to both cache and server.
+   */
+  readonly source?: ListenSource;
+  readonly serverTimestampBehavior?: 'estimate' | 'previous' | 'none';
 }
 
 // TODO(firestorexp): Make sure these overloads are tested via the Firestore
