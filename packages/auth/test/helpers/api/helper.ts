@@ -19,6 +19,8 @@ import { Endpoint } from '../../../src/api';
 import { TEST_HOST, TEST_KEY, TEST_SCHEME } from '../mock_auth';
 import { mock, Route } from '../mock_fetch';
 
+import { querystring } from '@firebase/util';
+
 export function endpointUrl(endpoint: Endpoint): string {
   return `${TEST_SCHEME}://${TEST_HOST}${endpoint}?key=${TEST_KEY}`;
 }
@@ -27,16 +29,11 @@ export function endpointUrlWithParams(
   endpoint: Endpoint,
   params: Record<string, any>
 ): string {
-  let url = `${TEST_SCHEME}://${TEST_HOST}${endpoint}?key=${TEST_KEY}`;
-  for (const key in params) {
-    if (Object.prototype.hasOwnProperty.call(params, key)) {
-      url += '&';
-      url += key;
-      url += '=';
-      url += encodeURIComponent(params[key]);
-    }
-  }
-  return url;
+  const query = querystring({
+    ...params,
+    key: TEST_KEY
+  }).slice(1);
+  return `${TEST_SCHEME}://${TEST_HOST}${endpoint}?${query}`;
 }
 
 export function mockEndpoint(

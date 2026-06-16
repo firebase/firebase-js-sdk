@@ -120,8 +120,9 @@ export function recordError(
       severityNumber: SeverityNumber.ERROR,
       body: error.message,
       attributes: {
-        'error.type': error.name || 'Error',
-        'error.stack': error.stack || 'No stack trace available',
+        'exception.type': error.name || 'Error',
+        'exception.stacktrace': error.stack || 'No stack trace available',
+        'exception.message': error.message,
         ...customAttributes
       }
     });
@@ -150,7 +151,7 @@ export function registerGlobalErrorListeners(
   crashlytics: Crashlytics
 ): () => void {
   if (typeof window === 'undefined') {
-    return () => {};
+    return () => { };
   }
 
   const errorListener = (event: ErrorEvent): void => {
@@ -195,7 +196,7 @@ export function registerUserInteractionTraceListener(
   crashlytics: Crashlytics
 ): () => void {
   if (typeof window === 'undefined') {
-    return () => {};
+    return () => { };
   }
   const clickListener = (event: MouseEvent): void => {
     const target = event.target;

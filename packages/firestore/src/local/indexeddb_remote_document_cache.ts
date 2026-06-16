@@ -15,7 +15,9 @@
  * limitations under the License.
  */
 
-import { Query, queryMatches } from '../core/query';
+import { getPipelineCollection } from '../core/pipeline';
+import { isPipeline, QueryOrPipeline } from '../core/pipeline-util';
+import { queryOrPipelineMatches } from '../core/pipeline_run';
 import { SnapshotVersion } from '../core/snapshot_version';
 import {
   DocumentKeySet,
@@ -192,6 +194,23 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
     ).next(() => results);
   }
 
+  getAllEntries(
+    transaction: PersistenceTransaction
+  ): PersistencePromise<MutableDocumentMap> {
+    let results = mutableDocumentMap();
+    return remoteDocumentsStore(transaction)
+      .iterate((dbKey, dbDoc) => {
+        const doc = this.maybeDecodeDocument(
+          DocumentKey.fromSegments(
+            dbDoc.prefixPath.concat(dbDoc.collectionGroup, dbDoc.documentId)
+          ),
+          dbDoc
+        );
+        results = results.insert(doc.key, doc);
+      })
+      .next(() => results);
+  }
+
   /**
    * Looks up several entries in the cache.
    *
@@ -278,12 +297,21 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
 
   getDocumentsMatchingQuery(
     transaction: PersistenceTransaction,
-    query: Query,
+    query: QueryOrPipeline,
     offset: IndexOffset,
     mutatedDocs: OverlayMap,
     context?: QueryContext
   ): PersistencePromise<MutableDocumentMap> {
-    const collection = query.path;
+    if (isPipeline(query)) {
+      debugAssert(
+        !!getPipelineCollection(query),
+        'getDocumentsMatchingQuery can only handle collection pipelines'
+      );
+    }
+
+    const collection = isPipeline(query)
+      ? ResourcePath.fromString(getPipelineCollection(query)!)
+      : query.path;
     const startKey = [
       collection.popLast().toArray(),
       collection.lastSegment(),
@@ -316,7 +344,8 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
           );
           if (
             document.isFoundDocument() &&
-            (queryMatches(query, document) || mutatedDocs.has(document.key))
+            (queryOrPipelineMatches(query, document) ||
+              mutatedDocs.has(document.key))
           ) {
             // Either the document matches the given query, or it is mutated.
             results = results.insert(document.key, document);

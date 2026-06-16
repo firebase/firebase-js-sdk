@@ -31,7 +31,7 @@ export class CrashlyticsService implements Crashlytics, _FirebaseService {
     public tracingProvider: TracerProvider | null,
     public contextManager: RootSpanContextManager,
     public attributesStore: AttributesStore
-  ) {}
+  ) { }
 
   _delete(): Promise<void> {
     return Promise.resolve();

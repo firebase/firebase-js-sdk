@@ -80,7 +80,7 @@ export class AttributesStore {
       void installationsProvider
         ?.get()
         .then(installations => (this._installations = installations))
-        .catch(() => {});
+        .catch(() => { });
     }
   }
 
@@ -91,8 +91,8 @@ export class AttributesStore {
     const appVersion = options?.appVersion
       ? options.appVersion
       : AUTO_CONSTANTS?.appVersion
-      ? AUTO_CONSTANTS.appVersion
-      : 'unset';
+        ? AUTO_CONSTANTS.appVersion
+        : 'unset';
     this._appVersion = appVersion;
   }
 
