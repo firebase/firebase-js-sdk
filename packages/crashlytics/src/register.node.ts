@@ -38,7 +38,6 @@ export function registerCrashlytics(): void {
         // getImmediate for FirebaseApp will always succeed
         const app = container.getProvider('app').getImmediate();
         const crashlyticsOptions = options as CrashlyticsOptions;
-        const contextManager = new RootSpanContextManager();
         const attributesStore = new AttributesStore(
           app.options,
           crashlyticsOptions
@@ -46,6 +45,10 @@ export function registerCrashlytics(): void {
         const loggerProvider = createLoggerProvider(
           app,
           crashlyticsOptions,
+          attributesStore
+        );
+        const contextManager = new RootSpanContextManager(
+          loggerProvider,
           attributesStore
         );
         const tracingProvider = createTracingProvider(

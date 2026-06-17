@@ -32,7 +32,8 @@ export const LOG_ATTR_KEY = {
   SESSION_ID: 'session.id',
   ROUTE_PATH: 'route_path',
   TRACE: 'logging.googleapis.com/trace',
-  SPAN_ID: 'logging.googleapis.com/spanId'
+  SPAN_ID: 'logging.googleapis.com/spanId',
+  INTERRUPTED_BY_TRACE: 'interrupted_by_trace'
 };
 
 export const SPAN_ATTR_KEY = {
@@ -129,7 +130,7 @@ export class AttributesStore {
    * Get the log attributes.
    * @returns The log attributes.
    */
-  getLogAttributes(): AnyValueMap {
+  getLogAttributes(customAttributes?: Attributes): AnyValueMap {
     const attributes: AnyValueMap = {};
     if (this._appVersion) {
       attributes[LOG_ATTR_KEY.APP_VERSION] = this._appVersion;
@@ -155,7 +156,14 @@ export class AttributesStore {
       attributes[LOG_ATTR_KEY.ROUTE_PATH] = path;
     }
 
-    return attributes;
+    // Avoid shallow copy if there are no custom attributes
+    if (!customAttributes) {
+      return attributes;
+    }
+    return {
+      ...attributes,
+      ...customAttributes
+    };
   }
 
   /**

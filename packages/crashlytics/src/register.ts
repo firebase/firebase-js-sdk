@@ -62,7 +62,10 @@ export function registerCrashlytics(): void {
           dynamicHeaderProviders
         );
 
-        const contextManager = new RootSpanContextManager();
+        const contextManager = new RootSpanContextManager(
+          loggerProvider,
+          attributesStore
+        );
         const tracingProvider = createTracingProvider(
           app,
           contextManager,
