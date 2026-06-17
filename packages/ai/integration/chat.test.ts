@@ -97,7 +97,7 @@ describe('Chat Session', function () {
         expect(history[3].role).to.equal('model');
         expect(history[3].parts[0].text?.toLowerCase()).to.include('rome');
 
-         if (model.model.includes('gemini-3.5-flash')) {
+        if (model.model.includes('gemini-3.5-flash')) {
           // Token counts can vary slightly in chat context
           expect(response1.usageMetadata!.promptTokenCount).to.not.equal(0);
           expect(response1.usageMetadata!.candidatesTokenCount).to.not.equal(0);
