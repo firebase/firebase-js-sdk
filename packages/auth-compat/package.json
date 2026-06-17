@@ -33,7 +33,7 @@
     "build:release": "yarn build && yarn add-compat-overloads",
     "dev": "rollup -c -w",
     "test": "run-p --npm-path npm lint test:all",
-    "test:all": "run-p --npm-path npm test:browser test:node test:integration",
+    "test:all": "run-s --npm-path npm test:browser test:node test:integration",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all",
     "test:browser": "karma start",
     "test:browser:unit": "karma start --unit",
