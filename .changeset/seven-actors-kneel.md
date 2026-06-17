@@ -1,5 +1,6 @@
 ---
+"firebase": minor
 "@firebase/firestore": minor
 ---
 
-feat: Adds support for MinKey, MaxKey, RegexValue, Int32Value, BsonObjectId, BsonTimestamp, and BsonBinaryData.
+Added support for BSON types.
