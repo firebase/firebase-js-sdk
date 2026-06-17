@@ -25,7 +25,8 @@ import { CrashlyticsService } from './service';
 import {
   flush,
   generateClickSpanName,
-  startUserInteractionTrace
+  startUserInteractionTrace,
+  logVisibilityEvent
 } from './helpers';
 import { deepEqual } from '@firebase/util';
 import { SPAN_ATTR_KEY } from './attributes-store';
@@ -255,33 +256,4 @@ export function logViewBoundary(
   });
 }
 
-/**
- * Logs a page visibility transition event (foreground or background).
- *
- * @public
- *
- * @param crashlytics - The {@link Crashlytics} instance.
- * @param visibilityState - The current page visibility state ('visible' or 'hidden').
- */
-export function logVisibilityEvent(
-  crashlytics: Crashlytics,
-  visibilityState: 'visible' | 'hidden'
-): void {
-  const { loggerProvider, attributesStore } =
-    crashlytics as CrashlyticsInternal;
-  const logger = loggerProvider.getLogger('visibility-logger');
-  const customAttributes: AnyValueMap = attributesStore.getLogAttributes();
-
-  const body =
-    visibilityState === 'hidden'
-      ? 'Background lifecycle event'
-      : 'Foreground lifecycle event';
-
-  logger.emit({
-    severityNumber: SeverityNumber.INFO,
-    body,
-    attributes: customAttributes
-  });
-}
-
-export { flush, startUserInteractionTrace };
+export { flush, startUserInteractionTrace, logVisibilityEvent };

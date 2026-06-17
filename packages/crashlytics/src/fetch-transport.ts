@@ -93,7 +93,7 @@ export class FetchTransport implements IExporterTransport {
         method: 'POST',
         headers,
         signal: abortController.signal,
-        keepalive: true,
+        keepalive: false,
         mode: 'cors',
         body: data
       } as RequestInit;
