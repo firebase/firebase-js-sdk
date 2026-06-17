@@ -474,8 +474,6 @@ toc:
     path: /docs/reference/js/firestore_.aggregatequerysnapshot.md
   - title: AggregateSpec
     path: /docs/reference/js/firestore_.aggregatespec.md
-  - title: BsonBinaryData
-    path: /docs/reference/js/firestore_.bsonbinarydata.md
   - title: BsonObjectId
     path: /docs/reference/js/firestore_.bsonobjectid.md
   - title: BsonTimestamp
@@ -597,8 +595,6 @@ toc:
     path: /docs/reference/js/firestore_lite.aggregatequerysnapshot.md
   - title: AggregateSpec
     path: /docs/reference/js/firestore_lite.aggregatespec.md
-  - title: BsonBinaryData
-    path: /docs/reference/js/firestore_lite.bsonbinarydata.md
   - title: BsonObjectId
     path: /docs/reference/js/firestore_lite.bsonobjectid.md
   - title: BsonTimestamp

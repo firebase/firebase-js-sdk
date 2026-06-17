@@ -18,7 +18,6 @@
 import { expect } from 'chai';
 
 import {
-  BsonBinaryData,
   BsonObjectId,
   BsonTimestamp,
   Bytes,
@@ -1953,13 +1952,13 @@ describe('IndexedDbIndexManager', async () => {
         fieldIndex('coll', { fields: [['key', IndexKind.ASCENDING]] })
       );
       await addDoc('coll/doc1', {
-        key: new BsonBinaryData(1, new Uint8Array([1, 2, 3]))
+        key: Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1)
       });
       await addDoc('coll/doc2', {
-        key: new BsonBinaryData(1, new Uint8Array([1, 2, 4]))
+        key: Bytes.fromUint8Array(new Uint8Array([1, 2, 4]), 1)
       });
       await addDoc('coll/doc3', {
-        key: new BsonBinaryData(1, new Uint8Array([2, 1, 2]))
+        key: Bytes.fromUint8Array(new Uint8Array([2, 1, 2]), 1)
       });
 
       const fieldIndexes = await indexManager.getFieldIndexes('coll');
@@ -1970,49 +1969,49 @@ describe('IndexedDbIndexManager', async () => {
 
       q = queryWithAddedFilter(
         query('coll'),
-        filter('key', '==', new BsonBinaryData(1, new Uint8Array([1, 2, 3])))
+        filter('key', '==', Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1))
       );
       await verifyResults(q, 'coll/doc1');
 
       q = queryWithAddedFilter(
         query('coll'),
-        filter('key', '!=', new BsonBinaryData(1, new Uint8Array([1, 2, 3])))
+        filter('key', '!=', Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1))
       );
       await verifyResults(q, 'coll/doc2', 'coll/doc3');
 
       q = queryWithAddedFilter(
         query('coll'),
-        filter('key', '>=', new BsonBinaryData(1, new Uint8Array([1, 2, 4])))
+        filter('key', '>=', Bytes.fromUint8Array(new Uint8Array([1, 2, 4]), 1))
       );
       await verifyResults(q, 'coll/doc2', 'coll/doc3');
 
       q = queryWithAddedFilter(
         query('coll'),
-        filter('key', '<=', new BsonBinaryData(1, new Uint8Array([1, 2, 4])))
+        filter('key', '<=', Bytes.fromUint8Array(new Uint8Array([1, 2, 4]), 1))
       );
       await verifyResults(q, 'coll/doc1', 'coll/doc2');
 
       q = queryWithAddedFilter(
         query('coll'),
-        filter('key', '>', new BsonBinaryData(1, new Uint8Array([1, 2, 4])))
+        filter('key', '>', Bytes.fromUint8Array(new Uint8Array([1, 2, 4]), 1))
       );
       await verifyResults(q, 'coll/doc3');
 
       q = queryWithAddedFilter(
         query('coll'),
-        filter('key', '<', new BsonBinaryData(1, new Uint8Array([1, 2, 4])))
+        filter('key', '<', Bytes.fromUint8Array(new Uint8Array([1, 2, 4]), 1))
       );
       await verifyResults(q, 'coll/doc1');
 
       q = queryWithAddedFilter(
         query('coll'),
-        filter('key', '>', new BsonBinaryData(1, new Uint8Array([2, 1, 2])))
+        filter('key', '>', Bytes.fromUint8Array(new Uint8Array([2, 1, 2]), 1))
       );
       await verifyResults(q);
 
       q = queryWithAddedFilter(
         query('coll'),
-        filter('key', '<', new BsonBinaryData(1, new Uint8Array([1, 2, 3])))
+        filter('key', '<', Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1))
       );
       await verifyResults(q);
     });
@@ -2525,10 +2524,10 @@ describe('IndexedDbIndexManager', async () => {
       });
 
       await addDoc('coll/doc8', {
-        key: new BsonBinaryData(1, new Uint8Array([1, 2, 4]))
+        key: Bytes.fromUint8Array(new Uint8Array([1, 2, 4]), 1)
       });
       await addDoc('coll/doc9', {
-        key: new BsonBinaryData(1, new Uint8Array([1, 2, 3]))
+        key: Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1)
       });
       await addDoc('coll/doc10', {
         key: new BsonObjectId('507f191e810c19729de860eb')
@@ -2613,7 +2612,7 @@ describe('IndexedDbIndexManager', async () => {
       key: Bytes.fromUint8Array(new Uint8Array([0, 1, 255])) as Bytes
     });
     await addDoc('coll/doc13', {
-      key: new BsonBinaryData(1, new Uint8Array([1, 2, 3]))
+      key: Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1)
     });
     await addDoc('coll/doc14', {
       key: ref('coll/doc')

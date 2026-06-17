@@ -42,6 +42,7 @@ import {
   LatLng
 } from '../protos/firestore_proto_api';
 import { fail } from '../util/assert';
+import { ByteString } from '../util/byte_string';
 import { isNegativeZero } from '../util/types';
 
 import { DirectionalIndexByteEncoder } from './directional_index_byte_encoder';
@@ -139,7 +140,23 @@ export class FirestoreIndexValueWriter {
       } else if (type === MapRepresentation.MIN_KEY) {
         this.writeValueTypeLabel(encoder, INDEX_TYPE_MIN_KEY);
       } else if (type === MapRepresentation.BSON_BINARY) {
-        this.writeIndexBsonBinaryData(indexValue.mapValue!, encoder);
+        const fields = indexValue.mapValue?.fields;
+        const bsonBinaryFields = fields?.[RESERVED_BSON_BINARY_KEY];
+        const subtypeAndData = bsonBinaryFields?.bytesValue;
+        const bytes = normalizeByteString(subtypeAndData!).toUint8Array();
+        // Assume the backend has sent us the subtype, and that the byte string isn't empty
+        const subtype = bytes.at(0)!;
+
+        // BSON Binary values with subtype 0 (generic binary) must be indexed identically to standard blobs
+        // in order to maintain consistent sorting ordering in memory vs IndexedDB.
+        if (subtype === 0) {
+          const data = bytes.slice(1); // Slice off the prepended subtype byte
+          this.writeValueTypeLabel(encoder, INDEX_TYPE_BLOB);
+          encoder.writeBytes(ByteString.fromUint8Array(data));
+          this.writeTruncationMarker(encoder);
+        } else {
+          this.writeIndexBsonBinaryData(indexValue.mapValue!, encoder);
+        }
       } else if (type === MapRepresentation.REGEX) {
         this.writeIndexRegex(indexValue.mapValue!, encoder);
       } else if (type === MapRepresentation.BSON_TIMESTAMP) {

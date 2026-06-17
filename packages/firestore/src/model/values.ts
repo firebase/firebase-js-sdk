@@ -25,6 +25,7 @@ import {
   Value
 } from '../protos/firestore_proto_api';
 import { fail } from '../util/assert';
+import { ByteString } from '../util/byte_string';
 import {
   arrayEquals,
   compareUtf8Strings,
@@ -158,14 +159,7 @@ export const MIN_REGEX_VALUE: Value = {
 };
 
 export const MIN_BSON_BINARY_VALUE: Value = {
-  mapValue: {
-    fields: {
-      [RESERVED_BSON_BINARY_KEY]: {
-        // bsonBinaryValue should have at least one byte as subtype
-        bytesValue: Uint8Array.from([0])
-      }
-    }
-  }
+  bytesValue: ''
 };
 
 export enum MapRepresentation {
@@ -250,7 +244,7 @@ export function typeOrder(value: Value): TypeOrder {
       case MapRepresentation.BSON_TIMESTAMP:
         return TypeOrder.BsonTimestampValue;
       case MapRepresentation.BSON_BINARY:
-        return TypeOrder.BsonBinaryValue;
+        return TypeOrder.BlobValue;
       case MapRepresentation.MIN_KEY:
         return TypeOrder.MinKeyValue;
       case MapRepresentation.MAX_KEY:
@@ -318,8 +312,7 @@ export function valueEquals(
     case TypeOrder.VectorValue:
     case TypeOrder.ObjectValue:
       return objectEquals(left, right, options);
-    case TypeOrder.BsonBinaryValue:
-      return compareBsonBinaryData(left, right) === 0;
+
     case TypeOrder.BsonTimestampValue:
       return compareBsonTimestamps(left, right) === 0;
     case TypeOrder.RegexValue:
@@ -359,9 +352,7 @@ function geoPointEquals(left: Value, right: Value): boolean {
 }
 
 function blobEquals(left: Value, right: Value): boolean {
-  return normalizeByteString(left.bytesValue!).isEqual(
-    normalizeByteString(right.bytesValue!)
-  );
+  return compareBlobsAndSubtype(left, right) === 0;
 }
 
 export function numberEquals(
@@ -466,7 +457,7 @@ export function valueCompare(left: Value, right: Value): number {
     case TypeOrder.StringValue:
       return compareUtf8Strings(left.stringValue!, right.stringValue!);
     case TypeOrder.BlobValue:
-      return compareBlobs(left.bytesValue!, right.bytesValue!);
+      return compareBlobsAndSubtype(left, right);
     case TypeOrder.RefValue:
       return compareReferences(left.referenceValue!, right.referenceValue!);
     case TypeOrder.GeoPointValue:
@@ -479,8 +470,7 @@ export function valueCompare(left: Value, right: Value): number {
       return compareMaps(left.mapValue!, right.mapValue!);
     case TypeOrder.BsonTimestampValue:
       return compareBsonTimestamps(left, right);
-    case TypeOrder.BsonBinaryValue:
-      return compareBsonBinaryData(left, right);
+
     case TypeOrder.RegexValue:
       return compareRegex(left, right);
     case TypeOrder.BsonObjectIdValue:
@@ -599,15 +589,6 @@ function compareGeoPoints(left: LatLng, right: LatLng): number {
   );
 }
 
-function compareBlobs(
-  left: string | Uint8Array,
-  right: string | Uint8Array
-): number {
-  const leftBytes = normalizeByteString(left);
-  const rightBytes = normalizeByteString(right);
-  return leftBytes.compareTo(rightBytes);
-}
-
 function compareArrays(left: ArrayValue, right: ArrayValue): number {
   const leftArray = left.values || [];
   const rightArray = right.values || [];
@@ -703,15 +684,41 @@ function compareBsonTimestamps(left: Value, right: Value): number {
     : compareNumbers(leftIncrementField!, rightIncrementField!);
 }
 
-function compareBsonBinaryData(left: Value, right: Value): number {
-  const leftBytes =
-    left.mapValue!.fields?.[RESERVED_BSON_BINARY_KEY]?.bytesValue;
-  const rightBytes =
-    right.mapValue!.fields?.[RESERVED_BSON_BINARY_KEY]?.bytesValue;
-  if (!rightBytes || !leftBytes) {
-    throw new Error('Received incorrect bytesValue for BsonBinaryData');
+function getBytesAndSubtype(value: Value): {
+  subtype: number;
+  bytes: ByteString;
+} {
+  if ('bytesValue' in value) {
+    return {
+      subtype: 0,
+      bytes: normalizeByteString(value.bytesValue!)
+    };
   }
-  return compareBlobs(leftBytes, rightBytes);
+  const fields = value.mapValue?.fields;
+  const bsonBinaryFields = fields?.[RESERVED_BSON_BINARY_KEY];
+  const subtypeAndData = bsonBinaryFields?.bytesValue;
+  if (!subtypeAndData) {
+    throw new Error('Received incorrect value for BsonBinaryData');
+  }
+  const bytes = normalizeByteString(subtypeAndData).toUint8Array();
+  if (bytes.length === 0) {
+    throw new Error('Received empty bytesValue for BsonBinaryData');
+  }
+  const subtype = bytes.at(0)!;
+  const data = bytes.slice(1);
+  return {
+    subtype,
+    bytes: ByteString.fromUint8Array(data)
+  };
+}
+
+function compareBlobsAndSubtype(left: Value, right: Value): number {
+  const leftVal = getBytesAndSubtype(left);
+  const rightVal = getBytesAndSubtype(right);
+  if (leftVal.subtype !== rightVal.subtype) {
+    return leftVal.subtype - rightVal.subtype;
+  }
+  return leftVal.bytes.compareTo(rightVal.bytes);
 }
 
 function compareRegex(left: Value, right: Value): number {
@@ -866,7 +873,11 @@ export function estimateByteSize(value: Value): number {
       // integer values"
       return value.stringValue!.length * 2;
     case TypeOrder.BlobValue:
-      return normalizeByteString(value.bytesValue!).approximateByteSize();
+      if ('bytesValue' in value) {
+        return normalizeByteString(value.bytesValue!).approximateByteSize();
+      } else {
+        return estimateMapByteSize(value.mapValue!);
+      }
     case TypeOrder.RefValue:
       return value.referenceValue!.length;
     case TypeOrder.GeoPointValue:
@@ -878,7 +889,6 @@ export function estimateByteSize(value: Value): number {
     case TypeOrder.ObjectValue:
     case TypeOrder.RegexValue:
     case TypeOrder.BsonObjectIdValue:
-    case TypeOrder.BsonBinaryValue:
     case TypeOrder.BsonTimestampValue:
     case TypeOrder.MinKeyValue:
     case TypeOrder.MaxKeyValue:
@@ -1124,7 +1134,7 @@ export function valuesGetLowerBound(value: Value): Value {
       case MapRepresentation.BSON_TIMESTAMP:
         return MIN_BSON_TIMESTAMP_VALUE;
       case MapRepresentation.BSON_BINARY:
-        return MIN_BSON_BINARY_VALUE;
+        return { bytesValue: '' };
       case MapRepresentation.REGEX:
         return MIN_REGEX_VALUE;
       case MapRepresentation.INT32:
@@ -1156,7 +1166,7 @@ export function valuesGetUpperBound(value: Value): Value {
   } else if ('stringValue' in value) {
     return { bytesValue: '' };
   } else if ('bytesValue' in value) {
-    return MIN_BSON_BINARY_VALUE;
+    return refValue(DatabaseId.empty(), DocumentKey.empty());
   } else if ('referenceValue' in value) {
     return MIN_BSON_OBJECT_ID_VALUE;
   } else if ('geoPointValue' in value) {

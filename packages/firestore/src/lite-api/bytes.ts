@@ -19,7 +19,10 @@ import { ByteString } from '../util/byte_string';
 import { Code, FirestoreError } from '../util/error';
 // API extractor fails importing property unless we also explicitly import Property.
 // eslint-disable-next-line @typescript-eslint/no-unused-vars, unused-imports/no-unused-imports-ts
-import { Property, property, validateJSON } from '../util/json_validation';
+import {
+  property,
+  validateJSON,
+} from '../util/json_validation';
 
 /**
  * An immutable object representing an array of bytes.
@@ -28,7 +31,13 @@ export class Bytes {
   _byteString: ByteString;
 
   /** @hideconstructor */
-  constructor(byteString: ByteString) {
+  constructor(byteString: ByteString, readonly subtype = 0) {
+    if (!Number.isInteger(subtype) || subtype < 0 || subtype > 255) {
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        'The subtype for Bytes must be a value in the inclusive [0, 255] range.'
+      );
+    }
     this._byteString = byteString;
   }
 
@@ -37,10 +46,11 @@ export class Bytes {
    * bytes.
    *
    * @param base64 - The Base64 string used to create the `Bytes` object.
+   * @param subtype - Optional subtype value.
    */
-  static fromBase64String(base64: string): Bytes {
+  static fromBase64String(base64: string, subtype = 0): Bytes {
     try {
-      return new Bytes(ByteString.fromBase64String(base64));
+      return new Bytes(ByteString.fromBase64String(base64), subtype);
     } catch (e) {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
@@ -53,9 +63,10 @@ export class Bytes {
    * Creates a new `Bytes` object from the given Uint8Array.
    *
    * @param array - The Uint8Array used to create the `Bytes` object.
+   * @param subtype - Optional subtype value.
    */
-  static fromUint8Array(array: Uint8Array): Bytes {
-    return new Bytes(ByteString.fromUint8Array(array));
+  static fromUint8Array(array: Uint8Array, subtype = 0): Bytes {
+    return new Bytes(ByteString.fromUint8Array(array), subtype);
   }
 
   /**
@@ -77,12 +88,23 @@ export class Bytes {
   }
 
   /**
+   * Returns the underlying bytes as a `Uint8Array`.
+   *
+   * @returns The Uint8Array created from the `Bytes` object.
+   */
+  get data(): Uint8Array {
+    return this.toUint8Array();
+  }
+
+  /**
    * Returns a string representation of the `Bytes` object.
    *
    * @returns A string representation of the `Bytes` object.
    */
   toString(): string {
-    return 'Bytes(base64: ' + this.toBase64() + ')';
+    return (
+      'Bytes(base64: ' + this.toBase64() + ', subtype: ' + this.subtype + ')'
+    );
   }
 
   /**
@@ -92,13 +114,17 @@ export class Bytes {
    * @returns true if this `Bytes` object is equal to the provided one.
    */
   isEqual(other: Bytes): boolean {
-    return this._byteString.isEqual(other._byteString);
+    return (
+      this.subtype === other.subtype &&
+      this._byteString.isEqual(other._byteString)
+    );
   }
 
   static _jsonSchemaVersion: string = 'firestore/bytes/1.0';
   static _jsonSchema = {
     type: property('string', Bytes._jsonSchemaVersion),
-    bytes: property('string')
+    bytes: property('string'),
+    subtype: { ...property('number'), optional: true }
   };
 
   /**
@@ -107,10 +133,17 @@ export class Bytes {
    * @returns a JSON representation of this object.
    */
   toJSON(): object {
-    return {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const json: any = {
       type: Bytes._jsonSchemaVersion,
       bytes: this.toBase64()
     };
+    // If the subtype is 0 we must omit it from the object, because the
+    // backend rejects bytes objects with subtype 0.
+    if (this.subtype !== 0) {
+      json.subtype = this.subtype;
+    }
+    return json;
   }
 
   /**
@@ -122,7 +155,9 @@ export class Bytes {
    */
   static fromJSON(json: object): Bytes {
     if (validateJSON(json, Bytes._jsonSchema)) {
-      return Bytes.fromBase64String(json.bytes);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const subtype = (json as any).subtype ?? 0;
+      return Bytes.fromBase64String(json.bytes, subtype);
     }
     throw new FirestoreError(
       Code.INVALID_ARGUMENT,

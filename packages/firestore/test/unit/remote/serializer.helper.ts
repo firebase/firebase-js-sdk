@@ -20,7 +20,6 @@ import { expect } from 'chai';
 import {
   arrayRemove,
   arrayUnion,
-  BsonBinaryData,
   BsonObjectId,
   BsonTimestamp,
   Bytes,
@@ -597,8 +596,8 @@ export function serializerTest(
           });
         }
 
-        // BsonBinaryData will be serialized differently Proto3Json VS. regular Protobuf format
-        const bsonBinary = new BsonBinaryData(1, new Uint8Array([1, 2, 3]));
+        // Bytes with subtype will be serialized differently Proto3Json VS. regular Protobuf format
+        const bsonBinary = Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1);
         const expectedJson: api.Value = {
           mapValue: {
             fields: {

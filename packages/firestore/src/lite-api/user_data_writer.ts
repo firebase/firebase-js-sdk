@@ -61,9 +61,9 @@ import { ByteString } from '../util/byte_string';
 import { logError } from '../util/log';
 import { forEach } from '../util/obj';
 
-import { BsonBinaryData } from './bson_binary_data';
 import { BsonObjectId } from './bson_object_Id';
 import { BsonTimestamp } from './bson_timestamp';
+import { Bytes } from './bytes';
 import { Decimal128Value } from './decimal128_value';
 import { GeoPoint } from './geo_point';
 import { Int32Value } from './int32_value';
@@ -107,7 +107,11 @@ export abstract class AbstractUserDataWriter {
       case TypeOrder.StringValue:
         return value.stringValue!;
       case TypeOrder.BlobValue:
-        return this.convertBytes(normalizeByteString(value.bytesValue!));
+        if ('bytesValue' in value) {
+          return this.convertBytes(normalizeByteString(value.bytesValue!));
+        } else {
+          return this.convertToBytesWithSubtype(value.mapValue!);
+        }
       case TypeOrder.RefValue:
         return this.convertReference(value.referenceValue!);
       case TypeOrder.GeoPointValue:
@@ -122,8 +126,6 @@ export abstract class AbstractUserDataWriter {
         return this.convertToRegexValue(value.mapValue!);
       case TypeOrder.BsonObjectIdValue:
         return this.convertToBsonObjectId(value.mapValue!);
-      case TypeOrder.BsonBinaryValue:
-        return this.convertToBsonBinaryData(value.mapValue!);
       case TypeOrder.BsonTimestampValue:
         return this.convertToBsonTimestamp(value.mapValue!);
       case TypeOrder.MaxKeyValue:
@@ -177,20 +179,20 @@ export abstract class AbstractUserDataWriter {
     return new BsonObjectId(oid);
   }
 
-  private convertToBsonBinaryData(mapValue: ProtoMapValue): BsonBinaryData {
+  private convertToBytesWithSubtype(mapValue: ProtoMapValue): Bytes {
     const fields = mapValue!.fields?.[RESERVED_BSON_BINARY_KEY];
     const subtypeAndData = fields?.bytesValue;
     if (!subtypeAndData) {
-      throw new Error('Received incorrect bytesValue for BsonBinaryData');
+      throw new Error('Received incorrect bytesValue for Bytes with subtype');
     }
 
     const bytes = normalizeByteString(subtypeAndData).toUint8Array();
     if (bytes.length === 0) {
-      throw new Error('Received empty bytesValue for BsonBinaryData');
+      throw new Error('Received empty bytesValue for Bytes with subtype');
     }
-    const subtype = bytes.at(0);
+    const subtype = bytes.at(0)!;
     const data = bytes.slice(1);
-    return new BsonBinaryData(Number(subtype), data);
+    return new Bytes(ByteString.fromUint8Array(data), subtype);
   }
 
   private convertToBsonTimestamp(mapValue: ProtoMapValue): BsonTimestamp {

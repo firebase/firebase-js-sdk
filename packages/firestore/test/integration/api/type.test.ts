@@ -20,7 +20,6 @@ import { expect } from 'chai';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import { EventsAccumulator } from '../util/events_accumulator';
 import {
-  BsonBinaryData,
   BsonObjectId,
   BsonTimestamp,
   Bytes,
@@ -378,7 +377,7 @@ apiDescribe('Firestore', persistence => {
       1,
       async dbs => {
         await expectRoundtripWithoutTransaction(dbs[0], {
-          binary: new BsonBinaryData(1, new Uint8Array([1, 2, 3]))
+          binary: Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1)
         });
       }
     );
@@ -393,7 +392,7 @@ apiDescribe('Firestore', persistence => {
       async dbs => {
         await expectRoundtripWithoutTransaction(dbs[0], {
           array: [
-            new BsonBinaryData(1, new Uint8Array([1, 2, 3])),
+            Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1),
             new BsonObjectId('507f191e810c19729de860ea'),
             new Int32Value(1),
             new Decimal128Value('1.2e3'),
@@ -416,7 +415,7 @@ apiDescribe('Firestore', persistence => {
       async dbs => {
         await expectRoundtripWithoutTransaction(dbs[0], {
           object: {
-            binary: new BsonBinaryData(1, new Uint8Array([1, 2, 3])),
+            binary: Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1),
             objectId: new BsonObjectId('507f191e810c19729de860ea'),
             int32: new Int32Value(1),
             decimal128: new Decimal128Value('1.2e3'),
@@ -580,13 +579,13 @@ apiDescribe('Firestore', persistence => {
         let errorMessage;
         try {
           await setDoc(docRef, {
-            key: new BsonBinaryData(1234, new Uint8Array([1, 2, 3]))
+            key: Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1234)
           });
         } catch (err) {
           errorMessage = (err as FirestoreError)?.message;
         }
         expect(errorMessage).to.contains(
-          'The subtype for BsonBinaryData must be a value in the inclusive [0, 255] range.'
+          'The subtype for Bytes must be a value in the inclusive [0, 255] range.'
         );
       }
     );
@@ -607,7 +606,7 @@ apiDescribe('Firestore', persistence => {
       stringValue: { key: 'string' },
       bytesValue: { key: Bytes.fromUint8Array(new Uint8Array([0, 1, 255])) },
       bsonBinaryValue: {
-        key: new BsonBinaryData(1, new Uint8Array([1, 2, 3]))
+        key: Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1)
       },
       // referenceValue: {key: ref('coll/doc')},
       referenceValue: { key: 'placeholder' },

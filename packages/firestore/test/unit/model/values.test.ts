@@ -20,7 +20,7 @@ import { expect } from 'chai';
 import {
   GeoPoint,
   Timestamp,
-  BsonBinaryData,
+  Bytes,
   BsonTimestamp,
   BsonObjectId,
   RegexValue,
@@ -116,10 +116,10 @@ describe('Values', () => {
       [wrap(new RegexValue('^foo', 'i')), wrap(new RegexValue('^foo', 'i'))],
       [wrap(new BsonTimestamp(57, 4)), wrap(new BsonTimestamp(57, 4))],
       [
-        wrap(new BsonBinaryData(128, Uint8Array.from([7, 8, 9]))),
-        wrap(new BsonBinaryData(128, Uint8Array.from([7, 8, 9]))),
-        wrap(new BsonBinaryData(128, Buffer.from([7, 8, 9]))),
-        wrap(new BsonBinaryData(128, Buffer.from([7, 8, 9])))
+        wrap(Bytes.fromUint8Array(Uint8Array.from([7, 8, 9]), 128)),
+        wrap(Bytes.fromUint8Array(Uint8Array.from([7, 8, 9]), 128)),
+        wrap(Bytes.fromUint8Array(Buffer.from([7, 8, 9]), 128)),
+        wrap(Bytes.fromUint8Array(Buffer.from([7, 8, 9]), 128))
       ],
       [
         wrap(new BsonObjectId('123456789012')),
@@ -269,11 +269,11 @@ describe('Values', () => {
       [wrap(blob(255))],
 
       [
-        wrap(new BsonBinaryData(5, Buffer.from([1, 2, 3]))),
-        wrap(new BsonBinaryData(5, new Uint8Array([1, 2, 3])))
+        wrap(Bytes.fromUint8Array(Buffer.from([1, 2, 3]), 5)),
+        wrap(Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 5))
       ],
-      [wrap(new BsonBinaryData(7, Buffer.from([1])))],
-      [wrap(new BsonBinaryData(7, new Uint8Array([2])))],
+      [wrap(Bytes.fromUint8Array(Buffer.from([1]), 7))],
+      [wrap(Bytes.fromUint8Array(new Uint8Array([2]), 7))],
 
       // reference values
       [refValue(dbId('p1', 'd1'), key('c1/doc1'))],
@@ -467,8 +467,8 @@ describe('Values', () => {
       {
         expectedByteSize: 16,
         elements: [
-          wrap(new BsonBinaryData(1, new Uint8Array([127, 128]))),
-          wrap(new BsonBinaryData(128, new Uint8Array([1, 2])))
+          wrap(Bytes.fromUint8Array(new Uint8Array([127, 128]), 1)),
+          wrap(Bytes.fromUint8Array(new Uint8Array([1, 2]), 128))
         ]
       },
       {
@@ -508,8 +508,8 @@ describe('Values', () => {
       [wrap(new RegexValue('a', 'b')), wrap(new RegexValue('cc', 'dd'))],
       [wrap(new BsonObjectId('foo')), wrap(new BsonObjectId('foobar'))],
       [
-        wrap(new BsonBinaryData(128, new Uint8Array([127, 128]))),
-        wrap(new BsonBinaryData(1, new Uint8Array([1, 2, 3])))
+        wrap(Bytes.fromUint8Array(new Uint8Array([127, 128]), 128)),
+        wrap(Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1))
       ]
     ];
 
@@ -569,18 +569,16 @@ describe('Values', () => {
       [valuesGetLowerBound({ stringValue: 'Z' }), wrap('')],
       [wrap('\u0000')],
 
-      // blobs
-      [valuesGetLowerBound({ bytesValue: 'Z' }), wrap(blob())],
-      [wrap(blob(0))],
-
-      // bson binary data
+      // blobs & bson binary data
       [
+        valuesGetLowerBound({ bytesValue: 'Z' }),
         valuesGetLowerBound(
-          wrap(new BsonBinaryData(128, new Uint8Array([128, 128])))
+          wrap(Bytes.fromUint8Array(new Uint8Array([128, 128]), 128))
         ),
+        wrap(blob()),
         MIN_BSON_BINARY_VALUE
       ],
-      [wrap(new BsonBinaryData(0, new Uint8Array([0])))],
+      [wrap(blob(0)), wrap(Bytes.fromUint8Array(new Uint8Array([0]), 0))],
 
       // resource names
       [
@@ -687,13 +685,13 @@ describe('Values', () => {
       [wrap('\u0000')],
       [valuesGetUpperBound({ stringValue: '' })],
 
-      // blobs
+      // blobs & bson binary data
       [wrap(blob(255))],
-      [valuesGetUpperBound({ bytesValue: '' })],
-
-      // bson binary data
-      [wrap(new BsonBinaryData(128, new Uint8Array([255, 255, 255])))],
-      [valuesGetUpperBound(MIN_BSON_BINARY_VALUE)],
+      [wrap(Bytes.fromUint8Array(new Uint8Array([255, 255, 255]), 128))],
+      [
+        valuesGetUpperBound({ bytesValue: '' }),
+        valuesGetUpperBound(MIN_BSON_BINARY_VALUE)
+      ],
 
       // resource names
       [refValue(dbId('', ''), key('a/a'))],
@@ -779,7 +777,7 @@ describe('Values', () => {
       '{__decimal128__:-1.2e3}'
     );
     expect(
-      canonicalId(wrap(new BsonBinaryData(1, new Uint8Array([1, 2, 3]))))
+      canonicalId(wrap(Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1)))
     ).to.equal('{__binary__:AQECAw==}');
     expect(canonicalId(wrap(MinKey.instance()))).to.equal('{__min__:null}');
     expect(canonicalId(wrap(MaxKey.instance()))).to.equal('{__max__:null}');

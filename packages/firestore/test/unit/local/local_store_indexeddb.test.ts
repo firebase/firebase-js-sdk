@@ -23,7 +23,7 @@ import {
   Timestamp,
   GeoPoint,
   BsonObjectId,
-  BsonBinaryData,
+  Bytes,
   BsonTimestamp,
   Int32Value,
   RegexValue,
@@ -1162,16 +1162,16 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
       await test.configureFieldsIndexes(index);
       await test.writeMutations(
         setMutation('coll/a', {
-          key: new BsonBinaryData(1, new Uint8Array([1, 2, 3]))
+          key: Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1)
         }),
         setMutation('coll/b', {
-          key: new BsonBinaryData(1, new Uint8Array([1, 2]))
+          key: Bytes.fromUint8Array(new Uint8Array([1, 2]), 1)
         }),
         setMutation('coll/c', {
-          key: new BsonBinaryData(1, new Uint8Array([1, 2, 4]))
+          key: Bytes.fromUint8Array(new Uint8Array([1, 2, 4]), 1)
         }),
         setMutation('coll/d', {
-          key: new BsonBinaryData(2, new Uint8Array([1, 2]))
+          key: Bytes.fromUint8Array(new Uint8Array([1, 2]), 2)
         })
       );
       await test.backfillIndexes();
@@ -1188,7 +1188,7 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
 
       query_ = query(
         'coll',
-        filter('key', '==', new BsonBinaryData(1, new Uint8Array([1, 2, 3])))
+        filter('key', '==', Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1))
       );
       await test.executeQuery(query_);
       test.assertOverlaysRead(1, 0, {
@@ -1198,7 +1198,7 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
 
       query_ = query(
         'coll',
-        filter('key', '!=', new BsonBinaryData(1, new Uint8Array([1, 2, 3])))
+        filter('key', '!=', Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1))
       );
       await test.executeQuery(query_);
       test.assertOverlaysRead(3, 0, {
@@ -1210,7 +1210,7 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
 
       query_ = query(
         'coll',
-        filter('key', '>=', new BsonBinaryData(1, new Uint8Array([1, 2, 3])))
+        filter('key', '>=', Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1))
       );
       await test.executeQuery(query_);
       test.assertOverlaysRead(3, 0, {
@@ -1222,7 +1222,7 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
 
       query_ = query(
         'coll',
-        filter('key', '<', new BsonBinaryData(1, new Uint8Array([1, 2])))
+        filter('key', '<', Bytes.fromUint8Array(new Uint8Array([1, 2]), 1))
       );
       await test.executeQuery(query_);
       test.assertOverlaysRead(0, 0);
@@ -1231,8 +1231,8 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
       query_ = query(
         'coll',
         filter('key', 'in', [
-          new BsonBinaryData(1, new Uint8Array([1, 2, 3])),
-          new BsonBinaryData(1, new Uint8Array([1, 2]))
+          Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1),
+          Bytes.fromUint8Array(new Uint8Array([1, 2]), 1)
         ])
       );
       await test.executeQuery(query_);
@@ -1246,8 +1246,8 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
       query_ = query(
         'coll',
         filter('key', 'not-in', [
-          new BsonBinaryData(1, new Uint8Array([1, 2, 3])),
-          new BsonBinaryData(1, new Uint8Array([1, 2]))
+          Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1),
+          Bytes.fromUint8Array(new Uint8Array([1, 2]), 1)
         ])
       );
       await test.executeQuery(query_);
@@ -1769,10 +1769,10 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
         setMutation('coll/f', { key: new BsonTimestamp(1000, 1001) }),
         setMutation('coll/g', { key: new BsonTimestamp(1000, 1000) }),
         setMutation('coll/h', {
-          key: new BsonBinaryData(1, new Uint8Array([1, 2, 4]))
+          key: Bytes.fromUint8Array(new Uint8Array([1, 2, 4]), 1)
         }),
         setMutation('coll/i', {
-          key: new BsonBinaryData(1, new Uint8Array([1, 2, 3]))
+          key: Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1)
         }),
         setMutation('coll/j', {
           key: new BsonObjectId('507f191e810c19729de860eb')
@@ -1844,7 +1844,7 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
         setMutation('coll/k', { key: 'string' }),
         setMutation('coll/l', { key: blob(1, 2, 3) }),
         setMutation('coll/m', {
-          key: new BsonBinaryData(1, new Uint8Array([1, 2, 3]))
+          key: Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1)
         }),
         setMutation('coll/n', { key: ref('foo/bar') }),
         setMutation('coll/o', {
