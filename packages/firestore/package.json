@@ -1,6 +1,6 @@
 {
   "name": "@firebase/firestore",
-  "version": "4.15.0",
+  "version": "4.16.0",
   "engines": {
     "node": ">=20.0.0"
   },
@@ -148,9 +148,9 @@
     "@firebase/app": "0.x"
   },
   "devDependencies": {
-    "@firebase/app": "0.14.13",
-    "@firebase/app-compat": "0.5.13",
-    "@firebase/auth": "1.13.2",
+    "@firebase/app": "0.15.0",
+    "@firebase/app-compat": "0.5.14",
+    "@firebase/auth": "1.13.3",
     "@rollup/plugin-alias": "5.1.1",
     "@rollup/plugin-json": "6.1.0",
     "@types/eslint": "7.29.0",
@@ -165,7 +165,6 @@
     "rollup-plugin-sourcemaps": "0.6.3",
     "@rollup/plugin-terser": "0.4.4",
     "rollup-plugin-typescript2": "0.37.0",
-    "rollup-plugin-dts": "5.3.1",
     "ts-node": "10.9.2",
     "typescript": "5.5.4"
   },
