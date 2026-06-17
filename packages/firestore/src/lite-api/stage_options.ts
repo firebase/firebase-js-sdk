@@ -22,11 +22,13 @@ import {
   AliasedExpression,
   BooleanExpression,
   Expression,
+  FacetDefinition,
   Field,
   Ordering,
   Selectable
 } from './expressions';
 import { Pipeline } from './pipeline';
+import { FacetBucket } from './pipeline-result';
 import { CollectionReference, DocumentReference } from './reference';
 import { VectorValue } from './vector_value';
 
@@ -361,6 +363,8 @@ export type SearchStageOptions = StageOptions & {
   //  * in this search stage.
   //  */
   // queryEnhancement?: QueryEnhancement;
+
+  facets?: FacetDefinition[];
 };
 /**
  * Options defining how a ReplaceWithStage is evaluated. See {@link @firebase/firestore/pipelines#Pipeline.(replaceWith:1)}.

@@ -44,6 +44,7 @@ import { documentId as documentIdFieldPath, FieldPath } from './field_path';
 import { vector } from './field_value_impl';
 import { GeoPoint } from './geo_point';
 import type { Pipeline } from './pipeline';
+import { FacetBucket } from './pipeline-result';
 import { DocumentReference } from './reference';
 import { Timestamp } from './timestamp';
 import { fieldPathFromArgument, parseData, UserData } from './user_data_reader';
@@ -61,7 +62,8 @@ export type ExpressionType =
   | 'ListOfExpressions'
   | 'AliasedExpression'
   | 'Variable'
-  | 'PipelineValue';
+  | 'PipelineValue'
+  | 'Facet';
 
 /**
  * Converts a value to an Expression, Returning either a Constant, MapFunction,
@@ -3406,50 +3408,49 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
     return new FunctionExpression('timestamp_trunc', args);
   }
 
-  // TODO(search) enable with backend support
-  // /**
-  //  * Evaluates if the result of this `expression` is between
-  //  * the `lowerBound` (inclusive) and `upperBound` (inclusive).
-  //  *
-  //  * @example
-  //  * ```
-  //  * // Evaluate if the 'tireWidth' is between 2.2 and 2.4
-  //  * field('tireWidth').between(constant(2.2), constant(2.4))
-  //  *
-  //  * // This is functionally equivalent to
-  //  * and(field('tireWidth').greaterThanOrEqual(contant(2.2)), field('tireWidth').lessThanOrEqual(constant(2.4)))
-  //  * ```
-  //  *
-  //  * @param lowerBound - Lower bound (inclusive) of the range.
-  //  * @param upperBound - Upper bound (inclusive) of the range.
-  //  */
-  // between(lowerBound: Expression, upperBound: Expression): BooleanExpression;
-  //
-  // /**
-  //  * Evaluates if the result of this `expression` is between
-  //  * the `lowerBound` (inclusive) and `upperBound` (inclusive).
-  //  *
-  //  * @example
-  //  * ```
-  //  * // Evaluate if the 'tireWidth' is between 2.2 and 2.4
-  //  * field('tireWidth').between(2.2, 2.4)
-  //  *
-  //  * // This is functionally equivalent to
-  //  * and(field('tireWidth').greaterThanOrEqual(2.2), field('tireWidth').lessThanOrEqual(2.4))
-  //  * ```
-  //  *
-  //  * @param lowerBound - Lower bound (inclusive) of the range.
-  //  * @param upperBound - Upper bound (inclusive) of the range.
-  //  */
-  // between(lowerBound: unknown, upperBound: unknown): BooleanExpression;
-  //
-  // between(lowerBound: unknown, upperBound: unknown): BooleanExpression {
-  //   return new FunctionExpression('between', [
-  //     this,
-  //     valueToDefaultExpr(lowerBound),
-  //     valueToDefaultExpr(upperBound)
-  //   ]).asBoolean();
-  // }
+  /**
+   * Evaluates if the result of this `expression` is between
+   * the `lowerBound` (inclusive) and `upperBound` (inclusive).
+   *
+   * @example
+   * ```
+   * // Evaluate if the 'tireWidth' is between 2.2 and 2.4
+   * field('tireWidth').between(constant(2.2), constant(2.4))
+   *
+   * // This is functionally equivalent to
+   * and(field('tireWidth').greaterThanOrEqual(contant(2.2)), field('tireWidth').lessThanOrEqual(constant(2.4)))
+   * ```
+   *
+   * @param lowerBound - Lower bound (inclusive) of the range.
+   * @param upperBound - Upper bound (inclusive) of the range.
+   */
+  between(lowerBound: Expression, upperBound: Expression): BooleanExpression;
+
+  /**
+   * Evaluates if the result of this `expression` is between
+   * the `lowerBound` (inclusive) and `upperBound` (inclusive).
+   *
+   * @example
+   * ```
+   * // Evaluate if the 'tireWidth' is between 2.2 and 2.4
+   * field('tireWidth').between(2.2, 2.4)
+   *
+   * // This is functionally equivalent to
+   * and(field('tireWidth').greaterThanOrEqual(2.2), field('tireWidth').lessThanOrEqual(2.4))
+   * ```
+   *
+   * @param lowerBound - Lower bound (inclusive) of the range.
+   * @param upperBound - Upper bound (inclusive) of the range.
+   */
+  between(lowerBound: unknown, upperBound: unknown): BooleanExpression;
+
+  between(lowerBound: unknown, upperBound: unknown): BooleanExpression {
+    return new FunctionExpression('between', [
+      this,
+      valueToDefaultExpr(lowerBound),
+      valueToDefaultExpr(upperBound)
+    ]).asBoolean();
+  }
 
   // TODO(search) enable with backend support
   // /**
@@ -3828,6 +3829,25 @@ export class Field extends Expression implements Selectable {
     );
   }
 
+  stringFacet(...values: string[]): FacetDefinition {
+    throw new Error("Not implemented");
+  }
+
+  dateFacet(firstBound: Date, secondBound: Date, ...additionalBounds: Date[]): FacetDefinition {
+    throw new Error("Not implemented");
+  }
+
+  numberFacet(firstBound: number, secondBound: number, ...additionalBounds: number[]): FacetDefinition {
+    throw new Error("Not implemented");
+  }
+
+  facet({
+    enableDefaultBucket: boolean = true,
+    buckets: FacetBucket[]
+  }): FacetDefinition {
+    throw new Error("Not implemented");
+  }
+
   /**
    * @private
    * @internal
@@ -3843,6 +3863,20 @@ export class Field extends Expression implements Selectable {
    * @internal
    */
   _readUserData(context: ParseContext): void {}
+}
+
+export class FacetDefinition {
+  get fieldName(): string {
+    throw new Error("not implemented");
+  }
+
+  get alias(): string {
+    throw new Error("not implemented");
+  }
+
+  get buckets(): FacetBucket[] {
+    throw new Error("not implemented");
+  }
 }
 
 /**
@@ -11709,6 +11743,14 @@ export function documentMatches(
   ).asBoolean();
 }
 
+export function inBuckets(
+  field: string | Field,
+  bucket: FacetBucket,
+  ...additionalBuckets: FacetBucket[]
+): BooleanExpression {
+  throw new Error('not implemented');
+}
+
 /**
  * @beta
  *
@@ -11829,106 +11871,105 @@ export function geoDistance(
   return toField(fieldName).geoDistance(location);
 }
 
-// TODO(search) enable with backend support
-// /**
-//  * Evaluates if the value in the field specified by `fieldName` is between
-//  * the evaluated values for `lowerBound` (inclusive) and `upperBound` (inclusive).
-//  *
-//  * @example
-//  * ```
-//  * // Evaluate if the 'tireWidth' is between 2.2 and 2.4
-//  * between('tireWidth', constant(2.2), constant(2.4))
-//  *
-//  * // This is functionally equivalent to
-//  * and(greaterThanOrEqual('tireWidth', constant(2.2)), lessThanOrEqual('tireWidth', constant(2.4)))
-//  * ```
-//  *
-//  * @param fieldName - Evaluate if the value stored in this field is between the lower and upper bounds.
-//  * @param lowerBound - Lower bound (inclusive) of the range.
-//  * @param upperBound - Upper bound (inclusive) of the range.
-//  */
-// export function between(
-//   fieldName: string,
-//   lowerBound: Expression,
-//   upperBound: Expression
-// ): BooleanExpression;
-//
-// /**
-//  * Evaluates if the value in the field specified by `fieldName` is between
-//  * the values for `lowerBound` (inclusive) and `upperBound` (inclusive).
-//  *
-//  * @example
-//  * ```
-//  * // Evaluate if the 'tireWidth' is between 2.2 and 2.4
-//  * between('tireWidth', 2.2, 2.4)
-//  *
-//  * // This is functionally equivalent to
-//  * and(greaterThanOrEqual('tireWidth', 2.2), lessThanOrEqual('tireWidth', 2.4))
-//  * ```
-//  *
-//  * @param fieldName - Evaluate if the value stored in this field is between the lower and upper bounds.
-//  * @param lowerBound - Lower bound (inclusive) of the range.
-//  * @param upperBound - Upper bound (inclusive) of the range.
-//  */
-// export function between(
-//   fieldName: string,
-//   lowerBound: unknown,
-//   upperBound: unknown
-// ): BooleanExpression;
-//
-// /**
-//  * Evaluates if the result of the specified `expression` is between
-//  * the results of `lowerBound` (inclusive) and `upperBound` (inclusive).
-//  *
-//  * @example
-//  * ```
-//  * // Evaluate if the 'tireWidth' is between 2.2 and 2.4
-//  * between(field('tireWidth'), constant(2.2), constant(2.4))
-//  *
-//  * // This is functionally equivalent to
-//  * and(greaterThanOrEqual(field('tireWidth'), constant(2.2)), lessThanOrEqual(field('tireWidth'), constant(2.4)))
-//  * ```
-//  *
-//  * @param expression - Evaluate if the result of this expression is between the lower and upper bounds.
-//  * @param lowerBound - Lower bound (inclusive) of the range.
-//  * @param upperBound - Upper bound (inclusive) of the range.
-//  */
-// export function between(
-//   expression: Expression,
-//   lowerBound: Expression,
-//   upperBound: Expression
-// ): BooleanExpression;
-//
-// /**
-//  * Evaluates if the result of the specified `expression` is between
-//  * the `lowerBound` (inclusive) and `upperBound` (inclusive).
-//  *
-//  * @example
-//  * ```
-//  * // Evaluate if the 'tireWidth' is between 2.2 and 2.4
-//  * between(field('tireWidth'), 2.2, 2.4)
-//  *
-//  * // This is functionally equivalent to
-//  * and(greaterThanOrEqual(field('tireWidth'), 2.2), lessThanOrEqual(field('tireWidth'), 2.4))
-//  * ```
-//  *
-//  * @param expression - Evaluate if the result of this expression is between the lower and upper bounds.
-//  * @param lowerBound - Lower bound (inclusive) of the range.
-//  * @param upperBound - Upper bound (inclusive) of the range.
-//  */
-// export function between(
-//   expression: Expression,
-//   lowerBound: unknown,
-//   upperBound: unknown
-// ): BooleanExpression;
-//
-// export function between(
-//   expression: Expression | string,
-//   lowerBound: unknown,
-//   upperBound: unknown
-// ): BooleanExpression {
-//   return fieldOrExpression(expression).between(lowerBound, upperBound);
-// }
+/**
+ * Evaluates if the value in the field specified by `fieldName` is between
+ * the evaluated values for `lowerBound` (inclusive) and `upperBound` (inclusive).
+ *
+ * @example
+ * ```
+ * // Evaluate if the 'tireWidth' is between 2.2 and 2.4
+ * between('tireWidth', constant(2.2), constant(2.4))
+ *
+ * // This is functionally equivalent to
+ * and(greaterThanOrEqual('tireWidth', constant(2.2)), lessThanOrEqual('tireWidth', constant(2.4)))
+ * ```
+ *
+ * @param fieldName - Evaluate if the value stored in this field is between the lower and upper bounds.
+ * @param lowerBound - Lower bound (inclusive) of the range.
+ * @param upperBound - Upper bound (inclusive) of the range.
+ */
+export function between(
+  fieldName: string,
+  lowerBound: Expression,
+  upperBound: Expression
+): BooleanExpression;
+
+/**
+ * Evaluates if the value in the field specified by `fieldName` is between
+ * the values for `lowerBound` (inclusive) and `upperBound` (inclusive).
+ *
+ * @example
+ * ```
+ * // Evaluate if the 'tireWidth' is between 2.2 and 2.4
+ * between('tireWidth', 2.2, 2.4)
+ *
+ * // This is functionally equivalent to
+ * and(greaterThanOrEqual('tireWidth', 2.2), lessThanOrEqual('tireWidth', 2.4))
+ * ```
+ *
+ * @param fieldName - Evaluate if the value stored in this field is between the lower and upper bounds.
+ * @param lowerBound - Lower bound (inclusive) of the range.
+ * @param upperBound - Upper bound (inclusive) of the range.
+ */
+export function between(
+  fieldName: string,
+  lowerBound: unknown,
+  upperBound: unknown
+): BooleanExpression;
+
+/**
+ * Evaluates if the result of the specified `expression` is between
+ * the results of `lowerBound` (inclusive) and `upperBound` (inclusive).
+ *
+ * @example
+ * ```
+ * // Evaluate if the 'tireWidth' is between 2.2 and 2.4
+ * between(field('tireWidth'), constant(2.2), constant(2.4))
+ *
+ * // This is functionally equivalent to
+ * and(greaterThanOrEqual(field('tireWidth'), constant(2.2)), lessThanOrEqual(field('tireWidth'), constant(2.4)))
+ * ```
+ *
+ * @param expression - Evaluate if the result of this expression is between the lower and upper bounds.
+ * @param lowerBound - Lower bound (inclusive) of the range.
+ * @param upperBound - Upper bound (inclusive) of the range.
+ */
+export function between(
+  expression: Expression,
+  lowerBound: Expression,
+  upperBound: Expression
+): BooleanExpression;
+
+/**
+ * Evaluates if the result of the specified `expression` is between
+ * the `lowerBound` (inclusive) and `upperBound` (inclusive).
+ *
+ * @example
+ * ```
+ * // Evaluate if the 'tireWidth' is between 2.2 and 2.4
+ * between(field('tireWidth'), 2.2, 2.4)
+ *
+ * // This is functionally equivalent to
+ * and(greaterThanOrEqual(field('tireWidth'), 2.2), lessThanOrEqual(field('tireWidth'), 2.4))
+ * ```
+ *
+ * @param expression - Evaluate if the result of this expression is between the lower and upper bounds.
+ * @param lowerBound - Lower bound (inclusive) of the range.
+ * @param upperBound - Upper bound (inclusive) of the range.
+ */
+export function between(
+  expression: Expression,
+  lowerBound: unknown,
+  upperBound: unknown
+): BooleanExpression;
+
+export function between(
+  expression: Expression | string,
+  lowerBound: unknown,
+  upperBound: unknown
+): BooleanExpression {
+  return fieldOrExpression(expression).between(lowerBound, upperBound);
+}
 
 // TODO(new-expression): Add new top-level expression function definitions above this line
 
