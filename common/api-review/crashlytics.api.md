@@ -33,6 +33,9 @@ export { Instrumentation }
 export function logViewBoundary(crashlytics: Crashlytics, urlTemplate: string, attributes?: AnyValueMap): void;
 
 // @public
+export function logVisibilityEvent(crashlytics: Crashlytics, visibilityState: 'visible' | 'hidden'): void;
+
+// @public
 export function nextOnRequestError(crashlyticsOptions?: CrashlyticsOptions): Instrumentation.onRequestError;
 
 // @public

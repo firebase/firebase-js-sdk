@@ -255,4 +255,33 @@ export function logViewBoundary(
   });
 }
 
+/**
+ * Logs a page visibility transition event (foreground or background).
+ *
+ * @public
+ *
+ * @param crashlytics - The {@link Crashlytics} instance.
+ * @param visibilityState - The current page visibility state ('visible' or 'hidden').
+ */
+export function logVisibilityEvent(
+  crashlytics: Crashlytics,
+  visibilityState: 'visible' | 'hidden'
+): void {
+  const { loggerProvider, attributesStore } =
+    crashlytics as CrashlyticsInternal;
+  const logger = loggerProvider.getLogger('visibility-logger');
+  const customAttributes: AnyValueMap = attributesStore.getLogAttributes();
+
+  const body =
+    visibilityState === 'hidden'
+      ? 'Background lifecycle event'
+      : 'Foreground lifecycle event';
+
+  logger.emit({
+    severityNumber: SeverityNumber.INFO,
+    body,
+    attributes: customAttributes
+  });
+}
+
 export { flush, startUserInteractionTrace };

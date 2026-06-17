@@ -28,7 +28,13 @@ import {
 } from '@firebase/app';
 import { Component, ComponentType } from '@firebase/component';
 import { FirebaseAppCheckInternal } from '@firebase/app-check-interop-types';
-import { recordError, flush, getCrashlytics, logViewBoundary } from './api';
+import {
+  recordError,
+  flush,
+  getCrashlytics,
+  logViewBoundary,
+  logVisibilityEvent
+} from './api';
 import { CrashlyticsService } from './service';
 import { registerCrashlytics } from './register';
 import { _FirebaseInstallationsInternal } from '@firebase/installations';
@@ -552,6 +558,32 @@ describe('Top level API', () => {
       await flush(fakeCrashlytics);
 
       expect(emittedLogs.length).to.equal(0);
+    });
+  });
+
+  describe('logVisibilityEvent', () => {
+    it('should emit a log record for a hidden visibility with correct body, severity number, and custom attributes', () => {
+      logVisibilityEvent(fakeCrashlytics, 'hidden');
+
+      expect(emittedLogs).to.have.lengthOf(1);
+      const log = emittedLogs[0];
+      expect(log.body).to.equal('Background lifecycle event');
+      expect(log.severityNumber).to.equal(SeverityNumber.INFO);
+      expect(log.attributes).to.deep.equal(
+        fakeAttributesStore.getLogAttributes()
+      );
+    });
+
+    it('should emit a log record for a visible visibility with correct body, severity number, and custom attributes', () => {
+      logVisibilityEvent(fakeCrashlytics, 'visible');
+
+      expect(emittedLogs).to.have.lengthOf(1);
+      const log = emittedLogs[0];
+      expect(log.body).to.equal('Foreground lifecycle event');
+      expect(log.severityNumber).to.equal(SeverityNumber.INFO);
+      expect(log.attributes).to.deep.equal(
+        fakeAttributesStore.getLogAttributes()
+      );
     });
   });
 });

@@ -19,6 +19,7 @@ import { SeverityNumber } from '@opentelemetry/api-logs';
 import { CRASHLYTICS_TRACER_NAME } from './constants';
 import { Crashlytics } from './public-types';
 import { CrashlyticsInternal } from './types';
+import { logVisibilityEvent } from './api';
 import { type TimeInput } from '@opentelemetry/api';
 import { hrTimeToMilliseconds, timeInputToHrTime } from '@opentelemetry/core';
 
@@ -120,6 +121,13 @@ export function generateClickSpanName(element: Element): string {
 export function registerListeners(crashlytics: Crashlytics): void {
   if (typeof window !== 'undefined' && typeof document !== 'undefined') {
     window.addEventListener('visibilitychange', async () => {
+      if (
+        document.visibilityState === 'visible' ||
+        document.visibilityState === 'hidden'
+      ) {
+        logVisibilityEvent(crashlytics, document.visibilityState);
+      }
+
       if (document.visibilityState === 'hidden') {
         await flush(crashlytics);
       }
