@@ -17,7 +17,7 @@
         "src/index.node.ts",
         "--timeout",
         "5000",
-        "src/**/*.test.ts"
+        "'src/**/!(*-browser)*.test.ts"
       ],
       "env": {
         "TS_NODE_COMPILER_OPTIONS": "{\"module\":\"commonjs\"}"
@@ -37,7 +37,9 @@
         "src/index.node.ts",
         "--timeout",
         "5000",
-        "integration/**/*.test.ts"
+        "integration/**/*.test.ts",
+        "--grep",
+        "${input:grepString}"
       ],
       "env": {
         "TS_NODE_COMPILER_OPTIONS": "{\"module\":\"commonjs\"}"
@@ -169,6 +171,29 @@
       "sourceMaps": true
     },
     {
+      "name": "Firestore Enterprise Lite Tests",
+      "type": "node",
+      "request": "launch",
+      "runtimeArgs": ["-r", "ts-node/register"],
+      "cwd": "${workspaceRoot}/packages/firestore",
+      "program": "${workspaceRoot}/packages/firestore/scripts/run-tests.ts",
+      "args": [
+        "--platform",
+        "node_lite",
+        "--main=lite/index.ts",
+        "test/lite/**/*.test.ts",
+        "--grep",
+        "${input:grepString}"
+      ],
+      "env": {
+        "TS_NODE_COMPILER_OPTIONS": "{\"module\":\"commonjs\"}",
+        "FIRESTORE_TARGET_BACKEND": "nightly",
+        "FIRESTORE_TARGET_DB_ID": "enterprise",
+        "RUN_ENTERPRISE_TESTS": "true"
+      },
+      "sourceMaps": true
+    },
+    {
       "type": "node",
       "request": "launch",
       "name": "Firestore Unit Tests (Browser)",
@@ -183,6 +208,14 @@
       "program": "${workspaceRoot}/node_modules/.bin/karma",
       "cwd": "${workspaceRoot}/packages/firestore",
       "args": ["start", "--auto-watch", "--integration", "--browsers", "Chrome"]
+    }
+  ],
+  "inputs": [
+    {
+      "id": "grepString",
+      "type": "promptString",
+      "description": "Enter grep pattern (e.g., 'Google AI gemini-2.0-flash generateContent')",
+      "default": ""
     }
   ]
 }

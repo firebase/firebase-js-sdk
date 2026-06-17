@@ -25,12 +25,12 @@ const util = require('../firestore/rollup.shared');
 
 const deps = Object.keys({ ...pkg.peerDependencies, ...pkg.dependencies });
 
-const es2017Plugins = [
+const es2020Plugins = [
   typescriptPlugin({
     typescript,
     tsconfigOverride: {
       compilerOptions: {
-        target: 'es2017'
+        target: 'es2020'
       }
     },
     transformers: [util.removeAssertTransformer]
@@ -46,7 +46,7 @@ const browserBuilds = [
       format: 'es',
       sourcemap: true
     },
-    plugins: es2017Plugins,
+    plugins: es2020Plugins,
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
   {
@@ -58,7 +58,7 @@ const browserBuilds = [
         sourcemap: true
       }
     ],
-    plugins: es2017Plugins,
+    plugins: es2020Plugins,
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }
 ];
@@ -71,7 +71,7 @@ const nodeBuilds = [
       format: 'cjs',
       sourcemap: true
     },
-    plugins: es2017Plugins,
+    plugins: es2020Plugins,
     external: deps
   },
   {
@@ -81,7 +81,7 @@ const nodeBuilds = [
       format: 'es',
       sourcemap: true
     },
-    plugins: [...es2017Plugins, emitModulePackageFile()],
+    plugins: [...es2020Plugins, emitModulePackageFile()],
     external: deps
   }
 ];
@@ -94,7 +94,7 @@ const rnBuilds = [
       format: 'es',
       sourcemap: true
     },
-    plugins: es2017Plugins,
+    plugins: es2020Plugins,
     external: deps
   }
 ];

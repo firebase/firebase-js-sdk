@@ -1,5 +1,62 @@
 # @firebase/analytics-compat
 
+## 0.2.28
+
+### Patch Changes
+
+- [`8e384c9`](https://github.com/firebase/firebase-js-sdk/commit/8e384c947de73c7f74346b1c01640f3515a4ef0e) [#9883](https://github.com/firebase/firebase-js-sdk/pull/9883) - Updated dependencies.
+
+- Updated dependencies [[`8e384c9`](https://github.com/firebase/firebase-js-sdk/commit/8e384c947de73c7f74346b1c01640f3515a4ef0e)]:
+  - @firebase/analytics@0.10.22
+  - @firebase/analytics-types@0.8.4
+  - @firebase/component@0.7.3
+  - @firebase/util@1.15.1
+
+## 0.2.27
+
+### Patch Changes
+
+- Updated dependencies [[`2f7f426`](https://github.com/firebase/firebase-js-sdk/commit/2f7f426dec37efd75bad8dcc87cdd769ed4f7752)]:
+  - @firebase/util@1.15.0
+  - @firebase/analytics@0.10.21
+  - @firebase/component@0.7.2
+
+## 0.2.26
+
+### Patch Changes
+
+- Updated dependencies [[`eebba69`](https://github.com/firebase/firebase-js-sdk/commit/eebba69e912b59e5f097a896e479d139c03d62ca)]:
+  - @firebase/util@1.14.0
+  - @firebase/analytics@0.10.20
+  - @firebase/component@0.7.1
+
+## 0.2.25
+
+### Patch Changes
+
+- Updated dependencies [[`1bcf83d`](https://github.com/firebase/firebase-js-sdk/commit/1bcf83d7f0640dff67c20939fb9af7bae6a941e0)]:
+  - @firebase/analytics@0.10.19
+
+## 0.2.24
+
+### Patch Changes
+
+- [`f18b25f`](https://github.com/firebase/firebase-js-sdk/commit/f18b25f73a05a696b6a9ed45702a84cc9dd5c6d9) [#9167](https://github.com/firebase/firebase-js-sdk/pull/9167) - Set build targets to ES2020.
+
+- Updated dependencies [[`f18b25f`](https://github.com/firebase/firebase-js-sdk/commit/f18b25f73a05a696b6a9ed45702a84cc9dd5c6d9), [`25b60fd`](https://github.com/firebase/firebase-js-sdk/commit/25b60fdaabe910e1538684a3c490b0900fb5f113)]:
+  - @firebase/analytics@0.10.18
+  - @firebase/component@0.7.0
+  - @firebase/util@1.13.0
+
+## 0.2.23
+
+### Patch Changes
+
+- Updated dependencies [[`13e6cce`](https://github.com/firebase/firebase-js-sdk/commit/13e6cce882d687e06c8d9bfb56895f8a77fc57b5), [`42ac401`](https://github.com/firebase/firebase-js-sdk/commit/42ac4011787db6bb7a08f8c84f364ea86ea51e83)]:
+  - @firebase/analytics@0.10.17
+  - @firebase/util@1.12.1
+  - @firebase/component@0.6.18
+
 ## 0.2.22
 
 ### Patch Changes

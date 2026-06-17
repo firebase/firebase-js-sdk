@@ -46,6 +46,8 @@ import {
   arrayUnion,
   deleteField,
   increment,
+  maximum,
+  minimum,
   serverTimestamp,
   vector
 } from '../../src/lite-api/field_value_impl';
@@ -101,6 +103,7 @@ import {
   DEFAULT_SETTINGS,
   USE_EMULATOR
 } from '../integration/util/settings';
+import { it, describe } from '../util/mocha_extensions';
 
 import {
   Post,
@@ -293,6 +296,12 @@ describe('doc', () => {
 
   it('validates path', () => {
     return withTestDb(db => {
+      expect(() =>
+        // @ts-expect-error
+        doc({}, 'coll/doc')
+      ).to.throw(
+        'Expected first argument to doc() to be a CollectionReference, a DocumentReference or FirebaseFirestore'
+      );
       expect(() => doc(db, 'coll')).to.throw(
         'Invalid document reference. Document references must have an even ' +
           'number of segments, but coll has 1.'
@@ -916,6 +925,15 @@ describe('FieldValue', () => {
     expect(arrayRemove('a', 'b').isEqual(arrayRemove('b', 'a'))).to.be.false;
     expect(increment(1).isEqual(increment(1))).to.be.true;
     expect(increment(1).isEqual(increment(2))).to.be.false;
+
+    expect(minimum(1).isEqual(minimum(1))).to.be.true;
+    expect(minimum(1).isEqual(minimum(2))).to.be.false;
+    expect(maximum(1).isEqual(maximum(1))).to.be.true;
+    expect(maximum(1).isEqual(maximum(2))).to.be.false;
+
+    // Test NaN equality
+    expect(minimum(NaN).isEqual(minimum(NaN))).to.be.true;
+    expect(maximum(NaN).isEqual(maximum(NaN))).to.be.true;
   });
 
   it('support instanceof checks', () => {
@@ -924,6 +942,8 @@ describe('FieldValue', () => {
     expect(increment(1)).to.be.an.instanceOf(FieldValue);
     expect(arrayUnion('a')).to.be.an.instanceOf(FieldValue);
     expect(arrayRemove('a')).to.be.an.instanceOf(FieldValue);
+    expect(minimum(1)).to.be.an.instanceOf(FieldValue);
+    expect(maximum(1)).to.be.an.instanceOf(FieldValue);
   });
 
   it('can apply arrayUnion', () => {
@@ -950,6 +970,54 @@ describe('FieldValue', () => {
       await updateDoc(docRef, 'val', serverTimestamp());
       const snap = await getDoc(docRef);
       expect(snap.get('val')).to.be.an.instanceOf(Timestamp);
+    });
+  });
+
+  it('can apply minimum', () => {
+    return withTestDocAndInitialData({ 'val': 2 }, async docRef => {
+      await updateDoc(docRef, 'val', minimum(1));
+      const snap = await getDoc(docRef);
+      expect(snap.data()).to.deep.equal({ 'val': 1 });
+    });
+  });
+
+  it('can apply minimum (noop)', () => {
+    return withTestDocAndInitialData({ 'val': 1 }, async docRef => {
+      await updateDoc(docRef, 'val', minimum(2));
+      const snap = await getDoc(docRef);
+      expect(snap.data()).to.deep.equal({ 'val': 1 });
+    });
+  });
+
+  it('can apply maximum', () => {
+    return withTestDocAndInitialData({ 'val': 1 }, async docRef => {
+      await updateDoc(docRef, 'val', maximum(2));
+      const snap = await getDoc(docRef);
+      expect(snap.data()).to.deep.equal({ 'val': 2 });
+    });
+  });
+
+  it('can apply maximum (noop)', () => {
+    return withTestDocAndInitialData({ 'val': 2 }, async docRef => {
+      await updateDoc(docRef, 'val', maximum(1));
+      const snap = await getDoc(docRef);
+      expect(snap.data()).to.deep.equal({ 'val': 2 });
+    });
+  });
+
+  it('can apply minimum against non-numeric', () => {
+    return withTestDocAndInitialData({ 'val': 'string' }, async docRef => {
+      await updateDoc(docRef, 'val', minimum(1));
+      const snap = await getDoc(docRef);
+      expect(snap.data()).to.deep.equal({ 'val': 1 });
+    });
+  });
+
+  it('can apply maximum against non-numeric', () => {
+    return withTestDocAndInitialData({ 'val': 'string' }, async docRef => {
+      await updateDoc(docRef, 'val', maximum(1));
+      const snap = await getDoc(docRef);
+      expect(snap.data()).to.deep.equal({ 'val': 1 });
     });
   });
 
@@ -2465,27 +2533,24 @@ describe('Count queries', () => {
   // production, since the Firestore Emulator does not require index creation
   // and will, therefore, never fail in this situation.
   // eslint-disable-next-line no-restricted-properties
-  (USE_EMULATOR ? it.skip : it)(
-    'getCount error message contains console link if missing index',
-    () => {
-      return withTestCollection(async coll => {
-        const query_ = query(
-          coll,
-          where('key1', '==', 42),
-          where('key2', '<', 42)
+  it.skip('getCount error message contains console link if missing index', () => {
+    return withTestCollection(async coll => {
+      const query_ = query(
+        coll,
+        where('key1', '==', 42),
+        where('key2', '<', 42)
+      );
+      // TODO(b/316359394) Remove the special logic for non-default databases
+      // once cl/582465034 is rolled out to production.
+      if (coll.firestore._databaseId.isDefaultDatabase) {
+        await expect(getCount(query_)).to.be.eventually.rejectedWith(
+          /index.*https:\/\/console\.firebase\.google\.com/
         );
-        // TODO(b/316359394) Remove the special logic for non-default databases
-        // once cl/582465034 is rolled out to production.
-        if (coll.firestore._databaseId.isDefaultDatabase) {
-          await expect(getCount(query_)).to.be.eventually.rejectedWith(
-            /index.*https:\/\/console\.firebase\.google\.com/
-          );
-        } else {
-          await expect(getCount(query_)).to.be.eventually.rejected;
-        }
-      });
-    }
-  );
+      } else {
+        await expect(getCount(query_)).to.be.eventually.rejected;
+      }
+    });
+  });
 });
 
 describe('Aggregate queries', () => {
@@ -2774,7 +2839,7 @@ describe('Aggregate queries', () => {
   // production, since the Firestore Emulator does not require index creation
   // and will, therefore, never fail in this situation.
   // eslint-disable-next-line no-restricted-properties
-  (USE_EMULATOR ? it.skip : it)(
+  it.skipEmulator.skipEnterprise(
     'getAggregate error message contains console link if missing index',
     () => {
       return withTestCollection(async coll => {
@@ -2908,26 +2973,29 @@ describe('Aggregate queries - sum / average', () => {
     });
   });
 
-  it('fails when exceeding the max (5) aggregations using getAggregationFromServer', () => {
-    const testDocs = [
-      { author: 'authorA', title: 'titleA', pages: 100 },
-      { author: 'authorB', title: 'titleB', pages: 50 }
-    ];
-    return withTestCollectionAndInitialData(testDocs, async coll => {
-      const promise = getAggregate(coll, {
-        totalPages: sum('pages'),
-        averagePages: average('pages'),
-        count: count(),
-        totalPagesX: sum('pages'),
-        averagePagesY: average('pages'),
-        countZ: count()
-      });
+  it.skipEmulator.skipEnterprise(
+    'fails when exceeding the max (5) aggregations using getAggregationFromServer',
+    () => {
+      const testDocs = [
+        { author: 'authorA', title: 'titleA', pages: 100 },
+        { author: 'authorB', title: 'titleB', pages: 50 }
+      ];
+      return withTestCollectionAndInitialData(testDocs, async coll => {
+        const promise = getAggregate(coll, {
+          totalPages: sum('pages'),
+          averagePages: average('pages'),
+          count: count(),
+          totalPagesX: sum('pages'),
+          averagePagesY: average('pages'),
+          countZ: count()
+        });
 
-      await expect(promise).to.eventually.be.rejectedWith(
-        /maximum number of aggregations/
-      );
-    });
-  });
+        await expect(promise).to.eventually.be.rejectedWith(
+          /maximum number of aggregations/
+        );
+      });
+    }
+  );
 
   // Only run tests that require indexes against the emulator, because we don't
   // have a way to dynamically create the indexes when running the tests.

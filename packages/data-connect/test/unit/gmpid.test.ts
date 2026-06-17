@@ -21,7 +21,7 @@ import * as sinon from 'sinon';
 import sinonChai from 'sinon-chai';
 
 import { DataConnect, executeQuery, getDataConnect, queryRef } from '../../src';
-import { initializeFetch } from '../../src/network/fetch';
+import { initializeFetch } from '../../src/network/rest';
 
 use(sinonChai);
 const json = {
@@ -50,7 +50,6 @@ describe('GMPID Tests', () => {
     await deleteApp(app);
   });
   it('should send a request with the corresponding gmpid if using the app id is specified', async () => {
-    // @ts-ignore
     await executeQuery(queryRef(dc, '')).catch(() => {});
     expect(fakeFetchImpl).to.be.calledWithMatch(
       'https://firebasedataconnect.googleapis.com/v1/projects/p/locations/l/services/s/connectors/c:executeQuery',

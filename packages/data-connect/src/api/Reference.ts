@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import { Extensions } from '../network';
+
 import { DataConnect, DataConnectOptions } from './DataConnect';
 export const QUERY_STR = 'query';
 export const MUTATION_STR = 'mutation';
@@ -28,6 +30,7 @@ export interface OpResult<Data> {
   data: Data;
   source: DataSource;
   fetchTime: string;
+  extensions?: Extensions;
 }
 
 export interface OperationRef<_Data, Variables> {

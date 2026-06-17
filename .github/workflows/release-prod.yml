@@ -25,6 +25,7 @@ on:
 
 jobs:
   deploy:
+    environment: release
     name: Production Release
     runs-on: ubuntu-latest
     # Allow GITHUB_TOKEN to have write permissions
@@ -32,12 +33,12 @@ jobs:
       contents: write
 
     steps:
-    - name: Set up node (20)
-      uses: actions/setup-node@v4
+    - name: Set up node (22)
+      uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # ratchet:actions/setup-node@v4
       with:
         node-version: 22.10.0
     - name: Checkout release branch (with history)
-      uses: actions/checkout@v4
+      uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # ratchet:actions/checkout@v4
       with:
         # Release script requires git history and tags.
         fetch-depth: 0
@@ -112,16 +113,20 @@ jobs:
         echo "BASE_VERSION=$VERSION" >> $GITHUB_OUTPUT
     - name: Echo version in shell
       run: |
-        echo "Base version: ${{ steps.get-version.outputs.BASE_VERSION }}"
+        echo "Base version: ${STEPS_GET_VERSION_OUTPUTS_BASE_VERSION}"
+      env:
+        STEPS_GET_VERSION_OUTPUTS_BASE_VERSION: ${{ steps.get-version.outputs.BASE_VERSION }}
     - name: Log to release tracker
       # Sends release information to cloud functions endpoint of release tracker.
       run: |
         DATE=$(date +'%m/%d/%Y')
-        BASE_VERSION=${{ steps.get-version.outputs.BASE_VERSION }}
+        BASE_VERSION=${STEPS_GET_VERSION_OUTPUTS_BASE_VERSION}
         RELEASE_TRACKER_URL=${{ secrets.RELEASE_TRACKER_URL }}
         curl -X POST -H "Content-Type:application/json" \
         -d "{\"version\":\"$BASE_VERSION\",\"date\":\"$DATE\"}" \
         $RELEASE_TRACKER_URL/logProduction
+      env:
+        STEPS_GET_VERSION_OUTPUTS_BASE_VERSION: ${{ steps.get-version.outputs.BASE_VERSION }}
     - name: Create GitHub release
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

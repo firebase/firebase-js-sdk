@@ -33,7 +33,7 @@ const util = require('./rollup.shared');
 const nodePlugins = [
   typescriptPlugin({
     typescript,
-    cacheDir: tmp.dirSync(),
+    cacheDir: tmp.dirSync().name,
     abortOnError: true,
     transformers: [util.removeAssertTransformer]
   }),
@@ -43,22 +43,58 @@ const nodePlugins = [
 const browserPlugins = [
   typescriptPlugin({
     typescript,
-    cacheDir: tmp.dirSync(),
+    cacheDir: tmp.dirSync().name,
     abortOnError: true,
     transformers: [util.removeAssertAndPrefixInternalTransformer]
   }),
   json({ preferConst: true }),
-  terser(util.manglePrivatePropertiesOptions)
+  terser(util.manglePrivatePropertiesOptions),
+  util.cleanupNameCache(util.manglePrivatePropertiesOptions.nameCache)
 ];
 
 const allBuilds = [
+  // Workaround for https://github.com/rollup/plugins/issues/1970
+  // We invoke this intermediate browser build twice. The first
+  // invocation will not properly mangle property names because of the
+  // rollup/plugin-terser issue #1970, however it will output a nameCache
+  // mapping all of the mangled names to new names. The second invocation
+  // will use the nameCache from the first, and consistently mangle
+  // all property names.
+  //
+  // This is the first invocation of the intermediate browser build.
+  // It must run before any other build using `browserPlugins`.
+  // TODO Remove this build when https://github.com/rollup/plugins/issues/1970 is fixed.
+  {
+    input: ['./lite/index.ts', './lite/pipelines/pipelines.ts'],
+    output: {
+      dir: 'dist/intermediate/lite/',
+      entryFileNames: '[name].browser.js',
+      chunkFileNames: 'common.browser.js',
+      format: 'es',
+      sourcemap: true
+    },
+    plugins: [
+      alias(util.generateAliasConfig('browser_lite')),
+      ...browserPlugins,
+      // setting it to empty string because browser is the default env
+      replace({
+        '__RUNTIME_ENV__': ''
+      })
+    ],
+    external: util.resolveBrowserExterns,
+    treeshake: {
+      moduleSideEffects: false
+    }
+  },
   // Intermediate Node ESM build without build target reporting
   // this is an intermediate build used to generate the actual esm and cjs builds
   // which add build target reporting
   {
-    input: './lite/index.ts',
+    input: ['./lite/index.ts', './lite/pipelines/pipelines.ts'],
     output: {
-      file: path.resolve('./lite', pkg['main-esm']),
+      dir: 'dist/intermediate/lite/',
+      entryFileNames: '[name].node.mjs',
+      chunkFileNames: 'common-[hash].node.mjs',
       format: 'es',
       sourcemap: true
     },
@@ -77,9 +113,14 @@ const allBuilds = [
   },
   // Node CJS build
   {
-    input: path.resolve('./lite', pkg['main-esm']),
+    input: [
+      'dist/intermediate/lite/index.node.mjs',
+      'dist/intermediate/lite/pipelines.node.mjs'
+    ],
     output: {
-      file: path.resolve('./lite', pkg.main),
+      dir: 'dist/lite/',
+      entryFileNames: '[name].cjs.js',
+      chunkFileNames: 'common-[hash].node.cjs.js',
       format: 'cjs',
       sourcemap: true
     },
@@ -93,7 +134,7 @@ const allBuilds = [
       }),
       json(),
       sourcemaps(),
-      replace(generateBuildTargetReplaceConfig('cjs', 2017))
+      replace(generateBuildTargetReplaceConfig('cjs', 2020))
     ],
     external: util.resolveNodeExterns,
     treeshake: {
@@ -102,28 +143,38 @@ const allBuilds = [
   },
   // Node ESM build
   {
-    input: path.resolve('./lite', pkg['main-esm']),
+    input: [
+      'dist/intermediate/lite/index.node.mjs',
+      'dist/intermediate/lite/pipelines.node.mjs'
+    ],
     output: {
-      file: path.resolve('./lite', pkg['main-esm']),
+      dir: 'dist/lite/',
+      entryFileNames: '[name].mjs',
+      chunkFileNames: 'common-[hash].node.mjs',
       format: 'es',
       sourcemap: true
     },
     plugins: [
       sourcemaps(),
-      replace(generateBuildTargetReplaceConfig('esm', 2017))
+      replace(generateBuildTargetReplaceConfig('esm', 2020))
     ],
     external: util.resolveNodeExterns,
     treeshake: {
       moduleSideEffects: false
     }
   },
+  // This is the second invocation of the intermediate browser build.
+  // Keep this build when https://github.com/rollup/plugins/issues/1970 is fixed.
+  //
   // Intermediate browser build without build target reporting
   // this is an intermediate build used to generate the actual esm and cjs builds
   // which add build target reporting
   {
-    input: './lite/index.ts',
+    input: ['./lite/index.ts', './lite/pipelines/pipelines.ts'],
     output: {
-      file: path.resolve('./lite', pkg.browser),
+      dir: 'dist/intermediate/lite/',
+      entryFileNames: '[name].browser.js',
+      chunkFileNames: 'common.browser.js',
       format: 'es',
       sourcemap: true
     },
@@ -140,38 +191,48 @@ const allBuilds = [
       moduleSideEffects: false
     }
   },
-  // Convert es2017 build to CJS
+  // Convert es2020 build to CJS
   {
-    input: path.resolve('./lite', pkg.browser),
+    input: [
+      'dist/intermediate/lite/index.browser.js',
+      'dist/intermediate/lite/pipelines.browser.js'
+    ],
     output: [
       {
-        file: './dist/lite/index.cjs.js',
+        dir: 'dist/lite/',
+        entryFileNames: '[name].cjs.js',
+        chunkFileNames: 'common-[hash].cjs.js',
         format: 'es',
         sourcemap: true
       }
     ],
     plugins: [
       sourcemaps(),
-      replace(generateBuildTargetReplaceConfig('cjs', 2017))
+      replace(generateBuildTargetReplaceConfig('cjs', 2020))
     ],
     external: util.resolveBrowserExterns,
     treeshake: {
       moduleSideEffects: false
     }
   },
-  // Browser es2017 build
+  // Browser es2020 build
   {
-    input: path.resolve('./lite', pkg.browser),
+    input: [
+      'dist/intermediate/lite/index.browser.js',
+      'dist/intermediate/lite/pipelines.browser.js'
+    ],
     output: [
       {
-        file: path.resolve('./lite', pkg.browser),
+        dir: 'dist/lite/',
+        entryFileNames: '[name].esm.js',
+        chunkFileNames: 'common-[hash].esm.js',
         format: 'es',
         sourcemap: true
       }
     ],
     plugins: [
       sourcemaps(),
-      replace(generateBuildTargetReplaceConfig('esm', 2017))
+      replace(generateBuildTargetReplaceConfig('esm', 2020))
     ],
     external: util.resolveBrowserExterns,
     treeshake: {
@@ -180,9 +241,11 @@ const allBuilds = [
   },
   // RN build
   {
-    input: './lite/index.ts',
+    input: ['./lite/index.ts', './lite/pipelines/pipelines.ts'],
     output: {
-      file: path.resolve('./lite', pkg['react-native']),
+      dir: 'dist/lite/',
+      entryFileNames: '[name].rn.esm.js',
+      chunkFileNames: 'common-[hash].rn.esm.js',
       format: 'es',
       sourcemap: true
     },
@@ -190,7 +253,7 @@ const allBuilds = [
       alias(util.generateAliasConfig('rn_lite')),
       ...browserPlugins,
       replace({
-        ...generateBuildTargetReplaceConfig('esm', 2017),
+        ...generateBuildTargetReplaceConfig('esm', 2020),
         '__RUNTIME_ENV__': 'rn'
       })
     ],

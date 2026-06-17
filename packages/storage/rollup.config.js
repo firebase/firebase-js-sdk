@@ -65,7 +65,7 @@ const browserBuilds = [
       alias(generateAliasConfig('browser')),
       ...buildPlugins,
       replace({
-        ...generateBuildTargetReplaceConfig('esm', 2017),
+        ...generateBuildTargetReplaceConfig('esm', 2020),
         '__RUNTIME_ENV__': ''
       })
     ],
@@ -85,7 +85,7 @@ const browserBuilds = [
       alias(generateAliasConfig('browser')),
       ...buildPlugins,
       replace({
-        ...generateBuildTargetReplaceConfig('cjs', 2017),
+        ...generateBuildTargetReplaceConfig('cjs', 2020),
         '__RUNTIME_ENV__': ''
       })
     ],
@@ -104,7 +104,7 @@ const browserBuilds = [
       alias(generateAliasConfig('browser')),
       ...buildPlugins,
       replace({
-        ...generateBuildTargetReplaceConfig('cjs', 2017),
+        ...generateBuildTargetReplaceConfig('cjs', 2020),
         '__RUNTIME_ENV__': ''
       })
     ],
@@ -127,7 +127,7 @@ const nodeBuilds = [
       alias(generateAliasConfig('node')),
       ...buildPlugins,
       replace({
-        ...generateBuildTargetReplaceConfig('cjs', 2017),
+        ...generateBuildTargetReplaceConfig('cjs', 2020),
         '__RUNTIME_ENV__': 'node'
       })
     ],
@@ -148,7 +148,7 @@ const nodeBuilds = [
       alias(generateAliasConfig('node')),
       ...buildPlugins,
       replace({
-        ...generateBuildTargetReplaceConfig('esm', 2017),
+        ...generateBuildTargetReplaceConfig('esm', 2020),
         '__RUNTIME_ENV__': 'node'
       }),
       emitModulePackageFile()

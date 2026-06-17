@@ -29,7 +29,9 @@ import {
   enableIndexedDbPersistence,
   setDoc,
   memoryLocalCache,
-  getDocFromCache
+  getDocFromCache,
+  // @ts-ignore internal API usage
+  ensureFirestoreConfigured
 } from '../util/firebase_export';
 import { DEFAULT_SETTINGS } from '../util/settings';
 
@@ -67,10 +69,15 @@ describe('Firestore Provider', () => {
     const fs4 = getFirestore(app, 'name1');
     const fs5 = getFirestore(app, 'name2');
 
+    // @ts-ignore internal API usage
     expect(fs1._databaseId.database).to.be.equal('init1');
+    // @ts-ignore internal API usage
     expect(fs2._databaseId.database).to.be.equal('init2');
+    // @ts-ignore internal API usage
     expect(fs3._databaseId.database).to.be.equal('(default)');
+    // @ts-ignore internal API usage
     expect(fs4._databaseId.database).to.be.equal('name1');
+    // @ts-ignore internal API usage
     expect(fs5._databaseId.database).to.be.equal('name2');
 
     expect(fs1).to.not.be.equal(fs2);
@@ -199,5 +206,19 @@ describe('Firestore Provider', () => {
     });
 
     return terminate(firestore).then(() => terminate(firestore));
+  });
+
+  it('passes API key to database info', () => {
+    const app = initializeApp(
+      { apiKey: 'fake-api-key-x', projectId: 'test-project' },
+      'test-app-getFirestore-x'
+    );
+    const fs = getFirestore(app);
+    ensureFirestoreConfigured(fs);
+
+    // @ts-ignore internal API usage
+    expect(fs._firestoreClient?._databaseInfo.apiKey).to.equal(
+      'fake-api-key-x'
+    );
   });
 });

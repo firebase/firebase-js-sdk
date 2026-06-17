@@ -1,5 +1,252 @@
 # @firebase/ai
 
+## 2.13.0
+
+### Minor Changes
+
+- [`f0752a0`](https://github.com/firebase/firebase-js-sdk/commit/f0752a0d69c54e79d0f81b306fe250845da7784f) [#9800](https://github.com/firebase/firebase-js-sdk/pull/9800) - Add `initializeDeviceModel()` method to allow explicit initialization of on-device model in hybrid mode.
+
+- [`bd08cae`](https://github.com/firebase/firebase-js-sdk/commit/bd08cae3d77847211c4bac553fa5fb69a4e5073d) [#9926](https://github.com/firebase/firebase-js-sdk/pull/9926) - Change "beta" (public preview) tags to "public" (generally available) for all hybrid inference features.
+
+### Patch Changes
+
+- [`bd2644b`](https://github.com/firebase/firebase-js-sdk/commit/bd2644b661ecc5043c065ce6e898da1706feafae) [#9956](https://github.com/firebase/firebase-js-sdk/pull/9956) (fixes [#9938](https://github.com/firebase/firebase-js-sdk/issues/9938)) - Fix a bug that caused `ChatSession.sendMessageStream()` and `TemplateChatSession.sendMessageStream()` to send duplicate user turns in the request.
+
+## 2.12.0
+
+### Minor Changes
+
+- [`ffa39f6`](https://github.com/firebase/firebase-js-sdk/commit/ffa39f61c36e9d90a26573f042863e0086ee01e2) [#9795](https://github.com/firebase/firebase-js-sdk/pull/9795) - Added `LiveSession.resumeSession()` to allow resuming a previous `LiveSession`. Also added `contextWindowCompression` feature.
+
+- [`86dc0db`](https://github.com/firebase/firebase-js-sdk/commit/86dc0db9218d9ae52282d595007fc60b40c98b6e) [#9819](https://github.com/firebase/firebase-js-sdk/pull/9819) - Added support for `ImageConfig` (aspect ratio and size).
+  Expanded `FinishReason` values to include all currently available values provided by the models.
+
+- [`345c5f6`](https://github.com/firebase/firebase-js-sdk/commit/345c5f6235492b45e84034f364fd95280bd6e428) [#9458](https://github.com/firebase/firebase-js-sdk/pull/9458) - AI Logic : Feature : Added support for Grounding with Google Maps.
+
+### Patch Changes
+
+- [`8e384c9`](https://github.com/firebase/firebase-js-sdk/commit/8e384c947de73c7f74346b1c01640f3515a4ef0e) [#9883](https://github.com/firebase/firebase-js-sdk/pull/9883) - Updated dependencies.
+
+- Updated dependencies [[`8e384c9`](https://github.com/firebase/firebase-js-sdk/commit/8e384c947de73c7f74346b1c01640f3515a4ef0e)]:
+  - @firebase/app-check-interop-types@0.3.4
+  - @firebase/component@0.7.3
+  - @firebase/logger@0.5.1
+  - @firebase/util@1.15.1
+
+## 2.11.1
+
+### Patch Changes
+
+- [`23ab5b9`](https://github.com/firebase/firebase-js-sdk/commit/23ab5b9dadb0451e855740a48f4cb12d29091a70) [#9817](https://github.com/firebase/firebase-js-sdk/pull/9817) - Update code execution and URL context features to reflect that they are generally available and no longer public preview.
+
+- [`6db5af4`](https://github.com/firebase/firebase-js-sdk/commit/6db5af46649382ee3ed73ab4e8f69abc5f9a33aa) [#9840](https://github.com/firebase/firebase-js-sdk/pull/9840) (fixes [#9832](https://github.com/firebase/firebase-js-sdk/issues/9832)) - Fix `TemplateChatSession` type so it does not error on TypeScript build. See Github issue #9832.
+
+## 2.11.0
+
+### Minor Changes
+
+- [`cccb6d0`](https://github.com/firebase/firebase-js-sdk/commit/cccb6d058cc2dac5495b797740697902ddfd4a93) [#9771](https://github.com/firebase/firebase-js-sdk/pull/9771) - [deprecated] All Imagen models are deprecated and will shut down as early as June 2026. As a replacement, you can [migrate your apps to use Gemini Image models (the "Nano Banana" models)](https://firebase.google.com/docs/ai-logic/imagen-models-migration).
+
+- [`6cbe865`](https://github.com/firebase/firebase-js-sdk/commit/6cbe86569cc49ed12e9e53173bb66e8624bc8d6e) [#9816](https://github.com/firebase/firebase-js-sdk/pull/9816) - Deprecate `topK` and `temperature` properties for hybrid inference mode.
+
+- [`9c8e864`](https://github.com/firebase/firebase-js-sdk/commit/9c8e8640e5ba91f2a3b1aa9229059dc35d0c427e) [#9763](https://github.com/firebase/firebase-js-sdk/pull/9763) - Add `startChat()` for `TemplateGenerativeModel`.
+
+- [`9c8e864`](https://github.com/firebase/firebase-js-sdk/commit/9c8e8640e5ba91f2a3b1aa9229059dc35d0c427e) [#9763](https://github.com/firebase/firebase-js-sdk/pull/9763) - Add automatic function calling and chat history for server prompt templates.
+
+### Patch Changes
+
+- [`f87c15e`](https://github.com/firebase/firebase-js-sdk/commit/f87c15e97af9913182ebaa1afb94a3fe802e04f4) [#9791](https://github.com/firebase/firebase-js-sdk/pull/9791) (fixes [#9792](https://github.com/firebase/firebase-js-sdk/issues/9792)) - Fixed a bug that causes the model to error if the user specifies `responseSchema` or `responseJsonSchema`.
+
+## 2.10.0
+
+### Minor Changes
+
+- [`843a8d7`](https://github.com/firebase/firebase-js-sdk/commit/843a8d7892beb27e6bb62bb6331fe03aef97c57e) [#9693](https://github.com/firebase/firebase-js-sdk/pull/9693) (fixes [#9625](https://github.com/firebase/firebase-js-sdk/issues/9625)) - Added `responseJsonSchema` to `GenerationConfig`.
+
+### Patch Changes
+
+- Updated dependencies [[`2f7f426`](https://github.com/firebase/firebase-js-sdk/commit/2f7f426dec37efd75bad8dcc87cdd769ed4f7752)]:
+  - @firebase/util@1.15.0
+  - @firebase/component@0.7.2
+
+## 2.9.0
+
+### Minor Changes
+
+- [`47f8521`](https://github.com/firebase/firebase-js-sdk/commit/47f85219d570f05c196e0085f2892d1297308fed) [#9489](https://github.com/firebase/firebase-js-sdk/pull/9489) - Added automatic function calling capability when using `ChatSession`.
+
+### Patch Changes
+
+- Updated dependencies [[`eebba69`](https://github.com/firebase/firebase-js-sdk/commit/eebba69e912b59e5f097a896e479d139c03d62ca)]:
+  - @firebase/util@1.14.0
+  - @firebase/component@0.7.1
+
+## 2.8.0
+
+### Minor Changes
+
+- [`8123231`](https://github.com/firebase/firebase-js-sdk/commit/8123231a1e7030400ac362e13d4cafb8d40f5d4c) [#9461](https://github.com/firebase/firebase-js-sdk/pull/9461) - AI Logic: Extend the `LiveSession.receive()` return types to include a `LiveServiceGoingAwayNotice`
+  which signifies that the service will soon close the session.
+
+- [`f9254b6`](https://github.com/firebase/firebase-js-sdk/commit/f9254b6d28cc086a763d7fed42a59d6d2199aae8) [#9475](https://github.com/firebase/firebase-js-sdk/pull/9475) - Remove "preview" tags from code execution and URL context documentation.
+
+- [`2e74329`](https://github.com/firebase/firebase-js-sdk/commit/2e74329868f90e92ac8a32d131aa9dd9226ccb59) [#9462](https://github.com/firebase/firebase-js-sdk/pull/9462) - Add params on `UsageMetadata` that provide cache-related usage data when the implicit caching feature is used.
+
+### Patch Changes
+
+- [`691a506`](https://github.com/firebase/firebase-js-sdk/commit/691a506ecaa10ac3f0354313f5de5a47f4c85199) [#9469](https://github.com/firebase/firebase-js-sdk/pull/9469) - Internal: Add tag to log requests made to cloud while in hybrid mode.
+
+## 2.7.0
+
+### Minor Changes
+
+- [`2ecf78b`](https://github.com/firebase/firebase-js-sdk/commit/2ecf78b4f049b2e937cda911c00d549f25c628a8) [#8890](https://github.com/firebase/firebase-js-sdk/pull/8890) (fixes [#8859](https://github.com/firebase/firebase-js-sdk/issues/8859)) - Add support for `AbortSignal`, allowing requests to be aborted.
+
+- [`5579b38`](https://github.com/firebase/firebase-js-sdk/commit/5579b387ab697347ecd4a29ffed47c4cf808d544) [#9424](https://github.com/firebase/firebase-js-sdk/pull/9424) - Added ability to specify thinking levels in `thinkingConfig`.
+
+- [`f044045`](https://github.com/firebase/firebase-js-sdk/commit/f044045fcde44bf040d62c494712d5d24cdae4b9) [#9440](https://github.com/firebase/firebase-js-sdk/pull/9440) - Update default hybrid-in-cloud model to `gemini-2.5-flash-lite`.
+
+## 2.6.1
+
+### Patch Changes
+
+- [`bc2b2cd`](https://github.com/firebase/firebase-js-sdk/commit/bc2b2cdeae920ff22aca3414c2a1b79d4a3b1351) [#9399](https://github.com/firebase/firebase-js-sdk/pull/9399) - update the link /genai to /ailogic
+
+- [`5c7430d`](https://github.com/firebase/firebase-js-sdk/commit/5c7430deabb20ddce2a26ea9a565323d2a0f612e) [#9381](https://github.com/firebase/firebase-js-sdk/pull/9381) - Fix `generateContentStream` returning wrong `inferenceSource`.
+
+## 2.6.0
+
+### Minor Changes
+
+- [`f06cbf9`](https://github.com/firebase/firebase-js-sdk/commit/f06cbf99b91bdea8d44b18c8ae8fc14b327105cd) [#9351](https://github.com/firebase/firebase-js-sdk/pull/9351) - Add support for server prompt templates.
+
+## 2.5.0
+
+### Minor Changes
+
+- [`22e0a1a`](https://github.com/firebase/firebase-js-sdk/commit/22e0a1adbc994196690bd020472d119c1a3d200b) [#9291](https://github.com/firebase/firebase-js-sdk/pull/9291) - Deprecate `sendMediaChunks()` and `sendMediaStream()`. Instead, use the new methods added to the `LiveSession` class.
+  Add `sendTextRealtime()`, `sendAudioReatime()`, and `sendVideoRealtime()` to the `LiveSession` class.
+
+- [`bc5a7c4`](https://github.com/firebase/firebase-js-sdk/commit/bc5a7c4a74e72e9218d1435bfe50711c77b47cbd) [#9330](https://github.com/firebase/firebase-js-sdk/pull/9330) - Add support for audio transcriptions in the Live API.
+
+- [`c8263c4`](https://github.com/firebase/firebase-js-sdk/commit/c8263c471db4df1b0e23f0d2a11c69fd6b920e2e) [#9315](https://github.com/firebase/firebase-js-sdk/pull/9315) - Add `inferenceSource` to the response from `generateContent` and `generateContentStream`. This property indicates whether on-device or in-cloud inference was used to generate the result.
+
+### Patch Changes
+
+- [`44d9891`](https://github.com/firebase/firebase-js-sdk/commit/44d9891f93298ab4bcef5170c40c235831af0276) [#9314](https://github.com/firebase/firebase-js-sdk/pull/9314) - Fix logic for merging default `onDeviceParams` with user-provided `onDeviceParams`.
+
+## 2.4.0
+
+### Minor Changes
+
+- [`0bb2fe6`](https://github.com/firebase/firebase-js-sdk/commit/0bb2fe636c456628feabd10387673f4980c7ba9e) [#9272](https://github.com/firebase/firebase-js-sdk/pull/9272) - Added a `sendFunctionResponses` method to `LiveSession`, allowing function responses to be sent during realtime sessions.
+  Fixed an issue where function responses during audio conversations caused the WebSocket connection to close. See [GitHub Issue #9264](https://github.com/firebase/firebase-js-sdk/issues/9264).
+
+  - **Breaking Change**: Changed the `functionCallingHandler` property in `StartAudioConversationOptions` so that it now must return a `Promise<FunctionResponse>`.
+    This breaking change is allowed in a minor release since the Live API is in Public Preview.
+
+- [`0ffcb26`](https://github.com/firebase/firebase-js-sdk/commit/0ffcb26af7c597820370fab1223da330728bbb36) [#9254](https://github.com/firebase/firebase-js-sdk/pull/9254) - Added support for the URL context tool, which allows the model to access content from provided public web URLs to inform and enhance its responses.
+
+### Patch Changes
+
+- [`2596dd1`](https://github.com/firebase/firebase-js-sdk/commit/2596dd1b5072298da8814844a312681174fc2dca) [#9255](https://github.com/firebase/firebase-js-sdk/pull/9255) - Imagen Generation is now Generally Available (GA).
+
+- [`2596dd1`](https://github.com/firebase/firebase-js-sdk/commit/2596dd1b5072298da8814844a312681174fc2dca) [#9255](https://github.com/firebase/firebase-js-sdk/pull/9255) - The Gemini Developer API is now Generally Available (GA).
+
+- [`ea85128`](https://github.com/firebase/firebase-js-sdk/commit/ea8512812b994e5de081cb55a951b627fa0183b3) [#9262](https://github.com/firebase/firebase-js-sdk/pull/9262) - Updated SDK to handle empty parts when streaming.
+
+- [`7a7634f`](https://github.com/firebase/firebase-js-sdk/commit/7a7634f79c4cb0d9389747068b39a7968b5628a0) [#9274](https://github.com/firebase/firebase-js-sdk/pull/9274) - Tag code execution with beta tag (public preview).
+
+## 2.3.0
+
+### Minor Changes
+
+- [`06ab5c4`](https://github.com/firebase/firebase-js-sdk/commit/06ab5c4f9b84085068381f6dff5e03b1b7cf4b2c) [#9236](https://github.com/firebase/firebase-js-sdk/pull/9236) - Added a new `InferenceMode` option for the hybrid on-device capability: `prefer_in_cloud`. When this mode is selected, the SDK will attempt to use a cloud-hosted model first. If the call to the cloud-hosted model fails with a network-related error, the SDK will fall back to the on-device model, if it's available.
+
+- [`9b8ab02`](https://github.com/firebase/firebase-js-sdk/commit/9b8ab02c543785226fafec056d39be7cf7ee03d1) [#9249](https://github.com/firebase/firebase-js-sdk/pull/9249) - Added Code Execution feature.
+
+### Patch Changes
+
+- [`a4848b4`](https://github.com/firebase/firebase-js-sdk/commit/a4848b401f6e8da16b0d0fdbfd064e8d68566555) [#9235](https://github.com/firebase/firebase-js-sdk/pull/9235) - Refactor component registration.
+
+- [`c123766`](https://github.com/firebase/firebase-js-sdk/commit/c1237662e6851936d2dd6017ab4bc7f0aa5112fd) [#9253](https://github.com/firebase/firebase-js-sdk/pull/9253) - Change documentation tags for hybrid inference from "EXPERIMENTAL" to "public preview".
+
+## 2.2.1
+
+### Patch Changes
+
+- [`095c098`](https://github.com/firebase/firebase-js-sdk/commit/095c098de1e4399f3fb2993edae45060b2a8c6d0) [#9232](https://github.com/firebase/firebase-js-sdk/pull/9232) (fixes [#9231](https://github.com/firebase/firebase-js-sdk/issues/9231)) - Remove accidental `factory` export.
+
+## 2.2.0
+
+### Minor Changes
+
+- [`984086b`](https://github.com/firebase/firebase-js-sdk/commit/984086b0b1bd607d3aac4cbb8400bc61416e2959) [#9224](https://github.com/firebase/firebase-js-sdk/pull/9224) - Add support for the Gemini Live API.
+
+- [`9b63cd6`](https://github.com/firebase/firebase-js-sdk/commit/9b63cd60efcd02b64b0d37f81affb3eabf70f9eb) [#9192](https://github.com/firebase/firebase-js-sdk/pull/9192) - Add `thoughtSummary()` convenience method to `EnhancedGenerateContentResponse`.
+
+- [`02280d7`](https://github.com/firebase/firebase-js-sdk/commit/02280d747863445fa1c21dfda01030412a6cecff) [#9201](https://github.com/firebase/firebase-js-sdk/pull/9201) - Add support for limited-use tokens with Firebase App Check.
+  These limited-use tokens are required for an upcoming optional feature called
+  _replay protection_. We recommend
+  [enabling the usage of limited-use tokens](https://firebase.google.com/docs/ai-logic/app-check)
+  now so that when replay protection becomes available, you can enable it sooner
+  because more of your users will be on versions of your app that send limited-use tokens.
+
+### Patch Changes
+
+- [`84b8bed`](https://github.com/firebase/firebase-js-sdk/commit/84b8bed35b69e4713fe8f677803cb06625525a61) [#9222](https://github.com/firebase/firebase-js-sdk/pull/9222) - Fixed an issue where `AIError` messages were too long after including an entire response body.
+
+- [`c5f08a9`](https://github.com/firebase/firebase-js-sdk/commit/c5f08a9bc5da0d2b0207802c972d53724ccef055) [#9216](https://github.com/firebase/firebase-js-sdk/pull/9216) - Add 'includeSafetyAttributes' field to Predict request payloads.
+
+- [`cbef6c6`](https://github.com/firebase/firebase-js-sdk/commit/cbef6c6e5b752c316104f9c834e0fe21b75c3ef1) [#9225](https://github.com/firebase/firebase-js-sdk/pull/9225) - Exclude ChromeAdapterImpl code from Node entry point.
+
+## 2.1.0
+
+### Minor Changes
+
+- [`e25317f`](https://github.com/firebase/firebase-js-sdk/commit/e25317f9f3c58305bc093e4f2e676690feb16db0) [#9029](https://github.com/firebase/firebase-js-sdk/pull/9029) - Add hybrid inference options to the Firebase AI SDK.
+
+## 2.0.0
+
+### Major Changes
+
+- [`5200f7b`](https://github.com/firebase/firebase-js-sdk/commit/5200f7bb777cf2260dcd396fbd19ac6cc7cb44c4) [#9042](https://github.com/firebase/firebase-js-sdk/pull/9042) - Add support for `anyOf` schemas
+
+- [`e59cd7d`](https://github.com/firebase/firebase-js-sdk/commit/e59cd7da1f375ec89f237ceb684c9f450d65cd34) [#9137](https://github.com/firebase/firebase-js-sdk/pull/9137) - Convert TS enums exports in Firebase AI into const variables.
+
+- [`cb19688`](https://github.com/firebase/firebase-js-sdk/commit/cb19688bf3d339a46c4964cb30b6263af08526e6) [#9079](https://github.com/firebase/firebase-js-sdk/pull/9079) - Remove GroundingAttribution
+
+- [`ec5f374`](https://github.com/firebase/firebase-js-sdk/commit/ec5f37403d9ebe28d3d71a7789d59edfb12762df) [#9063](https://github.com/firebase/firebase-js-sdk/pull/9063) - Remove `VertexAI` APIs.
+
+### Minor Changes
+
+- [`a4ccd25`](https://github.com/firebase/firebase-js-sdk/commit/a4ccd254dd1ecb63aa010ca010ad50d4b8a8316a) [#9068](https://github.com/firebase/firebase-js-sdk/pull/9068) - Add support for Grounding with Google Search.
+
+- [`6ab4e13`](https://github.com/firebase/firebase-js-sdk/commit/6ab4e13a1665dab4be89ecc141b4584a5a6df569) [#9156](https://github.com/firebase/firebase-js-sdk/pull/9156) - Add support for Thinking Budget.
+
+- [`25b60fd`](https://github.com/firebase/firebase-js-sdk/commit/25b60fdaabe910e1538684a3c490b0900fb5f113) [#9128](https://github.com/firebase/firebase-js-sdk/pull/9128) - Update node "engines" version to a minimum of Node 20.
+
+### Patch Changes
+
+- [`ae976d0`](https://github.com/firebase/firebase-js-sdk/commit/ae976d02908a5a8913c5fcd4c0485fcf4b081fec) [#8948](https://github.com/firebase/firebase-js-sdk/pull/8948) (fixes [#8944](https://github.com/firebase/firebase-js-sdk/issues/8944)) - Fix typings for `functionDeclaration.parameters`.
+
+- [`f18b25f`](https://github.com/firebase/firebase-js-sdk/commit/f18b25f73a05a696b6a9ed45702a84cc9dd5c6d9) [#9167](https://github.com/firebase/firebase-js-sdk/pull/9167) - Set build targets to ES2020.
+
+- Updated dependencies [[`f18b25f`](https://github.com/firebase/firebase-js-sdk/commit/f18b25f73a05a696b6a9ed45702a84cc9dd5c6d9), [`25b60fd`](https://github.com/firebase/firebase-js-sdk/commit/25b60fdaabe910e1538684a3c490b0900fb5f113)]:
+  - @firebase/component@0.7.0
+  - @firebase/logger@0.5.0
+  - @firebase/util@1.13.0
+
+## 1.4.1
+
+### Patch Changes
+
+- [`b97eab3`](https://github.com/firebase/firebase-js-sdk/commit/b97eab36a3553c906c35f4751a0b17c717178b13) [#9090](https://github.com/firebase/firebase-js-sdk/pull/9090) - Add deprecation label to `totalBillableCharacters`. `totalTokens` should be used instead.
+
+- Updated dependencies [[`42ac401`](https://github.com/firebase/firebase-js-sdk/commit/42ac4011787db6bb7a08f8c84f364ea86ea51e83)]:
+  - @firebase/util@1.12.1
+  - @firebase/component@0.6.18
+
 ## 1.4.0
 
 ### Minor Changes

@@ -27,6 +27,7 @@ import {
   Operator
 } from '../core/filter';
 import { Direction, OrderBy } from '../core/order_by';
+import { CorePipeline } from '../core/pipeline';
 import {
   LimitType,
   newQuery,
@@ -35,8 +36,14 @@ import {
   queryToTarget
 } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
-import { targetIsDocumentTarget, Target } from '../core/target';
-import { TargetId } from '../core/types';
+import {
+  targetIsDocumentTarget,
+  Target,
+  targetIsPipelineTarget
+} from '../core/target';
+import { RemoteTargetId } from '../core/types';
+import { Bytes } from '../lite-api/bytes';
+import { GeoPoint } from '../lite-api/geo_point';
 import { Timestamp } from '../lite-api/timestamp';
 import { TargetData, TargetPurpose } from '../local/target_data';
 import { MutableDocument } from '../model/document';
@@ -55,10 +62,13 @@ import {
 import { normalizeTimestamp } from '../model/normalize';
 import { ObjectValue } from '../model/object_value';
 import { FieldPath, ResourcePath } from '../model/path';
+import { PipelineStreamElement } from '../model/pipeline_stream_element';
 import {
   ArrayRemoveTransformOperation,
   ArrayUnionTransformOperation,
   NumericIncrementTransformOperation,
+  NumericMaximumTransformOperation,
+  NumericMinimumTransformOperation,
   ServerTimestampTransform,
   TransformOperation
 } from '../model/transform_operation';
@@ -80,6 +90,7 @@ import {
   OrderDirection as ProtoOrderDirection,
   Precondition as ProtoPrecondition,
   QueryTarget as ProtoQueryTarget,
+  PipelineQueryTarget as ProtoPipelineQueryTarget,
   RunAggregationQueryRequest as ProtoRunAggregationQueryRequest,
   Aggregation as ProtoAggregation,
   Status as ProtoStatus,
@@ -87,7 +98,11 @@ import {
   TargetChangeTargetChangeType as ProtoTargetChangeTargetChangeType,
   Timestamp as ProtoTimestamp,
   Write as ProtoWrite,
-  WriteResult as ProtoWriteResult
+  WriteResult as ProtoWriteResult,
+  Value as ProtoValue,
+  MapValue as ProtoMapValue,
+  ExecutePipelineResponse as ProtoExecutePipelineResponse,
+  Pipeline as ProtoPipeline
 } from '../protos/firestore_proto_api';
 import { debugAssert, fail, hardAssert } from '../util/assert';
 import { ByteString } from '../util/byte_string';
@@ -173,7 +188,7 @@ function fromRpcStatus(status: ProtoStatus): FirestoreError {
  * our generated proto interfaces say Int32Value must be. But GRPC actually
  * expects a { value: <number> } struct.
  */
-function toInt32Proto(
+export function toInt32Proto(
   serializer: JsonProtoSerializer,
   val: number | null
 ): number | { value: number } | null {
@@ -431,6 +446,37 @@ export function toDocument(
   };
 }
 
+export function fromPipelineResponse(
+  serializer: JsonProtoSerializer,
+  proto: ProtoExecutePipelineResponse,
+  document?: ProtoDocument
+): PipelineStreamElement {
+  const output: PipelineStreamElement = {};
+  if (proto.transaction?.length) {
+    output.transaction = proto.transaction;
+  }
+  const executionTime = proto.executionTime
+    ? fromVersion(proto.executionTime)
+    : undefined;
+  output.executionTime = executionTime;
+
+  if (!!document) {
+    output.key = document.name
+      ? fromName(serializer, document.name)
+      : undefined;
+
+    output.fields = new ObjectValue({ mapValue: { fields: document.fields } });
+
+    output.createTime = document.createTime
+      ? fromVersion(document.createTime!)
+      : undefined;
+    output.updateTime = document.updateTime
+      ? fromVersion(document.updateTime!)
+      : undefined;
+  }
+  return output;
+}
+
 export function fromDocument(
   serializer: JsonProtoSerializer,
   document: ProtoDocument,
@@ -520,7 +566,8 @@ export function fromWatchChange(
     const state = fromWatchTargetChangeState(
       change.targetChange.targetChangeType || 'NO_CHANGE'
     );
-    const targetIds: TargetId[] = change.targetChange.targetIds || [];
+    const targetIds: RemoteTargetId[] = (change.targetChange.targetIds ||
+      []) as RemoteTargetId[];
 
     const resumeToken = fromBytes(serializer, change.targetChange.resumeToken);
     const causeProto = change.targetChange!.cause;
@@ -554,8 +601,9 @@ export function fromWatchChange(
       createTime,
       data
     );
-    const updatedTargetIds = entityChange.targetIds || [];
-    const removedTargetIds = entityChange.removedTargetIds || [];
+    const updatedTargetIds = (entityChange.targetIds || []) as RemoteTargetId[];
+    const removedTargetIds = (entityChange.removedTargetIds ||
+      []) as RemoteTargetId[];
     watchChange = new DocumentWatchChange(
       updatedTargetIds,
       removedTargetIds,
@@ -571,14 +619,16 @@ export function fromWatchChange(
       ? fromVersion(docDelete.readTime)
       : SnapshotVersion.min();
     const doc = MutableDocument.newNoDocument(key, version);
-    const removedTargetIds = docDelete.removedTargetIds || [];
+    const removedTargetIds = (docDelete.removedTargetIds ||
+      []) as RemoteTargetId[];
     watchChange = new DocumentWatchChange([], removedTargetIds, doc.key, doc);
   } else if ('documentRemove' in change) {
     assertPresent(change.documentRemove, 'documentRemove');
     const docRemove = change.documentRemove;
     assertPresent(docRemove.document, 'documentRemove');
     const key = fromName(serializer, docRemove.document);
-    const removedTargetIds = docRemove.removedTargetIds || [];
+    const removedTargetIds = (docRemove.removedTargetIds ||
+      []) as RemoteTargetId[];
     watchChange = new DocumentWatchChange([], removedTargetIds, key, null);
   } else if ('filter' in change) {
     // TODO(dimond): implement existence filter parsing with strategy.
@@ -587,7 +637,7 @@ export function fromWatchChange(
     assertPresent(filter.targetId, 'filter.targetId');
     const { count = 0, unchangedNames } = filter;
     const existenceFilter = new ExistenceFilter(count, unchangedNames);
-    const targetId = filter.targetId;
+    const targetId = filter.targetId as RemoteTargetId;
     watchChange = new ExistenceFilterChange(targetId, existenceFilter);
   } else {
     return fail(0x2d51, 'Unknown change type', { change });
@@ -807,6 +857,16 @@ function toFieldTransform(
       fieldPath: fieldTransform.field.canonicalString(),
       increment: transform.operand
     };
+  } else if (transform instanceof NumericMinimumTransformOperation) {
+    return {
+      fieldPath: fieldTransform.field.canonicalString(),
+      minimum: transform.operand
+    };
+  } else if (transform instanceof NumericMaximumTransformOperation) {
+    return {
+      fieldPath: fieldTransform.field.canonicalString(),
+      maximum: transform.operand
+    };
   } else {
     throw fail(0x51c2, 'Unknown transform', {
       transform: fieldTransform.transform
@@ -837,6 +897,16 @@ function fromFieldTransform(
     transform = new NumericIncrementTransformOperation(
       serializer,
       proto.increment!
+    );
+  } else if ('minimum' in proto) {
+    transform = new NumericMinimumTransformOperation(
+      serializer,
+      proto.minimum!
+    );
+  } else if ('maximum' in proto) {
+    transform = new NumericMaximumTransformOperation(
+      serializer,
+      proto.maximum!
     );
   } else {
     fail(0x40c8, 'Unknown transform proto', { proto });
@@ -1046,7 +1116,7 @@ export function fromQueryTarget(target: ProtoQueryTarget): Target {
 
 export function toListenRequestLabels(
   serializer: JsonProtoSerializer,
-  targetData: TargetData
+  targetData: TargetData<number>
 ): ProtoApiClientObjectMap<string> | null {
   const value = toLabel(targetData.purpose);
   if (value == null) {
@@ -1073,17 +1143,33 @@ export function toLabel(purpose: TargetPurpose): string | null {
   }
 }
 
+export function toPipelineTarget(
+  serializer: JsonProtoSerializer,
+  target: CorePipeline
+): ProtoPipelineQueryTarget {
+  return {
+    structuredPipeline: {
+      pipeline: {
+        stages: target.stages.map(s => s._toProto(serializer))
+      }
+    }
+  };
+}
+
 export function toTarget(
   serializer: JsonProtoSerializer,
-  targetData: TargetData
+  targetData: TargetData<number>
 ): ProtoTarget {
   let result: ProtoTarget;
   const target = targetData.target;
-
-  if (targetIsDocumentTarget(target)) {
-    result = { documents: toDocumentsTarget(serializer, target) };
+  if (targetIsPipelineTarget(target)) {
+    result = {
+      pipelineQuery: toPipelineTarget(serializer, target as CorePipeline)
+    };
+  } else if (targetIsDocumentTarget(target as Target)) {
+    result = { documents: toDocumentsTarget(serializer, target as Target) };
   } else {
-    result = { query: toQueryTarget(serializer, target).queryTarget };
+    result = { query: toQueryTarget(serializer, target as Target).queryTarget };
   }
 
   result.targetId = targetData.targetId;
@@ -1413,4 +1499,98 @@ export function isValidResourceName(path: ResourcePath): boolean {
     path.get(0) === 'projects' &&
     path.get(2) === 'databases'
   );
+}
+export interface ProtoSerializable<ProtoType> {
+  _toProto(serializer: JsonProtoSerializer): ProtoType;
+}
+
+export interface ProtoValueSerializable extends ProtoSerializable<ProtoValue> {
+  // Supports runtime identification of the ProtoSerializable<ProtoValue> type.
+  _protoValueType: 'ProtoValue';
+}
+
+export function isProtoValueSerializable(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  value: any
+): value is ProtoValueSerializable {
+  return (
+    !!value &&
+    typeof value._toProto === 'function' &&
+    value._protoValueType === 'ProtoValue'
+  );
+}
+
+export function toMapValue(
+  serializer: JsonProtoSerializer,
+  input: Map<string, ProtoSerializable<ProtoValue>>
+): ProtoValue {
+  const map: ProtoMapValue = { fields: {} };
+  input.forEach((exp: ProtoSerializable<ProtoValue>, key: string) => {
+    if (typeof key !== 'string') {
+      throw new Error(`Cannot encode map with non-string key: ${key}`);
+    }
+
+    map.fields![key] = exp._toProto(serializer)!;
+  });
+  return {
+    mapValue: map
+  };
+}
+
+export function toNullValue(value: null): ProtoValue {
+  return { nullValue: 'NULL_VALUE' };
+}
+
+export function toBooleanValue(value: boolean): ProtoValue {
+  return { booleanValue: value };
+}
+
+export function toStringValue(value: string): ProtoValue {
+  return { stringValue: value };
+}
+
+export function toPipelineValue(value: ProtoPipeline): ProtoValue {
+  return { pipelineValue: value };
+}
+
+export function dateToTimestampValue(
+  serializer: JsonProtoSerializer,
+  value: Date
+): ProtoValue {
+  const timestamp = Timestamp.fromDate(value);
+  return {
+    timestampValue: toTimestamp(serializer, timestamp)
+  };
+}
+
+export function timestampToTimestampValue(
+  serializer: JsonProtoSerializer,
+  value: Timestamp
+): ProtoValue {
+  // Firestore backend truncates precision down to microseconds. To ensure
+  // offline mode works the same in regards to truncation, perform the
+  // truncation immediately without waiting for the backend to do that.
+  const timestamp = new Timestamp(
+    value.seconds,
+    Math.floor(value.nanoseconds / 1000) * 1000
+  );
+  return {
+    timestampValue: toTimestamp(serializer, timestamp)
+  };
+}
+
+export function toGeoPointValue(value: GeoPoint): ProtoValue {
+  return {
+    geoPointValue: {
+      latitude: value.latitude,
+      longitude: value.longitude
+    }
+  };
+}
+
+export function toBytesValue(
+  serializer: JsonProtoSerializer,
+  value: Bytes
+): ProtoValue {
+  return { bytesValue: toBytes(serializer, value._byteString) };
 }

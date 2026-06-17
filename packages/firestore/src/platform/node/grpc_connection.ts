@@ -44,7 +44,8 @@ function createMetadata(
   databasePath: string,
   authToken: Token | null,
   appCheckToken: Token | null,
-  appId: string
+  appId: string,
+  apiKey: string | undefined
 ): grpc.Metadata {
   hardAssert(
     authToken === null || authToken.type === 'OAuth',
@@ -69,6 +70,9 @@ function createMetadata(
   // 11 from Google3.
   metadata.set('Google-Cloud-Resource-Prefix', databasePath);
   metadata.set('x-goog-request-params', databasePath);
+  if (apiKey) {
+    metadata.set('X-Goog-Api-Key', apiKey);
+  }
   return metadata;
 }
 
@@ -100,7 +104,8 @@ export class GrpcConnection implements Connection {
     this.databasePath = `projects/${databaseInfo.databaseId.projectId}/databases/${databaseInfo.databaseId.database}`;
   }
 
-  private ensureActiveStub(): GeneratedGrpcStub {
+  /** made protected for testing */
+  protected ensureActiveStub(): GeneratedGrpcStub {
     if (!this.cachedStub) {
       logDebug(LOG_TAG, 'Creating Firestore stub.');
       const credentials = this.databaseInfo.ssl
@@ -127,7 +132,8 @@ export class GrpcConnection implements Connection {
       this.databasePath,
       authToken,
       appCheckToken,
-      this.databaseInfo.appId
+      this.databaseInfo.appId,
+      this.databaseInfo.apiKey
     );
     const jsonRequest = { database: this.databasePath, ...request };
 
@@ -187,7 +193,8 @@ export class GrpcConnection implements Connection {
       this.databasePath,
       authToken,
       appCheckToken,
-      this.databaseInfo.appId
+      this.databaseInfo.appId,
+      this.databaseInfo.apiKey
     );
     const jsonRequest = { ...request, database: this.databasePath };
     const stream = stub[rpcName](jsonRequest, metadata);
@@ -239,7 +246,8 @@ export class GrpcConnection implements Connection {
       this.databasePath,
       authToken,
       appCheckToken,
-      this.databaseInfo.appId
+      this.databaseInfo.appId,
+      this.databaseInfo.apiKey
     );
     const grpcStream = stub[rpcName](metadata);
 

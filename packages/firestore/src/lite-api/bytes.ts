@@ -116,7 +116,7 @@ export class Bytes {
   /**
    * Builds a `Bytes` instance from a JSON object created by {@link Bytes.toJSON}.
    *
-   * @param json a JSON object represention of a `Bytes` instance
+   * @param json - a JSON object represention of a `Bytes` instance
    * @returns an instance of {@link Bytes} if the JSON object could be parsed. Throws a
    * {@link FirestoreError} if an error occurs.
    */

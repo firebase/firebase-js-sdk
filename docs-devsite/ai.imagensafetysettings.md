@@ -10,7 +10,9 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # ImagenSafetySettings interface
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> Warning: This API is now obsolete.
+> 
+> All Imagen models are deprecated and will shut down as early as June 2026. As a replacement, you can [migrate your apps to use Gemini Image models (the "Nano Banana" models)](https://firebase.google.com/docs/ai-logic/imagen-models-migration)<!-- -->.
 > 
 
 Settings for controlling the aggressiveness of filtering out sensitive content.
@@ -27,13 +29,10 @@ export interface ImagenSafetySettings
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [personFilterLevel](./ai.imagensafetysettings.md#imagensafetysettingspersonfilterlevel) | [ImagenPersonFilterLevel](./ai.md#imagenpersonfilterlevel) | <b><i>(Public Preview)</i></b> A filter level controlling whether generation of images containing people or faces is allowed. |
-|  [safetyFilterLevel](./ai.imagensafetysettings.md#imagensafetysettingssafetyfilterlevel) | [ImagenSafetyFilterLevel](./ai.md#imagensafetyfilterlevel) | <b><i>(Public Preview)</i></b> A filter level controlling how aggressive to filter out sensitive content from generated images. |
+|  [personFilterLevel](./ai.imagensafetysettings.md#imagensafetysettingspersonfilterlevel) | [ImagenPersonFilterLevel](./ai.md#imagenpersonfilterlevel) | A filter level controlling whether generation of images containing people or faces is allowed. |
+|  [safetyFilterLevel](./ai.imagensafetysettings.md#imagensafetysettingssafetyfilterlevel) | [ImagenSafetyFilterLevel](./ai.md#imagensafetyfilterlevel) | A filter level controlling how aggressive to filter out sensitive content from generated images. |
 
 ## ImagenSafetySettings.personFilterLevel
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 A filter level controlling whether generation of images containing people or faces is allowed.
 
@@ -44,9 +43,6 @@ personFilterLevel?: ImagenPersonFilterLevel;
 ```
 
 ## ImagenSafetySettings.safetyFilterLevel
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 A filter level controlling how aggressive to filter out sensitive content from generated images.
 

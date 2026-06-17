@@ -12,8 +12,14 @@ toc:
     path: /docs/reference/js/ai.aimodel.md
   - title: AIOptions
     path: /docs/reference/js/ai.aioptions.md
+  - title: AnyOfSchema
+    path: /docs/reference/js/ai.anyofschema.md
   - title: ArraySchema
     path: /docs/reference/js/ai.arrayschema.md
+  - title: AudioConversationController
+    path: /docs/reference/js/ai.audioconversationcontroller.md
+  - title: AudioTranscriptionConfig
+    path: /docs/reference/js/ai.audiotranscriptionconfig.md
   - title: Backend
     path: /docs/reference/js/ai.backend.md
   - title: BaseParams
@@ -22,12 +28,24 @@ toc:
     path: /docs/reference/js/ai.booleanschema.md
   - title: ChatSession
     path: /docs/reference/js/ai.chatsession.md
+  - title: ChatSessionBase
+    path: /docs/reference/js/ai.chatsessionbase.md
+  - title: ChromeAdapter
+    path: /docs/reference/js/ai.chromeadapter.md
   - title: Citation
     path: /docs/reference/js/ai.citation.md
   - title: CitationMetadata
     path: /docs/reference/js/ai.citationmetadata.md
+  - title: CodeExecutionResult
+    path: /docs/reference/js/ai.codeexecutionresult.md
+  - title: CodeExecutionResultPart
+    path: /docs/reference/js/ai.codeexecutionresultpart.md
+  - title: CodeExecutionTool
+    path: /docs/reference/js/ai.codeexecutiontool.md
   - title: Content
     path: /docs/reference/js/ai.content.md
+  - title: ContextWindowCompressionConfig
+    path: /docs/reference/js/ai.contextwindowcompressionconfig.md
   - title: CountTokensRequest
     path: /docs/reference/js/ai.counttokensrequest.md
   - title: CountTokensResponse
@@ -40,6 +58,10 @@ toc:
     path: /docs/reference/js/ai.enhancedgeneratecontentresponse.md
   - title: ErrorDetails
     path: /docs/reference/js/ai.errordetails.md
+  - title: ExecutableCode
+    path: /docs/reference/js/ai.executablecode.md
+  - title: ExecutableCodePart
+    path: /docs/reference/js/ai.executablecodepart.md
   - title: FileData
     path: /docs/reference/js/ai.filedata.md
   - title: FileDataPart
@@ -76,10 +98,26 @@ toc:
     path: /docs/reference/js/ai.generativemodel.md
   - title: GoogleAIBackend
     path: /docs/reference/js/ai.googleaibackend.md
-  - title: GroundingAttribution
-    path: /docs/reference/js/ai.groundingattribution.md
+  - title: GoogleMaps
+    path: /docs/reference/js/ai.googlemaps.md
+  - title: GoogleMapsGroundingChunk
+    path: /docs/reference/js/ai.googlemapsgroundingchunk.md
+  - title: GoogleMapsTool
+    path: /docs/reference/js/ai.googlemapstool.md
+  - title: GoogleSearch
+    path: /docs/reference/js/ai.googlesearch.md
+  - title: GoogleSearchTool
+    path: /docs/reference/js/ai.googlesearchtool.md
+  - title: GroundingChunk
+    path: /docs/reference/js/ai.groundingchunk.md
   - title: GroundingMetadata
     path: /docs/reference/js/ai.groundingmetadata.md
+  - title: GroundingSupport
+    path: /docs/reference/js/ai.groundingsupport.md
+  - title: HybridParams
+    path: /docs/reference/js/ai.hybridparams.md
+  - title: ImageConfig
+    path: /docs/reference/js/ai.imageconfig.md
   - title: ImagenGCSImage
     path: /docs/reference/js/ai.imagengcsimage.md
   - title: ImagenGenerationConfig
@@ -100,6 +138,40 @@ toc:
     path: /docs/reference/js/ai.inlinedatapart.md
   - title: IntegerSchema
     path: /docs/reference/js/ai.integerschema.md
+  - title: LanguageModelCreateCoreOptions
+    path: /docs/reference/js/ai.languagemodelcreatecoreoptions.md
+  - title: LanguageModelCreateOptions
+    path: /docs/reference/js/ai.languagemodelcreateoptions.md
+  - title: LanguageModelDownloadMonitor
+    path: /docs/reference/js/ai.languagemodeldownloadmonitor.md
+  - title: LanguageModelExpected
+    path: /docs/reference/js/ai.languagemodelexpected.md
+  - title: LanguageModelMessage
+    path: /docs/reference/js/ai.languagemodelmessage.md
+  - title: LanguageModelMessageContent
+    path: /docs/reference/js/ai.languagemodelmessagecontent.md
+  - title: LanguageModelPromptOptions
+    path: /docs/reference/js/ai.languagemodelpromptoptions.md
+  - title: LatLng
+    path: /docs/reference/js/ai.latlng.md
+  - title: LiveGenerationConfig
+    path: /docs/reference/js/ai.livegenerationconfig.md
+  - title: LiveGenerativeModel
+    path: /docs/reference/js/ai.livegenerativemodel.md
+  - title: LiveModelParams
+    path: /docs/reference/js/ai.livemodelparams.md
+  - title: LiveServerContent
+    path: /docs/reference/js/ai.liveservercontent.md
+  - title: LiveServerGoingAwayNotice
+    path: /docs/reference/js/ai.liveservergoingawaynotice.md
+  - title: LiveServerToolCall
+    path: /docs/reference/js/ai.liveservertoolcall.md
+  - title: LiveServerToolCallCancellation
+    path: /docs/reference/js/ai.liveservertoolcallcancellation.md
+  - title: LiveSession
+    path: /docs/reference/js/ai.livesession.md
+  - title: LiveSessionResumptionUpdate
+    path: /docs/reference/js/ai.livesessionresumptionupdate.md
   - title: ModalityTokenCount
     path: /docs/reference/js/ai.modalitytokencount.md
   - title: ModelParams
@@ -108,12 +180,18 @@ toc:
     path: /docs/reference/js/ai.numberschema.md
   - title: ObjectSchema
     path: /docs/reference/js/ai.objectschema.md
-  - title: ObjectSchemaInterface
-    path: /docs/reference/js/ai.objectschemainterface.md
+  - title: ObjectSchemaRequest
+    path: /docs/reference/js/ai.objectschemarequest.md
+  - title: OnDeviceParams
+    path: /docs/reference/js/ai.ondeviceparams.md
+  - title: PrebuiltVoiceConfig
+    path: /docs/reference/js/ai.prebuiltvoiceconfig.md
   - title: PromptFeedback
     path: /docs/reference/js/ai.promptfeedback.md
   - title: RequestOptions
     path: /docs/reference/js/ai.requestoptions.md
+  - title: RetrievalConfig
+    path: /docs/reference/js/ai.retrievalconfig.md
   - title: RetrievedContextAttribution
     path: /docs/reference/js/ai.retrievedcontextattribution.md
   - title: SafetyRating
@@ -130,26 +208,66 @@ toc:
     path: /docs/reference/js/ai.schemarequest.md
   - title: SchemaShared
     path: /docs/reference/js/ai.schemashared.md
+  - title: SearchEntrypoint
+    path: /docs/reference/js/ai.searchentrypoint.md
   - title: Segment
     path: /docs/reference/js/ai.segment.md
+  - title: SessionResumptionConfig
+    path: /docs/reference/js/ai.sessionresumptionconfig.md
+  - title: SingleRequestOptions
+    path: /docs/reference/js/ai.singlerequestoptions.md
+  - title: SlidingWindow
+    path: /docs/reference/js/ai.slidingwindow.md
+  - title: SpeechConfig
+    path: /docs/reference/js/ai.speechconfig.md
+  - title: StartAudioConversationOptions
+    path: /docs/reference/js/ai.startaudioconversationoptions.md
   - title: StartChatParams
     path: /docs/reference/js/ai.startchatparams.md
+  - title: StartTemplateChatParams
+    path: /docs/reference/js/ai.starttemplatechatparams.md
   - title: StringSchema
     path: /docs/reference/js/ai.stringschema.md
+  - title: TemplateChatSession
+    path: /docs/reference/js/ai.templatechatsession.md
+  - title: TemplateFunctionDeclaration
+    path: /docs/reference/js/ai.templatefunctiondeclaration.md
+  - title: TemplateFunctionDeclarationsTool
+    path: /docs/reference/js/ai.templatefunctiondeclarationstool.md
+  - title: TemplateGenerativeModel
+    path: /docs/reference/js/ai.templategenerativemodel.md
+  - title: TemplateImagenModel
+    path: /docs/reference/js/ai.templateimagenmodel.md
+  - title: TemplateToolConfig
+    path: /docs/reference/js/ai.templatetoolconfig.md
   - title: TextPart
     path: /docs/reference/js/ai.textpart.md
+  - title: ThinkingConfig
+    path: /docs/reference/js/ai.thinkingconfig.md
   - title: ToolConfig
     path: /docs/reference/js/ai.toolconfig.md
+  - title: Transcription
+    path: /docs/reference/js/ai.transcription.md
+  - title: URLContext
+    path: /docs/reference/js/ai.urlcontext.md
+  - title: URLContextMetadata
+    path: /docs/reference/js/ai.urlcontextmetadata.md
+  - title: URLContextTool
+    path: /docs/reference/js/ai.urlcontexttool.md
+  - title: URLMetadata
+    path: /docs/reference/js/ai.urlmetadata.md
   - title: UsageMetadata
     path: /docs/reference/js/ai.usagemetadata.md
   - title: VertexAIBackend
     path: /docs/reference/js/ai.vertexaibackend.md
-  - title: VertexAIOptions
-    path: /docs/reference/js/ai.vertexaioptions.md
   - title: VideoMetadata
     path: /docs/reference/js/ai.videometadata.md
+  - title: VoiceConfig
+    path: /docs/reference/js/ai.voiceconfig.md
   - title: WebAttribution
     path: /docs/reference/js/ai.webattribution.md
+  - title: WebGroundingChunk
+    path: /docs/reference/js/ai.webgroundingchunk.md
 - title: analytics
   path: /docs/reference/js/analytics.md
   section:
@@ -356,10 +474,18 @@ toc:
     path: /docs/reference/js/firestore_.aggregatequerysnapshot.md
   - title: AggregateSpec
     path: /docs/reference/js/firestore_.aggregatespec.md
+  - title: BsonBinaryData
+    path: /docs/reference/js/firestore_.bsonbinarydata.md
+  - title: BsonObjectId
+    path: /docs/reference/js/firestore_.bsonobjectid.md
+  - title: BsonTimestamp
+    path: /docs/reference/js/firestore_.bsontimestamp.md
   - title: Bytes
     path: /docs/reference/js/firestore_.bytes.md
   - title: CollectionReference
     path: /docs/reference/js/firestore_.collectionreference.md
+  - title: Decimal128Value
+    path: /docs/reference/js/firestore_.decimal128value.md
   - title: DocumentChange
     path: /docs/reference/js/firestore_.documentchange.md
   - title: DocumentData
@@ -390,10 +516,14 @@ toc:
     path: /docs/reference/js/firestore_.indexconfiguration.md
   - title: IndexField
     path: /docs/reference/js/firestore_.indexfield.md
+  - title: Int32Value
+    path: /docs/reference/js/firestore_.int32value.md
   - title: LoadBundleTask
     path: /docs/reference/js/firestore_.loadbundletask.md
   - title: LoadBundleTaskProgress
     path: /docs/reference/js/firestore_.loadbundletaskprogress.md
+  - title: MaxKey
+    path: /docs/reference/js/firestore_.maxkey.md
   - title: MemoryCacheSettings
     path: /docs/reference/js/firestore_.memorycachesettings.md
   - title: MemoryEagerGarbageCollector
@@ -402,6 +532,8 @@ toc:
     path: /docs/reference/js/firestore_.memorylocalcache.md
   - title: MemoryLruGarbageCollector
     path: /docs/reference/js/firestore_.memorylrugarbagecollector.md
+  - title: MinKey
+    path: /docs/reference/js/firestore_.minkey.md
   - title: PersistenceSettings
     path: /docs/reference/js/firestore_.persistencesettings.md
   - title: PersistentCacheIndexManager
@@ -436,6 +568,8 @@ toc:
     path: /docs/reference/js/firestore_.querysnapshot.md
   - title: QueryStartAtConstraint
     path: /docs/reference/js/firestore_.querystartatconstraint.md
+  - title: RegexValue
+    path: /docs/reference/js/firestore_.regexvalue.md
   - title: SnapshotListenOptions
     path: /docs/reference/js/firestore_.snapshotlistenoptions.md
   - title: SnapshotMetadata
@@ -463,10 +597,18 @@ toc:
     path: /docs/reference/js/firestore_lite.aggregatequerysnapshot.md
   - title: AggregateSpec
     path: /docs/reference/js/firestore_lite.aggregatespec.md
+  - title: BsonBinaryData
+    path: /docs/reference/js/firestore_lite.bsonbinarydata.md
+  - title: BsonObjectId
+    path: /docs/reference/js/firestore_lite.bsonobjectid.md
+  - title: BsonTimestamp
+    path: /docs/reference/js/firestore_lite.bsontimestamp.md
   - title: Bytes
     path: /docs/reference/js/firestore_lite.bytes.md
   - title: CollectionReference
     path: /docs/reference/js/firestore_lite.collectionreference.md
+  - title: Decimal128Value
+    path: /docs/reference/js/firestore_lite.decimal128value.md
   - title: DocumentData
     path: /docs/reference/js/firestore_lite.documentdata.md
   - title: DocumentReference
@@ -485,6 +627,12 @@ toc:
     path: /docs/reference/js/firestore_lite.firestoreerror.md
   - title: GeoPoint
     path: /docs/reference/js/firestore_lite.geopoint.md
+  - title: Int32Value
+    path: /docs/reference/js/firestore_lite.int32value.md
+  - title: MaxKey
+    path: /docs/reference/js/firestore_lite.maxkey.md
+  - title: MinKey
+    path: /docs/reference/js/firestore_lite.minkey.md
   - title: Query
     path: /docs/reference/js/firestore_lite.query.md
   - title: QueryCompositeFilterConstraint
@@ -505,6 +653,8 @@ toc:
     path: /docs/reference/js/firestore_lite.querysnapshot.md
   - title: QueryStartAtConstraint
     path: /docs/reference/js/firestore_lite.querystartatconstraint.md
+  - title: RegexValue
+    path: /docs/reference/js/firestore_lite.regexvalue.md
   - title: Settings
     path: /docs/reference/js/firestore_lite.settings.md
   - title: Timestamp
@@ -517,6 +667,126 @@ toc:
     path: /docs/reference/js/firestore_lite.vectorvalue.md
   - title: WriteBatch
     path: /docs/reference/js/firestore_lite.writebatch.md
+- title: firestore/lite/pipelines
+  path: /docs/reference/js/firestore_lite_pipelines.md
+  section:
+  - title: AggregateFunction
+    path: /docs/reference/js/firestore_lite_pipelines.aggregatefunction.md
+  - title: AliasedAggregate
+    path: /docs/reference/js/firestore_lite_pipelines.aliasedaggregate.md
+  - title: AliasedExpression
+    path: /docs/reference/js/firestore_lite_pipelines.aliasedexpression.md
+  - title: BooleanExpression
+    path: /docs/reference/js/firestore_lite_pipelines.booleanexpression.md
+  - title: Bytes
+    path: /docs/reference/js/firestore_lite_pipelines.bytes.md
+  - title: CollectionReference
+    path: /docs/reference/js/firestore_lite_pipelines.collectionreference.md
+  - title: DocumentData
+    path: /docs/reference/js/firestore_lite_pipelines.documentdata.md
+  - title: DocumentReference
+    path: /docs/reference/js/firestore_lite_pipelines.documentreference.md
+  - title: DocumentSnapshot
+    path: /docs/reference/js/firestore_lite_pipelines.documentsnapshot.md
+  - title: Expression
+    path: /docs/reference/js/firestore_lite_pipelines.expression.md
+  - title: Field
+    path: /docs/reference/js/firestore_lite_pipelines.field.md
+  - title: FieldPath
+    path: /docs/reference/js/firestore_lite_pipelines.fieldpath.md
+  - title: FieldValue
+    path: /docs/reference/js/firestore_lite_pipelines.fieldvalue.md
+  - title: Firestore
+    path: /docs/reference/js/firestore_lite_pipelines.firestore.md
+  - title: FirestoreDataConverter
+    path: /docs/reference/js/firestore_lite_pipelines.firestoredataconverter.md
+  - title: FunctionExpression
+    path: /docs/reference/js/firestore_lite_pipelines.functionexpression.md
+  - title: GeoPoint
+    path: /docs/reference/js/firestore_lite_pipelines.geopoint.md
+  - title: Ordering
+    path: /docs/reference/js/firestore_lite_pipelines.ordering.md
+  - title: Pipeline
+    path: /docs/reference/js/firestore_lite_pipelines.pipeline.md
+  - title: PipelineResult
+    path: /docs/reference/js/firestore_lite_pipelines.pipelineresult.md
+  - title: PipelineSnapshot
+    path: /docs/reference/js/firestore_lite_pipelines.pipelinesnapshot.md
+  - title: PipelineSource
+    path: /docs/reference/js/firestore_lite_pipelines.pipelinesource.md
+  - title: Query
+    path: /docs/reference/js/firestore_lite_pipelines.query.md
+  - title: QueryDocumentSnapshot
+    path: /docs/reference/js/firestore_lite_pipelines.querydocumentsnapshot.md
+  - title: Selectable
+    path: /docs/reference/js/firestore_lite_pipelines.selectable.md
+  - title: Timestamp
+    path: /docs/reference/js/firestore_lite_pipelines.timestamp.md
+  - title: VectorValue
+    path: /docs/reference/js/firestore_lite_pipelines.vectorvalue.md
+- title: firestore/pipelines
+  path: /docs/reference/js/firestore_pipelines.md
+  section:
+  - title: AggregateFunction
+    path: /docs/reference/js/firestore_pipelines.aggregatefunction.md
+  - title: AliasedAggregate
+    path: /docs/reference/js/firestore_pipelines.aliasedaggregate.md
+  - title: AliasedExpression
+    path: /docs/reference/js/firestore_pipelines.aliasedexpression.md
+  - title: BooleanExpression
+    path: /docs/reference/js/firestore_pipelines.booleanexpression.md
+  - title: Bytes
+    path: /docs/reference/js/firestore_pipelines.bytes.md
+  - title: CollectionReference
+    path: /docs/reference/js/firestore_pipelines.collectionreference.md
+  - title: DocumentData
+    path: /docs/reference/js/firestore_pipelines.documentdata.md
+  - title: DocumentReference
+    path: /docs/reference/js/firestore_pipelines.documentreference.md
+  - title: DocumentSnapshot
+    path: /docs/reference/js/firestore_pipelines.documentsnapshot.md
+  - title: Expression
+    path: /docs/reference/js/firestore_pipelines.expression.md
+  - title: Field
+    path: /docs/reference/js/firestore_pipelines.field.md
+  - title: FieldPath
+    path: /docs/reference/js/firestore_pipelines.fieldpath.md
+  - title: FieldValue
+    path: /docs/reference/js/firestore_pipelines.fieldvalue.md
+  - title: Firestore
+    path: /docs/reference/js/firestore_pipelines.firestore.md
+  - title: FirestoreDataConverter
+    path: /docs/reference/js/firestore_pipelines.firestoredataconverter.md
+  - title: FunctionExpression
+    path: /docs/reference/js/firestore_pipelines.functionexpression.md
+  - title: GeoPoint
+    path: /docs/reference/js/firestore_pipelines.geopoint.md
+  - title: Ordering
+    path: /docs/reference/js/firestore_pipelines.ordering.md
+  - title: Pipeline
+    path: /docs/reference/js/firestore_pipelines.pipeline.md
+  - title: PipelineExecuteOptions
+    path: /docs/reference/js/firestore_pipelines.pipelineexecuteoptions.md
+  - title: PipelineResult
+    path: /docs/reference/js/firestore_pipelines.pipelineresult.md
+  - title: PipelineSnapshot
+    path: /docs/reference/js/firestore_pipelines.pipelinesnapshot.md
+  - title: PipelineSource
+    path: /docs/reference/js/firestore_pipelines.pipelinesource.md
+  - title: Query
+    path: /docs/reference/js/firestore_pipelines.query.md
+  - title: QueryDocumentSnapshot
+    path: /docs/reference/js/firestore_pipelines.querydocumentsnapshot.md
+  - title: Selectable
+    path: /docs/reference/js/firestore_pipelines.selectable.md
+  - title: SnapshotMetadata
+    path: /docs/reference/js/firestore_pipelines.snapshotmetadata.md
+  - title: SnapshotOptions
+    path: /docs/reference/js/firestore_pipelines.snapshotoptions.md
+  - title: Timestamp
+    path: /docs/reference/js/firestore_pipelines.timestamp.md
+  - title: VectorValue
+    path: /docs/reference/js/firestore_pipelines.vectorvalue.md
 - title: functions
   path: /docs/reference/js/functions.md
   section:
@@ -552,6 +822,8 @@ toc:
     path: /docs/reference/js/messaging_.messaging.md
   - title: NotificationPayload
     path: /docs/reference/js/messaging_.notificationpayload.md
+  - title: RegisterOptions
+    path: /docs/reference/js/messaging_.registeroptions.md
 - title: messaging/sw
   path: /docs/reference/js/messaging_sw.md
   section:
@@ -565,6 +837,8 @@ toc:
     path: /docs/reference/js/messaging_sw.messaging.md
   - title: NotificationPayload
     path: /docs/reference/js/messaging_sw.notificationpayload.md
+  - title: RegisterOptions
+    path: /docs/reference/js/messaging_sw.registeroptions.md
 - title: performance
   path: /docs/reference/js/performance.md
   section:
@@ -577,10 +851,16 @@ toc:
 - title: remote-config
   path: /docs/reference/js/remote-config.md
   section:
+  - title: ConfigUpdate
+    path: /docs/reference/js/remote-config.configupdate.md
+  - title: ConfigUpdateObserver
+    path: /docs/reference/js/remote-config.configupdateobserver.md
   - title: CustomSignals
     path: /docs/reference/js/remote-config.customsignals.md
   - title: FetchResponse
     path: /docs/reference/js/remote-config.fetchresponse.md
+  - title: FirebaseExperimentDescription
+    path: /docs/reference/js/remote-config.firebaseexperimentdescription.md
   - title: FirebaseRemoteConfigObject
     path: /docs/reference/js/remote-config.firebaseremoteconfigobject.md
   - title: RemoteConfig

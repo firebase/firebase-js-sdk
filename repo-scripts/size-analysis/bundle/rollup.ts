@@ -32,7 +32,7 @@ export async function bundleWithRollup(
   moduleDirectory?: string
 ): Promise<string> {
   const resolveOptions: RollupNodeResolveOptions = {
-    mainFields: ['esm2017', 'module', 'main']
+    mainFields: ['module', 'main']
   };
 
   if (moduleDirectory) {

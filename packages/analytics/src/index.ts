@@ -33,9 +33,9 @@ import {
   InstanceFactoryOptions
 } from '@firebase/component';
 import { ERROR_FACTORY, AnalyticsError } from './errors';
-import { logEvent } from './api';
+import { logEvent, setUserProperties } from './api';
 import { name, version } from '../package.json';
-import { AnalyticsCallOptions } from './public-types';
+import { AnalyticsCallOptions, CustomParams } from './public-types';
 import '@firebase/installations';
 
 declare global {
@@ -66,7 +66,7 @@ function registerAnalytics(): void {
   );
 
   registerVersion(name, version);
-  // BUILD_TARGET will be replaced by values like esm2017, cjs2017, etc during the compilation
+  // BUILD_TARGET will be replaced by values like esm, cjs, etc during the compilation
   registerVersion(name, version, '__BUILD_TARGET__');
 
   function internalFactory(
@@ -79,7 +79,11 @@ function registerAnalytics(): void {
           eventName: string,
           eventParams?: { [key: string]: unknown },
           options?: AnalyticsCallOptions
-        ) => logEvent(analytics, eventName, eventParams, options)
+        ) => logEvent(analytics, eventName, eventParams, options),
+        setUserProperties: (
+          properties: CustomParams,
+          options?: AnalyticsCallOptions
+        ) => setUserProperties(analytics, properties, options)
       };
     } catch (e) {
       throw ERROR_FACTORY.create(AnalyticsError.INTEROP_COMPONENT_REG_FAILED, {

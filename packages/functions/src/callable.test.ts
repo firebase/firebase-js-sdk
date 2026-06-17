@@ -37,7 +37,11 @@ import {
   AppCheckInternalComponentName
 } from '@firebase/app-check-interop-types';
 import { makeFakeApp, createTestService } from '../test/utils';
-import { FunctionsService, httpsCallable } from './service';
+import {
+  FunctionsService,
+  httpsCallable,
+  httpsCallableFromURL
+} from './service';
 import { FUNCTIONS_TYPE } from './constants';
 import { FunctionsError } from './error';
 
@@ -96,7 +100,7 @@ describe('Firebase Functions > Call', () => {
     const func = httpsCallable<
       Record<string, any>,
       { message: string; code: number; long: number }
-    >(functions, 'dataTest');
+    >(functions, 'dataTestv2');
     const result = await func(data);
 
     expect(result.data).to.deep.equal({
@@ -108,7 +112,7 @@ describe('Firebase Functions > Call', () => {
 
   it('scalars', async () => {
     const functions = createTestService(app, region);
-    const func = httpsCallable<number, number>(functions, 'scalarTest');
+    const func = httpsCallable<number, number>(functions, 'scalarTestv2');
     const result = await func(17);
     expect(result.data).to.equal(76);
   });
@@ -130,7 +134,7 @@ describe('Firebase Functions > Call', () => {
 
     // Stub out the internals to get an auth token.
     const stub = sinon.stub(authMock, 'getToken').callThrough();
-    const func = httpsCallable(functions, 'tokenTest');
+    const func = httpsCallable(functions, 'tokenTestv2');
     const result = await func({});
     expect(result.data).to.deep.equal({});
 
@@ -163,7 +167,7 @@ describe('Firebase Functions > Call', () => {
 
     // Stub out the internals to get an app check token.
     const stub = sinon.stub(appCheckMock, 'getToken').callThrough();
-    const func = httpsCallable(functions, 'appCheckTest');
+    const func = httpsCallable(functions, 'appCheckTestv2');
     const result = await func({});
     expect(result.data).to.deep.equal({ token: 'app-check-token' });
 
@@ -196,7 +200,7 @@ describe('Firebase Functions > Call', () => {
 
     // Stub out the internals to get an app check token.
     const stub = sinon.stub(appCheckMock, 'getLimitedUseToken').callThrough();
-    const func = httpsCallable(functions, 'appCheckTest', {
+    const func = httpsCallable(functions, 'appCheckTestv2', {
       limitedUseAppCheckTokens: true
     });
     const result = await func({});
@@ -240,7 +244,7 @@ describe('Firebase Functions > Call', () => {
     const stub = sinon.stub(messagingMock, 'getToken').callThrough();
     sinon.stub(Notification, 'permission').value('granted');
 
-    const func = httpsCallable(functions, 'instanceIdTest');
+    const func = httpsCallable(functions, 'instanceIdTestv2');
     const result = await func({});
     expect(result.data).to.deep.equal({});
 
@@ -250,7 +254,7 @@ describe('Firebase Functions > Call', () => {
 
   it('null', async () => {
     const functions = createTestService(app, region);
-    const func = httpsCallable(functions, 'nullTest');
+    const func = httpsCallable(functions, 'nullTestv2');
     let result = await func(null);
     expect(result.data).to.be.null;
 
@@ -261,25 +265,25 @@ describe('Firebase Functions > Call', () => {
 
   it('missing result', async () => {
     const functions = createTestService(app, region);
-    const func = httpsCallable(functions, 'missingResultTest');
+    const func = httpsCallable(functions, 'missingResultTestv2');
     await expectError(func(), 'internal', 'Response is missing data field.');
   });
 
   it('unhandled error', async () => {
     const functions = createTestService(app, region);
-    const func = httpsCallable(functions, 'unhandledErrorTest');
+    const func = httpsCallable(functions, 'unhandledErrorTestv2');
     await expectError(func(), 'internal', 'internal');
   });
 
   it('unknown error', async () => {
     const functions = createTestService(app, region);
-    const func = httpsCallable(functions, 'unknownErrorTest');
+    const func = httpsCallable(functions, 'unknownErrorTestv2');
     await expectError(func(), 'internal', 'internal');
   });
 
   it('explicit error', async () => {
     const functions = createTestService(app, region);
-    const func = httpsCallable(functions, 'explicitErrorTest');
+    const func = httpsCallable(functions, 'explicitErrorTestv2');
     await expectError(func(), 'out-of-range', 'explicit nope', {
       start: 10,
       end: 20,
@@ -289,13 +293,13 @@ describe('Firebase Functions > Call', () => {
 
   it('http error', async () => {
     const functions = createTestService(app, region);
-    const func = httpsCallable(functions, 'httpErrorTest');
+    const func = httpsCallable(functions, 'httpErrorTestv2');
     await expectError(func(), 'invalid-argument', 'invalid-argument');
   });
 
   it('timeout', async () => {
     const functions = createTestService(app, region);
-    const func = httpsCallable(functions, 'timeoutTest', { timeout: 10 });
+    const func = httpsCallable(functions, 'timeoutTestv2', { timeout: 10 });
     await expectError(func(), 'deadline-exceeded', 'deadline-exceeded');
   });
 });
@@ -523,7 +527,134 @@ describe('Firebase Functions > Stream', () => {
     const [_, options] = mockFetch.firstCall.args;
     expect(options.headers['Authorization']).to.equal('Bearer auth-token');
     expect(options.headers['Content-Type']).to.equal('application/json');
+    expect(options.credentials).to.equal(undefined);
     expect(options.headers['Accept']).to.equal('text/event-stream');
+  });
+
+  it('calls cloud workstations with credentials', async () => {
+    const authMock: FirebaseAuthInternal = {
+      getToken: async () => ({ accessToken: 'auth-token' })
+    } as unknown as FirebaseAuthInternal;
+    const authProvider = new Provider<FirebaseAuthInternalName>(
+      'auth-internal',
+      new ComponentContainer('test')
+    );
+    authProvider.setComponent(
+      new Component('auth-internal', () => authMock, ComponentType.PRIVATE)
+    );
+    const appCheckMock: FirebaseAppCheckInternal = {
+      getToken: async () => ({ token: 'app-check-token' })
+    } as unknown as FirebaseAppCheckInternal;
+    const appCheckProvider = new Provider<AppCheckInternalComponentName>(
+      'app-check-internal',
+      new ComponentContainer('test')
+    );
+    appCheckProvider.setComponent(
+      new Component(
+        'app-check-internal',
+        () => appCheckMock,
+        ComponentType.PRIVATE
+      )
+    );
+
+    const functions = createTestService(
+      app,
+      region,
+      authProvider,
+      undefined,
+      appCheckProvider
+    );
+    functions.emulatorOrigin = 'test.cloudworkstations.dev';
+    const mockFetch = sinon.stub(functions, 'fetchImpl' as any);
+
+    const mockResponse = new ReadableStream({
+      start(controller) {
+        controller.enqueue(
+          new TextEncoder().encode('data: {"result":"Success"}\n')
+        );
+        controller.close();
+      }
+    });
+
+    mockFetch.resolves({
+      body: mockResponse,
+      headers: new Headers({ 'Content-Type': 'text/event-stream' }),
+      status: 200,
+      statusText: 'OK'
+    } as Response);
+
+    const func = httpsCallable<Record<string, any>, string, string>(
+      functions,
+      'stream'
+    );
+    await func.stream({});
+
+    expect(mockFetch.calledOnce).to.be.true;
+    const [_, options] = mockFetch.firstCall.args;
+    expect(options.credentials).to.equal('include');
+  });
+
+  it('calls streamFromURL cloud workstations with credentials', async () => {
+    const authMock: FirebaseAuthInternal = {
+      getToken: async () => ({ accessToken: 'auth-token' })
+    } as unknown as FirebaseAuthInternal;
+    const authProvider = new Provider<FirebaseAuthInternalName>(
+      'auth-internal',
+      new ComponentContainer('test')
+    );
+    authProvider.setComponent(
+      new Component('auth-internal', () => authMock, ComponentType.PRIVATE)
+    );
+    const appCheckMock: FirebaseAppCheckInternal = {
+      getToken: async () => ({ token: 'app-check-token' })
+    } as unknown as FirebaseAppCheckInternal;
+    const appCheckProvider = new Provider<AppCheckInternalComponentName>(
+      'app-check-internal',
+      new ComponentContainer('test')
+    );
+    appCheckProvider.setComponent(
+      new Component(
+        'app-check-internal',
+        () => appCheckMock,
+        ComponentType.PRIVATE
+      )
+    );
+
+    const functions = createTestService(
+      app,
+      region,
+      authProvider,
+      undefined,
+      appCheckProvider
+    );
+    functions.emulatorOrigin = 'test.cloudworkstations.dev';
+    const mockFetch = sinon.stub(functions, 'fetchImpl' as any);
+
+    const mockResponse = new ReadableStream({
+      start(controller) {
+        controller.enqueue(
+          new TextEncoder().encode('data: {"result":"Success"}\n')
+        );
+        controller.close();
+      }
+    });
+
+    mockFetch.resolves({
+      body: mockResponse,
+      headers: new Headers({ 'Content-Type': 'text/event-stream' }),
+      status: 200,
+      statusText: 'OK'
+    } as Response);
+
+    const func = httpsCallableFromURL<Record<string, any>, string, string>(
+      functions,
+      'stream'
+    );
+    await func.stream({});
+
+    expect(mockFetch.calledOnce).to.be.true;
+    const [_, options] = mockFetch.firstCall.args;
+    expect(options.credentials).to.equal('include');
   });
 
   it('aborts during initial fetch', async () => {

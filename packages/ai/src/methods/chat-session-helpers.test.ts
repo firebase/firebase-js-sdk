@@ -22,7 +22,11 @@ import { FirebaseError } from '@firebase/util';
 
 describe('chat-session-helpers', () => {
   describe('validateChatHistory', () => {
-    const TCS: Array<{ history: Content[]; isValid: boolean }> = [
+    const TCS: Array<{
+      history: Content[];
+      isValid: boolean;
+      errorShouldInclude?: string;
+    }> = [
       {
         history: [{ role: 'user', parts: [{ text: 'hi' }] }],
         isValid: true
@@ -99,19 +103,23 @@ describe('chat-session-helpers', () => {
       {
         //@ts-expect-error
         history: [{ role: 'user', parts: '' }],
+        errorShouldInclude: `array of Parts`,
         isValid: false
       },
       {
         //@ts-expect-error
         history: [{ role: 'user' }],
+        errorShouldInclude: `array of Parts`,
         isValid: false
       },
       {
         history: [{ role: 'user', parts: [] }],
+        errorShouldInclude: `at least one part`,
         isValid: false
       },
       {
         history: [{ role: 'model', parts: [{ text: 'hi' }] }],
+        errorShouldInclude: `model`,
         isValid: false
       },
       {
@@ -125,6 +133,7 @@ describe('chat-session-helpers', () => {
             ]
           }
         ],
+        errorShouldInclude: `function`,
         isValid: false
       },
       {
@@ -132,6 +141,7 @@ describe('chat-session-helpers', () => {
           { role: 'user', parts: [{ text: 'hi' }] },
           { role: 'user', parts: [{ text: 'hi' }] }
         ],
+        errorShouldInclude: `can't follow 'user'`,
         isValid: false
       },
       {
@@ -140,6 +150,45 @@ describe('chat-session-helpers', () => {
           { role: 'model', parts: [{ text: 'hi' }] },
           { role: 'model', parts: [{ text: 'hi' }] }
         ],
+        errorShouldInclude: `can't follow 'model'`,
+        isValid: false
+      },
+      {
+        history: [
+          { role: 'user', parts: [{ text: 'hi' }] },
+          {
+            role: 'model',
+            parts: [
+              { text: 'hi' },
+              {
+                text: 'thought about hi',
+                thought: true,
+                thoughtSignature: 'thought signature'
+              }
+            ]
+          }
+        ],
+        isValid: true
+      },
+      {
+        history: [
+          {
+            role: 'user',
+            parts: [{ text: 'hi', thought: true, thoughtSignature: 'sig' }]
+          },
+          {
+            role: 'model',
+            parts: [
+              { text: 'hi' },
+              {
+                text: 'thought about hi',
+                thought: true,
+                thoughtSignature: 'thought signature'
+              }
+            ]
+          }
+        ],
+        errorShouldInclude: 'thought',
         isValid: false
       }
     ];
@@ -149,7 +198,14 @@ describe('chat-session-helpers', () => {
         if (tc.isValid) {
           expect(fn).to.not.throw();
         } else {
-          expect(fn).to.throw(FirebaseError);
+          try {
+            fn();
+          } catch (e) {
+            expect(e).to.be.instanceOf(FirebaseError);
+            if (e instanceof FirebaseError && tc.errorShouldInclude) {
+              expect(e.message).to.include(tc.errorShouldInclude);
+            }
+          }
         }
       });
     });

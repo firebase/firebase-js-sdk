@@ -22,8 +22,22 @@ export interface FunctionResponse
 
 |  Property | Type | Description |
 |  --- | --- | --- |
+|  [id](./ai.functionresponse.md#functionresponseid) | string | The id of the [FunctionCall](./ai.functioncall.md#functioncall_interface)<!-- -->. |
 |  [name](./ai.functionresponse.md#functionresponsename) | string |  |
+|  [parts](./ai.functionresponse.md#functionresponseparts) | [Part](./ai.md#part)<!-- -->\[\] |  |
 |  [response](./ai.functionresponse.md#functionresponseresponse) | object |  |
+
+## FunctionResponse.id
+
+The id of the [FunctionCall](./ai.functioncall.md#functioncall_interface)<!-- -->.
+
+This property is only supported in the Gemini Developer API ([GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class)<!-- -->). When using the Gemini Developer API ([GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class)<!-- -->), this property will be `undefined`<!-- -->.
+
+<b>Signature:</b>
+
+```typescript
+id?: string;
+```
 
 ## FunctionResponse.name
 
@@ -31,6 +45,14 @@ export interface FunctionResponse
 
 ```typescript
 name: string;
+```
+
+## FunctionResponse.parts
+
+<b>Signature:</b>
+
+```typescript
+parts?: Part[];
 ```
 
 ## FunctionResponse.response

@@ -36,7 +36,7 @@ export async function bundleWithWebpack(
   const outputFileName = 'o.js';
 
   const resolveConfig: webpack.ResolveOptions = {
-    mainFields: ['esm2017', 'module', 'main']
+    mainFields: ['module', 'main']
   };
 
   if (moduleDirectory) {

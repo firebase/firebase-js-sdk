@@ -29,6 +29,7 @@ export interface FirebaseOptions
 |  [measurementId](./app.firebaseoptions.md#firebaseoptionsmeasurementid) | string | An ID automatically created when you enable Analytics in your Firebase project and register a web app. In versions 7.20.0 and higher, this parameter is optional. |
 |  [messagingSenderId](./app.firebaseoptions.md#firebaseoptionsmessagingsenderid) | string | Unique numerical value used to identify each sender that can send Firebase Cloud Messaging messages to client apps. |
 |  [projectId](./app.firebaseoptions.md#firebaseoptionsprojectid) | string | The unique identifier for the project across all of Firebase and Google Cloud. |
+|  [recaptchaSiteKey](./app.firebaseoptions.md#firebaseoptionsrecaptchasitekey) | string | ReCAPTCHA Enterprise site key associated with this app. |
 |  [storageBucket](./app.firebaseoptions.md#firebaseoptionsstoragebucket) | string | The default Cloud Storage bucket name. |
 
 ## FirebaseOptions.apiKey
@@ -99,6 +100,16 @@ The unique identifier for the project across all of Firebase and Google Cloud.
 
 ```typescript
 projectId?: string;
+```
+
+## FirebaseOptions.recaptchaSiteKey
+
+ReCAPTCHA Enterprise site key associated with this app.
+
+<b>Signature:</b>
+
+```typescript
+recaptchaSiteKey?: string;
 ```
 
 ## FirebaseOptions.storageBucket

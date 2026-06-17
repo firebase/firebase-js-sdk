@@ -22,6 +22,7 @@ import {
   CredentialChangeListener,
   CredentialsProvider
 } from '../api/credentials';
+import { RealtimePipeline } from '../api/realtime_pipeline';
 import { User } from '../auth/user';
 import { LocalStore } from '../local/local_store';
 import {
@@ -38,11 +39,16 @@ import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { FieldIndex } from '../model/field_index';
 import { Mutation } from '../model/mutation';
+import { PipelineStreamElement } from '../model/pipeline_stream_element';
 import { toByteStreamReader } from '../platform/byte_stream_reader';
 import { newSerializer } from '../platform/serializer';
 import { newTextEncoder } from '../platform/text_serializer';
 import { ApiClientObjectMap, Value } from '../protos/firestore_proto_api';
-import { Datastore, invokeRunAggregationQueryRpc } from '../remote/datastore';
+import {
+  Datastore,
+  invokeExecutePipeline,
+  invokeRunAggregationQueryRpc
+} from '../remote/datastore';
 import {
   RemoteStore,
   remoteStoreDisableNetwork,
@@ -81,7 +87,9 @@ import {
   QueryListener,
   removeSnapshotsInSyncListener
 } from './event_manager';
+import { QueryOrPipeline, toCorePipeline } from './pipeline-util';
 import { newQueryForPath, Query } from './query';
+import { StructuredPipeline } from './structured_pipeline';
 import { SyncEngine } from './sync_engine';
 import {
   syncEngineListen,
@@ -140,7 +148,10 @@ export class FirestoreClient {
      * an async I/O to complete).
      */
     public asyncQueue: AsyncQueue,
-    private databaseInfo: DatabaseInfo,
+    /**
+     * Exposed for testing
+     */
+    public _databaseInfo: DatabaseInfo,
     componentProvider?: {
       _offline: OfflineComponentProvider;
       _online: OnlineComponentProvider;
@@ -161,7 +172,7 @@ export class FirestoreClient {
   get configuration(): ComponentConfiguration {
     return {
       asyncQueue: this.asyncQueue,
-      databaseInfo: this.databaseInfo,
+      databaseInfo: this._databaseInfo,
       clientId: this.clientId,
       authCredentials: this.authCredentials,
       appCheckCredentials: this.appCheckCredentials,
@@ -231,23 +242,11 @@ export async function setOfflineComponentProvider(
     }
   });
 
-  offlineComponentProvider.persistence.setDatabaseDeletedListener(() => {
-    logWarn('Terminating Firestore due to IndexedDb database deletion');
-    client
-      .terminate()
-      .then(() => {
-        logDebug(
-          'Terminating Firestore due to IndexedDb database deletion ' +
-            'completed successfully'
-        );
-      })
-      .catch(error => {
-        logWarn(
-          'Terminating Firestore due to IndexedDb database deletion failed',
-          error
-        );
-      });
-  });
+  // When a user calls clearPersistence() in one client, all other clients
+  // need to be terminated to allow the delete to succeed.
+  offlineComponentProvider.persistence.setDatabaseDeletedListener(() =>
+    client.terminate()
+  );
 
   client._offlineComponents = offlineComponentProvider;
 }
@@ -457,7 +456,7 @@ export function firestoreClientWaitForPendingWrites(
 
 export function firestoreClientListen(
   client: FirestoreClient,
-  query: Query,
+  query: QueryOrPipeline,
   options: ListenOptions,
   observer: Partial<Observer<ViewSnapshot>>
 ): () => void {
@@ -521,7 +520,7 @@ export function firestoreClientGetDocumentsFromLocalCache(
 
 export function firestoreClientGetDocumentsViaSnapshotListener(
   client: FirestoreClient,
-  query: Query,
+  query: Query | RealtimePipeline,
   options: GetOptions = {}
 ): Promise<ViewSnapshot> {
   const deferred = new Deferred<ViewSnapshot>();
@@ -555,6 +554,23 @@ export function firestoreClientRunAggregateQuery(
       deferred.resolve(
         invokeRunAggregationQueryRpc(datastore, query, aggregates)
       );
+    } catch (e) {
+      deferred.reject(e as Error);
+    }
+  });
+  return deferred.promise;
+}
+
+export function firestoreClientExecutePipeline(
+  client: FirestoreClient,
+  pipeline: StructuredPipeline
+): Promise<PipelineStreamElement[]> {
+  const deferred = new Deferred<PipelineStreamElement[]>();
+
+  client.asyncQueue.enqueueAndForget(async () => {
+    try {
+      const datastore = await getDatastore(client);
+      deferred.resolve(invokeExecutePipeline(datastore, pipeline));
     } catch (e) {
       deferred.reject(e as Error);
     }
@@ -763,7 +779,7 @@ async function executeQueryFromCache(
 function executeQueryViaSnapshotListener(
   eventManager: EventManager,
   asyncQueue: AsyncQueue,
-  query: Query,
+  query: Query | RealtimePipeline,
   options: GetOptions,
   result: Deferred<ViewSnapshot>
 ): Promise<void> {
@@ -793,10 +809,16 @@ function executeQueryViaSnapshotListener(
     error: e => result.reject(e)
   });
 
-  const listener = new QueryListener(query, wrappedObserver, {
-    includeMetadataChanges: true,
-    waitForSyncWhenOnline: true
-  });
+  const listener =
+    query instanceof RealtimePipeline
+      ? new QueryListener(toCorePipeline(query), wrappedObserver, {
+          includeMetadataChanges: true,
+          waitForSyncWhenOnline: true
+        })
+      : new QueryListener(query, wrappedObserver, {
+          includeMetadataChanges: true,
+          waitForSyncWhenOnline: true
+        });
   return eventManagerListen(eventManager, listener);
 }
 

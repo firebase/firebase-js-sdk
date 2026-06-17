@@ -1,5 +1,17 @@
 # @firebase/analytics-interop-types
 
+## 0.3.5
+
+### Patch Changes
+
+- [`8e384c9`](https://github.com/firebase/firebase-js-sdk/commit/8e384c947de73c7f74346b1c01640f3515a4ef0e) [#9883](https://github.com/firebase/firebase-js-sdk/pull/9883) - Updated dependencies.
+
+## 0.3.4
+
+### Patch Changes
+
+- [`1bcf83d`](https://github.com/firebase/firebase-js-sdk/commit/1bcf83d7f0640dff67c20939fb9af7bae6a941e0) [#9263](https://github.com/firebase/firebase-js-sdk/pull/9263) - Expose `setUserProperties` on internal Analytics instance.
+
 ## 0.3.3
 
 ### Patch Changes

@@ -309,11 +309,17 @@ export function limitToLast(limit: number): QueryLimitConstraint;
 export { LogLevel }
 
 // @public
+export function maximum(n: number): FieldValue;
+
+// @public
 export class MaxKey {
     // (undocumented)
     static instance(): MaxKey;
     readonly type = "MaxKey";
 }
+
+// @public
+export function minimum(n: number): FieldValue;
 
 // @public
 export class MinKey {

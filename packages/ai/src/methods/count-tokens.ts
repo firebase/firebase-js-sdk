@@ -15,21 +15,26 @@
  * limitations under the License.
  */
 
+import { AIError } from '../errors';
 import {
   CountTokensRequest,
   CountTokensResponse,
-  RequestOptions
+  SingleRequestOptions,
+  InferenceMode,
+  RequestOptions,
+  AIErrorCode
 } from '../types';
-import { Task, makeRequest } from '../requests/request';
+import { makeRequest, Task } from '../requests/request';
 import { ApiSettings } from '../types/internal';
 import * as GoogleAIMapper from '../googleai-mappers';
 import { BackendType } from '../public-types';
+import { ChromeAdapter } from '../types/chrome-adapter';
 
-export async function countTokens(
+export async function countTokensOnCloud(
   apiSettings: ApiSettings,
   model: string,
   params: CountTokensRequest,
-  requestOptions?: RequestOptions
+  singleRequestOptions?: SingleRequestOptions
 ): Promise<CountTokensResponse> {
   let body: string = '';
   if (apiSettings.backend.backendType === BackendType.GOOGLE_AI) {
@@ -39,12 +44,30 @@ export async function countTokens(
     body = JSON.stringify(params);
   }
   const response = await makeRequest(
-    model,
-    Task.COUNT_TOKENS,
-    apiSettings,
-    false,
-    body,
-    requestOptions
+    {
+      model,
+      task: Task.COUNT_TOKENS,
+      apiSettings,
+      stream: false,
+      singleRequestOptions
+    },
+    body
   );
   return response.json();
+}
+
+export async function countTokens(
+  apiSettings: ApiSettings,
+  model: string,
+  params: CountTokensRequest,
+  chromeAdapter?: ChromeAdapter,
+  requestOptions?: RequestOptions
+): Promise<CountTokensResponse> {
+  if (chromeAdapter?.mode === InferenceMode.ONLY_ON_DEVICE) {
+    throw new AIError(
+      AIErrorCode.UNSUPPORTED,
+      'countTokens() is not supported for on-device models.'
+    );
+  }
+  return countTokensOnCloud(apiSettings, model, params, requestOptions);
 }

@@ -1,5 +1,160 @@
 # @firebase/firestore
 
+## 4.14.1
+
+### Patch Changes
+
+- [`96e81ff`](https://github.com/firebase/firebase-js-sdk/commit/96e81ffe9a6efd557685eea7db9d78e5594f43aa) [#9884](https://github.com/firebase/firebase-js-sdk/pull/9884) - Added search stage support for languageCode, offset, limit, and retrievalDepth
+
+- [`402b1f0`](https://github.com/firebase/firebase-js-sdk/commit/402b1f01e67441c51701153031b6e645b71d4875) [#9842](https://github.com/firebase/firebase-js-sdk/pull/9842) - fix(firestore): Assertion ID: ca9 (pendingResponses less than 0) caused by target creation race condition
+
+- [`8e384c9`](https://github.com/firebase/firebase-js-sdk/commit/8e384c947de73c7f74346b1c01640f3515a4ef0e) [#9883](https://github.com/firebase/firebase-js-sdk/pull/9883) - Updated dependencies.
+
+- Updated dependencies [[`8e384c9`](https://github.com/firebase/firebase-js-sdk/commit/8e384c947de73c7f74346b1c01640f3515a4ef0e)]:
+  - @firebase/component@0.7.3
+  - @firebase/logger@0.5.1
+  - @firebase/util@1.15.1
+  - @firebase/webchannel-wrapper@1.0.6
+
+## 4.14.0
+
+### Minor Changes
+
+- [`44c234c`](https://github.com/firebase/firebase-js-sdk/commit/44c234c2ba5f8ba18a2f2c99fe63df7692010bf3) [#9773](https://github.com/firebase/firebase-js-sdk/pull/9773) - Add support for the parent expression
+
+- [`5cd6509`](https://github.com/firebase/firebase-js-sdk/commit/5cd6509bdb1eedc9a37ed6ce7677450f574a7e9d) [#9728](https://github.com/firebase/firebase-js-sdk/pull/9728) - Add support for timestamp_trunc, timestamp_diff and timestamp_extract expressions
+
+- [`31bddcd`](https://github.com/firebase/firebase-js-sdk/commit/31bddcdd6200642f836c1eca7c9068470ca840bd) [#9734](https://github.com/firebase/firebase-js-sdk/pull/9734) - Added public preview support for full-text and geo search in Pipelines.
+
+- [`44ad4cc`](https://github.com/firebase/firebase-js-sdk/commit/44ad4cc2e54c6720d34fff4c2773f8887473b935) [#9702](https://github.com/firebase/firebase-js-sdk/pull/9702) - Add support for logical expressions `nor` and `switchOn`.
+
+- [`e8f14eb`](https://github.com/firebase/firebase-js-sdk/commit/e8f14eb499f10246b96759f58479905ab8f02e4c) [#9753](https://github.com/firebase/firebase-js-sdk/pull/9753) - Add support for pipeline expressions `ifNull` and `coalesce`.
+
+- [`cecd028`](https://github.com/firebase/firebase-js-sdk/commit/cecd028de503302319a389a3331c5b94452daf95) [#9720](https://github.com/firebase/firebase-js-sdk/pull/9720) - Add subquery support to Pipelines.
+
+- [`0e343c8`](https://github.com/firebase/firebase-js-sdk/commit/0e343c8706d2c1683fd802cadff8fa87f826698d) [#9725](https://github.com/firebase/firebase-js-sdk/pull/9725) - **Beta API Breaking Change**: Change `Type` string union to be a raw string.
+
+### Patch Changes
+
+- [`dd10ed7`](https://github.com/firebase/firebase-js-sdk/commit/dd10ed777b7bb4790c89225aa0a5be0a9d59e9a6) [#9750](https://github.com/firebase/firebase-js-sdk/pull/9750) - Refactor the parameters for timestamp expressions and change all timegranularity value to lowercase
+
+- [`4e99d4b`](https://github.com/firebase/firebase-js-sdk/commit/4e99d4ba66a9a28558cd504826ae04fd07251c1b) [#9752](https://github.com/firebase/firebase-js-sdk/pull/9752) - Read user data when using internal pipeline proto serialization.
+
+- [`334b266`](https://github.com/firebase/firebase-js-sdk/commit/334b266fec0fe63466dbb59bebe4d092bc3a924e) [#9765](https://github.com/firebase/firebase-js-sdk/pull/9765) - Read user data from pipeline in union stage. Fixes [GitHub Issue #9764](https://github.com/firebase/firebase-js-sdk/issues/9764)
+
+## 4.13.0
+
+### Minor Changes
+
+- [`78384d3`](https://github.com/firebase/firebase-js-sdk/commit/78384d32c5352bd25cdc3d12fc8f2f4b5d48a440) [#9492](https://github.com/firebase/firebase-js-sdk/pull/9492) - Add support for array expressions `arrayFirst`, `arrayFirstN`,`arrayLast`,`arrayLastN`,`arrayMinimum`,`arrayMinimumN`,`arrayMaximum`,`arrayMaximumN`,`arrayIndexOf`, `arrayLastIndexOf` and `arrayIndexOfAll`
+
+### Patch Changes
+
+- [`54ff05e`](https://github.com/firebase/firebase-js-sdk/commit/54ff05ef922016fee2e9e6f4b8aea30120170da7) [#9715](https://github.com/firebase/firebase-js-sdk/pull/9715) - **Beta API Breaking change**: Defer pipeline user data validation from initialization to `execute()`. This breaking change is allowed in a non-major release since the Firestore Pipelines API is currently in Public Preview.
+
+- [`a383770`](https://github.com/firebase/firebase-js-sdk/commit/a3837700877822acd1bad82431a051d64f479508) [#9622](https://github.com/firebase/firebase-js-sdk/pull/9622) - Fixed X is not a function issues observed in server side rendering APIs.
+
+- [`2f7f426`](https://github.com/firebase/firebase-js-sdk/commit/2f7f426dec37efd75bad8dcc87cdd769ed4f7752) [#9608](https://github.com/firebase/firebase-js-sdk/pull/9608) - Remove `updateEmulatorBanner()`. (No release note needed.)
+
+- Updated dependencies [[`2f7f426`](https://github.com/firebase/firebase-js-sdk/commit/2f7f426dec37efd75bad8dcc87cdd769ed4f7752)]:
+  - @firebase/util@1.15.0
+  - @firebase/component@0.7.2
+
+## 4.12.0
+
+### Minor Changes
+
+- [`14d9745`](https://github.com/firebase/firebase-js-sdk/commit/14d974550c1df023e563c22619dc68b9182946e0) [#9483](https://github.com/firebase/firebase-js-sdk/pull/9483) - Support added for `mapSet`, `mapValues`, `mapEntries`, `mapKeys` Pipelines expressions.
+
+- [`f8996c4`](https://github.com/firebase/firebase-js-sdk/commit/f8996c4cec849db4d6f9dad1df728a49cc063b96) [#9479](https://github.com/firebase/firebase-js-sdk/pull/9479) - Support added for the following string Pipeline expressions: `stringRepeat`, `stringReplaceOne`, `stringReplaceAll`, `stringIndexOf`, `ltrim`, `rtrim`.
+
+- [`659d9bb`](https://github.com/firebase/firebase-js-sdk/commit/659d9bb7987c1fb7bc9f3d772fe1c467f7e4f80f) [#9576](https://github.com/firebase/firebase-js-sdk/pull/9576) - Add support for first, last, array_agg and array_agg_distinct expressions
+
+- [`852162b`](https://github.com/firebase/firebase-js-sdk/commit/852162bc94935a826b548e71ac124749ab3e799f) [#9498](https://github.com/firebase/firebase-js-sdk/pull/9498) - Add support for rand and trunc pipeline expressions
+
+- [`6041509`](https://github.com/firebase/firebase-js-sdk/commit/60415091e1cb2481255343122a18c9f2845ca505) [#9484](https://github.com/firebase/firebase-js-sdk/pull/9484) - feat(firestore): Support added for the `isType` Pipeline expression.
+
+### Patch Changes
+
+- Updated dependencies [[`eebba69`](https://github.com/firebase/firebase-js-sdk/commit/eebba69e912b59e5f097a896e479d139c03d62ca)]:
+  - @firebase/util@1.14.0
+  - @firebase/component@0.7.1
+
+## 4.11.0
+
+### Minor Changes
+
+- [`08e3acd`](https://github.com/firebase/firebase-js-sdk/commit/08e3acdf098dc5499081c610bcbe428f376f9ded) [#9459](https://github.com/firebase/firebase-js-sdk/pull/9459) - Add support for `regexFind` and `regexFindAll` Pipeline expressions.
+
+### Patch Changes
+
+- [`65a553b`](https://github.com/firebase/firebase-js-sdk/commit/65a553baf435be2463477ef9ddb114f26a2845ce) [#9472](https://github.com/firebase/firebase-js-sdk/pull/9472) - Log a warning when `databaseId` is not found.
+
+## 4.10.0
+
+### Minor Changes
+
+- [`83e6864`](https://github.com/firebase/firebase-js-sdk/commit/83e686478cea10c707909369dcf590cb09c59ef7) [#9356](https://github.com/firebase/firebase-js-sdk/pull/9356) - Release Firestore Pipelines for Enterprise edition in public preview.
+
+## 4.9.3
+
+### Patch Changes
+
+- [`5940794`](https://github.com/firebase/firebase-js-sdk/commit/59407948daf848fea069b776a55bef62bbcd602f) [#9386](https://github.com/firebase/firebase-js-sdk/pull/9386) (fixes [#9378](https://github.com/firebase/firebase-js-sdk/issues/9378)) - Fix: Corrected misleading error message when doc() is called with undefined.
+
+## 4.9.2
+
+### Patch Changes
+
+- [`43276b0`](https://github.com/firebase/firebase-js-sdk/commit/43276b0414ea5a73e8d8f7e3b80275d8b910102f) [#9242](https://github.com/firebase/firebase-js-sdk/pull/9242) - Increased the buffering-proxy detection timeout to minimize the false-positive rate. Updating WebChannel to ignore duplicate messages received from the server. Fix for https://github.com/firebase/firebase-js-sdk/issues/8250.
+
+- Updated dependencies [[`43276b0`](https://github.com/firebase/firebase-js-sdk/commit/43276b0414ea5a73e8d8f7e3b80275d8b910102f)]:
+  - @firebase/webchannel-wrapper@1.0.5
+
+## 4.9.1
+
+### Patch Changes
+
+- [`2058432`](https://github.com/firebase/firebase-js-sdk/commit/2058432e6c8e809d5b695e31fde582e94f1349c5) [#9177](https://github.com/firebase/firebase-js-sdk/pull/9177) (fixes [#9147](https://github.com/firebase/firebase-js-sdk/issues/9147)) - Fixed a bug where a rejected promise with an empty message in a transaction would cause a timeout.
+
+## 4.9.0
+
+### Minor Changes
+
+- [`25b60fd`](https://github.com/firebase/firebase-js-sdk/commit/25b60fdaabe910e1538684a3c490b0900fb5f113) [#9128](https://github.com/firebase/firebase-js-sdk/pull/9128) - Update node "engines" version to a minimum of Node 20.
+
+### Patch Changes
+
+- [`f11b552`](https://github.com/firebase/firebase-js-sdk/commit/f11b55294a04dfe6a1216c487b1af3a7e7d07196) [#9162](https://github.com/firebase/firebase-js-sdk/pull/9162) - Revert fix for issue where Firestore would produce `undefined` for document snapshot if "clear site data" button was pressed in the web browser. This fix was introduced in v11.6.1 but inadvertantly caused issues for some customers (https://github.com/firebase/firebase-js-sdk/issues/9056).
+
+- [`9771bff`](https://github.com/firebase/firebase-js-sdk/commit/9771bffadbc464890150dd7dd1a9a0fe2df60bf0) [#9168](https://github.com/firebase/firebase-js-sdk/pull/9168) - Fixed a regression where the SDK did not re-connect to IndexedDb after disconnect (#9087)
+
+- [`f18b25f`](https://github.com/firebase/firebase-js-sdk/commit/f18b25f73a05a696b6a9ed45702a84cc9dd5c6d9) [#9167](https://github.com/firebase/firebase-js-sdk/pull/9167) - Set build targets to ES2020.
+
+- [`a029ce3`](https://github.com/firebase/firebase-js-sdk/commit/a029ce39ee1ea1f6f28e79a1733ad8e8ebedf4bb) [#9143](https://github.com/firebase/firebase-js-sdk/pull/9143) - Further improved performance of UTF-8 string ordering logic, which had degraded in v11.3.0, was reverted in v11.3.1, and was re-introduced with some improvements in v11.5.0.
+
+- Updated dependencies [[`f18b25f`](https://github.com/firebase/firebase-js-sdk/commit/f18b25f73a05a696b6a9ed45702a84cc9dd5c6d9), [`25b60fd`](https://github.com/firebase/firebase-js-sdk/commit/25b60fdaabe910e1538684a3c490b0900fb5f113)]:
+  - @firebase/webchannel-wrapper@1.0.4
+  - @firebase/component@0.7.0
+  - @firebase/logger@0.5.0
+  - @firebase/util@1.13.0
+
+## 4.8.0
+
+### Minor Changes
+
+- [`86155b3`](https://github.com/firebase/firebase-js-sdk/commit/86155b3c8f3974f8d777232625108c14f924e035) [#9115](https://github.com/firebase/firebase-js-sdk/pull/9115) - Added support for Firestore result types to be serialized with `toJSON` and then deserialized with `fromJSON` methods on the objects.
+
+  Addeed support to resume `onSnapshot` listeners in the CSR phase based on serialized `DataSnapshot`s and `QuerySnapshot`s built in the SSR phase.
+
+### Patch Changes
+
+- [`f73e08b`](https://github.com/firebase/firebase-js-sdk/commit/f73e08b212314547b39a10cd3e393f9e94776f21) [#9087](https://github.com/firebase/firebase-js-sdk/pull/9087) - Internal listener registration change for IndexedDB "versionchange" events.
+
+- Updated dependencies [[`42ac401`](https://github.com/firebase/firebase-js-sdk/commit/42ac4011787db6bb7a08f8c84f364ea86ea51e83)]:
+  - @firebase/util@1.12.1
+  - @firebase/component@0.6.18
+
 ## 4.7.17
 
 ### Patch Changes

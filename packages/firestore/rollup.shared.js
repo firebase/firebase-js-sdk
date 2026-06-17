@@ -33,8 +33,8 @@ const pkg = require('./package.json');
 // This file contains shared utilities for Firestore's rollup builds.
 
 // Firestore is released in a number of different build configurations:
-// - Browser builds that support persistence in ES2017 CJS and ESM formats.
-// - In-memory Browser builds that support persistence in ES2017 CJS and ESM
+// - Browser builds that support persistence in ES2020 CJS and ESM formats.
+// - In-memory Browser builds that support persistence in ES2020 CJS and ESM
 //   formats.
 // - A NodeJS build that supports persistence (to be used with an IndexedDb
 //   shim)
@@ -46,7 +46,7 @@ const pkg = require('./package.json');
 // We use two different rollup pipelines to take advantage of tree shaking,
 // as Rollup does not support tree shaking for TypeScript classes transpiled
 // down to ES5 (see https://bit.ly/340P23U). The build pipeline in this file
-// produces tree-shaken ES2017 builds that are consumed by the ES5 builds in
+// produces tree-shaken ES2020 builds that are consumed by the ES5 builds in
 // `rollup.config.es.js`.
 //
 // All browser builds rely on Terser's property name mangling to reduce code
@@ -107,6 +107,13 @@ const publicIdentifiers = extractPublicIdentifiers(externsPaths);
 // manually add `_delegate` because we don't have typings for the compat package
 publicIdentifiers.add('_delegate');
 
+// TODO these should not have to be added manually
+publicIdentifiers.add('pipeline');
+publicIdentifiers.add('realtimePipeline');
+publicIdentifiers.add('CorePipeline');
+publicIdentifiers.add('Constant');
+publicIdentifiers.add('toMapValue');
+
 /**
  * Transformers that remove calls to `debugAssert` and messages for 'fail` and
  * `hardAssert`.
@@ -138,12 +145,22 @@ exports.removeAssertAndPrefixInternalTransformer =
  * Terser options that mangle all properties prefixed with __PRIVATE_.
  */
 const manglePrivatePropertiesOptions = {
+  // Prevent parallelism in minification by terser
+  // to prevent race conditions when writing the nameCache
+  maxWorkers: 1,
   output: {
     comments: 'all',
     beautify: true
   },
   keep_fnames: true,
   keep_classnames: true,
+  // use a shared name cache across all terser invocations as part of the
+  // workaround for https://github.com/rollup/plugins/issues/1970.
+  // The workaround works by populating this nameCache using a throwaway
+  // build. Then subsequent builds using plugin-terser will use the generated
+  // name cache to consistently rename properties across chunks.
+  // TODO remove this when https://github.com/rollup/plugins/issues/1970 is fixed
+  nameCache: {},
   mangle: {
     // Temporary hack fix for an issue where mangled code causes some downstream
     // bundlers (Babel?) to confuse the same variable name in different scopes.
@@ -240,61 +257,22 @@ exports.applyPrebuilt = function (name = 'prebuilt.js') {
   });
 };
 
-exports.es2017Plugins = function (platform, mangled = false) {
-  if (mangled) {
-    return [
-      alias(generateAliasConfig(platform)),
-      typescriptPlugin({
-        typescript,
-        cacheDir: tmp.dirSync(),
-        transformers: [removeAssertAndPrefixInternalTransformer]
-      }),
-      json({ preferConst: true }),
-      terser(manglePrivatePropertiesOptions)
-    ];
-  } else {
-    return [
-      alias(generateAliasConfig(platform)),
-      typescriptPlugin({
-        typescript,
-        cacheDir: tmp.dirSync(),
-        transformers: [removeAssertTransformer]
-      }),
-      json({ preferConst: true })
-    ];
-  }
-};
-
-exports.es2017PluginsCompat = function (
-  platform,
-  pathTransformer,
-  mangled = false
-) {
-  if (mangled) {
-    return [
-      alias(generateAliasConfig(platform)),
-      typescriptPlugin({
-        typescript,
-        cacheDir: tmp.dirSync(),
-        abortOnError: true,
-        transformers: [
-          removeAssertAndPrefixInternalTransformer,
-          pathTransformer
-        ]
-      }),
-      json({ preferConst: true }),
-      terser(manglePrivatePropertiesOptions)
-    ];
-  } else {
-    return [
-      alias(generateAliasConfig(platform)),
-      typescriptPlugin({
-        typescript,
-        cacheDir: tmp.dirSync(),
-        abortOnError: true,
-        transformers: [removeAssertTransformer, pathTransformer]
-      }),
-      json({ preferConst: true })
-    ];
-  }
-};
+// This is part of the workaround for https://github.com/rollup/plugins/issues/1970
+// The workaround requires that a nameCache is supplied as an argument to
+// the @rollup/plugin-terser. Only the 'params' property of the nameCache
+// is required. If the 'vars' property of the nameCache is persisted through
+// builds, this can cause name collisions if running both cjs and esm builds.
+// This plugin, deletes 'vars' from a nameCache object, so that nameCache can
+// be cleanly shared between esm and cjs builds.
+// Make sure this plugin is run after terser in the plugins.
+// Example `plugins: [terser({..., nameCache: myNameCache }), cleanUpNameCache(myNameCache)]`
+// TODO Remove this when https://github.com/rollup/plugins/issues/1970 is fixed
+function cleanupNameCache(nameCache = {}) {
+  return {
+    name: 'cleanup-name-cache-plugin',
+    generateBundle() {
+      delete nameCache.vars;
+    }
+  };
+}
+exports.cleanupNameCache = cleanupNameCache;

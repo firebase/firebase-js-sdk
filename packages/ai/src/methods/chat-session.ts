@@ -17,24 +17,21 @@
 
 import {
   Content,
+  FunctionDeclarationsTool,
   GenerateContentRequest,
   GenerateContentResult,
   GenerateContentStreamResult,
   Part,
   RequestOptions,
+  SingleRequestOptions,
   StartChatParams
 } from '../types';
-import { formatNewContent } from '../requests/request-helpers';
-import { formatBlockErrorMessage } from '../requests/response-helpers';
-import { validateChatHistory } from './chat-session-helpers';
 import { generateContent, generateContentStream } from './generate-content';
 import { ApiSettings } from '../types/internal';
-import { logger } from '../logger';
-
-/**
- * Do not log a message for this error.
- */
-const SILENT_ERROR = 'SILENT_ERROR';
+import { ChromeAdapter } from '../types/chrome-adapter';
+import { ChatSessionBase } from './chat-session-base';
+import { validateChatHistory } from './chat-session-helpers';
+import { formatSystemInstruction } from '../requests/request-helpers';
 
 /**
  * ChatSession class that enables sending chat messages and stores
@@ -42,32 +39,92 @@ const SILENT_ERROR = 'SILENT_ERROR';
  *
  * @public
  */
-export class ChatSession {
-  private _apiSettings: ApiSettings;
-  private _history: Content[] = [];
-  private _sendPromise: Promise<void> = Promise.resolve();
-
+export class ChatSession extends ChatSessionBase<
+  StartChatParams,
+  GenerateContentRequest,
+  FunctionDeclarationsTool
+> {
   constructor(
     apiSettings: ApiSettings,
     public model: string,
+    private chromeAdapter?: ChromeAdapter,
     public params?: StartChatParams,
     public requestOptions?: RequestOptions
   ) {
-    this._apiSettings = apiSettings;
+    super(apiSettings, params, requestOptions);
     if (params?.history) {
       validateChatHistory(params.history);
       this._history = params.history;
     }
+    if (this.params?.systemInstruction != null) {
+      this.params = {
+        ...this.params,
+        systemInstruction: formatSystemInstruction(
+          this.params.systemInstruction
+        )
+      };
+    }
   }
 
   /**
-   * Gets the chat history so far. Blocked prompts are not added to history.
-   * Neither blocked candidates nor the prompts that generated them are added
-   * to history.
+   * Format Content into a request for generateContent or
+   * generateContentStream.
+   * @internal
    */
-  async getHistory(): Promise<Content[]> {
-    await this._sendPromise;
-    return this._history;
+  _formatRequest(
+    incomingContent: Content,
+    tempHistory: Content[]
+  ): GenerateContentRequest {
+    return {
+      safetySettings: this.params?.safetySettings,
+      generationConfig: this.params?.generationConfig,
+      tools: this.params?.tools,
+      toolConfig: this.params?.toolConfig,
+      systemInstruction: this.params?.systemInstruction,
+      contents: [...this._history, ...tempHistory, incomingContent]
+    };
+  }
+
+  /**
+   * Calls default generateContent() (versus a specialized one like
+   * templateGenerateContent).
+   * @internal
+   */
+  _callGenerateContent(
+    formattedRequest: GenerateContentRequest,
+    singleRequestOptions?: RequestOptions
+  ): Promise<GenerateContentResult> {
+    return generateContent(
+      this._apiSettings,
+      this.model,
+      formattedRequest,
+      this.chromeAdapter,
+      {
+        ...this.requestOptions,
+        ...singleRequestOptions
+      }
+    );
+  }
+
+  /**
+   * Calls default generateContentStream() (versus a specialized one like
+   * templateGenerateContentStream).
+   * @internal
+   */
+  _callGenerateContentStream(
+    formattedRequest: GenerateContentRequest,
+    singleRequestOptions?: RequestOptions
+  ): Promise<GenerateContentStreamResult> {
+    return generateContentStream(
+      this._apiSettings,
+      this.model,
+      formattedRequest,
+      this.chromeAdapter,
+      {
+        ...this.requestOptions,
+        ...singleRequestOptions
+      }
+    );
   }
 
   /**
@@ -75,53 +132,10 @@ export class ChatSession {
    * {@link GenerateContentResult}
    */
   async sendMessage(
-    request: string | Array<string | Part>
+    request: string | Array<string | Part>,
+    singleRequestOptions?: SingleRequestOptions
   ): Promise<GenerateContentResult> {
-    await this._sendPromise;
-    const newContent = formatNewContent(request);
-    const generateContentRequest: GenerateContentRequest = {
-      safetySettings: this.params?.safetySettings,
-      generationConfig: this.params?.generationConfig,
-      tools: this.params?.tools,
-      toolConfig: this.params?.toolConfig,
-      systemInstruction: this.params?.systemInstruction,
-      contents: [...this._history, newContent]
-    };
-    let finalResult = {} as GenerateContentResult;
-    // Add onto the chain.
-    this._sendPromise = this._sendPromise
-      .then(() =>
-        generateContent(
-          this._apiSettings,
-          this.model,
-          generateContentRequest,
-          this.requestOptions
-        )
-      )
-      .then(result => {
-        if (
-          result.response.candidates &&
-          result.response.candidates.length > 0
-        ) {
-          this._history.push(newContent);
-          const responseContent: Content = {
-            parts: result.response.candidates?.[0].content.parts || [],
-            // Response seems to come back without a role set.
-            role: result.response.candidates?.[0].content.role || 'model'
-          };
-          this._history.push(responseContent);
-        } else {
-          const blockErrorMessage = formatBlockErrorMessage(result.response);
-          if (blockErrorMessage) {
-            logger.warn(
-              `sendMessage() was unsuccessful. ${blockErrorMessage}. Inspect response object for details.`
-            );
-          }
-        }
-        finalResult = result;
-      });
-    await this._sendPromise;
-    return finalResult;
+    return this._sendMessage(request, singleRequestOptions);
   }
 
   /**
@@ -130,62 +144,9 @@ export class ChatSession {
    * and a response promise.
    */
   async sendMessageStream(
-    request: string | Array<string | Part>
+    request: string | Array<string | Part>,
+    singleRequestOptions?: SingleRequestOptions
   ): Promise<GenerateContentStreamResult> {
-    await this._sendPromise;
-    const newContent = formatNewContent(request);
-    const generateContentRequest: GenerateContentRequest = {
-      safetySettings: this.params?.safetySettings,
-      generationConfig: this.params?.generationConfig,
-      tools: this.params?.tools,
-      toolConfig: this.params?.toolConfig,
-      systemInstruction: this.params?.systemInstruction,
-      contents: [...this._history, newContent]
-    };
-    const streamPromise = generateContentStream(
-      this._apiSettings,
-      this.model,
-      generateContentRequest,
-      this.requestOptions
-    );
-
-    // Add onto the chain.
-    this._sendPromise = this._sendPromise
-      .then(() => streamPromise)
-      // This must be handled to avoid unhandled rejection, but jump
-      // to the final catch block with a label to not log this error.
-      .catch(_ignored => {
-        throw new Error(SILENT_ERROR);
-      })
-      .then(streamResult => streamResult.response)
-      .then(response => {
-        if (response.candidates && response.candidates.length > 0) {
-          this._history.push(newContent);
-          const responseContent = { ...response.candidates[0].content };
-          // Response seems to come back without a role set.
-          if (!responseContent.role) {
-            responseContent.role = 'model';
-          }
-          this._history.push(responseContent);
-        } else {
-          const blockErrorMessage = formatBlockErrorMessage(response);
-          if (blockErrorMessage) {
-            logger.warn(
-              `sendMessageStream() was unsuccessful. ${blockErrorMessage}. Inspect response object for details.`
-            );
-          }
-        }
-      })
-      .catch(e => {
-        // Errors in streamPromise are already catchable by the user as
-        // streamPromise is returned.
-        // Avoid duplicating the error message in logs.
-        if (e.message !== SILENT_ERROR) {
-          // Users do not have access to _sendPromise to catch errors
-          // downstream from streamPromise, so they should not throw.
-          logger.error(e);
-        }
-      });
-    return streamPromise;
+    return this._sendMessageStream(request, singleRequestOptions);
   }
 }

@@ -16,7 +16,7 @@
  */
 
 import { AI } from '../public-types';
-import { Task, makeRequest } from '../requests/request';
+import { makeRequest, Task } from '../requests/request';
 import { createPredictRequestBody } from '../requests/request-helpers';
 import { handlePredictResponse } from '../requests/response-helpers';
 import {
@@ -26,7 +26,8 @@ import {
   RequestOptions,
   ImagenModelParams,
   ImagenGenerationResponse,
-  ImagenSafetySettings
+  ImagenSafetySettings,
+  SingleRequestOptions
 } from '../types';
 import { AIModel } from './ai-model';
 
@@ -50,7 +51,12 @@ import { AIModel } from './ai-model';
  * }
  * ```
  *
- * @beta
+ * @deprecated All Imagen models are deprecated and will shut down as
+ * early as June 2026. As a replacement, you can
+ * {@link https://firebase.google.com/docs/ai-logic/imagen-models-migration |
+ * migrate your apps to use Gemini Image models (the "Nano Banana" models)}.
+ *
+ * @public
  */
 export class ImagenModel extends AIModel {
   /**
@@ -99,22 +105,29 @@ export class ImagenModel extends AIModel {
    * returned object will have a `filteredReason` property.
    * If all images are filtered, the `images` array will be empty.
    *
-   * @beta
+   * @public
    */
   async generateImages(
-    prompt: string
+    prompt: string,
+    singleRequestOptions?: SingleRequestOptions
   ): Promise<ImagenGenerationResponse<ImagenInlineImage>> {
     const body = createPredictRequestBody(prompt, {
       ...this.generationConfig,
       ...this.safetySettings
     });
     const response = await makeRequest(
-      this.model,
-      Task.PREDICT,
-      this._apiSettings,
-      /* stream */ false,
-      JSON.stringify(body),
-      this.requestOptions
+      {
+        task: Task.PREDICT,
+        model: this.model,
+        apiSettings: this._apiSettings,
+        stream: false,
+        // Merge request options. Single request options overwrite the model's request options.
+        singleRequestOptions: {
+          ...this.requestOptions,
+          ...singleRequestOptions
+        }
+      },
+      JSON.stringify(body)
     );
     return handlePredictResponse<ImagenInlineImage>(response);
   }
@@ -140,7 +153,8 @@ export class ImagenModel extends AIModel {
    */
   async generateImagesGCS(
     prompt: string,
-    gcsURI: string
+    gcsURI: string,
+    singleRequestOptions?: SingleRequestOptions
   ): Promise<ImagenGenerationResponse<ImagenGCSImage>> {
     const body = createPredictRequestBody(prompt, {
       gcsURI,
@@ -148,12 +162,18 @@ export class ImagenModel extends AIModel {
       ...this.safetySettings
     });
     const response = await makeRequest(
-      this.model,
-      Task.PREDICT,
-      this._apiSettings,
-      /* stream */ false,
-      JSON.stringify(body),
-      this.requestOptions
+      {
+        task: Task.PREDICT,
+        model: this.model,
+        apiSettings: this._apiSettings,
+        stream: false,
+        // Merge request options. Single request options overwrite the model's request options.
+        singleRequestOptions: {
+          ...this.requestOptions,
+          ...singleRequestOptions
+        }
+      },
+      JSON.stringify(body)
     );
     return handlePredictResponse<ImagenGCSImage>(response);
   }

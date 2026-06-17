@@ -433,6 +433,9 @@ export interface LoadBundleTaskProgress {
 export { LogLevel }
 
 // @public
+export function maximum(n: number): FieldValue;
+
+// @public
 export class MaxKey {
     // (undocumented)
     static instance(): MaxKey;
@@ -475,6 +478,9 @@ export interface MemoryLruGarbageCollector {
 export function memoryLruGarbageCollector(settings?: {
     cacheSizeBytes?: number;
 }): MemoryLruGarbageCollector;
+
+// @public
+export function minimum(n: number): FieldValue;
 
 // @public
 export class MinKey {

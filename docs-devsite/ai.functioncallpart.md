@@ -22,10 +22,29 @@ export interface FunctionCallPart
 
 |  Property | Type | Description |
 |  --- | --- | --- |
+|  [codeExecutionResult](./ai.functioncallpart.md#functioncallpartcodeexecutionresult) | never |  |
+|  [executableCode](./ai.functioncallpart.md#functioncallpartexecutablecode) | never |  |
 |  [functionCall](./ai.functioncallpart.md#functioncallpartfunctioncall) | [FunctionCall](./ai.functioncall.md#functioncall_interface) |  |
 |  [functionResponse](./ai.functioncallpart.md#functioncallpartfunctionresponse) | never |  |
 |  [inlineData](./ai.functioncallpart.md#functioncallpartinlinedata) | never |  |
 |  [text](./ai.functioncallpart.md#functioncallparttext) | never |  |
+|  [thought](./ai.functioncallpart.md#functioncallpartthought) | boolean |  |
+
+## FunctionCallPart.codeExecutionResult
+
+<b>Signature:</b>
+
+```typescript
+codeExecutionResult?: never;
+```
+
+## FunctionCallPart.executableCode
+
+<b>Signature:</b>
+
+```typescript
+executableCode?: never;
+```
 
 ## FunctionCallPart.functionCall
 
@@ -57,4 +76,12 @@ inlineData?: never;
 
 ```typescript
 text?: never;
+```
+
+## FunctionCallPart.thought
+
+<b>Signature:</b>
+
+```typescript
+thought?: boolean;
 ```

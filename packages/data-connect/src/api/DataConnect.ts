@@ -24,27 +24,26 @@ import {
 import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
-import {
-  isCloudWorkstation,
-  pingServer,
-  updateEmulatorBanner
-} from '@firebase/util';
+import { isCloudWorkstation, pingServer } from '@firebase/util';
 
+import { DataConnectCache, MemoryStub } from '../cache/Cache';
+import { InternalCacheProvider } from '../cache/CacheProvider';
 import { AppCheckTokenProvider } from '../core/AppCheckTokenProvider';
 import { Code, DataConnectError } from '../core/error';
 import {
   AuthTokenProvider,
   FirebaseAuthProvider
 } from '../core/FirebaseAuthProvider';
-import { QueryManager } from '../core/QueryManager';
+import { QueryManager } from '../core/query/QueryManager';
 import { logDebug, logError } from '../logger';
 import {
+  DataConnectTransportInterface,
+  TransportClass,
   CallerSdkType,
-  CallerSdkTypeEnum,
-  DataConnectTransport,
-  TransportClass
+  CallerSdkTypeEnum
 } from '../network';
-import { RESTTransport } from '../network/transport/rest';
+import { DataConnectTransportManager } from '../network/manager';
+import { PROD_HOST } from '../util/url';
 
 import { MutationManager } from './Mutation';
 
@@ -97,13 +96,18 @@ export class DataConnect {
   _mutationManager!: MutationManager;
   isEmulator = false;
   _initialized = false;
-  private _transport!: DataConnectTransport;
+  private _transport!: DataConnectTransportInterface;
   private _transportClass: TransportClass | undefined;
   private _transportOptions?: TransportOptions;
   private _authTokenProvider?: AuthTokenProvider;
   _isUsingGeneratedSdk: boolean = false;
   _callerSdkType: CallerSdkType = CallerSdkTypeEnum.Base;
   private _appCheckTokenProvider?: AppCheckTokenProvider;
+  private _cacheSettings?: CacheSettings;
+  /**
+   * @internal
+   */
+  private cache?: DataConnectCache;
   // @internal
   constructor(
     public readonly app: FirebaseApp,
@@ -120,6 +124,12 @@ export class DataConnect {
         this._transportOptions = parseOptions(host);
       }
     }
+  }
+  /**
+   * @internal
+   */
+  getCache(): DataConnectCache | undefined {
+    return this.cache;
   }
   // @internal
   _useGeneratedSdk(): void {
@@ -149,23 +159,45 @@ export class DataConnect {
     return copy;
   }
 
+  /**
+   * @internal
+   */
+  setCacheSettings(cacheSettings: CacheSettings): void {
+    this._cacheSettings = cacheSettings;
+  }
+
   // @internal
   setInitialized(): void {
     if (this._initialized) {
       return;
     }
     if (this._transportClass === undefined) {
-      logDebug('transportClass not provided. Defaulting to RESTTransport.');
-      this._transportClass = RESTTransport;
+      logDebug(
+        'transportClass not provided. Defaulting to DataConnectTransportManager.'
+      );
+      this._transportClass = DataConnectTransportManager;
     }
 
-    if (this._authProvider) {
-      this._authTokenProvider = new FirebaseAuthProvider(
-        this.app.name,
-        this.app.options,
-        this._authProvider
+    this._authTokenProvider = new FirebaseAuthProvider(
+      this.app.name,
+      this.app.options,
+      this._authProvider
+    );
+    const connectorConfig: ConnectorConfig = {
+      connector: this.dataConnectOptions.connector,
+      service: this.dataConnectOptions.service,
+      location: this.dataConnectOptions.location
+    };
+    if (this._cacheSettings) {
+      this.cache = new DataConnectCache(
+        this._authTokenProvider,
+        this.app.options.projectId!,
+        connectorConfig,
+        this._transportOptions?.host || PROD_HOST,
+        this._cacheSettings
       );
     }
+
     if (this._appCheckProvider) {
       this._appCheckTokenProvider = new AppCheckTokenProvider(
         this.app,
@@ -173,7 +205,6 @@ export class DataConnect {
       );
     }
 
-    this._initialized = true;
     this._transport = new this._transportClass(
       this.dataConnectOptions,
       this.app.options.apiKey,
@@ -191,13 +222,16 @@ export class DataConnect {
         this._transportOptions.sslEnabled
       );
     }
-    this._queryManager = new QueryManager(this._transport);
+
+    this._queryManager = new QueryManager(this._transport, this, this.cache);
     this._mutationManager = new MutationManager(this._transport);
+    this._initialized = true;
   }
 
   // @internal
   enableEmulator(transportOptions: TransportOptions): void {
     if (
+      this._transportOptions &&
       this._initialized &&
       !areTransportOptionsEqual(this._transportOptions, transportOptions)
     ) {
@@ -245,44 +279,79 @@ export function connectDataConnectEmulator(
   // Workaround to get cookies in Firebase Studio
   if (isCloudWorkstation(host)) {
     void pingServer(`https://${host}${port ? `:${port}` : ''}`);
-    updateEmulatorBanner('Data Connect', true);
   }
   dc.enableEmulator({ host, port, sslEnabled });
+}
+
+export interface DataConnectSettings {
+  cacheSettings?: CacheSettings;
 }
 
 /**
  * Initialize DataConnect instance
  * @param options ConnectorConfig
  */
+export function getDataConnect(
+  options: ConnectorConfig,
+  settings?: DataConnectSettings
+): DataConnect;
 export function getDataConnect(options: ConnectorConfig): DataConnect;
 /**
  * Initialize DataConnect instance
  * @param app FirebaseApp to initialize to.
- * @param options ConnectorConfig
+ * @param connectorConfig ConnectorConfig
  */
 export function getDataConnect(
   app: FirebaseApp,
-  options: ConnectorConfig
+  connectorConfig: ConnectorConfig
 ): DataConnect;
+
+/**
+ * Initialize DataConnect instance
+ * @param app FirebaseApp to initialize to.
+ * @param connectorConfig ConnectorConfig
+ */
 export function getDataConnect(
-  appOrOptions: FirebaseApp | ConnectorConfig,
-  optionalOptions?: ConnectorConfig
+  app: FirebaseApp,
+  connectorConfig: ConnectorConfig,
+  settings: DataConnectSettings
+): DataConnect;
+
+export function getDataConnect(
+  appOrConnectorConfig: FirebaseApp | ConnectorConfig,
+  settingsOrConnectorConfig?: ConnectorConfig | DataConnectSettings,
+  settings?: DataConnectSettings
 ): DataConnect {
   let app: FirebaseApp;
-  let dcOptions: ConnectorConfig;
-  if ('location' in appOrOptions) {
-    dcOptions = appOrOptions;
+  let connectorConfig: ConnectorConfig;
+  let realSettings: DataConnectSettings;
+  if ('location' in appOrConnectorConfig) {
+    connectorConfig = appOrConnectorConfig;
     app = getApp();
+    realSettings = settingsOrConnectorConfig as DataConnectSettings;
   } else {
-    dcOptions = optionalOptions!;
-    app = appOrOptions;
+    app = appOrConnectorConfig;
+    connectorConfig = settingsOrConnectorConfig as ConnectorConfig;
+    realSettings = settings as DataConnectSettings;
   }
 
   if (!app || Object.keys(app).length === 0) {
     app = getApp();
   }
+
+  // Options to store in Firebase Component Provider.
+  const serializedOptions = {
+    ...connectorConfig,
+    projectId: app.options.projectId
+  };
+
+  // We should sort the keys before initialization.
+  const sortedSerialized = Object.fromEntries(
+    Object.entries(serializedOptions).sort()
+  );
+
   const provider = _getProvider(app, 'data-connect');
-  const identifier = JSON.stringify(dcOptions);
+  const identifier = JSON.stringify(sortedSerialized);
   if (provider.isInitialized(identifier)) {
     const dcInstance = provider.getImmediate({ identifier });
     const options = provider.getOptions(identifier);
@@ -292,14 +361,22 @@ export function getDataConnect(
       return dcInstance;
     }
   }
-  validateDCOptions(dcOptions);
+  validateDCOptions(connectorConfig);
 
   logDebug('Creating new DataConnect instance');
   // Initialize with options.
-  return provider.initialize({
+  const dataConnect = provider.initialize({
     instanceIdentifier: identifier,
-    options: dcOptions
+    options: Object.fromEntries(
+      Object.entries({
+        ...sortedSerialized
+      }).sort()
+    )
   });
+  if (realSettings?.cacheSettings) {
+    dataConnect.setCacheSettings(realSettings.cacheSettings);
+  }
+  return dataConnect;
 }
 
 /**
@@ -314,7 +391,10 @@ export function validateDCOptions(dcOptions: ConnectorConfig): boolean {
     throw new DataConnectError(Code.INVALID_ARGUMENT, 'DC Option Required');
   }
   fields.forEach(field => {
-    if (dcOptions[field] === null || dcOptions[field] === undefined) {
+    if (
+      dcOptions[field as keyof ConnectorConfig] === null ||
+      dcOptions[field as keyof ConnectorConfig] === undefined
+    ) {
       throw new DataConnectError(Code.INVALID_ARGUMENT, `${field} Required`);
     }
   });
@@ -329,4 +409,25 @@ export function validateDCOptions(dcOptions: ConnectorConfig): boolean {
 export function terminate(dataConnect: DataConnect): Promise<void> {
   return dataConnect._delete();
   // TODO(mtewani): Stop pending tasks
+}
+export const StorageType = {
+  MEMORY: 'MEMORY'
+} as const;
+
+export type StorageType = (typeof StorageType)[keyof typeof StorageType];
+
+export interface CacheSettings {
+  cacheProvider: CacheProvider<StorageType>;
+  maxAgeSeconds?: number;
+}
+export interface CacheProvider<T extends StorageType> {
+  type: T;
+  /**
+   * @internal
+   */
+  initialize(cacheId: string): InternalCacheProvider;
+}
+
+export function makeMemoryCacheProvider(): CacheProvider<'MEMORY'> {
+  return new MemoryStub();
 }

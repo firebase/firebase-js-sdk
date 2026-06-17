@@ -39,7 +39,7 @@ const buildPlugins = [
     typescript,
     tsconfigOverride: {
       compilerOptions: {
-        target: 'es2017'
+        target: 'es2020'
       }
     }
   }),
@@ -49,7 +49,7 @@ const buildPlugins = [
 /**
  * ESM builds
  */
-const esm2017Builds = [
+const esmBuilds = [
   {
     input: join(closureBlobsDir, 'webchannel_blob_es2018.js'),
     output: {
@@ -70,4 +70,4 @@ const esm2017Builds = [
   }
 ];
 
-export default esm2017Builds;
+export default esmBuilds;

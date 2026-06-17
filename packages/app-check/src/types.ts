@@ -71,7 +71,7 @@ export interface AppCheckProvider {
    * Returns an App Check token.
    * @internal
    */
-  getToken: () => Promise<AppCheckTokenInternal>;
+  getToken: (isLimitedUse?: boolean) => Promise<AppCheckTokenInternal>;
   /**
    * @internal
    */

@@ -23,7 +23,7 @@ export declare class GenerativeModel extends AIModel
 
 |  Constructor | Modifiers | Description |
 |  --- | --- | --- |
-|  [(constructor)(ai, modelParams, requestOptions)](./ai.generativemodel.md#generativemodelconstructor) |  | Constructs a new instance of the <code>GenerativeModel</code> class |
+|  [(constructor)(ai, modelParams, requestOptions, chromeAdapter)](./ai.generativemodel.md#generativemodelconstructor) |  | Constructs a new instance of the <code>GenerativeModel</code> class |
 
 ## Properties
 
@@ -40,9 +40,10 @@ export declare class GenerativeModel extends AIModel
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [countTokens(request)](./ai.generativemodel.md#generativemodelcounttokens) |  | Counts the tokens in the provided request. |
-|  [generateContent(request)](./ai.generativemodel.md#generativemodelgeneratecontent) |  | Makes a single non-streaming call to the model and returns an object containing a single [GenerateContentResponse](./ai.generatecontentresponse.md#generatecontentresponse_interface)<!-- -->. |
-|  [generateContentStream(request)](./ai.generativemodel.md#generativemodelgeneratecontentstream) |  | Makes a single streaming call to the model and returns an object containing an iterable stream that iterates over all chunks in the streaming response as well as a promise that returns the final aggregated response. |
+|  [countTokens(request, singleRequestOptions)](./ai.generativemodel.md#generativemodelcounttokens) |  | Counts the tokens in the provided request. |
+|  [generateContent(request, singleRequestOptions)](./ai.generativemodel.md#generativemodelgeneratecontent) |  | Makes a single non-streaming call to the model and returns an object containing a single [GenerateContentResponse](./ai.generatecontentresponse.md#generatecontentresponse_interface)<!-- -->. |
+|  [generateContentStream(request, singleRequestOptions)](./ai.generativemodel.md#generativemodelgeneratecontentstream) |  | Makes a single streaming call to the model and returns an object containing an iterable stream that iterates over all chunks in the streaming response as well as a promise that returns the final aggregated response. |
+|  [initializeDeviceModel(onDownloadProgress)](./ai.generativemodel.md#generativemodelinitializedevicemodel) |  | Initializes on-device models. |
 |  [startChat(startChatParams)](./ai.generativemodel.md#generativemodelstartchat) |  | Gets a new [ChatSession](./ai.chatsession.md#chatsession_class) instance which can be used for multi-turn chats. |
 
 ## GenerativeModel.(constructor)
@@ -52,7 +53,7 @@ Constructs a new instance of the `GenerativeModel` class
 <b>Signature:</b>
 
 ```typescript
-constructor(ai: AI, modelParams: ModelParams, requestOptions?: RequestOptions);
+constructor(ai: AI, modelParams: ModelParams, requestOptions?: RequestOptions, chromeAdapter?: ChromeAdapter | undefined);
 ```
 
 #### Parameters
@@ -62,6 +63,7 @@ constructor(ai: AI, modelParams: ModelParams, requestOptions?: RequestOptions);
 |  ai | [AI](./ai.ai.md#ai_interface) |  |
 |  modelParams | [ModelParams](./ai.modelparams.md#modelparams_interface) |  |
 |  requestOptions | [RequestOptions](./ai.requestoptions.md#requestoptions_interface) |  |
+|  chromeAdapter | [ChromeAdapter](./ai.chromeadapter.md#chromeadapter_interface) \| undefined |  |
 
 ## GenerativeModel.generationConfig
 
@@ -118,7 +120,7 @@ Counts the tokens in the provided request.
 <b>Signature:</b>
 
 ```typescript
-countTokens(request: CountTokensRequest | string | Array<string | Part>): Promise<CountTokensResponse>;
+countTokens(request: CountTokensRequest | string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<CountTokensResponse>;
 ```
 
 #### Parameters
@@ -126,6 +128,7 @@ countTokens(request: CountTokensRequest | string | Array<string | Part>): Promis
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  request | [CountTokensRequest](./ai.counttokensrequest.md#counttokensrequest_interface) \| string \| Array&lt;string \| [Part](./ai.md#part)<!-- -->&gt; |  |
+|  singleRequestOptions | [SingleRequestOptions](./ai.singlerequestoptions.md#singlerequestoptions_interface) |  |
 
 <b>Returns:</b>
 
@@ -138,7 +141,7 @@ Makes a single non-streaming call to the model and returns an object containing 
 <b>Signature:</b>
 
 ```typescript
-generateContent(request: GenerateContentRequest | string | Array<string | Part>): Promise<GenerateContentResult>;
+generateContent(request: GenerateContentRequest | string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentResult>;
 ```
 
 #### Parameters
@@ -146,6 +149,7 @@ generateContent(request: GenerateContentRequest | string | Array<string | Part>)
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  request | [GenerateContentRequest](./ai.generatecontentrequest.md#generatecontentrequest_interface) \| string \| Array&lt;string \| [Part](./ai.md#part)<!-- -->&gt; |  |
+|  singleRequestOptions | [SingleRequestOptions](./ai.singlerequestoptions.md#singlerequestoptions_interface) |  |
 
 <b>Returns:</b>
 
@@ -158,7 +162,7 @@ Makes a single streaming call to the model and returns an object containing an i
 <b>Signature:</b>
 
 ```typescript
-generateContentStream(request: GenerateContentRequest | string | Array<string | Part>): Promise<GenerateContentStreamResult>;
+generateContentStream(request: GenerateContentRequest | string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentStreamResult>;
 ```
 
 #### Parameters
@@ -166,10 +170,37 @@ generateContentStream(request: GenerateContentRequest | string | Array<string | 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  request | [GenerateContentRequest](./ai.generatecontentrequest.md#generatecontentrequest_interface) \| string \| Array&lt;string \| [Part](./ai.md#part)<!-- -->&gt; |  |
+|  singleRequestOptions | [SingleRequestOptions](./ai.singlerequestoptions.md#singlerequestoptions_interface) |  |
 
 <b>Returns:</b>
 
 Promise&lt;[GenerateContentStreamResult](./ai.generatecontentstreamresult.md#generatecontentstreamresult_interface)<!-- -->&gt;
+
+## GenerativeModel.initializeDeviceModel()
+
+Initializes on-device models.
+
+This may trigger a download on first use. Wait for this promise to complete before calling inference methods if you want to ensure the device models are ready before any calls. Calling inference methods before the device is ready will result in a cloud fallback if `inferenceMode` is set to `PREFER_ON_DEVICE`<!-- -->, and an error if set to `ONLY_ON_DEVICE`<!-- -->.
+
+IMPORTANT: This call must be made on or after a user has interacted with the page (for example, through a button click or key press). If it is called without a user interaction, and it requires a download, this will cause an error.
+
+See the [Prompt API docs](https://developer.chrome.com/docs/ai/prompt-api#use_the_prompt_api) for more details on this requirement.
+
+<b>Signature:</b>
+
+```typescript
+initializeDeviceModel(onDownloadProgress?: (progressValue: number) => void): Promise<void>;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  onDownloadProgress | (progressValue: number) =&gt; void | A callback called repeatedly as the download progresses that provides a <code>progressValue</code> between 0 and 1 representing how much of the download is complete. This will be ignored if <code>monitor</code> was populated in [LanguageModelCreateOptions](./ai.languagemodelcreateoptions.md#languagemodelcreateoptions_interface)<!-- -->. |
+
+<b>Returns:</b>
+
+Promise&lt;void&gt;
 
 ## GenerativeModel.startChat()
 

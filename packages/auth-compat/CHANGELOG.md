@@ -1,5 +1,89 @@
 # @firebase/auth-compat
 
+## 0.6.7
+
+### Patch Changes
+
+- [`2697919`](https://github.com/firebase/firebase-js-sdk/commit/26979196fec71447a1f635d88a25660a034edb84) [#9845](https://github.com/firebase/firebase-js-sdk/pull/9845) (fixes [#9732](https://github.com/firebase/firebase-js-sdk/issues/9732)) - Updated `_isAvailable()` to use retry logic for the initial IndexedDB availability check, preventing incorrect fallbacks to in-memory persistence in environments where transactions may occasionally drop on startup.
+
+- Updated dependencies [[`2697919`](https://github.com/firebase/firebase-js-sdk/commit/26979196fec71447a1f635d88a25660a034edb84)]:
+  - @firebase/auth@1.13.2
+
+## 0.6.6
+
+### Patch Changes
+
+- [`8e384c9`](https://github.com/firebase/firebase-js-sdk/commit/8e384c947de73c7f74346b1c01640f3515a4ef0e) [#9883](https://github.com/firebase/firebase-js-sdk/pull/9883) - Updated dependencies.
+
+- Updated dependencies [[`8e384c9`](https://github.com/firebase/firebase-js-sdk/commit/8e384c947de73c7f74346b1c01640f3515a4ef0e)]:
+  - @firebase/auth@1.13.1
+  - @firebase/auth-types@0.13.1
+  - @firebase/component@0.7.3
+  - @firebase/util@1.15.1
+
+## 0.6.5
+
+### Patch Changes
+
+- Updated dependencies [[`715c042`](https://github.com/firebase/firebase-js-sdk/commit/715c0424d656b1be2d423c31f12e9ffbaeea2dd5)]:
+  - @firebase/auth@1.13.0
+
+## 0.6.4
+
+### Patch Changes
+
+- Updated dependencies [[`2f7f426`](https://github.com/firebase/firebase-js-sdk/commit/2f7f426dec37efd75bad8dcc87cdd769ed4f7752)]:
+  - @firebase/auth@1.12.2
+  - @firebase/util@1.15.0
+  - @firebase/component@0.7.2
+
+## 0.6.3
+
+### Patch Changes
+
+- Updated dependencies [[`eebba69`](https://github.com/firebase/firebase-js-sdk/commit/eebba69e912b59e5f097a896e479d139c03d62ca)]:
+  - @firebase/util@1.14.0
+  - @firebase/auth@1.12.1
+  - @firebase/component@0.7.1
+
+## 0.6.2
+
+### Patch Changes
+
+- Updated dependencies [[`1e406a2`](https://github.com/firebase/firebase-js-sdk/commit/1e406a2b7140b014edac26f0e5179878bb3d821f)]:
+  - @firebase/auth@1.12.0
+
+## 0.6.1
+
+### Patch Changes
+
+- Updated dependencies [[`91c218d`](https://github.com/firebase/firebase-js-sdk/commit/91c218db2d14cb4f1b978b9073510b8bc8f91233), [`2615081`](https://github.com/firebase/firebase-js-sdk/commit/261508183c249dcec737448dde3aad7399f4668c)]:
+  - @firebase/auth@1.11.1
+
+## 0.6.0
+
+### Minor Changes
+
+- [`25b60fd`](https://github.com/firebase/firebase-js-sdk/commit/25b60fdaabe910e1538684a3c490b0900fb5f113) [#9128](https://github.com/firebase/firebase-js-sdk/pull/9128) - Update node "engines" version to a minimum of Node 20.
+
+### Patch Changes
+
+- [`f18b25f`](https://github.com/firebase/firebase-js-sdk/commit/f18b25f73a05a696b6a9ed45702a84cc9dd5c6d9) [#9167](https://github.com/firebase/firebase-js-sdk/pull/9167) - Set build targets to ES2020.
+
+- Updated dependencies [[`f18b25f`](https://github.com/firebase/firebase-js-sdk/commit/f18b25f73a05a696b6a9ed45702a84cc9dd5c6d9), [`25b60fd`](https://github.com/firebase/firebase-js-sdk/commit/25b60fdaabe910e1538684a3c490b0900fb5f113)]:
+  - @firebase/component@0.7.0
+  - @firebase/auth@1.11.0
+  - @firebase/util@1.13.0
+
+## 0.5.28
+
+### Patch Changes
+
+- Updated dependencies [[`42ac401`](https://github.com/firebase/firebase-js-sdk/commit/42ac4011787db6bb7a08f8c84f364ea86ea51e83)]:
+  - @firebase/util@1.12.1
+  - @firebase/auth@1.10.8
+  - @firebase/component@0.6.18
+
 ## 0.5.27
 
 ### Patch Changes

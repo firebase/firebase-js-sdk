@@ -24,7 +24,7 @@ module.exports = {
     tsconfigRootDir: __dirname
   },
   plugins: ['import'],
-  ignorePatterns: ['compat/*'],
+  ignorePatterns: ['compat/*', 'pipelines.d.ts'],
   rules: {
     'no-console': ['error', { allow: ['warn', 'error'] }],
     '@typescript-eslint/no-unused-vars': [

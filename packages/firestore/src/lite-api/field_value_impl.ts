@@ -20,6 +20,8 @@ import {
   ArrayUnionFieldValueImpl,
   DeleteFieldValueImpl,
   NumericIncrementFieldValueImpl,
+  NumericMaximumFieldValueImpl,
+  NumericMinimumFieldValueImpl,
   ServerTimestampFieldValueImpl
 } from './user_data_reader';
 import { VectorValue } from './vector_value';
@@ -96,6 +98,32 @@ export function arrayRemove(...elements: unknown[]): FieldValue {
  */
 export function increment(n: number): FieldValue {
   return new NumericIncrementFieldValueImpl('increment', n);
+}
+
+/**
+ * Returns a special value that can be used with {@link @firebase/firestore/lite#(setDoc:1)} or {@link
+ * @firebase/firestore/lite#(updateDoc:1)} that tells the server to set the field to the numeric minimum of the
+ * field's current and the given value.
+ *
+ * @param n - The value to compare to the existing field value.
+ * @returns The `FieldValue` sentinel for use in a call to `setDoc()` or
+ * `updateDoc()`
+ */
+export function minimum(n: number): FieldValue {
+  return new NumericMinimumFieldValueImpl('minimum', n);
+}
+
+/**
+ * Returns a special value that can be used with {@link @firebase/firestore/lite#(setDoc:1)} or {@link
+ * @firebase/firestore/lite#(updateDoc:1)} that tells the server to set the field to the numeric maximum of the
+ * field's current and the given value.
+ *
+ * @param n - The value to compare to the existing field value.
+ * @returns The `FieldValue` sentinel for use in a call to `setDoc()` or
+ * `updateDoc()`
+ */
+export function maximum(n: number): FieldValue {
+  return new NumericMaximumFieldValueImpl('maximum', n);
 }
 
 /**

@@ -27,12 +27,14 @@ import {
   onSubChange
 } from '../listeners/sw-listeners';
 
-import { GetTokenOptions } from '../interfaces/public-types';
+import { GetTokenOptions, RegisterOptions } from '../interfaces/public-types';
 import { MessagingInternal } from '@firebase/messaging-interop-types';
 import { MessagingService } from '../messaging-service';
 import { ServiceWorkerGlobalScope } from '../util/sw-types';
 import { _registerComponent, registerVersion } from '@firebase/app';
 import { getToken } from '../api/getToken';
+import { register } from '../api/register';
+import { subscribeFidChangeRegistration } from './fid-change-registration';
 import { messageEventListener } from '../listeners/window-listener';
 
 import { name, version } from '../../package.json';
@@ -50,6 +52,11 @@ const WindowMessagingFactory: InstanceFactory<'messaging'> = (
     messageEventListener(messaging as MessagingService, e)
   );
 
+  messaging._fidChangeUnsubscribe = subscribeFidChangeRegistration(
+    messaging as MessagingService,
+    container.getProvider('installations').getImmediate()
+  );
+
   return messaging;
 };
 
@@ -61,7 +68,8 @@ const WindowMessagingInternalFactory: InstanceFactory<'messaging-internal'> = (
     .getImmediate() as MessagingService;
 
   const messagingInternal: MessagingInternal = {
-    getToken: (options?: GetTokenOptions) => getToken(messaging, options)
+    getToken: (options?: GetTokenOptions) => getToken(messaging, options),
+    register: (options?: RegisterOptions) => register(messaging, options)
   };
 
   return messagingInternal;
@@ -104,7 +112,7 @@ export function registerMessagingInWindow(): void {
   );
 
   registerVersion(name, version);
-  // BUILD_TARGET will be replaced by values like esm2017, cjs2017, etc during the compilation
+  // BUILD_TARGET will be replaced by values like esm, cjs, etc during the compilation
   registerVersion(name, version, '__BUILD_TARGET__');
 }
 

@@ -2,7 +2,10 @@
   "extends": "../../config/tsconfig.base.json",
   "compilerOptions": {
     "outDir": "dist",
-    "target": "es2020"
+    "paths": {
+      "@firebase/app": ["../app/src/index.ts"],
+      "@firebase/app-compat": ["../app-compat/src/index.ts"]
+    }
   },
   "exclude": ["scripts/**/*", "dist/**/*"]
 }

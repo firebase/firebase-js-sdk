@@ -28,7 +28,11 @@ import { createEnhancedContentResponse } from './response-helpers';
 import * as GoogleAIMapper from '../googleai-mappers';
 import { GoogleAIGenerateContentResponse } from '../types/googleai';
 import { ApiSettings } from '../types/internal';
-import { BackendType } from '../public-types';
+import {
+  BackendType,
+  InferenceSource,
+  URLContextMetadata
+} from '../public-types';
 
 const responseLineRE = /^data\: (.*)(?:\n\n|\r\r|\r\n\r\n)/;
 
@@ -40,25 +44,75 @@ const responseLineRE = /^data\: (.*)(?:\n\n|\r\r|\r\n\r\n)/;
  *
  * @param response - Response from a fetch call
  */
-export function processStream(
+export async function processStream(
   response: Response,
-  apiSettings: ApiSettings
-): GenerateContentStreamResult {
+  apiSettings: ApiSettings,
+  inferenceSource?: InferenceSource
+): Promise<
+  GenerateContentStreamResult & { firstValue?: GenerateContentResponse }
+> {
   const inputStream = response.body!.pipeThrough(
     new TextDecoderStream('utf8', { fatal: true })
   );
+
   const responseStream =
     getResponseStream<GenerateContentResponse>(inputStream);
+
+  // We split the stream so the user can iterate over partial results (stream1)
+  // while we aggregate the full result for history/final response (stream2).
   const [stream1, stream2] = responseStream.tee();
+  const { response: internalResponse, firstValue } =
+    await processStreamInternal(stream2, apiSettings, inferenceSource);
   return {
-    stream: generateResponseSequence(stream1, apiSettings),
-    response: getResponsePromise(stream2, apiSettings)
+    stream: generateResponseSequence(stream1, apiSettings, inferenceSource),
+    response: internalResponse,
+    firstValue
+  };
+}
+
+/**
+ * Consumes streams teed from the input stream for internal needs.
+ * The streams need to be teed because each stream can only be consumed
+ * by one reader.
+ *
+ * "streamForPeek"
+ * This tee is used to peek at the first value for relevant information
+ * that we need to evaluate before returning the stream handle to the
+ * client. For example, we need to check if the response is a function
+ * call that may need to be handled by automatic function calling before
+ * returning a response to the client.
+ *
+ * "streamForAggregation"
+ * We iterate through this tee independently from the user and aggregate
+ * it into a single response when the stream is complete. We need this
+ * aggregate object to add to chat history when using ChatSession. It's
+ * also provided to the user if they want it.
+ */
+async function processStreamInternal(
+  stream: ReadableStream<GenerateContentResponse>,
+  apiSettings: ApiSettings,
+  inferenceSource?: InferenceSource
+): Promise<{
+  firstValue?: GenerateContentResponse;
+  response: Promise<EnhancedGenerateContentResponse>;
+}> {
+  const [streamForPeek, streamForAggregation] = stream.tee();
+  const reader = streamForPeek.getReader();
+  const { value } = await reader.read();
+  return {
+    firstValue: value,
+    response: getResponsePromise(
+      streamForAggregation,
+      apiSettings,
+      inferenceSource
+    )
   };
 }
 
 async function getResponsePromise(
   stream: ReadableStream<GenerateContentResponse>,
-  apiSettings: ApiSettings
+  apiSettings: ApiSettings,
+  inferenceSource?: InferenceSource
 ): Promise<EnhancedGenerateContentResponse> {
   const allResponses: GenerateContentResponse[] = [];
   const reader = stream.getReader();
@@ -71,16 +125,19 @@ async function getResponsePromise(
           generateContentResponse as GoogleAIGenerateContentResponse
         );
       }
-      return createEnhancedContentResponse(generateContentResponse);
+      return createEnhancedContentResponse(
+        generateContentResponse,
+        inferenceSource
+      );
     }
-
     allResponses.push(value);
   }
 }
 
 async function* generateResponseSequence(
   stream: ReadableStream<GenerateContentResponse>,
-  apiSettings: ApiSettings
+  apiSettings: ApiSettings,
+  inferenceSource?: InferenceSource
 ): AsyncGenerator<EnhancedGenerateContentResponse> {
   const reader = stream.getReader();
   while (true) {
@@ -94,10 +151,21 @@ async function* generateResponseSequence(
       enhancedResponse = createEnhancedContentResponse(
         GoogleAIMapper.mapGenerateContentResponse(
           value as GoogleAIGenerateContentResponse
-        )
+        ),
+        inferenceSource
       );
     } else {
-      enhancedResponse = createEnhancedContentResponse(value);
+      enhancedResponse = createEnhancedContentResponse(value, inferenceSource);
+    }
+
+    const firstCandidate = enhancedResponse.candidates?.[0];
+    if (
+      !firstCandidate?.content?.parts &&
+      !firstCandidate?.finishReason &&
+      !firstCandidate?.citationMetadata &&
+      !firstCandidate?.urlContextMetadata
+    ) {
+      continue;
     }
 
     yield enhancedResponse;
@@ -105,9 +173,7 @@ async function* generateResponseSequence(
 }
 
 /**
- * Reads a raw stream from the fetch response and join incomplete
- * chunks, returning a new stream that provides a single complete
- * GenerateContentResponse in each iteration.
+ * Reads a raw string stream, buffers incomplete chunks, and yields parsed JSON objects.
  */
 export function getResponseStream<T>(
   inputStream: ReadableStream<string>
@@ -131,6 +197,8 @@ export function getResponseStream<T>(
           }
 
           currentText += value;
+          // SSE events may span chunk boundaries, so we buffer until we match
+          // the full "data: {json}\n\n" pattern.
           let match = currentText.match(responseLineRE);
           let parsedResponse: T;
           while (match) {
@@ -171,8 +239,7 @@ export function aggregateResponses(
   for (const response of responses) {
     if (response.candidates) {
       for (const candidate of response.candidates) {
-        // Index will be undefined if it's the first index (0), so we should use 0 if it's undefined.
-        // See: https://github.com/firebase/firebase-js-sdk/issues/8566
+        // Use 0 if index is undefined (protobuf default value omission).
         const i = candidate.index || 0;
         if (!aggregatedResponse.candidates) {
           aggregatedResponse.candidates = [];
@@ -182,7 +249,8 @@ export function aggregateResponses(
             index: candidate.index
           } as GenerateContentCandidate;
         }
-        // Keep overwriting, the last one will be final
+
+        // Overwrite with the latest metadata
         aggregatedResponse.candidates[i].citationMetadata =
           candidate.citationMetadata;
         aggregatedResponse.candidates[i].finishReason = candidate.finishReason;
@@ -190,42 +258,46 @@ export function aggregateResponses(
           candidate.finishMessage;
         aggregatedResponse.candidates[i].safetyRatings =
           candidate.safetyRatings;
+        aggregatedResponse.candidates[i].groundingMetadata =
+          candidate.groundingMetadata;
 
-        /**
-         * Candidates should always have content and parts, but this handles
-         * possible malformed responses.
-         */
-        if (candidate.content && candidate.content.parts) {
+        // The urlContextMetadata object is defined in the first chunk of the response stream.
+        // In all subsequent chunks, the urlContextMetadata object will be undefined. We need to
+        // make sure that we don't overwrite the first value urlContextMetadata object with undefined.
+        // FIXME: What happens if we receive a second, valid urlContextMetadata object?
+        const urlContextMetadata = candidate.urlContextMetadata as unknown;
+        if (
+          typeof urlContextMetadata === 'object' &&
+          urlContextMetadata !== null &&
+          Object.keys(urlContextMetadata).length > 0
+        ) {
+          aggregatedResponse.candidates[i].urlContextMetadata =
+            urlContextMetadata as URLContextMetadata;
+        }
+
+        if (candidate.content) {
+          if (!candidate.content.parts) {
+            continue;
+          }
           if (!aggregatedResponse.candidates[i].content) {
             aggregatedResponse.candidates[i].content = {
               role: candidate.content.role || 'user',
               parts: []
             };
           }
-          const newPart: Partial<Part> = {};
           for (const part of candidate.content.parts) {
-            if (part.text !== undefined) {
-              // The backend can send empty text parts. If these are sent back
-              // (e.g. in chat history), the backend will respond with an error.
-              // To prevent this, ignore empty text parts.
-              if (part.text === '') {
-                continue;
-              }
-              newPart.text = part.text;
+            const newPart: Part = { ...part };
+            // The backend can send empty text parts. If these are sent back
+            // (e.g. in chat history), the backend will respond with an error.
+            // To prevent this, ignore empty text parts.
+            if (part.text === '') {
+              continue;
             }
-            if (part.functionCall) {
-              newPart.functionCall = part.functionCall;
-            }
-            if (Object.keys(newPart).length === 0) {
-              throw new AIError(
-                AIErrorCode.INVALID_CONTENT,
-                'Part should have at least one property, but there are none. This is likely caused ' +
-                  'by a malformed response from the backend.'
+            if (Object.keys(newPart).length > 0) {
+              aggregatedResponse.candidates[i].content.parts.push(
+                newPart as Part
               );
             }
-            aggregatedResponse.candidates[i].content.parts.push(
-              newPart as Part
-            );
           }
         }
       }

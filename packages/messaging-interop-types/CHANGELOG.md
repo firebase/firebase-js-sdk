@@ -1,5 +1,17 @@
 # @firebase/messaging-interop-types
 
+## 0.2.5
+
+### Patch Changes
+
+- [`3b337b9`](https://github.com/firebase/firebase-js-sdk/commit/3b337b9a91d6fb4dbee14b14e0c67a4b01b5d736) [#9917](https://github.com/firebase/firebase-js-sdk/pull/9917) - Add new API and deprecate old API for creating and deleting fcm registration
+
+## 0.2.4
+
+### Patch Changes
+
+- [`8e384c9`](https://github.com/firebase/firebase-js-sdk/commit/8e384c947de73c7f74346b1c01640f3515a4ef0e) [#9883](https://github.com/firebase/firebase-js-sdk/pull/9883) - Updated dependencies.
+
 ## 0.2.3
 
 ### Patch Changes

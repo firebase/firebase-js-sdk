@@ -1,3 +1,4 @@
+/* eslint-disable import/order */
 /**
  * @license
  * Copyright 2017 Google LLC
@@ -18,7 +19,10 @@
 import { isIndexedDBAvailable } from '@firebase/util';
 import { expect } from 'chai';
 
+import { describe } from '../../util/mocha_extensions';
 import { EventsAccumulator } from './events_accumulator';
+// Added import
+
 import {
   clearIndexedDbPersistence,
   collection,
@@ -27,8 +31,10 @@ import {
   DocumentData,
   DocumentReference,
   Firestore,
-  MemoryLocalCache,
+  getDocsFromCache,
+  getDocsFromServer,
   memoryEagerGarbageCollector,
+  MemoryLocalCache,
   memoryLocalCache,
   memoryLruGarbageCollector,
   newTestApp,
@@ -36,17 +42,14 @@ import {
   PersistentLocalCache,
   persistentLocalCache,
   PrivateSettings,
+  Query,
   QuerySnapshot,
   setDoc,
   SnapshotListenOptions,
   terminate,
   WriteBatch,
-  writeBatch,
-  Query,
-  getDocsFromServer,
-  getDocsFromCache,
-  _AutoId,
-  onSnapshot
+  onSnapshot,
+  writeBatch
 } from './firebase_export';
 import {
   ALT_PROJECT_ID,
@@ -179,7 +182,10 @@ export function isPersistenceAvailable(): boolean {
  * persistence both disabled and enabled (if the browser is supported).
  */
 function apiDescribeInternal(
-  describeFn: Mocha.PendingSuiteFunction,
+  describeFn:
+    | Mocha.PendingSuiteFunction
+    | Mocha.SuiteFunction
+    | Mocha.ExclusiveSuiteFunction,
   message: string,
   testSuite: (persistence: PersistenceMode) => void
 ): void {
@@ -206,6 +212,9 @@ interface ApiDescribe {
   (message: string, testSuite: (persistence: PersistenceMode) => void): void;
   skip: ApiSuiteFunction;
   only: ApiSuiteFunction;
+  skipEnterprise: ApiSuiteFunction;
+  skipEmulator: ApiSuiteFunction;
+  skipClassic: ApiSuiteFunction;
 }
 
 export const apiDescribe = apiDescribeInternal.bind(
@@ -216,6 +225,15 @@ export const apiDescribe = apiDescribeInternal.bind(
 apiDescribe.skip = apiDescribeInternal.bind(null, describe.skip);
 // eslint-disable-next-line no-restricted-properties
 apiDescribe.only = apiDescribeInternal.bind(null, describe.only);
+apiDescribe.skipEnterprise = apiDescribeInternal.bind(
+  null,
+  describe.skipEnterprise
+);
+apiDescribe.skipClassic = apiDescribeInternal.bind(null, describe.skipClassic);
+apiDescribe.skipEmulator = apiDescribeInternal.bind(
+  null,
+  describe.skipEmulator
+);
 
 /** Converts the documents in a QuerySnapshot to an array with the data of each document. */
 export function toDataArray(docSet: QuerySnapshot): DocumentData[] {
@@ -439,6 +457,16 @@ export function withEmptyTestCollection(
   return withTestCollection(persistence, {}, fn);
 }
 
+function newAutoId(): string {
+  const chars =
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let autoId = '';
+  for (let i = 0; i < 20; i++) {
+    autoId += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return autoId;
+}
+
 // TODO(mikelehen): Once we wipe the database between tests, we can probably
 // return the same collection every time.
 export function withTestCollectionSettings<T>(
@@ -463,7 +491,7 @@ export function withTestProjectIdAndCollectionSettings<T>(
   docs: { [key: string]: DocumentData },
   fn: (collection: CollectionReference, db: Firestore) => Promise<T>
 ): Promise<T> {
-  const collectionId = _AutoId.newId();
+  const collectionId = newAutoId();
   return batchCommitDocsToCollectionWithSettings(
     persistence,
     projectId,
@@ -690,4 +718,14 @@ function verifySnapshot(
     const actualDoc = actualDocs[docId];
     expect(expectedDoc).to.deep.equal(actualDoc);
   }
+}
+
+export function itIf(
+  condition: boolean | 'only'
+):
+  | Mocha.TestFunction
+  | Mocha.PendingTestFunction
+  | Mocha.ExclusiveTestFunction {
+  // eslint-disable-next-line no-restricted-properties
+  return condition === 'only' ? it.only : condition ? it : it.skip;
 }

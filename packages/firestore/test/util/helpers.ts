@@ -22,11 +22,11 @@ import { Bound } from '../../src/core/bound';
 import { BundledDocuments } from '../../src/core/bundle';
 import { DatabaseId } from '../../src/core/database_info';
 import {
-  FieldFilter,
   CompositeFilter,
+  CompositeOperator,
+  FieldFilter,
   Filter,
-  Operator,
-  CompositeOperator
+  Operator
 } from '../../src/core/filter';
 import { Direction, OrderBy } from '../../src/core/order_by';
 import {
@@ -37,7 +37,7 @@ import {
   queryWithAddedOrderBy
 } from '../../src/core/query';
 import { SnapshotVersion } from '../../src/core/snapshot_version';
-import { TargetId } from '../../src/core/types';
+import { RemoteTargetId, TargetId } from '../../src/core/types';
 import {
   AddedLimboDocument,
   LimboDocumentChange,
@@ -79,20 +79,20 @@ import {
 import { FieldMask } from '../../src/model/field_mask';
 import {
   DeleteMutation,
+  FieldTransform,
   MutationResult,
   PatchMutation,
   Precondition,
-  SetMutation,
-  FieldTransform
+  SetMutation
 } from '../../src/model/mutation';
 import { normalizeByteString } from '../../src/model/normalize';
 import { JsonObject, ObjectValue } from '../../src/model/object_value';
 import { FieldPath, ResourcePath } from '../../src/model/path';
 import { decodeBase64, encodeBase64 } from '../../src/platform/base64';
 import {
-  NamedQuery as ProtoNamedQuery,
   BundleMetadata as ProtoBundleMetadata,
-  LimitType as ProtoLimitType
+  LimitType as ProtoLimitType,
+  NamedQuery as ProtoNamedQuery
 } from '../../src/protos/firestore_bundle_proto';
 import * as api from '../../src/protos/firestore_proto_api';
 import { BloomFilter } from '../../src/remote/bloom_filter';
@@ -401,11 +401,11 @@ export function query(
   return q;
 }
 
-export function targetData(
-  targetId: TargetId,
+export function targetData<T extends TargetId | RemoteTargetId>(
+  targetId: T,
   queryPurpose: TargetPurpose,
   path: string
-): TargetData {
+): TargetData<T> {
   // Arbitrary value.
   const sequenceNumber = 0;
   return new TargetData(
@@ -417,16 +417,19 @@ export function targetData(
 }
 
 export function noChangeEvent(
-  targetId: number,
+  targetId: RemoteTargetId,
   snapshotVersion: number,
   resumeToken: ByteString = ByteString.EMPTY_BYTE_STRING
-): RemoteEvent {
+): RemoteEvent<TargetId> {
   const aggregator = new WatchChangeAggregator({
     getRemoteKeysForTarget: () => documentKeySet(),
     getTargetDataForTarget: targetId =>
       targetData(targetId, TargetPurpose.Listen, 'foo'),
     getDatabaseId: () => TEST_DATABASE_ID
   });
+
+  addWatchTargets(aggregator, [targetId]);
+
   aggregator.handleTargetChange(
     new WatchTargetChange(
       WatchTargetChangeState.NoChange,
@@ -434,36 +437,66 @@ export function noChangeEvent(
       resumeToken
     )
   );
-  return aggregator.createRemoteEvent(version(snapshotVersion));
+  return castRemoteEvent(
+    aggregator.createRemoteEvent(version(snapshotVersion))
+  );
 }
 
 export function existenceFilterEvent(
-  targetId: number,
+  targetId: RemoteTargetId,
   syncedKeys: DocumentKeySet,
   remoteCount: number,
   snapshotVersion: number,
   bloomFilter?: api.BloomFilter
-): RemoteEvent {
+): RemoteEvent<TargetId> {
   const aggregator = new WatchChangeAggregator({
     getRemoteKeysForTarget: () => syncedKeys,
     getTargetDataForTarget: targetId =>
       targetData(targetId, TargetPurpose.Listen, 'foo'),
     getDatabaseId: () => TEST_DATABASE_ID
   });
+
+  addWatchTargets(aggregator, [targetId]);
+
   aggregator.handleExistenceFilter(
     new ExistenceFilterChange(
       targetId,
       new ExistenceFilter(remoteCount, bloomFilter)
     )
   );
-  return aggregator.createRemoteEvent(version(snapshotVersion));
+  return castRemoteEvent(
+    aggregator.createRemoteEvent(version(snapshotVersion))
+  );
+}
+
+/**
+ * Helper function that simulates an add target message and server ack.
+ *
+ * @param aggregator
+ * @param targetIdsCollections - Simulate add targets messages for these.
+ */
+export function addWatchTargets(
+  aggregator: WatchChangeAggregator,
+  ...targetIdsCollections: Array<number[] | undefined>
+): void {
+  // ensure target states
+  targetIdsCollections.forEach(targetIds => {
+    if (targetIds) {
+      targetIds.forEach(targetId => {
+        aggregator.recordPendingTargetRequest(targetId);
+        aggregator.handleTargetChange(
+          new WatchTargetChange(WatchTargetChangeState.Added, [targetId])
+        );
+      });
+    }
+  });
 }
 
 export function docAddedRemoteEvent(
   docOrDocs: MutableDocument | MutableDocument[],
-  updatedInTargets?: TargetId[],
-  removedFromTargets?: TargetId[],
-  activeTargets?: TargetId[]
+  updatedInTargets?: RemoteTargetId[] | TargetId[],
+  removedFromTargets?: RemoteTargetId[] | TargetId[],
+  activeTargets?: RemoteTargetId[] | TargetId[]
 ): RemoteEvent {
   const docs = Array.isArray(docOrDocs) ? docOrDocs : [docOrDocs];
   debugAssert(docs.length !== 0, 'Cannot pass empty docs array');
@@ -489,6 +522,8 @@ export function docAddedRemoteEvent(
     getDatabaseId: () => TEST_DATABASE_ID
   });
 
+  addWatchTargets(aggregator, allTargets);
+
   let version = SnapshotVersion.min();
 
   for (const doc of docs) {
@@ -497,8 +532,8 @@ export function docAddedRemoteEvent(
       "Docs from remote updates shouldn't have local changes."
     );
     const docChange = new DocumentWatchChange(
-      updatedInTargets || [],
-      removedFromTargets || [],
+      castTargetIds(updatedInTargets || []),
+      castTargetIds(removedFromTargets || []),
       doc.key,
       doc
     );
@@ -506,22 +541,22 @@ export function docAddedRemoteEvent(
     version = doc.version.compareTo(version) > 0 ? doc.version : version;
   }
 
-  return aggregator.createRemoteEvent(version);
+  return castRemoteEvent(aggregator.createRemoteEvent(version));
 }
 
 export function docUpdateRemoteEvent(
   doc: MutableDocument,
-  updatedInTargets?: TargetId[],
-  removedFromTargets?: TargetId[],
-  limboTargets?: TargetId[]
+  updatedInTargets?: RemoteTargetId[],
+  removedFromTargets?: RemoteTargetId[],
+  limboTargets?: RemoteTargetId[]
 ): RemoteEvent {
   debugAssert(
     !doc.hasLocalMutations,
     "Docs from remote updates shouldn't have local changes."
   );
   const docChange = new DocumentWatchChange(
-    updatedInTargets || [],
-    removedFromTargets || [],
+    castTargetIds(updatedInTargets || []),
+    castTargetIds(removedFromTargets || []),
     doc.key,
     doc
   );
@@ -536,8 +571,28 @@ export function docUpdateRemoteEvent(
     },
     getDatabaseId: () => TEST_DATABASE_ID
   });
+
+  addWatchTargets(
+    aggregator,
+    updatedInTargets,
+    removedFromTargets,
+    limboTargets
+  );
+
   aggregator.handleDocumentChange(docChange);
-  return aggregator.createRemoteEvent(doc.version);
+  return castRemoteEvent(aggregator.createRemoteEvent(doc.version));
+}
+
+export function castRemoteEvent<T extends TargetId | RemoteTargetId>(
+  src: unknown
+): RemoteEvent<T> {
+  return src as RemoteEvent<T>;
+}
+
+export function castTargetIds<T extends TargetId | RemoteTargetId>(
+  src: unknown
+): T[] {
+  return src as T[];
 }
 
 export class TestBundledDocuments {

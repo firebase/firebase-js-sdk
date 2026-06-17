@@ -305,7 +305,7 @@ export class DocumentReference<
    * {@link DocumentReference.toJSON}.
    *
    * @param firestore - The {@link Firestore} instance the snapshot should be loaded for.
-   * @param json a JSON object represention of a `DocumentReference` instance
+   * @param json - a JSON object represention of a `DocumentReference` instance
    * @returns an instance of {@link DocumentReference} if the JSON object could be parsed. Throws a
    * {@link FirestoreError} if an error occurs.
    */
@@ -315,7 +315,7 @@ export class DocumentReference<
    * {@link DocumentReference.toJSON}.
    *
    * @param firestore - The {@link Firestore} instance the snapshot should be loaded for.
-   * @param json a JSON object represention of a `DocumentReference` instance
+   * @param json - a JSON object represention of a `DocumentReference` instance
    * @param converter - Converts objects to and from Firestore.
    * @returns an instance of {@link DocumentReference} if the JSON object could be parsed. Throws a
    * {@link FirestoreError} if an error occurs.
@@ -438,6 +438,12 @@ export class CollectionReference<
       this._path
     );
   }
+}
+
+export function isCollectionReference(
+  val: unknown
+): val is CollectionReference {
+  return val instanceof CollectionReference;
 }
 
 /**
@@ -651,7 +657,7 @@ export function doc<AppModelType, DbModelType extends DocumentData>(
     ) {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
-        'Expected first argument to collection() to be a CollectionReference, ' +
+        'Expected first argument to doc() to be a CollectionReference, ' +
           'a DocumentReference or FirebaseFirestore'
       );
     }

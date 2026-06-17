@@ -1,5 +1,86 @@
 ## Unreleased
 
+## 0.7.1
+
+### Patch Changes
+
+- [`51e93fc`](https://github.com/firebase/firebase-js-sdk/commit/51e93fc03fd5e71c2de71a76976dd4e95eb26c68) [#9936](https://github.com/firebase/firebase-js-sdk/pull/9936) - Eliminated the 1-minute delay before closing idle backend connections to save resources.
+
+## 0.7.0
+
+### Minor Changes
+
+- [`714b41d`](https://github.com/firebase/firebase-js-sdk/commit/714b41dcc55339f94f904558ff190c5bdc9ac49f) [#9905](https://github.com/firebase/firebase-js-sdk/pull/9905) - Hardened the Firebase SQL Connect streaming transport with intelligent reconnection, query de-duplication, and resume optimizations.
+
+### Patch Changes
+
+- [`8e384c9`](https://github.com/firebase/firebase-js-sdk/commit/8e384c947de73c7f74346b1c01640f3515a4ef0e) [#9883](https://github.com/firebase/firebase-js-sdk/pull/9883) - Updated dependencies.
+
+- Updated dependencies [[`8e384c9`](https://github.com/firebase/firebase-js-sdk/commit/8e384c947de73c7f74346b1c01640f3515a4ef0e)]:
+  - @firebase/auth-interop-types@0.2.5
+  - @firebase/component@0.7.3
+  - @firebase/logger@0.5.1
+  - @firebase/util@1.15.1
+
+## 0.6.0
+
+### Minor Changes
+
+- [`34c63bf`](https://github.com/firebase/firebase-js-sdk/commit/34c63bf1eb353110d61d135a65e083d46e9a6007) [#9822](https://github.com/firebase/firebase-js-sdk/pull/9822) - Fix header names for auth and app check tokens over streaming
+
+- [`87d5cc1`](https://github.com/firebase/firebase-js-sdk/commit/87d5cc1ba0107cb9a7a07bc6033dcec360f78d28) [#9809](https://github.com/firebase/firebase-js-sdk/pull/9809) - Add streaming support for Firebase Data Connect.
+
+## 0.5.0
+
+### Minor Changes
+
+- [`9d33dd6`](https://github.com/firebase/firebase-js-sdk/commit/9d33dd6434dfc70cf835d603c1da09d9663885ec) [#9614](https://github.com/firebase/firebase-js-sdk/pull/9614) - Add validateArgsWithOptions() to Data Connect (internal change, no need to add to public release notes).
+
+### Patch Changes
+
+- [`2f7f426`](https://github.com/firebase/firebase-js-sdk/commit/2f7f426dec37efd75bad8dcc87cdd769ed4f7752) [#9608](https://github.com/firebase/firebase-js-sdk/pull/9608) - Remove `updateEmulatorBanner()`. (No release note needed.)
+
+- Updated dependencies [[`2f7f426`](https://github.com/firebase/firebase-js-sdk/commit/2f7f426dec37efd75bad8dcc87cdd769ed4f7752)]:
+  - @firebase/util@1.15.0
+  - @firebase/component@0.7.2
+
+## 0.4.0
+
+### Minor Changes
+
+- [`eebba69`](https://github.com/firebase/firebase-js-sdk/commit/eebba69e912b59e5f097a896e479d139c03d62ca) [#9439](https://github.com/firebase/firebase-js-sdk/pull/9439) - Add Memory-Based caching to Queries in Firebase Data Connect.
+
+### Patch Changes
+
+- Updated dependencies [[`eebba69`](https://github.com/firebase/firebase-js-sdk/commit/eebba69e912b59e5f097a896e479d139c03d62ca)]:
+  - @firebase/util@1.14.0
+  - @firebase/component@0.7.1
+
+## 0.3.12
+
+### Patch Changes
+
+- [`c47bd71`](https://github.com/firebase/firebase-js-sdk/commit/c47bd7175bf11fba1840ad789294238e0614e57d) [#9349](https://github.com/firebase/firebase-js-sdk/pull/9349) (fixes [#9348](https://github.com/firebase/firebase-js-sdk/issues/9348)) - Fixed issue where onComplete wasn't triggering when the user calls `unsubscribe` on a subscription.
+
+## 0.3.11
+
+### Patch Changes
+
+- [`f18b25f`](https://github.com/firebase/firebase-js-sdk/commit/f18b25f73a05a696b6a9ed45702a84cc9dd5c6d9) [#9167](https://github.com/firebase/firebase-js-sdk/pull/9167) - Set build targets to ES2020.
+
+- Updated dependencies [[`f18b25f`](https://github.com/firebase/firebase-js-sdk/commit/f18b25f73a05a696b6a9ed45702a84cc9dd5c6d9), [`25b60fd`](https://github.com/firebase/firebase-js-sdk/commit/25b60fdaabe910e1538684a3c490b0900fb5f113)]:
+  - @firebase/component@0.7.0
+  - @firebase/logger@0.5.0
+  - @firebase/util@1.13.0
+
+## 0.3.10
+
+### Patch Changes
+
+- Updated dependencies [[`42ac401`](https://github.com/firebase/firebase-js-sdk/commit/42ac4011787db6bb7a08f8c84f364ea86ea51e83)]:
+  - @firebase/util@1.12.1
+  - @firebase/component@0.6.18
+
 ## 0.3.9
 
 ### Patch Changes

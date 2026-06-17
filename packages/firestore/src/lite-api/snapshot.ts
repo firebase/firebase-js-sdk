@@ -15,11 +15,11 @@
  * limitations under the License.
  */
 
-import { Compat, getModularInstance } from '@firebase/util';
+import { getModularInstance } from '@firebase/util';
 
 import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
-import { FieldPath as InternalFieldPath } from '../model/path';
+import { firestoreV1ApiClientInterfaces } from '../protos/firestore_proto_api';
 import { arrayEquals } from '../util/misc';
 
 import { Firestore } from './database';
@@ -34,7 +34,7 @@ import {
   WithFieldValue
 } from './reference';
 import {
-  fieldPathFromDotSeparatedString,
+  fieldPathFromArgument,
   UntypedFirestoreDataConverter
 } from './user_data_reader';
 import { AbstractUserDataWriter } from './user_data_writer';
@@ -367,6 +367,23 @@ export class DocumentSnapshot<
   }
 
   /**
+   * @internal
+   * @private
+   *
+   * Retrieves all fields in the document as a proto Value. Returns `undefined` if
+   * the document doesn't exist.
+   *
+   * @returns An `Object` containing all fields in the document or `undefined`
+   * if the document doesn't exist.
+   */
+  _fieldsProto():
+    | { [key: string]: firestoreV1ApiClientInterfaces.Value }
+    | undefined {
+    // Return a cloned value to prevent manipulation of the Snapshot's data
+    return this._document?.data.clone().value.mapValue.fields ?? undefined;
+  }
+
+  /**
    * Retrieves the field specified by `fieldPath`. Returns `undefined` if the
    * document or field doesn't exist.
    *
@@ -508,20 +525,4 @@ export function snapshotEqual<AppModelType, DbModelType extends DocumentData>(
   }
 
   return false;
-}
-
-/**
- * Helper that calls `fromDotSeparatedString()` but wraps any error thrown.
- */
-export function fieldPathFromArgument(
-  methodName: string,
-  arg: string | FieldPath | Compat<FieldPath>
-): InternalFieldPath {
-  if (typeof arg === 'string') {
-    return fieldPathFromDotSeparatedString(methodName, arg);
-  } else if (arg instanceof FieldPath) {
-    return arg._internalPath;
-  } else {
-    return arg._delegate._internalPath;
-  }
 }

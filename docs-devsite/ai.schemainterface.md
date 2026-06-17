@@ -23,14 +23,14 @@ export interface SchemaInterface extends SchemaShared<SchemaInterface>
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [type](./ai.schemainterface.md#schemainterfacetype) | [SchemaType](./ai.md#schematype) | The type of the property. [SchemaType](./ai.md#schematype)<!-- -->. |
+|  [type](./ai.schemainterface.md#schemainterfacetype) | [SchemaType](./ai.md#schematype) | The type of the property. this can only be undefined when using <code>anyof</code> schemas, which do not have an explicit type in the [OpenAPI Specification](https://swagger.io/docs/specification/v3_0/data-models/data-types/#any-type)<!-- -->. |
 
 ## SchemaInterface.type
 
-The type of the property. [SchemaType](./ai.md#schematype)<!-- -->.
+The type of the property. this can only be undefined when using `anyof` schemas, which do not have an explicit type in the [OpenAPI Specification](https://swagger.io/docs/specification/v3_0/data-models/data-types/#any-type)<!-- -->.
 
 <b>Signature:</b>
 
 ```typescript
-type: SchemaType;
+type?: SchemaType;
 ```

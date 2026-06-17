@@ -26,6 +26,7 @@ import tmp from 'tmp';
 import typescript from 'typescript';
 
 import { generateBuildTargetReplaceConfig } from '../../scripts/build/rollup_replace_build_target';
+import { replaceDeclareModule } from '../../scripts/build/rollup_replace_declare_module';
 
 import pkg from './package.json';
 import tsconfig from './tsconfig.json';
@@ -37,7 +38,7 @@ const nodePlugins = [
   typescriptPlugin({
     typescript,
     exclude: [...tsconfig.exclude, '**/*.test.ts'],
-    cacheDir: tmp.dirSync(),
+    cacheDir: tmp.dirSync().name,
     abortOnError: true,
     transformers: [util.removeAssertTransformer]
   }),
@@ -51,22 +52,77 @@ const browserPlugins = [
   typescriptPlugin({
     typescript,
     exclude: [...tsconfig.exclude, '**/*.test.ts'],
-    cacheDir: tmp.dirSync(),
+    cacheDir: tmp.dirSync().name,
     abortOnError: true,
     transformers: [util.removeAssertAndPrefixInternalTransformer]
   }),
   json({ preferConst: true }),
-  terser(util.manglePrivatePropertiesOptions)
+  terser(util.manglePrivatePropertiesOptions),
+  util.cleanupNameCache(util.manglePrivatePropertiesOptions.nameCache)
 ];
 
+// TODO - update the implementation to match all content in the declare module block.
+function declareModuleReplacePlugin() {
+  // The regex we created earlier
+  const moduleToReplace =
+    /declare module '\.\/\S+' \{\s+interface Firestore \{\s+pipeline\(\): PipelineSource<Pipeline>;\s+}\s*}/gm;
+
+  // What to replace it with (an empty string to remove it)
+  const replacement =
+    'interface Firestore {pipeline(): PipelineSource<Pipeline>;}';
+
+  return {
+    name: 'declare-module-replace',
+    generateBundle(options, bundle) {
+      const outputFileName = 'global_index.d.ts';
+      if (!bundle[outputFileName]) {
+        console.warn(
+          `[regexReplacePlugin] File not found in bundle: ${outputFileName}`
+        );
+        return;
+      }
+
+      const chunk = bundle[outputFileName];
+      if (chunk.type === 'chunk') {
+        chunk.code = chunk.code.replace(moduleToReplace, replacement);
+      }
+    }
+  };
+}
+
 const allBuilds = [
+  // Workaround for https://github.com/rollup/plugins/issues/1970
+  // We invoke this intermediate browser build twice. The first
+  // invocation will not properly mangle property names because of the
+  // rollup/plugin-terser issue #1970, however it will output a nameCache
+  // mapping all the mangled names to new names. The second invocation
+  // will use the nameCache from the first, and consistently mangle
+  // all property names.
+  //
+  // This is the first invocation of the intermediate browser build.
+  // It must run before any other build using `browserPlugins`.
+  // TODO Remove this build when https://github.com/rollup/plugins/issues/1970 is fixed.
+  {
+    input: ['./src/index.ts', './pipelines/pipelines.ts'],
+    output: {
+      dir: 'dist/intermediate',
+      entryFileNames: '[name].js',
+      chunkFileNames: 'common.js',
+      format: 'es'
+    },
+    plugins: [alias(util.generateAliasConfig('browser')), ...browserPlugins],
+    external: util.resolveBrowserExterns,
+    onwarn: util.onwarn
+  },
   // Intermediate Node ESM build without build target reporting
   // this is an intermediate build used to generate the actual esm and cjs builds
   // which add build target reporting
   {
-    input: './src/index.node.ts',
+    input: ['./src/index.node.ts', './pipelines/pipelines.node.ts'],
     output: {
-      file: pkg['main-esm'],
+      dir: 'dist/intermediate',
+      entryFileNames: '[name].mjs',
+      chunkFileNames: 'common-[hash].node.mjs',
       format: 'es',
       sourcemap: true
     },
@@ -79,9 +135,14 @@ const allBuilds = [
   },
   // Node CJS build
   {
-    input: pkg['main-esm'],
+    input: [
+      'dist/intermediate/index.node.mjs',
+      'dist/intermediate/pipelines.node.mjs'
+    ],
     output: {
-      file: pkg.main,
+      dir: 'dist/',
+      entryFileNames: '[name].cjs.js',
+      chunkFileNames: 'common-[hash].node.cjs.js',
       format: 'cjs',
       sourcemap: true
     },
@@ -94,40 +155,52 @@ const allBuilds = [
           }
         },
         include: ['dist/**/*.js'],
-        cacheDir: tmp.dirSync()
+        cacheDir: tmp.dirSync().name
       }),
       sourcemaps(),
-      replace(generateBuildTargetReplaceConfig('cjs', 2017))
+      replace(generateBuildTargetReplaceConfig('cjs', 2020))
     ],
     external: util.resolveNodeExterns,
     treeshake: {
       moduleSideEffects: false
-    }
+    },
+    onwarn: util.onwarn
   },
   // Node ESM build with build target reporting
   {
-    input: pkg['main-esm'],
+    input: [
+      'dist/intermediate/index.node.mjs',
+      'dist/intermediate/pipelines.node.mjs'
+    ],
     output: {
-      file: pkg['main-esm'],
+      dir: 'dist/',
+      entryFileNames: '[name].mjs',
+      chunkFileNames: 'common-[hash].node.mjs',
       format: 'es',
       sourcemap: true
     },
     plugins: [
       sourcemaps(),
-      replace(generateBuildTargetReplaceConfig('esm', 2017))
+      replace(generateBuildTargetReplaceConfig('esm', 2020))
     ],
     external: util.resolveNodeExterns,
     treeshake: {
       moduleSideEffects: false
-    }
+    },
+    onwarn: util.onwarn
   },
+  // This is the second invocation of the intermediate browser build.
+  // Keep this build when https://github.com/rollup/plugins/issues/1970 is fixed.
+  //
   // Intermediate browser build without build target reporting
   // this is an intermediate build used to generate the actual esm and cjs builds
   // which add build target reporting
   {
-    input: './src/index.ts',
+    input: ['./src/index.ts', './pipelines/pipelines.ts'],
     output: {
-      file: pkg.browser,
+      dir: 'dist/intermediate',
+      entryFileNames: '[name].js',
+      chunkFileNames: 'common.js',
       format: 'es',
       sourcemap: true
     },
@@ -135,66 +208,76 @@ const allBuilds = [
     external: util.resolveBrowserExterns,
     treeshake: {
       moduleSideEffects: false
-    }
+    },
+    onwarn: util.onwarn
   },
-  // Convert es2017 build to cjs
+  // Convert es2020 build to cjs
   {
-    input: pkg['browser'],
+    input: ['dist/intermediate/index.js', 'dist/intermediate/pipelines.js'],
     output: [
       {
-        file: './dist/index.cjs.js',
+        dir: 'dist/',
+        entryFileNames: '[name].cjs.js',
+        chunkFileNames: 'common-[hash].cjs.js',
         format: 'cjs',
         sourcemap: true
       }
     ],
     plugins: [
       sourcemaps(),
-      replace(generateBuildTargetReplaceConfig('cjs', 2017))
+      replace(generateBuildTargetReplaceConfig('cjs', 2020))
     ],
     external: util.resolveBrowserExterns,
     treeshake: {
       moduleSideEffects: false
-    }
+    },
+    onwarn: util.onwarn
   },
-  // es2017 build with build target reporting
+  // es2020 build with build target reporting
   {
-    input: pkg['browser'],
+    input: ['dist/intermediate/index.js', 'dist/intermediate/pipelines.js'],
     output: [
       {
-        file: pkg['browser'],
+        dir: 'dist/',
+        entryFileNames: '[name].esm.js',
+        chunkFileNames: 'common-[hash].esm.js',
         format: 'es',
         sourcemap: true
       }
     ],
     plugins: [
       sourcemaps(),
-      replace(generateBuildTargetReplaceConfig('esm', 2017))
+      replace(generateBuildTargetReplaceConfig('esm', 2020))
     ],
     external: util.resolveBrowserExterns,
     treeshake: {
       moduleSideEffects: false
-    }
+    },
+    onwarn: util.onwarn
   },
   // RN build
   {
-    input: './src/index.rn.ts',
+    input: ['./src/index.rn.ts', './pipelines/pipelines.rn.ts'],
     output: {
-      file: pkg['react-native'],
+      dir: 'dist/',
+      entryFileNames: '[name].js',
+      chunkFileNames: 'common-[hash].rn.js',
       format: 'es',
       sourcemap: true
     },
     plugins: [
       alias(util.generateAliasConfig('rn')),
       ...browserPlugins,
-      replace(generateBuildTargetReplaceConfig('esm', 2017))
+      replace(generateBuildTargetReplaceConfig('esm', 2020))
     ],
     external: util.resolveBrowserExterns,
     treeshake: {
       moduleSideEffects: false
-    }
+    },
+    onwarn: util.onwarn
   },
   {
-    input: 'dist/firestore/src/index.d.ts',
+    input: 'dist/firestore/src/global.d.ts',
     output: {
       file: 'dist/firestore/src/global_index.d.ts',
       format: 'es'
@@ -202,7 +285,18 @@ const allBuilds = [
     plugins: [
       dts({
         respectExternal: true
-      })
+      }),
+      declareModuleReplacePlugin(),
+
+      // The global.d.ts input file will include
+      // a `declare module './database' { ... }` block. This block
+      // was not removed in the build, and the module
+      // './database' is not known in context of the global.d.ts file.
+      // Use the declareModuleReplacePlugin to replace:
+      // `declare module './database' { Y }`
+      // with the contents of the block:
+      // `Y`
+      replaceDeclareModule('global_index.d.ts', './database')
     ]
   }
 ];

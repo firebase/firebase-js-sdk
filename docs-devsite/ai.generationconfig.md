@@ -24,13 +24,16 @@ export interface GenerationConfig
 |  --- | --- | --- |
 |  [candidateCount](./ai.generationconfig.md#generationconfigcandidatecount) | number |  |
 |  [frequencyPenalty](./ai.generationconfig.md#generationconfigfrequencypenalty) | number |  |
+|  [imageConfig](./ai.generationconfig.md#generationconfigimageconfig) | [ImageConfig](./ai.imageconfig.md#imageconfig_interface) | Configuration options for generating images with Gemini models. |
 |  [maxOutputTokens](./ai.generationconfig.md#generationconfigmaxoutputtokens) | number |  |
 |  [presencePenalty](./ai.generationconfig.md#generationconfigpresencepenalty) | number |  |
+|  [responseJsonSchema](./ai.generationconfig.md#generationconfigresponsejsonschema) | { \[key: string\]: unknown; } | Output schema of the generated response. This is an alternative to <code>responseSchema</code> that accepts \[JSON Schema\](https://json-schema.org/).<!-- -->If set, <code>responseSchema</code> must be omitted, but <code>responseMimeType</code> is required and must be set to <code>application/json</code>. |
 |  [responseMimeType](./ai.generationconfig.md#generationconfigresponsemimetype) | string | Output response MIME type of the generated candidate text. Supported MIME types are <code>text/plain</code> (default, text output), <code>application/json</code> (JSON response in the candidates), and <code>text/x.enum</code>. |
 |  [responseModalities](./ai.generationconfig.md#generationconfigresponsemodalities) | [ResponseModality](./ai.md#responsemodality)<!-- -->\[\] | <b><i>(Public Preview)</i></b> Generation modalities to be returned in generation responses. |
-|  [responseSchema](./ai.generationconfig.md#generationconfigresponseschema) | [TypedSchema](./ai.md#typedschema) \| [SchemaRequest](./ai.schemarequest.md#schemarequest_interface) | Output response schema of the generated candidate text. This value can be a class generated with a [Schema](./ai.schema.md#schema_class) static method like <code>Schema.string()</code> or <code>Schema.object()</code> or it can be a plain JS object matching the [SchemaRequest](./ai.schemarequest.md#schemarequest_interface) interface. <br/>Note: This only applies when the specified <code>responseMIMEType</code> supports a schema; currently this is limited to <code>application/json</code> and <code>text/x.enum</code>. |
+|  [responseSchema](./ai.generationconfig.md#generationconfigresponseschema) | [TypedSchema](./ai.md#typedschema) \| [SchemaRequest](./ai.schemarequest.md#schemarequest_interface) | Output response schema of the generated candidate text. This value can be a class generated with a [Schema](./ai.schema.md#schema_class) static method like <code>Schema.string()</code> or <code>Schema.object()</code> or it can be a plain JS object matching the [SchemaRequest](./ai.schemarequest.md#schemarequest_interface) interface. <br/>Note: This only applies when the specified <code>responseMimeType</code> supports a schema; currently this is limited to <code>application/json</code> and <code>text/x.enum</code>. |
 |  [stopSequences](./ai.generationconfig.md#generationconfigstopsequences) | string\[\] |  |
 |  [temperature](./ai.generationconfig.md#generationconfigtemperature) | number |  |
+|  [thinkingConfig](./ai.generationconfig.md#generationconfigthinkingconfig) | [ThinkingConfig](./ai.thinkingconfig.md#thinkingconfig_interface) | Configuration for "thinking" behavior of compatible Gemini models. |
 |  [topK](./ai.generationconfig.md#generationconfigtopk) | number |  |
 |  [topP](./ai.generationconfig.md#generationconfigtopp) | number |  |
 
@@ -50,6 +53,16 @@ candidateCount?: number;
 frequencyPenalty?: number;
 ```
 
+## GenerationConfig.imageConfig
+
+Configuration options for generating images with Gemini models.
+
+<b>Signature:</b>
+
+```typescript
+imageConfig?: ImageConfig;
+```
+
 ## GenerationConfig.maxOutputTokens
 
 <b>Signature:</b>
@@ -64,6 +77,20 @@ maxOutputTokens?: number;
 
 ```typescript
 presencePenalty?: number;
+```
+
+## GenerationConfig.responseJsonSchema
+
+Output schema of the generated response. This is an alternative to `responseSchema` that accepts \[JSON Schema\](https://json-schema.org/).
+
+If set, `responseSchema` must be omitted, but `responseMimeType` is required and must be set to `application/json`<!-- -->.
+
+<b>Signature:</b>
+
+```typescript
+responseJsonSchema?: {
+        [key: string]: unknown;
+    };
 ```
 
 ## GenerationConfig.responseMimeType
@@ -93,7 +120,7 @@ responseModalities?: ResponseModality[];
 
 ## GenerationConfig.responseSchema
 
-Output response schema of the generated candidate text. This value can be a class generated with a [Schema](./ai.schema.md#schema_class) static method like `Schema.string()` or `Schema.object()` or it can be a plain JS object matching the [SchemaRequest](./ai.schemarequest.md#schemarequest_interface) interface. <br/>Note: This only applies when the specified `responseMIMEType` supports a schema; currently this is limited to `application/json` and `text/x.enum`<!-- -->.
+Output response schema of the generated candidate text. This value can be a class generated with a [Schema](./ai.schema.md#schema_class) static method like `Schema.string()` or `Schema.object()` or it can be a plain JS object matching the [SchemaRequest](./ai.schemarequest.md#schemarequest_interface) interface. <br/>Note: This only applies when the specified `responseMimeType` supports a schema; currently this is limited to `application/json` and `text/x.enum`<!-- -->.
 
 <b>Signature:</b>
 
@@ -115,6 +142,16 @@ stopSequences?: string[];
 
 ```typescript
 temperature?: number;
+```
+
+## GenerationConfig.thinkingConfig
+
+Configuration for "thinking" behavior of compatible Gemini models.
+
+<b>Signature:</b>
+
+```typescript
+thinkingConfig?: ThinkingConfig;
 ```
 
 ## GenerationConfig.topK

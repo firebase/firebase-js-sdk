@@ -129,6 +129,134 @@
     ]
   },
   {
+    "name": "Pipeline Query with lt filter (execute)",
+    "dependencies": [
+      {
+        "packageName": "firebase",
+        "versionOrTag": "latest",
+        "imports": [
+          {
+            "path": "app",
+            "imports": [
+              "initializeApp"
+            ]
+          }
+        ]
+      },
+      {
+        "packageName": "firebase",
+        "versionOrTag": "latest",
+        "imports": [
+          {
+            "path": "firestore",
+            "imports": [
+              "getFirestore"
+            ]
+          }
+        ]
+      },
+      {
+        "packageName": "firebase",
+        "versionOrTag": "latest",
+        "imports": [
+          {
+            "path": "firestore/pipelines",
+            "imports": [
+              "lessThan",
+              "Field",
+              "execute"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Pipeline Query with lt filter (useFirestorePipelines)",
+    "dependencies": [
+      {
+        "packageName": "firebase",
+        "versionOrTag": "latest",
+        "imports": [
+          {
+            "path": "app",
+            "imports": [
+              "initializeApp"
+            ]
+          }
+        ]
+      },
+      {
+        "packageName": "firebase",
+        "versionOrTag": "latest",
+        "imports": [
+          {
+            "path": "firestore",
+            "imports": [
+              "getFirestore"
+            ]
+          }
+        ]
+      },
+      {
+        "packageName": "firebase",
+        "versionOrTag": "latest",
+        "imports": [
+          {
+            "path": "firestore/pipelines",
+            "imports": [
+              "lessThan",
+              "Field"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Pipeline Query with lt plus and function",
+    "dependencies": [
+      {
+        "packageName": "firebase",
+        "versionOrTag": "latest",
+        "imports": [
+          {
+            "path": "app",
+            "imports": [
+              "initializeApp"
+            ]
+          }
+        ]
+      },
+      {
+        "packageName": "firebase",
+        "versionOrTag": "latest",
+        "imports": [
+          {
+            "path": "firestore",
+            "imports": [
+              "getFirestore"
+            ]
+          }
+        ]
+      },
+      {
+        "packageName": "firebase",
+        "versionOrTag": "latest",
+        "imports": [
+          {
+            "path": "firestore/pipelines",
+            "imports": [
+              "lessThan",
+              "Field",
+              "and"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "name": "Query Cursors",
     "dependencies": [
       {

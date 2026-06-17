@@ -7,6 +7,6 @@
     "indexes": "firestore.indexes.json"
   },
   "functions": {
-    "runtime": "nodejs18"
+    "runtime": "nodejs20"
   }
 }

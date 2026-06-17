@@ -20,6 +20,7 @@ import { doc, query } from '../../util/helpers';
 
 import { describeSpec, specTest } from './describe_spec';
 import { spec } from './spec_builder';
+import { RpcError } from './spec_rpc_error';
 
 describeSpec('Remote store:', [], () => {
   specTest('Waits for watch to remove targets', [], () => {
@@ -31,10 +32,12 @@ describeSpec('Remote store:', [], () => {
       .watchAcks(query1)
       .userUnlistens(query1) // Now we simulate a quick unlisten.
       .userListens(query1) // But add it back before watch acks it.
+      .watchUsesTargetIndex(0)
       .watchSends({ affects: [query1] }, doc1) // Should be ignored.
       .watchCurrents(query1, 'resume-token')
       .watchSnapshots(1000)
       .watchRemoves(query1) // Finally watch decides to ack the removal.
+      .watchUsesTargetIndex('latest')
       .watchAcksFull(query1, 1001, doc1) // Now watch should ack the query.
       .expectEvents(query1, { added: [doc1] }); // This should work now.
   });
@@ -58,11 +61,15 @@ describeSpec('Remote store:', [], () => {
       .watchSends({ affects: [query1] }, doc1) // Should be ignored.
       .watchCurrents(query1, 'resume-token')
       .watchSnapshots(1000)
+      .watchUsesTargetIndex(0)
       .watchRemoves(query1) // Finally watch decides to ack the FIRST removal.
+      .watchUsesTargetIndex(1)
       .watchAcksFull(query1, 1001, doc2) // Now watch should ack the second listen.
       .watchRemoves(query1) // Finally watch decides to ack the SECOND removal.
+      .watchUsesTargetIndex(2)
       .watchAcksFull(query1, 1001, doc3) // Now watch should ack the second listen.
       .watchRemoves(query1) // Finally watch decides to ack the THIRD removal.
+      .watchUsesTargetIndex(3)
       .watchAcksFull(query1, 1001, doc4) // Now watch should ack the query.
       .expectEvents(query1, { added: [doc4] }); // This should work now.
   });
@@ -115,4 +122,119 @@ describeSpec('Remote store:', [], () => {
       );
     }
   );
+
+  // This flow was identified as a root cause of "pendingResponses is less than 0" (ca9 assertion)
+  specTest(
+    'Handles removal of old target (with cause) after re-listen',
+    [],
+    () => {
+      const query1 = query('collection');
+      return (
+        spec()
+          .ensureManualLruGC()
+          .allowUnlistedTargetRemoval()
+          .userListens(query1)
+          .watchAcks(query1)
+          .userUnlistens(query1)
+          .userListens(query1)
+          .watchUsesTargetIndex(0)
+          // Use numerical code 8 for RESOURCE_EXHAUSTED
+          .watchRemoves(query1, new RpcError(8, 'Resource exhausted'))
+          .watchUsesTargetIndex('latest')
+          .watchAcks(query1)
+          .expectActiveTargets({ query: query1, resumeToken: '' })
+      );
+    }
+  );
+
+  specTest('Handles removal of old target after re-listen', [], () => {
+    const query1 = query('collection');
+    return spec()
+      .ensureManualLruGC()
+      .userListens(query1)
+      .watchAcks(query1)
+      .userUnlistens(query1)
+      .userListens(query1)
+      .watchUsesTargetIndex(0)
+      .watchRemoves(query1)
+      .watchUsesTargetIndex('latest')
+      .watchAcks(query1)
+      .expectActiveTargets({ query: query1, resumeToken: '' });
+  });
+
+  specTest(
+    'Handles removal of target with cause after unlisten and ignores future messages',
+    [],
+    () => {
+      const query1 = query('collection');
+      const doc1 = doc('collection/a', 1000, { key: 'a' });
+      return spec()
+        .ensureManualLruGC()
+        .allowUnlistedTargetRemoval()
+        .userListens(query1)
+        .watchAcks(query1)
+        .userUnlistens(query1)
+        .watchRemoves(query1, new RpcError(8, 'Resource exhausted'))
+        .watchSends({ affects: [query1] }, doc1)
+        .expectActiveTargets();
+    }
+  );
+
+  specTest('Handles ack of target after un-listen', [], () => {
+    const query1 = query('collection');
+    return spec()
+      .ensureManualLruGC()
+      .userListens(query1)
+      .userUnlistens(query1)
+      .watchAcks(query1)
+      .expectActiveTargets();
+  });
+
+  specTest('Handles reset between listen and ack', [], () => {
+    const query1 = query('collection');
+    return spec()
+      .ensureManualLruGC()
+      .userListens(query1)
+      .watchResets(query1)
+      .watchAcks(query1);
+  });
+
+  specTest('Handles close between listen and ack', [], () => {
+    const query1 = query('collection');
+    return spec()
+      .ensureManualLruGC()
+      .userListens(query1)
+      .watchStreamCloses('unknown', { runBackoffTimer: true })
+      .expectEvents(query1, { fromCache: true })
+      .watchAcks(query1);
+  });
+
+  specTest('Handles listen, unlisten, listen, ack', [], () => {
+    const query1 = query('collection');
+    return spec()
+      .ensureManualLruGC()
+      .userListens(query1)
+      .userUnlistens(query1)
+      .userListens(query1)
+      .watchUsesTargetIndex(0)
+      .watchAcks(query1)
+      .watchUsesTargetIndex(1)
+      .expectActiveTargets({ query: query1 });
+  });
+
+  specTest('Handles stale ack after stream reopen', [], () => {
+    const query1 = query('collection');
+    return spec()
+      .ensureManualLruGC()
+      .userListens(query1)
+      .userUnlistens(query1)
+      .userListens(query1)
+      .watchStreamCloses(Code.UNAVAILABLE, { runBackoffTimer: true })
+      .expectEvents(query1, { fromCache: true })
+      .watchUsesTargetIndex(0)
+      .watchAcks(query1)
+      .watchUsesTargetIndex(1)
+      .watchAcks(query1)
+      .expectActiveTargets({ query: query1 });
+  });
 });

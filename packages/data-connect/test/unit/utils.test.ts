@@ -15,12 +15,19 @@
  * limitations under the License.
  */
 
+import { deleteApp, initializeApp, FirebaseApp } from '@firebase/app';
 import { expect } from 'chai';
 
 import { getDataConnect } from '../../src';
 import { validateArgs } from '../../src/util/validateArgs';
-import { app } from '../util';
 describe('Utils', () => {
+  let app: FirebaseApp;
+  beforeEach(() => {
+    app = initializeApp({ projectId: 'p' });
+  });
+  afterEach(async () => {
+    await deleteApp(app);
+  });
   it('[Vars required: true] should throw if no arguments are provided', () => {
     const connectorConfig = { connector: 'c', location: 'l', service: 's' };
     expect(() =>

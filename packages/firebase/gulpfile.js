@@ -21,7 +21,7 @@ const replace = require('gulp-replace');
 
 const pkgJson = require('./package.json');
 const files = pkgJson.components.map(component => {
-  const componentName = component.replace('/', '-');
+  const componentName = component.replaceAll('/', '-');
   return `firebase-${componentName}.js`;
 });
 const FIREBASE_APP_URL = `https://www.gstatic.com/firebasejs/${pkgJson.version}/firebase-app.js`;

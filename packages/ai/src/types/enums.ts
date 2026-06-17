@@ -31,229 +31,375 @@ export const POSSIBLE_ROLES = ['user', 'model', 'function', 'system'] as const;
  * Harm categories that would cause prompts or candidates to be blocked.
  * @public
  */
-export enum HarmCategory {
-  HARM_CATEGORY_HATE_SPEECH = 'HARM_CATEGORY_HATE_SPEECH',
-  HARM_CATEGORY_SEXUALLY_EXPLICIT = 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
-  HARM_CATEGORY_HARASSMENT = 'HARM_CATEGORY_HARASSMENT',
-  HARM_CATEGORY_DANGEROUS_CONTENT = 'HARM_CATEGORY_DANGEROUS_CONTENT'
-}
+export const HarmCategory = {
+  HARM_CATEGORY_HATE_SPEECH: 'HARM_CATEGORY_HATE_SPEECH',
+  HARM_CATEGORY_SEXUALLY_EXPLICIT: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
+  HARM_CATEGORY_HARASSMENT: 'HARM_CATEGORY_HARASSMENT',
+  HARM_CATEGORY_DANGEROUS_CONTENT: 'HARM_CATEGORY_DANGEROUS_CONTENT'
+} as const;
+
+/**
+ * Harm categories that would cause prompts or candidates to be blocked.
+ * @public
+ */
+export type HarmCategory = (typeof HarmCategory)[keyof typeof HarmCategory];
 
 /**
  * Threshold above which a prompt or candidate will be blocked.
  * @public
  */
-export enum HarmBlockThreshold {
+export const HarmBlockThreshold = {
   /**
    * Content with `NEGLIGIBLE` will be allowed.
    */
-  BLOCK_LOW_AND_ABOVE = 'BLOCK_LOW_AND_ABOVE',
+  BLOCK_LOW_AND_ABOVE: 'BLOCK_LOW_AND_ABOVE',
   /**
    * Content with `NEGLIGIBLE` and `LOW` will be allowed.
    */
-  BLOCK_MEDIUM_AND_ABOVE = 'BLOCK_MEDIUM_AND_ABOVE',
+  BLOCK_MEDIUM_AND_ABOVE: 'BLOCK_MEDIUM_AND_ABOVE',
   /**
    * Content with `NEGLIGIBLE`, `LOW`, and `MEDIUM` will be allowed.
    */
-  BLOCK_ONLY_HIGH = 'BLOCK_ONLY_HIGH',
+  BLOCK_ONLY_HIGH: 'BLOCK_ONLY_HIGH',
   /**
    * All content will be allowed.
    */
-  BLOCK_NONE = 'BLOCK_NONE',
+  BLOCK_NONE: 'BLOCK_NONE',
   /**
    * All content will be allowed. This is the same as `BLOCK_NONE`, but the metadata corresponding
-   * to the {@link HarmCategory} will not be present in the response.
+   * to the {@link (HarmCategory:type)} will not be present in the response.
    */
-  OFF = 'OFF'
-}
+  OFF: 'OFF'
+} as const;
+
+/**
+ * Threshold above which a prompt or candidate will be blocked.
+ * @public
+ */
+export type HarmBlockThreshold =
+  (typeof HarmBlockThreshold)[keyof typeof HarmBlockThreshold];
 
 /**
  * This property is not supported in the Gemini Developer API ({@link GoogleAIBackend}).
  *
  * @public
  */
-export enum HarmBlockMethod {
+export const HarmBlockMethod = {
   /**
    * The harm block method uses both probability and severity scores.
    */
-  SEVERITY = 'SEVERITY',
+  SEVERITY: 'SEVERITY',
   /**
    * The harm block method uses the probability score.
    */
-  PROBABILITY = 'PROBABILITY'
-}
+  PROBABILITY: 'PROBABILITY'
+} as const;
+
+/**
+ * This property is not supported in the Gemini Developer API ({@link GoogleAIBackend}).
+ *
+ * @public
+ */
+export type HarmBlockMethod =
+  (typeof HarmBlockMethod)[keyof typeof HarmBlockMethod];
 
 /**
  * Probability that a prompt or candidate matches a harm category.
  * @public
  */
-export enum HarmProbability {
+export const HarmProbability = {
   /**
    * Content has a negligible chance of being unsafe.
    */
-  NEGLIGIBLE = 'NEGLIGIBLE',
+  NEGLIGIBLE: 'NEGLIGIBLE',
   /**
    * Content has a low chance of being unsafe.
    */
-  LOW = 'LOW',
+  LOW: 'LOW',
   /**
    * Content has a medium chance of being unsafe.
    */
-  MEDIUM = 'MEDIUM',
+  MEDIUM: 'MEDIUM',
   /**
    * Content has a high chance of being unsafe.
    */
-  HIGH = 'HIGH'
-}
+  HIGH: 'HIGH'
+} as const;
+
+/**
+ * Probability that a prompt or candidate matches a harm category.
+ * @public
+ */
+export type HarmProbability =
+  (typeof HarmProbability)[keyof typeof HarmProbability];
 
 /**
  * Harm severity levels.
  * @public
  */
-export enum HarmSeverity {
+export const HarmSeverity = {
   /**
    * Negligible level of harm severity.
    */
-  HARM_SEVERITY_NEGLIGIBLE = 'HARM_SEVERITY_NEGLIGIBLE',
+  HARM_SEVERITY_NEGLIGIBLE: 'HARM_SEVERITY_NEGLIGIBLE',
   /**
    * Low level of harm severity.
    */
-  HARM_SEVERITY_LOW = 'HARM_SEVERITY_LOW',
+  HARM_SEVERITY_LOW: 'HARM_SEVERITY_LOW',
   /**
    * Medium level of harm severity.
    */
-  HARM_SEVERITY_MEDIUM = 'HARM_SEVERITY_MEDIUM',
+  HARM_SEVERITY_MEDIUM: 'HARM_SEVERITY_MEDIUM',
   /**
    * High level of harm severity.
    */
-  HARM_SEVERITY_HIGH = 'HARM_SEVERITY_HIGH',
+  HARM_SEVERITY_HIGH: 'HARM_SEVERITY_HIGH',
   /**
    * Harm severity is not supported.
    *
    * @remarks
    * The GoogleAI backend does not support `HarmSeverity`, so this value is used as a fallback.
    */
-  HARM_SEVERITY_UNSUPPORTED = 'HARM_SEVERITY_UNSUPPORTED'
-}
+  HARM_SEVERITY_UNSUPPORTED: 'HARM_SEVERITY_UNSUPPORTED'
+} as const;
+
+/**
+ * Harm severity levels.
+ * @public
+ */
+export type HarmSeverity = (typeof HarmSeverity)[keyof typeof HarmSeverity];
 
 /**
  * Reason that a prompt was blocked.
  * @public
  */
-export enum BlockReason {
+export const BlockReason = {
   /**
    * Content was blocked by safety settings.
    */
-  SAFETY = 'SAFETY',
+  SAFETY: 'SAFETY',
   /**
    * Content was blocked, but the reason is uncategorized.
    */
-  OTHER = 'OTHER',
+  OTHER: 'OTHER',
   /**
    * Content was blocked because it contained terms from the terminology blocklist.
    */
-  BLOCKLIST = 'BLOCKLIST',
+  BLOCKLIST: 'BLOCKLIST',
   /**
    * Content was blocked due to prohibited content.
    */
-  PROHIBITED_CONTENT = 'PROHIBITED_CONTENT'
-}
+  PROHIBITED_CONTENT: 'PROHIBITED_CONTENT'
+} as const;
+
+/**
+ * Reason that a prompt was blocked.
+ * @public
+ */
+export type BlockReason = (typeof BlockReason)[keyof typeof BlockReason];
 
 /**
  * Reason that a candidate finished.
  * @public
  */
-export enum FinishReason {
+export const FinishReason = {
   /**
    * Natural stop point of the model or provided stop sequence.
    */
-  STOP = 'STOP',
+  STOP: 'STOP',
   /**
    * The maximum number of tokens as specified in the request was reached.
    */
-  MAX_TOKENS = 'MAX_TOKENS',
+  MAX_TOKENS: 'MAX_TOKENS',
   /**
    * The candidate content was flagged for safety reasons.
    */
-  SAFETY = 'SAFETY',
+  SAFETY: 'SAFETY',
   /**
    * The candidate content was flagged for recitation reasons.
    */
-  RECITATION = 'RECITATION',
+  RECITATION: 'RECITATION',
   /**
    * Unknown reason.
    */
-  OTHER = 'OTHER',
+  OTHER: 'OTHER',
   /**
    * The candidate content contained forbidden terms.
    */
-  BLOCKLIST = 'BLOCKLIST',
+  BLOCKLIST: 'BLOCKLIST',
   /**
    * The candidate content potentially contained prohibited content.
    */
-  PROHIBITED_CONTENT = 'PROHIBITED_CONTENT',
+  PROHIBITED_CONTENT: 'PROHIBITED_CONTENT',
   /**
    * The candidate content potentially contained Sensitive Personally Identifiable Information (SPII).
    */
-  SPII = 'SPII',
+  SPII: 'SPII',
   /**
    * The function call generated by the model was invalid.
    */
-  MALFORMED_FUNCTION_CALL = 'MALFORMED_FUNCTION_CALL'
-}
+  MALFORMED_FUNCTION_CALL: 'MALFORMED_FUNCTION_CALL',
+  /**
+   * Token generation stopped because generated images contain safety violations.
+   */
+  IMAGE_SAFETY: 'IMAGE_SAFETY',
+  /**
+   * Image generation stopped because generated images have other prohibited content.
+   */
+  IMAGE_PROHIBITED_CONTENT: 'IMAGE_PROHIBITED_CONTENT',
+  /**
+   * Image generation stopped because of other miscellaneous issue.
+   */
+  IMAGE_OTHER: 'IMAGE_OTHER',
+  /**
+   * The model was expected to generate an image, but none was generated.
+   */
+  NO_IMAGE: 'NO_IMAGE',
+  /**
+   * Image generation stopped due to recitation.
+   */
+  IMAGE_RECITATION: 'IMAGE_RECITATION',
+  /**
+   * The response candidate content was flagged for using an unsupported language.
+   */
+  LANGUAGE: 'LANGUAGE',
+  /**
+   * Model generated a tool call but no tools were enabled in the request.
+   */
+  UNEXPECTED_TOOL_CALL: 'UNEXPECTED_TOOL_CALL',
+  /**
+   * Model called too many tools consecutively, thus the system exited execution.
+   */
+  TOO_MANY_TOOL_CALLS: 'TOO_MANY_TOOL_CALLS',
+  /**
+   * Request has at least one thought signature missing.
+   */
+  MISSING_THOUGHT_SIGNATURE: 'MISSING_THOUGHT_SIGNATURE',
+  /**
+   * Finished due to malformed response.
+   */
+  MALFORMED_RESPONSE: 'MALFORMED_RESPONSE'
+} as const;
+
+/**
+ * Reason that a candidate finished.
+ * @public
+ */
+export type FinishReason = (typeof FinishReason)[keyof typeof FinishReason];
+
+/**
+ * Aspect ratios for generated images.
+ * @public
+ */
+/* eslint-disable camelcase */
+export const ImageConfigAspectRatio = {
+  SQUARE_1x1: '1:1',
+  PORTRAIT_9x16: '9:16',
+  LANDSCAPE_16x9: '16:9',
+  PORTRAIT_3x4: '3:4',
+  LANDSCAPE_4x3: '4:3',
+  PORTRAIT_2x3: '2:3',
+  LANDSCAPE_3x2: '3:2',
+  PORTRAIT_4x5: '4:5',
+  LANDSCAPE_5x4: '5:4',
+  PORTRAIT_1x4: '1:4',
+  LANDSCAPE_4x1: '4:1',
+  PORTRAIT_1x8: '1:8',
+  LANDSCAPE_8x1: '8:1',
+  ULTRAWIDE_21x9: '21:9'
+} as const;
+/* eslint-enable camelcase */
+
+/**
+ * Aspect ratios for generated images.
+ * @public
+ */
+export type ImageConfigAspectRatio =
+  (typeof ImageConfigAspectRatio)[keyof typeof ImageConfigAspectRatio];
+
+/**
+ * Sizes for generated images. For example, '1K' is 1024px, '2K' is 2048px, and '4K' is 4096px.
+ * @public
+ */
+export const ImageConfigImageSize = {
+  SIZE_512: '512',
+  SIZE_1K: '1K',
+  SIZE_2K: '2K',
+  SIZE_4K: '4K'
+} as const;
+
+/**
+ * Sizes for generated images.
+ * @public
+ */
+export type ImageConfigImageSize =
+  (typeof ImageConfigImageSize)[keyof typeof ImageConfigImageSize];
 
 /**
  * @public
  */
-export enum FunctionCallingMode {
+export const FunctionCallingMode = {
   /**
    * Default model behavior; model decides to predict either a function call
    * or a natural language response.
    */
-  AUTO = 'AUTO',
+  AUTO: 'AUTO',
   /**
    * Model is constrained to always predicting a function call only.
    * If `allowed_function_names` is set, the predicted function call will be
    * limited to any one of `allowed_function_names`, else the predicted
    * function call will be any one of the provided `function_declarations`.
    */
-  ANY = 'ANY',
+  ANY: 'ANY',
   /**
    * Model will not predict any function call. Model behavior is same as when
    * not passing any function declarations.
    */
-  NONE = 'NONE'
-}
+  NONE: 'NONE'
+} as const;
+
+/**
+ * @public
+ */
+export type FunctionCallingMode =
+  (typeof FunctionCallingMode)[keyof typeof FunctionCallingMode];
 
 /**
  * Content part modality.
  * @public
  */
-export enum Modality {
+export const Modality = {
   /**
    * Unspecified modality.
    */
-  MODALITY_UNSPECIFIED = 'MODALITY_UNSPECIFIED',
+  MODALITY_UNSPECIFIED: 'MODALITY_UNSPECIFIED',
   /**
    * Plain text.
    */
-  TEXT = 'TEXT',
+  TEXT: 'TEXT',
   /**
    * Image.
    */
-  IMAGE = 'IMAGE',
+  IMAGE: 'IMAGE',
   /**
    * Video.
    */
-  VIDEO = 'VIDEO',
+  VIDEO: 'VIDEO',
   /**
    * Audio.
    */
-  AUDIO = 'AUDIO',
+  AUDIO: 'AUDIO',
   /**
    * Document (for example, PDF).
    */
-  DOCUMENT = 'DOCUMENT'
-}
+  DOCUMENT: 'DOCUMENT'
+} as const;
+
+/**
+ * Content part modality.
+ * @public
+ */
+export type Modality = (typeof Modality)[keyof typeof Modality];
 
 /**
  * Generation modalities to be returned in generation responses.
@@ -270,7 +416,12 @@ export const ResponseModality = {
    * Image.
    * @beta
    */
-  IMAGE: 'IMAGE'
+  IMAGE: 'IMAGE',
+  /**
+   * Audio.
+   * @beta
+   */
+  AUDIO: 'AUDIO'
 } as const;
 
 /**
@@ -280,3 +431,115 @@ export const ResponseModality = {
  */
 export type ResponseModality =
   (typeof ResponseModality)[keyof typeof ResponseModality];
+
+/**
+ * Determines whether inference happens on-device or in-cloud.
+ *
+ * @remarks
+ * <b>PREFER_ON_DEVICE:</b> Attempt to make inference calls using an
+ * on-device model. If on-device inference is not available, the SDK
+ * will fall back to using a cloud-hosted model.
+ * <br/>
+ * <b>ONLY_ON_DEVICE:</b> Only attempt to make inference calls using an
+ * on-device model. The SDK will not fall back to a cloud-hosted model.
+ * If on-device inference is not available, inference methods will throw.
+ * <br/>
+ * <b>ONLY_IN_CLOUD:</b> Only attempt to make inference calls using a
+ * cloud-hosted model. The SDK will not fall back to an on-device model.
+ * <br/>
+ * <b>PREFER_IN_CLOUD:</b> Attempt to make inference calls to a
+ * cloud-hosted model. If not available, the SDK will fall back to an
+ * on-device model.
+ *
+ * @public
+ */
+export const InferenceMode = {
+  'PREFER_ON_DEVICE': 'prefer_on_device',
+  'ONLY_ON_DEVICE': 'only_on_device',
+  'ONLY_IN_CLOUD': 'only_in_cloud',
+  'PREFER_IN_CLOUD': 'prefer_in_cloud'
+} as const;
+
+/**
+ * Determines whether inference happens on-device or in-cloud.
+ *
+ * @public
+ */
+export type InferenceMode = (typeof InferenceMode)[keyof typeof InferenceMode];
+
+/**
+ * Indicates whether inference happened on-device or in-cloud.
+ *
+ * @public
+ */
+export const InferenceSource = {
+  'ON_DEVICE': 'on_device',
+  'IN_CLOUD': 'in_cloud'
+} as const;
+
+/**
+ * Indicates whether inference happened on-device or in-cloud.
+ *
+ * @public
+ */
+export type InferenceSource =
+  (typeof InferenceSource)[keyof typeof InferenceSource];
+
+/**
+ * Represents the result of the code execution.
+ *
+ * @public
+ */
+export const Outcome = {
+  UNSPECIFIED: 'OUTCOME_UNSPECIFIED',
+  OK: 'OUTCOME_OK',
+  FAILED: 'OUTCOME_FAILED',
+  DEADLINE_EXCEEDED: 'OUTCOME_DEADLINE_EXCEEDED'
+};
+
+/**
+ * Represents the result of the code execution.
+ *
+ * @public
+ */
+export type Outcome = (typeof Outcome)[keyof typeof Outcome];
+
+/**
+ * The programming language of the code.
+ *
+ * @public
+ */
+export const Language = {
+  UNSPECIFIED: 'LANGUAGE_UNSPECIFIED',
+  PYTHON: 'PYTHON'
+};
+
+/**
+ * The programming language of the code.
+ *
+ * @public
+ */
+export type Language = (typeof Language)[keyof typeof Language];
+
+/**
+ * A preset that controls the model's "thinking" process. Use
+ * `ThinkingLevel.LOW` for faster responses on less complex tasks, and
+ * `ThinkingLevel.HIGH` for better reasoning on more complex tasks.
+ *
+ * @public
+ */
+export const ThinkingLevel = {
+  MINIMAL: 'MINIMAL',
+  LOW: 'LOW',
+  MEDIUM: 'MEDIUM',
+  HIGH: 'HIGH'
+};
+
+/**
+ * A preset that controls the model's "thinking" process. Use
+ * `ThinkingLevel.LOW` for faster responses on less complex tasks, and
+ * `ThinkingLevel.HIGH` for better reasoning on more complex tasks.
+ *
+ * @public
+ */
+export type ThinkingLevel = (typeof ThinkingLevel)[keyof typeof ThinkingLevel];

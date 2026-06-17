@@ -48,6 +48,21 @@ const fakeResponseText: GenerateContentResponse = {
   ]
 };
 
+const fakeResponseThoughts: GenerateContentResponse = {
+  candidates: [
+    {
+      index: 0,
+      content: {
+        role: 'model',
+        parts: [
+          { text: 'Some text' },
+          { text: 'and some thoughts', thought: true }
+        ]
+      }
+    }
+  ]
+};
+
 const functionCallPart1 = {
   functionCall: {
     name: 'find_theaters',
@@ -188,6 +203,7 @@ describe('response-helpers methods', () => {
       expect(enhancedResponse.text()).to.equal('Some text and some more text');
       expect(enhancedResponse.functionCalls()).to.be.undefined;
       expect(enhancedResponse.inlineDataParts()).to.be.undefined;
+      expect(enhancedResponse.thoughtSummary()).to.be.undefined;
     });
     it('good response functionCall', async () => {
       const enhancedResponse = addHelpers(fakeResponseFunctionCall);
@@ -196,6 +212,7 @@ describe('response-helpers methods', () => {
         functionCallPart1.functionCall
       ]);
       expect(enhancedResponse.inlineDataParts()).to.be.undefined;
+      expect(enhancedResponse.thoughtSummary()).to.be.undefined;
     });
     it('good response functionCalls', async () => {
       const enhancedResponse = addHelpers(fakeResponseFunctionCalls);
@@ -205,6 +222,7 @@ describe('response-helpers methods', () => {
         functionCallPart2.functionCall
       ]);
       expect(enhancedResponse.inlineDataParts()).to.be.undefined;
+      expect(enhancedResponse.thoughtSummary()).to.be.undefined;
     });
     it('good response text/functionCall', async () => {
       const enhancedResponse = addHelpers(fakeResponseMixed1);
@@ -213,6 +231,7 @@ describe('response-helpers methods', () => {
       ]);
       expect(enhancedResponse.text()).to.equal('some text');
       expect(enhancedResponse.inlineDataParts()).to.be.undefined;
+      expect(enhancedResponse.thoughtSummary()).to.be.undefined;
     });
     it('good response functionCall/text', async () => {
       const enhancedResponse = addHelpers(fakeResponseMixed2);
@@ -221,6 +240,7 @@ describe('response-helpers methods', () => {
       ]);
       expect(enhancedResponse.text()).to.equal('some text');
       expect(enhancedResponse.inlineDataParts()).to.be.undefined;
+      expect(enhancedResponse.thoughtSummary()).to.be.undefined;
     });
     it('good response text/functionCall/text', async () => {
       const enhancedResponse = addHelpers(fakeResponseMixed3);
@@ -228,17 +248,20 @@ describe('response-helpers methods', () => {
         functionCallPart1.functionCall
       ]);
       expect(enhancedResponse.text()).to.equal('some text and more text');
+      expect(enhancedResponse.thoughtSummary()).to.be.undefined;
       expect(enhancedResponse.inlineDataParts()).to.be.undefined;
     });
     it('bad response safety', async () => {
       const enhancedResponse = addHelpers(badFakeResponse);
       expect(enhancedResponse.text).to.throw('SAFETY');
+      expect(enhancedResponse.thoughtSummary).to.throw('SAFETY');
       expect(enhancedResponse.functionCalls).to.throw('SAFETY');
       expect(enhancedResponse.inlineDataParts).to.throw('SAFETY');
     });
     it('good response inlineData', async () => {
       const enhancedResponse = addHelpers(fakeResponseInlineData);
       expect(enhancedResponse.text()).to.equal('');
+      expect(enhancedResponse.thoughtSummary()).to.be.undefined;
       expect(enhancedResponse.functionCalls()).to.be.undefined;
       expect(enhancedResponse.inlineDataParts()).to.deep.equal([
         inlineDataPart1,
@@ -248,10 +271,18 @@ describe('response-helpers methods', () => {
     it('good response text/inlineData', async () => {
       const enhancedResponse = addHelpers(fakeResponseTextAndInlineData);
       expect(enhancedResponse.text()).to.equal('Describe this:');
+      expect(enhancedResponse.thoughtSummary()).to.be.undefined;
       expect(enhancedResponse.functionCalls()).to.be.undefined;
       expect(enhancedResponse.inlineDataParts()).to.deep.equal([
         inlineDataPart1
       ]);
+    });
+    it('good response text/thought', async () => {
+      const enhancedResponse = addHelpers(fakeResponseThoughts);
+      expect(enhancedResponse.text()).to.equal('Some text');
+      expect(enhancedResponse.thoughtSummary()).to.equal('and some thoughts');
+      expect(enhancedResponse.functionCalls()).to.be.undefined;
+      expect(enhancedResponse.inlineDataParts()).to.be.undefined;
     });
   });
   describe('getBlockString', () => {

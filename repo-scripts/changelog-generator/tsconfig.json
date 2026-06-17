@@ -5,10 +5,13 @@
     "lib": [
       "ESNext"
     ],
+    "types": [
+      "node"
+    ],
     "module": "CommonJS",
     "moduleResolution": "node",
     "esModuleInterop": true,
     "resolveJsonModule": true,
-    "target": "es2017"
+    "target": "es2020"
   }
 }

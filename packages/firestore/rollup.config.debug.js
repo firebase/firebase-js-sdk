@@ -25,9 +25,9 @@ import pkg from './package.json';
 
 // This rollup configuration creates a single non-minified build for browser
 // testing. You can test code changes by running `yarn build:debug`. This
-// creates the file "dist/index.esm2017.js" that you can use in your sample
+// creates the file "dist/index.esm.js" that you can use in your sample
 // app as a replacement for
-// "node_modules/@firebase/firestore/dist/index.esm2017.js".
+// "node_modules/@firebase/firestore/dist/index.esm.js".
 
 const browserPlugins = function () {
   return [
@@ -35,7 +35,7 @@ const browserPlugins = function () {
       typescript,
       tsconfigOverride: {
         compilerOptions: {
-          target: 'es2017'
+          target: 'es2020'
         }
       },
       cacheDir: tmp.dirSync(),

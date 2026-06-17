@@ -63,6 +63,8 @@ https://github.com/firebase/firebase-js-sdk
 |  [setLogLevel(logLevel)](./firestore_lite.md#setloglevel_d02fda2) | Sets the verbosity of Cloud Firestore logs (debug, error, or silent). |
 |  <b>function(n, ...)</b> |
 |  [increment(n)](./firestore_lite.md#increment_5685735) | Returns a special value that can be used with [setDoc()](./firestore_lite.md#setdoc_ee215ad) or [updateDoc()](./firestore_lite.md#updatedoc_51a65e3) that tells the server to increment the field's current value by the given value.<!-- -->If either the operand or the current field value uses floating point precision, all arithmetic follows IEEE 754 semantics. If both values are integers, values outside of JavaScript's safe number range (<code>Number.MIN_SAFE_INTEGER</code> to <code>Number.MAX_SAFE_INTEGER</code>) are also subject to precision loss. Furthermore, once processed by the Firestore backend, all integer operations are capped between -2^63 and 2^63-1.<!-- -->If the current field value is not of type <code>number</code>, or if the field does not yet exist, the transformation sets the field to the given value. |
+|  [maximum(n)](./firestore_lite.md#maximum_5685735) | Returns a special value that can be used with [setDoc()](./firestore_lite.md#setdoc_ee215ad) or [updateDoc()](./firestore_lite.md#updatedoc_51a65e3) that tells the server to set the field to the numeric maximum of the field's current and the given value. |
+|  [minimum(n)](./firestore_lite.md#minimum_5685735) | Returns a special value that can be used with [setDoc()](./firestore_lite.md#setdoc_ee215ad) or [updateDoc()](./firestore_lite.md#updatedoc_51a65e3) that tells the server to set the field to the numeric minimum of the field's current and the given value. |
 |  <b>function(query, ...)</b> |
 |  [getAggregate(query, aggregateSpec)](./firestore_lite.md#getaggregate_2073a74) | Calculates the specified aggregations over the documents in the result set of the given query without actually downloading the documents.<!-- -->Using this function to perform aggregations is efficient because only the final aggregation values, not the documents' data, are downloaded. This function can perform aggregations of the documents in cases where the result set is prohibitively large to download entirely (thousands of documents). |
 |  [getCount(query)](./firestore_lite.md#getcount_4e56953) | Calculates the number of documents in the result set of the given query without actually downloading the documents.<!-- -->Using this function to count the documents is efficient because only the final count, not the documents' data, is downloaded. This function can count the documents in cases where the result set is prohibitively large to download entirely (thousands of documents). |
@@ -98,8 +100,12 @@ https://github.com/firebase/firebase-js-sdk
 |  --- | --- |
 |  [AggregateField](./firestore_lite.aggregatefield.md#aggregatefield_class) | Represents an aggregation that can be performed by Firestore. |
 |  [AggregateQuerySnapshot](./firestore_lite.aggregatequerysnapshot.md#aggregatequerysnapshot_class) | The results of executing an aggregation query. |
+|  [BsonBinaryData](./firestore_lite.bsonbinarydata.md#bsonbinarydata_class) | Represents a BSON Binary Data type in Firestore documents. BsonBinaryData |
+|  [BsonObjectId](./firestore_lite.bsonobjectid.md#bsonobjectid_class) | Represents a BSON ObjectId type in Firestore documents. BsonObjectId |
+|  [BsonTimestamp](./firestore_lite.bsontimestamp.md#bsontimestamp_class) | Represents a BSON Timestamp type in Firestore documents. BsonTimestamp |
 |  [Bytes](./firestore_lite.bytes.md#bytes_class) | An immutable object representing an array of bytes. |
 |  [CollectionReference](./firestore_lite.collectionreference.md#collectionreference_class) | A <code>CollectionReference</code> object can be used for adding documents, getting document references, and querying for documents (using [query()](./firestore_.md#query_9f7b0f4)<!-- -->). |
+|  [Decimal128Value](./firestore_lite.decimal128value.md#decimal128value_class) | Represents a 128-bit decimal type in Firestore documents. Decimal128Value |
 |  [DocumentReference](./firestore_lite.documentreference.md#documentreference_class) | A <code>DocumentReference</code> refers to a document location in a Firestore database and can be used to write, read, or listen to the location. The document at the referenced location may or may not exist. |
 |  [DocumentSnapshot](./firestore_lite.documentsnapshot.md#documentsnapshot_class) | A <code>DocumentSnapshot</code> contains data read from a document in your Firestore database. The data can be extracted with <code>.data()</code> or <code>.get(&lt;field&gt;)</code> to get a specific field.<!-- -->For a <code>DocumentSnapshot</code> that points to a non-existing document, any data access will return 'undefined'. You can use the <code>exists()</code> method to explicitly verify a document's existence. |
 |  [FieldPath](./firestore_lite.fieldpath.md#fieldpath_class) | A <code>FieldPath</code> refers to a field in a document. The path may consist of a single field name (referring to a top-level field in the document), or a list of field names (referring to a nested field in the document).<!-- -->Create a <code>FieldPath</code> by providing field names. If more than one field name is provided, the path will point to a nested field in a document. |
@@ -107,6 +113,9 @@ https://github.com/firebase/firebase-js-sdk
 |  [Firestore](./firestore_lite.firestore.md#firestore_class) | The Cloud Firestore service interface.<!-- -->Do not call this constructor directly. Instead, use [getFirestore()](./firestore_.md#getfirestore)<!-- -->. |
 |  [FirestoreError](./firestore_lite.firestoreerror.md#firestoreerror_class) | An error returned by a Firestore operation. |
 |  [GeoPoint](./firestore_lite.geopoint.md#geopoint_class) | An immutable object representing a geographic location in Firestore. The location is represented as latitude/longitude pair.<!-- -->Latitude values are in the range of \[-90, 90\]. Longitude values are in the range of \[-180, 180\]. |
+|  [Int32Value](./firestore_lite.int32value.md#int32value_class) | Represents a 32-bit integer type in Firestore documents. Int32Value |
+|  [MaxKey](./firestore_lite.maxkey.md#maxkey_class) | Represent a "Max Key" type in Firestore documents. MaxKey |
+|  [MinKey](./firestore_lite.minkey.md#minkey_class) | Represent a "Min Key" type in Firestore documents. MinKey |
 |  [Query](./firestore_lite.query.md#query_class) | A <code>Query</code> refers to a query which you can read or listen to. You can also construct refined <code>Query</code> objects by adding filters and ordering. |
 |  [QueryCompositeFilterConstraint](./firestore_lite.querycompositefilterconstraint.md#querycompositefilterconstraint_class) | A <code>QueryCompositeFilterConstraint</code> is used to narrow the set of documents returned by a Firestore query by performing the logical OR or AND of multiple [QueryFieldFilterConstraint](./firestore_.queryfieldfilterconstraint.md#queryfieldfilterconstraint_class)<!-- -->s or [QueryCompositeFilterConstraint](./firestore_.querycompositefilterconstraint.md#querycompositefilterconstraint_class)<!-- -->s. <code>QueryCompositeFilterConstraint</code>s are created by invoking [or()](./firestore_.md#or_e72c712) or [and()](./firestore_.md#and_e72c712) and can then be passed to [query()](./firestore_.md#query_9f7b0f4) to create a new query instance that also contains the <code>QueryCompositeFilterConstraint</code>. |
 |  [QueryConstraint](./firestore_lite.queryconstraint.md#queryconstraint_class) | A <code>QueryConstraint</code> is used to narrow the set of documents returned by a Firestore query. <code>QueryConstraint</code>s are created by invoking [where()](./firestore_.md#where_0fae4bf)<!-- -->, [orderBy()](./firestore_.md#orderby_006d61f)<!-- -->, [startAt()](./firestore_.md#startat_9a4477f)<!-- -->, [startAfter()](./firestore_.md#startafter_9a4477f)<!-- -->, [endBefore()](./firestore_.md#endbefore_9a4477f)<!-- -->, [endAt()](./firestore_.md#endat_9a4477f)<!-- -->, [limit()](./firestore_.md#limit_ec46c78)<!-- -->, [limitToLast()](./firestore_.md#limittolast_ec46c78) and can then be passed to [query()](./firestore_.md#query_9f7b0f4) to create a new query instance that also contains this <code>QueryConstraint</code>. |
@@ -117,9 +126,10 @@ https://github.com/firebase/firebase-js-sdk
 |  [QueryOrderByConstraint](./firestore_lite.queryorderbyconstraint.md#queryorderbyconstraint_class) | A <code>QueryOrderByConstraint</code> is used to sort the set of documents returned by a Firestore query. <code>QueryOrderByConstraint</code>s are created by invoking [orderBy()](./firestore_.md#orderby_006d61f) and can then be passed to [query()](./firestore_.md#query_9f7b0f4) to create a new query instance that also contains this <code>QueryOrderByConstraint</code>.<!-- -->Note: Documents that do not contain the orderBy field will not be present in the query result. |
 |  [QuerySnapshot](./firestore_lite.querysnapshot.md#querysnapshot_class) | A <code>QuerySnapshot</code> contains zero or more <code>DocumentSnapshot</code> objects representing the results of a query. The documents can be accessed as an array via the <code>docs</code> property or enumerated using the <code>forEach</code> method. The number of documents can be determined via the <code>empty</code> and <code>size</code> properties. |
 |  [QueryStartAtConstraint](./firestore_lite.querystartatconstraint.md#querystartatconstraint_class) | A <code>QueryStartAtConstraint</code> is used to exclude documents from the start of a result set returned by a Firestore query. <code>QueryStartAtConstraint</code>s are created by invoking [startAt()](./firestore_.md#startat_9a4477f) or [startAfter()](./firestore_.md#startafter_9a4477f) and can then be passed to [query()](./firestore_.md#query_9f7b0f4) to create a new query instance that also contains this <code>QueryStartAtConstraint</code>. |
+|  [RegexValue](./firestore_lite.regexvalue.md#regexvalue_class) | Represents a regular expression type in Firestore documents. RegexValue |
 |  [Timestamp](./firestore_lite.timestamp.md#timestamp_class) | A <code>Timestamp</code> represents a point in time independent of any time zone or calendar, represented as seconds and fractions of seconds at nanosecond resolution in UTC Epoch time.<!-- -->It is encoded using the Proleptic Gregorian Calendar which extends the Gregorian calendar backwards to year one. It is encoded assuming all minutes are 60 seconds long, i.e. leap seconds are "smeared" so that no leap second table is needed for interpretation. Range is from 0001-01-01T00:00:00Z to 9999-12-31T23:59:59.999999999Z.<!-- -->For examples and further specifications, refer to the [Timestamp definition](https://github.com/google/protobuf/blob/master/src/google/protobuf/timestamp.proto)<!-- -->. |
 |  [Transaction](./firestore_lite.transaction.md#transaction_class) | A reference to a transaction.<!-- -->The <code>Transaction</code> object passed to a transaction's <code>updateFunction</code> provides the methods to read and write data within the transaction context. See [runTransaction()](./firestore_.md#runtransaction_6f03ec4)<!-- -->. |
-|  [VectorValue](./firestore_lite.vectorvalue.md#vectorvalue_class) | Represents a vector type in Firestore documents. Create an instance with <code>[vector()](./firestore_.md#vector_0dbdaf2)</code>. VectorValue |
+|  [VectorValue](./firestore_lite.vectorvalue.md#vectorvalue_class) | Represents a vector type in Firestore documents. Create an instance with <code>[vector()](./firestore_.md#vector_0dbdaf2)</code>. |
 |  [WriteBatch](./firestore_lite.writebatch.md#writebatch_class) | A write batch, used to perform multiple writes as a single atomic unit.<!-- -->A <code>WriteBatch</code> object can be acquired by calling [writeBatch()](./firestore_.md#writebatch_231a8e0)<!-- -->. It provides methods for adding writes to the write batch. None of the writes will be committed (or visible locally) until [WriteBatch.commit()](./firestore_.writebatch.md#writebatchcommit) is called. |
 
 ## Interfaces
@@ -171,7 +181,7 @@ export declare function getFirestore(app: FirebaseApp): Firestore;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  app | [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | The [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) instance that the returned [Firestore](./firestore_.firestore.md#firestore_class) instance is associated with. |
+|  app | FirebaseApp | The [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) instance that the returned [Firestore](./firestore_.firestore.md#firestore_class) instance is associated with. |
 
 <b>Returns:</b>
 
@@ -196,7 +206,7 @@ export declare function getFirestore(app: FirebaseApp, databaseId: string): Fire
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  app | [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | The [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) instance that the returned [Firestore](./firestore_.firestore.md#firestore_class) instance is associated with. |
+|  app | FirebaseApp | The [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) instance that the returned [Firestore](./firestore_.firestore.md#firestore_class) instance is associated with. |
 |  databaseId | string | The name of the database. |
 
 <b>Returns:</b>
@@ -219,7 +229,7 @@ export declare function initializeFirestore(app: FirebaseApp, settings: Settings
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  app | [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | The [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) with which the <code>Firestore</code> instance will be associated. |
+|  app | FirebaseApp | The [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) with which the <code>Firestore</code> instance will be associated. |
 |  settings | [Settings](./firestore_lite.settings.md#settings_interface) | A settings object to configure the <code>Firestore</code> instance. |
 
 <b>Returns:</b>
@@ -245,7 +255,7 @@ export declare function initializeFirestore(app: FirebaseApp, settings: Settings
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  app | [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | The [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) with which the <code>Firestore</code> instance will be associated. |
+|  app | FirebaseApp | The [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) with which the <code>Firestore</code> instance will be associated. |
 |  settings | [Settings](./firestore_lite.settings.md#settings_interface) | A settings object to configure the <code>Firestore</code> instance. |
 |  databaseId | string | The name of the database. |
 
@@ -974,6 +984,50 @@ export declare function increment(n: number): FieldValue;
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  n | number | The value to increment by. |
+
+<b>Returns:</b>
+
+[FieldValue](./firestore_lite.fieldvalue.md#fieldvalue_class)
+
+The `FieldValue` sentinel for use in a call to `setDoc()` or `updateDoc()`
+
+### maximum(n) {:#maximum_5685735}
+
+Returns a special value that can be used with [setDoc()](./firestore_lite.md#setdoc_ee215ad) or [updateDoc()](./firestore_lite.md#updatedoc_51a65e3) that tells the server to set the field to the numeric maximum of the field's current and the given value.
+
+<b>Signature:</b>
+
+```typescript
+export declare function maximum(n: number): FieldValue;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  n | number | The value to compare to the existing field value. |
+
+<b>Returns:</b>
+
+[FieldValue](./firestore_lite.fieldvalue.md#fieldvalue_class)
+
+The `FieldValue` sentinel for use in a call to `setDoc()` or `updateDoc()`
+
+### minimum(n) {:#minimum_5685735}
+
+Returns a special value that can be used with [setDoc()](./firestore_lite.md#setdoc_ee215ad) or [updateDoc()](./firestore_lite.md#updatedoc_51a65e3) that tells the server to set the field to the numeric minimum of the field's current and the given value.
+
+<b>Signature:</b>
+
+```typescript
+export declare function minimum(n: number): FieldValue;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  n | number | The value to compare to the existing field value. |
 
 <b>Returns:</b>
 

@@ -17,28 +17,17 @@
 
 import { FirebaseApp } from '@firebase/app';
 import { Backend } from './backend';
+import {
+  Content,
+  GenerateContentResult,
+  GenerateContentStreamResult,
+  Part,
+  RequestOptions,
+  SingleRequestOptions,
+  StartTemplateChatParams
+} from './types';
 
 export * from './types';
-
-/**
- * @deprecated Use the new {@link AI | AI} instead. The Vertex AI in Firebase SDK has been
- * replaced with the Firebase AI SDK to accommodate the evolving set of supported features and
- * services. For migration details, see the {@link https://firebase.google.com/docs/vertex-ai/migrate-to-latest-sdk | migration guide}.
- *
- * An instance of the Firebase AI SDK.
- *
- * @public
- */
-export type VertexAI = AI;
-
-/**
- * Options when initializing the Firebase AI SDK.
- *
- * @public
- */
-export interface VertexAIOptions {
-  location?: string;
-}
 
 /**
  * An instance of the Firebase AI SDK.
@@ -58,6 +47,10 @@ export interface AI {
    * Vertex AI Gemini API (using {@link VertexAIBackend}).
    */
   backend: Backend;
+  /**
+   * Options applied to this {@link AI} instance.
+   */
+  options?: AIOptions;
   /**
    * @deprecated use `AI.backend.location` instead.
    *
@@ -110,6 +103,46 @@ export type BackendType = (typeof BackendType)[keyof typeof BackendType];
 export interface AIOptions {
   /**
    * The backend configuration to use for the AI service instance.
+   * Defaults to the Gemini Developer API backend ({@link GoogleAIBackend}).
    */
-  backend: Backend;
+  backend?: Backend;
+  /**
+   * Whether to use App Check limited use tokens. Defaults to false.
+   */
+  useLimitedUseAppCheckTokens?: boolean;
+}
+
+/**
+ * Interface representing a `ChatSession` class for use with server
+ * prompt templates that enables sending chat messages and stores
+ * history of sent and received messages so far.
+ *
+ * @beta
+ */
+export interface TemplateChatSession {
+  params: StartTemplateChatParams;
+  requestOptions?: RequestOptions;
+  /**
+   * Sends a chat message and receives a non-streaming
+   * {@link GenerateContentResult}
+   */
+  sendMessage(
+    request: string | Array<string | Part>,
+    singleRequestOptions?: SingleRequestOptions
+  ): Promise<GenerateContentResult>;
+  /**
+   * Sends a chat message and receives the response as a
+   * {@link GenerateContentStreamResult} containing an iterable stream
+   * and a response promise.
+   */
+  sendMessageStream(
+    request: string | Array<string | Part>,
+    singleRequestOptions?: SingleRequestOptions
+  ): Promise<GenerateContentStreamResult>;
+  /**
+   * Gets the chat history so far. Blocked prompts are not added to history.
+   * Neither blocked candidates nor the prompts that generated them are added
+   * to history.
+   */
+  getHistory(): Promise<Content[]>;
 }

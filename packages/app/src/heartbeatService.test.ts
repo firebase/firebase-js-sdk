@@ -149,8 +149,10 @@ describe('HeartbeatServiceImpl', () => {
       expect(emptyHeaders).to.equal('');
     });
     it(`triggerHeartbeat() doesn't throw even if code errors`, async () => {
-      //@ts-expect-error Ensure this doesn't match
-      heartbeatService._heartbeatsCache?.lastSentHeartbeatDate = 50;
+      if (heartbeatService._heartbeatsCache) {
+        //@ts-expect-error Ensure this doesn't match
+        heartbeatService._heartbeatsCache.lastSentHeartbeatDate = 50;
+      }
       //@ts-expect-error Ensure you can't .push() to this
       heartbeatService._heartbeatsCache.heartbeats = 50;
       const warnStub = stub(console, 'warn');

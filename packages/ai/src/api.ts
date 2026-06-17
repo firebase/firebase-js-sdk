@@ -18,83 +18,56 @@
 import { FirebaseApp, getApp, _getProvider } from '@firebase/app';
 import { Provider } from '@firebase/component';
 import { getModularInstance } from '@firebase/util';
-import { AI_TYPE } from './constants';
+import { AI_TYPE, DEFAULT_HYBRID_IN_CLOUD_MODEL } from './constants';
 import { AIService } from './service';
-import { AI, AIOptions, VertexAI, VertexAIOptions } from './public-types';
+import { AI, AIOptions } from './public-types';
 import {
   ImagenModelParams,
+  HybridParams,
   ModelParams,
   RequestOptions,
-  AIErrorCode
+  AIErrorCode,
+  LiveModelParams
 } from './types';
 import { AIError } from './errors';
-import { AIModel, GenerativeModel, ImagenModel } from './models';
+import {
+  AIModel,
+  GenerativeModel,
+  LiveGenerativeModel,
+  ImagenModel
+} from './models';
 import { encodeInstanceIdentifier } from './helpers';
-import { GoogleAIBackend, VertexAIBackend } from './backend';
+import { GoogleAIBackend } from './backend';
+import { TemplateGenerativeModel } from './models/template-generative-model';
+import { TemplateImagenModel } from './models/template-imagen-model';
+import { logger } from './logger';
 
+export { TemplateChatSession } from './public-types';
 export { ChatSession } from './methods/chat-session';
+export { ChatSessionBase } from './methods/chat-session-base';
+export { LiveSession } from './methods/live-session';
 export * from './requests/schema-builder';
 export { ImagenImageFormat } from './requests/imagen-image-format';
-export { AIModel, GenerativeModel, ImagenModel, AIError };
+export {
+  AIModel,
+  GenerativeModel,
+  LiveGenerativeModel,
+  ImagenModel,
+  TemplateGenerativeModel,
+  TemplateImagenModel,
+  AIError
+};
 export { Backend, VertexAIBackend, GoogleAIBackend } from './backend';
-
-export { AIErrorCode as VertexAIErrorCode };
-
-/**
- * @deprecated Use the new {@link AIModel} instead. The Vertex AI in Firebase SDK has been
- * replaced with the Firebase AI SDK to accommodate the evolving set of supported features and
- * services. For migration details, see the {@link https://firebase.google.com/docs/vertex-ai/migrate-to-latest-sdk | migration guide}.
- *
- * Base class for Firebase AI model APIs.
- *
- * @public
- */
-export const VertexAIModel = AIModel;
-
-/**
- * @deprecated Use the new {@link AIError} instead. The Vertex AI in Firebase SDK has been
- * replaced with the Firebase AI SDK to accommodate the evolving set of supported features and
- * services. For migration details, see the {@link https://firebase.google.com/docs/vertex-ai/migrate-to-latest-sdk | migration guide}.
- *
- * Error class for the Firebase AI SDK.
- *
- * @public
- */
-export const VertexAIError = AIError;
+export {
+  startAudioConversation,
+  AudioConversationController,
+  StartAudioConversationOptions
+} from './methods/live-session-helpers';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
     [AI_TYPE]: AIService;
   }
-}
-
-/**
- * @deprecated Use the new {@link getAI | getAI()} instead. The Vertex AI in Firebase SDK has been
- * replaced with the Firebase AI SDK to accommodate the evolving set of supported features and
- * services. For migration details, see the {@link https://firebase.google.com/docs/vertex-ai/migrate-to-latest-sdk | migration guide}.
- *
- * Returns a {@link VertexAI} instance for the given app, configured to use the
- * Vertex AI Gemini API. This instance will be
- * configured to use the Vertex AI Gemini API.
- *
- * @param app - The {@link @firebase/app#FirebaseApp} to use.
- * @param options - Options to configure the Vertex AI instance, including the location.
- *
- * @public
- */
-export function getVertexAI(
-  app: FirebaseApp = getApp(),
-  options?: VertexAIOptions
-): VertexAI {
-  app = getModularInstance(app);
-  // Dependencies
-  const AIProvider: Provider<'AI'> = _getProvider(app, AI_TYPE);
-
-  const backend = new VertexAIBackend(options?.location);
-  const identifier = encodeInstanceIdentifier(backend);
-  return AIProvider.getImmediate({
-    identifier
-  });
 }
 
 /**
@@ -125,19 +98,32 @@ export function getVertexAI(
  *
  * @public
  */
-export function getAI(
-  app: FirebaseApp = getApp(),
-  options: AIOptions = { backend: new GoogleAIBackend() }
-): AI {
+export function getAI(app: FirebaseApp = getApp(), options?: AIOptions): AI {
   app = getModularInstance(app);
   // Dependencies
   const AIProvider: Provider<'AI'> = _getProvider(app, AI_TYPE);
 
-  const identifier = encodeInstanceIdentifier(options.backend);
-  return AIProvider.getImmediate({
+  const backend = options?.backend ?? new GoogleAIBackend();
+
+  const finalOptions: Omit<AIOptions, 'backend'> = {
+    useLimitedUseAppCheckTokens: options?.useLimitedUseAppCheckTokens ?? false
+  };
+
+  const identifier = encodeInstanceIdentifier(backend);
+  const aiInstance = AIProvider.getImmediate({
     identifier
   });
+
+  aiInstance.options = finalOptions;
+
+  return aiInstance;
 }
+
+const hybridParamKeys: Array<keyof HybridParams> = [
+  'mode',
+  'onDeviceParams',
+  'inCloudParams'
+];
 
 /**
  * Returns a {@link GenerativeModel} class with methods for inference
@@ -147,22 +133,69 @@ export function getAI(
  */
 export function getGenerativeModel(
   ai: AI,
-  modelParams: ModelParams,
+  modelParams: ModelParams | HybridParams,
   requestOptions?: RequestOptions
 ): GenerativeModel {
-  if (!modelParams.model) {
+  // Uses the existence of HybridParams.mode to clarify the type of the modelParams input.
+  const hybridParams = modelParams as HybridParams;
+  let inCloudParams: ModelParams;
+  if (hybridParams.mode) {
+    for (const param of Object.keys(modelParams)) {
+      if (!hybridParamKeys.includes(param as keyof HybridParams)) {
+        logger.warn(
+          `When a hybrid inference mode is specified (mode is currently set` +
+            ` to ${hybridParams.mode}), "${param}" cannot be ` +
+            `configured at the top level. Configuration for in-cloud and ` +
+            `on-device must be done separately in inCloudParams and onDeviceParams. ` +
+            `Configuration values set outside of inCloudParams and onDeviceParams will` +
+            ` be ignored.`
+        );
+      }
+    }
+    inCloudParams = hybridParams.inCloudParams || {
+      model: DEFAULT_HYBRID_IN_CLOUD_MODEL
+    };
+  } else {
+    inCloudParams = modelParams as ModelParams;
+  }
+
+  if (!inCloudParams.model) {
     throw new AIError(
       AIErrorCode.NO_MODEL,
       `Must provide a model name. Example: getGenerativeModel({ model: 'my-model-name' })`
     );
   }
-  return new GenerativeModel(ai, modelParams, requestOptions);
+
+  /**
+   * An AIService registered by index.node.ts will not have a
+   * chromeAdapterFactory() method.
+   */
+  const chromeAdapter = (ai as AIService).chromeAdapterFactory?.(
+    hybridParams.mode,
+    typeof window === 'undefined' ? undefined : window,
+    hybridParams.onDeviceParams
+  );
+
+  const generativeModel = new GenerativeModel(
+    ai,
+    inCloudParams,
+    requestOptions,
+    chromeAdapter
+  );
+
+  generativeModel._apiSettings.inferenceMode = hybridParams.mode;
+  return generativeModel;
 }
 
 /**
  * Returns an {@link ImagenModel} class with methods for using Imagen.
  *
  * Only Imagen 3 models (named `imagen-3.0-*`) are supported.
+ *
+ * @deprecated All Imagen models are deprecated and will shut down as
+ * early as June 2026. As a replacement, you can
+ * {@link https://firebase.google.com/docs/ai-logic/imagen-models-migration |
+ * migrate your apps to use Gemini Image models (the "Nano Banana" models)}.
  *
  * @param ai - An {@link AI} instance.
  * @param modelParams - Parameters to use when making Imagen requests.
@@ -171,7 +204,7 @@ export function getGenerativeModel(
  * @throws If the `apiKey` or `projectId` fields are missing in your
  * Firebase config.
  *
- * @beta
+ * @public
  */
 export function getImagenModel(
   ai: AI,
@@ -185,4 +218,64 @@ export function getImagenModel(
     );
   }
   return new ImagenModel(ai, modelParams, requestOptions);
+}
+
+/**
+ * Returns a {@link LiveGenerativeModel} class for real-time, bidirectional communication.
+ *
+ * The Live API is only supported in modern browser windows and Node >= 22.
+ *
+ * @param ai - An {@link AI} instance.
+ * @param modelParams - Parameters to use when setting up a {@link LiveSession}.
+ * @throws If the `apiKey` or `projectId` fields are missing in your
+ * Firebase config.
+ *
+ * @beta
+ */
+export function getLiveGenerativeModel(
+  ai: AI,
+  modelParams: LiveModelParams
+): LiveGenerativeModel {
+  if (!modelParams.model) {
+    throw new AIError(
+      AIErrorCode.NO_MODEL,
+      `Must provide a model name for getLiveGenerativeModel. Example: getLiveGenerativeModel(ai, { model: 'my-model-name' })`
+    );
+  }
+  return new LiveGenerativeModel(ai, modelParams);
+}
+
+/**
+ * Returns a {@link TemplateGenerativeModel} class for executing server-side
+ * templates.
+ *
+ * @param ai - An {@link AI} instance.
+ * @param requestOptions - Additional options to use when making requests.
+ *
+ * @beta
+ */
+export function getTemplateGenerativeModel(
+  ai: AI,
+  requestOptions?: RequestOptions
+): TemplateGenerativeModel {
+  return new TemplateGenerativeModel(ai, requestOptions);
+}
+
+/**
+ * Returns a {@link TemplateImagenModel} class for executing server-side
+ * Imagen templates.
+ *
+ * @deprecated All Imagen models are deprecated and will shut down as
+ * early as June 2026. As a replacement, you can
+ * {@link https://firebase.google.com/docs/ai-logic/imagen-models-migration |
+ * migrate your apps to use Gemini Image models (the "Nano Banana" models)}.
+ *
+ * @param ai - An {@link AI} instance.
+ * @param requestOptions - Additional options to use when making requests.
+ */
+export function getTemplateImagenModel(
+  ai: AI,
+  requestOptions?: RequestOptions
+): TemplateImagenModel {
+  return new TemplateImagenModel(ai, requestOptions);
 }

@@ -32,7 +32,12 @@ import { logger } from '../logger';
  * }
  * ```
  *
- * @beta
+ * @deprecated All Imagen models are deprecated and will shut down as
+ * early as June 2026. As a replacement, you can
+ * {@link https://firebase.google.com/docs/ai-logic/imagen-models-migration |
+ * migrate your apps to use Gemini Image models (the "Nano Banana" models)}.
+ *
+ * @public
  */
 export class ImagenImageFormat {
   /**
@@ -54,7 +59,7 @@ export class ImagenImageFormat {
    * @param compressionQuality - The level of compression (a number between 0 and 100).
    * @returns An {@link ImagenImageFormat} object for a JPEG image.
    *
-   * @beta
+   * @public
    */
   static jpeg(compressionQuality?: number): ImagenImageFormat {
     if (
@@ -73,7 +78,7 @@ export class ImagenImageFormat {
    *
    * @returns An {@link ImagenImageFormat} object for a PNG image.
    *
-   * @beta
+   * @public
    */
   static png(): ImagenImageFormat {
     return { mimeType: 'image/png' };

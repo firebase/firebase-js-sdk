@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2025 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,15 +55,20 @@ export interface Movie_Key {
   __typename?: 'Movie_Key';
 }
 
-/* Allow users to create refs without passing in DataConnect */
-export function createMovieRef(
-  vars: CreateMovieVariables
-): MutationRef<CreateMovieData, CreateMovieVariables>;
-/* Allow users to pass in custom DataConnect instances */
-export function createMovieRef(
-  dc: DataConnect,
-  vars: CreateMovieVariables
-): MutationRef<CreateMovieData, CreateMovieVariables>;
+interface CreateMovieRef {
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: CreateMovieVariables): MutationRef<
+    CreateMovieData,
+    CreateMovieVariables
+  >;
+  /* Allow users to pass in custom DataConnect instances */
+  (dc: DataConnect, vars: CreateMovieVariables): MutationRef<
+    CreateMovieData,
+    CreateMovieVariables
+  >;
+  operationName: string;
+}
+export const createMovieRef: CreateMovieRef;
 
 export function createMovie(
   vars: CreateMovieVariables
@@ -73,12 +78,14 @@ export function createMovie(
   vars: CreateMovieVariables
 ): MutationPromise<CreateMovieData, CreateMovieVariables>;
 
-/* Allow users to create refs without passing in DataConnect */
-export function listMoviesRef(): QueryRef<ListMoviesData, undefined>;
-/* Allow users to pass in custom DataConnect instances */
-export function listMoviesRef(
-  dc: DataConnect
-): QueryRef<ListMoviesData, undefined>;
+interface ListMoviesRef {
+  /* Allow users to create refs without passing in DataConnect */
+  (): QueryRef<ListMoviesData, undefined>;
+  /* Allow users to pass in custom DataConnect instances */
+  (dc: DataConnect): QueryRef<ListMoviesData, undefined>;
+  operationName: string;
+}
+export const listMoviesRef: ListMoviesRef;
 
 export function listMovies(): QueryPromise<ListMoviesData, undefined>;
 export function listMovies(

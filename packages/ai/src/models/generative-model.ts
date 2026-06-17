@@ -29,11 +29,12 @@ import {
   GenerationConfig,
   ModelParams,
   Part,
-  RequestOptions,
   SafetySetting,
+  RequestOptions,
   StartChatParams,
   Tool,
-  ToolConfig
+  ToolConfig,
+  SingleRequestOptions
 } from '../types';
 import { ChatSession } from '../methods/chat-session';
 import { countTokens } from '../methods/count-tokens';
@@ -41,8 +42,13 @@ import {
   formatGenerateContentInput,
   formatSystemInstruction
 } from '../requests/request-helpers';
-import { AI } from '../public-types';
+import { AI, AIErrorCode, InferenceMode } from '../public-types';
 import { AIModel } from './ai-model';
+import { ChromeAdapter } from '../types/chrome-adapter';
+import { AIError } from '../errors';
+import { ChromeAdapterImpl } from '../methods/chrome-adapter';
+import { Availability } from '../types/language-model';
+import { logger } from '../logger';
 
 /**
  * Class for generative model APIs.
@@ -59,10 +65,12 @@ export class GenerativeModel extends AIModel {
   constructor(
     ai: AI,
     modelParams: ModelParams,
-    requestOptions?: RequestOptions
+    requestOptions?: RequestOptions,
+    private chromeAdapter?: ChromeAdapter
   ) {
     super(ai, modelParams.model);
     this.generationConfig = modelParams.generationConfig || {};
+    validateGenerationConfig(this.generationConfig);
     this.safetySettings = modelParams.safetySettings || [];
     this.tools = modelParams.tools;
     this.toolConfig = modelParams.toolConfig;
@@ -73,11 +81,68 @@ export class GenerativeModel extends AIModel {
   }
 
   /**
+   * Initializes on-device models.
+   *
+   * @remarks
+   * This may trigger a download on first
+   * use. Wait for this promise to complete before calling inference
+   * methods if you want to ensure the device models are ready before
+   * any calls. Calling inference methods before the device is ready
+   * will result in a cloud fallback if `inferenceMode` is set to
+   * `PREFER_ON_DEVICE`, and an error if set to `ONLY_ON_DEVICE`.
+   *
+   * IMPORTANT: This call must be made on or after a user has interacted
+   * with the page (for example, through a button click or key press).
+   * If it is called without a user interaction, and it requires a download,
+   * this will cause an error.
+   *
+   * See the
+   * {@link https://developer.chrome.com/docs/ai/prompt-api#use_the_prompt_api | Prompt API docs }
+   * for more details on this requirement.
+   *
+   * @param onDownloadProgress A callback called repeatedly as the
+   * download progresses that provides a `progressValue` between 0
+   * and 1 representing how much of the download is complete. This
+   * will be ignored if `monitor` was populated in
+   * {@link LanguageModelCreateOptions}.
+   *
+   * @public
+   */
+
+  async initializeDeviceModel(
+    onDownloadProgress?: (progressValue: number) => void
+  ): Promise<void> {
+    if (
+      !this.chromeAdapter ||
+      this.chromeAdapter.mode === InferenceMode.ONLY_IN_CLOUD
+    ) {
+      return;
+    }
+    const availability = await (
+      this.chromeAdapter as ChromeAdapterImpl
+    ).downloadIfAvailable(onDownloadProgress);
+    if (availability === Availability.UNAVAILABLE) {
+      const notEnabledError = new AIError(
+        AIErrorCode.API_NOT_ENABLED,
+        'Local LanguageModel API not available in this environment.'
+      );
+      if (this.chromeAdapter.mode === InferenceMode.ONLY_ON_DEVICE) {
+        throw notEnabledError;
+      } else {
+        // No reason to throw if not in ONLY_ON_DEVICE mode.
+        logger.debug(notEnabledError.message);
+      }
+    }
+    await (this.chromeAdapter as ChromeAdapterImpl).downloadPromise;
+  }
+
+  /**
    * Makes a single non-streaming call to the model
    * and returns an object containing a single {@link GenerateContentResponse}.
    */
   async generateContent(
-    request: GenerateContentRequest | string | Array<string | Part>
+    request: GenerateContentRequest | string | Array<string | Part>,
+    singleRequestOptions?: SingleRequestOptions
   ): Promise<GenerateContentResult> {
     const formattedParams = formatGenerateContentInput(request);
     return generateContent(
@@ -91,7 +156,12 @@ export class GenerativeModel extends AIModel {
         systemInstruction: this.systemInstruction,
         ...formattedParams
       },
-      this.requestOptions
+      this.chromeAdapter,
+      // Merge request options
+      {
+        ...this.requestOptions,
+        ...singleRequestOptions
+      }
     );
   }
 
@@ -102,10 +172,11 @@ export class GenerativeModel extends AIModel {
    * a promise that returns the final aggregated response.
    */
   async generateContentStream(
-    request: GenerateContentRequest | string | Array<string | Part>
+    request: GenerateContentRequest | string | Array<string | Part>,
+    singleRequestOptions?: SingleRequestOptions
   ): Promise<GenerateContentStreamResult> {
     const formattedParams = formatGenerateContentInput(request);
-    return generateContentStream(
+    const { stream, response } = await generateContentStream(
       this._apiSettings,
       this.model,
       {
@@ -116,8 +187,14 @@ export class GenerativeModel extends AIModel {
         systemInstruction: this.systemInstruction,
         ...formattedParams
       },
-      this.requestOptions
+      this.chromeAdapter,
+      // Merge request options
+      {
+        ...this.requestOptions,
+        ...singleRequestOptions
+      }
     );
+    return { stream, response };
   }
 
   /**
@@ -128,6 +205,7 @@ export class GenerativeModel extends AIModel {
     return new ChatSession(
       this._apiSettings,
       this.model,
+      this.chromeAdapter,
       {
         tools: this.tools,
         toolConfig: this.toolConfig,
@@ -149,9 +227,60 @@ export class GenerativeModel extends AIModel {
    * Counts the tokens in the provided request.
    */
   async countTokens(
-    request: CountTokensRequest | string | Array<string | Part>
+    request: CountTokensRequest | string | Array<string | Part>,
+    singleRequestOptions?: SingleRequestOptions
   ): Promise<CountTokensResponse> {
     const formattedParams = formatGenerateContentInput(request);
-    return countTokens(this._apiSettings, this.model, formattedParams);
+    return countTokens(
+      this._apiSettings,
+      this.model,
+      formattedParams,
+      this.chromeAdapter,
+      // Merge request options
+      {
+        ...this.requestOptions,
+        ...singleRequestOptions
+      }
+    );
+  }
+}
+
+/**
+ * Client-side validation of some common `GenerationConfig` pitfalls, in order
+ * to save the developer a wasted request.
+ */
+export function validateGenerationConfig(
+  generationConfig: GenerationConfig
+): void {
+  if (
+    // != allows for null and undefined. 0 is considered "set" by the model
+    generationConfig.thinkingConfig?.thinkingBudget != null &&
+    generationConfig.thinkingConfig?.thinkingLevel
+  ) {
+    throw new AIError(
+      AIErrorCode.UNSUPPORTED,
+      `Cannot set both thinkingBudget and thinkingLevel in a config.`
+    );
+  }
+  if (
+    // != allows for null and undefined.
+    generationConfig.responseSchema != null &&
+    generationConfig.responseJsonSchema != null
+  ) {
+    throw new AIError(
+      AIErrorCode.UNSUPPORTED,
+      `Cannot set both responseSchema and responseJsonSchema in a config.`
+    );
+  }
+  if (
+    (generationConfig.responseSchema != null ||
+      generationConfig.responseJsonSchema != null) &&
+    generationConfig.responseMimeType !== 'application/json'
+  ) {
+    throw new AIError(
+      AIErrorCode.UNSUPPORTED,
+      `responseMimeType must be set to "application/json" if` +
+        ` responseSchema or responseJsonSchema are set.`
+    );
   }
 }

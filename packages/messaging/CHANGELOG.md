@@ -1,5 +1,68 @@
 # @firebase/messaging
 
+## 0.13.0
+
+### Minor Changes
+
+- [`3b337b9`](https://github.com/firebase/firebase-js-sdk/commit/3b337b9a91d6fb4dbee14b14e0c67a4b01b5d736) [#9917](https://github.com/firebase/firebase-js-sdk/pull/9917) - Add new API and deprecate old API for creating and deleting fcm registration
+
+### Patch Changes
+
+- [`a1a2455`](https://github.com/firebase/firebase-js-sdk/commit/a1a2455b2afa24ed2cd81129cbc55b530b6cae4f) [#9916](https://github.com/firebase/firebase-js-sdk/pull/9916) - Fix delivery metrics Firelog flushing when BigQuery export is enabled: schedule the first flush immediately (next timer tick) instead of waiting a full `LOG_INTERVAL_IN_MS`, start processing only when there are queued events (so enabling export with an empty queue does not arm a day-long idle timer that blocks later `stageLog` flushes), and ensure staging a log starts the service when needed. When export is disabled, clear any queued events and cancel pending flush timers immediately (rather than waiting for the background loop).
+
+- Updated dependencies [[`3b337b9`](https://github.com/firebase/firebase-js-sdk/commit/3b337b9a91d6fb4dbee14b14e0c67a4b01b5d736)]:
+  - @firebase/messaging-interop-types@0.2.5
+
+## 0.12.26
+
+### Patch Changes
+
+- [`8e384c9`](https://github.com/firebase/firebase-js-sdk/commit/8e384c947de73c7f74346b1c01640f3515a4ef0e) [#9883](https://github.com/firebase/firebase-js-sdk/pull/9883) - Updated dependencies.
+
+- Updated dependencies [[`8e384c9`](https://github.com/firebase/firebase-js-sdk/commit/8e384c947de73c7f74346b1c01640f3515a4ef0e)]:
+  - @firebase/component@0.7.3
+  - @firebase/installations@0.6.22
+  - @firebase/messaging-interop-types@0.2.4
+  - @firebase/util@1.15.1
+
+## 0.12.25
+
+### Patch Changes
+
+- Updated dependencies [[`2f7f426`](https://github.com/firebase/firebase-js-sdk/commit/2f7f426dec37efd75bad8dcc87cdd769ed4f7752)]:
+  - @firebase/util@1.15.0
+  - @firebase/installations@0.6.21
+  - @firebase/component@0.7.2
+
+## 0.12.24
+
+### Patch Changes
+
+- Updated dependencies [[`eebba69`](https://github.com/firebase/firebase-js-sdk/commit/eebba69e912b59e5f097a896e479d139c03d62ca)]:
+  - @firebase/util@1.14.0
+  - @firebase/installations@0.6.20
+  - @firebase/component@0.7.1
+
+## 0.12.23
+
+### Patch Changes
+
+- [`f18b25f`](https://github.com/firebase/firebase-js-sdk/commit/f18b25f73a05a696b6a9ed45702a84cc9dd5c6d9) [#9167](https://github.com/firebase/firebase-js-sdk/pull/9167) - Set build targets to ES2020.
+
+- Updated dependencies [[`f18b25f`](https://github.com/firebase/firebase-js-sdk/commit/f18b25f73a05a696b6a9ed45702a84cc9dd5c6d9), [`25b60fd`](https://github.com/firebase/firebase-js-sdk/commit/25b60fdaabe910e1538684a3c490b0900fb5f113)]:
+  - @firebase/installations@0.6.19
+  - @firebase/component@0.7.0
+  - @firebase/util@1.13.0
+
+## 0.12.22
+
+### Patch Changes
+
+- Updated dependencies [[`42ac401`](https://github.com/firebase/firebase-js-sdk/commit/42ac4011787db6bb7a08f8c84f364ea86ea51e83)]:
+  - @firebase/util@1.12.1
+  - @firebase/component@0.6.18
+  - @firebase/installations@0.6.18
+
 ## 0.12.21
 
 ### Patch Changes

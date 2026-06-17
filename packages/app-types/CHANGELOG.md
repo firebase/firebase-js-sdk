@@ -1,5 +1,20 @@
 # @firebase/app-types
 
+## 0.9.5
+
+### Patch Changes
+
+- [`8e384c9`](https://github.com/firebase/firebase-js-sdk/commit/8e384c947de73c7f74346b1c01640f3515a4ef0e) [#9883](https://github.com/firebase/firebase-js-sdk/pull/9883) - Updated dependencies.
+
+- Updated dependencies [[`8e384c9`](https://github.com/firebase/firebase-js-sdk/commit/8e384c947de73c7f74346b1c01640f3515a4ef0e)]:
+  - @firebase/logger@0.5.1
+
+## 0.9.4
+
+### Patch Changes
+
+- [`b2c4646`](https://github.com/firebase/firebase-js-sdk/commit/b2c464643548e068f56d9f57a09b105b1b898ff1) [#9813](https://github.com/firebase/firebase-js-sdk/pull/9813) (fixes [#9787](https://github.com/firebase/firebase-js-sdk/issues/9787)) - Fix typo in package.json (dependency => dependencies)
+
 ## 0.9.3
 
 ### Patch Changes

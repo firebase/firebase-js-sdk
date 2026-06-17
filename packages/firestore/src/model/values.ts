@@ -21,6 +21,7 @@ import {
   LatLng,
   MapValue,
   Timestamp,
+  Value as ProtoValue,
   Value
 } from '../protos/firestore_proto_api';
 import { fail } from '../util/assert';
@@ -202,6 +203,13 @@ const BSON_REPRESENTATIONS: Record<string, MapRepresentation> = {
 const BSON_TYPE_REPRESENTATIONS = new Set<MapRepresentation>(
   Object.values(BSON_REPRESENTATIONS)
 );
+export const TRUE_VALUE: Value = {
+  booleanValue: true
+};
+
+export const FALSE_VALUE: Value = {
+  booleanValue: false
+};
 
 /** Extracts the backend's type order for the provided value. */
 export function typeOrder(value: Value): TypeOrder {
@@ -255,8 +263,18 @@ export function typeOrder(value: Value): TypeOrder {
   }
 }
 
+export interface EqualOptions {
+  nanEqual: boolean;
+  mixIntegerDouble: boolean;
+  semanticsEqual: boolean;
+}
+
 /** Tests `left` and `right` for equality based on the backend semantics. */
-export function valueEquals(left: Value, right: Value): boolean {
+export function valueEquals(
+  left: Value,
+  right: Value,
+  options?: EqualOptions
+): boolean {
   if (left === right) {
     return true;
   }
@@ -295,11 +313,11 @@ export function valueEquals(left: Value, right: Value): boolean {
       return arrayEquals(
         left.arrayValue!.values || [],
         right.arrayValue!.values || [],
-        valueEquals
+        (l, r) => valueEquals(l, r, options)
       );
     case TypeOrder.VectorValue:
     case TypeOrder.ObjectValue:
-      return objectEquals(left, right);
+      return objectEquals(left, right, options);
     case TypeOrder.BsonBinaryValue:
       return compareBsonBinaryData(left, right) === 0;
     case TypeOrder.BsonTimestampValue:
@@ -346,29 +364,48 @@ function blobEquals(left: Value, right: Value): boolean {
   );
 }
 
-export function numberEquals(left: Value, right: Value): boolean {
+export function numberEquals(
+  left: Value,
+  right: Value,
+  options?: EqualOptions
+): boolean {
   if (isDecimal128Value(left) && isDecimal128Value(right)) {
     return compareQuadruples(left, right) === 0;
   } else if (
     ('integerValue' in left && 'integerValue' in right) ||
     (isInt32Value(left) && isInt32Value(right))
   ) {
-    return extractNumber(left) === extractNumber(right);
-  } else if ('doubleValue' in left && 'doubleValue' in right) {
-    const n1 = normalizeNumber(left.doubleValue!);
-    const n2 = normalizeNumber(right.doubleValue!);
-
-    if (n1 === n2) {
-      return isNegativeZero(n1) === isNegativeZero(n2);
-    } else {
-      return isNaN(n1) && isNaN(n2);
-    }
+    return (
+      extractNumber(left) === extractNumber(right)
+    );
   }
 
-  return false;
+  let n1: number, n2: number;
+  if ('doubleValue' in left && 'doubleValue' in right) {
+    n1 = normalizeNumber(left.doubleValue!);
+    n2 = normalizeNumber(right.doubleValue!);
+  } else if (options?.mixIntegerDouble) {
+    n1 = normalizeNumber(left.integerValue ?? left.doubleValue);
+    n2 = normalizeNumber(right.integerValue ?? right.doubleValue);
+  } else {
+    return false;
+  }
+
+  if (n1 === n2) {
+    return options?.semanticsEqual
+      ? true
+      : isNegativeZero(n1) === isNegativeZero(n2);
+  } else {
+    const nanEqual = options === undefined ? true : options.nanEqual;
+    return nanEqual ? isNaN(n1) && isNaN(n2) : false;
+  }
 }
 
-function objectEquals(left: Value, right: Value): boolean {
+function objectEquals(
+  left: Value,
+  right: Value,
+  options?: EqualOptions
+): boolean {
   const leftMap = left.mapValue!.fields || {};
   const rightMap = right.mapValue!.fields || {};
 
@@ -380,7 +417,7 @@ function objectEquals(left: Value, right: Value): boolean {
     if (leftMap.hasOwnProperty(key)) {
       if (
         rightMap[key] === undefined ||
-        !valueEquals(leftMap[key], rightMap[key])
+        !valueEquals(leftMap[key], rightMap[key], options)
       ) {
         return false;
       }
@@ -579,7 +616,7 @@ function compareArrays(left: ArrayValue, right: ArrayValue): number {
 
   for (let i = 0; i < leftArray.length && i < rightArray.length; ++i) {
     const compare = valueCompare(leftArray[i], rightArray[i]);
-    if (compare) {
+    if (compare !== undefined && compare !== 0) {
       return compare;
     }
   }
@@ -877,6 +914,13 @@ export function refValue(databaseId: DatabaseId, key: DocumentKey): Value {
   };
 }
 
+/** Returns true if `value` is an BooleanValue . */
+export function isBoolean(
+  value?: Value | null
+): value is { booleanValue: boolean } {
+  return !!value && 'booleanValue' in value;
+}
+
 /** Returns true if `value` is an IntegerValue . */
 export function isIntegerValue(
   value?: Value | null
@@ -918,7 +962,11 @@ export function isInt32Value(value: Value): boolean {
 }
 
 /** Returns true if `value` is either an IntegerValue or a DoubleValue. */
-export function isNumber(value?: Value | null): boolean {
+export function isNumber(
+  value?: Value | null
+): value is
+  | { doubleValue: string | number }
+  | { integerValue: string | number } {
   return isIntegerValue(value) || isDoubleValue(value);
 }
 
@@ -927,6 +975,18 @@ export function isArray(
   value?: Value | null
 ): value is { arrayValue: ArrayValue } {
   return !!value && 'arrayValue' in value;
+}
+
+/** Returns true if `value` is an ArrayValue. */
+export function isString(
+  value?: Value | null
+): value is { stringValue: string } {
+  return !!value && 'stringValue' in value;
+}
+
+/** Returns true if `value` is an BytesValue. */
+export function isBytes(value?: Value | null): value is { bytesValue: string } {
+  return !!value && 'bytesValue' in value;
 }
 
 /** Returns true if `value` is a ReferenceValue. */
@@ -954,6 +1014,13 @@ export function isNanValue(value: Value): boolean {
   }
 
   return false;
+}
+
+/** Returns true if `value` is Timestamp. */
+export function isTimestampValue(
+  value?: Value | null
+): value is { timestampValue: Timestamp } {
+  return !!value && 'timestampValue' in value && !!value.timestampValue;
 }
 
 /** Returns true if `value` is a MapValue. */
@@ -987,6 +1054,19 @@ export function detectMapRepresentation(value: Value): MapRepresentation {
   }
 
   return MapRepresentation.REGULAR_MAP;
+}
+
+/** Returns true if `value` is a VetorValue. */
+export function isVectorValue(value: ProtoValue | null): boolean {
+  const type = (value?.mapValue?.fields || {})[TYPE_KEY]?.stringValue;
+  return type === RESERVED_VECTOR_KEY;
+}
+
+/** Returns true if `value` is a VetorValue. */
+export function getVectorValue(
+  value: ProtoValue | null
+): ArrayValue | undefined {
+  return (value?.mapValue?.fields || {})[VECTOR_MAP_VECTORS_KEY]?.arrayValue;
 }
 
 /** Creates a deep copy of `source`. */

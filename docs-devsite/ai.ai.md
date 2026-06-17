@@ -27,6 +27,7 @@ export interface AI
 |  [app](./ai.ai.md#aiapp) | [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | The [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) this [AI](./ai.ai.md#ai_interface) instance is associated with. |
 |  [backend](./ai.ai.md#aibackend) | [Backend](./ai.backend.md#backend_class) | A [Backend](./ai.backend.md#backend_class) instance that specifies the configuration for the target backend, either the Gemini Developer API (using [GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class)<!-- -->) or the Vertex AI Gemini API (using [VertexAIBackend](./ai.vertexaibackend.md#vertexaibackend_class)<!-- -->). |
 |  [location](./ai.ai.md#ailocation) | string |  |
+|  [options](./ai.ai.md#aioptions) | [AIOptions](./ai.aioptions.md#aioptions_interface) | Options applied to this [AI](./ai.ai.md#ai_interface) instance. |
 
 ## AI.app
 
@@ -61,4 +62,14 @@ backend: Backend;
 
 ```typescript
 location: string;
+```
+
+## AI.options
+
+Options applied to this [AI](./ai.ai.md#ai_interface) instance.
+
+<b>Signature:</b>
+
+```typescript
+options?: AIOptions;
 ```

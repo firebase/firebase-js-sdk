@@ -58,11 +58,7 @@ import { IndexedDbTargetCache } from './indexeddb_target_cache';
 import { getStore, IndexedDbTransaction } from './indexeddb_transaction';
 import { LocalSerializer } from './local_serializer';
 import { LruParams } from './lru_garbage_collector';
-import {
-  DatabaseDeletedListener,
-  Persistence,
-  PrimaryStateListener
-} from './persistence';
+import { Persistence, PrimaryStateListener } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import {
   PersistenceTransaction,
@@ -131,11 +127,11 @@ export const MAIN_DATABASE = 'main';
  * `enablePersistence()` with `{synchronizeTabs:true}`.
  *
  * In multi-tab mode, if multiple clients are active at the same time, the SDK
- * will designate one client as the “primary client”. An effort is made to pick
+ * will designate one client as the "primary client". An effort is made to pick
  * a visible, network-connected and active client, and this client is
  * responsible for letting other clients know about its presence. The primary
  * client writes a unique client-generated identifier (the client ID) to
- * IndexedDb’s “owner” store every 4 seconds. If the primary client fails to
+ * IndexedDb’s "owner" store every 4 seconds. If the primary client fails to
  * update this entry, another client can acquire the lease and take over as
  * primary.
  *
@@ -328,25 +324,20 @@ export class IndexedDbPersistence implements Persistence {
   }
 
   /**
-   * Registers a listener that gets called when the underlying database receives
-   * an event indicating that it either has been deleted or is pending deletion
-   * and must be closed.
-   *
-   * For example, this callback will be called in the case that multi-tab
-   * IndexedDB persistence is in use and another tab calls
-   * clearIndexedDbPersistence(). In that case, this Firestore instance must
-   * close its IndexedDB connection in order to allow the deletion initiated by
-   * the other tab to proceed.
-   *
-   * This method may only be called once; subsequent invocations will result in
-   * an exception, refusing to supersede the previously-registered listener.
+   * Registers a listener that gets called when the database receives a
+   * version change event indicating that it has deleted.
    *
    * PORTING NOTE: This is only used for Web multi-tab.
    */
   setDatabaseDeletedListener(
-    databaseDeletedListener: DatabaseDeletedListener
+    databaseDeletedListener: () => Promise<void>
   ): void {
-    this.simpleDb.setDatabaseDeletedListener(databaseDeletedListener);
+    this.simpleDb.setVersionChangeListener(async event => {
+      // Check if an attempt is made to delete IndexedDB.
+      if (event.newVersion === null) {
+        await databaseDeletedListener();
+      }
+    });
   }
 
   /**
