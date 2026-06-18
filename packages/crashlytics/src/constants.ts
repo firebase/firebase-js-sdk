@@ -62,4 +62,3 @@ export const NEXTJS_REQUEST_ATTRIBUTE_KEYS = {
  * of ~5KB for headers (such as large App Check tokens, API keys, and content-type).
  */
 export const KEEPALIVE_MAX_PAYLOAD_SIZE = 60000;
-
