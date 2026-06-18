@@ -105,7 +105,7 @@ describe('Chat Session', function () {
           expect(response2.usageMetadata!.promptTokenCount).to.not.equal(0);
           expect(response2.usageMetadata!.candidatesTokenCount).to.not.equal(0);
           expect(response2.usageMetadata!.totalTokenCount).to.not.equal(0);
-        } else if (model.model.includes('gemini-3.0-flash')) {
+        } else if (model.model.includes('gemini-3.1-flash-lite')) {
           expect(response1.usageMetadata).to.not.be.null;
           // Token counts can vary slightly in chat context
           expect(response1.usageMetadata!.promptTokenCount).to.not.equal(0);

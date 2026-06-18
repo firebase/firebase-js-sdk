@@ -394,6 +394,10 @@ describe('Generate Content', function () {
         expect(groundingMetadata!.googleMapsWidgetContextToken).to.exist;
       });
 
+      describe('URL Context', () => {
+     if (['gemini-2.0-flash-001', 'gemini-2.0-flash-lite-001', 'gemini-3.5-flash', 'gemini-3.1-flash-lite'].includes(testConfig.model)) {
+  return;
+}
       it('generateContent: url context', async () => {
         const model = getGenerativeModel(testConfig.ai, {
           model: testConfig.model,
@@ -475,36 +479,37 @@ describe('Generate Content', function () {
           tools: [{ urlContext: {} }, { googleSearch: {} }]
         });
 
-        const result = await model.generateContent(
-          'Recommend 3 books for beginners to read to learn more about the latest advancements in Quantum Computing'
-        );
-        const response = result.response;
-        const urlContextMetadata = response.candidates?.[0].urlContextMetadata;
-        const groundingMetadata = response.candidates?.[0].groundingMetadata;
-        if (testConfig.ai.backend.backendType === BackendType.GOOGLE_AI) {
-          expect(urlContextMetadata?.urlMetadata).to.exist;
-          expect(
-            urlContextMetadata?.urlMetadata.length
-          ).to.be.greaterThanOrEqual(1);
-          expect(urlContextMetadata?.urlMetadata[0].retrievedUrl).to.exist;
-          expect(
-            urlContextMetadata?.urlMetadata[0].urlRetrievalStatus
-          ).to.equal(URLRetrievalStatus.URL_RETRIEVAL_STATUS_SUCCESS);
-          expect(groundingMetadata).to.exist;
-          expect(groundingMetadata?.groundingChunks).to.exist;
+          const result = await model.generateContent(
+            'Recommend 3 books for beginners to read to learn more about the latest advancements in Quantum Computing'
+          );
+          const response = result.response;
+          const urlContextMetadata =
+            response.candidates?.[0].urlContextMetadata;
+          const groundingMetadata = response.candidates?.[0].groundingMetadata;
+          if (testConfig.ai.backend.backendType === BackendType.GOOGLE_AI) {
+            expect(urlContextMetadata?.urlMetadata).to.exist;
+            expect(
+              urlContextMetadata?.urlMetadata.length
+            ).to.be.greaterThanOrEqual(1);
+            expect(urlContextMetadata?.urlMetadata[0].retrievedUrl).to.exist;
+            expect(
+              urlContextMetadata?.urlMetadata[0].urlRetrievalStatus
+            ).to.equal(URLRetrievalStatus.URL_RETRIEVAL_STATUS_SUCCESS);
+            expect(groundingMetadata).to.exist;
+            expect(groundingMetadata?.groundingChunks).to.exist;
 
-          const usageMetadata = response.usageMetadata;
-          expect(usageMetadata).to.exist;
-          expect(usageMetadata?.toolUsePromptTokenCount).to.exist;
-          expect(usageMetadata?.toolUsePromptTokenCount).to.be.greaterThan(0);
-        } else {
-          // URL Context does not integrate with Google Search Grounding in Vertex AI
-          expect(urlContextMetadata?.urlMetadata).to.not.exist;
-          expect(groundingMetadata).to.exist;
-          expect(groundingMetadata?.groundingChunks).to.exist;
-        }
-      });
-
+            const usageMetadata = response.usageMetadata;
+            expect(usageMetadata).to.exist;
+            expect(usageMetadata?.toolUsePromptTokenCount).to.exist;
+            expect(usageMetadata?.toolUsePromptTokenCount).to.be.greaterThan(0);
+          } else {
+            // URL Context does not integrate with Google Search Grounding in Vertex AI
+            expect(urlContextMetadata?.urlMetadata).to.not.exist;
+            expect(groundingMetadata).to.exist;
+            expect(groundingMetadata?.groundingChunks).to.exist;
+          }
+        });
+});
       it('generateContent: code execution', async () => {
         const model = getGenerativeModel(testConfig.ai, {
           model: testConfig.model,

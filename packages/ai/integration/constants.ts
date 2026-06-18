@@ -68,7 +68,7 @@ const modelNames: readonly string[] = [
 ];
 
 // Used for testing non-AI behavior (e.g. Network requests). Configured to minimize cost.
-export const cheapestModel = 'gemini-3.5-flash-lite';
+export const cheapestModel = 'gemini-3.1-flash-lite';
 export const defaultAIInstance = getAI(app, { backend: new VertexAIBackend() });
 export const defaultGenerativeModel = getGenerativeModel(defaultAIInstance, {
   model: cheapestModel,
