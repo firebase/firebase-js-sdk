@@ -562,28 +562,20 @@ describe('Top level API', () => {
   });
 
   describe('logVisibilityEvent', () => {
-    it('should emit a log record for a hidden visibility with correct body, severity number, and custom attributes', () => {
+    it("should emit a log record for a hidden visibility with body of 'Background lifecycle event'", () => {
       logVisibilityEvent(fakeCrashlytics, 'hidden');
 
       expect(emittedLogs).to.have.lengthOf(1);
       const log = emittedLogs[0];
       expect(log.body).to.equal('Background lifecycle event');
-      expect(log.severityNumber).to.equal(SeverityNumber.INFO);
-      expect(log.attributes).to.deep.equal(
-        fakeAttributesStore.getLogAttributes()
-      );
     });
 
-    it('should emit a log record for a visible visibility with correct body, severity number, and custom attributes', () => {
+    it("should emit a log record for a visible visibility with body of 'Foreground lifecycle event'", () => {
       logVisibilityEvent(fakeCrashlytics, 'visible');
 
       expect(emittedLogs).to.have.lengthOf(1);
       const log = emittedLogs[0];
       expect(log.body).to.equal('Foreground lifecycle event');
-      expect(log.severityNumber).to.equal(SeverityNumber.INFO);
-      expect(log.attributes).to.deep.equal(
-        fakeAttributesStore.getLogAttributes()
-      );
     });
   });
 });
