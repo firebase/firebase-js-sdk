@@ -25,7 +25,8 @@ import { CrashlyticsService } from './service';
 import {
   flush,
   generateClickSpanName,
-  startUserInteractionTrace
+  startUserInteractionTrace,
+  logVisibilityEvent
 } from './helpers';
 import { deepEqual } from '@firebase/util';
 import { SPAN_ATTR_KEY } from './attributes-store';
@@ -256,4 +257,4 @@ export function logViewBoundary(
   });
 }
 
-export { flush, startUserInteractionTrace };
+export { flush, startUserInteractionTrace, logVisibilityEvent };

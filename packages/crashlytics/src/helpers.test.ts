@@ -213,32 +213,73 @@ describe('helpers', () => {
   });
 
   describe('registerListeners', () => {
+    let addEventListenerStub: sinon.SinonStub;
+    let listeners: Record<string, (...args: any[]) => any>;
+
+    beforeEach(() => {
+      listeners = {};
+      if (typeof window !== 'undefined') {
+        addEventListenerStub = sinon
+          .stub(window, 'addEventListener')
+          .callsFake((event, callback) => {
+            listeners[event] = callback as (...args: any[]) => any;
+          });
+      }
+    });
+
+    afterEach(() => {
+      if (typeof window !== 'undefined') {
+        addEventListenerStub.restore();
+      }
+    });
+
     if (isNode()) {
       it('should do nothing in node', () => {
         registerListeners(fakeCrashlytics);
       });
     } else {
-      it('should flush logs when the visibility changes to hidden', () => {
+      it('should emit a log and flush when the visibility changes to hidden', async () => {
         registerListeners(fakeCrashlytics);
 
         expect(flushed).to.be.false;
+        expect(emittedLogs).to.have.lengthOf(0);
+        expect(listeners['visibilitychange']).to.be.ok;
 
         Object.defineProperty(document, 'visibilityState', {
           value: 'hidden',
           writable: true
         });
-        window.dispatchEvent(new Event('visibilitychange'));
+        await listeners['visibilitychange']();
 
         expect(flushed).to.be.true;
+        expect(emittedLogs).to.have.lengthOf(1);
       });
 
-      it('should flush logs when the pagehide event fires', () => {
+      it('should emit a log but not flush when the visibility changes to visible', async () => {
+        registerListeners(fakeCrashlytics);
+
+        expect(flushed).to.be.false;
+        expect(emittedLogs).to.have.lengthOf(0);
+        expect(listeners['visibilitychange']).to.be.ok;
+
+        Object.defineProperty(document, 'visibilityState', {
+          value: 'visible',
+          writable: true
+        });
+        await listeners['visibilitychange']();
+
+        expect(flushed).to.be.false;
+        expect(emittedLogs).to.have.lengthOf(1);
+      });
+
+      it('should flush logs when the pagehide event fires', async () => {
         startNewSession(fakeCrashlytics);
         registerListeners(fakeCrashlytics);
 
         expect(flushed).to.be.false;
+        expect(listeners['pagehide']).to.be.ok;
 
-        window.dispatchEvent(new Event('pagehide'));
+        await listeners['pagehide']();
 
         expect(flushed).to.be.true;
       });

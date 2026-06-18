@@ -20,6 +20,7 @@ https://github.com/firebase/firebase-js-sdk
 |  <b>function(crashlytics, ...)</b> |
 |  [flush(crashlytics)](./crashlytics_.md#flush_16fdf66) | Flushes all enqueued Crashlytics data immediately, instead of waiting for default batching. |
 |  [logViewBoundary(crashlytics, urlTemplate, attributes)](./crashlytics_.md#logviewboundary_e310697) | Creates a log for view boundary on navigation event |
+|  [logVisibilityEvent(crashlytics, visibilityState)](./crashlytics_.md#logvisibilityevent_1d6b238) | Logs a page visibility transition event (foreground or background). |
 |  [recordError(crashlytics, error, attributes)](./crashlytics_.md#recorderror_6824e74) | Enqueues an error to be uploaded to the Firebase Crashlytics API. |
 |  [startUserInteractionTrace(crashlytics, rootSpanName)](./crashlytics_.md#startuserinteractiontrace_6ae1587) | Starts a new trace for a user interaction. If a root span is already active, it will be interrupted and a new root span will be started. |
 |  <b>function(crashlyticsOptions, ...)</b> |
@@ -112,6 +113,27 @@ export declare function logViewBoundary(crashlytics: Crashlytics, urlTemplate: s
 |  crashlytics | [Crashlytics](./crashlytics_.crashlytics.md#crashlytics_interface) | The [Crashlytics](./crashlytics_.crashlytics.md#crashlytics_interface) instance. |
 |  urlTemplate | string | The new URL pattern being navigated to. |
 |  attributes | AnyValueMap | Optional, arbitrary attributes to attach to the view boundary log |
+
+<b>Returns:</b>
+
+void
+
+### logVisibilityEvent(crashlytics, visibilityState) {:#logvisibilityevent_1d6b238}
+
+Logs a page visibility transition event (foreground or background).
+
+<b>Signature:</b>
+
+```typescript
+export declare function logVisibilityEvent(crashlytics: Crashlytics, visibilityState: 'visible' | 'hidden'): void;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  crashlytics | [Crashlytics](./crashlytics_.crashlytics.md#crashlytics_interface) | The [Crashlytics](./crashlytics_.crashlytics.md#crashlytics_interface) instance. |
+|  visibilityState | 'visible' \| 'hidden' | The current page visibility state ('visible' or 'hidden'). |
 
 <b>Returns:</b>
 

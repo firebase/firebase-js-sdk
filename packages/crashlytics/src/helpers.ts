@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { SeverityNumber } from '@opentelemetry/api-logs';
+import { SeverityNumber, AnyValueMap } from '@opentelemetry/api-logs';
 import { CRASHLYTICS_TRACER_NAME } from './constants';
 import { Crashlytics } from './public-types';
 import { CrashlyticsInternal } from './types';
@@ -120,6 +120,13 @@ export function generateClickSpanName(element: Element): string {
 export function registerListeners(crashlytics: Crashlytics): void {
   if (typeof window !== 'undefined' && typeof document !== 'undefined') {
     window.addEventListener('visibilitychange', async () => {
+      if (
+        document.visibilityState === 'visible' ||
+        document.visibilityState === 'hidden'
+      ) {
+        logVisibilityEvent(crashlytics, document.visibilityState);
+      }
+
       if (document.visibilityState === 'hidden') {
         await flush(crashlytics);
       }
@@ -145,4 +152,33 @@ export function flush(crashlytics: Crashlytics): Promise<void> {
     .catch(err => {
       console.error('Error flushing logs from Firebase Crashlytics:', err);
     });
+}
+
+/**
+ * Logs a page visibility transition event (foreground or background).
+ *
+ * @public
+ *
+ * @param crashlytics - The {@link Crashlytics} instance.
+ * @param visibilityState - The current page visibility state ('visible' or 'hidden').
+ */
+export function logVisibilityEvent(
+  crashlytics: Crashlytics,
+  visibilityState: 'visible' | 'hidden'
+): void {
+  const { loggerProvider, attributesStore } =
+    crashlytics as CrashlyticsInternal;
+  const logger = loggerProvider.getLogger('visibility-logger');
+  const customAttributes: AnyValueMap = attributesStore.getLogAttributes();
+
+  const body =
+    visibilityState === 'hidden'
+      ? 'Background lifecycle event'
+      : 'Foreground lifecycle event';
+
+  logger.emit({
+    severityNumber: SeverityNumber.INFO,
+    body,
+    attributes: customAttributes
+  });
 }
