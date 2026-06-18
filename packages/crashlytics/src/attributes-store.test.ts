@@ -18,8 +18,6 @@
 import { AttributesStore, ATTR_KEY_INSTALLATION_ID } from './attributes-store';
 import { _FirebaseInstallationsInternal } from '@firebase/installations';
 import { expect } from 'chai';
-import * as sinon from 'sinon';
-import { trace } from '@opentelemetry/api';
 import { AUTO_CONSTANTS } from './auto-constants';
 
 describe('AttributesStore', () => {
@@ -294,52 +292,6 @@ describe('AttributesStore', () => {
       expect(store.getLogAttributes()).to.have.property(
         'app.build_id',
         '3.4.5'
-      );
-    });
-  });
-
-  describe('getLogAttributes', () => {
-    let getActiveSpanStub: sinon.SinonStub;
-
-    beforeEach(() => {
-      getActiveSpanStub = sinon.stub(trace, 'getActiveSpan');
-    });
-
-    afterEach(() => {
-      getActiveSpanStub.restore();
-    });
-
-    it('should include projectId in trace context if trace and span are active', () => {
-      const mockSpanContext = {
-        traceId: 'mock-trace-id-1234567890abcdef',
-        spanId: 'mock-span-id-123'
-      };
-      const mockSpan = {
-        spanContext: () => mockSpanContext
-      };
-      getActiveSpanStub.returns(mockSpan);
-
-      const store = new AttributesStore({ projectId: 'my-project-123' } as any);
-
-      const logAttributes = store.getLogAttributes();
-      expect(logAttributes).to.include({
-        'logging.googleapis.com/trace':
-          'projects/my-project-123/traces/mock-trace-id-1234567890abcdef',
-        'logging.googleapis.com/spanId': 'mock-span-id-123'
-      });
-    });
-
-    it('should not include trace context if getActiveSpan returns undefined', () => {
-      getActiveSpanStub.returns(undefined);
-
-      const store = new AttributesStore({ projectId: 'my-project-123' } as any);
-
-      const logAttributes = store.getLogAttributes();
-      expect(logAttributes).not.to.have.property(
-        'logging.googleapis.com/trace'
-      );
-      expect(logAttributes).not.to.have.property(
-        'logging.googleapis.com/spanId'
       );
     });
   });

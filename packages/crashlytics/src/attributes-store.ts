@@ -16,7 +16,7 @@
  */
 
 import { Provider } from '@firebase/component';
-import { AttributeValue, trace } from '@opentelemetry/api';
+import { AttributeValue } from '@opentelemetry/api';
 import { AnyValueMap } from '@opentelemetry/api-logs';
 import { _FirebaseInstallationsInternal } from '@firebase/installations';
 import { CrashlyticsOptions } from './public-types';
@@ -29,9 +29,7 @@ export const SESSION_STORAGE_SESSION_ID_KEY = 'firebasecrashlytics.sessionid';
 export const LOG_ATTR_KEY = {
   APP_VERSION: 'app.build_id',
   SESSION_ID: 'session.id',
-  ROUTE_PATH: 'route_path',
-  TRACE: 'logging.googleapis.com/trace',
-  SPAN_ID: 'logging.googleapis.com/spanId'
+  ROUTE_PATH: 'route_path'
 };
 
 type Attribute = Record<string, AttributeValue>;
@@ -126,18 +124,6 @@ export class AttributesStore {
     }
     if (this._sessionId) {
       attributes[LOG_ATTR_KEY.SESSION_ID] = this._sessionId;
-    }
-
-    const activeSpanContext = trace.getActiveSpan()?.spanContext();
-    if (
-      activeSpanContext?.traceId &&
-      activeSpanContext?.spanId &&
-      this._projectId
-    ) {
-      attributes[
-        LOG_ATTR_KEY.TRACE
-      ] = `projects/${this._projectId}/traces/${activeSpanContext.traceId}`;
-      attributes[LOG_ATTR_KEY.SPAN_ID] = activeSpanContext.spanId;
     }
 
     const path = this._routePathProvider?.();

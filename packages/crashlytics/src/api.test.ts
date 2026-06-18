@@ -17,13 +17,7 @@
 
 import { expect } from 'chai';
 import { LoggerProvider } from '@opentelemetry/sdk-logs';
-import { trace } from '@opentelemetry/api';
 import { Logger, LogRecord, SeverityNumber } from '@opentelemetry/api-logs';
-import {
-  InMemorySpanExporter,
-  SimpleSpanProcessor,
-  WebTracerProvider
-} from '@opentelemetry/sdk-trace-web';
 import {
   FirebaseApp,
   initializeApp,
@@ -279,37 +273,6 @@ describe('Top level API', () => {
       expect(log.body).to.equal('Unknown error type: number');
       expect(log.attributes).to.deep.equal({
         [LOG_ATTR_KEY.APP_VERSION]: 'unset',
-        [LOG_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID
-      });
-    });
-
-    it('should propagate trace context', async () => {
-      const provider = new WebTracerProvider({
-        spanProcessors: [new SimpleSpanProcessor(new InMemorySpanExporter())]
-      });
-      provider.register();
-
-      trace.getTracer('test-tracer').startActiveSpan('test-span', span => {
-        const error = new Error('This is a test error');
-        error.stack = '...stack trace...';
-        error.name = 'TestError';
-
-        span.spanContext().traceId = 'my-trace';
-        span.spanContext().spanId = 'my-span';
-
-        recordError(fakeCrashlytics, error);
-        span.end();
-      });
-
-      await provider.shutdown();
-
-      expect(emittedLogs[0].attributes).to.deep.equal({
-        'exception.type': 'TestError',
-        'exception.stacktrace': '...stack trace...',
-        'exception.message': 'This is a test error',
-        [LOG_ATTR_KEY.APP_VERSION]: 'unset',
-        'logging.googleapis.com/trace': `projects/${PROJECT_ID}/traces/my-trace`,
-        'logging.googleapis.com/spanId': `my-span`,
         [LOG_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID
       });
     });
