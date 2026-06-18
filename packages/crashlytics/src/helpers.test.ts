@@ -214,10 +214,16 @@ describe('helpers', () => {
 
   describe('registerListeners', () => {
     let addEventListenerStub: sinon.SinonStub;
+    let listeners: Record<string, (...args: any[]) => any>;
 
     beforeEach(() => {
+      listeners = {};
       if (typeof window !== 'undefined') {
-        addEventListenerStub = sinon.stub(window, 'addEventListener');
+        addEventListenerStub = sinon
+          .stub(window, 'addEventListener')
+          .callsFake((event, callback) => {
+            listeners[event] = callback as (...args: any[]) => any;
+          });
       }
     });
 
@@ -237,18 +243,13 @@ describe('helpers', () => {
 
         expect(flushed).to.be.false;
         expect(emittedLogs).to.have.lengthOf(0);
-
-        const visibilityCall = addEventListenerStub
-          .getCalls()
-          .find(c => c.args[0] === 'visibilitychange');
-        expect(visibilityCall).to.be.ok;
-        const callback = visibilityCall!.args[1] as () => void | Promise<void>;
+        expect(listeners['visibilitychange']).to.be.ok;
 
         Object.defineProperty(document, 'visibilityState', {
           value: 'hidden',
           writable: true
         });
-        await callback();
+        await listeners['visibilitychange']();
 
         expect(flushed).to.be.true;
         expect(emittedLogs).to.have.lengthOf(1);
@@ -259,18 +260,13 @@ describe('helpers', () => {
 
         expect(flushed).to.be.false;
         expect(emittedLogs).to.have.lengthOf(0);
-
-        const visibilityCall = addEventListenerStub
-          .getCalls()
-          .find(c => c.args[0] === 'visibilitychange');
-        expect(visibilityCall).to.be.ok;
-        const callback = visibilityCall!.args[1] as () => void | Promise<void>;
+        expect(listeners['visibilitychange']).to.be.ok;
 
         Object.defineProperty(document, 'visibilityState', {
           value: 'visible',
           writable: true
         });
-        await callback();
+        await listeners['visibilitychange']();
 
         expect(flushed).to.be.false;
         expect(emittedLogs).to.have.lengthOf(1);
@@ -281,14 +277,9 @@ describe('helpers', () => {
         registerListeners(fakeCrashlytics);
 
         expect(flushed).to.be.false;
+        expect(listeners['pagehide']).to.be.ok;
 
-        const pagehideCall = addEventListenerStub
-          .getCalls()
-          .find(c => c.args[0] === 'pagehide');
-        expect(pagehideCall).to.be.ok;
-        const callback = pagehideCall!.args[1] as () => void | Promise<void>;
-
-        await callback();
+        await listeners['pagehide']();
 
         expect(flushed).to.be.true;
       });
