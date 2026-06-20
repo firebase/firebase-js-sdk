@@ -141,7 +141,7 @@
     "@firebase/webchannel-wrapper": "1.0.6",
     "@grpc/grpc-js": "~1.9.0",
     "@grpc/proto-loader": "^0.7.8",
-    "re2js": "^0.4.2",
+    "re2js": "^2.8.3",
     "tslib": "^2.1.0"
   },
   "peerDependencies": {
