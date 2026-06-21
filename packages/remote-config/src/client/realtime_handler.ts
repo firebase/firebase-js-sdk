@@ -406,9 +406,11 @@ export class RealtimeHandler {
     newRollout: Map<string, string>,
     oldRollout: Map<string, string>
   ): boolean {
-    const keys = new Set([...newRollout.keys(), ...oldRollout.keys()]);
-    for (const key of keys) {
-      if (newRollout.get(key) !== oldRollout.get(key)) {
+    if (newRollout.size !== oldRollout.size) {
+      return false;
+    }
+    for (const [key, value] of newRollout) {
+      if (oldRollout.get(key) !== value) {
         return false;
       }
     }
@@ -444,14 +446,12 @@ export class RealtimeHandler {
       const variantId = rollout.variantId;
       const affectedParameterKeys = rollout.affectedParameterKeys || [];
       for (const parameterKey of affectedParameterKeys) {
-        if (!rolloutMetadataMap.has(parameterKey)) {
-          rolloutMetadataMap.set(parameterKey, new Map<string, string>());
+        let parameterKeyRolloutMetadata = rolloutMetadataMap.get(parameterKey);
+        if (!parameterKeyRolloutMetadata) {
+          parameterKeyRolloutMetadata = new Map<string, string>();
+          rolloutMetadataMap.set(parameterKey, parameterKeyRolloutMetadata);
         }
-        const parameterKeyRolloutMetadata =
-          rolloutMetadataMap.get(parameterKey);
-        if (parameterKeyRolloutMetadata != null) {
-          parameterKeyRolloutMetadata.set(rolloutId, variantId);
-        }
+        parameterKeyRolloutMetadata.set(rolloutId, variantId);
       }
     }
     return rolloutMetadataMap;
