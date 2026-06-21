@@ -19,7 +19,13 @@ import {
   CustomSignals,
   FetchResponse,
   FirebaseRemoteConfigObject,
-  FirebaseExperimentDescription
+  FirebaseExperimentDescription,
+<<<<<<< ours
+  FirebaseRolloutDescription,
+  FirebasePersonalizationMetadata
+=======
+  FirebaseRolloutMetadata
+>>>>>>> theirs
 } from '../public_types';
 import {
   RemoteConfigFetchClient,
@@ -145,6 +151,12 @@ export class RestClient implements RemoteConfigFetchClient {
     let state: string | undefined;
     let templateVersion: number | undefined;
     let experiments: FirebaseExperimentDescription[] | undefined;
+<<<<<<< ours
+    let rollouts: FirebaseRolloutDescription[] | undefined;
+    let personalizationMetadata: { [key: string]: FirebasePersonalizationMetadata } | undefined;
+=======
+    let rollouts: FirebaseRolloutMetadata[] | undefined;
+>>>>>>> theirs
 
     // JSON parsing throws SyntaxError if the response body isn't a JSON string.
     // Requesting application/json and checking for a 200 ensures there's JSON data.
@@ -161,6 +173,11 @@ export class RestClient implements RemoteConfigFetchClient {
       state = responseBody['state'];
       templateVersion = responseBody['templateVersion'];
       experiments = responseBody['experimentDescriptions'];
+      rollouts = responseBody['rolloutMetadata'];
+<<<<<<< ours
+      personalizationMetadata = responseBody['personalizationMetadata'];
+=======
+>>>>>>> theirs
     }
 
     // Normalizes based on legacy state.
@@ -172,6 +189,9 @@ export class RestClient implements RemoteConfigFetchClient {
       // These cases can be fixed remotely, so normalize to safe value.
       config = {};
       experiments = [];
+      rollouts = [];
+      personalizationMetadata = {};
+      rollouts = [];
     }
 
     // Normalize to exception-based control flow for non-success cases.
@@ -184,6 +204,25 @@ export class RestClient implements RemoteConfigFetchClient {
       });
     }
 
+<<<<<<< ours
+<<<<<<< ours
+<<<<<<< ours
+    return { status, eTag: responseEtag, config, templateVersion, experiments, rollouts, personalizationMetadata };
+=======
     return { status, eTag: responseEtag, config, templateVersion, experiments };
+>>>>>>> theirs
+=======
+    return { status, eTag: responseEtag, config, templateVersion, experiments, rollouts };
+>>>>>>> theirs
+=======
+    return {
+      status,
+      eTag: responseEtag,
+      config,
+      templateVersion,
+      experiments,
+      rollouts
+    };
+>>>>>>> theirs
   }
 }

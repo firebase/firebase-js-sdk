@@ -87,6 +87,13 @@ describe('RestClient', () => {
             triggerTimeoutMillis: '15552000000',
             timeToLiveMillis: '15552000000'
           }
+        ],
+        rolloutMetadata: [
+          {
+            rolloutId: '_exp_rollout_1',
+            variantId: '1',
+            affectedParameterKeys: []
+          }
         ]
       };
 
@@ -100,7 +107,8 @@ describe('RestClient', () => {
               entries: expectedResponse.entries,
               state: expectedResponse.state,
               templateVersion: expectedResponse.templateVersion,
-              experimentDescriptions: expectedResponse.experimentDescriptions
+              experimentDescriptions: expectedResponse.experimentDescriptions,
+              rolloutMetadata: expectedResponse.rolloutMetadata
             })
         } as Response)
       );
@@ -112,7 +120,13 @@ describe('RestClient', () => {
         eTag: expectedResponse.eTag,
         config: expectedResponse.entries,
         templateVersion: expectedResponse.templateVersion,
-        experiments: expectedResponse.experimentDescriptions
+        experiments: expectedResponse.experimentDescriptions,
+<<<<<<< ours
+        rollouts: undefined,
+        personalizationMetadata: undefined
+=======
+        rollouts: expectedResponse.rolloutMetadata
+>>>>>>> theirs
       });
     });
 
@@ -203,7 +217,13 @@ describe('RestClient', () => {
         eTag: 'response-etag',
         config: undefined,
         templateVersion: undefined,
-        experiments: undefined
+        experiments: undefined,
+<<<<<<< ours
+        rollouts: undefined,
+        personalizationMetadata: undefined
+=======
+        rollouts: undefined
+>>>>>>> theirs
       });
     });
 
@@ -243,7 +263,13 @@ describe('RestClient', () => {
         eTag: 'etag',
         config: undefined,
         templateVersion: undefined,
-        experiments: undefined
+        experiments: undefined,
+<<<<<<< ours
+        rollouts: undefined,
+        personalizationMetadata: undefined
+=======
+        rollouts: undefined
+>>>>>>> theirs
       });
     });
 
@@ -262,7 +288,13 @@ describe('RestClient', () => {
           eTag: 'etag',
           config: {},
           templateVersion: undefined,
-          experiments: []
+          experiments: [],
+<<<<<<< ours
+          rollouts: [],
+          personalizationMetadata: {}
+=======
+          rollouts: []
+>>>>>>> theirs
         });
       }
     });

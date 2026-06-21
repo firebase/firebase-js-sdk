@@ -22,7 +22,26 @@ import {
   ConfigUpdateObserver,
   FetchResponse,
   FirebaseRemoteConfigObject,
+<<<<<<< ours
+<<<<<<< ours
+<<<<<<< ours
   FirebaseExperimentDescription
+=======
+  FirebaseExperimentDescription,
+<<<<<<< ours
+  FirebaseRolloutDescription,
+  FirebasePersonalizationMetadata
+>>>>>>> theirs
+=======
+  FirebaseExperimentDescription
+>>>>>>> theirs
+=======
+  FirebaseExperimentDescription,
+  FirebaseRolloutMetadata
+>>>>>>> theirs
+=======
+  FirebaseRolloutMetadata
+>>>>>>> theirs
 } from '../public_types';
 import { calculateBackoffMillis, FirebaseError } from '@firebase/util';
 import { ERROR_FACTORY, ErrorCode } from '../errors';
@@ -341,9 +360,15 @@ export class RealtimeHandler {
     const newExperimentsMap = this.createExperimentsMap(newExperiments);
     const oldExperimentsMap = this.createExperimentsMap(oldExperiments);
 
+    const newRollouts = newFetchResponse.rollouts || [];
+    const oldRollouts = oldFetchResponse?.rollouts || [];
+    const newRolloutsMap = this.createRolloutsMap(newRollouts);
+    const oldRolloutsMap = this.createRolloutsMap(oldRollouts);
+
     for (const key of newKeys) {
       if (!oldKeys.has(key) || newConfig[key] !== oldConfig[key]) {
         changedKeys.add(key);
+        continue;
       }
       if (newExperimentsMap.has(key) !== oldExperimentsMap.has(key)) {
         changedKeys.add(key);
@@ -355,6 +380,20 @@ export class RealtimeHandler {
         newExperiment &&
         oldExperiment &&
         !this.areExperimentsEqual(newExperiment, oldExperiment)
+      ) {
+        changedKeys.add(key);
+        continue;
+      }
+      if (newRolloutsMap.has(key) !== oldRolloutsMap.has(key)) {
+        changedKeys.add(key);
+        continue;
+      }
+      const newRollout = newRolloutsMap.get(key);
+      const oldRollout = oldRolloutsMap.get(key);
+      if (
+        newRollout &&
+        oldRollout &&
+        !this.areRolloutsEqual(newRollout, oldRollout)
       ) {
         changedKeys.add(key);
       }
@@ -369,6 +408,10 @@ export class RealtimeHandler {
     return changedKeys;
   }
 
+<<<<<<< ours
+<<<<<<< ours
+=======
+>>>>>>> theirs
   private areExperimentsEqual(
     newExperiment: FirebaseExperimentDescription,
     oldExperiment: FirebaseExperimentDescription
@@ -379,6 +422,20 @@ export class RealtimeHandler {
       newExperiment.timeToLiveMillis === oldExperiment.timeToLiveMillis &&
       newExperiment.triggerTimeoutMillis === oldExperiment.triggerTimeoutMillis
     );
+  }
+<<<<<<< ours
+
+  private areRolloutsEqual(
+    newRollout: Map<string, string>,
+    oldRollout: Map<string, string>
+  ): boolean {
+    const keys = new Set([...newRollout.keys(), ...oldRollout.keys()]);
+    for (const key of keys) {
+      if (newRollout.get(key) !== oldRollout.get(key)) {
+        return false;
+      }
+    }
+    return true;
   }
 
   /** Creates a map where the key is the config key and the value is the experiment description. */
@@ -398,6 +455,68 @@ export class RealtimeHandler {
       }
     }
     return experimentsMap;
+=======
+  private getChangedMetadataParams(
+    lastMetadataMap: Map<string, Set<string>>,
+    latestMetadataMap: Map<string, Set<string>>
+  ): Set<string> {
+    const changedKeys = new Set<string>();
+    const allMetadataIds = new Set([
+      ...lastMetadataMap.keys(),
+      ...latestMetadataMap.keys()
+    ]);
+
+    for (const id of allMetadataIds) {
+      const lastParams = lastMetadataMap.get(id) || new Set<string>();
+      const latestParams = latestMetadataMap.get(id) || new Set<string>();
+=======
+>>>>>>> theirs
+
+  /** Creates a map where the key is the config key and the value is the experiment description. */
+  private createExperimentsMap(
+    experimentDescriptions: FirebaseExperimentDescription[]
+  ): Map<string, FirebaseExperimentDescription> {
+    const experimentsMap = new Map<string, FirebaseExperimentDescription>();
+    for (const experimentDescription of experimentDescriptions) {
+      if (
+        !experimentDescription.affectedParameterKeys ||
+        experimentDescription.experimentId.startsWith(ROLLOUT_ID_PREFIX)
+      ) {
+        continue;
+      }
+      for (const key of experimentDescription.affectedParameterKeys) {
+        experimentsMap.set(key, experimentDescription);
+      }
+    }
+<<<<<<< ours
+    return changedKeys;
+>>>>>>> theirs
+=======
+    return experimentsMap;
+>>>>>>> theirs
+  }
+
+  /** Creates a map where the key is the config key and the value is the rollout metadata. */
+  private createRolloutsMap(
+    rollouts: FirebaseRolloutMetadata[]
+  ): Map<string, Map<string, string>> {
+    const rolloutMetadataMap = new Map<string, Map<string, string>>();
+    for (const rollout of rollouts) {
+      const rolloutId = rollout.rolloutId;
+      const variantId = rollout.variantId;
+      const affectedParameterKeys = rollout.affectedParameterKeys || [];
+      for (const parameterKey of affectedParameterKeys) {
+        if (!rolloutMetadataMap.has(parameterKey)) {
+          rolloutMetadataMap.set(parameterKey, new Map<string, string>());
+        }
+        const parameterKeyRolloutMetadata =
+          rolloutMetadataMap.get(parameterKey);
+        if (parameterKeyRolloutMetadata != null) {
+          parameterKeyRolloutMetadata.set(rolloutId, variantId);
+        }
+      }
+    }
+    return rolloutMetadataMap;
   }
 
   private async fetchLatestConfig(
@@ -455,7 +574,83 @@ export class RealtimeHandler {
         activatedConfigs,
         fetchResponse,
         lastFetchResponse
+<<<<<<< ours
+<<<<<<< ours
       );
+
+      const lastFetchResponse = await this.storage.getLastSuccessfulFetchResponse();
+
+      // Process experiments
+      const lastExperiments = lastFetchResponse?.experiments || [];
+      const latestExperiments = fetchResponse.experiments || [];
+
+      const lastExpMap = new Map<string, Set<string>>();
+      for (const exp of lastExperiments) {
+        lastExpMap.set(exp.experimentId, new Set(exp.affectedParameterKeys || []));
+      }
+
+      const latestExpMap = new Map<string, Set<string>>();
+      for (const exp of latestExperiments) {
+        latestExpMap.set(exp.experimentId, new Set(exp.affectedParameterKeys || []));
+      }
+
+      const changedExpKeys = this.getChangedMetadataParams(
+        lastExpMap,
+        latestExpMap
+=======
+>>>>>>> theirs
+=======
+>>>>>>> theirs
+      );
+
+      // Process rollouts
+      const lastRollouts = lastFetchResponse?.rollouts || [];
+      const latestRollouts = fetchResponse.rollouts || [];
+
+      const lastRolloutMap = new Map<string, Set<string>>();
+      for (const rollout of lastRollouts) {
+        lastRolloutMap.set(rollout.rolloutId, new Set(rollout.affectedParameterKeys || []));
+      }
+
+      const latestRolloutMap = new Map<string, Set<string>>();
+      for (const rollout of latestRollouts) {
+        latestRolloutMap.set(rollout.rolloutId, new Set(rollout.affectedParameterKeys || []));
+      }
+
+      const allRolloutIds = new Set([...lastRolloutMap.keys(), ...latestRolloutMap.keys()]);
+      for (const rolloutId of allRolloutIds) {
+        const lastParams = lastRolloutMap.get(rolloutId) || new Set<string>();
+        const latestParams = latestRolloutMap.get(rolloutId) || new Set<string>();
+
+        if (!areSetsEqual(lastParams, latestParams)) {
+          for (const key of lastParams) {
+            updatedKeys.add(key);
+          }
+          for (const key of latestParams) {
+            updatedKeys.add(key);
+          }
+        }
+      }
+
+      // Process personalizationMetadata
+      const lastPersonalization = lastFetchResponse?.personalizationMetadata || {};
+      const latestPersonalization = fetchResponse.personalizationMetadata || {};
+
+      const allPersonalizationKeys = new Set([
+        ...Object.keys(lastPersonalization),
+        ...Object.keys(latestPersonalization)
+      ]);
+
+      for (const key of allPersonalizationKeys) {
+        const lastMeta = lastPersonalization[key];
+        const latestMeta = latestPersonalization[key];
+
+        if (!lastMeta || !latestMeta) {
+          updatedKeys.add(key);
+        } else if (lastMeta.personalizationId !== latestMeta.personalizationId) {
+          updatedKeys.add(key);
+        }
+      }
 
       if (updatedKeys.size === 0) {
         this.logger.debug('Config was fetched, but no params changed.');

@@ -537,14 +537,29 @@ describe('RealtimeHandler', () => {
     });
 
     it('should identify changed keys from updated experiment descriptions', async () => {
+<<<<<<< ours
+<<<<<<< ours
+=======
+>>>>>>> theirs
       mockStorage.getActiveConfig.resolves({
         keyA: 'valueA',
         keyB: 'valueB',
         keyC: 'valueC'
       });
+<<<<<<< ours
       mockStorage.getLastSuccessfulFetchResponse.resolves({
         status: 200,
         config: { keyA: 'valueA', keyB: 'valueB', keyC: 'valueC' },
+=======
+      mockStorage.getLastSuccessfulFetchResponse.resolves({
+        status: 200,
+        config: { existingKey: 'value' },
+>>>>>>> theirs
+=======
+      mockStorage.getLastSuccessfulFetchResponse.resolves({
+        status: 200,
+        config: { keyA: 'valueA', keyB: 'valueB', keyC: 'valueC' },
+>>>>>>> theirs
         experiments: [
           {
             experimentId: 'exp1',
@@ -558,7 +573,15 @@ describe('RealtimeHandler', () => {
       });
 
       mockCachingClient.fetch.resolves({
+<<<<<<< ours
+<<<<<<< ours
         config: { keyA: 'valueA', keyB: 'valueB', keyC: 'valueC' },
+=======
+        config: { existingKey: 'value' },
+>>>>>>> theirs
+=======
+        config: { keyA: 'valueA', keyB: 'valueB', keyC: 'valueC' },
+>>>>>>> theirs
         templateVersion: 2,
         status: 200,
         eTag: 'e',
@@ -579,6 +602,10 @@ describe('RealtimeHandler', () => {
       expect(executeAllListenerCallbacksSpy).to.have.been.calledOnce;
       const configUpdate = executeAllListenerCallbacksSpy.getCall(0).args[0];
       expect(configUpdate.getUpdatedKeys()).to.deep.equal(
+<<<<<<< ours
+<<<<<<< ours
+=======
+>>>>>>> theirs
         new Set(['keyA', 'keyC'])
       );
     });
@@ -700,6 +727,141 @@ describe('RealtimeHandler', () => {
       expect(executeAllListenerCallbacksSpy).not.to.have.been.called;
     });
 
+<<<<<<< ours
+=======
+        new Set(['keyA', 'keyB', 'keyC'])
+      );
+    });
+
+>>>>>>> theirs
+=======
+    it('should identify changed keys from updated rollout metadata (new rollout added)', async () => {
+      mockStorage.getActiveConfig.resolves({ keyA: 'valueA', keyB: 'valueB' });
+      mockStorage.getLastSuccessfulFetchResponse.resolves({
+        status: 200,
+        config: { keyA: 'valueA', keyB: 'valueB' },
+        rollouts: []
+      });
+
+      mockCachingClient.fetch.resolves({
+        config: { keyA: 'valueA', keyB: 'valueB' },
+        templateVersion: 2,
+        status: 200,
+        eTag: 'e',
+        rollouts: [
+          {
+            rolloutId: '_exp_rollout_1',
+            variantId: 'variantA',
+            affectedParameterKeys: ['keyA']
+          }
+        ]
+      });
+
+      await (realtime as any).fetchLatestConfig(MAXIMUM_FETCH_ATTEMPTS, 2);
+
+      expect(executeAllListenerCallbacksSpy).to.have.been.calledOnce;
+      const configUpdate = executeAllListenerCallbacksSpy.getCall(0).args[0];
+      expect(configUpdate.getUpdatedKeys()).to.deep.equal(new Set(['keyA']));
+    });
+
+    it('should identify changed keys from updated rollout metadata (rollout removed)', async () => {
+      mockStorage.getActiveConfig.resolves({ keyA: 'valueA', keyB: 'valueB' });
+      mockStorage.getLastSuccessfulFetchResponse.resolves({
+        status: 200,
+        config: { keyA: 'valueA', keyB: 'valueB' },
+        rollouts: [
+          {
+            rolloutId: '_exp_rollout_1',
+            variantId: 'variantA',
+            affectedParameterKeys: ['keyA']
+          }
+        ]
+      });
+
+      mockCachingClient.fetch.resolves({
+        config: { keyA: 'valueA', keyB: 'valueB' },
+        templateVersion: 2,
+        status: 200,
+        eTag: 'e',
+        rollouts: []
+      });
+
+      await (realtime as any).fetchLatestConfig(MAXIMUM_FETCH_ATTEMPTS, 2);
+
+      expect(executeAllListenerCallbacksSpy).to.have.been.calledOnce;
+      const configUpdate = executeAllListenerCallbacksSpy.getCall(0).args[0];
+      expect(configUpdate.getUpdatedKeys()).to.deep.equal(new Set(['keyA']));
+    });
+
+    it('should identify changed keys when a rollout variant ID is updated', async () => {
+      mockStorage.getActiveConfig.resolves({ keyA: 'valueA', keyB: 'valueB' });
+      mockStorage.getLastSuccessfulFetchResponse.resolves({
+        status: 200,
+        config: { keyA: 'valueA', keyB: 'valueB' },
+        rollouts: [
+          {
+            rolloutId: '_exp_rollout_1',
+            variantId: 'variantA',
+            affectedParameterKeys: ['keyA']
+          }
+        ]
+      });
+
+      mockCachingClient.fetch.resolves({
+        config: { keyA: 'valueA', keyB: 'valueB' },
+        templateVersion: 2,
+        status: 200,
+        eTag: 'e',
+        rollouts: [
+          {
+            rolloutId: '_exp_rollout_1',
+            variantId: 'variantB',
+            affectedParameterKeys: ['keyA']
+          }
+        ]
+      });
+
+      await (realtime as any).fetchLatestConfig(MAXIMUM_FETCH_ATTEMPTS, 2);
+
+      expect(executeAllListenerCallbacksSpy).to.have.been.calledOnce;
+      const configUpdate = executeAllListenerCallbacksSpy.getCall(0).args[0];
+      expect(configUpdate.getUpdatedKeys()).to.deep.equal(new Set(['keyA']));
+    });
+
+    it('should ignore rollouts if their metadata has not changed', async () => {
+      mockStorage.getActiveConfig.resolves({ keyA: 'valueA', keyB: 'valueB' });
+      mockStorage.getLastSuccessfulFetchResponse.resolves({
+        status: 200,
+        config: { keyA: 'valueA', keyB: 'valueB' },
+        rollouts: [
+          {
+            rolloutId: '_exp_rollout_1',
+            variantId: 'variantA',
+            affectedParameterKeys: ['keyA']
+          }
+        ]
+      });
+
+      mockCachingClient.fetch.resolves({
+        config: { keyA: 'valueA', keyB: 'valueB' },
+        templateVersion: 2,
+        status: 200,
+        eTag: 'e',
+        rollouts: [
+          {
+            rolloutId: '_exp_rollout_1',
+            variantId: 'variantA',
+            affectedParameterKeys: ['keyA']
+          }
+        ]
+      });
+
+      await (realtime as any).fetchLatestConfig(MAXIMUM_FETCH_ATTEMPTS, 2);
+
+      expect(executeAllListenerCallbacksSpy).not.to.have.been.called;
+    });
+
+>>>>>>> theirs
     it('should handle null activatedConfigs gracefully', async () => {
       mockCachingClient.fetch.resolves({
         config: { newKey: 'value' },

@@ -42,6 +42,11 @@ export interface FetchResponse {
     config?: FirebaseRemoteConfigObject;
     eTag?: string;
     experiments?: FirebaseExperimentDescription[];
+    personalizationMetadata?: {
+        [key: string]: FirebasePersonalizationMetadata;
+    };
+    rollouts?: FirebaseRolloutDescription[];
+    rollouts?: FirebaseRolloutMetadata[];
     status: number;
     templateVersion?: number;
 }
@@ -69,9 +74,35 @@ export interface FirebaseExperimentDescription {
 }
 
 // @public
+export interface FirebasePersonalizationMetadata {
+    // (undocumented)
+    personalizationId: string;
+}
+
+// @public
 export interface FirebaseRemoteConfigObject {
     // (undocumented)
     [key: string]: string;
+}
+
+// @public
+export interface FirebaseRolloutDescription {
+    // (undocumented)
+    affectedParameterKeys?: string[];
+    // (undocumented)
+    rolloutId: string;
+    // (undocumented)
+    variantId: string;
+}
+
+// @public (undocumented)
+export interface FirebaseRolloutMetadata {
+    // (undocumented)
+    affectedParameterKeys: string[];
+    // (undocumented)
+    rolloutId: string;
+    // (undocumented)
+    variantId: string;
 }
 
 // @public
