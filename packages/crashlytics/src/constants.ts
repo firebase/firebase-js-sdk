@@ -54,3 +54,11 @@ export const NEXTJS_REQUEST_ATTRIBUTE_KEYS = {
   ROUTER_KIND: `${NEXTJS_ATTRIBUTE_NAMESPACE}.router_kind`,
   ROUTE_TYPE: `${NEXTJS_ATTRIBUTE_NAMESPACE}.route_type`
 };
+
+/**
+ * Maximum safe payload size (in bytes) to use with keepalive: true.
+ * Browsers limit total keepalive data to 64KB, which includes both the request body
+ * and all HTTP request headers. We use 60,000 bytes as a safe limit to leave a buffer
+ * of ~5KB for headers (such as large App Check tokens, API keys, and content-type).
+ */
+export const KEEPALIVE_MAX_PAYLOAD_SIZE = 60000;

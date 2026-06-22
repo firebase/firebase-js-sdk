@@ -22,6 +22,7 @@ import * as sinon from 'sinon';
 import * as assert from 'assert';
 import { DynamicHeaderProvider } from './types';
 import { FetchTransport } from './fetch-transport';
+import { KEEPALIVE_MAX_PAYLOAD_SIZE } from './constants';
 import {
   ExportResponseRetryable,
   ExportResponseFailure,
@@ -284,6 +285,58 @@ describe('FetchTransport', () => {
           done(e);
         }
       }, done /* catch any rejections */);
+    });
+
+    it('sets keepalive: true when payload is within the safe limit', done => {
+      // arrange
+      const fetchStub = sinon
+        .stub(globalThis, 'fetch')
+        .resolves(new Response('test response', { status: 200 }));
+      const transport = new FetchTransport(testTransportParameters);
+      const smallPayload = new Uint8Array(KEEPALIVE_MAX_PAYLOAD_SIZE - 100);
+
+      //act
+      transport.send(smallPayload, requestTimeout).then(() => {
+        // assert
+        try {
+          sinon.assert.calledOnceWithMatch(
+            fetchStub,
+            testTransportParameters.url,
+            {
+              keepalive: true
+            }
+          );
+          done();
+        } catch (e) {
+          done(e);
+        }
+      }, done);
+    });
+
+    it('sets keepalive: false when payload is over the safe limit', done => {
+      // arrange
+      const fetchStub = sinon
+        .stub(globalThis, 'fetch')
+        .resolves(new Response('test response', { status: 200 }));
+      const transport = new FetchTransport(testTransportParameters);
+      const largePayload = new Uint8Array(KEEPALIVE_MAX_PAYLOAD_SIZE + 100);
+
+      //act
+      transport.send(largePayload, requestTimeout).then(() => {
+        // assert
+        try {
+          sinon.assert.calledOnceWithMatch(
+            fetchStub,
+            testTransportParameters.url,
+            {
+              keepalive: false
+            }
+          );
+          done();
+        } catch (e) {
+          done(e);
+        }
+      }, done);
     });
   });
 });
