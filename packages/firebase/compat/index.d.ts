@@ -987,6 +987,7 @@ declare namespace firebase {
       newEmail: string,
       actionCodeSettings?: firebase.auth.ActionCodeSettings | null
     ): Promise<void>;
+    enrolledPasskeys: firebase.auth.PasskeyInfo[];
   }
 
   /**
@@ -2185,6 +2186,10 @@ declare namespace firebase.functions {
 }
 
 declare namespace firebase.auth {
+  interface PasskeyInfo {
+    readonly credentialId: string;
+    readonly name?: string;
+  }
   /**
    * A utility class to parse email action URLs.
    */
