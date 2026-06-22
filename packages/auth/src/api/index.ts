@@ -243,7 +243,7 @@ export async function _performFetchWithErrorHandling<V>(
         (serverErrorCode
           .toLowerCase()
           .replace(/[_\s]+/g, '-') as unknown as AuthErrorCode);
-      const errorCode = serverErrorCode.split(': ')[1];
+      const errorCode = serverErrorCode.split(':')[1];
       if (errorCode && errorCodesToInternalSet.has(errorCode.trim())) {
         authError = AuthErrorCode.INTERNAL_ERROR;
       }
