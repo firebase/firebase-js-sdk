@@ -19,7 +19,6 @@
 // See LICENSE in the project root for license information.
 
 import * as path from 'path';
-import * as resolve from 'resolve';
 
 import {
   IApiDocumenterPluginManifest,
@@ -50,10 +49,10 @@ export class PluginLoader {
     for (const configPlugin of documenterConfig.configFile.plugins || []) {
       try {
         // Look for the package name in the same place as the config file
-        const resolvedEntryPointPath: string = resolve.sync(
+        const resolvedEntryPointPath: string = require.resolve(
           configPlugin.packageName,
           {
-            basedir: configFileFolder
+            paths: [configFileFolder]
           }
         );
 
