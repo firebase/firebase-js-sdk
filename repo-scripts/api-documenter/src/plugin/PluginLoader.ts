@@ -52,7 +52,7 @@ export class PluginLoader {
         const resolvedEntryPointPath: string = require.resolve(
           configPlugin.packageName,
           {
-            paths: [configFileFolder]
+            paths: [path.resolve(configFileFolder)]
           }
         );
 

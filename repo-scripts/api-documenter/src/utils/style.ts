@@ -15,10 +15,15 @@
  * limitations under the License.
  */
 
+const useColors: boolean =
+  typeof process !== 'undefined' &&
+  (process.env.FORCE_COLOR !== undefined ||
+    (!!process.stdout?.isTTY && !process.env.NO_COLOR));
+
 export function bold(text: string): string {
-  return `\x1b[1m${text}\x1b[22m`;
+  return useColors ? `\x1b[1m${text}\x1b[22m` : text;
 }
 
 export function yellow(text: string): string {
-  return `\x1b[33m${text}\x1b[39m`;
+  return useColors ? `\x1b[33m${text}\x1b[39m` : text;
 }
