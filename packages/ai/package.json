@@ -31,7 +31,7 @@
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "build": "rollup -c && yarn api-report",
-    "build:deps": "lerna run build --scope @firebase/ai --include-dependencies",
+    "build:deps": "lerna run build --scope @firebase/ai",
     "dev": "rollup -c -w",
     "update-responses": "../../scripts/update_vertexai_responses.sh",
     "testsetup": "yarn update-responses && yarn ts-node ./test-utils/convert-mocks.ts",

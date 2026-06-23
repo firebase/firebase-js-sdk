@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "scripts": {
     "build:js": "rollup -c",
-    "build:deps": "yarn --cwd ../../../../ lerna run build --scope=\"@firebase/app\" --scope=\"@firebase/auth/cordova\" --include-dependencies"
+    "build:deps": "yarn --cwd ../../../../ lerna run build --scope=\"@firebase/app\" --scope=\"@firebase/auth/cordova\""
   },
   "keywords": [
     "ecosystem:cordova"

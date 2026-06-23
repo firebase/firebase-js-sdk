@@ -29,7 +29,7 @@
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "build": "rollup -c && yarn api-report",
-    "build:deps": "lerna run build --scope @firebase/util --include-dependencies",
+    "build:deps": "lerna run build --scope @firebase/util",
     "dev": "rollup -c -w",
     "prettier": "prettier --write 'src/**/*.ts' 'test/**/*.ts'",
     "test": "run-p --npm-path npm lint test:all",

@@ -22,7 +22,7 @@
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "build": "rollup -c && yarn api-report",
     "build:release": "yarn build && yarn typings:public",
-    "build:deps": "lerna run build --scope @firebase/analytics --include-dependencies",
+    "build:deps": "lerna run build --scope @firebase/analytics",
     "dev": "rollup -c -w",
     "test": "run-p --npm-path npm lint test:all",
     "test:all": "run-p --npm-path npm test:browser test:integration",

@@ -13,7 +13,7 @@
     "demo": "rollup -c && firebase serve",
     "demo:emulator": "rollup -c && firebase emulators:start",
     "build": "rollup -c",
-    "build:deps": "yarn --cwd ../../../ lerna run build --scope=\"@firebase/app\" --scope=\"@firebase/auth\" --include-dependencies",
+    "build:deps": "yarn --cwd ../../../ lerna run build --scope=\"@firebase/app\" --scope=\"@firebase/auth\"",
     "dev": "rollup -c -w"
   },
   "dependencies": {
