@@ -72,6 +72,8 @@ export interface FirestoreSettings {
   /**
    * @internal
    * Undocumented setting for internal Google consumers.
+   * External callers needing this feature, please let us
+   * know by opening a feature request in the repository.
    */
   _customHeaders?: Record<string, string>;
 }
