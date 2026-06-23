@@ -375,9 +375,7 @@ export function numberEquals(
     ('integerValue' in left && 'integerValue' in right) ||
     (isInt32Value(left) && isInt32Value(right))
   ) {
-    return (
-      extractNumber(left) === extractNumber(right)
-    );
+    return extractNumber(left) === extractNumber(right);
   }
 
   let n1: number, n2: number;
