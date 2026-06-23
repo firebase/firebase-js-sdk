@@ -13,5 +13,5 @@
       "outputs": ["{projectRoot}/dist", "{projectRoot}/temp"]
     }
   },
-  "analytics": true
+  "analytics": false
 }
