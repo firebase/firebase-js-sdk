@@ -50,7 +50,9 @@ const isChrome = (): boolean => {
       capabilities.browserName.toLowerCase().includes('chrome')
     );
   }
-  return typeof navigator !== 'undefined' && /chrome/i.test(navigator.userAgent);
+  return (
+    typeof navigator !== 'undefined' && /chrome/i.test(navigator.userAgent)
+  );
 };
 
 // Define a helper/wrapper for virtual authenticator control
