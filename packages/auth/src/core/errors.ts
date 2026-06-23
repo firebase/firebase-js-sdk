@@ -135,7 +135,13 @@ export const enum AuthErrorCode {
   INVALID_REQ_TYPE = 'invalid-req-type',
   UNSUPPORTED_PASSWORD_POLICY_SCHEMA_VERSION = 'unsupported-password-policy-schema-version',
   PASSWORD_DOES_NOT_MEET_REQUIREMENTS = 'password-does-not-meet-requirements',
-  INVALID_HOSTING_LINK_DOMAIN = 'invalid-hosting-link-domain'
+  INVALID_HOSTING_LINK_DOMAIN = 'invalid-hosting-link-domain',
+  PASSKEY_LIMIT_EXCEEDED = 'passkey-limit-exceeded',
+  PASSKEY_NOT_ENABLED = 'passkey-not-enabled',
+  PASSKEY_EXISTS = 'passkey-exists',
+  PASSKEY_CHALLENGE_TIMEOUT = 'passkey-challenge-timeout',
+  PASSKEY_ENROLLMENT_NOT_FOUND = 'passkey-enrollment-not-found',
+  INVALID_AUTHENTICATOR_RESPONSE = 'invalid-authenticator-response'
 }
 
 function _debugErrorMap(): ErrorMap<AuthErrorCode> {
@@ -391,7 +397,19 @@ function _debugErrorMap(): ErrorMap<AuthErrorCode> {
       'The password does not meet the requirements.',
     [AuthErrorCode.INVALID_HOSTING_LINK_DOMAIN]:
       'The provided Hosting link domain is not configured in Firebase Hosting or is not owned by ' +
-      'the current project. This cannot be a default Hosting domain (`web.app` or `firebaseapp.com`).'
+      'the current project. This cannot be a default Hosting domain (`web.app` or `firebaseapp.com`).',
+    [AuthErrorCode.PASSKEY_LIMIT_EXCEEDED]:
+      'The maximum number of passkeys have already been enrolled. Unenroll an existing passkey before trying again.',
+    [AuthErrorCode.PASSKEY_NOT_ENABLED]:
+      'Passkeys are not supported or enabled for this application. Please try signing in with another method, or contact support.',
+    [AuthErrorCode.PASSKEY_EXISTS]:
+      'This passkey is already registered to your account. Try signing in with your existing passkey or enroll a different passkey.',
+    [AuthErrorCode.PASSKEY_CHALLENGE_TIMEOUT]:
+      'The passkey request timed out. Please try again and make sure to approve the security prompt on your device quickly.',
+    [AuthErrorCode.PASSKEY_ENROLLMENT_NOT_FOUND]:
+      'No registered passkey was found for this account. Please register a passkey first, or sign in using another method.',
+    [AuthErrorCode.INVALID_AUTHENTICATOR_RESPONSE]:
+      'The authenticator response is invalid, missing required fields, or could not be parsed. Please try again.'
   };
 }
 
