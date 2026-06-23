@@ -231,6 +231,8 @@ async function generateDocs(
           '@firebase/*',
           '--ignore',
           '@firebase/*-compat',
+          '--ignore',
+          '@firebase/auth-demo',
           'build'
         ],
         {
