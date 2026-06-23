@@ -1,5 +1,14 @@
 # @firebase/auth-compat
 
+## 0.6.8
+
+### Patch Changes
+
+- [`712091c`](https://github.com/firebase/firebase-js-sdk/commit/712091c3962b8b3639775a4150c91d9a3962b57b) [#10049](https://github.com/firebase/firebase-js-sdk/pull/10049) - Update referrer policy for auth API requests from no-referrer to strict-origin-when-cross-origin to support HTTP Referrer-restricted API keys in browser environments.
+
+- Updated dependencies [[`e389f70`](https://github.com/firebase/firebase-js-sdk/commit/e389f70b1b9b2c3afe1672b4a6b702eceb7c5e41), [`712091c`](https://github.com/firebase/firebase-js-sdk/commit/712091c3962b8b3639775a4150c91d9a3962b57b)]:
+  - @firebase/auth@1.13.3
+
 ## 0.6.7
 
 ### Patch Changes
