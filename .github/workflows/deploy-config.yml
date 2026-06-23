@@ -39,6 +39,11 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: 22.10.0
+    - name: Set up Java (21)
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'temurin'
+        java-version: '21'
     - name: Yarn install
       run: yarn
     - name: Deploy project config if needed

@@ -196,7 +196,6 @@ const getVirtualAuthenticatorDriver = (): any => {
   };
 };
 
-
 describe('Passkey Authentication (Chrome Only)', () => {
   // eslint-disable-next-line prefer-arrow-callback
   before(function () {

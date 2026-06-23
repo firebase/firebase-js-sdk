@@ -51,6 +51,11 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: 22.10.0
+    - name: Set up Java (21)
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'temurin'
+        java-version: '21'
     - name: Test setup and yarn install
       run: |
         cp config/ci.config.json config/project.json
@@ -91,6 +96,11 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: 22.10.0
+    - name: Set up Java (21)
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'temurin'
+        java-version: '21'
     - name: Test setup and yarn install
       run: |
         cp config/ci.config.json config/project.json
@@ -155,6 +165,11 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: 22.10.0
+    - name: Set up Java (21)
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'temurin'
+        java-version: '21'
     - name: Test setup and yarn install
       run: |
         cp config/ci.config.json config/project.json
@@ -205,6 +220,11 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: 22.10.0
+    - name: Set up Java (21)
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'temurin'
+        java-version: '21'
     - name: Test setup and yarn install
       run: |
         cp config/ci.config.json config/project.json
@@ -259,6 +279,11 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: 22.10.0
+    - name: Set up Java (21)
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'temurin'
+        java-version: '21'
     - run: cp config/ci.config.json config/project.json
     - run: yarn
     - run: yarn build:${{ matrix.persistence }}
