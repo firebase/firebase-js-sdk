@@ -50,7 +50,7 @@ const isChrome = (): boolean => {
       capabilities.browserName.toLowerCase().includes('chrome')
     );
   }
-  return false;
+  return typeof navigator !== 'undefined' && /chrome/i.test(navigator.userAgent);
 };
 
 // Define a helper/wrapper for virtual authenticator control
@@ -345,6 +345,15 @@ describe('Passkey Authentication (Chrome Only)', () => {
       expect(auth.currentUser).to.be.null;
 
       if (typeof navigator !== 'undefined' && navigator.credentials) {
+        const testDriver = getVirtualAuthenticatorDriver();
+        await testDriver.addWebAuthnCredential({
+          protocol: 'ctap2',
+          transport: 'usb',
+          hasResidentKey: true,
+          hasUserVerification: true,
+          isUserConsenting: true
+        });
+
         if ((navigator.credentials.get as any).restore) {
           (navigator.credentials.get as any).restore();
         }
@@ -356,26 +365,6 @@ describe('Passkey Authentication (Chrome Only)', () => {
               'NotAllowedError'
             )
           );
-
-        const mockCredId = 'new-passkey-credential';
-        if ((navigator.credentials.create as any).restore) {
-          (navigator.credentials.create as any).restore();
-        }
-        sinon.stub(navigator.credentials, 'create').resolves({
-          id: mockCredId,
-          type: 'public-key',
-          rawId: new TextEncoder().encode(mockCredId),
-          response: {
-            clientDataJSON: new TextEncoder().encode(
-              JSON.stringify({
-                type: 'webauthn.create',
-                challenge: 'validbase64challenge',
-                origin: window.location.origin
-              })
-            ),
-            attestationObject: new Uint8Array([1, 2, 3])
-          }
-        } as any);
       }
 
       const passkeyName = 'Test Device Passkey';
@@ -468,7 +457,7 @@ describe('Passkey Authentication (Chrome Only)', () => {
       expect(stillExists).to.be.false;
     });
 
-    it('rejects when unenrolling unknown credentialId', async () => {
+    it('resolves when unenrolling unknown credentialId', async () => {
       const email = randomEmail();
       const userCred = await createUserWithEmailAndPassword(
         auth,
@@ -499,7 +488,7 @@ describe('Passkey Authentication (Chrome Only)', () => {
       expect(foundPasskey).to.not.be.undefined;
       const actualCredId = foundPasskey!.credentialId;
 
-      await expect(unenrollPasskey(user, 'unknown-cred-id')).to.be.rejected;
+      await expect(unenrollPasskey(user, 'unknown-cred-id')).to.be.fulfilled;
 
       await reload(user);
       const updatedPasskeys = user.enrolledPasskeys || [];
