@@ -123,6 +123,7 @@ export function makeDatabaseInfo(
     cloneLongPollingOptions(settings.experimentalLongPollingOptions),
     settings.useFetchStreams,
     settings.isUsingEmulator,
-    apiKey
+    apiKey,
+    settings._customHeaders
   );
 }
