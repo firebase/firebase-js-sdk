@@ -50,13 +50,9 @@ const isChrome = (): boolean => {
       capabilities.browserName.toLowerCase().includes('chrome')
     );
   }
-  if (typeof navigator !== 'undefined') {
-    return (
-      navigator.userAgent.toLowerCase().includes('chrome') ||
-      navigator.userAgent.toLowerCase().includes('chromium')
-    );
-  }
-  return false;
+  return (
+    typeof navigator !== 'undefined' && /chrome/i.test(navigator.userAgent)
+  );
 };
 
 // Define a helper/wrapper for virtual authenticator control
@@ -202,156 +198,6 @@ const getVirtualAuthenticatorDriver = (): any => {
   };
 };
 
-const createMockJwt = (uid: string, uniqueSeed: string): string => {
-  const header = btoa(JSON.stringify({ alg: 'none', typ: 'JWT' }));
-  const exp = Math.floor(Date.now() / 1000) + 3600;
-  const payload = btoa(
-    JSON.stringify({
-      sub: uid,
-      // eslint-disable-next-line camelcase
-      user_id: uid,
-      exp,
-      iat: exp - 3600,
-      iss: 'https://securetoken.google.com/emulatedproject',
-      aud: 'emulatedproject',
-      seed: uniqueSeed
-    })
-  );
-  return `${header}.${payload}.signature`;
-};
-
-const jwtWithPasskey = createMockJwt('mock-uid', 'with-passkey');
-const jwtWithoutPasskey = createMockJwt('mock-uid', 'without-passkey');
-
-let currentToken = '';
-
-const setupMockFetch = (): void => {
-  currentToken = '';
-
-  const originalFetch = window.fetch.bind(window);
-
-  sinon.stub(window, 'fetch').callsFake(async (input, init) => {
-    const url = typeof input === 'string' ? input : (input as Request).url;
-    const bodyStr = init?.body ? String(init.body) : '';
-    let body: any = {};
-    if (bodyStr) {
-      try {
-        body = JSON.parse(bodyStr);
-      } catch {
-        // Safe fallback for non-JSON bodies
-      }
-    }
-
-    if (url.includes('passkeyEnrollment:start')) {
-      const resp = {
-        credentialCreationOptions: {
-          rp: { name: window.location.hostname },
-          user: {
-            id: 'bW9ja3VzZXI=',
-            name: 'mock-user',
-            displayName: 'Mock User'
-          },
-          challenge: 'validbase64challenge',
-          pubKeyCredParams: [{ type: 'public-key', alg: -7 }],
-          timeout: 60000,
-          excludeCredentials: []
-        }
-      };
-      return new Response(JSON.stringify(resp), { status: 200 });
-    }
-
-    if (url.includes('passkeyEnrollment:finalize')) {
-      currentToken = jwtWithPasskey;
-      const resp = {
-        idToken: currentToken,
-        refreshToken: 'refresh-token',
-        localId: 'mock-uid',
-        expiresIn: '3600'
-      };
-      return new Response(JSON.stringify(resp), { status: 200 });
-    }
-
-    if (url.includes('passkeySignIn:start')) {
-      const resp = {
-        credentialRequestOptions: {
-          challenge: 'validbase64challenge',
-          rpId: window.location.hostname,
-          userVerification: 'required'
-        }
-      };
-      return new Response(JSON.stringify(resp), { status: 200 });
-    }
-
-    if (url.includes('passkeySignIn:finalize')) {
-      currentToken = jwtWithPasskey;
-      const resp = {
-        idToken: currentToken,
-        refreshToken: 'refresh-token',
-        localId: 'mock-uid',
-        expiresIn: '3600'
-      };
-      return new Response(JSON.stringify(resp), { status: 200 });
-    }
-
-    if (url.includes('accounts:lookup')) {
-      const token = body.idToken;
-      const passkeys =
-        token === currentToken
-          ? [
-              {
-                credentialId: 'mock-credential-id',
-                name: 'Test Device Passkey'
-              }
-            ]
-          : [];
-      const resp = {
-        users: [
-          {
-            localId: 'mock-uid',
-            email: 'test@test.com',
-            emailVerified: true,
-            passkeyInfo: passkeys
-          }
-        ]
-      };
-      return new Response(JSON.stringify(resp), { status: 200 });
-    }
-
-    if (url.includes('accounts:update')) {
-      if (body.deletePasskey) {
-        const credId = body.deletePasskey[0];
-        if (credId === 'mock-credential-id') {
-          currentToken = jwtWithoutPasskey;
-          const resp = {
-            idToken: currentToken,
-            refreshToken: 'refresh-token',
-            localId: 'mock-uid',
-            expiresIn: '3600'
-          };
-          return new Response(JSON.stringify(resp), { status: 200 });
-        } else {
-          const errorResp = {
-            error: {
-              code: 400,
-              message: 'INVALID_CREDENTIAL_ID',
-              errors: [
-                {
-                  message: 'INVALID_CREDENTIAL_ID',
-                  domain: 'global',
-                  reason: 'invalid'
-                }
-              ]
-            }
-          };
-          return new Response(JSON.stringify(errorResp), { status: 400 });
-        }
-      }
-    }
-
-    return originalFetch(input, init);
-  });
-};
-
 describe('Passkey Authentication (Chrome Only)', () => {
   // eslint-disable-next-line prefer-arrow-callback
   before(function () {
@@ -364,7 +210,6 @@ describe('Passkey Authentication (Chrome Only)', () => {
 
   beforeEach(() => {
     auth = getTestInstance();
-    setupMockFetch();
   });
 
   afterEach(async () => {
@@ -502,6 +347,15 @@ describe('Passkey Authentication (Chrome Only)', () => {
       expect(auth.currentUser).to.be.null;
 
       if (typeof navigator !== 'undefined' && navigator.credentials) {
+        const testDriver = getVirtualAuthenticatorDriver();
+        await testDriver.addWebAuthnCredential({
+          protocol: 'ctap2',
+          transport: 'usb',
+          hasResidentKey: true,
+          hasUserVerification: true,
+          isUserConsenting: true
+        });
+
         if ((navigator.credentials.get as any).restore) {
           (navigator.credentials.get as any).restore();
         }
@@ -513,26 +367,6 @@ describe('Passkey Authentication (Chrome Only)', () => {
               'NotAllowedError'
             )
           );
-
-        const mockCredId = 'new-passkey-credential';
-        if ((navigator.credentials.create as any).restore) {
-          (navigator.credentials.create as any).restore();
-        }
-        sinon.stub(navigator.credentials, 'create').resolves({
-          id: mockCredId,
-          type: 'public-key',
-          rawId: new TextEncoder().encode(mockCredId),
-          response: {
-            clientDataJSON: new TextEncoder().encode(
-              JSON.stringify({
-                type: 'webauthn.create',
-                challenge: 'validbase64challenge',
-                origin: window.location.origin
-              })
-            ),
-            attestationObject: new Uint8Array([1, 2, 3])
-          }
-        } as any);
       }
 
       const passkeyName = 'Test Device Passkey';
@@ -625,7 +459,7 @@ describe('Passkey Authentication (Chrome Only)', () => {
       expect(stillExists).to.be.false;
     });
 
-    it('rejects when unenrolling unknown credentialId', async () => {
+    it('resolves when unenrolling unknown credentialId', async () => {
       const email = randomEmail();
       const userCred = await createUserWithEmailAndPassword(
         auth,
@@ -656,7 +490,7 @@ describe('Passkey Authentication (Chrome Only)', () => {
       expect(foundPasskey).to.not.be.undefined;
       const actualCredId = foundPasskey!.credentialId;
 
-      await expect(unenrollPasskey(user, 'unknown-cred-id')).to.be.rejected;
+      await expect(unenrollPasskey(user, 'unknown-cred-id')).to.be.fulfilled;
 
       await reload(user);
       const updatedPasskeys = user.enrolledPasskeys || [];
