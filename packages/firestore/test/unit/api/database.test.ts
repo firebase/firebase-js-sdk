@@ -39,9 +39,10 @@ import {
   firestore,
   newTestFirestore,
   query,
-  querySnapshot
+  querySnapshot,
+  querySnapshotWithQuery
 } from '../../util/api_helpers';
-import { keys } from '../../util/helpers';
+import { keys, query as internalQuery, orderBy } from '../../util/helpers';
 
 describe('Bundle', () => {
   it('loadBundle does not throw with an empty bundle string)', async () => {
@@ -727,6 +728,22 @@ describe('QuerySnapshot', () => {
           }
         }
       }
+    }
+  });
+
+  it('fromJSON respects query sort order', () => {
+    if (isNode()) {
+      const q = internalQuery('foo', orderBy('title', 'asc'));
+      const snapshot = querySnapshotWithQuery(q, {
+        docA: { title: 'C' },
+        docB: { title: 'B' },
+        docC: { title: 'A' }
+      });
+      const db = firestore();
+      const querySnap = querySnapshotFromJSON(db, snapshot.toJSON());
+      expect(querySnap).to.exist;
+      const titles = querySnap.docs.map(d => d.data()['title']);
+      expect(titles).to.deep.equal(['A', 'B', 'C']);
     }
   });
 

@@ -950,10 +950,13 @@ export function querySnapshotFromJSON<
 
     // Create an internal Query object from the named query in the bundle.
     const query = fromBundledQuery(bundleLoader.queries[0].bundledQuery!);
+    const comparator = isPipeline(query)
+      ? newPipelineComparator(query)
+      : newQueryComparator(query);
 
     // Construct the arrays of document data for the query.
     const bundledDocuments = bundleLoader.documents;
-    let documentSet = new DocumentSet();
+    let documentSet = new DocumentSet(comparator);
     bundledDocuments.map(bundledDocument => {
       const document = fromDocument(serializer, bundledDocument.document!);
       documentSet = documentSet.add(document);
