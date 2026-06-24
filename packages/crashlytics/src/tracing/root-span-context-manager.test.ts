@@ -124,6 +124,7 @@ describe('RootSpanContextManager', () => {
         mockSpan = {
           name: spanName,
           end: sandbox.stub(),
+          setAttribute: sandbox.stub(),
           spanContext: () => ({ traceId: `trace-${index}`, spanId: spanName })
         };
         return mockSpan;
@@ -728,6 +729,8 @@ describe('RootSpanContextManager', () => {
         )
       ).to.be.true;
       expect(mockSpan.end.calledWith(108)).to.be.true;
+      expect(mockSpan.setAttribute.calledWith('interrupted_at', 108)).to.be
+        .true;
     });
 
     it('should create a ui render span that ends at the ui render completion time on interrupt if it has started and ended but is still quiescing', () => {
@@ -760,6 +763,8 @@ describe('RootSpanContextManager', () => {
         )
       ).to.be.true;
       expect(mockSpan.end.calledWith(110)).to.be.true;
+      expect(mockSpan.setAttribute.calledWith('interrupted_at', 115)).to.be
+        .false;
     });
   });
 });
