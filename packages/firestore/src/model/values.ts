@@ -704,7 +704,7 @@ function getBytesAndSubtype(value: Value): {
   if (bytes.length === 0) {
     throw new Error('Received empty bytesValue for BsonBinaryData');
   }
-  const subtype = bytes.at(0)!;
+  const subtype = bytes[0];
   const data = bytes.slice(1);
   return {
     subtype,
@@ -716,7 +716,7 @@ function compareBlobsAndSubtype(left: Value, right: Value): number {
   const leftVal = getBytesAndSubtype(left);
   const rightVal = getBytesAndSubtype(right);
   if (leftVal.subtype !== rightVal.subtype) {
-    return leftVal.subtype - rightVal.subtype;
+    return leftVal.subtype < rightVal.subtype ? -1 : 1;
   }
   return leftVal.bytes.compareTo(rightVal.bytes);
 }

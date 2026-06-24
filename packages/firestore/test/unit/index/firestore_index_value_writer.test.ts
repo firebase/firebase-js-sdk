@@ -528,10 +528,18 @@ describe('Firestore Index Value Writer', () => {
 
       // Subtype 0 (standard) < Subtype 1 (subtyped) with identical payload
       expect(
-        compareIndexEncodedValues(stdBytes123, sub1Bytes123, IndexKind.ASCENDING)
+        compareIndexEncodedValues(
+          stdBytes123,
+          sub1Bytes123,
+          IndexKind.ASCENDING
+        )
       ).to.equal(-1);
       expect(
-        compareIndexEncodedValues(sub1Bytes123, stdBytes123, IndexKind.ASCENDING)
+        compareIndexEncodedValues(
+          sub1Bytes123,
+          stdBytes123,
+          IndexKind.ASCENDING
+        )
       ).to.equal(1);
 
       // Subtype 0 (standard) < Subtype 1 (subtyped), even with greater payload byte values ([255] < [0])
@@ -555,7 +563,11 @@ describe('Firestore Index Value Writer', () => {
         compareIndexEncodedValues(stdBytes123, stdBytes123, IndexKind.ASCENDING)
       ).to.equal(0);
       expect(
-        compareIndexEncodedValues(sub1Bytes123, sub1Bytes123, IndexKind.ASCENDING)
+        compareIndexEncodedValues(
+          sub1Bytes123,
+          sub1Bytes123,
+          IndexKind.ASCENDING
+        )
       ).to.equal(0);
     });
 

@@ -145,7 +145,7 @@ export class FirestoreIndexValueWriter {
         const subtypeAndData = bsonBinaryFields?.bytesValue;
         const bytes = normalizeByteString(subtypeAndData!).toUint8Array();
         // Assume the backend has sent us the subtype, and that the byte string isn't empty
-        const subtype = bytes.at(0)!;
+        const subtype = bytes[0];
 
         // BSON Binary values with subtype 0 (generic binary) must be indexed identically to standard blobs
         // in order to maintain consistent sorting ordering in memory vs IndexedDB.

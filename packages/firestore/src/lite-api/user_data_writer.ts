@@ -190,7 +190,7 @@ export abstract class AbstractUserDataWriter {
     if (bytes.length === 0) {
       throw new Error('Received empty bytesValue for Bytes with subtype');
     }
-    const subtype = bytes.at(0)!;
+    const subtype = bytes[0];
     const data = bytes.slice(1);
     return new Bytes(ByteString.fromUint8Array(data), subtype);
   }
