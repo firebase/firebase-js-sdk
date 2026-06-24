@@ -29,7 +29,7 @@
     "test:browser": "karma start",
     "test:debug": "karma start --browsers=Chrome --auto-watch",
     "trusted-type-check": "tsec -p tsconfig.json --noEmit",
-    "prettier": "prettier --write '{src,test}/**/*.{js,ts}'",
+    "prettier": "prettier --cache --write '{src,test}/**/*.{js,ts}'",
     "api-report": "api-extractor run --local --verbose",
     "doc": "api-documenter markdown --input temp --output docs",
     "build:doc": "yarn build && yarn doc"
