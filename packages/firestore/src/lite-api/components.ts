@@ -124,6 +124,7 @@ export function makeDatabaseInfo(
     settings.useFetchStreams,
     settings.isUsingEmulator,
     apiKey,
-    settings._customHeaders
+    settings._customHeaders,
+    settings.experimentalGrpcFlowControlWindow
   );
 }

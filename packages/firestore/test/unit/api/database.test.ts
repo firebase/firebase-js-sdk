@@ -1148,4 +1148,44 @@ describe('Settings', () => {
     expect(token!.type).to.eql('OAuth');
     expect(token!.user).to.eql(User.MOCK_USER);
   });
+
+  it('allows setting experimentalGrpcFlowControlWindow to a positive integer', () => {
+    const db = newTestFirestore();
+    db._setSettings({
+      experimentalGrpcFlowControlWindow: 512 * 1024
+    });
+    expect(db._getSettings().experimentalGrpcFlowControlWindow).to.equal(
+      512 * 1024
+    );
+  });
+
+  it('throws when setting experimentalGrpcFlowControlWindow to non-positive value', () => {
+    const db = newTestFirestore();
+    expect(() =>
+      db._setSettings({
+        experimentalGrpcFlowControlWindow: 0
+      })
+    ).to.throw(/experimentalGrpcFlowControlWindow must be a positive integer/);
+
+    expect(() =>
+      db._setSettings({
+        experimentalGrpcFlowControlWindow: -50
+      })
+    ).to.throw(/experimentalGrpcFlowControlWindow must be a positive integer/);
+  });
+
+  it('throws when setting experimentalGrpcFlowControlWindow to a non-integer', () => {
+    const db = newTestFirestore();
+    expect(() =>
+      db._setSettings({
+        experimentalGrpcFlowControlWindow: 12.5
+      })
+    ).to.throw(/experimentalGrpcFlowControlWindow must be a positive integer/);
+
+    expect(() =>
+      db._setSettings({
+        experimentalGrpcFlowControlWindow: '100' as unknown as number
+      })
+    ).to.throw(/experimentalGrpcFlowControlWindow must be a positive integer/);
+  });
 });

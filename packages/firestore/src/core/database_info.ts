@@ -51,7 +51,8 @@ export class DatabaseInfo {
     readonly useFetchStreams: boolean,
     readonly isUsingEmulator: boolean,
     readonly apiKey: string | undefined,
-    readonly _customHeaders?: Record<string, string>
+    readonly _customHeaders?: Record<string, string>,
+    readonly experimentalGrpcFlowControlWindow?: number
   ) {}
 }
 
