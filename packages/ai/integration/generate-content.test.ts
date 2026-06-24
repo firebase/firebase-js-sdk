@@ -43,7 +43,7 @@ import { TIMEOUT_EXPIRED_MESSAGE } from '../src/requests/request';
 import { isNode } from '@firebase/util';
 
 describe('Generate Content', function () {
-  this.timeout(90_000); // gemini 3 requests take a long time, especially when using google search and url context.
+  this.timeout(90_000); // gemini 3.x requests using grounding and URL context can take up to 90s.
   testConfigs.forEach(testConfig => {
     describe(`${testConfig.toString()}`, () => {
       const commonGenerationConfig: GenerationConfig = {
@@ -263,10 +263,6 @@ describe('Generate Content', function () {
       });
 
       it('generateContent: google maps grounding with RetrievalConfig', async () => {
-        if (testConfig.model === 'gemini-3-pro-preview') {
-          // Maps grounding is not supported in gemini-3-pro-preview.
-          return;
-        }
         const model = getGenerativeModel(testConfig.ai, {
           model: testConfig.model,
           generationConfig: commonGenerationConfig,
@@ -362,16 +358,6 @@ describe('Generate Content', function () {
       });
 
       describe('URL Context', () => {
-        if (
-          [
-            'gemini-2.0-flash-001',
-            'gemini-2.0-flash-lite-001',
-            'gemini-3.5-flash',
-            'gemini-3.1-flash-lite'
-          ].includes(testConfig.model)
-        ) {
-          return;
-        }
         it('generateContent: url context', async () => {
           const model = getGenerativeModel(testConfig.ai, {
             model: testConfig.model,
