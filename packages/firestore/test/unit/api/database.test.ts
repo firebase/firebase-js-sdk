@@ -1188,4 +1188,15 @@ describe('Settings', () => {
       })
     ).to.throw(/experimentalGrpcFlowControlWindow must be a positive integer/);
   });
+
+  it('throws when setting experimentalGrpcFlowControlWindow above 2147483647', () => {
+    const db = newTestFirestore();
+    expect(() =>
+      db._setSettings({
+        experimentalGrpcFlowControlWindow: 2147483648
+      })
+    ).to.throw(
+      /experimentalGrpcFlowControlWindow must be a positive integer and cannot exceed 2147483647/
+    );
+  });
 });

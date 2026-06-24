@@ -206,11 +206,12 @@ export class FirestoreSettingsImpl {
       if (
         typeof settings.experimentalGrpcFlowControlWindow !== 'number' ||
         settings.experimentalGrpcFlowControlWindow <= 0 ||
+        settings.experimentalGrpcFlowControlWindow > 2147483647 ||
         !Number.isInteger(settings.experimentalGrpcFlowControlWindow)
       ) {
         throw new FirestoreError(
           Code.INVALID_ARGUMENT,
-          'experimentalGrpcFlowControlWindow must be a positive integer'
+          'experimentalGrpcFlowControlWindow must be a positive integer and cannot exceed 2147483647'
         );
       }
       this.experimentalGrpcFlowControlWindow =
