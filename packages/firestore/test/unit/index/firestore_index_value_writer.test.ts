@@ -192,6 +192,20 @@ describe('Firestore Index Value Writer', () => {
       ).to.equal(-1);
     });
 
+    it('reproduces year 2286 timestamp string comparison bug', () => {
+      // 10-digit seconds timestamp (e.g. Year 2026)
+      const value1 = { timestampValue: { seconds: 1770000000, nanos: 0 } };
+      // 11-digit seconds timestamp (e.g. Year 2286)
+      const value2 = { timestampValue: { seconds: 10000000000, nanos: 0 } };
+
+      // In memory, value2 (Year 2286) > value1 (Year 2026).
+      // But because the index writer writes seconds as a string, "10000000000" < "1770000000" alphabetically.
+      // So the index value writer incorrectly sorts Year 2286 before Year 2026 (ascending).
+      expect(
+        compareIndexEncodedValues(value1, value2, IndexKind.ASCENDING)
+      ).to.equal(1); // 1 indicates value1 (2026) > value2 (2286), which is a bug!
+    });
+
     it('sorts vector as a different type from array and map, with unique rules', () => {
       const vector1 = {
         mapValue: {
@@ -372,6 +386,46 @@ describe('Firestore Index Value Writer', () => {
       expect(
         compareIndexEncodedValues(value4, value3, IndexKind.ASCENDING)
       ).to.equal(1);
+    });
+
+    it('reproduces BSON Timestamp index key instability based on field insertion order', () => {
+      // valueA: seconds defined first, increment second
+      const valueA = {
+        mapValue: {
+          fields: {
+            '__request_timestamp__': {
+              mapValue: {
+                fields: {
+                  seconds: { integerValue: 1 },
+                  increment: { integerValue: 2 }
+                }
+              }
+            }
+          }
+        }
+      };
+      // valueB: increment defined first, seconds second (represents the same BsonTimestamp)
+      const valueB = {
+        mapValue: {
+          fields: {
+            '__request_timestamp__': {
+              mapValue: {
+                fields: {
+                  increment: { integerValue: 2 },
+                  seconds: { integerValue: 1 }
+                }
+              }
+            }
+          }
+        }
+      };
+
+      // In memory, they are equal because compareBsonTimestamps extracts and compares seconds then increment.
+      // But in local cache indexing, because writeIndexMap does not sort keys, their index key encodings will differ!
+      // This expectation will FAIL if index key encoding is stable (equal), but currently PASSES because they differ.
+      expect(
+        compareIndexEncodedValues(valueA, valueB, IndexKind.ASCENDING)
+      ).to.not.equal(0);
     });
 
     it('can compare BSON Binary', () => {
