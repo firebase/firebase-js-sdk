@@ -30,7 +30,7 @@
     "test:browser": "karma start",
     "test:browser:debug": "karma start --browsers Chrome --auto-watch",
     "trusted-type-check": "tsec -p tsconfig.json --noEmit",
-    "prettier": "prettier --write '{src,test}/**/*.{js,ts}'",
+    "prettier": "prettier --cache --write '{src,test}/**/*.{js,ts}'",
     "add-compat-overloads": "ts-node-script ../../scripts/build/create-overloads.ts -i ../performance/dist/src/index.d.ts -o dist/src/index.d.ts -a -r FirebasePerformance:FirebasePerformanceCompat -r FirebaseApp:FirebaseAppCompat --moduleToEnhance @firebase/performance"
   },
   "license": "Apache-2.0",
