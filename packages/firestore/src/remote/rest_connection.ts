@@ -181,6 +181,11 @@ export abstract class RestConnection implements Connection {
     if (appCheckToken) {
       appCheckToken.headers.forEach((value, key) => (headers[key] = value));
     }
+    if (this.databaseInfo._customHeaders) {
+      for (const key of Object.keys(this.databaseInfo._customHeaders)) {
+        headers[key] = this.databaseInfo._customHeaders[key];
+      }
+    }
   }
 
   /**
