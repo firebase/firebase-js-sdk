@@ -69,6 +69,7 @@ class UiRenderSpanManager {
     if (this.activeRenderSpan) {
       if (this.quiescenceRenderTimerId === null) {
         this.lastRenderCompletedAtMs = interruptedAtMs;
+        this.activeRenderSpan.setAttribute('interrupted_at', interruptedAtMs);
       }
       this.endUiRenderSpan();
     }
