@@ -26,12 +26,12 @@
     "postinstall.js"
   ],
   "scripts": {
-    "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
-    "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
+    "lint": "eslint --cache --cache-location '../../node_modules/.cache/eslint/' -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
+    "lint:fix": "eslint --cache --cache-location '../../node_modules/.cache/eslint/' --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "build": "rollup -c && yarn api-report",
     "build:deps": "lerna run build --scope @firebase/util",
     "dev": "rollup -c -w",
-    "prettier": "prettier --write 'src/**/*.ts' 'test/**/*.ts'",
+    "prettier": "prettier --cache --write 'src/**/*.ts' 'test/**/*.ts'",
     "test": "run-p --npm-path npm lint test:all",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all",
     "test:all": "run-p --npm-path npm test:browser test:node",
