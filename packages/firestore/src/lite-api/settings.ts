@@ -214,8 +214,7 @@ export class FirestoreSettingsImpl {
           'grpcFlowControlWindow must be a positive integer and cannot exceed 2147483647'
         );
       }
-      this.grpcFlowControlWindow =
-        settings.grpcFlowControlWindow;
+      this.grpcFlowControlWindow = settings.grpcFlowControlWindow;
     }
   }
 
@@ -235,8 +234,7 @@ export class FirestoreSettingsImpl {
       ) &&
       this.ignoreUndefinedProperties === other.ignoreUndefinedProperties &&
       this.useFetchStreams === other.useFetchStreams &&
-      this.grpcFlowControlWindow ===
-        other.grpcFlowControlWindow &&
+      this.grpcFlowControlWindow === other.grpcFlowControlWindow &&
       customHeadersEqual(this._customHeaders, other._customHeaders)
     );
   }

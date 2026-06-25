@@ -1154,9 +1154,7 @@ describe('Settings', () => {
     db._setSettings({
       grpcFlowControlWindow: 512 * 1024
     });
-    expect(db._getSettings().grpcFlowControlWindow).to.equal(
-      512 * 1024
-    );
+    expect(db._getSettings().grpcFlowControlWindow).to.equal(512 * 1024);
   });
 
   it('throws when setting grpcFlowControlWindow to non-positive value', () => {
