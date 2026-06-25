@@ -19,12 +19,7 @@ import { ByteString } from '../util/byte_string';
 import { Code, FirestoreError } from '../util/error';
 // API extractor fails importing property unless we also explicitly import Property and JsonTypeDesc.
 // eslint-disable-next-line @typescript-eslint/no-unused-vars, unused-imports/no-unused-imports-ts
-import {
-  JsonTypeDesc,
-  Property,
-  property,
-  validateJSON
-} from '../util/json_validation';
+import { property, validateJSON } from '../util/json_validation';
 
 /**
  * An immutable object representing an array of bytes.
