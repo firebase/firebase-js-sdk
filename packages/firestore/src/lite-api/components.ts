@@ -125,6 +125,6 @@ export function makeDatabaseInfo(
     settings.isUsingEmulator,
     apiKey,
     settings._customHeaders,
-    settings.experimentalGrpcFlowControlWindow
+    settings.grpcFlowControlWindow
   );
 }

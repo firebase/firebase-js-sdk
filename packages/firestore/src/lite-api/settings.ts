@@ -73,7 +73,7 @@ export interface FirestoreSettings {
    * Sets the gRPC flow control window size in bytes.
    * Only applicable in Node.js environments.
    */
-  experimentalGrpcFlowControlWindow?: number;
+  grpcFlowControlWindow?: number;
 
   /**
    * @internal
@@ -128,7 +128,7 @@ export class FirestoreSettingsImpl {
   readonly _customHeaders?: Record<string, string>;
 
   readonly isUsingEmulator: boolean;
-  readonly experimentalGrpcFlowControlWindow?: number;
+  readonly grpcFlowControlWindow?: number;
 
   // Can be a google-auth-library or gapi client.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -202,20 +202,20 @@ export class FirestoreSettingsImpl {
 
     this.useFetchStreams = !!settings.useFetchStreams;
 
-    if (settings.experimentalGrpcFlowControlWindow !== undefined) {
+    if (settings.grpcFlowControlWindow !== undefined) {
       if (
-        typeof settings.experimentalGrpcFlowControlWindow !== 'number' ||
-        settings.experimentalGrpcFlowControlWindow <= 0 ||
-        settings.experimentalGrpcFlowControlWindow > 2147483647 ||
-        !Number.isInteger(settings.experimentalGrpcFlowControlWindow)
+        typeof settings.grpcFlowControlWindow !== 'number' ||
+        settings.grpcFlowControlWindow <= 0 ||
+        settings.grpcFlowControlWindow > 2147483647 ||
+        !Number.isInteger(settings.grpcFlowControlWindow)
       ) {
         throw new FirestoreError(
           Code.INVALID_ARGUMENT,
-          'experimentalGrpcFlowControlWindow must be a positive integer and cannot exceed 2147483647'
+          'grpcFlowControlWindow must be a positive integer and cannot exceed 2147483647'
         );
       }
-      this.experimentalGrpcFlowControlWindow =
-        settings.experimentalGrpcFlowControlWindow;
+      this.grpcFlowControlWindow =
+        settings.grpcFlowControlWindow;
     }
   }
 
@@ -235,8 +235,8 @@ export class FirestoreSettingsImpl {
       ) &&
       this.ignoreUndefinedProperties === other.ignoreUndefinedProperties &&
       this.useFetchStreams === other.useFetchStreams &&
-      this.experimentalGrpcFlowControlWindow ===
-        other.experimentalGrpcFlowControlWindow &&
+      this.grpcFlowControlWindow ===
+        other.grpcFlowControlWindow &&
       customHeadersEqual(this._customHeaders, other._customHeaders)
     );
   }

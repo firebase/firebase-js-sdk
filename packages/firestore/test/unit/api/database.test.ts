@@ -1149,54 +1149,54 @@ describe('Settings', () => {
     expect(token!.user).to.eql(User.MOCK_USER);
   });
 
-  it('allows setting experimentalGrpcFlowControlWindow to a positive integer', () => {
+  it('allows setting grpcFlowControlWindow to a positive integer', () => {
     const db = newTestFirestore();
     db._setSettings({
-      experimentalGrpcFlowControlWindow: 512 * 1024
+      grpcFlowControlWindow: 512 * 1024
     });
-    expect(db._getSettings().experimentalGrpcFlowControlWindow).to.equal(
+    expect(db._getSettings().grpcFlowControlWindow).to.equal(
       512 * 1024
     );
   });
 
-  it('throws when setting experimentalGrpcFlowControlWindow to non-positive value', () => {
+  it('throws when setting grpcFlowControlWindow to non-positive value', () => {
     const db = newTestFirestore();
     expect(() =>
       db._setSettings({
-        experimentalGrpcFlowControlWindow: 0
+        grpcFlowControlWindow: 0
       })
-    ).to.throw(/experimentalGrpcFlowControlWindow must be a positive integer/);
+    ).to.throw(/grpcFlowControlWindow must be a positive integer/);
 
     expect(() =>
       db._setSettings({
-        experimentalGrpcFlowControlWindow: -50
+        grpcFlowControlWindow: -50
       })
-    ).to.throw(/experimentalGrpcFlowControlWindow must be a positive integer/);
+    ).to.throw(/grpcFlowControlWindow must be a positive integer/);
   });
 
-  it('throws when setting experimentalGrpcFlowControlWindow to a non-integer', () => {
+  it('throws when setting grpcFlowControlWindow to a non-integer', () => {
     const db = newTestFirestore();
     expect(() =>
       db._setSettings({
-        experimentalGrpcFlowControlWindow: 12.5
+        grpcFlowControlWindow: 12.5
       })
-    ).to.throw(/experimentalGrpcFlowControlWindow must be a positive integer/);
+    ).to.throw(/grpcFlowControlWindow must be a positive integer/);
 
     expect(() =>
       db._setSettings({
-        experimentalGrpcFlowControlWindow: '100' as unknown as number
+        grpcFlowControlWindow: '100' as unknown as number
       })
-    ).to.throw(/experimentalGrpcFlowControlWindow must be a positive integer/);
+    ).to.throw(/grpcFlowControlWindow must be a positive integer/);
   });
 
-  it('throws when setting experimentalGrpcFlowControlWindow above 2147483647', () => {
+  it('throws when setting grpcFlowControlWindow above 2147483647', () => {
     const db = newTestFirestore();
     expect(() =>
       db._setSettings({
-        experimentalGrpcFlowControlWindow: 2147483648
+        grpcFlowControlWindow: 2147483648
       })
     ).to.throw(
-      /experimentalGrpcFlowControlWindow must be a positive integer and cannot exceed 2147483647/
+      /grpcFlowControlWindow must be a positive integer and cannot exceed 2147483647/
     );
   });
 });

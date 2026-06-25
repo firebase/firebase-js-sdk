@@ -165,7 +165,7 @@ describe('GrpcConnection', () => {
         /*isUsingEmulator=*/ false,
         'api-key',
         /*_customHeaders=*/ undefined,
-        /*experimentalGrpcFlowControlWindow=*/ 512 * 1024
+        /*grpcFlowControlWindow=*/ 512 * 1024
       );
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

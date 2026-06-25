@@ -52,7 +52,7 @@ export class DatabaseInfo {
     readonly isUsingEmulator: boolean,
     readonly apiKey: string | undefined,
     readonly _customHeaders?: Record<string, string>,
-    readonly experimentalGrpcFlowControlWindow?: number
+    readonly grpcFlowControlWindow?: number
   ) {}
 }
 
