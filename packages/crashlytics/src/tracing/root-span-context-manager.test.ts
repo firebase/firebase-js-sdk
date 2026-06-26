@@ -100,6 +100,7 @@ describe('RootSpanContextManager', () => {
     id: string = 'net-1'
   ): void => {
     rootSpan.onResourceFetchSpanStart({
+      name: id === 'doc-load' ? 'documentLoad' : id,
       spanContext: () => ({ spanId: id })
     } as any);
   };
@@ -110,6 +111,7 @@ describe('RootSpanContextManager', () => {
     endTimeMs: number = Date.now()
   ): void => {
     rootSpan.onResourceFetchSpanEnd({
+      name: id === 'doc-load' ? 'documentLoad' : id,
       spanContext: () => ({ spanId: id }),
       endTime: [Math.floor(endTimeMs / 1000), (endTimeMs % 1000) * 1000000]
     } as any);
@@ -283,7 +285,7 @@ describe('RootSpanContextManager', () => {
   });
 
   describe('app-start root span', () => {
-    it('should stay open for app-start root span until markDocumentLoaded is called', () => {
+    it('should stay open for app-start root span until documentLoad span ends', () => {
       const rootSpan = manager.startRootSpan(mockTracer as Tracer, 'span-1');
       recordResourceFetchSpanStart(rootSpan, 'doc-load');
       expect(manager.getActiveRootSpan()).to.equal(rootSpan);
