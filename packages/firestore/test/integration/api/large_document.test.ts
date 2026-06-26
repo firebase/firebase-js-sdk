@@ -34,7 +34,9 @@ import {
   documentId,
   runTransaction,
   serverTimestamp,
-  setDoc
+  setDoc,
+  updateDoc,
+  deleteDoc
 } from '../util/firebase_export';
 import { apiDescribe, withTestDb } from '../util/helpers';
 import {
@@ -44,8 +46,10 @@ import {
 } from '../util/settings';
 
 apiDescribe('Large Documents', persistence => {
-  before(function () {
-    this.timeout(120000); // Tests are very slow because large doc reads have very high latency.
+  const seedColName = 'large_doc_tests_js';
+
+  before(async function () {
+    this.timeout(180000); // Tests are very slow because large doc reads have very high latency.
     const runLargeTests = process.env.FIRESTORE_RUN_LARGE_DOC_TESTS;
     if (runLargeTests !== 'YES' && runLargeTests !== 'true') {
       this.skip();
@@ -56,15 +60,37 @@ apiDescribe('Large Documents', persistence => {
     ) {
       this.skip();
     }
+
+    await withTestDb(persistence, async db => {
+      const docRef = doc(collection(db, seedColName), 'doc_15_9MB_unicode');
+      const snap = await getDocFromServer(docRef);
+      if (!snap.exists()) {
+        const targetBytes = Math.floor(15.9 * 1024 * 1024);
+        const payload = 'a'.repeat(targetBytes);
+        await setDoc(docRef, { chunk: payload });
+        await setDoc(doc(collection(db, seedColName), 'doc_a'), { chunk: payload });
+        await setDoc(doc(collection(db, seedColName), 'doc_b'), { chunk: payload });
+      }
+    });
+  });
+
+  after(async function () {
+    this.timeout(120000);
+    await withTestDb(persistence, async db => {
+      try {
+        await deleteDoc(doc(collection(db, seedColName), 'doc_15_9MB_unicode'));
+        await deleteDoc(doc(collection(db, seedColName), 'doc_a'));
+        await deleteDoc(doc(collection(db, seedColName), 'doc_b'));
+      } catch (e) {
+        // Suppress cleanup exceptions
+      }
+    });
   });
 
   it('can read and cache a 15.9MB Unicode document', function () {
     this.timeout(120000);
     return withTestDb(persistence, async db => {
-      const docRef = doc(
-        collection(db, 'serverSdkTests'),
-        'doc_15_9MB_unicode'
-      );
+      const docRef = doc(collection(db, seedColName), 'doc_15_9MB_unicode');
       try {
         const serverSnapshot = await getDocFromServer(docRef);
         expect(serverSnapshot.exists()).to.be.true;
@@ -84,7 +110,7 @@ apiDescribe('Large Documents', persistence => {
   it('cache integrity with multiple large documents', function () {
     this.timeout(120000);
     return withTestDb(persistence, async db => {
-      const colRef = collection(db, 'col_large_docs');
+      const colRef = collection(db, seedColName);
       const docA = doc(colRef, 'doc_a');
       const docB = doc(colRef, 'doc_b');
 
@@ -111,15 +137,15 @@ apiDescribe('Large Documents', persistence => {
   it('can run watch snapshot listener on a large document', function () {
     this.timeout(120000);
     return withTestDb(persistence, async db => {
-      const docRef = doc(
-        collection(db, 'serverSdkTests'),
-        'doc_15_9MB_unicode'
-      );
+      const docRef = doc(collection(db, seedColName), 'doc_15_9MB_unicode');
+      let updateReceived = false;
+
       const deferred = new Promise<void>((resolve, reject) => {
         const unsubscribe = onSnapshot(
           docRef,
           snapshot => {
-            if (snapshot.exists()) {
+            if (snapshot.exists() && snapshot.data()!['differential_field']) {
+              updateReceived = true;
               unsubscribe();
               resolve();
             }
@@ -130,17 +156,17 @@ apiDescribe('Large Documents', persistence => {
           }
         );
       });
+
+      await updateDoc(docRef, { differential_field: 'updated_value' });
       await deferred;
+      expect(updateReceived).to.be.true;
     });
   });
 
   it('can run transaction read-modify-write on a large document', function () {
     this.timeout(120000);
     return withTestDb(persistence, async db => {
-      const docRef = doc(
-        collection(db, 'serverSdkTests'),
-        'doc_15_9MB_unicode'
-      );
+      const docRef = doc(collection(db, seedColName), 'doc_15_9MB_unicode');
       await runTransaction(db, async transaction => {
         const snapshot = await transaction.get(docRef);
         expect(snapshot.exists()).to.be.true;
@@ -155,7 +181,7 @@ apiDescribe('Large Documents', persistence => {
   it('can query large documents', function () {
     this.timeout(120000);
     return withTestDb(persistence, async db => {
-      const colRef = collection(db, 'col_large_docs');
+      const colRef = collection(db, seedColName);
       const q = query(colRef, where(documentId(), 'in', ['doc_a', 'doc_b']));
 
       try {
@@ -179,7 +205,7 @@ apiDescribe('Large Documents', persistence => {
   it('query large documents forces local scan', function () {
     this.timeout(120000);
     return withTestDb(persistence, async db => {
-      const colRef = collection(db, 'col_large_docs');
+      const colRef = collection(db, seedColName);
       const docA = doc(colRef, 'doc_a');
       const docB = doc(colRef, 'doc_b');
 
@@ -202,10 +228,7 @@ apiDescribe('Large Documents', persistence => {
   it('gracefully rejects oversized payloads', function () {
     this.timeout(120000);
     return withTestDb(persistence, async db => {
-      const docRef = doc(
-        collection(db, 'serverSdkTests'),
-        'temp_oversized_doc'
-      );
+      const docRef = doc(collection(db, seedColName), 'temp_oversized_doc');
       const targetBytes = 16 * 1024 * 1024 + 102400;
       const largePayload = 'a'.repeat(targetBytes);
 
@@ -215,8 +238,7 @@ apiDescribe('Large Documents', persistence => {
           'Setting a document exceeding the 16MB limit should fail.'
         );
       } catch (error: unknown) {
-        console.error('Caught error in oversized payloads:', error);
-        expect(error.code).to.equal('invalid-argument');
+        expect((error as any).code).to.equal('invalid-argument');
       }
     });
   });
@@ -224,17 +246,23 @@ apiDescribe('Large Documents', persistence => {
   it('can write a 15.9MB document', function () {
     this.timeout(120000);
     return withTestDb(persistence, async db => {
-      const docRef = doc(
-        collection(db, 'serverSdkTests'),
-        'temp_valid_large_doc'
-      );
+      const tempDocId = 'temp_valid_large_doc_' + Date.now();
+      const docRef = doc(collection(db, seedColName), tempDocId);
       const targetBytes = Math.floor(15.9 * 1024 * 1024);
       const largePayload = 'a'.repeat(targetBytes);
 
-      await setDoc(docRef, { chunk: largePayload });
-      const snapshot = await getDocFromServer(docRef);
-      expect(snapshot.exists()).to.be.true;
-      expect(snapshot.data()!.chunk.length).to.equal(targetBytes);
+      try {
+        await setDoc(docRef, { chunk: largePayload });
+        const snapshot = await getDocFromServer(docRef);
+        expect(snapshot.exists()).to.be.true;
+        expect(snapshot.data()!.chunk.length).to.equal(targetBytes);
+      } finally {
+        try {
+          await deleteDoc(docRef);
+        } catch (e) {
+          // Suppress cleanup exceptions
+        }
+      }
     });
   });
 });
