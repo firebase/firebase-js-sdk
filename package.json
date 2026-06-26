@@ -37,7 +37,6 @@
     "test:coverage": "lcov-result-merger 'packages/**/lcov.info' | coveralls",
     "test:changed": "ts-node-script scripts/ci-test/test_changed.ts",
     "test:setup": "node tools/config.js",
-    "test:saucelabs": "node scripts/run_saucelabs.js",
     "trusted-type-check": "lerna run --scope @firebase/* trusted-type-check --no-bail",
     "docgen": "ts-node-script scripts/docgen/docgen.ts",
     "docgen:compat": "node scripts/docgen-compat/generate-docs.js --api js",
