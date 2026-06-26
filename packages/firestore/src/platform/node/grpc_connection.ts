@@ -45,7 +45,8 @@ function createMetadata(
   authToken: Token | null,
   appCheckToken: Token | null,
   appId: string,
-  apiKey: string | undefined
+  apiKey: string | undefined,
+  customHeaders?: Record<string, string>
 ): grpc.Metadata {
   hardAssert(
     authToken === null || authToken.type === 'OAuth',
@@ -72,6 +73,11 @@ function createMetadata(
   metadata.set('x-goog-request-params', databasePath);
   if (apiKey) {
     metadata.set('X-Goog-Api-Key', apiKey);
+  }
+  if (customHeaders) {
+    for (const key of Object.keys(customHeaders)) {
+      metadata.set(key, customHeaders[key]);
+    }
   }
   return metadata;
 }
@@ -137,7 +143,8 @@ export class GrpcConnection implements Connection {
       authToken,
       appCheckToken,
       this.databaseInfo.appId,
-      this.databaseInfo.apiKey
+      this.databaseInfo.apiKey,
+      this.databaseInfo._customHeaders
     );
     const jsonRequest = { database: this.databasePath, ...request };
 
@@ -198,7 +205,8 @@ export class GrpcConnection implements Connection {
       authToken,
       appCheckToken,
       this.databaseInfo.appId,
-      this.databaseInfo.apiKey
+      this.databaseInfo.apiKey,
+      this.databaseInfo._customHeaders
     );
     const jsonRequest = { ...request, database: this.databasePath };
     const stream = stub[rpcName](jsonRequest, metadata);
@@ -251,7 +259,8 @@ export class GrpcConnection implements Connection {
       authToken,
       appCheckToken,
       this.databaseInfo.appId,
-      this.databaseInfo.apiKey
+      this.databaseInfo.apiKey,
+      this.databaseInfo._customHeaders
     );
     const grpcStream = stub[rpcName](metadata);
 
