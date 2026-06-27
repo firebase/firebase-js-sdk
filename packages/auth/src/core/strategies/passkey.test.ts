@@ -202,6 +202,92 @@ describe('passkey', async () => {
     }
   });
 
+  it('should fallback when passkey operation is cancelled (NotAllowedError)', async () => {
+    if (
+      typeof navigator === 'undefined' ||
+      typeof navigator.credentials === 'undefined'
+    ) {
+      return;
+    }
+    const notAllowedError = new Error('User cancelled');
+    notAllowedError.name = 'NotAllowedError';
+    sinon.stub(navigator.credentials, 'get').throws(notAllowedError);
+    sinon.stub(navigator.credentials, 'create').resolves(mockCredential);
+
+    const serverUser: APIUserInfo = { localId: 'local-id' };
+    mockEndpoint(Endpoint.SIGN_UP, {
+      idToken: 'id-token', refreshToken: 'refresh-token', expiresIn: '1234', localId: serverUser.localId!
+    });
+    mockEndpoint(Endpoint.GET_ACCOUNT_INFO, { users: [serverUser] });
+
+    mockEndpoint(Endpoint.START_PASSKEY_SIGNIN, {
+      credentialRequestOptions: { challenge: 'validbase64challenge', rpId: 'rp-id', userVerification: 'required' }
+    });
+
+    mockEndpoint(Endpoint.START_PASSKEY_ENROLLMENT, {
+      credentialCreationOptions: {
+        rp: { name: 'mock-rp' },
+        user: { id: 'mockuser', name: 'mock-user', displayName: 'Mock User' },
+        challenge: 'validbase64challenge',
+        pubKeyCredParams: [{ type: 'public-key', alg: -7 }, { type: 'public-key', alg: -257 }],
+        timeout: 60000,
+        excludeCredentials: [],
+        authenticatorSelection: { authenticatorAttachment: 'platform', requireResidentKey: false, userVerification: 'required' },
+        attestation: 'direct',
+        extensions: { example: true }
+      }
+    });
+
+    mockEndpoint(Endpoint.FINALIZE_PASSKEY_ENROLLMENT, {
+      idToken: 'id-token', refreshToken: 'refresh-token'
+    });
+
+    await signInWithPasskey(auth, 'name', false);
+    expect(auth.currentUser?.uid).to.eq('mock-uid');
+  });
+
+  it('should fallback when passkey credential is null', async () => {
+    if (
+      typeof navigator === 'undefined' ||
+      typeof navigator.credentials === 'undefined'
+    ) {
+      return;
+    }
+    sinon.stub(navigator.credentials, 'get').resolves(null);
+    sinon.stub(navigator.credentials, 'create').resolves(mockCredential);
+
+    const serverUser: APIUserInfo = { localId: 'local-id' };
+    mockEndpoint(Endpoint.SIGN_UP, {
+      idToken: 'id-token', refreshToken: 'refresh-token', expiresIn: '1234', localId: serverUser.localId!
+    });
+    mockEndpoint(Endpoint.GET_ACCOUNT_INFO, { users: [serverUser] });
+
+    mockEndpoint(Endpoint.START_PASSKEY_SIGNIN, {
+      credentialRequestOptions: { challenge: 'validbase64challenge', rpId: 'rp-id', userVerification: 'required' }
+    });
+
+    mockEndpoint(Endpoint.START_PASSKEY_ENROLLMENT, {
+      credentialCreationOptions: {
+        rp: { name: 'mock-rp' },
+        user: { id: 'mockuser', name: 'mock-user', displayName: 'Mock User' },
+        challenge: 'validbase64challenge',
+        pubKeyCredParams: [{ type: 'public-key', alg: -7 }, { type: 'public-key', alg: -257 }],
+        timeout: 60000,
+        excludeCredentials: [],
+        authenticatorSelection: { authenticatorAttachment: 'platform', requireResidentKey: false, userVerification: 'required' },
+        attestation: 'direct',
+        extensions: { example: true }
+      }
+    });
+
+    mockEndpoint(Endpoint.FINALIZE_PASSKEY_ENROLLMENT, {
+      idToken: 'id-token', refreshToken: 'refresh-token'
+    });
+
+    await signInWithPasskey(auth, 'name', false);
+    expect(auth.currentUser?.uid).to.eq('mock-uid');
+  });
+
   it('should enroll passkey', async () => {
     if (
       typeof navigator === 'undefined' ||
@@ -303,6 +389,37 @@ describe('passkey', async () => {
       expect((error as Error).message).to.equal(
         'The operation either timed out or was not allowed.'
       );
+    }
+  });
+
+  it('should throw NotAllowedError when passkey credential is null during enrollment', async () => {
+    if (
+      typeof navigator === 'undefined' ||
+      typeof navigator.credentials === 'undefined'
+    ) {
+      return;
+    }
+    sinon.stub(navigator.credentials, 'create').resolves(null);
+
+    mockEndpoint(Endpoint.START_PASSKEY_ENROLLMENT, {
+      credentialCreationOptions: {
+        rp: { name: 'mock-rp' },
+        user: { id: 'mockuser', name: 'mock-user', displayName: 'Mock User' },
+        challenge: 'validbase64challenge',
+        pubKeyCredParams: [{ type: 'public-key', alg: -7 }, { type: 'public-key', alg: -257 }],
+        timeout: 60000,
+        excludeCredentials: [],
+        authenticatorSelection: { authenticatorAttachment: 'platform', requireResidentKey: false, userVerification: 'required' },
+        attestation: 'direct',
+        extensions: { example: true }
+      }
+    });
+
+    try {
+      await enrollPasskey(user, 'name');
+      expect.fail('Expected function to throw an error');
+    } catch (error) {
+      expect((error as Error).name).to.equal('NotAllowedError');
     }
   });
 });

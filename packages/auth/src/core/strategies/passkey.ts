@@ -75,6 +75,12 @@ export async function signInWithPasskey(
       publicKey: options
     })) as PublicKeyCredential;
 
+    if (!credential) {
+      const err = new Error(PASSKEY_LOOK_UP_ERROR_MESSAGE);
+      err.name = 'NotAllowedError';
+      throw err;
+    }
+
     const finalizeSignInRequest: FinalizePasskeySignInRequest = {
       authenticatorAuthenticationResponse:
         publicKeyCredentialToJSON(credential),
@@ -94,7 +100,8 @@ export async function signInWithPasskey(
     return userCredential;
   } catch (error) {
     if (
-      (error as Error).message.includes(PASSKEY_LOOK_UP_ERROR_MESSAGE) &&
+      ((error as Error).name === 'NotAllowedError' ||
+        (error as Error).message.includes(PASSKEY_LOOK_UP_ERROR_MESSAGE)) &&
       !manualSignUp
     ) {
       // If the user is not signed up, sign them up anonymously
@@ -143,6 +150,13 @@ export async function enrollPasskey(
     const credential = (await navigator.credentials.create({
       publicKey: options
     })) as PublicKeyCredential;
+
+    if (!credential) {
+      const err = new Error('The operation either timed out or was not allowed.');
+      err.name = 'NotAllowedError';
+      throw err;
+    }
+
     const idToken = await userInternal.getIdToken();
     const finalizeEnrollmentRequest: FinalizePasskeyEnrollmentRequest = {
       idToken,
