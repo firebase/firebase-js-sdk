@@ -153,7 +153,9 @@ export async function enrollPasskey(
     })) as PublicKeyCredential;
 
     if (!credential) {
-      const err = new Error('The operation either timed out or was not allowed.');
+      const err = new Error(
+        'The operation either timed out or was not allowed.'
+      );
       err.name = 'NotAllowedError';
       throw err;
     }

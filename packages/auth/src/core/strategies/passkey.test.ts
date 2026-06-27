@@ -216,12 +216,19 @@ describe('passkey', async () => {
 
     const serverUser: APIUserInfo = { localId: 'local-id' };
     mockEndpoint(Endpoint.SIGN_UP, {
-      idToken: 'id-token', refreshToken: 'refresh-token', expiresIn: '1234', localId: serverUser.localId!
+      idToken: 'id-token',
+      refreshToken: 'refresh-token',
+      expiresIn: '1234',
+      localId: serverUser.localId!
     });
     mockEndpoint(Endpoint.GET_ACCOUNT_INFO, { users: [serverUser] });
 
     mockEndpoint(Endpoint.START_PASSKEY_SIGNIN, {
-      credentialRequestOptions: { challenge: 'validbase64challenge', rpId: 'rp-id', userVerification: 'required' }
+      credentialRequestOptions: {
+        challenge: 'validbase64challenge',
+        rpId: 'rp-id',
+        userVerification: 'required'
+      }
     });
 
     mockEndpoint(Endpoint.START_PASSKEY_ENROLLMENT, {
@@ -229,17 +236,25 @@ describe('passkey', async () => {
         rp: { name: 'mock-rp' },
         user: { id: 'mockuser', name: 'mock-user', displayName: 'Mock User' },
         challenge: 'validbase64challenge',
-        pubKeyCredParams: [{ type: 'public-key', alg: -7 }, { type: 'public-key', alg: -257 }],
+        pubKeyCredParams: [
+          { type: 'public-key', alg: -7 },
+          { type: 'public-key', alg: -257 }
+        ],
         timeout: 60000,
         excludeCredentials: [],
-        authenticatorSelection: { authenticatorAttachment: 'platform', requireResidentKey: false, userVerification: 'required' },
+        authenticatorSelection: {
+          authenticatorAttachment: 'platform',
+          requireResidentKey: false,
+          userVerification: 'required'
+        },
         attestation: 'direct',
         extensions: { example: true }
       }
     });
 
     mockEndpoint(Endpoint.FINALIZE_PASSKEY_ENROLLMENT, {
-      idToken: 'id-token', refreshToken: 'refresh-token'
+      idToken: 'id-token',
+      refreshToken: 'refresh-token'
     });
 
     await signInWithPasskey(auth, 'name', false);
@@ -258,12 +273,19 @@ describe('passkey', async () => {
 
     const serverUser: APIUserInfo = { localId: 'local-id' };
     mockEndpoint(Endpoint.SIGN_UP, {
-      idToken: 'id-token', refreshToken: 'refresh-token', expiresIn: '1234', localId: serverUser.localId!
+      idToken: 'id-token',
+      refreshToken: 'refresh-token',
+      expiresIn: '1234',
+      localId: serverUser.localId!
     });
     mockEndpoint(Endpoint.GET_ACCOUNT_INFO, { users: [serverUser] });
 
     mockEndpoint(Endpoint.START_PASSKEY_SIGNIN, {
-      credentialRequestOptions: { challenge: 'validbase64challenge', rpId: 'rp-id', userVerification: 'required' }
+      credentialRequestOptions: {
+        challenge: 'validbase64challenge',
+        rpId: 'rp-id',
+        userVerification: 'required'
+      }
     });
 
     mockEndpoint(Endpoint.START_PASSKEY_ENROLLMENT, {
@@ -271,17 +293,25 @@ describe('passkey', async () => {
         rp: { name: 'mock-rp' },
         user: { id: 'mockuser', name: 'mock-user', displayName: 'Mock User' },
         challenge: 'validbase64challenge',
-        pubKeyCredParams: [{ type: 'public-key', alg: -7 }, { type: 'public-key', alg: -257 }],
+        pubKeyCredParams: [
+          { type: 'public-key', alg: -7 },
+          { type: 'public-key', alg: -257 }
+        ],
         timeout: 60000,
         excludeCredentials: [],
-        authenticatorSelection: { authenticatorAttachment: 'platform', requireResidentKey: false, userVerification: 'required' },
+        authenticatorSelection: {
+          authenticatorAttachment: 'platform',
+          requireResidentKey: false,
+          userVerification: 'required'
+        },
         attestation: 'direct',
         extensions: { example: true }
       }
     });
 
     mockEndpoint(Endpoint.FINALIZE_PASSKEY_ENROLLMENT, {
-      idToken: 'id-token', refreshToken: 'refresh-token'
+      idToken: 'id-token',
+      refreshToken: 'refresh-token'
     });
 
     await signInWithPasskey(auth, 'name', false);
@@ -406,10 +436,17 @@ describe('passkey', async () => {
         rp: { name: 'mock-rp' },
         user: { id: 'mockuser', name: 'mock-user', displayName: 'Mock User' },
         challenge: 'validbase64challenge',
-        pubKeyCredParams: [{ type: 'public-key', alg: -7 }, { type: 'public-key', alg: -257 }],
+        pubKeyCredParams: [
+          { type: 'public-key', alg: -7 },
+          { type: 'public-key', alg: -257 }
+        ],
         timeout: 60000,
         excludeCredentials: [],
-        authenticatorSelection: { authenticatorAttachment: 'platform', requireResidentKey: false, userVerification: 'required' },
+        authenticatorSelection: {
+          authenticatorAttachment: 'platform',
+          requireResidentKey: false,
+          userVerification: 'required'
+        },
         attestation: 'direct',
         extensions: { example: true }
       }
