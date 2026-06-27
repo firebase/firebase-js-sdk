@@ -100,8 +100,9 @@ export async function signInWithPasskey(
     return userCredential;
   } catch (error) {
     if (
-      ((error as Error).name === 'NotAllowedError' ||
-        (error as Error).message.includes(PASSKEY_LOOK_UP_ERROR_MESSAGE)) &&
+      error instanceof Error &&
+      (error.name === 'NotAllowedError' ||
+        error.message.includes(PASSKEY_LOOK_UP_ERROR_MESSAGE)) &&
       !manualSignUp
     ) {
       // If the user is not signed up, sign them up anonymously
