@@ -14,6 +14,7 @@
     "dev": "rollup -c -w"
   },
   "peerDependencies": {
+    "@firebase/app": "0.x",
     "@firebase/app-compat": "0.x",
     "@firebase/auth-types": "0.x",
     "@firebase/auth": "0.x"

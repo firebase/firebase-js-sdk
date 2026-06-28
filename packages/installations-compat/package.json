@@ -54,6 +54,7 @@
     "typescript": "5.5.4"
   },
   "peerDependencies": {
+    "@firebase/app": "0.x",
     "@firebase/app-compat": "0.x"
   },
   "dependencies": {
