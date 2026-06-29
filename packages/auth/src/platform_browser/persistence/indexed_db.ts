@@ -165,6 +165,7 @@ class IndexedDBLocalPersistence implements InternalPersistence {
   // setTimeout return value is platform specific
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private pollTimer: any | null = null;
+  private isHiding = false;
   private pendingWrites = 0;
 
   private receiver: Receiver | null = null;
@@ -181,9 +182,29 @@ class IndexedDBLocalPersistence implements InternalPersistence {
         () => {},
         () => {}
       );
+
+    if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
+      window.addEventListener('pagehide', () => {
+        this.isHiding = true;
+        this.stopPolling();
+        if (this.dbPromise) {
+          this.dbPromise.then(db => db.close()).catch(() => {});
+          this.dbPromise = null;
+        }
+      });
+      window.addEventListener('pageshow', () => {
+        this.isHiding = false;
+        if (Object.keys(this.listeners).length > 0) {
+          this.startPolling();
+        }
+      });
+    }
   }
 
   async _openDb(): Promise<IDBDatabase> {
+    if (this.isHiding) {
+      throw new Error('Database is closing/hidden');
+    }
     if (this.dbPromise) {
       return this.dbPromise;
     }
@@ -202,6 +223,9 @@ class IndexedDBLocalPersistence implements InternalPersistence {
         const db = await this._openDb();
         return await op(db);
       } catch (e) {
+        if (this.isHiding) {
+          throw e;
+        }
         if (numAttempts++ > _TRANSACTION_RETRY_COUNT) {
           throw e;
         }
@@ -357,41 +381,52 @@ class IndexedDBLocalPersistence implements InternalPersistence {
   }
 
   private async _poll(): Promise<string[]> {
-    // TODO: check if we need to fallback if getAll is not supported
-    const result = await this._withRetries((db: IDBDatabase) => {
-      const getAllRequest = getObjectStore(db, false).getAll();
-      return new DBPromise<DBObject[] | null>(getAllRequest).toPromise();
-    });
-
-    if (!result) {
+    if (this.isHiding) {
       return [];
     }
+    try {
+      // TODO: check if we need to fallback if getAll is not supported
+      const result = await this._withRetries((db: IDBDatabase) => {
+        const getAllRequest = getObjectStore(db, false).getAll();
+        return new DBPromise<DBObject[] | null>(getAllRequest).toPromise();
+      });
 
-    // If we have pending writes in progress abort, we'll get picked up on the next poll
-    if (this.pendingWrites !== 0) {
-      return [];
-    }
+      if (this.isHiding) {
+        return [];
+      }
 
-    const keys = [];
-    const keysInResult = new Set();
-    if (result.length !== 0) {
-      for (const { fbase_key: key, value } of result) {
-        keysInResult.add(key);
-        if (JSON.stringify(this.localCache[key]) !== JSON.stringify(value)) {
-          this.notifyListeners(key, value as PersistenceValue);
-          keys.push(key);
+      if (!result) {
+        return [];
+      }
+
+      // If we have pending writes in progress abort, we'll get picked up on the next poll
+      if (this.pendingWrites !== 0) {
+        return [];
+      }
+
+      const keys = [];
+      const keysInResult = new Set();
+      if (result.length !== 0) {
+        for (const { fbase_key: key, value } of result) {
+          keysInResult.add(key);
+          if (JSON.stringify(this.localCache[key]) !== JSON.stringify(value)) {
+            this.notifyListeners(key, value as PersistenceValue);
+            keys.push(key);
+          }
         }
       }
-    }
 
-    for (const localKey of Object.keys(this.localCache)) {
-      if (this.localCache[localKey] && !keysInResult.has(localKey)) {
-        // Deleted
-        this.notifyListeners(localKey, null);
-        keys.push(localKey);
+      for (const localKey of Object.keys(this.localCache)) {
+        if (this.localCache[localKey] && !keysInResult.has(localKey)) {
+          // Deleted
+          this.notifyListeners(localKey, null);
+          keys.push(localKey);
+        }
       }
+      return keys;
+    } catch {
+      return [];
     }
-    return keys;
   }
 
   private notifyListeners(
