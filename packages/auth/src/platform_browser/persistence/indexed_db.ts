@@ -40,6 +40,7 @@ import {
   _getServiceWorkerController,
   _getWorkerGlobalScope
 } from '../util/worker';
+import { _logWarn } from '../../core/util/log';
 
 export const DB_NAME = 'firebaseLocalStorageDb';
 const DB_VERSION = 1;
@@ -175,6 +176,54 @@ class IndexedDBLocalPersistence implements InternalPersistence {
   // Visible for testing only
   readonly _workerInitializationPromise: Promise<void>;
 
+  private readonly onPageHide = (): void => {
+    this.isHiding = true;
+    this.stopPolling();
+    if (this.dbPromise) {
+      this.dbPromise.then(db => db.close()).catch(() => {});
+      this.dbPromise = null;
+    }
+  };
+
+  private readonly onPageShow = (): void => {
+    if (this.isHiding) {
+      this.isHiding = false;
+      if (Object.keys(this.listeners).length > 0) {
+        this.startPolling();
+      }
+    }
+  };
+
+  private readonly onVisibilityChange = (): void => {
+    if (typeof document !== 'undefined') {
+      if (document.visibilityState === 'hidden') {
+        this.onPageHide();
+      } else if (document.visibilityState === 'visible') {
+        this.onPageShow();
+      }
+    }
+  };
+
+  private registerLifecycleListeners(): void {
+    if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
+      window.addEventListener('pagehide', this.onPageHide);
+      window.addEventListener('pageshow', this.onPageShow);
+    }
+    if (typeof document !== 'undefined' && typeof document.addEventListener === 'function') {
+      document.addEventListener('visibilitychange', this.onVisibilityChange);
+    }
+  }
+
+  private unregisterLifecycleListeners(): void {
+    if (typeof window !== 'undefined' && typeof window.removeEventListener === 'function') {
+      window.removeEventListener('pagehide', this.onPageHide);
+      window.removeEventListener('pageshow', this.onPageShow);
+    }
+    if (typeof document !== 'undefined' && typeof document.removeEventListener === 'function') {
+      document.removeEventListener('visibilitychange', this.onVisibilityChange);
+    }
+  }
+
   constructor() {
     // Fire & forget the service worker registration as it may never resolve
     this._workerInitializationPromise =
@@ -182,23 +231,6 @@ class IndexedDBLocalPersistence implements InternalPersistence {
         () => {},
         () => {}
       );
-
-    if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
-      window.addEventListener('pagehide', () => {
-        this.isHiding = true;
-        this.stopPolling();
-        if (this.dbPromise) {
-          this.dbPromise.then(db => db.close()).catch(() => {});
-          this.dbPromise = null;
-        }
-      });
-      window.addEventListener('pageshow', () => {
-        this.isHiding = false;
-        if (Object.keys(this.listeners).length > 0) {
-          this.startPolling();
-        }
-      });
-    }
   }
 
   async _openDb(): Promise<IDBDatabase> {
@@ -424,7 +456,10 @@ class IndexedDBLocalPersistence implements InternalPersistence {
         }
       }
       return keys;
-    } catch {
+    } catch (e) {
+      if (!this.isHiding) {
+        _logWarn(`Firebase Auth cross-tab polling failed with error: ${e}`);
+      }
       return [];
     }
   }
@@ -461,6 +496,7 @@ class IndexedDBLocalPersistence implements InternalPersistence {
   _addListener(key: string, listener: StorageEventListener): void {
     if (Object.keys(this.listeners).length === 0) {
       this.startPolling();
+      this.registerLifecycleListeners();
     }
     if (!this.listeners[key]) {
       this.listeners[key] = new Set();
@@ -481,6 +517,7 @@ class IndexedDBLocalPersistence implements InternalPersistence {
 
     if (Object.keys(this.listeners).length === 0) {
       this.stopPolling();
+      this.unregisterLifecycleListeners();
     }
   }
 }
