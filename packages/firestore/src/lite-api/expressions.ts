@@ -37,14 +37,13 @@ import { hardAssert } from '../util/assert';
 import { FirestoreError } from '../util/error';
 import { isPlainObject } from '../util/input_validation';
 import { isFirestoreValue } from '../util/proto';
-import { isString } from '../util/types';
+import { isNumber, isString } from '../util/types';
 
 import { Bytes } from './bytes';
 import { documentId as documentIdFieldPath, FieldPath } from './field_path';
 import { vector } from './field_value_impl';
 import { GeoPoint } from './geo_point';
 import type { Pipeline } from './pipeline';
-import { FacetBucket } from './pipeline-result';
 import { DocumentReference } from './reference';
 import { Timestamp } from './timestamp';
 import { fieldPathFromArgument, parseData, UserData } from './user_data_reader';
@@ -64,6 +63,49 @@ export type ExpressionType =
   | 'Variable'
   | 'PipelineValue'
   | 'Facet';
+
+interface RangeBucket<T> {
+  lowerBound: T;
+  upperBound: T;
+}
+export type FacetBucket =
+  | { value: string }
+  | RangeBucket<number>
+  | RangeBucket<Date>
+  | { default: 'default' };
+
+export function rangeBucket(
+  lowerBound: number,
+  upperBound: number
+): FacetBucket;
+export function rangeBucket(lowerBound: Date, upperBound: Date): FacetBucket;
+export function rangeBucket(
+  lowerBound: unknown,
+  upperBound: unknown
+): FacetBucket {
+  if (isNumber(lowerBound) && isNumber(upperBound)) {
+    return { lowerBound, upperBound };
+  }
+
+  if (lowerBound instanceof Date && upperBound instanceof Date) {
+    return { lowerBound, upperBound };
+  }
+
+  throw new Error('not implemented');
+}
+
+export function scalarBucket(value: string): FacetBucket {
+  return { value };
+}
+
+export function defaultBucket(): FacetBucket {
+  return { default: 'default' };
+}
+
+export interface FacetDefinition {
+  fieldName: string;
+  buckets: FacetBucket[];
+}
 
 /**
  * Converts a value to an Expression, Returning either a Constant, MapFunction,
@@ -3829,23 +3871,35 @@ export class Field extends Expression implements Selectable {
     );
   }
 
-  stringFacet(...values: string[]): FacetDefinition {
-    throw new Error("Not implemented");
+  scalarFacet(...values: string[]): FacetDefinition;
+  scalarFacet(args: {
+    numBuckets: number;
+    bucketDataTypes?: ScalarBucketDataTypes[];
+  }): FacetDefinition;
+  scalarFacet(...args: any): FacetDefinition {
+    throw new Error('Not implemented');
   }
 
-  dateFacet(firstBound: Date, secondBound: Date, ...additionalBounds: Date[]): FacetDefinition {
-    throw new Error("Not implemented");
+  rangeFacet(
+    firstBound: Date,
+    secondBound: Date,
+    ...additionalBounds: Date[]
+  ): FacetDefinition;
+  rangeFacet(
+    firstBound: number,
+    secondBound: number,
+    ...additionalBounds: number[]
+  ): FacetDefinition;
+  rangeFacet(...args: any[]): FacetDefinition {
+    throw new Error('Not implemented');
   }
 
-  numberFacet(firstBound: number, secondBound: number, ...additionalBounds: number[]): FacetDefinition {
-    throw new Error("Not implemented");
+  facet(...buckets: FacetBucket[]): FacetDefinition {
+    throw new Error('not implemented');
   }
 
-  facet({
-    enableDefaultBucket: boolean = true,
-    buckets: FacetBucket[]
-  }): FacetDefinition {
-    throw new Error("Not implemented");
+  inBuckets(...buckets: FacetBucket[]): BooleanExpression {
+    return inBuckets(this, ...buckets);
   }
 
   /**
@@ -3863,20 +3917,6 @@ export class Field extends Expression implements Selectable {
    * @internal
    */
   _readUserData(context: ParseContext): void {}
-}
-
-export class FacetDefinition {
-  get fieldName(): string {
-    throw new Error("not implemented");
-  }
-
-  get alias(): string {
-    throw new Error("not implemented");
-  }
-
-  get buckets(): FacetBucket[] {
-    throw new Error("not implemented");
-  }
 }
 
 /**
@@ -4402,6 +4442,15 @@ export abstract class BooleanExpression extends Expression {
     return normalizedCatchValue instanceof BooleanExpression
       ? expr.asBoolean()
       : expr;
+  }
+
+  /**
+   * Perform a logical and of this expression with the given expression.
+   * @param booleanExpression Perform a logical and of this expression with the given value of booleanExpression.
+   * @returns A BooleanExpression representing the logical and expression.
+   */
+  and(booleanExpression: BooleanExpression): BooleanExpression {
+    return and(this, booleanExpression);
   }
 
   /**
@@ -11745,8 +11794,7 @@ export function documentMatches(
 
 export function inBuckets(
   field: string | Field,
-  bucket: FacetBucket,
-  ...additionalBuckets: FacetBucket[]
+  ...buckets: FacetBucket[]
 ): BooleanExpression {
   throw new Error('not implemented');
 }
@@ -11969,6 +12017,40 @@ export function between(
   upperBound: unknown
 ): BooleanExpression {
   return fieldOrExpression(expression).between(lowerBound, upperBound);
+}
+
+export type ScalarBucketDataTypes = 'string';
+
+export function scalarFacet(args: {
+  field: string | Field;
+  values: string[];
+}): FacetDefinition;
+export function scalarFacet(args: {
+  field: string | Field;
+  numBuckets: number;
+  bucketDataTypes: ScalarBucketDataTypes[];
+}): FacetDefinition;
+export function scalarFacet(...args: any[]): FacetDefinition {
+  throw new Error('not impelemented');
+}
+
+export function rangeFacet(args: {
+  field: string | Field;
+  bounds: number[];
+}): FacetDefinition;
+export function rangeFacet(args: {
+  field: string | Field;
+  bounds: Date[];
+}): FacetDefinition;
+export function rangeFacet(...args: any[]): FacetDefinition {
+  throw new Error('Not implemented');
+}
+
+export function facet(args: {
+  field: string | Field;
+  buckets: FacetBucket[];
+}): FacetDefinition {
+  throw new Error('not implemented');
 }
 
 // TODO(new-expression): Add new top-level expression function definitions above this line

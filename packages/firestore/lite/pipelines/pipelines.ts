@@ -57,7 +57,9 @@ export { OneOf } from '../../src/util/types';
 
 export {
   PipelineResult,
-  PipelineSnapshot
+  PipelineSnapshot,
+  FacetBucketResult,
+  FacetResult
 } from '../../src/lite-api/pipeline-result';
 
 export { Pipeline } from '../../src/lite-api/pipeline';
@@ -237,6 +239,7 @@ export {
   // matches,
   documentMatches,
   geoDistance,
+  inBuckets,
   AliasedExpression,
   Field,
   Constant,
@@ -249,5 +252,7 @@ export {
   AggregateFunction,
   TimeGranularity,
   TimePart,
-  TimeUnit
+  TimeUnit,
+  FacetBucket,
+  FacetDefinition
 } from '../../src/lite-api/expressions';

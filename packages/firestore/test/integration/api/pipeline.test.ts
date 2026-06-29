@@ -24,6 +24,7 @@ import { FirebaseError } from '@firebase/util';
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
+import { inBuckets } from '../../../src/lite-api/expressions';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import { Deferred } from '../../util/promise';
 import {
@@ -195,12 +196,6 @@ import {
   score,
   documentMatches
 } from '../util/pipeline_export';
-import {
-  getRunEnterpriseTests,
-  getTargetBackend,
-  TargetBackend
-} from '../util/settings';
-import { inBuckets } from '../../../src/lite-api/expressions';
 
 use(chaiAsPromised);
 
@@ -7427,313 +7422,229 @@ apiDescribe.skipClassic('Pipeline search', persistence => {
     // });
   });
 
-  describe('faceted search', function () {
-    describe('facet discovery', function () {
-      it('supports number facet discovery', async function () {
+  describe('faceted search', () => {
+    describe('facet discovery', () => {
+      it('supports number facet discovery', async () => {
         const ppl = firestore
           .pipeline()
           .collection(COLLECTION_NAME) // "restaurants"
           .search({
             query: documentMatches('waffles'),
             facets: [
-              field('average_price_per_person').numberFacet(0, 10, 20, 30, 100)
+              field('average_price_per_person').rangeFacet(0, 10, 20, 30, 100)
             ]
           });
 
         const snapshot: PipelineSnapshot = await execute(ppl);
 
-        snapshot.facets[0].fieldName; // 'average_price_per_person'
-        snapshot.facets[0].alias; // 'average_price_per_person'
-        snapshot.facets[0].buckets; // [{ start: 0, end: 10 }, { start: 10, end: 20 }, ...]
+        snapshot.facetResults[0].fieldName; // 'average_price_per_person'
+        snapshot.facetResults[0].buckets; // [{ start: 0, end: 10, count: ... }, { start: 10, end: 20, count: ... }, ...]
 
-        snapshot.facets[0].buckets[0]; // { start: 0, end: 10 }
+        snapshot.facetResults[0].buckets[0]; // { start: 0, end: 10 }
         // snapshot.facets[0].bucketCounts[0].value; // 0 - if facet is a range, value is the start of the range (matches MongoDB)
-        snapshot.facets[0].counts[0]; // 3
+        snapshot.facetResults[0].buckets[0].count; // 3
 
-        snapshot.facets[0].buckets[1]; // { start: 10, end: 20 }
-        snapshot.facets[0].counts[1]; // 5
+        snapshot.facetResults[0].buckets[1]; // { start: 10, end: 20 }
+        snapshot.facetResults[0].buckets[1].count; // 5
 
-        // Empty facet included in result set 
-        snapshot.facets[0].buckets[2]; // { start: 20, end: 30 }
-        snapshot.facets[0].counts[2]; // 0
+        // Empty facet included in result set
+        snapshot.facetResults[0].buckets[2]; // { start: 20, end: 30 }
+        snapshot.facetResults[0].buckets[2].count; // 0
 
         // ...
 
         // Default facet gets all values not specified in the range
-        snapshot.facets[0].buckets[4]; // undefined - indicates the documents in this facet match all other values
-        snapshot.facets[0].counts[4]; // 4
+        snapshot.facetResults[0].buckets[4]; // undefined - indicates the documents in this facet match all other values
+        snapshot.facetResults[0].buckets[4].count; // 4
       });
 
-      it('supports string facet discovery', async function () {
+      it('supports string facet discovery', async () => {
         const ppl = firestore
           .pipeline()
           .collection('clothing')
           .search({
             query: documentMatches('t-shirt'),
-            facets: [
-              field('size').stringFacet('XS', 'S', 'M', 'XM', 'L', 'XL')
-            ]
+            facets: [field('size').scalarFacet('XS', 'S', 'M', 'XM', 'L', 'XL')]
           });
 
         const snapshot = await execute(ppl);
 
-        snapshot.facets[0].fieldName; // 'size'
-        snapshot.facets[0].alias; // 'size'
-        snapshot.facets[0].buckets; // ['XS', 'S', ... ]
+        snapshot.facetResults[0].fieldName; // 'size'
 
         // snapshot.facets[0].bucketCounts[0].range; // undefined
-        snapshot.facets[0].counts[0].bucket; // { value: 'XS'}
-        snapshot.facets[0].counts[0].count; // 1
+        snapshot.facetResults[0].buckets[0]; // { value: 'XS'}
+        snapshot.facetResults[0].buckets[0].count; // 1
 
-        snapshot.facets[0].counts[1].bucket; // { value: 'S' }
-        snapshot.facets[0].counts[1].count; // 5
+        snapshot.facetResults[0].buckets[1]; // { value: 'S' }
+        snapshot.facetResults[0].buckets[1].count; // 5
 
         // ...
 
-        // Empty facet included in result set 
-        snapshot.facets[0].counts[3].bucket; // { value: 'XM' }
-        snapshot.facets[0].counts[3].count; // 0
+        // Empty facet included in result set
+        snapshot.facetResults[0].buckets[3]; // { value: 'XM' }
+        snapshot.facetResults[0].buckets[3].count; // 0
 
         // ...
 
         // Default facet gets all values not specified in the range
-        snapshot.facets[0].counts[5].bucket; // undefined - indicates the documents in this facet match all other values
-        snapshot.facets[0].counts[5].count; // 4
+        snapshot.facetResults[0].buckets[5]; // undefined - indicates the documents in this facet match all other values
+        snapshot.facetResults[0].buckets[5].count; // 4
       });
 
-
-      it('supports date facet discovery', async function () {
+      it('supports date facet discovery', async () => {
         const ppl = firestore
           .pipeline()
           .collection(COLLECTION_NAME) // "restaurants"
           .search({
             query: documentMatches('waffles'),
             facets: [
-              field('open_date').dateFacet(new Date('1990-01-01'), new Date('2020-01-01'), new Date('2025-01-01'), new Date('2026-01-01'), new Date()).as('openingDate')
+              field('open_date').rangeFacet(
+                new Date('1990-01-01'),
+                new Date('2020-01-01'),
+                new Date('2025-01-01'),
+                new Date('2026-01-01'),
+                new Date()
+              )
             ]
           });
 
         const snapshot = await execute(ppl);
 
-        snapshot.facets['openingDate'].fieldName; // 'open_date'
-        snapshot.facets['openingDate'].alias; // 'open_date'
-        snapshot.facets['openingDate'].buckets; // [{ start: new Date('1990-01-01'), end: new Date('2020-01-01') }, ...]
+        snapshot.facetResults[0].fieldName; // 'open_date'
 
-        snapshot.facets['openingDate'].bucketCounts[0].bucket; // { start: new Date('1990-01-01'), end: new Date('2020-01-01') }
-        snapshot.facets['openingDate'].bucketCounts[0].count; // 3
+        snapshot.facetResults[0].buckets[0]; // { start: new Date('1990-01-01'), end: new Date('2020-01-01') }
+        snapshot.facetResults[0].buckets[0].count; // 3
 
-        snapshot.facets['openingDate'].bucketCounts[1].bucket; // { start: new Date('2020-01-01'), end: new Date('2025-01-01') }
-        snapshot.facets['openingDate'].bucketCounts[1].count; // 5
+        snapshot.facetResults[0].buckets[1]; // { start: new Date('2020-01-01'), end: new Date('2025-01-01') }
+        snapshot.facetResults[0].buckets[1].count; // 5
 
-        // Empty facet included in result set 
-        snapshot.facets['openingDate'].bucketCounts[2].bucket; // { start: new Date('2025-01-01'), end: new Date('2026-01-01') }
-        snapshot.facets['openingDate'].bucketCounts[2].count; // 0
+        // Empty facet included in result set
+        snapshot.facetResults[0].buckets[2]; // { start: new Date('2025-01-01'), end: new Date('2026-01-01') }
+        snapshot.facetResults[0].buckets[2].count; // 0
 
         // ...
 
         // Default facet gets all values not specified in the range
-        snapshot.facets['openingDate'].bucketCounts[4].bucket; // undefined
-        snapshot.facets['openingDate'].bucketCounts[4].count; // 4
+        snapshot.facetResults[0].buckets[4]; // undefined
+        snapshot.facetResults[0].buckets[4].count; // 4
       });
     });
 
-    describe('facet refinement', function () {
-      describe('single facet and range', function () {
-        it('supports range (number) facet discovery', async function () {
-          const facets = [
-            field('average_price_per_person').numberFacet(0, 10, 20, 30, 100)
-          ];
+    describe('facet refinement', () => {
+      it('second search matching one facet bucket', async () => {
+        const facets = [
+          field('average_price_per_person').rangeFacet(0, 10, 20, 30, 100)
+        ];
 
-          const ppl = firestore
-            .pipeline()
-            .collection(COLLECTION_NAME) // "restaurants"
-            .search({
-              query: documentMatches('waffles'),
-              facets: facets
-            });
+        const ppl = firestore
+          .pipeline()
+          .collection(COLLECTION_NAME) // "restaurants"
+          .search({
+            query: documentMatches('waffles'),
+            facets
+          });
 
-          const snapshot = await execute(ppl);
+        const snapshot = await execute(ppl);
 
-          // User elects to refine the search using facet 'average_price_per_person'
-          // User selected one range { start: 10, end: 20 } (index: 1)
-          const priceFacet = snapshot.facets[0];
-          const selectedBucket = priceFacet.buckets[1];
+        // User elects to refine the search using facet 'average_price_per_person'
+        // User selected one range { start: 10, end: 20 } (index: 1)
+        const priceFacet = snapshot.facetResults[0];
+        const selectedBucket = priceFacet.buckets[1];
 
-          const ppl2 = firestore
-            .pipeline()
-            .collection(COLLECTION_NAME) // "restaurants"
-            .search({
-              // Update the query to match only documents based on the selected facet range
-              query: and(
-                documentMatches('waffles'),
-                inBuckets(priceFacet.fieldName, selectedBucket)
-              ),
-              facets: facets // Execute ppl2 with the same facets as query 1
-            });
+        const ppl2 = firestore
+          .pipeline()
+          .collection(COLLECTION_NAME) // "restaurants"
+          .search({
+            // Update the query to match only documents based on the selected facet range
+            query: and(
+              documentMatches('waffles'),
+              inBuckets(priceFacet.fieldName, selectedBucket)
+            ),
+            facets // Execute ppl2 with the same facets as query 1
+          });
 
-          const snapshot2 = await execute(ppl2);
+        const snapshot2 = await execute(ppl2);
 
-          snapshot.facets[0].buckets[1]; // 5        
-          let bucket1 =
-            snapshot.facets[0].buckets[1]; // { start: 10, end: 20 }
-          snapshot.facets[0].counts[1]; // 5
+        snapshot.facetResults[0].buckets[1]; // 5
+        const bucket1 = snapshot.facetResults[0].buckets[1]; // { start: 10, end: 20 }
+        bucket1.count; // 5
 
-          snapshot.facets[0].getCount(bucket1);
-
-          // Count for all other facets will be 0, however
-          // these facets will still be in the result set
-          // because they were defined in the query.
-          snapshot.facets[0].counts[0].count; // 0
-          snapshot.facets[0].counts[2].count; // 0
-          snapshot.facets[0].counts[3].count; // 0
-        });
-
-        it('supports scalar (string) facet discovery', async function () {
-          const ppl = firestore
-            .pipeline()
-            .collection('clothing')
-            .search({
-              query: documentMatches('t-shirt'),
-              facets: [
-                field('size').stringFacet('XS', 'S', 'M', 'XM', 'L', 'XL').as(0)
-              ]
-            });
-
-          const snapshot = await execute(ppl);
-
-          // User elects to refine the search using facet 'sizeFacet'
-          //   - fieldName: 'size'
-          // 
-          // User selected one value 'M' (index: 2)
-          const refinementFacet = snapshot.facets['sizeFacet'];
-          const selectedBucket = 2;
-
-          const refinementField = refinementFacet.fieldName; // 'size'
-          const selectedFacetValue = refinementFacet.values[selectedRefinementIndex].value; // 'M'
-
-          const ppl2 = firestore
-            .pipeline()
-            .collection('clothing')
-            .search({
-              // Update the query to match only documents based on the selected facet range
-              query: and(
-                documentMatches('t-shirt'),
-                field(refinementField).equal(selectedFacetValue)
-              ),
-              facets: [
-                field('size').stringFacet('XS', 'S', 'M', 'XM', 'L', 'XL').as(0)
-              ]
-            });
-
-          snapshot.facets[0].values[selectedRefinementIndex].value; // 'M'
-          snapshot.facets[0].values[selectedRefinementIndex].count; // 5
-
-          // Count for all other facets will be 0, however
-          // these facets will still be in the result set
-          // because they were defined in the query. Also, range and value
-          // props will be set for these facets, but not shown for brevity.
-          snapshot.facets[0].values[0].count; // 0
-          snapshot.facets[0].values[1].count; // 0
-          snapshot.facets[0].values[3].count; // 0
-        });
-
-
+        // Count for all other facets will be 0, however
+        // these facets will still be in the result set
+        // because they were defined in the query.
+        snapshot.facetResults[0].buckets[0].count; // 0
+        snapshot.facetResults[0].buckets[2].count; // 0
+        snapshot.facetResults[0].buckets[3].count; // 0
       });
 
-      describe('multiple facets and ranges', function () {
-        it('supports range (number) facet discovery', async function () {
-          const ppl = firestore
-            .pipeline()
-            .collection(COLLECTION_NAME) // "restaurants"
-            .search({
-              query: documentMatches('waffles'),
-              facets: [
-                field('average_price_per_person').numberFacet(0, 10, 20, 30, 100).as('averagePricePerPerson'),
-                field('cuisine').stringFacet('American', 'Italian', 'Mexican', 'Chinese', 'Japanese', 'Indian', 'Mediterranean', 'Thai', 'French', 'Turkish').as('cuisine')
-              ]
-            });
+      it('second search matching multiple buckets on multiple facets', async () => {
+        const ppl = firestore
+          .pipeline()
+          .collection(COLLECTION_NAME) // "restaurants"
+          .search({
+            query: documentMatches('waffles'),
+            facets: [
+              field('average_price_per_person').rangeFacet(0, 10, 20, 30, 100),
+              field('cuisine').scalarFacet(
+                'American',
+                'Italian',
+                'Mexican',
+                'Chinese',
+                'Japanese',
+                'Indian',
+                'Mediterranean',
+                'Thai',
+                'French',
+                'Turkish'
+              )
+            ]
+          });
 
-          const snapshot = await execute(ppl);
+        const snapshot = await execute(ppl);
 
-          // User elects to refine the search using facet 'averagePricePerPerson'
-          //   - fieldName: 'average_price_per_person'
-          //   - ranges: { start: 10, end: 20 } (index: 1), { start: 30, end: 100 } (index: 3)
-          //
-          // User ALSO elects to refine the search using facet 'cuisine'
-          //   - fieldName: 'cuisine'
-          //   - values: 'Italian' (index: 1), 'French' (index: 8)
-          const priceFacetResult = snapshot.facets[0];
-          const cuisineFacetResult = snapshot.facets['cuisine'];
+        // User elects to refine the search using facet 'averagePricePerPerson'
+        //   - fieldName: 'average_price_per_person'
+        //   - ranges: { start: 10, end: 20 } (index: 1), { start: 30, end: 100 } (index: 3)
+        //
+        // User ALSO elects to refine the search using facet 'cuisine'
+        //   - fieldName: 'cuisine'
+        //   - values: 'Italian' (index: 1), 'French' (index: 8)
+        const priceFacetResult = snapshot.facetResults[0];
+        const cuisineFacetResult = snapshot.facetResults[1];
 
-          const ppl2 = firestore
-            .pipeline()
-            .collection(COLLECTION_NAME) // "restaurants"
-            .search({
-              // Update the query to match only documents based on the selected facet range
-              query: and(
-                documentMatches('waffles'),
-                // facetMatches being a convenience function around between, equal, or equal any
-                facetMatches(priceFacetResult, { lowerBound: 10, upperBound: 20 }, { lowerBound: 30, upperBound: 100 }), // equivalent to `or(field('price').between(10, 20), field('price').between(30, 100))`
-                facetMatches(cuisineFacetResult, 'Italian', 'French') // equivalent to `field('cuisine').equalAny('Italian', 'French')
-              ),
-              facets: [
-                field('average_price_per_person').numberFacet(0, 10, 20, 30, 100).as('averagePricePerPerson'),
-                field('cuisine').stringFacet('American', 'Italian', 'Mexican', 'Chinese', 'Japanese', 'Indian', 'Mediterranean', 'Thai', 'French', 'Turkish').as('cuisine')
-              ]
-            });
-        });
-
-        it('supports scalar (string) facet discovery', async function () {
-          const ppl = firestore
-            .pipeline()
-            .collection('clothing')
-            .search({
-              query: documentMatches('t-shirt'),
-              facets: [
-                field('size').stringFacet('XS', 'S', 'M', 'XM', 'L', 'XL').as('sizeFacet')
-              ]
-            });
-
-          const snapshot = await execute(ppl);
-
-          // User elects to refine the search using facet 'sizeFacet'
-          //   - fieldName: 'size'
-          // 
-          // User selected one value 'M' (index: 2)
-          const refinementFacet = snapshot.facets['sizeFacet'];
-          const selectedRefinementIndex = 2;
-
-          const refinementField = refinementFacet.fieldName; // 'size'
-          const selectedFacetValue = refinementFacet.values[selectedRefinementIndex].value; // 'M'
-
-          const ppl2 = firestore
-            .pipeline()
-            .collection('clothing')
-            .search({
-              // Update the query to match only documents based on the selected facet range
-              query: and(
-                documentMatches('t-shirt'),
-                field(refinementField).equal(selectedFacetValue)
-              ),
-              facets: [
-                field('size').stringFacet('XS', 'S', 'M', 'XM', 'L', 'XL').as('sizeFacet')
-              ]
-            });
-
-          snapshot.facets['sizeFacet'].values[selectedRefinementIndex].range; // undefined
-          snapshot.facets['sizeFacet'].values[selectedRefinementIndex].value; // 'M'
-          snapshot.facets['sizeFacet'].values[selectedRefinementIndex].count; // 5
-
-          // Count for all other facets will be 0, however
-          // these facets will still be in the result set
-          // because they were defined in the query. Also, range and value
-          // props will be set for these facets, but not shown for brevity.
-          snapshot.facets['sizeFacet'].values[0].count; // 0
-          snapshot.facets['sizeFacet'].values[1].count; // 0
-          snapshot.facets['sizeFacet'].values[3].count; // 0
-        });
-
-
+        const ppl2 = firestore
+          .pipeline()
+          .collection(COLLECTION_NAME) // "restaurants"
+          .search({
+            // Update the query to match only documents based on the selected facet range
+            query: and(
+              documentMatches('waffles'),
+              // facetMatches being a convenience function around between, equal, or equal any
+              field(priceFacetResult.fieldName).inBuckets(
+                { lowerBound: 10, upperBound: 20 },
+                { lowerBound: 30, upperBound: 100 }
+              ), // equivalent to `or(field('price').between(10, 20), field('price').between(30, 100))`
+              field(cuisineFacetResult.fieldName).inBuckets(
+                { value: 'Italian' },
+                { value: 'French' }
+              ) // equivalent to `field('cuisine').equalAny('Italian', 'French')
+            ),
+            facets: [
+              field('average_price_per_person').rangeFacet(0, 10, 20, 30, 100),
+              field('cuisine').scalarFacet(
+                'American',
+                'Italian',
+                'Mexican',
+                'Chinese',
+                'Japanese',
+                'Indian',
+                'Mediterranean',
+                'Thai',
+                'French',
+                'Turkish'
+              )
+            ]
+          });
       });
     });
   });

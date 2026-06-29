@@ -271,6 +271,8 @@ export function average(fieldName: string): AggregateFunction;
 
 // @public
 export abstract class BooleanExpression extends Expression {
+    // (undocumented)
+    and(booleanExpression: BooleanExpression): BooleanExpression;
     conditional(thenExpr: Expression, elseExpr: Expression): FunctionExpression;
     countIf(): AggregateFunction;
     ifError(catchValue: BooleanExpression): BooleanExpression;
@@ -602,6 +604,10 @@ export abstract class Expression {
     /* Excluded from this release type: _readUserData */
     average(): AggregateFunction;
     /* Excluded from this release type: _readUserData */
+    between(lowerBound: Expression, upperBound: Expression): BooleanExpression;
+    /* Excluded from this release type: _readUserData */
+    between(lowerBound: unknown, upperBound: unknown): BooleanExpression;
+    /* Excluded from this release type: _readUserData */
     byteLength(): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     ceil(): FunctionExpression;
@@ -871,7 +877,32 @@ export abstract class Expression {
 }
 
 // @public
-export type ExpressionType = 'Field' | 'Constant' | 'Function' | 'AggregateFunction' | 'ListOfExpressions' | 'AliasedExpression' | 'Variable' | 'PipelineValue';
+export type ExpressionType = 'Field' | 'Constant' | 'Function' | 'AggregateFunction' | 'ListOfExpressions' | 'AliasedExpression' | 'Variable' | 'PipelineValue' | 'Facet';
+
+// @public (undocumented)
+export type FacetBucket = {
+    value: string;
+} | {
+    lowerBound: number;
+    upperBound: number;
+};
+
+// @public (undocumented)
+export type FacetBucketResult = FacetBucket & {
+    count: number;
+};
+
+// @public (undocumented)
+export type FacetDefinition = {
+    fieldName: string;
+    id: string;
+    buckets: FacetBucket[];
+};
+
+// @public (undocumented)
+export type FacetResult = FacetDefinition & {
+    buckets: FacetBucketResult[];
+};
 
 // @public
 export class Field extends Expression implements Selectable {
@@ -885,6 +916,26 @@ export class Field extends Expression implements Selectable {
     get fieldName(): string;
     // @beta
     geoDistance(location: GeoPoint | Expression): Expression;
+    // (undocumented)
+    inBuckets(...buckets: FacetBucket[]): BooleanExpression;
+    // (undocumented)
+    rangeFacet(firstBound: Date, secondBound: Date, ...additionalBounds: Date[]): FacetDefinition;
+    // (undocumented)
+    rangeFacet(firstBound: number, secondBound: number, ...additionalBounds: number[]): FacetDefinition;
+    // (undocumented)
+    rangeFacet(options: {
+        id?: string;
+        enableDefaultBucket?: boolean;
+        boundaries: Date[] | number[];
+    }): FacetDefinition;
+    // (undocumented)
+    scalarFacet(...values: string[]): FacetDefinition;
+    // (undocumented)
+    scalarFacet(options: {
+        id?: string;
+        enableDefaultBucket?: boolean;
+        values: string[];
+    }): FacetDefinition;
     // (undocumented)
     selectable: true;
 }
@@ -986,6 +1037,9 @@ export function ifNull(ifFieldName: string, elseExpr: Expression): FunctionExpre
 
 // @public
 export function ifNull(ifFieldName: string, elseValue: unknown): FunctionExpression;
+
+// @public (undocumented)
+export function inBuckets(field: string | Field, ...buckets: FacetBucket[]): BooleanExpression;
 
 // @public
 export function isAbsent(value: Expression): BooleanExpression;
@@ -1313,6 +1367,8 @@ export class PipelineResult<AppModelType = DocumentData> {
 export class PipelineSnapshot {
     constructor(pipeline: Pipeline, results: PipelineResult[], executionTime?: Timestamp);
     get executionTime(): Timestamp;
+    // (undocumented)
+    get facetResults(): FacetResult[];
     get results(): PipelineResult[];
 }
 
@@ -1444,6 +1500,7 @@ export type SearchStageOptions = StageOptions & {
     offset?: number;
     limit?: number;
     addFields?: Selectable[];
+    facets?: FacetDefinition[];
 };
 
 // @public

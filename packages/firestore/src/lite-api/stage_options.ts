@@ -28,7 +28,6 @@ import {
   Selectable
 } from './expressions';
 import { Pipeline } from './pipeline';
-import { FacetBucket } from './pipeline-result';
 import { CollectionReference, DocumentReference } from './reference';
 import { VectorValue } from './vector_value';
 

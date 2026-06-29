@@ -22,7 +22,9 @@ export { OneOf } from './util/types';
 export {
   PipelineResult,
   PipelineSnapshot,
-  pipelineResultEqual
+  pipelineResultEqual,
+  FacetBucketResult,
+  FacetResult
 } from './lite-api/pipeline-result';
 
 export { Pipeline } from './api/pipeline';
@@ -200,6 +202,13 @@ export {
   score,
   documentMatches,
   geoDistance,
+  inBuckets,
+  rangeBucket,
+  scalarBucket,
+  defaultBucket,
+  facet,
+  rangeFacet,
+  scalarFacet,
   // TODO(search) add with backend support
   // snippet,
   // SnippetOptions,
@@ -216,7 +225,9 @@ export {
   Selectable,
   TimeGranularity,
   TimePart,
-  TimeUnit
+  TimeUnit,
+  FacetBucket,
+  FacetDefinition
 } from './lite-api/expressions';
 
 export { _internalPipelineToExecutePipelineRequestProto } from './remote/internal_serializer';

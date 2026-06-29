@@ -23,13 +23,19 @@ import { ObjectValue } from '../model/object_value';
 import { firestoreV1ApiClientInterfaces } from '../protos/firestore_proto_api';
 import { isOptionalEqual } from '../util/misc';
 
-import { FacetDefinition as FacetDefinition, Field, isField } from './expressions';
+import { FacetBucket, FacetDefinition, Field, isField } from './expressions';
 import { FieldPath } from './field_path';
 import { Pipeline } from './pipeline';
 import { DocumentData, DocumentReference, refEqual } from './reference';
 import { Timestamp } from './timestamp';
 import { fieldPathFromArgument } from './user_data_reader';
 import { AbstractUserDataWriter } from './user_data_writer';
+
+export type FacetBucketResult = FacetBucket & { count: number };
+
+export type FacetResult = FacetDefinition & {
+  buckets: FacetBucketResult[];
+};
 
 /**
  * Represents the results of a Firestore pipeline execution.
@@ -87,18 +93,10 @@ export class PipelineSnapshot {
     return this._executionTime;
   }
 
-  get facets(): FacetResult[] {
-    throw new Error("not implemented");
+  get facetResults(): FacetResult[] {
+    throw new Error('not implemented');
   }
 }
-
-export class FacetResult extends FacetDefinition {
-  get counts(): Array<number> {
-    throw new Error("not implemented");
-  }
-}
-
-export type FacetBucket = { value: string } | { lowerBound: number } | { upperBound: number };
 
 /**
  *
