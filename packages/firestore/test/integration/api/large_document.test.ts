@@ -46,7 +46,7 @@ import {
 } from '../util/settings';
 
 apiDescribe('Large Documents', persistence => {
-  const seedColName = 'large_doc_tests_js';
+  let seedColName: string;
 
   before(async function () {
     this.timeout(180000); // Tests are very slow because large doc reads have very high latency.
@@ -60,6 +60,8 @@ apiDescribe('Large Documents', persistence => {
     ) {
       this.skip();
     }
+
+    seedColName = `large_doc_tests_js_${Date.now()}`;
 
     await withTestDb(persistence, async db => {
       const docRef = doc(collection(db, seedColName), 'doc_15_9MB_unicode');
@@ -76,6 +78,7 @@ apiDescribe('Large Documents', persistence => {
 
   after(async function () {
     this.timeout(120000);
+    if (!seedColName) return;
     await withTestDb(persistence, async db => {
       try {
         await deleteDoc(doc(collection(db, seedColName), 'doc_15_9MB_unicode'));
