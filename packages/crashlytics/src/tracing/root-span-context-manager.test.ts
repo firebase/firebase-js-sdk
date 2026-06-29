@@ -100,6 +100,7 @@ describe('RootSpanContextManager', () => {
     id: string = 'net-1'
   ): void => {
     rootSpan.onResourceFetchSpanStart({
+      name: id === 'doc-load' ? 'documentLoad' : id,
       spanContext: () => ({ spanId: id })
     } as any);
   };
@@ -110,6 +111,7 @@ describe('RootSpanContextManager', () => {
     endTimeMs: number = Date.now()
   ): void => {
     rootSpan.onResourceFetchSpanEnd({
+      name: id === 'doc-load' ? 'documentLoad' : id,
       spanContext: () => ({ spanId: id }),
       endTime: [Math.floor(endTimeMs / 1000), (endTimeMs % 1000) * 1000000]
     } as any);
@@ -283,17 +285,22 @@ describe('RootSpanContextManager', () => {
   });
 
   describe('app-start root span', () => {
-    it('should stay open for app-start root span until markDocumentLoaded is called', () => {
-      const rootSpan = manager.startRootSpan(mockTracer as Tracer, 'span-1');
-      recordResourceFetchSpanStart(rootSpan, 'doc-load');
+    it('should stay open for app-start root span until documentLoad span ends', () => {
+      const rootSpan = manager.startRootSpan(mockTracer as Tracer, 'app-start');
       expect(manager.getActiveRootSpan()).to.equal(rootSpan);
 
-      clock.tick(QUIESCENCE_WINDOW_MS); // advance past quiescence window
-
+      // Check 1: Advance past quiescence prior to doc-load starting
+      clock.tick(QUIESCENCE_WINDOW_MS);
       expect(mockSpan.end.called).to.be.false;
 
-      recordResourceFetchSpanEnd(rootSpan, 'doc-load', 100);
-      clock.tick(QUIESCENCE_WINDOW_MS); // let quiescence complete
+      // Check 2: Start doc-load and advance past quiescence while in-flight
+      recordResourceFetchSpanStart(rootSpan, 'doc-load');
+      clock.tick(QUIESCENCE_WINDOW_MS);
+      expect(mockSpan.end.called).to.be.false;
+
+      // Check 3: End doc-load and verify root span closes after post-load quiescence
+      recordResourceFetchSpanEnd(rootSpan, 'doc-load', 300);
+      clock.tick(QUIESCENCE_WINDOW_MS);
 
       expect(mockSpan.end.called).to.be.true;
       expect(manager.getActiveRootSpan()).to.be.undefined;

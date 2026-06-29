@@ -50,7 +50,6 @@ class UiRenderSpanManager {
   private isInterrupted = false;
 
   constructor(
-    private parentSpan: Span,
     private tracer: Tracer,
     private onRenderStart: () => void,
     private onRenderEnd: () => void
@@ -130,13 +129,12 @@ class UiRenderSpanManager {
   }
 
   private startUiRenderSpan(startTimeMs: number = Date.now()): void {
-    const parentContext = trace.setSpan(context.active(), this.parentSpan);
     this.activeRenderSpan = this.tracer.startSpan(
       'UI Render',
       {
         startTime: startTimeMs
       },
-      parentContext
+      context.active()
     );
   }
 
@@ -156,17 +154,26 @@ class ResourceFetchSpans {
   private activeSpanIds: Set<string>;
   private lastSpanCompletedAtMs?: number;
 
-  constructor() {
+  constructor(private isDocumentLoaded: boolean) {
     this.activeSpanIds = new Set<string>();
     this.lastSpanCompletedAtMs = undefined;
   }
 
   hasActiveSpans(): boolean {
-    return this.activeSpanIds.size > 0;
+    return !this.isDocumentLoaded || this.activeSpanIds.size > 0;
   }
 
   getLastSpanCompletedAtMs(): number | undefined {
     return this.lastSpanCompletedAtMs;
+  }
+
+  private setLastSpanCompletedAtMs(completedAtMs: number): void {
+    if (
+      this.lastSpanCompletedAtMs === undefined ||
+      completedAtMs > this.lastSpanCompletedAtMs
+    ) {
+      this.lastSpanCompletedAtMs = completedAtMs;
+    }
   }
 
   recordResourceFetchSpanStart(span: Span): void {
@@ -175,13 +182,11 @@ class ResourceFetchSpans {
 
   recordResourceFetchSpanEnd(span: ReadableSpan): void {
     if (this.activeSpanIds.delete(span.spanContext().spanId)) {
-      const completedAtMs = hrTimeToMilliseconds(span.endTime);
-      if (
-        this.lastSpanCompletedAtMs === undefined ||
-        completedAtMs > this.lastSpanCompletedAtMs
-      ) {
-        this.lastSpanCompletedAtMs = completedAtMs;
+      if (span.name === 'documentLoad') {
+        this.isDocumentLoaded = true;
       }
+      const completedAtMs = hrTimeToMilliseconds(span.endTime);
+      this.setLastSpanCompletedAtMs(completedAtMs);
     }
   }
 }
@@ -206,7 +211,6 @@ export class RootSpan {
    * and starting the root span quiescence tracking.
    * @param span The OpenTelemetry Span wrapped by this instance.
    * @param manager The context manager that manages active root spans.
-   * @param type The type of root span ('app-start' or 'user-interaction').
    * @param tracer The tracer used to start child spans (e.g. UI Render spans).
    */
   constructor(span: Span, manager: RootSpanContextManager, tracer: Tracer) {
@@ -219,9 +223,10 @@ export class RootSpan {
       ? hrTimeToMilliseconds(sdkSpan.startTime)
       : Date.now();
     this.quiescenceTimerId = null;
-    this.resourceFetchSpans = new ResourceFetchSpans();
+    this.resourceFetchSpans = new ResourceFetchSpans(
+      sdkSpan.name !== 'app-start'
+    );
     this.uiRenderSpanManager = new UiRenderSpanManager(
-      this.span,
       this.tracer,
       () => this.clearQuiesce(),
       () => this.quiesce()
