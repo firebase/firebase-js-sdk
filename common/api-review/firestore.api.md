@@ -66,16 +66,6 @@ export function arrayUnion(...elements: unknown[]): FieldValue;
 export function average(field: string | FieldPath): AggregateField<number | null>;
 
 // @public
-export class BsonBinaryData {
-    constructor(subtype: number, data: Uint8Array);
-    // (undocumented)
-    readonly data: Uint8Array;
-    isEqual(other: BsonBinaryData): boolean;
-    // (undocumented)
-    readonly subtype: number;
-}
-
-// @public
 export class BsonObjectId {
     constructor(value: string);
     isEqual(other: BsonObjectId): boolean;
@@ -95,10 +85,13 @@ export class BsonTimestamp {
 
 // @public
 export class Bytes {
-    static fromBase64String(base64: string): Bytes;
+    get data(): Uint8Array;
+    static fromBase64String(base64: string, subtype?: number): Bytes;
     static fromJSON(json: object): Bytes;
-    static fromUint8Array(array: Uint8Array): Bytes;
+    static fromUint8Array(array: Uint8Array, subtype?: number): Bytes;
     isEqual(other: Bytes): boolean;
+    // (undocumented)
+    readonly subtype: number;
     toBase64(): string;
     toJSON(): object;
     toString(): string;

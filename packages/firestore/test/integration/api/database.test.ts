@@ -75,7 +75,6 @@ import {
   newTestFirestore,
   GeoPoint,
   Bytes,
-  BsonBinaryData,
   BsonObjectId,
   Int32Value,
   MaxKey,
@@ -3167,7 +3166,7 @@ apiDescribe('Database', persistence => {
         {},
         async coll => {
           const docRef = await addDoc(coll, {
-            binary: new BsonBinaryData(1, new Uint8Array([1, 2, 3])),
+            binary: Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1),
             objectId: new BsonObjectId('507f191e810c19729de860ea'),
             int32: new Int32Value(1),
             decimal128: new Decimal128Value('1.2e3'),
@@ -3179,7 +3178,7 @@ apiDescribe('Database', persistence => {
           await setDoc(
             docRef,
             {
-              binary: new BsonBinaryData(1, new Uint8Array([1, 2, 3])),
+              binary: Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1),
               timestamp: new BsonTimestamp(1, 2),
               int32: new Int32Value(2)
             },
@@ -3201,7 +3200,7 @@ apiDescribe('Database', persistence => {
           expect(
             snapshot
               .get('binary')
-              .isEqual(new BsonBinaryData(1, new Uint8Array([1, 2, 3])))
+              .isEqual(Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1))
           ).to.be.true;
           expect(snapshot.get('timestamp').isEqual(new BsonTimestamp(1, 2))).to
             .be.true;
@@ -3224,7 +3223,7 @@ apiDescribe('Database', persistence => {
           // Adding docs to cache, do not wait for promise to resolve.
           // eslint-disable-next-line @typescript-eslint/no-floating-promises
           setDoc(docRef, {
-            binary: new BsonBinaryData(1, new Uint8Array([1, 2, 3])),
+            binary: Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1),
             objectId: new BsonObjectId('507f191e810c19729de860ea'),
             int32: new Int32Value(1),
             decimal128: new Decimal128Value('1.2e3'),
@@ -3238,7 +3237,7 @@ apiDescribe('Database', persistence => {
           expect(
             snapshot
               .get('binary')
-              .isEqual(new BsonBinaryData(1, new Uint8Array([1, 2, 3])))
+              .isEqual(Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1))
           ).to.be.true;
           expect(
             snapshot
@@ -3544,9 +3543,9 @@ apiDescribe('Database', persistence => {
 
     it('can filter and order Binary values', async () => {
       const testDocs = {
-        a: { key: new BsonBinaryData(1, new Uint8Array([1, 2, 3])) },
-        b: { key: new BsonBinaryData(1, new Uint8Array([1, 2, 4])) },
-        c: { key: new BsonBinaryData(2, new Uint8Array([1, 2, 3])) }
+        a: { key: Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1) },
+        b: { key: Bytes.fromUint8Array(new Uint8Array([1, 2, 4]), 1) },
+        c: { key: Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 2) }
       };
       return withTestProjectIdAndCollectionSettings(
         persistence,
@@ -3556,7 +3555,11 @@ apiDescribe('Database', persistence => {
         async coll => {
           let orderedQuery = query(
             coll,
-            where('key', '>', new BsonBinaryData(1, new Uint8Array([1, 2, 3]))),
+            where(
+              'key',
+              '>',
+              Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1)
+            ),
             orderBy('key', 'desc')
           );
 
@@ -3577,9 +3580,13 @@ apiDescribe('Database', persistence => {
             where(
               'key',
               '>=',
-              new BsonBinaryData(1, new Uint8Array([1, 2, 3]))
+              Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1)
             ),
-            where('key', '<', new BsonBinaryData(2, new Uint8Array([1, 2, 3]))),
+            where(
+              'key',
+              '<',
+              Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 2)
+            ),
             orderBy('key', 'desc')
           );
 
@@ -4044,7 +4051,7 @@ apiDescribe('Database', persistence => {
         b: { key: MinKey.instance() },
         c: { key: new BsonTimestamp(1, 2) },
         d: { key: new BsonObjectId('507f191e810c19729de860ea') },
-        e: { key: new BsonBinaryData(1, new Uint8Array([1, 2, 3])) },
+        e: { key: Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1) },
         f: { key: new RegexValue('^foo', 'i') },
         g: { key: new Decimal128Value('1.2e3') }
       };
@@ -4096,7 +4103,7 @@ apiDescribe('Database', persistence => {
       const testDocs = {
         a: { key: new BsonTimestamp(1, 2) },
         b: { key: new RegexValue('^foo', 'i') },
-        c: { key: new BsonBinaryData(1, new Uint8Array([1, 2, 3])) }
+        c: { key: Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1) }
       };
       return withTestProjectIdAndCollectionSettings(
         persistence,
@@ -4142,7 +4149,7 @@ apiDescribe('Database', persistence => {
           j: { key: new BsonTimestamp(1, 2) },
           k: { key: 'string' },
           l: { key: Bytes.fromUint8Array(new Uint8Array([0, 1, 255])) },
-          m: { key: new BsonBinaryData(1, new Uint8Array([1, 2, 3])) },
+          m: { key: Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1) },
           o: { key: new BsonObjectId('507f191e810c19729de860ea') },
           p: { key: new GeoPoint(0, 0) },
           q: { key: new RegexValue('^foo', 'i') },
@@ -4209,9 +4216,9 @@ apiDescribe('Database', persistence => {
           t: { key: new BsonTimestamp(1, 1) },
           u: { key: new BsonTimestamp(2, 1) },
           v: { key: new BsonTimestamp(1, 2) },
-          i: { key: new BsonBinaryData(1, new Uint8Array([1, 2, 3])) },
-          j: { key: new BsonBinaryData(1, new Uint8Array([1, 1, 4])) },
-          k: { key: new BsonBinaryData(2, new Uint8Array([1, 0, 0])) },
+          i: { key: Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1) },
+          j: { key: Bytes.fromUint8Array(new Uint8Array([1, 1, 4]), 1) },
+          k: { key: Bytes.fromUint8Array(new Uint8Array([1, 0, 0]), 2) },
           l: { key: new BsonObjectId('507f191e810c19729de860eb') },
           m: { key: new BsonObjectId('507f191e810c19729de860ea') },
           n: { key: new BsonObjectId('407f191e810c19729de860ea') },
