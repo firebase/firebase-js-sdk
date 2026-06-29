@@ -167,7 +167,7 @@ class ResourceFetchSpans {
     return this.lastSpanCompletedAtMs;
   }
 
-  setLastSpanCompletedAtMs(completedAtMs: number): void {
+  private setLastSpanCompletedAtMs(completedAtMs: number): void {
     if (
       this.lastSpanCompletedAtMs === undefined ||
       completedAtMs > this.lastSpanCompletedAtMs
