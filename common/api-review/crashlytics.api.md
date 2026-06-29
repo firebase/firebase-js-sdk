@@ -17,6 +17,7 @@ export interface Crashlytics {
 export interface CrashlyticsOptions {
     appVersion?: string;
     endpointUrl?: string;
+    maxBufferSize?: number;
     region?: string;
     tracingUrl?: string;
 }

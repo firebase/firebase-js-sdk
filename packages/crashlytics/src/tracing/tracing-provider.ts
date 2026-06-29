@@ -43,6 +43,7 @@ import { DynamicHeaderProvider } from '../types';
 import { FirebaseApp } from '@firebase/app';
 import { AttributesStore } from '../attributes-store';
 import { FirebaseSpanProcessor } from './firebase-span-processor';
+import { OnErrorSpanProcessor } from './on-error-span-processor';
 import type { RootSpanContextManager } from './root-span-context-manager';
 import { JsonTraceSerializer } from '@opentelemetry/otlp-transformer';
 import { FetchTransport } from '../fetch-transport';
@@ -112,15 +113,23 @@ export function createTracingProvider(
     );
   }
 
+  const batchSpanProcessor = new BatchSpanProcessor(traceExporter);
+  const onErrorSpanProcessor = new OnErrorSpanProcessor(
+    batchSpanProcessor,
+    crashlyticsOptions.maxBufferSize
+  );
+
   const provider = new WebTracerProvider({
     resource,
     spanProcessors: [
       new FirebaseSpanProcessor(rootSpanContextManager, attributesStore),
       // TODO: Remove console exporter before we ship
       new SimpleSpanProcessor(new ConsoleSpanExporter()),
-      new BatchSpanProcessor(traceExporter)
+      onErrorSpanProcessor
     ]
   });
+
+  (provider as any).onErrorSpanProcessor = onErrorSpanProcessor;
 
   provider.register({
     contextManager: rootSpanContextManager,
