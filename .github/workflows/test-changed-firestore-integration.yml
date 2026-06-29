@@ -29,7 +29,7 @@ jobs:
 
     steps:
     - name: Checkout Repo
-      uses: actions/checkout@v4
+      uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # ratchet:actions/checkout@v4
       with:
         # This makes Actions fetch all Git history so run-changed script can diff properly.
         fetch-depth: 0
@@ -72,7 +72,7 @@ jobs:
       continue-on-error: true
 
     - name: Set up Node (22)
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # ratchet:actions/setup-node@v4
       with:
         node-version: 22.10.0
     - name: install Chrome stable
@@ -85,4 +85,3 @@ jobs:
       run: yarn build:changed firestore-integration
     - name: Run tests if firestore or its dependencies has changed
       run: yarn test:changed firestore-integration
-      continue-on-error: true

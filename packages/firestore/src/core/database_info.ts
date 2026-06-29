@@ -50,7 +50,8 @@ export class DatabaseInfo {
     readonly longPollingOptions: ExperimentalLongPollingOptions,
     readonly useFetchStreams: boolean,
     readonly isUsingEmulator: boolean,
-    readonly apiKey: string | undefined
+    readonly apiKey: string | undefined,
+    readonly _customHeaders?: Record<string, string>
   ) {}
 }
 

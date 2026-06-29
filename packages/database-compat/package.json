@@ -34,9 +34,9 @@
     "./package.json": "./package.json"
   },
   "scripts": {
-    "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
-    "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts'  --ignore-path '../../.gitignore'",
-    "prettier": "prettier --write '*.js' '*.ts' '@(src|test)/**/*.ts'",
+    "lint": "eslint --cache --cache-location '../../node_modules/.cache/eslint/' -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
+    "lint:fix": "eslint --cache --cache-location '../../node_modules/.cache/eslint/' --fix -c .eslintrc.js '**/*.ts'  --ignore-path '../../.gitignore'",
+    "prettier": "prettier --cache --write '*.js' '*.ts' '@(src|test)/**/*.ts'",
     "build": "rollup -c rollup.config.js",
     "build:release": "yarn build && yarn add-compat-overloads",
     "build:deps": "lerna run --scope @firebase/database-compat --include-dependencies build",
@@ -57,7 +57,7 @@
     "tslib": "^2.1.0"
   },
   "devDependencies": {
-    "@firebase/app-compat": "0.5.13",
+    "@firebase/app-compat": "0.5.14",
     "typescript": "5.5.4"
   },
   "repository": {

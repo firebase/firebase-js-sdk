@@ -46,11 +46,11 @@ jobs:
     - name: install Chrome stable
       run: |
         npx @puppeteer/browsers install chrome@stable
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # ratchet:actions/checkout@v4
       with:
         persist-credentials: false
     - name: Set up Node (22)
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # ratchet:actions/setup-node@v4
       with:
         node-version: 22.10.0
     - name: Test setup and yarn install
@@ -66,7 +66,7 @@ jobs:
         gzip build.tar
     - name: Upload build archive
       if: ${{ !cancelled() }}
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # ratchet:actions/upload-artifact@v4
       with:
           name: build.tar.gz
           path: build.tar.gz
@@ -82,17 +82,17 @@ jobs:
     - name: install Chrome stable
       run: |
         npx @puppeteer/browsers install chrome@stable
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # ratchet:actions/checkout@v4
       with:
         persist-credentials: false
     - name: Download build archive
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # ratchet:actions/download-artifact@v4
       with:
         name: build.tar.gz
     - name: Unzip build artifact
       run: tar xf build.tar.gz
     - name: Set up Node (22)
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # ratchet:actions/setup-node@v4
       with:
         node-version: 22.10.0
     - name: Test setup and yarn install
@@ -125,7 +125,7 @@ jobs:
           sed "s|SF:src/|SF:packages/$PKG_NAME/src/|g" "$lcov_file" >> ./lcov-all.info
         done
     - name: Run coverage
-      uses: coverallsapp/github-action@master
+      uses: coverallsapp/github-action@09b709cf6a16e30b0808ba050c7a6e8a5ef13f8d # ratchet:coverallsapp/github-action@master
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         path-to-lcov: ./lcov-all.info
@@ -148,17 +148,17 @@ jobs:
         echo "::warning ::${CHROME_VERSION_MISMATCH_MESSAGE}"
         echo "::warning ::Previously validated version: ${CHROME_VALIDATED_VERSION} vs. Installed version: $chromeVersionString"
         fi
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # ratchet:actions/checkout@v4
       with:
         persist-credentials: false
     - name: Download build archive
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # ratchet:actions/download-artifact@v4
       with:
         name: build.tar.gz
     - name: Unzip build artifact
       run: tar xf build.tar.gz
     - name: Set up Node (22)
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # ratchet:actions/setup-node@v4
       with:
         node-version: 22.10.0
     - name: Test setup and yarn install
@@ -183,7 +183,7 @@ jobs:
         # 2. Fix standard Node paths
         sed -i 's|SF:src/|SF:packages/auth/src/|g' ./lcov-all-auth.info
     - name: Run coverage
-      uses: coverallsapp/github-action@master
+      uses: coverallsapp/github-action@09b709cf6a16e30b0808ba050c7a6e8a5ef13f8d # ratchet:coverallsapp/github-action@master
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         path-to-lcov: ./lcov-all-auth.info
@@ -200,17 +200,17 @@ jobs:
     - name: install Chrome stable
       run: |
         npx @puppeteer/browsers install chrome@stable
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # ratchet:actions/checkout@v4
       with:
         persist-credentials: false
     - name: Download build archive
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # ratchet:actions/download-artifact@v4
       with:
         name: build.tar.gz
     - name: Unzip build artifact
       run: tar xf build.tar.gz
     - name: Set up Node (22)
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # ratchet:actions/setup-node@v4
       with:
         node-version: 22.10.0
     - name: Test setup and yarn install
@@ -222,7 +222,6 @@ jobs:
     - name: Run unit tests
       run: |
         yarn lerna run test:all:ci --scope '@firebase/firestore*' --stream --concurrency 1
-      continue-on-error: true
       env:
         FIREBASE_TOKEN: ${{ secrets.FIREBASE_CLI_TOKEN }}
         EXPERIMENTAL_MODE: true
@@ -236,7 +235,7 @@ jobs:
         # 2. Fix standard Node paths
         sed -i 's|SF:src/|SF:packages/firestore/src/|g' ./lcov-all-firestore.info
     - name: Run coverage
-      uses: coverallsapp/github-action@master
+      uses: coverallsapp/github-action@09b709cf6a16e30b0808ba050c7a6e8a5ef13f8d # ratchet:coverallsapp/github-action@master
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         path-to-lcov: ./lcov-all-firestore.info
@@ -256,17 +255,17 @@ jobs:
     - name: install Chrome stable
       run: |
         npx @puppeteer/browsers install chrome@stable
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # ratchet:actions/checkout@v4
       with:
         persist-credentials: false
     - name: Download build archive
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # ratchet:actions/download-artifact@v4
       with:
         name: build.tar.gz
     - name: Unzip build artifact
       run: tar xf build.tar.gz
     - name: Set up Node (22)
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # ratchet:actions/setup-node@v4
       with:
         node-version: 22.10.0
     - run: cp config/ci.config.json config/project.json
@@ -275,7 +274,6 @@ jobs:
       working-directory: integration/firestore
     - run: xvfb-run yarn karma:singlerun
       working-directory: integration/firestore
-      continue-on-error: true
       env:
         FIREBASE_TOKEN: ${{ secrets.FIREBASE_CLI_TOKEN }}
 
@@ -285,7 +283,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Coveralls Finished
-      uses: coverallsapp/github-action@master
+      uses: coverallsapp/github-action@09b709cf6a16e30b0808ba050c7a6e8a5ef13f8d # ratchet:coverallsapp/github-action@master
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         parallel-finished: true
