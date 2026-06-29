@@ -22,7 +22,8 @@ import {
   ConfigUpdateObserver,
   FetchResponse,
   FirebaseRemoteConfigObject,
-  FirebaseExperimentDescription
+  FirebaseExperimentDescription,
+  FirebaseRolloutMetadata
 } from '../public_types';
 import { calculateBackoffMillis, FirebaseError } from '@firebase/util';
 import { ERROR_FACTORY, ErrorCode } from '../errors';
@@ -341,9 +342,15 @@ export class RealtimeHandler {
     const newExperimentsMap = this.createExperimentsMap(newExperiments);
     const oldExperimentsMap = this.createExperimentsMap(oldExperiments);
 
+    const newRollouts = newFetchResponse.rollouts || [];
+    const oldRollouts = oldFetchResponse?.rollouts || [];
+    const newRolloutsMap = this.createRolloutsMap(newRollouts);
+    const oldRolloutsMap = this.createRolloutsMap(oldRollouts);
+
     for (const key of newKeys) {
       if (!oldKeys.has(key) || newConfig[key] !== oldConfig[key]) {
         changedKeys.add(key);
+        continue;
       }
       if (newExperimentsMap.has(key) !== oldExperimentsMap.has(key)) {
         changedKeys.add(key);
@@ -355,6 +362,20 @@ export class RealtimeHandler {
         newExperiment &&
         oldExperiment &&
         !this.areExperimentsEqual(newExperiment, oldExperiment)
+      ) {
+        changedKeys.add(key);
+        continue;
+      }
+      if (newRolloutsMap.has(key) !== oldRolloutsMap.has(key)) {
+        changedKeys.add(key);
+        continue;
+      }
+      const newRollout = newRolloutsMap.get(key);
+      const oldRollout = oldRolloutsMap.get(key);
+      if (
+        newRollout &&
+        oldRollout &&
+        !this.areRolloutsEqual(newRollout, oldRollout)
       ) {
         changedKeys.add(key);
       }
@@ -381,6 +402,21 @@ export class RealtimeHandler {
     );
   }
 
+  private areRolloutsEqual(
+    newRollout: Map<string, string>,
+    oldRollout: Map<string, string>
+  ): boolean {
+    if (newRollout.size !== oldRollout.size) {
+      return false;
+    }
+    for (const [key, value] of newRollout) {
+      if (oldRollout.get(key) !== value) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   /** Creates a map where the key is the config key and the value is the experiment description. */
   private createExperimentsMap(
     experimentDescriptions: FirebaseExperimentDescription[]
@@ -398,6 +434,27 @@ export class RealtimeHandler {
       }
     }
     return experimentsMap;
+  }
+
+  /** Creates a map where the key is the config key and the value is the rollout metadata. */
+  private createRolloutsMap(
+    rollouts: FirebaseRolloutMetadata[]
+  ): Map<string, Map<string, string>> {
+    const rolloutMetadataMap = new Map<string, Map<string, string>>();
+    for (const rollout of rollouts) {
+      const rolloutId = rollout.rolloutId;
+      const variantId = rollout.variantId;
+      const affectedParameterKeys = rollout.affectedParameterKeys || [];
+      for (const parameterKey of affectedParameterKeys) {
+        let parameterKeyRolloutMetadata = rolloutMetadataMap.get(parameterKey);
+        if (!parameterKeyRolloutMetadata) {
+          parameterKeyRolloutMetadata = new Map<string, string>();
+          rolloutMetadataMap.set(parameterKey, parameterKeyRolloutMetadata);
+        }
+        parameterKeyRolloutMetadata.set(rolloutId, variantId);
+      }
+    }
+    return rolloutMetadataMap;
   }
 
   private async fetchLatestConfig(

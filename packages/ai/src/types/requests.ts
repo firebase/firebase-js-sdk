@@ -556,8 +556,11 @@ export interface GoogleSearch {}
  * @public
  */
 export interface GoogleMaps {
-  /*
-   *  If true, include the widget context token in the response.
+  /**
+   * @deprecated The `enableWidget` feature has been deprecated by the Grounding for Google Maps
+   * service.
+   *
+   * If true, include the widget context token in the response.
    */
   enableWidget?: boolean;
 }

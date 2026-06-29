@@ -1,5 +1,11 @@
 # @firebase/firestore
 
+## 4.16.0
+
+### Minor Changes
+
+- [`043c0ab`](https://github.com/firebase/firebase-js-sdk/commit/043c0ab81018a8237f03b37073413d3b931c1957) [#9929](https://github.com/firebase/firebase-js-sdk/pull/9929) - Merge offline pipeline implementation with one minor API change
+
 ## 4.14.1
 
 ### Patch Changes
