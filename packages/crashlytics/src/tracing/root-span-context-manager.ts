@@ -153,12 +153,10 @@ class UiRenderSpanManager {
 class ResourceFetchSpans {
   private activeSpanIds: Set<string>;
   private lastSpanCompletedAtMs?: number;
-  private isDocumentLoaded: boolean;
 
-  constructor(isAppStart: boolean = false) {
+  constructor(private isDocumentLoaded: boolean) {
     this.activeSpanIds = new Set<string>();
     this.lastSpanCompletedAtMs = undefined;
-    this.isDocumentLoaded = !isAppStart;
   }
 
   hasActiveSpans(): boolean {
@@ -226,7 +224,7 @@ export class RootSpan {
       : Date.now();
     this.quiescenceTimerId = null;
     this.resourceFetchSpans = new ResourceFetchSpans(
-      sdkSpan.name === 'app-start'
+      sdkSpan.name !== 'app-start'
     );
     this.uiRenderSpanManager = new UiRenderSpanManager(
       this.tracer,
