@@ -8,15 +8,15 @@
     "build:persistence": "yarn typings:public && INCLUDE_FIRESTORE_PERSISTENCE=true gulp compile-tests",
     "build:memory": "yarn typings:public && INCLUDE_FIRESTORE_PERSISTENCE=false gulp compile-tests",
     "karma:singlerun": "karma start",
-    "prettier": "prettier --write '*.js' '*.ts'",
+    "prettier": "prettier --cache --write '*.js' '*.ts'",
     "test:persistence": " yarn build:persistence; karma start",
     "test:persistence:debug": "yarn build:persistence; karma start --auto-watch --browsers Chrome",
     "test:memory": "yarn build:memory; karma start",
     "test:memory:debug": "yarn build:memory; karma start --auto-watch --browsers Chrome"
   },
   "dependencies": {
-    "@firebase/app": "0.14.13",
-    "@firebase/firestore": "4.15.0"
+    "@firebase/app": "0.15.0",
+    "@firebase/firestore": "4.16.0"
   },
   "devDependencies": {
     "@types/mocha": "9.1.1",

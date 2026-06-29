@@ -18,8 +18,8 @@
     "dist"
   ],
   "scripts": {
-    "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
-    "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
+    "lint": "eslint --cache --cache-location '../../node_modules/.cache/eslint/' -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
+    "lint:fix": "eslint --cache --cache-location '../../node_modules/.cache/eslint/' --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "build": "rollup -c && yarn api-report",
     "build:release": "yarn build && yarn typings:public",
     "build:deps": "lerna run --scope @firebase/analytics --include-dependencies build",
@@ -47,7 +47,7 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@firebase/app": "0.14.13",
+    "@firebase/app": "0.15.0",
     "rollup": "2.79.2",
     "rollup-plugin-dts": "5.3.1",
     "@rollup/plugin-commonjs": "21.1.0",
