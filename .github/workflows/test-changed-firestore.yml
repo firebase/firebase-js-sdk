@@ -18,6 +18,9 @@ on:
   workflow_dispatch:
   pull_request:
 
+permissions:
+  contents: read
+
 env:
   artifactRetentionDays: 14
   # Bump Node memory limit

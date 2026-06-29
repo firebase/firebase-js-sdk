@@ -16,6 +16,9 @@ name: Test FCM integration
 
 on: pull_request
 
+permissions:
+  contents: read
+
 env:
   # make chromedriver detect installed Chrome version and download the corresponding driver
   DETECT_CHROMEDRIVER_VERSION: true

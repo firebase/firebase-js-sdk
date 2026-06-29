@@ -66,5 +66,7 @@ jobs:
             github.rest.issues.deleteComment({
                     owner: context.repo.owner,
                     repo: context.repo.repo,
-                    comment_id: ${{ steps.fc.outputs.comment-id }},
+                    comment_id: Number(process.env.COMMENT_ID),
             })
+        env:
+          COMMENT_ID: ${{ steps.fc.outputs.comment-id }}

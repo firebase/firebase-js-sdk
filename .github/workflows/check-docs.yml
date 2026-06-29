@@ -16,6 +16,9 @@ name: Doc Change Check (Run "yarn docgen:all" if this fails)
 
 on: pull_request
 
+permissions:
+  contents: read
+
 jobs:
   doc-check:
     name: Check if reference docs have changed

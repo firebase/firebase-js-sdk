@@ -16,6 +16,9 @@ name: Test Modified Packages
 
 on: pull_request
 
+permissions:
+  contents: read
+
 env:
   # Bump Node memory limit
   NODE_OPTIONS: "--max_old_space_size=4096"

@@ -16,6 +16,9 @@ name: Lint All Packages
 
 on: pull_request
 
+permissions:
+  contents: read
+
 jobs:
   test:
     name: Lint

@@ -23,6 +23,9 @@ env:
   # Bump Node memory limit
   NODE_OPTIONS: "--max_old_space_size=4096"
 
+permissions:
+  contents: read
+
 jobs:
   test:
     name: Run E2E Smoke Tests

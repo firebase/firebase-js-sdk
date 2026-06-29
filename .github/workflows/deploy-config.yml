@@ -16,6 +16,9 @@ name: Deploy Project Config
 
 on: pull_request
 
+permissions:
+  contents: read
+
 # Detects if any project config files (rules or functions) have changed,
 # and deploys them to the test project used for CI if so.
 # Run this in its own workflow instead of as a step before each test

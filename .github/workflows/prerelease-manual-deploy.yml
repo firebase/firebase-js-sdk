@@ -23,6 +23,9 @@ on:
             npmTag:
                 description: 'The npm tag to publish to, as in npm install firebase@<npmTag>'
                 required: true
+permissions:
+  contents: read
+
 jobs:
     deploy:
         environment: release
