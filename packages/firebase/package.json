@@ -95,6 +95,18 @@
       },
       "default": "./auth/web-extension/dist/esm/index.esm.js"
     },
+    "./crashlytics": {
+      "types": "./crashlytics/dist/crashlytics/index.d.ts",
+      "node": {
+        "require": "./crashlytics/dist/index.cjs.js",
+        "import": "./crashlytics/dist/index.mjs"
+      },
+      "browser": {
+        "require": "./crashlytics/dist/index.cjs.js",
+        "import": "./crashlytics/dist/esm/index.esm.js"
+      },
+      "default": "./crashlytics/dist/esm/index.esm.js"
+    },
     "./database": {
       "types": "./database/dist/database/index.d.ts",
       "node": {
@@ -429,6 +441,7 @@
     "@firebase/app-types": "0.9.5",
     "@firebase/auth": "1.13.3",
     "@firebase/auth-compat": "0.6.8",
+    "@firebase/crashlytics": "0.0.1",
     "@firebase/data-connect": "0.7.1",
     "@firebase/database": "1.1.3",
     "@firebase/database-compat": "2.1.4",
@@ -474,6 +487,7 @@
     "auth",
     "auth/cordova",
     "auth/web-extension",
+    "crashlytics",
     "functions",
     "firestore",
     "firestore/lite",
