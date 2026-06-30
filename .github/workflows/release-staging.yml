@@ -14,6 +14,9 @@
 
 name: Staging Release
 
+permissions:
+  contents: read
+
 on:
   workflow_dispatch:
     inputs:
@@ -60,16 +63,20 @@ jobs:
           const result = await github.rest.repos.merge({
             owner: context.repo.owner,
             repo: context.repo.repo,
-            base: '${{ github.event.inputs.release-branch }}',
-            head: '${{ github.event.inputs.source-branch }}'
+            base: process.env.RELEASE_BRANCH,
+            head: process.env.SOURCE_BRANCH
           })
           console.log(result)
+      env:
+        RELEASE_BRANCH: ${{ github.event.inputs.release-branch }}
+        SOURCE_BRANCH: ${{ github.event.inputs.source-branch }}
     - name: Checkout current branch (with history)
       uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # ratchet:actions/checkout@v4
       with:
         # Release script requires git history and tags.
         fetch-depth: 0
         ref: ${{ github.event.inputs.release-branch }}
+        persist-credentials: false
     - name: Yarn install
       run: yarn
     - name: Publish to NPM
