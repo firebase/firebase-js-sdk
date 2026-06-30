@@ -16,6 +16,9 @@ name: Test FCM integration
 
 on: pull_request
 
+permissions:
+  contents: read
+
 env:
   # make chromedriver detect installed Chrome version and download the corresponding driver
   DETECT_CHROMEDRIVER_VERSION: true
@@ -38,6 +41,7 @@ jobs:
       with:
         # This makes Actions fetch all Git history so run-changed script can diff properly.
         fetch-depth: 0
+        persist-credentials: false
     - name: Set up Node (22)
       uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # ratchet:actions/setup-node@v4
       with:
