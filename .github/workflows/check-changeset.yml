@@ -49,5 +49,8 @@ jobs:
       with:
         issue-number: ${{github.event.number}}
         body-includes: Changeset File Check
-    - name: Do a git operation
-      run: git pull
+    - name: Add a changeset for @firebase/app
+      # pull main so changeset can diff against it
+      run: |
+        git pull -f --no-rebase origin main:main
+        yarn ts-node-script scripts/ci/add_changeset.ts
