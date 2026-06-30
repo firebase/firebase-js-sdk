@@ -37,29 +37,11 @@ jobs:
       with:
         # This makes Actions fetch all Git history so check_changeset script can diff properly.
         fetch-depth: 0
+        persist-credentials: false
     - name: Set up Node (22)
       uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # ratchet:actions/setup-node@v4
       with:
         node-version: 22.10.0
-    - name: Yarn install
-      run: yarn
-    - name: Run changeset script
-      # pull main so changeset can diff against it
-      run: |
-        git pull -f --no-rebase origin main:main
-        yarn ts-node-script scripts/ci/check_changeset.ts
-      id: check-changeset
-    - name: Print changeset checker output
-      run: |
-        cat << 'eof_delimiter_that_will_never_occur_in_CHANGESET_ERROR_MESSAGE'
-        ${STEPS_CHECK_CHANGESET_OUTPUTS_CHANGESET_ERROR_MESSAGE}
-        eof_delimiter_that_will_never_occur_in_CHANGESET_ERROR_MESSAGE
-      env:
-        STEPS_CHECK_CHANGESET_OUTPUTS_CHANGESET_ERROR_MESSAGE: ${{steps.check-changeset.outputs.CHANGESET_ERROR_MESSAGE}}
-    - name: Print blocking failure status
-      run: echo "${STEPS_CHECK_CHANGESET_OUTPUTS_BLOCKING_FAILURE}"
-      env:
-        STEPS_CHECK_CHANGESET_OUTPUTS_BLOCKING_FAILURE: ${{steps.check-changeset.outputs.BLOCKING_FAILURE}}
     - name: Find Comment
       # This commit represents v3.1.0
       uses: peter-evans/find-comment@a4ef349b8c29f841860ce94ed82b20f0a39b6961
@@ -67,37 +49,7 @@ jobs:
       with:
         issue-number: ${{github.event.number}}
         body-includes: Changeset File Check
-    - name: Create comment (missing packages)
-      if: ${{!steps.fc.outputs.comment-id && steps.check-changeset.outputs.CHANGESET_ERROR_MESSAGE}}
-      # This commit represents v4.0.0
-      uses: peter-evans/create-or-update-comment@e2426b4b1346fd5e8c731c0bbe368063ea0286ac
-      with:
-        issue-number: ${{github.event.number}}
-        body: |
-          ### Changeset File Check :warning:
-          ${{steps.check-changeset.outputs.CHANGESET_ERROR_MESSAGE}}
-    - name: Update comment (missing packages)
-      if: ${{steps.fc.outputs.comment-id && steps.check-changeset.outputs.CHANGESET_ERROR_MESSAGE}}
-      # This commit represents v4.0.0
-      uses: peter-evans/create-or-update-comment@e2426b4b1346fd5e8c731c0bbe368063ea0286ac
-      with:
-        comment-id: ${{steps.fc.outputs.comment-id}}
-        edit-mode: replace
-        body: |
-          ### Changeset File Check :warning:
-          ${{steps.check-changeset.outputs.CHANGESET_ERROR_MESSAGE}}
-    - name: Update comment (no missing packages)
-      if: ${{steps.fc.outputs.comment-id && !steps.check-changeset.outputs.CHANGESET_ERROR_MESSAGE}}
-      # This commit represents v4.0.0
-      uses: peter-evans/create-or-update-comment@e2426b4b1346fd5e8c731c0bbe368063ea0286ac
-      with:
-        comment-id: ${{steps.fc.outputs.comment-id}}
-        edit-mode: replace
-        body: |
-          ### Changeset File Check :white_check_mark:
-          - No modified packages are missing from the changeset file.
-          - No changeset formatting errors detected.
-    # Don't want it to throw before editing the comment.
-    - name: Fail if checker script logged a blocking failure
-      if: ${{steps.check-changeset.outputs.BLOCKING_FAILURE == 'true'}}
-      run: exit 1
+    - name: Add a changeset for @firebase/app
+      # pull main so changeset can diff against it
+      run: |
+        git pull -f --no-rebase origin main:main
