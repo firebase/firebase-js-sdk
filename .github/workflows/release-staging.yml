@@ -57,13 +57,13 @@ jobs:
       env:
         BASE_BRANCH: ${{ github.event.inputs.release-branch }}
         SOURCE_BRANCH: ${{ github.event.inputs.source-branch }}
-        GITHUB_TOKEN: ${{ secrets.OSS_BOT_GITHUB_TOKEN }}
       with:
+        github-token: ${{ secrets.OSS_BOT_GITHUB_TOKEN }}
         script: |
           const result = await github.rest.repos.merge({
             owner: context.repo.owner,
             repo: context.repo.repo,
-            base: process.env.BASE_BRANCH
+            base: process.env.BASE_BRANCH,
             head: process.env.SOURCE_BRANCH
           })
           console.log(result)
