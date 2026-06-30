@@ -98,7 +98,7 @@ describe('Generate Content', function () {
 
         expect(response.usageMetadata).to.not.be.null;
 
-        if (model.model.includes('gemini-2.5-flash')) {
+        if (model.model.includes('gemini-3.5-flash')) {
           expect(response.usageMetadata!.promptTokenCount).to.not.equal(0);
           expect(response.usageMetadata!.candidatesTokenCount).to.not.equal(0);
           expect(response.usageMetadata!.thoughtsTokenCount).to.not.equal(0);
@@ -115,7 +115,7 @@ describe('Generate Content', function () {
           ).to.not.equal(0);
 
           // candidatesTokenDetails comes back about half the time, so let's just not test it.
-        } else if (model.model.includes('gemini-2.0-flash')) {
+        } else if (model.model.includes('gemini-3.1-flash-lite')) {
           expect(response.usageMetadata!.promptTokenCount).to.not.equal(0);
           expect(response.usageMetadata!.candidatesTokenCount).to.not.equal(0);
           expect(response.usageMetadata!.totalTokenCount).to.not.equal(0);
