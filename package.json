@@ -62,7 +62,7 @@
     "repo-scripts/*"
   ],
   "devDependencies": {
-    "@babel/core": "7.26.8",
+    "@babel/core": "7.29.6",
     "@babel/plugin-transform-modules-commonjs": "7.26.3",
     "@babel/preset-env": "7.26.8",
     "@babel/preset-typescript": "7.26.0",
