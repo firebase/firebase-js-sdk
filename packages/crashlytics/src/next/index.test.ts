@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2025 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,10 +20,10 @@ import sinonChai from 'sinon-chai';
 import chaiAsPromised from 'chai-as-promised';
 import { restore, stub } from 'sinon';
 import * as app from '@firebase/app';
-import * as crashlytics from './api';
+import * as crashlytics from '../api';
 import { FirebaseApp } from '@firebase/app';
-import { Crashlytics } from './public-types';
-import { nextOnRequestError } from './next';
+import { Crashlytics } from '../public-types';
+import { nextOnRequestError } from '.';
 
 use(sinonChai);
 use(chaiAsPromised);
