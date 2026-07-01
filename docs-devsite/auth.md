@@ -960,7 +960,7 @@ export declare function signInWithPasskey(auth: Auth, name: string, manualSignUp
 |  --- | --- | --- |
 |  auth | [Auth](./auth.auth.md#auth_interface) | The Firebase Auth instance. |
 |  name | string | The user's name for passkey. |
-|  manualSignUp | boolean | When false, automatically creates an anonymous user if a passkey credential does not exist. Defaults to false. |
+|  manualSignUp | boolean | When false, automatically creates an anonymous user if a passkey credential does not exist. Due to browser limitations, this will also trigger if the user cancels the native passkey prompt. Defaults to false. |
 
 <b>Returns:</b>
 
