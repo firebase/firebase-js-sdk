@@ -35,22 +35,22 @@ use(sinonChai);
 use(chaiAsPromised);
 
 describe('getParameterizedRoute', () => {
-  it('returns "/" if pathname is null or empty', () => {
+  it('should return "/" if pathname is null or empty', () => {
     expect(getParameterizedRoute(null, {})).to.equal('/');
     expect(getParameterizedRoute('', {})).to.equal('/');
   });
 
-  it('returns raw pathname if params are empty or null', () => {
+  it('should return raw pathname if params are empty or null', () => {
     expect(getParameterizedRoute('/users/profile', null)).to.equal('/users/profile');
     expect(getParameterizedRoute('/users/profile', {})).to.equal('/users/profile');
   });
 
-  it('replaces dynamic string route parameters with placeholders', () => {
+  it('should replace dynamic string route parameters with placeholders', () => {
     const route = getParameterizedRoute('/users/123/details', { id: '123' });
     expect(route).to.equal('/users/:id/details');
   });
 
-  it('replaces multiple dynamic parameters in pathname', () => {
+  it('should replace multiple dynamic parameters in pathname', () => {
     const route = getParameterizedRoute('/users/123/posts/456', {
       userId: '123',
       postId: '456'
@@ -58,14 +58,14 @@ describe('getParameterizedRoute', () => {
     expect(route).to.equal('/users/:userId/posts/:postId');
   });
 
-  it('handles catch-all array parameters', () => {
+  it('should handle catch-all array parameters', () => {
     const route = getParameterizedRoute('/docs/a/b/c', {
       parts: ['a', 'b', 'c']
     });
     expect(route).to.equal('/docs/:parts*');
   });
 
-  it('handles multiple dynamic parameters with the same value', () => {
+  it('should handle multiple dynamic parameters with the same value', () => {
     const route = getParameterizedRoute('/users/123/compare/123', {
       userId: '123',
       otherUserId: '123'
