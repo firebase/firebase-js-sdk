@@ -222,23 +222,27 @@ export class EntityNode {
     if (obj.backingData) {
       sdo.entityData = EntityDataObject.fromJSON(obj.backingData);
     }
-    sdo.globalId = obj.globalID;
-    sdo.scalars = obj.scalars;
-    if (obj.references) {
+    sdo.globalId = obj[GLOBAL_ID_KEY];
+    sdo.scalars = obj[SCALARS_KEY] || {};
+
+    if (obj[REFERENCES_KEY]) {
       const references: Record<string, unknown> = {};
-      for (const key in obj.references) {
-        if (obj.references.hasOwnProperty(key)) {
-          references[key] = EntityNode.fromJson(obj.references[key]);
+      const rawRefs = obj[REFERENCES_KEY]!;
+      for (const key in rawRefs) {
+        if (rawRefs.hasOwnProperty(key)) {
+          references[key] = EntityNode.fromJson(rawRefs[key]);
         }
       }
       sdo.references = references as typeof sdo.references;
     }
-    if (obj.objectLists) {
+
+    if (obj[OBJECT_LISTS_KEY]) {
       const objectLists: Record<string, unknown> = {};
-      for (const key in obj.objectLists) {
-        if (obj.objectLists.hasOwnProperty(key)) {
-          objectLists[key] = obj.objectLists[key].map(obj =>
-            EntityNode.fromJson(obj)
+      const rawLists = obj[OBJECT_LISTS_KEY]!;
+      for (const key in rawLists) {
+        if (rawLists.hasOwnProperty(key)) {
+          objectLists[key] = rawLists[key].map((item: DehydratedStubDataObject) =>
+            EntityNode.fromJson(item)
           );
         }
       }
@@ -250,10 +254,10 @@ export class EntityNode {
 
 export interface DehydratedStubDataObject {
   backingData?: EntityDataObjectJson;
-  globalID?: string;
-  scalars: { [key: string]: FDCScalarValue };
-  references: { [key: string]: DehydratedStubDataObject };
-  objectLists: {
+  [GLOBAL_ID_KEY]?: string;
+  [SCALARS_KEY]?: { [key: string]: FDCScalarValue };
+  [REFERENCES_KEY]?: { [key: string]: DehydratedStubDataObject };
+  [OBJECT_LISTS_KEY]?: {
     [key: string]: DehydratedStubDataObject[];
   };
 }
