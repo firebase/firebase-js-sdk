@@ -271,7 +271,6 @@ export function average(fieldName: string): AggregateFunction;
 
 // @public
 export abstract class BooleanExpression extends Expression {
-    // (undocumented)
     and(booleanExpression: BooleanExpression): BooleanExpression;
     conditional(thenExpr: Expression, elseExpr: Expression): FunctionExpression;
     countIf(): AggregateFunction;
@@ -400,6 +399,21 @@ export function currentTimestamp(): FunctionExpression;
 
 // @public
 export type DatabaseStageOptions = StageOptions & {};
+
+// @public (undocumented)
+export function dateFacet(args: {
+    fieldName: string;
+    bounds: Date[];
+}): FacetDefinition;
+
+// @public (undocumented)
+export function dateFacet(args: {
+    fieldName: string;
+    numBuckets: number;
+}): FacetDefinition;
+
+// @public (undocumented)
+export function defaultBucket(): FacetBucket;
 
 // @public
 export type DefineStageOptions = StageOptions & {
@@ -880,11 +894,23 @@ export abstract class Expression {
 export type ExpressionType = 'Field' | 'Constant' | 'Function' | 'AggregateFunction' | 'ListOfExpressions' | 'AliasedExpression' | 'Variable' | 'PipelineValue' | 'Facet';
 
 // @public (undocumented)
+export function facet(args: {
+    fieldName: string;
+    buckets: FacetBucket[];
+}): FacetDefinition;
+
+// @public (undocumented)
+export function facet(args: {
+    fieldName: string;
+    numBuckets: number;
+    bucketDataTypes?: ScalarBucketDataTypes[];
+}): FacetDefinition;
+
+// @public (undocumented)
 export type FacetBucket = {
-    value: string;
-} | {
-    lowerBound: number;
-    upperBound: number;
+    value: string | number | boolean | null | Date | Timestamp | GeoPoint | DocumentReference | Bytes | VectorValue;
+} | RangeBucket<number> | RangeBucket<Date> | {
+    default: 'default';
 };
 
 // @public (undocumented)
@@ -893,11 +919,12 @@ export type FacetBucketResult = FacetBucket & {
 };
 
 // @public (undocumented)
-export type FacetDefinition = {
-    fieldName: string;
-    id: string;
+export interface FacetDefinition {
+    // (undocumented)
     buckets: FacetBucket[];
-};
+    // (undocumented)
+    fieldName: string;
+}
 
 // @public (undocumented)
 export type FacetResult = FacetDefinition & {
@@ -909,9 +936,26 @@ export class Field extends Expression implements Selectable {
     // (undocumented)
     get alias(): string;
     // (undocumented)
+    dateFacet(firstBound: Date, secondBound: Date, ...additionalBounds: Date[]): FacetDefinition;
+    // (undocumented)
+    dateFacet(args: {
+        numBuckets: number;
+    }): FacetDefinition;
+    // (undocumented)
     get expr(): Expression;
     // (undocumented)
     readonly expressionType: ExpressionType;
+    // (undocumented)
+    facet(...buckets: FacetBucket[]): FacetDefinition;
+    // (undocumented)
+    facet(args: {
+        buckets: FacetBucket[];
+    }): FacetDefinition;
+    // (undocumented)
+    facet(args: {
+        numBuckets: number;
+        bucketDataTypes?: ScalarBucketDataTypes[];
+    }): FacetDefinition;
     // (undocumented)
     get fieldName(): string;
     // @beta
@@ -919,25 +963,19 @@ export class Field extends Expression implements Selectable {
     // (undocumented)
     inBuckets(...buckets: FacetBucket[]): BooleanExpression;
     // (undocumented)
-    rangeFacet(firstBound: Date, secondBound: Date, ...additionalBounds: Date[]): FacetDefinition;
+    numberFacet(firstBound: number, secondBound: number, ...additionalBounds: number[]): FacetDefinition;
     // (undocumented)
-    rangeFacet(firstBound: number, secondBound: number, ...additionalBounds: number[]): FacetDefinition;
-    // (undocumented)
-    rangeFacet(options: {
-        id?: string;
-        enableDefaultBucket?: boolean;
-        boundaries: Date[] | number[];
-    }): FacetDefinition;
-    // (undocumented)
-    scalarFacet(...values: string[]): FacetDefinition;
-    // (undocumented)
-    scalarFacet(options: {
-        id?: string;
-        enableDefaultBucket?: boolean;
-        values: string[];
+    numberFacet(args: {
+        numBuckets: number;
     }): FacetDefinition;
     // (undocumented)
     selectable: true;
+    // (undocumented)
+    stringFacet(...values: string[]): FacetDefinition;
+    // (undocumented)
+    stringFacet(args: {
+        numBuckets: number;
+    }): FacetDefinition;
 }
 
 // @public
@@ -1276,6 +1314,18 @@ export function notEqualAny(element: Expression, arrayExpression: Expression): B
 // @public
 export function notEqualAny(fieldName: string, arrayExpression: Expression): BooleanExpression;
 
+// @public (undocumented)
+export function numberFacet(args: {
+    fieldName: string;
+    bounds: number[];
+}): FacetDefinition;
+
+// @public (undocumented)
+export function numberFacet(args: {
+    fieldName: string;
+    numBuckets: number;
+}): FacetDefinition;
+
 // @public
 export type OffsetStageOptions = StageOptions & {
     offset: number;
@@ -1400,6 +1450,33 @@ export function pow(base: string, exponent: number): FunctionExpression;
 // @public
 export function rand(): FunctionExpression;
 
+// @public (undocumented)
+export type RangeBoundType = 'open' | 'closed';
+
+// @public (undocumented)
+export interface RangeBucket<T> {
+    // (undocumented)
+    lowerBound: T;
+    // (undocumented)
+    lowerBoundType?: RangeBoundType;
+    // (undocumented)
+    upperBound: T;
+    // (undocumented)
+    upperBoundType?: RangeBoundType;
+}
+
+// @public (undocumented)
+export function rangeBucket(lowerBound: number, upperBound: number): FacetBucket;
+
+// @public (undocumented)
+export function rangeBucket(lowerBound: number, lowerBoundType: RangeBoundType, upperBound: number, upperBoundType: RangeBoundType): FacetBucket;
+
+// @public (undocumented)
+export function rangeBucket(lowerBound: Date, upperBound: Date): FacetBucket;
+
+// @public (undocumented)
+export function rangeBucket(lowerBound: Date, lowerBoundType: RangeBoundType, upperBound: Date, upperBoundType: RangeBoundType): FacetBucket;
+
 // @public
 export function regexContains(fieldName: string, pattern: string): BooleanExpression;
 
@@ -1488,6 +1565,12 @@ export type SampleStageOptions = StageOptions & OneOf<{
     documents: number;
 }>;
 
+// @public (undocumented)
+export function scalarBucket(value: string | number | boolean | null | Date | Timestamp | GeoPoint | DocumentReference | Bytes | VectorValue): FacetBucket;
+
+// @public (undocumented)
+export type ScalarBucketDataTypes = 'string';
+
 // @beta
 export function score(): Expression;
 
@@ -1573,6 +1656,19 @@ export function stringContains(stringExpression: Expression, substring: string):
 
 // @public
 export function stringContains(stringExpression: Expression, substring: Expression): BooleanExpression;
+
+// @public (undocumented)
+export function stringFacet(args: {
+    fieldName: string;
+    values: string[];
+}): FacetDefinition;
+
+// @public (undocumented)
+export function stringFacet(args: {
+    fieldName: string;
+    numBuckets: number;
+    bucketDataTypes?: ScalarBucketDataTypes[];
+}): FacetDefinition;
 
 // @public
 export function stringIndexOf(fieldName: string, search: string | Expression | Bytes): FunctionExpression;

@@ -7431,7 +7431,7 @@ apiDescribe.skipClassic('Pipeline search', persistence => {
           .search({
             query: documentMatches('waffles'),
             facets: [
-              field('average_price_per_person').rangeFacet(0, 10, 20, 30, 100)
+              field('average_price_per_person').numberFacet(0, 10, 20, 30, 100)
             ]
           });
 
@@ -7464,7 +7464,7 @@ apiDescribe.skipClassic('Pipeline search', persistence => {
           .collection('clothing')
           .search({
             query: documentMatches('t-shirt'),
-            facets: [field('size').scalarFacet('XS', 'S', 'M', 'XM', 'L', 'XL')]
+            facets: [field('size').stringFacet('XS', 'S', 'M', 'XM', 'L', 'XL')]
           });
 
         const snapshot = await execute(ppl);
@@ -7498,7 +7498,7 @@ apiDescribe.skipClassic('Pipeline search', persistence => {
           .search({
             query: documentMatches('waffles'),
             facets: [
-              field('open_date').rangeFacet(
+              field('open_date').dateFacet(
                 new Date('1990-01-01'),
                 new Date('2020-01-01'),
                 new Date('2025-01-01'),
@@ -7533,7 +7533,7 @@ apiDescribe.skipClassic('Pipeline search', persistence => {
     describe('facet refinement', () => {
       it('second search matching one facet bucket', async () => {
         const facets = [
-          field('average_price_per_person').rangeFacet(0, 10, 20, 30, 100)
+          field('average_price_per_person').numberFacet(0, 10, 20, 30, 100)
         ];
 
         const ppl = firestore
@@ -7584,8 +7584,8 @@ apiDescribe.skipClassic('Pipeline search', persistence => {
           .search({
             query: documentMatches('waffles'),
             facets: [
-              field('average_price_per_person').rangeFacet(0, 10, 20, 30, 100),
-              field('cuisine').scalarFacet(
+              field('average_price_per_person').numberFacet(0, 10, 20, 30, 100),
+              field('cuisine').stringFacet(
                 'American',
                 'Italian',
                 'Mexican',
@@ -7630,8 +7630,8 @@ apiDescribe.skipClassic('Pipeline search', persistence => {
               ) // equivalent to `field('cuisine').equalAny('Italian', 'French')
             ),
             facets: [
-              field('average_price_per_person').rangeFacet(0, 10, 20, 30, 100),
-              field('cuisine').scalarFacet(
+              field('average_price_per_person').numberFacet(0, 10, 20, 30, 100),
+              field('cuisine').stringFacet(
                 'American',
                 'Italian',
                 'Mexican',

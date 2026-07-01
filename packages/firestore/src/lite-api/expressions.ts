@@ -64,12 +64,28 @@ export type ExpressionType =
   | 'PipelineValue'
   | 'Facet';
 
-interface RangeBucket<T> {
+export type RangeBoundType = 'open' | 'closed';
+
+export interface RangeBucket<T> {
   lowerBound: T;
+  lowerBoundType?: RangeBoundType;
   upperBound: T;
+  upperBoundType?: RangeBoundType;
 }
 export type FacetBucket =
-  | { value: string }
+  | {
+    value:
+    | string
+    | number
+    | boolean
+    | null
+    | Date
+    | Timestamp
+    | GeoPoint
+    | DocumentReference
+    | Bytes
+    | VectorValue;
+  }
   | RangeBucket<number>
   | RangeBucket<Date>
   | { default: 'default' };
@@ -78,23 +94,61 @@ export function rangeBucket(
   lowerBound: number,
   upperBound: number
 ): FacetBucket;
+export function rangeBucket(
+  lowerBound: number,
+  lowerBoundType: RangeBoundType,
+  upperBound: number,
+  upperBoundType: RangeBoundType
+): FacetBucket;
 export function rangeBucket(lowerBound: Date, upperBound: Date): FacetBucket;
 export function rangeBucket(
+  lowerBound: Date,
+  lowerBoundType: RangeBoundType,
+  upperBound: Date,
+  upperBoundType: RangeBoundType
+): FacetBucket;
+export function rangeBucket(
   lowerBound: unknown,
-  upperBound: unknown
+  arg1?: unknown,
+  arg2?: unknown,
+  arg3?: unknown
 ): FacetBucket {
-  if (isNumber(lowerBound) && isNumber(upperBound)) {
-    return { lowerBound, upperBound };
-  }
-
-  if (lowerBound instanceof Date && upperBound instanceof Date) {
-    return { lowerBound, upperBound };
+  if (arg2 === undefined) {
+    const upperBound = arg1;
+    if (isNumber(lowerBound) && isNumber(upperBound)) {
+      return { lowerBound, upperBound };
+    }
+    if (lowerBound instanceof Date && upperBound instanceof Date) {
+      return { lowerBound, upperBound };
+    }
+  } else {
+    const lowerBoundType = arg1 as RangeBoundType;
+    const upperBound = arg2;
+    const upperBoundType = arg3 as RangeBoundType;
+    if (isNumber(lowerBound) && isNumber(upperBound)) {
+      return { lowerBound, lowerBoundType, upperBound, upperBoundType };
+    }
+    if (lowerBound instanceof Date && upperBound instanceof Date) {
+      return { lowerBound, lowerBoundType, upperBound, upperBoundType };
+    }
   }
 
   throw new Error('not implemented');
 }
 
-export function scalarBucket(value: string): FacetBucket {
+export function scalarBucket(
+  value:
+    | string
+    | number
+    | boolean
+    | null
+    | Date
+    | Timestamp
+    | GeoPoint
+    | DocumentReference
+    | Bytes
+    | VectorValue
+): FacetBucket {
   return { value };
 }
 
@@ -3871,30 +3925,41 @@ export class Field extends Expression implements Selectable {
     );
   }
 
-  scalarFacet(...values: string[]): FacetDefinition;
-  scalarFacet(args: {
+  stringFacet(...values: string[]): FacetDefinition;
+  stringFacet(args: {
     numBuckets: number;
-    bucketDataTypes?: ScalarBucketDataTypes[];
   }): FacetDefinition;
-  scalarFacet(...args: any): FacetDefinition {
+  stringFacet(...args: any): FacetDefinition {
     throw new Error('Not implemented');
   }
 
-  rangeFacet(
+  dateFacet(
     firstBound: Date,
     secondBound: Date,
     ...additionalBounds: Date[]
   ): FacetDefinition;
-  rangeFacet(
+  dateFacet(args: { numBuckets: number }): FacetDefinition;
+  dateFacet(...args: any[]): FacetDefinition {
+    throw new Error('Not implemented');
+  }
+
+  numberFacet(
     firstBound: number,
     secondBound: number,
     ...additionalBounds: number[]
   ): FacetDefinition;
-  rangeFacet(...args: any[]): FacetDefinition {
+  numberFacet(args: { numBuckets: number }): FacetDefinition;
+  numberFacet(...args: any[]): FacetDefinition {
     throw new Error('Not implemented');
   }
 
-  facet(...buckets: FacetBucket[]): FacetDefinition {
+  facet(...buckets: FacetBucket[]): FacetDefinition;
+  facet(args: { buckets: FacetBucket[] }): FacetDefinition;
+  facet(args: {
+    numBuckets: number;
+    bucketDataTypes?: ScalarBucketDataTypes[];
+  }): FacetDefinition;
+  facet(...args: any[]): FacetDefinition {
     throw new Error('not implemented');
   }
 
@@ -12021,35 +12086,53 @@ export function between(
 
 export type ScalarBucketDataTypes = 'string';
 
-export function scalarFacet(args: {
-  field: string | Field;
+export function stringFacet(args: {
+  fieldName: string;
   values: string[];
 }): FacetDefinition;
-export function scalarFacet(args: {
-  field: string | Field;
+export function stringFacet(args: {
+  fieldName: string;
   numBuckets: number;
-  bucketDataTypes: ScalarBucketDataTypes[];
+  bucketDataTypes?: ScalarBucketDataTypes[];
 }): FacetDefinition;
-export function scalarFacet(...args: any[]): FacetDefinition {
+export function stringFacet(...args: any[]): FacetDefinition {
   throw new Error('not impelemented');
 }
 
-export function rangeFacet(args: {
-  field: string | Field;
+export function numberFacet(args: {
+  fieldName: string;
   bounds: number[];
 }): FacetDefinition;
-export function rangeFacet(args: {
-  field: string | Field;
+export function numberFacet(args: {
+  fieldName: string;
+  numBuckets: number;
+}): FacetDefinition;
+export function numberFacet(...args: any[]): FacetDefinition {
+  throw new Error('Not implemented');
+}
+
+export function dateFacet(args: {
+  fieldName: string;
   bounds: Date[];
 }): FacetDefinition;
-export function rangeFacet(...args: any[]): FacetDefinition {
+export function dateFacet(args: {
+  fieldName: string;
+  numBuckets: number;
+}): FacetDefinition;
+export function dateFacet(...args: any[]): FacetDefinition {
   throw new Error('Not implemented');
 }
 
 export function facet(args: {
-  field: string | Field;
+  fieldName: string;
   buckets: FacetBucket[];
-}): FacetDefinition {
+}): FacetDefinition;
+export function facet(args: {
+  fieldName: string;
+  numBuckets: number;
+  bucketDataTypes?: ScalarBucketDataTypes[];
+}): FacetDefinition;
+export function facet(...args: any[]): FacetDefinition {
   throw new Error('not implemented');
 }
 

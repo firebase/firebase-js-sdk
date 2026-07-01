@@ -207,8 +207,9 @@ export {
   scalarBucket,
   defaultBucket,
   facet,
-  rangeFacet,
-  scalarFacet,
+  numberFacet,
+  dateFacet,
+  stringFacet,
   // TODO(search) add with backend support
   // snippet,
   // SnippetOptions,
@@ -227,6 +228,9 @@ export {
   TimePart,
   TimeUnit,
   FacetBucket,
+  RangeBucket,
+  RangeBoundType,
+  ScalarBucketDataTypes,
   FacetDefinition
 } from './lite-api/expressions';
 

@@ -240,6 +240,13 @@ export {
   documentMatches,
   geoDistance,
   inBuckets,
+  rangeBucket,
+  scalarBucket,
+  defaultBucket,
+  facet,
+  numberFacet,
+  dateFacet,
+  stringFacet,
   AliasedExpression,
   Field,
   Constant,
@@ -254,5 +261,8 @@ export {
   TimePart,
   TimeUnit,
   FacetBucket,
+  RangeBucket,
+  RangeBoundType,
+  ScalarBucketDataTypes,
   FacetDefinition
 } from '../../src/lite-api/expressions';
