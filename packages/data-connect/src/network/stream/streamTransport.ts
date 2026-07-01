@@ -49,14 +49,17 @@ import {
 const FIRST_REQUEST_ID = 1;
 
 /** Time to wait before closing an idle connection (no active subscriptions). */
-const IDLE_CONNECTION_TIMEOUT_MS = 0; // immediate close
+const IDLE_CONNECTION_TIMEOUT_MS = 15 * 1000; // 15 seconds
+
+/** Time to wait before reconnecting an active stream connection */
+const MAX_CONNECTION_DURATION_MS = 45 * 60 * 1000; // 45 minutes
 
 /** Initial reconnect delay in ms */
-const INITIAL_RECONNECT_DELAY_MS = 1000;
+const INITIAL_RECONNECT_DELAY_MS = 1000; // 1 second
 /** Max reconnect delay in ms */
-const MAX_RECONNECT_DELAY_MS = 30000;
+const MAX_RECONNECT_DELAY_MS = 30 * 1000; // 30 seconds
 /** Max random jitter to add to reconnect delay in ms */
-const MAX_RECONNECT_JITTER_MS = 500;
+const MAX_RECONNECT_JITTER_MS = 500; // 0.5 seconds
 /** Factor to multiply delay by on failure */
 const RECONNECT_BACKOFF_FACTOR = 1.3;
 /** Max number of reconnection attempts before giving up */
@@ -73,6 +76,47 @@ export interface InvokeOperationPromise<Data> {
   resolveFn: (response: DataConnectResponse<Data>) => void;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   rejectFn: (reason: any) => void;
+}
+
+/**
+ * A subscription request queued while the stream is performing a graceful max duration reconnect.
+ * @internal
+ */
+export interface PendingMaxDurationSubscribeRequest {
+  queryName: string;
+  variables?: unknown;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  observer: SubscribeObserver<any>;
+}
+
+/**
+ * A query request queued while the stream is performing a graceful max duration reconnect.
+ * @internal
+ */
+export interface PendingMaxDurationQueryRequest {
+  queryName: string;
+  variables?: unknown;
+  deferredPromise: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    resolveFn: (response: any) => void;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    rejectFn: (reason: any) => void;
+  };
+}
+
+/**
+ * A mutation request queued while the stream is performing a graceful max duration reconnect.
+ * @internal
+ */
+export interface PendingMaxDurationMutationRequest {
+  mutationName: string;
+  variables?: unknown;
+  deferredPromise: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    resolveFn: (response: any) => void;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    rejectFn: (reason: any) => void;
+  };
 }
 
 /**
@@ -170,6 +214,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
    */
   async cleanupAndTerminate(code?: Code, reason?: string): Promise<void> {
     this.cleanupBrowserEventListeners();
+    this.cancelMaxDurationTimeout();
     this.cancelReconnect();
     this.cancelClose();
     this.rejectAllRequests(code ?? Code.OTHER, reason ?? 'Stream disposed.');
@@ -282,15 +327,32 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
 
   /**
    * Map of subscribe RequestIds to deferred unsubscription requests. Used when a client unsubscribes
-   * while a resume request is actively pending.
+   * while a resume request is actively pending, or when a max duration reconnect is freezing subscriptions.
    */
   private pendingCancellations = new Map<
     string,
-    { operationName: string; variables: unknown }
+    { operationName: string; variables: unknown; isUserUnsubscribe: boolean }
   >();
 
   /** current idle timeout, if any */
   private idleTimeout: ReturnType<typeof setTimeout> | null = null;
+
+  /** current max duration timeout, if any */
+  private maxDurationTimeout: ReturnType<typeof setTimeout> | null = null;
+
+  /** True if we are performing a forced reconnection due to max connection duration. */
+  private isForcedReconnect = false;
+  /** 
+   * True if we are preparing for a forced reconnection due to max connection duration.
+   * This causes incoming invoke calls to be queued until the reconnection completes.
+   */
+  private isPreparingForMaxDurationReconnect = false;
+  /** Subscribe requests queued while preparing for max duration reconnect */
+  private queuedMaxDurationSubscribeRequests: PendingMaxDurationSubscribeRequest[] = [];
+  /** Query requests queued while preparing for max duration reconnect */
+  private queuedMaxDurationQueryRequests: PendingMaxDurationQueryRequest[] = [];
+  /** Mutation requests queued while preparing for max duration reconnect */
+  private queuedMaxDurationMutationRequests: PendingMaxDurationMutationRequest[] = [];
 
   /** current auth uid. used to detect if a different user logs in */
   private authUid: string | null | undefined;
@@ -472,6 +534,10 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       this.reconnectDelayMs = INITIAL_RECONNECT_DELAY_MS;
       this.reconnectAttempts = 0;
       await this.retriggerActiveRequests();
+      if (this.isPreparingForMaxDurationReconnect) {
+        this.isPreparingForMaxDurationReconnect = false;
+        this.drainMaxDurationQueue();
+      }
     } catch (e) {
       if (e instanceof FirebaseError) {
         logDebug(
@@ -533,6 +599,148 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     this.isFirstStreamMessage = true;
     this.lastSentAuthToken = null;
     this.hasWaitedForInitialAuth = false;
+    this.startMaxDurationTimeout();
+  }
+
+  /**
+   * Starts a timer that will call force reconnect after {@linkcode MAX_CONNECTION_DURATION_MS}.
+   */
+  private startMaxDurationTimeout(): void {
+    this.cancelMaxDurationTimeout();
+    this.maxDurationTimeout = setTimeout(() => {
+      this.maxDurationTimeout = null;
+      void this.forceReconnect();
+    }, MAX_CONNECTION_DURATION_MS);
+  }
+
+  /**
+   * Cancels the max duration timeout started by {@linkcode startMaxDurationTimeout()}.
+   */
+  private cancelMaxDurationTimeout(): void {
+    if (this.maxDurationTimeout) {
+      clearTimeout(this.maxDurationTimeout);
+      this.maxDurationTimeout = null;
+    }
+  }
+
+  /**
+   * Forcibly reconnects the stream connection, cancelling and restarting all active subscriptions and queries.
+   * Should only be called when there are active requests (either subscriptions or queries).
+   */
+  private async forceReconnect(): Promise<void> {
+    this.isPreparingForMaxDurationReconnect = true;
+
+    for (const [mapKey, queuedRequest] of this.queuedInvokeQueryRequests) {
+      let queryName = '';
+      let variables: unknown;
+      const activeQuery = this.activeInvokeQueryRequests.get(mapKey);
+      if (activeQuery && 'execute' in activeQuery) {
+        queryName = activeQuery.execute!.operationName;
+        variables = activeQuery.execute!.variables;
+      } else {
+        const activeSubscription = this.activeInvokeSubscribeRequests.get(mapKey);
+        if (activeSubscription) {
+          queryName = activeSubscription.subscribe.operationName;
+          variables = activeSubscription.subscribe.variables;
+        }
+      }
+      if (queryName) {
+        this.queuedMaxDurationQueryRequests.unshift({
+          queryName,
+          variables,
+          deferredPromise: {
+            resolveFn: queuedRequest.resolveFn,
+            rejectFn: queuedRequest.rejectFn
+          }
+        });
+      }
+    }
+    this.queuedInvokeQueryRequests.clear();
+
+    for (const [_, subscribeBody] of this.activeInvokeSubscribeRequests) {
+      const requestId = subscribeBody.requestId;
+      const hasPendingResume = this.resumeRequestPromises.has(requestId);
+      if (hasPendingResume) {
+        this.pendingCancellations.set(requestId, {
+          operationName: subscribeBody.subscribe.operationName,
+          variables: subscribeBody.subscribe.variables,
+          isUserUnsubscribe: false
+        });
+      } else {
+        const cancelBody: CancelStreamRequest = { requestId, cancel: {} };
+        this.sendCancelRequestMessage(cancelBody);
+      }
+    }
+
+    this.checkMaxDurationReconnectReady();
+  }
+
+  private checkMaxDurationReconnectReady(): void {
+    if (!this.isPreparingForMaxDurationReconnect) {
+      return;
+    }
+    if (
+      this.executeRequestPromises.size === 0 &&
+      this.resumeRequestPromises.size === 0 &&
+      this.pendingCancellations.size === 0
+    ) {
+      const hasQueuedRequests =
+        this.queuedMaxDurationSubscribeRequests.length > 0 ||
+        this.queuedMaxDurationQueryRequests.length > 0 ||
+        this.queuedMaxDurationMutationRequests.length > 0;
+      if (!this.hasActiveSubscriptions && !hasQueuedRequests) {
+        this.isPreparingForMaxDurationReconnect = false;
+        void this.cleanupAndTerminate(
+          Code.OTHER,
+          'Stream closed due to max duration.'
+        );
+        return;
+      }
+      void this.executeMaxDurationReconnect();
+    }
+  }
+
+  private async executeMaxDurationReconnect(): Promise<void> {
+    this.isForcedReconnect = true;
+    try {
+      this.cancelReconnect();
+      this.cancelClose();
+      await this.closeConnection();
+    } catch (e) {
+      logError(`Stream Transport failed to close connection for forced reconnect: ${e}`);
+      this.isForcedReconnect = false;
+      this.isPreparingForMaxDurationReconnect = false;
+      throw e;
+    }
+  }
+
+  private drainMaxDurationQueue(): void {
+    const subscribes = [...this.queuedMaxDurationSubscribeRequests];
+    const queries = [...this.queuedMaxDurationQueryRequests];
+    const mutations = [...this.queuedMaxDurationMutationRequests];
+
+    this.queuedMaxDurationSubscribeRequests = [];
+    this.queuedMaxDurationQueryRequests = [];
+    this.queuedMaxDurationMutationRequests = [];
+
+    for (const req of subscribes) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      this.invokeSubscribe(req.observer, req.queryName, req.variables as any);
+    }
+    for (const req of queries) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      this.invokeQuery(req.queryName, req.variables as any).then(
+        req.deferredPromise.resolveFn,
+        req.deferredPromise.rejectFn
+      );
+    }
+    for (const req of mutations) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      this.invokeMutation(req.mutationName, req.variables as any).then(
+        req.deferredPromise.resolveFn,
+        req.deferredPromise.rejectFn
+      );
+    }
   }
 
   /**
@@ -542,7 +750,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
    * there's no need to cleanup.
    */
   private startIdleCloseTimeout(): void {
-    if (this.idleTimeout) {
+    if (this.idleTimeout || this.isPreparingForMaxDurationReconnect) {
       return;
     }
     this.idleTimeout = setTimeout(() => {
@@ -569,8 +777,8 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   }
 
   /**
-   * Reject all active execute promises and notify all subscribe observers with the given error.
-   * Clear active request tracking maps without cancelling or re-invoking any requests.
+   * Reject all active and queued execute promises and notify all subscribe observers with the given error.
+   * Clear active and queued request tracking maps without cancelling or re-invoking any requests.
    */
   private rejectAllRequests(code: Code, reason: string): void {
     this.activeInvokeQueryRequests.clear();
@@ -594,8 +802,22 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       this.subscribeObservers.delete(requestId);
       observer.onDisconnect(code, reason);
     }
+    for (const req of this.queuedMaxDurationQueryRequests) {
+      req.deferredPromise.rejectFn(error);
+    }
+    for (const req of this.queuedMaxDurationMutationRequests) {
+      req.deferredPromise.rejectFn(error);
+    }
+    for (const req of this.queuedMaxDurationSubscribeRequests) {
+      req.observer.onDisconnect(code, reason);
+    }
+    this.queuedMaxDurationSubscribeRequests = [];
+    this.queuedMaxDurationQueryRequests = [];
+    this.queuedMaxDurationMutationRequests = [];
+    this.isPreparingForMaxDurationReconnect = false;
     this.pendingCancellations.clear();
     this.cancelReconnect();
+    this.cancelMaxDurationTimeout();
   }
 
   /**
@@ -624,6 +846,13 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
    */
   protected onStreamClose(code: number, reason: string): void {
     this.cancelClose();
+    this.cancelMaxDurationTimeout();
+    const isForced = this.isForcedReconnect;
+    this.isForcedReconnect = false;
+    if (isForced) {
+      void this.attemptReconnect();
+      return;
+    }
     if (!this.hasActiveSubscriptions) {
       // skip reconnection if there are no active subscriptions
       void this.cleanupAndTerminate(
@@ -735,6 +964,24 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     queryName: string,
     variables?: Variables
   ): Promise<DataConnectResponse<Data>> {
+    this.cancelClose();
+    if (this.isPreparingForMaxDurationReconnect) {
+      let resolveFn: (response: DataConnectResponse<Data>) => void;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let rejectFn: (reason: any) => void;
+      const responsePromise = new Promise<DataConnectResponse<Data>>(
+        (resolve, reject) => {
+          resolveFn = resolve;
+          rejectFn = reject;
+        }
+      );
+      this.queuedMaxDurationQueryRequests.push({
+        queryName,
+        variables,
+        deferredPromise: { resolveFn: resolveFn!, rejectFn: rejectFn! }
+      });
+      return responsePromise;
+    }
     const mapKey = this.getMapKey(queryName, variables);
 
     if (this.activeInvokeQueryRequests.has(mapKey)) {
@@ -866,7 +1113,12 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     const deferredCancel = this.pendingCancellations.get(requestId);
     if (deferredCancel) {
       this.pendingCancellations.delete(requestId);
-      this.cancelSubscription(requestId, mapKey);
+      if (deferredCancel.isUserUnsubscribe) {
+        this.cancelAndCleanupSubscription(requestId, mapKey);
+      } else {
+        const cancelBody: CancelStreamRequest = { requestId, cancel: {} };
+        this.sendCancelRequestMessage(cancelBody);
+      }
     }
 
     const queuedRequestPromise = this.queuedInvokeQueryRequests.get(mapKey);
@@ -874,6 +1126,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       if (!this.hasActiveSubscriptions && !this.hasActiveExecuteRequests) {
         this.startIdleCloseTimeout();
       }
+      this.checkMaxDurationReconnectReady();
       return;
     }
 
@@ -885,6 +1138,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       mapKey,
       queuedRequestPromise
     );
+    this.checkMaxDurationReconnectReady();
   }
 
   /**
@@ -898,6 +1152,24 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     mutationName: string,
     variables?: Variables
   ): Promise<DataConnectResponse<Data>> {
+    this.cancelClose();
+    if (this.isPreparingForMaxDurationReconnect) {
+      let resolveFn: (response: DataConnectResponse<Data>) => void;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let rejectFn: (reason: any) => void;
+      const responsePromise = new Promise<DataConnectResponse<Data>>(
+        (resolve, reject) => {
+          resolveFn = resolve;
+          rejectFn = reject;
+        }
+      );
+      this.queuedMaxDurationMutationRequests.push({
+        mutationName,
+        variables,
+        deferredPromise: { resolveFn: resolveFn!, rejectFn: rejectFn! }
+      });
+      return responsePromise;
+    }
     const requestId = this.nextRequestId();
     const activeRequestKey = { operationName: mutationName, variables };
     const mapKey = this.getMapKey(mutationName, variables);
@@ -916,6 +1188,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       if (!this.hasActiveSubscriptions && !this.hasActiveExecuteRequests) {
         this.startIdleCloseTimeout();
       }
+      this.checkMaxDurationReconnectReady();
     });
 
     // asynchronous, fire and forget
@@ -938,6 +1211,14 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     queryName: string,
     variables: Variables
   ): void {
+    if (this.isPreparingForMaxDurationReconnect) {
+      this.queuedMaxDurationSubscribeRequests.push({
+        queryName,
+        variables,
+        observer
+      });
+      return;
+    }
     const mapKey = this.getMapKey(queryName, variables);
     const existingSubscribe = this.activeInvokeSubscribeRequests.get(mapKey);
 
@@ -967,9 +1248,10 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       this.sendRequestMessage<Variables>(subscribeBody).catch(err => {
         observer.onError(err instanceof Error ? err : new Error(String(err)));
         this.cleanupInvokeSubscribeRequest(requestId, mapKey);
-        if (!this.hasActiveSubscriptions) {
+        if (!this.hasActiveSubscriptions && !this.hasActiveExecuteRequests) {
           this.startIdleCloseTimeout();
         }
+        this.checkMaxDurationReconnectReady();
       });
     }
     // if we are waiting to close the stream, cancel closing!
@@ -985,6 +1267,24 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
    */
   invokeUnsubscribe<Variables>(queryName: string, variables: Variables): void {
     const mapKey = this.getMapKey(queryName, variables);
+    if (this.isPreparingForMaxDurationReconnect) {
+      this.queuedMaxDurationSubscribeRequests =
+        this.queuedMaxDurationSubscribeRequests.filter(
+          req => this.getMapKey(req.queryName, req.variables) !== mapKey
+        );
+      const activeSubscription = this.activeInvokeSubscribeRequests.get(mapKey);
+      if (activeSubscription) {
+        const reqId = activeSubscription.requestId;
+        this.subscribeObservers.delete(reqId);
+        const pending = this.pendingCancellations.get(reqId);
+        if (pending) {
+          pending.isUserUnsubscribe = true;
+        } else {
+          this.cancelAndCleanupSubscription(reqId, mapKey);
+        }
+      }
+      return;
+    }
     const subscribeRequest = this.activeInvokeSubscribeRequests.get(mapKey);
     if (!subscribeRequest) {
       return;
@@ -996,31 +1296,41 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     if (resumePromise) {
       this.pendingCancellations.set(requestId, {
         operationName: queryName,
-        variables
+        variables,
+        isUserUnsubscribe: true
       });
       return;
     }
-    this.cancelSubscription(requestId, mapKey);
+    this.cancelAndCleanupSubscription(requestId, mapKey);
   }
 
   /**
    * Cancels a subscription, cleans up the request tracking data structures, and checks to see if we
    * should close the stream due to inactivity.
    */
-  private cancelSubscription(requestId: string, mapKey: string): void {
+  private cancelAndCleanupSubscription(requestId: string, mapKey: string): void {
     this.cleanupInvokeSubscribeRequest(requestId, mapKey);
     const cancelBody: CancelStreamRequest = {
       requestId,
       cancel: {}
     };
+    this.sendCancelRequestMessage(cancelBody);
 
-    // asynchronous, fire and forget
-    this.sendRequestMessage(cancelBody).catch(err => {
-      logError(`Stream Transport failed to send unsubscribe message: ${err}`);
-    });
-
-    if (!this.hasActiveSubscriptions) {
+    if (!this.hasActiveSubscriptions && !this.hasActiveExecuteRequests) {
       this.startIdleCloseTimeout();
+    }
+    this.checkMaxDurationReconnectReady();
+  }
+
+  /**
+   * Sends a cancel request message, without cleaning up the request tracking data structures.
+   */
+  private sendCancelRequestMessage(cancelBody: CancelStreamRequest): void {
+    if (this.streamIsReady) {
+      // asynchronous, fire and forget
+      this.sendRequestMessage(cancelBody).catch(err => {
+        logError(`Stream Transport failed to send unsubscribe message: ${err}`);
+      });
     }
   }
 

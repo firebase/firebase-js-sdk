@@ -39,6 +39,8 @@ use(sinonChai);
 interface StreamTransportWithInternals {
   onStreamClose(code: number, reason: string): void;
   rejectAllRequests(code: string, reason: string): void;
+  IDLE_CONNECTION_TIMEOUT_MS: number;
+  closeConnection(): Promise<void>;
 }
 
 /** Interface that exposes private fields of TransportManager for testing purposes. */
@@ -521,6 +523,7 @@ describe('DataConnectTransportManager', () => {
 
     describe('idle timeout', () => {
       let clock: sinon.SinonFakeTimers;
+      const IDLE_CONNECTION_TIMEOUT_MS = 15 * 1000; // 15 seconds
       let streamTransport: WebSocketTransport;
       let restInvokeQuerySpy: sinon.SinonStub;
 
@@ -533,6 +536,16 @@ describe('DataConnectTransportManager', () => {
         };
         sinon.stub(streamTransportPublic, 'openConnection').resolves();
         sinon.stub(streamTransportPublic, 'sendMessage').resolves();
+        const streamTransportWithInternals =
+          streamTransport as unknown as StreamTransportWithInternals;
+        sinon
+          .stub(streamTransportWithInternals, 'closeConnection')
+          .callsFake(() => {
+            setTimeout(() => {
+              streamTransportWithInternals.onStreamClose(1000, 'Closed');
+            }, 0);
+            return Promise.resolve();
+          });
         sinon.stub(streamTransport, 'streamIsReady').get(() => true);
         restInvokeQuerySpy = sinon
           .stub(manager.restTransport, 'invokeQuery')
@@ -563,7 +576,8 @@ describe('DataConnectTransportManager', () => {
 
         expect(manager.streamTransport).to.exist;
 
-        await clock.tickAsync(0);
+        await clock.tickAsync(IDLE_CONNECTION_TIMEOUT_MS);
+        await clock.tickAsync(1);
         expect(manager.streamTransport).to.be.undefined;
       });
 
@@ -577,7 +591,8 @@ describe('DataConnectTransportManager', () => {
         manager.invokeSubscribe(observer, queryName1, variables1);
         manager.invokeUnsubscribe(queryName1, variables1);
 
-        await clock.tickAsync(0);
+        await clock.tickAsync(IDLE_CONNECTION_TIMEOUT_MS);
+        await clock.tickAsync(1);
         expect(manager.streamTransport).to.be.undefined;
 
         restInvokeQuerySpy.resetHistory();
@@ -595,7 +610,8 @@ describe('DataConnectTransportManager', () => {
         manager.invokeSubscribe(observer, queryName1, variables1);
         manager.invokeUnsubscribe(queryName1, variables1);
 
-        await clock.tickAsync(0);
+        await clock.tickAsync(IDLE_CONNECTION_TIMEOUT_MS);
+        await clock.tickAsync(1);
         expect(manager.streamTransport).to.be.undefined;
 
         manager.invokeSubscribe(observer, queryName1, variables1);

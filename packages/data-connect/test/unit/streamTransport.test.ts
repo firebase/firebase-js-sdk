@@ -48,8 +48,10 @@ chai.use(sinonChai);
 chai.use(chaiAsPromised);
 
 class TestStreamTransport extends AbstractDataConnectStreamTransport {
+  private isTestConnected = true;
+
   get streamIsReady(): boolean {
-    return true;
+    return this.isTestConnected;
   }
 
   get endpointUrl(): string {
@@ -57,12 +59,21 @@ class TestStreamTransport extends AbstractDataConnectStreamTransport {
   }
 
   protected openConnection(): Promise<void> {
+    this.isTestConnected = true;
     return Promise.resolve();
   }
   protected closeConnection(): Promise<void> {
+    if (!this.isTestConnected) {
+      return Promise.resolve();
+    }
+    this.isTestConnected = false;
+    setTimeout(() => {
+      this.onStreamClose(1000, 'Closed');
+    }, 0);
     return Promise.resolve();
   }
   protected ensureConnection(): Promise<void> {
+    this.isTestConnected = true;
     return Promise.resolve();
   }
   protected sendMessage<Variables>(
@@ -182,6 +193,13 @@ interface TransportWithInternals {
   attemptReconnect(): void;
   onOnlineEventListener(): void;
   onVisibilityChangeEventListener(): void;
+  onConnectionReady(): void;
+  isTestConnected: boolean;
+  isPreparingForMaxDurationReconnect: boolean;
+  queuedMaxDurationQueryRequests: unknown[];
+  queuedMaxDurationMutationRequests: unknown[];
+  queuedMaxDurationSubscribeRequests: unknown[];
+  isForcedReconnect: boolean;
 }
 
 describe('AbstractDataConnectStreamTransport', () => {
@@ -1496,8 +1514,8 @@ describe('AbstractDataConnectStreamTransport', () => {
         });
 
         it('should clean map correctly when handleResponse rejects', async () => {
-          transport.invokeMutation(mutationName1, variables1).catch(() => {});
-          transport.invokeMutation(mutationName2, variables2).catch(() => {});
+          transport.invokeMutation(mutationName1, variables1).catch(() => { });
+          transport.invokeMutation(mutationName2, variables2).catch(() => { });
           const expectedKey1 = transport.getMapKey(mutationName1, variables1);
           const expectedKey2 = transport.getMapKey(mutationName2, variables2);
           const activeRequests1 =
@@ -1633,118 +1651,123 @@ describe('AbstractDataConnectStreamTransport', () => {
       clock.restore();
     });
 
-    it('should close connection immediately when idle (no active subscriptions)', async () => {
-      const closeSpy = sinon.spy(transport, 'closeConnection');
-      sinon.stub(transport, 'sendMessage').resolves();
-      const observer = {
-        onData: sinon.spy(),
-        onDisconnect: sinon.spy(),
-        onError: sinon.spy()
-      };
+    // TODO: ADD NOTE THAT THERE WERE NO CHANGES HERE JUST WHITESPACE
+    describe('Idle Timeout', () => {
+      const IDLE_CONNECTION_TIMEOUT_MS = 15 * 1000; // 15 seconds, copied from real implementation
 
-      await transport.invokeSubscribe(observer, queryName1, variables1);
-      await transport.invokeUnsubscribe(queryName1, variables1);
+      it('should close connection after grace period when idle (no active subscriptions)', async () => {
+        const closeSpy = sinon.spy(transport, 'closeConnection');
+        sinon.stub(transport, 'sendMessage').resolves();
+        const observer = {
+          onData: sinon.spy(),
+          onDisconnect: sinon.spy(),
+          onError: sinon.spy()
+        };
 
-      expect(closeSpy).to.not.have.been.called;
+        await transport.invokeSubscribe(observer, queryName1, variables1);
+        await transport.invokeUnsubscribe(queryName1, variables1);
 
-      await clock.tickAsync(0);
-      expect(closeSpy).to.have.been.calledOnce;
-    });
+        expect(closeSpy).to.not.have.been.called;
 
-    it('should cancel close if a new subscription arrives during timeout', async () => {
-      const closeSpy = sinon.spy(transport, 'closeConnection');
-      sinon.stub(transport, 'sendMessage').resolves();
-      const observer = {
-        onData: sinon.spy(),
-        onDisconnect: sinon.spy(),
-        onError: sinon.spy()
-      };
+        await clock.tickAsync(IDLE_CONNECTION_TIMEOUT_MS);
+        expect(closeSpy).to.have.been.calledOnce;
+      });
 
-      await transport.invokeSubscribe(observer, queryName1, variables1);
-      await transport.invokeUnsubscribe(queryName1, variables1);
+      it('should cancel close if a new subscription arrives during timeout', async () => {
+        const closeSpy = sinon.spy(transport, 'closeConnection');
+        sinon.stub(transport, 'sendMessage').resolves();
+        const observer = {
+          onData: sinon.spy(),
+          onDisconnect: sinon.spy(),
+          onError: sinon.spy()
+        };
 
-      expect(closeSpy).to.not.have.been.called;
+        await transport.invokeSubscribe(observer, queryName1, variables1);
+        await transport.invokeUnsubscribe(queryName1, variables1);
 
-      await transport.invokeSubscribe(observer, queryName2, variables2);
+        expect(closeSpy).to.not.have.been.called;
 
-      await clock.tickAsync(0);
-      expect(closeSpy).to.not.have.been.called;
-    });
+        await transport.invokeSubscribe(observer, queryName2, variables2);
 
-    it('should restart close timeout if subscribe fails and leaves no active subscriptions', async () => {
-      const closeSpy = sinon.spy(transport, 'closeConnection');
-      const sendMessageStub = sinon.stub(transport, 'sendMessage');
-      sendMessageStub.resolves();
-      const observer = {
-        onData: sinon.spy(),
-        onDisconnect: sinon.spy(),
-        onError: sinon.spy()
-      };
+        await clock.tickAsync(IDLE_CONNECTION_TIMEOUT_MS);
+        expect(closeSpy).to.not.have.been.called;
+      });
 
-      await transport.invokeSubscribe(observer, queryName1, variables1);
-      await transport.invokeUnsubscribe(queryName1, variables1);
+      it('should restart close timeout if subscribe fails and leaves no active subscriptions', async () => {
+        const closeSpy = sinon.spy(transport, 'closeConnection');
+        const sendMessageStub = sinon.stub(transport, 'sendMessage');
+        sendMessageStub.resolves();
+        const observer = {
+          onData: sinon.spy(),
+          onDisconnect: sinon.spy(),
+          onError: sinon.spy()
+        };
 
-      sendMessageStub.rejects();
-      await transport.invokeSubscribe(observer, queryName2, variables2);
+        await transport.invokeSubscribe(observer, queryName1, variables1);
+        await transport.invokeUnsubscribe(queryName1, variables1);
 
-      await Promise.resolve(); // let microtasks run
-      expect(closeSpy).to.not.have.been.called;
+        sendMessageStub.rejects();
+        await transport.invokeSubscribe(observer, queryName2, variables2);
 
-      await clock.tickAsync(0);
-      expect(closeSpy).to.have.been.calledOnce;
-    });
+        await Promise.resolve(); // let microtasks run
+        expect(closeSpy).to.not.have.been.called;
 
-    it('should not close connection if there are active execute requests', async () => {
-      const closeSpy = sinon.spy(transport, 'closeConnection');
-      sinon.stub(transport, 'sendMessage').resolves();
-      const observer = {
-        onData: sinon.spy(),
-        onDisconnect: sinon.spy(),
-        onError: sinon.spy()
-      };
+        await clock.tickAsync(IDLE_CONNECTION_TIMEOUT_MS);
+        expect(closeSpy).to.have.been.calledOnce;
+      });
 
-      await transport.invokeSubscribe(observer, queryName1, variables1);
-      await transport.invokeUnsubscribe(queryName1, variables1);
+      it('should not close connection if there are active execute requests', async () => {
+        const closeSpy = sinon.spy(transport, 'closeConnection');
+        sinon.stub(transport, 'sendMessage').resolves();
+        const observer = {
+          onData: sinon.spy(),
+          onDisconnect: sinon.spy(),
+          onError: sinon.spy()
+        };
 
-      void transport.invokeQuery(queryName2, variables2);
+        await transport.invokeSubscribe(observer, queryName1, variables1);
+        await transport.invokeUnsubscribe(queryName1, variables1);
 
-      await clock.tickAsync(0);
-      expect(closeSpy).to.not.have.been.called;
-    });
+        void transport.invokeQuery(queryName2, variables2);
 
-    it('should close connection when last execute request finishes after idle timeout', async () => {
-      const closeSpy = sinon.spy(transport, 'closeConnection');
-      sinon.stub(transport, 'sendMessage').resolves();
-      const observer = {
-        onData: sinon.spy(),
-        onDisconnect: sinon.spy(),
-        onError: sinon.spy()
-      };
+        await clock.tickAsync(IDLE_CONNECTION_TIMEOUT_MS);
+        expect(closeSpy).to.not.have.been.called;
+      });
 
-      await transport.invokeSubscribe(observer, queryName1, variables1);
-      await transport.invokeUnsubscribe(queryName1, variables1);
+      it('should close connection when last execute request finishes after idle timeout', async () => {
+        const closeSpy = sinon.spy(transport, 'closeConnection');
+        sinon.stub(transport, 'sendMessage').resolves();
+        const observer = {
+          onData: sinon.spy(),
+          onDisconnect: sinon.spy(),
+          onError: sinon.spy()
+        };
 
-      const queryPromise = transport.invokeQuery(queryName2, variables2);
+        await transport.invokeSubscribe(observer, queryName1, variables1);
+        await transport.invokeUnsubscribe(queryName1, variables1);
 
-      await clock.tickAsync(0);
-      expect(closeSpy).to.not.have.been.called;
+        const queryPromise = transport.invokeQuery(queryName2, variables2);
 
-      const expectedKey = transport.getMapKey(queryName2, variables2);
-      const request = transport.activeInvokeQueryRequests.get(expectedKey);
-      const requestId = request!.requestId;
+        await clock.tickAsync(IDLE_CONNECTION_TIMEOUT_MS);
+        expect(closeSpy).to.not.have.been.called;
 
-      const dummyResponse = {
-        data: { result: 'result' },
-        errors: [],
-        extensions: {}
-      };
-      await transport.invokeHandleResponse(requestId, dummyResponse);
-      await queryPromise;
+        const expectedKey = transport.getMapKey(queryName2, variables2);
+        const request = transport.activeInvokeQueryRequests.get(expectedKey);
+        const requestId = request!.requestId;
 
-      // fast forward time again because the new idle timeout started when the query completed
-      await clock.tickAsync(0);
+        const dummyResponse = {
+          data: { result: 'result' },
+          errors: [],
+          extensions: {}
+        };
+        await transport.invokeHandleResponse(requestId, dummyResponse);
+        await queryPromise;
 
-      expect(closeSpy).to.have.been.calledOnce;
+        // fast forward time again because the new idle timeout started when the query completed
+        await clock.tickAsync(IDLE_CONNECTION_TIMEOUT_MS);
+
+        expect(closeSpy).to.have.been.calledOnce;
+      });
     });
 
     describe('Auth Disconnects', () => {
@@ -1839,49 +1862,8 @@ describe('AbstractDataConnectStreamTransport', () => {
         expect(closeSpy).to.not.have.been.called;
       });
     });
-  });
 
-  describe('Reconnection', () => {
-    let clock: sinon.SinonFakeTimers;
-    let sendMessageStub: sinon.SinonStub;
-    let ensureConnectionStub: sinon.SinonStub;
-
-    beforeEach(() => {
-      clock = sinon.useFakeTimers();
-      sendMessageStub = sinon.stub(transport, 'sendMessage').resolves();
-      ensureConnectionStub = sinon
-        .stub(transport, 'ensureConnection')
-        .resolves();
-    });
-
-    afterEach(() => {
-      clock.restore();
-      sinon.restore();
-    });
-
-    it('should start backoff on unexpected disconnect', async () => {
-      const observer = {
-        onData: sinon.spy(),
-        onDisconnect: sinon.spy(),
-        onError: sinon.spy()
-      };
-      transport.invokeSubscribe(observer, queryName1, variables1);
-
-      // Trigger unexpected disconnect (code 1006)
-      transport.onStreamClose(1006, 'Abnormal Closure');
-
-      // Should have started timer
-      expect(transport.reconnectTimer).to.not.be.null;
-    });
-
-    it('should NOT start backoff on graceful close with no subscriptions', async () => {
-      // No active subscriptions
-      transport.onStreamClose(1000, 'Normal Closure');
-
-      // Should NOT have started timer
-      expect(transport.reconnectTimer).to.be.null;
-    });
-
+    // TODO: ADD NOTE THAT THERE WERE NO CHANGES HERE JUST MOVING TESTS AROUND
     it('should fail all pending mutations on unexpected disconnect', async () => {
       const observer = {
         onData: sinon.spy(),
@@ -1901,6 +1883,100 @@ describe('AbstractDataConnectStreamTransport', () => {
         'Mutation aborted due to stream disconnect.'
       );
       expect(transport.activeInvokeMutationRequests.size).to.equal(0);
+    });
+
+  });
+
+  describe('Reconnects', () => {
+    let clock: sinon.SinonFakeTimers;
+    let sendMessageStub: sinon.SinonStub;
+    let ensureConnectionStub: sinon.SinonStub;
+
+    beforeEach(() => {
+      clock = sinon.useFakeTimers();
+      sendMessageStub = sinon.stub(transport, 'sendMessage').resolves();
+      ensureConnectionStub = sinon
+        .stub(transport, 'ensureConnection')
+        .callsFake(() => {
+          transport.isTestConnected = true;
+          return Promise.resolve();
+        });
+    });
+
+    afterEach(() => {
+      clock.restore();
+      sinon.restore();
+    });
+
+    // TODO: ADD NOTE THAT THERE WERE NO CHANGES HERE JUST WHITESPACE
+    describe('Automatic and Intelligent Reconnection', () => {
+      it('should start backoff on unexpected disconnect', async () => {
+        const observer = {
+          onData: sinon.spy(),
+          onDisconnect: sinon.spy(),
+          onError: sinon.spy()
+        };
+        transport.invokeSubscribe(observer, queryName1, variables1);
+
+        // Trigger unexpected disconnect (code 1006)
+        transport.onStreamClose(1006, 'Abnormal Closure');
+
+        // Should have started timer
+        expect(transport.reconnectTimer).to.not.be.null;
+      });
+
+      it('should NOT start backoff on graceful close with no subscriptions', async () => {
+        // No active subscriptions
+        transport.onStreamClose(1000, 'Normal Closure');
+
+        // Should NOT have started timer
+        expect(transport.reconnectTimer).to.be.null;
+      });
+
+      it('onOnline should trigger immediate reconnect if waiting', async () => {
+        const observer = {
+          onData: sinon.spy(),
+          onDisconnect: sinon.spy(),
+          onError: sinon.spy()
+        };
+        transport.invokeSubscribe(observer, queryName1, variables1);
+        transport.onStreamClose(1006, 'Abnormal Closure');
+
+        expect(transport.reconnectTimer).to.not.be.null;
+
+        transport.onOnlineEventListener();
+
+        expect(ensureConnectionStub).to.have.been.calledOnce;
+        expect(transport.reconnectTimer).to.be.null;
+      });
+
+      it('onVisibilityChange should trigger immediate reconnect if waiting', async () => {
+        const isBrowser = typeof window !== 'undefined';
+        if (!isBrowser) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (global as any).document = { visibilityState: 'visible' };
+        }
+
+        const observer = {
+          onData: sinon.spy(),
+          onDisconnect: sinon.spy(),
+          onError: sinon.spy()
+        };
+        transport.invokeSubscribe(observer, queryName1, variables1);
+        transport.onStreamClose(1006, 'Abnormal Closure');
+
+        expect(transport.reconnectTimer).to.not.be.null;
+
+        transport.onVisibilityChangeEventListener();
+
+        expect(ensureConnectionStub).to.have.been.calledOnce;
+        expect(transport.reconnectTimer).to.be.null;
+
+        if (!isBrowser) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          delete (global as any).document;
+        }
+      });
     });
 
     it('should re-request active subscriptions and queries on successful reconnect', async () => {
@@ -1934,49 +2010,170 @@ describe('AbstractDataConnectStreamTransport', () => {
       expect(secondSent.resume).to.not.be.undefined;
     });
 
-    it('onOnline should trigger immediate reconnect if waiting', async () => {
-      const observer = {
-        onData: sinon.spy(),
-        onDisconnect: sinon.spy(),
-        onError: sinon.spy()
-      };
-      transport.invokeSubscribe(observer, queryName1, variables1);
-      transport.onStreamClose(1006, 'Abnormal Closure');
+    // TODO: ADD A NOTE THAT THESE ARE NEW!
+    describe('Max Connection Duration Reconnect', () => {
+      it('should close connection without reconnecting after 45 minutes if idle', async () => {
+        const closeSpy = sinon.spy(transport, 'closeConnection');
+        transport.onConnectionReady();
 
-      expect(transport.reconnectTimer).to.not.be.null;
+        await clock.tickAsync(45 * 60 * 1000);
+        expect(closeSpy).to.have.been.calledOnce;
+        expect(ensureConnectionStub).to.not.have.been.called;
+      });
 
-      transport.onOnlineEventListener();
+      it('should gracefully reconnect after 45 minutes, buffering requests and draining in priority order', async () => {
+        const closeSpy = sinon.spy(transport, 'closeConnection');
+        const observer = {
+          onData: sinon.spy(),
+          onDisconnect: sinon.spy(),
+          onError: sinon.spy()
+        };
+        transport.onConnectionReady();
+        transport.invokeSubscribe(observer, queryName1, variables1);
+        await clock.tickAsync(0);
+        sendMessageStub.resetHistory();
 
-      expect(ensureConnectionStub).to.have.been.calledOnce;
-      expect(transport.reconnectTimer).to.be.null;
+        // Advance clock to 45 mins
+        await clock.tickAsync(45 * 60 * 1000);
+
+        // Allow close event to propagate and reconnect to trigger
+        await clock.tickAsync(1);
+        await Promise.resolve();
+        await Promise.resolve();
+
+        // Sockets swap
+        expect(closeSpy).to.have.been.calledOnce;
+        expect(ensureConnectionStub).to.have.been.calledOnce;
+        expect(transport.isPreparingForMaxDurationReconnect).to.be.false;
+
+        // Active subscription retriggered
+        const subscribeCalls = sendMessageStub.getCalls().filter(call => call.args[0].subscribe);
+        expect(subscribeCalls).to.have.lengthOf(1);
+      });
+
+      it('should distinguish between user-driven unsubscribe and max-duration-reconnect-driven pending cancellations', async () => {
+        const observer = {
+          onData: sinon.spy(),
+          onDisconnect: sinon.spy(),
+          onError: sinon.spy()
+        };
+        transport.onConnectionReady();
+        transport.invokeSubscribe(observer, queryName1, variables1);
+        const queryPromise = transport.invokeQuery(queryName1, variables1); // trigger resume request!
+
+        sendMessageStub.resetHistory();
+
+        // Trigger 45 min timer while resume is active
+        await clock.tickAsync(45 * 60 * 1000);
+
+        expect(transport.isPreparingForMaxDurationReconnect).to.be.true;
+        expect(ensureConnectionStub).to.not.have.been.called;
+
+        const mapKey = transport.getMapKey(queryName1, variables1);
+        const activeQuery = transport.activeInvokeQueryRequests.get(mapKey);
+        const requestId = (activeQuery as DataConnectStreamRequest<unknown>).requestId;
+
+        // Complete the resume request
+        await transport.invokeHandleResponse(requestId, { data: { result: 'data' }, errors: [], extensions: {} });
+        await queryPromise;
+
+        // Allow close event to propagate and reconnect to trigger
+        await clock.tickAsync(1);
+        await Promise.resolve();
+        await Promise.resolve();
+
+        // Fast wire drain finishes, connection swaps
+        expect(ensureConnectionStub).to.have.been.calledOnce;
+      });
+
+      it('should notify queued max duration operations when transport is terminated', async () => {
+        const observer = {
+          onData: sinon.spy(),
+          onDisconnect: sinon.spy(),
+          onError: sinon.spy()
+        };
+        transport.isPreparingForMaxDurationReconnect = true;
+
+        const queryPromise = transport.invokeQuery(queryName1, variables1);
+        const mutationPromise = transport.invokeMutation(mutationName1, variables1);
+        transport.invokeSubscribe(observer, queryName1, variables1);
+        expect(transport.queuedMaxDurationSubscribeRequests).to.have.lengthOf(1);
+        expect(transport.queuedMaxDurationQueryRequests).to.have.lengthOf(1);
+        expect(transport.queuedMaxDurationMutationRequests).to.have.lengthOf(1);
+
+        await transport.cleanupAndTerminate(Code.OTHER, 'Stream disposed.');
+
+        expect(observer.onDisconnect).to.have.been.calledOnceWith(Code.OTHER, 'Stream disposed.');
+        await expect(queryPromise).to.be.rejectedWith(/Stream disposed/);
+        await expect(mutationPromise).to.be.rejectedWith(/Stream disposed/);
+        expect(transport.queuedMaxDurationSubscribeRequests).to.have.lengthOf(0);
+        expect(transport.queuedMaxDurationQueryRequests).to.have.lengthOf(0);
+        expect(transport.queuedMaxDurationMutationRequests).to.have.lengthOf(0);
+      });
+
+      it('should drain max duration queue in priority order (subscribes -> queries -> mutations)', async () => {
+        const subscribeObserver = {
+          onData: sinon.spy(),
+          onDisconnect: sinon.spy(),
+          onError: sinon.spy()
+        };
+        transport.isPreparingForMaxDurationReconnect = true;
+
+        // Queue them in mixed order
+        const mutationPromise = transport.invokeMutation(mutationName1, variables1);
+        const queryPromise = transport.invokeQuery(queryName2, variables1);
+        transport.invokeSubscribe(subscribeObserver, queryName1, variables1);
+
+        expect(transport.queuedMaxDurationMutationRequests).to.have.lengthOf(1);
+        expect(transport.queuedMaxDurationQueryRequests).to.have.lengthOf(1);
+        expect(transport.queuedMaxDurationSubscribeRequests).to.have.lengthOf(1);
+
+        sendMessageStub.resetHistory();
+
+        // Trigger reconnect Success
+        transport.isPreparingForMaxDurationReconnect = true;
+        await transport.attemptReconnect();
+
+        const calls = sendMessageStub.getCalls();
+        expect(calls).to.have.lengthOf(3);
+
+        const firstCall = calls[0].args[0];
+        const secondCall = calls[1].args[0];
+        const thirdCall = calls[2].args[0];
+
+        expect(firstCall.subscribe).to.not.be.undefined;
+        expect(secondCall.execute?.operationName).to.equal(queryName2);
+        expect(thirdCall.execute?.operationName).to.equal(mutationName1);
+
+        // Clean up outstanding promises to prevent unhandled rejections
+        const response = { data: { result: '1' }, errors: [], extensions: {} };
+        await transport.invokeHandleResponse(secondCall.requestId, response);
+        await transport.invokeHandleResponse(thirdCall.requestId, response);
+        await Promise.all([queryPromise, mutationPromise]);
+      });
     });
 
-    it('onVisibilityChange should trigger immediate reconnect if waiting', async () => {
-      const isBrowser = typeof window !== 'undefined';
-      if (!isBrowser) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (global as any).document = { visibilityState: 'visible' };
-      }
-
+    it('should NOT trigger a reconnect when unsubscribing while disconnected', async () => {
       const observer = {
         onData: sinon.spy(),
         onDisconnect: sinon.spy(),
         onError: sinon.spy()
       };
       transport.invokeSubscribe(observer, queryName1, variables1);
+
+      // Flush microtasks to allow the initial subscribe message to be sent
+      await clock.tickAsync(0);
+      ensureConnectionStub.resetHistory();
+
+      // Trigger unexpected disconnect
       transport.onStreamClose(1006, 'Abnormal Closure');
+      transport.isTestConnected = false;
 
-      expect(transport.reconnectTimer).to.not.be.null;
+      // Unsubscribe while disconnected
+      transport.invokeUnsubscribe(queryName1, variables1);
 
-      transport.onVisibilityChangeEventListener();
-
-      expect(ensureConnectionStub).to.have.been.calledOnce;
-      expect(transport.reconnectTimer).to.be.null;
-
-      if (!isBrowser) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        delete (global as any).document;
-      }
+      // Verify that ensureConnection is not called
+      expect(ensureConnectionStub).to.not.have.been.called;
     });
   });
 
@@ -2013,10 +2210,10 @@ describe('AbstractDataConnectStreamTransport', () => {
         hadRemoveEventListener = 'removeEventListener' in anyGlobalThis;
 
         if (!hadAddEventListener) {
-          anyGlobalThis.addEventListener = () => {};
+          anyGlobalThis.addEventListener = () => { };
         }
         if (!hadRemoveEventListener) {
-          anyGlobalThis.removeEventListener = () => {};
+          anyGlobalThis.removeEventListener = () => { };
         }
 
         removeEventListenerSpy = sinon.spy(
