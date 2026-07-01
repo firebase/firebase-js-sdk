@@ -49,7 +49,7 @@ const PASSKEY_LOOK_UP_ERROR_MESSAGE =
  * Signs in a user with a passkey. Use enrollPasskey to enroll a passkey credential for the current user.
  * @param auth - The Firebase Auth instance.
  * @param name - The user's name for passkey.
- * @param manualSignUp - When false, automatically creates an anonymous user if a passkey credential does not exist. Defaults to false.
+ * @param manualSignUp - When false, automatically creates an anonymous user if a passkey credential does not exist. Due to browser limitations, this will also trigger if the user cancels the native passkey prompt. Defaults to false.
  * @returns A promise that resolves with a `UserCredential` object.
  */
 export async function signInWithPasskey(
