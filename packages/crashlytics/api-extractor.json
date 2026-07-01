@@ -13,6 +13,14 @@
     {
       "modulePath": "react-router",
       "filePath": "<projectFolder>/dist/react-router/index.d.ts"
+    },
+    {
+      "modulePath": "next",
+      "filePath": "<projectFolder>/dist/next/index.d.ts"
+    },
+    {
+      "modulePath": "next-navigation",
+      "filePath": "<projectFolder>/dist/next-navigation/index.d.ts"
     }
   ],
   "dtsRollup": {

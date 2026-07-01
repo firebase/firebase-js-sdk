@@ -240,6 +240,106 @@ const angularBuilds = [
   }
 ];
 
+const nextBuilds = [
+  {
+    input: 'src/next/index.ts',
+    output: {
+      file: pkg.exports['./next'].browser.import,
+      format: 'es',
+      sourcemap: true
+    },
+    plugins: [
+      typescriptPlugin({
+        typescript,
+        tsconfig: 'tsconfig.next.json'
+      }),
+      json(),
+      copy({
+        targets: [
+          {
+            src: 'dist/src/next/index.d.ts',
+            dest: 'dist/next'
+          },
+          {
+            src: 'dist/src/public-types.d.ts',
+            dest: 'dist'
+          }
+        ]
+      }),
+      replaceSource('../auto-constants.mjs')
+    ],
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  },
+  {
+    input: 'src/next/index.ts',
+    output: {
+      file: pkg.exports['./next'].browser.require,
+      format: 'cjs',
+      sourcemap: true
+    },
+    plugins: [
+      typescriptPlugin({
+        typescript,
+        tsconfig: 'tsconfig.next.json'
+      }),
+      json(),
+      replaceSource('../auto-constants.js')
+    ],
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  }
+];
+
+const nextNavigationBuilds = [
+  {
+    input: 'src/next-navigation/index.ts',
+    output: {
+      file: pkg.exports['./next-navigation'].browser.import,
+      format: 'es',
+      sourcemap: true,
+      banner: `'use client';`
+    },
+    plugins: [
+      typescriptPlugin({
+        typescript,
+        tsconfig: 'tsconfig.next-navigation.json'
+      }),
+      json(),
+      copy({
+        targets: [
+          {
+            src: 'dist/src/next-navigation/index.d.ts',
+            dest: 'dist/next-navigation'
+          },
+          {
+            src: 'dist/src/public-types.d.ts',
+            dest: 'dist'
+          }
+        ]
+      }),
+      replaceSource('../auto-constants.mjs')
+    ],
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  },
+  {
+    input: 'src/next-navigation/index.ts',
+    output: {
+      file: pkg.exports['./next-navigation'].browser.require,
+      format: 'cjs',
+      sourcemap: true,
+      banner: `'use client';`
+    },
+    plugins: [
+      typescriptPlugin({
+        typescript,
+        tsconfig: 'tsconfig.next-navigation.json'
+      }),
+      json(),
+      replaceSource('../auto-constants.js')
+    ],
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  }
+];
+
 const autoinitBuild = [
   {
     input: './src/auto-constants.ts',
@@ -265,5 +365,7 @@ export default [
   ...reactBuilds,
   ...reactRouterBuilds,
   ...angularBuilds,
+  ...nextBuilds,
+  ...nextNavigationBuilds,
   ...autoinitBuild
 ];
