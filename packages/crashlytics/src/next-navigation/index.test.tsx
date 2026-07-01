@@ -64,6 +64,14 @@ describe('getParameterizedRoute', () => {
     });
     expect(route).to.equal('/docs/:parts*');
   });
+
+  it('handles multiple dynamic parameters with the same value', () => {
+    const route = getParameterizedRoute('/users/123/compare/123', {
+      userId: '123',
+      otherUserId: '123'
+    });
+    expect(route).to.equal('/users/:userId/compare/:otherUserId');
+  });
 });
 
 describe('CrashlyticsNavigationTracker', () => {

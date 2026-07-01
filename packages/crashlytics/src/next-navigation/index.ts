@@ -55,7 +55,7 @@ export function getParameterizedRoute(
     if (typeof value === 'string') {
       const escapedVal = value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       routePattern = routePattern.replace(
-        new RegExp(`/${escapedVal}(?=/|$)`, 'g'),
+        new RegExp(`/${escapedVal}(?=/|$)`),
         `/:${key}`
       );
     } else if (Array.isArray(value) && value.length > 0) {
@@ -63,7 +63,7 @@ export function getParameterizedRoute(
         .map(v => v.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
         .join('/');
       routePattern = routePattern.replace(
-        new RegExp(`/${escapedPath}(?=/|$)`, 'g'),
+        new RegExp(`/${escapedPath}(?=/|$)`),
         `/:${key}*`
       );
     }
