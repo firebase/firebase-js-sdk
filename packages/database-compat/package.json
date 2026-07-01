@@ -39,7 +39,7 @@
     "prettier": "prettier --cache --write '*.js' '*.ts' '@(src|test)/**/*.ts'",
     "build": "rollup -c rollup.config.js",
     "build:release": "yarn build && yarn add-compat-overloads",
-    "build:deps": "lerna run --scope @firebase/database-compat --include-dependencies build",
+    "build:deps": "lerna run build --scope @firebase/database-compat",
     "dev": "rollup -c -w",
     "test": "run-p --npm-path npm lint test:browser test:node",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test",

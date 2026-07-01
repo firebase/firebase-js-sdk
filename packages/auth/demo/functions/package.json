@@ -12,8 +12,5 @@
     "firebase-admin": "11.11.1",
     "firebase-functions": "3.24.1"
   },
-  "private": true,
-  "engines": {
-    "node": "10"
-  }
+  "private": true
 }
