@@ -119,7 +119,11 @@ export class GrpcConnection implements Connection {
         : grpc.credentials.createInsecure();
       this.cachedStub = new this.firestore.Firestore(
         this.databaseInfo.host,
-        credentials
+        credentials,
+        {
+          'grpc.max_receive_message_length': 17 * 1024 * 1024,
+          'grpc.max_send_message_length': 17 * 1024 * 1024
+        }
       );
     }
     return this.cachedStub;
