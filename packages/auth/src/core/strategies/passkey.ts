@@ -49,7 +49,7 @@ const PASSKEY_LOOK_UP_ERROR_MESSAGE =
  * Signs in a user with a passkey. Use enrollPasskey to enroll a passkey credential for the current user.
  * @param auth - The Firebase Auth instance.
  * @param name - The user's name for passkey.
- * @param manualSignUp - When false, automatically creates an anonymous user if a passkey credential does not exist. Defaults to false.
+ * @param manualSignUp - When false, automatically creates an anonymous user if a passkey credential does not exist. Due to browser limitations, this will also trigger if the user cancels the native passkey prompt. Defaults to false.
  * @returns A promise that resolves with a `UserCredential` object.
  */
 export async function signInWithPasskey(
@@ -75,6 +75,12 @@ export async function signInWithPasskey(
       publicKey: options
     })) as PublicKeyCredential;
 
+    if (!credential) {
+      const err = new Error(PASSKEY_LOOK_UP_ERROR_MESSAGE);
+      err.name = 'NotAllowedError';
+      throw err;
+    }
+
     const finalizeSignInRequest: FinalizePasskeySignInRequest = {
       authenticatorAuthenticationResponse:
         publicKeyCredentialToJSON(credential),
@@ -94,7 +100,9 @@ export async function signInWithPasskey(
     return userCredential;
   } catch (error) {
     if (
-      (error as Error).message.includes(PASSKEY_LOOK_UP_ERROR_MESSAGE) &&
+      error instanceof Error &&
+      (error.name === 'NotAllowedError' ||
+        error.message.includes(PASSKEY_LOOK_UP_ERROR_MESSAGE)) &&
       !manualSignUp
     ) {
       // If the user is not signed up, sign them up anonymously
@@ -143,6 +151,15 @@ export async function enrollPasskey(
     const credential = (await navigator.credentials.create({
       publicKey: options
     })) as PublicKeyCredential;
+
+    if (!credential) {
+      const err = new Error(
+        'The operation either timed out or was not allowed.'
+      );
+      err.name = 'NotAllowedError';
+      throw err;
+    }
+
     const idToken = await userInternal.getIdToken();
     const finalizeEnrollmentRequest: FinalizePasskeyEnrollmentRequest = {
       idToken,
