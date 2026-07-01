@@ -22,9 +22,20 @@ export declare interface Settings
 
 |  Property | Type | Description |
 |  --- | --- | --- |
+|  [experimentalGrpcFlowControlWindow](./firestore_lite.settings.md#settingsexperimentalgrpcflowcontrolwindow) | number | Sets the gRPC flow control window size in bytes. Only applicable in Node.js environments. |
 |  [host](./firestore_lite.settings.md#settingshost) | string | The hostname to connect to. |
 |  [ignoreUndefinedProperties](./firestore_lite.settings.md#settingsignoreundefinedproperties) | boolean | Whether to skip nested properties that are set to <code>undefined</code> during object serialization. If set to <code>true</code>, these properties are skipped and not written to Firestore. If set to <code>false</code> or omitted, the SDK throws an exception when it encounters properties of type <code>undefined</code>. |
 |  [ssl](./firestore_lite.settings.md#settingsssl) | boolean | Whether to use SSL when connecting. |
+
+## Settings.experimentalGrpcFlowControlWindow
+
+Sets the gRPC flow control window size in bytes. Only applicable in Node.js environments.
+
+<b>Signature:</b>
+
+```typescript
+experimentalGrpcFlowControlWindow?: number;
+```
 
 ## Settings.host
 

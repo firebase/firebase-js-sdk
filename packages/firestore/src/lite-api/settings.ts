@@ -70,6 +70,12 @@ export interface FirestoreSettings {
   ignoreUndefinedProperties?: boolean;
 
   /**
+   * Sets the gRPC flow control window size in bytes.
+   * Only applicable in Node.js environments.
+   */
+  grpcFlowControlWindow?: number;
+
+  /**
    * @internal
    * Undocumented setting for internal Google consumers.
    * External callers needing this feature, please let us
@@ -122,6 +128,7 @@ export class FirestoreSettingsImpl {
   readonly _customHeaders?: Record<string, string>;
 
   readonly isUsingEmulator: boolean;
+  readonly grpcFlowControlWindow?: number;
 
   // Can be a google-auth-library or gapi client.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -194,6 +201,21 @@ export class FirestoreSettingsImpl {
     validateLongPollingOptions(this.experimentalLongPollingOptions);
 
     this.useFetchStreams = !!settings.useFetchStreams;
+
+    if (settings.grpcFlowControlWindow !== undefined) {
+      if (
+        typeof settings.grpcFlowControlWindow !== 'number' ||
+        settings.grpcFlowControlWindow <= 0 ||
+        settings.grpcFlowControlWindow > 2147483647 ||
+        !Number.isInteger(settings.grpcFlowControlWindow)
+      ) {
+        throw new FirestoreError(
+          Code.INVALID_ARGUMENT,
+          'grpcFlowControlWindow must be a positive integer and cannot exceed 2147483647'
+        );
+      }
+      this.grpcFlowControlWindow = settings.grpcFlowControlWindow;
+    }
   }
 
   isEqual(other: FirestoreSettingsImpl): boolean {
@@ -212,6 +234,7 @@ export class FirestoreSettingsImpl {
       ) &&
       this.ignoreUndefinedProperties === other.ignoreUndefinedProperties &&
       this.useFetchStreams === other.useFetchStreams &&
+      this.grpcFlowControlWindow === other.grpcFlowControlWindow &&
       customHeadersEqual(this._customHeaders, other._customHeaders)
     );
   }
