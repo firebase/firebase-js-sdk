@@ -38,7 +38,7 @@ installed on your machine. As of April 19th, 2024 the team has been testing with
 To download Node.js visit https://nodejs.org/en/download/.
 
 _NOTE: You can use a tool like [`NVM`](https://github.com/creationix/nvm)
-or [`N`](https://github.com/tj/n) to install and manage multiple node versions_
+or [`N`](https://github.com/tj/n) to install and manage multiple Node versions_
 
 #### Yarn
 
@@ -54,7 +54,7 @@ $ yarn set version 1.22.11
 
 #### Java
 
-The closure compiler requires a modern Java installation. Java 11+ should be installed: https://www.oracle.com/java/technologies/downloads/#java11
+The Closure Compiler requires a modern Java installation. Java 11+ should be installed: https://www.oracle.com/java/technologies/downloads/#java11
 
 #### Verify Prerequisites
 
@@ -84,7 +84,7 @@ $ yarn
 ```
 
 Once you have installed all the dependencies, you can build the entire SDK by
-running the following command the root of the SDK:
+running the following command at the root of the SDK:
 
 ```bash
 $ yarn build
