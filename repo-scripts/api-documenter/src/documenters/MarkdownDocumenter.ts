@@ -176,6 +176,7 @@ export class MarkdownDocumenter {
       `Project: /docs/reference/${this._projectName}/_project.yaml
 Book: /docs/reference/_book.yaml
 page_type: reference
+
 `
     );
 
