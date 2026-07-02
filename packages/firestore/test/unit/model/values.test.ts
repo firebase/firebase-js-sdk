@@ -17,7 +17,18 @@
 
 import { expect } from 'chai';
 
-import { GeoPoint, Timestamp } from '../../../src';
+import {
+  GeoPoint,
+  Timestamp,
+  BsonBinaryData,
+  BsonTimestamp,
+  BsonObjectId,
+  RegexValue,
+  Int32Value,
+  MaxKey,
+  MinKey,
+  Decimal128Value
+} from '../../../src';
 import { DatabaseId } from '../../../src/core/database_info';
 import { vector } from '../../../src/lite-api/field_value_impl';
 import { serverTimestamp } from '../../../src/model/server_timestamps';
@@ -31,8 +42,16 @@ import {
   valuesGetLowerBound,
   valuesGetUpperBound,
   TYPE_KEY,
-  VECTOR_VALUE_SENTINEL,
-  VECTOR_MAP_VECTORS_KEY
+  RESERVED_VECTOR_KEY,
+  VECTOR_MAP_VECTORS_KEY,
+  MIN_BSON_TIMESTAMP_VALUE,
+  MIN_VECTOR_VALUE,
+  RESERVED_INT32_KEY,
+  MIN_BSON_BINARY_VALUE,
+  MIN_KEY_VALUE,
+  MIN_REGEX_VALUE,
+  MIN_BSON_OBJECT_ID_VALUE,
+  RESERVED_DECIMAL128_KEY
 } from '../../../src/model/values';
 import * as api from '../../../src/protos/firestore_proto_api';
 import { primitiveComparator } from '../../../src/util/misc';
@@ -56,6 +75,7 @@ describe('Values', () => {
       [wrap(true), wrap(true)],
       [wrap(false), wrap(false)],
       [wrap(null), wrap(null)],
+      [wrap(MinKey.instance()), wrap(MinKey.instance())],
       [wrap(0 / 0), wrap(Number.NaN), wrap(NaN)],
       // -0.0 and 0.0 order the same but are not considered equal.
       [wrap(-0.0)],
@@ -92,7 +112,22 @@ describe('Values', () => {
       [wrap({ bar: 1, foo: 1 })],
       [wrap({ foo: 1 })],
       [wrap(vector([]))],
-      [wrap(vector([1, 2.3, -4.0]))]
+      [wrap(vector([1, 2.3, -4.0]))],
+      [wrap(new RegexValue('^foo', 'i')), wrap(new RegexValue('^foo', 'i'))],
+      [wrap(new BsonTimestamp(57, 4)), wrap(new BsonTimestamp(57, 4))],
+      [
+        wrap(new BsonBinaryData(128, Uint8Array.from([7, 8, 9]))),
+        wrap(new BsonBinaryData(128, Uint8Array.from([7, 8, 9]))),
+        wrap(new BsonBinaryData(128, Buffer.from([7, 8, 9]))),
+        wrap(new BsonBinaryData(128, Buffer.from([7, 8, 9])))
+      ],
+      [
+        wrap(new BsonObjectId('123456789012')),
+        wrap(new BsonObjectId('123456789012'))
+      ],
+      [wrap(new Int32Value(255)), wrap(new Int32Value(255))],
+      [wrap(new Decimal128Value('1.2e3')), wrap(new Decimal128Value('1.2e3'))],
+      [wrap(MaxKey.instance()), wrap(MaxKey.instance())]
     ];
     expectEqualitySets(values, (v1, v2) => valueEquals(v1, v2));
   });
@@ -131,28 +166,69 @@ describe('Values', () => {
       // null first
       [wrap(null)],
 
+      // MinKey is after null
+      [wrap(MinKey.instance())],
+
       // booleans
       [wrap(false)],
       [wrap(true)],
 
       // numbers
-      [wrap(NaN)],
-      [wrap(-Infinity)],
+      [wrap(NaN), wrap(new Decimal128Value('NaN'))],
+      [wrap(-Infinity), wrap(new Decimal128Value('-Infinity'))],
       [wrap(-Number.MAX_VALUE)],
-      [wrap(Number.MIN_SAFE_INTEGER - 1)],
+      [
+        wrap(Number.MIN_SAFE_INTEGER - 1),
+        wrap(new Decimal128Value('-9007199254740992'))
+      ],
       [wrap(Number.MIN_SAFE_INTEGER)],
-      [wrap(-1.1)],
-      // Integers and Doubles order the same.
-      [{ integerValue: -1 }, { doubleValue: -1 }],
+      // 64-bit,32-bit integers and 128 decimal numbers order together numerically.
+      [
+        { integerValue: -2147483648 },
+        wrap(new Int32Value(-2147483648)),
+        wrap(new Decimal128Value('-2147483648')),
+        wrap(new Decimal128Value('-2.147483648e9'))
+      ],
+      [wrap(-1.5), wrap(new Decimal128Value('-1.5'))],
+      // Integers, Int32Values and Doubles order the same.
+      [
+        { integerValue: -1 },
+        { doubleValue: -1 },
+        wrap(new Int32Value(-1)),
+        wrap(new Decimal128Value('-1')),
+        wrap(new Decimal128Value('-1.0'))
+      ],
       [wrap(-Number.MIN_VALUE)],
       // zeros all compare the same.
-      [{ integerValue: 0 }, { doubleValue: 0 }, { doubleValue: -0 }],
+      [
+        { integerValue: 0 },
+        { doubleValue: 0 },
+        { doubleValue: -0 },
+        wrap(new Int32Value(0)),
+        wrap(new Decimal128Value('0')),
+        wrap(new Decimal128Value('0.0')),
+        wrap(new Decimal128Value('-0')),
+        wrap(new Decimal128Value('-0.0')),
+        wrap(new Decimal128Value('+0')),
+        wrap(new Decimal128Value('+0.0'))
+      ],
       [wrap(Number.MIN_VALUE)],
-      [{ integerValue: 1 }, { doubleValue: 1 }],
-      [wrap(1.1)],
+      [
+        { integerValue: 1 },
+        { doubleValue: 1.0 },
+        wrap(new Int32Value(1)),
+        wrap(new Decimal128Value('1')),
+        wrap(new Decimal128Value('1.0'))
+      ],
+      [wrap(1.5), wrap(new Decimal128Value('1.5'))],
+      [wrap(new Int32Value(2)), wrap(new Decimal128Value('2'))],
+      [
+        wrap(new Int32Value(2147483647)),
+        wrap(new Decimal128Value('2.147483647e9'))
+      ],
       [wrap(Number.MAX_SAFE_INTEGER)],
       [wrap(Number.MAX_SAFE_INTEGER + 1)],
-      [wrap(Infinity)],
+      [wrap(Infinity), wrap(new Decimal128Value('Infinity'))],
 
       // timestamps
       [wrap(date1)],
@@ -163,6 +239,11 @@ describe('Values', () => {
         { timestampValue: '2020-04-05T14:30:01.000000Z' },
         { timestampValue: '2020-04-05T14:30:01.000000000Z' }
       ],
+
+      // request timestamp
+      [wrap(new BsonTimestamp(123, 4))],
+      [wrap(new BsonTimestamp(123, 5))],
+      [wrap(new BsonTimestamp(124, 0))],
 
       // server timestamps come after all concrete timestamps.
       [serverTimestamp(Timestamp.fromDate(date1), null)],
@@ -187,6 +268,13 @@ describe('Values', () => {
       [wrap(blob(0, 1, 2, 4, 3))],
       [wrap(blob(255))],
 
+      [
+        wrap(new BsonBinaryData(5, Buffer.from([1, 2, 3]))),
+        wrap(new BsonBinaryData(5, new Uint8Array([1, 2, 3])))
+      ],
+      [wrap(new BsonBinaryData(7, Buffer.from([1])))],
+      [wrap(new BsonBinaryData(7, new Uint8Array([2])))],
+
       // reference values
       [refValue(dbId('p1', 'd1'), key('c1/doc1'))],
       [refValue(dbId('p1', 'd1'), key('c1/doc2'))],
@@ -194,6 +282,15 @@ describe('Values', () => {
       [refValue(dbId('p1', 'd1'), key('c2/doc1'))],
       [refValue(dbId('p1', 'd2'), key('c1/doc1'))],
       [refValue(dbId('p2', 'd1'), key('c1/doc1'))],
+
+      // ObjectId
+      [wrap(new BsonObjectId('507f191e810c19729de860ea'))],
+      [wrap(new BsonObjectId('507f191e810c19729de860eb'))],
+      // latin small letter e + combining acute accent + latin small letter b
+      [wrap(new BsonObjectId('e\u0301b'))],
+      [wrap(new BsonObjectId('æ'))],
+      // latin small letter e with acute accent + latin small letter a
+      [wrap(new BsonObjectId('\u00e9a'))],
 
       // geo points
       [wrap(new GeoPoint(-90, -180))],
@@ -208,6 +305,12 @@ describe('Values', () => {
       [wrap(new GeoPoint(90, -180))],
       [wrap(new GeoPoint(90, 0))],
       [wrap(new GeoPoint(90, 180))],
+
+      // regular expressions
+      [wrap(new RegexValue('a', 'bar1'))],
+      [wrap(new RegexValue('foo', 'bar1'))],
+      [wrap(new RegexValue('foo', 'bar2'))],
+      [wrap(new RegexValue('go', 'bar1'))],
 
       // arrays
       [wrap([])],
@@ -227,7 +330,10 @@ describe('Values', () => {
       [wrap({ bar: 0, foo: 1 })],
       [wrap({ foo: 1 })],
       [wrap({ foo: 2 })],
-      [wrap({ foo: '0' })]
+      [wrap({ foo: '0' })],
+
+      // MaxKey
+      [wrap(MaxKey.instance())]
     ];
 
     expectCorrectComparisonGroups(
@@ -331,6 +437,43 @@ describe('Values', () => {
       {
         expectedByteSize: 49,
         elements: [wrap(vector([1, 2])), wrap(vector([-100, 20000098.123445]))]
+      },
+      {
+        expectedByteSize: 27,
+        elements: [
+          wrap(new RegexValue('a', 'b')),
+          wrap(new RegexValue('c', 'd'))
+        ]
+      },
+      {
+        expectedByteSize: 13,
+        elements: [wrap(new BsonObjectId('foo')), wrap(new BsonObjectId('bar'))]
+      },
+      {
+        expectedByteSize: 53,
+        elements: [wrap(new BsonTimestamp(1, 2)), wrap(new BsonTimestamp(3, 4))]
+      },
+      {
+        expectedByteSize: 8,
+        elements: [wrap(new Int32Value(1)), wrap(new Int32Value(2147483647))]
+      },
+      {
+        expectedByteSize: 16,
+        elements: [
+          wrap(new Decimal128Value('1.2e3')),
+          wrap(new Decimal128Value('1234567890.1234567890123456'))
+        ]
+      },
+      {
+        expectedByteSize: 16,
+        elements: [
+          wrap(new BsonBinaryData(1, new Uint8Array([127, 128]))),
+          wrap(new BsonBinaryData(128, new Uint8Array([1, 2])))
+        ]
+      },
+      {
+        expectedByteSize: 11,
+        elements: [wrap(MinKey.instance()), wrap(MaxKey.instance())]
       }
     ];
 
@@ -361,7 +504,13 @@ describe('Values', () => {
       [wrap({ a: 'a', b: 'b' }), wrap({ a: 'a', bc: 'b' })],
       [wrap({ a: 'a', b: 'b' }), wrap({ a: 'a', b: 'b', c: 'c' })],
       [wrap({ a: 'a', b: 'b' }), wrap({ a: 'a', b: 'b', c: 'c' })],
-      [wrap(vector([2, 3])), wrap(vector([1, 2, 3]))]
+      [wrap(vector([2, 3])), wrap(vector([1, 2, 3]))],
+      [wrap(new RegexValue('a', 'b')), wrap(new RegexValue('cc', 'dd'))],
+      [wrap(new BsonObjectId('foo')), wrap(new BsonObjectId('foobar'))],
+      [
+        wrap(new BsonBinaryData(128, new Uint8Array([127, 128]))),
+        wrap(new BsonBinaryData(1, new Uint8Array([1, 2, 3])))
+      ]
     ];
 
     for (const group of relativeGroups) {
@@ -377,25 +526,61 @@ describe('Values', () => {
 
   it('computes lower bound', () => {
     const groups = [
-      // null first
+      // lower bound of null is null
       [valuesGetLowerBound({ nullValue: 'NULL_VALUE' }), wrap(null)],
+
+      // lower bound of MinKey is MinKey
+      [valuesGetLowerBound(MIN_KEY_VALUE), wrap(MinKey.instance())],
 
       // booleans
       [valuesGetLowerBound({ booleanValue: true }), wrap(false)],
       [wrap(true)],
 
       // numbers
-      [valuesGetLowerBound({ doubleValue: 0 }), wrap(NaN)],
+      [
+        valuesGetLowerBound({ doubleValue: 0 }),
+        valuesGetLowerBound({
+          mapValue: { fields: { [RESERVED_INT32_KEY]: { integerValue: 0 } } }
+        }),
+        valuesGetLowerBound({
+          mapValue: {
+            fields: { [RESERVED_DECIMAL128_KEY]: { stringValue: '0' } }
+          }
+        }),
+        wrap(NaN)
+      ],
       [wrap(Number.NEGATIVE_INFINITY)],
+      [wrap(0), wrap(new Int32Value(0)), wrap(new Decimal128Value('0.0'))],
       [wrap(Number.MIN_VALUE)],
 
       // dates
       [valuesGetLowerBound({ timestampValue: {} })],
       [wrap(date1)],
 
+      // bson timestamps
+      [
+        valuesGetLowerBound(wrap(new BsonTimestamp(4294967295, 4294967295))),
+        MIN_BSON_TIMESTAMP_VALUE,
+        wrap(new BsonTimestamp(0, 0))
+      ],
+      [wrap(new BsonTimestamp(1, 1))],
+
       // strings
-      [valuesGetLowerBound({ stringValue: '' }), wrap('')],
+      [valuesGetLowerBound({ stringValue: 'Z' }), wrap('')],
       [wrap('\u0000')],
+
+      // blobs
+      [valuesGetLowerBound({ bytesValue: 'Z' }), wrap(blob())],
+      [wrap(blob(0))],
+
+      // bson binary data
+      [
+        valuesGetLowerBound(
+          wrap(new BsonBinaryData(128, new Uint8Array([128, 128])))
+        ),
+        MIN_BSON_BINARY_VALUE
+      ],
+      [wrap(new BsonBinaryData(0, new Uint8Array([0])))],
 
       // resource names
       [
@@ -404,12 +589,28 @@ describe('Values', () => {
       ],
       [refValue(DatabaseId.empty(), key('a/a'))],
 
+      // bson object ids
+      [
+        valuesGetLowerBound(wrap(new BsonObjectId('ZZZ'))),
+        wrap(new BsonObjectId('')),
+        MIN_BSON_OBJECT_ID_VALUE
+      ],
+      [wrap(new BsonObjectId('a'))],
+
       // geo points
       [
         valuesGetLowerBound({ geoPointValue: {} }),
         wrap(new GeoPoint(-90, -180))
       ],
       [wrap(new GeoPoint(-90, 0))],
+
+      // regular expressions
+      [
+        valuesGetLowerBound(wrap(new RegexValue('ZZZ', 'i'))),
+        wrap(new RegexValue('', '')),
+        MIN_REGEX_VALUE
+      ],
+      [wrap(new RegexValue('a', 'i'))],
 
       // arrays
       [valuesGetLowerBound({ arrayValue: {} }), wrap([])],
@@ -420,7 +621,7 @@ describe('Values', () => {
         valuesGetLowerBound({
           mapValue: {
             fields: {
-              [TYPE_KEY]: { stringValue: VECTOR_VALUE_SENTINEL },
+              [TYPE_KEY]: { stringValue: RESERVED_VECTOR_KEY },
               [VECTOR_MAP_VECTORS_KEY]: {
                 arrayValue: {
                   values: [{ doubleValue: 1 }]
@@ -433,7 +634,10 @@ describe('Values', () => {
       ],
 
       // objects
-      [valuesGetLowerBound({ mapValue: {} }), wrap({})]
+      [valuesGetLowerBound({ mapValue: {} }), wrap({})],
+
+      // MaxKey
+      [wrap(MaxKey.instance())]
     ];
 
     expectCorrectComparisonGroups(
@@ -448,13 +652,25 @@ describe('Values', () => {
     const groups = [
       // null first
       [wrap(null)],
-      [valuesGetUpperBound({ nullValue: 'NULL_VALUE' })],
+
+      // upper value of null is MinKey
+      [
+        valuesGetUpperBound({ nullValue: 'NULL_VALUE' }),
+        wrap(MinKey.instance())
+      ],
+
+      // upper value of MinKey is boolean `false`
+      [valuesGetUpperBound(MIN_KEY_VALUE), wrap(false)],
 
       // booleans
       [wrap(true)],
       [valuesGetUpperBound({ booleanValue: false })],
 
       // numbers
+      [
+        wrap(new Int32Value(2147483647)),
+        wrap(new Decimal128Value('2147483647'))
+      ], //largest int32 value
       [wrap(Number.MAX_SAFE_INTEGER)],
       [wrap(Number.POSITIVE_INFINITY)],
       [valuesGetUpperBound({ doubleValue: NaN })],
@@ -462,6 +678,10 @@ describe('Values', () => {
       // dates
       [wrap(date1)],
       [valuesGetUpperBound({ timestampValue: {} })],
+
+      // bson timestamps
+      [wrap(new BsonTimestamp(4294967295, 4294967295))], // largest bson timestamp value
+      [valuesGetUpperBound(MIN_BSON_TIMESTAMP_VALUE)],
 
       // strings
       [wrap('\u0000')],
@@ -471,20 +691,39 @@ describe('Values', () => {
       [wrap(blob(255))],
       [valuesGetUpperBound({ bytesValue: '' })],
 
+      // bson binary data
+      [wrap(new BsonBinaryData(128, new Uint8Array([255, 255, 255])))],
+      [valuesGetUpperBound(MIN_BSON_BINARY_VALUE)],
+
       // resource names
       [refValue(dbId('', ''), key('a/a'))],
       [valuesGetUpperBound({ referenceValue: '' })],
+
+      // bson object ids
+      [wrap(new BsonObjectId('foo'))],
+      [valuesGetUpperBound(MIN_BSON_OBJECT_ID_VALUE)],
 
       // geo points
       [wrap(new GeoPoint(90, 180))],
       [valuesGetUpperBound({ geoPointValue: {} })],
 
+      // regular expressions
+      [wrap(new RegexValue('a', 'i'))],
+      [valuesGetUpperBound(MIN_REGEX_VALUE)],
+
       // arrays
       [wrap([false])],
       [valuesGetUpperBound({ arrayValue: {} })],
 
+      // vectors
+      [wrap(vector([1, 2, 3]))],
+      [valuesGetUpperBound(MIN_VECTOR_VALUE)],
+
       // objects
-      [wrap({ 'a': 'b' })]
+      [wrap({ 'a': 'b' })],
+
+      // MaxKey
+      [wrap(MaxKey.instance())]
     ];
 
     expectCorrectComparisonGroups(
@@ -526,6 +765,24 @@ describe('Values', () => {
     expect(
       canonicalId(wrap({ 'a': ['b', { 'c': new GeoPoint(30, 60) }] }))
     ).to.equal('{a:[b,{c:geo(30,60)}]}');
+    expect(canonicalId(wrap(new RegexValue('a', 'b')))).to.equal(
+      '{__regex__:{options:b,pattern:a}}'
+    );
+    expect(canonicalId(wrap(new BsonObjectId('foo')))).to.equal(
+      '{__oid__:foo}'
+    );
+    expect(canonicalId(wrap(new BsonTimestamp(1, 2)))).to.equal(
+      '{__request_timestamp__:{increment:2,seconds:1}}'
+    );
+    expect(canonicalId(wrap(new Int32Value(1)))).to.equal('{__int__:1}');
+    expect(canonicalId(wrap(new Decimal128Value('-1.2e3')))).to.equal(
+      '{__decimal128__:-1.2e3}'
+    );
+    expect(
+      canonicalId(wrap(new BsonBinaryData(1, new Uint8Array([1, 2, 3]))))
+    ).to.equal('{__binary__:AQECAw==}');
+    expect(canonicalId(wrap(MinKey.instance()))).to.equal('{__min__:null}');
+    expect(canonicalId(wrap(MaxKey.instance()))).to.equal('{__max__:null}');
   });
 
   it('canonical IDs ignore sort order', () => {

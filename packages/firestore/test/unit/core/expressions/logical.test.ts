@@ -33,7 +33,7 @@ import {
 } from '../../../../src/lite-api/expressions';
 import {
   FALSE_VALUE,
-  MIN_VALUE,
+  INTERNAL_MIN_VALUE,
   TRUE_VALUE
 } from '../../../../src/model/values';
 import { constantArray, constantMap } from '../../../util/pipelines';
@@ -409,12 +409,12 @@ describe('Logical Functions', () => {
             constant(true)
           ])
         )
-      ).to.deep.equal(MIN_VALUE);
+      ).to.deep.equal(INTERNAL_MIN_VALUE);
     });
 
     it('search_isNull_emptyValuesArray_returnsFalse', () => {
       expect(evaluateToValue(constant(null).equalAny([]))).to.deep.equal(
-        MIN_VALUE
+        INTERNAL_MIN_VALUE
       );
     });
 
