@@ -1118,10 +1118,14 @@ export interface UserInfo {
  * @public
  */
 export interface UserMetadata {
-  /** Time the user was created. */
+  /** Time the user was created as UTC string. */
   readonly creationTime?: string;
-  /** Time the user last signed in. */
+  /** Time the user last signed in as UTC string. */
   readonly lastSignInTime?: string;
+  /** Time the user was created as ms since epoch. */
+  readonly createdAt?: string | number;
+  /** Time the user last signed in as ms since epoch. */
+  readonly lastLoginAt?: string | number;
 }
 
 /**
