@@ -69,9 +69,17 @@ export class FunctionsError extends FirebaseError {
     /**
      * Additional details to be converted to JSON and included in the error response.
      */
-    readonly details?: unknown
+    readonly details?: unknown,
+    /**
+     * Optional. Url in the request that resulted in the error, if applicable.
+     */
+    url?: string
   ) {
-    super(`${FUNCTIONS_TYPE}/${code}`, message || '');
+    super(
+      `${FUNCTIONS_TYPE}/${code}`,
+      message || '',
+      url ? { url } : undefined
+    );
 
     // Since the FirebaseError constructor sets the prototype of `this` to FirebaseError.prototype,
     // we also have to do it in all subclasses to allow for correct `instanceof` checks.
@@ -127,10 +135,11 @@ function codeForHTTPStatus(status: number): FunctionsErrorCode {
  * Takes an HTTP response and returns the corresponding Error, if any.
  */
 export function _errorForResponse(
-  status: number,
-  bodyJSON: HttpResponseBody | null
-): Error | null {
-  let code = codeForHTTPStatus(status);
+  httpStatus: number,
+  bodyJSON: HttpResponseBody | null,
+  url?: string
+): FunctionsError | null {
+  let code = codeForHTTPStatus(httpStatus);
 
   // Start with reasonable defaults from the status code.
   let description: string = code;
@@ -141,17 +150,22 @@ export function _errorForResponse(
   try {
     const errorJSON = bodyJSON && bodyJSON.error;
     if (errorJSON) {
-      const status = errorJSON.status;
-      if (typeof status === 'string') {
-        if (!errorCodeMap[status]) {
+      const statusText = errorJSON.status;
+      if (typeof statusText === 'string') {
+        if (!errorCodeMap[statusText]) {
           // They must've included an unknown error code in the body.
-          return new FunctionsError('internal', 'internal');
+          return new FunctionsError(
+            'internal',
+            `Unknown backend error status: ${statusText} [${httpStatus}]`,
+            undefined /* details */,
+            url
+          );
         }
-        code = errorCodeMap[status];
+        code = errorCodeMap[statusText];
 
         // TODO(klimt): Add better default descriptions for error enums.
         // The default description needs to be updated for the new code.
-        description = status;
+        description = `Backend error status: ${statusText}`;
       }
 
       const message = errorJSON.message;
@@ -175,5 +189,10 @@ export function _errorForResponse(
     return null;
   }
 
-  return new FunctionsError(code, description, details);
+  return new FunctionsError(
+    code,
+    `${description} [${httpStatus}]`,
+    details,
+    url
+  );
 }
