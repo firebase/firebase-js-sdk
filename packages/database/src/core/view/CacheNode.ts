@@ -28,7 +28,7 @@ export class CacheNode {
   constructor(
     private node_: Node,
     private fullyInitialized_: boolean,
-    private filtered_: boolean
+    private filtered_: boolean | undefined
   ) {}
 
   /**
@@ -41,7 +41,7 @@ export class CacheNode {
   /**
    * Returns whether this node is potentially missing children due to a filter applied to the node
    */
-  isFiltered(): boolean {
+  isFiltered(): boolean | undefined {
     return this.filtered_;
   }
 
@@ -56,7 +56,8 @@ export class CacheNode {
 
   isCompleteForChild(key: string): boolean {
     return (
-      (this.isFullyInitialized() && !this.filtered_) || this.node_.hasChild(key)
+      (this.isFullyInitialized() && !this.filtered_ === false) ||
+      this.node_.hasChild(key)
     );
   }
 
