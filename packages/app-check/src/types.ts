@@ -18,25 +18,7 @@
 import { FirebaseApp } from '@firebase/app';
 import { PartialObserver } from '@firebase/util';
 import { AppCheckToken, AppCheckTokenListener } from './public-types';
-
-export interface FirebaseAppCheckInternal {
-  // Get the current AttestationToken. Attaches to the most recent in-flight request if one
-  // is present. Returns null if no token is present and no token requests are in-flight.
-  getToken(forceRefresh?: boolean): Promise<AppCheckTokenResult>;
-
-  // Get a Limited use Firebase App Check token. This method should be used
-  // only if you need to authorize requests to a non-Firebase backend. Returns null if no token is present and no token requests are in-flight.
-  getLimitedUseToken(): Promise<AppCheckTokenResult>;
-
-  // Registers a listener to changes in the token state. There can be more than one listener
-  // registered at the same time for one or more FirebaseAppAttestation instances. The
-  // listeners call back on the UI thread whenever the current token associated with this
-  // FirebaseAppAttestation changes.
-  addTokenListener(listener: AppCheckTokenListener): void;
-
-  // Unregisters a listener to changes in the token state.
-  removeTokenListener(listener: AppCheckTokenListener): void;
-}
+import { FirebaseAppCheckInternal } from '@firebase/app-check-interop-types';
 
 export interface AppCheckTokenObserver
   extends PartialObserver<AppCheckTokenResult> {

@@ -34,7 +34,8 @@ import {
   TemplateImagenModel
 } from './api';
 import { expect, use } from 'chai';
-import { stub } from 'sinon';
+import chaiAsPromised from 'chai-as-promised';
+import { stub, restore } from 'sinon';
 import { AI } from './public-types';
 import { GenerativeModel } from './models/generative-model';
 import { GoogleAIBackend, VertexAIBackend } from './backend';
@@ -42,8 +43,22 @@ import { getFullApp } from '../test-utils/get-fake-firebase-services';
 import { AI_TYPE } from './constants';
 import { logger } from './logger';
 import sinonChai from 'sinon-chai';
+import * as appCheck from '@firebase/app-check';
+import {
+  CustomProvider,
+  initializeAppCheck,
+  ReCaptchaEnterpriseProvider
+} from '@firebase/app-check';
+import {
+  _getProvider,
+  deleteApp,
+  FirebaseApp,
+  FirebaseError
+} from '@firebase/app';
+import { AIService } from './service';
 
 use(sinonChai);
+use(chaiAsPromised);
 
 const fakeAI: AI = {
   app: {
@@ -61,17 +76,25 @@ const fakeAI: AI = {
 
 describe('Top level API', () => {
   describe('getAI()', () => {
+    let app: FirebaseApp;
+    beforeEach(() => {
+      app = getFullApp();
+    });
+    afterEach(async () => {
+      restore();
+      await deleteApp(app);
+    });
     it('works without options', () => {
-      const ai = getAI(getFullApp());
+      const ai = getAI(app);
       expect(ai.backend).to.be.instanceOf(GoogleAIBackend);
     });
     it('works with options: no backend, limited use token', () => {
-      const ai = getAI(getFullApp(), { useLimitedUseAppCheckTokens: true });
+      const ai = getAI(app, { useLimitedUseAppCheckTokens: true });
       expect(ai.backend).to.be.instanceOf(GoogleAIBackend);
       expect(ai.options?.useLimitedUseAppCheckTokens).to.be.true;
     });
     it('works with options: backend specified, limited use token', () => {
-      const ai = getAI(getFullApp(), {
+      const ai = getAI(app, {
         backend: new VertexAIBackend('us-central1'),
         useLimitedUseAppCheckTokens: true
       });
@@ -79,7 +102,7 @@ describe('Top level API', () => {
       expect(ai.options?.useLimitedUseAppCheckTokens).to.be.true;
     });
     it('works with options: appCheck option is falsy', () => {
-      const ai = getAI(getFullApp(), {
+      const ai = getAI(app, {
         backend: new VertexAIBackend('us-central1'),
         useLimitedUseAppCheckTokens: undefined
       });
@@ -87,12 +110,76 @@ describe('Top level API', () => {
       expect(ai.options?.useLimitedUseAppCheckTokens).to.be.false;
     });
     it('works with options: backend specified only', () => {
-      const ai = getAI(getFullApp(), {
+      const ai = getAI(app, {
         backend: new VertexAIBackend('us-central1')
       });
       expect(ai.backend).to.be.instanceOf(VertexAIBackend);
       expect(ai.options?.useLimitedUseAppCheckTokens).to.be.false;
     });
+    it('if a default app check instance exists, do not initialize one', () => {
+      const initStub = stub(appCheck, '_initializeAppCheckInternal');
+      initializeAppCheck(app);
+      const ai = getAI(app);
+      expect(ai.backend).to.be.instanceOf(GoogleAIBackend);
+      expect(initStub).to.not.be.called;
+    });
+    it('if a custom app check instance exists, do not initialize one', async () => {
+      const initStub = stub(appCheck, '_initializeAppCheckInternal');
+      initializeAppCheck(app, {
+        provider: new CustomProvider({
+          getToken: () => Promise.resolve({ token: 'fsd', expireTimeMillis: 1 })
+        })
+      });
+      const ai = getAI(app);
+      expect(ai.backend).to.be.instanceOf(GoogleAIBackend);
+      expect(initStub).to.not.be.called;
+    });
+    it('if no app check instance exists, initializes one', () => {
+      const initStub = stub(appCheck, '_initializeAppCheckInternal');
+      const ai = getAI(app);
+      expect(ai.backend).to.be.instanceOf(GoogleAIBackend);
+      expect(initStub).calledWith('AI Logic SDK');
+    });
+    it('warns if no app check instance exists, and no sitekey in config', () => {
+      app.options.recaptchaSiteKey = undefined;
+      const warnStub = stub(console, 'warn');
+      getAI(app);
+      console.log(warnStub.args[0][0]);
+      expect(warnStub).to.be.calledWithMatch(/app-check-initialization-failed/);
+    });
+    it('does not initialize app check twice if called twice', () => {
+      const initStub = stub(appCheck, '_initializeAppCheckInternal');
+      getAI(app);
+      getAI(app);
+      expect(initStub).to.be.calledOnce;
+    });
+    it(
+      'manually initializing App Check with custom options after autoinit' +
+        ' will throw a useful error',
+      () => {
+        getAI(app);
+        expect(() =>
+          initializeAppCheck(app, {
+            provider: new ReCaptchaEnterpriseProvider('OTHER_SITE_KEY')
+          })
+        ).to.throw('initialized by AI Logic SDK');
+      }
+    );
+    it(
+      'manually initializing App Check with custom options first causes' +
+        ' getAI() to use the already existing instance',
+      () => {
+        initializeAppCheck(app, {
+          provider: new ReCaptchaEnterpriseProvider('OTHER_SITE_KEY')
+        });
+        const internalAppCheck = _getProvider(
+          app,
+          'app-check-internal'
+        ).getImmediate();
+        const ai = getAI(app);
+        expect((ai as AIService).appCheck).to.equal(internalAppCheck);
+      }
+    );
   });
   it('getGenerativeModel throws if no model is provided', () => {
     try {

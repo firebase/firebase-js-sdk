@@ -32,7 +32,7 @@ module.exports = function (config) {
     // files to load into karma
     files: (() => {
       if (argv.integration) {
-        return ['integration/**'];
+        return ['integration/**/*.ts'];
       } else {
         return ['src/**/*.test.ts'];
       }

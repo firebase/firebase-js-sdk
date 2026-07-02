@@ -17,7 +17,7 @@
 
 import { AppCheck } from './public-types';
 import { FirebaseApp, _FirebaseService } from '@firebase/app';
-import { FirebaseAppCheckInternal, ListenerType } from './types';
+import { ListenerType } from './types';
 import {
   getToken,
   getLimitedUseToken,
@@ -26,6 +26,7 @@ import {
 } from './internal-api';
 import { Provider } from '@firebase/component';
 import { getStateReference } from './state';
+import { FirebaseAppCheckInternal } from '@firebase/app-check-interop-types';
 
 /**
  * AppCheck Service class.

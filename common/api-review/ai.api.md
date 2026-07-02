@@ -42,6 +42,7 @@ export const AIErrorCode: {
     readonly NO_MODEL: "no-model";
     readonly NO_PROJECT_ID: "no-project-id";
     readonly PARSE_FAILED: "parse-failed";
+    readonly APP_CHECK_INITIALIZATION_FAILED: "app-check-initialization-failed";
     readonly UNSUPPORTED: "unsupported";
 };
 
