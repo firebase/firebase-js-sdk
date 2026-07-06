@@ -564,7 +564,6 @@ describe('Mutation', () => {
     verifyTransform(baseDoc, transform, expected);
   });
 
-
   it('can apply numeric add transform to missing field', () => {
     const baseDoc = {};
     const transform = { missing: increment(1) };
