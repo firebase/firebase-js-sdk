@@ -28,6 +28,8 @@ jobs:
       pull-requests: write
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # ratchet:actions/checkout@v4
+        with:
+          persist-credentials: false
       - name: Clone mock responses
         run: scripts/update_vertexai_responses.sh
       - name: Find cloned and latest versions
@@ -64,5 +66,7 @@ jobs:
             github.rest.issues.deleteComment({
                     owner: context.repo.owner,
                     repo: context.repo.repo,
-                    comment_id: ${{ steps.fc.outputs.comment-id }},
+                    comment_id: Number(process.env.COMMENT_ID),
             })
+        env:
+          COMMENT_ID: ${{ steps.fc.outputs.comment-id }}
