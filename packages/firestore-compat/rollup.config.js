@@ -15,11 +15,11 @@
  * limitations under the License.
  */
 
-import pkg from './package.json';
+import pkg from './package.json' with { type: 'json' };
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
 import json from '@rollup/plugin-json';
-import { emitModulePackageFile } from '../../scripts/build/rollup_emit_module_package_file';
+import { emitModulePackageFile } from '../../scripts/build/rollup_emit_module_package_file.js';
 
 const util = require('../firestore/rollup.shared');
 

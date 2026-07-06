@@ -17,9 +17,9 @@
 
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
-import { emitModulePackageFile } from '../../scripts/build/rollup_emit_module_package_file';
-import pkg from './package.json';
-import tsconfig from './tsconfig.json';
+import { emitModulePackageFile } from '../../scripts/build/rollup_emit_module_package_file.js';
+import pkg from './package.json' with { type: 'json' };
+import tsconfig from './tsconfig.json' with { type: 'json' };
 
 const deps = Object.keys(
   Object.assign({}, pkg.peerDependencies, pkg.dependencies)

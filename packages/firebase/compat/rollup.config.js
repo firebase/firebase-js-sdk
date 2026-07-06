@@ -24,10 +24,10 @@ import typescript from 'typescript';
 import { uglify } from 'rollup-plugin-uglify';
 import terser from '@rollup/plugin-terser';
 import json from '@rollup/plugin-json';
-import pkg from '../package.json';
-import compatPkg from './package.json';
-import appPkg from './app/package.json';
-import { emitModulePackageFile } from '../../../scripts/build/rollup_emit_module_package_file';
+import pkg from '../package.json' with { type: 'json' };
+import compatPkg from './package.json' with { type: 'json' };
+import appPkg from './app/package.json' with { type: 'json' };
+import { emitModulePackageFile } from '../../../scripts/build/rollup_emit_module_package_file.js';
 
 const external = Object.keys(pkg.dependencies || {});
 const uglifyOptions = {

@@ -48,7 +48,7 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "@rollup/plugin-json": "6.1.0",
-    "rollup": "2.79.2",
+    "rollup": "4.62.2",
     "rollup-plugin-replace": "2.2.0",
     "rollup-plugin-typescript2": "0.37.0",
     "rollup-plugin-dts": "5.3.1",
