@@ -49,6 +49,15 @@ chai.use(chaiAsPromised);
 
 class TestStreamTransport extends AbstractDataConnectStreamTransport {
   private isTestConnected = true;
+  private closeTimeout: ReturnType<typeof setTimeout> | null = null;
+
+  async cleanupAndTerminate(code?: Code, reason?: string): Promise<void> {
+    if (this.closeTimeout) {
+      clearTimeout(this.closeTimeout);
+      this.closeTimeout = null;
+    }
+    return super.cleanupAndTerminate(code, reason);
+  }
 
   get streamIsReady(): boolean {
     return this.isTestConnected;
@@ -67,7 +76,8 @@ class TestStreamTransport extends AbstractDataConnectStreamTransport {
       return Promise.resolve();
     }
     this.isTestConnected = false;
-    setTimeout(() => {
+    this.closeTimeout = setTimeout(() => {
+      this.closeTimeout = null;
       this.onStreamClose(1000, 'Closed');
     }, 0);
     return Promise.resolve();
