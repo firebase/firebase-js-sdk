@@ -16,6 +16,7 @@
  */
 
 import { resolve } from 'path';
+import { readFileSync } from 'fs';
 import resolveModule from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
 import sourcemaps from 'rollup-plugin-sourcemaps';
@@ -28,6 +29,8 @@ import pkg from '../package.json' with { type: 'json' };
 import compatPkg from './package.json' with { type: 'json' };
 import appPkg from './app/package.json' with { type: 'json' };
 import { emitModulePackageFile } from '../../../scripts/build/rollup_emit_module_package_file.js';
+
+const __dirname = import.meta.dirname;
 
 const external = Object.keys(pkg.dependencies || {});
 const uglifyOptions = {
@@ -152,7 +155,7 @@ const componentBuilds = compatPkg.components
   // The "app" component is treated differently because it doesn't depend on itself.
   .filter(component => component !== 'app')
   .map(component => {
-    const pkg = require(`${__dirname}/${component}/package.json`);
+    const pkg = JSON.parse(readFileSync(`${__dirname}/${component}/package.json`, 'utf-8'));
     return [
       /**
        * Component ESM build

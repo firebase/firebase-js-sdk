@@ -20,8 +20,7 @@ import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
 import json from '@rollup/plugin-json';
 import { emitModulePackageFile } from '../../scripts/build/rollup_emit_module_package_file.js';
-
-const util = require('../firestore/rollup.shared');
+import * as util from '../firestore/rollup.shared.cjs';
 
 const deps = Object.keys({ ...pkg.peerDependencies, ...pkg.dependencies });
 

@@ -20,7 +20,7 @@ import commonjs from '@rollup/plugin-commonjs';
 import json from '@rollup/plugin-json';
 import pkg from './package.json' with { type: 'json' };
 import { resolve } from 'path';
-import { existsSync } from 'fs';
+import { existsSync, readFileSync } from 'fs';
 import resolveModule from '@rollup/plugin-node-resolve';
 import rollupTypescriptPlugin from 'rollup-plugin-typescript2';
 import sourcemaps from 'rollup-plugin-sourcemaps';
@@ -86,7 +86,7 @@ const componentBuilds = pkg.components
   // The "app" component is treated differently because it doesn't depend on itself.
   .filter(component => component !== 'app')
   .map(component => {
-    const pkg = require(`./${component}/package.json`);
+    const pkg = JSON.parse(readFileSync(`./${component}/package.json`, 'utf-8'));
     return [
       /**
        * Component ESM Build
