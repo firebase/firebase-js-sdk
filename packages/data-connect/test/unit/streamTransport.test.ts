@@ -1977,37 +1977,37 @@ describe('AbstractDataConnectStreamTransport', () => {
           delete (global as any).document;
         }
       });
-    });
 
-    it('should re-request active subscriptions and queries on successful reconnect', async () => {
-      const attemptReconnectSpy = sinon.spy(transport, 'attemptReconnect');
-      const observer = {
-        onData: sinon.spy(),
-        onDisconnect: sinon.spy(),
-        onError: sinon.spy()
-      };
-      transport.invokeSubscribe(observer, queryName1, variables1);
+      it('should re-request active subscriptions and queries on successful reconnect', async () => {
+        const attemptReconnectSpy = sinon.spy(transport, 'attemptReconnect');
+        const observer = {
+          onData: sinon.spy(),
+          onDisconnect: sinon.spy(),
+          onError: sinon.spy()
+        };
+        transport.invokeSubscribe(observer, queryName1, variables1);
 
-      // Stagger an execute request
-      void transport.invokeQuery(queryName1, variables1);
+        // Stagger an execute request
+        void transport.invokeQuery(queryName1, variables1);
 
-      sendMessageStub.resetHistory();
+        sendMessageStub.resetHistory();
 
-      // Trigger unexpected disconnect
-      transport.onStreamClose(1006, 'Abnormal Closure');
+        // Trigger unexpected disconnect
+        transport.onStreamClose(1006, 'Abnormal Closure');
 
-      // Fast forward time to trigger reconnect
-      await clock.tickAsync(2000); // Default is 1000 + jitter
-      expect(attemptReconnectSpy).to.have.been.calledOnce;
-      expect(ensureConnectionStub).to.have.been.calledOnce;
+        // Fast forward time to trigger reconnect
+        await clock.tickAsync(2000); // Default is 1000 + jitter
+        expect(attemptReconnectSpy).to.have.been.calledOnce;
+        expect(ensureConnectionStub).to.have.been.calledOnce;
 
-      // Should re-send subscribe and then query
-      expect(sendMessageStub).to.have.been.calledTwice;
-      const firstSent = sendMessageStub.firstCall.args[0];
-      const secondSent = sendMessageStub.secondCall.args[0];
+        // Should re-send subscribe and then query
+        expect(sendMessageStub).to.have.been.calledTwice;
+        const firstSent = sendMessageStub.firstCall.args[0];
+        const secondSent = sendMessageStub.secondCall.args[0];
 
-      expect(firstSent.subscribe).to.not.be.undefined;
-      expect(secondSent.resume).to.not.be.undefined;
+        expect(firstSent.subscribe).to.not.be.undefined;
+        expect(secondSent.resume).to.not.be.undefined;
+      });
     });
 
     // TODO: ADD A NOTE THAT THESE ARE NEW!
@@ -2150,6 +2150,50 @@ describe('AbstractDataConnectStreamTransport', () => {
         await transport.invokeHandleResponse(secondCall.requestId, response);
         await transport.invokeHandleResponse(thirdCall.requestId, response);
         await Promise.all([queryPromise, mutationPromise]);
+      });
+
+      it('should drain interleaved active re-requests and queued max-duration requests in strict priority order', async () => {
+        const activeSubObserver = { onData: sinon.spy(), onDisconnect: sinon.spy(), onError: sinon.spy() };
+        const queuedSubObserver = { onData: sinon.spy(), onDisconnect: sinon.spy(), onError: sinon.spy() };
+
+        // Setup active subscription and query on open stream
+        transport.invokeSubscribe(activeSubObserver, queryName1, variables1);
+        const activeQueryPromise = transport.invokeQuery(queryName1, variables1);
+
+        // Prepare for max duration reconnect
+        transport.isPreparingForMaxDurationReconnect = true;
+
+        // Enqueue queued operations while reconnect is preparing
+        const queuedMutationPromise = transport.invokeMutation(mutationName1, variables1);
+        const queuedQueryPromise = transport.invokeQuery(queryName2, variables1);
+        transport.invokeSubscribe(queuedSubObserver, queryName2, variables1);
+
+        sendMessageStub.resetHistory();
+
+        // Trigger attemptReconnect
+        await transport.attemptReconnect();
+
+        const calls = sendMessageStub.getCalls();
+        expect(calls).to.have.lengthOf(5);
+
+        const call1 = calls[0].args[0]; // Active Sub
+        const call2 = calls[1].args[0]; // Active Query (resume)
+        const call3 = calls[2].args[0]; // Queued Sub
+        const call4 = calls[3].args[0]; // Queued Query (resume)
+        const call5 = calls[4].args[0]; // Queued Mutation (execute)
+
+        expect(call1.subscribe?.operationName).to.equal(queryName1);
+        expect(call2.resume).to.not.be.undefined;
+        expect(call3.subscribe?.operationName).to.equal(queryName2);
+        expect(call4.resume).to.not.be.undefined;
+        expect(call5.execute?.operationName).to.equal(mutationName1);
+
+        // Clean up outstanding promises
+        const res = { data: { result: 'ok' }, errors: [], extensions: {} };
+        await transport.invokeHandleResponse(call3.requestId, res);
+        await transport.invokeHandleResponse(call4.requestId, res);
+        await transport.invokeHandleResponse(call5.requestId, res);
+        await Promise.all([activeQueryPromise, queuedQueryPromise, queuedMutationPromise]);
       });
     });
 

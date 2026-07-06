@@ -596,6 +596,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
    * Called by the concrete transport implementation when the physical connection is ready.
    */
   protected onConnectionReady(): void {
+    this.requestNumber = FIRST_REQUEST_ID;
     this.isFirstStreamMessage = true;
     this.lastSentAuthToken = null;
     this.hasWaitedForInitialAuth = false;
@@ -696,7 +697,13 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
         );
         return;
       }
-      void this.executeMaxDurationReconnect();
+      this.executeMaxDurationReconnect().catch(e => {
+        logError(`Stream Transport error executing max duration reconnect: ${e}`);
+        void this.rejectAllRequests(
+          Code.OTHER,
+          `Max duration reconnect failed: ${e}`
+        );
+      });
     }
   }
 
@@ -1211,6 +1218,12 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     queryName: string,
     variables: Variables
   ): void {
+    const mapKey = this.getMapKey(queryName, variables);
+    const existingSubscribe = this.activeInvokeSubscribeRequests.get(mapKey);
+    if (existingSubscribe) {
+      this.subscribeObservers.set(existingSubscribe.requestId, observer);
+    }
+
     if (this.isPreparingForMaxDurationReconnect) {
       this.queuedMaxDurationSubscribeRequests.push({
         queryName,
@@ -1219,15 +1232,12 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       });
       return;
     }
-    const mapKey = this.getMapKey(queryName, variables);
-    const existingSubscribe = this.activeInvokeSubscribeRequests.get(mapKey);
 
     // if this query is pending cancellation, cancel the cancellation!
     if (existingSubscribe) {
       const requestId = existingSubscribe.requestId;
       if (this.pendingCancellations.has(requestId)) {
         this.pendingCancellations.delete(requestId);
-        this.subscribeObservers.set(requestId, observer);
       }
     } else {
       const requestId = this.nextRequestId();
@@ -1276,11 +1286,10 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       if (activeSubscription) {
         const reqId = activeSubscription.requestId;
         this.subscribeObservers.delete(reqId);
+        this.cleanupInvokeSubscribeRequest(reqId, mapKey);
         const pending = this.pendingCancellations.get(reqId);
         if (pending) {
           pending.isUserUnsubscribe = true;
-        } else {
-          this.cancelAndCleanupSubscription(reqId, mapKey);
         }
       }
       return;
