@@ -1857,7 +1857,7 @@ describe('AbstractDataConnectStreamTransport', () => {
       });
     });
 
-    it('should fail all pending mutations on unexpected disconnect', async () => {
+    it('should fail all active mutations on unexpected disconnect', async () => {
       const observer = {
         onData: sinon.spy(),
         onDisconnect: sinon.spy(),
@@ -1877,7 +1877,6 @@ describe('AbstractDataConnectStreamTransport', () => {
       );
       expect(transport.activeInvokeMutationRequests.size).to.equal(0);
     });
-
   });
 
   describe('Reconnects', () => {
@@ -1925,6 +1924,37 @@ describe('AbstractDataConnectStreamTransport', () => {
         expect(transport.reconnectTimer).to.be.null;
       });
 
+      it('should re-request active subscriptions and queries on successful reconnect', async () => {
+        const attemptReconnectSpy = sinon.spy(transport, 'attemptReconnect');
+        const observer = {
+          onData: sinon.spy(),
+          onDisconnect: sinon.spy(),
+          onError: sinon.spy()
+        };
+        transport.invokeSubscribe(observer, queryName1, variables1);
+
+        // Stagger an execute request
+        void transport.invokeQuery(queryName1, variables1);
+
+        sendMessageStub.resetHistory();
+
+        // Trigger unexpected disconnect
+        transport.onStreamClose(1006, 'Abnormal Closure');
+
+        // Fast forward time to trigger reconnect
+        await clock.tickAsync(2000); // Default is 1000 + jitter
+        expect(attemptReconnectSpy).to.have.been.calledOnce;
+        expect(ensureConnectionStub).to.have.been.calledOnce;
+
+        // Should re-send subscribe and then query
+        expect(sendMessageStub).to.have.been.calledTwice;
+        const firstSent = sendMessageStub.firstCall.args[0];
+        const secondSent = sendMessageStub.secondCall.args[0];
+
+        expect(firstSent.subscribe).to.not.be.undefined;
+        expect(secondSent.resume).to.not.be.undefined;
+      });
+
       it('onOnline should trigger immediate reconnect if waiting', async () => {
         const observer = {
           onData: sinon.spy(),
@@ -1968,37 +1998,6 @@ describe('AbstractDataConnectStreamTransport', () => {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           delete (global as any).document;
         }
-      });
-
-      it('should re-request active subscriptions and queries on successful reconnect', async () => {
-        const attemptReconnectSpy = sinon.spy(transport, 'attemptReconnect');
-        const observer = {
-          onData: sinon.spy(),
-          onDisconnect: sinon.spy(),
-          onError: sinon.spy()
-        };
-        transport.invokeSubscribe(observer, queryName1, variables1);
-
-        // Stagger an execute request
-        void transport.invokeQuery(queryName1, variables1);
-
-        sendMessageStub.resetHistory();
-
-        // Trigger unexpected disconnect
-        transport.onStreamClose(1006, 'Abnormal Closure');
-
-        // Fast forward time to trigger reconnect
-        await clock.tickAsync(2000); // Default is 1000 + jitter
-        expect(attemptReconnectSpy).to.have.been.calledOnce;
-        expect(ensureConnectionStub).to.have.been.calledOnce;
-
-        // Should re-send subscribe and then query
-        expect(sendMessageStub).to.have.been.calledTwice;
-        const firstSent = sendMessageStub.firstCall.args[0];
-        const secondSent = sendMessageStub.secondCall.args[0];
-
-        expect(firstSent.subscribe).to.not.be.undefined;
-        expect(secondSent.resume).to.not.be.undefined;
       });
     });
   });
