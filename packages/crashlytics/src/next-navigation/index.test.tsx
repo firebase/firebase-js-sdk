@@ -45,6 +45,13 @@ describe('getParameterizedRoute', () => {
     expect(getParameterizedRoute('/users/profile', {})).to.equal('/users/profile');
   });
 
+  it('should ignore params when the value is set to undefined', () => {
+    const route = getParameterizedRoute('/users/123/details', {
+      id: undefined
+    });
+    expect(route).to.equal('/users/123/details');
+  });
+
   it('should replace dynamic string route parameters with placeholders', () => {
     const route = getParameterizedRoute('/users/123/details', { id: '123' });
     expect(route).to.equal('/users/:id/details');
