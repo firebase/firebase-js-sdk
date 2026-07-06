@@ -21,9 +21,13 @@ import {
   arrayRemove,
   arrayUnion,
   increment,
+  minimum,
+  maximum,
   Timestamp,
   serverTimestamp,
-  deleteField
+  deleteField,
+  Int32Value,
+  Decimal128Value
 } from '../../../src';
 import { MutableDocument } from '../../../src/model/document';
 import { FieldMask } from '../../../src/model/field_mask';
@@ -39,8 +43,17 @@ import {
 import { serverTimestamp as serverTimestampInternal } from '../../../src/model/server_timestamps';
 import {
   ArrayRemoveTransformOperation,
-  ArrayUnionTransformOperation
+  ArrayUnionTransformOperation,
+  NumericIncrementTransformOperation,
+  NumericMinimumTransformOperation,
+  NumericMaximumTransformOperation,
+  applyNumericIncrementTransformOperationToLocalView,
+  applyNumericMinimumTransformOperationToLocalView,
+  applyNumericMaximumTransformOperationToLocalView,
+  NumericTransformOperation
 } from '../../../src/model/transform_operation';
+import { Value as ProtoValue } from '../../../src/protos/firestore_proto_api';
+import { Serializer } from '../../../src/remote/number_serializer';
 import { Dict } from '../../../src/util/obj';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import {
@@ -66,6 +79,7 @@ describe('Mutation', () => {
   addEqualityMatcher();
 
   const timestamp = Timestamp.now();
+  const dummySerializer = { useProto3Json: false } as unknown as Serializer;
 
   /**
    * For each document in `docs`, calculate the overlay mutations of each
@@ -562,6 +576,468 @@ describe('Mutation', () => {
     const transform = { stringVal: increment(1) };
     const expected = { stringVal: 1 };
     verifyTransform(baseDoc, transform, expected);
+  });
+
+  it('correctly performs numeric increment on BSON Int32Value local evaluation', () => {
+    const baseDoc = { intVal: new Int32Value(10) };
+    const transform = { intVal: increment(5) };
+    const expected = { intVal: 15 };
+    verifyTransform(baseDoc, transform, expected);
+  });
+
+  // Although the API restricts increment operands to standard JS numbers (not BSON numbers),
+  // the underlying model class represents a generic Firestore transform where the operand can
+  // be any valid ProtoValue (including BSON Int32Value/Decimal128Value). We test these cases to
+  // ensure the model layer's local evaluation is robust.
+
+  function verifyModelTransform<T extends NumericTransformOperation>(
+    OpClass: new (serializer: Serializer, operand: ProtoValue) => T,
+    applyFn: (op: T, base: ProtoValue | null) => ProtoValue,
+    baseValue: unknown,
+    operandValue: unknown,
+    expectedValue: unknown
+  ): void {
+    const op = new OpClass(dummySerializer, wrap(operandValue));
+    const res = applyFn(op, baseValue === null ? null : wrap(baseValue));
+    expect(res).to.deep.equal(wrap(expectedValue));
+  }
+
+  describe('Model-level increment evaluation', () => {
+    it('increment(Int32Value(10), Int32Value(5)) => Int32Value(15)', () => {
+      verifyModelTransform(
+        NumericIncrementTransformOperation,
+        applyNumericIncrementTransformOperationToLocalView,
+        new Int32Value(10),
+        new Int32Value(5),
+        new Int32Value(15)
+      );
+    });
+
+    it('increment(Int(10), Int32Value(5)) => Int(15)', () => {
+      verifyModelTransform(
+        NumericIncrementTransformOperation,
+        applyNumericIncrementTransformOperationToLocalView,
+        10,
+        new Int32Value(5),
+        15
+      );
+    });
+
+    it('increment(Decimal128Value("10"), Int(5)) => Decimal128Value("15")', () => {
+      verifyModelTransform(
+        NumericIncrementTransformOperation,
+        applyNumericIncrementTransformOperationToLocalView,
+        new Decimal128Value('10'),
+        5,
+        new Decimal128Value('15')
+      );
+    });
+
+    it('increment(Int(10), Decimal128Value("5")) => Decimal128Value("15")', () => {
+      verifyModelTransform(
+        NumericIncrementTransformOperation,
+        applyNumericIncrementTransformOperationToLocalView,
+        10,
+        new Decimal128Value('5'),
+        new Decimal128Value('15')
+      );
+    });
+
+    it('increment(Int32Value(10), Decimal128Value("5")) => Decimal128Value("15")', () => {
+      verifyModelTransform(
+        NumericIncrementTransformOperation,
+        applyNumericIncrementTransformOperationToLocalView,
+        new Int32Value(10),
+        new Decimal128Value('5'),
+        new Decimal128Value('15')
+      );
+    });
+
+    it('increment(Double(10.5), Int32Value(5)) => Double(15.5)', () => {
+      verifyModelTransform(
+        NumericIncrementTransformOperation,
+        applyNumericIncrementTransformOperationToLocalView,
+        10.5,
+        new Int32Value(5),
+        15.5
+      );
+    });
+
+    it('increment(Decimal128Value("10"), Decimal128Value("5")) => Decimal128Value("15")', () => {
+      verifyModelTransform(
+        NumericIncrementTransformOperation,
+        applyNumericIncrementTransformOperationToLocalView,
+        new Decimal128Value('10'),
+        new Decimal128Value('5'),
+        new Decimal128Value('15')
+      );
+    });
+
+    it('increment(Double(10.5), Decimal128Value("5")) => Decimal128Value("15.5")', () => {
+      verifyModelTransform(
+        NumericIncrementTransformOperation,
+        applyNumericIncrementTransformOperationToLocalView,
+        10.5,
+        new Decimal128Value('5'),
+        new Decimal128Value('15.5')
+      );
+    });
+  });
+
+  // Int32Value + Standard int -> Standard int
+  it('correctly promotes Int32Value base to Decimal128Value when incremented by an int in verifyTransform', () => {
+    const baseDoc = { value: new Int32Value(10) };
+    const transform = { value: increment(5) };
+    const expected = { value: 15 };
+    verifyTransform(baseDoc, transform, expected);
+  });
+
+  // Int32Value + Standard double -> Standard double
+  it('correctly promotes Int32Value base to Decimal128Value when incremented by a double in verifyTransform', () => {
+    const baseDoc = { value: new Int32Value(10) };
+    const transform = { value: increment(1.5) };
+    const expected = { value: 11.5 };
+    verifyTransform(baseDoc, transform, expected);
+  });
+
+  // verifyTransform: Decimal128Value + Standard Int -> Decimal128Value
+  it('retains Decimal128Value type when incrementing by an integer in verifyTransform', () => {
+    const baseDoc = { value: new Decimal128Value('10') };
+    const transform = { value: increment(5) };
+    const expected = { value: new Decimal128Value('15') };
+    verifyTransform(baseDoc, transform, expected);
+  });
+
+  describe('Model-level minimum evaluation', () => {
+    it('minimum(Int32Value(10), Int32Value(5)) => Int32Value(5)', () => {
+      verifyModelTransform(
+        NumericMinimumTransformOperation,
+        applyNumericMinimumTransformOperationToLocalView,
+        new Int32Value(10),
+        new Int32Value(5),
+        new Int32Value(5)
+      );
+    });
+
+    it('minimum(Int32Value(10), Int32Value(15)) => Int32Value(10)', () => {
+      verifyModelTransform(
+        NumericMinimumTransformOperation,
+        applyNumericMinimumTransformOperationToLocalView,
+        new Int32Value(10),
+        new Int32Value(15),
+        new Int32Value(10)
+      );
+    });
+
+    it('minimum(Int(10), Int32Value(5)) => Int32Value(5)', () => {
+      verifyModelTransform(
+        NumericMinimumTransformOperation,
+        applyNumericMinimumTransformOperationToLocalView,
+        10,
+        new Int32Value(5),
+        new Int32Value(5)
+      );
+    });
+
+    it('minimum(Int32Value(10), Int(5)) => Int(5)', () => {
+      verifyModelTransform(
+        NumericMinimumTransformOperation,
+        applyNumericMinimumTransformOperationToLocalView,
+        new Int32Value(10),
+        5,
+        5
+      );
+    });
+
+    it('minimum(Decimal128Value("10"), Int(5)) => Int(5)', () => {
+      verifyModelTransform(
+        NumericMinimumTransformOperation,
+        applyNumericMinimumTransformOperationToLocalView,
+        new Decimal128Value('10'),
+        5,
+        5
+      );
+    });
+
+    it('minimum(Int(10), Decimal128Value("5")) => Decimal128Value("5")', () => {
+      verifyModelTransform(
+        NumericMinimumTransformOperation,
+        applyNumericMinimumTransformOperationToLocalView,
+        10,
+        new Decimal128Value('5'),
+        new Decimal128Value('5')
+      );
+    });
+
+    it('minimum(Int32Value(10), Decimal128Value("5")) => Decimal128Value("5")', () => {
+      verifyModelTransform(
+        NumericMinimumTransformOperation,
+        applyNumericMinimumTransformOperationToLocalView,
+        new Int32Value(10),
+        new Decimal128Value('5'),
+        new Decimal128Value('5')
+      );
+    });
+
+    it('minimum(Double(10.5), Int32Value(5)) => Int32Value(5)', () => {
+      verifyModelTransform(
+        NumericMinimumTransformOperation,
+        applyNumericMinimumTransformOperationToLocalView,
+        10.5,
+        new Int32Value(5),
+        new Int32Value(5)
+      );
+    });
+
+    it('minimum(Decimal128Value("10"), Decimal128Value("5")) => Decimal128Value("5")', () => {
+      verifyModelTransform(
+        NumericMinimumTransformOperation,
+        applyNumericMinimumTransformOperationToLocalView,
+        new Decimal128Value('10'),
+        new Decimal128Value('5'),
+        new Decimal128Value('5')
+      );
+    });
+
+    it('minimum(Double(10.5), Decimal128Value("5")) => Decimal128Value("5")', () => {
+      verifyModelTransform(
+        NumericMinimumTransformOperation,
+        applyNumericMinimumTransformOperationToLocalView,
+        10.5,
+        new Decimal128Value('5'),
+        new Decimal128Value('5')
+      );
+    });
+
+    it('minimum(String("hello"), Int32Value(5)) => Int32Value(5) [non-numeric base selects operand]', () => {
+      verifyModelTransform(
+        NumericMinimumTransformOperation,
+        applyNumericMinimumTransformOperationToLocalView,
+        'hello',
+        new Int32Value(5),
+        new Int32Value(5)
+      );
+    });
+
+    it('minimum(null, Int32Value(5)) => Int32Value(5) [null base selects operand]', () => {
+      verifyModelTransform(
+        NumericMinimumTransformOperation,
+        applyNumericMinimumTransformOperationToLocalView,
+        null,
+        new Int32Value(5),
+        new Int32Value(5)
+      );
+    });
+  });
+
+  describe('Model-level maximum evaluation', () => {
+    it('maximum(Int32Value(10), Int32Value(5)) => Int32Value(10)', () => {
+      verifyModelTransform(
+        NumericMaximumTransformOperation,
+        applyNumericMaximumTransformOperationToLocalView,
+        new Int32Value(10),
+        new Int32Value(5),
+        new Int32Value(10)
+      );
+    });
+
+    it('maximum(Int32Value(10), Int32Value(15)) => Int32Value(15)', () => {
+      verifyModelTransform(
+        NumericMaximumTransformOperation,
+        applyNumericMaximumTransformOperationToLocalView,
+        new Int32Value(10),
+        new Int32Value(15),
+        new Int32Value(15)
+      );
+    });
+
+    it('maximum(Int(10), Int32Value(15)) => Int32Value(15)', () => {
+      verifyModelTransform(
+        NumericMaximumTransformOperation,
+        applyNumericMaximumTransformOperationToLocalView,
+        10,
+        new Int32Value(15),
+        new Int32Value(15)
+      );
+    });
+
+    it('maximum(Int32Value(10), Int(15)) => Int(15)', () => {
+      verifyModelTransform(
+        NumericMaximumTransformOperation,
+        applyNumericMaximumTransformOperationToLocalView,
+        new Int32Value(10),
+        15,
+        15
+      );
+    });
+
+    it('maximum(Decimal128Value("10"), Int(15)) => Int(15)', () => {
+      verifyModelTransform(
+        NumericMaximumTransformOperation,
+        applyNumericMaximumTransformOperationToLocalView,
+        new Decimal128Value('10'),
+        15,
+        15
+      );
+    });
+
+    it('maximum(Int(10), Decimal128Value("15")) => Decimal128Value("15")', () => {
+      verifyModelTransform(
+        NumericMaximumTransformOperation,
+        applyNumericMaximumTransformOperationToLocalView,
+        10,
+        new Decimal128Value('15'),
+        new Decimal128Value('15')
+      );
+    });
+
+    it('maximum(Int32Value(10), Decimal128Value("15")) => Decimal128Value("15")', () => {
+      verifyModelTransform(
+        NumericMaximumTransformOperation,
+        applyNumericMaximumTransformOperationToLocalView,
+        new Int32Value(10),
+        new Decimal128Value('15'),
+        new Decimal128Value('15')
+      );
+    });
+
+    it('maximum(Double(10.5), Int32Value(15)) => Int32Value(15)', () => {
+      verifyModelTransform(
+        NumericMaximumTransformOperation,
+        applyNumericMaximumTransformOperationToLocalView,
+        10.5,
+        new Int32Value(15),
+        new Int32Value(15)
+      );
+    });
+
+    it('maximum(Decimal128Value("10"), Decimal128Value("15")) => Decimal128Value("15")', () => {
+      verifyModelTransform(
+        NumericMaximumTransformOperation,
+        applyNumericMaximumTransformOperationToLocalView,
+        new Decimal128Value('10'),
+        new Decimal128Value('15'),
+        new Decimal128Value('15')
+      );
+    });
+
+    it('maximum(Double(10.5), Decimal128Value("15")) => Decimal128Value("15")', () => {
+      verifyModelTransform(
+        NumericMaximumTransformOperation,
+        applyNumericMaximumTransformOperationToLocalView,
+        10.5,
+        new Decimal128Value('15'),
+        new Decimal128Value('15')
+      );
+    });
+
+    it('maximum(String("hello"), Decimal128Value("10.5")) => Decimal128Value("10.5") [non-numeric base selects operand]', () => {
+      verifyModelTransform(
+        NumericMaximumTransformOperation,
+        applyNumericMaximumTransformOperationToLocalView,
+        'hello',
+        new Decimal128Value('10.5'),
+        new Decimal128Value('10.5')
+      );
+    });
+
+    it('maximum(null, Decimal128Value("10.5")) => Decimal128Value("10.5") [null base selects operand]', () => {
+      verifyModelTransform(
+        NumericMaximumTransformOperation,
+        applyNumericMaximumTransformOperationToLocalView,
+        null,
+        new Decimal128Value('10.5'),
+        new Decimal128Value('10.5')
+      );
+    });
+  });
+
+  describe('Document-level numeric transform evaluation (verifyTransform)', () => {
+    function verifyDocTransform(
+      baseVal: unknown,
+      transformOp: unknown,
+      expectedVal: unknown
+    ): void {
+      if (baseVal === undefined) {
+        verifyTransform({}, { val: transformOp }, { val: expectedVal });
+      } else {
+        verifyTransform(
+          { val: baseVal },
+          { val: transformOp },
+          { val: expectedVal }
+        );
+      }
+    }
+
+    it('correctly evaluates numeric transforms on BSON Int32Value fields', () => {
+      const base = new Int32Value(10);
+      verifyDocTransform(base, increment(5), 15);
+      verifyDocTransform(base, increment(1.5), 11.5);
+      verifyDocTransform(base, minimum(5), 5);
+      verifyDocTransform(base, minimum(15), new Int32Value(10));
+      verifyDocTransform(base, minimum(5.5), 5.5);
+      verifyDocTransform(base, minimum(-5), -5);
+      verifyDocTransform(base, maximum(5), new Int32Value(10));
+      verifyDocTransform(base, maximum(15), 15);
+      verifyDocTransform(base, maximum(5.5), new Int32Value(10));
+      verifyDocTransform(base, maximum(-5), new Int32Value(10));
+    });
+
+    it('correctly evaluates numeric transforms on BSON Decimal128Value fields', () => {
+      const base = new Decimal128Value('10.5');
+      verifyDocTransform(base, increment(5), new Decimal128Value('15.5'));
+      verifyDocTransform(base, minimum(5), 5);
+      verifyDocTransform(base, minimum(15), new Decimal128Value('10.5'));
+      verifyDocTransform(base, minimum(5.5), 5.5);
+      verifyDocTransform(base, minimum(-5), -5);
+      verifyDocTransform(base, maximum(5), new Decimal128Value('10.5'));
+      verifyDocTransform(base, maximum(15), 15);
+      verifyDocTransform(base, maximum(5.5), new Decimal128Value('10.5'));
+      verifyDocTransform(base, maximum(-5), new Decimal128Value('10.5'));
+    });
+
+    it('correctly evaluates numeric transforms on standard integer and double fields', () => {
+      const intBase = 10;
+      verifyDocTransform(intBase, minimum(5), 5);
+      verifyDocTransform(intBase, minimum(5.5), 5.5);
+      verifyDocTransform(intBase, maximum(15), 15);
+      verifyDocTransform(intBase, maximum(15.5), 15.5);
+
+      const doubleBase = 10.5;
+      verifyDocTransform(doubleBase, minimum(5), 5);
+      verifyDocTransform(doubleBase, minimum(5.5), 5.5);
+      verifyDocTransform(doubleBase, maximum(15), 15);
+      verifyDocTransform(doubleBase, maximum(15.5), 15.5);
+    });
+
+    it('correctly evaluates numeric transforms on missing and non-numeric fields', () => {
+      verifyDocTransform(undefined, increment(1), 1);
+      verifyDocTransform(undefined, minimum(10), 10);
+      verifyDocTransform(undefined, maximum(10.5), 10.5);
+
+      const stringBase = 'hello';
+      verifyDocTransform(stringBase, minimum(5), 5);
+      verifyDocTransform(stringBase, maximum(15), 15);
+    });
+
+    it('correctly evaluates consecutive numeric transforms on a document', () => {
+      const baseDoc = { val: new Int32Value(10) };
+      const t1 = { val: minimum(15) }; // retains Int32Value(10)
+      const t2 = { val: minimum(5) }; // selects 5
+      const t3 = { val: maximum(20) }; // selects 20
+      verifyTransform(baseDoc, [t1, t2, t3], { val: 20 });
+
+      const numDoc = { numberVal: 1 };
+      verifyTransform(
+        numDoc,
+        [
+          { numberVal: increment(2) },
+          { numberVal: increment(3) },
+          { numberVal: increment(4) }
+        ],
+        { numberVal: 10 }
+      );
+    });
   });
 
   it('can apply numeric add transform to missing field', () => {
