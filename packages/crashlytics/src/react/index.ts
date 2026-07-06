@@ -17,16 +17,29 @@
 
 import { FirebaseApp } from '@firebase/app';
 import { registerCrashlytics } from '../register';
-import { getCrashlytics, registerGlobalErrorListeners } from '../api';
+import {
+  recordError,
+  getCrashlytics,
+  registerGlobalErrorListeners
+} from '../api';
 import { CrashlyticsOptions } from '../public-types';
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
+import {
+  Routes as RoutesRR,
+  RoutesProps,
+  useLocation,
+  createRoutesFromChildren,
+  matchRoutes
+} from 'react-router-dom';
+import { CrashlyticsInternal } from '../types';
+import { CrashlyticsErrorBoundary } from './types';
 
 registerCrashlytics();
 
 export * from '../public-types';
 
 /**
- * Registers event listeners for uncaught errors.
+ * Registers event listeners for uncaught errors and user interaction click traces.
  *
  * This should be installed near the root of your application. Caught errors, including those
  * implicitly caught by Error Boundaries, will not be captured by this component.
@@ -82,4 +95,92 @@ export function FirebaseCrashlytics({
   }, [firebaseApp, crashlyticsOptions]);
 
   return null;
+}
+
+/**
+ * A wrapper around {@link react-router-dom#Routes} that automatically captures errors in route components
+ * and tracks navigation route patterns.
+ *
+ * @example
+ * ```tsx
+ * import { useEffect, useState } from "react";
+ * import { CrashlyticsRoutes } from "@firebase/crashlytics/react";
+ * import { FirebaseApp, initializeApp } from "@firebase/app";
+ *
+ * export default function MyApp() {
+ *   const [app, setApp] = useState<FirebaseApp | null>(null);
+ *
+ *   useEffect(() => {
+ *     if (getApps().length === 0) {
+ *       const newApp = initializeApp({...});
+ *       setApp(newApp);
+ *     } else {
+ *       setApp(getApp());
+ *     }
+ *   }, []);
+ *
+ *   return (
+ *     <>
+ *       {app && (
+ *         <CrashlyticsRoutes firebaseApp={app}>
+ *           <Route path="/" element={<Home />} />
+ *           <Route path="/about" element={<About />} />
+ *         </CrashlyticsRoutes>
+ *       )}
+ *       ...
+ *     </>
+ *   );
+ * }
+ * ```
+ *
+ * @param firebaseApp - The {@link @firebase/app#FirebaseApp} instance to use.
+ * @param crashlyticsOptions - {@link CrashlyticsOptions} that configure the Crashlytics instance.
+ * @returns The rendered routes wrapped in an error boundary.
+ *
+ * @public
+ */
+export function CrashlyticsRoutes({
+  firebaseApp,
+  crashlyticsOptions,
+  children,
+  ...props
+}: RoutesProps & {
+  firebaseApp: FirebaseApp;
+  crashlyticsOptions?: CrashlyticsOptions;
+}): React.ReactElement | null {
+  const location = useLocation();
+  const crashlytics = getCrashlytics(firebaseApp, crashlyticsOptions);
+
+  const routes = createRoutesFromChildren(children);
+  const matches = matchRoutes(routes, location);
+  const pathFromRoot =
+    matches
+      ?.map(m => (m.route.path === '/' ? '' : m.route.path))
+      .filter(p => p !== undefined && p !== '')
+      .join('/') || '/';
+  const pattern = pathFromRoot.startsWith('/')
+    ? pathFromRoot
+    : `/${pathFromRoot}`;
+
+  useEffect(() => {
+    const crashlyticsService = crashlytics as CrashlyticsInternal;
+    crashlyticsService.attributesStore.setRoutePathProvider(() => pattern);
+    return () => {
+      crashlyticsService.attributesStore.setRoutePathProvider(undefined);
+    };
+  }, [crashlytics, pattern]);
+
+  useEffect(() => {
+    return registerGlobalErrorListeners(crashlytics);
+  }, [crashlytics]);
+
+  const onError = (error: Error): void => {
+    recordError(crashlytics, error);
+  };
+
+  return React.createElement(CrashlyticsErrorBoundary, {
+    onError,
+    key: location.pathname,
+    children: React.createElement(RoutesRR, props, children)
+  });
 }

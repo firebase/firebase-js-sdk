@@ -22,12 +22,13 @@ import sinon, { restore, stub } from 'sinon';
 import * as crashlytics from '../api';
 import { FirebaseApp } from '@firebase/app';
 import { Crashlytics } from '../public-types';
-import { FirebaseCrashlytics } from '.';
+import { FirebaseCrashlytics, CrashlyticsRoutes } from '.';
 import React from 'react';
-import { AttributesStore } from '../attributes-store';
+import { AttributesStore, LOG_ATTR_KEY } from '../attributes-store';
 import { render } from '@testing-library/react';
 import { ALREADY_LOGGED_FLAG } from '../constants';
 import { ErrorWithSymbol } from '../types';
+import { MemoryRouter, Route } from 'react-router-dom';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -139,5 +140,127 @@ describe('FirebaseCrashlytics', () => {
     expect(emitStub).to.not.have.been.called;
 
     window.onerror = prevOnError;
+  });
+});
+
+describe('CrashlyticsRoutes', () => {
+  let getCrashlyticsStub: sinon.SinonStub;
+  let recordErrorStub: sinon.SinonStub;
+  let fakeApp: FirebaseApp;
+  let fakeAttributesStore: AttributesStore;
+  let fakeCrashlytics: Crashlytics;
+
+  beforeEach(() => {
+    fakeApp = { name: 'fakeApp' } as FirebaseApp;
+    fakeAttributesStore = new AttributesStore({ projectId: 'project-id' });
+    fakeCrashlytics = {
+      attributesStore: fakeAttributesStore,
+    } as unknown as Crashlytics;
+
+    getCrashlyticsStub = stub(crashlytics, 'getCrashlytics').returns(
+      fakeCrashlytics
+    );
+    recordErrorStub = stub(crashlytics, 'recordError');
+  });
+
+  afterEach(() => {
+    restore();
+  });
+
+  const ThrowingComponent = () => {
+    throw new Error('render error');
+  };
+
+  it('captures render errors in routes and re-throws them', () => {
+    const consoleErrorStub = stub(console, 'error');
+
+    const { container } = render(
+      <TestErrorBoundary>
+        <MemoryRouter>
+          <CrashlyticsRoutes firebaseApp={fakeApp}>
+            <Route path="/" element={<ThrowingComponent />} />
+          </CrashlyticsRoutes>
+        </MemoryRouter>
+      </TestErrorBoundary>
+    );
+
+    expect(getCrashlyticsStub).to.have.been.calledWith(fakeApp);
+    expect(recordErrorStub).to.have.been.calledWith(
+      fakeCrashlytics,
+      sinon.match
+        .instanceOf(Error)
+        .and(sinon.match.has('message', 'render error'))
+    );
+    expect(container.firstChild).to.be.null;
+
+    consoleErrorStub.restore();
+  });
+
+  it('captures parameterized route pattern and re-throws', () => {
+    const consoleErrorStub = stub(console, 'error');
+
+    const { container } = render(
+      <TestErrorBoundary>
+        <MemoryRouter initialEntries={['/users/123']}>
+          <CrashlyticsRoutes firebaseApp={fakeApp}>
+            <Route path="/users/:id" element={<ThrowingComponent />} />
+          </CrashlyticsRoutes>
+        </MemoryRouter>
+      </TestErrorBoundary>
+    );
+
+    expect(getCrashlyticsStub).to.have.been.calledWith(fakeApp);
+    expect(recordErrorStub).to.have.been.calledWith(
+      fakeCrashlytics,
+      sinon.match
+        .instanceOf(Error)
+        .and(sinon.match.has('message', 'render error'))
+    );
+    expect(container.firstChild).to.be.null;
+
+    consoleErrorStub.restore();
+  });
+
+  it('filters empty paths and normalizes leading slashes', () => {
+    const consoleErrorStub = stub(console, 'error');
+
+    const { container } = render(
+      <TestErrorBoundary>
+        <MemoryRouter initialEntries={['/about']}>
+          <CrashlyticsRoutes firebaseApp={fakeApp}>
+            <Route path="/">
+              <Route path="" />
+              <Route path="about" element={<ThrowingComponent />} />
+            </Route>
+          </CrashlyticsRoutes>
+        </MemoryRouter>
+      </TestErrorBoundary>
+    );
+
+    expect(getCrashlyticsStub).to.have.been.calledWith(fakeApp);
+    expect(recordErrorStub).to.have.been.calledWith(
+      fakeCrashlytics,
+      sinon.match
+        .instanceOf(Error)
+        .and(sinon.match.has('message', 'render error'))
+    );
+    expect(container.firstChild).to.be.null;
+
+    consoleErrorStub.restore();
+  });
+
+  it('registers routePath in attributesStore and cleans up on unmount', () => {
+    const { unmount } = render(
+      <MemoryRouter initialEntries={['/users/123']}>
+        <CrashlyticsRoutes firebaseApp={fakeApp}>
+          <Route path="/users/:id" element={<div>User Profile</div>} />
+        </CrashlyticsRoutes>
+      </MemoryRouter>
+    );
+
+    expect(fakeAttributesStore.getLogAttributes()[LOG_ATTR_KEY.ROUTE_PATH]).to.equal('/users/:id');
+
+    unmount();
+    expect(fakeAttributesStore.getLogAttributes()[LOG_ATTR_KEY.ROUTE_PATH]).to.be.undefined;
   });
 });

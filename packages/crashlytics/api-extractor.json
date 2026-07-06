@@ -9,10 +9,6 @@
     {
       "modulePath": "react",
       "filePath": "<projectFolder>/dist/react/index.d.ts"
-    },
-    {
-      "modulePath": "react-router",
-      "filePath": "<projectFolder>/dist/react-router/index.d.ts"
     }
   ],
   "dtsRollup": {
