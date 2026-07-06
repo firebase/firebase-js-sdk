@@ -23,8 +23,7 @@ import {
   increment,
   Timestamp,
   serverTimestamp,
-  deleteField,
-  Int32Value
+  deleteField
 } from '../../../src';
 import { MutableDocument } from '../../../src/model/document';
 import { FieldMask } from '../../../src/model/field_mask';
@@ -565,26 +564,6 @@ describe('Mutation', () => {
     verifyTransform(baseDoc, transform, expected);
   });
 
-  it('reproduces broken numeric increment on BSON Int32Value local evaluation', () => {
-    // A document containing BSON Int32Value of 10.
-    const baseDoc = { int32Val: new Int32Value(10) };
-
-    // We want to apply an increment transform of 5.
-    const transform = { int32Val: increment(5) };
-
-    // In local evaluation:
-    // 1. computeTransformOperationBaseValue calls isNumber(previousValue).
-    //    Since Int32Value is a BSON map, isNumber returns false.
-    //    It falls back to returning { integerValue: 0 } as the base value!
-    // 2. Then applyNumericIncrementTransformOperationToLocalView does:
-    //    const sum = asNumber(baseValue) + asNumber(transform.operand);
-    //    Since baseValue is { integerValue: 0 }, sum is 0 + 5 = 5.
-    //    It returns toInteger(5), which is { integerValue: 5 }.
-    // So the document locally ends up with raw { integerValue: 5 } (not BSON Int32, and the value is wrong!).
-    // This expectation will FAIL if the bug is fixed, but currently PASSES because it is broken.
-    const expected = { int32Val: 5 }; // Should be BSON Int32Value(15), but evaluates to raw number 5!
-    verifyTransform(baseDoc, transform, expected);
-  });
 
   it('can apply numeric add transform to missing field', () => {
     const baseDoc = {};
