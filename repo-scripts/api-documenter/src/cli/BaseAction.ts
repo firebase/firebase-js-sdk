@@ -20,7 +20,7 @@
 
 import * as path from 'path';
 import * as tsdoc from '@microsoft/tsdoc';
-import colors from 'colors';
+import { yellow } from '../utils/style';
 
 import {
   CommandLineAction,
@@ -143,7 +143,7 @@ export abstract class BaseAction extends CommandLineAction {
 
           if (result.errorMessage) {
             console.log(
-              colors.yellow(
+              yellow(
                 `Warning: Unresolved @inheritDoc tag for ${apiItem.displayName}: ` +
                   result.errorMessage
               )

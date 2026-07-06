@@ -23,7 +23,7 @@
     "webchannel-blob/package.json"
   ],
   "scripts": {
-    "dev": "watch 'yarn build' src",
+    "dev": "rollup -c -w",
     "build": "rollup -c",
     "test": "echo 'No test suite for webchannel-wrapper'",
     "test:ci": "echo 'No test suite for webchannel-wrapper'",

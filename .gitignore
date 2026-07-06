@@ -3,6 +3,7 @@ node_modules
 dist
 .awcache
 .cache
+.nx
 /config/project.json
 scripts/docgen-compat/html
 
