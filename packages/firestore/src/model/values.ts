@@ -964,8 +964,14 @@ export function isNumber(
   value?: Value | null
 ): value is
   | { doubleValue: string | number }
-  | { integerValue: string | number } {
-  return isIntegerValue(value) || isDoubleValue(value);
+  | { integerValue: string | number }
+  | { mapValue: MapValue } {
+  return (
+    isIntegerValue(value) ||
+    isDoubleValue(value) ||
+    (!!value && isInt32Value(value)) ||
+    (!!value && isDecimal128Value(value))
+  );
 }
 
 /** Returns true if `value` is an ArrayValue. */

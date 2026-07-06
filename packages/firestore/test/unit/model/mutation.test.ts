@@ -24,7 +24,8 @@ import {
   Timestamp,
   serverTimestamp,
   deleteField,
-  Int32Value
+  Int32Value,
+  Decimal128Value
 } from '../../../src';
 import { MutableDocument } from '../../../src/model/document';
 import { FieldMask } from '../../../src/model/field_mask';
@@ -40,8 +41,11 @@ import {
 import { serverTimestamp as serverTimestampInternal } from '../../../src/model/server_timestamps';
 import {
   ArrayRemoveTransformOperation,
-  ArrayUnionTransformOperation
+  ArrayUnionTransformOperation,
+  NumericIncrementTransformOperation,
+  applyNumericIncrementTransformOperationToLocalView
 } from '../../../src/model/transform_operation';
+import { Serializer } from '../../../src/remote/number_serializer';
 import { Dict } from '../../../src/util/obj';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import {
@@ -67,6 +71,7 @@ describe('Mutation', () => {
   addEqualityMatcher();
 
   const timestamp = Timestamp.now();
+  const dummySerializer = { useProto3Json: false } as unknown as Serializer;
 
   /**
    * For each document in `docs`, calculate the overlay mutations of each
@@ -565,25 +570,45 @@ describe('Mutation', () => {
     verifyTransform(baseDoc, transform, expected);
   });
 
-  it('reproduces broken numeric increment on BSON Int32Value local evaluation', () => {
-    // A document containing BSON Int32Value of 10.
+  it('correctly performs numeric increment on BSON Int32Value local evaluation', () => {
     const baseDoc = { int32Val: new Int32Value(10) };
-
-    // We want to apply an increment transform of 5.
     const transform = { int32Val: increment(5) };
-
-    // In local evaluation:
-    // 1. computeTransformOperationBaseValue calls isNumber(previousValue).
-    //    Since Int32Value is a BSON map, isNumber returns false.
-    //    It falls back to returning { integerValue: 0 } as the base value!
-    // 2. Then applyNumericIncrementTransformOperationToLocalView does:
-    //    const sum = asNumber(baseValue) + asNumber(transform.operand);
-    //    Since baseValue is { integerValue: 0 }, sum is 0 + 5 = 5.
-    //    It returns toInteger(5), which is { integerValue: 5 }.
-    // So the document locally ends up with raw { integerValue: 5 } (not BSON Int32, and the value is wrong!).
-    // This expectation will FAIL if the bug is fixed, but currently PASSES because it is broken.
-    const expected = { int32Val: 5 }; // Should be BSON Int32Value(15), but evaluates to raw number 5!
+    const expected = { int32Val: new Int32Value(15) };
     verifyTransform(baseDoc, transform, expected);
+  });
+
+  // Although the API restricts increment operands to standard JS numbers (not BSON numbers),
+  // the underlying model class represents a generic Firestore transform where the operand can
+  // be any valid ProtoValue (including BSON Int32Value/Decimal128Value). We test these cases to
+  // ensure the model layer's local evaluation is robust.
+  it('correctly performs mixed-type numeric increment of Int32Value base by Int32Value operand', () => {
+    const op = new NumericIncrementTransformOperation(dummySerializer, wrap(new Int32Value(5)));
+    const res = applyNumericIncrementTransformOperationToLocalView(op, wrap(new Int32Value(10)));
+    expect(res).to.deep.equal(wrap(new Int32Value(15)));
+  });
+
+  it('correctly performs mixed-type numeric increment of standard integer base by Int32Value operand', () => {
+    const op = new NumericIncrementTransformOperation(dummySerializer, wrap(new Int32Value(5)));
+    const res = applyNumericIncrementTransformOperationToLocalView(op, wrap(10));
+    expect(res).to.deep.equal(wrap(15));
+  });
+
+  it('correctly performs mixed-type numeric increment promoting Decimal128Value base by standard integer operand', () => {
+    const op = new NumericIncrementTransformOperation(dummySerializer, wrap(5));
+    const res = applyNumericIncrementTransformOperationToLocalView(op, wrap(new Decimal128Value("10")));
+    expect(res).to.deep.equal(wrap(new Decimal128Value("15")));
+  });
+
+  it('correctly performs mixed-type numeric increment promoting standard integer base by Decimal128Value operand', () => {
+    const op = new NumericIncrementTransformOperation(dummySerializer, wrap(new Decimal128Value("5")));
+    const res = applyNumericIncrementTransformOperationToLocalView(op, wrap(10));
+    expect(res).to.deep.equal(wrap(new Decimal128Value("15")));
+  });
+
+  it('correctly performs mixed-type numeric increment promoting Int32Value base by Decimal128Value operand', () => {
+    const op = new NumericIncrementTransformOperation(dummySerializer, wrap(new Decimal128Value("5")));
+    const res = applyNumericIncrementTransformOperationToLocalView(op, wrap(new Int32Value(10)));
+    expect(res).to.deep.equal(wrap(new Decimal128Value("15")));
   });
 
   it('can apply numeric add transform to missing field', () => {
