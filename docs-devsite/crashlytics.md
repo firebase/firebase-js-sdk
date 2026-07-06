@@ -15,7 +15,6 @@ https://github.com/firebase/firebase-js-sdk
 |  --- | --- |
 |  [/](./crashlytics_.md#@firebase/crashlytics) |  |
 |  [/angular](./crashlytics_angular.md#@firebase/crashlytics/angular) |  |
-|  [/next](./crashlytics_next.md#@firebase/crashlytics/next) |  |
 |  [/next-navigation](./crashlytics_next-navigation.md#@firebase/crashlytics/next-navigation) |  |
 |  [/react](./crashlytics_react.md#@firebase/crashlytics/react) |  |
 |  [/react-router](./crashlytics_react-router.md#@firebase/crashlytics/react-router) |  |

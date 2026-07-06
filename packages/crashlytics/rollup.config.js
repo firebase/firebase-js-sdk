@@ -240,55 +240,6 @@ const angularBuilds = [
   }
 ];
 
-const nextBuilds = [
-  {
-    input: 'src/next/index.ts',
-    output: {
-      file: pkg.exports['./next'].browser.import,
-      format: 'es',
-      sourcemap: true
-    },
-    plugins: [
-      typescriptPlugin({
-        typescript,
-        tsconfig: 'tsconfig.next.json'
-      }),
-      json(),
-      copy({
-        targets: [
-          {
-            src: 'dist/src/next/index.d.ts',
-            dest: 'dist/next'
-          },
-          {
-            src: 'dist/src/public-types.d.ts',
-            dest: 'dist'
-          }
-        ]
-      }),
-      replaceSource('../auto-constants.mjs')
-    ],
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
-  },
-  {
-    input: 'src/next/index.ts',
-    output: {
-      file: pkg.exports['./next'].browser.require,
-      format: 'cjs',
-      sourcemap: true
-    },
-    plugins: [
-      typescriptPlugin({
-        typescript,
-        tsconfig: 'tsconfig.next.json'
-      }),
-      json(),
-      replaceSource('../auto-constants.js')
-    ],
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
-  }
-];
-
 const nextNavigationBuilds = [
   {
     input: 'src/next-navigation/index.ts',
@@ -365,7 +316,6 @@ export default [
   ...reactBuilds,
   ...reactRouterBuilds,
   ...angularBuilds,
-  ...nextBuilds,
   ...nextNavigationBuilds,
   ...autoinitBuild
 ];

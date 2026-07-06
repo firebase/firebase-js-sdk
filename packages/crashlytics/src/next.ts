@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2026 Google LLC
+ * Copyright 2025 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,12 @@
  */
 
 import { getApp } from '@firebase/app';
-import { registerCrashlytics } from '../register';
-import { recordError, getCrashlytics } from '../api';
+import { recordError, getCrashlytics } from './api';
 import { Instrumentation } from 'next';
-import { CrashlyticsOptions } from '../public-types';
-import { NEXTJS_REQUEST_ATTRIBUTE_KEYS } from '../constants';
-import { LOG_ATTR_KEY } from '../attributes-store';
+import { CrashlyticsOptions } from './public-types';
+import { NEXTJS_REQUEST_ATTRIBUTE_KEYS } from './constants';
+import { LOG_ATTR_KEY } from './attributes-store';
 
-registerCrashlytics();
-
-export * from '../public-types';
 export { Instrumentation };
 
 /**

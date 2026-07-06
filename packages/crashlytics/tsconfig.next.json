@@ -1,9 +1,0 @@
-{
-  "extends": "./tsconfig.json",
-  "compilerOptions": {
-    "outDir": "dist/next",
-    "declarationDir": "dist/next",
-    "jsx": "react"
-  },
-  "include": ["src/next/index.ts"]
-}
