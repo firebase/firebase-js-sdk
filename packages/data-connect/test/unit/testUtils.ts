@@ -52,6 +52,17 @@ export async function expectIsNotSettled(
 }
 
 /**
+ * Flushes the microtask queue.
+ * @param ticks The number of times to flush the microtask queue.
+ * @internal
+ */
+export async function flushMicrotasks(ticks: number = 2): Promise<void> {
+  for (let i = 0; i < ticks; i++) {
+    await Promise.resolve();
+  }
+}
+
+/**
  * Sleeps for the given number of milliseconds.
  * @param ms The number of milliseconds to sleep.
  * @internal

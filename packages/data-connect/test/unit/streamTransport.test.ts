@@ -42,7 +42,7 @@ import {
   SubscribeStreamRequest
 } from '../../src/network/stream/wire';
 
-import { expectIsNotSettled, sleep } from './testUtils';
+import { expectIsNotSettled, flushMicrotasks, sleep } from './testUtils';
 
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
@@ -1709,7 +1709,7 @@ describe('AbstractDataConnectStreamTransport', () => {
         sendMessageStub.rejects();
         await transport.invokeSubscribe(observer, queryName2, variables2);
 
-        await Promise.resolve(); // let microtasks run
+        await flushMicrotasks(1);
         expect(closeSpy).to.not.have.been.called;
 
         await clock.tickAsync(IDLE_CONNECTION_TIMEOUT_MS);
@@ -2038,8 +2038,7 @@ describe('AbstractDataConnectStreamTransport', () => {
 
         // Allow close event to propagate and reconnect to trigger
         await clock.tickAsync(1);
-        await Promise.resolve();
-        await Promise.resolve();
+        await flushMicrotasks();
 
         // Sockets swap
         expect(closeSpy).to.have.been.calledOnce;
@@ -2071,7 +2070,7 @@ describe('AbstractDataConnectStreamTransport', () => {
 
         const mapKey = transport.getMapKey(queryName1, variables1);
         const activeQuery = transport.activeInvokeQueryRequests.get(mapKey);
-        const requestId = (activeQuery as DataConnectStreamRequest<unknown>).requestId;
+        const requestId = activeQuery!.requestId;
 
         // Complete the resume request
         await transport.invokeHandleResponse(requestId, { data: { result: 'data' }, errors: [], extensions: {} });
@@ -2079,8 +2078,7 @@ describe('AbstractDataConnectStreamTransport', () => {
 
         // Allow close event to propagate and reconnect to trigger
         await clock.tickAsync(1);
-        await Promise.resolve();
-        await Promise.resolve();
+        await flushMicrotasks();
 
         // Fast wire drain finishes, connection swaps
         expect(ensureConnectionStub).to.have.been.calledOnce;
@@ -2190,10 +2188,107 @@ describe('AbstractDataConnectStreamTransport', () => {
 
         // Clean up outstanding promises
         const res = { data: { result: 'ok' }, errors: [], extensions: {} };
-        await transport.invokeHandleResponse(call3.requestId, res);
+        await transport.invokeHandleResponse(call2.requestId, res);
         await transport.invokeHandleResponse(call4.requestId, res);
         await transport.invokeHandleResponse(call5.requestId, res);
         await Promise.all([activeQueryPromise, queuedQueryPromise, queuedMutationPromise]);
+      });
+
+      it('should defer close and reconnect until all active query, mutation, and resume requests complete', async () => {
+        const closeSpy = sinon.spy(transport, 'closeConnection');
+        const observer = {
+          onData: sinon.spy(),
+          onDisconnect: sinon.spy(),
+          onError: sinon.spy()
+        };
+        transport.onConnectionReady();
+        transport.invokeSubscribe(observer, queryName1, variables1);
+
+        // Stagger a query (generates resume) and a mutation (generates execute)
+        const queryPromise = transport.invokeQuery(queryName1, variables1);
+        const mutationPromise = transport.invokeMutation(mutationName1, variables1);
+
+        // Get the active request IDs
+        const mapKeyQuery = transport.getMapKey(queryName1, variables1);
+        const activeQuery = transport.activeInvokeQueryRequests.get(mapKeyQuery);
+        const queryReqId = activeQuery!.requestId;
+
+        const mapKeyMutation = transport.getMapKey(mutationName1, variables1);
+        const activeMutation = transport.activeInvokeMutationRequests.get(mapKeyMutation)![0];
+        const mutationReqId = activeMutation.requestId;
+
+        sendMessageStub.resetHistory();
+
+        // Advance clock to 45 mins
+        await clock.tickAsync(45 * 60 * 1000);
+
+        expect(transport.isPreparingForMaxDurationReconnect).to.be.true;
+        expect(closeSpy).to.not.have.been.called;
+        expect(ensureConnectionStub).to.not.have.been.called;
+
+        // 1. Complete query/resume request
+        await transport.invokeHandleResponse(queryReqId, { data: { result: 'query-data' }, errors: [], extensions: {} });
+        await queryPromise;
+
+        // Verify still waiting for mutation
+        expect(closeSpy).to.not.have.been.called;
+        expect(ensureConnectionStub).to.not.have.been.called;
+
+        // 2. Complete mutation request
+        await transport.invokeHandleResponse(mutationReqId, { data: { result: 'mutation-data' }, errors: [], extensions: {} });
+        await mutationPromise;
+
+        // Allow close event to propagate and reconnect to trigger
+        await clock.tickAsync(1);
+        await flushMicrotasks();
+
+        expect(closeSpy).to.have.been.calledOnce;
+        expect(ensureConnectionStub).to.have.been.calledOnce;
+      });
+
+      it('should handle subscription resurrection (unsubscribe during pending resume followed by immediate subscribe)', async () => {
+        const observer1 = {
+          onData: sinon.spy(),
+          onDisconnect: sinon.spy(),
+          onError: sinon.spy()
+        };
+        const observer2 = {
+          onData: sinon.spy(),
+          onDisconnect: sinon.spy(),
+          onError: sinon.spy()
+        };
+
+        transport.onConnectionReady();
+        transport.invokeSubscribe(observer1, queryName1, variables1);
+        const queryPromise = transport.invokeQuery(queryName1, variables1); // triggers resume request!
+
+        const mapKey = transport.getMapKey(queryName1, variables1);
+        const activeQuery = transport.activeInvokeQueryRequests.get(mapKey);
+        const queryReqId = activeQuery!.requestId;
+
+        // 1. Unsubscribe while resume is in-flight
+        transport.invokeUnsubscribe(queryName1, variables1);
+
+        // 2. Subscribe immediately with a new observer
+        transport.invokeSubscribe(observer2, queryName1, variables1);
+
+        sendMessageStub.resetHistory();
+
+        // 3. Complete the resume request
+        await transport.invokeHandleResponse(queryReqId, { data: { result: 'data' }, errors: [], extensions: {} });
+        await queryPromise;
+
+        // Verify no CancelStreamRequest wire frame was sent (because it was resurrected)
+        const sentCalls = sendMessageStub.getCalls().map(c => c.args[0]);
+        const cancelCalls = sentCalls.filter(msg => msg.cancel);
+        expect(cancelCalls).to.have.lengthOf(0);
+
+        // 4. Simulate a subscription data push on the active request ID (which is '1' since it was the first request)
+        await transport.invokeHandleResponse('1', { data: { field: 'value' }, errors: [], extensions: {} });
+
+        // Verify that observer2 received the data twice (once from the resume query completion, once from the sub data push)
+        expect(observer2.onData).to.have.been.calledTwice;
+        expect(observer1.onData).to.not.have.been.called;
       });
     });
 
