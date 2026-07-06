@@ -18,8 +18,8 @@
 import { expect } from 'chai';
 
 import {
+  Bytes,
   BsonObjectId,
-  BsonBinaryData,
   BsonTimestamp,
   RegexValue,
   Int32Value,
@@ -40,7 +40,7 @@ describe('ObjectValue', () => {
       embedding: vector([1]),
       bson: {
         objectId: new BsonObjectId('foo'),
-        binary: new BsonBinaryData(1, new Uint8Array([1, 2, 3])),
+        binary: Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1),
         timestamp: new BsonTimestamp(1, 2),
         min: MinKey.instance(),
         max: MaxKey.instance(),
@@ -69,7 +69,7 @@ describe('ObjectValue', () => {
       TypeOrder.BsonObjectIdValue
     );
     expect(typeOrder(objValue.field(field('bson.binary'))!)).to.equal(
-      TypeOrder.BsonBinaryValue
+      TypeOrder.BlobValue
     );
     expect(typeOrder(objValue.field(field('bson.timestamp'))!)).to.equal(
       TypeOrder.BsonTimestampValue
@@ -108,7 +108,7 @@ describe('ObjectValue', () => {
     expect(objValue.field(field('bson'))!).to.deep.equal(
       wrap({
         objectId: new BsonObjectId('foo'),
-        binary: new BsonBinaryData(1, new Uint8Array([1, 2, 3])),
+        binary: Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1),
         timestamp: new BsonTimestamp(1, 2),
         min: MinKey.instance(),
         max: MaxKey.instance(),
@@ -121,7 +121,7 @@ describe('ObjectValue', () => {
       wrap(new BsonObjectId('foo'))
     );
     expect(objValue.field(field('bson.binary'))!).to.deep.equal(
-      wrap(new BsonBinaryData(1, new Uint8Array([1, 2, 3])))
+      wrap(Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1))
     );
     expect(objValue.field(field('bson.timestamp'))!).to.deep.equal(
       wrap(new BsonTimestamp(1, 2))
@@ -252,7 +252,7 @@ describe('ObjectValue', () => {
     objValue.set(field('objectId'), wrap(new BsonObjectId('foo-value')));
     objValue.set(
       field('binary'),
-      wrap(new BsonBinaryData(1, new Uint8Array([1, 2, 3])))
+      wrap(Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1))
     );
     objValue.set(field('timestamp'), wrap(new BsonTimestamp(1, 2)));
     objValue.set(field('regex'), wrap(new RegexValue('a', 'b')));
@@ -263,7 +263,7 @@ describe('ObjectValue', () => {
 
     assertObjectEquals(objValue, {
       objectId: new BsonObjectId('foo-value'),
-      binary: new BsonBinaryData(1, new Uint8Array([1, 2, 3])),
+      binary: Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1),
       timestamp: new BsonTimestamp(1, 2),
       regex: new RegexValue('a', 'b'),
       int32: new Int32Value(1),
@@ -278,7 +278,7 @@ describe('ObjectValue', () => {
     // Create nested objects
     objValue.set(
       field('foo.binary'),
-      wrap(new BsonBinaryData(2, new Uint8Array([1, 2, 3])))
+      wrap(Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 2))
     );
     objValue.set(field('foo.timestamp'), wrap(new BsonTimestamp(1, 2)));
 
@@ -300,7 +300,7 @@ describe('ObjectValue', () => {
       min: null,
       max: MaxKey.instance(),
       foo: {
-        binary: new BsonBinaryData(2, new Uint8Array([1, 2, 3])),
+        binary: Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 2),
         timestamp: new BsonTimestamp(2, 1)
       }
     });
@@ -313,7 +313,7 @@ describe('ObjectValue', () => {
       emptymap: {},
       bar: {
         objectId: new BsonObjectId('foo'),
-        binary: new BsonBinaryData(1, new Uint8Array([1, 2, 3])),
+        binary: Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1),
         timestamp: new BsonTimestamp(1, 2),
         min: MinKey.instance(),
         max: MaxKey.instance(),

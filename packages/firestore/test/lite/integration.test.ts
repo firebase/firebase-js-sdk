@@ -28,7 +28,6 @@ import {
   sum,
   average
 } from '../../src/lite-api/aggregate';
-import { BsonBinaryData } from '../../src/lite-api/bson_binary_data';
 import { BsonObjectId } from '../../src/lite-api/bson_object_Id';
 import { BsonTimestamp } from '../../src/lite-api/bson_timestamp';
 import { Bytes } from '../../src/lite-api/bytes';
@@ -3068,7 +3067,7 @@ describe.skip('BSON types', () => {
       await setDoc(
         ref,
         {
-          binary: new BsonBinaryData(1, new Uint8Array([1, 2, 3])),
+          binary: Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1),
           timestamp: new BsonTimestamp(1, 2),
           int32: new Int32Value(2)
         },
@@ -3089,7 +3088,7 @@ describe.skip('BSON types', () => {
       expect(
         snap1
           .get('binary')
-          .isEqual(new BsonBinaryData(1, new Uint8Array([1, 2, 3])))
+          .isEqual(Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1))
       ).to.be.true;
       expect(snap1.get('timestamp').isEqual(new BsonTimestamp(1, 2))).to.be
         .true;

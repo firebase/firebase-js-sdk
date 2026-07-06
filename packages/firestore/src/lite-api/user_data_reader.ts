@@ -79,7 +79,6 @@ import { Code, FirestoreError } from '../util/error';
 import { isPlainObject, valueDescription } from '../util/input_validation';
 import { Dict, forEach, isEmpty } from '../util/obj';
 
-import { BsonBinaryData } from './bson_binary_data';
 import { BsonObjectId } from './bson_object_Id';
 import { BsonTimestamp } from './bson_timestamp';
 import { Bytes } from './bytes';
@@ -936,7 +935,11 @@ export function parseScalarValue(
       }
     };
   } else if (value instanceof Bytes) {
-    return { bytesValue: toBytes(context.serializer, value._byteString) };
+    if (value.subtype === 0) {
+      return { bytesValue: toBytes(context.serializer, value._byteString) };
+    } else {
+      return parseBytesWithSubtype(context.serializer, value);
+    }
   } else if (value instanceof DocumentReference) {
     const thisDb = context.databaseId;
     const otherDb = value.firestore._databaseId;
@@ -965,8 +968,6 @@ export function parseScalarValue(
     return parseDecimal128Value(value);
   } else if (value instanceof BsonTimestamp) {
     return parseBsonTimestamp(value);
-  } else if (value instanceof BsonBinaryData) {
-    return parseBsonBinaryData(context.serializer, value);
   } else if (value instanceof MinKey) {
     return parseMinKey();
   } else if (value instanceof MaxKey) {
@@ -1102,15 +1103,19 @@ export function parseBsonTimestamp(value: BsonTimestamp): ProtoValue {
   return { mapValue };
 }
 
-export function parseBsonBinaryData(
+/**
+ * Parses Bytes with a non-zero subtype.
+ */
+export function parseBytesWithSubtype(
   serializer: JsonProtoSerializer,
-  value: BsonBinaryData
+  value: Bytes
 ): ProtoValue {
-  const subtypeAndData = new Uint8Array(value.data.length + 1);
+  const u8Array = value.toUint8Array();
+  const subtypeAndData = new Uint8Array(u8Array.length + 1);
   // This converts the subtype from `number` to a byte.
   subtypeAndData[0] = value.subtype;
   // Concatenate the rest of the data starting at index 1.
-  subtypeAndData.set(value.data, /* offset */ 1);
+  subtypeAndData.set(u8Array, /* offset */ 1);
 
   const mapValue: ProtoMapValue = {
     fields: {
@@ -1150,7 +1155,6 @@ export function looksLikeJsonObject(input: unknown): boolean {
     !(input instanceof RegexValue) &&
     !(input instanceof BsonObjectId) &&
     !(input instanceof BsonTimestamp) &&
-    !(input instanceof BsonBinaryData) &&
     !isProtoValueSerializable(input)
   );
 }

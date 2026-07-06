@@ -18,7 +18,7 @@
 import { expect } from 'chai';
 
 import {
-  BsonBinaryData,
+  Bytes,
   BsonObjectId,
   BsonTimestamp,
   Decimal128Value,
@@ -57,7 +57,7 @@ describe('Document', () => {
   it('can be constructed with bson types', () => {
     const data = {
       objectId: new BsonObjectId('foo'),
-      binary: new BsonBinaryData(1, new Uint8Array([1, 2, 3])),
+      binary: Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1),
       timestamp: new BsonTimestamp(1, 2),
       min: MinKey.instance(),
       max: MaxKey.instance(),
@@ -71,7 +71,7 @@ describe('Document', () => {
     expect(value.value).to.deep.equal(
       wrap({
         objectId: new BsonObjectId('foo'),
-        binary: new BsonBinaryData(1, new Uint8Array([1, 2, 3])),
+        binary: Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1),
         timestamp: new BsonTimestamp(1, 2),
         min: MinKey.instance(),
         max: MaxKey.instance(),

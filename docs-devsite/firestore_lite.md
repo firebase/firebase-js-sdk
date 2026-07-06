@@ -100,7 +100,6 @@ https://github.com/firebase/firebase-js-sdk
 |  --- | --- |
 |  [AggregateField](./firestore_lite.aggregatefield.md#aggregatefield_class) | Represents an aggregation that can be performed by Firestore. |
 |  [AggregateQuerySnapshot](./firestore_lite.aggregatequerysnapshot.md#aggregatequerysnapshot_class) | The results of executing an aggregation query. |
-|  [BsonBinaryData](./firestore_lite.bsonbinarydata.md#bsonbinarydata_class) | Represents a BSON Binary Data type in Firestore documents. BsonBinaryData |
 |  [BsonObjectId](./firestore_lite.bsonobjectid.md#bsonobjectid_class) | Represents a BSON ObjectId type in Firestore documents. BsonObjectId |
 |  [BsonTimestamp](./firestore_lite.bsontimestamp.md#bsontimestamp_class) | Represents a BSON Timestamp type in Firestore documents. BsonTimestamp |
 |  [Bytes](./firestore_lite.bytes.md#bytes_class) | An immutable object representing an array of bytes. |

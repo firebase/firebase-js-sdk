@@ -149,8 +149,6 @@ export { Decimal128Value } from '../src/lite-api/decimal128_value';
 
 export { RegexValue } from '../src/lite-api/regex_value';
 
-export { BsonBinaryData } from '../src/lite-api/bson_binary_data';
-
 export { BsonObjectId } from '../src/lite-api/bson_object_Id';
 
 export { BsonTimestamp } from '../src/lite-api/bson_timestamp';
