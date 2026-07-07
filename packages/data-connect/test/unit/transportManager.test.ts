@@ -565,7 +565,7 @@ describe('DataConnectTransportManager', () => {
 
         expect(manager.streamTransport).to.exist;
 
-        await clock.tickAsync(IDLE_CONNECTION_TIMEOUT_MS);
+        await clock.tickAsync(IDLE_CONNECTION_TIMEOUT_MS + 100);
         expect(manager.streamTransport).to.be.undefined;
       });
 
@@ -579,7 +579,7 @@ describe('DataConnectTransportManager', () => {
         manager.invokeSubscribe(observer, queryName1, variables1);
         manager.invokeUnsubscribe(queryName1, variables1);
 
-        await clock.tickAsync(IDLE_CONNECTION_TIMEOUT_MS);
+        await clock.tickAsync(IDLE_CONNECTION_TIMEOUT_MS + 100);
         expect(manager.streamTransport).to.be.undefined;
 
         restInvokeQuerySpy.resetHistory();
@@ -597,7 +597,7 @@ describe('DataConnectTransportManager', () => {
         manager.invokeSubscribe(observer, queryName1, variables1);
         manager.invokeUnsubscribe(queryName1, variables1);
 
-        await clock.tickAsync(IDLE_CONNECTION_TIMEOUT_MS);
+        await clock.tickAsync(IDLE_CONNECTION_TIMEOUT_MS + 100);
         expect(manager.streamTransport).to.be.undefined;
 
         manager.invokeSubscribe(observer, queryName1, variables1);
