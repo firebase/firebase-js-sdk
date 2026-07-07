@@ -1,5 +1,11 @@
 # @firebase/remote-config
 
+## 0.9.0
+
+### Minor Changes
+
+- [`f47bebf`](https://github.com/firebase/firebase-js-sdk/commit/f47bebf353cd341c5124ca89568a775524ec0a9f) [#10106](https://github.com/firebase/firebase-js-sdk/pull/10106) - Support realtime for Remote Config rollouts
+
 ## 0.8.5
 
 ### Patch Changes
