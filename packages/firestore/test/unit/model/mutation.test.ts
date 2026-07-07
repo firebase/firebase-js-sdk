@@ -646,29 +646,53 @@ describe('Mutation', () => {
 
   // Int32Value + Standard Double -> Decimal128Value (promotion)
   it('correctly performs mixed-type numeric increment promoting Int32Value base by standard double operand', () => {
-    const op = new NumericIncrementTransformOperation(dummySerializer, wrap(1.5));
-    const res = applyNumericIncrementTransformOperationToLocalView(op, wrap(new Int32Value(10)));
+    const op = new NumericIncrementTransformOperation(
+      dummySerializer,
+      wrap(1.5)
+    );
+    const res = applyNumericIncrementTransformOperationToLocalView(
+      op,
+      wrap(new Int32Value(10))
+    );
     expect(res).to.deep.equal(wrap(new Decimal128Value('11.5')));
   });
 
   // Standard Double + Int32Value -> Standard Double
   it('correctly performs mixed-type numeric increment of standard double base by Int32Value operand', () => {
-    const op = new NumericIncrementTransformOperation(dummySerializer, wrap(new Int32Value(5)));
-    const res = applyNumericIncrementTransformOperationToLocalView(op, wrap(10.5));
+    const op = new NumericIncrementTransformOperation(
+      dummySerializer,
+      wrap(new Int32Value(5))
+    );
+    const res = applyNumericIncrementTransformOperationToLocalView(
+      op,
+      wrap(10.5)
+    );
     expect(res).to.deep.equal(wrap(15.5));
   });
 
   // Decimal128Value + Decimal128Value -> Decimal128Value
   it('correctly performs mixed-type numeric increment of Decimal128Value base by Decimal128Value operand', () => {
-    const op = new NumericIncrementTransformOperation(dummySerializer, wrap(new Decimal128Value('5')));
-    const res = applyNumericIncrementTransformOperationToLocalView(op, wrap(new Decimal128Value('10')));
+    const op = new NumericIncrementTransformOperation(
+      dummySerializer,
+      wrap(new Decimal128Value('5'))
+    );
+    const res = applyNumericIncrementTransformOperationToLocalView(
+      op,
+      wrap(new Decimal128Value('10'))
+    );
     expect(res).to.deep.equal(wrap(new Decimal128Value('15')));
   });
 
   // Standard Double + Decimal128Value -> Decimal128Value
   it('correctly performs mixed-type numeric increment promoting standard double base by Decimal128Value operand', () => {
-    const op = new NumericIncrementTransformOperation(dummySerializer, wrap(new Decimal128Value('5')));
-    const res = applyNumericIncrementTransformOperationToLocalView(op, wrap(10.5));
+    const op = new NumericIncrementTransformOperation(
+      dummySerializer,
+      wrap(new Decimal128Value('5'))
+    );
+    const res = applyNumericIncrementTransformOperationToLocalView(
+      op,
+      wrap(10.5)
+    );
     expect(res).to.deep.equal(wrap(new Decimal128Value('15.5')));
   });
 
