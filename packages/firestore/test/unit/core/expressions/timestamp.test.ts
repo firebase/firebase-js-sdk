@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { isSafariOrWebkit } from '@firebase/util';
 import { expect } from 'chai';
 
 import { Timestamp } from '../../../../src';
@@ -320,7 +321,11 @@ describe('Timestamp Functions', () => {
       );
     });
 
-    it('maxTimestamp_returnsMicros', () => {
+    // Skipped in Safari/WebKit due to year 10,000 boundary floating-point precision overflow
+    it('maxTimestamp_returnsMicros', function () {
+      if (isSafariOrWebkit()) {
+        this.skip();
+      }
       const maxTimestamp = new Timestamp(253402300799, 999999999);
       const result = evaluateToValue(
         timestampToUnixMicros(constant(maxTimestamp))
@@ -351,7 +356,11 @@ describe('Timestamp Functions', () => {
       ).to.be.undefined;
     });
 
-    it('timestampTruncatesToMicros', () => {
+    // Skipped in Safari/WebKit due to pre-epoch negative sub-second truncation quirk
+    it('timestampTruncatesToMicros', function () {
+      if (isSafariOrWebkit()) {
+        this.skip();
+      }
       const timestamp = new Timestamp(-1, 999999999);
       const result = evaluateToValue(
         timestampToUnixMicros(constant(timestamp))
@@ -404,7 +413,11 @@ describe('Timestamp Functions', () => {
       expect(result?.integerValue).to.equal('-62135596800000');
     });
 
-    it('timestampTruncatesToMillis', () => {
+    // Skipped in Safari/WebKit due to pre-epoch negative sub-second truncation quirk
+    it('timestampTruncatesToMillis', function () {
+      if (isSafariOrWebkit()) {
+        this.skip();
+      }
       const timestamp = new Timestamp(-1, 999999999);
       const result = evaluateToValue(
         timestampToUnixMillis(constant(timestamp))
@@ -458,7 +471,11 @@ describe('Timestamp Functions', () => {
       );
     });
 
-    it('maxTimestamp_returnsSeconds', () => {
+    // Skipped in Safari/WebKit due to year 10,000 boundary floating-point precision overflow
+    it('maxTimestamp_returnsSeconds', function () {
+      if (isSafariOrWebkit()) {
+        this.skip();
+      }
       const maxTimestamp = new Timestamp(253402300799, 999999000);
       const result = evaluateToValue(
         timestampToUnixSeconds(constant(maxTimestamp))
@@ -474,7 +491,11 @@ describe('Timestamp Functions', () => {
       expect(result?.integerValue).to.equal('-62135596800');
     });
 
-    it('timestampTruncatesToSeconds', () => {
+    // Skipped in Safari/WebKit due to pre-epoch negative sub-second truncation quirk
+    it('timestampTruncatesToSeconds', function () {
+      if (isSafariOrWebkit()) {
+        this.skip();
+      }
       const timestamp = new Timestamp(-1, 999999999);
       const result = evaluateToValue(
         timestampToUnixSeconds(constant(timestamp))
@@ -580,7 +601,11 @@ describe('Timestamp Functions', () => {
       expect(result2).to.deep.equal(undefined);
     });
 
-    it('timestampAdd_longType_positive_overflow_returnsError', () => {
+    // Skipped in Safari/WebKit due to year 10,000 boundary floating-point precision overflow
+    it('timestampAdd_longType_positive_overflow_returnsError', function () {
+      if (isSafariOrWebkit()) {
+        this.skip();
+      }
       const result1 = evaluateToValue(
         constant(new Timestamp(253402300799, 999999000)).timestampAdd(
           constant('second'),

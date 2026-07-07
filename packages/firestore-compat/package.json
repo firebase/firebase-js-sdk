@@ -27,12 +27,12 @@
     "dist"
   ],
   "scripts": {
-    "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
-    "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
-    "prettier": "prettier --write '*.js' '@(src|test)/**/*.ts'",
+    "lint": "eslint --cache --cache-location '../../node_modules/.cache/eslint/' -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
+    "lint:fix": "eslint --cache --cache-location '../../node_modules/.cache/eslint/' --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
+    "prettier": "prettier --cache --write '*.js' '@(src|test)/**/*.ts'",
     "build": "rollup -c ./rollup.config.js",
     "build:console": "node tools/console.build.js",
-    "build:deps": "lerna run --scope @firebase/firestore-compat --include-dependencies build",
+    "build:deps": "lerna run build --scope @firebase/firestore-compat",
     "build:release": "yarn build && yarn add-compat-overloads",
     "test": "run-s --npm-path npm lint test:all",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all",
