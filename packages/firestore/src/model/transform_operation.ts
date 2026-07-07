@@ -23,7 +23,17 @@ import { arrayEquals } from '../util/misc';
 
 import { normalizeNumber } from './normalize';
 import { serverTimestamp } from './server_timestamps';
-import { isArray, isIntegerValue, isNumber, valueEquals } from './values';
+import {
+  isArray,
+  isIntegerValue,
+  isNumber,
+  valueEquals,
+  isDecimal128Value,
+  isInt32Value,
+  isDoubleValue,
+  RESERVED_DECIMAL128_KEY,
+  RESERVED_INT32_KEY
+} from './values';
 
 /** Used to represent a field transform on a mutation. */
 export class TransformOperation {
@@ -229,7 +239,42 @@ export function applyNumericIncrementTransformOperationToLocalView(
     previousValue
   )!;
   const sum = asNumber(baseValue) + asNumber(transform.operand);
-  if (isIntegerValue(baseValue) && isIntegerValue(transform.operand)) {
+  if (isDecimal128Value(baseValue) || isDecimal128Value(transform.operand)) {
+    return {
+      mapValue: {
+        fields: {
+          [RESERVED_DECIMAL128_KEY]: {
+            stringValue: sum.toString()
+          }
+        }
+      }
+    };
+  }
+  if (isInt32Value(baseValue)) {
+    if (isIntegerValue(transform.operand) || isInt32Value(transform.operand)) {
+      return {
+        mapValue: {
+          fields: {
+            [RESERVED_INT32_KEY]: toInteger(sum)
+          }
+        }
+      };
+    } else {
+      return {
+        mapValue: {
+          fields: {
+            [RESERVED_DECIMAL128_KEY]: {
+              stringValue: sum.toString()
+            }
+          }
+        }
+      };
+    }
+  }
+  if (
+    isIntegerValue(baseValue) &&
+    (isIntegerValue(transform.operand) || isInt32Value(transform.operand))
+  ) {
     return toInteger(sum);
   } else {
     return toDouble(transform.serializer, sum);
@@ -247,7 +292,45 @@ export function applyNumericTransformOperationToLocalView(
   const prev = asNumber(previousValue);
   const oper = asNumber(operation.operand);
   const result = transform(prev, oper);
-  if (isIntegerValue(previousValue) && isIntegerValue(operation.operand)) {
+  if (
+    isDecimal128Value(previousValue) ||
+    isDecimal128Value(operation.operand)
+  ) {
+    return {
+      mapValue: {
+        fields: {
+          [RESERVED_DECIMAL128_KEY]: {
+            stringValue: result.toString()
+          }
+        }
+      }
+    };
+  }
+  if (isInt32Value(previousValue)) {
+    if (isIntegerValue(operation.operand) || isInt32Value(operation.operand)) {
+      return {
+        mapValue: {
+          fields: {
+            [RESERVED_INT32_KEY]: toInteger(result)
+          }
+        }
+      };
+    } else {
+      return {
+        mapValue: {
+          fields: {
+            [RESERVED_DECIMAL128_KEY]: {
+              stringValue: result.toString()
+            }
+          }
+        }
+      };
+    }
+  }
+  if (
+    isIntegerValue(previousValue) &&
+    (isIntegerValue(operation.operand) || isInt32Value(operation.operand))
+  ) {
     return toInteger(result);
   } else {
     return toDouble(operation.serializer, result);
@@ -277,7 +360,23 @@ export function applyNumericMaximumTransformOperationToLocalView(
 }
 
 function asNumber(value: ProtoValue): number {
-  return normalizeNumber(value.integerValue || value.doubleValue);
+  if (isIntegerValue(value)) {
+    return normalizeNumber(value.integerValue);
+  }
+  if (isDoubleValue(value)) {
+    return normalizeNumber(value.doubleValue);
+  }
+  if (isInt32Value(value)) {
+    return normalizeNumber(
+      value.mapValue!.fields![RESERVED_INT32_KEY]!.integerValue!
+    );
+  }
+  if (isDecimal128Value(value)) {
+    return parseFloat(
+      value.mapValue!.fields![RESERVED_DECIMAL128_KEY]!.stringValue!
+    );
+  }
+  return 0;
 }
 
 function coercedFieldValuesArray(value: ProtoValue | null): ProtoValue[] {
