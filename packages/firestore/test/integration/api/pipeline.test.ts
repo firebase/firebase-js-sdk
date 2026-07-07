@@ -7526,7 +7526,449 @@ apiDescribe.skipClassic('Pipelines', persistence => {
   //     // Expect snippet from 2 fields to be longer than snippet from one field
   //     expect(snapshot2.results[0].get('snippet')?.length).to.be.greaterThan(
   //       snapshot2.results[0].get('snippet')?.length
-  //     );
   //   });
   // });
+});
+
+apiDescribe.skip('Pipeline window functions', persistence => {
+  addEqualityMatcher();
+  let firestore: Firestore;
+  let randomCol: CollectionReference;
+
+  const ts = (isoStr: string): Timestamp =>
+    Timestamp.fromDate(new Date(isoStr));
+
+  const testDocs = {
+    sale1: {
+      product: 'phone',
+      salesPrice: 12,
+      date: ts('2026-07-01T12:00:00Z')
+    },
+    sale2: {
+      product: 'phone',
+      salesPrice: 30,
+      date: ts('2026-07-02T12:00:00Z')
+    },
+    sale3: {
+      product: 'tablet',
+      salesPrice: 30,
+      date: ts('2026-07-02T18:00:00Z')
+    },
+    sale4: {
+      product: 'tablet',
+      salesPrice: 60,
+      date: ts('2026-07-04T12:00:00Z')
+    },
+    sale5: {
+      product: 'tablet',
+      salesPrice: 60,
+      date: ts('2026-07-15T12:00:00Z')
+    }
+  };
+
+  let testDeferred: Deferred<void>;
+  let withTestCollectionPromise: Promise<unknown>;
+
+  before(async () => {
+    const setupDeferred = new Deferred<void>();
+    testDeferred = new Deferred<void>();
+    withTestCollectionPromise = withTestCollection(
+      persistence,
+      testDocs,
+      async (col, db) => {
+        randomCol = col;
+        firestore = db;
+        setupDeferred.resolve();
+        return testDeferred.promise;
+      }
+    );
+    await setupDeferred.promise;
+  });
+
+  after(async () => {
+    testDeferred?.resolve();
+    await withTestCollectionPromise;
+  });
+
+  it('can calculate unsorted partition average (example 1)', async () => {
+    const snapshot = await execute(
+      firestore
+        .pipeline()
+        .collection(randomCol.path)
+        .addWindowFields(
+          {
+            group: ['product']
+          },
+          average(field('salesPrice')).as('productAveragePrice'),
+          countAll().as('windowCount')
+        )
+        .sort(field('product').ascending(), field('salesPrice').ascending())
+    );
+    expectResults(
+      snapshot,
+      {
+        product: 'phone',
+        salesPrice: 12,
+        date: ts('2026-07-01T12:00:00Z'),
+        productAveragePrice: 21,
+        windowCount: 2
+      },
+      {
+        product: 'phone',
+        salesPrice: 30,
+        date: ts('2026-07-02T12:00:00Z'),
+        productAveragePrice: 21,
+        windowCount: 2
+      },
+      {
+        product: 'tablet',
+        salesPrice: 30,
+        date: ts('2026-07-02T18:00:00Z'),
+        productAveragePrice: 50,
+        windowCount: 3
+      },
+      {
+        product: 'tablet',
+        salesPrice: 60,
+        date: ts('2026-07-04T12:00:00Z'),
+        productAveragePrice: 50,
+        windowCount: 3
+      },
+      {
+        product: 'tablet',
+        salesPrice: 60,
+        date: ts('2026-07-15T12:00:00Z'),
+        productAveragePrice: 50,
+        windowCount: 3
+      }
+    );
+  });
+
+  it('can calculate document-based moving average (example 2)', async () => {
+    const snapshot = await execute(
+      firestore
+        .pipeline()
+        .collection(randomCol.path)
+        .addWindowFields(
+          {
+            sort: ascending('date'),
+            documents: { preceding: 1, following: 1 }
+          },
+          average(field('salesPrice')).as('movingAveragePrice'),
+          countAll().as('windowCount')
+        )
+        .sort(ascending('date'))
+    );
+    expectResults(
+      snapshot,
+      {
+        product: 'phone',
+        salesPrice: 12,
+        date: ts('2026-07-01T12:00:00Z'),
+        movingAveragePrice: 21,
+        windowCount: 2
+      },
+      {
+        product: 'phone',
+        salesPrice: 30,
+        date: ts('2026-07-02T12:00:00Z'),
+        movingAveragePrice: 24,
+        windowCount: 3
+      },
+      {
+        product: 'tablet',
+        salesPrice: 30,
+        date: ts('2026-07-02T18:00:00Z'),
+        movingAveragePrice: 40,
+        windowCount: 3
+      },
+      {
+        product: 'tablet',
+        salesPrice: 60,
+        date: ts('2026-07-04T12:00:00Z'),
+        movingAveragePrice: 50,
+        windowCount: 3
+      },
+      {
+        product: 'tablet',
+        salesPrice: 60,
+        date: ts('2026-07-15T12:00:00Z'),
+        movingAveragePrice: 60,
+        windowCount: 2
+      }
+    );
+  });
+
+  it('can calculate document-based running total (example 3)', async () => {
+    const snapshot = await execute(
+      firestore
+        .pipeline()
+        .collection(randomCol.path)
+        .addWindowFields(
+          {
+            sort: ascending('date'),
+            documents: 'default'
+          },
+          sum(field('salesPrice')).as('runningTotalRevenue'),
+          countAll().as('windowCount')
+        )
+        .sort(ascending('date'))
+    );
+    expectResults(
+      snapshot,
+      {
+        product: 'phone',
+        salesPrice: 12,
+        date: ts('2026-07-01T12:00:00Z'),
+        runningTotalRevenue: 12,
+        windowCount: 1
+      },
+      {
+        product: 'phone',
+        salesPrice: 30,
+        date: ts('2026-07-02T12:00:00Z'),
+        runningTotalRevenue: 42,
+        windowCount: 2
+      },
+      {
+        product: 'tablet',
+        salesPrice: 30,
+        date: ts('2026-07-02T18:00:00Z'),
+        runningTotalRevenue: 72,
+        windowCount: 3
+      },
+      {
+        product: 'tablet',
+        salesPrice: 60,
+        date: ts('2026-07-04T12:00:00Z'),
+        runningTotalRevenue: 132,
+        windowCount: 4
+      },
+      {
+        product: 'tablet',
+        salesPrice: 60,
+        date: ts('2026-07-15T12:00:00Z'),
+        runningTotalRevenue: 192,
+        windowCount: 5
+      }
+    );
+  });
+
+  it('can calculate range-based same-price sales count (example 4)', async () => {
+    const snapshot = await execute(
+      firestore
+        .pipeline()
+        .collection(randomCol.path)
+        .addWindowFields(
+          {
+            group: ['product'],
+            sort: ascending('salesPrice'),
+            range: { preceding: 0, following: 0 }
+          },
+          countAll().as('samePriceSalesCount')
+        )
+        .sort(ascending('salesPrice'))
+    );
+    expectResults(
+      snapshot,
+      {
+        product: 'phone',
+        salesPrice: 12,
+        date: ts('2026-07-01T12:00:00Z'),
+        samePriceSalesCount: 1
+      },
+      {
+        product: 'phone',
+        salesPrice: 30,
+        date: ts('2026-07-02T12:00:00Z'),
+        samePriceSalesCount: 1
+      },
+      {
+        product: 'tablet',
+        salesPrice: 30,
+        date: ts('2026-07-02T18:00:00Z'),
+        samePriceSalesCount: 1
+      },
+      {
+        product: 'tablet',
+        salesPrice: 60,
+        date: ts('2026-07-04T12:00:00Z'),
+        samePriceSalesCount: 2
+      },
+      {
+        product: 'tablet',
+        salesPrice: 60,
+        date: ts('2026-07-15T12:00:00Z'),
+        samePriceSalesCount: 2
+      }
+    );
+  });
+
+  it('can calculate range-based date window with time unit (example 5)', async () => {
+    const snapshot = await execute(
+      firestore
+        .pipeline()
+        .collection(randomCol.path)
+        .addWindowFields(
+          {
+            sort: ascending('date'),
+            range: 'default',
+            unit: 'day'
+          },
+          sum(field('salesPrice')).as('runningTotalRevenue'),
+          countAll().as('windowCount')
+        )
+        .sort(ascending('date'))
+    );
+    expectResults(
+      snapshot,
+      {
+        product: 'phone',
+        salesPrice: 12,
+        date: ts('2026-07-01T12:00:00Z'),
+        runningTotalRevenue: 12,
+        windowCount: 1
+      },
+      {
+        product: 'phone',
+        salesPrice: 30,
+        date: ts('2026-07-02T12:00:00Z'),
+        runningTotalRevenue: 72,
+        windowCount: 3
+      },
+      {
+        product: 'tablet',
+        salesPrice: 30,
+        date: ts('2026-07-02T18:00:00Z'),
+        runningTotalRevenue: 72,
+        windowCount: 3
+      },
+      {
+        product: 'tablet',
+        salesPrice: 60,
+        date: ts('2026-07-04T12:00:00Z'),
+        runningTotalRevenue: 132,
+        windowCount: 4
+      },
+      {
+        product: 'tablet',
+        salesPrice: 60,
+        date: ts('2026-07-15T12:00:00Z'),
+        runningTotalRevenue: 192,
+        windowCount: 5
+      }
+    );
+  });
+
+  it('can calculate document-based one-sided look-ahead average', async () => {
+    const snapshot = await execute(
+      firestore
+        .pipeline()
+        .collection(randomCol.path)
+        .addWindowFields(
+          {
+            sort: ascending('date'),
+            documents: { preceding: -1, following: 2 }
+          },
+          average(field('salesPrice')).as('lookAheadAveragePrice'),
+          countAll().as('windowCount')
+        )
+        .sort(ascending('date'))
+    );
+    expectResults(
+      snapshot,
+      {
+        product: 'phone',
+        salesPrice: 12,
+        date: ts('2026-07-01T12:00:00Z'),
+        lookAheadAveragePrice: 30,
+        windowCount: 2
+      },
+      {
+        product: 'phone',
+        salesPrice: 30,
+        date: ts('2026-07-02T12:00:00Z'),
+        lookAheadAveragePrice: 45,
+        windowCount: 2
+      },
+      {
+        product: 'tablet',
+        salesPrice: 30,
+        date: ts('2026-07-02T18:00:00Z'),
+        lookAheadAveragePrice: 60,
+        windowCount: 2
+      },
+      {
+        product: 'tablet',
+        salesPrice: 60,
+        date: ts('2026-07-04T12:00:00Z'),
+        lookAheadAveragePrice: 60,
+        windowCount: 1
+      },
+      {
+        product: 'tablet',
+        salesPrice: 60,
+        date: ts('2026-07-15T12:00:00Z'),
+        lookAheadAveragePrice: null,
+        windowCount: 0
+      }
+    );
+  });
+
+  it('supports options signature (overload 2)', async () => {
+    const snapshot = await execute(
+      firestore
+        .pipeline()
+        .collection(randomCol.path)
+        .addWindowFields({
+          window: {
+            sort: ascending('date'),
+            documents: { preceding: 1, following: 1 }
+          },
+          fields: [
+            average(field('salesPrice')).as('movingAveragePrice'),
+            countAll().as('windowCount')
+          ]
+        })
+        .sort(ascending('date'))
+    );
+    expectResults(
+      snapshot,
+      {
+        product: 'phone',
+        salesPrice: 12,
+        date: ts('2026-07-01T12:00:00Z'),
+        movingAveragePrice: 21,
+        windowCount: 2
+      },
+      {
+        product: 'phone',
+        salesPrice: 30,
+        date: ts('2026-07-02T12:00:00Z'),
+        movingAveragePrice: 24,
+        windowCount: 3
+      },
+      {
+        product: 'tablet',
+        salesPrice: 30,
+        date: ts('2026-07-02T18:00:00Z'),
+        movingAveragePrice: 40,
+        windowCount: 3
+      },
+      {
+        product: 'tablet',
+        salesPrice: 60,
+        date: ts('2026-07-04T12:00:00Z'),
+        movingAveragePrice: 50,
+        windowCount: 3
+      },
+      {
+        product: 'tablet',
+        salesPrice: 60,
+        date: ts('2026-07-15T12:00:00Z'),
+        movingAveragePrice: 60,
+        windowCount: 2
+      }
+    );
+  });
 });

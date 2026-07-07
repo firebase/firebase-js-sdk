@@ -78,6 +78,7 @@ import {
 } from './stage';
 import {
   AddFieldsStageOptions,
+  AddWindowFieldsStageOptions,
   AggregateStageOptions,
   DefineStageOptions,
   DistinctStageOptions,
@@ -93,7 +94,8 @@ import {
   StageOptions,
   UnionStageOptions,
   UnnestStageOptions,
-  WhereStageOptions
+  WhereStageOptions,
+  WindowSpec
 } from './stage_options';
 import { UserDataReader, UserData } from './user_data_reader';
 import { AbstractUserDataWriter } from './user_data_writer';
@@ -255,6 +257,118 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
 
     // Add stage to the pipeline
     return this._addStage(stage);
+  }
+
+  /**
+   * Adds window function results to the output documents of the pipeline.
+   *
+   * Window functions evaluate expressions over a subset of documents (a "window frame") relative to the
+   * current document. This is similar to SQL window functions or MongoDB's `$setWindowFields` stage.
+   *
+   * @example
+   * ```typescript
+   * // 1. Unsorted partition/group aggregation (evaluates over the entire group)
+   * firestore.pipeline().collection("employees")
+   *   .addWindowFields(
+   *     {
+   *       group: ['department']
+   *     },
+   *     average(field('salary')).as('departmentAverageSalary')
+   *   );
+   *
+   * // 2. Document-based moving average with explicit boundaries
+   * firestore.pipeline().collection("sales")
+   *   .addWindowFields(
+   *     {
+   *       sort: ascending('date'),
+   *       documents: { preceding: 1, following: 1 }
+   *     },
+   *     average(field('amount')).as('movingAverageAmount')
+   *   );
+   *
+   * // 3. Document-based running total using default boundaries (unbounded preceding to current row).
+   * // Note: Offsets are physical document counts, so no time unit is required or used even when sorting on 'date'.
+   * firestore.pipeline().collection("sales")
+   *   .addWindowFields(
+   *     {
+   *       sort: ascending('date'),
+   *       documents: 'default'
+   *     },
+   *     sum(field('amount')).as('runningTotal')
+   *   );
+   *
+   * // 4. Range-based running average using default boundaries (unbounded preceding to current value)
+   * firestore.pipeline().collection("products")
+   *   .addWindowFields(
+   *     {
+   *       sort: ascending('price'),
+   *       range: 'default'
+   *     },
+   *     average(field('rating')).as('cumulativeAvgRating')
+   *   );
+   *
+   * // 5. Range-based date/time window with a time unit (cumulative sales over the last 30 days)
+   * firestore.pipeline().collection("sales")
+   *   .addWindowFields(
+   *     {
+   *       sort: ascending('date'),
+   *       range: { preceding: 30, following: 'current' },
+   *       unit: 'day'
+   *     },
+   *     sum(field('amount')).as('thirtyDayCumulativeSales')
+   *   );
+   * ```
+   *
+   * @param window - The specification defining how documents are partitioned, ordered, and bounded in the window frame.
+   * @param field - The first window field to add, specified as an {@link @firebase/firestore/pipelines#AliasedAggregate}.
+   * @param additionalFields - Optional additional window fields to add to the documents.
+   * @returns A new Pipeline object with this stage appended to the stage list.
+   */
+  addWindowFields(
+    window: WindowSpec,
+    field: AliasedAggregate,
+    ...additionalFields: AliasedAggregate[]
+  ): Pipeline;
+
+  /**
+   * Adds window function results to the output documents of the pipeline using options.
+   *
+   * @example
+   * ```typescript
+   * // 1. Unsorted partition/group aggregation using options
+   * firestore.pipeline().collection("employees")
+   *   .addWindowFields({
+   *     window: {
+   *       group: ['department']
+   *     },
+   *     fields: [
+   *       average(field('salary')).as('departmentAverageSalary')
+   *     ]
+   *   });
+   *
+   * // 2. Document-based moving average using options
+   * firestore.pipeline().collection("sales")
+   *   .addWindowFields({
+   *     window: {
+   *       sort: ascending('date'),
+   *       documents: { preceding: 1, following: 1 }
+   *     },
+   *     fields: [
+   *       average(field('amount')).as('movingAverageAmount')
+   *     ]
+   *   });
+   * ```
+   *
+   * @param options - An object specifying the window frame configuration and the fields to add.
+   * @returns A new Pipeline object with this stage appended to the stage list.
+   */
+  addWindowFields(options: AddWindowFieldsStageOptions): Pipeline;
+  addWindowFields(
+    windowOrOptions: WindowSpec | AddWindowFieldsStageOptions,
+    field?: AliasedAggregate,
+    ...additionalFields: AliasedAggregate[]
+  ): Pipeline {
+    throw new Error('not implemented');
   }
 
   /**
