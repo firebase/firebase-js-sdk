@@ -581,6 +581,8 @@ describe('Mutation', () => {
   // the underlying model class represents a generic Firestore transform where the operand can
   // be any valid ProtoValue (including BSON Int32Value/Decimal128Value). We test these cases to
   // ensure the model layer's local evaluation is robust.
+
+  // Int32Value + Int32Value -> Int32Value
   it('correctly performs mixed-type numeric increment of Int32Value base by Int32Value operand', () => {
     const op = new NumericIncrementTransformOperation(
       dummySerializer,
@@ -593,6 +595,7 @@ describe('Mutation', () => {
     expect(res).to.deep.equal(wrap(new Int32Value(15)));
   });
 
+  // Standard Int + Int32Value -> Standard Int
   it('correctly performs mixed-type numeric increment of standard integer base by Int32Value operand', () => {
     const op = new NumericIncrementTransformOperation(
       dummySerializer,
@@ -605,6 +608,7 @@ describe('Mutation', () => {
     expect(res).to.deep.equal(wrap(15));
   });
 
+  // Decimal128Value + Standard Int -> Decimal128Value
   it('correctly performs mixed-type numeric increment promoting Decimal128Value base by standard integer operand', () => {
     const op = new NumericIncrementTransformOperation(dummySerializer, wrap(5));
     const res = applyNumericIncrementTransformOperationToLocalView(
@@ -614,6 +618,7 @@ describe('Mutation', () => {
     expect(res).to.deep.equal(wrap(new Decimal128Value('15')));
   });
 
+  // Standard Int + Decimal128Value -> Decimal128Value
   it('correctly performs mixed-type numeric increment promoting standard integer base by Decimal128Value operand', () => {
     const op = new NumericIncrementTransformOperation(
       dummySerializer,
@@ -626,6 +631,7 @@ describe('Mutation', () => {
     expect(res).to.deep.equal(wrap(new Decimal128Value('15')));
   });
 
+  // Int32Value + Decimal128Value -> Decimal128Value
   it('correctly performs mixed-type numeric increment promoting Int32Value base by Decimal128Value operand', () => {
     const op = new NumericIncrementTransformOperation(
       dummySerializer,
@@ -636,6 +642,50 @@ describe('Mutation', () => {
       wrap(new Int32Value(10))
     );
     expect(res).to.deep.equal(wrap(new Decimal128Value('15')));
+  });
+
+  // Int32Value + Standard Double -> Decimal128Value (promotion)
+  it('correctly performs mixed-type numeric increment promoting Int32Value base by standard double operand', () => {
+    const op = new NumericIncrementTransformOperation(dummySerializer, wrap(1.5));
+    const res = applyNumericIncrementTransformOperationToLocalView(op, wrap(new Int32Value(10)));
+    expect(res).to.deep.equal(wrap(new Decimal128Value('11.5')));
+  });
+
+  // Standard Double + Int32Value -> Standard Double
+  it('correctly performs mixed-type numeric increment of standard double base by Int32Value operand', () => {
+    const op = new NumericIncrementTransformOperation(dummySerializer, wrap(new Int32Value(5)));
+    const res = applyNumericIncrementTransformOperationToLocalView(op, wrap(10.5));
+    expect(res).to.deep.equal(wrap(15.5));
+  });
+
+  // Decimal128Value + Decimal128Value -> Decimal128Value
+  it('correctly performs mixed-type numeric increment of Decimal128Value base by Decimal128Value operand', () => {
+    const op = new NumericIncrementTransformOperation(dummySerializer, wrap(new Decimal128Value('5')));
+    const res = applyNumericIncrementTransformOperationToLocalView(op, wrap(new Decimal128Value('10')));
+    expect(res).to.deep.equal(wrap(new Decimal128Value('15')));
+  });
+
+  // Standard Double + Decimal128Value -> Decimal128Value
+  it('correctly performs mixed-type numeric increment promoting standard double base by Decimal128Value operand', () => {
+    const op = new NumericIncrementTransformOperation(dummySerializer, wrap(new Decimal128Value('5')));
+    const res = applyNumericIncrementTransformOperationToLocalView(op, wrap(10.5));
+    expect(res).to.deep.equal(wrap(new Decimal128Value('15.5')));
+  });
+
+  // verifyTransform: Int32Value + Standard Double -> Decimal128Value (promotion)
+  it('correctly promotes Int32Value base to Decimal128Value when incremented by a double in verifyTransform', () => {
+    const baseDoc = { value: new Int32Value(10) };
+    const transform = { value: increment(1.5) };
+    const expected = { value: new Decimal128Value('11.5') };
+    verifyTransform(baseDoc, transform, expected);
+  });
+
+  // verifyTransform: Decimal128Value + Standard Int -> Decimal128Value
+  it('retains Decimal128Value type when incrementing by an integer in verifyTransform', () => {
+    const baseDoc = { value: new Decimal128Value('10') };
+    const transform = { value: increment(5) };
+    const expected = { value: new Decimal128Value('15') };
+    verifyTransform(baseDoc, transform, expected);
   });
 
   it('can apply numeric add transform to missing field', () => {
