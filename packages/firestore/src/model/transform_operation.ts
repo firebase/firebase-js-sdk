@@ -271,7 +271,10 @@ export function applyNumericIncrementTransformOperationToLocalView(
       };
     }
   }
-  if (isIntegerValue(baseValue) && (isIntegerValue(transform.operand) || isInt32Value(transform.operand))) {
+  if (
+    isIntegerValue(baseValue) &&
+    (isIntegerValue(transform.operand) || isInt32Value(transform.operand))
+  ) {
     return toInteger(sum);
   } else {
     return toDouble(transform.serializer, sum);
@@ -289,7 +292,10 @@ export function applyNumericTransformOperationToLocalView(
   const prev = asNumber(previousValue);
   const oper = asNumber(operation.operand);
   const result = transform(prev, oper);
-  if (isDecimal128Value(previousValue) || isDecimal128Value(operation.operand)) {
+  if (
+    isDecimal128Value(previousValue) ||
+    isDecimal128Value(operation.operand)
+  ) {
     return {
       mapValue: {
         fields: {
@@ -321,7 +327,10 @@ export function applyNumericTransformOperationToLocalView(
       };
     }
   }
-  if (isIntegerValue(previousValue) && (isIntegerValue(operation.operand) || isInt32Value(operation.operand))) {
+  if (
+    isIntegerValue(previousValue) &&
+    (isIntegerValue(operation.operand) || isInt32Value(operation.operand))
+  ) {
     return toInteger(result);
   } else {
     return toDouble(operation.serializer, result);

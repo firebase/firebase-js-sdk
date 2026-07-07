@@ -582,33 +582,60 @@ describe('Mutation', () => {
   // be any valid ProtoValue (including BSON Int32Value/Decimal128Value). We test these cases to
   // ensure the model layer's local evaluation is robust.
   it('correctly performs mixed-type numeric increment of Int32Value base by Int32Value operand', () => {
-    const op = new NumericIncrementTransformOperation(dummySerializer, wrap(new Int32Value(5)));
-    const res = applyNumericIncrementTransformOperationToLocalView(op, wrap(new Int32Value(10)));
+    const op = new NumericIncrementTransformOperation(
+      dummySerializer,
+      wrap(new Int32Value(5))
+    );
+    const res = applyNumericIncrementTransformOperationToLocalView(
+      op,
+      wrap(new Int32Value(10))
+    );
     expect(res).to.deep.equal(wrap(new Int32Value(15)));
   });
 
   it('correctly performs mixed-type numeric increment of standard integer base by Int32Value operand', () => {
-    const op = new NumericIncrementTransformOperation(dummySerializer, wrap(new Int32Value(5)));
-    const res = applyNumericIncrementTransformOperationToLocalView(op, wrap(10));
+    const op = new NumericIncrementTransformOperation(
+      dummySerializer,
+      wrap(new Int32Value(5))
+    );
+    const res = applyNumericIncrementTransformOperationToLocalView(
+      op,
+      wrap(10)
+    );
     expect(res).to.deep.equal(wrap(15));
   });
 
   it('correctly performs mixed-type numeric increment promoting Decimal128Value base by standard integer operand', () => {
     const op = new NumericIncrementTransformOperation(dummySerializer, wrap(5));
-    const res = applyNumericIncrementTransformOperationToLocalView(op, wrap(new Decimal128Value("10")));
-    expect(res).to.deep.equal(wrap(new Decimal128Value("15")));
+    const res = applyNumericIncrementTransformOperationToLocalView(
+      op,
+      wrap(new Decimal128Value('10'))
+    );
+    expect(res).to.deep.equal(wrap(new Decimal128Value('15')));
   });
 
   it('correctly performs mixed-type numeric increment promoting standard integer base by Decimal128Value operand', () => {
-    const op = new NumericIncrementTransformOperation(dummySerializer, wrap(new Decimal128Value("5")));
-    const res = applyNumericIncrementTransformOperationToLocalView(op, wrap(10));
-    expect(res).to.deep.equal(wrap(new Decimal128Value("15")));
+    const op = new NumericIncrementTransformOperation(
+      dummySerializer,
+      wrap(new Decimal128Value('5'))
+    );
+    const res = applyNumericIncrementTransformOperationToLocalView(
+      op,
+      wrap(10)
+    );
+    expect(res).to.deep.equal(wrap(new Decimal128Value('15')));
   });
 
   it('correctly performs mixed-type numeric increment promoting Int32Value base by Decimal128Value operand', () => {
-    const op = new NumericIncrementTransformOperation(dummySerializer, wrap(new Decimal128Value("5")));
-    const res = applyNumericIncrementTransformOperationToLocalView(op, wrap(new Int32Value(10)));
-    expect(res).to.deep.equal(wrap(new Decimal128Value("15")));
+    const op = new NumericIncrementTransformOperation(
+      dummySerializer,
+      wrap(new Decimal128Value('5'))
+    );
+    const res = applyNumericIncrementTransformOperationToLocalView(
+      op,
+      wrap(new Int32Value(10))
+    );
+    expect(res).to.deep.equal(wrap(new Decimal128Value('15')));
   });
 
   it('can apply numeric add transform to missing field', () => {
