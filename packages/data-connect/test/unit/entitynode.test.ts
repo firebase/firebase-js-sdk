@@ -472,20 +472,27 @@ describe('entity node', () => {
       expect(dehydratedJson).have.property('_references');
       expect(dehydratedJson).have.property('_objectLists');
 
-      const restoredNode = EntityNode.fromJson(dehydratedJson as unknown as DehydratedStubDataObject);
+      const restoredNode = EntityNode.fromJson(
+        dehydratedJson as unknown as DehydratedStubDataObject
+      );
 
-      expect(restoredNode.scalars).to.exist.and.to.have.property('title', 'Original Post');
+      expect(restoredNode.scalars).to.exist.and.to.have.property(
+        'title',
+        'Original Post'
+      );
       expect(restoredNode.references).to.exist.and.to.have.property('author');
-      expect(restoredNode.references.author.scalars).to.exist.and.to.have.property(
-        'name',
-        'Alice'
+      expect(
+        restoredNode.references.author.scalars
+      ).to.exist.and.to.have.property('name', 'Alice');
+      expect(restoredNode.objectLists).to.exist.and.to.have.property(
+        'comments'
       );
-      expect(restoredNode.objectLists).to.exist.and.to.have.property('comments');
-      expect(restoredNode.objectLists.comments).to.exist.and.to.have.lengthOf(1);
-      expect(restoredNode.objectLists.comments[0].scalars).to.exist.and.to.have.property(
-        'content',
-        'Great post!'
+      expect(restoredNode.objectLists.comments).to.exist.and.to.have.lengthOf(
+        1
       );
+      expect(
+        restoredNode.objectLists.comments[0].scalars
+      ).to.exist.and.to.have.property('content', 'Great post!');
     });
   });
 });
