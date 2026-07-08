@@ -474,11 +474,16 @@ describe('entity node', () => {
 
       expect(restoredNode.scalars).to.have.property('title', 'Original Post');
       expect(restoredNode.references).to.have.property('author');
-      expect(restoredNode.references.author.scalars).to.have.property('name', 'Alice');
+      expect(restoredNode.references.author.scalars).to.have.property(
+        'name',
+        'Alice'
+      );
       expect(restoredNode.objectLists).to.have.property('comments');
       expect(restoredNode.objectLists.comments).to.have.lengthOf(1);
-      expect(restoredNode.objectLists.comments[0].scalars).to.have.property('content', 'Great post!');
+      expect(restoredNode.objectLists.comments[0].scalars).to.have.property(
+        'content',
+        'Great post!'
+      );
     });
   });
 });
-
