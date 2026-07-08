@@ -217,31 +217,58 @@ export class EntityNode {
     return resultObject;
   }
 
-  static fromJson(obj: DehydratedStubDataObject): EntityNode {
-    const sdo = new EntityNode();
-    if (obj.backingData) {
-      sdo.entityData = EntityDataObject.fromJSON(obj.backingData);
+  static fromJson(obj: unknown): EntityNode {
+    if (!obj || typeof obj !== 'object') {
+      throw new DataConnectError(
+        Code.INVALID_ARGUMENT,
+        'EntityNode.fromJson: expected object'
+      );
     }
-    sdo.globalId = obj[GLOBAL_ID_KEY];
-    sdo.scalars = obj[SCALARS_KEY] || {};
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const rawObj = obj as Record<string, any>;
+    const sdo = new EntityNode();
+    if (rawObj.backingData) {
+      sdo.entityData = EntityDataObject.fromJSON(rawObj.backingData);
+    }
+    sdo.globalId = rawObj[GLOBAL_ID_KEY];
+    sdo.scalars = rawObj[SCALARS_KEY] ?? {};
 
-    if (obj[REFERENCES_KEY]) {
+    const rawRefs = rawObj[REFERENCES_KEY];
+    if (rawRefs) {
+      if (typeof rawRefs !== 'object') {
+        throw new DataConnectError(
+          Code.INVALID_ARGUMENT,
+          'EntityNode.fromJson: expected object for references'
+        );
+      }
       const references: Record<string, unknown> = {};
-      const rawRefs = obj[REFERENCES_KEY]!;
       for (const key in rawRefs) {
-        if (rawRefs.hasOwnProperty(key)) {
+        if (Object.prototype.hasOwnProperty.call(rawRefs, key)) {
           references[key] = EntityNode.fromJson(rawRefs[key]);
         }
       }
       sdo.references = references as typeof sdo.references;
     }
 
-    if (obj[OBJECT_LISTS_KEY]) {
+    const rawLists = rawObj[OBJECT_LISTS_KEY];
+    if (rawLists) {
+      if (typeof rawLists !== 'object') {
+        throw new DataConnectError(
+          Code.INVALID_ARGUMENT,
+          'EntityNode.fromJson: expected object for objectLists'
+        );
+      }
       const objectLists: Record<string, unknown> = {};
-      const rawLists = obj[OBJECT_LISTS_KEY]!;
       for (const key in rawLists) {
-        if (rawLists.hasOwnProperty(key)) {
-          objectLists[key] = rawLists[key].map((item: DehydratedStubDataObject) =>
+        if (Object.prototype.hasOwnProperty.call(rawLists, key)) {
+          const list = rawLists[key];
+          if (!Array.isArray(list)) {
+            throw new DataConnectError(
+              Code.INVALID_ARGUMENT,
+              'EntityNode.fromJson: expected array for object list'
+            );
+          }
+          objectLists[key] = list.map((item: unknown) =>
             EntityNode.fromJson(item)
           );
         }
