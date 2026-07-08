@@ -143,6 +143,7 @@ const allBuilds = [
       entryFileNames: '[name].cjs.js',
       chunkFileNames: 'common-[hash].node.cjs.js',
       format: 'cjs',
+      esModule: true,
       sourcemap: true
     },
     plugins: [
@@ -219,6 +220,7 @@ const allBuilds = [
         entryFileNames: '[name].cjs.js',
         chunkFileNames: 'common-[hash].cjs.js',
         format: 'cjs',
+        esModule: true,
         sourcemap: true
       }
     ],

@@ -76,7 +76,14 @@ const browserBuilds = [
       index: 'index.ts',
       internal: 'internal/index.ts'
     },
-    output: [{ dir: 'dist/browser-cjs', format: 'cjs', sourcemap: true }],
+    output: [
+      {
+        dir: 'dist/browser-cjs',
+        format: 'cjs',
+        esModule: true,
+        sourcemap: true
+      }
+    ],
     plugins: [
       ...buildPlugins,
       replace(generateBuildTargetReplaceConfig('cjs', 2020))
@@ -108,7 +115,14 @@ const browserWebExtensionBuilds = [
       index: 'index.web-extension.ts',
       internal: 'internal/index.ts'
     },
-    output: [{ dir: 'dist/web-extension-cjs', format: 'cjs', sourcemap: true }],
+    output: [
+      {
+        dir: 'dist/web-extension-cjs',
+        format: 'cjs',
+        esModule: true,
+        sourcemap: true
+      }
+    ],
     plugins: [
       ...buildPlugins,
       replace(generateBuildTargetReplaceConfig('cjs', 2020))
@@ -123,7 +137,9 @@ const nodeBuilds = [
       index: 'index.node.ts',
       internal: 'internal/index.ts'
     },
-    output: [{ dir: 'dist/node', format: 'cjs', sourcemap: true }],
+    output: [
+      { dir: 'dist/node', format: 'cjs', esModule: true, sourcemap: true }
+    ],
     plugins: [
       nodeAliasPlugin,
       ...buildPlugins,
@@ -170,7 +186,7 @@ const rnBuild = {
     index: 'index.rn.ts',
     internal: 'internal/index.ts'
   },
-  output: [{ dir: 'dist/rn', format: 'cjs', sourcemap: true }],
+  output: [{ dir: 'dist/rn', format: 'cjs', esModule: true, sourcemap: true }],
   plugins: [
     ...buildPlugins,
     replace(generateBuildTargetReplaceConfig('cjs', 2020))

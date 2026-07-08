@@ -72,6 +72,7 @@ const cjsBuilds = [
     output: {
       file: pkg.main,
       format: 'cjs',
+      esModule: true,
       sourcemap: true
     },
     plugins: [
@@ -88,7 +89,12 @@ const cjsBuilds = [
   // TODO(dlarocque): ask Christina about this
   {
     input: 'src/index.sw.ts',
-    output: { file: pkg['sw-main'], format: 'cjs', sourcemap: true },
+    output: {
+      file: pkg['sw-main'],
+      format: 'cjs',
+      esModule: true,
+      sourcemap: true
+    },
     plugins: [
       ...buildPlugins,
       replace(generateBuildTargetReplaceConfig('cjs', 2020))

@@ -70,7 +70,12 @@ const appBuilds = [
   {
     input: 'app/index.ts',
     output: [
-      { file: resolve('app', appPkg.main), format: 'cjs', sourcemap: true },
+      {
+        file: resolve('app', appPkg.main),
+        format: 'cjs',
+        esModule: true,
+        sourcemap: true
+      },
       {
         file: resolve('app', appPkg.main.replace('.cjs.js', '.mjs')),
         format: 'es',
@@ -86,7 +91,9 @@ const componentBuilds = pkg.components
   // The "app" component is treated differently because it doesn't depend on itself.
   .filter(component => component !== 'app')
   .map(component => {
-    const pkg = JSON.parse(readFileSync(`./${component}/package.json`, 'utf-8'));
+    const pkg = JSON.parse(
+      readFileSync(`./${component}/package.json`, 'utf-8')
+    );
     return [
       /**
        * Component ESM Build
@@ -116,6 +123,7 @@ const componentBuilds = pkg.components
           {
             file: resolve(component, pkg.main),
             format: 'cjs',
+            esModule: true,
             sourcemap: true
           },
           {

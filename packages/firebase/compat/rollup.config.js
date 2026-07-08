@@ -125,6 +125,7 @@ const appBuilds = [
       {
         file: resolve(__dirname, 'app', appPkg.main),
         format: 'cjs',
+        esModule: true,
         sourcemap: true
       },
       {
@@ -155,7 +156,9 @@ const componentBuilds = compatPkg.components
   // The "app" component is treated differently because it doesn't depend on itself.
   .filter(component => component !== 'app')
   .map(component => {
-    const pkg = JSON.parse(readFileSync(`${__dirname}/${component}/package.json`, 'utf-8'));
+    const pkg = JSON.parse(
+      readFileSync(`${__dirname}/${component}/package.json`, 'utf-8')
+    );
     return [
       /**
        * Component ESM build
@@ -185,6 +188,7 @@ const componentBuilds = compatPkg.components
           {
             file: resolve(__dirname, component, pkg.main),
             format: 'cjs',
+            esModule: true,
             sourcemap: true
           },
           {
@@ -256,6 +260,7 @@ const completeBuilds = [
     output: {
       file: resolve(__dirname, compatPkg.main),
       format: 'cjs',
+      esModule: true,
       sourcemap: true
     },
     plugins: [...plugins, typescriptPlugin],
@@ -269,6 +274,7 @@ const completeBuilds = [
     output: {
       file: resolve(__dirname, compatPkg['react-native']),
       format: 'cjs',
+      esModule: true,
       sourcemap: true
     },
     plugins: [...plugins, typescriptPlugin],

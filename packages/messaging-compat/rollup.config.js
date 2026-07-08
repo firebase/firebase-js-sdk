@@ -48,6 +48,7 @@ const cjsBuild = {
   output: {
     file: pkg.main,
     format: 'cjs',
+    esModule: true,
     sourcemap: true
   },
   plugins: buildPlugins,

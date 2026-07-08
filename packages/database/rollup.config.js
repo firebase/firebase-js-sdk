@@ -73,6 +73,7 @@ const browserBuilds = [
       {
         file: 'dist/index.cjs.js',
         format: 'cjs',
+        esModule: true,
         sourcemap: true
       }
     ],
@@ -94,6 +95,7 @@ const nodeBuilds = [
     output: {
       file: pkg.main,
       format: 'cjs',
+      esModule: true,
       sourcemap: true
     },
     plugins: [
@@ -129,7 +131,9 @@ const nodeBuilds = [
    */
   {
     input: 'src/index.standalone.ts',
-    output: [{ file: pkg.standalone, format: 'cjs', sourcemap: true }],
+    output: [
+      { file: pkg.standalone, format: 'cjs', esModule: true, sourcemap: true }
+    ],
     plugins: buildPlugins,
     treeshake: {
       moduleSideEffects: false

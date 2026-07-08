@@ -93,6 +93,7 @@ const cjsBuilds = [
       {
         file: pkg.main,
         format: 'cjs',
+        esModule: true,
         sourcemap: true
       }
     ],
@@ -113,6 +114,7 @@ const cjsBuilds = [
       {
         file: standalonePkg.main.replace('../', ''),
         format: 'cjs',
+        esModule: true,
         sourcemap: true
       }
     ],

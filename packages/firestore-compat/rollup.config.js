@@ -54,6 +54,7 @@ const browserBuilds = [
       {
         file: 'dist/index.cjs.js',
         format: 'cjs',
+        esModule: true,
         sourcemap: true
       }
     ],
@@ -68,6 +69,7 @@ const nodeBuilds = [
     output: {
       file: pkg.main,
       format: 'cjs',
+      esModule: true,
       sourcemap: true
     },
     plugins: es2020Plugins,

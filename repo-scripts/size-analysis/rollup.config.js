@@ -58,6 +58,7 @@ export default [
       {
         file: 'dist/cli.js',
         format: 'cjs',
+        esModule: true,
         sourcemap: false
       }
     ],

@@ -72,6 +72,7 @@ const browserBuilds = [
     output: {
       file: pkg.exports['.'].browser.require,
       format: 'cjs',
+      esModule: true,
       sourcemap: true
     },
     plugins: [
@@ -92,6 +93,7 @@ const nodeBuilds = [
     output: {
       file: pkg.main,
       format: 'cjs',
+      esModule: true,
       sourcemap: true
     },
     plugins: [

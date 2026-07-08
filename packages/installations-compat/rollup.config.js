@@ -46,6 +46,7 @@ const cjsBuild = {
   output: {
     file: pkg.main,
     format: 'cjs',
+    esModule: true,
     sourcemap: true
   },
   external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
