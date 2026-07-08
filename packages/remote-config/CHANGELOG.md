@@ -1,5 +1,11 @@
 # @firebase/remote-config
 
+## 0.8.5
+
+### Patch Changes
+
+- [`33521f2`](https://github.com/firebase/firebase-js-sdk/commit/33521f204022e09fa32da821ae6445d236bdeb21) [#10000](https://github.com/firebase/firebase-js-sdk/pull/10000) - Support ABT realtime when variant value matches default value of parameter
+
 ## 0.8.4
 
 ### Patch Changes

@@ -1,6 +1,6 @@
 {
   "name": "@firebase/remote-config-compat",
-  "version": "0.2.25",
+  "version": "0.2.26",
   "description": "The compatibility package of Remote Config",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
@@ -18,11 +18,11 @@
     "dist"
   ],
   "scripts": {
-    "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
-    "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts'  --ignore-path '../../.gitignore'",
+    "lint": "eslint --cache --cache-location '../../node_modules/.cache/eslint/' -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
+    "lint:fix": "eslint --cache --cache-location '../../node_modules/.cache/eslint/' --fix -c .eslintrc.js '**/*.ts'  --ignore-path '../../.gitignore'",
     "build": "rollup -c",
     "build:release": "yarn build && yarn add-compat-overloads",
-    "build:deps": "lerna run --scope @firebase/remote-config-compat --include-dependencies build",
+    "build:deps": "lerna run build --scope @firebase/remote-config-compat",
     "dev": "rollup -c -w",
     "test": "run-p --npm-path npm lint test:all",
     "test:all": "run-p --npm-path npm test:browser",
@@ -37,7 +37,7 @@
     "@firebase/app-compat": "0.x"
   },
   "dependencies": {
-    "@firebase/remote-config": "0.8.4",
+    "@firebase/remote-config": "0.8.5",
     "@firebase/remote-config-types": "0.5.1",
     "@firebase/util": "1.15.1",
     "@firebase/logger": "0.5.1",
@@ -50,7 +50,7 @@
     "rollup-plugin-replace": "2.2.0",
     "rollup-plugin-typescript2": "0.37.0",
     "typescript": "5.5.4",
-    "@firebase/app-compat": "0.5.13"
+    "@firebase/app-compat": "0.5.14"
   },
   "repository": {
     "directory": "packages/remote-config-compat",

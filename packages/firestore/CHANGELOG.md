@@ -1,14 +1,10 @@
 # @firebase/firestore
 
-## 4.15.0
+## 4.16.0
 
 ### Minor Changes
 
-- [`d5b0f61`](https://github.com/firebase/firebase-js-sdk/commit/d5b0f6130525b898079ae7ccf73c0931f52c7525) [#9913](https://github.com/firebase/firebase-js-sdk/pull/9913) - Added minimum and maximum FieldValue operations
-
-### Patch Changes
-
-- [`85f6f4e`](https://github.com/firebase/firebase-js-sdk/commit/85f6f4eac2f72796f449fd028bbb6a68afeb3826) [#9985](https://github.com/firebase/firebase-js-sdk/pull/9985) - Improved robustness and logging in query listen stream creation and re-creation
+- [`043c0ab`](https://github.com/firebase/firebase-js-sdk/commit/043c0ab81018a8237f03b37073413d3b931c1957) [#9929](https://github.com/firebase/firebase-js-sdk/pull/9929) - Merge offline pipeline implementation with one minor API change
 
 ## 4.14.1
 

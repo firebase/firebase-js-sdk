@@ -157,8 +157,8 @@ export async function _performApiRequest<T, V>(
     }
 
     const query = querystring({
-      key: auth.config.apiKey,
-      ...params
+      ...params,
+      key: auth.config.apiKey
     }).slice(1);
 
     const headers = await (auth as AuthInternal)._getAdditionalHeaders();
@@ -179,7 +179,7 @@ export async function _performApiRequest<T, V>(
        'RequestInitializerDict' is not implemented."
        https://github.com/cloudflare/next-on-pages/issues/487 */
     if (!isCloudflareWorker()) {
-      fetchArgs.referrerPolicy = 'no-referrer';
+      fetchArgs.referrerPolicy = 'strict-origin-when-cross-origin';
     }
 
     if (auth.emulatorConfig && isCloudWorkstation(auth.emulatorConfig.host)) {

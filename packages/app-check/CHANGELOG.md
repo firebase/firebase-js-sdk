@@ -1,5 +1,15 @@
 # @firebase/app-check
 
+## 0.12.0
+
+### Minor Changes
+
+- [`420156e`](https://github.com/firebase/firebase-js-sdk/commit/420156ee6eb2f7cfa0c4c188d73138bc7cd3a1f2) [#10023](https://github.com/firebase/firebase-js-sdk/pull/10023) - Add ability to call `initializeAppCheck` without a `provider`. If no `provider` is passed to `initializeAppCheck`, App Check will attempt to initialize with a `ReCaptchaEnterpriseProvider` using the site key found in the `recaptchaSiteKey` field of the Firebase project config.
+
+### Patch Changes
+
+- [`e389f70`](https://github.com/firebase/firebase-js-sdk/commit/e389f70b1b9b2c3afe1672b4a6b702eceb7c5e41) [#9991](https://github.com/firebase/firebase-js-sdk/pull/9991) (fixes [#9405](https://github.com/firebase/firebase-js-sdk/issues/9405)) - Fix error causing Auth and AppCheck conflict when both are using ReCAPTCHA Enterprise.
+
 ## 0.11.4
 
 ### Patch Changes
