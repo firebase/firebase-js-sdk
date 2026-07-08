@@ -55,7 +55,8 @@ describe('GrpcConnection', () => {
     /*longPollingOptions=*/ {},
     /*useFetchStreams=*/ false,
     /*isUsingEmulator=*/ false,
-    'grpc-connection-test-api-key'
+    'grpc-connection-test-api-key',
+    { 'x-goog-firestore-api-requester': 'console', 'x-custom-header': 'val' }
   );
   const connection = new TestGrpcConnection(
     { google: { firestore: { v1: {} } } },
@@ -77,5 +78,25 @@ describe('GrpcConnection', () => {
     expect(
       connection.mockStub.lastMetadata?.get('x-goog-api-key')
     ).to.deep.equal(['grpc-connection-test-api-key']);
+  });
+
+  it('Passes custom headers from DatabaseInfo to the grpc stub', async () => {
+    const request = {
+      database: 'projects/testproject/databases/(default)',
+      writes: []
+    };
+    await connection.invokeRPC(
+      'mockRpc',
+      ResourcePath.emptyPath(),
+      request,
+      null,
+      null
+    );
+    expect(
+      connection.mockStub.lastMetadata?.get('x-goog-firestore-api-requester')
+    ).to.deep.equal(['console']);
+    expect(
+      connection.mockStub.lastMetadata?.get('x-custom-header')
+    ).to.deep.equal(['val']);
   });
 });

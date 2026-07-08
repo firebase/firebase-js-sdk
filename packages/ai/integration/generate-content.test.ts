@@ -43,7 +43,7 @@ import { TIMEOUT_EXPIRED_MESSAGE } from '../src/requests/request';
 import { isNode } from '@firebase/util';
 
 describe('Generate Content', function () {
-  this.timeout(90_000); // gemini 3 requests take a long time, especially when using google search and url context.
+  this.timeout(90_000); // gemini 3.x requests using grounding and URL context can take up to 90s.
   testConfigs.forEach(testConfig => {
     describe(`${testConfig.toString()}`, () => {
       const commonGenerationConfig: GenerationConfig = {
@@ -97,50 +97,17 @@ describe('Generate Content', function () {
         expect(trimmedText).to.equal('Mountain View');
 
         expect(response.usageMetadata).to.not.be.null;
-
-        if (model.model.includes('gemini-2.5-flash')) {
-          expect(response.usageMetadata!.promptTokenCount).to.not.equal(0);
-          expect(response.usageMetadata!.candidatesTokenCount).to.not.equal(0);
-          expect(response.usageMetadata!.thoughtsTokenCount).to.not.equal(0);
-          expect(response.usageMetadata!.totalTokenCount).to.not.equal(0);
-          expect(response.usageMetadata!.promptTokensDetails).to.not.be.null;
-          expect(response.usageMetadata!.promptTokensDetails!.length).to.equal(
-            1
-          );
-          expect(
-            response.usageMetadata!.promptTokensDetails![0].modality
-          ).to.equal(Modality.TEXT);
-          expect(
-            response.usageMetadata!.promptTokensDetails![0].tokenCount
-          ).to.not.equal(0);
-
-          // candidatesTokenDetails comes back about half the time, so let's just not test it.
-        } else if (model.model.includes('gemini-2.0-flash')) {
-          expect(response.usageMetadata!.promptTokenCount).to.not.equal(0);
-          expect(response.usageMetadata!.candidatesTokenCount).to.not.equal(0);
-          expect(response.usageMetadata!.totalTokenCount).to.not.equal(0);
-          expect(response.usageMetadata!.promptTokensDetails).to.not.be.null;
-          expect(response.usageMetadata!.promptTokensDetails!.length).to.equal(
-            1
-          );
-          expect(
-            response.usageMetadata!.promptTokensDetails![0].modality
-          ).to.equal(Modality.TEXT);
-          expect(
-            response.usageMetadata!.promptTokensDetails![0].tokenCount
-          ).to.equal(21);
-          expect(response.usageMetadata!.candidatesTokensDetails).to.not.be
-            .null;
-          expect(
-            response.usageMetadata!.candidatesTokensDetails!.length
-          ).to.equal(1);
-          expect(
-            response.usageMetadata!.candidatesTokensDetails![0].modality
-          ).to.equal(Modality.TEXT);
-          expect(
-            response.usageMetadata!.candidatesTokensDetails![0].tokenCount
-          ).to.not.equal(0);
-        }
+        expect(response.usageMetadata!.promptTokenCount).to.not.equal(0);
+        expect(response.usageMetadata!.candidatesTokenCount).to.not.equal(0);
+        expect(response.usageMetadata!.totalTokenCount).to.be.greaterThan(0);
+        expect(response.usageMetadata!.promptTokensDetails).to.not.be.null;
+        expect(response.usageMetadata!.promptTokensDetails!.length).to.equal(1);
+        expect(
+          response.usageMetadata!.promptTokensDetails![0].modality
+        ).to.equal(Modality.TEXT);
+        expect(
+          response.usageMetadata!.promptTokensDetails![0].tokenCount
+        ).to.be.greaterThan(0);
       });
 
       it('generateContent: google search grounding', async () => {
@@ -296,10 +263,6 @@ describe('Generate Content', function () {
       });
 
       it('generateContent: google maps grounding with RetrievalConfig', async () => {
-        if (testConfig.model === 'gemini-3-pro-preview') {
-          // Maps grounding is not supported in gemini-3-pro-preview.
-          return;
-        }
         const model = getGenerativeModel(testConfig.ai, {
           model: testConfig.model,
           generationConfig: commonGenerationConfig,
@@ -394,16 +357,7 @@ describe('Generate Content', function () {
         expect(groundingMetadata!.googleMapsWidgetContextToken).to.exist;
       });
 
-      describe('URL Context', async () => {
-        // URL Context is not supported in Google AI for gemini-2.0-flash
-        if (
-          ['gemini-2.0-flash-001', 'gemini-2.0-flash-lite-001'].includes(
-            testConfig.model
-          ) // Models that don't support URL Context
-        ) {
-          return;
-        }
-
+      describe('URL Context', () => {
         it('generateContent: url context', async () => {
           const model = getGenerativeModel(testConfig.ai, {
             model: testConfig.model,
@@ -432,11 +386,8 @@ describe('Generate Content', function () {
 
           const usageMetadata = response.usageMetadata;
           expect(usageMetadata).to.exist;
-          // usageMetaData.toolUsePromptTokenCount does not exist in Gemini 2.0 flash responses.
-          if (!model.model.includes('gemini-2.0-flash')) {
-            expect(usageMetadata?.toolUsePromptTokenCount).to.exist;
-            expect(usageMetadata?.toolUsePromptTokenCount).to.be.greaterThan(0);
-          }
+          expect(usageMetadata?.toolUsePromptTokenCount).to.exist;
+          expect(usageMetadata?.toolUsePromptTokenCount).to.be.greaterThan(0);
         });
 
         it('generateContent: url context and google search grounding', async () => {
@@ -521,12 +472,7 @@ describe('Generate Content', function () {
           }
         });
       });
-
       it('generateContent: code execution', async () => {
-        if (testConfig.model === 'gemini-2.0-flash-lite-001') {
-          // This model does not support code execution
-          return;
-        }
         const model = getGenerativeModel(testConfig.ai, {
           model: testConfig.model,
           generationConfig: commonGenerationConfig,
