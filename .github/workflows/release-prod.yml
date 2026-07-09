@@ -43,8 +43,6 @@ jobs:
         # Release script requires git history and tags.
         fetch-depth: 0
         ref: ${{ github.event.inputs.release-branch }}
-        token: ${{ secrets.OSS_BOT_GITHUB_TOKEN }}
-        # This is ok since this workflow uses a custom token.
         persist-credentials: false
     - name: Yarn install
       run: yarn
@@ -106,13 +104,6 @@ jobs:
         NPM_TOKEN_APP_CHECK_COMPAT: ${{ secrets.NPM_TOKEN_APP_CHECK_COMPAT }}
         NPM_TOKEN_API_DOCUMENTER: ${{ secrets.NPM_TOKEN_API_DOCUMENTER }}
         CI: true
-    - name: Get release version
-      id: get-version
-      # In production, there is only one version number
-      run: |
-        VERSION_SCRIPT="const pkg = require('./packages/firebase/package.json'); console.log(pkg.version);"
-        VERSION=`node -e "${VERSION_SCRIPT}"`
-        echo "BASE_VERSION=$VERSION" >> $GITHUB_OUTPUT
     - name: Echo version in shell
       run: |
         echo "Base version: ${STEPS_GET_VERSION_OUTPUTS_BASE_VERSION}"
@@ -161,3 +152,10 @@ jobs:
           --title "$NEWEST_TAG" \
           --notes "$RELEASE_NOTES" \
           --verify-tag
+    - name: Publish git tags
+      # This commonly runs into permissions errors. Should not block the rest
+      # of the workflow. But should fail workflow so we notice it.
+      run: yarn ts-node scripts/release/publish-git-tags.ts
+      # The script injects this token into the git push command
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

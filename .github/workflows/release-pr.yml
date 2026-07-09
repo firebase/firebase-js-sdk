@@ -55,5 +55,7 @@ jobs:
 
       - name: Create Release Pull Request
         uses: changesets/action@a45c4d594aa4e2c509dc14a9f2b3b67ba3780d0d # ratchet:changesets/action@v1
+        with:
+          setupGitUser: false
         env:
           GITHUB_TOKEN: ${{ secrets.OSS_BOT_GITHUB_TOKEN }}
