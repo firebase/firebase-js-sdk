@@ -261,6 +261,71 @@ describe('passkey', async () => {
     expect(auth.currentUser?.uid).to.eq('mock-uid');
   });
 
+  it('should delete the anonymous user if fallback passkey enrollment fails', async () => {
+    if (
+      typeof navigator === 'undefined' ||
+      typeof navigator.credentials === 'undefined'
+    ) {
+      return;
+    }
+    const notAllowedError = new Error('User cancelled');
+    notAllowedError.name = 'NotAllowedError';
+    sinon.stub(navigator.credentials, 'get').throws(notAllowedError);
+
+    const enrollmentError = new Error('Enrollment cancelled');
+    sinon.stub(navigator.credentials, 'create').throws(enrollmentError);
+
+    const serverUser: APIUserInfo = { localId: 'local-id' };
+    mockEndpoint(Endpoint.SIGN_UP, {
+      idToken: 'id-token',
+      refreshToken: 'refresh-token',
+      expiresIn: '1234',
+      localId: serverUser.localId!
+    });
+    mockEndpoint(Endpoint.GET_ACCOUNT_INFO, { users: [serverUser] });
+
+    mockEndpoint(Endpoint.START_PASSKEY_SIGNIN, {
+      credentialRequestOptions: {
+        challenge: 'validbase64challenge',
+        rpId: 'rp-id',
+        userVerification: 'required'
+      }
+    });
+
+    mockEndpoint(Endpoint.START_PASSKEY_ENROLLMENT, {
+      credentialCreationOptions: {
+        rp: { name: 'mock-rp' },
+        user: { id: 'mockuser', name: 'mock-user', displayName: 'Mock User' },
+        challenge: 'validbase64challenge',
+        pubKeyCredParams: [
+          { type: 'public-key', alg: -7 },
+          { type: 'public-key', alg: -257 }
+        ],
+        timeout: 60000,
+        excludeCredentials: [],
+        authenticatorSelection: {
+          authenticatorAttachment: 'platform',
+          requireResidentKey: false,
+          userVerification: 'required'
+        },
+        attestation: 'direct',
+        extensions: { example: true }
+      }
+    });
+
+    const deleteMock = mockEndpoint(Endpoint.DELETE_ACCOUNT, {});
+
+    let threw = false;
+    try {
+      await signInWithPasskey(auth, 'name', false);
+    } catch (e) {
+      threw = true;
+      expect((e as Error).message).to.equal('Enrollment cancelled');
+    }
+    expect(threw).to.be.true;
+    expect(deleteMock.calls.length).to.eq(1);
+  });
+
   it('should fallback when passkey credential is null', async () => {
     if (
       typeof navigator === 'undefined' ||
