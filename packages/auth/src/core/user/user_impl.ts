@@ -143,7 +143,7 @@ export class UserImpl implements UserInternal {
     this.isAnonymous = user.isAnonymous;
     this.tenantId = user.tenantId;
     this.providerData = user.providerData.map(userInfo => ({ ...userInfo }));
-    this.enrolledPasskeys = user.enrolledPasskeys.map(passkeyInfo => ({
+    this.enrolledPasskeys = (user.enrolledPasskeys || []).map(passkeyInfo => ({
       ...passkeyInfo
     }));
     this.metadata._copy(user.metadata);

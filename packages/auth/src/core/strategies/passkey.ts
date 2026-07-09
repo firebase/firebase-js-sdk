@@ -205,27 +205,30 @@ export async function unenrollPasskey(
   await passkeyUnenroll(authInternal, request);
 }
 
+function base64ToUint8Array(base64: string): Uint8Array {
+  // Replace base64url characters with standard base64 characters
+  const base64Standard = base64.replace(/-/g, '+').replace(/_/g, '/');
+  // Add padding if necessary
+  const padding = '='.repeat((4 - (base64Standard.length % 4)) % 4);
+  const binaryStr = atob(base64Standard + padding);
+  const len = binaryStr.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; i++) {
+    bytes[i] = binaryStr.charCodeAt(i);
+  }
+  return bytes;
+}
+
 // Converts an array of credential IDs of `excludeCredentials` field to an array of `PublicKeyCredentialDescriptor` objects.
-function convertExcludeCredentials(
+function convertCredentialIds(
   options:
     | PublicKeyCredentialCreationOptions
     | PublicKeyCredentialRequestOptions
 ): void {
-  function base64ToBuffer(base64: string): ArrayBuffer {
-    const binaryStr = atob(base64);
-    const len = binaryStr.length;
-    const bytes = new Uint8Array(len);
-    for (let i = 0; i < len; i++) {
-      bytes[i] = binaryStr.charCodeAt(i);
-    }
-    return bytes.buffer;
-  }
-
   if ('excludeCredentials' in options && options.excludeCredentials) {
     for (const cred of options.excludeCredentials) {
       if (typeof cred.id === 'string') {
-        // Assuming Base64 encoded strings
-        cred.id = base64ToBuffer(cred.id);
+        cred.id = base64ToUint8Array(cred.id);
       }
     }
   }
@@ -245,18 +248,16 @@ function getPasskeyCredentialCreationOptions(
   options.user!.displayName = name;
 
   const userId = options.user!.id as unknown as string;
-  options.user!.id = Uint8Array.from(atob(userId), c => c.charCodeAt(0));
+  options.user!.id = base64ToUint8Array(userId);
 
   const rpId = window.location.hostname;
   options.rp!.id = rpId;
   options.rp!.name = rpId;
 
   const challengeBase64 = options.challenge as unknown as string;
-  options.challenge = Uint8Array.from(atob(challengeBase64), c =>
-    c.charCodeAt(0)
-  );
+  options.challenge = base64ToUint8Array(challengeBase64);
 
-  convertExcludeCredentials(options);
+  convertCredentialIds(options);
 
   return options;
 }
@@ -275,11 +276,9 @@ function getPasskeyCredentialRequestOptions(
   options.rpId = rpId;
 
   const challengeBase64 = options.challenge as unknown as string;
-  options.challenge = Uint8Array.from(atob(challengeBase64), c =>
-    c.charCodeAt(0)
-  );
+  options.challenge = base64ToUint8Array(challengeBase64);
 
-  convertExcludeCredentials(options);
+  convertCredentialIds(options);
 
   return options;
 }

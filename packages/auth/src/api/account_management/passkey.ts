@@ -43,10 +43,11 @@ interface PublicKeyCredentialJSON {
 export function publicKeyCredentialToJSON(
   pubKeyCred: PublicKeyCredential
 ): PublicKeyCredentialJSON {
-  // Convert ArrayBuffer to Base64
+  // Convert ArrayBuffer to Base64URL (standard for WebAuthn/FIDO2)
   function bufferToBase64(buffer: ArrayBuffer): string {
     const byteArray = Array.from(new Uint8Array(buffer));
-    return btoa(String.fromCharCode.apply(null, byteArray));
+    const base64 = btoa(String.fromCharCode.apply(null, byteArray));
+    return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
   }
 
   const clientDataJSON = bufferToBase64(pubKeyCred.response.clientDataJSON);

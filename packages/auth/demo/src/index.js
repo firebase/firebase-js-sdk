@@ -544,7 +544,10 @@ function onGetEnrolledPasskeys() {
 
 function onUnenrollPasskey() {
   const credId = $('#unenroll-passkey-credential-id').val();
-  unenrollPasskey(activeUser(), credId);
+  unenrollPasskey(activeUser(), credId).then(
+    () => console.log('Successfully unenrolled passkey'),
+    onAuthError
+  );
 }
 
 function onSignInWithPasskey() {
