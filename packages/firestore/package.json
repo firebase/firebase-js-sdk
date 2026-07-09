@@ -30,7 +30,7 @@
     "test:lite:browser:debug": "karma start --browsers=Chrome --lite --auto-watch",
     "test": "run-s --npm-path npm lint assertion-id:check test:all",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all:ci",
-    "test:all:ci": "run-s --npm-path npm test:browser test:node:emulator test:lite:browser test:browser:prod:enterprise test:lite:browser:enterprise",
+    "test:all:ci": "run-s --npm-path npm assertion-id:check test:browser test:node:emulator test:lite:browser test:browser:prod:enterprise test:lite:browser:enterprise",
     "test:all": "run-p --npm-path npm test:browser test:lite:browser test:node:emulator test:minified test:browser:prod:enterprise test:lite:browser:enterprise",
     "test:browser": "karma start",
     "test:browser:emulator:debug": "karma start --browsers=Chrome --targetBackend=emulator",

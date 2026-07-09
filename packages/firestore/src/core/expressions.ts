@@ -1752,7 +1752,7 @@ export class CoreArrayContainsAny implements EvaluableExpr {
             break;
           }
           default:
-            fail(0xae40, { value, search });
+            fail(0xebf3, { value, search });
             break;
         }
       }
