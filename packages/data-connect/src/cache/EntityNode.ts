@@ -224,20 +224,72 @@ export class EntityNode {
         'EntityNode.fromJson: expected object'
       );
     }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const rawObj = obj as Record<string, any>;
+    const rawObj = obj as DehydratedStubDataObject;
     const sdo = new EntityNode();
     if (rawObj.backingData) {
-      sdo.entityData = EntityDataObject.fromJSON(rawObj.backingData);
+      const bd = rawObj.backingData;
+      if (typeof bd !== 'object' || Array.isArray(bd)) {
+        throw new DataConnectError(
+          Code.INVALID_ARGUMENT,
+          'EntityNode.fromJson: expected object for backingData'
+        );
+      }
+      if (typeof bd.globalID !== 'string') {
+        throw new DataConnectError(
+          Code.INVALID_ARGUMENT,
+          'EntityNode.fromJson: expected string for backingData.globalID'
+        );
+      }
+      if (!bd.map || typeof bd.map !== 'object' || Array.isArray(bd.map)) {
+        throw new DataConnectError(
+          Code.INVALID_ARGUMENT,
+          'EntityNode.fromJson: expected object for backingData.map'
+        );
+      }
+      if (!Array.isArray(bd.referencedFrom) || bd.referencedFrom.some((x: unknown) => typeof x !== 'string')) {
+        throw new DataConnectError(
+          Code.INVALID_ARGUMENT,
+          'EntityNode.fromJson: expected string array for backingData.referencedFrom'
+        );
+      }
+      sdo.entityData = EntityDataObject.fromJSON(bd);
     }
-    sdo.globalId = rawObj[GLOBAL_ID_KEY];
+    const rawGlobalId = rawObj[GLOBAL_ID_KEY];
+    if (rawGlobalId !== undefined) {
+      if (typeof rawGlobalId !== 'string') {
+        throw new DataConnectError(
+          Code.INVALID_ARGUMENT,
+          'EntityNode.fromJson: expected string for globalId'
+        );
+      }
+      sdo.globalId = rawGlobalId;
+    }
+
+    const rawKeys = rawObj[ENTITY_DATA_KEYS_KEY];
+    if (rawKeys) {
+      if (!Array.isArray(rawKeys)) {
+        throw new DataConnectError(
+          Code.INVALID_ARGUMENT,
+          'EntityNode.fromJson: expected array for entityDataKeys'
+        );
+      }
+      for (const key of rawKeys) {
+        if (typeof key !== 'string') {
+          throw new DataConnectError(
+            Code.INVALID_ARGUMENT,
+            'EntityNode.fromJson: expected array of strings for entityDataKeys'
+          );
+        }
+        sdo.entityDataKeys.add(key);
+      }
+    }
 
     const rawScalars = rawObj[SCALARS_KEY];
     if (rawScalars) {
       if (typeof rawScalars !== 'object' || Array.isArray(rawScalars)) {
         throw new DataConnectError(
           Code.INVALID_ARGUMENT,
-          'EntityNode.fromJson: expected object for SCALARS_KEY'
+          'EntityNode.fromJson: expected object for scalars'
         );
       }
       sdo.scalars = rawScalars;
@@ -250,16 +302,22 @@ export class EntityNode {
       if (typeof rawRefs !== 'object' || Array.isArray(rawRefs)) {
         throw new DataConnectError(
           Code.INVALID_ARGUMENT,
-          'EntityNode.fromJson: expected object for REFERENCES_KEY'
+          'EntityNode.fromJson: expected object for references'
         );
       }
-      const references: Record<string, unknown> = {};
+      const references: { [key: string]: EntityNode } = {};
       for (const key in rawRefs) {
         if (Object.prototype.hasOwnProperty.call(rawRefs, key)) {
+          // NOTE: is this check necessary? sure, we don't want to allow `prototype` or `constructor`
+          // pollution, but doesn't this mean any fields named that can't be de-serialized? and so
+          // therefore we should really be disallowing these field names all the way in the schema???
+          if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
+            continue;
+          }
           references[key] = EntityNode.fromJson(rawRefs[key]);
         }
       }
-      sdo.references = references as typeof sdo.references;
+      sdo.references = references;
     }
 
     const rawLists = rawObj[OBJECT_LISTS_KEY];
@@ -267,12 +325,15 @@ export class EntityNode {
       if (typeof rawLists !== 'object' || Array.isArray(rawLists)) {
         throw new DataConnectError(
           Code.INVALID_ARGUMENT,
-          'EntityNode.fromJson: expected object for OBJECT_LIST_KEY'
+          'EntityNode.fromJson: expected object for objectLists'
         );
       }
-      const objectLists: Record<string, unknown> = {};
+      const objectLists: { [key: string]: EntityNode[] } = {};
       for (const key in rawLists) {
         if (Object.prototype.hasOwnProperty.call(rawLists, key)) {
+          if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
+            continue;
+          }
           const list = rawLists[key];
           if (!Array.isArray(list)) {
             throw new DataConnectError(
@@ -285,7 +346,7 @@ export class EntityNode {
           );
         }
       }
-      sdo.objectLists = objectLists as typeof sdo.objectLists;
+      sdo.objectLists = objectLists;
     }
     return sdo;
   }
@@ -294,6 +355,7 @@ export class EntityNode {
 export interface DehydratedStubDataObject {
   backingData?: EntityDataObjectJson;
   [GLOBAL_ID_KEY]?: string;
+  [ENTITY_DATA_KEYS_KEY]?: string[];
   [SCALARS_KEY]?: { [key: string]: FDCScalarValue };
   [REFERENCES_KEY]?: { [key: string]: DehydratedStubDataObject };
   [OBJECT_LISTS_KEY]?: {
