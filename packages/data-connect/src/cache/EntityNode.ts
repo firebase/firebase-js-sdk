@@ -227,32 +227,32 @@ export class EntityNode {
     const rawObj = obj as DehydratedStubDataObject;
     const sdo = new EntityNode();
     if (rawObj.backingData) {
-      const bd = rawObj.backingData;
-      if (typeof bd !== 'object' || Array.isArray(bd)) {
+      const backingData = rawObj.backingData;
+      if (typeof backingData !== 'object' || Array.isArray(backingData)) {
         throw new DataConnectError(
           Code.INVALID_ARGUMENT,
           'EntityNode.fromJson: expected object for backingData'
         );
       }
-      if (typeof bd.globalID !== 'string') {
+      if (typeof backingData.globalID !== 'string') {
         throw new DataConnectError(
           Code.INVALID_ARGUMENT,
           'EntityNode.fromJson: expected string for backingData.globalID'
         );
       }
-      if (!bd.map || typeof bd.map !== 'object' || Array.isArray(bd.map)) {
+      if (!backingData.map || typeof backingData.map !== 'object' || Array.isArray(backingData.map)) {
         throw new DataConnectError(
           Code.INVALID_ARGUMENT,
           'EntityNode.fromJson: expected object for backingData.map'
         );
       }
-      if (!Array.isArray(bd.referencedFrom) || bd.referencedFrom.some((x: unknown) => typeof x !== 'string')) {
+      if (!Array.isArray(backingData.referencedFrom) || backingData.referencedFrom.some((x: unknown) => typeof x !== 'string')) {
         throw new DataConnectError(
           Code.INVALID_ARGUMENT,
           'EntityNode.fromJson: expected string array for backingData.referencedFrom'
         );
       }
-      sdo.entityData = EntityDataObject.fromJSON(bd);
+      sdo.entityData = EntityDataObject.fromJSON(backingData);
     }
     const rawGlobalId = rawObj[GLOBAL_ID_KEY];
     if (rawGlobalId !== undefined) {
