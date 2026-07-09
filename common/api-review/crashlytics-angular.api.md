@@ -4,8 +4,10 @@
 
 ```ts
 
+import { DestroyRef } from '@angular/core';
 import { ErrorHandler } from '@angular/core';
 import { FirebaseApp } from '@firebase/app';
+import { Router } from '@angular/router';
 
 // @public
 export interface Crashlytics {
@@ -26,6 +28,15 @@ export class FirebaseErrorHandler implements ErrorHandler {
     // (undocumented)
     handleError(error: unknown): void;
     }
+
+// @public
+export function getRawPath(url: string): string;
+
+// @public
+export function getSafeRoutePath(router: Router): string;
+
+// @public
+export function setupNavigationTracking(app: FirebaseApp, router: Router, destroyRef: DestroyRef, crashlyticsOptions?: CrashlyticsOptions): void;
 
 
 // (No @packageDocumentation comment for this package)

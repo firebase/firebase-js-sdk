@@ -15,10 +15,10 @@
  * limitations under the License.
  */
 
-import { ErrorHandler, inject } from '@angular/core';
-import { ActivatedRouteSnapshot, Router } from '@angular/router';
+import { ErrorHandler, inject, DestroyRef } from '@angular/core';
+import { ActivatedRouteSnapshot, NavigationEnd, Router } from '@angular/router';
 import { registerCrashlytics } from '../register';
-import { recordError, getCrashlytics } from '../api';
+import { recordError, getCrashlytics, logViewBoundary } from '../api';
 import { Crashlytics, CrashlyticsOptions } from '../public-types';
 import { FirebaseApp } from '@firebase/app';
 import { CrashlyticsInternal } from '../types';
@@ -30,8 +30,6 @@ export * from '../public-types';
 /**
  * Constructs the safe, templated route path from the router state.
  * Example output: '/users/:id/posts'
- *
- * @internal
  */
 export function getSafeRoutePath(router: Router): string {
   let currentRoute: ActivatedRouteSnapshot | null =
@@ -42,13 +40,20 @@ export function getSafeRoutePath(router: Router): string {
     currentRoute = currentRoute.firstChild;
   }
 
-  // Traverse down from the root to the deepest child, collecting configured paths
+  // Traverse up from the deepest child to the root, collecting configured paths
   const pathFromRoot = currentRoute.pathFromRoot
     .map(route => route.routeConfig?.path)
     .filter(path => path !== undefined && path !== '') // Filter out empty or undefined paths
     .join('/');
 
   return `/${pathFromRoot}`;
+}
+
+/**
+ * Extracts the raw path portion from a full URL by stripping query parameters and hashes.
+ */
+export function getRawPath(url: string): string {
+  return url.split('?')[0].split('#')[0];
 }
 
 /**
@@ -110,4 +115,73 @@ export class FirebaseErrorHandler implements ErrorHandler {
   handleError(error: unknown): void {
     recordError(this.crashlytics, error);
   }
+}
+
+/**
+ * Configures automatic Angular router navigation tracking for Firebase Crashlytics.
+ *
+ * This function subscribes to router navigation events, keeps the Crashlytics route path attribute
+ * updated, and logs view boundary telemetry automatically.
+ *
+ * @example
+ * ```typescript
+ * import { ApplicationConfig, ErrorHandler, inject, DestroyRef } from '@angular/core';
+ * import { Router } from '@angular/router';
+ * import { FirebaseErrorHandler, setupNavigationTracking } from '@firebase/crashlytics/angular';
+ *
+ * export const appConfig: ApplicationConfig = {
+ *   providers: [
+ *     {
+ *       provide: ErrorHandler,
+ *       useFactory: () => new FirebaseErrorHandler(firebaseApp)
+ *     },
+ *     provideEnvironmentInitializer(() => {
+ *       inject(ErrorHandler);
+ *       setupNavigationTracking(
+ *         firebaseApp,
+ *         inject(Router),
+ *         inject(DestroyRef)
+ *       );
+ *     })
+ *   ]
+ * };
+ * ```
+ *
+ * @param app - The {@link @firebase/app#FirebaseApp} instance to use.
+ * @param router - The Angular {@link @angular/router#Router} instance to subscribe to.
+ * @param destroyRef - The {@link @angular/core#DestroyRef} instance to bind teardown logic to.
+ * @param crashlyticsOptions - Optional. {@link CrashlyticsOptions} that configure the Crashlytics instance.
+ *
+ * @public
+ */
+export function setupNavigationTracking(
+  app: FirebaseApp,
+  router: Router,
+  destroyRef: DestroyRef,
+  crashlyticsOptions?: CrashlyticsOptions
+): void {
+  const crashlytics = getCrashlytics(app, crashlyticsOptions);
+  const attributesStore = (crashlytics as CrashlyticsInternal).attributesStore;
+
+  attributesStore.setRoutePathProvider(() => getSafeRoutePath(router));
+
+  const initialPattern = getSafeRoutePath(router);
+  let lastRawPath = getRawPath(router.url);
+  logViewBoundary(crashlytics, initialPattern);
+
+  const subscription = router.events.subscribe(event => {
+    if (event instanceof NavigationEnd) {
+      const currentRawPath = getRawPath(router.url);
+      if (currentRawPath !== lastRawPath) {
+        lastRawPath = currentRawPath;
+        const pattern = getSafeRoutePath(router);
+        logViewBoundary(crashlytics, pattern);
+      }
+    }
+  });
+
+  destroyRef.onDestroy(() => {
+    attributesStore.setRoutePathProvider(undefined);
+    subscription.unsubscribe();
+  });
 }
