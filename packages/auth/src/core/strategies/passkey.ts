@@ -112,7 +112,11 @@ export async function signInWithPasskey(
         return await enrollPasskey(user, name);
       } catch (enrollmentError) {
         // If enrollment fails, delete the anonymously created user.
-        await (getModularInstance(user) as UserInternal).delete();
+        try {
+          await (getModularInstance(user) as UserInternal).delete();
+        } catch (deleteError) {
+          await authInternal.signOut();
+        }
         throw enrollmentError;
       }
     }
