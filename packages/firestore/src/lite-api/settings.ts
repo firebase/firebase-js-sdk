@@ -68,6 +68,14 @@ export interface FirestoreSettings {
    * throws an exception when it encounters properties of type `undefined`.
    */
   ignoreUndefinedProperties?: boolean;
+
+  /**
+   * @internal
+   * Undocumented setting for internal Google consumers.
+   * External callers needing this feature, please let us
+   * know by opening a feature request in the repository.
+   */
+  _customHeaders?: Record<string, string>;
 }
 
 /**
@@ -111,6 +119,7 @@ export class FirestoreSettingsImpl {
 
   readonly useFetchStreams: boolean;
   readonly localCache?: FirestoreLocalCache;
+  readonly _customHeaders?: Record<string, string>;
 
   readonly isUsingEmulator: boolean;
 
@@ -137,6 +146,10 @@ export class FirestoreSettingsImpl {
     this.credentials = settings.credentials;
     this.ignoreUndefinedProperties = !!settings.ignoreUndefinedProperties;
     this.localCache = settings.localCache;
+
+    if (settings._customHeaders) {
+      this._customHeaders = { ...settings._customHeaders };
+    }
 
     if (settings.cacheSizeBytes === undefined) {
       this.cacheSizeBytes = LRU_DEFAULT_CACHE_SIZE_BYTES;
@@ -198,9 +211,33 @@ export class FirestoreSettingsImpl {
         other.experimentalLongPollingOptions
       ) &&
       this.ignoreUndefinedProperties === other.ignoreUndefinedProperties &&
-      this.useFetchStreams === other.useFetchStreams
+      this.useFetchStreams === other.useFetchStreams &&
+      customHeadersEqual(this._customHeaders, other._customHeaders)
     );
   }
+}
+
+function customHeadersEqual(
+  a?: Record<string, string>,
+  b?: Record<string, string>
+): boolean {
+  if (a === b) {
+    return true;
+  }
+  if (!a || !b) {
+    return false;
+  }
+  const keysA = Object.keys(a);
+  const keysB = Object.keys(b);
+  if (keysA.length !== keysB.length) {
+    return false;
+  }
+  for (const key of keysA) {
+    if (a[key] !== b[key]) {
+      return false;
+    }
+  }
+  return true;
 }
 
 function validateLongPollingOptions(

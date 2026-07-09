@@ -22,12 +22,9 @@ import typescript from 'typescript';
 import pkg from './package.json';
 
 const workerPlugins = [
-  strip({ functions: ['debugAssert.*'] }),
-  resolve({
-    mainFields: ['webworker', 'module', 'main']
-  }),
   typescriptPlugin({
     typescript,
+    include: ['**/*.ts'],
     tsconfigOverride: {
       compilerOptions: {
         declaration: false,
@@ -40,6 +37,10 @@ const workerPlugins = [
         ]
       }
     }
+  }),
+  strip({ functions: ['debugAssert.*'] }),
+  resolve({
+    mainFields: ['webworker', 'module', 'main']
   })
 ];
 

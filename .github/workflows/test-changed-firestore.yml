@@ -18,6 +18,9 @@ on:
   workflow_dispatch:
   pull_request:
 
+permissions:
+  contents: read
+
 env:
   artifactRetentionDays: 14
   # Bump Node memory limit
@@ -33,19 +36,15 @@ jobs:
 
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # ratchet:actions/checkout@v4
         with:
           # This makes Actions fetch all Git history so run-changed script can diff properly.
           fetch-depth: 0
+          persist-credentials: false
       - name: Set up Node (22)
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # ratchet:actions/setup-node@v4
         with:
-          node-version: 22.10.0
-      - name: Set up Java (21)
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin'
-          java-version: '21'
+          node-version: 22.12.0
       - name: install Chrome stable
         run: |
           sudo apt-get update
@@ -77,7 +76,7 @@ jobs:
           gzip build.tar
       - name: Upload build archive
         if: ${{ !cancelled() && steps.build.outcome == 'success' && steps.check-changed.outcome != 'success' }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # ratchet:actions/upload-artifact@v4
         with:
           name: build.tar.gz
           path: build.tar.gz
@@ -90,20 +89,15 @@ jobs:
     if: ${{ needs.build.outputs.changed == 'true'}}
     steps:
       - name: Set up Node (22)
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # ratchet:actions/setup-node@v4
         with:
-          node-version: 22.10.0
-      - name: Set up Java (21)
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin'
-          java-version: '21'
+          node-version: 22.12.0
       - name: install Chrome stable
         run: |
           sudo apt-get update
           sudo apt-get install google-chrome-stable
       - name: Download build archive
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # ratchet:actions/download-artifact@v4
         with:
           name: build.tar.gz
       - name: Unzip build artifact
@@ -112,7 +106,6 @@ jobs:
         run: cp config/ci.config.json config/project.json
       - name: Run compat tests
         run: cd packages/firestore-compat && yarn run test:ci
-        continue-on-error: true
 
   test-chrome:
     name: Test Firestore
@@ -124,20 +117,15 @@ jobs:
     if: ${{ needs.build.outputs.changed == 'true'}}
     steps:
       - name: Set up Node (22)
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # ratchet:actions/setup-node@v4
         with:
-          node-version: 22.10.0
-      - name: Set up Java (21)
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin'
-          java-version: '21'
+          node-version: 22.12.0
       - name: install Chrome stable
         run: |
           sudo apt-get update
           sudo apt-get install google-chrome-stable
       - name: Download build archive
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # ratchet:actions/download-artifact@v4
         with:
           name: build.tar.gz
       - name: Unzip build artifact
@@ -146,7 +134,6 @@ jobs:
         run: cp config/ci.config.json config/project.json
       - name: Run tests
         run: cd packages/firestore && yarn run ${{ matrix.test-name }}
-        continue-on-error: ${{ matrix.test-name != 'test:node:emulator' }}
         env:
           EXPERIMENTAL_MODE: true
 
@@ -160,20 +147,15 @@ jobs:
     if: ${{ github.event_name != 'pull_request' }}
     steps:
       - name: Set up Node (22)
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # ratchet:actions/setup-node@v4
         with:
-          node-version: 22.10.0
-      - name: Set up Java (21)
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin'
-          java-version: '21'
+          node-version: 22.12.0
       - name: install Chrome stable
         run: |
           sudo apt-get update
           sudo apt-get install google-chrome-stable
       - name: Download build archive
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # ratchet:actions/download-artifact@v4
         with:
           name: build.tar.gz
       - name: Unzip build artifact
@@ -185,7 +167,6 @@ jobs:
           echo $INTEG_TESTS_GOOGLE_SERVICES > config/project.json
       - name: Run tests
         run: cd packages/firestore && yarn run ${{ matrix.test-name }}
-        continue-on-error: true
         env:
           EXPERIMENTAL_MODE: true
 
@@ -199,16 +180,11 @@ jobs:
       - name: install Firefox stable
         run: npx @puppeteer/browsers install firefox@stable
       - name: Set up Node (22)
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # ratchet:actions/setup-node@v4
         with:
-          node-version: 22.10.0
-      - name: Set up Java (21)
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin'
-          java-version: '21'
+          node-version: 22.12.0
       - name: Download build archive
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # ratchet:actions/download-artifact@v4
         with:
           name: build.tar.gz
       - name: Unzip build artifact
@@ -217,7 +193,6 @@ jobs:
         run: cp config/ci.config.json config/project.json
       - name: Run compat tests
         run: cd packages/firestore-compat && xvfb-run yarn run test:ci
-        continue-on-error: true
         env:
           BROWSERS: 'Firefox'
 
@@ -233,25 +208,19 @@ jobs:
       - name: install Firefox stable
         run: npx @puppeteer/browsers install firefox@stable
       - name: Download build archive
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # ratchet:actions/download-artifact@v4
         with:
           name: build.tar.gz
       - name: Unzip build artifact
         run: tar xf build.tar.gz
       - name: Set up Node (22)
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # ratchet:actions/setup-node@v4
         with:
-          node-version: 22.10.0
-      - name: Set up Java (21)
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin'
-          java-version: '21'
+          node-version: 22.12.0
       - name: Test setup and yarn install
         run: cp config/ci.config.json config/project.json
       - name: Run tests
         run: cd packages/firestore && xvfb-run yarn run ${{ matrix.test-name }}
-        continue-on-error: ${{ matrix.test-name != 'test:node:emulator' }}
         env:
           BROWSERS: 'Firefox'
           EXPERIMENTAL_MODE: true
@@ -263,16 +232,11 @@ jobs:
     if: ${{ needs.build.outputs.changed == 'true'}}
     steps:
       - name: Set up Node (22)
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # ratchet:actions/setup-node@v4
         with:
-          node-version: 22.10.0
-      - name: Set up Java (21)
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin'
-          java-version: '21'
+          node-version: 22.12.0
       - name: Download build archive
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # ratchet:actions/download-artifact@v4
         with:
           name: build.tar.gz
       - name: Unzip build artifact
@@ -283,7 +247,6 @@ jobs:
           npx playwright install webkit
       - name: Run compat tests
         run: cd packages/firestore-compat && yarn run test:ci
-        continue-on-error: true
         env:
           BROWSERS: 'WebkitHeadless'
 
@@ -300,27 +263,21 @@ jobs:
     if: ${{ needs.build.outputs.changed == 'true'}}
     steps:
       - name: Download build archive
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # ratchet:actions/download-artifact@v4
         with:
           name: build.tar.gz
       - name: Unzip build artifact
         run: tar xf build.tar.gz
       - name: Set up Node (22)
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # ratchet:actions/setup-node@v4
         with:
-          node-version: 22.10.0
-      - name: Set up Java (21)
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin'
-          java-version: '21'
+          node-version: 22.12.0
       - name: Test setup
         run: |
           cp config/ci.config.json config/project.json
           npx playwright install webkit
       - name: Run tests
         run: cd packages/firestore && yarn run ${{ matrix.test-name }}
-        continue-on-error: true
         env:
           BROWSERS: 'WebkitHeadless'
           EXPERIMENTAL_MODE: true
@@ -330,8 +287,8 @@ jobs:
     runs-on: ubuntu-latest
     if: always()
     name: Check all required tests results
-    needs: [build]
+    needs: [build, test-chrome, compat-test-chrome]
     steps:
       - name: Check test matrix
-        if: needs.build.result == 'failure'
+        if: needs.build.result == 'failure' || needs.test-chrome.result == 'failure' || needs.compat-test-chrome.result == 'failure'
         run: exit 1

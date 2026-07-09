@@ -20,6 +20,9 @@ env:
   GITHUB_PULL_REQUEST_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
   GITHUB_PULL_REQUEST_BASE_SHA: ${{ github.event.pull_request.base.sha }}
 
+permissions:
+  contents: read
+
 jobs:
   format:
     name: Run license and prettier formatting tasks
@@ -27,19 +30,15 @@ jobs:
 
     steps:
     - name: Checkout Repo
-      uses: actions/checkout@v4
+      uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # ratchet:actions/checkout@v4
       with:
         # get all history for the diff
         fetch-depth: 0
+        persist-credentials: false
     - name: Set up node (22)
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # ratchet:actions/setup-node@v4
       with:
-        node-version: 22.10.0
-    - name: Set up Java (21)
-      uses: actions/setup-java@v3
-      with:
-        distribution: 'temurin'
-        java-version: '21'
+        node-version: 22.12.0
     - name: Yarn install
       run: yarn
     - name: Run formatting script

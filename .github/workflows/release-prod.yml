@@ -34,21 +34,18 @@ jobs:
 
     steps:
     - name: Set up node (22)
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # ratchet:actions/setup-node@v4
       with:
-        node-version: 22.10.0
-    - name: Set up Java (21)
-      uses: actions/setup-java@v3
-      with:
-        distribution: 'temurin'
-        java-version: '21'
+        node-version: 22.12.0
     - name: Checkout release branch (with history)
-      uses: actions/checkout@v4
+      uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # ratchet:actions/checkout@v4
       with:
         # Release script requires git history and tags.
         fetch-depth: 0
         ref: ${{ github.event.inputs.release-branch }}
         token: ${{ secrets.OSS_BOT_GITHUB_TOKEN }}
+        # This is ok since this workflow uses a custom token.
+        persist-credentials: false
     - name: Yarn install
       run: yarn
     - name: Publish to NPM

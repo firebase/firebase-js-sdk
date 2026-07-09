@@ -16,6 +16,9 @@ name: Deploy Project Config
 
 on: pull_request
 
+permissions:
+  contents: read
+
 # Detects if any project config files (rules or functions) have changed,
 # and deploys them to the test project used for CI if so.
 # Run this in its own workflow instead of as a step before each test
@@ -31,19 +34,15 @@ jobs:
 
     steps:
     - name: Checkout Repo
-      uses: actions/checkout@v4
+      uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # ratchet:actions/checkout@v4
       with:
         # This makes Actions fetch all Git history so run-changed script can diff properly.
         fetch-depth: 0
+        persist-credentials: false
     - name: Set up node (22)
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # ratchet:actions/setup-node@v4
       with:
-        node-version: 22.10.0
-    - name: Set up Java (21)
-      uses: actions/setup-java@v3
-      with:
-        distribution: 'temurin'
-        java-version: '21'
+        node-version: 22.12.0
     - name: Yarn install
       run: yarn
     - name: Deploy project config if needed
