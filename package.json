@@ -105,7 +105,7 @@
     "eslint-plugin-unused-imports": "3.2.0",
     "express": "5.2.1",
     "find-free-port": "2.0.0",
-    "firebase-tools": "13.30.0",
+    "firebase-tools": "15.22.1",
     "glob": "7.2.3",
     "http-server": "14.1.1",
     "indexeddbshim": "10.1.0",
