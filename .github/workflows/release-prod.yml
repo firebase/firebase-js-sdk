@@ -154,7 +154,8 @@ jobs:
           --verify-tag
     - name: Publish git tags
       # This commonly runs into permissions errors. Should not block the rest
-      # of the workflow. But should fail workflow so we notice it.
+      # of the workflow. But should fail workflow so we notice it. So putting
+      # at the end.
       run: yarn ts-node scripts/release/publish-git-tags.ts
       # The script injects this token into the git push command
       env:
