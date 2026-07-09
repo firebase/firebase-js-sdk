@@ -108,7 +108,13 @@ export async function signInWithPasskey(
       // If the user is not signed up, sign them up anonymously
       const userCredential = await signInAnonymously(authInternal);
       const user = userCredential.user;
-      return enrollPasskey(user, name);
+      try {
+        return await enrollPasskey(user, name);
+      } catch (enrollmentError) {
+        // If enrollment fails, delete the anonymously created user.
+        await (getModularInstance(user) as UserInternal).delete();
+        throw enrollmentError;
+      }
     }
     return Promise.reject(error);
   }
