@@ -123,6 +123,11 @@ export interface BaseParams {
     safetySettings?: SafetySetting[];
 }
 
+// @beta
+export interface BaseSpeechConfig {
+    languageCode?: string;
+}
+
 // @public
 export const BlockReason: {
     readonly SAFETY: "SAFETY";
@@ -574,6 +579,8 @@ export interface GenerationConfig {
     // @beta
     responseModalities?: ResponseModality[];
     responseSchema?: TypedSchema | SchemaRequest;
+    // @beta
+    speechConfig?: SpeechConfig;
     // (undocumented)
     stopSequences?: string[];
     // (undocumented)
@@ -1226,6 +1233,17 @@ export interface ModelParams extends BaseParams {
     tools?: Tool[];
 }
 
+// @beta
+export interface MultiSpeakerSpeechConfig extends BaseSpeechConfig {
+    multiSpeakerVoiceConfig?: MultiSpeakerVoiceConfig;
+    voiceConfig?: never;
+}
+
+// @beta
+export interface MultiSpeakerVoiceConfig {
+    speakerVoiceConfigs: SpeakerVoiceConfig[];
+}
+
 // @public
 export class NumberSchema extends Schema {
     constructor(schemaParams?: SchemaParams);
@@ -1465,14 +1483,24 @@ export interface SingleRequestOptions extends RequestOptions {
 }
 
 // @beta
+export interface SingleSpeakerSpeechConfig extends BaseSpeechConfig {
+    multiSpeakerVoiceConfig?: never;
+    voiceConfig?: VoiceConfig;
+}
+
+// @beta
 export interface SlidingWindow {
     targetTokens?: number;
 }
 
 // @beta
-export interface SpeechConfig {
-    voiceConfig?: VoiceConfig;
+export interface SpeakerVoiceConfig {
+    speaker: string;
+    voiceConfig: VoiceConfig;
 }
+
+// @beta
+export type SpeechConfig = SingleSpeakerSpeechConfig | MultiSpeakerSpeechConfig;
 
 // @beta
 export function startAudioConversation(liveSession: LiveSession, options?: StartAudioConversationOptions): Promise<AudioConversationController>;
