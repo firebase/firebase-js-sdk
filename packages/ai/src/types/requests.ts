@@ -145,7 +145,7 @@ export interface GenerationConfig {
 
   /**
    * Configures speech synthesis for text-to-speech (TTS) models.
-   * 
+   *
    * @public
    */
   speechConfig?: SpeechConfig;
@@ -555,7 +555,7 @@ export interface CodeExecutionTool {
  *
  * @public
  */
-export interface GoogleSearch { }
+export interface GoogleSearch {}
 
 /**
  * Specifies the Google Maps configuration.
@@ -591,7 +591,7 @@ export interface URLContextTool {
  *
  * @public
  */
-export interface URLContext { }
+export interface URLContext {}
 
 /**
  * A `FunctionDeclarationsTool` is a piece of code that enables the system to
@@ -837,7 +837,7 @@ export interface ThinkingConfig {
 /**
  * Configuration for a pre-built voice.
  *
- * @public 
+ * @public
  */
 export interface PrebuiltVoiceConfig {
   /**
@@ -863,7 +863,7 @@ export interface VoiceConfig {
 /**
  * Speech configuration options for controlling the model's spoken and audio capabilities.
  * Supports alternating formats for single-voice or multi-speaker setups.
- * 
+ *
  * @public
  */
 
@@ -871,7 +871,7 @@ export type SpeechConfig = SingleSpeakerSpeechConfig | MultiSpeakerSpeechConfig;
 
 /**
  * Shared foundational configuration for model speech synthesis.
- * 
+ *
  * @public
  */
 export interface BaseSpeechConfig {
@@ -881,10 +881,10 @@ export interface BaseSpeechConfig {
 
 /**
  * The audio transcription configuration.
- * 
+ *
  * @public
  */
-export interface AudioTranscriptionConfig { }
+export interface AudioTranscriptionConfig {}
 
 /**
  * Configuration for speech generation using a single voice structure.
@@ -900,7 +900,7 @@ export interface SingleSpeakerSpeechConfig extends BaseSpeechConfig {
 /**
  * Configuration for multi-speaker speech generation.
  * Note: Multi-speaker setups are not supported by real-time Live endpoints.
- * 
+ *
  * @public
  */
 export interface MultiSpeakerSpeechConfig extends BaseSpeechConfig {
@@ -912,7 +912,7 @@ export interface MultiSpeakerSpeechConfig extends BaseSpeechConfig {
 
 /**
  * Configuration outlining the enabled voices within a multi-speaker conversation.
- * 
+ *
  * @public
  */
 export interface MultiSpeakerVoiceConfig {
@@ -922,7 +922,7 @@ export interface MultiSpeakerVoiceConfig {
 
 /**
  * Configuration detailing a single actor mapping inside a multi-speaker environment.
- * 
+ *
  * @public
  */
 export interface SpeakerVoiceConfig {
