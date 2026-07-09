@@ -2158,7 +2158,7 @@ export class CoreRegexContains extends StringSearchFunctionBase {
     try {
       const regex = RE2JS.compile(search);
       return EvaluateResult.newValue({
-        booleanValue: regex.matcher(value).find()
+        booleanValue: regex.test(value)
       });
     } catch (RE2JSError) {
       logWarn(
