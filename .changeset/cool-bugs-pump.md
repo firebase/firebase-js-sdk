@@ -1,6 +1,6 @@
 ---
 '@firebase/ai': minor
-'@firebase': minor
+'firebase': minor
 ---
 
 Add multi-speaker speech configuration support
