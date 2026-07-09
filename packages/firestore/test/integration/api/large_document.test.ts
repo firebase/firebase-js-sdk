@@ -70,8 +70,12 @@ apiDescribe('Large Documents', persistence => {
         const targetBytes = Math.floor(15.9 * 1024 * 1024);
         const payload = 'a'.repeat(targetBytes);
         await setDoc(docRef, { chunk: payload });
-        await setDoc(doc(collection(db, seedColName), 'doc_a'), { chunk: payload });
-        await setDoc(doc(collection(db, seedColName), 'doc_b'), { chunk: payload });
+        await setDoc(doc(collection(db, seedColName), 'doc_a'), {
+          chunk: payload
+        });
+        await setDoc(doc(collection(db, seedColName), 'doc_b'), {
+          chunk: payload
+        });
       }
     });
   });
