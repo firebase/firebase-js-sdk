@@ -124,6 +124,11 @@ export interface BaseParams {
 }
 
 // @public
+export interface BaseSpeechConfig {
+    languageCode?: string;
+}
+
+// @public
 export const BlockReason: {
     readonly SAFETY: "SAFETY";
     readonly OTHER: "OTHER";
@@ -574,6 +579,7 @@ export interface GenerationConfig {
     // @beta
     responseModalities?: ResponseModality[];
     responseSchema?: TypedSchema | SchemaRequest;
+    speechConfig?: SpeechConfig;
     // (undocumented)
     stopSequences?: string[];
     // (undocumented)
@@ -1227,6 +1233,17 @@ export interface ModelParams extends BaseParams {
 }
 
 // @public
+export interface MultiSpeakerSpeechConfig extends BaseSpeechConfig {
+    multiSpeakerVoiceConfig?: MultiSpeakerVoiceConfig;
+    voiceConfig?: never;
+}
+
+// @public
+export interface MultiSpeakerVoiceConfig {
+    speakerVoiceConfigs: SpeakerVoiceConfig[];
+}
+
+// @public
 export class NumberSchema extends Schema {
     constructor(schemaParams?: SchemaParams);
 }
@@ -1278,7 +1295,7 @@ export type Part = TextPart | InlineDataPart | FunctionCallPart | FunctionRespon
 // @public
 export const POSSIBLE_ROLES: readonly ["user", "model", "function", "system"];
 
-// @beta
+// @public
 export interface PrebuiltVoiceConfig {
     voiceName?: string;
 }
@@ -1464,15 +1481,25 @@ export interface SingleRequestOptions extends RequestOptions {
     signal?: AbortSignal;
 }
 
+// @public
+export interface SingleSpeakerSpeechConfig extends BaseSpeechConfig {
+    multiSpeakerVoiceConfig?: never;
+    voiceConfig?: VoiceConfig;
+}
+
 // @beta
 export interface SlidingWindow {
     targetTokens?: number;
 }
 
-// @beta
-export interface SpeechConfig {
-    voiceConfig?: VoiceConfig;
+// @public
+export interface SpeakerVoiceConfig {
+    speaker: string;
+    voiceConfig: VoiceConfig;
 }
+
+// @public
+export type SpeechConfig = SingleSpeakerSpeechConfig | MultiSpeakerSpeechConfig;
 
 // @beta
 export function startAudioConversation(liveSession: LiveSession, options?: StartAudioConversationOptions): Promise<AudioConversationController>;
@@ -1728,7 +1755,7 @@ export interface VideoMetadata {
     startOffset: string;
 }
 
-// @beta
+// @public
 export interface VoiceConfig {
     prebuiltVoiceConfig?: PrebuiltVoiceConfig;
 }

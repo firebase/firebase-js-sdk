@@ -142,6 +142,13 @@ export interface GenerationConfig {
   topK?: number;
   presencePenalty?: number;
   frequencyPenalty?: number;
+
+  /**
+   * Configures speech synthesis for text-to-speech (TTS) models.
+   * 
+   * @public
+   */
+  speechConfig?: SpeechConfig;
   /**
    * Output response MIME type of the generated candidate text.
    * Supported MIME types are `text/plain` (default, text output),
@@ -830,7 +837,7 @@ export interface ThinkingConfig {
 /**
  * Configuration for a pre-built voice.
  *
- * @beta
+ * @public 
  */
 export interface PrebuiltVoiceConfig {
   /**
@@ -844,7 +851,7 @@ export interface PrebuiltVoiceConfig {
 /**
  * Configuration for the voice to used in speech synthesis.
  *
- * @beta
+ * @public
  */
 export interface VoiceConfig {
   /**
@@ -854,18 +861,73 @@ export interface VoiceConfig {
 }
 
 /**
- * Configures speech synthesis.
- *
- * @beta
+ * Speech configuration options for controlling the model's spoken and audio capabilities.
+ * Supports alternating formats for single-voice or multi-speaker setups.
+ * 
+ * @public
  */
-export interface SpeechConfig {
-  /**
-   * Configures the voice to be used in speech synthesis.
-   */
-  voiceConfig?: VoiceConfig;
+
+export type SpeechConfig = SingleSpeakerSpeechConfig | MultiSpeakerSpeechConfig;
+
+/**
+ * Shared foundational configuration for model speech synthesis.
+ * 
+ * @public
+ */
+export interface BaseSpeechConfig {
+    /** The optional IETF BCP-47 language code (e.g., "en-US", "es-ES") to guide voice generation. */
+    languageCode?: string;
 }
 
 /**
  * The audio transcription configuration.
+ * 
+ * @public
  */
 export interface AudioTranscriptionConfig {}
+
+/**
+ * Configuration for speech generation using a single voice structure.
+ * * @public
+ */
+export interface SingleSpeakerSpeechConfig extends BaseSpeechConfig {
+    /** Configures a prebuilt voice assignment for a single speaker. */
+    voiceConfig?: VoiceConfig;
+    /** Multi-speaker properties must not be defined if using a single speaker. */
+    multiSpeakerVoiceConfig?: never;
+}
+
+/**
+ * Configuration for multi-speaker speech generation.
+ * Note: Multi-speaker setups are not supported by real-time Live endpoints.
+ * 
+ * @public
+ */
+export interface MultiSpeakerSpeechConfig extends BaseSpeechConfig {
+    /** Single voice properties must not be defined if using multi-speaker setups. */
+    voiceConfig?: never;
+    /** Map of multiple distinct characters/speakers paired to distinct voice configurations. */
+    multiSpeakerVoiceConfig?: MultiSpeakerVoiceConfig;
+}
+
+/**
+ * Configuration outlining the enabled voices within a multi-speaker conversation.
+ * 
+ * @public
+ */
+export interface MultiSpeakerVoiceConfig {
+    /** A detailed collection of individual speaker profile setups. */
+    speakerVoiceConfigs: SpeakerVoiceConfig[];
+}
+
+/**
+ * Configuration detailing a single actor mapping inside a multi-speaker environment.
+ * 
+ * @public
+ */
+export interface SpeakerVoiceConfig {
+    /** The designated name of the speaker corresponding explicitly to names inside the prompt. */
+    speaker: string;
+    /** The voice target assigned to this unique character. */
+    voiceConfig: VoiceConfig;
+}

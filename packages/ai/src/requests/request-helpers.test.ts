@@ -179,6 +179,202 @@ describe('request formatting methods', () => {
         systemInstruction: { role: 'system', parts: [{ text: 'be excited' }] }
       });
     }),
+it('preserves SpeechConfig for single-speaker setups', () => {
+      const result = formatGenerateContentInput({
+        contents: [
+          {
+            role: 'user',
+            parts: [{ text: 'Hello' }]
+          }
+        ],
+        generationConfig: {
+          speechConfig: {
+            languageCode: 'en-US',
+            voiceConfig: {
+              prebuiltVoiceConfig: { 
+                voiceName: 'Puck'
+              }
+            }
+          }
+        }
+      });
+      expect(result.generationConfig?.speechConfig).to.deep.equal({
+        languageCode: 'en-US',
+        voiceConfig: {
+          prebuiltVoiceConfig: {
+            voiceName: 'Puck'
+          }
+        }
+      });
+    });
+
+    it('preserves SpeechConfig for multi-speaker setups', () => {
+      const result = formatGenerateContentInput({
+        contents: [
+          {
+            role: 'user',
+            parts: [{ text: 'Write a dialogue.' }]
+          }
+        ],
+        generationConfig: {
+          speechConfig: {
+            languageCode: 'en-US',
+            multiSpeakerVoiceConfig: {
+              speakerVoiceConfigs: [
+                {
+                  speaker: 'narrator',
+                  voiceConfig: {
+                    prebuiltVoiceConfig: { voiceName: 'Aoede' }
+                  }
+                },
+                {
+                  speaker: 'character',
+                  voiceConfig: {
+                    prebuiltVoiceConfig: { voiceName: 'Charon' }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      });
+      expect(result.generationConfig?.speechConfig).to.deep.equal({
+        languageCode: 'en-US',
+        multiSpeakerVoiceConfig: {
+          speakerVoiceConfigs: [
+            {
+              speaker: 'narrator',
+              voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Aoede' } }
+            },
+            {
+              speaker: 'character',
+              voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Charon' } }
+            }
+          ]
+        }
+      });
+    });
+it('preserves SpeechConfig alongside other GenerationConfig parameters', () => {
+  const req = formatGenerateContentInput({
+    contents: [{ role: 'user', parts: [{ text: 'Hello' }] }],
+    generationConfig: {
+      temperature: 0.7,
+      maxOutputTokens: 100,
+      responseMimeType: 'audio/mp3',
+      speechConfig: {
+        voiceConfig: {
+          prebuiltVoiceConfig: {
+            voiceName: 'Puck',
+          }
+        }
+      }
+    }
+  });
+  expect(req.generationConfig?.temperature).to.equal(0.7);
+  expect(req.generationConfig?.maxOutputTokens).to.equal(100);
+  expect(req.generationConfig?.responseMimeType).to.equal('audio/mp3');
+  expect(req.generationConfig?.speechConfig?.voiceConfig?.prebuiltVoiceConfig?.voiceName).to.equal('Puck');
+});
+
+it('does not include speechConfig in the payload if omitted', () => {
+  const req = formatGenerateContentInput({
+    contents: [{ role: 'user', parts: [{ text: 'Hello' }] }],
+    generationConfig: {
+      temperature: 0.5
+    }
+  });
+
+  expect(req.generationConfig).to.not.be.undefined;
+  expect(req.generationConfig?.temperature).to.equal(0.5);
+  expect(req.generationConfig?.speechConfig).to.be.undefined;
+});
+
+it('serializes language code without nested voice configurations', () => {
+      const result = formatGenerateContentInput({
+        contents: [
+          {
+            role: 'user',
+            parts: [{ text: 'Hola' }]
+          }
+        ],
+        generationConfig: {
+          speechConfig: {
+            languageCode: 'es-ES'
+          }
+        }
+      });
+      expect(result.generationConfig?.speechConfig).to.deep.equal({
+        languageCode: 'es-ES'
+      });
+    });
+
+    it('safely passes through an empty speechConfig object', () => {
+      const result = formatGenerateContentInput({
+        contents: [
+          {
+            role: 'user',
+            parts: [{ text: 'Hello' }]
+          }
+        ],
+        generationConfig: {
+          speechConfig: {}
+        }
+      });
+      expect(result.generationConfig?.speechConfig).to.deep.equal({});
+    });
+
+    it('serializes an empty multi-speaker array without throwing local exceptions', () => {
+      const result = formatGenerateContentInput({
+        contents: [
+          {
+            role: 'user',
+            parts: [{ text: 'Write a dialogue.' }]
+          }
+        ],
+        generationConfig: {
+          speechConfig: {
+            multiSpeakerVoiceConfig: {
+              speakerVoiceConfigs: []
+            }
+          }
+        }
+      });
+      expect(result.generationConfig?.speechConfig).to.deep.equal({
+        multiSpeakerVoiceConfig: {
+          speakerVoiceConfigs: []
+        }
+      });
+    });
+
+    it('handles runtime type violations by passing the payload for backend validation', () => {
+      // simulates a JS runtime scenario where a developer ignores TypeScript 
+      // union types and passes both configurations simultaneously.
+      const invalidRuntimeConfig: any = {
+        languageCode: 'en-US',
+        voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Puck' } },
+        multiSpeakerVoiceConfig: {
+          speakerVoiceConfigs: [
+             { speaker: 'narrator', voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Aoede' } } }
+          ]
+        }
+      };
+
+      const result = formatGenerateContentInput({
+        contents: [
+          {
+            role: 'user',
+            parts: [{ text: 'Hello' }]
+          }
+        ],
+        generationConfig: {
+          speechConfig: invalidRuntimeConfig
+        }
+      });
+      
+      // the SDK should properly serialize what was provided without throwing a local exception,
+      // relying on the Gemini backend to reject the malformed payload
+      expect(result.generationConfig?.speechConfig).to.deep.equal(invalidRuntimeConfig);
+    });
       it('formats fileData as part if provided as part', () => {
         const result = formatGenerateContentInput([
           'What is this?',
