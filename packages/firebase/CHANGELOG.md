@@ -1,5 +1,19 @@
 # firebase
 
+## 12.16.0
+
+### Minor Changes
+
+- [`f47bebf`](https://github.com/firebase/firebase-js-sdk/commit/f47bebf353cd341c5124ca89568a775524ec0a9f) [#10106](https://github.com/firebase/firebase-js-sdk/pull/10106) - Support realtime for Remote Config rollouts
+
+### Patch Changes
+
+- Updated dependencies [[`f47bebf`](https://github.com/firebase/firebase-js-sdk/commit/f47bebf353cd341c5124ca89568a775524ec0a9f)]:
+  - @firebase/app@0.15.1
+  - @firebase/remote-config@0.9.0
+  - @firebase/app-compat@0.5.15
+  - @firebase/remote-config-compat@0.2.27
+
 ## 12.15.0
 
 ### Minor Changes
