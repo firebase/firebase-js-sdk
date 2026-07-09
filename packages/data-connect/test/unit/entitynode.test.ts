@@ -493,7 +493,6 @@ describe('entity node', () => {
       ).to.exist.and.to.have.property('content', 'Great post!');
     });
 
-
     it('should round-trip dehydrated serialization / deserialization with entity data', async () => {
       const entityNode = new EntityNode();
       const exampleData = {
@@ -533,7 +532,10 @@ describe('entity node', () => {
 
       expect(dehydratedJson).to.exist;
       expect(dehydratedJson).have.property(GLOBAL_ID_KEY, 'post-1');
-      expect(dehydratedJson).have.property(ENTITY_DATA_KEYS_KEY).that.is.an('array').with.members(['title']);
+      expect(dehydratedJson)
+        .have.property(ENTITY_DATA_KEYS_KEY)
+        .that.is.an('array')
+        .with.members(['title']);
 
       const restoredNode = EntityNode.fromJson(dehydratedJson);
 
@@ -541,9 +543,13 @@ describe('entity node', () => {
       expect(restoredNode.entityDataKeys.has('title')).to.be.true;
 
       // Manually associate back the entityData to test hydration
-      restoredNode.entityData = await memoryCacheProvider.getEntityData('post-1');
-      restoredNode.references.author.entityData = await memoryCacheProvider.getEntityData('author-1');
-      restoredNode.objectLists.comments[0].entityData = await memoryCacheProvider.getEntityData('comment-1');
+      restoredNode.entityData = await memoryCacheProvider.getEntityData(
+        'post-1'
+      );
+      restoredNode.references.author.entityData =
+        await memoryCacheProvider.getEntityData('author-1');
+      restoredNode.objectLists.comments[0].entityData =
+        await memoryCacheProvider.getEntityData('comment-1');
 
       const hydratedJson = restoredNode.toJSON(EncodingMode.hydrated);
       expect(hydratedJson).to.deep.equal(exampleData);
@@ -622,7 +628,7 @@ describe('entity node', () => {
         EntityNode.fromJson({
           backingData: 'not-an-object'
         })
-      ).to.throw('EntityNode.fromJson: expected object for backingData');
+      ).to.throw('EntityNode.fromJson: expected object for backingDataObject');
 
       expect(() =>
         EntityNode.fromJson({
@@ -630,7 +636,9 @@ describe('entity node', () => {
             globalID: 123 // not a string
           }
         })
-      ).to.throw('EntityNode.fromJson: expected string for backingData.globalID');
+      ).to.throw(
+        'EntityNode.fromJson: expected string for backingDataObject.globalID'
+      );
 
       expect(() =>
         EntityNode.fromJson({
@@ -639,7 +647,9 @@ describe('entity node', () => {
             map: 'not-an-object'
           }
         })
-      ).to.throw('EntityNode.fromJson: expected object for backingData.map');
+      ).to.throw(
+        'EntityNode.fromJson: expected object for backingDataObject.map'
+      );
 
       expect(() =>
         EntityNode.fromJson({
@@ -649,7 +659,9 @@ describe('entity node', () => {
             referencedFrom: 'not-an-array'
           }
         })
-      ).to.throw('EntityNode.fromJson: expected string array for backingData.referencedFrom');
+      ).to.throw(
+        'EntityNode.fromJson: expected string array for backingDataObject.referencedFrom'
+      );
     });
 
     it('should throw when globalId is malformed', () => {
@@ -671,7 +683,9 @@ describe('entity node', () => {
         EntityNode.fromJson({
           [ENTITY_DATA_KEYS_KEY]: [123]
         })
-      ).to.throw('EntityNode.fromJson: expected array of strings for entityDataKeys');
+      ).to.throw(
+        'EntityNode.fromJson: expected array of strings for entityDataKeys'
+      );
     });
 
     it('should skip prototype pollution keys in references and objectLists', () => {
