@@ -456,6 +456,13 @@ toc:
     path: /docs/reference/js/crashlytics_angular.crashlyticsoptions.md
   - title: FirebaseErrorHandler
     path: /docs/reference/js/crashlytics_angular.firebaseerrorhandler.md
+- title: crashlytics/next-navigation
+  path: /docs/reference/js/crashlytics_next-navigation.md
+  section:
+  - title: Crashlytics
+    path: /docs/reference/js/crashlytics_next-navigation.crashlytics.md
+  - title: CrashlyticsOptions
+    path: /docs/reference/js/crashlytics_next-navigation.crashlyticsoptions.md
 - title: crashlytics/react
   path: /docs/reference/js/crashlytics_react.md
   section:
