@@ -494,5 +494,73 @@ describe('entity node', () => {
         restoredNode.objectLists.comments[0].scalars
       ).to.exist.and.to.have.property('content', 'Great post!');
     });
+
+    it('should throw when input is not an object or is an array', () => {
+      expect(() => EntityNode.fromJson(null)).to.throw(
+        'EntityNode.fromJson: expected object'
+      );
+      expect(() => EntityNode.fromJson('string')).to.throw(
+        'EntityNode.fromJson: expected object'
+      );
+      expect(() => EntityNode.fromJson([])).to.throw(
+        'EntityNode.fromJson: expected object'
+      );
+    });
+
+    it('should throw when scalars is not an object or is an array', () => {
+      const malformedJson = {
+        _scalars: 'not-an-object'
+      };
+      expect(() => EntityNode.fromJson(malformedJson)).to.throw(
+        'EntityNode.fromJson: expected object for scalars'
+      );
+      const malformedJsonArray = {
+        _scalars: []
+      };
+      expect(() => EntityNode.fromJson(malformedJsonArray)).to.throw(
+        'EntityNode.fromJson: expected object for scalars'
+      );
+    });
+
+    it('should throw when references is not an object or is an array', () => {
+      const malformedJson = {
+        _references: 'not-an-object'
+      };
+      expect(() => EntityNode.fromJson(malformedJson)).to.throw(
+        'EntityNode.fromJson: expected object for references'
+      );
+      const malformedJsonArray = {
+        _references: []
+      };
+      expect(() => EntityNode.fromJson(malformedJsonArray)).to.throw(
+        'EntityNode.fromJson: expected object for references'
+      );
+    });
+
+    it('should throw when objectLists is not an object or is an array', () => {
+      const malformedJson = {
+        _objectLists: 'not-an-object'
+      };
+      expect(() => EntityNode.fromJson(malformedJson)).to.throw(
+        'EntityNode.fromJson: expected object for objectLists'
+      );
+      const malformedJsonArray = {
+        _objectLists: []
+      };
+      expect(() => EntityNode.fromJson(malformedJsonArray)).to.throw(
+        'EntityNode.fromJson: expected object for objectLists'
+      );
+    });
+
+    it('should throw when an object list item is not an array', () => {
+      const malformedJson = {
+        _objectLists: {
+          comments: 'not-an-array'
+        }
+      };
+      expect(() => EntityNode.fromJson(malformedJson)).to.throw(
+        'EntityNode.fromJson: expected array for object list'
+      );
+    });
   });
 });

@@ -218,7 +218,7 @@ export class EntityNode {
   }
 
   static fromJson(obj: unknown): EntityNode {
-    if (!obj || typeof obj !== 'object') {
+    if (!obj || typeof obj !== 'object' || Array.isArray(obj)) {
       throw new DataConnectError(
         Code.INVALID_ARGUMENT,
         'EntityNode.fromJson: expected object'
@@ -231,14 +231,26 @@ export class EntityNode {
       sdo.entityData = EntityDataObject.fromJSON(rawObj.backingData);
     }
     sdo.globalId = rawObj[GLOBAL_ID_KEY];
-    sdo.scalars = rawObj[SCALARS_KEY] ?? {};
+
+    const rawScalars = rawObj[SCALARS_KEY];
+    if (rawScalars) {
+      if (typeof rawScalars !== 'object' || Array.isArray(rawScalars)) {
+        throw new DataConnectError(
+          Code.INVALID_ARGUMENT,
+          'EntityNode.fromJson: expected object for SCALARS_KEY'
+        );
+      }
+      sdo.scalars = rawScalars;
+    } else {
+      sdo.scalars = {};
+    }
 
     const rawRefs = rawObj[REFERENCES_KEY];
     if (rawRefs) {
-      if (typeof rawRefs !== 'object') {
+      if (typeof rawRefs !== 'object' || Array.isArray(rawRefs)) {
         throw new DataConnectError(
           Code.INVALID_ARGUMENT,
-          'EntityNode.fromJson: expected object for references'
+          'EntityNode.fromJson: expected object for REFERENCES_KEY'
         );
       }
       const references: Record<string, unknown> = {};
@@ -252,10 +264,10 @@ export class EntityNode {
 
     const rawLists = rawObj[OBJECT_LISTS_KEY];
     if (rawLists) {
-      if (typeof rawLists !== 'object') {
+      if (typeof rawLists !== 'object' || Array.isArray(rawLists)) {
         throw new DataConnectError(
           Code.INVALID_ARGUMENT,
-          'EntityNode.fromJson: expected object for objectLists'
+          'EntityNode.fromJson: expected object for OBJECT_LIST_KEY'
         );
       }
       const objectLists: Record<string, unknown> = {};
