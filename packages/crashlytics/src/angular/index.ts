@@ -32,8 +32,7 @@ export * from '../public-types';
  * Example output: '/users/:id/posts'
  */
 export function getSafeRoutePath(router: Router): string {
-  let currentRoute: ActivatedRouteSnapshot | null =
-    router.routerState.snapshot.root;
+  let currentRoute: ActivatedRouteSnapshot = router.routerState.snapshot.root;
 
   // Find the deepest activated child route
   while (currentRoute.firstChild) {
@@ -165,13 +164,16 @@ export function setupNavigationTracking(
 
   attributesStore.setRoutePathProvider(() => getSafeRoutePath(router));
 
-  const initialPattern = getSafeRoutePath(router);
-  let lastRawPath = getRawPath(router.url);
-  logViewBoundary(crashlytics, initialPattern);
+  let lastRawPath: string | undefined = undefined;
+  if (router.navigated) {
+    const initialPattern = getSafeRoutePath(router);
+    lastRawPath = getRawPath(router.url);
+    logViewBoundary(crashlytics, initialPattern);
+  }
 
   const subscription = router.events.subscribe(event => {
     if (event instanceof NavigationEnd) {
-      const currentRawPath = getRawPath(router.url);
+      const currentRawPath = getRawPath(event.urlAfterRedirects);
       if (currentRawPath !== lastRawPath) {
         lastRawPath = currentRawPath;
         const pattern = getSafeRoutePath(router);

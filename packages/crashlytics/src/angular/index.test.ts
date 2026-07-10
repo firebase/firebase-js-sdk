@@ -121,8 +121,8 @@ describe('getSafeRoutePath', () => {
     TestBed.configureTestingModule({
       imports: [
         RouterModule.forRoot([
-          { path: 'static-route', component: DummyComponent },
-          { path: 'dynamic/:id/route', component: DummyComponent }
+          { path: 'static-route', component: MockComponent },
+          { path: 'dynamic/:id/route', component: MockComponent }
         ])
       ],
       providers: [provideZoneChangeDetection()]
@@ -187,10 +187,10 @@ describe('setupNavigationTracking', () => {
     TestBed.configureTestingModule({
       imports: [
         RouterModule.forRoot([
-          { path: 'home', component: DummyComponent },
-          { path: 'about', component: DummyComponent },
-          { path: 'dashboard', component: DummyComponent },
-          { path: 'users/:id', component: DummyComponent }
+          { path: 'home', component: MockComponent },
+          { path: 'about', component: MockComponent },
+          { path: 'dashboard', component: MockComponent },
+          { path: 'users/:id', component: MockComponent }
         ])
       ],
       providers: [provideZoneChangeDetection()]
@@ -220,11 +220,26 @@ describe('setupNavigationTracking', () => {
     expect(routePathAfterUnmount).to.be.undefined;
   });
 
-  it('should invoke logViewBoundary on initialization', async () => {
+  it('should invoke logViewBoundary on initialization if the router is set up', async () => {
     await router.navigate(['/home']);
     const logViewBoundaryStub = stub(crashlytics, 'logViewBoundary');
 
     setupNavigationTracking(app, router, destroyRef);
+
+    expect(logViewBoundaryStub).to.have.been.calledWith(
+      fakeCrashlytics,
+      '/home'
+    );
+  });
+
+  it('should not invoke logViewBoundary on initialization if the router is not set up yet', async () => {
+    const logViewBoundaryStub = stub(crashlytics, 'logViewBoundary');
+
+    setupNavigationTracking(app, router, destroyRef);
+
+    expect(logViewBoundaryStub).to.not.have.been.called;
+
+    await router.navigate(['/home']);
 
     expect(logViewBoundaryStub).to.have.been.calledWith(
       fakeCrashlytics,
