@@ -127,7 +127,16 @@ jobs:
         $RELEASE_TRACKER_URL/logProduction
       env:
         STEPS_GET_VERSION_OUTPUTS_BASE_VERSION: ${{ steps.get-version.outputs.BASE_VERSION }}
+    - name: Publish git tags
+      # This commonly runs into permissions errors. Should not block the rest
+      # of the workflow. But should fail workflow so we notice it. So putting
+      # near the end.
+      run: yarn ts-node scripts/release/publish-git-tags.ts
+      # The script injects this token into the git push command
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Create GitHub release
+      # Depends on generated tag above.
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
@@ -159,11 +168,3 @@ jobs:
           --title "$NEWEST_TAG" \
           --notes "$RELEASE_NOTES" \
           --verify-tag
-    - name: Publish git tags
-      # This commonly runs into permissions errors. Should not block the rest
-      # of the workflow. But should fail workflow so we notice it. So putting
-      # at the end.
-      run: yarn ts-node scripts/release/publish-git-tags.ts
-      # The script injects this token into the git push command
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
