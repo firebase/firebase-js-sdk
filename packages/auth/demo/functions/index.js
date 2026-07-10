@@ -21,12 +21,12 @@
  * app.
  */
 
-const functions = require('firebase-functions');
+const { onRequest } = require('firebase-functions/https');
 const admin = require('firebase-admin');
 
-admin.initializeApp(functions.config().firebase);
+admin.initializeApp();
 
-exports.checkIfAuthenticated = functions.https.onRequest((req, res) => {
+exports.checkIfAuthenticated = onRequest((req, res) => {
   const idToken = req.get('x-id-token');
   res.setHeader('Content-Type', 'application/json');
   if (idToken) {
