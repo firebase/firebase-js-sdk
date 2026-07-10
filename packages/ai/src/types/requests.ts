@@ -901,7 +901,7 @@ export interface SingleSpeakerSpeechConfig extends BaseSpeechConfig {
  */
 
 export interface MultiSpeakerSpeechConfig extends BaseSpeechConfig {
-  /** Single voice properties must not be defined if using multi-speaker. */
+ /** Single-speaker voice configuration must not be set when using multiple speakers. */
   voiceConfig?: never;
   /** Configuration for multi-speaker setup. */
   multiSpeakerVoiceConfig?: MultiSpeakerVoiceConfig;
@@ -913,7 +913,7 @@ export interface MultiSpeakerSpeechConfig extends BaseSpeechConfig {
  * @public
  */
 export interface MultiSpeakerVoiceConfig {
-  /** A detailed collection of individual speaker profile setups. */
+  /** All the enabled speaker voices. */
   speakerVoiceConfigs: SpeakerVoiceConfig[];
 }
 
