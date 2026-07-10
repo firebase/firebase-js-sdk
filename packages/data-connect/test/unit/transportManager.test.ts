@@ -180,9 +180,9 @@ describe('DataConnectTransportManager', () => {
 
     it('invokeSubscribe should route to streaming by default and initialize stream transport', () => {
       const observer: SubscribeObserver<TestData> = {
-        onData: () => { },
-        onDisconnect: () => { },
-        onError: () => { }
+        onData: () => {},
+        onDisconnect: () => {},
+        onError: () => {}
       };
       manager.invokeSubscribe<TestData, TestVariables>(
         observer,
@@ -462,9 +462,9 @@ describe('DataConnectTransportManager', () => {
     describe('invokeSubscribe dynamic routing', () => {
       it('invokeSubscribe should throw an error if isUnableToConnect is true', () => {
         const observer: SubscribeObserver<TestData> = {
-          onData: () => { },
-          onDisconnect: () => { },
-          onError: () => { }
+          onData: () => {},
+          onDisconnect: () => {},
+          onError: () => {}
         };
         const streamTransport = manager.initStreamTransport();
         sinon.stub(streamTransport, 'isUnableToConnect').get(() => true);
@@ -547,9 +547,9 @@ describe('DataConnectTransportManager', () => {
 
       it('should route to REST during idle timeout and disconnect after grace period', async () => {
         const observer: SubscribeObserver<TestData> = {
-          onData: () => { },
-          onDisconnect: () => { },
-          onError: () => { }
+          onData: () => {},
+          onDisconnect: () => {},
+          onError: () => {}
         };
 
         manager.invokeSubscribe(observer, queryName1, variables1);
@@ -571,9 +571,9 @@ describe('DataConnectTransportManager', () => {
 
       it('should route to REST after stream automatically closes', async () => {
         const observer: SubscribeObserver<TestData> = {
-          onData: () => { },
-          onDisconnect: () => { },
-          onError: () => { }
+          onData: () => {},
+          onDisconnect: () => {},
+          onError: () => {}
         };
 
         manager.invokeSubscribe(observer, queryName1, variables1);
@@ -589,9 +589,9 @@ describe('DataConnectTransportManager', () => {
 
       it('should route back to stream after reconnect', async () => {
         const observer: SubscribeObserver<TestData> = {
-          onData: () => { },
-          onDisconnect: () => { },
-          onError: () => { }
+          onData: () => {},
+          onDisconnect: () => {},
+          onError: () => {}
         };
 
         manager.invokeSubscribe(observer, queryName1, variables1);
