@@ -299,10 +299,7 @@ describe('GenerativeModel', () => {
         singleRequestOptions: {}
       },
       match((value: string) => {
-        return (
-          value.includes('en-US') &&
-          value.includes('Puck')
-        );
+        return value.includes('en-US') && value.includes('Puck');
       })
     );
   });
@@ -341,10 +338,7 @@ describe('GenerativeModel', () => {
         singleRequestOptions: {}
       },
       match((value: string) => {
-        return (
-          value.includes('en-US') &&
-          value.includes('Kore')
-        );
+        return value.includes('en-US') && value.includes('Kore');
       })
     );
 
@@ -823,7 +817,7 @@ describe('initializeDeviceModel', () => {
       //@ts-ignore
       mockChromeAdapter
     );
-    const progressCallback = (): void => { };
+    const progressCallback = (): void => {};
     await model.initializeDeviceModel(progressCallback);
     expect(mockChromeAdapter.downloadIfAvailable).to.be.calledWith(
       progressCallback
@@ -1178,7 +1172,7 @@ describe('validateGenerationConfig', () => {
   });
   it(
     'throws if responseSchema or responseJsonSchema are set' +
-    ' and responseMimeType is not "application/json"',
+      ' and responseMimeType is not "application/json"',
     () => {
       expect(() => {
         validateGenerationConfig({
