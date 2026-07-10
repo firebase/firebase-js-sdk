@@ -143,7 +143,9 @@ function replaceTemplate(template: string, data: ErrorData): string {
       }
       const key = template.substring(start + 2, end);
       const value = data[key];
-      result += template.substring(ptr, start) + (value != null ? String(value) : `<${key}?>`);
+      result +=
+        template.substring(ptr, start) +
+        (value != null ? String(value) : `<${key}?>`);
       ptr = end + 1;
     }
     return result;
