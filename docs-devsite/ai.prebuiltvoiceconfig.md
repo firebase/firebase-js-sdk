@@ -10,9 +10,6 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # PrebuiltVoiceConfig interface
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Configuration for a pre-built voice.
 
 <b>Signature:</b>
@@ -25,12 +22,9 @@ export interface PrebuiltVoiceConfig
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [voiceName](./ai.prebuiltvoiceconfig.md#prebuiltvoiceconfigvoicename) | string | <b><i>(Public Preview)</i></b> The voice name to use for speech synthesis.<!-- -->For a full list of names and demos of what each voice sounds like, see [Chirp 3: HD Voices](https://cloud.google.com/text-to-speech/docs/chirp3-hd)<!-- -->. |
+|  [voiceName](./ai.prebuiltvoiceconfig.md#prebuiltvoiceconfigvoicename) | string | The voice name to use for speech synthesis.<!-- -->For a full list of names and demos of what each voice sounds like, see [Chirp 3: HD Voices](https://cloud.google.com/text-to-speech/docs/chirp3-hd)<!-- -->. |
 
 ## PrebuiltVoiceConfig.voiceName
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 The voice name to use for speech synthesis.
 

@@ -10,9 +10,6 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # VoiceConfig interface
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Configuration for the voice to used in speech synthesis.
 
 <b>Signature:</b>
@@ -25,12 +22,9 @@ export interface VoiceConfig
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [prebuiltVoiceConfig](./ai.voiceconfig.md#voiceconfigprebuiltvoiceconfig) | [PrebuiltVoiceConfig](./ai.prebuiltvoiceconfig.md#prebuiltvoiceconfig_interface) | <b><i>(Public Preview)</i></b> Configures the voice using a pre-built voice configuration. |
+|  [prebuiltVoiceConfig](./ai.voiceconfig.md#voiceconfigprebuiltvoiceconfig) | [PrebuiltVoiceConfig](./ai.prebuiltvoiceconfig.md#prebuiltvoiceconfig_interface) | Configures the voice using a pre-built voice configuration. |
 
 ## VoiceConfig.prebuiltVoiceConfig
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Configures the voice using a pre-built voice configuration.
 
