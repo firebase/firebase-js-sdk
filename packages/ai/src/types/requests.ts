@@ -873,7 +873,7 @@ export type SpeechConfig = SingleSpeakerSpeechConfig | MultiSpeakerSpeechConfig;
  * @public
  */
 export interface BaseSpeechConfig {
-  /** The optional IETF BCP-47 language code (e.g., "en-US", "es-ES") to guide voice generation. */
+  /** IETF BCP-47 language code. */
   languageCode?: string;
 }
 
