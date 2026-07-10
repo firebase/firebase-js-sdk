@@ -817,7 +817,7 @@ describe('initializeDeviceModel', () => {
       //@ts-ignore
       mockChromeAdapter
     );
-    const progressCallback = (): void => {};
+    const progressCallback = (): void => { };
     await model.initializeDeviceModel(progressCallback);
     expect(mockChromeAdapter.downloadIfAvailable).to.be.calledWith(
       progressCallback
@@ -1172,7 +1172,7 @@ describe('validateGenerationConfig', () => {
   });
   it(
     'throws if responseSchema or responseJsonSchema are set' +
-      ' and responseMimeType is not "application/json"',
+    ' and responseMimeType is not "application/json"',
     () => {
       expect(() => {
         validateGenerationConfig({
