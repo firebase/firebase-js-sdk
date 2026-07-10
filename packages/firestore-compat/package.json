@@ -32,7 +32,7 @@
     "prettier": "prettier --cache --write '*.js' '@(src|test)/**/*.ts'",
     "build": "rollup -c ./rollup.config.js",
     "build:console": "node tools/console.build.js",
-    "build:deps": "lerna run build --scope @firebase/firestore-compat",
+    "build:deps": "lerna run build --scope @firebase/firestore-compat --include-dependencies",
     "build:release": "yarn build && yarn add-compat-overloads",
     "test": "run-s --npm-path npm lint test:all",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all",
@@ -53,7 +53,7 @@
     "tslib": "^2.1.0"
   },
   "devDependencies": {
-    "@firebase/app-compat": "0.5.14",
+    "@firebase/app-compat": "0.5.15",
     "@types/eslint": "7.29.0",
     "rollup": "4.62.2",
     "rollup-plugin-sourcemaps": "0.6.3",
