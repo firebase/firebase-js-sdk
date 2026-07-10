@@ -127,10 +127,9 @@ export class ErrorFactory<
 }
 
 function replaceTemplate(template: string, data: ErrorData): string {
-  let result = template;
   try {
     let ptr = 0;
-    result = '';
+    let result = '';
     while (ptr < template.length) {
       const start = template.indexOf('{$', ptr);
       if (start === -1) {
@@ -147,8 +146,9 @@ function replaceTemplate(template: string, data: ErrorData): string {
       result += template.substring(ptr, start) + (value != null ? String(value) : `<${key}?>`);
       ptr = end + 1;
     }
+    return result;
   } catch (e) {
     // Should never happen, but fallback just in case
+    return template;
   }
-  return result;
 }
