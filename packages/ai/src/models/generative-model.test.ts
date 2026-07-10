@@ -335,19 +335,19 @@ describe('GenerativeModel', () => {
     expect(makeRequestStub).to.be.calledWith(
       {
         model: 'publishers/google/models/my-model',
-        task: request.Task.STREAM_GENERATE_CONTENT, 
+        task: request.Task.STREAM_GENERATE_CONTENT,
         apiSettings: match.any,
-        stream: true, 
+        stream: true,
         singleRequestOptions: {}
       },
       match((value: string) => {
         return (
-          value.includes('en-US') && 
+          value.includes('en-US') &&
           value.includes('Kore')
         );
       })
     );
-    
+
     restore();
   });
   it('passes base model params through to ChatSession when there are no startChatParams', async () => {
