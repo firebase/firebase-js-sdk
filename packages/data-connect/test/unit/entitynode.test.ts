@@ -628,7 +628,7 @@ describe('entity node', () => {
         EntityNode.fromJson({
           backingData: 'not-an-object'
         })
-      ).to.throw('EntityNode.fromJson: expected object for backingDataObject');
+      ).to.throw('EntityNode.fromJson: expected object for backingData');
 
       expect(() =>
         EntityNode.fromJson({
@@ -637,7 +637,7 @@ describe('entity node', () => {
           }
         })
       ).to.throw(
-        'EntityNode.fromJson: expected string for backingDataObject.globalID'
+        'EntityNode.fromJson: expected string for backingData.globalID'
       );
 
       expect(() =>
@@ -647,9 +647,7 @@ describe('entity node', () => {
             map: 'not-an-object'
           }
         })
-      ).to.throw(
-        'EntityNode.fromJson: expected object for backingDataObject.map'
-      );
+      ).to.throw('EntityNode.fromJson: expected object for backingData.map');
 
       expect(() =>
         EntityNode.fromJson({
@@ -660,7 +658,7 @@ describe('entity node', () => {
           }
         })
       ).to.throw(
-        'EntityNode.fromJson: expected string array for backingDataObject.referencedFrom'
+        'EntityNode.fromJson: expected string array for backingData.referencedFrom'
       );
     });
 
