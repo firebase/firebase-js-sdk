@@ -1118,6 +1118,7 @@ export interface UserInfo {
 
 /**
  * Represents information about a passkey.
+ * @public
  */
 export interface PasskeyInfo {
   /**
