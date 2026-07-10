@@ -14741,10 +14741,10 @@ re2@^1.17.7:
     nan "^2.20.0"
     node-gyp "^10.2.0"
 
-re2js@^0.4.2:
-  version "0.4.3"
-  resolved "https://registry.npmjs.org/re2js/-/re2js-0.4.3.tgz#1318cd0c12aa6ed3ba56d5e012311ffbfb2aef35"
-  integrity sha512-EuNmh7jurhHEE8Ge/lBo9JuMLb3qf866Xjjfyovw3wPc7+hlqDkZq4LwhrCQMEI+ARWfrKrHozEndzlpNT0WDg==
+re2js@^2.8.3:
+  version "2.8.3"
+  resolved "https://registry.npmjs.org/re2js/-/re2js-2.8.3.tgz#37d185b949b5da4ce7eb00c5c16e620db2f7e5c3"
+  integrity sha512-lUKeXVwMqU302DM/WaOm33XF2hhzjGUZ8CbLg4zSAMpW2PPkJ2+is25AROevNiw+DytFmKU5gsQ92cB1Kxy+fA==
 
 "react-is-18@npm:react-is@^18.3.1":
   version "18.3.1"

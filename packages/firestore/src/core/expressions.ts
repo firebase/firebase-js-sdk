@@ -1752,7 +1752,7 @@ export class CoreArrayContainsAny implements EvaluableExpr {
             break;
           }
           default:
-            fail(0xae40, { value, search });
+            fail(0xebf3, { value, search });
             break;
         }
       }
@@ -2158,7 +2158,7 @@ export class CoreRegexContains extends StringSearchFunctionBase {
     try {
       const regex = RE2JS.compile(search);
       return EvaluateResult.newValue({
-        booleanValue: regex.matcher(value).find()
+        booleanValue: regex.test(value)
       });
     } catch (RE2JSError) {
       logWarn(
