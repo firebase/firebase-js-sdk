@@ -30,6 +30,8 @@ export * from '../public-types';
 /**
  * Constructs the safe, templated route path from the router state.
  * Example output: '/users/:id/posts'
+ *
+ * @internal
  */
 export function getSafeRoutePath(router: Router): string {
   let currentRoute: ActivatedRouteSnapshot = router.routerState.snapshot.root;
@@ -50,6 +52,8 @@ export function getSafeRoutePath(router: Router): string {
 
 /**
  * Extracts the raw path portion from a full URL by stripping query parameters and hashes.
+ *
+ * @internal
  */
 export function getRawPath(url: string): string {
   return url.split('?')[0].split('#')[0];

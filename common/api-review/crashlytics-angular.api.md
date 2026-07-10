@@ -30,12 +30,6 @@ export class FirebaseErrorHandler implements ErrorHandler {
     }
 
 // @public
-export function getRawPath(url: string): string;
-
-// @public
-export function getSafeRoutePath(router: Router): string;
-
-// @public
 export function setupNavigationTracking(app: FirebaseApp, router: Router, destroyRef: DestroyRef, crashlyticsOptions?: CrashlyticsOptions): void;
 
 

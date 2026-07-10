@@ -15,12 +15,7 @@ https://github.com/firebase/firebase-js-sdk
 
 |  Function | Description |
 |  --- | --- |
-|  <b>function(app, ...)</b> |
 |  [setupNavigationTracking(app, router, destroyRef, crashlyticsOptions)](./crashlytics_angular.md#setupnavigationtracking_93fc190) | Configures automatic Angular router navigation tracking for Firebase Crashlytics.<!-- -->This function subscribes to router navigation events, keeps the Crashlytics route path attribute updated, and logs view boundary telemetry automatically. |
-|  <b>function(router, ...)</b> |
-|  [getSafeRoutePath(router)](./crashlytics_angular.md#getsaferoutepath_0db96c6) | Constructs the safe, templated route path from the router state. Example output: '/users/:id/posts' |
-|  <b>function(url, ...)</b> |
-|  [getRawPath(url)](./crashlytics_angular.md#getrawpath_205fad7) | Extracts the raw path portion from a full URL by stripping query parameters and hashes. |
 
 ## Classes
 
@@ -88,48 +83,4 @@ export const appConfig: ApplicationConfig = {
 };
 
 ```
-
-## function(router, ...)
-
-### getSafeRoutePath(router) {:#getsaferoutepath_0db96c6}
-
-Constructs the safe, templated route path from the router state. Example output: '/users/:id/posts'
-
-<b>Signature:</b>
-
-```typescript
-export declare function getSafeRoutePath(router: Router): string;
-```
-
-#### Parameters
-
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  router | Router |  |
-
-<b>Returns:</b>
-
-string
-
-## function(url, ...)
-
-### getRawPath(url) {:#getrawpath_205fad7}
-
-Extracts the raw path portion from a full URL by stripping query parameters and hashes.
-
-<b>Signature:</b>
-
-```typescript
-export declare function getRawPath(url: string): string;
-```
-
-#### Parameters
-
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  url | string |  |
-
-<b>Returns:</b>
-
-string
 

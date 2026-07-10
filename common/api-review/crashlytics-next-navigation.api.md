@@ -25,9 +25,6 @@ export interface CrashlyticsOptions {
     tracingUrl?: string;
 }
 
-// @public
-export function getParameterizedRoute(pathname: string | null, params: Record<string, string | string[] | undefined> | null): string;
-
 
 // (No @packageDocumentation comment for this package)
 

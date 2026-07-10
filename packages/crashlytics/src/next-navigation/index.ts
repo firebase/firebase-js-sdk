@@ -34,6 +34,8 @@ export * from '../public-types';
  * @example
  * // pathname = "/users/123/details", params = { id: "123" }
  * // returns "/users/:id/details"
+ *
+ * @internal
  */
 export function getParameterizedRoute(
   pathname: string | null,

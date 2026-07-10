@@ -15,10 +15,7 @@ https://github.com/firebase/firebase-js-sdk
 
 |  Function | Description |
 |  --- | --- |
-|  <b>function({ firebaseApp, crashlyticsOptions }, ...)</b> |
 |  [CrashlyticsNavigationTracker({ firebaseApp, crashlyticsOptions })](./crashlytics_next-navigation.md#crashlyticsnavigationtracker_c141224) | A client-side routing component for Next.js App Router that automatically captures navigation events and updates route attributes.<!-- -->This component should be mounted inside a root Client Component layout. |
-|  <b>function(pathname, ...)</b> |
-|  [getParameterizedRoute(pathname, params)](./crashlytics_next-navigation.md#getparameterizedroute_3fcbe19) | Constructs a parameterized route template for Next.js App Router by replacing dynamic parameter values in the pathname with parameter placeholders. |
 
 ## Interfaces
 
@@ -73,31 +70,4 @@ export default function RootLayout({ children }) {
 }
 
 ```
-
-## function(pathname, ...)
-
-### getParameterizedRoute(pathname, params) {:#getparameterizedroute_3fcbe19}
-
-Constructs a parameterized route template for Next.js App Router by replacing dynamic parameter values in the pathname with parameter placeholders.
-
-<b>Signature:</b>
-
-```typescript
-export declare function getParameterizedRoute(pathname: string | null, params: Record<string, string | string[] | undefined> | null): string;
-```
-
-#### Parameters
-
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  pathname | string \| null |  |
-|  params | Record&lt;string, string \| string\[\] \| undefined&gt; \| null |  |
-
-<b>Returns:</b>
-
-string
-
-### Example
-
-// pathname = "/users/123/details", params = { id: "123" } // returns "/users/:id/details"
 
