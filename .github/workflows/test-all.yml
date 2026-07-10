@@ -47,10 +47,12 @@ jobs:
       run: |
         npx @puppeteer/browsers install chrome@stable
     - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # ratchet:actions/checkout@v4
+      with:
+        persist-credentials: false
     - name: Set up Node (22)
       uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # ratchet:actions/setup-node@v4
       with:
-        node-version: 22.10.0
+        node-version: 22.12.0
     - name: Test setup and yarn install
       run: |
         cp config/ci.config.json config/project.json
@@ -81,6 +83,8 @@ jobs:
       run: |
         npx @puppeteer/browsers install chrome@stable
     - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # ratchet:actions/checkout@v4
+      with:
+        persist-credentials: false
     - name: Download build archive
       uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # ratchet:actions/download-artifact@v4
       with:
@@ -90,7 +94,7 @@ jobs:
     - name: Set up Node (22)
       uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # ratchet:actions/setup-node@v4
       with:
-        node-version: 22.10.0
+        node-version: 22.12.0
     - name: Test setup and yarn install
       run: |
         cp config/ci.config.json config/project.json
@@ -145,6 +149,8 @@ jobs:
         echo "::warning ::Previously validated version: ${CHROME_VALIDATED_VERSION} vs. Installed version: $chromeVersionString"
         fi
     - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # ratchet:actions/checkout@v4
+      with:
+        persist-credentials: false
     - name: Download build archive
       uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # ratchet:actions/download-artifact@v4
       with:
@@ -154,7 +160,7 @@ jobs:
     - name: Set up Node (22)
       uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # ratchet:actions/setup-node@v4
       with:
-        node-version: 22.10.0
+        node-version: 22.12.0
     - name: Test setup and yarn install
       run: |
         cp config/ci.config.json config/project.json
@@ -195,6 +201,8 @@ jobs:
       run: |
         npx @puppeteer/browsers install chrome@stable
     - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # ratchet:actions/checkout@v4
+      with:
+        persist-credentials: false
     - name: Download build archive
       uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # ratchet:actions/download-artifact@v4
       with:
@@ -204,7 +212,7 @@ jobs:
     - name: Set up Node (22)
       uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # ratchet:actions/setup-node@v4
       with:
-        node-version: 22.10.0
+        node-version: 22.12.0
     - name: Test setup and yarn install
       run: |
         cp config/ci.config.json config/project.json
@@ -249,6 +257,8 @@ jobs:
       run: |
         npx @puppeteer/browsers install chrome@stable
     - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # ratchet:actions/checkout@v4
+      with:
+        persist-credentials: false
     - name: Download build archive
       uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # ratchet:actions/download-artifact@v4
       with:
@@ -258,7 +268,7 @@ jobs:
     - name: Set up Node (22)
       uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # ratchet:actions/setup-node@v4
       with:
-        node-version: 22.10.0
+        node-version: 22.12.0
     - run: cp config/ci.config.json config/project.json
     - run: yarn
     - run: yarn build:${{ matrix.persistence }}
