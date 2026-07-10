@@ -244,6 +244,13 @@ function convertCredentialIds(
       }
     }
   }
+  if ('allowCredentials' in options && options.allowCredentials) {
+    for (const cred of options.allowCredentials) {
+      if (typeof cred.id === 'string') {
+        cred.id = base64ToUint8Array(cred.id);
+      }
+    }
+  }
 }
 
 function getPasskeyCredentialCreationOptions(
@@ -256,15 +263,20 @@ function getPasskeyCredentialCreationOptions(
     name = 'Unnamed account (Web)';
   }
 
+  if (!options.rp.name) {
+    options.rp.name =
+      typeof document !== 'undefined' && document.title
+        ? document.title
+        : typeof window !== 'undefined'
+        ? window.location.hostname
+        : 'Firebase App';
+  }
+
   options.user!.name = name;
   options.user!.displayName = name;
 
   const userId = options.user!.id as unknown as string;
   options.user!.id = base64ToUint8Array(userId);
-
-  const rpId = window.location.hostname;
-  options.rp!.id = rpId;
-  options.rp!.name = rpId;
 
   const challengeBase64 = options.challenge as unknown as string;
   options.challenge = base64ToUint8Array(challengeBase64);
@@ -283,9 +295,6 @@ function getPasskeyCredentialRequestOptions(
   if (name === '') {
     name = 'Unnamed account (Web)';
   }
-
-  const rpId = window.location.hostname;
-  options.rpId = rpId;
 
   const challengeBase64 = options.challenge as unknown as string;
   options.challenge = base64ToUint8Array(challengeBase64);

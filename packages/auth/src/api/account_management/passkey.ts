@@ -55,9 +55,9 @@ export function publicKeyCredentialToJSON(
   let result = {};
 
   // Handle Attestation Response (Registration)
-  if (pubKeyCred.response instanceof AuthenticatorAttestationResponse) {
+  if ('attestationObject' in pubKeyCred.response) {
     const attestationObject = bufferToBase64(
-      pubKeyCred.response.attestationObject
+      (pubKeyCred.response as AuthenticatorAttestationResponse).attestationObject
     );
     result = {
       id: pubKeyCred.id,
@@ -71,13 +71,16 @@ export function publicKeyCredentialToJSON(
   }
 
   // Handle Assertion Response (Authentication)
-  if (pubKeyCred.response instanceof AuthenticatorAssertionResponse) {
+  if ('authenticatorData' in pubKeyCred.response) {
     const authenticatorData = bufferToBase64(
-      pubKeyCred.response.authenticatorData
+      (pubKeyCred.response as AuthenticatorAssertionResponse).authenticatorData
     );
-    const signature = bufferToBase64(pubKeyCred.response.signature);
-    const userHandle = pubKeyCred.response.userHandle
-      ? bufferToBase64(pubKeyCred.response.userHandle)
+    const signature = bufferToBase64(
+      (pubKeyCred.response as AuthenticatorAssertionResponse).signature
+    );
+    const assertionResponse = pubKeyCred.response as AuthenticatorAssertionResponse;
+    const userHandle = assertionResponse.userHandle
+      ? bufferToBase64(assertionResponse.userHandle)
       : undefined;
     result = {
       id: pubKeyCred.id,
