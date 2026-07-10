@@ -555,7 +555,7 @@ export interface CodeExecutionTool {
  *
  * @public
  */
-export interface GoogleSearch {}
+export interface GoogleSearch { }
 
 /**
  * Specifies the Google Maps configuration.
@@ -591,7 +591,7 @@ export interface URLContextTool {
  *
  * @public
  */
-export interface URLContext {}
+export interface URLContext { }
 
 /**
  * A `FunctionDeclarationsTool` is a piece of code that enables the system to
@@ -861,16 +861,14 @@ export interface VoiceConfig {
 }
 
 /**
- * Speech configuration options for controlling the model's spoken and audio capabilities.
- * Supports alternating formats for single-voice or multi-speaker setups.
- *
+ * Configures speech synthesis.
  * @public
  */
 
 export type SpeechConfig = SingleSpeakerSpeechConfig | MultiSpeakerSpeechConfig;
 
 /**
- * Shared foundational configuration for model speech synthesis.
+ * Base configuration for speech synthesis.
  *
  * @public
  */
@@ -884,34 +882,33 @@ export interface BaseSpeechConfig {
  *
  * @public
  */
-export interface AudioTranscriptionConfig {}
+export interface AudioTranscriptionConfig { }
 
 /**
- * Configuration for speech generation using a single voice structure.
+ * Configuration for speech generation using a single voice.
  * @public
  */
 export interface SingleSpeakerSpeechConfig extends BaseSpeechConfig {
-  /** Configures a prebuilt voice assignment for a single speaker. */
+  /** Configures the voice to be used in speech synthesis. */
   voiceConfig?: VoiceConfig;
-  /** Multi-speaker properties must not be defined if using a single speaker. */
+  /** Multi-speaker configuration must not be set when using a single speaker. */
   multiSpeakerVoiceConfig?: never;
 }
 
 /**
- * Configuration for multi-speaker speech generation.
- * Note: Multi-speaker setups are not supported by real-time Live endpoints.
- *
- * @public
+ * Configuration for speech synthesis with multiple speakers.
+ * @ @public
  */
+
 export interface MultiSpeakerSpeechConfig extends BaseSpeechConfig {
-  /** Single voice properties must not be defined if using multi-speaker setups. */
+  /** Single voice properties must not be defined if using multi-speaker. */
   voiceConfig?: never;
-  /** Map of multiple distinct characters/speakers paired to distinct voice configurations. */
+  /** Configuration for multi-speaker setup. */
   multiSpeakerVoiceConfig?: MultiSpeakerVoiceConfig;
 }
 
 /**
- * Configuration outlining the enabled voices within a multi-speaker conversation.
+ * Configuration for multi-speaker setup.
  *
  * @public
  */
@@ -921,13 +918,13 @@ export interface MultiSpeakerVoiceConfig {
 }
 
 /**
- * Configuration detailing a single actor mapping inside a multi-speaker environment.
+ * Configuration for a single speaker's voice.
  *
  * @public
  */
 export interface SpeakerVoiceConfig {
-  /** The designated name of the speaker corresponding explicitly to names inside the prompt. */
+  /** The name of the speaker to use (same as in prompt). */
   speaker: string;
-  /** The voice target assigned to this unique character. */
+  /** The configuration for the voice to use. */
   voiceConfig: VoiceConfig;
 }
