@@ -180,9 +180,9 @@ describe('DataConnectTransportManager', () => {
 
     it('invokeSubscribe should route to streaming by default and initialize stream transport', () => {
       const observer: SubscribeObserver<TestData> = {
-        onData: () => {},
-        onDisconnect: () => {},
-        onError: () => {}
+        onData: () => { },
+        onDisconnect: () => { },
+        onError: () => { }
       };
       manager.invokeSubscribe<TestData, TestVariables>(
         observer,
@@ -462,9 +462,9 @@ describe('DataConnectTransportManager', () => {
     describe('invokeSubscribe dynamic routing', () => {
       it('invokeSubscribe should throw an error if isUnableToConnect is true', () => {
         const observer: SubscribeObserver<TestData> = {
-          onData: () => {},
-          onDisconnect: () => {},
-          onError: () => {}
+          onData: () => { },
+          onDisconnect: () => { },
+          onError: () => { }
         };
         const streamTransport = manager.initStreamTransport();
         sinon.stub(streamTransport, 'isUnableToConnect').get(() => true);
@@ -524,6 +524,8 @@ describe('DataConnectTransportManager', () => {
       let streamTransport: WebSocketTransport;
       let restInvokeQuerySpy: sinon.SinonStub;
 
+      const IDLE_CONNECTION_TIMEOUT_MS = 15 * 1000; // 15 seconds, copied from real implementation
+
       beforeEach(() => {
         clock = sinon.useFakeTimers();
         streamTransport = manager.initStreamTransport() as WebSocketTransport;
@@ -543,11 +545,11 @@ describe('DataConnectTransportManager', () => {
         clock.restore();
       });
 
-      it('should route to REST during idle timeout and disconnect immediately', async () => {
+      it('should route to REST during idle timeout and disconnect after grace period', async () => {
         const observer: SubscribeObserver<TestData> = {
-          onData: () => {},
-          onDisconnect: () => {},
-          onError: () => {}
+          onData: () => { },
+          onDisconnect: () => { },
+          onError: () => { }
         };
 
         manager.invokeSubscribe(observer, queryName1, variables1);
@@ -563,21 +565,21 @@ describe('DataConnectTransportManager', () => {
 
         expect(manager.streamTransport).to.exist;
 
-        await clock.tickAsync(0);
+        await clock.tickAsync(IDLE_CONNECTION_TIMEOUT_MS + 100);
         expect(manager.streamTransport).to.be.undefined;
       });
 
       it('should route to REST after stream automatically closes', async () => {
         const observer: SubscribeObserver<TestData> = {
-          onData: () => {},
-          onDisconnect: () => {},
-          onError: () => {}
+          onData: () => { },
+          onDisconnect: () => { },
+          onError: () => { }
         };
 
         manager.invokeSubscribe(observer, queryName1, variables1);
         manager.invokeUnsubscribe(queryName1, variables1);
 
-        await clock.tickAsync(0);
+        await clock.tickAsync(IDLE_CONNECTION_TIMEOUT_MS + 100);
         expect(manager.streamTransport).to.be.undefined;
 
         restInvokeQuerySpy.resetHistory();
@@ -587,15 +589,15 @@ describe('DataConnectTransportManager', () => {
 
       it('should route back to stream after reconnect', async () => {
         const observer: SubscribeObserver<TestData> = {
-          onData: () => {},
-          onDisconnect: () => {},
-          onError: () => {}
+          onData: () => { },
+          onDisconnect: () => { },
+          onError: () => { }
         };
 
         manager.invokeSubscribe(observer, queryName1, variables1);
         manager.invokeUnsubscribe(queryName1, variables1);
 
-        await clock.tickAsync(0);
+        await clock.tickAsync(IDLE_CONNECTION_TIMEOUT_MS + 100);
         expect(manager.streamTransport).to.be.undefined;
 
         manager.invokeSubscribe(observer, queryName1, variables1);

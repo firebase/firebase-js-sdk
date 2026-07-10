@@ -266,7 +266,7 @@ describe('MODULAR', () => {
       // @ts-ignore Stub missing browser APIs that FCM depends on
       window.indexedDB = { open: () => Promise.resolve() };
       // @ts-ignore Stub missing browser APIs that FCM depends on
-      navigator.serviceWorker = { addEventListener: () => {} };
+      navigator.serviceWorker = { addEventListener: () => { } };
       getMessaging(app);
       // @ts-ignore
       delete window.indexedDB;
@@ -281,7 +281,7 @@ describe('MODULAR', () => {
       analyticsIsSupported();
     });
     it('getAnalytics()', () => {
-      const warn = jest.spyOn(console, 'warn').mockImplementationOnce(() => {});
+      const warn = jest.spyOn(console, 'warn').mockImplementationOnce(() => { });
       analytics = getAnalytics(app);
       expect(warn).toHaveBeenCalledWith(
         expect.stringMatching('@firebase/analytics'),
@@ -314,8 +314,8 @@ describe('MODULAR', () => {
       ai = getAI(app, { backend: new VertexAIBackend() });
     });
     it('getGenerativeModel()', async () => {
-      const model = getGenerativeModel(ai, { model: 'gemini-2.5-flash' });
-      expect(model.model).toMatch(/gemini-2.5-flash$/);
+      const model = getGenerativeModel(ai, { model: 'gemini-3.5-flash' });
+      expect(model.model).toMatch(/gemini-3.5-flash$/);
     });
   });
 

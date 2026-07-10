@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import resolve from '@rollup/plugin-node-resolve';
-import strip from '@rollup/plugin-strip';
 
-/**
- * Browser Build
- */
-const esmBuild = {
-  input: 'src/index.js',
-  output: [{ file: 'www/dist/bundle.js', format: 'esm', sourcemap: true }],
-  plugins: [
-    strip({ functions: ['debugAssert.*'] }),
-    resolve({ mainFields: ['module', 'main'] })
-  ]
-};
+const useColors: boolean =
+  typeof process !== 'undefined' &&
+  (process.env.FORCE_COLOR !== undefined ||
+    (!!process.stdout?.isTTY && !process.env.NO_COLOR));
 
-export default esmBuild;
+export function bold(text: string): string {
+  return useColors ? `\x1b[1m${text}\x1b[22m` : text;
+}
+
+export function yellow(text: string): string {
+  return useColors ? `\x1b[33m${text}\x1b[39m` : text;
+}
