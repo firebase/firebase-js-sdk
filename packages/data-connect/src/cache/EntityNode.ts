@@ -240,13 +240,20 @@ export class EntityNode {
           'EntityNode.fromJson: expected string for backingData.globalID'
         );
       }
-      if (!backingData.map || typeof backingData.map !== 'object' || Array.isArray(backingData.map)) {
+      if (
+        !backingData.map ||
+        typeof backingData.map !== 'object' ||
+        Array.isArray(backingData.map)
+      ) {
         throw new DataConnectError(
           Code.INVALID_ARGUMENT,
           'EntityNode.fromJson: expected object for backingData.map'
         );
       }
-      if (!Array.isArray(backingData.referencedFrom) || backingData.referencedFrom.some((x: unknown) => typeof x !== 'string')) {
+      if (
+        !Array.isArray(backingData.referencedFrom) ||
+        backingData.referencedFrom.some((x: unknown) => typeof x !== 'string')
+      ) {
         throw new DataConnectError(
           Code.INVALID_ARGUMENT,
           'EntityNode.fromJson: expected string array for backingData.referencedFrom'
@@ -308,10 +315,15 @@ export class EntityNode {
       const references: { [key: string]: EntityNode } = {};
       for (const key in rawRefs) {
         if (Object.prototype.hasOwnProperty.call(rawRefs, key)) {
+          // TODO(stephenarosaj):
           // NOTE: is this check necessary? sure, we don't want to allow `prototype` or `constructor`
           // pollution, but doesn't this mean any fields named that can't be de-serialized? and so
           // therefore we should really be disallowing these field names all the way in the schema???
-          if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
+          if (
+            key === '__proto__' ||
+            key === 'constructor' ||
+            key === 'prototype'
+          ) {
             continue;
           }
           references[key] = EntityNode.fromJson(rawRefs[key]);
@@ -331,7 +343,11 @@ export class EntityNode {
       const objectLists: { [key: string]: EntityNode[] } = {};
       for (const key in rawLists) {
         if (Object.prototype.hasOwnProperty.call(rawLists, key)) {
-          if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
+          if (
+            key === '__proto__' ||
+            key === 'constructor' ||
+            key === 'prototype'
+          ) {
             continue;
           }
           const list = rawLists[key];
