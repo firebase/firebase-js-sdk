@@ -104,6 +104,13 @@ jobs:
         NPM_TOKEN_APP_CHECK_COMPAT: ${{ secrets.NPM_TOKEN_APP_CHECK_COMPAT }}
         NPM_TOKEN_API_DOCUMENTER: ${{ secrets.NPM_TOKEN_API_DOCUMENTER }}
         CI: true
+    - name: Get release version
+      id: get-version
+      # In production, there is only one version number
+      run: |
+        VERSION_SCRIPT="const pkg = require('./packages/firebase/package.json'); console.log(pkg.version);"
+        VERSION=`node -e "${VERSION_SCRIPT}"`
+        echo "BASE_VERSION=$VERSION" >> $GITHUB_OUTPUT
     - name: Echo version in shell
       run: |
         echo "Base version: ${STEPS_GET_VERSION_OUTPUTS_BASE_VERSION}"
