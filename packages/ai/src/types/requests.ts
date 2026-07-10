@@ -897,7 +897,7 @@ export interface SingleSpeakerSpeechConfig extends BaseSpeechConfig {
 
 /**
  * Configuration for speech synthesis with multiple speakers.
- * @ @public
+ * @public
  */
 
 export interface MultiSpeakerSpeechConfig extends BaseSpeechConfig {
