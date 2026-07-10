@@ -127,10 +127,28 @@ export class ErrorFactory<
 }
 
 function replaceTemplate(template: string, data: ErrorData): string {
-  return template.replace(PATTERN, (_, key) => {
-    const value = data[key];
-    return value != null ? String(value) : `<${key}?>`;
-  });
+  let result = template;
+  try {
+    let ptr = 0;
+    result = '';
+    while (ptr < template.length) {
+      const start = template.indexOf('{$', ptr);
+      if (start === -1) {
+        result += template.substring(ptr);
+        break;
+      }
+      const end = template.indexOf('}', start + 2);
+      if (end === -1) {
+        result += template.substring(ptr);
+        break;
+      }
+      const key = template.substring(start + 2, end);
+      const value = data[key];
+      result += template.substring(ptr, start) + (value != null ? String(value) : `<${key}?>`);
+      ptr = end + 1;
+    }
+  } catch (e) {
+    // Should never happen, but fallback just in case
+  }
+  return result;
 }
-
-const PATTERN = /\{\$([^}]+)}/g;
