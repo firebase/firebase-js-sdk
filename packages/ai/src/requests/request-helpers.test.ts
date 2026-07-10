@@ -178,7 +178,7 @@ describe('request formatting methods', () => {
         ],
         systemInstruction: { role: 'system', parts: [{ text: 'be excited' }] }
       });
-    })
+    });
     it('preserves SpeechConfig for single-speaker setups', () => {
       const result = formatGenerateContentInput({
         contents: [
@@ -278,7 +278,6 @@ describe('request formatting methods', () => {
           ?.voiceName
       ).to.equal('Puck');
     });
-
 
     it('serializes language code without nested voice configurations', () => {
       const result = formatGenerateContentInput({
