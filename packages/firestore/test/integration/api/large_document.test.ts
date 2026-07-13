@@ -48,8 +48,12 @@ import {
 apiDescribe('Large Documents', persistence => {
   let seedColName: string;
 
+  beforeEach(function () {
+    this.timeout(120_000); // Tests are very slow because large doc reads have very high latency.
+  });
+
   before(async function () {
-    this.timeout(180000); // Tests are very slow because large doc reads have very high latency.
+    this.timeout(180_000); // Tests are very slow because large doc reads have very high latency.
     const runLargeTests = process.env.FIRESTORE_RUN_LARGE_DOC_TESTS;
     if (runLargeTests !== 'YES' && runLargeTests !== 'true') {
       this.skip();
@@ -80,8 +84,7 @@ apiDescribe('Large Documents', persistence => {
     });
   });
 
-  after(async function () {
-    this.timeout(120000);
+  after(async () => {
     if (!seedColName) {
       return;
     }
@@ -96,8 +99,7 @@ apiDescribe('Large Documents', persistence => {
     });
   });
 
-  it('can read and cache a 15.9MB Unicode document', function () {
-    this.timeout(120000);
+  it('can read and cache a 15.9MB Unicode document', () => {
     return withTestDb(persistence, async db => {
       const docRef = doc(collection(db, seedColName), 'doc_15_9MB_unicode');
       try {
@@ -116,8 +118,7 @@ apiDescribe('Large Documents', persistence => {
     });
   });
 
-  it('cache integrity with multiple large documents', function () {
-    this.timeout(120000);
+  it('cache integrity with multiple large documents', () => {
     return withTestDb(persistence, async db => {
       const colRef = collection(db, seedColName);
       const docA = doc(colRef, 'doc_a');
@@ -143,8 +144,7 @@ apiDescribe('Large Documents', persistence => {
     });
   });
 
-  it('can run watch snapshot listener on a large document', function () {
-    this.timeout(120000);
+  it('can run watch snapshot listener on a large document', () => {
     return withTestDb(persistence, async db => {
       const docRef = doc(collection(db, seedColName), 'doc_15_9MB_unicode');
       let updateReceived = false;
@@ -172,8 +172,7 @@ apiDescribe('Large Documents', persistence => {
     });
   });
 
-  it('can run transaction read-modify-write on a large document', function () {
-    this.timeout(120000);
+  it('can run transaction read-modify-write on a large document', () => {
     return withTestDb(persistence, async db => {
       const docRef = doc(collection(db, seedColName), 'doc_15_9MB_unicode');
       await runTransaction(db, async transaction => {
@@ -187,8 +186,7 @@ apiDescribe('Large Documents', persistence => {
     });
   });
 
-  it('can query large documents', function () {
-    this.timeout(120000);
+  it('can query large documents', () => {
     return withTestDb(persistence, async db => {
       const colRef = collection(db, seedColName);
       const q = query(colRef, where(documentId(), 'in', ['doc_a', 'doc_b']));
@@ -211,8 +209,7 @@ apiDescribe('Large Documents', persistence => {
     });
   });
 
-  it('query large documents forces local scan', function () {
-    this.timeout(120000);
+  it('query large documents forces local scan', () => {
     return withTestDb(persistence, async db => {
       const colRef = collection(db, seedColName);
       const docA = doc(colRef, 'doc_a');
@@ -234,8 +231,7 @@ apiDescribe('Large Documents', persistence => {
     });
   });
 
-  it('gracefully rejects oversized payloads', function () {
-    this.timeout(120000);
+  it('gracefully rejects oversized payloads', () => {
     return withTestDb(persistence, async db => {
       const docRef = doc(collection(db, seedColName), 'temp_oversized_doc');
       const targetBytes = 16 * 1024 * 1024 + 102400;
@@ -253,8 +249,7 @@ apiDescribe('Large Documents', persistence => {
     });
   });
 
-  it('can write a 15.9MB document', function () {
-    this.timeout(120000);
+  it('can write a 15.9MB document', () => {
     return withTestDb(persistence, async db => {
       const tempDocId = 'temp_valid_large_doc_' + Date.now();
       const docRef = doc(collection(db, seedColName), tempDocId);
