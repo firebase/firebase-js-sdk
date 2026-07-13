@@ -96,7 +96,7 @@ describe('FirebaseErrorHandler', () => {
     await deleteApp(app);
   });
 
-  it('should register routePath provider in attributesStore', () => {
+  it('should register routePath provider in attributesStore and return correct route path', async () => {
     const setRoutePathProviderSpy = sinon.spy(
       attributesStore,
       'setRoutePathProvider'
@@ -104,6 +104,12 @@ describe('FirebaseErrorHandler', () => {
     const testInjector = TestBed.inject(Injector);
     runInInjectionContext(testInjector, () => new FirebaseErrorHandler(app));
     expect(setRoutePathProviderSpy).to.have.been.calledWith(sinon.match.func);
+
+    const provider = setRoutePathProviderSpy.getCall(0).args[0];
+    const router = TestBed.inject(Router);
+    await router.navigate(['/static-route']);
+    expect(provider).to.not.be.undefined;
+    expect(provider!()).to.equal('/static-route');
   });
 
   it('should log the error to the console', async () => {
