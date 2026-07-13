@@ -59,22 +59,24 @@ import {
 import {
   AddFields,
   Aggregate,
+  Define,
+  Delete,
   Distinct,
   FindNearest,
-  RawStage,
   Limit,
   Offset,
+  RawStage,
   RemoveFields,
   Replace,
   Sample,
+  Search,
   Select,
   Sort,
   Stage,
   Union,
   Unnest,
-  Where,
-  Define,
-  Search
+  Update,
+  Where
 } from './stage';
 import {
   AddFieldsStageOptions,
@@ -1570,6 +1572,47 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
 
     // Add stage to the pipeline
     return this._addStage(stage);
+  }
+
+  /**
+   * @beta
+   * Performs a delete operation on documents from previous stages.
+   *
+   * @example
+   * ```typescript
+   * // Deletes all documents in the "books" collection matching condition.
+   * firestore.pipeline().collection("books")
+   *    .where(equal(field("genre"), "Science Fiction"))
+   *    .delete();
+   * ```
+   *
+   * @returns A new {@link @firebase/firestore/pipelines#Pipeline} object with this stage appended to the stage list.
+   */
+  delete(): Pipeline {
+    return this._addStage(new Delete());
+  }
+
+  /**
+   * @beta
+   * Performs an update operation using documents from previous stages.
+   *
+   * @returns A new {@link @firebase/firestore/pipelines#Pipeline} object with this stage appended to the stage list.
+   */
+  update(): Pipeline;
+  /**
+   * @beta
+   * Performs an update operation using documents from previous stages.
+   *
+   * @param transformedFields - The list of transformations to apply.
+   * @returns A new {@link @firebase/firestore/pipelines#Pipeline} object with this stage appended to the stage list.
+   */
+  update(transformedFields: AliasedExpression[]): Pipeline;
+  update(transformedFields?: AliasedExpression[]): Pipeline {
+    const mapped =
+      transformedFields && transformedFields.length > 0
+        ? selectablesToMap(transformedFields)
+        : undefined;
+    return this._addStage(new Update(mapped));
   }
 
   /**

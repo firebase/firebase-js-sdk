@@ -539,7 +539,10 @@ export class Offset extends Stage {
     return new OptionsUtil({});
   }
 
-  constructor(public readonly offset: number, options: StageOptions) {
+  constructor(
+    public readonly offset: number,
+    options: StageOptions
+  ) {
     super(options);
   }
 
@@ -596,7 +599,10 @@ export class Sort extends Stage {
     return new OptionsUtil({});
   }
 
-  constructor(public readonly orderings: Ordering[], options: StageOptions) {
+  constructor(
+    public readonly orderings: Ordering[],
+    options: StageOptions
+  ) {
     super(options);
   }
 
@@ -654,7 +660,10 @@ export class Union extends Stage {
     return new OptionsUtil({});
   }
 
-  constructor(private other: Pipeline, options: StageOptions) {
+  constructor(
+    private other: Pipeline,
+    options: StageOptions
+  ) {
     super(options);
   }
 
@@ -719,7 +728,10 @@ export class Replace extends Stage {
     return new OptionsUtil({});
   }
 
-  constructor(private map: Expression, options: StageOptions) {
+  constructor(
+    private map: Expression,
+    options: StageOptions
+  ) {
     super(options);
   }
 
@@ -866,6 +878,76 @@ export class RawStage extends Stage {
 }
 
 /**
+ * @beta
+ */
+export class Delete extends Stage {
+  get _name(): string {
+    return 'delete';
+  }
+  get _optionsUtil(): OptionsUtil {
+    return new OptionsUtil({});
+  }
+
+  constructor(options: StageOptions = {}) {
+    super(options);
+  }
+
+  /**
+   * @internal
+   * @private
+   */
+  _toProto(serializer: JsonProtoSerializer): ProtoStage {
+    return {
+      ...super._toProto(serializer),
+      args: []
+    };
+  }
+}
+
+/**
+ * @beta
+ */
+export class Update extends Stage {
+  get _name(): string {
+    return 'update';
+  }
+  get _optionsUtil(): OptionsUtil {
+    return new OptionsUtil({});
+  }
+
+  constructor(
+    private transformedFields?: Map<string, Expression>,
+    options: StageOptions = {}
+  ) {
+    super(options);
+  }
+
+  /**
+   * @internal
+   * @private
+   */
+  _toProto(serializer: JsonProtoSerializer): ProtoStage {
+    const args = [];
+    if (this.transformedFields && this.transformedFields.size > 0) {
+      args.push(toMapValue(serializer, this.transformedFields));
+    } else {
+      args.push(toMapValue(serializer, new Map()));
+    }
+    return {
+      ...super._toProto(serializer),
+      args
+    };
+  }
+
+  _readUserData(context: ParseContext): void {
+    super._readUserData(context);
+    if (this.transformedFields) {
+      readUserDataHelper(this.transformedFields, context);
+    }
+  }
+}
+
+/**
  * Helper to read user data across a number of different formats.
  * @param name - Name of the calling function. Used for error messages when invalid user data is encountered.
  * @param expressionMap
@@ -874,10 +956,7 @@ export class RawStage extends Stage {
  */
 function readUserDataHelper<
   T extends
-    | Map<string, UserData>
-    | Record<string, UserData>
-    | UserData[]
-    | UserData
+    Map<string, UserData> | Record<string, UserData> | UserData[] | UserData
 >(expressionMap: T, context: ParseContext): T {
   if (isUserData(expressionMap)) {
     expressionMap._readUserData(context);
