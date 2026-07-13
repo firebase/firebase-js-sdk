@@ -112,6 +112,12 @@ export function recordError(
     onErrorSpanProcessor.onErrorOccurred();
   }
 
+  const onErrorLogRecordProcessor = (loggerProvider as any)
+    ?.onErrorLogRecordProcessor;
+  if (onErrorLogRecordProcessor) {
+    onErrorLogRecordProcessor.onErrorOccurred();
+  }
+
   const logger = loggerProvider.getLogger('error-logger');
   const customAttributes: AnyValueMap = attributesStore.getLogAttributes();
 

@@ -39,6 +39,7 @@ import {
   DEFAULT_TELEMETRY_REGION
 } from '../constants';
 import { AttributesStore } from '../attributes-store';
+import { OnErrorLogRecordProcessor } from './on-error-log-record-processor';
 
 /**
  * Create a logger provider for the current execution environment.
@@ -75,11 +76,21 @@ export function createLoggerProvider(
     attributesStore
   );
 
-  return new LoggerProvider({
+  const batchLogRecordProcessor = new BatchLogRecordProcessor(logExporter);
+  const onErrorLogRecordProcessor = new OnErrorLogRecordProcessor(
+    batchLogRecordProcessor,
+    crashlyticsOptions.maxBufferSize
+  );
+
+  const provider = new LoggerProvider({
     resource,
-    processors: [new BatchLogRecordProcessor(logExporter)],
+    processors: [onErrorLogRecordProcessor],
     logRecordLimits: {}
   });
+
+  (provider as any).onErrorLogRecordProcessor = onErrorLogRecordProcessor;
+
+  return provider;
 }
 
 /** OTLP exporter that uses custom FetchTransport and resolves async attributes. */
