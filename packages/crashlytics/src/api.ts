@@ -107,13 +107,12 @@ export function recordError(
   const { loggerProvider, attributesStore, tracingProvider } =
     crashlytics as CrashlyticsInternal;
 
-  const onErrorSpanProcessor = (tracingProvider as any)?.onErrorSpanProcessor;
+  const onErrorSpanProcessor = tracingProvider?.onErrorSpanProcessor;
   if (onErrorSpanProcessor) {
     onErrorSpanProcessor.onErrorOccurred();
   }
 
-  const onErrorLogRecordProcessor = (loggerProvider as any)
-    ?.onErrorLogRecordProcessor;
+  const onErrorLogRecordProcessor = loggerProvider?.onErrorLogRecordProcessor;
   if (onErrorLogRecordProcessor) {
     onErrorLogRecordProcessor.onErrorOccurred();
   }

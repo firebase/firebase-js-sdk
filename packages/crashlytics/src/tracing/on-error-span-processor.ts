@@ -32,10 +32,7 @@ export class OnErrorSpanProcessor implements SpanProcessor {
   private _hasErrorOccurred = false;
   private _maxBufferSize = 1000;
 
-  constructor(
-    private _delegate: SpanProcessor,
-    maxBufferSize?: number
-  ) {
+  constructor(private _delegate: SpanProcessor, maxBufferSize?: number) {
     if (maxBufferSize !== undefined) {
       this._maxBufferSize = maxBufferSize;
     }
@@ -51,7 +48,7 @@ export class OnErrorSpanProcessor implements SpanProcessor {
     } else {
       this._buffer.push(span);
       if (this._buffer.length > this._maxBufferSize) {
-        //  this._buffer.shift();
+        this._buffer.shift();
       }
     }
   }
@@ -69,9 +66,6 @@ export class OnErrorSpanProcessor implements SpanProcessor {
       return;
     }
     this._hasErrorOccurred = true;
-
-    // Filter out / delete 'manual-child-span-sync' from the buffer before flushing
-    //  this._buffer = this._buffer.filter(span => !span.name.includes("triggerThreeTierTraceSyncBtn"));
 
     // Flush all buffered spans to the delegate
     for (const span of this._buffer) {

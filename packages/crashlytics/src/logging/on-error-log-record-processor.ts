@@ -28,10 +28,7 @@ export class OnErrorLogRecordProcessor implements LogRecordProcessor {
   private _hasErrorOccurred = false;
   private _maxBufferSize = 1000;
 
-  constructor(
-    private _delegate: LogRecordProcessor,
-    maxBufferSize?: number
-  ) {
+  constructor(private _delegate: LogRecordProcessor, maxBufferSize?: number) {
     if (maxBufferSize !== undefined) {
       this._maxBufferSize = maxBufferSize;
     }

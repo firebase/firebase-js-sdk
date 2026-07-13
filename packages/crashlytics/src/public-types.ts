@@ -64,11 +64,4 @@ export interface CrashlyticsOptions {
    * for an identifier. Setting a value here takes precedence over any other values.
    */
   appVersion?: string;
-
-  /**
-   * The maximum number of spans to buffer in memory before an error occurs.
-   * Defaults to 1000.
-   */
-  maxBufferSize?: number;
 }
-

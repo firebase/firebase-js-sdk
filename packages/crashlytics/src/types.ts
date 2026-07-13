@@ -21,6 +21,26 @@ import { Crashlytics } from './public-types';
 import { RootSpanContextManager } from './tracing/root-span-context-manager';
 import { AttributesStore } from './attributes-store';
 import { ALREADY_LOGGED_FLAG } from './constants';
+import { OnErrorSpanProcessor } from './tracing/on-error-span-processor';
+import { OnErrorLogRecordProcessor } from './logging/on-error-log-record-processor';
+
+/**
+ * Extended LoggerProvider with optional onErrorLogRecordProcessor.
+ *
+ * @internal
+ */
+export interface LoggerProviderWithOnError extends LoggerProvider {
+  onErrorLogRecordProcessor?: OnErrorLogRecordProcessor;
+}
+
+/**
+ * Extended TracerProvider with optional onErrorSpanProcessor.
+ *
+ * @internal
+ */
+export interface TracerProviderWithOnError extends TracerProvider {
+  onErrorSpanProcessor?: OnErrorSpanProcessor;
+}
 
 /**
  * An internal interface for the Crashlytics service.
@@ -28,8 +48,8 @@ import { ALREADY_LOGGED_FLAG } from './constants';
  * @internal
  */
 export interface CrashlyticsInternal extends Crashlytics {
-  loggerProvider: LoggerProvider;
-  tracingProvider: TracerProvider;
+  loggerProvider: LoggerProviderWithOnError;
+  tracingProvider: TracerProviderWithOnError;
   contextManager: RootSpanContextManager;
   attributesStore: AttributesStore;
 }

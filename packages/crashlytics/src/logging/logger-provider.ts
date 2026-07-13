@@ -30,7 +30,7 @@ import {
   createOtlpNetworkExportDelegate
 } from '@opentelemetry/otlp-exporter-base';
 import { FetchTransport } from '../fetch-transport';
-import { DynamicHeaderProvider } from '../types';
+import { DynamicHeaderProvider, LoggerProviderWithOnError } from '../types';
 import { FirebaseApp } from '@firebase/app';
 import { ExportResult } from '@opentelemetry/core';
 import { CrashlyticsOptions } from '../public-types';
@@ -78,17 +78,16 @@ export function createLoggerProvider(
 
   const batchLogRecordProcessor = new BatchLogRecordProcessor(logExporter);
   const onErrorLogRecordProcessor = new OnErrorLogRecordProcessor(
-    batchLogRecordProcessor,
-    crashlyticsOptions.maxBufferSize
+    batchLogRecordProcessor
   );
 
   const provider = new LoggerProvider({
     resource,
     processors: [onErrorLogRecordProcessor],
     logRecordLimits: {}
-  });
+  }) as LoggerProviderWithOnError;
 
-  (provider as any).onErrorLogRecordProcessor = onErrorLogRecordProcessor;
+  provider.onErrorLogRecordProcessor = onErrorLogRecordProcessor;
 
   return provider;
 }

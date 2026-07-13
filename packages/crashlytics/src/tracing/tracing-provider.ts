@@ -39,7 +39,7 @@ import {
   createOtlpNetworkExportDelegate
 } from '@opentelemetry/otlp-exporter-base';
 import { ReadableSpan, SpanExporter } from '@opentelemetry/sdk-trace-base';
-import { DynamicHeaderProvider } from '../types';
+import { DynamicHeaderProvider, TracerProviderWithOnError } from '../types';
 import { FirebaseApp } from '@firebase/app';
 import { AttributesStore } from '../attributes-store';
 import { FirebaseSpanProcessor } from './firebase-span-processor';
@@ -114,10 +114,7 @@ export function createTracingProvider(
   }
 
   const batchSpanProcessor = new BatchSpanProcessor(traceExporter);
-  const onErrorSpanProcessor = new OnErrorSpanProcessor(
-    batchSpanProcessor,
-    crashlyticsOptions.maxBufferSize
-  );
+  const onErrorSpanProcessor = new OnErrorSpanProcessor(batchSpanProcessor);
 
   const provider = new WebTracerProvider({
     resource,
@@ -127,9 +124,9 @@ export function createTracingProvider(
       new SimpleSpanProcessor(new ConsoleSpanExporter()),
       onErrorSpanProcessor
     ]
-  });
+  }) as WebTracerProvider & TracerProviderWithOnError;
 
-  (provider as any).onErrorSpanProcessor = onErrorSpanProcessor;
+  provider.onErrorSpanProcessor = onErrorSpanProcessor;
 
   provider.register({
     contextManager: rootSpanContextManager,
