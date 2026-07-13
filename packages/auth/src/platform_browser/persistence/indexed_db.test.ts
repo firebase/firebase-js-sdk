@@ -415,6 +415,7 @@ describe('platform_browser/persistence/indexed_db', () => {
       await closeDb();
       await persistence._remove(key);
       expect(await persistence._get(key)).to.be.null;
+    });
   });
 
   describe('page lifecycle events', () => {
@@ -481,10 +482,7 @@ describe('platform_browser/persistence/indexed_db', () => {
 
       // Modify DB in background, ensure polling picks it up after pageshow
       await _putObject(db, key, 'new-value');
-      clock.tick(_POLLING_INTERVAL_MS + 1);
-      
-      // Wait a little for the poll to complete (since it's async)
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await waitUntilPoll(clock);
       expect(callback).to.have.been.calledWith('new-value');
     });
 
