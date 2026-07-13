@@ -82,7 +82,9 @@ apiDescribe('Large Documents', persistence => {
 
   after(async function () {
     this.timeout(120000);
-    if (!seedColName) return;
+    if (!seedColName) {
+      return;
+    }
     await withTestDb(persistence, async db => {
       try {
         await deleteDoc(doc(collection(db, seedColName), 'doc_15_9MB_unicode'));
@@ -151,7 +153,7 @@ apiDescribe('Large Documents', persistence => {
         const unsubscribe = onSnapshot(
           docRef,
           snapshot => {
-            if (snapshot.exists() && snapshot.data()!['differential_field']) {
+            if (snapshot.exists() && snapshot.data()!['differentialField']) {
               updateReceived = true;
               unsubscribe();
               resolve();
@@ -164,7 +166,7 @@ apiDescribe('Large Documents', persistence => {
         );
       });
 
-      await updateDoc(docRef, { differential_field: 'updated_value' });
+      await updateDoc(docRef, { differentialField: 'updated_value' });
       await deferred;
       expect(updateReceived).to.be.true;
     });
@@ -245,6 +247,7 @@ apiDescribe('Large Documents', persistence => {
           'Setting a document exceeding the 16MB limit should fail.'
         );
       } catch (error: unknown) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         expect((error as any).code).to.equal('invalid-argument');
       }
     });

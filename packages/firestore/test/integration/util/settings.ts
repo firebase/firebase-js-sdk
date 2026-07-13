@@ -133,6 +133,5 @@ export const DEFAULT_PROJECT_ID = USE_EMULATOR
     PROJECT_CONFIG.projectId;
 export const ALT_PROJECT_ID = 'test-db2';
 
-
 export const COMPOSITE_INDEX_TEST_COLLECTION =
   'composite-index-test-collection';
