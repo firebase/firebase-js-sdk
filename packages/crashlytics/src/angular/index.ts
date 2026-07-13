@@ -44,7 +44,7 @@ export function getSafeRoutePath(router: Router): string {
     currentRoute = currentRoute.firstChild;
   }
 
-  // Traverse up from the deepest child to the root, collecting configured paths
+  // Traverse down from the root to the deepest child, collecting configured paths
   const pathFromRoot = currentRoute.pathFromRoot
     .map(route => route.routeConfig?.path)
     .filter(path => path !== undefined && path !== '') // Filter out empty or undefined paths
