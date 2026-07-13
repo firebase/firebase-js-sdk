@@ -20,7 +20,7 @@ import 'zone.js/testing';
 import { expect, use } from 'chai';
 import sinonChai from 'sinon-chai';
 import chaiAsPromised from 'chai-as-promised';
-import { restore, stub } from 'sinon';
+import sinon, { restore, stub } from 'sinon';
 import { FirebaseApp, deleteApp, initializeApp } from '@firebase/app';
 import * as crashlytics from '../api';
 import {
@@ -30,14 +30,14 @@ import {
   runInInjectionContext
 } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { FirebaseErrorHandler } from '.';
+import { FirebaseErrorHandler, getSafeRoutePath } from '.';
 import { Crashlytics } from '../public-types';
 import { Router, RouterModule } from '@angular/router';
 import {
   BrowserTestingModule,
   platformBrowserTesting
 } from '@angular/platform-browser/testing';
-import { LOG_ATTR_KEY, AttributesStore } from '../attributes-store';
+import { AttributesStore } from '../attributes-store';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -45,11 +45,10 @@ use(chaiAsPromised);
 TestBed.initTestEnvironment(BrowserTestingModule, platformBrowserTesting());
 
 @Component({ template: '' })
-class DummyComponent {}
+class MockComponent {}
 
 describe('FirebaseErrorHandler', () => {
   let errorHandler: FirebaseErrorHandler;
-  let router: Router;
   let app: FirebaseApp;
 
   let fakeCrashlytics: Crashlytics;
@@ -73,8 +72,8 @@ describe('FirebaseErrorHandler', () => {
     TestBed.configureTestingModule({
       imports: [
         RouterModule.forRoot([
-          { path: 'static-route', component: DummyComponent },
-          { path: 'dynamic/:id/route', component: DummyComponent }
+          { path: 'static-route', component: MockComponent },
+          { path: 'dynamic/:id/route', component: MockComponent }
         ])
       ],
       providers: [provideZoneChangeDetection()]
@@ -84,12 +83,27 @@ describe('FirebaseErrorHandler', () => {
       testInjector,
       () => new FirebaseErrorHandler(app)
     );
-    router = TestBed.inject(Router);
   });
 
   afterEach(async () => {
     restore();
     await deleteApp(app);
+  });
+
+  it('should register routePath provider in attributesStore and return correct route path', async () => {
+    const setRoutePathProviderSpy = sinon.spy(
+      attributesStore,
+      'setRoutePathProvider'
+    );
+    const testInjector = TestBed.inject(Injector);
+    runInInjectionContext(testInjector, () => new FirebaseErrorHandler(app));
+    expect(setRoutePathProviderSpy).to.have.been.calledWith(sinon.match.func);
+
+    const provider = setRoutePathProviderSpy.firstCall.args[0];
+    const router = TestBed.inject(Router);
+    await router.navigate(['/static-route']);
+    expect(provider).to.not.be.undefined;
+    expect(provider!()).to.equal('/static-route');
   });
 
   it('should log the error to the console', async () => {
@@ -98,22 +112,31 @@ describe('FirebaseErrorHandler', () => {
     expect(getCrashlyticsStub).to.have.been.called;
     expect(recordErrorStub).to.have.been.calledWith(fakeCrashlytics, testError);
   });
+});
 
-  describe('routePath integration', () => {
-    it('should set the routePath attribute', async () => {
-      await router.navigate(['/static-route']);
+describe('getSafeRoutePath', () => {
+  let router: Router;
 
-      expect(
-        attributesStore.getLogAttributes()[LOG_ATTR_KEY.ROUTE_PATH]
-      ).to.equal('/static-route');
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [
+        RouterModule.forRoot([
+          { path: 'static-route', component: MockComponent },
+          { path: 'dynamic/:id/route', component: MockComponent }
+        ])
+      ],
+      providers: [provideZoneChangeDetection()]
     });
+    router = TestBed.inject(Router);
+  });
 
-    it('should remove dynamic content from route', async () => {
-      await router.navigate(['/dynamic/my-name/route']);
+  it('should return the static route path', async () => {
+    await router.navigate(['/static-route']);
+    expect(getSafeRoutePath(router)).to.equal('/static-route');
+  });
 
-      expect(
-        attributesStore.getLogAttributes()[LOG_ATTR_KEY.ROUTE_PATH]
-      ).to.equal('/dynamic/:id/route');
-    });
+  it('should return the parameterized route pattern', async () => {
+    await router.navigate(['/dynamic/my-name/route']);
+    expect(getSafeRoutePath(router)).to.equal('/dynamic/:id/route');
   });
 });

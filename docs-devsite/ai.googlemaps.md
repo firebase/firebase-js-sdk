@@ -26,6 +26,13 @@ export interface GoogleMaps
 
 ## GoogleMaps.enableWidget
 
+> Warning: This API is now obsolete.
+> 
+> The `enableWidget` feature has been deprecated by the Grounding for Google Maps service.
+> 
+> If true, include the widget context token in the response.
+> 
+
 <b>Signature:</b>
 
 ```typescript

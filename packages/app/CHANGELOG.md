@@ -1,5 +1,17 @@
 # @firebase/app
 
+## 0.15.1
+
+### Patch Changes
+
+- Update SDK_VERSION.
+
+## 0.15.0
+
+### Minor Changes
+
+- [`420156e`](https://github.com/firebase/firebase-js-sdk/commit/420156ee6eb2f7cfa0c4c188d73138bc7cd3a1f2) [#10023](https://github.com/firebase/firebase-js-sdk/pull/10023) - Add ability to call `initializeAppCheck` without a `provider`. If no `provider` is passed to `initializeAppCheck`, App Check will attempt to initialize with a `ReCaptchaEnterpriseProvider` using the site key found in the `recaptchaSiteKey` field of the Firebase project config.
+
 ## 0.14.13
 
 ### Patch Changes

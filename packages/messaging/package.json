@@ -28,10 +28,10 @@
     "sw/package.json"
   ],
   "scripts": {
-    "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
-    "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
+    "lint": "eslint --cache --cache-location '../../node_modules/.cache/eslint/' -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
+    "lint:fix": "eslint --cache --cache-location '../../node_modules/.cache/eslint/' --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "build": "rollup -c && yarn api-report",
-    "build:deps": "lerna run --scope @firebase/'{app,messaging}' --include-dependencies build",
+    "build:deps": "lerna run build --scope=\"@firebase/app\" --scope=\"@firebase/messaging\" --include-dependencies",
     "build:release": "yarn build && yarn typings:public",
     "dev": "rollup -c -w",
     "test": "run-p --npm-path npm test:karma type-check lint ",
@@ -60,8 +60,8 @@
     "tslib": "^2.1.0"
   },
   "devDependencies": {
-    "@firebase/app": "0.14.13",
-    "rollup": "2.79.2",
+    "@firebase/app": "0.15.1",
+    "rollup": "4.62.2",
     "rollup-plugin-typescript2": "0.37.0",
     "@rollup/plugin-json": "6.1.0",
     "ts-essentials": "10.0.4",
