@@ -99,7 +99,7 @@ describe('FirebaseErrorHandler', () => {
     runInInjectionContext(testInjector, () => new FirebaseErrorHandler(app));
     expect(setRoutePathProviderSpy).to.have.been.calledWith(sinon.match.func);
 
-    const provider = setRoutePathProviderSpy.firstCall.args[0];
+    const provider = setRoutePathProviderSpy.getCall(0).args[0];
     const router = TestBed.inject(Router);
     await router.navigate(['/static-route']);
     expect(provider).to.not.be.undefined;
