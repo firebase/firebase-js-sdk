@@ -397,7 +397,7 @@ export type SetOptions = {
 
 // @public
 export interface Settings {
-    experimentalGrpcFlowControlWindow?: number;
+    grpcFlowControlWindow?: number;
     host?: string;
     ignoreUndefinedProperties?: boolean;
     ssl?: boolean;

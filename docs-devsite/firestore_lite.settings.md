@@ -22,19 +22,23 @@ export declare interface Settings
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [experimentalGrpcFlowControlWindow](./firestore_lite.settings.md#settingsexperimentalgrpcflowcontrolwindow) | number | Sets the gRPC flow control window size in bytes. Only applicable in Node.js environments. |
+|  [grpcFlowControlWindow](./firestore_lite.settings.md#settingsgrpcflowcontrolwindow) | number | Only applicable in Node environments.<!-- -->The gRPC flow control window size in bytes. Defaults to 256 KB. This maps directly to grpc-node's [grpc-node.flow\_control\_window](https://github.com/grpc/grpc-node/blob/651cbeec6b4d6d11cbee91c042946d2fe5968ef6/packages/grpc-js/README.md#supported-channel-options) setting.<!-- -->\*\*WARNING:\*\* This is an advanced setting. The default of 256 KB is optimized for most Node workloads. Only modify this if you are actively tuning gRPC network behavior and understand the implications of HTTP/2 flow control. |
 |  [host](./firestore_lite.settings.md#settingshost) | string | The hostname to connect to. |
 |  [ignoreUndefinedProperties](./firestore_lite.settings.md#settingsignoreundefinedproperties) | boolean | Whether to skip nested properties that are set to <code>undefined</code> during object serialization. If set to <code>true</code>, these properties are skipped and not written to Firestore. If set to <code>false</code> or omitted, the SDK throws an exception when it encounters properties of type <code>undefined</code>. |
 |  [ssl](./firestore_lite.settings.md#settingsssl) | boolean | Whether to use SSL when connecting. |
 
-## Settings.experimentalGrpcFlowControlWindow
+## Settings.grpcFlowControlWindow
 
-Sets the gRPC flow control window size in bytes. Only applicable in Node.js environments.
+Only applicable in Node environments.
+
+The gRPC flow control window size in bytes. Defaults to 256 KB. This maps directly to grpc-node's [grpc-node.flow\_control\_window](https://github.com/grpc/grpc-node/blob/651cbeec6b4d6d11cbee91c042946d2fe5968ef6/packages/grpc-js/README.md#supported-channel-options) setting.
+
+\*\*WARNING:\*\* This is an advanced setting. The default of 256 KB is optimized for most Node workloads. Only modify this if you are actively tuning gRPC network behavior and understand the implications of HTTP/2 flow control.
 
 <b>Signature:</b>
 
 ```typescript
-experimentalGrpcFlowControlWindow?: number;
+grpcFlowControlWindow?: number;
 ```
 
 ## Settings.host

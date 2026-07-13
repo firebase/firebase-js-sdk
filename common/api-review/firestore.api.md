@@ -266,8 +266,8 @@ export interface FirestoreSettings {
     cacheSizeBytes?: number;
     experimentalAutoDetectLongPolling?: boolean;
     experimentalForceLongPolling?: boolean;
-    experimentalGrpcFlowControlWindow?: number;
     experimentalLongPollingOptions?: ExperimentalLongPollingOptions;
+    grpcFlowControlWindow?: number;
     host?: string;
     ignoreUndefinedProperties?: boolean;
     localCache?: FirestoreLocalCache;
