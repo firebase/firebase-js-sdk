@@ -156,9 +156,24 @@ describe('getRawPath', () => {
     expect(getRawPath('/home#section1')).to.equal('/home');
   });
 
+  it('strips matrix parameters', () => {
+    expect(getRawPath('/users;id=123;role=admin/profile')).to.equal(
+      '/users/profile'
+    );
+    expect(
+      getRawPath('/users;id=123/profile;tab=posts/details;view=detailed')
+    ).to.equal('/users/profile/details');
+  });
+
   it('strips both query parameters and hash fragment', () => {
     expect(getRawPath('/home?foo=bar#section1')).to.equal('/home');
     expect(getRawPath('/home#section1?foo=bar')).to.equal('/home');
+  });
+
+  it('strips query parameters, hash fragments, and matrix parameters combined', () => {
+    expect(
+      getRawPath('/users;id=123/profile;tab=posts?foo=bar#section1')
+    ).to.equal('/users/profile');
   });
 });
 

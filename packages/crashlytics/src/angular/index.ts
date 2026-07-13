@@ -16,7 +16,13 @@
  */
 
 import { ErrorHandler, inject, DestroyRef } from '@angular/core';
-import { ActivatedRouteSnapshot, NavigationEnd, Router } from '@angular/router';
+import {
+  ActivatedRouteSnapshot,
+  NavigationEnd,
+  Router,
+  DefaultUrlSerializer,
+  UrlSegmentGroup
+} from '@angular/router';
 import { registerCrashlytics } from '../register';
 import { recordError, getCrashlytics, logViewBoundary } from '../api';
 import { Crashlytics, CrashlyticsOptions } from '../public-types';
@@ -51,12 +57,30 @@ export function getSafeRoutePath(router: Router): string {
 }
 
 /**
- * Extracts the raw path portion from a full URL by stripping query parameters and hashes.
+ * Recursively traverses the parsed URL segment group tree and clears the parameter map
+ * of each segment to strip out all Angular matrix parameters (e.g. `;id=123`).
+ */
+function stripMatrixParams(group: UrlSegmentGroup): void {
+  for (const segment of group.segments) {
+    segment.parameters = {};
+  }
+  for (const child of Object.values(group.children)) {
+    stripMatrixParams(child);
+  }
+}
+
+/**
+ * Extracts the raw path portion from a full URL by stripping query parameters, hashes, and matrix parameters.
  *
  * @internal
  */
 export function getRawPath(url: string): string {
-  return url.split('?')[0].split('#')[0];
+  const serializer = new DefaultUrlSerializer();
+  const urlTree = serializer.parse(url);
+  urlTree.queryParams = {};
+  urlTree.fragment = null;
+  stripMatrixParams(urlTree.root);
+  return serializer.serialize(urlTree);
 }
 
 /**
