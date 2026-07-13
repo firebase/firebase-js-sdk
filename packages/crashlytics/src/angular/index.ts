@@ -30,6 +30,30 @@ registerCrashlytics();
 export * from '../public-types';
 
 /**
+ * Constructs the safe, templated route path from the router state.
+ * Example output: '/users/:id/posts'
+ *
+ * @internal
+ */
+export function getSafeRoutePath(router: Router): string {
+  let currentRoute: ActivatedRouteSnapshot | null =
+    router.routerState.snapshot.root;
+
+  // Find the deepest activated child route
+  while (currentRoute.firstChild) {
+    currentRoute = currentRoute.firstChild;
+  }
+
+  // Traverse up from the deepest child to the root, collecting configured paths
+  const pathFromRoot = currentRoute.pathFromRoot
+    .map(route => route.routeConfig?.path)
+    .filter(path => path !== undefined && path !== '') // Filter out empty or undefined paths
+    .join('/');
+
+  return `/${pathFromRoot}`;
+}
+
+/**
  * A custom ErrorHandler that captures uncaught errors and sends them to Firebase Crashlytics.
  *
  * This should be provided in your application's root module.
@@ -82,34 +106,10 @@ export class FirebaseErrorHandler implements ErrorHandler {
     this.crashlytics = getCrashlytics(app, crashlyticsOptions);
     const attributesStore = (this.crashlytics as CrashlyticsInternal)
       .attributesStore;
-    attributesStore.setRoutePathProvider(() =>
-      this.getSafeRoutePath(this.router)
-    );
+    attributesStore.setRoutePathProvider(() => getSafeRoutePath(this.router));
   }
 
   handleError(error: unknown): void {
     recordError(this.crashlytics, error);
-  }
-
-  /**
-   * Constructs the safe, templated route path from the router state.
-   * Example output: '/users/:id/posts'
-   */
-  private getSafeRoutePath(router: Router): string {
-    let currentRoute: ActivatedRouteSnapshot | null =
-      router.routerState.snapshot.root;
-
-    // Find the deepest activated child route
-    while (currentRoute.firstChild) {
-      currentRoute = currentRoute.firstChild;
-    }
-
-    // Traverse up from the deepest child to the root, collecting configured paths
-    const pathFromRoot = currentRoute.pathFromRoot
-      .map(route => route.routeConfig?.path)
-      .filter(path => path !== undefined && path !== '') // Filter out empty or undefined paths
-      .join('/');
-
-    return `/${pathFromRoot}`;
   }
 }
