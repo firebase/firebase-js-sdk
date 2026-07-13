@@ -117,7 +117,9 @@ export async function signInWithPasskey(
         try {
           await (getModularInstance(user) as UserInternal).delete();
         } catch (deleteError) {
-          await authInternal.signOut();
+          if (authInternal.currentUser !== null) {
+            await authInternal.signOut();
+          }
         }
         throw enrollmentError;
       }
