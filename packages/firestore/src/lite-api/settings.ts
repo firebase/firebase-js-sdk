@@ -70,18 +70,6 @@ export interface FirestoreSettings {
   ignoreUndefinedProperties?: boolean;
 
   /**
-   * Only applicable in Node environments.
-   *
-   * The gRPC flow control window size in bytes. Defaults to 256 KB.
-   * This maps directly to grpc-node's {@link https://github.com/grpc/grpc-node/blob/651cbeec6b4d6d11cbee91c042946d2fe5968ef6/packages/grpc-js/README.md#supported-channel-options | grpc-node.flow_control_window } setting.
-   *
-   * **WARNING:** This is an advanced setting. The default of 256 KB is optimized
-   * for most Node workloads. Only modify this if you are actively tuning gRPC
-   * network behavior and understand the implications of HTTP/2 flow control.
-   */
-  grpcFlowControlWindow?: number;
-
-  /**
    * @internal
    * Undocumented setting for internal Google consumers.
    * External callers needing this feature, please let us
