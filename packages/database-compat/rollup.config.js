@@ -21,9 +21,9 @@ import typescript from 'typescript';
 import commonjs from '@rollup/plugin-commonjs';
 import resolveModule from '@rollup/plugin-node-resolve';
 
-import pkg from './package.json';
-import standalonePkg from './standalone/package.json';
-import { emitModulePackageFile } from '../../scripts/build/rollup_emit_module_package_file';
+import pkg from './package.json' with { type: 'json' };
+import standalonePkg from './standalone/package.json' with { type: 'json' };
+import { emitModulePackageFile } from '../../scripts/build/rollup_emit_module_package_file.js';
 
 const deps = Object.keys({ ...pkg.peerDependencies, ...pkg.dependencies });
 
@@ -93,6 +93,7 @@ const cjsBuilds = [
       {
         file: pkg.main,
         format: 'cjs',
+        esModule: true,
         sourcemap: true
       }
     ],
@@ -113,6 +114,7 @@ const cjsBuilds = [
       {
         file: standalonePkg.main.replace('../', ''),
         format: 'cjs',
+        esModule: true,
         sourcemap: true
       }
     ],
