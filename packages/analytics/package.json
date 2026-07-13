@@ -22,7 +22,7 @@
     "lint:fix": "eslint --cache --cache-location '../../node_modules/.cache/eslint/' --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "build": "rollup -c && yarn api-report",
     "build:release": "yarn build && yarn typings:public",
-    "build:deps": "lerna run build --scope @firebase/analytics",
+    "build:deps": "lerna run build --scope @firebase/analytics --include-dependencies",
     "dev": "rollup -c -w",
     "test": "run-p --npm-path npm lint test:all",
     "test:all": "run-p --npm-path npm test:browser test:integration",
@@ -47,7 +47,7 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@firebase/app": "0.15.0",
+    "@firebase/app": "0.15.1",
     "rollup": "2.79.2",
     "rollup-plugin-dts": "5.3.1",
     "@rollup/plugin-commonjs": "21.1.0",
