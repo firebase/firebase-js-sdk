@@ -80,6 +80,19 @@ describe('FirebaseError', () => {
     );
   });
 
+  it('falls back to template if template replacement throws', () => {
+    const e = ERROR_FACTORY.create('file-not-found', {
+      get file() {
+        throw new Error('accessing file throws');
+      }
+    } as any);
+    assert.equal((e as FirebaseError)?.code, 'fake/file-not-found');
+    assert.equal(
+      e.message,
+      "Fake: Could not find file: '{$file}' (fake/file-not-found)."
+    );
+  });
+
   it('has stack', () => {
     const e = ERROR_FACTORY.create('generic-error');
 
