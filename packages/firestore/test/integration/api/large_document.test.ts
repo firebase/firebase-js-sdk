@@ -49,7 +49,7 @@ apiDescribe('Large Documents', persistence => {
   let seedColName: string;
 
   beforeEach(function () {
-    this.timeout(120_000); // Tests are very slow because large doc reads have very high latency.
+    this.currentTest?.timeout(120_000); // Tests are very slow because large doc reads have very high latency.
   });
 
   before(async function () {
