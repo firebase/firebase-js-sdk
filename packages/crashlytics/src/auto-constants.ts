@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+<<<<<<<< HEAD:packages/crashlytics/src/auto-constants.ts
 /**
  * A map of constants intended to be optionally overwritten during the application build process.
  * The supported keys are:
@@ -22,3 +23,13 @@
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const AUTO_CONSTANTS: any = {};
+========
+import { RECAPTCHA_ENTERPRISE_ONLOAD_CALLBACK_NAME } from '../../src/platform_browser/recaptcha/recaptcha_enterprise_verifier';
+
+export const mockLoadJS = (): Promise<Event> => {
+  if (typeof window[RECAPTCHA_ENTERPRISE_ONLOAD_CALLBACK_NAME] === 'function') {
+    window[RECAPTCHA_ENTERPRISE_ONLOAD_CALLBACK_NAME]();
+  }
+  return Promise.resolve(new Event(''));
+};
+>>>>>>>> main:packages/auth/test/helpers/mock_loadjs.ts

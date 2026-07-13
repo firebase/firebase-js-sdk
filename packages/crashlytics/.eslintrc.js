@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+<<<<<<<< HEAD:packages/crashlytics/.eslintrc.js
 module.exports = {
   extends: '../../config/.eslintrc.js',
   parserOptions: {
@@ -24,3 +25,17 @@ module.exports = {
     tsconfigRootDir: __dirname
   }
 };
+========
+const useColors: boolean =
+  typeof process !== 'undefined' &&
+  (process.env.FORCE_COLOR !== undefined ||
+    (!!process.stdout?.isTTY && !process.env.NO_COLOR));
+
+export function bold(text: string): string {
+  return useColors ? `\x1b[1m${text}\x1b[22m` : text;
+}
+
+export function yellow(text: string): string {
+  return useColors ? `\x1b[33m${text}\x1b[39m` : text;
+}
+>>>>>>>> main:repo-scripts/api-documenter/src/utils/style.ts
