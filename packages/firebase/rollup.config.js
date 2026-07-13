@@ -15,18 +15,18 @@
  * limitations under the License.
  */
 
-import appPkg from './app/package.json';
+import appPkg from './app/package.json' with { type: 'json' };
 import commonjs from '@rollup/plugin-commonjs';
 import json from '@rollup/plugin-json';
-import pkg from './package.json';
+import pkg from './package.json' with { type: 'json' };
 import { resolve } from 'path';
-import { existsSync } from 'fs';
+import { existsSync, readFileSync } from 'fs';
 import resolveModule from '@rollup/plugin-node-resolve';
 import rollupTypescriptPlugin from 'rollup-plugin-typescript2';
 import sourcemaps from 'rollup-plugin-sourcemaps';
 import terser from '@rollup/plugin-terser';
 import typescript from 'typescript';
-import { emitModulePackageFile } from '../../scripts/build/rollup_emit_module_package_file';
+import { emitModulePackageFile } from '../../scripts/build/rollup_emit_module_package_file.js';
 
 const external = Object.keys(pkg.dependencies || {});
 const plugins = [sourcemaps(), resolveModule(), json(), commonjs()];
@@ -70,7 +70,12 @@ const appBuilds = [
   {
     input: 'app/index.ts',
     output: [
-      { file: resolve('app', appPkg.main), format: 'cjs', sourcemap: true },
+      {
+        file: resolve('app', appPkg.main),
+        format: 'cjs',
+        esModule: true,
+        sourcemap: true
+      },
       {
         file: resolve('app', appPkg.main.replace('.cjs.js', '.mjs')),
         format: 'es',
@@ -86,7 +91,9 @@ const componentBuilds = pkg.components
   // The "app" component is treated differently because it doesn't depend on itself.
   .filter(component => component !== 'app')
   .map(component => {
-    const pkg = require(`./${component}/package.json`);
+    const pkg = JSON.parse(
+      readFileSync(`./${component}/package.json`, 'utf-8')
+    );
     return [
       /**
        * Component ESM Build
@@ -116,6 +123,7 @@ const componentBuilds = pkg.components
           {
             file: resolve(component, pkg.main),
             format: 'cjs',
+            esModule: true,
             sourcemap: true
           },
           {

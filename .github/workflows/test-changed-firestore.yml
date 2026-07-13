@@ -297,5 +297,5 @@ jobs:
     needs: [build]
     steps:
       - name: Check test matrix
-        if: needs.build.result == 'failure'
+        if: needs.build.result == 'failure' || needs.test-chrome.result == 'failure' || needs.compat-test-chrome.result == 'failure'
         run: exit 1

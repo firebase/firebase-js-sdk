@@ -18,8 +18,8 @@
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import replacePlugin from '@rollup/plugin-replace';
 import typescript from 'typescript';
-import pkg from './package.json';
-import { emitModulePackageFile } from '../../scripts/build/rollup_emit_module_package_file';
+import pkg from './package.json' with { type: 'json' };
+import { emitModulePackageFile } from '../../scripts/build/rollup_emit_module_package_file.js';
 
 const deps = [
   ...Object.keys(Object.assign({}, pkg.peerDependencies, pkg.dependencies)),
@@ -52,6 +52,7 @@ const browserBuilds = [
     output: {
       file: './dist/index.cjs.js',
       format: 'cjs',
+      esModule: true,
       sourcemap: true
     },
     plugins: [...buildPlugins, replaceSrcPostinstallWith('./postinstall.js')],
@@ -65,6 +66,7 @@ const nodeBuilds = [
     output: {
       file: pkg.main,
       format: 'cjs',
+      esModule: true,
       sourcemap: true
     },
     plugins: [...buildPlugins, replaceSrcPostinstallWith('./postinstall.js')],
@@ -91,7 +93,8 @@ const autoinitBuild = [
     input: './src/postinstall.ts',
     output: {
       file: './dist/postinstall.js',
-      format: 'cjs'
+      format: 'cjs',
+      esModule: true
     },
     plugins: buildPlugins
   },
