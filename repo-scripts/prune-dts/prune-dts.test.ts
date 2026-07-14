@@ -21,7 +21,7 @@ import * as path from 'path';
 import { format, resolveConfig } from 'prettier';
 import { expect } from 'chai';
 import { describe, it } from 'mocha';
-import { pruneDts } from './prune-dts';
+import { addBlankLines, pruneDts, removeUnusedImports } from './prune-dts';
 
 const testCasesDir = path.resolve(__dirname, 'tests');
 const tmpDir = os.tmpdir();
@@ -37,6 +37,7 @@ async function runScript(inputFile: string): Promise<string> {
 
 interface TestCase {
   name: string;
+  baseName: string;
   absoluteInputFile: string;
   absoluteOutputFile: string;
 }
@@ -51,6 +52,7 @@ function discoverUnitCases(): TestCase[] {
       const testCaseName = fileName.match(testDataFilter)![1];
       return {
         name: testCaseName.replace(/-/g, ' '),
+        baseName: testCaseName,
         absoluteInputFile: path.join(unitDir, `${testCaseName}.input.d.ts`),
         absoluteOutputFile: path.join(unitDir, `${testCaseName}.output.d.ts`)
       };
@@ -68,6 +70,7 @@ function discoverPackageCases(): TestCase[] {
       const testCaseName = fileName.match(testDataFilter)![1];
       return {
         name: testCaseName.replace(/-/g, ' '),
+        baseName: testCaseName,
         absoluteInputFile: path.join(packagesDir, `${testCaseName}.input.d.ts`),
         absoluteOutputFile: path.join(pruneOnlyDir, `${testCaseName}.output.d.ts`)
       };
@@ -78,14 +81,6 @@ function discoverPackageCases(): TestCase[] {
  * Controls suite filtering (`unit`, `production`, or `all`).
  */
 const testMode = process.env.TEST_MODE || 'all';
-
-/**
- * When `UPDATE_SNAPSHOTS=1` is set, `assertAndReport` automatically overwrites expected `.output.d.ts`
- * snapshot files with the actual formatted output when baseline modifications occur.
- */
-const updateSnapshots =
-  process.env.UPDATE_SNAPSHOTS === '1' ||
-  process.env.UPDATE_SNAPSHOTS === 'true';
 
 const useColor = process.stdout.isTTY && !process.env.NO_COLOR;
 const RESET = useColor ? '\x1b[0m' : '';
@@ -108,12 +103,6 @@ function assertAndReport(
   expectedPath: string
 ): void {
   if (actual === expected) {
-    return;
-  }
-
-  if (updateSnapshots) {
-    console.log(`[SNAPSHOT UPDATED] ${expectedPath}`);
-    fs.writeFileSync(expectedPath, actual, 'utf-8');
     return;
   }
 
@@ -152,16 +141,15 @@ function assertAndReport(
 
   const relativeExpected = path.relative(process.cwd(), expectedPath);
   const errorMessage = [
-    `${RESET}\nMismatch at line ${diffLine}:`,
-    `  Expected: ${relativeExpected}:${diffLine}`,
-    `  Actual:   ${actualPath}:${diffLine}\n`,
+    `${RESET}\nMismatch at line ${diffLine} (${relativeExpected}:${diffLine} vs ${actualPath}:${diffLine})`,
     ...previewLines,
-    `\n${CYAN}Inspect: git diff --no-index ${relativeExpected} ${actualPath}`
+    `\n${CYAN}Inspect: git diff --no-index ${relativeExpected} ${actualPath}${RESET}`
   ].join('\n');
 
   const error = new Error(errorMessage);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (error as any).showDiff = false;
+  error.stack = '';
   throw error;
 }
 
@@ -203,35 +191,110 @@ describe('Prune DTS', () => {
     });
   }
 
-  if (testMode === 'all' || testMode === 'production') {
+  if (
+    testMode === 'all' ||
+    testMode === 'production' ||
+    testMode === 'stage1' ||
+    testMode === 'stage2'
+  ) {
     describe('Production Regressions', () => {
       for (const testCase of productionCases) {
-        it(testCase.name, async () => {
-          const { absoluteInputFile, absoluteOutputFile } = testCase;
+        const pkgName = testCase.name;
+        const pkgBaseName = testCase.baseName;
+        const { absoluteInputFile } = testCase;
+        const absoluteStage1Output = path.resolve(
+          testCasesDir,
+          'packages',
+          'prune-only',
+          `${pkgBaseName}.output.d.ts`
+        );
+        const absoluteStage2Output = path.resolve(
+          testCasesDir,
+          'packages',
+          'post-processed',
+          `${pkgBaseName}.output.d.ts`
+        );
+        const hasStage2 = fs.existsSync(absoluteStage2Output);
 
-          const tmpFile = await runScript(absoluteInputFile);
-          const prettierConfig = await resolveConfig(absoluteInputFile);
+        describe(`Package: ${pkgName}`, () => {
+          let stage1TmpFile: string;
 
-          const expectedDtsUnformatted = fs.readFileSync(
-            absoluteOutputFile,
-            'utf-8'
-          );
-          const expectedDts = await format(expectedDtsUnformatted, {
-            filepath: absoluteOutputFile,
-            ...prettierConfig
-          });
-          const actualDtsUnformatted = fs.readFileSync(tmpFile, 'utf-8');
-          const actualDts = await format(actualDtsUnformatted, {
-            filepath: tmpFile,
-            ...prettierConfig
-          });
+          if (
+            testMode === 'all' ||
+            testMode === 'production' ||
+            testMode === 'stage1'
+          ) {
+            it('Stage 1: AST Pruning (prune-only)', async () => {
+              stage1TmpFile = await runScript(absoluteInputFile);
+              const prettierConfig = await resolveConfig(absoluteInputFile);
 
-          assertAndReport(
-            actualDts,
-            expectedDts,
-            testCase.name,
-            absoluteOutputFile
-          );
+              const expectedUnformatted = fs.readFileSync(
+                absoluteStage1Output,
+                'utf-8'
+              );
+              const expected = await format(expectedUnformatted, {
+                filepath: absoluteStage1Output,
+                ...prettierConfig
+              });
+              const actualUnformatted = fs.readFileSync(stage1TmpFile, 'utf-8');
+              const actual = await format(actualUnformatted, {
+                filepath: stage1TmpFile,
+                ...prettierConfig
+              });
+
+              assertAndReport(
+                actual,
+                expected,
+                `${pkgName} [Stage 1: prune-only]`,
+                absoluteStage1Output
+              );
+            });
+          }
+
+          if (
+            hasStage2 &&
+            (testMode === 'all' ||
+              testMode === 'production' ||
+              testMode === 'stage2')
+          ) {
+            it('Stage 2: Full Pipeline (post-processed)', async function () {
+              if (!stage1TmpFile || !fs.existsSync(stage1TmpFile)) {
+                this.skip();
+              }
+              const failDir = path.resolve('/tmp', 'prune-dts-failures');
+              fs.mkdirSync(failDir, { recursive: true });
+              const stage2TmpFile = path.resolve(
+                failDir,
+                `${pkgBaseName}-stage2.actual.d.ts`
+              );
+              fs.copyFileSync(stage1TmpFile, stage2TmpFile);
+
+              await addBlankLines(stage2TmpFile);
+              await removeUnusedImports(stage2TmpFile);
+
+              const prettierConfig = await resolveConfig(absoluteInputFile);
+              const expectedUnformatted = fs.readFileSync(
+                absoluteStage2Output,
+                'utf-8'
+              );
+              const expected = await format(expectedUnformatted, {
+                filepath: absoluteStage2Output,
+                ...prettierConfig
+              });
+              const actualUnformatted = fs.readFileSync(stage2TmpFile, 'utf-8');
+              const actual = await format(actualUnformatted, {
+                filepath: stage2TmpFile,
+                ...prettierConfig
+              });
+
+              assertAndReport(
+                actual,
+                expected,
+                `${pkgName} [Stage 2: post-processed]`,
+                absoluteStage2Output
+              );
+            });
+          }
         });
       }
     });
