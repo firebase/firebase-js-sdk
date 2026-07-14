@@ -29,9 +29,9 @@ const tmpDir = os.tmpdir();
 const testDataFilter = /(.*).input.d.ts/;
 const testCaseFilterRe = /.*/;
 
-async function runScript(inputFile: string): Promise<string> {
+async function runScript(inputFile: string, otherExportFiles: string[] = []): Promise<string> {
   const outputFile = path.resolve(tmpDir, `output-${path.basename(inputFile)}`);
-  pruneDts(inputFile, outputFile);
+  pruneDts(inputFile, outputFile, otherExportFiles);
   return outputFile;
 }
 
@@ -183,7 +183,14 @@ describe('Prune DTS', () => {
             it(testCase.name, async () => {
               const { absoluteInputFile, absoluteOutputFile } = testCase;
 
-              const tmpFile = await runScript(absoluteInputFile);
+              const companionFile = path.join(
+                path.dirname(absoluteInputFile),
+                'companion.d.ts'
+              );
+              const otherExports = fs.existsSync(companionFile)
+                ? [companionFile]
+                : [];
+              const tmpFile = await runScript(absoluteInputFile, otherExports);
               const prettierConfig = await resolveConfig(absoluteInputFile);
 
               const expectedDtsUnformatted = fs.readFileSync(
