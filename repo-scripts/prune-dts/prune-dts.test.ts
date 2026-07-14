@@ -21,7 +21,7 @@ import * as path from 'path';
 import { format, resolveConfig } from 'prettier';
 import { expect } from 'chai';
 import { describe, it } from 'mocha';
-import { addBlankLines, pruneDts, removeUnusedImports } from './prune-dts';
+import { addBlankLines, pruneDts, removeUnusedImports } from './src/index';
 
 const testCasesDir = path.resolve(__dirname, 'tests');
 const tmpDir = os.tmpdir();
@@ -246,7 +246,7 @@ describe('Prune DTS', () => {
             testMode === 'production' ||
             testMode === 'stage1'
           ) {
-            it('Stage 1: AST Pruning (prune-only)', async () => {
+            it('AST Pruning (prune-only)', async () => {
               stage1TmpFile = await runScript(absoluteInputFile);
               const prettierConfig = await resolveConfig(absoluteInputFile);
 
@@ -267,7 +267,7 @@ describe('Prune DTS', () => {
               assertAndReport(
                 actual,
                 expected,
-                `${pkgName} [Stage 1: prune-only]`,
+                pkgName,
                 absoluteStage1Output
               );
             });
@@ -279,7 +279,7 @@ describe('Prune DTS', () => {
               testMode === 'production' ||
               testMode === 'stage2')
           ) {
-            it('Stage 2: Full Pipeline (post-processed)', async function () {
+            it('Full Pipeline (post-processed)', async function () {
               if (!stage1TmpFile || !fs.existsSync(stage1TmpFile)) {
                 this.skip();
               }
@@ -312,7 +312,7 @@ describe('Prune DTS', () => {
               assertAndReport(
                 actual,
                 expected,
-                `${pkgName} [Stage 2: post-processed]`,
+                pkgName,
                 absoluteStage2Output
               );
             });
