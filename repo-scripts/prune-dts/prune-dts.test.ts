@@ -57,9 +57,7 @@ function discoverInputFiles(dir: string, relativePrefix = ''): TestCase[] {
       const outputFileName = relativePrefix
         ? path.join(relativePrefix, `${testCaseName}.output.d.ts`)
         : `${testCaseName}.output.d.ts`;
-      const name = relativePrefix
-        ? `${relativePrefix}: ${testCaseName.replace(/-/g, ' ')}`
-        : testCaseName.replace(/-/g, ' ');
+      const name = testCaseName.replace(/-/g, ' ');
       return { name, inputFileName, outputFileName };
     });
 }
@@ -138,7 +136,7 @@ function assertAndReport(
     return;
   }
 
-  const failDir = path.resolve(os.tmpdir(), 'prune-dts-failures');
+  const failDir = path.resolve('/tmp', 'prune-dts-failures');
   fs.mkdirSync(failDir, { recursive: true });
   const actualPath = path.join(
     failDir,
@@ -172,13 +170,12 @@ function assertAndReport(
   }
 
   const relativeExpected = path.relative(process.cwd(), expectedPath);
-  const displayActualPath = `/tmp/prune-dts-failures/${testName.replace(/\s+/g, '-')}.actual.d.ts`;
   const errorMessage = [
     `${RESET}\nMismatch at line ${diffLine}:`,
     `  Expected: ${relativeExpected}:${diffLine}`,
-    `  Actual:   ${displayActualPath}:${diffLine}\n`,
+    `  Actual:   ${actualPath}:${diffLine}\n`,
     ...previewLines,
-    `\n${CYAN}Inspect: git diff --no-index ${relativeExpected} ${displayActualPath}`
+    `\n${CYAN}Inspect: git diff --no-index ${relativeExpected} ${actualPath}`
   ].join('\n');
 
   const error = new Error(errorMessage);
