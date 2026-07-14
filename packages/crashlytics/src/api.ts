@@ -22,12 +22,7 @@ import { Crashlytics, CrashlyticsOptions } from './public-types';
 import { Provider } from '@firebase/component';
 import { AnyValueMap, SeverityNumber } from '@opentelemetry/api-logs';
 import { CrashlyticsService } from './service';
-import {
-  flush,
-  generateClickSpanName,
-  startUserInteractionTrace,
-  logVisibilityEvent
-} from './helpers';
+import { flush, logVisibilityEvent } from './helpers';
 import { deepEqual } from '@firebase/util';
 import { SPAN_ATTR_KEY } from './attributes-store';
 
@@ -189,42 +184,6 @@ export function registerGlobalErrorListeners(
 }
 
 /**
- * Registers global event listeners for click events.
- *
- * @internal
- */
-export function registerUserInteractionTraceListener(
-  crashlytics: Crashlytics
-): () => void {
-  if (typeof window === 'undefined') {
-    return () => {};
-  }
-  const clickListener = (event: MouseEvent): void => {
-    const target = event.target;
-    if (!target || !(target instanceof Element)) {
-      return;
-    }
-    const targetElement = target.closest(
-      'button, a, [role="button"], input[type="submit"], input[type="button"]'
-    );
-    if (!targetElement) {
-      return;
-    }
-    const spanName = generateClickSpanName(targetElement);
-    startUserInteractionTrace(crashlytics, spanName);
-  };
-
-  try {
-    window.addEventListener('click', clickListener, { capture: true });
-  } catch (error) {
-    console.warn(`Firebase Crashlytics was not initialized:\n`, error);
-  }
-  return () => {
-    window.removeEventListener('click', clickListener, { capture: true });
-  };
-}
-
-/**
  * Creates a log for view boundary on navigation event
  *
  * @param crashlytics - The {@link Crashlytics} instance.
@@ -257,4 +216,4 @@ export function logViewBoundary(
   });
 }
 
-export { flush, startUserInteractionTrace, logVisibilityEvent };
+export { flush, logVisibilityEvent };

@@ -41,9 +41,6 @@ export function nextOnRequestError(crashlyticsOptions?: CrashlyticsOptions): Ins
 // @public
 export function recordError(crashlytics: Crashlytics, error: unknown, attributes?: AnyValueMap): void;
 
-// @public
-export function startUserInteractionTrace(crashlytics: Crashlytics, rootSpanName: string): void;
-
 
 // (No @packageDocumentation comment for this package)
 
