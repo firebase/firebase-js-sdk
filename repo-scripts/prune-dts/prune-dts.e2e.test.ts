@@ -22,8 +22,13 @@ import * as path from 'path';
 import { format, resolveConfig } from 'prettier';
 import { addBlankLines, pruneDts, removeUnusedImports } from './prune-dts';
 
-const testCasesDir = path.resolve(__dirname, 'tests');
-const e2eOutputCasesDir = path.resolve(__dirname, 'tests', 'e2e');
+const testCasesDir = path.resolve(__dirname, 'tests', 'packages');
+const e2eOutputCasesDir = path.resolve(
+  __dirname,
+  'tests',
+  'packages',
+  'post-processed'
+);
 const tmpDir = os.tmpdir();
 
 const e2ePackages = [

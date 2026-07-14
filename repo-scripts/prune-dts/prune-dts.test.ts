@@ -37,61 +37,42 @@ async function runScript(inputFile: string): Promise<string> {
 
 interface TestCase {
   name: string;
-  inputFileName: string;
-  outputFileName: string;
+  absoluteInputFile: string;
+  absoluteOutputFile: string;
 }
 
-function discoverInputFiles(dir: string, relativePrefix = ''): TestCase[] {
-  if (!fs.existsSync(dir) || !fs.lstatSync(dir).isDirectory()) {
-    return [];
-  }
+function discoverUnitCases(): TestCase[] {
+  const unitDir = path.resolve(testCasesDir, 'unit');
+  if (!fs.existsSync(unitDir)) return [];
   return fs
-    .readdirSync(dir)
-    .filter((fileName: string) => testDataFilter.test(fileName))
-    .filter((fileName: string) => testCaseFilterRe.test(fileName))
-    .map((fileName: string) => {
+    .readdirSync(unitDir)
+    .filter(fileName => testDataFilter.test(fileName))
+    .map(fileName => {
       const testCaseName = fileName.match(testDataFilter)![1];
-      const inputFileName = relativePrefix
-        ? path.join(relativePrefix, `${testCaseName}.input.d.ts`)
-        : `${testCaseName}.input.d.ts`;
-      const outputFileName = relativePrefix
-        ? path.join(relativePrefix, `${testCaseName}.output.d.ts`)
-        : `${testCaseName}.output.d.ts`;
-      const name = testCaseName.replace(/-/g, ' ');
-      return { name, inputFileName, outputFileName };
+      return {
+        name: testCaseName.replace(/-/g, ' '),
+        absoluteInputFile: path.join(unitDir, `${testCaseName}.input.d.ts`),
+        absoluteOutputFile: path.join(unitDir, `${testCaseName}.output.d.ts`)
+      };
     });
 }
 
-function getTestCases(): TestCase[] {
-  if (
-    !fs.existsSync(testCasesDir) ||
-    !fs.lstatSync(testCasesDir).isDirectory()
-  ) {
-    throw new Error(`${testCasesDir} folder does not exist`);
-  }
-
-  const rootCases = discoverInputFiles(testCasesDir);
-  const isolatedCases = discoverInputFiles(
-    path.join(testCasesDir, 'isolated'),
-    'isolated'
-  );
-  return [...rootCases, ...isolatedCases];
+function discoverPackageCases(): TestCase[] {
+  const packagesDir = path.resolve(testCasesDir, 'packages');
+  const pruneOnlyDir = path.resolve(packagesDir, 'prune-only');
+  if (!fs.existsSync(packagesDir) || !fs.existsSync(pruneOnlyDir)) return [];
+  return fs
+    .readdirSync(packagesDir)
+    .filter(fileName => testDataFilter.test(fileName))
+    .map(fileName => {
+      const testCaseName = fileName.match(testDataFilter)![1];
+      return {
+        name: testCaseName.replace(/-/g, ' '),
+        absoluteInputFile: path.join(packagesDir, `${testCaseName}.input.d.ts`),
+        absoluteOutputFile: path.join(pruneOnlyDir, `${testCaseName}.output.d.ts`)
+      };
+    });
 }
-
-/**
- * Production package snapshots represent full SDK generated .d.ts files (e.g. firestore ~4,500 lines).
- * We separate these from single-rule unit tests (tests/*.input.d.ts) to allow fast, targeted
- * verification using TEST_MODE=unit.
- */
-const productionPackageNames = new Set([
-  'firestore',
-  'database',
-  'storage-public',
-  'messaging',
-  'data-connect',
-  'dom',
-  'error'
-]);
 
 /**
  * Controls suite filtering (`unit`, `production`, or `all`).
@@ -185,26 +166,14 @@ function assertAndReport(
 }
 
 describe('Prune DTS', () => {
-  const allCases = getTestCases();
-  const unitCases = allCases.filter(
-    c => !productionPackageNames.has(c.inputFileName.replace('.input.d.ts', ''))
-  );
-  const productionCases = allCases.filter(c =>
-    productionPackageNames.has(c.inputFileName.replace('.input.d.ts', ''))
-  );
+  const unitCases = discoverUnitCases();
+  const productionCases = discoverPackageCases();
 
   if (testMode === 'all' || testMode === 'unit') {
-    describe('Isolated', () => {
+    describe('Unit Rules', () => {
       for (const testCase of unitCases) {
         it(testCase.name, async () => {
-          const absoluteInputFile = path.resolve(
-            testCasesDir,
-            testCase.inputFileName
-          );
-          const absoluteOutputFile = path.resolve(
-            testCasesDir,
-            testCase.outputFileName
-          );
+          const { absoluteInputFile, absoluteOutputFile } = testCase;
 
           const tmpFile = await runScript(absoluteInputFile);
           const prettierConfig = await resolveConfig(absoluteInputFile);
@@ -238,14 +207,7 @@ describe('Prune DTS', () => {
     describe('Production Regressions', () => {
       for (const testCase of productionCases) {
         it(testCase.name, async () => {
-          const absoluteInputFile = path.resolve(
-            testCasesDir,
-            testCase.inputFileName
-          );
-          const absoluteOutputFile = path.resolve(
-            testCasesDir,
-            testCase.outputFileName
-          );
+          const { absoluteInputFile, absoluteOutputFile } = testCase;
 
           const tmpFile = await runScript(absoluteInputFile);
           const prettierConfig = await resolveConfig(absoluteInputFile);
