@@ -18,13 +18,18 @@
 import { Context } from '@opentelemetry/api';
 import { LogRecordProcessor, SdkLogRecord } from '@opentelemetry/sdk-logs';
 
+export interface BufferedLogRecord {
+  logRecord: SdkLogRecord;
+  context?: Context;
+}
+
 /**
  * A LogRecordProcessor that buffers all log records in memory until an error occurs.
  * Once an error occurs, it releases all buffered log records to the delegate processor
  * and forwards subsequent log records directly to the delegate.
  */
 export class OnErrorLogRecordProcessor implements LogRecordProcessor {
-  private _buffer: SdkLogRecord[] = [];
+  private _buffer: BufferedLogRecord[] = [];
   private _hasErrorOccurred = false;
   private _maxBufferSize = 1000;
 
@@ -38,7 +43,7 @@ export class OnErrorLogRecordProcessor implements LogRecordProcessor {
     if (this._hasErrorOccurred) {
       this._delegate.onEmit(logRecord, context);
     } else {
-      this._buffer.push(logRecord);
+      this._buffer.push({ logRecord, context });
       if (this._buffer.length > this._maxBufferSize) {
         this._buffer.shift();
       }
@@ -60,17 +65,13 @@ export class OnErrorLogRecordProcessor implements LogRecordProcessor {
     this._hasErrorOccurred = true;
 
     // Flush all buffered log records to the delegate
-    for (const logRecord of this._buffer) {
-      this._delegate.onEmit(logRecord);
+    for (const bufferedItem of this._buffer) {
+      this._delegate.onEmit(bufferedItem.logRecord, bufferedItem.context);
     }
     this._buffer = [];
 
     // Force flush the delegate to ensure immediate export
     void this._delegate.forceFlush();
-  }
-
-  getBuffer(): SdkLogRecord[] {
-    return this._buffer;
   }
 
   hasErrorOccurred(): boolean {

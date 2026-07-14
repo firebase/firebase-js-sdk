@@ -16,17 +16,17 @@
  */
 
 import { expect } from 'chai';
-import { Context } from '@opentelemetry/api';
+import { Context, ROOT_CONTEXT, createContextKey } from '@opentelemetry/api';
 import { LogRecordProcessor, SdkLogRecord } from '@opentelemetry/sdk-logs';
 import { OnErrorLogRecordProcessor } from './on-error-log-record-processor';
 
 class MockLogRecordProcessor implements LogRecordProcessor {
-  logsEmitted: SdkLogRecord[] = [];
+  logsEmitted: Array<{ logRecord: SdkLogRecord; context?: Context }> = [];
   flushedCount = 0;
   shutdownCount = 0;
 
-  onEmit(logRecord: SdkLogRecord, _context?: Context): void {
-    this.logsEmitted.push(logRecord);
+  onEmit(logRecord: SdkLogRecord, context?: Context): void {
+    this.logsEmitted.push({ logRecord, context });
   }
   forceFlush(): Promise<void> {
     this.flushedCount++;
@@ -44,6 +44,8 @@ describe('OnErrorLogRecordProcessor', () => {
   let mockLog1: SdkLogRecord;
   let mockLog2: SdkLogRecord;
   let mockLog3: SdkLogRecord;
+  let mockContext1: Context;
+  let mockContext2: Context;
 
   beforeEach(() => {
     mockDelegate = new MockLogRecordProcessor();
@@ -51,57 +53,85 @@ describe('OnErrorLogRecordProcessor', () => {
     mockLog1 = { body: 'log1' } as unknown as SdkLogRecord;
     mockLog2 = { body: 'log2' } as unknown as SdkLogRecord;
     mockLog3 = { body: 'log3' } as unknown as SdkLogRecord;
+    mockContext1 = ROOT_CONTEXT.setValue(
+      createContextKey('testKey1'),
+      'testVal1'
+    );
+    mockContext2 = ROOT_CONTEXT.setValue(
+      createContextKey('testKey2'),
+      'testVal2'
+    );
   });
 
-  it('should buffer emitted log records and not forward them to delegate before error occurs', () => {
-    processor.onEmit(mockLog1);
+  it('should buffer emitted log records and context and not forward them to delegate before error occurs', () => {
+    processor.onEmit(mockLog1, mockContext1);
     processor.onEmit(mockLog2);
 
     expect(mockDelegate.logsEmitted).to.be.empty;
-    expect(processor.getBuffer()).to.deep.equal([mockLog1, mockLog2]);
     expect(processor.hasErrorOccurred()).to.be.false;
+
+    processor.onErrorOccurred();
+    expect(mockDelegate.logsEmitted).to.deep.equal([
+      { logRecord: mockLog1, context: mockContext1 },
+      { logRecord: mockLog2, context: undefined }
+    ]);
   });
 
   it('should drop oldest log records when buffer exceeds maxBufferSize', () => {
-    processor.onEmit(mockLog1);
-    processor.onEmit(mockLog2);
+    processor.onEmit(mockLog1, mockContext1);
+    processor.onEmit(mockLog2, mockContext2);
     processor.onEmit(mockLog3); // Over limit of 2
 
     expect(mockDelegate.logsEmitted).to.be.empty;
-    expect(processor.getBuffer()).to.deep.equal([mockLog2, mockLog3]);
+
+    processor.onErrorOccurred();
+    expect(mockDelegate.logsEmitted).to.deep.equal([
+      { logRecord: mockLog2, context: mockContext2 },
+      { logRecord: mockLog3, context: undefined }
+    ]);
   });
 
-  it('should forward buffered log records and call forceFlush on delegate when onErrorOccurred is called', () => {
-    processor.onEmit(mockLog1);
+  it('should forward buffered log records and context and call forceFlush on delegate when onErrorOccurred is called', () => {
+    processor.onEmit(mockLog1, mockContext1);
     processor.onEmit(mockLog2);
 
     processor.onErrorOccurred();
 
     expect(processor.hasErrorOccurred()).to.be.true;
-    expect(processor.getBuffer()).to.be.empty;
-    expect(mockDelegate.logsEmitted).to.deep.equal([mockLog1, mockLog2]);
+    expect(mockDelegate.logsEmitted).to.deep.equal([
+      { logRecord: mockLog1, context: mockContext1 },
+      { logRecord: mockLog2, context: undefined }
+    ]);
     expect(mockDelegate.flushedCount).to.equal(1);
   });
 
   it('should forward subsequent emitted log records to delegate immediately after error occurs', () => {
-    processor.onEmit(mockLog1);
+    processor.onEmit(mockLog1, mockContext1);
     processor.onErrorOccurred();
 
-    expect(mockDelegate.logsEmitted).to.deep.equal([mockLog1]);
+    expect(mockDelegate.logsEmitted).to.deep.equal([
+      { logRecord: mockLog1, context: mockContext1 }
+    ]);
 
-    processor.onEmit(mockLog2);
-    expect(mockDelegate.logsEmitted).to.deep.equal([mockLog1, mockLog2]);
-    expect(processor.getBuffer()).to.be.empty;
+    processor.onEmit(mockLog2, mockContext2);
+    expect(mockDelegate.logsEmitted).to.deep.equal([
+      { logRecord: mockLog1, context: mockContext1 },
+      { logRecord: mockLog2, context: mockContext2 }
+    ]);
   });
 
   it('should be a no-op if onErrorOccurred is called multiple times', () => {
-    processor.onEmit(mockLog1);
+    processor.onEmit(mockLog1, mockContext1);
     processor.onErrorOccurred();
-    expect(mockDelegate.logsEmitted).to.deep.equal([mockLog1]);
+    expect(mockDelegate.logsEmitted).to.deep.equal([
+      { logRecord: mockLog1, context: mockContext1 }
+    ]);
     expect(mockDelegate.flushedCount).to.equal(1);
 
     processor.onErrorOccurred();
-    expect(mockDelegate.logsEmitted).to.deep.equal([mockLog1]);
+    expect(mockDelegate.logsEmitted).to.deep.equal([
+      { logRecord: mockLog1, context: mockContext1 }
+    ]);
     expect(mockDelegate.flushedCount).to.equal(1);
   });
 
