@@ -64,36 +64,201 @@ function getTestCases(): TestCase[] {
     });
 }
 
+/**
+ * Production package snapshots represent full SDK generated .d.ts files (e.g. firestore ~4,500 lines).
+ * We separate these from single-rule unit tests (tests/*.input.d.ts) to allow fast, targeted
+ * verification using TEST_MODE=unit.
+ */
+const productionPackageNames = new Set([
+  'firestore',
+  'database',
+  'storage-public',
+  'messaging',
+  'data-connect',
+  'dom',
+  'error'
+]);
+
+/**
+ * Controls suite filtering (`unit`, `production`, or `all`).
+ */
+const testMode = process.env.TEST_MODE || 'all';
+
+/**
+ * When `UPDATE_SNAPSHOTS=1` is set, `assertAndReport` automatically overwrites expected `.output.d.ts`
+ * snapshot files with the actual formatted output when baseline modifications occur.
+ */
+const updateSnapshots =
+  process.env.UPDATE_SNAPSHOTS === '1' ||
+  process.env.UPDATE_SNAPSHOTS === 'true';
+
+const useColor = process.stdout.isTTY && !process.env.NO_COLOR;
+const RESET = useColor ? '\x1b[0m' : '';
+const RED = useColor ? '\x1b[31m' : '';
+const GREEN = useColor ? '\x1b[32m' : '';
+const CYAN = useColor ? '\x1b[36m' : '';
+const DIM = useColor ? '\x1b[90m' : '';
+
+/**
+ * Asserts string equality between actual and expected .d.ts outputs.
+ *
+ * On failure:
+ * 1. Writes actual output to /tmp/prune-dts-failures/<test-name>.actual.d.ts for direct inspection.
+ * 2. Outputs the exact git diff --no-index command to easily inspect line differences.
+ */
+function assertAndReport(
+  actual: string,
+  expected: string,
+  testName: string,
+  expectedPath: string
+): void {
+  if (actual === expected) {
+    return;
+  }
+
+  if (updateSnapshots) {
+    console.log(`[SNAPSHOT UPDATED] ${expectedPath}`);
+    fs.writeFileSync(expectedPath, actual, 'utf-8');
+    return;
+  }
+
+  const failDir = path.resolve(os.tmpdir(), 'prune-dts-failures');
+  fs.mkdirSync(failDir, { recursive: true });
+  const actualPath = path.join(
+    failDir,
+    `${testName.replace(/\s+/g, '-')}.actual.d.ts`
+  );
+  fs.writeFileSync(actualPath, actual, 'utf-8');
+
+  const actualLines = actual.split('\n');
+  const expectedLines = expected.split('\n');
+  let diffLine = 1;
+  const maxLines = Math.max(actualLines.length, expectedLines.length);
+  for (let i = 0; i < maxLines; i++) {
+    if (actualLines[i] !== expectedLines[i]) {
+      diffLine = i + 1;
+      break;
+    }
+  }
+
+  const startIdx = Math.max(0, diffLine - 3);
+  const endIdx = Math.min(maxLines, diffLine + 3);
+  const previewLines: string[] = [];
+  for (let i = startIdx; i < endIdx; i++) {
+    const exp = expectedLines[i];
+    const act = actualLines[i];
+    if (exp === act && exp !== undefined) {
+      previewLines.push(`${DIM}    ${exp}${RESET}`);
+    } else {
+      if (exp !== undefined) previewLines.push(`${RED}-   ${exp}${RESET}`);
+      if (act !== undefined) previewLines.push(`${GREEN}+   ${act}${RESET}`);
+    }
+  }
+
+  const relativeExpected = path.relative(process.cwd(), expectedPath);
+  const displayActualPath = `/tmp/prune-dts-failures/${testName.replace(/\s+/g, '-')}.actual.d.ts`;
+  const errorMessage = [
+    `${RESET}\nMismatch at line ${diffLine}:`,
+    `  Expected: ${relativeExpected}:${diffLine}`,
+    `  Actual:   ${displayActualPath}:${diffLine}\n`,
+    ...previewLines,
+    `\n${CYAN}Inspect: git diff --no-index ${relativeExpected} ${displayActualPath}`
+  ].join('\n');
+
+  const error = new Error(errorMessage);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (error as any).showDiff = false;
+  throw error;
+}
+
 describe('Prune DTS', () => {
-  for (const testCase of getTestCases()) {
-    it(testCase.name, async () => {
-      const absoluteInputFile = path.resolve(
-        testCasesDir,
-        testCase.inputFileName
-      );
-      const absoluteOutputFile = path.resolve(
-        testCasesDir,
-        testCase.outputFileName
-      );
+  const allCases = getTestCases();
+  const unitCases = allCases.filter(
+    c => !productionPackageNames.has(c.inputFileName.replace('.input.d.ts', ''))
+  );
+  const productionCases = allCases.filter(c =>
+    productionPackageNames.has(c.inputFileName.replace('.input.d.ts', ''))
+  );
 
-      const tmpFile = await runScript(absoluteInputFile);
-      const prettierConfig = await resolveConfig(absoluteInputFile);
+  if (testMode === 'all' || testMode === 'unit') {
+    describe('Isolated', () => {
+      for (const testCase of unitCases) {
+        it(testCase.name, async () => {
+          const absoluteInputFile = path.resolve(
+            testCasesDir,
+            testCase.inputFileName
+          );
+          const absoluteOutputFile = path.resolve(
+            testCasesDir,
+            testCase.outputFileName
+          );
 
-      const expectedDtsUnformatted = fs.readFileSync(
-        absoluteOutputFile,
-        'utf-8'
-      );
-      const expectedDts = format(expectedDtsUnformatted, {
-        filepath: absoluteOutputFile,
-        ...prettierConfig
-      });
-      const actualDtsUnformatted = fs.readFileSync(tmpFile, 'utf-8');
-      const actualDts = format(actualDtsUnformatted, {
-        filepath: tmpFile,
-        ...prettierConfig
-      });
+          const tmpFile = await runScript(absoluteInputFile);
+          const prettierConfig = await resolveConfig(absoluteInputFile);
 
-      expect(actualDts).to.equal(expectedDts);
+          const expectedDtsUnformatted = fs.readFileSync(
+            absoluteOutputFile,
+            'utf-8'
+          );
+          const expectedDts = await format(expectedDtsUnformatted, {
+            filepath: absoluteOutputFile,
+            ...prettierConfig
+          });
+          const actualDtsUnformatted = fs.readFileSync(tmpFile, 'utf-8');
+          const actualDts = await format(actualDtsUnformatted, {
+            filepath: tmpFile,
+            ...prettierConfig
+          });
+
+          assertAndReport(
+            actualDts,
+            expectedDts,
+            testCase.name,
+            absoluteOutputFile
+          );
+        });
+      }
+    });
+  }
+
+  if (testMode === 'all' || testMode === 'production') {
+    describe('Production Regressions', () => {
+      for (const testCase of productionCases) {
+        it(testCase.name, async () => {
+          const absoluteInputFile = path.resolve(
+            testCasesDir,
+            testCase.inputFileName
+          );
+          const absoluteOutputFile = path.resolve(
+            testCasesDir,
+            testCase.outputFileName
+          );
+
+          const tmpFile = await runScript(absoluteInputFile);
+          const prettierConfig = await resolveConfig(absoluteInputFile);
+
+          const expectedDtsUnformatted = fs.readFileSync(
+            absoluteOutputFile,
+            'utf-8'
+          );
+          const expectedDts = await format(expectedDtsUnformatted, {
+            filepath: absoluteOutputFile,
+            ...prettierConfig
+          });
+          const actualDtsUnformatted = fs.readFileSync(tmpFile, 'utf-8');
+          const actualDts = await format(actualDtsUnformatted, {
+            filepath: tmpFile,
+            ...prettierConfig
+          });
+
+          assertAndReport(
+            actualDts,
+            expectedDts,
+            testCase.name,
+            absoluteOutputFile
+          );
+        });
+      }
     });
   }
 });
