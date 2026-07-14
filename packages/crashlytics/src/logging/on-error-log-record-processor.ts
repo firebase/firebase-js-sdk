@@ -55,6 +55,7 @@ export class OnErrorLogRecordProcessor implements LogRecordProcessor {
   }
 
   shutdown(): Promise<void> {
+    this._buffer = [];
     return this._delegate.shutdown();
   }
 

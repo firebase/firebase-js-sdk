@@ -58,6 +58,7 @@ export class OnErrorSpanProcessor implements SpanProcessor {
   }
 
   shutdown(): Promise<void> {
+    this._buffer = [];
     return this._delegate.shutdown();
   }
 

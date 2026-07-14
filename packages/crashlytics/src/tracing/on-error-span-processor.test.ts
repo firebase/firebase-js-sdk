@@ -126,8 +126,12 @@ describe('OnErrorSpanProcessor', () => {
     expect(mockDelegate.flushedCount).to.equal(1);
   });
 
-  it('should forward shutdown calls to delegate', async () => {
+  it('should forward shutdown calls to delegate and clear buffer', async () => {
+    processor.onEnd(mockSpan1);
     await processor.shutdown();
     expect(mockDelegate.shutdownCount).to.equal(1);
+
+    processor.onErrorOccurred();
+    expect(mockDelegate.spansEnded).to.be.empty;
   });
 });
