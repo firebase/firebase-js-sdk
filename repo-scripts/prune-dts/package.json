@@ -34,6 +34,7 @@
   "devDependencies": {
     "@types/eslint": "7.29.0",
     "@types/prettier": "2.7.3",
-    "mocha": "9.2.2"
+    "mocha": "9.2.2",
+    "ts-morph": "28.0.0"
   }
 }
