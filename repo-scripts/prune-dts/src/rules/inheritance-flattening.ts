@@ -160,8 +160,61 @@ function collectMembersAndPublicBasesFromClass(
     }
   }
 
+  // Build type parameter mapping if targetDecl extends or implements baseClass with type arguments
+  const typeArgMap = buildTypeArgMap(targetDecl, baseClass);
+
   // Copy members after collecting from parent ancestors to maintain top-down member order
-  copyDeclarationMembers(targetDecl, baseClass);
+  copyDeclarationMembers(targetDecl, baseClass, typeArgMap);
+}
+
+/**
+ * Builds a mapping from generic parameter names (e.g. `T`) to concrete arguments (e.g. `string`)
+ * based on how targetDecl extends or implements baseDecl (`class Child extends Base<string>`).
+ */
+function buildTypeArgMap(
+  targetDecl: ClassDeclaration | InterfaceDeclaration,
+  baseDecl: Node
+): Map<string, string> {
+  const map = new Map<string, string>();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const typeParams = typeof (baseDecl as any).getTypeParameters === 'function' ? (baseDecl as any).getTypeParameters() : [];
+  if (typeParams.length === 0) return map;
+
+  const baseName =
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    typeof (baseDecl as any).getName === 'function' ? (baseDecl as any).getName() : null;
+  if (!baseName) return map;
+
+  let clauses: any[] = [];
+  if (targetDecl.getKind() === SyntaxKind.ClassDeclaration) {
+    const cls = targetDecl as ClassDeclaration;
+    const ext = cls.getExtends();
+    if (ext) clauses.push(ext);
+    clauses.push(...cls.getImplements());
+  } else {
+    const iface = targetDecl as InterfaceDeclaration;
+    clauses.push(...iface.getExtends());
+  }
+
+  for (const clause of clauses) {
+    const text = clause.getText().trim();
+    if (text.split('<')[0].trim() === baseName) {
+      const typeArgs = typeof clause.getTypeArguments === 'function' ? clause.getTypeArguments() : [];
+      for (let i = 0; i < typeParams.length; i++) {
+        if (i < typeArgs.length) {
+          map.set(typeParams[i].getName(), typeArgs[i].getText().trim());
+        } else {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const defaultNode = typeof (typeParams[i] as any).getDefault === 'function' ? (typeParams[i] as any).getDefault() : null;
+          if (defaultNode) {
+            map.set(typeParams[i].getName(), defaultNode.getText().trim());
+          }
+        }
+      }
+      break;
+    }
+  }
+  return map;
 }
 
 /**
@@ -230,7 +283,8 @@ function collectMembersFromTypeAlias(
  */
 function copyDeclarationMembers(
   targetDecl: ClassDeclaration | InterfaceDeclaration,
-  sourceDecl: Node
+  sourceDecl: Node,
+  typeArgMap: Map<string, string> = new Map()
 ): void {
   const initialMemberNames = new Set<string>();
   const isTargetClass =
@@ -288,6 +342,10 @@ function copyDeclarationMembers(
     const structure = getStructure(member);
     if (!structure) continue;
 
+    if (typeArgMap.size > 0) {
+      substituteStructureTypeArgs(structure, typeArgMap);
+    }
+
     if (isTargetClass) {
       const cls = targetDecl as ClassDeclaration;
       if (!cls.isAbstract() && structure.isAbstract) {
@@ -327,6 +385,32 @@ function copyDeclarationMembers(
       } else if (kind === SyntaxKind.ConstructSignature) {
         iface.addConstructSignature(structure);
       }
+    }
+  }
+}
+
+/**
+ * Replaces generic parameter strings in a structure (e.g. `T` -> `string`).
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function substituteStructureTypeArgs(structure: any, typeArgMap: Map<string, string>): void {
+  const replaceStr = (str: string | undefined): string | undefined => {
+    if (typeof str !== 'string') return str;
+    let res = str;
+    for (const [param, arg] of typeArgMap) {
+      const regex = new RegExp(`\\b${param}\\b`, 'g');
+      res = res.replace(regex, arg);
+    }
+    return res;
+  };
+
+  if (structure.type) structure.type = replaceStr(structure.type);
+  if (structure.returnType) structure.returnType = replaceStr(structure.returnType);
+
+  if (Array.isArray(structure.parameters)) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    for (const param of structure.parameters) {
+      if (param.type) param.type = replaceStr(param.type);
     }
   }
 }

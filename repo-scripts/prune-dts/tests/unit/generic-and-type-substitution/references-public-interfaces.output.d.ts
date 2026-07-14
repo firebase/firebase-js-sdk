@@ -14,8 +14,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 export interface A<T> {
   a: T;
 }
+
 export function c<T>(a: A<T>): void;
 export {};

@@ -4,10 +4,12 @@
  *
  * @packageDocumentation
  */
+
 import { FirebaseApp } from '@firebase/app';
 import { NextFn } from '@firebase/util';
 import { Observer } from '@firebase/util';
 import { Unsubscribe } from '@firebase/util';
+
 /**
  * Deletes the registration token associated with this {@link Messaging} instance and unsubscribes
  * the {@link Messaging} instance from the push subscription.
@@ -19,6 +21,7 @@ import { Unsubscribe } from '@firebase/util';
  * @public
  */
 export declare function deleteToken(messaging: Messaging): Promise<boolean>;
+
 /**
  * Options for features provided by the FCM SDK for Web. See {@link
  * https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#webpushfcmoptions |
@@ -36,7 +39,9 @@ export declare interface FcmOptions {
    */
   analyticsLabel?: string;
 }
+
 /* Excluded from this release type: _FirebaseMessagingName */
+
 /**
  * Retrieves a Firebase Cloud Messaging instance.
  *
@@ -45,6 +50,7 @@ export declare interface FcmOptions {
  * @public
  */
 export declare function getMessaging(app?: FirebaseApp): Messaging;
+
 /**
  * Subscribes the {@link Messaging} instance to push notifications. Returns a Firebase Cloud
  * Messaging registration token that can be used to send push messages to that {@link Messaging}
@@ -64,6 +70,7 @@ export declare function getToken(
   messaging: Messaging,
   options?: GetTokenOptions
 ): Promise<string>;
+
 /**
  * Options for {@link getToken}.
  *
@@ -91,6 +98,7 @@ export declare interface GetTokenOptions {
    */
   serviceWorkerRegistration?: ServiceWorkerRegistration;
 }
+
 /**
  * @license
  * Copyright 2020 Google LLC
@@ -114,6 +122,7 @@ export declare interface GetTokenOptions {
  * @public
  */
 export declare function isSupported(): Promise<boolean>;
+
 /**
  * Message payload that contains the notification payload that is represented with
  * {@link NotificationPayload} and the data payload that contains an arbitrary
@@ -151,6 +160,7 @@ export declare interface MessagePayload {
    */
   messageId: string;
 }
+
 /**
  * Public interface of the Firebase Cloud Messaging SDK.
  *
@@ -163,6 +173,7 @@ export declare interface Messaging {
   app: FirebaseApp;
 }
 export { NextFn };
+
 /**
  * Display notification details. Details are sent through the
  * {@link https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#notification | Send API}.
@@ -189,6 +200,7 @@ export declare interface NotificationPayload {
   icon?: string;
 }
 export { Observer };
+
 /**
  * When a push message is received and the user is currently on a page for your origin, the
  * message is passed to the page and an `onMessage()` event is dispatched with the payload of
@@ -207,4 +219,5 @@ export declare function onMessage(
   nextOrObserver: NextFn<MessagePayload> | Observer<MessagePayload>
 ): Unsubscribe;
 export { Unsubscribe };
+
 export {};

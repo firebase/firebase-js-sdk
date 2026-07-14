@@ -29,8 +29,8 @@ export function pruneDts(
 
   // Execute AST transformation rules sequentially:
   deduplicateCrossFileExports(sourceFile, otherExportFileLocations);
-  flattenInheritance(sourceFile);
   substitutePrivateTypeReferences(sourceFile);
+  flattenInheritance(sourceFile);
   stripPrivateMembers(sourceFile);
   hideConstructors(sourceFile);
   filterTopLevelDeclarations(sourceFile);

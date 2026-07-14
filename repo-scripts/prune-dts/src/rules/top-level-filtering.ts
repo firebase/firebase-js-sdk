@@ -11,9 +11,12 @@ export function filterTopLevelDeclarations(sourceFile: SourceFile): void {
   const toRemove: Statement[] = [];
 
   for (const stmt of statements) {
+    // Keep export/import declarations (`export { Foo }`, `import { Bar }`) and assignments (`export default Foo`).
     if (
       stmt.getKindName() === 'ExportDeclaration' ||
-      stmt.getKindName() === 'ExportAssignment'
+      stmt.getKindName() === 'ExportAssignment' ||
+      stmt.getKindName() === 'ImportDeclaration' ||
+      stmt.getKindName() === 'ImportEqualsDeclaration'
     ) {
       continue;
     }
