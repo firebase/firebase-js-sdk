@@ -43,7 +43,7 @@ import {
   BrowserTestingModule,
   platformBrowserTesting
 } from '@angular/platform-browser/testing';
-import { AttributesStore } from '../attributes-store';
+import { LOG_ATTR_KEY, AttributesStore } from '../attributes-store';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -51,7 +51,7 @@ use(chaiAsPromised);
 TestBed.initTestEnvironment(BrowserTestingModule, platformBrowserTesting());
 
 @Component({ template: '' })
-class MockComponent { }
+class MockComponent {}
 
 describe('FirebaseErrorHandler', () => {
   let errorHandler: FirebaseErrorHandler;
@@ -197,7 +197,7 @@ describe('setupNavigationTracking', () => {
       attributesStore,
       loggerProvider: {
         getLogger: () => ({
-          emit: () => { }
+          emit: () => {}
         })
       }
     } as unknown as Crashlytics;

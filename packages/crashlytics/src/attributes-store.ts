@@ -92,8 +92,8 @@ export class AttributesStore {
     const appVersion = options?.appVersion
       ? options.appVersion
       : AUTO_CONSTANTS?.appVersion
-      ? AUTO_CONSTANTS.appVersion
-      : 'unset';
+        ? AUTO_CONSTANTS.appVersion
+        : 'unset';
     this._appVersion = appVersion;
   }
 
@@ -145,9 +145,8 @@ export class AttributesStore {
       activeSpanContext?.spanId &&
       this._projectId
     ) {
-      attributes[
-        LOG_ATTR_KEY.TRACE
-      ] = `projects/${this._projectId}/traces/${activeSpanContext.traceId}`;
+      attributes[LOG_ATTR_KEY.TRACE] =
+        `projects/${this._projectId}/traces/${activeSpanContext.traceId}`;
       attributes[LOG_ATTR_KEY.SPAN_ID] = activeSpanContext.spanId;
     }
 
@@ -173,9 +172,8 @@ export class AttributesStore {
   getSpanAttributes(): Attributes {
     const attributes: Attributes = {};
     if (this._projectId) {
-      attributes[
-        SPAN_ATTR_KEY.GCP_RESOURCE_NAME
-      ] = `//firebasetelemetry.googleapis.com/projects/${this._projectId}/locations/${this._region}/`;
+      attributes[SPAN_ATTR_KEY.GCP_RESOURCE_NAME] =
+        `//firebasetelemetry.googleapis.com/projects/${this._projectId}/locations/${this._region}/`;
     }
 
     if (this._appVersion) {
