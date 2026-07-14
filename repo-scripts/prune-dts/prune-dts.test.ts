@@ -42,21 +42,39 @@ interface TestCase {
   absoluteOutputFile: string;
 }
 
-function discoverUnitCases(): TestCase[] {
+interface UnitSuite {
+  suiteName: string;
+  cases: TestCase[];
+}
+
+function discoverUnitSuites(): UnitSuite[] {
   const unitDir = path.resolve(testCasesDir, 'unit');
   if (!fs.existsSync(unitDir)) return [];
-  return fs
-    .readdirSync(unitDir)
-    .filter(fileName => testDataFilter.test(fileName))
-    .map(fileName => {
-      const testCaseName = fileName.match(testDataFilter)![1];
-      return {
-        name: testCaseName.replace(/-/g, ' '),
-        baseName: testCaseName,
-        absoluteInputFile: path.join(unitDir, `${testCaseName}.input.d.ts`),
-        absoluteOutputFile: path.join(unitDir, `${testCaseName}.output.d.ts`)
-      };
-    });
+
+  const suites: UnitSuite[] = [];
+  const entries = fs.readdirSync(unitDir, { withFileTypes: true });
+
+  for (const entry of entries) {
+    if (entry.isDirectory()) {
+      const subDir = path.join(unitDir, entry.name);
+      const cases = fs
+        .readdirSync(subDir)
+        .filter(fileName => testDataFilter.test(fileName))
+        .map(fileName => {
+          const testCaseName = fileName.match(testDataFilter)![1];
+          return {
+            name: testCaseName.replace(/-/g, ' '),
+            baseName: testCaseName,
+            absoluteInputFile: path.join(subDir, `${testCaseName}.input.d.ts`),
+            absoluteOutputFile: path.join(subDir, `${testCaseName}.output.d.ts`)
+          };
+        });
+      if (cases.length > 0) {
+        suites.push({ suiteName: entry.name, cases });
+      }
+    }
+  }
+  return suites.sort((a, b) => a.suiteName.localeCompare(b.suiteName));
 }
 
 function discoverPackageCases(): TestCase[] {
@@ -154,38 +172,42 @@ function assertAndReport(
 }
 
 describe('Prune DTS', () => {
-  const unitCases = discoverUnitCases();
+  const unitSuites = discoverUnitSuites();
   const productionCases = discoverPackageCases();
 
   if (testMode === 'all' || testMode === 'unit') {
     describe('Unit Rules', () => {
-      for (const testCase of unitCases) {
-        it(testCase.name, async () => {
-          const { absoluteInputFile, absoluteOutputFile } = testCase;
+      for (const suite of unitSuites) {
+        describe(suite.suiteName, () => {
+          for (const testCase of suite.cases) {
+            it(testCase.name, async () => {
+              const { absoluteInputFile, absoluteOutputFile } = testCase;
 
-          const tmpFile = await runScript(absoluteInputFile);
-          const prettierConfig = await resolveConfig(absoluteInputFile);
+              const tmpFile = await runScript(absoluteInputFile);
+              const prettierConfig = await resolveConfig(absoluteInputFile);
 
-          const expectedDtsUnformatted = fs.readFileSync(
-            absoluteOutputFile,
-            'utf-8'
-          );
-          const expectedDts = await format(expectedDtsUnformatted, {
-            filepath: absoluteOutputFile,
-            ...prettierConfig
-          });
-          const actualDtsUnformatted = fs.readFileSync(tmpFile, 'utf-8');
-          const actualDts = await format(actualDtsUnformatted, {
-            filepath: tmpFile,
-            ...prettierConfig
-          });
+              const expectedDtsUnformatted = fs.readFileSync(
+                absoluteOutputFile,
+                'utf-8'
+              );
+              const expectedDts = await format(expectedDtsUnformatted, {
+                filepath: absoluteOutputFile,
+                ...prettierConfig
+              });
+              const actualDtsUnformatted = fs.readFileSync(tmpFile, 'utf-8');
+              const actualDts = await format(actualDtsUnformatted, {
+                filepath: tmpFile,
+                ...prettierConfig
+              });
 
-          assertAndReport(
-            actualDts,
-            expectedDts,
-            testCase.name,
-            absoluteOutputFile
-          );
+              assertAndReport(
+                actualDts,
+                expectedDts,
+                testCase.name,
+                absoluteOutputFile
+              );
+            });
+          }
         });
       }
     });
