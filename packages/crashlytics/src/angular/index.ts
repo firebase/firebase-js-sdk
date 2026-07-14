@@ -15,10 +15,16 @@
  * limitations under the License.
  */
 
-import { ErrorHandler, inject } from '@angular/core';
-import { ActivatedRouteSnapshot, Router } from '@angular/router';
+import { ErrorHandler, inject, DestroyRef } from '@angular/core';
+import {
+  ActivatedRouteSnapshot,
+  NavigationEnd,
+  Router,
+  DefaultUrlSerializer,
+  UrlSegmentGroup
+} from '@angular/router';
 import { registerCrashlytics } from '../register';
-import { recordError, getCrashlytics } from '../api';
+import { recordError, getCrashlytics, logViewBoundary } from '../api';
 import { Crashlytics, CrashlyticsOptions } from '../public-types';
 import { FirebaseApp } from '@firebase/app';
 import { CrashlyticsInternal } from '../types';
@@ -34,8 +40,7 @@ export * from '../public-types';
  * @internal
  */
 export function getSafeRoutePath(router: Router): string {
-  let currentRoute: ActivatedRouteSnapshot | null =
-    router.routerState.snapshot.root;
+  let currentRoute: ActivatedRouteSnapshot = router.routerState.snapshot.root;
 
   // Find the deepest activated child route
   while (currentRoute.firstChild) {
@@ -49,6 +54,33 @@ export function getSafeRoutePath(router: Router): string {
     .join('/');
 
   return `/${pathFromRoot}`;
+}
+
+/**
+ * Recursively traverses the parsed URL segment group tree and clears the parameter map
+ * of each segment to strip out all Angular matrix parameters (e.g. `;id=123`).
+ */
+function stripMatrixParams(group: UrlSegmentGroup): void {
+  for (const segment of group.segments) {
+    segment.parameters = {};
+  }
+  for (const child of Object.values(group.children)) {
+    stripMatrixParams(child);
+  }
+}
+
+/**
+ * Extracts the raw path portion from a full URL by stripping query parameters, hashes, and matrix parameters.
+ *
+ * @internal
+ */
+export function getRawPath(url: string): string {
+  const serializer = new DefaultUrlSerializer();
+  const urlTree = serializer.parse(url);
+  urlTree.queryParams = {};
+  urlTree.fragment = null;
+  stripMatrixParams(urlTree.root);
+  return serializer.serialize(urlTree);
 }
 
 /**
@@ -110,4 +142,76 @@ export class FirebaseErrorHandler implements ErrorHandler {
   handleError(error: unknown): void {
     recordError(this.crashlytics, error);
   }
+}
+
+/**
+ * Configures automatic Angular router navigation tracking for Firebase Crashlytics.
+ *
+ * This function subscribes to router navigation events, keeps the Crashlytics route path attribute
+ * updated, and logs view boundary telemetry automatically.
+ *
+ * @example
+ * ```typescript
+ * import { ApplicationConfig, ErrorHandler, inject, DestroyRef } from '@angular/core';
+ * import { Router } from '@angular/router';
+ * import { FirebaseErrorHandler, setupNavigationTracking } from '@firebase/crashlytics/angular';
+ *
+ * export const appConfig: ApplicationConfig = {
+ *   providers: [
+ *     {
+ *       provide: ErrorHandler,
+ *       useFactory: () => new FirebaseErrorHandler(firebaseApp)
+ *     },
+ *     provideEnvironmentInitializer(() => {
+ *       inject(ErrorHandler);
+ *       setupNavigationTracking(
+ *         firebaseApp,
+ *         inject(Router),
+ *         inject(DestroyRef)
+ *       );
+ *     })
+ *   ]
+ * };
+ * ```
+ *
+ * @param app - The {@link @firebase/app#FirebaseApp} instance to use.
+ * @param router - The Angular {@link @angular/router#Router} instance to subscribe to.
+ * @param destroyRef - The {@link @angular/core#DestroyRef} instance to bind teardown logic to.
+ * @param crashlyticsOptions - Optional. {@link CrashlyticsOptions} that configure the Crashlytics instance.
+ *
+ * @public
+ */
+export function setupNavigationTracking(
+  app: FirebaseApp,
+  router: Router,
+  destroyRef: DestroyRef,
+  crashlyticsOptions?: CrashlyticsOptions
+): void {
+  const crashlytics = getCrashlytics(app, crashlyticsOptions);
+  const attributesStore = (crashlytics as CrashlyticsInternal).attributesStore;
+
+  attributesStore.setRoutePathProvider(() => getSafeRoutePath(router));
+
+  let lastRawPath: string | undefined = undefined;
+  if (router.navigated) {
+    const initialPattern = getSafeRoutePath(router);
+    lastRawPath = getRawPath(router.url);
+    logViewBoundary(crashlytics, initialPattern);
+  }
+
+  const subscription = router.events.subscribe(event => {
+    if (event instanceof NavigationEnd) {
+      const currentRawPath = getRawPath(event.urlAfterRedirects);
+      if (currentRawPath !== lastRawPath) {
+        lastRawPath = currentRawPath;
+        const pattern = getSafeRoutePath(router);
+        logViewBoundary(crashlytics, pattern);
+      }
+    }
+  });
+
+  destroyRef.onDestroy(() => {
+    attributesStore.setRoutePathProvider(undefined);
+    subscription.unsubscribe();
+  });
 }
