@@ -1,13 +1,16 @@
-import { SourceFile } from 'ts-morph';
+import { Node, SourceFile, Statement, SyntaxKind } from 'ts-morph';
 
 /**
  * Removes top-level declarations that are not exported.
  */
 export function filterTopLevelDeclarations(sourceFile: SourceFile): void {
-  const statements = sourceFile.getStatements();
+  const statements: Statement[] = [
+    ...sourceFile.getStatements(),
+    ...sourceFile.getModules().flatMap((m) => m.getStatements())
+  ];
+  const toRemove: Statement[] = [];
 
   for (const stmt of statements) {
-    // Keep export declarations (`export { Foo }`) and export assignments (`export default Foo`).
     if (
       stmt.getKindName() === 'ExportDeclaration' ||
       stmt.getKindName() === 'ExportAssignment'
@@ -15,13 +18,36 @@ export function filterTopLevelDeclarations(sourceFile: SourceFile): void {
       continue;
     }
 
-    // Check if the declaration itself is exported (`export class Foo`, `export interface Foo`, etc.).
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    if (typeof (stmt as any).isExported === 'function') {
+    const hasExport = typeof (stmt as any).hasExportKeyword === 'function' && (stmt as any).hasExportKeyword();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const hasDefault = typeof (stmt as any).hasDefaultKeyword === 'function' && (stmt as any).hasDefaultKeyword();
+
+    if (!hasExport && !hasDefault) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      if (!(stmt as any).isExported()) {
-        stmt.remove();
+      const name = typeof (stmt as any).getName === 'function' ? (stmt as any).getName() : null;
+      if (name && isNameInExportDeclarations(name, sourceFile)) {
+        continue;
       }
+      toRemove.push(stmt);
     }
   }
+
+  for (const node of toRemove) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if (typeof (node as any).wasForgotten === 'function' && (node as any).wasForgotten()) {
+      continue;
+    }
+    node.remove();
+  }
+}
+
+function isNameInExportDeclarations(name: string, sourceFile: SourceFile): boolean {
+  const exportSpecs = sourceFile.getDescendantsOfKind(SyntaxKind.ExportSpecifier);
+  for (const spec of exportSpecs) {
+    if (spec.getName() === name) {
+      return true;
+    }
+  }
+  return false;
 }

@@ -30,7 +30,7 @@ const testDataFilter = /(.*).input.d.ts/;
 const testCaseFilterRe = /.*/;
 
 async function runScript(inputFile: string): Promise<string> {
-  const outputFile = path.resolve(tmpDir, 'output.d.ts');
+  const outputFile = path.resolve(tmpDir, `output-${path.basename(inputFile)}`);
   pruneDts(inputFile, outputFile);
   return outputFile;
 }

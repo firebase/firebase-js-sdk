@@ -14,10 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 export class B {
-  /**
-   * a
-   */
+  /** a */
   a: string;
   /**
    * b1 first line

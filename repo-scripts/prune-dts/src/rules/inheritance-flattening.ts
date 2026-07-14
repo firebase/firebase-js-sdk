@@ -1,7 +1,384 @@
-import { SourceFile } from 'ts-morph';
+import {
+  ClassDeclaration,
+  InterfaceDeclaration,
+  Node,
+  SourceFile,
+  SyntaxKind,
+  TypeAliasDeclaration
+} from 'ts-morph';
 
 /**
  * Flattens inheritance hierarchies when an exported class or interface extends
  * or implements an unexported base declaration.
  */
-export function flattenInheritance(sourceFile: SourceFile): void {}
+export function flattenInheritance(sourceFile: SourceFile): void {
+  const classes = sourceFile.getDescendantsOfKind(SyntaxKind.ClassDeclaration);
+  for (const cls of classes) {
+    flattenClassInheritance(cls, sourceFile);
+  }
+
+  const interfaces = sourceFile.getDescendantsOfKind(
+    SyntaxKind.InterfaceDeclaration
+  );
+  for (const iface of interfaces) {
+    flattenInterfaceInheritance(iface, sourceFile);
+  }
+}
+
+/**
+ * Flattens unexported `extends` and `implements` clauses for a class declaration.
+ */
+function flattenClassInheritance(
+  cls: ClassDeclaration,
+  sourceFile: SourceFile
+): void {
+  // Handle `extends BaseClass`
+  const baseClass = cls.getBaseClass();
+  if (baseClass && !isNodeExported(baseClass)) {
+    const visited = new Set<Node>();
+    const publicBases: string[] = [];
+    collectMembersAndPublicBasesFromClass(
+      cls,
+      baseClass,
+      visited,
+      publicBases,
+      sourceFile
+    );
+
+    cls.removeExtends();
+    if (publicBases.length > 0) {
+      cls.setExtends(publicBases[0]);
+    }
+  }
+
+  // Handle `implements Iface1, Iface2`
+  const implementsNodes = cls.getImplements();
+  for (const impl of implementsNodes) {
+    const typeText = impl.getText();
+    const baseDecl = findDeclarationByName(typeText, sourceFile);
+    if (baseDecl && !isNodeExported(baseDecl)) {
+      const visited = new Set<Node>();
+      const publicBases: string[] = [];
+      collectMembersAndPublicBasesFromInterface(
+        cls,
+        baseDecl,
+        visited,
+        publicBases,
+        sourceFile
+      );
+
+      cls.removeImplements(impl);
+      for (const pubBase of publicBases) {
+        cls.addImplements(pubBase);
+      }
+    }
+  }
+}
+
+/**
+ * Flattens unexported `extends BaseIface1, BaseIface2` clauses for an interface declaration.
+ */
+function flattenInterfaceInheritance(
+  iface: InterfaceDeclaration,
+  sourceFile: SourceFile
+): void {
+  const extendsNodes = iface.getExtends();
+  for (const ext of extendsNodes) {
+    const typeText = ext.getText();
+    const baseDecl = findDeclarationByName(typeText, sourceFile);
+    if (baseDecl && !isNodeExported(baseDecl)) {
+      const visited = new Set<Node>();
+      const publicBases: string[] = [];
+      if (baseDecl.getKind() === SyntaxKind.InterfaceDeclaration) {
+        collectMembersAndPublicBasesFromInterface(
+          iface,
+          baseDecl as InterfaceDeclaration,
+          visited,
+          publicBases,
+          sourceFile
+        );
+      } else if (baseDecl.getKind() === SyntaxKind.TypeAliasDeclaration) {
+        collectMembersFromTypeAlias(
+          iface,
+          baseDecl as TypeAliasDeclaration,
+          visited
+        );
+      }
+
+      iface.removeExtends(ext);
+      for (const pubBase of publicBases) {
+        iface.addExtends(pubBase);
+      }
+    }
+  }
+}
+
+/**
+ * Recursively collects members from an unexported class and finds any public base class ancestors.
+ */
+function collectMembersAndPublicBasesFromClass(
+  targetDecl: ClassDeclaration | InterfaceDeclaration,
+  baseClass: ClassDeclaration,
+  visited: Set<Node>,
+  publicBases: string[],
+  sourceFile: SourceFile
+): void {
+  if (visited.has(baseClass)) return;
+  visited.add(baseClass);
+
+  const parentBase = baseClass.getBaseClass();
+  if (parentBase) {
+    if (isNodeExported(parentBase)) {
+      publicBases.push(parentBase.getName() || parentBase.getText());
+    } else {
+      collectMembersAndPublicBasesFromClass(
+        targetDecl,
+        parentBase,
+        visited,
+        publicBases,
+        sourceFile
+      );
+    }
+  } else {
+    const extendsClause = baseClass.getExtends();
+    if (extendsClause && !parentBase) {
+      const parentName = extendsClause.getText();
+      const resolved = findDeclarationByName(parentName, sourceFile);
+      if (resolved && !isNodeExported(resolved)) {
+        if (resolved.getKind() === SyntaxKind.ClassDeclaration) {
+          collectMembersAndPublicBasesFromClass(
+            targetDecl,
+            resolved as ClassDeclaration,
+            visited,
+            publicBases,
+            sourceFile
+          );
+        }
+      } else {
+        publicBases.push(parentName);
+      }
+    }
+  }
+
+  // Copy members after collecting from parent ancestors to maintain top-down member order
+  copyDeclarationMembers(targetDecl, baseClass);
+}
+
+/**
+ * Recursively collects members from an unexported interface and finds any public base interface ancestors.
+ */
+function collectMembersAndPublicBasesFromInterface(
+  targetDecl: ClassDeclaration | InterfaceDeclaration,
+  baseIface: InterfaceDeclaration | Node,
+  visited: Set<Node>,
+  publicBases: string[],
+  sourceFile: SourceFile
+): void {
+  if (visited.has(baseIface)) return;
+  visited.add(baseIface);
+
+  if (baseIface.getKind() === SyntaxKind.InterfaceDeclaration) {
+    const iface = baseIface as InterfaceDeclaration;
+    copyDeclarationMembers(targetDecl, iface);
+
+    for (const ext of iface.getExtends()) {
+      const parentName = ext.getText();
+      const parentDecl = findDeclarationByName(parentName, sourceFile);
+      if (parentDecl && !isNodeExported(parentDecl)) {
+        if (parentDecl.getKind() === SyntaxKind.InterfaceDeclaration) {
+          collectMembersAndPublicBasesFromInterface(
+            targetDecl,
+            parentDecl,
+            visited,
+            publicBases,
+            sourceFile
+          );
+        } else if (parentDecl.getKind() === SyntaxKind.TypeAliasDeclaration) {
+          collectMembersFromTypeAlias(
+            targetDecl,
+            parentDecl as TypeAliasDeclaration,
+            visited
+          );
+        }
+      } else {
+        publicBases.push(parentName);
+      }
+    }
+  }
+}
+
+/**
+ * Collects properties from an unexported type alias object literal (`type Foo = { a: string }`).
+ */
+function collectMembersFromTypeAlias(
+  targetDecl: ClassDeclaration | InterfaceDeclaration,
+  typeAlias: TypeAliasDeclaration,
+  visited: Set<Node>
+): void {
+  if (visited.has(typeAlias)) return;
+  visited.add(typeAlias);
+
+  const typeNode = typeAlias.getTypeNode();
+  if (typeNode && typeNode.getKind() === SyntaxKind.TypeLiteral) {
+    copyDeclarationMembers(targetDecl, typeNode);
+  }
+}
+
+/**
+ * Copies non-private, non-shadowed members (`Property`, `Method`, `GetAccessor`, `SetAccessor`, etc.)
+ * from source onto target (`ClassDeclaration` or `InterfaceDeclaration`).
+ */
+function copyDeclarationMembers(
+  targetDecl: ClassDeclaration | InterfaceDeclaration,
+  sourceDecl: Node
+): void {
+  const initialMemberNames = new Set<string>();
+  const isTargetClass =
+    targetDecl.getKind() === SyntaxKind.ClassDeclaration;
+
+  if (isTargetClass) {
+    const cls = targetDecl as ClassDeclaration;
+    cls.getProperties().forEach((p) => initialMemberNames.add(p.getName()));
+    cls.getMethods().forEach((m) => initialMemberNames.add(m.getName()));
+    cls.getGetAccessors().forEach((g) => initialMemberNames.add(g.getName()));
+    cls.getSetAccessors().forEach((s) => initialMemberNames.add(s.getName()));
+  } else {
+    const iface = targetDecl as InterfaceDeclaration;
+    iface.getProperties().forEach((p) => initialMemberNames.add(p.getName()));
+    iface.getMethods().forEach((m) => initialMemberNames.add(m.getName()));
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const getStructure = (node: any) =>
+    typeof node.getStructure === 'function' ? node.getStructure() : null;
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const sourceMembers: Node[] = typeof (sourceDecl as any).getMembers === 'function'
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ? (sourceDecl as any).getMembers()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    : typeof (sourceDecl as any).getProperties === 'function' && typeof (sourceDecl as any).getMethods === 'function'
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ? [...(sourceDecl as any).getProperties(), ...(sourceDecl as any).getMethods()]
+    : [
+        ...sourceDecl.getChildrenOfKind(SyntaxKind.PropertyDeclaration),
+        ...sourceDecl.getChildrenOfKind(SyntaxKind.MethodDeclaration),
+        ...sourceDecl.getChildrenOfKind(SyntaxKind.PropertySignature),
+        ...sourceDecl.getChildrenOfKind(SyntaxKind.MethodSignature),
+        ...sourceDecl.getChildrenOfKind(SyntaxKind.IndexSignature),
+        ...sourceDecl.getChildrenOfKind(SyntaxKind.CallSignature),
+        ...sourceDecl.getChildrenOfKind(SyntaxKind.ConstructSignature)
+      ];
+
+  for (const member of sourceMembers) {
+    const kind = member.getKind();
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if (typeof (member as any).getScope === 'function' && (member as any).getScope() === 'private') {
+      continue;
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const name = typeof (member as any).getName === 'function' ? (member as any).getName() : null;
+
+    if (name && initialMemberNames.has(name)) {
+      continue;
+    }
+
+    const structure = getStructure(member);
+    if (!structure) continue;
+
+    if (isTargetClass) {
+      const cls = targetDecl as ClassDeclaration;
+      if (!cls.isAbstract() && structure.isAbstract) {
+        structure.isAbstract = false;
+      }
+      if (
+        kind === SyntaxKind.PropertyDeclaration ||
+        kind === SyntaxKind.PropertySignature
+      ) {
+        cls.addProperty(structure);
+      } else if (
+        kind === SyntaxKind.MethodDeclaration ||
+        kind === SyntaxKind.MethodSignature
+      ) {
+        cls.addMethod(structure);
+      } else if (kind === SyntaxKind.GetAccessor) {
+        cls.addGetAccessor(structure);
+      } else if (kind === SyntaxKind.SetAccessor) {
+        cls.addSetAccessor(structure);
+      }
+    } else {
+      const iface = targetDecl as InterfaceDeclaration;
+      if (
+        kind === SyntaxKind.PropertyDeclaration ||
+        kind === SyntaxKind.PropertySignature
+      ) {
+        iface.addProperty(structure);
+      } else if (
+        kind === SyntaxKind.MethodDeclaration ||
+        kind === SyntaxKind.MethodSignature
+      ) {
+        iface.addMethod(structure);
+      } else if (kind === SyntaxKind.IndexSignature) {
+        iface.addIndexSignature(structure);
+      } else if (kind === SyntaxKind.CallSignature) {
+        iface.addCallSignature(structure);
+      } else if (kind === SyntaxKind.ConstructSignature) {
+        iface.addConstructSignature(structure);
+      }
+    }
+  }
+}
+
+/**
+ * Checks if an AST node is exported (or inside an exported namespace).
+ */
+function isNodeExported(node: Node): boolean {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  if (typeof (node as any).hasExportKeyword === 'function' && (node as any).hasExportKeyword()) {
+    return true;
+  }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  if (typeof (node as any).hasDefaultKeyword === 'function' && (node as any).hasDefaultKeyword()) {
+    return true;
+  }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const name = typeof (node as any).getName === 'function' ? (node as any).getName() : null;
+  if (name) {
+    const sourceFile = node.getSourceFile();
+    const exportDecls = sourceFile.getDescendantsOfKind(SyntaxKind.ExportSpecifier);
+    for (const exp of exportDecls) {
+      if (exp.getName() === name) {
+        return true;
+      }
+    }
+  }
+  const parent = node.getParent();
+  if (parent && parent.getKind() === SyntaxKind.ModuleBlock) {
+    // Inside a namespace/module, a declaration is only exported if it explicitly has the `export` keyword.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return typeof (node as any).hasExportKeyword === 'function' && (node as any).hasExportKeyword();
+  }
+  return false;
+}
+
+/**
+ * Finds a top-level declaration by name in the source file.
+ */
+function findDeclarationByName(name: string, sourceFile: SourceFile): Node | undefined {
+  const cleanName = name.trim().split('<')[0].trim();
+  const classes = sourceFile.getClasses();
+  for (const cls of classes) {
+    if (cls.getName() === cleanName) return cls;
+  }
+  const interfaces = sourceFile.getInterfaces();
+  for (const iface of interfaces) {
+    if (iface.getName() === cleanName) return iface;
+  }
+  const typeAliases = sourceFile.getTypeAliases();
+  for (const ta of typeAliases) {
+    if (ta.getName() === cleanName) return ta;
+  }
+  return undefined;
+}

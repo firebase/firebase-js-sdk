@@ -14,8 +14,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 export declare class B<T> {
   get b(): T;
+
   get c(): T;
 }
 export declare class A<T> extends B<T> {
