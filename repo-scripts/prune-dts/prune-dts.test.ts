@@ -41,6 +41,29 @@ interface TestCase {
   outputFileName: string;
 }
 
+function discoverInputFiles(dir: string, relativePrefix = ''): TestCase[] {
+  if (!fs.existsSync(dir) || !fs.lstatSync(dir).isDirectory()) {
+    return [];
+  }
+  return fs
+    .readdirSync(dir)
+    .filter((fileName: string) => testDataFilter.test(fileName))
+    .filter((fileName: string) => testCaseFilterRe.test(fileName))
+    .map((fileName: string) => {
+      const testCaseName = fileName.match(testDataFilter)![1];
+      const inputFileName = relativePrefix
+        ? path.join(relativePrefix, `${testCaseName}.input.d.ts`)
+        : `${testCaseName}.input.d.ts`;
+      const outputFileName = relativePrefix
+        ? path.join(relativePrefix, `${testCaseName}.output.d.ts`)
+        : `${testCaseName}.output.d.ts`;
+      const name = relativePrefix
+        ? `${relativePrefix}: ${testCaseName.replace(/-/g, ' ')}`
+        : testCaseName.replace(/-/g, ' ');
+      return { name, inputFileName, outputFileName };
+    });
+}
+
 function getTestCases(): TestCase[] {
   if (
     !fs.existsSync(testCasesDir) ||
@@ -49,19 +72,12 @@ function getTestCases(): TestCase[] {
     throw new Error(`${testCasesDir} folder does not exist`);
   }
 
-  return fs
-    .readdirSync(testCasesDir)
-    .filter((fileName: string) => testDataFilter.test(fileName))
-    .filter((fileName: string) => testCaseFilterRe.test(fileName))
-    .map((fileName: string) => {
-      const testCaseName = fileName.match(testDataFilter)![1];
-
-      const inputFileName = `${testCaseName}.input.d.ts`;
-      const outputFileName = `${testCaseName}.output.d.ts`;
-
-      const name = testCaseName.replace(/-/g, ' ');
-      return { name, inputFileName, outputFileName };
-    });
+  const rootCases = discoverInputFiles(testCasesDir);
+  const isolatedCases = discoverInputFiles(
+    path.join(testCasesDir, 'isolated'),
+    'isolated'
+  );
+  return [...rootCases, ...isolatedCases];
 }
 
 /**
