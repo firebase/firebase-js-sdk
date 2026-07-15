@@ -19,10 +19,10 @@ import json from '@rollup/plugin-json';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import replace from 'rollup-plugin-replace';
 import typescript from 'typescript';
-import { generateBuildTargetReplaceConfig } from '../../scripts/build/rollup_replace_build_target';
-import { emitModulePackageFile } from '../../scripts/build/rollup_emit_module_package_file';
-import pkg from './package.json';
-import tsconfig from './tsconfig.json';
+import { generateBuildTargetReplaceConfig } from '../../scripts/build/rollup_replace_build_target.js';
+import { emitModulePackageFile } from '../../scripts/build/rollup_emit_module_package_file.js';
+import pkg from './package.json' with { type: 'json' };
+import tsconfig from './tsconfig.json' with { type: 'json' };
 
 const deps = [
   ...Object.keys({ ...pkg.peerDependencies, ...pkg.dependencies }),
@@ -72,6 +72,7 @@ const browserBuilds = [
     output: {
       file: pkg.exports['.'].browser.require,
       format: 'cjs',
+      esModule: true,
       sourcemap: true
     },
     plugins: [
@@ -92,6 +93,7 @@ const nodeBuilds = [
     output: {
       file: pkg.main,
       format: 'cjs',
+      esModule: true,
       sourcemap: true
     },
     plugins: [
