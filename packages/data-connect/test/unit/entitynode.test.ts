@@ -543,9 +543,8 @@ describe('entity node', () => {
       expect(restoredNode.entityDataKeys.has('title')).to.be.true;
 
       // Manually associate back the entityData to test hydration
-      restoredNode.entityData = await memoryCacheProvider.getEntityData(
-        'post-1'
-      );
+      restoredNode.entityData =
+        await memoryCacheProvider.getEntityData('post-1');
       restoredNode.references.author.entityData =
         await memoryCacheProvider.getEntityData('author-1');
       restoredNode.objectLists.comments[0].entityData =
