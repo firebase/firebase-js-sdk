@@ -21,7 +21,8 @@ import { makeMemoryCacheProvider } from '../../src';
 import {
   EncodingMode,
   EntityNode,
-  GLOBAL_ID_KEY
+  GLOBAL_ID_KEY,
+  ENTITY_DATA_KEYS_KEY
 } from '../../src/cache/EntityNode';
 import { ImpactedQueryRefsAccumulator } from '../../src/cache/ImpactedQueryRefsAccumulator';
 
@@ -432,5 +433,283 @@ describe('entity node', () => {
       .true;
     expect(profileNode.references['profile'].entityDataKeys.has('username')).to
       .be.false;
+  });
+
+  describe('serialization and deserialization cycles', () => {
+    let node: EntityNode;
+
+    beforeEach(async () => {
+      node = new EntityNode();
+      const exampleData = {
+        title: 'Original Post',
+        author: {
+          name: 'Alice'
+        },
+        comments: [
+          {
+            content: 'Great post!'
+          }
+        ]
+      };
+      const cacheId = 'cacheId';
+      const memoryCacheProvider = makeMemoryCacheProvider().initialize(cacheId);
+      const queryId = 'postQuery';
+      await node.loadData(
+        queryId,
+        exampleData,
+        undefined,
+        new ImpactedQueryRefsAccumulator(queryId),
+        memoryCacheProvider
+      );
+    });
+
+    it('should round-trip dehydrated serialization / deserialization', () => {
+      const dehydratedJson = node.toJSON(EncodingMode.dehydrated);
+
+      // Assert keys are dehydrated
+      expect(dehydratedJson).to.exist;
+      expect(dehydratedJson).have.property('_scalars');
+      expect(dehydratedJson).have.property('_references');
+      expect(dehydratedJson).have.property('_objectLists');
+
+      const restoredNode = EntityNode.fromJson(dehydratedJson);
+
+      expect(restoredNode.scalars).to.exist.and.to.have.property(
+        'title',
+        'Original Post'
+      );
+      expect(restoredNode.references).to.exist.and.to.have.property('author');
+      expect(
+        restoredNode.references.author.scalars
+      ).to.exist.and.to.have.property('name', 'Alice');
+      expect(restoredNode.objectLists).to.exist.and.to.have.property(
+        'comments'
+      );
+      expect(restoredNode.objectLists.comments).to.exist.and.to.have.lengthOf(
+        1
+      );
+      expect(
+        restoredNode.objectLists.comments[0].scalars
+      ).to.exist.and.to.have.property('content', 'Great post!');
+    });
+
+    it('should round-trip dehydrated serialization / deserialization with entity data', async () => {
+      const entityNode = new EntityNode();
+      const exampleData = {
+        title: 'Original Post',
+        author: {
+          name: 'Alice'
+        },
+        comments: [
+          {
+            content: 'Great post!'
+          }
+        ]
+      };
+      const exampleEntityIds = {
+        [GLOBAL_ID_KEY]: 'post-1',
+        author: {
+          [GLOBAL_ID_KEY]: 'author-1'
+        },
+        comments: [
+          {
+            [GLOBAL_ID_KEY]: 'comment-1'
+          }
+        ]
+      };
+      const cacheId = 'cacheId';
+      const memoryCacheProvider = makeMemoryCacheProvider().initialize(cacheId);
+      const queryId = 'postQuery';
+      await entityNode.loadData(
+        queryId,
+        exampleData,
+        exampleEntityIds,
+        new ImpactedQueryRefsAccumulator(queryId),
+        memoryCacheProvider
+      );
+
+      const dehydratedJson = entityNode.toJSON(EncodingMode.dehydrated);
+
+      expect(dehydratedJson).to.exist;
+      expect(dehydratedJson).have.property(GLOBAL_ID_KEY, 'post-1');
+      expect(dehydratedJson)
+        .have.property(ENTITY_DATA_KEYS_KEY)
+        .that.is.an('array')
+        .with.members(['title']);
+
+      const restoredNode = EntityNode.fromJson(dehydratedJson);
+
+      expect(restoredNode.globalId).to.equal('post-1');
+      expect(restoredNode.entityDataKeys.has('title')).to.be.true;
+
+      // Manually associate back the entityData to test hydration
+      restoredNode.entityData =
+        await memoryCacheProvider.getEntityData('post-1');
+      restoredNode.references.author.entityData =
+        await memoryCacheProvider.getEntityData('author-1');
+      restoredNode.objectLists.comments[0].entityData =
+        await memoryCacheProvider.getEntityData('comment-1');
+
+      const hydratedJson = restoredNode.toJSON(EncodingMode.hydrated);
+      expect(hydratedJson).to.deep.equal(exampleData);
+    });
+
+    it('should throw when input is not an object or is an array', () => {
+      expect(() => EntityNode.fromJson(null)).to.throw(
+        'EntityNode.fromJson: expected object'
+      );
+      expect(() => EntityNode.fromJson('string')).to.throw(
+        'EntityNode.fromJson: expected object'
+      );
+      expect(() => EntityNode.fromJson([])).to.throw(
+        'EntityNode.fromJson: expected object'
+      );
+    });
+
+    it('should throw when scalars is not an object or is an array', () => {
+      const malformedJson = {
+        _scalars: 'not-an-object'
+      };
+      expect(() => EntityNode.fromJson(malformedJson)).to.throw(
+        'EntityNode.fromJson: expected object for scalars'
+      );
+      const malformedJsonArray = {
+        _scalars: []
+      };
+      expect(() => EntityNode.fromJson(malformedJsonArray)).to.throw(
+        'EntityNode.fromJson: expected object for scalars'
+      );
+    });
+
+    it('should throw when references is not an object or is an array', () => {
+      const malformedJson = {
+        _references: 'not-an-object'
+      };
+      expect(() => EntityNode.fromJson(malformedJson)).to.throw(
+        'EntityNode.fromJson: expected object for references'
+      );
+      const malformedJsonArray = {
+        _references: []
+      };
+      expect(() => EntityNode.fromJson(malformedJsonArray)).to.throw(
+        'EntityNode.fromJson: expected object for references'
+      );
+    });
+
+    it('should throw when objectLists is not an object or is an array', () => {
+      const malformedJson = {
+        _objectLists: 'not-an-object'
+      };
+      expect(() => EntityNode.fromJson(malformedJson)).to.throw(
+        'EntityNode.fromJson: expected object for objectLists'
+      );
+      const malformedJsonArray = {
+        _objectLists: []
+      };
+      expect(() => EntityNode.fromJson(malformedJsonArray)).to.throw(
+        'EntityNode.fromJson: expected object for objectLists'
+      );
+    });
+
+    it('should throw when an object list item is not an array', () => {
+      const malformedJson = {
+        _objectLists: {
+          comments: 'not-an-array'
+        }
+      };
+      expect(() => EntityNode.fromJson(malformedJson)).to.throw(
+        'EntityNode.fromJson: expected array for object list'
+      );
+    });
+
+    it('should throw when backingData is malformed', () => {
+      expect(() =>
+        EntityNode.fromJson({
+          backingData: 'not-an-object'
+        })
+      ).to.throw('EntityNode.fromJson: expected object for backingData');
+
+      expect(() =>
+        EntityNode.fromJson({
+          backingData: {
+            globalID: 123 // not a string
+          }
+        })
+      ).to.throw(
+        'EntityNode.fromJson: expected string for backingData.globalID'
+      );
+
+      expect(() =>
+        EntityNode.fromJson({
+          backingData: {
+            globalID: 'id',
+            map: 'not-an-object'
+          }
+        })
+      ).to.throw('EntityNode.fromJson: expected object for backingData.map');
+
+      expect(() =>
+        EntityNode.fromJson({
+          backingData: {
+            globalID: 'id',
+            map: {},
+            referencedFrom: 'not-an-array'
+          }
+        })
+      ).to.throw(
+        'EntityNode.fromJson: expected string array for backingData.referencedFrom'
+      );
+    });
+
+    it('should throw when globalId is malformed', () => {
+      expect(() =>
+        EntityNode.fromJson({
+          [GLOBAL_ID_KEY]: 123
+        })
+      ).to.throw('EntityNode.fromJson: expected string for globalId');
+    });
+
+    it('should throw when entityDataKeys is malformed', () => {
+      expect(() =>
+        EntityNode.fromJson({
+          [ENTITY_DATA_KEYS_KEY]: 'not-an-array'
+        })
+      ).to.throw('EntityNode.fromJson: expected array for entityDataKeys');
+
+      expect(() =>
+        EntityNode.fromJson({
+          [ENTITY_DATA_KEYS_KEY]: [123]
+        })
+      ).to.throw(
+        'EntityNode.fromJson: expected array of strings for entityDataKeys'
+      );
+    });
+
+    it('should skip prototype pollution keys in references and objectLists', () => {
+      const maliciousPayload = {
+        _references: {
+          __proto__: { polluted: true },
+          author: {
+            _scalars: { name: 'Alice' }
+          }
+        },
+        _objectLists: {
+          constructor: { polluted: true },
+          comments: [
+            {
+              _scalars: { content: 'Great post!' }
+            }
+          ]
+        }
+      };
+
+      const restoredNode = EntityNode.fromJson(maliciousPayload);
+
+      const checkPolluted = {} as Record<string, unknown>;
+      expect(checkPolluted.polluted).to.be.undefined;
+      expect(restoredNode.objectLists.constructor).to.equal(Object);
+      expect(restoredNode.references.author).to.exist;
+      expect(restoredNode.objectLists.comments).to.exist;
+    });
   });
 });
