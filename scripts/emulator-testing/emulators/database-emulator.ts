@@ -49,7 +49,8 @@ export class DatabaseEmulator extends Emulator {
           'Authorization': 'Bearer owner',
           'Content-Type': 'application/json'
         },
-        body: jsonRules
+        body: jsonRules,
+        signal: AbortSignal.timeout(10000)
       }
     );
     const body = await response.text();
