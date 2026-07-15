@@ -27,7 +27,6 @@ import { CrashlyticsService } from './service';
 import { createLoggerProvider } from './logging/logger-provider';
 import { createTracingProvider } from './tracing/tracing-provider';
 import { CrashlyticsOptions } from './public-types';
-import { RootSpanContextManager } from './tracing/root-span-context-manager';
 import { AttributesStore } from './attributes-store';
 
 export function registerCrashlytics(): void {
@@ -47,13 +46,8 @@ export function registerCrashlytics(): void {
           crashlyticsOptions,
           attributesStore
         );
-        const contextManager = new RootSpanContextManager(
-          loggerProvider,
-          attributesStore
-        );
         const tracingProvider = createTracingProvider(
           app,
-          contextManager,
           crashlyticsOptions,
           attributesStore
         );
@@ -62,7 +56,6 @@ export function registerCrashlytics(): void {
           app,
           loggerProvider,
           tracingProvider,
-          contextManager,
           attributesStore
         );
       },

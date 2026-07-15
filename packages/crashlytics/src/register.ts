@@ -29,7 +29,6 @@ import { AppCheckProvider } from './logging/appcheck-provider';
 import { CRASHLYTICS_TYPE } from './constants';
 import { registerListeners, startNewSession } from './helpers';
 import { CrashlyticsOptions } from './public-types';
-import { RootSpanContextManager } from './tracing/root-span-context-manager';
 
 // We only import types from this package elsewhere in the `telemetry` package, so this
 // explicit import is needed here to prevent this module from being tree-shaken out.
@@ -62,13 +61,8 @@ export function registerCrashlytics(): void {
           dynamicHeaderProviders
         );
 
-        const contextManager = new RootSpanContextManager(
-          loggerProvider,
-          attributesStore
-        );
         const tracingProvider = createTracingProvider(
           app,
-          contextManager,
           crashlyticsOptions,
           attributesStore,
           dynamicHeaderProviders
@@ -78,7 +72,6 @@ export function registerCrashlytics(): void {
           app,
           loggerProvider,
           tracingProvider,
-          contextManager,
           attributesStore
         );
 

@@ -22,75 +22,26 @@ import {
   Span
 } from '@opentelemetry/sdk-trace-base';
 import { AttributesStore } from '../attributes-store';
-import { RootSpanContextManager } from './root-span-context-manager';
-
-/**
- * The instrumentation scopes that are considered network activity.
- */
-const NETWORK_INSTRUMENTATION_SCOPES = [
-  '@opentelemetry/instrumentation-fetch',
-  '@opentelemetry/instrumentation-xml-http-request'
-];
-
-/**
- * The instrumentation scope for document load activity.
- */
-const DOCUMENT_LOAD_INSTRUMENTATION_SCOPE =
-  '@opentelemetry/instrumentation-document-load';
 
 /**
  * A SpanProcessor that adds Firebase-specific attributes to spans.
  */
 export class FirebaseSpanProcessor implements SpanProcessor {
-  constructor(
-    private rootSpanContextManager: RootSpanContextManager,
-    private attributesStore: AttributesStore
-  ) {}
+  constructor(private attributesStore: AttributesStore) {}
 
   forceFlush(): Promise<void> {
     return Promise.resolve();
   }
 
   onStart(span: Span, _parentContext: Context): void {
-    const rootSpan = this.rootSpanContextManager.getRootSpanByTraceId(
-      span.spanContext().traceId
-    );
-    if (
-      rootSpan &&
-      (this.isNetworkSpan(span) || this.isDocumentLoadSpan(span))
-    ) {
-      rootSpan.onResourceFetchSpanStart(span);
-    }
     span.setAttributes(this.attributesStore.getSpanAttributes());
   }
 
-  onEnd(span: ReadableSpan): void {
-    const rootSpan = this.rootSpanContextManager.getRootSpanByTraceId(
-      span.spanContext().traceId
-    );
-    if (
-      rootSpan &&
-      (this.isNetworkSpan(span) || this.isDocumentLoadSpan(span))
-    ) {
-      rootSpan.onResourceFetchSpanEnd(span);
-    }
+  onEnd(_span: ReadableSpan): void {
+    // no-op
   }
 
   shutdown(): Promise<void> {
     return Promise.resolve();
-  }
-
-  private isNetworkSpan(span: Span | ReadableSpan): boolean {
-    return (
-      !!span.instrumentationScope?.name &&
-      NETWORK_INSTRUMENTATION_SCOPES.includes(span.instrumentationScope.name)
-    );
-  }
-
-  private isDocumentLoadSpan(span: Span | ReadableSpan): boolean {
-    return (
-      span.name === 'documentLoad' &&
-      span.instrumentationScope?.name === DOCUMENT_LOAD_INSTRUMENTATION_SCOPE
-    );
   }
 }

@@ -3060,19 +3060,6 @@
   resolved "https://registry.npmjs.org/@opentelemetry/api/-/api-1.9.1.tgz#c1b0346de336ba55af2d5a7970882037baedec05"
   integrity sha512-gLyJlPHPZYdAk1JENA9LeHejZe1Ti77/pTeFm/nMXmQH/HFZlcS/O2XJB+L8fkbrNSqhdtlvjBVjxwUYanNH5Q==
 
-"@opentelemetry/context-zone-peer-dep@2.5.1":
-  version "2.5.1"
-  resolved "https://registry.npmjs.org/@opentelemetry/context-zone-peer-dep/-/context-zone-peer-dep-2.5.1.tgz#c1fb818d61aca1758b8abcb5d430cb91e7782104"
-  integrity sha512-xyBDA9BIjlAeawNawFZtwJp4BUznGrR5Sm7ldK/94qWtYde9+1y61tAqBep0/5B46WpbEadZGbpa2MCKAZwvxA==
-
-"@opentelemetry/context-zone@2.5.1":
-  version "2.5.1"
-  resolved "https://registry.npmjs.org/@opentelemetry/context-zone/-/context-zone-2.5.1.tgz#c226ca4bbfea94f7fafe61cb9db9f857130b8062"
-  integrity sha512-v4HORgtvdnDAdFsP43H5P2fTSzCE/22UrxszSeDyEJmKldpEh2Dyp6tT/5GXYBBVFaTnFvkGv81U0pXV4z41Jg==
-  dependencies:
-    "@opentelemetry/context-zone-peer-dep" "2.5.1"
-    zone.js "^0.11.0 || ^0.12.0 || ^0.13.0 || ^0.14.0 || ^0.15.0 || ^0.16.0"
-
 "@opentelemetry/core@2.1.0":
   version "2.1.0"
   resolved "https://registry.npmjs.org/@opentelemetry/core/-/core-2.1.0.tgz#5539f04eb9e5245e000b0c3f77bdfaa07557e3a7"
@@ -18978,13 +18965,3 @@ zip-stream@^6.0.1:
     archiver-utils "^5.0.0"
     compress-commons "^6.0.2"
     readable-stream "^4.0.0"
-
-zone.js@0.15.1:
-  version "0.15.1"
-  resolved "https://registry.npmjs.org/zone.js/-/zone.js-0.15.1.tgz#1e109adb75f80e9e004ee8e0d4a0a52e0a336481"
-  integrity sha512-XE96n56IQpJM7NAoXswY3XRLcWFW83xe0BiAOeMD7K5k5xecOeul3Qcpx6GqEeeHNkW5DWL5zOyTbEfB4eti8w==
-
-"zone.js@^0.11.0 || ^0.12.0 || ^0.13.0 || ^0.14.0 || ^0.15.0 || ^0.16.0":
-  version "0.16.2"
-  resolved "https://registry.npmjs.org/zone.js/-/zone.js-0.16.2.tgz#5fc22335bc3e4082ba26985c23ff262a0c4c49a4"
-  integrity sha512-Eky7p2Z1Ig3NnbfodSPoARCjKBSTFMnE/ACsP1L/XJEfY4SdOFce19BsUCWVwL6K5ABZFy5J3bjcMWffX+YM3Q==

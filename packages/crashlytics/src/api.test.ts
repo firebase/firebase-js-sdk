@@ -40,7 +40,6 @@ import { registerCrashlytics } from './register';
 import { _FirebaseInstallationsInternal } from '@firebase/installations';
 import { AUTO_CONSTANTS } from './auto-constants';
 import { CrashlyticsInternal } from './types';
-import { RootSpanContextManager } from './tracing/root-span-context-manager';
 import {
   AttributesStore,
   LOG_ATTR_KEY,
@@ -91,18 +90,10 @@ const fakeTracingProvider = {
   shutdown: () => Promise.resolve()
 } as unknown as TracerProvider;
 
-const fakeContextManager = {
-  getActiveRootSpan: () => undefined,
-  setRootSpan: () => {},
-  setActiveAppScreenId: () => {},
-  getActiveAppScreenId: () => undefined
-} as unknown as RootSpanContextManager;
-
 const fakeCrashlytics: CrashlyticsInternal = {
   app: fakeApp,
   loggerProvider: fakeLoggerProvider,
   tracingProvider: fakeTracingProvider,
-  contextManager: fakeContextManager,
   attributesStore: fakeAttributesStore
 };
 
@@ -233,25 +224,6 @@ describe('Top level API', () => {
       expect(() => {
         getCrashlytics(app, {});
       }).to.throw('getCrashlytics() cannot be called with different options');
-    });
-  });
-
-  describe('Multi-App Isolation', () => {
-    it('should provide different instances of RootSpanContextManager for different apps', async () => {
-      const app1 = getFakeApp();
-      const app2 = initializeApp({ projectId: 'p2', appId: 'a2' }, 'app2');
-
-      const crash1 = getCrashlytics(app1);
-      const crash2 = getCrashlytics(app2);
-
-      const manager1 = (crash1 as CrashlyticsInternal).contextManager;
-      const manager2 = (crash2 as CrashlyticsInternal).contextManager;
-
-      expect(manager1).to.be.instanceOf(RootSpanContextManager);
-      expect(manager2).to.be.instanceOf(RootSpanContextManager);
-      expect(manager1).to.not.equal(manager2);
-
-      await deleteApp(app2);
     });
   });
 
@@ -437,7 +409,6 @@ describe('Top level API', () => {
         fakeCrashlytics.app,
         fakeLoggerProvider,
         fakeTracingProvider,
-        fakeContextManager,
         fakeAttributesStore
       );
       crashlytics.options = {

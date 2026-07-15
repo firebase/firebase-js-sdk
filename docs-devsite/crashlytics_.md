@@ -22,7 +22,6 @@ https://github.com/firebase/firebase-js-sdk
 |  [logViewBoundary(crashlytics, urlTemplate, attributes)](./crashlytics_.md#logviewboundary_e310697) | Creates a log for view boundary on navigation event |
 |  [logVisibilityEvent(crashlytics, visibilityState)](./crashlytics_.md#logvisibilityevent_1d6b238) | Logs a page visibility transition event (foreground or background). |
 |  [recordError(crashlytics, error, attributes)](./crashlytics_.md#recorderror_6824e74) | Enqueues an error to be uploaded to the Firebase Crashlytics API. |
-|  [startUserInteractionTrace(crashlytics, rootSpanName)](./crashlytics_.md#startuserinteractiontrace_6ae1587) | Starts a new trace for a user interaction. If a root span is already active, it will be interrupted and a new root span will be started. |
 |  <b>function(crashlyticsOptions, ...)</b> |
 |  [nextOnRequestError(crashlyticsOptions)](./crashlytics_.md#nextonrequesterror_3caf5de) | Automatically report uncaught errors from server routes to Firebase Crashlytics. |
 
@@ -156,27 +155,6 @@ export declare function recordError(crashlytics: Crashlytics, error: unknown, at
 |  crashlytics | [Crashlytics](./crashlytics_.crashlytics.md#crashlytics_interface) | The [Crashlytics](./crashlytics_.crashlytics.md#crashlytics_interface) instance. |
 |  error | unknown | The caught exception, typically an Error object |
 |  attributes | AnyValueMap | Optional, arbitrary attributes to attach to the error log |
-
-<b>Returns:</b>
-
-void
-
-### startUserInteractionTrace(crashlytics, rootSpanName) {:#startuserinteractiontrace_6ae1587}
-
-Starts a new trace for a user interaction. If a root span is already active, it will be interrupted and a new root span will be started.
-
-<b>Signature:</b>
-
-```typescript
-export declare function startUserInteractionTrace(crashlytics: Crashlytics, rootSpanName: string): void;
-```
-
-#### Parameters
-
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  crashlytics | [Crashlytics](./crashlytics_.crashlytics.md#crashlytics_interface) | The [Crashlytics](./crashlytics_.crashlytics.md#crashlytics_interface) instance. |
-|  rootSpanName | string |  |
 
 <b>Returns:</b>
 
