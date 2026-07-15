@@ -306,5 +306,45 @@ describe('stage serialization', () => {
         executePipelineRequest
       );
     });
+
+    it('defaults to atomic=false when atomic option is omitted or false', async () => {
+      const firestore = newTestFirestore();
+      const spy = fakePipelineResponse(firestore);
+
+      // Execute without atomic option
+      await execute({
+        pipeline: firestore.pipeline().collection('foo')
+      });
+
+      const reqDefault = spy.args[0][EXECUTE_PIPELINE_REQUEST] as ProtoExecutePipelineRequest;
+      expect(reqDefault.newTransaction).to.be.undefined;
+      expect(reqDefault.autoCommitTransaction).to.be.undefined;
+
+      // Execute with atomic: false
+      const firestore2 = newTestFirestore();
+      const spy2 = fakePipelineResponse(firestore2);
+      await execute({
+        pipeline: firestore2.pipeline().collection('foo'),
+        atomic: false
+      });
+
+      const reqFalse = spy2.args[0][EXECUTE_PIPELINE_REQUEST] as ProtoExecutePipelineRequest;
+      expect(reqFalse.newTransaction).to.be.undefined;
+      expect(reqFalse.autoCommitTransaction).to.be.undefined;
+    });
+
+    it('serializes autoCommitTransaction on ProtoExecutePipelineRequest when atomic is true', async () => {
+      const firestore = newTestFirestore();
+      const spy = fakePipelineResponse(firestore);
+
+      await execute({
+        pipeline: firestore.pipeline().collection('foo'),
+        atomic: true
+      });
+
+      const req = spy.args[0][EXECUTE_PIPELINE_REQUEST] as ProtoExecutePipelineRequest;
+      expect(req.autoCommitTransaction).to.be.true;
+      expect(req.newTransaction).to.be.undefined;
+    });
   });
 });

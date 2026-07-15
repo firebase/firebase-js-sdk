@@ -250,6 +250,7 @@ export declare namespace firestoreV1ApiClientInterfaces {
     transaction?: string;
     newTransaction?: TransactionOptions;
     readTime?: string;
+    autoCommitTransaction?: boolean;
   }
   interface ExecutePipelineResponse {
     transaction?: string;
