@@ -135,7 +135,7 @@ export function execute(
         pipeline: pipelineOrOptions
       };
 
-  const { pipeline, rawOptions, ...rest } = options;
+  const { pipeline, rawOptions, atomic, ...rest } = options;
 
   if (!pipeline._db) {
     return Promise.reject(
@@ -169,7 +169,9 @@ export function execute(
     structuredPipelineOptions
   );
 
-  return firestoreClientExecutePipeline(client, structuredPipeline).then(
+  return firestoreClientExecutePipeline(client, structuredPipeline, {
+    atomic
+  }).then(
     result => {
       // Get the execution time from the first result.
       // firestoreClientExecutePipeline returns at least one PipelineStreamElement

@@ -27,6 +27,12 @@ export interface PipelineExecuteOptions {
   pipeline: Pipeline;
 
   /**
+   * Indicates that the pipeline will be executed atomically in a single RPC
+   * transaction on the server.
+   */
+  atomic?: boolean;
+
+  /**
    * Specify the index mode.
    */
   indexMode?: 'recommended';
