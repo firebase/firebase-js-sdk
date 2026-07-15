@@ -54,7 +54,7 @@ function copyTests() {
         '!' + testBase + '/integration/api/snapshot_listener_source.test.ts',
         '!' + testBase + '/integration/api/pipeline.query.test.ts'
       ],
-      { base: '../../packages/firestore' }
+      { base: '../../packages/firestore', allowEmpty: true }
     )
     .pipe(
       replace(
