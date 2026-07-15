@@ -28,6 +28,7 @@ import { Firestore } from './database';
 import { Pipeline } from './pipeline';
 import { PipelineResult, PipelineSnapshot } from './pipeline-result';
 import { PipelineSource } from './pipeline-source';
+import { PipelineExecuteOptions } from './pipeline_options';
 import { DocumentReference } from './reference';
 import { LiteUserDataWriter } from './reference_impl';
 import { Stage } from './stage';
@@ -50,37 +51,32 @@ declare module './database' {
 /**
  * Executes this pipeline and returns a Promise to represent the asynchronous operation.
  *
- * The returned Promise can be used to track the progress of the pipeline execution
- * and retrieve the results (or handle any errors) asynchronously.
- *
- * The pipeline results are returned as a {@link @firebase/firestore/pipelines#PipelineSnapshot} that contains
- * a list of {@link @firebase/firestore/pipelines#PipelineResult} objects. Each {@link @firebase/firestore/pipelines#PipelineResult} typically
- * represents a single key/value map that has passed through all the
- * stages of the pipeline, however this might differ depending on the stages involved in the
- * pipeline. For example:
- *
- * <ul>
- *   <li>If there are no stages or only transformation stages, each {@link @firebase/firestore/pipelines#PipelineResult}
- *       represents a single document.</li>
- *   <li>If there is an aggregation, only a single {@link @firebase/firestore/pipelines#PipelineResult} is returned,
- *       representing the aggregated results over the entire dataset .</li>
- *   <li>If there is an aggregation stage with grouping, each {@link @firebase/firestore/pipelines#PipelineResult} represents a
- *       distinct group and its associated aggregated values.</li>
- * </ul>
- *
- * @example
- * ```typescript
- * const snapshot: PipelineSnapshot = await execute(firestore.pipeline().collection("books")
- *     .where(gt(field("rating"), 4.5))
- *     .select("title", "author", "rating"));
- *
- * const results: PipelineResults = snapshot.results;
- * ```
- *
  * @param pipeline - The pipeline to execute.
  * @returns A Promise representing the asynchronous pipeline execution.
  */
-export function execute(pipeline: Pipeline): Promise<PipelineSnapshot> {
+export function execute(pipeline: Pipeline): Promise<PipelineSnapshot>;
+/**
+ * Executes a pipeline with options and returns a Promise to represent the asynchronous operation.
+ *
+ * @param options - Specifies the pipeline to execute and options.
+ * @returns A Promise representing the asynchronous pipeline execution.
+ */
+export function execute(
+  options: PipelineExecuteOptions
+): Promise<PipelineSnapshot>;
+export function execute(
+  pipelineOrOptions: Pipeline | PipelineExecuteOptions
+): Promise<PipelineSnapshot> {
+  const options: PipelineExecuteOptions = !(
+    pipelineOrOptions instanceof Pipeline
+  )
+    ? pipelineOrOptions
+    : {
+        pipeline: pipelineOrOptions
+      };
+
+  const { pipeline, rawOptions, atomic, ...rest } = options;
+
   if (!pipeline._db) {
     return Promise.reject(
       new FirestoreError(
@@ -101,7 +97,10 @@ export function execute(pipeline: Pipeline): Promise<PipelineSnapshot> {
   pipeline._readUserData(context);
   const userDataWriter = new LiteUserDataWriter(firestore);
 
-  const structuredPipelineOptions = new StructuredPipelineOptions({}, {});
+  const structuredPipelineOptions = new StructuredPipelineOptions(
+    rest,
+    rawOptions
+  );
   structuredPipelineOptions._readUserData(context);
 
   const structuredPipeline: StructuredPipeline = new StructuredPipeline(
@@ -109,7 +108,8 @@ export function execute(pipeline: Pipeline): Promise<PipelineSnapshot> {
     structuredPipelineOptions
   );
 
-  return invokeExecutePipeline(datastore, structuredPipeline).then(result => {
+  return invokeExecutePipeline(datastore, structuredPipeline, { atomic }).then(
+    result => {
     // Get the execution time from the first result.
     // firestoreClientExecutePipeline returns at least one PipelineStreamElement
     // even if the returned document set is empty.

@@ -244,12 +244,18 @@ export async function invokeBatchGetDocumentsRpc(
 
 export async function invokeExecutePipeline(
   datastore: Datastore,
-  structuredPipeline: StructuredPipeline
+  structuredPipeline: StructuredPipeline,
+  options?: { atomic?: boolean }
 ): Promise<PipelineStreamElement[]> {
   const datastoreImpl = debugCast(datastore, DatastoreImpl);
   const executePipelineRequest: ProtoExecutePipelineRequest = {
     database: getEncodedDatabaseId(datastoreImpl.serializer),
-    structuredPipeline: structuredPipeline._toProto(datastoreImpl.serializer)
+    structuredPipeline: structuredPipeline._toProto(datastoreImpl.serializer),
+    ...(options?.atomic
+      ? {
+          autoCommitTransaction: true
+        }
+      : {})
   };
 
   const response = await datastoreImpl.invokeStreamingRPC<
