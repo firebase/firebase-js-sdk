@@ -62,7 +62,11 @@ export function getTestInstance(requireEmulator = false): Auth {
     try {
       // If we're in an emulated environment, the emulator will clean up for us
       if (emulatorUrl) {
-        await resetEmulator();
+        try {
+          await resetEmulator();
+        } catch (e) {
+          console.error('resetEmulator failed', e);
+        }
       } else {
         // Clear out any new users that were created in the course of the test
         for (const user of createdUsers) {
@@ -76,7 +80,11 @@ export function getTestInstance(requireEmulator = false): Auth {
         }
       }
     } finally {
-      await deleteApp(app);
+      try {
+        await deleteApp(app);
+      } catch (e) {
+        console.error('deleteApp failed', e);
+      }
     }
   };
 
