@@ -52,7 +52,7 @@ function copyTests() {
         testBase + '/util/mocha_extensions.ts',
         '!' + testBase + '/integration/api/pipeline.listen.test.ts',
         '!' + testBase + '/integration/api/snapshot_listener_source.test.ts',
-        '!' + testBase + '/integration/api/pipeline.query.test.ts',
+        '!' + testBase + '/integration/api/pipeline.query.test.ts'
       ],
       { base: '../../packages/firestore' }
     )
