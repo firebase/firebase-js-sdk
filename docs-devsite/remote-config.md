@@ -44,6 +44,7 @@ The Firebase Remote Config Web SDK. This SDK does not work in a Node.js environm
 |  [FetchResponse](./remote-config.fetchresponse.md#fetchresponse_interface) | Defines a successful response (200 or 304).<p>Modeled after the native <code>Response</code> interface, but simplified for Remote Config's use case. |
 |  [FirebaseExperimentDescription](./remote-config.firebaseexperimentdescription.md#firebaseexperimentdescription_interface) | Defines experiment and variant attached to a config parameter. |
 |  [FirebaseRemoteConfigObject](./remote-config.firebaseremoteconfigobject.md#firebaseremoteconfigobject_interface) | Defines a self-descriptive reference for config key-value pairs. |
+|  [FirebaseRolloutMetadata](./remote-config.firebaserolloutmetadata.md#firebaserolloutmetadata_interface) |  |
 |  [RemoteConfig](./remote-config.remoteconfig.md#remoteconfig_interface) | The Firebase Remote Config service interface. |
 |  [RemoteConfigOptions](./remote-config.remoteconfigoptions.md#remoteconfigoptions_interface) | Options for Remote Config initialization. |
 |  [RemoteConfigSettings](./remote-config.remoteconfigsettings.md#remoteconfigsettings_interface) | Defines configuration options for the Remote Config SDK. |

@@ -23,7 +23,10 @@ import {
   QUIESCENCE_WINDOW_MS,
   UI_RENDER_QUIESCENCE_WINDOW_MS
 } from './root-span-context-manager';
-import { Span, Tracer, trace } from '@opentelemetry/api';
+import { Span, Tracer, trace, context } from '@opentelemetry/api';
+import { AttributesStore, LOG_ATTR_KEY } from '../attributes-store';
+import { Logger, LogRecord, SeverityNumber } from '@opentelemetry/api-logs';
+import { LoggerProvider } from '@opentelemetry/sdk-logs';
 
 const MOCK_TRACE_ID = 'trace-1';
 
@@ -33,6 +36,9 @@ describe('RootSpanContextManager', () => {
   let mockMutationObserver: any;
   let mutationObserverCallback: any;
   let queuedAnimationFrameCallbacks: any[];
+  let loggerProvider: LoggerProvider;
+
+  const emittedLogs: LogRecord[] = [];
 
   const requestAnimationFrameCallbacks = (): void => {
     const callbacks = [...queuedAnimationFrameCallbacks];
@@ -43,6 +49,7 @@ describe('RootSpanContextManager', () => {
   };
 
   beforeEach(() => {
+    emittedLogs.length = 0;
     sandbox = sinon.createSandbox();
     queuedAnimationFrameCallbacks = [];
     clock = sandbox.useFakeTimers({
@@ -68,9 +75,19 @@ describe('RootSpanContextManager', () => {
         return 1;
       }) as any);
     }
+    loggerProvider = {
+      getLogger: (): Logger => {
+        return {
+          emit: (logRecord: LogRecord) => {
+            emittedLogs.push(logRecord);
+          }
+        };
+      }
+    } as any as LoggerProvider;
   });
 
   afterEach(() => {
+    manager?.disable();
     sandbox.restore();
   });
 
@@ -83,6 +100,7 @@ describe('RootSpanContextManager', () => {
     id: string = 'net-1'
   ): void => {
     rootSpan.onResourceFetchSpanStart({
+      name: id === 'doc-load' ? 'documentLoad' : id,
       spanContext: () => ({ spanId: id })
     } as any);
   };
@@ -93,6 +111,7 @@ describe('RootSpanContextManager', () => {
     endTimeMs: number = Date.now()
   ): void => {
     rootSpan.onResourceFetchSpanEnd({
+      name: id === 'doc-load' ? 'documentLoad' : id,
       spanContext: () => ({ spanId: id }),
       endTime: [Math.floor(endTimeMs / 1000), (endTimeMs % 1000) * 1000000]
     } as any);
@@ -107,12 +126,16 @@ describe('RootSpanContextManager', () => {
         mockSpan = {
           name: spanName,
           end: sandbox.stub(),
+          setAttribute: sandbox.stub(),
           spanContext: () => ({ traceId: `trace-${index}`, spanId: spanName })
         };
         return mockSpan;
       })
     };
-    manager = new RootSpanContextManager();
+    const attributesStore = new AttributesStore({ projectId: 'my-project' });
+    manager = new RootSpanContextManager(loggerProvider, attributesStore);
+    manager.enable();
+    context.setGlobalContextManager(manager);
   });
 
   describe('active context', () => {
@@ -262,17 +285,22 @@ describe('RootSpanContextManager', () => {
   });
 
   describe('app-start root span', () => {
-    it('should stay open for app-start root span until markDocumentLoaded is called', () => {
-      const rootSpan = manager.startRootSpan(mockTracer as Tracer, 'span-1');
-      recordResourceFetchSpanStart(rootSpan, 'doc-load');
+    it('should stay open for app-start root span until documentLoad span ends', () => {
+      const rootSpan = manager.startRootSpan(mockTracer as Tracer, 'app-start');
       expect(manager.getActiveRootSpan()).to.equal(rootSpan);
 
-      clock.tick(QUIESCENCE_WINDOW_MS); // advance past quiescence window
-
+      // Check 1: Advance past quiescence prior to doc-load starting
+      clock.tick(QUIESCENCE_WINDOW_MS);
       expect(mockSpan.end.called).to.be.false;
 
-      recordResourceFetchSpanEnd(rootSpan, 'doc-load', 100);
-      clock.tick(QUIESCENCE_WINDOW_MS); // let quiescence complete
+      // Check 2: Start doc-load and advance past quiescence while in-flight
+      recordResourceFetchSpanStart(rootSpan, 'doc-load');
+      clock.tick(QUIESCENCE_WINDOW_MS);
+      expect(mockSpan.end.called).to.be.false;
+
+      // Check 3: End doc-load and verify root span closes after post-load quiescence
+      recordResourceFetchSpanEnd(rootSpan, 'doc-load', 300);
+      clock.tick(QUIESCENCE_WINDOW_MS);
 
       expect(mockSpan.end.called).to.be.true;
       expect(manager.getActiveRootSpan()).to.be.undefined;
@@ -404,7 +432,7 @@ describe('RootSpanContextManager', () => {
 
       // Interrupt at T = 108
       clock.tick(3);
-      rootSpan.interrupt();
+      rootSpan.interrupt(clock.Date.now());
 
       // Verify that root span was ended with the interruption time (108)
       expect((rootSpan.span as any).end.calledWith(108)).to.be.true;
@@ -430,10 +458,41 @@ describe('RootSpanContextManager', () => {
 
       // Interrupt at T = 115 before quiescence completes
       clock.tick(5);
-      rootSpan.interrupt();
+      rootSpan.interrupt(clock.Date.now());
 
       // Verify that root span ended with the last ui render time (110)
       expect((rootSpan.span as any).end.calledWith(110)).to.be.true;
+    });
+
+    it('should log an event when interrupted and associate it with the interrupted span context and the trace id of the interrupting span', () => {
+      // Start the first root span (interrupted span)
+      const rootSpan1 = manager.startRootSpan(mockTracer as Tracer, 'span-1');
+
+      clock.tick(123);
+
+      // Start the second root span (interrupting span) which interrupts the first
+      manager.startRootSpan(mockTracer as Tracer, 'span-2');
+
+      clock.tick(1);
+
+      expect(emittedLogs.length).to.equal(1);
+      const log = emittedLogs[0];
+      expect(log.timestamp).to.equal(123);
+      expect(log.severityNumber).to.equal(SeverityNumber.INFO);
+      expect(log.body).to.equal('Root span interrupted');
+
+      // Check the attributes on the log
+      expect(log.attributes).to.deep.equal({
+        [LOG_ATTR_KEY.TRACE]: 'projects/my-project/traces/trace-1',
+        [LOG_ATTR_KEY.SPAN_ID]: 'span-1',
+        [LOG_ATTR_KEY.INTERRUPTED_BY_TRACE]: 'trace-2',
+        [LOG_ATTR_KEY.APP_VERSION]: 'unset'
+      });
+
+      // Verify the log's context has the interrupted span
+      expect(log.context).to.exist;
+      const activeSpan = trace.getSpan(log.context!);
+      expect(activeSpan).to.equal(rootSpan1.span);
     });
   });
 
@@ -667,7 +726,7 @@ describe('RootSpanContextManager', () => {
 
       // Interrupt at T = 108 before Frame 2 runs
       clock.tick(3);
-      rootSpan.interrupt();
+      rootSpan.interrupt(clock.Date.now());
 
       // Verify that UI Render span was created starting at 105 and ending at 108
       expect(
@@ -677,6 +736,8 @@ describe('RootSpanContextManager', () => {
         )
       ).to.be.true;
       expect(mockSpan.end.calledWith(108)).to.be.true;
+      expect(mockSpan.setAttribute.calledWith('interrupted_at', 108)).to.be
+        .true;
     });
 
     it('should create a ui render span that ends at the ui render completion time on interrupt if it has started and ended but is still quiescing', () => {
@@ -699,7 +760,7 @@ describe('RootSpanContextManager', () => {
 
       // Interrupt at T = 115 during quiescence
       clock.tick(5);
-      rootSpan.interrupt();
+      rootSpan.interrupt(clock.Date.now());
 
       // Verify that UI Render span was created starting at 105 and ending at the paint completion time (110)
       expect(
@@ -709,6 +770,8 @@ describe('RootSpanContextManager', () => {
         )
       ).to.be.true;
       expect(mockSpan.end.calledWith(110)).to.be.true;
+      expect(mockSpan.setAttribute.calledWith('interrupted_at', 115)).to.be
+        .false;
     });
   });
 });

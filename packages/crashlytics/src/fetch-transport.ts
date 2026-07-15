@@ -24,6 +24,7 @@ import {
 } from '@opentelemetry/otlp-exporter-base';
 import { diag } from '@opentelemetry/api';
 import { DynamicHeaderProvider } from './types';
+import { KEEPALIVE_MAX_PAYLOAD_SIZE } from './constants';
 
 function isExportRetryable(statusCode: number): boolean {
   const retryCodes = [429, 502, 503, 504];
@@ -89,11 +90,16 @@ export class FetchTransport implements IExporterTransport {
         }
       }
 
+      // Browsers limit the total keepalive budget (payload + headers) to 64KB.
+      // If the limit is exceeded, fetch throws a TypeError. We only use keepalive
+      // if the payload is within a safe limit.
+      const keepalive = data.byteLength < KEEPALIVE_MAX_PAYLOAD_SIZE;
+
       const body = {
         method: 'POST',
         headers,
         signal: abortController.signal,
-        keepalive: false,
+        keepalive,
         mode: 'cors',
         body: data
       } as RequestInit;

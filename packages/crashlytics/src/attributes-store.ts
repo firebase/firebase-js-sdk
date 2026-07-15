@@ -32,7 +32,8 @@ export const LOG_ATTR_KEY = {
   SESSION_ID: 'session.id',
   ROUTE_PATH: 'route_path',
   TRACE: 'logging.googleapis.com/trace',
-  SPAN_ID: 'logging.googleapis.com/spanId'
+  SPAN_ID: 'logging.googleapis.com/spanId',
+  INTERRUPTED_BY_TRACE: 'interrupted_by_trace'
 };
 
 export const SPAN_ATTR_KEY = {
@@ -91,8 +92,8 @@ export class AttributesStore {
     const appVersion = options?.appVersion
       ? options.appVersion
       : AUTO_CONSTANTS?.appVersion
-      ? AUTO_CONSTANTS.appVersion
-      : 'unset';
+        ? AUTO_CONSTANTS.appVersion
+        : 'unset';
     this._appVersion = appVersion;
   }
 
@@ -129,7 +130,7 @@ export class AttributesStore {
    * Get the log attributes.
    * @returns The log attributes.
    */
-  getLogAttributes(): AnyValueMap {
+  getLogAttributes(customAttributes?: Attributes): AnyValueMap {
     const attributes: AnyValueMap = {};
     if (this._appVersion) {
       attributes[LOG_ATTR_KEY.APP_VERSION] = this._appVersion;
@@ -144,9 +145,8 @@ export class AttributesStore {
       activeSpanContext?.spanId &&
       this._projectId
     ) {
-      attributes[
-        LOG_ATTR_KEY.TRACE
-      ] = `projects/${this._projectId}/traces/${activeSpanContext.traceId}`;
+      attributes[LOG_ATTR_KEY.TRACE] =
+        `projects/${this._projectId}/traces/${activeSpanContext.traceId}`;
       attributes[LOG_ATTR_KEY.SPAN_ID] = activeSpanContext.spanId;
     }
 
@@ -155,7 +155,14 @@ export class AttributesStore {
       attributes[LOG_ATTR_KEY.ROUTE_PATH] = path;
     }
 
-    return attributes;
+    // Avoid shallow copy if there are no custom attributes
+    if (!customAttributes) {
+      return attributes;
+    }
+    return {
+      ...attributes,
+      ...customAttributes
+    };
   }
 
   /**
@@ -165,9 +172,8 @@ export class AttributesStore {
   getSpanAttributes(): Attributes {
     const attributes: Attributes = {};
     if (this._projectId) {
-      attributes[
-        SPAN_ATTR_KEY.GCP_RESOURCE_NAME
-      ] = `//firebasetelemetry.googleapis.com/projects/${this._projectId}/locations/${this._region}/`;
+      attributes[SPAN_ATTR_KEY.GCP_RESOURCE_NAME] =
+        `//firebasetelemetry.googleapis.com/projects/${this._projectId}/locations/${this._region}/`;
     }
 
     if (this._appVersion) {

@@ -1,5 +1,13 @@
 # @firebase/auth
 
+## 1.13.3
+
+### Patch Changes
+
+- [`e389f70`](https://github.com/firebase/firebase-js-sdk/commit/e389f70b1b9b2c3afe1672b4a6b702eceb7c5e41) [#9991](https://github.com/firebase/firebase-js-sdk/pull/9991) (fixes [#9405](https://github.com/firebase/firebase-js-sdk/issues/9405)) - Fix error causing Auth and AppCheck conflict when both are using ReCAPTCHA Enterprise.
+
+- [`712091c`](https://github.com/firebase/firebase-js-sdk/commit/712091c3962b8b3639775a4150c91d9a3962b57b) [#10049](https://github.com/firebase/firebase-js-sdk/pull/10049) - Update referrer policy for auth API requests from no-referrer to strict-origin-when-cross-origin to support HTTP Referrer-restricted API keys in browser environments.
+
 ## 1.13.2
 
 ### Patch Changes

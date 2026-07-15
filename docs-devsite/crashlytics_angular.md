@@ -11,6 +11,12 @@ https://github.com/firebase/firebase-js-sdk
 
 # @firebase/crashlytics/angular
 
+## Functions
+
+|  Function | Description |
+|  --- | --- |
+|  [setupNavigationTracking(app, router, destroyRef, crashlyticsOptions)](./crashlytics_angular.md#setupnavigationtracking_93fc190) | Configures automatic Angular router navigation tracking for Firebase Crashlytics.<!-- -->This function subscribes to router navigation events, keeps the Crashlytics route path attribute updated, and logs view boundary telemetry automatically. |
+
 ## Classes
 
 |  Class | Description |
@@ -23,4 +29,58 @@ https://github.com/firebase/firebase-js-sdk
 |  --- | --- |
 |  [Crashlytics](./crashlytics_angular.crashlytics.md#crashlytics_interface) | An instance of the Firebase Crashlytics SDK.<!-- -->Do not create this instance directly. Instead, use [getCrashlytics()](./crashlytics_.md#getcrashlytics_a9d22a1)<!-- -->. |
 |  [CrashlyticsOptions](./crashlytics_angular.crashlyticsoptions.md#crashlyticsoptions_interface) | Options for initializing the Crashlytics service using [getCrashlytics()](./crashlytics_.md#getcrashlytics_a9d22a1)<!-- -->. |
+
+## function(app, ...)
+
+### setupNavigationTracking(app, router, destroyRef, crashlyticsOptions) {:#setupnavigationtracking_93fc190}
+
+Configures automatic Angular router navigation tracking for Firebase Crashlytics.
+
+This function subscribes to router navigation events, keeps the Crashlytics route path attribute updated, and logs view boundary telemetry automatically.
+
+<b>Signature:</b>
+
+```typescript
+export declare function setupNavigationTracking(app: FirebaseApp, router: Router, destroyRef: DestroyRef, crashlyticsOptions?: CrashlyticsOptions): void;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  app | [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | The [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) instance to use. |
+|  router | Router | The Angular  instance to subscribe to. |
+|  destroyRef | DestroyRef | The  instance to bind teardown logic to. |
+|  crashlyticsOptions | [CrashlyticsOptions](./crashlytics_.crashlyticsoptions.md#crashlyticsoptions_interface) | Optional. [CrashlyticsOptions](./crashlytics_.crashlyticsoptions.md#crashlyticsoptions_interface) that configure the Crashlytics instance. |
+
+<b>Returns:</b>
+
+void
+
+### Example
+
+
+```typescript
+import { ApplicationConfig, ErrorHandler, inject, DestroyRef } from '@angular/core';
+import { Router } from '@angular/router';
+import { FirebaseErrorHandler, setupNavigationTracking } from '@firebase/crashlytics/angular';
+
+export const appConfig: ApplicationConfig = {
+  providers: [
+    {
+      provide: ErrorHandler,
+      useFactory: () => new FirebaseErrorHandler(firebaseApp)
+    },
+    provideEnvironmentInitializer(() => {
+      inject(ErrorHandler);
+      setupNavigationTracking(
+        firebaseApp,
+        inject(Router),
+        inject(DestroyRef)
+      );
+    })
+  ]
+};
+
+```
 

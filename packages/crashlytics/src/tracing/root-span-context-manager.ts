@@ -23,9 +23,12 @@ import {
   context,
   type SpanOptions
 } from '@opentelemetry/api';
+import { SeverityNumber } from '@opentelemetry/api-logs';
+import { LoggerProvider } from '@opentelemetry/sdk-logs';
 import { hrTimeToMilliseconds } from '@opentelemetry/core';
 import { ReadableSpan } from '@opentelemetry/sdk-trace-base';
 import { ZoneContextManager } from '@opentelemetry/context-zone';
+import { AttributesStore, LOG_ATTR_KEY } from '../attributes-store';
 
 /**
  * The length of time to wait for activity to cease before closing the root span.
@@ -47,7 +50,6 @@ class UiRenderSpanManager {
   private isInterrupted = false;
 
   constructor(
-    private parentSpan: Span,
     private tracer: Tracer,
     private onRenderStart: () => void,
     private onRenderEnd: () => void
@@ -66,6 +68,7 @@ class UiRenderSpanManager {
     if (this.activeRenderSpan) {
       if (this.quiescenceRenderTimerId === null) {
         this.lastRenderCompletedAtMs = interruptedAtMs;
+        this.activeRenderSpan.setAttribute('interrupted_at', interruptedAtMs);
       }
       this.endUiRenderSpan();
     }
@@ -126,13 +129,12 @@ class UiRenderSpanManager {
   }
 
   private startUiRenderSpan(startTimeMs: number = Date.now()): void {
-    const parentContext = trace.setSpan(context.active(), this.parentSpan);
     this.activeRenderSpan = this.tracer.startSpan(
       'UI Render',
       {
         startTime: startTimeMs
       },
-      parentContext
+      context.active()
     );
   }
 
@@ -152,17 +154,26 @@ class ResourceFetchSpans {
   private activeSpanIds: Set<string>;
   private lastSpanCompletedAtMs?: number;
 
-  constructor() {
+  constructor(private isDocumentLoaded: boolean) {
     this.activeSpanIds = new Set<string>();
     this.lastSpanCompletedAtMs = undefined;
   }
 
   hasActiveSpans(): boolean {
-    return this.activeSpanIds.size > 0;
+    return !this.isDocumentLoaded || this.activeSpanIds.size > 0;
   }
 
   getLastSpanCompletedAtMs(): number | undefined {
     return this.lastSpanCompletedAtMs;
+  }
+
+  private setLastSpanCompletedAtMs(completedAtMs: number): void {
+    if (
+      this.lastSpanCompletedAtMs === undefined ||
+      completedAtMs > this.lastSpanCompletedAtMs
+    ) {
+      this.lastSpanCompletedAtMs = completedAtMs;
+    }
   }
 
   recordResourceFetchSpanStart(span: Span): void {
@@ -171,13 +182,11 @@ class ResourceFetchSpans {
 
   recordResourceFetchSpanEnd(span: ReadableSpan): void {
     if (this.activeSpanIds.delete(span.spanContext().spanId)) {
-      const completedAtMs = hrTimeToMilliseconds(span.endTime);
-      if (
-        this.lastSpanCompletedAtMs === undefined ||
-        completedAtMs > this.lastSpanCompletedAtMs
-      ) {
-        this.lastSpanCompletedAtMs = completedAtMs;
+      if (span.name === 'documentLoad') {
+        this.isDocumentLoaded = true;
       }
+      const completedAtMs = hrTimeToMilliseconds(span.endTime);
+      this.setLastSpanCompletedAtMs(completedAtMs);
     }
   }
 }
@@ -202,7 +211,6 @@ export class RootSpan {
    * and starting the root span quiescence tracking.
    * @param span The OpenTelemetry Span wrapped by this instance.
    * @param manager The context manager that manages active root spans.
-   * @param type The type of root span ('app-start' or 'user-interaction').
    * @param tracer The tracer used to start child spans (e.g. UI Render spans).
    */
   constructor(span: Span, manager: RootSpanContextManager, tracer: Tracer) {
@@ -215,9 +223,10 @@ export class RootSpan {
       ? hrTimeToMilliseconds(sdkSpan.startTime)
       : Date.now();
     this.quiescenceTimerId = null;
-    this.resourceFetchSpans = new ResourceFetchSpans();
+    this.resourceFetchSpans = new ResourceFetchSpans(
+      sdkSpan.name !== 'app-start'
+    );
     this.uiRenderSpanManager = new UiRenderSpanManager(
-      this.span,
       this.tracer,
       () => this.clearQuiesce(),
       () => this.quiesce()
@@ -254,10 +263,10 @@ export class RootSpan {
    * Interrupts the root span, stopping further UI observation and closing the
    * active UI render span and the root span itself.
    */
-  interrupt(): void {
+  interrupt(interruptedAtMs: number): void {
     this.isInterrupted = true;
     this.clearMutationObserver();
-    this.uiRenderSpanManager.interrupt(Date.now());
+    this.uiRenderSpanManager.interrupt(interruptedAtMs);
     this.endRootSpanOrWait();
   }
 
@@ -338,8 +347,21 @@ export class RootSpan {
  * A custom ContextManager that ensures the latest active root span is the default parent.
  */
 export class RootSpanContextManager extends ZoneContextManager {
+  private _loggerProvider: LoggerProvider;
+  private _attributesStore: AttributesStore;
+
   private _activeRootSpan: RootSpan | undefined;
   private _interruptedRootSpans: RootSpan[] = [];
+
+  constructor(
+    loggerProvider: LoggerProvider,
+    attributesStore: AttributesStore
+  ) {
+    super();
+    this._loggerProvider = loggerProvider;
+    this._attributesStore = attributesStore;
+  }
+
   /**
    * Starts a new root span, interrupting and clearing the previous active root span if one exists.
    * @param tracer The tracer to start the span.
@@ -353,13 +375,30 @@ export class RootSpanContextManager extends ZoneContextManager {
     rootSpanName: string,
     options?: SpanOptions
   ): RootSpan {
+    let interruptedAtMs: number | undefined;
+    let interruptedSpanContext: Context | undefined;
     if (this._activeRootSpan) {
-      this._interruptedRootSpans.push(this._activeRootSpan);
-      this._activeRootSpan.interrupt();
+      const interruptedRootSpan = this._activeRootSpan;
+      this._interruptedRootSpans.push(interruptedRootSpan);
+      interruptedAtMs = Date.now();
+      interruptedSpanContext = trace.setSpan(
+        context.active(),
+        interruptedRootSpan.span
+      );
+      interruptedRootSpan.interrupt(interruptedAtMs);
       this.clearActiveRootSpan();
     }
     const span = tracer.startSpan(rootSpanName, options);
     this._activeRootSpan = new RootSpan(span, this, tracer);
+
+    if (interruptedAtMs && interruptedSpanContext) {
+      this.logInterruption(
+        interruptedSpanContext,
+        span.spanContext().traceId,
+        interruptedAtMs
+      );
+    }
+
     return this._activeRootSpan;
   }
 
@@ -418,5 +457,27 @@ export class RootSpanContextManager extends ZoneContextManager {
       return trace.setSpan(context, this._activeRootSpan.span);
     }
     return context;
+  }
+
+  private logInterruption(
+    interruptedSpanContext: Context,
+    interruptingTraceId: string,
+    interruptedAtMs: number
+  ): void {
+    const logger = this._loggerProvider.getLogger('interruption-logger');
+
+    const logAttributes = context.with(interruptedSpanContext, () =>
+      this._attributesStore.getLogAttributes({
+        [LOG_ATTR_KEY.INTERRUPTED_BY_TRACE]: interruptingTraceId
+      })
+    );
+
+    logger.emit({
+      timestamp: interruptedAtMs,
+      severityNumber: SeverityNumber.INFO,
+      body: 'Root span interrupted',
+      attributes: logAttributes,
+      context: interruptedSpanContext
+    });
   }
 }

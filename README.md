@@ -243,8 +243,3 @@ implement git hooks. We leverage the prepush hook to do two things:
 See [Contributing](./CONTRIBUTING.md) for more information on contributing to the Firebase
 JavaScript SDK.
 
-### Big Thanks
-
-Cross-browser Testing Platform and Open Source <3 Provided by [Sauce Labs][homepage]
-
-[homepage]: https://saucelabs.com

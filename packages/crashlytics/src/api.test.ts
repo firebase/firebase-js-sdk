@@ -28,7 +28,13 @@ import {
 } from '@firebase/app';
 import { Component, ComponentType } from '@firebase/component';
 import { FirebaseAppCheckInternal } from '@firebase/app-check-interop-types';
-import { recordError, flush, getCrashlytics, logViewBoundary } from './api';
+import {
+  recordError,
+  flush,
+  getCrashlytics,
+  logViewBoundary,
+  logVisibilityEvent
+} from './api';
 import { CrashlyticsService } from './service';
 import { registerCrashlytics } from './register';
 import { _FirebaseInstallationsInternal } from '@firebase/installations';
@@ -559,6 +565,24 @@ describe('Top level API', () => {
       expect(emittedLogs.length).to.equal(0);
     });
   });
+
+  describe('logVisibilityEvent', () => {
+    it("should emit a log record for a hidden visibility with body of 'Background lifecycle event'", () => {
+      logVisibilityEvent(fakeCrashlytics, 'hidden');
+
+      expect(emittedLogs).to.have.lengthOf(1);
+      const log = emittedLogs[0];
+      expect(log.body).to.equal('Background lifecycle event');
+    });
+
+    it("should emit a log record for a visible visibility with body of 'Foreground lifecycle event'", () => {
+      logVisibilityEvent(fakeCrashlytics, 'visible');
+
+      expect(emittedLogs).to.have.lengthOf(1);
+      const log = emittedLogs[0];
+      expect(log.body).to.equal('Foreground lifecycle event');
+    });
+  });
 });
 
 function getFakeApp(): FirebaseApp {
@@ -577,7 +601,7 @@ function getFakeApp(): FirebaseApp {
         ({
           getId: async () => 'iid',
           getToken: async () => 'authToken'
-        } as _FirebaseInstallationsInternal),
+        }) as _FirebaseInstallationsInternal,
       ComponentType.PUBLIC
     )
   );
