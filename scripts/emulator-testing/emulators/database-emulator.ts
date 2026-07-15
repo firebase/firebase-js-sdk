@@ -38,22 +38,22 @@ export class DatabaseEmulator extends Emulator {
     this.namespace = namespace;
   }
 
-  setPublicRules(): Promise<number> {
+  async setPublicRules(): Promise<number> {
     const jsonRules = JSON.stringify(rulesJSON);
     console.log(`Setting rule ${jsonRules} to emulator ...`);
-    return new Promise<number>((resolve, reject) => {
-      request.put(
-        {
-          uri: `http://localhost:${this.port}/.settings/rules.json?ns=${this.namespace}`,
-          headers: { Authorization: 'Bearer owner' },
-          body: jsonRules
+    const response = await fetch(
+      `http://localhost:${this.port}/.settings/rules.json?ns=${this.namespace}`,
+      {
+        method: 'PUT',
+        headers: {
+          'Authorization': 'Bearer owner',
+          'Content-Type': 'application/json'
         },
-        (error, response, body) => {
-          if (error) reject(error);
-          console.log(`Done setting public rule to emulator: ${body}.`);
-          resolve(response.statusCode);
-        }
-      );
-    });
+        body: jsonRules
+      }
+    );
+    const body = await response.text();
+    console.log(`Done setting public rule to emulator: ${body}.`);
+    return response.status;
   }
 }
