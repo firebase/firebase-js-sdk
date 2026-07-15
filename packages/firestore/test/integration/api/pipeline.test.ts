@@ -2438,6 +2438,36 @@ apiDescribe.skipClassic('Pipelines', persistence => {
         );
         expectResults(res, { documents_modified: 0 });
       });
+
+      it('can execute update stage atomically', async () => {
+        const res = await execute({
+          pipeline: firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .where(equal(field('__name__').documentId(), 'book1'))
+            .update([constant('AtomicUpdate').as('status')]),
+          atomic: true
+        });
+        expectResults(res, { documents_modified: 1 });
+
+        const docSnap = await getDoc(doc(randomCol, 'book1'));
+        expect(docSnap.get('status')).to.equal('AtomicUpdate');
+      });
+
+      it('can execute delete stage with atomic explicitly set to false', async () => {
+        const deleteRes = await execute({
+          pipeline: firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .where(equal(field('__name__').documentId(), 'book2'))
+            .delete(),
+          atomic: false
+        });
+        expectResults(deleteRes, { documents_modified: 1 });
+
+        const docSnap = await getDoc(doc(randomCol, 'book2'));
+        expect(docSnap.exists()).to.be.false;
+      });
     });
   });
 
