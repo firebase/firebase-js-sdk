@@ -563,6 +563,7 @@ export interface GenerationConfig {
     // (undocumented)
     frequencyPenalty?: number;
     imageConfig?: ImageConfig;
+    inputMediaResolution?: MediaResolution;
     // (undocumented)
     maxOutputTokens?: number;
     // (undocumented)
@@ -1077,6 +1078,7 @@ export interface LiveGenerationConfig {
     contextWindowCompression?: ContextWindowCompressionConfig;
     frequencyPenalty?: number;
     inputAudioTranscription?: AudioTranscriptionConfig;
+    inputMediaResolution?: MediaResolution;
     maxOutputTokens?: number;
     outputAudioTranscription?: AudioTranscriptionConfig;
     presencePenalty?: number;
@@ -1194,6 +1196,17 @@ export interface LiveSessionResumptionUpdate {
     // (undocumented)
     type: 'sessionResumptionUpdate';
 }
+
+// @public
+export const MediaResolution: {
+    readonly LOW: "MEDIA_RESOLUTION_LOW";
+    readonly MEDIUM: "MEDIA_RESOLUTION_MEDIUM";
+    readonly HIGH: "MEDIA_RESOLUTION_HIGH";
+    readonly ULTRA_HIGH: "MEDIA_RESOLUTION_ULTRA_HIGH";
+};
+
+// @public
+export type MediaResolution = (typeof MediaResolution)[keyof typeof MediaResolution];
 
 // @public
 export const Modality: {

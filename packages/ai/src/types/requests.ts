@@ -30,7 +30,8 @@ import {
   ImageConfigImageSize,
   InferenceMode,
   ResponseModality,
-  ThinkingLevel
+  ThinkingLevel,
+  MediaResolution
 } from './enums';
 import { ObjectSchemaRequest, SchemaRequest } from './schema';
 
@@ -185,6 +186,10 @@ export interface GenerationConfig {
    * @public
    */
   imageConfig?: ImageConfig;
+  /**
+   * The media resolution setting for image and video inputs.
+   */
+  inputMediaResolution?: MediaResolution;
 }
 
 /**
@@ -260,6 +265,10 @@ export interface LiveGenerationConfig {
    * @beta
    */
   contextWindowCompression?: ContextWindowCompressionConfig;
+  /**
+   * The media resolution setting for image and video inputs.
+   */
+  inputMediaResolution?: MediaResolution;
 }
 
 /**

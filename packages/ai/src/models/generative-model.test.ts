@@ -24,7 +24,8 @@ import {
   ChromeAdapter,
   ThinkingLevel,
   ImageConfigAspectRatio,
-  ImageConfigImageSize
+  ImageConfigImageSize,
+  MediaResolution
 } from '../public-types';
 import * as request from '../requests/request';
 import { SinonStub, match, restore, stub } from 'sinon';
@@ -340,6 +341,18 @@ describe('GenerativeModel', () => {
       aspectRatio: '1:1',
       imageSize: '512'
     });
+  });
+  it('passes inputMediaResolution through in generationConfig', () => {
+    const genModel = new GenerativeModel(fakeAI, {
+      model: 'gemini-2.5-flash',
+      generationConfig: {
+        inputMediaResolution: MediaResolution.LOW
+      }
+    });
+    const chatSession = genModel.startChat();
+    expect(chatSession.params?.generationConfig?.inputMediaResolution).to.equal(
+      'MEDIA_RESOLUTION_LOW'
+    );
   });
   it('overrides base model params with startChatParams', () => {
     const genModel = new GenerativeModel(fakeAI, {
