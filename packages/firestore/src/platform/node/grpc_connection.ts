@@ -117,9 +117,14 @@ export class GrpcConnection implements Connection {
       const credentials = this.databaseInfo.ssl
         ? grpc.credentials.createSsl()
         : grpc.credentials.createInsecure();
+      const grpcOptions: Record<string, unknown> = {
+        'grpc-node.flow_control_window':
+          this.databaseInfo.grpcFlowControlWindow ?? 256 * 1024
+      };
       this.cachedStub = new this.firestore.Firestore(
         this.databaseInfo.host,
-        credentials
+        credentials,
+        grpcOptions
       );
     }
     return this.cachedStub;

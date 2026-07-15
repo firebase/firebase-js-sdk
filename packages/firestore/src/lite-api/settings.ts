@@ -70,6 +70,18 @@ export interface FirestoreSettings {
   ignoreUndefinedProperties?: boolean;
 
   /**
+   * Only applicable in Node environments.
+   *
+   * The gRPC flow control window size in bytes. Defaults to 256 KB.
+   * This maps directly to grpc-node's {@link https://github.com/grpc/grpc-node/blob/651cbeec6b4d6d11cbee91c042946d2fe5968ef6/packages/grpc-js/README.md#supported-channel-options | grpc-node.flow_control_window } setting.
+   *
+   * **WARNING:** This is an advanced setting. The default of 256 KB is optimized
+   * for most Node workloads. Only modify this if you are actively tuning gRPC
+   * network behavior and understand the implications of HTTP/2 flow control.
+   */
+  grpcFlowControlWindow?: number;
+
+  /**
    * @internal
    * Undocumented setting for internal Google consumers.
    * External callers needing this feature, please let us
@@ -122,6 +134,7 @@ export class FirestoreSettingsImpl {
   readonly _customHeaders?: Record<string, string>;
 
   readonly isUsingEmulator: boolean;
+  readonly grpcFlowControlWindow?: number;
 
   // Can be a google-auth-library or gapi client.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -194,6 +207,21 @@ export class FirestoreSettingsImpl {
     validateLongPollingOptions(this.experimentalLongPollingOptions);
 
     this.useFetchStreams = !!settings.useFetchStreams;
+
+    if (settings.grpcFlowControlWindow !== undefined) {
+      if (
+        typeof settings.grpcFlowControlWindow !== 'number' ||
+        settings.grpcFlowControlWindow <= 0 ||
+        settings.grpcFlowControlWindow > 2147483647 ||
+        !Number.isInteger(settings.grpcFlowControlWindow)
+      ) {
+        throw new FirestoreError(
+          Code.INVALID_ARGUMENT,
+          'grpcFlowControlWindow must be a positive integer and cannot exceed 2147483647'
+        );
+      }
+      this.grpcFlowControlWindow = settings.grpcFlowControlWindow;
+    }
   }
 
   isEqual(other: FirestoreSettingsImpl): boolean {
@@ -212,6 +240,7 @@ export class FirestoreSettingsImpl {
       ) &&
       this.ignoreUndefinedProperties === other.ignoreUndefinedProperties &&
       this.useFetchStreams === other.useFetchStreams &&
+      this.grpcFlowControlWindow === other.grpcFlowControlWindow &&
       customHeadersEqual(this._customHeaders, other._customHeaders)
     );
   }

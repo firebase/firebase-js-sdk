@@ -30,6 +30,7 @@
   },
   "devDependencies": {
     "@types/js-yaml": "4.0.9",
+    "gulp": "5.0.1",
     "jest-resolve": "29.7.0",
     "mocha-chai-jest-snapshot": "1.1.6"
   },
