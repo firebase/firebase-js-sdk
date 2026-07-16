@@ -42,7 +42,7 @@ type Attribute = Record<string, AttributeValue>;
 export class AttributesStore {
   private _projectId: string | undefined;
   private _appVersion: string | undefined;
-  private _customAttributes: Record<string, string> | undefined;
+  private _customAttributes: Record<string, unknown> | undefined;
   private _sessionId: string | undefined;
   private _installations: _FirebaseInstallationsInternal | null;
   private _iid: string | undefined;
@@ -85,7 +85,7 @@ export class AttributesStore {
       ? AUTO_CONSTANTS.appVersion
       : 'unset';
     this._appVersion = appVersion;
-    this._customAttributes = options?.customAttributes;
+    this._customAttributes = options?.customAttributes ? { ...options.customAttributes } : undefined;
   }
 
   /**

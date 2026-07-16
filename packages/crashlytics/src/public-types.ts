@@ -65,5 +65,5 @@ export interface CrashlyticsOptions {
    * If custom attributes are also specified in `recordError()`, those values will
    * take precedence over the base set defined here.
    */
-  customAttributes?: Record<string, string>;
+  customAttributes?: Record<string, unknown>;
 }
