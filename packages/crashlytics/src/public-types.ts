@@ -16,6 +16,7 @@
  */
 
 import { FirebaseApp } from '@firebase/app';
+import { AnyValueMap } from '@opentelemetry/api-logs';
 
 /**
  * An instance of the Firebase Crashlytics SDK.
@@ -65,5 +66,5 @@ export interface CrashlyticsOptions {
    * If custom attributes are also specified in `recordError()`, those values will
    * take precedence over the base set defined here.
    */
-  customAttributes?: Record<string, unknown>;
+  customAttributes?: AnyValueMap;
 }
