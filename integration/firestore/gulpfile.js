@@ -18,7 +18,7 @@
 const del = require('del');
 const gulp = require('gulp');
 const replace = require('gulp-replace');
-const { join, resolve } = require('path');
+const { resolve } = require('path');
 const webpackStream = require('webpack-stream');
 const webpack = require('webpack');
 const filter = require('gulp-filter');
