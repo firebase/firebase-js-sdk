@@ -59,8 +59,4 @@ export class OnErrorSpanProcessor extends BatchSpanProcessor {
     // Force flush to ensure immediate export
     void super.forceFlush();
   }
-
-  getBuffer(): ReadableSpan[] {
-    return this._buffer;
-  }
 }

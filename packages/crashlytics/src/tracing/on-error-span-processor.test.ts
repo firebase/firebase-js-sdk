@@ -71,7 +71,9 @@ describe('OnErrorSpanProcessor', () => {
     processor.onEnd(mockSpan2);
 
     expect(mockExporter.exportedSpans).to.be.empty;
-    expect(processor.getBuffer()).to.deep.equal([mockSpan1, mockSpan2]);
+
+    processor.onErrorOccurred();
+    expect(mockExporter.exportedSpans).to.deep.equal([mockSpan1, mockSpan2]);
   });
 
   it('should drop oldest spans when buffer exceeds maxBufferSize', () => {
@@ -80,7 +82,9 @@ describe('OnErrorSpanProcessor', () => {
     processor.onEnd(mockSpan3); // Over limit of 2
 
     expect(mockExporter.exportedSpans).to.be.empty;
-    expect(processor.getBuffer()).to.deep.equal([mockSpan2, mockSpan3]);
+
+    processor.onErrorOccurred();
+    expect(mockExporter.exportedSpans).to.deep.equal([mockSpan2, mockSpan3]);
   });
 
   it('should forward buffered spans and flush to exporter when onErrorOccurred is called', async () => {
@@ -90,7 +94,6 @@ describe('OnErrorSpanProcessor', () => {
     processor.onErrorOccurred();
     await processor.forceFlush();
 
-    expect(processor.getBuffer()).to.be.empty;
     expect(mockExporter.exportedSpans).to.deep.equal([mockSpan1, mockSpan2]);
   });
 
@@ -110,7 +113,6 @@ describe('OnErrorSpanProcessor', () => {
     processor.onErrorOccurred();
     await processor.forceFlush();
     expect(mockExporter.exportedSpans).to.deep.equal([mockSpan1, mockSpan2]);
-    expect(processor.getBuffer()).to.be.empty;
   });
 
   it('should be a no-op if onErrorOccurred is called multiple times without new spans', async () => {
