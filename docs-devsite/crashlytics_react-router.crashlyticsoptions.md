@@ -23,6 +23,7 @@ export interface CrashlyticsOptions
 |  Property | Type | Description |
 |  --- | --- | --- |
 |  [appVersion](./crashlytics_react-router.crashlyticsoptions.md#crashlyticsoptionsappversion) | string | The version of the application. This should be a unique string that identifies the snapshot of code to be deployed, such as "1.0.2". If not specified, other default locations will be checked for an identifier. Setting a value here takes precedence over any other values. |
+|  [customAttributes](./crashlytics_react-router.crashlyticsoptions.md#crashlyticsoptionscustomattributes) | AnyValueMap | Base set of custom attributes to send with automatic error collection. Key-value pairs defined here will be sent with all error logs. If custom attributes are also specified in <code>recordError()</code>, those values will take precedence over the base set defined here. |
 |  [endpointUrl](./crashlytics_react-router.crashlyticsoptions.md#crashlyticsoptionsendpointurl) | string | The URL for the endpoint to which Crashlytics data should be sent, in the OpenTelemetry format. By default, data will be sent to Firebase. |
 |  [region](./crashlytics_react-router.crashlyticsoptions.md#crashlyticsoptionsregion) | string | The Google Cloud region where the Crashlytics data should be sent.<!-- -->By default, data will be sent to the "global" region.<!-- -->Refer to https://cloud.google.com/logging/docs/regions for the list of available regions. |
 
@@ -34,6 +35,16 @@ The version of the application. This should be a unique string that identifies t
 
 ```typescript
 appVersion?: string;
+```
+
+## CrashlyticsOptions.customAttributes
+
+Base set of custom attributes to send with automatic error collection. Key-value pairs defined here will be sent with all error logs. If custom attributes are also specified in `recordError()`<!-- -->, those values will take precedence over the base set defined here.
+
+<b>Signature:</b>
+
+```typescript
+customAttributes?: AnyValueMap;
 ```
 
 ## CrashlyticsOptions.endpointUrl

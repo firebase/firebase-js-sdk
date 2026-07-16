@@ -246,7 +246,7 @@ describe('AttributesStore', () => {
     });
   });
 
-  describe('updateAppVersion', () => {
+  describe('updateOptions', () => {
     let originalAutoConstantsVersion: any;
 
     beforeEach(() => {
@@ -290,11 +290,39 @@ describe('AttributesStore', () => {
         '1.2.3'
       );
 
-      store.updateAppVersion({ appVersion: '3.4.5' });
+      store.updateOptions({ appVersion: '3.4.5' });
       expect(store.getLogAttributes()).to.have.property(
         'app.build_id',
         '3.4.5'
       );
+    });
+
+    it('should include customAttributes in log attributes if provided', () => {
+      const store = new AttributesStore({} as any, {
+        customAttributes: { key1: 'value1', key2: 'value2' }
+      });
+      expect(store.getLogAttributes()).to.include({
+        key1: 'value1',
+        key2: 'value2'
+      });
+    });
+
+    it('should update customAttributes when updateOptions is called', () => {
+      const store = new AttributesStore({} as any, {
+        customAttributes: { key1: 'value1' }
+      });
+      expect(store.getLogAttributes()).to.include({
+        key1: 'value1'
+      });
+
+      store.updateOptions({
+        customAttributes: { key1: 'value2', key3: 'value3' }
+      });
+      const logAttrs = store.getLogAttributes();
+      expect(logAttrs).to.include({
+        key1: 'value2',
+        key3: 'value3'
+      });
     });
   });
 

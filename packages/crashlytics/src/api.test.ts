@@ -345,6 +345,52 @@ describe('Top level API', () => {
       });
     });
 
+    it('should propagate customAttributes from CrashlyticsOptions', () => {
+      const error = 'a string error';
+      fakeAttributesStore.updateOptions({
+        customAttributes: {
+          baseKey: 'baseValue',
+          commonKey: 'commonBaseValue'
+        }
+      });
+
+      recordError(fakeCrashlytics, error);
+
+      expect(emittedLogs.length).to.equal(1);
+      const log = emittedLogs[0];
+      expect(log.attributes).to.deep.equal({
+        [LOG_ATTR_KEY.APP_VERSION]: 'unset',
+        baseKey: 'baseValue',
+        commonKey: 'commonBaseValue',
+        [LOG_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID
+      });
+    });
+
+    it('recordError attributes should take precedence over customAttributes from CrashlyticsOptions', () => {
+      const error = 'a string error';
+      fakeAttributesStore.updateOptions({
+        customAttributes: {
+          baseKey: 'baseValue',
+          commonKey: 'commonBaseValue'
+        }
+      });
+
+      recordError(fakeCrashlytics, error, {
+        commonKey: 'commonOverrideValue',
+        newKey: 'newValue'
+      });
+
+      expect(emittedLogs.length).to.equal(1);
+      const log = emittedLogs[0];
+      expect(log.attributes).to.deep.equal({
+        [LOG_ATTR_KEY.APP_VERSION]: 'unset',
+        baseKey: 'baseValue',
+        commonKey: 'commonOverrideValue',
+        newKey: 'newValue',
+        [LOG_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID
+      });
+    });
+
     it('should use explicit app version when provided', () => {
       AUTO_CONSTANTS.appVersion = '1.2.3'; // Unused
       const crashlytics = new CrashlyticsService(
@@ -495,7 +541,7 @@ function getFakeApp(): FirebaseApp {
         ({
           getId: async () => 'iid',
           getToken: async () => 'authToken'
-        } as _FirebaseInstallationsInternal),
+        }) as _FirebaseInstallationsInternal,
       ComponentType.PUBLIC
     )
   );
