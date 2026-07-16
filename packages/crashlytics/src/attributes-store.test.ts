@@ -15,7 +15,12 @@
  * limitations under the License.
  */
 
-import { AttributesStore, ATTR_KEY_INSTALLATION_ID } from './attributes-store';
+import {
+  AttributesStore,
+  ATTR_KEY_INSTALLATION_ID,
+  SESSION_STORAGE_SESSION_ID_KEY,
+  SPAN_ATTR_KEY
+} from './attributes-store';
 import { _FirebaseInstallationsInternal } from '@firebase/installations';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
@@ -143,10 +148,10 @@ describe('AttributesStore', () => {
   });
 
   describe('sessionStorage integration', () => {
-    let originalSessionStorage: any;
+    let originalSessionStorage: Storage | undefined;
 
     beforeEach(() => {
-      originalSessionStorage = (global as any).sessionStorage;
+      originalSessionStorage = global.sessionStorage;
     });
 
     afterEach(() => {
@@ -340,6 +345,106 @@ describe('AttributesStore', () => {
       );
       expect(logAttributes).not.to.have.property(
         'logging.googleapis.com/spanId'
+      );
+    });
+  });
+
+  describe('getSpanAttributes', () => {
+    let originalSessionStorage: Storage | undefined;
+    let storage: Record<string, string> = {};
+
+    const MOCK_SESSION_ID = 'mock-session-id';
+
+    beforeEach(() => {
+      storage = {};
+      originalSessionStorage = global.sessionStorage;
+      const sessionStorageMock: Partial<Storage> = {
+        getItem: (key: string) => storage[key] || null,
+        setItem: (key: string, value: string) => {
+          storage[key] = value;
+        }
+      };
+      Object.defineProperty(global, 'sessionStorage', {
+        value: sessionStorageMock,
+        writable: true
+      });
+    });
+
+    afterEach(() => {
+      Object.defineProperty(global, 'sessionStorage', {
+        value: originalSessionStorage,
+        writable: true
+      });
+    });
+
+    it('should add session id to attributes if present in storage', () => {
+      storage[SESSION_STORAGE_SESSION_ID_KEY] = MOCK_SESSION_ID;
+      const attributesStore = new AttributesStore({ projectId: 'my-project' });
+      const attributes = attributesStore.getSpanAttributes();
+      expect(attributes[SPAN_ATTR_KEY.GCP_FIREBASE_SESSION_ID]).to.equal(
+        MOCK_SESSION_ID
+      );
+    });
+
+    it('should not add session id if not present in storage', () => {
+      const attributesStore = new AttributesStore({ projectId: 'my-project' });
+      const attributes = attributesStore.getSpanAttributes();
+      expect(attributes[SPAN_ATTR_KEY.GCP_FIREBASE_SESSION_ID]).to.be.undefined;
+    });
+
+    it('should add region to resource name if present in options', () => {
+      const attributesStore = new AttributesStore(
+        { projectId: 'my-project' },
+        { region: 'us-central1' }
+      );
+      const attributes = attributesStore.getSpanAttributes();
+      expect(attributes[SPAN_ATTR_KEY.GCP_RESOURCE_NAME]).to.equal(
+        '//firebasetelemetry.googleapis.com/projects/my-project/locations/us-central1/'
+      );
+    });
+
+    it('should use default region in resource name if not present in options', () => {
+      const attributesStore = new AttributesStore({ projectId: 'my-project' });
+      const attributes = attributesStore.getSpanAttributes();
+      expect(attributes[SPAN_ATTR_KEY.GCP_RESOURCE_NAME]).to.equal(
+        '//firebasetelemetry.googleapis.com/projects/my-project/locations/global/'
+      );
+    });
+
+    it('should add active app screen id to attributes if available', () => {
+      const attributesStore = new AttributesStore({ projectId: 'my-project' });
+      attributesStore.setRoutePathProvider(() => 'mock-screen-id');
+      const attributes = attributesStore.getSpanAttributes();
+      expect(attributes[SPAN_ATTR_KEY.APP_SCREEN_ID]).to.equal(
+        'mock-screen-id'
+      );
+    });
+
+    it('should not add active app screen id to attributes if not available', () => {
+      const attributesStore = new AttributesStore({ projectId: 'my-project' });
+      const attributes = attributesStore.getSpanAttributes();
+      expect(attributes[SPAN_ATTR_KEY.APP_SCREEN_ID]).to.be.undefined;
+    });
+
+    it('should set app version attribute to the configured app version', () => {
+      const attributesStore = new AttributesStore(
+        { projectId: 'my-project' },
+        { appVersion: '1.2.3' }
+      );
+      const attributes = attributesStore.getSpanAttributes();
+      expect(attributes[SPAN_ATTR_KEY.GCP_FIREBASE_APP_VERSION]).to.equal(
+        '1.2.3'
+      );
+    });
+
+    it("should set app version attribute to 'unset' if configured app version not available", () => {
+      const attributesStore = new AttributesStore(
+        { projectId: 'my-project' },
+        {}
+      );
+      const attributes = attributesStore.getSpanAttributes();
+      expect(attributes[SPAN_ATTR_KEY.GCP_FIREBASE_APP_VERSION]).to.equal(
+        'unset'
       );
     });
   });
