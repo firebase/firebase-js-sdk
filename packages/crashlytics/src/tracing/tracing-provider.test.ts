@@ -15,14 +15,9 @@
  * limitations under the License.
  */
 
-import {
-  createTracingProvider,
-  patchNetworkRequests,
-  OTLPTraceExporter
-} from './tracing-provider';
+import { createTracingProvider, OTLPTraceExporter } from './tracing-provider';
 import { expect } from 'chai';
 import { FirebaseApp } from '@firebase/app';
-import { RootSpanContextManager } from './root-span-context-manager';
 import { CrashlyticsOptions } from '../public-types';
 import { FetchInstrumentation } from '@opentelemetry/instrumentation-fetch';
 import { XMLHttpRequestInstrumentation } from '@opentelemetry/instrumentation-xml-http-request';
@@ -35,7 +30,6 @@ import { CompositePropagator } from '@opentelemetry/core';
 
 describe('createTracingProvider', () => {
   let mockApp: FirebaseApp;
-  let mockRootSpanContextManager: RootSpanContextManager;
   let mockAttributesStore: AttributesStore;
   let mockSpan: any;
   beforeEach(() => {
@@ -46,11 +40,6 @@ describe('createTracingProvider', () => {
         apiKey: 'test-api-key'
       }
     } as unknown as FirebaseApp;
-    mockRootSpanContextManager = {
-      enable: () => {},
-      startRootSpan: () => ({}),
-      getActiveRootSpan: () => undefined
-    } as unknown as RootSpanContextManager;
     mockAttributesStore = {} as unknown as AttributesStore;
     mockSpan = {
       name: 'test-span',
@@ -82,14 +71,13 @@ describe('createTracingProvider', () => {
     const mockCrashlyticsOptions = {} as CrashlyticsOptions;
     const provider = createTracingProvider(
       mockApp,
-      mockRootSpanContextManager,
       mockCrashlyticsOptions,
       mockAttributesStore
     );
     expect(provider).to.equal(trace.getTracerProvider());
   });
 
-  it('should register the WebTracerProvider globally with the root span context manager and W3CTraceContextPropagator', () => {
+  it('should register the WebTracerProvider globally with a W3CTraceContextPropagator', () => {
     if (typeof window === 'undefined') {
       return;
     }
@@ -102,7 +90,6 @@ describe('createTracingProvider', () => {
 
     const provider = createTracingProvider(
       mockApp,
-      mockRootSpanContextManager,
       mockCrashlyticsOptions,
       mockAttributesStore
     );
@@ -110,7 +97,6 @@ describe('createTracingProvider', () => {
     expect(registerSpy.calledOnce).to.be.true;
     const registerArgs = registerSpy.firstCall.args[0];
     expect(registerArgs).to.be.ok;
-    expect(registerArgs!.contextManager).to.equal(mockRootSpanContextManager);
 
     const propagator = registerArgs!.propagator;
     expect(propagator).to.be.ok;
@@ -139,32 +125,6 @@ describe('createTracingProvider', () => {
     expect(provider).to.be.ok;
   });
 
-  it("should start the 'app-start' root span on the context manager during initialization", () => {
-    if (typeof window === 'undefined') {
-      return;
-    }
-
-    const startRootSpanSpy = sinon.spy(
-      mockRootSpanContextManager,
-      'startRootSpan'
-    );
-
-    const mockCrashlyticsOptions = {
-      tracingUrl: 'http://localhost:4318'
-    } as CrashlyticsOptions;
-
-    const provider = createTracingProvider(
-      mockApp,
-      mockRootSpanContextManager,
-      mockCrashlyticsOptions,
-      mockAttributesStore
-    );
-
-    expect(startRootSpanSpy.calledOnce).to.be.true;
-    expect(startRootSpanSpy.firstCall.args[1]).to.equal('app-start');
-    expect(provider).to.be.ok;
-  });
-
   it('should register FetchInstrumentation with appropriate ignoreUrls', () => {
     if (typeof window === 'undefined') {
       return;
@@ -180,12 +140,7 @@ describe('createTracingProvider', () => {
       tracingUrl: 'my-custom-tracing.url'
     } as CrashlyticsOptions;
 
-    createTracingProvider(
-      mockApp,
-      mockRootSpanContextManager,
-      mockCrashlyticsOptions,
-      mockAttributesStore
-    );
+    createTracingProvider(mockApp, mockCrashlyticsOptions, mockAttributesStore);
 
     expect(fetchInstrumentationSpy.called).to.be.true;
     const fetchConfig = fetchInstrumentationSpy.lastCall.args[0] as any;
@@ -211,12 +166,7 @@ describe('createTracingProvider', () => {
       tracingUrl: 'my-custom-tracing.url'
     } as CrashlyticsOptions;
 
-    createTracingProvider(
-      mockApp,
-      mockRootSpanContextManager,
-      mockCrashlyticsOptions,
-      mockAttributesStore
-    );
+    createTracingProvider(mockApp, mockCrashlyticsOptions, mockAttributesStore);
 
     expect(xhrInstrumentationSpy.called).to.be.true;
     const xhrConfig = xhrInstrumentationSpy.lastCall.args[0] as any;
@@ -308,231 +258,6 @@ describe('createTracingProvider', () => {
       );
       expect(dynamicAttr).to.be.ok;
       expect(dynamicAttr.value.stringValue).to.equal('installation_id_value');
-    });
-  });
-
-  describe('patchNetworkRequests', () => {
-    let originalFetch: typeof window.fetch;
-    let originalOpen: typeof XMLHttpRequest.prototype.open;
-    let startRootSpanStub: sinon.SinonStub;
-    let getActiveRootSpanStub: sinon.SinonStub;
-    let activeSpanDuringFetch: any;
-    let activeSpanDuringOpen: any;
-
-    before(() => {
-      if (typeof window !== 'undefined') {
-        originalFetch = window.fetch;
-        originalOpen = XMLHttpRequest.prototype.open;
-      }
-    });
-
-    after(() => {
-      if (typeof window !== 'undefined') {
-        window.fetch = originalFetch;
-        XMLHttpRequest.prototype.open = originalOpen;
-      }
-    });
-
-    beforeEach(() => {
-      if (typeof window !== 'undefined') {
-        activeSpanDuringFetch = null;
-        activeSpanDuringOpen = null;
-
-        window.fetch = sinon.stub().callsFake(() => {
-          activeSpanDuringFetch = trace.getSpan(context.active());
-          return Promise.resolve({} as any);
-        });
-
-        XMLHttpRequest.prototype.open = sinon.stub().callsFake(() => {
-          activeSpanDuringOpen = trace.getSpan(context.active());
-        }) as any;
-
-        startRootSpanStub = sinon
-          .stub(mockRootSpanContextManager, 'startRootSpan')
-          .returns({ span: mockSpan } as any);
-        getActiveRootSpanStub = sinon
-          .stub(mockRootSpanContextManager, 'getActiveRootSpan')
-          .returns(undefined);
-      }
-    });
-
-    it('[fetch] should create a background network root span and run the fetch call under its context if no root span is active', () => {
-      if (typeof window === 'undefined') {
-        return;
-      }
-
-      patchNetworkRequests({} as any, mockRootSpanContextManager, [
-        new RegExp('http://my-tracing-url'),
-        new RegExp('http://my-logging-url')
-      ]);
-
-      void window.fetch('/api/data');
-
-      expect(
-        startRootSpanStub.calledWith(sinon.match.any, 'background-network')
-      ).to.be.true;
-      expect(activeSpanDuringFetch).to.equal(mockSpan);
-    });
-
-    it('[fetch] should not create a background network root span if a root span is active', () => {
-      if (typeof window === 'undefined') {
-        return;
-      }
-
-      getActiveRootSpanStub.returns({} as any);
-
-      patchNetworkRequests({} as any, mockRootSpanContextManager, [
-        new RegExp('http://my-tracing-url'),
-        new RegExp('http://my-logging-url')
-      ]);
-
-      void window.fetch('/api/data');
-
-      expect(
-        startRootSpanStub.calledWith(sinon.match.any, 'background-network')
-      ).to.be.false;
-      expect(activeSpanDuringFetch).to.be.undefined;
-    });
-
-    it('[fetch] should not create a background network root span if the url is an ignored string', () => {
-      if (typeof window === 'undefined') {
-        return;
-      }
-
-      patchNetworkRequests({} as any, mockRootSpanContextManager, [
-        new RegExp('http://my-tracing-url'),
-        new RegExp('http://my-logging-url')
-      ]);
-
-      void window.fetch('http://my-tracing-url/v1/projects/...');
-      void window.fetch('http://my-logging-url/v1/projects/...');
-
-      expect(
-        startRootSpanStub.calledWith(sinon.match.any, 'background-network')
-      ).to.be.false;
-      expect(activeSpanDuringFetch).to.be.undefined;
-    });
-
-    it('[fetch] should not create a background network root span if the url is an ignored URL object', () => {
-      if (typeof window === 'undefined') {
-        return;
-      }
-
-      patchNetworkRequests({} as any, mockRootSpanContextManager, [
-        new RegExp('http://my-tracing-url'),
-        new RegExp('http://my-logging-url')
-      ]);
-
-      void window.fetch(new URL('http://my-tracing-url/v1/projects/...'));
-      void window.fetch(new URL('http://my-logging-url/v1/projects/...'));
-
-      expect(
-        startRootSpanStub.calledWith(sinon.match.any, 'background-network')
-      ).to.be.false;
-      expect(activeSpanDuringFetch).to.be.undefined;
-    });
-
-    it('[fetch] should not create a background network root span if the url is an ignored Request object', () => {
-      if (typeof window === 'undefined') {
-        return;
-      }
-
-      patchNetworkRequests({} as any, mockRootSpanContextManager, [
-        new RegExp('http://my-tracing-url'),
-        new RegExp('http://my-logging-url')
-      ]);
-
-      void window.fetch(new Request('http://my-tracing-url/v1/projects/...'));
-      void window.fetch(new Request('http://my-logging-url/v1/projects/...'));
-
-      expect(
-        startRootSpanStub.calledWith(sinon.match.any, 'background-network')
-      ).to.be.false;
-      expect(activeSpanDuringFetch).to.be.undefined;
-    });
-
-    it('[XHR] should create a background network root span and run the XHR call under its context if no root span is active', () => {
-      if (typeof window === 'undefined') {
-        return;
-      }
-
-      patchNetworkRequests({} as any, mockRootSpanContextManager, [
-        new RegExp('http://my-tracing-url'),
-        new RegExp('http://my-logging-url')
-      ]);
-
-      const xhr = new XMLHttpRequest();
-      xhr.open('GET', '/api/data');
-
-      expect(
-        startRootSpanStub.calledWith(sinon.match.any, 'background-network')
-      ).to.be.true;
-      expect(activeSpanDuringOpen).to.equal(mockSpan);
-    });
-
-    it('[XHR] should not create a background network root span if a root span is active', () => {
-      if (typeof window === 'undefined') {
-        return;
-      }
-
-      getActiveRootSpanStub.returns({} as any);
-
-      patchNetworkRequests({} as any, mockRootSpanContextManager, [
-        new RegExp('http://my-tracing-url'),
-        new RegExp('http://my-logging-url')
-      ]);
-
-      const xhr = new XMLHttpRequest();
-      xhr.open('GET', '/api/data');
-
-      expect(
-        startRootSpanStub.calledWith(sinon.match.any, 'background-network')
-      ).to.be.false;
-      expect(activeSpanDuringOpen).to.be.undefined;
-    });
-
-    it('[XHR] should not create a background network root span if the url is an ignored string', () => {
-      if (typeof window === 'undefined') {
-        return;
-      }
-
-      patchNetworkRequests({} as any, mockRootSpanContextManager, [
-        new RegExp('http://my-tracing-url'),
-        new RegExp('http://my-logging-url')
-      ]);
-
-      const xhr1 = new XMLHttpRequest();
-      xhr1.open('POST', 'http://my-tracing-url/v1/projects/...');
-
-      const xhr2 = new XMLHttpRequest();
-      xhr2.open('POST', 'http://my-logging-url/v1/projects/...');
-
-      expect(
-        startRootSpanStub.calledWith(sinon.match.any, 'background-network')
-      ).to.be.false;
-      expect(activeSpanDuringOpen).to.be.undefined;
-    });
-
-    it('[XHR] should not create a background network root span if the url is an ignored URL object', () => {
-      if (typeof window === 'undefined') {
-        return;
-      }
-
-      patchNetworkRequests({} as any, mockRootSpanContextManager, [
-        new RegExp('http://my-tracing-url'),
-        new RegExp('http://my-logging-url')
-      ]);
-
-      const xhr1 = new XMLHttpRequest();
-      xhr1.open('POST', new URL('http://my-tracing-url/v1/projects/...'));
-
-      const xhr2 = new XMLHttpRequest();
-      xhr2.open('POST', new URL('http://my-logging-url/v1/projects/...'));
-
-      expect(
-        startRootSpanStub.calledWith(sinon.match.any, 'background-network')
-      ).to.be.false;
-      expect(activeSpanDuringOpen).to.be.undefined;
     });
   });
 });

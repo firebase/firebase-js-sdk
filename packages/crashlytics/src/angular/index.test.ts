@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import 'zone.js';
-import 'zone.js/testing';
 import { expect, use } from 'chai';
 import sinonChai from 'sinon-chai';
 import chaiAsPromised from 'chai-as-promised';
@@ -27,7 +25,7 @@ import {
   Component,
   DestroyRef,
   Injector,
-  provideZoneChangeDetection,
+  provideExperimentalZonelessChangeDetection,
   runInInjectionContext
 } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
@@ -82,7 +80,7 @@ describe('FirebaseErrorHandler', () => {
           { path: 'dynamic/:id/route', component: MockComponent }
         ])
       ],
-      providers: [provideZoneChangeDetection()]
+      providers: [provideExperimentalZonelessChangeDetection()]
     });
     const testInjector = TestBed.inject(Injector);
     errorHandler = runInInjectionContext(
@@ -131,7 +129,7 @@ describe('getSafeRoutePath', () => {
           { path: 'dynamic/:id/route', component: MockComponent }
         ])
       ],
-      providers: [provideZoneChangeDetection()]
+      providers: [provideExperimentalZonelessChangeDetection()]
     });
     router = TestBed.inject(Router);
   });
@@ -214,7 +212,7 @@ describe('setupNavigationTracking', () => {
           { path: 'users/:id', component: MockComponent }
         ])
       ],
-      providers: [provideZoneChangeDetection()]
+      providers: [provideExperimentalZonelessChangeDetection()]
     });
 
     router = TestBed.inject(Router);

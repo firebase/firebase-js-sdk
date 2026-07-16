@@ -18,7 +18,6 @@
 import { LoggerProvider } from '@opentelemetry/sdk-logs';
 import { TracerProvider } from '@opentelemetry/api';
 import { Crashlytics } from './public-types';
-import { RootSpanContextManager } from './tracing/root-span-context-manager';
 import { AttributesStore } from './attributes-store';
 import { ALREADY_LOGGED_FLAG } from './constants';
 import { OnErrorSpanProcessor } from './tracing/on-error-span-processor';
@@ -50,7 +49,6 @@ export interface TracerProviderWithOnError extends TracerProvider {
 export interface CrashlyticsInternal extends Crashlytics {
   loggerProvider: LoggerProviderWithOnError;
   tracingProvider: TracerProviderWithOnError;
-  contextManager: RootSpanContextManager;
   attributesStore: AttributesStore;
 }
 

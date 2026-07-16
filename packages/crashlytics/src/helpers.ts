@@ -16,7 +16,6 @@
  */
 
 import { SeverityNumber, AnyValueMap } from '@opentelemetry/api-logs';
-import { CRASHLYTICS_TRACER_NAME } from './constants';
 import { Crashlytics } from './public-types';
 import { CrashlyticsInternal } from './types';
 import { type TimeInput } from '@opentelemetry/api';
@@ -59,58 +58,6 @@ export function startNewSession(crashlytics: Crashlytics): void {
       // Ignore errors accessing sessionStorage (e.g. security restrictions)
     }
   }
-}
-
-/**
- * Starts a new trace for a user interaction. If a root span is already active, it will be
- * interrupted and a new root span will be started.
- *
- * @param crashlytics - The {@link Crashlytics} instance.
- */
-export function startUserInteractionTrace(
-  crashlytics: Crashlytics,
-  rootSpanName: string
-): void {
-  const { contextManager, tracingProvider } =
-    crashlytics as CrashlyticsInternal;
-
-  const tracer = tracingProvider.getTracer(CRASHLYTICS_TRACER_NAME);
-  contextManager.startRootSpan(tracer, rootSpanName);
-}
-
-/**
- * Generates a clean, scannable name for the click span based on the HTML element properties.
- *
- * @param element - The HTML element that was clicked.
- * @returns A string representing the name for the click span.
- */
-export function generateClickSpanName(element: Element): string {
-  const tagName = element.tagName.trim().toLowerCase();
-  if (element.id) {
-    return `click ${tagName} [id="${element.id}"]`;
-  }
-  if (element.getAttribute('data-testid')) {
-    return `click ${tagName} [data-testid="${element.getAttribute(
-      'data-testid'
-    )}"]`;
-  }
-  if (element.getAttribute('data-analytics-id')) {
-    return `click ${tagName} [data-analytics-id="${element.getAttribute(
-      'data-analytics-id'
-    )}"]`;
-  }
-  if (element.getAttribute('name')) {
-    return `click ${tagName} [name="${element.getAttribute('name')}"]`;
-  }
-  if (element.getAttribute('aria-label')) {
-    return `click ${tagName} [aria-label="${element.getAttribute(
-      'aria-label'
-    )}"]`;
-  }
-  if (element.getAttribute('role')) {
-    return `click ${tagName} [role="${element.getAttribute('role')}"]`;
-  }
-  return `click ${tagName}`;
 }
 
 /**

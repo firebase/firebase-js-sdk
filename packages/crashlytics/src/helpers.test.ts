@@ -25,7 +25,6 @@ import { registerListeners, startNewSession } from './helpers';
 import { AUTO_CONSTANTS } from './auto-constants';
 import { CrashlyticsService } from './service';
 import { CrashlyticsInternal } from './types';
-import { RootSpanContextManager } from './tracing/root-span-context-manager';
 import {
   AttributesStore,
   LOG_ATTR_KEY,
@@ -45,15 +44,6 @@ describe('helpers', () => {
     getLogger: (): Logger => {
       return {
         emit: (logRecord: LogRecord) => {
-          const rootSpan = fakeContextManager.getActiveRootSpan();
-          if (rootSpan) {
-            const spanContext = rootSpan.span.spanContext();
-            logRecord.attributes = {
-              ...logRecord.attributes,
-              [LOG_ATTR_KEY.TRACE]: spanContext.traceId,
-              [LOG_ATTR_KEY.SPAN_ID]: spanContext.spanId
-            };
-          }
           emittedLogs.push(logRecord);
         }
       };
@@ -66,34 +56,10 @@ describe('helpers', () => {
   } as unknown as LoggerProvider;
 
   const fakeTracingProvider = {
-    getTracer: () => ({
-      startSpan: () => ({
-        setAttribute: () => {},
-        end: () => {},
-        spanContext: () => ({ traceId: 'my-trace', spanId: 'my-span' })
-      }),
-      startActiveSpan: (name: string, fn: (span: any) => any) =>
-        fn({
-          end: () => {},
-          spanContext: () => ({ traceId: 'my-trace', spanId: 'my-span' })
-        })
-    }),
+    getTracer: () => ({}),
     register: () => {},
     shutdown: () => Promise.resolve()
   } as unknown as TracerProvider;
-
-  const fakeContextManager = {
-    getActiveRootSpan: () => ({
-      span: {
-        spanContext: () => ({ traceId: 'my-trace', spanId: 'my-span' }),
-        end: () => {}
-      }
-    }),
-    setRootSpan: () => {},
-    getLocationKey: () => undefined,
-    setLocationKey: () => {}
-  } as unknown as RootSpanContextManager;
-
   let fakeAttributesStore: AttributesStore;
   let fakeCrashlytics: CrashlyticsInternal;
   let getActiveSpanStub: sinon.SinonStub;
@@ -138,7 +104,6 @@ describe('helpers', () => {
       },
       loggerProvider: fakeLoggerProvider,
       tracingProvider: fakeTracingProvider,
-      contextManager: fakeContextManager,
       attributesStore: fakeAttributesStore
     };
     getActiveSpanStub = sinon.stub(trace, 'getActiveSpan').returns(undefined);
@@ -171,9 +136,7 @@ describe('helpers', () => {
       expect(emittedLogs.length).to.equal(1);
       expect(emittedLogs[0].attributes).to.deep.equal({
         [LOG_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID,
-        [LOG_ATTR_KEY.APP_VERSION]: 'unset',
-        [LOG_ATTR_KEY.TRACE]: 'my-trace',
-        [LOG_ATTR_KEY.SPAN_ID]: 'my-span'
+        [LOG_ATTR_KEY.APP_VERSION]: 'unset'
       });
     });
 
@@ -185,9 +148,7 @@ describe('helpers', () => {
 
       expect(emittedLogs[0].attributes).to.deep.equal({
         [LOG_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID,
-        [LOG_ATTR_KEY.APP_VERSION]: '1.2.3',
-        [LOG_ATTR_KEY.TRACE]: 'my-trace',
-        [LOG_ATTR_KEY.SPAN_ID]: 'my-span'
+        [LOG_ATTR_KEY.APP_VERSION]: '1.2.3'
       });
     });
 
@@ -196,7 +157,6 @@ describe('helpers', () => {
         fakeCrashlytics.app,
         fakeLoggerProvider,
         fakeTracingProvider,
-        fakeContextManager,
         fakeAttributesStore
       );
       telemetryWithVersion.options = { appVersion: '9.9.9' };
@@ -205,9 +165,22 @@ describe('helpers', () => {
 
       expect(emittedLogs[0].attributes).to.deep.equal({
         [LOG_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID,
-        [LOG_ATTR_KEY.APP_VERSION]: '9.9.9',
-        [LOG_ATTR_KEY.TRACE]: 'my-trace',
-        [LOG_ATTR_KEY.SPAN_ID]: 'my-span'
+        [LOG_ATTR_KEY.APP_VERSION]: '9.9.9'
+      });
+    });
+
+    it('should log trace and span id from context', () => {
+      const mockRootSpan = {
+        spanContext: () => ({ traceId: 'traceId2', spanId: 'spanId2' })
+      };
+      getActiveSpanStub.returns(mockRootSpan);
+      startNewSession(fakeCrashlytics);
+
+      expect(emittedLogs[0].attributes).to.deep.equal({
+        [LOG_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID,
+        [LOG_ATTR_KEY.APP_VERSION]: 'unset',
+        [LOG_ATTR_KEY.TRACE]: 'projects/my-project/traces/traceId2',
+        [LOG_ATTR_KEY.SPAN_ID]: 'spanId2'
       });
     });
   });
