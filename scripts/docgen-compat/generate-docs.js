@@ -75,9 +75,7 @@ function moveFilesToRoot(subdir) {
   const srcDir = `${docPath}/${subdir}`;
   if (existsSync(srcDir)) {
     return exec(`mv ${srcDir}/* ${docPath}`)
-      .then(() => {
-        exec(`rmdir ${srcDir}`);
-      })
+      .then(() => exec(`rmdir ${srcDir}`))
       .catch(e => console.error(e));
   }
   return Promise.resolve();
@@ -173,9 +171,7 @@ function checkForMissingFilesAndFixFilenameCase() {
     const generatedFilePath = `${docPath}/${filename.toLowerCase()}.html`;
     if (existsSync(generatedFilePath)) {
       // Store in a lookup table for link fixing.
-      lowerToUpperLookup[
-        `${filename.toLowerCase()}.html`
-      ] = `${filename}.html`;
+      lowerToUpperLookup[`${filename.toLowerCase()}.html`] = `${filename}.html`;
       return fs.rename(generatedFilePath, tocFilePath);
     } else {
       console.warn(
