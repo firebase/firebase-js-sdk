@@ -15,74 +15,52 @@
  * limitations under the License.
  */
 
-import { Context } from '@opentelemetry/api';
 import {
-  SpanProcessor,
-  ReadableSpan,
-  Span
+  BatchSpanProcessor,
+  SpanExporter,
+  ReadableSpan
 } from '@opentelemetry/sdk-trace-base';
 
 /**
- * A SpanProcessor that buffers all spans in memory until an error occurs.
- * Once an error occurs, it releases all buffered spans to the delegate processor
- * and forwards subsequent spans directly to the delegate.
+ * A BatchSpanProcessor that buffers all spans in memory until an error occurs.
+ * Once an error occurs, it releases all buffered spans to the exporter batch processor queue.
  */
-export class OnErrorSpanProcessor implements SpanProcessor {
+export class OnErrorSpanProcessor extends BatchSpanProcessor {
   private _buffer: ReadableSpan[] = [];
-  private _hasErrorOccurred = false;
   private _maxBufferSize = 1000;
 
-  constructor(private _delegate: SpanProcessor, maxBufferSize?: number) {
+  constructor(exporter: SpanExporter, maxBufferSize?: number) {
+    super(exporter);
     if (maxBufferSize !== undefined) {
       this._maxBufferSize = maxBufferSize;
     }
   }
 
-  onStart(span: Span, parentContext: Context): void {
-    this._delegate.onStart(span, parentContext);
-  }
-
-  onEnd(span: ReadableSpan): void {
-    if (this._hasErrorOccurred) {
-      this._delegate.onEnd(span);
-    } else {
-      this._buffer.push(span);
-      if (this._buffer.length > this._maxBufferSize) {
-        this._buffer.shift();
-      }
+  override onEnd(span: ReadableSpan): void {
+    this._buffer.push(span);
+    if (this._buffer.length > this._maxBufferSize) {
+      // TODO: shift() is O(n), use a fixed size circular buffer instead
+      this._buffer.shift();
     }
   }
 
-  forceFlush(): Promise<void> {
-    return this._delegate.forceFlush();
-  }
-
-  shutdown(): Promise<void> {
+  override shutdown(): Promise<void> {
     this._buffer = [];
-    return this._delegate.shutdown();
+    return super.shutdown();
   }
 
   onErrorOccurred(): void {
-    if (this._hasErrorOccurred) {
-      return;
-    }
-    this._hasErrorOccurred = true;
-
-    // Flush all buffered spans to the delegate
+    // Flush all buffered spans to the batch processor
     for (const span of this._buffer) {
-      this._delegate.onEnd(span);
+      super.onEnd(span);
     }
     this._buffer = [];
 
-    // Force flush the delegate to ensure immediate export
-    void this._delegate.forceFlush();
+    // Force flush to ensure immediate export
+    void super.forceFlush();
   }
 
   getBuffer(): ReadableSpan[] {
     return this._buffer;
-  }
-
-  hasErrorOccurred(): boolean {
-    return this._hasErrorOccurred;
   }
 }

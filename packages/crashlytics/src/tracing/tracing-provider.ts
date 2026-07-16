@@ -24,7 +24,6 @@ import {
 import { TracerProvider, trace, context, Tracer } from '@opentelemetry/api';
 import {
   WebTracerProvider,
-  BatchSpanProcessor,
   SimpleSpanProcessor,
   ConsoleSpanExporter
 } from '@opentelemetry/sdk-trace-web';
@@ -113,8 +112,7 @@ export function createTracingProvider(
     );
   }
 
-  const batchSpanProcessor = new BatchSpanProcessor(traceExporter);
-  const onErrorSpanProcessor = new OnErrorSpanProcessor(batchSpanProcessor);
+  const onErrorSpanProcessor = new OnErrorSpanProcessor(traceExporter);
 
   const provider = new WebTracerProvider({
     resource,

@@ -16,7 +16,11 @@
  */
 
 import { Context } from '@opentelemetry/api';
-import { LogRecordProcessor, SdkLogRecord } from '@opentelemetry/sdk-logs';
+import {
+  BatchLogRecordProcessor,
+  LogRecordExporter,
+  SdkLogRecord
+} from '@opentelemetry/sdk-logs';
 
 export interface BufferedLogRecord {
   logRecord: SdkLogRecord;
@@ -24,58 +28,41 @@ export interface BufferedLogRecord {
 }
 
 /**
- * A LogRecordProcessor that buffers all log records in memory until an error occurs.
- * Once an error occurs, it releases all buffered log records to the delegate processor
- * and forwards subsequent log records directly to the delegate.
+ * A BatchLogRecordProcessor that buffers all log records in memory until an error occurs.
+ * Once an error occurs, it releases all buffered log records to the exporter batch processor queue.
  */
-export class OnErrorLogRecordProcessor implements LogRecordProcessor {
+export class OnErrorLogRecordProcessor extends BatchLogRecordProcessor {
   private _buffer: BufferedLogRecord[] = [];
-  private _hasErrorOccurred = false;
   private _maxBufferSize = 1000;
 
-  constructor(private _delegate: LogRecordProcessor, maxBufferSize?: number) {
+  constructor(exporter: LogRecordExporter, maxBufferSize?: number) {
+    super(exporter);
     if (maxBufferSize !== undefined) {
       this._maxBufferSize = maxBufferSize;
     }
   }
 
-  onEmit(logRecord: SdkLogRecord, context?: Context): void {
-    if (this._hasErrorOccurred) {
-      this._delegate.onEmit(logRecord, context);
-    } else {
-      this._buffer.push({ logRecord, context });
-      if (this._buffer.length > this._maxBufferSize) {
-        this._buffer.shift();
-      }
+  override onEmit(logRecord: SdkLogRecord, context?: Context): void {
+    this._buffer.push({ logRecord, context });
+    if (this._buffer.length > this._maxBufferSize) {
+      // TODO: shift() is O(n), use a fixed size circular buffer instead
+      this._buffer.shift();
     }
   }
 
-  forceFlush(): Promise<void> {
-    return this._delegate.forceFlush();
-  }
-
-  shutdown(): Promise<void> {
+  override shutdown(): Promise<void> {
     this._buffer = [];
-    return this._delegate.shutdown();
+    return super.shutdown();
   }
 
   onErrorOccurred(): void {
-    if (this._hasErrorOccurred) {
-      return;
-    }
-    this._hasErrorOccurred = true;
-
-    // Flush all buffered log records to the delegate
+    // Flush all buffered log records to the batch processor
     for (const bufferedItem of this._buffer) {
-      this._delegate.onEmit(bufferedItem.logRecord, bufferedItem.context);
+      super.onEmit(bufferedItem.logRecord);
     }
     this._buffer = [];
 
-    // Force flush the delegate to ensure immediate export
-    void this._delegate.forceFlush();
-  }
-
-  hasErrorOccurred(): boolean {
-    return this._hasErrorOccurred;
+    // Force flush to ensure immediate export
+    void super.forceFlush();
   }
 }

@@ -17,7 +17,6 @@
 
 import {
   LoggerProvider,
-  BatchLogRecordProcessor,
   ReadableLogRecord,
   LogRecordExporter
 } from '@opentelemetry/sdk-logs';
@@ -76,10 +75,7 @@ export function createLoggerProvider(
     attributesStore
   );
 
-  const batchLogRecordProcessor = new BatchLogRecordProcessor(logExporter);
-  const onErrorLogRecordProcessor = new OnErrorLogRecordProcessor(
-    batchLogRecordProcessor
-  );
+  const onErrorLogRecordProcessor = new OnErrorLogRecordProcessor(logExporter);
 
   const provider = new LoggerProvider({
     resource,
