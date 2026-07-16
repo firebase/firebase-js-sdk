@@ -35,7 +35,7 @@ export class CrashlyticsService implements Crashlytics, _FirebaseService {
 
   set options(optionsToSet: CrashlyticsOptions) {
     this._options = optionsToSet;
-    this.attributesStore.updateAppVersion(optionsToSet);
+    this.attributesStore.updateOptions(optionsToSet);
   }
 
   get options(): CrashlyticsOptions | undefined {
