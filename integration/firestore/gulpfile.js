@@ -54,7 +54,7 @@ function copyTests() {
         testBase + '/util/promise.ts',
         testBase + '/util/mocha_extensions.ts'
       ],
-      { base: '../../packages/firestore', allowEmpty: true }
+      { base: '../../packages/firestore' }
     )
     .pipe(
       replace(
