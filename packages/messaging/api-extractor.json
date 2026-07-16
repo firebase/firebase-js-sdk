@@ -3,16 +3,17 @@
   // Point it to your entry point d.ts file.
   "mainEntryPointFilePath": "<projectFolder>/dist/src/index.d.ts",
   "dtsRollup": {
-    /** 
-     * rollup is not supported when multiple entry points are present.
-     * npm script api-report:rollup is used to generate dts rollup.
-     */
-    "enabled": false
+    "enabled": true,
+    "untrimmedFilePath": "./dist/internal.d.ts",
+    "betaTrimmedFilePath": "./dist/index-public.d.ts"
+  },
+  "docModel": {
+    "apiJsonFilePath": "<projectFolder>/temp/messaging.api.json"
   },
   "apiReport": {
     /**
      * apiReport is handled by npm script api-report:rollup
      */
     "enabled": false
-}
+  }
 }
