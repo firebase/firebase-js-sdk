@@ -21,6 +21,7 @@ import { FirebaseApp } from '@firebase/app';
 import { CrashlyticsOptions } from '../public-types';
 import { FetchInstrumentation } from '@opentelemetry/instrumentation-fetch';
 import { XMLHttpRequestInstrumentation } from '@opentelemetry/instrumentation-xml-http-request';
+import { DocumentLoadInstrumentation } from '@opentelemetry/instrumentation-document-load';
 import * as sinon from 'sinon';
 import { context, trace } from '@opentelemetry/api';
 import { AttributesStore } from '../attributes-store';
@@ -56,7 +57,10 @@ describe('createTracingProvider', () => {
       events: [],
       status: { code: 0 },
       resource: resourceFromAttributes({}),
-      instrumentationScope: { name: 'test-scope', version: '1.0.0' }
+      instrumentationScope: { name: 'test-scope', version: '1.0.0' },
+      setAttributes: (attrs: Record<string, any>) => {
+        Object.assign(mockSpan.attributes, attrs);
+      }
     } as any;
   });
 
@@ -125,10 +129,14 @@ describe('createTracingProvider', () => {
     expect(provider).to.be.ok;
   });
 
-  it('should register FetchInstrumentation with appropriate ignoreUrls', () => {
+  it('should register FetchInstrumentation with appropriate config', () => {
     if (typeof window === 'undefined') {
       return;
     }
+
+    mockAttributesStore = {
+      getSpanAttributes: sinon.stub().returns({ 'fetch-key': 'fetch-value' })
+    } as unknown as AttributesStore;
 
     const fetchInstrumentationSpy = sinon.spy(
       FetchInstrumentation.prototype,
@@ -149,12 +157,20 @@ describe('createTracingProvider', () => {
     const fetchPatterns = fetchConfig.ignoreUrls.map((r: RegExp) => r.source);
     expect(fetchPatterns).to.include('my-custom-endpoint\\.url');
     expect(fetchPatterns).to.include('my-custom-tracing\\.url');
+
+    expect(fetchConfig.applyCustomAttributesOnSpan).to.be.a('function');
+    fetchConfig.applyCustomAttributesOnSpan(mockSpan);
+    expect(mockSpan.attributes).to.deep.equal({ 'fetch-key': 'fetch-value' });
   });
 
-  it('should register XMLHttpRequestInstrumentation with appropriate ignoreUrls', () => {
+  it('should register XMLHttpRequestInstrumentation with appropriate config', () => {
     if (typeof window === 'undefined') {
       return;
     }
+
+    mockAttributesStore = {
+      getSpanAttributes: sinon.stub().returns({ 'xhr-key': 'xhr-value' })
+    } as unknown as AttributesStore;
 
     const xhrInstrumentationSpy = sinon.spy(
       XMLHttpRequestInstrumentation.prototype,
@@ -175,6 +191,47 @@ describe('createTracingProvider', () => {
     const xhrPatterns = xhrConfig.ignoreUrls.map((r: RegExp) => r.source);
     expect(xhrPatterns).to.include('my-custom-endpoint\\.url');
     expect(xhrPatterns).to.include('my-custom-tracing\\.url');
+
+    expect(xhrConfig.applyCustomAttributesOnSpan).to.be.a('function');
+    xhrConfig.applyCustomAttributesOnSpan(mockSpan);
+    expect(mockSpan.attributes).to.deep.equal({ 'xhr-key': 'xhr-value' });
+  });
+
+  it('should register DocumentLoadInstrumentation with appropriate config', () => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    mockAttributesStore = {
+      getSpanAttributes: sinon
+        .stub()
+        .returns({ 'docload-key': 'docload-value' })
+    } as unknown as AttributesStore;
+
+    const documentLoadInstrumentationSpy = sinon.spy(
+      DocumentLoadInstrumentation.prototype,
+      'setConfig'
+    );
+
+    createTracingProvider(mockApp, {}, mockAttributesStore);
+
+    expect(documentLoadInstrumentationSpy.called).to.be.true;
+    const documentLoadConfig = documentLoadInstrumentationSpy.lastCall
+      .args[0] as any;
+    expect(documentLoadConfig.semconvStabilityOptIn).to.equal('http');
+    expect(documentLoadConfig.applyCustomAttributesOnSpan).to.be.an('object');
+
+    const { documentLoad, documentFetch, resourceFetch } =
+      documentLoadConfig.applyCustomAttributesOnSpan;
+
+    for (const fn of [documentLoad, documentFetch, resourceFetch]) {
+      mockSpan.attributes = {};
+      expect(fn).to.be.a('function');
+      fn(mockSpan);
+      expect(mockSpan.attributes).to.deep.equal({
+        'docload-key': 'docload-value'
+      });
+    }
   });
 
   describe('OTLPTraceExporter', () => {

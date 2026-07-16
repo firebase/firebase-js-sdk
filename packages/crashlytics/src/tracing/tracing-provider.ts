@@ -21,7 +21,7 @@ import {
   W3CTraceContextPropagator,
   ExportResult
 } from '@opentelemetry/core';
-import { TracerProvider, trace } from '@opentelemetry/api';
+import { TracerProvider, trace, Span } from '@opentelemetry/api';
 import {
   WebTracerProvider,
   BatchSpanProcessor,
@@ -42,7 +42,6 @@ import { ReadableSpan, SpanExporter } from '@opentelemetry/sdk-trace-base';
 import { DynamicHeaderProvider } from '../types';
 import { FirebaseApp } from '@firebase/app';
 import { AttributesStore } from '../attributes-store';
-import { FirebaseSpanProcessor } from './firebase-span-processor';
 import { JsonTraceSerializer } from '@opentelemetry/otlp-transformer';
 import { FetchTransport } from '../fetch-transport';
 import {
@@ -112,7 +111,6 @@ export function createTracingProvider(
   const provider = new WebTracerProvider({
     resource,
     spanProcessors: [
-      new FirebaseSpanProcessor(attributesStore),
       // TODO: Remove console exporter before we ship
       new SimpleSpanProcessor(new ConsoleSpanExporter()),
       new BatchSpanProcessor(traceExporter)
@@ -139,19 +137,31 @@ export function createTracingProvider(
     '\\$&'
   );
 
+  const applyCustomAttributesOnSpan = (span: Span): void => {
+    span.setAttributes(attributesStore.getSpanAttributes());
+  };
+
   const networkInstrumentationConfig = {
     ignoreUrls: [
       new RegExp(cleanedRegexTracingUrl),
       new RegExp(cleanedRegexEndpointUrl)
     ],
-    semconvStabilityOptIn: 'http'
+    semconvStabilityOptIn: 'http',
+    applyCustomAttributesOnSpan
   };
 
   registerInstrumentations({
     instrumentations: [
       new FetchInstrumentation(networkInstrumentationConfig),
       new XMLHttpRequestInstrumentation(networkInstrumentationConfig),
-      new DocumentLoadInstrumentation({ semconvStabilityOptIn: 'http' })
+      new DocumentLoadInstrumentation({
+        semconvStabilityOptIn: 'http',
+        applyCustomAttributesOnSpan: {
+          documentLoad: applyCustomAttributesOnSpan,
+          documentFetch: applyCustomAttributesOnSpan,
+          resourceFetch: applyCustomAttributesOnSpan
+        }
+      })
     ]
   });
 
