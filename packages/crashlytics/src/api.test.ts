@@ -541,7 +541,7 @@ function getFakeApp(): FirebaseApp {
         ({
           getId: async () => 'iid',
           getToken: async () => 'authToken'
-        } as _FirebaseInstallationsInternal),
+        }) as _FirebaseInstallationsInternal,
       ComponentType.PUBLIC
     )
   );

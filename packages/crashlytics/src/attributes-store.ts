@@ -82,10 +82,12 @@ export class AttributesStore {
     const appVersion = options?.appVersion
       ? options.appVersion
       : AUTO_CONSTANTS?.appVersion
-      ? AUTO_CONSTANTS.appVersion
-      : 'unset';
+        ? AUTO_CONSTANTS.appVersion
+        : 'unset';
     this._appVersion = appVersion;
-    this._customAttributes = options?.customAttributes ? { ...options.customAttributes } : undefined;
+    this._customAttributes = options?.customAttributes
+      ? { ...options.customAttributes }
+      : undefined;
   }
 
   /**
@@ -139,9 +141,8 @@ export class AttributesStore {
       activeSpanContext?.spanId &&
       this._projectId
     ) {
-      attributes[
-        LOG_ATTR_KEY.TRACE
-      ] = `projects/${this._projectId}/traces/${activeSpanContext.traceId}`;
+      attributes[LOG_ATTR_KEY.TRACE] =
+        `projects/${this._projectId}/traces/${activeSpanContext.traceId}`;
       attributes[LOG_ATTR_KEY.SPAN_ID] = activeSpanContext.spanId;
     }
 
