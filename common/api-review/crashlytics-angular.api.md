@@ -4,6 +4,7 @@
 
 ```ts
 
+import { AnyValueMap } from '@opentelemetry/api-logs';
 import { ErrorHandler } from '@angular/core';
 import { FirebaseApp } from '@firebase/app';
 
@@ -15,6 +16,7 @@ export interface Crashlytics {
 // @public
 export interface CrashlyticsOptions {
     appVersion?: string;
+    customAttributes?: AnyValueMap;
     endpointUrl?: string;
     region?: string;
 }

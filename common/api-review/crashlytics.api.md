@@ -16,6 +16,7 @@ export interface Crashlytics {
 // @public
 export interface CrashlyticsOptions {
     appVersion?: string;
+    customAttributes?: AnyValueMap;
     endpointUrl?: string;
     region?: string;
 }
