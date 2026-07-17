@@ -10,6 +10,11 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # VertexAIBackend class
+> Warning: This API is now obsolete.
+> 
+> - Use [AgentPlatformBackend](./ai.agentplatformbackend.md#agentplatformbackend_class) instead.
+> 
+
 Configuration class for the Vertex AI Gemini API.
 
 Use this with [AIOptions](./ai.aioptions.md#aioptions_interface) when initializing the AI service via [getAI()](./ai.md#getai_a94a413) to specify the Vertex AI Gemini API as the backend.

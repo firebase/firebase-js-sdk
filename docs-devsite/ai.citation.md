@@ -24,9 +24,9 @@ export interface Citation
 |  --- | --- | --- |
 |  [endIndex](./ai.citation.md#citationendindex) | number |  |
 |  [license](./ai.citation.md#citationlicense) | string |  |
-|  [publicationDate](./ai.citation.md#citationpublicationdate) | Date | The publication date of the cited source, if available.<!-- -->This property is only supported in the Vertex AI Gemini API ([VertexAIBackend](./ai.vertexaibackend.md#vertexaibackend_class)<!-- -->). |
+|  [publicationDate](./ai.citation.md#citationpublicationdate) | Date | The publication date of the cited source, if available.<!-- -->This property is only supported in the AgentPlatform API ([AgentPlatformBackend](./ai.agentplatformbackend.md#agentplatformbackend_class)<!-- -->). |
 |  [startIndex](./ai.citation.md#citationstartindex) | number |  |
-|  [title](./ai.citation.md#citationtitle) | string | The title of the cited source, if available.<!-- -->This property is only supported in the Vertex AI Gemini API ([VertexAIBackend](./ai.vertexaibackend.md#vertexaibackend_class)<!-- -->). |
+|  [title](./ai.citation.md#citationtitle) | string | The title of the cited source, if available.<!-- -->This property is only supported in the AgentPlatform API ([AgentPlatformBackend](./ai.agentplatformbackend.md#agentplatformbackend_class)<!-- -->). |
 |  [uri](./ai.citation.md#citationuri) | string |  |
 
 ## Citation.endIndex
@@ -49,7 +49,7 @@ license?: string;
 
 The publication date of the cited source, if available.
 
-This property is only supported in the Vertex AI Gemini API ([VertexAIBackend](./ai.vertexaibackend.md#vertexaibackend_class)<!-- -->).
+This property is only supported in the AgentPlatform API ([AgentPlatformBackend](./ai.agentplatformbackend.md#agentplatformbackend_class)<!-- -->).
 
 <b>Signature:</b>
 
@@ -69,7 +69,7 @@ startIndex?: number;
 
 The title of the cited source, if available.
 
-This property is only supported in the Vertex AI Gemini API ([VertexAIBackend](./ai.vertexaibackend.md#vertexaibackend_class)<!-- -->).
+This property is only supported in the AgentPlatform API ([AgentPlatformBackend](./ai.agentplatformbackend.md#agentplatformbackend_class)<!-- -->).
 
 <b>Signature:</b>
 

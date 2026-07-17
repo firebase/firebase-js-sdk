@@ -23,7 +23,7 @@ export interface PromptFeedback
 |  Property | Type | Description |
 |  --- | --- | --- |
 |  [blockReason](./ai.promptfeedback.md#promptfeedbackblockreason) | [BlockReason](./ai.md#blockreason) |  |
-|  [blockReasonMessage](./ai.promptfeedback.md#promptfeedbackblockreasonmessage) | string | A human-readable description of the <code>blockReason</code>.<!-- -->This property is only supported in the Vertex AI Gemini API ([VertexAIBackend](./ai.vertexaibackend.md#vertexaibackend_class)<!-- -->). |
+|  [blockReasonMessage](./ai.promptfeedback.md#promptfeedbackblockreasonmessage) | string | A human-readable description of the <code>blockReason</code>.<!-- -->This property is only supported in the AgentPlatform API ([AgentPlatformBackend](./ai.agentplatformbackend.md#agentplatformbackend_class)<!-- -->). |
 |  [safetyRatings](./ai.promptfeedback.md#promptfeedbacksafetyratings) | [SafetyRating](./ai.safetyrating.md#safetyrating_interface)<!-- -->\[\] |  |
 
 ## PromptFeedback.blockReason
@@ -38,7 +38,7 @@ blockReason?: BlockReason;
 
 A human-readable description of the `blockReason`<!-- -->.
 
-This property is only supported in the Vertex AI Gemini API ([VertexAIBackend](./ai.vertexaibackend.md#vertexaibackend_class)<!-- -->).
+This property is only supported in the AgentPlatform API ([AgentPlatformBackend](./ai.agentplatformbackend.md#agentplatformbackend_class)<!-- -->).
 
 <b>Signature:</b>
 

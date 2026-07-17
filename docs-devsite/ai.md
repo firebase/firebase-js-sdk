@@ -31,6 +31,7 @@ The Firebase AI Web SDK.
 
 |  Class | Description |
 |  --- | --- |
+|  [AgentPlatformBackend](./ai.agentplatformbackend.md#agentplatformbackend_class) | Configuration class for the Agent Platform API.<!-- -->Use this with [AIOptions](./ai.aioptions.md#aioptions_interface) when initializing the AI service via [getAI()](./ai.md#getai_a94a413) to specify the Agent Platform API as the backend. |
 |  [AIError](./ai.aierror.md#aierror_class) | Error class for the Firebase AI SDK. |
 |  [AIModel](./ai.aimodel.md#aimodel_class) | Base class for Firebase AI model APIs.<!-- -->Instances of this class are associated with a specific Firebase AI [Backend](./ai.backend.md#backend_class) and provide methods for interacting with the configured generative model. |
 |  [AnyOfSchema](./ai.anyofschema.md#anyofschema_class) | Schema class representing a value that can conform to any of the provided sub-schemas. This is useful when a field can accept multiple distinct types or structures. |
@@ -101,7 +102,7 @@ The Firebase AI Web SDK.
 |  [GoogleSearch](./ai.googlesearch.md#googlesearch_interface) | Specifies the Google Search configuration. |
 |  [GoogleSearchTool](./ai.googlesearchtool.md#googlesearchtool_interface) | A tool that allows a Gemini model to connect to Google Search to access and incorporate up-to-date information from the web into its responses.<!-- -->Important: If using Grounding with Google Search, you are required to comply with the "Grounding with Google Search" usage requirements for your chosen API provider: [Gemini Developer API](https://ai.google.dev/gemini-api/terms#grounding-with-google-search) or Vertex AI Gemini API (see [Service Terms](https://cloud.google.com/terms/service-terms) section within the Service Specific Terms). |
 |  [GroundingChunk](./ai.groundingchunk.md#groundingchunk_interface) | Represents a chunk of retrieved data that supports a claim in the model's response. This is part of the grounding information provided when grounding is enabled. |
-|  [GroundingMetadata](./ai.groundingmetadata.md#groundingmetadata_interface) | Metadata returned when grounding is enabled.<!-- -->Currently, only Grounding with Google Search and Grounding with Google Maps are supported (see [GoogleSearchTool](./ai.googlesearchtool.md#googlesearchtool_interface) and [GoogleMapsTool](./ai.googlemapstool.md#googlemapstool_interface)<!-- -->, respectively).<!-- -->Important: If using Grounding with Google Search, you are required to comply with the "Grounding with Google Search" usage requirements for your chosen API provider: [Gemini Developer API](https://ai.google.dev/gemini-api/terms#grounding-with-google-search) or Vertex AI Gemini API (see [Service Terms](https://cloud.google.com/terms/service-terms) section within the Service Specific Terms).<!-- -->Important: If using Grounding with Google Maps, you are required to comply with the "Grounding with Google Maps" usage requirements for your chosen API provider: [Gemini Developer API](https://ai.google.dev/gemini-api/terms#grounding-with-google-maps) or Vertex AI Gemini API (see [Service Terms](https://cloud.google.com/terms/service-terms) section within the Service Specific Terms). |
+|  [GroundingMetadata](./ai.groundingmetadata.md#groundingmetadata_interface) | Metadata returned when grounding is enabled.<!-- -->Currently, only Grounding with Google Search and Grounding with Google Maps are supported (see [GoogleSearchTool](./ai.googlesearchtool.md#googlesearchtool_interface) and [GoogleMapsTool](./ai.googlemapstool.md#googlemapstool_interface)<!-- -->, respectively).<!-- -->Important: If using Grounding with Google Search, you are required to comply with the "Grounding with Google Search" usage requirements for your chosen API provider: [Gemini Developer API](https://ai.google.dev/gemini-api/terms#grounding-with-google-search) or Agent Platform API (see [Service Terms](https://cloud.google.com/terms/service-terms) section within the Service Specific Terms).<!-- -->Important: If using Grounding with Google Maps, you are required to comply with the "Grounding with Google Maps" usage requirements for your chosen API provider: [Gemini Developer API](https://ai.google.dev/gemini-api/terms#grounding-with-google-maps) or Agent Platform API (see [Service Terms](https://cloud.google.com/terms/service-terms) section within the Service Specific Terms). |
 |  [GroundingSupport](./ai.groundingsupport.md#groundingsupport_interface) | Provides information about how a specific segment of the model's response is supported by the retrieved grounding chunks. |
 |  [HybridParams](./ai.hybridparams.md#hybridparams_interface) | Configures hybrid inference. |
 |  [ImageConfig](./ai.imageconfig.md#imageconfig_interface) | Configuration options for generating images with Gemini models. |
@@ -174,7 +175,7 @@ The Firebase AI Web SDK.
 |  Variable | Description |
 |  --- | --- |
 |  [AIErrorCode](./ai.md#aierrorcode) | Standardized error codes that [AIError](./ai.aierror.md#aierror_class) can have. |
-|  [BackendType](./ai.md#backendtype) | An enum-like object containing constants that represent the supported backends for the Firebase AI SDK. This determines which backend service (Vertex AI Gemini API or Gemini Developer API) the SDK will communicate with.<!-- -->These values are assigned to the <code>backendType</code> property within the specific backend configuration objects ([GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class) or [VertexAIBackend](./ai.vertexaibackend.md#vertexaibackend_class)<!-- -->) to identify which service to target. |
+|  [BackendType](./ai.md#backendtype) | An enum-like object containing constants that represent the supported backends for the Firebase AI SDK. This determines which backend service (Agent Platform API or Gemini Developer API) the SDK will communicate with.<!-- -->These values are assigned to the <code>backendType</code> property within the specific backend configuration objects ([GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class) or [AgentPlatformBackend](./ai.agentplatformbackend.md#agentplatformbackend_class)<!-- -->) to identify which service to target. |
 |  [BlockReason](./ai.md#blockreason) | Reason that a prompt was blocked. |
 |  [FinishReason](./ai.md#finishreason) | Reason that a candidate finished. |
 |  [FunctionCallingMode](./ai.md#functioncallingmode) |  |
@@ -523,14 +524,15 @@ AIErrorCode: {
 
 ## BackendType
 
-An enum-like object containing constants that represent the supported backends for the Firebase AI SDK. This determines which backend service (Vertex AI Gemini API or Gemini Developer API) the SDK will communicate with.
+An enum-like object containing constants that represent the supported backends for the Firebase AI SDK. This determines which backend service (Agent Platform API or Gemini Developer API) the SDK will communicate with.
 
-These values are assigned to the `backendType` property within the specific backend configuration objects ([GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class) or [VertexAIBackend](./ai.vertexaibackend.md#vertexaibackend_class)<!-- -->) to identify which service to target.
+These values are assigned to the `backendType` property within the specific backend configuration objects ([GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class) or [AgentPlatformBackend](./ai.agentplatformbackend.md#agentplatformbackend_class)<!-- -->) to identify which service to target.
 
 <b>Signature:</b>
 
 ```typescript
 BackendType: {
+    readonly AGENT_PLATFORM: "AGENT_PLATFORM";
     readonly VERTEX_AI: "VERTEX_AI";
     readonly GOOGLE_AI: "GOOGLE_AI";
 }
