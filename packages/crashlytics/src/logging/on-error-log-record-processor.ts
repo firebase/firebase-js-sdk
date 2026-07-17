@@ -15,24 +15,18 @@
  * limitations under the License.
  */
 
-import { Context } from '@opentelemetry/api';
 import {
   BatchLogRecordProcessor,
   LogRecordExporter,
   SdkLogRecord
 } from '@opentelemetry/sdk-logs';
 
-export interface BufferedLogRecord {
-  logRecord: SdkLogRecord;
-  context?: Context;
-}
-
 /**
  * A BatchLogRecordProcessor that buffers all log records in memory until an error occurs.
  * Once an error occurs, it releases all buffered log records to the exporter batch processor queue.
  */
 export class OnErrorLogRecordProcessor extends BatchLogRecordProcessor {
-  private _buffer: BufferedLogRecord[] = [];
+  private _buffer: SdkLogRecord[] = [];
   private _maxBufferSize = 1000;
 
   constructor(exporter: LogRecordExporter, maxBufferSize?: number) {
@@ -42,8 +36,8 @@ export class OnErrorLogRecordProcessor extends BatchLogRecordProcessor {
     }
   }
 
-  override onEmit(logRecord: SdkLogRecord, context?: Context): void {
-    this._buffer.push({ logRecord, context });
+  override onEmit(logRecord: SdkLogRecord): void {
+    this._buffer.push(logRecord);
     if (this._buffer.length > this._maxBufferSize) {
       // TODO: shift() is O(n), use a fixed size circular buffer instead
       this._buffer.shift();
@@ -56,13 +50,10 @@ export class OnErrorLogRecordProcessor extends BatchLogRecordProcessor {
   }
 
   onErrorOccurred(): void {
-    // Flush all buffered log records to the batch processor
-    for (const bufferedItem of this._buffer) {
-      super.onEmit(bufferedItem.logRecord);
+    // Release all buffered log records to the batch processor
+    for (const logRecord of this._buffer) {
+      super.onEmit(logRecord);
     }
     this._buffer = [];
-
-    // Force flush to ensure immediate export
-    void super.forceFlush();
   }
 }

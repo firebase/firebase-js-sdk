@@ -16,7 +16,6 @@
  */
 
 import { expect } from 'chai';
-import { Context, ROOT_CONTEXT, createContextKey } from '@opentelemetry/api';
 import { ExportResult, ExportResultCode } from '@opentelemetry/core';
 import {
   LogRecordExporter,
@@ -50,8 +49,6 @@ describe('OnErrorLogRecordProcessor', () => {
   let mockLog1: SdkLogRecord;
   let mockLog2: SdkLogRecord;
   let mockLog3: SdkLogRecord;
-  let mockContext1: Context;
-  let mockContext2: Context;
 
   beforeEach(() => {
     mockExporter = new MockLogRecordExporter();
@@ -69,39 +66,37 @@ describe('OnErrorLogRecordProcessor', () => {
       body: 'log3',
       resource: emptyResource
     } as unknown as SdkLogRecord;
-    mockContext1 = ROOT_CONTEXT.setValue(
-      createContextKey('testKey1'),
-      'testVal1'
-    );
-    mockContext2 = ROOT_CONTEXT.setValue(
-      createContextKey('testKey2'),
-      'testVal2'
-    );
   });
 
-  it('should buffer emitted log records and not export them before error occurs', () => {
-    processor.onEmit(mockLog1, mockContext1);
+  it('should buffer emitted log records and not export them before error occurs', async () => {
+    processor.onEmit(mockLog1);
     processor.onEmit(mockLog2);
 
     expect(mockExporter.exportedLogs).to.be.empty;
 
     processor.onErrorOccurred();
+    expect(mockExporter.exportedLogs).to.be.empty;
+
+    await processor.forceFlush();
     expect(mockExporter.exportedLogs).to.deep.equal([mockLog1, mockLog2]);
   });
 
-  it('should drop oldest log records when buffer exceeds maxBufferSize', () => {
-    processor.onEmit(mockLog1, mockContext1);
-    processor.onEmit(mockLog2, mockContext2);
+  it('should drop oldest log records when buffer exceeds maxBufferSize', async () => {
+    processor.onEmit(mockLog1);
+    processor.onEmit(mockLog2);
     processor.onEmit(mockLog3); // Over limit of 2
 
     expect(mockExporter.exportedLogs).to.be.empty;
 
     processor.onErrorOccurred();
+    expect(mockExporter.exportedLogs).to.be.empty;
+
+    await processor.forceFlush();
     expect(mockExporter.exportedLogs).to.deep.equal([mockLog2, mockLog3]);
   });
 
   it('should forward buffered log records and flush to exporter when onErrorOccurred is called', async () => {
-    processor.onEmit(mockLog1, mockContext1);
+    processor.onEmit(mockLog1);
     processor.onEmit(mockLog2);
 
     processor.onErrorOccurred();
@@ -111,14 +106,14 @@ describe('OnErrorLogRecordProcessor', () => {
   });
 
   it('should buffer subsequent emitted log records again after an error is flushed and flush them on subsequent onErrorOccurred', async () => {
-    processor.onEmit(mockLog1, mockContext1);
+    processor.onEmit(mockLog1);
     processor.onErrorOccurred();
     await processor.forceFlush();
 
     expect(mockExporter.exportedLogs).to.deep.equal([mockLog1]);
 
     // Subsequent emit should be buffered
-    processor.onEmit(mockLog2, mockContext2);
+    processor.onEmit(mockLog2);
     await processor.forceFlush();
     expect(mockExporter.exportedLogs).to.deep.equal([mockLog1]);
 
@@ -129,7 +124,7 @@ describe('OnErrorLogRecordProcessor', () => {
   });
 
   it('should be a no-op if onErrorOccurred is called multiple times without new log records', async () => {
-    processor.onEmit(mockLog1, mockContext1);
+    processor.onEmit(mockLog1);
     processor.onErrorOccurred();
     await processor.forceFlush();
     expect(mockExporter.exportedLogs).to.deep.equal([mockLog1]);

@@ -66,17 +66,20 @@ describe('OnErrorSpanProcessor', () => {
     } as unknown as ReadableSpan;
   });
 
-  it('should buffer ended spans and not export them before error occurs', () => {
+  it('should buffer ended spans and not export them before error occurs', async () => {
     processor.onEnd(mockSpan1);
     processor.onEnd(mockSpan2);
 
     expect(mockExporter.exportedSpans).to.be.empty;
 
     processor.onErrorOccurred();
+    expect(mockExporter.exportedSpans).to.be.empty;
+
+    await processor.forceFlush();
     expect(mockExporter.exportedSpans).to.deep.equal([mockSpan1, mockSpan2]);
   });
 
-  it('should drop oldest spans when buffer exceeds maxBufferSize', () => {
+  it('should drop oldest spans when buffer exceeds maxBufferSize', async () => {
     processor.onEnd(mockSpan1);
     processor.onEnd(mockSpan2);
     processor.onEnd(mockSpan3); // Over limit of 2
@@ -84,6 +87,9 @@ describe('OnErrorSpanProcessor', () => {
     expect(mockExporter.exportedSpans).to.be.empty;
 
     processor.onErrorOccurred();
+    expect(mockExporter.exportedSpans).to.be.empty;
+
+    await processor.forceFlush();
     expect(mockExporter.exportedSpans).to.deep.equal([mockSpan2, mockSpan3]);
   });
 

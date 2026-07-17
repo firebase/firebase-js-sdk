@@ -50,13 +50,10 @@ export class OnErrorSpanProcessor extends BatchSpanProcessor {
   }
 
   onErrorOccurred(): void {
-    // Flush all buffered spans to the batch processor
+    // Release all buffered spans to the batch processor
     for (const span of this._buffer) {
       super.onEnd(span);
     }
     this._buffer = [];
-
-    // Force flush to ensure immediate export
-    void super.forceFlush();
   }
 }
