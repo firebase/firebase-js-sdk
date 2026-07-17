@@ -20,6 +20,8 @@ import { TracerProvider } from '@opentelemetry/api';
 import { Crashlytics } from './public-types';
 import { AttributesStore } from './attributes-store';
 import { ALREADY_LOGGED_FLAG } from './constants';
+import { OnErrorSpanProcessor } from './tracing/on-error-span-processor';
+import { OnErrorLogRecordProcessor } from './logging/on-error-log-record-processor';
 
 /**
  * An internal interface for the Crashlytics service.
@@ -30,6 +32,8 @@ export interface CrashlyticsInternal extends Crashlytics {
   loggerProvider: LoggerProvider;
   tracingProvider: TracerProvider;
   attributesStore: AttributesStore;
+  onErrorLogRecordProcessor?: OnErrorLogRecordProcessor;
+  onErrorSpanProcessor?: OnErrorSpanProcessor;
 }
 
 type KeyValuePair = [key: string, value: string];

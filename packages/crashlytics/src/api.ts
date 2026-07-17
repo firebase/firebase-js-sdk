@@ -99,9 +99,14 @@ export function recordError(
     }
   }
 
-  // Cast to CrashlyticsInternal to access internal loggerProvider
-  const { loggerProvider, attributesStore } =
-    crashlytics as CrashlyticsInternal;
+  // Cast to CrashlyticsInternal to access internal loggerProvider, tracingProvider, and processors
+  const {
+    loggerProvider,
+    attributesStore,
+    onErrorSpanProcessor,
+    onErrorLogRecordProcessor
+  } = crashlytics as CrashlyticsInternal;
+
   const logger = loggerProvider.getLogger('error-logger');
   const customAttributes: AnyValueMap = attributesStore.getLogAttributes();
 
@@ -134,6 +139,14 @@ export function recordError(
       body: `Unknown error type: ${typeof error}`,
       attributes: customAttributes
     });
+  }
+
+  if (onErrorSpanProcessor) {
+    onErrorSpanProcessor.onErrorOccurred();
+  }
+
+  if (onErrorLogRecordProcessor) {
+    onErrorLogRecordProcessor.onErrorOccurred();
   }
 }
 

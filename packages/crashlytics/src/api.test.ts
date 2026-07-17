@@ -16,7 +16,13 @@
  */
 
 import { expect } from 'chai';
-import { LoggerProvider } from '@opentelemetry/sdk-logs';
+import { ExportResultCode } from '@opentelemetry/core';
+import {
+  LoggerProvider,
+  LogRecordExporter,
+  ReadableLogRecord
+} from '@opentelemetry/sdk-logs';
+import { resourceFromAttributes } from '@opentelemetry/resources';
 import { trace, TracerProvider } from '@opentelemetry/api';
 import { Logger, LogRecord, SeverityNumber } from '@opentelemetry/api-logs';
 import sinon from 'sinon';
@@ -46,6 +52,7 @@ import {
   SPAN_ATTR_KEY,
   SESSION_STORAGE_SESSION_ID_KEY
 } from './attributes-store';
+import { OnErrorLogRecordProcessor } from './logging/on-error-log-record-processor';
 
 const PROJECT_ID = 'my-project';
 const APP_ID = 'my-appid';
@@ -521,6 +528,69 @@ describe('Top level API', () => {
         const log = emittedLogs[0];
         expect(log.attributes![LOG_ATTR_KEY.SESSION_ID]).to.be.undefined;
       });
+    });
+
+    it('should emit the error log record to the logger before calling onErrorOccurred on processors', () => {
+      const callOrder: string[] = [];
+
+      const mockOnErrorLogRecordProcessor = {
+        onErrorOccurred: sinon.spy(() => {
+          callOrder.push('onErrorOccurred');
+        })
+      };
+
+      const mockLogger = {
+        emit: sinon.spy(() => {
+          callOrder.push('emit');
+        })
+      };
+
+      const mockLoggerProvider = {
+        getLogger: () => mockLogger
+      } as unknown as LoggerProvider;
+
+      const crashlyticsInstance: CrashlyticsInternal = {
+        ...fakeCrashlytics,
+        loggerProvider: mockLoggerProvider,
+        onErrorLogRecordProcessor: mockOnErrorLogRecordProcessor as any
+      };
+
+      recordError(crashlyticsInstance, new Error('Test emit order'));
+
+      expect(mockLogger.emit.calledOnce).to.be.true;
+      expect(mockOnErrorLogRecordProcessor.onErrorOccurred.calledOnce).to.be
+        .true;
+      expect(callOrder).to.deep.equal(['emit', 'onErrorOccurred']);
+    });
+
+    it('should immediately flush recorded error when using OnErrorLogRecordProcessor', async () => {
+      const exported: ReadableLogRecord[] = [];
+      const mockExporter: LogRecordExporter = {
+        export(logs, resultCallback) {
+          exported.push(...logs);
+          resultCallback({ code: ExportResultCode.SUCCESS });
+        },
+        shutdown: () => Promise.resolve()
+      };
+
+      const processor = new OnErrorLogRecordProcessor(mockExporter);
+      const resource = resourceFromAttributes({});
+      const realLoggerProvider = new LoggerProvider({
+        resource,
+        processors: [processor]
+      });
+
+      const crashlyticsInstance: CrashlyticsInternal = {
+        ...fakeCrashlytics,
+        loggerProvider: realLoggerProvider,
+        onErrorLogRecordProcessor: processor
+      };
+
+      recordError(crashlyticsInstance, new Error('Immediate export error'));
+      await processor.forceFlush();
+
+      expect(exported).to.have.lengthOf(1);
+      expect(exported[0].body).to.equal('Immediate export error');
     });
   });
 

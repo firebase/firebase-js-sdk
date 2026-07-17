@@ -41,12 +41,9 @@ export function registerCrashlytics(): void {
           app.options,
           crashlyticsOptions
         );
-        const loggerProvider = createLoggerProvider(
-          app,
-          crashlyticsOptions,
-          attributesStore
-        );
-        const tracingProvider = createTracingProvider(
+        const { loggerProvider, onErrorLogRecordProcessor } =
+          createLoggerProvider(app, crashlyticsOptions, attributesStore);
+        const { tracingProvider, onErrorSpanProcessor } = createTracingProvider(
           app,
           crashlyticsOptions,
           attributesStore
@@ -56,7 +53,9 @@ export function registerCrashlytics(): void {
           app,
           loggerProvider,
           tracingProvider,
-          attributesStore
+          attributesStore,
+          onErrorLogRecordProcessor,
+          onErrorSpanProcessor
         );
       },
       ComponentType.PUBLIC

@@ -24,7 +24,6 @@ import {
 import { TracerProvider, trace, Span } from '@opentelemetry/api';
 import {
   WebTracerProvider,
-  BatchSpanProcessor,
   SimpleSpanProcessor,
   ConsoleSpanExporter
 } from '@opentelemetry/sdk-trace-web';
@@ -42,6 +41,7 @@ import { ReadableSpan, SpanExporter } from '@opentelemetry/sdk-trace-base';
 import { DynamicHeaderProvider } from '../types';
 import { FirebaseApp } from '@firebase/app';
 import { AttributesStore } from '../attributes-store';
+import { OnErrorSpanProcessor } from './on-error-span-processor';
 import { JsonTraceSerializer } from '@opentelemetry/otlp-transformer';
 import { FetchTransport } from '../fetch-transport';
 import {
@@ -49,6 +49,16 @@ import {
   DEFAULT_TELEMETRY_REGION
 } from '../constants';
 import { CrashlyticsOptions } from '../public-types';
+
+/**
+ * Result returned by {@link createTracingProvider}.
+ *
+ * @internal
+ */
+export interface TracingProviderResult {
+  tracingProvider: TracerProvider;
+  onErrorSpanProcessor?: OnErrorSpanProcessor;
+}
 
 /**
  * Create a tracing provider for the current execution environment.
@@ -60,9 +70,9 @@ export function createTracingProvider(
   crashlyticsOptions: CrashlyticsOptions,
   attributesStore: AttributesStore,
   dynamicHeaderProviders: DynamicHeaderProvider[] = []
-): TracerProvider {
+): TracingProviderResult {
   if (typeof window === 'undefined') {
-    return trace.getTracerProvider();
+    return { tracingProvider: trace.getTracerProvider() };
   }
   // TODO: change to default endpoint once it exists
   const endpointUrl = crashlyticsOptions.endpointUrl || 'http://localhost';
@@ -108,16 +118,18 @@ export function createTracingProvider(
     );
   }
 
-  const provider = new WebTracerProvider({
+  const onErrorSpanProcessor = new OnErrorSpanProcessor(traceExporter);
+
+  const tracingProvider = new WebTracerProvider({
     resource,
     spanProcessors: [
       // TODO: Remove console exporter before we ship
       new SimpleSpanProcessor(new ConsoleSpanExporter()),
-      new BatchSpanProcessor(traceExporter)
+      onErrorSpanProcessor
     ]
   });
 
-  provider.register({
+  tracingProvider.register({
     propagator: new CompositePropagator({
       propagators: [new W3CTraceContextPropagator()]
     })
@@ -165,7 +177,7 @@ export function createTracingProvider(
     ]
   });
 
-  return provider;
+  return { tracingProvider, onErrorSpanProcessor };
 }
 
 /** @internal */

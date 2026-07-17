@@ -17,7 +17,6 @@
 
 import {
   LoggerProvider,
-  BatchLogRecordProcessor,
   ReadableLogRecord,
   LogRecordExporter
 } from '@opentelemetry/sdk-logs';
@@ -39,6 +38,17 @@ import {
   DEFAULT_TELEMETRY_REGION
 } from '../constants';
 import { AttributesStore } from '../attributes-store';
+import { OnErrorLogRecordProcessor } from './on-error-log-record-processor';
+
+/**
+ * Result returned by {@link createLoggerProvider}.
+ *
+ * @internal
+ */
+export interface LoggerProviderResult {
+  loggerProvider: LoggerProvider;
+  onErrorLogRecordProcessor: OnErrorLogRecordProcessor;
+}
 
 /**
  * Create a logger provider for the current execution environment.
@@ -50,7 +60,7 @@ export function createLoggerProvider(
   crashlyticsOptions: CrashlyticsOptions,
   attributesStore: AttributesStore,
   dynamicHeaderProviders: DynamicHeaderProvider[] = []
-): LoggerProvider {
+): LoggerProviderResult {
   let endpointUrl =
     crashlyticsOptions.endpointUrl || DEFAULT_TELEMETRY_ENDPOINT;
 
@@ -75,11 +85,15 @@ export function createLoggerProvider(
     attributesStore
   );
 
-  return new LoggerProvider({
+  const onErrorLogRecordProcessor = new OnErrorLogRecordProcessor(logExporter);
+
+  const loggerProvider = new LoggerProvider({
     resource,
-    processors: [new BatchLogRecordProcessor(logExporter)],
+    processors: [onErrorLogRecordProcessor],
     logRecordLimits: {}
   });
+
+  return { loggerProvider, onErrorLogRecordProcessor };
 }
 
 /** OTLP exporter that uses custom FetchTransport and resolves async attributes. */
