@@ -63,6 +63,7 @@ import {
   Delete,
   Distinct,
   FindNearest,
+  Insert,
   Limit,
   Offset,
   RawStage,
@@ -76,6 +77,7 @@ import {
   Union,
   Unnest,
   Update,
+  Upsert,
   Where
 } from './stage';
 import {
@@ -84,6 +86,7 @@ import {
   DefineStageOptions,
   DistinctStageOptions,
   FindNearestStageOptions,
+  InsertStageOptions,
   LimitStageOptions,
   OffsetStageOptions,
   RemoveFieldsStageOptions,
@@ -95,6 +98,7 @@ import {
   StageOptions,
   UnionStageOptions,
   UnnestStageOptions,
+  UpsertStageOptions,
   WhereStageOptions
 } from './stage_options';
 import { UserDataReader, UserData } from './user_data_reader';
@@ -1613,6 +1617,49 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
         ? selectablesToMap(transformedFields)
         : undefined;
     return this._addStage(new Update(mapped));
+  }
+
+  /**
+   * @beta
+   * Performs an insert operation using documents from previous stages.
+   *
+   * @returns A new {@link @firebase/firestore/pipelines#Pipeline} object with this stage appended to the stage list.
+   */
+  insert(): Pipeline;
+  /**
+   * @beta
+   * Performs an insert operation with options.
+   *
+   * @param options - Options defining the collection and document ID.
+   * @returns A new {@link @firebase/firestore/pipelines#Pipeline} object with this stage appended to the stage list.
+   */
+  insert(options: InsertStageOptions): Pipeline;
+  insert(options: InsertStageOptions = {}): Pipeline {
+    return this._addStage(new Insert(options));
+  }
+
+  /**
+   * @beta
+   * Performs an upsert operation using documents from previous stages.
+   *
+   * @param transforms - The list of transformations to apply.
+   * @returns A new {@link @firebase/firestore/pipelines#Pipeline} object with this stage appended to the stage list.
+   */
+  upsert(transforms: AliasedExpression[]): Pipeline;
+  /**
+   * @beta
+   * Performs an upsert operation with options.
+   *
+   * @param transforms - The list of transformations to apply.
+   * @param options - Options defining the target collection and document ID.
+   * @returns A new {@link @firebase/firestore/pipelines#Pipeline} object with this stage appended to the stage list.
+   */
+  upsert(transforms: AliasedExpression[], options: UpsertStageOptions): Pipeline;
+  upsert(
+    transforms: AliasedExpression[],
+    options: UpsertStageOptions = {}
+  ): Pipeline {
+    return this._addStage(new Upsert(transforms, options));
   }
 
   /**

@@ -814,6 +814,9 @@ otherVectorExpression: Expression
 export function execute(pipeline: Pipeline): Promise<PipelineSnapshot>;
 
 // @public
+export function execute(options: PipelineExecuteOptions): Promise<PipelineSnapshot>;
+
+// @public
 export function exists(value: Expression): BooleanExpression;
 
 // @public
@@ -1599,6 +1602,12 @@ ifFieldName: string,
 elseValue: unknown
 ): FunctionExpression;
 
+// @beta
+export type InsertStageOptions = StageOptions & {
+    collection?: string | Query;
+    documentId?: string | Expression;
+};
+
 // @public
 export function isAbsent(value: Expression): BooleanExpression;
 
@@ -2079,6 +2088,10 @@ export class Pipeline {
     ): Pipeline;
     distinct(options: DistinctStageOptions): Pipeline;
     findNearest(options: FindNearestStageOptions): Pipeline;
+    // @beta
+    insert(): Pipeline;
+    // @beta
+    insert(options: InsertStageOptions): Pipeline;
     limit(limit: number): Pipeline;
     limit(options: LimitStageOptions): Pipeline;
     offset(offset: number): Pipeline;
@@ -2119,10 +2132,24 @@ export class Pipeline {
     update(): Pipeline;
     // @beta
     update(transformedFields: AliasedExpression[]): Pipeline;
+    // @beta
+    upsert(transforms: AliasedExpression[]): Pipeline;
+    // @beta
+    upsert(transforms: AliasedExpression[], options: UpsertStageOptions): Pipeline;
     where(condition: BooleanExpression): Pipeline;
     where(options: WhereStageOptions): Pipeline;
     /* Excluded from this release type: _toProto */
     /* Excluded from this release type: newPipeline */
+}
+
+// @public
+export interface PipelineExecuteOptions {
+    atomic?: boolean;
+    indexMode?: 'recommended';
+    pipeline: Pipeline;
+    rawOptions?: {
+        [name: string]: unknown;
+    };
 }
 
 // @public
@@ -2883,6 +2910,12 @@ fieldName: string
 export type UnnestStageOptions = StageOptions & {
     selectable: Selectable;
     indexField?: string;
+};
+
+// @beta
+export type UpsertStageOptions = StageOptions & {
+    collection?: string | Query;
+    documentId?: string | Expression;
 };
 
 // @public
