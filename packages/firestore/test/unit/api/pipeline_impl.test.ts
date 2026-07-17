@@ -30,7 +30,7 @@ import {
   ExecutePipelineResponse as ProtoExecutePipelineResponse
 } from '../../../src/protos/firestore_proto_api';
 import { constant, field } from '../../lite/pipeline_export';
-import { newTestFirestore } from '../../util/api_helpers';
+import { collectionReference, newTestFirestore } from '../../util/api_helpers';
 import { describe } from '../../util/mocha_extensions';
 
 const FIRST_CALL = 0;
@@ -350,7 +350,152 @@ describe('stage serialization', () => {
         EXECUTE_PIPELINE_REQUEST
       ] as ProtoExecutePipelineRequest;
       expect(req.autoCommitTransaction).to.be.true;
-      expect(req.newTransaction).to.be.undefined;
+      expect(req.newTransaction).to.deep.equal({ readWrite: {} });
+    });
+  });
+
+  describe('insert and upsert stages', () => {
+    it('serializes default insert stage', async () => {
+      const firestore = newTestFirestore();
+      const spy = fakePipelineResponse(firestore);
+
+      await execute(firestore.pipeline().collection('foo').insert());
+
+      const req = spy.args[0][EXECUTE_PIPELINE_REQUEST] as ProtoExecutePipelineRequest;
+      const insertStage = req.structuredPipeline?.pipeline?.stages?.[1];
+      expect(insertStage).to.deep.equal({
+        name: 'insert',
+        options: undefined,
+        args: []
+      });
+    });
+
+    it('serializes insert stage with collection path and document ID field', async () => {
+      const firestore = newTestFirestore();
+      const spy = fakePipelineResponse(firestore);
+
+      await execute(
+        firestore
+          .pipeline()
+          .collection('foo')
+          .insert({
+            collection: 'customers',
+            documentId: 'idField'
+          })
+      );
+
+      const req = spy.args[0][EXECUTE_PIPELINE_REQUEST] as ProtoExecutePipelineRequest;
+      const insertStage = req.structuredPipeline?.pipeline?.stages?.[1];
+      expect(insertStage).to.deep.equal({
+        name: 'insert',
+        options: {
+          collection: { referenceValue: '/customers' },
+          document_id: { fieldReferenceValue: 'idField' }
+        },
+        args: []
+      });
+    });
+
+    it('serializes insert stage with CollectionReference and document ID expressions', async () => {
+      const firestore = newTestFirestore();
+      const spy = fakePipelineResponse(firestore);
+      const targetColRef = collectionReference('customers/c1/orders');
+
+      await execute(
+        firestore
+          .pipeline()
+          .collection('foo')
+          .insert({
+            collection: targetColRef,
+            documentId: constant('fixedId')
+          })
+      );
+
+      const req = spy.args[0][EXECUTE_PIPELINE_REQUEST] as ProtoExecutePipelineRequest;
+      const insertStage = req.structuredPipeline?.pipeline?.stages?.[1];
+      expect(insertStage).to.deep.equal({
+        name: 'insert',
+        options: {
+          collection: { referenceValue: '/customers/c1/orders' },
+          document_id: { stringValue: 'fixedId' }
+        },
+        args: []
+      });
+
+      // Verify with field expression on a separate firestore instance
+      const firestore2 = newTestFirestore();
+      const spy2 = fakePipelineResponse(firestore2);
+      await execute(
+        firestore2
+          .pipeline()
+          .collection('foo')
+          .insert({
+            documentId: field('otherId')
+          })
+      );
+      const req2 = spy2.args[0][EXECUTE_PIPELINE_REQUEST] as ProtoExecutePipelineRequest;
+      const insertStage2 = req2.structuredPipeline?.pipeline?.stages?.[1];
+      expect(insertStage2?.options?.document_id).to.deep.equal({
+        fieldReferenceValue: 'otherId'
+      });
+    });
+
+    it('serializes upsert stage with transforms and options', async () => {
+      const firestore = newTestFirestore();
+      const spy = fakePipelineResponse(firestore);
+
+      await execute(
+        firestore
+          .pipeline()
+          .collection('foo')
+          .upsert([constant('Alice').as('name')], {
+            collection: 'customers',
+            documentId: 'idField'
+          })
+      );
+
+      const req = spy.args[0][EXECUTE_PIPELINE_REQUEST] as ProtoExecutePipelineRequest;
+      const upsertStage = req.structuredPipeline?.pipeline?.stages?.[1];
+      expect(upsertStage).to.deep.equal({
+        name: 'upsert',
+        options: {
+          collection: { referenceValue: '/customers' },
+          document_id: { fieldReferenceValue: 'idField' }
+        },
+        args: [
+          {
+            mapValue: {
+              fields: {
+                name: { stringValue: 'Alice' }
+              }
+            }
+          }
+        ]
+      });
+    });
+
+    it('serializes upsert stage with multiple transforms', async () => {
+      const firestore = newTestFirestore();
+      const spy = fakePipelineResponse(firestore);
+
+      await execute(
+        firestore
+          .pipeline()
+          .collection('foo')
+          .upsert([
+            constant('Bob').as('name'),
+            field('score').as('finalScore')
+          ])
+      );
+
+      const req = spy.args[0][EXECUTE_PIPELINE_REQUEST] as ProtoExecutePipelineRequest;
+      const upsertStage = req.structuredPipeline?.pipeline?.stages?.[1];
+      expect(upsertStage?.name).to.equal('upsert');
+      expect(upsertStage?.options).to.be.undefined;
+      expect(upsertStage?.args?.[0]?.mapValue?.fields).to.deep.equal({
+        name: { stringValue: 'Bob' },
+        finalScore: { fieldReferenceValue: 'score' }
+      });
     });
   });
 });

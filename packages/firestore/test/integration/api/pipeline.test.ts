@@ -2466,6 +2466,174 @@ apiDescribe.skipClassic('Pipelines', persistence => {
         const docSnap = await getDoc(doc(randomCol, 'book2'));
         expect(docSnap.exists()).to.be.false;
       });
+
+      it('can insert a new document with auto-generated ID', async () => {
+        const res = await execute({
+          pipeline: firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .where(equal(field('__name__').documentId(), 'book1'))
+            .insert(),
+          atomic: true
+        });
+        expectResults(res, { documents_modified: 1 });
+
+        const snap = await execute(firestore.pipeline().collection(randomCol.path));
+        expect(snap.results.length).to.equal(11);
+      });
+
+      it('can insert a document into a different collection', async () => {
+        const targetColName = randomCol.id + '_target';
+        const targetColRef = collection(firestore, targetColName);
+
+        const res = await execute({
+          pipeline: firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .where(equal(field('__name__').documentId(), 'book1'))
+            .insert({ collection: targetColRef }),
+          atomic: true
+        });
+        expectResults(res, { documents_modified: 1 });
+
+        const snap = await execute(firestore.pipeline().collection(targetColRef.path));
+        expect(snap.results.length).to.equal(1);
+        expect(snap.results[0].get('title')).to.equal("The Hitchhiker's Guide to the Galaxy");
+
+        await execute({
+          pipeline: firestore.pipeline().collection(targetColRef.path).delete(),
+          atomic: true
+        });
+      });
+
+      it('can insert a document using a field value as the document ID', async () => {
+        const targetColName = randomCol.id + '_target_custom_id';
+        const targetColRef = collection(firestore, targetColName);
+
+        const res = await execute({
+          pipeline: firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .where(equal(field('__name__').documentId(), 'book1'))
+            .addFields(constant('my_custom_id_123').as('customIdField'))
+            .insert({
+              collection: targetColRef,
+              documentId: 'customIdField'
+            }),
+          atomic: true
+        });
+        expectResults(res, { documents_modified: 1 });
+
+        const docSnap = await getDoc(doc(targetColRef, 'my_custom_id_123'));
+        expect(docSnap.exists()).to.be.true;
+        expect(docSnap.get('title')).to.equal("The Hitchhiker's Guide to the Galaxy");
+
+        await execute({
+          pipeline: firestore.pipeline().collection(targetColRef.path).delete(),
+          atomic: true
+        });
+      });
+
+      it('can insert a document using an expression as the document ID', async () => {
+        const targetColName = randomCol.id + '_target_expr_id';
+        const targetColRef = collection(firestore, targetColName);
+
+        const res = await execute({
+          pipeline: firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .where(equal(field('__name__').documentId(), 'book1'))
+            .insert({
+              collection: targetColRef,
+              documentId: field('genre')
+            }),
+          atomic: true
+        });
+        expectResults(res, { documents_modified: 1 });
+
+        const docSnap = await getDoc(doc(targetColRef, 'Science Fiction'));
+        expect(docSnap.exists()).to.be.true;
+        expect(docSnap.get('title')).to.equal("The Hitchhiker's Guide to the Galaxy");
+
+        await execute({
+          pipeline: firestore.pipeline().collection(targetColRef.path).delete(),
+          atomic: true
+        });
+      });
+
+      it('can upsert (insert) a new document if it does not exist', async () => {
+        const nonExistingId = 'new_upsert_doc_id';
+        const res = await execute({
+          pipeline: firestore
+            .pipeline()
+            .documents([doc(randomCol, nonExistingId)])
+            .upsert([
+              constant('Sci-Fi').as('genre'),
+              constant('New Book Title').as('title')
+            ]),
+          atomic: true
+        });
+        expectResults(res, { documents_modified: 1 });
+
+        const docSnap = await getDoc(doc(randomCol, nonExistingId));
+        expect(docSnap.exists()).to.be.true;
+        expect(docSnap.get('title')).to.equal('New Book Title');
+        expect(docSnap.get('genre')).to.equal('Sci-Fi');
+      });
+
+      it('can upsert (update) an existing document by modifying fields', async () => {
+        const res = await execute({
+          pipeline: firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .where(equal(field('__name__').documentId(), 'book1'))
+            .upsert([
+              constant('Comedy Sci-Fi').as('genre'),
+              add(field('rating'), constant(0.5)).as('rating')
+            ]),
+          atomic: true
+        });
+        expectResults(res, { documents_modified: 1 });
+
+        const docSnap = await getDoc(doc(randomCol, 'book1'));
+        expect(docSnap.get('genre')).to.equal('Comedy Sci-Fi');
+        expect(docSnap.get('rating')).to.equal(4.7);
+      });
+
+      it('can upsert with custom target collection and specific document ID field', async () => {
+        const targetColName = randomCol.id + '_target_upsert';
+        const targetColRef = collection(firestore, targetColName);
+
+        const res = await execute({
+          pipeline: firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .where(equal(field('__name__').documentId(), 'book1'))
+            .addFields(constant('upserted_fixed_id').as('targetId'))
+            .upsert(
+              [
+                constant('Upserted Genre').as('genre'),
+                constant('Upserted Title').as('title')
+              ],
+              {
+                collection: targetColRef,
+                documentId: 'targetId'
+              }
+            ),
+          atomic: true
+        });
+        expectResults(res, { documents_modified: 1 });
+
+        const docSnap = await getDoc(doc(targetColRef, 'upserted_fixed_id'));
+        expect(docSnap.exists()).to.be.true;
+        expect(docSnap.get('title')).to.equal('Upserted Title');
+        expect(docSnap.get('genre')).to.equal('Upserted Genre');
+
+        await execute({
+          pipeline: firestore.pipeline().collection(targetColRef.path).delete(),
+          atomic: true
+        });
+      });
     });
   });
 
