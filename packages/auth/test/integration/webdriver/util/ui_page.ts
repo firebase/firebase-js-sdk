@@ -48,12 +48,18 @@ export class UiPage {
 
   async clickEmailSignIn(): Promise<void> {
     await this.driver.wait(until.elementLocated(EMAIL_IDP_BUTTON));
-    return this.driver.findElement(EMAIL_IDP_BUTTON).click();
+    const button = await this.driver.findElement(EMAIL_IDP_BUTTON);
+    await this.driver.wait(until.elementIsEnabled(button));
+    await this.driver.wait(until.elementIsVisible(button));
+    await this.driver.executeScript('arguments[0].click();', button);
   }
 
   async clickSubmit(): Promise<void> {
     await this.driver.wait(until.elementLocated(SUBMIT_BUTTON));
-    return this.driver.findElement(SUBMIT_BUTTON).click();
+    const button = await this.driver.findElement(SUBMIT_BUTTON);
+    await this.driver.wait(until.elementIsEnabled(button));
+    await this.driver.wait(until.elementIsVisible(button));
+    await this.driver.executeScript('arguments[0].click();', button);
   }
 
   async enterPhoneNumber(phoneNumber: string): Promise<void> {
@@ -83,7 +89,15 @@ export class UiPage {
   private async fillInput(input: By, text: string): Promise<void> {
     await this.driver.wait(until.elementLocated(input));
     const el = await this.driver.findElement(input);
+    await this.driver.wait(until.elementIsVisible(el));
     await el.click();
-    await el.sendKeys(text);
+    await this.driver.sleep(100);
+    await this.driver.executeScript(
+      `arguments[0].value = arguments[1];
+       arguments[0].dispatchEvent(new Event('input', { bubbles: true }));
+       arguments[0].dispatchEvent(new Event('change', { bubbles: true }));`,
+      el,
+      text
+    );
   }
 }
