@@ -546,13 +546,13 @@ describe('Top level API', () => {
       };
 
       const mockLoggerProvider = {
-        getLogger: () => mockLogger,
-        onErrorLogRecordProcessor: mockOnErrorLogRecordProcessor as any
+        getLogger: () => mockLogger
       } as unknown as LoggerProvider;
 
       const crashlyticsInstance: CrashlyticsInternal = {
         ...fakeCrashlytics,
-        loggerProvider: mockLoggerProvider
+        loggerProvider: mockLoggerProvider,
+        onErrorLogRecordProcessor: mockOnErrorLogRecordProcessor as any
       };
 
       recordError(crashlyticsInstance, new Error('Test emit order'));
@@ -578,12 +578,12 @@ describe('Top level API', () => {
       const realLoggerProvider = new LoggerProvider({
         resource,
         processors: [processor]
-      }) as any;
-      realLoggerProvider.onErrorLogRecordProcessor = processor;
+      });
 
       const crashlyticsInstance: CrashlyticsInternal = {
         ...fakeCrashlytics,
-        loggerProvider: realLoggerProvider
+        loggerProvider: realLoggerProvider,
+        onErrorLogRecordProcessor: processor
       };
 
       recordError(crashlyticsInstance, new Error('Immediate export error'));

@@ -24,32 +24,16 @@ import { OnErrorSpanProcessor } from './tracing/on-error-span-processor';
 import { OnErrorLogRecordProcessor } from './logging/on-error-log-record-processor';
 
 /**
- * Extended LoggerProvider with optional onErrorLogRecordProcessor.
- *
- * @internal
- */
-export interface LoggerProviderWithOnError extends LoggerProvider {
-  onErrorLogRecordProcessor?: OnErrorLogRecordProcessor;
-}
-
-/**
- * Extended TracerProvider with optional onErrorSpanProcessor.
- *
- * @internal
- */
-export interface TracerProviderWithOnError extends TracerProvider {
-  onErrorSpanProcessor?: OnErrorSpanProcessor;
-}
-
-/**
  * An internal interface for the Crashlytics service.
  *
  * @internal
  */
 export interface CrashlyticsInternal extends Crashlytics {
-  loggerProvider: LoggerProviderWithOnError;
-  tracingProvider: TracerProviderWithOnError;
+  loggerProvider: LoggerProvider;
+  tracingProvider: TracerProvider;
   attributesStore: AttributesStore;
+  onErrorLogRecordProcessor?: OnErrorLogRecordProcessor;
+  onErrorSpanProcessor?: OnErrorSpanProcessor;
 }
 
 type KeyValuePair = [key: string, value: string];

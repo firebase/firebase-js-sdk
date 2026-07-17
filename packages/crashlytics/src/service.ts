@@ -20,6 +20,8 @@ import { Crashlytics, CrashlyticsOptions } from './public-types';
 import { LoggerProvider } from '@opentelemetry/sdk-logs';
 import { TracerProvider } from '@opentelemetry/api';
 import { AttributesStore } from './attributes-store';
+import { OnErrorLogRecordProcessor } from './logging/on-error-log-record-processor';
+import { OnErrorSpanProcessor } from './tracing/on-error-span-processor';
 
 export class CrashlyticsService implements Crashlytics, _FirebaseService {
   private _options?: CrashlyticsOptions;
@@ -28,7 +30,9 @@ export class CrashlyticsService implements Crashlytics, _FirebaseService {
     public app: FirebaseApp,
     public loggerProvider: LoggerProvider,
     public tracingProvider: TracerProvider | null,
-    public attributesStore: AttributesStore
+    public attributesStore: AttributesStore,
+    public onErrorLogRecordProcessor?: OnErrorLogRecordProcessor,
+    public onErrorSpanProcessor?: OnErrorSpanProcessor
   ) {}
 
   _delete(): Promise<void> {

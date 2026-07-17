@@ -99,9 +99,13 @@ export function recordError(
     }
   }
 
-  // Cast to CrashlyticsInternal to access internal loggerProvider and tracingProvider
-  const { loggerProvider, attributesStore, tracingProvider } =
-    crashlytics as CrashlyticsInternal;
+  // Cast to CrashlyticsInternal to access internal loggerProvider, tracingProvider, and processors
+  const {
+    loggerProvider,
+    attributesStore,
+    onErrorSpanProcessor,
+    onErrorLogRecordProcessor
+  } = crashlytics as CrashlyticsInternal;
 
   const logger = loggerProvider.getLogger('error-logger');
   const customAttributes: AnyValueMap = attributesStore.getLogAttributes();
@@ -137,12 +141,10 @@ export function recordError(
     });
   }
 
-  const onErrorSpanProcessor = tracingProvider?.onErrorSpanProcessor;
   if (onErrorSpanProcessor) {
     onErrorSpanProcessor.onErrorOccurred();
   }
 
-  const onErrorLogRecordProcessor = loggerProvider?.onErrorLogRecordProcessor;
   if (onErrorLogRecordProcessor) {
     onErrorLogRecordProcessor.onErrorOccurred();
   }

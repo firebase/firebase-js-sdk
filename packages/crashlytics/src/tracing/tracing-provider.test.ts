@@ -73,7 +73,7 @@ describe('createTracingProvider', () => {
       return;
     }
     const mockCrashlyticsOptions = {} as CrashlyticsOptions;
-    const provider = createTracingProvider(
+    const { tracingProvider: provider } = createTracingProvider(
       mockApp,
       mockCrashlyticsOptions,
       mockAttributesStore
@@ -92,7 +92,7 @@ describe('createTracingProvider', () => {
       tracingUrl: 'http://localhost:4318'
     } as CrashlyticsOptions;
 
-    const provider = createTracingProvider(
+    const { tracingProvider: provider } = createTracingProvider(
       mockApp,
       mockCrashlyticsOptions,
       mockAttributesStore

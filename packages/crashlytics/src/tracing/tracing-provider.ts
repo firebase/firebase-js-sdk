@@ -38,7 +38,7 @@ import {
   createOtlpNetworkExportDelegate
 } from '@opentelemetry/otlp-exporter-base';
 import { ReadableSpan, SpanExporter } from '@opentelemetry/sdk-trace-base';
-import { DynamicHeaderProvider, TracerProviderWithOnError } from '../types';
+import { DynamicHeaderProvider } from '../types';
 import { FirebaseApp } from '@firebase/app';
 import { AttributesStore } from '../attributes-store';
 import { OnErrorSpanProcessor } from './on-error-span-processor';
@@ -51,6 +51,16 @@ import {
 import { CrashlyticsOptions } from '../public-types';
 
 /**
+ * Result returned by {@link createTracingProvider}.
+ *
+ * @internal
+ */
+export interface TracingProviderResult {
+  tracingProvider: TracerProvider;
+  onErrorSpanProcessor?: OnErrorSpanProcessor;
+}
+
+/**
  * Create a tracing provider for the current execution environment.
  *
  * @internal
@@ -60,9 +70,9 @@ export function createTracingProvider(
   crashlyticsOptions: CrashlyticsOptions,
   attributesStore: AttributesStore,
   dynamicHeaderProviders: DynamicHeaderProvider[] = []
-): TracerProvider {
+): TracingProviderResult {
   if (typeof window === 'undefined') {
-    return trace.getTracerProvider();
+    return { tracingProvider: trace.getTracerProvider() };
   }
   // TODO: change to default endpoint once it exists
   const endpointUrl = crashlyticsOptions.endpointUrl || 'http://localhost';
@@ -110,18 +120,16 @@ export function createTracingProvider(
 
   const onErrorSpanProcessor = new OnErrorSpanProcessor(traceExporter);
 
-  const provider = new WebTracerProvider({
+  const tracingProvider = new WebTracerProvider({
     resource,
     spanProcessors: [
       // TODO: Remove console exporter before we ship
       new SimpleSpanProcessor(new ConsoleSpanExporter()),
       onErrorSpanProcessor
     ]
-  }) as WebTracerProvider & TracerProviderWithOnError;
+  });
 
-  provider.onErrorSpanProcessor = onErrorSpanProcessor;
-
-  provider.register({
+  tracingProvider.register({
     propagator: new CompositePropagator({
       propagators: [new W3CTraceContextPropagator()]
     })
@@ -169,7 +177,7 @@ export function createTracingProvider(
     ]
   });
 
-  return provider;
+  return { tracingProvider, onErrorSpanProcessor };
 }
 
 /** @internal */

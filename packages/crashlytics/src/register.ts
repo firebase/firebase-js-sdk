@@ -54,14 +54,15 @@ export function registerCrashlytics(): void {
           installationsProvider
         );
         const dynamicHeaderProviders = [new AppCheckProvider(appCheckProvider)];
-        const loggerProvider = createLoggerProvider(
-          app,
-          crashlyticsOptions,
-          attributesStore,
-          dynamicHeaderProviders
-        );
+        const { loggerProvider, onErrorLogRecordProcessor } =
+          createLoggerProvider(
+            app,
+            crashlyticsOptions,
+            attributesStore,
+            dynamicHeaderProviders
+          );
 
-        const tracingProvider = createTracingProvider(
+        const { tracingProvider, onErrorSpanProcessor } = createTracingProvider(
           app,
           crashlyticsOptions,
           attributesStore,
@@ -72,7 +73,9 @@ export function registerCrashlytics(): void {
           app,
           loggerProvider,
           tracingProvider,
-          attributesStore
+          attributesStore,
+          onErrorLogRecordProcessor,
+          onErrorSpanProcessor
         );
 
         // Immediately track this as a new client session (if one doesn't exist yet)

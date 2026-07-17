@@ -29,7 +29,7 @@ import {
   createOtlpNetworkExportDelegate
 } from '@opentelemetry/otlp-exporter-base';
 import { FetchTransport } from '../fetch-transport';
-import { DynamicHeaderProvider, LoggerProviderWithOnError } from '../types';
+import { DynamicHeaderProvider } from '../types';
 import { FirebaseApp } from '@firebase/app';
 import { ExportResult } from '@opentelemetry/core';
 import { CrashlyticsOptions } from '../public-types';
@@ -41,6 +41,16 @@ import { AttributesStore } from '../attributes-store';
 import { OnErrorLogRecordProcessor } from './on-error-log-record-processor';
 
 /**
+ * Result returned by {@link createLoggerProvider}.
+ *
+ * @internal
+ */
+export interface LoggerProviderResult {
+  loggerProvider: LoggerProvider;
+  onErrorLogRecordProcessor: OnErrorLogRecordProcessor;
+}
+
+/**
  * Create a logger provider for the current execution environment.
  *
  * @internal
@@ -50,7 +60,7 @@ export function createLoggerProvider(
   crashlyticsOptions: CrashlyticsOptions,
   attributesStore: AttributesStore,
   dynamicHeaderProviders: DynamicHeaderProvider[] = []
-): LoggerProvider {
+): LoggerProviderResult {
   let endpointUrl =
     crashlyticsOptions.endpointUrl || DEFAULT_TELEMETRY_ENDPOINT;
 
@@ -77,15 +87,13 @@ export function createLoggerProvider(
 
   const onErrorLogRecordProcessor = new OnErrorLogRecordProcessor(logExporter);
 
-  const provider = new LoggerProvider({
+  const loggerProvider = new LoggerProvider({
     resource,
     processors: [onErrorLogRecordProcessor],
     logRecordLimits: {}
-  }) as LoggerProviderWithOnError;
+  });
 
-  provider.onErrorLogRecordProcessor = onErrorLogRecordProcessor;
-
-  return provider;
+  return { loggerProvider, onErrorLogRecordProcessor };
 }
 
 /** OTLP exporter that uses custom FetchTransport and resolves async attributes. */
