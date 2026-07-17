@@ -19,28 +19,13 @@ import { use, expect } from 'chai';
 import sinonChai from 'sinon-chai';
 import chaiAsPromised from 'chai-as-promised';
 import { restore, stub, match } from 'sinon';
-import { AI } from '../public-types';
-import { VertexAIBackend } from '../backend';
 import { TemplateImagenModel } from './template-imagen-model';
 import { AIError } from '../errors';
 import * as request from '../requests/request';
+import { fakeAI } from '../../test-utils/get-fake-firebase-services';
 
 use(sinonChai);
 use(chaiAsPromised);
-
-const fakeAI: AI = {
-  app: {
-    name: 'DEFAULT',
-    automaticDataCollectionEnabled: true,
-    options: {
-      apiKey: 'key',
-      projectId: 'my-project',
-      appId: 'my-appid'
-    }
-  },
-  backend: new VertexAIBackend('us-central1'),
-  location: 'us-central1'
-};
 
 const TEMPLATE_ID = 'my-imagen-template';
 const TEMPLATE_VARS = { a: 1, b: '2' };

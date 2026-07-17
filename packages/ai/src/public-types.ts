@@ -44,7 +44,7 @@ export interface AI {
   /**
    * A {@link Backend} instance that specifies the configuration for the target backend,
    * either the Gemini Developer API (using {@link GoogleAIBackend}) or the
-   * Vertex AI Gemini API (using {@link VertexAIBackend}).
+   * Agent Platform API (using {@link AgentPlatformBackend}).
    */
   backend: Backend;
   /**
@@ -62,19 +62,26 @@ export interface AI {
 /**
  * An enum-like object containing constants that represent the supported backends
  * for the Firebase AI SDK.
- * This determines which backend service (Vertex AI Gemini API or Gemini Developer API)
+ * This determines which backend service (Agent Platform API or Gemini Developer API)
  * the SDK will communicate with.
  *
  * These values are assigned to the `backendType` property within the specific backend
- * configuration objects ({@link GoogleAIBackend} or {@link VertexAIBackend}) to identify
+ * configuration objects ({@link GoogleAIBackend} or {@link AgentPlatformBackend}) to identify
  * which service to target.
  *
  * @public
  */
 export const BackendType = {
   /**
+   * Identifies the backend service for the Agent Platform API provided through Google Cloud.
+   * Use this constant when creating a {@link AgentPlatformBackend} configuration.
+   */
+  AGENT_PLATFORM: 'AGENT_PLATFORM',
+
+  /**
    * Identifies the backend service for the Vertex AI Gemini API provided through Google Cloud.
    * Use this constant when creating a {@link VertexAIBackend} configuration.
+   * @deprecated - Use {@link AgentPlatformBackend} instead.
    */
   VERTEX_AI: 'VERTEX_AI',
 

@@ -16,9 +16,17 @@
  */
 
 import { expect } from 'chai';
-import { GoogleAIBackend, VertexAIBackend } from './backend';
+import {
+  AgentPlatformBackend,
+  GoogleAIBackend,
+  VertexAIBackend
+} from './backend';
 import { BackendType } from './public-types';
-import { DEFAULT_API_VERSION, DEFAULT_LOCATION } from './constants';
+import {
+  DEFAULT_API_VERSION,
+  DEFAULT_LOCATION,
+  LGEACY_DEFAULT_LOCATION
+} from './constants';
 
 describe('Backend', () => {
   describe('GoogleAIBackend', () => {
@@ -43,7 +51,7 @@ describe('Backend', () => {
     it('set backendType to VERTEX_AI', () => {
       const backend = new VertexAIBackend();
       expect(backend.backendType).to.equal(BackendType.VERTEX_AI);
-      expect(backend.location).to.equal(DEFAULT_LOCATION);
+      expect(backend.location).to.equal(LGEACY_DEFAULT_LOCATION);
     });
     it('sets custom location', () => {
       const backend = new VertexAIBackend('test-location');
@@ -53,12 +61,12 @@ describe('Backend', () => {
     it('uses default location if location is empty string', () => {
       const backend = new VertexAIBackend('');
       expect(backend.backendType).to.equal(BackendType.VERTEX_AI);
-      expect(backend.location).to.equal(DEFAULT_LOCATION);
+      expect(backend.location).to.equal(LGEACY_DEFAULT_LOCATION);
     });
     it('uses default location if location is null', () => {
       const backend = new VertexAIBackend(null as any);
       expect(backend.backendType).to.equal(BackendType.VERTEX_AI);
-      expect(backend.location).to.equal(DEFAULT_LOCATION);
+      expect(backend.location).to.equal(LGEACY_DEFAULT_LOCATION);
     });
     it('getModelPath', () => {
       const backend = new VertexAIBackend();
@@ -68,6 +76,40 @@ describe('Backend', () => {
     });
     it('getTemplatePath', () => {
       const backend = new VertexAIBackend();
+      expect(backend._getTemplatePath('my-project', 'template-id')).to.equal(
+        `/${DEFAULT_API_VERSION}/projects/my-project/locations/${backend.location}/templates/template-id`
+      );
+    });
+  });
+  describe('AgentPlatformBackend', () => {
+    it('set backendType to AGENT_PLATFORM', () => {
+      const backend = new AgentPlatformBackend();
+      expect(backend.backendType).to.equal(BackendType.AGENT_PLATFORM);
+      expect(backend.location).to.equal(DEFAULT_LOCATION);
+    });
+    it('sets custom location', () => {
+      const backend = new AgentPlatformBackend('test-location');
+      expect(backend.backendType).to.equal(BackendType.AGENT_PLATFORM);
+      expect(backend.location).to.equal('test-location');
+    });
+    it('uses default location if location is empty string', () => {
+      const backend = new AgentPlatformBackend('');
+      expect(backend.backendType).to.equal(BackendType.AGENT_PLATFORM);
+      expect(backend.location).to.equal(DEFAULT_LOCATION);
+    });
+    it('uses default location if location is null', () => {
+      const backend = new AgentPlatformBackend(null as any);
+      expect(backend.backendType).to.equal(BackendType.AGENT_PLATFORM);
+      expect(backend.location).to.equal(DEFAULT_LOCATION);
+    });
+    it('getModelPath', () => {
+      const backend = new AgentPlatformBackend();
+      expect(backend._getModelPath('my-project', 'model-name')).to.equal(
+        `/${DEFAULT_API_VERSION}/projects/my-project/locations/${backend.location}/model-name`
+      );
+    });
+    it('getTemplatePath', () => {
+      const backend = new AgentPlatformBackend();
       expect(backend._getTemplatePath('my-project', 'template-id')).to.equal(
         `/${DEFAULT_API_VERSION}/projects/my-project/locations/${backend.location}/templates/template-id`
       );

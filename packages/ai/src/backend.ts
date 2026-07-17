@@ -15,7 +15,11 @@
  * limitations under the License.
  */
 
-import { DEFAULT_API_VERSION, DEFAULT_LOCATION } from './constants';
+import {
+  DEFAULT_API_VERSION,
+  DEFAULT_LOCATION,
+  LGEACY_DEFAULT_LOCATION
+} from './constants';
 import { BackendType } from './public-types';
 
 /**
@@ -88,6 +92,8 @@ export class GoogleAIBackend extends Backend {
  * Use this with {@link AIOptions} when initializing the AI service via
  * {@link getAI | getAI()} to specify the Vertex AI Gemini API as the backend.
  *
+ * @deprecated - Use {@link AgentPlatformBackend} instead.
+ *
  * @public
  */
 export class VertexAIBackend extends Backend {
@@ -96,7 +102,7 @@ export class VertexAIBackend extends Backend {
    * See {@link https://firebase.google.com/docs/vertex-ai/locations#available-locations | Vertex AI locations}
    * for a list of supported locations.
    */
-  readonly location: string;
+  readonly location: string = LGEACY_DEFAULT_LOCATION;
 
   /**
    * Creates a configuration object for the Vertex AI backend.
@@ -105,11 +111,54 @@ export class VertexAIBackend extends Backend {
    * see {@link https://firebase.google.com/docs/vertex-ai/locations#available-locations | Vertex AI locations}
    * for a list of supported locations.
    */
-  constructor(location: string = DEFAULT_LOCATION) {
+  constructor(location?: string) {
     super(BackendType.VERTEX_AI);
-    if (!location) {
-      this.location = DEFAULT_LOCATION;
-    } else {
+    if (location) {
+      this.location = location;
+    }
+  }
+
+  /**
+   * @internal
+   */
+  _getModelPath(project: string, model: string): string {
+    return `/${DEFAULT_API_VERSION}/projects/${project}/locations/${this.location}/${model}`;
+  }
+
+  /**
+   * @internal
+   */
+  _getTemplatePath(project: string, templateId: string): string {
+    return `/${DEFAULT_API_VERSION}/projects/${project}/locations/${this.location}/templates/${templateId}`;
+  }
+}
+
+/**
+ * Configuration class for the Agent Platform API.
+ *
+ * Use this with {@link AIOptions} when initializing the AI service via
+ * {@link getAI | getAI()} to specify the Agent Platform API as the backend.
+ *
+ * @public
+ */
+export class AgentPlatformBackend extends Backend {
+  /**
+   * The region identifier.
+   * See {@link https://firebase.google.com/docs/vertex-ai/locations#available-locations | Agent Platform locations}
+   * for a list of supported locations.
+   */
+  readonly location: string = DEFAULT_LOCATION;
+
+  /**
+   * Creates a configuration object for the Vertex AI backend.
+   *
+   * @param location - The region identifier, defaulting to `global`;
+   * see {@link https://firebase.google.com/docs/vertex-ai/locations#available-locations | Agent Platform locations}
+   * for a list of supported locations.
+   */
+  constructor(location?: string) {
+    super(BackendType.AGENT_PLATFORM);
+    if (location) {
       this.location = location;
     }
   }

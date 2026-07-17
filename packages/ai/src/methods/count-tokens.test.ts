@@ -26,7 +26,7 @@ import { CountTokensRequest, InferenceMode } from '../types';
 import { ApiSettings } from '../types/internal';
 import { Task } from '../requests/request';
 import { mapCountTokensRequest } from '../googleai-mappers';
-import { GoogleAIBackend, VertexAIBackend } from '../backend';
+import { GoogleAIBackend, AgentPlatformBackend } from '../backend';
 import { fakeChromeAdapter } from '../../test-utils/get-fake-firebase-services';
 
 use(sinonChai);
@@ -36,8 +36,8 @@ const fakeApiSettings: ApiSettings = {
   apiKey: 'key',
   project: 'my-project',
   appId: 'my-appid',
-  location: 'us-central1',
-  backend: new VertexAIBackend()
+  location: 'global',
+  backend: new AgentPlatformBackend()
 };
 
 const fakeGoogleAIApiSettings: ApiSettings = {

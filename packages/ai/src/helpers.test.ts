@@ -19,18 +19,18 @@ import { AI_TYPE, DEFAULT_LOCATION } from './constants';
 import { encodeInstanceIdentifier, decodeInstanceIdentifier } from './helpers';
 import { AIError } from './errors';
 import { AIErrorCode } from './types';
-import { GoogleAIBackend, VertexAIBackend } from './backend';
+import { GoogleAIBackend, AgentPlatformBackend } from './backend';
 
 describe('Identifier Encoding/Decoding', () => {
   describe('encodeInstanceIdentifier', () => {
-    it('should encode Vertex AI identifier with a specific location', () => {
-      const backend = new VertexAIBackend('us-east1');
+    it('should encode Agent Platform identifier with a specific location', () => {
+      const backend = new AgentPlatformBackend('us-east1');
       const expected = `${AI_TYPE}/vertexai/us-east1`;
       expect(encodeInstanceIdentifier(backend)).to.equal(expected);
     });
 
-    it('should encode Vertex AI identifier using default location if location is empty string', () => {
-      const backend = new VertexAIBackend('');
+    it('should encode Agent Platform identifier using default location if location is empty string', () => {
+      const backend = new AgentPlatformBackend('');
       const expected = `${AI_TYPE}/vertexai/${DEFAULT_LOCATION}`;
       expect(encodeInstanceIdentifier(backend)).to.equal(expected);
     });
@@ -59,7 +59,7 @@ describe('Identifier Encoding/Decoding', () => {
   describe('decodeInstanceIdentifier', () => {
     it('should decode Vertex AI identifier with location', () => {
       const encoded = `${AI_TYPE}/vertexai/europe-west1`;
-      const backend = new VertexAIBackend('europe-west1');
+      const backend = new AgentPlatformBackend('europe-west1');
       expect(decodeInstanceIdentifier(encoded)).to.deep.equal(backend);
     });
 

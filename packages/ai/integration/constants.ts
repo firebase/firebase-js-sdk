@@ -21,11 +21,11 @@ import {
   Backend,
   BackendType,
   GoogleAIBackend,
-  VertexAIBackend,
   getAI,
   getGenerativeModel
 } from '../src';
 import { FIREBASE_CONFIG } from './firebase-config';
+import { AgentPlatformBackend } from '../src/backend';
 
 const app = initializeApp(FIREBASE_CONFIG);
 
@@ -45,15 +45,15 @@ function formatConfigAsString(config: { ai: AI; model: string }): string {
 
 const backends: readonly Backend[] = [
   new GoogleAIBackend(),
-  new VertexAIBackend('global')
+  new AgentPlatformBackend()
 ];
 
 /**
- * Vertex Live API only works on us-central1 at the moment.
+ * Live API only works on us-central1 at the moment.
  */
 const liveBackends: readonly Backend[] = [
   new GoogleAIBackend(),
-  new VertexAIBackend('us-central1')
+  new AgentPlatformBackend('us-central1')
 ];
 
 const backendNames: Map<BackendType, string> = new Map([
@@ -69,7 +69,9 @@ const modelNames: readonly string[] = [
 
 // Used for testing non-AI behavior (e.g. Network requests). Configured to minimize cost.
 export const cheapestModel = 'gemini-3.1-flash-lite';
-export const defaultAIInstance = getAI(app, { backend: new VertexAIBackend() });
+export const defaultAIInstance = getAI(app, {
+  backend: new AgentPlatformBackend()
+});
 export const defaultGenerativeModel = getGenerativeModel(defaultAIInstance, {
   model: cheapestModel,
   generationConfig: {

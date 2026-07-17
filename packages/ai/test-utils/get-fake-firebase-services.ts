@@ -26,6 +26,7 @@ import { FirebaseAppCheckInternal } from '@firebase/app-check-interop-types';
 import { AI_TYPE } from '../src/constants';
 import { factory as factoryNode } from '../src/factory-node';
 import { ChromeAdapter, InferenceMode } from '../src/types';
+import { AgentPlatformBackend, AI } from '../src';
 
 const fakeConfig = {
   projectId: 'projectId',
@@ -81,4 +82,18 @@ export const fakeChromeAdapter: ChromeAdapter = {
   generateContent: () => Promise.resolve({} as Response),
   generateContentStream: () => Promise.resolve({} as Response),
   countTokens: () => Promise.resolve({} as Response)
+};
+
+export const fakeAI: AI = {
+  app: {
+    name: 'DEFAULT',
+    automaticDataCollectionEnabled: true,
+    options: {
+      apiKey: 'key',
+      projectId: 'my-project',
+      appId: 'my-appid'
+    }
+  },
+  backend: new AgentPlatformBackend('global'),
+  location: 'global'
 };
