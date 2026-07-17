@@ -35,15 +35,24 @@ import { Code, FirestoreError } from '../util/error';
 
 import {
   AggregateFunction,
+  AliasedExpression,
   BooleanExpression,
+  constant,
   Expression,
   Field,
   field,
   Ordering
 } from './expressions';
 import { Pipeline } from './pipeline';
-import { QueryEnhancement, StageOptions } from './stage_options';
+import { CollectionReference } from './reference';
+import {
+  InsertStageOptions,
+  QueryEnhancement,
+  StageOptions,
+  UpsertStageOptions
+} from './stage_options';
 import { isUserData, UserData } from './user_data_reader';
+import { selectablesToMap } from '../util/pipeline_util';
 
 export abstract class Stage implements ProtoSerializable<ProtoStage>, UserData {
   /**
@@ -955,6 +964,122 @@ export class Update extends Stage {
     super._readUserData(context);
     if (this.transformedFields) {
       readUserDataHelper(this.transformedFields, context);
+    }
+  }
+}
+
+/**
+ * @beta
+ */
+export class Insert extends Stage {
+  get _name(): string {
+    return 'insert';
+  }
+  get _optionsUtil(): OptionsUtil {
+    return new OptionsUtil({});
+  }
+
+  private readonly collectionPath?: string;
+  private readonly documentIdExpr?: Expression;
+
+  constructor(options: InsertStageOptions = {}) {
+    const { collection, documentId, ...rest } = options;
+    super(rest);
+    if (collection) {
+      this.collectionPath = typeof collection === 'string' ? collection : collection.path;
+      if (!this.collectionPath.startsWith('/')) {
+        this.collectionPath = '/' + this.collectionPath;
+      }
+    }
+    if (documentId) {
+      this.documentIdExpr = typeof documentId === 'string' ? field(documentId) : documentId;
+    }
+  }
+
+  _toProto(serializer: JsonProtoSerializer): ProtoStage {
+    const proto = super._toProto(serializer);
+    const options = proto.options ? { ...proto.options } : {};
+
+    if (this.collectionPath) {
+      options['collection'] = { referenceValue: this.collectionPath };
+    }
+    if (this.documentIdExpr) {
+      options['document_id'] = this.documentIdExpr._toProto(serializer);
+    }
+
+    return {
+      ...proto,
+      options: Object.keys(options).length > 0 ? options : undefined,
+      args: []
+    };
+  }
+
+  _readUserData(context: ParseContext): void {
+    super._readUserData(context);
+    if (this.documentIdExpr) {
+      readUserDataHelper(this.documentIdExpr, context);
+    }
+  }
+}
+
+/**
+ * @beta
+ */
+export class Upsert extends Stage {
+  get _name(): string {
+    return 'upsert';
+  }
+  get _optionsUtil(): OptionsUtil {
+    return new OptionsUtil({});
+  }
+
+  private readonly collectionPath?: string;
+  private readonly documentIdExpr?: Expression;
+  private readonly transforms: Map<string, Expression>;
+
+  constructor(
+    transforms: AliasedExpression[],
+    options: Omit<UpsertStageOptions, 'transforms'> = {}
+  ) {
+    const { collection, documentId, ...rest } = options;
+    super(rest);
+    this.transforms = selectablesToMap(transforms);
+    if (collection) {
+      this.collectionPath = typeof collection === 'string' ? collection : collection.path;
+      if (!this.collectionPath.startsWith('/')) {
+        this.collectionPath = '/' + this.collectionPath;
+      }
+    }
+    if (documentId) {
+      this.documentIdExpr = typeof documentId === 'string' ? field(documentId) : documentId;
+    }
+  }
+
+  _toProto(serializer: JsonProtoSerializer): ProtoStage {
+    const proto = super._toProto(serializer);
+    const options = proto.options ? { ...proto.options } : {};
+
+    if (this.collectionPath) {
+      options['collection'] = { referenceValue: this.collectionPath };
+    }
+    if (this.documentIdExpr) {
+      options['document_id'] = this.documentIdExpr._toProto(serializer);
+    }
+
+    const args = [toMapValue(serializer, this.transforms)];
+
+    return {
+      ...proto,
+      options: Object.keys(options).length > 0 ? options : undefined,
+      args
+    };
+  }
+
+  _readUserData(context: ParseContext): void {
+    super._readUserData(context);
+    readUserDataHelper(this.transforms, context);
+    if (this.documentIdExpr) {
+      readUserDataHelper(this.documentIdExpr, context);
     }
   }
 }
