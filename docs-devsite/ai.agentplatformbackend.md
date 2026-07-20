@@ -25,7 +25,7 @@ export declare class AgentPlatformBackend extends Backend
 
 |  Constructor | Modifiers | Description |
 |  --- | --- | --- |
-|  [(constructor)(location)](./ai.agentplatformbackend.md#agentplatformbackendconstructor) |  | Creates a configuration object for the Vertex AI backend. |
+|  [(constructor)(location)](./ai.agentplatformbackend.md#agentplatformbackendconstructor) |  | Creates a configuration object for the Agent Platform backend. |
 
 ## Properties
 
@@ -35,7 +35,7 @@ export declare class AgentPlatformBackend extends Backend
 
 ## AgentPlatformBackend.(constructor)
 
-Creates a configuration object for the Vertex AI backend.
+Creates a configuration object for the Agent Platform backend.
 
 <b>Signature:</b>
 

@@ -15,11 +15,19 @@
  * limitations under the License.
  */
 import { expect } from 'chai';
-import { AI_TYPE, DEFAULT_LOCATION, LEGACY_DEFAULT_LOCATION } from './constants';
+import {
+  AI_TYPE,
+  DEFAULT_LOCATION,
+  LEGACY_DEFAULT_LOCATION
+} from './constants';
 import { encodeInstanceIdentifier, decodeInstanceIdentifier } from './helpers';
 import { AIError } from './errors';
 import { AIErrorCode } from './types';
-import { GoogleAIBackend, AgentPlatformBackend, VertexAIBackend } from './backend';
+import {
+  GoogleAIBackend,
+  AgentPlatformBackend,
+  VertexAIBackend
+} from './backend';
 
 describe('Identifier Encoding/Decoding', () => {
   describe('encodeInstanceIdentifier', () => {
