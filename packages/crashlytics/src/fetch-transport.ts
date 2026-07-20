@@ -69,7 +69,6 @@ export class FetchTransport implements IExporterTransport {
     const abortController = new AbortController();
     const timeout = setTimeout(() => abortController.abort(), timeoutMillis);
     try {
-      const url = new URL(this.parameters.url);
       const headers = new Headers(this.parameters.headers);
 
       if (
@@ -97,7 +96,7 @@ export class FetchTransport implements IExporterTransport {
         mode: 'cors',
         body: data
       } as RequestInit;
-      const response = await fetch(url.href, body);
+      const response = await fetch(this.parameters.url, body);
 
       if (response.status >= 200 && response.status <= 299) {
         diag.debug('response success');

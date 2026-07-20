@@ -95,6 +95,7 @@ describe('helpers', () => {
         }
       },
       loggerProvider: fakeLoggerProvider,
+      logger: fakeLoggerProvider.getLogger('session-logger'),
       attributesStore: fakeAttributesStore
     };
   });

@@ -16,7 +16,12 @@
  */
 
 import { FirebaseApp } from '@firebase/app';
-import { AnyValueMap } from '@opentelemetry/api-logs';
+import { AnyValueMap, Logger, LoggerProvider } from '@opentelemetry/api-logs';
+import {
+  LogRecordProcessor,
+  LogRecordExporter
+} from '@opentelemetry/sdk-logs';
+import { Resource } from '@opentelemetry/resources';
 
 /**
  * An instance of the Firebase Crashlytics SDK.
@@ -67,4 +72,44 @@ export interface CrashlyticsOptions {
    * take precedence over the base set defined here.
    */
   customAttributes?: AnyValueMap;
+
+  /**
+   * Optional custom OpenTelemetry LoggerProvider instance.
+   * When provided, Firebase Crashlytics will use this provider instead of creating its own.
+   */
+  loggerProvider?: LoggerProvider;
+
+  /**
+   * Optional custom OpenTelemetry Logger instance.
+   * When provided, Crashlytics will emit logs directly through this Logger.
+   */
+  logger?: Logger;
+
+  /**
+   * If true, Crashlytics will use the global OpenTelemetry LoggerProvider (`logs.getLoggerProvider()`).
+   * Defaults to false.
+   */
+  useGlobalLoggerProvider?: boolean;
+
+  /**
+   * If true, registers the created LoggerProvider as the global OpenTelemetry LoggerProvider
+   * via `logs.setGlobalLoggerProvider()`.
+   * Defaults to false.
+   */
+  registerGlobalLoggerProvider?: boolean;
+
+  /**
+   * Additional OpenTelemetry LogRecordProcessors to attach to the default LoggerProvider pipeline.
+   */
+  extraProcessors?: LogRecordProcessor[];
+
+  /**
+   * Additional OpenTelemetry LogRecordExporters to attach via BatchLogRecordProcessor.
+   */
+  extraExporters?: LogRecordExporter[];
+
+  /**
+   * Custom OpenTelemetry Resource instance to merge into the default Resource.
+   */
+  resource?: Resource;
 }

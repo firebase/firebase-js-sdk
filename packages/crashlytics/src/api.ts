@@ -20,10 +20,13 @@ import { ALREADY_LOGGED_FLAG, CRASHLYTICS_TYPE } from './constants';
 import { CrashlyticsInternal, ErrorWithSymbol } from './types';
 import { Crashlytics, CrashlyticsOptions } from './public-types';
 import { Provider } from '@firebase/component';
-import { AnyValueMap, SeverityNumber } from '@opentelemetry/api-logs';
+import { AnyValueMap, SeverityNumber, Logger } from '@opentelemetry/api-logs';
+import { LoggerProvider } from '@opentelemetry/sdk-logs';
 import { CrashlyticsService } from './service';
 import { flush } from './helpers';
 import { deepEqual } from '@firebase/util';
+
+import { registerCrashlytics } from './register';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
@@ -51,6 +54,7 @@ export function getCrashlytics(
   app: FirebaseApp = getApp(),
   options?: CrashlyticsOptions
 ): Crashlytics {
+  registerCrashlytics();
   const crashlyticsProvider: Provider<'crashlytics'> = _getProvider(
     app,
     CRASHLYTICS_TYPE
@@ -99,14 +103,12 @@ export function recordError(
     }
   }
 
-  // Cast to CrashlyticsInternal to access internal loggerProvider
-  const { loggerProvider, attributesStore } =
-    crashlytics as CrashlyticsInternal;
-  const logger = loggerProvider.getLogger('error-logger');
-  const customAttributes: AnyValueMap = attributesStore.getLogAttributes();
+  const internal = crashlytics as CrashlyticsInternal;
+  const logger =
+    internal.logger || internal.loggerProvider.getLogger('error-logger');
+  const customAttributes: AnyValueMap =
+    internal.attributesStore.getLogAttributes();
 
-  // Merge in any additional attributes. Explicitly provided attributes take precedence over
-  // automatically added attributes.
   if (attributes) {
     Object.assign(customAttributes, attributes);
   }
@@ -114,27 +116,54 @@ export function recordError(
   if (error instanceof Error) {
     logger.emit({
       severityNumber: SeverityNumber.ERROR,
-      body: error.message,
+      severityText: 'ERROR',
+      body: error.message || error.name || 'Error',
       attributes: {
         'exception.type': error.name || 'Error',
-        'exception.stacktrace': error.stack || 'No stack trace available',
         'exception.message': error.message,
+        'exception.stacktrace': error.stack || 'No stack trace available',
         ...customAttributes
       }
     });
   } else if (typeof error === 'string') {
     logger.emit({
       severityNumber: SeverityNumber.ERROR,
+      severityText: 'ERROR',
       body: error,
       attributes: customAttributes
     });
   } else {
     logger.emit({
       severityNumber: SeverityNumber.ERROR,
+      severityText: 'ERROR',
       body: `Unknown error type: ${typeof error}`,
       attributes: customAttributes
     });
   }
+}
+
+/**
+ * Retrieves the OpenTelemetry LoggerProvider instance used by Crashlytics.
+ *
+ * @public
+ * @param crashlytics - The {@link Crashlytics} instance.
+ * @returns The underlying OpenTelemetry LoggerProvider.
+ */
+export function getOtelLoggerProvider(
+  crashlytics: Crashlytics
+): LoggerProvider {
+  return (crashlytics as CrashlyticsInternal).loggerProvider;
+}
+
+/**
+ * Retrieves the OpenTelemetry Logger instance used by Crashlytics.
+ *
+ * @public
+ * @param crashlytics - The {@link Crashlytics} instance.
+ * @returns The underlying OpenTelemetry Logger.
+ */
+export function getOtelLogger(crashlytics: Crashlytics): Logger {
+  return (crashlytics as CrashlyticsInternal).logger;
 }
 
 export { flush };

@@ -98,6 +98,13 @@ export class AttributesStore {
   }
 
   /**
+   * Get the cached installation ID if resolved.
+   */
+  getCachedInstallationId(): string | undefined {
+    return this._iid;
+  }
+
+  /**
    * Set and persist the session id.
    */
   setSessionId(id: string): void {

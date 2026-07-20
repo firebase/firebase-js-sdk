@@ -32,7 +32,13 @@ import {
 } from '@firebase/app';
 import { Component, ComponentType } from '@firebase/component';
 import { FirebaseAppCheckInternal } from '@firebase/app-check-interop-types';
-import { recordError, flush, getCrashlytics } from './api';
+import {
+  recordError,
+  flush,
+  getCrashlytics,
+  getOtelLoggerProvider,
+  getOtelLogger
+} from './api';
 import { CrashlyticsService } from './service';
 import { registerCrashlytics } from './register';
 import { _FirebaseInstallationsInternal } from '@firebase/installations';
@@ -119,6 +125,7 @@ describe('Top level API', () => {
         }
       },
       loggerProvider: fakeLoggerProvider,
+      logger: fakeLoggerProvider.getLogger('error-logger'),
       attributesStore: fakeAttributesStore
     };
   });
@@ -521,6 +528,65 @@ describe('Top level API', () => {
       await flush(fakeCrashlytics);
 
       expect(emittedLogs.length).to.equal(0);
+    });
+  });
+
+  describe('OpenTelemetry Power User API', () => {
+    it('should expose getOtelLoggerProvider and getOtelLogger', () => {
+      const crashlytics = getCrashlytics(getFakeApp());
+      const provider = getOtelLoggerProvider(crashlytics);
+      const logger = getOtelLogger(crashlytics);
+
+      expect(provider).to.be.an('object');
+      expect(logger).to.be.an('object');
+      expect(typeof logger.emit).to.equal('function');
+    });
+
+    it('should accept custom loggerProvider in options', () => {
+      const customProvider = fakeLoggerProvider;
+      const crashlytics = getCrashlytics(getFakeApp(), {
+        loggerProvider: customProvider
+      });
+
+      expect(getOtelLoggerProvider(crashlytics)).to.equal(customProvider);
+    });
+
+    it('should accept custom logger in options', () => {
+      const customLogs: LogRecord[] = [];
+      const customLogger = {
+        emit: (logRecord: LogRecord) => {
+          customLogs.push(logRecord);
+        }
+      } as Logger;
+
+      const crashlytics = getCrashlytics(getFakeApp(), {
+        logger: customLogger
+      });
+
+      expect(getOtelLogger(crashlytics)).to.equal(customLogger);
+
+      recordError(crashlytics, new Error('custom logger error'));
+      expect(customLogs.length).to.equal(1);
+      expect(customLogs[0].body).to.equal('custom logger error');
+    });
+
+    it('should support extraProcessors in options', () => {
+      const processed: LogRecord[] = [];
+      const testProcessor = {
+        onEmit: (logRecord: LogRecord) => {
+          processed.push(logRecord);
+        },
+        forceFlush: async () => {},
+        shutdown: async () => {}
+      };
+
+      const crashlytics = getCrashlytics(getFakeApp(), {
+        extraProcessors: [testProcessor]
+      });
+
+      recordError(crashlytics, new Error('processor test'));
+      expect(processed.length).to.equal(1);
+      expect(processed[0].body).to.equal('processor test');
     });
   });
 });

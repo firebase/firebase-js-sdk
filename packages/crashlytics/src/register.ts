@@ -21,9 +21,9 @@ import {
   ComponentType,
   InstanceFactoryOptions
 } from '@firebase/component';
-import { name, version } from '../package.json';
+import { version } from '../package.json';
 import { CrashlyticsService } from './service';
-import { createLoggerProvider } from './logging/logger-provider';
+import { resolveLoggerProvider } from './logging/logger-provider';
 import { AppCheckProvider } from './logging/appcheck-provider';
 import { CRASHLYTICS_TYPE } from './constants';
 import { registerListeners, startNewSession } from './helpers';
@@ -39,7 +39,7 @@ export function registerCrashlytics(): void {
     new Component(
       CRASHLYTICS_TYPE,
       (container, { options }: InstanceFactoryOptions) => {
-        const crashlyticsOptions = options as CrashlyticsOptions;
+        const crashlyticsOptions = (options || {}) as CrashlyticsOptions;
 
         // getImmediate for FirebaseApp will always succeed
         const app = container.getProvider('app').getImmediate();
@@ -53,7 +53,7 @@ export function registerCrashlytics(): void {
           installationsProvider
         );
         const dynamicHeaderProviders = [new AppCheckProvider(appCheckProvider)];
-        const loggerProvider = createLoggerProvider(
+        const loggerProvider = resolveLoggerProvider(
           app,
           crashlyticsOptions,
           attributesStore,
@@ -63,7 +63,8 @@ export function registerCrashlytics(): void {
         const crashlyticsService = new CrashlyticsService(
           app,
           loggerProvider,
-          attributesStore
+          attributesStore,
+          crashlyticsOptions?.logger
         );
 
         // Immediately track this as a new client session (if one doesn't exist yet)
@@ -80,7 +81,9 @@ export function registerCrashlytics(): void {
     ).setMultipleInstances(true)
   );
 
-  registerVersion(name, version);
+  registerVersion(CRASHLYTICS_TYPE, version);
   // BUILD_TARGET will be replaced by values like esm, cjs, etc during the compilation
-  registerVersion(name, version, '__BUILD_TARGET__');
+  registerVersion(CRASHLYTICS_TYPE, version, '__BUILD_TARGET__');
 }
+
+registerCrashlytics();
