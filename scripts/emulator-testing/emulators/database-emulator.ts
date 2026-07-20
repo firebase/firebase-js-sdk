@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-// @ts-ignore
 import * as request from 'request';
 
 import { Emulator } from './emulator';
