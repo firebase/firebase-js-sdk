@@ -16698,11 +16698,6 @@ tinyglobby@^0.2.12:
     fdir "^6.5.0"
     picomatch "^4.0.4"
 
-tmp@0.2.4, tmp@^0.2.1, tmp@^0.2.3:
-  version "0.2.4"
-  resolved "https://registry.npmjs.org/tmp/-/tmp-0.2.4.tgz#c6db987a2ccc97f812f17137b36af2b6521b0d13"
-  integrity sha512-UdiSoX6ypifLmrfQ/XfiawN6hkjSBpCjhKxxZcWlUUmoXLaCKQU0bx4HF/tdDK2uzRuchf1txGvrWBzYREssoQ==
-
 tmp@0.2.6:
   version "0.2.6"
   resolved "https://registry.npmjs.org/tmp/-/tmp-0.2.6.tgz#0dfac10fd09a9319288eb0e8f0ed524604e183b4"
@@ -16714,6 +16709,11 @@ tmp@^0.0.33:
   integrity sha512-jRCJlojKnZ3addtTOjdIqoRuPEKBvNXcGYqzO6zWZX8KfKEpnGY5jfggJQ3EjKuu8D4bJRr0y+cYJFmYbImXGw==
   dependencies:
     os-tmpdir "~1.0.2"
+
+tmp@^0.2.1, tmp@^0.2.3:
+  version "0.2.4"
+  resolved "https://registry.npmjs.org/tmp/-/tmp-0.2.4.tgz#c6db987a2ccc97f812f17137b36af2b6521b0d13"
+  integrity sha512-UdiSoX6ypifLmrfQ/XfiawN6hkjSBpCjhKxxZcWlUUmoXLaCKQU0bx4HF/tdDK2uzRuchf1txGvrWBzYREssoQ==
 
 tmpl@1.0.5:
   version "1.0.5"
