@@ -1,5 +1,6 @@
 ---
 '@firebase/ai': minor
+'firebase': minor
 ---
 
 Deprecate `VertexAIBackend` in favor of `AgentPlatformBackend` to reflect the renaming of Vertex AI to Gemini Enterprise Agent Platform.
