@@ -21,7 +21,7 @@ import * as path from 'path';
 import { Extractor, ExtractorConfig } from 'api-extractor-me';
 import * as tmp from 'tmp';
 
-import { addBlankLines, pruneDts, removeUnusedImports } from './prune-dts';
+import { addBlankLines, pruneDts, removeUnusedImports } from './src/index';
 import * as yargs from 'yargs';
 
 /* eslint-disable no-console */
