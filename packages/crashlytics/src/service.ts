@@ -17,17 +17,22 @@
 
 import { _FirebaseService, FirebaseApp } from '@firebase/app';
 import { Crashlytics, CrashlyticsOptions } from './public-types';
-import { LoggerProvider } from '@opentelemetry/sdk-logs';
+import { LoggerProvider, Logger } from '@opentelemetry/api-logs';
 import { AttributesStore } from './attributes-store';
 
 export class CrashlyticsService implements Crashlytics, _FirebaseService {
   private _options?: CrashlyticsOptions;
+  logger: Logger;
 
   constructor(
     public app: FirebaseApp,
     public loggerProvider: LoggerProvider,
-    public attributesStore: AttributesStore
-  ) {}
+    public attributesStore: AttributesStore,
+    customLogger?: Logger
+  ) {
+    this.logger =
+      customLogger || loggerProvider.getLogger('@firebase/crashlytics');
+  }
 
   _delete(): Promise<void> {
     return Promise.resolve();

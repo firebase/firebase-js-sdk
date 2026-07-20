@@ -22,9 +22,9 @@ import {
   InstanceFactoryOptions
 } from '@firebase/component';
 import { CRASHLYTICS_TYPE } from './constants';
-import { name, version } from '../package.json';
+import { version } from '../package.json';
 import { CrashlyticsService } from './service';
-import { createLoggerProvider } from './logging/logger-provider';
+import { resolveLoggerProvider } from './logging/logger-provider';
 import { CrashlyticsOptions } from './public-types';
 import { AttributesStore } from './attributes-store';
 
@@ -40,7 +40,7 @@ export function registerCrashlytics(): void {
           app.options,
           crashlyticsOptions
         );
-        const loggerProvider = createLoggerProvider(
+        const loggerProvider = resolveLoggerProvider(
           app,
           crashlyticsOptions,
           attributesStore
@@ -52,7 +52,9 @@ export function registerCrashlytics(): void {
     ).setMultipleInstances(true)
   );
 
-  registerVersion(name, version, 'node');
+  registerVersion(CRASHLYTICS_TYPE, version, 'node');
   // BUILD_TARGET will be replaced by values like esm, cjs, etc during the compilation
-  registerVersion(name, version, '__BUILD_TARGET__');
+  registerVersion(CRASHLYTICS_TYPE, version, '__BUILD_TARGET__');
 }
+
+registerCrashlytics();
