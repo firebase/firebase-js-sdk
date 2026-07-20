@@ -46,7 +46,7 @@ browserDescribe('WebDriver integration with FirebaseUI', driver => {
     const page = await startUi();
     await page.clickGuestSignIn();
     await waitForLoggedInPage();
-    const snap = (await driver.getUserSnapshot()) as User;
+    const snap = (await driver.getUserSnapshot()) as unknown as User;
     expect(snap.isAnonymous).to.be.true;
     expect(snap.uid).to.be.a('string');
   });
@@ -70,7 +70,7 @@ browserDescribe('WebDriver integration with FirebaseUI', driver => {
     await driver.call(UiFunction.LOAD);
     await startUi();
     await waitForLoggedInPage();
-    const snap = (await driver.getUserSnapshot()) as User;
+    const snap = (await driver.getUserSnapshot()) as unknown as User;
     expect(snap.isAnonymous).to.be.false;
     expect(snap.displayName).to.eq('Bob Test');
     expect(snap.email).to.eq('bob@bob.test');
@@ -97,7 +97,7 @@ browserDescribe('WebDriver integration with FirebaseUI', driver => {
     // Now we're back. Firebase UI should handle the redirect result handoff
     await driver.selectMainWindow();
     await waitForLoggedInPage();
-    const snap = (await driver.getUserSnapshot()) as User;
+    const snap = (await driver.getUserSnapshot()) as unknown as User;
     expect(snap.isAnonymous).to.be.false;
     expect(snap.displayName).to.eq('Bob Test');
     expect(snap.email).to.eq('bob@bob.test');
@@ -135,7 +135,7 @@ browserDescribe('WebDriver integration with FirebaseUI', driver => {
     await page.clickSubmit();
 
     await waitForLoggedInPage();
-    const snap = (await driver.getUserSnapshot()) as User;
+    const snap = (await driver.getUserSnapshot()) as unknown as User;
     expect(snap.isAnonymous).to.be.false;
     expect(snap.phoneNumber).to.eq(`+1${phoneNumber}`);
     expect(snap.uid).to.be.a('string');
@@ -152,7 +152,7 @@ browserDescribe('WebDriver integration with FirebaseUI', driver => {
     await page.clickSubmit();
 
     await waitForLoggedInPage();
-    const snap = (await driver.getUserSnapshot()) as User;
+    const snap = (await driver.getUserSnapshot()) as unknown as User;
     expect(snap.isAnonymous).to.be.false;
     expect(snap.displayName).to.eq('Foo Test');
     expect(snap.email).to.eq('foo@foo.test');
