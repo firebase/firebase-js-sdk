@@ -19,6 +19,7 @@ import { registerCrashlytics } from './src/register';
 
 registerCrashlytics();
 
+export { registerCrashlytics };
 export * from './src/api';
 export * from './src/public-types';
 export * from './src/next';
