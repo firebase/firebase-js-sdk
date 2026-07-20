@@ -58,7 +58,8 @@ const liveBackends: readonly Backend[] = [
 
 const backendNames: Map<BackendType, string> = new Map([
   [BackendType.GOOGLE_AI, 'Google AI'],
-  [BackendType.VERTEX_AI, 'Vertex AI']
+  [BackendType.VERTEX_AI, 'Vertex AI'],
+  [BackendType.AGENT_PLATFORM, 'Agent Platform']
 ]);
 
 const modelNames: readonly string[] = [
@@ -82,7 +83,8 @@ export const defaultGenerativeModel = getGenerativeModel(defaultAIInstance, {
 // The Live API requires a different set of models, and they're different for each backend.
 const liveModelNames: Map<BackendType, string[]> = new Map([
   [BackendType.GOOGLE_AI, ['gemini-3.1-flash-live-preview']],
-  [BackendType.VERTEX_AI, ['gemini-3.1-flash-live-preview']]
+  [BackendType.VERTEX_AI, ['gemini-3.1-flash-live-preview']],
+  [BackendType.AGENT_PLATFORM, ['gemini-3.1-flash-live-preview']]
 ]);
 
 /**

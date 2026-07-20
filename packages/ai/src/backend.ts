@@ -18,15 +18,15 @@
 import {
   DEFAULT_API_VERSION,
   DEFAULT_LOCATION,
-  LGEACY_DEFAULT_LOCATION
+  LEGACY_DEFAULT_LOCATION
 } from './constants';
 import { BackendType } from './public-types';
 
 /**
  * Abstract base class representing the configuration for an AI service backend.
  * This class should not be instantiated directly. Use its subclasses; {@link GoogleAIBackend} for
- * the Gemini Developer API (via {@link https://ai.google/ | Google AI}), and
- * {@link VertexAIBackend} for the Vertex AI Gemini API.
+ * the Gemini Developer API (via {@link https://ai.google/ | Google AI}), {@link AgentPlatformBackend}
+ * for the Agent Platform API, and {@link VertexAIBackend} (deprecated) for the Vertex AI Gemini API.
  *
  * @public
  */
@@ -102,7 +102,7 @@ export class VertexAIBackend extends Backend {
    * See {@link https://firebase.google.com/docs/vertex-ai/locations#available-locations | Vertex AI locations}
    * for a list of supported locations.
    */
-  readonly location: string = LGEACY_DEFAULT_LOCATION;
+  readonly location: string = LEGACY_DEFAULT_LOCATION;
 
   /**
    * Creates a configuration object for the Vertex AI backend.
@@ -150,7 +150,7 @@ export class AgentPlatformBackend extends Backend {
   readonly location: string = DEFAULT_LOCATION;
 
   /**
-   * Creates a configuration object for the Vertex AI backend.
+   * Creates a configuration object for the Agent Platform backend.
    *
    * @param location - The region identifier, defaulting to `global`;
    * see {@link https://firebase.google.com/docs/vertex-ai/locations#available-locations | Agent Platform locations}

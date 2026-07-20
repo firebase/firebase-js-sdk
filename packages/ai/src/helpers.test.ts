@@ -15,23 +15,35 @@
  * limitations under the License.
  */
 import { expect } from 'chai';
-import { AI_TYPE, DEFAULT_LOCATION } from './constants';
+import { AI_TYPE, DEFAULT_LOCATION, LEGACY_DEFAULT_LOCATION } from './constants';
 import { encodeInstanceIdentifier, decodeInstanceIdentifier } from './helpers';
 import { AIError } from './errors';
 import { AIErrorCode } from './types';
-import { GoogleAIBackend, AgentPlatformBackend } from './backend';
+import { GoogleAIBackend, AgentPlatformBackend, VertexAIBackend } from './backend';
 
 describe('Identifier Encoding/Decoding', () => {
   describe('encodeInstanceIdentifier', () => {
     it('should encode Agent Platform identifier with a specific location', () => {
       const backend = new AgentPlatformBackend('us-east1');
-      const expected = `${AI_TYPE}/vertexai/us-east1`;
+      const expected = `${AI_TYPE}/agentplatform/us-east1`;
       expect(encodeInstanceIdentifier(backend)).to.equal(expected);
     });
 
     it('should encode Agent Platform identifier using default location if location is empty string', () => {
       const backend = new AgentPlatformBackend('');
-      const expected = `${AI_TYPE}/vertexai/${DEFAULT_LOCATION}`;
+      const expected = `${AI_TYPE}/agentplatform/${DEFAULT_LOCATION}`;
+      expect(encodeInstanceIdentifier(backend)).to.equal(expected);
+    });
+
+    it('should encode Vertex AI identifier with a specific location', () => {
+      const backend = new VertexAIBackend('us-east1');
+      const expected = `${AI_TYPE}/vertexai/us-east1`;
+      expect(encodeInstanceIdentifier(backend)).to.equal(expected);
+    });
+
+    it('should encode Vertex AI identifier using default location if location is empty string', () => {
+      const backend = new VertexAIBackend('');
+      const expected = `${AI_TYPE}/vertexai/${LEGACY_DEFAULT_LOCATION}`;
       expect(encodeInstanceIdentifier(backend)).to.equal(expected);
     });
 
@@ -57,9 +69,32 @@ describe('Identifier Encoding/Decoding', () => {
   });
 
   describe('decodeInstanceIdentifier', () => {
+    it('should decode Agent Platform identifier with location', () => {
+      const encoded = `${AI_TYPE}/agentplatform/europe-west1`;
+      const backend = new AgentPlatformBackend('europe-west1');
+      expect(decodeInstanceIdentifier(encoded)).to.deep.equal(backend);
+    });
+
+    it('should throw an error if Agent Platform identifier string without explicit location part', () => {
+      const encoded = `${AI_TYPE}/agentplatform`;
+      expect(() => decodeInstanceIdentifier(encoded)).to.throw(AIError);
+
+      try {
+        decodeInstanceIdentifier(encoded);
+        expect.fail('Expected decodeInstanceIdentifier to throw');
+      } catch (e) {
+        expect(e).to.be.instanceOf(AIError);
+        const error = e as AIError;
+        expect(error.message).to.contain(
+          `Invalid instance identifier, unknown location`
+        );
+        expect(error.code).to.equal(AIErrorCode.ERROR);
+      }
+    });
+
     it('should decode Vertex AI identifier with location', () => {
       const encoded = `${AI_TYPE}/vertexai/europe-west1`;
-      const backend = new AgentPlatformBackend('europe-west1');
+      const backend = new VertexAIBackend('europe-west1');
       expect(decodeInstanceIdentifier(encoded)).to.deep.equal(backend);
     });
 

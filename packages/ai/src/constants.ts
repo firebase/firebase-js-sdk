@@ -19,7 +19,7 @@ import { version } from '../package.json';
 
 export const AI_TYPE = 'AI';
 
-export const LGEACY_DEFAULT_LOCATION = 'us-central1';
+export const LEGACY_DEFAULT_LOCATION = 'us-central1';
 
 export const DEFAULT_LOCATION = 'global';
 

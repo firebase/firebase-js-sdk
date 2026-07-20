@@ -25,7 +25,7 @@ import { BackendType } from './public-types';
 import {
   DEFAULT_API_VERSION,
   DEFAULT_LOCATION,
-  LGEACY_DEFAULT_LOCATION
+  LEGACY_DEFAULT_LOCATION
 } from './constants';
 
 describe('Backend', () => {
@@ -51,7 +51,7 @@ describe('Backend', () => {
     it('set backendType to VERTEX_AI', () => {
       const backend = new VertexAIBackend();
       expect(backend.backendType).to.equal(BackendType.VERTEX_AI);
-      expect(backend.location).to.equal(LGEACY_DEFAULT_LOCATION);
+      expect(backend.location).to.equal(LEGACY_DEFAULT_LOCATION);
     });
     it('sets custom location', () => {
       const backend = new VertexAIBackend('test-location');
@@ -61,12 +61,12 @@ describe('Backend', () => {
     it('uses default location if location is empty string', () => {
       const backend = new VertexAIBackend('');
       expect(backend.backendType).to.equal(BackendType.VERTEX_AI);
-      expect(backend.location).to.equal(LGEACY_DEFAULT_LOCATION);
+      expect(backend.location).to.equal(LEGACY_DEFAULT_LOCATION);
     });
     it('uses default location if location is null', () => {
       const backend = new VertexAIBackend(null as any);
       expect(backend.backendType).to.equal(BackendType.VERTEX_AI);
-      expect(backend.location).to.equal(LGEACY_DEFAULT_LOCATION);
+      expect(backend.location).to.equal(LEGACY_DEFAULT_LOCATION);
     });
     it('getModelPath', () => {
       const backend = new VertexAIBackend();
