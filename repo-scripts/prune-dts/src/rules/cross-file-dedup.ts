@@ -11,7 +11,7 @@ export function deduplicateCrossFileExports(
   sourceFile: SourceFile,
   otherExportFileLocations: string[] = []
 ): void {
-  if (otherExportFileLocations.length === 0) return;
+  if (otherExportFileLocations.length === 0) {return;}
 
   const project = sourceFile.getProject();
   const externalSymbols = new Map<string, string>(); // symbolName -> relative import path
@@ -43,7 +43,7 @@ export function deduplicateCrossFileExports(
     }
   }
 
-  if (externalSymbols.size === 0) return;
+  if (externalSymbols.size === 0) {return;}
 
   const statements = sourceFile.getStatements();
   const importsToAdd: Array<{ name: string; moduleSpecifier: string }> = [];

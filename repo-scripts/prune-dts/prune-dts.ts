@@ -548,7 +548,7 @@ function findExternalExport(
     | ts.EnumDeclaration,
   otherExportSourceFiles: ts.SourceFile[]
 ): ts.SourceFile | undefined {
-  if (!node.name) return undefined;
+  if (!node.name) {return undefined;}
 
   const localSymbolName = node.name.text;
 
@@ -580,7 +580,7 @@ function dropPrivateApiTransformer(
   const typeChecker = program.getTypeChecker();
 
   return (sourceFile: ts.SourceFile) => {
-    const imports: Record<string, Array<string>> = {};
+    const imports: Record<string, string[]> = {};
 
     // Get exported symbols
     const directExportedSymbols = typeChecker.getExportsOfModule(
@@ -597,7 +597,7 @@ function dropPrivateApiTransformer(
       )
       .filter(symbol => symbol !== undefined);
 
-    function ensureImportsForFile(filename: string): Array<string> {
+    function ensureImportsForFile(filename: string): string[] {
       let importsForFile = imports[filename];
       if (!importsForFile) {
         importsForFile = [];
@@ -717,9 +717,9 @@ function dropPrivateApiTransformer(
     const result = visitNodeAndChildren(sourceFile);
 
     const moreImports: ts.ImportDeclaration[] = [];
-    for (let filename in imports) {
+    for (const filename in imports) {
       const importSpecifiers: ts.ImportSpecifier[] = [];
-      for (let identifier of imports[filename]) {
+      for (const identifier of imports[filename]) {
         importSpecifiers.push(
           ts.factory.createImportSpecifier(
             false,

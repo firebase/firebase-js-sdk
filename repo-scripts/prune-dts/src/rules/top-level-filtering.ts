@@ -1,4 +1,4 @@
-import { Node, SourceFile, Statement, SyntaxKind } from 'ts-morph';
+import { SourceFile, Statement, SyntaxKind } from 'ts-morph';
 
 /**
  * Removes top-level declarations that are not exported.

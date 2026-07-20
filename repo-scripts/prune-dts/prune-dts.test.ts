@@ -26,7 +26,6 @@ const testCasesDir = path.resolve(__dirname, 'tests');
 const tmpDir = os.tmpdir();
 
 const testDataFilter = /(.*).input.d.ts/;
-const testCaseFilterRe = /.*/;
 
 async function runScript(inputFile: string, otherExportFiles: string[] = []): Promise<string> {
   const outputFile = path.resolve(tmpDir, `output-${path.basename(inputFile)}`);
@@ -48,7 +47,7 @@ interface UnitSuite {
 
 function discoverUnitSuites(): UnitSuite[] {
   const unitDir = path.resolve(testCasesDir, 'unit');
-  if (!fs.existsSync(unitDir)) return [];
+  if (!fs.existsSync(unitDir)) {return [];}
 
   const suites: UnitSuite[] = [];
   const entries = fs.readdirSync(unitDir, { withFileTypes: true });
@@ -79,7 +78,7 @@ function discoverUnitSuites(): UnitSuite[] {
 function discoverPackageCases(): TestCase[] {
   const packagesDir = path.resolve(testCasesDir, 'packages');
   const pruneOnlyDir = path.resolve(packagesDir, 'prune-only');
-  if (!fs.existsSync(packagesDir) || !fs.existsSync(pruneOnlyDir)) return [];
+  if (!fs.existsSync(packagesDir) || !fs.existsSync(pruneOnlyDir)) {return [];}
   return fs
     .readdirSync(packagesDir)
     .filter(fileName => testDataFilter.test(fileName))
@@ -151,8 +150,8 @@ function assertAndReport(
     if (exp === act && exp !== undefined) {
       previewLines.push(`${DIM}    ${exp}${RESET}`);
     } else {
-      if (exp !== undefined) previewLines.push(`${RED}-   ${exp}${RESET}`);
-      if (act !== undefined) previewLines.push(`${GREEN}+   ${act}${RESET}`);
+      if (exp !== undefined) {previewLines.push(`${RED}-   ${exp}${RESET}`);}
+      if (act !== undefined) {previewLines.push(`${GREEN}+   ${act}${RESET}`);}
     }
   }
 

@@ -37,7 +37,7 @@ export function substitutePrivateTypeReferences(sourceFile: SourceFile): void {
       const typeName = typeNameNode.getText().trim();
 
       const targetDecl = findTopLevelDeclaration(typeName, sourceFile);
-      if (!targetDecl) continue;
+      if (!targetDecl) {continue;}
 
       if (isDeclarationExported(targetDecl)) {
         continue;
@@ -74,13 +74,13 @@ function resolveExportedReplacement(
   sourceFile: SourceFile,
   visited: Set<Node>
 ): string | undefined {
-  if (visited.has(decl)) return undefined;
+  if (visited.has(decl)) {return undefined;}
   visited.add(decl);
 
   const declName =
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     typeof (decl as any).getName === 'function' ? (decl as any).getName() : null;
-  if (!declName) return undefined;
+  if (!declName) {return undefined;}
 
   // Prioritize finding an exported subclass or implementing interface in the public API
   // so callers receive the concrete public model type (e.g. `DocumentSnapshot` over internal `DocumentSnapshot_2`).
@@ -127,7 +127,7 @@ function resolveExportedReplacement(
           sourceFile,
           visited
         );
-        if (parentRes) return parentRes;
+        if (parentRes) {return parentRes;}
       }
     }
     for (const impl of cls.getImplements()) {
@@ -142,7 +142,7 @@ function resolveExportedReplacement(
             sourceFile,
             visited
           );
-          if (parentRes) return parentRes;
+          if (parentRes) {return parentRes;}
         }
       } else {
         return parentName;
@@ -162,7 +162,7 @@ function resolveExportedReplacement(
             sourceFile,
             visited
           );
-          if (parentRes) return parentRes;
+          if (parentRes) {return parentRes;}
         }
       } else {
         return parentName;
@@ -189,11 +189,11 @@ function findTopLevelDeclaration(
 ): Node | undefined {
   const cleanName = name.trim().split('<')[0].trim();
   const cls = sourceFile.getClass(cleanName);
-  if (cls) return cls;
+  if (cls) {return cls;}
   const iface = sourceFile.getInterface(cleanName);
-  if (iface) return iface;
+  if (iface) {return iface;}
   const ta = sourceFile.getTypeAlias(cleanName);
-  if (ta) return ta;
+  if (ta) {return ta;}
   return undefined;
 }
 

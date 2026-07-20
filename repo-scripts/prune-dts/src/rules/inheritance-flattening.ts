@@ -138,7 +138,7 @@ function collectMembersAndPublicBasesFromClass(
   publicBases: string[],
   sourceFile: SourceFile
 ): void {
-  if (visited.has(baseClass)) return;
+  if (visited.has(baseClass)) {return;}
   visited.add(baseClass);
 
   const parentBase = baseClass.getBaseClass();
@@ -193,18 +193,20 @@ function buildTypeArgMap(
   const map = new Map<string, string>();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const typeParams = typeof (baseDecl as any).getTypeParameters === 'function' ? (baseDecl as any).getTypeParameters() : [];
-  if (typeParams.length === 0) return map;
+  if (typeParams.length === 0) {return map;}
 
   const baseName =
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     typeof (baseDecl as any).getName === 'function' ? (baseDecl as any).getName() : null;
-  if (!baseName) return map;
+  if (!baseName) {return map;}
 
-  let clauses: any[] = [];
+  const clauses: Node[] = [];
   if (targetDecl.getKind() === SyntaxKind.ClassDeclaration) {
     const cls = targetDecl as ClassDeclaration;
     const ext = cls.getExtends();
-    if (ext) clauses.push(ext);
+    if (ext) {
+      clauses.push(ext);
+    }
     clauses.push(...cls.getImplements());
   } else {
     const iface = targetDecl as InterfaceDeclaration;
@@ -214,7 +216,8 @@ function buildTypeArgMap(
   for (const clause of clauses) {
     const text = clause.getText().trim();
     if (text.split('<')[0].trim() === baseName) {
-      const typeArgs = typeof clause.getTypeArguments === 'function' ? clause.getTypeArguments() : [];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const typeArgs = typeof (clause as any).getTypeArguments === 'function' ? (clause as any).getTypeArguments() : [];
       for (let i = 0; i < typeParams.length; i++) {
         if (i < typeArgs.length) {
           map.set(typeParams[i].getName(), typeArgs[i].getText().trim());
@@ -242,7 +245,7 @@ function collectMembersAndPublicBasesFromInterface(
   publicBases: string[],
   sourceFile: SourceFile
 ): void {
-  if (visited.has(baseIface)) return;
+  if (visited.has(baseIface)) {return;}
   visited.add(baseIface);
 
   if (baseIface.getKind() === SyntaxKind.InterfaceDeclaration) {
@@ -283,7 +286,7 @@ function collectMembersFromTypeAlias(
   typeAlias: TypeAliasDeclaration,
   visited: Set<Node>
 ): void {
-  if (visited.has(typeAlias)) return;
+  if (visited.has(typeAlias)) {return;}
   visited.add(typeAlias);
 
   const typeNode = typeAlias.getTypeNode();
@@ -318,7 +321,7 @@ function copyDeclarationMembers(
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const getStructure = (node: any) =>
+  const getStructure = (node: any): any =>
     typeof node.getStructure === 'function' ? node.getStructure() : null;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -355,7 +358,7 @@ function copyDeclarationMembers(
     }
 
     const structure = getStructure(member);
-    if (!structure) continue;
+    if (!structure) {continue;}
 
     if (typeArgMap.size > 0) {
       substituteStructureTypeArgs(structure, typeArgMap);
@@ -410,7 +413,7 @@ function copyDeclarationMembers(
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function substituteStructureTypeArgs(structure: any, typeArgMap: Map<string, string>): void {
   const replaceStr = (str: string | undefined): string | undefined => {
-    if (typeof str !== 'string') return str;
+    if (typeof str !== 'string') {return str;}
     let res = str;
     for (const [param, arg] of typeArgMap) {
       const regex = new RegExp(`\\b${param}\\b`, 'g');
@@ -419,13 +422,13 @@ function substituteStructureTypeArgs(structure: any, typeArgMap: Map<string, str
     return res;
   };
 
-  if (structure.type) structure.type = replaceStr(structure.type);
-  if (structure.returnType) structure.returnType = replaceStr(structure.returnType);
+  if (structure.type) {structure.type = replaceStr(structure.type);}
+  if (structure.returnType) {structure.returnType = replaceStr(structure.returnType);}
 
   if (Array.isArray(structure.parameters)) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     for (const param of structure.parameters) {
-      if (param.type) param.type = replaceStr(param.type);
+      if (param.type) {param.type = replaceStr(param.type);}
     }
   }
 }
@@ -469,15 +472,15 @@ function findDeclarationByName(name: string, sourceFile: SourceFile): Node | und
   const cleanName = name.trim().split('<')[0].trim();
   const classes = sourceFile.getClasses();
   for (const cls of classes) {
-    if (cls.getName() === cleanName) return cls;
+    if (cls.getName() === cleanName) {return cls;}
   }
   const interfaces = sourceFile.getInterfaces();
   for (const iface of interfaces) {
-    if (iface.getName() === cleanName) return iface;
+    if (iface.getName() === cleanName) {return iface;}
   }
   const typeAliases = sourceFile.getTypeAliases();
   for (const ta of typeAliases) {
-    if (ta.getName() === cleanName) return ta;
+    if (ta.getName() === cleanName) {return ta;}
   }
   return undefined;
 }
