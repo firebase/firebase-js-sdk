@@ -17,6 +17,7 @@
 
 import { initializeApp } from '@firebase/app';
 import {
+  AgentPlatformBackend,
   AI,
   Backend,
   BackendType,
@@ -25,7 +26,6 @@ import {
   getGenerativeModel
 } from '../src';
 import { FIREBASE_CONFIG } from './firebase-config';
-import { AgentPlatformBackend } from '../src/backend';
 
 const app = initializeApp(FIREBASE_CONFIG);
 
