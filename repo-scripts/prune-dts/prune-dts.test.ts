@@ -19,7 +19,6 @@ import * as os from 'os';
 import * as fs from 'fs';
 import * as path from 'path';
 import { format, resolveConfig } from 'prettier';
-import { expect } from 'chai';
 import { describe, it } from 'mocha';
 import { addBlankLines, pruneDts, removeUnusedImports } from './src/index';
 
@@ -274,7 +273,7 @@ describe('Prune DTS', () => {
               assertAndReport(
                 actual,
                 expected,
-                pkgName,
+                `${pkgBaseName}-stage1`,
                 absoluteStage1Output
               );
             });
@@ -294,7 +293,7 @@ describe('Prune DTS', () => {
               fs.mkdirSync(failDir, { recursive: true });
               const stage2TmpFile = path.resolve(
                 failDir,
-                `${pkgBaseName}-stage2.actual.d.ts`
+                `${pkgBaseName}-stage2.tmp.d.ts`
               );
               fs.copyFileSync(stage1TmpFile, stage2TmpFile);
 
@@ -319,7 +318,7 @@ describe('Prune DTS', () => {
               assertAndReport(
                 actual,
                 expected,
-                pkgName,
+                `${pkgBaseName}-stage2`,
                 absoluteStage2Output
               );
             });

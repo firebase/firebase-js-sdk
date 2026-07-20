@@ -2,6 +2,8 @@ import { SourceFile, SyntaxKind } from 'ts-morph';
 
 /**
  * Removes members whose names start with an underscore from classes and interfaces.
+ * Strips properties, methods, getters, and setters, while leaving constructor parameter
+ * identifiers untouched.
  */
 export function stripPrivateMembers(sourceFile: SourceFile): void {
   const classes = sourceFile.getDescendantsOfKind(SyntaxKind.ClassDeclaration);

@@ -9,7 +9,7 @@ import { hideConstructors } from './rules/constructor-visibility';
 import { filterTopLevelDeclarations } from './rules/top-level-filtering';
 
 /**
- * Top-level orchestrator for pruning non-exported declarations and private members from a declaration file (`.d.ts`).
+ * Prunes non-exported declarations and private members from a declaration file (`.d.ts`).
  */
 export function pruneDts(
   inputLocation: string,
@@ -27,7 +27,9 @@ export function pruneDts(
   const sourceFile = project.addSourceFileAtPath(inputLocation);
   const leadingLicense = extractLicenseHeader(sourceFile);
 
-  // Execute AST transformation rules sequentially:
+  // Execute AST transformation rules sequentially.
+  // Note: substitutePrivateTypeReferences must run BEFORE flattenInheritance so that
+  // `extends` and `implements` clauses can be inspected before flattenInheritance strips them.
   deduplicateCrossFileExports(sourceFile, otherExportFileLocations);
   substitutePrivateTypeReferences(sourceFile);
   flattenInheritance(sourceFile);

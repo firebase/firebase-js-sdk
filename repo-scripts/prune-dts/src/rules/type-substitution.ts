@@ -60,7 +60,6 @@ export function substitutePrivateTypeReferences(sourceFile: SourceFile): void {
 
         typeRef.replaceWithText(`${replacement}${typeArgsText}`);
         changed = true;
-        break; // Break and restart query after AST mutation
       }
     }
   }
@@ -83,12 +82,17 @@ function resolveExportedReplacement(
     typeof (decl as any).getName === 'function' ? (decl as any).getName() : null;
   if (!declName) return undefined;
 
-  // 1. Check if there is an exported subclass or interface that extends/implements `decl`
+  // Prioritize finding an exported subclass or implementing interface in the public API
+  // so callers receive the concrete public model type (e.g. `DocumentSnapshot` over internal `DocumentSnapshot_2`).
   const classes = sourceFile.getClasses();
   for (const cls of classes) {
     if (isDeclarationExported(cls)) {
       const baseClass = cls.getBaseClass();
       if (baseClass && baseClass.getName() === declName) {
+        return cls.getName() || cls.getText();
+      }
+      const ext = cls.getExtends();
+      if (ext && ext.getText().trim().split('<')[0].trim() === declName) {
         return cls.getName() || cls.getText();
       }
       for (const impl of cls.getImplements()) {
@@ -110,7 +114,7 @@ function resolveExportedReplacement(
     }
   }
 
-  // 2. If no exported subclass exists, check `decl`'s own `extends` and `implements` clauses
+  // If no exported subclass exists, fall back to checking `decl`'s own public `extends` / `implements` ancestors.
   if (decl.getKind() === SyntaxKind.ClassDeclaration) {
     const cls = decl as ClassDeclaration;
     const baseClass = cls.getBaseClass();
@@ -165,7 +169,7 @@ function resolveExportedReplacement(
       }
     }
   } else if (decl.getKind() === SyntaxKind.TypeAliasDeclaration) {
-    // 3. Recursive type alias expansion (`L46`)
+    // Recursive type alias expansion
     const typeAlias = decl as TypeAliasDeclaration;
     const typeNode = typeAlias.getTypeNode();
     if (typeNode) {
@@ -194,7 +198,9 @@ function findTopLevelDeclaration(
 }
 
 /**
- * Checks if a declaration is exported or inside an exported module/namespace.
+ * Checks if a declaration is exported at the file root or inside an exported module/namespace.
+ * Supports inline `export`/`default` keywords, separate `export { Specifier }` declarations,
+ * and ambient `declare module` / `namespace` block scoping rules.
  */
 function isDeclarationExported(node: Node): boolean {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

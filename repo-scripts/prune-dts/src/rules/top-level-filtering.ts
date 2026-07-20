@@ -11,7 +11,8 @@ export function filterTopLevelDeclarations(sourceFile: SourceFile): void {
   const toRemove: Statement[] = [];
 
   for (const stmt of statements) {
-    // Keep export/import declarations (`export { Foo }`, `import { Bar }`) and assignments (`export default Foo`).
+    // Preserve export/import declarations (`export { Foo }`, `import { Bar }`) and assignments (`export default Foo`)
+    // so barrel re-exports and module type imports are not stripped.
     if (
       stmt.getKindName() === 'ExportDeclaration' ||
       stmt.getKindName() === 'ExportAssignment' ||
@@ -29,6 +30,7 @@ export function filterTopLevelDeclarations(sourceFile: SourceFile): void {
     if (!hasExport && !hasDefault) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const name = typeof (stmt as any).getName === 'function' ? (stmt as any).getName() : null;
+      // Check if the declaration lacks an inline `export` keyword but is exported in a separate `export { Name }` block.
       if (name && isNameInExportDeclarations(name, sourceFile)) {
         continue;
       }
@@ -45,6 +47,9 @@ export function filterTopLevelDeclarations(sourceFile: SourceFile): void {
   }
 }
 
+/**
+ * Checks if an identifier is exported via a separate `export { Specifier }` statement in the file.
+ */
 function isNameInExportDeclarations(name: string, sourceFile: SourceFile): boolean {
   const exportSpecs = sourceFile.getDescendantsOfKind(SyntaxKind.ExportSpecifier);
   for (const spec of exportSpecs) {

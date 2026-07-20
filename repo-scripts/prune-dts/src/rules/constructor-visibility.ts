@@ -49,6 +49,7 @@ export function hideConstructors(sourceFile: SourceFile): void {
     }
 
     if (hasHideConstructor) {
+      // Remove all existing constructor overloads and replace with a single private/protected constructor.
       for (const ctor of constructors) {
         ctor.remove();
       }
@@ -83,7 +84,7 @@ function cleanJsDocText(rawText: string): string {
 
   const contentOnly = cleanedLines
     .join('\n')
-    .replace(/\/\*\*|\*\/|\*/g, '')
+    .replace(/\/\*\*|\*\/|\*/g, '') // Removes /**, */, *
     .trim();
   if (!contentOnly) {
     return '';

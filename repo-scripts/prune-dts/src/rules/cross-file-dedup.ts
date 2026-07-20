@@ -4,6 +4,8 @@ import { SourceFile, SyntaxKind } from 'ts-morph';
 /**
  * Deduplicates declarations (classes, interfaces, type aliases, enums) that are
  * already exported by another public entry point (`otherExportFileLocations`).
+ * For multi-entry point packages (e.g., `firestore/lite` vs `firestore`), duplicate
+ * declarations are replaced with a type-only import from the companion bundle.
  */
 export function deduplicateCrossFileExports(
   sourceFile: SourceFile,
@@ -14,6 +16,7 @@ export function deduplicateCrossFileExports(
   const project = sourceFile.getProject();
   const externalSymbols = new Map<string, string>(); // symbolName -> relative import path
 
+  // Map symbols exported by companion bundles to their relative import path
   for (const otherFilePath of otherExportFileLocations) {
     const absPath = path.resolve(otherFilePath);
     let otherFile = project.getSourceFile(absPath);

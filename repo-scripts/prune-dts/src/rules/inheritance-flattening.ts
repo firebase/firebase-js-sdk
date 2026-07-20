@@ -49,12 +49,19 @@ function flattenClassInheritance(
     if (publicBases.length > 0) {
       cls.setExtends(publicBases[0]);
     }
+  } else if (!baseClass && cls.getExtends()) { // When API Extractor strips @internal base declarations, getBaseClass() returns undefined.
+    // If it references an excluded `_`-prefixed internal type, strip the dangling extends clause.
+    const extText = cls.getExtends()!.getText().trim().split('<')[0].trim(); // Strip generic type arguments (`_Base<T>` -> `_Base`) to isolate the base identifier name.
+    if (extText.startsWith('_')) {
+      cls.removeExtends();
+    }
   }
 
   // Handle `implements Iface1, Iface2`
   const implementsNodes = cls.getImplements();
   for (const impl of implementsNodes) {
     const typeText = impl.getText();
+    const cleanName = typeText.trim().split('<')[0].trim(); // Strip generic type arguments (e.g., `_Iface<T>` -> `_Iface`) to look up the base declaration.
     const baseDecl = findDeclarationByName(typeText, sourceFile);
     if (baseDecl && !isNodeExported(baseDecl)) {
       const visited = new Set<Node>();
@@ -71,6 +78,9 @@ function flattenClassInheritance(
       for (const pubBase of publicBases) {
         cls.addImplements(pubBase);
       }
+    } else if (!baseDecl && cleanName.startsWith('_')) {
+      // Strip dangling implements clauses for excluded `_`-prefixed internal interfaces.
+      cls.removeImplements(impl);
     }
   }
 }
@@ -85,6 +95,8 @@ function flattenInterfaceInheritance(
   const extendsNodes = iface.getExtends();
   for (const ext of extendsNodes) {
     const typeText = ext.getText();
+    // Strip generic type arguments (e.g., `_BaseIface<T>` -> `_BaseIface`) to look up the base declaration.
+    const cleanName = typeText.trim().split('<')[0].trim();
     const baseDecl = findDeclarationByName(typeText, sourceFile);
     if (baseDecl && !isNodeExported(baseDecl)) {
       const visited = new Set<Node>();
@@ -109,6 +121,9 @@ function flattenInterfaceInheritance(
       for (const pubBase of publicBases) {
         iface.addExtends(pubBase);
       }
+    } else if (!baseDecl && cleanName.startsWith('_')) {
+      // Strip dangling extends clauses for excluded `_`-prefixed internal interfaces/types.
+      iface.removeExtends(ext);
     }
   }
 }

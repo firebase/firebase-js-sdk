@@ -2,7 +2,8 @@ import { SourceFile } from 'ts-morph';
 
 /**
  * Extracts any leading file comment (such as `@license`) from the source file
- * so it can be preserved across AST transformations.
+ * before AST node removals, which would otherwise drop leading trivia attached
+ * to the first statement.
  */
 export function extractLicenseHeader(sourceFile: SourceFile): string {
   const fullText = sourceFile.getFullText();
