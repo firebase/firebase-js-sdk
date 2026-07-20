@@ -92,8 +92,10 @@ export interface TemplateGenerateContentRequest {
  * Internal version of the template generate content request.
  * @internal
  */
-export interface TemplateRequestInternal
-  extends Omit<TemplateGenerateContentRequest, 'tools'> {
+export interface TemplateRequestInternal extends Omit<
+  TemplateGenerateContentRequest,
+  'tools'
+> {
   tools?: TemplateFunctionDeclarationsToolInternal[];
 }
 
@@ -335,8 +337,10 @@ export interface StartChatParams extends BaseParams {
  * Params for {@link TemplateGenerativeModel.startChat}.
  * @beta
  */
-export interface StartTemplateChatParams
-  extends Omit<StartChatParams, 'tools'> {
+export interface StartTemplateChatParams extends Omit<
+  StartChatParams,
+  'tools'
+> {
   /**
    * The ID of the server-side template to execute.
    */
@@ -658,8 +662,10 @@ export interface TemplateFunctionDeclaration {
 /**
  * @internal
  */
-export interface TemplateFunctionDeclarationInternal
-  extends Omit<TemplateFunctionDeclaration, 'parameters'> {
+export interface TemplateFunctionDeclarationInternal extends Omit<
+  TemplateFunctionDeclaration,
+  'parameters'
+> {
   inputSchema?: ObjectSchema | ObjectSchemaRequest;
 }
 

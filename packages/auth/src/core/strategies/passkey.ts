@@ -236,8 +236,7 @@ function base64ToUint8Array(base64: string): Uint8Array {
 // Converts an array of credential IDs of `excludeCredentials` field to an array of `PublicKeyCredentialDescriptor` objects.
 function convertCredentialIds(
   options:
-    | PublicKeyCredentialCreationOptions
-    | PublicKeyCredentialRequestOptions
+    PublicKeyCredentialCreationOptions | PublicKeyCredentialRequestOptions
 ): void {
   if ('excludeCredentials' in options && options.excludeCredentials) {
     for (const cred of options.excludeCredentials) {
@@ -270,8 +269,8 @@ function getPasskeyCredentialCreationOptions(
       typeof document !== 'undefined' && document.title
         ? document.title
         : typeof window !== 'undefined'
-        ? window.location.hostname
-        : 'Firebase App';
+          ? window.location.hostname
+          : 'Firebase App';
   }
 
   options.user!.name = name;

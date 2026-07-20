@@ -155,10 +155,9 @@ export async function getTestTasks(): Promise<TestTask[]> {
           if (depGraph[pkgName].includes(changedPkg.name)) {
             const depData = packageInfo.find(item => item.name === pkgName);
             if (depData) {
-              const depPkgJson = require(resolve(
-                depData.location,
-                'package.json'
-              ));
+              const depPkgJson = require(
+                resolve(depData.location, 'package.json')
+              );
               if (depPkgJson) {
                 if (!testTasks.find(t => t.pkgName === depPkgJson.name)) {
                   testTasks.push(

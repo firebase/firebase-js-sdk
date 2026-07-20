@@ -596,7 +596,10 @@ export function castTargetIds<T extends TargetId | RemoteTargetId>(
 }
 
 export class TestBundledDocuments {
-  constructor(public documents: BundledDocuments, public bundleName: string) {}
+  constructor(
+    public documents: BundledDocuments,
+    public bundleName: string
+  ) {}
 }
 
 export function bundledDocuments(

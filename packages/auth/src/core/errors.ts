@@ -461,15 +461,17 @@ export interface NamedErrorParams {
  * @internal
  */
 type GenericAuthErrorParams = {
-  [key in Exclude<
-    AuthErrorCode,
-    | AuthErrorCode.ARGUMENT_ERROR
-    | AuthErrorCode.DEPENDENT_SDK_INIT_BEFORE_AUTH
-    | AuthErrorCode.INTERNAL_ERROR
-    | AuthErrorCode.MFA_REQUIRED
-    | AuthErrorCode.NO_AUTH_EVENT
-    | AuthErrorCode.OPERATION_NOT_SUPPORTED
-  >]: {
+  [
+    key in Exclude<
+      AuthErrorCode,
+      | AuthErrorCode.ARGUMENT_ERROR
+      | AuthErrorCode.DEPENDENT_SDK_INIT_BEFORE_AUTH
+      | AuthErrorCode.INTERNAL_ERROR
+      | AuthErrorCode.MFA_REQUIRED
+      | AuthErrorCode.NO_AUTH_EVENT
+      | AuthErrorCode.OPERATION_NOT_SUPPORTED
+    >
+  ]: {
     appName?: AppName;
     email?: string;
     phoneNumber?: string;

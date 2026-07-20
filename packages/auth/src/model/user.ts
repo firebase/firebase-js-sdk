@@ -97,7 +97,6 @@ export interface UserInternal extends User {
  * @internal
  */
 export interface UserCredentialInternal
-  extends UserCredential,
-    TaggedWithTokenResponse {
+  extends UserCredential, TaggedWithTokenResponse {
   user: UserInternal;
 }

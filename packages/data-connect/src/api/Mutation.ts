@@ -25,8 +25,10 @@ import {
   SOURCE_SERVER
 } from './Reference';
 
-export interface MutationRef<Data, Variables>
-  extends OperationRef<Data, Variables> {
+export interface MutationRef<Data, Variables> extends OperationRef<
+  Data,
+  Variables
+> {
   refType: typeof MUTATION_STR;
 }
 
@@ -105,15 +107,18 @@ export class MutationManager {
 /**
  * Mutation Result from `executeMutation`
  */
-export interface MutationResult<Data, Variables>
-  extends DataConnectResult<Data, Variables> {
+export interface MutationResult<Data, Variables> extends DataConnectResult<
+  Data,
+  Variables
+> {
   ref: MutationRef<Data, Variables>;
 }
 /**
  * Mutation return value from `executeMutation`
  */
-export interface MutationPromise<Data, Variables>
-  extends Promise<MutationResult<Data, Variables>> {
+export interface MutationPromise<Data, Variables> extends Promise<
+  MutationResult<Data, Variables>
+> {
   // reserved for special actions like cancellation
 }
 

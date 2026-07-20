@@ -629,8 +629,7 @@ export function isDouble(
 export function isNumber(
   value?: Value | null
 ): value is
-  | { doubleValue: string | number }
-  | { integerValue: string | number } {
+  { doubleValue: string | number } | { integerValue: string | number } {
   return isInteger(value) || isDouble(value);
 }
 

@@ -202,7 +202,10 @@ function applyArrayRemoveTransformOperation(
  * arithmetic is used and precision loss can occur for values greater than 2^53.
  */
 export abstract class NumericTransformOperation extends TransformOperation {
-  constructor(readonly serializer: Serializer, readonly operand: ProtoValue) {
+  constructor(
+    readonly serializer: Serializer,
+    readonly operand: ProtoValue
+  ) {
     super();
     debugAssert(
       isNumber(operand),

@@ -611,9 +611,7 @@ export async function checkOnlineAndOfflineResultsMatch(
 export function itIf(
   condition: boolean | 'only'
 ):
-  | Mocha.TestFunction
-  | Mocha.PendingTestFunction
-  | Mocha.ExclusiveTestFunction {
+  Mocha.TestFunction | Mocha.PendingTestFunction | Mocha.ExclusiveTestFunction {
   // eslint-disable-next-line no-restricted-properties
   return condition === 'only' ? it.only : condition ? it : it.skip;
 }

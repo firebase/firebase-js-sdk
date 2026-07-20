@@ -400,10 +400,7 @@ export function pipelineEq(left: CorePipeline, right: CorePipeline): boolean {
 export type PipelineFlavor = 'exact' | 'augmented' | 'keyless';
 
 export type PipelineSourceType =
-  | 'collection'
-  | 'collection_group'
-  | 'database'
-  | 'documents';
+  'collection' | 'collection_group' | 'database' | 'documents';
 
 export function asCollectionPipelineAtPath(
   pipeline: CorePipeline,

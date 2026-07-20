@@ -53,8 +53,7 @@ export interface GenerateContentStreamResult {
  *
  * @public
  */
-export interface EnhancedGenerateContentResponse
-  extends GenerateContentResponse {
+export interface EnhancedGenerateContentResponse extends GenerateContentResponse {
   /**
    * Returns the text string from the response, if available.
    * Throws if the prompt or candidate was blocked.
