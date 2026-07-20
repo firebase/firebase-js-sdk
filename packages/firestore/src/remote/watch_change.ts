@@ -53,9 +53,7 @@ import { RemoteEvent, TargetChange } from './remote_event';
  * Internal representation of the watcher API protocol buffers.
  */
 export type WatchChange =
-  | DocumentWatchChange
-  | WatchTargetChange
-  | ExistenceFilterChange;
+  DocumentWatchChange | WatchTargetChange | ExistenceFilterChange;
 
 /**
  * Represents a changed document and a list of target ids to which this change

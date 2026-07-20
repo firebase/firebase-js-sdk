@@ -129,13 +129,7 @@ describe('API', () => {
         requestGetToken(firebaseDependencies, tokenDetails.subscriptionOptions!)
       ).to.be.rejectedWith('messaging/token-subscribe-failed');
 
-      fetchStub.resolves(
-        new Response(
-          JSON.stringify({
-            /* no token */
-          })
-        )
-      );
+      fetchStub.resolves(new Response(JSON.stringify({/* no token */})));
       await expect(
         requestGetToken(firebaseDependencies, tokenDetails.subscriptionOptions!)
       ).to.be.rejectedWith('messaging/token-subscribe-no-token');
@@ -376,13 +370,7 @@ describe('API', () => {
         requestUpdateToken(firebaseDependencies, tokenDetails)
       ).to.be.rejectedWith('messaging/token-update-failed');
 
-      fetchStub.resolves(
-        new Response(
-          JSON.stringify({
-            /* no token */
-          })
-        )
-      );
+      fetchStub.resolves(new Response(JSON.stringify({/* no token */})));
       await expect(
         requestUpdateToken(firebaseDependencies, tokenDetails)
       ).to.be.rejectedWith('messaging/token-update-no-token');

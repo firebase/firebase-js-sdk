@@ -44,6 +44,8 @@ export const enum HttpMethod {
   GET = 'GET'
 }
 
+const errorCodesToInternalSet = new Set(['53', '54']);
+
 export const enum HttpHeader {
   CONTENT_TYPE = 'Content-Type',
   X_FIREBASE_LOCALE = 'X-Firebase-Locale',
@@ -77,7 +79,11 @@ export const enum Endpoint {
   GET_RECAPTCHA_CONFIG = '/v2/recaptchaConfig',
   GET_PASSWORD_POLICY = '/v2/passwordPolicy',
   TOKEN = '/v1/token',
-  REVOKE_TOKEN = '/v2/accounts:revokeToken'
+  REVOKE_TOKEN = '/v2/accounts:revokeToken',
+  START_PASSKEY_ENROLLMENT = '/v2/accounts/passkeyEnrollment:start',
+  FINALIZE_PASSKEY_ENROLLMENT = '/v2/accounts/passkeyEnrollment:finalize',
+  START_PASSKEY_SIGNIN = '/v2/accounts/passkeySignIn:start',
+  FINALIZE_PASSKEY_SIGNIN = '/v2/accounts/passkeySignIn:finalize'
 }
 
 const CookieAuthProxiedEndpoints: string[] = [
@@ -232,11 +238,15 @@ export async function _performFetchWithErrorHandling<V>(
       } else if (serverErrorCode === ServerError.USER_DISABLED) {
         throw _makeTaggedError(auth, AuthErrorCode.USER_DISABLED, json);
       }
-      const authError =
+      let authError =
         errorMap[serverErrorCode as ServerError] ||
         (serverErrorCode
           .toLowerCase()
           .replace(/[_\s]+/g, '-') as unknown as AuthErrorCode);
+      const errorCode = serverErrorCode.split(':')[1];
+      if (errorCode && errorCodesToInternalSet.has(errorCode.trim())) {
+        authError = AuthErrorCode.INTERNAL_ERROR;
+      }
       if (serverErrorMessage) {
         throw _errorWithCustomMessage(auth, authError, serverErrorMessage);
       } else {

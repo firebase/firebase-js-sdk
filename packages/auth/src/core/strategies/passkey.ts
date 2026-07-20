@@ -1,0 +1,306 @@
+/**
+ * @license
+ * Copyright 2023 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import { Auth, User, UserCredential } from '../../model/public_types';
+
+import {
+  startPasskeyEnrollment,
+  StartPasskeyEnrollmentRequest,
+  StartPasskeyEnrollmentResponse,
+  finalizePasskeyEnrollment,
+  FinalizePasskeyEnrollmentRequest,
+  FinalizePasskeyEnrollmentResponse,
+  startPasskeySignIn,
+  StartPasskeySignInRequest,
+  StartPasskeySignInResponse,
+  finalizePasskeySignIn,
+  FinalizePasskeySignInRequest,
+  FinalizePasskeySignInResponse,
+  publicKeyCredentialToJSON,
+  PasskeyUnenrollRequest,
+  passkeyUnenroll
+} from '../../api/account_management/passkey';
+import { UserInternal } from '../../model/user';
+import { _castAuth } from '../auth/auth_impl';
+import { getModularInstance } from '@firebase/util';
+import { OperationType } from '../../model/enums';
+import { UserCredentialImpl } from '../user/user_credential_impl';
+import { signInAnonymously } from './anonymous';
+
+const DEFAULT_PASSKEY_ACCOUNT_NAME = 'Unnamed account (Web)';
+const PASSKEY_LOOK_UP_ERROR_MESSAGE =
+  'The operation either timed out or was not allowed.';
+
+/**
+ * Signs in a user with a passkey. Use enrollPasskey to enroll a passkey credential for the current user.
+ * @param auth - The Firebase Auth instance.
+ * @param name - The user's name for passkey.
+ * @param manualSignUp - When false, automatically creates an anonymous user if a passkey credential does not exist. Due to browser limitations, this will also trigger if the user cancels the native passkey prompt. Defaults to false.
+ * @returns A promise that resolves with a `UserCredential` object.
+ *
+ * @public
+ */
+export async function signInWithPasskey(
+  auth: Auth,
+  name: string,
+  manualSignUp: boolean = false
+): Promise<UserCredential> {
+  const authInternal = _castAuth(auth);
+
+  // Start Passkey Sign in
+  const startSignInRequest: StartPasskeySignInRequest = {};
+  const startSignInResponse = await startPasskeySignIn(
+    authInternal,
+    startSignInRequest
+  );
+
+  const options = getPasskeyCredentialRequestOptions(startSignInResponse, name);
+
+  // Get the credential
+  let credential;
+  try {
+    credential = (await navigator.credentials.get({
+      publicKey: options
+    })) as PublicKeyCredential;
+
+    if (!credential) {
+      const err = new Error(PASSKEY_LOOK_UP_ERROR_MESSAGE);
+      err.name = 'NotAllowedError';
+      throw err;
+    }
+
+    const finalizeSignInRequest: FinalizePasskeySignInRequest = {
+      authenticatorAuthenticationResponse:
+        publicKeyCredentialToJSON(credential),
+      name,
+      displayName: name
+    };
+    const finalizeSignInResponse: FinalizePasskeySignInResponse =
+      await finalizePasskeySignIn(authInternal, finalizeSignInRequest);
+
+    const operationType = OperationType.SIGN_IN;
+    const userCredential = await UserCredentialImpl._fromIdTokenResponse(
+      authInternal,
+      operationType,
+      finalizeSignInResponse
+    );
+    await auth.updateCurrentUser(userCredential.user);
+    return userCredential;
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      (error.name === 'NotAllowedError' ||
+        error.message.includes(PASSKEY_LOOK_UP_ERROR_MESSAGE)) &&
+      !manualSignUp
+    ) {
+      // If the user is not signed up, sign them up anonymously
+      const userCredential = await signInAnonymously(authInternal);
+      const user = userCredential.user;
+      try {
+        return await enrollPasskey(user, name);
+      } catch (enrollmentError) {
+        // If enrollment fails, delete the anonymously created user.
+        try {
+          await (getModularInstance(user) as UserInternal).delete();
+        } catch (deleteError) {
+          if (authInternal.currentUser !== null) {
+            await authInternal.signOut();
+          }
+        }
+        throw enrollmentError;
+      }
+    }
+    return Promise.reject(error);
+  }
+}
+
+/**
+ * Enrolls a passkey for the user account.
+ * @param user - The user to enroll the passkey for.
+ * @param name - The name associated with the passkey.
+ * @returns A promise that resolves with a `UserCredential` object.
+ * @public
+ */
+export async function enrollPasskey(
+  user: User,
+  name: string
+): Promise<UserCredential> {
+  const userInternal = getModularInstance(user) as UserInternal;
+  const authInternal = _castAuth(userInternal.auth);
+
+  if (name === '') {
+    name = DEFAULT_PASSKEY_ACCOUNT_NAME;
+  }
+
+  // Start Passkey Enrollment
+  const idToken = await userInternal.getIdToken();
+  const startEnrollmentRequest: StartPasskeyEnrollmentRequest = {
+    idToken
+  };
+  const startEnrollmentResponse = await startPasskeyEnrollment(
+    authInternal,
+    startEnrollmentRequest
+  );
+
+  // Create the crendential
+  try {
+    const options = getPasskeyCredentialCreationOptions(
+      startEnrollmentResponse,
+      name
+    );
+    const credential = (await navigator.credentials.create({
+      publicKey: options
+    })) as PublicKeyCredential;
+
+    if (!credential) {
+      const err = new Error(
+        'The operation either timed out or was not allowed.'
+      );
+      err.name = 'NotAllowedError';
+      throw err;
+    }
+
+    const idToken = await userInternal.getIdToken();
+    const finalizeEnrollmentRequest: FinalizePasskeyEnrollmentRequest = {
+      idToken,
+      authenticatorRegistrationResponse: publicKeyCredentialToJSON(credential),
+      name,
+      displayName: name
+    };
+    const finalizeEnrollmentResponse: FinalizePasskeyEnrollmentResponse =
+      await finalizePasskeyEnrollment(authInternal, finalizeEnrollmentRequest);
+
+    // The passkey provider is linked with the user's current providers.
+    const operationType = OperationType.LINK;
+    const userCredential = await UserCredentialImpl._fromIdTokenResponse(
+      userInternal.auth,
+      operationType,
+      finalizeEnrollmentResponse
+    );
+    return userCredential;
+  } catch (err) {
+    return Promise.reject(err);
+  }
+}
+
+/**
+ * Unenrolls the passkey corresponding to the specified credentialId.
+ * @param user - The user to unenroll the passkey for.
+ * @param credentialId - The ID of the passkey to unenroll.
+ * @returns A promise that resolves when the passkey is successfully unenrolled.
+ * @public
+ */
+export async function unenrollPasskey(
+  user: User,
+  credentialId: string
+): Promise<void> {
+  const userInternal = getModularInstance(user) as UserInternal;
+  const authInternal = _castAuth(userInternal.auth);
+
+  const idToken = await userInternal.getIdToken();
+  const request: PasskeyUnenrollRequest = {
+    idToken,
+    deletePasskey: [credentialId]
+  };
+  await passkeyUnenroll(authInternal, request);
+}
+
+function base64ToUint8Array(base64: string): Uint8Array {
+  // Replace base64url characters with standard base64 characters
+  const base64Standard = base64.replace(/-/g, '+').replace(/_/g, '/');
+  // Add padding if necessary
+  const padding = '='.repeat((4 - (base64Standard.length % 4)) % 4);
+  const binaryStr = atob(base64Standard + padding);
+  const len = binaryStr.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; i++) {
+    bytes[i] = binaryStr.charCodeAt(i);
+  }
+  return bytes;
+}
+
+// Converts an array of credential IDs of `excludeCredentials` field to an array of `PublicKeyCredentialDescriptor` objects.
+function convertCredentialIds(
+  options:
+    PublicKeyCredentialCreationOptions | PublicKeyCredentialRequestOptions
+): void {
+  if ('excludeCredentials' in options && options.excludeCredentials) {
+    for (const cred of options.excludeCredentials) {
+      if (typeof cred.id === 'string') {
+        cred.id = base64ToUint8Array(cred.id);
+      }
+    }
+  }
+  if ('allowCredentials' in options && options.allowCredentials) {
+    for (const cred of options.allowCredentials) {
+      if (typeof cred.id === 'string') {
+        cred.id = base64ToUint8Array(cred.id);
+      }
+    }
+  }
+}
+
+function getPasskeyCredentialCreationOptions(
+  response: StartPasskeyEnrollmentResponse,
+  name: string = ''
+): PublicKeyCredentialCreationOptions {
+  const options = response.credentialCreationOptions!;
+
+  if (name === '') {
+    name = 'Unnamed account (Web)';
+  }
+
+  if (!options.rp.name) {
+    options.rp.name =
+      typeof document !== 'undefined' && document.title
+        ? document.title
+        : typeof window !== 'undefined'
+          ? window.location.hostname
+          : 'Firebase App';
+  }
+
+  options.user!.name = name;
+  options.user!.displayName = name;
+
+  const userId = options.user!.id as unknown as string;
+  options.user!.id = base64ToUint8Array(userId);
+
+  const challengeBase64 = options.challenge as unknown as string;
+  options.challenge = base64ToUint8Array(challengeBase64);
+
+  convertCredentialIds(options);
+
+  return options;
+}
+
+function getPasskeyCredentialRequestOptions(
+  response: StartPasskeySignInResponse,
+  name: string = ''
+): PublicKeyCredentialRequestOptions {
+  const options = response.credentialRequestOptions!;
+
+  if (name === '') {
+    name = 'Unnamed account (Web)';
+  }
+
+  const challengeBase64 = options.challenge as unknown as string;
+  options.challenge = base64ToUint8Array(challengeBase64);
+
+  convertCredentialIds(options);
+
+  return options;
+}

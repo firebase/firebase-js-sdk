@@ -262,8 +262,9 @@ describe('platform_browser/persistence/indexed_db', () => {
         sender = new Sender(serviceWorker);
         sinon.stub(workerUtil, '_isWorker').returns(true);
         sinon.stub(workerUtil, '_getWorkerGlobalScope').returns(serviceWorker);
-        persistence =
-          new (indexedDBLocalPersistence as unknown as SingletonInstantiator<TestPersistence>)();
+        persistence = new (
+          indexedDBLocalPersistence as unknown as SingletonInstantiator<TestPersistence>
+        )();
         db = await _openDatabase();
       });
 
@@ -337,8 +338,9 @@ describe('platform_browser/persistence/indexed_db', () => {
         sinon
           .stub(workerUtil, '_getServiceWorkerController')
           .returns(serviceWorker);
-        persistence =
-          new (indexedDBLocalPersistence as unknown as SingletonInstantiator<TestPersistence>)();
+        persistence = new (
+          indexedDBLocalPersistence as unknown as SingletonInstantiator<TestPersistence>
+        )();
       });
 
       it('should send a ping on init', async () => {

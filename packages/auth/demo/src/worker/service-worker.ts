@@ -136,10 +136,10 @@ self.addEventListener('fetch', (event: FetchEvent) => {
             return response;
           }
           // If response is valid, clone it and save it to the cache.
-          var responseToCache = response.clone();
+          const responseToCache = response.clone();
           // Save response to cache.
-          caches.open(CACHE_NAME).then(function (cache) {
-            cache.put(event.request, responseToCache);
+          void caches.open(CACHE_NAME).then(cache => {
+            void cache.put(event.request, responseToCache);
           });
           // After caching, return response.
           return response;

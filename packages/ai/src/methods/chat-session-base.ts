@@ -63,8 +63,7 @@ export abstract class ChatSessionBase<
   ParamsType extends StartChatParams | StartTemplateChatParams,
   RequestType,
   FunctionDeclarationsToolType extends
-    | FunctionDeclarationsTool
-    | TemplateFunctionDeclarationsTool
+    FunctionDeclarationsTool | TemplateFunctionDeclarationsTool
 > {
   protected _apiSettings: ApiSettings;
   protected _history: Content[] = [];
@@ -156,9 +155,8 @@ export abstract class ChatSessionBase<
 
         if (functionCalls) {
           functionCallTurnCount++;
-          const functionResponseParts = await this._callFunctionsAsNeeded(
-            functionCalls
-          );
+          const functionResponseParts =
+            await this._callFunctionsAsNeeded(functionCalls);
           formattedContent = formatNewContent(functionResponseParts);
         } else {
           formattedContent = formatNewContent(request);
@@ -251,9 +249,8 @@ export abstract class ChatSessionBase<
 
           if (functionCalls) {
             functionCallTurnCount++;
-            const functionResponseParts = await this._callFunctionsAsNeeded(
-              functionCalls
-            );
+            const functionResponseParts =
+              await this._callFunctionsAsNeeded(functionCalls);
             formattedContent = formatNewContent(functionResponseParts);
           } else {
             formattedContent = formatNewContent(request);

@@ -723,8 +723,7 @@ apiPipelineDescribe('Queries', (persistence, pipelineMode) => {
         query1,
         (
           result:
-            | QuerySnapshot<DocumentData, DocumentData>
-            | RealtimePipelineSnapshot
+            QuerySnapshot<DocumentData, DocumentData> | RealtimePipelineSnapshot
         ) => {
           expect(toDataArray(result)).to.deep.equal([
             testDocs[1],
@@ -2491,10 +2490,13 @@ apiPipelineDescribe('Queries', (persistence, pipelineMode) => {
 
       // Create the mapping from document ID to document data for the document
       // IDs specified in `testDocIds`.
-      const testDocs = testDocIds.reduce((map, docId) => {
-        map[docId] = { foo: 42 };
-        return map;
-      }, {} as { [key: string]: DocumentData });
+      const testDocs = testDocIds.reduce(
+        (map, docId) => {
+          map[docId] = { foo: 42 };
+          return map;
+        },
+        {} as { [key: string]: DocumentData }
+      );
 
       // Ensure that the local cache is configured to use LRU garbage collection
       // (rather than eager garbage collection) so that the resume token and

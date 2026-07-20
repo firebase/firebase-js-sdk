@@ -74,7 +74,10 @@ import {
   connectAuthEmulator,
   initializeRecaptchaConfig,
   validatePassword,
-  revokeAccessToken
+  revokeAccessToken,
+  enrollPasskey,
+  signInWithPasskey,
+  unenrollPasskey
 } from '@firebase/auth';
 
 import { config } from './config';
@@ -525,6 +528,33 @@ function onInitializeRecaptchaConfig() {
   initializeRecaptchaConfig(auth);
 }
 
+function onEnrollPasskey() {
+  const name = $('#enroll-passkey-name').val();
+  enrollPasskey(activeUser(), name).then(
+    onAuthUserCredentialSuccess,
+    onAuthError
+  );
+}
+
+function onGetEnrolledPasskeys() {
+  console.log('Getting enrolled passkeys');
+  const passkeys = activeUser().enrolledPasskeys;
+  console.log(passkeys);
+}
+
+function onUnenrollPasskey() {
+  const credId = $('#unenroll-passkey-credential-id').val();
+  unenrollPasskey(activeUser(), credId).then(
+    () => console.log('Successfully unenrolled passkey'),
+    onAuthError
+  );
+}
+
+function onSignInWithPasskey() {
+  const name = $('#signin-passkey-name').val();
+  signInWithPasskey(auth, name).then(onAuthSuccess, onAuthError);
+}
+
 /**
  * Updates the displayed validation status for the inputted password.
  * @param {string} sectionIdPrefix The ID prefix of the section to show the password requirements in.
@@ -895,9 +925,8 @@ async function onStartEnrollWithTotpMultiFactor() {
   }
   try {
     multiFactorSession = await multiFactor(activeUser()).getSession();
-    totpSecret = await TotpMultiFactorGenerator.generateSecret(
-      multiFactorSession
-    );
+    totpSecret =
+      await TotpMultiFactorGenerator.generateSecret(multiFactorSession);
     const url = totpSecret.generateQrCodeUrl('test', 'testissuer');
     console.log('TOTP URL is ' + url);
     console.log(
@@ -916,9 +945,8 @@ async function onStartEnrollWithTotpMultiFactor() {
         var minutes = Math.floor(t / (1000 * 60));
         var seconds = Math.floor((t % (60 * 1000)) / 1000);
         // accessing the field using $ does not work here.
-        document.getElementById(
-          'totp-deadline'
-        ).innerText = `Time left - ${minutes} minutes, ${seconds} seconds.`;
+        document.getElementById('totp-deadline').innerText =
+          `Time left - ${minutes} minutes, ${seconds} seconds.`;
       }
     }, 1000);
     // Use the QRServer API documented at https://goqr.me/api/doc/
@@ -1703,8 +1731,7 @@ function onGetRedirectResult() {
     }
     logAdditionalUserInfo(response);
     console.log(response);
-  },
-  onAuthError);
+  }, onAuthError);
 }
 
 /**
@@ -2201,8 +2228,7 @@ function initApp() {
   ) {
     refreshUserData();
     logAdditionalUserInfo(response);
-  },
-  onAuthError);
+  }, onAuthError);
 
   // Try sign in with redirect once upon page load, not on subsequent loads.
   // This will demonstrate the behavior when signInWithRedirect is called before
@@ -2276,6 +2302,8 @@ function initApp() {
   $('#signup-password').blur(() => onBlurPassword('#signup-'));
   $('#password-reset-password').blur(() => onBlurPassword('#password-reset-'));
 
+  $('#sign-in-with-passkey').click(onSignInWithPasskey);
+
   $('#sign-in-with-generic-idp-credential').click(
     onSignInWithGenericIdPCredential
   );
@@ -2310,6 +2338,9 @@ function initApp() {
   $('#confirm-password-reset').click(onConfirmPasswordReset);
 
   $('#get-provider-data').click(onGetProviderData);
+  $('#enroll-passkey').click(onEnrollPasskey);
+  $('#get-enrolled-passkey').click(onGetEnrolledPasskeys);
+  $('#unenroll-passkey').click(onUnenrollPasskey);
   $('#link-with-email-and-password').click(onLinkWithEmailAndPassword);
   $('#link-with-generic-idp-credential').click(onLinkWithGenericIdPCredential);
   $('#unlink-provider').click(onUnlinkProvider);
