@@ -52,8 +52,21 @@ jobs:
         run: |
           git pull -f --no-rebase origin main:main
           yarn ts-node-script scripts/ci/add_changeset.ts
+      
+      # Configures git user as "google-oss-bot" for the next step
+      - name: Configure Git User
+        run: |
+          git config --global user.name "google-oss-bot"
+          git config --global user.email "firebase-oss-bot@google.com"
 
       - name: Create Release Pull Request
         uses: changesets/action@a45c4d594aa4e2c509dc14a9f2b3b67ba3780d0d # ratchet:changesets/action@v1
+        with:
+          # changesets action can automatically set up a git user
+          # but it will be google-actions[bot] which causes CLA problems
+          setupGitUser: false
         env:
+          # This token affects who the opening of the PR is credited to
+          # while the git user (above) determines the commit author.
+          # We want to set them both to match github-oss-bot.
           GITHUB_TOKEN: ${{ secrets.OSS_BOT_GITHUB_TOKEN }}

@@ -3,7 +3,7 @@
   "version": "1.0.1",
   "private": true,
   "scripts": {
-    "build:deps": "lerna run build --scope=\"@firebase/app\" --scope=\"@firebase/firestore\" && npm run typings:public",
+    "build:deps": "lerna run build --scope=\"@firebase/app\" --scope=\"@firebase/firestore\" --include-dependencies && npm run typings:public",
     "typings:public": "lerna run typings:public --scope=\"@firebase/app\" --scope=\"@firebase/firestore\"",
     "build:persistence": "yarn typings:public && INCLUDE_FIRESTORE_PERSISTENCE=true gulp compile-tests",
     "build:memory": "yarn typings:public && INCLUDE_FIRESTORE_PERSISTENCE=false gulp compile-tests",
@@ -15,12 +15,12 @@
     "test:memory:debug": "yarn build:memory; karma start --auto-watch --browsers Chrome"
   },
   "dependencies": {
-    "@firebase/app": "0.15.0",
+    "@firebase/app": "0.15.1",
     "@firebase/firestore": "4.16.0"
   },
   "devDependencies": {
     "@types/mocha": "9.1.1",
-    "gulp": "4.0.2",
+    "gulp": "5.0.1",
     "gulp-filter": "7.0.0",
     "gulp-replace": "1.1.4",
     "typescript": "5.5.4",
