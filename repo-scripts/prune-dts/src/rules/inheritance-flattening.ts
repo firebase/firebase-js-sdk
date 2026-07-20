@@ -191,14 +191,18 @@ function buildTypeArgMap(
   baseDecl: Node
 ): Map<string, string> {
   const map = new Map<string, string>();
+  const baseName =
+    typeof (baseDecl as any).getName === 'function' ? (baseDecl as any).getName() : null;
+  const targetName =
+    typeof (targetDecl as any).getName === 'function' ? (targetDecl as any).getName() : null;
+
+  if (baseName && targetName && !isNodeExported(baseDecl)) {
+    map.set(baseName, targetName);
+  }
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const typeParams = typeof (baseDecl as any).getTypeParameters === 'function' ? (baseDecl as any).getTypeParameters() : [];
   if (typeParams.length === 0) {return map;}
-
-  const baseName =
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    typeof (baseDecl as any).getName === 'function' ? (baseDecl as any).getName() : null;
-  if (!baseName) {return map;}
 
   const clauses: Node[] = [];
   if (targetDecl.getKind() === SyntaxKind.ClassDeclaration) {

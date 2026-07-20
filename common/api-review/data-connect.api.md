@@ -15,6 +15,7 @@ import { Provider } from '@firebase/component';
 export interface CacheProvider<T extends StorageType> {
     // (undocumented)
     type: T;
+    /* Excluded from this release type: initialize */
 }
 
 // @public (undocumented)
@@ -90,6 +91,7 @@ export interface DataConnectEntityArray {
 export class DataConnectError extends FirebaseError {
     /* Excluded from this release type: name */
     constructor(code: Code, message: string);
+    /* Excluded from this release type: toString */
 }
 
 // @public (undocumented)

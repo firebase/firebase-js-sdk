@@ -1,5 +1,5 @@
 export class Child {
-  static create(): Base;
+  static create(): Child;
   static version: string;
   instanceProp: number;
 }

@@ -21,6 +21,7 @@ export type AddPrefixToKeys<Prefix extends string, T extends Record<string, unkn
 export class AggregateField<T> {
     readonly aggregateType: AggregateType;
     readonly type = "AggregateField";
+    /* Excluded from this release type: __constructor */
 }
 
 // @public
@@ -393,15 +394,15 @@ export { LogLevel }
 export function maximum(n: number): FieldValue;
 
 // @public
-export interface MemoryCacheSettings {
+export type MemoryCacheSettings = {
     garbageCollector?: MemoryGarbageCollector;
-}
+};
 
 // @public
-export interface MemoryEagerGarbageCollector {
-    // (undocumented)
+export type MemoryEagerGarbageCollector = {
     kind: 'memoryEager';
-}
+    /* Excluded from this release type: _offlineComponentProvider */
+};
 
 // @public
 export function memoryEagerGarbageCollector(): MemoryEagerGarbageCollector;
@@ -410,19 +411,20 @@ export function memoryEagerGarbageCollector(): MemoryEagerGarbageCollector;
 export type MemoryGarbageCollector = MemoryEagerGarbageCollector | MemoryLruGarbageCollector;
 
 // @public
-export interface MemoryLocalCache {
-    // (undocumented)
+export type MemoryLocalCache = {
     kind: 'memory';
-}
+    /* Excluded from this release type: _onlineComponentProvider */
+    /* Excluded from this release type: _offlineComponentProvider */
+};
 
 // @public
 export function memoryLocalCache(settings?: MemoryCacheSettings): MemoryLocalCache;
 
 // @public
-export interface MemoryLruGarbageCollector {
-    // (undocumented)
+export type MemoryLruGarbageCollector = {
     kind: 'memoryLru';
-}
+    /* Excluded from this release type: _offlineComponentProvider */
+};
 
 // @public
 export function memoryLruGarbageCollector(settings?: {
@@ -555,42 +557,47 @@ export class PersistentCacheIndexManager {
 }
 
 // @public
-export interface PersistentCacheSettings {
+export type PersistentCacheSettings = {
     cacheSizeBytes?: number;
     tabManager?: PersistentTabManager;
-}
+};
 
 // @public
-export interface PersistentLocalCache {
-    // (undocumented)
+export type PersistentLocalCache = {
     kind: 'persistent';
-}
+    /* Excluded from this release type: _onlineComponentProvider */
+    /* Excluded from this release type: _offlineComponentProvider */
+};
 
 // @public
 export function persistentLocalCache(settings?: PersistentCacheSettings): PersistentLocalCache;
 
 // @public
-export interface PersistentMultipleTabManager {
-    // (undocumented)
+export type PersistentMultipleTabManager = {
     kind: 'PersistentMultipleTab';
-}
+    /* Excluded from this release type: _initialize */
+    /* Excluded from this release type: _onlineComponentProvider */
+    /* Excluded from this release type: _offlineComponentProvider */
+};
 
 // @public
 export function persistentMultipleTabManager(): PersistentMultipleTabManager;
 
 // @public
-export interface PersistentSingleTabManager {
-    // (undocumented)
+export type PersistentSingleTabManager = {
     kind: 'persistentSingleTab';
-}
+    /* Excluded from this release type: _initialize */
+    /* Excluded from this release type: _onlineComponentProvider */
+    /* Excluded from this release type: _offlineComponentProvider */
+};
 
 // @public
 export function persistentSingleTabManager(settings: PersistentSingleTabManagerSettings | undefined): PersistentSingleTabManager;
 
 // @public
-export interface PersistentSingleTabManagerSettings {
+export type PersistentSingleTabManagerSettings = {
     forceOwnership?: boolean;
-}
+};
 
 // @public
 export type PersistentTabManager = PersistentSingleTabManager | PersistentMultipleTabManager;
@@ -617,6 +624,7 @@ export function query<AppModelType, DbModelType extends DocumentData>(query: Que
 // @public
 export class QueryCompositeFilterConstraint {
     readonly type: 'or' | 'and';
+    /* Excluded from this release type: __constructor */
 }
 
 // @public
@@ -636,6 +644,7 @@ export class QueryDocumentSnapshot<AppModelType = DocumentData, DbModelType exte
 // @public
 export class QueryEndAtConstraint extends QueryConstraint {
     readonly type: 'endBefore' | 'endAt';
+    /* Excluded from this release type: __constructor */
 }
 
 // @public
@@ -644,6 +653,7 @@ export function queryEqual<AppModelType, DbModelType extends DocumentData>(left:
 // @public
 export class QueryFieldFilterConstraint extends QueryConstraint {
     readonly type = "where";
+    /* Excluded from this release type: __constructor */
 }
 
 // @public
@@ -652,6 +662,7 @@ export type QueryFilterConstraint = QueryFieldFilterConstraint | QueryCompositeF
 // @public
 export class QueryLimitConstraint extends QueryConstraint {
     readonly type: 'limit' | 'limitToLast';
+    /* Excluded from this release type: __constructor */
 }
 
 // @public
@@ -660,6 +671,7 @@ export type QueryNonFilterConstraint = QueryOrderByConstraint | QueryLimitConstr
 // @public
 export class QueryOrderByConstraint extends QueryConstraint {
     readonly type = "orderBy";
+    /* Excluded from this release type: __constructor */
 }
 
 // @public
@@ -683,6 +695,7 @@ export function querySnapshotFromJSON<AppModelType, DbModelType extends Document
 // @public
 export class QueryStartAtConstraint extends QueryConstraint {
     readonly type: 'startAt' | 'startAfter';
+    /* Excluded from this release type: __constructor */
 }
 
 // @public

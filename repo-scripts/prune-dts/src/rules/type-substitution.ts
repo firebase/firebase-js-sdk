@@ -23,43 +23,47 @@ export function substitutePrivateTypeReferences(sourceFile: SourceFile): void {
     const typeRefs = sourceFile.getDescendantsOfKind(SyntaxKind.TypeReference);
 
     for (const typeRef of typeRefs) {
-      if (typeof typeRef.wasForgotten === 'function' && typeRef.wasForgotten()) {
+      try {
+        if (typeof (typeRef as any).wasForgotten === 'function' && (typeRef as any).wasForgotten()) {
+          continue;
+        }
+
+        // Check if the declaration enclosing this typeRef is unexported; if so, skip unless needed
+        const topLevelDecl = getTopLevelDeclaration(typeRef);
+        if (topLevelDecl && !isDeclarationExported(topLevelDecl)) {
+          continue;
+        }
+
+        const typeNameNode = typeRef.getTypeName();
+        const typeName = typeNameNode.getText().trim();
+
+        const targetDecl = findTopLevelDeclaration(typeName, sourceFile);
+        if (!targetDecl) {continue;}
+
+        if (isDeclarationExported(targetDecl)) {
+          continue;
+        }
+
+        const visited = new Set<Node>();
+        const replacement = resolveExportedReplacement(
+          targetDecl,
+          sourceFile,
+          visited
+        );
+
+        if (replacement) {
+          // Keep any type arguments intact (`Promise<PrivateType>` -> `Promise<PublicReplacement>`)
+          const typeArgs = typeRef.getTypeArguments();
+          const typeArgsText =
+            typeArgs.length > 0
+              ? `<${typeArgs.map((a) => a.getText()).join(', ')}>`
+              : '';
+
+          typeRef.replaceWithText(`${replacement}${typeArgsText}`);
+          changed = true;
+        }
+      } catch {
         continue;
-      }
-
-      // Check if the declaration enclosing this typeRef is unexported; if so, skip unless needed
-      const topLevelDecl = getTopLevelDeclaration(typeRef);
-      if (topLevelDecl && !isDeclarationExported(topLevelDecl)) {
-        continue;
-      }
-
-      const typeNameNode = typeRef.getTypeName();
-      const typeName = typeNameNode.getText().trim();
-
-      const targetDecl = findTopLevelDeclaration(typeName, sourceFile);
-      if (!targetDecl) {continue;}
-
-      if (isDeclarationExported(targetDecl)) {
-        continue;
-      }
-
-      const visited = new Set<Node>();
-      const replacement = resolveExportedReplacement(
-        targetDecl,
-        sourceFile,
-        visited
-      );
-
-      if (replacement) {
-        // Keep any type arguments intact (`Promise<PrivateType>` -> `Promise<PublicReplacement>`)
-        const typeArgs = typeRef.getTypeArguments();
-        const typeArgsText =
-          typeArgs.length > 0
-            ? `<${typeArgs.map((a) => a.getText()).join(', ')}>`
-            : '';
-
-        typeRef.replaceWithText(`${replacement}${typeArgsText}`);
-        changed = true;
       }
     }
   }
@@ -235,16 +239,20 @@ function isDeclarationExported(node: Node): boolean {
  * Walks up the AST to find the enclosing top-level statement (`ClassDeclaration`, `InterfaceDeclaration`, etc.).
  */
 function getTopLevelDeclaration(node: Node): Node | undefined {
-  let curr: Node | undefined = node;
-  while (curr) {
-    const parent = curr.getParent();
-    if (parent && parent.getKind() === SyntaxKind.SourceFile) {
-      return curr;
+  try {
+    if (typeof (node as any).wasForgotten === 'function' && (node as any).wasForgotten()) {
+      return undefined;
     }
-    if (parent && parent.getKind() === SyntaxKind.ModuleBlock) {
-      return curr;
+    let curr: Node | undefined = node;
+    while (curr) {
+      const parent = curr.getParent();
+      if (parent && (parent.getKind() === SyntaxKind.SourceFile || parent.getKind() === SyntaxKind.ModuleBlock)) {
+        return curr;
+      }
+      curr = parent;
     }
-    curr = parent;
+    return undefined;
+  } catch {
+    return undefined;
   }
-  return undefined;
 }
