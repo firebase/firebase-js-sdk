@@ -104,10 +104,7 @@ export class GrpcConnection implements Connection {
     return true;
   }
 
-  constructor(
-    protos: grpc.GrpcObject,
-    private databaseInfo: DatabaseInfo
-  ) {
+  constructor(protos: grpc.GrpcObject, private databaseInfo: DatabaseInfo) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     this.firestore = (protos as any)['google']['firestore']['v1'];
     this.databasePath = `projects/${databaseInfo.databaseId.projectId}/databases/${databaseInfo.databaseId.database}`;

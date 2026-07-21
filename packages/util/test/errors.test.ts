@@ -18,7 +18,10 @@ import { assert } from 'chai';
 import { ErrorFactory, ErrorMap, FirebaseError } from '../src/errors';
 
 type ErrorCode =
-  'generic-error' | 'file-not-found' | 'anon-replace' | 'overwrite-field';
+  | 'generic-error'
+  | 'file-not-found'
+  | 'anon-replace'
+  | 'overwrite-field';
 
 const ERROR_MAP: ErrorMap<ErrorCode> = {
   'generic-error': 'Unknown error',
