@@ -32,8 +32,9 @@ const deps = [
 function replaceSource(path, target = 'esm') {
   return replacePlugin({
     ...generateBuildTargetReplaceConfig(target, 2020),
-    "\'./src/auto-constants\'": `'${path}'`,
-    "\'../auto-constants\'": `'${path}'`,
+    delimiters: ['', ''],
+    './src/auto-constants': path,
+    '../auto-constants': path,
     preventAssignment: true
   });
 }
