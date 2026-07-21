@@ -1,0 +1,13 @@
+{
+  "emulators": {
+    "auth": {
+      "port": 9098
+    },
+    "hub": {
+      "port": 4402
+    },
+    "logging": {
+      "port": 4502
+    }
+  }
+}

@@ -17,11 +17,10 @@
 
 import { resolve } from 'path';
 import { existsSync } from 'fs';
-import { writeFile } from 'fs/promises';
+import { readFile, writeFile } from 'fs/promises';
 import { exec } from 'child-process-promise';
 import chalk from 'chalk';
 import simpleGit from 'simple-git';
-import fs from 'mz/fs';
 
 const root = resolve(__dirname, '../..');
 const git = simpleGit(root);
@@ -49,10 +48,9 @@ const bumpRank: Record<string, number> = {
  * numerical rank, bump text, package name.
  */
 function getHighestBump(changesetPackages: Record<string, string>) {
-  const firebasePkgJson = require(resolve(
-    root,
-    'packages/firebase/package.json'
-  ));
+  const firebasePkgJson = require(
+    resolve(root, 'packages/firebase/package.json')
+  );
   let highestBump = bumpRank.patch;
   let highestBumpText = 'patch';
   let bumpPackage = '';
@@ -112,11 +110,11 @@ async function getDiffData(): Promise<{
 }
 
 async function parseChangesetFile(changesetFile: string) {
-  const fileExists = await fs.exists(changesetFile);
+  const fileExists = existsSync(changesetFile);
   if (!fileExists) {
     process.exit();
   }
-  const fileText: string = await fs.readFile(changesetFile, 'utf8');
+  const fileText: string = await readFile(changesetFile, 'utf8');
   const fileParts = fileText.split('---\n');
   const packageLines = fileParts[1].split('\n');
   const changesetPackages: Record<string, string> = {};
