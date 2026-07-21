@@ -3800,11 +3800,6 @@
     tapable "^2.2.0"
     webpack "^5"
 
-"@types/websql@0.0.30":
-  version "0.0.30"
-  resolved "https://registry.npmjs.org/@types/websql/-/websql-0.0.30.tgz#2dd811ba0973e7fa1707fc90cbe475034dc516e5"
-  integrity sha512-YGh8wE/p3ZJBH/cx0S/xk5Bv2VJmT5Z9iMipjbRSXX9Mi1QWscPugmaHepBACNKX5DQC/S8wtuc0YCo/+SxrOw==
-
 "@types/ws@*":
   version "8.18.1"
   resolved "https://registry.npmjs.org/@types/ws/-/ws-8.18.1.tgz#48464e4bf2ddfd17db13d845467f6070ffea4aa9"
@@ -4934,10 +4929,10 @@ bare-events@^2.7.0:
   resolved "https://registry.npmjs.org/bare-events/-/bare-events-2.9.1.tgz#5c86616966343bcb03a1b3155feab253eadbf349"
   integrity sha512-Z0oHEHAFDZkffN8Qc39zNZjQlMDkPJRyyyZieU1VH7u8c5S+qHZ2S8ixdKIAxEjfHO7FJxXmJWgteOghVanIsg==
 
-base64-arraybuffer-es6@^3.1.0:
-  version "3.1.0"
-  resolved "https://registry.npmjs.org/base64-arraybuffer-es6/-/base64-arraybuffer-es6-3.1.0.tgz#1aabaad8e5587db1929d0759d1fa34facd6a1394"
-  integrity sha512-QKKtftiSrKjilihGNLXxnrb9LJj7rnEdB1cYAqVpekFy0tisDklAf1RAgvpm0HsGYx9sv7FUbgpsrfwTyCPVLg==
+base64-arraybuffer-es6@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.npmjs.org/base64-arraybuffer-es6/-/base64-arraybuffer-es6-1.0.0.tgz#dde6ca5f79b5505e86c7ed66af3b14b57c0ce29a"
+  integrity sha512-cPau+CwFZLR/HeQrOCWhbmGcUiyfl8kvnKoazNX9zW/Tn7nKJCRe9Vfz2qOEf/rODgCTCvvCXMf0acV8vB0uOw==
 
 base64-js@1.5.1, base64-js@^1.3.0, base64-js@^1.3.1:
   version "1.5.1"
@@ -5458,14 +5453,6 @@ caniuse-lite@^1.0.30001782:
   version "1.0.30001790"
   resolved "https://registry.npmjs.org/caniuse-lite/-/caniuse-lite-1.0.30001790.tgz#04660c7de15f445d86dd10ac88a8936ac0698e45"
   integrity sha512-bOoxfJPyYo+ds6W0YfptaCWbFnJYjh2Y1Eow5lRv+vI2u8ganPZqNm1JwNh0t2ELQCqIWg4B3dWEusgAmsoyOw==
-
-canvas@^3.2.0:
-  version "3.2.3"
-  resolved "https://registry.npmjs.org/canvas/-/canvas-3.2.3.tgz#6ea9697a778aaaa9ab8e2c040917ac6d41848ad4"
-  integrity sha512-PzE5nJZPz72YUAfo8oTp0u3fqqY7IzlTubneAihqDYAUcBk7ryeCmBbdJBEdaH0bptSOe2VT2Zwcb3UaFyaSWw==
-  dependencies:
-    node-addon-api "^7.0.0"
-    prebuild-install "^7.1.3"
 
 caseless@~0.12.0:
   version "0.12.0"
@@ -7509,10 +7496,10 @@ eventsource@^3.0.2:
   dependencies:
     eventsource-parser "^3.0.1"
 
-eventtargeter@0.9.0:
-  version "0.9.0"
-  resolved "https://registry.npmjs.org/eventtargeter/-/eventtargeter-0.9.0.tgz#2c8b873dce173a831779e5f9f5a07facda61e7cd"
-  integrity sha512-40f2UpTpS7v2GnXWsMpEUkKoMOlgTDrijhCx4Hq7zvsBhLihA7dn0Ayicb4FO/MOIzD5mLHsLK7/NYqx39LqaA==
+eventtargeter@0.8.0:
+  version "0.8.0"
+  resolved "https://registry.npmjs.org/eventtargeter/-/eventtargeter-0.8.0.tgz#ca23a8c465bca44f7e5aa00efe365a699bb44915"
+  integrity sha512-ldFAonAo7vyXeBDcTTOoxTtdibw1JvADllLkldxxdqb4+8LPoibU+e9XGQkD98l5wavImIab1jNwuzMtnR2MAg==
 
 evp_bytestokey@^1.0.0, evp_bytestokey@^1.0.3:
   version "1.0.3"
@@ -9524,17 +9511,16 @@ indent-string@^4.0.0:
   resolved "https://registry.npmjs.org/indent-string/-/indent-string-4.0.0.tgz#624f8f4497d619b2d9768531d58f4122854d7251"
   integrity sha512-EdDDZu4A2OyIK7Lr/2zG+w5jmbuk1DVBnEwREQvBzspBJkCEbRa8GxU1lghYcaGJCnRWibjDXlq779X1/y5xwg==
 
-indexeddbshim@16.1.0:
-  version "16.1.0"
-  resolved "https://registry.npmjs.org/indexeddbshim/-/indexeddbshim-16.1.0.tgz#8990555b72cd72d716dfa359db3b6389a1b4c279"
-  integrity sha512-cilsC67db5kWeqK+GDPTQBZFf+ZxiAlPx+vJoOJwqoWPqGE5A4noSSD1qH8sGfysAI6mqGxsmkLfkC6T9QbY1w==
+indexeddbshim@10.1.0:
+  version "10.1.0"
+  resolved "https://registry.npmjs.org/indexeddbshim/-/indexeddbshim-10.1.0.tgz#94e285b772e845acc5c494bc5f9630f302dd7bbe"
+  integrity sha512-jzB4GAs4g+KtlyEZXI3NY1fLMRj6FP5I7XiKpqa0leMsxAp4CMPoFjSoyvC4mwVyZ6/5krpRMgRVDl9OFINz+w==
   dependencies:
-    canvas "^3.2.0"
-    eventtargeter "0.9.0"
-    sync-promise-expanded "^1.0.0"
-    typeson "9.0.4"
-    typeson-registry "12.0.0"
-    websql-configurable "^3.0.3"
+    eventtargeter "0.8.0"
+    sync-promise "git+https://github.com/brettz9/sync-promise.git#full-sync-missing-promise-features"
+    typeson "7.0.2"
+    typeson-registry "3.0.0"
+    websql "git+https://github.com/brettz9/node-websql.git#configurable-secure3"
 
 infer-owner@^1.0.4:
   version "1.0.4"
@@ -13868,7 +13854,7 @@ postinstall-postinstall@2.1.0:
   resolved "https://registry.npmjs.org/postinstall-postinstall/-/postinstall-postinstall-2.1.0.tgz#4f7f77441ef539d1512c40bd04c71b06a4704ca3"
   integrity sha512-7hQX6ZlZXIoRiWNrbMQaLzUUfH+sSx39u8EJ9HYuDc1kLo9IXKWjM5RSquZN1ad5GnH8CGFM78fsAAQi3OKEEQ==
 
-prebuild-install@^7.1.1, prebuild-install@^7.1.3:
+prebuild-install@^7.1.1:
   version "7.1.3"
   resolved "https://registry.npmjs.org/prebuild-install/-/prebuild-install-7.1.3.tgz#d630abad2b147443f20a212917beae68b8092eec"
   integrity sha512-8Mf2cbV7x1cXPUILADGI3wuhfqWvtiLA1iclTDbFRZkgRQS0NqsPZphna9V+HyTEadheuPmjaJMsbzKQFOzLug==
@@ -16228,10 +16214,9 @@ symbol-observable@^1.1.0:
   resolved "https://registry.npmjs.org/symbol-observable/-/symbol-observable-1.2.0.tgz#c22688aed4eab3cdc2dfeacbb561660560a00804"
   integrity sha512-e900nM8RRtGhlV36KGEU9k65K3mPb1WV70OdjfxlG2EAuM1noi/E/BaW/uMhL7bPEssK8QV57vN3esixjUvcXQ==
 
-sync-promise-expanded@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.npmjs.org/sync-promise-expanded/-/sync-promise-expanded-1.0.0.tgz#cbf23f2929124a6cf174979601ef8bf97ed87587"
-  integrity sha512-pdxxEOaeKO6LghTz0Fe7yw82fx95gtS0SxVgRvIwvN4h9qTie8oOF/pWuH8PGp+PVduS84RXXxO/xrW93Nno9w==
+"sync-promise@git+https://github.com/brettz9/sync-promise.git#full-sync-missing-promise-features":
+  version "1.0.1"
+  resolved "git+https://github.com/brettz9/sync-promise.git#25845a49a00aa2d2c985a5149b97c86a1fcdc75a"
 
 tapable@^2.1.1, tapable@^2.2.0:
   version "2.2.1"
@@ -16630,12 +16615,12 @@ toxic@^1.0.0:
   dependencies:
     lodash "^4.17.10"
 
-tr46@^5.1.0:
-  version "5.1.1"
-  resolved "https://registry.npmjs.org/tr46/-/tr46-5.1.1.tgz#96ae867cddb8fdb64a49cc3059a8d428bcf238ca"
-  integrity sha512-hdF5ZgjTqgAntKkklYw0R03MG2x/bSzTtkxmIRw/sTNV8YXsCJ1tfLAX23lhxhHJlEf3CRCOCGGWw3vI3GaSPw==
+tr46@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.npmjs.org/tr46/-/tr46-3.0.0.tgz#555c4e297a950617e8eeddef633c87d4d9d6cbf9"
+  integrity sha512-l7FvfAHlcmulp8kr+flpQZmVwtu7nfRV7NZujtN0OqES8EL4O4e0qqzL0DC5gAvx/ZC/9lk6rhcUwYvkBnBnYA==
   dependencies:
-    punycode "^2.3.1"
+    punycode "^2.1.1"
 
 tr46@~0.0.3:
   version "0.0.3"
@@ -16989,19 +16974,19 @@ typescript@~4.1.3:
   resolved "https://registry.npmjs.org/typescript/-/typescript-4.1.6.tgz#1becd85d77567c3c741172339e93ce2e69932138"
   integrity sha512-pxnwLxeb/Z5SP80JDRzVjh58KsM6jZHRAOtTpS7sXLS4ogXNKC9ANxHHZqLLeVHZN35jCtI4JdmLLbLiC1kBow==
 
-typeson-registry@12.0.0:
-  version "12.0.0"
-  resolved "https://registry.npmjs.org/typeson-registry/-/typeson-registry-12.0.0.tgz#8c10464567f1cac31cda16241ff6a455679616cc"
-  integrity sha512-Yt53WwWPCiET6vH11gwkqeyv6g+NbVDCERzeTDklZZYaQi5EnjUcCSZnLEJbJKMRJaSFsqlrVg0NUD4g5aZoXQ==
+typeson-registry@3.0.0:
+  version "3.0.0"
+  resolved "https://registry.npmjs.org/typeson-registry/-/typeson-registry-3.0.0.tgz#a7f5e023b0e3af3542252ec47648e96586d62ee9"
+  integrity sha512-xPBsm6LhQnU2HOQq1770MjbtIXMd7s7Q7VWFyexe9hRVSIvx+PXPXh/Snh2+HgT6fffxAADVHIBCSjrVrsbrhw==
   dependencies:
-    base64-arraybuffer-es6 "^3.1.0"
-    typeson "^9.0.4"
-    whatwg-url "^14.2.0"
+    base64-arraybuffer-es6 "^1.0.0"
+    typeson "^7.0.1"
+    whatwg-url "^11.0.0"
 
-typeson@9.0.4, typeson@^9.0.4:
-  version "9.0.4"
-  resolved "https://registry.npmjs.org/typeson/-/typeson-9.0.4.tgz#1265165ba1bcc740c3d8b82702b428e3855abc59"
-  integrity sha512-umRYLe37m4fTu0AlgFaqu1C+N+i3LqAehCzbvNx9w7alyN1wpPyS6FbBEsvWD2FppS2yJ9gk0FkFBkZ/wJE13Q==
+typeson@7.0.2, typeson@^7.0.1:
+  version "7.0.2"
+  resolved "https://registry.npmjs.org/typeson/-/typeson-7.0.2.tgz#5efe61693a3a255027bfd0e727bb8e9188ce67f3"
+  integrity sha512-Rc/BXqUq+pgAc9D3Na+A2iiTlenfzZW9VA2H9DzpYWKOqUMwUaLyu6OQWXCIEiFs1AQ6Fssbed1/subMY/cEag==
 
 ua-parser-js@^0.7.30:
   version "0.7.40"
@@ -17628,10 +17613,9 @@ websocket-extensions@>=0.1.1:
   resolved "https://registry.npmjs.org/websocket-extensions/-/websocket-extensions-0.1.4.tgz#7f8473bc839dfd87608adb95d7eb075211578a42"
   integrity sha512-OqedPIGOfsDlo31UNwYbCFMSaO9m9G/0faIHj5/dZFDMFqPTcx6UwqyOy3COEaEOg/9VsGIpdqn62W5KhoKSpg==
 
-websql-configurable@^3.0.3:
-  version "3.0.3"
-  resolved "https://registry.npmjs.org/websql-configurable/-/websql-configurable-3.0.3.tgz#425bf4a690ef7160d47711caf7531c2183f7d050"
-  integrity sha512-Fs+3A2BjI3ukkGtvsZcPS4nGoFE0aqors8YKWgICoOt7dcfdeaTdgoMOoFqlEPHc9u/TS9BEFhKP/A9GttB0CQ==
+"websql@git+https://github.com/brettz9/node-websql.git#configurable-secure3":
+  version "2.0.1"
+  resolved "git+https://github.com/brettz9/node-websql.git#73f7e4051cda5e58de7669a54ab184d387b2f98d"
   dependencies:
     argsarray "^0.0.1"
     immediate "^3.2.2"
@@ -17657,12 +17641,12 @@ whatwg-mimetype@^2.3.0:
   resolved "https://registry.npmjs.org/whatwg-mimetype/-/whatwg-mimetype-2.3.0.tgz#3d4b1e0312d2079879f826aff18dbeeca5960fbf"
   integrity sha512-M4yMwr6mAnQz76TbJm914+gPpB/nCwvZbJU28cUD6dR004SAxDLOOSUaB1JDRqLtaOV/vi0IC5lEAGFgrjGv/g==
 
-whatwg-url@^14.2.0:
-  version "14.2.0"
-  resolved "https://registry.npmjs.org/whatwg-url/-/whatwg-url-14.2.0.tgz#4ee02d5d725155dae004f6ae95c73e7ef5d95663"
-  integrity sha512-De72GdQZzNTUBBChsXueQUnPKDkg/5A5zp7pFDuQAj5UFoENpiACU0wlCvzpAGnTkj++ihpKwKyYewn/XNUbKw==
+whatwg-url@^11.0.0:
+  version "11.0.0"
+  resolved "https://registry.npmjs.org/whatwg-url/-/whatwg-url-11.0.0.tgz#0a849eebb5faf2119b901bb76fd795c2848d4018"
+  integrity sha512-RKT8HExMpoYx4igMiVMY83lN6UeITKJlBQ+vR/8ZJ8OCdSiN3RwCq+9gH0+Xzj0+5IrM6i4j/6LuvzbZIQgEcQ==
   dependencies:
-    tr46 "^5.1.0"
+    tr46 "^3.0.0"
     webidl-conversions "^7.0.0"
 
 whatwg-url@^5.0.0:
