@@ -205,21 +205,33 @@ class IndexedDBLocalPersistence implements InternalPersistence {
   };
 
   private registerLifecycleListeners(): void {
-    if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
+    if (
+      typeof window !== 'undefined' &&
+      typeof window.addEventListener === 'function'
+    ) {
       window.addEventListener('pagehide', this.onPageHide);
       window.addEventListener('pageshow', this.onPageShow);
     }
-    if (typeof document !== 'undefined' && typeof document.addEventListener === 'function') {
+    if (
+      typeof document !== 'undefined' &&
+      typeof document.addEventListener === 'function'
+    ) {
       document.addEventListener('visibilitychange', this.onVisibilityChange);
     }
   }
 
   private unregisterLifecycleListeners(): void {
-    if (typeof window !== 'undefined' && typeof window.removeEventListener === 'function') {
+    if (
+      typeof window !== 'undefined' &&
+      typeof window.removeEventListener === 'function'
+    ) {
       window.removeEventListener('pagehide', this.onPageHide);
       window.removeEventListener('pageshow', this.onPageShow);
     }
-    if (typeof document !== 'undefined' && typeof document.removeEventListener === 'function') {
+    if (
+      typeof document !== 'undefined' &&
+      typeof document.removeEventListener === 'function'
+    ) {
       document.removeEventListener('visibilitychange', this.onVisibilityChange);
     }
   }
