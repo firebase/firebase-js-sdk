@@ -463,7 +463,7 @@ describe('platform_browser/persistence/indexed_db', () => {
     it('should pause polling and close DB on pagehide, and resume on pageshow', async () => {
       persistence._addListener(key, callback);
       await persistence._set(key, value);
-      
+
       // Trigger pagehide
       window.dispatchEvent(new Event('pagehide'));
       expect((persistence as any).isHiding).to.be.true;
@@ -488,7 +488,7 @@ describe('platform_browser/persistence/indexed_db', () => {
 
     it('should handle visibilitychange hidden and visible', () => {
       persistence._addListener(key, callback);
-      
+
       // Mock document.visibilityState to 'hidden'
       sinon.stub(document, 'visibilityState').get(() => 'hidden');
       document.dispatchEvent(new Event('visibilitychange'));
@@ -512,8 +512,10 @@ describe('platform_browser/persistence/indexed_db', () => {
       callback.resetHistory();
 
       // 2. Intercept the _withRetries / getAll call to trigger pagehide before it resolves
-      const originalWithRetries = (persistence as any)._withRetries.bind(persistence);
-      sinon.stub(persistence as any, '_withRetries').callsFake(async (op) => {
+      const originalWithRetries = (persistence as any)._withRetries.bind(
+        persistence
+      );
+      sinon.stub(persistence as any, '_withRetries').callsFake(async op => {
         // Dispatch pagehide before the operation completes
         window.dispatchEvent(new Event('pagehide'));
         return originalWithRetries(op);
