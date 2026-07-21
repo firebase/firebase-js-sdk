@@ -4446,19 +4446,6 @@ anymatch@^3.0.3, anymatch@^3.1.3, anymatch@~3.1.2:
     normalize-path "^3.0.0"
     picomatch "^2.0.4"
 
-api-documenter-me@0.1.1:
-  version "0.1.1"
-  resolved "https://registry.npmjs.org/api-documenter-me/-/api-documenter-me-0.1.1.tgz#961abb299c3737b01f2dd7aa10b0caf1c9110538"
-  integrity sha512-h6CjdRZUcv6lK3VfnX8CDF+2CfA5DBqg3EfR+HOEZp4AggQfKZ4D5vegvdt5P2n+b95GRounfU5u3TJ2PAIlLQ==
-  dependencies:
-    "@microsoft/tsdoc" "0.12.24"
-    "@rushstack/node-core-library" "3.36.0"
-    "@rushstack/ts-command-line" "4.7.8"
-    api-extractor-model-me "0.1.1"
-    colors "~1.2.1"
-    js-yaml "~3.13.1"
-    resolve "~1.17.0"
-
 api-extractor-me@0.1.2:
   version "0.1.2"
   resolved "https://registry.npmjs.org/api-extractor-me/-/api-extractor-me-0.1.2.tgz#ca0771a459c5982676565bae58fc955fbada8bbb"
@@ -10596,14 +10583,6 @@ js-yaml@^3.13.1, js-yaml@^3.6.1:
   version "3.15.0"
   resolved "https://registry.npmjs.org/js-yaml/-/js-yaml-3.15.0.tgz#586e5214eafe3e893756a41e979b50d89d3e4a67"
   integrity sha512-ttBQIIQPDeLjpPOohtUdXuXUVoA2uIB6fEH9HyJ7234s5mBJ5wTx20njxplLZQgLaOfpmPQA7X2t5AX6tIPbog==
-  dependencies:
-    argparse "^1.0.7"
-    esprima "^4.0.0"
-
-js-yaml@~3.13.1:
-  version "3.13.1"
-  resolved "https://registry.npmjs.org/js-yaml/-/js-yaml-3.13.1.tgz#aff151b30bfdfa8e49e05da22e7415e9dfa37847"
-  integrity sha512-YfbcO7jXDdyj0DGxYVSlSeQNHbD7XPWvrVWeVUujrQEoZzWJIRrCPoyk6kL6IAjAG2IolMK4T0hNUe0HOUs5Jw==
   dependencies:
     argparse "^1.0.7"
     esprima "^4.0.0"
