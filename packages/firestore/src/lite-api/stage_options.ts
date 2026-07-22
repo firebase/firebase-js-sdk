@@ -472,4 +472,3 @@ export type LiteralsStageOptions = StageOptions & {
    */
   documents?: Array<Record<string, unknown>>;
 };
-
