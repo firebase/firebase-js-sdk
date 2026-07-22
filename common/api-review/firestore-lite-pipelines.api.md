@@ -1078,6 +1078,11 @@ export type LimitStageOptions = StageOptions & {
     limit: number;
 };
 
+// @beta
+export type LiteralsStageOptions = StageOptions & {
+    documents?: Array<Record<string, unknown>>;
+};
+
 // @public
 export function ln(fieldName: string): FunctionExpression;
 
@@ -1360,6 +1365,9 @@ export class PipelineSource<PipelineType> {
     database(options: DatabaseStageOptions): PipelineType;
     documents(docs: Array<string | DocumentReference>): PipelineType;
     documents(options: DocumentsStageOptions): PipelineType;
+    literals(document: Record<string, unknown>, ...additionalDocuments: Array<Record<string, unknown>>): PipelineType;
+    // Warning: (ae-incompatible-release-tags) The symbol "literals" is marked as @public, but its signature references "LiteralsStageOptions" which is marked as @beta
+    literals(options: LiteralsStageOptions): PipelineType;
     }
 
 // @public

@@ -2634,6 +2634,52 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           atomic: true
         });
       });
+
+      it('can execute pipeline with literals stage source', async () => {
+        const res = await execute(
+          firestore
+            .pipeline()
+            .literals({ name: 'Alice', age: 30 }, { name: 'Bob', age: 25 })
+        );
+        expect(res.results.length).to.equal(2);
+        expect(res.results[0].data).to.deep.equal({ name: 'Alice', age: 30 });
+        expect(res.results[1].data).to.deep.equal({ name: 'Bob', age: 25 });
+      });
+
+      it('can execute literals stage containing expressions', async () => {
+        const res = await execute(
+          firestore
+            .pipeline()
+            .literals({ base: 10, doubled: multiply(constant(10), constant(2)) })
+        );
+        expect(res.results.length).to.equal(1);
+        expect(res.results[0].data).to.deep.equal({ base: 10, doubled: 20 });
+      });
+
+      it('can perform non-transactional insert from literals source', async () => {
+        const targetColRef = collection(firestore, randomCol.id + '_lit_insert');
+        const res = await execute(
+          firestore
+            .pipeline()
+            .literals({ name: 'Literal Inserted', age: 42 })
+            .insert({ collection: targetColRef })
+        );
+        expectResults(res, { documents_modified: 1 });
+      });
+
+      it('can perform non-transactional upsert from literals source', async () => {
+        const targetColRef = collection(firestore, randomCol.id + '_lit_upsert');
+        const res = await execute(
+          firestore
+            .pipeline()
+            .literals({ id: 'doc1', title: 'Literal Upserted' })
+            .upsert(
+              [constant('Literal Upserted').as('title')],
+              { collection: targetColRef, documentId: 'id' }
+            )
+        );
+        expectResults(res, { documents_modified: 1 });
+      });
     });
   });
 
