@@ -474,10 +474,16 @@ toc:
     path: /docs/reference/js/firestore_.aggregatequerysnapshot.md
   - title: AggregateSpec
     path: /docs/reference/js/firestore_.aggregatespec.md
+  - title: BsonObjectId
+    path: /docs/reference/js/firestore_.bsonobjectid.md
+  - title: BsonTimestamp
+    path: /docs/reference/js/firestore_.bsontimestamp.md
   - title: Bytes
     path: /docs/reference/js/firestore_.bytes.md
   - title: CollectionReference
     path: /docs/reference/js/firestore_.collectionreference.md
+  - title: Decimal128Value
+    path: /docs/reference/js/firestore_.decimal128value.md
   - title: DocumentChange
     path: /docs/reference/js/firestore_.documentchange.md
   - title: DocumentData
@@ -508,10 +514,14 @@ toc:
     path: /docs/reference/js/firestore_.indexconfiguration.md
   - title: IndexField
     path: /docs/reference/js/firestore_.indexfield.md
+  - title: Int32Value
+    path: /docs/reference/js/firestore_.int32value.md
   - title: LoadBundleTask
     path: /docs/reference/js/firestore_.loadbundletask.md
   - title: LoadBundleTaskProgress
     path: /docs/reference/js/firestore_.loadbundletaskprogress.md
+  - title: MaxKey
+    path: /docs/reference/js/firestore_.maxkey.md
   - title: MemoryCacheSettings
     path: /docs/reference/js/firestore_.memorycachesettings.md
   - title: MemoryEagerGarbageCollector
@@ -520,6 +530,8 @@ toc:
     path: /docs/reference/js/firestore_.memorylocalcache.md
   - title: MemoryLruGarbageCollector
     path: /docs/reference/js/firestore_.memorylrugarbagecollector.md
+  - title: MinKey
+    path: /docs/reference/js/firestore_.minkey.md
   - title: PersistenceSettings
     path: /docs/reference/js/firestore_.persistencesettings.md
   - title: PersistentCacheIndexManager
@@ -554,6 +566,8 @@ toc:
     path: /docs/reference/js/firestore_.querysnapshot.md
   - title: QueryStartAtConstraint
     path: /docs/reference/js/firestore_.querystartatconstraint.md
+  - title: RegexValue
+    path: /docs/reference/js/firestore_.regexvalue.md
   - title: SnapshotListenOptions
     path: /docs/reference/js/firestore_.snapshotlistenoptions.md
   - title: SnapshotMetadata
@@ -581,10 +595,16 @@ toc:
     path: /docs/reference/js/firestore_lite.aggregatequerysnapshot.md
   - title: AggregateSpec
     path: /docs/reference/js/firestore_lite.aggregatespec.md
+  - title: BsonObjectId
+    path: /docs/reference/js/firestore_lite.bsonobjectid.md
+  - title: BsonTimestamp
+    path: /docs/reference/js/firestore_lite.bsontimestamp.md
   - title: Bytes
     path: /docs/reference/js/firestore_lite.bytes.md
   - title: CollectionReference
     path: /docs/reference/js/firestore_lite.collectionreference.md
+  - title: Decimal128Value
+    path: /docs/reference/js/firestore_lite.decimal128value.md
   - title: DocumentData
     path: /docs/reference/js/firestore_lite.documentdata.md
   - title: DocumentReference
@@ -603,6 +623,12 @@ toc:
     path: /docs/reference/js/firestore_lite.firestoreerror.md
   - title: GeoPoint
     path: /docs/reference/js/firestore_lite.geopoint.md
+  - title: Int32Value
+    path: /docs/reference/js/firestore_lite.int32value.md
+  - title: MaxKey
+    path: /docs/reference/js/firestore_lite.maxkey.md
+  - title: MinKey
+    path: /docs/reference/js/firestore_lite.minkey.md
   - title: Query
     path: /docs/reference/js/firestore_lite.query.md
   - title: QueryCompositeFilterConstraint
@@ -623,6 +649,8 @@ toc:
     path: /docs/reference/js/firestore_lite.querysnapshot.md
   - title: QueryStartAtConstraint
     path: /docs/reference/js/firestore_lite.querystartatconstraint.md
+  - title: RegexValue
+    path: /docs/reference/js/firestore_lite.regexvalue.md
   - title: Settings
     path: /docs/reference/js/firestore_lite.settings.md
   - title: Timestamp

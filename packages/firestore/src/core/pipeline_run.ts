@@ -32,7 +32,7 @@ import {
 import { Document, MutableDocument } from '../model/document';
 import { DOCUMENT_KEY_NAME } from '../model/path';
 import {
-  MIN_VALUE,
+  INTERNAL_MIN_VALUE,
   TRUE_VALUE,
   valueCompare,
   valueEquals
@@ -190,8 +190,8 @@ function evaluateSort(
       const rightValue = valueOrUndefined(evaluable.evaluate(context, right));
 
       const comparison = valueCompare(
-        leftValue ?? MIN_VALUE,
-        rightValue ?? MIN_VALUE
+        leftValue ?? INTERNAL_MIN_VALUE,
+        rightValue ?? INTERNAL_MIN_VALUE
       );
       if (comparison !== 0) {
         // Return the comparison result if documents are not equal
@@ -272,8 +272,8 @@ export function newPipelineComparator(
         )
       );
       const comparison = valueCompare(
-        leftValue || MIN_VALUE,
-        rightValue || MIN_VALUE
+        leftValue || INTERNAL_MIN_VALUE,
+        rightValue || INTERNAL_MIN_VALUE
       );
       if (comparison !== 0) {
         return ordering.direction === 'ascending' ? comparison : -comparison;

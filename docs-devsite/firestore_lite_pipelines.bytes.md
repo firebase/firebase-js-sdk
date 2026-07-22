@@ -18,18 +18,43 @@ An immutable object representing an array of bytes.
 export declare class Bytes 
 ```
 
+## Properties
+
+|  Property | Modifiers | Type | Description |
+|  --- | --- | --- | --- |
+|  [data](./firestore_lite_pipelines.bytes.md#bytesdata) |  | Uint8Array | Returns the underlying bytes as a <code>Uint8Array</code>. |
+|  [subtype](./firestore_lite_pipelines.bytes.md#bytessubtype) |  | number |  |
+
 ## Methods
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [fromBase64String(base64)](./firestore_lite_pipelines.bytes.md#bytesfrombase64string) | <code>static</code> | Creates a new <code>Bytes</code> object from the given Base64 string, converting it to bytes. |
+|  [fromBase64String(base64, subtype)](./firestore_lite_pipelines.bytes.md#bytesfrombase64string) | <code>static</code> | Creates a new <code>Bytes</code> object from the given Base64 string, converting it to bytes. |
 |  [fromJSON(json)](./firestore_lite_pipelines.bytes.md#bytesfromjson) | <code>static</code> | Builds a <code>Bytes</code> instance from a JSON object created by [Bytes.toJSON()](./firestore_.bytes.md#bytestojson)<!-- -->. |
-|  [fromUint8Array(array)](./firestore_lite_pipelines.bytes.md#bytesfromuint8array) | <code>static</code> | Creates a new <code>Bytes</code> object from the given Uint8Array. |
+|  [fromUint8Array(array, subtype)](./firestore_lite_pipelines.bytes.md#bytesfromuint8array) | <code>static</code> | Creates a new <code>Bytes</code> object from the given Uint8Array. |
 |  [isEqual(other)](./firestore_lite_pipelines.bytes.md#bytesisequal) |  | Returns true if this <code>Bytes</code> object is equal to the provided one. |
 |  [toBase64()](./firestore_lite_pipelines.bytes.md#bytestobase64) |  | Returns the underlying bytes as a Base64-encoded string. |
 |  [toJSON()](./firestore_lite_pipelines.bytes.md#bytestojson) |  | Returns a JSON-serializable representation of this <code>Bytes</code> instance. |
 |  [toString()](./firestore_lite_pipelines.bytes.md#bytestostring) |  | Returns a string representation of the <code>Bytes</code> object. |
 |  [toUint8Array()](./firestore_lite_pipelines.bytes.md#bytestouint8array) |  | Returns the underlying bytes in a new <code>Uint8Array</code>. |
+
+## Bytes.data
+
+Returns the underlying bytes as a `Uint8Array`<!-- -->.
+
+<b>Signature:</b>
+
+```typescript
+get data(): Uint8Array;
+```
+
+## Bytes.subtype
+
+<b>Signature:</b>
+
+```typescript
+readonly subtype: number;
+```
 
 ## Bytes.fromBase64String()
 
@@ -38,7 +63,7 @@ Creates a new `Bytes` object from the given Base64 string, converting it to byte
 <b>Signature:</b>
 
 ```typescript
-static fromBase64String(base64: string): Bytes;
+static fromBase64String(base64: string, subtype?: number): Bytes;
 ```
 
 #### Parameters
@@ -46,6 +71,7 @@ static fromBase64String(base64: string): Bytes;
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  base64 | string | The Base64 string used to create the <code>Bytes</code> object. |
+|  subtype | number | Optional subtype value. |
 
 <b>Returns:</b>
 
@@ -80,7 +106,7 @@ Creates a new `Bytes` object from the given Uint8Array.
 <b>Signature:</b>
 
 ```typescript
-static fromUint8Array(array: Uint8Array): Bytes;
+static fromUint8Array(array: Uint8Array, subtype?: number): Bytes;
 ```
 
 #### Parameters
@@ -88,6 +114,7 @@ static fromUint8Array(array: Uint8Array): Bytes;
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  array | Uint8Array | The Uint8Array used to create the <code>Bytes</code> object. |
+|  subtype | number | Optional subtype value. |
 
 <b>Returns:</b>
 
