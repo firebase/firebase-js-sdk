@@ -555,7 +555,7 @@ export interface CodeExecutionTool {
  *
  * @public
  */
-export interface GoogleSearch {}
+export interface GoogleSearch { }
 
 /**
  * Specifies the Google Maps configuration.
@@ -591,7 +591,7 @@ export interface URLContextTool {
  *
  * @public
  */
-export interface URLContext {}
+export interface URLContext { }
 
 /**
  * A `FunctionDeclarationsTool` is a piece of code that enables the system to
@@ -842,7 +842,7 @@ export interface ThinkingConfig {
 export interface PrebuiltVoiceConfig {
   /**
    * The voice name to use for speech synthesis.
-   *
+   * @remarks
    * For a full list of names and demos of what each voice sounds like, see {@link https://cloud.google.com/text-to-speech/docs/chirp3-hd | Chirp 3: HD Voices}.
    */
   voiceName?: string;
@@ -882,7 +882,7 @@ export interface BaseSpeechConfig {
  *
  * @beta
  */
-export interface AudioTranscriptionConfig {}
+export interface AudioTranscriptionConfig { }
 
 /**
  * Configuration for speech synthesis using a single voice.
