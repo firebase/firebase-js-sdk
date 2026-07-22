@@ -990,6 +990,12 @@ export function ifNull(ifFieldName: string, elseExpr: Expression): FunctionExpre
 // @public
 export function ifNull(ifFieldName: string, elseValue: unknown): FunctionExpression;
 
+// @beta
+export type InsertStageOptions = StageOptions & {
+    collection?: string | Query;
+    documentId?: string | Expression;
+};
+
 // @public
 export function isAbsent(value: Expression): BooleanExpression;
 
@@ -1070,6 +1076,11 @@ export function like(stringExpression: Expression, pattern: Expression): Boolean
 // @public
 export type LimitStageOptions = StageOptions & {
     limit: number;
+};
+
+// @beta
+export type LiteralsStageOptions = StageOptions & {
+    documents?: Array<Record<string, unknown>>;
 };
 
 // @public
@@ -1267,9 +1278,17 @@ export class Pipeline {
     define(aliasedExpression: AliasedExpression, ...additionalExpressions: AliasedExpression[]): Pipeline;
     // (undocumented)
     define(options: DefineStageOptions): Pipeline;
+    // (undocumented)
+    delete(): Pipeline;
     distinct(group: string | Selectable, ...additionalGroups: Array<string | Selectable>): Pipeline;
     distinct(options: DistinctStageOptions): Pipeline;
     findNearest(options: FindNearestStageOptions): Pipeline;
+    // (undocumented)
+    insert(): Pipeline;
+    // Warning: (ae-incompatible-release-tags) The symbol "insert" is marked as @public, but its signature references "InsertStageOptions" which is marked as @beta
+    //
+    // (undocumented)
+    insert(options: InsertStageOptions): Pipeline;
     limit(limit: number): Pipeline;
     // (undocumented)
     limit(options: LimitStageOptions): Pipeline;
@@ -1301,12 +1320,23 @@ export class Pipeline {
     unnest(selectable: Selectable, indexField?: string): Pipeline;
     // (undocumented)
     unnest(options: UnnestStageOptions): Pipeline;
+    // (undocumented)
+    update(): Pipeline;
+    // (undocumented)
+    update(transformedFields: AliasedExpression[]): Pipeline;
+    // (undocumented)
+    upsert(transforms: AliasedExpression[]): Pipeline;
+    // Warning: (ae-incompatible-release-tags) The symbol "upsert" is marked as @public, but its signature references "UpsertStageOptions" which is marked as @beta
+    //
+    // (undocumented)
+    upsert(transforms: AliasedExpression[], options: UpsertStageOptions): Pipeline;
     where(condition: BooleanExpression): Pipeline;
     where(options: WhereStageOptions): Pipeline;
 }
 
 // @public
 export interface PipelineExecuteOptions {
+    atomic?: boolean;
     indexMode?: 'recommended';
     pipeline: Pipeline;
     rawOptions?: {
@@ -1349,6 +1379,9 @@ export class PipelineSource<PipelineType> {
     database(options: DatabaseStageOptions): PipelineType;
     documents(docs: Array<string | DocumentReference>): PipelineType;
     documents(options: DocumentsStageOptions): PipelineType;
+    literals(document: Record<string, unknown>, ...additionalDocuments: Array<Record<string, unknown>>): PipelineType;
+    // Warning: (ae-incompatible-release-tags) The symbol "literals" is marked as @public, but its signature references "LiteralsStageOptions" which is marked as @beta
+    literals(options: LiteralsStageOptions): PipelineType;
     }
 
 // @public
@@ -1757,6 +1790,12 @@ export function unixSecondsToTimestamp(fieldName: string): FunctionExpression;
 export type UnnestStageOptions = StageOptions & {
     selectable: Selectable;
     indexField?: string;
+};
+
+// @beta
+export type UpsertStageOptions = StageOptions & {
+    collection?: string | Query;
+    documentId?: string | Expression;
 };
 
 // @public

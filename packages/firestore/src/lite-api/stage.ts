@@ -32,17 +32,28 @@ import {
 } from '../remote/serializer';
 import { hardAssert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
+import { isPlainObject } from '../util/input_validation';
+import { selectablesToMap } from '../util/pipeline_util';
 
 import {
   AggregateFunction,
+  AliasedExpression,
   BooleanExpression,
+  _constant,
   Expression,
   Field,
   field,
+  isExpr,
   Ordering
 } from './expressions';
 import { Pipeline } from './pipeline';
-import { QueryEnhancement, StageOptions } from './stage_options';
+import {
+  InsertStageOptions,
+  LiteralsStageOptions,
+  QueryEnhancement,
+  StageOptions,
+  UpsertStageOptions
+} from './stage_options';
 import { isUserData, UserData } from './user_data_reader';
 
 export abstract class Stage implements ProtoSerializable<ProtoStage>, UserData {
@@ -53,8 +64,8 @@ export abstract class Stage implements ProtoSerializable<ProtoStage>, UserData {
    * @protected
    */
   protected optionsProto:
-    | ApiClientObjectMap<firestoreV1ApiClientInterfaces.Value>
-    | undefined = undefined;
+    ApiClientObjectMap<firestoreV1ApiClientInterfaces.Value> | undefined =
+    undefined;
   protected knownOptions: Record<string, unknown>;
   protected rawOptions?: Record<string, unknown>;
 
@@ -118,7 +129,10 @@ export class RemoveFields extends Stage {
     return new OptionsUtil({});
   }
 
-  constructor(private fields: Field[], options: StageOptions) {
+  constructor(
+    private fields: Field[],
+    options: StageOptions
+  ) {
     super(options);
   }
 
@@ -299,7 +313,10 @@ export class CollectionGroupSource extends Stage {
     });
   }
 
-  constructor(public readonly collectionId: string, options: StageOptions) {
+  constructor(
+    public readonly collectionId: string,
+    options: StageOptions
+  ) {
     super(options);
   }
 
@@ -328,7 +345,10 @@ export class SubcollectionSource extends Stage {
     return new OptionsUtil({});
   }
 
-  constructor(private path: string, options: StageOptions) {
+  constructor(
+    private path: string,
+    options: StageOptions
+  ) {
     super(options);
   }
 
@@ -423,6 +443,87 @@ export class DocumentsSource extends Stage {
   }
 }
 
+export class LiteralsSource extends Stage {
+  get _name(): string {
+    return 'literals';
+  }
+
+  get _optionsUtil(): OptionsUtil {
+    return new OptionsUtil({});
+  }
+
+  private parseContext?: ParseContext;
+
+  constructor(
+    readonly documents: Array<Record<string, unknown>>,
+    options: LiteralsStageOptions = {}
+  ) {
+    super(options);
+  }
+
+  _readUserData(context: ParseContext): void {
+    super._readUserData(context);
+    this.parseContext = context;
+    readUserDataInLiteralMaps(this.documents, context);
+  }
+
+  /**
+   * @internal
+   * @private
+   */
+  _toProto(serializer: JsonProtoSerializer): ProtoStage {
+    const ctx = this.parseContext;
+    const args = this.documents.map(doc =>
+      encodeLiteralMap(doc, serializer, ctx)
+    );
+    return {
+      ...super._toProto(serializer),
+      args
+    };
+  }
+}
+
+function readUserDataInLiteralMaps(val: unknown, context: ParseContext): void {
+  if (isExpr(val)) {
+    (val as Expression)._readUserData(context);
+  } else if (Array.isArray(val)) {
+    val.forEach(item => readUserDataInLiteralMaps(item, context));
+  } else if (isPlainObject(val)) {
+    for (const k of Object.keys(val as Record<string, unknown>)) {
+      readUserDataInLiteralMaps((val as Record<string, unknown>)[k], context);
+    }
+  }
+}
+
+function encodeLiteralMap(
+  map: Record<string, unknown>,
+  serializer: JsonProtoSerializer,
+  context?: ParseContext
+): ProtoValue {
+  const fields: ApiClientObjectMap<ProtoValue> = {};
+  for (const key of Object.keys(map)) {
+    const val = map[key];
+    if (isExpr(val)) {
+      fields[key] = (val as Expression)._toProto(serializer);
+    } else if (isPlainObject(val)) {
+      fields[key] = encodeLiteralMap(
+        val as Record<string, unknown>,
+        serializer,
+        context
+      );
+    } else {
+      const expr = _constant(val, 'literals');
+      if (context) {
+        expr._readUserData(context);
+      }
+      fields[key] = expr._toProto(serializer);
+    }
+  }
+  return {
+    mapValue: { fields }
+  };
+}
+
 export class Where extends Stage {
   get _name(): string {
     return 'where';
@@ -510,7 +611,10 @@ export class Limit extends Stage {
     return new OptionsUtil({});
   }
 
-  constructor(public readonly limit: number, options: StageOptions) {
+  constructor(
+    public readonly limit: number,
+    options: StageOptions
+  ) {
     hardAssert(
       !isNaN(limit) && limit !== Infinity && limit !== -Infinity,
       0x882c,
@@ -539,7 +643,10 @@ export class Offset extends Stage {
     return new OptionsUtil({});
   }
 
-  constructor(public readonly offset: number, options: StageOptions) {
+  constructor(
+    public readonly offset: number,
+    options: StageOptions
+  ) {
     super(options);
   }
 
@@ -596,7 +703,10 @@ export class Sort extends Stage {
     return new OptionsUtil({});
   }
 
-  constructor(public readonly orderings: Ordering[], options: StageOptions) {
+  constructor(
+    public readonly orderings: Ordering[],
+    options: StageOptions
+  ) {
     super(options);
   }
 
@@ -654,7 +764,10 @@ export class Union extends Stage {
     return new OptionsUtil({});
   }
 
-  constructor(private other: Pipeline, options: StageOptions) {
+  constructor(
+    private other: Pipeline,
+    options: StageOptions
+  ) {
     super(options);
   }
 
@@ -719,7 +832,10 @@ export class Replace extends Stage {
     return new OptionsUtil({});
   }
 
-  constructor(private map: Expression, options: StageOptions) {
+  constructor(
+    private map: Expression,
+    options: StageOptions
+  ) {
     super(options);
   }
 
@@ -866,6 +982,196 @@ export class RawStage extends Stage {
 }
 
 /**
+ * @beta
+ */
+export class Delete extends Stage {
+  get _name(): string {
+    return 'delete';
+  }
+  get _optionsUtil(): OptionsUtil {
+    return new OptionsUtil({});
+  }
+
+  constructor(options: StageOptions = {}) {
+    super(options);
+  }
+
+  /**
+   * @internal
+   * @private
+   */
+  _toProto(serializer: JsonProtoSerializer): ProtoStage {
+    return {
+      ...super._toProto(serializer),
+      args: []
+    };
+  }
+}
+
+/**
+ * @beta
+ */
+export class Update extends Stage {
+  get _name(): string {
+    return 'update';
+  }
+  get _optionsUtil(): OptionsUtil {
+    return new OptionsUtil({});
+  }
+
+  constructor(
+    private transformedFields?: Map<string, Expression>,
+    options: StageOptions = {}
+  ) {
+    super(options);
+  }
+
+  /**
+   * @internal
+   * @private
+   */
+  _toProto(serializer: JsonProtoSerializer): ProtoStage {
+    const args = [];
+    if (this.transformedFields && this.transformedFields.size > 0) {
+      args.push(toMapValue(serializer, this.transformedFields));
+    } else {
+      args.push(toMapValue(serializer, new Map()));
+    }
+    return {
+      ...super._toProto(serializer),
+      args
+    };
+  }
+
+  _readUserData(context: ParseContext): void {
+    super._readUserData(context);
+    if (this.transformedFields) {
+      readUserDataHelper(this.transformedFields, context);
+    }
+  }
+}
+
+/**
+ * @beta
+ */
+export class Insert extends Stage {
+  get _name(): string {
+    return 'insert';
+  }
+  get _optionsUtil(): OptionsUtil {
+    return new OptionsUtil({});
+  }
+
+  private readonly collectionPath?: string;
+  private readonly documentIdExpr?: Expression;
+
+  constructor(options: InsertStageOptions = {}) {
+    const { collection, documentId, ...rest } = options;
+    super(rest);
+    if (collection) {
+      this.collectionPath =
+        typeof collection === 'string' ? collection : collection.path;
+      if (!this.collectionPath.startsWith('/')) {
+        this.collectionPath = '/' + this.collectionPath;
+      }
+    }
+    if (documentId) {
+      this.documentIdExpr =
+        typeof documentId === 'string' ? field(documentId) : documentId;
+    }
+  }
+
+  _toProto(serializer: JsonProtoSerializer): ProtoStage {
+    const proto = super._toProto(serializer);
+    const options = proto.options ? { ...proto.options } : {};
+
+    if (this.collectionPath) {
+      options['collection'] = { referenceValue: this.collectionPath };
+    }
+    if (this.documentIdExpr) {
+      options['document_id'] = this.documentIdExpr._toProto(serializer);
+    }
+
+    return {
+      ...proto,
+      options: Object.keys(options).length > 0 ? options : undefined,
+      args: []
+    };
+  }
+
+  _readUserData(context: ParseContext): void {
+    super._readUserData(context);
+    if (this.documentIdExpr) {
+      readUserDataHelper(this.documentIdExpr, context);
+    }
+  }
+}
+
+/**
+ * @beta
+ */
+export class Upsert extends Stage {
+  get _name(): string {
+    return 'upsert';
+  }
+  get _optionsUtil(): OptionsUtil {
+    return new OptionsUtil({});
+  }
+
+  private readonly collectionPath?: string;
+  private readonly documentIdExpr?: Expression;
+  private readonly transforms: Map<string, Expression>;
+
+  constructor(
+    transforms: AliasedExpression[],
+    options: Omit<UpsertStageOptions, 'transforms'> = {}
+  ) {
+    const { collection, documentId, ...rest } = options;
+    super(rest);
+    this.transforms = selectablesToMap(transforms);
+    if (collection) {
+      this.collectionPath =
+        typeof collection === 'string' ? collection : collection.path;
+      if (!this.collectionPath.startsWith('/')) {
+        this.collectionPath = '/' + this.collectionPath;
+      }
+    }
+    if (documentId) {
+      this.documentIdExpr =
+        typeof documentId === 'string' ? field(documentId) : documentId;
+    }
+  }
+
+  _toProto(serializer: JsonProtoSerializer): ProtoStage {
+    const proto = super._toProto(serializer);
+    const options = proto.options ? { ...proto.options } : {};
+
+    if (this.collectionPath) {
+      options['collection'] = { referenceValue: this.collectionPath };
+    }
+    if (this.documentIdExpr) {
+      options['document_id'] = this.documentIdExpr._toProto(serializer);
+    }
+
+    const args = [toMapValue(serializer, this.transforms)];
+
+    return {
+      ...proto,
+      options: Object.keys(options).length > 0 ? options : undefined,
+      args
+    };
+  }
+
+  _readUserData(context: ParseContext): void {
+    super._readUserData(context);
+    readUserDataHelper(this.transforms, context);
+    if (this.documentIdExpr) {
+      readUserDataHelper(this.documentIdExpr, context);
+    }
+  }
+}
+
+/**
  * Helper to read user data across a number of different formats.
  * @param name - Name of the calling function. Used for error messages when invalid user data is encountered.
  * @param expressionMap
@@ -874,10 +1180,7 @@ export class RawStage extends Stage {
  */
 function readUserDataHelper<
   T extends
-    | Map<string, UserData>
-    | Record<string, UserData>
-    | UserData[]
-    | UserData
+    Map<string, UserData> | Record<string, UserData> | UserData[] | UserData
 >(expressionMap: T, context: ParseContext): T {
   if (isUserData(expressionMap)) {
     expressionMap._readUserData(context);

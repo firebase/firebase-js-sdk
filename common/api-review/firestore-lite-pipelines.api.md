@@ -505,6 +505,9 @@ export function euclideanDistance(vectorExpression: Expression, otherVectorExpre
 export function execute(pipeline: Pipeline): Promise<PipelineSnapshot>;
 
 // @public
+export function execute(options: PipelineExecuteOptions): Promise<PipelineSnapshot>;
+
+// @public
 export function exists(value: Expression): BooleanExpression;
 
 // @public
@@ -987,6 +990,12 @@ export function ifNull(ifFieldName: string, elseExpr: Expression): FunctionExpre
 // @public
 export function ifNull(ifFieldName: string, elseValue: unknown): FunctionExpression;
 
+// @beta
+export type InsertStageOptions = StageOptions & {
+    collection?: string | Query;
+    documentId?: string | Expression;
+};
+
 // @public
 export function isAbsent(value: Expression): BooleanExpression;
 
@@ -1067,6 +1076,11 @@ export function like(stringExpression: Expression, pattern: Expression): Boolean
 // @public
 export type LimitStageOptions = StageOptions & {
     limit: number;
+};
+
+// @beta
+export type LiteralsStageOptions = StageOptions & {
+    documents?: Array<Record<string, unknown>>;
 };
 
 // @public
@@ -1262,9 +1276,15 @@ export class Pipeline {
     aggregate(options: AggregateStageOptions): Pipeline;
     define(aliasedExpression: AliasedExpression, ...additionalExpressions: AliasedExpression[]): Pipeline;
     define(options: DefineStageOptions): Pipeline;
+    // @beta
+    delete(): Pipeline;
     distinct(group: string | Selectable, ...additionalGroups: Array<string | Selectable>): Pipeline;
     distinct(options: DistinctStageOptions): Pipeline;
     findNearest(options: FindNearestStageOptions): Pipeline;
+    // @beta
+    insert(): Pipeline;
+    // @beta
+    insert(options: InsertStageOptions): Pipeline;
     limit(limit: number): Pipeline;
     limit(options: LimitStageOptions): Pipeline;
     offset(offset: number): Pipeline;
@@ -1291,8 +1311,26 @@ export class Pipeline {
     union(options: UnionStageOptions): Pipeline;
     unnest(selectable: Selectable, indexField?: string): Pipeline;
     unnest(options: UnnestStageOptions): Pipeline;
+    // @beta
+    update(): Pipeline;
+    // @beta
+    update(transformedFields: AliasedExpression[]): Pipeline;
+    // @beta
+    upsert(transforms: AliasedExpression[]): Pipeline;
+    // @beta
+    upsert(transforms: AliasedExpression[], options: UpsertStageOptions): Pipeline;
     where(condition: BooleanExpression): Pipeline;
     where(options: WhereStageOptions): Pipeline;
+}
+
+// @public
+export interface PipelineExecuteOptions {
+    atomic?: boolean;
+    indexMode?: 'recommended';
+    pipeline: Pipeline;
+    rawOptions?: {
+        [name: string]: unknown;
+    };
 }
 
 // @public
@@ -1327,6 +1365,9 @@ export class PipelineSource<PipelineType> {
     database(options: DatabaseStageOptions): PipelineType;
     documents(docs: Array<string | DocumentReference>): PipelineType;
     documents(options: DocumentsStageOptions): PipelineType;
+    literals(document: Record<string, unknown>, ...additionalDocuments: Array<Record<string, unknown>>): PipelineType;
+    // Warning: (ae-incompatible-release-tags) The symbol "literals" is marked as @public, but its signature references "LiteralsStageOptions" which is marked as @beta
+    literals(options: LiteralsStageOptions): PipelineType;
     }
 
 // @public
@@ -1735,6 +1776,12 @@ export function unixSecondsToTimestamp(fieldName: string): FunctionExpression;
 export type UnnestStageOptions = StageOptions & {
     selectable: Selectable;
     indexField?: string;
+};
+
+// @beta
+export type UpsertStageOptions = StageOptions & {
+    collection?: string | Query;
+    documentId?: string | Expression;
 };
 
 // @public

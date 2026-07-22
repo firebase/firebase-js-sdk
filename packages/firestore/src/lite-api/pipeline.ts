@@ -59,22 +59,26 @@ import {
 import {
   AddFields,
   Aggregate,
+  Define,
+  Delete,
   Distinct,
   FindNearest,
-  RawStage,
+  Insert,
   Limit,
   Offset,
+  RawStage,
   RemoveFields,
   Replace,
   Sample,
+  Search,
   Select,
   Sort,
   Stage,
   Union,
   Unnest,
-  Where,
-  Define,
-  Search
+  Update,
+  Upsert,
+  Where
 } from './stage';
 import {
   AddFieldsStageOptions,
@@ -82,6 +86,7 @@ import {
   DefineStageOptions,
   DistinctStageOptions,
   FindNearestStageOptions,
+  InsertStageOptions,
   LimitStageOptions,
   OffsetStageOptions,
   RemoveFieldsStageOptions,
@@ -93,6 +98,7 @@ import {
   StageOptions,
   UnionStageOptions,
   UnnestStageOptions,
+  UpsertStageOptions,
   WhereStageOptions
 } from './stage_options';
 import { UserDataReader, UserData } from './user_data_reader';
@@ -978,7 +984,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
       targetOrOptions
     )
       ? []
-      : targetOrOptions.groups ?? [];
+      : (targetOrOptions.groups ?? []);
 
     // Convert user land convenience types to internal types
     const convertedAccumulators: Map<string, AggregateFunction> =
@@ -1570,6 +1576,93 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
 
     // Add stage to the pipeline
     return this._addStage(stage);
+  }
+
+  /**
+   * @beta
+   * Performs a delete operation on documents from previous stages.
+   *
+   * @example
+   * ```typescript
+   * // Deletes all documents in the "books" collection matching condition.
+   * firestore.pipeline().collection("books")
+   *    .where(equal(field("genre"), "Science Fiction"))
+   *    .delete();
+   * ```
+   *
+   * @returns A new {@link @firebase/firestore/pipelines#Pipeline} object with this stage appended to the stage list.
+   */
+  delete(): Pipeline {
+    return this._addStage(new Delete());
+  }
+
+  /**
+   * @beta
+   * Performs an update operation using documents from previous stages.
+   *
+   * @returns A new {@link @firebase/firestore/pipelines#Pipeline} object with this stage appended to the stage list.
+   */
+  update(): Pipeline;
+  /**
+   * @beta
+   * Performs an update operation using documents from previous stages.
+   *
+   * @param transformedFields - The list of transformations to apply.
+   * @returns A new {@link @firebase/firestore/pipelines#Pipeline} object with this stage appended to the stage list.
+   */
+  update(transformedFields: AliasedExpression[]): Pipeline;
+  update(transformedFields?: AliasedExpression[]): Pipeline {
+    const mapped =
+      transformedFields && transformedFields.length > 0
+        ? selectablesToMap(transformedFields)
+        : undefined;
+    return this._addStage(new Update(mapped));
+  }
+
+  /**
+   * @beta
+   * Performs an insert operation using documents from previous stages.
+   *
+   * @returns A new {@link @firebase/firestore/pipelines#Pipeline} object with this stage appended to the stage list.
+   */
+  insert(): Pipeline;
+  /**
+   * @beta
+   * Performs an insert operation with options.
+   *
+   * @param options - Options defining the collection and document ID.
+   * @returns A new {@link @firebase/firestore/pipelines#Pipeline} object with this stage appended to the stage list.
+   */
+  insert(options: InsertStageOptions): Pipeline;
+  insert(options: InsertStageOptions = {}): Pipeline {
+    return this._addStage(new Insert(options));
+  }
+
+  /**
+   * @beta
+   * Performs an upsert operation using documents from previous stages.
+   *
+   * @param transforms - The list of transformations to apply.
+   * @returns A new {@link @firebase/firestore/pipelines#Pipeline} object with this stage appended to the stage list.
+   */
+  upsert(transforms: AliasedExpression[]): Pipeline;
+  /**
+   * @beta
+   * Performs an upsert operation with options.
+   *
+   * @param transforms - The list of transformations to apply.
+   * @param options - Options defining the target collection and document ID.
+   * @returns A new {@link @firebase/firestore/pipelines#Pipeline} object with this stage appended to the stage list.
+   */
+  upsert(
+    transforms: AliasedExpression[],
+    options: UpsertStageOptions
+  ): Pipeline;
+  upsert(
+    transforms: AliasedExpression[],
+    options: UpsertStageOptions = {}
+  ): Pipeline {
+    return this._addStage(new Upsert(transforms, options));
   }
 
   /**

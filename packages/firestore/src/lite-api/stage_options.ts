@@ -431,3 +431,44 @@ export type SortStageOptions = StageOptions & {
    */
   orderings: Ordering[];
 };
+
+/**
+ * Options defining how an InsertStage is evaluated.
+ * @beta
+ */
+export type InsertStageOptions = StageOptions & {
+  /**
+   * The target collection to insert documents into.
+   */
+  collection?: string | CollectionReference;
+  /**
+   * The document ID expression or string.
+   */
+  documentId?: string | Expression;
+};
+
+/**
+ * Options defining how an UpsertStage is evaluated.
+ * @beta
+ */
+export type UpsertStageOptions = StageOptions & {
+  /**
+   * The target collection to upsert documents into.
+   */
+  collection?: string | CollectionReference;
+  /**
+   * The document ID expression or string.
+   */
+  documentId?: string | Expression;
+};
+
+/**
+ * Options defining how a LiteralsSource stage is evaluated.
+ * @beta
+ */
+export type LiteralsStageOptions = StageOptions & {
+  /**
+   * Array of document objects (maps) to be provided as literal inputs.
+   */
+  documents?: Array<Record<string, unknown>>;
+};
