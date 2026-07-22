@@ -49,10 +49,9 @@ const bumpRank: Record<string, number> = {
  * numerical rank, bump text, package name.
  */
 function getHighestBump(changesetPackages: Record<string, string>) {
-  const firebasePkgJson = require(resolve(
-    root,
-    'packages/firebase/package.json'
-  ));
+  const firebasePkgJson = require(
+    resolve(root, 'packages/firebase/package.json')
+  );
   let highestBump = bumpRank.patch;
   let highestBumpText = 'patch';
   let bumpPackage = '';

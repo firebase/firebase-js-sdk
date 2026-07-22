@@ -244,7 +244,10 @@ export class StringSchema extends Schema {
  * @public
  */
 export class ArraySchema extends Schema {
-  constructor(schemaParams: SchemaParams, public items: TypedSchema) {
+  constructor(
+    schemaParams: SchemaParams,
+    public items: TypedSchema
+  ) {
     super({
       type: SchemaType.ARRAY,
       ...schemaParams

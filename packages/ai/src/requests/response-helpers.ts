@@ -122,8 +122,7 @@ export function addHelpers(
     return undefined;
   };
   (response as EnhancedGenerateContentResponse).inlineDataParts = ():
-    | InlineDataPart[]
-    | undefined => {
+    InlineDataPart[] | undefined => {
     if (hasValidCandidates(response)) {
       return getInlineDataParts(response);
     } else if (response.promptFeedback) {

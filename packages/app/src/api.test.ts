@@ -479,7 +479,7 @@ describe('API tests', () => {
               expect(count).to.equal(0);
               count++;
             }
-          } as _FirebaseService),
+          }) as _FirebaseService,
         ComponentType.PUBLIC
       );
       _registerComponent(comp1);

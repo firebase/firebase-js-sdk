@@ -30,10 +30,9 @@ const projectId = argv.projectId;
 let cachedToken;
 
 try {
-  const config = require(path.resolve(
-    homedir(),
-    '.config/configstore/firebase-tools.json'
-  ));
+  const config = require(
+    path.resolve(homedir(), '.config/configstore/firebase-tools.json')
+  );
   cachedToken = config.tokens.refresh_token;
 } catch (err) {}
 
