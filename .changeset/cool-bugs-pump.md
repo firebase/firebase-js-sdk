@@ -3,4 +3,4 @@
 'firebase': minor
 ---
 
-Introduces text-to-speech capabilities (supporting both single and multi-speaker configurations) for non-Live API models (e.g Gemini API TTS). 
+Added support for text-to-speech capabilities (both single- and multi-speaker configurations) for non-Live API models (for example, Gemini TTS models).

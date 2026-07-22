@@ -10,7 +10,10 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # MultiSpeakerVoiceConfig interface
-Configuration for multi-speaker setup.
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Configuration for a single speaker's voice.
 
 <b>Signature:</b>
 
@@ -22,11 +25,14 @@ export interface MultiSpeakerVoiceConfig
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [speakerVoiceConfigs](./ai.multispeakervoiceconfig.md#multispeakervoiceconfigspeakervoiceconfigs) | [SpeakerVoiceConfig](./ai.speakervoiceconfig.md#speakervoiceconfig_interface)<!-- -->\[\] | A detailed collection of individual speaker profile setups. |
+|  [speakerVoiceConfigs](./ai.multispeakervoiceconfig.md#multispeakervoiceconfigspeakervoiceconfigs) | [SpeakerVoiceConfig](./ai.speakervoiceconfig.md#speakervoiceconfig_interface)<!-- -->\[\] | <b><i>(Public Preview)</i></b> All the enabled speaker voices. |
 
 ## MultiSpeakerVoiceConfig.speakerVoiceConfigs
 
-A detailed collection of individual speaker profile setups.
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+All the enabled speaker voices.
 
 <b>Signature:</b>
 

@@ -92,7 +92,7 @@ export interface AudioConversationController {
     stop: () => Promise<void>;
 }
 
-// @public
+// @beta
 export interface AudioTranscriptionConfig {
 }
 
@@ -123,7 +123,7 @@ export interface BaseParams {
     safetySettings?: SafetySetting[];
 }
 
-// @public
+// @beta
 export interface BaseSpeechConfig {
     languageCode?: string;
 }
@@ -579,6 +579,7 @@ export interface GenerationConfig {
     // @beta
     responseModalities?: ResponseModality[];
     responseSchema?: TypedSchema | SchemaRequest;
+    // Warning: (ae-incompatible-release-tags) The symbol "speechConfig" is marked as @public, but its signature references "SpeechConfig" which is marked as @beta
     speechConfig?: SpeechConfig;
     // (undocumented)
     stopSequences?: string[];
@@ -1232,13 +1233,13 @@ export interface ModelParams extends BaseParams {
     tools?: Tool[];
 }
 
-// @public
+// @beta
 export interface MultiSpeakerSpeechConfig extends BaseSpeechConfig {
     multiSpeakerVoiceConfig?: MultiSpeakerVoiceConfig;
     voiceConfig?: never;
 }
 
-// @public
+// @beta
 export interface MultiSpeakerVoiceConfig {
     speakerVoiceConfigs: SpeakerVoiceConfig[];
 }
@@ -1295,7 +1296,7 @@ export type Part = TextPart | InlineDataPart | FunctionCallPart | FunctionRespon
 // @public
 export const POSSIBLE_ROLES: readonly ["user", "model", "function", "system"];
 
-// @public
+// @beta
 export interface PrebuiltVoiceConfig {
     voiceName?: string;
 }
@@ -1481,7 +1482,7 @@ export interface SingleRequestOptions extends RequestOptions {
     signal?: AbortSignal;
 }
 
-// @public
+// @beta
 export interface SingleSpeakerSpeechConfig extends BaseSpeechConfig {
     multiSpeakerVoiceConfig?: never;
     voiceConfig?: VoiceConfig;
@@ -1492,13 +1493,13 @@ export interface SlidingWindow {
     targetTokens?: number;
 }
 
-// @public
+// @beta
 export interface SpeakerVoiceConfig {
     speaker: string;
     voiceConfig: VoiceConfig;
 }
 
-// @public
+// @beta
 export type SpeechConfig = SingleSpeakerSpeechConfig | MultiSpeakerSpeechConfig;
 
 // @beta
@@ -1755,7 +1756,7 @@ export interface VideoMetadata {
     startOffset: string;
 }
 
-// @public
+// @beta
 export interface VoiceConfig {
     prebuiltVoiceConfig?: PrebuiltVoiceConfig;
 }

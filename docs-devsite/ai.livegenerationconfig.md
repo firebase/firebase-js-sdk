@@ -32,7 +32,7 @@ export interface LiveGenerationConfig
 |  [outputAudioTranscription](./ai.livegenerationconfig.md#livegenerationconfigoutputaudiotranscription) | [AudioTranscriptionConfig](./ai.audiotranscriptionconfig.md#audiotranscriptionconfig_interface) | <b><i>(Public Preview)</i></b> Enables transcription of audio input.<!-- -->When enabled, the model will respond with transcriptions of its audio output in the <code>outputTranscription</code> property in [LiveServerContent](./ai.liveservercontent.md#liveservercontent_interface) messages. Note that the transcriptions are broken up across messages, so you may only receive small amounts of text per message. For example, if the model says "How are you today?", the model may transcribe that output across three messages, broken up as "How a", "re yo", "u today?". |
 |  [presencePenalty](./ai.livegenerationconfig.md#livegenerationconfigpresencepenalty) | number | <b><i>(Public Preview)</i></b> Positive penalties. |
 |  [responseModalities](./ai.livegenerationconfig.md#livegenerationconfigresponsemodalities) | [ResponseModality](./ai.md#responsemodality)<!-- -->\[\] | <b><i>(Public Preview)</i></b> The modalities of the response. |
-|  [speechConfig](./ai.livegenerationconfig.md#livegenerationconfigspeechconfig) | [SpeechConfig](./ai.md#speechconfig) | <b><i>(Public Preview)</i></b> Configuration for speech synthesis. |
+|  [speechConfig](./ai.livegenerationconfig.md#livegenerationconfigspeechconfig) | [SpeechConfig](./ai.md#speechconfig) | <b><i>(Public Preview)</i></b> Configuration for speech synthesis for Live API Models. |
 |  [temperature](./ai.livegenerationconfig.md#livegenerationconfigtemperature) | number | <b><i>(Public Preview)</i></b> Controls the degree of randomness in token selection. A <code>temperature</code> value of 0 means that the highest probability tokens are always selected. In this case, responses for a given prompt are mostly deterministic, but a small amount of variation is still possible. |
 |  [topK](./ai.livegenerationconfig.md#livegenerationconfigtopk) | number | <b><i>(Public Preview)</i></b> Changes how the model selects token for output. A <code>topK</code> value of 1 means the select token is the most probable among all tokens in the model's vocabulary, while a <code>topK</code> value 3 means that the next token is selected from among the 3 most probably using probabilities sampled. Tokens are then further filtered with the highest selected <code>temperature</code> sampling. Defaults to 40 if unspecified. |
 |  [topP](./ai.livegenerationconfig.md#livegenerationconfigtopp) | number | <b><i>(Public Preview)</i></b> Changes how the model selects tokens for output. Tokens are selected from the most to least probable until the sum of their probabilities equals the <code>topP</code> value. For example, if tokens A, B, and C have probabilities of 0.3, 0.2, and 0.1 respectively and the <code>topP</code> value is 0.5, then the model will select either A or B as the next token by using the <code>temperature</code> and exclude C as a candidate. Defaults to 0.95 if unset. |
@@ -137,7 +137,7 @@ responseModalities?: ResponseModality[];
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Configuration for speech synthesis.
+Configuration for speech synthesis for Live API Models.
 
 <b>Signature:</b>
 

@@ -61,9 +61,9 @@ The Firebase AI Web SDK.
 |  [AI](./ai.ai.md#ai_interface) | An instance of the Firebase AI SDK.<!-- -->Do not create this instance directly. Instead, use [getAI()](./ai.md#getai_a94a413)<!-- -->. |
 |  [AIOptions](./ai.aioptions.md#aioptions_interface) | Options for initializing the AI service using [getAI()](./ai.md#getai_a94a413)<!-- -->. This allows specifying which backend to use (Vertex AI Gemini API or Gemini Developer API) and configuring its specific options (like location for Vertex AI). |
 |  [AudioConversationController](./ai.audioconversationcontroller.md#audioconversationcontroller_interface) | <b><i>(Public Preview)</i></b> A controller for managing an active audio conversation. |
-|  [AudioTranscriptionConfig](./ai.audiotranscriptionconfig.md#audiotranscriptionconfig_interface) | The audio transcription configuration. |
+|  [AudioTranscriptionConfig](./ai.audiotranscriptionconfig.md#audiotranscriptionconfig_interface) | <b><i>(Public Preview)</i></b> The audio transcription configuration. |
 |  [BaseParams](./ai.baseparams.md#baseparams_interface) | Base parameters for a number of methods. |
-|  [BaseSpeechConfig](./ai.basespeechconfig.md#basespeechconfig_interface) | Base configuration for speech synthesis. |
+|  [BaseSpeechConfig](./ai.basespeechconfig.md#basespeechconfig_interface) | <b><i>(Public Preview)</i></b> Base configuration for speech synthesis. |
 |  [ChromeAdapter](./ai.chromeadapter.md#chromeadapter_interface) | Defines an inference "backend" that uses Chrome's on-device model, and encapsulates logic for detecting when on-device inference is possible.<!-- -->These methods should not be called directly by the user. |
 |  [Citation](./ai.citation.md#citation_interface) | A single citation. |
 |  [CitationMetadata](./ai.citationmetadata.md#citationmetadata_interface) | Citation metadata that may be found on a [GenerateContentCandidate](./ai.generatecontentcandidate.md#generatecontentcandidate_interface)<!-- -->. |
@@ -130,11 +130,11 @@ The Firebase AI Web SDK.
 |  [LiveSessionResumptionUpdate](./ai.livesessionresumptionupdate.md#livesessionresumptionupdate_interface) | <b><i>(Public Preview)</i></b> An update of the session resumption state.<!-- -->This message is only sent if [SessionResumptionConfig](./ai.sessionresumptionconfig.md#sessionresumptionconfig_interface) was set in the session setup. |
 |  [ModalityTokenCount](./ai.modalitytokencount.md#modalitytokencount_interface) | Represents token counting info for a single modality. |
 |  [ModelParams](./ai.modelparams.md#modelparams_interface) | Params passed to [getGenerativeModel()](./ai.md#getgenerativemodel_c63f46a)<!-- -->. |
-|  [MultiSpeakerSpeechConfig](./ai.multispeakerspeechconfig.md#multispeakerspeechconfig_interface) | Configuration for speech synthesis with multiple speakers. @ |
-|  [MultiSpeakerVoiceConfig](./ai.multispeakervoiceconfig.md#multispeakervoiceconfig_interface) | Configuration for multi-speaker setup. |
+|  [MultiSpeakerSpeechConfig](./ai.multispeakerspeechconfig.md#multispeakerspeechconfig_interface) | <b><i>(Public Preview)</i></b> Configuration for speech synthesis with multiple speakers. |
+|  [MultiSpeakerVoiceConfig](./ai.multispeakervoiceconfig.md#multispeakervoiceconfig_interface) | <b><i>(Public Preview)</i></b> Configuration for a single speaker's voice. |
 |  [ObjectSchemaRequest](./ai.objectschemarequest.md#objectschemarequest_interface) | Interface for JSON parameters in a schema of [SchemaType](./ai.md#schematype) "object" when not using the <code>Schema.object()</code> helper. |
 |  [OnDeviceParams](./ai.ondeviceparams.md#ondeviceparams_interface) | Encapsulates configuration for on-device inference. |
-|  [PrebuiltVoiceConfig](./ai.prebuiltvoiceconfig.md#prebuiltvoiceconfig_interface) | Configuration for a pre-built voice. |
+|  [PrebuiltVoiceConfig](./ai.prebuiltvoiceconfig.md#prebuiltvoiceconfig_interface) | <b><i>(Public Preview)</i></b> Configuration for a pre-built voice. |
 |  [PromptFeedback](./ai.promptfeedback.md#promptfeedback_interface) | If the prompt was blocked, this will be populated with <code>blockReason</code> and the relevant <code>safetyRatings</code>. |
 |  [RequestOptions](./ai.requestoptions.md#requestoptions_interface) | Params passed to [getGenerativeModel()](./ai.md#getgenerativemodel_c63f46a)<!-- -->. |
 |  [RetrievalConfig](./ai.retrievalconfig.md#retrievalconfig_interface) | Configuration options for data retrieval tools. |
@@ -149,9 +149,9 @@ The Firebase AI Web SDK.
 |  [Segment](./ai.segment.md#segment_interface) | Represents a specific segment within a [Content](./ai.content.md#content_interface) object, often used to pinpoint the exact location of text or data that grounding information refers to. |
 |  [SessionResumptionConfig](./ai.sessionresumptionconfig.md#sessionresumptionconfig_interface) | <b><i>(Public Preview)</i></b> Configuration for the session resumption mechanism. |
 |  [SingleRequestOptions](./ai.singlerequestoptions.md#singlerequestoptions_interface) | Options that can be provided per-request. Extends the base [RequestOptions](./ai.requestoptions.md#requestoptions_interface) (like <code>timeout</code> and <code>baseUrl</code>) with request-specific controls like cancellation via <code>AbortSignal</code>.<!-- -->Options specified here will override any default [RequestOptions](./ai.requestoptions.md#requestoptions_interface) configured on a model (for example, [GenerativeModel](./ai.generativemodel.md#generativemodel_class)<!-- -->). |
-|  [SingleSpeakerSpeechConfig](./ai.singlespeakerspeechconfig.md#singlespeakerspeechconfig_interface) | Configuration for speech generation using a single voice. |
+|  [SingleSpeakerSpeechConfig](./ai.singlespeakerspeechconfig.md#singlespeakerspeechconfig_interface) | <b><i>(Public Preview)</i></b> Configuration for speech synthesis using a single voice. |
 |  [SlidingWindow](./ai.slidingwindow.md#slidingwindow_interface) | <b><i>(Public Preview)</i></b> Configures the sliding window context compression mechanism. |
-|  [SpeakerVoiceConfig](./ai.speakervoiceconfig.md#speakervoiceconfig_interface) | Configuration for a single speaker's voice. |
+|  [SpeakerVoiceConfig](./ai.speakervoiceconfig.md#speakervoiceconfig_interface) | <b><i>(Public Preview)</i></b> Configuration for a single speaker's voice. |
 |  [StartAudioConversationOptions](./ai.startaudioconversationoptions.md#startaudioconversationoptions_interface) | <b><i>(Public Preview)</i></b> Options for [startAudioConversation()](./ai.md#startaudioconversation_01c8e7f)<!-- -->. |
 |  [StartChatParams](./ai.startchatparams.md#startchatparams_interface) | Params for [GenerativeModel.startChat()](./ai.generativemodel.md#generativemodelstartchat)<!-- -->. |
 |  [StartTemplateChatParams](./ai.starttemplatechatparams.md#starttemplatechatparams_interface) | <b><i>(Public Preview)</i></b> Params for [TemplateGenerativeModel.startChat()](./ai.templategenerativemodel.md#templategenerativemodelstartchat)<!-- -->. |
@@ -169,7 +169,7 @@ The Firebase AI Web SDK.
 |  [URLMetadata](./ai.urlmetadata.md#urlmetadata_interface) | Metadata for a single URL retrieved by the [URLContextTool](./ai.urlcontexttool.md#urlcontexttool_interface) tool. |
 |  [UsageMetadata](./ai.usagemetadata.md#usagemetadata_interface) | Usage metadata about a [GenerateContentResponse](./ai.generatecontentresponse.md#generatecontentresponse_interface)<!-- -->. |
 |  [VideoMetadata](./ai.videometadata.md#videometadata_interface) | Describes the input video content. |
-|  [VoiceConfig](./ai.voiceconfig.md#voiceconfig_interface) | Configuration for the voice to used in speech synthesis. |
+|  [VoiceConfig](./ai.voiceconfig.md#voiceconfig_interface) | <b><i>(Public Preview)</i></b> Configuration for the voice to be used for speech synthesis. |
 |  [WebAttribution](./ai.webattribution.md#webattribution_interface) |  |
 |  [WebGroundingChunk](./ai.webgroundingchunk.md#webgroundingchunk_interface) | A grounding chunk from the web.<!-- -->Important: If using Grounding with Google Search, you are required to comply with the [Service Specific Terms](https://cloud.google.com/terms/service-terms) for "Grounding with Google Search". |
 
@@ -236,7 +236,7 @@ The Firebase AI Web SDK.
 |  [ResponseModality](./ai.md#responsemodality) | <b><i>(Public Preview)</i></b> Generation modalities to be returned in generation responses. |
 |  [Role](./ai.md#role) | Role is the producer of the content. |
 |  [SchemaType](./ai.md#schematype) | Contains the list of OpenAPI data types as defined by the [OpenAPI specification](https://swagger.io/docs/specification/data-models/data-types/) |
-|  [SpeechConfig](./ai.md#speechconfig) | Configures speech synthesis. |
+|  [SpeechConfig](./ai.md#speechconfig) | <b><i>(Public Preview)</i></b> Configures speech synthesis. |
 |  [TemplateTool](./ai.md#templatetool) | <b><i>(Public Preview)</i></b> Defines a tool that a [TemplateGenerativeModel](./ai.templategenerativemodel.md#templategenerativemodel_class) can call to access external knowledge. Only function declarations are currently supported for templates. |
 |  [ThinkingLevel](./ai.md#thinkinglevel) | A preset that controls the model's "thinking" process. Use <code>ThinkingLevel.LOW</code> for faster responses on less complex tasks, and <code>ThinkingLevel.HIGH</code> for better reasoning on more complex tasks. |
 |  [Tool](./ai.md#tool) | Defines a tool that model can call to access external knowledge. |
@@ -1262,6 +1262,9 @@ export type SchemaType = (typeof SchemaType)[keyof typeof SchemaType];
 ```
 
 ## SpeechConfig
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 Configures speech synthesis.
 

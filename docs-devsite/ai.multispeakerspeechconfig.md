@@ -10,7 +10,10 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # MultiSpeakerSpeechConfig interface
-Configuration for speech synthesis with multiple speakers. @
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Configuration for speech synthesis with multiple speakers.
 
 <b>Signature:</b>
 
@@ -23,10 +26,13 @@ export interface MultiSpeakerSpeechConfig extends BaseSpeechConfig
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [multiSpeakerVoiceConfig](./ai.multispeakerspeechconfig.md#multispeakerspeechconfigmultispeakervoiceconfig) | [MultiSpeakerVoiceConfig](./ai.multispeakervoiceconfig.md#multispeakervoiceconfig_interface) | Configuration for multi-speaker setup. |
-|  [voiceConfig](./ai.multispeakerspeechconfig.md#multispeakerspeechconfigvoiceconfig) | never | Single voice properties must not be defined if using multi-speaker. |
+|  [multiSpeakerVoiceConfig](./ai.multispeakerspeechconfig.md#multispeakerspeechconfigmultispeakervoiceconfig) | [MultiSpeakerVoiceConfig](./ai.multispeakervoiceconfig.md#multispeakervoiceconfig_interface) | <b><i>(Public Preview)</i></b> Configuration for multi-speaker setup. |
+|  [voiceConfig](./ai.multispeakerspeechconfig.md#multispeakerspeechconfigvoiceconfig) | never | <b><i>(Public Preview)</i></b> Single-speaker voice configuration must not be set when using multiple speakers. |
 
 ## MultiSpeakerSpeechConfig.multiSpeakerVoiceConfig
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 Configuration for multi-speaker setup.
 
@@ -38,7 +44,10 @@ multiSpeakerVoiceConfig?: MultiSpeakerVoiceConfig;
 
 ## MultiSpeakerSpeechConfig.voiceConfig
 
-Single voice properties must not be defined if using multi-speaker.
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Single-speaker voice configuration must not be set when using multiple speakers.
 
 <b>Signature:</b>
 

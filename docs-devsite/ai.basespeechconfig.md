@@ -10,6 +10,9 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # BaseSpeechConfig interface
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 Base configuration for speech synthesis.
 
 <b>Signature:</b>
@@ -22,11 +25,14 @@ export interface BaseSpeechConfig
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [languageCode](./ai.basespeechconfig.md#basespeechconfiglanguagecode) | string | The optional IETF BCP-47 language code (e.g., "en-US", "es-ES") to guide voice generation. |
+|  [languageCode](./ai.basespeechconfig.md#basespeechconfiglanguagecode) | string | <b><i>(Public Preview)</i></b> IETF BCP-47 language code. |
 
 ## BaseSpeechConfig.languageCode
 
-The optional IETF BCP-47 language code (e.g., "en-US", "es-ES") to guide voice generation.
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+IETF BCP-47 language code.
 
 <b>Signature:</b>
 

@@ -10,7 +10,10 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # SingleSpeakerSpeechConfig interface
-Configuration for speech generation using a single voice.
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Configuration for speech synthesis using a single voice.
 
 <b>Signature:</b>
 
@@ -23,10 +26,13 @@ export interface SingleSpeakerSpeechConfig extends BaseSpeechConfig
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [multiSpeakerVoiceConfig](./ai.singlespeakerspeechconfig.md#singlespeakerspeechconfigmultispeakervoiceconfig) | never | Multi-speaker configuration must not be set when using a single speaker. |
-|  [voiceConfig](./ai.singlespeakerspeechconfig.md#singlespeakerspeechconfigvoiceconfig) | [VoiceConfig](./ai.voiceconfig.md#voiceconfig_interface) | Configures the voice to be used in speech synthesis. |
+|  [multiSpeakerVoiceConfig](./ai.singlespeakerspeechconfig.md#singlespeakerspeechconfigmultispeakervoiceconfig) | never | <b><i>(Public Preview)</i></b> Multi-speaker configuration must not be set when using a single speaker. |
+|  [voiceConfig](./ai.singlespeakerspeechconfig.md#singlespeakerspeechconfigvoiceconfig) | [VoiceConfig](./ai.voiceconfig.md#voiceconfig_interface) | <b><i>(Public Preview)</i></b> Configures the voice to be used in speech synthesis. |
 
 ## SingleSpeakerSpeechConfig.multiSpeakerVoiceConfig
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 Multi-speaker configuration must not be set when using a single speaker.
 
@@ -37,6 +43,9 @@ multiSpeakerVoiceConfig?: never;
 ```
 
 ## SingleSpeakerSpeechConfig.voiceConfig
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 Configures the voice to be used in speech synthesis.
 

@@ -10,6 +10,9 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # SpeakerVoiceConfig interface
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 Configuration for a single speaker's voice.
 
 <b>Signature:</b>
@@ -22,10 +25,13 @@ export interface SpeakerVoiceConfig
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [speaker](./ai.speakervoiceconfig.md#speakervoiceconfigspeaker) | string | The name of the speaker to use (same as in prompt). |
-|  [voiceConfig](./ai.speakervoiceconfig.md#speakervoiceconfigvoiceconfig) | [VoiceConfig](./ai.voiceconfig.md#voiceconfig_interface) | The configuration for the voice to use. |
+|  [speaker](./ai.speakervoiceconfig.md#speakervoiceconfigspeaker) | string | <b><i>(Public Preview)</i></b> The name of the speaker to use (same as in prompt). |
+|  [voiceConfig](./ai.speakervoiceconfig.md#speakervoiceconfigvoiceconfig) | [VoiceConfig](./ai.voiceconfig.md#voiceconfig_interface) | <b><i>(Public Preview)</i></b> The configuration for the voice to use. |
 
 ## SpeakerVoiceConfig.speaker
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 The name of the speaker to use (same as in prompt).
 
@@ -36,6 +42,9 @@ speaker: string;
 ```
 
 ## SpeakerVoiceConfig.voiceConfig
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 The configuration for the voice to use.
 

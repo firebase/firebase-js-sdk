@@ -144,7 +144,7 @@ export interface GenerationConfig {
   frequencyPenalty?: number;
 
   /**
-   * Configures speech synthesis for text-to-speech (TTS) models.
+   * Configuration for speech synthesis for text-to-speech (TTS) models.
    *
    * @public
    */
@@ -201,7 +201,7 @@ export interface GenerationConfig {
  */
 export interface LiveGenerationConfig {
   /**
-   * Configuration for speech synthesis.
+   * Configuration for speech synthesis for Live API Models.
    */
   speechConfig?: SpeechConfig;
   /**
@@ -837,7 +837,7 @@ export interface ThinkingConfig {
 /**
  * Configuration for a pre-built voice.
  *
- * @public
+ * @beta
  */
 export interface PrebuiltVoiceConfig {
   /**
@@ -849,9 +849,9 @@ export interface PrebuiltVoiceConfig {
 }
 
 /**
- * Configuration for the voice to used in speech synthesis.
+ * Configuration for the voice to be used for speech synthesis.
  *
- * @public
+ * @beta
  */
 export interface VoiceConfig {
   /**
@@ -862,7 +862,7 @@ export interface VoiceConfig {
 
 /**
  * Configures speech synthesis.
- * @public
+ * @beta
  */
 
 export type SpeechConfig = SingleSpeakerSpeechConfig | MultiSpeakerSpeechConfig;
@@ -870,7 +870,7 @@ export type SpeechConfig = SingleSpeakerSpeechConfig | MultiSpeakerSpeechConfig;
 /**
  * Base configuration for speech synthesis.
  *
- * @public
+ * @beta
  */
 export interface BaseSpeechConfig {
   /** IETF BCP-47 language code. */
@@ -880,13 +880,13 @@ export interface BaseSpeechConfig {
 /**
  * The audio transcription configuration.
  *
- * @public
+ * @beta
  */
 export interface AudioTranscriptionConfig {}
 
 /**
- * Configuration for speech generation using a single voice.
- * @public
+ * Configuration for speech synthesis using a single voice.
+ * @beta
  */
 export interface SingleSpeakerSpeechConfig extends BaseSpeechConfig {
   /** Configures the voice to be used in speech synthesis. */
@@ -897,7 +897,7 @@ export interface SingleSpeakerSpeechConfig extends BaseSpeechConfig {
 
 /**
  * Configuration for speech synthesis with multiple speakers.
- * @public
+ * @beta
  */
 
 export interface MultiSpeakerSpeechConfig extends BaseSpeechConfig {
@@ -908,9 +908,9 @@ export interface MultiSpeakerSpeechConfig extends BaseSpeechConfig {
 }
 
 /**
- * Configuration for multi-speaker setup.
+ * Configuration for a single speaker's voice.
  *
- * @public
+ * @beta
  */
 export interface MultiSpeakerVoiceConfig {
   /** All the enabled speaker voices. */
@@ -920,7 +920,7 @@ export interface MultiSpeakerVoiceConfig {
 /**
  * Configuration for a single speaker's voice.
  *
- * @public
+ * @beta
  */
 export interface SpeakerVoiceConfig {
   /** The name of the speaker to use (same as in prompt). */
