@@ -110,31 +110,32 @@ export function execute(
 
   return invokeExecutePipeline(datastore, structuredPipeline, { atomic }).then(
     result => {
-    // Get the execution time from the first result.
-    // firestoreClientExecutePipeline returns at least one PipelineStreamElement
-    // even if the returned document set is empty.
-    const executionTime =
-      result.length > 0 ? result[0].executionTime?.toTimestamp() : undefined;
+      // Get the execution time from the first result.
+      // firestoreClientExecutePipeline returns at least one PipelineStreamElement
+      // even if the returned document set is empty.
+      const executionTime =
+        result.length > 0 ? result[0].executionTime?.toTimestamp() : undefined;
 
-    const docs = result
-      // Currently ignore any response from ExecutePipeline that does
-      // not contain any document data in the `fields` property.
-      .filter(element => !!element.fields)
-      .map(
-        element =>
-          new PipelineResult(
-            userDataWriter,
-            element.fields!,
-            element.key?.path
-              ? new DocumentReference(firestore, null, element.key)
-              : undefined,
-            element.createTime?.toTimestamp(),
-            element.updateTime?.toTimestamp()
-          )
-      );
+      const docs = result
+        // Currently ignore any response from ExecutePipeline that does
+        // not contain any document data in the `fields` property.
+        .filter(element => !!element.fields)
+        .map(
+          element =>
+            new PipelineResult(
+              userDataWriter,
+              element.fields!,
+              element.key?.path
+                ? new DocumentReference(firestore, null, element.key)
+                : undefined,
+              element.createTime?.toTimestamp(),
+              element.updateTime?.toTimestamp()
+            )
+        );
 
-    return new PipelineSnapshot(pipeline, docs, executionTime);
-  });
+      return new PipelineSnapshot(pipeline, docs, executionTime);
+    }
+  );
 }
 
 /**

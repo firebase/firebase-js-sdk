@@ -316,7 +316,9 @@ describe('stage serialization', () => {
         pipeline: firestore.pipeline().collection('foo')
       });
 
-      const reqDefault = spy.args[0][EXECUTE_PIPELINE_REQUEST] as ProtoExecutePipelineRequest;
+      const reqDefault = spy.args[0][
+        EXECUTE_PIPELINE_REQUEST
+      ] as ProtoExecutePipelineRequest;
       expect(reqDefault.newTransaction).to.be.undefined;
       expect(reqDefault.autoCommitTransaction).to.be.undefined;
 
@@ -328,7 +330,9 @@ describe('stage serialization', () => {
         atomic: false
       });
 
-      const reqFalse = spy2.args[0][EXECUTE_PIPELINE_REQUEST] as ProtoExecutePipelineRequest;
+      const reqFalse = spy2.args[0][
+        EXECUTE_PIPELINE_REQUEST
+      ] as ProtoExecutePipelineRequest;
       expect(reqFalse.newTransaction).to.be.undefined;
       expect(reqFalse.autoCommitTransaction).to.be.undefined;
     });
@@ -342,7 +346,9 @@ describe('stage serialization', () => {
         atomic: true
       });
 
-      const req = spy.args[0][EXECUTE_PIPELINE_REQUEST] as ProtoExecutePipelineRequest;
+      const req = spy.args[0][
+        EXECUTE_PIPELINE_REQUEST
+      ] as ProtoExecutePipelineRequest;
       expect(req.autoCommitTransaction).to.be.true;
       expect(req.newTransaction).to.be.undefined;
     });
