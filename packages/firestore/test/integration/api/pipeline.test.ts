@@ -2478,7 +2478,9 @@ apiDescribe.skipClassic('Pipelines', persistence => {
         });
         expectResults(res, { documents_modified: 1 });
 
-        const snap = await execute(firestore.pipeline().collection(randomCol.path));
+        const snap = await execute(
+          firestore.pipeline().collection(randomCol.path)
+        );
         expect(snap.results.length).to.equal(11);
       });
 
@@ -2496,9 +2498,13 @@ apiDescribe.skipClassic('Pipelines', persistence => {
         });
         expectResults(res, { documents_modified: 1 });
 
-        const snap = await execute(firestore.pipeline().collection(targetColRef.path));
+        const snap = await execute(
+          firestore.pipeline().collection(targetColRef.path)
+        );
         expect(snap.results.length).to.equal(1);
-        expect(snap.results[0].get('title')).to.equal("The Hitchhiker's Guide to the Galaxy");
+        expect(snap.results[0].get('title')).to.equal(
+          "The Hitchhiker's Guide to the Galaxy"
+        );
 
         await execute({
           pipeline: firestore.pipeline().collection(targetColRef.path).delete(),
@@ -2526,7 +2532,9 @@ apiDescribe.skipClassic('Pipelines', persistence => {
 
         const docSnap = await getDoc(doc(targetColRef, 'my_custom_id_123'));
         expect(docSnap.exists()).to.be.true;
-        expect(docSnap.get('title')).to.equal("The Hitchhiker's Guide to the Galaxy");
+        expect(docSnap.get('title')).to.equal(
+          "The Hitchhiker's Guide to the Galaxy"
+        );
 
         await execute({
           pipeline: firestore.pipeline().collection(targetColRef.path).delete(),
@@ -2553,7 +2561,9 @@ apiDescribe.skipClassic('Pipelines', persistence => {
 
         const docSnap = await getDoc(doc(targetColRef, 'Science Fiction'));
         expect(docSnap.exists()).to.be.true;
-        expect(docSnap.get('title')).to.equal("The Hitchhiker's Guide to the Galaxy");
+        expect(docSnap.get('title')).to.equal(
+          "The Hitchhiker's Guide to the Galaxy"
+        );
 
         await execute({
           pipeline: firestore.pipeline().collection(targetColRef.path).delete(),
@@ -2650,14 +2660,20 @@ apiDescribe.skipClassic('Pipelines', persistence => {
         const res = await execute(
           firestore
             .pipeline()
-            .literals({ base: 10, doubled: multiply(constant(10), constant(2)) })
+            .literals({
+              base: 10,
+              doubled: multiply(constant(10), constant(2))
+            })
         );
         expect(res.results.length).to.equal(1);
         expect(res.results[0].data).to.deep.equal({ base: 10, doubled: 20 });
       });
 
       it('can perform non-transactional insert from literals source', async () => {
-        const targetColRef = collection(firestore, randomCol.id + '_lit_insert');
+        const targetColRef = collection(
+          firestore,
+          randomCol.id + '_lit_insert'
+        );
         const res = await execute(
           firestore
             .pipeline()
@@ -2668,15 +2684,18 @@ apiDescribe.skipClassic('Pipelines', persistence => {
       });
 
       it('can perform non-transactional upsert from literals source', async () => {
-        const targetColRef = collection(firestore, randomCol.id + '_lit_upsert');
+        const targetColRef = collection(
+          firestore,
+          randomCol.id + '_lit_upsert'
+        );
         const res = await execute(
           firestore
             .pipeline()
             .literals({ id: 'doc1', title: 'Literal Upserted' })
-            .upsert(
-              [constant('Literal Upserted').as('title')],
-              { collection: targetColRef, documentId: 'id' }
-            )
+            .upsert([constant('Literal Upserted').as('title')], {
+              collection: targetColRef,
+              documentId: 'id'
+            })
         );
         expectResults(res, { documents_modified: 1 });
       });

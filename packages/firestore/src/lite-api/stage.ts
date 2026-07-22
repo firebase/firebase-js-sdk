@@ -32,12 +32,13 @@ import {
 } from '../remote/serializer';
 import { hardAssert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
+import { isPlainObject } from '../util/input_validation';
+import { selectablesToMap } from '../util/pipeline_util';
 
 import {
   AggregateFunction,
   AliasedExpression,
   BooleanExpression,
-  constant,
   _constant,
   Expression,
   Field,
@@ -46,7 +47,6 @@ import {
   Ordering
 } from './expressions';
 import { Pipeline } from './pipeline';
-import { CollectionReference } from './reference';
 import {
   InsertStageOptions,
   LiteralsStageOptions,
@@ -55,8 +55,6 @@ import {
   UpsertStageOptions
 } from './stage_options';
 import { isUserData, UserData } from './user_data_reader';
-import { selectablesToMap } from '../util/pipeline_util';
-import { isPlainObject } from '../util/input_validation';
 
 export abstract class Stage implements ProtoSerializable<ProtoStage>, UserData {
   /**
@@ -1071,13 +1069,15 @@ export class Insert extends Stage {
     const { collection, documentId, ...rest } = options;
     super(rest);
     if (collection) {
-      this.collectionPath = typeof collection === 'string' ? collection : collection.path;
+      this.collectionPath =
+        typeof collection === 'string' ? collection : collection.path;
       if (!this.collectionPath.startsWith('/')) {
         this.collectionPath = '/' + this.collectionPath;
       }
     }
     if (documentId) {
-      this.documentIdExpr = typeof documentId === 'string' ? field(documentId) : documentId;
+      this.documentIdExpr =
+        typeof documentId === 'string' ? field(documentId) : documentId;
     }
   }
 
@@ -1130,13 +1130,15 @@ export class Upsert extends Stage {
     super(rest);
     this.transforms = selectablesToMap(transforms);
     if (collection) {
-      this.collectionPath = typeof collection === 'string' ? collection : collection.path;
+      this.collectionPath =
+        typeof collection === 'string' ? collection : collection.path;
       if (!this.collectionPath.startsWith('/')) {
         this.collectionPath = '/' + this.collectionPath;
       }
     }
     if (documentId) {
-      this.documentIdExpr = typeof documentId === 'string' ? field(documentId) : documentId;
+      this.documentIdExpr =
+        typeof documentId === 'string' ? field(documentId) : documentId;
     }
   }
 

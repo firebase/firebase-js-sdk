@@ -361,7 +361,9 @@ describe('stage serialization', () => {
 
       await execute(firestore.pipeline().collection('foo').insert());
 
-      const req = spy.args[0][EXECUTE_PIPELINE_REQUEST] as ProtoExecutePipelineRequest;
+      const req = spy.args[0][
+        EXECUTE_PIPELINE_REQUEST
+      ] as ProtoExecutePipelineRequest;
       const insertStage = req.structuredPipeline?.pipeline?.stages?.[1];
       expect(insertStage).to.deep.equal({
         name: 'insert',
@@ -375,22 +377,21 @@ describe('stage serialization', () => {
       const spy = fakePipelineResponse(firestore);
 
       await execute(
-        firestore
-          .pipeline()
-          .collection('foo')
-          .insert({
-            collection: 'customers',
-            documentId: 'idField'
-          })
+        firestore.pipeline().collection('foo').insert({
+          collection: 'customers',
+          documentId: 'idField'
+        })
       );
 
-      const req = spy.args[0][EXECUTE_PIPELINE_REQUEST] as ProtoExecutePipelineRequest;
+      const req = spy.args[0][
+        EXECUTE_PIPELINE_REQUEST
+      ] as ProtoExecutePipelineRequest;
       const insertStage = req.structuredPipeline?.pipeline?.stages?.[1];
       expect(insertStage).to.deep.equal({
         name: 'insert',
         options: {
           collection: { referenceValue: '/customers' },
-          document_id: { fieldReferenceValue: 'idField' }
+          'document_id': { fieldReferenceValue: 'idField' }
         },
         args: []
       });
@@ -411,13 +412,15 @@ describe('stage serialization', () => {
           })
       );
 
-      const req = spy.args[0][EXECUTE_PIPELINE_REQUEST] as ProtoExecutePipelineRequest;
+      const req = spy.args[0][
+        EXECUTE_PIPELINE_REQUEST
+      ] as ProtoExecutePipelineRequest;
       const insertStage = req.structuredPipeline?.pipeline?.stages?.[1];
       expect(insertStage).to.deep.equal({
         name: 'insert',
         options: {
           collection: { referenceValue: '/customers/c1/orders' },
-          document_id: { stringValue: 'fixedId' }
+          'document_id': { stringValue: 'fixedId' }
         },
         args: []
       });
@@ -433,9 +436,11 @@ describe('stage serialization', () => {
             documentId: field('otherId')
           })
       );
-      const req2 = spy2.args[0][EXECUTE_PIPELINE_REQUEST] as ProtoExecutePipelineRequest;
+      const req2 = spy2.args[0][
+        EXECUTE_PIPELINE_REQUEST
+      ] as ProtoExecutePipelineRequest;
       const insertStage2 = req2.structuredPipeline?.pipeline?.stages?.[1];
-      expect(insertStage2?.options?.document_id).to.deep.equal({
+      expect(insertStage2?.options?.['document_id']).to.deep.equal({
         fieldReferenceValue: 'otherId'
       });
     });
@@ -454,13 +459,15 @@ describe('stage serialization', () => {
           })
       );
 
-      const req = spy.args[0][EXECUTE_PIPELINE_REQUEST] as ProtoExecutePipelineRequest;
+      const req = spy.args[0][
+        EXECUTE_PIPELINE_REQUEST
+      ] as ProtoExecutePipelineRequest;
       const upsertStage = req.structuredPipeline?.pipeline?.stages?.[1];
       expect(upsertStage).to.deep.equal({
         name: 'upsert',
         options: {
           collection: { referenceValue: '/customers' },
-          document_id: { fieldReferenceValue: 'idField' }
+          'document_id': { fieldReferenceValue: 'idField' }
         },
         args: [
           {
@@ -482,13 +489,12 @@ describe('stage serialization', () => {
         firestore
           .pipeline()
           .collection('foo')
-          .upsert([
-            constant('Bob').as('name'),
-            field('score').as('finalScore')
-          ])
+          .upsert([constant('Bob').as('name'), field('score').as('finalScore')])
       );
 
-      const req = spy.args[0][EXECUTE_PIPELINE_REQUEST] as ProtoExecutePipelineRequest;
+      const req = spy.args[0][
+        EXECUTE_PIPELINE_REQUEST
+      ] as ProtoExecutePipelineRequest;
       const upsertStage = req.structuredPipeline?.pipeline?.stages?.[1];
       expect(upsertStage?.name).to.equal('upsert');
       expect(upsertStage?.options).to.be.undefined;
@@ -507,13 +513,12 @@ describe('stage serialization', () => {
       await execute(
         firestore
           .pipeline()
-          .literals(
-            { name: 'Alice', age: 30 },
-            { name: 'Bob', age: 25 }
-          )
+          .literals({ name: 'Alice', age: 30 }, { name: 'Bob', age: 25 })
       );
 
-      const req = spy.args[0][EXECUTE_PIPELINE_REQUEST] as ProtoExecutePipelineRequest;
+      const req = spy.args[0][
+        EXECUTE_PIPELINE_REQUEST
+      ] as ProtoExecutePipelineRequest;
       const literalsStage = req.structuredPipeline?.pipeline?.stages?.[0];
       expect(literalsStage).to.deep.equal({
         name: 'literals',
@@ -544,14 +549,14 @@ describe('stage serialization', () => {
       const spy = fakePipelineResponse(firestore);
 
       await execute(
-        firestore
-          .pipeline()
-          .literals({
-            documents: [{ item: 'apple', count: 10 }]
-          })
+        firestore.pipeline().literals({
+          documents: [{ item: 'apple', count: 10 }]
+        })
       );
 
-      const req = spy.args[0][EXECUTE_PIPELINE_REQUEST] as ProtoExecutePipelineRequest;
+      const req = spy.args[0][
+        EXECUTE_PIPELINE_REQUEST
+      ] as ProtoExecutePipelineRequest;
       const literalsStage = req.structuredPipeline?.pipeline?.stages?.[0];
       expect(literalsStage).to.deep.equal({
         name: 'literals',
@@ -574,15 +579,15 @@ describe('stage serialization', () => {
       const spy = fakePipelineResponse(firestore);
 
       await execute(
-        firestore
-          .pipeline()
-          .literals({
-            base: 10,
-            calc: multiply(constant(10), constant(2))
-          })
+        firestore.pipeline().literals({
+          base: 10,
+          calc: multiply(constant(10), constant(2))
+        })
       );
 
-      const req = spy.args[0][EXECUTE_PIPELINE_REQUEST] as ProtoExecutePipelineRequest;
+      const req = spy.args[0][
+        EXECUTE_PIPELINE_REQUEST
+      ] as ProtoExecutePipelineRequest;
       const literalsStage = req.structuredPipeline?.pipeline?.stages?.[0];
       expect(literalsStage?.name).to.equal('literals');
       expect(literalsStage?.args?.[0]?.mapValue?.fields?.base).to.deep.equal({
