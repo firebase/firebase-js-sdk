@@ -980,7 +980,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
       targetOrOptions
     )
       ? []
-      : targetOrOptions.groups ?? [];
+      : (targetOrOptions.groups ?? []);
 
     // Convert user land convenience types to internal types
     const convertedAccumulators: Map<string, AggregateFunction> =
