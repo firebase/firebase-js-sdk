@@ -15,9 +15,9 @@ https://github.com/firebase/firebase-js-sdk
 > - Use [AgentPlatformBackend](./ai.agentplatformbackend.md#agentplatformbackend_class) instead.
 > 
 
-Configuration class for the Vertex AI Gemini API.
+Configuration class for the Agent Platform Gemini API (formerly known as the Vertex AI Gemini API).
 
-Use this with [AIOptions](./ai.aioptions.md#aioptions_interface) when initializing the AI service via [getAI()](./ai.md#getai_a94a413) to specify the Vertex AI Gemini API as the backend.
+Use this with [AIOptions](./ai.aioptions.md#aioptions_interface) when initializing the AI service via [getAI()](./ai.md#getai_a94a413) to specify the Agent Platform Gemini API as the backend.
 
 <b>Signature:</b>
 
@@ -30,17 +30,17 @@ export declare class VertexAIBackend extends Backend
 
 |  Constructor | Modifiers | Description |
 |  --- | --- | --- |
-|  [(constructor)(location)](./ai.vertexaibackend.md#vertexaibackendconstructor) |  | Creates a configuration object for the Vertex AI backend. |
+|  [(constructor)(location)](./ai.vertexaibackend.md#vertexaibackendconstructor) |  | Creates a configuration object for the Agent Platform Gemini API (formerly known as the Vertex AI Gemini API) backend. |
 
 ## Properties
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [location](./ai.vertexaibackend.md#vertexaibackendlocation) |  | string | The region identifier. See [Vertex AI locations](https://firebase.google.com/docs/vertex-ai/locations#available-locations) for a list of supported locations. |
+|  [location](./ai.vertexaibackend.md#vertexaibackendlocation) |  | string | The region identifier. See [Agent Platform Gemini API locations](https://firebase.google.com/docs/ai-logic/locations?api=vertex#available-locations) for a list of supported locations. |
 
 ## VertexAIBackend.(constructor)
 
-Creates a configuration object for the Vertex AI backend.
+Creates a configuration object for the Agent Platform Gemini API (formerly known as the Vertex AI Gemini API) backend.
 
 <b>Signature:</b>
 
@@ -52,11 +52,11 @@ constructor(location?: string);
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  location | string | The region identifier, defaulting to <code>us-central1</code>; see [Vertex AI locations](https://firebase.google.com/docs/vertex-ai/locations#available-locations) for a list of supported locations. |
+|  location | string | The region identifier, defaulting to <code>us-central1</code>; see [Agent Platform Gemini API locations](https://firebase.google.com/docs/ai-logic/locations?api=vertex#available-locations) for a list of supported locations. |
 
 ## VertexAIBackend.location
 
-The region identifier. See [Vertex AI locations](https://firebase.google.com/docs/vertex-ai/locations#available-locations) for a list of supported locations.
+The region identifier. See [Agent Platform Gemini API locations](https://firebase.google.com/docs/ai-logic/locations?api=vertex#available-locations) for a list of supported locations.
 
 <b>Signature:</b>
 

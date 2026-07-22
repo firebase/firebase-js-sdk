@@ -23,7 +23,7 @@ export interface SafetySetting
 |  Property | Type | Description |
 |  --- | --- | --- |
 |  [category](./ai.safetysetting.md#safetysettingcategory) | [HarmCategory](./ai.md#harmcategory) |  |
-|  [method](./ai.safetysetting.md#safetysettingmethod) | [HarmBlockMethod](./ai.md#harmblockmethod) | The harm block method.<!-- -->This property is only supported in the Agent Platform API ([AgentPlatformBackend](./ai.agentplatformbackend.md#agentplatformbackend_class)<!-- -->). When using the Gemini Developer API ([GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class)<!-- -->), an [AIError](./ai.aierror.md#aierror_class) will be thrown if this property is defined. |
+|  [method](./ai.safetysetting.md#safetysettingmethod) | [HarmBlockMethod](./ai.md#harmblockmethod) | The harm block method.<!-- -->This property is only supported in the Agent Platform Gemini API ([AgentPlatformBackend](./ai.agentplatformbackend.md#agentplatformbackend_class)<!-- -->). When using the Gemini Developer API ([GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class)<!-- -->), an [AIError](./ai.aierror.md#aierror_class) will be thrown if this property is defined. |
 |  [threshold](./ai.safetysetting.md#safetysettingthreshold) | [HarmBlockThreshold](./ai.md#harmblockthreshold) |  |
 
 ## SafetySetting.category
@@ -38,7 +38,7 @@ category: HarmCategory;
 
 The harm block method.
 
-This property is only supported in the Agent Platform API ([AgentPlatformBackend](./ai.agentplatformbackend.md#agentplatformbackend_class)<!-- -->). When using the Gemini Developer API ([GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class)<!-- -->), an [AIError](./ai.aierror.md#aierror_class) will be thrown if this property is defined.
+This property is only supported in the Agent Platform Gemini API ([AgentPlatformBackend](./ai.agentplatformbackend.md#agentplatformbackend_class)<!-- -->). When using the Gemini Developer API ([GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class)<!-- -->), an [AIError](./ai.aierror.md#aierror_class) will be thrown if this property is defined.
 
 <b>Signature:</b>
 

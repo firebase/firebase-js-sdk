@@ -14,9 +14,9 @@ Metadata returned when grounding is enabled.
 
 Currently, only Grounding with Google Search and Grounding with Google Maps are supported (see [GoogleSearchTool](./ai.googlesearchtool.md#googlesearchtool_interface) and [GoogleMapsTool](./ai.googlemapstool.md#googlemapstool_interface)<!-- -->, respectively).
 
-Important: If using Grounding with Google Search, you are required to comply with the "Grounding with Google Search" usage requirements for your chosen API provider: [Gemini Developer API](https://ai.google.dev/gemini-api/terms#grounding-with-google-search) or Agent Platform API (see [Service Terms](https://cloud.google.com/terms/service-terms) section within the Service Specific Terms).
+Important: If using Grounding with Google Search, you are required to comply with the "Grounding with Google Search" usage requirements for your chosen API provider: [Gemini Developer API](https://ai.google.dev/gemini-api/terms#grounding-with-google-search) or Agent Platform Gemini API (see [Service Terms](https://cloud.google.com/terms/service-terms) section within the Service Specific Terms).
 
-Important: If using Grounding with Google Maps, you are required to comply with the "Grounding with Google Maps" usage requirements for your chosen API provider: [Gemini Developer API](https://ai.google.dev/gemini-api/terms#grounding-with-google-maps) or Agent Platform API (see [Service Terms](https://cloud.google.com/terms/service-terms) section within the Service Specific Terms).
+Important: If using Grounding with Google Maps, you are required to comply with the "Grounding with Google Maps" usage requirements for your chosen API provider: [Gemini Developer API](https://ai.google.dev/gemini-api/terms#grounding-with-google-maps) or Agent Platform Gemini API (see [Service Terms](https://cloud.google.com/terms/service-terms) section within the Service Specific Terms).
 
 <b>Signature:</b>
 

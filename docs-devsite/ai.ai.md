@@ -25,7 +25,7 @@ export interface AI
 |  Property | Type | Description |
 |  --- | --- | --- |
 |  [app](./ai.ai.md#aiapp) | [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | The [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) this [AI](./ai.ai.md#ai_interface) instance is associated with. |
-|  [backend](./ai.ai.md#aibackend) | [Backend](./ai.backend.md#backend_class) | A [Backend](./ai.backend.md#backend_class) instance that specifies the configuration for the target backend, either the Gemini Developer API (using [GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class)<!-- -->) or the Agent Platform API (using [AgentPlatformBackend](./ai.agentplatformbackend.md#agentplatformbackend_class)<!-- -->). |
+|  [backend](./ai.ai.md#aibackend) | [Backend](./ai.backend.md#backend_class) | A [Backend](./ai.backend.md#backend_class) instance that specifies the configuration for the target backend, either the Gemini Developer API (using [GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class)<!-- -->) or the Agent Platform Gemini API (using [AgentPlatformBackend](./ai.agentplatformbackend.md#agentplatformbackend_class)<!-- -->). |
 |  [location](./ai.ai.md#ailocation) | string |  |
 |  [options](./ai.ai.md#aioptions) | [AIOptions](./ai.aioptions.md#aioptions_interface) | Options applied to this [AI](./ai.ai.md#ai_interface) instance. |
 
@@ -41,7 +41,7 @@ app: FirebaseApp;
 
 ## AI.backend
 
-A [Backend](./ai.backend.md#backend_class) instance that specifies the configuration for the target backend, either the Gemini Developer API (using [GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class)<!-- -->) or the Agent Platform API (using [AgentPlatformBackend](./ai.agentplatformbackend.md#agentplatformbackend_class)<!-- -->).
+A [Backend](./ai.backend.md#backend_class) instance that specifies the configuration for the target backend, either the Gemini Developer API (using [GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class)<!-- -->) or the Agent Platform Gemini API (using [AgentPlatformBackend](./ai.agentplatformbackend.md#agentplatformbackend_class)<!-- -->).
 
 <b>Signature:</b>
 
@@ -55,7 +55,7 @@ backend: Backend;
 > 
 > use `AI.backend.location` instead.
 > 
-> The location configured for this AI service instance, relevant for Vertex AI backends.
+> The location configured for this AI service instance, relevant for Agent Platform Gemini API backends.
 > 
 
 <b>Signature:</b>

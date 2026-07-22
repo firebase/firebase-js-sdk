@@ -10,9 +10,9 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # AgentPlatformBackend class
-Configuration class for the Agent Platform API.
+Configuration class for the Agent Platform Gemini API.
 
-Use this with [AIOptions](./ai.aioptions.md#aioptions_interface) when initializing the AI service via [getAI()](./ai.md#getai_a94a413) to specify the Agent Platform API as the backend.
+Use this with [AIOptions](./ai.aioptions.md#aioptions_interface) when initializing the AI service via [getAI()](./ai.md#getai_a94a413) to specify the Agent Platform Gemini API as the backend.
 
 <b>Signature:</b>
 
@@ -31,7 +31,7 @@ export declare class AgentPlatformBackend extends Backend
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [location](./ai.agentplatformbackend.md#agentplatformbackendlocation) |  | string | The region identifier. See [Agent Platform locations](https://firebase.google.com/docs/vertex-ai/locations#available-locations) for a list of supported locations. |
+|  [location](./ai.agentplatformbackend.md#agentplatformbackendlocation) |  | string | The region identifier. See [Agent Platform locations](https://firebase.google.com/docs/ai-logic/locations?api=vertex#available-locations) for a list of supported locations. |
 
 ## AgentPlatformBackend.(constructor)
 
@@ -47,11 +47,11 @@ constructor(location?: string);
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  location | string | The region identifier, defaulting to <code>global</code>; see [Agent Platform locations](https://firebase.google.com/docs/vertex-ai/locations#available-locations) for a list of supported locations. |
+|  location | string | The region identifier, defaulting to <code>global</code>; see [Agent Platform locations](https://firebase.google.com/docs/ai-logic/locations?api=vertex#available-locations) for a list of supported locations. |
 
 ## AgentPlatformBackend.location
 
-The region identifier. See [Agent Platform locations](https://firebase.google.com/docs/vertex-ai/locations#available-locations) for a list of supported locations.
+The region identifier. See [Agent Platform locations](https://firebase.google.com/docs/ai-logic/locations?api=vertex#available-locations) for a list of supported locations.
 
 <b>Signature:</b>
 
