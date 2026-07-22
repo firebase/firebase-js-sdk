@@ -17,5 +17,29 @@
 
 /** Formats an object as a JSON string, suitable for logging. */
 export function formatJSON(value: unknown): string {
-  return JSON.stringify(value);
+  try {
+    return JSON.stringify(value);
+  } catch (e: unknown) {
+    return safeStringify(value);
+  }
+}
+
+/**
+ * Custom JSON stringification utilizing a replacer to work around common
+ * JSON.stringify(...) error cases: circular reference or bigint.
+ * @param value - object to stringify
+ */
+function safeStringify(value: unknown): string {
+  const cache = new Set();
+  return JSON.stringify(value, (key, value) => {
+    if (typeof value === 'object' && value !== null) {
+      if (cache.has(value)) {
+        return '[Circular]';
+      }
+      cache.add(value);
+    } else if (typeof value === 'bigint') {
+      return value.toString();
+    }
+    return value;
+  });
 }
