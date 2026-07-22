@@ -252,17 +252,16 @@ export class IndexedDbOfflineComponentProvider extends MemoryOfflineComponentPro
     // NOTE: This will immediately call the listener, so we make sure to
     // set it after localStore / remoteStore are started.
     await this.persistence.setPrimaryStateListener(() => {
-      if (this.gcScheduler && !this.gcScheduler.started) {
-        this.gcScheduler.start();
-      }
-      if (
-        this.indexBackfillerScheduler &&
-        !this.indexBackfillerScheduler.started
-      ) {
-        this.indexBackfillerScheduler.start();
-      }
+      this.startScheduler(this.gcScheduler);
+      this.startScheduler(this.indexBackfillerScheduler);
       return Promise.resolve();
     });
+  }
+
+  private startScheduler(scheduler: Scheduler | null): void {
+    if (scheduler && !scheduler.started) {
+      scheduler.start();
+    }
   }
 
   createLocalStore(cfg: ComponentConfiguration): LocalStore {
@@ -365,21 +364,31 @@ export class MultiTabOfflineComponentProvider extends IndexedDbOfflineComponentP
         this.onlineComponentProvider.syncEngine,
         isPrimary
       );
-      if (this.gcScheduler) {
-        if (isPrimary && !this.gcScheduler.started) {
-          this.gcScheduler.start();
-        } else if (!isPrimary) {
-          this.gcScheduler.stop();
-        }
-      }
-      if (this.indexBackfillerScheduler) {
-        if (isPrimary && !this.indexBackfillerScheduler.started) {
-          this.indexBackfillerScheduler.start();
-        } else if (!isPrimary) {
-          this.indexBackfillerScheduler.stop();
-        }
-      }
+      this.startOrStopScheduler(this.gcScheduler, isPrimary);
+      this.startOrStopScheduler(this.indexBackfillerScheduler, isPrimary);
     });
+  }
+
+  /**
+   * Starts or stops a scheduler, taking into account its nullness and whether
+   * the SDK is acting as the "primary" tab.
+   * @param scheduler The scheduler to start or stop; if null, then this
+   * method does nothing.
+   * @param isPrimary true if the current tab is the primary tab, and false if
+   * it is a secondary tab.
+   */
+  private startOrStopScheduler(
+    scheduler: Scheduler | null,
+    isPrimary: boolean
+  ): void {
+    if (!scheduler) {
+      return;
+    }
+    if (isPrimary && !scheduler.started) {
+      scheduler.start();
+    } else if (!isPrimary) {
+      scheduler.stop();
+    }
   }
 
   createSharedClientState(cfg: ComponentConfiguration): SharedClientState {
