@@ -20,23 +20,21 @@ import { Provider } from '@firebase/component';
  * Abstraction around AppCheck's token fetching capabilities.
  */
 declare class AppCheckTokenProvider {
-  private appName_;
-  private appCheckProvider?;
-  private appCheck?;
-  constructor(
-    appName_: string,
-    appCheckProvider?: Provider<AppCheckInternalComponentName>
-  );
-  getToken(forceRefresh?: boolean): Promise<AppCheckTokenResult>;
-  addTokenChangeListener(listener: AppCheckTokenListener): void;
-  notifyForInvalidToken(): void;
+    private appCheckProvider?;
+    private appCheck?;
+    private serverAppAppCheckToken?;
+    private appName;
+    constructor(app: FirebaseApp, appCheckProvider?: Provider<AppCheckInternalComponentName>);
+    getToken(forceRefresh?: boolean): Promise<AppCheckTokenResult>;
+    addTokenChangeListener(listener: AppCheckTokenListener): void;
+    notifyForInvalidToken(): void;
 }
 
 declare interface AuthTokenProvider {
-  getToken(forceRefresh: boolean): Promise<FirebaseAuthTokenData>;
-  addTokenChangeListener(listener: (token: string | null) => void): void;
-  removeTokenChangeListener(listener: (token: string | null) => void): void;
-  notifyForInvalidToken(): void;
+    getToken(forceRefresh: boolean): Promise<FirebaseAuthTokenData>;
+    addTokenChangeListener(listener: (token: string | null) => void): void;
+    removeTokenChangeListener(listener: (token: string | null) => void): void;
+    notifyForInvalidToken(): void;
 }
 
 /**
@@ -46,58 +44,58 @@ declare interface AuthTokenProvider {
  * whether a node potentially had children removed due to a filter.
  */
 declare class CacheNode {
-  private node_;
-  private fullyInitialized_;
-  private filtered_;
-  constructor(node_: Node_2, fullyInitialized_: boolean, filtered_: boolean);
-  /**
-   * Returns whether this node was fully initialized with either server data or a complete overwrite by the client
-   */
-  isFullyInitialized(): boolean;
-  /**
-   * Returns whether this node is potentially missing children due to a filter applied to the node
-   */
-  isFiltered(): boolean;
-  isCompleteForPath(path: Path): boolean;
-  isCompleteForChild(key: string): boolean;
-  getNode(): Node_2;
+    private node_;
+    private fullyInitialized_;
+    private filtered_;
+    constructor(node_: Node_2, fullyInitialized_: boolean, filtered_: boolean);
+    /**
+     * Returns whether this node was fully initialized with either server data or a complete overwrite by the client
+     */
+    isFullyInitialized(): boolean;
+    /**
+     * Returns whether this node is potentially missing children due to a filter applied to the node
+     */
+    isFiltered(): boolean;
+    isCompleteForPath(path: Path): boolean;
+    isCompleteForChild(key: string): boolean;
+    getNode(): Node_2;
 }
 
 declare class CancelEvent implements Event_2 {
-  eventRegistration: EventRegistration;
-  error: Error;
-  path: Path;
-  constructor(eventRegistration: EventRegistration, error: Error, path: Path);
-  getPath(): Path;
-  getEventType(): string;
-  getEventRunner(): () => void;
-  toString(): string;
+    eventRegistration: EventRegistration;
+    error: Error;
+    path: Path;
+    constructor(eventRegistration: EventRegistration, error: Error, path: Path);
+    getPath(): Path;
+    getEventType(): string;
+    getEventRunner(): () => void;
+    toString(): string;
 }
 
 declare interface Change {
-  /** @param type - The event type */
-  type: ChangeType;
-  /** @param snapshotNode - The data */
-  snapshotNode: Node_2;
-  /** @param childName - The name for this child, if it's a child even */
-  childName?: string;
-  /** @param oldSnap - Used for intermediate processing of child changed events */
-  oldSnap?: Node_2;
-  /**  * @param prevName - The name for the previous child, if applicable */
-  prevName?: string | null;
+    /** @param type - The event type */
+    type: ChangeType;
+    /** @param snapshotNode - The data */
+    snapshotNode: Node_2;
+    /** @param childName - The name for this child, if it's a child even */
+    childName?: string;
+    /** @param oldSnap - Used for intermediate processing of child changed events */
+    oldSnap?: Node_2;
+    /**  * @param prevName - The name for the previous child, if applicable */
+    prevName?: string | null;
 }
 
 declare const enum ChangeType {
-  /** Event type for a child added */
-  CHILD_ADDED = 'child_added',
-  /** Event type for a child removed */
-  CHILD_REMOVED = 'child_removed',
-  /** Event type for a child changed */
-  CHILD_CHANGED = 'child_changed',
-  /** Event type for a child moved */
-  CHILD_MOVED = 'child_moved',
-  /** Event type for a value change */
-  VALUE = 'value'
+    /** Event type for a child added */
+    CHILD_ADDED = "child_added",
+    /** Event type for a child removed */
+    CHILD_REMOVED = "child_removed",
+    /** Event type for a child changed */
+    CHILD_CHANGED = "child_changed",
+    /** Event type for a child moved */
+    CHILD_MOVED = "child_moved",
+    /** Event type for a value change */
+    VALUE = "value"
 }
 
 /**
@@ -111,15 +109,12 @@ declare const enum ChangeType {
  *   location.
  * @returns The specified child location.
  */
-export declare function child(
-  parent: DatabaseReference,
-  path: string
-): DatabaseReference;
+export declare function child(parent: DatabaseReference, path: string): DatabaseReference;
 
 declare class ChildChangeAccumulator {
-  private readonly changeMap;
-  trackChildChange(change: Change): void;
-  getChanges(): Change[];
+    private readonly changeMap;
+    trackChildChange(change: Change): void;
+    getChanges(): Change[];
 }
 
 /**
@@ -162,12 +157,8 @@ declare type Comparator<K> = (key1: K, key2: K) => number;
  * @interface
  */
 declare interface CompleteChildSource {
-  getCompleteChild(childKey: string): Node_2 | null;
-  getChildAfterChild(
-    index: Index,
-    child: NamedNode,
-    reverse: boolean
-  ): NamedNode | null;
+    getCompleteChild(childKey: string): Node_2 | null;
+    getChildAfterChild(index: Index, child: NamedNode, reverse: boolean): NamedNode | null;
 }
 
 /**
@@ -177,9 +168,9 @@ declare interface CompleteChildSource {
  * to reflect the write added.
  */
 declare class CompoundWrite {
-  writeTree_: ImmutableTree<Node_2>;
-  constructor(writeTree_: ImmutableTree<Node_2>);
-  static empty(): CompoundWrite;
+    writeTree_: ImmutableTree<Node_2>;
+    constructor(writeTree_: ImmutableTree<Node_2>);
+    static empty(): CompoundWrite;
 }
 
 /**
@@ -193,38 +184,31 @@ declare class CompoundWrite {
  * @param port - The emulator port (ex: 8080)
  * @param options.mockUserToken - the mock auth token to use for unit testing Security Rules
  */
-export declare function connectDatabaseEmulator(
-  db: Database,
-  host: string,
-  port: number,
-  options?: {
+export declare function connectDatabaseEmulator(db: Database, host: string, port: number, options?: {
     mockUserToken?: EmulatorMockTokenOptions | string;
-  }
-): void;
+}): void;
 
 /**
  * Class representing a Firebase Realtime Database.
  */
 export declare class Database implements _FirebaseService {
-  _repoInternal: Repo;
-  /** The {@link @firebase/app#FirebaseApp} associated with this Realtime Database instance. */
-  readonly app: FirebaseApp;
-  /** Represents a `Database` instance. */
-  readonly 'type' = 'database';
-  /** Track if the instance has been used (root or repo accessed) */
-  _instanceStarted: boolean;
-  /** Backing state for root_ */
-  private _rootInternal?;
-  /** @hideconstructor */
-  constructor(
-    _repoInternal: Repo,
+    _repoInternal: Repo;
     /** The {@link @firebase/app#FirebaseApp} associated with this Realtime Database instance. */
-    app: FirebaseApp
-  );
-  get _repo(): Repo;
-  get _root(): _ReferenceImpl;
-  _delete(): Promise<void>;
-  _checkNotDeleted(apiName: string): void;
+    readonly app: FirebaseApp;
+    /** Represents a `Database` instance. */
+    readonly 'type' = "database";
+    /** Track if the instance has been used (root or repo accessed) */
+    _instanceStarted: boolean;
+    /** Backing state for root_ */
+    private _rootInternal?;
+    /** @hideconstructor */
+    constructor(_repoInternal: Repo, 
+    /** The {@link @firebase/app#FirebaseApp} associated with this Realtime Database instance. */
+    app: FirebaseApp);
+    get _repo(): Repo;
+    get _root(): _ReferenceImpl;
+    _delete(): Promise<void>;
+    _checkNotDeleted(apiName: string): void;
 }
 
 /**
@@ -239,23 +223,23 @@ export declare class Database implements _FirebaseService {
  * https://firebase.google.com/docs/database/web/read-and-write}
  */
 export declare interface DatabaseReference extends Query {
-  /**
-   * The last part of the `DatabaseReference`'s path.
-   *
-   * For example, `"ada"` is the key for
-   * `https://<DATABASE_NAME>.firebaseio.com/users/ada`.
-   *
-   * The key of a root `DatabaseReference` is `null`.
-   */
-  readonly key: string | null;
-  /**
-   * The parent location of a `DatabaseReference`.
-   *
-   * The parent of a root `DatabaseReference` is `null`.
-   */
-  readonly parent: DatabaseReference | null;
-  /** The root `DatabaseReference` of the Database. */
-  readonly root: DatabaseReference;
+    /**
+     * The last part of the `DatabaseReference`'s path.
+     *
+     * For example, `"ada"` is the key for
+     * `https://<DATABASE_NAME>.firebaseio.com/users/ada`.
+     *
+     * The key of a root `DatabaseReference` is `null`.
+     */
+    readonly key: string | null;
+    /**
+     * The parent location of a `DatabaseReference`.
+     *
+     * The parent of a root `DatabaseReference` is `null`.
+     */
+    readonly parent: DatabaseReference | null;
+    /** The root `DatabaseReference` of the Database. */
+    readonly root: DatabaseReference;
 }
 
 /**
@@ -273,133 +257,130 @@ export declare interface DatabaseReference extends Query {
  * data, you always call the `set()` method on a `Reference` directly).
  */
 export declare class DataSnapshot {
-  readonly _node: Node_2;
-  /**
-   * The location of this DataSnapshot.
-   */
-  readonly ref: DatabaseReference;
-  readonly _index: Index;
-  /**
-   * @param _node - A SnapshotNode to wrap.
-   * @param ref - The location this snapshot came from.
-   * @param _index - The iteration order for this snapshot
-   * @hideconstructor
-   */
-  constructor(
-    _node: Node_2,
+    readonly _node: Node_2;
     /**
      * The location of this DataSnapshot.
      */
-    ref: DatabaseReference,
-    _index: Index
-  );
-  /**
-   * Gets the priority value of the data in this `DataSnapshot`.
-   *
-   * Applications need not use priority but can order collections by
-   * ordinary properties (see
-   * {@link https://firebase.google.com/docs/database/web/lists-of-data#sorting_and_filtering_data |Sorting and filtering data}
-   * ).
-   */
-  get priority(): string | number | null;
-  /**
-   * The key (last part of the path) of the location of this `DataSnapshot`.
-   *
-   * The last token in a Database location is considered its key. For example,
-   * "ada" is the key for the /users/ada/ node. Accessing the key on any
-   * `DataSnapshot` will return the key for the location that generated it.
-   * However, accessing the key on the root URL of a Database will return
-   * `null`.
-   */
-  get key(): string | null;
-  /** Returns the number of child properties of this `DataSnapshot`. */
-  get size(): number;
-  /**
-   * Gets another `DataSnapshot` for the location at the specified relative path.
-   *
-   * Passing a relative path to the `child()` method of a DataSnapshot returns
-   * another `DataSnapshot` for the location at the specified relative path. The
-   * relative path can either be a simple child name (for example, "ada") or a
-   * deeper, slash-separated path (for example, "ada/name/first"). If the child
-   * location has no data, an empty `DataSnapshot` (that is, a `DataSnapshot`
-   * whose value is `null`) is returned.
-   *
-   * @param path - A relative path to the location of child data.
-   */
-  child(path: string): DataSnapshot;
-  /**
-   * Returns true if this `DataSnapshot` contains any data. It is slightly more
-   * efficient than using `snapshot.val() !== null`.
-   */
-  exists(): boolean;
-  /**
-   * Exports the entire contents of the DataSnapshot as a JavaScript object.
-   *
-   * The `exportVal()` method is similar to `val()`, except priority information
-   * is included (if available), making it suitable for backing up your data.
-   *
-   * @returns The DataSnapshot's contents as a JavaScript value (Object,
-   *   Array, string, number, boolean, or `null`).
-   */
-  exportVal(): any;
-  /**
-   * Enumerates the top-level children in the `IteratedDataSnapshot`.
-   *
-   * Because of the way JavaScript objects work, the ordering of data in the
-   * JavaScript object returned by `val()` is not guaranteed to match the
-   * ordering on the server nor the ordering of `onChildAdded()` events. That is
-   * where `forEach()` comes in handy. It guarantees the children of a
-   * `DataSnapshot` will be iterated in their query order.
-   *
-   * If no explicit `orderBy*()` method is used, results are returned
-   * ordered by key (unless priorities are used, in which case, results are
-   * returned by priority).
-   *
-   * @param action - A function that will be called for each child DataSnapshot.
-   * The callback can return true to cancel further enumeration.
-   * @returns true if enumeration was canceled due to your callback returning
-   * true.
-   */
-  forEach(action: (child: IteratedDataSnapshot) => boolean | void): boolean;
-  /**
-   * Returns true if the specified child path has (non-null) data.
-   *
-   * @param path - A relative path to the location of a potential child.
-   * @returns `true` if data exists at the specified child path; else
-   *  `false`.
-   */
-  hasChild(path: string): boolean;
-  /**
-   * Returns whether or not the `DataSnapshot` has any non-`null` child
-   * properties.
-   *
-   * You can use `hasChildren()` to determine if a `DataSnapshot` has any
-   * children. If it does, you can enumerate them using `forEach()`. If it
-   * doesn't, then either this snapshot contains a primitive value (which can be
-   * retrieved with `val()`) or it is empty (in which case, `val()` will return
-   * `null`).
-   *
-   * @returns true if this snapshot has any children; else false.
-   */
-  hasChildren(): boolean;
-  /**
-   * Returns a JSON-serializable representation of this object.
-   */
-  toJSON(): object | null;
-  /**
-   * Extracts a JavaScript value from a `DataSnapshot`.
-   *
-   * Depending on the data in a `DataSnapshot`, the `val()` method may return a
-   * scalar type (string, number, or boolean), an array, or an object. It may
-   * also return null, indicating that the `DataSnapshot` is empty (contains no
-   * data).
-   *
-   * @returns The DataSnapshot's contents as a JavaScript value (Object,
-   *   Array, string, number, boolean, or `null`).
-   */
-  val(): any;
+    readonly ref: DatabaseReference;
+    readonly _index: Index;
+    /**
+     * @param _node - A SnapshotNode to wrap.
+     * @param ref - The location this snapshot came from.
+     * @param _index - The iteration order for this snapshot
+     * @hideconstructor
+     */
+    constructor(_node: Node_2, 
+    /**
+     * The location of this DataSnapshot.
+     */
+    ref: DatabaseReference, _index: Index);
+    /**
+     * Gets the priority value of the data in this `DataSnapshot`.
+     *
+     * Applications need not use priority but can order collections by
+     * ordinary properties (see
+     * {@link https://firebase.google.com/docs/database/web/lists-of-data#sorting_and_filtering_data |Sorting and filtering data}
+     * ).
+     */
+    get priority(): string | number | null;
+    /**
+     * The key (last part of the path) of the location of this `DataSnapshot`.
+     *
+     * The last token in a Database location is considered its key. For example,
+     * "ada" is the key for the /users/ada/ node. Accessing the key on any
+     * `DataSnapshot` will return the key for the location that generated it.
+     * However, accessing the key on the root URL of a Database will return
+     * `null`.
+     */
+    get key(): string | null;
+    /** Returns the number of child properties of this `DataSnapshot`. */
+    get size(): number;
+    /**
+     * Gets another `DataSnapshot` for the location at the specified relative path.
+     *
+     * Passing a relative path to the `child()` method of a DataSnapshot returns
+     * another `DataSnapshot` for the location at the specified relative path. The
+     * relative path can either be a simple child name (for example, "ada") or a
+     * deeper, slash-separated path (for example, "ada/name/first"). If the child
+     * location has no data, an empty `DataSnapshot` (that is, a `DataSnapshot`
+     * whose value is `null`) is returned.
+     *
+     * @param path - A relative path to the location of child data.
+     */
+    child(path: string): DataSnapshot;
+    /**
+     * Returns true if this `DataSnapshot` contains any data. It is slightly more
+     * efficient than using `snapshot.val() !== null`.
+     */
+    exists(): boolean;
+    /**
+     * Exports the entire contents of the DataSnapshot as a JavaScript object.
+     *
+     * The `exportVal()` method is similar to `val()`, except priority information
+     * is included (if available), making it suitable for backing up your data.
+     *
+     * @returns The DataSnapshot's contents as a JavaScript value (Object,
+     *   Array, string, number, boolean, or `null`).
+     */
+    exportVal(): any;
+    /**
+     * Enumerates the top-level children in the `IteratedDataSnapshot`.
+     *
+     * Because of the way JavaScript objects work, the ordering of data in the
+     * JavaScript object returned by `val()` is not guaranteed to match the
+     * ordering on the server nor the ordering of `onChildAdded()` events. That is
+     * where `forEach()` comes in handy. It guarantees the children of a
+     * `DataSnapshot` will be iterated in their query order.
+     *
+     * If no explicit `orderBy*()` method is used, results are returned
+     * ordered by key (unless priorities are used, in which case, results are
+     * returned by priority).
+     *
+     * @param action - A function that will be called for each child DataSnapshot.
+     * The callback can return true to cancel further enumeration.
+     * @returns true if enumeration was canceled due to your callback returning
+     * true.
+     */
+    forEach(action: (child: IteratedDataSnapshot) => boolean | void): boolean;
+    /**
+     * Returns true if the specified child path has (non-null) data.
+     *
+     * @param path - A relative path to the location of a potential child.
+     * @returns `true` if data exists at the specified child path; else
+     *  `false`.
+     */
+    hasChild(path: string): boolean;
+    /**
+     * Returns whether or not the `DataSnapshot` has any non-`null` child
+     * properties.
+     *
+     * You can use `hasChildren()` to determine if a `DataSnapshot` has any
+     * children. If it does, you can enumerate them using `forEach()`. If it
+     * doesn't, then either this snapshot contains a primitive value (which can be
+     * retrieved with `val()`) or it is empty (in which case, `val()` will return
+     * `null`).
+     *
+     * @returns true if this snapshot has any children; else false.
+     */
+    hasChildren(): boolean;
+    /**
+     * Returns a JSON-serializable representation of this object.
+     */
+    toJSON(): object | null;
+    /**
+     * Extracts a JavaScript value from a `DataSnapshot`.
+     *
+     * Depending on the data in a `DataSnapshot`, the `val()` method may return a
+     * scalar type (string, number, or boolean), an array, or an object. It may
+     * also return null, indicating that the `DataSnapshot` is empty (contains no
+     * data).
+     *
+     * @returns The DataSnapshot's contents as a JavaScript value (Object,
+     *   Array, string, number, boolean, or `null`).
+     */
+    val(): any;
 }
-export { EmulatorMockTokenOptions };
+export { EmulatorMockTokenOptions }
 
 /**
  * Logs debugging information to the console.
@@ -408,19 +389,14 @@ export { EmulatorMockTokenOptions };
  * @param persistent - Remembers the logging state between page refreshes if
  * `true`.
  */
-export declare function enableLogging(
-  enabled: boolean,
-  persistent?: boolean
-): any;
+export declare function enableLogging(enabled: boolean, persistent?: boolean): any;
 
 /**
  * Logs debugging information to the console.
  *
  * @param logger - A custom logger function to control how things get logged.
  */
-export declare function enableLogging(
-  logger: (message: string) => unknown
-): any;
+export declare function enableLogging(logger: (message: string) => unknown): any;
 
 /**
  * Creates a `QueryConstraint` with the specified ending point.
@@ -445,10 +421,7 @@ export declare function enableLogging(
  * specified priority. This argument is only allowed if ordering by child,
  * value, or priority.
  */
-export declare function endAt(
-  value: number | string | boolean | null,
-  key?: string
-): QueryConstraint;
+export declare function endAt(value: number | string | boolean | null, key?: string): QueryConstraint;
 
 /**
  * Creates a `QueryConstraint` with the specified ending point (exclusive).
@@ -469,10 +442,7 @@ export declare function endAt(
  * previously specified priority. This argument is only allowed if ordering by
  * child, value, or priority.
  */
-export declare function endBefore(
-  value: number | string | boolean | null,
-  key?: string
-): QueryConstraint;
+export declare function endBefore(value: number | string | boolean | null, key?: string): QueryConstraint;
 
 /**
  * Creates a `QueryConstraint` that includes children that match the specified
@@ -497,20 +467,17 @@ export declare function endBefore(
  * previously specified priority. This argument is only allowed if ordering by
  * child, value, or priority.
  */
-export declare function equalTo(
-  value: number | string | boolean | null,
-  key?: string
-): QueryConstraint;
+export declare function equalTo(value: number | string | boolean | null, key?: string): QueryConstraint;
 
 /**
  * Encapsulates the data needed to raise an event
  * @interface
  */
 declare interface Event_2 {
-  getPath(): Path;
-  getEventType(): string;
-  getEventRunner(): () => void;
-  toString(): string;
+    getPath(): Path;
+    getEventType(): string;
+    getEventRunner(): () => void;
+    toString(): string;
 }
 
 /**
@@ -520,14 +487,14 @@ declare interface Event_2 {
  *
  */
 declare class EventGenerator {
-  query_: QueryContext;
-  index_: Index;
-  constructor(query_: QueryContext);
+    query_: QueryContext;
+    index_: Index;
+    constructor(query_: QueryContext);
 }
 
 declare interface EventList {
-  events: Event_2[];
-  path: Path;
+    events: Event_2[];
+    path: Path;
 }
 
 /**
@@ -544,11 +511,11 @@ declare interface EventList {
  *
  */
 declare class EventQueue {
-  eventLists_: EventList[];
-  /**
-   * Tracks recursion depth of raiseQueuedEvents_, for debugging purposes.
-   */
-  recursionDepth_: number;
+    eventLists_: EventList[];
+    /**
+     * Tracks recursion depth of raiseQueuedEvents_, for debugging purposes.
+     */
+    recursionDepth_: number;
 }
 
 /**
@@ -560,38 +527,33 @@ declare class EventQueue {
  * together, as a single EventRegistration.  Though currently we don't do that.
  */
 declare interface EventRegistration {
-  /**
-   * True if this container has a callback to trigger for this event type
-   */
-  respondsTo(eventType: string): boolean;
-  createEvent(change: Change, query: QueryContext): Event_2;
-  /**
-   * Given event data, return a function to trigger the user's callback
-   */
-  getEventRunner(eventData: Event_2): () => void;
-  createCancelEvent(error: Error, path: Path): CancelEvent | null;
-  matches(other: EventRegistration): boolean;
-  /**
-   * False basically means this is a "dummy" callback container being used as a sentinel
-   * to remove all callback containers of a particular type.  (e.g. if the user does
-   * ref.off('value') without specifying a specific callback).
-   *
-   * (TODO: Rework this, since it's hacky)
-   *
-   */
-  hasAnyCallback(): boolean;
+    /**
+     * True if this container has a callback to trigger for this event type
+     */
+    respondsTo(eventType: string): boolean;
+    createEvent(change: Change, query: QueryContext): Event_2;
+    /**
+     * Given event data, return a function to trigger the user's callback
+     */
+    getEventRunner(eventData: Event_2): () => void;
+    createCancelEvent(error: Error, path: Path): CancelEvent | null;
+    matches(other: EventRegistration): boolean;
+    /**
+     * False basically means this is a "dummy" callback container being used as a sentinel
+     * to remove all callback containers of a particular type.  (e.g. if the user does
+     * ref.off('value') without specifying a specific callback).
+     *
+     * (TODO: Rework this, since it's hacky)
+     *
+     */
+    hasAnyCallback(): boolean;
 }
 
 /**
  * One of the following strings: "value", "child_added", "child_changed",
  * "child_removed", or "child_moved."
  */
-export declare type EventType =
-  | 'value'
-  | 'child_added'
-  | 'child_changed'
-  | 'child_moved'
-  | 'child_removed';
+export declare type EventType = 'value' | 'child_added' | 'child_changed' | 'child_moved' | 'child_removed';
 
 /* Excluded from this release type: _FirebaseService */
 
@@ -668,110 +630,100 @@ export declare function goOnline(db: Database): void;
  * A tree with immutable elements.
  */
 declare class ImmutableTree<T> {
-  readonly value: T | null;
-  readonly children: SortedMap<string, ImmutableTree<T>>;
-  static fromObject<T>(obj: { [k: string]: T }): ImmutableTree<T>;
-  constructor(value: T | null, children?: SortedMap<string, ImmutableTree<T>>);
-  /**
-   * True if the value is empty and there are no children
-   */
-  isEmpty(): boolean;
-  /**
-   * Given a path and predicate, return the first node and the path to that node
-   * where the predicate returns true.
-   *
-   * TODO Do a perf test -- If we're creating a bunch of `{path: value:}`
-   * objects on the way back out, it may be better to pass down a pathSoFar obj.
-   *
-   * @param relativePath - The remainder of the path
-   * @param predicate - The predicate to satisfy to return a node
-   */
-  findRootMostMatchingPathAndValue(
-    relativePath: Path,
-    predicate: (a: T) => boolean
-  ): {
-    path: Path;
-    value: T;
-  } | null;
-  /**
-   * Find, if it exists, the shortest subpath of the given path that points a defined
-   * value in the tree
-   */
-  findRootMostValueAndPath(relativePath: Path): {
-    path: Path;
-    value: T;
-  } | null;
-  /**
-   * @returns The subtree at the given path
-   */
-  subtree(relativePath: Path): ImmutableTree<T>;
-  /**
-   * Sets a value at the specified path.
-   *
-   * @param relativePath - Path to set value at.
-   * @param toSet - Value to set.
-   * @returns Resulting tree.
-   */
-  set(relativePath: Path, toSet: T | null): ImmutableTree<T>;
-  /**
-   * Removes the value at the specified path.
-   *
-   * @param relativePath - Path to value to remove.
-   * @returns Resulting tree.
-   */
-  remove(relativePath: Path): ImmutableTree<T>;
-  /**
-   * Gets a value from the tree.
-   *
-   * @param relativePath - Path to get value for.
-   * @returns Value at path, or null.
-   */
-  get(relativePath: Path): T | null;
-  /**
-   * Replace the subtree at the specified path with the given new tree.
-   *
-   * @param relativePath - Path to replace subtree for.
-   * @param newTree - New tree.
-   * @returns Resulting tree.
-   */
-  setTree(relativePath: Path, newTree: ImmutableTree<T>): ImmutableTree<T>;
-  /**
-   * Performs a depth first fold on this tree. Transforms a tree into a single
-   * value, given a function that operates on the path to a node, an optional
-   * current value, and a map of child names to folded subtrees
-   */
-  fold<V>(
-    fn: (
-      path: Path,
-      value: T,
-      children: {
+    readonly value: T | null;
+    readonly children: SortedMap<string, ImmutableTree<T>>;
+    static fromObject<T>(obj: {
+        [k: string]: T;
+    }): ImmutableTree<T>;
+    constructor(value: T | null, children?: SortedMap<string, ImmutableTree<T>>);
+    /**
+     * True if the value is empty and there are no children
+     */
+    isEmpty(): boolean;
+    /**
+     * Given a path and predicate, return the first node and the path to that node
+     * where the predicate returns true.
+     *
+     * TODO Do a perf test -- If we're creating a bunch of `{path: value:}`
+     * objects on the way back out, it may be better to pass down a pathSoFar obj.
+     *
+     * @param relativePath - The remainder of the path
+     * @param predicate - The predicate to satisfy to return a node
+     */
+    findRootMostMatchingPathAndValue(relativePath: Path, predicate: (a: T) => boolean): {
+        path: Path;
+        value: T;
+    } | null;
+    /**
+     * Find, if it exists, the shortest subpath of the given path that points a defined
+     * value in the tree
+     */
+    findRootMostValueAndPath(relativePath: Path): {
+        path: Path;
+        value: T;
+    } | null;
+    /**
+     * @returns The subtree at the given path
+     */
+    subtree(relativePath: Path): ImmutableTree<T>;
+    /**
+     * Sets a value at the specified path.
+     *
+     * @param relativePath - Path to set value at.
+     * @param toSet - Value to set.
+     * @returns Resulting tree.
+     */
+    set(relativePath: Path, toSet: T | null): ImmutableTree<T>;
+    /**
+     * Removes the value at the specified path.
+     *
+     * @param relativePath - Path to value to remove.
+     * @returns Resulting tree.
+     */
+    remove(relativePath: Path): ImmutableTree<T>;
+    /**
+     * Gets a value from the tree.
+     *
+     * @param relativePath - Path to get value for.
+     * @returns Value at path, or null.
+     */
+    get(relativePath: Path): T | null;
+    /**
+     * Replace the subtree at the specified path with the given new tree.
+     *
+     * @param relativePath - Path to replace subtree for.
+     * @param newTree - New tree.
+     * @returns Resulting tree.
+     */
+    setTree(relativePath: Path, newTree: ImmutableTree<T>): ImmutableTree<T>;
+    /**
+     * Performs a depth first fold on this tree. Transforms a tree into a single
+     * value, given a function that operates on the path to a node, an optional
+     * current value, and a map of child names to folded subtrees
+     */
+    fold<V>(fn: (path: Path, value: T, children: {
         [k: string]: V;
-      }
-    ) => V
-  ): V;
-  /**
-   * Recursive helper for public-facing fold() method
-   */
-  private fold_;
-  /**
-   * Find the first matching value on the given path. Return the result of applying f to it.
-   */
-  findOnPath<V>(path: Path, f: (path: Path, value: T) => V | null): V | null;
-  private findOnPath_;
-  foreachOnPath(
-    path: Path,
-    f: (path: Path, value: T) => void
-  ): ImmutableTree<T>;
-  private foreachOnPath_;
-  /**
-   * Calls the given function for each node in the tree that has a value.
-   *
-   * @param f - A function to be called with the path from the root of the tree to
-   * a node, and the value at that node. Called in depth-first order.
-   */
-  foreach(f: (path: Path, value: T) => void): void;
-  private foreach_;
-  foreachChild(f: (name: string, value: T) => void): void;
+    }) => V): V;
+    /**
+     * Recursive helper for public-facing fold() method
+     */
+    private fold_;
+    /**
+     * Find the first matching value on the given path. Return the result of applying f to it.
+     */
+    findOnPath<V>(path: Path, f: (path: Path, value: T) => V | null): V | null;
+    private findOnPath_;
+    foreachOnPath(path: Path, f: (path: Path, value: T) => void): ImmutableTree<T>;
+    private foreachOnPath_;
+    /**
+     * Calls the given function for each node in the tree that has a value.
+     *
+     * @param f - A function to be called with the path from the root of the tree to
+     * a node, and the value at that node. Called in depth-first order.
+     */
+    foreach(f: (path: Path, value: T) => void): void;
+    private foreach_;
+    foreachChild(f: (name: string, value: T) => void): void;
 }
 
 /**
@@ -784,36 +736,36 @@ declare class ImmutableTree<T> {
 export declare function increment(delta: number): object;
 
 declare abstract class Index {
-  abstract compare(a: NamedNode, b: NamedNode): number;
-  abstract isDefinedOn(node: Node_2): boolean;
-  /**
-   * @returns A standalone comparison function for
-   * this index
-   */
-  getCompare(): Comparator<NamedNode>;
-  /**
-   * Given a before and after value for a node, determine if the indexed value has changed. Even if they are different,
-   * it's possible that the changes are isolated to parts of the snapshot that are not indexed.
-   *
-   *
-   * @returns True if the portion of the snapshot being indexed changed between oldNode and newNode
-   */
-  indexedValueChanged(oldNode: Node_2, newNode: Node_2): boolean;
-  /**
-   * @returns a node wrapper that will sort equal to or less than
-   * any other node wrapper, using this index
-   */
-  minPost(): NamedNode;
-  /**
-   * @returns a node wrapper that will sort greater than or equal to
-   * any other node wrapper, using this index
-   */
-  abstract maxPost(): NamedNode;
-  abstract makePost(indexValue: unknown, name: string): NamedNode;
-  /**
-   * @returns String representation for inclusion in a query spec
-   */
-  abstract toString(): string;
+    abstract compare(a: NamedNode, b: NamedNode): number;
+    abstract isDefinedOn(node: Node_2): boolean;
+    /**
+     * @returns A standalone comparison function for
+     * this index
+     */
+    getCompare(): Comparator<NamedNode>;
+    /**
+     * Given a before and after value for a node, determine if the indexed value has changed. Even if they are different,
+     * it's possible that the changes are isolated to parts of the snapshot that are not indexed.
+     *
+     *
+     * @returns True if the portion of the snapshot being indexed changed between oldNode and newNode
+     */
+    indexedValueChanged(oldNode: Node_2, newNode: Node_2): boolean;
+    /**
+     * @returns a node wrapper that will sort equal to or less than
+     * any other node wrapper, using this index
+     */
+    minPost(): NamedNode;
+    /**
+     * @returns a node wrapper that will sort greater than or equal to
+     * any other node wrapper, using this index
+     */
+    abstract maxPost(): NamedNode;
+    abstract makePost(indexValue: unknown, name: string): NamedNode;
+    /**
+     * @returns String representation for inclusion in a query spec
+     */
+    abstract toString(): string;
 }
 
 /* Excluded from this release type: _initStandalone */
@@ -822,7 +774,7 @@ declare abstract class Index {
  * Represents a child snapshot of a `Reference` that is being iterated over. The key will never be undefined.
  */
 export declare interface IteratedDataSnapshot extends DataSnapshot {
-  key: string;
+    key: string;
 }
 
 /**
@@ -867,236 +819,210 @@ export declare function limitToLast(limit: number): QueryConstraint;
 
 /** An options objects that can be used to customize a listener. */
 export declare interface ListenOptions {
-  /** Whether to remove the listener after its first invocation. */
-  readonly onlyOnce?: boolean;
+    /** Whether to remove the listener after its first invocation. */
+    readonly onlyOnce?: boolean;
 }
 
 declare interface ListenProvider {
-  startListening(
-    query: QueryContext,
-    tag: number | null,
-    hashFn: () => string,
-    onComplete: (a: string, b?: unknown) => Event_2[]
-  ): Event_2[];
-  stopListening(a: QueryContext, b: number | null): void;
+    startListening(query: QueryContext, tag: number | null, hashFn: () => string, onComplete: (a: string, b?: unknown) => Event_2[]): Event_2[];
+    stopListening(a: QueryContext, b: number | null): void;
 }
 
 /**
  * Represents an empty node (a leaf node in the Red-Black Tree).
  */
 declare class LLRBEmptyNode<K, V> {
-  key: K;
-  value: V;
-  left: LLRBNode<K, V> | LLRBEmptyNode<K, V>;
-  right: LLRBNode<K, V> | LLRBEmptyNode<K, V>;
-  color: boolean;
-  /**
-   * Returns a copy of the current node.
-   *
-   * @returns The node copy.
-   */
-  copy(
-    key: K | null,
-    value: V | null,
-    color: boolean | null,
-    left: LLRBNode<K, V> | LLRBEmptyNode<K, V> | null,
-    right: LLRBNode<K, V> | LLRBEmptyNode<K, V> | null
-  ): LLRBEmptyNode<K, V>;
-  /**
-   * Returns a copy of the tree, with the specified key/value added.
-   *
-   * @param key - Key to be added.
-   * @param value - Value to be added.
-   * @param comparator - Comparator.
-   * @returns New tree, with item added.
-   */
-  insert(key: K, value: V, comparator: Comparator<K>): LLRBNode<K, V>;
-  /**
-   * Returns a copy of the tree, with the specified key removed.
-   *
-   * @param key - The key to remove.
-   * @param comparator - Comparator.
-   * @returns New tree, with item removed.
-   */
-  remove(key: K, comparator: Comparator<K>): LLRBEmptyNode<K, V>;
-  /**
-   * @returns The total number of nodes in the tree.
-   */
-  count(): number;
-  /**
-   * @returns True if the tree is empty.
-   */
-  isEmpty(): boolean;
-  /**
-   * Traverses the tree in key order and calls the specified action function
-   * for each node.
-   *
-   * @param action - Callback function to be called for each
-   * node.  If it returns true, traversal is aborted.
-   * @returns True if traversal was aborted.
-   */
-  inorderTraversal(action: (k: K, v: V) => unknown): boolean;
-  /**
-   * Traverses the tree in reverse key order and calls the specified action function
-   * for each node.
-   *
-   * @param action - Callback function to be called for each
-   * node.  If it returns true, traversal is aborted.
-   * @returns True if traversal was aborted.
-   */
-  reverseTraversal(action: (k: K, v: V) => void): boolean;
-  minKey(): null;
-  maxKey(): null;
-  check_(): number;
-  /**
-   * @returns Whether this node is red.
-   */
-  isRed_(): boolean;
+    key: K;
+    value: V;
+    left: LLRBNode<K, V> | LLRBEmptyNode<K, V>;
+    right: LLRBNode<K, V> | LLRBEmptyNode<K, V>;
+    color: boolean;
+    /**
+     * Returns a copy of the current node.
+     *
+     * @returns The node copy.
+     */
+    copy(key: K | null, value: V | null, color: boolean | null, left: LLRBNode<K, V> | LLRBEmptyNode<K, V> | null, right: LLRBNode<K, V> | LLRBEmptyNode<K, V> | null): LLRBEmptyNode<K, V>;
+    /**
+     * Returns a copy of the tree, with the specified key/value added.
+     *
+     * @param key - Key to be added.
+     * @param value - Value to be added.
+     * @param comparator - Comparator.
+     * @returns New tree, with item added.
+     */
+    insert(key: K, value: V, comparator: Comparator<K>): LLRBNode<K, V>;
+    /**
+     * Returns a copy of the tree, with the specified key removed.
+     *
+     * @param key - The key to remove.
+     * @param comparator - Comparator.
+     * @returns New tree, with item removed.
+     */
+    remove(key: K, comparator: Comparator<K>): LLRBEmptyNode<K, V>;
+    /**
+     * @returns The total number of nodes in the tree.
+     */
+    count(): number;
+    /**
+     * @returns True if the tree is empty.
+     */
+    isEmpty(): boolean;
+    /**
+     * Traverses the tree in key order and calls the specified action function
+     * for each node.
+     *
+     * @param action - Callback function to be called for each
+     * node.  If it returns true, traversal is aborted.
+     * @returns True if traversal was aborted.
+     */
+    inorderTraversal(action: (k: K, v: V) => unknown): boolean;
+    /**
+     * Traverses the tree in reverse key order and calls the specified action function
+     * for each node.
+     *
+     * @param action - Callback function to be called for each
+     * node.  If it returns true, traversal is aborted.
+     * @returns True if traversal was aborted.
+     */
+    reverseTraversal(action: (k: K, v: V) => void): boolean;
+    minKey(): null;
+    maxKey(): null;
+    check_(): number;
+    /**
+     * @returns Whether this node is red.
+     */
+    isRed_(): boolean;
 }
 
 /**
  * Represents a node in a Left-leaning Red-Black tree.
  */
 declare class LLRBNode<K, V> {
-  key: K;
-  value: V;
-  color: boolean;
-  left: LLRBNode<K, V> | LLRBEmptyNode<K, V>;
-  right: LLRBNode<K, V> | LLRBEmptyNode<K, V>;
-  /**
-   * @param key - Key associated with this node.
-   * @param value - Value associated with this node.
-   * @param color - Whether this node is red.
-   * @param left - Left child.
-   * @param right - Right child.
-   */
-  constructor(
-    key: K,
-    value: V,
-    color: boolean | null,
-    left?: LLRBNode<K, V> | LLRBEmptyNode<K, V> | null,
-    right?: LLRBNode<K, V> | LLRBEmptyNode<K, V> | null
-  );
-  static RED: boolean;
-  static BLACK: boolean;
-  /**
-   * Returns a copy of the current node, optionally replacing pieces of it.
-   *
-   * @param key - New key for the node, or null.
-   * @param value - New value for the node, or null.
-   * @param color - New color for the node, or null.
-   * @param left - New left child for the node, or null.
-   * @param right - New right child for the node, or null.
-   * @returns The node copy.
-   */
-  copy(
-    key: K | null,
-    value: V | null,
-    color: boolean | null,
-    left: LLRBNode<K, V> | LLRBEmptyNode<K, V> | null,
-    right: LLRBNode<K, V> | LLRBEmptyNode<K, V> | null
-  ): LLRBNode<K, V>;
-  /**
-   * @returns The total number of nodes in the tree.
-   */
-  count(): number;
-  /**
-   * @returns True if the tree is empty.
-   */
-  isEmpty(): boolean;
-  /**
-   * Traverses the tree in key order and calls the specified action function
-   * for each node.
-   *
-   * @param action - Callback function to be called for each
-   *   node.  If it returns true, traversal is aborted.
-   * @returns The first truthy value returned by action, or the last falsey
-   *   value returned by action
-   */
-  inorderTraversal(action: (k: K, v: V) => unknown): boolean;
-  /**
-   * Traverses the tree in reverse key order and calls the specified action function
-   * for each node.
-   *
-   * @param action - Callback function to be called for each
-   * node.  If it returns true, traversal is aborted.
-   * @returns True if traversal was aborted.
-   */
-  reverseTraversal(action: (k: K, v: V) => void): boolean;
-  /**
-   * @returns The minimum node in the tree.
-   */
-  private min_;
-  /**
-   * @returns The maximum key in the tree.
-   */
-  minKey(): K;
-  /**
-   * @returns The maximum key in the tree.
-   */
-  maxKey(): K;
-  /**
-   * @param key - Key to insert.
-   * @param value - Value to insert.
-   * @param comparator - Comparator.
-   * @returns New tree, with the key/value added.
-   */
-  insert(key: K, value: V, comparator: Comparator<K>): LLRBNode<K, V>;
-  /**
-   * @returns New tree, with the minimum key removed.
-   */
-  private removeMin_;
-  /**
-   * @param key - The key of the item to remove.
-   * @param comparator - Comparator.
-   * @returns New tree, with the specified item removed.
-   */
-  remove(
-    key: K,
-    comparator: Comparator<K>
-  ): LLRBNode<K, V> | LLRBEmptyNode<K, V>;
-  /**
-   * @returns Whether this is a RED node.
-   */
-  isRed_(): boolean;
-  /**
-   * @returns New tree after performing any needed rotations.
-   */
-  private fixUp_;
-  /**
-   * @returns New tree, after moveRedLeft.
-   */
-  private moveRedLeft_;
-  /**
-   * @returns New tree, after moveRedRight.
-   */
-  private moveRedRight_;
-  /**
-   * @returns New tree, after rotateLeft.
-   */
-  private rotateLeft_;
-  /**
-   * @returns New tree, after rotateRight.
-   */
-  private rotateRight_;
-  /**
-   * @returns Newt ree, after colorFlip.
-   */
-  private colorFlip_;
-  /**
-   * For testing.
-   *
-   * @returns True if all is well.
-   */
-  private checkMaxDepth_;
-  check_(): number;
+    key: K;
+    value: V;
+    color: boolean;
+    left: LLRBNode<K, V> | LLRBEmptyNode<K, V>;
+    right: LLRBNode<K, V> | LLRBEmptyNode<K, V>;
+    /**
+     * @param key - Key associated with this node.
+     * @param value - Value associated with this node.
+     * @param color - Whether this node is red.
+     * @param left - Left child.
+     * @param right - Right child.
+     */
+    constructor(key: K, value: V, color: boolean | null, left?: LLRBNode<K, V> | LLRBEmptyNode<K, V> | null, right?: LLRBNode<K, V> | LLRBEmptyNode<K, V> | null);
+    static RED: boolean;
+    static BLACK: boolean;
+    /**
+     * Returns a copy of the current node, optionally replacing pieces of it.
+     *
+     * @param key - New key for the node, or null.
+     * @param value - New value for the node, or null.
+     * @param color - New color for the node, or null.
+     * @param left - New left child for the node, or null.
+     * @param right - New right child for the node, or null.
+     * @returns The node copy.
+     */
+    copy(key: K | null, value: V | null, color: boolean | null, left: LLRBNode<K, V> | LLRBEmptyNode<K, V> | null, right: LLRBNode<K, V> | LLRBEmptyNode<K, V> | null): LLRBNode<K, V>;
+    /**
+     * @returns The total number of nodes in the tree.
+     */
+    count(): number;
+    /**
+     * @returns True if the tree is empty.
+     */
+    isEmpty(): boolean;
+    /**
+     * Traverses the tree in key order and calls the specified action function
+     * for each node.
+     *
+     * @param action - Callback function to be called for each
+     *   node.  If it returns true, traversal is aborted.
+     * @returns The first truthy value returned by action, or the last falsey
+     *   value returned by action
+     */
+    inorderTraversal(action: (k: K, v: V) => unknown): boolean;
+    /**
+     * Traverses the tree in reverse key order and calls the specified action function
+     * for each node.
+     *
+     * @param action - Callback function to be called for each
+     * node.  If it returns true, traversal is aborted.
+     * @returns True if traversal was aborted.
+     */
+    reverseTraversal(action: (k: K, v: V) => void): boolean;
+    /**
+     * @returns The minimum node in the tree.
+     */
+    private min_;
+    /**
+     * @returns The maximum key in the tree.
+     */
+    minKey(): K;
+    /**
+     * @returns The maximum key in the tree.
+     */
+    maxKey(): K;
+    /**
+     * @param key - Key to insert.
+     * @param value - Value to insert.
+     * @param comparator - Comparator.
+     * @returns New tree, with the key/value added.
+     */
+    insert(key: K, value: V, comparator: Comparator<K>): LLRBNode<K, V>;
+    /**
+     * @returns New tree, with the minimum key removed.
+     */
+    private removeMin_;
+    /**
+     * @param key - The key of the item to remove.
+     * @param comparator - Comparator.
+     * @returns New tree, with the specified item removed.
+     */
+    remove(key: K, comparator: Comparator<K>): LLRBNode<K, V> | LLRBEmptyNode<K, V>;
+    /**
+     * @returns Whether this is a RED node.
+     */
+    isRed_(): boolean;
+    /**
+     * @returns New tree after performing any needed rotations.
+     */
+    private fixUp_;
+    /**
+     * @returns New tree, after moveRedLeft.
+     */
+    private moveRedLeft_;
+    /**
+     * @returns New tree, after moveRedRight.
+     */
+    private moveRedRight_;
+    /**
+     * @returns New tree, after rotateLeft.
+     */
+    private rotateLeft_;
+    /**
+     * @returns New tree, after rotateRight.
+     */
+    private rotateRight_;
+    /**
+     * @returns Newt ree, after colorFlip.
+     */
+    private colorFlip_;
+    /**
+     * For testing.
+     *
+     * @returns True if all is well.
+     */
+    private checkMaxDepth_;
+    check_(): number;
 }
 
 declare class NamedNode {
-  name: string;
-  node: Node_2;
-  constructor(name: string, node: Node_2);
-  static Wrap(name: string, node: Node_2): NamedNode;
+    name: string;
+    node: Node_2;
+    constructor(name: string, node: Node_2);
+    static Wrap(name: string, node: Node_2): NamedNode;
 }
 
 /**
@@ -1106,104 +1032,100 @@ declare class NamedNode {
  * @interface
  */
 declare interface Node_2 {
-  /**
-   * Whether this node is a leaf node.
-   * @returns Whether this is a leaf node.
-   */
-  isLeafNode(): boolean;
-  /**
-   * Gets the priority of the node.
-   * @returns The priority of the node.
-   */
-  getPriority(): Node_2;
-  /**
-   * Returns a duplicate node with the new priority.
-   * @param newPriorityNode - New priority to set for the node.
-   * @returns Node with new priority.
-   */
-  updatePriority(newPriorityNode: Node_2): Node_2;
-  /**
-   * Returns the specified immediate child, or null if it doesn't exist.
-   * @param childName - The name of the child to retrieve.
-   * @returns The retrieved child, or an empty node.
-   */
-  getImmediateChild(childName: string): Node_2;
-  /**
-   * Returns a child by path, or null if it doesn't exist.
-   * @param path - The path of the child to retrieve.
-   * @returns The retrieved child or an empty node.
-   */
-  getChild(path: Path): Node_2;
-  /**
-   * Returns the name of the child immediately prior to the specified childNode, or null.
-   * @param childName - The name of the child to find the predecessor of.
-   * @param childNode - The node to find the predecessor of.
-   * @param index - The index to use to determine the predecessor
-   * @returns The name of the predecessor child, or null if childNode is the first child.
-   */
-  getPredecessorChildName(
-    childName: string,
-    childNode: Node_2,
-    index: Index
-  ): string | null;
-  /**
-   * Returns a duplicate node, with the specified immediate child updated.
-   * Any value in the node will be removed.
-   * @param childName - The name of the child to update.
-   * @param newChildNode - The new child node
-   * @returns The updated node.
-   */
-  updateImmediateChild(childName: string, newChildNode: Node_2): Node_2;
-  /**
-   * Returns a duplicate node, with the specified child updated.  Any value will
-   * be removed.
-   * @param path - The path of the child to update.
-   * @param newChildNode - The new child node, which may be an empty node
-   * @returns The updated node.
-   */
-  updateChild(path: Path, newChildNode: Node_2): Node_2;
-  /**
-   * True if the immediate child specified exists
-   */
-  hasChild(childName: string): boolean;
-  /**
-   * @returns True if this node has no value or children.
-   */
-  isEmpty(): boolean;
-  /**
-   * @returns The number of children of this node.
-   */
-  numChildren(): number;
-  /**
-   * Calls action for each child.
-   * @param action - Action to be called for
-   * each child.  It's passed the child name and the child node.
-   * @returns The first truthy value return by action, or the last falsey one
-   */
-  forEachChild(index: Index, action: (a: string, b: Node_2) => void): unknown;
-  /**
-   * @param exportFormat - True for export format (also wire protocol format).
-   * @returns Value of this node as JSON.
-   */
-  val(exportFormat?: boolean): unknown;
-  /**
-   * @returns hash representing the node contents.
-   */
-  hash(): string;
-  /**
-   * @param other - Another node
-   * @returns -1 for less than, 0 for equal, 1 for greater than other
-   */
-  compareTo(other: Node_2): number;
-  /**
-   * @returns Whether or not this snapshot equals other
-   */
-  equals(other: Node_2): boolean;
-  /**
-   * @returns This node, with the specified index now available
-   */
-  withIndex(indexDefinition: Index): Node_2;
-  isIndexed(indexDefinition: Index): boolean;
+    /**
+     * Whether this node is a leaf node.
+     * @returns Whether this is a leaf node.
+     */
+    isLeafNode(): boolean;
+    /**
+     * Gets the priority of the node.
+     * @returns The priority of the node.
+     */
+    getPriority(): Node_2;
+    /**
+     * Returns a duplicate node with the new priority.
+     * @param newPriorityNode - New priority to set for the node.
+     * @returns Node with new priority.
+     */
+    updatePriority(newPriorityNode: Node_2): Node_2;
+    /**
+     * Returns the specified immediate child, or null if it doesn't exist.
+     * @param childName - The name of the child to retrieve.
+     * @returns The retrieved child, or an empty node.
+     */
+    getImmediateChild(childName: string): Node_2;
+    /**
+     * Returns a child by path, or null if it doesn't exist.
+     * @param path - The path of the child to retrieve.
+     * @returns The retrieved child or an empty node.
+     */
+    getChild(path: Path): Node_2;
+    /**
+     * Returns the name of the child immediately prior to the specified childNode, or null.
+     * @param childName - The name of the child to find the predecessor of.
+     * @param childNode - The node to find the predecessor of.
+     * @param index - The index to use to determine the predecessor
+     * @returns The name of the predecessor child, or null if childNode is the first child.
+     */
+    getPredecessorChildName(childName: string, childNode: Node_2, index: Index): string | null;
+    /**
+     * Returns a duplicate node, with the specified immediate child updated.
+     * Any value in the node will be removed.
+     * @param childName - The name of the child to update.
+     * @param newChildNode - The new child node
+     * @returns The updated node.
+     */
+    updateImmediateChild(childName: string, newChildNode: Node_2): Node_2;
+    /**
+     * Returns a duplicate node, with the specified child updated.  Any value will
+     * be removed.
+     * @param path - The path of the child to update.
+     * @param newChildNode - The new child node, which may be an empty node
+     * @returns The updated node.
+     */
+    updateChild(path: Path, newChildNode: Node_2): Node_2;
+    /**
+     * True if the immediate child specified exists
+     */
+    hasChild(childName: string): boolean;
+    /**
+     * @returns True if this node has no value or children.
+     */
+    isEmpty(): boolean;
+    /**
+     * @returns The number of children of this node.
+     */
+    numChildren(): number;
+    /**
+     * Calls action for each child.
+     * @param action - Action to be called for
+     * each child.  It's passed the child name and the child node.
+     * @returns The first truthy value return by action, or the last falsey one
+     */
+    forEachChild(index: Index, action: (a: string, b: Node_2) => void): unknown;
+    /**
+     * @param exportFormat - True for export format (also wire protocol format).
+     * @returns Value of this node as JSON.
+     */
+    val(exportFormat?: boolean): unknown;
+    /**
+     * @returns hash representing the node contents.
+     */
+    hash(): string;
+    /**
+     * @param other - Another node
+     * @returns -1 for less than, 0 for equal, 1 for greater than other
+     */
+    compareTo(other: Node_2): number;
+    /**
+     * @returns Whether or not this snapshot equals other
+     */
+    equals(other: Node_2): boolean;
+    /**
+     * @returns This node, with the specified index now available
+     */
+    withIndex(indexDefinition: Index): Node_2;
+    isIndexed(indexDefinition: Index): boolean;
 }
 
 /**
@@ -1213,42 +1135,31 @@ declare interface Node_2 {
  * @interface
  */
 declare interface NodeFilter_2 {
-  /**
-   * Update a single complete child in the snap. If the child equals the old child in the snap, this is a no-op.
-   * The method expects an indexed snap.
-   */
-  updateChild(
-    snap: Node_2,
-    key: string,
-    newChild: Node_2,
-    affectedPath: Path,
-    source: CompleteChildSource,
-    optChangeAccumulator: ChildChangeAccumulator | null
-  ): Node_2;
-  /**
-   * Update a node in full and output any resulting change from this complete update.
-   */
-  updateFullNode(
-    oldSnap: Node_2,
-    newSnap: Node_2,
-    optChangeAccumulator: ChildChangeAccumulator | null
-  ): Node_2;
-  /**
-   * Update the priority of the root node
-   */
-  updatePriority(oldSnap: Node_2, newPriority: Node_2): Node_2;
-  /**
-   * Returns true if children might be filtered due to query criteria
-   */
-  filtersNodes(): boolean;
-  /**
-   * Returns the index filter that this filter uses to get a NodeFilter that doesn't filter any children.
-   */
-  getIndexedFilter(): NodeFilter_2;
-  /**
-   * Returns the index that this filter uses
-   */
-  getIndex(): Index;
+    /**
+     * Update a single complete child in the snap. If the child equals the old child in the snap, this is a no-op.
+     * The method expects an indexed snap.
+     */
+    updateChild(snap: Node_2, key: string, newChild: Node_2, affectedPath: Path, source: CompleteChildSource, optChangeAccumulator: ChildChangeAccumulator | null): Node_2;
+    /**
+     * Update a node in full and output any resulting change from this complete update.
+     */
+    updateFullNode(oldSnap: Node_2, newSnap: Node_2, optChangeAccumulator: ChildChangeAccumulator | null): Node_2;
+    /**
+     * Update the priority of the root node
+     */
+    updatePriority(oldSnap: Node_2, newPriority: Node_2): Node_2;
+    /**
+     * Returns true if children might be filtered due to query criteria
+     */
+    filtersNodes(): boolean;
+    /**
+     * Returns the index filter that this filter uses to get a NodeFilter that doesn't filter any children.
+     */
+    getIndexedFilter(): NodeFilter_2;
+    /**
+     * Returns the index that this filter uses
+     */
+    getIndex(): Index;
 }
 
 /**
@@ -1274,14 +1185,7 @@ declare interface NodeFilter_2 {
  * @param callback - The callback function that was passed to `on()` or
  * `undefined` to remove all callbacks.
  */
-export declare function off(
-  query: Query,
-  eventType?: EventType,
-  callback?: (
-    snapshot: DataSnapshot,
-    previousChildName?: string | null
-  ) => unknown
-): void;
+export declare function off(query: Query, eventType?: EventType, callback?: (snapshot: DataSnapshot, previousChildName?: string | null) => unknown): void;
 
 /**
  * Listens for data changes at a particular location.
@@ -1310,14 +1214,7 @@ export declare function off(
  * occurred.
  * @returns A function that can be invoked to remove the listener.
  */
-export declare function onChildAdded(
-  query: Query,
-  callback: (
-    snapshot: DataSnapshot,
-    previousChildName?: string | null
-  ) => unknown,
-  cancelCallback?: (error: Error) => unknown
-): Unsubscribe;
+export declare function onChildAdded(query: Query, callback: (snapshot: DataSnapshot, previousChildName?: string | null) => unknown, cancelCallback?: (error: Error) => unknown): Unsubscribe;
 
 /**
  * Listens for data changes at a particular location.
@@ -1343,14 +1240,7 @@ export declare function onChildAdded(
  * then removes the listener after its first invocation.
  * @returns A function that can be invoked to remove the listener.
  */
-export declare function onChildAdded(
-  query: Query,
-  callback: (
-    snapshot: DataSnapshot,
-    previousChildName: string | null
-  ) => unknown,
-  options: ListenOptions
-): Unsubscribe;
+export declare function onChildAdded(query: Query, callback: (snapshot: DataSnapshot, previousChildName: string | null) => unknown, options: ListenOptions): Unsubscribe;
 
 /**
  * Listens for data changes at a particular location.
@@ -1381,15 +1271,7 @@ export declare function onChildAdded(
  * then removes the listener after its first invocation.
  * @returns A function that can be invoked to remove the listener.
  */
-export declare function onChildAdded(
-  query: Query,
-  callback: (
-    snapshot: DataSnapshot,
-    previousChildName: string | null
-  ) => unknown,
-  cancelCallback: (error: Error) => unknown,
-  options: ListenOptions
-): Unsubscribe;
+export declare function onChildAdded(query: Query, callback: (snapshot: DataSnapshot, previousChildName: string | null) => unknown, cancelCallback: (error: Error) => unknown, options: ListenOptions): Unsubscribe;
 
 /**
  * Listens for data changes at a particular location.
@@ -1419,14 +1301,7 @@ export declare function onChildAdded(
  * occurred.
  * @returns A function that can be invoked to remove the listener.
  */
-export declare function onChildChanged(
-  query: Query,
-  callback: (
-    snapshot: DataSnapshot,
-    previousChildName: string | null
-  ) => unknown,
-  cancelCallback?: (error: Error) => unknown
-): Unsubscribe;
+export declare function onChildChanged(query: Query, callback: (snapshot: DataSnapshot, previousChildName: string | null) => unknown, cancelCallback?: (error: Error) => unknown): Unsubscribe;
 
 /**
  * Listens for data changes at a particular location.
@@ -1453,14 +1328,7 @@ export declare function onChildChanged(
  * then removes the listener after its first invocation.
  * @returns A function that can be invoked to remove the listener.
  */
-export declare function onChildChanged(
-  query: Query,
-  callback: (
-    snapshot: DataSnapshot,
-    previousChildName: string | null
-  ) => unknown,
-  options: ListenOptions
-): Unsubscribe;
+export declare function onChildChanged(query: Query, callback: (snapshot: DataSnapshot, previousChildName: string | null) => unknown, options: ListenOptions): Unsubscribe;
 
 /**
  * Listens for data changes at a particular location.
@@ -1492,15 +1360,7 @@ export declare function onChildChanged(
  * then removes the listener after its first invocation.
  * @returns A function that can be invoked to remove the listener.
  */
-export declare function onChildChanged(
-  query: Query,
-  callback: (
-    snapshot: DataSnapshot,
-    previousChildName: string | null
-  ) => unknown,
-  cancelCallback: (error: Error) => unknown,
-  options: ListenOptions
-): Unsubscribe;
+export declare function onChildChanged(query: Query, callback: (snapshot: DataSnapshot, previousChildName: string | null) => unknown, cancelCallback: (error: Error) => unknown, options: ListenOptions): Unsubscribe;
 
 /**
  * Listens for data changes at a particular location.
@@ -1528,14 +1388,7 @@ export declare function onChildChanged(
  * occurred.
  * @returns A function that can be invoked to remove the listener.
  */
-export declare function onChildMoved(
-  query: Query,
-  callback: (
-    snapshot: DataSnapshot,
-    previousChildName: string | null
-  ) => unknown,
-  cancelCallback?: (error: Error) => unknown
-): Unsubscribe;
+export declare function onChildMoved(query: Query, callback: (snapshot: DataSnapshot, previousChildName: string | null) => unknown, cancelCallback?: (error: Error) => unknown): Unsubscribe;
 
 /**
  * Listens for data changes at a particular location.
@@ -1560,14 +1413,7 @@ export declare function onChildMoved(
  * then removes the listener after its first invocation.
  * @returns A function that can be invoked to remove the listener.
  */
-export declare function onChildMoved(
-  query: Query,
-  callback: (
-    snapshot: DataSnapshot,
-    previousChildName: string | null
-  ) => unknown,
-  options: ListenOptions
-): Unsubscribe;
+export declare function onChildMoved(query: Query, callback: (snapshot: DataSnapshot, previousChildName: string | null) => unknown, options: ListenOptions): Unsubscribe;
 
 /**
  * Listens for data changes at a particular location.
@@ -1597,15 +1443,7 @@ export declare function onChildMoved(
  * then removes the listener after its first invocation.
  * @returns A function that can be invoked to remove the listener.
  */
-export declare function onChildMoved(
-  query: Query,
-  callback: (
-    snapshot: DataSnapshot,
-    previousChildName: string | null
-  ) => unknown,
-  cancelCallback: (error: Error) => unknown,
-  options: ListenOptions
-): Unsubscribe;
+export declare function onChildMoved(query: Query, callback: (snapshot: DataSnapshot, previousChildName: string | null) => unknown, cancelCallback: (error: Error) => unknown, options: ListenOptions): Unsubscribe;
 
 /**
  * Listens for data changes at a particular location.
@@ -1637,11 +1475,7 @@ export declare function onChildMoved(
  * occurred.
  * @returns A function that can be invoked to remove the listener.
  */
-export declare function onChildRemoved(
-  query: Query,
-  callback: (snapshot: DataSnapshot) => unknown,
-  cancelCallback?: (error: Error) => unknown
-): Unsubscribe;
+export declare function onChildRemoved(query: Query, callback: (snapshot: DataSnapshot) => unknown, cancelCallback?: (error: Error) => unknown): Unsubscribe;
 
 /**
  * Listens for data changes at a particular location.
@@ -1670,11 +1504,7 @@ export declare function onChildRemoved(
  * then removes the listener after its first invocation.
  * @returns A function that can be invoked to remove the listener.
  */
-export declare function onChildRemoved(
-  query: Query,
-  callback: (snapshot: DataSnapshot) => unknown,
-  options: ListenOptions
-): Unsubscribe;
+export declare function onChildRemoved(query: Query, callback: (snapshot: DataSnapshot) => unknown, options: ListenOptions): Unsubscribe;
 
 /**
  * Listens for data changes at a particular location.
@@ -1708,12 +1538,7 @@ export declare function onChildRemoved(
  * then removes the listener after its first invocation.
  * @returns A function that can be invoked to remove the listener.
  */
-export declare function onChildRemoved(
-  query: Query,
-  callback: (snapshot: DataSnapshot) => unknown,
-  cancelCallback: (error: Error) => unknown,
-  options: ListenOptions
-): Unsubscribe;
+export declare function onChildRemoved(query: Query, callback: (snapshot: DataSnapshot) => unknown, cancelCallback: (error: Error) => unknown, options: ListenOptions): Unsubscribe;
 
 /**
  * The `onDisconnect` class allows you to write or clear data when your client
@@ -1736,79 +1561,76 @@ export declare function onChildRemoved(
  * the `onDisconnect` operations each time you reconnect.
  */
 export declare class OnDisconnect {
-  private _repo;
-  private _path;
-  /** @hideconstructor */
-  constructor(_repo: Repo, _path: Path);
-  /**
-   * Cancels all previously queued `onDisconnect()` set or update events for this
-   * location and all children.
-   *
-   * If a write has been queued for this location via a `set()` or `update()` at a
-   * parent location, the write at this location will be canceled, though writes
-   * to sibling locations will still occur.
-   *
-   * @returns Resolves when synchronization to the server is complete.
-   */
-  cancel(): Promise<void>;
-  /**
-   * Ensures the data at this location is deleted when the client is disconnected
-   * (due to closing the browser, navigating to a new page, or network issues).
-   *
-   * @returns Resolves when synchronization to the server is complete.
-   */
-  remove(): Promise<void>;
-  /**
-   * Ensures the data at this location is set to the specified value when the
-   * client is disconnected (due to closing the browser, navigating to a new page,
-   * or network issues).
-   *
-   * `set()` is especially useful for implementing "presence" systems, where a
-   * value should be changed or cleared when a user disconnects so that they
-   * appear "offline" to other users. See
-   * {@link https://firebase.google.com/docs/database/web/offline-capabilities | Enabling Offline Capabilities in JavaScript}
-   * for more information.
-   *
-   * Note that `onDisconnect` operations are only triggered once. If you want an
-   * operation to occur each time a disconnect occurs, you'll need to re-establish
-   * the `onDisconnect` operations each time.
-   *
-   * @param value - The value to be written to this location on disconnect (can
-   * be an object, array, string, number, boolean, or null).
-   * @returns Resolves when synchronization to the Database is complete.
-   */
-  set(value: unknown): Promise<void>;
-  /**
-   * Ensures the data at this location is set to the specified value and priority
-   * when the client is disconnected (due to closing the browser, navigating to a
-   * new page, or network issues).
-   *
-   * @param value - The value to be written to this location on disconnect (can
-   * be an object, array, string, number, boolean, or null).
-   * @param priority - The priority to be written (string, number, or null).
-   * @returns Resolves when synchronization to the Database is complete.
-   */
-  setWithPriority(
-    value: unknown,
-    priority: number | string | null
-  ): Promise<void>;
-  /**
-   * Writes multiple values at this location when the client is disconnected (due
-   * to closing the browser, navigating to a new page, or network issues).
-   *
-   * The `values` argument contains multiple property-value pairs that will be
-   * written to the Database together. Each child property can either be a simple
-   * property (for example, "name") or a relative path (for example, "name/first")
-   * from the current location to the data to update.
-   *
-   * As opposed to the `set()` method, `update()` can be use to selectively update
-   * only the referenced properties at the current location (instead of replacing
-   * all the child properties at the current location).
-   *
-   * @param values - Object containing multiple values.
-   * @returns Resolves when synchronization to the Database is complete.
-   */
-  update(values: object): Promise<void>;
+    private _repo;
+    private _path;
+    /** @hideconstructor */
+    constructor(_repo: Repo, _path: Path);
+    /**
+     * Cancels all previously queued `onDisconnect()` set or update events for this
+     * location and all children.
+     *
+     * If a write has been queued for this location via a `set()` or `update()` at a
+     * parent location, the write at this location will be canceled, though writes
+     * to sibling locations will still occur.
+     *
+     * @returns Resolves when synchronization to the server is complete.
+     */
+    cancel(): Promise<void>;
+    /**
+     * Ensures the data at this location is deleted when the client is disconnected
+     * (due to closing the browser, navigating to a new page, or network issues).
+     *
+     * @returns Resolves when synchronization to the server is complete.
+     */
+    remove(): Promise<void>;
+    /**
+     * Ensures the data at this location is set to the specified value when the
+     * client is disconnected (due to closing the browser, navigating to a new page,
+     * or network issues).
+     *
+     * `set()` is especially useful for implementing "presence" systems, where a
+     * value should be changed or cleared when a user disconnects so that they
+     * appear "offline" to other users. See
+     * {@link https://firebase.google.com/docs/database/web/offline-capabilities | Enabling Offline Capabilities in JavaScript}
+     * for more information.
+     *
+     * Note that `onDisconnect` operations are only triggered once. If you want an
+     * operation to occur each time a disconnect occurs, you'll need to re-establish
+     * the `onDisconnect` operations each time.
+     *
+     * @param value - The value to be written to this location on disconnect (can
+     * be an object, array, string, number, boolean, or null).
+     * @returns Resolves when synchronization to the Database is complete.
+     */
+    set(value: unknown): Promise<void>;
+    /**
+     * Ensures the data at this location is set to the specified value and priority
+     * when the client is disconnected (due to closing the browser, navigating to a
+     * new page, or network issues).
+     *
+     * @param value - The value to be written to this location on disconnect (can
+     * be an object, array, string, number, boolean, or null).
+     * @param priority - The priority to be written (string, number, or null).
+     * @returns Resolves when synchronization to the Database is complete.
+     */
+    setWithPriority(value: unknown, priority: number | string | null): Promise<void>;
+    /**
+     * Writes multiple values at this location when the client is disconnected (due
+     * to closing the browser, navigating to a new page, or network issues).
+     *
+     * The `values` argument contains multiple property-value pairs that will be
+     * written to the Database together. Each child property can either be a simple
+     * property (for example, "name") or a relative path (for example, "name/first")
+     * from the current location to the data to update.
+     *
+     * As opposed to the `set()` method, `update()` can be use to selectively update
+     * only the referenced properties at the current location (instead of replacing
+     * all the child properties at the current location).
+     *
+     * @param values - Object containing multiple values.
+     * @returns Resolves when synchronization to the Database is complete.
+     */
+    update(values: object): Promise<void>;
 }
 
 /**
@@ -1846,11 +1668,7 @@ export declare function onDisconnect(ref: DatabaseReference): OnDisconnect;
  * occurred.
  * @returns A function that can be invoked to remove the listener.
  */
-export declare function onValue(
-  query: Query,
-  callback: (snapshot: DataSnapshot) => unknown,
-  cancelCallback?: (error: Error) => unknown
-): Unsubscribe;
+export declare function onValue(query: Query, callback: (snapshot: DataSnapshot) => unknown, cancelCallback?: (error: Error) => unknown): Unsubscribe;
 
 /**
  * Listens for data changes at a particular location.
@@ -1875,11 +1693,7 @@ export declare function onValue(
  * then removes the listener after its first invocation.
  * @returns A function that can be invoked to remove the listener.
  */
-export declare function onValue(
-  query: Query,
-  callback: (snapshot: DataSnapshot) => unknown,
-  options: ListenOptions
-): Unsubscribe;
+export declare function onValue(query: Query, callback: (snapshot: DataSnapshot) => unknown, options: ListenOptions): Unsubscribe;
 
 /**
  * Listens for data changes at a particular location.
@@ -1909,12 +1723,7 @@ export declare function onValue(
  * then removes the listener after its first invocation.
  * @returns A function that can be invoked to remove the listener.
  */
-export declare function onValue(
-  query: Query,
-  callback: (snapshot: DataSnapshot) => unknown,
-  cancelCallback: (error: Error) => unknown,
-  options: ListenOptions
-): Unsubscribe;
+export declare function onValue(query: Query, callback: (snapshot: DataSnapshot) => unknown, cancelCallback: (error: Error) => unknown, options: ListenOptions): Unsubscribe;
 
 /**
  * Creates a new `QueryConstraint` that orders by the specified child key.
@@ -1988,14 +1797,14 @@ export declare function orderByValue(): QueryConstraint;
  * it.
  */
 declare class Path {
-  pieces_: string[];
-  pieceNum_: number;
-  /**
-   * @param pathOrString - Path string to parse, or another path, or the raw
-   * tokens array
-   */
-  constructor(pathOrString: string | string[], pieceNum?: number);
-  toString(): string;
+    pieces_: string[];
+    pieceNum_: number;
+    /**
+     * @param pathOrString - Path string to parse, or another path, or the raw
+     * tokens array
+     */
+    constructor(pathOrString: string | string[], pieceNum?: number);
+    toString(): string;
 }
 
 /**
@@ -2005,173 +1814,125 @@ declare class Path {
  * in quotes to make sure the closure compiler does not minify them.
  */
 declare class PersistentConnection extends ServerActions {
-  private repoInfo_;
-  private applicationId_;
-  private onDataUpdate_;
-  private onConnectStatus_;
-  private onServerInfoUpdate_;
-  private authTokenProvider_;
-  private appCheckTokenProvider_;
-  private authOverride_?;
-  id: number;
-  private log_;
-  private interruptReasons_;
-  private readonly listens;
-  private outstandingPuts_;
-  private outstandingGets_;
-  private outstandingPutCount_;
-  private outstandingGetCount_;
-  private onDisconnectRequestQueue_;
-  private connected_;
-  private reconnectDelay_;
-  private maxReconnectDelay_;
-  private securityDebugCallback_;
-  lastSessionId: string | null;
-  private establishConnectionTimer_;
-  private visible_;
-  private requestCBHash_;
-  private requestNumber_;
-  private realtime_;
-  private authToken_;
-  private appCheckToken_;
-  private forceTokenRefresh_;
-  private invalidAuthTokenCount_;
-  private invalidAppCheckTokenCount_;
-  private firstConnection_;
-  private lastConnectionAttemptTime_;
-  private lastConnectionEstablishedTime_;
-  private static nextPersistentConnectionId_;
-  /**
-   * Counter for number of connections created. Mainly used for tagging in the logs
-   */
-  private static nextConnectionId_;
-  /**
-   * @param repoInfo_ - Data about the namespace we are connecting to
-   * @param applicationId_ - The Firebase App ID for this project
-   * @param onDataUpdate_ - A callback for new data from the server
-   */
-  constructor(
-    repoInfo_: RepoInfo,
-    applicationId_: string,
-    onDataUpdate_: (
-      a: string,
-      b: unknown,
-      c: boolean,
-      d: number | null
-    ) => void,
-    onConnectStatus_: (a: boolean) => void,
-    onServerInfoUpdate_: (a: unknown) => void,
-    authTokenProvider_: AuthTokenProvider,
-    appCheckTokenProvider_: AppCheckTokenProvider,
-    authOverride_?: object | null
-  );
-  protected sendRequest(
-    action: string,
-    body: unknown,
-    onResponse?: (a: unknown) => void
-  ): void;
-  get(query: QueryContext): Promise<string>;
-  listen(
-    query: QueryContext,
-    currentHashFn: () => string,
-    tag: number | null,
-    onComplete: (a: string, b: unknown) => void
-  ): void;
-  private sendGet_;
-  private sendListen_;
-  private static warnOnListenWarnings_;
-  refreshAuthToken(token: string): void;
-  private reduceReconnectDelayIfAdminCredential_;
-  refreshAppCheckToken(token: string | null): void;
-  /**
-   * Attempts to authenticate with the given credentials. If the authentication attempt fails, it's triggered like
-   * a auth revoked (the connection is closed).
-   */
-  tryAuth(): void;
-  /**
-   * Attempts to authenticate with the given token. If the authentication
-   * attempt fails, it's triggered like the token was revoked (the connection is
-   * closed).
-   */
-  tryAppCheck(): void;
-  /**
-   * @inheritDoc
-   */
-  unlisten(query: QueryContext, tag: number | null): void;
-  private sendUnlisten_;
-  onDisconnectPut(
-    pathString: string,
-    data: unknown,
-    onComplete?: (a: string, b: string) => void
-  ): void;
-  onDisconnectMerge(
-    pathString: string,
-    data: unknown,
-    onComplete?: (a: string, b: string) => void
-  ): void;
-  onDisconnectCancel(
-    pathString: string,
-    onComplete?: (a: string, b: string) => void
-  ): void;
-  private sendOnDisconnect_;
-  put(
-    pathString: string,
-    data: unknown,
-    onComplete?: (a: string, b: string) => void,
-    hash?: string
-  ): void;
-  merge(
-    pathString: string,
-    data: unknown,
-    onComplete: (a: string, b: string | null) => void,
-    hash?: string
-  ): void;
-  putInternal(
-    action: string,
-    pathString: string,
-    data: unknown,
-    onComplete: (a: string, b: string | null) => void,
-    hash?: string
-  ): void;
-  private sendPut_;
-  reportStats(stats: { [k: string]: unknown }): void;
-  private onDataMessage_;
-  private onDataPush_;
-  private onReady_;
-  private scheduleConnect_;
-  private initConnection_;
-  private onVisible_;
-  private onOnline_;
-  private onRealtimeDisconnect_;
-  private establishConnection_;
-  interrupt(reason: string): void;
-  resume(reason: string): void;
-  private handleTimestamp_;
-  private cancelSentTransactions_;
-  private onListenRevoked_;
-  private removeListen_;
-  private onAuthRevoked_;
-  private onAppCheckRevoked_;
-  private onSecurityDebugPacket_;
-  private restoreState_;
-  /**
-   * Sends client stats for first connection
-   */
-  private sendConnectStats_;
-  private shouldReconnect_;
+    private repoInfo_;
+    private applicationId_;
+    private onDataUpdate_;
+    private onConnectStatus_;
+    private onServerInfoUpdate_;
+    private authTokenProvider_;
+    private appCheckTokenProvider_;
+    private authOverride_?;
+    id: number;
+    private log_;
+    private interruptReasons_;
+    private readonly listens;
+    private outstandingPuts_;
+    private outstandingGets_;
+    private outstandingPutCount_;
+    private outstandingGetCount_;
+    private onDisconnectRequestQueue_;
+    private connected_;
+    private reconnectDelay_;
+    private maxReconnectDelay_;
+    private securityDebugCallback_;
+    lastSessionId: string | null;
+    private establishConnectionTimer_;
+    private visible_;
+    private requestCBHash_;
+    private requestNumber_;
+    private realtime_;
+    private authToken_;
+    private appCheckToken_;
+    private forceTokenRefresh_;
+    private invalidAuthTokenCount_;
+    private invalidAppCheckTokenCount_;
+    private firstConnection_;
+    private lastConnectionAttemptTime_;
+    private lastConnectionEstablishedTime_;
+    private static nextPersistentConnectionId_;
+    /**
+     * Counter for number of connections created. Mainly used for tagging in the logs
+     */
+    private static nextConnectionId_;
+    /**
+     * @param repoInfo_ - Data about the namespace we are connecting to
+     * @param applicationId_ - The Firebase App ID for this project
+     * @param onDataUpdate_ - A callback for new data from the server
+     */
+    constructor(repoInfo_: RepoInfo, applicationId_: string, onDataUpdate_: (a: string, b: unknown, c: boolean, d: number | null) => void, onConnectStatus_: (a: boolean) => void, onServerInfoUpdate_: (a: unknown) => void, authTokenProvider_: AuthTokenProvider, appCheckTokenProvider_: AppCheckTokenProvider, authOverride_?: object | null);
+    protected sendRequest(action: string, body: unknown, onResponse?: (a: unknown) => void): void;
+    get(query: QueryContext): Promise<string>;
+    listen(query: QueryContext, currentHashFn: () => string, tag: number | null, onComplete: (a: string, b: unknown) => void): void;
+    private sendGet_;
+    private sendListen_;
+    private static warnOnListenWarnings_;
+    refreshAuthToken(token: string): void;
+    private reduceReconnectDelayIfAdminCredential_;
+    refreshAppCheckToken(token: string | null): void;
+    /**
+     * Attempts to authenticate with the given credentials. If the authentication attempt fails, it's triggered like
+     * a auth revoked (the connection is closed).
+     */
+    tryAuth(): void;
+    /**
+     * Attempts to authenticate with the given token. If the authentication
+     * attempt fails, it's triggered like the token was revoked (the connection is
+     * closed).
+     */
+    tryAppCheck(): void;
+    /**
+     * @inheritDoc
+     */
+    unlisten(query: QueryContext, tag: number | null): void;
+    private sendUnlisten_;
+    onDisconnectPut(pathString: string, data: unknown, onComplete?: (a: string, b: string) => void): void;
+    onDisconnectMerge(pathString: string, data: unknown, onComplete?: (a: string, b: string) => void): void;
+    onDisconnectCancel(pathString: string, onComplete?: (a: string, b: string) => void): void;
+    private sendOnDisconnect_;
+    put(pathString: string, data: unknown, onComplete?: (a: string, b: string) => void, hash?: string): void;
+    merge(pathString: string, data: unknown, onComplete: (a: string, b: string | null) => void, hash?: string): void;
+    putInternal(action: string, pathString: string, data: unknown, onComplete: (a: string, b: string | null) => void, hash?: string): void;
+    private sendPut_;
+    reportStats(stats: {
+        [k: string]: unknown;
+    }): void;
+    private onDataMessage_;
+    private onDataPush_;
+    private onReady_;
+    private scheduleConnect_;
+    private initConnection_;
+    private onVisible_;
+    private onOnline_;
+    private onRealtimeDisconnect_;
+    private establishConnection_;
+    interrupt(reason: string): void;
+    resume(reason: string): void;
+    private handleTimestamp_;
+    private cancelSentTransactions_;
+    private onListenRevoked_;
+    private removeListen_;
+    private onAuthRevoked_;
+    private onAppCheckRevoked_;
+    private onSecurityDebugPacket_;
+    private restoreState_;
+    /**
+     * Sends client stats for first connection
+     */
+    private sendConnectStats_;
+    private shouldReconnect_;
 }
 
 declare class PriorityIndex extends Index {
-  compare(a: NamedNode, b: NamedNode): number;
-  isDefinedOn(node: Node_2): boolean;
-  indexedValueChanged(oldNode: Node_2, newNode: Node_2): boolean;
-  minPost(): NamedNode;
-  maxPost(): NamedNode;
-  makePost(indexValue: unknown, name: string): NamedNode;
-  /**
-   * @returns String representation for inclusion in a query spec
-   */
-  toString(): string;
+    compare(a: NamedNode, b: NamedNode): number;
+    isDefinedOn(node: Node_2): boolean;
+    indexedValueChanged(oldNode: Node_2, newNode: Node_2): boolean;
+    minPost(): NamedNode;
+    maxPost(): NamedNode;
+    makePost(indexValue: unknown, name: string): NamedNode;
+    /**
+     * @returns String representation for inclusion in a query spec
+     */
+    toString(): string;
 }
 
 /**
@@ -2197,10 +1958,7 @@ declare class PriorityIndex extends Index {
  * @returns Combined `Promise` and `Reference`; resolves when write is complete,
  * but can be used immediately as the `Reference` to the child location.
  */
-export declare function push(
-  parent: DatabaseReference,
-  value?: unknown
-): ThenableReference;
+export declare function push(parent: DatabaseReference, value?: unknown): ThenableReference;
 
 /**
  * @license
@@ -2234,45 +1992,45 @@ export declare function push(
  * for more information.
  */
 export declare interface Query extends QueryContext {
-  /** The `DatabaseReference` for the `Query`'s location. */
-  readonly ref: DatabaseReference;
-  /**
-   * Returns whether or not the current and provided queries represent the same
-   * location, have the same query parameters, and are from the same instance of
-   * `FirebaseApp`.
-   *
-   * Two `DatabaseReference` objects are equivalent if they represent the same location
-   * and are from the same instance of `FirebaseApp`.
-   *
-   * Two `Query` objects are equivalent if they represent the same location,
-   * have the same query parameters, and are from the same instance of
-   * `FirebaseApp`. Equivalent queries share the same sort order, limits, and
-   * starting and ending points.
-   *
-   * @param other - The query to compare against.
-   * @returns Whether or not the current and provided queries are equivalent.
-   */
-  isEqual(other: Query | null): boolean;
-  /**
-   * Returns a JSON-serializable representation of this object.
-   *
-   * @returns A JSON-serializable representation of this object.
-   */
-  toJSON(): string;
-  /**
-   * Gets the absolute URL for this location.
-   *
-   * The `toString()` method returns a URL that is ready to be put into a
-   * browser, curl command, or a `refFromURL()` call. Since all of those expect
-   * the URL to be url-encoded, `toString()` returns an encoded URL.
-   *
-   * Append '.json' to the returned URL when typed into a browser to download
-   * JSON-formatted data. If the location is secured (that is, not publicly
-   * readable), you will get a permission-denied error.
-   *
-   * @returns The absolute URL for this location.
-   */
-  toString(): string;
+    /** The `DatabaseReference` for the `Query`'s location. */
+    readonly ref: DatabaseReference;
+    /**
+     * Returns whether or not the current and provided queries represent the same
+     * location, have the same query parameters, and are from the same instance of
+     * `FirebaseApp`.
+     *
+     * Two `DatabaseReference` objects are equivalent if they represent the same location
+     * and are from the same instance of `FirebaseApp`.
+     *
+     * Two `Query` objects are equivalent if they represent the same location,
+     * have the same query parameters, and are from the same instance of
+     * `FirebaseApp`. Equivalent queries share the same sort order, limits, and
+     * starting and ending points.
+     *
+     * @param other - The query to compare against.
+     * @returns Whether or not the current and provided queries are equivalent.
+     */
+    isEqual(other: Query | null): boolean;
+    /**
+     * Returns a JSON-serializable representation of this object.
+     *
+     * @returns A JSON-serializable representation of this object.
+     */
+    toJSON(): string;
+    /**
+     * Gets the absolute URL for this location.
+     *
+     * The `toString()` method returns a URL that is ready to be put into a
+     * browser, curl command, or a `refFromURL()` call. Since all of those expect
+     * the URL to be url-encoded, `toString()` returns an encoded URL.
+     *
+     * Append '.json' to the returned URL when typed into a browser to download
+     * JSON-formatted data. If the location is secured (that is, not publicly
+     * readable), you will get a permission-denied error.
+     *
+     * @returns The absolute URL for this location.
+     */
+    toString(): string;
 }
 
 /**
@@ -2284,10 +2042,7 @@ export declare interface Query extends QueryContext {
  * @throws if any of the provided query constraints cannot be combined with the
  * existing or new constraints.
  */
-export declare function query(
-  query: Query,
-  ...queryConstraints: QueryConstraint[]
-): Query;
+export declare function query(query: Query, ...queryConstraints: QueryConstraint[]): Query;
 
 /**
  * A `QueryConstraint` is used to narrow the set of documents returned by a
@@ -2300,35 +2055,24 @@ export declare function query(
  * also contains this `QueryConstraint`.
  */
 export declare abstract class QueryConstraint {
-  /** The type of this query constraints */
-  abstract readonly type: QueryConstraintType;
-  /**
-   * Takes the provided `Query` and returns a copy of the `Query` with this
-   * `QueryConstraint` applied.
-   */
-  abstract _apply<T>(query: _QueryImpl): _QueryImpl;
+    /** The type of this query constraints */
+    abstract readonly type: QueryConstraintType;
+    /**
+     * Takes the provided `Query` and returns a copy of the `Query` with this
+     * `QueryConstraint` applied.
+     */
+    abstract _apply<T>(query: _QueryImpl): _QueryImpl;
 }
 
 /** Describes the different query constraints available in this SDK. */
-export declare type QueryConstraintType =
-  | 'endAt'
-  | 'endBefore'
-  | 'startAt'
-  | 'startAfter'
-  | 'limitToFirst'
-  | 'limitToLast'
-  | 'orderByChild'
-  | 'orderByKey'
-  | 'orderByPriority'
-  | 'orderByValue'
-  | 'equalTo';
+export declare type QueryConstraintType = 'endAt' | 'endBefore' | 'startAt' | 'startAfter' | 'limitToFirst' | 'limitToLast' | 'orderByChild' | 'orderByKey' | 'orderByPriority' | 'orderByValue' | 'equalTo';
 
 declare interface QueryContext {
-  readonly _queryIdentifier: string;
-  readonly _queryObject: object;
-  readonly _repo: Repo;
-  readonly _path: Path;
-  readonly _queryParams: _QueryParams;
+    readonly _queryIdentifier: string;
+    readonly _queryObject: object;
+    readonly _repo: Repo;
+    readonly _path: Path;
+    readonly _queryParams: _QueryParams;
 }
 
 /* Excluded from this release type: _QueryImpl */
@@ -2369,10 +2113,7 @@ export declare function ref(db: Database, path?: string): DatabaseReference;
  * @returns A `Reference` pointing to the provided
  *   Firebase URL.
  */
-export declare function refFromURL(
-  db: Database,
-  url: string
-): DatabaseReference;
+export declare function refFromURL(db: Database, url: string): DatabaseReference;
 
 /**
  * Removes the data at this Database location.
@@ -2394,94 +2135,69 @@ export declare function remove(ref: DatabaseReference): Promise<void>;
  * A connection to a single data repository.
  */
 declare class Repo {
-  repoInfo_: RepoInfo;
-  forceRestClient_: boolean;
-  authTokenProvider_: AuthTokenProvider;
-  appCheckProvider_: AppCheckTokenProvider;
-  /** Key for uniquely identifying this repo, used in RepoManager */
-  readonly key: string;
-  dataUpdateCount: number;
-  infoSyncTree_: SyncTree;
-  serverSyncTree_: SyncTree;
-  stats_: StatsCollection;
-  statsListener_: StatsListener | null;
-  eventQueue_: EventQueue;
-  nextWriteId_: number;
-  server_: ServerActions;
-  statsReporter_: StatsReporter;
-  infoData_: SnapshotHolder;
-  interceptServerDataCallback_: ((a: string, b: unknown) => void) | null;
-  /** A list of data pieces and paths to be set when this client disconnects. */
-  onDisconnect_: SparseSnapshotTree;
-  /** Stores queues of outstanding transactions for Firebase locations. */
-  transactionQueueTree_: Tree<Transaction[]>;
-  persistentConnection_: PersistentConnection | null;
-  constructor(
-    repoInfo_: RepoInfo,
-    forceRestClient_: boolean,
-    authTokenProvider_: AuthTokenProvider,
-    appCheckProvider_: AppCheckTokenProvider
-  );
-  /**
-   * @returns The URL corresponding to the root of this Firebase.
-   */
-  toString(): string;
+    repoInfo_: RepoInfo;
+    forceRestClient_: boolean;
+    authTokenProvider_: AuthTokenProvider;
+    appCheckProvider_: AppCheckTokenProvider;
+    /** Key for uniquely identifying this repo, used in RepoManager */
+    readonly key: string;
+    dataUpdateCount: number;
+    infoSyncTree_: SyncTree;
+    serverSyncTree_: SyncTree;
+    stats_: StatsCollection;
+    statsListener_: StatsListener | null;
+    eventQueue_: EventQueue;
+    nextWriteId_: number;
+    server_: ServerActions;
+    statsReporter_: StatsReporter;
+    infoData_: SnapshotHolder;
+    interceptServerDataCallback_: ((a: string, b: unknown) => void) | null;
+    /** A list of data pieces and paths to be set when this client disconnects. */
+    onDisconnect_: SparseSnapshotTree;
+    /** Stores queues of outstanding transactions for Firebase locations. */
+    transactionQueueTree_: Tree<Transaction[]>;
+    persistentConnection_: PersistentConnection | null;
+    constructor(repoInfo_: RepoInfo, forceRestClient_: boolean, authTokenProvider_: AuthTokenProvider, appCheckProvider_: AppCheckTokenProvider);
+    /**
+     * @returns The URL corresponding to the root of this Firebase.
+     */
+    toString(): string;
 }
 
-/**
- * @license
- * Copyright 2017 Google LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 /**
  * A class that holds metadata about a Repo object
  */
 declare class RepoInfo {
-  readonly secure: boolean;
-  readonly namespace: string;
-  readonly webSocketOnly: boolean;
-  readonly nodeAdmin: boolean;
-  readonly persistenceKey: string;
-  readonly includeNamespaceInQueryParams: boolean;
-  readonly isUsingEmulator: boolean;
-  private _host;
-  private _domain;
-  internalHost: string;
-  /**
-   * @param host - Hostname portion of the url for the repo
-   * @param secure - Whether or not this repo is accessed over ssl
-   * @param namespace - The namespace represented by the repo
-   * @param webSocketOnly - Whether to prefer websockets over all other transports (used by Nest).
-   * @param nodeAdmin - Whether this instance uses Admin SDK credentials
-   * @param persistenceKey - Override the default session persistence storage key
-   */
-  constructor(
-    host: string,
-    secure: boolean,
-    namespace: string,
-    webSocketOnly: boolean,
-    nodeAdmin?: boolean,
-    persistenceKey?: string,
-    includeNamespaceInQueryParams?: boolean,
-    isUsingEmulator?: boolean
-  );
-  isCacheableHost(): boolean;
-  isCustomHost(): boolean;
-  get host(): string;
-  set host(newHost: string);
-  toString(): string;
-  toURLString(): string;
+    readonly secure: boolean;
+    readonly namespace: string;
+    readonly webSocketOnly: boolean;
+    readonly nodeAdmin: boolean;
+    readonly persistenceKey: string;
+    readonly includeNamespaceInQueryParams: boolean;
+    readonly isUsingEmulator: boolean;
+    readonly emulatorOptions: RepoInfoEmulatorOptions | null;
+    private _host;
+    private _domain;
+    internalHost: string;
+    /**
+     * @param host - Hostname portion of the url for the repo
+     * @param secure - Whether or not this repo is accessed over ssl
+     * @param namespace - The namespace represented by the repo
+     * @param webSocketOnly - Whether to prefer websockets over all other transports (used by Nest).
+     * @param nodeAdmin - Whether this instance uses Admin SDK credentials
+     * @param persistenceKey - Override the default session persistence storage key
+     */
+    constructor(host: string, secure: boolean, namespace: string, webSocketOnly: boolean, nodeAdmin?: boolean, persistenceKey?: string, includeNamespaceInQueryParams?: boolean, isUsingEmulator?: boolean, emulatorOptions?: RepoInfoEmulatorOptions | null);
+    isCacheableHost(): boolean;
+    isCustomHost(): boolean;
+    get host(): string;
+    set host(newHost: string);
+    toString(): string;
+    toURLString(): string;
+}
+
+declare interface RepoInfoEmulatorOptions {
+    mockUserToken?: string | EmulatorMockTokenOptions;
 }
 
 /* Excluded from this release type: _repoManagerDatabaseFromApp */
@@ -2523,11 +2239,7 @@ declare class RepoInfo {
  * @returns A `Promise` that can optionally be used instead of the `onComplete`
  * callback to handle success and failure.
  */
-export declare function runTransaction(
-  ref: DatabaseReference,
-  transactionUpdate: (currentData: any) => unknown,
-  options?: TransactionOptions
-): Promise<TransactionResult>;
+export declare function runTransaction(ref: DatabaseReference, transactionUpdate: (currentData: any) => unknown, options?: TransactionOptions): Promise<TransactionResult>;
 
 /**
  * Interface defining the set of actions that can be performed against the Firebase server
@@ -2536,57 +2248,33 @@ export declare function runTransaction(
  * @interface
  */
 declare abstract class ServerActions {
-  abstract listen(
-    query: QueryContext,
-    currentHashFn: () => string,
-    tag: number | null,
-    onComplete: (a: string, b: unknown) => void
-  ): void;
-  /**
-   * Remove a listen.
-   */
-  abstract unlisten(query: QueryContext, tag: number | null): void;
-  /**
-   * Get the server value satisfying this query.
-   */
-  abstract get(query: QueryContext): Promise<string>;
-  put(
-    pathString: string,
-    data: unknown,
-    onComplete?: (a: string, b: string) => void,
-    hash?: string
-  ): void;
-  merge(
-    pathString: string,
-    data: unknown,
-    onComplete: (a: string, b: string | null) => void,
-    hash?: string
-  ): void;
-  /**
-   * Refreshes the auth token for the current connection.
-   * @param token - The authentication token
-   */
-  refreshAuthToken(token: string): void;
-  /**
-   * Refreshes the app check token for the current connection.
-   * @param token The app check token
-   */
-  refreshAppCheckToken(token: string): void;
-  onDisconnectPut(
-    pathString: string,
-    data: unknown,
-    onComplete?: (a: string, b: string) => void
-  ): void;
-  onDisconnectMerge(
-    pathString: string,
-    data: unknown,
-    onComplete?: (a: string, b: string) => void
-  ): void;
-  onDisconnectCancel(
-    pathString: string,
-    onComplete?: (a: string, b: string) => void
-  ): void;
-  reportStats(stats: { [k: string]: unknown }): void;
+    abstract listen(query: QueryContext, currentHashFn: () => string, tag: number | null, onComplete: (a: string, b: unknown) => void): void;
+    /**
+     * Remove a listen.
+     */
+    abstract unlisten(query: QueryContext, tag: number | null): void;
+    /**
+     * Get the server value satisfying this query.
+     */
+    abstract get(query: QueryContext): Promise<string>;
+    put(pathString: string, data: unknown, onComplete?: (a: string, b: string) => void, hash?: string): void;
+    merge(pathString: string, data: unknown, onComplete: (a: string, b: string | null) => void, hash?: string): void;
+    /**
+     * Refreshes the auth token for the current connection.
+     * @param token - The authentication token
+     */
+    refreshAuthToken(token: string): void;
+    /**
+     * Refreshes the app check token for the current connection.
+     * @param token The app check token
+     */
+    refreshAppCheckToken(token: string): void;
+    onDisconnectPut(pathString: string, data: unknown, onComplete?: (a: string, b: string) => void): void;
+    onDisconnectMerge(pathString: string, data: unknown, onComplete?: (a: string, b: string) => void): void;
+    onDisconnectCancel(pathString: string, onComplete?: (a: string, b: string) => void): void;
+    reportStats(stats: {
+        [k: string]: unknown;
+    }): void;
 }
 
 /**
@@ -2641,10 +2329,7 @@ export declare function serverTimestamp(): object;
  *   array, or null).
  * @returns Resolves when write to server is complete.
  */
-export declare function set(
-  ref: DatabaseReference,
-  value: unknown
-): Promise<void>;
+export declare function set(ref: DatabaseReference, value: unknown): Promise<void>;
 
 /**
  * Sets a priority for the data at this Database location.
@@ -2658,10 +2343,7 @@ export declare function set(
  * @param priority - The priority to be written (string, number, or null).
  * @returns Resolves when write to server is complete.
  */
-export declare function setPriority(
-  ref: DatabaseReference,
-  priority: string | number | null
-): Promise<void>;
+export declare function setPriority(ref: DatabaseReference, priority: string | number | null): Promise<void>;
 
 /* Excluded from this release type: _setSDKVersion */
 
@@ -2680,19 +2362,15 @@ export declare function setPriority(
  * @param priority - The priority to be written (string, number, or null).
  * @returns Resolves when write to server is complete.
  */
-export declare function setWithPriority(
-  ref: DatabaseReference,
-  value: unknown,
-  priority: string | number | null
-): Promise<void>;
+export declare function setWithPriority(ref: DatabaseReference, value: unknown, priority: string | number | null): Promise<void>;
 
 /**
  * Mutable object which basically just stores a reference to the "latest" immutable snapshot.
  */
 declare class SnapshotHolder {
-  private rootNode_;
-  getNode(path: Path): Node_2;
-  updateSnapshot(path: Path, newSnapshotNode: Node_2): void;
+    private rootNode_;
+    getNode(path: Path): Node_2;
+    updateSnapshot(path: Path, newSnapshotNode: Node_2): void;
 }
 
 /**
@@ -2700,134 +2378,115 @@ declare class SnapshotHolder {
  * tree.
  */
 declare class SortedMap<K, V> {
-  private comparator_;
-  private root_;
-  /**
-   * Always use the same empty node, to reduce memory.
-   */
-  static EMPTY_NODE: LLRBEmptyNode<unknown, unknown>;
-  /**
-   * @param comparator_ - Key comparator.
-   * @param root_ - Optional root node for the map.
-   */
-  constructor(
-    comparator_: Comparator<K>,
-    root_?: LLRBNode<K, V> | LLRBEmptyNode<K, V>
-  );
-  /**
-   * Returns a copy of the map, with the specified key/value added or replaced.
-   * (TODO: We should perhaps rename this method to 'put')
-   *
-   * @param key - Key to be added.
-   * @param value - Value to be added.
-   * @returns New map, with item added.
-   */
-  insert(key: K, value: V): SortedMap<K, V>;
-  /**
-   * Returns a copy of the map, with the specified key removed.
-   *
-   * @param key - The key to remove.
-   * @returns New map, with item removed.
-   */
-  remove(key: K): SortedMap<K, V>;
-  /**
-   * Returns the value of the node with the given key, or null.
-   *
-   * @param key - The key to look up.
-   * @returns The value of the node with the given key, or null if the
-   * key doesn't exist.
-   */
-  get(key: K): V | null;
-  /**
-   * Returns the key of the item *before* the specified key, or null if key is the first item.
-   * @param key - The key to find the predecessor of
-   * @returns The predecessor key.
-   */
-  getPredecessorKey(key: K): K | null;
-  /**
-   * @returns True if the map is empty.
-   */
-  isEmpty(): boolean;
-  /**
-   * @returns The total number of nodes in the map.
-   */
-  count(): number;
-  /**
-   * @returns The minimum key in the map.
-   */
-  minKey(): K | null;
-  /**
-   * @returns The maximum key in the map.
-   */
-  maxKey(): K | null;
-  /**
-   * Traverses the map in key order and calls the specified action function
-   * for each key/value pair.
-   *
-   * @param action - Callback function to be called
-   * for each key/value pair.  If action returns true, traversal is aborted.
-   * @returns The first truthy value returned by action, or the last falsey
-   *   value returned by action
-   */
-  inorderTraversal(action: (k: K, v: V) => unknown): boolean;
-  /**
-   * Traverses the map in reverse key order and calls the specified action function
-   * for each key/value pair.
-   *
-   * @param action - Callback function to be called
-   * for each key/value pair.  If action returns true, traversal is aborted.
-   * @returns True if the traversal was aborted.
-   */
-  reverseTraversal(action: (k: K, v: V) => void): boolean;
-  /**
-   * Returns an iterator over the SortedMap.
-   * @returns The iterator.
-   */
-  getIterator<T>(
-    resultGenerator?: (k: K, v: V) => T
-  ): SortedMapIterator<K, V, T>;
-  getIteratorFrom<T>(
-    key: K,
-    resultGenerator?: (k: K, v: V) => T
-  ): SortedMapIterator<K, V, T>;
-  getReverseIteratorFrom<T>(
-    key: K,
-    resultGenerator?: (k: K, v: V) => T
-  ): SortedMapIterator<K, V, T>;
-  getReverseIterator<T>(
-    resultGenerator?: (k: K, v: V) => T
-  ): SortedMapIterator<K, V, T>;
+    private comparator_;
+    private root_;
+    /**
+     * Always use the same empty node, to reduce memory.
+     */
+    static EMPTY_NODE: LLRBEmptyNode<unknown, unknown>;
+    /**
+     * @param comparator_ - Key comparator.
+     * @param root_ - Optional root node for the map.
+     */
+    constructor(comparator_: Comparator<K>, root_?: LLRBNode<K, V> | LLRBEmptyNode<K, V>);
+    /**
+     * Returns a copy of the map, with the specified key/value added or replaced.
+     * (TODO: We should perhaps rename this method to 'put')
+     *
+     * @param key - Key to be added.
+     * @param value - Value to be added.
+     * @returns New map, with item added.
+     */
+    insert(key: K, value: V): SortedMap<K, V>;
+    /**
+     * Returns a copy of the map, with the specified key removed.
+     *
+     * @param key - The key to remove.
+     * @returns New map, with item removed.
+     */
+    remove(key: K): SortedMap<K, V>;
+    /**
+     * Returns the value of the node with the given key, or null.
+     *
+     * @param key - The key to look up.
+     * @returns The value of the node with the given key, or null if the
+     * key doesn't exist.
+     */
+    get(key: K): V | null;
+    /**
+     * Returns the key of the item *before* the specified key, or null if key is the first item.
+     * @param key - The key to find the predecessor of
+     * @returns The predecessor key.
+     */
+    getPredecessorKey(key: K): K | null;
+    /**
+     * @returns True if the map is empty.
+     */
+    isEmpty(): boolean;
+    /**
+     * @returns The total number of nodes in the map.
+     */
+    count(): number;
+    /**
+     * @returns The minimum key in the map.
+     */
+    minKey(): K | null;
+    /**
+     * @returns The maximum key in the map.
+     */
+    maxKey(): K | null;
+    /**
+     * Traverses the map in key order and calls the specified action function
+     * for each key/value pair.
+     *
+     * @param action - Callback function to be called
+     * for each key/value pair.  If action returns true, traversal is aborted.
+     * @returns The first truthy value returned by action, or the last falsey
+     *   value returned by action
+     */
+    inorderTraversal(action: (k: K, v: V) => unknown): boolean;
+    /**
+     * Traverses the map in reverse key order and calls the specified action function
+     * for each key/value pair.
+     *
+     * @param action - Callback function to be called
+     * for each key/value pair.  If action returns true, traversal is aborted.
+     * @returns True if the traversal was aborted.
+     */
+    reverseTraversal(action: (k: K, v: V) => void): boolean;
+    /**
+     * Returns an iterator over the SortedMap.
+     * @returns The iterator.
+     */
+    getIterator<T>(resultGenerator?: (k: K, v: V) => T): SortedMapIterator<K, V, T>;
+    getIteratorFrom<T>(key: K, resultGenerator?: (k: K, v: V) => T): SortedMapIterator<K, V, T>;
+    getReverseIteratorFrom<T>(key: K, resultGenerator?: (k: K, v: V) => T): SortedMapIterator<K, V, T>;
+    getReverseIterator<T>(resultGenerator?: (k: K, v: V) => T): SortedMapIterator<K, V, T>;
 }
 
 /**
  * An iterator over an LLRBNode.
  */
 declare class SortedMapIterator<K, V, T> {
-  private isReverse_;
-  private resultGenerator_;
-  private nodeStack_;
-  /**
-   * @param node - Node to iterate.
-   * @param isReverse_ - Whether or not to iterate in reverse
-   */
-  constructor(
-    node: LLRBNode<K, V> | LLRBEmptyNode<K, V>,
-    startKey: K | null,
-    comparator: Comparator<K>,
-    isReverse_: boolean,
-    resultGenerator_?: ((k: K, v: V) => T) | null
-  );
-  getNext(): T;
-  hasNext(): boolean;
-  peek(): T;
+    private isReverse_;
+    private resultGenerator_;
+    private nodeStack_;
+    /**
+     * @param node - Node to iterate.
+     * @param isReverse_ - Whether or not to iterate in reverse
+     */
+    constructor(node: LLRBNode<K, V> | LLRBEmptyNode<K, V>, startKey: K | null, comparator: Comparator<K>, isReverse_: boolean, resultGenerator_?: ((k: K, v: V) => T) | null);
+    getNext(): T;
+    hasNext(): boolean;
+    peek(): T;
 }
 
 /**
  * Helper class to store a sparse set of snapshots.
  */
 declare interface SparseSnapshotTree {
-  value: Node_2 | null;
-  readonly children: Map<string, SparseSnapshotTree>;
+    value: Node_2 | null;
+    readonly children: Map<string, SparseSnapshotTree>;
 }
 
 /**
@@ -2848,10 +2507,7 @@ declare interface SparseSnapshotTree {
  * @param key - The child key to start after. This argument is only allowed if
  * ordering by child, value, or priority.
  */
-export declare function startAfter(
-  value: number | string | boolean | null,
-  key?: string
-): QueryConstraint;
+export declare function startAfter(value: number | string | boolean | null, key?: string): QueryConstraint;
 
 /**
  * Creates a `QueryConstraint` with the specified starting point.
@@ -2875,10 +2531,7 @@ export declare function startAfter(
  * @param key - The child key to start at. This argument is only allowed if
  * ordering by child, value, or priority.
  */
-export declare function startAt(
-  value?: number | string | boolean | null,
-  key?: string
-): QueryConstraint;
+export declare function startAt(value?: number | string | boolean | null, key?: string): QueryConstraint;
 
 /**
  * @license
@@ -2900,11 +2553,11 @@ export declare function startAt(
  * Tracks a collection of stats.
  */
 declare class StatsCollection {
-  private counters_;
-  incrementCounter(name: string, amount?: number): void;
-  get(): {
-    [k: string]: number;
-  };
+    private counters_;
+    incrementCounter(name: string, amount?: number): void;
+    get(): {
+        [k: string]: number;
+    };
 }
 
 /**
@@ -2913,22 +2566,22 @@ declare class StatsCollection {
  * @param collection_ - The collection to "listen" to.
  */
 declare class StatsListener {
-  private collection_;
-  private last_;
-  constructor(collection_: StatsCollection);
-  get(): {
-    [k: string]: number;
-  };
+    private collection_;
+    private last_;
+    constructor(collection_: StatsCollection);
+    get(): {
+        [k: string]: number;
+    };
 }
 
 declare class StatsReporter {
-  private server_;
-  private statsListener_;
-  statsToReport_: {
-    [k: string]: boolean;
-  };
-  constructor(collection: StatsCollection, server_: ServerActions);
-  private reportStats_;
+    private server_;
+    private statsListener_;
+    statsToReport_: {
+        [k: string]: boolean;
+    };
+    constructor(collection: StatsCollection, server_: ServerActions);
+    private reportStats_;
 }
 
 /**
@@ -2942,13 +2595,13 @@ declare class StatsReporter {
  *    applyUserOverwrite, etc.)
  */
 declare class SyncPoint {
-  /**
-   * The Views being tracked at this location in the tree, stored as a map where the key is a
-   * queryId and the value is the View for that query.
-   *
-   * NOTE: This list will be quite small (usually 1, but perhaps 2 or 3; any more is an odd use case).
-   */
-  readonly views: Map<string, View>;
+    /**
+     * The Views being tracked at this location in the tree, stored as a map where the key is a
+     * queryId and the value is the View for that query.
+     *
+     * NOTE: This list will be quite small (usually 1, but perhaps 2 or 3; any more is an odd use case).
+     */
+    readonly views: Map<string, View>;
 }
 
 /**
@@ -2973,22 +2626,22 @@ declare class SyncPoint {
  *
  */
 declare class SyncTree {
-  listenProvider_: ListenProvider;
-  /**
-   * Tree of SyncPoints.  There's a SyncPoint at any location that has 1 or more views.
-   */
-  syncPointTree_: ImmutableTree<SyncPoint>;
-  /**
-   * A tree of all pending user writes (user-initiated set()'s, transaction()'s, update()'s, etc.).
-   */
-  pendingWriteTree_: WriteTree;
-  readonly tagToQueryMap: Map<number, string>;
-  readonly queryToTagMap: Map<string, number>;
-  /**
-   * @param listenProvider_ - Used by SyncTree to start / stop listening
-   *   to server data.
-   */
-  constructor(listenProvider_: ListenProvider);
+    listenProvider_: ListenProvider;
+    /**
+     * Tree of SyncPoints.  There's a SyncPoint at any location that has 1 or more views.
+     */
+    syncPointTree_: ImmutableTree<SyncPoint>;
+    /**
+     * A tree of all pending user writes (user-initiated set()'s, transaction()'s, update()'s, etc.).
+     */
+    pendingWriteTree_: WriteTree;
+    readonly tagToQueryMap: Map<number, string>;
+    readonly queryToTagMap: Map<string, number>;
+    /**
+     * @param listenProvider_ - Used by SyncTree to start / stop listening
+     *   to server data.
+     */
+    constructor(listenProvider_: ListenProvider);
 }
 
 /* Excluded from this release type: _TEST_ACCESS_forceRestClient */
@@ -3000,66 +2653,62 @@ declare class SyncTree {
  * {@link push}. The reference is available immediately and the `Promise` resolves
  * as the write to the backend completes.
  */
-export declare interface ThenableReference
-  extends DatabaseReference,
-    Pick<Promise<DatabaseReference>, 'then' | 'catch'> {}
+export declare interface ThenableReference extends DatabaseReference, Pick<Promise<DatabaseReference>, 'then' | 'catch'> {
+    key: string;
+    parent: DatabaseReference;
+}
 
 declare interface Transaction {
-  path: Path;
-  update: (a: unknown) => unknown;
-  onComplete: (
-    error: Error | null,
-    committed: boolean,
-    node: Node_2 | null
-  ) => void;
-  status: TransactionStatus;
-  order: number;
-  applyLocally: boolean;
-  retryCount: number;
-  unwatcher: () => void;
-  abortReason: string | null;
-  currentWriteId: number;
-  currentInputSnapshot: Node_2 | null;
-  currentOutputSnapshotRaw: Node_2 | null;
-  currentOutputSnapshotResolved: Node_2 | null;
+    path: Path;
+    update: (a: unknown) => unknown;
+    onComplete: (error: Error | null, committed: boolean, node: Node_2 | null) => void;
+    status: TransactionStatus;
+    order: number;
+    applyLocally: boolean;
+    retryCount: number;
+    unwatcher: () => void;
+    abortReason: string | null;
+    currentWriteId: number;
+    currentInputSnapshot: Node_2 | null;
+    currentOutputSnapshotRaw: Node_2 | null;
+    currentOutputSnapshotResolved: Node_2 | null;
 }
 
 /** An options object to configure transactions. */
 export declare interface TransactionOptions {
-  /**
-   * By default, events are raised each time the transaction update function
-   * runs. So if it is run multiple times, you may see intermediate states. You
-   * can set this to false to suppress these intermediate states and instead
-   * wait until the transaction has completed before events are raised.
-   */
-  readonly applyLocally?: boolean;
+    /**
+     * By default, events are raised each time the transaction update function
+     * runs. So if it is run multiple times, you may see intermediate states. You
+     * can set this to false to suppress these intermediate states and instead
+     * wait until the transaction has completed before events are raised.
+     */
+    readonly applyLocally?: boolean;
 }
 
 /**
  * A type for the resolve value of {@link runTransaction}.
  */
 export declare class TransactionResult {
-  /** Whether the transaction was successfully committed. */
-  readonly committed: boolean;
-  /** The resulting data snapshot. */
-  readonly snapshot: DataSnapshot;
-  /** @hideconstructor */
-  constructor(
     /** Whether the transaction was successfully committed. */
-    committed: boolean,
+    readonly committed: boolean;
     /** The resulting data snapshot. */
-    snapshot: DataSnapshot
-  );
-  /** Returns a JSON-serializable representation of this object. */
-  toJSON(): object;
+    readonly snapshot: DataSnapshot;
+    /** @hideconstructor */
+    constructor(
+    /** Whether the transaction was successfully committed. */
+    committed: boolean, 
+    /** The resulting data snapshot. */
+    snapshot: DataSnapshot);
+    /** Returns a JSON-serializable representation of this object. */
+    toJSON(): object;
 }
 
 declare const enum TransactionStatus {
-  RUN = 0,
-  SENT = 1,
-  COMPLETED = 2,
-  SENT_NEEDS_ABORT = 3,
-  NEEDS_ABORT = 4
+    RUN = 0,
+    SENT = 1,
+    COMPLETED = 2,
+    SENT_NEEDS_ABORT = 3,
+    NEEDS_ABORT = 4
 }
 
 /**
@@ -3068,24 +2717,24 @@ declare const enum TransactionStatus {
  * children.
  */
 declare class Tree<T> {
-  readonly name: string;
-  readonly parent: Tree<T> | null;
-  node: TreeNode<T>;
-  /**
-   * @param name - Optional name of the node.
-   * @param parent - Optional parent node.
-   * @param node - Optional node to wrap.
-   */
-  constructor(name?: string, parent?: Tree<T> | null, node?: TreeNode<T>);
+    readonly name: string;
+    readonly parent: Tree<T> | null;
+    node: TreeNode<T>;
+    /**
+     * @param name - Optional name of the node.
+     * @param parent - Optional parent node.
+     * @param node - Optional node to wrap.
+     */
+    constructor(name?: string, parent?: Tree<T> | null, node?: TreeNode<T>);
 }
 
 /**
  * Node in a Tree.
  */
 declare interface TreeNode<T> {
-  children: Record<string, TreeNode<T>>;
-  childCount: number;
-  value?: T;
+    children: Record<string, TreeNode<T>>;
+    childCount: number;
+    value?: T;
 }
 
 /** A callback that can invoked to remove a listener. */
@@ -3126,10 +2775,7 @@ export declare type Unsubscribe = () => void;
  * @param values - Object containing multiple values.
  * @returns Resolves when update on server is complete.
  */
-export declare function update(
-  ref: DatabaseReference,
-  values: object
-): Promise<void>;
+export declare function update(ref: DatabaseReference, values: object): Promise<void>;
 
 /* Excluded from this release type: _UserCallback */
 
@@ -3147,13 +2793,13 @@ export declare function update(
  *    registrations returns the set of events to be raised.
  */
 declare class View {
-  private query_;
-  processor_: ViewProcessor;
-  viewCache_: ViewCache;
-  eventRegistrations_: EventRegistration[];
-  eventGenerator_: EventGenerator;
-  constructor(query_: QueryContext, initialViewCache: ViewCache);
-  get query(): QueryContext;
+    private query_;
+    processor_: ViewProcessor;
+    viewCache_: ViewCache;
+    eventRegistrations_: EventRegistration[];
+    eventGenerator_: EventGenerator;
+    constructor(query_: QueryContext, initialViewCache: ViewCache);
+    get query(): QueryContext;
 }
 
 /**
@@ -3162,12 +2808,12 @@ declare class View {
  * serverSnap is the cached server data, eventSnap is the cached event data (server data plus any local writes).
  */
 declare interface ViewCache {
-  readonly eventCache: CacheNode;
-  readonly serverCache: CacheNode;
+    readonly eventCache: CacheNode;
+    readonly serverCache: CacheNode;
 }
 
 declare interface ViewProcessor {
-  readonly filter: NodeFilter_2;
+    readonly filter: NodeFilter_2;
 }
 
 /**
@@ -3175,13 +2821,13 @@ declare interface ViewProcessor {
  * the case of a set() or transaction, snap will be non-null.  In the case of an update(), children will be non-null.
  */
 declare interface WriteRecord {
-  writeId: number;
-  path: Path;
-  snap?: Node_2 | null;
-  children?: {
-    [k: string]: Node_2;
-  } | null;
-  visible: boolean;
+    writeId: number;
+    path: Path;
+    snap?: Node_2 | null;
+    children?: {
+        [k: string]: Node_2;
+    } | null;
+    visible: boolean;
 }
 
 /**
@@ -3190,18 +2836,18 @@ declare interface WriteRecord {
  * and addMerge(), and removed with removeWrite().
  */
 declare interface WriteTree {
-  /**
-   * A tree tracking the result of applying all visible writes.  This does not include transactions with
-   * applyLocally=false or writes that are completely shadowed by other writes.
-   */
-  visibleWrites: CompoundWrite;
-  /**
-   * A list of all pending writes, regardless of visibility and shadowed-ness.  Used to calculate arbitrary
-   * sets of the changed data, such as hidden writes (from transactions) or changes with certain writes excluded (also
-   * used by transactions).
-   */
-  allWrites: WriteRecord[];
-  lastWriteId: number;
+    /**
+     * A tree tracking the result of applying all visible writes.  This does not include transactions with
+     * applyLocally=false or writes that are completely shadowed by other writes.
+     */
+    visibleWrites: CompoundWrite;
+    /**
+     * A list of all pending writes, regardless of visibility and shadowed-ness.  Used to calculate arbitrary
+     * sets of the changed data, such as hidden writes (from transactions) or changes with certain writes excluded (also
+     * used by transactions).
+     */
+    allWrites: WriteRecord[];
+    lastWriteId: number;
 }
 
-export {};
+export { }

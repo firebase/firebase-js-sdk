@@ -23,94 +23,90 @@ declare type ActiveTargets = SortedMap<TargetId, unknown>;
  * Add a new document to specified `CollectionReference` with the given data,
  * assigning it a document ID automatically.
  *
+ * Note that the returned `Promise` does _not_ resolve until the document is
+ * successfully created to the remote Firestore backend and, similarly, is not
+ * rejected until the remote Firestore backend reports an error creating the given
+ * document. So if the client cannot reach the backend (for example, due to being
+ * offline) then the returned `Promise` will not resolve for a potentially-long
+ * time (for example, until the client has gone back online). That being said,
+ * the given document _will_ be immediately created in the local cache and will be
+ * incorporated into future "get" operations as if it had been successfully
+ * created in the remote Firestore server, a feature of Firestore called
+ * "latency compensation". The document will _eventually_ be created in the remote
+ * Firestore backend once a connection can be established. Therefore, it is
+ * usually undesirable to `await` the `Promise` returned from this function
+ * because the indefinite amount of time before which the promise resolves or
+ * rejects can block application logic unnecessarily.
+ *
  * @param reference - A reference to the collection to add this document to.
  * @param data - An Object containing the data for the new document.
- * @returns A `Promise` resolved with a `DocumentReference` pointing to the
- * newly created document after it has been written to the backend (Note that it
- * won't resolve while you're offline).
+ * @returns A `Promise` that resolves once the docoument has been successfully
+ * created in the backend or rejects once the backend reports an error creating
+ * the document.
  */
-export declare function addDoc<AppModelType, DbModelType extends DocumentData>(
-  reference: CollectionReference<AppModelType, DbModelType>,
-  data: WithFieldValue<AppModelType>
-): Promise<DocumentReference<AppModelType, DbModelType>>;
+export declare function addDoc<AppModelType, DbModelType extends DocumentData>(reference: CollectionReference<AppModelType, DbModelType>, data: WithFieldValue<AppModelType>): Promise<DocumentReference<AppModelType, DbModelType>>;
 
 /**
  * Returns a new map where every key is prefixed with the outer key appended
  * to a dot.
  */
-export declare type AddPrefixToKeys<
-  Prefix extends string,
-  T extends Record<string, unknown>
-> = {
-  [K in keyof T & string as `${Prefix}.${K}`]+?: string extends K ? any : T[K];
+export declare type AddPrefixToKeys<Prefix extends string, T extends Record<string, unknown>> = {
+    [K in keyof T & string as `${Prefix}.${K}`]+?: string extends K ? any : T[K];
 };
 
 /**
  * Represents an aggregation that can be performed by Firestore.
  */
 export declare class AggregateField<T> {
-  readonly _internalFieldPath?: _FieldPath | undefined;
-  /** A type string to uniquely identify instances of this class. */
-  readonly type = 'AggregateField';
-  /** Indicates the aggregation operation of this AggregateField. */
-  readonly aggregateType: AggregateType;
-  /* Excluded from this release type: __constructor */
+    readonly _internalFieldPath?: _FieldPath | undefined;
+    /** A type string to uniquely identify instances of this class. */
+    readonly type = "AggregateField";
+    /** Indicates the aggregation operation of this AggregateField. */
+    readonly aggregateType: AggregateType;
+    /* Excluded from this release type: __constructor */
 }
 
 /**
  * Compares two 'AggregateField` instances for equality.
  *
- * @param left Compare this AggregateField to the `right`.
- * @param right Compare this AggregateField to the `left`.
+ * @param left - Compare this AggregateField to the `right`.
+ * @param right - Compare this AggregateField to the `left`.
  */
-export declare function aggregateFieldEqual(
-  left: AggregateField<unknown>,
-  right: AggregateField<unknown>
-): boolean;
+export declare function aggregateFieldEqual(left: AggregateField<unknown>, right: AggregateField<unknown>): boolean;
 
 /**
  * The union of all `AggregateField` types that are supported by Firestore.
  */
-export declare type AggregateFieldType =
-  | ReturnType<typeof sum>
-  | ReturnType<typeof average>
-  | ReturnType<typeof count>;
+export declare type AggregateFieldType = ReturnType<typeof sum> | ReturnType<typeof average> | ReturnType<typeof count>;
 
 /**
  * The results of executing an aggregation query.
  */
-export declare class AggregateQuerySnapshot<
-  AggregateSpecType extends AggregateSpec,
-  AppModelType = DocumentData,
-  DbModelType extends DocumentData = DocumentData
-> {
-  private readonly _userDataWriter;
-  private readonly _data;
-  /** A type string to uniquely identify instances of this class. */
-  readonly type = 'AggregateQuerySnapshot';
-  /**
-   * The underlying query over which the aggregations recorded in this
-   * `AggregateQuerySnapshot` were performed.
-   */
-  readonly query: Query<AppModelType, DbModelType>;
-  /** @hideconstructor */
-  constructor(
-    query: Query<AppModelType, DbModelType>,
-    _userDataWriter: AbstractUserDataWriter,
-    _data: ApiClientObjectMap<Value>
-  );
-  /**
-   * Returns the results of the aggregations performed over the underlying
-   * query.
-   *
-   * The keys of the returned object will be the same as those of the
-   * `AggregateSpec` object specified to the aggregation method, and the values
-   * will be the corresponding aggregation result.
-   *
-   * @returns The results of the aggregations performed over the underlying
-   * query.
-   */
-  data(): AggregateSpecData<AggregateSpecType>;
+export declare class AggregateQuerySnapshot<AggregateSpecType extends AggregateSpec, AppModelType = DocumentData, DbModelType extends DocumentData = DocumentData> {
+    private readonly _userDataWriter;
+    private readonly _data;
+    /** A type string to uniquely identify instances of this class. */
+    readonly type = "AggregateQuerySnapshot";
+    /**
+     * The underlying query over which the aggregations recorded in this
+     * `AggregateQuerySnapshot` were performed.
+     */
+    readonly query: Query<AppModelType, DbModelType>;
+    /** @hideconstructor */
+    constructor(query: Query<AppModelType, DbModelType>, _userDataWriter: AbstractUserDataWriter, _data: ApiClientObjectMap<Value>);
+    /**
+     * Returns the results of the aggregations performed over the underlying
+     * query.
+     *
+     * The keys of the returned object will be the same as those of the
+     * `AggregateSpec` object specified to the aggregation method, and the values
+     * will be the corresponding aggregation result.
+     *
+     * @returns The results of the aggregations performed over the underlying
+     * query.
+     */
+    data(): AggregateSpecData<AggregateSpecType>;
+    /* Excluded from this release type: _fieldsProto */
 }
 
 /**
@@ -125,20 +121,13 @@ export declare class AggregateQuerySnapshot<
  * @returns `true` if the objects are "equal", as defined above, or `false`
  * otherwise.
  */
-export declare function aggregateQuerySnapshotEqual<
-  AggregateSpecType extends AggregateSpec,
-  AppModelType,
-  DbModelType extends DocumentData
->(
-  left: AggregateQuerySnapshot<AggregateSpecType, AppModelType, DbModelType>,
-  right: AggregateQuerySnapshot<AggregateSpecType, AppModelType, DbModelType>
-): boolean;
+export declare function aggregateQuerySnapshotEqual<AggregateSpecType extends AggregateSpec, AppModelType, DbModelType extends DocumentData>(left: AggregateQuerySnapshot<AggregateSpecType, AppModelType, DbModelType>, right: AggregateQuerySnapshot<AggregateSpecType, AppModelType, DbModelType>): boolean;
 
 /**
  * Specifies a set of aggregations and their aliases.
  */
 export declare interface AggregateSpec {
-  [field: string]: AggregateFieldType;
+    [field: string]: AggregateFieldType;
 }
 
 /**
@@ -147,7 +136,7 @@ export declare interface AggregateSpec {
  * from the input `AggregateSpec`.
  */
 export declare type AggregateSpecData<T extends AggregateSpec> = {
-  [P in keyof T]: T[P] extends AggregateField<infer U> ? U : never;
+    [P in keyof T]: T[P] extends AggregateField<infer U> ? U : never;
 };
 
 /**
@@ -165,12 +154,10 @@ export declare type AggregateType = 'count' | 'avg' | 'sum';
  * created with calls to {@link where}, {@link or}, or {@link and}.
  * @returns The newly created {@link QueryCompositeFilterConstraint}.
  */
-export declare function and(
-  ...queryConstraints: QueryFilterConstraint[]
-): QueryCompositeFilterConstraint;
+export declare function and(...queryConstraints: QueryFilterConstraint[]): QueryCompositeFilterConstraint;
 
 declare interface ApiClientObjectMap<T> {
-  [k: string]: T;
+    [k: string]: T;
 }
 
 /**
@@ -178,13 +165,11 @@ declare interface ApiClientObjectMap<T> {
  * to a Firestore query.
  */
 declare abstract class AppliableConstraint {
-  /**
-   * Takes the provided {@link Query} and returns a copy of the {@link Query} with this
-   * {@link AppliableConstraint} applied.
-   */
-  abstract _apply<AppModelType, DbModelType extends DocumentData>(
-    query: Query<AppModelType, DbModelType>
-  ): Query<AppModelType, DbModelType>;
+    /**
+     * Takes the provided {@link Query} and returns a copy of the {@link Query} with this
+     * {@link AppliableConstraint} applied.
+     */
+    abstract _apply<AppModelType, DbModelType extends DocumentData>(query: Query<AppModelType, DbModelType>): Query<AppModelType, DbModelType>;
 }
 
 /**
@@ -215,60 +200,54 @@ export declare function arrayRemove(...elements: unknown[]): FieldValue;
 export declare function arrayUnion(...elements: unknown[]): FieldValue;
 
 declare interface AsyncQueue {
-  readonly isShuttingDown: boolean;
-  /**
-   * Adds a new operation to the queue without waiting for it to complete (i.e.
-   * we ignore the Promise result).
-   */
-  enqueueAndForget<T extends unknown>(op: () => Promise<T>): void;
-  /**
-   * Regardless if the queue has initialized shutdown, adds a new operation to the
-   * queue without waiting for it to complete (i.e. we ignore the Promise result).
-   */
-  enqueueAndForgetEvenWhileRestricted<T extends unknown>(
-    op: () => Promise<T>
-  ): void;
-  /**
-   * Initialize the shutdown of this queue. Once this method is called, the
-   * only possible way to request running an operation is through
-   * `enqueueEvenWhileRestricted()`.
-   *
-   * @param purgeExistingTasks Whether already enqueued tasked should be
-   * rejected (unless enqueued with `enqueueEvenWhileRestricted()`). Defaults
-   * to false.
-   */
-  enterRestrictedMode(purgeExistingTasks?: boolean): void;
-  /**
-   * Adds a new operation to the queue. Returns a promise that will be resolved
-   * when the promise returned by the new operation is (with its value).
-   */
-  enqueue<T extends unknown>(op: () => Promise<T>): Promise<T>;
-  /**
-   * Enqueue a retryable operation.
-   *
-   * A retryable operation is rescheduled with backoff if it fails with a
-   * IndexedDbTransactionError (the error type used by SimpleDb). All
-   * retryable operations are executed in order and only run if all prior
-   * operations were retried successfully.
-   */
-  enqueueRetryable(op: () => Promise<void>): void;
-  /**
-   * Schedules an operation to be queued on the AsyncQueue once the specified
-   * `delayMs` has elapsed. The returned DelayedOperation can be used to cancel
-   * or fast-forward the operation prior to its running.
-   */
-  enqueueAfterDelay<T extends unknown>(
-    timerId: TimerId,
-    delayMs: number,
-    op: () => Promise<T>
-  ): DelayedOperation<T>;
-  /**
-   * Verifies there's an operation currently in-progress on the AsyncQueue.
-   * Unfortunately we can't verify that the running code is in the promise chain
-   * of that operation, so this isn't a foolproof check, but it should be enough
-   * to catch some bugs.
-   */
-  verifyOperationInProgress(): void;
+    readonly isShuttingDown: boolean;
+    /**
+     * Adds a new operation to the queue without waiting for it to complete (i.e.
+     * we ignore the Promise result).
+     */
+    enqueueAndForget<T extends unknown>(op: () => Promise<T>): void;
+    /**
+     * Regardless if the queue has initialized shutdown, adds a new operation to the
+     * queue without waiting for it to complete (i.e. we ignore the Promise result).
+     */
+    enqueueAndForgetEvenWhileRestricted<T extends unknown>(op: () => Promise<T>): void;
+    /**
+     * Initialize the shutdown of this queue. Once this method is called, the
+     * only possible way to request running an operation is through
+     * `enqueueEvenWhileRestricted()`.
+     *
+     * @param purgeExistingTasks - Whether already enqueued tasked should be
+     * rejected (unless enqueued with `enqueueEvenWhileRestricted()`). Defaults
+     * to false.
+     */
+    enterRestrictedMode(purgeExistingTasks?: boolean): void;
+    /**
+     * Adds a new operation to the queue. Returns a promise that will be resolved
+     * when the promise returned by the new operation is (with its value).
+     */
+    enqueue<T extends unknown>(op: () => Promise<T>): Promise<T>;
+    /**
+     * Enqueue a retryable operation.
+     *
+     * A retryable operation is rescheduled with backoff if it fails with a
+     * IndexedDbTransactionError (the error type used by SimpleDb). All
+     * retryable operations are executed in order and only run if all prior
+     * operations were retried successfully.
+     */
+    enqueueRetryable(op: () => Promise<void>): void;
+    /**
+     * Schedules an operation to be queued on the AsyncQueue once the specified
+     * `delayMs` has elapsed. The returned DelayedOperation can be used to cancel
+     * or fast-forward the operation prior to its running.
+     */
+    enqueueAfterDelay<T extends unknown>(timerId: TimerId, delayMs: number, op: () => Promise<T>): DelayedOperation<T>;
+    /**
+     * Verifies there's an operation currently in-progress on the AsyncQueue.
+     * Unfortunately we can't verify that the running code is in the promise chain
+     * of that operation, so this isn't a foolproof check, but it should be enough
+     * to catch some bugs.
+     */
+    verifyOperationInProgress(): void;
 }
 
 /* Excluded from this release type: AuthTokenFactory */
@@ -278,55 +257,54 @@ declare interface AsyncQueue {
 /**
  * Create an AggregateField object that can be used to compute the average of
  * a specified field over a range of documents in the result set of a query.
- * @param field Specifies the field to average across the result set.
+ * @param field - Specifies the field to average across the result set.
  */
-export declare function average(
-  field: string | FieldPath
-): AggregateField<number | null>;
+export declare function average(field: string | FieldPath): AggregateField<number | null>;
 
 /**
  * Path represents an ordered sequence of string segments.
  */
 declare abstract class BasePath<B extends BasePath<B>> {
-  private segments;
-  private offset;
-  private len;
-  constructor(segments: string[], offset?: number, length?: number);
-  /**
-   * Abstract constructor method to construct an instance of B with the given
-   * parameters.
-   */
-  protected abstract construct(
-    segments: string[],
-    offset?: number,
-    length?: number
-  ): B;
-  /**
-   * Returns a String representation.
-   *
-   * Implementing classes are required to provide deterministic implementations as
-   * the String representation is used to obtain canonical Query IDs.
-   */
-  abstract toString(): string;
-  get length(): number;
-  isEqual(other: B): boolean;
-  child(nameOrPath: string | B): B;
-  /** The index of one past the last segment of the path. */
-  private limit;
-  popFirst(size?: number): B;
-  popLast(): B;
-  firstSegment(): string;
-  lastSegment(): string;
-  get(index: number): string;
-  isEmpty(): boolean;
-  isPrefixOf(other: this): boolean;
-  isImmediateParentOf(potentialChild: this): boolean;
-  forEach(fn: (segment: string) => void): void;
-  toArray(): string[];
-  static comparator<T extends BasePath<T>>(
-    p1: BasePath<T>,
-    p2: BasePath<T>
-  ): number;
+    private segments;
+    private offset;
+    private len;
+    constructor(segments: string[], offset?: number, length?: number);
+    /**
+     * Abstract constructor method to construct an instance of B with the given
+     * parameters.
+     */
+    protected abstract construct(segments: string[], offset?: number, length?: number): B;
+    /**
+     * Returns a String representation.
+     *
+     * Implementing classes are required to provide deterministic implementations as
+     * the String representation is used to obtain canonical Query IDs.
+     */
+    abstract toString(): string;
+    get length(): number;
+    isEqual(other: B): boolean;
+    child(nameOrPath: string | B): B;
+    /** The index of one past the last segment of the path. */
+    private limit;
+    popFirst(size?: number): B;
+    popLast(): B;
+    firstSegment(): string;
+    lastSegment(): string;
+    get(index: number): string;
+    isEmpty(): boolean;
+    isPrefixOf(other: this): boolean;
+    isImmediateParentOf(potentialChild: this): boolean;
+    forEach(fn: (segment: string) => void): void;
+    toArray(): string[];
+    /**
+     * Compare 2 paths segment by segment, prioritizing numeric IDs
+     * (e.g., "__id123__") in numeric ascending order, followed by string
+     * segments in lexicographical order.
+     */
+    static comparator<T extends BasePath<T>>(p1: BasePath<T>, p2: BasePath<T>): number;
+    private static compareSegments;
+    private static isNumericId;
+    private static extractNumericId;
 }
 
 /**
@@ -366,135 +344,142 @@ declare type BatchId = number;
  * just after the provided values.
  */
 declare class Bound {
-  readonly position: Value[];
-  readonly inclusive: boolean;
-  constructor(position: Value[], inclusive: boolean);
+    readonly position: Value[];
+    readonly inclusive: boolean;
+    constructor(position: Value[], inclusive: boolean);
 }
 
 /**
  * Provides interfaces to save and read Firestore bundles.
  */
 declare interface BundleCache {
-  /**
-   * Gets the saved `BundleMetadata` for a given `bundleId`, returns undefined
-   * if no bundle metadata is found under the given id.
-   */
-  getBundleMetadata(
-    transaction: PersistenceTransaction,
-    bundleId: string
-  ): PersistencePromise<BundleMetadata | undefined>;
-  /**
-   * Saves a `BundleMetadata` from a bundle into local storage, using its id as
-   * the persistent key.
-   */
-  saveBundleMetadata(
-    transaction: PersistenceTransaction,
-    metadata: BundleMetadata_2
-  ): PersistencePromise<void>;
-  /**
-   * Gets a saved `NamedQuery` for the given query name. Returns undefined if
-   * no queries are found under the given name.
-   */
-  getNamedQuery(
-    transaction: PersistenceTransaction,
-    queryName: string
-  ): PersistencePromise<NamedQuery | undefined>;
-  /**
-   * Saves a `NamedQuery` from a bundle, using its name as the persistent key.
-   */
-  saveNamedQuery(
-    transaction: PersistenceTransaction,
-    query: NamedQuery_2
-  ): PersistencePromise<void>;
+    /**
+     * Gets the saved `BundleMetadata` for a given `bundleId`, returns undefined
+     * if no bundle metadata is found under the given id.
+     */
+    getBundleMetadata(transaction: PersistenceTransaction, bundleId: string): PersistencePromise<BundleMetadata | undefined>;
+    /**
+     * Saves a `BundleMetadata` from a bundle into local storage, using its id as
+     * the persistent key.
+     */
+    saveBundleMetadata(transaction: PersistenceTransaction, metadata: BundleMetadata_2): PersistencePromise<void>;
+    /**
+     * Gets a saved `NamedQuery` for the given query name. Returns undefined if
+     * no queries are found under the given name.
+     */
+    getNamedQuery(transaction: PersistenceTransaction, queryName: string): PersistencePromise<NamedQuery | undefined>;
+    /**
+     * Saves a `NamedQuery` from a bundle, using its name as the persistent key.
+     */
+    saveNamedQuery(transaction: PersistenceTransaction, query: NamedQuery_2): PersistencePromise<void>;
 }
 
 /** Properties of a BundledQuery. */
 declare interface BundledQuery {
-  /** BundledQuery parent */
-  parent?: string | null;
-  /** BundledQuery structuredQuery */
-  structuredQuery?: StructuredQuery | null;
-  /** BundledQuery limitType */
-  limitType?: LimitType_2 | null;
+    /** BundledQuery parent */
+    parent?: string | null;
+    /** BundledQuery structuredQuery */
+    structuredQuery?: StructuredQuery | null;
+    /** BundledQuery limitType */
+    limitType?: LimitType_2 | null;
 }
 
 /**
  * Represents a Firestore bundle saved by the SDK in its local storage.
  */
 declare interface BundleMetadata {
-  /**
-   * Id of the bundle. It is used together with `createTime` to determine if a
-   * bundle has been loaded by the SDK.
-   */
-  readonly id: string;
-  /** Schema version of the bundle. */
-  readonly version: number;
-  /**
-   * Set to the snapshot version of the bundle if created by the Server SDKs.
-   * Otherwise set to SnapshotVersion.MIN.
-   */
-  readonly createTime: SnapshotVersion;
+    /**
+     * Id of the bundle. It is used together with `createTime` to determine if a
+     * bundle has been loaded by the SDK.
+     */
+    readonly id: string;
+    /** Schema version of the bundle. */
+    readonly version: number;
+    /**
+     * Set to the snapshot version of the bundle if created by the Server SDKs.
+     * Otherwise set to SnapshotVersion.MIN.
+     */
+    readonly createTime: SnapshotVersion;
 }
 
 /** Properties of a BundleMetadata. */
 declare interface BundleMetadata_2 {
-  /** BundleMetadata id */
-  id?: string | null;
-  /** BundleMetadata createTime */
-  createTime?: Timestamp_2 | null;
-  /** BundleMetadata version */
-  version?: number | null;
-  /** BundleMetadata totalDocuments */
-  totalDocuments?: number | null;
-  /** BundleMetadata totalBytes */
-  totalBytes?: number | null;
+    /** BundleMetadata id */
+    id?: string | null;
+    /** BundleMetadata createTime */
+    createTime?: Timestamp_2 | null;
+    /** BundleMetadata version */
+    version?: number | null;
+    /** BundleMetadata totalDocuments */
+    totalDocuments?: number | null;
+    /** BundleMetadata totalBytes */
+    totalBytes?: number | null;
 }
 
 /**
  * An immutable object representing an array of bytes.
  */
 export declare class Bytes {
-  _byteString: _ByteString;
-  /** @hideconstructor */
-  constructor(byteString: _ByteString);
-  /**
-   * Creates a new `Bytes` object from the given Base64 string, converting it to
-   * bytes.
-   *
-   * @param base64 - The Base64 string used to create the `Bytes` object.
-   */
-  static fromBase64String(base64: string): Bytes;
-  /**
-   * Creates a new `Bytes` object from the given Uint8Array.
-   *
-   * @param array - The Uint8Array used to create the `Bytes` object.
-   */
-  static fromUint8Array(array: Uint8Array): Bytes;
-  /**
-   * Returns the underlying bytes as a Base64-encoded string.
-   *
-   * @returns The Base64-encoded string created from the `Bytes` object.
-   */
-  toBase64(): string;
-  /**
-   * Returns the underlying bytes in a new `Uint8Array`.
-   *
-   * @returns The Uint8Array created from the `Bytes` object.
-   */
-  toUint8Array(): Uint8Array;
-  /**
-   * Returns a string representation of the `Bytes` object.
-   *
-   * @returns A string representation of the `Bytes` object.
-   */
-  toString(): string;
-  /**
-   * Returns true if this `Bytes` object is equal to the provided one.
-   *
-   * @param other - The `Bytes` object to compare against.
-   * @returns true if this `Bytes` object is equal to the provided one.
-   */
-  isEqual(other: Bytes): boolean;
+    _byteString: _ByteString;
+    /** @hideconstructor */
+    constructor(byteString: _ByteString);
+    /**
+     * Creates a new `Bytes` object from the given Base64 string, converting it to
+     * bytes.
+     *
+     * @param base64 - The Base64 string used to create the `Bytes` object.
+     */
+    static fromBase64String(base64: string): Bytes;
+    /**
+     * Creates a new `Bytes` object from the given Uint8Array.
+     *
+     * @param array - The Uint8Array used to create the `Bytes` object.
+     */
+    static fromUint8Array(array: Uint8Array): Bytes;
+    /**
+     * Returns the underlying bytes as a Base64-encoded string.
+     *
+     * @returns The Base64-encoded string created from the `Bytes` object.
+     */
+    toBase64(): string;
+    /**
+     * Returns the underlying bytes in a new `Uint8Array`.
+     *
+     * @returns The Uint8Array created from the `Bytes` object.
+     */
+    toUint8Array(): Uint8Array;
+    /**
+     * Returns a string representation of the `Bytes` object.
+     *
+     * @returns A string representation of the `Bytes` object.
+     */
+    toString(): string;
+    /**
+     * Returns true if this `Bytes` object is equal to the provided one.
+     *
+     * @param other - The `Bytes` object to compare against.
+     * @returns true if this `Bytes` object is equal to the provided one.
+     */
+    isEqual(other: Bytes): boolean;
+    static _jsonSchemaVersion: string;
+    static _jsonSchema: {
+        type: Property<"string">;
+        bytes: Property<"string">;
+    };
+    /**
+     * Returns a JSON-serializable representation of this `Bytes` instance.
+     *
+     * @returns a JSON representation of this object.
+     */
+    toJSON(): object;
+    /**
+     * Builds a `Bytes` instance from a JSON object created by {@link Bytes.toJSON}.
+     *
+     * @param json - a JSON object represention of a `Bytes` instance
+     * @returns an instance of {@link Bytes} if the JSON object could be parsed. Throws a
+     * {@link FirestoreError} if an error occurs.
+     */
+    static fromJSON(json: object): Bytes;
 }
 
 /* Excluded from this release type: _ByteString */
@@ -509,10 +494,10 @@ export declare const CACHE_SIZE_UNLIMITED = -1;
 /* Excluded from this release type: _cast */
 
 declare const enum ChangeType {
-  Added = 0,
-  Removed = 1,
-  Modified = 2,
-  Metadata = 3
+    Added = 0,
+    Removed = 1,
+    Modified = 2,
+    Metadata = 3
 }
 
 /**
@@ -525,12 +510,7 @@ declare const enum ChangeType {
  *
  * See https://www.typescriptlang.org/docs/handbook/advanced-types.html#distributive-conditional-types
  */
-export declare type ChildUpdateFields<K extends string, V> = V extends Record<
-  string,
-  unknown
->
-  ? AddPrefixToKeys<K, UpdateData<V>>
-  : never;
+export declare type ChildUpdateFields<K extends string, V> = V extends Record<string, unknown> ? AddPrefixToKeys<K, UpdateData<V>> : never;
 
 /**
  * Clears the persistent storage. This includes pending writes and cached
@@ -554,9 +534,7 @@ export declare type ChildUpdateFields<K extends string, V> = V extends Record<
  * @returns A `Promise` that is resolved when the persistent storage is
  * cleared. Otherwise, the promise is rejected with an error.
  */
-export declare function clearIndexedDbPersistence(
-  firestore: Firestore
-): Promise<void>;
+export declare function clearIndexedDbPersistence(firestore: Firestore): Promise<void>;
 
 /**
  * A randomly-generated key assigned to each Firestore instance at startup.
@@ -575,11 +553,7 @@ declare type ClientId = string;
  * to a collection.
  * @returns The `CollectionReference` instance.
  */
-export declare function collection(
-  firestore: Firestore_2,
-  path: string,
-  ...pathSegments: string[]
-): CollectionReference<DocumentData, DocumentData>;
+export declare function collection(firestore: Firestore_2, path: string, ...pathSegments: string[]): CollectionReference<DocumentData, DocumentData>;
 
 /**
  * Gets a `CollectionReference` instance that refers to a subcollection of
@@ -593,14 +567,7 @@ export declare function collection(
  * to a collection.
  * @returns The `CollectionReference` instance.
  */
-export declare function collection<
-  AppModelType,
-  DbModelType extends DocumentData
->(
-  reference: CollectionReference<AppModelType, DbModelType>,
-  path: string,
-  ...pathSegments: string[]
-): CollectionReference<DocumentData, DocumentData>;
+export declare function collection<AppModelType, DbModelType extends DocumentData>(reference: CollectionReference<AppModelType, DbModelType>, path: string, ...pathSegments: string[]): CollectionReference<DocumentData, DocumentData>;
 
 /**
  * Gets a `CollectionReference` instance that refers to a subcollection of
@@ -614,14 +581,7 @@ export declare function collection<
  * to a collection.
  * @returns The `CollectionReference` instance.
  */
-export declare function collection<
-  AppModelType,
-  DbModelType extends DocumentData
->(
-  reference: DocumentReference<AppModelType, DbModelType>,
-  path: string,
-  ...pathSegments: string[]
-): CollectionReference<DocumentData, DocumentData>;
+export declare function collection<AppModelType, DbModelType extends DocumentData>(reference: DocumentReference<AppModelType, DbModelType>, path: string, ...pathSegments: string[]): CollectionReference<DocumentData, DocumentData>;
 
 /**
  * Creates and returns a new `Query` instance that includes all documents in the
@@ -634,66 +594,49 @@ export declare function collection<
  * will be included. Cannot contain a slash.
  * @returns The created `Query`.
  */
-export declare function collectionGroup(
-  firestore: Firestore_2,
-  collectionId: string
-): Query<DocumentData, DocumentData>;
+export declare function collectionGroup(firestore: Firestore_2, collectionId: string): Query<DocumentData, DocumentData>;
 
 /**
  * A `CollectionReference` object can be used for adding documents, getting
  * document references, and querying for documents (using {@link (query:1)}).
  */
-export declare class CollectionReference<
-  AppModelType = DocumentData,
-  DbModelType extends DocumentData = DocumentData
-> extends Query<AppModelType, DbModelType> {
-  readonly _path: _ResourcePath;
-  /** The type of this Firestore reference. */
-  readonly type = 'collection';
-  /** @hideconstructor */
-  constructor(
-    firestore: Firestore_2,
-    converter: FirestoreDataConverter_2<AppModelType, DbModelType> | null,
-    _path: _ResourcePath
-  );
-  /** The collection's identifier. */
-  get id(): string;
-  /**
-   * A string representing the path of the referenced collection (relative
-   * to the root of the database).
-   */
-  get path(): string;
-  /**
-   * A reference to the containing `DocumentReference` if this is a
-   * subcollection. If this isn't a subcollection, the reference is null.
-   */
-  get parent(): DocumentReference<DocumentData, DocumentData> | null;
-  /**
-   * Applies a custom data converter to this `CollectionReference`, allowing you
-   * to use your own custom model objects with Firestore. When you call {@link
-   * addDoc} with the returned `CollectionReference` instance, the provided
-   * converter will convert between Firestore data of type `NewDbModelType` and
-   * your custom type `NewAppModelType`.
-   *
-   * @param converter - Converts objects to and from Firestore.
-   * @returns A `CollectionReference` that uses the provided converter.
-   */
-  withConverter<
-    NewAppModelType,
-    NewDbModelType extends DocumentData = DocumentData
-  >(
-    converter: FirestoreDataConverter_2<NewAppModelType, NewDbModelType>
-  ): CollectionReference<NewAppModelType, NewDbModelType>;
-  /**
-   * Removes the current converter.
-   *
-   * @param converter - `null` removes the current converter.
-   * @returns A `CollectionReference<DocumentData, DocumentData>` that does not
-   * use a converter.
-   */
-  withConverter(
-    converter: null
-  ): CollectionReference<DocumentData, DocumentData>;
+export declare class CollectionReference<AppModelType = DocumentData, DbModelType extends DocumentData = DocumentData> extends Query<AppModelType, DbModelType> {
+    readonly _path: _ResourcePath;
+    /** The type of this Firestore reference. */
+    readonly type = "collection";
+    /** @hideconstructor */
+    constructor(firestore: Firestore_2, converter: FirestoreDataConverter_2<AppModelType, DbModelType> | null, _path: _ResourcePath);
+    /** The collection's identifier. */
+    get id(): string;
+    /**
+     * A string representing the path of the referenced collection (relative
+     * to the root of the database).
+     */
+    get path(): string;
+    /**
+     * A reference to the containing `DocumentReference` if this is a
+     * subcollection. If this isn't a subcollection, the reference is null.
+     */
+    get parent(): DocumentReference<DocumentData, DocumentData> | null;
+    /**
+     * Applies a custom data converter to this `CollectionReference`, allowing you
+     * to use your own custom model objects with Firestore. When you call {@link
+     * addDoc} with the returned `CollectionReference` instance, the provided
+     * converter will convert between Firestore data of type `NewDbModelType` and
+     * your custom type `NewAppModelType`.
+     *
+     * @param converter - Converts objects to and from Firestore.
+     * @returns A `CollectionReference` that uses the provided converter.
+     */
+    withConverter<NewAppModelType, NewDbModelType extends DocumentData = DocumentData>(converter: FirestoreDataConverter_2<NewAppModelType, NewDbModelType>): CollectionReference<NewAppModelType, NewDbModelType>;
+    /**
+     * Removes the current converter.
+     *
+     * @param converter - `null` removes the current converter.
+     * @returns A `CollectionReference<DocumentData, DocumentData>` that does not
+     * use a converter.
+     */
+    withConverter(converter: null): CollectionReference<DocumentData, DocumentData>;
 }
 
 /**
@@ -715,20 +658,20 @@ export declare class CollectionReference<
 declare type Comparator<K> = (key1: K, key2: K) => number;
 
 declare interface ComponentConfiguration {
-  asyncQueue: AsyncQueue;
-  databaseInfo: DatabaseInfo;
-  authCredentials: CredentialsProvider<User>;
-  appCheckCredentials: CredentialsProvider<string>;
-  clientId: ClientId;
-  initialUser: User;
-  maxConcurrentLimboResolutions: number;
+    asyncQueue: AsyncQueue;
+    databaseInfo: DatabaseInfo;
+    authCredentials: CredentialsProvider<User>;
+    appCheckCredentials: CredentialsProvider<string>;
+    clientId: ClientId;
+    initialUser: User;
+    maxConcurrentLimboResolutions: number;
 }
 
 declare type CompositeFilterOp = 'OPERATOR_UNSPECIFIED' | 'AND' | 'OR';
 
 declare const enum CompositeOperator {
-  OR = 'or',
-  AND = 'and'
+    OR = "or",
+    AND = "and"
 }
 
 /**
@@ -744,14 +687,50 @@ declare const enum CompositeOperator {
  * @param options.mockUserToken - the mock auth token to use for unit testing
  * Security Rules.
  */
-export declare function connectFirestoreEmulator(
-  firestore: Firestore_2,
-  host: string,
-  port: number,
-  options?: {
+export declare function connectFirestoreEmulator(firestore: Firestore_2, host: string, port: number, options?: {
     mockUserToken?: EmulatorMockTokenOptions | string;
-  }
-): void;
+}): void;
+
+/** Contains the settings that are mutated as we parse user data. */
+declare interface ContextSettings {
+    /** Indicates what kind of API method this data came from. */
+    readonly dataSource: UserDataSource;
+    /** The name of the method the user called to create the ParseContext. */
+    readonly methodName: string;
+    /** The document the user is attempting to modify, if that applies. */
+    readonly targetDoc?: _DocumentKey;
+    /**
+     * A path within the object being parsed. This could be an empty path (in
+     * which case the context represents the root of the data being parsed), or a
+     * nonempty path (indicating the context represents a nested location within
+     * the data).
+     */
+    readonly path?: _FieldPath;
+    /**
+     * Whether or not this context corresponds to an element of an array.
+     * If not set, elements are treated as if they were outside of arrays.
+     */
+    readonly arrayElement?: boolean;
+    /**
+     * Whether or not a converter was specified in this context. If true, error
+     * messages will reference the converter when invalid data is provided.
+     */
+    readonly hasConverter?: boolean;
+}
+
+declare class CorePipeline {
+    readonly serializer: JsonProtoSerializer;
+    readonly stages: Stage[];
+    readonly listenOptions?: ListenOptions | undefined;
+    isCorePipeline: boolean;
+    constructor(serializer: JsonProtoSerializer, stages: Stage[], listenOptions?: ListenOptions | undefined);
+    getPipelineCollection(): string | undefined;
+    getPipelineCollectionGroup(): string | undefined;
+    getPipelineCollectionId(): string | undefined;
+    getPipelineDocuments(): string[] | undefined;
+    getPipelineFlavor(): PipelineFlavor;
+    getPipelineSourceType(): PipelineSourceType | 'unknown';
+}
 
 /**
  * Create an AggregateField object that can be used to compute the count of
@@ -771,31 +750,26 @@ declare type CredentialChangeListener<T> = (credential: T) => Promise<void>;
  * listening for changes.
  */
 declare interface CredentialsProvider<T> {
-  /**
-   * Starts the credentials provider and specifies a listener to be notified of
-   * credential changes (sign-in / sign-out, token changes). It is immediately
-   * called once with the initial user.
-   *
-   * The change listener is invoked on the provided AsyncQueue.
-   */
-  start(
-    asyncQueue: AsyncQueue,
-    changeListener: CredentialChangeListener<T>
-  ): void;
-  /** Requests a token for the current user. */
-  getToken(): Promise<Token | null>;
-  /**
-   * Marks the last retrieved token as invalid, making the next GetToken request
-   * force-refresh the token.
-   */
-  invalidateToken(): void;
-  shutdown(): void;
+    /**
+     * Starts the credentials provider and specifies a listener to be notified of
+     * credential changes (sign-in / sign-out, token changes). It is immediately
+     * called once with the initial user.
+     *
+     * The change listener is invoked on the provided AsyncQueue.
+     */
+    start(asyncQueue: AsyncQueue, changeListener: CredentialChangeListener<T>): void;
+    /** Requests a token for the current user. */
+    getToken(): Promise<Token | null>;
+    /**
+     * Marks the last retrieved token as invalid, making the next GetToken request
+     * force-refresh the token.
+     */
+    invalidateToken(): void;
+    shutdown(): void;
 }
 
 /** Settings for private credentials */
-declare type CredentialsSettings =
-  | FirstPartyCredentialsSettings
-  | ProviderCredentialsSettings;
+declare type CredentialsSettings = FirstPartyCredentialsSettings | ProviderCredentialsSettings;
 
 /* Excluded from this release type: _DatabaseId */
 
@@ -816,44 +790,38 @@ declare type CredentialsSettings =
  * limitations under the License.
  */
 declare class DatabaseInfo {
-  readonly databaseId: _DatabaseId;
-  readonly appId: string;
-  readonly persistenceKey: string;
-  readonly host: string;
-  readonly ssl: boolean;
-  readonly forceLongPolling: boolean;
-  readonly autoDetectLongPolling: boolean;
-  readonly longPollingOptions: ExperimentalLongPollingOptions;
-  readonly useFetchStreams: boolean;
-  /**
-   * Constructs a DatabaseInfo using the provided host, databaseId and
-   * persistenceKey.
-   *
-   * @param databaseId - The database to use.
-   * @param appId - The Firebase App Id.
-   * @param persistenceKey - A unique identifier for this Firestore's local
-   * storage (used in conjunction with the databaseId).
-   * @param host - The Firestore backend host to connect to.
-   * @param ssl - Whether to use SSL when connecting.
-   * @param forceLongPolling - Whether to use the forceLongPolling option
-   * when using WebChannel as the network transport.
-   * @param autoDetectLongPolling - Whether to use the detectBufferingProxy
-   * option when using WebChannel as the network transport.
-   * @param longPollingOptions Options that configure long-polling.
-   * @param useFetchStreams Whether to use the Fetch API instead of
-   * XMLHTTPRequest
-   */
-  constructor(
-    databaseId: _DatabaseId,
-    appId: string,
-    persistenceKey: string,
-    host: string,
-    ssl: boolean,
-    forceLongPolling: boolean,
-    autoDetectLongPolling: boolean,
-    longPollingOptions: ExperimentalLongPollingOptions,
-    useFetchStreams: boolean
-  );
+    readonly databaseId: _DatabaseId;
+    readonly appId: string;
+    readonly persistenceKey: string;
+    readonly host: string;
+    readonly ssl: boolean;
+    readonly forceLongPolling: boolean;
+    readonly autoDetectLongPolling: boolean;
+    readonly longPollingOptions: ExperimentalLongPollingOptions;
+    readonly useFetchStreams: boolean;
+    readonly isUsingEmulator: boolean;
+    readonly apiKey: string | undefined;
+    readonly _customHeaders?: Record<string, string> | undefined;
+    readonly grpcFlowControlWindow?: number | undefined;
+    /**
+     * Constructs a DatabaseInfo using the provided host, databaseId and
+     * persistenceKey.
+     *
+     * @param databaseId - The database to use.
+     * @param appId - The Firebase App Id.
+     * @param persistenceKey - A unique identifier for this Firestore's local
+     * storage (used in conjunction with the databaseId).
+     * @param host - The Firestore backend host to connect to.
+     * @param ssl - Whether to use SSL when connecting.
+     * @param forceLongPolling - Whether to use the forceLongPolling option
+     * when using WebChannel as the network transport.
+     * @param autoDetectLongPolling - Whether to use the detectBufferingProxy
+     * option when using WebChannel as the network transport.
+     * @param longPollingOptions - Options that configure long-polling.
+     * @param useFetchStreams - Whether to use the Fetch API instead of
+     * XMLHTTPRequest
+     */
+    constructor(databaseId: _DatabaseId, appId: string, persistenceKey: string, host: string, ssl: boolean, forceLongPolling: boolean, autoDetectLongPolling: boolean, longPollingOptions: ExperimentalLongPollingOptions, useFetchStreams: boolean, isUsingEmulator: boolean, apiKey: string | undefined, _customHeaders?: Record<string, string> | undefined, grpcFlowControlWindow?: number | undefined);
 }
 
 /**
@@ -862,8 +830,8 @@ declare class DatabaseInfo {
  * for the rest of the client SDK architecture to consume.
  */
 declare abstract class Datastore {
-  abstract terminate(): void;
-  abstract serializer: JsonProtoSerializer;
+    abstract terminate(): void;
+    abstract serializer: JsonProtoSerializer;
 }
 
 /* Excluded from this release type: _debugAssert */
@@ -880,66 +848,51 @@ declare abstract class Datastore {
  * IE.
  */
 declare class DelayedOperation<T extends unknown> implements PromiseLike<T> {
-  private readonly asyncQueue;
-  readonly timerId: TimerId;
-  readonly targetTimeMs: number;
-  private readonly op;
-  private readonly removalCallback;
-  private timerHandle;
-  private readonly deferred;
-  private constructor();
-  get promise(): Promise<T>;
-  /**
-   * Creates and returns a DelayedOperation that has been scheduled to be
-   * executed on the provided asyncQueue after the provided delayMs.
-   *
-   * @param asyncQueue - The queue to schedule the operation on.
-   * @param id - A Timer ID identifying the type of operation this is.
-   * @param delayMs - The delay (ms) before the operation should be scheduled.
-   * @param op - The operation to run.
-   * @param removalCallback - A callback to be called synchronously once the
-   *   operation is executed or canceled, notifying the AsyncQueue to remove it
-   *   from its delayedOperations list.
-   *   PORTING NOTE: This exists to prevent making removeDelayedOperation() and
-   *   the DelayedOperation class public.
-   */
-  static createAndSchedule<R extends unknown>(
-    asyncQueue: AsyncQueue,
-    timerId: TimerId,
-    delayMs: number,
-    op: () => Promise<R>,
-    removalCallback: (op: DelayedOperation<R>) => void
-  ): DelayedOperation<R>;
-  /**
-   * Starts the timer. This is called immediately after construction by
-   * createAndSchedule().
-   */
-  private start;
-  /**
-   * Queues the operation to run immediately (if it hasn't already been run or
-   * canceled).
-   */
-  skipDelay(): void;
-  /**
-   * Cancels the operation if it hasn't already been executed or canceled. The
-   * promise will be rejected.
-   *
-   * As long as the operation has not yet been run, calling cancel() provides a
-   * guarantee that the operation will not be run.
-   */
-  cancel(reason?: string): void;
-  then: <TResult1 = T, TResult2 = never>(
-    onfulfilled?:
-      | ((value: T) => TResult1 | PromiseLike<TResult1>)
-      | null
-      | undefined,
-    onrejected?:
-      | ((reason: any) => TResult2 | PromiseLike<TResult2>)
-      | null
-      | undefined
-  ) => Promise<TResult1 | TResult2>;
-  private handleDelayElapsed;
-  private clearTimeout;
+    private readonly asyncQueue;
+    readonly timerId: TimerId;
+    readonly targetTimeMs: number;
+    private readonly op;
+    private readonly removalCallback;
+    private timerHandle;
+    private readonly deferred;
+    private constructor();
+    get promise(): Promise<T>;
+    /**
+     * Creates and returns a DelayedOperation that has been scheduled to be
+     * executed on the provided asyncQueue after the provided delayMs.
+     *
+     * @param asyncQueue - The queue to schedule the operation on.
+     * @param id - A Timer ID identifying the type of operation this is.
+     * @param delayMs - The delay (ms) before the operation should be scheduled.
+     * @param op - The operation to run.
+     * @param removalCallback - A callback to be called synchronously once the
+     *   operation is executed or canceled, notifying the AsyncQueue to remove it
+     *   from its delayedOperations list.
+     *   PORTING NOTE: This exists to prevent making removeDelayedOperation() and
+     *   the DelayedOperation class public.
+     */
+    static createAndSchedule<R extends unknown>(asyncQueue: AsyncQueue, timerId: TimerId, delayMs: number, op: () => Promise<R>, removalCallback: (op: DelayedOperation<R>) => void): DelayedOperation<R>;
+    /**
+     * Starts the timer. This is called immediately after construction by
+     * createAndSchedule().
+     */
+    private start;
+    /**
+     * Queues the operation to run immediately (if it hasn't already been run or
+     * canceled).
+     */
+    skipDelay(): void;
+    /**
+     * Cancels the operation if it hasn't already been executed or canceled. The
+     * promise will be rejected.
+     *
+     * As long as the operation has not yet been run, calling cancel() provides a
+     * guarantee that the operation will not be run.
+     */
+    cancel(reason?: string): void;
+    then: <TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | null | undefined, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | null | undefined) => Promise<TResult1 | TResult2>;
+    private handleDelayElapsed;
+    private clearTimeout;
 }
 
 /**
@@ -948,21 +901,32 @@ declare class DelayedOperation<T extends unknown> implements PromiseLike<T> {
  * Please note this function will also deletes indexes generated by
  * `setIndexConfiguration()`, which is deprecated.
  */
-export declare function deleteAllPersistentCacheIndexes(
-  indexManager: PersistentCacheIndexManager
-): void;
+export declare function deleteAllPersistentCacheIndexes(indexManager: PersistentCacheIndexManager): void;
 
 /**
  * Deletes the document referred to by the specified `DocumentReference`.
  *
+ * Note that the returned `Promise` does _not_ resolve until the document is
+ * successfully deleted from the remote Firestore backend and, similarly, is not
+ * rejected until the remote Firestore backend reports an error deleting the given
+ * document. So if the client cannot reach the backend (for example, due to being
+ * offline) then the returned `Promise` will not resolve for a potentially-long
+ * time (for example, until the client has gone back online). That being said,
+ * the given data _will_ be immediately deleted from the local cache and will be
+ * reflected in future "get" operations as if it had been successfully
+ * deleted from the remote Firestore server, a feature of Firestore called
+ * "latency compensation". The document will _eventually_ be deleted from the remote
+ * Firestore backend once a connection can be established. Therefore, it is
+ * usually undesirable to `await` the `Promise` returned from this function
+ * because the indefinite amount of time before which the promise resolves or
+ * rejects can block application logic unnecessarily.
+ *
  * @param reference - A reference to the document to delete.
- * @returns A Promise resolved once the document has been successfully
- * deleted from the backend (note that it won't resolve while you're offline).
+ * @returns A `Promise` that resolves once the document has been successfully
+ * deleted from the backend or rejects once the backend reports an error
+ * deleting the document.
  */
-export declare function deleteDoc<
-  AppModelType,
-  DbModelType extends DocumentData
->(reference: DocumentReference<AppModelType, DbModelType>): Promise<void>;
+export declare function deleteDoc<AppModelType, DbModelType extends DocumentData>(reference: DocumentReference<AppModelType, DbModelType>): Promise<void>;
 
 /**
  * Returns a sentinel for use with {@link @firebase/firestore/lite#(updateDoc:1)} or
@@ -974,8 +938,8 @@ export declare function deleteField(): FieldValue;
  * The direction of sorting in an order by.
  */
 declare const enum Direction {
-  ASCENDING = 'asc',
-  DESCENDING = 'desc'
+    ASCENDING = "asc",
+    DESCENDING = "desc"
 }
 
 /**
@@ -993,9 +957,7 @@ export declare function disableNetwork(firestore: Firestore): Promise<void>;
  * execution. The indexes which have been created by calling
  * `enablePersistentCacheIndexAutoCreation()` still take effect.
  */
-export declare function disablePersistentCacheIndexAutoCreation(
-  indexManager: PersistentCacheIndexManager
-): void;
+export declare function disablePersistentCacheIndexAutoCreation(indexManager: PersistentCacheIndexManager): void;
 
 /**
  * Gets a `DocumentReference` instance that refers to the document at the
@@ -1009,11 +971,7 @@ export declare function disablePersistentCacheIndexAutoCreation(
  * a document.
  * @returns The `DocumentReference` instance.
  */
-export declare function doc(
-  firestore: Firestore_2,
-  path: string,
-  ...pathSegments: string[]
-): DocumentReference<DocumentData, DocumentData>;
+export declare function doc(firestore: Firestore_2, path: string, ...pathSegments: string[]): DocumentReference<DocumentData, DocumentData>;
 
 /**
  * Gets a `DocumentReference` instance that refers to a document within
@@ -1030,11 +988,7 @@ export declare function doc(
  * a document.
  * @returns The `DocumentReference` instance.
  */
-export declare function doc<AppModelType, DbModelType extends DocumentData>(
-  reference: CollectionReference<AppModelType, DbModelType>,
-  path?: string,
-  ...pathSegments: string[]
-): DocumentReference<AppModelType, DbModelType>;
+export declare function doc<AppModelType, DbModelType extends DocumentData>(reference: CollectionReference<AppModelType, DbModelType>, path?: string, ...pathSegments: string[]): DocumentReference<AppModelType, DbModelType>;
 
 /**
  * Gets a `DocumentReference` instance that refers to a document within
@@ -1048,115 +1002,105 @@ export declare function doc<AppModelType, DbModelType extends DocumentData>(
  * a document.
  * @returns The `DocumentReference` instance.
  */
-export declare function doc<AppModelType, DbModelType extends DocumentData>(
-  reference: DocumentReference<AppModelType, DbModelType>,
-  path: string,
-  ...pathSegments: string[]
-): DocumentReference<DocumentData, DocumentData>;
+export declare function doc<AppModelType, DbModelType extends DocumentData>(reference: DocumentReference<AppModelType, DbModelType>, path: string, ...pathSegments: string[]): DocumentReference<DocumentData, DocumentData>;
 
 /**
  * Represents a document in Firestore with a key, version, data and whether the
  * data has local mutations applied to it.
  */
 declare interface Document_2 {
-  /** The key for this document */
-  readonly key: _DocumentKey;
-  /**
-   * The version of this document if it exists or a version at which this
-   * document was guaranteed to not exist.
-   */
-  readonly version: SnapshotVersion;
-  /**
-   * The timestamp at which this document was read from the remote server. Uses
-   * `SnapshotVersion.min()` for documents created by the user.
-   */
-  readonly readTime: SnapshotVersion;
-  /**
-   * The timestamp at which the document was created. This value increases
-   * monotonically when a document is deleted then recreated. It can also be
-   * compared to `createTime` of other documents and the `readTime` of a query.
-   */
-  readonly createTime: SnapshotVersion;
-  /** The underlying data of this document or an empty value if no data exists. */
-  readonly data: ObjectValue;
-  /** Returns whether local mutations were applied via the mutation queue. */
-  readonly hasLocalMutations: boolean;
-  /** Returns whether mutations were applied based on a write acknowledgment. */
-  readonly hasCommittedMutations: boolean;
-  /**
-   * Whether this document had a local mutation applied that has not yet been
-   * acknowledged by Watch.
-   */
-  readonly hasPendingWrites: boolean;
-  /**
-   * Returns whether this document is valid (i.e. it is an entry in the
-   * RemoteDocumentCache, was created by a mutation or read from the backend).
-   */
-  isValidDocument(): boolean;
-  /**
-   * Returns whether the document exists and its data is known at the current
-   * version.
-   */
-  isFoundDocument(): boolean;
-  /**
-   * Returns whether the document is known to not exist at the current version.
-   */
-  isNoDocument(): boolean;
-  /**
-   * Returns whether the document exists and its data is unknown at the current
-   * version.
-   */
-  isUnknownDocument(): boolean;
-  isEqual(other: Document_2 | null | undefined): boolean;
-  /** Creates a mutable copy of this document. */
-  mutableCopy(): MutableDocument;
-  toString(): string;
+    /** The key for this document */
+    readonly key: _DocumentKey;
+    /**
+     * The version of this document if it exists or a version at which this
+     * document was guaranteed to not exist.
+     */
+    readonly version: SnapshotVersion;
+    /**
+     * The timestamp at which this document was read from the remote server. Uses
+     * `SnapshotVersion.min()` for documents created by the user.
+     */
+    readonly readTime: SnapshotVersion;
+    /**
+     * The timestamp at which the document was created. This value increases
+     * monotonically when a document is deleted then recreated. It can also be
+     * compared to `createTime` of other documents and the `readTime` of a query.
+     */
+    readonly createTime: SnapshotVersion;
+    /** The underlying data of this document or an empty value if no data exists. */
+    readonly data: ObjectValue;
+    /** Returns whether local mutations were applied via the mutation queue. */
+    readonly hasLocalMutations: boolean;
+    /** Returns whether mutations were applied based on a write acknowledgment. */
+    readonly hasCommittedMutations: boolean;
+    /**
+     * Whether this document had a local mutation applied that has not yet been
+     * acknowledged by Watch.
+     */
+    readonly hasPendingWrites: boolean;
+    /**
+     * Returns whether this document is valid (i.e. it is an entry in the
+     * RemoteDocumentCache, was created by a mutation or read from the backend).
+     */
+    isValidDocument(): boolean;
+    /**
+     * Returns whether the document exists and its data is known at the current
+     * version.
+     */
+    isFoundDocument(): boolean;
+    /**
+     * Returns whether the document is known to not exist at the current version.
+     */
+    isNoDocument(): boolean;
+    /**
+     * Returns whether the document exists and its data is unknown at the current
+     * version.
+     */
+    isUnknownDocument(): boolean;
+    isEqual(other: Document_2 | null | undefined): boolean;
+    /** Creates a mutable copy of this document. */
+    mutableCopy(): MutableDocument;
+    toString(): string;
 }
 
 /**
  * A `DocumentChange` represents a change to the documents matching a query.
  * It contains the document affected and the type of change that occurred.
  */
-export declare interface DocumentChange<
-  AppModelType = DocumentData,
-  DbModelType extends DocumentData = DocumentData
-> {
-  /** The type of change ('added', 'modified', or 'removed'). */
-  readonly type: DocumentChangeType;
-  /** The document affected by this change. */
-  readonly doc: QueryDocumentSnapshot<AppModelType, DbModelType>;
-  /**
-   * The index of the changed document in the result set immediately prior to
-   * this `DocumentChange` (i.e. supposing that all prior `DocumentChange` objects
-   * have been applied). Is `-1` for 'added' events.
-   */
-  readonly oldIndex: number;
-  /**
-   * The index of the changed document in the result set immediately after
-   * this `DocumentChange` (i.e. supposing that all prior `DocumentChange`
-   * objects and the current `DocumentChange` object have been applied).
-   * Is -1 for 'removed' events.
-   */
-  readonly newIndex: number;
+export declare interface DocumentChange<AppModelType = DocumentData, DbModelType extends DocumentData = DocumentData> {
+    /** The type of change ('added', 'modified', or 'removed'). */
+    readonly type: DocumentChangeType;
+    /** The document affected by this change. */
+    readonly doc: QueryDocumentSnapshot<AppModelType, DbModelType>;
+    /**
+     * The index of the changed document in the result set immediately prior to
+     * this `DocumentChange` (i.e. supposing that all prior `DocumentChange` objects
+     * have been applied). Is `-1` for 'added' events.
+     */
+    readonly oldIndex: number;
+    /**
+     * The index of the changed document in the result set immediately after
+     * this `DocumentChange` (i.e. supposing that all prior `DocumentChange`
+     * objects and the current `DocumentChange` object have been applied).
+     * Is -1 for 'removed' events.
+     */
+    readonly newIndex: number;
 }
 
 /**
- * The type of a `DocumentChange` may be 'added', 'removed', or 'modified'.
+ * The type of `DocumentChange` may be 'added', 'removed', or 'modified'.
  */
 export declare type DocumentChangeType = 'added' | 'removed' | 'modified';
 
-declare type DocumentComparator = (
-  doc1: Document_2,
-  doc2: Document_2
-) => number;
+declare type DocumentComparator = (doc1: Document_2, doc2: Document_2) => number;
 
 /**
  * Document data (for use with {@link @firebase/firestore/lite#(setDoc:1)}) consists of fields mapped to
  * values.
  */
 export declare interface DocumentData {
-  /** A mapping between a field and its value. */
-  [field: string]: any;
+    /** A mapping between a field and its value. */
+    [field: string]: any;
 }
 
 /**
@@ -1184,71 +1128,49 @@ declare type DocumentMap = SortedMap<_DocumentKey, Document_2>;
  * been acknowledged.
  */
 declare interface DocumentOverlayCache {
-  /**
-   * Gets the saved overlay mutation for the given document key.
-   * Returns null if there is no overlay for that key.
-   */
-  getOverlay(
-    transaction: PersistenceTransaction,
-    key: _DocumentKey
-  ): PersistencePromise<Overlay | null>;
-  /**
-   * Gets the saved overlay mutation for the given document keys. Skips keys for
-   * which there are no overlays.
-   */
-  getOverlays(
-    transaction: PersistenceTransaction,
-    keys: _DocumentKey[]
-  ): PersistencePromise<OverlayMap>;
-  /**
-   * Saves the given document mutation map to persistence as overlays.
-   * All overlays will have their largest batch id set to `largestBatchId`.
-   */
-  saveOverlays(
-    transaction: PersistenceTransaction,
-    largestBatchId: number,
-    overlays: MutationMap
-  ): PersistencePromise<void>;
-  /** Removes overlays for the given document keys and batch ID. */
-  removeOverlaysForBatchId(
-    transaction: PersistenceTransaction,
-    documentKeys: DocumentKeySet,
-    batchId: number
-  ): PersistencePromise<void>;
-  /**
-   * Returns all saved overlays for the given collection.
-   *
-   * @param transaction - The persistence transaction to use for this operation.
-   * @param collection - The collection path to get the overlays for.
-   * @param sinceBatchId - The minimum batch ID to filter by (exclusive).
-   * Only overlays that contain a change past `sinceBatchId` are returned.
-   * @returns Mapping of each document key in the collection to its overlay.
-   */
-  getOverlaysForCollection(
-    transaction: PersistenceTransaction,
-    collection: _ResourcePath,
-    sinceBatchId: number
-  ): PersistencePromise<OverlayMap>;
-  /**
-   * Returns `count` overlays with a batch ID higher than `sinceBatchId` for the
-   * provided collection group, processed by ascending batch ID. The method
-   * always returns all overlays for a batch even if the last batch contains
-   * more documents than the remaining limit.
-   *
-   * @param transaction - The persistence transaction used for this operation.
-   * @param collectionGroup - The collection group to get the overlays for.
-   * @param sinceBatchId - The minimum batch ID to filter by (exclusive).
-   * Only overlays that contain a change past `sinceBatchId` are returned.
-   * @param count - The number of overlays to return. Can be exceeded if the last
-   * batch contains more entries.
-   * @return Mapping of each document key in the collection group to its overlay.
-   */
-  getOverlaysForCollectionGroup(
-    transaction: PersistenceTransaction,
-    collectionGroup: string,
-    sinceBatchId: number,
-    count: number
-  ): PersistencePromise<OverlayMap>;
+    /**
+     * Gets the saved overlay mutation for the given document key.
+     * Returns null if there is no overlay for that key.
+     */
+    getOverlay(transaction: PersistenceTransaction, key: _DocumentKey): PersistencePromise<Overlay | null>;
+    /**
+     * Gets the saved overlay mutation for the given document keys. Skips keys for
+     * which there are no overlays.
+     */
+    getOverlays(transaction: PersistenceTransaction, keys: _DocumentKey[]): PersistencePromise<OverlayMap>;
+    getAllOverlays(transaction: PersistenceTransaction, sinceBatchId: number): PersistencePromise<OverlayMap>;
+    /**
+     * Saves the given document mutation map to persistence as overlays.
+     * All overlays will have their largest batch id set to `largestBatchId`.
+     */
+    saveOverlays(transaction: PersistenceTransaction, largestBatchId: number, overlays: MutationMap): PersistencePromise<void>;
+    /** Removes overlays for the given document keys and batch ID. */
+    removeOverlaysForBatchId(transaction: PersistenceTransaction, documentKeys: DocumentKeySet, batchId: number): PersistencePromise<void>;
+    /**
+     * Returns all saved overlays for the given collection.
+     *
+     * @param transaction - The persistence transaction to use for this operation.
+     * @param collection - The collection path to get the overlays for.
+     * @param sinceBatchId - The minimum batch ID to filter by (exclusive).
+     * Only overlays that contain a change past `sinceBatchId` are returned.
+     * @returns Mapping of each document key in the collection to its overlay.
+     */
+    getOverlaysForCollection(transaction: PersistenceTransaction, collection: _ResourcePath, sinceBatchId: number): PersistencePromise<OverlayMap>;
+    /**
+     * Returns `count` overlays with a batch ID higher than `sinceBatchId` for the
+     * provided collection group, processed by ascending batch ID. The method
+     * always returns all overlays for a batch even if the last batch contains
+     * more documents than the remaining limit.
+     *
+     * @param transaction - The persistence transaction used for this operation.
+     * @param collectionGroup - The collection group to get the overlays for.
+     * @param sinceBatchId - The minimum batch ID to filter by (exclusive).
+     * Only overlays that contain a change past `sinceBatchId` are returned.
+     * @param count - The number of overlays to return. Can be exceeded if the last
+     * batch contains more entries.
+     * @returns Mapping of each document key in the collection group to its overlay.
+     */
+    getOverlaysForCollectionGroup(transaction: PersistenceTransaction, collectionGroup: string, sinceBatchId: number, count: number): PersistencePromise<OverlayMap>;
 }
 
 /**
@@ -1256,72 +1178,90 @@ declare interface DocumentOverlayCache {
  * and can be used to write, read, or listen to the location. The document at
  * the referenced location may or may not exist.
  */
-export declare class DocumentReference<
-  AppModelType = DocumentData,
-  DbModelType extends DocumentData = DocumentData
-> {
-  /**
-   * If provided, the `FirestoreDataConverter` associated with this instance.
-   */
-  readonly converter: FirestoreDataConverter_2<
-    AppModelType,
-    DbModelType
-  > | null;
-  readonly _key: _DocumentKey;
-  /** The type of this Firestore reference. */
-  readonly type = 'document';
-  /**
-   * The {@link Firestore} instance the document is in.
-   * This is useful for performing transactions, for example.
-   */
-  readonly firestore: Firestore_2;
-  /** @hideconstructor */
-  constructor(
-    firestore: Firestore_2,
+export declare class DocumentReference<AppModelType = DocumentData, DbModelType extends DocumentData = DocumentData> {
     /**
      * If provided, the `FirestoreDataConverter` associated with this instance.
      */
-    converter: FirestoreDataConverter_2<AppModelType, DbModelType> | null,
-    _key: _DocumentKey
-  );
-  get _path(): _ResourcePath;
-  /**
-   * The document's identifier within its collection.
-   */
-  get id(): string;
-  /**
-   * A string representing the path of the referenced document (relative
-   * to the root of the database).
-   */
-  get path(): string;
-  /**
-   * The collection this `DocumentReference` belongs to.
-   */
-  get parent(): CollectionReference<AppModelType, DbModelType>;
-  /**
-   * Applies a custom data converter to this `DocumentReference`, allowing you
-   * to use your own custom model objects with Firestore. When you call {@link
-   * @firebase/firestore/lite#(setDoc:1)}, {@link @firebase/firestore/lite#getDoc}, etc. with the returned `DocumentReference`
-   * instance, the provided converter will convert between Firestore data of
-   * type `NewDbModelType` and your custom type `NewAppModelType`.
-   *
-   * @param converter - Converts objects to and from Firestore.
-   * @returns A `DocumentReference` that uses the provided converter.
-   */
-  withConverter<
-    NewAppModelType,
-    NewDbModelType extends DocumentData = DocumentData
-  >(
-    converter: FirestoreDataConverter_2<NewAppModelType, NewDbModelType>
-  ): DocumentReference<NewAppModelType, NewDbModelType>;
-  /**
-   * Removes the current converter.
-   *
-   * @param converter - `null` removes the current converter.
-   * @returns A `DocumentReference<DocumentData, DocumentData>` that does not
-   * use a converter.
-   */
-  withConverter(converter: null): DocumentReference<DocumentData, DocumentData>;
+    readonly converter: FirestoreDataConverter_2<AppModelType, DbModelType> | null;
+    readonly _key: _DocumentKey;
+    /** The type of this Firestore reference. */
+    readonly type = "document";
+    /**
+     * The {@link Firestore} instance the document is in.
+     * This is useful for performing transactions, for example.
+     */
+    readonly firestore: Firestore_2;
+    /** @hideconstructor */
+    constructor(firestore: Firestore_2, 
+    /**
+     * If provided, the `FirestoreDataConverter` associated with this instance.
+     */
+    converter: FirestoreDataConverter_2<AppModelType, DbModelType> | null, _key: _DocumentKey);
+    get _path(): _ResourcePath;
+    /**
+     * The document's identifier within its collection.
+     */
+    get id(): string;
+    /**
+     * A string representing the path of the referenced document (relative
+     * to the root of the database).
+     */
+    get path(): string;
+    /**
+     * The collection this `DocumentReference` belongs to.
+     */
+    get parent(): CollectionReference<AppModelType, DbModelType>;
+    /**
+     * Applies a custom data converter to this `DocumentReference`, allowing you
+     * to use your own custom model objects with Firestore. When you call {@link
+     * @firebase/firestore/lite#(setDoc:1)}, {@link @firebase/firestore/lite#getDoc}, etc. with the returned `DocumentReference`
+     * instance, the provided converter will convert between Firestore data of
+     * type `NewDbModelType` and your custom type `NewAppModelType`.
+     *
+     * @param converter - Converts objects to and from Firestore.
+     * @returns A `DocumentReference` that uses the provided converter.
+     */
+    withConverter<NewAppModelType, NewDbModelType extends DocumentData = DocumentData>(converter: FirestoreDataConverter_2<NewAppModelType, NewDbModelType>): DocumentReference<NewAppModelType, NewDbModelType>;
+    /**
+     * Removes the current converter.
+     *
+     * @param converter - `null` removes the current converter.
+     * @returns A `DocumentReference<DocumentData, DocumentData>` that does not
+     * use a converter.
+     */
+    withConverter(converter: null): DocumentReference<DocumentData, DocumentData>;
+    static _jsonSchemaVersion: string;
+    static _jsonSchema: {
+        type: Property<"string">;
+        referencePath: Property<"string">;
+    };
+    /**
+     * Returns a JSON-serializable representation of this `DocumentReference` instance.
+     *
+     * @returns a JSON representation of this object.
+     */
+    toJSON(): object;
+    /**
+     * Builds a `DocumentReference` instance from a JSON object created by
+     * {@link DocumentReference.toJSON}.
+     *
+     * @param firestore - The {@link Firestore} instance the snapshot should be loaded for.
+     * @param json - a JSON object represention of a `DocumentReference` instance
+     * @returns an instance of {@link DocumentReference} if the JSON object could be parsed. Throws a
+     * {@link FirestoreError} if an error occurs.
+     */
+    static fromJSON(firestore: Firestore_2, json: object): DocumentReference;
+    /**
+     * Builds a `DocumentReference` instance from a JSON object created by
+     * {@link DocumentReference.toJSON}.
+     *
+     * @param firestore - The {@link Firestore} instance the snapshot should be loaded for.
+     * @param json - a JSON object represention of a `DocumentReference` instance
+     * @param converter - Converts objects to and from Firestore.
+     * @returns an instance of {@link DocumentReference} if the JSON object could be parsed. Throws a
+     * {@link FirestoreError} if an error occurs.
+     */
+    static fromJSON<NewAppModelType = DocumentData, NewDbModelType extends DocumentData = DocumentData>(firestore: Firestore_2, json: object, converter: FirestoreDataConverter_2<NewAppModelType, NewDbModelType>): DocumentReference<NewAppModelType, NewDbModelType>;
 }
 
 /**
@@ -1331,36 +1271,36 @@ export declare class DocumentReference<
  * the key.
  */
 declare class DocumentSet {
-  /**
-   * Returns an empty copy of the existing DocumentSet, using the same
-   * comparator.
-   */
-  static emptySet(oldSet: DocumentSet): DocumentSet;
-  private comparator;
-  private keyedMap;
-  private sortedSet;
-  /** The default ordering is by key if the comparator is omitted */
-  constructor(comp?: DocumentComparator);
-  has(key: _DocumentKey): boolean;
-  get(key: _DocumentKey): Document_2 | null;
-  first(): Document_2 | null;
-  last(): Document_2 | null;
-  isEmpty(): boolean;
-  /**
-   * Returns the index of the provided key in the document set, or -1 if the
-   * document key is not present in the set;
-   */
-  indexOf(key: _DocumentKey): number;
-  get size(): number;
-  /** Iterates documents in order defined by "comparator" */
-  forEach(cb: (doc: Document_2) => void): void;
-  /** Inserts or updates a document with the same key */
-  add(doc: Document_2): DocumentSet;
-  /** Deletes a document with a given key */
-  delete(key: _DocumentKey): DocumentSet;
-  isEqual(other: DocumentSet | null | undefined): boolean;
-  toString(): string;
-  private copy;
+    /**
+     * Returns an empty copy of the existing DocumentSet, using the same
+     * comparator.
+     */
+    static emptySet(oldSet: DocumentSet): DocumentSet;
+    private comparator;
+    private keyedMap;
+    private sortedSet;
+    /** The default ordering is by key if the comparator is omitted */
+    constructor(comp?: DocumentComparator);
+    has(key: _DocumentKey): boolean;
+    get(key: _DocumentKey): Document_2 | null;
+    first(): Document_2 | null;
+    last(): Document_2 | null;
+    isEmpty(): boolean;
+    /**
+     * Returns the index of the provided key in the document set, or -1 if the
+     * document key is not present in the set;
+     */
+    indexOf(key: _DocumentKey): number;
+    get size(): number;
+    /** Iterates documents in order defined by "comparator" */
+    forEach(cb: (doc: Document_2) => void): void;
+    /** Inserts or updates a document with the same key */
+    add(doc: Document_2): DocumentSet;
+    /** Deletes a document with a given key */
+    delete(key: _DocumentKey): DocumentSet;
+    isEqual(other: DocumentSet | null | undefined): boolean;
+    toString(): string;
+    private copy;
 }
 
 /**
@@ -1372,62 +1312,66 @@ declare class DocumentSet {
  * access will return 'undefined'. You can use the `exists()` method to
  * explicitly verify a document's existence.
  */
-export declare class DocumentSnapshot<
-  AppModelType = DocumentData,
-  DbModelType extends DocumentData = DocumentData
-> extends DocumentSnapshot_2<AppModelType, DbModelType> {
-  readonly _firestore: Firestore;
-  private readonly _firestoreImpl;
-  /**
-   *  Metadata about the `DocumentSnapshot`, including information about its
-   *  source and local modifications.
-   */
-  readonly metadata: SnapshotMetadata;
-  /** @hideconstructor protected */
-  constructor(
-    _firestore: Firestore,
-    userDataWriter: AbstractUserDataWriter,
-    key: _DocumentKey,
-    document: Document_2 | null,
-    metadata: SnapshotMetadata,
-    converter: UntypedFirestoreDataConverter<AppModelType, DbModelType> | null
-  );
-  /**
-   * Returns whether or not the data exists. True if the document exists.
-   */
-  exists(): this is QueryDocumentSnapshot<AppModelType, DbModelType>;
-  /**
-   * Retrieves all fields in the document as an `Object`. Returns `undefined` if
-   * the document doesn't exist.
-   *
-   * By default, `serverTimestamp()` values that have not yet been
-   * set to their final value will be returned as `null`. You can override
-   * this by passing an options object.
-   *
-   * @param options - An options object to configure how data is retrieved from
-   * the snapshot (for example the desired behavior for server timestamps that
-   * have not yet been set to their final value).
-   * @returns An `Object` containing all fields in the document or `undefined` if
-   * the document doesn't exist.
-   */
-  data(options?: SnapshotOptions): AppModelType | undefined;
-  /**
-   * Retrieves the field specified by `fieldPath`. Returns `undefined` if the
-   * document or field doesn't exist.
-   *
-   * By default, a `serverTimestamp()` that has not yet been set to
-   * its final value will be returned as `null`. You can override this by
-   * passing an options object.
-   *
-   * @param fieldPath - The path (for example 'foo' or 'foo.bar') to a specific
-   * field.
-   * @param options - An options object to configure how the field is retrieved
-   * from the snapshot (for example the desired behavior for server timestamps
-   * that have not yet been set to their final value).
-   * @returns The data at the specified field location or undefined if no such
-   * field exists in the document.
-   */
-  get(fieldPath: string | FieldPath, options?: SnapshotOptions): any;
+export declare class DocumentSnapshot<AppModelType = DocumentData, DbModelType extends DocumentData = DocumentData> extends DocumentSnapshot_2<AppModelType, DbModelType> {
+    readonly _firestore: Firestore;
+    private readonly _firestoreImpl;
+    /**
+     *  Metadata about the `DocumentSnapshot`, including information about its
+     *  source and local modifications.
+     */
+    readonly metadata: SnapshotMetadata;
+    /** @hideconstructor protected */
+    constructor(_firestore: Firestore, userDataWriter: AbstractUserDataWriter, key: _DocumentKey, document: Document_2 | null, metadata: SnapshotMetadata, converter: UntypedFirestoreDataConverter<AppModelType, DbModelType> | null);
+    /**
+     * Returns whether or not the data exists. True if the document exists.
+     */
+    exists(): this is QueryDocumentSnapshot<AppModelType, DbModelType>;
+    /**
+     * Retrieves all fields in the document as an `Object`. Returns `undefined` if
+     * the document doesn't exist.
+     *
+     * By default, `serverTimestamp()` values that have not yet been
+     * set to their final value will be returned as `null`. You can override
+     * this by passing an options object.
+     *
+     * @param options - An options object to configure how data is retrieved from
+     * the snapshot (for example the desired behavior for server timestamps that
+     * have not yet been set to their final value).
+     * @returns An `Object` containing all fields in the document or `undefined` if
+     * the document doesn't exist.
+     */
+    data(options?: SnapshotOptions): AppModelType | undefined;
+    /**
+     * Retrieves the field specified by `fieldPath`. Returns `undefined` if the
+     * document or field doesn't exist.
+     *
+     * By default, a `serverTimestamp()` that has not yet been set to
+     * its final value will be returned as `null`. You can override this by
+     * passing an options object.
+     *
+     * @param fieldPath - The path (for example 'foo' or 'foo.bar') to a specific
+     * field.
+     * @param options - An options object to configure how the field is retrieved
+     * from the snapshot (for example the desired behavior for server timestamps
+     * that have not yet been set to their final value).
+     * @returns The data at the specified field location or undefined if no such
+     * field exists in the document.
+     */
+    get(fieldPath: string | FieldPath, options?: SnapshotOptions): any;
+    static _jsonSchemaVersion: string;
+    static _jsonSchema: {
+        type: Property<"string">;
+        bundleSource: Property<"string">;
+        bundleName: Property<"string">;
+        bundle: Property<"string">;
+    };
+    /**
+     * Returns a JSON-serializable representation of this `DocumentSnapshot` instance.
+     *
+     * @returns a JSON representation of this object.  Throws a {@link FirestoreError} if this
+     * `DocumentSnapshot` has pending writes.
+     */
+    toJSON(): object;
 }
 
 /**
@@ -1439,66 +1383,81 @@ export declare class DocumentSnapshot<
  * access will return 'undefined'. You can use the `exists()` method to
  * explicitly verify a document's existence.
  */
-declare class DocumentSnapshot_2<
-  AppModelType = DocumentData,
-  DbModelType extends DocumentData = DocumentData
-> {
-  _firestore: Firestore_2;
-  _userDataWriter: AbstractUserDataWriter;
-  _key: _DocumentKey;
-  _document: Document_2 | null;
-  _converter: UntypedFirestoreDataConverter<AppModelType, DbModelType> | null;
-  /** @hideconstructor protected */
-  constructor(
-    _firestore: Firestore_2,
-    _userDataWriter: AbstractUserDataWriter,
-    _key: _DocumentKey,
-    _document: Document_2 | null,
-    _converter: UntypedFirestoreDataConverter<AppModelType, DbModelType> | null
-  );
-  /** Property of the `DocumentSnapshot` that provides the document's ID. */
-  get id(): string;
-  /**
-   * The `DocumentReference` for the document included in the `DocumentSnapshot`.
-   */
-  get ref(): DocumentReference<AppModelType, DbModelType>;
-  /**
-   * Signals whether or not the document at the snapshot's location exists.
-   *
-   * @returns true if the document exists.
-   */
-  exists(): this is QueryDocumentSnapshot_2<AppModelType, DbModelType>;
-  /**
-   * Retrieves all fields in the document as an `Object`. Returns `undefined` if
-   * the document doesn't exist.
-   *
-   * @returns An `Object` containing all fields in the document or `undefined`
-   * if the document doesn't exist.
-   */
-  data(): AppModelType | undefined;
-  /**
-   * Retrieves the field specified by `fieldPath`. Returns `undefined` if the
-   * document or field doesn't exist.
-   *
-   * @param fieldPath - The path (for example 'foo' or 'foo.bar') to a specific
-   * field.
-   * @returns The data at the specified field location or undefined if no such
-   * field exists in the document.
-   */
-  get(fieldPath: string | FieldPath): any;
+declare class DocumentSnapshot_2<AppModelType = DocumentData, DbModelType extends DocumentData = DocumentData> {
+    _firestore: Firestore_2;
+    _userDataWriter: AbstractUserDataWriter;
+    _key: _DocumentKey;
+    _document: Document_2 | null;
+    _converter: UntypedFirestoreDataConverter<AppModelType, DbModelType> | null;
+    /** @hideconstructor protected */
+    constructor(_firestore: Firestore_2, _userDataWriter: AbstractUserDataWriter, _key: _DocumentKey, _document: Document_2 | null, _converter: UntypedFirestoreDataConverter<AppModelType, DbModelType> | null);
+    /** Property of the `DocumentSnapshot` that provides the document's ID. */
+    get id(): string;
+    /**
+     * The `DocumentReference` for the document included in the `DocumentSnapshot`.
+     */
+    get ref(): DocumentReference<AppModelType, DbModelType>;
+    /**
+     * Signals whether or not the document at the snapshot's location exists.
+     *
+     * @returns true if the document exists.
+     */
+    exists(): this is QueryDocumentSnapshot_2<AppModelType, DbModelType>;
+    /**
+     * Retrieves all fields in the document as an `Object`. Returns `undefined` if
+     * the document doesn't exist.
+     *
+     * @returns An `Object` containing all fields in the document or `undefined`
+     * if the document doesn't exist.
+     */
+    data(): AppModelType | undefined;
+    /* Excluded from this release type: _fieldsProto */
+    /**
+     * Retrieves the field specified by `fieldPath`. Returns `undefined` if the
+     * document or field doesn't exist.
+     *
+     * @param fieldPath - The path (for example 'foo' or 'foo.bar') to a specific
+     * field.
+     * @returns The data at the specified field location or undefined if no such
+     * field exists in the document.
+     */
+    get(fieldPath: string | FieldPath): any;
 }
+
+/**
+ * Builds a `DocumentSnapshot` instance from a JSON object created by
+ * {@link DocumentSnapshot.toJSON}.
+ *
+ * @param firestore - The {@link Firestore} instance the snapshot should be loaded for.
+ * @param json - a JSON object represention of a `DocumentSnapshot` instance.
+ * @returns an instance of {@link DocumentSnapshot} if the JSON object could be
+ * parsed. Throws a {@link FirestoreError} if an error occurs.
+ */
+export declare function documentSnapshotFromJSON(db: Firestore, json: object): DocumentSnapshot;
+
+/**
+ * Builds a `DocumentSnapshot` instance from a JSON object created by
+ * {@link DocumentSnapshot.toJSON}.
+ *
+ * @param firestore - The {@link Firestore} instance the snapshot should be loaded for.
+ * @param json - a JSON object represention of a `DocumentSnapshot` instance.
+ * @param converter - Converts objects to and from Firestore.
+ * @returns an instance of {@link DocumentSnapshot} if the JSON object could be
+ * parsed. Throws a {@link FirestoreError} if an error occurs.
+ */
+export declare function documentSnapshotFromJSON<AppModelType, DbModelType extends DocumentData = DocumentData>(db: Firestore, json: object, converter: FirestoreDataConverter<AppModelType, DbModelType>): DocumentSnapshot<AppModelType, DbModelType>;
 
 declare type DocumentVersionMap = SortedMap<_DocumentKey, SnapshotVersion>;
 
 declare interface DocumentViewChange {
-  type: ChangeType;
-  doc: Document_2;
+    type: ChangeType;
+    doc: Document_2;
 }
 
 /* Excluded from this release type: _EmptyAppCheckTokenProvider */
 
 /* Excluded from this release type: _EmptyAuthCredentialsProvider */
-export { EmulatorMockTokenOptions };
+export { EmulatorMockTokenOptions }
 
 /**
  * Attempts to enable persistent storage, if possible.
@@ -1529,10 +1488,7 @@ export { EmulatorMockTokenOptions };
  * turn on IndexedDb cache. Calling this function when `FirestoreSettings.localCache`
  * is already specified will throw an exception.
  */
-export declare function enableIndexedDbPersistence(
-  firestore: Firestore,
-  persistenceSettings?: PersistenceSettings
-): Promise<void>;
+export declare function enableIndexedDbPersistence(firestore: Firestore, persistenceSettings?: PersistenceSettings): Promise<void>;
 
 /**
  * Attempts to enable multi-tab persistent storage, if possible. If enabled
@@ -1560,9 +1516,7 @@ export declare function enableIndexedDbPersistence(
  * turn on indexeddb cache. Calling this function when `FirestoreSettings.localCache`
  * is already specified will throw an exception.
  */
-export declare function enableMultiTabIndexedDbPersistence(
-  firestore: Firestore
-): Promise<void>;
+export declare function enableMultiTabIndexedDbPersistence(firestore: Firestore): Promise<void>;
 
 /**
  * Re-enables use of the network for this {@link Firestore} instance after a prior
@@ -1579,9 +1533,7 @@ export declare function enableNetwork(firestore: Firestore): Promise<void>;
  *
  * This feature is disabled by default.
  */
-export declare function enablePersistentCacheIndexAutoCreation(
-  indexManager: PersistentCacheIndexManager
-): void;
+export declare function enablePersistentCacheIndexAutoCreation(indexManager: PersistentCacheIndexManager): void;
 
 /**
  * Creates a {@link QueryEndAtConstraint} that modifies the result set to end at
@@ -1592,9 +1544,7 @@ export declare function enablePersistentCacheIndexAutoCreation(
  * @param snapshot - The snapshot of the document to end at.
  * @returns A {@link QueryEndAtConstraint} to pass to `query()`
  */
-export declare function endAt<AppModelType, DbModelType extends DocumentData>(
-  snapshot: DocumentSnapshot_2<AppModelType, DbModelType>
-): QueryEndAtConstraint;
+export declare function endAt<AppModelType, DbModelType extends DocumentData>(snapshot: DocumentSnapshot_2<AppModelType, DbModelType>): QueryEndAtConstraint;
 
 /**
  * Creates a {@link QueryEndAtConstraint} that modifies the result set to end at
@@ -1616,12 +1566,7 @@ export declare function endAt(...fieldValues: unknown[]): QueryEndAtConstraint;
  * @param snapshot - The snapshot of the document to end before.
  * @returns A {@link QueryEndAtConstraint} to pass to `query()`
  */
-export declare function endBefore<
-  AppModelType,
-  DbModelType extends DocumentData
->(
-  snapshot: DocumentSnapshot_2<AppModelType, DbModelType>
-): QueryEndAtConstraint;
+export declare function endBefore<AppModelType, DbModelType extends DocumentData>(snapshot: DocumentSnapshot_2<AppModelType, DbModelType>): QueryEndAtConstraint;
 
 /**
  * Creates a {@link QueryEndAtConstraint} that modifies the result set to end
@@ -1632,15 +1577,13 @@ export declare function endBefore<
  * of the query's order by.
  * @returns A {@link QueryEndAtConstraint} to pass to `query()`
  */
-export declare function endBefore(
-  ...fieldValues: unknown[]
-): QueryEndAtConstraint;
+export declare function endBefore(...fieldValues: unknown[]): QueryEndAtConstraint;
 
 /* Excluded from this release type: ensureFirestoreConfigured */
 
 declare interface Entry<K, V> {
-  key: K;
-  value: V;
+    key: K;
+    value: V;
 }
 
 /**
@@ -1653,14 +1596,11 @@ declare interface Entry<K, V> {
  * allows users to tree-shake the Watch logic.
  */
 declare interface EventManager {
-  onListen?: (
-    query: Query_2,
-    enableRemoteListen: boolean
-  ) => Promise<ViewSnapshot>;
-  onUnlisten?: (query: Query_2, disableRemoteListen: boolean) => Promise<void>;
-  onFirstRemoteStoreListen?: (query: Query_2) => Promise<void>;
-  onLastRemoteStoreUnlisten?: (query: Query_2) => Promise<void>;
-  terminate(): void;
+    onListen?: (query: QueryOrPipeline, enableRemoteListen: boolean) => Promise<ViewSnapshot>;
+    onUnlisten?: (query: QueryOrPipeline, disableRemoteListen: boolean) => Promise<void>;
+    onFirstRemoteStoreListen?: (query: QueryOrPipeline) => Promise<void>;
+    onLastRemoteStoreUnlisten?: (query: QueryOrPipeline) => Promise<void>;
+    terminate(): void;
 }
 
 /* Excluded from this release type: executeWrite */
@@ -1692,55 +1632,44 @@ declare interface EventManager {
  * `FirestoreSettings.experimentalLongPollingOptions`.
  */
 export declare interface ExperimentalLongPollingOptions {
-  /**
-   * The desired maximum timeout interval, in seconds, to complete a
-   * long-polling GET response. Valid values are between 5 and 30, inclusive.
-   * Floating point values are allowed and will be rounded to the nearest
-   * millisecond.
-   *
-   * By default, when long-polling is used the "hanging GET" request sent by
-   * the client times out after 30 seconds. To request a different timeout
-   * from the server, set this setting with the desired timeout.
-   *
-   * Changing the default timeout may be useful, for example, if the buffering
-   * proxy that necessitated enabling long-polling in the first place has a
-   * shorter timeout for hanging GET requests, in which case setting the
-   * long-polling timeout to a shorter value, such as 25 seconds, may fix
-   * prematurely-closed hanging GET requests.
-   * For example, see https://github.com/firebase/firebase-js-sdk/issues/6987.
-   */
-  timeoutSeconds?: number;
+    /**
+     * The desired maximum timeout interval, in seconds, to complete a
+     * long-polling GET response. Valid values are between 5 and 30, inclusive.
+     * Floating point values are allowed and will be rounded to the nearest
+     * millisecond.
+     *
+     * By default, when long-polling is used the "hanging GET" request sent by
+     * the client times out after 30 seconds. To request a different timeout
+     * from the server, set this setting with the desired timeout.
+     *
+     * Changing the default timeout may be useful, for example, if the buffering
+     * proxy that necessitated enabling long-polling in the first place has a
+     * shorter timeout for hanging GET requests, in which case setting the
+     * long-polling timeout to a shorter value, such as 25 seconds, may fix
+     * prematurely-closed hanging GET requests.
+     * For example, see https://github.com/firebase/firebase-js-sdk/issues/6987.
+     */
+    timeoutSeconds?: number;
 }
 
 declare class FieldFilter extends Filter {
-  readonly field: _FieldPath;
-  readonly op: Operator;
-  readonly value: Value;
-  protected constructor(field: _FieldPath, op: Operator, value: Value);
-  /**
-   * Creates a filter based on the provided arguments.
-   */
-  static create(field: _FieldPath, op: Operator, value: Value): FieldFilter;
-  private static createKeyFieldInFilter;
-  matches(doc: Document_2): boolean;
-  protected matchesComparison(comparison: number): boolean;
-  isInequality(): boolean;
-  getFlattenedFilters(): readonly FieldFilter[];
-  getFilters(): Filter[];
+    readonly field: _FieldPath;
+    readonly op: Operator;
+    readonly value: Value;
+    protected constructor(field: _FieldPath, op: Operator, value: Value);
+    /**
+     * Creates a filter based on the provided arguments.
+     */
+    static create(field: _FieldPath, op: Operator, value: Value): FieldFilter;
+    private static createKeyFieldInFilter;
+    matches(doc: Document_2): boolean;
+    protected matchesComparison(comparison: number): boolean;
+    isInequality(): boolean;
+    getFlattenedFilters(): readonly FieldFilter[];
+    getFilters(): Filter[];
 }
 
-declare type FieldFilterOp =
-  | 'OPERATOR_UNSPECIFIED'
-  | 'LESS_THAN'
-  | 'LESS_THAN_OR_EQUAL'
-  | 'GREATER_THAN'
-  | 'GREATER_THAN_OR_EQUAL'
-  | 'EQUAL'
-  | 'NOT_EQUAL'
-  | 'ARRAY_CONTAINS'
-  | 'IN'
-  | 'ARRAY_CONTAINS_ANY'
-  | 'NOT_IN';
+declare type FieldFilterOp = 'OPERATOR_UNSPECIFIED' | 'LESS_THAN' | 'LESS_THAN_OR_EQUAL' | 'GREATER_THAN' | 'GREATER_THAN_OR_EQUAL' | 'EQUAL' | 'NOT_EQUAL' | 'ARRAY_CONTAINS' | 'IN' | 'ARRAY_CONTAINS_ANY' | 'NOT_IN';
 
 /**
  * An index definition for field indexes in Firestore.
@@ -1754,32 +1683,31 @@ declare type FieldFilterOp =
  * collection and collection group queries.
  */
 declare class FieldIndex {
-  /**
-   * The index ID. Returns -1 if the index ID is not available (e.g. the index
-   * has not yet been persisted).
-   */
-  readonly indexId: number;
-  /** The collection ID this index applies to. */
-  readonly collectionGroup: string;
-  /** The field segments for this index. */
-  readonly fields: IndexSegment[];
-  /** Shows how up-to-date the index is for the current user. */
-  readonly indexState: IndexState;
-  /** An ID for an index that has not yet been added to persistence.  */
-  static UNKNOWN_ID: number;
-  constructor(
     /**
      * The index ID. Returns -1 if the index ID is not available (e.g. the index
      * has not yet been persisted).
      */
-    indexId: number,
+    readonly indexId: number;
     /** The collection ID this index applies to. */
-    collectionGroup: string,
+    readonly collectionGroup: string;
     /** The field segments for this index. */
-    fields: IndexSegment[],
+    readonly fields: IndexSegment[];
     /** Shows how up-to-date the index is for the current user. */
-    indexState: IndexState
-  );
+    readonly indexState: IndexState;
+    /** An ID for an index that has not yet been added to persistence.  */
+    static UNKNOWN_ID: number;
+    constructor(
+    /**
+     * The index ID. Returns -1 if the index ID is not available (e.g. the index
+     * has not yet been persisted).
+     */
+    indexId: number, 
+    /** The collection ID this index applies to. */
+    collectionGroup: string, 
+    /** The field segments for this index. */
+    fields: IndexSegment[], 
+    /** Shows how up-to-date the index is for the current user. */
+    indexState: IndexState);
 }
 
 /**
@@ -1793,22 +1721,22 @@ declare class FieldIndex {
  *             containing foo
  */
 declare class FieldMask {
-  readonly fields: _FieldPath[];
-  constructor(fields: _FieldPath[]);
-  static empty(): FieldMask;
-  /**
-   * Returns a new FieldMask object that is the result of adding all the given
-   * fields paths to this field mask.
-   */
-  unionWith(extraFields: _FieldPath[]): FieldMask;
-  /**
-   * Verifies that `fieldPath` is included by at least one field in this field
-   * mask.
-   *
-   * This is an O(n) operation, where `n` is the size of the field mask.
-   */
-  covers(fieldPath: _FieldPath): boolean;
-  isEqual(other: FieldMask): boolean;
+    readonly fields: _FieldPath[];
+    constructor(fields: _FieldPath[]);
+    static empty(): FieldMask;
+    /**
+     * Returns a new FieldMask object that is the result of adding all the given
+     * fields paths to this field mask.
+     */
+    unionWith(extraFields: _FieldPath[]): FieldMask;
+    /**
+     * Verifies that `fieldPath` is included by at least one field in this field
+     * mask.
+     *
+     * This is an O(n) operation, where `n` is the size of the field mask.
+     */
+    covers(fieldPath: _FieldPath): boolean;
+    isEqual(other: FieldMask): boolean;
 }
 
 /**
@@ -1820,57 +1748,55 @@ declare class FieldMask {
  * name is provided, the path will point to a nested field in a document.
  */
 export declare class FieldPath {
-  /** Internal representation of a Firestore field path. */
-  readonly _internalPath: _FieldPath;
-  /**
-   * Creates a `FieldPath` from the provided field names. If more than one field
-   * name is provided, the path will point to a nested field in a document.
-   *
-   * @param fieldNames - A list of field names.
-   */
-  constructor(...fieldNames: string[]);
-  /**
-   * Returns true if this `FieldPath` is equal to the provided one.
-   *
-   * @param other - The `FieldPath` to compare against.
-   * @returns true if this `FieldPath` is equal to the provided one.
-   */
-  isEqual(other: FieldPath): boolean;
+    /** Internal representation of a Firestore field path. */
+    readonly _internalPath: _FieldPath;
+    /**
+     * Creates a `FieldPath` from the provided field names. If more than one field
+     * name is provided, the path will point to a nested field in a document.
+     *
+     * @param fieldNames - A list of field names.
+     */
+    constructor(...fieldNames: string[]);
+    /**
+     * Returns true if this `FieldPath` is equal to the provided one.
+     *
+     * @param other - The `FieldPath` to compare against.
+     * @returns true if this `FieldPath` is equal to the provided one.
+     */
+    isEqual(other: FieldPath): boolean;
 }
 
 /* Excluded from this release type: _FieldPath */
 
 /** A field path and the TransformOperation to perform upon it. */
 declare class FieldTransform {
-  readonly field: _FieldPath;
-  readonly transform: TransformOperation;
-  constructor(field: _FieldPath, transform: TransformOperation);
+    readonly field: _FieldPath;
+    readonly transform: TransformOperation;
+    constructor(field: _FieldPath, transform: TransformOperation);
 }
 
-declare type FieldTransformSetToServerValue =
-  | 'SERVER_VALUE_UNSPECIFIED'
-  | 'REQUEST_TIME';
+declare type FieldTransformSetToServerValue = 'SERVER_VALUE_UNSPECIFIED' | 'REQUEST_TIME';
 
 /**
  * Sentinel values that can be used when writing document fields with `set()`
  * or `update()`.
  */
 export declare abstract class FieldValue {
-  _methodName: string;
-  /**
-   * @param _methodName - The public API endpoint that returns this class.
-   * @hideconstructor
-   */
-  constructor(_methodName: string);
-  /** Compares `FieldValue`s for equality. */
-  abstract isEqual(other: FieldValue): boolean;
-  abstract _toFieldTransform(context: ParseContext): FieldTransform | null;
+    _methodName: string;
+    /**
+     * @param _methodName - The public API endpoint that returns this class.
+     * @hideconstructor
+     */
+    constructor(_methodName: string);
+    /** Compares `FieldValue`s for equality. */
+    abstract isEqual(other: FieldValue): boolean;
+    abstract _toFieldTransform(context: ParseContext): FieldTransform | null;
 }
 
 declare abstract class Filter {
-  abstract matches(doc: Document_2): boolean;
-  abstract getFlattenedFilters(): readonly FieldFilter[];
-  abstract getFilters(): Filter[];
+    abstract matches(doc: Document_2): boolean;
+    abstract getFlattenedFilters(): readonly FieldFilter[];
+    abstract getFilters(): Filter[];
 }
 
 /* Excluded from this release type: _FirebaseService */
@@ -1881,25 +1807,20 @@ declare abstract class Filter {
  * Do not call this constructor directly. Instead, use {@link (getFirestore:1)}.
  */
 export declare class Firestore extends Firestore_2 {
-  /**
-   * Whether it's a {@link Firestore} or Firestore Lite instance.
-   */
-  type: 'firestore-lite' | 'firestore';
-  _queue: AsyncQueue;
-  readonly _persistenceKey: string;
-  _firestoreClient: FirestoreClient | undefined;
-  _componentsProvider?: {
-    _offline: OfflineComponentProviderFactory;
-    _online: OnlineComponentProviderFactory;
-  };
-  /** @hideconstructor */
-  constructor(
-    authCredentialsProvider: CredentialsProvider<User>,
-    appCheckCredentialsProvider: CredentialsProvider<string>,
-    databaseId: _DatabaseId,
-    app?: FirebaseApp
-  );
-  protected _terminate(): Promise<void>;
+    /**
+     * Whether it's a {@link Firestore} or Firestore Lite instance.
+     */
+    type: 'firestore-lite' | 'firestore';
+    _queue: AsyncQueue;
+    readonly _persistenceKey: string;
+    _firestoreClient: FirestoreClient | undefined;
+    _componentsProvider?: {
+        _offline: OfflineComponentProviderFactory;
+        _online: OnlineComponentProviderFactory;
+    };
+    /** @hideconstructor */
+    constructor(authCredentialsProvider: CredentialsProvider<User>, appCheckCredentialsProvider: CredentialsProvider<string>, databaseId: _DatabaseId, app?: FirebaseApp);
+    protected _terminate(): Promise<void>;
 }
 
 /**
@@ -1908,47 +1829,46 @@ export declare class Firestore extends Firestore_2 {
  * Do not call this constructor directly. Instead, use {@link (getFirestore:1)}.
  */
 declare class Firestore_2 implements FirestoreService {
-  _authCredentials: CredentialsProvider<User>;
-  _appCheckCredentials: CredentialsProvider<string>;
-  readonly _databaseId: _DatabaseId;
-  readonly _app?: FirebaseApp | undefined;
-  /**
-   * Whether it's a Firestore or Firestore Lite instance.
-   */
-  type: 'firestore-lite' | 'firestore';
-  readonly _persistenceKey: string;
-  private _settings;
-  private _settingsFrozen;
-  private _terminateTask;
-  /** @hideconstructor */
-  constructor(
-    _authCredentials: CredentialsProvider<User>,
-    _appCheckCredentials: CredentialsProvider<string>,
-    _databaseId: _DatabaseId,
-    _app?: FirebaseApp | undefined
-  );
-  /**
-   * The {@link @firebase/app#FirebaseApp} associated with this `Firestore` service
-   * instance.
-   */
-  get app(): FirebaseApp;
-  get _initialized(): boolean;
-  get _terminated(): boolean;
-  _setSettings(settings: PrivateSettings): void;
-  _getSettings(): FirestoreSettingsImpl;
-  _freezeSettings(): FirestoreSettingsImpl;
-  _delete(): Promise<void>;
-  _restart(): Promise<void>;
-  /** Returns a JSON-serializable representation of this `Firestore` instance. */
-  toJSON(): object;
-  /**
-   * Terminates all components used by this client. Subclasses can override
-   * this method to clean up their own dependencies, but must also call this
-   * method.
-   *
-   * Only ever called once.
-   */
-  protected _terminate(): Promise<void>;
+    _authCredentials: CredentialsProvider<User>;
+    _appCheckCredentials: CredentialsProvider<string>;
+    readonly _databaseId: _DatabaseId;
+    readonly _app?: FirebaseApp | undefined;
+    /**
+     * Whether it's a Firestore or Firestore Lite instance.
+     */
+    type: 'firestore-lite' | 'firestore';
+    readonly _persistenceKey: string;
+    private _settings;
+    private _settingsFrozen;
+    private _emulatorOptions;
+    private _terminateTask;
+    /** @hideconstructor */
+    constructor(_authCredentials: CredentialsProvider<User>, _appCheckCredentials: CredentialsProvider<string>, _databaseId: _DatabaseId, _app?: FirebaseApp | undefined);
+    /**
+     * The {@link @firebase/app#FirebaseApp} associated with this `Firestore` service
+     * instance.
+     */
+    get app(): FirebaseApp;
+    get _initialized(): boolean;
+    get _terminated(): boolean;
+    _setSettings(settings: PrivateSettings): void;
+    _getSettings(): FirestoreSettingsImpl;
+    _getEmulatorOptions(): {
+        mockUserToken?: EmulatorMockTokenOptions | string;
+    };
+    _freezeSettings(): FirestoreSettingsImpl;
+    _delete(): Promise<void>;
+    _restart(): Promise<void>;
+    /** Returns a JSON-serializable representation of this `Firestore` instance. */
+    toJSON(): object;
+    /**
+     * Terminates all components used by this client. Subclasses can override
+     * this method to clean up their own dependencies, but must also call this
+     * method.
+     *
+     * Only ever called once.
+     */
+    protected _terminate(): Promise<void>;
 }
 
 /**
@@ -1957,31 +1877,8 @@ declare class Firestore_2 implements FirestoreService {
  * async queue that is shared by all of the other components in the system. //
  */
 declare class FirestoreClient {
-  private authCredentials;
-  private appCheckCredentials;
-  /**
-   * Asynchronous queue responsible for all of our internal processing. When
-   * we get incoming work from the user (via public API) or the network
-   * (incoming GRPC messages), we should always schedule onto this queue.
-   * This ensures all of our work is properly serialized (e.g. we don't
-   * start processing a new operation while the previous one is waiting for
-   * an async I/O to complete).
-   */
-  asyncQueue: AsyncQueue;
-  private databaseInfo;
-  private user;
-  private readonly clientId;
-  private authCredentialListener;
-  private appCheckCredentialListener;
-  _uninitializedComponentsProvider?: {
-    _offline: OfflineComponentProvider;
-    _online: OnlineComponentProvider;
-  };
-  _offlineComponents?: OfflineComponentProvider;
-  _onlineComponents?: OnlineComponentProvider;
-  constructor(
-    authCredentials: CredentialsProvider<User>,
-    appCheckCredentials: CredentialsProvider<string>,
+    private authCredentials;
+    private appCheckCredentials;
     /**
      * Asynchronous queue responsible for all of our internal processing. When
      * we get incoming work from the user (via public API) or the network
@@ -1990,19 +1887,42 @@ declare class FirestoreClient {
      * start processing a new operation while the previous one is waiting for
      * an async I/O to complete).
      */
-    asyncQueue: AsyncQueue,
-    databaseInfo: DatabaseInfo,
-    componentProvider?: {
-      _offline: OfflineComponentProvider;
-      _online: OnlineComponentProvider;
-    }
-  );
-  get configuration(): ComponentConfiguration;
-  setCredentialChangeListener(listener: (user: User) => Promise<void>): void;
-  setAppCheckTokenChangeListener(
-    listener: (appCheckToken: string, user: User) => Promise<void>
-  ): void;
-  terminate(): Promise<void>;
+    asyncQueue: AsyncQueue;
+    /**
+     * Exposed for testing
+     */
+    _databaseInfo: DatabaseInfo;
+    private user;
+    private readonly clientId;
+    private authCredentialListener;
+    private appCheckCredentialListener;
+    _uninitializedComponentsProvider?: {
+        _offline: OfflineComponentProvider;
+        _online: OnlineComponentProvider;
+    };
+    _offlineComponents?: OfflineComponentProvider;
+    _onlineComponents?: OnlineComponentProvider;
+    constructor(authCredentials: CredentialsProvider<User>, appCheckCredentials: CredentialsProvider<string>, 
+    /**
+     * Asynchronous queue responsible for all of our internal processing. When
+     * we get incoming work from the user (via public API) or the network
+     * (incoming GRPC messages), we should always schedule onto this queue.
+     * This ensures all of our work is properly serialized (e.g. we don't
+     * start processing a new operation while the previous one is waiting for
+     * an async I/O to complete).
+     */
+    asyncQueue: AsyncQueue, 
+    /**
+     * Exposed for testing
+     */
+    _databaseInfo: DatabaseInfo, componentProvider?: {
+        _offline: OfflineComponentProvider;
+        _online: OnlineComponentProvider;
+    });
+    get configuration(): ComponentConfiguration;
+    setCredentialChangeListener(listener: (user: User) => Promise<void>): void;
+    setAppCheckTokenChangeListener(listener: (appCheckToken: string, user: User) => Promise<void>): void;
+    terminate(): Promise<void>;
 }
 
 /**
@@ -2189,61 +2109,50 @@ declare class FirestoreClient {
  * }
  * ```
  */
-export declare interface FirestoreDataConverter<
-  AppModelType,
-  DbModelType extends DocumentData = DocumentData
-> extends FirestoreDataConverter_2<AppModelType, DbModelType> {
-  /**
-   * Called by the Firestore SDK to convert a custom model object of type
-   * `AppModelType` into a plain JavaScript object (suitable for writing
-   * directly to the Firestore database) of type `DbModelType`. To use `set()`
-   * with `merge` and `mergeFields`, `toFirestore()` must be defined with
-   * `PartialWithFieldValue<AppModelType>`.
-   *
-   * The `WithFieldValue<T>` type extends `T` to also allow FieldValues such as
-   * {@link (deleteField:1)} to be used as property values.
-   */
-  toFirestore(
-    modelObject: WithFieldValue<AppModelType>
-  ): WithFieldValue<DbModelType>;
-  /**
-   * Called by the Firestore SDK to convert a custom model object of type
-   * `AppModelType` into a plain JavaScript object (suitable for writing
-   * directly to the Firestore database) of type `DbModelType`. Used with
-   * {@link (setDoc:1)}, {@link (WriteBatch.set:1)} and
-   * {@link (Transaction.set:1)} with `merge:true` or `mergeFields`.
-   *
-   * The `PartialWithFieldValue<T>` type extends `Partial<T>` to allow
-   * FieldValues such as {@link (arrayUnion:1)} to be used as property values.
-   * It also supports nested `Partial` by allowing nested fields to be
-   * omitted.
-   */
-  toFirestore(
-    modelObject: PartialWithFieldValue<AppModelType>,
-    options: SetOptions
-  ): PartialWithFieldValue<DbModelType>;
-  /**
-   * Called by the Firestore SDK to convert Firestore data into an object of
-   * type `AppModelType`. You can access your data by calling:
-   * `snapshot.data(options)`.
-   *
-   * Generally, the data returned from `snapshot.data()` can be cast to
-   * `DbModelType`; however, this is not guaranteed because Firestore does not
-   * enforce a schema on the database. For example, writes from a previous
-   * version of the application or writes from another client that did not use a
-   * type converter could have written data with different properties and/or
-   * property types. The implementation will need to choose whether to
-   * gracefully recover from non-conforming data or throw an error.
-   *
-   * To override this method, see {@link (FirestoreDataConverter.fromFirestore:1)}.
-   *
-   * @param snapshot - A `QueryDocumentSnapshot` containing your data and metadata.
-   * @param options - The `SnapshotOptions` from the initial call to `data()`.
-   */
-  fromFirestore(
-    snapshot: QueryDocumentSnapshot<DocumentData, DocumentData>,
-    options?: SnapshotOptions
-  ): AppModelType;
+export declare interface FirestoreDataConverter<AppModelType, DbModelType extends DocumentData = DocumentData> extends FirestoreDataConverter_2<AppModelType, DbModelType> {
+    /**
+     * Called by the Firestore SDK to convert a custom model object of type
+     * `AppModelType` into a plain JavaScript object (suitable for writing
+     * directly to the Firestore database) of type `DbModelType`. To use `set()`
+     * with `merge` and `mergeFields`, `toFirestore()` must be defined with
+     * `PartialWithFieldValue<AppModelType>`.
+     *
+     * The `WithFieldValue<T>` type extends `T` to also allow FieldValues such as
+     * {@link (deleteField:1)} to be used as property values.
+     */
+    toFirestore(modelObject: WithFieldValue<AppModelType>): WithFieldValue<DbModelType>;
+    /**
+     * Called by the Firestore SDK to convert a custom model object of type
+     * `AppModelType` into a plain JavaScript object (suitable for writing
+     * directly to the Firestore database) of type `DbModelType`. Used with
+     * {@link (setDoc:1)}, {@link (WriteBatch.set:1)} and
+     * {@link (Transaction.set:1)} with `merge:true` or `mergeFields`.
+     *
+     * The `PartialWithFieldValue<T>` type extends `Partial<T>` to allow
+     * FieldValues such as {@link (arrayUnion:1)} to be used as property values.
+     * It also supports nested `Partial` by allowing nested fields to be
+     * omitted.
+     */
+    toFirestore(modelObject: PartialWithFieldValue<AppModelType>, options: SetOptions): PartialWithFieldValue<DbModelType>;
+    /**
+     * Called by the Firestore SDK to convert Firestore data into an object of
+     * type `AppModelType`. You can access your data by calling:
+     * `snapshot.data(options)`.
+     *
+     * Generally, the data returned from `snapshot.data()` can be cast to
+     * `DbModelType`; however, this is not guaranteed because Firestore does not
+     * enforce a schema on the database. For example, writes from a previous
+     * version of the application or writes from another client that did not use a
+     * type converter could have written data with different properties and/or
+     * property types. The implementation will need to choose whether to
+     * gracefully recover from non-conforming data or throw an error.
+     *
+     * To override this method, see {@link (FirestoreDataConverter.fromFirestore:1)}.
+     *
+     * @param snapshot - A `QueryDocumentSnapshot` containing your data and metadata.
+     * @param options - The `SnapshotOptions` from the initial call to `data()`.
+     */
+    fromFirestore(snapshot: QueryDocumentSnapshot<DocumentData, DocumentData>, options?: SnapshotOptions): AppModelType;
 }
 
 /**
@@ -2430,87 +2339,76 @@ export declare interface FirestoreDataConverter<
  * }
  * ```
  */
-declare interface FirestoreDataConverter_2<
-  AppModelType,
-  DbModelType extends DocumentData = DocumentData
-> {
-  /**
-   * Called by the Firestore SDK to convert a custom model object of type
-   * `AppModelType` into a plain JavaScript object (suitable for writing
-   * directly to the Firestore database) of type `DbModelType`. Used with
-   * {@link @firebase/firestore/lite#(setDoc:1)},
-   * {@link @firebase/firestore/lite#(WriteBatch.set:1)} and
-   * {@link @firebase/firestore/lite#(Transaction.set:1)}.
-   *
-   * The `WithFieldValue<T>` type extends `T` to also allow FieldValues such as
-   * {@link (deleteField:1)} to be used as property values.
-   */
-  toFirestore(
-    modelObject: WithFieldValue<AppModelType>
-  ): WithFieldValue<DbModelType>;
-  /**
-   * Called by the Firestore SDK to convert a custom model object of type
-   * `AppModelType` into a plain JavaScript object (suitable for writing
-   * directly to the Firestore database) of type `DbModelType`. Used with
-   * {@link @firebase/firestore/lite#(setDoc:1)},
-   * {@link @firebase/firestore/lite#(WriteBatch.set:1)} and
-   * {@link @firebase/firestore/lite#(Transaction.set:1)} with `merge:true`
-   * or `mergeFields`.
-   *
-   * The `PartialWithFieldValue<T>` type extends `Partial<T>` to allow
-   * FieldValues such as {@link (arrayUnion:1)} to be used as property values.
-   * It also supports nested `Partial` by allowing nested fields to be
-   * omitted.
-   */
-  toFirestore(
-    modelObject: PartialWithFieldValue<AppModelType>,
-    options: SetOptions
-  ): PartialWithFieldValue<DbModelType>;
-  /**
-   * Called by the Firestore SDK to convert Firestore data into an object of
-   * type `AppModelType`. You can access your data by calling:
-   * `snapshot.data()`.
-   *
-   *
-   * Generally, the data returned from `snapshot.data()` can be cast to
-   * `DbModelType`; however, this is not guaranteed because Firestore does not
-   * enforce a schema on the database. For example, writes from a previous
-   * version of the application or writes from another client that did not use a
-   * type converter could have written data with different properties and/or
-   * property types. The implementation will need to choose whether to
-   * gracefully recover from non-conforming data or throw an error.
-   *
-   * @param snapshot - A `QueryDocumentSnapshot` containing your data and
-   * metadata.
-   */
-  fromFirestore(
-    snapshot: QueryDocumentSnapshot_2<DocumentData, DocumentData>
-  ): AppModelType;
+declare interface FirestoreDataConverter_2<AppModelType, DbModelType extends DocumentData = DocumentData> {
+    /**
+     * Called by the Firestore SDK to convert a custom model object of type
+     * `AppModelType` into a plain JavaScript object (suitable for writing
+     * directly to the Firestore database) of type `DbModelType`. Used with
+     * {@link @firebase/firestore/lite#(setDoc:1)},
+     * {@link @firebase/firestore/lite#(WriteBatch.set:1)} and
+     * {@link @firebase/firestore/lite#(Transaction.set:1)}.
+     *
+     * The `WithFieldValue<T>` type extends `T` to also allow FieldValues such as
+     * {@link (deleteField:1)} to be used as property values.
+     */
+    toFirestore(modelObject: WithFieldValue<AppModelType>): WithFieldValue<DbModelType>;
+    /**
+     * Called by the Firestore SDK to convert a custom model object of type
+     * `AppModelType` into a plain JavaScript object (suitable for writing
+     * directly to the Firestore database) of type `DbModelType`. Used with
+     * {@link @firebase/firestore/lite#(setDoc:1)},
+     * {@link @firebase/firestore/lite#(WriteBatch.set:1)} and
+     * {@link @firebase/firestore/lite#(Transaction.set:1)} with `merge:true`
+     * or `mergeFields`.
+     *
+     * The `PartialWithFieldValue<T>` type extends `Partial<T>` to allow
+     * FieldValues such as {@link (arrayUnion:1)} to be used as property values.
+     * It also supports nested `Partial` by allowing nested fields to be
+     * omitted.
+     */
+    toFirestore(modelObject: PartialWithFieldValue<AppModelType>, options: SetOptions): PartialWithFieldValue<DbModelType>;
+    /**
+     * Called by the Firestore SDK to convert Firestore data into an object of
+     * type `AppModelType`. You can access your data by calling:
+     * `snapshot.data()`.
+     *
+     *
+     * Generally, the data returned from `snapshot.data()` can be cast to
+     * `DbModelType`; however, this is not guaranteed because Firestore does not
+     * enforce a schema on the database. For example, writes from a previous
+     * version of the application or writes from another client that did not use a
+     * type converter could have written data with different properties and/or
+     * property types. The implementation will need to choose whether to
+     * gracefully recover from non-conforming data or throw an error.
+     *
+     * @param snapshot - A `QueryDocumentSnapshot` containing your data and
+     * metadata.
+     */
+    fromFirestore(snapshot: QueryDocumentSnapshot_2<DocumentData, DocumentData>): AppModelType;
 }
 
 /** An error returned by a Firestore operation. */
 export declare class FirestoreError extends FirebaseError {
-  /**
-   * The backend error code associated with this error.
-   */
-  readonly code: FirestoreErrorCode;
-  /**
-   * A custom error description.
-   */
-  readonly message: string;
-  /** The stack of the error. */
-  readonly stack?: string;
-  /** @hideconstructor */
-  constructor(
     /**
      * The backend error code associated with this error.
      */
-    code: FirestoreErrorCode,
+    readonly code: FirestoreErrorCode;
     /**
      * A custom error description.
      */
-    message: string
-  );
+    readonly message: string;
+    /** The stack of the error. */
+    readonly stack?: string;
+    /** @hideconstructor */
+    constructor(
+    /**
+     * The backend error code associated with this error.
+     */
+    code: FirestoreErrorCode, 
+    /**
+     * A custom error description.
+     */
+    message: string);
 }
 
 /**
@@ -2552,30 +2450,12 @@ export declare class FirestoreError extends FirebaseError {
  * - 'unauthenticated': The request does not have valid authentication
  *   credentials for the operation.
  */
-export declare type FirestoreErrorCode =
-  | 'cancelled'
-  | 'unknown'
-  | 'invalid-argument'
-  | 'deadline-exceeded'
-  | 'not-found'
-  | 'already-exists'
-  | 'permission-denied'
-  | 'resource-exhausted'
-  | 'failed-precondition'
-  | 'aborted'
-  | 'out-of-range'
-  | 'unimplemented'
-  | 'internal'
-  | 'unavailable'
-  | 'data-loss'
-  | 'unauthenticated';
+export declare type FirestoreErrorCode = 'cancelled' | 'unknown' | 'invalid-argument' | 'deadline-exceeded' | 'not-found' | 'already-exists' | 'permission-denied' | 'resource-exhausted' | 'failed-precondition' | 'aborted' | 'out-of-range' | 'unimplemented' | 'internal' | 'unavailable' | 'data-loss' | 'unauthenticated';
 
 /**
  * Union type from all supported SDK cache layer.
  */
-export declare type FirestoreLocalCache =
-  | MemoryLocalCache
-  | PersistentLocalCache;
+export declare type FirestoreLocalCache = MemoryLocalCache | PersistentLocalCache;
 
 /**
  * An interface implemented by FirebaseFirestore that provides compatibility
@@ -2584,12 +2464,12 @@ export declare type FirestoreLocalCache =
  * This interface mainly exists to remove a cyclic dependency.
  */
 declare interface FirestoreService extends _FirebaseService {
-  _authCredentials: CredentialsProvider<User>;
-  _appCheckCredentials: CredentialsProvider<string>;
-  _persistenceKey: string;
-  _databaseId: _DatabaseId;
-  _terminated: boolean;
-  _freezeSettings(): FirestoreSettingsImpl;
+    _authCredentials: CredentialsProvider<User>;
+    _appCheckCredentials: CredentialsProvider<string>;
+    _persistenceKey: string;
+    _databaseId: _DatabaseId;
+    _terminated: boolean;
+    _freezeSettings(): FirestoreSettingsImpl;
 }
 
 /**
@@ -2597,73 +2477,73 @@ declare interface FirestoreService extends _FirebaseService {
  * You must set these before invoking any other methods.
  */
 export declare interface FirestoreSettings extends FirestoreSettings_2 {
-  /**
-   * NOTE: This field will be deprecated in a future major release. Use `cache` field
-   * instead to specify cache size, and other cache configurations.
-   *
-   * An approximate cache size threshold for the on-disk data. If the cache
-   * grows beyond this size, Firestore will start removing data that hasn't been
-   * recently used. The size is not a guarantee that the cache will stay below
-   * that size, only that if the cache exceeds the given size, cleanup will be
-   * attempted.
-   *
-   * The default value is 40 MB. The threshold must be set to at least 1 MB, and
-   * can be set to `CACHE_SIZE_UNLIMITED` to disable garbage collection.
-   */
-  cacheSizeBytes?: number;
-  /**
-   * Specifies the cache used by the SDK. Available options are `MemoryLocalCache`
-   * and `PersistentLocalCache`, each with different configuration options.
-   *
-   * When unspecified, `MemoryLocalCache` will be used by default.
-   *
-   * NOTE: setting this field and `cacheSizeBytes` at the same time will throw
-   * exception during SDK initialization. Instead, using the configuration in
-   * the `FirestoreLocalCache` object to specify the cache size.
-   */
-  localCache?: FirestoreLocalCache;
-  /**
-   * Forces the SDK’s underlying network transport (WebChannel) to use
-   * long-polling. Each response from the backend will be closed immediately
-   * after the backend sends data (by default responses are kept open in
-   * case the backend has more data to send). This avoids incompatibility
-   * issues with certain proxies, antivirus software, etc. that incorrectly
-   * buffer traffic indefinitely. Use of this option will cause some
-   * performance degradation though.
-   *
-   * This setting cannot be used with `experimentalAutoDetectLongPolling` and
-   * may be removed in a future release. If you find yourself using it to
-   * work around a specific network reliability issue, please tell us about
-   * it in https://github.com/firebase/firebase-js-sdk/issues/1674.
-   *
-   * This setting cannot be used in a Node.js environment.
-   */
-  experimentalForceLongPolling?: boolean;
-  /**
-   * Configures the SDK's underlying transport (WebChannel) to automatically
-   * detect if long-polling should be used. This is very similar to
-   * `experimentalForceLongPolling`, but only uses long-polling if required.
-   *
-   * After having had a default value of `false` since its inception in 2019,
-   * the default value of this setting was changed in May 2023 to `true` in
-   * v9.22.0 of the Firebase JavaScript SDK. That is, auto-detection of long
-   * polling is now enabled by default. To disable it, set this setting to
-   * `false`, and please open a GitHub issue to share the problems that
-   * motivated you disabling long-polling auto-detection.
-   *
-   * This setting cannot be used in a Node.js environment.
-   */
-  experimentalAutoDetectLongPolling?: boolean;
-  /**
-   * Options that configure the SDK’s underlying network transport (WebChannel)
-   * when long-polling is used.
-   *
-   * These options are only used if `experimentalForceLongPolling` is true or if
-   * `experimentalAutoDetectLongPolling` is true and the auto-detection
-   * determined that long-polling was needed. Otherwise, these options have no
-   * effect.
-   */
-  experimentalLongPollingOptions?: ExperimentalLongPollingOptions;
+    /**
+     * NOTE: This field will be deprecated in a future major release. Use `cache` field
+     * instead to specify cache size, and other cache configurations.
+     *
+     * An approximate cache size threshold for the on-disk data. If the cache
+     * grows beyond this size, Firestore will start removing data that hasn't been
+     * recently used. The size is not a guarantee that the cache will stay below
+     * that size, only that if the cache exceeds the given size, cleanup will be
+     * attempted.
+     *
+     * The default value is 40 MB. The threshold must be set to at least 1 MB, and
+     * can be set to `CACHE_SIZE_UNLIMITED` to disable garbage collection.
+     */
+    cacheSizeBytes?: number;
+    /**
+     * Specifies the cache used by the SDK. Available options are `MemoryLocalCache`
+     * and `PersistentLocalCache`, each with different configuration options.
+     *
+     * When unspecified, `MemoryLocalCache` will be used by default.
+     *
+     * NOTE: setting this field and `cacheSizeBytes` at the same time will throw
+     * exception during SDK initialization. Instead, using the configuration in
+     * the `FirestoreLocalCache` object to specify the cache size.
+     */
+    localCache?: FirestoreLocalCache;
+    /**
+     * Forces the SDK’s underlying network transport (WebChannel) to use
+     * long-polling. Each response from the backend will be closed immediately
+     * after the backend sends data (by default responses are kept open in
+     * case the backend has more data to send). This avoids incompatibility
+     * issues with certain proxies, antivirus software, etc. that incorrectly
+     * buffer traffic indefinitely. Use of this option will cause some
+     * performance degradation though.
+     *
+     * This setting cannot be used with `experimentalAutoDetectLongPolling` and
+     * may be removed in a future release. If you find yourself using it to
+     * work around a specific network reliability issue, please tell us about
+     * it in https://github.com/firebase/firebase-js-sdk/issues/1674.
+     *
+     * This setting cannot be used in a Node.js environment.
+     */
+    experimentalForceLongPolling?: boolean;
+    /**
+     * Configures the SDK's underlying transport (WebChannel) to automatically
+     * detect if long-polling should be used. This is very similar to
+     * `experimentalForceLongPolling`, but only uses long-polling if required.
+     *
+     * After having had a default value of `false` since its inception in 2019,
+     * the default value of this setting was changed in May 2023 to `true` in
+     * v9.22.0 of the Firebase JavaScript SDK. That is, auto-detection of long
+     * polling is now enabled by default. To disable it, set this setting to
+     * `false`, and please open a GitHub issue to share the problems that
+     * motivated you disabling long-polling auto-detection.
+     *
+     * This setting cannot be used in a Node.js environment.
+     */
+    experimentalAutoDetectLongPolling?: boolean;
+    /**
+     * Options that configure the SDK’s underlying network transport (WebChannel)
+     * when long-polling is used.
+     *
+     * These options are only used if `experimentalForceLongPolling` is true or if
+     * `experimentalAutoDetectLongPolling` is true and the auto-detection
+     * determined that long-polling was needed. Otherwise, these options have no
+     * effect.
+     */
+    experimentalLongPollingOptions?: ExperimentalLongPollingOptions;
 }
 
 /**
@@ -2671,17 +2551,29 @@ export declare interface FirestoreSettings extends FirestoreSettings_2 {
  * You must set these before invoking any other methods.
  */
 declare interface FirestoreSettings_2 {
-  /** The hostname to connect to. */
-  host?: string;
-  /** Whether to use SSL when connecting. */
-  ssl?: boolean;
-  /**
-   * Whether to skip nested properties that are set to `undefined` during
-   * object serialization. If set to `true`, these properties are skipped
-   * and not written to Firestore. If set to `false` or omitted, the SDK
-   * throws an exception when it encounters properties of type `undefined`.
-   */
-  ignoreUndefinedProperties?: boolean;
+    /** The hostname to connect to. */
+    host?: string;
+    /** Whether to use SSL when connecting. */
+    ssl?: boolean;
+    /**
+     * Whether to skip nested properties that are set to `undefined` during
+     * object serialization. If set to `true`, these properties are skipped
+     * and not written to Firestore. If set to `false` or omitted, the SDK
+     * throws an exception when it encounters properties of type `undefined`.
+     */
+    ignoreUndefinedProperties?: boolean;
+    /**
+     * Only applicable in Node environments.
+     *
+     * The gRPC flow control window size in bytes. Defaults to 256 KB.
+     * This maps directly to grpc-node's {@link https://github.com/grpc/grpc-node/blob/651cbeec6b4d6d11cbee91c042946d2fe5968ef6/packages/grpc-js/README.md#supported-channel-options | grpc-node.flow_control_window } setting.
+     *
+     * **WARNING:** This is an advanced setting. The default of 256 KB is optimized
+     * for most Node workloads. Only modify this if you are actively tuning gRPC
+     * network behavior and understand the implications of HTTP/2 flow control.
+     */
+    grpcFlowControlWindow?: number;
+    /* Excluded from this release type: _customHeaders */
 }
 
 /**
@@ -2690,340 +2582,379 @@ declare interface FirestoreSettings_2 {
  * defaults can be supplied and the value can be checked for equality.
  */
 declare class FirestoreSettingsImpl {
-  /** The hostname to connect to. */
-  readonly host: string;
-  /** Whether to use SSL when connecting. */
-  readonly ssl: boolean;
-  readonly cacheSizeBytes: number;
-  readonly experimentalForceLongPolling: boolean;
-  readonly experimentalAutoDetectLongPolling: boolean;
-  readonly experimentalLongPollingOptions: ExperimentalLongPollingOptions;
-  readonly ignoreUndefinedProperties: boolean;
-  readonly useFetchStreams: boolean;
-  readonly localCache?: FirestoreLocalCache;
-  credentials?: any;
-  constructor(settings: PrivateSettings);
-  isEqual(other: FirestoreSettingsImpl): boolean;
+    /** The hostname to connect to. */
+    readonly host: string;
+    /** Whether to use SSL when connecting. */
+    readonly ssl: boolean;
+    readonly cacheSizeBytes: number;
+    readonly experimentalForceLongPolling: boolean;
+    readonly experimentalAutoDetectLongPolling: boolean;
+    readonly experimentalLongPollingOptions: ExperimentalLongPollingOptions;
+    readonly ignoreUndefinedProperties: boolean;
+    readonly useFetchStreams: boolean;
+    readonly localCache?: FirestoreLocalCache;
+    readonly _customHeaders?: Record<string, string>;
+    readonly isUsingEmulator: boolean;
+    readonly grpcFlowControlWindow?: number;
+    credentials?: any;
+    constructor(settings: PrivateSettings);
+    isEqual(other: FirestoreSettingsImpl): boolean;
 }
 
 declare namespace firestoreV1ApiClientInterfaces {
-  interface ArrayValue {
-    values?: Value[];
-  }
-  interface BatchGetDocumentsRequest {
-    database?: string;
-    documents?: string[];
-    mask?: DocumentMask;
-    transaction?: string;
-    newTransaction?: TransactionOptions;
-    readTime?: string;
-  }
-  interface BatchGetDocumentsResponse {
-    found?: Document;
-    missing?: string;
-    transaction?: string;
-    readTime?: string;
-  }
-  interface BeginTransactionRequest {
-    options?: TransactionOptions;
-  }
-  interface BeginTransactionResponse {
-    transaction?: string;
-  }
-  interface CollectionSelector {
-    collectionId?: string;
-    allDescendants?: boolean;
-  }
-  interface CommitRequest {
-    database?: string;
-    writes?: Write[];
-    transaction?: string;
-  }
-  interface CommitResponse {
-    writeResults?: WriteResult[];
-    commitTime?: string;
-  }
-  interface CompositeFilter {
-    op?: CompositeFilterOp;
-    filters?: Filter[];
-  }
-  interface Cursor {
-    values?: Value[];
-    before?: boolean;
-  }
-  interface Document {
-    name?: string;
-    fields?: ApiClientObjectMap<Value>;
-    createTime?: Timestamp_2;
-    updateTime?: Timestamp_2;
-  }
-  interface DocumentChange {
-    document?: Document;
-    targetIds?: number[];
-    removedTargetIds?: number[];
-  }
-  interface DocumentDelete {
-    document?: string;
-    removedTargetIds?: number[];
-    readTime?: Timestamp_2;
-  }
-  interface DocumentMask {
-    fieldPaths?: string[];
-  }
-  interface DocumentRemove {
-    document?: string;
-    removedTargetIds?: number[];
-    readTime?: string;
-  }
-  interface DocumentTransform {
-    document?: string;
-    fieldTransforms?: FieldTransform[];
-  }
-  interface DocumentsTarget {
-    documents?: string[];
-  }
-  interface Empty {}
-  interface ExistenceFilter {
-    targetId?: number;
-    count?: number;
-    unchangedNames?: BloomFilter;
-  }
-  interface BloomFilter {
-    bits?: BitSequence;
-    hashCount?: number;
-  }
-  interface BitSequence {
-    bitmap?: string | Uint8Array;
-    padding?: number;
-  }
-  interface FieldFilter {
-    field?: FieldReference;
-    op?: FieldFilterOp;
-    value?: Value;
-  }
-  interface FieldReference {
-    fieldPath?: string;
-  }
-  interface FieldTransform {
-    fieldPath?: string;
-    setToServerValue?: FieldTransformSetToServerValue;
-    appendMissingElements?: ArrayValue;
-    removeAllFromArray?: ArrayValue;
-    increment?: Value;
-  }
-  interface Filter {
-    compositeFilter?: CompositeFilter;
-    fieldFilter?: FieldFilter;
-    unaryFilter?: UnaryFilter;
-  }
-  interface Index {
-    name?: string;
-    collectionId?: string;
-    fields?: IndexField[];
-    state?: IndexState_2;
-  }
-  interface IndexField {
-    fieldPath?: string;
-    mode?: IndexFieldMode;
-  }
-  interface LatLng {
-    latitude?: number;
-    longitude?: number;
-  }
-  interface ListCollectionIdsRequest {
-    pageSize?: number;
-    pageToken?: string;
-  }
-  interface ListCollectionIdsResponse {
-    collectionIds?: string[];
-    nextPageToken?: string;
-  }
-  interface ListDocumentsResponse {
-    documents?: Document[];
-    nextPageToken?: string;
-  }
-  interface ListIndexesResponse {
-    indexes?: Index[];
-    nextPageToken?: string;
-  }
-  interface ListenRequest {
-    addTarget?: Target;
-    removeTarget?: number;
-    labels?: ApiClientObjectMap<string>;
-  }
-  interface ListenResponse {
-    targetChange?: TargetChange;
-    documentChange?: DocumentChange;
-    documentDelete?: DocumentDelete;
-    documentRemove?: DocumentRemove;
-    filter?: ExistenceFilter;
-  }
-  interface MapValue {
-    fields?: ApiClientObjectMap<Value>;
-  }
-  interface Operation {
-    name?: string;
-    metadata?: ApiClientObjectMap<any>;
-    done?: boolean;
-    error?: Status;
-    response?: ApiClientObjectMap<any>;
-  }
-  interface Order {
-    field?: FieldReference;
-    direction?: OrderDirection;
-  }
-  interface Precondition {
-    exists?: boolean;
-    updateTime?: Timestamp_2;
-  }
-  interface Projection {
-    fields?: FieldReference[];
-  }
-  interface QueryTarget {
-    parent?: string;
-    structuredQuery?: StructuredQuery;
-  }
-  interface ReadOnly {
-    readTime?: string;
-  }
-  interface ReadWrite {
-    retryTransaction?: string;
-  }
-  interface RollbackRequest {
-    transaction?: string;
-  }
-  interface RunQueryRequest {
-    parent?: string;
-    structuredQuery?: StructuredQuery;
-    transaction?: string;
-    newTransaction?: TransactionOptions;
-    readTime?: string;
-  }
-  interface RunQueryResponse {
-    transaction?: string;
-    document?: Document;
-    readTime?: string;
-    skippedResults?: number;
-  }
-  interface RunAggregationQueryRequest {
-    parent?: string;
-    structuredAggregationQuery?: StructuredAggregationQuery;
-    transaction?: string;
-    newTransaction?: TransactionOptions;
-    readTime?: string;
-  }
-  interface RunAggregationQueryResponse {
-    result?: AggregationResult;
-    transaction?: string;
-    readTime?: string;
-  }
-  interface AggregationResult {
-    aggregateFields?: ApiClientObjectMap<Value>;
-  }
-  interface StructuredAggregationQuery {
-    structuredQuery?: StructuredQuery;
-    aggregations?: Aggregation[];
-  }
-  interface Aggregation {
-    count?: Count;
-    sum?: Sum;
-    avg?: Avg;
-    alias?: string;
-  }
-  interface Count {
-    upTo?: number;
-  }
-  interface Sum {
-    field?: FieldReference;
-  }
-  interface Avg {
-    field?: FieldReference;
-  }
-  interface Status {
-    code?: number;
-    message?: string;
-    details?: Array<ApiClientObjectMap<any>>;
-  }
-  interface StructuredQuery {
-    select?: Projection;
-    from?: CollectionSelector[];
-    where?: Filter;
-    orderBy?: Order[];
-    startAt?: Cursor;
-    endAt?: Cursor;
-    offset?: number;
-    limit?:
-      | number
-      | {
-          value: number;
+    interface Aggregation {
+        count?: Count;
+        sum?: Sum;
+        avg?: Avg;
+        alias?: string;
+    }
+    interface AggregationResult {
+        aggregateFields?: ApiClientObjectMap<Value>;
+    }
+    interface ArrayValue {
+        values?: Value[];
+    }
+    interface Avg {
+        field?: FieldReference;
+    }
+    interface BatchGetDocumentsRequest {
+        database?: string;
+        documents?: string[];
+        mask?: DocumentMask;
+        transaction?: string;
+        newTransaction?: TransactionOptions;
+        readTime?: string;
+    }
+    interface BatchGetDocumentsResponse {
+        found?: Document;
+        missing?: string;
+        transaction?: string;
+        readTime?: string;
+    }
+    interface BeginTransactionRequest {
+        options?: TransactionOptions;
+    }
+    interface BeginTransactionResponse {
+        transaction?: string;
+    }
+    interface BitSequence {
+        bitmap?: string | Uint8Array;
+        padding?: number;
+    }
+    interface BloomFilter {
+        bits?: BitSequence;
+        hashCount?: number;
+    }
+    interface CollectionSelector {
+        collectionId?: string;
+        allDescendants?: boolean;
+    }
+    interface CommitRequest {
+        database?: string;
+        writes?: Write[];
+        transaction?: string;
+    }
+    interface CommitResponse {
+        writeResults?: WriteResult[];
+        commitTime?: string;
+    }
+    interface CompositeFilter {
+        op?: CompositeFilterOp;
+        filters?: Filter[];
+    }
+    interface Count {
+        upTo?: number;
+    }
+    interface Cursor {
+        values?: Value[];
+        before?: boolean;
+    }
+    interface Document {
+        name?: string;
+        fields?: ApiClientObjectMap<Value>;
+        createTime?: Timestamp_2;
+        updateTime?: Timestamp_2;
+    }
+    interface DocumentChange {
+        document?: Document;
+        targetIds?: number[];
+        removedTargetIds?: number[];
+    }
+    interface DocumentDelete {
+        document?: string;
+        removedTargetIds?: number[];
+        readTime?: Timestamp_2;
+    }
+    interface DocumentMask {
+        fieldPaths?: string[];
+    }
+    interface DocumentRemove {
+        document?: string;
+        removedTargetIds?: number[];
+        readTime?: string;
+    }
+    interface DocumentTransform {
+        document?: string;
+        fieldTransforms?: FieldTransform[];
+    }
+    interface DocumentsTarget {
+        documents?: string[];
+    }
+    interface Empty {
+    }
+    interface ExecutePipelineRequest {
+        database?: string;
+        structuredPipeline?: StructuredPipeline;
+        transaction?: string;
+        newTransaction?: TransactionOptions;
+        readTime?: string;
+    }
+    interface ExecutePipelineResponse {
+        transaction?: string;
+        results?: Document[];
+        executionTime?: string;
+    }
+    interface ExistenceFilter {
+        targetId?: number;
+        count?: number;
+        unchangedNames?: BloomFilter;
+    }
+    interface FieldFilter {
+        field?: FieldReference;
+        op?: FieldFilterOp;
+        value?: Value;
+    }
+    interface FieldReference {
+        fieldPath?: string;
+    }
+    interface FieldTransform {
+        fieldPath?: string;
+        setToServerValue?: FieldTransformSetToServerValue;
+        appendMissingElements?: ArrayValue;
+        removeAllFromArray?: ArrayValue;
+        increment?: Value;
+        minimum?: Value;
+        maximum?: Value;
+    }
+    interface Filter {
+        compositeFilter?: CompositeFilter;
+        fieldFilter?: FieldFilter;
+        unaryFilter?: UnaryFilter;
+    }
+    interface Function {
+        name?: string;
+        args?: Value[];
+        options?: ApiClientObjectMap<Value>;
+    }
+    interface Index {
+        name?: string;
+        collectionId?: string;
+        fields?: IndexField[];
+        state?: IndexState_2;
+    }
+    interface IndexField {
+        fieldPath?: string;
+        mode?: IndexFieldMode;
+    }
+    interface LatLng {
+        latitude?: number;
+        longitude?: number;
+    }
+    interface ListCollectionIdsRequest {
+        pageSize?: number;
+        pageToken?: string;
+    }
+    interface ListCollectionIdsResponse {
+        collectionIds?: string[];
+        nextPageToken?: string;
+    }
+    interface ListDocumentsResponse {
+        documents?: Document[];
+        nextPageToken?: string;
+    }
+    interface ListIndexesResponse {
+        indexes?: Index[];
+        nextPageToken?: string;
+    }
+    interface ListenRequest {
+        addTarget?: Target;
+        removeTarget?: number;
+        labels?: ApiClientObjectMap<string>;
+    }
+    interface ListenResponse {
+        targetChange?: TargetChange;
+        documentChange?: DocumentChange;
+        documentDelete?: DocumentDelete;
+        documentRemove?: DocumentRemove;
+        filter?: ExistenceFilter;
+    }
+    interface MapValue {
+        fields?: ApiClientObjectMap<Value>;
+    }
+    interface Operation {
+        name?: string;
+        metadata?: ApiClientObjectMap<any>;
+        done?: boolean;
+        error?: Status;
+        response?: ApiClientObjectMap<any>;
+    }
+    interface Order {
+        field?: FieldReference;
+        direction?: OrderDirection;
+    }
+    interface Pipeline {
+        stages?: Stage[];
+    }
+    interface Precondition {
+        exists?: boolean;
+        updateTime?: Timestamp_2;
+    }
+    interface Projection {
+        fields?: FieldReference[];
+    }
+    interface QueryTarget {
+        parent?: string;
+        structuredQuery?: StructuredQuery;
+    }
+    interface PipelineQueryTarget {
+        structuredPipeline?: StructuredPipeline;
+    }
+    interface ReadOnly {
+        readTime?: string;
+    }
+    interface ReadWrite {
+        retryTransaction?: string;
+    }
+    interface RollbackRequest {
+        transaction?: string;
+    }
+    interface RunQueryRequest {
+        parent?: string;
+        structuredQuery?: StructuredQuery;
+        transaction?: string;
+        newTransaction?: TransactionOptions;
+        readTime?: string;
+    }
+    interface RunQueryResponse {
+        transaction?: string;
+        document?: Document;
+        readTime?: string;
+        skippedResults?: number;
+    }
+    interface RunAggregationQueryRequest {
+        parent?: string;
+        structuredAggregationQuery?: StructuredAggregationQuery;
+        transaction?: string;
+        newTransaction?: TransactionOptions;
+        readTime?: string;
+    }
+    interface RunAggregationQueryResponse {
+        result?: AggregationResult;
+        transaction?: string;
+        readTime?: string;
+    }
+    interface StructuredAggregationQuery {
+        structuredQuery?: StructuredQuery;
+        aggregations?: Aggregation[];
+    }
+    interface Stage {
+        name?: string;
+        args?: Value[];
+        options?: ApiClientObjectMap<Value>;
+    }
+    interface Status {
+        code?: number;
+        message?: string;
+        details?: Array<ApiClientObjectMap<any>>;
+    }
+    interface StructuredPipeline {
+        pipeline?: Pipeline;
+        options?: ApiClientObjectMap<Value>;
+    }
+    interface StructuredQuery {
+        select?: Projection;
+        from?: CollectionSelector[];
+        where?: Filter;
+        orderBy?: Order[];
+        startAt?: Cursor;
+        endAt?: Cursor;
+        offset?: number;
+        limit?: number | {
+            value: number;
         };
-  }
-  interface Target {
-    query?: QueryTarget;
-    documents?: DocumentsTarget;
-    resumeToken?: string | Uint8Array;
-    readTime?: Timestamp_2;
-    targetId?: number;
-    once?: boolean;
-    expectedCount?:
-      | number
-      | {
-          value: number;
+    }
+    interface Sum {
+        field?: FieldReference;
+    }
+    interface Target {
+        query?: QueryTarget;
+        documents?: DocumentsTarget;
+        pipelineQuery?: PipelineQueryTarget;
+        resumeToken?: string | Uint8Array;
+        readTime?: Timestamp_2;
+        targetId?: number;
+        once?: boolean;
+        expectedCount?: number | {
+            value: number;
         };
-  }
-  interface TargetChange {
-    targetChangeType?: TargetChangeTargetChangeType;
-    targetIds?: number[];
-    cause?: Status;
-    resumeToken?: string | Uint8Array;
-    readTime?: Timestamp_2;
-  }
-  interface TransactionOptions {
-    readOnly?: ReadOnly;
-    readWrite?: ReadWrite;
-  }
-  interface UnaryFilter {
-    op?: UnaryFilterOp;
-    field?: FieldReference;
-  }
-  interface Value {
-    nullValue?: ValueNullValue;
-    booleanValue?: boolean;
-    integerValue?: string | number;
-    doubleValue?: string | number;
-    timestampValue?: Timestamp_2;
-    stringValue?: string;
-    bytesValue?: string | Uint8Array;
-    referenceValue?: string;
-    geoPointValue?: LatLng;
-    arrayValue?: ArrayValue;
-    mapValue?: MapValue;
-  }
-  interface Write {
-    update?: Document;
-    delete?: string;
-    verify?: string;
-    transform?: DocumentTransform;
-    updateMask?: DocumentMask;
-    updateTransforms?: FieldTransform[];
-    currentDocument?: Precondition;
-  }
-  interface WriteRequest {
-    streamId?: string;
-    writes?: Write[];
-    streamToken?: string | Uint8Array;
-    labels?: ApiClientObjectMap<string>;
-  }
-  interface WriteResponse {
-    streamId?: string;
-    streamToken?: string | Uint8Array;
-    writeResults?: WriteResult[];
-    commitTime?: Timestamp_2;
-  }
-  interface WriteResult {
-    updateTime?: Timestamp_2;
-    transformResults?: Value[];
-  }
+    }
+    interface TargetChange {
+        targetChangeType?: TargetChangeTargetChangeType;
+        targetIds?: number[];
+        cause?: Status;
+        resumeToken?: string | Uint8Array;
+        readTime?: Timestamp_2;
+    }
+    interface TransactionOptions {
+        readOnly?: ReadOnly;
+        readWrite?: ReadWrite;
+    }
+    interface UnaryFilter {
+        op?: UnaryFilterOp;
+        field?: FieldReference;
+    }
+    interface Value {
+        nullValue?: ValueNullValue;
+        booleanValue?: boolean;
+        integerValue?: string | number;
+        doubleValue?: string | number;
+        timestampValue?: Timestamp_2;
+        stringValue?: string;
+        bytesValue?: string | Uint8Array;
+        referenceValue?: string;
+        geoPointValue?: LatLng;
+        arrayValue?: ArrayValue;
+        mapValue?: MapValue;
+        fieldReferenceValue?: string;
+        variableReferenceValue?: string;
+        functionValue?: Function;
+        pipelineValue?: Pipeline;
+    }
+    interface Write {
+        update?: Document;
+        delete?: string;
+        verify?: string;
+        transform?: DocumentTransform;
+        updateMask?: DocumentMask;
+        updateTransforms?: FieldTransform[];
+        currentDocument?: Precondition;
+    }
+    interface WriteRequest {
+        streamId?: string;
+        writes?: Write[];
+        streamToken?: string | Uint8Array;
+        labels?: ApiClientObjectMap<string>;
+    }
+    interface WriteResponse {
+        streamId?: string;
+        streamToken?: string | Uint8Array;
+        writeResults?: WriteResult[];
+        commitTime?: Timestamp_2;
+    }
+    interface WriteResult {
+        updateTime?: Timestamp_2;
+        transformResults?: Value[];
+    }
 }
 
 /* Excluded from this release type: FirstPartyCredentialsSettings */
@@ -3044,26 +2975,8 @@ declare namespace firestoreV1ApiClientInterfaces {
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-declare type FulfilledHandler<T, R> =
-  | ((result: T) => R | PersistencePromise<R>)
-  | null;
+declare type FulfilledHandler<T, R> = ((result: T) => R | PersistencePromise<R>) | null;
 
-/**
- * @license
- * Copyright 2017 Google LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 /**
  * An immutable object representing a geographic location in Firestore. The
  * location is represented as latitude/longitude pair.
@@ -3072,40 +2985,59 @@ declare type FulfilledHandler<T, R> =
  * Longitude values are in the range of [-180, 180].
  */
 export declare class GeoPoint {
-  private _lat;
-  private _long;
-  /**
-   * Creates a new immutable `GeoPoint` object with the provided latitude and
-   * longitude values.
-   * @param latitude - The latitude as number between -90 and 90.
-   * @param longitude - The longitude as number between -180 and 180.
-   */
-  constructor(latitude: number, longitude: number);
-  /**
-   * The latitude of this `GeoPoint` instance.
-   */
-  get latitude(): number;
-  /**
-   * The longitude of this `GeoPoint` instance.
-   */
-  get longitude(): number;
-  /**
-   * Returns true if this `GeoPoint` is equal to the provided one.
-   *
-   * @param other - The `GeoPoint` to compare against.
-   * @returns true if this `GeoPoint` is equal to the provided one.
-   */
-  isEqual(other: GeoPoint): boolean;
-  /** Returns a JSON-serializable representation of this GeoPoint. */
-  toJSON(): {
-    latitude: number;
-    longitude: number;
-  };
-  /**
-   * Actually private to JS consumers of our API, so this function is prefixed
-   * with an underscore.
-   */
-  _compareTo(other: GeoPoint): number;
+    private _lat;
+    private _long;
+    /**
+     * Creates a new immutable `GeoPoint` object with the provided latitude and
+     * longitude values.
+     * @param latitude - The latitude as number between -90 and 90.
+     * @param longitude - The longitude as number between -180 and 180.
+     */
+    constructor(latitude: number, longitude: number);
+    /**
+     * The latitude of this `GeoPoint` instance.
+     */
+    get latitude(): number;
+    /**
+     * The longitude of this `GeoPoint` instance.
+     */
+    get longitude(): number;
+    /**
+     * Returns true if this `GeoPoint` is equal to the provided one.
+     *
+     * @param other - The `GeoPoint` to compare against.
+     * @returns true if this `GeoPoint` is equal to the provided one.
+     */
+    isEqual(other: GeoPoint): boolean;
+    /**
+     * Actually private to JS consumers of our API, so this function is prefixed
+     * with an underscore.
+     */
+    _compareTo(other: GeoPoint): number;
+    static _jsonSchemaVersion: string;
+    static _jsonSchema: {
+        type: Property<"string">;
+        latitude: Property<"number">;
+        longitude: Property<"number">;
+    };
+    /**
+     * Returns a JSON-serializable representation of this `GeoPoint` instance.
+     *
+     * @returns a JSON representation of this object.
+     */
+    toJSON(): {
+        latitude: number;
+        longitude: number;
+        type: string;
+    };
+    /**
+     * Builds a `GeoPoint` instance from a JSON object created by {@link GeoPoint.toJSON}.
+     *
+     * @param json - a JSON object represention of a `GeoPoint` instance
+     * @returns an instance of {@link GeoPoint} if the JSON object could be parsed. Throws a
+     * {@link FirestoreError} if an error occurs.
+     */
+    static fromJSON(json: object): GeoPoint;
 }
 
 /**
@@ -3124,8 +3056,8 @@ export declare class GeoPoint {
  * used. Every invocation of this function necessarily involves a round trip to
  * the server.
  *
- * @param query The query whose result set is aggregated over.
- * @param aggregateSpec An `AggregateSpec` object that specifies the aggregates
+ * @param query - The query whose result set is aggregated over.
+ * @param aggregateSpec - An `AggregateSpec` object that specifies the aggregates
  * to perform over the result set. The AggregateSpec specifies aliases for each
  * aggregate, which can be used to retrieve the aggregate result.
  * @example
@@ -3141,16 +3073,7 @@ export declare class GeoPoint {
  * const averageScore: number | null = aggregateSnapshot.data().averageScore;
  * ```
  */
-export declare function getAggregateFromServer<
-  AggregateSpecType extends AggregateSpec,
-  AppModelType,
-  DbModelType extends DocumentData
->(
-  query: Query<AppModelType, DbModelType>,
-  aggregateSpec: AggregateSpecType
-): Promise<
-  AggregateQuerySnapshot<AggregateSpecType, AppModelType, DbModelType>
->;
+export declare function getAggregateFromServer<AggregateSpecType extends AggregateSpec, AppModelType, DbModelType extends DocumentData>(query: Query<AppModelType, DbModelType>, aggregateSpec: AggregateSpecType): Promise<AggregateQuerySnapshot<AggregateSpecType, AppModelType, DbModelType>>;
 
 /**
  * Calculates the number of documents in the result set of the given query
@@ -3168,25 +3091,14 @@ export declare function getAggregateFromServer<
  * used. Every invocation of this function necessarily involves a round trip to
  * the server.
  *
- * @param query The query whose result set size is calculated.
+ * @param query - The query whose result set size is calculated.
  * @returns A Promise that will be resolved with the count; the count can be
  * retrieved from `snapshot.data().count`, where `snapshot` is the
  * `AggregateQuerySnapshot` to which the returned Promise resolves.
  */
-export declare function getCountFromServer<
-  AppModelType,
-  DbModelType extends DocumentData
->(
-  query: Query<AppModelType, DbModelType>
-): Promise<
-  AggregateQuerySnapshot<
-    {
-      count: AggregateField<number>;
-    },
-    AppModelType,
-    DbModelType
-  >
->;
+export declare function getCountFromServer<AppModelType, DbModelType extends DocumentData>(query: Query<AppModelType, DbModelType>): Promise<AggregateQuerySnapshot<{
+    count: AggregateField<number>;
+}, AppModelType, DbModelType>>;
 
 /**
  * Reads the document referred to by this `DocumentReference`.
@@ -3197,40 +3109,28 @@ export declare function getCountFromServer<
  * {@link getDocFromCache} or {@link getDocFromServer}.
  *
  * @param reference - The reference of the document to fetch.
- * @returns A Promise resolved with a `DocumentSnapshot` containing the
- * current document contents.
+ * @returns A `Promise` that resolves with a `DocumentSnapshot` containing the
+ * document contents.
  */
-export declare function getDoc<AppModelType, DbModelType extends DocumentData>(
-  reference: DocumentReference<AppModelType, DbModelType>
-): Promise<DocumentSnapshot<AppModelType, DbModelType>>;
+export declare function getDoc<AppModelType, DbModelType extends DocumentData>(reference: DocumentReference<AppModelType, DbModelType>): Promise<DocumentSnapshot<AppModelType, DbModelType>>;
 
 /**
  * Reads the document referred to by this `DocumentReference` from cache.
  * Returns an error if the document is not currently cached.
  *
- * @returns A `Promise` resolved with a `DocumentSnapshot` containing the
- * current document contents.
+ * @returns A `Promise` that resolves with a `DocumentSnapshot` containing the
+ * document contents.
  */
-export declare function getDocFromCache<
-  AppModelType,
-  DbModelType extends DocumentData
->(
-  reference: DocumentReference<AppModelType, DbModelType>
-): Promise<DocumentSnapshot<AppModelType, DbModelType>>;
+export declare function getDocFromCache<AppModelType, DbModelType extends DocumentData>(reference: DocumentReference<AppModelType, DbModelType>): Promise<DocumentSnapshot<AppModelType, DbModelType>>;
 
 /**
  * Reads the document referred to by this `DocumentReference` from the server.
  * Returns an error if the network is not available.
  *
- * @returns A `Promise` resolved with a `DocumentSnapshot` containing the
- * current document contents.
+ * @returns A `Promise` that resolves with a `DocumentSnapshot` containing the
+ * document contents.
  */
-export declare function getDocFromServer<
-  AppModelType,
-  DbModelType extends DocumentData
->(
-  reference: DocumentReference<AppModelType, DbModelType>
-): Promise<DocumentSnapshot<AppModelType, DbModelType>>;
+export declare function getDocFromServer<AppModelType, DbModelType extends DocumentData>(reference: DocumentReference<AppModelType, DbModelType>): Promise<DocumentSnapshot<AppModelType, DbModelType>>;
 
 /**
  * Executes the query and returns the results as a `QuerySnapshot`.
@@ -3240,38 +3140,26 @@ export declare function getDocFromServer<
  * you are offline and the server cannot be reached. To specify this behavior,
  * invoke {@link getDocsFromCache} or {@link getDocsFromServer}.
  *
- * @returns A `Promise` that will be resolved with the results of the query.
+ * @returns A `Promise` that resolves with the results of the query.
  */
-export declare function getDocs<AppModelType, DbModelType extends DocumentData>(
-  query: Query<AppModelType, DbModelType>
-): Promise<QuerySnapshot<AppModelType, DbModelType>>;
+export declare function getDocs<AppModelType, DbModelType extends DocumentData>(query: Query<AppModelType, DbModelType>): Promise<QuerySnapshot<AppModelType, DbModelType>>;
 
 /**
  * Executes the query and returns the results as a `QuerySnapshot` from cache.
  * Returns an empty result set if no documents matching the query are currently
  * cached.
  *
- * @returns A `Promise` that will be resolved with the results of the query.
+ * @returns A `Promise` that resolves with the results of the query.
  */
-export declare function getDocsFromCache<
-  AppModelType,
-  DbModelType extends DocumentData
->(
-  query: Query<AppModelType, DbModelType>
-): Promise<QuerySnapshot<AppModelType, DbModelType>>;
+export declare function getDocsFromCache<AppModelType, DbModelType extends DocumentData>(query: Query<AppModelType, DbModelType>): Promise<QuerySnapshot<AppModelType, DbModelType>>;
 
 /**
  * Executes the query and returns the results as a `QuerySnapshot` from the
  * server. Returns an error if the network is not available.
  *
- * @returns A `Promise` that will be resolved with the results of the query.
+ * @returns A `Promise` that resolves with the results of the query.
  */
-export declare function getDocsFromServer<
-  AppModelType,
-  DbModelType extends DocumentData
->(
-  query: Query<AppModelType, DbModelType>
-): Promise<QuerySnapshot<AppModelType, DbModelType>>;
+export declare function getDocsFromServer<AppModelType, DbModelType extends DocumentData>(query: Query<AppModelType, DbModelType>): Promise<QuerySnapshot<AppModelType, DbModelType>>;
 
 /**
  * Returns the existing default {@link Firestore} instance that is associated with the
@@ -3315,21 +3203,16 @@ export declare function getFirestore(databaseId: string): Firestore;
  * @returns The named {@link Firestore} instance of the provided app.
  * @beta
  */
-export declare function getFirestore(
-  app: FirebaseApp,
-  databaseId: string
-): Firestore;
+export declare function getFirestore(app: FirebaseApp, databaseId: string): Firestore;
 
 /**
  * Returns the PersistentCache Index Manager used by the given `Firestore`
  * object.
  *
- * @return The `PersistentCacheIndexManager` instance, or `null` if local
+ * @returns The `PersistentCacheIndexManager` instance, or `null` if local
  * persistent storage is not in use.
  */
-export declare function getPersistentCacheIndexManager(
-  firestore: Firestore
-): PersistentCacheIndexManager | null;
+export declare function getPersistentCacheIndexManager(firestore: Firestore): PersistentCacheIndexManager | null;
 
 /**
  * General purpose cache for global values.
@@ -3340,21 +3223,16 @@ export declare function getPersistentCacheIndexManager(
  * synchronization and invalidation.
  */
 declare interface GlobalsCache {
-  /**
-   * Gets session token.
-   */
-  getSessionToken(
-    transaction: PersistenceTransaction
-  ): PersistencePromise<_ByteString>;
-  /**
-   * Sets session token.
-   *
-   * @param sessionToken - The new session token.
-   */
-  setSessionToken(
-    transaction: PersistenceTransaction,
-    sessionToken: _ByteString
-  ): PersistencePromise<void>;
+    /**
+     * Gets session token.
+     */
+    getSessionToken(transaction: PersistenceTransaction): PersistencePromise<_ByteString>;
+    /**
+     * Sets session token.
+     *
+     * @param sessionToken - The new session token.
+     */
+    setSessionToken(transaction: PersistenceTransaction, sessionToken: _ByteString): PersistencePromise<void>;
 }
 
 /**
@@ -3388,11 +3266,11 @@ export declare function increment(n: number): FieldValue;
  * @beta
  */
 export declare interface Index {
-  /** The ID of the collection to index. */
-  readonly collectionGroup: string;
-  /** A list of fields to index. */
-  readonly fields?: IndexField[];
-  [key: string]: unknown;
+    /** The ID of the collection to index. */
+    readonly collectionGroup: string;
+    /** A list of fields to index. */
+    readonly fields?: IndexField[];
+    [key: string]: unknown;
 }
 
 /**
@@ -3408,9 +3286,9 @@ export declare interface Index {
  * @beta
  */
 export declare interface IndexConfiguration {
-  /** A list of all Firestore indexes. */
-  readonly indexes?: Index[];
-  [key: string]: unknown;
+    /** A list of all Firestore indexes. */
+    readonly indexes?: Index[];
+    [key: string]: unknown;
 }
 
 /**
@@ -3423,39 +3301,39 @@ export declare interface IndexConfiguration {
  * @beta
  */
 export declare interface IndexField {
-  /** The field path to index. */
-  readonly fieldPath: string;
-  /**
-   * What type of array index to create. Set to `CONTAINS` for `array-contains`
-   * and `array-contains-any` indexes.
-   *
-   * Only one of `arrayConfig` or `order` should be set;
-   */
-  readonly arrayConfig?: 'CONTAINS';
-  /**
-   * What type of array index to create. Set to `ASCENDING` or 'DESCENDING` for
-   * `==`, `!=`, `<=`, `<=`, `in` and `not-in` filters.
-   *
-   * Only one of `arrayConfig` or `order` should be set.
-   */
-  readonly order?: 'ASCENDING' | 'DESCENDING';
-  [key: string]: unknown;
+    /** The field path to index. */
+    readonly fieldPath: string;
+    /**
+     * What type of array index to create. Set to `CONTAINS` for `array-contains`
+     * and `array-contains-any` indexes.
+     *
+     * Only one of `arrayConfig` or `order` should be set;
+     */
+    readonly arrayConfig?: 'CONTAINS';
+    /**
+     * What type of array index to create. Set to `ASCENDING` or 'DESCENDING` for
+     * `==`, `!=`, `<=`, `<=`, `in` and `not-in` filters.
+     *
+     * Only one of `arrayConfig` or `order` should be set.
+     */
+    readonly order?: 'ASCENDING' | 'DESCENDING';
+    [key: string]: unknown;
 }
 
 declare type IndexFieldMode = 'MODE_UNSPECIFIED' | 'ASCENDING' | 'DESCENDING';
 
 /** The type of the index, e.g. for which type of query it can be used. */
 declare const enum IndexKind {
-  /**
-   * Ordered index. Can be used for <, <=, ==, >=, >, !=, IN and NOT IN queries.
-   */
-  ASCENDING = 0,
-  /**
-   * Ordered index. Can be used for <, <=, ==, >=, >, !=, IN and NOT IN queries.
-   */
-  DESCENDING = 1,
-  /** Contains index. Can be used for ArrayContains and ArrayContainsAny. */
-  CONTAINS = 2
+    /**
+     * Ordered index. Can be used for <, <=, ==, >=, >, !=, IN and NOT IN queries.
+     */
+    ASCENDING = 0,
+    /**
+     * Ordered index. Can be used for <, <=, ==, >=, >, !=, IN and NOT IN queries.
+     */
+    DESCENDING = 1,
+    /** Contains index. Can be used for ArrayContains and ArrayContainsAny. */
+    CONTAINS = 2
 }
 
 /**
@@ -3465,125 +3343,82 @@ declare const enum IndexKind {
  * to execute Collection Group queries.
  */
 declare interface IndexManager {
-  /**
-   * Creates an index entry mapping the collectionId (last segment of the path)
-   * to the parent path (either the containing document location or the empty
-   * path for root-level collections). Index entries can be retrieved via
-   * getCollectionParents().
-   *
-   * NOTE: Currently we don't remove index entries. If this ends up being an
-   * issue we can devise some sort of GC strategy.
-   */
-  addToCollectionParentIndex(
-    transaction: PersistenceTransaction,
-    collectionPath: _ResourcePath
-  ): PersistencePromise<void>;
-  /**
-   * Retrieves all parent locations containing the given collectionId, as a
-   * list of paths (each path being either a document location or the empty
-   * path for a root-level collection).
-   */
-  getCollectionParents(
-    transaction: PersistenceTransaction,
-    collectionId: string
-  ): PersistencePromise<_ResourcePath[]>;
-  /**
-   * Adds a field path index.
-   *
-   * Values for this index are persisted via the index backfill, which runs
-   * asynchronously in the background. Once the first values are written,
-   * an index can be used to serve partial results for any matching queries.
-   * Any unindexed portion of the database will continue to be served via
-   * collection scons.
-   */
-  addFieldIndex(
-    transaction: PersistenceTransaction,
-    index: FieldIndex
-  ): PersistencePromise<void>;
-  /** Removes the given field index and deletes all index values. */
-  deleteFieldIndex(
-    transaction: PersistenceTransaction,
-    index: FieldIndex
-  ): PersistencePromise<void>;
-  /** Removes all field indexes and deletes all index values. */
-  deleteAllFieldIndexes(
-    transaction: PersistenceTransaction
-  ): PersistencePromise<void>;
-  /** Creates a full matched field index which serves the given target. */
-  createTargetIndexes(
-    transaction: PersistenceTransaction,
-    target: Target
-  ): PersistencePromise<void>;
-  /**
-   * Returns a list of field indexes that correspond to the specified collection
-   * group.
-   *
-   * @param collectionGroup The collection group to get matching field indexes
-   * for.
-   * @return A collection of field indexes for the specified collection group.
-   */
-  getFieldIndexes(
-    transaction: PersistenceTransaction,
-    collectionGroup: string
-  ): PersistencePromise<FieldIndex[]>;
-  /** Returns all configured field indexes. */
-  getFieldIndexes(
-    transaction: PersistenceTransaction
-  ): PersistencePromise<FieldIndex[]>;
-  /**
-   * Returns the type of index (if any) that can be used to serve the given
-   * target.
-   */
-  getIndexType(
-    transaction: PersistenceTransaction,
-    target: Target
-  ): PersistencePromise<IndexType>;
-  /**
-   * Returns the documents that match the given target based on the provided
-   * index or `null` if the target does not have a matching index.
-   */
-  getDocumentsMatchingTarget(
-    transaction: PersistenceTransaction,
-    target: Target
-  ): PersistencePromise<_DocumentKey[] | null>;
-  /**
-   * Returns the next collection group to update. Returns `null` if no group
-   * exists.
-   */
-  getNextCollectionGroupToUpdate(
-    transaction: PersistenceTransaction
-  ): PersistencePromise<string | null>;
-  /**
-   * Sets the collection group's latest read time.
-   *
-   * This method updates the index offset for all field indices for the
-   * collection group and increments their sequence number. Subsequent calls to
-   * `getNextCollectionGroupToUpdate()` will return a different collection group
-   * (unless only one collection group is configured).
-   */
-  updateCollectionGroup(
-    transaction: PersistenceTransaction,
-    collectionGroup: string,
-    offset: IndexOffset
-  ): PersistencePromise<void>;
-  /** Updates the index entries for the provided documents. */
-  updateIndexEntries(
-    transaction: PersistenceTransaction,
-    documents: DocumentMap
-  ): PersistencePromise<void>;
-  /**
-   * Iterates over all field indexes that are used to serve the given target,
-   * and returns the minimum offset of them all.
-   */
-  getMinOffset(
-    transaction: PersistenceTransaction,
-    target: Target
-  ): PersistencePromise<IndexOffset>;
-  /** Returns the minimum offset for the given collection group. */
-  getMinOffsetFromCollectionGroup(
-    transaction: PersistenceTransaction,
-    collectionGroup: string
-  ): PersistencePromise<IndexOffset>;
+    /**
+     * Creates an index entry mapping the collectionId (last segment of the path)
+     * to the parent path (either the containing document location or the empty
+     * path for root-level collections). Index entries can be retrieved via
+     * getCollectionParents().
+     *
+     * NOTE: Currently we don't remove index entries. If this ends up being an
+     * issue we can devise some sort of GC strategy.
+     */
+    addToCollectionParentIndex(transaction: PersistenceTransaction, collectionPath: _ResourcePath): PersistencePromise<void>;
+    /**
+     * Retrieves all parent locations containing the given collectionId, as a
+     * list of paths (each path being either a document location or the empty
+     * path for a root-level collection).
+     */
+    getCollectionParents(transaction: PersistenceTransaction, collectionId: string): PersistencePromise<_ResourcePath[]>;
+    /**
+     * Adds a field path index.
+     *
+     * Values for this index are persisted via the index backfill, which runs
+     * asynchronously in the background. Once the first values are written,
+     * an index can be used to serve partial results for any matching queries.
+     * Any unindexed portion of the database will continue to be served via
+     * collection scons.
+     */
+    addFieldIndex(transaction: PersistenceTransaction, index: FieldIndex): PersistencePromise<void>;
+    /** Removes the given field index and deletes all index values. */
+    deleteFieldIndex(transaction: PersistenceTransaction, index: FieldIndex): PersistencePromise<void>;
+    /** Removes all field indexes and deletes all index values. */
+    deleteAllFieldIndexes(transaction: PersistenceTransaction): PersistencePromise<void>;
+    /** Creates a full matched field index which serves the given target. */
+    createTargetIndexes(transaction: PersistenceTransaction, target: Target): PersistencePromise<void>;
+    /**
+     * Returns a list of field indexes that correspond to the specified collection
+     * group.
+     *
+     * @param collectionGroup - The collection group to get matching field indexes
+     * for.
+     * @returns A collection of field indexes for the specified collection group.
+     */
+    getFieldIndexes(transaction: PersistenceTransaction, collectionGroup: string): PersistencePromise<FieldIndex[]>;
+    /** Returns all configured field indexes. */
+    getFieldIndexes(transaction: PersistenceTransaction): PersistencePromise<FieldIndex[]>;
+    /**
+     * Returns the type of index (if any) that can be used to serve the given
+     * target.
+     */
+    getIndexType(transaction: PersistenceTransaction, target: Target): PersistencePromise<IndexType>;
+    /**
+     * Returns the documents that match the given target based on the provided
+     * index or `null` if the target does not have a matching index.
+     */
+    getDocumentsMatchingTarget(transaction: PersistenceTransaction, target: Target): PersistencePromise<_DocumentKey[] | null>;
+    /**
+     * Returns the next collection group to update. Returns `null` if no group
+     * exists.
+     */
+    getNextCollectionGroupToUpdate(transaction: PersistenceTransaction): PersistencePromise<string | null>;
+    /**
+     * Sets the collection group's latest read time.
+     *
+     * This method updates the index offset for all field indices for the
+     * collection group and increments their sequence number. Subsequent calls to
+     * `getNextCollectionGroupToUpdate()` will return a different collection group
+     * (unless only one collection group is configured).
+     */
+    updateCollectionGroup(transaction: PersistenceTransaction, collectionGroup: string, offset: IndexOffset): PersistencePromise<void>;
+    /** Updates the index entries for the provided documents. */
+    updateIndexEntries(transaction: PersistenceTransaction, documents: DocumentMap): PersistencePromise<void>;
+    /**
+     * Iterates over all field indexes that are used to serve the given target,
+     * and returns the minimum offset of them all.
+     */
+    getMinOffset(transaction: PersistenceTransaction, target: Target): PersistencePromise<IndexOffset>;
+    /** Returns the minimum offset for the given collection group. */
+    getMinOffsetFromCollectionGroup(transaction: PersistenceTransaction, collectionGroup: string): PersistencePromise<IndexOffset>;
 }
 
 /**
@@ -3591,48 +3426,45 @@ declare interface IndexManager {
  * index.
  */
 declare class IndexOffset {
-  /**
-   * The latest read time version that has been indexed by Firestore for this
-   * field index.
-   */
-  readonly readTime: SnapshotVersion;
-  /**
-   * The key of the last document that was indexed for this query. Use
-   * `DocumentKey.empty()` if no document has been indexed.
-   */
-  readonly documentKey: _DocumentKey;
-  readonly largestBatchId: number;
-  constructor(
     /**
      * The latest read time version that has been indexed by Firestore for this
      * field index.
      */
-    readTime: SnapshotVersion,
+    readonly readTime: SnapshotVersion;
     /**
      * The key of the last document that was indexed for this query. Use
      * `DocumentKey.empty()` if no document has been indexed.
      */
-    documentKey: _DocumentKey,
-    largestBatchId: number
-  );
-  /** Returns an offset that sorts before all regular offsets. */
-  static min(): IndexOffset;
-  /** Returns an offset that sorts after all regular offsets. */
-  static max(): IndexOffset;
+    readonly documentKey: _DocumentKey;
+    readonly largestBatchId: number;
+    constructor(
+    /**
+     * The latest read time version that has been indexed by Firestore for this
+     * field index.
+     */
+    readTime: SnapshotVersion, 
+    /**
+     * The key of the last document that was indexed for this query. Use
+     * `DocumentKey.empty()` if no document has been indexed.
+     */
+    documentKey: _DocumentKey, largestBatchId: number);
+    /** Returns an offset that sorts before all regular offsets. */
+    static min(): IndexOffset;
+    /** Returns an offset that sorts after all regular offsets. */
+    static max(): IndexOffset;
 }
 
 /** An index component consisting of field path and index type.  */
 declare class IndexSegment {
-  /** The field path of the component. */
-  readonly fieldPath: _FieldPath;
-  /** The fields sorting order. */
-  readonly kind: IndexKind;
-  constructor(
     /** The field path of the component. */
-    fieldPath: _FieldPath,
+    readonly fieldPath: _FieldPath;
     /** The fields sorting order. */
-    kind: IndexKind
-  );
+    readonly kind: IndexKind;
+    constructor(
+    /** The field path of the component. */
+    fieldPath: _FieldPath, 
+    /** The fields sorting order. */
+    kind: IndexKind);
 }
 
 /**
@@ -3640,45 +3472,40 @@ declare class IndexSegment {
  * current user.
  */
 declare class IndexState {
-  /**
-   * Indicates when the index was last updated (relative to other indexes).
-   */
-  readonly sequenceNumber: number;
-  /** The the latest indexed read time, document and batch id. */
-  readonly offset: IndexOffset;
-  constructor(
     /**
      * Indicates when the index was last updated (relative to other indexes).
      */
-    sequenceNumber: number,
+    readonly sequenceNumber: number;
     /** The the latest indexed read time, document and batch id. */
-    offset: IndexOffset
-  );
-  /** The state of an index that has not yet been backfilled. */
-  static empty(): IndexState;
+    readonly offset: IndexOffset;
+    constructor(
+    /**
+     * Indicates when the index was last updated (relative to other indexes).
+     */
+    sequenceNumber: number, 
+    /** The the latest indexed read time, document and batch id. */
+    offset: IndexOffset);
+    /** The state of an index that has not yet been backfilled. */
+    static empty(): IndexState;
 }
 
-declare type IndexState_2 =
-  | 'STATE_UNSPECIFIED'
-  | 'CREATING'
-  | 'READY'
-  | 'ERROR';
+declare type IndexState_2 = 'STATE_UNSPECIFIED' | 'CREATING' | 'READY' | 'ERROR';
 
 /** Represents the index state as it relates to a particular target. */
 declare const enum IndexType {
-  /** Indicates that no index could be found for serving the target. */
-  NONE = 0,
-  /**
-   * Indicates that only a "partial index" could be found for serving the
-   * target. A partial index is one which does not have a segment for every
-   * filter/orderBy in the target.
-   */
-  PARTIAL = 1,
-  /**
-   * Indicates that a "full index" could be found for serving the target. A full
-   * index is one which has a segment for every filter/orderBy in the target.
-   */
-  FULL = 2
+    /** Indicates that no index could be found for serving the target. */
+    NONE = 0,
+    /**
+     * Indicates that only a "partial index" could be found for serving the
+     * target. A partial index is one which does not have a segment for every
+     * filter/orderBy in the target.
+     */
+    PARTIAL = 1,
+    /**
+     * Indicates that a "full index" could be found for serving the target. A full
+     * index is one which has a segment for every filter/orderBy in the target.
+     */
+    FULL = 2
 }
 
 /**
@@ -3693,11 +3520,7 @@ declare const enum IndexType {
  * @param databaseId - The name of the database.
  * @returns A newly initialized {@link Firestore} instance.
  */
-export declare function initializeFirestore(
-  app: FirebaseApp,
-  settings: FirestoreSettings,
-  databaseId?: string
-): Firestore;
+export declare function initializeFirestore(app: FirebaseApp, settings: FirestoreSettings, databaseId?: string): Firestore;
 
 /* Excluded from this release type: _internalAggregationQueryToProtoRunAggregationQueryRequest */
 
@@ -3720,10 +3543,12 @@ export declare function initializeFirestore(
  * resource name in documents.
  */
 declare class JsonProtoSerializer implements Serializer {
-  readonly databaseId: _DatabaseId;
-  readonly useProto3Json: boolean;
-  constructor(databaseId: _DatabaseId, useProto3Json: boolean);
+    readonly databaseId: _DatabaseId;
+    readonly useProto3Json: boolean;
+    constructor(databaseId: _DatabaseId, useProto3Json: boolean);
 }
+
+/* Excluded from this release type: JsonTypeDesc */
 
 declare type Kind = 'memory' | 'persistent';
 
@@ -3749,12 +3574,33 @@ export declare function limit(limit: number): QueryLimitConstraint;
 export declare function limitToLast(limit: number): QueryLimitConstraint;
 
 declare const enum LimitType {
-  First = 'F',
-  Last = 'L'
+    First = "F",
+    Last = "L"
 }
 
 /** LimitType enum. */
 declare type LimitType_2 = 'FIRST' | 'LAST';
+
+declare enum ListenerDataSource {
+    /** Listen to both cache and server changes */
+    Default = "default",
+    /** Listen to changes in cache only */
+    Cache = "cache"
+}
+
+declare interface ListenOptions {
+    /** Raise events even when only the metadata changes */
+    readonly includeMetadataChanges?: boolean;
+    /**
+     * Wait for a sync with the server when online, but still raise events while
+     * offline.
+     */
+    readonly waitForSyncWhenOnline?: boolean;
+    /** Set the source events raised from. */
+    readonly source?: ListenerDataSource;
+    /** Realtime Pipeline Only: Set server timestamp behavior. */
+    readonly serverTimestampBehavior?: 'estimate' | 'previous' | 'none';
+}
 
 declare type ListenSequenceNumber = number;
 
@@ -3767,76 +3613,55 @@ declare type ListenSequenceNumber = number;
 export declare type ListenSource = 'default' | 'cache';
 
 declare class LLRBEmptyNode<K, V> {
-  get key(): never;
-  get value(): never;
-  get color(): never;
-  get left(): never;
-  get right(): never;
-  size: number;
-  copy(
-    key: K | null,
-    value: V | null,
-    color: boolean | null,
-    left: LLRBNode<K, V> | LLRBEmptyNode<K, V> | null,
-    right: LLRBNode<K, V> | LLRBEmptyNode<K, V> | null
-  ): LLRBEmptyNode<K, V>;
-  insert(key: K, value: V, comparator: Comparator<K>): LLRBNode<K, V>;
-  remove(key: K, comparator: Comparator<K>): LLRBEmptyNode<K, V>;
-  isEmpty(): boolean;
-  inorderTraversal(action: (k: K, v: V) => boolean): boolean;
-  reverseTraversal(action: (k: K, v: V) => boolean): boolean;
-  minKey(): K | null;
-  maxKey(): K | null;
-  isRed(): boolean;
-  checkMaxDepth(): boolean;
-  protected check(): 0;
+    get key(): never;
+    get value(): never;
+    get color(): never;
+    get left(): never;
+    get right(): never;
+    size: number;
+    copy(key: K | null, value: V | null, color: boolean | null, left: LLRBNode<K, V> | LLRBEmptyNode<K, V> | null, right: LLRBNode<K, V> | LLRBEmptyNode<K, V> | null): LLRBEmptyNode<K, V>;
+    insert(key: K, value: V, comparator: Comparator<K>): LLRBNode<K, V>;
+    remove(key: K, comparator: Comparator<K>): LLRBEmptyNode<K, V>;
+    isEmpty(): boolean;
+    inorderTraversal(action: (k: K, v: V) => boolean): boolean;
+    reverseTraversal(action: (k: K, v: V) => boolean): boolean;
+    minKey(): K | null;
+    maxKey(): K | null;
+    isRed(): boolean;
+    checkMaxDepth(): boolean;
+    protected check(): 0;
 }
 
 declare class LLRBNode<K, V> {
-  key: K;
-  value: V;
-  readonly color: boolean;
-  readonly left: LLRBNode<K, V> | LLRBEmptyNode<K, V>;
-  readonly right: LLRBNode<K, V> | LLRBEmptyNode<K, V>;
-  readonly size: number;
-  static EMPTY: LLRBEmptyNode<any, any>;
-  static RED: boolean;
-  static BLACK: boolean;
-  constructor(
-    key: K,
-    value: V,
-    color?: boolean,
-    left?: LLRBNode<K, V> | LLRBEmptyNode<K, V>,
-    right?: LLRBNode<K, V> | LLRBEmptyNode<K, V>
-  );
-  copy(
-    key: K | null,
-    value: V | null,
-    color: boolean | null,
-    left: LLRBNode<K, V> | LLRBEmptyNode<K, V> | null,
-    right: LLRBNode<K, V> | LLRBEmptyNode<K, V> | null
-  ): LLRBNode<K, V>;
-  isEmpty(): boolean;
-  inorderTraversal<T>(action: (k: K, v: V) => T): T;
-  reverseTraversal<T>(action: (k: K, v: V) => T): T;
-  private min;
-  minKey(): K | null;
-  maxKey(): K | null;
-  insert(key: K, value: V, comparator: Comparator<K>): LLRBNode<K, V>;
-  private removeMin;
-  remove(
-    key: K,
-    comparator: Comparator<K>
-  ): LLRBNode<K, V> | LLRBEmptyNode<K, V>;
-  isRed(): boolean;
-  private fixUp;
-  private moveRedLeft;
-  private moveRedRight;
-  private rotateLeft;
-  private rotateRight;
-  private colorFlip;
-  checkMaxDepth(): boolean;
-  protected check(): number;
+    key: K;
+    value: V;
+    readonly color: boolean;
+    readonly left: LLRBNode<K, V> | LLRBEmptyNode<K, V>;
+    readonly right: LLRBNode<K, V> | LLRBEmptyNode<K, V>;
+    readonly size: number;
+    static EMPTY: LLRBEmptyNode<any, any>;
+    static RED: boolean;
+    static BLACK: boolean;
+    constructor(key: K, value: V, color?: boolean, left?: LLRBNode<K, V> | LLRBEmptyNode<K, V>, right?: LLRBNode<K, V> | LLRBEmptyNode<K, V>);
+    copy(key: K | null, value: V | null, color: boolean | null, left: LLRBNode<K, V> | LLRBEmptyNode<K, V> | null, right: LLRBNode<K, V> | LLRBEmptyNode<K, V> | null): LLRBNode<K, V>;
+    isEmpty(): boolean;
+    inorderTraversal<T>(action: (k: K, v: V) => T): T;
+    reverseTraversal<T>(action: (k: K, v: V) => T): T;
+    private min;
+    minKey(): K | null;
+    maxKey(): K | null;
+    insert(key: K, value: V, comparator: Comparator<K>): LLRBNode<K, V>;
+    private removeMin;
+    remove(key: K, comparator: Comparator<K>): LLRBNode<K, V> | LLRBEmptyNode<K, V>;
+    isRed(): boolean;
+    private fixUp;
+    private moveRedLeft;
+    private moveRedRight;
+    private rotateLeft;
+    private rotateRight;
+    private colorFlip;
+    checkMaxDepth(): boolean;
+    protected check(): number;
 }
 
 /**
@@ -3850,10 +3675,7 @@ declare class LLRBNode<K, V> {
  * updates, and completion or error events. It can be used as a
  * `Promise<LoadBundleTaskProgress>`.
  */
-export declare function loadBundle(
-  firestore: Firestore,
-  bundleData: ReadableStream<Uint8Array> | ArrayBuffer | string
-): LoadBundleTask;
+export declare function loadBundle(firestore: Firestore, bundleData: ReadableStream<Uint8Array> | ArrayBuffer | string): LoadBundleTask;
 
 /**
  * Represents the task of loading a Firestore bundle. It provides progress of bundle
@@ -3861,81 +3683,70 @@ export declare function loadBundle(
  *
  * The API is compatible with `Promise<LoadBundleTaskProgress>`.
  */
-export declare class LoadBundleTask
-  implements PromiseLike<LoadBundleTaskProgress>
-{
-  private _progressObserver;
-  private _taskCompletionResolver;
-  private _lastProgress;
-  /**
-   * Registers functions to listen to bundle loading progress events.
-   * @param next - Called when there is a progress update from bundle loading. Typically `next` calls occur
-   *   each time a Firestore document is loaded from the bundle.
-   * @param error - Called when an error occurs during bundle loading. The task aborts after reporting the
-   *   error, and there should be no more updates after this.
-   * @param complete - Called when the loading task is complete.
-   */
-  onProgress(
-    next?: (progress: LoadBundleTaskProgress) => unknown,
-    error?: (err: Error) => unknown,
-    complete?: () => void
-  ): void;
-  /**
-   * Implements the `Promise<LoadBundleTaskProgress>.catch` interface.
-   *
-   * @param onRejected - Called when an error occurs during bundle loading.
-   */
-  catch<R>(
-    onRejected: (a: Error) => R | PromiseLike<R>
-  ): Promise<R | LoadBundleTaskProgress>;
-  /**
-   * Implements the `Promise<LoadBundleTaskProgress>.then` interface.
-   *
-   * @param onFulfilled - Called on the completion of the loading task with a final `LoadBundleTaskProgress` update.
-   *   The update will always have its `taskState` set to `"Success"`.
-   * @param onRejected - Called when an error occurs during bundle loading.
-   */
-  then<T, R>(
-    onFulfilled?: (a: LoadBundleTaskProgress) => T | PromiseLike<T>,
-    onRejected?: (a: Error) => R | PromiseLike<R>
-  ): Promise<T | R>;
-  /**
-   * Notifies all observers that bundle loading has completed, with a provided
-   * `LoadBundleTaskProgress` object.
-   *
-   * @private
-   */
-  _completeWith(progress: LoadBundleTaskProgress): void;
-  /**
-   * Notifies all observers that bundle loading has failed, with a provided
-   * `Error` as the reason.
-   *
-   * @private
-   */
-  _failWith(error: FirestoreError): void;
-  /**
-   * Notifies a progress update of loading a bundle.
-   * @param progress - The new progress.
-   *
-   * @private
-   */
-  _updateProgress(progress: LoadBundleTaskProgress): void;
+export declare class LoadBundleTask implements PromiseLike<LoadBundleTaskProgress> {
+    private _progressObserver;
+    private _taskCompletionResolver;
+    private _lastProgress;
+    /**
+     * Registers functions to listen to bundle loading progress events.
+     * @param next - Called when there is a progress update from bundle loading. Typically `next` calls occur
+     *   each time a Firestore document is loaded from the bundle.
+     * @param error - Called when an error occurs during bundle loading. The task aborts after reporting the
+     *   error, and there should be no more updates after this.
+     * @param complete - Called when the loading task is complete.
+     */
+    onProgress(next?: (progress: LoadBundleTaskProgress) => unknown, error?: (err: Error) => unknown, complete?: () => void): void;
+    /**
+     * Implements the `Promise<LoadBundleTaskProgress>.catch` interface.
+     *
+     * @param onRejected - Called when an error occurs during bundle loading.
+     */
+    catch<R>(onRejected: (a: Error) => R | PromiseLike<R>): Promise<R | LoadBundleTaskProgress>;
+    /**
+     * Implements the `Promise<LoadBundleTaskProgress>.then` interface.
+     *
+     * @param onFulfilled - Called on the completion of the loading task with a final `LoadBundleTaskProgress` update.
+     *   The update will always have its `taskState` set to `"Success"`.
+     * @param onRejected - Called when an error occurs during bundle loading.
+     */
+    then<T, R>(onFulfilled?: (a: LoadBundleTaskProgress) => T | PromiseLike<T>, onRejected?: (a: Error) => R | PromiseLike<R>): Promise<T | R>;
+    /**
+     * Notifies all observers that bundle loading has completed, with a provided
+     * `LoadBundleTaskProgress` object.
+     *
+     * @private
+     */
+    _completeWith(progress: LoadBundleTaskProgress): void;
+    /**
+     * Notifies all observers that bundle loading has failed, with a provided
+     * `Error` as the reason.
+     *
+     * @private
+     */
+    _failWith(error: FirestoreError): void;
+    /**
+     * Notifies a progress update of loading a bundle.
+     * @param progress - The new progress.
+     *
+     * @private
+     */
+    _updateProgress(progress: LoadBundleTaskProgress): void;
 }
 
 /**
  * Represents a progress update or a final state from loading bundles.
  */
 export declare interface LoadBundleTaskProgress {
-  /** How many documents have been loaded. */
-  documentsLoaded: number;
-  /** How many documents are in the bundle being loaded. */
-  totalDocuments: number;
-  /** How many bytes have been loaded. */
-  bytesLoaded: number;
-  /** How many bytes are in the bundle being loaded. */
-  totalBytes: number;
-  /** Current task state. */
-  taskState: TaskState;
+    /** How many documents have been loaded. */
+    documentsLoaded: number;
+    /** How many documents are in the bundle being loaded. */
+    totalDocuments: number;
+    /** How many bytes have been loaded. */
+    bytesLoaded: number;
+    /** How many bytes are in the bundle being loaded. */
+    totalBytes: number;
+    /** Current task state. */
+    taskState: TaskState;
 }
 
 /**
@@ -3945,203 +3756,150 @@ export declare interface LoadBundleTaskProgress {
  * MutationQueue to the RemoteDocumentCache.
  */
 declare class LocalDocumentsView {
-  readonly remoteDocumentCache: RemoteDocumentCache;
-  readonly mutationQueue: MutationQueue;
-  readonly documentOverlayCache: DocumentOverlayCache;
-  readonly indexManager: IndexManager;
-  constructor(
-    remoteDocumentCache: RemoteDocumentCache,
-    mutationQueue: MutationQueue,
-    documentOverlayCache: DocumentOverlayCache,
-    indexManager: IndexManager
-  );
-  /**
-   * Get the local view of the document identified by `key`.
-   *
-   * @returns Local view of the document or null if we don't have any cached
-   * state for it.
-   */
-  getDocument(
-    transaction: PersistenceTransaction,
-    key: _DocumentKey
-  ): PersistencePromise<Document_2>;
-  /**
-   * Gets the local view of the documents identified by `keys`.
-   *
-   * If we don't have cached state for a document in `keys`, a NoDocument will
-   * be stored for that key in the resulting set.
-   */
-  getDocuments(
-    transaction: PersistenceTransaction,
-    keys: DocumentKeySet
-  ): PersistencePromise<DocumentMap>;
-  /**
-   * Similar to `getDocuments`, but creates the local view from the given
-   * `baseDocs` without retrieving documents from the local store.
-   *
-   * @param transaction - The transaction this operation is scoped to.
-   * @param docs - The documents to apply local mutations to get the local views.
-   * @param existenceStateChanged - The set of document keys whose existence state
-   *   is changed. This is useful to determine if some documents overlay needs
-   *   to be recalculated.
-   */
-  getLocalViewOfDocuments(
-    transaction: PersistenceTransaction,
-    docs: MutableDocumentMap,
-    existenceStateChanged?: DocumentKeySet
-  ): PersistencePromise<DocumentMap>;
-  /**
-   * Gets the overlayed documents for the given document map, which will include
-   * the local view of those documents and a `FieldMask` indicating which fields
-   * are mutated locally, `null` if overlay is a Set or Delete mutation.
-   */
-  getOverlayedDocuments(
-    transaction: PersistenceTransaction,
-    docs: MutableDocumentMap
-  ): PersistencePromise<OverlayedDocumentMap>;
-  /**
-   * Fetches the overlays for {@code docs} and adds them to provided overlay map
-   * if the map does not already contain an entry for the given document key.
-   */
-  private populateOverlays;
-  /**
-   * Computes the local view for the given documents.
-   *
-   * @param docs - The documents to compute views for. It also has the base
-   *   version of the documents.
-   * @param overlays - The overlays that need to be applied to the given base
-   *   version of the documents.
-   * @param existenceStateChanged - A set of documents whose existence states
-   *   might have changed. This is used to determine if we need to re-calculate
-   *   overlays from mutation queues.
-   * @return A map represents the local documents view.
-   */
-  computeViews(
-    transaction: PersistenceTransaction,
-    docs: MutableDocumentMap,
-    overlays: OverlayMap,
-    existenceStateChanged: DocumentKeySet
-  ): PersistencePromise<OverlayedDocumentMap>;
-  private recalculateAndSaveOverlays;
-  /**
-   * Recalculates overlays by reading the documents from remote document cache
-   * first, and saves them after they are calculated.
-   */
-  recalculateAndSaveOverlaysForDocumentKeys(
-    transaction: PersistenceTransaction,
-    documentKeys: DocumentKeySet
-  ): PersistencePromise<DocumentKeyMap<FieldMask | null>>;
-  /**
-   * Performs a query against the local view of all documents.
-   *
-   * @param transaction - The persistence transaction.
-   * @param query - The query to match documents against.
-   * @param offset - Read time and key to start scanning by (exclusive).
-   * @param context - A optional tracker to keep a record of important details
-   *   during database local query execution.
-   */
-  getDocumentsMatchingQuery(
-    transaction: PersistenceTransaction,
-    query: Query_2,
-    offset: IndexOffset,
-    context?: QueryContext
-  ): PersistencePromise<DocumentMap>;
-  /**
-   * Given a collection group, returns the next documents that follow the provided offset, along
-   * with an updated batch ID.
-   *
-   * <p>The documents returned by this method are ordered by remote version from the provided
-   * offset. If there are no more remote documents after the provided offset, documents with
-   * mutations in order of batch id from the offset are returned. Since all documents in a batch are
-   * returned together, the total number of documents returned can exceed {@code count}.
-   *
-   * @param transaction
-   * @param collectionGroup The collection group for the documents.
-   * @param offset The offset to index into.
-   * @param count The number of documents to return
-   * @return A LocalWriteResult with the documents that follow the provided offset and the last processed batch id.
-   */
-  getNextDocuments(
-    transaction: PersistenceTransaction,
-    collectionGroup: string,
-    offset: IndexOffset,
-    count: number
-  ): PersistencePromise<LocalWriteResult>;
-  private getDocumentsMatchingDocumentQuery;
-  private getDocumentsMatchingCollectionGroupQuery;
-  private getDocumentsMatchingCollectionQuery;
+    readonly remoteDocumentCache: RemoteDocumentCache;
+    readonly mutationQueue: MutationQueue;
+    readonly documentOverlayCache: DocumentOverlayCache;
+    readonly indexManager: IndexManager;
+    constructor(remoteDocumentCache: RemoteDocumentCache, mutationQueue: MutationQueue, documentOverlayCache: DocumentOverlayCache, indexManager: IndexManager);
+    /**
+     * Get the local view of the document identified by `key`.
+     *
+     * @returns Local view of the document or null if we don't have any cached
+     * state for it.
+     */
+    getDocument(transaction: PersistenceTransaction, key: _DocumentKey): PersistencePromise<Document_2>;
+    /**
+     * Gets the local view of the documents identified by `keys`.
+     *
+     * If we don't have cached state for a document in `keys`, a NoDocument will
+     * be stored for that key in the resulting set.
+     */
+    getDocuments(transaction: PersistenceTransaction, keys: DocumentKeySet): PersistencePromise<DocumentMap>;
+    /**
+     * Similar to `getDocuments`, but creates the local view from the given
+     * `baseDocs` without retrieving documents from the local store.
+     *
+     * @param transaction - The transaction this operation is scoped to.
+     * @param docs - The documents to apply local mutations to get the local views.
+     * @param existenceStateChanged - The set of document keys whose existence state
+     *   is changed. This is useful to determine if some documents overlay needs
+     *   to be recalculated.
+     */
+    getLocalViewOfDocuments(transaction: PersistenceTransaction, docs: MutableDocumentMap, existenceStateChanged?: DocumentKeySet): PersistencePromise<DocumentMap>;
+    /**
+     * Gets the overlayed documents for the given document map, which will include
+     * the local view of those documents and a `FieldMask` indicating which fields
+     * are mutated locally, `null` if overlay is a Set or Delete mutation.
+     */
+    getOverlayedDocuments(transaction: PersistenceTransaction, docs: MutableDocumentMap): PersistencePromise<OverlayedDocumentMap>;
+    /**
+     * Fetches the overlays for {@code docs} and adds them to provided overlay map
+     * if the map does not already contain an entry for the given document key.
+     */
+    private populateOverlays;
+    /**
+     * Computes the local view for the given documents.
+     *
+     * @param docs - The documents to compute views for. It also has the base
+     *   version of the documents.
+     * @param overlays - The overlays that need to be applied to the given base
+     *   version of the documents.
+     * @param existenceStateChanged - A set of documents whose existence states
+     *   might have changed. This is used to determine if we need to re-calculate
+     *   overlays from mutation queues.
+     * @returns A map represents the local documents view.
+     */
+    computeViews(transaction: PersistenceTransaction, docs: MutableDocumentMap, overlays: OverlayMap, existenceStateChanged: DocumentKeySet): PersistencePromise<OverlayedDocumentMap>;
+    private recalculateAndSaveOverlays;
+    /**
+     * Recalculates overlays by reading the documents from remote document cache
+     * first, and saves them after they are calculated.
+     */
+    recalculateAndSaveOverlaysForDocumentKeys(transaction: PersistenceTransaction, documentKeys: DocumentKeySet): PersistencePromise<DocumentKeyMap<FieldMask | null>>;
+    /**
+     * Performs a query against the local view of all documents.
+     *
+     * @param transaction - The persistence transaction.
+     * @param query - The query to match documents against.
+     * @param offset - Read time and key to start scanning by (exclusive).
+     * @param context - A optional tracker to keep a record of important details
+     *   during database local query execution.
+     */
+    getDocumentsMatchingQuery(transaction: PersistenceTransaction, query: QueryOrPipeline, offset: IndexOffset, context?: QueryContext): PersistencePromise<DocumentMap>;
+    /**
+     * Given a collection group, returns the next documents that follow the provided offset, along
+     * with an updated batch ID.
+     *
+     * <p>The documents returned by this method are ordered by remote version from the provided
+     * offset. If there are no more remote documents after the provided offset, documents with
+     * mutations in order of batch id from the offset are returned. Since all documents in a batch are
+     * returned together, the total number of documents returned can exceed {@code count}.
+     *
+     * @param transaction
+     * @param collectionGroup - The collection group for the documents.
+     * @param offset - The offset to index into.
+     * @param count - The number of documents to return
+     * @returns A LocalWriteResult with the documents that follow the provided offset and the last processed batch id.
+     */
+    getNextDocuments(transaction: PersistenceTransaction, collectionGroup: string, offset: IndexOffset, count: number): PersistencePromise<LocalWriteResult>;
+    private getDocumentsMatchingDocumentQuery;
+    private getDocumentsMatchingCollectionGroupQuery;
+    private getDocumentsMatchingCollectionQuery;
+    private getDocumentsMatchingPipeline;
+    private retrieveMatchingLocalDocuments;
+    private getOverlaysForPipeline;
 }
 
 declare interface LocalStore {
-  collectGarbage(garbageCollector: LruGarbageCollector): Promise<LruResults>;
-  /** Manages the list of active field and collection indices. */
-  indexManager: IndexManager;
-  /**
-   * The "local" view of all documents (layering mutationQueue on top of
-   * remoteDocumentCache).
-   */
-  localDocuments: LocalDocumentsView;
+    collectGarbage(garbageCollector: LruGarbageCollector): Promise<LruResults>;
+    /** Manages the list of active field and collection indices. */
+    indexManager: IndexManager;
+    /**
+     * The "local" view of all documents (layering mutationQueue on top of
+     * remoteDocumentCache).
+     */
+    localDocuments: LocalDocumentsView;
 }
 
 /** The result of a write to the local store. */
 declare interface LocalWriteResult {
-  batchId: BatchId;
-  changes: DocumentMap;
+    batchId: BatchId;
+    changes: DocumentMap;
 }
-export { LogLevel };
+export { LogLevel }
 
 /* Excluded from this release type: _logWarn */
 
 declare interface LruGarbageCollector {
-  readonly params: LruParams;
-  collect(
-    txn: PersistenceTransaction,
-    activeTargetIds: ActiveTargets
-  ): PersistencePromise<LruResults>;
-  /** Given a percentile of target to collect, returns the number of targets to collect. */
-  calculateTargetCount(
-    txn: PersistenceTransaction,
-    percentile: number
-  ): PersistencePromise<number>;
-  /** Returns the nth sequence number, counting in order from the smallest. */
-  nthSequenceNumber(
-    txn: PersistenceTransaction,
-    n: number
-  ): PersistencePromise<number>;
-  /**
-   * Removes documents that have a sequence number equal to or less than the
-   * upper bound and are not otherwise pinned.
-   */
-  removeOrphanedDocuments(
-    txn: PersistenceTransaction,
-    upperBound: ListenSequenceNumber
-  ): PersistencePromise<number>;
-  getCacheSize(txn: PersistenceTransaction): PersistencePromise<number>;
-  /**
-   * Removes targets with a sequence number equal to or less than the given
-   * upper bound, and removes document associations with those targets.
-   */
-  removeTargets(
-    txn: PersistenceTransaction,
-    upperBound: ListenSequenceNumber,
-    activeTargetIds: ActiveTargets
-  ): PersistencePromise<number>;
+    readonly params: LruParams;
+    collect(txn: PersistenceTransaction, activeTargetIds: ActiveTargets): PersistencePromise<LruResults>;
+    /** Given a percentile of target to collect, returns the number of targets to collect. */
+    calculateTargetCount(txn: PersistenceTransaction, percentile: number): PersistencePromise<number>;
+    /** Returns the nth sequence number, counting in order from the smallest. */
+    nthSequenceNumber(txn: PersistenceTransaction, n: number): PersistencePromise<number>;
+    /**
+     * Removes documents that have a sequence number equal to or less than the
+     * upper bound and are not otherwise pinned.
+     */
+    removeOrphanedDocuments(txn: PersistenceTransaction, upperBound: ListenSequenceNumber): PersistencePromise<number>;
+    getCacheSize(txn: PersistenceTransaction): PersistencePromise<number>;
+    /**
+     * Removes targets with a sequence number equal to or less than the given
+     * upper bound, and removes document associations with those targets.
+     */
+    removeTargets(txn: PersistenceTransaction, upperBound: ListenSequenceNumber, activeTargetIds: ActiveTargets): PersistencePromise<number>;
 }
 
 declare class LruParams {
-  readonly cacheSizeCollectionThreshold: number;
-  readonly percentileToCollect: number;
-  readonly maximumSequenceNumbersToCollect: number;
-  private static readonly DEFAULT_COLLECTION_PERCENTILE;
-  private static readonly DEFAULT_MAX_SEQUENCE_NUMBERS_TO_COLLECT;
-  static withCacheSize(cacheSize: number): LruParams;
-  static readonly DEFAULT: LruParams;
-  static readonly DISABLED: LruParams;
-  constructor(
-    cacheSizeCollectionThreshold: number,
-    percentileToCollect: number,
-    maximumSequenceNumbersToCollect: number
-  );
+    readonly cacheSizeCollectionThreshold: number;
+    readonly percentileToCollect: number;
+    readonly maximumSequenceNumbersToCollect: number;
+    private static readonly DEFAULT_COLLECTION_PERCENTILE;
+    private static readonly DEFAULT_MAX_SEQUENCE_NUMBERS_TO_COLLECT;
+    static withCacheSize(cacheSize: number): LruParams;
+    static readonly DEFAULT: LruParams;
+    static readonly DISABLED: LruParams;
+    constructor(cacheSizeCollectionThreshold: number, percentileToCollect: number, maximumSequenceNumbersToCollect: number);
 }
 
 /**
@@ -4151,23 +3909,34 @@ declare class LruParams {
  * filled in with the details of the results.
  */
 declare interface LruResults {
-  readonly didRun: boolean;
-  readonly sequenceNumbersCollected: number;
-  readonly targetsRemoved: number;
-  readonly documentsRemoved: number;
+    readonly didRun: boolean;
+    readonly sequenceNumbersCollected: number;
+    readonly targetsRemoved: number;
+    readonly documentsRemoved: number;
 }
 
 declare type MapValue = firestoreV1ApiClientInterfaces.MapValue;
 
 /**
+ * Returns a special value that can be used with {@link @firebase/firestore/lite#(setDoc:1)} or {@link
+ * @firebase/firestore/lite#(updateDoc:1)} that tells the server to set the field to the numeric maximum of the
+ * field's current and the given value.
+ *
+ * @param n - The value to compare to the existing field value.
+ * @returns The `FieldValue` sentinel for use in a call to `setDoc()` or
+ * `updateDoc()`
+ */
+export declare function maximum(n: number): FieldValue;
+
+/**
  * An settings object to configure an `MemoryLocalCache` instance.
  */
 export declare type MemoryCacheSettings = {
-  /**
-   * The garbage collector to use, for the memory cache layer.
-   * A `MemoryEagerGarbageCollector` is used when this is undefined.
-   */
-  garbageCollector?: MemoryGarbageCollector;
+    /**
+     * The garbage collector to use, for the memory cache layer.
+     * A `MemoryEagerGarbageCollector` is used when this is undefined.
+     */
+    garbageCollector?: MemoryGarbageCollector;
 };
 
 /**
@@ -4182,8 +3951,8 @@ export declare type MemoryCacheSettings = {
  * instance of this collector.
  */
 export declare type MemoryEagerGarbageCollector = {
-  kind: 'memoryEager';
-  /* Excluded from this release type: _offlineComponentProvider */
+    kind: 'memoryEager';
+    /* Excluded from this release type: _offlineComponentProvider */
 };
 
 /**
@@ -4195,9 +3964,7 @@ export declare function memoryEagerGarbageCollector(): MemoryEagerGarbageCollect
 /**
  * Union type from all support garbage collectors for memory local cache.
  */
-export declare type MemoryGarbageCollector =
-  | MemoryEagerGarbageCollector
-  | MemoryLruGarbageCollector;
+export declare type MemoryGarbageCollector = MemoryEagerGarbageCollector | MemoryLruGarbageCollector;
 
 /**
  * Provides an in-memory cache to the SDK. This is the default cache unless explicitly
@@ -4208,18 +3975,16 @@ export declare type MemoryGarbageCollector =
  * the settings object.
  */
 export declare type MemoryLocalCache = {
-  kind: 'memory';
-  /* Excluded from this release type: _onlineComponentProvider */
-  /* Excluded from this release type: _offlineComponentProvider */
+    kind: 'memory';
+    /* Excluded from this release type: _onlineComponentProvider */
+    /* Excluded from this release type: _offlineComponentProvider */
 };
 
 /**
  * Creates an instance of `MemoryLocalCache`. The instance can be set to
  * `FirestoreSettings.cache` to tell the SDK which cache layer to use.
  */
-export declare function memoryLocalCache(
-  settings?: MemoryCacheSettings
-): MemoryLocalCache;
+export declare function memoryLocalCache(settings?: MemoryCacheSettings): MemoryLocalCache;
 
 /**
  * A garbage collector deletes Least-Recently-Used documents in multiple
@@ -4234,8 +3999,8 @@ export declare function memoryLocalCache(
  * instance of this collector.
  */
 export declare type MemoryLruGarbageCollector = {
-  kind: 'memoryLru';
-  /* Excluded from this release type: _offlineComponentProvider */
+    kind: 'memoryLru';
+    /* Excluded from this release type: _offlineComponentProvider */
 };
 
 /**
@@ -4246,8 +4011,19 @@ export declare type MemoryLruGarbageCollector = {
  * the given size. The default cache size is 40MB (40 * 1024 * 1024 bytes).
  */
 export declare function memoryLruGarbageCollector(settings?: {
-  cacheSizeBytes?: number;
+    cacheSizeBytes?: number;
 }): MemoryLruGarbageCollector;
+
+/**
+ * Returns a special value that can be used with {@link @firebase/firestore/lite#(setDoc:1)} or {@link
+ * @firebase/firestore/lite#(updateDoc:1)} that tells the server to set the field to the numeric minimum of the
+ * field's current and the given value.
+ *
+ * @param n - The value to compare to the existing field value.
+ * @returns The `FieldValue` sentinel for use in a call to `setDoc()` or
+ * `updateDoc()`
+ */
+export declare function minimum(n: number): FieldValue;
 
 /**
  * Represents a document in Firestore with a key, version, data and whether it
@@ -4260,75 +4036,61 @@ export declare function memoryLruGarbageCollector(settings?: {
  * from all views.
  */
 declare class MutableDocument implements Document_2 {
-  readonly key: _DocumentKey;
-  private documentType;
-  version: SnapshotVersion;
-  readTime: SnapshotVersion;
-  createTime: SnapshotVersion;
-  data: ObjectValue;
-  private documentState;
-  private constructor();
-  /**
-   * Creates a document with no known version or data, but which can serve as
-   * base document for mutations.
-   */
-  static newInvalidDocument(documentKey: _DocumentKey): MutableDocument;
-  /**
-   * Creates a new document that is known to exist with the given data at the
-   * given version.
-   */
-  static newFoundDocument(
-    documentKey: _DocumentKey,
-    version: SnapshotVersion,
-    createTime: SnapshotVersion,
-    value: ObjectValue
-  ): MutableDocument;
-  /** Creates a new document that is known to not exist at the given version. */
-  static newNoDocument(
-    documentKey: _DocumentKey,
-    version: SnapshotVersion
-  ): MutableDocument;
-  /**
-   * Creates a new document that is known to exist at the given version but
-   * whose data is not known (e.g. a document that was updated without a known
-   * base document).
-   */
-  static newUnknownDocument(
-    documentKey: _DocumentKey,
-    version: SnapshotVersion
-  ): MutableDocument;
-  /**
-   * Changes the document type to indicate that it exists and that its version
-   * and data are known.
-   */
-  convertToFoundDocument(
-    version: SnapshotVersion,
-    value: ObjectValue
-  ): MutableDocument;
-  /**
-   * Changes the document type to indicate that it doesn't exist at the given
-   * version.
-   */
-  convertToNoDocument(version: SnapshotVersion): MutableDocument;
-  /**
-   * Changes the document type to indicate that it exists at a given version but
-   * that its data is not known (e.g. a document that was updated without a known
-   * base document).
-   */
-  convertToUnknownDocument(version: SnapshotVersion): MutableDocument;
-  setHasCommittedMutations(): MutableDocument;
-  setHasLocalMutations(): MutableDocument;
-  setReadTime(readTime: SnapshotVersion): MutableDocument;
-  get hasLocalMutations(): boolean;
-  get hasCommittedMutations(): boolean;
-  get hasPendingWrites(): boolean;
-  isValidDocument(): boolean;
-  isFoundDocument(): boolean;
-  isNoDocument(): boolean;
-  isUnknownDocument(): boolean;
-  isEqual(other: Document_2 | null | undefined): boolean;
-  mutableCopy(): MutableDocument;
-  toString(): string;
+    readonly key: _DocumentKey;
+    private documentType;
+    version: SnapshotVersion;
+    readTime: SnapshotVersion;
+    createTime: SnapshotVersion;
+    data: ObjectValue;
+    private documentState;
+    private constructor();
+    /**
+     * Creates a document with no known version or data, but which can serve as
+     * base document for mutations.
+     */
+    static newInvalidDocument(documentKey: _DocumentKey): MutableDocument;
+    /**
+     * Creates a new document that is known to exist with the given data at the
+     * given version.
+     */
+    static newFoundDocument(documentKey: _DocumentKey, version: SnapshotVersion, createTime: SnapshotVersion, value: ObjectValue): MutableDocument;
+    /** Creates a new document that is known to not exist at the given version. */
+    static newNoDocument(documentKey: _DocumentKey, version: SnapshotVersion): MutableDocument;
+    /**
+     * Creates a new document that is known to exist at the given version but
+     * whose data is not known (e.g. a document that was updated without a known
+     * base document).
+     */
+    static newUnknownDocument(documentKey: _DocumentKey, version: SnapshotVersion): MutableDocument;
+    /**
+     * Changes the document type to indicate that it exists and that its version
+     * and data are known.
+     */
+    convertToFoundDocument(version: SnapshotVersion, value: ObjectValue): MutableDocument;
+    /**
+     * Changes the document type to indicate that it doesn't exist at the given
+     * version.
+     */
+    convertToNoDocument(version: SnapshotVersion): MutableDocument;
+    /**
+     * Changes the document type to indicate that it exists at a given version but
+     * that its data is not known (e.g. a document that was updated without a known
+     * base document).
+     */
+    convertToUnknownDocument(version: SnapshotVersion): MutableDocument;
+    setHasCommittedMutations(): MutableDocument;
+    setHasLocalMutations(): MutableDocument;
+    setReadTime(readTime: SnapshotVersion): MutableDocument;
+    get hasLocalMutations(): boolean;
+    get hasCommittedMutations(): boolean;
+    get hasPendingWrites(): boolean;
+    isValidDocument(): boolean;
+    isFoundDocument(): boolean;
+    isNoDocument(): boolean;
+    isUnknownDocument(): boolean;
+    isEqual(other: Document_2 | null | undefined): boolean;
+    mutableCopy(): MutableDocument;
+    toString(): string;
 }
 
 /** Miscellaneous collection types / constants. */
@@ -4379,255 +4141,188 @@ declare type MutableDocumentMap = SortedMap<_DocumentKey, MutableDocument>;
  * example).
  */
 declare abstract class Mutation {
-  abstract readonly type: MutationType;
-  abstract readonly key: _DocumentKey;
-  abstract readonly precondition: Precondition;
-  abstract readonly fieldTransforms: FieldTransform[];
-  /**
-   * Returns a `FieldMask` representing the fields that will be changed by
-   * applying this mutation. Returns `null` if the mutation will overwrite the
-   * entire document.
-   */
-  abstract getFieldMask(): FieldMask | null;
+    abstract readonly type: MutationType;
+    abstract readonly key: _DocumentKey;
+    abstract readonly precondition: Precondition;
+    abstract readonly fieldTransforms: FieldTransform[];
+    /**
+     * Returns a `FieldMask` representing the fields that will be changed by
+     * applying this mutation. Returns `null` if the mutation will overwrite the
+     * entire document.
+     */
+    abstract getFieldMask(): FieldMask | null;
 }
 
 /**
  * A batch of mutations that will be sent as one unit to the backend.
  */
 declare class MutationBatch {
-  batchId: BatchId;
-  localWriteTime: Timestamp;
-  baseMutations: Mutation[];
-  mutations: Mutation[];
-  /**
-   * @param batchId - The unique ID of this mutation batch.
-   * @param localWriteTime - The original write time of this mutation.
-   * @param baseMutations - Mutations that are used to populate the base
-   * values when this mutation is applied locally. This can be used to locally
-   * overwrite values that are persisted in the remote document cache. Base
-   * mutations are never sent to the backend.
-   * @param mutations - The user-provided mutations in this mutation batch.
-   * User-provided mutations are applied both locally and remotely on the
-   * backend.
-   */
-  constructor(
-    batchId: BatchId,
-    localWriteTime: Timestamp,
-    baseMutations: Mutation[],
-    mutations: Mutation[]
-  );
-  /**
-   * Applies all the mutations in this MutationBatch to the specified document
-   * to compute the state of the remote document
-   *
-   * @param document - The document to apply mutations to.
-   * @param batchResult - The result of applying the MutationBatch to the
-   * backend.
-   */
-  applyToRemoteDocument(
-    document: MutableDocument,
-    batchResult: MutationBatchResult
-  ): void;
-  /**
-   * Computes the local view of a document given all the mutations in this
-   * batch.
-   *
-   * @param document - The document to apply mutations to.
-   * @param mutatedFields - Fields that have been updated before applying this mutation batch.
-   * @returns A `FieldMask` representing all the fields that are mutated.
-   */
-  applyToLocalView(
-    document: MutableDocument,
-    mutatedFields: FieldMask | null
-  ): FieldMask | null;
-  /**
-   * Computes the local view for all provided documents given the mutations in
-   * this batch. Returns a `DocumentKey` to `Mutation` map which can be used to
-   * replace all the mutation applications.
-   */
-  applyToLocalDocumentSet(
-    documentMap: OverlayedDocumentMap,
-    documentsWithoutRemoteVersion: DocumentKeySet
-  ): MutationMap;
-  keys(): DocumentKeySet;
-  isEqual(other: MutationBatch): boolean;
+    batchId: BatchId;
+    localWriteTime: Timestamp;
+    baseMutations: Mutation[];
+    mutations: Mutation[];
+    /**
+     * @param batchId - The unique ID of this mutation batch.
+     * @param localWriteTime - The original write time of this mutation.
+     * @param baseMutations - Mutations that are used to populate the base
+     * values when this mutation is applied locally. This can be used to locally
+     * overwrite values that are persisted in the remote document cache. Base
+     * mutations are never sent to the backend.
+     * @param mutations - The user-provided mutations in this mutation batch.
+     * User-provided mutations are applied both locally and remotely on the
+     * backend.
+     */
+    constructor(batchId: BatchId, localWriteTime: Timestamp, baseMutations: Mutation[], mutations: Mutation[]);
+    /**
+     * Applies all the mutations in this MutationBatch to the specified document
+     * to compute the state of the remote document
+     *
+     * @param document - The document to apply mutations to.
+     * @param batchResult - The result of applying the MutationBatch to the
+     * backend.
+     */
+    applyToRemoteDocument(document: MutableDocument, batchResult: MutationBatchResult): void;
+    /**
+     * Computes the local view of a document given all the mutations in this
+     * batch.
+     *
+     * @param document - The document to apply mutations to.
+     * @param mutatedFields - Fields that have been updated before applying this mutation batch.
+     * @returns A `FieldMask` representing all the fields that are mutated.
+     */
+    applyToLocalView(document: MutableDocument, mutatedFields: FieldMask | null): FieldMask | null;
+    /**
+     * Computes the local view for all provided documents given the mutations in
+     * this batch. Returns a `DocumentKey` to `Mutation` map which can be used to
+     * replace all the mutation applications.
+     */
+    applyToLocalDocumentSet(documentMap: OverlayedDocumentMap, documentsWithoutRemoteVersion: DocumentKeySet): MutationMap;
+    keys(): DocumentKeySet;
+    isEqual(other: MutationBatch): boolean;
 }
 
 /** The result of applying a mutation batch to the backend. */
 declare class MutationBatchResult {
-  readonly batch: MutationBatch;
-  readonly commitVersion: SnapshotVersion;
-  readonly mutationResults: MutationResult[];
-  /**
-   * A pre-computed mapping from each mutated document to the resulting
-   * version.
-   */
-  readonly docVersions: DocumentVersionMap;
-  private constructor();
-  /**
-   * Creates a new MutationBatchResult for the given batch and results. There
-   * must be one result for each mutation in the batch. This static factory
-   * caches a document=&gt;version mapping (docVersions).
-   */
-  static from(
-    batch: MutationBatch,
-    commitVersion: SnapshotVersion,
-    results: MutationResult[]
-  ): MutationBatchResult;
+    readonly batch: MutationBatch;
+    readonly commitVersion: SnapshotVersion;
+    readonly mutationResults: MutationResult[];
+    /**
+     * A pre-computed mapping from each mutated document to the resulting
+     * version.
+     */
+    readonly docVersions: DocumentVersionMap;
+    private constructor();
+    /**
+     * Creates a new MutationBatchResult for the given batch and results. There
+     * must be one result for each mutation in the batch. This static factory
+     * caches a document=&gt;version mapping (docVersions).
+     */
+    static from(batch: MutationBatch, commitVersion: SnapshotVersion, results: MutationResult[]): MutationBatchResult;
 }
 
 declare type MutationMap = DocumentKeyMap<Mutation>;
 
 /** A queue of mutations to apply to the remote store. */
 declare interface MutationQueue {
-  /** Returns true if this queue contains no mutation batches. */
-  checkEmpty(transaction: PersistenceTransaction): PersistencePromise<boolean>;
-  /**
-   * Creates a new mutation batch and adds it to this mutation queue.
-   *
-   * @param transaction - The transaction this operation is scoped to.
-   * @param localWriteTime - The original write time of this mutation.
-   * @param baseMutations - Mutations that are used to populate the base values
-   * when this mutation is applied locally. These mutations are used to locally
-   * overwrite values that are persisted in the remote document cache.
-   * @param mutations - The user-provided mutations in this mutation batch.
-   */
-  addMutationBatch(
-    transaction: PersistenceTransaction,
-    localWriteTime: Timestamp,
-    baseMutations: Mutation[],
-    mutations: Mutation[]
-  ): PersistencePromise<MutationBatch>;
-  /**
-   * Loads the mutation batch with the given batchId.
-   */
-  lookupMutationBatch(
-    transaction: PersistenceTransaction,
-    batchId: BatchId
-  ): PersistencePromise<MutationBatch | null>;
-  /**
-   * Gets the first unacknowledged mutation batch after the passed in batchId
-   * in the mutation queue or null if empty.
-   *
-   * @param batchId - The batch to search after, or BATCHID_UNKNOWN for the
-   * first mutation in the queue.
-   *
-   * @returns the next mutation or null if there wasn't one.
-   */
-  getNextMutationBatchAfterBatchId(
-    transaction: PersistenceTransaction,
-    batchId: BatchId
-  ): PersistencePromise<MutationBatch | null>;
-  /**
-   * Gets the largest (latest) batch id in mutation queue for the current user
-   * that is pending server response, returns `BATCHID_UNKNOWN` if the queue is
-   * empty.
-   *
-   * @returns the largest batch id in the mutation queue that is not
-   * acknowledged.
-   */
-  getHighestUnacknowledgedBatchId(
-    transaction: PersistenceTransaction
-  ): PersistencePromise<BatchId>;
-  /** Gets all mutation batches in the mutation queue. */
-  getAllMutationBatches(
-    transaction: PersistenceTransaction
-  ): PersistencePromise<MutationBatch[]>;
-  /**
-   * Finds all mutation batches that could possibly affect the given
-   * document key. Not all mutations in a batch will necessarily affect the
-   * document key, so when looping through the batch you'll need to check that
-   * the mutation itself matches the key.
-   *
-   * Batches are guaranteed to be in sorted order.
-   *
-   * Note that because of this requirement implementations are free to return
-   * mutation batches that don't contain the document key at all if it's
-   * convenient.
-   */
-  getAllMutationBatchesAffectingDocumentKey(
-    transaction: PersistenceTransaction,
-    documentKey: _DocumentKey
-  ): PersistencePromise<MutationBatch[]>;
-  /**
-   * Finds all mutation batches that could possibly affect the given set of
-   * document keys. Not all mutations in a batch will necessarily affect each
-   * key, so when looping through the batch you'll need to check that the
-   * mutation itself matches the key.
-   *
-   * Batches are guaranteed to be in sorted order.
-   *
-   * Note that because of this requirement implementations are free to return
-   * mutation batches that don't contain any of the document keys at all if it's
-   * convenient.
-   */
-  getAllMutationBatchesAffectingDocumentKeys(
-    transaction: PersistenceTransaction,
-    documentKeys: SortedMap<_DocumentKey, unknown>
-  ): PersistencePromise<MutationBatch[]>;
-  /**
-   * Finds all mutation batches that could affect the results for the given
-   * query. Not all mutations in a batch will necessarily affect the query, so
-   * when looping through the batch you'll need to check that the mutation
-   * itself matches the query.
-   *
-   * Batches are guaranteed to be in sorted order.
-   *
-   * Note that because of this requirement implementations are free to return
-   * mutation batches that don't match the query at all if it's convenient.
-   *
-   * NOTE: A PatchMutation does not need to include all fields in the query
-   * filter criteria in order to be a match (but any fields it does contain do
-   * need to match).
-   */
-  getAllMutationBatchesAffectingQuery(
-    transaction: PersistenceTransaction,
-    query: Query_2
-  ): PersistencePromise<MutationBatch[]>;
-  /**
-   * Removes the given mutation batch from the queue. This is useful in two
-   * circumstances:
-   *
-   * + Removing an applied mutation from the head of the queue
-   * + Removing a rejected mutation from anywhere in the queue
-   *
-   * Multi-Tab Note: This operation should only be called by the primary client.
-   */
-  removeMutationBatch(
-    transaction: PersistenceTransaction,
-    batch: MutationBatch
-  ): PersistencePromise<void>;
-  /**
-   * Performs a consistency check, examining the mutation queue for any
-   * leaks, if possible.
-   */
-  performConsistencyCheck(
-    transaction: PersistenceTransaction
-  ): PersistencePromise<void>;
+    /** Returns true if this queue contains no mutation batches. */
+    checkEmpty(transaction: PersistenceTransaction): PersistencePromise<boolean>;
+    /**
+     * Creates a new mutation batch and adds it to this mutation queue.
+     *
+     * @param transaction - The transaction this operation is scoped to.
+     * @param localWriteTime - The original write time of this mutation.
+     * @param baseMutations - Mutations that are used to populate the base values
+     * when this mutation is applied locally. These mutations are used to locally
+     * overwrite values that are persisted in the remote document cache.
+     * @param mutations - The user-provided mutations in this mutation batch.
+     */
+    addMutationBatch(transaction: PersistenceTransaction, localWriteTime: Timestamp, baseMutations: Mutation[], mutations: Mutation[]): PersistencePromise<MutationBatch>;
+    /**
+     * Loads the mutation batch with the given batchId.
+     */
+    lookupMutationBatch(transaction: PersistenceTransaction, batchId: BatchId): PersistencePromise<MutationBatch | null>;
+    /**
+     * Gets the first unacknowledged mutation batch after the passed in batchId
+     * in the mutation queue or null if empty.
+     *
+     * @param batchId - The batch to search after, or BATCHID_UNKNOWN for the
+     * first mutation in the queue.
+     *
+     * @returns the next mutation or null if there wasn't one.
+     */
+    getNextMutationBatchAfterBatchId(transaction: PersistenceTransaction, batchId: BatchId): PersistencePromise<MutationBatch | null>;
+    /**
+     * Gets the largest (latest) batch id in mutation queue for the current user
+     * that is pending server response, returns `BATCHID_UNKNOWN` if the queue is
+     * empty.
+     *
+     * @returns the largest batch id in the mutation queue that is not
+     * acknowledged.
+     */
+    getHighestUnacknowledgedBatchId(transaction: PersistenceTransaction): PersistencePromise<BatchId>;
+    /** Gets all mutation batches in the mutation queue. */
+    getAllMutationBatches(transaction: PersistenceTransaction): PersistencePromise<MutationBatch[]>;
+    /**
+     * Finds all mutation batches that could possibly affect the given
+     * document key. Not all mutations in a batch will necessarily affect the
+     * document key, so when looping through the batch you'll need to check that
+     * the mutation itself matches the key.
+     *
+     * Batches are guaranteed to be in sorted order.
+     *
+     * Note that because of this requirement implementations are free to return
+     * mutation batches that don't contain the document key at all if it's
+     * convenient.
+     */
+    getAllMutationBatchesAffectingDocumentKey(transaction: PersistenceTransaction, documentKey: _DocumentKey): PersistencePromise<MutationBatch[]>;
+    /**
+     * Finds all mutation batches that could possibly affect the given set of
+     * document keys. Not all mutations in a batch will necessarily affect each
+     * key, so when looping through the batch you'll need to check that the
+     * mutation itself matches the key.
+     *
+     * Batches are guaranteed to be in sorted order.
+     *
+     * Note that because of this requirement implementations are free to return
+     * mutation batches that don't contain any of the document keys at all if it's
+     * convenient.
+     */
+    getAllMutationBatchesAffectingDocumentKeys(transaction: PersistenceTransaction, documentKeys: SortedMap<_DocumentKey, unknown>): PersistencePromise<MutationBatch[]>;
+    /**
+     * Finds all mutation batches that could affect the results for the given
+     * query. Not all mutations in a batch will necessarily affect the query, so
+     * when looping through the batch you'll need to check that the mutation
+     * itself matches the query.
+     *
+     * Batches are guaranteed to be in sorted order.
+     *
+     * Note that because of this requirement implementations are free to return
+     * mutation batches that don't match the query at all if it's convenient.
+     *
+     * NOTE: A PatchMutation does not need to include all fields in the query
+     * filter criteria in order to be a match (but any fields it does contain do
+     * need to match).
+     */
+    getAllMutationBatchesAffectingQuery(transaction: PersistenceTransaction, query: Query_2): PersistencePromise<MutationBatch[]>;
+    /**
+     * Removes the given mutation batch from the queue. This is useful in two
+     * circumstances:
+     *
+     * + Removing an applied mutation from the head of the queue
+     * + Removing a rejected mutation from anywhere in the queue
+     *
+     * Multi-Tab Note: This operation should only be called by the primary client.
+     */
+    removeMutationBatch(transaction: PersistenceTransaction, batch: MutationBatch): PersistencePromise<void>;
+    /**
+     * Performs a consistency check, examining the mutation queue for any
+     * leaks, if possible.
+     */
+    performConsistencyCheck(transaction: PersistenceTransaction): PersistencePromise<void>;
 }
 
 /** The result of successfully applying a mutation to the backend. */
 declare class MutationResult {
-  /**
-   * The version at which the mutation was committed:
-   *
-   * - For most operations, this is the updateTime in the WriteResult.
-   * - For deletes, the commitTime of the WriteResponse (because deletes are
-   *   not stored and have no updateTime).
-   *
-   * Note that these versions can be different: No-op writes will not change
-   * the updateTime even though the commitTime advances.
-   */
-  readonly version: SnapshotVersion;
-  /**
-   * The resulting fields returned from the backend after a mutation
-   * containing field transforms has been committed. Contains one FieldValue
-   * for each FieldTransform that was in the mutation.
-   *
-   * Will be empty if the mutation did not contain any field transforms.
-   */
-  readonly transformResults: Array<Value | null>;
-  constructor(
     /**
      * The version at which the mutation was committed:
      *
@@ -4638,7 +4333,7 @@ declare class MutationResult {
      * Note that these versions can be different: No-op writes will not change
      * the updateTime even though the commitTime advances.
      */
-    version: SnapshotVersion,
+    readonly version: SnapshotVersion;
     /**
      * The resulting fields returned from the backend after a mutation
      * containing field transforms has been committed. Contains one FieldValue
@@ -4646,27 +4341,46 @@ declare class MutationResult {
      *
      * Will be empty if the mutation did not contain any field transforms.
      */
-    transformResults: Array<Value | null>
-  );
+    readonly transformResults: Array<Value | null>;
+    constructor(
+    /**
+     * The version at which the mutation was committed:
+     *
+     * - For most operations, this is the updateTime in the WriteResult.
+     * - For deletes, the commitTime of the WriteResponse (because deletes are
+     *   not stored and have no updateTime).
+     *
+     * Note that these versions can be different: No-op writes will not change
+     * the updateTime even though the commitTime advances.
+     */
+    version: SnapshotVersion, 
+    /**
+     * The resulting fields returned from the backend after a mutation
+     * containing field transforms has been committed. Contains one FieldValue
+     * for each FieldTransform that was in the mutation.
+     *
+     * Will be empty if the mutation did not contain any field transforms.
+     */
+    transformResults: Array<Value | null>);
 }
 
 declare const enum MutationType {
-  Set = 0,
-  Patch = 1,
-  Delete = 2,
-  Verify = 3
+    Set = 0,
+    Patch = 1,
+    Delete = 2,
+    Verify = 3
 }
 
 /**
  * Represents a Query saved by the SDK in its local storage.
  */
 declare interface NamedQuery {
-  /** The name of the query. */
-  readonly name: string;
-  /** The underlying query associated with `name`. */
-  readonly query: Query_2;
-  /** The time at which the results for this query were read. */
-  readonly readTime: SnapshotVersion;
+    /** The name of the query. */
+    readonly name: string;
+    /** The underlying query associated with `name`. */
+    readonly query: Query_2;
+    /** The time at which the results for this query were read. */
+    readonly readTime: SnapshotVersion;
 }
 
 /**
@@ -4681,19 +4395,16 @@ declare interface NamedQuery {
  * @param name - The name of the query.
  * @returns A `Promise` that is resolved with the Query or `null`.
  */
-export declare function namedQuery(
-  firestore: Firestore,
-  name: string
-): Promise<Query | null>;
+export declare function namedQuery(firestore: Firestore, name: string): Promise<Query | null>;
 
 /** Properties of a NamedQuery. */
 declare interface NamedQuery_2 {
-  /** NamedQuery name */
-  name?: string | null;
-  /** NamedQuery bundledQuery */
-  bundledQuery?: BundledQuery | null;
-  /** NamedQuery readTime */
-  readTime?: Timestamp_2 | null;
+    /** NamedQuery name */
+    name?: string | null;
+    /** NamedQuery bundledQuery */
+    bundledQuery?: BundledQuery | null;
+    /** NamedQuery readTime */
+    readTime?: Timestamp_2 | null;
 }
 
 /**
@@ -4701,12 +4412,9 @@ declare interface NamedQuery_2 {
  * 'bar.qux': T2}). Intersect them together to make a single map containing
  * all possible keys that are all marked as optional
  */
-export declare type NestedUpdateFields<T extends Record<string, unknown>> =
-  UnionToIntersection<
-    {
-      [K in keyof T & string]: ChildUpdateFields<K, T[K]>;
-    }[keyof T & string]
-  >;
+export declare type NestedUpdateFields<T extends Record<string, unknown>> = UnionToIntersection<{
+    [K in keyof T & string]: ChildUpdateFields<K, T[K]>;
+}[keyof T & string]>;
 
 /**
  * @license
@@ -4731,33 +4439,30 @@ export declare type NestedUpdateFields<T extends Record<string, unknown>> =
  * automatically handles collisions of keys.
  */
 declare class ObjectMap<KeyType, ValueType> {
-  private mapKeyFn;
-  private equalsFn;
-  /**
-   * The inner map for a key/value pair. Due to the possibility of collisions we
-   * keep a list of entries that we do a linear search through to find an actual
-   * match. Note that collisions should be rare, so we still expect near
-   * constant time lookups in practice.
-   */
-  private inner;
-  /** The number of entries stored in the map */
-  private innerSize;
-  constructor(
-    mapKeyFn: (key: KeyType) => string,
-    equalsFn: (l: KeyType, r: KeyType) => boolean
-  );
-  /** Get a value for this key, or undefined if it does not exist. */
-  get(key: KeyType): ValueType | undefined;
-  has(key: KeyType): boolean;
-  /** Put this key and value in the map. */
-  set(key: KeyType, value: ValueType): void;
-  /**
-   * Remove this key from the map. Returns a boolean if anything was deleted.
-   */
-  delete(key: KeyType): boolean;
-  forEach(fn: (key: KeyType, val: ValueType) => void): void;
-  isEmpty(): boolean;
-  size(): number;
+    private mapKeyFn;
+    private equalsFn;
+    /**
+     * The inner map for a key/value pair. Due to the possibility of collisions we
+     * keep a list of entries that we do a linear search through to find an actual
+     * match. Note that collisions should be rare, so we still expect near
+     * constant time lookups in practice.
+     */
+    private inner;
+    /** The number of entries stored in the map */
+    private innerSize;
+    constructor(mapKeyFn: (key: KeyType) => string, equalsFn: (l: KeyType, r: KeyType) => boolean);
+    /** Get a value for this key, or undefined if it does not exist. */
+    get(key: KeyType): ValueType | undefined;
+    has(key: KeyType): boolean;
+    /** Put this key and value in the map. */
+    set(key: KeyType, value: ValueType): void;
+    /**
+     * Remove this key from the map. Returns a boolean if anything was deleted.
+     */
+    delete(key: KeyType): boolean;
+    forEach(fn: (key: KeyType, val: ValueType) => void): void;
+    isEmpty(): boolean;
+    size(): number;
 }
 
 /**
@@ -4765,50 +4470,52 @@ declare class ObjectMap<KeyType, ValueType> {
  * ability to add and remove fields (via the ObjectValueBuilder).
  */
 declare class ObjectValue {
-  readonly value: {
-    mapValue: MapValue;
-  };
-  constructor(value: { mapValue: MapValue });
-  static empty(): ObjectValue;
-  /**
-   * Returns the value at the given path or null.
-   *
-   * @param path - the path to search
-   * @returns The value at the path or null if the path is not set.
-   */
-  field(path: _FieldPath): Value | null;
-  /**
-   * Sets the field to the provided value.
-   *
-   * @param path - The field path to set.
-   * @param value - The value to set.
-   */
-  set(path: _FieldPath, value: Value): void;
-  /**
-   * Sets the provided fields to the provided values.
-   *
-   * @param data - A map of fields to values (or null for deletes).
-   */
-  setAll(data: Map<_FieldPath, Value | null>): void;
-  /**
-   * Removes the field at the specified path. If there is no field at the
-   * specified path, nothing is changed.
-   *
-   * @param path - The field path to remove.
-   */
-  delete(path: _FieldPath): void;
-  isEqual(other: ObjectValue): boolean;
-  /**
-   * Returns the map that contains the leaf element of `path`. If the parent
-   * entry does not yet exist, or if it is not a map, a new map will be created.
-   */
-  private getFieldsMap;
-  /**
-   * Modifies `fieldsMap` by adding, replacing or deleting the specified
-   * entries.
-   */
-  private applyChanges;
-  clone(): ObjectValue;
+    readonly value: {
+        mapValue: MapValue;
+    };
+    constructor(value: {
+        mapValue: MapValue;
+    });
+    static empty(): ObjectValue;
+    /**
+     * Returns the value at the given path or null.
+     *
+     * @param path - the path to search
+     * @returns The value at the path or null if the path is not set.
+     */
+    field(path: _FieldPath): Value | null;
+    /**
+     * Sets the field to the provided value.
+     *
+     * @param path - The field path to set.
+     * @param value - The value to set.
+     */
+    set(path: _FieldPath, value: Value): void;
+    /**
+     * Sets the provided fields to the provided values.
+     *
+     * @param data - A map of fields to values (or null for deletes).
+     */
+    setAll(data: Map<_FieldPath, Value | null>): void;
+    /**
+     * Removes the field at the specified path. If there is no field at the
+     * specified path, nothing is changed.
+     *
+     * @param path - The field path to remove.
+     */
+    delete(path: _FieldPath): void;
+    isEqual(other: ObjectValue): boolean;
+    /**
+     * Returns the map that contains the leaf element of `path`. If the parent
+     * entry does not yet exist, or if it is not a map, a new map will be created.
+     */
+    private getFieldsMap;
+    /**
+     * Modifies `fieldsMap` by adding, replacing or deleting the specified
+     * entries.
+     */
+    private applyChanges;
+    clone(): ObjectValue;
 }
 
 /**
@@ -4816,19 +4523,19 @@ declare class ObjectValue {
  * cache. Implementations override `initialize()` to provide all components.
  */
 declare interface OfflineComponentProvider {
-  readonly kind: Kind;
-  persistence: Persistence;
-  sharedClientState: SharedClientState;
-  localStore: LocalStore;
-  gcScheduler: Scheduler | null;
-  indexBackfillerScheduler: Scheduler | null;
-  synchronizeTabs: boolean;
-  initialize(cfg: ComponentConfiguration): Promise<void>;
-  terminate(): Promise<void>;
+    readonly kind: Kind;
+    persistence: Persistence;
+    sharedClientState: SharedClientState;
+    localStore: LocalStore;
+    gcScheduler: Scheduler | null;
+    indexBackfillerScheduler: Scheduler | null;
+    synchronizeTabs: boolean;
+    initialize(cfg: ComponentConfiguration): Promise<void>;
+    terminate(): Promise<void>;
 }
 
 declare interface OfflineComponentProviderFactory {
-  build(onlineComponents: OnlineComponentProvider): OfflineComponentProvider;
+    build(onlineComponents: OnlineComponentProvider): OfflineComponentProvider;
 }
 
 /**
@@ -4836,29 +4543,23 @@ declare interface OfflineComponentProviderFactory {
  * network.
  */
 declare class OnlineComponentProvider {
-  static readonly provider: OnlineComponentProviderFactory;
-  protected localStore: LocalStore;
-  protected sharedClientState: SharedClientState;
-  datastore: Datastore;
-  eventManager: EventManager;
-  remoteStore: RemoteStore;
-  syncEngine: SyncEngine;
-  initialize(
-    offlineComponentProvider: OfflineComponentProvider,
-    cfg: ComponentConfiguration
-  ): Promise<void>;
-  createEventManager(cfg: ComponentConfiguration): EventManager;
-  createDatastore(cfg: ComponentConfiguration): Datastore;
-  createRemoteStore(cfg: ComponentConfiguration): RemoteStore;
-  createSyncEngine(
-    cfg: ComponentConfiguration,
-    startAsPrimary: boolean
-  ): SyncEngine;
-  terminate(): Promise<void>;
+    static readonly provider: OnlineComponentProviderFactory;
+    protected localStore: LocalStore;
+    protected sharedClientState: SharedClientState;
+    datastore: Datastore;
+    eventManager: EventManager;
+    remoteStore: RemoteStore;
+    syncEngine: SyncEngine;
+    initialize(offlineComponentProvider: OfflineComponentProvider, cfg: ComponentConfiguration): Promise<void>;
+    createEventManager(cfg: ComponentConfiguration): EventManager;
+    createDatastore(cfg: ComponentConfiguration): Datastore;
+    createRemoteStore(cfg: ComponentConfiguration): RemoteStore;
+    createSyncEngine(cfg: ComponentConfiguration, startAsPrimary: boolean): SyncEngine;
+    terminate(): Promise<void>;
 }
 
 declare interface OnlineComponentProviderFactory {
-  build(): OnlineComponentProvider;
+    build(): OnlineComponentProvider;
 }
 
 /**
@@ -4872,59 +4573,51 @@ declare interface OnlineComponentProviderFactory {
  * WebStorage.
  */
 declare const enum OnlineState {
-  /**
-   * The Firestore client is in an unknown online state. This means the client
-   * is either not actively trying to establish a connection or it is currently
-   * trying to establish a connection, but it has not succeeded or failed yet.
-   * Higher-level components should not operate in offline mode.
-   */
-  Unknown = 'Unknown',
-  /**
-   * The client is connected and the connections are healthy. This state is
-   * reached after a successful connection and there has been at least one
-   * successful message received from the backends.
-   */
-  Online = 'Online',
-  /**
-   * The client is either trying to establish a connection but failing, or it
-   * has been explicitly marked offline via a call to disableNetwork().
-   * Higher-level components should operate in offline mode.
-   */
-  Offline = 'Offline'
+    /**
+     * The Firestore client is in an unknown online state. This means the client
+     * is either not actively trying to establish a connection or it is currently
+     * trying to establish a connection, but it has not succeeded or failed yet.
+     * Higher-level components should not operate in offline mode.
+     */
+    Unknown = "Unknown",
+    /**
+     * The client is connected and the connections are healthy. This state is
+     * reached after a successful connection and there has been at least one
+     * successful message received from the backends.
+     */
+    Online = "Online",
+    /**
+     * The client is either trying to establish a connection but failing, or it
+     * has been explicitly marked offline via a call to disableNetwork().
+     * Higher-level components should operate in offline mode.
+     */
+    Offline = "Offline"
 }
 
 /**
- * Attaches a listener for `DocumentSnapshot` events. You may either pass
- * individual `onNext` and `onError` callbacks or pass a single observer
- * object with `next` and `error` callbacks.
+ * Attaches a listener for `DocumentSnapshot` events. You may either pass individual `onNext` and
+ * `onError` callbacks or pass a single observer object with `next` and `error` callbacks.
  *
- * NOTE: Although an `onCompletion` callback can be provided, it will
- * never be called because the snapshot stream is never-ending.
+ * NOTE: Although an `onCompletion` callback can be provided, it will never be called because the
+ * snapshot stream is never-ending.
  *
  * @param reference - A reference to the document to listen to.
  * @param observer - A single object containing `next` and `error` callbacks.
  * @returns An unsubscribe function that can be called to cancel
  * the snapshot listener.
  */
-export declare function onSnapshot<
-  AppModelType,
-  DbModelType extends DocumentData
->(
-  reference: DocumentReference<AppModelType, DbModelType>,
-  observer: {
+export declare function onSnapshot<AppModelType, DbModelType extends DocumentData>(reference: DocumentReference<AppModelType, DbModelType>, observer: {
     next?: (snapshot: DocumentSnapshot<AppModelType, DbModelType>) => void;
     error?: (error: FirestoreError) => void;
     complete?: () => void;
-  }
-): Unsubscribe;
+}): Unsubscribe;
 
 /**
- * Attaches a listener for `DocumentSnapshot` events. You may either pass
- * individual `onNext` and `onError` callbacks or pass a single observer
- * object with `next` and `error` callbacks.
+ * Attaches a listener for `DocumentSnapshot` events. You may either pass individual `onNext` and
+ * `onError` callbacks or pass a single observer object with `next` and `error` callbacks.
  *
- * NOTE: Although an `onCompletion` callback can be provided, it will
- * never be called because the snapshot stream is never-ending.
+ * NOTE: Although an `onCompletion` callback can be provided, it will never be called because the
+ * snapshot stream is never-ending.
  *
  * @param reference - A reference to the document to listen to.
  * @param options - Options controlling the listen behavior.
@@ -4932,190 +4625,297 @@ export declare function onSnapshot<
  * @returns An unsubscribe function that can be called to cancel
  * the snapshot listener.
  */
-export declare function onSnapshot<
-  AppModelType,
-  DbModelType extends DocumentData
->(
-  reference: DocumentReference<AppModelType, DbModelType>,
-  options: SnapshotListenOptions,
-  observer: {
+export declare function onSnapshot<AppModelType, DbModelType extends DocumentData>(reference: DocumentReference<AppModelType, DbModelType>, options: SnapshotListenOptions, observer: {
     next?: (snapshot: DocumentSnapshot<AppModelType, DbModelType>) => void;
     error?: (error: FirestoreError) => void;
     complete?: () => void;
-  }
-): Unsubscribe;
+}): Unsubscribe;
 
 /**
- * Attaches a listener for `DocumentSnapshot` events. You may either pass
- * individual `onNext` and `onError` callbacks or pass a single observer
- * object with `next` and `error` callbacks.
+ * Attaches a listener for `DocumentSnapshot` events. You may either pass individual `onNext` and
+ * `onError` callbacks or pass a single observer object with `next` and `error` callbacks.
  *
- * NOTE: Although an `onCompletion` callback can be provided, it will
- * never be called because the snapshot stream is never-ending.
+ * NOTE: Although an `onCompletion` callback can be provided, it will never be called because the
+ * snapshot stream is never-ending.
  *
  * @param reference - A reference to the document to listen to.
- * @param onNext - A callback to be called every time a new `DocumentSnapshot`
- * is available.
- * @param onError - A callback to be called if the listen fails or is
- * cancelled. No further callbacks will occur.
- * @param onCompletion - Can be provided, but will not be called since streams are
- * never ending.
- * @returns An unsubscribe function that can be called to cancel
- * the snapshot listener.
+ * @param onNext - A callback to be called every time a new `DocumentSnapshot` is available.
+ * @param onError - A callback to be called if the listen fails or is cancelled. No further
+ * callbacks will occur.
+ * @param onCompletion - Can be provided, but will not be called since streams are never ending.
+ * @returns An unsubscribe function that can be called to cancel the snapshot listener.
  */
-export declare function onSnapshot<
-  AppModelType,
-  DbModelType extends DocumentData
->(
-  reference: DocumentReference<AppModelType, DbModelType>,
-  onNext: (snapshot: DocumentSnapshot<AppModelType, DbModelType>) => void,
-  onError?: (error: FirestoreError) => void,
-  onCompletion?: () => void
-): Unsubscribe;
+export declare function onSnapshot<AppModelType, DbModelType extends DocumentData>(reference: DocumentReference<AppModelType, DbModelType>, onNext: (snapshot: DocumentSnapshot<AppModelType, DbModelType>) => void, onError?: (error: FirestoreError) => void, onCompletion?: () => void): Unsubscribe;
 
 /**
- * Attaches a listener for `DocumentSnapshot` events. You may either pass
- * individual `onNext` and `onError` callbacks or pass a single observer
- * object with `next` and `error` callbacks.
+ * Attaches a listener for `DocumentSnapshot` events. You may either pass individual `onNext` and
+ * `onError` callbacks or pass a single observer object with `next` and `error` callbacks.
  *
- * NOTE: Although an `onCompletion` callback can be provided, it will
- * never be called because the snapshot stream is never-ending.
+ * NOTE: Although an `onCompletion` callback can be provided, it will never be called because the
+ * snapshot stream is never-ending.
  *
  * @param reference - A reference to the document to listen to.
  * @param options - Options controlling the listen behavior.
- * @param onNext - A callback to be called every time a new `DocumentSnapshot`
- * is available.
- * @param onError - A callback to be called if the listen fails or is
- * cancelled. No further callbacks will occur.
- * @param onCompletion - Can be provided, but will not be called since streams are
- * never ending.
- * @returns An unsubscribe function that can be called to cancel
- * the snapshot listener.
+ * @param onNext - A callback to be called every time a new `DocumentSnapshot` is available.
+ * @param onError - A callback to be called if the listen fails or is cancelled. No further
+ * callbacks will occur.
+ * @param onCompletion - Can be provided, but will not be called since streams are never ending.
+ * @returns An unsubscribe function that can be called to cancel the snapshot listener.
  */
-export declare function onSnapshot<
-  AppModelType,
-  DbModelType extends DocumentData
->(
-  reference: DocumentReference<AppModelType, DbModelType>,
-  options: SnapshotListenOptions,
-  onNext: (snapshot: DocumentSnapshot<AppModelType, DbModelType>) => void,
-  onError?: (error: FirestoreError) => void,
-  onCompletion?: () => void
-): Unsubscribe;
+export declare function onSnapshot<AppModelType, DbModelType extends DocumentData>(reference: DocumentReference<AppModelType, DbModelType>, options: SnapshotListenOptions, onNext: (snapshot: DocumentSnapshot<AppModelType, DbModelType>) => void, onError?: (error: FirestoreError) => void, onCompletion?: () => void): Unsubscribe;
 
 /**
- * Attaches a listener for `QuerySnapshot` events. You may either pass
- * individual `onNext` and `onError` callbacks or pass a single observer
- * object with `next` and `error` callbacks. The listener can be cancelled by
- * calling the function that is returned when `onSnapshot` is called.
+ * Attaches a listener for `QuerySnapshot` events. You may either pass individual `onNext` and
+ * `onError` callbacks or pass a single observer object with `next` and `error` callbacks. The
+ * listener can be cancelled by calling the function that is returned when `onSnapshot` is called.
  *
- * NOTE: Although an `onCompletion` callback can be provided, it will
- * never be called because the snapshot stream is never-ending.
+ * NOTE: Although an `onCompletion` callback can be provided, it will never be called because the
+ * snapshot stream is never-ending.
  *
  * @param query - The query to listen to.
  * @param observer - A single object containing `next` and `error` callbacks.
- * @returns An unsubscribe function that can be called to cancel
- * the snapshot listener.
+ * @returns An unsubscribe function that can be called to cancel the snapshot listener.
  */
-export declare function onSnapshot<
-  AppModelType,
-  DbModelType extends DocumentData
->(
-  query: Query<AppModelType, DbModelType>,
-  observer: {
+export declare function onSnapshot<AppModelType, DbModelType extends DocumentData>(query: Query<AppModelType, DbModelType>, observer: {
     next?: (snapshot: QuerySnapshot<AppModelType, DbModelType>) => void;
     error?: (error: FirestoreError) => void;
     complete?: () => void;
-  }
-): Unsubscribe;
+}): Unsubscribe;
 
 /**
- * Attaches a listener for `QuerySnapshot` events. You may either pass
- * individual `onNext` and `onError` callbacks or pass a single observer
- * object with `next` and `error` callbacks. The listener can be cancelled by
- * calling the function that is returned when `onSnapshot` is called.
+ * Attaches a listener for `QuerySnapshot` events. You may either pass individual `onNext` and
+ * `onError` callbacks or pass a single observer object with `next` and `error` callbacks. The
+ * listener can be cancelled by calling the function that is returned when `onSnapshot` is called.
  *
- * NOTE: Although an `onCompletion` callback can be provided, it will
- * never be called because the snapshot stream is never-ending.
+ * NOTE: Although an `onCompletion` callback can be provided, it will never be called because the
+ * snapshot stream is never-ending.
  *
  * @param query - The query to listen to.
  * @param options - Options controlling the listen behavior.
  * @param observer - A single object containing `next` and `error` callbacks.
- * @returns An unsubscribe function that can be called to cancel
- * the snapshot listener.
+ * @returns An unsubscribe function that can be called to cancel the snapshot listener.
  */
-export declare function onSnapshot<
-  AppModelType,
-  DbModelType extends DocumentData
->(
-  query: Query<AppModelType, DbModelType>,
-  options: SnapshotListenOptions,
-  observer: {
+export declare function onSnapshot<AppModelType, DbModelType extends DocumentData>(query: Query<AppModelType, DbModelType>, options: SnapshotListenOptions, observer: {
     next?: (snapshot: QuerySnapshot<AppModelType, DbModelType>) => void;
     error?: (error: FirestoreError) => void;
     complete?: () => void;
-  }
-): Unsubscribe;
+}): Unsubscribe;
 
 /**
- * Attaches a listener for `QuerySnapshot` events. You may either pass
- * individual `onNext` and `onError` callbacks or pass a single observer
- * object with `next` and `error` callbacks. The listener can be cancelled by
- * calling the function that is returned when `onSnapshot` is called.
+ * Attaches a listener for `QuerySnapshot` events. You may either pass individual `onNext` and
+ * `onError` callbacks or pass a single observer object with `next` and `error` callbacks. The
+ * listener can be cancelled by calling the function that is returned when `onSnapshot` is called.
  *
- * NOTE: Although an `onCompletion` callback can be provided, it will
- * never be called because the snapshot stream is never-ending.
+ * NOTE: Although an `onCompletion` callback can be provided, it will never be called because the
+ * snapshot stream is never-ending.
  *
  * @param query - The query to listen to.
- * @param onNext - A callback to be called every time a new `QuerySnapshot`
- * is available.
- * @param onCompletion - Can be provided, but will not be called since streams are
- * never ending.
- * @param onError - A callback to be called if the listen fails or is
- * cancelled. No further callbacks will occur.
- * @returns An unsubscribe function that can be called to cancel
- * the snapshot listener.
+ * @param onNext - A callback to be called every time a new `QuerySnapshot` is available.
+ * @param onCompletion - Can be provided, but will not be called since streams are never ending.
+ * @param onError - A callback to be called if the listen fails or is cancelled. No further
+ * callbacks will occur.
+ * @returns An unsubscribe function that can be called to cancel the snapshot listener.
  */
-export declare function onSnapshot<
-  AppModelType,
-  DbModelType extends DocumentData
->(
-  query: Query<AppModelType, DbModelType>,
-  onNext: (snapshot: QuerySnapshot<AppModelType, DbModelType>) => void,
-  onError?: (error: FirestoreError) => void,
-  onCompletion?: () => void
-): Unsubscribe;
+export declare function onSnapshot<AppModelType, DbModelType extends DocumentData>(query: Query<AppModelType, DbModelType>, onNext: (snapshot: QuerySnapshot<AppModelType, DbModelType>) => void, onError?: (error: FirestoreError) => void, onCompletion?: () => void): Unsubscribe;
 
 /**
- * Attaches a listener for `QuerySnapshot` events. You may either pass
- * individual `onNext` and `onError` callbacks or pass a single observer
- * object with `next` and `error` callbacks. The listener can be cancelled by
- * calling the function that is returned when `onSnapshot` is called.
+ * Attaches a listener for `QuerySnapshot` events. You may either pass individual `onNext` and
+ * `onError` callbacks or pass a single observer object with `next` and `error` callbacks. The
+ * listener can be cancelled by calling the function that is returned when `onSnapshot` is called.
  *
- * NOTE: Although an `onCompletion` callback can be provided, it will
- * never be called because the snapshot stream is never-ending.
+ * NOTE: Although an `onCompletion` callback can be provided, it will never be called because the
+ * snapshot stream is never-ending.
  *
  * @param query - The query to listen to.
  * @param options - Options controlling the listen behavior.
- * @param onNext - A callback to be called every time a new `QuerySnapshot`
- * is available.
+ * @param onNext - A callback to be called every time a new `QuerySnapshot` is available.
+ * @param onCompletion - Can be provided, but will not be called since streams are never ending.
+ * @param onError - A callback to be called if the listen fails or is cancelled. No further
+ * callbacks will occur.
+ * @returns An unsubscribe function that can be called to cancel the snapshot listener.
+ */
+export declare function onSnapshot<AppModelType, DbModelType extends DocumentData>(query: Query<AppModelType, DbModelType>, options: SnapshotListenOptions, onNext: (snapshot: QuerySnapshot<AppModelType, DbModelType>) => void, onError?: (error: FirestoreError) => void, onCompletion?: () => void): Unsubscribe;
+
+/**
+ * Attaches a listener for `QuerySnapshot` events based on data generated by invoking
+ * {@link QuerySnapshot.toJSON} You may either pass individual `onNext` and `onError` callbacks or
+ * pass a single observer object with `next` and `error` callbacks. The listener can be cancelled by
+ * calling the function that is returned when `onSnapshot` is called.
+ *
+ * NOTE: Although an `onCompletion` callback can be provided, it will never be called because the
+ * snapshot stream is never-ending.
+ *
+ * @param firestore - The {@link Firestore} instance to enable the listener for.
+ * @param snapshotJson - A JSON object generated by invoking {@link QuerySnapshot.toJSON}.
+ * @param onNext - A callback to be called every time a new `QuerySnapshot` is available.
+ * @param onError - A callback to be called if the listen fails or is cancelled. No further
+ * callbacks will occur.
+ * @param onCompletion - Can be provided, but will not be called since streams are never ending.
+ * @param converter - An optional object that converts objects from Firestore before the onNext
+ * listener is invoked.
+ * @returns An unsubscribe function that can be called to cancel the snapshot listener.
+ */
+export declare function onSnapshotResume<AppModelType, DbModelType extends DocumentData>(firestore: Firestore, snapshotJson: object, onNext: (snapshot: QuerySnapshot<AppModelType, DbModelType>) => void, onError?: (error: FirestoreError) => void, onCompletion?: () => void, converter?: FirestoreDataConverter<DbModelType>): Unsubscribe;
+
+/**
+ * Attaches a listener for `DocumentSnapshot` events based on data generated by invoking
+ * {@link DocumentSnapshot.toJSON}. You may either pass individual `onNext` and `onError` callbacks or
+ * pass a single observer object with `next` and `error` callbacks. The listener can be cancelled by
+ * calling the function that is returned when `onSnapshot` is called.
+ *
+ * NOTE: Although an `onCompletion` callback can be provided, it will never be called because the
+ * snapshot stream is never-ending.
+ *
+ * @param firestore - The {@link Firestore} instance to enable the listener for.
+ * @param snapshotJson - A JSON object generated by invoking {@link DocumentSnapshot.toJSON}.
+ * @param onNext - A callback to be called every time a new `DocumentSnapshot` is available.
+ * @param onError - A callback to be called if the listen fails or is cancelled. No further
+ * callbacks will occur.
  * @param onCompletion - Can be provided, but will not be called since streams are
  * never ending.
- * @param onError - A callback to be called if the listen fails or is
- * cancelled. No further callbacks will occur.
+ * @param converter - An optional object that converts objects from Firestore before the onNext
+ * listener is invoked.
+ * @returns An unsubscribe function that can be called to cancel the snapshot listener.
+ */
+export declare function onSnapshotResume<AppModelType, DbModelType extends DocumentData>(firestore: Firestore, snapshotJson: object, onNext: (snapshot: DocumentSnapshot<AppModelType, DbModelType>) => void, onError?: (error: FirestoreError) => void, onCompletion?: () => void, converter?: FirestoreDataConverter<DbModelType>): Unsubscribe;
+
+/**
+ * Attaches a listener for `QuerySnapshot` events based on data generated by invoking
+ * {@link QuerySnapshot.toJSON}. You may either pass individual `onNext` and `onError` callbacks or
+ * pass a single observer object with `next` and `error` callbacks. The listener can be cancelled by
+ * calling the function that is returned when `onSnapshot` is called.
+ *
+ * NOTE: Although an `onCompletion` callback can be provided, it will never be called because the
+ * snapshot stream is never-ending.
+ *
+ * @param firestore - The {@link Firestore} instance to enable the listener for.
+ * @param snapshotJson - A JSON object generated by invoking {@link QuerySnapshot.toJSON}.
+ * @param options - Options controlling the listen behavior.
+ * @param onNext - A callback to be called every time a new `QuerySnapshot` is available.
+ * @param onError - A callback to be called if the listen fails or is cancelled. No further
+ * callbacks will occur.
+ * @param onCompletion - Can be provided, but will not be called since streams are never ending.
+ * @param converter - An optional object that converts objects from Firestore before the onNext
+ * listener is invoked.
+ * @returns An unsubscribe function that can be called to cancel the snapshot listener.
+ */
+export declare function onSnapshotResume<AppModelType, DbModelType extends DocumentData>(firestore: Firestore, snapshotJson: object, options: SnapshotListenOptions, onNext: (snapshot: QuerySnapshot<AppModelType, DbModelType>) => void, onError?: (error: FirestoreError) => void, onCompletion?: () => void, converter?: FirestoreDataConverter<DbModelType>): Unsubscribe;
+
+/**
+ * Attaches a listener for `DocumentSnapshot` events based on data generated by invoking
+ * {@link DocumentSnapshot.toJSON}. You may either pass individual `onNext` and `onError` callbacks
+ * or pass a single observer object with `next` and `error` callbacks. The listener can be cancelled
+ * by calling the function that is returned when `onSnapshot` is called.
+ *
+ * NOTE: Although an `onCompletion` callback can be provided, it will never be called because the
+ * snapshot stream is never-ending.
+ *
+ * @param firestore - The {@link Firestore} instance to enable the listener for.
+ * @param snapshotJson - A JSON object generated by invoking {@link DocumentSnapshot.toJSON}.
+ * @param options - Options controlling the listen behavior.
+ * @param onNext - A callback to be called every time a new `DocumentSnapshot` is available.
+ * @param onError - A callback to be called if the listen fails or is cancelled. No further
+ * callbacks will occur.
+ * @param onCompletion - Can be provided, but will not be called since streams are never ending.
+ * @param converter - An optional object that converts objects from Firestore before the onNext
+ * listener is invoked.
  * @returns An unsubscribe function that can be called to cancel
  * the snapshot listener.
  */
-export declare function onSnapshot<
-  AppModelType,
-  DbModelType extends DocumentData
->(
-  query: Query<AppModelType, DbModelType>,
-  options: SnapshotListenOptions,
-  onNext: (snapshot: QuerySnapshot<AppModelType, DbModelType>) => void,
-  onError?: (error: FirestoreError) => void,
-  onCompletion?: () => void
-): Unsubscribe;
+export declare function onSnapshotResume<AppModelType, DbModelType extends DocumentData>(firestore: Firestore, snapshotJson: object, options: SnapshotListenOptions, onNext: (snapshot: DocumentSnapshot<AppModelType, DbModelType>) => void, onError?: (error: FirestoreError) => void, onCompletion?: () => void, converter?: FirestoreDataConverter<DbModelType>): Unsubscribe;
+
+/**
+ * Attaches a listener for `QuerySnapshot` events based on QuerySnapshot data generated by invoking
+ * {@link QuerySnapshot.toJSON}. You may either pass individual `onNext` and `onError` callbacks or
+ * pass a single observer object with `next` and `error` callbacks. The listener can be cancelled by
+ * calling the function that is returned when `onSnapshot` is called.
+ *
+ * NOTE: Although an `onCompletion` callback can be provided, it will never be called because the
+ * snapshot stream is never-ending.
+ *
+ * @param firestore - The {@link Firestore} instance to enable the listener for.
+ * @param snapshotJson - A JSON object generated by invoking {@link QuerySnapshot.toJSON}.
+ * @param observer - A single object containing `next` and `error` callbacks.
+ * @param converter - An optional object that converts objects from Firestore before the onNext
+ * listener is invoked.
+ * @returns An unsubscribe function that can be called to cancel
+ * the snapshot listener.
+ */
+export declare function onSnapshotResume<AppModelType, DbModelType extends DocumentData>(firestore: Firestore, snapshotJson: object, observer: {
+    next: (snapshot: QuerySnapshot<AppModelType, DbModelType>) => void;
+    error?: (error: FirestoreError) => void;
+    complete?: () => void;
+}, converter?: FirestoreDataConverter<DbModelType>): Unsubscribe;
+
+/**
+ * Attaches a listener for `DocumentSnapshot` events based on data generated by invoking
+ * {@link DocumentSnapshot.toJSON} You may either pass individual `onNext` and `onError` callbacks
+ * or pass a single observer object with `next` and `error` callbacks. The listener can be cancelled
+ * by calling the function that is returned when `onSnapshot` is called.
+ *
+ * NOTE: Although an `onCompletion` callback can be provided, it will never be called because the
+ * snapshot stream is never-ending.
+ *
+ * @param firestore - The {@link Firestore} instance to enable the listener for.
+ * @param snapshotJson - A JSON object generated by invoking {@link DocumentSnapshot.toJSON}.
+ * @param observer - A single object containing `next` and `error` callbacks.
+ * @param converter - An optional object that converts objects from Firestore before the onNext
+ * listener is invoked.
+ * @returns An unsubscribe function that can be called to cancel
+ * the snapshot listener.
+ */
+export declare function onSnapshotResume<AppModelType, DbModelType extends DocumentData>(firestore: Firestore, snapshotJson: object, observer: {
+    next: (snapshot: DocumentSnapshot<AppModelType, DbModelType>) => void;
+    error?: (error: FirestoreError) => void;
+    complete?: () => void;
+}, converter?: FirestoreDataConverter<DbModelType>): Unsubscribe;
+
+/**
+ * Attaches a listener for `QuerySnapshot` events based on QuerySnapshot data generated by invoking
+ * {@link QuerySnapshot.toJSON} You may either pass individual `onNext` and `onError` callbacks or
+ * pass a single observer object with `next` and `error` callbacks. The listener can be cancelled by
+ * calling the function that is returned when `onSnapshot` is called.
+ *
+ * NOTE: Although an `onCompletion` callback can be provided, it will never be called because the
+ * snapshot stream is never-ending.
+ *
+ * @param firestore - The {@link Firestore} instance to enable the listener for.
+ * @param snapshotJson - A JSON object generated by invoking {@link QuerySnapshot.toJSON}.
+ * @param options - Options controlling the listen behavior.
+ * @param observer - A single object containing `next` and `error` callbacks.
+ * @param converter - An optional object that converts objects from Firestore before the onNext
+ * listener is invoked.
+ * @returns An unsubscribe function that can be called to cancel
+ * the snapshot listener.
+ */
+export declare function onSnapshotResume<AppModelType, DbModelType extends DocumentData>(firestore: Firestore, snapshotJson: object, options: SnapshotListenOptions, observer: {
+    next: (snapshot: QuerySnapshot<AppModelType, DbModelType>) => void;
+    error?: (error: FirestoreError) => void;
+    complete?: () => void;
+}, converter?: FirestoreDataConverter<DbModelType>): Unsubscribe;
+
+/**
+ * Attaches a listener for `DocumentSnapshot` events based on QuerySnapshot data generated by
+ * invoking {@link DocumentSnapshot.toJSON} You may either pass individual `onNext` and `onError`
+ * callbacks or pass a single observer object with `next` and `error` callbacks. The listener can be
+ * cancelled by calling the function that is returned when `onSnapshot` is called.
+ *
+ * NOTE: Although an `onCompletion` callback can be provided, it will never be called because the
+ * snapshot stream is never-ending.
+ *
+ * @param firestore - The {@link Firestore} instance to enable the listener for.
+ * @param snapshotJson - A JSON object generated by invoking {@link DocumentSnapshot.toJSON}.
+ * @param options - Options controlling the listen behavior.
+ * @param observer - A single object containing `next` and `error` callbacks.
+ * @param converter - An optional object that converts objects from Firestore before the onNext
+ * listener is invoked.
+ * @returns An unsubscribe function that can be called to cancel the snapshot listener.
+ */
+export declare function onSnapshotResume<AppModelType, DbModelType extends DocumentData>(firestore: Firestore, snapshotJson: object, options: SnapshotListenOptions, observer: {
+    next: (snapshot: DocumentSnapshot<AppModelType, DbModelType>) => void;
+    error?: (error: FirestoreError) => void;
+    complete?: () => void;
+}, converter?: FirestoreDataConverter<DbModelType>): Unsubscribe;
 
 /**
  * Attaches a listener for a snapshots-in-sync event. The snapshots-in-sync
@@ -5132,14 +4932,11 @@ export declare function onSnapshot<
  * @returns An unsubscribe function that can be called to cancel the snapshot
  * listener.
  */
-export declare function onSnapshotsInSync(
-  firestore: Firestore,
-  observer: {
+export declare function onSnapshotsInSync(firestore: Firestore, observer: {
     next?: (value: void) => void;
     error?: (error: FirestoreError) => void;
     complete?: () => void;
-  }
-): Unsubscribe;
+}): Unsubscribe;
 
 /**
  * Attaches a listener for a snapshots-in-sync event. The snapshots-in-sync
@@ -5157,22 +4954,33 @@ export declare function onSnapshotsInSync(
  * @returns An unsubscribe function that can be called to cancel the snapshot
  * listener.
  */
-export declare function onSnapshotsInSync(
-  firestore: Firestore,
-  onSync: () => void
-): Unsubscribe;
+export declare function onSnapshotsInSync(firestore: Firestore, onSync: () => void): Unsubscribe;
 
 declare const enum Operator {
-  LESS_THAN = '<',
-  LESS_THAN_OR_EQUAL = '<=',
-  EQUAL = '==',
-  NOT_EQUAL = '!=',
-  GREATER_THAN = '>',
-  GREATER_THAN_OR_EQUAL = '>=',
-  ARRAY_CONTAINS = 'array-contains',
-  IN = 'in',
-  NOT_IN = 'not-in',
-  ARRAY_CONTAINS_ANY = 'array-contains-any'
+    LESS_THAN = "<",
+    LESS_THAN_OR_EQUAL = "<=",
+    EQUAL = "==",
+    NOT_EQUAL = "!=",
+    GREATER_THAN = ">",
+    GREATER_THAN_OR_EQUAL = ">=",
+    ARRAY_CONTAINS = "array-contains",
+    IN = "in",
+    NOT_IN = "not-in",
+    ARRAY_CONTAINS_ANY = "array-contains-any"
+}
+
+declare interface OptionDefinition {
+    serverName: string;
+    nestedOptions?: OptionsDefinitions;
+}
+
+declare type OptionsDefinitions = Record<string, OptionDefinition>;
+
+declare class OptionsUtil {
+    private optionDefinitions;
+    constructor(optionDefinitions: OptionsDefinitions);
+    private _getKnownOptions;
+    getOptionsProto(context: ParseContext, knownOptions: Record<string, unknown>, optionsOverride?: Record<string, unknown>): ApiClientObjectMap<Value> | undefined;
 }
 
 /**
@@ -5185,17 +4993,15 @@ declare const enum Operator {
  * created with calls to {@link where}, {@link or}, or {@link and}.
  * @returns The newly created {@link QueryCompositeFilterConstraint}.
  */
-export declare function or(
-  ...queryConstraints: QueryFilterConstraint[]
-): QueryCompositeFilterConstraint;
+export declare function or(...queryConstraints: QueryFilterConstraint[]): QueryCompositeFilterConstraint;
 
 /**
  * An ordering on a field, in some Direction. Direction defaults to ASCENDING.
  */
 declare class OrderBy {
-  readonly field: _FieldPath;
-  readonly dir: Direction;
-  constructor(field: _FieldPath, dir?: Direction);
+    readonly field: _FieldPath;
+    readonly dir: Direction;
+    constructor(field: _FieldPath, dir?: Direction);
 }
 
 /**
@@ -5210,10 +5016,7 @@ declare class OrderBy {
  * not specified, order will be ascending.
  * @returns The created {@link QueryOrderByConstraint}.
  */
-export declare function orderBy(
-  fieldPath: string | FieldPath,
-  directionStr?: OrderByDirection
-): QueryOrderByConstraint;
+export declare function orderBy(fieldPath: string | FieldPath, directionStr?: OrderByDirection): QueryOrderByConstraint;
 
 /**
  * The direction of a {@link orderBy} clause is specified as 'desc' or 'asc'
@@ -5221,10 +5024,7 @@ export declare function orderBy(
  */
 export declare type OrderByDirection = 'desc' | 'asc';
 
-declare type OrderDirection =
-  | 'DIRECTION_UNSPECIFIED'
-  | 'ASCENDING'
-  | 'DESCENDING';
+declare type OrderDirection = 'DIRECTION_UNSPECIFIED' | 'ASCENDING' | 'DESCENDING';
 
 /**
  * Representation of an overlay computed by Firestore.
@@ -5233,12 +5033,12 @@ declare type OrderDirection =
  * the mutation was created.
  */
 declare class Overlay {
-  readonly largestBatchId: number;
-  readonly mutation: Mutation;
-  constructor(largestBatchId: number, mutation: Mutation);
-  getKey(): _DocumentKey;
-  isEqual(other: Overlay | null): boolean;
-  toString(): string;
+    readonly largestBatchId: number;
+    readonly mutation: Mutation;
+    constructor(largestBatchId: number, mutation: Mutation);
+    getKey(): _DocumentKey;
+    isEqual(other: Overlay | null): boolean;
+    toString(): string;
 }
 
 /**
@@ -5246,24 +5046,22 @@ declare class Overlay {
  * locally mutated.
  */
 declare class OverlayedDocument {
-  readonly overlayedDocument: Document_2;
-  /**
-   * The fields that are locally mutated by patch mutations.
-   *
-   * If the overlayed	document is from set or delete mutations, this is `null`.
-   * If there is no overlay (mutation) for the document, this is an empty `FieldMask`.
-   */
-  readonly mutatedFields: FieldMask | null;
-  constructor(
-    overlayedDocument: Document_2,
+    readonly overlayedDocument: Document_2;
     /**
      * The fields that are locally mutated by patch mutations.
      *
      * If the overlayed	document is from set or delete mutations, this is `null`.
      * If there is no overlay (mutation) for the document, this is an empty `FieldMask`.
      */
-    mutatedFields: FieldMask | null
-  );
+    readonly mutatedFields: FieldMask | null;
+    constructor(overlayedDocument: Document_2, 
+    /**
+     * The fields that are locally mutated by patch mutations.
+     *
+     * If the overlayed	document is from set or delete mutations, this is `null`.
+     * If there is no overlay (mutation) for the document, this is an empty `FieldMask`.
+     */
+    mutatedFields: FieldMask | null);
 }
 
 declare type OverlayedDocumentMap = DocumentKeyMap<OverlayedDocument>;
@@ -5271,49 +5069,38 @@ declare type OverlayedDocumentMap = DocumentKeyMap<OverlayedDocument>;
 declare type OverlayMap = DocumentKeyMap<Overlay>;
 
 declare interface ParseContext {
-  readonly databaseId: _DatabaseId;
-  readonly ignoreUndefinedProperties: boolean;
-}
+    readonly settings: ContextSettings;
+    readonly databaseId: _DatabaseId;
+    readonly serializer: JsonProtoSerializer;
+    readonly ignoreUndefinedProperties: boolean;
+    fieldTransforms: FieldTransform[];
+    fieldMask: _FieldPath[];
 
 /** The result of parsing document data (e.g. for a setData call). */
 declare class ParsedSetData {
-  readonly data: ObjectValue;
-  readonly fieldMask: FieldMask | null;
-  readonly fieldTransforms: FieldTransform[];
-  constructor(
-    data: ObjectValue,
-    fieldMask: FieldMask | null,
-    fieldTransforms: FieldTransform[]
-  );
-  toMutation(key: _DocumentKey, precondition: Precondition): Mutation;
+    readonly data: ObjectValue;
+    readonly fieldMask: FieldMask | null;
+    readonly fieldTransforms: FieldTransform[];
+    constructor(data: ObjectValue, fieldMask: FieldMask | null, fieldTransforms: FieldTransform[]);
+    toMutation(key: _DocumentKey, precondition: Precondition): Mutation;
 }
 
 /** The result of parsing "update" data (i.e. for an updateData call). */
 declare class ParsedUpdateData {
-  readonly data: ObjectValue;
-  readonly fieldMask: FieldMask;
-  readonly fieldTransforms: FieldTransform[];
-  constructor(
-    data: ObjectValue,
-    fieldMask: FieldMask,
-    fieldTransforms: FieldTransform[]
-  );
-  toMutation(key: _DocumentKey, precondition: Precondition): Mutation;
+    readonly data: ObjectValue;
+    readonly fieldMask: FieldMask;
+    readonly fieldTransforms: FieldTransform[];
+    constructor(data: ObjectValue, fieldMask: FieldMask, fieldTransforms: FieldTransform[]);
+    toMutation(key: _DocumentKey, precondition: Precondition): Mutation;
 }
 
 /**
  * Similar to TypeScript's `Partial<T>`, but allows nested fields to be
  * omitted and FieldValues to be passed in as property values.
  */
-export declare type PartialWithFieldValue<T> =
-  | Partial<T>
-  | (T extends Primitive
-      ? T
-      : T extends {}
-      ? {
-          [K in keyof T]?: PartialWithFieldValue<T[K]> | FieldValue;
-        }
-      : never);
+export declare type PartialWithFieldValue<T> = Partial<T> | (T extends Primitive ? T : T extends {} ? {
+    [K in keyof T]?: PartialWithFieldValue<T[K]> | FieldValue;
+} : never);
 
 /**
  * Persistence is the lowest-level shared interface to persistent storage in
@@ -5352,114 +5139,106 @@ export declare type PartialWithFieldValue<T> =
  * writes.
  */
 declare interface Persistence {
-  /**
-   * Whether or not this persistence instance has been started.
-   */
-  readonly started: boolean;
-  readonly referenceDelegate: ReferenceDelegate;
-  /** Starts persistence. */
-  start(): Promise<void>;
-  /**
-   * Releases any resources held during eager shutdown.
-   */
-  shutdown(): Promise<void>;
-  /**
-   * Registers a listener that gets called when the database receives a
-   * version change event indicating that it has deleted.
-   *
-   * PORTING NOTE: This is only used for Web multi-tab.
-   */
-  setDatabaseDeletedListener(
-    databaseDeletedListener: () => Promise<void>
-  ): void;
-  /**
-   * Adjusts the current network state in the client's metadata, potentially
-   * affecting the primary lease.
-   *
-   * PORTING NOTE: This is only used for Web multi-tab.
-   */
-  setNetworkEnabled(networkEnabled: boolean): void;
-  /**
-   * Returns GlobalCache representing a general purpose cache for global values.
-   */
-  getGlobalsCache(): GlobalsCache;
-  /**
-   * Returns a MutationQueue representing the persisted mutations for the
-   * given user.
-   *
-   * Note: The implementation is free to return the same instance every time
-   * this is called for a given user. In particular, the memory-backed
-   * implementation does this to emulate the persisted implementation to the
-   * extent possible (e.g. in the case of uid switching from
-   * sally=&gt;jack=&gt;sally, sally's mutation queue will be preserved).
-   */
-  getMutationQueue(user: User, indexManager: IndexManager): MutationQueue;
-  /**
-   * Returns a TargetCache representing the persisted cache of targets.
-   *
-   * Note: The implementation is free to return the same instance every time
-   * this is called. In particular, the memory-backed implementation does this
-   * to emulate the persisted implementation to the extent possible.
-   */
-  getTargetCache(): TargetCache;
-  /**
-   * Returns a RemoteDocumentCache representing the persisted cache of remote
-   * documents.
-   *
-   * Note: The implementation is free to return the same instance every time
-   * this is called. In particular, the memory-backed implementation does this
-   * to emulate the persisted implementation to the extent possible.
-   */
-  getRemoteDocumentCache(): RemoteDocumentCache;
-  /**
-   * Returns a BundleCache representing the persisted cache of loaded bundles.
-   *
-   * Note: The implementation is free to return the same instance every time
-   * this is called. In particular, the memory-backed implementation does this
-   * to emulate the persisted implementation to the extent possible.
-   */
-  getBundleCache(): BundleCache;
-  /**
-   * Returns an IndexManager instance that manages our persisted query indexes.
-   *
-   * Note: The implementation is free to return the same instance every time
-   * this is called. In particular, the memory-backed implementation does this
-   * to emulate the persisted implementation to the extent possible.
-   */
-  getIndexManager(user: User): IndexManager;
-  /**
-   * Returns a DocumentOverlayCache representing the documents that are mutated
-   * locally.
-   */
-  getDocumentOverlayCache(user: User): DocumentOverlayCache;
-  /**
-   * Performs an operation inside a persistence transaction. Any reads or writes
-   * against persistence must be performed within a transaction. Writes will be
-   * committed atomically once the transaction completes.
-   *
-   * Persistence operations are asynchronous and therefore the provided
-   * transactionOperation must return a PersistencePromise. When it is resolved,
-   * the transaction will be committed and the Promise returned by this method
-   * will resolve.
-   *
-   * @param action - A description of the action performed by this transaction,
-   * used for logging.
-   * @param mode - The underlying mode of the IndexedDb transaction. Can be
-   * 'readonly', 'readwrite' or 'readwrite-primary'. Transactions marked
-   * 'readwrite-primary' can only be executed by the primary client. In this
-   * mode, the transactionOperation will not be run if the primary lease cannot
-   * be acquired and the returned promise will be rejected with a
-   * FAILED_PRECONDITION error.
-   * @param transactionOperation - The operation to run inside a transaction.
-   * @returns A `Promise` that is resolved once the transaction completes.
-   */
-  runTransaction<T>(
-    action: string,
-    mode: PersistenceTransactionMode,
-    transactionOperation: (
-      transaction: PersistenceTransaction
-    ) => PersistencePromise<T>
-  ): Promise<T>;
+    /**
+     * Whether or not this persistence instance has been started.
+     */
+    readonly started: boolean;
+    readonly referenceDelegate: ReferenceDelegate;
+    /** Starts persistence. */
+    start(): Promise<void>;
+    /**
+     * Releases any resources held during eager shutdown.
+     */
+    shutdown(): Promise<void>;
+    /**
+     * Registers a listener that gets called when the database receives a
+     * version change event indicating that it has deleted.
+     *
+     * PORTING NOTE: This is only used for Web multi-tab.
+     */
+    setDatabaseDeletedListener(databaseDeletedListener: () => Promise<void>): void;
+    /**
+     * Adjusts the current network state in the client's metadata, potentially
+     * affecting the primary lease.
+     *
+     * PORTING NOTE: This is only used for Web multi-tab.
+     */
+    setNetworkEnabled(networkEnabled: boolean): void;
+    /**
+     * Returns GlobalCache representing a general purpose cache for global values.
+     */
+    getGlobalsCache(): GlobalsCache;
+    /**
+     * Returns a MutationQueue representing the persisted mutations for the
+     * given user.
+     *
+     * Note: The implementation is free to return the same instance every time
+     * this is called for a given user. In particular, the memory-backed
+     * implementation does this to emulate the persisted implementation to the
+     * extent possible (e.g. in the case of uid switching from
+     * sally=&gt;jack=&gt;sally, sally's mutation queue will be preserved).
+     */
+    getMutationQueue(user: User, indexManager: IndexManager): MutationQueue;
+    /**
+     * Returns a TargetCache representing the persisted cache of targets.
+     *
+     * Note: The implementation is free to return the same instance every time
+     * this is called. In particular, the memory-backed implementation does this
+     * to emulate the persisted implementation to the extent possible.
+     */
+    getTargetCache(): TargetCache;
+    /**
+     * Returns a RemoteDocumentCache representing the persisted cache of remote
+     * documents.
+     *
+     * Note: The implementation is free to return the same instance every time
+     * this is called. In particular, the memory-backed implementation does this
+     * to emulate the persisted implementation to the extent possible.
+     */
+    getRemoteDocumentCache(): RemoteDocumentCache;
+    /**
+     * Returns a BundleCache representing the persisted cache of loaded bundles.
+     *
+     * Note: The implementation is free to return the same instance every time
+     * this is called. In particular, the memory-backed implementation does this
+     * to emulate the persisted implementation to the extent possible.
+     */
+    getBundleCache(): BundleCache;
+    /**
+     * Returns an IndexManager instance that manages our persisted query indexes.
+     *
+     * Note: The implementation is free to return the same instance every time
+     * this is called. In particular, the memory-backed implementation does this
+     * to emulate the persisted implementation to the extent possible.
+     */
+    getIndexManager(user: User): IndexManager;
+    /**
+     * Returns a DocumentOverlayCache representing the documents that are mutated
+     * locally.
+     */
+    getDocumentOverlayCache(user: User): DocumentOverlayCache;
+    /**
+     * Performs an operation inside a persistence transaction. Any reads or writes
+     * against persistence must be performed within a transaction. Writes will be
+     * committed atomically once the transaction completes.
+     *
+     * Persistence operations are asynchronous and therefore the provided
+     * transactionOperation must return a PersistencePromise. When it is resolved,
+     * the transaction will be committed and the Promise returned by this method
+     * will resolve.
+     *
+     * @param action - A description of the action performed by this transaction,
+     * used for logging.
+     * @param mode - The underlying mode of the IndexedDb transaction. Can be
+     * 'readonly', 'readwrite' or 'readwrite-primary'. Transactions marked
+     * 'readwrite-primary' can only be executed by the primary client. In this
+     * mode, the transactionOperation will not be run if the primary lease cannot
+     * be acquired and the returned promise will be rejected with a
+     * FAILED_PRECONDITION error.
+     * @param transactionOperation - The operation to run inside a transaction.
+     * @returns A `Promise` that is resolved once the transaction completes.
+     */
+    runTransaction<T>(action: string, mode: PersistenceTransactionMode, transactionOperation: (transaction: PersistenceTransaction) => PersistencePromise<T>): Promise<T>;
 }
 
 /**
@@ -5476,75 +5255,54 @@ declare interface Persistence {
  * Promises.
  */
 declare class PersistencePromise<T> {
-  private nextCallback;
-  private catchCallback;
-  private result;
-  private error;
-  private isDone;
-  private callbackAttached;
-  constructor(callback: (resolve: Resolver<T>, reject: Rejector) => void);
-  catch<R>(
-    fn: (error: Error) => R | PersistencePromise<R>
-  ): PersistencePromise<R>;
-  next<R>(
-    nextFn?: FulfilledHandler<T, R>,
-    catchFn?: RejectedHandler<R>
-  ): PersistencePromise<R>;
-  toPromise(): Promise<T>;
-  private wrapUserFunction;
-  private wrapSuccess;
-  private wrapFailure;
-  static resolve(): PersistencePromise<void>;
-  static resolve<R>(result: R): PersistencePromise<R>;
-  static reject<R>(error: Error): PersistencePromise<R>;
-  static waitFor(all: {
-    forEach: (cb: (el: PersistencePromise<any>) => void) => void;
-  }): PersistencePromise<void>;
-  /**
-   * Given an array of predicate functions that asynchronously evaluate to a
-   * boolean, implements a short-circuiting `or` between the results. Predicates
-   * will be evaluated until one of them returns `true`, then stop. The final
-   * result will be whether any of them returned `true`.
-   */
-  static or(
-    predicates: Array<() => PersistencePromise<boolean>>
-  ): PersistencePromise<boolean>;
-  /**
-   * Given an iterable, call the given function on each element in the
-   * collection and wait for all of the resulting concurrent PersistencePromises
-   * to resolve.
-   */
-  static forEach<R, S>(
-    collection: {
-      forEach: (cb: (r: R, s: S) => void) => void;
-    },
-    f:
-      | ((r: R, s: S) => PersistencePromise<void>)
-      | ((r: R) => PersistencePromise<void>)
-  ): PersistencePromise<void>;
-  static forEach<R>(
-    collection: {
-      forEach: (cb: (r: R) => void) => void;
-    },
-    f: (r: R) => PersistencePromise<void>
-  ): PersistencePromise<void>;
-  /**
-   * Concurrently map all array elements through asynchronous function.
-   */
-  static mapArray<T, U>(
-    array: T[],
-    f: (t: T) => PersistencePromise<U>
-  ): PersistencePromise<U[]>;
-  /**
-   * An alternative to recursive PersistencePromise calls, that avoids
-   * potential memory problems from unbounded chains of promises.
-   *
-   * The `action` will be called repeatedly while `condition` is true.
-   */
-  static doWhile(
-    condition: () => boolean,
-    action: () => PersistencePromise<void>
-  ): PersistencePromise<void>;
+    private nextCallback;
+    private catchCallback;
+    private result;
+    private error;
+    private isDone;
+    private callbackAttached;
+    constructor(callback: (resolve: Resolver<T>, reject: Rejector) => void);
+    catch<R>(fn: (error: Error) => R | PersistencePromise<R>): PersistencePromise<R>;
+    next<R>(nextFn?: FulfilledHandler<T, R>, catchFn?: RejectedHandler<R>): PersistencePromise<R>;
+    toPromise(): Promise<T>;
+    private wrapUserFunction;
+    private wrapSuccess;
+    private wrapFailure;
+    static resolve(): PersistencePromise<void>;
+    static resolve<R>(result: R): PersistencePromise<R>;
+    static reject<R>(error: Error): PersistencePromise<R>;
+    static waitFor(all: {
+        forEach: (cb: (el: PersistencePromise<any>) => void) => void;
+    }): PersistencePromise<void>;
+    /**
+     * Given an array of predicate functions that asynchronously evaluate to a
+     * boolean, implements a short-circuiting `or` between the results. Predicates
+     * will be evaluated until one of them returns `true`, then stop. The final
+     * result will be whether any of them returned `true`.
+     */
+    static or(predicates: Array<() => PersistencePromise<boolean>>): PersistencePromise<boolean>;
+    /**
+     * Given an iterable, call the given function on each element in the
+     * collection and wait for all of the resulting concurrent PersistencePromises
+     * to resolve.
+     */
+    static forEach<R, S>(collection: {
+        forEach: (cb: (r: R, s: S) => void) => void;
+    }, f: ((r: R, s: S) => PersistencePromise<void>) | ((r: R) => PersistencePromise<void>)): PersistencePromise<void>;
+    static forEach<R>(collection: {
+        forEach: (cb: (r: R) => void) => void;
+    }, f: (r: R) => PersistencePromise<void>): PersistencePromise<void>;
+    /**
+     * Concurrently map all array elements through asynchronous function.
+     */
+    static mapArray<T, U>(array: T[], f: (t: T) => PersistencePromise<U>): PersistencePromise<U[]>;
+    /**
+     * An alternative to recursive PersistencePromise calls, that avoids
+     * potential memory problems from unbounded chains of promises.
+     *
+     * The `action` will be called repeatedly while `condition` is true.
+     */
+    static doWhile(condition: () => boolean, action: () => PersistencePromise<void>): PersistencePromise<void>;
 }
 
 /**
@@ -5554,13 +5312,13 @@ declare class PersistencePromise<T> {
  * Persistence cannot be used in a Node.js environment.
  */
 export declare interface PersistenceSettings {
-  /**
-   * Whether to force enable persistence for the client. This cannot be used
-   * with multi-tab synchronization and is primarily intended for use with Web
-   * Workers. Setting this to `true` will enable persistence, but cause other
-   * tabs using persistence to fail.
-   */
-  forceOwnership?: boolean;
+    /**
+     * Whether to force enable persistence for the client. This cannot be used
+     * with multi-tab synchronization and is primarily intended for use with Web
+     * Workers. Setting this to `true` will enable persistence, but cause other
+     * tabs using persistence to fail.
+     */
+    forceOwnership?: boolean;
 }
 
 /**
@@ -5572,17 +5330,14 @@ export declare interface PersistenceSettings {
  * on persistence.
  */
 declare abstract class PersistenceTransaction {
-  private readonly onCommittedListeners;
-  abstract readonly currentSequenceNumber: ListenSequenceNumber;
-  addOnCommittedListener(listener: () => void): void;
-  raiseOnCommittedEvent(): void;
+    private readonly onCommittedListeners;
+    abstract readonly currentSequenceNumber: ListenSequenceNumber;
+    addOnCommittedListener(listener: () => void): void;
+    raiseOnCommittedEvent(): void;
 }
 
 /** The different modes supported by `Persistence.runTransaction()`. */
-declare type PersistenceTransactionMode =
-  | 'readonly'
-  | 'readwrite'
-  | 'readwrite-primary';
+declare type PersistenceTransactionMode = 'readonly' | 'readwrite' | 'readwrite-primary';
 
 /**
  * A `PersistentCacheIndexManager` for configuring persistent cache indexes used
@@ -5591,11 +5346,11 @@ declare type PersistenceTransactionMode =
  * To use, call `getPersistentCacheIndexManager()` to get an instance.
  */
 export declare class PersistentCacheIndexManager {
-  readonly _firestore: Firestore;
-  /** A type string to uniquely identify instances of this class. */
-  readonly type: 'PersistentCacheIndexManager';
-  /** @hideconstructor */
-  constructor(_firestore: Firestore);
+    readonly _firestore: Firestore;
+    /** A type string to uniquely identify instances of this class. */
+    readonly type: 'PersistentCacheIndexManager';
+    /** @hideconstructor */
+    constructor(_firestore: Firestore);
 }
 
 /**
@@ -5604,21 +5359,21 @@ export declare class PersistentCacheIndexManager {
  * Persistent cache cannot be used in a Node.js environment.
  */
 export declare type PersistentCacheSettings = {
-  /**
-   * An approximate cache size threshold for the on-disk data. If the cache
-   * grows beyond this size, Firestore will start removing data that hasn't been
-   * recently used. The SDK does not guarantee that the cache will stay below
-   * that size, only that if the cache exceeds the given size, cleanup will be
-   * attempted.
-   *
-   * The default value is 40 MB. The threshold must be set to at least 1 MB, and
-   * can be set to `CACHE_SIZE_UNLIMITED` to disable garbage collection.
-   */
-  cacheSizeBytes?: number;
-  /**
-   * Specifies how multiple tabs/windows will be managed by the SDK.
-   */
-  tabManager?: PersistentTabManager;
+    /**
+     * An approximate cache size threshold for the on-disk data. If the cache
+     * grows beyond this size, Firestore will start removing data that hasn't been
+     * recently used. The SDK does not guarantee that the cache will stay below
+     * that size, only that if the cache exceeds the given size, cleanup will be
+     * attempted.
+     *
+     * The default value is 40 MB. The threshold must be set to at least 1 MB, and
+     * can be set to `CACHE_SIZE_UNLIMITED` to disable garbage collection.
+     */
+    cacheSizeBytes?: number;
+    /**
+     * Specifies how multiple tabs/windows will be managed by the SDK.
+     */
+    tabManager?: PersistentTabManager;
 };
 
 /**
@@ -5629,9 +5384,9 @@ export declare type PersistentCacheSettings = {
  * the settings object.
  */
 export declare type PersistentLocalCache = {
-  kind: 'persistent';
-  /* Excluded from this release type: _onlineComponentProvider */
-  /* Excluded from this release type: _offlineComponentProvider */
+    kind: 'persistent';
+    /* Excluded from this release type: _onlineComponentProvider */
+    /* Excluded from this release type: _offlineComponentProvider */
 };
 
 /**
@@ -5640,19 +5395,17 @@ export declare type PersistentLocalCache = {
  *
  * Persistent cache cannot be used in a Node.js environment.
  */
-export declare function persistentLocalCache(
-  settings?: PersistentCacheSettings
-): PersistentLocalCache;
+export declare function persistentLocalCache(settings?: PersistentCacheSettings): PersistentLocalCache;
 
 /**
  * A tab manager supporting multiple tabs. SDK will synchronize queries and
  * mutations done across all tabs using the SDK.
  */
 export declare type PersistentMultipleTabManager = {
-  kind: 'PersistentMultipleTab';
-  /* Excluded from this release type: _initialize */
-  /* Excluded from this release type: _onlineComponentProvider */
-  /* Excluded from this release type: _offlineComponentProvider */
+    kind: 'PersistentMultipleTab';
+    /* Excluded from this release type: _initialize */
+    /* Excluded from this release type: _onlineComponentProvider */
+    /* Excluded from this release type: _offlineComponentProvider */
 };
 
 /**
@@ -5665,40 +5418,40 @@ export declare function persistentMultipleTabManager(): PersistentMultipleTabMan
  * performed across tabs.
  */
 export declare type PersistentSingleTabManager = {
-  kind: 'persistentSingleTab';
-  /* Excluded from this release type: _initialize */
-  /* Excluded from this release type: _onlineComponentProvider */
-  /* Excluded from this release type: _offlineComponentProvider */
+    kind: 'persistentSingleTab';
+    /* Excluded from this release type: _initialize */
+    /* Excluded from this release type: _onlineComponentProvider */
+    /* Excluded from this release type: _offlineComponentProvider */
 };
 
 /**
  * Creates an instance of `PersistentSingleTabManager`.
  *
- * @param settings Configures the created tab manager.
+ * @param settings - Configures the created tab manager.
  */
-export declare function persistentSingleTabManager(
-  settings: PersistentSingleTabManagerSettings | undefined
-): PersistentSingleTabManager;
+export declare function persistentSingleTabManager(settings: PersistentSingleTabManagerSettings | undefined): PersistentSingleTabManager;
 
 /**
  * Type to configure an `PersistentSingleTabManager` instance.
  */
 export declare type PersistentSingleTabManagerSettings = {
-  /**
-   * Whether to force-enable persistent (IndexedDB) cache for the client. This
-   * cannot be used with multi-tab synchronization and is primarily intended for
-   * use with Web Workers. Setting this to `true` will enable IndexedDB, but cause
-   * other tabs using IndexedDB cache to fail.
-   */
-  forceOwnership?: boolean;
+    /**
+     * Whether to force-enable persistent (IndexedDB) cache for the client. This
+     * cannot be used with multi-tab synchronization and is primarily intended for
+     * use with Web Workers. Setting this to `true` will enable IndexedDB, but cause
+     * other tabs using IndexedDB cache to fail.
+     */
+    forceOwnership?: boolean;
 };
 
 /**
  * A union of all available tab managers.
  */
-export declare type PersistentTabManager =
-  | PersistentSingleTabManager
-  | PersistentMultipleTabManager;
+export declare type PersistentTabManager = PersistentSingleTabManager | PersistentMultipleTabManager;
+
+declare type PipelineFlavor = 'exact' | 'augmented' | 'keyless';
+
+declare type PipelineSourceType = 'collection' | 'collection_group' | 'database' | 'documents';
 
 /**
  * Encodes a precondition for a mutation. This follows the model that the
@@ -5706,18 +5459,18 @@ export declare type PersistentTabManager =
  * (meaning no precondition).
  */
 declare class Precondition {
-  readonly updateTime?: SnapshotVersion | undefined;
-  readonly exists?: boolean | undefined;
-  private constructor();
-  /** Creates a new empty Precondition. */
-  static none(): Precondition;
-  /** Creates a new Precondition with an exists flag. */
-  static exists(exists: boolean): Precondition;
-  /** Creates a new Precondition based on a version a document exists at. */
-  static updateTime(version: SnapshotVersion): Precondition;
-  /** Returns whether this Precondition is empty. */
-  get isNone(): boolean;
-  isEqual(other: Precondition): boolean;
+    readonly updateTime?: SnapshotVersion | undefined;
+    readonly exists?: boolean | undefined;
+    private constructor();
+    /** Creates a new empty Precondition. */
+    static none(): Precondition;
+    /** Creates a new Precondition with an exists flag. */
+    static exists(exists: boolean): Precondition;
+    /** Creates a new Precondition based on a version a document exists at. */
+    static updateTime(version: SnapshotVersion): Precondition;
+    /** Returns whether this Precondition is empty. */
+    get isNone(): boolean;
+    isEqual(other: Precondition): boolean;
 }
 
 /**
@@ -5730,66 +5483,58 @@ export declare type Primitive = string | number | boolean | undefined | null;
 
 /* Excluded from this release type: PrivateSettings */
 
+/* Excluded from this release type: Property */
+
+declare interface ProtoSerializable<ProtoType> {
+    _toProto(serializer: JsonProtoSerializer): ProtoType;
+}
+
 declare interface ProviderCredentialsSettings {
-  ['type']: 'provider';
-  ['client']: CredentialsProvider<User>;
+    ['type']: 'provider';
+    ['client']: CredentialsProvider<User>;
 }
 
 /**
  * A `Query` refers to a query which you can read or listen to. You can also
  * construct refined `Query` objects by adding filters and ordering.
  */
-export declare class Query<
-  AppModelType = DocumentData,
-  DbModelType extends DocumentData = DocumentData
-> {
-  /**
-   * If provided, the `FirestoreDataConverter` associated with this instance.
-   */
-  readonly converter: FirestoreDataConverter_2<
-    AppModelType,
-    DbModelType
-  > | null;
-  readonly _query: Query_2;
-  /** The type of this Firestore reference. */
-  readonly type: 'query' | 'collection';
-  /**
-   * The `Firestore` instance for the Firestore database (useful for performing
-   * transactions, etc.).
-   */
-  readonly firestore: Firestore_2;
-  /** @hideconstructor protected */
-  constructor(
-    firestore: Firestore_2,
+export declare class Query<AppModelType = DocumentData, DbModelType extends DocumentData = DocumentData> {
     /**
      * If provided, the `FirestoreDataConverter` associated with this instance.
      */
-    converter: FirestoreDataConverter_2<AppModelType, DbModelType> | null,
-    _query: Query_2
-  );
-  /**
-   * Removes the current converter.
-   *
-   * @param converter - `null` removes the current converter.
-   * @returns A `Query<DocumentData, DocumentData>` that does not use a
-   * converter.
-   */
-  withConverter(converter: null): Query<DocumentData, DocumentData>;
-  /**
-   * Applies a custom data converter to this query, allowing you to use your own
-   * custom model objects with Firestore. When you call {@link getDocs} with
-   * the returned query, the provided converter will convert between Firestore
-   * data of type `NewDbModelType` and your custom type `NewAppModelType`.
-   *
-   * @param converter - Converts objects to and from Firestore.
-   * @returns A `Query` that uses the provided converter.
-   */
-  withConverter<
-    NewAppModelType,
-    NewDbModelType extends DocumentData = DocumentData
-  >(
-    converter: FirestoreDataConverter_2<NewAppModelType, NewDbModelType>
-  ): Query<NewAppModelType, NewDbModelType>;
+    readonly converter: FirestoreDataConverter_2<AppModelType, DbModelType> | null;
+    readonly _query: Query_2;
+    /** The type of this Firestore reference. */
+    readonly type: 'query' | 'collection';
+    /**
+     * The `Firestore` instance for the Firestore database (useful for performing
+     * transactions, etc.).
+     */
+    readonly firestore: Firestore_2;
+    /** @hideconstructor protected */
+    constructor(firestore: Firestore_2, 
+    /**
+     * If provided, the `FirestoreDataConverter` associated with this instance.
+     */
+    converter: FirestoreDataConverter_2<AppModelType, DbModelType> | null, _query: Query_2);
+    /**
+     * Removes the current converter.
+     *
+     * @param converter - `null` removes the current converter.
+     * @returns A `Query<DocumentData, DocumentData>` that does not use a
+     * converter.
+     */
+    withConverter(converter: null): Query<DocumentData, DocumentData>;
+    /**
+     * Applies a custom data converter to this query, allowing you to use your own
+     * custom model objects with Firestore. When you call {@link getDocs} with
+     * the returned query, the provided converter will convert between Firestore
+     * data of type `NewDbModelType` and your custom type `NewAppModelType`.
+     *
+     * @param converter - Converts objects to and from Firestore.
+     * @returns A `Query` that uses the provided converter.
+     */
+    withConverter<NewAppModelType, NewDbModelType extends DocumentData = DocumentData>(converter: FirestoreDataConverter_2<NewAppModelType, NewDbModelType>): Query<NewAppModelType, NewDbModelType>;
 }
 
 /**
@@ -5806,11 +5551,7 @@ export declare class Query<
  * @throws if any of the provided query constraints cannot be combined with the
  * existing or new constraints.
  */
-export declare function query<AppModelType, DbModelType extends DocumentData>(
-  query: Query<AppModelType, DbModelType>,
-  compositeFilter: QueryCompositeFilterConstraint,
-  ...queryConstraints: QueryNonFilterConstraint[]
-): Query<AppModelType, DbModelType>;
+export declare function query<AppModelType, DbModelType extends DocumentData>(query: Query<AppModelType, DbModelType>, compositeFilter: QueryCompositeFilterConstraint, ...queryConstraints: QueryNonFilterConstraint[]): Query<AppModelType, DbModelType>;
 
 /**
  * Creates a new immutable instance of {@link Query} that is extended to also
@@ -5822,10 +5563,7 @@ export declare function query<AppModelType, DbModelType extends DocumentData>(
  * @throws if any of the provided query constraints cannot be combined with the
  * existing or new constraints.
  */
-export declare function query<AppModelType, DbModelType extends DocumentData>(
-  query: Query<AppModelType, DbModelType>,
-  ...queryConstraints: QueryConstraint[]
-): Query<AppModelType, DbModelType>;
+export declare function query<AppModelType, DbModelType extends DocumentData>(query: Query<AppModelType, DbModelType>, ...queryConstraints: QueryConstraint[]): Query<AppModelType, DbModelType>;
 
 /**
  * The Query interface defines all external properties of a query.
@@ -5834,14 +5572,14 @@ export declare function query<AppModelType, DbModelType extends DocumentData>(
  * and `queryToTarget`.
  */
 declare interface Query_2 {
-  readonly path: _ResourcePath;
-  readonly collectionGroup: string | null;
-  readonly explicitOrderBy: OrderBy[];
-  readonly filters: Filter[];
-  readonly limit: number | null;
-  readonly limitType: LimitType;
-  readonly startAt: Bound | null;
-  readonly endAt: Bound | null;
+    readonly path: _ResourcePath;
+    readonly collectionGroup: string | null;
+    readonly explicitOrderBy: OrderBy[];
+    readonly filters: Filter[];
+    readonly limit: number | null;
+    readonly limitType: LimitType;
+    readonly startAt: Bound | null;
+    readonly endAt: Bound | null;
 }
 
 /**
@@ -5853,22 +5591,15 @@ declare interface Query_2 {
  * instance that also contains the `QueryCompositeFilterConstraint`.
  */
 export declare class QueryCompositeFilterConstraint extends AppliableConstraint {
-  /** The type of this query constraint */
-  readonly type: 'or' | 'and';
-  private readonly _queryConstraints;
-  /* Excluded from this release type: __constructor */
-  static _create(
-    type: 'or' | 'and',
-    _queryConstraints: QueryFilterConstraint[]
-  ): QueryCompositeFilterConstraint;
-  _parse<AppModelType, DbModelType extends DocumentData>(
-    query: Query<AppModelType, DbModelType>
-  ): Filter;
-  _apply<AppModelType, DbModelType extends DocumentData>(
-    query: Query<AppModelType, DbModelType>
-  ): Query<AppModelType, DbModelType>;
-  _getQueryConstraints(): readonly AppliableConstraint[];
-  _getOperator(): CompositeOperator;
+    /** The type of this query constraint */
+    readonly type: 'or' | 'and';
+    private readonly _queryConstraints;
+    /* Excluded from this release type: __constructor */
+    static _create(type: 'or' | 'and', _queryConstraints: QueryFilterConstraint[]): QueryCompositeFilterConstraint;
+    _parse<AppModelType, DbModelType extends DocumentData>(query: Query<AppModelType, DbModelType>): Filter;
+    _apply<AppModelType, DbModelType extends DocumentData>(query: Query<AppModelType, DbModelType>): Query<AppModelType, DbModelType>;
+    _getQueryConstraints(): readonly AppliableConstraint[];
+    _getOperator(): CompositeOperator;
 }
 
 /**
@@ -5880,27 +5611,17 @@ export declare class QueryCompositeFilterConstraint extends AppliableConstraint 
  * also contains this `QueryConstraint`.
  */
 export declare abstract class QueryConstraint extends AppliableConstraint {
-  /** The type of this query constraint */
-  abstract readonly type: QueryConstraintType;
-  /**
-   * Takes the provided {@link Query} and returns a copy of the {@link Query} with this
-   * {@link AppliableConstraint} applied.
-   */
-  abstract _apply<AppModelType, DbModelType extends DocumentData>(
-    query: Query<AppModelType, DbModelType>
-  ): Query<AppModelType, DbModelType>;
+    /** The type of this query constraint */
+    abstract readonly type: QueryConstraintType;
+    /**
+     * Takes the provided {@link Query} and returns a copy of the {@link Query} with this
+     * {@link AppliableConstraint} applied.
+     */
+    abstract _apply<AppModelType, DbModelType extends DocumentData>(query: Query<AppModelType, DbModelType>): Query<AppModelType, DbModelType>;
 }
 
 /** Describes the different query constraints available in this SDK. */
-export declare type QueryConstraintType =
-  | 'where'
-  | 'orderBy'
-  | 'limit'
-  | 'limitToLast'
-  | 'startAt'
-  | 'startAfter'
-  | 'endAt'
-  | 'endBefore';
+export declare type QueryConstraintType = 'where' | 'orderBy' | 'limit' | 'limitToLast' | 'startAt' | 'startAfter' | 'endAt' | 'endBefore';
 
 /**
  * @license
@@ -5923,12 +5644,12 @@ export declare type QueryConstraintType =
  * execution.
  */
 declare class QueryContext {
-  /**
-   * Counts the number of documents passed through during local query execution.
-   */
-  private _documentReadCount;
-  get documentReadCount(): number;
-  incrementDocumentReadCount(amount: number): void;
+    /**
+     * Counts the number of documents passed through during local query execution.
+     */
+    private _documentReadCount;
+    get documentReadCount(): number;
+    incrementDocumentReadCount(amount: number): void;
 }
 
 /**
@@ -5942,24 +5663,21 @@ declare class QueryContext {
  * `exists` property will always be true and `data()` will never return
  * 'undefined'.
  */
-export declare class QueryDocumentSnapshot<
-  AppModelType = DocumentData,
-  DbModelType extends DocumentData = DocumentData
-> extends DocumentSnapshot<AppModelType, DbModelType> {
-  /**
-   * Retrieves all fields in the document as an `Object`.
-   *
-   * By default, `serverTimestamp()` values that have not yet been
-   * set to their final value will be returned as `null`. You can override
-   * this by passing an options object.
-   *
-   * @override
-   * @param options - An options object to configure how data is retrieved from
-   * the snapshot (for example the desired behavior for server timestamps that
-   * have not yet been set to their final value).
-   * @returns An `Object` containing all fields in the document.
-   */
-  data(options?: SnapshotOptions): AppModelType;
+export declare class QueryDocumentSnapshot<AppModelType = DocumentData, DbModelType extends DocumentData = DocumentData> extends DocumentSnapshot<AppModelType, DbModelType> {
+    /**
+     * Retrieves all fields in the document as an `Object`.
+     *
+     * By default, `serverTimestamp()` values that have not yet been
+     * set to their final value will be returned as `null`. You can override
+     * this by passing an options object.
+     *
+     * @override
+     * @param options - An options object to configure how data is retrieved from
+     * the snapshot (for example the desired behavior for server timestamps that
+     * have not yet been set to their final value).
+     * @returns An `Object` containing all fields in the document.
+     */
+    data(options?: SnapshotOptions): AppModelType;
 }
 
 /**
@@ -5973,17 +5691,14 @@ export declare class QueryDocumentSnapshot<
  * `exists` property will always be true and `data()` will never return
  * 'undefined'.
  */
-declare class QueryDocumentSnapshot_2<
-  AppModelType = DocumentData,
-  DbModelType extends DocumentData = DocumentData
-> extends DocumentSnapshot_2<AppModelType, DbModelType> {
-  /**
-   * Retrieves all fields in the document as an `Object`.
-   *
-   * @override
-   * @returns An `Object` containing all fields in the document.
-   */
-  data(): AppModelType;
+declare class QueryDocumentSnapshot_2<AppModelType = DocumentData, DbModelType extends DocumentData = DocumentData> extends DocumentSnapshot_2<AppModelType, DbModelType> {
+    /**
+     * Retrieves all fields in the document as an `Object`.
+     *
+     * @override
+     * @returns An `Object` containing all fields in the document.
+     */
+    data(): AppModelType;
 }
 
 /**
@@ -5994,19 +5709,13 @@ declare class QueryDocumentSnapshot_2<
  * query instance that also contains this `QueryEndAtConstraint`.
  */
 export declare class QueryEndAtConstraint extends QueryConstraint {
-  /** The type of this query constraint */
-  readonly type: 'endBefore' | 'endAt';
-  private readonly _docOrFields;
-  private readonly _inclusive;
-  /* Excluded from this release type: __constructor */
-  static _create(
-    type: 'endBefore' | 'endAt',
-    _docOrFields: Array<unknown | DocumentSnapshot_2<unknown>>,
-    _inclusive: boolean
-  ): QueryEndAtConstraint;
-  _apply<AppModelType, DbModelType extends DocumentData>(
-    query: Query<AppModelType, DbModelType>
-  ): Query<AppModelType, DbModelType>;
+    /** The type of this query constraint */
+    readonly type: 'endBefore' | 'endAt';
+    private readonly _docOrFields;
+    private readonly _inclusive;
+    /* Excluded from this release type: __constructor */
+    static _create(type: 'endBefore' | 'endAt', _docOrFields: Array<unknown | DocumentSnapshot_2<unknown>>, _inclusive: boolean): QueryEndAtConstraint;
+    _apply<AppModelType, DbModelType extends DocumentData>(query: Query<AppModelType, DbModelType>): Query<AppModelType, DbModelType>;
 }
 
 /**
@@ -6018,13 +5727,7 @@ export declare class QueryEndAtConstraint extends QueryConstraint {
  * @returns true if the references point to the same location in the same
  * Firestore database.
  */
-export declare function queryEqual<
-  AppModelType,
-  DbModelType extends DocumentData
->(
-  left: Query<AppModelType, DbModelType>,
-  right: Query<AppModelType, DbModelType>
-): boolean;
+export declare function queryEqual<AppModelType, DbModelType extends DocumentData>(left: Query<AppModelType, DbModelType>, right: Query<AppModelType, DbModelType>): boolean;
 
 /**
  * A `QueryFieldFilterConstraint` is used to narrow the set of documents returned by
@@ -6034,32 +5737,22 @@ export declare function queryEqual<
  * this `QueryFieldFilterConstraint`.
  */
 export declare class QueryFieldFilterConstraint extends QueryConstraint {
-  private readonly _field;
-  private _op;
-  private _value;
-  /** The type of this query constraint */
-  readonly type = 'where';
-  /* Excluded from this release type: __constructor */
-  static _create(
-    _field: _FieldPath,
-    _op: Operator,
-    _value: unknown
-  ): QueryFieldFilterConstraint;
-  _apply<AppModelType, DbModelType extends DocumentData>(
-    query: Query<AppModelType, DbModelType>
-  ): Query<AppModelType, DbModelType>;
-  _parse<AppModelType, DbModelType extends DocumentData>(
-    query: Query<AppModelType, DbModelType>
-  ): FieldFilter;
+    private readonly _field;
+    private _op;
+    private _value;
+    /** The type of this query constraint */
+    readonly type = "where";
+    /* Excluded from this release type: __constructor */
+    static _create(_field: _FieldPath, _op: Operator, _value: unknown): QueryFieldFilterConstraint;
+    _apply<AppModelType, DbModelType extends DocumentData>(query: Query<AppModelType, DbModelType>): Query<AppModelType, DbModelType>;
+    _parse<AppModelType, DbModelType extends DocumentData>(query: Query<AppModelType, DbModelType>): FieldFilter;
 }
 
 /**
  * `QueryFilterConstraint` is a helper union type that represents
  * {@link QueryFieldFilterConstraint} and {@link QueryCompositeFilterConstraint}.
  */
-export declare type QueryFilterConstraint =
-  | QueryFieldFilterConstraint
-  | QueryCompositeFilterConstraint;
+export declare type QueryFilterConstraint = QueryFieldFilterConstraint | QueryCompositeFilterConstraint;
 
 /**
  * A `QueryLimitConstraint` is used to limit the number of documents returned by
@@ -6069,19 +5762,13 @@ export declare type QueryFilterConstraint =
  * query instance that also contains this `QueryLimitConstraint`.
  */
 export declare class QueryLimitConstraint extends QueryConstraint {
-  /** The type of this query constraint */
-  readonly type: 'limit' | 'limitToLast';
-  private readonly _limit;
-  private readonly _limitType;
-  /* Excluded from this release type: __constructor */
-  static _create(
-    type: 'limit' | 'limitToLast',
-    _limit: number,
-    _limitType: LimitType
-  ): QueryLimitConstraint;
-  _apply<AppModelType, DbModelType extends DocumentData>(
-    query: Query<AppModelType, DbModelType>
-  ): Query<AppModelType, DbModelType>;
+    /** The type of this query constraint */
+    readonly type: 'limit' | 'limitToLast';
+    private readonly _limit;
+    private readonly _limitType;
+    /* Excluded from this release type: __constructor */
+    static _create(type: 'limit' | 'limitToLast', _limit: number, _limitType: LimitType): QueryLimitConstraint;
+    _apply<AppModelType, DbModelType extends DocumentData>(query: Query<AppModelType, DbModelType>): Query<AppModelType, DbModelType>;
 }
 
 /**
@@ -6093,11 +5780,7 @@ export declare class QueryLimitConstraint extends QueryConstraint {
  * {@link limit} or {@link limitToLast} and can then be passed to {@link (query:1)}
  * to create a new query instance that also contains the `QueryConstraint`.
  */
-export declare type QueryNonFilterConstraint =
-  | QueryOrderByConstraint
-  | QueryLimitConstraint
-  | QueryStartAtConstraint
-  | QueryEndAtConstraint;
+export declare type QueryNonFilterConstraint = QueryOrderByConstraint | QueryLimitConstraint | QueryStartAtConstraint | QueryEndAtConstraint;
 
 /**
  * A `QueryOrderByConstraint` is used to sort the set of documents returned by a
@@ -6109,19 +5792,16 @@ export declare type QueryNonFilterConstraint =
  * the query result.
  */
 export declare class QueryOrderByConstraint extends QueryConstraint {
-  private readonly _field;
-  private _direction;
-  /** The type of this query constraint */
-  readonly type = 'orderBy';
-  /* Excluded from this release type: __constructor */
-  static _create(
-    _field: _FieldPath,
-    _direction: Direction
-  ): QueryOrderByConstraint;
-  _apply<AppModelType, DbModelType extends DocumentData>(
-    query: Query<AppModelType, DbModelType>
-  ): Query<AppModelType, DbModelType>;
+    private readonly _field;
+    private _direction;
+    /** The type of this query constraint */
+    readonly type = "orderBy";
+    /* Excluded from this release type: __constructor */
+    static _create(_field: _FieldPath, _direction: Direction): QueryOrderByConstraint;
+    _apply<AppModelType, DbModelType extends DocumentData>(query: Query<AppModelType, DbModelType>): Query<AppModelType, DbModelType>;
 }
+
+declare type QueryOrPipeline = Query_2 | CorePipeline;
 
 /**
  * A `QuerySnapshot` contains zero or more `DocumentSnapshot` objects
@@ -6130,64 +5810,86 @@ export declare class QueryOrderByConstraint extends QueryConstraint {
  * number of documents can be determined via the `empty` and `size`
  * properties.
  */
-export declare class QuerySnapshot<
-  AppModelType = DocumentData,
-  DbModelType extends DocumentData = DocumentData
-> {
-  readonly _firestore: Firestore;
-  readonly _userDataWriter: AbstractUserDataWriter;
-  readonly _snapshot: ViewSnapshot;
-  /**
-   * Metadata about this snapshot, concerning its source and if it has local
-   * modifications.
-   */
-  readonly metadata: SnapshotMetadata;
-  /**
-   * The query on which you called `get` or `onSnapshot` in order to get this
-   * `QuerySnapshot`.
-   */
-  readonly query: Query<AppModelType, DbModelType>;
-  private _cachedChanges?;
-  private _cachedChangesIncludeMetadataChanges?;
-  /** @hideconstructor */
-  constructor(
-    _firestore: Firestore,
-    _userDataWriter: AbstractUserDataWriter,
-    query: Query<AppModelType, DbModelType>,
-    _snapshot: ViewSnapshot
-  );
-  /** An array of all the documents in the `QuerySnapshot`. */
-  get docs(): Array<QueryDocumentSnapshot<AppModelType, DbModelType>>;
-  /** The number of documents in the `QuerySnapshot`. */
-  get size(): number;
-  /** True if there are no documents in the `QuerySnapshot`. */
-  get empty(): boolean;
-  /**
-   * Enumerates all of the documents in the `QuerySnapshot`.
-   *
-   * @param callback - A callback to be called with a `QueryDocumentSnapshot` for
-   * each document in the snapshot.
-   * @param thisArg - The `this` binding for the callback.
-   */
-  forEach(
-    callback: (
-      result: QueryDocumentSnapshot<AppModelType, DbModelType>
-    ) => void,
-    thisArg?: unknown
-  ): void;
-  /**
-   * Returns an array of the documents changes since the last snapshot. If this
-   * is the first snapshot, all documents will be in the list as 'added'
-   * changes.
-   *
-   * @param options - `SnapshotListenOptions` that control whether metadata-only
-   * changes (i.e. only `DocumentSnapshot.metadata` changed) should trigger
-   * snapshot events.
-   */
-  docChanges(
-    options?: SnapshotListenOptions
-  ): Array<DocumentChange<AppModelType, DbModelType>>;
+export declare class QuerySnapshot<AppModelType = DocumentData, DbModelType extends DocumentData = DocumentData> {
+    readonly _firestore: Firestore;
+    readonly _userDataWriter: AbstractUserDataWriter;
+    readonly _snapshot: ViewSnapshot;
+    /**
+     * Metadata about this snapshot, concerning its source and if it has local
+     * modifications.
+     */
+    readonly metadata: SnapshotMetadata;
+    /**
+     * The query on which you called `get` or `onSnapshot` in order to get this
+     * `QuerySnapshot`.
+     */
+    readonly query: Query<AppModelType, DbModelType>;
+    private _cachedChanges?;
+    private _cachedChangesIncludeMetadataChanges?;
+    /** @hideconstructor */
+    constructor(_firestore: Firestore, _userDataWriter: AbstractUserDataWriter, query: Query<AppModelType, DbModelType>, _snapshot: ViewSnapshot);
+    /** An array of all the documents in the `QuerySnapshot`. */
+    get docs(): Array<QueryDocumentSnapshot<AppModelType, DbModelType>>;
+    /** The number of documents in the `QuerySnapshot`. */
+    get size(): number;
+    /** True if there are no documents in the `QuerySnapshot`. */
+    get empty(): boolean;
+    /**
+     * Enumerates all of the documents in the `QuerySnapshot`.
+     *
+     * @param callback - A callback to be called with a `QueryDocumentSnapshot` for
+     * each document in the snapshot.
+     * @param thisArg - The `this` binding for the callback.
+     */
+    forEach(callback: (result: QueryDocumentSnapshot<AppModelType, DbModelType>) => void, thisArg?: unknown): void;
+    /**
+     * Returns an array of the documents changes since the last snapshot. If this
+     * is the first snapshot, all documents will be in the list as 'added'
+     * changes.
+     *
+     * @param options - `SnapshotListenOptions` that control whether metadata-only
+     * changes (i.e. only `DocumentSnapshot.metadata` changed) should trigger
+     * snapshot events.
+     */
+    docChanges(options?: SnapshotListenOptions): Array<DocumentChange<AppModelType, DbModelType>>;
+    static _jsonSchemaVersion: string;
+    static _jsonSchema: {
+        type: Property<"string">;
+        bundleSource: Property<"string">;
+        bundleName: Property<"string">;
+        bundle: Property<"string">;
+    };
+    /**
+     * Returns a JSON-serializable representation of this `QuerySnapshot` instance.
+     *
+     * @returns a JSON representation of this object. Throws a {@link FirestoreError} if this
+     * `QuerySnapshot` has pending writes.
+     */
+    toJSON(): object;
 }
+
+/**
+ * Builds a `QuerySnapshot` instance from a JSON object created by
+ * {@link QuerySnapshot.toJSON}.
+ *
+ * @param firestore - The {@link Firestore} instance the snapshot should be loaded for.
+ * @param json - a JSON object represention of a `QuerySnapshot` instance.
+ * @returns an instance of {@link QuerySnapshot} if the JSON object could be
+ * parsed. Throws a {@link FirestoreError} if an error occurs.
+ */
+export declare function querySnapshotFromJSON(db: Firestore, json: object): QuerySnapshot;
+
+/**
+ * Builds a `QuerySnapshot` instance from a JSON object created by
+ * {@link QuerySnapshot.toJSON}.
+ *
+ * @param firestore - The {@link Firestore} instance the snapshot should be loaded for.
+ * @param json - a JSON object represention of a `QuerySnapshot` instance.
+ * @param converter - Converts objects to and from Firestore.
+ * @returns an instance of {@link QuerySnapshot} if the JSON object could be
+ * parsed. Throws a {@link FirestoreError} if an error occurs.
+ */
+export declare function querySnapshotFromJSON<AppModelType, DbModelType extends DocumentData = DocumentData>(db: Firestore, json: object, converter: FirestoreDataConverter<AppModelType, DbModelType>): QuerySnapshot<AppModelType, DbModelType>;
 
 /**
  * A `QueryStartAtConstraint` is used to exclude documents from the start of a
@@ -6197,19 +5899,13 @@ export declare class QuerySnapshot<
  * new query instance that also contains this `QueryStartAtConstraint`.
  */
 export declare class QueryStartAtConstraint extends QueryConstraint {
-  /** The type of this query constraint */
-  readonly type: 'startAt' | 'startAfter';
-  private readonly _docOrFields;
-  private readonly _inclusive;
-  /* Excluded from this release type: __constructor */
-  static _create(
-    type: 'startAt' | 'startAfter',
-    _docOrFields: Array<unknown | DocumentSnapshot_2<unknown>>,
-    _inclusive: boolean
-  ): QueryStartAtConstraint;
-  _apply<AppModelType, DbModelType extends DocumentData>(
-    query: Query<AppModelType, DbModelType>
-  ): Query<AppModelType, DbModelType>;
+    /** The type of this query constraint */
+    readonly type: 'startAt' | 'startAfter';
+    private readonly _docOrFields;
+    private readonly _inclusive;
+    /* Excluded from this release type: __constructor */
+    static _create(type: 'startAt' | 'startAfter', _docOrFields: Array<unknown | DocumentSnapshot_2<unknown>>, _inclusive: boolean): QueryStartAtConstraint;
+    _apply<AppModelType, DbModelType extends DocumentData>(query: Query<AppModelType, DbModelType>): Query<AppModelType, DbModelType>;
 }
 
 /** The different states of a watch target. */
@@ -6223,17 +5919,7 @@ declare type QueryTargetState = 'not-current' | 'current' | 'rejected';
  * @returns true if the references point to the same location in the same
  * Firestore database.
  */
-export declare function refEqual<
-  AppModelType,
-  DbModelType extends DocumentData
->(
-  left:
-    | DocumentReference<AppModelType, DbModelType>
-    | CollectionReference<AppModelType, DbModelType>,
-  right:
-    | DocumentReference<AppModelType, DbModelType>
-    | CollectionReference<AppModelType, DbModelType>
-): boolean;
+export declare function refEqual<AppModelType, DbModelType extends DocumentData>(left: DocumentReference<AppModelType, DbModelType> | CollectionReference<AppModelType, DbModelType>, right: DocumentReference<AppModelType, DbModelType> | CollectionReference<AppModelType, DbModelType>): boolean;
 
 /**
  * A ReferenceDelegate instance handles all of the hooks into the document-reference lifecycle. This
@@ -6249,44 +5935,25 @@ export declare function refEqual<
  * generate sequence numbers (getCurrentSequenceNumber()).
  */
 declare interface ReferenceDelegate {
-  /** Notify the delegate that the given document was added to a target. */
-  addReference(
-    txn: PersistenceTransaction,
-    targetId: TargetId,
-    doc: _DocumentKey
-  ): PersistencePromise<void>;
-  /** Notify the delegate that the given document was removed from a target. */
-  removeReference(
-    txn: PersistenceTransaction,
-    targetId: TargetId,
-    doc: _DocumentKey
-  ): PersistencePromise<void>;
-  /**
-   * Notify the delegate that a target was removed. The delegate may, but is not obligated to,
-   * actually delete the target and associated data.
-   */
-  removeTarget(
-    txn: PersistenceTransaction,
-    targetData: TargetData
-  ): PersistencePromise<void>;
-  /**
-   * Notify the delegate that a document may no longer be part of any views or
-   * have any mutations associated.
-   */
-  markPotentiallyOrphaned(
-    txn: PersistenceTransaction,
-    doc: _DocumentKey
-  ): PersistencePromise<void>;
-  /** Notify the delegate that a limbo document was updated. */
-  updateLimboDocument(
-    txn: PersistenceTransaction,
-    doc: _DocumentKey
-  ): PersistencePromise<void>;
+    /** Notify the delegate that the given document was added to a target. */
+    addReference(txn: PersistenceTransaction, targetId: TargetId, doc: _DocumentKey): PersistencePromise<void>;
+    /** Notify the delegate that the given document was removed from a target. */
+    removeReference(txn: PersistenceTransaction, targetId: TargetId, doc: _DocumentKey): PersistencePromise<void>;
+    /**
+     * Notify the delegate that a target was removed. The delegate may, but is not obligated to,
+     * actually delete the target and associated data.
+     */
+    removeTarget(txn: PersistenceTransaction, targetData: TargetData): PersistencePromise<void>;
+    /**
+     * Notify the delegate that a document may no longer be part of any views or
+     * have any mutations associated.
+     */
+    markPotentiallyOrphaned(txn: PersistenceTransaction, doc: _DocumentKey): PersistencePromise<void>;
+    /** Notify the delegate that a limbo document was updated. */
+    updateLimboDocument(txn: PersistenceTransaction, doc: _DocumentKey): PersistencePromise<void>;
 }
 
-declare type RejectedHandler<R> =
-  | ((reason: Error) => R | PersistencePromise<R>)
-  | null;
+declare type RejectedHandler<R> = ((reason: Error) => R | PersistencePromise<R>) | null;
 
 declare type Rejector = (error: Error) => void;
 
@@ -6298,79 +5965,63 @@ declare type Rejector = (error: Error) => void;
  * documents that are known to not exist.
  */
 declare interface RemoteDocumentCache {
-  /** Sets the index manager to use for managing the collectionGroup index. */
-  setIndexManager(indexManager: IndexManager): void;
-  /**
-   * Looks up an entry in the cache.
-   *
-   * @param documentKey - The key of the entry to look up.*
-   * @returns The cached document entry. Returns an invalid document if the
-   * document is not cached.
-   */
-  getEntry(
-    transaction: PersistenceTransaction,
-    documentKey: _DocumentKey
-  ): PersistencePromise<MutableDocument>;
-  /**
-   * Looks up a set of entries in the cache.
-   *
-   * @param documentKeys - The keys of the entries to look up.
-   * @returns The cached document entries indexed by key. If an entry is not
-   * cached, the corresponding key will be mapped to an invalid document.
-   */
-  getEntries(
-    transaction: PersistenceTransaction,
-    documentKeys: DocumentKeySet
-  ): PersistencePromise<MutableDocumentMap>;
-  /**
-   * Returns the documents matching the given query
-   *
-   * @param query - The query to match documents against.
-   * @param offset - The offset to start the scan at (exclusive).
-   * @param context - A optional tracker to keep a record of important details
-   *   during database local query execution.
-   * @returns The set of matching documents.
-   */
-  getDocumentsMatchingQuery(
-    transaction: PersistenceTransaction,
-    query: Query_2,
-    offset: IndexOffset,
-    mutatedDocs: OverlayMap,
-    context?: QueryContext
-  ): PersistencePromise<MutableDocumentMap>;
-  /**
-   * Looks up the next `limit` documents for a collection group based on the
-   * provided offset. The ordering is based on the document's read time and key.
-   *
-   * @param collectionGroup - The collection group to scan.
-   * @param offset - The offset to start the scan at (exclusive).
-   * @param limit - The maximum number of results to return.
-   * @returns The set of matching documents.
-   */
-  getAllFromCollectionGroup(
-    transaction: PersistenceTransaction,
-    collectionGroup: string,
-    offset: IndexOffset,
-    limit: number
-  ): PersistencePromise<MutableDocumentMap>;
-  /**
-   * Provides access to add or update the contents of the cache. The buffer
-   * handles proper size accounting for the change.
-   *
-   * Multi-Tab Note: This should only be called by the primary client.
-   *
-   * @param options - Specify `trackRemovals` to create sentinel entries for
-   * removed documents, which allows removals to be tracked by
-   * `getNewDocumentChanges()`.
-   */
-  newChangeBuffer(options?: {
-    trackRemovals: boolean;
-  }): RemoteDocumentChangeBuffer;
-  /**
-   * Get an estimate of the size of the document cache. Note that for eager
-   * garbage collection, we don't track sizes so this will return 0.
-   */
-  getSize(transaction: PersistenceTransaction): PersistencePromise<number>;
+    /** Sets the index manager to use for managing the collectionGroup index. */
+    setIndexManager(indexManager: IndexManager): void;
+    /**
+     * Looks up an entry in the cache.
+     *
+     * @param documentKey - The key of the entry to look up.*
+     * @returns The cached document entry. Returns an invalid document if the
+     * document is not cached.
+     */
+    getEntry(transaction: PersistenceTransaction, documentKey: _DocumentKey): PersistencePromise<MutableDocument>;
+    /**
+     * Looks up a set of entries in the cache.
+     *
+     * @param documentKeys - The keys of the entries to look up.
+     * @returns The cached document entries indexed by key. If an entry is not
+     * cached, the corresponding key will be mapped to an invalid document.
+     */
+    getEntries(transaction: PersistenceTransaction, documentKeys: DocumentKeySet): PersistencePromise<MutableDocumentMap>;
+    getAllEntries(transaction: PersistenceTransaction): PersistencePromise<MutableDocumentMap>;
+    /**
+     * Returns the documents matching the given query
+     *
+     * @param query - The query to match documents against.
+     * @param offset - The offset to start the scan at (exclusive).
+     * @param context - A optional tracker to keep a record of important details
+     *   during database local query execution.
+     * @returns The set of matching documents.
+     */
+    getDocumentsMatchingQuery(transaction: PersistenceTransaction, query: QueryOrPipeline, offset: IndexOffset, mutatedDocs: OverlayMap, context?: QueryContext): PersistencePromise<MutableDocumentMap>;
+    /**
+     * Looks up the next `limit` documents for a collection group based on the
+     * provided offset. The ordering is based on the document's read time and key.
+     *
+     * @param collectionGroup - The collection group to scan.
+     * @param offset - The offset to start the scan at (exclusive).
+     * @param limit - The maximum number of results to return.
+     * @returns The set of matching documents.
+     */
+    getAllFromCollectionGroup(transaction: PersistenceTransaction, collectionGroup: string, offset: IndexOffset, limit: number): PersistencePromise<MutableDocumentMap>;
+    /**
+     * Provides access to add or update the contents of the cache. The buffer
+     * handles proper size accounting for the change.
+     *
+     * Multi-Tab Note: This should only be called by the primary client.
+     *
+     * @param options - Specify `trackRemovals` to create sentinel entries for
+     * removed documents, which allows removals to be tracked by
+     * `getNewDocumentChanges()`.
+     */
+    newChangeBuffer(options?: {
+        trackRemovals: boolean;
+    }): RemoteDocumentChangeBuffer;
+    /**
+     * Get an estimate of the size of the document cache. Note that for eager
+     * garbage collection, we don't track sizes so this will return 0.
+     */
+    getSize(transaction: PersistenceTransaction): PersistencePromise<number>;
 }
 
 /**
@@ -6388,69 +6039,55 @@ declare interface RemoteDocumentCache {
  * porting this class as part of that implementation work.
  */
 declare abstract class RemoteDocumentChangeBuffer {
-  protected changes: ObjectMap<_DocumentKey, MutableDocument>;
-  private changesApplied;
-  protected abstract getFromCache(
-    transaction: PersistenceTransaction,
-    documentKey: _DocumentKey
-  ): PersistencePromise<MutableDocument>;
-  protected abstract getAllFromCache(
-    transaction: PersistenceTransaction,
-    documentKeys: DocumentKeySet
-  ): PersistencePromise<MutableDocumentMap>;
-  protected abstract applyChanges(
-    transaction: PersistenceTransaction
-  ): PersistencePromise<void>;
-  /**
-   * Buffers a `RemoteDocumentCache.addEntry()` call.
-   *
-   * You can only modify documents that have already been retrieved via
-   * `getEntry()/getEntries()` (enforced via IndexedDbs `apply()`).
-   */
-  addEntry(document: MutableDocument): void;
-  /**
-   * Buffers a `RemoteDocumentCache.removeEntry()` call.
-   *
-   * You can only remove documents that have already been retrieved via
-   * `getEntry()/getEntries()` (enforced via IndexedDbs `apply()`).
-   */
-  removeEntry(key: _DocumentKey, readTime: SnapshotVersion): void;
-  /**
-   * Looks up an entry in the cache. The buffered changes will first be checked,
-   * and if no buffered change applies, this will forward to
-   * `RemoteDocumentCache.getEntry()`.
-   *
-   * @param transaction - The transaction in which to perform any persistence
-   *     operations.
-   * @param documentKey - The key of the entry to look up.
-   * @returns The cached document or an invalid document if we have nothing
-   * cached.
-   */
-  getEntry(
-    transaction: PersistenceTransaction,
-    documentKey: _DocumentKey
-  ): PersistencePromise<MutableDocument>;
-  /**
-   * Looks up several entries in the cache, forwarding to
-   * `RemoteDocumentCache.getEntry()`.
-   *
-   * @param transaction - The transaction in which to perform any persistence
-   *     operations.
-   * @param documentKeys - The keys of the entries to look up.
-   * @returns A map of cached documents, indexed by key. If an entry cannot be
-   *     found, the corresponding key will be mapped to an invalid document.
-   */
-  getEntries(
-    transaction: PersistenceTransaction,
-    documentKeys: DocumentKeySet
-  ): PersistencePromise<MutableDocumentMap>;
-  /**
-   * Applies buffered changes to the underlying RemoteDocumentCache, using
-   * the provided transaction.
-   */
-  apply(transaction: PersistenceTransaction): PersistencePromise<void>;
-  /** Helper to assert this.changes is not null  */
-  protected assertNotApplied(): void;
+    protected changes: ObjectMap<_DocumentKey, MutableDocument>;
+    private changesApplied;
+    protected abstract getFromCache(transaction: PersistenceTransaction, documentKey: _DocumentKey): PersistencePromise<MutableDocument>;
+    protected abstract getAllFromCache(transaction: PersistenceTransaction, documentKeys: DocumentKeySet): PersistencePromise<MutableDocumentMap>;
+    protected abstract applyChanges(transaction: PersistenceTransaction): PersistencePromise<void>;
+    /**
+     * Buffers a `RemoteDocumentCache.addEntry()` call.
+     *
+     * You can only modify documents that have already been retrieved via
+     * `getEntry()/getEntries()` (enforced via IndexedDbs `apply()`).
+     */
+    addEntry(document: MutableDocument): void;
+    /**
+     * Buffers a `RemoteDocumentCache.removeEntry()` call.
+     *
+     * You can only remove documents that have already been retrieved via
+     * `getEntry()/getEntries()` (enforced via IndexedDbs `apply()`).
+     */
+    removeEntry(key: _DocumentKey, readTime: SnapshotVersion): void;
+    /**
+     * Looks up an entry in the cache. The buffered changes will first be checked,
+     * and if no buffered change applies, this will forward to
+     * `RemoteDocumentCache.getEntry()`.
+     *
+     * @param transaction - The transaction in which to perform any persistence
+     *     operations.
+     * @param documentKey - The key of the entry to look up.
+     * @returns The cached document or an invalid document if we have nothing
+     * cached.
+     */
+    getEntry(transaction: PersistenceTransaction, documentKey: _DocumentKey): PersistencePromise<MutableDocument>;
+    /**
+     * Looks up several entries in the cache, forwarding to
+     * `RemoteDocumentCache.getEntry()`.
+     *
+     * @param transaction - The transaction in which to perform any persistence
+     *     operations.
+     * @param documentKeys - The keys of the entries to look up.
+     * @returns A map of cached documents, indexed by key. If an entry cannot be
+     *     found, the corresponding key will be mapped to an invalid document.
+     */
+    getEntries(transaction: PersistenceTransaction, documentKeys: DocumentKeySet): PersistencePromise<MutableDocumentMap>;
+    /**
+     * Applies buffered changes to the underlying RemoteDocumentCache, using
+     * the provided transaction.
+     */
+    apply(transaction: PersistenceTransaction): PersistencePromise<void>;
+    /** Helper to assert this.changes is not null  */
+    protected assertNotApplied(): void;
 }
 
 /**
@@ -6458,66 +6095,71 @@ declare abstract class RemoteDocumentChangeBuffer {
  * state or the set of documents in our watched targets) and documentUpdates
  * (changes to the actual documents).
  */
-declare class RemoteEvent {
-  /**
-   * The snapshot version this event brings us up to, or MIN if not set.
-   */
-  readonly snapshotVersion: SnapshotVersion;
-  /**
-   * A map from target to changes to the target. See TargetChange.
-   */
-  readonly targetChanges: Map<TargetId, TargetChange>;
-  /**
-   * A map of targets that is known to be inconsistent, and the purpose for
-   * re-listening. Listens for these targets should be re-established without
-   * resume tokens.
-   */
-  readonly targetMismatches: SortedMap<TargetId, TargetPurpose>;
-  /**
-   * A set of which documents have changed or been deleted, along with the
-   * doc's new values (if not deleted).
-   */
-  readonly documentUpdates: MutableDocumentMap;
-  /**
-   * A set of which document updates are due only to limbo resolution targets.
-   */
-  readonly resolvedLimboDocuments: DocumentKeySet;
-  constructor(
+declare class RemoteEvent<T extends TargetId | RemoteTargetId = TargetId> {
     /**
      * The snapshot version this event brings us up to, or MIN if not set.
      */
-    snapshotVersion: SnapshotVersion,
+    readonly snapshotVersion: SnapshotVersion;
     /**
      * A map from target to changes to the target. See TargetChange.
      */
-    targetChanges: Map<TargetId, TargetChange>,
+    readonly targetChanges: Map<T, TargetChange>;
     /**
      * A map of targets that is known to be inconsistent, and the purpose for
      * re-listening. Listens for these targets should be re-established without
      * resume tokens.
      */
-    targetMismatches: SortedMap<TargetId, TargetPurpose>,
+    readonly targetMismatches: SortedMap<T, TargetPurpose>;
     /**
      * A set of which documents have changed or been deleted, along with the
      * doc's new values (if not deleted).
      */
-    documentUpdates: MutableDocumentMap,
+    readonly documentUpdates: MutableDocumentMap;
+    /**
+     * A set of which augmented documents (pipeline) have changed or been deleted, along with the
+     * doc's new values (if not deleted).
+     */
+    readonly augmentedDocumentUpdates: MutableDocumentMap;
     /**
      * A set of which document updates are due only to limbo resolution targets.
      */
-    resolvedLimboDocuments: DocumentKeySet
-  );
-  /**
-   * HACK: Views require RemoteEvents in order to determine whether the view is
-   * CURRENT, but secondary tabs don't receive remote events. So this method is
-   * used to create a synthesized RemoteEvent that can be used to apply a
-   * CURRENT status change to a View, for queries executed in a different tab.
-   */
-  static createSynthesizedRemoteEventForCurrentChange(
-    targetId: TargetId,
-    current: boolean,
-    resumeToken: _ByteString
-  ): RemoteEvent;
+    readonly resolvedLimboDocuments: DocumentKeySet;
+    constructor(
+    /**
+     * The snapshot version this event brings us up to, or MIN if not set.
+     */
+    snapshotVersion: SnapshotVersion, 
+    /**
+     * A map from target to changes to the target. See TargetChange.
+     */
+    targetChanges: Map<T, TargetChange>, 
+    /**
+     * A map of targets that is known to be inconsistent, and the purpose for
+     * re-listening. Listens for these targets should be re-established without
+     * resume tokens.
+     */
+    targetMismatches: SortedMap<T, TargetPurpose>, 
+    /**
+     * A set of which documents have changed or been deleted, along with the
+     * doc's new values (if not deleted).
+     */
+    documentUpdates: MutableDocumentMap, 
+    /**
+     * A set of which augmented documents (pipeline) have changed or been deleted, along with the
+     * doc's new values (if not deleted).
+     */
+    augmentedDocumentUpdates: MutableDocumentMap, 
+    /**
+     * A set of which document updates are due only to limbo resolution targets.
+     */
+    resolvedLimboDocuments: DocumentKeySet);
+    /**
+     * HACK: Views require RemoteEvents in order to determine whether the view is
+     * CURRENT, but secondary tabs don't receive remote events. So this method is
+     * used to create a synthesized RemoteEvent that can be used to apply a
+     * CURRENT status change to a View, for queries executed in a different tab.
+     */
+    static createSynthesizedRemoteEventForCurrentChange(targetId: TargetId, current: boolean, resumeToken: _ByteString): RemoteEvent<TargetId>;
 }
 
 /**
@@ -6540,11 +6182,11 @@ declare class RemoteEvent {
  * - acking mutations to the SyncEngine once they are accepted or rejected.
  */
 declare interface RemoteStore {
-  /**
-   * SyncEngine to notify of watch and write events. This must be set
-   * immediately after construction.
-   */
-  remoteSyncer: RemoteSyncer;
+    /**
+     * SyncEngine to notify of watch and write events. This must be set
+     * immediately after construction.
+     */
+    remoteSyncer: RemoteSyncer;
 }
 
 /**
@@ -6552,47 +6194,55 @@ declare interface RemoteStore {
  * a cooperating synchronization engine.
  */
 declare interface RemoteSyncer {
-  /**
-   * Applies one remote event to the sync engine, notifying any views of the
-   * changes, and releasing any pending mutation batches that would become
-   * visible because of the snapshot version the remote event contains.
-   */
-  applyRemoteEvent?(remoteEvent: RemoteEvent): Promise<void>;
-  /**
-   * Rejects the listen for the given targetID. This can be triggered by the
-   * backend for any active target.
-   *
-   * @param targetId - The targetID corresponds to one previously initiated by
-   * the user as part of TargetData passed to listen() on RemoteStore.
-   * @param error - A description of the condition that has forced the rejection.
-   * Nearly always this will be an indication that the user is no longer
-   * authorized to see the data matching the target.
-   */
-  rejectListen?(targetId: TargetId, error: FirestoreError): Promise<void>;
-  /**
-   * Applies the result of a successful write of a mutation batch to the sync
-   * engine, emitting snapshots in any views that the mutation applies to, and
-   * removing the batch from the mutation queue.
-   */
-  applySuccessfulWrite?(result: MutationBatchResult): Promise<void>;
-  /**
-   * Rejects the batch, removing the batch from the mutation queue, recomputing
-   * the local view of any documents affected by the batch and then, emitting
-   * snapshots with the reverted value.
-   */
-  rejectFailedWrite?(batchId: BatchId, error: FirestoreError): Promise<void>;
-  /**
-   * Returns the set of remote document keys for the given target ID. This list
-   * includes the documents that were assigned to the target when we received
-   * the last snapshot.
-   */
-  getRemoteKeysForTarget?(targetId: TargetId): DocumentKeySet;
-  /**
-   * Updates all local state to match the pending mutations for the given user.
-   * May be called repeatedly for the same user.
-   */
-  handleCredentialChange?(user: User): Promise<void>;
+    /**
+     * Applies one remote event to the sync engine, notifying any views of the
+     * changes, and releasing any pending mutation batches that would become
+     * visible because of the snapshot version the remote event contains.
+     */
+    applyRemoteEvent?(remoteEvent: RemoteEvent): Promise<void>;
+    /**
+     * Rejects the listen for the given targetID. This can be triggered by the
+     * backend for any active target.
+     *
+     * @param targetId - The targetID corresponds to one previously initiated by
+     * the user as part of TargetData passed to listen() on RemoteStore.
+     * @param error - A description of the condition that has forced the rejection.
+     * Nearly always this will be an indication that the user is no longer
+     * authorized to see the data matching the target.
+     */
+    rejectListen?(targetId: TargetId, error: FirestoreError): Promise<void>;
+    /**
+     * Applies the result of a successful write of a mutation batch to the sync
+     * engine, emitting snapshots in any views that the mutation applies to, and
+     * removing the batch from the mutation queue.
+     */
+    applySuccessfulWrite?(result: MutationBatchResult): Promise<void>;
+    /**
+     * Rejects the batch, removing the batch from the mutation queue, recomputing
+     * the local view of any documents affected by the batch and then, emitting
+     * snapshots with the reverted value.
+     */
+    rejectFailedWrite?(batchId: BatchId, error: FirestoreError): Promise<void>;
+    /**
+     * Returns the set of remote document keys for the given target ID. This list
+     * includes the documents that were assigned to the target when we received
+     * the last snapshot.
+     */
+    getRemoteKeysForTarget?(targetId: TargetId): DocumentKeySet;
+    /**
+     * Updates all local state to match the pending mutations for the given user.
+     * May be called repeatedly for the same user.
+     */
+    handleCredentialChange?(user: User): Promise<void>;
 }
+
+/**
+ * A locally-assigned ID used to refer to a target being watched via the
+ * Watch service.
+ */
+declare type RemoteTargetId = number & {
+    readonly __brand?: 'remote';
+};
 
 declare type Resolver<T> = (value?: T) => void;
 
@@ -6617,24 +6267,20 @@ declare type Resolver<T> = (value?: T) => void;
  * `updateFunction `is returned here. Otherwise, if the transaction failed, a
  * rejected promise with the corresponding failure error is returned.
  */
-export declare function runTransaction<T>(
-  firestore: Firestore,
-  updateFunction: (transaction: Transaction) => Promise<T>,
-  options?: TransactionOptions
-): Promise<T>;
+export declare function runTransaction<T>(firestore: Firestore, updateFunction: (transaction: Transaction) => Promise<T>, options?: TransactionOptions): Promise<T>;
 
 /**
  * Interface to schedule periodic tasks within SDK.
  */
 declare interface Scheduler {
-  readonly started: boolean;
-  start(): void;
-  stop(): void;
+    readonly started: boolean;
+    start(): void;
+    stop(): void;
 }
 
 /** Base interface for the Serializer implementation. */
 declare interface Serializer {
-  readonly useProto3Json: boolean;
+    readonly useProto3Json: boolean;
 }
 
 /**
@@ -6649,32 +6295,57 @@ declare type ServerTimestampBehavior = 'estimate' | 'previous' | 'none';
  * Writes to the document referred to by this `DocumentReference`. If the
  * document does not yet exist, it will be created.
  *
+ * Note that the returned `Promise` does _not_ resolve until the data is
+ * successfully written to the remote Firestore backend and, similarly, is not
+ * rejected until the remote Firestore backend reports an error saving the given
+ * data. So if the client cannot reach the backend (for example, due to being
+ * offline) then the returned `Promise` will not resolve for a potentially-long
+ * time (for example, until the client has gone back online). That being said,
+ * the given data _will_ be immediately saved to the local cache and will be
+ * incorporated into future "get" operations as if it had been successfully
+ * written to the remote Firestore server, a feature of Firestore called
+ * "latency compensation". The data will _eventually_ be written to the remote
+ * Firestore backend once a connection can be established. Therefore, it is
+ * usually undesirable to `await` the `Promise` returned from this function
+ * because the indefinite amount of time before which the promise resolves or
+ * rejects can block application logic unnecessarily.
+ *
  * @param reference - A reference to the document to write.
  * @param data - A map of the fields and values for the document.
- * @returns A `Promise` resolved once the data has been successfully written
- * to the backend (note that it won't resolve while you're offline).
+ * @returns A `Promise` that resolves once the data has been successfully
+ * written to the backend or rejects once the backend reports an error writing
+ * the data.
  */
-export declare function setDoc<AppModelType, DbModelType extends DocumentData>(
-  reference: DocumentReference<AppModelType, DbModelType>,
-  data: WithFieldValue<AppModelType>
-): Promise<void>;
+export declare function setDoc<AppModelType, DbModelType extends DocumentData>(reference: DocumentReference<AppModelType, DbModelType>, data: WithFieldValue<AppModelType>): Promise<void>;
 
 /**
  * Writes to the document referred to by the specified `DocumentReference`. If
  * the document does not yet exist, it will be created. If you provide `merge`
  * or `mergeFields`, the provided data can be merged into an existing document.
  *
+ * Note that the returned `Promise` does _not_ resolve until the data is
+ * successfully written to the remote Firestore backend and, similarly, is not
+ * rejected until the remote Firestore backend reports an error saving the given
+ * data. So if the client cannot reach the backend (for example, due to being
+ * offline) then the returned `Promise` will not resolve for a potentially-long
+ * time (for example, until the client has gone back online). That being said,
+ * the given data _will_ be immediately saved to the local cache and will be
+ * incorporated into future "get" operations as if it had been successfully
+ * written to the remote Firestore server, a feature of Firestore called
+ * "latency compensation". The data will _eventually_ be written to the remote
+ * Firestore backend once a connection can be established. Therefore, it is
+ * usually undesirable to `await` the `Promise` returned from this function
+ * because the indefinite amount of time before which the promise resolves or
+ * rejects can block application logic unnecessarily.
+ *
  * @param reference - A reference to the document to write.
  * @param data - A map of the fields and values for the document.
  * @param options - An object to configure the set behavior.
- * @returns A Promise resolved once the data has been successfully written
- * to the backend (note that it won't resolve while you're offline).
+ * @returns A `Promise` that resolves once the data has been successfully
+ * written to the backend or rejects once the backend reports an error writing
+ * the data.
  */
-export declare function setDoc<AppModelType, DbModelType extends DocumentData>(
-  reference: DocumentReference<AppModelType, DbModelType>,
-  data: PartialWithFieldValue<AppModelType>,
-  options: SetOptions
-): Promise<void>;
+export declare function setDoc<AppModelType, DbModelType extends DocumentData>(reference: DocumentReference<AppModelType, DbModelType>, data: PartialWithFieldValue<AppModelType>, options: SetOptions): Promise<void>;
 
 /**
  * Configures indexing for local query execution. Any previous index
@@ -6701,10 +6372,7 @@ export declare function setDoc<AppModelType, DbModelType extends DocumentData>(
  *
  * @beta
  */
-export declare function setIndexConfiguration(
-  firestore: Firestore,
-  configuration: IndexConfiguration
-): Promise<void>;
+export declare function setIndexConfiguration(firestore: Firestore, configuration: IndexConfiguration): Promise<void>;
 
 /**
  * Configures indexing for local query execution. Any previous index
@@ -6737,10 +6405,7 @@ export declare function setIndexConfiguration(
  *
  * @beta
  */
-export declare function setIndexConfiguration(
-  firestore: Firestore,
-  json: string
-): Promise<void>;
+export declare function setIndexConfiguration(firestore: Firestore, json: string): Promise<void>;
 
 /**
  * Sets the verbosity of Cloud Firestore logs (debug, error, or silent).
@@ -6772,13 +6437,11 @@ export declare function setLogLevel(logLevel: LogLevel): void;
  * and remains untouched. If your input sets any field to an empty map, all
  * nested fields are overwritten.
  */
-export declare type SetOptions =
-  | {
-      readonly merge?: boolean;
-    }
-  | {
-      readonly mergeFields?: Array<string | FieldPath>;
-    };
+export declare type SetOptions = {
+    readonly merge?: boolean;
+} | {
+    readonly mergeFields?: Array<string | FieldPath>;
+};
 
 /**
  * A `SharedClientState` keeps track of the global state of the mutations
@@ -6796,98 +6459,81 @@ export declare type SetOptions =
  * assigned before calling `start()`.
  */
 declare interface SharedClientState {
-  onlineStateHandler: ((onlineState: OnlineState) => void) | null;
-  sequenceNumberHandler:
-    | ((sequenceNumber: ListenSequenceNumber) => void)
-    | null;
-  /** Registers the Mutation Batch ID of a newly pending mutation. */
-  addPendingMutation(batchId: BatchId): void;
-  /**
-   * Records that a pending mutation has been acknowledged or rejected.
-   * Called by the primary client to notify secondary clients of mutation
-   * results as they come back from the backend.
-   */
-  updateMutationState(
-    batchId: BatchId,
-    state: 'acknowledged' | 'rejected',
-    error?: FirestoreError
-  ): void;
-  /**
-   * Associates a new Query Target ID with the local Firestore client. Returns
-   * the new query state for the query (which can be 'current' if the query is
-   * already associated with another tab).
-   *
-   * If the target id is already associated with local client, the method simply
-   * returns its `QueryTargetState`.
-   */
-  addLocalQueryTarget(
-    targetId: TargetId,
-    addToActiveTargetIds?: boolean
-  ): QueryTargetState;
-  /** Removes the Query Target ID association from the local client. */
-  removeLocalQueryTarget(targetId: TargetId): void;
-  /** Checks whether the target is associated with the local client. */
-  isLocalQueryTarget(targetId: TargetId): boolean;
-  /**
-   * Processes an update to a query target.
-   *
-   * Called by the primary client to notify secondary clients of document
-   * changes or state transitions that affect the provided query target.
-   */
-  updateQueryState(
-    targetId: TargetId,
-    state: QueryTargetState,
-    error?: FirestoreError
-  ): void;
-  /**
-   * Removes the target's metadata entry.
-   *
-   * Called by the primary client when all clients stopped listening to a query
-   * target.
-   */
-  clearQueryState(targetId: TargetId): void;
-  /**
-   * Gets the active Query Targets IDs for all active clients.
-   *
-   * The implementation for this may require O(n) runtime, where 'n' is the size
-   * of the result set.
-   */
-  getAllActiveQueryTargets(): SortedSet<TargetId>;
-  /**
-   * Checks whether the provided target ID is currently being listened to by
-   * any of the active clients.
-   *
-   * The implementation may require O(n*log m) runtime, where 'n' is the number
-   * of clients and 'm' the number of targets.
-   */
-  isActiveQueryTarget(targetId: TargetId): boolean;
-  /**
-   * Starts the SharedClientState, reads existing client data and registers
-   * listeners for updates to new and existing clients.
-   */
-  start(): Promise<void>;
-  /** Shuts down the `SharedClientState` and its listeners. */
-  shutdown(): void;
-  /**
-   * Changes the active user and removes all existing user-specific data. The
-   * user change does not call back into SyncEngine (for example, no mutations
-   * will be marked as removed).
-   */
-  handleUserChange(
-    user: User,
-    removedBatchIds: BatchId[],
-    addedBatchIds: BatchId[]
-  ): void;
-  /** Changes the shared online state of all clients. */
-  setOnlineState(onlineState: OnlineState): void;
-  writeSequenceNumber(sequenceNumber: ListenSequenceNumber): void;
-  /**
-   * Notifies other clients when remote documents have changed due to loading
-   * a bundle.
-   *
-   * @param collectionGroups The collection groups affected by this bundle.
-   */
-  notifyBundleLoaded(collectionGroups: Set<string>): void;
+    onlineStateHandler: ((onlineState: OnlineState) => void) | null;
+    sequenceNumberHandler: ((sequenceNumber: ListenSequenceNumber) => void) | null;
+    /** Registers the Mutation Batch ID of a newly pending mutation. */
+    addPendingMutation(batchId: BatchId): void;
+    /**
+     * Records that a pending mutation has been acknowledged or rejected.
+     * Called by the primary client to notify secondary clients of mutation
+     * results as they come back from the backend.
+     */
+    updateMutationState(batchId: BatchId, state: 'acknowledged' | 'rejected', error?: FirestoreError): void;
+    /**
+     * Associates a new Query Target ID with the local Firestore client. Returns
+     * the new query state for the query (which can be 'current' if the query is
+     * already associated with another tab).
+     *
+     * If the target id is already associated with local client, the method simply
+     * returns its `QueryTargetState`.
+     */
+    addLocalQueryTarget(targetId: TargetId, addToActiveTargetIds?: boolean): QueryTargetState;
+    /** Removes the Query Target ID association from the local client. */
+    removeLocalQueryTarget(targetId: TargetId): void;
+    /** Checks whether the target is associated with the local client. */
+    isLocalQueryTarget(targetId: TargetId): boolean;
+    /**
+     * Processes an update to a query target.
+     *
+     * Called by the primary client to notify secondary clients of document
+     * changes or state transitions that affect the provided query target.
+     */
+    updateQueryState(targetId: TargetId, state: QueryTargetState, error?: FirestoreError): void;
+    /**
+     * Removes the target's metadata entry.
+     *
+     * Called by the primary client when all clients stopped listening to a query
+     * target.
+     */
+    clearQueryState(targetId: TargetId): void;
+    /**
+     * Gets the active Query Targets IDs for all active clients.
+     *
+     * The implementation for this may require O(n) runtime, where 'n' is the size
+     * of the result set.
+     */
+    getAllActiveQueryTargets(): SortedSet<TargetId>;
+    /**
+     * Checks whether the provided target ID is currently being listened to by
+     * any of the active clients.
+     *
+     * The implementation may require O(n*log m) runtime, where 'n' is the number
+     * of clients and 'm' the number of targets.
+     */
+    isActiveQueryTarget(targetId: TargetId): boolean;
+    /**
+     * Starts the SharedClientState, reads existing client data and registers
+     * listeners for updates to new and existing clients.
+     */
+    start(): Promise<void>;
+    /** Shuts down the `SharedClientState` and its listeners. */
+    shutdown(): void;
+    /**
+     * Changes the active user and removes all existing user-specific data. The
+     * user change does not call back into SyncEngine (for example, no mutations
+     * will be marked as removed).
+     */
+    handleUserChange(user: User, removedBatchIds: BatchId[], addedBatchIds: BatchId[]): void;
+    /** Changes the shared online state of all clients. */
+    setOnlineState(onlineState: OnlineState): void;
+    writeSequenceNumber(sequenceNumber: ListenSequenceNumber): void;
+    /**
+     * Notifies other clients when remote documents have changed due to loading
+     * a bundle.
+     *
+     * @param collectionGroups - The collection groups affected by this bundle.
+     */
+    notifyBundleLoaded(collectionGroups: Set<string>): void;
 }
 
 /**
@@ -6897,17 +6543,7 @@ declare interface SharedClientState {
  * @param right - A snapshot to compare.
  * @returns true if the snapshots are equal.
  */
-export declare function snapshotEqual<
-  AppModelType,
-  DbModelType extends DocumentData
->(
-  left:
-    | DocumentSnapshot<AppModelType, DbModelType>
-    | QuerySnapshot<AppModelType, DbModelType>,
-  right:
-    | DocumentSnapshot<AppModelType, DbModelType>
-    | QuerySnapshot<AppModelType, DbModelType>
-): boolean;
+export declare function snapshotEqual<AppModelType, DbModelType extends DocumentData>(left: DocumentSnapshot<AppModelType, DbModelType> | QuerySnapshot<AppModelType, DbModelType>, right: DocumentSnapshot<AppModelType, DbModelType> | QuerySnapshot<AppModelType, DbModelType>): boolean;
 
 /**
  * An options object that can be passed to {@link (onSnapshot:1)} and {@link
@@ -6915,48 +6551,48 @@ export declare function snapshotEqual<
  * result set.
  */
 export declare interface SnapshotListenOptions {
-  /**
-   * Include a change even if only the metadata of the query or of a document
-   * changed. Default is false.
-   */
-  readonly includeMetadataChanges?: boolean;
-  /**
-   * Set the source the query listens to. Default to "default", which
-   * listens to both cache and server.
-   */
-  readonly source?: ListenSource;
+    /**
+     * Include a change even if only the metadata of the query or of a document
+     * changed. Default is false.
+     */
+    readonly includeMetadataChanges?: boolean;
+    /**
+     * Set the source the query listens to. Default to "default", which
+     * listens to both cache and server.
+     */
+    readonly source?: ListenSource;
 }
 
 /**
  * Metadata about a snapshot, describing the state of the snapshot.
  */
 export declare class SnapshotMetadata {
-  /**
-   * True if the snapshot contains the result of local writes (for example
-   * `set()` or `update()` calls) that have not yet been committed to the
-   * backend. If your listener has opted into metadata updates (via
-   * `SnapshotListenOptions`) you will receive another snapshot with
-   * `hasPendingWrites` equal to false once the writes have been committed to
-   * the backend.
-   */
-  readonly hasPendingWrites: boolean;
-  /**
-   * True if the snapshot was created from cached data rather than guaranteed
-   * up-to-date server data. If your listener has opted into metadata updates
-   * (via `SnapshotListenOptions`) you will receive another snapshot with
-   * `fromCache` set to false once the client has received up-to-date data from
-   * the backend.
-   */
-  readonly fromCache: boolean;
-  /** @hideconstructor */
-  constructor(hasPendingWrites: boolean, fromCache: boolean);
-  /**
-   * Returns true if this `SnapshotMetadata` is equal to the provided one.
-   *
-   * @param other - The `SnapshotMetadata` to compare against.
-   * @returns true if this `SnapshotMetadata` is equal to the provided one.
-   */
-  isEqual(other: SnapshotMetadata): boolean;
+    /**
+     * True if the snapshot contains the result of local writes (for example
+     * `set()` or `update()` calls) that have not yet been committed to the
+     * backend. If your listener has opted into metadata updates (via
+     * `SnapshotListenOptions`) you will receive another snapshot with
+     * `hasPendingWrites` equal to false once the writes have been committed to
+     * the backend.
+     */
+    readonly hasPendingWrites: boolean;
+    /**
+     * True if the snapshot was created from cached data rather than guaranteed
+     * up-to-date server data. If your listener has opted into metadata updates
+     * (via `SnapshotListenOptions`) you will receive another snapshot with
+     * `fromCache` set to false once the client has received up-to-date data from
+     * the backend.
+     */
+    readonly fromCache: boolean;
+    /** @hideconstructor */
+    constructor(hasPendingWrites: boolean, fromCache: boolean);
+    /**
+     * Returns true if this `SnapshotMetadata` is equal to the provided one.
+     *
+     * @param other - The `SnapshotMetadata` to compare against.
+     * @returns true if this `SnapshotMetadata` is equal to the provided one.
+     */
+    isEqual(other: SnapshotMetadata): boolean;
 }
 
 /**
@@ -6965,21 +6601,21 @@ export declare class SnapshotMetadata {
  * to their final value).
  */
 export declare interface SnapshotOptions {
-  /**
-   * If set, controls the return value for server timestamps that have not yet
-   * been set to their final value.
-   *
-   * By specifying 'estimate', pending server timestamps return an estimate
-   * based on the local clock. This estimate will differ from the final value
-   * and cause these values to change once the server result becomes available.
-   *
-   * By specifying 'previous', pending timestamps will be ignored and return
-   * their previous value instead.
-   *
-   * If omitted or set to 'none', `null` will be returned by default until the
-   * server value becomes available.
-   */
-  readonly serverTimestamps?: 'estimate' | 'previous' | 'none';
+    /**
+     * If set, controls the return value for server timestamps that have not yet
+     * been set to their final value.
+     *
+     * By specifying 'estimate', pending server timestamps return an estimate
+     * based on the local clock. This estimate will differ from the final value
+     * and cause these values to change once the server result becomes available.
+     *
+     * By specifying 'previous', pending timestamps will be ignored and return
+     * their previous value instead.
+     *
+     * If omitted or set to 'none', `null` will be returned by default until the
+     * server value becomes available.
+     */
+    readonly serverTimestamps?: 'estimate' | 'previous' | 'none';
 }
 
 /**
@@ -6987,56 +6623,48 @@ export declare interface SnapshotOptions {
  * timestamp, such as update_time or read_time.
  */
 declare class SnapshotVersion {
-  private timestamp;
-  static fromTimestamp(value: Timestamp): SnapshotVersion;
-  static min(): SnapshotVersion;
-  static max(): SnapshotVersion;
-  private constructor();
-  compareTo(other: SnapshotVersion): number;
-  isEqual(other: SnapshotVersion): boolean;
-  /** Returns a number representation of the version for use in spec tests. */
-  toMicroseconds(): number;
-  toString(): string;
-  toTimestamp(): Timestamp;
+    private timestamp;
+    static fromTimestamp(value: Timestamp): SnapshotVersion;
+    static min(): SnapshotVersion;
+    static max(): SnapshotVersion;
+    private constructor();
+    compareTo(other: SnapshotVersion): number;
+    isEqual(other: SnapshotVersion): boolean;
+    /** Returns a number representation of the version for use in spec tests. */
+    toMicroseconds(): number;
+    toString(): string;
+    toTimestamp(): Timestamp;
 }
 
 declare class SortedMap<K, V> {
-  comparator: Comparator<K>;
-  root: LLRBNode<K, V> | LLRBEmptyNode<K, V>;
-  constructor(
-    comparator: Comparator<K>,
-    root?: LLRBNode<K, V> | LLRBEmptyNode<K, V>
-  );
-  insert(key: K, value: V): SortedMap<K, V>;
-  remove(key: K): SortedMap<K, V>;
-  get(key: K): V | null;
-  indexOf(key: K): number;
-  isEmpty(): boolean;
-  get size(): number;
-  minKey(): K | null;
-  maxKey(): K | null;
-  inorderTraversal<T>(action: (k: K, v: V) => T): T;
-  forEach(fn: (k: K, v: V) => void): void;
-  toString(): string;
-  reverseTraversal<T>(action: (k: K, v: V) => T): T;
-  getIterator(): SortedMapIterator<K, V>;
-  getIteratorFrom(key: K): SortedMapIterator<K, V>;
-  getReverseIterator(): SortedMapIterator<K, V>;
-  getReverseIteratorFrom(key: K): SortedMapIterator<K, V>;
+    comparator: Comparator<K>;
+    root: LLRBNode<K, V> | LLRBEmptyNode<K, V>;
+    constructor(comparator: Comparator<K>, root?: LLRBNode<K, V> | LLRBEmptyNode<K, V>);
+    insert(key: K, value: V): SortedMap<K, V>;
+    remove(key: K): SortedMap<K, V>;
+    get(key: K): V | null;
+    indexOf(key: K): number;
+    isEmpty(): boolean;
+    get size(): number;
+    minKey(): K | null;
+    maxKey(): K | null;
+    inorderTraversal<T>(action: (k: K, v: V) => T): T;
+    forEach(fn: (k: K, v: V) => void): void;
+    toString(): string;
+    reverseTraversal<T>(action: (k: K, v: V) => T): T;
+    getIterator(): SortedMapIterator<K, V>;
+    getIteratorFrom(key: K): SortedMapIterator<K, V>;
+    getReverseIterator(): SortedMapIterator<K, V>;
+    getReverseIteratorFrom(key: K): SortedMapIterator<K, V>;
 }
 
 declare class SortedMapIterator<K, V> {
-  private isReverse;
-  private nodeStack;
-  constructor(
-    node: LLRBNode<K, V> | LLRBEmptyNode<K, V>,
-    startKey: K | null,
-    comparator: Comparator<K>,
-    isReverse: boolean
-  );
-  getNext(): Entry<K, V>;
-  hasNext(): boolean;
-  peek(): Entry<K, V> | null;
+    private isReverse;
+    private nodeStack;
+    constructor(node: LLRBNode<K, V> | LLRBEmptyNode<K, V>, startKey: K | null, comparator: Comparator<K>, isReverse: boolean);
+    getNext(): Entry<K, V>;
+    hasNext(): boolean;
+    peek(): Entry<K, V> | null;
 }
 
 /**
@@ -7047,44 +6675,83 @@ declare class SortedMapIterator<K, V> {
  * be equal!
  */
 declare class SortedSet<T> {
-  private comparator;
-  private data;
-  constructor(comparator: (left: T, right: T) => number);
-  has(elem: T): boolean;
-  first(): T | null;
-  last(): T | null;
-  get size(): number;
-  indexOf(elem: T): number;
-  /** Iterates elements in order defined by "comparator" */
-  forEach(cb: (elem: T) => void): void;
-  /** Iterates over `elem`s such that: range[0] &lt;= elem &lt; range[1]. */
-  forEachInRange(range: [T, T], cb: (elem: T) => void): void;
-  /**
-   * Iterates over `elem`s such that: start &lt;= elem until false is returned.
-   */
-  forEachWhile(cb: (elem: T) => boolean, start?: T): void;
-  /** Finds the least element greater than or equal to `elem`. */
-  firstAfterOrEqual(elem: T): T | null;
-  getIterator(): SortedSetIterator<T>;
-  getIteratorFrom(key: T): SortedSetIterator<T>;
-  /** Inserts or updates an element */
-  add(elem: T): SortedSet<T>;
-  /** Deletes an element */
-  delete(elem: T): SortedSet<T>;
-  isEmpty(): boolean;
-  unionWith(other: SortedSet<T>): SortedSet<T>;
-  isEqual(other: SortedSet<T>): boolean;
-  toArray(): T[];
-  toString(): string;
-  private copy;
+    private comparator;
+    private data;
+    constructor(comparator: (left: T, right: T) => number);
+    has(elem: T): boolean;
+    first(): T | null;
+    last(): T | null;
+    get size(): number;
+    indexOf(elem: T): number;
+    /** Iterates elements in order defined by "comparator" */
+    forEach(cb: (elem: T) => void): void;
+    /** Iterates over `elem`s such that: range[0] &lt;= elem &lt; range[1]. */
+    forEachInRange(range: [T, T], cb: (elem: T) => void): void;
+    /**
+     * Iterates over `elem`s such that: start &lt;= elem until false is returned.
+     */
+    forEachWhile(cb: (elem: T) => boolean, start?: T): void;
+    /** Finds the least element greater than or equal to `elem`. */
+    firstAfterOrEqual(elem: T): T | null;
+    getIterator(): SortedSetIterator<T>;
+    getIteratorFrom(key: T): SortedSetIterator<T>;
+    /** Inserts or updates an element */
+    add(elem: T): SortedSet<T>;
+    /** Deletes an element */
+    delete(elem: T): SortedSet<T>;
+    isEmpty(): boolean;
+    unionWith(other: SortedSet<T>): SortedSet<T>;
+    isEqual(other: SortedSet<T>): boolean;
+    toArray(): T[];
+    toString(): string;
+    private copy;
 }
 
 declare class SortedSetIterator<T> {
-  private iter;
-  constructor(iter: SortedMapIterator<T, boolean>);
-  getNext(): T;
-  hasNext(): boolean;
+    private iter;
+    constructor(iter: SortedMapIterator<T, boolean>);
+    getNext(): T;
+    hasNext(): boolean;
 }
+
+declare abstract class Stage implements ProtoSerializable<Stage_2>, UserData {
+    /* Excluded from this release type: optionsProto */
+    protected knownOptions: Record<string, unknown>;
+    protected rawOptions?: Record<string, unknown>;
+    constructor(options: Record<string, unknown> & StageOptions);
+    _readUserData(context: ParseContext): void;
+    _toProto(_: JsonProtoSerializer): Stage_2;
+    abstract get _optionsUtil(): OptionsUtil;
+    abstract get _name(): string;
+}
+
+declare type Stage_2 = firestoreV1ApiClientInterfaces.Stage;
+
+/**
+ * Options defining how a Stage is evaluated.
+ */
+declare type StageOptions = {
+    /**
+     * An escape hatch to set options not known at SDK build time. These values
+     * will be passed directly to the Firestore backend and not used by the SDK.
+     *
+     * The option name will be used as provided. And must match the name
+     * format used by the backend (hint: use a snake_case_name).
+     *
+     * Raw option values can be any type supported
+     * by Firestore (for example: string, boolean, number, map, …). Value types
+     * not known to the SDK will be rejected.
+     *
+     * Values specified in rawOptions will take precedence over any options
+     * with the same name set by the SDK.
+     *
+     * `rawOptions` supports dot notation, if you want to override
+     * a nested option.
+     */
+    rawOptions?: {
+        [name: string]: unknown;
+    };
+};
 
 /**
  * Creates a {@link QueryStartAtConstraint} that modifies the result set to
@@ -7095,12 +6762,7 @@ declare class SortedSetIterator<T> {
  * @param snapshot - The snapshot of the document to start after.
  * @returns A {@link QueryStartAtConstraint} to pass to `query()`
  */
-export declare function startAfter<
-  AppModelType,
-  DbModelType extends DocumentData
->(
-  snapshot: DocumentSnapshot_2<AppModelType, DbModelType>
-): QueryStartAtConstraint;
+export declare function startAfter<AppModelType, DbModelType extends DocumentData>(snapshot: DocumentSnapshot_2<AppModelType, DbModelType>): QueryStartAtConstraint;
 
 /**
  * Creates a {@link QueryStartAtConstraint} that modifies the result set to
@@ -7111,9 +6773,7 @@ export declare function startAfter<
  * of the query's order by.
  * @returns A {@link QueryStartAtConstraint} to pass to `query()`
  */
-export declare function startAfter(
-  ...fieldValues: unknown[]
-): QueryStartAtConstraint;
+export declare function startAfter(...fieldValues: unknown[]): QueryStartAtConstraint;
 
 /**
  * Creates a {@link QueryStartAtConstraint} that modifies the result set to
@@ -7124,9 +6784,7 @@ export declare function startAfter(
  * @param snapshot - The snapshot of the document to start at.
  * @returns A {@link QueryStartAtConstraint} to pass to `query()`.
  */
-export declare function startAt<AppModelType, DbModelType extends DocumentData>(
-  snapshot: DocumentSnapshot_2<AppModelType, DbModelType>
-): QueryStartAtConstraint;
+export declare function startAt<AppModelType, DbModelType extends DocumentData>(snapshot: DocumentSnapshot_2<AppModelType, DbModelType>): QueryStartAtConstraint;
 
 /**
  * Creates a {@link QueryStartAtConstraint} that modifies the result set to
@@ -7137,16 +6795,14 @@ export declare function startAt<AppModelType, DbModelType extends DocumentData>(
  * of the query's order by.
  * @returns A {@link QueryStartAtConstraint} to pass to `query()`.
  */
-export declare function startAt(
-  ...fieldValues: unknown[]
-): QueryStartAtConstraint;
+export declare function startAt(...fieldValues: unknown[]): QueryStartAtConstraint;
 
 declare type StructuredQuery = firestoreV1ApiClientInterfaces.StructuredQuery;
 
 /**
  * Create an AggregateField object that can be used to compute the sum of
  * a specified field over a range of documents in the result set of a query.
- * @param field Specifies the field to sum across the result set.
+ * @param field - Specifies the field to sum across the result set.
  */
 export declare function sum(field: string | FieldPath): AggregateField<number>;
 
@@ -7185,7 +6841,7 @@ export declare function sum(field: string | FieldPath): AggregateField<number>;
  * (via `ensureWatchStream()`).
  */
 declare interface SyncEngine {
-  isPrimaryClient: boolean;
+    isPrimaryClient: boolean;
 }
 
 /**
@@ -7196,13 +6852,13 @@ declare interface SyncEngine {
  * in persistence.
  */
 declare interface Target {
-  readonly path: _ResourcePath;
-  readonly collectionGroup: string | null;
-  readonly orderBy: OrderBy[];
-  readonly filters: Filter[];
-  readonly limit: number | null;
-  readonly startAt: Bound | null;
-  readonly endAt: Bound | null;
+    readonly path: _ResourcePath;
+    readonly collectionGroup: string | null;
+    readonly orderBy: OrderBy[];
+    readonly filters: Filter[];
+    readonly limit: number | null;
+    readonly startAt: Bound | null;
+    readonly endAt: Bound | null;
 }
 
 /**
@@ -7212,148 +6868,104 @@ declare interface Target {
  * instances.
  */
 declare interface TargetCache {
-  /**
-   * A global snapshot version representing the last consistent snapshot we
-   * received from the backend. This is monotonically increasing and any
-   * snapshots received from the backend prior to this version (e.g. for targets
-   * resumed with a resume_token) should be suppressed (buffered) until the
-   * backend has caught up to this snapshot version again. This prevents our
-   * cache from ever going backwards in time.
-   *
-   * This is updated whenever our we get a TargetChange with a read_time and
-   * empty target_ids.
-   */
-  getLastRemoteSnapshotVersion(
-    transaction: PersistenceTransaction
-  ): PersistencePromise<SnapshotVersion>;
-  /**
-   * @returns The highest sequence number observed, including any that might be
-   *         persisted on-disk.
-   */
-  getHighestSequenceNumber(
-    transaction: PersistenceTransaction
-  ): PersistencePromise<ListenSequenceNumber>;
-  /**
-   * Call provided function with each `TargetData` that we have cached.
-   */
-  forEachTarget(
-    txn: PersistenceTransaction,
-    f: (q: TargetData) => void
-  ): PersistencePromise<void>;
-  /**
-   * Set the highest listen sequence number and optionally updates the
-   * snapshot version of the last consistent snapshot received from the backend
-   * (see getLastRemoteSnapshotVersion() for more details).
-   *
-   * @param highestListenSequenceNumber - The new maximum listen sequence number.
-   * @param lastRemoteSnapshotVersion - The new snapshot version. Optional.
-   */
-  setTargetsMetadata(
-    transaction: PersistenceTransaction,
-    highestListenSequenceNumber: number,
-    lastRemoteSnapshotVersion?: SnapshotVersion
-  ): PersistencePromise<void>;
-  /**
-   * Adds an entry in the cache.
-   *
-   * The cache key is extracted from `targetData.target`. The key must not already
-   * exist in the cache.
-   *
-   * @param targetData - A TargetData instance to put in the cache.
-   */
-  addTargetData(
-    transaction: PersistenceTransaction,
-    targetData: TargetData
-  ): PersistencePromise<void>;
-  /**
-   * Updates an entry in the cache.
-   *
-   * The cache key is extracted from `targetData.target`. The entry must already
-   * exist in the cache, and it will be replaced.
-   * @param targetData - The TargetData to be replaced into the cache.
-   */
-  updateTargetData(
-    transaction: PersistenceTransaction,
-    targetData: TargetData
-  ): PersistencePromise<void>;
-  /**
-   * Removes the cached entry for the given target data. It is an error to remove
-   * a target data that does not exist.
-   *
-   * Multi-Tab Note: This operation should only be called by the primary client.
-   */
-  removeTargetData(
-    transaction: PersistenceTransaction,
-    targetData: TargetData
-  ): PersistencePromise<void>;
-  /**
-   * The number of targets currently in the cache.
-   */
-  getTargetCount(
-    transaction: PersistenceTransaction
-  ): PersistencePromise<number>;
-  /**
-   * Looks up a TargetData entry by target.
-   *
-   * @param target - The query target corresponding to the entry to look up.
-   * @returns The cached TargetData entry, or null if the cache has no entry for
-   * the target.
-   */
-  getTargetData(
-    transaction: PersistenceTransaction,
-    target: Target
-  ): PersistencePromise<TargetData | null>;
-  /**
-   * Adds the given document keys to cached query results of the given target
-   * ID.
-   *
-   * Multi-Tab Note: This operation should only be called by the primary client.
-   */
-  addMatchingKeys(
-    transaction: PersistenceTransaction,
-    keys: DocumentKeySet,
-    targetId: TargetId
-  ): PersistencePromise<void>;
-  /**
-   * Removes the given document keys from the cached query results of the
-   * given target ID.
-   *
-   * Multi-Tab Note: This operation should only be called by the primary client.
-   */
-  removeMatchingKeys(
-    transaction: PersistenceTransaction,
-    keys: DocumentKeySet,
-    targetId: TargetId
-  ): PersistencePromise<void>;
-  /**
-   * Removes all the keys in the query results of the given target ID.
-   *
-   * Multi-Tab Note: This operation should only be called by the primary client.
-   */
-  removeMatchingKeysForTargetId(
-    transaction: PersistenceTransaction,
-    targetId: TargetId
-  ): PersistencePromise<void>;
-  /**
-   * Returns the document keys that match the provided target ID.
-   */
-  getMatchingKeysForTargetId(
-    transaction: PersistenceTransaction,
-    targetId: TargetId
-  ): PersistencePromise<DocumentKeySet>;
-  /**
-   * Returns a new target ID that is higher than any query in the cache. If
-   * there are no queries in the cache, returns the first valid target ID.
-   * Allocated target IDs are persisted and `allocateTargetId()` will never
-   * return the same ID twice.
-   */
-  allocateTargetId(
-    transaction: PersistenceTransaction
-  ): PersistencePromise<TargetId>;
-  containsKey(
-    transaction: PersistenceTransaction,
-    key: _DocumentKey
-  ): PersistencePromise<boolean>;
+    /**
+     * A global snapshot version representing the last consistent snapshot we
+     * received from the backend. This is monotonically increasing and any
+     * snapshots received from the backend prior to this version (e.g. for targets
+     * resumed with a resume_token) should be suppressed (buffered) until the
+     * backend has caught up to this snapshot version again. This prevents our
+     * cache from ever going backwards in time.
+     *
+     * This is updated whenever our we get a TargetChange with a read_time and
+     * empty target_ids.
+     */
+    getLastRemoteSnapshotVersion(transaction: PersistenceTransaction): PersistencePromise<SnapshotVersion>;
+    /**
+     * @returns The highest sequence number observed, including any that might be
+     *         persisted on-disk.
+     */
+    getHighestSequenceNumber(transaction: PersistenceTransaction): PersistencePromise<ListenSequenceNumber>;
+    /**
+     * Call provided function with each `TargetData` that we have cached.
+     */
+    forEachTarget(txn: PersistenceTransaction, f: (q: TargetData) => void): PersistencePromise<void>;
+    /**
+     * Set the highest listen sequence number and optionally updates the
+     * snapshot version of the last consistent snapshot received from the backend
+     * (see getLastRemoteSnapshotVersion() for more details).
+     *
+     * @param highestListenSequenceNumber - The new maximum listen sequence number.
+     * @param lastRemoteSnapshotVersion - The new snapshot version. Optional.
+     */
+    setTargetsMetadata(transaction: PersistenceTransaction, highestListenSequenceNumber: number, lastRemoteSnapshotVersion?: SnapshotVersion): PersistencePromise<void>;
+    /**
+     * Adds an entry in the cache.
+     *
+     * The cache key is extracted from `targetData.target`. The key must not already
+     * exist in the cache.
+     *
+     * @param targetData - A TargetData instance to put in the cache.
+     */
+    addTargetData(transaction: PersistenceTransaction, targetData: TargetData): PersistencePromise<void>;
+    /**
+     * Updates an entry in the cache.
+     *
+     * The cache key is extracted from `targetData.target`. The entry must already
+     * exist in the cache, and it will be replaced.
+     * @param targetData - The TargetData to be replaced into the cache.
+     */
+    updateTargetData(transaction: PersistenceTransaction, targetData: TargetData): PersistencePromise<void>;
+    /**
+     * Removes the cached entry for the given target data. It is an error to remove
+     * a target data that does not exist.
+     *
+     * Multi-Tab Note: This operation should only be called by the primary client.
+     */
+    removeTargetData(transaction: PersistenceTransaction, targetData: TargetData): PersistencePromise<void>;
+    /**
+     * The number of targets currently in the cache.
+     */
+    getTargetCount(transaction: PersistenceTransaction): PersistencePromise<number>;
+    /**
+     * Looks up a TargetData entry by target.
+     *
+     * @param target - The query target corresponding to the entry to look up.
+     * @returns The cached TargetData entry, or null if the cache has no entry for
+     * the target.
+     */
+    getTargetData(transaction: PersistenceTransaction, target: TargetOrPipeline): PersistencePromise<TargetData | null>;
+    /**
+     * Adds the given document keys to cached query results of the given target
+     * ID.
+     *
+     * Multi-Tab Note: This operation should only be called by the primary client.
+     */
+    addMatchingKeys(transaction: PersistenceTransaction, keys: DocumentKeySet, targetId: TargetId): PersistencePromise<void>;
+    /**
+     * Removes the given document keys from the cached query results of the
+     * given target ID.
+     *
+     * Multi-Tab Note: This operation should only be called by the primary client.
+     */
+    removeMatchingKeys(transaction: PersistenceTransaction, keys: DocumentKeySet, targetId: TargetId): PersistencePromise<void>;
+    /**
+     * Removes all the keys in the query results of the given target ID.
+     *
+     * Multi-Tab Note: This operation should only be called by the primary client.
+     */
+    removeMatchingKeysForTargetId(transaction: PersistenceTransaction, targetId: TargetId): PersistencePromise<void>;
+    /**
+     * Returns the document keys that match the provided target ID.
+     */
+    getMatchingKeysForTargetId(transaction: PersistenceTransaction, targetId: TargetId): PersistencePromise<DocumentKeySet>;
+    /**
+     * Returns a new target ID that is higher than any query in the cache. If
+     * there are no queries in the cache, returns the first valid target ID.
+     * Allocated target IDs are persisted and `allocateTargetId()` will never
+     * return the same ID twice.
+     */
+    allocateTargetId(transaction: PersistenceTransaction): PersistencePromise<TargetId>;
+    containsKey(transaction: PersistenceTransaction, key: _DocumentKey): PersistencePromise<boolean>;
 }
 
 /**
@@ -7365,202 +6977,190 @@ declare interface TargetCache {
  * documents may be part of multiple targets.
  */
 declare class TargetChange {
-  /**
-   * An opaque, server-assigned token that allows watching a query to be resumed
-   * after disconnecting without retransmitting all the data that matches the
-   * query. The resume token essentially identifies a point in time from which
-   * the server should resume sending results.
-   */
-  readonly resumeToken: _ByteString;
-  /**
-   * The "current" (synced) status of this target. Note that "current"
-   * has special meaning in the RPC protocol that implies that a target is
-   * both up-to-date and consistent with the rest of the watch stream.
-   */
-  readonly current: boolean;
-  /**
-   * The set of documents that were newly assigned to this target as part of
-   * this remote event.
-   */
-  readonly addedDocuments: DocumentKeySet;
-  /**
-   * The set of documents that were already assigned to this target but received
-   * an update during this remote event.
-   */
-  readonly modifiedDocuments: DocumentKeySet;
-  /**
-   * The set of documents that were removed from this target as part of this
-   * remote event.
-   */
-  readonly removedDocuments: DocumentKeySet;
-  constructor(
     /**
      * An opaque, server-assigned token that allows watching a query to be resumed
      * after disconnecting without retransmitting all the data that matches the
      * query. The resume token essentially identifies a point in time from which
      * the server should resume sending results.
      */
-    resumeToken: _ByteString,
+    readonly resumeToken: _ByteString;
     /**
      * The "current" (synced) status of this target. Note that "current"
      * has special meaning in the RPC protocol that implies that a target is
      * both up-to-date and consistent with the rest of the watch stream.
      */
-    current: boolean,
+    readonly current: boolean;
     /**
      * The set of documents that were newly assigned to this target as part of
      * this remote event.
      */
-    addedDocuments: DocumentKeySet,
+    readonly addedDocuments: DocumentKeySet;
     /**
      * The set of documents that were already assigned to this target but received
      * an update during this remote event.
      */
-    modifiedDocuments: DocumentKeySet,
+    readonly modifiedDocuments: DocumentKeySet;
     /**
      * The set of documents that were removed from this target as part of this
      * remote event.
      */
-    removedDocuments: DocumentKeySet
-  );
-  /**
-   * This method is used to create a synthesized TargetChanges that can be used to
-   * apply a CURRENT status change to a View (for queries executed in a different
-   * tab) or for new queries (to raise snapshots with correct CURRENT status).
-   */
-  static createSynthesizedTargetChangeForCurrentChange(
-    targetId: TargetId,
-    current: boolean,
-    resumeToken: _ByteString
-  ): TargetChange;
+    readonly removedDocuments: DocumentKeySet;
+    constructor(
+    /**
+     * An opaque, server-assigned token that allows watching a query to be resumed
+     * after disconnecting without retransmitting all the data that matches the
+     * query. The resume token essentially identifies a point in time from which
+     * the server should resume sending results.
+     */
+    resumeToken: _ByteString, 
+    /**
+     * The "current" (synced) status of this target. Note that "current"
+     * has special meaning in the RPC protocol that implies that a target is
+     * both up-to-date and consistent with the rest of the watch stream.
+     */
+    current: boolean, 
+    /**
+     * The set of documents that were newly assigned to this target as part of
+     * this remote event.
+     */
+    addedDocuments: DocumentKeySet, 
+    /**
+     * The set of documents that were already assigned to this target but received
+     * an update during this remote event.
+     */
+    modifiedDocuments: DocumentKeySet, 
+    /**
+     * The set of documents that were removed from this target as part of this
+     * remote event.
+     */
+    removedDocuments: DocumentKeySet);
+    /**
+     * This method is used to create a synthesized TargetChanges that can be used to
+     * apply a CURRENT status change to a View (for queries executed in a different
+     * tab) or for new queries (to raise snapshots with correct CURRENT status).
+     */
+    static createSynthesizedTargetChangeForCurrentChange(targetId: TargetId, current: boolean, resumeToken: _ByteString): TargetChange;
 }
 
-declare type TargetChangeTargetChangeType =
-  | 'NO_CHANGE'
-  | 'ADD'
-  | 'REMOVE'
-  | 'CURRENT'
-  | 'RESET';
+declare type TargetChangeTargetChangeType = 'NO_CHANGE' | 'ADD' | 'REMOVE' | 'CURRENT' | 'RESET';
 
 /**
  * An immutable set of metadata that the local store tracks for each target.
  */
-declare class TargetData {
-  /** The target being listened to. */
-  readonly target: Target;
-  /**
-   * The target ID to which the target corresponds; Assigned by the
-   * LocalStore for user listens and by the SyncEngine for limbo watches.
-   */
-  readonly targetId: TargetId;
-  /** The purpose of the target. */
-  readonly purpose: TargetPurpose;
-  /**
-   * The sequence number of the last transaction during which this target data
-   * was modified.
-   */
-  readonly sequenceNumber: ListenSequenceNumber;
-  /** The latest snapshot version seen for this target. */
-  readonly snapshotVersion: SnapshotVersion;
-  /**
-   * The maximum snapshot version at which the associated view
-   * contained no limbo documents.
-   */
-  readonly lastLimboFreeSnapshotVersion: SnapshotVersion;
-  /**
-   * An opaque, server-assigned token that allows watching a target to be
-   * resumed after disconnecting without retransmitting all the data that
-   * matches the target. The resume token essentially identifies a point in
-   * time from which the server should resume sending results.
-   */
-  readonly resumeToken: _ByteString;
-  /**
-   * The number of documents that last matched the query at the resume token or
-   * read time. Documents are counted only when making a listen request with
-   * resume token or read time, otherwise, keep it null.
-   */
-  readonly expectedCount: number | null;
-  constructor(
+declare class TargetData<T extends TargetId | RemoteTargetId = TargetId> {
     /** The target being listened to. */
-    target: Target,
+    readonly target: TargetOrPipeline;
     /**
      * The target ID to which the target corresponds; Assigned by the
      * LocalStore for user listens and by the SyncEngine for limbo watches.
      */
-    targetId: TargetId,
+    readonly targetId: T;
     /** The purpose of the target. */
-    purpose: TargetPurpose,
+    readonly purpose: TargetPurpose;
     /**
      * The sequence number of the last transaction during which this target data
      * was modified.
      */
-    sequenceNumber: ListenSequenceNumber,
+    readonly sequenceNumber: ListenSequenceNumber;
     /** The latest snapshot version seen for this target. */
-    snapshotVersion?: SnapshotVersion,
+    readonly snapshotVersion: SnapshotVersion;
     /**
      * The maximum snapshot version at which the associated view
      * contained no limbo documents.
      */
-    lastLimboFreeSnapshotVersion?: SnapshotVersion,
+    readonly lastLimboFreeSnapshotVersion: SnapshotVersion;
     /**
      * An opaque, server-assigned token that allows watching a target to be
      * resumed after disconnecting without retransmitting all the data that
      * matches the target. The resume token essentially identifies a point in
      * time from which the server should resume sending results.
      */
-    resumeToken?: _ByteString,
+    readonly resumeToken: _ByteString;
     /**
      * The number of documents that last matched the query at the resume token or
      * read time. Documents are counted only when making a listen request with
      * resume token or read time, otherwise, keep it null.
      */
-    expectedCount?: number | null
-  );
-  /** Creates a new target data instance with an updated sequence number. */
-  withSequenceNumber(sequenceNumber: number): TargetData;
-  /**
-   * Creates a new target data instance with an updated resume token and
-   * snapshot version.
-   */
-  withResumeToken(
-    resumeToken: _ByteString,
-    snapshotVersion: SnapshotVersion
-  ): TargetData;
-  /**
-   * Creates a new target data instance with an updated expected count.
-   */
-  withExpectedCount(expectedCount: number): TargetData;
-  /**
-   * Creates a new target data instance with an updated last limbo free
-   * snapshot version number.
-   */
-  withLastLimboFreeSnapshotVersion(
-    lastLimboFreeSnapshotVersion: SnapshotVersion
-  ): TargetData;
+    readonly expectedCount: number | null;
+    constructor(
+    /** The target being listened to. */
+    target: TargetOrPipeline, 
+    /**
+     * The target ID to which the target corresponds; Assigned by the
+     * LocalStore for user listens and by the SyncEngine for limbo watches.
+     */
+    targetId: T, 
+    /** The purpose of the target. */
+    purpose: TargetPurpose, 
+    /**
+     * The sequence number of the last transaction during which this target data
+     * was modified.
+     */
+    sequenceNumber: ListenSequenceNumber, 
+    /** The latest snapshot version seen for this target. */
+    snapshotVersion?: SnapshotVersion, 
+    /**
+     * The maximum snapshot version at which the associated view
+     * contained no limbo documents.
+     */
+    lastLimboFreeSnapshotVersion?: SnapshotVersion, 
+    /**
+     * An opaque, server-assigned token that allows watching a target to be
+     * resumed after disconnecting without retransmitting all the data that
+     * matches the target. The resume token essentially identifies a point in
+     * time from which the server should resume sending results.
+     */
+    resumeToken?: _ByteString, 
+    /**
+     * The number of documents that last matched the query at the resume token or
+     * read time. Documents are counted only when making a listen request with
+     * resume token or read time, otherwise, keep it null.
+     */
+    expectedCount?: number | null);
+    /** Creates a new target data instance with an updated sequence number. */
+    withSequenceNumber(sequenceNumber: number): TargetData<T>;
+    /**
+     * Creates a new target data instance with an updated resume token and
+     * snapshot version.
+     */
+    withResumeToken(resumeToken: _ByteString, snapshotVersion: SnapshotVersion): TargetData<T>;
+    /**
+     * Creates a new target data instance with an updated expected count.
+     */
+    withExpectedCount(expectedCount: number): TargetData<T>;
+    /**
+     * Creates a new target data instance with an updated last limbo free
+     * snapshot version number.
+     */
+    withLastLimboFreeSnapshotVersion(lastLimboFreeSnapshotVersion: SnapshotVersion): TargetData<T>;
 }
 
 /**
- * A locally-assigned ID used to refer to a target being watched via the
- * Watch service.
+ * A locally-assigned ID used to refer to a target being tracked in the local
+ * store.
  */
-declare type TargetId = number;
+declare type TargetId = number & {
+    readonly __brand?: 'sdk';
+};
+
+declare type TargetOrPipeline = Target | CorePipeline;
 
 /** An enumeration of the different purposes we have for targets. */
 declare const enum TargetPurpose {
-  /** A regular, normal query target. */
-  Listen = 'TargetPurposeListen',
-  /**
-   * The query target was used to refill a query after an existence filter
-   * mismatch.
-   */
-  ExistenceFilterMismatch = 'TargetPurposeExistenceFilterMismatch',
-  /**
-   * The query target was used if the query is the result of a false positive in
-   * the bloom filter.
-   */
-  ExistenceFilterMismatchBloom = 'TargetPurposeExistenceFilterMismatchBloom',
-  /** The query target was used to resolve a limbo document. */
-  LimboResolution = 'TargetPurposeLimboResolution'
+    /** A regular, normal query target. */
+    Listen = "TargetPurposeListen",
+    /**
+     * The query target was used to refill a query after an existence filter
+     * mismatch.
+     */
+    ExistenceFilterMismatch = "TargetPurposeExistenceFilterMismatch",
+    /**
+     * The query target was used if the query is the result of a false positive in
+     * the bloom filter.
+     */
+    ExistenceFilterMismatchBloom = "TargetPurposeExistenceFilterMismatchBloom",
+    /** The query target was used to resolve a limbo document. */
+    LimboResolution = "TargetPurposeLimboResolution"
 }
 
 /**
@@ -7609,65 +7209,49 @@ export declare function terminate(firestore: Firestore): Promise<void>;
  * The string values are used when encoding these timer IDs in JSON spec tests.
  */
 declare const enum TimerId {
-  /** All can be used with runDelayedOperationsEarly() to run all timers. */
-  All = 'all',
-  /**
-   * The following 5 timers are used in persistent_stream.ts for the listen and
-   * write streams. The "Idle" timer is used to close the stream due to
-   * inactivity. The "ConnectionBackoff" timer is used to restart a stream once
-   * the appropriate backoff delay has elapsed. The health check is used to mark
-   * a stream healthy if it has not received an error during its initial setup.
-   */
-  ListenStreamIdle = 'listen_stream_idle',
-  ListenStreamConnectionBackoff = 'listen_stream_connection_backoff',
-  WriteStreamIdle = 'write_stream_idle',
-  WriteStreamConnectionBackoff = 'write_stream_connection_backoff',
-  HealthCheckTimeout = 'health_check_timeout',
-  /**
-   * A timer used in online_state_tracker.ts to transition from
-   * OnlineState.Unknown to Offline after a set timeout, rather than waiting
-   * indefinitely for success or failure.
-   */
-  OnlineStateTimeout = 'online_state_timeout',
-  /**
-   * A timer used to update the client metadata in IndexedDb, which is used
-   * to determine the primary leaseholder.
-   */
-  ClientMetadataRefresh = 'client_metadata_refresh',
-  /** A timer used to periodically attempt LRU Garbage collection */
-  LruGarbageCollection = 'lru_garbage_collection',
-  /**
-   * A timer used to retry transactions. Since there can be multiple concurrent
-   * transactions, multiple of these may be in the queue at a given time.
-   */
-  TransactionRetry = 'transaction_retry',
-  /**
-   * A timer used to retry operations scheduled via retryable AsyncQueue
-   * operations.
-   */
-  AsyncQueueRetry = 'async_queue_retry',
-  /**
-   *  A timer used to periodically attempt index backfill.
-   */
-  IndexBackfill = 'index_backfill'
+    /** All can be used with runDelayedOperationsEarly() to run all timers. */
+    All = "all",
+    /**
+     * The following 5 timers are used in persistent_stream.ts for the listen and
+     * write streams. The "Idle" timer is used to close the stream due to
+     * inactivity. The "ConnectionBackoff" timer is used to restart a stream once
+     * the appropriate backoff delay has elapsed. The health check is used to mark
+     * a stream healthy if it has not received an error during its initial setup.
+     */
+    ListenStreamIdle = "listen_stream_idle",
+    ListenStreamConnectionBackoff = "listen_stream_connection_backoff",
+    WriteStreamIdle = "write_stream_idle",
+    WriteStreamConnectionBackoff = "write_stream_connection_backoff",
+    HealthCheckTimeout = "health_check_timeout",
+    /**
+     * A timer used in online_state_tracker.ts to transition from
+     * OnlineState.Unknown to Offline after a set timeout, rather than waiting
+     * indefinitely for success or failure.
+     */
+    OnlineStateTimeout = "online_state_timeout",
+    /**
+     * A timer used to update the client metadata in IndexedDb, which is used
+     * to determine the primary leaseholder.
+     */
+    ClientMetadataRefresh = "client_metadata_refresh",
+    /** A timer used to periodically attempt LRU Garbage collection */
+    LruGarbageCollection = "lru_garbage_collection",
+    /**
+     * A timer used to retry transactions. Since there can be multiple concurrent
+     * transactions, multiple of these may be in the queue at a given time.
+     */
+    TransactionRetry = "transaction_retry",
+    /**
+     * A timer used to retry operations scheduled via retryable AsyncQueue
+     * operations.
+     */
+    AsyncQueueRetry = "async_queue_retry",
+    /**
+     *  A timer used to periodically attempt index backfill.
+     */
+    IndexBackfill = "index_backfill"
 }
 
-/**
- * @license
- * Copyright 2017 Google LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 /**
  * A `Timestamp` represents a point in time independent of any time zone or
  * calendar, represented as seconds and fractions of seconds at nanosecond
@@ -7683,115 +7267,125 @@ declare const enum TimerId {
  * {@link https://github.com/google/protobuf/blob/master/src/google/protobuf/timestamp.proto | Timestamp definition}.
  */
 export declare class Timestamp {
-  /**
-   * The number of seconds of UTC time since Unix epoch 1970-01-01T00:00:00Z.
-   */
-  readonly seconds: number;
-  /**
-   * The fractions of a second at nanosecond resolution.*
-   */
-  readonly nanoseconds: number;
-  /**
-   * Creates a new timestamp with the current date, with millisecond precision.
-   *
-   * @returns a new timestamp representing the current date.
-   */
-  static now(): Timestamp;
-  /**
-   * Creates a new timestamp from the given date.
-   *
-   * @param date - The date to initialize the `Timestamp` from.
-   * @returns A new `Timestamp` representing the same point in time as the given
-   *     date.
-   */
-  static fromDate(date: Date): Timestamp;
-  /**
-   * Creates a new timestamp from the given number of milliseconds.
-   *
-   * @param milliseconds - Number of milliseconds since Unix epoch
-   *     1970-01-01T00:00:00Z.
-   * @returns A new `Timestamp` representing the same point in time as the given
-   *     number of milliseconds.
-   */
-  static fromMillis(milliseconds: number): Timestamp;
-  /**
-   * Creates a new timestamp.
-   *
-   * @param seconds - The number of seconds of UTC time since Unix epoch
-   *     1970-01-01T00:00:00Z. Must be from 0001-01-01T00:00:00Z to
-   *     9999-12-31T23:59:59Z inclusive.
-   * @param nanoseconds - The non-negative fractions of a second at nanosecond
-   *     resolution. Negative second values with fractions must still have
-   *     non-negative nanoseconds values that count forward in time. Must be
-   *     from 0 to 999,999,999 inclusive.
-   */
-  constructor(
     /**
      * The number of seconds of UTC time since Unix epoch 1970-01-01T00:00:00Z.
      */
-    seconds: number,
+    readonly seconds: number;
     /**
      * The fractions of a second at nanosecond resolution.*
      */
-    nanoseconds: number
-  );
-  /**
-   * Converts a `Timestamp` to a JavaScript `Date` object. This conversion
-   * causes a loss of precision since `Date` objects only support millisecond
-   * precision.
-   *
-   * @returns JavaScript `Date` object representing the same point in time as
-   *     this `Timestamp`, with millisecond precision.
-   */
-  toDate(): Date;
-  /**
-   * Converts a `Timestamp` to a numeric timestamp (in milliseconds since
-   * epoch). This operation causes a loss of precision.
-   *
-   * @returns The point in time corresponding to this timestamp, represented as
-   *     the number of milliseconds since Unix epoch 1970-01-01T00:00:00Z.
-   */
-  toMillis(): number;
-  _compareTo(other: Timestamp): number;
-  /**
-   * Returns true if this `Timestamp` is equal to the provided one.
-   *
-   * @param other - The `Timestamp` to compare against.
-   * @returns true if this `Timestamp` is equal to the provided one.
-   */
-  isEqual(other: Timestamp): boolean;
-  /** Returns a textual representation of this `Timestamp`. */
-  toString(): string;
-  /** Returns a JSON-serializable representation of this `Timestamp`. */
-  toJSON(): {
-    seconds: number;
-    nanoseconds: number;
-  };
-  /**
-   * Converts this object to a primitive string, which allows `Timestamp` objects
-   * to be compared using the `>`, `<=`, `>=` and `>` operators.
-   */
-  valueOf(): string;
+    readonly nanoseconds: number;
+    /**
+     * Creates a new timestamp with the current date, with millisecond precision.
+     *
+     * @returns a new timestamp representing the current date.
+     */
+    static now(): Timestamp;
+    /**
+     * Creates a new timestamp from the given date.
+     *
+     * @param date - The date to initialize the `Timestamp` from.
+     * @returns A new `Timestamp` representing the same point in time as the given
+     *     date.
+     */
+    static fromDate(date: Date): Timestamp;
+    /**
+     * Creates a new timestamp from the given number of milliseconds.
+     *
+     * @param milliseconds - Number of milliseconds since Unix epoch
+     *     1970-01-01T00:00:00Z.
+     * @returns A new `Timestamp` representing the same point in time as the given
+     *     number of milliseconds.
+     */
+    static fromMillis(milliseconds: number): Timestamp;
+    /**
+     * Creates a new timestamp.
+     *
+     * @param seconds - The number of seconds of UTC time since Unix epoch
+     *     1970-01-01T00:00:00Z. Must be from 0001-01-01T00:00:00Z to
+     *     9999-12-31T23:59:59Z inclusive.
+     * @param nanoseconds - The non-negative fractions of a second at nanosecond
+     *     resolution. Negative second values with fractions must still have
+     *     non-negative nanoseconds values that count forward in time. Must be
+     *     from 0 to 999,999,999 inclusive.
+     */
+    constructor(
+    /**
+     * The number of seconds of UTC time since Unix epoch 1970-01-01T00:00:00Z.
+     */
+    seconds: number, 
+    /**
+     * The fractions of a second at nanosecond resolution.*
+     */
+    nanoseconds: number);
+    /**
+     * Converts a `Timestamp` to a JavaScript `Date` object. This conversion
+     * causes a loss of precision since `Date` objects only support millisecond
+     * precision.
+     *
+     * @returns JavaScript `Date` object representing the same point in time as
+     *     this `Timestamp`, with millisecond precision.
+     */
+    toDate(): Date;
+    /**
+     * Converts a `Timestamp` to a numeric timestamp (in milliseconds since
+     * epoch). This operation causes a loss of precision.
+     *
+     * @returns The point in time corresponding to this timestamp, represented as
+     *     the number of milliseconds since Unix epoch 1970-01-01T00:00:00Z.
+     */
+    toMillis(): number;
+    _compareTo(other: Timestamp): number;
+    /**
+     * Returns true if this `Timestamp` is equal to the provided one.
+     *
+     * @param other - The `Timestamp` to compare against.
+     * @returns true if this `Timestamp` is equal to the provided one.
+     */
+    isEqual(other: Timestamp): boolean;
+    /** Returns a textual representation of this `Timestamp`. */
+    toString(): string;
+    static _jsonSchemaVersion: string;
+    static _jsonSchema: {
+        type: Property<"string">;
+        seconds: Property<"number">;
+        nanoseconds: Property<"number">;
+    };
+    /**
+     * Returns a JSON-serializable representation of this `Timestamp`.
+     */
+    toJSON(): {
+        seconds: number;
+        nanoseconds: number;
+        type: string;
+    };
+    /**
+     * Builds a `Timestamp` instance from a JSON object created by {@link Timestamp.toJSON}.
+     */
+    static fromJSON(json: object): Timestamp;
+    /**
+     * Converts this object to a primitive string, which allows `Timestamp` objects
+     * to be compared using the `>`, `<=`, `>=` and `>` operators.
+     */
+    valueOf(): string;
 }
 
-declare type Timestamp_2 =
-  | string
-  | {
-      seconds?: string | number;
-      nanos?: number;
-    };
+declare type Timestamp_2 = string | {
+    seconds?: string | number;
+    nanos?: number;
+};
 
 declare interface Token {
-  /** Type of token. */
-  type: TokenType;
-  /**
-   * The user with which the token is associated (used for persisting user
-   * state on disk, etc.).
-   * This will be null for Tokens of the type 'AppCheck'.
-   */
-  user?: User;
-  /** Header values to set for this token */
-  headers: Map<string, string>;
+    /** Type of token. */
+    type: TokenType;
+    /**
+     * The user with which the token is associated (used for persisting user
+     * state on disk, etc.).
+     * This will be null for Tokens of the type 'AppCheck'.
+     */
+    user?: User;
+    /** Header values to set for this token */
+    headers: Map<string, string>;
 }
 
 declare type TokenType = 'OAuth' | 'FirstParty' | 'AppCheck';
@@ -7804,18 +7398,16 @@ declare type TokenType = 'OAuth' | 'FirstParty' | 'AppCheck';
  * {@link runTransaction}.
  */
 export declare class Transaction extends Transaction_2 {
-  protected readonly _firestore: Firestore;
-  /** @hideconstructor */
-  constructor(_firestore: Firestore, _transaction: Transaction_3);
-  /**
-   * Reads the document referenced by the provided {@link DocumentReference}.
-   *
-   * @param documentRef - A reference to the document to be read.
-   * @returns A `DocumentSnapshot` with the read data.
-   */
-  get<AppModelType, DbModelType extends DocumentData>(
-    documentRef: DocumentReference<AppModelType, DbModelType>
-  ): Promise<DocumentSnapshot<AppModelType, DbModelType>>;
+    protected readonly _firestore: Firestore;
+    /** @hideconstructor */
+    constructor(_firestore: Firestore, _transaction: Transaction_3);
+    /**
+     * Reads the document referenced by the provided {@link DocumentReference}.
+     *
+     * @param documentRef - A reference to the document to be read.
+     * @returns A `DocumentSnapshot` with the read data.
+     */
+    get<AppModelType, DbModelType extends DocumentData>(documentRef: DocumentReference<AppModelType, DbModelType>): Promise<DocumentSnapshot<AppModelType, DbModelType>>;
 }
 
 /**
@@ -7826,96 +7418,77 @@ export declare class Transaction extends Transaction_2 {
  * {@link runTransaction}.
  */
 declare class Transaction_2 {
-  protected readonly _firestore: Firestore_2;
-  private readonly _transaction;
-  private readonly _dataReader;
-  /** @hideconstructor */
-  constructor(_firestore: Firestore_2, _transaction: Transaction_3);
-  /**
-   * Reads the document referenced by the provided {@link DocumentReference}.
-   *
-   * @param documentRef - A reference to the document to be read.
-   * @returns A `DocumentSnapshot` with the read data.
-   */
-  get<AppModelType, DbModelType extends DocumentData>(
-    documentRef: DocumentReference<AppModelType, DbModelType>
-  ): Promise<DocumentSnapshot_2<AppModelType, DbModelType>>;
-  /**
-   * Writes to the document referred to by the provided {@link
-   * DocumentReference}. If the document does not exist yet, it will be created.
-   *
-   * @param documentRef - A reference to the document to be set.
-   * @param data - An object of the fields and values for the document.
-   * @throws Error - If the provided input is not a valid Firestore document.
-   * @returns This `Transaction` instance. Used for chaining method calls.
-   */
-  set<AppModelType, DbModelType extends DocumentData>(
-    documentRef: DocumentReference<AppModelType, DbModelType>,
-    data: WithFieldValue<AppModelType>
-  ): this;
-  /**
-   * Writes to the document referred to by the provided {@link
-   * DocumentReference}. If the document does not exist yet, it will be created.
-   * If you provide `merge` or `mergeFields`, the provided data can be merged
-   * into an existing document.
-   *
-   * @param documentRef - A reference to the document to be set.
-   * @param data - An object of the fields and values for the document.
-   * @param options - An object to configure the set behavior.
-   * @throws Error - If the provided input is not a valid Firestore document.
-   * @returns This `Transaction` instance. Used for chaining method calls.
-   */
-  set<AppModelType, DbModelType extends DocumentData>(
-    documentRef: DocumentReference<AppModelType, DbModelType>,
-    data: PartialWithFieldValue<AppModelType>,
-    options: SetOptions
-  ): this;
-  /**
-   * Updates fields in the document referred to by the provided {@link
-   * DocumentReference}. The update will fail if applied to a document that does
-   * not exist.
-   *
-   * @param documentRef - A reference to the document to be updated.
-   * @param data - An object containing the fields and values with which to
-   * update the document. Fields can contain dots to reference nested fields
-   * within the document.
-   * @throws Error - If the provided input is not valid Firestore data.
-   * @returns This `Transaction` instance. Used for chaining method calls.
-   */
-  update<AppModelType, DbModelType extends DocumentData>(
-    documentRef: DocumentReference<AppModelType, DbModelType>,
-    data: UpdateData<DbModelType>
-  ): this;
-  /**
-   * Updates fields in the document referred to by the provided {@link
-   * DocumentReference}. The update will fail if applied to a document that does
-   * not exist.
-   *
-   * Nested fields can be updated by providing dot-separated field path
-   * strings or by providing `FieldPath` objects.
-   *
-   * @param documentRef - A reference to the document to be updated.
-   * @param field - The first field to update.
-   * @param value - The first value.
-   * @param moreFieldsAndValues - Additional key/value pairs.
-   * @throws Error - If the provided input is not valid Firestore data.
-   * @returns This `Transaction` instance. Used for chaining method calls.
-   */
-  update<AppModelType, DbModelType extends DocumentData>(
-    documentRef: DocumentReference<AppModelType, DbModelType>,
-    field: string | FieldPath,
-    value: unknown,
-    ...moreFieldsAndValues: unknown[]
-  ): this;
-  /**
-   * Deletes the document referred to by the provided {@link DocumentReference}.
-   *
-   * @param documentRef - A reference to the document to be deleted.
-   * @returns This `Transaction` instance. Used for chaining method calls.
-   */
-  delete<AppModelType, DbModelType extends DocumentData>(
-    documentRef: DocumentReference<AppModelType, DbModelType>
-  ): this;
+    protected readonly _firestore: Firestore_2;
+    private readonly _transaction;
+    private readonly _dataReader;
+    /** @hideconstructor */
+    constructor(_firestore: Firestore_2, _transaction: Transaction_3);
+    /**
+     * Reads the document referenced by the provided {@link DocumentReference}.
+     *
+     * @param documentRef - A reference to the document to be read.
+     * @returns A `DocumentSnapshot` with the read data.
+     */
+    get<AppModelType, DbModelType extends DocumentData>(documentRef: DocumentReference<AppModelType, DbModelType>): Promise<DocumentSnapshot_2<AppModelType, DbModelType>>;
+    /**
+     * Writes to the document referred to by the provided {@link
+     * DocumentReference}. If the document does not exist yet, it will be created.
+     *
+     * @param documentRef - A reference to the document to be set.
+     * @param data - An object of the fields and values for the document.
+     * @throws Error - If the provided input is not a valid Firestore document.
+     * @returns This `Transaction` instance. Used for chaining method calls.
+     */
+    set<AppModelType, DbModelType extends DocumentData>(documentRef: DocumentReference<AppModelType, DbModelType>, data: WithFieldValue<AppModelType>): this;
+    /**
+     * Writes to the document referred to by the provided {@link
+     * DocumentReference}. If the document does not exist yet, it will be created.
+     * If you provide `merge` or `mergeFields`, the provided data can be merged
+     * into an existing document.
+     *
+     * @param documentRef - A reference to the document to be set.
+     * @param data - An object of the fields and values for the document.
+     * @param options - An object to configure the set behavior.
+     * @throws Error - If the provided input is not a valid Firestore document.
+     * @returns This `Transaction` instance. Used for chaining method calls.
+     */
+    set<AppModelType, DbModelType extends DocumentData>(documentRef: DocumentReference<AppModelType, DbModelType>, data: PartialWithFieldValue<AppModelType>, options: SetOptions): this;
+    /**
+     * Updates fields in the document referred to by the provided {@link
+     * DocumentReference}. The update will fail if applied to a document that does
+     * not exist.
+     *
+     * @param documentRef - A reference to the document to be updated.
+     * @param data - An object containing the fields and values with which to
+     * update the document. Fields can contain dots to reference nested fields
+     * within the document.
+     * @throws Error - If the provided input is not valid Firestore data.
+     * @returns This `Transaction` instance. Used for chaining method calls.
+     */
+    update<AppModelType, DbModelType extends DocumentData>(documentRef: DocumentReference<AppModelType, DbModelType>, data: UpdateData<DbModelType>): this;
+    /**
+     * Updates fields in the document referred to by the provided {@link
+     * DocumentReference}. The update will fail if applied to a document that does
+     * not exist.
+     *
+     * Nested fields can be updated by providing dot-separated field path
+     * strings or by providing `FieldPath` objects.
+     *
+     * @param documentRef - A reference to the document to be updated.
+     * @param field - The first field to update.
+     * @param value - The first value.
+     * @param moreFieldsAndValues - Additional key/value pairs.
+     * @throws Error - If the provided input is not valid Firestore data.
+     * @returns This `Transaction` instance. Used for chaining method calls.
+     */
+    update<AppModelType, DbModelType extends DocumentData>(documentRef: DocumentReference<AppModelType, DbModelType>, field: string | FieldPath, value: unknown, ...moreFieldsAndValues: unknown[]): this;
+    /**
+     * Deletes the document referred to by the provided {@link DocumentReference}.
+     *
+     * @param documentRef - A reference to the document to be deleted.
+     * @returns This `Transaction` instance. Used for chaining method calls.
+     */
+    delete<AppModelType, DbModelType extends DocumentData>(documentRef: DocumentReference<AppModelType, DbModelType>): this;
 }
 
 /**
@@ -7923,40 +7496,40 @@ declare class Transaction_2 {
  * perform and the base versions for any documents read.
  */
 declare class Transaction_3 {
-  private datastore;
-  private readVersions;
-  private mutations;
-  private committed;
-  /**
-   * A deferred usage error that occurred previously in this transaction that
-   * will cause the transaction to fail once it actually commits.
-   */
-  private lastTransactionError;
-  /**
-   * Set of documents that have been written in the transaction.
-   *
-   * When there's more than one write to the same key in a transaction, any
-   * writes after the first are handled differently.
-   */
-  private writtenDocs;
-  constructor(datastore: Datastore);
-  lookup(keys: _DocumentKey[]): Promise<Document_2[]>;
-  set(key: _DocumentKey, data: ParsedSetData): void;
-  update(key: _DocumentKey, data: ParsedUpdateData): void;
-  delete(key: _DocumentKey): void;
-  commit(): Promise<void>;
-  private recordVersion;
-  /**
-   * Returns the version of this document when it was read in this transaction,
-   * as a precondition, or no precondition if it was not read.
-   */
-  private precondition;
-  /**
-   * Returns the precondition for a document if the operation is an update.
-   */
-  private preconditionForUpdate;
-  private write;
-  private ensureCommitNotCalled;
+    private datastore;
+    private readVersions;
+    private mutations;
+    private committed;
+    /**
+     * A deferred usage error that occurred previously in this transaction that
+     * will cause the transaction to fail once it actually commits.
+     */
+    private lastTransactionError;
+    /**
+     * Set of documents that have been written in the transaction.
+     *
+     * When there's more than one write to the same key in a transaction, any
+     * writes after the first are handled differently.
+     */
+    private writtenDocs;
+    constructor(datastore: Datastore);
+    lookup(keys: _DocumentKey[]): Promise<Document_2[]>;
+    set(key: _DocumentKey, data: ParsedSetData): void;
+    update(key: _DocumentKey, data: ParsedUpdateData): void;
+    delete(key: _DocumentKey): void;
+    commit(): Promise<void>;
+    private recordVersion;
+    /**
+     * Returns the version of this document when it was read in this transaction,
+     * as a precondition, or no precondition if it was not read.
+     */
+    private precondition;
+    /**
+     * Returns the precondition for a document if the operation is an update.
+     */
+    private preconditionForUpdate;
+    private write;
+    private ensureCommitNotCalled;
 }
 
 /**
@@ -7979,21 +7552,18 @@ declare class Transaction_3 {
  * Options to customize transaction behavior.
  */
 export declare interface TransactionOptions {
-  /** Maximum number of attempts to commit, after which transaction fails. Default is 5. */
-  readonly maxAttempts?: number;
+    /** Maximum number of attempts to commit, after which transaction fails. Default is 5. */
+    readonly maxAttempts?: number;
 }
 
 /** Used to represent a field transform on a mutation. */
 declare class TransformOperation {
-  private _;
+    private _;
 }
 
-declare type UnaryFilterOp =
-  | 'OPERATOR_UNSPECIFIED'
-  | 'IS_NAN'
-  | 'IS_NULL'
-  | 'IS_NOT_NAN'
-  | 'IS_NOT_NULL';
+/* Excluded from this release type: TSType */
+
+declare type UnaryFilterOp = 'OPERATOR_UNSPECIFIED' | 'IS_NAN' | 'IS_NULL' | 'IS_NOT_NAN' | 'IS_NOT_NULL';
 
 /**
  * Given a union type `U = T1 | T2 | ...`, returns an intersected type
@@ -8005,36 +7575,24 @@ declare type UnaryFilterOp =
  * https://www.typescriptlang.org/docs/handbook/advanced-types.html#type-inference-in-conditional-types
  * https://stackoverflow.com/questions/50374908/transform-union-type-to-intersection-type
  */
-export declare type UnionToIntersection<U> = (
-  U extends unknown ? (k: U) => void : never
-) extends (k: infer I) => void
-  ? I
-  : never;
+export declare type UnionToIntersection<U> = (U extends unknown ? (k: U) => void : never) extends (k: infer I) => void ? I : never;
 
 /**
  * A function returned by `onSnapshot()` that removes the listener when invoked.
  */
 export declare interface Unsubscribe {
-  /** Removes the listener when invoked. */
-  (): void;
+    /** Removes the listener when invoked. */
+    (): void;
 }
 
 /**
  * An untyped Firestore Data Converter interface that is shared between the
  * lite, firestore-exp and classic SDK.
  */
-declare interface UntypedFirestoreDataConverter<
-  AppModelType,
-  DbModelType extends DocumentData_2 = DocumentData_2
-> {
-  toFirestore(
-    modelObject: WithFieldValue<AppModelType>
-  ): WithFieldValue<DbModelType>;
-  toFirestore(
-    modelObject: PartialWithFieldValue<AppModelType>,
-    options: SetOptions_2
-  ): PartialWithFieldValue<DbModelType>;
-  fromFirestore(snapshot: unknown, options?: unknown): AppModelType;
+declare interface UntypedFirestoreDataConverter<AppModelType, DbModelType extends DocumentData_2 = DocumentData_2> {
+    toFirestore(modelObject: WithFieldValue<AppModelType>): WithFieldValue<DbModelType>;
+    toFirestore(modelObject: PartialWithFieldValue<AppModelType>, options: SetOptions_2): PartialWithFieldValue<DbModelType>;
+    fromFirestore(snapshot: unknown, options?: unknown): AppModelType;
 }
 
 /**
@@ -8043,33 +7601,39 @@ declare interface UntypedFirestoreDataConverter<
  * reference nested fields within the document. FieldValues can be passed in
  * as property values.
  */
-export declare type UpdateData<T> = T extends Primitive
-  ? T
-  : T extends {}
-  ? {
-      [K in keyof T]?: UpdateData<T[K]> | FieldValue;
-    } & NestedUpdateFields<T>
-  : Partial<T>;
+export declare type UpdateData<T> = T extends Primitive ? T : T extends {} ? {
+    [K in keyof T]?: UpdateData<T[K]> | FieldValue;
+} & NestedUpdateFields<T> : Partial<T>;
 
 /**
  * Updates fields in the document referred to by the specified
  * `DocumentReference`. The update will fail if applied to a document that does
  * not exist.
  *
+ * Note that the returned `Promise` does _not_ resolve until the data is
+ * successfully written to the remote Firestore backend and, similarly, is not
+ * rejected until the remote Firestore backend reports an error saving the given
+ * data. So if the client cannot reach the backend (for example, due to being
+ * offline) then the returned `Promise` will not resolve for a potentially-long
+ * time (for example, until the client has gone back online). That being said,
+ * the given data _will_ be immediately saved to the local cache and will be
+ * incorporated into future "get" operations as if it had been successfully
+ * written to the remote Firestore server, a feature of Firestore called
+ * "latency compensation". The data will _eventually_ be written to the remote
+ * Firestore backend once a connection can be established. Therefore, it is
+ * usually undesirable to `await` the `Promise` returned from this function
+ * because the indefinite amount of time before which the promise resolves or
+ * rejects can block application logic unnecessarily.
+ *
  * @param reference - A reference to the document to update.
  * @param data - An object containing the fields and values with which to
  * update the document. Fields can contain dots to reference nested fields
  * within the document.
- * @returns A `Promise` resolved once the data has been successfully written
- * to the backend (note that it won't resolve while you're offline).
+ * @returns A `Promise` that resolves once the data has been successfully
+ * written to the backend or rejects once the backend reports an error writing
+ * the data.
  */
-export declare function updateDoc<
-  AppModelType,
-  DbModelType extends DocumentData
->(
-  reference: DocumentReference<AppModelType, DbModelType>,
-  data: UpdateData<DbModelType>
-): Promise<void>;
+export declare function updateDoc<AppModelType, DbModelType extends DocumentData>(reference: DocumentReference<AppModelType, DbModelType>, data: UpdateData<DbModelType>): Promise<void>;
 
 /**
  * Updates fields in the document referred to by the specified
@@ -8079,22 +7643,30 @@ export declare function updateDoc<
  * Nested fields can be updated by providing dot-separated field path
  * strings or by providing `FieldPath` objects.
  *
+ * Note that the returned `Promise` does _not_ resolve until the data is
+ * successfully written to the remote Firestore backend and, similarly, is not
+ * rejected until the remote Firestore backend reports an error saving the given
+ * data. So if the client cannot reach the backend (for example, due to being
+ * offline) then the returned `Promise` will not resolve for a potentially-long
+ * time (for example, until the client has gone back online). That being said,
+ * the given data _will_ be immediately saved to the local cache and will be
+ * incorporated into future "get" operations as if it had been successfully
+ * written to the remote Firestore server, a feature of Firestore called
+ * "latency compensation". The data will _eventually_ be written to the remote
+ * Firestore backend once a connection can be established. Therefore, it is
+ * usually undesirable to `await` the `Promise` returned from this function
+ * because the indefinite amount of time before which the promise resolves or
+ * rejects can block application logic unnecessarily.
+ *
  * @param reference - A reference to the document to update.
  * @param field - The first field to update.
  * @param value - The first value.
  * @param moreFieldsAndValues - Additional key value pairs.
- * @returns A `Promise` resolved once the data has been successfully written
- * to the backend (note that it won't resolve while you're offline).
+ * @returns A `Promise` that resolves once the data has been successfully
+ * written to the backend or rejects once the backend reports an error writing
+ * the data.
  */
-export declare function updateDoc<
-  AppModelType,
-  DbModelType extends DocumentData
->(
-  reference: DocumentReference<AppModelType, DbModelType>,
-  field: string | FieldPath,
-  value: unknown,
-  ...moreFieldsAndValues: unknown[]
-): Promise<void>;
+export declare function updateDoc<AppModelType, DbModelType extends DocumentData>(reference: DocumentReference<AppModelType, DbModelType>, field: string | FieldPath, value: unknown, ...moreFieldsAndValues: unknown[]): Promise<void>;
 
 /**
  * @license
@@ -8117,20 +7689,40 @@ export declare function updateDoc<
  * readable.
  */
 declare class User {
-  readonly uid: string | null;
-  /** A user with a null UID. */
-  static readonly UNAUTHENTICATED: User;
-  static readonly GOOGLE_CREDENTIALS: User;
-  static readonly FIRST_PARTY: User;
-  static readonly MOCK_USER: User;
-  constructor(uid: string | null);
-  isAuthenticated(): boolean;
-  /**
-   * Returns a key representing this user, suitable for inclusion in a
-   * dictionary.
-   */
-  toKey(): string;
-  isEqual(otherUser: User): boolean;
+    readonly uid: string | null;
+    /** A user with a null UID. */
+    static readonly UNAUTHENTICATED: User;
+    static readonly GOOGLE_CREDENTIALS: User;
+    static readonly FIRST_PARTY: User;
+    static readonly MOCK_USER: User;
+    constructor(uid: string | null);
+    isAuthenticated(): boolean;
+    /**
+     * Returns a key representing this user, suitable for inclusion in a
+     * dictionary.
+     */
+    toKey(): string;
+    isEqual(otherUser: User): boolean;
+}
+
+declare interface UserData {
+    _readUserData(context: ParseContext): void;
+}
+
+declare const enum UserDataSource {
+    Set = 0,
+    Update = 1,
+    MergeSet = 2,
+    /**
+     * Indicates the source is a where clause, cursor bound, arrayUnion()
+     * element, etc. Of note, isWrite(source) will return false.
+     */
+    Argument = 3,
+    /**
+     * Indicates that the source is an Argument that may directly contain nested
+     * arrays (e.g. the operand of an `in` query).
+     */
+    ArrayArgument = 4
 }
 
 /* Excluded from this release type: _validateIsNotUsedTogether */
@@ -8149,71 +7741,56 @@ declare type ValueNullValue = 'NULL_VALUE';
 export declare function vector(values?: number[]): VectorValue;
 
 /**
- * @license
- * Copyright 2024 Google LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-/**
  * Represents a vector type in Firestore documents.
- * Create an instance with {@link FieldValue.vector}.
- *
- * @class VectorValue
+ * Create an instance with <code>{@link vector}</code>.
  */
 export declare class VectorValue {
-  private readonly _values;
-  /* Excluded from this release type: __constructor */
-  /**
-   * Returns a copy of the raw number array form of the vector.
-   */
-  toArray(): number[];
-  /**
-   * Returns `true` if the two VectorValue has the same raw number arrays, returns `false` otherwise.
-   */
-  isEqual(other: VectorValue): boolean;
+    private readonly _values;
+    /* Excluded from this release type: __constructor */
+    /**
+     * Returns a copy of the raw number array form of the vector.
+     */
+    toArray(): number[];
+    /**
+     * Returns `true` if the two `VectorValue` values have the same raw number arrays, returns `false` otherwise.
+     */
+    isEqual(other: VectorValue): boolean;
+    static _jsonSchemaVersion: string;
+    static _jsonSchema: {
+        type: Property<"string">;
+        vectorValues: Property<"object">;
+    };
+    /**
+     * Returns a JSON-serializable representation of this `VectorValue` instance.
+     *
+     * @returns a JSON representation of this object.
+     */
+    toJSON(): object;
+    /**
+     * Builds a `VectorValue` instance from a JSON object created by {@link VectorValue.toJSON}.
+     *
+     * @param json - a JSON object represention of a `VectorValue` instance.
+     * @returns an instance of {@link VectorValue} if the JSON object could be parsed. Throws a
+     * {@link FirestoreError} if an error occurs.
+     */
+    static fromJSON(json: object): VectorValue;
 }
 
 declare class ViewSnapshot {
-  readonly query: Query_2;
-  readonly docs: DocumentSet;
-  readonly oldDocs: DocumentSet;
-  readonly docChanges: DocumentViewChange[];
-  readonly mutatedKeys: DocumentKeySet;
-  readonly fromCache: boolean;
-  readonly syncStateChanged: boolean;
-  readonly excludesMetadataChanges: boolean;
-  readonly hasCachedResults: boolean;
-  constructor(
-    query: Query_2,
-    docs: DocumentSet,
-    oldDocs: DocumentSet,
-    docChanges: DocumentViewChange[],
-    mutatedKeys: DocumentKeySet,
-    fromCache: boolean,
-    syncStateChanged: boolean,
-    excludesMetadataChanges: boolean,
-    hasCachedResults: boolean
-  );
-  /** Returns a view snapshot as if all documents in the snapshot were added. */
-  static fromInitialDocuments(
-    query: Query_2,
-    documents: DocumentSet,
-    mutatedKeys: DocumentKeySet,
-    fromCache: boolean,
-    hasCachedResults: boolean
-  ): ViewSnapshot;
-  get hasPendingWrites(): boolean;
-  isEqual(other: ViewSnapshot): boolean;
+    readonly query: QueryOrPipeline;
+    readonly docs: DocumentSet;
+    readonly oldDocs: DocumentSet;
+    readonly docChanges: DocumentViewChange[];
+    readonly mutatedKeys: DocumentKeySet;
+    readonly fromCache: boolean;
+    readonly syncStateChanged: boolean;
+    readonly excludesMetadataChanges: boolean;
+    readonly hasCachedResults: boolean;
+    constructor(query: QueryOrPipeline, docs: DocumentSet, oldDocs: DocumentSet, docChanges: DocumentViewChange[], mutatedKeys: DocumentKeySet, fromCache: boolean, syncStateChanged: boolean, excludesMetadataChanges: boolean, hasCachedResults: boolean);
+    /** Returns a view snapshot as if all documents in the snapshot were added. */
+    static fromInitialDocuments(query: QueryOrPipeline, documents: DocumentSet, mutatedKeys: DocumentKeySet, fromCache: boolean, hasCachedResults: boolean): ViewSnapshot;
+    get hasPendingWrites(): boolean;
+    isEqual(other: ViewSnapshot): boolean;
 }
 
 /**
@@ -8232,9 +7809,7 @@ declare class ViewSnapshot {
  * @returns A `Promise` which resolves when all currently pending writes have been
  * acknowledged by the backend.
  */
-export declare function waitForPendingWrites(
-  firestore: Firestore
-): Promise<void>;
+export declare function waitForPendingWrites(firestore: Firestore): Promise<void>;
 
 /**
  * Creates a {@link QueryFieldFilterConstraint} that enforces that documents
@@ -8247,42 +7822,22 @@ export declare function waitForPendingWrites(
  * @param value - The value for comparison
  * @returns The created {@link QueryFieldFilterConstraint}.
  */
-export declare function where(
-  fieldPath: string | FieldPath,
-  opStr: WhereFilterOp,
-  value: unknown
-): QueryFieldFilterConstraint;
+export declare function where(fieldPath: string | FieldPath, opStr: WhereFilterOp, value: unknown): QueryFieldFilterConstraint;
 
 /**
  * Filter conditions in a {@link where} clause are specified using the
  * strings '&lt;', '&lt;=', '==', '!=', '&gt;=', '&gt;', 'array-contains', 'in',
  * 'array-contains-any', and 'not-in'.
  */
-export declare type WhereFilterOp =
-  | '<'
-  | '<='
-  | '=='
-  | '!='
-  | '>='
-  | '>'
-  | 'array-contains'
-  | 'in'
-  | 'array-contains-any'
-  | 'not-in';
+export declare type WhereFilterOp = '<' | '<=' | '==' | '!=' | '>=' | '>' | 'array-contains' | 'in' | 'array-contains-any' | 'not-in';
 
 /**
  * Allows FieldValues to be passed in as a property value while maintaining
  * type safety.
  */
-export declare type WithFieldValue<T> =
-  | T
-  | (T extends Primitive
-      ? T
-      : T extends {}
-      ? {
-          [K in keyof T]: WithFieldValue<T[K]> | FieldValue;
-        }
-      : never);
+export declare type WithFieldValue<T> = T | (T extends Primitive ? T : T extends {} ? {
+    [K in keyof T]: WithFieldValue<T[K]> | FieldValue;
+} : never);
 
 /**
  * A write batch, used to perform multiple writes as a single atomic unit.
@@ -8293,105 +7848,85 @@ export declare type WithFieldValue<T> =
  * called.
  */
 export declare class WriteBatch {
-  private readonly _firestore;
-  private readonly _commitHandler;
-  private readonly _dataReader;
-  private _mutations;
-  private _committed;
-  /** @hideconstructor */
-  constructor(
-    _firestore: Firestore_2,
-    _commitHandler: (m: Mutation[]) => Promise<void>
-  );
-  /**
-   * Writes to the document referred to by the provided {@link
-   * DocumentReference}. If the document does not exist yet, it will be created.
-   *
-   * @param documentRef - A reference to the document to be set.
-   * @param data - An object of the fields and values for the document.
-   * @returns This `WriteBatch` instance. Used for chaining method calls.
-   */
-  set<AppModelType, DbModelType extends DocumentData>(
-    documentRef: DocumentReference<AppModelType, DbModelType>,
-    data: WithFieldValue<AppModelType>
-  ): WriteBatch;
-  /**
-   * Writes to the document referred to by the provided {@link
-   * DocumentReference}. If the document does not exist yet, it will be created.
-   * If you provide `merge` or `mergeFields`, the provided data can be merged
-   * into an existing document.
-   *
-   * @param documentRef - A reference to the document to be set.
-   * @param data - An object of the fields and values for the document.
-   * @param options - An object to configure the set behavior.
-   * @throws Error - If the provided input is not a valid Firestore document.
-   * @returns This `WriteBatch` instance. Used for chaining method calls.
-   */
-  set<AppModelType, DbModelType extends DocumentData>(
-    documentRef: DocumentReference<AppModelType, DbModelType>,
-    data: PartialWithFieldValue<AppModelType>,
-    options: SetOptions
-  ): WriteBatch;
-  /**
-   * Updates fields in the document referred to by the provided {@link
-   * DocumentReference}. The update will fail if applied to a document that does
-   * not exist.
-   *
-   * @param documentRef - A reference to the document to be updated.
-   * @param data - An object containing the fields and values with which to
-   * update the document. Fields can contain dots to reference nested fields
-   * within the document.
-   * @throws Error - If the provided input is not valid Firestore data.
-   * @returns This `WriteBatch` instance. Used for chaining method calls.
-   */
-  update<AppModelType, DbModelType extends DocumentData>(
-    documentRef: DocumentReference<AppModelType, DbModelType>,
-    data: UpdateData<DbModelType>
-  ): WriteBatch;
-  /**
-   * Updates fields in the document referred to by this {@link
-   * DocumentReference}. The update will fail if applied to a document that does
-   * not exist.
-   *
-   * Nested fields can be update by providing dot-separated field path strings
-   * or by providing `FieldPath` objects.
-   *
-   * @param documentRef - A reference to the document to be updated.
-   * @param field - The first field to update.
-   * @param value - The first value.
-   * @param moreFieldsAndValues - Additional key value pairs.
-   * @throws Error - If the provided input is not valid Firestore data.
-   * @returns This `WriteBatch` instance. Used for chaining method calls.
-   */
-  update<AppModelType, DbModelType extends DocumentData>(
-    documentRef: DocumentReference<AppModelType, DbModelType>,
-    field: string | FieldPath,
-    value: unknown,
-    ...moreFieldsAndValues: unknown[]
-  ): WriteBatch;
-  /**
-   * Deletes the document referred to by the provided {@link DocumentReference}.
-   *
-   * @param documentRef - A reference to the document to be deleted.
-   * @returns This `WriteBatch` instance. Used for chaining method calls.
-   */
-  delete<AppModelType, DbModelType extends DocumentData>(
-    documentRef: DocumentReference<AppModelType, DbModelType>
-  ): WriteBatch;
-  /**
-   * Commits all of the writes in this write batch as a single atomic unit.
-   *
-   * The result of these writes will only be reflected in document reads that
-   * occur after the returned promise resolves. If the client is offline, the
-   * write fails. If you would like to see local modifications or buffer writes
-   * until the client is online, use the full Firestore SDK.
-   *
-   * @returns A `Promise` resolved once all of the writes in the batch have been
-   * successfully written to the backend as an atomic unit (note that it won't
-   * resolve while you're offline).
-   */
-  commit(): Promise<void>;
-  private _verifyNotCommitted;
+    private readonly _firestore;
+    private readonly _commitHandler;
+    private readonly _dataReader;
+    private _mutations;
+    private _committed;
+    /** @hideconstructor */
+    constructor(_firestore: Firestore_2, _commitHandler: (m: Mutation[]) => Promise<void>);
+    /**
+     * Writes to the document referred to by the provided {@link
+     * DocumentReference}. If the document does not exist yet, it will be created.
+     *
+     * @param documentRef - A reference to the document to be set.
+     * @param data - An object of the fields and values for the document.
+     * @returns This `WriteBatch` instance. Used for chaining method calls.
+     */
+    set<AppModelType, DbModelType extends DocumentData>(documentRef: DocumentReference<AppModelType, DbModelType>, data: WithFieldValue<AppModelType>): WriteBatch;
+    /**
+     * Writes to the document referred to by the provided {@link
+     * DocumentReference}. If the document does not exist yet, it will be created.
+     * If you provide `merge` or `mergeFields`, the provided data can be merged
+     * into an existing document.
+     *
+     * @param documentRef - A reference to the document to be set.
+     * @param data - An object of the fields and values for the document.
+     * @param options - An object to configure the set behavior.
+     * @throws Error - If the provided input is not a valid Firestore document.
+     * @returns This `WriteBatch` instance. Used for chaining method calls.
+     */
+    set<AppModelType, DbModelType extends DocumentData>(documentRef: DocumentReference<AppModelType, DbModelType>, data: PartialWithFieldValue<AppModelType>, options: SetOptions): WriteBatch;
+    /**
+     * Updates fields in the document referred to by the provided {@link
+     * DocumentReference}. The update will fail if applied to a document that does
+     * not exist.
+     *
+     * @param documentRef - A reference to the document to be updated.
+     * @param data - An object containing the fields and values with which to
+     * update the document. Fields can contain dots to reference nested fields
+     * within the document.
+     * @throws Error - If the provided input is not valid Firestore data.
+     * @returns This `WriteBatch` instance. Used for chaining method calls.
+     */
+    update<AppModelType, DbModelType extends DocumentData>(documentRef: DocumentReference<AppModelType, DbModelType>, data: UpdateData<DbModelType>): WriteBatch;
+    /**
+     * Updates fields in the document referred to by this {@link
+     * DocumentReference}. The update will fail if applied to a document that does
+     * not exist.
+     *
+     * Nested fields can be update by providing dot-separated field path strings
+     * or by providing `FieldPath` objects.
+     *
+     * @param documentRef - A reference to the document to be updated.
+     * @param field - The first field to update.
+     * @param value - The first value.
+     * @param moreFieldsAndValues - Additional key value pairs.
+     * @throws Error - If the provided input is not valid Firestore data.
+     * @returns This `WriteBatch` instance. Used for chaining method calls.
+     */
+    update<AppModelType, DbModelType extends DocumentData>(documentRef: DocumentReference<AppModelType, DbModelType>, field: string | FieldPath, value: unknown, ...moreFieldsAndValues: unknown[]): WriteBatch;
+    /**
+     * Deletes the document referred to by the provided {@link DocumentReference}.
+     *
+     * @param documentRef - A reference to the document to be deleted.
+     * @returns This `WriteBatch` instance. Used for chaining method calls.
+     */
+    delete<AppModelType, DbModelType extends DocumentData>(documentRef: DocumentReference<AppModelType, DbModelType>): WriteBatch;
+    /**
+     * Commits all of the writes in this write batch as a single atomic unit.
+     *
+     * The result of these writes will only be reflected in document reads that
+     * occur after the returned promise resolves. If the client is offline, the
+     * write fails. If you would like to see local modifications or buffer writes
+     * until the client is online, use the full Firestore SDK.
+     *
+     * @returns A `Promise` resolved once all of the writes in the batch have been
+     * successfully written to the backend as an atomic unit (note that it won't
+     * resolve while you're offline).
+     */
+    commit(): Promise<void>;
+    private _verifyNotCommitted;
 }
 
 /**
@@ -8407,4 +7942,4 @@ export declare class WriteBatch {
  */
 export declare function writeBatch(firestore: Firestore): WriteBatch;
 
-export {};
+export { }

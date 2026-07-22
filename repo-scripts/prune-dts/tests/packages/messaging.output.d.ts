@@ -17,9 +17,17 @@ import { Unsubscribe } from '@firebase/util';
  * Deletes the registration token associated with this {@link Messaging} instance and unsubscribes
  * the {@link Messaging} instance from the push subscription.
  *
+ * If there is no legacy registration token but the client has FID-based registration metadata
+ * (from {@link register}), this deletes that registration on the server, clears local metadata, and
+ * invokes {@link onUnregistered} with the removed FID when successful.
+ *
  * @param messaging - The {@link Messaging} instance.
  *
  * @returns The promise resolves when the token has been successfully deleted.
+ *
+ * @deprecated Use {@link onUnregistered} to observe when the client is no longer
+ * registered and update your backend accordingly, instead of explicitly deleting the
+ * registration token with this API.
  *
  * @public
  */
@@ -66,6 +74,9 @@ export declare function getMessaging(app?: FirebaseApp): Messaging;
  * @param options - Provides an optional vapid key and an optional service worker registration.
  *
  * @returns The promise resolves with an FCM registration token.
+ *
+ * @deprecated Use {@link register} together with {@link onRegistered} for Firebase
+ * Installation ID-based messaging instead of retrieving an FCM registration token with this API.
  *
  * @public
  */
@@ -221,6 +232,77 @@ export declare function onMessage(
   messaging: Messaging,
   nextOrObserver: NextFn<MessagePayload> | Observer<MessagePayload>
 ): Unsubscribe;
+
+/**
+ * Subscribes to an event that the app instance is registered with FCM via Firebase Installation ID (FID).
+ * Use the FID passed to the callback to upload it to your application server. When you receive an FID
+ * after calling {@link register}, instruct your backend to remove any legacy token for this instance.
+ *
+ * @param messaging - The {@link Messaging} instance.
+ * @param nextOrObserver - A function or observer object called when an FID is registered.
+ * @returns Unsubscribe function to stop listening.
+ *
+ * @public
+ */
+export declare function onRegistered(
+  messaging: Messaging,
+  nextOrObserver: NextFn<string> | Observer<string>
+): Unsubscribe;
+
+/**
+ * Subscribes to an event that the app instance is unregistered from FCM (FID no longer active).
+ * Use this to notify your backend to remove this FID to prevent 404 errors on send.
+ *
+ * @param messaging - The {@link Messaging} instance.
+ * @param nextOrObserver - A function or observer object called with the unregistered FID.
+ * @returns Unsubscribe function to stop listening.
+ *
+ * @public
+ */
+export declare function onUnregistered(
+  messaging: Messaging,
+  nextOrObserver: NextFn<string> | Observer<string>
+): Unsubscribe;
+
+/**
+ * Registers the app instance with FCM using its Firebase Installation ID (FID). The FID is
+ * delivered via the {@link onRegistered} callback, not as a return value. Call this to establish
+ * an FID-based identity; once {@link onRegistered} provides an FID, instruct your backend to
+ * remove any legacy token previously associated with this instance. The backend send API
+ * supports FID as a target.
+ *
+ * @param messaging - The {@link Messaging} instance.
+ * @param options - Optional. VAPID key and/or service worker registration (same as getToken).
+ * @returns Promise that resolves when registration has been initiated; FID is delivered via onRegistered.
+ *
+ * @public
+ */
+export declare function register(
+  messaging: Messaging,
+  options?: RegisterOptions
+): Promise<void>;
+
+/**
+ * Options for {@link register}. Same shape as GetTokenOptions for SW and VAPID configuration.
+ *
+ * @public
+ */
+export declare interface RegisterOptions {
+  /** Optional VAPID key. See {@link GetTokenOptions.vapidKey}. */
+  vapidKey?: string;
+  /** Optional service worker registration. See {@link GetTokenOptions.serviceWorkerRegistration}. */
+  serviceWorkerRegistration?: ServiceWorkerRegistration;
+}
+
+/**
+ * Unregisters the app instance from FCM by deleting its FID-based registration.
+ * On success, triggers {@link onUnregistered} (if registered) with the unregistered FID.
+ *
+ * @param messaging - The {@link Messaging} instance.
+ *
+ * @public
+ */
+export declare function unregister(messaging: Messaging): Promise<void>;
 export { Unsubscribe };
 
 export {};

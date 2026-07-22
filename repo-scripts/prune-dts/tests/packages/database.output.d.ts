@@ -4,17 +4,10 @@
  * @packageDocumentation
  */
 
-import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
-import { AppCheckTokenListener } from '@firebase/app-check-interop-types';
-import { AppCheckTokenResult } from '@firebase/app-check-interop-types';
 import { EmulatorMockTokenOptions } from '@firebase/util';
+
 import { FirebaseApp } from '@firebase/app';
-import { FirebaseApp as FirebaseApp_2 } from '@firebase/app-types';
-import { FirebaseAppCheckInternal } from '@firebase/app-check-interop-types';
-import { FirebaseAuthInternal } from '@firebase/auth-interop-types';
-import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
-import { FirebaseAuthTokenData } from '@firebase/app-types/private';
-import { Provider } from '@firebase/component';
+
 /**
  * Gets a `Reference` for the location at the specified relative path.
  *
@@ -1576,7 +1569,10 @@ export declare function startAt(
  */
 export declare interface ThenableReference
   extends DatabaseReference,
-    Pick<Promise<DatabaseReference>, 'then' | 'catch'> {}
+    Pick<Promise<DatabaseReference>, 'then' | 'catch'> {
+  key: string;
+  parent: DatabaseReference;
+}
 
 /** An options object to configure transactions. */
 export declare interface TransactionOptions {
