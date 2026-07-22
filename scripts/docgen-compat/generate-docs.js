@@ -17,7 +17,8 @@
 
 const { exec } = require('child-process-promise');
 const yargs = require('yargs');
-const fs = require('mz/fs');
+const fs = require('fs/promises');
+const { existsSync } = require('fs');
 const path = require('path');
 const yaml = require('js-yaml');
 
@@ -72,16 +73,12 @@ function runTypedoc() {
  */
 function moveFilesToRoot(subdir) {
   const srcDir = `${docPath}/${subdir}`;
-  return fs
-    .exists(srcDir)
-    .then(exists => {
-      if (exists) {
-        return exec(`mv ${srcDir}/* ${docPath}`).then(() => {
-          exec(`rmdir ${srcDir}`);
-        });
-      }
-    })
-    .catch(e => console.error(e));
+  if (existsSync(srcDir)) {
+    return exec(`mv ${srcDir}/* ${docPath}`)
+      .then(() => exec(`rmdir ${srcDir}`))
+      .catch(e => console.error(e));
+  }
+  return Promise.resolve();
 }
 
 /**
@@ -172,19 +169,17 @@ function checkForMissingFilesAndFixFilenameCase() {
     const tocFilePath = `${docPath}/${filename}.html`;
     // Generated filename from Typedoc will be lowercase.
     const generatedFilePath = `${docPath}/${filename.toLowerCase()}.html`;
-    return fs.exists(generatedFilePath).then(exists => {
-      if (exists) {
-        // Store in a lookup table for link fixing.
-        lowerToUpperLookup[`${filename.toLowerCase()}.html`] =
-          `${filename}.html`;
-        return fs.rename(generatedFilePath, tocFilePath);
-      } else {
-        console.warn(
-          `Missing file: ${filename}.html requested ` +
-            `in toc.yaml but not found in ${docPath}`
-        );
-      }
-    });
+    if (existsSync(generatedFilePath)) {
+      // Store in a lookup table for link fixing.
+      lowerToUpperLookup[`${filename.toLowerCase()}.html`] = `${filename}.html`;
+      return fs.rename(generatedFilePath, tocFilePath);
+    } else {
+      console.warn(
+        `Missing file: ${filename}.html requested ` +
+          `in toc.yaml but not found in ${docPath}`
+      );
+      return Promise.resolve();
+    }
   });
   return Promise.all(fileCheckPromises).then(() => filenames);
 }

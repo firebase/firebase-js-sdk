@@ -20,7 +20,7 @@ const { exec } = require('child-process-promise');
 const { homedir } = require('os');
 const firebaseTools = require('firebase-tools');
 const inquirer = require('inquirer');
-const fs = require('mz/fs');
+const fs = require('fs/promises');
 const path = require('path');
 
 // Command Line Arguments
