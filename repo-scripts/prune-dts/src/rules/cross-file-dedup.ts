@@ -47,6 +47,7 @@ export function deduplicateCrossFileExports(
 
   const statements = sourceFile.getStatements();
   const importsToAdd: Array<{ name: string; moduleSpecifier: string }> = [];
+  const toRemove: typeof statements = [];
 
   for (const stmt of statements) {
     const kind = stmt.getKind();
@@ -61,9 +62,16 @@ export function deduplicateCrossFileExports(
       if (name && externalSymbols.has(name)) {
         const moduleSpecifier = externalSymbols.get(name)!;
         importsToAdd.push({ name, moduleSpecifier });
-        stmt.remove();
+        toRemove.push(stmt);
       }
     }
+  }
+
+  for (const stmt of toRemove) {
+    if (typeof (stmt as any).wasForgotten === 'function' && (stmt as any).wasForgotten()) {
+      continue;
+    }
+    stmt.remove();
   }
 
   // Add individual type imports right at the top of the file in order of occurrence

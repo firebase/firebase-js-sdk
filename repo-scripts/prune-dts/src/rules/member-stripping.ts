@@ -6,26 +6,28 @@ import { SourceFile, SyntaxKind } from 'ts-morph';
  * identifiers untouched.
  */
 export function stripPrivateMembers(sourceFile: SourceFile): void {
+  const membersToRemove: { remove: () => void; wasForgotten?: () => boolean }[] = [];
+
   const classes = sourceFile.getDescendantsOfKind(SyntaxKind.ClassDeclaration);
   for (const cls of classes) {
     for (const prop of cls.getProperties()) {
       if (prop.getName().startsWith('_')) {
-        prop.remove();
+        membersToRemove.push(prop);
       }
     }
     for (const method of cls.getMethods()) {
       if (method.getName().startsWith('_')) {
-        method.remove();
+        membersToRemove.push(method);
       }
     }
     for (const getAcc of cls.getGetAccessors()) {
       if (getAcc.getName().startsWith('_')) {
-        getAcc.remove();
+        membersToRemove.push(getAcc);
       }
     }
     for (const setAcc of cls.getSetAccessors()) {
       if (setAcc.getName().startsWith('_')) {
-        setAcc.remove();
+        membersToRemove.push(setAcc);
       }
     }
   }
@@ -36,13 +38,20 @@ export function stripPrivateMembers(sourceFile: SourceFile): void {
   for (const iface of interfaces) {
     for (const prop of iface.getProperties()) {
       if (prop.getName().startsWith('_')) {
-        prop.remove();
+        membersToRemove.push(prop);
       }
     }
     for (const method of iface.getMethods()) {
       if (method.getName().startsWith('_')) {
-        method.remove();
+        membersToRemove.push(method);
       }
     }
+  }
+
+  for (const member of membersToRemove) {
+    if (typeof member.wasForgotten === 'function' && member.wasForgotten()) {
+      continue;
+    }
+    member.remove();
   }
 }

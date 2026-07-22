@@ -4,6 +4,12 @@ import { SourceFile, Statement, SyntaxKind } from 'ts-morph';
  * Removes top-level declarations that are not exported.
  */
 export function filterTopLevelDeclarations(sourceFile: SourceFile): void {
+  const exportSpecifierNames = new Set(
+    sourceFile
+      .getDescendantsOfKind(SyntaxKind.ExportSpecifier)
+      .map((spec) => spec.getName())
+  );
+
   const statements: Statement[] = [
     ...sourceFile.getStatements(),
     ...sourceFile.getModules().flatMap((m) => m.getStatements())
@@ -31,7 +37,7 @@ export function filterTopLevelDeclarations(sourceFile: SourceFile): void {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const name = typeof (stmt as any).getName === 'function' ? (stmt as any).getName() : null;
       // Check if the declaration lacks an inline `export` keyword but is exported in a separate `export { Name }` block.
-      if (name && isNameInExportDeclarations(name, sourceFile)) {
+      if (name && exportSpecifierNames.has(name)) {
         continue;
       }
       toRemove.push(stmt);
@@ -45,17 +51,4 @@ export function filterTopLevelDeclarations(sourceFile: SourceFile): void {
     }
     node.remove();
   }
-}
-
-/**
- * Checks if an identifier is exported via a separate `export { Specifier }` statement in the file.
- */
-function isNameInExportDeclarations(name: string, sourceFile: SourceFile): boolean {
-  const exportSpecs = sourceFile.getDescendantsOfKind(SyntaxKind.ExportSpecifier);
-  for (const spec of exportSpecs) {
-    if (spec.getName() === name) {
-      return true;
-    }
-  }
-  return false;
 }

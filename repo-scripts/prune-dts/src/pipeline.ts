@@ -17,6 +17,9 @@ export function pruneDts(
   otherExportFileLocations: string[] = []
 ): void {
   const project = new Project({
+    skipAddingFilesFromTsConfig: true,
+    skipFileDependencyResolution: true,
+    skipLoadingLibFiles: true,
     compilerOptions: {
       declaration: true,
       noEmitOnError: false,
@@ -32,8 +35,11 @@ export function pruneDts(
   // `extends` and `implements` clauses can be inspected before flattenInheritance strips them.
   deduplicateCrossFileExports(sourceFile, otherExportFileLocations);
   substitutePrivateTypeReferences(sourceFile);
+  sourceFile.forgetDescendants();
   flattenInheritance(sourceFile);
+  sourceFile.forgetDescendants();
   stripPrivateMembers(sourceFile);
+  sourceFile.forgetDescendants();
   hideConstructors(sourceFile);
   filterTopLevelDeclarations(sourceFile);
 

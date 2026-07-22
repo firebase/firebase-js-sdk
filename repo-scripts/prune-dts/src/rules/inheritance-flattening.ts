@@ -346,6 +346,14 @@ function copyDeclarationMembers(
         ...sourceDecl.getChildrenOfKind(SyntaxKind.ConstructSignature)
       ];
 
+  const propertiesToAdd: any[] = [];
+  const methodsToAdd: any[] = [];
+  const getAccessorsToAdd: any[] = [];
+  const setAccessorsToAdd: any[] = [];
+  const indexSignaturesToAdd: any[] = [];
+  const callSignaturesToAdd: any[] = [];
+  const constructSignaturesToAdd: any[] = [];
+
   for (const member of sourceMembers) {
     const kind = member.getKind();
 

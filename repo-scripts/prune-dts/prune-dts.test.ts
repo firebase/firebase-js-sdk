@@ -77,8 +77,7 @@ function discoverUnitSuites(): UnitSuite[] {
 
 function discoverPackageCases(): TestCase[] {
   const packagesDir = path.resolve(testCasesDir, 'packages');
-  const pruneOnlyDir = path.resolve(packagesDir, 'prune-only');
-  if (!fs.existsSync(packagesDir) || !fs.existsSync(pruneOnlyDir)) {return [];}
+  if (!fs.existsSync(packagesDir)) {return [];}
   return fs
     .readdirSync(packagesDir)
     .filter(fileName => testDataFilter.test(fileName))
@@ -88,13 +87,13 @@ function discoverPackageCases(): TestCase[] {
         name: testCaseName.replace(/-/g, ' '),
         baseName: testCaseName,
         absoluteInputFile: path.join(packagesDir, `${testCaseName}.input.d.ts`),
-        absoluteOutputFile: path.join(pruneOnlyDir, `${testCaseName}.output.d.ts`)
+        absoluteOutputFile: path.join(packagesDir, `${testCaseName}.output.d.ts`)
       };
     });
 }
 
 /**
- * Controls suite filtering (`unit`, `production`, or `all`).
+ * Controls suite filtering (`unit`, `production`, `packages`, or `all`).
  */
 const testMode = process.env.TEST_MODE || 'all';
 
@@ -221,107 +220,49 @@ describe('Prune DTS', () => {
   if (
     testMode === 'all' ||
     testMode === 'production' ||
-    testMode === 'stage1' ||
-    testMode === 'stage2'
+    testMode === 'packages'
   ) {
-    describe('Production Regressions', () => {
+    describe('Package Regressions', () => {
+      const packagesDir = path.resolve(testCasesDir, 'packages');
       for (const testCase of productionCases) {
-        const pkgName = testCase.name;
-        const pkgBaseName = testCase.baseName;
-        const { absoluteInputFile } = testCase;
-        const absoluteStage1Output = path.resolve(
-          testCasesDir,
-          'packages',
-          'prune-only',
-          `${pkgBaseName}.output.d.ts`
-        );
-        const absoluteStage2Output = path.resolve(
-          testCasesDir,
-          'packages',
-          'post-processed',
-          `${pkgBaseName}.output.d.ts`
-        );
-        const hasStage2 = fs.existsSync(absoluteStage2Output);
+        it(`Package: ${testCase.name}`, async function () {
+          this.timeout(60000);
+          const otherExports =
+            testCase.baseName === 'firestore-pipelines'
+              ? [path.resolve(packagesDir, 'firestore.input.d.ts')]
+              : [];
 
-        describe(`Package: ${pkgName}`, () => {
-          let stage1TmpFile: string;
+          const tmpFile = await runScript(
+            testCase.absoluteInputFile,
+            otherExports
+          );
 
-          if (
-            testMode === 'all' ||
-            testMode === 'production' ||
-            testMode === 'stage1'
-          ) {
-            it('AST Pruning (prune-only)', async () => {
-              stage1TmpFile = await runScript(absoluteInputFile);
-              const prettierConfig = await resolveConfig(absoluteInputFile);
+          await addBlankLines(tmpFile);
+          await removeUnusedImports(tmpFile);
 
-              const expectedUnformatted = fs.readFileSync(
-                absoluteStage1Output,
-                'utf-8'
-              );
-              const expected = await format(expectedUnformatted, {
-                filepath: absoluteStage1Output,
-                ...prettierConfig
-              });
-              const actualUnformatted = fs.readFileSync(stage1TmpFile, 'utf-8');
-              const actual = await format(actualUnformatted, {
-                filepath: stage1TmpFile,
-                ...prettierConfig
-              });
+          const prettierConfig = await resolveConfig(
+            testCase.absoluteInputFile
+          );
+          const expectedUnformatted = fs.readFileSync(
+            testCase.absoluteOutputFile,
+            'utf-8'
+          );
+          const expected = await format(expectedUnformatted, {
+            filepath: testCase.absoluteOutputFile,
+            ...prettierConfig
+          });
+          const actualUnformatted = fs.readFileSync(tmpFile, 'utf-8');
+          const actual = await format(actualUnformatted, {
+            filepath: tmpFile,
+            ...prettierConfig
+          });
 
-              assertAndReport(
-                actual,
-                expected,
-                `${pkgBaseName}-stage1`,
-                absoluteStage1Output
-              );
-            });
-          }
-
-          if (
-            hasStage2 &&
-            (testMode === 'all' ||
-              testMode === 'production' ||
-              testMode === 'stage2')
-          ) {
-            it('Full Pipeline (post-processed)', async function () {
-              if (!stage1TmpFile || !fs.existsSync(stage1TmpFile)) {
-                this.skip();
-              }
-              const failDir = path.resolve('/tmp', 'prune-dts-failures');
-              fs.mkdirSync(failDir, { recursive: true });
-              const stage2TmpFile = path.resolve(
-                failDir,
-                `${pkgBaseName}-stage2.tmp.d.ts`
-              );
-              fs.copyFileSync(stage1TmpFile, stage2TmpFile);
-
-              await addBlankLines(stage2TmpFile);
-              await removeUnusedImports(stage2TmpFile);
-
-              const prettierConfig = await resolveConfig(absoluteInputFile);
-              const expectedUnformatted = fs.readFileSync(
-                absoluteStage2Output,
-                'utf-8'
-              );
-              const expected = await format(expectedUnformatted, {
-                filepath: absoluteStage2Output,
-                ...prettierConfig
-              });
-              const actualUnformatted = fs.readFileSync(stage2TmpFile, 'utf-8');
-              const actual = await format(actualUnformatted, {
-                filepath: stage2TmpFile,
-                ...prettierConfig
-              });
-
-              assertAndReport(
-                actual,
-                expected,
-                `${pkgBaseName}-stage2`,
-                absoluteStage2Output
-              );
-            });
-          }
+          assertAndReport(
+            actual,
+            expected,
+            testCase.name,
+            testCase.absoluteOutputFile
+          );
         });
       }
     });

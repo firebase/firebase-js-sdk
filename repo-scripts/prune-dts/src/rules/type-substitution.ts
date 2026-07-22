@@ -12,6 +12,13 @@ import {
  * with their closest exported subclass, superclass, or resolved type alias.
  */
 export function substitutePrivateTypeReferences(sourceFile: SourceFile): void {
+  const exportSpecifierNames = new Set(
+    sourceFile
+      .getDescendantsOfKind(SyntaxKind.ExportSpecifier)
+      .map((spec) => spec.getName())
+  );
+  const replacementCache = new Map<Node, string | undefined>();
+
   let changed = true;
   let iterations = 0;
   const maxIterations = 20;
@@ -30,7 +37,7 @@ export function substitutePrivateTypeReferences(sourceFile: SourceFile): void {
 
         // Check if the declaration enclosing this typeRef is unexported; if so, skip unless needed
         const topLevelDecl = getTopLevelDeclaration(typeRef);
-        if (topLevelDecl && !isDeclarationExported(topLevelDecl)) {
+        if (topLevelDecl && !isDeclarationExported(topLevelDecl, exportSpecifierNames)) {
           continue;
         }
 
@@ -40,16 +47,23 @@ export function substitutePrivateTypeReferences(sourceFile: SourceFile): void {
         const targetDecl = findTopLevelDeclaration(typeName, sourceFile);
         if (!targetDecl) {continue;}
 
-        if (isDeclarationExported(targetDecl)) {
+        if (isDeclarationExported(targetDecl, exportSpecifierNames)) {
           continue;
         }
 
-        const visited = new Set<Node>();
-        const replacement = resolveExportedReplacement(
-          targetDecl,
-          sourceFile,
-          visited
-        );
+        let replacement: string | undefined;
+        if (replacementCache.has(targetDecl)) {
+          replacement = replacementCache.get(targetDecl);
+        } else {
+          const visited = new Set<Node>();
+          replacement = resolveExportedReplacement(
+            targetDecl,
+            sourceFile,
+            visited,
+            exportSpecifierNames
+          );
+          replacementCache.set(targetDecl, replacement);
+        }
 
         if (replacement) {
           // Keep any type arguments intact (`Promise<PrivateType>` -> `Promise<PublicReplacement>`)
@@ -76,7 +90,8 @@ export function substitutePrivateTypeReferences(sourceFile: SourceFile): void {
 function resolveExportedReplacement(
   decl: Node,
   sourceFile: SourceFile,
-  visited: Set<Node>
+  visited: Set<Node>,
+  exportSpecifierNames: Set<string>
 ): string | undefined {
   if (visited.has(decl)) {return undefined;}
   visited.add(decl);
@@ -90,7 +105,7 @@ function resolveExportedReplacement(
   // so callers receive the concrete public model type (e.g. `DocumentSnapshot` over internal `DocumentSnapshot_2`).
   const classes = sourceFile.getClasses();
   for (const cls of classes) {
-    if (isDeclarationExported(cls)) {
+    if (isDeclarationExported(cls, exportSpecifierNames)) {
       const baseClass = cls.getBaseClass();
       if (baseClass && baseClass.getName() === declName) {
         return cls.getName() || cls.getText();
@@ -109,7 +124,7 @@ function resolveExportedReplacement(
 
   const interfaces = sourceFile.getInterfaces();
   for (const iface of interfaces) {
-    if (isDeclarationExported(iface)) {
+    if (isDeclarationExported(iface, exportSpecifierNames)) {
       for (const ext of iface.getExtends()) {
         if (ext.getText().trim().split('<')[0].trim() === declName) {
           return iface.getName() || iface.getText();
@@ -123,13 +138,14 @@ function resolveExportedReplacement(
     const cls = decl as ClassDeclaration;
     const baseClass = cls.getBaseClass();
     if (baseClass) {
-      if (isDeclarationExported(baseClass)) {
+      if (isDeclarationExported(baseClass, exportSpecifierNames)) {
         return baseClass.getName() || baseClass.getText();
       } else {
         const parentRes = resolveExportedReplacement(
           baseClass,
           sourceFile,
-          visited
+          visited,
+          exportSpecifierNames
         );
         if (parentRes) {return parentRes;}
       }
@@ -138,13 +154,14 @@ function resolveExportedReplacement(
       const parentName = impl.getText().trim().split('<')[0].trim();
       const parentDecl = findTopLevelDeclaration(parentName, sourceFile);
       if (parentDecl) {
-        if (isDeclarationExported(parentDecl)) {
+        if (isDeclarationExported(parentDecl, exportSpecifierNames)) {
           return parentName;
         } else {
           const parentRes = resolveExportedReplacement(
             parentDecl,
             sourceFile,
-            visited
+            visited,
+            exportSpecifierNames
           );
           if (parentRes) {return parentRes;}
         }
@@ -158,13 +175,14 @@ function resolveExportedReplacement(
       const parentName = ext.getText().trim().split('<')[0].trim();
       const parentDecl = findTopLevelDeclaration(parentName, sourceFile);
       if (parentDecl) {
-        if (isDeclarationExported(parentDecl)) {
+        if (isDeclarationExported(parentDecl, exportSpecifierNames)) {
           return parentName;
         } else {
           const parentRes = resolveExportedReplacement(
             parentDecl,
             sourceFile,
-            visited
+            visited,
+            exportSpecifierNames
           );
           if (parentRes) {return parentRes;}
         }
@@ -206,7 +224,7 @@ function findTopLevelDeclaration(
  * Supports inline `export`/`default` keywords, separate `export { Specifier }` declarations,
  * and ambient `declare module` / `namespace` block scoping rules.
  */
-function isDeclarationExported(node: Node): boolean {
+function isDeclarationExported(node: Node, exportSpecifierNames: Set<string>): boolean {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   if (typeof (node as any).hasExportKeyword === 'function' && (node as any).hasExportKeyword()) {
     return true;
@@ -217,14 +235,8 @@ function isDeclarationExported(node: Node): boolean {
   }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const name = typeof (node as any).getName === 'function' ? (node as any).getName() : null;
-  if (name) {
-    const sourceFile = node.getSourceFile();
-    const exportDecls = sourceFile.getDescendantsOfKind(SyntaxKind.ExportSpecifier);
-    for (const exp of exportDecls) {
-      if (exp.getName() === name) {
-        return true;
-      }
-    }
+  if (name && exportSpecifierNames.has(name)) {
+    return true;
   }
   const parent = node.getParent();
   if (parent && parent.getKind() === SyntaxKind.ModuleBlock) {
