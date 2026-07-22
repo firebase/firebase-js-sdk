@@ -4,7 +4,11 @@
     "outDir": "dist",
     "jsx": "react",
     "baseUrl": ".",
-    "paths": {}
+    "paths": {
+      "@opentelemetry/browser-instrumentation/experimental/*": [
+        "../../node_modules/@opentelemetry/browser-instrumentation/dist/*"
+      ]
+    }
   },
   "exclude": [
     "dist/**/*"
