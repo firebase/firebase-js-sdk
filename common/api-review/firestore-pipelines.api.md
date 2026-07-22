@@ -1313,6 +1313,7 @@ export class Pipeline {
 
 // @public
 export interface PipelineExecuteOptions {
+    atomic?: boolean;
     indexMode?: 'recommended';
     pipeline: Pipeline;
     rawOptions?: {
