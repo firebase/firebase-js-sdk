@@ -84,6 +84,7 @@ export {
   AggregateStageOptions,
   FindNearestStageOptions,
   InsertStageOptions,
+  LiteralsStageOptions,
   ReplaceWithStageOptions,
   SampleStageOptions,
   UnionStageOptions,
