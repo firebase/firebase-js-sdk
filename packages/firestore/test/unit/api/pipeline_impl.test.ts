@@ -29,7 +29,7 @@ import {
   ExecutePipelineRequest as ProtoExecutePipelineRequest,
   ExecutePipelineResponse as ProtoExecutePipelineResponse
 } from '../../../src/protos/firestore_proto_api';
-import { constant, field } from '../../lite/pipeline_export';
+import { constant, field, multiply } from '../../lite/pipeline_export';
 import { collectionReference, newTestFirestore } from '../../util/api_helpers';
 import { describe } from '../../util/mocha_extensions';
 
@@ -495,6 +495,104 @@ describe('stage serialization', () => {
       expect(upsertStage?.args?.[0]?.mapValue?.fields).to.deep.equal({
         name: { stringValue: 'Bob' },
         finalScore: { fieldReferenceValue: 'score' }
+      });
+    });
+  });
+
+  describe('literals stage', () => {
+    it('serializes literals stage with varargs overload', async () => {
+      const firestore = newTestFirestore();
+      const spy = fakePipelineResponse(firestore);
+
+      await execute(
+        firestore
+          .pipeline()
+          .literals(
+            { name: 'Alice', age: 30 },
+            { name: 'Bob', age: 25 }
+          )
+      );
+
+      const req = spy.args[0][EXECUTE_PIPELINE_REQUEST] as ProtoExecutePipelineRequest;
+      const literalsStage = req.structuredPipeline?.pipeline?.stages?.[0];
+      expect(literalsStage).to.deep.equal({
+        name: 'literals',
+        options: {},
+        args: [
+          {
+            mapValue: {
+              fields: {
+                name: { stringValue: 'Alice' },
+                age: { integerValue: '30' }
+              }
+            }
+          },
+          {
+            mapValue: {
+              fields: {
+                name: { stringValue: 'Bob' },
+                age: { integerValue: '25' }
+              }
+            }
+          }
+        ]
+      });
+    });
+
+    it('serializes literals stage with options overload', async () => {
+      const firestore = newTestFirestore();
+      const spy = fakePipelineResponse(firestore);
+
+      await execute(
+        firestore
+          .pipeline()
+          .literals({
+            documents: [{ item: 'apple', count: 10 }]
+          })
+      );
+
+      const req = spy.args[0][EXECUTE_PIPELINE_REQUEST] as ProtoExecutePipelineRequest;
+      const literalsStage = req.structuredPipeline?.pipeline?.stages?.[0];
+      expect(literalsStage).to.deep.equal({
+        name: 'literals',
+        options: {},
+        args: [
+          {
+            mapValue: {
+              fields: {
+                item: { stringValue: 'apple' },
+                count: { integerValue: '10' }
+              }
+            }
+          }
+        ]
+      });
+    });
+
+    it('serializes literals stage with expressions inside maps', async () => {
+      const firestore = newTestFirestore();
+      const spy = fakePipelineResponse(firestore);
+
+      await execute(
+        firestore
+          .pipeline()
+          .literals({
+            base: 10,
+            calc: multiply(constant(10), constant(2))
+          })
+      );
+
+      const req = spy.args[0][EXECUTE_PIPELINE_REQUEST] as ProtoExecutePipelineRequest;
+      const literalsStage = req.structuredPipeline?.pipeline?.stages?.[0];
+      expect(literalsStage?.name).to.equal('literals');
+      expect(literalsStage?.args?.[0]?.mapValue?.fields?.base).to.deep.equal({
+        integerValue: '10'
+      });
+      expect(literalsStage?.args?.[0]?.mapValue?.fields?.calc).to.deep.equal({
+        functionValue: {
+          name: 'multiply',
+          args: [{ integerValue: '10' }, { integerValue: '2' }]
+        }
       });
     });
   });

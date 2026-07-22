@@ -461,3 +461,15 @@ export type UpsertStageOptions = StageOptions & {
    */
   documentId?: string | Expression;
 };
+
+/**
+ * Options defining how a LiteralsSource stage is evaluated.
+ * @beta
+ */
+export type LiteralsStageOptions = StageOptions & {
+  /**
+   * Array of document objects (maps) to be provided as literal inputs.
+   */
+  documents?: Array<Record<string, unknown>>;
+};
+

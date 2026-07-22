@@ -32,6 +32,7 @@ import {
   CollectionSource,
   DatabaseSource,
   DocumentsSource,
+  LiteralsSource,
   Stage,
   SubcollectionSource
 } from './stage';
@@ -40,6 +41,7 @@ import {
   CollectionStageOptions,
   DatabaseStageOptions,
   DocumentsStageOptions,
+  LiteralsStageOptions,
   SubcollectionStageOptions
 } from './stage_options';
 import { UserDataReader, UserDataSource } from './user_data_reader';
@@ -238,6 +240,54 @@ export class PipelineSource<PipelineType> {
     stage._readUserData(parseContext);
 
     // Add stage to the pipeline
+    return this._createPipeline([stage]);
+  }
+
+  /**
+   * Set the pipeline's source to in-memory literal document objects.
+   *
+   * @param document - A document object (key-value map).
+   * @param additionalDocuments - Optional additional document objects.
+   */
+  literals(
+    document: Record<string, unknown>,
+    ...additionalDocuments: Array<Record<string, unknown>>
+  ): PipelineType;
+
+  /**
+   * Set the pipeline's source to in-memory literal document objects with options.
+   *
+   * @param options - Options containing the documents array.
+   */
+  literals(options: LiteralsStageOptions): PipelineType;
+  literals(
+    docOrOptions: Record<string, unknown> | LiteralsStageOptions,
+    ...additionalDocuments: Array<Record<string, unknown>>
+  ): PipelineType {
+    let documents: Array<Record<string, unknown>>;
+    let options: LiteralsStageOptions = {};
+
+    if (
+      'documents' in docOrOptions &&
+      Array.isArray((docOrOptions as LiteralsStageOptions).documents) &&
+      additionalDocuments.length === 0
+    ) {
+      ({ documents, ...options } = docOrOptions as LiteralsStageOptions);
+    } else {
+      documents = [
+        docOrOptions as Record<string, unknown>,
+        ...additionalDocuments
+      ];
+    }
+
+    const stage = new LiteralsSource(documents, options);
+
+    const parseContext = this.userDataReader.createContext(
+      UserDataSource.Argument,
+      'literals'
+    );
+    stage._readUserData(parseContext);
+
     return this._createPipeline([stage]);
   }
 
