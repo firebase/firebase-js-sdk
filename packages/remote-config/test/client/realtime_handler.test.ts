@@ -1077,7 +1077,7 @@ describe('RealtimeHandler', () => {
 
       await (realtime as any).prepareAndBeginRealtimeHttpStream();
 
-      expect(propagateErrorSpy).to.have.been.calledOnce;
+      expect(propagateErrorSpy).not.to.have.been.called;
     });
 
     it('should propagate CONFIG_UPDATE_STREAM_ERROR if retries are exhausted', async () => {
