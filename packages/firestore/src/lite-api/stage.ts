@@ -38,21 +38,25 @@ import {
   AliasedExpression,
   BooleanExpression,
   constant,
+  _constant,
   Expression,
   Field,
   field,
+  isExpr,
   Ordering
 } from './expressions';
 import { Pipeline } from './pipeline';
 import { CollectionReference } from './reference';
 import {
   InsertStageOptions,
+  LiteralsStageOptions,
   QueryEnhancement,
   StageOptions,
   UpsertStageOptions
 } from './stage_options';
 import { isUserData, UserData } from './user_data_reader';
 import { selectablesToMap } from '../util/pipeline_util';
+import { isPlainObject } from '../util/input_validation';
 
 export abstract class Stage implements ProtoSerializable<ProtoStage>, UserData {
   /**
@@ -439,6 +443,87 @@ export class DocumentsSource extends Stage {
   _readUserData(context: ParseContext): void {
     super._readUserData(context);
   }
+}
+
+export class LiteralsSource extends Stage {
+  get _name(): string {
+    return 'literals';
+  }
+
+  get _optionsUtil(): OptionsUtil {
+    return new OptionsUtil({});
+  }
+
+  private parseContext?: ParseContext;
+
+  constructor(
+    readonly documents: Array<Record<string, unknown>>,
+    options: LiteralsStageOptions = {}
+  ) {
+    super(options);
+  }
+
+  _readUserData(context: ParseContext): void {
+    super._readUserData(context);
+    this.parseContext = context;
+    readUserDataInLiteralMaps(this.documents, context);
+  }
+
+  /**
+   * @internal
+   * @private
+   */
+  _toProto(serializer: JsonProtoSerializer): ProtoStage {
+    const ctx = this.parseContext;
+    const args = this.documents.map(doc =>
+      encodeLiteralMap(doc, serializer, ctx)
+    );
+    return {
+      ...super._toProto(serializer),
+      args
+    };
+  }
+}
+
+function readUserDataInLiteralMaps(val: unknown, context: ParseContext): void {
+  if (isExpr(val)) {
+    (val as Expression)._readUserData(context);
+  } else if (Array.isArray(val)) {
+    val.forEach(item => readUserDataInLiteralMaps(item, context));
+  } else if (isPlainObject(val)) {
+    for (const k of Object.keys(val as Record<string, unknown>)) {
+      readUserDataInLiteralMaps((val as Record<string, unknown>)[k], context);
+    }
+  }
+}
+
+function encodeLiteralMap(
+  map: Record<string, unknown>,
+  serializer: JsonProtoSerializer,
+  context?: ParseContext
+): ProtoValue {
+  const fields: ApiClientObjectMap<ProtoValue> = {};
+  for (const key of Object.keys(map)) {
+    const val = map[key];
+    if (isExpr(val)) {
+      fields[key] = (val as Expression)._toProto(serializer);
+    } else if (isPlainObject(val)) {
+      fields[key] = encodeLiteralMap(
+        val as Record<string, unknown>,
+        serializer,
+        context
+      );
+    } else {
+      const expr = _constant(val, 'literals');
+      if (context) {
+        expr._readUserData(context);
+      }
+      fields[key] = expr._toProto(serializer);
+    }
+  }
+  return {
+    mapValue: { fields }
+  };
 }
 
 export class Where extends Stage {
