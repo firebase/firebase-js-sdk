@@ -131,7 +131,7 @@ The Firebase AI Web SDK.
 |  [ModalityTokenCount](./ai.modalitytokencount.md#modalitytokencount_interface) | Represents token counting info for a single modality. |
 |  [ModelParams](./ai.modelparams.md#modelparams_interface) | Params passed to [getGenerativeModel()](./ai.md#getgenerativemodel_c63f46a)<!-- -->. |
 |  [MultiSpeakerSpeechConfig](./ai.multispeakerspeechconfig.md#multispeakerspeechconfig_interface) | <b><i>(Public Preview)</i></b> Configuration for speech synthesis with multiple speakers. |
-|  [MultiSpeakerVoiceConfig](./ai.multispeakervoiceconfig.md#multispeakervoiceconfig_interface) | <b><i>(Public Preview)</i></b> Configuration for a single speaker's voice. |
+|  [MultiSpeakerVoiceConfig](./ai.multispeakervoiceconfig.md#multispeakervoiceconfig_interface) | <b><i>(Public Preview)</i></b> Configuration for multi-speaker setup. |
 |  [ObjectSchemaRequest](./ai.objectschemarequest.md#objectschemarequest_interface) | Interface for JSON parameters in a schema of [SchemaType](./ai.md#schematype) "object" when not using the <code>Schema.object()</code> helper. |
 |  [OnDeviceParams](./ai.ondeviceparams.md#ondeviceparams_interface) | Encapsulates configuration for on-device inference. |
 |  [PrebuiltVoiceConfig](./ai.prebuiltvoiceconfig.md#prebuiltvoiceconfig_interface) | <b><i>(Public Preview)</i></b> Configuration for a pre-built voice. |
