@@ -22,7 +22,7 @@ import { Crashlytics, CrashlyticsOptions } from './public-types';
 import { Provider } from '@firebase/component';
 import { AnyValueMap, SeverityNumber } from '@opentelemetry/api-logs';
 import { CrashlyticsService } from './service';
-import { flush, logVisibilityEvent } from './helpers';
+import { flush } from './helpers';
 import { deepEqual } from '@firebase/util';
 import { SPAN_ATTR_KEY } from './attributes-store';
 
@@ -199,6 +199,8 @@ export function registerGlobalErrorListeners(
 /**
  * Creates a log for view boundary on navigation event
  *
+ * @internal
+ *
  * @param crashlytics - The {@link Crashlytics} instance.
  * @param urlTemplate - The new URL pattern being navigated to.
  * @param attributes - Optional, arbitrary attributes to attach to the view boundary log
@@ -229,4 +231,4 @@ export function logViewBoundary(
   });
 }
 
-export { flush, logVisibilityEvent };
+export { flush };

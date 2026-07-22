@@ -104,7 +104,7 @@ export function flush(crashlytics: Crashlytics): Promise<void> {
 /**
  * Logs a page visibility transition event (foreground or background).
  *
- * @public
+ * @internal
  *
  * @param crashlytics - The {@link Crashlytics} instance.
  * @param visibilityState - The current page visibility state ('visible' or 'hidden').

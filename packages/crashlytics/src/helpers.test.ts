@@ -21,7 +21,11 @@ import { Logger, LogRecord } from '@opentelemetry/api-logs';
 import { trace, TracerProvider } from '@opentelemetry/api';
 import sinon from 'sinon';
 import { isNode } from '@firebase/util';
-import { registerListeners, startNewSession } from './helpers';
+import {
+  registerListeners,
+  startNewSession,
+  logVisibilityEvent
+} from './helpers';
 import { AUTO_CONSTANTS } from './auto-constants';
 import { CrashlyticsService } from './service';
 import { CrashlyticsInternal } from './types';
@@ -257,5 +261,23 @@ describe('helpers', () => {
         expect(flushed).to.be.true;
       });
     }
+  });
+
+  describe('logVisibilityEvent', () => {
+    it("should emit a log record for a hidden visibility with body of 'Background lifecycle event'", () => {
+      logVisibilityEvent(fakeCrashlytics, 'hidden');
+
+      expect(emittedLogs).to.have.lengthOf(1);
+      const log = emittedLogs[0];
+      expect(log.body).to.equal('Background lifecycle event');
+    });
+
+    it("should emit a log record for a visible visibility with body of 'Foreground lifecycle event'", () => {
+      logVisibilityEvent(fakeCrashlytics, 'visible');
+
+      expect(emittedLogs).to.have.lengthOf(1);
+      const log = emittedLogs[0];
+      expect(log.body).to.equal('Foreground lifecycle event');
+    });
   });
 });
