@@ -28,6 +28,7 @@ export function substitutePrivateTypeReferences(sourceFile: SourceFile): void {
     iterations++;
 
     const typeRefs = sourceFile.getDescendantsOfKind(SyntaxKind.TypeReference);
+    const replacements: Array<{ start: number; end: number; text: string }> = [];
 
     for (const typeRef of typeRefs) {
       try {
@@ -73,12 +74,25 @@ export function substitutePrivateTypeReferences(sourceFile: SourceFile): void {
               ? `<${typeArgs.map((a) => a.getText()).join(', ')}>`
               : '';
 
-          typeRef.replaceWithText(`${replacement}${typeArgsText}`);
-          changed = true;
+          replacements.push({
+            start: typeRef.getStart(),
+            end: typeRef.getEnd(),
+            text: `${replacement}${typeArgsText}`
+          });
         }
       } catch {
         continue;
       }
+    }
+
+    if (replacements.length > 0) {
+      replacements.sort((a, b) => b.start - a.start);
+      let fullText = sourceFile.getFullText();
+      for (const { start, end, text } of replacements) {
+        fullText = fullText.substring(0, start) + text + fullText.substring(end);
+      }
+      sourceFile.replaceWithText(fullText);
+      changed = true;
     }
   }
 }
