@@ -1654,7 +1654,10 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    * @param options - Options defining the target collection and document ID.
    * @returns A new {@link @firebase/firestore/pipelines#Pipeline} object with this stage appended to the stage list.
    */
-  upsert(transforms: AliasedExpression[], options: UpsertStageOptions): Pipeline;
+  upsert(
+    transforms: AliasedExpression[],
+    options: UpsertStageOptions
+  ): Pipeline;
   upsert(
     transforms: AliasedExpression[],
     options: UpsertStageOptions = {}
