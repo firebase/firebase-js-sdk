@@ -19,7 +19,7 @@
     "@firebase/firestore": "4.16.0"
   },
   "devDependencies": {
-    "@types/mocha": "10.0.10",
+    "@types/mocha": "9.1.1",
     "gulp": "5.0.1",
     "gulp-filter": "7.0.0",
     "gulp-replace": "1.1.4",
