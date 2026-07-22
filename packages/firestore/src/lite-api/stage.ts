@@ -53,8 +53,8 @@ export abstract class Stage implements ProtoSerializable<ProtoStage>, UserData {
    * @protected
    */
   protected optionsProto:
-    | ApiClientObjectMap<firestoreV1ApiClientInterfaces.Value>
-    | undefined = undefined;
+    ApiClientObjectMap<firestoreV1ApiClientInterfaces.Value> | undefined =
+    undefined;
   protected knownOptions: Record<string, unknown>;
   protected rawOptions?: Record<string, unknown>;
 
@@ -118,7 +118,10 @@ export class RemoveFields extends Stage {
     return new OptionsUtil({});
   }
 
-  constructor(private fields: Field[], options: StageOptions) {
+  constructor(
+    private fields: Field[],
+    options: StageOptions
+  ) {
     super(options);
   }
 
@@ -299,7 +302,10 @@ export class CollectionGroupSource extends Stage {
     });
   }
 
-  constructor(public readonly collectionId: string, options: StageOptions) {
+  constructor(
+    public readonly collectionId: string,
+    options: StageOptions
+  ) {
     super(options);
   }
 
@@ -328,7 +334,10 @@ export class SubcollectionSource extends Stage {
     return new OptionsUtil({});
   }
 
-  constructor(private path: string, options: StageOptions) {
+  constructor(
+    private path: string,
+    options: StageOptions
+  ) {
     super(options);
   }
 
@@ -510,7 +519,10 @@ export class Limit extends Stage {
     return new OptionsUtil({});
   }
 
-  constructor(public readonly limit: number, options: StageOptions) {
+  constructor(
+    public readonly limit: number,
+    options: StageOptions
+  ) {
     hardAssert(
       !isNaN(limit) && limit !== Infinity && limit !== -Infinity,
       0x882c,
