@@ -2658,12 +2658,10 @@ apiDescribe.skipClassic('Pipelines', persistence => {
 
       it('can execute literals stage containing expressions', async () => {
         const res = await execute(
-          firestore
-            .pipeline()
-            .literals({
-              base: 10,
-              doubled: multiply(constant(10), constant(2))
-            })
+          firestore.pipeline().literals({
+            base: 10,
+            doubled: multiply(constant(10), constant(2))
+          })
         );
         expect(res.results.length).to.equal(1);
         expect(res.results[0].data).to.deep.equal({ base: 10, doubled: 20 });
