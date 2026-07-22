@@ -908,7 +908,7 @@ export interface MultiSpeakerSpeechConfig extends BaseSpeechConfig {
 }
 
 /**
- * Configuration for a single speaker's voice.
+ * Configuration for multi-speaker setup.
  *
  * @beta
  */
