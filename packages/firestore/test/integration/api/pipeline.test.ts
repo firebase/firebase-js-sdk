@@ -46,11 +46,9 @@ import {
   deleteDoc,
   FirestoreError,
   getDocs,
-  getDoc,
-  setLogLevel
+  getDoc
 } from '../util/firebase_export';
 import { apiDescribe, withTestCollection, withTestDbs } from '../util/helpers';
-
 import {
   array,
   mod,
