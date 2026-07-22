@@ -30,7 +30,7 @@ export class OnErrorLogRecordProcessor extends BatchLogRecordProcessor {
   private _maxBufferSize = 1000;
 
   constructor(exporter: LogRecordExporter, maxBufferSize?: number) {
-    super(exporter);
+    super({ exporter });
     if (maxBufferSize !== undefined) {
       this._maxBufferSize = maxBufferSize;
     }

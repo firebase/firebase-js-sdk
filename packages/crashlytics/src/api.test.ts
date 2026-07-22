@@ -60,7 +60,8 @@ const fakeLoggerProvider = {
     return {
       emit: (logRecord: LogRecord) => {
         emittedLogs.push(logRecord);
-      }
+      },
+      enabled: () => true
     };
   },
   forceFlush: () => {
@@ -564,7 +565,8 @@ describe('Top level API', () => {
           exported.push(...logs);
           resultCallback({ code: ExportResultCode.SUCCESS });
         },
-        shutdown: () => Promise.resolve()
+        shutdown: () => Promise.resolve(),
+        forceFlush: () => Promise.resolve()
       };
 
       const processor = new OnErrorLogRecordProcessor(mockExporter);
