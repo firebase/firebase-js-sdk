@@ -109,7 +109,7 @@ export interface SafetySetting {
   /**
    * The harm block method.
    *
-   * This property is only supported in the Agent Platform API ({@link AgentPlatformBackend}).
+   * This property is only supported in the Agent Platform Gemini API ({@link AgentPlatformBackend}).
    * When using the Gemini Developer API ({@link GoogleAIBackend}), an {@link AIError} will be
    * thrown if this property is defined.
    */
@@ -172,7 +172,7 @@ export interface GenerationConfig {
    * Generation modalities to be returned in generation responses.
    *
    * @remarks
-   *  - Multimodal response generation is only supported by some Gemini models and versions; see {@link https://firebase.google.com/docs/vertex-ai/models | model versions}.
+   *  - Multimodal response generation is only supported by some Gemini models and versions; see {@link https://firebase.google.com/docs/ai-logic/models | model versions}.
    *  - Only image generation (`ResponseModality.IMAGE`) is supported.
    *
    * @beta
@@ -492,7 +492,7 @@ export interface FunctionDeclaration {
  *
  * Important: If using Grounding with Google Search, you are required to comply with the
  * "Grounding with Google Search" usage requirements for your chosen API provider: {@link https://ai.google.dev/gemini-api/terms#grounding-with-google-search | Gemini Developer API}
- * or Vertex AI Gemini API (see {@link https://cloud.google.com/terms/service-terms | Service Terms}
+ * or Agent Platform Gemini API (see {@link https://cloud.google.com/terms/service-terms | Service Terms}
  * section within the Service Specific Terms).
  *
  * @public
@@ -504,7 +504,7 @@ export interface GoogleSearchTool {
    *
    * When using this feature, you are required to comply with the "Grounding with Google Search"
    * usage requirements for your chosen API provider: {@link https://ai.google.dev/gemini-api/terms#grounding-with-google-search | Gemini Developer API}
-   * or Vertex AI Gemini API (see {@link https://cloud.google.com/terms/service-terms | Service Terms}
+   * or Agent Platform Gemini API (see {@link https://cloud.google.com/terms/service-terms | Service Terms}
    * section within the Service Specific Terms).
    */
   googleSearch: GoogleSearch;
@@ -516,7 +516,7 @@ export interface GoogleSearchTool {
  *
  * Important: If using Grounding with Google Maps, you are required to comply with the
  * "Grounding with Google Maps" usage requirements for your chosen API provider: {@link https://ai.google.dev/gemini-api/terms#grounding-with-google-maps | Gemini Developer API}
- * or Vertex AI Gemini API (see {@link https://cloud.google.com/terms/service-terms | Service Terms}
+ * or Agent Platform Gemini API (see {@link https://cloud.google.com/terms/service-terms | Service Terms}
  * section within the Service Specific Terms).
  *
  * @public
@@ -527,7 +527,7 @@ export interface GoogleMapsTool {
    *
    * When using this feature, you are required to comply with the "Grounding with Google Maps"
    * usage requirements for your chosen API provider: {@link https://ai.google.dev/gemini-api/terms#grounding-with-google-maps | Gemini Developer API}
-   * or Vertex AI Gemini API (see {@link https://cloud.google.com/terms/service-terms | Service Terms}
+   * or Agent Platform Gemini API (see {@link https://cloud.google.com/terms/service-terms | Service Terms}
    * section within the Service Specific Terms).
    */
   googleMaps: GoogleMaps;

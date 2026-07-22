@@ -71,7 +71,7 @@ export function createEnhancedContentResponse(
   inferenceSource: InferenceSource = InferenceSource.IN_CLOUD
 ): EnhancedGenerateContentResponse {
   /**
-   * The Vertex AI backend omits default values.
+   * The AgentPlatform backend omits default values.
    * This causes the `index` property to be omitted from the first candidate in the
    * response, since it has index 0, and 0 is a default value.
    * See: https://github.com/firebase/firebase-js-sdk/issues/8566

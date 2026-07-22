@@ -169,7 +169,7 @@ export interface PromptFeedback {
   /**
    * A human-readable description of the `blockReason`.
    *
-   * This property is only supported in the AgentPlatform API ({@link AgentPlatformBackend}).
+   * This property is only supported in the Agent Platform Gemini API ({@link AgentPlatformBackend}).
    */
   blockReasonMessage?: string;
 }
@@ -209,13 +209,13 @@ export interface Citation {
   /**
    * The title of the cited source, if available.
    *
-   * This property is only supported in the AgentPlatform API ({@link AgentPlatformBackend}).
+   * This property is only supported in the Agent Platform Gemini API ({@link AgentPlatformBackend}).
    */
   title?: string;
   /**
    * The publication date of the cited source, if available.
    *
-   * This property is only supported in the AgentPlatform API ({@link AgentPlatformBackend}).
+   * This property is only supported in the Agent Platform Gemini API ({@link AgentPlatformBackend}).
    */
   publicationDate?: Date;
 }
@@ -228,12 +228,12 @@ export interface Citation {
  *
  * Important: If using Grounding with Google Search, you are required to comply with the
  * "Grounding with Google Search" usage requirements for your chosen API provider: {@link https://ai.google.dev/gemini-api/terms#grounding-with-google-search | Gemini Developer API}
- * or Agent Platform API (see {@link https://cloud.google.com/terms/service-terms | Service Terms}
+ * or Agent Platform Gemini API (see {@link https://cloud.google.com/terms/service-terms | Service Terms}
  * section within the Service Specific Terms).
  *
  * Important: If using Grounding with Google Maps, you are required to comply with the
  * "Grounding with Google Maps" usage requirements for your chosen API provider: {@link https://ai.google.dev/gemini-api/terms#grounding-with-google-maps | Gemini Developer API}
- * or Agent Platform API (see {@link https://cloud.google.com/terms/service-terms | Service Terms}
+ * or Agent Platform Gemini API (see {@link https://cloud.google.com/terms/service-terms | Service Terms}
  * section within the Service Specific Terms).
  *
  * @public
@@ -334,7 +334,7 @@ export interface WebGroundingChunk {
   /**
    * The domain of the original URI from which the content was retrieved.
    *
-   * This property is only supported in the Agent Platform API ({@link AgentPlatformBackend}).
+   * This property is only supported in the Agent Platform Gemini API ({@link AgentPlatformBackend}).
    * When using the Gemini Developer API ({@link GoogleAIBackend}), this property will be
    * `undefined`.
    */
@@ -545,21 +545,21 @@ export interface SafetyRating {
   /**
    * The harm severity level.
    *
-   * This property is only supported when using the Agent Platform API ({@link AgentPlatformBackend}).
+   * This property is only supported when using the Agent Platform Gemini API ({@link AgentPlatformBackend}).
    * When using the Gemini Developer API ({@link GoogleAIBackend}), this property is not supported and will default to `HarmSeverity.UNSUPPORTED`.
    */
   severity: HarmSeverity;
   /**
    * The probability score of the harm category.
    *
-   * This property is only supported when using the Agent Platform API ({@link AgentPlatformBackend}).
+   * This property is only supported when using the Agent Platform Gemini API ({@link AgentPlatformBackend}).
    * When using the Gemini Developer API ({@link GoogleAIBackend}), this property is not supported and will default to 0.
    */
   probabilityScore: number;
   /**
    * The severity score of the harm category.
    *
-   * This property is only supported when using the Agent Platform API ({@link AgentPlatformBackend}).
+   * This property is only supported when using the Agent Platform Gemini API ({@link AgentPlatformBackend}).
    * When using the Gemini Developer API ({@link GoogleAIBackend}), this property is not supported and will default to 0.
    */
   severityScore: number;

@@ -3,6 +3,6 @@
 'firebase': minor
 ---
 
-Deprecate `VertexAIBackend` in favor of `AgentPlatformBackend` to reflect the renaming of Vertex AI to Gemini Enterprise Agent Platform.
+Deprecated `VertexAIBackend` in favor of `AgentPlatformBackend` to reflect the renaming of Vertex AI to Gemini Enterprise Agent Platform.
 
-The default location for `AgentPlatformBackend` is now `global` instead of `us-central1` (no other functionality has changed). To continue using `us-central1`, specify `getAI(app, { backend: new AgentPlatformBackend('us-central1') })` when initializing the SDK.
+The only difference for `AgentPlatformBackend` is the default [location for accessing the model](https://firebase.google.com/docs/ai-logic/locations?api=vertex). The default location for `AgentPlatformBackend` is `global`, whereas the default location for `VertexAIBackend` is `us-central1`. To use `us-central1` with `AgentPlatformBackend`, specify `getAI(app, { backend: new AgentPlatformBackend('us-central1') })` when initializing the SDK. However, note that most new Gemini models do not support `us-central1`.

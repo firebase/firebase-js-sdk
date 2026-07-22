@@ -93,8 +93,8 @@ declare module '@firebase/component' {
  *
  * @example
  * ```javascript
- * // Get an AI instance configured to use the Vertex AI Gemini API.
- * const ai = getAI(app, { backend: new VertexAIBackend() });
+ * // Get an AI instance configured to use the Agent Platform Gemini API.
+ * const ai = getAI(app, { backend: new AgentPlatformBackend() });
  * ```
  *
  * @param app - The {@link @firebase/app#FirebaseApp} to use.
