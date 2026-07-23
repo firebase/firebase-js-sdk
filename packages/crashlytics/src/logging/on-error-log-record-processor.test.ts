@@ -41,6 +41,10 @@ class MockLogRecordExporter implements LogRecordExporter {
     this.shutdownCount++;
     return Promise.resolve();
   }
+
+  forceFlush(): Promise<void> {
+    return Promise.resolve();
+  }
 }
 
 describe('OnErrorLogRecordProcessor', () => {
