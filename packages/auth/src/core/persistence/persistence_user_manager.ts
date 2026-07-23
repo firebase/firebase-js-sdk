@@ -80,7 +80,12 @@ export class PersistenceUserManager {
       if (!response) {
         return null;
       }
-      return UserImpl._fromGetAccountInfoResponse(this.auth, response, blob);
+      const user = await UserImpl._fromGetAccountInfoResponse(
+        this.auth,
+        response,
+        blob
+      );
+      return user;
     }
     return UserImpl._fromJSON(this.auth, blob);
   }
@@ -104,10 +109,17 @@ export class PersistenceUserManager {
     const currentUser = await this.getCurrentUser();
     await this.removeCurrentUser();
 
+    this.persistence._removeListener(this.fullUserKey, this.boundEventHandler);
     this.persistence = newPersistence;
+    this.persistence._addListener(this.fullUserKey, this.boundEventHandler);
 
     if (currentUser) {
       return this.setCurrentUser(currentUser);
+    } else {
+      const userInNewPersistence = await this.getCurrentUser();
+      if (userInNewPersistence) {
+        this.boundEventHandler();
+      }
     }
   }
 
