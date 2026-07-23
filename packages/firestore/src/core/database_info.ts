@@ -65,7 +65,10 @@ export const DEFAULT_DATABASE_NAME = '(default)';
  */
 export class DatabaseId {
   readonly database: string;
-  constructor(readonly projectId: string, database?: string) {
+  constructor(
+    readonly projectId: string,
+    database?: string
+  ) {
     this.database = database ? database : DEFAULT_DATABASE_NAME;
   }
 
