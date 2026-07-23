@@ -579,7 +579,7 @@ export interface GenerationConfig {
     // @beta
     responseModalities?: ResponseModality[];
     responseSchema?: TypedSchema | SchemaRequest;
-    // Warning: (ae-incompatible-release-tags) The symbol "speechConfig" is marked as @public, but its signature references "SpeechConfig" which is marked as @beta
+    // @beta
     speechConfig?: SpeechConfig;
     // (undocumented)
     stopSequences?: string[];
