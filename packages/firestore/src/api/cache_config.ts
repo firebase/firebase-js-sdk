@@ -130,8 +130,7 @@ export type FirestoreLocalCache = MemoryLocalCache | PersistentLocalCache;
  * Union type from all support garbage collectors for memory local cache.
  */
 export type MemoryGarbageCollector =
-  | MemoryEagerGarbageCollector
-  | MemoryLruGarbageCollector;
+  MemoryEagerGarbageCollector | MemoryLruGarbageCollector;
 
 /**
  * A garbage collector deletes documents whenever they are not part of any
@@ -400,8 +399,7 @@ class MultiTabManagerImpl implements PersistentMultipleTabManager {
  * A union of all available tab managers.
  */
 export type PersistentTabManager =
-  | PersistentSingleTabManager
-  | PersistentMultipleTabManager;
+  PersistentSingleTabManager | PersistentMultipleTabManager;
 
 /**
  * Type to configure an `PersistentSingleTabManager` instance.
