@@ -112,4 +112,10 @@ export interface CrashlyticsOptions {
    * Custom OpenTelemetry Resource instance to merge into the default Resource.
    */
   resource?: Resource;
+
+  /**
+   * If true, enables automatic browser instrumentation (user interactions, fetch/XHR tracing, document load, and active span tracing).
+   * Defaults to false.
+   */
+  instrumentation?: boolean;
 }
