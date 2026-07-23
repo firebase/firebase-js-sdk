@@ -18,7 +18,6 @@ import { use, expect } from 'chai';
 import { GenerativeModel, validateGenerationConfig } from './generative-model';
 import {
   FunctionCallingMode,
-  AI,
   InferenceMode,
   AIErrorCode,
   ChromeAdapter,
@@ -35,28 +34,16 @@ import {
 import sinonChai from 'sinon-chai';
 import * as generateContentMethods from '../methods/generate-content';
 import * as countTokens from '../methods/count-tokens';
-import { VertexAIBackend } from '../backend';
 import { AIError } from '../errors';
 import chaiAsPromised from 'chai-as-promised';
-import { fakeChromeAdapter } from '../../test-utils/get-fake-firebase-services';
+import {
+  fakeAI,
+  fakeChromeAdapter
+} from '../../test-utils/get-fake-firebase-services';
 import { Availability } from '../types/language-model';
 
 use(sinonChai);
 use(chaiAsPromised);
-
-const fakeAI: AI = {
-  app: {
-    name: 'DEFAULT',
-    automaticDataCollectionEnabled: true,
-    options: {
-      apiKey: 'key',
-      projectId: 'my-project',
-      appId: 'my-appid'
-    }
-  },
-  backend: new VertexAIBackend('us-central1'),
-  location: 'us-central1'
-};
 
 describe('GenerativeModel', () => {
   afterEach(() => {
