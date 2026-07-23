@@ -102,7 +102,7 @@ describe('API tests', () => {
         initializeApp({
           apiKey: 'test2'
         })
-      ).throws(/\[DEFAULT\].*exists/i);
+      ).throws(/\[DEFAULT\].*exists with different options.*test1.*test2/i);
     });
 
     it('throws when creating duplicate named Apps with different options', () => {
@@ -120,7 +120,7 @@ describe('API tests', () => {
           },
           appName
         )
-      ).throws(/'MyApp'.*exists/i);
+      ).throws(/'MyApp'.*exists with different options.*test1.*test2/i);
     });
 
     it('throws when creating duplicate DEFAULT Apps with different config values', () => {
@@ -137,7 +137,7 @@ describe('API tests', () => {
           },
           { automaticDataCollectionEnabled: true }
         )
-      ).throws(/\[DEFAULT\].*exists/i);
+      ).throws(/\[DEFAULT\].*exists with different config.*false.*true/i);
     });
 
     it('throws when creating duplicate named Apps with different config values', () => {
@@ -155,7 +155,7 @@ describe('API tests', () => {
           },
           { name: appName, automaticDataCollectionEnabled: true }
         )
-      ).throws(/'MyApp'.*exists/i);
+      ).throws(/'MyApp'.*exists with different config.*false.*true/i);
     });
 
     it('takes an object as the second parameter to create named App', () => {
@@ -479,7 +479,7 @@ describe('API tests', () => {
               expect(count).to.equal(0);
               count++;
             }
-          } as _FirebaseService),
+          }) as _FirebaseService,
         ComponentType.PUBLIC
       );
       _registerComponent(comp1);
