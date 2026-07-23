@@ -71,12 +71,13 @@ export function resolveLoggerProvider(
     }
   }
 
-  // 3. If extra OTel SDK features are requested (extraProcessors, extraExporters, custom resource), use full SDK LoggerProvider
+  // 3. If extra OTel SDK features or automatic instrumentation are requested, use full SDK LoggerProvider
   if (
     crashlyticsOptions.extraProcessors ||
     crashlyticsOptions.extraExporters ||
     crashlyticsOptions.resource ||
-    crashlyticsOptions.registerGlobalLoggerProvider
+    crashlyticsOptions.registerGlobalLoggerProvider ||
+    crashlyticsOptions.instrumentation
   ) {
     let endpointUrl =
       crashlyticsOptions.endpointUrl || DEFAULT_TELEMETRY_ENDPOINT;
@@ -132,7 +133,10 @@ export function resolveLoggerProvider(
       logRecordLimits: {}
     });
 
-    if (crashlyticsOptions.registerGlobalLoggerProvider) {
+    if (
+      crashlyticsOptions.registerGlobalLoggerProvider ||
+      crashlyticsOptions.instrumentation
+    ) {
       logs.setGlobalLoggerProvider(provider);
     }
 
