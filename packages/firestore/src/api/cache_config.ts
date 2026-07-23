@@ -25,7 +25,6 @@ import {
   OnlineComponentProvider
 } from '../core/component_provider';
 
-/* eslint @typescript-eslint/consistent-type-definitions: ["error", "type"] */
 /**
  * Provides an in-memory cache to the SDK. This is the default cache unless explicitly
  * configured otherwise.
@@ -34,7 +33,7 @@ import {
  * set the instance to `FirestoreSettings.cache` and call `initializeFirestore` using
  * the settings object.
  */
-export type MemoryLocalCache = {
+export interface MemoryLocalCache {
   kind: 'memory';
   /**
    * @internal
@@ -44,7 +43,7 @@ export type MemoryLocalCache = {
    * @internal
    */
   _offlineComponentProvider: OfflineComponentProviderFactory;
-};
+}
 
 class MemoryLocalCacheImpl implements MemoryLocalCache {
   kind: 'memory' = 'memory';
@@ -81,7 +80,7 @@ class MemoryLocalCacheImpl implements MemoryLocalCache {
  * set the instance to `FirestoreSettings.cache` and call `initializeFirestore` using
  * the settings object.
  */
-export type PersistentLocalCache = {
+export interface PersistentLocalCache {
   kind: 'persistent';
   /**
    * @internal
@@ -91,7 +90,7 @@ export type PersistentLocalCache = {
    * @internal
    */
   _offlineComponentProvider: OfflineComponentProviderFactory;
-};
+}
 
 class PersistentLocalCacheImpl implements PersistentLocalCache {
   kind: 'persistent' = 'persistent';
@@ -145,13 +144,13 @@ export type MemoryGarbageCollector =
  * Use factory function {@link memoryEagerGarbageCollector()} to create an
  * instance of this collector.
  */
-export type MemoryEagerGarbageCollector = {
+export interface MemoryEagerGarbageCollector {
   kind: 'memoryEager';
   /**
    * @internal
    */
   _offlineComponentProvider: OfflineComponentProviderFactory;
-};
+}
 
 /**
  * A garbage collector deletes Least-Recently-Used documents in multiple
@@ -165,13 +164,13 @@ export type MemoryEagerGarbageCollector = {
  * Use factory function {@link memoryLruGarbageCollector()} to create a
  * instance of this collector.
  */
-export type MemoryLruGarbageCollector = {
+export interface MemoryLruGarbageCollector {
   kind: 'memoryLru';
   /**
    * @internal
    */
   _offlineComponentProvider: OfflineComponentProviderFactory;
-};
+}
 
 class MemoryEagerGarbageCollectorImpl implements MemoryEagerGarbageCollector {
   kind: 'memoryEager' = 'memoryEager';
@@ -231,13 +230,13 @@ export function memoryLruGarbageCollector(settings?: {
 /**
  * An settings object to configure an `MemoryLocalCache` instance.
  */
-export type MemoryCacheSettings = {
+export interface MemoryCacheSettings {
   /**
    * The garbage collector to use, for the memory cache layer.
    * A `MemoryEagerGarbageCollector` is used when this is undefined.
    */
   garbageCollector?: MemoryGarbageCollector;
-};
+}
 
 /**
  * Creates an instance of `MemoryLocalCache`. The instance can be set to
@@ -254,7 +253,7 @@ export function memoryLocalCache(
  *
  * Persistent cache cannot be used in a Node.js environment.
  */
-export type PersistentCacheSettings = {
+export interface PersistentCacheSettings {
   /**
    * An approximate cache size threshold for the on-disk data. If the cache
    * grows beyond this size, Firestore will start removing data that hasn't been
@@ -271,7 +270,7 @@ export type PersistentCacheSettings = {
    * Specifies how multiple tabs/windows will be managed by the SDK.
    */
   tabManager?: PersistentTabManager;
-};
+}
 
 /**
  * Creates an instance of `PersistentLocalCache`. The instance can be set to
@@ -289,7 +288,7 @@ export function persistentLocalCache(
  * A tab manager supporting only one tab, no synchronization will be
  * performed across tabs.
  */
-export type PersistentSingleTabManager = {
+export interface PersistentSingleTabManager {
   kind: 'persistentSingleTab';
   /**
    * @internal
@@ -305,7 +304,7 @@ export type PersistentSingleTabManager = {
    * @internal
    */
   _offlineComponentProvider?: OfflineComponentProviderFactory;
-};
+}
 
 class SingleTabManagerImpl implements PersistentSingleTabManager {
   kind: 'persistentSingleTab' = 'persistentSingleTab';
@@ -347,7 +346,7 @@ class SingleTabManagerImpl implements PersistentSingleTabManager {
  * A tab manager supporting multiple tabs. SDK will synchronize queries and
  * mutations done across all tabs using the SDK.
  */
-export type PersistentMultipleTabManager = {
+export interface PersistentMultipleTabManager {
   kind: 'PersistentMultipleTab';
   /**
    * @internal
@@ -362,7 +361,7 @@ export type PersistentMultipleTabManager = {
    */
 
   _offlineComponentProvider?: OfflineComponentProviderFactory;
-};
+}
 
 class MultiTabManagerImpl implements PersistentMultipleTabManager {
   kind: 'PersistentMultipleTab' = 'PersistentMultipleTab';
@@ -407,7 +406,7 @@ export type PersistentTabManager =
 /**
  * Type to configure an `PersistentSingleTabManager` instance.
  */
-export type PersistentSingleTabManagerSettings = {
+export interface PersistentSingleTabManagerSettings {
   /**
    * Whether to force-enable persistent (IndexedDB) cache for the client. This
    * cannot be used with multi-tab synchronization and is primarily intended for
@@ -415,7 +414,7 @@ export type PersistentSingleTabManagerSettings = {
    * other tabs using IndexedDB cache to fail.
    */
   forceOwnership?: boolean;
-};
+}
 /**
  * Creates an instance of `PersistentSingleTabManager`.
  *
