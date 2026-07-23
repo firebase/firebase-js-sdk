@@ -146,7 +146,7 @@ export interface GenerationConfig {
   /**
    * Configuration for speech synthesis for text-to-speech (TTS) models.
    *
-   * @public
+   * @beta
    */
   speechConfig?: SpeechConfig;
   /**
