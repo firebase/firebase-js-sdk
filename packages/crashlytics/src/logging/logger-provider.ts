@@ -77,7 +77,7 @@ export function createLoggerProvider(
 
   return new LoggerProvider({
     resource,
-    processors: [new BatchLogRecordProcessor(logExporter)],
+    processors: [new BatchLogRecordProcessor({ exporter: logExporter })],
     logRecordLimits: {}
   });
 }
