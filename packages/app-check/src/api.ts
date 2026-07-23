@@ -44,7 +44,6 @@ import {
 import { readTokenFromStorage } from './storage';
 import { getDebugToken, initializeDebugMode, isDebugMode } from './debug';
 import { logger } from './logger';
-import { ReCaptchaEnterpriseProvider } from './providers';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
@@ -66,9 +65,10 @@ export {
  */
 export function initializeAppCheck(
   app: FirebaseApp = getApp(),
-  options?: AppCheckOptions
+  options: AppCheckOptions
 ): AppCheck {
   app = getModularInstance(app);
+  const provider = _getProvider(app, 'app-check');
 
   // Ensure initializeDebugMode() is only called once.
   if (!getDebugState().initialized) {
@@ -87,68 +87,24 @@ export function initializeAppCheck(
     );
   }
 
-  let defaultProvider: ReCaptchaEnterpriseProvider | undefined;
-  /**
-   * If user did not pass a provider, look for site key in project
-   * config and create a default ReCaptchaEnterpriseProvider with it.
-   */
-  if (!options?.provider && app.options.recaptchaSiteKey) {
-    defaultProvider = new ReCaptchaEnterpriseProvider(
-      app.options.recaptchaSiteKey
-    );
-  }
-  /**
-   * If there's no passed provider and no siteKey in project config,
-   * throw.
-   */
-  if (!options?.provider && !defaultProvider) {
-    throw ERROR_FACTORY.create(AppCheckError.NO_PROVIDER);
-  }
-
-  interface InitOptions extends Omit<AppCheckOptions, 'provider'> {
-    provider: AppCheckProvider;
-  }
-
-  const initOptions: InitOptions = {
-    ...options,
-    provider: options?.provider || defaultProvider!
-  };
-
-  const componentProvider = _getProvider(app, 'app-check');
-  if (componentProvider.isInitialized()) {
-    const existingInstance = componentProvider.getImmediate();
-    const existingOptions =
-      componentProvider.getOptions() as unknown as AppCheckOptions;
-    /**
-     * Check if all AppCheckOptions previously passed to initializeAppCheck
-     * (`isTokenAutoRefreshEnabled` and `provider`) match those being passed
-     * now. If so, return previous existing instance. Otherwise throw error.
-     */
+  if (provider.isInitialized()) {
+    const existingInstance = provider.getImmediate();
+    const initialOptions = provider.getOptions() as unknown as AppCheckOptions;
     if (
-      existingOptions.isTokenAutoRefreshEnabled ===
-        initOptions.isTokenAutoRefreshEnabled &&
-      existingOptions.provider?.isEqual(initOptions.provider)
+      initialOptions.isTokenAutoRefreshEnabled ===
+        options.isTokenAutoRefreshEnabled &&
+      initialOptions.provider.isEqual(options.provider)
     ) {
       return existingInstance;
     } else {
-      if (typeof getStateReference(app).internallyInitializedBy === 'string') {
-        throw ERROR_FACTORY.create(
-          AppCheckError.ALREADY_INTERNALLY_INITIALIZED,
-          {
-            initializerName: getStateReference(app)
-              .internallyInitializedBy as string
-          }
-        );
-      }
       throw ERROR_FACTORY.create(AppCheckError.ALREADY_INITIALIZED, {
         appName: app.name
       });
     }
   }
 
-  const appCheck = componentProvider.initialize({ options: initOptions });
-
-  _activate(app, initOptions.provider, initOptions.isTokenAutoRefreshEnabled);
+  const appCheck = provider.initialize({ options });
+  _activate(app, options.provider, options.isTokenAutoRefreshEnabled);
   // If isTokenAutoRefreshEnabled is false, do not send any requests to the
   // exchange endpoint without an explicit call from the user either directly
   // or through another Firebase library (storage, functions, etc.)
@@ -162,32 +118,6 @@ export function initializeAppCheck(
   }
 
   return appCheck;
-}
-
-/**
- * Internal wrapper that sets a state variable flagging that this was
- * initialized under the hood by a product SDK.
- *
- * @internal
- */
-export function _initializeAppCheckInternal(
-  // String to be used in error message if there is a future conflict.
-  // Example: "Firebase AI Logic"
-  initializerName: string,
-  app: FirebaseApp = getApp(),
-  options?: AppCheckOptions
-): AppCheck {
-  const componentProvider = _getProvider(app, 'app-check');
-  const previouslyInitialized = componentProvider.isInitialized();
-  if (previouslyInitialized) {
-    // Product SDKs should accept any previously initialized
-    // App Check configuration without error.
-    return componentProvider.getImmediate();
-  } else {
-    const appCheck = initializeAppCheck(app, options);
-    getStateReference(app).internallyInitializedBy = initializerName;
-    return appCheck;
-  }
 }
 
 /**
