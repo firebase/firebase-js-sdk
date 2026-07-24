@@ -28,7 +28,10 @@ function promptSync(question) {
     const ans = execSync(
       `node -e 'const rl = require("readline").createInterface({input: process.stdin, output: process.stderr}); rl.question(${JSON.stringify(question)}, a => { process.stdout.write(a); rl.close(); });'`,
       { stdio: ['inherit', 'pipe', 'inherit'] }
-    ).toString().trim().toLowerCase();
+    )
+      .toString()
+      .trim()
+      .toLowerCase();
     return ans === 'y' || ans === 'yes';
   } catch (e) {
     return false;
@@ -62,7 +65,7 @@ function determineBrowsers() {
             );
             if (
               promptSync(
-                "[Karma Config] Would you like to download and install Playwright WebKit (~70MB) now? (y/N) "
+                '[Karma Config] Would you like to download and install Playwright WebKit (~70MB) now? (y/N) '
               )
             ) {
               console.log(
