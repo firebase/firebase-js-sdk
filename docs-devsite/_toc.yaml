@@ -4,6 +4,8 @@ toc:
 - title: ai
   path: /docs/reference/js/ai.md
   section:
+  - title: AgentPlatformBackend
+    path: /docs/reference/js/ai.agentplatformbackend.md
   - title: AI
     path: /docs/reference/js/ai.ai.md
   - title: AIError

@@ -20,8 +20,8 @@ import copy from 'rollup-plugin-copy';
 import commonjs from '@rollup/plugin-commonjs';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
-import { emitModulePackageFile } from '../../scripts/build/rollup_emit_module_package_file';
-import pkg from './package.json';
+import { emitModulePackageFile } from '../../scripts/build/rollup_emit_module_package_file.js';
+import pkg from './package.json' with { type: 'json' };
 
 const closureBlobsDir = '../../node_modules/closure-net/firebase/';
 

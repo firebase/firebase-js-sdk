@@ -18,7 +18,7 @@
 import { exec } from 'child-process-promise';
 import { createPromptModule } from 'inquirer';
 import { publish, publishInCI } from './utils/publish';
-import { pushReleaseTagsToGithub, cleanTree, hasDiff } from './utils/git';
+import { cleanTree, hasDiff } from './utils/git';
 import {
   releaseType as releaseTypePrompt,
   validateVersions
@@ -177,16 +177,6 @@ export async function runRelease({
         // Uses changeset
         await publish(releaseType);
       }
-    }
-
-    /**
-     * Push tags to GitHub for prod releases only.
-     */
-    if (releaseType === ReleaseType.Production && !dryRun) {
-      /**
-       * Push release tags created by changeset or publishInCI() to GitHub
-       */
-      await pushReleaseTagsToGithub();
     }
   } catch (err) {
     /**

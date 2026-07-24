@@ -33,7 +33,7 @@ import { DEFAULT_API_VERSION } from '../constants';
 import { AIErrorCode, InferenceMode } from '../types';
 import { AIError } from '../errors';
 import { getMockResponse } from '../../test-utils/mock-response';
-import { VertexAIBackend } from '../backend';
+import { AgentPlatformBackend } from '../backend';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -42,8 +42,8 @@ const fakeApiSettings: ApiSettings = {
   apiKey: 'key',
   project: 'my-project',
   appId: 'my-appid',
-  location: 'us-central1',
-  backend: new VertexAIBackend()
+  location: 'global',
+  backend: new AgentPlatformBackend()
 };
 
 describe('request methods', () => {
@@ -128,7 +128,7 @@ describe('request methods', () => {
       project: 'myproject',
       appId: 'my-appid',
       location: 'moon',
-      backend: new VertexAIBackend(),
+      backend: new AgentPlatformBackend(),
       getAuthToken: () => Promise.resolve({ accessToken: 'authtoken' }),
       getAppCheckToken: () => Promise.resolve({ token: 'appchecktoken' })
     };
@@ -171,7 +171,7 @@ describe('request methods', () => {
         project: 'myproject',
         appId: 'my-appid',
         location: 'moon',
-        backend: new VertexAIBackend(),
+        backend: new AgentPlatformBackend(),
         automaticDataCollectionEnabled: true,
         getAuthToken: () => Promise.resolve({ accessToken: 'authtoken' }),
         getAppCheckToken: () => Promise.resolve({ token: 'appchecktoken' })
@@ -196,7 +196,7 @@ describe('request methods', () => {
         project: 'myproject',
         appId: 'my-appid',
         location: 'moon',
-        backend: new VertexAIBackend(),
+        backend: new AgentPlatformBackend(),
         automaticDataCollectionEnabled: false,
         getAuthToken: () => Promise.resolve({ accessToken: 'authtoken' }),
         getAppCheckToken: () => Promise.resolve({ token: 'appchecktoken' })
@@ -224,7 +224,7 @@ describe('request methods', () => {
           project: 'myproject',
           appId: 'my-appid',
           location: 'moon',
-          backend: new VertexAIBackend()
+          backend: new AgentPlatformBackend()
         },
         stream: true,
         singleRequestOptions: undefined
@@ -258,7 +258,7 @@ describe('request methods', () => {
           project: 'myproject',
           appId: 'my-appid',
           location: 'moon',
-          backend: new VertexAIBackend(),
+          backend: new AgentPlatformBackend(),
           getAppCheckToken: () =>
             Promise.resolve({ token: 'dummytoken', error: Error('oops') })
         },
@@ -286,7 +286,7 @@ describe('request methods', () => {
           project: 'myproject',
           appId: 'my-appid',
           location: 'moon',
-          backend: new VertexAIBackend()
+          backend: new AgentPlatformBackend()
         },
         stream: true,
         singleRequestOptions: undefined

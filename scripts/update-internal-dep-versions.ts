@@ -28,7 +28,7 @@
 import { projectRoot } from './utils';
 import { mapPkgNameToPkgJson } from './release/utils/workspace';
 import * as yargs from 'yargs';
-import fs from 'mz/fs';
+import fs from 'fs/promises';
 
 const argv = yargs.parseSync();
 async function updateField(pkg: any, fieldName: string) {

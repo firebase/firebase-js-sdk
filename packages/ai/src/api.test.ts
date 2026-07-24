@@ -37,27 +37,13 @@ import { expect, use } from 'chai';
 import { stub } from 'sinon';
 import { AI } from './public-types';
 import { GenerativeModel } from './models/generative-model';
-import { GoogleAIBackend, VertexAIBackend } from './backend';
-import { getFullApp } from '../test-utils/get-fake-firebase-services';
+import { GoogleAIBackend, AgentPlatformBackend } from './backend';
+import { fakeAI, getFullApp } from '../test-utils/get-fake-firebase-services';
 import { AI_TYPE } from './constants';
 import { logger } from './logger';
 import sinonChai from 'sinon-chai';
 
 use(sinonChai);
-
-const fakeAI: AI = {
-  app: {
-    name: 'DEFAULT',
-    automaticDataCollectionEnabled: true,
-    options: {
-      apiKey: 'key',
-      projectId: 'my-project',
-      appId: 'my-appid'
-    }
-  },
-  backend: new VertexAIBackend('us-central1'),
-  location: 'us-central1'
-};
 
 describe('Top level API', () => {
   describe('getAI()', () => {
@@ -72,25 +58,25 @@ describe('Top level API', () => {
     });
     it('works with options: backend specified, limited use token', () => {
       const ai = getAI(getFullApp(), {
-        backend: new VertexAIBackend('us-central1'),
+        backend: new AgentPlatformBackend('global'),
         useLimitedUseAppCheckTokens: true
       });
-      expect(ai.backend).to.be.instanceOf(VertexAIBackend);
+      expect(ai.backend).to.be.instanceOf(AgentPlatformBackend);
       expect(ai.options?.useLimitedUseAppCheckTokens).to.be.true;
     });
     it('works with options: appCheck option is falsy', () => {
       const ai = getAI(getFullApp(), {
-        backend: new VertexAIBackend('us-central1'),
+        backend: new AgentPlatformBackend('global'),
         useLimitedUseAppCheckTokens: undefined
       });
-      expect(ai.backend).to.be.instanceOf(VertexAIBackend);
+      expect(ai.backend).to.be.instanceOf(AgentPlatformBackend);
       expect(ai.options?.useLimitedUseAppCheckTokens).to.be.false;
     });
     it('works with options: backend specified only', () => {
       const ai = getAI(getFullApp(), {
-        backend: new VertexAIBackend('us-central1')
+        backend: new AgentPlatformBackend('global')
       });
-      expect(ai.backend).to.be.instanceOf(VertexAIBackend);
+      expect(ai.backend).to.be.instanceOf(AgentPlatformBackend);
       expect(ai.options?.useLimitedUseAppCheckTokens).to.be.false;
     });
   });

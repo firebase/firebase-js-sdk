@@ -12,7 +12,7 @@ https://github.com/firebase/firebase-js-sdk
 # GoogleMapsTool interface
 A tool that allows a Gemini model to connect to Google Maps to access and incorporate location-based information into its responses.
 
-Important: If using Grounding with Google Maps, you are required to comply with the "Grounding with Google Maps" usage requirements for your chosen API provider: [Gemini Developer API](https://ai.google.dev/gemini-api/terms#grounding-with-google-maps) or Vertex AI Gemini API (see [Service Terms](https://cloud.google.com/terms/service-terms) section within the Service Specific Terms).
+Important: If using Grounding with Google Maps, you are required to comply with the "Grounding with Google Maps" usage requirements for your chosen API provider: [Gemini Developer API](https://ai.google.dev/gemini-api/terms#grounding-with-google-maps) or Agent Platform Gemini API (see [Service Terms](https://cloud.google.com/terms/service-terms) section within the Service Specific Terms).
 
 <b>Signature:</b>
 
@@ -24,13 +24,13 @@ export interface GoogleMapsTool
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [googleMaps](./ai.googlemapstool.md#googlemapstoolgooglemaps) | [GoogleMaps](./ai.googlemaps.md#googlemaps_interface) | Specifies the Google Maps configuration.<!-- -->When using this feature, you are required to comply with the "Grounding with Google Maps" usage requirements for your chosen API provider: [Gemini Developer API](https://ai.google.dev/gemini-api/terms#grounding-with-google-maps) or Vertex AI Gemini API (see [Service Terms](https://cloud.google.com/terms/service-terms) section within the Service Specific Terms). |
+|  [googleMaps](./ai.googlemapstool.md#googlemapstoolgooglemaps) | [GoogleMaps](./ai.googlemaps.md#googlemaps_interface) | Specifies the Google Maps configuration.<!-- -->When using this feature, you are required to comply with the "Grounding with Google Maps" usage requirements for your chosen API provider: [Gemini Developer API](https://ai.google.dev/gemini-api/terms#grounding-with-google-maps) or Agent Platform Gemini API (see [Service Terms](https://cloud.google.com/terms/service-terms) section within the Service Specific Terms). |
 
 ## GoogleMapsTool.googleMaps
 
 Specifies the Google Maps configuration.
 
-When using this feature, you are required to comply with the "Grounding with Google Maps" usage requirements for your chosen API provider: [Gemini Developer API](https://ai.google.dev/gemini-api/terms#grounding-with-google-maps) or Vertex AI Gemini API (see [Service Terms](https://cloud.google.com/terms/service-terms) section within the Service Specific Terms).
+When using this feature, you are required to comply with the "Grounding with Google Maps" usage requirements for your chosen API provider: [Gemini Developer API](https://ai.google.dev/gemini-api/terms#grounding-with-google-maps) or Agent Platform Gemini API (see [Service Terms](https://cloud.google.com/terms/service-terms) section within the Service Specific Terms).
 
 <b>Signature:</b>
 
