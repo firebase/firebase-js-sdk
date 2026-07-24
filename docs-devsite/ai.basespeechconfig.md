@@ -9,33 +9,33 @@ overwritten. Changes should be made in the source code at
 https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
-# VoiceConfig interface
+# BaseSpeechConfig interface
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Configuration for the voice to be used for speech synthesis.
+Base configuration for speech synthesis.
 
 <b>Signature:</b>
 
 ```typescript
-export interface VoiceConfig 
+export interface BaseSpeechConfig 
 ```
 
 ## Properties
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [prebuiltVoiceConfig](./ai.voiceconfig.md#voiceconfigprebuiltvoiceconfig) | [PrebuiltVoiceConfig](./ai.prebuiltvoiceconfig.md#prebuiltvoiceconfig_interface) | <b><i>(Public Preview)</i></b> Configures the voice using a pre-built voice configuration. |
+|  [languageCode](./ai.basespeechconfig.md#basespeechconfiglanguagecode) | string | <b><i>(Public Preview)</i></b> IETF BCP-47 language code. |
 
-## VoiceConfig.prebuiltVoiceConfig
+## BaseSpeechConfig.languageCode
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Configures the voice using a pre-built voice configuration.
+IETF BCP-47 language code.
 
 <b>Signature:</b>
 
 ```typescript
-prebuiltVoiceConfig?: PrebuiltVoiceConfig;
+languageCode?: string;
 ```

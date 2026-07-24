@@ -144,6 +144,13 @@ export interface GenerationConfig {
   topK?: number;
   presencePenalty?: number;
   frequencyPenalty?: number;
+
+  /**
+   * Configuration for speech synthesis for text-to-speech (TTS) models.
+   *
+   * @beta
+   */
+  speechConfig?: SpeechConfig;
   /**
    * Output response MIME type of the generated candidate text.
    * Supported MIME types are `text/plain` (default, text output),
@@ -196,7 +203,7 @@ export interface GenerationConfig {
  */
 export interface LiveGenerationConfig {
   /**
-   * Configuration for speech synthesis.
+   * Configuration for speech synthesis for Live API Models.
    */
   speechConfig?: SpeechConfig;
   /**
@@ -841,14 +848,14 @@ export interface ThinkingConfig {
 export interface PrebuiltVoiceConfig {
   /**
    * The voice name to use for speech synthesis.
-   *
+   * @remarks
    * For a full list of names and demos of what each voice sounds like, see {@link https://cloud.google.com/text-to-speech/docs/chirp3-hd | Chirp 3: HD Voices}.
    */
   voiceName?: string;
 }
 
 /**
- * Configuration for the voice to used in speech synthesis.
+ * Configuration for the voice to be used for speech synthesis.
  *
  * @beta
  */
@@ -861,17 +868,69 @@ export interface VoiceConfig {
 
 /**
  * Configures speech synthesis.
+ * @beta
+ */
+
+export type SpeechConfig = SingleSpeakerSpeechConfig | MultiSpeakerSpeechConfig;
+
+/**
+ * Base configuration for speech synthesis.
  *
  * @beta
  */
-export interface SpeechConfig {
-  /**
-   * Configures the voice to be used in speech synthesis.
-   */
-  voiceConfig?: VoiceConfig;
+export interface BaseSpeechConfig {
+  /** IETF BCP-47 language code. */
+  languageCode?: string;
 }
 
 /**
  * The audio transcription configuration.
+ *
+ * @beta
  */
 export interface AudioTranscriptionConfig {}
+
+/**
+ * Configuration for speech synthesis using a single voice.
+ * @beta
+ */
+export interface SingleSpeakerSpeechConfig extends BaseSpeechConfig {
+  /** Configures the voice to be used in speech synthesis. */
+  voiceConfig?: VoiceConfig;
+  /** Multi-speaker configuration must not be set when using a single speaker. */
+  multiSpeakerVoiceConfig?: never;
+}
+
+/**
+ * Configuration for speech synthesis with multiple speakers.
+ * @beta
+ */
+
+export interface MultiSpeakerSpeechConfig extends BaseSpeechConfig {
+  /** Single-speaker voice configuration must not be set when using multiple speakers. */
+  voiceConfig?: never;
+  /** Configuration for multi-speaker setup. */
+  multiSpeakerVoiceConfig?: MultiSpeakerVoiceConfig;
+}
+
+/**
+ * Configuration for multi-speaker setup.
+ *
+ * @beta
+ */
+export interface MultiSpeakerVoiceConfig {
+  /** All the enabled speaker voices. */
+  speakerVoiceConfigs: SpeakerVoiceConfig[];
+}
+
+/**
+ * Configuration for a single speaker's voice.
+ *
+ * @beta
+ */
+export interface SpeakerVoiceConfig {
+  /** The name of the speaker to use (same as in prompt). */
+  speaker: string;
+  /** The configuration for the voice to use. */
+  voiceConfig: VoiceConfig;
+}
