@@ -561,11 +561,15 @@ export function parseActionCodeURL(link: string): ActionCodeURL | null;
 export interface ParsedToken {
     [key: string]: unknown;
     'auth_time'?: string;
+    'email'?: string;
+    'email_verified'?: boolean;
     'exp'?: string;
     'firebase'?: {
         'sign_in_provider'?: string;
         'sign_in_second_factor'?: string;
-        'identities'?: Record<string, string>;
+        'sign_in_attributes'?: Record<string, unknown>;
+        'identities'?: Record<string, string[]>;
+        'tenant'?: string;
     };
     'iat'?: string;
     'sub'?: string;
