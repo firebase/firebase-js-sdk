@@ -46,8 +46,7 @@ const fakeConfig = {
   messagingSenderId: 'messagingSenderId',
   databaseURL: 'databaseUrl',
   storageBucket: 'storageBucket',
-  appId: '1:777777777777:web:d93b5ca1475efe57',
-  recaptchaSiteKey: FAKE_SITE_KEY
+  appId: '1:777777777777:web:d93b5ca1475efe57'
 };
 
 export function getFakeApp(overrides: Record<string, any> = {}): FirebaseApp {
@@ -113,7 +112,7 @@ export function getFakeHeartbeatServiceProvider(
       () =>
         ({
           getHeartbeatsHeader: () => Promise.resolve(fakeLogString)
-        } as HeartbeatService),
+        }) as HeartbeatService,
       ComponentType.PRIVATE
     )
   );
