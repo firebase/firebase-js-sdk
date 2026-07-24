@@ -53,6 +53,12 @@ jobs:
       uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # ratchet:actions/setup-node@v4
       with:
         node-version: 22.12.0
+    # firebase-tools has a minimum java version requirement
+    - name: Set up Java (22)
+      uses: actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95 # v5.6.0
+      with:
+        distribution: 'temurin'
+        java-version: '22'
     - name: Test setup and yarn install
       run: |
         cp config/ci.config.json config/project.json
