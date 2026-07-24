@@ -1547,6 +1547,39 @@ describe('IndexedDb: allowTabSynchronization', () => {
     });
   });
 
+  it('respects a foreign primary lease when WebStorage is unavailable', async () => {
+    // On platforms without LocalStorage (e.g. Node.js), no zombied-client
+    // markers exist. A second client must still respect the first client's
+    // primary lease rather than treating the leaseholder as zombied.
+    const serializer = new JsonProtoSerializer(
+      TEST_DATABASE_ID,
+      /* useProto3Json= */ true
+    );
+    const newWebStorageLessPersistence = (
+      clientId: ClientId
+    ): IndexedDbPersistence =>
+      new IndexedDbPersistence(
+        /* allowTabSynchronization= */ false,
+        TEST_PERSISTENCE_PREFIX,
+        clientId,
+        LruParams.DEFAULT,
+        newAsyncQueue(),
+        /* window= */ null,
+        /* document= */ null,
+        serializer,
+        MOCK_SEQUENCE_NUMBER_SYNCER,
+        /* forceOwningTab= */ false
+      );
+
+    const db1 = newWebStorageLessPersistence('clientA');
+    await db1.start();
+    const db2 = newWebStorageLessPersistence('clientB');
+    await expect(db2.start()).to.eventually.be.rejectedWith(
+      'Failed to obtain exclusive access to the persistence layer.'
+    );
+    await db1.shutdown();
+  });
+
   it('grants access when synchronization is enabled', async () => {
     return withMultiClientPersistence('clientA', async db1 => {
       await withMultiClientPersistence('clientB', async db2 => {});
