@@ -31,11 +31,12 @@ The Firebase AI Web SDK.
 
 |  Class | Description |
 |  --- | --- |
+|  [AgentPlatformBackend](./ai.agentplatformbackend.md#agentplatformbackend_class) | Configuration class for the Agent Platform Gemini API.<!-- -->Use this with [AIOptions](./ai.aioptions.md#aioptions_interface) when initializing the AI service via [getAI()](./ai.md#getai_a94a413) to specify the Agent Platform Gemini API as the backend. |
 |  [AIError](./ai.aierror.md#aierror_class) | Error class for the Firebase AI SDK. |
 |  [AIModel](./ai.aimodel.md#aimodel_class) | Base class for Firebase AI model APIs.<!-- -->Instances of this class are associated with a specific Firebase AI [Backend](./ai.backend.md#backend_class) and provide methods for interacting with the configured generative model. |
 |  [AnyOfSchema](./ai.anyofschema.md#anyofschema_class) | Schema class representing a value that can conform to any of the provided sub-schemas. This is useful when a field can accept multiple distinct types or structures. |
 |  [ArraySchema](./ai.arrayschema.md#arrayschema_class) | Schema class for "array" types. The <code>items</code> param should refer to the type of item that can be a member of the array. |
-|  [Backend](./ai.backend.md#backend_class) | Abstract base class representing the configuration for an AI service backend. This class should not be instantiated directly. Use its subclasses; [GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class) for the Gemini Developer API (via [Google AI](https://ai.google/)<!-- -->), and [VertexAIBackend](./ai.vertexaibackend.md#vertexaibackend_class) for the Vertex AI Gemini API. |
+|  [Backend](./ai.backend.md#backend_class) | Abstract base class representing the configuration for an AI service backend. This class should not be instantiated directly. Use its subclasses; [GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class) for the Gemini Developer API (via [Google AI](https://ai.google/)<!-- -->) and [AgentPlatformBackend](./ai.agentplatformbackend.md#agentplatformbackend_class) for the Agent Platform Gemini API. |
 |  [BooleanSchema](./ai.booleanschema.md#booleanschema_class) | Schema class for "boolean" types. |
 |  [ChatSession](./ai.chatsession.md#chatsession_class) | ChatSession class that enables sending chat messages and stores history of sent and received messages so far. |
 |  [ChatSessionBase](./ai.chatsessionbase.md#chatsessionbase_class) | Base class for various <code>ChatSession</code> classes that enables sending chat messages and stores history of sent and received messages so far. |
@@ -48,18 +49,18 @@ The Firebase AI Web SDK.
 |  [LiveSession](./ai.livesession.md#livesession_class) | <b><i>(Public Preview)</i></b> Represents an active, real-time, bidirectional conversation with the model.<!-- -->This class should only be instantiated by calling [LiveGenerativeModel.connect()](./ai.livegenerativemodel.md#livegenerativemodelconnect)<!-- -->. |
 |  [NumberSchema](./ai.numberschema.md#numberschema_class) | Schema class for "number" types. |
 |  [ObjectSchema](./ai.objectschema.md#objectschema_class) | Schema class for "object" types. The <code>properties</code> param must be a map of <code>Schema</code> objects. |
-|  [Schema](./ai.schema.md#schema_class) | Parent class encompassing all Schema types, with static methods that allow building specific Schema types. This class can be converted with <code>JSON.stringify()</code> into a JSON string accepted by Vertex AI REST endpoints. (This string conversion is automatically done when calling SDK methods.) |
+|  [Schema](./ai.schema.md#schema_class) | Parent class encompassing all Schema types, with static methods that allow building specific Schema types. This class can be converted with <code>JSON.stringify()</code> into a JSON string accepted by Agent Platform Gemini API and Gemini Developer API REST endpoints. (This string conversion is automatically done when calling SDK methods.) |
 |  [StringSchema](./ai.stringschema.md#stringschema_class) | Schema class for "string" types. Can be used with or without enum values. |
 |  [TemplateGenerativeModel](./ai.templategenerativemodel.md#templategenerativemodel_class) | <b><i>(Public Preview)</i></b> [GenerativeModel](./ai.generativemodel.md#generativemodel_class) APIs that execute on a server-side template.<!-- -->This class should only be instantiated with [getTemplateGenerativeModel()](./ai.md#gettemplategenerativemodel_9476bbc)<!-- -->. |
 |  [TemplateImagenModel](./ai.templateimagenmodel.md#templateimagenmodel_class) | Class for Imagen model APIs that execute on a server-side template.<!-- -->This class should only be instantiated with [getTemplateImagenModel()](./ai.md#gettemplateimagenmodel_9476bbc)<!-- -->. |
-|  [VertexAIBackend](./ai.vertexaibackend.md#vertexaibackend_class) | Configuration class for the Vertex AI Gemini API.<!-- -->Use this with [AIOptions](./ai.aioptions.md#aioptions_interface) when initializing the AI service via [getAI()](./ai.md#getai_a94a413) to specify the Vertex AI Gemini API as the backend. |
+|  [VertexAIBackend](./ai.vertexaibackend.md#vertexaibackend_class) | Configuration class for the Agent Platform Gemini API (formerly known as the Vertex AI Gemini API).<!-- -->Use this with [AIOptions](./ai.aioptions.md#aioptions_interface) when initializing the AI service via [getAI()](./ai.md#getai_a94a413) to specify the Agent Platform Gemini API as the backend. |
 
 ## Interfaces
 
 |  Interface | Description |
 |  --- | --- |
 |  [AI](./ai.ai.md#ai_interface) | An instance of the Firebase AI SDK.<!-- -->Do not create this instance directly. Instead, use [getAI()](./ai.md#getai_a94a413)<!-- -->. |
-|  [AIOptions](./ai.aioptions.md#aioptions_interface) | Options for initializing the AI service using [getAI()](./ai.md#getai_a94a413)<!-- -->. This allows specifying which backend to use (Vertex AI Gemini API or Gemini Developer API) and configuring its specific options (like location for Vertex AI). |
+|  [AIOptions](./ai.aioptions.md#aioptions_interface) | Options for initializing the AI service using [getAI()](./ai.md#getai_a94a413)<!-- -->. This allows specifying which backend to use (Gemini Developer API or Agent Platform Gemini API) and configuring its specific options (like location for Agent Platform). |
 |  [AudioConversationController](./ai.audioconversationcontroller.md#audioconversationcontroller_interface) | <b><i>(Public Preview)</i></b> A controller for managing an active audio conversation. |
 |  [AudioTranscriptionConfig](./ai.audiotranscriptionconfig.md#audiotranscriptionconfig_interface) | The audio transcription configuration. |
 |  [BaseParams](./ai.baseparams.md#baseparams_interface) | Base parameters for a number of methods. |
@@ -97,20 +98,20 @@ The Firebase AI Web SDK.
 |  [GenerativeContentBlob](./ai.generativecontentblob.md#generativecontentblob_interface) | Interface for sending an image. |
 |  [GoogleMaps](./ai.googlemaps.md#googlemaps_interface) | Specifies the Google Maps configuration. |
 |  [GoogleMapsGroundingChunk](./ai.googlemapsgroundingchunk.md#googlemapsgroundingchunk_interface) | A grounding chunk from Google Maps.<!-- -->Important: If using Grounding with Google Maps, you are required to comply with the [Service Specific Terms](https://cloud.google.com/terms/service-terms) for "Grounding with Google Maps". |
-|  [GoogleMapsTool](./ai.googlemapstool.md#googlemapstool_interface) | A tool that allows a Gemini model to connect to Google Maps to access and incorporate location-based information into its responses.<!-- -->Important: If using Grounding with Google Maps, you are required to comply with the "Grounding with Google Maps" usage requirements for your chosen API provider: [Gemini Developer API](https://ai.google.dev/gemini-api/terms#grounding-with-google-maps) or Vertex AI Gemini API (see [Service Terms](https://cloud.google.com/terms/service-terms) section within the Service Specific Terms). |
+|  [GoogleMapsTool](./ai.googlemapstool.md#googlemapstool_interface) | A tool that allows a Gemini model to connect to Google Maps to access and incorporate location-based information into its responses.<!-- -->Important: If using Grounding with Google Maps, you are required to comply with the "Grounding with Google Maps" usage requirements for your chosen API provider: [Gemini Developer API](https://ai.google.dev/gemini-api/terms#grounding-with-google-maps) or Agent Platform Gemini API (see [Service Terms](https://cloud.google.com/terms/service-terms) section within the Service Specific Terms). |
 |  [GoogleSearch](./ai.googlesearch.md#googlesearch_interface) | Specifies the Google Search configuration. |
-|  [GoogleSearchTool](./ai.googlesearchtool.md#googlesearchtool_interface) | A tool that allows a Gemini model to connect to Google Search to access and incorporate up-to-date information from the web into its responses.<!-- -->Important: If using Grounding with Google Search, you are required to comply with the "Grounding with Google Search" usage requirements for your chosen API provider: [Gemini Developer API](https://ai.google.dev/gemini-api/terms#grounding-with-google-search) or Vertex AI Gemini API (see [Service Terms](https://cloud.google.com/terms/service-terms) section within the Service Specific Terms). |
+|  [GoogleSearchTool](./ai.googlesearchtool.md#googlesearchtool_interface) | A tool that allows a Gemini model to connect to Google Search to access and incorporate up-to-date information from the web into its responses.<!-- -->Important: If using Grounding with Google Search, you are required to comply with the "Grounding with Google Search" usage requirements for your chosen API provider: [Gemini Developer API](https://ai.google.dev/gemini-api/terms#grounding-with-google-search) or Agent Platform Gemini API (see [Service Terms](https://cloud.google.com/terms/service-terms) section within the Service Specific Terms). |
 |  [GroundingChunk](./ai.groundingchunk.md#groundingchunk_interface) | Represents a chunk of retrieved data that supports a claim in the model's response. This is part of the grounding information provided when grounding is enabled. |
-|  [GroundingMetadata](./ai.groundingmetadata.md#groundingmetadata_interface) | Metadata returned when grounding is enabled.<!-- -->Currently, only Grounding with Google Search and Grounding with Google Maps are supported (see [GoogleSearchTool](./ai.googlesearchtool.md#googlesearchtool_interface) and [GoogleMapsTool](./ai.googlemapstool.md#googlemapstool_interface)<!-- -->, respectively).<!-- -->Important: If using Grounding with Google Search, you are required to comply with the "Grounding with Google Search" usage requirements for your chosen API provider: [Gemini Developer API](https://ai.google.dev/gemini-api/terms#grounding-with-google-search) or Vertex AI Gemini API (see [Service Terms](https://cloud.google.com/terms/service-terms) section within the Service Specific Terms).<!-- -->Important: If using Grounding with Google Maps, you are required to comply with the "Grounding with Google Maps" usage requirements for your chosen API provider: [Gemini Developer API](https://ai.google.dev/gemini-api/terms#grounding-with-google-maps) or Vertex AI Gemini API (see [Service Terms](https://cloud.google.com/terms/service-terms) section within the Service Specific Terms). |
+|  [GroundingMetadata](./ai.groundingmetadata.md#groundingmetadata_interface) | Metadata returned when grounding is enabled.<!-- -->Currently, only Grounding with Google Search and Grounding with Google Maps are supported (see [GoogleSearchTool](./ai.googlesearchtool.md#googlesearchtool_interface) and [GoogleMapsTool](./ai.googlemapstool.md#googlemapstool_interface)<!-- -->, respectively).<!-- -->Important: If using Grounding with Google Search, you are required to comply with the "Grounding with Google Search" usage requirements for your chosen API provider: [Gemini Developer API](https://ai.google.dev/gemini-api/terms#grounding-with-google-search) or Agent Platform Gemini API (see [Service Terms](https://cloud.google.com/terms/service-terms) section within the Service Specific Terms).<!-- -->Important: If using Grounding with Google Maps, you are required to comply with the "Grounding with Google Maps" usage requirements for your chosen API provider: [Gemini Developer API](https://ai.google.dev/gemini-api/terms#grounding-with-google-maps) or Agent Platform Gemini API (see [Service Terms](https://cloud.google.com/terms/service-terms) section within the Service Specific Terms). |
 |  [GroundingSupport](./ai.groundingsupport.md#groundingsupport_interface) | Provides information about how a specific segment of the model's response is supported by the retrieved grounding chunks. |
 |  [HybridParams](./ai.hybridparams.md#hybridparams_interface) | Configures hybrid inference. |
 |  [ImageConfig](./ai.imageconfig.md#imageconfig_interface) | Configuration options for generating images with Gemini models. |
 |  [ImagenGCSImage](./ai.imagengcsimage.md#imagengcsimage_interface) | An image generated by Imagen, stored in a Cloud Storage for Firebase bucket.<!-- -->This feature is not available yet. |
-|  [ImagenGenerationConfig](./ai.imagengenerationconfig.md#imagengenerationconfig_interface) | Configuration options for generating images with Imagen.<!-- -->See the [documentation](http://firebase.google.com/docs/vertex-ai/generate-images-imagen) for more details. |
+|  [ImagenGenerationConfig](./ai.imagengenerationconfig.md#imagengenerationconfig_interface) | Configuration options for generating images with Imagen.<!-- -->See the [documentation](http://firebase.google.com/docs/ai-logic/generate-images-imagen) for more details. |
 |  [ImagenGenerationResponse](./ai.imagengenerationresponse.md#imagengenerationresponse_interface) | The response from a request to generate images with Imagen. |
 |  [ImagenInlineImage](./ai.imageninlineimage.md#imageninlineimage_interface) | An image generated by Imagen, represented as inline data. |
 |  [ImagenModelParams](./ai.imagenmodelparams.md#imagenmodelparams_interface) | Parameters for configuring an [ImagenModel](./ai.imagenmodel.md#imagenmodel_class)<!-- -->. |
-|  [ImagenSafetySettings](./ai.imagensafetysettings.md#imagensafetysettings_interface) | Settings for controlling the aggressiveness of filtering out sensitive content.<!-- -->See the [documentation](http://firebase.google.com/docs/vertex-ai/generate-images) for more details. |
+|  [ImagenSafetySettings](./ai.imagensafetysettings.md#imagensafetysettings_interface) | Settings for controlling the aggressiveness of filtering out sensitive content.<!-- -->See the [documentation](http://firebase.google.com/docs/ai-logic/generate-images) for more details. |
 |  [InlineDataPart](./ai.inlinedatapart.md#inlinedatapart_interface) | Content part interface if the part represents an image. |
 |  [LanguageModelCreateCoreOptions](./ai.languagemodelcreatecoreoptions.md#languagemodelcreatecoreoptions_interface) | Configures the creation of an on-device language model session. |
 |  [LanguageModelCreateOptions](./ai.languagemodelcreateoptions.md#languagemodelcreateoptions_interface) | Configures the creation of an on-device language model session. |
@@ -174,7 +175,7 @@ The Firebase AI Web SDK.
 |  Variable | Description |
 |  --- | --- |
 |  [AIErrorCode](./ai.md#aierrorcode) | Standardized error codes that [AIError](./ai.aierror.md#aierror_class) can have. |
-|  [BackendType](./ai.md#backendtype) | An enum-like object containing constants that represent the supported backends for the Firebase AI SDK. This determines which backend service (Vertex AI Gemini API or Gemini Developer API) the SDK will communicate with.<!-- -->These values are assigned to the <code>backendType</code> property within the specific backend configuration objects ([GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class) or [VertexAIBackend](./ai.vertexaibackend.md#vertexaibackend_class)<!-- -->) to identify which service to target. |
+|  [BackendType](./ai.md#backendtype) | An enum-like object containing constants that represent the supported backends for the Firebase AI SDK. This determines which backend service (Gemini Developer API or Agent Platform Gemini API) the SDK will communicate with.<!-- -->These values are assigned to the <code>backendType</code> property within the specific backend configuration objects ([GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class) or [AgentPlatformBackend](./ai.agentplatformbackend.md#agentplatformbackend_class)<!-- -->) to identify which service to target. |
 |  [BlockReason](./ai.md#blockreason) | Reason that a prompt was blocked. |
 |  [FinishReason](./ai.md#finishreason) | Reason that a candidate finished. |
 |  [FunctionCallingMode](./ai.md#functioncallingmode) |  |
@@ -185,9 +186,9 @@ The Firebase AI Web SDK.
 |  [HarmSeverity](./ai.md#harmseverity) | Harm severity levels. |
 |  [ImageConfigAspectRatio](./ai.md#imageconfigaspectratio) | Aspect ratios for generated images. |
 |  [ImageConfigImageSize](./ai.md#imageconfigimagesize) | Sizes for generated images. For example, '1K' is 1024px, '2K' is 2048px, and '4K' is 4096px. |
-|  [ImagenAspectRatio](./ai.md#imagenaspectratio) | Aspect ratios for Imagen images.<!-- -->To specify an aspect ratio for generated images, set the <code>aspectRatio</code> property in your [ImagenGenerationConfig](./ai.imagengenerationconfig.md#imagengenerationconfig_interface)<!-- -->.<!-- -->See the [documentation](http://firebase.google.com/docs/vertex-ai/generate-images) for more details and examples of the supported aspect ratios. |
-|  [ImagenPersonFilterLevel](./ai.md#imagenpersonfilterlevel) | A filter level controlling whether generation of images containing people or faces is allowed.<!-- -->See the <a href="http://firebase.google.com/docs/vertex-ai/generate-images">personGeneration</a> documentation for more details. |
-|  [ImagenSafetyFilterLevel](./ai.md#imagensafetyfilterlevel) | A filter level controlling how aggressively to filter sensitive content.<!-- -->Text prompts provided as inputs and images (generated or uploaded) through Imagen on Vertex AI are assessed against a list of safety filters, which include 'harmful categories' (for example, <code>violence</code>, <code>sexual</code>, <code>derogatory</code>, and <code>toxic</code>). This filter level controls how aggressively to filter out potentially harmful content from responses. See the [documentation](http://firebase.google.com/docs/vertex-ai/generate-images) and the [Responsible AI and usage guidelines](https://cloud.google.com/vertex-ai/generative-ai/docs/image/responsible-ai-imagen#safety-filters) for more details. |
+|  [ImagenAspectRatio](./ai.md#imagenaspectratio) | Aspect ratios for Imagen images.<!-- -->To specify an aspect ratio for generated images, set the <code>aspectRatio</code> property in your [ImagenGenerationConfig](./ai.imagengenerationconfig.md#imagengenerationconfig_interface)<!-- -->.<!-- -->See the [documentation](http://firebase.google.com/docs/ai-logic/generate-images) for more details and examples of the supported aspect ratios. |
+|  [ImagenPersonFilterLevel](./ai.md#imagenpersonfilterlevel) | A filter level controlling whether generation of images containing people or faces is allowed.<!-- -->See the <a href="http://firebase.google.com/docs/ai-logic/generate-images">personGeneration</a> documentation for more details. |
+|  [ImagenSafetyFilterLevel](./ai.md#imagensafetyfilterlevel) | A filter level controlling how aggressively to filter sensitive content.<!-- -->Text prompts provided as inputs and images (generated or uploaded) through Imagen on Vertex AI are assessed against a list of safety filters, which include 'harmful categories' (for example, <code>violence</code>, <code>sexual</code>, <code>derogatory</code>, and <code>toxic</code>). This filter level controls how aggressively to filter out potentially harmful content from responses. See the [documentation](http://firebase.google.com/docs/ai-logic/generate-images) and the [Responsible AI and usage guidelines](https://cloud.google.com/vertex-ai/generative-ai/docs/image/responsible-ai-imagen#safety-filters) for more details. |
 |  [InferenceMode](./ai.md#inferencemode) | Determines whether inference happens on-device or in-cloud. |
 |  [InferenceSource](./ai.md#inferencesource) | Indicates whether inference happened on-device or in-cloud. |
 |  [Language](./ai.md#language) | The programming language of the code. |
@@ -205,7 +206,7 @@ The Firebase AI Web SDK.
 |  Type Alias | Description |
 |  --- | --- |
 |  [AIErrorCode](./ai.md#aierrorcode) | Standardized error codes that [AIError](./ai.aierror.md#aierror_class) can have. |
-|  [BackendType](./ai.md#backendtype) | Type alias representing valid backend types. It can be either <code>'VERTEX_AI'</code> or <code>'GOOGLE_AI'</code>. |
+|  [BackendType](./ai.md#backendtype) | Type alias representing valid backend types. It should be either <code>'AGENT_PLATFORM'</code> or <code>'GOOGLE_AI'</code> (<code>'VERTEX_AI'</code> is deprecated). |
 |  [BlockReason](./ai.md#blockreason) | Reason that a prompt was blocked. |
 |  [FinishReason](./ai.md#finishreason) | Reason that a candidate finished. |
 |  [FunctionCallingMode](./ai.md#functioncallingmode) |  |
@@ -216,9 +217,9 @@ The Firebase AI Web SDK.
 |  [HarmSeverity](./ai.md#harmseverity) | Harm severity levels. |
 |  [ImageConfigAspectRatio](./ai.md#imageconfigaspectratio) | Aspect ratios for generated images. |
 |  [ImageConfigImageSize](./ai.md#imageconfigimagesize) | Sizes for generated images. |
-|  [ImagenAspectRatio](./ai.md#imagenaspectratio) | Aspect ratios for Imagen images.<!-- -->To specify an aspect ratio for generated images, set the <code>aspectRatio</code> property in your [ImagenGenerationConfig](./ai.imagengenerationconfig.md#imagengenerationconfig_interface)<!-- -->.<!-- -->See the [documentation](http://firebase.google.com/docs/vertex-ai/generate-images) for more details and examples of the supported aspect ratios. |
-|  [ImagenPersonFilterLevel](./ai.md#imagenpersonfilterlevel) | A filter level controlling whether generation of images containing people or faces is allowed.<!-- -->See the <a href="http://firebase.google.com/docs/vertex-ai/generate-images">personGeneration</a> documentation for more details. |
-|  [ImagenSafetyFilterLevel](./ai.md#imagensafetyfilterlevel) | A filter level controlling how aggressively to filter sensitive content.<!-- -->Text prompts provided as inputs and images (generated or uploaded) through Imagen on Vertex AI are assessed against a list of safety filters, which include 'harmful categories' (for example, <code>violence</code>, <code>sexual</code>, <code>derogatory</code>, and <code>toxic</code>). This filter level controls how aggressively to filter out potentially harmful content from responses. See the [documentation](http://firebase.google.com/docs/vertex-ai/generate-images) and the [Responsible AI and usage guidelines](https://cloud.google.com/vertex-ai/generative-ai/docs/image/responsible-ai-imagen#safety-filters) for more details. |
+|  [ImagenAspectRatio](./ai.md#imagenaspectratio) | Aspect ratios for Imagen images.<!-- -->To specify an aspect ratio for generated images, set the <code>aspectRatio</code> property in your [ImagenGenerationConfig](./ai.imagengenerationconfig.md#imagengenerationconfig_interface)<!-- -->.<!-- -->See the [documentation](http://firebase.google.com/docs/ai-logic/generate-images) for more details and examples of the supported aspect ratios. |
+|  [ImagenPersonFilterLevel](./ai.md#imagenpersonfilterlevel) | A filter level controlling whether generation of images containing people or faces is allowed.<!-- -->See the <a href="http://firebase.google.com/docs/ai-logic/generate-images">personGeneration</a> documentation for more details. |
+|  [ImagenSafetyFilterLevel](./ai.md#imagensafetyfilterlevel) | A filter level controlling how aggressively to filter sensitive content.<!-- -->Text prompts provided as inputs and images (generated or uploaded) through Imagen on Vertex AI are assessed against a list of safety filters, which include 'harmful categories' (for example, <code>violence</code>, <code>sexual</code>, <code>derogatory</code>, and <code>toxic</code>). This filter level controls how aggressively to filter out potentially harmful content from responses. See the [documentation](http://firebase.google.com/docs/ai-logic/generate-images) and the [Responsible AI and usage guidelines](https://cloud.google.com/vertex-ai/generative-ai/docs/image/responsible-ai-imagen#safety-filters) for more details. |
 |  [InferenceMode](./ai.md#inferencemode) | Determines whether inference happens on-device or in-cloud. |
 |  [InferenceSource](./ai.md#inferencesource) | Indicates whether inference happened on-device or in-cloud. |
 |  [Language](./ai.md#language) | The programming language of the code. |
@@ -284,8 +285,8 @@ const ai = getAI(app, { backend: new GoogleAIBackend() });
 
 
 ```javascript
-// Get an AI instance configured to use the Vertex AI Gemini API.
-const ai = getAI(app, { backend: new VertexAIBackend() });
+// Get an AI instance configured to use the Agent Platform Gemini API.
+const ai = getAI(app, { backend: new AgentPlatformBackend() });
 
 ```
 
@@ -523,14 +524,15 @@ AIErrorCode: {
 
 ## BackendType
 
-An enum-like object containing constants that represent the supported backends for the Firebase AI SDK. This determines which backend service (Vertex AI Gemini API or Gemini Developer API) the SDK will communicate with.
+An enum-like object containing constants that represent the supported backends for the Firebase AI SDK. This determines which backend service (Gemini Developer API or Agent Platform Gemini API) the SDK will communicate with.
 
-These values are assigned to the `backendType` property within the specific backend configuration objects ([GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class) or [VertexAIBackend](./ai.vertexaibackend.md#vertexaibackend_class)<!-- -->) to identify which service to target.
+These values are assigned to the `backendType` property within the specific backend configuration objects ([GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class) or [AgentPlatformBackend](./ai.agentplatformbackend.md#agentplatformbackend_class)<!-- -->) to identify which service to target.
 
 <b>Signature:</b>
 
 ```typescript
 BackendType: {
+    readonly AGENT_PLATFORM: "AGENT_PLATFORM";
     readonly VERTEX_AI: "VERTEX_AI";
     readonly GOOGLE_AI: "GOOGLE_AI";
 }
@@ -720,7 +722,7 @@ Aspect ratios for Imagen images.
 
 To specify an aspect ratio for generated images, set the `aspectRatio` property in your [ImagenGenerationConfig](./ai.imagengenerationconfig.md#imagengenerationconfig_interface)<!-- -->.
 
-See the [documentation](http://firebase.google.com/docs/vertex-ai/generate-images) for more details and examples of the supported aspect ratios.
+See the [documentation](http://firebase.google.com/docs/ai-logic/generate-images) for more details and examples of the supported aspect ratios.
 
 <b>Signature:</b>
 
@@ -743,7 +745,7 @@ ImagenAspectRatio: {
 
 A filter level controlling whether generation of images containing people or faces is allowed.
 
-See the <a href="http://firebase.google.com/docs/vertex-ai/generate-images">personGeneration</a> documentation for more details.
+See the <a href="http://firebase.google.com/docs/ai-logic/generate-images">personGeneration</a> documentation for more details.
 
 <b>Signature:</b>
 
@@ -764,7 +766,7 @@ ImagenPersonFilterLevel: {
 
 A filter level controlling how aggressively to filter sensitive content.
 
-Text prompts provided as inputs and images (generated or uploaded) through Imagen on Vertex AI are assessed against a list of safety filters, which include 'harmful categories' (for example, `violence`<!-- -->, `sexual`<!-- -->, `derogatory`<!-- -->, and `toxic`<!-- -->). This filter level controls how aggressively to filter out potentially harmful content from responses. See the [documentation](http://firebase.google.com/docs/vertex-ai/generate-images) and the [Responsible AI and usage guidelines](https://cloud.google.com/vertex-ai/generative-ai/docs/image/responsible-ai-imagen#safety-filters) for more details.
+Text prompts provided as inputs and images (generated or uploaded) through Imagen on Vertex AI are assessed against a list of safety filters, which include 'harmful categories' (for example, `violence`<!-- -->, `sexual`<!-- -->, `derogatory`<!-- -->, and `toxic`<!-- -->). This filter level controls how aggressively to filter out potentially harmful content from responses. See the [documentation](http://firebase.google.com/docs/ai-logic/generate-images) and the [Responsible AI and usage guidelines](https://cloud.google.com/vertex-ai/generative-ai/docs/image/responsible-ai-imagen#safety-filters) for more details.
 
 <b>Signature:</b>
 
@@ -960,7 +962,7 @@ export type AIErrorCode = (typeof AIErrorCode)[keyof typeof AIErrorCode];
 
 ## BackendType
 
-Type alias representing valid backend types. It can be either `'VERTEX_AI'` or `'GOOGLE_AI'`<!-- -->.
+Type alias representing valid backend types. It should be either `'AGENT_PLATFORM'` or `'GOOGLE_AI'` (`'VERTEX_AI'` is deprecated).
 
 <b>Signature:</b>
 
@@ -1078,7 +1080,7 @@ Aspect ratios for Imagen images.
 
 To specify an aspect ratio for generated images, set the `aspectRatio` property in your [ImagenGenerationConfig](./ai.imagengenerationconfig.md#imagengenerationconfig_interface)<!-- -->.
 
-See the [documentation](http://firebase.google.com/docs/vertex-ai/generate-images) for more details and examples of the supported aspect ratios.
+See the [documentation](http://firebase.google.com/docs/ai-logic/generate-images) for more details and examples of the supported aspect ratios.
 
 <b>Signature:</b>
 
@@ -1095,7 +1097,7 @@ export type ImagenAspectRatio = (typeof ImagenAspectRatio)[keyof typeof ImagenAs
 
 A filter level controlling whether generation of images containing people or faces is allowed.
 
-See the <a href="http://firebase.google.com/docs/vertex-ai/generate-images">personGeneration</a> documentation for more details.
+See the <a href="http://firebase.google.com/docs/ai-logic/generate-images">personGeneration</a> documentation for more details.
 
 <b>Signature:</b>
 
@@ -1112,7 +1114,7 @@ export type ImagenPersonFilterLevel = (typeof ImagenPersonFilterLevel)[keyof typ
 
 A filter level controlling how aggressively to filter sensitive content.
 
-Text prompts provided as inputs and images (generated or uploaded) through Imagen on Vertex AI are assessed against a list of safety filters, which include 'harmful categories' (for example, `violence`<!-- -->, `sexual`<!-- -->, `derogatory`<!-- -->, and `toxic`<!-- -->). This filter level controls how aggressively to filter out potentially harmful content from responses. See the [documentation](http://firebase.google.com/docs/vertex-ai/generate-images) and the [Responsible AI and usage guidelines](https://cloud.google.com/vertex-ai/generative-ai/docs/image/responsible-ai-imagen#safety-filters) for more details.
+Text prompts provided as inputs and images (generated or uploaded) through Imagen on Vertex AI are assessed against a list of safety filters, which include 'harmful categories' (for example, `violence`<!-- -->, `sexual`<!-- -->, `derogatory`<!-- -->, and `toxic`<!-- -->). This filter level controls how aggressively to filter out potentially harmful content from responses. See the [documentation](http://firebase.google.com/docs/ai-logic/generate-images) and the [Responsible AI and usage guidelines](https://cloud.google.com/vertex-ai/generative-ai/docs/image/responsible-ai-imagen#safety-filters) for more details.
 
 <b>Signature:</b>
 
