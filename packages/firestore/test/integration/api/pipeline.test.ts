@@ -45,9 +45,12 @@ import {
   DocumentReference,
   deleteDoc,
   FirestoreError,
-  getDocs
+  getDocs,
+  getDoc,
+  setLogLevel
 } from '../util/firebase_export';
 import { apiDescribe, withTestCollection, withTestDbs } from '../util/helpers';
+
 import {
   array,
   mod,
@@ -2354,6 +2357,86 @@ apiDescribe.skipClassic('Pipelines', persistence => {
             computedDistance: 12.041594578792296
           }
         );
+      });
+    });
+
+    describe('dml stage', () => {
+      it('can execute delete stage multiple documents', async () => {
+        const deletePpl = firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .where(equal(field('genre'), 'Science Fiction'))
+          .delete();
+
+        const deleteRes = await execute(deletePpl);
+        expectResults(deleteRes, { documents_modified: 2 });
+
+        const docSnap1 = await getDoc(doc(randomCol, 'book1'));
+        expect(docSnap1.exists()).to.be.false;
+
+        const docSnap10 = await getDoc(doc(randomCol, 'book10'));
+        expect(docSnap10.exists()).to.be.false;
+      });
+
+      it('can execute update stage with addFields', async () => {
+        const ppl = firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .where(equal(field('__name__').documentId(), 'book3'))
+          .addFields(field('__name__').documentId().as('id'))
+          .update([constant('baz').as('foo')]);
+
+        const res = await execute(ppl);
+        expectResults(res, { documents_modified: 1 });
+
+        const docSnap = await getDoc(doc(randomCol, 'book3'));
+        expect(docSnap.get('foo')).to.equal('baz');
+        expect(docSnap.get('id')).to.equal('book3');
+      });
+
+      it('can update multiple documents and remove fields', async () => {
+        const res = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .where(equal(field('genre'), 'Science Fiction'))
+            .removeFields('awards')
+            .update([constant('Updated').as('status')])
+        );
+        expectResults(res, { documents_modified: 2 });
+
+        const docSnap1 = await getDoc(doc(randomCol, 'book1'));
+        expect(docSnap1.get('status')).to.equal('Updated');
+        expect(docSnap1.get('awards')).to.be.undefined;
+
+        const docSnap10 = await getDoc(doc(randomCol, 'book10'));
+        expect(docSnap10.get('status')).to.equal('Updated');
+        expect(docSnap10.get('awards')).to.be.undefined;
+      });
+
+      it('can update with expressions', async () => {
+        const res = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .where(equal(field('__name__').documentId(), 'book1'))
+            .update([add(field('rating'), constant(1.0)).as('rating')])
+        );
+        expectResults(res, { documents_modified: 1 });
+
+        const docSnap = await getDoc(doc(randomCol, 'book1'));
+        expect(docSnap.get('rating')).to.equal(5.2);
+      });
+
+      it('can update non existing document modifies zero documents', async () => {
+        const nonExistingId = 'nonExistingId_123';
+        const res = await execute(
+          firestore
+            .pipeline()
+            .documents([doc(randomCol, nonExistingId)])
+            .update([constant('Updated').as('status')])
+        );
+        expectResults(res, { documents_modified: 0 });
       });
     });
   });
