@@ -112,6 +112,7 @@ export {
   Primitive,
   NestedUpdateFields,
   ChildUpdateFields,
+  ChildTypes,
   AddPrefixToKeys,
   UnionToIntersection
 } from '../src/lite-api/types';
