@@ -14,13 +14,32 @@ This guide details how to integrate Firebase Crashlytics into a Next.js applicat
 
 ### Client-Side / App Router Layout
 
-Wrap your top-level layout template with the `<FirebaseCrashlytics>` component. This acts as the global window receiver, handling unhandled rejections and exceptions from the browser and React UI.
+In Next.js App Router, `layout.tsx` is a Server Component by default. Because `FirebaseApp` is non-serializable, wrap `<FirebaseCrashlytics>` in a Client Component (e.g., `src/components/CrashlyticsProvider.tsx`) marked with the `"use client"` directive:
+
+```tsx
+// src/components/CrashlyticsProvider.tsx
+'use client';
+
+import React from 'react';
+import { FirebaseCrashlytics } from '@firebase/crashlytics/react';
+import { app } from '../lib/firebase'; // Shared initialization script
+
+export function CrashlyticsProvider({ children }: { children: React.ReactNode }) {
+  return (
+    <>
+      <FirebaseCrashlytics firebaseApp={app} />
+      {children}
+    </>
+  );
+}
+```
+
+Then wrap your root layout with `<CrashlyticsProvider>`:
 
 ```tsx
 // src/app/layout.tsx
 import React from 'react';
-import { FirebaseCrashlytics } from "@firebase/crashlytics/react";
-import { app } from '../lib/firebase'; // Shared initialization script
+import { CrashlyticsProvider } from '../components/CrashlyticsProvider';
 
 export default function RootLayout({
   children,
@@ -30,8 +49,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <FirebaseCrashlytics firebaseApp={app} />
-        {children}
+        <CrashlyticsProvider>
+          {children}
+        </CrashlyticsProvider>
       </body>
     </html>
   );

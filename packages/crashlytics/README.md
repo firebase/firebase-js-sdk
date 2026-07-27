@@ -228,14 +228,14 @@ The `curl -G` and `--data-urlencode` flags ensure the AIP-160 filter string is c
 curl -G \
  -H "Authorization: Bearer $TOKEN" \
  --data-urlencode "filter=app_id=\"${APP_ID}\"" \
- "https://firebasetelemetryadmin.googleapis.com/v1alpha/projects/PROJECTID/locations/{LOCATION}/configs"
+ "https://firebasetelemetryadmin.googleapis.com/v1alpha/projects/${PROJECT_ID}/locations/${LOCATION}/configs"
 ```
 
 In the JSON response, locate the `name` field for your app. It will look like `projects/.../configs/<CONFIG_ID>`. Extract that ID and set your final variables:
 
 ```bash
 CONFIG_ID="your-config-id-from-response"
-CONFIG_NAME="projects/PROJECTID/locations/{LOCATION}/configs/${CONFIG_ID}"
+CONFIG_NAME="projects/${PROJECT_ID}/locations/${LOCATION}/configs/${CONFIG_ID}"
 ```
 
 #### 2. Set the Sampling Rate
@@ -250,9 +250,9 @@ curl -X PATCH \
  -H "Authorization: Bearer $TOKEN" \
  -H "Content-Type: application/json" \
  -d '{
- "sampling_rate": 0.25,
- "app_id": '${APP_ID}'
- }' \
+  "sampling_rate": 0.25,
+  "app_id": "'"${APP_ID}"'"
+  }' \
  "https://firebasetelemetryadmin.googleapis.com/v1alpha/${CONFIG_NAME}?updateMask=sampling_rate"
 ```
 
@@ -279,7 +279,7 @@ curl -X PATCH \
 You can use the built-in console settings to drop a specific **Exclusion Percentage** (e.g., drop 50% of error logs to maintain visibility while slashing costs in half).
 
 ```javascript
-// Exclude (drop) 50% of DEFAULT, DEBUG, and INFO logs
+// Exclude (drop) 50% of ERROR logs
 severity=(ERROR) AND sample(insert_id, 0.5)
 ```
 
@@ -323,14 +323,14 @@ The `curl -G` and `--data-urlencode` flags ensure the AIP-160 filter string is c
 curl -G \
  -H "Authorization: Bearer $TOKEN" \
  --data-urlencode "filter=app_id=\"${APP_ID}\"" \
- "https://firebasetelemetryadmin.googleapis.com/v1alpha/projects/PROJECTID/locations/{LOCATION}/configs"
+ "https://firebasetelemetryadmin.googleapis.com/v1alpha/projects/${PROJECT_ID}/locations/${LOCATION}/configs"
 ```
 
 In the JSON response, locate the `name` field for your app. It will look like `projects/.../configs/<CONFIG_ID>`. Extract that ID and set your final variables:
 
 ```bash
 CONFIG_ID="your-config-id-from-response"
-CONFIG_NAME="projects/PROJECTID/locations/{LOCATION}/configs/${CONFIG_ID}"
+CONFIG_NAME="projects/${PROJECT_ID}/locations/${LOCATION}/configs/${CONFIG_ID}"
 ```
 
 #### 2. Disable Telemetry Collection

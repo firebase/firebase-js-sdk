@@ -12,26 +12,20 @@ This guide details how to integrate Firebase Crashlytics into a React applicatio
 
 ## Automatic Error Capturing
 
-Wrap your top-level layout template or root component with the `<FirebaseCrashlytics>` component. This acts as the global window receiver, handling unhandled rejections and exceptions from the browser and React UI. It wraps all child component hierarchies and automatically captures any uncaught exceptions or routing-based errors.
+Wrap your root application component (typically `src/App.tsx` or `src/main.tsx`) with the `<FirebaseCrashlytics>` component. This acts as the global window receiver, handling unhandled rejections and exceptions from the browser and React UI. It wraps all child component hierarchies and automatically captures any uncaught exceptions or routing-based errors.
 
 ```tsx
-// src/app/layout.tsx
+// src/App.tsx
 import React from 'react';
 import { FirebaseCrashlytics } from "@firebase/crashlytics/react";
-import { app } from '../lib/firebase'; // Shared initialization script
+import { app } from './lib/firebase'; // Shared initialization script
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function App() {
   return (
-    <html lang="en">
-      <body>
-        <FirebaseCrashlytics firebaseApp={app} />
-        {children}
-      </body>
-    </html>
+    <>
+      <FirebaseCrashlytics firebaseApp={app} />
+      {/* Rest of your application components */}
+    </>
   );
 }
 ```
