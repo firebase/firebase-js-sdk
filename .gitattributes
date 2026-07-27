@@ -3,3 +3,9 @@
 *.md       text eol=lf
 
 *.json  linguist-language=JSON-with-Comments
+
+# Generated and snapshot files (collapsed by default in GitHub PRs)
+# =================================================================
+common/api-review/*.api.md linguist-generated=true
+repo-scripts/prune-dts/tests/**/*.d.ts linguist-generated=true
+yarn.lock linguist-generated=true
