@@ -56,6 +56,18 @@
     "@firebase/component": "0.7.3",
     "tslib": "^2.1.0"
   },
+  "peerDependencies": {
+    "@firebase/app": "0.x",
+    "@firebase/app-compat": "0.x"
+  },
+  "peerDependenciesMeta": {
+    "@firebase/app": {
+      "optional": true
+    },
+    "@firebase/app-compat": {
+      "optional": true
+    }
+  },
   "devDependencies": {
     "@firebase/app-compat": "0.5.15",
     "typescript": "5.5.4"

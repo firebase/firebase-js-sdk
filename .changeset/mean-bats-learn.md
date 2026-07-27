@@ -7,6 +7,7 @@
 '@firebase/firestore-compat': patch
 '@firebase/functions-compat': patch
 '@firebase/messaging-compat': patch
+'@firebase/database-compat': patch
 '@firebase/storage-compat': patch
 '@firebase/auth-compat': patch
 ---
