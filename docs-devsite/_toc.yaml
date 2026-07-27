@@ -26,6 +26,8 @@ toc:
     path: /docs/reference/js/ai.backend.md
   - title: BaseParams
     path: /docs/reference/js/ai.baseparams.md
+  - title: BaseSpeechConfig
+    path: /docs/reference/js/ai.basespeechconfig.md
   - title: BooleanSchema
     path: /docs/reference/js/ai.booleanschema.md
   - title: ChatSession
@@ -178,6 +180,10 @@ toc:
     path: /docs/reference/js/ai.modalitytokencount.md
   - title: ModelParams
     path: /docs/reference/js/ai.modelparams.md
+  - title: MultiSpeakerSpeechConfig
+    path: /docs/reference/js/ai.multispeakerspeechconfig.md
+  - title: MultiSpeakerVoiceConfig
+    path: /docs/reference/js/ai.multispeakervoiceconfig.md
   - title: NumberSchema
     path: /docs/reference/js/ai.numberschema.md
   - title: ObjectSchema
@@ -218,10 +224,12 @@ toc:
     path: /docs/reference/js/ai.sessionresumptionconfig.md
   - title: SingleRequestOptions
     path: /docs/reference/js/ai.singlerequestoptions.md
+  - title: SingleSpeakerSpeechConfig
+    path: /docs/reference/js/ai.singlespeakerspeechconfig.md
   - title: SlidingWindow
     path: /docs/reference/js/ai.slidingwindow.md
-  - title: SpeechConfig
-    path: /docs/reference/js/ai.speechconfig.md
+  - title: SpeakerVoiceConfig
+    path: /docs/reference/js/ai.speakervoiceconfig.md
   - title: StartAudioConversationOptions
     path: /docs/reference/js/ai.startaudioconversationoptions.md
   - title: StartChatParams

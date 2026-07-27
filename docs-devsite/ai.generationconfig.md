@@ -31,6 +31,7 @@ export interface GenerationConfig
 |  [responseMimeType](./ai.generationconfig.md#generationconfigresponsemimetype) | string | Output response MIME type of the generated candidate text. Supported MIME types are <code>text/plain</code> (default, text output), <code>application/json</code> (JSON response in the candidates), and <code>text/x.enum</code>. |
 |  [responseModalities](./ai.generationconfig.md#generationconfigresponsemodalities) | [ResponseModality](./ai.md#responsemodality)<!-- -->\[\] | <b><i>(Public Preview)</i></b> Generation modalities to be returned in generation responses. |
 |  [responseSchema](./ai.generationconfig.md#generationconfigresponseschema) | [TypedSchema](./ai.md#typedschema) \| [SchemaRequest](./ai.schemarequest.md#schemarequest_interface) | Output response schema of the generated candidate text. This value can be a class generated with a [Schema](./ai.schema.md#schema_class) static method like <code>Schema.string()</code> or <code>Schema.object()</code> or it can be a plain JS object matching the [SchemaRequest](./ai.schemarequest.md#schemarequest_interface) interface. <br/>Note: This only applies when the specified <code>responseMimeType</code> supports a schema; currently this is limited to <code>application/json</code> and <code>text/x.enum</code>. |
+|  [speechConfig](./ai.generationconfig.md#generationconfigspeechconfig) | [SpeechConfig](./ai.md#speechconfig) | <b><i>(Public Preview)</i></b> Configuration for speech synthesis for text-to-speech (TTS) models. |
 |  [stopSequences](./ai.generationconfig.md#generationconfigstopsequences) | string\[\] |  |
 |  [temperature](./ai.generationconfig.md#generationconfigtemperature) | number |  |
 |  [thinkingConfig](./ai.generationconfig.md#generationconfigthinkingconfig) | [ThinkingConfig](./ai.thinkingconfig.md#thinkingconfig_interface) | Configuration for "thinking" behavior of compatible Gemini models. |
@@ -126,6 +127,19 @@ Output response schema of the generated candidate text. This value can be a clas
 
 ```typescript
 responseSchema?: TypedSchema | SchemaRequest;
+```
+
+## GenerationConfig.speechConfig
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Configuration for speech synthesis for text-to-speech (TTS) models.
+
+<b>Signature:</b>
+
+```typescript
+speechConfig?: SpeechConfig;
 ```
 
 ## GenerationConfig.stopSequences
