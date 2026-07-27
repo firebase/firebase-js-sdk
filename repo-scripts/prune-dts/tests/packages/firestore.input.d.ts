@@ -3931,13 +3931,13 @@ export declare function maximum(n: number): FieldValue;
 /**
  * An settings object to configure an `MemoryLocalCache` instance.
  */
-export declare type MemoryCacheSettings = {
+export declare interface MemoryCacheSettings {
     /**
      * The garbage collector to use, for the memory cache layer.
      * A `MemoryEagerGarbageCollector` is used when this is undefined.
      */
     garbageCollector?: MemoryGarbageCollector;
-};
+}
 
 /**
  * A garbage collector deletes documents whenever they are not part of any
@@ -3950,10 +3950,10 @@ export declare type MemoryCacheSettings = {
  * Use factory function {@link memoryEagerGarbageCollector()} to create an
  * instance of this collector.
  */
-export declare type MemoryEagerGarbageCollector = {
+export declare interface MemoryEagerGarbageCollector {
     kind: 'memoryEager';
     /* Excluded from this release type: _offlineComponentProvider */
-};
+}
 
 /**
  * Creates an instance of `MemoryEagerGarbageCollector`. This is also the
@@ -3974,11 +3974,11 @@ export declare type MemoryGarbageCollector = MemoryEagerGarbageCollector | Memor
  * set the instance to `FirestoreSettings.cache` and call `initializeFirestore` using
  * the settings object.
  */
-export declare type MemoryLocalCache = {
+export declare interface MemoryLocalCache {
     kind: 'memory';
     /* Excluded from this release type: _onlineComponentProvider */
     /* Excluded from this release type: _offlineComponentProvider */
-};
+}
 
 /**
  * Creates an instance of `MemoryLocalCache`. The instance can be set to
@@ -3998,10 +3998,10 @@ export declare function memoryLocalCache(settings?: MemoryCacheSettings): Memory
  * Use factory function {@link memoryLruGarbageCollector()} to create a
  * instance of this collector.
  */
-export declare type MemoryLruGarbageCollector = {
+export declare interface MemoryLruGarbageCollector {
     kind: 'memoryLru';
     /* Excluded from this release type: _offlineComponentProvider */
-};
+}
 
 /**
  * Creates an instance of `MemoryLruGarbageCollector`.
@@ -5358,7 +5358,7 @@ export declare class PersistentCacheIndexManager {
  *
  * Persistent cache cannot be used in a Node.js environment.
  */
-export declare type PersistentCacheSettings = {
+export declare interface PersistentCacheSettings {
     /**
      * An approximate cache size threshold for the on-disk data. If the cache
      * grows beyond this size, Firestore will start removing data that hasn't been
@@ -5374,7 +5374,7 @@ export declare type PersistentCacheSettings = {
      * Specifies how multiple tabs/windows will be managed by the SDK.
      */
     tabManager?: PersistentTabManager;
-};
+}
 
 /**
  * Provides a persistent cache backed by IndexedDb to the SDK.
@@ -5383,11 +5383,11 @@ export declare type PersistentCacheSettings = {
  * set the instance to `FirestoreSettings.cache` and call `initializeFirestore` using
  * the settings object.
  */
-export declare type PersistentLocalCache = {
+export declare interface PersistentLocalCache {
     kind: 'persistent';
     /* Excluded from this release type: _onlineComponentProvider */
     /* Excluded from this release type: _offlineComponentProvider */
-};
+}
 
 /**
  * Creates an instance of `PersistentLocalCache`. The instance can be set to
@@ -5401,12 +5401,12 @@ export declare function persistentLocalCache(settings?: PersistentCacheSettings)
  * A tab manager supporting multiple tabs. SDK will synchronize queries and
  * mutations done across all tabs using the SDK.
  */
-export declare type PersistentMultipleTabManager = {
+export declare interface PersistentMultipleTabManager {
     kind: 'PersistentMultipleTab';
     /* Excluded from this release type: _initialize */
     /* Excluded from this release type: _onlineComponentProvider */
     /* Excluded from this release type: _offlineComponentProvider */
-};
+}
 
 /**
  * Creates an instance of `PersistentMultipleTabManager`.
@@ -5417,12 +5417,12 @@ export declare function persistentMultipleTabManager(): PersistentMultipleTabMan
  * A tab manager supporting only one tab, no synchronization will be
  * performed across tabs.
  */
-export declare type PersistentSingleTabManager = {
+export declare interface PersistentSingleTabManager {
     kind: 'persistentSingleTab';
     /* Excluded from this release type: _initialize */
     /* Excluded from this release type: _onlineComponentProvider */
     /* Excluded from this release type: _offlineComponentProvider */
-};
+}
 
 /**
  * Creates an instance of `PersistentSingleTabManager`.
@@ -5434,7 +5434,7 @@ export declare function persistentSingleTabManager(settings: PersistentSingleTab
 /**
  * Type to configure an `PersistentSingleTabManager` instance.
  */
-export declare type PersistentSingleTabManagerSettings = {
+export declare interface PersistentSingleTabManagerSettings {
     /**
      * Whether to force-enable persistent (IndexedDB) cache for the client. This
      * cannot be used with multi-tab synchronization and is primarily intended for
@@ -5442,7 +5442,7 @@ export declare type PersistentSingleTabManagerSettings = {
      * other tabs using IndexedDB cache to fail.
      */
     forceOwnership?: boolean;
-};
+}
 
 /**
  * A union of all available tab managers.

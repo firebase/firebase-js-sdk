@@ -2,6 +2,7 @@ import { ESLint } from 'eslint';
 import { pruneDts } from './pipeline';
 
 export { pruneDts };
+export { assertSemanticEquals } from './utils/semantic-assert';
 
 // Uses ESLint AST parsing rather than naive regex string replacements to safely format
 // import blank lines without corrupting complex types (e.g. index-access types `}[keyof T & string]`).

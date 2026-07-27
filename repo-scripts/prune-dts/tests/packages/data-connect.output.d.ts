@@ -6,9 +6,13 @@
 
 import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
 
+
+
 import { FirebaseApp } from '@firebase/app';
 
+
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
+
 
 import { FirebaseError } from '@firebase/util';
 
@@ -23,46 +27,40 @@ import { Provider } from '@firebase/component';
 /* Excluded from this release type: areTransportOptionsEqual */
 
 export declare interface CacheProvider<T extends StorageType> {
-  type: T;
-  /* Excluded from this release type: initialize */
+    type: T;
+    /* Excluded from this release type: initialize */
 }
 
 export declare interface CacheSettings {
-  cacheProvider: CacheProvider<StorageType>;
-  maxAgeSeconds?: number;
+    cacheProvider: CacheProvider<StorageType>;
+    maxAgeSeconds?: number;
 }
 
 /**
  * enum representing different flavors of the SDK used by developers
  * use the CallerSdkType for type-checking, and the CallerSdkTypeEnum for value-checking/assigning
  */
-export declare type CallerSdkType =
-  | 'Base'
-  | 'Generated'
-  | 'TanstackReactCore'
-  | 'GeneratedReact'
-  | 'TanstackAngularCore'
-  | 'GeneratedAngular';
+export declare type CallerSdkType = 'Base' | 'Generated' | 'TanstackReactCore' | 'GeneratedReact' | 'TanstackAngularCore' | 'GeneratedAngular';
 
 export declare const CallerSdkTypeEnum: {
-  readonly Base: 'Base';
-  readonly Generated: 'Generated';
-  readonly TanstackReactCore: 'TanstackReactCore';
-  readonly GeneratedReact: 'GeneratedReact';
-  readonly TanstackAngularCore: 'TanstackAngularCore';
-  readonly GeneratedAngular: 'GeneratedAngular';
+    readonly Base: "Base";
+    readonly Generated: "Generated";
+    readonly TanstackReactCore: "TanstackReactCore";
+    readonly GeneratedReact: "GeneratedReact";
+    readonly TanstackAngularCore: "TanstackAngularCore";
+    readonly GeneratedAngular: "GeneratedAngular";
 };
 
 export declare type Code = DataConnectErrorCode;
 
 export declare const Code: {
-  OTHER: DataConnectErrorCode;
-  ALREADY_INITIALIZED: DataConnectErrorCode;
-  NOT_INITIALIZED: DataConnectErrorCode;
-  NOT_SUPPORTED: DataConnectErrorCode;
-  INVALID_ARGUMENT: DataConnectErrorCode;
-  PARTIAL_ERROR: DataConnectErrorCode;
-  UNAUTHORIZED: DataConnectErrorCode;
+    OTHER: DataConnectErrorCode;
+    ALREADY_INITIALIZED: DataConnectErrorCode;
+    NOT_INITIALIZED: DataConnectErrorCode;
+    NOT_SUPPORTED: DataConnectErrorCode;
+    INVALID_ARGUMENT: DataConnectErrorCode;
+    PARTIAL_ERROR: DataConnectErrorCode;
+    UNAUTHORIZED: DataConnectErrorCode;
 };
 
 /**
@@ -72,65 +70,48 @@ export declare const Code: {
  * @param port port of emulator server
  * @param sslEnabled use https
  */
-export declare function connectDataConnectEmulator(
-  dc: DataConnect,
-  host: string,
-  port?: number,
-  sslEnabled?: boolean
-): void;
+export declare function connectDataConnectEmulator(dc: DataConnect, host: string, port?: number, sslEnabled?: boolean): void;
 
 /**
  * Connector Config for calling Data Connect backend.
  */
 export declare interface ConnectorConfig {
-  location: string;
-  connector: string;
-  service: string;
+    location: string;
+    connector: string;
+    service: string;
 }
 
 /**
  * Class representing Firebase Data Connect
  */
 export declare class DataConnect {
-  readonly app: FirebaseApp;
-  private readonly dataConnectOptions;
-  isEmulator: boolean;
-  /* Excluded from this release type: cache */
-  constructor(
-    app: FirebaseApp,
-    dataConnectOptions: DataConnectOptions,
-    _authProvider: Provider<FirebaseAuthInternalName>,
-    _appCheckProvider: Provider<AppCheckInternalComponentName>
-  );
-  /* Excluded from this release type: getCache */
-  getSettings(): ConnectorConfig;
-  /* Excluded from this release type: setCacheSettings */
-  setInitialized(): void;
-  enableEmulator(transportOptions: TransportOptions): void;
+    readonly app: FirebaseApp;
+    private readonly dataConnectOptions;
+    isEmulator: boolean;
+    /* Excluded from this release type: cache */
+    constructor(app: FirebaseApp, dataConnectOptions: DataConnectOptions, _authProvider: Provider<FirebaseAuthInternalName>, _appCheckProvider: Provider<AppCheckInternalComponentName>);
+    /* Excluded from this release type: getCache */
+    getSettings(): ConnectorConfig;
+    /* Excluded from this release type: setCacheSettings */
+    setInitialized(): void;
+    enableEmulator(transportOptions: TransportOptions): void;
 }
 
 export declare interface DataConnectEntityArray {
-  entityIds: string[];
+    entityIds: string[];
 }
 
 /** An error returned by a DataConnect operation. */
 export declare class DataConnectError extends FirebaseError {
-  /* Excluded from this release type: name */
-  constructor(code: Code, message: string);
-  /* Excluded from this release type: toString */
+    /* Excluded from this release type: name */
+    constructor(code: Code, message: string);
+    /* Excluded from this release type: toString */
 }
 
-export declare type DataConnectErrorCode =
-  | 'other'
-  | 'already-initialized'
-  | 'not-initialized'
-  | 'not-supported'
-  | 'invalid-argument'
-  | 'partial-error'
-  | 'unauthorized';
+export declare type DataConnectErrorCode = 'other' | 'already-initialized' | 'not-initialized' | 'not-supported' | 'invalid-argument' | 'partial-error' | 'unauthorized';
 
 export declare type DataConnectExtension = {
-  path: Array<string | number>;
+    path: Array<string | number>;
 } & (DataConnectEntityArray | DataConnectSingleEntity);
 
 /* Excluded from this release type: DataConnectExtensionWithMaxAge */
@@ -139,53 +120,52 @@ export declare type DataConnectExtension = {
 
 /** An error returned by a DataConnect operation. */
 export declare class DataConnectOperationError extends DataConnectError {
-  /* Excluded from this release type: name */
-  /** The response received from the backend. */
-  readonly response: DataConnectOperationFailureResponse;
-  private constructor();
+    /* Excluded from this release type: name */
+    /** The response received from the backend. */
+    readonly response: DataConnectOperationFailureResponse;
+    private constructor();
 }
 
 export declare interface DataConnectOperationFailureResponse {
-  readonly data?: Record<string, unknown> | null;
-  readonly errors: DataConnectOperationFailureResponseErrorInfo[];
+    readonly data?: Record<string, unknown> | null;
+    readonly errors: DataConnectOperationFailureResponseErrorInfo[];
 }
 
 export declare interface DataConnectOperationFailureResponseErrorInfo {
-  readonly message: string;
-  readonly path: Array<string | number>;
+    readonly message: string;
+    readonly path: Array<string | number>;
 }
 
 /**
  * DataConnectOptions including project id
  */
 export declare interface DataConnectOptions extends ConnectorConfig {
-  projectId: string;
+    projectId: string;
 }
 
 /* Excluded from this release type: DataConnectResponse */
 
 /* Excluded from this release type: DataConnectResponseWithMaxAge */
 
-export declare interface DataConnectResult<Data, Variables>
-  extends OpResult<Data> {
-  ref: OperationRef<Data, Variables>;
+export declare interface DataConnectResult<Data, Variables> extends OpResult<Data> {
+    ref: OperationRef<Data, Variables>;
 }
 
 export declare interface DataConnectSettings {
-  cacheSettings?: CacheSettings;
+    cacheSettings?: CacheSettings;
 }
 
 export declare interface DataConnectSingleEntity {
-  entityId: string;
+    entityId: string;
 }
 
 /**
  * Representation of user provided subscription options.
  */
 export declare interface DataConnectSubscription<Data, Variables> {
-  userCallback: OnResultSubscription<Data, Variables>;
-  errCallback?: (e?: DataConnectError) => void;
-  unsubscribe: () => void;
+    userCallback: OnResultSubscription<Data, Variables>;
+    errCallback?: (e?: DataConnectError) => void;
+    unsubscribe: () => void;
 }
 
 /* Excluded from this release type: DataConnectTransportInterface */
@@ -196,29 +176,24 @@ export declare type DataSource = typeof SOURCE_CACHE | typeof SOURCE_SERVER;
  * @param mutationRef mutation to execute
  * @returns `MutationRef`
  */
-export declare function executeMutation<Data, Variables>(
-  mutationRef: MutationRef<Data, Variables>
-): MutationPromise<Data, Variables>;
+export declare function executeMutation<Data, Variables>(mutationRef: MutationRef<Data, Variables>): MutationPromise<Data, Variables>;
 
 /**
  * Execute Query
  * @param queryRef query to execute.
  * @returns `QueryPromise`
  */
-export declare function executeQuery<Data, Variables>(
-  queryRef: QueryRef<Data, Variables>,
-  options?: ExecuteQueryOptions
-): QueryPromise<Data, Variables>;
+export declare function executeQuery<Data, Variables>(queryRef: QueryRef<Data, Variables>, options?: ExecuteQueryOptions): QueryPromise<Data, Variables>;
 
 /**
  * Options for executing a query.
  */
 export declare interface ExecuteQueryOptions {
-  fetchPolicy: QueryFetchPolicy;
+    fetchPolicy: QueryFetchPolicy;
 }
 
 export declare interface Extensions {
-  dataConnect?: DataConnectExtension[];
+    dataConnect?: DataConnectExtension[];
 }
 
 /* Excluded from this release type: ExtensionsWithMaxAge */
@@ -226,10 +201,7 @@ export declare interface Extensions {
  * Initialize DataConnect instance
  * @param options ConnectorConfig
  */
-export declare function getDataConnect(
-  options: ConnectorConfig,
-  settings?: DataConnectSettings
-): DataConnect;
+export declare function getDataConnect(options: ConnectorConfig, settings?: DataConnectSettings): DataConnect;
 
 export declare function getDataConnect(options: ConnectorConfig): DataConnect;
 
@@ -238,40 +210,32 @@ export declare function getDataConnect(options: ConnectorConfig): DataConnect;
  * @param app FirebaseApp to initialize to.
  * @param connectorConfig ConnectorConfig
  */
-export declare function getDataConnect(
-  app: FirebaseApp,
-  connectorConfig: ConnectorConfig
-): DataConnect;
+export declare function getDataConnect(app: FirebaseApp, connectorConfig: ConnectorConfig): DataConnect;
 
 /**
  * Initialize DataConnect instance
  * @param app FirebaseApp to initialize to.
  * @param connectorConfig ConnectorConfig
  */
-export declare function getDataConnect(
-  app: FirebaseApp,
-  connectorConfig: ConnectorConfig,
-  settings: DataConnectSettings
-): DataConnect;
+export declare function getDataConnect(app: FirebaseApp, connectorConfig: ConnectorConfig, settings: DataConnectSettings): DataConnect;
 
 /* Excluded from this release type: getGoogApiClientValue */
 /* Excluded from this release type: InternalQueryResult */
 
 export declare function makeMemoryCacheProvider(): CacheProvider<'MEMORY'>;
 
-export declare const MUTATION_STR = 'mutation';
+export declare const MUTATION_STR = "mutation";
 
 /* Excluded from this release type: MutationManager */
 
 /**
  * Mutation return value from `executeMutation`
  */
-export declare interface MutationPromise<Data, Variables>
-  extends Promise<MutationResult<Data, Variables>> {}
+export declare interface MutationPromise<Data, Variables> extends Promise<MutationResult<Data, Variables>> {
+}
 
-export declare interface MutationRef<Data, Variables>
-  extends OperationRef<Data, Variables> {
-  refType: typeof MUTATION_STR;
+export declare interface MutationRef<Data, Variables> extends OperationRef<Data, Variables> {
+    refType: typeof MUTATION_STR;
 }
 
 /**
@@ -279,10 +243,7 @@ export declare interface MutationRef<Data, Variables>
  * @param dcInstance Data Connect instance
  * @param mutationName name of mutation
  */
-export declare function mutationRef<Data>(
-  dcInstance: DataConnect,
-  mutationName: string
-): MutationRef<Data, undefined>;
+export declare function mutationRef<Data>(dcInstance: DataConnect, mutationName: string): MutationRef<Data, undefined>;
 
 /**
  *
@@ -290,18 +251,13 @@ export declare function mutationRef<Data>(
  * @param mutationName name of mutation
  * @param variables variables to send with mutation
  */
-export declare function mutationRef<Data, Variables>(
-  dcInstance: DataConnect,
-  mutationName: string,
-  variables: Variables
-): MutationRef<Data, Variables>;
+export declare function mutationRef<Data, Variables>(dcInstance: DataConnect, mutationName: string, variables: Variables): MutationRef<Data, Variables>;
 
 /**
  * Mutation Result from `executeMutation`
  */
-export declare interface MutationResult<Data, Variables>
-  extends DataConnectResult<Data, Variables> {
-  ref: MutationRef<Data, Variables>;
+export declare interface MutationResult<Data, Variables> extends DataConnectResult<Data, Variables> {
+    ref: MutationRef<Data, Variables>;
 }
 
 /**
@@ -317,27 +273,25 @@ export declare type OnErrorSubscription = (err?: DataConnectError) => void;
 /**
  * Signature for `OnResultSubscription` for `subscribe`
  */
-export declare type OnResultSubscription<Data, Variables> = (
-  res: QueryResult<Data, Variables>
-) => void;
+export declare type OnResultSubscription<Data, Variables> = (res: QueryResult<Data, Variables>) => void;
 
 export declare interface OperationRef<_Data, Variables> {
-  name: string;
-  variables: Variables;
-  refType: ReferenceType;
-  dataConnect: DataConnect;
+    name: string;
+    variables: Variables;
+    refType: ReferenceType;
+    dataConnect: DataConnect;
 }
 
 export declare interface OpResult<Data> {
-  data: Data;
-  source: DataSource;
-  fetchTime: string;
-  extensions?: Extensions;
+    data: Data;
+    source: DataSource;
+    fetchTime: string;
+    extensions?: Extensions;
 }
 
 /* Excluded from this release type: parseOptions */
 
-export declare const QUERY_STR = 'query';
+export declare const QUERY_STR = "query";
 
 /**
  * @license
@@ -356,26 +310,24 @@ export declare const QUERY_STR = 'query';
  * limitations under the License.
  */
 export declare const QueryFetchPolicy: {
-  readonly PREFER_CACHE: 'PREFER_CACHE';
-  readonly CACHE_ONLY: 'CACHE_ONLY';
-  readonly SERVER_ONLY: 'SERVER_ONLY';
+    readonly PREFER_CACHE: "PREFER_CACHE";
+    readonly CACHE_ONLY: "CACHE_ONLY";
+    readonly SERVER_ONLY: "SERVER_ONLY";
 };
 
-export declare type QueryFetchPolicy =
-  (typeof QueryFetchPolicy)[keyof typeof QueryFetchPolicy];
+export declare type QueryFetchPolicy = (typeof QueryFetchPolicy)[keyof typeof QueryFetchPolicy];
 
 /**
  * Promise returned from `executeQuery`
  */
-export declare interface QueryPromise<Data, Variables>
-  extends Promise<QueryResult<Data, Variables>> {}
+export declare interface QueryPromise<Data, Variables> extends Promise<QueryResult<Data, Variables>> {
+}
 
 /**
  * QueryRef object
  */
-export declare interface QueryRef<Data, Variables>
-  extends OperationRef<Data, Variables> {
-  refType: typeof QUERY_STR;
+export declare interface QueryRef<Data, Variables> extends OperationRef<Data, Variables> {
+    refType: typeof QUERY_STR;
 }
 
 /**
@@ -384,10 +336,7 @@ export declare interface QueryRef<Data, Variables>
  * @param queryName Query to execute
  * @returns `QueryRef`
  */
-export declare function queryRef<Data>(
-  dcInstance: DataConnect,
-  queryName: string
-): QueryRef<Data, undefined>;
+export declare function queryRef<Data>(dcInstance: DataConnect, queryName: string): QueryRef<Data, undefined>;
 
 /**
  * Execute Query
@@ -396,19 +345,14 @@ export declare function queryRef<Data>(
  * @param variables Variables to execute with
  * @returns `QueryRef`
  */
-export declare function queryRef<Data, Variables>(
-  dcInstance: DataConnect,
-  queryName: string,
-  variables: Variables
-): QueryRef<Data, Variables>;
+export declare function queryRef<Data, Variables>(dcInstance: DataConnect, queryName: string, variables: Variables): QueryRef<Data, Variables>;
 
 /**
  * Result of `executeQuery`
  */
-export declare interface QueryResult<Data, Variables>
-  extends DataConnectResult<Data, Variables> {
-  ref: QueryRef<Data, Variables>;
-  toJSON: () => SerializedRef<Data, Variables>;
+export declare interface QueryResult<Data, Variables> extends DataConnectResult<Data, Variables> {
+    ref: QueryRef<Data, Variables>;
+    toJSON: () => SerializedRef<Data, Variables>;
 }
 
 /**
@@ -422,30 +366,29 @@ export declare type ReferenceType = typeof QUERY_STR | typeof MUTATION_STR;
  * Serialized RefInfo as a result of `QueryResult.toJSON().refInfo`
  */
 export declare interface RefInfo<Variables> {
-  name: string;
-  variables: Variables;
-  connectorConfig: DataConnectOptions;
+    name: string;
+    variables: Variables;
+    connectorConfig: DataConnectOptions;
 }
 
 /**
  * Serialized Ref as a result of `QueryResult.toJSON()`
  */
 export declare interface SerializedRef<Data, Variables> extends OpResult<Data> {
-  refInfo: RefInfo<Variables>;
+    refInfo: RefInfo<Variables>;
 }
 
 export declare function setLogLevel(logLevel: LogLevelString): void;
 
-export declare const SOURCE_CACHE = 'CACHE';
+export declare const SOURCE_CACHE = "CACHE";
 
-export declare const SOURCE_SERVER = 'SERVER';
+export declare const SOURCE_SERVER = "SERVER";
 
 export declare const StorageType: {
-  readonly MEMORY: 'MEMORY';
+    readonly MEMORY: "MEMORY";
 };
 
-export declare type StorageType =
-  (typeof StorageType)[keyof typeof StorageType];
+export declare type StorageType = (typeof StorageType)[keyof typeof StorageType];
 
 /**
  * Subscribe to a `QueryRef`
@@ -453,12 +396,7 @@ export declare type StorageType =
  * @param observer observer object to use for subscribing.
  * @returns `SubscriptionOptions`
  */
-export declare function subscribe<Data, Variables>(
-  queryRefOrSerializedResult:
-    | QueryRef<Data, Variables>
-    | SerializedRef<Data, Variables>,
-  observer: SubscriptionOptions<Data, Variables>
-): QueryUnsubscribe;
+export declare function subscribe<Data, Variables>(queryRefOrSerializedResult: QueryRef<Data, Variables> | SerializedRef<Data, Variables>, observer: SubscriptionOptions<Data, Variables>): QueryUnsubscribe;
 
 /**
  * Subscribe to a `QueryRef`
@@ -468,14 +406,7 @@ export declare function subscribe<Data, Variables>(
  * @param onComplete Called when subscription completes.
  * @returns `SubscriptionOptions`
  */
-export declare function subscribe<Data, Variables>(
-  queryRefOrSerializedResult:
-    | QueryRef<Data, Variables>
-    | SerializedRef<Data, Variables>,
-  onNext: OnResultSubscription<Data, Variables>,
-  onError?: OnErrorSubscription,
-  onComplete?: OnCompleteSubscription
-): QueryUnsubscribe;
+export declare function subscribe<Data, Variables>(queryRefOrSerializedResult: QueryRef<Data, Variables> | SerializedRef<Data, Variables>, onNext: OnResultSubscription<Data, Variables>, onError?: OnErrorSubscription, onComplete?: OnCompleteSubscription): QueryUnsubscribe;
 
 /* Excluded from this release type: SubscribeObserver */
 
@@ -483,9 +414,9 @@ export declare function subscribe<Data, Variables>(
  * Representation of full observer options in `subscribe`
  */
 export declare interface SubscriptionOptions<Data, Variables> {
-  onNext?: OnResultSubscription<Data, Variables>;
-  onErr?: OnErrorSubscription;
-  onComplete?: OnCompleteSubscription;
+    onNext?: OnResultSubscription<Data, Variables>;
+    onErr?: OnErrorSubscription;
+    onComplete?: OnCompleteSubscription;
 }
 
 /**
@@ -500,9 +431,7 @@ export declare function terminate(dataConnect: DataConnect): Promise<void>;
  * @param serializedRef ref to convert to `QueryRef`
  * @returns `QueryRef`
  */
-export declare function toQueryRef<Data, Variables>(
-  serializedRef: SerializedRef<Data, Variables>
-): QueryRef<Data, Variables>;
+export declare function toQueryRef<Data, Variables>(serializedRef: SerializedRef<Data, Variables>): QueryRef<Data, Variables>;
 
 /* Excluded from this release type: TransportClass */
 
@@ -510,9 +439,9 @@ export declare function toQueryRef<Data, Variables>(
  * Options to connect to emulator
  */
 export declare interface TransportOptions {
-  host: string;
-  sslEnabled?: boolean;
-  port?: number;
+    host: string;
+    sslEnabled?: boolean;
+    port?: number;
 }
 
 /* Excluded from this release type: validateArgs */
@@ -521,4 +450,4 @@ export declare interface TransportOptions {
 
 /* Excluded from this release type: validateDCOptions */
 
-export {};
+export { }

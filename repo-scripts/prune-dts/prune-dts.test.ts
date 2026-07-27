@@ -20,7 +20,12 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { format, resolveConfig } from 'prettier';
 import { describe, it } from 'mocha';
-import { addBlankLines, pruneDts, removeUnusedImports } from './src/index';
+import {
+  addBlankLines,
+  assertSemanticEquals,
+  pruneDts,
+  removeUnusedImports
+} from './src/index';
 
 const testCasesDir = path.resolve(__dirname, 'tests');
 const tmpDir = os.tmpdir();
@@ -220,7 +225,8 @@ describe('Prune DTS', () => {
   if (
     testMode === 'all' ||
     testMode === 'production' ||
-    testMode === 'packages'
+    testMode === 'packages' ||
+    testMode === 'semantic'
   ) {
     describe('Package Regressions', () => {
       const packagesDir = path.resolve(testCasesDir, 'packages');
@@ -240,18 +246,28 @@ describe('Prune DTS', () => {
           await addBlankLines(tmpFile);
           await removeUnusedImports(tmpFile);
 
-          const prettierConfig = await resolveConfig(
-            testCase.absoluteInputFile
-          );
           const expectedUnformatted = fs.readFileSync(
             testCase.absoluteOutputFile,
             'utf-8'
+          );
+          const actualUnformatted = fs.readFileSync(tmpFile, 'utf-8');
+
+          if (testMode === 'semantic') {
+            assertSemanticEquals(
+              actualUnformatted,
+              expectedUnformatted,
+              testCase.name
+            );
+            return;
+          }
+
+          const prettierConfig = await resolveConfig(
+            testCase.absoluteInputFile
           );
           const expected = await format(expectedUnformatted, {
             filepath: testCase.absoluteOutputFile,
             ...prettierConfig
           });
-          const actualUnformatted = fs.readFileSync(tmpFile, 'utf-8');
           const actual = await format(actualUnformatted, {
             filepath: tmpFile,
             ...prettierConfig

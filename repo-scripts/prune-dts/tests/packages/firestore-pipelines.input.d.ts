@@ -9335,11 +9335,11 @@ export declare function maximum(fieldName: string): AggregateFunction;
  * set the instance to `FirestoreSettings.cache` and call `initializeFirestore` using
  * the settings object.
  */
-declare type MemoryLocalCache = {
+declare interface MemoryLocalCache {
     kind: 'memory';
     /* Excluded from this release type: _onlineComponentProvider */
     /* Excluded from this release type: _offlineComponentProvider */
-};
+}
 
 /**
  *
@@ -10640,11 +10640,11 @@ declare type PersistenceTransactionMode = 'readonly' | 'readwrite' | 'readwrite-
  * set the instance to `FirestoreSettings.cache` and call `initializeFirestore` using
  * the settings object.
  */
-declare type PersistentLocalCache = {
+declare interface PersistentLocalCache {
     kind: 'persistent';
     /* Excluded from this release type: _onlineComponentProvider */
     /* Excluded from this release type: _offlineComponentProvider */
-};
+}
 
 export declare class Pipeline extends Pipeline_2 {
     /* Excluded from this release type: newPipeline */

@@ -10,12 +10,15 @@ import { Observer } from '@firebase/util';
 import { Unsubscribe } from '@firebase/util';
 
 // @public
-export function experimentalSetDeliveryMetricsExportedToBigQueryEnabled(messaging: Messaging, enable: boolean): void;
+export function experimentalSetDeliveryMetricsExportedToBigQueryEnabled(
+  messaging: Messaging,
+  enable: boolean
+): void;
 
 // @public
 export interface FcmOptions {
-    analyticsLabel?: string;
-    link?: string;
+  analyticsLabel?: string;
+  link?: string;
 }
 
 // @public
@@ -23,8 +26,8 @@ export function getMessaging(app?: FirebaseApp): Messaging;
 
 // @public
 export interface GetTokenOptions {
-    serviceWorkerRegistration?: ServiceWorkerRegistration;
-    vapidKey?: string;
+  serviceWorkerRegistration?: ServiceWorkerRegistration;
+  vapidKey?: string;
 }
 
 // @public
@@ -32,46 +35,55 @@ export function isSupported(): Promise<boolean>;
 
 // @public
 export interface MessagePayload {
-    collapseKey: string;
-    data?: {
-        [key: string]: string;
-    };
-    fcmOptions?: FcmOptions;
-    from: string;
-    messageId: string;
-    notification?: NotificationPayload;
+  collapseKey: string;
+  data?: {
+    [key: string]: string;
+  };
+  fcmOptions?: FcmOptions;
+  from: string;
+  messageId: string;
+  notification?: NotificationPayload;
 }
 
 // @public
 export interface Messaging {
-    app: FirebaseApp;
+  app: FirebaseApp;
 }
 
 export { NextFn }
 
 // @public
 export interface NotificationPayload {
-    body?: string;
-    icon?: string;
-    image?: string;
-    title?: string;
+  body?: string;
+  icon?: string;
+  image?: string;
+  title?: string;
 }
 
 export { Observer }
 
 // @public
-export function onBackgroundMessage(messaging: Messaging, nextOrObserver: NextFn<MessagePayload> | Observer<MessagePayload>): Unsubscribe;
+export function onBackgroundMessage(
+  messaging: Messaging,
+  nextOrObserver: NextFn<MessagePayload> | Observer<MessagePayload>
+): Unsubscribe;
 
 // @public
-export function onRegistered(messaging: Messaging, nextOrObserver: NextFn<string> | Observer<string>): Unsubscribe;
+export function onRegistered(
+  messaging: Messaging,
+  nextOrObserver: NextFn<string> | Observer<string>
+): Unsubscribe;
 
 // @public
-export function onUnregistered(messaging: Messaging, nextOrObserver: NextFn<string> | Observer<string>): Unsubscribe;
+export function onUnregistered(
+  messaging: Messaging,
+  nextOrObserver: NextFn<string> | Observer<string>
+): Unsubscribe;
 
 // @public
 export interface RegisterOptions {
-    serviceWorkerRegistration?: ServiceWorkerRegistration;
-    vapidKey?: string;
+  serviceWorkerRegistration?: ServiceWorkerRegistration;
+  vapidKey?: string;
 }
 
 export { Unsubscribe }

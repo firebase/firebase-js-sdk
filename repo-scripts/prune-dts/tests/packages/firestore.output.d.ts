@@ -12,6 +12,7 @@ import { FirebaseError } from '@firebase/util';
 
 import { LogLevelString as LogLevel } from '@firebase/logger';
 
+/* Excluded from this release type: AbstractUserDataWriter */
 /**
  * Add a new document to specified `CollectionReference` with the given data,
  * assigning it a document ID automatically.
@@ -41,6 +42,7 @@ export declare function addDoc<AppModelType, DbModelType extends DocumentData>(
   reference: CollectionReference<AppModelType, DbModelType>,
   data: WithFieldValue<AppModelType>
 ): Promise<DocumentReference<AppModelType, DbModelType>>;
+
 /**
  * Returns a new map where every key is prefixed with the outer key appended
  * to a dot.
@@ -51,6 +53,7 @@ export declare type AddPrefixToKeys<
 > = {
   [K in keyof T & string as `${Prefix}.${K}`]+?: string extends K ? any : T[K];
 };
+
 /**
  * Represents an aggregation that can be performed by Firestore.
  */
@@ -59,7 +62,9 @@ export declare class AggregateField<T> {
   readonly type = 'AggregateField';
   /** Indicates the aggregation operation of this AggregateField. */
   readonly aggregateType: AggregateType;
+  /* Excluded from this release type: __constructor */
 }
+
 /**
  * Compares two 'AggregateField` instances for equality.
  *
@@ -70,6 +75,7 @@ export declare function aggregateFieldEqual(
   left: AggregateField<unknown>,
   right: AggregateField<unknown>
 ): boolean;
+
 /**
  * The union of all `AggregateField` types that are supported by Firestore.
  */
@@ -77,6 +83,7 @@ export declare type AggregateFieldType =
   | ReturnType<typeof sum>
   | ReturnType<typeof average>
   | ReturnType<typeof count>;
+
 /**
  * The results of executing an aggregation query.
  */
@@ -92,7 +99,6 @@ export declare class AggregateQuerySnapshot<
    * `AggregateQuerySnapshot` were performed.
    */
   readonly query: Query<AppModelType, DbModelType>;
-  private constructor();
   /**
    * Returns the results of the aggregations performed over the underlying
    * query.
@@ -105,7 +111,10 @@ export declare class AggregateQuerySnapshot<
    * query.
    */
   data(): AggregateSpecData<AggregateSpecType>;
+  /* Excluded from this release type: _fieldsProto */
+  private constructor();
 }
+
 /**
  * Compares two `AggregateQuerySnapshot` instances for equality.
  *
@@ -126,12 +135,14 @@ export declare function aggregateQuerySnapshotEqual<
   left: AggregateQuerySnapshot<AggregateSpecType, AppModelType, DbModelType>,
   right: AggregateQuerySnapshot<AggregateSpecType, AppModelType, DbModelType>
 ): boolean;
+
 /**
  * Specifies a set of aggregations and their aliases.
  */
 export declare interface AggregateSpec {
   [field: string]: AggregateFieldType;
 }
+
 /**
  * A type whose keys are taken from an `AggregateSpec`, and whose values are the
  * result of the aggregation performed by the corresponding `AggregateField`
@@ -140,10 +151,12 @@ export declare interface AggregateSpec {
 export declare type AggregateSpecData<T extends AggregateSpec> = {
   [P in keyof T]: T[P] extends AggregateField<infer U> ? U : never;
 };
+
 /**
  * Union type representing the aggregate type to be performed.
  */
 export declare type AggregateType = 'count' | 'avg' | 'sum';
+
 /**
  * Creates a new {@link QueryCompositeFilterConstraint} that is a conjunction of
  * the given filter constraints. A conjunction filter includes a document if it
@@ -169,6 +182,7 @@ export declare function and(
  * `updateDoc()`
  */
 export declare function arrayRemove(...elements: unknown[]): FieldValue;
+
 /**
  * Returns a special value that can be used with {@link @firebase/firestore/lite#(setDoc:1)} or {@link
  * @firebase/firestore/lite#(updateDoc:1)} that tells the server to union the given elements with any array
@@ -183,7 +197,9 @@ export declare function arrayRemove(...elements: unknown[]): FieldValue;
  */
 export declare function arrayUnion(...elements: unknown[]): FieldValue;
 /* Excluded from this release type: AuthTokenFactory */
+
 /* Excluded from this release type: _AutoId */
+
 /**
  * Create an AggregateField object that can be used to compute the average of
  * a specified field over a range of documents in the result set of a query.
@@ -192,11 +208,11 @@ export declare function arrayUnion(...elements: unknown[]): FieldValue;
 export declare function average(
   field: string | FieldPath
 ): AggregateField<number | null>;
+
 /**
  * An immutable object representing an array of bytes.
  */
 export declare class Bytes {
-  private constructor();
   /**
    * Creates a new `Bytes` object from the given Base64 string, converting it to
    * bytes.
@@ -249,14 +265,19 @@ export declare class Bytes {
    * {@link FirestoreError} if an error occurs.
    */
   static fromJSON(json: object): Bytes;
+  private constructor();
 }
+
 /* Excluded from this release type: _ByteString */
+
 /**
  * Constant used to indicate the LRU garbage collection should be disabled.
  * Set this value as the `cacheSizeBytes` on the settings passed to the
  * {@link Firestore} instance.
  */
 export declare const CACHE_SIZE_UNLIMITED = -1;
+
+/* Excluded from this release type: _cast */
 /**
  * Helper for calculating the nested fields for a given type T1. This is needed
  * to distribute union types such as `undefined | {...}` (happens for optional
@@ -273,6 +294,7 @@ export declare type ChildUpdateFields<K extends string, V> = V extends Record<
 >
   ? AddPrefixToKeys<K, UpdateData<V>>
   : never;
+
 /**
  * Clears the persistent storage. This includes pending writes and cached
  * documents.
@@ -315,6 +337,7 @@ export declare function collection(
   path: string,
   ...pathSegments: string[]
 ): CollectionReference<DocumentData, DocumentData>;
+
 /**
  * Gets a `CollectionReference` instance that refers to a subcollection of
  * `reference` at the specified relative path.
@@ -335,6 +358,7 @@ export declare function collection<
   path: string,
   ...pathSegments: string[]
 ): CollectionReference<DocumentData, DocumentData>;
+
 /**
  * Gets a `CollectionReference` instance that refers to a subcollection of
  * `reference` at the specified relative path.
@@ -355,6 +379,7 @@ export declare function collection<
   path: string,
   ...pathSegments: string[]
 ): CollectionReference<DocumentData, DocumentData>;
+
 /**
  * Creates and returns a new `Query` instance that includes all documents in the
  * database that are contained in a collection or subcollection with the
@@ -370,6 +395,7 @@ export declare function collectionGroup(
   firestore: Firestore,
   collectionId: string
 ): Query<DocumentData, DocumentData>;
+
 /**
  * A `CollectionReference` object can be used for adding documents, getting
  * document references, and querying for documents (using {@link (query:1)}).
@@ -380,7 +406,6 @@ export declare class CollectionReference<
 > extends Query<AppModelType, DbModelType> {
   /** The type of this Firestore reference. */
   readonly type = 'collection';
-  private constructor();
   /** The collection's identifier. */
   get id(): string;
   /**
@@ -419,7 +444,9 @@ export declare class CollectionReference<
   withConverter(
     converter: null
   ): CollectionReference<DocumentData, DocumentData>;
+  private constructor();
 }
+
 /**
  * Modify this instance to communicate with the Cloud Firestore emulator.
  *
@@ -446,6 +473,8 @@ export declare function connectFirestoreEmulator(
  * documents in the result set of a query.
  */
 export declare function count(): AggregateField<number>;
+/* Excluded from this release type: _DatabaseId */
+/* Excluded from this release type: _debugAssert */
 /**
  * Removes all persistent cache indexes.
  *
@@ -455,6 +484,7 @@ export declare function count(): AggregateField<number>;
 export declare function deleteAllPersistentCacheIndexes(
   indexManager: PersistentCacheIndexManager
 ): void;
+
 /**
  * Deletes the document referred to by the specified `DocumentReference`.
  *
@@ -482,6 +512,7 @@ export declare function deleteDoc<
   AppModelType,
   DbModelType extends DocumentData
 >(reference: DocumentReference<AppModelType, DbModelType>): Promise<void>;
+
 /**
  * Returns a sentinel for use with {@link @firebase/firestore/lite#(updateDoc:1)} or
  * {@link @firebase/firestore/lite#(setDoc:1)} with `{merge: true}` to mark a field for deletion.
@@ -496,6 +527,7 @@ export declare function deleteField(): FieldValue;
  * @returns A `Promise` that is resolved once the network has been disabled.
  */
 export declare function disableNetwork(firestore: Firestore): Promise<void>;
+
 /**
  * Stops creating persistent cache indexes automatically for local query
  * execution. The indexes which have been created by calling
@@ -504,6 +536,7 @@ export declare function disableNetwork(firestore: Firestore): Promise<void>;
 export declare function disablePersistentCacheIndexAutoCreation(
   indexManager: PersistentCacheIndexManager
 ): void;
+
 /**
  * Gets a `DocumentReference` instance that refers to the document at the
  * specified absolute path.
@@ -521,6 +554,7 @@ export declare function doc(
   path: string,
   ...pathSegments: string[]
 ): DocumentReference<DocumentData, DocumentData>;
+
 /**
  * Gets a `DocumentReference` instance that refers to a document within
  * `reference` at the specified relative path. If no path is specified, an
@@ -541,6 +575,7 @@ export declare function doc<AppModelType, DbModelType extends DocumentData>(
   path?: string,
   ...pathSegments: string[]
 ): DocumentReference<AppModelType, DbModelType>;
+
 /**
  * Gets a `DocumentReference` instance that refers to a document within
  * `reference` at the specified relative path.
@@ -558,6 +593,7 @@ export declare function doc<AppModelType, DbModelType extends DocumentData>(
   path: string,
   ...pathSegments: string[]
 ): DocumentReference<DocumentData, DocumentData>;
+
 /**
  * A `DocumentChange` represents a change to the documents matching a query.
  * It contains the document affected and the type of change that occurred.
@@ -584,10 +620,12 @@ export declare interface DocumentChange<
    */
   readonly newIndex: number;
 }
+
 /**
  * The type of `DocumentChange` may be 'added', 'removed', or 'modified'.
  */
 export declare type DocumentChangeType = 'added' | 'removed' | 'modified';
+
 /**
  * Document data (for use with {@link @firebase/firestore/lite#(setDoc:1)}) consists of fields mapped to
  * values.
@@ -596,11 +634,15 @@ export declare interface DocumentData {
   /** A mapping between a field and its value. */
   [field: string]: any;
 }
+
 /**
  * Returns a special sentinel `FieldPath` to refer to the ID of a document.
  * It can be used in queries to sort or filter by the document ID.
  */
 export declare function documentId(): FieldPath;
+
+/* Excluded from this release type: _DocumentKey */
+
 /**
  * A `DocumentReference` refers to a document location in a Firestore database
  * and can be used to write, read, or listen to the location. The document at
@@ -621,7 +663,6 @@ export declare class DocumentReference<
    * This is useful for performing transactions, for example.
    */
   readonly firestore: Firestore;
-  private constructor();
   /**
    * The document's identifier within its collection.
    */
@@ -693,7 +734,9 @@ export declare class DocumentReference<
     json: object,
     converter: FirestoreDataConverter<NewAppModelType, NewDbModelType>
   ): DocumentReference<NewAppModelType, NewDbModelType>;
+  private constructor();
 }
+
 /**
  * A `DocumentSnapshot` contains data read from a document in your Firestore
  * database. The data can be extracted with `.data()` or `.get(<field>)` to
@@ -712,7 +755,6 @@ export declare class DocumentSnapshot<
    *  source and local modifications.
    */
   readonly metadata: SnapshotMetadata;
-  protected constructor();
   /**
    * Returns whether or not the data exists. True if the document exists.
    */
@@ -756,15 +798,16 @@ export declare class DocumentSnapshot<
    * `DocumentSnapshot` has pending writes.
    */
   toJSON(): object;
-  /**
-   * Property of the `DocumentSnapshot` that provides the document's ID.
-   */
+  /** Property of the `DocumentSnapshot` that provides the document's ID. */
   get id(): string;
+
   /**
    * The `DocumentReference` for the document included in the `DocumentSnapshot`.
    */
   get ref(): DocumentReference<AppModelType, DbModelType>;
+  protected constructor();
 }
+
 /**
  * Builds a `DocumentSnapshot` instance from a JSON object created by
  * {@link DocumentSnapshot.toJSON}.
@@ -778,6 +821,7 @@ export declare function documentSnapshotFromJSON(
   db: Firestore,
   json: object
 ): DocumentSnapshot;
+
 /**
  * Builds a `DocumentSnapshot` instance from a JSON object created by
  * {@link DocumentSnapshot.toJSON}.
@@ -797,8 +841,10 @@ export declare function documentSnapshotFromJSON<
   converter: FirestoreDataConverter<AppModelType, DbModelType>
 ): DocumentSnapshot<AppModelType, DbModelType>;
 /* Excluded from this release type: _EmptyAppCheckTokenProvider */
+
 /* Excluded from this release type: _EmptyAuthCredentialsProvider */
 export { EmulatorMockTokenOptions };
+
 /**
  * Attempts to enable persistent storage, if possible.
  *
@@ -832,6 +878,7 @@ export declare function enableIndexedDbPersistence(
   firestore: Firestore,
   persistenceSettings?: PersistenceSettings
 ): Promise<void>;
+
 /**
  * Attempts to enable multi-tab persistent storage, if possible. If enabled
  * across all tabs, all operations share access to local persistence, including
@@ -861,6 +908,7 @@ export declare function enableIndexedDbPersistence(
 export declare function enableMultiTabIndexedDbPersistence(
   firestore: Firestore
 ): Promise<void>;
+
 /**
  * Re-enables use of the network for this {@link Firestore} instance after a prior
  * call to {@link disableNetwork}.
@@ -868,6 +916,7 @@ export declare function enableMultiTabIndexedDbPersistence(
  * @returns A `Promise` that is resolved once the network has been enabled.
  */
 export declare function enableNetwork(firestore: Firestore): Promise<void>;
+
 /**
  * Enables the SDK to create persistent cache indexes automatically for local
  * query execution when the SDK believes cache indexes can help improve
@@ -878,6 +927,7 @@ export declare function enableNetwork(firestore: Firestore): Promise<void>;
 export declare function enablePersistentCacheIndexAutoCreation(
   indexManager: PersistentCacheIndexManager
 ): void;
+
 /**
  * Creates a {@link QueryEndAtConstraint} that modifies the result set to end at
  * the provided document (inclusive). The end position is relative to the order
@@ -890,6 +940,7 @@ export declare function enablePersistentCacheIndexAutoCreation(
 export declare function endAt<AppModelType, DbModelType extends DocumentData>(
   snapshot: DocumentSnapshot<AppModelType, DbModelType>
 ): QueryEndAtConstraint;
+
 /**
  * Creates a {@link QueryEndAtConstraint} that modifies the result set to end at
  * the provided fields relative to the order of the query. The order of the field
@@ -900,6 +951,7 @@ export declare function endAt<AppModelType, DbModelType extends DocumentData>(
  * @returns A {@link QueryEndAtConstraint} to pass to `query()`
  */
 export declare function endAt(...fieldValues: unknown[]): QueryEndAtConstraint;
+
 /**
  * Creates a {@link QueryEndAtConstraint} that modifies the result set to end
  * before the provided document (exclusive). The end position is relative to the
@@ -913,6 +965,7 @@ export declare function endBefore<
   AppModelType,
   DbModelType extends DocumentData
 >(snapshot: DocumentSnapshot<AppModelType, DbModelType>): QueryEndAtConstraint;
+
 /**
  * Creates a {@link QueryEndAtConstraint} that modifies the result set to end
  * before the provided fields relative to the order of the query. The order of
@@ -925,7 +978,10 @@ export declare function endBefore<
 export declare function endBefore(
   ...fieldValues: unknown[]
 ): QueryEndAtConstraint;
+
+/* Excluded from this release type: ensureFirestoreConfigured */
 /* Excluded from this release type: executeWrite */
+
 /**
  * @license
  * Copyright 2023 Google LLC
@@ -972,6 +1028,7 @@ export declare interface ExperimentalLongPollingOptions {
    */
   timeoutSeconds?: number;
 }
+
 /**
  * A `FieldPath` refers to a field in a document. The path may consist of a
  * single field name (referring to a top-level field in the document), or a
@@ -996,16 +1053,21 @@ export declare class FieldPath {
    */
   isEqual(other: FieldPath): boolean;
 }
+
+/* Excluded from this release type: _FieldPath */
+
 /**
  * Sentinel values that can be used when writing document fields with `set()`
  * or `update()`.
  */
 export declare abstract class FieldValue {
-  private constructor();
   /** Compares `FieldValue`s for equality. */
   abstract isEqual(other: FieldValue): boolean;
+  private constructor();
 }
+
 /* Excluded from this release type: _FirebaseService */
+
 /**
  * The Cloud Firestore service interface.
  *
@@ -1016,17 +1078,16 @@ export declare class Firestore {
    * Whether it's a {@link Firestore} or Firestore Lite instance.
    */
   type: 'firestore-lite' | 'firestore';
-  private constructor();
   /**
    * The {@link @firebase/app#FirebaseApp} associated with this `Firestore` service
    * instance.
    */
   get app(): FirebaseApp;
-  /**
-   * Returns a JSON-serializable representation of this `Firestore` instance.
-   */
+  /** Returns a JSON-serializable representation of this `Firestore` instance. */
   toJSON(): object;
+  private constructor();
 }
+
 /**
  * Converter used by `withConverter()` to transform user objects of type
  * `AppModelType` into Firestore data of type `DbModelType`.
@@ -1267,6 +1328,7 @@ export declare interface FirestoreDataConverter<
     options?: SnapshotOptions
   ): AppModelType;
 }
+
 /** An error returned by a Firestore operation. */
 export declare class FirestoreError extends FirebaseError {
   /**
@@ -1281,6 +1343,7 @@ export declare class FirestoreError extends FirebaseError {
   readonly stack?: string;
   private constructor();
 }
+
 /**
  * The set of Firestore status codes. The codes are the same at the ones
  * exposed by gRPC here:
@@ -1337,12 +1400,14 @@ export declare type FirestoreErrorCode =
   | 'unavailable'
   | 'data-loss'
   | 'unauthenticated';
+
 /**
  * Union type from all supported SDK cache layer.
  */
 export declare type FirestoreLocalCache =
   | MemoryLocalCache
   | PersistentLocalCache;
+
 /**
  * Specifies custom configurations for your Cloud Firestore instance.
  * You must set these before invoking any other methods.
@@ -1415,13 +1480,9 @@ export declare interface FirestoreSettings {
    * effect.
    */
   experimentalLongPollingOptions?: ExperimentalLongPollingOptions;
-  /**
-   * The hostname to connect to.
-   */
+  /** The hostname to connect to. */
   host?: string;
-  /**
-   * Whether to use SSL when connecting.
-   */
+  /** Whether to use SSL when connecting. */
   ssl?: boolean;
   /**
    * Whether to skip nested properties that are set to `undefined` during
@@ -1434,7 +1495,7 @@ export declare interface FirestoreSettings {
    * Only applicable in Node environments.
    *
    * The gRPC flow control window size in bytes. Defaults to 256 KB.
-   * This maps directly to grpc-node's {@link https://github.com/grpc/grpc-node/blob/651cbeec6b4d6d11cbee91c042946d2fe5968ef6/packages/grpc-js/README.md#supported-channel-options grpc-node.flow_control_window} setting.
+   * This maps directly to grpc-node's {@link https://github.com/grpc/grpc-node/blob/651cbeec6b4d6d11cbee91c042946d2fe5968ef6/packages/grpc-js/README.md#supported-channel-options | grpc-node.flow_control_window } setting.
    *
    * **WARNING:** This is an advanced setting. The default of 256 KB is optimized
    * for most Node workloads. Only modify this if you are actively tuning gRPC
@@ -1442,6 +1503,9 @@ export declare interface FirestoreSettings {
    */
   grpcFlowControlWindow?: number;
 }
+
+/* Excluded from this release type: FirstPartyCredentialsSettings */
+
 /**
  * An immutable object representing a geographic location in Firestore. The
  * location is represented as latitude/longitude pair.
@@ -1491,6 +1555,7 @@ export declare class GeoPoint {
    */
   static fromJSON(json: object): GeoPoint;
 }
+
 /**
  * Calculates the specified aggregations over the documents in the result
  * set of the given query without actually downloading the documents.
@@ -1534,6 +1599,7 @@ export declare function getAggregateFromServer<
 ): Promise<
   AggregateQuerySnapshot<AggregateSpecType, AppModelType, DbModelType>
 >;
+
 /**
  * Calculates the number of documents in the result set of the given query
  * without actually downloading the documents.
@@ -1569,6 +1635,7 @@ export declare function getCountFromServer<
     DbModelType
   >
 >;
+
 /**
  * Reads the document referred to by this `DocumentReference`.
  *
@@ -1584,6 +1651,7 @@ export declare function getCountFromServer<
 export declare function getDoc<AppModelType, DbModelType extends DocumentData>(
   reference: DocumentReference<AppModelType, DbModelType>
 ): Promise<DocumentSnapshot<AppModelType, DbModelType>>;
+
 /**
  * Reads the document referred to by this `DocumentReference` from cache.
  * Returns an error if the document is not currently cached.
@@ -1597,6 +1665,7 @@ export declare function getDocFromCache<
 >(
   reference: DocumentReference<AppModelType, DbModelType>
 ): Promise<DocumentSnapshot<AppModelType, DbModelType>>;
+
 /**
  * Reads the document referred to by this `DocumentReference` from the server.
  * Returns an error if the network is not available.
@@ -1610,6 +1679,7 @@ export declare function getDocFromServer<
 >(
   reference: DocumentReference<AppModelType, DbModelType>
 ): Promise<DocumentSnapshot<AppModelType, DbModelType>>;
+
 /**
  * Executes the query and returns the results as a `QuerySnapshot`.
  *
@@ -1623,6 +1693,7 @@ export declare function getDocFromServer<
 export declare function getDocs<AppModelType, DbModelType extends DocumentData>(
   query: Query<AppModelType, DbModelType>
 ): Promise<QuerySnapshot<AppModelType, DbModelType>>;
+
 /**
  * Executes the query and returns the results as a `QuerySnapshot` from cache.
  * Returns an empty result set if no documents matching the query are currently
@@ -1636,6 +1707,7 @@ export declare function getDocsFromCache<
 >(
   query: Query<AppModelType, DbModelType>
 ): Promise<QuerySnapshot<AppModelType, DbModelType>>;
+
 /**
  * Executes the query and returns the results as a `QuerySnapshot` from the
  * server. Returns an error if the network is not available.
@@ -1648,6 +1720,7 @@ export declare function getDocsFromServer<
 >(
   query: Query<AppModelType, DbModelType>
 ): Promise<QuerySnapshot<AppModelType, DbModelType>>;
+
 /**
  * Returns the existing default {@link Firestore} instance that is associated with the
  * default {@link @firebase/app#FirebaseApp}. If no instance exists, initializes a new
@@ -1656,6 +1729,7 @@ export declare function getDocsFromServer<
  * @returns The default {@link Firestore} instance of the default app.
  */
 export declare function getFirestore(): Firestore;
+
 /**
  * Returns the existing default {@link Firestore} instance that is associated with the
  * provided {@link @firebase/app#FirebaseApp}. If no instance exists, initializes a new
@@ -1666,6 +1740,7 @@ export declare function getFirestore(): Firestore;
  * @returns The default {@link Firestore} instance of the provided app.
  */
 export declare function getFirestore(app: FirebaseApp): Firestore;
+
 /**
  * Returns the existing named {@link Firestore} instance that is associated with the
  * default {@link @firebase/app#FirebaseApp}. If no instance exists, initializes a new
@@ -1676,6 +1751,7 @@ export declare function getFirestore(app: FirebaseApp): Firestore;
  * @beta
  */
 export declare function getFirestore(databaseId: string): Firestore;
+
 /**
  * Returns the existing named {@link Firestore} instance that is associated with the
  * provided {@link @firebase/app#FirebaseApp}. If no instance exists, initializes a new
@@ -1691,6 +1767,7 @@ export declare function getFirestore(
   app: FirebaseApp,
   databaseId: string
 ): Firestore;
+
 /**
  * Returns the PersistentCache Index Manager used by the given `Firestore`
  * object.
@@ -1721,6 +1798,7 @@ export declare function getPersistentCacheIndexManager(
  * `updateDoc()`
  */
 export declare function increment(n: number): FieldValue;
+
 /**
  * The SDK definition of a Firestore index.
  *
@@ -1737,6 +1815,7 @@ export declare interface Index {
   readonly fields?: IndexField[];
   [key: string]: unknown;
 }
+
 /**
  * A list of Firestore indexes to speed up local query execution.
  *
@@ -1754,6 +1833,7 @@ export declare interface IndexConfiguration {
   readonly indexes?: Index[];
   [key: string]: unknown;
 }
+
 /**
  * A single field element in an index configuration.
  *
@@ -1782,6 +1862,7 @@ export declare interface IndexField {
   readonly order?: 'ASCENDING' | 'DESCENDING';
   [key: string]: unknown;
 }
+
 /**
  * Initializes a new instance of {@link Firestore} with the provided settings.
  * Can only be called before any other function, including
@@ -1799,6 +1880,13 @@ export declare function initializeFirestore(
   settings: FirestoreSettings,
   databaseId?: string
 ): Firestore;
+
+/* Excluded from this release type: _internalAggregationQueryToProtoRunAggregationQueryRequest */
+
+/* Excluded from this release type: _internalQueryToProtoQueryTarget */
+
+/* Excluded from this release type: _isBase64Available */
+/* Excluded from this release type: JsonTypeDesc */
 /**
  * Creates a {@link QueryLimitConstraint} that only returns the first matching
  * documents.
@@ -1807,6 +1895,7 @@ export declare function initializeFirestore(
  * @returns The created {@link QueryLimitConstraint}.
  */
 export declare function limit(limit: number): QueryLimitConstraint;
+
 /**
  * Creates a {@link QueryLimitConstraint} that only returns the last matching
  * documents.
@@ -1840,6 +1929,7 @@ export declare function loadBundle(
   firestore: Firestore,
   bundleData: ReadableStream<Uint8Array> | ArrayBuffer | string
 ): LoadBundleTask;
+
 /**
  * Represents the task of loading a Firestore bundle. It provides progress of bundle
  * loading, as well as task completion and error events.
@@ -1882,6 +1972,7 @@ export declare class LoadBundleTask
     onRejected?: (a: Error) => R | PromiseLike<R>
   ): Promise<T | R>;
 }
+
 /**
  * Represents a progress update or a final state from loading bundles.
  */
@@ -1897,7 +1988,10 @@ export declare interface LoadBundleTaskProgress {
   /** Current task state. */
   taskState: TaskState;
 }
+
 export { LogLevel };
+
+/* Excluded from this release type: _logWarn */
 /**
  * Returns a special value that can be used with {@link @firebase/firestore/lite#(setDoc:1)} or {@link
  * @firebase/firestore/lite#(updateDoc:1)} that tells the server to set the field to the numeric maximum of the
@@ -1908,16 +2002,18 @@ export { LogLevel };
  * `updateDoc()`
  */
 export declare function maximum(n: number): FieldValue;
+
 /**
  * An settings object to configure an `MemoryLocalCache` instance.
  */
-export declare type MemoryCacheSettings = {
+export declare interface MemoryCacheSettings {
   /**
    * The garbage collector to use, for the memory cache layer.
    * A `MemoryEagerGarbageCollector` is used when this is undefined.
    */
   garbageCollector?: MemoryGarbageCollector;
-};
+}
+
 /**
  * A garbage collector deletes documents whenever they are not part of any
  * active queries, and have no local mutations attached to them.
@@ -1929,20 +2025,24 @@ export declare type MemoryCacheSettings = {
  * Use factory function {@link memoryEagerGarbageCollector()} to create an
  * instance of this collector.
  */
-export declare type MemoryEagerGarbageCollector = {
+export declare interface MemoryEagerGarbageCollector {
   kind: 'memoryEager';
-};
+  /* Excluded from this release type: _offlineComponentProvider */
+}
+
 /**
  * Creates an instance of `MemoryEagerGarbageCollector`. This is also the
  * default garbage collector unless it is explicitly specified otherwise.
  */
 export declare function memoryEagerGarbageCollector(): MemoryEagerGarbageCollector;
+
 /**
  * Union type from all support garbage collectors for memory local cache.
  */
 export declare type MemoryGarbageCollector =
   | MemoryEagerGarbageCollector
   | MemoryLruGarbageCollector;
+
 /**
  * Provides an in-memory cache to the SDK. This is the default cache unless explicitly
  * configured otherwise.
@@ -1951,9 +2051,12 @@ export declare type MemoryGarbageCollector =
  * set the instance to `FirestoreSettings.cache` and call `initializeFirestore` using
  * the settings object.
  */
-export declare type MemoryLocalCache = {
+export declare interface MemoryLocalCache {
   kind: 'memory';
-};
+  /* Excluded from this release type: _onlineComponentProvider */
+  /* Excluded from this release type: _offlineComponentProvider */
+}
+
 /**
  * Creates an instance of `MemoryLocalCache`. The instance can be set to
  * `FirestoreSettings.cache` to tell the SDK which cache layer to use.
@@ -1961,6 +2064,7 @@ export declare type MemoryLocalCache = {
 export declare function memoryLocalCache(
   settings?: MemoryCacheSettings
 ): MemoryLocalCache;
+
 /**
  * A garbage collector deletes Least-Recently-Used documents in multiple
  * batches.
@@ -1973,9 +2077,11 @@ export declare function memoryLocalCache(
  * Use factory function {@link memoryLruGarbageCollector()} to create a
  * instance of this collector.
  */
-export declare type MemoryLruGarbageCollector = {
+export declare interface MemoryLruGarbageCollector {
   kind: 'memoryLru';
-};
+  /* Excluded from this release type: _offlineComponentProvider */
+}
+
 /**
  * Creates an instance of `MemoryLruGarbageCollector`.
  *
@@ -1986,6 +2092,7 @@ export declare type MemoryLruGarbageCollector = {
 export declare function memoryLruGarbageCollector(settings?: {
   cacheSizeBytes?: number;
 }): MemoryLruGarbageCollector;
+
 /**
  * Returns a special value that can be used with {@link @firebase/firestore/lite#(setDoc:1)} or {@link
  * @firebase/firestore/lite#(updateDoc:1)} that tells the server to set the field to the numeric minimum of the
@@ -2046,6 +2153,7 @@ export declare function onSnapshot<
     complete?: () => void;
   }
 ): Unsubscribe;
+
 /**
  * Attaches a listener for `DocumentSnapshot` events. You may either pass individual `onNext` and
  * `onError` callbacks or pass a single observer object with `next` and `error` callbacks.
@@ -2071,6 +2179,7 @@ export declare function onSnapshot<
     complete?: () => void;
   }
 ): Unsubscribe;
+
 /**
  * Attaches a listener for `DocumentSnapshot` events. You may either pass individual `onNext` and
  * `onError` callbacks or pass a single observer object with `next` and `error` callbacks.
@@ -2094,6 +2203,7 @@ export declare function onSnapshot<
   onError?: (error: FirestoreError) => void,
   onCompletion?: () => void
 ): Unsubscribe;
+
 /**
  * Attaches a listener for `DocumentSnapshot` events. You may either pass individual `onNext` and
  * `onError` callbacks or pass a single observer object with `next` and `error` callbacks.
@@ -2119,6 +2229,7 @@ export declare function onSnapshot<
   onError?: (error: FirestoreError) => void,
   onCompletion?: () => void
 ): Unsubscribe;
+
 /**
  * Attaches a listener for `QuerySnapshot` events. You may either pass individual `onNext` and
  * `onError` callbacks or pass a single observer object with `next` and `error` callbacks. The
@@ -2142,6 +2253,7 @@ export declare function onSnapshot<
     complete?: () => void;
   }
 ): Unsubscribe;
+
 /**
  * Attaches a listener for `QuerySnapshot` events. You may either pass individual `onNext` and
  * `onError` callbacks or pass a single observer object with `next` and `error` callbacks. The
@@ -2167,6 +2279,7 @@ export declare function onSnapshot<
     complete?: () => void;
   }
 ): Unsubscribe;
+
 /**
  * Attaches a listener for `QuerySnapshot` events. You may either pass individual `onNext` and
  * `onError` callbacks or pass a single observer object with `next` and `error` callbacks. The
@@ -2191,6 +2304,7 @@ export declare function onSnapshot<
   onError?: (error: FirestoreError) => void,
   onCompletion?: () => void
 ): Unsubscribe;
+
 /**
  * Attaches a listener for `QuerySnapshot` events. You may either pass individual `onNext` and
  * `onError` callbacks or pass a single observer object with `next` and `error` callbacks. The
@@ -2217,6 +2331,7 @@ export declare function onSnapshot<
   onError?: (error: FirestoreError) => void,
   onCompletion?: () => void
 ): Unsubscribe;
+
 /**
  * Attaches a listener for `QuerySnapshot` events based on data generated by invoking
  * {@link QuerySnapshot.toJSON} You may either pass individual `onNext` and `onError` callbacks or
@@ -2247,6 +2362,7 @@ export declare function onSnapshotResume<
   onCompletion?: () => void,
   converter?: FirestoreDataConverter<DbModelType>
 ): Unsubscribe;
+
 /**
  * Attaches a listener for `DocumentSnapshot` events based on data generated by invoking
  * {@link DocumentSnapshot.toJSON}. You may either pass individual `onNext` and `onError` callbacks or
@@ -2278,6 +2394,7 @@ export declare function onSnapshotResume<
   onCompletion?: () => void,
   converter?: FirestoreDataConverter<DbModelType>
 ): Unsubscribe;
+
 /**
  * Attaches a listener for `QuerySnapshot` events based on data generated by invoking
  * {@link QuerySnapshot.toJSON}. You may either pass individual `onNext` and `onError` callbacks or
@@ -2310,6 +2427,7 @@ export declare function onSnapshotResume<
   onCompletion?: () => void,
   converter?: FirestoreDataConverter<DbModelType>
 ): Unsubscribe;
+
 /**
  * Attaches a listener for `DocumentSnapshot` events based on data generated by invoking
  * {@link DocumentSnapshot.toJSON}. You may either pass individual `onNext` and `onError` callbacks
@@ -2343,6 +2461,7 @@ export declare function onSnapshotResume<
   onCompletion?: () => void,
   converter?: FirestoreDataConverter<DbModelType>
 ): Unsubscribe;
+
 /**
  * Attaches a listener for `QuerySnapshot` events based on QuerySnapshot data generated by invoking
  * {@link QuerySnapshot.toJSON}. You may either pass individual `onNext` and `onError` callbacks or
@@ -2373,6 +2492,7 @@ export declare function onSnapshotResume<
   },
   converter?: FirestoreDataConverter<DbModelType>
 ): Unsubscribe;
+
 /**
  * Attaches a listener for `DocumentSnapshot` events based on data generated by invoking
  * {@link DocumentSnapshot.toJSON} You may either pass individual `onNext` and `onError` callbacks
@@ -2403,6 +2523,7 @@ export declare function onSnapshotResume<
   },
   converter?: FirestoreDataConverter<DbModelType>
 ): Unsubscribe;
+
 /**
  * Attaches a listener for `QuerySnapshot` events based on QuerySnapshot data generated by invoking
  * {@link QuerySnapshot.toJSON} You may either pass individual `onNext` and `onError` callbacks or
@@ -2435,6 +2556,7 @@ export declare function onSnapshotResume<
   },
   converter?: FirestoreDataConverter<DbModelType>
 ): Unsubscribe;
+
 /**
  * Attaches a listener for `DocumentSnapshot` events based on QuerySnapshot data generated by
  * invoking {@link DocumentSnapshot.toJSON} You may either pass individual `onNext` and `onError`
@@ -2466,6 +2588,7 @@ export declare function onSnapshotResume<
   },
   converter?: FirestoreDataConverter<DbModelType>
 ): Unsubscribe;
+
 /**
  * Attaches a listener for a snapshots-in-sync event. The snapshots-in-sync
  * event indicates that all listeners affected by a given change have fired,
@@ -2489,6 +2612,7 @@ export declare function onSnapshotsInSync(
     complete?: () => void;
   }
 ): Unsubscribe;
+
 /**
  * Attaches a listener for a snapshots-in-sync event. The snapshots-in-sync
  * event indicates that all listeners affected by a given change have fired,
@@ -2538,6 +2662,7 @@ export declare function orderBy(
   fieldPath: string | FieldPath,
   directionStr?: OrderByDirection
 ): QueryOrderByConstraint;
+
 /**
  * The direction of a {@link orderBy} clause is specified as 'desc' or 'asc'
  * (descending or ascending).
@@ -2556,6 +2681,7 @@ export declare type PartialWithFieldValue<T> =
           [K in keyof T]?: PartialWithFieldValue<T[K]> | FieldValue;
         }
       : never);
+
 /**
  * Settings that can be passed to `enableIndexedDbPersistence()` to configure
  * Firestore persistence.
@@ -2571,6 +2697,7 @@ export declare interface PersistenceSettings {
    */
   forceOwnership?: boolean;
 }
+
 /**
  * A `PersistentCacheIndexManager` for configuring persistent cache indexes used
  * for local query execution.
@@ -2582,12 +2709,13 @@ export declare class PersistentCacheIndexManager {
   readonly type: 'PersistentCacheIndexManager';
   private constructor();
 }
+
 /**
  * An settings object to configure an `PersistentLocalCache` instance.
  *
  * Persistent cache cannot be used in a Node.js environment.
  */
-export declare type PersistentCacheSettings = {
+export declare interface PersistentCacheSettings {
   /**
    * An approximate cache size threshold for the on-disk data. If the cache
    * grows beyond this size, Firestore will start removing data that hasn't been
@@ -2603,7 +2731,8 @@ export declare type PersistentCacheSettings = {
    * Specifies how multiple tabs/windows will be managed by the SDK.
    */
   tabManager?: PersistentTabManager;
-};
+}
+
 /**
  * Provides a persistent cache backed by IndexedDb to the SDK.
  *
@@ -2611,9 +2740,12 @@ export declare type PersistentCacheSettings = {
  * set the instance to `FirestoreSettings.cache` and call `initializeFirestore` using
  * the settings object.
  */
-export declare type PersistentLocalCache = {
+export declare interface PersistentLocalCache {
   kind: 'persistent';
-};
+  /* Excluded from this release type: _onlineComponentProvider */
+  /* Excluded from this release type: _offlineComponentProvider */
+}
+
 /**
  * Creates an instance of `PersistentLocalCache`. The instance can be set to
  * `FirestoreSettings.cache` to tell the SDK which cache layer to use.
@@ -2623,24 +2755,34 @@ export declare type PersistentLocalCache = {
 export declare function persistentLocalCache(
   settings?: PersistentCacheSettings
 ): PersistentLocalCache;
+
 /**
  * A tab manager supporting multiple tabs. SDK will synchronize queries and
  * mutations done across all tabs using the SDK.
  */
-export declare type PersistentMultipleTabManager = {
+export declare interface PersistentMultipleTabManager {
   kind: 'PersistentMultipleTab';
-};
+  /* Excluded from this release type: _initialize */
+  /* Excluded from this release type: _onlineComponentProvider */
+  /* Excluded from this release type: _offlineComponentProvider */
+}
+
 /**
  * Creates an instance of `PersistentMultipleTabManager`.
  */
 export declare function persistentMultipleTabManager(): PersistentMultipleTabManager;
+
 /**
  * A tab manager supporting only one tab, no synchronization will be
  * performed across tabs.
  */
-export declare type PersistentSingleTabManager = {
+export declare interface PersistentSingleTabManager {
   kind: 'persistentSingleTab';
-};
+  /* Excluded from this release type: _initialize */
+  /* Excluded from this release type: _onlineComponentProvider */
+  /* Excluded from this release type: _offlineComponentProvider */
+}
+
 /**
  * Creates an instance of `PersistentSingleTabManager`.
  *
@@ -2649,10 +2791,11 @@ export declare type PersistentSingleTabManager = {
 export declare function persistentSingleTabManager(
   settings: PersistentSingleTabManagerSettings | undefined
 ): PersistentSingleTabManager;
+
 /**
  * Type to configure an `PersistentSingleTabManager` instance.
  */
-export declare type PersistentSingleTabManagerSettings = {
+export declare interface PersistentSingleTabManagerSettings {
   /**
    * Whether to force-enable persistent (IndexedDB) cache for the client. This
    * cannot be used with multi-tab synchronization and is primarily intended for
@@ -2660,7 +2803,8 @@ export declare type PersistentSingleTabManagerSettings = {
    * other tabs using IndexedDB cache to fail.
    */
   forceOwnership?: boolean;
-};
+}
+
 /**
  * A union of all available tab managers.
  */
@@ -2674,6 +2818,11 @@ export declare type PersistentTabManager =
  */
 /** Primitive types. */
 export declare type Primitive = string | number | boolean | undefined | null;
+
+/* Excluded from this release type: PrivateSettings */
+
+/* Excluded from this release type: Property */
+
 /**
  * A `Query` refers to a query which you can read or listen to. You can also
  * construct refined `Query` objects by adding filters and ordering.
@@ -2693,7 +2842,6 @@ export declare class Query<
    * transactions, etc.).
    */
   readonly firestore: Firestore;
-  protected constructor();
   /**
    * Removes the current converter.
    *
@@ -2717,7 +2865,9 @@ export declare class Query<
   >(
     converter: FirestoreDataConverter<NewAppModelType, NewDbModelType>
   ): Query<NewAppModelType, NewDbModelType>;
+  protected constructor();
 }
+
 /**
  * Creates a new immutable instance of {@link Query} that is extended to also
  * include additional query constraints.
@@ -2737,6 +2887,7 @@ export declare function query<AppModelType, DbModelType extends DocumentData>(
   compositeFilter: QueryCompositeFilterConstraint,
   ...queryConstraints: QueryNonFilterConstraint[]
 ): Query<AppModelType, DbModelType>;
+
 /**
  * Creates a new immutable instance of {@link Query} that is extended to also
  * include additional query constraints.
@@ -2751,6 +2902,7 @@ export declare function query<AppModelType, DbModelType extends DocumentData>(
   query: Query<AppModelType, DbModelType>,
   ...queryConstraints: QueryConstraint[]
 ): Query<AppModelType, DbModelType>;
+
 /**
  * A `QueryCompositeFilterConstraint` is used to narrow the set of documents
  * returned by a Firestore query by performing the logical OR or AND of multiple
@@ -2762,7 +2914,9 @@ export declare function query<AppModelType, DbModelType extends DocumentData>(
 export declare class QueryCompositeFilterConstraint {
   /** The type of this query constraint */
   readonly type: 'or' | 'and';
+  /* Excluded from this release type: __constructor */
 }
+
 /**
  * A `QueryConstraint` is used to narrow the set of documents returned by a
  * Firestore query. `QueryConstraint`s are created by invoking {@link where},
@@ -2775,6 +2929,7 @@ export declare abstract class QueryConstraint {
   /** The type of this query constraint */
   abstract readonly type: QueryConstraintType;
 }
+
 /** Describes the different query constraints available in this SDK. */
 export declare type QueryConstraintType =
   | 'where'
@@ -2785,6 +2940,7 @@ export declare type QueryConstraintType =
   | 'startAfter'
   | 'endAt'
   | 'endBefore';
+
 /**
  * A `QueryDocumentSnapshot` contains data read from a document in your
  * Firestore database as part of a query. The document is guaranteed to exist
@@ -2815,6 +2971,7 @@ export declare class QueryDocumentSnapshot<
    */
   data(options?: SnapshotOptions): AppModelType;
 }
+
 /**
  * A `QueryEndAtConstraint` is used to exclude documents from the end of a
  * result set returned by a Firestore query.
@@ -2825,7 +2982,9 @@ export declare class QueryDocumentSnapshot<
 export declare class QueryEndAtConstraint extends QueryConstraint {
   /** The type of this query constraint */
   readonly type: 'endBefore' | 'endAt';
+  /* Excluded from this release type: __constructor */
 }
+
 /**
  * Returns true if the provided queries point to the same collection and apply
  * the same constraints.
@@ -2842,6 +3001,7 @@ export declare function queryEqual<
   left: Query<AppModelType, DbModelType>,
   right: Query<AppModelType, DbModelType>
 ): boolean;
+
 /**
  * A `QueryFieldFilterConstraint` is used to narrow the set of documents returned by
  * a Firestore query by filtering on one or more document fields.
@@ -2852,7 +3012,9 @@ export declare function queryEqual<
 export declare class QueryFieldFilterConstraint extends QueryConstraint {
   /** The type of this query constraint */
   readonly type = 'where';
+  /* Excluded from this release type: __constructor */
 }
+
 /**
  * `QueryFilterConstraint` is a helper union type that represents
  * {@link QueryFieldFilterConstraint} and {@link QueryCompositeFilterConstraint}.
@@ -2860,6 +3022,7 @@ export declare class QueryFieldFilterConstraint extends QueryConstraint {
 export declare type QueryFilterConstraint =
   | QueryFieldFilterConstraint
   | QueryCompositeFilterConstraint;
+
 /**
  * A `QueryLimitConstraint` is used to limit the number of documents returned by
  * a Firestore query.
@@ -2870,7 +3033,9 @@ export declare type QueryFilterConstraint =
 export declare class QueryLimitConstraint extends QueryConstraint {
   /** The type of this query constraint */
   readonly type: 'limit' | 'limitToLast';
+  /* Excluded from this release type: __constructor */
 }
+
 /**
  * `QueryNonFilterConstraint` is a helper union type that represents
  * QueryConstraints which are used to narrow or order the set of documents,
@@ -2885,6 +3050,7 @@ export declare type QueryNonFilterConstraint =
   | QueryLimitConstraint
   | QueryStartAtConstraint
   | QueryEndAtConstraint;
+
 /**
  * A `QueryOrderByConstraint` is used to sort the set of documents returned by a
  * Firestore query. `QueryOrderByConstraint`s are created by invoking
@@ -2897,7 +3063,9 @@ export declare type QueryNonFilterConstraint =
 export declare class QueryOrderByConstraint extends QueryConstraint {
   /** The type of this query constraint */
   readonly type = 'orderBy';
+  /* Excluded from this release type: __constructor */
 }
+
 /**
  * A `QuerySnapshot` contains zero or more `DocumentSnapshot` objects
  * representing the results of a query. The documents can be accessed as an
@@ -2919,7 +3087,6 @@ export declare class QuerySnapshot<
    * `QuerySnapshot`.
    */
   readonly query: Query<AppModelType, DbModelType>;
-  private constructor();
   /** An array of all the documents in the `QuerySnapshot`. */
   get docs(): Array<QueryDocumentSnapshot<AppModelType, DbModelType>>;
   /** The number of documents in the `QuerySnapshot`. */
@@ -2958,7 +3125,9 @@ export declare class QuerySnapshot<
    * `QuerySnapshot` has pending writes.
    */
   toJSON(): object;
+  private constructor();
 }
+
 /**
  * Builds a `QuerySnapshot` instance from a JSON object created by
  * {@link QuerySnapshot.toJSON}.
@@ -2972,6 +3141,7 @@ export declare function querySnapshotFromJSON(
   db: Firestore,
   json: object
 ): QuerySnapshot;
+
 /**
  * Builds a `QuerySnapshot` instance from a JSON object created by
  * {@link QuerySnapshot.toJSON}.
@@ -2990,6 +3160,7 @@ export declare function querySnapshotFromJSON<
   json: object,
   converter: FirestoreDataConverter<AppModelType, DbModelType>
 ): QuerySnapshot<AppModelType, DbModelType>;
+
 /**
  * A `QueryStartAtConstraint` is used to exclude documents from the start of a
  * result set returned by a Firestore query.
@@ -3000,7 +3171,9 @@ export declare function querySnapshotFromJSON<
 export declare class QueryStartAtConstraint extends QueryConstraint {
   /** The type of this query constraint */
   readonly type: 'startAt' | 'startAfter';
+  /* Excluded from this release type: __constructor */
 }
+
 /**
  * Returns true if the provided references are equal.
  *
@@ -3021,6 +3194,7 @@ export declare function refEqual<
     | CollectionReference<AppModelType, DbModelType>
 ): boolean;
 /* Excluded from this release type: _ResourcePath */
+
 /**
  * Executes the given `updateFunction` and then attempts to commit the changes
  * applied within the transaction. If any document read within the transaction
@@ -3079,6 +3253,7 @@ export declare function setDoc<AppModelType, DbModelType extends DocumentData>(
   reference: DocumentReference<AppModelType, DbModelType>,
   data: WithFieldValue<AppModelType>
 ): Promise<void>;
+
 /**
  * Writes to the document referred to by the specified `DocumentReference`. If
  * the document does not yet exist, it will be created. If you provide `merge`
@@ -3111,6 +3286,7 @@ export declare function setDoc<AppModelType, DbModelType extends DocumentData>(
   data: PartialWithFieldValue<AppModelType>,
   options: SetOptions
 ): Promise<void>;
+
 /**
  * Configures indexing for local query execution. Any previous index
  * configuration is overridden. The `Promise` resolves once the index
@@ -3140,6 +3316,7 @@ export declare function setIndexConfiguration(
   firestore: Firestore,
   configuration: IndexConfiguration
 ): Promise<void>;
+
 /**
  * Configures indexing for local query execution. Any previous index
  * configuration is overridden. The `Promise` resolves once the index
@@ -3175,6 +3352,7 @@ export declare function setIndexConfiguration(
   firestore: Firestore,
   json: string
 ): Promise<void>;
+
 /**
  * Sets the verbosity of Cloud Firestore logs (debug, error, or silent).
  *
@@ -3189,6 +3367,7 @@ export declare function setIndexConfiguration(
  *   </ul>
  */
 export declare function setLogLevel(logLevel: LogLevel): void;
+
 /**
  * An options object that configures the behavior of {@link @firebase/firestore/lite#(setDoc:1)}, {@link
  * @firebase/firestore/lite#(WriteBatch.set:1)} and {@link @firebase/firestore/lite#(Transaction.set:1)} calls. These calls can be
@@ -3229,6 +3408,7 @@ export declare function snapshotEqual<
     | DocumentSnapshot<AppModelType, DbModelType>
     | QuerySnapshot<AppModelType, DbModelType>
 ): boolean;
+
 /**
  * An options object that can be passed to {@link (onSnapshot:1)} and {@link
  * QuerySnapshot.docChanges} to control which types of changes to include in the
@@ -3246,6 +3426,7 @@ export declare interface SnapshotListenOptions {
    */
   readonly source?: ListenSource;
 }
+
 /**
  * Metadata about a snapshot, describing the state of the snapshot.
  */
@@ -3267,7 +3448,6 @@ export declare class SnapshotMetadata {
    * the backend.
    */
   readonly fromCache: boolean;
-  private constructor();
   /**
    * Returns true if this `SnapshotMetadata` is equal to the provided one.
    *
@@ -3275,7 +3455,9 @@ export declare class SnapshotMetadata {
    * @returns true if this `SnapshotMetadata` is equal to the provided one.
    */
   isEqual(other: SnapshotMetadata): boolean;
+  private constructor();
 }
+
 /**
  * Options that configure how data is retrieved from a `DocumentSnapshot` (for
  * example the desired behavior for server timestamps that have not yet been set
@@ -3298,6 +3480,7 @@ export declare interface SnapshotOptions {
    */
   readonly serverTimestamps?: 'estimate' | 'previous' | 'none';
 }
+
 /**
  * Creates a {@link QueryStartAtConstraint} that modifies the result set to
  * start after the provided document (exclusive). The starting position is
@@ -3313,6 +3496,7 @@ export declare function startAfter<
 >(
   snapshot: DocumentSnapshot<AppModelType, DbModelType>
 ): QueryStartAtConstraint;
+
 /**
  * Creates a {@link QueryStartAtConstraint} that modifies the result set to
  * start after the provided fields relative to the order of the query. The order
@@ -3325,6 +3509,7 @@ export declare function startAfter<
 export declare function startAfter(
   ...fieldValues: unknown[]
 ): QueryStartAtConstraint;
+
 /**
  * Creates a {@link QueryStartAtConstraint} that modifies the result set to
  * start at the provided document (inclusive). The starting position is relative
@@ -3337,6 +3522,7 @@ export declare function startAfter(
 export declare function startAt<AppModelType, DbModelType extends DocumentData>(
   snapshot: DocumentSnapshot<AppModelType, DbModelType>
 ): QueryStartAtConstraint;
+
 /**
  * Creates a {@link QueryStartAtConstraint} that modifies the result set to
  * start at the provided fields relative to the order of the query. The order of
@@ -3362,6 +3548,7 @@ export declare function sum(field: string | FieldPath): AggregateField<number>;
  * be no more updates after they are reported.
  */
 export declare type TaskState = 'Error' | 'Running' | 'Success';
+
 /**
  * Terminates the provided {@link Firestore} instance.
  *
@@ -3385,6 +3572,13 @@ export declare type TaskState = 'Error' | 'Running' | 'Success';
  * terminated.
  */
 export declare function terminate(firestore: Firestore): Promise<void>;
+
+/* Excluded from this release type: _TestingHooks */
+
+/* Excluded from this release type: _TestingHooksExistenceFilterMismatchCallback */
+
+/* Excluded from this release type: _TestingHooksExistenceFilterMismatchInfo */
+
 /**
  * A `Timestamp` represents a point in time independent of any time zone or
  * calendar, represented as seconds and fractions of seconds at nanosecond
@@ -3496,6 +3690,7 @@ export declare class Timestamp {
    */
   valueOf(): string;
 }
+
 /**
  * A reference to a transaction.
  *
@@ -3504,7 +3699,6 @@ export declare class Timestamp {
  * {@link runTransaction}.
  */
 export declare class Transaction {
-  private constructor();
   /**
    * Reads the document referenced by the provided {@link DocumentReference}.
    *
@@ -3590,7 +3784,9 @@ export declare class Transaction {
   delete<AppModelType, DbModelType extends DocumentData>(
     documentRef: DocumentReference<AppModelType, DbModelType>
   ): this;
+  private constructor();
 }
+
 /**
  * @license
  * Copyright 2022 Google LLC
@@ -3614,6 +3810,8 @@ export declare interface TransactionOptions {
   /** Maximum number of attempts to commit, after which transaction fails. Default is 5. */
   readonly maxAttempts?: number;
 }
+
+/* Excluded from this release type: TSType */
 /**
  * Given a union type `U = T1 | T2 | ...`, returns an intersected type
  * `(T1 & T2 & ...)`.
@@ -3629,6 +3827,7 @@ export declare type UnionToIntersection<U> = (
 ) extends (k: infer I) => void
   ? I
   : never;
+
 /**
  * A function returned by `onSnapshot()` that removes the listener when invoked.
  */
@@ -3636,6 +3835,7 @@ export declare interface Unsubscribe {
   /** Removes the listener when invoked. */
   (): void;
 }
+
 /**
  * Update data (for use with {@link (updateDoc:1)}) that consists of field paths
  * (e.g. 'foo' or 'foo.baz') mapped to values. Fields that contain dots
@@ -3649,6 +3849,7 @@ export declare type UpdateData<T> = T extends Primitive
       [K in keyof T]?: UpdateData<T[K]> | FieldValue;
     } & NestedUpdateFields<T>
   : Partial<T>;
+
 /**
  * Updates fields in the document referred to by the specified
  * `DocumentReference`. The update will fail if applied to a document that does
@@ -3684,6 +3885,7 @@ export declare function updateDoc<
   reference: DocumentReference<AppModelType, DbModelType>,
   data: UpdateData<DbModelType>
 ): Promise<void>;
+
 /**
  * Updates fields in the document referred to by the specified
  * `DocumentReference` The update will fail if applied to a document that does
@@ -3724,6 +3926,7 @@ export declare function updateDoc<
   value: unknown,
   ...moreFieldsAndValues: unknown[]
 ): Promise<void>;
+/* Excluded from this release type: _validateIsNotUsedTogether */
 /**
  * Creates a new `VectorValue` constructed with a copy of the given array of numbers.
  *
@@ -3732,6 +3935,7 @@ export declare function updateDoc<
  * @returns A new `VectorValue` constructed with a copy of the given array of numbers.
  */
 export declare function vector(values?: number[]): VectorValue;
+
 /**
  * Represents a vector type in Firestore documents.
  * Create an instance with <code>{@link vector}</code>.
@@ -3761,6 +3965,7 @@ export declare class VectorValue {
    */
   static fromJSON(json: object): VectorValue;
 }
+
 /**
  * Waits until all currently pending writes for the active user have been
  * acknowledged by the backend.
@@ -3780,6 +3985,7 @@ export declare class VectorValue {
 export declare function waitForPendingWrites(
   firestore: Firestore
 ): Promise<void>;
+
 /**
  * Creates a {@link QueryFieldFilterConstraint} that enforces that documents
  * must contain the specified field and that the value should satisfy the
@@ -3796,6 +4002,7 @@ export declare function where(
   opStr: WhereFilterOp,
   value: unknown
 ): QueryFieldFilterConstraint;
+
 /**
  * Filter conditions in a {@link where} clause are specified using the
  * strings '&lt;', '&lt;=', '==', '!=', '&gt;=', '&gt;', 'array-contains', 'in',
@@ -3812,6 +4019,7 @@ export declare type WhereFilterOp =
   | 'in'
   | 'array-contains-any'
   | 'not-in';
+
 /**
  * Allows FieldValues to be passed in as a property value while maintaining
  * type safety.
@@ -3825,6 +4033,7 @@ export declare type WithFieldValue<T> =
           [K in keyof T]: WithFieldValue<T[K]> | FieldValue;
         }
       : never);
+
 /**
  * A write batch, used to perform multiple writes as a single atomic unit.
  *
@@ -3834,7 +4043,6 @@ export declare type WithFieldValue<T> =
  * called.
  */
 export declare class WriteBatch {
-  private constructor();
   /**
    * Writes to the document referred to by the provided {@link
    * DocumentReference}. If the document does not exist yet, it will be created.
@@ -3923,7 +4131,9 @@ export declare class WriteBatch {
    * resolve while you're offline).
    */
   commit(): Promise<void>;
+  private constructor();
 }
+
 /**
  * Creates a write batch, used for performing multiple writes as a single
  * atomic operation. The maximum number of writes allowed in a single {@link WriteBatch}
@@ -3936,4 +4146,5 @@ export declare class WriteBatch {
  * writes.
  */
 export declare function writeBatch(firestore: Firestore): WriteBatch;
+
 export {};

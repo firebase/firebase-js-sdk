@@ -169,7 +169,7 @@ function collectMembersAndPublicBasesFromClass(
             sourceFile
           );
         }
-      } else {
+      } else if (shouldIncludeAsPublicBase(parentName, sourceFile)) {
         publicBases.push(parentName);
       }
     }
@@ -192,8 +192,10 @@ function buildTypeArgMap(
 ): Map<string, string> {
   const map = new Map<string, string>();
   const baseName =
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     typeof (baseDecl as any).getName === 'function' ? (baseDecl as any).getName() : null;
   const targetName =
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     typeof (targetDecl as any).getName === 'function' ? (targetDecl as any).getName() : null;
 
   if (baseName && targetName && !isNodeExported(baseDecl)) {
@@ -275,7 +277,7 @@ function collectMembersAndPublicBasesFromInterface(
             visited
           );
         }
-      } else {
+      } else if (shouldIncludeAsPublicBase(parentName, sourceFile)) {
         publicBases.push(parentName);
       }
     }
@@ -345,14 +347,6 @@ function copyDeclarationMembers(
         ...sourceDecl.getChildrenOfKind(SyntaxKind.CallSignature),
         ...sourceDecl.getChildrenOfKind(SyntaxKind.ConstructSignature)
       ];
-
-  const propertiesToAdd: any[] = [];
-  const methodsToAdd: any[] = [];
-  const getAccessorsToAdd: any[] = [];
-  const setAccessorsToAdd: any[] = [];
-  const indexSignaturesToAdd: any[] = [];
-  const callSignaturesToAdd: any[] = [];
-  const constructSignaturesToAdd: any[] = [];
 
   for (const member of sourceMembers) {
     const kind = member.getKind();
@@ -495,4 +489,17 @@ function findDeclarationByName(name: string, sourceFile: SourceFile): Node | und
     if (ta.getName() === cleanName) {return ta;}
   }
   return undefined;
+}
+
+/**
+ * Determines if an unresolved or exported base declaration should be added to `extends` or `implements`.
+ * Excluded `@internal` types stripped by API Extractor (typically prefixed with `_`) must not be added.
+ */
+function shouldIncludeAsPublicBase(name: string, sourceFile: SourceFile): boolean {
+  const cleanName = name.trim().split('<')[0].trim();
+  const decl = findDeclarationByName(name, sourceFile);
+  if (decl) {
+    return isNodeExported(decl);
+  }
+  return !cleanName.startsWith('_');
 }

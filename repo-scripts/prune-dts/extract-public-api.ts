@@ -21,8 +21,10 @@ import * as path from 'path';
 import { Extractor, ExtractorConfig } from 'api-extractor-me';
 import * as tmp from 'tmp';
 
-import { addBlankLines, removeUnusedImports } from './src/index';
-import { pruneDts } from './prune-dts';
+import { format, resolveConfig } from 'prettier';
+
+import { addBlankLines, pruneDts, removeUnusedImports } from './src/index';
+// import { pruneDts } from './prune-dts';
 
 // import { addBlankLines, pruneDts, removeUnusedImports } from './src/index';
 import * as yargs from 'yargs';
@@ -174,6 +176,14 @@ export async function generateApi(
   console.log('Added blank lines after imports');
   await removeUnusedImports(publicDtsPath);
   console.log('Removed unused imports');
+  const prettierConfig = await resolveConfig(publicDtsPath);
+  const unformatted = fs.readFileSync(publicDtsPath, 'utf-8');
+  const formatted = await format(unformatted, {
+    filepath: publicDtsPath,
+    ...prettierConfig
+  });
+  fs.writeFileSync(publicDtsPath, formatted, 'utf-8');
+  console.log('Formatted public DTS with Prettier');
 
   extractorConfig = loadApiExtractorConfig(
     packageName,

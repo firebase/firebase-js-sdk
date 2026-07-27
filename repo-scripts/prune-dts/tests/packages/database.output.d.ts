@@ -4,9 +4,18 @@
  * @packageDocumentation
  */
 
+
+
+
 import { EmulatorMockTokenOptions } from '@firebase/util';
 
 import { FirebaseApp } from '@firebase/app';
+
+
+
+
+
+
 
 /**
  * Gets a `Reference` for the location at the specified relative path.
@@ -19,10 +28,7 @@ import { FirebaseApp } from '@firebase/app';
  *   location.
  * @returns The specified child location.
  */
-export declare function child(
-  parent: DatabaseReference,
-  path: string
-): DatabaseReference;
+export declare function child(parent: DatabaseReference, path: string): DatabaseReference;
 /**
  * Modify the provided instance to communicate with the Realtime Database
  * emulator.
@@ -34,24 +40,19 @@ export declare function child(
  * @param port - The emulator port (ex: 8080)
  * @param options.mockUserToken - the mock auth token to use for unit testing Security Rules
  */
-export declare function connectDatabaseEmulator(
-  db: Database,
-  host: string,
-  port: number,
-  options?: {
+export declare function connectDatabaseEmulator(db: Database, host: string, port: number, options?: {
     mockUserToken?: EmulatorMockTokenOptions | string;
-  }
-): void;
+}): void;
 
 /**
  * Class representing a Firebase Realtime Database.
  */
 export declare class Database {
-  /** The {@link @firebase/app#FirebaseApp} associated with this Realtime Database instance. */
-  readonly app: FirebaseApp;
-  /** Represents a `Database` instance. */
-  readonly 'type' = 'database';
-  private constructor();
+    /** The {@link @firebase/app#FirebaseApp} associated with this Realtime Database instance. */
+    readonly app: FirebaseApp;
+    /** Represents a `Database` instance. */
+    readonly 'type' = "database";
+    private constructor();
 }
 
 /**
@@ -66,23 +67,23 @@ export declare class Database {
  * https://firebase.google.com/docs/database/web/read-and-write}
  */
 export declare interface DatabaseReference extends Query {
-  /**
-   * The last part of the `DatabaseReference`'s path.
-   *
-   * For example, `"ada"` is the key for
-   * `https://<DATABASE_NAME>.firebaseio.com/users/ada`.
-   *
-   * The key of a root `DatabaseReference` is `null`.
-   */
-  readonly key: string | null;
-  /**
-   * The parent location of a `DatabaseReference`.
-   *
-   * The parent of a root `DatabaseReference` is `null`.
-   */
-  readonly parent: DatabaseReference | null;
-  /** The root `DatabaseReference` of the Database. */
-  readonly root: DatabaseReference;
+    /**
+     * The last part of the `DatabaseReference`'s path.
+     *
+     * For example, `"ada"` is the key for
+     * `https://<DATABASE_NAME>.firebaseio.com/users/ada`.
+     *
+     * The key of a root `DatabaseReference` is `null`.
+     */
+    readonly key: string | null;
+    /**
+     * The parent location of a `DatabaseReference`.
+     *
+     * The parent of a root `DatabaseReference` is `null`.
+     */
+    readonly parent: DatabaseReference | null;
+    /** The root `DatabaseReference` of the Database. */
+    readonly root: DatabaseReference;
 }
 
 /**
@@ -100,118 +101,118 @@ export declare interface DatabaseReference extends Query {
  * data, you always call the `set()` method on a `Reference` directly).
  */
 export declare class DataSnapshot {
-  /**
-   * The location of this DataSnapshot.
-   */
-  readonly ref: DatabaseReference;
-  /**
-   * Gets the priority value of the data in this `DataSnapshot`.
-   *
-   * Applications need not use priority but can order collections by
-   * ordinary properties (see
-   * {@link https://firebase.google.com/docs/database/web/lists-of-data#sorting_and_filtering_data |Sorting and filtering data}
-   * ).
-   */
-  get priority(): string | number | null;
-  /**
-   * The key (last part of the path) of the location of this `DataSnapshot`.
-   *
-   * The last token in a Database location is considered its key. For example,
-   * "ada" is the key for the /users/ada/ node. Accessing the key on any
-   * `DataSnapshot` will return the key for the location that generated it.
-   * However, accessing the key on the root URL of a Database will return
-   * `null`.
-   */
-  get key(): string | null;
-  /** Returns the number of child properties of this `DataSnapshot`. */
-  get size(): number;
-  /**
-   * Gets another `DataSnapshot` for the location at the specified relative path.
-   *
-   * Passing a relative path to the `child()` method of a DataSnapshot returns
-   * another `DataSnapshot` for the location at the specified relative path. The
-   * relative path can either be a simple child name (for example, "ada") or a
-   * deeper, slash-separated path (for example, "ada/name/first"). If the child
-   * location has no data, an empty `DataSnapshot` (that is, a `DataSnapshot`
-   * whose value is `null`) is returned.
-   *
-   * @param path - A relative path to the location of child data.
-   */
-  child(path: string): DataSnapshot;
-  /**
-   * Returns true if this `DataSnapshot` contains any data. It is slightly more
-   * efficient than using `snapshot.val() !== null`.
-   */
-  exists(): boolean;
-  /**
-   * Exports the entire contents of the DataSnapshot as a JavaScript object.
-   *
-   * The `exportVal()` method is similar to `val()`, except priority information
-   * is included (if available), making it suitable for backing up your data.
-   *
-   * @returns The DataSnapshot's contents as a JavaScript value (Object,
-   *   Array, string, number, boolean, or `null`).
-   */
-  exportVal(): any;
-  /**
-   * Enumerates the top-level children in the `IteratedDataSnapshot`.
-   *
-   * Because of the way JavaScript objects work, the ordering of data in the
-   * JavaScript object returned by `val()` is not guaranteed to match the
-   * ordering on the server nor the ordering of `onChildAdded()` events. That is
-   * where `forEach()` comes in handy. It guarantees the children of a
-   * `DataSnapshot` will be iterated in their query order.
-   *
-   * If no explicit `orderBy*()` method is used, results are returned
-   * ordered by key (unless priorities are used, in which case, results are
-   * returned by priority).
-   *
-   * @param action - A function that will be called for each child DataSnapshot.
-   * The callback can return true to cancel further enumeration.
-   * @returns true if enumeration was canceled due to your callback returning
-   * true.
-   */
-  forEach(action: (child: IteratedDataSnapshot) => boolean | void): boolean;
-  /**
-   * Returns true if the specified child path has (non-null) data.
-   *
-   * @param path - A relative path to the location of a potential child.
-   * @returns `true` if data exists at the specified child path; else
-   *  `false`.
-   */
-  hasChild(path: string): boolean;
-  /**
-   * Returns whether or not the `DataSnapshot` has any non-`null` child
-   * properties.
-   *
-   * You can use `hasChildren()` to determine if a `DataSnapshot` has any
-   * children. If it does, you can enumerate them using `forEach()`. If it
-   * doesn't, then either this snapshot contains a primitive value (which can be
-   * retrieved with `val()`) or it is empty (in which case, `val()` will return
-   * `null`).
-   *
-   * @returns true if this snapshot has any children; else false.
-   */
-  hasChildren(): boolean;
-  /**
-   * Returns a JSON-serializable representation of this object.
-   */
-  toJSON(): object | null;
-  /**
-   * Extracts a JavaScript value from a `DataSnapshot`.
-   *
-   * Depending on the data in a `DataSnapshot`, the `val()` method may return a
-   * scalar type (string, number, or boolean), an array, or an object. It may
-   * also return null, indicating that the `DataSnapshot` is empty (contains no
-   * data).
-   *
-   * @returns The DataSnapshot's contents as a JavaScript value (Object,
-   *   Array, string, number, boolean, or `null`).
-   */
-  val(): any;
-  private constructor();
+    /**
+     * The location of this DataSnapshot.
+     */
+    readonly ref: DatabaseReference;
+    /**
+     * Gets the priority value of the data in this `DataSnapshot`.
+     *
+     * Applications need not use priority but can order collections by
+     * ordinary properties (see
+     * {@link https://firebase.google.com/docs/database/web/lists-of-data#sorting_and_filtering_data |Sorting and filtering data}
+     * ).
+     */
+    get priority(): string | number | null;
+    /**
+     * The key (last part of the path) of the location of this `DataSnapshot`.
+     *
+     * The last token in a Database location is considered its key. For example,
+     * "ada" is the key for the /users/ada/ node. Accessing the key on any
+     * `DataSnapshot` will return the key for the location that generated it.
+     * However, accessing the key on the root URL of a Database will return
+     * `null`.
+     */
+    get key(): string | null;
+    /** Returns the number of child properties of this `DataSnapshot`. */
+    get size(): number;
+    /**
+     * Gets another `DataSnapshot` for the location at the specified relative path.
+     *
+     * Passing a relative path to the `child()` method of a DataSnapshot returns
+     * another `DataSnapshot` for the location at the specified relative path. The
+     * relative path can either be a simple child name (for example, "ada") or a
+     * deeper, slash-separated path (for example, "ada/name/first"). If the child
+     * location has no data, an empty `DataSnapshot` (that is, a `DataSnapshot`
+     * whose value is `null`) is returned.
+     *
+     * @param path - A relative path to the location of child data.
+     */
+    child(path: string): DataSnapshot;
+    /**
+     * Returns true if this `DataSnapshot` contains any data. It is slightly more
+     * efficient than using `snapshot.val() !== null`.
+     */
+    exists(): boolean;
+    /**
+     * Exports the entire contents of the DataSnapshot as a JavaScript object.
+     *
+     * The `exportVal()` method is similar to `val()`, except priority information
+     * is included (if available), making it suitable for backing up your data.
+     *
+     * @returns The DataSnapshot's contents as a JavaScript value (Object,
+     *   Array, string, number, boolean, or `null`).
+     */
+    exportVal(): any;
+    /**
+     * Enumerates the top-level children in the `IteratedDataSnapshot`.
+     *
+     * Because of the way JavaScript objects work, the ordering of data in the
+     * JavaScript object returned by `val()` is not guaranteed to match the
+     * ordering on the server nor the ordering of `onChildAdded()` events. That is
+     * where `forEach()` comes in handy. It guarantees the children of a
+     * `DataSnapshot` will be iterated in their query order.
+     *
+     * If no explicit `orderBy*()` method is used, results are returned
+     * ordered by key (unless priorities are used, in which case, results are
+     * returned by priority).
+     *
+     * @param action - A function that will be called for each child DataSnapshot.
+     * The callback can return true to cancel further enumeration.
+     * @returns true if enumeration was canceled due to your callback returning
+     * true.
+     */
+    forEach(action: (child: IteratedDataSnapshot) => boolean | void): boolean;
+    /**
+     * Returns true if the specified child path has (non-null) data.
+     *
+     * @param path - A relative path to the location of a potential child.
+     * @returns `true` if data exists at the specified child path; else
+     *  `false`.
+     */
+    hasChild(path: string): boolean;
+    /**
+     * Returns whether or not the `DataSnapshot` has any non-`null` child
+     * properties.
+     *
+     * You can use `hasChildren()` to determine if a `DataSnapshot` has any
+     * children. If it does, you can enumerate them using `forEach()`. If it
+     * doesn't, then either this snapshot contains a primitive value (which can be
+     * retrieved with `val()`) or it is empty (in which case, `val()` will return
+     * `null`).
+     *
+     * @returns true if this snapshot has any children; else false.
+     */
+    hasChildren(): boolean;
+    /**
+     * Returns a JSON-serializable representation of this object.
+     */
+    toJSON(): object | null;
+    /**
+     * Extracts a JavaScript value from a `DataSnapshot`.
+     *
+     * Depending on the data in a `DataSnapshot`, the `val()` method may return a
+     * scalar type (string, number, or boolean), an array, or an object. It may
+     * also return null, indicating that the `DataSnapshot` is empty (contains no
+     * data).
+     *
+     * @returns The DataSnapshot's contents as a JavaScript value (Object,
+     *   Array, string, number, boolean, or `null`).
+     */
+    val(): any;
+    private constructor();
 }
-export { EmulatorMockTokenOptions };
+export { EmulatorMockTokenOptions }
 
 /**
  * Logs debugging information to the console.
@@ -220,19 +221,14 @@ export { EmulatorMockTokenOptions };
  * @param persistent - Remembers the logging state between page refreshes if
  * `true`.
  */
-export declare function enableLogging(
-  enabled: boolean,
-  persistent?: boolean
-): any;
+export declare function enableLogging(enabled: boolean, persistent?: boolean): any;
 
 /**
  * Logs debugging information to the console.
  *
  * @param logger - A custom logger function to control how things get logged.
  */
-export declare function enableLogging(
-  logger: (message: string) => unknown
-): any;
+export declare function enableLogging(logger: (message: string) => unknown): any;
 
 /**
  * Creates a `QueryConstraint` with the specified ending point.
@@ -257,10 +253,7 @@ export declare function enableLogging(
  * specified priority. This argument is only allowed if ordering by child,
  * value, or priority.
  */
-export declare function endAt(
-  value: number | string | boolean | null,
-  key?: string
-): QueryConstraint;
+export declare function endAt(value: number | string | boolean | null, key?: string): QueryConstraint;
 
 /**
  * Creates a `QueryConstraint` with the specified ending point (exclusive).
@@ -281,10 +274,7 @@ export declare function endAt(
  * previously specified priority. This argument is only allowed if ordering by
  * child, value, or priority.
  */
-export declare function endBefore(
-  value: number | string | boolean | null,
-  key?: string
-): QueryConstraint;
+export declare function endBefore(value: number | string | boolean | null, key?: string): QueryConstraint;
 
 /**
  * Creates a `QueryConstraint` that includes children that match the specified
@@ -309,20 +299,12 @@ export declare function endBefore(
  * previously specified priority. This argument is only allowed if ordering by
  * child, value, or priority.
  */
-export declare function equalTo(
-  value: number | string | boolean | null,
-  key?: string
-): QueryConstraint;
+export declare function equalTo(value: number | string | boolean | null, key?: string): QueryConstraint;
 /**
  * One of the following strings: "value", "child_added", "child_changed",
  * "child_removed", or "child_moved."
  */
-export declare type EventType =
-  | 'value'
-  | 'child_added'
-  | 'child_changed'
-  | 'child_moved'
-  | 'child_removed';
+export declare type EventType = 'value' | 'child_added' | 'child_changed' | 'child_moved' | 'child_removed';
 
 /* Excluded from this release type: _FirebaseService */
 
@@ -408,7 +390,7 @@ export declare function increment(delta: number): object;
  * Represents a child snapshot of a `Reference` that is being iterated over. The key will never be undefined.
  */
 export declare interface IteratedDataSnapshot extends DataSnapshot {
-  key: string;
+    key: string;
 }
 
 /**
@@ -453,8 +435,8 @@ export declare function limitToLast(limit: number): QueryConstraint;
 
 /** An options objects that can be used to customize a listener. */
 export declare interface ListenOptions {
-  /** Whether to remove the listener after its first invocation. */
-  readonly onlyOnce?: boolean;
+    /** Whether to remove the listener after its first invocation. */
+    readonly onlyOnce?: boolean;
 }
 
 /**
@@ -480,14 +462,7 @@ export declare interface ListenOptions {
  * @param callback - The callback function that was passed to `on()` or
  * `undefined` to remove all callbacks.
  */
-export declare function off(
-  query: Query,
-  eventType?: EventType,
-  callback?: (
-    snapshot: DataSnapshot,
-    previousChildName?: string | null
-  ) => unknown
-): void;
+export declare function off(query: Query, eventType?: EventType, callback?: (snapshot: DataSnapshot, previousChildName?: string | null) => unknown): void;
 
 /**
  * Listens for data changes at a particular location.
@@ -516,14 +491,7 @@ export declare function off(
  * occurred.
  * @returns A function that can be invoked to remove the listener.
  */
-export declare function onChildAdded(
-  query: Query,
-  callback: (
-    snapshot: DataSnapshot,
-    previousChildName?: string | null
-  ) => unknown,
-  cancelCallback?: (error: Error) => unknown
-): Unsubscribe;
+export declare function onChildAdded(query: Query, callback: (snapshot: DataSnapshot, previousChildName?: string | null) => unknown, cancelCallback?: (error: Error) => unknown): Unsubscribe;
 
 /**
  * Listens for data changes at a particular location.
@@ -549,14 +517,7 @@ export declare function onChildAdded(
  * then removes the listener after its first invocation.
  * @returns A function that can be invoked to remove the listener.
  */
-export declare function onChildAdded(
-  query: Query,
-  callback: (
-    snapshot: DataSnapshot,
-    previousChildName: string | null
-  ) => unknown,
-  options: ListenOptions
-): Unsubscribe;
+export declare function onChildAdded(query: Query, callback: (snapshot: DataSnapshot, previousChildName: string | null) => unknown, options: ListenOptions): Unsubscribe;
 
 /**
  * Listens for data changes at a particular location.
@@ -587,15 +548,7 @@ export declare function onChildAdded(
  * then removes the listener after its first invocation.
  * @returns A function that can be invoked to remove the listener.
  */
-export declare function onChildAdded(
-  query: Query,
-  callback: (
-    snapshot: DataSnapshot,
-    previousChildName: string | null
-  ) => unknown,
-  cancelCallback: (error: Error) => unknown,
-  options: ListenOptions
-): Unsubscribe;
+export declare function onChildAdded(query: Query, callback: (snapshot: DataSnapshot, previousChildName: string | null) => unknown, cancelCallback: (error: Error) => unknown, options: ListenOptions): Unsubscribe;
 
 /**
  * Listens for data changes at a particular location.
@@ -625,14 +578,7 @@ export declare function onChildAdded(
  * occurred.
  * @returns A function that can be invoked to remove the listener.
  */
-export declare function onChildChanged(
-  query: Query,
-  callback: (
-    snapshot: DataSnapshot,
-    previousChildName: string | null
-  ) => unknown,
-  cancelCallback?: (error: Error) => unknown
-): Unsubscribe;
+export declare function onChildChanged(query: Query, callback: (snapshot: DataSnapshot, previousChildName: string | null) => unknown, cancelCallback?: (error: Error) => unknown): Unsubscribe;
 
 /**
  * Listens for data changes at a particular location.
@@ -659,14 +605,7 @@ export declare function onChildChanged(
  * then removes the listener after its first invocation.
  * @returns A function that can be invoked to remove the listener.
  */
-export declare function onChildChanged(
-  query: Query,
-  callback: (
-    snapshot: DataSnapshot,
-    previousChildName: string | null
-  ) => unknown,
-  options: ListenOptions
-): Unsubscribe;
+export declare function onChildChanged(query: Query, callback: (snapshot: DataSnapshot, previousChildName: string | null) => unknown, options: ListenOptions): Unsubscribe;
 
 /**
  * Listens for data changes at a particular location.
@@ -698,15 +637,7 @@ export declare function onChildChanged(
  * then removes the listener after its first invocation.
  * @returns A function that can be invoked to remove the listener.
  */
-export declare function onChildChanged(
-  query: Query,
-  callback: (
-    snapshot: DataSnapshot,
-    previousChildName: string | null
-  ) => unknown,
-  cancelCallback: (error: Error) => unknown,
-  options: ListenOptions
-): Unsubscribe;
+export declare function onChildChanged(query: Query, callback: (snapshot: DataSnapshot, previousChildName: string | null) => unknown, cancelCallback: (error: Error) => unknown, options: ListenOptions): Unsubscribe;
 
 /**
  * Listens for data changes at a particular location.
@@ -734,14 +665,7 @@ export declare function onChildChanged(
  * occurred.
  * @returns A function that can be invoked to remove the listener.
  */
-export declare function onChildMoved(
-  query: Query,
-  callback: (
-    snapshot: DataSnapshot,
-    previousChildName: string | null
-  ) => unknown,
-  cancelCallback?: (error: Error) => unknown
-): Unsubscribe;
+export declare function onChildMoved(query: Query, callback: (snapshot: DataSnapshot, previousChildName: string | null) => unknown, cancelCallback?: (error: Error) => unknown): Unsubscribe;
 
 /**
  * Listens for data changes at a particular location.
@@ -766,14 +690,7 @@ export declare function onChildMoved(
  * then removes the listener after its first invocation.
  * @returns A function that can be invoked to remove the listener.
  */
-export declare function onChildMoved(
-  query: Query,
-  callback: (
-    snapshot: DataSnapshot,
-    previousChildName: string | null
-  ) => unknown,
-  options: ListenOptions
-): Unsubscribe;
+export declare function onChildMoved(query: Query, callback: (snapshot: DataSnapshot, previousChildName: string | null) => unknown, options: ListenOptions): Unsubscribe;
 
 /**
  * Listens for data changes at a particular location.
@@ -803,15 +720,7 @@ export declare function onChildMoved(
  * then removes the listener after its first invocation.
  * @returns A function that can be invoked to remove the listener.
  */
-export declare function onChildMoved(
-  query: Query,
-  callback: (
-    snapshot: DataSnapshot,
-    previousChildName: string | null
-  ) => unknown,
-  cancelCallback: (error: Error) => unknown,
-  options: ListenOptions
-): Unsubscribe;
+export declare function onChildMoved(query: Query, callback: (snapshot: DataSnapshot, previousChildName: string | null) => unknown, cancelCallback: (error: Error) => unknown, options: ListenOptions): Unsubscribe;
 
 /**
  * Listens for data changes at a particular location.
@@ -843,11 +752,7 @@ export declare function onChildMoved(
  * occurred.
  * @returns A function that can be invoked to remove the listener.
  */
-export declare function onChildRemoved(
-  query: Query,
-  callback: (snapshot: DataSnapshot) => unknown,
-  cancelCallback?: (error: Error) => unknown
-): Unsubscribe;
+export declare function onChildRemoved(query: Query, callback: (snapshot: DataSnapshot) => unknown, cancelCallback?: (error: Error) => unknown): Unsubscribe;
 
 /**
  * Listens for data changes at a particular location.
@@ -876,11 +781,7 @@ export declare function onChildRemoved(
  * then removes the listener after its first invocation.
  * @returns A function that can be invoked to remove the listener.
  */
-export declare function onChildRemoved(
-  query: Query,
-  callback: (snapshot: DataSnapshot) => unknown,
-  options: ListenOptions
-): Unsubscribe;
+export declare function onChildRemoved(query: Query, callback: (snapshot: DataSnapshot) => unknown, options: ListenOptions): Unsubscribe;
 
 /**
  * Listens for data changes at a particular location.
@@ -914,12 +815,7 @@ export declare function onChildRemoved(
  * then removes the listener after its first invocation.
  * @returns A function that can be invoked to remove the listener.
  */
-export declare function onChildRemoved(
-  query: Query,
-  callback: (snapshot: DataSnapshot) => unknown,
-  cancelCallback: (error: Error) => unknown,
-  options: ListenOptions
-): Unsubscribe;
+export declare function onChildRemoved(query: Query, callback: (snapshot: DataSnapshot) => unknown, cancelCallback: (error: Error) => unknown, options: ListenOptions): Unsubscribe;
 
 /**
  * The `onDisconnect` class allows you to write or clear data when your client
@@ -942,76 +838,73 @@ export declare function onChildRemoved(
  * the `onDisconnect` operations each time you reconnect.
  */
 export declare class OnDisconnect {
-  /**
-   * Cancels all previously queued `onDisconnect()` set or update events for this
-   * location and all children.
-   *
-   * If a write has been queued for this location via a `set()` or `update()` at a
-   * parent location, the write at this location will be canceled, though writes
-   * to sibling locations will still occur.
-   *
-   * @returns Resolves when synchronization to the server is complete.
-   */
-  cancel(): Promise<void>;
-  /**
-   * Ensures the data at this location is deleted when the client is disconnected
-   * (due to closing the browser, navigating to a new page, or network issues).
-   *
-   * @returns Resolves when synchronization to the server is complete.
-   */
-  remove(): Promise<void>;
-  /**
-   * Ensures the data at this location is set to the specified value when the
-   * client is disconnected (due to closing the browser, navigating to a new page,
-   * or network issues).
-   *
-   * `set()` is especially useful for implementing "presence" systems, where a
-   * value should be changed or cleared when a user disconnects so that they
-   * appear "offline" to other users. See
-   * {@link https://firebase.google.com/docs/database/web/offline-capabilities | Enabling Offline Capabilities in JavaScript}
-   * for more information.
-   *
-   * Note that `onDisconnect` operations are only triggered once. If you want an
-   * operation to occur each time a disconnect occurs, you'll need to re-establish
-   * the `onDisconnect` operations each time.
-   *
-   * @param value - The value to be written to this location on disconnect (can
-   * be an object, array, string, number, boolean, or null).
-   * @returns Resolves when synchronization to the Database is complete.
-   */
-  set(value: unknown): Promise<void>;
-  /**
-   * Ensures the data at this location is set to the specified value and priority
-   * when the client is disconnected (due to closing the browser, navigating to a
-   * new page, or network issues).
-   *
-   * @param value - The value to be written to this location on disconnect (can
-   * be an object, array, string, number, boolean, or null).
-   * @param priority - The priority to be written (string, number, or null).
-   * @returns Resolves when synchronization to the Database is complete.
-   */
-  setWithPriority(
-    value: unknown,
-    priority: number | string | null
-  ): Promise<void>;
-  /**
-   * Writes multiple values at this location when the client is disconnected (due
-   * to closing the browser, navigating to a new page, or network issues).
-   *
-   * The `values` argument contains multiple property-value pairs that will be
-   * written to the Database together. Each child property can either be a simple
-   * property (for example, "name") or a relative path (for example, "name/first")
-   * from the current location to the data to update.
-   *
-   * As opposed to the `set()` method, `update()` can be use to selectively update
-   * only the referenced properties at the current location (instead of replacing
-   * all the child properties at the current location).
-   *
-   * @param values - Object containing multiple values.
-   * @returns Resolves when synchronization to the Database is complete.
-   */
-  update(values: object): Promise<void>;
-  private constructor();
+    /**
+     * Cancels all previously queued `onDisconnect()` set or update events for this
+     * location and all children.
+     *
+     * If a write has been queued for this location via a `set()` or `update()` at a
+     * parent location, the write at this location will be canceled, though writes
+     * to sibling locations will still occur.
+     *
+     * @returns Resolves when synchronization to the server is complete.
+     */
+    cancel(): Promise<void>;
+    /**
+     * Ensures the data at this location is deleted when the client is disconnected
+     * (due to closing the browser, navigating to a new page, or network issues).
+     *
+     * @returns Resolves when synchronization to the server is complete.
+     */
+    remove(): Promise<void>;
+    /**
+     * Ensures the data at this location is set to the specified value when the
+     * client is disconnected (due to closing the browser, navigating to a new page,
+     * or network issues).
+     *
+     * `set()` is especially useful for implementing "presence" systems, where a
+     * value should be changed or cleared when a user disconnects so that they
+     * appear "offline" to other users. See
+     * {@link https://firebase.google.com/docs/database/web/offline-capabilities | Enabling Offline Capabilities in JavaScript}
+     * for more information.
+     *
+     * Note that `onDisconnect` operations are only triggered once. If you want an
+     * operation to occur each time a disconnect occurs, you'll need to re-establish
+     * the `onDisconnect` operations each time.
+     *
+     * @param value - The value to be written to this location on disconnect (can
+     * be an object, array, string, number, boolean, or null).
+     * @returns Resolves when synchronization to the Database is complete.
+     */
+    set(value: unknown): Promise<void>;
+    /**
+     * Ensures the data at this location is set to the specified value and priority
+     * when the client is disconnected (due to closing the browser, navigating to a
+     * new page, or network issues).
+     *
+     * @param value - The value to be written to this location on disconnect (can
+     * be an object, array, string, number, boolean, or null).
+     * @param priority - The priority to be written (string, number, or null).
+     * @returns Resolves when synchronization to the Database is complete.
+     */
+    setWithPriority(value: unknown, priority: number | string | null): Promise<void>;
+    /**
+     * Writes multiple values at this location when the client is disconnected (due
+     * to closing the browser, navigating to a new page, or network issues).
+     *
+     * The `values` argument contains multiple property-value pairs that will be
+     * written to the Database together. Each child property can either be a simple
+     * property (for example, "name") or a relative path (for example, "name/first")
+     * from the current location to the data to update.
+     *
+     * As opposed to the `set()` method, `update()` can be use to selectively update
+     * only the referenced properties at the current location (instead of replacing
+     * all the child properties at the current location).
+     *
+     * @param values - Object containing multiple values.
+     * @returns Resolves when synchronization to the Database is complete.
+     */
+    update(values: object): Promise<void>;
+    private constructor();
 }
 
 /**
@@ -1049,11 +942,7 @@ export declare function onDisconnect(ref: DatabaseReference): OnDisconnect;
  * occurred.
  * @returns A function that can be invoked to remove the listener.
  */
-export declare function onValue(
-  query: Query,
-  callback: (snapshot: DataSnapshot) => unknown,
-  cancelCallback?: (error: Error) => unknown
-): Unsubscribe;
+export declare function onValue(query: Query, callback: (snapshot: DataSnapshot) => unknown, cancelCallback?: (error: Error) => unknown): Unsubscribe;
 
 /**
  * Listens for data changes at a particular location.
@@ -1078,11 +967,7 @@ export declare function onValue(
  * then removes the listener after its first invocation.
  * @returns A function that can be invoked to remove the listener.
  */
-export declare function onValue(
-  query: Query,
-  callback: (snapshot: DataSnapshot) => unknown,
-  options: ListenOptions
-): Unsubscribe;
+export declare function onValue(query: Query, callback: (snapshot: DataSnapshot) => unknown, options: ListenOptions): Unsubscribe;
 
 /**
  * Listens for data changes at a particular location.
@@ -1112,12 +997,7 @@ export declare function onValue(
  * then removes the listener after its first invocation.
  * @returns A function that can be invoked to remove the listener.
  */
-export declare function onValue(
-  query: Query,
-  callback: (snapshot: DataSnapshot) => unknown,
-  cancelCallback: (error: Error) => unknown,
-  options: ListenOptions
-): Unsubscribe;
+export declare function onValue(query: Query, callback: (snapshot: DataSnapshot) => unknown, cancelCallback: (error: Error) => unknown, options: ListenOptions): Unsubscribe;
 
 /**
  * Creates a new `QueryConstraint` that orders by the specified child key.
@@ -1191,10 +1071,7 @@ export declare function orderByValue(): QueryConstraint;
  * @returns Combined `Promise` and `Reference`; resolves when write is complete,
  * but can be used immediately as the `Reference` to the child location.
  */
-export declare function push(
-  parent: DatabaseReference,
-  value?: unknown
-): ThenableReference;
+export declare function push(parent: DatabaseReference, value?: unknown): ThenableReference;
 
 /**
  * @license
@@ -1228,45 +1105,45 @@ export declare function push(
  * for more information.
  */
 export declare interface Query {
-  /** The `DatabaseReference` for the `Query`'s location. */
-  readonly ref: DatabaseReference;
-  /**
-   * Returns whether or not the current and provided queries represent the same
-   * location, have the same query parameters, and are from the same instance of
-   * `FirebaseApp`.
-   *
-   * Two `DatabaseReference` objects are equivalent if they represent the same location
-   * and are from the same instance of `FirebaseApp`.
-   *
-   * Two `Query` objects are equivalent if they represent the same location,
-   * have the same query parameters, and are from the same instance of
-   * `FirebaseApp`. Equivalent queries share the same sort order, limits, and
-   * starting and ending points.
-   *
-   * @param other - The query to compare against.
-   * @returns Whether or not the current and provided queries are equivalent.
-   */
-  isEqual(other: Query | null): boolean;
-  /**
-   * Returns a JSON-serializable representation of this object.
-   *
-   * @returns A JSON-serializable representation of this object.
-   */
-  toJSON(): string;
-  /**
-   * Gets the absolute URL for this location.
-   *
-   * The `toString()` method returns a URL that is ready to be put into a
-   * browser, curl command, or a `refFromURL()` call. Since all of those expect
-   * the URL to be url-encoded, `toString()` returns an encoded URL.
-   *
-   * Append '.json' to the returned URL when typed into a browser to download
-   * JSON-formatted data. If the location is secured (that is, not publicly
-   * readable), you will get a permission-denied error.
-   *
-   * @returns The absolute URL for this location.
-   */
-  toString(): string;
+    /** The `DatabaseReference` for the `Query`'s location. */
+    readonly ref: DatabaseReference;
+    /**
+     * Returns whether or not the current and provided queries represent the same
+     * location, have the same query parameters, and are from the same instance of
+     * `FirebaseApp`.
+     *
+     * Two `DatabaseReference` objects are equivalent if they represent the same location
+     * and are from the same instance of `FirebaseApp`.
+     *
+     * Two `Query` objects are equivalent if they represent the same location,
+     * have the same query parameters, and are from the same instance of
+     * `FirebaseApp`. Equivalent queries share the same sort order, limits, and
+     * starting and ending points.
+     *
+     * @param other - The query to compare against.
+     * @returns Whether or not the current and provided queries are equivalent.
+     */
+    isEqual(other: Query | null): boolean;
+    /**
+     * Returns a JSON-serializable representation of this object.
+     *
+     * @returns A JSON-serializable representation of this object.
+     */
+    toJSON(): string;
+    /**
+     * Gets the absolute URL for this location.
+     *
+     * The `toString()` method returns a URL that is ready to be put into a
+     * browser, curl command, or a `refFromURL()` call. Since all of those expect
+     * the URL to be url-encoded, `toString()` returns an encoded URL.
+     *
+     * Append '.json' to the returned URL when typed into a browser to download
+     * JSON-formatted data. If the location is secured (that is, not publicly
+     * readable), you will get a permission-denied error.
+     *
+     * @returns The absolute URL for this location.
+     */
+    toString(): string;
 }
 
 /**
@@ -1278,10 +1155,7 @@ export declare interface Query {
  * @throws if any of the provided query constraints cannot be combined with the
  * existing or new constraints.
  */
-export declare function query(
-  query: Query,
-  ...queryConstraints: QueryConstraint[]
-): Query;
+export declare function query(query: Query, ...queryConstraints: QueryConstraint[]): Query;
 
 /**
  * A `QueryConstraint` is used to narrow the set of documents returned by a
@@ -1294,23 +1168,12 @@ export declare function query(
  * also contains this `QueryConstraint`.
  */
 export declare abstract class QueryConstraint {
-  /** The type of this query constraints */
-  abstract readonly type: QueryConstraintType;
+    /** The type of this query constraints */
+    abstract readonly type: QueryConstraintType;
 }
 
 /** Describes the different query constraints available in this SDK. */
-export declare type QueryConstraintType =
-  | 'endAt'
-  | 'endBefore'
-  | 'startAt'
-  | 'startAfter'
-  | 'limitToFirst'
-  | 'limitToLast'
-  | 'orderByChild'
-  | 'orderByKey'
-  | 'orderByPriority'
-  | 'orderByValue'
-  | 'equalTo';
+export declare type QueryConstraintType = 'endAt' | 'endBefore' | 'startAt' | 'startAfter' | 'limitToFirst' | 'limitToLast' | 'orderByChild' | 'orderByKey' | 'orderByPriority' | 'orderByValue' | 'equalTo';
 /* Excluded from this release type: _QueryImpl */
 
 /* Excluded from this release type: _QueryParams */
@@ -1349,10 +1212,7 @@ export declare function ref(db: Database, path?: string): DatabaseReference;
  * @returns A `Reference` pointing to the provided
  *   Firebase URL.
  */
-export declare function refFromURL(
-  db: Database,
-  url: string
-): DatabaseReference;
+export declare function refFromURL(db: Database, url: string): DatabaseReference;
 
 /**
  * Removes the data at this Database location.
@@ -1408,11 +1268,7 @@ export declare function remove(ref: DatabaseReference): Promise<void>;
  * @returns A `Promise` that can optionally be used instead of the `onComplete`
  * callback to handle success and failure.
  */
-export declare function runTransaction(
-  ref: DatabaseReference,
-  transactionUpdate: (currentData: any) => unknown,
-  options?: TransactionOptions
-): Promise<TransactionResult>;
+export declare function runTransaction(ref: DatabaseReference, transactionUpdate: (currentData: any) => unknown, options?: TransactionOptions): Promise<TransactionResult>;
 /**
  * @license
  * Copyright 2020 Google LLC
@@ -1465,10 +1321,7 @@ export declare function serverTimestamp(): object;
  *   array, or null).
  * @returns Resolves when write to server is complete.
  */
-export declare function set(
-  ref: DatabaseReference,
-  value: unknown
-): Promise<void>;
+export declare function set(ref: DatabaseReference, value: unknown): Promise<void>;
 
 /**
  * Sets a priority for the data at this Database location.
@@ -1482,10 +1335,7 @@ export declare function set(
  * @param priority - The priority to be written (string, number, or null).
  * @returns Resolves when write to server is complete.
  */
-export declare function setPriority(
-  ref: DatabaseReference,
-  priority: string | number | null
-): Promise<void>;
+export declare function setPriority(ref: DatabaseReference, priority: string | number | null): Promise<void>;
 
 /* Excluded from this release type: _setSDKVersion */
 
@@ -1504,11 +1354,7 @@ export declare function setPriority(
  * @param priority - The priority to be written (string, number, or null).
  * @returns Resolves when write to server is complete.
  */
-export declare function setWithPriority(
-  ref: DatabaseReference,
-  value: unknown,
-  priority: string | number | null
-): Promise<void>;
+export declare function setWithPriority(ref: DatabaseReference, value: unknown, priority: string | number | null): Promise<void>;
 /**
  * Creates a `QueryConstraint` with the specified starting point (exclusive).
  *
@@ -1527,10 +1373,7 @@ export declare function setWithPriority(
  * @param key - The child key to start after. This argument is only allowed if
  * ordering by child, value, or priority.
  */
-export declare function startAfter(
-  value: number | string | boolean | null,
-  key?: string
-): QueryConstraint;
+export declare function startAfter(value: number | string | boolean | null, key?: string): QueryConstraint;
 
 /**
  * Creates a `QueryConstraint` with the specified starting point.
@@ -1554,10 +1397,7 @@ export declare function startAfter(
  * @param key - The child key to start at. This argument is only allowed if
  * ordering by child, value, or priority.
  */
-export declare function startAt(
-  value?: number | string | boolean | null,
-  key?: string
-): QueryConstraint;
+export declare function startAt(value?: number | string | boolean | null, key?: string): QueryConstraint;
 /* Excluded from this release type: _TEST_ACCESS_forceRestClient */
 
 /* Excluded from this release type: _TEST_ACCESS_hijackHash */
@@ -1567,35 +1407,33 @@ export declare function startAt(
  * {@link push}. The reference is available immediately and the `Promise` resolves
  * as the write to the backend completes.
  */
-export declare interface ThenableReference
-  extends DatabaseReference,
-    Pick<Promise<DatabaseReference>, 'then' | 'catch'> {
-  key: string;
-  parent: DatabaseReference;
+export declare interface ThenableReference extends DatabaseReference, Pick<Promise<DatabaseReference>, 'then' | 'catch'> {
+    key: string;
+    parent: DatabaseReference;
 }
 
 /** An options object to configure transactions. */
 export declare interface TransactionOptions {
-  /**
-   * By default, events are raised each time the transaction update function
-   * runs. So if it is run multiple times, you may see intermediate states. You
-   * can set this to false to suppress these intermediate states and instead
-   * wait until the transaction has completed before events are raised.
-   */
-  readonly applyLocally?: boolean;
+    /**
+     * By default, events are raised each time the transaction update function
+     * runs. So if it is run multiple times, you may see intermediate states. You
+     * can set this to false to suppress these intermediate states and instead
+     * wait until the transaction has completed before events are raised.
+     */
+    readonly applyLocally?: boolean;
 }
 
 /**
  * A type for the resolve value of {@link runTransaction}.
  */
 export declare class TransactionResult {
-  /** Whether the transaction was successfully committed. */
-  readonly committed: boolean;
-  /** The resulting data snapshot. */
-  readonly snapshot: DataSnapshot;
-  /** Returns a JSON-serializable representation of this object. */
-  toJSON(): object;
-  private constructor();
+    /** Whether the transaction was successfully committed. */
+    readonly committed: boolean;
+    /** The resulting data snapshot. */
+    readonly snapshot: DataSnapshot;
+    /** Returns a JSON-serializable representation of this object. */
+    toJSON(): object;
+    private constructor();
 }
 
 /** A callback that can invoked to remove a listener. */
@@ -1636,14 +1474,11 @@ export declare type Unsubscribe = () => void;
  * @param values - Object containing multiple values.
  * @returns Resolves when update on server is complete.
  */
-export declare function update(
-  ref: DatabaseReference,
-  values: object
-): Promise<void>;
+export declare function update(ref: DatabaseReference, values: object): Promise<void>;
 
 /* Excluded from this release type: _UserCallback */
 
 /* Excluded from this release type: _validatePathString */
 
 /* Excluded from this release type: _validateWritablePath */
-export {};
+export { }
