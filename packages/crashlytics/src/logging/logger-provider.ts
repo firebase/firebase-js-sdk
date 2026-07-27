@@ -20,6 +20,9 @@ import {
   ReadableLogRecord,
   LogRecordExporter
 } from '@opentelemetry/sdk-logs';
+import { registerInstrumentations } from '@opentelemetry/instrumentation';
+import { NavigationTimingInstrumentation } from '@opentelemetry/browser-instrumentation/experimental/navigation-timing';
+import { UserActionInstrumentation } from '@opentelemetry/browser-instrumentation/experimental/user-action';
 import { ATTR_SERVICE_NAME } from '@opentelemetry/semantic-conventions';
 import { resourceFromAttributes } from '@opentelemetry/resources';
 import { JsonLogsSerializer } from '@opentelemetry/otlp-transformer';
@@ -92,6 +95,37 @@ export function createLoggerProvider(
     processors: [onErrorLogRecordProcessor],
     logRecordLimits: {}
   });
+
+  // TODO: Enable once @opentelemetry/browser-instrumentation supports applyCustomLogRecordData across its packages
+  // const applyCustomLogRecordData = (logRecord: LogRecord): void => {
+  //   logRecord.attributes = {
+  //     ...logRecord.attributes,
+  //     ...attributesStore.getLogAttributes()
+  //   };
+  // };
+
+  if (typeof window !== 'undefined') {
+    /*
+     * Initialize as disabled to prevent the instrumentation from auto-enabling during construction.
+     * In SSR frameworks (like Next.js), the page is already loaded when this script executes, so
+     * it will try to emit the navigation timing immediately. Deferring the enable state ensures
+     * the loggerProvider is fully bound by registerInstrumentations before the event is emitted.
+     * registerInstrumentations will automatically enable it once the provider is set.
+     */
+    const navigationTiming = new NavigationTimingInstrumentation({
+      enabled: false
+    });
+
+    registerInstrumentations({
+      loggerProvider,
+      instrumentations: [
+        navigationTiming,
+        new UserActionInstrumentation({
+          autoCapturedActions: ['click']
+        })
+      ]
+    });
+  }
 
   return { loggerProvider, onErrorLogRecordProcessor };
 }
