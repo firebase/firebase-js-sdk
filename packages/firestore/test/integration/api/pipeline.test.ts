@@ -7533,7 +7533,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
 apiDescribe.skip('Pipeline window functions', persistence => {
   addEqualityMatcher();
   let firestore: Firestore;
-  let randomCol: CollectionReference;
+  let productSales: CollectionReference;
 
   const ts = (isoStr: string): Timestamp =>
     Timestamp.fromDate(new Date(isoStr));
@@ -7576,7 +7576,7 @@ apiDescribe.skip('Pipeline window functions', persistence => {
       persistence,
       testDocs,
       async (col, db) => {
-        randomCol = col;
+        productSales = col;
         firestore = db;
         setupDeferred.resolve();
         return testDeferred.promise;
@@ -7592,14 +7592,13 @@ apiDescribe.skip('Pipeline window functions', persistence => {
 
   it('can calculate unsorted partition average (example 1)', async () => {
     const snapshot = await execute(
-      firestore
-        .pipeline()
-        .collection(randomCol.path)
+      firestore.pipeline()
+        .collection(productSales)
         .addWindowFields(
           {
-            group: ['product']
+            partition: ['product']
           },
-          average(field('salesPrice')).as('productAveragePrice'),
+          average('salesPrice').as('productAveragePrice'),
           countAll().as('windowCount')
         )
         .sort(field('product').ascending(), field('salesPrice').ascending())
@@ -7646,17 +7645,17 @@ apiDescribe.skip('Pipeline window functions', persistence => {
 
   it('can calculate document-based moving average (example 2)', async () => {
     const snapshot = await execute(
-      firestore
-        .pipeline()
-        .collection(randomCol.path)
+      firestore.pipeline()
+        .collection(productSales)
         .addWindowFields(
           {
-            sort: ascending('date'),
-            documents: { preceding: 1, following: 1 }
+            documents: { preceding: 1, following: 1 },
+            sort: [ascending('date')]
           },
           average(field('salesPrice')).as('movingAveragePrice'),
           countAll().as('windowCount')
         )
+
         .sort(ascending('date'))
     );
     expectResults(
@@ -7701,17 +7700,19 @@ apiDescribe.skip('Pipeline window functions', persistence => {
 
   it('can calculate document-based running total (example 3)', async () => {
     const snapshot = await execute(
-      firestore
-        .pipeline()
-        .collection(randomCol.path)
+      firestore.pipeline()
+        .collection(productSales)
         .addWindowFields(
           {
-            sort: ascending('date'),
-            documents: 'default'
+            // If we want our frame to be specified in "documents", then we must explicity
+            // add this property, event if we want the default bounds ['unbounded', 'current']
+            documents: { preceding: 'unbounded', following: 'current' },
+            sort: [ascending('date')]
           },
           sum(field('salesPrice')).as('runningTotalRevenue'),
           countAll().as('windowCount')
         )
+
         .sort(ascending('date'))
     );
     expectResults(
@@ -7756,17 +7757,20 @@ apiDescribe.skip('Pipeline window functions', persistence => {
 
   it('can calculate range-based same-price sales count (example 4)', async () => {
     const snapshot = await execute(
-      firestore
-        .pipeline()
-        .collection(randomCol.path)
+      firestore.pipeline()
+        .collection(productSales)
         .addWindowFields(
           {
-            group: ['product'],
-            sort: ascending('salesPrice'),
-            range: { preceding: 0, following: 0 }
+            partition: ['product'],
+            range: {
+              preceding: 'current',
+              following: 'current'
+            },
+            sort: [ascending('salesPrice')]
           },
           countAll().as('samePriceSalesCount')
         )
+
         .sort(ascending('salesPrice'))
     );
     expectResults(
@@ -7806,18 +7810,21 @@ apiDescribe.skip('Pipeline window functions', persistence => {
 
   it('can calculate range-based date window with time unit (example 5)', async () => {
     const snapshot = await execute(
-      firestore
-        .pipeline()
-        .collection(randomCol.path)
+      firestore.pipeline()
+        .collection(productSales)
         .addWindowFields(
           {
-            sort: ascending('date'),
-            range: 'default',
-            unit: 'day'
+            range: {
+              preceding: 'unbounded',
+              following: 'current',
+              unit: 'day'
+            },
+            sort: [ascending('date')],
           },
           sum(field('salesPrice')).as('runningTotalRevenue'),
           countAll().as('windowCount')
         )
+
         .sort(ascending('date'))
     );
     expectResults(
@@ -7862,17 +7869,22 @@ apiDescribe.skip('Pipeline window functions', persistence => {
 
   it('can calculate document-based one-sided look-ahead average', async () => {
     const snapshot = await execute(
-      firestore
-        .pipeline()
-        .collection(randomCol.path)
+      firestore.pipeline()
+        .collection(productSales)
         .addWindowFields(
           {
-            sort: ascending('date'),
-            documents: { preceding: -1, following: 2 }
-          },
-          average(field('salesPrice')).as('lookAheadAveragePrice'),
-          countAll().as('windowCount')
-        )
+      documents: {
+        // Equivalent to "documents between 1 following and 2 following", except we must 
+        // express that window with num preceding and num following 
+        preceding: -1,
+        following: 2
+      },
+      sort: ascending('date')
+    },
+    average(field('salesPrice')).as('lookAheadAveragePrice'),
+    countAll().as('windowCount')
+  )
+
         .sort(ascending('date'))
     );
     expectResults(
@@ -7919,11 +7931,14 @@ apiDescribe.skip('Pipeline window functions', persistence => {
     const snapshot = await execute(
       firestore
         .pipeline()
-        .collection(randomCol.path)
+        .collection(productSales.path)
         .addWindowFields({
           window: {
             sort: ascending('date'),
-            documents: { preceding: 1, following: 1 }
+            documents: {
+              preceding: 1,
+              following: 1
+            }
           },
           fields: [
             average(field('salesPrice')).as('movingAveragePrice'),

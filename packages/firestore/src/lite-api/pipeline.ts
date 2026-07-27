@@ -54,7 +54,8 @@ import {
   AliasedExpression,
   FunctionExpression,
   isAliasedExpr,
-  documentMatches
+  documentMatches,
+  AliasedWindowFunction
 } from './expressions';
 import {
   AddFields,
@@ -271,7 +272,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    * firestore.pipeline().collection("employees")
    *   .addWindowFields(
    *     {
-   *       group: ['department']
+   *       partition: ['department']
    *     },
    *     average(field('salary')).as('departmentAverageSalary')
    *   );
@@ -292,7 +293,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    *   .addWindowFields(
    *     {
    *       sort: ascending('date'),
-   *       documents: 'default'
+   *       documents: { preceding: 'unbounded', following: 'current' }
    *     },
    *     sum(field('amount')).as('runningTotal')
    *   );
@@ -302,7 +303,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    *   .addWindowFields(
    *     {
    *       sort: ascending('price'),
-   *       range: 'default'
+   *       range: { preceding: 'unbounded', following: 'current' }
    *     },
    *     average(field('rating')).as('cumulativeAvgRating')
    *   );
@@ -312,8 +313,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    *   .addWindowFields(
    *     {
    *       sort: ascending('date'),
-   *       range: { preceding: 30, following: 'current' },
-   *       unit: 'day'
+   *       range: { preceding: 30, following: 'current', unit: 'day' }
    *     },
    *     sum(field('amount')).as('thirtyDayCumulativeSales')
    *   );
@@ -326,8 +326,8 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    */
   addWindowFields(
     window: WindowSpec,
-    field: AliasedAggregate,
-    ...additionalFields: AliasedAggregate[]
+    field: AliasedAggregate | AliasedWindowFunction,
+    ...additionalFields: Array<AliasedAggregate | AliasedWindowFunction>
   ): Pipeline;
 
   /**
@@ -339,7 +339,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    * firestore.pipeline().collection("employees")
    *   .addWindowFields({
    *     window: {
-   *       group: ['department']
+   *       partition: ['department']
    *     },
    *     fields: [
    *       average(field('salary')).as('departmentAverageSalary')
@@ -365,8 +365,8 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
   addWindowFields(options: AddWindowFieldsStageOptions): Pipeline;
   addWindowFields(
     windowOrOptions: WindowSpec | AddWindowFieldsStageOptions,
-    field?: AliasedAggregate,
-    ...additionalFields: AliasedAggregate[]
+    field?: AliasedAggregate | AliasedWindowFunction,
+    ...additionalFields: Array<AliasedAggregate | AliasedWindowFunction>
   ): Pipeline {
     throw new Error('not implemented');
   }

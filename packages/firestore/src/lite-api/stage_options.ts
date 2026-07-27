@@ -19,6 +19,7 @@ import { OneOf } from '../util/types';
 
 import {
   AliasedAggregate,
+  AliasedWindowFunction,
   AliasedExpression,
   BooleanExpression,
   Expression,
@@ -137,210 +138,111 @@ export type AddFieldsStageOptions = StageOptions & {
   fields: Selectable[];
 };
 
-/**
- * A type that specifies a range-based window frame over numeric values, where boundaries are defined
- * by a range/difference of values relative to the sort value of the current document.
- */
-export interface NumericRangeWindowSpec {
+export interface DocumentWindowFrame {
   /**
-   * Evaluate the window function over documents in the same group as the current document. Documents are grouped by having the same value for all provided {@link @firebase/firestore/pipelines#Expression}s and fields as specified in this `group` array. If a string value is provided, it is treated as the name of a field in the document. If this value is left unspecified, then a single group is used for all input documents to the stage.
-   */
-  group?: Array<string | Expression>;
-
-  /**
-   * The sort order of the documents in each group.
+   * The lower bound (inclusive) of the window frame, relative to the current document's position.
    *
-   * For range-based windows, sorting must be performed on exactly one field or expression
-   * (typically numeric or date/time) to allow calculation of range-based boundaries.
-   *
-   * See {@link @firebase/firestore/pipelines#Ordering}.
+   * Can be:
+   * - A number specifying the number of documents preceding the current document.
+   * - `'current'` to represent the current document itself.
+   * - `'unbounded'` to include all documents from the first document in the group.
    */
-  sort: Ordering;
+  preceding: number | 'current' | 'unbounded' | Expression;
 
   /**
-   * Defines the window frame boundaries relative to the value of the sort key of the current document.
+   * The upper bound (inclusive) of the window frame, relative to the current document's position.
    *
-   * To use default range boundaries (equivalent to `{ preceding: 'unbounded', following: 'current' }`,
-   * which includes all documents from the start of the partition up to the current document's sort value),
-   * specify `'default'`.
+   * Can be:
+   * - A number specifying the number of documents following the current document.
+   * - `'current'` to represent the current document itself.
+   * - `'unbounded'` to include all documents to the last document in the group.
    */
-  range:
-    | 'default'
-    | {
-        /**
-         * The lower bound (inclusive) of the window frame, relative to the sort value of the current document.
-         *
-         * Can be:
-         * - A number specifying the value-based offset from the current document's sort value.
-         * - `'current'` to represent only documents with the same sort value as the current document.
-         * - `'unbounded'` (default) to include all documents from the start of the group.
-         */
-        preceding?: number | 'current' | 'unbounded';
-
-        /**
-         * The upper bound (inclusive) of the window frame, relative to the sort value of the current document.
-         *
-         * Can be:
-         * - A number specifying the value-based offset from the current document's sort value.
-         * - `'current'` (default) to represent only documents with the same sort value as the current document.
-         * - `'unbounded'` to include all documents to the end of the group.
-         */
-        following?: number | 'current' | 'unbounded';
-      };
-
-  /**
-   * The `unit` property is not allowed for numeric ranges.
-   */
-  unit?: never;
+  following: number | 'current' | 'unbounded' | Expression;
 }
 
-/**
- * A type that specifies a range-based window frame over date or time values, where boundaries are defined
- * by a range/difference of dates relative to the sort value of the current document using the specified `unit`.
- */
-export interface DateRangeWindowSpec {
+export interface RangeWindowFrame {
   /**
-   * Evaluate the window function over documents in the same group as the current document. Documents are grouped by having the same value for all provided {@link @firebase/firestore/pipelines#Expression}s and fields as specified in this `group` array. If a string value is provided, it is treated as the name of a field in the document. If this value is left unspecified, then a single group is used for all input documents to the stage.
+   * The lower bound (inclusive) of the window frame, relative to the sort value of the current document.
+   *
+   * Can be:
+   * - A number specifying the value-based offset from the current document's sort value.
+   * - `'current'` to represent only documents with the same sort value as the current document.
+   * - `'unbounded'` to include all documents from the start of the group.
    */
-  group?: Array<string | Expression>;
+  preceding: number | 'current' | 'unbounded' | Expression;
 
   /**
-   * The sort order of the documents in each group.
+   * The upper bound (inclusive) of the window frame, relative to the sort value of the current document.
    *
-   * For range-based windows, sorting must be performed on exactly one field or expression
-   * (typically numeric or date/time) to allow calculation of range-based boundaries.
-   *
-   * See {@link @firebase/firestore/pipelines#Ordering}.
+   * Can be:
+   * - A number specifying the value-based offset from the current document's sort value.
+   * - `'current'` to represent only documents with the same sort value as the current document.
+   * - `'unbounded'` to include all documents to the end of the group.
    */
-  sort: Ordering;
-
-  /**
-   * Defines the window frame boundaries relative to the value of the sort key of the current document.
-   *
-   * To use default range boundaries (equivalent to `{ preceding: 'unbounded', following: 'current' }`,
-   * which includes all documents from the start of the partition up to the current document's sort value),
-   * specify `'default'`.
-   */
-  range:
-    | 'default'
-    | {
-        /**
-         * The lower bound (inclusive) of the window frame, relative to the sort value of the current document.
-         *
-         * Can be:
-         * - A number specifying the value-based offset from the current document's sort value.
-         * - `'current'` to represent only documents with the same sort value as the current document.
-         * - `'unbounded'` (default) to include all documents from the start of the group.
-         */
-        preceding?: number | 'current' | 'unbounded';
-
-        /**
-         * The upper bound (inclusive) of the window frame, relative to the sort value of the current document.
-         *
-         * Can be:
-         * - A number specifying the value-based offset from the current document's sort value.
-         * - `'current'` (default) to represent only documents with the same sort value as the current document.
-         * - `'unbounded'` to include all documents to the end of the group.
-         */
-        following?: number | 'current' | 'unbounded';
-      };
+  following: number | 'current' | 'unbounded' | Expression;
 
   /**
    * The unit used to calculate range boundaries when the `sort` field contains date or time values.
    */
-  unit: TimeGranularity;
-}
-
-/**
- * A type that specifies a window frame by count of documents preceding and following the current document in the specified sort order.
- */
-export interface DocumentWindowSpec {
-  /**
-   * Evaluate the window function over documents in the same group as the current document. Documents are grouped by having the same value for all provided {@link @firebase/firestore/pipelines#Expression}s and fields as specified in this `group` array. If a string value is provided, it is treated as the name of a field in the document. If this value is left unspecified, then a single group is used for all input documents to the stage.
-   */
-  group?: Array<string | Expression>;
-
-  /**
-   * Evaluate the window function over documents in the specified sort order(s).
-   *
-   * Multiple sort criteria can be provided since document boundaries are determined by row
-   * count rather than field values.
-   *
-   * See {@link @firebase/firestore/pipelines#Ordering}.
-   */
-  sort: Ordering | Ordering[];
-
-  /**
-   * Defines the window frame boundaries relative to the position of the current document in the sorted group.
-   *
-   * To use default frame boundaries (equivalent to `{ preceding: 'unbounded', following: 'current' }`,
-   * which includes all documents from the start of the partition up to the current document's position),
-   * specify `'default'`.
-   */
-  documents:
-    | 'default'
-    | {
-        /**
-         * The lower bound (inclusive) of the window frame, relative to the current document's position.
-         *
-         * Can be:
-         * - A number specifying the number of documents preceding the current document.
-         * - `'current'` to represent the current document itself.
-         * - `'unbounded'` (default) to include all documents from the first document in the group.
-         */
-        preceding?: number | 'current' | 'unbounded';
-
-        /**
-         * The upper bound (inclusive) of the window frame, relative to the current document's position.
-         *
-         * Can be:
-         * - A number specifying the number of documents following the current document.
-         * - `'current'` (default) to represent the current document itself.
-         * - `'unbounded'` to include all documents to the last document in the group.
-         */
-        following?: number | 'current' | 'unbounded';
-      };
-}
-
-/**
- * A window specification that evaluates the window function over all documents in the same group,
- * without any sorting or frame boundary limitations (the entire group/partition).
- */
-export interface GroupWindowSpec {
-  /**
-   * Evaluate the window function over documents in the same group as the current document. Documents are grouped by having the same value for all provided {@link @firebase/firestore/pipelines#Expression}s and fields as specified in this `group` array. If a string value is provided, it is treated as the name of a field in the document. If this value is left unspecified, then a single group is used for all input documents to the stage.
-   */
-  group?: Array<string | Expression>;
-
-  /**
-   * Sorting is not supported for group window specs.
-   */
-  sort?: never;
-
-  /**
-   * Frame boundaries are not supported for group window specs.
-   */
-  documents?: never;
-
-  /**
-   * Frame boundaries are not supported for group window specs.
-   */
-  range?: never;
-
-  /**
-   * Units are not supported for group window specs.
-   */
-  unit?: never;
+  unit?:
+  | 'microsecond'
+  | 'millisecond'
+  | 'second'
+  | 'minute'
+  | 'hour'
+  | 'day'
+  | 'week'
+  | 'week(monday)'
+  | 'week(tuesday)'
+  | 'week(wednesday)'
+  | 'week(thursday)'
+  | 'week(friday)'
+  | 'week(saturday)'
+  | 'week(sunday)'
+  | 'isoweek'
+  | 'month'
+  | 'quarter'
+  | 'year'
+  | Expression;
 }
 
 /**
  * A type that specifies a window frame, over which a window function will be evaluated.
+ *
+ * Default frame behavior:
+ * - If `sort` is not specified, the default frame is `documents` from `'unbounded'` preceding to `'unbounded'` following (the entire partition/group).
+ * - If `sort` is specified, the default frame is `range` from `'unbounded'` preceding to `'current'` row value.
  */
-export type WindowSpec =
-  | NumericRangeWindowSpec
-  | DateRangeWindowSpec
-  | DocumentWindowSpec
-  | GroupWindowSpec;
+export type WindowSpec = {
+  /**
+   * Evaluate the window function over documents in the same group as the current document. Documents are grouped by having the same value for all provided {@link @firebase/firestore/pipelines#Expression}s and fields as specified in this `partition` array. If a string value is provided, it is treated as the name of a field in the document. If this value is left unspecified, then a single group is used for all input documents to the stage.
+   */
+  partition?: Array<string | Expression>;
+
+  /**
+   * The sort order of the documents in each group.
+   *
+   * Setting a value for `sort` changes the default window frame behavior.
+   * See {@link @firebase/firestore/pipelines#WindowSpec} for default frame specifications.
+   *
+   * See {@link @firebase/firestore/pipelines#Ordering}.
+   */
+  sort?: Ordering | Ordering[];
+} & OneOf<{
+    /**
+     * Defines a document-count based window frame relative to the position of the current document in the sorted group.
+     * 
+     * See {@link @firebase/firestore/pipelines#WindowSpec} for default frame specifications if `documents` or `range` is not set.
+     */
+  documents?: DocumentWindowFrame;
+
+    /**
+     * Defines a range-value based window frame relative to the sort value of the current document.
+     * 
+     * See {@link @firebase/firestore/pipelines#WindowSpec} for default frame specifications if `documents` or `range` is not set.
+     */
+  range?: RangeWindowFrame;
+}>;
 
 /**
  * Options defining how an AddWindowFieldsStage is evaluated. See {@link @firebase/firestore/pipelines#Pipeline.(addWindowFields:1)}.
@@ -352,10 +254,10 @@ export type AddWindowFieldsStageOptions = StageOptions & {
   window: WindowSpec;
 
   /**
-   * The fields to add to each document, specified as an {@link @firebase/firestore/pipelines#AliasedAggregate}.
+   * The fields to add to each document, specified as an {@link @firebase/firestore/pipelines#AliasedAggregate} or {@link @firebase/firestore/pipelines#AliasedWindowFunction}.
    * At least one field is required.
    */
-  fields: AliasedAggregate[];
+  fields: Array<AliasedAggregate | AliasedWindowFunction>;
 };
 
 /**

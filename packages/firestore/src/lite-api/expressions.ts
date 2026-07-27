@@ -48,6 +48,7 @@ import { DocumentReference } from './reference';
 import { Timestamp } from './timestamp';
 import { fieldPathFromArgument, parseData, UserData } from './user_data_reader';
 import { VectorValue } from './vector_value';
+import type { WindowSpec } from './stage_options';
 
 /**
  *
@@ -58,6 +59,7 @@ export type ExpressionType =
   | 'Constant'
   | 'Function'
   | 'AggregateFunction'
+  | 'WindowFunction'
   | 'ListOfExpressions'
   | 'AliasedExpression'
   | 'Variable'
@@ -3640,6 +3642,10 @@ export class AggregateFunction implements ProtoValueSerializable, UserData {
    */
   as(name: string): AliasedAggregate {
     return new AliasedAggregate(this, name, 'as');
+  }
+
+  over(window?: WindowSpec): WindowFunction {
+    throw new Error("not implemented");
   }
 
   /**
@@ -12090,4 +12096,95 @@ export function toField(value: string | Field): Field {
   } else {
     return value as Field;
   }
+}
+
+export class WindowFunction implements ProtoValueSerializable, UserData {
+  exprType: ExpressionType = 'WindowFunction';
+
+  /**
+   * @internal
+   */
+  _methodName?: string;
+
+  constructor(private name: string, private params: Expression[] = []) { }
+
+  /**
+   * @internal
+   * @private
+   */
+  static _create(
+    name: string,
+    params: Expression[],
+    methodName: string
+  ): WindowFunction {
+    const wf = new WindowFunction(name, params);
+    wf._methodName = methodName;
+
+    return wf;
+  }
+
+
+  over(window?: WindowSpec): WindowFunction {
+    throw new Error("Not implemented");
+  }
+
+  as(name: string): AliasedWindowFunction {
+    return new AliasedWindowFunction(this, name, 'as');
+  }
+
+  /**
+   * @private
+   * @internal
+   */
+  _toProto(serializer: JsonProtoSerializer): ProtoValue {
+    return {
+      functionValue: {
+        name: this.name,
+        args: this.params.map(p => p._toProto(serializer))
+      }
+    };
+  }
+
+  _protoValueType = 'ProtoValue' as const;
+
+  /**
+   * @private
+   * @internal
+   */
+  _readUserData(context: ParseContext): void {
+    context = this._methodName
+      ? context.contextWith({ methodName: this._methodName })
+      : context;
+    this.params.forEach(expr => {
+      return expr._readUserData(context);
+    });
+  }
+}
+
+export class AliasedWindowFunction implements UserData {
+  constructor(
+    readonly windowFunction: WindowFunction,
+    readonly alias: string,
+    readonly _methodName: string | undefined
+  ) { }
+
+  /**
+   * @private
+   * @internal
+   */
+  _readUserData(context: ParseContext): void {
+    this.windowFunction._readUserData(context);
+  }
+}
+
+export function rank(): WindowFunction {
+  return WindowFunction._create('rank', [], 'rank');
+}
+
+export function denseRank(): WindowFunction {
+  return WindowFunction._create('denseRank', [], 'denseRank');
+}
+
+export function rowNumber(): WindowFunction {
+  return WindowFunction._create('rowNumber', [], 'rowNumber');
 }

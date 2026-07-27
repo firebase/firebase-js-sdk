@@ -24,11 +24,19 @@ export type AddFieldsStageOptions = StageOptions & {
 };
 
 // @public
+export type AddWindowFieldsStageOptions = StageOptions & {
+    window: WindowSpec;
+    fields: Array<AliasedAggregate | AliasedWindowFunction>;
+};
+
+// @public
 export class AggregateFunction {
     constructor(name: string, params: Expression[]);
     as(name: string): AliasedAggregate;
     // (undocumented)
     exprType: ExpressionType;
+    // (undocumented)
+    over(window?: WindowSpec): WindowFunction;
     }
 
 // @public
@@ -57,6 +65,15 @@ export class AliasedExpression implements Selectable {
     exprType: ExpressionType;
     // (undocumented)
     selectable: true;
+}
+
+// @public (undocumented)
+export class AliasedWindowFunction {
+    constructor(windowFunction: WindowFunction, alias: string, _methodName: string | undefined);
+    // (undocumented)
+    readonly alias: string;
+    // (undocumented)
+    readonly windowFunction: WindowFunction;
 }
 
 // @public
@@ -404,6 +421,9 @@ export type DefineStageOptions = StageOptions & {
     variables: AliasedExpression[];
 };
 
+// @public (undocumented)
+export function denseRank(): WindowFunction;
+
 // @public
 export function descending(expr: Expression): Ordering;
 
@@ -440,6 +460,12 @@ export function documentMatches(rquery: string | Expression): BooleanExpression;
 export type DocumentsStageOptions = StageOptions & {
     docs: Array<string | DocumentReference>;
 };
+
+// @public (undocumented)
+export interface DocumentWindowFrame {
+    following: number | 'current' | 'unbounded' | Expression;
+    preceding: number | 'current' | 'unbounded' | Expression;
+}
 
 // @public
 export function dotProduct(fieldName: string, vector: number[] | VectorValue): FunctionExpression;
@@ -874,7 +900,7 @@ export abstract class Expression {
 }
 
 // @public
-export type ExpressionType = 'Field' | 'Constant' | 'Function' | 'AggregateFunction' | 'ListOfExpressions' | 'AliasedExpression' | 'Variable' | 'PipelineValue';
+export type ExpressionType = 'Field' | 'Constant' | 'Function' | 'AggregateFunction' | 'WindowFunction' | 'ListOfExpressions' | 'AliasedExpression' | 'Variable' | 'PipelineValue';
 
 // @public
 export class Field extends Expression implements Selectable {
@@ -1262,6 +1288,8 @@ export class Pipeline {
     addFields(field: Selectable, ...additionalFields: Selectable[]): Pipeline;
     // (undocumented)
     addFields(options: AddFieldsStageOptions): Pipeline;
+    addWindowFields(window: WindowSpec, field: AliasedAggregate | AliasedWindowFunction, ...additionalFields: Array<AliasedAggregate | AliasedWindowFunction>): Pipeline;
+    addWindowFields(options: AddWindowFieldsStageOptions): Pipeline;
     aggregate(accumulator: AliasedAggregate, ...additionalAccumulators: AliasedAggregate[]): Pipeline;
     aggregate(options: AggregateStageOptions): Pipeline;
     define(aliasedExpression: AliasedExpression, ...additionalExpressions: AliasedExpression[]): Pipeline;
@@ -1366,6 +1394,16 @@ export function pow(base: string, exponent: number): FunctionExpression;
 // @public
 export function rand(): FunctionExpression;
 
+// @public (undocumented)
+export interface RangeWindowFrame {
+    following: number | 'current' | 'unbounded' | Expression;
+    preceding: number | 'current' | 'unbounded' | Expression;
+    unit?: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day' | 'week' | 'week(monday)' | 'week(tuesday)' | 'week(wednesday)' | 'week(thursday)' | 'week(friday)' | 'week(saturday)' | 'week(sunday)' | 'isoweek' | 'month' | 'quarter' | 'year' | Expression;
+}
+
+// @public (undocumented)
+export function rank(): WindowFunction;
+
 // @public
 export function regexContains(fieldName: string, pattern: string): BooleanExpression;
 
@@ -1441,6 +1479,9 @@ export function round(fieldName: string, decimalPlaces: number | Expression): Fu
 
 // @public
 export function round(expression: Expression, decimalPlaces: number | Expression): FunctionExpression;
+
+// @public (undocumented)
+export function rowNumber(): WindowFunction;
 
 // @public
 export function rtrim(fieldName: string, valueToTrim?: string | Expression | Bytes): FunctionExpression;
@@ -1772,6 +1813,26 @@ export function vectorLength(fieldName: string): FunctionExpression;
 export type WhereStageOptions = StageOptions & {
     condition: BooleanExpression;
 };
+
+// @public (undocumented)
+export class WindowFunction {
+    constructor(name: string, params?: Expression[]);
+    // (undocumented)
+    as(name: string): AliasedWindowFunction;
+    // (undocumented)
+    exprType: ExpressionType;
+    // (undocumented)
+    over(window?: WindowSpec): WindowFunction;
+    }
+
+// @public
+export type WindowSpec = {
+    partition?: Array<string | Expression>;
+    sort?: Ordering | Ordering[];
+} & OneOf<{
+    documents?: DocumentWindowFrame;
+    range?: RangeWindowFrame;
+}>;
 
 // @public
 export function xor(first: BooleanExpression, second: BooleanExpression, ...additionalConditions: BooleanExpression[]): BooleanExpression;
