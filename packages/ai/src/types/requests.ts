@@ -885,7 +885,7 @@ export interface BaseSpeechConfig {
 export interface AudioTranscriptionConfig {}
 
 /**
- * Configuration for speech synthesis using a single voice.
+ * Configuration for speech synthesis for a single speaker.
  * @beta
  */
 export interface SingleSpeakerSpeechConfig extends BaseSpeechConfig {
