@@ -1,5 +1,4 @@
-import type { SharedClass } from './companion';
-import type { SharedEnum } from './companion';
+import type { SharedClass, SharedEnum } from './companion';
 
 export interface LocalConsumer {
   c: SharedClass;

@@ -58,8 +58,9 @@ Creates a new timestamp.
 
 ```typescript
 constructor(
-    seconds: number, 
-    nanoseconds: number);
+    seconds: number,
+    nanoseconds: number
+  );
 ```
 
 #### Parameters
@@ -213,10 +214,10 @@ Returns a JSON-serializable representation of this `Timestamp`<!-- -->.
 
 ```typescript
 toJSON(): {
-        seconds: number;
-        nanoseconds: number;
-        type: string;
-    };
+    seconds: number;
+    nanoseconds: number;
+    type: string;
+  };
 ```
 <b>Returns:</b>
 

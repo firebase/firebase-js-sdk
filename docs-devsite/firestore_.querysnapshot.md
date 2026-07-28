@@ -15,7 +15,10 @@ A `QuerySnapshot` contains zero or more `DocumentSnapshot` objects representing 
 <b>Signature:</b>
 
 ```typescript
-export declare class QuerySnapshot<AppModelType = DocumentData, DbModelType extends DocumentData = DocumentData> 
+export declare class QuerySnapshot<
+  AppModelType = DocumentData,
+  DbModelType extends DocumentData = DocumentData
+> 
 ```
 
 ## Properties
@@ -93,7 +96,9 @@ Returns an array of the documents changes since the last snapshot. If this is th
 <b>Signature:</b>
 
 ```typescript
-docChanges(options?: SnapshotListenOptions): Array<DocumentChange<AppModelType, DbModelType>>;
+docChanges(
+    options?: SnapshotListenOptions
+  ): Array<DocumentChange<AppModelType, DbModelType>>;
 ```
 
 #### Parameters
@@ -113,14 +118,19 @@ Enumerates all of the documents in the `QuerySnapshot`<!-- -->.
 <b>Signature:</b>
 
 ```typescript
-forEach(callback: (result: QueryDocumentSnapshot<AppModelType, DbModelType>) => void, thisArg?: unknown): void;
+forEach(
+    callback: (
+      result: QueryDocumentSnapshot<AppModelType, DbModelType>
+    ) => void,
+    thisArg?: unknown
+  ): void;
 ```
 
 #### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  callback | (result: [QueryDocumentSnapshot](./firestore_.querydocumentsnapshot.md#querydocumentsnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt;) =&gt; void | A callback to be called with a <code>QueryDocumentSnapshot</code> for each document in the snapshot. |
+|  callback | ( result: [QueryDocumentSnapshot](./firestore_.querydocumentsnapshot.md#querydocumentsnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt; ) =&gt; void | A callback to be called with a <code>QueryDocumentSnapshot</code> for each document in the snapshot. |
 |  thisArg | unknown | The <code>this</code> binding for the callback. |
 
 <b>Returns:</b>

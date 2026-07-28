@@ -1,21 +1,14 @@
-import type { Bytes } from './firestore.input';
-
-import type { CollectionReference } from './firestore.input';
-
-import type { DocumentData } from './firestore.input';
-
-import type { DocumentReference } from './firestore.input';
-
-import type { FieldPath } from './firestore.input';
-
-import type { GeoPoint } from './firestore.input';
-
-import type { Query } from './firestore.input';
-
-import type { Timestamp } from './firestore.input';
-
-import type { VectorValue } from './firestore.input';
-
+import type {
+  Bytes,
+  CollectionReference,
+  DocumentData,
+  DocumentReference,
+  FieldPath,
+  GeoPoint,
+  Query,
+  Timestamp,
+  VectorValue
+} from './firestore.input';
 /**
  * Cloud Firestore
  *

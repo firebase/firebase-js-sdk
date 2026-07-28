@@ -94,12 +94,21 @@ export function deduplicateCrossFileExports(
     stmt.remove();
   }
 
-  // Add individual type imports right at the top of the file in order of occurrence
-  for (let i = importsToAdd.length - 1; i >= 0; i--) {
-    const { name, moduleSpecifier } = importsToAdd[i];
+  // Group type imports by module specifier
+  const importsByModule = new Map<string, Set<string>>();
+  for (const { name, moduleSpecifier } of importsToAdd) {
+    if (!importsByModule.has(moduleSpecifier)) {
+      importsByModule.set(moduleSpecifier, new Set());
+    }
+    importsByModule.get(moduleSpecifier)!.add(name);
+  }
+
+  const moduleEntries = Array.from(importsByModule.entries());
+  for (let i = moduleEntries.length - 1; i >= 0; i--) {
+    const [moduleSpecifier, names] = moduleEntries[i];
     sourceFile.insertImportDeclaration(0, {
       isTypeOnly: true,
-      namedImports: [name],
+      namedImports: Array.from(names),
       moduleSpecifier
     });
   }

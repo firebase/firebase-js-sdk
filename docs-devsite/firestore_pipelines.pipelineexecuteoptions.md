@@ -60,8 +60,8 @@ Values specified in rawOptions will take precedence over any options with the sa
 
 ```typescript
 rawOptions?: {
-        [name: string]: unknown;
-    };
+    [name: string]: unknown;
+  };
 ```
 
 ### Example

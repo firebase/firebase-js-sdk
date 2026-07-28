@@ -12,7 +12,7 @@ https://github.com/firebase/firebase-js-sdk
 # Transaction class
 A reference to a transaction.
 
-The `Transaction` object passed to a transaction's `updateFunction` provides the methods to read and write data within the transaction context. See [runTransaction()](./firestore_.md#runtransaction_6f03ec4)<!-- -->.
+The `Transaction` object passed to a transaction's `updateFunction` provides the methods to read and write data within the transaction context. See [runTransaction()](./firestore_.md#runtransaction_9617ea4)<!-- -->.
 
 <b>Signature:</b>
 
@@ -38,7 +38,9 @@ Deletes the document referred to by the provided [DocumentReference](./firestore
 <b>Signature:</b>
 
 ```typescript
-delete<AppModelType, DbModelType extends DocumentData>(documentRef: DocumentReference<AppModelType, DbModelType>): this;
+delete<AppModelType, DbModelType extends DocumentData>(
+    documentRef: DocumentReference<AppModelType, DbModelType>
+  ): this;
 ```
 
 #### Parameters
@@ -60,7 +62,9 @@ Reads the document referenced by the provided [DocumentReference](./firestore_.d
 <b>Signature:</b>
 
 ```typescript
-get<AppModelType, DbModelType extends DocumentData>(documentRef: DocumentReference<AppModelType, DbModelType>): Promise<DocumentSnapshot<AppModelType, DbModelType>>;
+get<AppModelType, DbModelType extends DocumentData>(
+    documentRef: DocumentReference<AppModelType, DbModelType>
+  ): Promise<DocumentSnapshot<AppModelType, DbModelType>>;
 ```
 
 #### Parameters
@@ -82,7 +86,10 @@ Writes to the document referred to by the provided [DocumentReference](./firesto
 <b>Signature:</b>
 
 ```typescript
-set<AppModelType, DbModelType extends DocumentData>(documentRef: DocumentReference<AppModelType, DbModelType>, data: WithFieldValue<AppModelType>): this;
+set<AppModelType, DbModelType extends DocumentData>(
+    documentRef: DocumentReference<AppModelType, DbModelType>,
+    data: WithFieldValue<AppModelType>
+  ): this;
 ```
 
 #### Parameters
@@ -109,7 +116,11 @@ Writes to the document referred to by the provided [DocumentReference](./firesto
 <b>Signature:</b>
 
 ```typescript
-set<AppModelType, DbModelType extends DocumentData>(documentRef: DocumentReference<AppModelType, DbModelType>, data: PartialWithFieldValue<AppModelType>, options: SetOptions): this;
+set<AppModelType, DbModelType extends DocumentData>(
+    documentRef: DocumentReference<AppModelType, DbModelType>,
+    data: PartialWithFieldValue<AppModelType>,
+    options: SetOptions
+  ): this;
 ```
 
 #### Parameters
@@ -137,7 +148,10 @@ Updates fields in the document referred to by the provided [DocumentReference](.
 <b>Signature:</b>
 
 ```typescript
-update<AppModelType, DbModelType extends DocumentData>(documentRef: DocumentReference<AppModelType, DbModelType>, data: UpdateData<DbModelType>): this;
+update<AppModelType, DbModelType extends DocumentData>(
+    documentRef: DocumentReference<AppModelType, DbModelType>,
+    data: UpdateData<DbModelType>
+  ): this;
 ```
 
 #### Parameters
@@ -166,7 +180,12 @@ Nested fields can be updated by providing dot-separated field path strings or by
 <b>Signature:</b>
 
 ```typescript
-update<AppModelType, DbModelType extends DocumentData>(documentRef: DocumentReference<AppModelType, DbModelType>, field: string | FieldPath, value: unknown, ...moreFieldsAndValues: unknown[]): this;
+update<AppModelType, DbModelType extends DocumentData>(
+    documentRef: DocumentReference<AppModelType, DbModelType>,
+    field: string | FieldPath,
+    value: unknown,
+    ...moreFieldsAndValues: unknown[]
+  ): this;
 ```
 
 #### Parameters

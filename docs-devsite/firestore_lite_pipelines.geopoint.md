@@ -130,10 +130,10 @@ Returns a JSON-serializable representation of this `GeoPoint` instance.
 
 ```typescript
 toJSON(): {
-        latitude: number;
-        longitude: number;
-        type: string;
-    };
+    latitude: number;
+    longitude: number;
+    type: string;
+  };
 ```
 <b>Returns:</b>
 

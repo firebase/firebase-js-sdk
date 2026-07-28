@@ -34,6 +34,10 @@ export function substitutePrivateTypeReferences(sourceFile: SourceFile): void {
       .getDescendantsOfKind(SyntaxKind.ExportSpecifier)
       .map(spec => spec.getName())
   );
+  const subclassMap = buildExportedSubclassMap(
+    sourceFile,
+    exportSpecifierNames
+  );
   const replacementCache = new Map<string, string | undefined>();
 
   let changed = true;
@@ -85,7 +89,8 @@ export function substitutePrivateTypeReferences(sourceFile: SourceFile): void {
             targetDecl,
             sourceFile,
             visited,
-            exportSpecifierNames
+            exportSpecifierNames,
+            subclassMap
           );
           replacementCache.set(typeName, replacement);
         }
@@ -123,6 +128,56 @@ export function substitutePrivateTypeReferences(sourceFile: SourceFile): void {
 }
 
 /**
+ * Pre-computes a map of base class/interface names to their exported subclass/implementation names.
+ */
+function buildExportedSubclassMap(
+  sourceFile: SourceFile,
+  exportSpecifierNames: Set<string>
+): Map<string, string> {
+  const subclassMap = new Map<string, string>();
+
+  for (const cls of sourceFile.getClasses()) {
+    if (isDeclarationExported(cls, exportSpecifierNames)) {
+      const clsName = cls.getName() || cls.getText();
+      const baseClass = cls.getBaseClass();
+      if (baseClass) {
+        const baseName = baseClass.getName();
+        if (baseName && !subclassMap.has(baseName)) {
+          subclassMap.set(baseName, clsName);
+        }
+      }
+      const ext = cls.getExtends();
+      if (ext) {
+        const extName = ext.getText().trim().split('<')[0].trim();
+        if (extName && !subclassMap.has(extName)) {
+          subclassMap.set(extName, clsName);
+        }
+      }
+      for (const impl of cls.getImplements()) {
+        const implName = impl.getText().trim().split('<')[0].trim();
+        if (implName && !subclassMap.has(implName)) {
+          subclassMap.set(implName, clsName);
+        }
+      }
+    }
+  }
+
+  for (const iface of sourceFile.getInterfaces()) {
+    if (isDeclarationExported(iface, exportSpecifierNames)) {
+      const ifaceName = iface.getName() || iface.getText();
+      for (const ext of iface.getExtends()) {
+        const extName = ext.getText().trim().split('<')[0].trim();
+        if (extName && !subclassMap.has(extName)) {
+          subclassMap.set(extName, ifaceName);
+        }
+      }
+    }
+  }
+
+  return subclassMap;
+}
+
+/**
  * Resolves a public replacement string for an unexported declaration using
  * subclass lookup, superclass lookup, or recursive type alias resolution.
  */
@@ -130,7 +185,8 @@ function resolveExportedReplacement(
   decl: Node,
   sourceFile: SourceFile,
   visited: Set<Node>,
-  exportSpecifierNames: Set<string>
+  exportSpecifierNames: Set<string>,
+  subclassMap: Map<string, string>
 ): string | undefined {
   if (visited.has(decl)) {
     return undefined;
@@ -144,34 +200,8 @@ function resolveExportedReplacement(
 
   // Prioritize finding an exported subclass or implementing interface in the public API
   // so callers receive the concrete public model type (e.g. `DocumentSnapshot` over internal `DocumentSnapshot_2`).
-  const classes = sourceFile.getClasses();
-  for (const cls of classes) {
-    if (isDeclarationExported(cls, exportSpecifierNames)) {
-      const baseClass = cls.getBaseClass();
-      if (baseClass && baseClass.getName() === declName) {
-        return cls.getName() || cls.getText();
-      }
-      const ext = cls.getExtends();
-      if (ext && ext.getText().trim().split('<')[0].trim() === declName) {
-        return cls.getName() || cls.getText();
-      }
-      for (const impl of cls.getImplements()) {
-        if (impl.getText().trim().split('<')[0].trim() === declName) {
-          return cls.getName() || cls.getText();
-        }
-      }
-    }
-  }
-
-  const interfaces = sourceFile.getInterfaces();
-  for (const iface of interfaces) {
-    if (isDeclarationExported(iface, exportSpecifierNames)) {
-      for (const ext of iface.getExtends()) {
-        if (ext.getText().trim().split('<')[0].trim() === declName) {
-          return iface.getName() || iface.getText();
-        }
-      }
-    }
+  if (subclassMap.has(declName)) {
+    return subclassMap.get(declName);
   }
 
   // If no exported subclass exists, fall back to checking `decl`'s own public `extends` / `implements` ancestors.
@@ -186,7 +216,8 @@ function resolveExportedReplacement(
           baseClass,
           sourceFile,
           visited,
-          exportSpecifierNames
+          exportSpecifierNames,
+          subclassMap
         );
         if (parentRes) {
           return parentRes;
@@ -204,7 +235,8 @@ function resolveExportedReplacement(
             parentDecl,
             sourceFile,
             visited,
-            exportSpecifierNames
+            exportSpecifierNames,
+            subclassMap
           );
           if (parentRes) {
             return parentRes;
@@ -227,7 +259,8 @@ function resolveExportedReplacement(
             parentDecl,
             sourceFile,
             visited,
-            exportSpecifierNames
+            exportSpecifierNames,
+            subclassMap
           );
           if (parentRes) {
             return parentRes;
