@@ -454,7 +454,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
         this.reconnectTimer = null;
         void this.attemptReconnect();
       },
-      Math.max(0, delay + jitter)
+      delay + jitter
     );
   }
 
