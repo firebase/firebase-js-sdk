@@ -10,6 +10,16 @@ import { FirebaseAuthTokenData } from '@firebase/auth-interop-types';
 import { FirebaseError } from '@firebase/util';
 
 // @public
+export class AgentPlatformBackend extends Backend {
+    constructor(location?: string);
+    // @internal (undocumented)
+    _getModelPath(project: string, model: string): string;
+    // @internal (undocumented)
+    _getTemplatePath(project: string, templateId: string): string;
+    readonly location: string;
+}
+
+// @public
 export interface AI {
     app: FirebaseApp;
     backend: Backend;
@@ -92,7 +102,7 @@ export interface AudioConversationController {
     stop: () => Promise<void>;
 }
 
-// @public
+// @beta
 export interface AudioTranscriptionConfig {
 }
 
@@ -108,6 +118,7 @@ export abstract class Backend {
 
 // @public
 export const BackendType: {
+    readonly AGENT_PLATFORM: "AGENT_PLATFORM";
     readonly VERTEX_AI: "VERTEX_AI";
     readonly GOOGLE_AI: "GOOGLE_AI";
 };
@@ -121,6 +132,11 @@ export interface BaseParams {
     generationConfig?: GenerationConfig;
     // (undocumented)
     safetySettings?: SafetySetting[];
+}
+
+// @beta
+export interface BaseSpeechConfig {
+    languageCode?: string;
 }
 
 // @public
@@ -574,6 +590,8 @@ export interface GenerationConfig {
     // @beta
     responseModalities?: ResponseModality[];
     responseSchema?: TypedSchema | SchemaRequest;
+    // @beta
+    speechConfig?: SpeechConfig;
     // (undocumented)
     stopSequences?: string[];
     // (undocumented)
@@ -1226,6 +1244,17 @@ export interface ModelParams extends BaseParams {
     tools?: Tool[];
 }
 
+// @beta
+export interface MultiSpeakerSpeechConfig extends BaseSpeechConfig {
+    multiSpeakerVoiceConfig?: MultiSpeakerVoiceConfig;
+    voiceConfig?: never;
+}
+
+// @beta
+export interface MultiSpeakerVoiceConfig {
+    speakerVoiceConfigs: SpeakerVoiceConfig[];
+}
+
 // @public
 export class NumberSchema extends Schema {
     constructor(schemaParams?: SchemaParams);
@@ -1465,14 +1494,24 @@ export interface SingleRequestOptions extends RequestOptions {
 }
 
 // @beta
+export interface SingleSpeakerSpeechConfig extends BaseSpeechConfig {
+    multiSpeakerVoiceConfig?: never;
+    voiceConfig?: VoiceConfig;
+}
+
+// @beta
 export interface SlidingWindow {
     targetTokens?: number;
 }
 
 // @beta
-export interface SpeechConfig {
-    voiceConfig?: VoiceConfig;
+export interface SpeakerVoiceConfig {
+    speaker: string;
+    voiceConfig: VoiceConfig;
 }
+
+// @beta
+export type SpeechConfig = SingleSpeakerSpeechConfig | MultiSpeakerSpeechConfig;
 
 // @beta
 export function startAudioConversation(liveSession: LiveSession, options?: StartAudioConversationOptions): Promise<AudioConversationController>;
@@ -1712,7 +1751,7 @@ export interface UsageMetadata {
     totalTokenCount: number;
 }
 
-// @public
+// @public @deprecated
 export class VertexAIBackend extends Backend {
     constructor(location?: string);
     // @internal (undocumented)

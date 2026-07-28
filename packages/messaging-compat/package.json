@@ -35,6 +35,7 @@
     "add-compat-overloads": "ts-node-script ../../scripts/build/create-overloads.ts -i ../messaging/dist/index-public.d.ts -o dist/src/index.d.ts -a -r Messaging:MessagingCompat -r FirebaseApp:FirebaseAppCompat --moduleToEnhance @firebase/messaging"
   },
   "peerDependencies": {
+    "@firebase/app": "0.x",
     "@firebase/app-compat": "0.x"
   },
   "dependencies": {

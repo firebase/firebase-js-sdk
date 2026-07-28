@@ -64,6 +64,24 @@ export function pruneDts(
   const transformedSourceFile: ts.SourceFile = result.transformed[0];
   let content = printer.printFile(transformedSourceFile);
 
+  // Preserve leading license comment if updateSourceFile dropped it from statement #0
+  const leadingComments = ts.getLeadingCommentRanges(
+    sourceFile.getFullText(),
+    0
+  );
+  if (leadingComments && leadingComments.length > 0) {
+    const firstComment = sourceFile
+      .getFullText()
+      .slice(leadingComments[0].pos, leadingComments[0].end);
+    if (
+      firstComment.includes('@license') &&
+      !content.trimStart().startsWith('/**\n * @license') &&
+      !content.trimStart().startsWith('/*\n * @license')
+    ) {
+      content = `${firstComment}\n` + content;
+    }
+  }
+
   fs.writeFileSync(outputLocation, content);
 }
 

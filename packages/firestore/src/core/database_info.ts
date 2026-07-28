@@ -51,7 +51,8 @@ export class DatabaseInfo {
     readonly useFetchStreams: boolean,
     readonly isUsingEmulator: boolean,
     readonly apiKey: string | undefined,
-    readonly _customHeaders?: Record<string, string>
+    readonly _customHeaders?: Record<string, string>,
+    readonly grpcFlowControlWindow?: number
   ) {}
 }
 
@@ -64,7 +65,10 @@ export const DEFAULT_DATABASE_NAME = '(default)';
  */
 export class DatabaseId {
   readonly database: string;
-  constructor(readonly projectId: string, database?: string) {
+  constructor(
+    readonly projectId: string,
+    database?: string
+  ) {
     this.database = database ? database : DEFAULT_DATABASE_NAME;
   }
 
