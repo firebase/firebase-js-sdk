@@ -92,6 +92,8 @@ export function createLoggerProvider(
 
   const onErrorLogRecordProcessor = new OnErrorLogRecordProcessor(logExporter);
 
+  // TODO: Remove this custom processor and use applyCustomLogRecordData in the instrumentation config once
+  // @opentelemetry/browser-instrumentation supports it across all standard/experimental packages.
   const customAttributesProcessor = {
     onEmit: (logRecord: ReadableLogRecord) => {
       Object.assign(logRecord.attributes, attributesStore.getLogAttributes());
