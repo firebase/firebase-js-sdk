@@ -53,7 +53,7 @@ jobs:
         run: xvfb-run yarn test:changed core
       - name: Upload Karma Browser Logs
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # ratchet:actions/upload-artifact@v4
         with:
           name: karma-browser-logs-chrome
           path: packages/data-connect/karma-browser-debug.log
