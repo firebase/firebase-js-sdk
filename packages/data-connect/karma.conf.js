@@ -25,7 +25,13 @@ module.exports = function (config) {
     files: files,
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
-    frameworks: ['mocha']
+    frameworks: ['mocha'],
+    browserConsoleLogOptions: {
+      level: 'debug',
+      format: '%b %T: %m',
+      terminal: false,
+      path: 'karma-browser-debug.log'
+    }
   });
 
   config.set(karmaConfig);

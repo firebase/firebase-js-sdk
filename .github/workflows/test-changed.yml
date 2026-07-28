@@ -51,6 +51,13 @@ jobs:
         run: yarn build:changed core
       - name: Run tests on changed packages
         run: xvfb-run yarn test:changed core
+      - name: Upload Karma Browser Logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: karma-browser-logs-chrome
+          path: packages/data-connect/karma-browser-debug.log
+
 
   test-firefox:
     name: Test Packages With Changed Files in Firefox
