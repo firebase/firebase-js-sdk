@@ -26,6 +26,7 @@ import {
   DataConnectOperationFailureResponse
 } from '../../core/error';
 import { AuthTokenProvider } from '../../core/FirebaseAuthProvider';
+import { SDK_VERSION } from '../../core/version';
 import { logError, logDebug } from '../../logger';
 import {
   AbstractDataConnectTransport,
@@ -666,6 +667,8 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       this.lastSentAuthToken = this._authToken;
     }
     if (this.isFirstStreamMessage) {
+      headers['x-client-platform'] = 'web';
+      headers['x-client-version'] = SDK_VERSION;
       if (this._appCheckToken) {
         headers['X-Firebase-App-Check'] = this._appCheckToken;
       }
