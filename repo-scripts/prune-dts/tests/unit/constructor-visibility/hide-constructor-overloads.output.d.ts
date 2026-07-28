@@ -1,3 +1,3 @@
 export class MultiService {
-  private constructor();
+  constructor(config: string);
 }

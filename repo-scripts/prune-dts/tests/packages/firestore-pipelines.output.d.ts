@@ -5480,13 +5480,13 @@ export declare class FunctionExpression extends Expression {
   readonly name: string;
   readonly params: Expression[];
   readonly expressionType: ExpressionType;
+  constructor(name: string, params: Expression[]);
   /* Excluded from this release type: _methodName */
   /* Excluded from this release type: _options */
   /* Excluded from this release type: _optionsUtil */
   /* Excluded from this release type: _optionsProto */
   /* Excluded from this release type: _toProto */
   /* Excluded from this release type: _readUserData */
-  private constructor();
 }
 
 /**

@@ -24,7 +24,7 @@ export function hideConstructors(sourceFile: SourceFile): void {
   const classes = sourceFile.getDescendantsOfKind(SyntaxKind.ClassDeclaration);
 
   for (const cls of classes) {
-    let hasHideConstructor = false;
+    let classHasHideConstructor = false;
     let isProtected = false;
 
     // Check class-level JSDoc comments for `@hideconstructor`
@@ -32,7 +32,7 @@ export function hideConstructors(sourceFile: SourceFile): void {
     for (const doc of classJsDocs) {
       const text = doc.getText();
       if (text.includes('@hideconstructor')) {
-        hasHideConstructor = true;
+        classHasHideConstructor = true;
         if (text.includes('protected')) {
           isProtected = true;
         }
@@ -47,13 +47,16 @@ export function hideConstructors(sourceFile: SourceFile): void {
 
     // Check constructor-level JSDoc comments across all constructor overloads/declarations
     const constructors = cls.getConstructors();
+    const hiddenCtors: typeof constructors = [];
+    const publicCtors: typeof constructors = [];
     let preservedConstructorComment = '';
 
     for (const ctor of constructors) {
+      let isCtorHidden = classHasHideConstructor;
       for (const doc of ctor.getJsDocs()) {
         const text = doc.getText();
         if (text.includes('@hideconstructor')) {
-          hasHideConstructor = true;
+          isCtorHidden = true;
           if (text.includes('protected')) {
             isProtected = true;
           }
@@ -63,10 +66,26 @@ export function hideConstructors(sourceFile: SourceFile): void {
           preservedConstructorComment = cleanedText;
         }
       }
+      if (isCtorHidden) {
+        hiddenCtors.push(ctor);
+      } else {
+        publicCtors.push(ctor);
+      }
     }
 
-    if (hasHideConstructor) {
-      // Remove all existing constructor overloads and replace with a single private/protected constructor.
+    if (hiddenCtors.length === 0) {
+      continue;
+    }
+
+    if (publicCtors.length > 0) {
+      // If at least one constructor overload is public without `@hideconstructor`,
+      // only remove the hidden overloads so consumers can still instantiate the class via public overloads.
+      for (const ctor of hiddenCtors) {
+        ctor.remove();
+      }
+    } else {
+      // If all constructor overloads are hidden (or `@hideconstructor` is on the class),
+      // remove all constructors and replace with a single private/protected constructor.
       for (const ctor of constructors) {
         ctor.remove();
       }
