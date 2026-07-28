@@ -43,6 +43,8 @@ import {
 import { AttributesStore } from '../attributes-store';
 import { OnErrorLogRecordProcessor } from './on-error-log-record-processor';
 
+let unregisterInstrumentations: (() => void) | undefined;
+
 /**
  * Result returned by {@link createLoggerProvider}.
  *
@@ -90,9 +92,17 @@ export function createLoggerProvider(
 
   const onErrorLogRecordProcessor = new OnErrorLogRecordProcessor(logExporter);
 
+  const customAttributesProcessor = {
+    onEmit: (logRecord: ReadableLogRecord) => {
+      Object.assign(logRecord.attributes, attributesStore.getLogAttributes());
+    },
+    forceFlush: () => Promise.resolve(),
+    shutdown: () => Promise.resolve()
+  };
+
   const loggerProvider = new LoggerProvider({
     resource,
-    processors: [onErrorLogRecordProcessor],
+    processors: [customAttributesProcessor, onErrorLogRecordProcessor],
     logRecordLimits: {}
   });
 
@@ -116,7 +126,11 @@ export function createLoggerProvider(
       enabled: false
     });
 
-    registerInstrumentations({
+    if (unregisterInstrumentations) {
+      unregisterInstrumentations();
+    }
+
+    unregisterInstrumentations = registerInstrumentations({
       loggerProvider,
       instrumentations: [
         navigationTiming,
