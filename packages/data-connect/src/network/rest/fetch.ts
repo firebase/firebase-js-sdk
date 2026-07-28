@@ -106,7 +106,8 @@ export async function dcFetch<Data, Variables>(
   try {
     response = await connectFetch(url, fetchOptions);
   } catch (err) {
-    const errObj = err && typeof err === 'object' ? (err as Record<string, unknown>) : {};
+    const errObj =
+      err && typeof err === 'object' ? (err as Record<string, unknown>) : {};
     console.error('DC_FETCH_ERROR_DEBUG:', {
       url,
       fetchOptions,
