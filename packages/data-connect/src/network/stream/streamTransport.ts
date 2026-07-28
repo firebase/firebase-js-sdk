@@ -447,7 +447,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     }
     if (this.reconnectAttempts++ >= MAX_RECONNECT_ATTEMPTS) {
       const errorString =
-        'Stream disconnected and could not reconnect - max stream reconnection attempts reached.';
+        'Stream disconnected and could not reconnect - max stream reconnection attempts reached!';
       logError(errorString);
       void this.cleanupAndTerminate(Code.OTHER, errorString);
       return;
