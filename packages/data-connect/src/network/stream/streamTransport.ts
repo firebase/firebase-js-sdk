@@ -449,13 +449,10 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     );
     const jitter = (Math.random() - 0.5) * delay;
 
-    this.reconnectTimer = setTimeout(
-      () => {
-        this.reconnectTimer = null;
-        void this.attemptReconnect();
-      },
-      delay + jitter
-    );
+    this.reconnectTimer = setTimeout(() => {
+      this.reconnectTimer = null;
+      void this.attemptReconnect();
+    }, delay + jitter);
   }
 
   private async attemptReconnect(): Promise<void> {
