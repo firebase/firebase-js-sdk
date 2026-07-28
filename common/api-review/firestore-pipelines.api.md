@@ -1465,12 +1465,19 @@ export function floor(fieldName: string): FunctionExpression;
 
 // @public
 export class FunctionExpression extends Expression {
+  constructor(name: string, params: Expression[]);
   // (undocumented)
   readonly expressionType: ExpressionType;
   // (undocumented)
   readonly name: string;
   // (undocumented)
   readonly params: Expression[];
+  /* Excluded from this release type: _methodName */
+  /* Excluded from this release type: _options */
+  /* Excluded from this release type: _optionsUtil */
+  /* Excluded from this release type: _optionsProto */
+  /* Excluded from this release type: _toProto */
+  /* Excluded from this release type: _readUserData */
 }
 
 // @beta
