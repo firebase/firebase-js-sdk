@@ -57,9 +57,7 @@ describe('User Agent Tests', () => {
       'https://firebasedataconnect.googleapis.com/v1/projects/p/locations/l/services/s/connectors/c:executeQuery',
       {
         headers: {
-          ['X-Goog-Api-Client']: 'gl-js/ fire/' + SDK_VERSION + ' js/gen',
-          ['X-Client-Platform']: 'web',
-          ['X-Client-Version']: SDK_VERSION
+          ['X-Goog-Api-Client']: 'gl-js/ fire/' + SDK_VERSION + ' js/gen'
         }
       }
     );
@@ -71,9 +69,7 @@ describe('User Agent Tests', () => {
       'https://firebasedataconnect.googleapis.com/v1/projects/p/locations/l/services/s/connectors/c:executeQuery',
       {
         headers: {
-          ['X-Goog-Api-Client']: 'gl-js/ fire/' + SDK_VERSION,
-          ['X-Client-Platform']: 'web',
-          ['X-Client-Version']: SDK_VERSION
+          ['X-Goog-Api-Client']: 'gl-js/ fire/' + SDK_VERSION
         }
       }
     );
