@@ -393,29 +393,29 @@ describe('AbstractDataConnectStreamTransport', () => {
         );
       });
 
-      it('should add x-client-platform to only the first message', () => {
+      it('should add X-Client-Platform to only the first message', () => {
         const firstPreparedMessage =
           transport.prepareMessage(unpreparedMessage);
-        expect(firstPreparedMessage.headers?.['x-client-platform']).to.equal(
+        expect(firstPreparedMessage.headers?.['X-Client-Platform']).to.equal(
           'web'
         );
 
         const secondPreparedMessage =
           transport.prepareMessage(unpreparedMessage);
-        expect(secondPreparedMessage.headers?.['x-client-platform']).to.be
+        expect(secondPreparedMessage.headers?.['X-Client-Platform']).to.be
           .undefined;
       });
 
-      it('should add x-client-version to only the first message', () => {
+      it('should add X-Client-Version to only the first message', () => {
         const firstPreparedMessage =
           transport.prepareMessage(unpreparedMessage);
-        expect(firstPreparedMessage.headers?.['x-client-version']).to.equal(
+        expect(firstPreparedMessage.headers?.['X-Client-Version']).to.equal(
           SDK_VERSION
         );
 
         const secondPreparedMessage =
           transport.prepareMessage(unpreparedMessage);
-        expect(secondPreparedMessage.headers?.['x-client-version']).to.be
+        expect(secondPreparedMessage.headers?.['X-Client-Version']).to.be
           .undefined;
       });
     });
@@ -444,8 +444,8 @@ describe('AbstractDataConnectStreamTransport', () => {
       expect(secondMessage.name).to.be.undefined;
       expect(secondMessage.headers?.['X-Firebase-App-Check']).to.be.undefined;
       expect(secondMessage.headers?.['X-Firebase-Auth-Token']).to.be.undefined;
-      expect(secondMessage.headers?.['x-client-platform']).to.be.undefined;
-      expect(secondMessage.headers?.['x-client-version']).to.be.undefined;
+      expect(secondMessage.headers?.['X-Client-Platform']).to.be.undefined;
+      expect(secondMessage.headers?.['X-Client-Version']).to.be.undefined;
 
       // Trigger the physical connection reset
       transport.triggerOnConnectionReady();
@@ -459,8 +459,8 @@ describe('AbstractDataConnectStreamTransport', () => {
       expect(thirdMessage.headers?.['X-Firebase-Auth-Token']).to.equal(
         initialAuthToken
       );
-      expect(thirdMessage.headers?.['x-client-platform']).to.equal('web');
-      expect(thirdMessage.headers?.['x-client-version']).to.equal(SDK_VERSION);
+      expect(thirdMessage.headers?.['X-Client-Platform']).to.equal('web');
+      expect(thirdMessage.headers?.['X-Client-Version']).to.equal(SDK_VERSION);
     });
   });
 

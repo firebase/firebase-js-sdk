@@ -58,8 +58,8 @@ export interface StreamRequestHeaders {
   'X-Goog-Api-Client'?: string;
   /** firebase appid */
   'x-firebase-gmpid'?: string;
-  'x-client-platform'?: string;
-  'x-client-version'?: string;
+  'X-Client-Platform'?: string;
+  'X-Client-Version'?: string;
 }
 
 /**

@@ -81,8 +81,8 @@ export async function dcFetch<Data, Variables>(
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
     'X-Goog-Api-Client': getGoogApiClientValue(_isUsingGen, _callerSdkType),
-    'x-client-platform': 'web',
-    'x-client-version': SDK_VERSION
+    'X-Client-Platform': 'web',
+    'X-Client-Version': SDK_VERSION
   };
   if (accessToken) {
     headers['X-Firebase-Auth-Token'] = accessToken;
