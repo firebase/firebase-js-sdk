@@ -25,7 +25,14 @@ module.exports = function (config) {
     files: files,
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
-    frameworks: ['mocha']
+    frameworks: ['mocha'],
+    customLaunchers: {
+      Chrome_without_security: {
+        base: 'ChromeHeadless',
+        flags: ['--disable-web-security', '--no-sandbox']
+      }
+    },
+    browsers: ['Chrome_without_security']
   });
 
   config.set(karmaConfig);
