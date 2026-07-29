@@ -64,9 +64,9 @@ export function startNewSession(crashlytics: Crashlytics): void {
  * Registers event listeners to flush logs when the page is hidden. In some cases multiple listeners
  * may trigger at the same time, but flushing only occurs once per batch.
  */
-export function registerListeners(crashlytics: Crashlytics): void {
+export function registerListeners(crashlytics: Crashlytics): () => void {
   if (typeof window !== 'undefined' && typeof document !== 'undefined') {
-    window.addEventListener('visibilitychange', async () => {
+    const onVisibilityChange = async (): Promise<void> => {
       if (
         document.visibilityState === 'visible' ||
         document.visibilityState === 'hidden'
@@ -77,11 +77,21 @@ export function registerListeners(crashlytics: Crashlytics): void {
       if (document.visibilityState === 'hidden') {
         await flush(crashlytics);
       }
-    });
-    window.addEventListener('pagehide', async () => {
+    };
+
+    const onPageHide = async (): Promise<void> => {
       await flush(crashlytics);
-    });
+    };
+
+    window.addEventListener('visibilitychange', onVisibilityChange);
+    window.addEventListener('pagehide', onPageHide);
+
+    return () => {
+      window.removeEventListener('visibilitychange', onVisibilityChange);
+      window.removeEventListener('pagehide', onPageHide);
+    };
   }
+  return () => {};
 }
 
 /**

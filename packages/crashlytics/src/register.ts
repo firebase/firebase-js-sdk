@@ -84,7 +84,8 @@ export function registerCrashlytics(): void {
         }
 
         // Register relevant event listeners
-        registerListeners(crashlyticsService);
+        const unsubscribeListeners = registerListeners(crashlyticsService);
+        crashlyticsService.unsubscribeListeners(unsubscribeListeners);
 
         return crashlyticsService;
       },
