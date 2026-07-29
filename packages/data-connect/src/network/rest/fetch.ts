@@ -106,6 +106,8 @@ export async function dcFetch<Data, Variables>(
 
   let response: Response;
   try {
+    // eslint-disable-next-line no-console
+    console.log('dcFetch BEFORE_CALL:', { url, fetchOptions, connectFetch });
     response = await connectFetch(url, fetchOptions);
   } catch (err) {
     const errObj =
