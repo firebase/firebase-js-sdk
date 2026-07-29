@@ -28,8 +28,8 @@ export declare class Pipeline
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [addFields(field, additionalFields)](./firestore_lite_pipelines.pipeline.md#pipelineaddfields) |  | Adds new fields to outputs from previous stages.<!-- -->This stage allows you to compute values on-the-fly based on existing data from previous stages or constants. You can use this to create new fields or overwrite existing ones (if there is name overlaps).<!-- -->The added fields are defined using [Selectable](./firestore_pipelines.selectable.md#selectable_interface)<!-- -->s, which can be:<ul> <li>[Field](./firestore_pipelines.field.md#field_class)<!-- -->: References an existing document field.</li> <li>[Expression](./firestore_pipelines.expression.md#expression_class)<!-- -->: Either a literal value (see [constant()](./firestore_pipelines.md#constant_3949f19)<!-- -->) or a computed value with an assigned alias using [Expression.as()](./firestore_pipelines.expression.md#expressionas)<!-- -->.</li> </ul> |
-|  [addFields(options)](./firestore_lite_pipelines.pipeline.md#pipelineaddfields) |  | Adds new fields to outputs from previous stages.<!-- -->This stage allows you to compute values on-the-fly based on existing data from previous stages or constants. You can use this to create new fields or overwrite existing ones (if there is name overlaps).<!-- -->The added fields are defined using [Selectable](./firestore_pipelines.selectable.md#selectable_interface)<!-- -->s, which can be:<ul> <li>[Field](./firestore_pipelines.field.md#field_class)<!-- -->: References an existing document field.</li> <li>[Expression](./firestore_pipelines.expression.md#expression_class)<!-- -->: Either a literal value (see [constant()](./firestore_pipelines.md#constant_3949f19)<!-- -->) or a computed value with an assigned alias using [Expression.as()](./firestore_pipelines.expression.md#expressionas)<!-- -->.</li> </ul> |
+|  [addFields(field, additionalFields)](./firestore_lite_pipelines.pipeline.md#pipelineaddfields) |  | Adds new fields to outputs from previous stages.<!-- -->This stage allows you to compute values on-the-fly based on existing data from previous stages or constants. You can use this to create new fields or overwrite existing ones (if there is name overlaps).<!-- -->The added fields are defined using [Selectable](./firestore_pipelines.selectable.md#selectable_interface)<!-- -->s, which can be:<ul> <li>[Field](./firestore_pipelines.field.md#field_class)<!-- -->: References an existing document field.</li> <li>[Expression](./firestore_pipelines.expression.md#expression_class)<!-- -->: Either a literal value (see [constant()](./firestore_pipelines.md#constant_27f5011)<!-- -->) or a computed value with an assigned alias using [Expression.as()](./firestore_pipelines.expression.md#expressionas)<!-- -->.</li> </ul> |
+|  [addFields(options)](./firestore_lite_pipelines.pipeline.md#pipelineaddfields) |  | Adds new fields to outputs from previous stages.<!-- -->This stage allows you to compute values on-the-fly based on existing data from previous stages or constants. You can use this to create new fields or overwrite existing ones (if there is name overlaps).<!-- -->The added fields are defined using [Selectable](./firestore_pipelines.selectable.md#selectable_interface)<!-- -->s, which can be:<ul> <li>[Field](./firestore_pipelines.field.md#field_class)<!-- -->: References an existing document field.</li> <li>[Expression](./firestore_pipelines.expression.md#expression_class)<!-- -->: Either a literal value (see [constant()](./firestore_pipelines.md#constant_27f5011)<!-- -->) or a computed value with an assigned alias using [Expression.as()](./firestore_pipelines.expression.md#expressionas)<!-- -->.</li> </ul> |
 |  [aggregate(accumulator, additionalAccumulators)](./firestore_lite_pipelines.pipeline.md#pipelineaggregate) |  | Performs aggregation operations on the documents from previous stages.<!-- -->This stage allows you to calculate aggregate values over a set of documents. You define the aggregations to perform using [AliasedAggregate](./firestore_pipelines.aliasedaggregate.md#aliasedaggregate_class) expressions which are typically results of calling [Expression.as()](./firestore_pipelines.expression.md#expressionas) on [AggregateFunction](./firestore_pipelines.aggregatefunction.md#aggregatefunction_class) instances. |
 |  [aggregate(options)](./firestore_lite_pipelines.pipeline.md#pipelineaggregate) |  | Performs optionally grouped aggregation operations on the documents from previous stages.<!-- -->This stage allows you to calculate aggregate values over a set of documents, optionally grouped by one or more fields or functions. You can specify:<ul> <li>Grouping Fields or Functions: One or more fields or functions to group the documents by. For each distinct combination of values in these fields, a separate group is created. If no grouping fields are provided, a single group containing all documents is used. Not specifying groups is the same as putting the entire inputs into one group.</li> <li>Accumulators: One or more accumulation operations to perform within each group. These are defined using [AliasedAggregate](./firestore_pipelines.aliasedaggregate.md#aliasedaggregate_class) expressions, which are typically created by calling [Expression.as()](./firestore_pipelines.expression.md#expressionas) on [AggregateFunction](./firestore_pipelines.aggregatefunction.md#aggregatefunction_class) instances. Each aggregation calculates a value (e.g., sum, average, count) based on the documents within its group.</li> </ul> |
 |  [define(aliasedExpression, additionalExpressions)](./firestore_lite_pipelines.pipeline.md#pipelinedefine) |  | Defines one or more variables in the pipeline's scope. <code>define</code> is used to bind a value to a variable for internal reuse within the pipeline body (accessed via the <code>variable()</code> function).<!-- -->This stage is useful for declaring reusable values or intermediate calculations that can be referenced multiple times in later parts of the pipeline, improving readability and maintainability.<!-- -->Each variable is defined using an [AliasedExpression](./firestore_pipelines.aliasedexpression.md#aliasedexpression_class)<!-- -->, which pairs an expression with a name (alias). The expression can be a simple constant, a field reference, or a complex computation. |
@@ -71,7 +71,7 @@ This stage allows you to compute values on-the-fly based on existing data from p
 
 The added fields are defined using [Selectable](./firestore_pipelines.selectable.md#selectable_interface)<!-- -->s, which can be:
 
-<ul> <li>[Field](./firestore_pipelines.field.md#field_class)<!-- -->: References an existing document field.</li> <li>[Expression](./firestore_pipelines.expression.md#expression_class)<!-- -->: Either a literal value (see [constant()](./firestore_pipelines.md#constant_3949f19)<!-- -->) or a computed value with an assigned alias using [Expression.as()](./firestore_pipelines.expression.md#expressionas)<!-- -->.</li> </ul>
+<ul> <li>[Field](./firestore_pipelines.field.md#field_class)<!-- -->: References an existing document field.</li> <li>[Expression](./firestore_pipelines.expression.md#expression_class)<!-- -->: Either a literal value (see [constant()](./firestore_pipelines.md#constant_27f5011)<!-- -->) or a computed value with an assigned alias using [Expression.as()](./firestore_pipelines.expression.md#expressionas)<!-- -->.</li> </ul>
 
 <b>Signature:</b>
 
@@ -83,12 +83,12 @@ addFields(field: Selectable, ...additionalFields: Selectable[]): Pipeline;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  field | [Selectable](./firestore_lite_pipelines.selectable.md#selectable_interface) | The first field to add to the documents, specified as a [Selectable](./firestore_pipelines.selectable.md#selectable_interface)<!-- -->. |
-|  additionalFields | [Selectable](./firestore_lite_pipelines.selectable.md#selectable_interface)<!-- -->\[\] | Optional additional fields to add to the documents, specified as [Selectable](./firestore_pipelines.selectable.md#selectable_interface)<!-- -->s. |
+|  field | Selectable | The first field to add to the documents, specified as a [Selectable](./firestore_pipelines.selectable.md#selectable_interface)<!-- -->. |
+|  additionalFields | Selectable\[\] | Optional additional fields to add to the documents, specified as [Selectable](./firestore_pipelines.selectable.md#selectable_interface)<!-- -->s. |
 
 <b>Returns:</b>
 
-[Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class)
+Pipeline
 
 A new Pipeline object with this stage appended to the stage list.
 
@@ -112,7 +112,7 @@ This stage allows you to compute values on-the-fly based on existing data from p
 
 The added fields are defined using [Selectable](./firestore_pipelines.selectable.md#selectable_interface)<!-- -->s, which can be:
 
-<ul> <li>[Field](./firestore_pipelines.field.md#field_class)<!-- -->: References an existing document field.</li> <li>[Expression](./firestore_pipelines.expression.md#expression_class)<!-- -->: Either a literal value (see [constant()](./firestore_pipelines.md#constant_3949f19)<!-- -->) or a computed value with an assigned alias using [Expression.as()](./firestore_pipelines.expression.md#expressionas)<!-- -->.</li> </ul>
+<ul> <li>[Field](./firestore_pipelines.field.md#field_class)<!-- -->: References an existing document field.</li> <li>[Expression](./firestore_pipelines.expression.md#expression_class)<!-- -->: Either a literal value (see [constant()](./firestore_pipelines.md#constant_27f5011)<!-- -->) or a computed value with an assigned alias using [Expression.as()](./firestore_pipelines.expression.md#expressionas)<!-- -->.</li> </ul>
 
 <b>Signature:</b>
 
@@ -124,11 +124,11 @@ addFields(options: AddFieldsStageOptions): Pipeline;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  options | [AddFieldsStageOptions](./firestore_lite_pipelines.md#addfieldsstageoptions) | An object that specifies required and optional parameters for the stage. |
+|  options | AddFieldsStageOptions | An object that specifies required and optional parameters for the stage. |
 
 <b>Returns:</b>
 
-[Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class)
+Pipeline
 
 A new Pipeline object with this stage appended to the stage list.
 
@@ -163,12 +163,12 @@ aggregate(
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  accumulator | [AliasedAggregate](./firestore_lite_pipelines.aliasedaggregate.md#aliasedaggregate_class) | The first [AliasedAggregate](./firestore_pipelines.aliasedaggregate.md#aliasedaggregate_class)<!-- -->, wrapping an [AggregateFunction](./firestore_pipelines.aggregatefunction.md#aggregatefunction_class) and providing a name for the accumulated results. |
-|  additionalAccumulators | [AliasedAggregate](./firestore_lite_pipelines.aliasedaggregate.md#aliasedaggregate_class)<!-- -->\[\] | Optional additional [AliasedAggregate](./firestore_pipelines.aliasedaggregate.md#aliasedaggregate_class)<!-- -->, each wrapping an [AggregateFunction](./firestore_pipelines.aggregatefunction.md#aggregatefunction_class) and providing a name for the accumulated results. |
+|  accumulator | AliasedAggregate | The first [AliasedAggregate](./firestore_pipelines.aliasedaggregate.md#aliasedaggregate_class)<!-- -->, wrapping an [AggregateFunction](./firestore_pipelines.aggregatefunction.md#aggregatefunction_class) and providing a name for the accumulated results. |
+|  additionalAccumulators | AliasedAggregate\[\] | Optional additional [AliasedAggregate](./firestore_pipelines.aliasedaggregate.md#aliasedaggregate_class)<!-- -->, each wrapping an [AggregateFunction](./firestore_pipelines.aggregatefunction.md#aggregatefunction_class) and providing a name for the accumulated results. |
 
 <b>Returns:</b>
 
-[Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class)
+Pipeline
 
 A new Pipeline object with this stage appended to the stage list.
 
@@ -203,11 +203,11 @@ aggregate(options: AggregateStageOptions): Pipeline;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  options | [AggregateStageOptions](./firestore_lite_pipelines.md#aggregatestageoptions) | An object that specifies required and optional parameters for the stage. |
+|  options | AggregateStageOptions | An object that specifies required and optional parameters for the stage. |
 
 <b>Returns:</b>
 
-[Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class)
+Pipeline
 
 A new [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class) object with this stage appended to the stage list.
 
@@ -245,12 +245,12 @@ define(
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  aliasedExpression | [AliasedExpression](./firestore_lite_pipelines.aliasedexpression.md#aliasedexpression_class) | The first expression to bind to a variable. |
-|  additionalExpressions | [AliasedExpression](./firestore_lite_pipelines.aliasedexpression.md#aliasedexpression_class)<!-- -->\[\] | Optional additional expression to bind to a variable. |
+|  aliasedExpression | AliasedExpression | The first expression to bind to a variable. |
+|  additionalExpressions | AliasedExpression\[\] | Optional additional expression to bind to a variable. |
 
 <b>Returns:</b>
 
-[Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class)
+Pipeline
 
 A new Pipeline object with this stage appended to the stage list.
 
@@ -286,11 +286,11 @@ define(options: DefineStageOptions): Pipeline;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  options | [DefineStageOptions](./firestore_lite_pipelines.md#definestageoptions) | An object that specifies required and optional parameters for the stage. |
+|  options | DefineStageOptions | An object that specifies required and optional parameters for the stage. |
 
 <b>Returns:</b>
 
-[Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class)
+Pipeline
 
 A new Pipeline object with this stage appended to the stage list.
 
@@ -331,12 +331,12 @@ distinct(
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  group | string \| [Selectable](./firestore_lite_pipelines.selectable.md#selectable_interface) | The [Selectable](./firestore_pipelines.selectable.md#selectable_interface) expression or field name to consider when determining distinct value combinations. |
-|  additionalGroups | Array&lt;string \| [Selectable](./firestore_lite_pipelines.selectable.md#selectable_interface)<!-- -->&gt; | Optional additional [Selectable](./firestore_pipelines.selectable.md#selectable_interface) expressions to consider when determining distinct value combinations or strings representing field names. |
+|  group | string \| Selectable | The [Selectable](./firestore_pipelines.selectable.md#selectable_interface) expression or field name to consider when determining distinct value combinations. |
+|  additionalGroups | Array&lt;string \| Selectable&gt; | Optional additional [Selectable](./firestore_pipelines.selectable.md#selectable_interface) expressions to consider when determining distinct value combinations or strings representing field names. |
 
 <b>Returns:</b>
 
-[Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class)
+Pipeline
 
 A new [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class) object with this stage appended to the stage list.
 
@@ -371,11 +371,11 @@ distinct(options: DistinctStageOptions): Pipeline;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  options | [DistinctStageOptions](./firestore_lite_pipelines.md#distinctstageoptions) | An object that specifies required and optional parameters for the stage. |
+|  options | DistinctStageOptions | An object that specifies required and optional parameters for the stage. |
 
 <b>Returns:</b>
 
-[Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class)
+Pipeline
 
 A new [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class) object with this stage appended to the stage list.
 
@@ -404,11 +404,11 @@ findNearest(options: FindNearestStageOptions): Pipeline;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  options | [FindNearestStageOptions](./firestore_lite_pipelines.md#findneareststageoptions) | An object that specifies required and optional parameters for the stage. |
+|  options | FindNearestStageOptions | An object that specifies required and optional parameters for the stage. |
 
 <b>Returns:</b>
 
-[Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class)
+Pipeline
 
 A new [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class) object with this stage appended to the stage list.
 
@@ -453,7 +453,7 @@ limit(limit: number): Pipeline;
 
 <b>Returns:</b>
 
-[Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class)
+Pipeline
 
 A new Pipeline object with this stage appended to the stage list.
 
@@ -486,11 +486,11 @@ limit(options: LimitStageOptions): Pipeline;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  options | [LimitStageOptions](./firestore_lite_pipelines.md#limitstageoptions) | An object that specifies required and optional parameters for the stage. |
+|  options | LimitStageOptions | An object that specifies required and optional parameters for the stage. |
 
 <b>Returns:</b>
 
-[Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class)
+Pipeline
 
 A new Pipeline object with this stage appended to the stage list.
 
@@ -525,7 +525,7 @@ offset(offset: number): Pipeline;
 
 <b>Returns:</b>
 
-[Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class)
+Pipeline
 
 A new Pipeline object with this stage appended to the stage list.
 
@@ -557,11 +557,11 @@ offset(options: OffsetStageOptions): Pipeline;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  options | [OffsetStageOptions](./firestore_lite_pipelines.md#offsetstageoptions) | An object that specifies required and optional parameters for the stage. |
+|  options | OffsetStageOptions | An object that specifies required and optional parameters for the stage. |
 
 <b>Returns:</b>
 
-[Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class)
+Pipeline
 
 A new Pipeline object with this stage appended to the stage list.
 
@@ -603,11 +603,11 @@ rawStage(
 |  --- | --- | --- |
 |  name | string | The unique name of the raw stage to add. |
 |  params | unknown\[\] | A list of parameters to configure the raw stage's behavior. |
-|  options | { \[key: string\]: [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| unknown; } | An object of key value pairs that specifies optional parameters for the stage. |
+|  options | { \[key: string\]: Expression \| unknown; } | An object of key value pairs that specifies optional parameters for the stage. |
 
 <b>Returns:</b>
 
-[Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class)
+Pipeline
 
 A new [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class) object with this stage appended to the stage list.
 
@@ -639,12 +639,12 @@ removeFields(
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  fieldValue | [Field](./firestore_lite_pipelines.field.md#field_class) \| string | The first field to remove. |
-|  additionalFields | Array&lt;[Field](./firestore_lite_pipelines.field.md#field_class) \| string&gt; | Optional additional fields to remove. |
+|  fieldValue | Field \| string | The first field to remove. |
+|  additionalFields | Array&lt;Field \| string&gt; | Optional additional fields to remove. |
 
 <b>Returns:</b>
 
-[Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class)
+Pipeline
 
 A new Pipeline object with this stage appended to the stage list.
 
@@ -675,11 +675,11 @@ removeFields(options: RemoveFieldsStageOptions): Pipeline;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  options | [RemoveFieldsStageOptions](./firestore_lite_pipelines.md#removefieldsstageoptions) | An object that specifies required and optional parameters for the stage. |
+|  options | RemoveFieldsStageOptions | An object that specifies required and optional parameters for the stage. |
 
 <b>Returns:</b>
 
-[Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class)
+Pipeline
 
 A new Pipeline object with this stage appended to the stage list.
 
@@ -716,7 +716,7 @@ replaceWith(fieldName: string): Pipeline;
 
 <b>Returns:</b>
 
-[Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class)
+Pipeline
 
 A new [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class) object with this stage appended to the stage list.
 
@@ -760,11 +760,11 @@ replaceWith(expr: Expression): Pipeline;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  expr | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | An [Expression](./firestore_pipelines.expression.md#expression_class) that when returned evaluates to a map. |
+|  expr | Expression | An [Expression](./firestore_pipelines.expression.md#expression_class) that when returned evaluates to a map. |
 
 <b>Returns:</b>
 
-[Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class)
+Pipeline
 
 A new [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class) object with this stage appended to the stage list.
 
@@ -813,11 +813,11 @@ replaceWith(options: ReplaceWithStageOptions): Pipeline;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  options | [ReplaceWithStageOptions](./firestore_lite_pipelines.md#replacewithstageoptions) | An object that specifies required and optional parameters for the stage. |
+|  options | ReplaceWithStageOptions | An object that specifies required and optional parameters for the stage. |
 
 <b>Returns:</b>
 
-[Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class)
+Pipeline
 
 A new [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class) object with this stage appended to the stage list.
 
@@ -872,7 +872,7 @@ sample(documents: number): Pipeline;
 
 <b>Returns:</b>
 
-[Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class)
+Pipeline
 
 A new [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class) object with this stage appended to the stage list.
 
@@ -902,11 +902,11 @@ sample(options: SampleStageOptions): Pipeline;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  options | [SampleStageOptions](./firestore_lite_pipelines.md#samplestageoptions) | An object that specifies required and optional parameters for the stage. |
+|  options | SampleStageOptions | An object that specifies required and optional parameters for the stage. |
 
 <b>Returns:</b>
 
-[Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class)
+Pipeline
 
 A new [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class) object with this stage appended to the stage list.
 
@@ -943,11 +943,11 @@ search(options: SearchStageOptions): Pipeline;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  options | [SearchStageOptions](./firestore_lite_pipelines.md#searchstageoptions) | An object that specifies parameters for the stage.  A new <code>Pipeline</code> object with this stage appended to the stage list. |
+|  options | SearchStageOptions | An object that specifies parameters for the stage.  A new <code>Pipeline</code> object with this stage appended to the stage list. |
 
 <b>Returns:</b>
 
-[Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class)
+Pipeline
 
 ### Example 1
 
@@ -1005,12 +1005,12 @@ select(
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  selection | [Selectable](./firestore_lite_pipelines.selectable.md#selectable_interface) \| string | The first field to include in the output documents, specified as [Selectable](./firestore_pipelines.selectable.md#selectable_interface) expression or string value representing the field name. |
-|  additionalSelections | Array&lt;[Selectable](./firestore_lite_pipelines.selectable.md#selectable_interface) \| string&gt; | Optional additional fields to include in the output documents, specified as [Selectable](./firestore_pipelines.selectable.md#selectable_interface) expressions or <code>string</code> values representing field names. |
+|  selection | Selectable \| string | The first field to include in the output documents, specified as [Selectable](./firestore_pipelines.selectable.md#selectable_interface) expression or string value representing the field name. |
+|  additionalSelections | Array&lt;Selectable \| string&gt; | Optional additional fields to include in the output documents, specified as [Selectable](./firestore_pipelines.selectable.md#selectable_interface) expressions or <code>string</code> values representing field names. |
 
 <b>Returns:</b>
 
-[Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class)
+Pipeline
 
 A new Pipeline object with this stage appended to the stage list.
 
@@ -1047,11 +1047,11 @@ select(options: SelectStageOptions): Pipeline;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  options | [SelectStageOptions](./firestore_lite_pipelines.md#selectstageoptions) | An object that specifies required and optional parameters for the stage. |
+|  options | SelectStageOptions | An object that specifies required and optional parameters for the stage. |
 
 <b>Returns:</b>
 
-[Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class)
+Pipeline
 
 A new Pipeline object with this stage appended to the stage list.
 
@@ -1084,12 +1084,12 @@ sort(ordering: Ordering, ...additionalOrderings: Ordering[]): Pipeline;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  ordering | [Ordering](./firestore_lite_pipelines.ordering.md#ordering_class) | The first [Ordering](./firestore_pipelines.ordering.md#ordering_class) instance specifying the sorting criteria. |
-|  additionalOrderings | [Ordering](./firestore_lite_pipelines.ordering.md#ordering_class)<!-- -->\[\] | Optional additional [Ordering](./firestore_pipelines.ordering.md#ordering_class) instances specifying the additional sorting criteria. |
+|  ordering | Ordering | The first [Ordering](./firestore_pipelines.ordering.md#ordering_class) instance specifying the sorting criteria. |
+|  additionalOrderings | Ordering\[\] | Optional additional [Ordering](./firestore_pipelines.ordering.md#ordering_class) instances specifying the additional sorting criteria. |
 
 <b>Returns:</b>
 
-[Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class)
+Pipeline
 
 A new [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class) object with this stage appended to the stage list.
 
@@ -1123,11 +1123,11 @@ sort(options: SortStageOptions): Pipeline;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  options | [SortStageOptions](./firestore_lite_pipelines.md#sortstageoptions) | An object that specifies required and optional parameters for the stage. |
+|  options | SortStageOptions | An object that specifies required and optional parameters for the stage. |
 
 <b>Returns:</b>
 
-[Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class)
+Pipeline
 
 A new [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class) object with this stage appended to the stage list.
 
@@ -1158,7 +1158,7 @@ toArrayExpression(): Expression;
 ```
 <b>Returns:</b>
 
-[Expression](./firestore_lite_pipelines.expression.md#expression_class)
+Expression
 
 An `Expression` representing the execution of this pipeline.
 
@@ -1235,7 +1235,7 @@ toScalarExpression(): Expression;
 ```
 <b>Returns:</b>
 
-[Expression](./firestore_lite_pipelines.expression.md#expression_class)
+Expression
 
 An `Expression` representing the execution of this pipeline.
 
@@ -1307,11 +1307,11 @@ union(other: Pipeline): Pipeline;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  other | [Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class) | The other [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class) that is part of union. |
+|  other | Pipeline | The other [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class) that is part of union. |
 
 <b>Returns:</b>
 
-[Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class)
+Pipeline
 
 A new [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class) object with this stage appended to the stage list.
 
@@ -1341,11 +1341,11 @@ union(options: UnionStageOptions): Pipeline;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  options | [UnionStageOptions](./firestore_lite_pipelines.md#unionstageoptions) | An object that specifies required and optional parameters for the stage. |
+|  options | UnionStageOptions | An object that specifies required and optional parameters for the stage. |
 
 <b>Returns:</b>
 
-[Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class)
+Pipeline
 
 A new [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class) object with this stage appended to the stage list.
 
@@ -1379,12 +1379,12 @@ unnest(selectable: Selectable, indexField?: string): Pipeline;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  selectable | [Selectable](./firestore_lite_pipelines.selectable.md#selectable_interface) | A selectable expression defining the field to unnest and the alias to use for each un-nested element in the output documents. |
+|  selectable | Selectable | A selectable expression defining the field to unnest and the alias to use for each un-nested element in the output documents. |
 |  indexField | string | An optional string value specifying the field path to write the offset (starting at zero) into the array the un-nested element is from |
 
 <b>Returns:</b>
 
-[Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class)
+Pipeline
 
 A new [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class) object with this stage appended to the stage list.
 
@@ -1426,11 +1426,11 @@ unnest(options: UnnestStageOptions): Pipeline;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  options | [UnnestStageOptions](./firestore_lite_pipelines.md#unneststageoptions) | An object that specifies required and optional parameters for the stage. |
+|  options | UnnestStageOptions | An object that specifies required and optional parameters for the stage. |
 
 <b>Returns:</b>
 
-[Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class)
+Pipeline
 
 A new [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class) object with this stage appended to the stage list.
 
@@ -1470,11 +1470,11 @@ where(condition: BooleanExpression): Pipeline;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  condition | [BooleanExpression](./firestore_lite_pipelines.booleanexpression.md#booleanexpression_class) | The [BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class) to apply. |
+|  condition | BooleanExpression | The [BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class) to apply. |
 
 <b>Returns:</b>
 
-[Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class)
+Pipeline
 
 A new Pipeline object with this stage appended to the stage list.
 
@@ -1510,11 +1510,11 @@ where(options: WhereStageOptions): Pipeline;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  options | [WhereStageOptions](./firestore_lite_pipelines.md#wherestageoptions) | An object that specifies required and optional parameters for the stage. |
+|  options | WhereStageOptions | An object that specifies required and optional parameters for the stage. |
 
 <b>Returns:</b>
 
-[Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class)
+Pipeline
 
 A new Pipeline object with this stage appended to the stage list.
 

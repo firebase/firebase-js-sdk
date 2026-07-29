@@ -10,14 +10,14 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # QueryLimitConstraint class
-A `QueryLimitConstraint` is used to limit the number of documents returned by a Firestore query. `QueryLimitConstraint`<!-- -->s are created by invoking [limit()](./firestore_.md#limit_ec46c78) or [limitToLast()](./firestore_.md#limittolast_ec46c78) and can then be passed to [query()](./firestore_.md#query_17e2432) to create a new query instance that also contains this `QueryLimitConstraint`<!-- -->.
+A `QueryLimitConstraint` is used to limit the number of documents returned by a Firestore query. `QueryLimitConstraint`<!-- -->s are created by invoking [limit()](./firestore_.md#limit_ec46c78) or [limitToLast()](./firestore_.md#limittolast_ec46c78) and can then be passed to [query()](./firestore_.md#query_9f7b0f4) to create a new query instance that also contains this `QueryLimitConstraint`<!-- -->.
 
 <b>Signature:</b>
 
 ```typescript
 export declare class QueryLimitConstraint extends QueryConstraint 
 ```
-<b>Extends:</b> [QueryConstraint](./firestore_lite.queryconstraint.md#queryconstraint_class)
+<b>Extends:</b> [QueryConstraint](./firestore_.queryconstraint.md#queryconstraint_class)
 
 ## Properties
 

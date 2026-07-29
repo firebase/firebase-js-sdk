@@ -15,7 +15,7 @@ https://github.com/firebase/firebase-js-sdk
 ```typescript
 export declare class AliasedExpression implements Selectable 
 ```
-<b>Implements:</b> [Selectable](./firestore_lite_pipelines.selectable.md#selectable_interface)
+<b>Implements:</b> Selectable
 
 ## Constructors
 
@@ -28,8 +28,8 @@ export declare class AliasedExpression implements Selectable
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
 |  [alias](./firestore_lite_pipelines.aliasedexpression.md#aliasedexpressionalias) |  | string |  |
-|  [expr](./firestore_lite_pipelines.aliasedexpression.md#aliasedexpressionexpr) |  | [Expression](./firestore_lite_pipelines.expression.md#expression_class) |  |
-|  [exprType](./firestore_lite_pipelines.aliasedexpression.md#aliasedexpressionexprtype) |  | [ExpressionType](./firestore_lite_pipelines.md#expressiontype) |  |
+|  [expr](./firestore_lite_pipelines.aliasedexpression.md#aliasedexpressionexpr) |  | Expression |  |
+|  [exprType](./firestore_lite_pipelines.aliasedexpression.md#aliasedexpressionexprtype) |  | ExpressionType |  |
 |  [selectable](./firestore_lite_pipelines.aliasedexpression.md#aliasedexpressionselectable) |  | true |  |
 
 ## AliasedExpression.(constructor)
@@ -46,7 +46,7 @@ constructor(expr: Expression, alias: string, _methodName: string | undefined);
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  expr | [Expression](./firestore_lite_pipelines.expression.md#expression_class) |  |
+|  expr | Expression |  |
 |  alias | string |  |
 |  \_methodName | string \| undefined |  |
 

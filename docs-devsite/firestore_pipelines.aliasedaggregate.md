@@ -28,7 +28,7 @@ export declare class AliasedAggregate
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [aggregate](./firestore_pipelines.aliasedaggregate.md#aliasedaggregateaggregate) |  | [AggregateFunction](./firestore_pipelines.aggregatefunction.md#aggregatefunction_class) |  |
+|  [aggregate](./firestore_pipelines.aliasedaggregate.md#aliasedaggregateaggregate) |  | AggregateFunction |  |
 |  [alias](./firestore_pipelines.aliasedaggregate.md#aliasedaggregatealias) |  | string |  |
 
 ## AliasedAggregate.(constructor)
@@ -49,7 +49,7 @@ constructor(
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  aggregate | [AggregateFunction](./firestore_pipelines.aggregatefunction.md#aggregatefunction_class) |  |
+|  aggregate | AggregateFunction |  |
 |  alias | string |  |
 |  \_methodName | string \| undefined |  |
 

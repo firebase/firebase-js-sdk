@@ -108,7 +108,7 @@ static fromDate(date: Date): Timestamp;
 
 <b>Returns:</b>
 
-[Timestamp](./firestore_lite.timestamp.md#timestamp_class)
+[Timestamp](./firestore_.timestamp.md#timestamp_class)
 
 A new `Timestamp` representing the same point in time as the given date.
 
@@ -130,7 +130,7 @@ static fromJSON(json: object): Timestamp;
 
 <b>Returns:</b>
 
-[Timestamp](./firestore_lite.timestamp.md#timestamp_class)
+[Timestamp](./firestore_.timestamp.md#timestamp_class)
 
 ## Timestamp.fromMillis()
 
@@ -150,7 +150,7 @@ static fromMillis(milliseconds: number): Timestamp;
 
 <b>Returns:</b>
 
-[Timestamp](./firestore_lite.timestamp.md#timestamp_class)
+[Timestamp](./firestore_.timestamp.md#timestamp_class)
 
 A new `Timestamp` representing the same point in time as the given number of milliseconds.
 
@@ -168,7 +168,7 @@ isEqual(other: Timestamp): boolean;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  other | [Timestamp](./firestore_lite.timestamp.md#timestamp_class) | The <code>Timestamp</code> to compare against. |
+|  other | [Timestamp](./firestore_.timestamp.md#timestamp_class) | The <code>Timestamp</code> to compare against. |
 
 <b>Returns:</b>
 
@@ -187,7 +187,7 @@ static now(): Timestamp;
 ```
 <b>Returns:</b>
 
-[Timestamp](./firestore_lite.timestamp.md#timestamp_class)
+[Timestamp](./firestore_.timestamp.md#timestamp_class)
 
 a new timestamp representing the current date.
 

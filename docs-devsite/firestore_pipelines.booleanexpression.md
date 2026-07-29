@@ -17,7 +17,7 @@ An interface that represents a filter condition.
 ```typescript
 export declare abstract class BooleanExpression extends Expression 
 ```
-<b>Extends:</b> [Expression](./firestore_pipelines.expression.md#expression_class)
+<b>Extends:</b> Expression
 
 ## Methods
 
@@ -45,12 +45,12 @@ conditional(thenExpr: Expression, elseExpr: Expression): FunctionExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  thenExpr | [Expression](./firestore_pipelines.expression.md#expression_class) | The expression to evaluate if the condition is true. |
-|  elseExpr | [Expression](./firestore_pipelines.expression.md#expression_class) | The expression to evaluate if the condition is false. |
+|  thenExpr | Expression | The expression to evaluate if the condition is true. |
+|  elseExpr | Expression | The expression to evaluate if the condition is false. |
 
 <b>Returns:</b>
 
-[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+FunctionExpression
 
 A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the conditional expression.
 
@@ -74,7 +74,7 @@ countIf(): AggregateFunction;
 ```
 <b>Returns:</b>
 
-[AggregateFunction](./firestore_pipelines.aggregatefunction.md#aggregatefunction_class)
+AggregateFunction
 
 A new `AggregateFunction` representing the 'countIf' aggregation.
 
@@ -101,11 +101,11 @@ ifError(catchValue: BooleanExpression): BooleanExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  catchValue | [BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class) | The value that will be returned if this expression produces an error. |
+|  catchValue | BooleanExpression | The value that will be returned if this expression produces an error. |
 
 <b>Returns:</b>
 
-[BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class)
+BooleanExpression
 
 A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the 'ifError' operation.
 
@@ -137,7 +137,7 @@ ifError(catchValue: boolean): BooleanExpression;
 
 <b>Returns:</b>
 
-[BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class)
+BooleanExpression
 
 A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the 'ifError' operation.
 
@@ -165,11 +165,11 @@ ifError(catchValue: Expression): FunctionExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  catchValue | [Expression](./firestore_pipelines.expression.md#expression_class) | The value that will be returned if this expression produces an error. |
+|  catchValue | Expression | The value that will be returned if this expression produces an error. |
 
 <b>Returns:</b>
 
-[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+FunctionExpression
 
 A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the 'ifError' operation.
 
@@ -200,7 +200,7 @@ ifError(catchValue: unknown): FunctionExpression;
 
 <b>Returns:</b>
 
-[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+FunctionExpression
 
 A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the 'ifError' operation.
 
@@ -224,7 +224,7 @@ not(): BooleanExpression;
 ```
 <b>Returns:</b>
 
-[BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class)
+BooleanExpression
 
 A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the negated filter condition.
 

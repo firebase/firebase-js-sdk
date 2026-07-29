@@ -38,7 +38,7 @@ abstract isEqual(other: FieldValue): boolean;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  other | [FieldValue](./firestore_lite.fieldvalue.md#fieldvalue_class) |  |
+|  other | [FieldValue](./firestore_.fieldvalue.md#fieldvalue_class) |  |
 
 <b>Returns:</b>
 

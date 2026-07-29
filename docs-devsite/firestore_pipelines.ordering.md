@@ -31,7 +31,7 @@ export declare class Ordering
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
 |  [direction](./firestore_pipelines.ordering.md#orderingdirection) |  | 'ascending' \| 'descending' |  |
-|  [expr](./firestore_pipelines.ordering.md#orderingexpr) |  | [Expression](./firestore_pipelines.expression.md#expression_class) |  |
+|  [expr](./firestore_pipelines.ordering.md#orderingexpr) |  | Expression |  |
 
 ## Ordering.(constructor)
 
@@ -51,7 +51,7 @@ constructor(
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  expr | [Expression](./firestore_pipelines.expression.md#expression_class) |  |
+|  expr | Expression |  |
 |  direction | 'ascending' \| 'descending' |  |
 |  \_methodName | string \| undefined |  |
 

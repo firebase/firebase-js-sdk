@@ -279,6 +279,11 @@ async function generateDocs(
     fs.copyFileSync(paths[0], `${tmpDir}/${fileName}`);
   }
 
+  console.log(
+    'Merging secondary entry points into api.json files for docgen...'
+  );
+  await appendSecondaryEntryPointsToApiJson(projectRoot, tmpDir);
+
   await spawn(
     'yarn',
     [
@@ -392,5 +397,109 @@ async function moveRulesUnitTestingDocs(
       `${jsReferencePath}/firestore`
     );
     fs.writeFileSync(destinationPath, alteredPathText);
+  }
+}
+
+async function appendSecondaryEntryPointsToApiJson(
+  projectRoot: string,
+  tmpDir: string
+) {
+  const extraEntryPoints: {
+    packageDir: string;
+    apiJsonName: string;
+    entryPoints: Array<{
+      name: string;
+      dtsPath: string;
+      canonicalRef: string;
+    }>;
+  }[] = [
+    {
+      packageDir: `${projectRoot}/packages/firestore`,
+      apiJsonName: 'firestore.api.json',
+      entryPoints: [
+        {
+          name: 'lite',
+          dtsPath: '<projectFolder>/dist/lite/index.d.ts',
+          canonicalRef: '@firebase/firestore/lite!'
+        },
+        {
+          name: 'pipelines',
+          dtsPath: '<projectFolder>/dist/pipelines.d.ts',
+          canonicalRef: '@firebase/firestore/pipelines!'
+        },
+        {
+          name: 'lite/pipelines',
+          dtsPath: '<projectFolder>/dist/lite/pipelines.d.ts',
+          canonicalRef: '@firebase/firestore/lite/pipelines!'
+        }
+      ]
+    },
+    {
+      packageDir: `${projectRoot}/packages/messaging`,
+      apiJsonName: 'messaging.api.json',
+      entryPoints: [
+        {
+          name: 'sw',
+          dtsPath: '<projectFolder>/dist/src/index.sw.d.ts',
+          canonicalRef: '@firebase/messaging/sw!'
+        }
+      ]
+    }
+  ];
+
+  for (const pkg of extraEntryPoints) {
+    const mainApiJsonPath = join(tmpDir, pkg.apiJsonName);
+    if (!fs.existsSync(mainApiJsonPath)) {
+      continue;
+    }
+    const mainJson = JSON.parse(fs.readFileSync(mainApiJsonPath, 'utf8'));
+    const members = mainJson.members;
+    if (!members) continue;
+
+    for (const ep of pkg.entryPoints) {
+      const tempConfigName = `api-extractor.${ep.name.replace('/', '-')}.json`;
+      const tempConfigFile = join(pkg.packageDir, tempConfigName);
+      const tempJsonFile = join(
+        pkg.packageDir,
+        'temp',
+        `${ep.name.replace('/', '-')}.api.json`
+      );
+      const configContent = JSON.stringify(
+        {
+          extends: '../../config/api-extractor.json',
+          mainEntryPointFilePath: ep.dtsPath,
+          apiReport: { enabled: false },
+          docModel: {
+            enabled: true,
+            apiJsonFilePath: tempJsonFile
+          }
+        },
+        null,
+        2
+      );
+      try {
+        fs.writeFileSync(tempConfigFile, configContent);
+        await spawn(
+          'yarn',
+          ['api-extractor', 'run', '--local', '--config', tempConfigName],
+          { cwd: pkg.packageDir, stdio: 'inherit' }
+        );
+        if (fs.existsSync(tempJsonFile)) {
+          const epJson = JSON.parse(fs.readFileSync(tempJsonFile, 'utf8'));
+          const epMember = epJson.members?.[0];
+          if (epMember) {
+            epMember.name = ep.name;
+            epMember.canonicalReference = ep.canonicalRef;
+            members.push(epMember);
+          }
+          fs.rmSync(tempJsonFile, { force: true });
+        }
+      } finally {
+        if (fs.existsSync(tempConfigFile)) {
+          fs.rmSync(tempConfigFile, { force: true });
+        }
+      }
+    }
+    fs.writeFileSync(mainApiJsonPath, JSON.stringify(mainJson, null, 2));
   }
 }

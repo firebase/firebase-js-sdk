@@ -49,7 +49,7 @@ static fromBase64String(base64: string): Bytes;
 
 <b>Returns:</b>
 
-[Bytes](./firestore_lite.bytes.md#bytes_class)
+[Bytes](./firestore_.bytes.md#bytes_class)
 
 ## Bytes.fromJSON()
 
@@ -69,7 +69,7 @@ static fromJSON(json: object): Bytes;
 
 <b>Returns:</b>
 
-[Bytes](./firestore_lite.bytes.md#bytes_class)
+[Bytes](./firestore_.bytes.md#bytes_class)
 
 an instance of [Bytes](./firestore_.bytes.md#bytes_class) if the JSON object could be parsed. Throws a [FirestoreError](./firestore_.firestoreerror.md#firestoreerror_class) if an error occurs.
 
@@ -91,7 +91,7 @@ static fromUint8Array(array: Uint8Array): Bytes;
 
 <b>Returns:</b>
 
-[Bytes](./firestore_lite.bytes.md#bytes_class)
+[Bytes](./firestore_.bytes.md#bytes_class)
 
 ## Bytes.isEqual()
 
@@ -107,7 +107,7 @@ isEqual(other: Bytes): boolean;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  other | [Bytes](./firestore_lite.bytes.md#bytes_class) | The <code>Bytes</code> object to compare against. |
+|  other | [Bytes](./firestore_.bytes.md#bytes_class) | The <code>Bytes</code> object to compare against. |
 
 <b>Returns:</b>
 

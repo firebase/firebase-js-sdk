@@ -40,7 +40,7 @@ export declare class Query<
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
 |  [withConverter(converter)](./firestore_.query.md#querywithconverter) |  | Removes the current converter. |
-|  [withConverter(converter)](./firestore_.query.md#querywithconverter) |  | Applies a custom data converter to this query, allowing you to use your own custom model objects with Firestore. When you call [getDocs()](./firestore_.md#getdocs_8ca86e0) with the returned query, the provided converter will convert between Firestore data of type <code>NewDbModelType</code> and your custom type <code>NewAppModelType</code>. |
+|  [withConverter(converter)](./firestore_.query.md#querywithconverter) |  | Applies a custom data converter to this query, allowing you to use your own custom model objects with Firestore. When you call [getDocs()](./firestore_.md#getdocs_4e56953) with the returned query, the provided converter will convert between Firestore data of type <code>NewDbModelType</code> and your custom type <code>NewAppModelType</code>. |
 
 ## Query.(constructor)
 
@@ -106,7 +106,7 @@ A `Query<DocumentData, DocumentData>` that does not use a converter.
 
 ## Query.withConverter()
 
-Applies a custom data converter to this query, allowing you to use your own custom model objects with Firestore. When you call [getDocs()](./firestore_.md#getdocs_8ca86e0) with the returned query, the provided converter will convert between Firestore data of type `NewDbModelType` and your custom type `NewAppModelType`<!-- -->.
+Applies a custom data converter to this query, allowing you to use your own custom model objects with Firestore. When you call [getDocs()](./firestore_.md#getdocs_4e56953) with the returned query, the provided converter will convert between Firestore data of type `NewDbModelType` and your custom type `NewAppModelType`<!-- -->.
 
 <b>Signature:</b>
 

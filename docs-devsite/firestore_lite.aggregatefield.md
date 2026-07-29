@@ -22,7 +22,7 @@ export declare class AggregateField<T>
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [aggregateType](./firestore_lite.aggregatefield.md#aggregatefieldaggregatetype) |  | [AggregateType](./firestore_lite.md#aggregatetype) | Indicates the aggregation operation of this AggregateField. |
+|  [aggregateType](./firestore_lite.aggregatefield.md#aggregatefieldaggregatetype) |  | [AggregateType](./firestore_.md#aggregatetype) | Indicates the aggregation operation of this AggregateField. |
 |  [type](./firestore_lite.aggregatefield.md#aggregatefieldtype) |  | (not declared) | A type string to uniquely identify instances of this class. |
 
 ## AggregateField.aggregateType

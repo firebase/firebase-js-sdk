@@ -6,20 +6,6 @@
     "extends": "../../config/api-extractor.json",
     // Point it to your entry point d.ts file.
     "mainEntryPointFilePath": "<projectFolder>/dist/index.d.ts",
-    "additionalEntryPoints": [
-      {
-        "modulePath": "lite",
-        "filePath": "<projectFolder>/dist/lite/index.d.ts"
-      },
-      {
-        "modulePath": "pipelines",
-        "filePath": "<projectFolder>/dist/pipelines.d.ts"
-      },
-      {
-        "modulePath": "lite/pipelines",
-        "filePath": "<projectFolder>/dist/lite/pipelines.d.ts"
-      }
-    ],
     "apiReport": {
         /**
          * apiReport is handled by scripts/api-report.ts

@@ -28,7 +28,7 @@ export declare class AggregateFunction
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [exprType](./firestore_pipelines.aggregatefunction.md#aggregatefunctionexprtype) |  | [ExpressionType](./firestore_pipelines.md#expressiontype) |  |
+|  [exprType](./firestore_pipelines.aggregatefunction.md#aggregatefunctionexprtype) |  | ExpressionType |  |
 
 ## Methods
 
@@ -51,7 +51,7 @@ constructor(name: string, params: Expression[]);
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  name | string |  |
-|  params | [Expression](./firestore_pipelines.expression.md#expression_class)<!-- -->\[\] |  |
+|  params | Expression\[\] |  |
 
 ## AggregateFunction.exprType
 
@@ -79,7 +79,7 @@ as(name: string): AliasedAggregate;
 
 <b>Returns:</b>
 
-[AliasedAggregate](./firestore_pipelines.aliasedaggregate.md#aliasedaggregate_class)
+AliasedAggregate
 
 A new [AliasedAggregate](./firestore_pipelines.aliasedaggregate.md#aliasedaggregate_class) that wraps this AggregateFunction and associates it with the provided alias.
 

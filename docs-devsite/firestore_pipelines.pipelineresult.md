@@ -24,10 +24,10 @@ export declare class PipelineResult<AppModelType = DocumentData>
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [createTime](./firestore_pipelines.pipelineresult.md#pipelineresultcreatetime) |  | [Timestamp](./firestore_.timestamp.md#timestamp_class) \| undefined | The time the document was created. Undefined if this result is not a document. |
+|  [createTime](./firestore_pipelines.pipelineresult.md#pipelineresultcreatetime) |  | Timestamp \| undefined | The time the document was created. Undefined if this result is not a document. |
 |  [id](./firestore_pipelines.pipelineresult.md#pipelineresultid) |  | string \| undefined | The ID of the document for which this PipelineResult contains data, if it is a document; otherwise <code>undefined</code>. |
-|  [ref](./firestore_pipelines.pipelineresult.md#pipelineresultref) |  | [DocumentReference](./firestore_.documentreference.md#documentreference_class) \| undefined | The reference of the document, if it is a document; otherwise <code>undefined</code>. |
-|  [updateTime](./firestore_pipelines.pipelineresult.md#pipelineresultupdatetime) |  | [Timestamp](./firestore_.timestamp.md#timestamp_class) \| undefined | The time the document was last updated (at the time the snapshot was generated). Undefined if this result is not a document. |
+|  [ref](./firestore_pipelines.pipelineresult.md#pipelineresultref) |  | DocumentReference \| undefined | The reference of the document, if it is a document; otherwise <code>undefined</code>. |
+|  [updateTime](./firestore_pipelines.pipelineresult.md#pipelineresultupdatetime) |  | Timestamp \| undefined | The time the document was last updated (at the time the snapshot was generated). Undefined if this result is not a document. |
 
 ## Methods
 
@@ -118,7 +118,7 @@ get(fieldPath: string | FieldPath | Field): any;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  fieldPath | string \| [FieldPath](./firestore_.fieldpath.md#fieldpath_class) \| [Field](./firestore_pipelines.field.md#field_class) |  |
+|  fieldPath | string \| FieldPath \| Field |  |
 
 <b>Returns:</b>
 

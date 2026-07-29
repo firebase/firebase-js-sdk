@@ -34,7 +34,7 @@ export declare class DocumentSnapshot<
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
 |  [id](./firestore_lite.documentsnapshot.md#documentsnapshotid) |  | string | Property of the <code>DocumentSnapshot</code> that provides the document's ID. |
-|  [ref](./firestore_lite.documentsnapshot.md#documentsnapshotref) |  | [DocumentReference](./firestore_lite.documentreference.md#documentreference_class)<!-- -->&lt;AppModelType, DbModelType&gt; | The <code>DocumentReference</code> for the document included in the <code>DocumentSnapshot</code>. |
+|  [ref](./firestore_lite.documentsnapshot.md#documentsnapshotref) |  | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;AppModelType, DbModelType&gt; | The <code>DocumentReference</code> for the document included in the <code>DocumentSnapshot</code>. |
 
 ## Methods
 
@@ -100,7 +100,7 @@ exists(): this is QueryDocumentSnapshot<AppModelType, DbModelType>;
 ```
 <b>Returns:</b>
 
-this is [QueryDocumentSnapshot](./firestore_lite.querydocumentsnapshot.md#querydocumentsnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt;
+this is [QueryDocumentSnapshot](./firestore_.querydocumentsnapshot.md#querydocumentsnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt;
 
 true if the document exists.
 
@@ -118,7 +118,7 @@ get(fieldPath: string | FieldPath): any;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  fieldPath | string \| [FieldPath](./firestore_lite.fieldpath.md#fieldpath_class) | The path (for example 'foo' or 'foo.bar') to a specific field. |
+|  fieldPath | string \| [FieldPath](./firestore_.fieldpath.md#fieldpath_class) | The path (for example 'foo' or 'foo.bar') to a specific field. |
 
 <b>Returns:</b>
 

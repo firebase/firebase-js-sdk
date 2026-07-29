@@ -96,7 +96,7 @@ static fromJSON(json: object): GeoPoint;
 
 <b>Returns:</b>
 
-[GeoPoint](./firestore_lite.geopoint.md#geopoint_class)
+[GeoPoint](./firestore_.geopoint.md#geopoint_class)
 
 an instance of [GeoPoint](./firestore_.geopoint.md#geopoint_class) if the JSON object could be parsed. Throws a [FirestoreError](./firestore_.firestoreerror.md#firestoreerror_class) if an error occurs.
 
@@ -114,7 +114,7 @@ isEqual(other: GeoPoint): boolean;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  other | [GeoPoint](./firestore_lite.geopoint.md#geopoint_class) | The <code>GeoPoint</code> to compare against. |
+|  other | [GeoPoint](./firestore_.geopoint.md#geopoint_class) | The <code>GeoPoint</code> to compare against. |
 
 <b>Returns:</b>
 

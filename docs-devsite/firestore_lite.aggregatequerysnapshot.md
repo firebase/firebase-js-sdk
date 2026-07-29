@@ -26,7 +26,7 @@ export declare class AggregateQuerySnapshot<
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [query](./firestore_lite.aggregatequerysnapshot.md#aggregatequerysnapshotquery) |  | [Query](./firestore_lite.query.md#query_class)<!-- -->&lt;AppModelType, DbModelType&gt; | The underlying query over which the aggregations recorded in this <code>AggregateQuerySnapshot</code> were performed. |
+|  [query](./firestore_lite.aggregatequerysnapshot.md#aggregatequerysnapshotquery) |  | [Query](./firestore_.query.md#query_class)<!-- -->&lt;AppModelType, DbModelType&gt; | The underlying query over which the aggregations recorded in this <code>AggregateQuerySnapshot</code> were performed. |
 |  [type](./firestore_lite.aggregatequerysnapshot.md#aggregatequerysnapshottype) |  | (not declared) | A type string to uniquely identify instances of this class. |
 
 ## Methods
@@ -68,7 +68,7 @@ data(): AggregateSpecData<AggregateSpecType>;
 ```
 <b>Returns:</b>
 
-[AggregateSpecData](./firestore_lite.md#aggregatespecdata)<!-- -->&lt;AggregateSpecType&gt;
+[AggregateSpecData](./firestore_.md#aggregatespecdata)<!-- -->&lt;AggregateSpecType&gt;
 
 The results of the aggregations performed over the underlying query.
 

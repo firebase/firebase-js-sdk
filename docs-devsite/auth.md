@@ -73,7 +73,7 @@ Firebase Authentication
 |  [updateEmail(user, newEmail)](./auth.md#updateemail_7737d57) | Updates the user's email address. |
 |  [updatePassword(user, newPassword)](./auth.md#updatepassword_6df673e) | Updates the user's password. |
 |  [updatePhoneNumber(user, credential)](./auth.md#updatephonenumber_0105c49) | Updates the user's phone number. |
-|  [updateProfile(user, { displayName, photoURL: photoUrl })](./auth.md#updateprofile_017e12d) | Updates a user's profile data. |
+|  [updateProfile(user, { displayName, photoURL: photoUrl }, input)](./auth.md#updateprofile_bb47e5e) | Updates a user's profile data. |
 |  [verifyBeforeUpdateEmail(user, newEmail, actionCodeSettings)](./auth.md#verifybeforeupdateemail_09d6f11) | Sends a verification email to a new email address. |
 |  <b>function(userCredential, ...)</b> |
 |  [getAdditionalUserInfo(userCredential)](./auth.md#getadditionaluserinfo_838a6bd) | Extracts provider specific [AdditionalUserInfo](./auth.additionaluserinfo.md#additionaluserinfo_interface) for the given credential. |
@@ -1754,14 +1754,14 @@ await updatePhoneNumber(user, phoneCredential);
 
 ```
 
-### updateProfile(user, { displayName, photoURL: photoUrl }) {:#updateprofile_017e12d}
+### updateProfile(user, { displayName, photoURL: photoUrl }, input) {:#updateprofile_bb47e5e}
 
 Updates a user's profile data.
 
 <b>Signature:</b>
 
 ```typescript
-export declare function updateProfile(user: User, { displayName, photoURL: photoUrl }: {
+export declare function updateProfile(user: User, input: {
     displayName?: string | null;
     photoURL?: string | null;
 }): Promise<void>;
@@ -1772,7 +1772,8 @@ export declare function updateProfile(user: User, { displayName, photoURL: photo
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  user | [User](./auth.user.md#user_interface) | The user. |
-|  { displayName, photoURL: photoUrl } | { displayName?: string \| null; photoURL?: string \| null; } |  |
+|  { displayName, photoURL: photoUrl } | (not declared) |  |
+|  input | { displayName?: string \| null; photoURL?: string \| null; } |  |
 
 <b>Returns:</b>
 

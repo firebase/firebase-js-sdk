@@ -21,17 +21,17 @@ Represents a reference to a field in a Firestore document, or outputs of a [Pipe
 ```typescript
 export declare class Field extends Expression implements Selectable 
 ```
-<b>Extends:</b> [Expression](./firestore_pipelines.expression.md#expression_class)
+<b>Extends:</b> Expression
 
-<b>Implements:</b> [Selectable](./firestore_pipelines.selectable.md#selectable_interface)
+<b>Implements:</b> Selectable
 
 ## Properties
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
 |  [alias](./firestore_pipelines.field.md#fieldalias) |  | string |  |
-|  [expr](./firestore_pipelines.field.md#fieldexpr) |  | [Expression](./firestore_pipelines.expression.md#expression_class) |  |
-|  [expressionType](./firestore_pipelines.field.md#fieldexpressiontype) |  | [ExpressionType](./firestore_pipelines.md#expressiontype) |  |
+|  [expr](./firestore_pipelines.field.md#fieldexpr) |  | Expression |  |
+|  [expressionType](./firestore_pipelines.field.md#fieldexpressiontype) |  | ExpressionType |  |
 |  [fieldName](./firestore_pipelines.field.md#fieldfieldname) |  | string |  |
 |  [selectable](./firestore_pipelines.field.md#fieldselectable) |  | true |  |
 
@@ -100,11 +100,11 @@ geoDistance(location: GeoPoint | Expression): Expression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  location | [GeoPoint](./firestore_.geopoint.md#geopoint_class) \| [Expression](./firestore_pipelines.expression.md#expression_class) | Compute distance to this GeoPoint. |
+|  location | GeoPoint \| Expression | Compute distance to this GeoPoint. |
 
 <b>Returns:</b>
 
-[Expression](./firestore_pipelines.expression.md#expression_class)
+Expression
 
 ### Example
 

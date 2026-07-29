@@ -48,7 +48,7 @@ collection(collection: string | CollectionReference): PipelineType;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  collection | string \| [CollectionReference](./firestore_.collectionreference.md#collectionreference_class) | Name or reference to the collection that will be used as the Pipeline source. |
+|  collection | string \| CollectionReference | Name or reference to the collection that will be used as the Pipeline source. |
 
 <b>Returns:</b>
 
@@ -68,7 +68,7 @@ collection(options: CollectionStageOptions): PipelineType;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  options | [CollectionStageOptions](./firestore_pipelines.md#collectionstageoptions) | Options defining how this CollectionStage is evaluated. |
+|  options | CollectionStageOptions | Options defining how this CollectionStage is evaluated. |
 
 <b>Returns:</b>
 
@@ -108,7 +108,7 @@ collectionGroup(options: CollectionGroupStageOptions): PipelineType;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  options | [CollectionGroupStageOptions](./firestore_pipelines.md#collectiongroupstageoptions) | Options defining how this CollectionGroupStage is evaluated. |
+|  options | CollectionGroupStageOptions | Options defining how this CollectionGroupStage is evaluated. |
 
 <b>Returns:</b>
 
@@ -128,7 +128,7 @@ createFrom(query: Query): PipelineType;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  query | [Query](./firestore_.query.md#query_class) | A Query to be converted into a Pipeline. |
+|  query | Query | A Query to be converted into a Pipeline. |
 
 <b>Returns:</b>
 
@@ -165,7 +165,7 @@ database(options: DatabaseStageOptions): PipelineType;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  options | [DatabaseStageOptions](./firestore_pipelines.md#databasestageoptions) | Options defining how a DatabaseStage is evaluated. |
+|  options | DatabaseStageOptions | Options defining how a DatabaseStage is evaluated. |
 
 <b>Returns:</b>
 
@@ -185,7 +185,7 @@ documents(docs: Array<string | DocumentReference>): PipelineType;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  docs | Array&lt;string \| [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&gt; | An array of paths and DocumentReferences specifying the individual documents that will be the source of this pipeline. The converters for these DocumentReferences will be ignored and not have an effect on this pipeline. |
+|  docs | Array&lt;string \| DocumentReference&gt; | An array of paths and DocumentReferences specifying the individual documents that will be the source of this pipeline. The converters for these DocumentReferences will be ignored and not have an effect on this pipeline. |
 
 <b>Returns:</b>
 
@@ -209,7 +209,7 @@ documents(options: DocumentsStageOptions): PipelineType;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  options | [DocumentsStageOptions](./firestore_pipelines.md#documentsstageoptions) | Options defining how this DocumentsStage is evaluated. |
+|  options | DocumentsStageOptions | Options defining how this DocumentsStage is evaluated. |
 
 <b>Returns:</b>
 

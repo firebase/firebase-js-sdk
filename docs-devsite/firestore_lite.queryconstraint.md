@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # QueryConstraint class
-A `QueryConstraint` is used to narrow the set of documents returned by a Firestore query. `QueryConstraint`<!-- -->s are created by invoking [where()](./firestore_.md#where_cf384e6)<!-- -->, [orderBy()](./firestore_.md#orderby_80de1f8)<!-- -->, [startAt()](./firestore_.md#startat_5247456)<!-- -->, [startAfter()](./firestore_.md#startafter_5247456)<!-- -->, [endBefore()](./firestore_.md#endbefore_9a4477f)<!-- -->, [endAt()](./firestore_.md#endat_5247456)<!-- -->, [limit()](./firestore_.md#limit_ec46c78)<!-- -->, [limitToLast()](./firestore_.md#limittolast_ec46c78) and can then be passed to [query()](./firestore_.md#query_17e2432) to create a new query instance that also contains this `QueryConstraint`<!-- -->.
+A `QueryConstraint` is used to narrow the set of documents returned by a Firestore query. `QueryConstraint`<!-- -->s are created by invoking [where()](./firestore_.md#where_0fae4bf)<!-- -->, [orderBy()](./firestore_.md#orderby_006d61f)<!-- -->, [startAt()](./firestore_.md#startat_9a4477f)<!-- -->, [startAfter()](./firestore_.md#startafter_9a4477f)<!-- -->, [endBefore()](./firestore_.md#endbefore_9a4477f)<!-- -->, [endAt()](./firestore_.md#endat_9a4477f)<!-- -->, [limit()](./firestore_.md#limit_ec46c78)<!-- -->, [limitToLast()](./firestore_.md#limittolast_ec46c78) and can then be passed to [query()](./firestore_.md#query_9f7b0f4) to create a new query instance that also contains this `QueryConstraint`<!-- -->.
 
 <b>Signature:</b>
 
@@ -22,7 +22,7 @@ export declare abstract class QueryConstraint
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [type](./firestore_lite.queryconstraint.md#queryconstrainttype) |  | [QueryConstraintType](./firestore_lite.md#queryconstrainttype) | The type of this query constraint |
+|  [type](./firestore_lite.queryconstraint.md#queryconstrainttype) |  | [QueryConstraintType](./firestore_.md#queryconstrainttype) | The type of this query constraint |
 
 ## QueryConstraint.type
 

@@ -45,7 +45,7 @@ static fromJSON(json: object): VectorValue;
 
 <b>Returns:</b>
 
-[VectorValue](./firestore_lite.vectorvalue.md#vectorvalue_class)
+[VectorValue](./firestore_.vectorvalue.md#vectorvalue_class)
 
 an instance of [VectorValue](./firestore_.vectorvalue.md#vectorvalue_class) if the JSON object could be parsed. Throws a [FirestoreError](./firestore_.firestoreerror.md#firestoreerror_class) if an error occurs.
 
@@ -63,7 +63,7 @@ isEqual(other: VectorValue): boolean;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  other | [VectorValue](./firestore_lite.vectorvalue.md#vectorvalue_class) |  |
+|  other | [VectorValue](./firestore_.vectorvalue.md#vectorvalue_class) |  |
 
 <b>Returns:</b>
 

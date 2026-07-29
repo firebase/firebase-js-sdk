@@ -22,7 +22,7 @@ export declare class QueryDocumentSnapshot<
   DbModelType extends DocumentData = DocumentData
 > extends DocumentSnapshot<AppModelType, DbModelType> 
 ```
-<b>Extends:</b> [DocumentSnapshot](./firestore_lite.documentsnapshot.md#documentsnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt;
+<b>Extends:</b> [DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt;
 
 ## Methods
 

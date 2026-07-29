@@ -62,7 +62,7 @@ isEqual(other: FieldPath): boolean;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  other | [FieldPath](./firestore_lite.fieldpath.md#fieldpath_class) | The <code>FieldPath</code> to compare against. |
+|  other | [FieldPath](./firestore_.fieldpath.md#fieldpath_class) | The <code>FieldPath</code> to compare against. |
 
 <b>Returns:</b>
 

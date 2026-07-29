@@ -64,11 +64,11 @@ delete<AppModelType, DbModelType extends DocumentData>(
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  documentRef | [DocumentReference](./firestore_lite.documentreference.md#documentreference_class)<!-- -->&lt;AppModelType, DbModelType&gt; | A reference to the document to be deleted. |
+|  documentRef | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;AppModelType, DbModelType&gt; | A reference to the document to be deleted. |
 
 <b>Returns:</b>
 
-[WriteBatch](./firestore_lite.writebatch.md#writebatch_class)
+[WriteBatch](./firestore_.writebatch.md#writebatch_class)
 
 This `WriteBatch` instance. Used for chaining method calls.
 
@@ -89,12 +89,12 @@ set<AppModelType, DbModelType extends DocumentData>(
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  documentRef | [DocumentReference](./firestore_lite.documentreference.md#documentreference_class)<!-- -->&lt;AppModelType, DbModelType&gt; | A reference to the document to be set. |
-|  data | [WithFieldValue](./firestore_lite.md#withfieldvalue)<!-- -->&lt;AppModelType&gt; | An object of the fields and values for the document. |
+|  documentRef | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;AppModelType, DbModelType&gt; | A reference to the document to be set. |
+|  data | [WithFieldValue](./firestore_.md#withfieldvalue)<!-- -->&lt;AppModelType&gt; | An object of the fields and values for the document. |
 
 <b>Returns:</b>
 
-[WriteBatch](./firestore_lite.writebatch.md#writebatch_class)
+[WriteBatch](./firestore_.writebatch.md#writebatch_class)
 
 This `WriteBatch` instance. Used for chaining method calls.
 
@@ -116,13 +116,13 @@ set<AppModelType, DbModelType extends DocumentData>(
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  documentRef | [DocumentReference](./firestore_lite.documentreference.md#documentreference_class)<!-- -->&lt;AppModelType, DbModelType&gt; | A reference to the document to be set. |
-|  data | [PartialWithFieldValue](./firestore_lite.md#partialwithfieldvalue)<!-- -->&lt;AppModelType&gt; | An object of the fields and values for the document. |
-|  options | [SetOptions](./firestore_lite.md#setoptions) | An object to configure the set behavior. |
+|  documentRef | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;AppModelType, DbModelType&gt; | A reference to the document to be set. |
+|  data | [PartialWithFieldValue](./firestore_.md#partialwithfieldvalue)<!-- -->&lt;AppModelType&gt; | An object of the fields and values for the document. |
+|  options | [SetOptions](./firestore_.md#setoptions) | An object to configure the set behavior. |
 
 <b>Returns:</b>
 
-[WriteBatch](./firestore_lite.writebatch.md#writebatch_class)
+[WriteBatch](./firestore_.writebatch.md#writebatch_class)
 
 This `WriteBatch` instance. Used for chaining method calls.
 
@@ -147,12 +147,12 @@ update<AppModelType, DbModelType extends DocumentData>(
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  documentRef | [DocumentReference](./firestore_lite.documentreference.md#documentreference_class)<!-- -->&lt;AppModelType, DbModelType&gt; | A reference to the document to be updated. |
-|  data | [UpdateData](./firestore_lite.md#updatedata)<!-- -->&lt;DbModelType&gt; | An object containing the fields and values with which to update the document. Fields can contain dots to reference nested fields within the document. |
+|  documentRef | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;AppModelType, DbModelType&gt; | A reference to the document to be updated. |
+|  data | [UpdateData](./firestore_.md#updatedata)<!-- -->&lt;DbModelType&gt; | An object containing the fields and values with which to update the document. Fields can contain dots to reference nested fields within the document. |
 
 <b>Returns:</b>
 
-[WriteBatch](./firestore_lite.writebatch.md#writebatch_class)
+[WriteBatch](./firestore_.writebatch.md#writebatch_class)
 
 This `WriteBatch` instance. Used for chaining method calls.
 
@@ -181,14 +181,14 @@ update<AppModelType, DbModelType extends DocumentData>(
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  documentRef | [DocumentReference](./firestore_lite.documentreference.md#documentreference_class)<!-- -->&lt;AppModelType, DbModelType&gt; | A reference to the document to be updated. |
-|  field | string \| [FieldPath](./firestore_lite.fieldpath.md#fieldpath_class) | The first field to update. |
+|  documentRef | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;AppModelType, DbModelType&gt; | A reference to the document to be updated. |
+|  field | string \| [FieldPath](./firestore_.fieldpath.md#fieldpath_class) | The first field to update. |
 |  value | unknown | The first value. |
 |  moreFieldsAndValues | unknown\[\] | Additional key value pairs. |
 
 <b>Returns:</b>
 
-[WriteBatch](./firestore_lite.writebatch.md#writebatch_class)
+[WriteBatch](./firestore_.writebatch.md#writebatch_class)
 
 This `WriteBatch` instance. Used for chaining method calls.
 
