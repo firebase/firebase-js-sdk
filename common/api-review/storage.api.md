@@ -80,9 +80,9 @@ export class _FirebaseStorageImpl implements FirebaseStorage {
     // (undocumented)
     _isUsingEmulator: boolean;
     // Warning: (ae-forgotten-export) The symbol "ConnectionType" needs to be exported by the entry point index.d.ts
-    // Warning: (ae-forgotten-export) The symbol "RequestInfo" needs to be exported by the entry point index.d.ts
+    // Warning: (ae-forgotten-export) The symbol "RequestInfo_2" needs to be exported by the entry point index.d.ts
     // Warning: (ae-forgotten-export) The symbol "Connection" needs to be exported by the entry point index.d.ts
-    // Warning: (ae-forgotten-export) The symbol "Request" needs to be exported by the entry point index.d.ts
+    // Warning: (ae-forgotten-export) The symbol "Request_2" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
     _makeRequest<I extends ConnectionType, O>(requestInfo: RequestInfo_2<I, O>, requestFactory: () => Connection<I>, authToken: string | null, appCheckToken: string | null, retry?: boolean): Request_2<O>;
@@ -178,7 +178,7 @@ export class _Location {
     static makeFromUrl(url: string, host: string): _Location;
     // (undocumented)
     get path(): string;
-    }
+}
 
 // @public
 export function ref(storage: FirebaseStorage, url?: string): StorageReference;
@@ -228,7 +228,7 @@ export class StorageError extends FirebaseError {
     // (undocumented)
     get status(): number;
     set status(status: number);
-    }
+}
 
 // @public
 export enum StorageErrorCode {
@@ -386,8 +386,8 @@ export class _UploadTask {
     isExponentialBackoffExpired(): boolean;
     // Warning: (ae-forgotten-export) The symbol "Metadata" needs to be exported by the entry point index.d.ts
     _metadata: Metadata | null;
-    // Warning: (ae-forgotten-export) The symbol "Unsubscribe" needs to be exported by the entry point index.d.ts
-    // Warning: (ae-forgotten-export) The symbol "Subscribe" needs to be exported by the entry point index.d.ts
+    // Warning: (ae-forgotten-export) The symbol "Unsubscribe_2" needs to be exported by the entry point index.d.ts
+    // Warning: (ae-forgotten-export) The symbol "Subscribe_2" needs to be exported by the entry point index.d.ts
     on(type: _TaskEvent, nextOrObserver?: StorageObserver<UploadTaskSnapshot> | null | ((snapshot: UploadTaskSnapshot) => unknown), error?: ((a: StorageError) => unknown) | null, completed?: CompleteFn | null): Unsubscribe_2 | Subscribe_2<UploadTaskSnapshot>;
     pause(): boolean;
     resume(): boolean;
@@ -396,7 +396,7 @@ export class _UploadTask {
     _state: InternalTaskState;
     then<U>(onFulfilled?: ((value: UploadTaskSnapshot) => U | Promise<U>) | null, onRejected?: ((error: StorageError) => U | Promise<U>) | null): Promise<U>;
     _transferred: number;
-    }
+}
 
 // @public
 export interface UploadTaskSnapshot {
@@ -407,6 +407,5 @@ export interface UploadTaskSnapshot {
     task: UploadTask;
     totalBytes: number;
 }
-
 
 ```
