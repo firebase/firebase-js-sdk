@@ -1,4 +1,4 @@
-#### Absence of `log()` Method
+#### Custom Attributes in the Absence of log() Method
 
 Unlike native iOS and Android SDK architectures, the JavaScript Web SDK does **not** expose a standalone `log()` API (e.g. `crashlytics.log()`).
 

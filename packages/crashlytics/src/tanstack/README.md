@@ -1,6 +1,6 @@
-# React Router (v6+) Setup Guide - Firebase Crashlytics
+# TanStack Router Setup Guide - Firebase Crashlytics
 
-This guide details how to integrate Firebase Crashlytics into a React application using React Router (v6+) for automatic error reporting, route templating, and stack trace de-obfuscation.
+This guide details how to integrate Firebase Crashlytics into a React application using TanStack Router for automatic error reporting and stack trace de-obfuscation.
 
 ---
 
@@ -12,29 +12,20 @@ This guide details how to integrate Firebase Crashlytics into a React applicatio
 
 ## Automatic Error Capturing
 
-If you're using React Router (v6+) in your application instead of Next.js-based routing, replace React Router's `<Routes>` container with `<CrashlyticsRoutes>`. This handles uncaught rejections and exceptions across routes and tracks errors using templated path names (e.g. `/profile/:userId`).
+If you are using TanStack Router, register `recordError` in `defaultOnCatch`:
 
-```tsx
-// src/App.tsx
-import React from 'react';
-import { BrowserRouter, Route } from 'react-router-dom';
-import { CrashlyticsRoutes } from '@firebase/crashlytics/react-router';
-import { app } from './lib/firebase'; // Shared initialization script
-import Home from './pages/Home';
-import Profile from './pages/Profile';
-import Product from './pages/Product';
+```typescript
+import { recordError, getCrashlytics } from "@firebase/crashlytics";
+import { app } from "./lib/firebase"; // shared initialization script
+import { createRouter } from "@tanstack/react-router";
+import { routeTree } from "./routeTree.gen";
 
-export default function App() {
-  return (
-    <BrowserRouter>
-      <CrashlyticsRoutes firebaseApp={app}>
-        <Route path="/" element={<Home />} />
-        <Route path="/profile/:userId" element={<Profile />} />
-        <Route path="/product/:productId/details" element={<Product />} />
-      </CrashlyticsRoutes>
-    </BrowserRouter>
-  );
-}
+const router = createRouter({
+  routeTree,
+  defaultOnCatch: (error, errorInfo) => {
+    recordError(getCrashlytics(app), error, errorInfo);
+  },
+});
 ```
 
 ---
@@ -59,7 +50,7 @@ export default function App() {
 
 ### Configure Build Tool for Source Maps
 
-For Vite (React), enable `sourcemap` in `vite.config.ts`:
+For Vite (TanStack), enable `sourcemap` in `vite.config.ts`:
 
 ```typescript
 // vite.config.ts

@@ -4,9 +4,9 @@ This guide details how to integrate Firebase Crashlytics into a React applicatio
 
 ---
 
-<!-- #include "../../partials/_initial_setup.md" -->
+<!-- #include "../../docs/_initial_setup.md" -->
 > [!NOTE]
-> For core package installation and Firebase App singleton configuration, see [_initial_setup.md](../../partials/_initial_setup.md).
+> For core package installation and Firebase App singleton configuration, see [_initial_setup.md](../../docs/_initial_setup.md).
 
 ---
 
@@ -35,23 +35,23 @@ export default function App() {
 
 ---
 
-<!-- #include "../../partials/_programmatic_error_capturing.md" -->
+<!-- #include "../../docs/_programmatic_error_capturing.md" -->
 > [!NOTE]
-> For manually capturing handled exceptions with custom metadata, see [_programmatic_error_capturing.md](../../partials/_programmatic_error_capturing.md).
+> For manually capturing handled exceptions with custom metadata, see [_programmatic_error_capturing.md](../../docs/_programmatic_error_capturing.md).
 
 ---
 
-<!-- #include "../../partials/_force_flushing.md" -->
+<!-- #include "../../docs/_force_flushing.md" -->
 > [!NOTE]
-> For force-flushing buffered telemetry records before unloads, see [_force_flushing.md](../../partials/_force_flushing.md).
+> For force-flushing buffered telemetry records before unloads, see [_force_flushing.md](../../docs/_force_flushing.md).
 
 ---
 
 ## Stack Trace De-obfuscation (Source Map Uploading)
 
-<!-- #include "../../partials/_sourcemap_cli_setup.md" -->
+<!-- #include "../../docs/_sourcemap_cli_setup.md" -->
 > [!NOTE]
-> For Firebase CLI prerequisites and authentication steps, see [_sourcemap_cli_setup.md](../../partials/_sourcemap_cli_setup.md).
+> For Firebase CLI prerequisites and authentication steps, see [_sourcemap_cli_setup.md](../../docs/_sourcemap_cli_setup.md).
 
 ### Configure Vite for Source Maps
 
@@ -97,9 +97,9 @@ Add two new scripts to your `package.json` and invoke them from your `build` com
 
 To ensure smooth integration during the private preview, review these essential best practices:
 
-<!-- #include "../../partials/_gotchas_dual_package.md" -->
+<!-- #include "../../docs/_gotchas_dual_package.md" -->
 > [!NOTE]
-> For import standardization guidelines, see [_gotchas_dual_package.md](../../partials/_gotchas_dual_package.md).
+> For import standardization guidelines, see [_gotchas_dual_package.md](../../docs/_gotchas_dual_package.md).
 
 ### TypeScript: `verbatimModuleSyntax` Resolution
 
@@ -115,6 +115,6 @@ import { FirebaseApp } from 'firebase/app';
 import type { FirebaseApp } from '@firebase/app';
 ```
 
-<!-- #include "../../partials/_gotchas_absence_of_log.md" -->
+<!-- #include "../../docs/_custom_attribute_collection.md" -->
 > [!NOTE]
-> For logging custom attributes without a `log()` method, see [_gotchas_absence_of_log.md](../../partials/_gotchas_absence_of_log.md).
+> For logging custom attributes without a `log()` method, see [_custom_attribute_collection.md](../../docs/_custom_attribute_collection.md).
