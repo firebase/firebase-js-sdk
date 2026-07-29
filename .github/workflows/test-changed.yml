@@ -87,6 +87,12 @@ jobs:
         run: xvfb-run yarn test:changed core
         env:
           BROWSERS: 'Firefox'
+      - name: Upload Karma Browser Logs
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # ratchet:actions/upload-artifact@v4
+        with:
+          name: karma-browser-logs-firefox
+          path: packages/data-connect/karma-browser-debug.log
           
           
   test-webkit:
@@ -116,3 +122,9 @@ jobs:
         run: yarn test:changed core
         env:
           BROWSERS: 'WebkitHeadless'
+      - name: Upload Karma Browser Logs
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # ratchet:actions/upload-artifact@v4
+        with:
+          name: karma-browser-logs-webkit
+          path: packages/data-connect/karma-browser-debug.log
