@@ -133,14 +133,28 @@ describe('DataConnect Tests', async () => {
         testId: crypto.randomUUID()
       }
     });
-    return fetch(url, {
-      method: 'POST',
-      headers,
-      body
-    });
+    try {
+      return await fetch(url, {
+        method: 'POST',
+        headers,
+        body
+      });
+    } catch (e: unknown) {
+      // eslint-disable-next-line no-console
+      console.log(
+        'zzyzx fetch() threw:',
+        e,
+        ' (extraHeaders:',
+        extraHeaders,
+        ')'
+      );
+      throw e;
+    }
   }
   it('xx2bqpg7yw direct fetch good mode (without X-Client headers)', async () => {
     const res = await executeDirectFetch();
+    // eslint-disable-next-line no-console
+    console.log('zzyzx res.status:', res.status);
     expect(res.status).to.equal(200);
   });
   it('xx2bqpg7yw direct fetch bad mode (with X-Client headers)', async () => {
@@ -148,6 +162,8 @@ describe('DataConnect Tests', async () => {
       'X-Client-Platform': 'web',
       'X-Client-Version': '0.15.1'
     });
+    // eslint-disable-next-line no-console
+    console.log('zzyzx res.status:', res.status);
     expect(res.status).to.equal(200);
   });
   it('Can get all posts', async () => {
