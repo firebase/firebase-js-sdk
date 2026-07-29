@@ -108,7 +108,10 @@ function loadApiExtractorConfig(
           'logLevel': 'none'
         },
         'ae-forgotten-export': {
-          'logLevel': (apiReportEnabled && !excludeForgottenExportWarning) ? 'error' : 'none',
+          'logLevel':
+            apiReportEnabled && !excludeForgottenExportWarning
+              ? 'error'
+              : 'none',
           'addToApiReportFile': !excludeForgottenExportWarning
         }
       },

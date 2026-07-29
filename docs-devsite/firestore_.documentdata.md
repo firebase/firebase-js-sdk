@@ -9,11 +9,11 @@ overwritten. Changes should be made in the source code at
 https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
-# messaging package
-The Firebase Cloud Messaging Web SDK. This SDK does not work in a Node.js environment.
+# DocumentData interface
+Document data (for use with [setDoc()](./firestore_lite.md#setdoc_ee215ad)<!-- -->) consists of fields mapped to values.
 
-|  Entry Point | Description |
-|  --- | --- |
-|  [/](./messaging_.md#@firebase/messaging) |  |
-|  [/sw](./messaging_sw.md#@firebase/messaging/sw) |  |
+<b>Signature:</b>
 
+```typescript
+export declare interface DocumentData 
+```
