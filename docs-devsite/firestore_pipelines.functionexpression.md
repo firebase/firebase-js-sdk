@@ -21,6 +21,12 @@ export declare class FunctionExpression extends Expression
 ```
 <b>Extends:</b> [Expression](./firestore_pipelines.expression.md#expression_class)
 
+## Constructors
+
+|  Constructor | Modifiers | Description |
+|  --- | --- | --- |
+|  [(constructor)(name, params)](./firestore_pipelines.functionexpression.md#functionexpressionconstructor) |  | Constructs a new instance of the <code>FunctionExpression</code> class |
+
 ## Properties
 
 |  Property | Modifiers | Type | Description |
@@ -28,6 +34,23 @@ export declare class FunctionExpression extends Expression
 |  [expressionType](./firestore_pipelines.functionexpression.md#functionexpressionexpressiontype) |  | [ExpressionType](./firestore_pipelines.md#expressiontype) |  |
 |  [name](./firestore_pipelines.functionexpression.md#functionexpressionname) |  | string |  |
 |  [params](./firestore_pipelines.functionexpression.md#functionexpressionparams) |  | [Expression](./firestore_pipelines.expression.md#expression_class)<!-- -->\[\] |  |
+
+## FunctionExpression.(constructor)
+
+Constructs a new instance of the `FunctionExpression` class
+
+<b>Signature:</b>
+
+```typescript
+constructor(name: string, params: Expression[]);
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  name | string |  |
+|  params | [Expression](./firestore_pipelines.expression.md#expression_class)<!-- -->\[\] |  |
 
 ## FunctionExpression.expressionType
 
