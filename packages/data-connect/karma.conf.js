@@ -17,7 +17,7 @@
 
 const karmaBase = require('../../config/karma.base');
 
-const files = [`test/**/*.test.ts`];
+const files = ['test/setup.ts', 'test/**/*.test.ts'];
 
 module.exports = function (config) {
   const karmaConfig = Object.assign({}, karmaBase, {
