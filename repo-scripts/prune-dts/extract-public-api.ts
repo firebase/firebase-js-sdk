@@ -47,6 +47,10 @@ function writeTypeScriptConfig(packageRoot: string): void {
     include: [path.resolve(packageRoot, './src')],
     compilerOptions: {
       downlevelIteration: true, // Needed for FirebaseApp
+      // Modern @microsoft/api-extractor 7.x runs its own TypeScript compiler instance.
+      // 1. skipLibCheck: Avoids type-checking third-party node_modules definition files during analysis.
+      // 2. paths: Overrides any workspace path mappings in the package tsconfig.json so that API Extractor
+      //    resolves package imports against built declaration files rather than raw TypeScript source files.
       skipLibCheck: true,
       paths: {}
     }

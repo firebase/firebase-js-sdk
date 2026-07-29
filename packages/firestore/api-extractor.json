@@ -1,15 +1,22 @@
 {
+  /**
+   * Configuration for generating the primary reference documentation model (api.json), used by `yarn docgen:devsite`.
+   * Note: Rollup .d.ts generation and API review reports are handled by `api-report:*` npm scripts via `repo-scripts/prune-dts`.
+   *
+   * MULTI-ENTRY-POINT DOCUMENTATION (/lite, /pipelines, /lite/pipelines):
+   * Because @microsoft/api-extractor analyzes one entry point per config file, this file only specifies
+   * the main entry point (dist/index.d.ts).
+   *
+   * During devsite generation, scripts/docgen/docgen.ts dynamically runs API Extractor for each secondary
+   * entry point and merges their ApiEntryPoint members into `firestore.api.json`.
+   */
+  "extends": "../../config/api-extractor.json",
+  // Point it to your entry point d.ts file.
+  "mainEntryPointFilePath": "<projectFolder>/dist/index.d.ts",
+  "apiReport": {
     /**
-     * This config is used for generating the api.json file that includes all entry points, which is used to create reference docs.
-     * apiReport and d.ts rollup are handled by scripts/api-report.ts.
+     * apiReport is handled by scripts/api-report.ts
      */
-    "extends": "../../config/api-extractor.json",
-    // Point it to your entry point d.ts file.
-    "mainEntryPointFilePath": "<projectFolder>/dist/index.d.ts",
-    "apiReport": {
-        /**
-         * apiReport is handled by scripts/api-report.ts
-         */
-        "enabled": false
-    }
+    "enabled": false
+  }
 }

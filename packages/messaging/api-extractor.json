@@ -1,9 +1,20 @@
 {
+  /**
+   * Configuration for generating the primary reference documentation model (api.json), used by `yarn docgen:devsite`.
+   * Note: Rollup .d.ts generation and API review reports are handled by `api-report:*` npm scripts via `repo-scripts/prune-dts`.
+   *
+   * MULTI-ENTRY-POINT DOCUMENTATION (/sw):
+   * Because @microsoft/api-extractor analyzes one entry point per config file, this file only specifies
+   * the main entry point (dist/src/index.d.ts).
+   *
+   * During devsite generation, scripts/docgen/docgen.ts dynamically runs API Extractor for the `/sw`
+   * entry point and merges its ApiEntryPoint member into `messaging.api.json`.
+   */
   "extends": "../../config/api-extractor.json",
   // Point it to your entry point d.ts file.
   "mainEntryPointFilePath": "<projectFolder>/dist/src/index.d.ts",
   "dtsRollup": {
-    /** 
+    /**
      * rollup is not supported when multiple entry points are present.
      * npm script api-report:rollup is used to generate dts rollup.
      */
@@ -14,5 +25,5 @@
      * apiReport is handled by npm script api-report:rollup
      */
     "enabled": false
-}
+  }
 }
