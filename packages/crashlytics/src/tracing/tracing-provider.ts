@@ -50,8 +50,6 @@ import {
 } from '../constants';
 import { CrashlyticsOptions } from '../public-types';
 
-let unregisterInstrumentations: (() => void) | undefined;
-
 /**
  * Result returned by {@link createTracingProvider}.
  *
@@ -164,11 +162,7 @@ export function createTracingProvider(
     applyCustomAttributesOnSpan
   };
 
-  if (unregisterInstrumentations) {
-    unregisterInstrumentations();
-  }
-
-  unregisterInstrumentations = registerInstrumentations({
+  registerInstrumentations({
     instrumentations: [
       new FetchInstrumentation(networkInstrumentationConfig),
       new XMLHttpRequestInstrumentation(networkInstrumentationConfig),

@@ -43,8 +43,6 @@ import {
 import { AttributesStore } from '../attributes-store';
 import { OnErrorLogRecordProcessor } from './on-error-log-record-processor';
 
-let unregisterInstrumentations: (() => void) | undefined;
-
 /**
  * Result returned by {@link createLoggerProvider}.
  *
@@ -128,11 +126,7 @@ export function createLoggerProvider(
       enabled: false
     });
 
-    if (unregisterInstrumentations) {
-      unregisterInstrumentations();
-    }
-
-    unregisterInstrumentations = registerInstrumentations({
+    registerInstrumentations({
       loggerProvider,
       instrumentations: [
         navigationTiming,
