@@ -41,7 +41,6 @@ import {
 } from './api';
 import { CrashlyticsService } from './service';
 import { registerCrashlytics } from './register';
-import { _FirebaseInstallationsInternal } from '@firebase/installations';
 import { AUTO_CONSTANTS } from './auto-constants';
 import { CrashlyticsInternal } from './types';
 import {
@@ -62,8 +61,7 @@ const fakeLoggerProvider = {
     return {
       emit: (logRecord: LogRecord) => {
         emittedLogs.push(logRecord);
-      },
-      enabled: () => true
+      }
     };
   },
   forceFlush: () => {
@@ -601,34 +599,30 @@ function getFakeApp(): FirebaseApp {
   });
   _addOrOverwriteComponent(
     app,
-    //@ts-ignore
     new Component(
-      'installations-internal',
+      'installations-internal' as any,
       () =>
         ({
           getId: async () => 'iid',
           getToken: async () => 'authToken'
-        }) as _FirebaseInstallationsInternal,
+        }) as any,
       ComponentType.PUBLIC
-    )
+    ) as any
   );
   _addOrOverwriteComponent(
     app,
-    //@ts-ignore
     new Component(
-      'app-check-internal',
+      'app-check-internal' as any,
       () => {
         return {} as FirebaseAppCheckInternal;
       },
       ComponentType.PUBLIC
-    )
+    ) as any
   );
   _addOrOverwriteComponent(
     app,
-    //@ts-ignore
     new Component(
-      'heartbeat',
-      // @ts-ignore
+      'heartbeat' as any,
       () => {
         return {
           triggerHeartbeat: () => {},
@@ -636,7 +630,7 @@ function getFakeApp(): FirebaseApp {
         };
       },
       ComponentType.PUBLIC
-    )
+    ) as any
   );
   return app;
 }
