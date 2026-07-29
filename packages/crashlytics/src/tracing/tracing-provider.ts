@@ -50,6 +50,8 @@ import {
 } from '../constants';
 import { CrashlyticsOptions } from '../public-types';
 
+let unregisterInstrumentations: (() => void) | undefined;
+
 /**
  * Result returned by {@link createTracingProvider}.
  *
@@ -162,7 +164,11 @@ export function createTracingProvider(
     applyCustomAttributesOnSpan
   };
 
-  registerInstrumentations({
+  if (unregisterInstrumentations) {
+    unregisterInstrumentations();
+  }
+
+  unregisterInstrumentations = registerInstrumentations({
     instrumentations: [
       new FetchInstrumentation(networkInstrumentationConfig),
       new XMLHttpRequestInstrumentation(networkInstrumentationConfig),
@@ -224,5 +230,13 @@ export class OTLPTraceExporter
       });
     }
     super.export(spans, resultCallback);
+  }
+}
+
+/** @internal */
+export function unregisterTracingInstrumentations(): void {
+  if (unregisterInstrumentations) {
+    unregisterInstrumentations();
+    unregisterInstrumentations = undefined;
   }
 }

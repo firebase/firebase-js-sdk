@@ -43,6 +43,8 @@ import {
 import { AttributesStore } from '../attributes-store';
 import { OnErrorLogRecordProcessor } from './on-error-log-record-processor';
 
+let unregisterInstrumentations: (() => void) | undefined;
+
 /**
  * Result returned by {@link createLoggerProvider}.
  *
@@ -126,7 +128,11 @@ export function createLoggerProvider(
       enabled: false
     });
 
-    registerInstrumentations({
+    if (unregisterInstrumentations) {
+      unregisterInstrumentations();
+    }
+
+    unregisterInstrumentations = registerInstrumentations({
       loggerProvider,
       instrumentations: [
         navigationTiming,
@@ -194,5 +200,13 @@ class OTLPLogExporter
   async forceFlush(): Promise<void> {
     // Basic implementation of forceFlush for interface compliance
     console.log('OTLPLogExporter: forceFlush called');
+  }
+}
+
+/** @internal */
+export function unregisterLoggerInstrumentations(): void {
+  if (unregisterInstrumentations) {
+    unregisterInstrumentations();
+    unregisterInstrumentations = undefined;
   }
 }
