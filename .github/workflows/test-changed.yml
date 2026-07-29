@@ -57,6 +57,8 @@ jobs:
         with:
           name: karma-browser-logs-chrome
           path: packages/data-connect/karma-browser-debug.log
+          if-no-files-found: warn
+          compression-level: 9
 
 
   test-firefox:
@@ -93,6 +95,8 @@ jobs:
         with:
           name: karma-browser-logs-firefox
           path: packages/data-connect/karma-browser-debug.log
+          if-no-files-found: warn
+          compression-level: 9
           
           
   test-webkit:
@@ -128,3 +132,5 @@ jobs:
         with:
           name: karma-browser-logs-webkit
           path: packages/data-connect/karma-browser-debug.log
+          if-no-files-found: warn
+          compression-level: 9
