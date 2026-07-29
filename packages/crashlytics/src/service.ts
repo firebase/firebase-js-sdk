@@ -54,14 +54,22 @@ export class CrashlyticsService implements Crashlytics, _FirebaseService {
       this.loggerProvider &&
       typeof this.loggerProvider.shutdown === 'function'
     ) {
-      promises.push(this.loggerProvider.shutdown());
+      promises.push(
+        this.loggerProvider.shutdown().catch(err => {
+          console.warn('Error shutting down logger provider:', err);
+        })
+      );
     }
     if (this.tracingProvider) {
       const shutdownProvider = this.tracingProvider as unknown as {
         shutdown?: () => Promise<void>;
       };
       if (typeof shutdownProvider.shutdown === 'function') {
-        promises.push(shutdownProvider.shutdown());
+        promises.push(
+          shutdownProvider.shutdown().catch(err => {
+            console.warn('Error shutting down tracing provider:', err);
+          })
+        );
       }
     }
     await Promise.all(promises);

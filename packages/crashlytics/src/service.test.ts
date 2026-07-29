@@ -80,5 +80,39 @@ describe('CrashlyticsService', () => {
         );
       }
     });
+
+    it('should not throw when provider shutdown methods reject', async () => {
+      sinon.stub(console, 'warn');
+      const loggerShutdownStub = sinon
+        .stub()
+        .rejects(new Error('Logger shutdown failed'));
+      const tracingShutdownStub = sinon
+        .stub()
+        .rejects(new Error('Tracing shutdown failed'));
+
+      const fakeLoggerProvider = {
+        shutdown: loggerShutdownStub
+      } as unknown as LoggerProvider;
+
+      const fakeTracingProvider = {
+        shutdown: tracingShutdownStub
+      } as unknown as TracerProvider;
+
+      const service = new CrashlyticsService(
+        fakeApp,
+        fakeLoggerProvider,
+        fakeTracingProvider,
+        fakeAttributesStore
+      );
+
+      try {
+        await service._delete();
+      } catch (err) {
+        expect.fail('Should not throw when provider shutdown methods reject');
+      }
+
+      expect(loggerShutdownStub.called).to.be.true;
+      expect(tracingShutdownStub.called).to.be.true;
+    });
   });
 });
