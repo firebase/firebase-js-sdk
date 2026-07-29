@@ -37,6 +37,8 @@ import {
   terminate
 } from '../src';
 import { DataConnectTransportManager } from '../src/network/manager';
+import { dcFetch } from '../src/network/rest/fetch';
+import { CallerSdkTypeEnum } from '../src/network/rest/index';
 
 import { getConnectionConfig, initDatabase, PROJECT_ID } from './util';
 
@@ -114,6 +116,81 @@ describe('DataConnect Tests', async () => {
       testId: TEST_ID
     });
   }
+  async function executeDirectFetch(
+    extraHeaders?: Record<string, string>
+  ): Promise<Response> {
+    const url =
+      'https://firebasedataconnect.googleapis.com/v1/projects/jscore-sandbox-141b5/locations/us-west2/services/fdc-service/connectors/tests:executeMutation';
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      'X-Goog-Api-Client': 'gl-js/ fire/0.15.1',
+      ...extraHeaders
+    };
+    const body = JSON.stringify({
+      name: 'projects/jscore-sandbox-141b5/locations/us-west2/services/fdc-service/connectors/tests',
+      operationName: 'AddPost',
+      variables: {
+        id: crypto.randomUUID(),
+        description: 'task 1',
+        testId: crypto.randomUUID()
+      }
+    });
+    return fetch(url, {
+      method: 'POST',
+      headers,
+      body
+    });
+  }
+  it('xx2bqpg7yw direct fetch good mode (without X-Client headers)', async () => {
+    const res = await executeDirectFetch();
+    expect(res.status).to.equal(200);
+  });
+  it('xx2bqpg7yw direct fetch bad mode (with X-Client headers)', async () => {
+    const res = await executeDirectFetch({
+      'X-Client-Platform': 'web',
+      'X-Client-Version': '0.15.1'
+    });
+    expect(res.status).to.equal(200);
+  });
+  async function executeDcFetchTest(
+    extraHeaders?: Record<string, string>
+  ): Promise<unknown> {
+    const url =
+      'https://firebasedataconnect.googleapis.com/v1/projects/jscore-sandbox-141b5/locations/us-west2/services/fdc-service/connectors/tests:executeMutation';
+    const body = {
+      name: 'projects/jscore-sandbox-141b5/locations/us-west2/services/fdc-service/connectors/tests',
+      operationName: 'AddPost',
+      variables: {
+        id: crypto.randomUUID(),
+        description: 'task 1',
+        testId: crypto.randomUUID()
+      }
+    };
+    const controller = new AbortController();
+    return dcFetch(
+      url,
+      body,
+      controller,
+      null,
+      null,
+      null,
+      false,
+      CallerSdkTypeEnum.Base,
+      false,
+      extraHeaders
+    );
+  }
+  it('xx2bqpg7yw dcFetch good mode (without X-Client headers)', async () => {
+    const res = await executeDcFetchTest();
+    expect(res).to.exist;
+  });
+  it('xx2bqpg7yw dcFetch bad mode (with X-Client headers)', async () => {
+    const res = await executeDcFetchTest({
+      'X-Client-Platform': 'web',
+      'X-Client-Version': '0.15.1'
+    });
+    expect(res).to.exist;
+  });
   it('Can get all posts', async () => {
     const taskListQuery = getPostsRef();
     const taskListRes = await executeQuery(taskListQuery);
