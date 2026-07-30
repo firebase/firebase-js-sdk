@@ -20,7 +20,7 @@ import copy from 'rollup-plugin-copy';
 import replacePlugin from '@rollup/plugin-replace';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
-import pkg from './package.json';
+import pkg from './package.json' with { type: 'json' };
 import { emitModulePackageFile } from '../../scripts/build/rollup_emit_module_package_file.js';
 import { generateBuildTargetReplaceConfig } from '../../scripts/build/rollup_replace_build_target.js';
 
