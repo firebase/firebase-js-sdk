@@ -26,9 +26,9 @@
     "dist"
   ],
   "scripts": {
-    "build": "rollup -c && yarn api-report",
+    "build": "rollup -c --bundleConfigAsCjs && yarn api-report",
     "build:deps": "lerna run build --scope @firebase/rules-unit-testing",
-    "dev": "rollup -c -w",
+    "dev": "rollup -c --bundleConfigAsCjs -w",
     "test:nyc": "TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --config ./mocharc.node.js",
     "test": "(cd functions && yarn) && firebase --project=demo-foo --debug emulators:exec 'yarn test:nyc'",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test",

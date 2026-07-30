@@ -23,8 +23,8 @@
     "webchannel-blob/package.json"
   ],
   "scripts": {
-    "dev": "rollup -c -w",
-    "build": "rollup -c",
+    "dev": "rollup -c --bundleConfigAsCjs -w",
+    "build": "rollup -c --bundleConfigAsCjs",
     "test": "echo 'No test suite for webchannel-wrapper'",
     "test:ci": "echo 'No test suite for webchannel-wrapper'",
     "trusted-type-check": "tsec -p tsconfig.json --noEmit"
