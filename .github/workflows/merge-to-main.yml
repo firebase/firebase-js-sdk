@@ -12,6 +12,9 @@ jobs:
   merge-to-main:
     runs-on: ubuntu-latest
     environment: release
+    # Allow GITHUB_TOKEN to have write permissions
+    permissions:
+      contents: write
     name: Merge Release Branch To Main
     steps:
       # 1. Fetch short-lived token from the GitHub App
