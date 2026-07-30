@@ -19,6 +19,7 @@ import { ReadableSpan } from '@opentelemetry/sdk-trace-base';
 import { SdkLogRecord } from '@opentelemetry/sdk-logs';
 
 export const QUEUE_LIMIT = 100;
+// TODO: Use to limit size of telemetryEmitBufferMap when implementing addSpan/addLog buffering capacity checks
 export const BUFFER_LIMIT = 1000;
 
 /**
@@ -41,15 +42,15 @@ export class TelemetryBufferStore {
   readonly rootTelemetryQueue = new RootTelemetryQueue();
   readonly telemetryEmitBufferMap = new Map<string, EventList | SdkLogRecord>();
 
-  // State flags
+  // TODO: Use to track if we need to emit a limit reached log record when capacity is exceeded
   private _shouldAddLimitLog = false;
 
   addSpan(_span: ReadableSpan): void {
-    // Buffer logic will be added here
+    // TODO: Add buffering logic
   }
 
   addLog(_logRecord: SdkLogRecord): void {
-    // Buffer logic will be added here
+    // TODO: Add buffering logic
   }
 
   getBufferedSpans(): ReadableSpan[] {
