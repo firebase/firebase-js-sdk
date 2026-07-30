@@ -22,6 +22,7 @@ import { AttributesStore } from './attributes-store';
 import { ALREADY_LOGGED_FLAG } from './constants';
 import { OnErrorSpanProcessor } from './tracing/on-error-span-processor';
 import { OnErrorLogRecordProcessor } from './logging/on-error-log-record-processor';
+import { TelemetryBufferStore } from './telemetry-buffer-store';
 
 /**
  * An internal interface for the Crashlytics service.
@@ -32,6 +33,7 @@ export interface CrashlyticsInternal extends Crashlytics {
   loggerProvider: LoggerProvider;
   tracingProvider: TracerProvider;
   attributesStore: AttributesStore;
+  telemetryBufferStore: TelemetryBufferStore;
   onErrorLogRecordProcessor?: OnErrorLogRecordProcessor;
   onErrorSpanProcessor?: OnErrorSpanProcessor;
 }

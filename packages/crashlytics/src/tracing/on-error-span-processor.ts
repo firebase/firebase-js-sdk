@@ -20,40 +20,33 @@ import {
   SpanExporter,
   ReadableSpan
 } from '@opentelemetry/sdk-trace-base';
+import { TelemetryBufferStore } from '../telemetry-buffer-store';
 
 /**
  * A BatchSpanProcessor that buffers all spans in memory until an error occurs.
  * Once an error occurs, it releases all buffered spans to the exporter batch processor queue.
  */
 export class OnErrorSpanProcessor extends BatchSpanProcessor {
-  private _buffer: ReadableSpan[] = [];
-  private _maxBufferSize = 1000;
+  private _store: TelemetryBufferStore;
 
-  constructor(exporter: SpanExporter, maxBufferSize?: number) {
+  constructor(exporter: SpanExporter, store: TelemetryBufferStore) {
     super(exporter);
-    if (maxBufferSize !== undefined) {
-      this._maxBufferSize = maxBufferSize;
-    }
+    this._store = store;
   }
 
   override onEnd(span: ReadableSpan): void {
-    this._buffer.push(span);
-    if (this._buffer.length > this._maxBufferSize) {
-      // TODO: shift() is O(n), use a fixed size circular buffer instead
-      this._buffer.shift();
-    }
+    this._store.addSpan(span);
   }
 
   override shutdown(): Promise<void> {
-    this._buffer = [];
+    this._store.clear();
     return super.shutdown();
   }
 
   onErrorOccurred(): void {
-    // Release all buffered spans to the batch processor
-    for (const span of this._buffer) {
+    const spans = this._store.getBufferedSpans();
+    for (const span of spans) {
       super.onEnd(span);
     }
-    this._buffer = [];
   }
 }

@@ -42,6 +42,7 @@ import { DynamicHeaderProvider } from '../types';
 import { FirebaseApp } from '@firebase/app';
 import { AttributesStore } from '../attributes-store';
 import { OnErrorSpanProcessor } from './on-error-span-processor';
+import { TelemetryBufferStore } from '../telemetry-buffer-store';
 import { JsonTraceSerializer } from '@opentelemetry/otlp-transformer';
 import { FetchTransport } from '../fetch-transport';
 import {
@@ -71,6 +72,7 @@ export function createTracingProvider(
   app: FirebaseApp,
   crashlyticsOptions: CrashlyticsOptions,
   attributesStore: AttributesStore,
+  telemetryBufferStore: TelemetryBufferStore,
   dynamicHeaderProviders: DynamicHeaderProvider[] = []
 ): TracingProviderResult {
   if (typeof window === 'undefined') {
@@ -120,7 +122,10 @@ export function createTracingProvider(
     );
   }
 
-  const onErrorSpanProcessor = new OnErrorSpanProcessor(traceExporter);
+  const onErrorSpanProcessor = new OnErrorSpanProcessor(
+    traceExporter,
+    telemetryBufferStore
+  );
 
   const tracingProvider = new WebTracerProvider({
     resource,

@@ -16,13 +16,7 @@
  */
 
 import { expect } from 'chai';
-import { ExportResultCode } from '@opentelemetry/core';
-import {
-  LoggerProvider,
-  LogRecordExporter,
-  ReadableLogRecord
-} from '@opentelemetry/sdk-logs';
-import { resourceFromAttributes } from '@opentelemetry/resources';
+import { LoggerProvider } from '@opentelemetry/sdk-logs';
 import { trace, TracerProvider } from '@opentelemetry/api';
 import { Logger, LogRecord, SeverityNumber } from '@opentelemetry/api-logs';
 import sinon from 'sinon';
@@ -46,7 +40,7 @@ import {
   SPAN_ATTR_KEY,
   SESSION_STORAGE_SESSION_ID_KEY
 } from './attributes-store';
-import { OnErrorLogRecordProcessor } from './logging/on-error-log-record-processor';
+import { TelemetryBufferStore } from './telemetry-buffer-store';
 
 const PROJECT_ID = 'my-project';
 const APP_ID = 'my-appid';
@@ -80,6 +74,7 @@ const fakeApp = {
   }
 } as FirebaseApp;
 let fakeAttributesStore = new AttributesStore(fakeApp.options);
+const fakeTelemetryBufferStore = new TelemetryBufferStore();
 const fakeTracingProvider = {
   getTracer: () => ({
     startActiveSpan: (name: string, fn: (span: any) => any) =>
@@ -96,7 +91,8 @@ const fakeCrashlytics: CrashlyticsInternal = {
   app: fakeApp,
   loggerProvider: fakeLoggerProvider,
   tracingProvider: fakeTracingProvider,
-  attributesStore: fakeAttributesStore
+  attributesStore: fakeAttributesStore,
+  telemetryBufferStore: fakeTelemetryBufferStore
 };
 
 describe('Top level API', () => {
@@ -411,7 +407,8 @@ describe('Top level API', () => {
         fakeCrashlytics.app,
         fakeLoggerProvider,
         fakeTracingProvider,
-        fakeAttributesStore
+        fakeAttributesStore,
+        fakeTelemetryBufferStore
       );
       crashlytics.options = {
         appVersion: '1.0.0'
@@ -556,37 +553,6 @@ describe('Top level API', () => {
       expect(mockOnErrorLogRecordProcessor.onErrorOccurred.calledOnce).to.be
         .true;
       expect(callOrder).to.deep.equal(['emit', 'onErrorOccurred']);
-    });
-
-    it('should immediately flush recorded error when using OnErrorLogRecordProcessor', async () => {
-      const exported: ReadableLogRecord[] = [];
-      const mockExporter: LogRecordExporter = {
-        export(logs, resultCallback) {
-          exported.push(...logs);
-          resultCallback({ code: ExportResultCode.SUCCESS });
-        },
-        shutdown: () => Promise.resolve(),
-        forceFlush: () => Promise.resolve()
-      };
-
-      const processor = new OnErrorLogRecordProcessor(mockExporter);
-      const resource = resourceFromAttributes({});
-      const realLoggerProvider = new LoggerProvider({
-        resource,
-        processors: [processor]
-      });
-
-      const crashlyticsInstance: CrashlyticsInternal = {
-        ...fakeCrashlytics,
-        loggerProvider: realLoggerProvider,
-        onErrorLogRecordProcessor: processor
-      };
-
-      recordError(crashlyticsInstance, new Error('Immediate export error'));
-      await processor.forceFlush();
-
-      expect(exported).to.have.lengthOf(1);
-      expect(exported[0].body).to.equal('Immediate export error');
     });
   });
 

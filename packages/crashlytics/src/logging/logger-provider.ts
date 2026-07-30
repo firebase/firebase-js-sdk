@@ -42,6 +42,7 @@ import {
 } from '../constants';
 import { AttributesStore } from '../attributes-store';
 import { OnErrorLogRecordProcessor } from './on-error-log-record-processor';
+import { TelemetryBufferStore } from '../telemetry-buffer-store';
 
 let unregisterInstrumentations: (() => void) | undefined;
 
@@ -64,6 +65,7 @@ export function createLoggerProvider(
   app: FirebaseApp,
   crashlyticsOptions: CrashlyticsOptions,
   attributesStore: AttributesStore,
+  telemetryBufferStore: TelemetryBufferStore,
   dynamicHeaderProviders: DynamicHeaderProvider[] = []
 ): LoggerProviderResult {
   let endpointUrl =
@@ -90,7 +92,10 @@ export function createLoggerProvider(
     attributesStore
   );
 
-  const onErrorLogRecordProcessor = new OnErrorLogRecordProcessor(logExporter);
+  const onErrorLogRecordProcessor = new OnErrorLogRecordProcessor(
+    logExporter,
+    telemetryBufferStore
+  );
 
   // TODO: Remove this custom processor and use applyCustomLogRecordData in the instrumentation config once
   // @opentelemetry/browser-instrumentation supports it across all standard/experimental packages.

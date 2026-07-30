@@ -87,7 +87,10 @@ describe('FirebaseCrashlytics', () => {
         })
       },
       tracingProvider: fakeTracingProvider,
-      attributesStore: new AttributesStore({ projectId: 'fake-project' })
+      attributesStore: new AttributesStore({ projectId: 'fake-project' }),
+      telemetryBufferStore: {
+        clear: stub()
+      }
     } as unknown as Crashlytics;
 
     getCrashlyticsStub = stub(crashlytics, 'getCrashlytics').returns(

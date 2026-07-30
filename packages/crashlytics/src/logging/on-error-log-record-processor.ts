@@ -20,40 +20,33 @@ import {
   LogRecordExporter,
   SdkLogRecord
 } from '@opentelemetry/sdk-logs';
+import { TelemetryBufferStore } from '../telemetry-buffer-store';
 
 /**
  * A BatchLogRecordProcessor that buffers all log records in memory until an error occurs.
  * Once an error occurs, it releases all buffered log records to the exporter batch processor queue.
  */
 export class OnErrorLogRecordProcessor extends BatchLogRecordProcessor {
-  private _buffer: SdkLogRecord[] = [];
-  private _maxBufferSize = 1000;
+  private _store: TelemetryBufferStore;
 
-  constructor(exporter: LogRecordExporter, maxBufferSize?: number) {
+  constructor(exporter: LogRecordExporter, store: TelemetryBufferStore) {
     super({ exporter });
-    if (maxBufferSize !== undefined) {
-      this._maxBufferSize = maxBufferSize;
-    }
+    this._store = store;
   }
 
   override onEmit(logRecord: SdkLogRecord): void {
-    this._buffer.push(logRecord);
-    if (this._buffer.length > this._maxBufferSize) {
-      // TODO: shift() is O(n), use a fixed size circular buffer instead
-      this._buffer.shift();
-    }
+    this._store.addLog(logRecord);
   }
 
   override shutdown(): Promise<void> {
-    this._buffer = [];
+    this._store.clear();
     return super.shutdown();
   }
 
   onErrorOccurred(): void {
-    // Release all buffered log records to the batch processor
-    for (const logRecord of this._buffer) {
-      super.onEmit(logRecord);
+    const logs = this._store.getBufferedLogs();
+    for (const log of logs) {
+      super.onEmit(log);
     }
-    this._buffer = [];
   }
 }
