@@ -106,19 +106,8 @@ export async function dcFetch<Data, Variables>(
 
   let response: Response;
   try {
-    // eslint-disable-next-line no-console
-    console.log('dcFetch BEFORE_CALL:', { url, fetchOptions, connectFetch });
     response = await connectFetch(url, fetchOptions);
   } catch (err) {
-    const errObj =
-      err && typeof err === 'object' ? (err as Record<string, unknown>) : {};
-    console.error('DC_FETCH_ERROR_DEBUG:', {
-      url,
-      fetchOptions,
-      err,
-      cause: errObj['cause'],
-      stack: errObj['stack']
-    });
     const message =
       err && typeof err === 'object' && 'message' in err
         ? (err as unknown as Record<string, unknown>)['message']

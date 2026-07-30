@@ -57,15 +57,6 @@ jobs:
         run: yarn build:changed core
       - name: Run tests on changed packages
         run: xvfb-run yarn test:changed core
-      - name: Upload Karma Browser Logs
-        if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # ratchet:actions/upload-artifact@v4
-        with:
-          name: karma-browser-logs-chrome
-          path: packages/data-connect/karma-browser-debug.log
-          if-no-files-found: warn
-          compression-level: 9
-
 
   test-firefox:
     name: Test Packages With Changed Files in Firefox
@@ -95,14 +86,6 @@ jobs:
         run: xvfb-run yarn test:changed core
         env:
           BROWSERS: 'Firefox'
-      - name: Upload Karma Browser Logs
-        if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # ratchet:actions/upload-artifact@v4
-        with:
-          name: karma-browser-logs-firefox
-          path: packages/data-connect/karma-browser-debug.log
-          if-no-files-found: warn
-          compression-level: 9
           
           
   test-webkit:
@@ -132,11 +115,3 @@ jobs:
         run: yarn test:changed core
         env:
           BROWSERS: 'WebkitHeadless'
-      - name: Upload Karma Browser Logs
-        if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # ratchet:actions/upload-artifact@v4
-        with:
-          name: karma-browser-logs-webkit
-          path: packages/data-connect/karma-browser-debug.log
-          if-no-files-found: warn
-          compression-level: 9

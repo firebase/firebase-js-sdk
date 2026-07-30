@@ -17,7 +17,7 @@
 
 const karmaBase = require('../../config/karma.base');
 
-const files = ['test/setup.ts', 'test/**/*.test.ts'];
+const files = [`test/**/*.test.ts`];
 
 module.exports = function (config) {
   const karmaConfig = Object.assign({}, karmaBase, {
@@ -25,13 +25,7 @@ module.exports = function (config) {
     files: files,
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
-    frameworks: ['mocha'],
-    browserConsoleLogOptions: {
-      level: 'debug',
-      format: '%b %T: %m',
-      terminal: false,
-      path: 'karma-browser-debug.log'
-    }
+    frameworks: ['mocha']
   });
 
   config.set(karmaConfig);
