@@ -1,0 +1,41 @@
+name: Merge Release Branch To Main
+
+on:
+  workflow_dispatch:
+
+jobs:
+  merge-to-main:
+    runs-on: ubuntu-latest
+    environment: release
+    name: Merge Release Branch To Main
+    steps:
+      # 1. Fetch short-lived token from the GitHub App
+      - name: Generate Temporary Token
+        id: generate-token
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: ${{ secrets.FIREBASE_RELEASE_APP_ID }}
+          private-key: ${{ secrets.FIREBASE_RELEASE_APP_PRIVATE_KEY }}
+
+      # 2. Checkout code using the dynamic token
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ steps.generate-token.outputs.token }}
+          fetch-depth: 0
+
+      # 3. Configure Git user metadata using the App's profile
+      - name: Configure Git
+        run: |
+          git config --global user.name "firebase-release-app[bot]"
+          git config --global user.email "firebase-release-app[bot]@users.noreply.github.com"
+
+      # 4. Merge release branch
+      - name: Merge release branch
+        run: |
+          git checkout release
+          git pull origin release
+          git checkout main
+          git pull origin main
+          git merge release
+          git push origin master
