@@ -122,11 +122,11 @@ export function resolveLoggerProvider(
       processors.push(...crashlyticsOptions.extraProcessors);
     }
 
-    processors.push(new BatchLogRecordProcessor(logExporter));
+    processors.push(new BatchLogRecordProcessor({ exporter: logExporter }));
 
     if (crashlyticsOptions.extraExporters) {
       for (const exporter of crashlyticsOptions.extraExporters) {
-        processors.push(new BatchLogRecordProcessor(exporter));
+        processors.push(new BatchLogRecordProcessor({ exporter }));
       }
     }
 
