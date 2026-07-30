@@ -17,10 +17,7 @@
 
 import { FirebaseApp } from '@firebase/app';
 import { AnyValueMap, Logger, LoggerProvider } from '@opentelemetry/api-logs';
-import {
-  LogRecordProcessor,
-  LogRecordExporter
-} from '@opentelemetry/sdk-logs';
+import { LogRecordProcessor, LogRecordExporter } from '@opentelemetry/sdk-logs';
 import { Resource } from '@opentelemetry/resources';
 
 /**
