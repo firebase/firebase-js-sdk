@@ -22,7 +22,8 @@ import replace from 'rollup-plugin-replace';
 import sourcemaps from 'rollup-plugin-sourcemaps';
 import terser from '@rollup/plugin-terser';
 import dtsPlugin from 'rollup-plugin-dts';
-const dts = typeof dtsPlugin === 'function' ? dtsPlugin : dtsPlugin.default || dtsPlugin;
+const dts =
+  typeof dtsPlugin === 'function' ? dtsPlugin : dtsPlugin.default || dtsPlugin;
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import tmp from 'tmp';
 import typescript from 'typescript';

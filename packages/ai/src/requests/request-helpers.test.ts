@@ -159,7 +159,7 @@ describe('request formatting methods', () => {
         systemInstruction: { role: 'system', parts: [{ text: 'be excited' }] }
       });
     });
-    it('passes thru systemInstructions if provided as Content', () => {
+    (it('passes thru systemInstructions if provided as Content', () => {
       const result = formatGenerateContentInput({
         contents: [
           {

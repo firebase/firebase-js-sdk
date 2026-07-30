@@ -20,7 +20,8 @@ import replace from 'rollup-plugin-replace';
 import typescript from 'typescript';
 import json from '@rollup/plugin-json';
 import dtsPlugin from 'rollup-plugin-dts';
-const dts = typeof dtsPlugin === 'function' ? dtsPlugin : dtsPlugin.default || dtsPlugin;
+const dts =
+  typeof dtsPlugin === 'function' ? dtsPlugin : dtsPlugin.default || dtsPlugin;
 import { generateBuildTargetReplaceConfig } from '../../scripts/build/rollup_replace_build_target.js';
 import { emitModulePackageFile } from '../../scripts/build/rollup_emit_module_package_file.js';
 import pkg from './package.json' with { type: 'json' };
