@@ -126,15 +126,21 @@ jobs:
         -d "{\"version\":\"$BASE_VERSION\",\"date\":\"$DATE\"}" \
         $RELEASE_TRACKER_URL/logProduction
       env:
-        STEPS_GET_VERSION_OUTPUTS_BASE_VERSION: ${{ steps.get-version.outputs.BASE_VERSION }}
+        STEPS_GET_VERSION_OUTPUTS_BASE_VERSION: ${{ steps.get-version.outputs.BASE_VERSION }}    
+    # Configures git user as "google-oss-bot" for the next step
+    - name: Configure Git User
+      run: |
+        git config --global user.name "google-oss-bot"
+        git config --global user.email "firebase-oss-bot@google.com"
     - name: Publish git tags
       # This commonly runs into permissions errors. Should not block the rest
       # of the workflow. But should fail workflow so we notice it. So putting
       # near the end.
       run: yarn ts-node scripts/release/publish-git-tags.ts
       # The script injects this token into the git push command
+      # Use OSS_BOT for a consistent username and token that is CLA approved
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.OSS_BOT_GITHUB_TOKEN }}
     - name: Create GitHub release
       # Depends on generated tag above.
       env:
