@@ -2,6 +2,11 @@ name: Merge Release Branch To Main
 
 on:
   workflow_dispatch:
+    inputs:
+      release_version:
+        description: 'Version to release (e.g., 12.7.0)'
+        required: true
+
 
 jobs:
   merge-to-main:
@@ -37,5 +42,5 @@ jobs:
           git pull origin release
           git checkout main
           git pull origin main
-          git merge release
+          git merge release --no-ff -m "(chore): Merge release into main for release $VERSION"
           git push origin master
