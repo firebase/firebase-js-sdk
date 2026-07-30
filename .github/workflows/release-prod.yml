@@ -38,7 +38,7 @@ jobs:
       with:
         node-version: 22.12.0
     - name: Checkout release branch (with history)
-      uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # ratchet:actions/checkout@v4
+      uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       with:
         # Release script requires git history and tags.
         fetch-depth: 0
