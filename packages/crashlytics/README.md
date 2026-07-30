@@ -188,10 +188,15 @@ Select the guide matching your application framework:
 
 ## Additional Configuration & References
 
-For advanced configuration, alerting, sampling, and log schema details, consult the following guides:
+For advanced usage options and project configuration details, consult the following guides:
 
-- 🏷️ **[App Versioning](docs/_app_versioning.md)**: Set up build script helpers to tag telemetry with commit hashes/versions.
-- 🔔 **[Alerting](docs/_alerting.md)**: Configure alerts in Error Reporting and advanced log-based metrics.
-- 🎚️ **[Sampling](docs/_sampling.md)**: Control telemetry volume and costs using the Admin API or Cloud Logging exclusion filters.
-- ⚙️ **[Enable/Disable Telemetry Collection](docs/_telemetry_collection.md)**: Programmatically turn telemetry collection on or off.
-- 📋 **[Log Schema](docs/_log_schema.md)**: Full reference for telemetry log fields and payload structures.
+- 🚀 **[Advanced Usage Guide](docs/ADVANCED_USAGE.md)**:
+  - 🏷️ **[App Versioning](docs/ADVANCED_USAGE.md#app-versioning)**: Set up build script helpers to tag telemetry with commit hashes/versions.
+  - ⚡ **[Programmatic Error Capturing](docs/ADVANCED_USAGE.md#programmatic-error-capturing)**: Manually record handled exceptions with custom metadata.
+  - 🧹 **[Force Flushing](docs/ADVANCED_USAGE.md#force-flushing-telemetry-records-flush)**: Upload queued error telemetry immediately before unload.
+  - 💡 **[Best Practices & Gotchas](docs/ADVANCED_USAGE.md#best-practices--gotchas)**: Guidelines on import paths and framework best practices.
+- ⚙️ **[Configuration Guide](docs/CONFIGURATION.md)**:
+  - 🔔 **[Alerting](docs/CONFIGURATION.md#alerting)**: Configure alerts in Error Reporting and advanced log-based metrics.
+  - 🎚️ **[Sampling](docs/CONFIGURATION.md#sampling)**: Control telemetry volume and costs using the Admin API or Cloud Logging exclusion filters.
+  - ⚙️ **[Enable/Disable Telemetry Collection](docs/CONFIGURATION.md#enabledisable-telemetry-collection)**: Programmatically turn telemetry collection on or off.
+  - 📋 **[Log Schema](docs/CONFIGURATION.md#log-schema)**: Full reference for telemetry log fields and payload structures.

@@ -4,9 +4,8 @@ This guide details how to integrate Firebase Crashlytics into a React applicatio
 
 ---
 
-<!-- #include "../../docs/_initial_setup.md" -->
 > [!NOTE]
-> For core package installation and Firebase App singleton configuration, see [_initial_setup.md](../../docs/_initial_setup.md).
+> For core package installation and Firebase App singleton configuration, see [Core SDK Installation & Initialization](../../README.md#step-2-core-sdk-installation--initialization).
 
 ---
 
@@ -35,15 +34,15 @@ export default function App() {
 
 ---
 
-<!-- #include "../../docs/_programmatic_error_capturing.md" -->
+<!-- #include "../../docs/ADVANCED_USAGE.md#programmatic-error-capturing" -->
 > [!NOTE]
-> For manually capturing handled exceptions with custom metadata, see [_programmatic_error_capturing.md](../../docs/_programmatic_error_capturing.md).
+> For manually capturing handled exceptions with custom metadata, see [Advanced Usage: Programmatic Error Capturing](../../docs/ADVANCED_USAGE.md#programmatic-error-capturing).
 
 ---
 
-<!-- #include "../../docs/_force_flushing.md" -->
+<!-- #include "../../docs/ADVANCED_USAGE.md#force-flushing-telemetry-records-flush" -->
 > [!NOTE]
-> For force-flushing buffered telemetry records before unloads, see [_force_flushing.md](../../docs/_force_flushing.md).
+> For force-flushing buffered telemetry records before unloads, see [Advanced Usage: Force Flushing Telemetry Records](../../docs/ADVANCED_USAGE.md#force-flushing-telemetry-records-flush).
 
 ---
 
@@ -97,9 +96,9 @@ Add two new scripts to your `package.json` and invoke them from your `build` com
 
 To ensure smooth integration during the private preview, review these essential best practices:
 
-<!-- #include "../../docs/_gotchas_dual_package.md" -->
+<!-- #include "../../docs/ADVANCED_USAGE.md#avoid-dual-package-hazards" -->
 > [!NOTE]
-> For import standardization guidelines, see [_gotchas_dual_package.md](../../docs/_gotchas_dual_package.md).
+> For import standardization guidelines, see [Advanced Usage: Avoid Dual Package Hazards](../../docs/ADVANCED_USAGE.md#avoid-dual-package-hazards).
 
 ### TypeScript: `verbatimModuleSyntax` Resolution
 
@@ -115,6 +114,6 @@ import { FirebaseApp } from 'firebase/app';
 import type { FirebaseApp } from '@firebase/app';
 ```
 
-<!-- #include "../../docs/_custom_attribute_collection.md" -->
+<!-- #include "../../docs/ADVANCED_USAGE.md#custom-attributes" -->
 > [!NOTE]
-> For logging custom attributes without a `log()` method, see [_custom_attribute_collection.md](../../docs/_custom_attribute_collection.md).
+> For logging custom attributes without a `log()` method, see [Advanced Usage: Custom Attributes](../../docs/ADVANCED_USAGE.md#custom-attributes).
