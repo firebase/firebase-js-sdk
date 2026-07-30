@@ -20,7 +20,7 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@firebase/util": "1.15.1",
+    "@firebase/util": "1.15.2",
     "@rollup/plugin-commonjs": "21.1.0",
     "@rollup/plugin-json": "6.1.0",
     "@rollup/plugin-node-resolve": "16.0.0",
@@ -40,7 +40,7 @@
     "yargs": "17.7.2"
   },
   "devDependencies": {
-    "@firebase/app": "0.15.1",
+    "@firebase/app": "0.16.0",
     "@firebase/logger": "0.5.1",
     "@types/webpack": "5.28.5"
   },
