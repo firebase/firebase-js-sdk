@@ -156,7 +156,7 @@ const reactRouterBuilds = [
     plugins: [
       typescriptPlugin({
         typescript,
-        tsconfig: 'tsconfig.react.json'
+        tsconfig: 'tsconfig.react-router.json'
       }),
       json(),
       copy({
@@ -186,7 +186,7 @@ const reactRouterBuilds = [
     plugins: [
       typescriptPlugin({
         typescript,
-        tsconfig: 'tsconfig.react.json'
+        tsconfig: 'tsconfig.react-router.json'
       }),
       json(),
       replaceSource('../auto-constants.js', 'cjs')
