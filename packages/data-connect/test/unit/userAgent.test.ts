@@ -58,8 +58,7 @@ describe('User Agent Tests', () => {
       {
         headers: {
           ['X-Goog-Api-Client']: 'gl-js/ fire/' + SDK_VERSION + ' js/gen',
-          ['X-Client-Platform']: 'web',
-          ['X-Client-Version']: SDK_VERSION
+          ['X-Client-Version']: 'web/' + SDK_VERSION
         }
       }
     );
@@ -72,8 +71,7 @@ describe('User Agent Tests', () => {
       {
         headers: {
           ['X-Goog-Api-Client']: 'gl-js/ fire/' + SDK_VERSION,
-          ['X-Client-Platform']: 'web',
-          ['X-Client-Version']: SDK_VERSION
+          ['X-Client-Version']: 'web/' + SDK_VERSION
         }
       }
     );
