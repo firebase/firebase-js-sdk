@@ -60,7 +60,7 @@ Crashlytics for web leverages Google Cloud Logging, Error Reporting, and Storage
 
 ### Option 1: Using Firebase Console (Recommended)
 
-1. Navigate to the [Firebase Console Crashlytics page](https://firebase.corp.google.com/u/0/project/_/crashlytics).
+1. Navigate to the [Firebase Console Crashlytics page](https://console.firebase.google.com/u/0/project/_/crashlytics).
 2. Select your project.
 3. Click **Set up** and follow the steps in the console.
 
