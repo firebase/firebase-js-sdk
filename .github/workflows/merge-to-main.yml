@@ -47,4 +47,4 @@ jobs:
           git checkout main
           git pull origin main
           git merge release --no-ff -m "(chore): Merge release into main for release $VERSION"
-          git push origin master
+          git push origin main
