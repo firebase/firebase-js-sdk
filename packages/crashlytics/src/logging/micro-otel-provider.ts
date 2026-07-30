@@ -30,6 +30,7 @@ export interface OtlpAttributeValue {
   intValue?: number;
   doubleValue?: number;
   arrayValue?: { values: OtlpAttributeValue[] };
+  kvListValue?: { values: OtlpKeyValue[] };
 }
 
 export interface OtlpKeyValue {
@@ -51,6 +52,13 @@ function formatOtlpAttributeValue(val: unknown): OtlpAttributeValue {
     return {
       arrayValue: {
         values: val.map(v => formatOtlpAttributeValue(v))
+      }
+    };
+  }
+  if (typeof val === 'object' && val !== null) {
+    return {
+      kvListValue: {
+        values: formatOtlpAttributes(val as Record<string, unknown>)
       }
     };
   }
@@ -141,13 +149,18 @@ export class MicroOtelLogger implements Logger {
         mergedAttributes[ATTR_KEY_INSTALLATION_ID] = cachedIid;
       }
 
-      const timeNano = logRecord.timestamp
-        ? String(
-            typeof logRecord.timestamp === 'number'
-              ? logRecord.timestamp * 1000000
-              : Date.now() * 1000000
-          )
-        : String(Date.now() * 1000000);
+      let timeNano: string;
+      if (logRecord.timestamp instanceof Date) {
+        timeNano = String(logRecord.timestamp.getTime() * 1000000);
+      } else if (typeof logRecord.timestamp === 'number') {
+        timeNano = String(logRecord.timestamp * 1000000);
+      } else if (Array.isArray(logRecord.timestamp)) {
+        timeNano = String(
+          logRecord.timestamp[0] * 1000000000 + logRecord.timestamp[1]
+        );
+      } else {
+        timeNano = String(Date.now() * 1000000);
+      }
 
       const bodyVal =
         typeof logRecord.body === 'string'
@@ -217,11 +230,15 @@ export class MicroOtelLogger implements Logger {
 
     const sendRequest = async (retriesLeft = 1): Promise<void> => {
       try {
-        await fetch(this.endpointUrl, {
+        const response = await fetch(this.endpointUrl, {
           method: 'POST',
           headers,
           body: payloadStr
         });
+        if (!response.ok && retriesLeft > 0) {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          return sendRequest(retriesLeft - 1);
+        }
       } catch (err) {
         if (retriesLeft > 0) {
           await new Promise(resolve => setTimeout(resolve, 1000));
