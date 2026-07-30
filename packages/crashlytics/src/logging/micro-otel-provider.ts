@@ -96,8 +96,7 @@ export class MicroOtelLogger implements Logger {
     private attributesStore: AttributesStore,
     options?: CrashlyticsOptions
   ) {
-    let endpointUrl =
-      options?.endpointUrl || DEFAULT_TELEMETRY_ENDPOINT;
+    let endpointUrl = options?.endpointUrl || DEFAULT_TELEMETRY_ENDPOINT;
     if (endpointUrl.endsWith('/')) {
       endpointUrl = endpointUrl.slice(0, -1);
     }
@@ -145,7 +144,10 @@ export class MicroOtelLogger implements Logger {
         ...(logRecord.attributes || {})
       };
 
-      if (cachedIid && mergedAttributes[ATTR_KEY_INSTALLATION_ID] === undefined) {
+      if (
+        cachedIid &&
+        mergedAttributes[ATTR_KEY_INSTALLATION_ID] === undefined
+      ) {
         mergedAttributes[ATTR_KEY_INSTALLATION_ID] = cachedIid;
       }
 
@@ -271,7 +273,11 @@ export class MicroOtelLoggerProvider implements LoggerProvider {
   getLogger(name: string, _version?: string, _options?: unknown): Logger {
     let logger = this.loggers.get(name);
     if (!logger) {
-      logger = new MicroOtelLogger(this.app, this.attributesStore, this.options);
+      logger = new MicroOtelLogger(
+        this.app,
+        this.attributesStore,
+        this.options
+      );
       this.loggers.set(name, logger);
     }
     return logger;

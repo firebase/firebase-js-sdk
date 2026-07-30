@@ -22,7 +22,10 @@ import {
   LogRecordExporter,
   LogRecordProcessor
 } from '@opentelemetry/sdk-logs';
-import { logs, LoggerProvider as ApiLoggerProvider } from '@opentelemetry/api-logs';
+import {
+  logs,
+  LoggerProvider as ApiLoggerProvider
+} from '@opentelemetry/api-logs';
 import { ATTR_SERVICE_NAME } from '@opentelemetry/semantic-conventions';
 import { resourceFromAttributes } from '@opentelemetry/resources';
 import { JsonLogsSerializer } from '@opentelemetry/otlp-transformer';
