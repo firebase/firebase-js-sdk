@@ -30,22 +30,24 @@ export class FirebaseAttributesProcessor implements LogRecordProcessor {
   constructor(private attributesStore: AttributesStore) {}
 
   onEmit(logRecord: LogRecord, _context?: Context): void {
+    if (!logRecord.attributes) {
+      logRecord.attributes = {};
+    }
+
     const dynamicAttributes = this.attributesStore.getLogAttributes();
 
-    if (logRecord.attributes) {
-      for (const [key, value] of Object.entries(dynamicAttributes)) {
-        if (value !== undefined && logRecord.attributes[key] === undefined) {
-          logRecord.attributes[key] = value as AttributeValue;
-        }
+    for (const [key, value] of Object.entries(dynamicAttributes)) {
+      if (value !== undefined && logRecord.attributes[key] === undefined) {
+        logRecord.attributes[key] = value as AttributeValue;
       }
+    }
 
-      const cachedIid = this.attributesStore.getCachedInstallationId();
-      if (
-        cachedIid &&
-        logRecord.attributes[ATTR_KEY_INSTALLATION_ID] === undefined
-      ) {
-        logRecord.attributes[ATTR_KEY_INSTALLATION_ID] = cachedIid;
-      }
+    const cachedIid = this.attributesStore.getCachedInstallationId();
+    if (
+      cachedIid &&
+      logRecord.attributes[ATTR_KEY_INSTALLATION_ID] === undefined
+    ) {
+      logRecord.attributes[ATTR_KEY_INSTALLATION_ID] = cachedIid;
     }
   }
 
