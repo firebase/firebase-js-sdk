@@ -55,10 +55,10 @@ export function getCrashlytics(
   options?: CrashlyticsOptions
 ): Crashlytics {
   registerCrashlytics();
-  const crashlyticsProvider = (_getProvider as any)(
+  const crashlyticsProvider: Provider<'crashlytics'> = _getProvider(
     app,
     CRASHLYTICS_TYPE
-  ) as Provider<'crashlytics'>;
+  );
 
   if (crashlyticsProvider.isInitialized()) {
     const existingInstance = crashlyticsProvider.getImmediate();

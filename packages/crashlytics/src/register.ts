@@ -37,8 +37,8 @@ import { AttributesStore } from './attributes-store';
 export function registerCrashlytics(): void {
   _registerComponent(
     new Component(
-      CRASHLYTICS_TYPE as any,
-      (container: any, { options }: InstanceFactoryOptions) => {
+      CRASHLYTICS_TYPE,
+      (container, { options }: InstanceFactoryOptions) => {
         const crashlyticsOptions = (options || {}) as CrashlyticsOptions;
 
         // getImmediate for FirebaseApp will always succeed
