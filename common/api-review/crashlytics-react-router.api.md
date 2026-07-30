@@ -7,6 +7,11 @@
 import { AnyValueMap } from '@opentelemetry/api-logs';
 import { default } from 'react';
 import { FirebaseApp } from '@firebase/app';
+import { Logger } from '@opentelemetry/api-logs';
+import { LoggerProvider } from '@opentelemetry/api-logs';
+import { LogRecordExporter } from '@opentelemetry/sdk-logs';
+import { LogRecordProcessor } from '@opentelemetry/sdk-logs';
+import { Resource } from '@opentelemetry/resources';
 import { RoutesProps } from 'react-router-dom';
 
 // @public
@@ -19,7 +24,15 @@ export interface CrashlyticsOptions {
     appVersion?: string;
     customAttributes?: AnyValueMap;
     endpointUrl?: string;
+    extraExporters?: LogRecordExporter[];
+    extraProcessors?: LogRecordProcessor[];
+    instrumentation?: boolean;
+    logger?: Logger;
+    loggerProvider?: LoggerProvider;
     region?: string;
+    registerGlobalLoggerProvider?: boolean;
+    resource?: Resource;
+    useGlobalLoggerProvider?: boolean;
 }
 
 // @public
