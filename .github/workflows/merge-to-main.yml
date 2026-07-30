@@ -12,14 +12,14 @@ jobs:
       # 1. Fetch short-lived token from the GitHub App
       - name: Generate Temporary Token
         id: generate-token
-        uses: actions/create-github-app-token@v3
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # ratchet:actions/create-github-app-token@v3
         with:
-          app-id: ${{ secrets.FIREBASE_RELEASE_APP_ID }}
+          client-id: ${{ secrets.FIREBASE_RELEASE_APP_ID }}
           private-key: ${{ secrets.FIREBASE_RELEASE_APP_PRIVATE_KEY }}
 
       # 2. Checkout code using the dynamic token
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7
         with:
           token: ${{ steps.generate-token.outputs.token }}
           fetch-depth: 0
