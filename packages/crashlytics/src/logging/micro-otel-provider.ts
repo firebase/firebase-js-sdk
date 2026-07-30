@@ -105,6 +105,10 @@ export class MicroOtelLogger implements Logger {
     this.endpointUrl = `${endpointUrl}/v1/projects/${projectId}/apps/${appId}/locations/${region}/logs`;
   }
 
+  enabled(): boolean {
+    return true;
+  }
+
   emit(logRecord: LogRecord): void {
     this.pendingLogRecords.push(logRecord);
 
