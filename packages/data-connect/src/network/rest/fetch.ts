@@ -73,16 +73,14 @@ export async function dcFetch<Data, Variables>(
   appCheckToken: string | null | undefined,
   _isUsingGen: boolean,
   _callerSdkType: CallerSdkType,
-  _isUsingEmulator: boolean,
-  _extraHeaders?: Record<string, string>
+  _isUsingEmulator: boolean
 ): Promise<DataConnectResponse<Data>> {
   if (!connectFetch) {
     throw new DataConnectError(Code.OTHER, 'No Fetch Implementation detected!');
   }
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
-    'X-Goog-Api-Client': getGoogApiClientValue(_isUsingGen, _callerSdkType),
-    ..._extraHeaders
+    'X-Goog-Api-Client': getGoogApiClientValue(_isUsingGen, _callerSdkType)
   };
   if (accessToken) {
     headers['X-Firebase-Auth-Token'] = accessToken;
