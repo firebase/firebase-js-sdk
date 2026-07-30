@@ -28,10 +28,10 @@
   "scripts": {
     "lint": "eslint --cache --cache-location '../../node_modules/.cache/eslint/' -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --cache --cache-location '../../node_modules/.cache/eslint/' --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
-    "build": "rollup -c",
+    "build": "rollup -c --bundleConfigAsCjs",
     "build:deps": "lerna run build --scope @firebase/auth-compat --include-dependencies",
     "build:release": "yarn build && yarn add-compat-overloads",
-    "dev": "rollup -c -w",
+    "dev": "rollup -c --bundleConfigAsCjs -w",
     "test": "run-p --npm-path npm lint test:all",
     "test:all": "run-s --npm-path npm test:browser test:node test:integration",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all",
@@ -40,7 +40,7 @@
     "test:browser:integration": "karma start --integration",
     "test:node": "ts-node -O '{\"module\": \"commonjs\", \"target\": \"es6\"}' scripts/run_node_tests.ts",
     "test:node:integration": "ts-node -O '{\"module\": \"commonjs\", \"target\": \"es6\"}' scripts/run_node_tests.ts --integration",
-    "test:webdriver": "rollup -c test/integration/webdriver/static/rollup.config.js && ts-node -O '{\"module\": \"commonjs\", \"target\": \"es6\"}' scripts/run_node_tests.ts --webdriver",
+    "test:webdriver": "rollup -c --bundleConfigAsCjs test/integration/webdriver/static/rollup.config.js && ts-node -O '{\"module\": \"commonjs\", \"target\": \"es6\"}' scripts/run_node_tests.ts --webdriver",
     "test:integration": "firebase emulators:exec --project demo-emulatedproject --only auth \"run-s --npm-path npm test:browser:integration test:node:integration test:webdriver\"",
     "trusted-type-check": "tsec -p tsconfig.json --noEmit",
     "add-compat-overloads": "ts-node-script ../../scripts/build/create-overloads.ts -i ../auth/dist/auth-public.d.ts -o dist/auth-compat/index.d.ts -a -r Auth:types.FirebaseAuth -r User:types.User -r FirebaseApp:FirebaseAppCompat --moduleToEnhance @firebase/auth"
