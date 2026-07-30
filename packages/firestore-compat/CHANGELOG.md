@@ -1,5 +1,16 @@
 # @firebase/firestore-compat
 
+## 0.4.12
+
+### Patch Changes
+
+- [`0fe3bbc`](https://github.com/firebase/firebase-js-sdk/commit/0fe3bbc3196a18d01941acbdaab3301a391016b1) [#10097](https://github.com/firebase/firebase-js-sdk/pull/10097) - Added "@firebase/app" as a peerDependency of compat packages.
+
+- Updated dependencies [[`736fa3f`](https://github.com/firebase/firebase-js-sdk/commit/736fa3fe798d6eafc9fe086d6bfbe9cfb49b8994), [`d2d89d2`](https://github.com/firebase/firebase-js-sdk/commit/d2d89d2b0eb1dc3c929ccd17f85f1c0fda1a5fef), [`2894e91`](https://github.com/firebase/firebase-js-sdk/commit/2894e91619a51f23f01a77e43255d1329bbcc55c)]:
+  - @firebase/util@1.15.2
+  - @firebase/firestore@4.17.0
+  - @firebase/component@0.7.4
+
 ## 0.4.11
 
 ### Patch Changes
