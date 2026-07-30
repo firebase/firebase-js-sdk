@@ -24,6 +24,7 @@ jobs:
         with:
           client-id: ${{ secrets.FIREBASE_RELEASE_APP_ID }}
           private-key: ${{ secrets.FIREBASE_RELEASE_APP_PRIVATE_KEY }}
+          permission-contents: write
 
       # 2. Checkout code using the dynamic token
       - name: Checkout Repository
