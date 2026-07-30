@@ -105,7 +105,8 @@ export function recordError(
 
   const internal = crashlytics as CrashlyticsInternal;
   const logger =
-    internal.logger || internal.loggerProvider.getLogger('@firebase/crashlytics');
+    internal.logger ||
+    internal.loggerProvider.getLogger('@firebase/crashlytics');
   const customAttributes: AnyValueMap =
     internal.attributesStore.getLogAttributes();
 
