@@ -41,6 +41,8 @@ jobs:
 
       # 4. Merge release branch
       - name: Merge release branch
+        env:
+          VERSION: ${{ inputs.release_version }}
         run: |
           git checkout release
           git pull origin release
