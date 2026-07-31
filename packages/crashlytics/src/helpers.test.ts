@@ -29,6 +29,7 @@ import {
 import { AUTO_CONSTANTS } from './auto-constants';
 import { CrashlyticsService } from './service';
 import { CrashlyticsInternal } from './types';
+import { TelemetryBufferStore } from './telemetry-buffer-store';
 import {
   AttributesStore,
   LOG_ATTR_KEY,
@@ -66,6 +67,7 @@ describe('helpers', () => {
     shutdown: () => Promise.resolve()
   } as unknown as TracerProvider;
   let fakeAttributesStore: AttributesStore;
+  let fakeTelemetryBufferStore: TelemetryBufferStore;
   let fakeCrashlytics: CrashlyticsInternal;
   let getActiveSpanStub: sinon.SinonStub;
 
@@ -98,6 +100,7 @@ describe('helpers', () => {
     });
 
     fakeAttributesStore = new AttributesStore({ projectId: 'my-project' });
+    fakeTelemetryBufferStore = new TelemetryBufferStore();
     fakeCrashlytics = {
       app: {
         name: 'DEFAULT',
@@ -109,7 +112,8 @@ describe('helpers', () => {
       },
       loggerProvider: fakeLoggerProvider,
       tracingProvider: fakeTracingProvider,
-      attributesStore: fakeAttributesStore
+      attributesStore: fakeAttributesStore,
+      telemetryBufferStore: fakeTelemetryBufferStore
     };
     getActiveSpanStub = sinon.stub(trace, 'getActiveSpan').returns(undefined);
   });
@@ -162,7 +166,8 @@ describe('helpers', () => {
         fakeCrashlytics.app,
         fakeLoggerProvider,
         fakeTracingProvider,
-        fakeAttributesStore
+        fakeAttributesStore,
+        fakeTelemetryBufferStore
       );
       telemetryWithVersion.options = { appVersion: '9.9.9' };
 

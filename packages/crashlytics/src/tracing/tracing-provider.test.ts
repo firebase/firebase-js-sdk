@@ -28,12 +28,15 @@ import { AttributesStore } from '../attributes-store';
 import { resourceFromAttributes } from '@opentelemetry/resources';
 import { WebTracerProvider } from '@opentelemetry/sdk-trace-web';
 import { CompositePropagator } from '@opentelemetry/core';
+import { TelemetryBufferStore } from '../telemetry-buffer-store';
 
 describe('createTracingProvider', () => {
   let mockApp: FirebaseApp;
   let mockAttributesStore: AttributesStore;
+  let mockTelemetryBufferStore: TelemetryBufferStore;
   let mockSpan: any;
   beforeEach(() => {
+    mockTelemetryBufferStore = {} as unknown as TelemetryBufferStore;
     mockApp = {
       options: {
         projectId: 'test-project',
@@ -76,7 +79,8 @@ describe('createTracingProvider', () => {
     const { tracingProvider: provider } = createTracingProvider(
       mockApp,
       mockCrashlyticsOptions,
-      mockAttributesStore
+      mockAttributesStore,
+      mockTelemetryBufferStore
     );
     expect(provider).to.equal(trace.getTracerProvider());
   });
@@ -95,7 +99,8 @@ describe('createTracingProvider', () => {
     const { tracingProvider: provider } = createTracingProvider(
       mockApp,
       mockCrashlyticsOptions,
-      mockAttributesStore
+      mockAttributesStore,
+      mockTelemetryBufferStore
     );
 
     expect(registerSpy.calledOnce).to.be.true;
@@ -148,7 +153,12 @@ describe('createTracingProvider', () => {
       tracingUrl: 'my-custom-tracing.url'
     } as CrashlyticsOptions;
 
-    createTracingProvider(mockApp, mockCrashlyticsOptions, mockAttributesStore);
+    createTracingProvider(
+      mockApp,
+      mockCrashlyticsOptions,
+      mockAttributesStore,
+      mockTelemetryBufferStore
+    );
 
     expect(fetchInstrumentationSpy.called).to.be.true;
     const fetchConfig = fetchInstrumentationSpy.lastCall.args[0] as any;
@@ -182,7 +192,12 @@ describe('createTracingProvider', () => {
       tracingUrl: 'my-custom-tracing.url'
     } as CrashlyticsOptions;
 
-    createTracingProvider(mockApp, mockCrashlyticsOptions, mockAttributesStore);
+    createTracingProvider(
+      mockApp,
+      mockCrashlyticsOptions,
+      mockAttributesStore,
+      mockTelemetryBufferStore
+    );
 
     expect(xhrInstrumentationSpy.called).to.be.true;
     const xhrConfig = xhrInstrumentationSpy.lastCall.args[0] as any;
@@ -213,7 +228,12 @@ describe('createTracingProvider', () => {
       'setConfig'
     );
 
-    createTracingProvider(mockApp, {}, mockAttributesStore);
+    createTracingProvider(
+      mockApp,
+      {},
+      mockAttributesStore,
+      mockTelemetryBufferStore
+    );
 
     expect(documentLoadInstrumentationSpy.called).to.be.true;
     const documentLoadConfig = documentLoadInstrumentationSpy.lastCall

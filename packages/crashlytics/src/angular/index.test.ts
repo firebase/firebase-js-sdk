@@ -197,6 +197,9 @@ describe('setupNavigationTracking', () => {
         getLogger: () => ({
           emit: () => {}
         })
+      },
+      telemetryBufferStore: {
+        clear: () => {}
       }
     } as unknown as Crashlytics;
 

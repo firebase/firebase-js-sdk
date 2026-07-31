@@ -34,6 +34,7 @@ import { CrashlyticsOptions } from './public-types';
 // explicit import is needed here to prevent this module from being tree-shaken out.
 import '@firebase/installations';
 import { AttributesStore } from './attributes-store';
+import { TelemetryBufferStore } from './telemetry-buffer-store';
 
 export function registerCrashlytics(): void {
   _registerComponent(
@@ -53,12 +54,14 @@ export function registerCrashlytics(): void {
           crashlyticsOptions,
           installationsProvider
         );
+        const telemetryBufferStore = new TelemetryBufferStore();
         const dynamicHeaderProviders = [new AppCheckProvider(appCheckProvider)];
         const { loggerProvider, onErrorLogRecordProcessor } =
           createLoggerProvider(
             app,
             crashlyticsOptions,
             attributesStore,
+            telemetryBufferStore,
             dynamicHeaderProviders
           );
 
@@ -66,6 +69,7 @@ export function registerCrashlytics(): void {
           app,
           crashlyticsOptions,
           attributesStore,
+          telemetryBufferStore,
           dynamicHeaderProviders
         );
 
@@ -74,6 +78,7 @@ export function registerCrashlytics(): void {
           loggerProvider,
           tracingProvider,
           attributesStore,
+          telemetryBufferStore,
           onErrorLogRecordProcessor,
           onErrorSpanProcessor
         );
