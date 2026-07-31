@@ -103,49 +103,52 @@ export class TelemetryBufferStore {
  * @internal
  */
 export class RootTelemetryQueue {
-  private _items: Array<string | null> = [];
+  private readonly _items: Array<string | null>;
   private _head = 0;
+  private _tail = 0;
+  private _size = 0;
 
-  constructor(private readonly _limit = QUEUE_LIMIT) {}
+  constructor(private readonly _limit = QUEUE_LIMIT) {
+    this._items = new Array(this._limit).fill(null);
+  }
 
   get size(): number {
-    return this._items.length - this._head;
+    return this._size;
   }
 
   enqueue(item: string): string | undefined {
-    this._items.push(item);
-    if (this.size > this._limit) {
-      return this.dequeue();
+    let evicted: string | undefined;
+    if (this._size === this._limit) {
+      evicted = this.dequeue();
     }
-    return undefined;
+    this._items[this._tail] = item;
+    this._tail = (this._tail + 1) % this._limit;
+    this._size++;
+    return evicted;
   }
 
   dequeue(): string | undefined {
-    if (this.size === 0) {
+    if (this._size === 0) {
       return undefined;
     }
     const item = this._items[this._head];
     this._items[this._head] = null;
-    this._head++;
-
-    // Reclaim memory periodically
-    if (this._head > this._limit) {
-      this._items = this._items.slice(this._head);
-      this._head = 0;
-    }
-
-    return item ?? undefined;
+    this._head = (this._head + 1) % this._limit;
+    this._size--;
+    return item!;
   }
 
   peek(): string | undefined {
-    if (this.size === 0) {
+    if (this._size === 0) {
       return undefined;
     }
-    return this._items[this._head] ?? undefined;
+    return this._items[this._head]!;
   }
 
   clear(): void {
-    this._items = [];
+    this._items.fill(null);
     this._head = 0;
+    this._tail = 0;
+    this._size = 0;
   }
 }

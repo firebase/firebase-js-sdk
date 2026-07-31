@@ -26,7 +26,7 @@ describe('RootTelemetryQueue', () => {
     expect(queue.dequeue()).to.be.undefined;
   });
 
-  it('should enqueue and dequeue in FIFO order', () => {
+  it('should enqueue and dequeue in FIFO order with circular wrapping', () => {
     const queue = new RootTelemetryQueue(3);
     queue.enqueue('a');
     queue.enqueue('b');
@@ -34,14 +34,24 @@ describe('RootTelemetryQueue', () => {
     expect(queue.size).to.equal(2);
     expect(queue.peek()).to.equal('a');
 
-    expect(queue.dequeue()).to.equal('a');
+    expect(queue.dequeue()).to.equal('a'); // head = 1, tail = 2
 
+    // Enqueuing here wraps the tail pointer around the circular array to index 0
     queue.enqueue('c');
 
     expect(queue.size).to.equal(2);
     expect(queue.peek()).to.equal('b');
-    expect(queue.dequeue()).to.equal('b');
-    expect(queue.dequeue()).to.equal('c');
+
+    queue.enqueue('d'); // head = 1, tail = 1 (queue is now full)
+
+    expect(queue.size).to.equal(3);
+    expect(queue.peek()).to.equal('b');
+
+    expect(queue.dequeue()).to.equal('b'); // head = 2, tail = 1
+    expect(queue.dequeue()).to.equal('c'); // head = 0, tail = 1
+    expect(queue.dequeue()).to.equal('d'); // head = 1, tail = 1
+
+    expect(queue.size).to.equal(0);
     expect(queue.dequeue()).to.be.undefined;
   });
 
@@ -53,31 +63,6 @@ describe('RootTelemetryQueue', () => {
     // Third item exceeds limit of 2, should drop and return the oldest ('a')
     expect(queue.enqueue('c')).to.equal('a');
     expect(queue.size).to.equal(2);
-  });
-
-  it('should reclaim memory from internal storage (slice) when head exceeds limit', () => {
-    const queue = new RootTelemetryQueue(2);
-    queue.enqueue('a');
-    queue.enqueue('b');
-
-    // We dequeue 'a' and 'b' to advance head index
-    expect(queue.dequeue()).to.equal('a');
-    expect(queue.dequeue()).to.equal('b');
-
-    // Currently _head is 2, which is equal to limit (2). Memory not reclaimed yet.
-    expect((queue as any)._head).to.equal(2);
-    expect((queue as any)._items).to.have.lengthOf(2);
-
-    // Enqueue a third item
-    queue.enqueue('c');
-    expect((queue as any)._items).to.have.lengthOf(3);
-
-    // Dequeue 'c' to push _head to 3 (> limit of 2) and trigger reclamation
-    expect(queue.dequeue()).to.equal('c');
-
-    // Now head should be reset to 0, and array sliced
-    expect((queue as any)._head).to.equal(0);
-    expect((queue as any)._items).to.have.lengthOf(0);
   });
 
   it('should clear the queue', () => {
