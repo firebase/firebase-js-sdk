@@ -130,8 +130,8 @@ const cjsBuilds = [
       moduleSideEffects: false
     },
     external: id =>
-      // for the standalone bundle, ignore peerDeps, so app and app-compat
-      // will be bundled
+      // For the standalone bundle, exclude peerDependencies from externals,
+      // so app and app-compat will be bundled.
       Object.keys(pkg.dependencies)
         .filter(dep => dep !== '@firebase/database')
         .some(dep => id === dep || id.startsWith(`${dep}/`)),
