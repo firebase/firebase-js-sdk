@@ -170,7 +170,6 @@ jobs:
     - name: Launch E2E tests workflow
       # Trigger e2e-test.yml
       run: |
-        TEMPORARY_GITHUB_TOKEN=${{ steps.generate-token.outputs.token }}
         VERSION_OR_TAG=${STEPS_GET_VERSION_OUTPUTS_STAGING_VERSION}
         curl -X POST \
         -H "Content-Type:application/json" \
@@ -179,6 +178,7 @@ jobs:
         -d "{\"event_type\":\"staging-tests\", \"client_payload\":{\"versionOrTag\":\"$VERSION_OR_TAG\"}}" \
         https://api.github.com/repos/firebase/firebase-js-sdk/dispatches
       env:
+        TEMPORARY_GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
         STEPS_GET_VERSION_OUTPUTS_STAGING_VERSION: ${{ steps.get-version.outputs.STAGING_VERSION }}
     - name: Check for changes requiring a reference doc publish
       id: docs-check
