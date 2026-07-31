@@ -20,7 +20,7 @@ import { SdkLogRecord } from '@opentelemetry/sdk-logs';
 
 export const QUEUE_LIMIT = 100;
 // TODO: Use to limit size of telemetryEmitBufferMap when implementing addSpan/addLog buffering capacity checks
-export const BUFFER_LIMIT = 1000;
+// export const BUFFER_LIMIT = 1000;
 
 /**
  * Represents a collection of spans and logs associated with a root span/trace.
@@ -39,14 +39,16 @@ export interface EventList {
  * @internal
  */
 export class TelemetryBufferStore {
-  private readonly _rootTelemetryQueue = new RootTelemetryQueue();
-  private readonly _telemetryEmitBufferMap = new Map<
-    string,
-    EventList | SdkLogRecord
-  >();
+  // TODO: Will be activated when buffering logic is implemented in a future change
+  // private readonly _rootTelemetryQueue = new RootTelemetryQueue();
+  // TODO: Will be activated when buffering logic is implemented in a future change
+  // private readonly _telemetryEmitBufferMap = new Map<
+  //   string,
+  //   EventList | SdkLogRecord
+  // >();
 
   // TODO: Use to track if we need to emit a limit reached log record when capacity is exceeded
-  private _shouldAddLimitLog = false;
+  // private _shouldAddLimitLog = false;
 
   addSpan(_span: ReadableSpan): void {
     // TODO: Add buffering logic
@@ -57,34 +59,40 @@ export class TelemetryBufferStore {
   }
 
   getBufferedSpans(): ReadableSpan[] {
-    const spans: ReadableSpan[] = [];
-    for (const entry of this._telemetryEmitBufferMap.values()) {
-      if (entry && 'spans' in entry) {
-        spans.push(...entry.spans);
-      }
-    }
-    return spans;
+    // TODO: Buffering logic will become active in a future change
+    // const spans: ReadableSpan[] = [];
+    // for (const entry of this._telemetryEmitBufferMap.values()) {
+    //   if (entry && 'spans' in entry) {
+    //     spans.push(...entry.spans);
+    //   }
+    // }
+    // return spans;
+    return [];
   }
 
   getBufferedLogs(): SdkLogRecord[] {
-    const logs: SdkLogRecord[] = [];
-    for (const entry of this._telemetryEmitBufferMap.values()) {
-      if (entry) {
-        if ('logs' in entry) {
-          logs.push(...entry.logs);
-        } else {
-          logs.push(entry);
-        }
-      }
-    }
-    return logs;
+    // TODO: Buffering logic will become active in a future change
+    // const logs: SdkLogRecord[] = [];
+    // for (const entry of this._telemetryEmitBufferMap.values()) {
+    //   if (entry) {
+    //     if ('logs' in entry) {
+    //       logs.push(...entry.logs);
+    //     } else {
+    //       logs.push(entry);
+    //     }
+    //   }
+    // }
+    // return logs;
+    return [];
   }
 
   /** Clear all buffered telemetry and reset state. */
   clear(): void {
-    this._rootTelemetryQueue.clear();
-    this._telemetryEmitBufferMap.clear();
-    this._shouldAddLimitLog = false;
+    // TODO: Buffering logic will become active in a future change
+    // this._rootTelemetryQueue.clear();
+    // TODO: Buffering logic will become active in a future change
+    // this._telemetryEmitBufferMap.clear();
+    // this._shouldAddLimitLog = false;
   }
 }
 
