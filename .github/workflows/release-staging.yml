@@ -51,6 +51,17 @@ jobs:
     # Block this workflow if run on a non-release branch.
     if: github.event.inputs.release-branch == 'release' || endsWith(github.event.inputs.release-branch, '-releasebranch')
     steps:
+
+    # Fetch short-lived token from the GitHub App for
+    # - merging main into release (contents: write)
+    # - triggering E2E test workflow (contents: write)
+    - name: Generate Temporary Token
+      id: generate-token
+      uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # ratchet:actions/create-github-app-token@v3
+      with:
+        client-id: ${{ secrets.FIREBASE_RELEASE_APP_ID }}
+        private-key: ${{ secrets.FIREBASE_RELEASE_APP_PRIVATE_KEY }}
+        permission-contents: write
     - name: Set up node (22)
       uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # ratchet:actions/setup-node@v7
       with:
@@ -58,7 +69,7 @@ jobs:
     - name: Merge main into release
       uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # ratchet:actions/github-script@v7
       with:
-        github-token: ${{ secrets.OSS_BOT_GITHUB_TOKEN }}
+        github-token: ${{ steps.generate-token.outputs.token }}
         script: |
           const result = await github.rest.repos.merge({
             owner: context.repo.owner,
@@ -159,12 +170,12 @@ jobs:
     - name: Launch E2E tests workflow
       # Trigger e2e-test.yml
       run: |
-        OSS_BOT_GITHUB_TOKEN=${{ secrets.OSS_BOT_GITHUB_TOKEN }}
+        TEMPORARY_GITHUB_TOKEN=${{ steps.generate-token.outputs.token }}
         VERSION_OR_TAG=${STEPS_GET_VERSION_OUTPUTS_STAGING_VERSION}
         curl -X POST \
         -H "Content-Type:application/json" \
         -H "Accept:application/vnd.github.v3+json" \
-        -H "Authorization:Bearer $OSS_BOT_GITHUB_TOKEN" \
+        -H "Authorization:Bearer $TEMPORARY_GITHUB_TOKEN" \
         -d "{\"event_type\":\"staging-tests\", \"client_payload\":{\"versionOrTag\":\"$VERSION_OR_TAG\"}}" \
         https://api.github.com/repos/firebase/firebase-js-sdk/dispatches
       env:
