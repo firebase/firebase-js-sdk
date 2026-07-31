@@ -39,8 +39,11 @@ export interface EventList {
  * @internal
  */
 export class TelemetryBufferStore {
-  readonly rootTelemetryQueue = new RootTelemetryQueue();
-  readonly telemetryEmitBufferMap = new Map<string, EventList | SdkLogRecord>();
+  private readonly _rootTelemetryQueue = new RootTelemetryQueue();
+  private readonly _telemetryEmitBufferMap = new Map<
+    string,
+    EventList | SdkLogRecord
+  >();
 
   // TODO: Use to track if we need to emit a limit reached log record when capacity is exceeded
   private _shouldAddLimitLog = false;
@@ -55,7 +58,7 @@ export class TelemetryBufferStore {
 
   getBufferedSpans(): ReadableSpan[] {
     const spans: ReadableSpan[] = [];
-    for (const entry of this.telemetryEmitBufferMap.values()) {
+    for (const entry of this._telemetryEmitBufferMap.values()) {
       if (entry && 'spans' in entry) {
         spans.push(...entry.spans);
       }
@@ -65,7 +68,7 @@ export class TelemetryBufferStore {
 
   getBufferedLogs(): SdkLogRecord[] {
     const logs: SdkLogRecord[] = [];
-    for (const entry of this.telemetryEmitBufferMap.values()) {
+    for (const entry of this._telemetryEmitBufferMap.values()) {
       if (entry) {
         if ('logs' in entry) {
           logs.push(...entry.logs);
@@ -79,8 +82,8 @@ export class TelemetryBufferStore {
 
   /** Clear all buffered telemetry and reset state. */
   clear(): void {
-    this.rootTelemetryQueue.clear();
-    this.telemetryEmitBufferMap.clear();
+    this._rootTelemetryQueue.clear();
+    this._telemetryEmitBufferMap.clear();
     this._shouldAddLimitLog = false;
   }
 }
