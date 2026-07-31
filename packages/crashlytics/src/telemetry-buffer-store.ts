@@ -18,7 +18,6 @@
 import { ReadableSpan } from '@opentelemetry/sdk-trace-base';
 import { SdkLogRecord } from '@opentelemetry/sdk-logs';
 
-export const QUEUE_LIMIT = 100;
 // TODO: Use to limit size of telemetryEmitBufferMap when implementing addSpan/addLog buffering capacity checks
 // export const BUFFER_LIMIT = 1000;
 
@@ -103,19 +102,30 @@ export class TelemetryBufferStore {
  * @internal
  */
 export class RootTelemetryQueue {
-  private readonly _items: Array<string | null>;
+  static readonly LIMIT = 100;
+  private readonly _items: Array<string | undefined>;
   private _head = 0;
   private _tail = 0;
   private _size = 0;
 
-  constructor(private readonly _limit = QUEUE_LIMIT) {
-    this._items = new Array(this._limit).fill(null);
+  constructor(private readonly _limit = RootTelemetryQueue.LIMIT) {
+    this._items = new Array(this._limit).fill(undefined);
   }
 
+  /**
+   * Returns the current number of items in the queue.
+   */
   get size(): number {
     return this._size;
   }
 
+  /**
+   * Enqueues an item into the queue.
+   *
+   * @param item - The item to enqueue.
+   * @returns The evicted item (oldest) if the queue was full and had to drop an item,
+   *          or `undefined` if enqueued without eviction.
+   */
   enqueue(item: string): string | undefined {
     let evicted: string | undefined;
     if (this._size === this._limit) {
@@ -127,26 +137,39 @@ export class RootTelemetryQueue {
     return evicted;
   }
 
+  /**
+   * Dequeues the oldest item from the queue.
+   *
+   * @returns The oldest enqueued string, or `undefined` if the queue is empty.
+   */
   dequeue(): string | undefined {
     if (this._size === 0) {
       return undefined;
     }
     const item = this._items[this._head];
-    this._items[this._head] = null;
+    this._items[this._head] = undefined;
     this._head = (this._head + 1) % this._limit;
     this._size--;
-    return item!;
+    return item;
   }
 
+  /**
+   * Returns the oldest item from the queue without removing it.
+   *
+   * @returns The oldest enqueued string, or `undefined` if the queue is empty.
+   */
   peek(): string | undefined {
     if (this._size === 0) {
       return undefined;
     }
-    return this._items[this._head]!;
+    return this._items[this._head];
   }
 
+  /**
+   * Clears all items from the queue and resets its state.
+   */
   clear(): void {
-    this._items.fill(null);
+    this._items.fill(undefined);
     this._head = 0;
     this._tail = 0;
     this._size = 0;
