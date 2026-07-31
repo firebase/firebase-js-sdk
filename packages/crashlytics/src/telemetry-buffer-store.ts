@@ -29,6 +29,9 @@ export class RootTelemetryQueue {
   private _size = 0;
 
   constructor(private readonly _limit = RootTelemetryQueue.LIMIT) {
+    if (_limit <= 0) {
+      throw new Error('Limit must be a positive integer greater than 0');
+    }
     this._items = new Array(this._limit).fill(undefined);
   }
 

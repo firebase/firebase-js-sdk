@@ -73,4 +73,13 @@ describe('RootTelemetryQueue', () => {
     expect(queue.size).to.equal(0);
     expect(queue.peek()).to.be.undefined;
   });
+
+  it('should throw an error if limit is less than or equal to 0', () => {
+    expect(() => new RootTelemetryQueue(0)).to.throw(
+      'Limit must be a positive integer greater than 0'
+    );
+    expect(() => new RootTelemetryQueue(-5)).to.throw(
+      'Limit must be a positive integer greater than 0'
+    );
+  });
 });
