@@ -33,11 +33,11 @@ jobs:
           token: ${{ steps.generate-token.outputs.token }}
           fetch-depth: 0
 
-      # 3. Configure Git user metadata using the App's profile
+      # 3. Configure Git user metadata using OSS bot profile
       - name: Configure Git
         run: |
-          git config --global user.name "firebase-release-app[bot]"
-          git config --global user.email "firebase-release-app[bot]@users.noreply.github.com"
+          git config --global user.name "google-oss-bot"
+          git config --global user.email "firebase-oss-bot@google.com"
 
       # 4. Merge release branch
       - name: Merge release branch
