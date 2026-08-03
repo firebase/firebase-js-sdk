@@ -136,7 +136,9 @@ describe('GrpcConnection', () => {
       expect(spyConstructor.calledOnce).to.be.true;
       const options = spyConstructor.firstCall.args[2];
       expect(options).to.deep.equal({
-        'grpc-node.flow_control_window': 256 * 1024
+        'grpc-node.flow_control_window': 256 * 1024,
+        'grpc.max_receive_message_length': 17 * 1024 * 1024,
+        'grpc.max_send_message_length': 17 * 1024 * 1024
       });
     });
 
@@ -176,7 +178,9 @@ describe('GrpcConnection', () => {
       expect(spyConstructor.calledOnce).to.be.true;
       const options = spyConstructor.firstCall.args[2];
       expect(options).to.deep.equal({
-        'grpc-node.flow_control_window': 512 * 1024
+        'grpc-node.flow_control_window': 512 * 1024,
+        'grpc.max_receive_message_length': 17 * 1024 * 1024,
+        'grpc.max_send_message_length': 17 * 1024 * 1024
       });
     });
   });

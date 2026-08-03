@@ -20,7 +20,6 @@ import {
   ImagenAspectRatio,
   ImagenPersonFilterLevel,
   ImagenSafetyFilterLevel,
-  AI,
   AIErrorCode
 } from '../public-types';
 import * as request from '../requests/request';
@@ -28,23 +27,9 @@ import sinonChai from 'sinon-chai';
 import { AIError } from '../errors';
 import { getMockResponse } from '../../test-utils/mock-response';
 import { match, restore, stub } from 'sinon';
-import { VertexAIBackend } from '../backend';
+import { fakeAI } from '../../test-utils/get-fake-firebase-services';
 
 use(sinonChai);
-
-const fakeAI: AI = {
-  app: {
-    name: 'DEFAULT',
-    automaticDataCollectionEnabled: true,
-    options: {
-      apiKey: 'key',
-      projectId: 'my-project',
-      appId: 'my-appid'
-    }
-  },
-  backend: new VertexAIBackend('us-central1'),
-  location: 'us-central1'
-};
 
 describe('ImagenModel', () => {
   afterEach(() => {

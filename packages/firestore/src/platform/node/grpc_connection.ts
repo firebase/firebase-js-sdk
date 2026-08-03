@@ -122,7 +122,9 @@ export class GrpcConnection implements Connection {
         : grpc.credentials.createInsecure();
       const grpcOptions: Record<string, unknown> = {
         'grpc-node.flow_control_window':
-          this.databaseInfo.grpcFlowControlWindow ?? 256 * 1024
+          this.databaseInfo.grpcFlowControlWindow ?? 256 * 1024,
+        'grpc.max_receive_message_length': 17 * 1024 * 1024,
+        'grpc.max_send_message_length': 17 * 1024 * 1024
       };
       this.cachedStub = new this.firestore.Firestore(
         this.databaseInfo.host,

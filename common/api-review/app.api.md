@@ -68,7 +68,6 @@ export interface FirebaseOptions {
     measurementId?: string;
     messagingSenderId?: string;
     projectId?: string;
-    recaptchaSiteKey?: string;
     storageBucket?: string;
 }
 

@@ -32,7 +32,7 @@
     "typescript": "5.5.4",
     "webpack": "5.104.1",
     "webpack-cli": "5.1.4",
-    "webpack-dev-server": "5.2.4"
+    "webpack-dev-server": "5.2.6"
   },
   "engines": {
     "node": ">=20.0.0"

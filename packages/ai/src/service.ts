@@ -32,7 +32,7 @@ import {
   FirebaseAuthInternal,
   FirebaseAuthInternalName
 } from '@firebase/auth-interop-types';
-import { Backend, VertexAIBackend } from './backend';
+import { AgentPlatformBackend, Backend, VertexAIBackend } from './backend';
 
 export class AIService implements AI, _FirebaseService {
   auth: FirebaseAuthInternal | null;
@@ -56,7 +56,10 @@ export class AIService implements AI, _FirebaseService {
     this.auth = auth || null;
     this.appCheck = appCheck || null;
 
-    if (backend instanceof VertexAIBackend) {
+    if (
+      backend instanceof VertexAIBackend ||
+      backend instanceof AgentPlatformBackend
+    ) {
       this.location = backend.location;
     } else {
       this.location = '';

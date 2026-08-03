@@ -1,5 +1,11 @@
 # @firebase/util
 
+## 1.15.2
+
+### Patch Changes
+
+- [`736fa3f`](https://github.com/firebase/firebase-js-sdk/commit/736fa3fe798d6eafc9fe086d6bfbe9cfb49b8994) [#10146](https://github.com/firebase/firebase-js-sdk/pull/10146) - Fix ReDoS vulnerability in FirebaseError template replacement
+
 ## 1.15.1
 
 ### Patch Changes
