@@ -870,7 +870,7 @@ describe('chromeAdapterFactory', () => {
     expect(adapter?.onDeviceParams.createOptions).to.exist;
   });
 
-  it('creates a ChromeAdapterImpl when globalThis.LanguageModel is defined without window', () => {
+  it('creates a ChromeAdapterImpl when LanguageModel is defined on the global object', () => {
     const fakeLanguageModel = {} as LanguageModel;
     const globalObj = getGlobal() as any;
     const originalLM = globalObj.LanguageModel;
