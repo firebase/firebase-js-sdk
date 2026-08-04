@@ -42,7 +42,9 @@ async function pushReleaseTagsToGithub() {
   const authHeader = Buffer.from(`x-access-token:${token}`).toString('base64');
 
   await exec(
-    'git -c http.extraHeader="Authorization: Basic ' + authHeader + '"' +
+    'git -c http.extraHeader="Authorization: Basic ' +
+      authHeader +
+      '"' +
       ` push origin ${currentBranch} ${tags.join(' ')} --no-verify`,
     {
       cwd: root
