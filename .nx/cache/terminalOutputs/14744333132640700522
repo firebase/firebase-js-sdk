@@ -1,0 +1,18 @@
+[2K[1G[2m$ rollup -c rollup.config.js[22m
+[36m
+[1m./src/index.ts[22m → [1m./dist/esm/index.esm.js[22m...[39m
+(node:52019) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/chholland/repos/fb-JETSKI/packages/storage-compat/rollup.config.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/chholland/repos/fb-JETSKI/packages/storage-compat/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:52019) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/chholland/repos/fb-JETSKI/scripts/build/rollup_emit_module_package_file.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/chholland/repos/fb-JETSKI/package.json.
+[1m[33m(!) Circular dependency[39m[22m
+src/reference.ts -> src/list.ts -> src/reference.ts
+[32mcreated [1m./dist/esm/index.esm.js[22m in [1m566ms[22m[39m
+[36m
+[1m./src/index.ts[22m → [1m./dist/index.cjs.js[22m...[39m
+[1m[33m(!) Circular dependency[39m[22m
+src/reference.ts -> src/list.ts -> src/reference.ts
+[32mcreated [1m./dist/index.cjs.js[22m in [1m98ms[22m[39m

@@ -141,7 +141,7 @@ describe('Error handling', () => {
       expect(err?.customData?.url).to.be.undefined;
       expect(err?.details).to.equal(4);
     });
-    it('processes corectly when there are no details and no url', () => {
+    it('processes correctly when there are no details and no url', () => {
       const err = _errorForResponse(404, null);
       expect(err?.message).to.equal('not-found [404]');
       expect(err?.code).to.equal('functions/not-found');

@@ -1,0 +1,322 @@
+[2K[1G[2m$ rollup -c && gulp cdn-type-module-path && yarn build:compat[22m
+[36m
+[1mapp/index.ts[22m → [1mapp/dist/esm/index.esm.js[22m...[39m
+(node:52723) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/chholland/repos/fb-JETSKI/packages/firebase/rollup.config.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/chholland/repos/fb-JETSKI/packages/firebase/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:52723) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/chholland/repos/fb-JETSKI/scripts/build/rollup_emit_module_package_file.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/chholland/repos/fb-JETSKI/package.json.
+[32mcreated [1mapp/dist/esm/index.esm.js[22m in [1m747ms[22m[39m
+[36m
+[1mapp/index.ts[22m → [1mapp/dist/index.cjs.js, app/dist/index.mjs[22m...[39m
+[32mcreated [1mapp/dist/index.cjs.js, app/dist/index.mjs[22m in [1m153ms[22m[39m
+[36m
+[1mai/index.ts[22m → [1mai/dist/esm/index.esm.js[22m...[39m
+[32mcreated [1mai/dist/esm/index.esm.js[22m in [1m129ms[22m[39m
+[36m
+[1mai/index.ts[22m → [1mai/dist/index.cjs.js, ai/dist/index.mjs[22m...[39m
+[32mcreated [1mai/dist/index.cjs.js, ai/dist/index.mjs[22m in [1m116ms[22m[39m
+[36m
+[1manalytics/index.ts[22m → [1manalytics/dist/esm/index.esm.js[22m...[39m
+[32mcreated [1manalytics/dist/esm/index.esm.js[22m in [1m154ms[22m[39m
+[36m
+[1manalytics/index.ts[22m → [1manalytics/dist/index.cjs.js, analytics/dist/index.mjs[22m...[39m
+[32mcreated [1manalytics/dist/index.cjs.js, analytics/dist/index.mjs[22m in [1m120ms[22m[39m
+[36m
+[1mapp-check/index.ts[22m → [1mapp-check/dist/esm/index.esm.js[22m...[39m
+[32mcreated [1mapp-check/dist/esm/index.esm.js[22m in [1m106ms[22m[39m
+[36m
+[1mapp-check/index.ts[22m → [1mapp-check/dist/index.cjs.js, app-check/dist/index.mjs[22m...[39m
+[32mcreated [1mapp-check/dist/index.cjs.js, app-check/dist/index.mjs[22m in [1m109ms[22m[39m
+[36m
+[1mauth/index.ts[22m → [1mauth/dist/esm/index.esm.js[22m...[39m
+[32mcreated [1mauth/dist/esm/index.esm.js[22m in [1m102ms[22m[39m
+[36m
+[1mauth/index.ts[22m → [1mauth/dist/index.cjs.js, auth/dist/index.mjs[22m...[39m
+[32mcreated [1mauth/dist/index.cjs.js, auth/dist/index.mjs[22m in [1m104ms[22m[39m
+[36m
+[1mauth/cordova/index.ts[22m → [1mauth/cordova/dist/esm/index.esm.js[22m...[39m
+[32mcreated [1mauth/cordova/dist/esm/index.esm.js[22m in [1m98ms[22m[39m
+[36m
+[1mauth/cordova/index.ts[22m → [1mauth/cordova/dist/index.cjs.js, auth/cordova/dist/index.mjs[22m...[39m
+[32mcreated [1mauth/cordova/dist/index.cjs.js, auth/cordova/dist/index.mjs[22m in [1m100ms[22m[39m
+[36m
+[1mauth/web-extension/index.ts[22m → [1mauth/web-extension/dist/esm/index.esm.js[22m...[39m
+[32mcreated [1mauth/web-extension/dist/esm/index.esm.js[22m in [1m99ms[22m[39m
+[36m
+[1mauth/web-extension/index.ts[22m → [1mauth/web-extension/dist/index.cjs.js, auth/web-extension/dist/index.mjs[22m...[39m
+[32mcreated [1mauth/web-extension/dist/index.cjs.js, auth/web-extension/dist/index.mjs[22m in [1m99ms[22m[39m
+[36m
+[1mfunctions/index.ts[22m → [1mfunctions/dist/esm/index.esm.js[22m...[39m
+[32mcreated [1mfunctions/dist/esm/index.esm.js[22m in [1m100ms[22m[39m
+[36m
+[1mfunctions/index.ts[22m → [1mfunctions/dist/index.cjs.js, functions/dist/index.mjs[22m...[39m
+[32mcreated [1mfunctions/dist/index.cjs.js, functions/dist/index.mjs[22m in [1m111ms[22m[39m
+[36m
+[1mfirestore/index.ts[22m → [1mfirestore/dist/esm/index.esm.js[22m...[39m
+[32mcreated [1mfirestore/dist/esm/index.esm.js[22m in [1m99ms[22m[39m
+[36m
+[1mfirestore/index.ts[22m → [1mfirestore/dist/index.cjs.js, firestore/dist/index.mjs[22m...[39m
+[32mcreated [1mfirestore/dist/index.cjs.js, firestore/dist/index.mjs[22m in [1m100ms[22m[39m
+[36m
+[1mfirestore/lite/index.ts[22m → [1mfirestore/lite/dist/esm/index.esm.js[22m...[39m
+[32mcreated [1mfirestore/lite/dist/esm/index.esm.js[22m in [1m101ms[22m[39m
+[36m
+[1mfirestore/lite/index.ts[22m → [1mfirestore/lite/dist/index.cjs.js, firestore/lite/dist/index.mjs[22m...[39m
+[32mcreated [1mfirestore/lite/dist/index.cjs.js, firestore/lite/dist/index.mjs[22m in [1m99ms[22m[39m
+[36m
+[1mfirestore/pipelines/index.ts[22m → [1mfirestore/pipelines/dist/esm/pipelines.esm.js[22m...[39m
+[32mcreated [1mfirestore/pipelines/dist/esm/pipelines.esm.js[22m in [1m98ms[22m[39m
+[36m
+[1mfirestore/pipelines/index.ts[22m → [1mfirestore/pipelines/dist/pipelines.cjs.js, firestore/pipelines/dist/pipelines.mjs[22m...[39m
+[32mcreated [1mfirestore/pipelines/dist/pipelines.cjs.js, firestore/pipelines/dist/pipelines.mjs[22m in [1m100ms[22m[39m
+[36m
+[1mfirestore/lite/pipelines/index.ts[22m → [1mfirestore/lite/pipelines/dist/esm/pipelines.esm.js[22m...[39m
+[32mcreated [1mfirestore/lite/pipelines/dist/esm/pipelines.esm.js[22m in [1m105ms[22m[39m
+[36m
+[1mfirestore/lite/pipelines/index.ts[22m → [1mfirestore/lite/pipelines/dist/pipelines.cjs.js, firestore/lite/pipelines/dist/pipelines.mjs[22m...[39m
+[32mcreated [1mfirestore/lite/pipelines/dist/pipelines.cjs.js, firestore/lite/pipelines/dist/pipelines.mjs[22m in [1m103ms[22m[39m
+[36m
+[1minstallations/index.ts[22m → [1minstallations/dist/esm/index.esm.js[22m...[39m
+[32mcreated [1minstallations/dist/esm/index.esm.js[22m in [1m99ms[22m[39m
+[36m
+[1minstallations/index.ts[22m → [1minstallations/dist/index.cjs.js, installations/dist/index.mjs[22m...[39m
+[32mcreated [1minstallations/dist/index.cjs.js, installations/dist/index.mjs[22m in [1m102ms[22m[39m
+[36m
+[1mstorage/index.ts[22m → [1mstorage/dist/esm/index.esm.js[22m...[39m
+[32mcreated [1mstorage/dist/esm/index.esm.js[22m in [1m97ms[22m[39m
+[36m
+[1mstorage/index.ts[22m → [1mstorage/dist/index.cjs.js, storage/dist/index.mjs[22m...[39m
+[32mcreated [1mstorage/dist/index.cjs.js, storage/dist/index.mjs[22m in [1m100ms[22m[39m
+[36m
+[1mperformance/index.ts[22m → [1mperformance/dist/esm/index.esm.js[22m...[39m
+[32mcreated [1mperformance/dist/esm/index.esm.js[22m in [1m102ms[22m[39m
+[36m
+[1mperformance/index.ts[22m → [1mperformance/dist/index.cjs.js, performance/dist/index.mjs[22m...[39m
+[32mcreated [1mperformance/dist/index.cjs.js, performance/dist/index.mjs[22m in [1m104ms[22m[39m
+[36m
+[1mremote-config/index.ts[22m → [1mremote-config/dist/esm/index.esm.js[22m...[39m
+[32mcreated [1mremote-config/dist/esm/index.esm.js[22m in [1m97ms[22m[39m
+[36m
+[1mremote-config/index.ts[22m → [1mremote-config/dist/index.cjs.js, remote-config/dist/index.mjs[22m...[39m
+[32mcreated [1mremote-config/dist/index.cjs.js, remote-config/dist/index.mjs[22m in [1m104ms[22m[39m
+[36m
+[1mmessaging/index.ts[22m → [1mmessaging/dist/esm/index.esm.js[22m...[39m
+[32mcreated [1mmessaging/dist/esm/index.esm.js[22m in [1m100ms[22m[39m
+[36m
+[1mmessaging/index.ts[22m → [1mmessaging/dist/index.cjs.js, messaging/dist/index.mjs[22m...[39m
+[32mcreated [1mmessaging/dist/index.cjs.js, messaging/dist/index.mjs[22m in [1m98ms[22m[39m
+[36m
+[1mmessaging/sw/index.ts[22m → [1mmessaging/sw/dist/esm/index.esm.js[22m...[39m
+[32mcreated [1mmessaging/sw/dist/esm/index.esm.js[22m in [1m97ms[22m[39m
+[36m
+[1mmessaging/sw/index.ts[22m → [1mmessaging/sw/dist/index.cjs.js, messaging/sw/dist/index.mjs[22m...[39m
+[32mcreated [1mmessaging/sw/dist/index.cjs.js, messaging/sw/dist/index.mjs[22m in [1m102ms[22m[39m
+[36m
+[1mdatabase/index.ts[22m → [1mdatabase/dist/esm/index.esm.js[22m...[39m
+[32mcreated [1mdatabase/dist/esm/index.esm.js[22m in [1m102ms[22m[39m
+[36m
+[1mdatabase/index.ts[22m → [1mdatabase/dist/index.cjs.js, database/dist/index.mjs[22m...[39m
+[32mcreated [1mdatabase/dist/index.cjs.js, database/dist/index.mjs[22m in [1m115ms[22m[39m
+[36m
+[1mdata-connect/index.ts[22m → [1mdata-connect/dist/esm/index.esm.js[22m...[39m
+[32mcreated [1mdata-connect/dist/esm/index.esm.js[22m in [1m97ms[22m[39m
+[36m
+[1mdata-connect/index.ts[22m → [1mdata-connect/dist/index.cjs.js, data-connect/dist/index.mjs[22m...[39m
+[32mcreated [1mdata-connect/dist/index.cjs.js, data-connect/dist/index.mjs[22m in [1m107ms[22m[39m
+[36m
+[1mapp/index.cdn.ts[22m → [1mfirebase-app.js[22m...[39m
+[32mcreated [1mfirebase-app.js[22m in [1m913ms[22m[39m
+[36m
+[1mai/index.ts[22m → [1mfirebase-ai.js[22m...[39m
+[32mcreated [1mfirebase-ai.js[22m in [1m768ms[22m[39m
+[36m
+[1manalytics/index.ts[22m → [1mfirebase-analytics.js[22m...[39m
+[32mcreated [1mfirebase-analytics.js[22m in [1m468ms[22m[39m
+[36m
+[1mapp-check/index.ts[22m → [1mfirebase-app-check.js[22m...[39m
+[32mcreated [1mfirebase-app-check.js[22m in [1m527ms[22m[39m
+[36m
+[1mauth/index.ts[22m → [1mfirebase-auth.js[22m...[39m
+[32mcreated [1mfirebase-auth.js[22m in [1m851ms[22m[39m
+[36m
+[1mauth/cordova/index.ts[22m → [1mfirebase-auth-cordova.js[22m...[39m
+[32mcreated [1mfirebase-auth-cordova.js[22m in [1m721ms[22m[39m
+[36m
+[1mauth/web-extension/index.ts[22m → [1mfirebase-auth-web-extension.js[22m...[39m
+[32mcreated [1mfirebase-auth-web-extension.js[22m in [1m688ms[22m[39m
+[36m
+[1mfunctions/index.ts[22m → [1mfirebase-functions.js[22m...[39m
+[32mcreated [1mfirebase-functions.js[22m in [1m405ms[22m[39m
+[36m
+[1mfirestore/index.ts[22m → [1mfirebase-firestore.js[22m...[39m
+[32mcreated [1mfirebase-firestore.js[22m in [1m3s[22m[39m
+[36m
+[1mfirestore/lite/index.ts[22m → [1mfirebase-firestore-lite.js[22m...[39m
+[32mcreated [1mfirebase-firestore-lite.js[22m in [1m1s[22m[39m
+[36m
+[1mfirestore/pipelines/index.cdn.ts[22m → [1mfirebase-firestore-pipelines.js[22m...[39m
+[32mcreated [1mfirebase-firestore-pipelines.js[22m in [1m2.9s[22m[39m
+[36m
+[1mfirestore/lite/pipelines/index.ts[22m → [1mfirebase-firestore-lite-pipelines.js[22m...[39m
+[32mcreated [1mfirebase-firestore-lite-pipelines.js[22m in [1m1.1s[22m[39m
+[36m
+[1minstallations/index.ts[22m → [1mfirebase-installations.js[22m...[39m
+[32mcreated [1mfirebase-installations.js[22m in [1m487ms[22m[39m
+[36m
+[1mstorage/index.ts[22m → [1mfirebase-storage.js[22m...[39m
+[32mcreated [1mfirebase-storage.js[22m in [1m525ms[22m[39m
+[36m
+[1mperformance/index.ts[22m → [1mfirebase-performance.js[22m...[39m
+[32mcreated [1mfirebase-performance.js[22m in [1m647ms[22m[39m
+[36m
+[1mremote-config/index.ts[22m → [1mfirebase-remote-config.js[22m...[39m
+[32mcreated [1mfirebase-remote-config.js[22m in [1m581ms[22m[39m
+[36m
+[1mmessaging/index.ts[22m → [1mfirebase-messaging.js[22m...[39m
+[32mcreated [1mfirebase-messaging.js[22m in [1m550ms[22m[39m
+[36m
+[1mmessaging/sw/index.ts[22m → [1mfirebase-messaging-sw.js[22m...[39m
+[32mcreated [1mfirebase-messaging-sw.js[22m in [1m554ms[22m[39m
+[36m
+[1mdatabase/index.ts[22m → [1mfirebase-database.js[22m...[39m
+[32mcreated [1mfirebase-database.js[22m in [1m902ms[22m[39m
+[36m
+[1mdata-connect/index.ts[22m → [1mfirebase-data-connect.js[22m...[39m
+[32mcreated [1mfirebase-data-connect.js[22m in [1m486ms[22m[39m
+[[35m13:33:55[39m] Using gulpfile [35m~/repos/fb-JETSKI/packages/firebase/gulpfile.js[39m
+[[35m13:33:55[39m] Starting '[36mcdn-type-module-path[39m'...
+[[35m13:33:55[39m] Finished '[36mcdn-type-module-path[39m' after [35m115 ms[39m
+[2K[1G[2m$ rollup -c compat/rollup.config.js[22m
+[36m
+[1m/Users/chholland/repos/fb-JETSKI/packages/firebase/compat/app/index.ts[22m → [1mcompat/app/dist/esm/index.esm.js[22m...[39m
+(node:52775) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/chholland/repos/fb-JETSKI/packages/firebase/compat/rollup.config.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/chholland/repos/fb-JETSKI/packages/firebase/compat/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:52775) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/chholland/repos/fb-JETSKI/scripts/build/rollup_emit_module_package_file.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/chholland/repos/fb-JETSKI/package.json.
+[32mcreated [1mcompat/app/dist/esm/index.esm.js[22m in [1m706ms[22m[39m
+[36m
+[1m/Users/chholland/repos/fb-JETSKI/packages/firebase/compat/app/index.ts[22m → [1mcompat/app/dist/index.cjs.js, compat/app/dist/index.mjs[22m...[39m
+[32mcreated [1mcompat/app/dist/index.cjs.js, compat/app/dist/index.mjs[22m in [1m181ms[22m[39m
+[36m
+[1m/Users/chholland/repos/fb-JETSKI/packages/firebase/compat/app/index.cdn.ts[22m → [1mfirebase-app-compat.js[22m...[39m
+[32mcreated [1mfirebase-app-compat.js[22m in [1m856ms[22m[39m
+[36m
+[1m/Users/chholland/repos/fb-JETSKI/packages/firebase/compat/analytics/index.ts[22m → [1mcompat/analytics/dist/esm/index.esm.js[22m...[39m
+[32mcreated [1mcompat/analytics/dist/esm/index.esm.js[22m in [1m151ms[22m[39m
+[36m
+[1m/Users/chholland/repos/fb-JETSKI/packages/firebase/compat/analytics/index.ts[22m → [1mcompat/analytics/dist/index.cjs.js, compat/analytics/dist/index.mjs, compat/analytics/dist/esm/index.esm.js[22m...[39m
+[32mcreated [1mcompat/analytics/dist/index.cjs.js, compat/analytics/dist/index.mjs, compat/analytics/dist/esm/index.esm.js[22m in [1m114ms[22m[39m
+[36m
+[1m/Users/chholland/repos/fb-JETSKI/packages/firebase/compat/analytics/index.ts[22m → [1mfirebase-analytics-compat.js[22m...[39m
+[32mcreated [1mfirebase-analytics-compat.js[22m in [1m422ms[22m[39m
+[36m
+[1m/Users/chholland/repos/fb-JETSKI/packages/firebase/compat/app-check/index.ts[22m → [1mcompat/app-check/dist/esm/index.esm.js[22m...[39m
+[32mcreated [1mcompat/app-check/dist/esm/index.esm.js[22m in [1m135ms[22m[39m
+[36m
+[1m/Users/chholland/repos/fb-JETSKI/packages/firebase/compat/app-check/index.ts[22m → [1mcompat/app-check/dist/index.cjs.js, compat/app-check/dist/index.mjs, compat/app-check/dist/esm/index.esm.js[22m...[39m
+[32mcreated [1mcompat/app-check/dist/index.cjs.js, compat/app-check/dist/index.mjs, compat/app-check/dist/esm/index.esm.js[22m in [1m115ms[22m[39m
+[36m
+[1m/Users/chholland/repos/fb-JETSKI/packages/firebase/compat/app-check/index.ts[22m → [1mfirebase-app-check-compat.js[22m...[39m
+[32mcreated [1mfirebase-app-check-compat.js[22m in [1m384ms[22m[39m
+[36m
+[1m/Users/chholland/repos/fb-JETSKI/packages/firebase/compat/auth/index.ts[22m → [1mcompat/auth/dist/esm/index.esm.js[22m...[39m
+[32mcreated [1mcompat/auth/dist/esm/index.esm.js[22m in [1m138ms[22m[39m
+[36m
+[1m/Users/chholland/repos/fb-JETSKI/packages/firebase/compat/auth/index.ts[22m → [1mcompat/auth/dist/index.cjs.js, compat/auth/dist/index.mjs, compat/auth/dist/esm/index.esm.js[22m...[39m
+[32mcreated [1mcompat/auth/dist/index.cjs.js, compat/auth/dist/index.mjs, compat/auth/dist/esm/index.esm.js[22m in [1m117ms[22m[39m
+[36m
+[1m/Users/chholland/repos/fb-JETSKI/packages/firebase/compat/auth/index.ts[22m → [1mfirebase-auth-compat.js[22m...[39m
+[32mcreated [1mfirebase-auth-compat.js[22m in [1m912ms[22m[39m
+[36m
+[1m/Users/chholland/repos/fb-JETSKI/packages/firebase/compat/functions/index.ts[22m → [1mcompat/functions/dist/esm/index.esm.js[22m...[39m
+[32mcreated [1mcompat/functions/dist/esm/index.esm.js[22m in [1m137ms[22m[39m
+[36m
+[1m/Users/chholland/repos/fb-JETSKI/packages/firebase/compat/functions/index.ts[22m → [1mcompat/functions/dist/index.cjs.js, compat/functions/dist/index.mjs, compat/functions/dist/esm/index.esm.js[22m...[39m
+[32mcreated [1mcompat/functions/dist/index.cjs.js, compat/functions/dist/index.mjs, compat/functions/dist/esm/index.esm.js[22m in [1m107ms[22m[39m
+[36m
+[1m/Users/chholland/repos/fb-JETSKI/packages/firebase/compat/functions/index.ts[22m → [1mfirebase-functions-compat.js[22m...[39m
+[32mcreated [1mfirebase-functions-compat.js[22m in [1m295ms[22m[39m
+[36m
+[1m/Users/chholland/repos/fb-JETSKI/packages/firebase/compat/installations/index.ts[22m → [1mcompat/installations/dist/esm/index.esm.js[22m...[39m
+[32mcreated [1mcompat/installations/dist/esm/index.esm.js[22m in [1m131ms[22m[39m
+[36m
+[1m/Users/chholland/repos/fb-JETSKI/packages/firebase/compat/installations/index.ts[22m → [1mcompat/installations/dist/index.cjs.js, compat/installations/dist/index.mjs, compat/installations/dist/esm/index.esm.js[22m...[39m
+[32mcreated [1mcompat/installations/dist/index.cjs.js, compat/installations/dist/index.mjs, compat/installations/dist/esm/index.esm.js[22m in [1m119ms[22m[39m
+[36m
+[1m/Users/chholland/repos/fb-JETSKI/packages/firebase/compat/installations/index.ts[22m → [1mfirebase-installations-compat.js[22m...[39m
+[32mcreated [1mfirebase-installations-compat.js[22m in [1m346ms[22m[39m
+[36m
+[1m/Users/chholland/repos/fb-JETSKI/packages/firebase/compat/messaging/index.ts[22m → [1mcompat/messaging/dist/esm/index.esm.js[22m...[39m
+[32mcreated [1mcompat/messaging/dist/esm/index.esm.js[22m in [1m133ms[22m[39m
+[36m
+[1m/Users/chholland/repos/fb-JETSKI/packages/firebase/compat/messaging/index.ts[22m → [1mcompat/messaging/dist/index.cjs.js, compat/messaging/dist/index.mjs, compat/messaging/dist/esm/index.esm.js[22m...[39m
+[32mcreated [1mcompat/messaging/dist/index.cjs.js, compat/messaging/dist/index.mjs, compat/messaging/dist/esm/index.esm.js[22m in [1m112ms[22m[39m
+[36m
+[1m/Users/chholland/repos/fb-JETSKI/packages/firebase/compat/messaging/index.ts[22m → [1mfirebase-messaging-compat.js[22m...[39m
+[32mcreated [1mfirebase-messaging-compat.js[22m in [1m577ms[22m[39m
+[36m
+[1m/Users/chholland/repos/fb-JETSKI/packages/firebase/compat/performance/index.ts[22m → [1mcompat/performance/dist/esm/index.esm.js[22m...[39m
+[32mcreated [1mcompat/performance/dist/esm/index.esm.js[22m in [1m149ms[22m[39m
+[36m
+[1m/Users/chholland/repos/fb-JETSKI/packages/firebase/compat/performance/index.ts[22m → [1mcompat/performance/dist/index.cjs.js, compat/performance/dist/index.mjs, compat/performance/dist/esm/index.esm.js[22m...[39m
+[32mcreated [1mcompat/performance/dist/index.cjs.js, compat/performance/dist/index.mjs, compat/performance/dist/esm/index.esm.js[22m in [1m129ms[22m[39m
+[36m
+[1m/Users/chholland/repos/fb-JETSKI/packages/firebase/compat/performance/index.ts[22m → [1mfirebase-performance-compat.js[22m...[39m
+[32mcreated [1mfirebase-performance-compat.js[22m in [1m556ms[22m[39m
+[36m
+[1m/Users/chholland/repos/fb-JETSKI/packages/firebase/compat/remote-config/index.ts[22m → [1mcompat/remote-config/dist/esm/index.esm.js[22m...[39m
+[32mcreated [1mcompat/remote-config/dist/esm/index.esm.js[22m in [1m145ms[22m[39m
+[36m
+[1m/Users/chholland/repos/fb-JETSKI/packages/firebase/compat/remote-config/index.ts[22m → [1mcompat/remote-config/dist/index.cjs.js, compat/remote-config/dist/index.mjs, compat/remote-config/dist/esm/index.esm.js[22m...[39m
+[32mcreated [1mcompat/remote-config/dist/index.cjs.js, compat/remote-config/dist/index.mjs, compat/remote-config/dist/esm/index.esm.js[22m in [1m115ms[22m[39m
+[36m
+[1m/Users/chholland/repos/fb-JETSKI/packages/firebase/compat/remote-config/index.ts[22m → [1mfirebase-remote-config-compat.js[22m...[39m
+[32mcreated [1mfirebase-remote-config-compat.js[22m in [1m487ms[22m[39m
+[36m
+[1m/Users/chholland/repos/fb-JETSKI/packages/firebase/compat/firestore/index.ts[22m → [1mcompat/firestore/dist/esm/index.esm.js[22m...[39m
+[32mcreated [1mcompat/firestore/dist/esm/index.esm.js[22m in [1m150ms[22m[39m
+[36m
+[1m/Users/chholland/repos/fb-JETSKI/packages/firebase/compat/firestore/index.ts[22m → [1mcompat/firestore/dist/index.cjs.js, compat/firestore/dist/index.mjs, compat/firestore/dist/esm/index.esm.js[22m...[39m
+[32mcreated [1mcompat/firestore/dist/index.cjs.js, compat/firestore/dist/index.mjs, compat/firestore/dist/esm/index.esm.js[22m in [1m127ms[22m[39m
+[36m
+[1m/Users/chholland/repos/fb-JETSKI/packages/firebase/compat/firestore/index.ts[22m → [1mfirebase-firestore-compat.js[22m...[39m
+[32mcreated [1mfirebase-firestore-compat.js[22m in [1m2.8s[22m[39m
+[36m
+[1m/Users/chholland/repos/fb-JETSKI/packages/firebase/compat/storage/index.ts[22m → [1mcompat/storage/dist/esm/index.esm.js[22m...[39m
+[32mcreated [1mcompat/storage/dist/esm/index.esm.js[22m in [1m136ms[22m[39m
+[36m
+[1m/Users/chholland/repos/fb-JETSKI/packages/firebase/compat/storage/index.ts[22m → [1mcompat/storage/dist/index.cjs.js, compat/storage/dist/index.mjs, compat/storage/dist/esm/index.esm.js[22m...[39m
+[32mcreated [1mcompat/storage/dist/index.cjs.js, compat/storage/dist/index.mjs, compat/storage/dist/esm/index.esm.js[22m in [1m106ms[22m[39m
+[36m
+[1m/Users/chholland/repos/fb-JETSKI/packages/firebase/compat/storage/index.ts[22m → [1mfirebase-storage-compat.js[22m...[39m
+[32mcreated [1mfirebase-storage-compat.js[22m in [1m531ms[22m[39m
+[36m
+[1m/Users/chholland/repos/fb-JETSKI/packages/firebase/compat/database/index.ts[22m → [1mcompat/database/dist/esm/index.esm.js[22m...[39m
+[32mcreated [1mcompat/database/dist/esm/index.esm.js[22m in [1m140ms[22m[39m
+[36m
+[1m/Users/chholland/repos/fb-JETSKI/packages/firebase/compat/database/index.ts[22m → [1mcompat/database/dist/index.cjs.js, compat/database/dist/index.mjs, compat/database/dist/esm/index.esm.js[22m...[39m
+[32mcreated [1mcompat/database/dist/index.cjs.js, compat/database/dist/index.mjs, compat/database/dist/esm/index.esm.js[22m in [1m116ms[22m[39m
+[36m
+[1m/Users/chholland/repos/fb-JETSKI/packages/firebase/compat/database/index.ts[22m → [1mfirebase-database-compat.js[22m...[39m
+[32mcreated [1mfirebase-database-compat.js[22m in [1m1.1s[22m[39m
+[36m
+[1m/Users/chholland/repos/fb-JETSKI/packages/firebase/compat/index.ts[22m → [1mcompat/dist/esm/index.esm.js[22m...[39m
+[32mcreated [1mcompat/dist/esm/index.esm.js[22m in [1m144ms[22m[39m
+[36m
+[1m/Users/chholland/repos/fb-JETSKI/packages/firebase/compat/index.cdn.ts[22m → [1mfirebase-compat.js[22m...[39m
+[32mcreated [1mfirebase-compat.js[22m in [1m4.7s[22m[39m
+[36m
+[1m/Users/chholland/repos/fb-JETSKI/packages/firebase/compat/index.node.ts[22m → [1mcompat/dist/index.node.cjs[22m...[39m
+[32mcreated [1mcompat/dist/index.node.cjs[22m in [1m138ms[22m[39m
+[36m
+[1m/Users/chholland/repos/fb-JETSKI/packages/firebase/compat/index.rn.ts[22m → [1mcompat/dist/index.rn.cjs.js[22m...[39m
+[32mcreated [1mcompat/dist/index.rn.cjs.js[22m in [1m115ms[22m[39m
+[36m
+[1m/Users/chholland/repos/fb-JETSKI/packages/firebase/compat/index.perf.ts[22m → [1mfirebase-performance-standalone-compat.js[22m...[39m
+[32mcreated [1mfirebase-performance-standalone-compat.js[22m in [1m845ms[22m[39m

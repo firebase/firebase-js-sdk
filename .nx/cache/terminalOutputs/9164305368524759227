@@ -1,0 +1,257 @@
+[2K[1G[2m$ rollup -c rollup.config.js && yarn api-report[22m
+[36m
+[1msrc/index.ts[22m → [1mdist/index.esm.js[22m...[39m
+(node:51676) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/chholland/repos/fb-JETSKI/packages/data-connect/rollup.config.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/chholland/repos/fb-JETSKI/packages/data-connect/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:51676) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/chholland/repos/fb-JETSKI/scripts/build/rollup_replace_build_target.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/chholland/repos/fb-JETSKI/package.json.
+[32mcreated [1mdist/index.esm.js[22m in [1m1.8s[22m[39m
+[36m
+[1msrc/index.ts[22m → [1m./dist/index.cjs.js[22m...[39m
+[32mcreated [1m./dist/index.cjs.js[22m in [1m531ms[22m[39m
+[36m
+[1msrc/index.node.ts[22m → [1mdist/index.node.cjs.js[22m...[39m
+[32mcreated [1mdist/index.node.cjs.js[22m in [1m856ms[22m[39m
+[36m
+[1msrc/index.node.ts[22m → [1m./dist/node-esm/index.node.esm.js[22m...[39m
+[32mcreated [1m./dist/node-esm/index.node.esm.js[22m in [1m608ms[22m[39m
+[2K[1G[2m$ TS_NODE_COMPILER_OPTIONS='{"module":"commonjs"}' ts-node ../../repo-scripts/prune-dts/extract-public-api.ts --package data-connect --packageRoot . --typescriptDts ./dist/src/index.d.ts --rollupDts ./dist/private.d.ts --untrimmedRollupDts ./dist/internal.d.ts --publicDts ./dist/public.d.ts && yarn api-report:api-json[22m
+Configuring API Extractor for data-connect
+/private/var/folders/hr/6vgh6r095ls3t4f299wjn4wr00j4dz/T/tmp-51724-XkIKIBIkg6sI/api-extractor.json
+[36mAPI Extractor was invoked with skipLibCheck. This is not recommended and may cause incorrect type analysis.[39m
+Analysis will use the bundled TypeScript version 4.1.6
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/api/DataConnect.d.ts:44:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/api/DataConnect.d.ts:48:1 - (ae-internal-missing-underscore) The name "parseOptions" should be prefixed with an underscore because the declaration is marked as @internal[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/api/DataConnect.d.ts:64:5 - (ae-incompatible-release-tags) The symbol "_mutationManager" is marked as @public, but its signature references "MutationManager" which is marked as @internal[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/api/DataConnect.d.ts:97:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/api/DataConnect.d.ts:98:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/api/DataConnect.d.ts:101:1 - (ae-internal-missing-underscore) The name "areTransportOptionsEqual" should be prefixed with an underscore because the declaration is marked as @internal[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/api/DataConnect.d.ts:104:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/api/DataConnect.d.ts:105:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/api/DataConnect.d.ts:106:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/api/DataConnect.d.ts:107:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/api/DataConnect.d.ts:115:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/api/DataConnect.d.ts:121:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/api/DataConnect.d.ts:122:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/api/DataConnect.d.ts:127:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/api/DataConnect.d.ts:128:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/api/DataConnect.d.ts:133:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/api/DataConnect.d.ts:134:18 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/api/DataConnect.d.ts:134:13 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/api/DataConnect.d.ts:137:1 - (ae-internal-missing-underscore) The name "validateDCOptions" should be prefixed with an underscore because the declaration is marked as @internal[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/api/DataConnect.d.ts:140:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/api/Mutation.d.ts:25:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/api/Mutation.d.ts:26:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/api/Mutation.d.ts:31:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/api/Mutation.d.ts:32:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/api/Mutation.d.ts:33:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/api/Mutation.d.ts:39:1 - (ae-internal-missing-underscore) The name "MutationManager" should be prefixed with an underscore because the declaration is marked as @internal[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/api/Mutation.d.ts:58:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/api/query.d.ts:28:1 - (ae-internal-missing-underscore) The name "InternalQueryResult" should be prefixed with an underscore because the declaration is marked as @internal[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/api/query.d.ts:47:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/api/query.d.ts:53:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/api/query.d.ts:54:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/api/query.d.ts:60:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/api/query.d.ts:61:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/api/query.d.ts:62:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/api/query.d.ts:68:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/cache/ResultTree.d.ts:25:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/core/query/subscribe.d.ts:54:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/core/query/subscribe.d.ts:55:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/core/query/subscribe.d.ts:61:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/core/query/subscribe.d.ts:62:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/core/query/subscribe.d.ts:63:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/core/query/subscribe.d.ts:64:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/network/transport.d.ts:43:1 - (ae-internal-missing-underscore) The name "DataConnectMaxAge" should be prefixed with an underscore because the declaration is marked as @internal[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/network/transport.d.ts:47:1 - (ae-internal-missing-underscore) The name "DataConnectExtensionWithMaxAge" should be prefixed with an underscore because the declaration is marked as @internal[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/network/transport.d.ts:54:1 - (ae-internal-missing-underscore) The name "ExtensionsWithMaxAge" should be prefixed with an underscore because the declaration is marked as @internal[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/network/transport.d.ts:58:1 - (ae-internal-missing-underscore) The name "DataConnectResponse" should be prefixed with an underscore because the declaration is marked as @internal[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/network/transport.d.ts:64:1 - (ae-internal-missing-underscore) The name "DataConnectResponseWithMaxAge" should be prefixed with an underscore because the declaration is marked as @internal[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/network/transport.d.ts:73:1 - (ae-internal-missing-underscore) The name "SubscribeObserver" should be prefixed with an underscore because the declaration is marked as @internal[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/network/transport.d.ts:82:1 - (ae-internal-missing-underscore) The name "DataConnectTransportInterface" should be prefixed with an underscore because the declaration is marked as @internal[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/network/transport.d.ts:85:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/network/transport.d.ts:86:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/network/transport.d.ts:92:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/network/transport.d.ts:93:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/network/transport.d.ts:99:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/network/transport.d.ts:100:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/network/transport.d.ts:101:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/network/transport.d.ts:106:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/network/transport.d.ts:107:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/network/transport.d.ts:112:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/network/transport.d.ts:113:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/network/transport.d.ts:114:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/network/transport.d.ts:121:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/network/transport.d.ts:126:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/network/transport.d.ts:134:1 - (ae-internal-missing-underscore) The name "TransportClass" should be prefixed with an underscore because the declaration is marked as @internal[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/network/transport.d.ts:139:1 - (ae-internal-missing-underscore) The name "getGoogApiClientValue" should be prefixed with an underscore because the declaration is marked as @internal[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/network/transport.d.ts:146:1 - (ae-internal-missing-underscore) The name "AbstractDataConnectTransport" should be prefixed with an underscore because the declaration is marked as @internal[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/util/validateArgs.d.ts:32:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/util/validateArgs.d.ts:33:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/util/validateArgs.d.ts:34:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/util/validateArgs.d.ts:35:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/util/validateArgs.d.ts:36:25 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/util/validateArgs.d.ts:36:41 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/util/validateArgs.d.ts:36:13 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/util/validateArgs.d.ts:36:31 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/util/validateArgs.d.ts:39:1 - (ae-internal-missing-underscore) The name "validateArgs" should be prefixed with an underscore because the declaration is marked as @internal[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/util/validateArgs.d.ts:48:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/util/validateArgs.d.ts:49:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/util/validateArgs.d.ts:50:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/util/validateArgs.d.ts:51:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/util/validateArgs.d.ts:52:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/util/validateArgs.d.ts:53:25 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/util/validateArgs.d.ts:53:41 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/util/validateArgs.d.ts:53:88 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/util/validateArgs.d.ts:53:13 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/util/validateArgs.d.ts:53:31 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/util/validateArgs.d.ts:53:68 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/src/util/validateArgs.d.ts:56:1 - (ae-internal-missing-underscore) The name "validateArgsWithOptions" should be prefixed with an underscore because the declaration is marked as @internal[39m
+Generated rollup DTS
+Pruned DTS file
+Added blank lines after imports
+Removed unused imports
+/private/var/folders/hr/6vgh6r095ls3t4f299wjn4wr00j4dz/T/tmp-51724-XkIKIBIkg6sI/api-extractor.json
+[36mAPI Extractor was invoked with skipLibCheck. This is not recommended and may cause incorrect type analysis.[39m
+Analysis will use the bundled TypeScript version 4.1.6
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/public.d.ts:46:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/public.d.ts:47:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/public.d.ts:48:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/public.d.ts:49:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/public.d.ts:132:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/public.d.ts:138:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/public.d.ts:153:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/public.d.ts:159:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/public.d.ts:160:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/public.d.ts:165:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/public.d.ts:166:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/public.d.ts:183:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/public.d.ts:184:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/public.d.ts:189:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/public.d.ts:190:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/public.d.ts:191:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/public.d.ts:261:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/public.d.ts:262:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/public.d.ts:268:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/public.d.ts:269:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/public.d.ts:270:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/public.d.ts:309:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/public.d.ts:310:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/public.d.ts:316:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/public.d.ts:317:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/public.d.ts:318:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/public.d.ts:319:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/public.d.ts:334:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: /Users/chholland/repos/fb-JETSKI/packages/data-connect/dist/public.d.ts:340:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+API report for data-connect written to /Users/chholland/repos/fb-JETSKI/common/api-review
+[2K[1G[2m$ rm -rf temp && api-extractor run --local --verbose[22m
+
+[1mapi-extractor 0.1.2 [36m - https://api-extractor.com/[39m[22m
+[1m[22m
+Using configuration from ./api-extractor.json
+[36mAPI Extractor was invoked with skipLibCheck. This is not recommended and may cause incorrect type analysis.[39m
+Analysis will use the bundled TypeScript version 4.1.6
+*** The target project appears to use TypeScript 5.5.4 which is newer than the bundled compiler engine; consider upgrading API Extractor.
+[36mFound metadata in /Users/chholland/repos/fb-JETSKI/packages/app/dist/app/src/tsdoc-metadata.json[39m
+[36mFound metadata in /Users/chholland/repos/fb-JETSKI/packages/util/dist/tsdoc-metadata.json[39m
+[36mWriting: /Users/chholland/repos/fb-JETSKI/packages/data-connect/temp/data-connect.api.json[39m
+[33mWarning: dist/public.d.ts:14:1 - (ae-missing-release-tag) "CacheProvider" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)[39m
+[33mWarning: dist/public.d.ts:17:1 - (ae-missing-release-tag) "CacheSettings" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)[39m
+[33mWarning: dist/public.d.ts:25:1 - (ae-missing-release-tag) "CallerSdkType" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)[39m
+[33mWarning: dist/public.d.ts:26:22 - (ae-missing-release-tag) "CallerSdkTypeEnum" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)[39m
+[33mWarning: dist/public.d.ts:34:1 - (ae-missing-release-tag) "Code" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)[39m
+[33mWarning: dist/public.d.ts:34:1 - (ae-missing-release-tag) "Code" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)[39m
+[33mWarning: dist/public.d.ts:46:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: dist/public.d.ts:47:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: dist/public.d.ts:48:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: dist/public.d.ts:49:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: dist/public.d.ts:51:1 - (ae-missing-release-tag) "connectDataConnectEmulator" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)[39m
+[33mWarning: dist/public.d.ts:55:1 - (ae-missing-release-tag) "ConnectorConfig" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)[39m
+[33mWarning: dist/public.d.ts:63:1 - (ae-missing-release-tag) "DataConnect" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)[39m
+[33mWarning: dist/public.d.ts:74:1 - (ae-missing-release-tag) "DataConnectEntityArray" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)[39m
+[33mWarning: dist/public.d.ts:78:1 - (ae-missing-release-tag) "DataConnectError" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)[39m
+[33mWarning: dist/public.d.ts:82:1 - (ae-missing-release-tag) "DataConnectErrorCode" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)[39m
+[33mWarning: dist/public.d.ts:83:1 - (ae-missing-release-tag) "DataConnectExtension" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)[39m
+[33mWarning: dist/public.d.ts:89:1 - (ae-missing-release-tag) "DataConnectOperationError" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)[39m
+[33mWarning: dist/public.d.ts:95:1 - (ae-missing-release-tag) "DataConnectOperationFailureResponse" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)[39m
+[33mWarning: dist/public.d.ts:99:1 - (ae-missing-release-tag) "DataConnectOperationFailureResponseErrorInfo" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)[39m
+[33mWarning: dist/public.d.ts:106:1 - (ae-missing-release-tag) "DataConnectOptions" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)[39m
+[33mWarning: dist/public.d.ts:111:1 - (ae-missing-release-tag) "DataConnectResult" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)[39m
+[33mWarning: dist/public.d.ts:114:1 - (ae-missing-release-tag) "DataConnectSettings" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)[39m
+[33mWarning: dist/public.d.ts:117:1 - (ae-missing-release-tag) "DataConnectSingleEntity" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)[39m
+[33mWarning: dist/public.d.ts:123:1 - (ae-missing-release-tag) "DataConnectSubscription" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)[39m
+[33mWarning: dist/public.d.ts:129:1 - (ae-missing-release-tag) "DataSource" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)[39m
+[33mWarning: dist/public.d.ts:132:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: dist/public.d.ts:135:1 - (ae-missing-release-tag) "executeMutation" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)[39m
+[33mWarning: dist/public.d.ts:138:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: dist/public.d.ts:141:1 - (ae-missing-release-tag) "executeQuery" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)[39m
+[33mWarning: dist/public.d.ts:145:1 - (ae-missing-release-tag) "ExecuteQueryOptions" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)[39m
+[33mWarning: dist/public.d.ts:148:1 - (ae-missing-release-tag) "Extensions" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)[39m
+[33mWarning: dist/public.d.ts:153:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: dist/public.d.ts:155:1 - (ae-missing-release-tag) "getDataConnect" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)[39m
+[33mWarning: dist/public.d.ts:155:1 - (ae-missing-release-tag) "getDataConnect" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)[39m
+[33mWarning: dist/public.d.ts:155:1 - (ae-missing-release-tag) "getDataConnect" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)[39m
+[33mWarning: dist/public.d.ts:155:1 - (ae-missing-release-tag) "getDataConnect" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)[39m
+[33mWarning: dist/public.d.ts:159:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: dist/public.d.ts:160:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: dist/public.d.ts:165:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: dist/public.d.ts:166:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: dist/public.d.ts:170:1 - (ae-missing-release-tag) "makeMemoryCacheProvider" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)[39m
+[33mWarning: dist/public.d.ts:171:22 - (ae-missing-release-tag) "MUTATION_STR" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)[39m
+[33mWarning: dist/public.d.ts:176:1 - (ae-missing-release-tag) "MutationPromise" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)[39m
+[33mWarning: dist/public.d.ts:178:1 - (ae-missing-release-tag) "MutationRef" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)[39m
+[33mWarning: dist/public.d.ts:183:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: dist/public.d.ts:184:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: dist/public.d.ts:186:1 - (ae-missing-release-tag) "mutationRef" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)[39m
+[33mWarning: dist/public.d.ts:186:1 - (ae-missing-release-tag) "mutationRef" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)[39m
+[33mWarning: dist/public.d.ts:189:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: dist/public.d.ts:190:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: dist/public.d.ts:191:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: dist/public.d.ts:197:1 - (ae-missing-release-tag) "MutationResult" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)[39m
+[33mWarning: dist/public.d.ts:203:1 - (ae-missing-release-tag) "OnCompleteSubscription" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)[39m
+[33mWarning: dist/public.d.ts:207:1 - (ae-missing-release-tag) "OnErrorSubscription" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)[39m
+[33mWarning: dist/public.d.ts:211:1 - (ae-missing-release-tag) "OnResultSubscription" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)[39m
+[33mWarning: dist/public.d.ts:212:1 - (ae-missing-release-tag) "OperationRef" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)[39m
+[33mWarning: dist/public.d.ts:218:1 - (ae-missing-release-tag) "OpResult" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)[39m
+[33mWarning: dist/public.d.ts:225:22 - (ae-missing-release-tag) "QUERY_STR" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)[39m
+[33mWarning: dist/public.d.ts:227:4 - (tsdoc-undefined-tag) The TSDoc tag "@license" is not defined in this configuration[39m
+[33mWarning: dist/public.d.ts:242:22 - (ae-missing-release-tag) "QueryFetchPolicy" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)[39m
+[33mWarning: dist/public.d.ts:242:22 - (ae-missing-release-tag) "QueryFetchPolicy" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)[39m
+[33mWarning: dist/public.d.ts:251:1 - (ae-missing-release-tag) "QueryPromise" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)[39m
+[33mWarning: dist/public.d.ts:256:1 - (ae-missing-release-tag) "QueryRef" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)[39m
+[33mWarning: dist/public.d.ts:261:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: dist/public.d.ts:262:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: dist/public.d.ts:265:1 - (ae-missing-release-tag) "queryRef" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)[39m
+[33mWarning: dist/public.d.ts:265:1 - (ae-missing-release-tag) "queryRef" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)[39m
+[33mWarning: dist/public.d.ts:268:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: dist/public.d.ts:269:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: dist/public.d.ts:270:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: dist/public.d.ts:277:1 - (ae-missing-release-tag) "QueryResult" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)[39m
+[33mWarning: dist/public.d.ts:284:1 - (ae-missing-release-tag) "QueryUnsubscribe" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)[39m
+[33mWarning: dist/public.d.ts:285:1 - (ae-missing-release-tag) "ReferenceType" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)[39m
+[33mWarning: dist/public.d.ts:289:1 - (ae-missing-release-tag) "RefInfo" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)[39m
+[33mWarning: dist/public.d.ts:297:1 - (ae-missing-release-tag) "SerializedRef" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)[39m
+[33mWarning: dist/public.d.ts:300:1 - (ae-missing-release-tag) "setLogLevel" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)[39m
+[33mWarning: dist/public.d.ts:301:22 - (ae-missing-release-tag) "SOURCE_CACHE" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)[39m
+[33mWarning: dist/public.d.ts:302:22 - (ae-missing-release-tag) "SOURCE_SERVER" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)[39m
+[33mWarning: dist/public.d.ts:303:22 - (ae-missing-release-tag) "StorageType" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)[39m
+[33mWarning: dist/public.d.ts:303:22 - (ae-missing-release-tag) "StorageType" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)[39m
+[33mWarning: dist/public.d.ts:309:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: dist/public.d.ts:310:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: dist/public.d.ts:313:1 - (ae-missing-release-tag) "subscribe" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)[39m
+[33mWarning: dist/public.d.ts:313:1 - (ae-missing-release-tag) "subscribe" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)[39m
+[33mWarning: dist/public.d.ts:316:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: dist/public.d.ts:317:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: dist/public.d.ts:318:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: dist/public.d.ts:319:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: dist/public.d.ts:327:1 - (ae-missing-release-tag) "SubscriptionOptions" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)[39m
+[33mWarning: dist/public.d.ts:334:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: dist/public.d.ts:337:1 - (ae-missing-release-tag) "terminate" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)[39m
+[33mWarning: dist/public.d.ts:340:4 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen[39m
+[33mWarning: dist/public.d.ts:343:1 - (ae-missing-release-tag) "toQueryRef" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)[39m
+[33mWarning: dist/public.d.ts:348:1 - (ae-missing-release-tag) "TransportOptions" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)[39m
+
+API Extractor completed successfully

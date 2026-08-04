@@ -78,7 +78,7 @@ export class FunctionsError extends FirebaseError {
     super(
       `${FUNCTIONS_TYPE}/${code}`,
       message || '',
-      url ? { url } : undefined
+      url != null ? { url } : undefined
     );
 
     // Since the FirebaseError constructor sets the prototype of `this` to FirebaseError.prototype,
