@@ -26,8 +26,7 @@ jobs:
     name: Create Release PR
     runs-on: ubuntu-latest
     permissions:
-      pull-requests: write
-      contents: write
+      contents: read
     if: ${{ !startsWith(github.event.head_commit.message, 'Version Packages (#') }}
     steps:
       - name: Checkout Repo
@@ -52,6 +51,16 @@ jobs:
         run: |
           git pull -f --no-rebase origin main:main
           yarn ts-node-script scripts/ci/add_changeset.ts
+
+      # Fetch short-lived token from the GitHub App for creating PR
+      - name: Generate Temporary Token
+        id: generate-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # ratchet:actions/create-github-app-token@v3
+        with:
+          client-id: ${{ secrets.FIREBASE_RELEASE_APP_ID }}
+          private-key: ${{ secrets.FIREBASE_RELEASE_APP_PRIVATE_KEY }}
+          permission-pull-requests: write
+          permission-contents: write
       
       # Configures git user as "google-oss-bot" for the next step
       - name: Configure Git User
@@ -69,4 +78,4 @@ jobs:
           # This token affects who the opening of the PR is credited to
           # while the git user (above) determines the commit author.
           # We want to set them both to match github-oss-bot.
-          GITHUB_TOKEN: ${{ secrets.OSS_BOT_GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
