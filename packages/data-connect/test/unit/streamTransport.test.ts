@@ -22,8 +22,9 @@ import * as sinon from 'sinon';
 import sinonChai from 'sinon-chai';
 
 import { DataConnectOptions } from '../../src/api/DataConnect';
-import { Code } from '../../src/core/error';
+import { Code, DataConnectError } from '../../src/core/error';
 import { AuthTokenProvider } from '../../src/core/FirebaseAuthProvider';
+import { SDK_VERSION } from '../../src/core/version';
 import * as logger from '../../src/logger';
 import {
   CallerSdkType,
@@ -391,6 +392,19 @@ describe('AbstractDataConnectStreamTransport', () => {
           expectedThirdGoogApiClientValue
         );
       });
+
+      it('should add X-Client-Version to only the first message', () => {
+        const firstPreparedMessage =
+          transport.prepareMessage(unpreparedMessage);
+        expect(firstPreparedMessage.headers?.['X-Client-Version']).to.equal(
+          `web/${SDK_VERSION}`
+        );
+
+        const secondPreparedMessage =
+          transport.prepareMessage(unpreparedMessage);
+        expect(secondPreparedMessage.headers?.['X-Client-Version']).to.be
+          .undefined;
+      });
     });
 
     describe('should handle name properly', () => {
@@ -417,6 +431,7 @@ describe('AbstractDataConnectStreamTransport', () => {
       expect(secondMessage.name).to.be.undefined;
       expect(secondMessage.headers?.['X-Firebase-App-Check']).to.be.undefined;
       expect(secondMessage.headers?.['X-Firebase-Auth-Token']).to.be.undefined;
+      expect(secondMessage.headers?.['X-Client-Version']).to.be.undefined;
 
       // Trigger the physical connection reset
       transport.triggerOnConnectionReady();
@@ -429,6 +444,9 @@ describe('AbstractDataConnectStreamTransport', () => {
       );
       expect(thirdMessage.headers?.['X-Firebase-Auth-Token']).to.equal(
         initialAuthToken
+      );
+      expect(thirdMessage.headers?.['X-Client-Version']).to.equal(
+        `web/${SDK_VERSION}`
       );
     });
   });
@@ -1992,6 +2010,64 @@ describe('AbstractDataConnectStreamTransport', () => {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           delete (global as any).document;
         }
+      });
+
+      it('should exponentially back off with 1.5 multiplier and [-0.5x, +0.5x] jitter capped at 60s', async () => {
+        ensureConnectionStub.rejects(
+          new DataConnectError(Code.OTHER, 'Connection failed')
+        );
+        const randomStub = sinon.stub(Math, 'random');
+        const observer = {
+          onData: sinon.spy(),
+          onDisconnect: sinon.spy(),
+          onError: sinon.spy()
+        };
+        transport.invokeSubscribe(observer, queryName1, variables1);
+
+        // Attempt 1: base delay 1000ms, random=0 -> jitter -500ms -> delay 500ms
+        randomStub.returns(0);
+        transport.onStreamClose(1006, 'Abnormal Closure');
+
+        await clock.tickAsync(499);
+        expect(ensureConnectionStub).to.not.have.been.called;
+
+        // Set random=1 before attempt 1 failure triggers startReconnectBackoff for attempt 2
+        // Attempt 2: base delay 1500ms, random=1 -> jitter +750ms -> delay 2250ms
+        randomStub.returns(1);
+        await clock.tickAsync(1);
+        expect(ensureConnectionStub).to.have.been.calledOnce;
+
+        await clock.tickAsync(2249);
+        expect(ensureConnectionStub).to.have.been.calledOnce;
+
+        // Set random=0.5 before attempt 2 failure triggers startReconnectBackoff for attempt 3
+        // Attempt 3: base delay 2250ms, random=0.5 -> jitter 0ms -> delay 2250ms
+        randomStub.returns(0.5);
+        await clock.tickAsync(1);
+        expect(ensureConnectionStub).to.have.been.calledTwice;
+
+        await clock.tickAsync(2250);
+        expect(ensureConnectionStub).to.have.been.calledThrice;
+      });
+
+      it('should attempt reconnection indefinitely without a max attempt limit', async () => {
+        ensureConnectionStub.rejects(
+          new DataConnectError(Code.OTHER, 'Connection failed')
+        );
+        const observer = {
+          onData: sinon.spy(),
+          onDisconnect: sinon.spy(),
+          onError: sinon.spy()
+        };
+        transport.invokeSubscribe(observer, queryName1, variables1);
+        transport.onStreamClose(1006, 'Abnormal Closure');
+
+        // Fast-forward past 15 reconnection attempts
+        for (let i = 0; i < 15; i++) {
+          await clock.tickAsync(65000);
+        }
+
+        expect(ensureConnectionStub.callCount).to.be.at.least(15);
       });
     });
   });
