@@ -259,21 +259,11 @@ export function applyNumericIncrementTransformOperationToLocalView(
       return {
         integerValue: sum.toString()
       };
-    } else if (isInt32Value(transform.operand)) {
-      return {
-        mapValue: {
-          fields: {
-            [RESERVED_INT32_KEY]: toInteger(sum)
-          }
-        }
-      };
     } else {
       return {
         mapValue: {
           fields: {
-            [RESERVED_DECIMAL128_KEY]: {
-              stringValue: sum.toString()
-            }
+            [RESERVED_INT32_KEY]: toInteger(sum)
           }
         }
       };

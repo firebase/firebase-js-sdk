@@ -578,13 +578,6 @@ describe('Mutation', () => {
     verifyTransform(baseDoc, transform, expected);
   });
 
-  it('correctly performs numeric increment on BSON Int32Value local evaluation', () => {
-    const baseDoc = { intVal: new Int32Value(10) };
-    const transform = { intVal: increment(5) };
-    const expected = { intVal: 15 };
-    verifyTransform(baseDoc, transform, expected);
-  });
-
   // Although the API restricts increment operands to standard JS numbers (not BSON numbers),
   // the underlying model class represents a generic Firestore transform where the operand can
   // be any valid ProtoValue (including BSON Int32Value/Decimal128Value). We test these cases to
@@ -685,7 +678,7 @@ describe('Mutation', () => {
   });
 
   // Int32Value + Standard int -> Standard int
-  it('correctly promotes Int32Value base to Decimal128Value when incremented by an int in verifyTransform', () => {
+  it('correctly adds standard integer to Int32Value base in verifyTransform', () => {
     const baseDoc = { value: new Int32Value(10) };
     const transform = { value: increment(5) };
     const expected = { value: 15 };
@@ -693,7 +686,7 @@ describe('Mutation', () => {
   });
 
   // Int32Value + Standard double -> Standard double
-  it('correctly promotes Int32Value base to Decimal128Value when incremented by a double in verifyTransform', () => {
+  it('correctly adds standard double to Int32Value base in verifyTransform', () => {
     const baseDoc = { value: new Int32Value(10) };
     const transform = { value: increment(1.5) };
     const expected = { value: 11.5 };
