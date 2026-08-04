@@ -4,6 +4,7 @@
 
 ```ts
 
+import { AnyValueMap } from '@opentelemetry/api-logs';
 import { FirebaseApp } from '@firebase/app';
 
 // @public
@@ -20,6 +21,7 @@ export function CrashlyticsNavigationTracker({ firebaseApp, crashlyticsOptions }
 // @public
 export interface CrashlyticsOptions {
     appVersion?: string;
+    customAttributes?: AnyValueMap;
     endpointUrl?: string;
     region?: string;
     tracingUrl?: string;

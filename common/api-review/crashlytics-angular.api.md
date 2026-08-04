@@ -4,8 +4,8 @@
 
 ```ts
 
-import { DestroyRef } from '@angular/core';
 import { AnyValueMap } from '@opentelemetry/api-logs';
+import { DestroyRef } from '@angular/core';
 import { ErrorHandler } from '@angular/core';
 import { FirebaseApp } from '@firebase/app';
 import { Router } from '@angular/router';

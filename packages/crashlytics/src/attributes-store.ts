@@ -56,7 +56,6 @@ export class AttributesStore {
   private _installations: _FirebaseInstallationsInternal | null;
   private _iid: string | undefined;
   private _routePathProvider?: () => string;
-  private _region: string;
 
   constructor(
     firebaseOptions: FirebaseOptions,
@@ -179,7 +178,7 @@ export class AttributesStore {
     const attributes: Attributes = {};
     if (this._projectId) {
       attributes[SPAN_ATTR_KEY.GCP_RESOURCE_NAME] =
-        `//firebasetelemetry.googleapis.com/projects/${this._projectId}/locations/${this._region}/`;
+        `//firebasetelemetry.googleapis.com/projects/${this._projectId}`;
     }
 
     if (this._appVersion) {
