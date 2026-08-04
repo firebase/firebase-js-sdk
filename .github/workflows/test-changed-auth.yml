@@ -16,6 +16,9 @@ name: Test Auth
 
 on: pull_request
 
+permissions:
+  contents: read
+
 env:
   # make chromedriver detect installed Chrome version and download the corresponding driver
   DETECT_CHROMEDRIVER_VERSION: true
@@ -52,14 +55,21 @@ jobs:
         run: |
          echo $CHROME_VERSION_NOTES=$CHROME_VERSION_MISMATCH_MESSAGE
       - name: Checkout Repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7
         with:
           # This makes Actions fetch all Git history so run-changed script can diff properly.
           fetch-depth: 0
+          persist-credentials: false
       - name: Set up Node (22)
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # ratchet:actions/setup-node@v7
         with:
-          node-version: 22.10.0
+          node-version: 22.12.0
+      # firebase-tools has a minimum java version requirement
+      - name: Set up Java (22)
+        uses: actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95 # v5.6.0
+        with:
+          distribution: 'temurin'
+          java-version: '22'
       - name: Test setup and yarn install
         run: |
           cp config/ci.config.json config/project.json
@@ -67,7 +77,7 @@ jobs:
       - name: build
         run: yarn build:changed auth
       - name: Run tests on changed packages
-        run: xvfb-run yarn test:changed auth
+        run: xvfb-run yarn test:changed auth --concurrency 1
   test-firefox:
     name: Test Auth on Firefox If Changed
 
@@ -77,22 +87,25 @@ jobs:
       - name: install Firefox stable
         run: npx @puppeteer/browsers install firefox@stable
       - name: Checkout Repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7
         with:
           # This makes Actions fetch all Git history so run-changed script can diff properly.
           fetch-depth: 0
+          persist-credentials: false
       - name: Set up Node (22)
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # ratchet:actions/setup-node@v7
         with:
-          node-version: 22.10.0
+          node-version: 22.12.0
       - name: Test setup and yarn install
+        env:
+          CHROMEDRIVER_SKIP_DOWNLOAD: true
         run: |
           cp config/ci.config.json config/project.json
           yarn
       - name: build
         run: yarn build:changed auth
       - name: Run tests on auth changed packages
-        run: xvfb-run yarn test:changed auth
+        run: xvfb-run yarn test:changed auth --concurrency 1
         env:
           BROWSERS: 'Firefox'
 
@@ -102,14 +115,17 @@ jobs:
 
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7
         with:
           fetch-depth: 0
+          persist-credentials: false
       - name: Set up Node (22)
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # ratchet:actions/setup-node@v7
         with:
-          node-version: 22.10.0
+          node-version: 22.12.0
       - name: Test setup and yarn install
+        env:
+          CHROMEDRIVER_SKIP_DOWNLOAD: true
         run: |
           cp config/ci.config.json config/project.json
           yarn
@@ -117,6 +133,6 @@ jobs:
       - name: build
         run: yarn build:changed auth
       - name: Run tests on changed packages
-        run: yarn test:changed auth
+        run: yarn test:changed auth --concurrency 1
         env:
           BROWSERS: 'WebkitHeadless'

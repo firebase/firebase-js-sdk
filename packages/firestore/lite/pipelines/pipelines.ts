@@ -29,7 +29,7 @@
 // types need to be exported here to ensure that api-extractor behaves
 // correctly. If a type from api.ts is missing from this export, then
 // api-extractor may rename it with a suffix `_#`, e.g. `YourType_2`.
-export type {
+export {
   Timestamp,
   DocumentReference,
   VectorValue,

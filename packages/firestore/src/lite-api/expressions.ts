@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { FirestoreError } from '../api';
 import { ParseContext } from '../api/parse_context';
 import { OptionsUtil } from '../core/options_util';
 import {
@@ -35,6 +34,7 @@ import {
   toStringValue
 } from '../remote/serializer';
 import { hardAssert } from '../util/assert';
+import { FirestoreError } from '../util/error';
 import { isPlainObject } from '../util/input_validation';
 import { isFirestoreValue } from '../util/proto';
 import { isString } from '../util/types';
@@ -3713,11 +3713,11 @@ export class AliasedExpression implements Selectable, UserData {
 /**
  * @internal
  */
-class ListOfExprs extends Expression implements UserData {
+export class ListOfExprs extends Expression implements UserData {
   expressionType: ExpressionType = 'ListOfExpressions';
 
   constructor(
-    private exprs: Expression[],
+    public readonly exprs: Expression[],
     readonly _methodName: string | undefined
   ) {
     super();
@@ -3777,6 +3777,10 @@ export class Field extends Expression implements Selectable {
     readonly _methodName: string | undefined
   ) {
     super();
+  }
+
+  get _fieldPath(): InternalFieldPath {
+    return this.fieldPath;
   }
 
   get fieldName(): string {
@@ -3914,7 +3918,7 @@ export class Constant extends Expression {
    * @param value - The value of the constant.
    */
   constructor(
-    private value: unknown,
+    public readonly value: unknown,
     readonly _methodName: string | undefined
   ) {
     super();
@@ -3943,6 +3947,10 @@ export class Constant extends Expression {
     return this._protoValue;
   }
 
+  _getValue(): ProtoValue {
+    return this._protoValue!;
+  }
+
   /**
    * @private
    * @internal
@@ -3965,7 +3973,10 @@ export class Constant extends Expression {
  * @param value - The number value.
  * @returns A new `Constant` instance.
  */
-export function constant(value: number): Expression;
+export function constant(
+  value: number,
+  options?: { preferIntegers?: boolean }
+): Expression;
 
 /**
  * Creates a `Constant` instance for a string value.
@@ -4049,7 +4060,10 @@ export function constant(value: ProtoValue): Expression;
  */
 export function constant(value: VectorValue): Expression;
 
-export function constant(value: unknown): Expression | BooleanExpression {
+export function constant(
+  value: unknown,
+  options?: { preferIntegers?: boolean }
+): Expression | BooleanExpression {
   return _constant(value, 'constant');
 }
 
@@ -4127,8 +4141,8 @@ export class FunctionExpression extends Expression {
    * @hideconstructor
    */
   constructor(
-    private name: string,
-    private params: Expression[],
+    public readonly name: string,
+    public readonly params: Expression[],
     methodName?: string,
     options?: {}
   ) {
@@ -4384,6 +4398,10 @@ export class BooleanConstant extends BooleanExpression {
   readonly expressionType: ExpressionType = 'Constant';
   constructor(readonly _expr: Constant) {
     super();
+  }
+
+  _getValue(): unknown {
+    return this._expr._getValue();
   }
 }
 
@@ -4669,7 +4687,7 @@ export function isAbsent(value: Expression | string): BooleanExpression {
  * Creates an expression that removes a key from the map at the specified field name.
  *
  * @example
- * ```
+ * ```typescript
  * // Removes the key 'city' field from the map in the address field of the input document.
  * mapRemove('address', 'city');
  * ```
@@ -4683,10 +4701,9 @@ export function mapRemove(mapField: string, key: string): FunctionExpression;
  * Creates an expression that removes a key from the map produced by evaluating an expression.
  *
  * @example
- * ```
+ * ```typescript
  * // Removes the key 'baz' from the input map.
  * mapRemove(map({foo: 'bar', baz: true}), 'baz');
- * @example
  * ```
  *
  * @param mapExpr - An expression return a map value.
@@ -4698,7 +4715,7 @@ export function mapRemove(mapExpr: Expression, key: string): FunctionExpression;
  * Creates an expression that removes a key from the map at the specified field name.
  *
  * @example
- * ```
+ * ```typescript
  * // Removes the key 'city' field from the map in the address field of the input document.
  * mapRemove('address', constant('city'));
  * ```
@@ -4715,10 +4732,9 @@ export function mapRemove(
  * Creates an expression that removes a key from the map produced by evaluating an expression.
  *
  * @example
- * ```
+ * ```typescript
  * // Removes the key 'baz' from the input map.
  * mapRemove(map({foo: 'bar', baz: true}), constant('baz'));
- * @example
  * ```
  *
  * @param mapExpr - An expression return a map value.
@@ -4741,7 +4757,7 @@ export function mapRemove(
  * Creates an expression that merges multiple map values.
  *
  * @example
- * ```
+ * ```typescript
  * // Merges the map in the settings field with, a map literal, and a map in
  * // that is conditionally returned by another expression
  * mapMerge('settings', { enabled: true }, conditional(field('isAdmin'), { admin: true}, {})
@@ -4764,7 +4780,7 @@ export function mapMerge(
  * Creates an expression that merges multiple map values.
  *
  * @example
- * ```
+ * ```typescript
  * // Merges the map in the settings field with, a map literal, and a map in
  * // that is conditionally returned by another expression
  * mapMerge(field('settings'), { enabled: true }, conditional(field('isAdmin'), { admin: true}, {})

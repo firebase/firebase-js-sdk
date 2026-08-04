@@ -32,6 +32,8 @@ export declare class FunctionExpression extends Expression
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
 |  [expressionType](./firestore_lite_pipelines.functionexpression.md#functionexpressionexpressiontype) |  | [ExpressionType](./firestore_lite_pipelines.md#expressiontype) |  |
+|  [name](./firestore_lite_pipelines.functionexpression.md#functionexpressionname) |  | string |  |
+|  [params](./firestore_lite_pipelines.functionexpression.md#functionexpressionparams) |  | [Expression](./firestore_lite_pipelines.expression.md#expression_class)<!-- -->\[\] |  |
 
 ## FunctionExpression.(constructor)
 
@@ -56,4 +58,20 @@ constructor(name: string, params: Expression[]);
 
 ```typescript
 readonly expressionType: ExpressionType;
+```
+
+## FunctionExpression.name
+
+<b>Signature:</b>
+
+```typescript
+readonly name: string;
+```
+
+## FunctionExpression.params
+
+<b>Signature:</b>
+
+```typescript
+readonly params: Expression[];
 ```

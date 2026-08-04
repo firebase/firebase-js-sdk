@@ -86,6 +86,17 @@ export interface FirebaseExperimentDescription {
   affectedParameterKeys?: string[];
 }
 
+export interface FirebaseRolloutMetadata {
+  // A string of max length 22 characters and of format: _exp_rollout<rollout_id>
+  rolloutId: string;
+
+  // The variant of the rollout assigned to the app instance.
+  variantId: string;
+
+  // The parameter keys affected by this rollout.
+  affectedParameterKeys: string[];
+}
+
 /**
  * Defines a successful response (200 or 304).
  *
@@ -132,6 +143,13 @@ export interface FetchResponse {
    * @remarks Only defined for 200 responses.
    */
   experiments?: FirebaseExperimentDescription[];
+
+  /**
+   * Metadata for Remote Config Rollout experiments.
+   *
+   * @remarks Only defined for 200 responses.
+   */
+  rollouts?: FirebaseRolloutMetadata[];
 }
 
 /**

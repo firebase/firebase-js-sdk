@@ -1,5 +1,16 @@
 # @firebase/installations-compat
 
+## 0.2.23
+
+### Patch Changes
+
+- [`0fe3bbc`](https://github.com/firebase/firebase-js-sdk/commit/0fe3bbc3196a18d01941acbdaab3301a391016b1) [#10097](https://github.com/firebase/firebase-js-sdk/pull/10097) - Added "@firebase/app" as a peerDependency of compat packages.
+
+- Updated dependencies [[`736fa3f`](https://github.com/firebase/firebase-js-sdk/commit/736fa3fe798d6eafc9fe086d6bfbe9cfb49b8994)]:
+  - @firebase/util@1.15.2
+  - @firebase/component@0.7.4
+  - @firebase/installations@0.6.23
+
 ## 0.2.22
 
 ### Patch Changes

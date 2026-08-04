@@ -27,7 +27,7 @@ import {
 } from '../types';
 import { ChatSession } from './chat-session';
 import { ApiSettings } from '../types/internal';
-import { VertexAIBackend } from '../backend';
+import { AgentPlatformBackend } from '../backend';
 import { fakeChromeAdapter } from '../../test-utils/get-fake-firebase-services';
 import { logger } from '../logger';
 import { Schema } from '../api';
@@ -39,8 +39,8 @@ const fakeApiSettings: ApiSettings = {
   apiKey: 'key',
   project: 'my-project',
   appId: 'my-appid',
-  location: 'us-central1',
-  backend: new VertexAIBackend()
+  location: 'global',
+  backend: new AgentPlatformBackend()
 };
 
 function getGreeting({
@@ -59,7 +59,84 @@ describe('ChatSession', () => {
   afterEach(() => {
     restore();
   });
+  it('formats systemInstruction if it is provided as a string', () => {
+    const chatSession = new ChatSession(
+      fakeApiSettings,
+      'a-model',
+      fakeChromeAdapter,
+      {
+        systemInstruction: 'be friendly'
+      }
+    );
+    expect(chatSession.params?.systemInstruction).to.deep.equal({
+      role: 'system',
+      parts: [{ text: 'be friendly' }]
+    });
+  });
+  it('leaves systemInstruction unchanged if it is already a Content object', () => {
+    const systemInstruction: Content = {
+      role: 'system',
+      parts: [{ text: 'be friendly' }]
+    };
+    const chatSession = new ChatSession(
+      fakeApiSettings,
+      'a-model',
+      fakeChromeAdapter,
+      { systemInstruction }
+    );
+    expect(chatSession.params?.systemInstruction).to.deep.equal(
+      systemInstruction
+    );
+  });
+  it('leaves systemInstruction as undefined if not provided', () => {
+    const chatSession = new ChatSession(
+      fakeApiSettings,
+      'a-model',
+      fakeChromeAdapter,
+      {}
+    );
+    expect(chatSession.params?.systemInstruction).to.be.undefined;
+  });
   describe('sendMessage()', () => {
+    it('sends the correct params to generateContent()', async () => {
+      const generateContentStub = stub(
+        generateContentMethods,
+        'generateContent'
+      ).resolves();
+      const chatSession = new ChatSession(
+        fakeApiSettings,
+        'a-model',
+        fakeChromeAdapter,
+        {
+          systemInstruction: {
+            role: 'system',
+            parts: [{ text: 'system instruction text' }]
+          },
+          history: [
+            { role: 'user', parts: [{ text: 'user turn 1' }] },
+            { role: 'model', parts: [{ text: 'model turn 1' }] }
+          ]
+        }
+      );
+      // The result isn't important.
+      await chatSession.sendMessage('user turn 2');
+      expect(generateContentStub).to.be.calledWith(
+        fakeApiSettings,
+        'a-model',
+        match({
+          systemInstruction: {
+            role: 'system',
+            parts: [{ text: 'system instruction text' }]
+          }
+        }),
+        match.any
+      );
+      expect(generateContentStub.args[0][2].contents).to.deep.equal([
+        { role: 'user', parts: [{ text: 'user turn 1' }] },
+        { role: 'model', parts: [{ text: 'model turn 1' }] },
+        { role: 'user', parts: [{ text: 'user turn 2' }] }
+      ]);
+    });
     it('generateContent errors should be catchable', async () => {
       const generateContentStub = stub(
         generateContentMethods,
@@ -185,9 +262,52 @@ describe('ChatSession', () => {
       expect(generateContentStub.args[1][2].contents[2].parts[0].text).to.equal(
         'hello 2'
       );
+      expect(generateContentStub.args[1][2].contents.length).to.equal(3);
     });
   });
   describe('sendMessageStream()', () => {
+    it('sends the correct params to generateContentStream()', async () => {
+      const clock = useFakeTimers();
+      const generateContentStreamStub = stub(
+        generateContentMethods,
+        'generateContentStream'
+      ).resolves();
+      const chatSession = new ChatSession(
+        fakeApiSettings,
+        'a-model',
+        fakeChromeAdapter,
+        {
+          systemInstruction: {
+            role: 'system',
+            parts: [{ text: 'system instruction text' }]
+          },
+          history: [
+            { role: 'user', parts: [{ text: 'user turn 1' }] },
+            { role: 'model', parts: [{ text: 'model turn 1' }] }
+          ]
+        }
+      );
+      // Expected as the stub resolved undefined, the result isn't important.
+      await expect(chatSession.sendMessageStream('user turn 2')).to.be.rejected;
+      expect(generateContentStreamStub).to.be.calledWith(
+        fakeApiSettings,
+        'a-model',
+        match({
+          systemInstruction: {
+            role: 'system',
+            parts: [{ text: 'system instruction text' }]
+          }
+        }),
+        match.any
+      );
+      expect(generateContentStreamStub.args[0][2].contents).to.deep.equal([
+        { role: 'user', parts: [{ text: 'user turn 1' }] },
+        { role: 'model', parts: [{ text: 'model turn 1' }] },
+        { role: 'user', parts: [{ text: 'user turn 2' }] }
+      ]);
+      await clock.runAllAsync();
+      clock.restore();
+    });
     it('generateContentStream errors should be catchable', async () => {
       const clock = useFakeTimers();
       const consoleStub = stub(console, 'error');

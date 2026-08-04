@@ -399,7 +399,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [ifError(tryExpr, catchExpr)](./firestore_pipelines.md#iferror_756c12e) | Creates an expression that returns the <code>catch</code> argument if there is an error, else return the result of the <code>try</code> argument evaluation. |
 |  [ifError(tryExpr, catchValue)](./firestore_pipelines.md#iferror_dc532f9) | Creates an expression that returns the <code>catch</code> argument if there is an error, else return the result of the <code>try</code> argument evaluation. |
 |  <b>function(value, ...)</b> |
-|  [constant(value)](./firestore_pipelines.md#constant_0c00f91) | Creates a <code>Constant</code> instance for a number value. |
+|  [constant(value, options)](./firestore_pipelines.md#constant_6ea0dde) | Creates a <code>Constant</code> instance for a number value. |
 |  [constant(value)](./firestore_pipelines.md#constant_6dac335) | Creates a <code>Constant</code> instance for a VectorValue value. |
 |  [constant(value)](./firestore_pipelines.md#constant_7c807cd) | Creates a <code>Constant</code> instance for a string value. |
 |  [constant(value)](./firestore_pipelines.md#constant_b2e4f8d) | Creates a <code>BooleanExpression</code> instance for a boolean value. |
@@ -9053,7 +9053,7 @@ export declare function mapMerge(firstMap: Record<string, unknown> | Expression,
 ### Example
 
 
-```
+```typescript
 // Merges the map in the settings field with, a map literal, and a map in
 // that is conditionally returned by another expression
 mapMerge(field('settings'), { enabled: true }, conditional(field('isAdmin'), { admin: true}, {})
@@ -9750,10 +9750,9 @@ export declare function mapRemove(mapExpr: Expression, key: string): FunctionExp
 ### Example
 
 
-```
+```typescript
 // Removes the key 'baz' from the input map.
 mapRemove(map({foo: 'bar', baz: true}), 'baz');
-@example
 
 ```
 
@@ -9781,10 +9780,9 @@ export declare function mapRemove(mapExpr: Expression, keyExpr: Expression): Fun
 ### Example
 
 
-```
+```typescript
 // Removes the key 'baz' from the input map.
 mapRemove(map({foo: 'bar', baz: true}), constant('baz'));
-@example
 
 ```
 
@@ -10050,7 +10048,7 @@ export declare function mapMerge(mapField: string, secondMap: Record<string, unk
 ### Example
 
 
-```
+```typescript
 // Merges the map in the settings field with, a map literal, and a map in
 // that is conditionally returned by another expression
 mapMerge('settings', { enabled: true }, conditional(field('isAdmin'), { admin: true}, {})
@@ -10081,7 +10079,7 @@ export declare function mapRemove(mapField: string, key: string): FunctionExpres
 ### Example
 
 
-```
+```typescript
 // Removes the key 'city' field from the map in the address field of the input document.
 mapRemove('address', 'city');
 
@@ -10111,7 +10109,7 @@ export declare function mapRemove(mapField: string, keyExpr: Expression): Functi
 ### Example
 
 
-```
+```typescript
 // Removes the key 'city' field from the map in the address field of the input document.
 mapRemove('address', constant('city'));
 
@@ -11530,14 +11528,16 @@ ifError(field("title").arrayGet(0), "Default Title");
 
 ## function(value, ...)
 
-### constant(value) {:#constant_0c00f91}
+### constant(value, options) {:#constant_6ea0dde}
 
 Creates a `Constant` instance for a number value.
 
 <b>Signature:</b>
 
 ```typescript
-export declare function constant(value: number): Expression;
+export declare function constant(value: number, options?: {
+    preferIntegers?: boolean;
+}): Expression;
 ```
 
 #### Parameters
@@ -11545,6 +11545,7 @@ export declare function constant(value: number): Expression;
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  value | number | The number value. |
+|  options | { preferIntegers?: boolean; } |  |
 
 <b>Returns:</b>
 
@@ -12235,7 +12236,7 @@ export declare type OneOf<T> = {
 ### Example
 
 
-```
+```typescript
 type XorY = OneOf<{ x: unknown, y: unknown }>
 let a = { x: "foo" }           // OK
 let b = { y: "foo" }           // OK

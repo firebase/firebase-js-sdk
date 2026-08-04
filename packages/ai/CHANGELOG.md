@@ -1,5 +1,41 @@
 # @firebase/ai
 
+## 2.14.0
+
+### Minor Changes
+
+- [`7c5e6e5`](https://github.com/firebase/firebase-js-sdk/commit/7c5e6e5fa68da49d55333975f2f6abf4674c0cd4) [#10145](https://github.com/firebase/firebase-js-sdk/pull/10145) - Added support for text-to-speech capabilities (both single- and multi-speaker configurations) for non-Live API models (for example, Gemini TTS models).
+
+- [`178daf7`](https://github.com/firebase/firebase-js-sdk/commit/178daf75c03419156152766751ddbacbde2537a5) [#10184](https://github.com/firebase/firebase-js-sdk/pull/10184) - Deprecated `VertexAIBackend` in favor of `AgentPlatformBackend` to reflect the renaming of Vertex AI to Gemini Enterprise Agent Platform.
+
+  The only difference for `AgentPlatformBackend` is the default [location for accessing the model](https://firebase.google.com/docs/ai-logic/locations?api=vertex). The default location for `AgentPlatformBackend` is `global`, whereas the default location for `VertexAIBackend` is `us-central1`. To use `us-central1` with `AgentPlatformBackend`, specify `getAI(app, { backend: new AgentPlatformBackend('us-central1') })` when initializing the SDK. However, note that most new Gemini models do not support `us-central1`.
+
+### Patch Changes
+
+- Updated dependencies [[`736fa3f`](https://github.com/firebase/firebase-js-sdk/commit/736fa3fe798d6eafc9fe086d6bfbe9cfb49b8994)]:
+  - @firebase/util@1.15.2
+  - @firebase/component@0.7.4
+
+## 2.13.1
+
+### Patch Changes
+
+- [`9bef5ab`](https://github.com/firebase/firebase-js-sdk/commit/9bef5ab7128388811ceab412bc26c553efbc6766) [#10035](https://github.com/firebase/firebase-js-sdk/pull/10035) - Deprecated `GoogleMaps.enableWidget`, following the announcement by the Grounding for Google Maps service.
+
+- [`6a9d3d1`](https://github.com/firebase/firebase-js-sdk/commit/6a9d3d1878ed1177d00915123c72e7821e58bdbd) [#10026](https://github.com/firebase/firebase-js-sdk/pull/10026) (fixes [#9006](https://github.com/firebase/firebase-js-sdk/issues/9006)) - Wrap params.systemInstruction with formatSystemInstruction() in the ChatSession constructor.
+
+## 2.13.0
+
+### Minor Changes
+
+- [`f0752a0`](https://github.com/firebase/firebase-js-sdk/commit/f0752a0d69c54e79d0f81b306fe250845da7784f) [#9800](https://github.com/firebase/firebase-js-sdk/pull/9800) - Add `initializeDeviceModel()` method to allow explicit initialization of on-device model in hybrid mode.
+
+- [`bd08cae`](https://github.com/firebase/firebase-js-sdk/commit/bd08cae3d77847211c4bac553fa5fb69a4e5073d) [#9926](https://github.com/firebase/firebase-js-sdk/pull/9926) - Change "beta" (public preview) tags to "public" (generally available) for all hybrid inference features.
+
+### Patch Changes
+
+- [`bd2644b`](https://github.com/firebase/firebase-js-sdk/commit/bd2644b661ecc5043c065ce6e898da1706feafae) [#9956](https://github.com/firebase/firebase-js-sdk/pull/9956) (fixes [#9938](https://github.com/firebase/firebase-js-sdk/issues/9938)) - Fix a bug that caused `ChatSession.sendMessageStream()` and `TemplateChatSession.sendMessageStream()` to send duplicate user turns in the request.
+
 ## 2.12.0
 
 ### Minor Changes

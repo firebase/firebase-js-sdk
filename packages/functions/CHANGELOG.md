@@ -1,5 +1,20 @@
 # @firebase/functions
 
+## 0.13.6
+
+### Patch Changes
+
+- Updated dependencies [[`736fa3f`](https://github.com/firebase/firebase-js-sdk/commit/736fa3fe798d6eafc9fe086d6bfbe9cfb49b8994)]:
+  - @firebase/util@1.15.2
+  - @firebase/component@0.7.4
+
+## 0.13.5
+
+### Patch Changes
+
+- Updated dependencies [[`3b337b9`](https://github.com/firebase/firebase-js-sdk/commit/3b337b9a91d6fb4dbee14b14e0c67a4b01b5d736)]:
+  - @firebase/messaging-interop-types@0.2.5
+
 ## 0.13.4
 
 ### Patch Changes

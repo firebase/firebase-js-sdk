@@ -20,8 +20,8 @@ import resolve from '@rollup/plugin-node-resolve';
 import { uglify } from 'rollup-plugin-uglify';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
-import { emitModulePackageFile } from '../../scripts/build/rollup_emit_module_package_file';
-import pkg from './package.json';
+import { emitModulePackageFile } from '../../scripts/build/rollup_emit_module_package_file.js';
+import pkg from './package.json' with { type: 'json' };
 
 const deps = Object.keys(
   Object.assign({}, pkg.peerDependencies, pkg.dependencies)
@@ -48,6 +48,7 @@ const browserBuilds = [
     output: {
       file: 'dist/index.cjs.js',
       format: 'cjs',
+      esModule: true,
       sourcemap: true
     },
     plugins: buildPlugins,
@@ -64,6 +65,7 @@ const nodeBuilds = [
     output: {
       file: pkg.main,
       format: 'cjs',
+      esModule: true,
       sourcemap: true
     },
     plugins: buildPlugins,

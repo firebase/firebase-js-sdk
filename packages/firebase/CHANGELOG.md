@@ -1,5 +1,121 @@
 # firebase
 
+## 12.17.0
+
+### Minor Changes
+
+- [`7c5e6e5`](https://github.com/firebase/firebase-js-sdk/commit/7c5e6e5fa68da49d55333975f2f6abf4674c0cd4) [#10145](https://github.com/firebase/firebase-js-sdk/pull/10145) - Added support for text-to-speech capabilities (both single- and multi-speaker configurations) for non-Live API models (for example, Gemini TTS models).
+
+- [`d2d89d2`](https://github.com/firebase/firebase-js-sdk/commit/d2d89d2b0eb1dc3c929ccd17f85f1c0fda1a5fef) [#10116](https://github.com/firebase/firebase-js-sdk/pull/10116) - Changed the HTTP/2 flow control window size from 64 KB to 256 KB, and added a `grpcFlowControlWindow` configuration option to `FirestoreSettings`. This change is only applicable to Node environments.
+
+- [`177f08d`](https://github.com/firebase/firebase-js-sdk/commit/177f08d487056e3c88b33071b5162b9a5025241c) [#10210](https://github.com/firebase/firebase-js-sdk/pull/10210) - Remove ability to call `initializeAppCheck` without a `provider`.
+
+- [`178daf7`](https://github.com/firebase/firebase-js-sdk/commit/178daf75c03419156152766751ddbacbde2537a5) [#10184](https://github.com/firebase/firebase-js-sdk/pull/10184) - Deprecated `VertexAIBackend` in favor of `AgentPlatformBackend` to reflect the renaming of Vertex AI to Gemini Enterprise Agent Platform.
+
+  The only difference for `AgentPlatformBackend` is the default [location for accessing the model](https://firebase.google.com/docs/ai-logic/locations?api=vertex). The default location for `AgentPlatformBackend` is `global`, whereas the default location for `VertexAIBackend` is `us-central1`. To use `us-central1` with `AgentPlatformBackend`, specify `getAI(app, { backend: new AgentPlatformBackend('us-central1') })` when initializing the SDK. However, note that most new Gemini models do not support `us-central1`.
+
+### Patch Changes
+
+- Updated dependencies [[`736fa3f`](https://github.com/firebase/firebase-js-sdk/commit/736fa3fe798d6eafc9fe086d6bfbe9cfb49b8994), [`7c5e6e5`](https://github.com/firebase/firebase-js-sdk/commit/7c5e6e5fa68da49d55333975f2f6abf4674c0cd4), [`d2d89d2`](https://github.com/firebase/firebase-js-sdk/commit/d2d89d2b0eb1dc3c929ccd17f85f1c0fda1a5fef), [`80a285d`](https://github.com/firebase/firebase-js-sdk/commit/80a285d49a9dd07724cf0c6db37a286c5601e3fc), [`0fe3bbc`](https://github.com/firebase/firebase-js-sdk/commit/0fe3bbc3196a18d01941acbdaab3301a391016b1), [`8a9ad3a`](https://github.com/firebase/firebase-js-sdk/commit/8a9ad3a2fe49a292abf7b61970197a8ee6e3702c), [`177f08d`](https://github.com/firebase/firebase-js-sdk/commit/177f08d487056e3c88b33071b5162b9a5025241c), [`2894e91`](https://github.com/firebase/firebase-js-sdk/commit/2894e91619a51f23f01a77e43255d1329bbcc55c), [`178daf7`](https://github.com/firebase/firebase-js-sdk/commit/178daf75c03419156152766751ddbacbde2537a5), [`1d24e5f`](https://github.com/firebase/firebase-js-sdk/commit/1d24e5f72df2ec6cf54faaca32eec8155eea46e1)]:
+  - @firebase/util@1.15.2
+  - @firebase/firestore@4.17.0
+  - @firebase/ai@2.14.0
+  - @firebase/app@0.16.0
+  - @firebase/installations-compat@0.2.23
+  - @firebase/remote-config-compat@0.2.28
+  - @firebase/performance-compat@0.2.26
+  - @firebase/analytics-compat@0.2.29
+  - @firebase/app-check-compat@0.4.6
+  - @firebase/firestore-compat@0.4.12
+  - @firebase/functions-compat@0.4.6
+  - @firebase/messaging-compat@0.2.28
+  - @firebase/database-compat@2.1.5
+  - @firebase/storage-compat@0.4.4
+  - @firebase/auth-compat@0.6.9
+  - @firebase/auth@1.13.4
+  - @firebase/app-check@0.13.0
+  - @firebase/data-connect@0.7.2
+  - @firebase/analytics@0.10.23
+  - @firebase/app-compat@0.5.16
+  - @firebase/database@1.1.4
+  - @firebase/functions@0.13.6
+  - @firebase/installations@0.6.23
+  - @firebase/messaging@0.13.1
+  - @firebase/performance@0.7.13
+  - @firebase/remote-config@0.9.1
+  - @firebase/storage@0.14.4
+
+## 12.16.0
+
+### Minor Changes
+
+- [`f47bebf`](https://github.com/firebase/firebase-js-sdk/commit/f47bebf353cd341c5124ca89568a775524ec0a9f) [#10106](https://github.com/firebase/firebase-js-sdk/pull/10106) - Support realtime for Remote Config rollouts
+
+### Patch Changes
+
+- Updated dependencies [[`f47bebf`](https://github.com/firebase/firebase-js-sdk/commit/f47bebf353cd341c5124ca89568a775524ec0a9f)]:
+  - @firebase/app@0.15.1
+  - @firebase/remote-config@0.9.0
+  - @firebase/app-compat@0.5.15
+  - @firebase/remote-config-compat@0.2.27
+
+## 12.15.0
+
+### Minor Changes
+
+- [`043c0ab`](https://github.com/firebase/firebase-js-sdk/commit/043c0ab81018a8237f03b37073413d3b931c1957) [#9929](https://github.com/firebase/firebase-js-sdk/pull/9929) - Merge offline pipeline implementation with one minor API change
+
+- [`420156e`](https://github.com/firebase/firebase-js-sdk/commit/420156ee6eb2f7cfa0c4c188d73138bc7cd3a1f2) [#10023](https://github.com/firebase/firebase-js-sdk/pull/10023) - Add ability to call `initializeAppCheck` without a `provider`. If no `provider` is passed to `initializeAppCheck`, App Check will attempt to initialize with a `ReCaptchaEnterpriseProvider` using the site key found in the `recaptchaSiteKey` field of the Firebase project config.
+
+### Patch Changes
+
+- Updated dependencies [[`043c0ab`](https://github.com/firebase/firebase-js-sdk/commit/043c0ab81018a8237f03b37073413d3b931c1957), [`e389f70`](https://github.com/firebase/firebase-js-sdk/commit/e389f70b1b9b2c3afe1672b4a6b702eceb7c5e41), [`420156e`](https://github.com/firebase/firebase-js-sdk/commit/420156ee6eb2f7cfa0c4c188d73138bc7cd3a1f2), [`9bef5ab`](https://github.com/firebase/firebase-js-sdk/commit/9bef5ab7128388811ceab412bc26c553efbc6766), [`33521f2`](https://github.com/firebase/firebase-js-sdk/commit/33521f204022e09fa32da821ae6445d236bdeb21), [`6a9d3d1`](https://github.com/firebase/firebase-js-sdk/commit/6a9d3d1878ed1177d00915123c72e7821e58bdbd), [`712091c`](https://github.com/firebase/firebase-js-sdk/commit/712091c3962b8b3639775a4150c91d9a3962b57b)]:
+  - @firebase/firestore@4.16.0
+  - @firebase/app-check@0.12.0
+  - @firebase/auth@1.13.3
+  - @firebase/app@0.15.0
+  - @firebase/ai@2.13.1
+  - @firebase/remote-config@0.8.5
+  - @firebase/auth-compat@0.6.8
+  - @firebase/firestore-compat@0.4.11
+  - @firebase/app-check-compat@0.4.5
+  - @firebase/app-compat@0.5.14
+  - @firebase/remote-config-compat@0.2.26
+
+## 12.14.0
+
+### Minor Changes
+
+- [`3b337b9`](https://github.com/firebase/firebase-js-sdk/commit/3b337b9a91d6fb4dbee14b14e0c67a4b01b5d736) [#9917](https://github.com/firebase/firebase-js-sdk/pull/9917) - Add new API and deprecate old API for creating and deleting fcm registration
+
+- [`f0752a0`](https://github.com/firebase/firebase-js-sdk/commit/f0752a0d69c54e79d0f81b306fe250845da7784f) [#9800](https://github.com/firebase/firebase-js-sdk/pull/9800) - Add `initializeDeviceModel()` method to allow explicit initialization of on-device model in hybrid mode.
+
+- [`d5b0f61`](https://github.com/firebase/firebase-js-sdk/commit/d5b0f6130525b898079ae7ccf73c0931f52c7525) [#9913](https://github.com/firebase/firebase-js-sdk/pull/9913) - Added minimum and maximum FieldValue operations
+
+- [`bd08cae`](https://github.com/firebase/firebase-js-sdk/commit/bd08cae3d77847211c4bac553fa5fb69a4e5073d) [#9926](https://github.com/firebase/firebase-js-sdk/pull/9926) - Change "beta" (public preview) tags to "public" (generally available) for all hybrid inference features.
+
+### Patch Changes
+
+- [`2697919`](https://github.com/firebase/firebase-js-sdk/commit/26979196fec71447a1f635d88a25660a034edb84) [#9845](https://github.com/firebase/firebase-js-sdk/pull/9845) (fixes [#9732](https://github.com/firebase/firebase-js-sdk/issues/9732)) - Updated `_isAvailable()` to use retry logic for the initial IndexedDB availability check, preventing incorrect fallbacks to in-memory persistence in environments where transactions may occasionally drop on startup.
+
+- Updated dependencies [[`3b337b9`](https://github.com/firebase/firebase-js-sdk/commit/3b337b9a91d6fb4dbee14b14e0c67a4b01b5d736), [`bd2644b`](https://github.com/firebase/firebase-js-sdk/commit/bd2644b661ecc5043c065ce6e898da1706feafae), [`2697919`](https://github.com/firebase/firebase-js-sdk/commit/26979196fec71447a1f635d88a25660a034edb84), [`f0752a0`](https://github.com/firebase/firebase-js-sdk/commit/f0752a0d69c54e79d0f81b306fe250845da7784f), [`d5b0f61`](https://github.com/firebase/firebase-js-sdk/commit/d5b0f6130525b898079ae7ccf73c0931f52c7525), [`4d3f71a`](https://github.com/firebase/firebase-js-sdk/commit/4d3f71a96a07d5a98aaccb7f664cc21a1c9f1cfa), [`85f6f4e`](https://github.com/firebase/firebase-js-sdk/commit/85f6f4eac2f72796f449fd028bbb6a68afeb3826), [`d675580`](https://github.com/firebase/firebase-js-sdk/commit/d675580448169ce69fd0653f1adf141b2ace0439), [`bd08cae`](https://github.com/firebase/firebase-js-sdk/commit/bd08cae3d77847211c4bac553fa5fb69a4e5073d), [`51e93fc`](https://github.com/firebase/firebase-js-sdk/commit/51e93fc03fd5e71c2de71a76976dd4e95eb26c68), [`a1a2455`](https://github.com/firebase/firebase-js-sdk/commit/a1a2455b2afa24ed2cd81129cbc55b530b6cae4f)]:
+  - @firebase/messaging@0.13.0
+  - @firebase/app@0.14.13
+  - @firebase/ai@2.13.0
+  - @firebase/auth@1.13.2
+  - @firebase/auth-compat@0.6.7
+  - @firebase/firestore@4.15.0
+  - @firebase/remote-config@0.8.4
+  - @firebase/app-check@0.11.4
+  - @firebase/data-connect@0.7.1
+  - @firebase/messaging-compat@0.2.27
+  - @firebase/functions@0.13.5
+  - @firebase/app-compat@0.5.13
+  - @firebase/firestore-compat@0.4.10
+  - @firebase/remote-config-compat@0.2.25
+  - @firebase/app-check-compat@0.4.4
+  - @firebase/functions-compat@0.4.5
+
 ## 12.13.0
 
 ### Minor Changes

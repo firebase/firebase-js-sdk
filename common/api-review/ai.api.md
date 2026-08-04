@@ -10,6 +10,16 @@ import { FirebaseAuthTokenData } from '@firebase/auth-interop-types';
 import { FirebaseError } from '@firebase/util';
 
 // @public
+export class AgentPlatformBackend extends Backend {
+    constructor(location?: string);
+    // @internal (undocumented)
+    _getModelPath(project: string, model: string): string;
+    // @internal (undocumented)
+    _getTemplatePath(project: string, templateId: string): string;
+    readonly location: string;
+}
+
+// @public
 export interface AI {
     app: FirebaseApp;
     backend: Backend;
@@ -92,7 +102,7 @@ export interface AudioConversationController {
     stop: () => Promise<void>;
 }
 
-// @public
+// @beta
 export interface AudioTranscriptionConfig {
 }
 
@@ -108,6 +118,7 @@ export abstract class Backend {
 
 // @public
 export const BackendType: {
+    readonly AGENT_PLATFORM: "AGENT_PLATFORM";
     readonly VERTEX_AI: "VERTEX_AI";
     readonly GOOGLE_AI: "GOOGLE_AI";
 };
@@ -121,6 +132,11 @@ export interface BaseParams {
     generationConfig?: GenerationConfig;
     // (undocumented)
     safetySettings?: SafetySetting[];
+}
+
+// @beta
+export interface BaseSpeechConfig {
+    languageCode?: string;
 }
 
 // @public
@@ -141,7 +157,6 @@ export class BooleanSchema extends Schema {
 
 // @public
 export class ChatSession extends ChatSessionBase<StartChatParams, GenerateContentRequest, FunctionDeclarationsTool> {
-    // Warning: (ae-incompatible-release-tags) The symbol "__constructor" is marked as @public, but its signature references "ChromeAdapter" which is marked as @beta
     constructor(apiSettings: ApiSettings, model: string, chromeAdapter?: ChromeAdapter | undefined, params?: StartChatParams | undefined, requestOptions?: RequestOptions | undefined);
     // @internal
     _callGenerateContent(formattedRequest: GenerateContentRequest, singleRequestOptions?: RequestOptions): Promise<GenerateContentResult>;
@@ -192,7 +207,7 @@ export abstract class ChatSessionBase<ParamsType extends StartChatParams | Start
     protected _sendPromise: Promise<void>;
 }
 
-// @beta
+// @public
 export interface ChromeAdapter {
     // @internal (undocumented)
     countTokens(request: CountTokensRequest): Promise<Response>;
@@ -310,7 +325,6 @@ export { Date_2 as Date }
 // @public
 export interface EnhancedGenerateContentResponse extends GenerateContentResponse {
     functionCalls: () => FunctionCall[] | undefined;
-    // @beta
     inferenceSource?: InferenceSource;
     inlineDataParts: () => InlineDataPart[] | undefined;
     text: () => string;
@@ -576,6 +590,8 @@ export interface GenerationConfig {
     // @beta
     responseModalities?: ResponseModality[];
     responseSchema?: TypedSchema | SchemaRequest;
+    // @beta
+    speechConfig?: SpeechConfig;
     // (undocumented)
     stopSequences?: string[];
     // (undocumented)
@@ -596,13 +612,13 @@ export interface GenerativeContentBlob {
 
 // @public
 export class GenerativeModel extends AIModel {
-    // Warning: (ae-incompatible-release-tags) The symbol "__constructor" is marked as @public, but its signature references "ChromeAdapter" which is marked as @beta
     constructor(ai: AI, modelParams: ModelParams, requestOptions?: RequestOptions, chromeAdapter?: ChromeAdapter | undefined);
     countTokens(request: CountTokensRequest | string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<CountTokensResponse>;
     generateContent(request: GenerateContentRequest | string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentResult>;
     generateContentStream(request: GenerateContentRequest | string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentStreamResult>;
     // (undocumented)
     generationConfig: GenerationConfig;
+    initializeDeviceModel(onDownloadProgress?: (progressValue: number) => void): Promise<void>;
     // (undocumented)
     requestOptions?: RequestOptions;
     // (undocumented)
@@ -619,8 +635,6 @@ export class GenerativeModel extends AIModel {
 // @public
 export function getAI(app?: FirebaseApp, options?: AIOptions): AI;
 
-// Warning: (ae-incompatible-release-tags) The symbol "getGenerativeModel" is marked as @public, but its signature references "HybridParams" which is marked as @beta
-//
 // @public
 export function getGenerativeModel(ai: AI, modelParams: ModelParams | HybridParams, requestOptions?: RequestOptions): GenerativeModel;
 
@@ -703,7 +717,7 @@ export interface GoogleAIGenerateContentResponse {
 
 // @public
 export interface GoogleMaps {
-    // (undocumented)
+    // @deprecated (undocumented)
     enableWidget?: boolean;
 }
 
@@ -807,7 +821,7 @@ export const HarmSeverity: {
 // @public
 export type HarmSeverity = (typeof HarmSeverity)[keyof typeof HarmSeverity];
 
-// @beta
+// @public
 export interface HybridParams {
     inCloudParams?: ModelParams;
     mode: InferenceMode;
@@ -945,7 +959,7 @@ export interface ImagenSafetySettings {
     safetyFilterLevel?: ImagenSafetyFilterLevel;
 }
 
-// @beta
+// @public
 export const InferenceMode: {
     readonly PREFER_ON_DEVICE: "prefer_on_device";
     readonly ONLY_ON_DEVICE: "only_on_device";
@@ -953,16 +967,16 @@ export const InferenceMode: {
     readonly PREFER_IN_CLOUD: "prefer_in_cloud";
 };
 
-// @beta
+// @public
 export type InferenceMode = (typeof InferenceMode)[keyof typeof InferenceMode];
 
-// @beta
+// @public
 export const InferenceSource: {
     readonly ON_DEVICE: "on_device";
     readonly IN_CLOUD: "in_cloud";
 };
 
-// @beta
+// @public
 export type InferenceSource = (typeof InferenceSource)[keyof typeof InferenceSource];
 
 // @public
@@ -1000,17 +1014,18 @@ export const Language: {
 // @public
 export type Language = (typeof Language)[keyof typeof Language];
 
-// @beta
+// @public
 export interface LanguageModelCreateCoreOptions {
-    // (undocumented)
     expectedInputs?: LanguageModelExpected[];
+    expectedOutputs?: LanguageModelExpected[];
+    monitor?: (monitor: LanguageModelDownloadMonitor) => void;
     // @deprecated (undocumented)
     temperature?: number;
     // @deprecated (undocumented)
     topK?: number;
 }
 
-// @beta
+// @public
 export interface LanguageModelCreateOptions extends LanguageModelCreateCoreOptions {
     // (undocumented)
     initialPrompts?: LanguageModelMessage[];
@@ -1018,7 +1033,19 @@ export interface LanguageModelCreateOptions extends LanguageModelCreateCoreOptio
     signal?: AbortSignal;
 }
 
-// @beta
+// @public
+export interface LanguageModelDownloadMonitor {
+    // (undocumented)
+    addEventListener: (eventType: 'downloadprogress', eventListener: (e: {
+        loaded: number;
+    }) => void) => void;
+    // (undocumented)
+    removeEventListener: (eventType: 'downloadprogress', eventListener: (e: {
+        loaded: number;
+    }) => void) => void;
+}
+
+// @public
 export interface LanguageModelExpected {
     // (undocumented)
     languages?: string[];
@@ -1026,7 +1053,7 @@ export interface LanguageModelExpected {
     type: LanguageModelMessageType;
 }
 
-// @beta
+// @public
 export interface LanguageModelMessage {
     // (undocumented)
     content: LanguageModelMessageContent[];
@@ -1034,7 +1061,7 @@ export interface LanguageModelMessage {
     role: LanguageModelMessageRole;
 }
 
-// @beta
+// @public
 export interface LanguageModelMessageContent {
     // (undocumented)
     type: LanguageModelMessageType;
@@ -1042,16 +1069,16 @@ export interface LanguageModelMessageContent {
     value: LanguageModelMessageContentValue;
 }
 
-// @beta
+// @public
 export type LanguageModelMessageContentValue = ImageBitmapSource | AudioBuffer | BufferSource | string;
 
-// @beta
+// @public
 export type LanguageModelMessageRole = 'system' | 'user' | 'assistant';
 
-// @beta
+// @public
 export type LanguageModelMessageType = 'text' | 'image' | 'audio';
 
-// @beta
+// @public
 export interface LanguageModelPromptOptions {
     // (undocumented)
     responseConstraint?: object;
@@ -1217,6 +1244,17 @@ export interface ModelParams extends BaseParams {
     tools?: Tool[];
 }
 
+// @beta
+export interface MultiSpeakerSpeechConfig extends BaseSpeechConfig {
+    multiSpeakerVoiceConfig?: MultiSpeakerVoiceConfig;
+    voiceConfig?: never;
+}
+
+// @beta
+export interface MultiSpeakerVoiceConfig {
+    speakerVoiceConfigs: SpeakerVoiceConfig[];
+}
+
 // @public
 export class NumberSchema extends Schema {
     constructor(schemaParams?: SchemaParams);
@@ -1244,7 +1282,7 @@ export interface ObjectSchemaRequest extends SchemaRequest {
     type: 'object';
 }
 
-// @beta
+// @public
 export interface OnDeviceParams {
     // (undocumented)
     createOptions?: LanguageModelCreateOptions;
@@ -1456,14 +1494,24 @@ export interface SingleRequestOptions extends RequestOptions {
 }
 
 // @beta
+export interface SingleSpeakerSpeechConfig extends BaseSpeechConfig {
+    multiSpeakerVoiceConfig?: never;
+    voiceConfig?: VoiceConfig;
+}
+
+// @beta
 export interface SlidingWindow {
     targetTokens?: number;
 }
 
 // @beta
-export interface SpeechConfig {
-    voiceConfig?: VoiceConfig;
+export interface SpeakerVoiceConfig {
+    speaker: string;
+    voiceConfig: VoiceConfig;
 }
+
+// @beta
+export type SpeechConfig = SingleSpeakerSpeechConfig | MultiSpeakerSpeechConfig;
 
 // @beta
 export function startAudioConversation(liveSession: LiveSession, options?: StartAudioConversationOptions): Promise<AudioConversationController>;
@@ -1703,7 +1751,7 @@ export interface UsageMetadata {
     totalTokenCount: number;
 }
 
-// @public
+// @public @deprecated
 export class VertexAIBackend extends Backend {
     constructor(location?: string);
     // @internal (undocumented)

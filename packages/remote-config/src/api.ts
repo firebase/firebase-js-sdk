@@ -112,11 +112,9 @@ export async function activate(remoteConfig: RemoteConfig): Promise<boolean> {
     return false;
   }
   const experiment = new Experiment(rc);
-  const updateActiveExperiments = lastSuccessfulFetchResponse.experiments
-    ? experiment.updateActiveExperiments(
-        lastSuccessfulFetchResponse.experiments
-      )
-    : Promise.resolve();
+  const updateActiveExperiments = experiment.updateActiveExperiments(
+    lastSuccessfulFetchResponse.experiments || []
+  );
   await Promise.all([
     rc._storageCache.setActiveConfig(lastSuccessfulFetchResponse.config),
     rc._storage.setActiveConfigEtag(lastSuccessfulFetchResponse.eTag),

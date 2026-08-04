@@ -10,9 +10,6 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # LanguageModelCreateOptions interface
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Configures the creation of an on-device language model session.
 
 <b>Signature:</b>
@@ -26,13 +23,10 @@ export interface LanguageModelCreateOptions extends LanguageModelCreateCoreOptio
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [initialPrompts](./ai.languagemodelcreateoptions.md#languagemodelcreateoptionsinitialprompts) | [LanguageModelMessage](./ai.languagemodelmessage.md#languagemodelmessage_interface)<!-- -->\[\] | <b><i>(Public Preview)</i></b> |
-|  [signal](./ai.languagemodelcreateoptions.md#languagemodelcreateoptionssignal) | AbortSignal | <b><i>(Public Preview)</i></b> |
+|  [initialPrompts](./ai.languagemodelcreateoptions.md#languagemodelcreateoptionsinitialprompts) | [LanguageModelMessage](./ai.languagemodelmessage.md#languagemodelmessage_interface)<!-- -->\[\] |  |
+|  [signal](./ai.languagemodelcreateoptions.md#languagemodelcreateoptionssignal) | AbortSignal |  |
 
 ## LanguageModelCreateOptions.initialPrompts
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 <b>Signature:</b>
 
@@ -41,9 +35,6 @@ initialPrompts?: LanguageModelMessage[];
 ```
 
 ## LanguageModelCreateOptions.signal
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 <b>Signature:</b>
 

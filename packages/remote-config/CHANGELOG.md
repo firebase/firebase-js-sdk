@@ -1,5 +1,32 @@
 # @firebase/remote-config
 
+## 0.9.1
+
+### Patch Changes
+
+- Updated dependencies [[`736fa3f`](https://github.com/firebase/firebase-js-sdk/commit/736fa3fe798d6eafc9fe086d6bfbe9cfb49b8994)]:
+  - @firebase/util@1.15.2
+  - @firebase/component@0.7.4
+  - @firebase/installations@0.6.23
+
+## 0.9.0
+
+### Minor Changes
+
+- [`f47bebf`](https://github.com/firebase/firebase-js-sdk/commit/f47bebf353cd341c5124ca89568a775524ec0a9f) [#10106](https://github.com/firebase/firebase-js-sdk/pull/10106) - Support realtime for Remote Config rollouts
+
+## 0.8.5
+
+### Patch Changes
+
+- [`33521f2`](https://github.com/firebase/firebase-js-sdk/commit/33521f204022e09fa32da821ae6445d236bdeb21) [#10000](https://github.com/firebase/firebase-js-sdk/pull/10000) - Support ABT realtime when variant value matches default value of parameter
+
+## 0.8.4
+
+### Patch Changes
+
+- [`4d3f71a`](https://github.com/firebase/firebase-js-sdk/commit/4d3f71a96a07d5a98aaccb7f664cc21a1c9f1cfa) [#9981](https://github.com/firebase/firebase-js-sdk/pull/9981) - Call update experiment when the last running experiment is stopped
+
 ## 0.8.3
 
 ### Patch Changes

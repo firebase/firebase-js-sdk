@@ -18,7 +18,6 @@ import { use, expect } from 'chai';
 import { GenerativeModel, validateGenerationConfig } from './generative-model';
 import {
   FunctionCallingMode,
-  AI,
   InferenceMode,
   AIErrorCode,
   ChromeAdapter,
@@ -35,27 +34,16 @@ import {
 import sinonChai from 'sinon-chai';
 import * as generateContentMethods from '../methods/generate-content';
 import * as countTokens from '../methods/count-tokens';
-import { VertexAIBackend } from '../backend';
 import { AIError } from '../errors';
 import chaiAsPromised from 'chai-as-promised';
-import { fakeChromeAdapter } from '../../test-utils/get-fake-firebase-services';
+import {
+  fakeAI,
+  fakeChromeAdapter
+} from '../../test-utils/get-fake-firebase-services';
+import { Availability } from '../types/language-model';
 
 use(sinonChai);
 use(chaiAsPromised);
-
-const fakeAI: AI = {
-  app: {
-    name: 'DEFAULT',
-    automaticDataCollectionEnabled: true,
-    options: {
-      apiKey: 'key',
-      projectId: 'my-project',
-      appId: 'my-appid'
-    }
-  },
-  backend: new VertexAIBackend('us-central1'),
-  location: 'us-central1'
-};
 
 describe('GenerativeModel', () => {
   afterEach(() => {
@@ -262,6 +250,86 @@ describe('GenerativeModel', () => {
         timeout: singleRequestOptions.timeout
       })
     );
+  });
+  it('passes single-speaker speechConfig through to generateContent', async () => {
+    const genModel = new GenerativeModel(
+      fakeAI,
+      {
+        model: 'my-model',
+        generationConfig: {
+          speechConfig: {
+            languageCode: 'en-US',
+            voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Puck' } }
+          }
+        }
+      },
+      {},
+      fakeChromeAdapter
+    );
+
+    const mockResponse = getMockResponse(
+      'vertexAI',
+      'unary-success-basic-reply-short.json'
+    );
+    const makeRequestStub = stub(request, 'makeRequest').resolves(
+      mockResponse as Response
+    );
+
+    await genModel.generateContent('Say hello!');
+
+    expect(makeRequestStub).to.be.calledWith(
+      {
+        model: 'publishers/google/models/my-model',
+        task: request.Task.GENERATE_CONTENT,
+        apiSettings: match.any,
+        stream: false,
+        singleRequestOptions: {}
+      },
+      match((value: string) => {
+        return value.includes('en-US') && value.includes('Puck');
+      })
+    );
+  });
+  it('passes single-speaker speechConfig through to generateContentStream', async () => {
+    const genModel = new GenerativeModel(
+      fakeAI,
+      {
+        model: 'my-model',
+        generationConfig: {
+          speechConfig: {
+            languageCode: 'en-US',
+            voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Kore' } }
+          }
+        }
+      },
+      {},
+      fakeChromeAdapter
+    );
+
+    const mockResponse = getMockResponseStreaming(
+      'vertexAI',
+      'streaming-success-basic-reply-short.txt'
+    );
+    const makeRequestStub = stub(request, 'makeRequest').resolves(
+      mockResponse as Response
+    );
+
+    await genModel.generateContentStream('Have a conversation.');
+
+    expect(makeRequestStub).to.be.calledWith(
+      {
+        model: 'publishers/google/models/my-model',
+        task: request.Task.STREAM_GENERATE_CONTENT,
+        apiSettings: match.any,
+        stream: true,
+        singleRequestOptions: {}
+      },
+      match((value: string) => {
+        return value.includes('en-US') && value.includes('Kore');
+      })
+    );
+
+    restore();
   });
   it('passes base model params through to ChatSession when there are no startChatParams', async () => {
     const genModel = new GenerativeModel(
@@ -675,8 +743,76 @@ describe('GenerativeModel', () => {
     );
   });
 });
+describe('initializeDeviceModel', () => {
+  it('throws if unavailable and ONLY_ON_DEVICE', async () => {
+    // @ts-ignore
+    const mockChromeAdapter = {
+      mode: InferenceMode.ONLY_ON_DEVICE,
+      downloadIfAvailable: stub().resolves(Availability.UNAVAILABLE),
+      download: stub()
+    };
+    const model = new GenerativeModel(
+      fakeAI,
+      { model: 'model' },
+      {},
+      //@ts-ignore
+      mockChromeAdapter
+    );
+    await expect(model.initializeDeviceModel()).to.be.rejectedWith(
+      'Local LanguageModel API not available in this environment'
+    );
+    expect(mockChromeAdapter.download).to.not.be.called;
+  });
+  it('noops if ONLY_IN_CLOUD', async () => {
+    // @ts-ignore
+    const mockChromeAdapter = {
+      mode: InferenceMode.ONLY_IN_CLOUD,
+      downloadIfAvailable: stub().resolves(Availability.AVAILABLE),
+      download: stub()
+    };
+    const model = new GenerativeModel(
+      fakeAI,
+      { model: 'model' },
+      {},
+      //@ts-ignore
+      mockChromeAdapter
+    );
+    await model.initializeDeviceModel();
+    expect(mockChromeAdapter.download).to.not.be.called;
+  });
+  it('noops if no adapter', async () => {
+    // @ts-ignore
+    const mockChromeAdapter = {
+      mode: InferenceMode.PREFER_ON_DEVICE,
+      downloadIfAvailable: stub().resolves(Availability.AVAILABLE),
+      download: stub()
+    };
+    const model = new GenerativeModel(fakeAI, { model: 'model' }, {});
+    await model.initializeDeviceModel();
+    expect(mockChromeAdapter.download).to.not.be.called;
+  });
+  it('passes downloadProgress callback to download()', async () => {
+    // @ts-ignore
+    const mockChromeAdapter = {
+      mode: InferenceMode.PREFER_ON_DEVICE,
+      downloadIfAvailable: stub().resolves(Availability.AVAILABLE)
+    };
+    const model = new GenerativeModel(
+      fakeAI,
+      { model: 'model' },
+      {},
+      //@ts-ignore
+      mockChromeAdapter
+    );
+    const progressCallback = (): void => {};
+    await model.initializeDeviceModel(progressCallback);
+    expect(mockChromeAdapter.downloadIfAvailable).to.be.calledWith(
+      progressCallback
+    );
+  });
+});
 
-describe('GenerativeModel dispatch logic', () => {
+describe('GenerativeModel hybrid dispatch logic', () => {
   let makeRequestStub: SinonStub;
   let mockChromeAdapter: ChromeAdapter;
 

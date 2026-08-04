@@ -173,7 +173,8 @@ function loadReCAPTCHAV3Script(onload: () => void): void {
 
 function loadReCAPTCHAEnterpriseScript(onload: () => void): void {
   const script = document.createElement('script');
-  script.src = RECAPTCHA_ENTERPRISE_URL;
+  // This param is required when we plan to render a widget explicitly.
+  script.src = RECAPTCHA_ENTERPRISE_URL + '?render=explicit';
   script.onload = onload;
   document.head.appendChild(script);
 }

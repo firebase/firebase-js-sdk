@@ -13,7 +13,7 @@ https://github.com/firebase/firebase-js-sdk
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Configuration for the voice to used in speech synthesis.
+Configuration for the voice to be used for speech synthesis.
 
 <b>Signature:</b>
 

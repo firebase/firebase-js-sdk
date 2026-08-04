@@ -176,7 +176,9 @@ export {
   deleteField,
   increment,
   serverTimestamp,
-  vector
+  vector,
+  minimum,
+  maximum
 } from './api/field_value_impl';
 
 export { VectorValue } from './lite-api/vector_value';

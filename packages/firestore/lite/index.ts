@@ -124,6 +124,8 @@ export { FieldValue } from '../src/lite-api/field_value';
 
 export {
   increment,
+  minimum,
+  maximum,
   arrayRemove,
   arrayUnion,
   serverTimestamp,

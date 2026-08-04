@@ -38,16 +38,33 @@ import { MessagingService } from '../messaging-service';
 
 const LOG_ENDPOINT = 'https://play.google.com/log?format=json_proto3';
 
+/** First flush ASAP (next timer turn); `_dispatchLogEvents` reschedules with `LOG_INTERVAL_IN_MS`. */
+const INITIAL_LOG_FLUSH_DELAY_MS = 0;
+
 const FCM_TRANSPORT_KEY = _mergeStrings(
   'AzSCbw63g1R0nCw85jG8',
   'Iaya3yLKwmgvh7cF0q4'
 );
 
 export function startLoggingService(messaging: MessagingService): void {
-  if (!messaging.isLogServiceStarted) {
-    _processQueue(messaging, LOG_INTERVAL_IN_MS);
-    messaging.isLogServiceStarted = true;
+  // Start only if not already scheduled/in-flight and there is work to do.
+  if (
+    messaging.logQueue.state === 'stopped' &&
+    messaging.logEvents.length > 0
+  ) {
+    _processQueue(messaging, INITIAL_LOG_FLUSH_DELAY_MS);
   }
+}
+
+/** Clears queued Firelog events, cancels any pending flush timer, and stops the logging loop. */
+export function stopLoggingServiceAndClearQueue(
+  messaging: MessagingService
+): void {
+  if (messaging.logQueue.state === 'scheduled') {
+    clearTimeout(messaging.logQueue.timerId);
+  }
+  messaging.logQueue = { state: 'stopped' };
+  messaging.logEvents = [];
 }
 
 /**
@@ -59,34 +76,52 @@ export function _processQueue(
   messaging: MessagingService,
   offsetInMs: number
 ): void {
-  setTimeout(async () => {
-    if (!messaging.deliveryMetricsExportedToBigQueryEnabled) {
-      // flush events and terminate logging service
-      messaging.logEvents = [];
-      messaging.isLogServiceStarted = false;
+  if (messaging.logQueue.state === 'scheduled') {
+    clearTimeout(messaging.logQueue.timerId);
+  }
+  messaging.logQueue = { state: 'stopped' };
 
-      return;
-    }
+  if (!messaging.deliveryMetricsExportedToBigQueryEnabled) {
+    messaging.logEvents = [];
+    return;
+  }
 
-    if (!messaging.logEvents.length) {
-      return _processQueue(messaging, LOG_INTERVAL_IN_MS);
-    }
+  messaging.logQueue = {
+    state: 'scheduled',
+    timerId: setTimeout(async () => {
+      // Mark in-flight so stageLog/startLoggingService won't schedule duplicates mid-dispatch.
+      messaging.logQueue = { state: 'flushing' };
 
-    await _dispatchLogEvents(messaging);
-  }, offsetInMs);
+      if (!messaging.logEvents.length) {
+        return _processQueue(messaging, LOG_INTERVAL_IN_MS);
+      }
+
+      await _dispatchLogEvents(messaging);
+    }, offsetInMs)
+  };
 }
 
 export async function _dispatchLogEvents(
   messaging: MessagingService
 ): Promise<void> {
+  // Swap the queue to avoid losing events added during an in-flight dispatch.
+  const eventsToSend = messaging.logEvents;
+  messaging.logEvents = [];
+
   for (
-    let i = 0, n = messaging.logEvents.length;
+    let i = 0, n = eventsToSend.length;
     i < n;
     i += MAX_NUMBER_OF_EVENTS_PER_LOG_REQUEST
   ) {
-    const logRequest = _createLogRequest(
-      messaging.logEvents.slice(i, i + MAX_NUMBER_OF_EVENTS_PER_LOG_REQUEST)
+    const batch = eventsToSend.slice(
+      i,
+      i + MAX_NUMBER_OF_EVENTS_PER_LOG_REQUEST
     );
+    if (!batch.length) {
+      break;
+    }
+
+    const logRequest = _createLogRequest(batch);
 
     let retryCount = 0,
       response = {} as Response;
@@ -135,9 +170,11 @@ export async function _dispatchLogEvents(
     } while (retryCount < MAX_RETRIES);
   }
 
-  messaging.logEvents = [];
-  // schedule for next logging
-  _processQueue(messaging, LOG_INTERVAL_IN_MS);
+  // Schedule next flush. If new events arrived during this dispatch, flush ASAP.
+  _processQueue(
+    messaging,
+    messaging.logEvents.length ? INITIAL_LOG_FLUSH_DELAY_MS : LOG_INTERVAL_IN_MS
+  );
 }
 
 function isRetriableError(response: Response): boolean {
@@ -161,6 +198,7 @@ export async function stageLog(
   );
 
   createAndEnqueueLogEvent(messaging, fcmEvent, internalPayload.productId);
+  startLoggingService(messaging);
 }
 
 function createFcmEvent(

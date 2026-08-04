@@ -33,6 +33,7 @@ import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 import * as mockFetch from '../../../test/helpers/mock_fetch';
 import { ServerError } from '../../api/errors';
 import { AuthInternal } from '../../model/auth';
+import * as jsHelpers from '../load_js';
 
 import { MockGreCAPTCHATopLevel } from './recaptcha_mock';
 import {
@@ -44,6 +45,7 @@ import {
 import { RecaptchaConfig } from './recaptcha';
 import { AuthErrorCode } from '../../core/errors';
 import { _createError } from '../../core/util/assert';
+import { mockLoadJS } from '../../../test/helpers/mock_loadjs';
 
 use(chaiAsPromised);
 use(sinonChai);
@@ -112,6 +114,7 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
     mockFetch.setUp();
     verifier = new RecaptchaEnterpriseVerifier(auth);
     recaptcha = new MockGreCAPTCHATopLevel();
+    sinon.stub(jsHelpers, '_loadJS').callsFake(mockLoadJS);
     window.grecaptcha = recaptcha;
   });
 

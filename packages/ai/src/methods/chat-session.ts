@@ -31,6 +31,7 @@ import { ApiSettings } from '../types/internal';
 import { ChromeAdapter } from '../types/chrome-adapter';
 import { ChatSessionBase } from './chat-session-base';
 import { validateChatHistory } from './chat-session-helpers';
+import { formatSystemInstruction } from '../requests/request-helpers';
 
 /**
  * ChatSession class that enables sending chat messages and stores
@@ -54,6 +55,14 @@ export class ChatSession extends ChatSessionBase<
     if (params?.history) {
       validateChatHistory(params.history);
       this._history = params.history;
+    }
+    if (this.params?.systemInstruction != null) {
+      this.params = {
+        ...this.params,
+        systemInstruction: formatSystemInstruction(
+          this.params.systemInstruction
+        )
+      };
     }
   }
 

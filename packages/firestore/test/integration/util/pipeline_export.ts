@@ -21,3 +21,10 @@
 // you need to also adjust "integration/firestore/pipeline_export.ts".
 
 export * from '../../../pipelines/pipelines';
+export {
+  RealtimePipelineSnapshot,
+  ResultChange
+} from '../../../src/api/snapshot';
+export { _enableRealtimePipeline } from '../../../src/api/pipeline_impl';
+export { RealtimePipeline } from '../../../src/api/realtime_pipeline';
+export { PipelineListenOptions } from '../../../src/api/reference_impl';

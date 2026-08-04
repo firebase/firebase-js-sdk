@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import fs from 'mz/fs';
+import { open, readFile, writeFile } from 'fs/promises';
 import chalk from 'chalk';
 import glob from 'glob';
 
@@ -41,12 +41,25 @@ const licenseHeader = `/**
 const copyrightPattern = /Copyright \d{4} Google (Inc\.|LLC)/;
 const oldCopyrightPattern = /(\s*\*\s*Copyright \d{4}) Google Inc\./;
 
-async function readFiles(paths: string[]) {
-  const fileContents = await Promise.all(paths.map(path => fs.readFile(path)));
-  return fileContents.map((buffer, idx) => ({
-    contents: String(buffer),
-    path: paths[idx]
-  }));
+/**
+ * Reads only the first N bytes of a file to optimize execution speed.
+ */
+async function readHead(path: string, bytesToRead = 1000): Promise<string> {
+  let handle;
+  try {
+    handle = await open(path, 'r');
+    const { buffer, bytesRead } = await handle.read(
+      Buffer.alloc(bytesToRead),
+      0,
+      bytesToRead,
+      0
+    );
+    return buffer.toString('utf8', 0, bytesRead);
+  } finally {
+    if (handle) {
+      await handle.close();
+    }
+  }
 }
 
 function addLicenseTag(contents: string) {
@@ -97,38 +110,57 @@ export async function doLicense(changedFiles?: string[]) {
   console.log(
     chalk`{green Validating license headers in ${filesToChange.length} files.}`
   );
-  const files = await readFiles(filesToChange);
 
-  await Promise.all(
-    files.map(({ contents, path }) => {
-      let result = contents;
+  // Batch processing in chunks of 100 to prevent EMFILE (too many open files) errors.
+  const limit = 100;
+  for (let i = 0; i < filesToChange.length; i += limit) {
+    const chunk = filesToChange.slice(i, i + limit);
+    await Promise.all(
+      chunk.map(async path => {
+        try {
+          // Read only the head chunk to fast-path validation on files that already have valid headers.
+          const head = await readHead(path);
 
-      // Files with no license block at all.
-      if (result.match(copyrightPattern) == null) {
-        result = licenseHeader + result;
-        console.log(`Adding license to ${path}.`);
-      }
+          const needsLicenseBlock = head.match(copyrightPattern) == null;
+          const needsLicenseTag = head.match(/@license/) == null;
+          const hasOldCopyright = head.match(oldCopyrightPattern) != null;
 
-      // Files with no @license tag.
-      if (result.match(/@license/) == null) {
-        result = addLicenseTag(result);
-        console.log(`Adding @license tag to ${path}.`);
-      }
+          if (needsLicenseBlock || needsLicenseTag || hasOldCopyright) {
+            const contents = await readFile(path, 'utf8');
+            let result = contents;
 
-      // Files with the old form of copyright notice.
-      if (result.match(oldCopyrightPattern) != null) {
-        result = rewriteCopyrightLine(result);
-        console.log(`Updating old copyright notice found in ${path}.`);
-      }
+            // Files with no license block at all.
+            // Double-check the copyright pattern on the full file content to avoid duplicate
+            // headers if the copyright notice is located past the first 1000 bytes.
+            if (needsLicenseBlock && result.match(copyrightPattern) == null) {
+              result = licenseHeader + result;
+              console.log(`Adding license to ${path}.`);
+            }
 
-      if (contents !== result) {
-        count++;
-        return fs.writeFile(path, result, 'utf8');
-      } else {
-        return Promise.resolve();
-      }
-    })
-  );
+            // Files with no @license tag.
+            if (needsLicenseTag && result.match(/@license/) == null) {
+              result = addLicenseTag(result);
+              console.log(`Adding @license tag to ${path}.`);
+            }
+
+            // Files with the old form of copyright notice.
+            if (hasOldCopyright && result.match(oldCopyrightPattern) != null) {
+              result = rewriteCopyrightLine(result);
+              console.log(`Updating old copyright notice found in ${path}.`);
+            }
+
+            if (contents !== result) {
+              count++;
+              await writeFile(path, result, 'utf8');
+            }
+          }
+        } catch (err) {
+          console.error(chalk`{red Error processing ${path}:}`, err);
+        }
+      })
+    );
+  }
+
   if (count === 0) {
     console.log(chalk`{green No files needed license changes.}`);
   } else {

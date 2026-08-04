@@ -10,9 +10,6 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # LanguageModelPromptOptions interface
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Options for an on-device language model prompt.
 
 <b>Signature:</b>
@@ -25,12 +22,9 @@ export interface LanguageModelPromptOptions
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [responseConstraint](./ai.languagemodelpromptoptions.md#languagemodelpromptoptionsresponseconstraint) | object | <b><i>(Public Preview)</i></b> |
+|  [responseConstraint](./ai.languagemodelpromptoptions.md#languagemodelpromptoptionsresponseconstraint) | object |  |
 
 ## LanguageModelPromptOptions.responseConstraint
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 <b>Signature:</b>
 

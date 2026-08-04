@@ -15,36 +15,35 @@
  * limitations under the License.
  */
 
-import { version as grpcVersion } from '@grpc/grpc-js/package.json';
+import grpcPkg from '@grpc/grpc-js/package.json' with { type: 'json' };
 import alias from '@rollup/plugin-alias';
 import json from '@rollup/plugin-json';
 import replace from 'rollup-plugin-replace';
+import sourcemaps from 'rollup-plugin-sourcemaps';
 import terser from '@rollup/plugin-terser';
 import dts from 'rollup-plugin-dts';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import tmp from 'tmp';
 import typescript from 'typescript';
 
-import { generateBuildTargetReplaceConfig } from '../../scripts/build/rollup_replace_build_target';
-import { replaceDeclareModule } from '../../scripts/build/rollup_replace_declare_module';
+import * as util from './rollup.shared.cjs';
 
-import pkg from './package.json';
-import tsconfig from './tsconfig.json';
+import { generateBuildTargetReplaceConfig } from '../../scripts/build/rollup_replace_build_target.js';
+import { replaceDeclareModule } from '../../scripts/build/rollup_replace_declare_module.js';
 
-const sourcemaps = require('rollup-plugin-sourcemaps');
-const util = require('./rollup.shared');
+import tsconfig from './tsconfig.json' with { type: 'json' };
 
 const nodePlugins = [
   typescriptPlugin({
     typescript,
     exclude: [...tsconfig.exclude, '**/*.test.ts'],
-    cacheDir: tmp.dirSync(),
+    cacheDir: tmp.dirSync().name,
     abortOnError: true,
     transformers: [util.removeAssertTransformer]
   }),
   json({ preferConst: true }),
   replace({
-    '__GRPC_VERSION__': grpcVersion
+    '__GRPC_VERSION__': grpcPkg.version
   })
 ];
 
@@ -52,7 +51,7 @@ const browserPlugins = [
   typescriptPlugin({
     typescript,
     exclude: [...tsconfig.exclude, '**/*.test.ts'],
-    cacheDir: tmp.dirSync(),
+    cacheDir: tmp.dirSync().name,
     abortOnError: true,
     transformers: [util.removeAssertAndPrefixInternalTransformer]
   }),
@@ -60,6 +59,35 @@ const browserPlugins = [
   terser(util.manglePrivatePropertiesOptions),
   util.cleanupNameCache(util.manglePrivatePropertiesOptions.nameCache)
 ];
+
+// TODO - update the implementation to match all content in the declare module block.
+function declareModuleReplacePlugin() {
+  // The regex we created earlier
+  const moduleToReplace =
+    /declare module '\.\/\S+' \{\s+interface Firestore \{\s+pipeline\(\): PipelineSource<Pipeline>;\s+}\s*}/gm;
+
+  // What to replace it with (an empty string to remove it)
+  const replacement =
+    'interface Firestore {pipeline(): PipelineSource<Pipeline>;}';
+
+  return {
+    name: 'declare-module-replace',
+    generateBundle(options, bundle) {
+      const outputFileName = 'global_index.d.ts';
+      if (!bundle[outputFileName]) {
+        console.warn(
+          `[regexReplacePlugin] File not found in bundle: ${outputFileName}`
+        );
+        return;
+      }
+
+      const chunk = bundle[outputFileName];
+      if (chunk.type === 'chunk') {
+        chunk.code = chunk.code.replace(moduleToReplace, replacement);
+      }
+    }
+  };
+}
 
 const allBuilds = [
   // Workaround for https://github.com/rollup/plugins/issues/1970
@@ -82,7 +110,8 @@ const allBuilds = [
       format: 'es'
     },
     plugins: [alias(util.generateAliasConfig('browser')), ...browserPlugins],
-    external: util.resolveBrowserExterns
+    external: util.resolveBrowserExterns,
+    onwarn: util.onwarn
   },
   // Intermediate Node ESM build without build target reporting
   // this is an intermediate build used to generate the actual esm and cjs builds
@@ -114,6 +143,7 @@ const allBuilds = [
       entryFileNames: '[name].cjs.js',
       chunkFileNames: 'common-[hash].node.cjs.js',
       format: 'cjs',
+      esModule: true,
       sourcemap: true
     },
     plugins: [
@@ -125,7 +155,7 @@ const allBuilds = [
           }
         },
         include: ['dist/**/*.js'],
-        cacheDir: tmp.dirSync()
+        cacheDir: tmp.dirSync().name
       }),
       sourcemaps(),
       replace(generateBuildTargetReplaceConfig('cjs', 2020))
@@ -133,7 +163,8 @@ const allBuilds = [
     external: util.resolveNodeExterns,
     treeshake: {
       moduleSideEffects: false
-    }
+    },
+    onwarn: util.onwarn
   },
   // Node ESM build with build target reporting
   {
@@ -155,7 +186,8 @@ const allBuilds = [
     external: util.resolveNodeExterns,
     treeshake: {
       moduleSideEffects: false
-    }
+    },
+    onwarn: util.onwarn
   },
   // This is the second invocation of the intermediate browser build.
   // Keep this build when https://github.com/rollup/plugins/issues/1970 is fixed.
@@ -176,7 +208,8 @@ const allBuilds = [
     external: util.resolveBrowserExterns,
     treeshake: {
       moduleSideEffects: false
-    }
+    },
+    onwarn: util.onwarn
   },
   // Convert es2020 build to cjs
   {
@@ -187,6 +220,7 @@ const allBuilds = [
         entryFileNames: '[name].cjs.js',
         chunkFileNames: 'common-[hash].cjs.js',
         format: 'cjs',
+        esModule: true,
         sourcemap: true
       }
     ],
@@ -197,7 +231,8 @@ const allBuilds = [
     external: util.resolveBrowserExterns,
     treeshake: {
       moduleSideEffects: false
-    }
+    },
+    onwarn: util.onwarn
   },
   // es2020 build with build target reporting
   {
@@ -218,7 +253,8 @@ const allBuilds = [
     external: util.resolveBrowserExterns,
     treeshake: {
       moduleSideEffects: false
-    }
+    },
+    onwarn: util.onwarn
   },
   // RN build
   {
@@ -238,7 +274,8 @@ const allBuilds = [
     external: util.resolveBrowserExterns,
     treeshake: {
       moduleSideEffects: false
-    }
+    },
+    onwarn: util.onwarn
   },
   {
     input: 'dist/firestore/src/global.d.ts',
@@ -250,6 +287,7 @@ const allBuilds = [
       dts({
         respectExternal: true
       }),
+      declareModuleReplacePlugin(),
 
       // The global.d.ts input file will include
       // a `declare module './database' { ... }` block. This block

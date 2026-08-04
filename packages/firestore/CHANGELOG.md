@@ -1,5 +1,27 @@
 # @firebase/firestore
 
+## 4.17.0
+
+### Minor Changes
+
+- [`d2d89d2`](https://github.com/firebase/firebase-js-sdk/commit/d2d89d2b0eb1dc3c929ccd17f85f1c0fda1a5fef) [#10116](https://github.com/firebase/firebase-js-sdk/pull/10116) - Changed the HTTP/2 flow control window size from 64 KB to 256 KB, and added a `grpcFlowControlWindow` configuration option to `FirestoreSettings`. This change is only applicable to Node environments.
+
+### Patch Changes
+
+- [`736fa3f`](https://github.com/firebase/firebase-js-sdk/commit/736fa3fe798d6eafc9fe086d6bfbe9cfb49b8994) [#10146](https://github.com/firebase/firebase-js-sdk/pull/10146) - Fix ReDoS vulnerability in FirebaseError template replacement
+
+- [`2894e91`](https://github.com/firebase/firebase-js-sdk/commit/2894e91619a51f23f01a77e43255d1329bbcc55c) [#10104](https://github.com/firebase/firebase-js-sdk/pull/10104) - Update re2js version
+
+- Updated dependencies [[`736fa3f`](https://github.com/firebase/firebase-js-sdk/commit/736fa3fe798d6eafc9fe086d6bfbe9cfb49b8994)]:
+  - @firebase/util@1.15.2
+  - @firebase/component@0.7.4
+
+## 4.16.0
+
+### Minor Changes
+
+- [`043c0ab`](https://github.com/firebase/firebase-js-sdk/commit/043c0ab81018a8237f03b37073413d3b931c1957) [#9929](https://github.com/firebase/firebase-js-sdk/pull/9929) - Merge offline pipeline implementation with one minor API change
+
 ## 4.14.1
 
 ### Patch Changes

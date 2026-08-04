@@ -6,7 +6,8 @@
     "module": "CommonJS",
     "target": "ES6",
     "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "typeRoots": ["../../node_modules/@types", "./node_modules/@types"]
   },
   "exclude": ["dist/**/*"]
 }

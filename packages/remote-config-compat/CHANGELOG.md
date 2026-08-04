@@ -1,5 +1,37 @@
 # @firebase/remote-config-compat
 
+## 0.2.28
+
+### Patch Changes
+
+- [`0fe3bbc`](https://github.com/firebase/firebase-js-sdk/commit/0fe3bbc3196a18d01941acbdaab3301a391016b1) [#10097](https://github.com/firebase/firebase-js-sdk/pull/10097) - Added "@firebase/app" as a peerDependency of compat packages.
+
+- Updated dependencies [[`736fa3f`](https://github.com/firebase/firebase-js-sdk/commit/736fa3fe798d6eafc9fe086d6bfbe9cfb49b8994)]:
+  - @firebase/util@1.15.2
+  - @firebase/component@0.7.4
+  - @firebase/remote-config@0.9.1
+
+## 0.2.27
+
+### Patch Changes
+
+- Updated dependencies [[`f47bebf`](https://github.com/firebase/firebase-js-sdk/commit/f47bebf353cd341c5124ca89568a775524ec0a9f)]:
+  - @firebase/remote-config@0.9.0
+
+## 0.2.26
+
+### Patch Changes
+
+- Updated dependencies [[`33521f2`](https://github.com/firebase/firebase-js-sdk/commit/33521f204022e09fa32da821ae6445d236bdeb21)]:
+  - @firebase/remote-config@0.8.5
+
+## 0.2.25
+
+### Patch Changes
+
+- Updated dependencies [[`4d3f71a`](https://github.com/firebase/firebase-js-sdk/commit/4d3f71a96a07d5a98aaccb7f664cc21a1c9f1cfa)]:
+  - @firebase/remote-config@0.8.4
+
 ## 0.2.24
 
 ### Patch Changes

@@ -39,6 +39,8 @@ import { PhoneAuthProvider } from './phone';
 import { FAKE_TOKEN } from '../recaptcha/recaptcha_enterprise_verifier';
 import { MockGreCAPTCHATopLevel } from '../recaptcha/recaptcha_mock';
 import { ApplicationVerifierInternal } from '../../model/application_verifier';
+import * as jsHelpers from '../load_js';
+import { mockLoadJS } from '../../../test/helpers/mock_loadjs';
 
 use(chaiAsPromised);
 
@@ -76,6 +78,8 @@ describe('platform_browser/providers/phone', () => {
       if (typeof window === 'undefined') {
         return;
       }
+
+      sinon.stub(jsHelpers, '_loadJS').callsFake(mockLoadJS);
       window.grecaptcha = recaptcha;
       sinon
         .stub(recaptcha.enterprise, 'execute')
@@ -157,6 +161,7 @@ describe('platform_browser/providers/phone', () => {
       if (typeof window === 'undefined') {
         return;
       }
+      sinon.stub(jsHelpers, '_loadJS').callsFake(mockLoadJS);
       window.grecaptcha = recaptcha;
       sinon
         .stub(recaptcha.enterprise, 'execute')
@@ -200,6 +205,7 @@ describe('platform_browser/providers/phone', () => {
       if (typeof window === 'undefined') {
         return;
       }
+      sinon.stub(jsHelpers, '_loadJS').callsFake(mockLoadJS);
       window.grecaptcha = recaptcha;
       sinon
         .stub(recaptcha.enterprise, 'execute')

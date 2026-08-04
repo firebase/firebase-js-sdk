@@ -25,15 +25,14 @@ import sourcemaps from 'rollup-plugin-sourcemaps';
 import replace from 'rollup-plugin-replace';
 import terser from '@rollup/plugin-terser';
 
-import pkg from './lite/package.json';
-import { generateBuildTargetReplaceConfig } from '../../scripts/build/rollup_replace_build_target';
+import * as util from './rollup.shared.cjs';
 
-const util = require('./rollup.shared');
+import { generateBuildTargetReplaceConfig } from '../../scripts/build/rollup_replace_build_target.js';
 
 const nodePlugins = [
   typescriptPlugin({
     typescript,
-    cacheDir: tmp.dirSync(),
+    cacheDir: tmp.dirSync().name,
     abortOnError: true,
     transformers: [util.removeAssertTransformer]
   }),
@@ -43,7 +42,7 @@ const nodePlugins = [
 const browserPlugins = [
   typescriptPlugin({
     typescript,
-    cacheDir: tmp.dirSync(),
+    cacheDir: tmp.dirSync().name,
     abortOnError: true,
     transformers: [util.removeAssertAndPrefixInternalTransformer]
   }),
@@ -122,6 +121,7 @@ const allBuilds = [
       entryFileNames: '[name].cjs.js',
       chunkFileNames: 'common-[hash].node.cjs.js',
       format: 'cjs',
+      esModule: true,
       sourcemap: true
     },
     plugins: [

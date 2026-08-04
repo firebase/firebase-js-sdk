@@ -121,7 +121,7 @@ Convert the given Query into an equivalent Pipeline.
 <b>Signature:</b>
 
 ```typescript
-createFrom(query: Query): Pipeline;
+createFrom(query: Query): PipelineType;
 ```
 
 #### Parameters
@@ -132,7 +132,7 @@ createFrom(query: Query): Pipeline;
 
 <b>Returns:</b>
 
-[Pipeline](./firestore_pipelines.pipeline.md#pipeline_class)
+PipelineType
 
 #### Exceptions
 

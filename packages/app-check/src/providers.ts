@@ -63,7 +63,9 @@ export class ReCaptchaV3Provider implements AppCheckProvider {
    * Returns an App Check token.
    * @internal
    */
-  async getToken(): Promise<AppCheckTokenInternal> {
+  async getToken(
+    isLimitedUse: boolean = false
+  ): Promise<AppCheckTokenInternal> {
     throwIfThrottled(this._throttleData);
 
     // Top-level `getToken()` has already checked that App Check is initialized
@@ -80,10 +82,14 @@ export class ReCaptchaV3Provider implements AppCheckProvider {
     }
     let result;
     try {
-      result = await exchangeToken(
-        getExchangeRecaptchaV3TokenRequest(this._app!, attestedClaimsToken),
-        this._heartbeatServiceProvider!
+      const request = getExchangeRecaptchaV3TokenRequest(
+        this._app!,
+        attestedClaimsToken
       );
+      if (isLimitedUse) {
+        request.body['limited_use'] = true;
+      }
+      result = await exchangeToken(request, this._heartbeatServiceProvider!);
     } catch (e) {
       if (
         (e as FirebaseError).code?.includes(AppCheckError.FETCH_STATUS_ERROR)
@@ -154,7 +160,9 @@ export class ReCaptchaEnterpriseProvider implements AppCheckProvider {
    * Returns an App Check token.
    * @internal
    */
-  async getToken(): Promise<AppCheckTokenInternal> {
+  async getToken(
+    isLimitedUse: boolean = false
+  ): Promise<AppCheckTokenInternal> {
     throwIfThrottled(this._throttleData);
     // Top-level `getToken()` has already checked that App Check is initialized
     // and therefore this._app and this._heartbeatServiceProvider are available.
@@ -170,13 +178,14 @@ export class ReCaptchaEnterpriseProvider implements AppCheckProvider {
     }
     let result;
     try {
-      result = await exchangeToken(
-        getExchangeRecaptchaEnterpriseTokenRequest(
-          this._app!,
-          attestedClaimsToken
-        ),
-        this._heartbeatServiceProvider!
+      const request = getExchangeRecaptchaEnterpriseTokenRequest(
+        this._app!,
+        attestedClaimsToken
       );
+      if (isLimitedUse) {
+        request.body['limited_use'] = true;
+      }
+      result = await exchangeToken(request, this._heartbeatServiceProvider!);
     } catch (e) {
       if (
         (e as FirebaseError).code?.includes(AppCheckError.FETCH_STATUS_ERROR)

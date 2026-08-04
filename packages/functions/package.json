@@ -1,6 +1,6 @@
 {
   "name": "@firebase/functions",
-  "version": "0.13.4",
+  "version": "0.13.6",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
@@ -25,10 +25,10 @@
     "dist"
   ],
   "scripts": {
-    "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
-    "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
+    "lint": "eslint --cache --cache-location '../../node_modules/.cache/eslint/' -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
+    "lint:fix": "eslint --cache --cache-location '../../node_modules/.cache/eslint/' --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "build": "rollup -c && yarn api-report",
-    "build:deps": "lerna run --scope @firebase/functions --include-dependencies build",
+    "build:deps": "lerna run build --scope @firebase/functions --include-dependencies",
     "build:release": "rollup -c rollup.config.release.js && yarn api-report",
     "dev": "rollup -c -w",
     "test": "run-p --npm-path npm lint test:all",
@@ -49,8 +49,8 @@
     "@firebase/app": "0.x"
   },
   "devDependencies": {
-    "@firebase/app": "0.14.12",
-    "rollup": "2.79.2",
+    "@firebase/app": "0.16.0",
+    "rollup": "4.62.2",
     "@rollup/plugin-json": "6.1.0",
     "rollup-plugin-typescript2": "0.37.0",
     "typescript": "5.5.4"
@@ -65,11 +65,11 @@
   },
   "typings": "dist/src/index.d.ts",
   "dependencies": {
-    "@firebase/component": "0.7.3",
-    "@firebase/messaging-interop-types": "0.2.4",
+    "@firebase/component": "0.7.4",
+    "@firebase/messaging-interop-types": "0.2.5",
     "@firebase/auth-interop-types": "0.2.5",
     "@firebase/app-check-interop-types": "0.3.4",
-    "@firebase/util": "1.15.1",
+    "@firebase/util": "1.15.2",
     "tslib": "^2.1.0"
   },
   "nyc": {

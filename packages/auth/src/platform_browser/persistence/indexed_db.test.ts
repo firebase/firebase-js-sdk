@@ -39,6 +39,7 @@ import {
   _clearDatabase,
   _openDatabase,
   _POLLING_INTERVAL_MS,
+  _TRANSACTION_RETRY_COUNT,
   _putObject
 } from './indexed_db';
 
@@ -52,6 +53,14 @@ describe('platform_browser/persistence/indexed_db', () => {
   const persistence: PersistenceInternal = _getInstance(
     indexedDBLocalPersistence
   );
+
+  beforeEach(() => {
+    (persistence as any).dbPromise = null;
+    (persistence as any).listeners = {};
+    (persistence as any).localCache = {};
+    (persistence as any).pendingWrites = 0;
+    (persistence as any).stopPolling();
+  });
 
   afterEach(sinon.restore);
 
@@ -91,7 +100,8 @@ describe('platform_browser/persistence/indexed_db', () => {
       expect(await persistence._isAvailable()).to.be.true;
     });
 
-    it('should return false if db creation errors', async () => {
+    it('should return false if db creation errors repeatedly', async () => {
+      (persistence as any).dbPromise = null;
       sinon.stub(indexedDB, 'open').returns({
         addEventListener(evt: string, cb: () => void) {
           if (evt === 'error') {
@@ -102,6 +112,36 @@ describe('platform_browser/persistence/indexed_db', () => {
       } as any);
 
       expect(await persistence._isAvailable()).to.be.false;
+      expect((indexedDB.open as sinon.SinonStub).callCount).to.eq(
+        _TRANSACTION_RETRY_COUNT + 2
+      );
+    });
+
+    it('should retry if db creation errors temporarily and then succeed', async () => {
+      (persistence as any).dbPromise = null;
+      const originalOpen = indexedDB.open.bind(indexedDB);
+      let errorsToThrow = 2;
+
+      sinon.stub(indexedDB, 'open').callsFake(((
+        name: string,
+        version?: number
+      ) => {
+        if (errorsToThrow > 0) {
+          errorsToThrow--;
+          return {
+            addEventListener(evt: string, cb: () => void) {
+              if (evt === 'error') {
+                cb();
+              }
+            },
+            error: new DOMException('temporary error')
+          } as any;
+        }
+        return originalOpen(name, version);
+      }) as typeof indexedDB.open);
+
+      expect(await persistence._isAvailable()).to.be.true;
+      expect((indexedDB.open as sinon.SinonStub).callCount).to.eq(3);
     });
   });
 
@@ -114,6 +154,10 @@ describe('platform_browser/persistence/indexed_db', () => {
 
     before(async () => {
       db = await _openDatabase();
+    });
+
+    after(async () => {
+      db.close();
     });
 
     beforeEach(async () => {
@@ -134,6 +178,7 @@ describe('platform_browser/persistence/indexed_db', () => {
     });
 
     it('should trigger a listener when the key changes', async () => {
+      await persistence._get(key); // Ensure cache is populated before change
       await _putObject(db, key, newValue);
 
       await waitUntilPoll(clock);
@@ -154,6 +199,7 @@ describe('platform_browser/persistence/indexed_db', () => {
     });
 
     it('should not trigger the listener when a different key changes', async () => {
+      await persistence._get(key); // Ensure cache is populated
       await _putObject(db, 'other-key', newValue);
 
       await waitUntilPoll(clock);
@@ -162,6 +208,7 @@ describe('platform_browser/persistence/indexed_db', () => {
     });
 
     it('should not trigger if a write is pending', async () => {
+      await persistence._get(key); // Ensure cache is populated
       await _putObject(db, key, newValue);
       (persistence as any)['pendingWrites'] = 1;
 
@@ -184,6 +231,7 @@ describe('platform_browser/persistence/indexed_db', () => {
       });
 
       it('should trigger both listeners if multiple listeners are registered', async () => {
+        await persistence._get(key); // Ensure cache is populated
         await _putObject(db, key, newValue);
 
         await waitUntilPoll(clock);
@@ -214,8 +262,9 @@ describe('platform_browser/persistence/indexed_db', () => {
         sender = new Sender(serviceWorker);
         sinon.stub(workerUtil, '_isWorker').returns(true);
         sinon.stub(workerUtil, '_getWorkerGlobalScope').returns(serviceWorker);
-        persistence =
-          new (indexedDBLocalPersistence as unknown as SingletonInstantiator<TestPersistence>)();
+        persistence = new (
+          indexedDBLocalPersistence as unknown as SingletonInstantiator<TestPersistence>
+        )();
         db = await _openDatabase();
       });
 
@@ -289,8 +338,9 @@ describe('platform_browser/persistence/indexed_db', () => {
         sinon
           .stub(workerUtil, '_getServiceWorkerController')
           .returns(serviceWorker);
-        persistence =
-          new (indexedDBLocalPersistence as unknown as SingletonInstantiator<TestPersistence>)();
+        persistence = new (
+          indexedDBLocalPersistence as unknown as SingletonInstantiator<TestPersistence>
+        )();
       });
 
       it('should send a ping on init', async () => {
@@ -367,6 +417,117 @@ describe('platform_browser/persistence/indexed_db', () => {
       await closeDb();
       await persistence._remove(key);
       expect(await persistence._get(key)).to.be.null;
+    });
+  });
+
+  describe('page lifecycle events', () => {
+    let clock: sinon.SinonFakeTimers;
+    const key = 'my-key';
+    const value = 'my-value';
+    let callback: sinon.SinonSpy;
+    let db: IDBDatabase;
+
+    before(async () => {
+      db = await _openDatabase();
+    });
+
+    after(async () => {
+      db.close();
+    });
+
+    beforeEach(async () => {
+      clock = sinon.useFakeTimers();
+      callback = sinon.spy();
+      // Ensure we start fresh
+      (persistence as any).isHiding = false;
+      (persistence as any).dbPromise = null;
+    });
+
+    afterEach(() => {
+      persistence._removeListener(key, callback);
+      clock.restore();
+      sinon.restore();
+    });
+
+    it('should register event listeners when first listener is added and unregister when last is removed', () => {
+      const addSpy = sinon.spy(window, 'addEventListener');
+      const removeSpy = sinon.spy(window, 'removeEventListener');
+
+      persistence._addListener(key, callback);
+      expect(addSpy).to.have.been.calledWith('pagehide');
+      expect(addSpy).to.have.been.calledWith('pageshow');
+
+      persistence._removeListener(key, callback);
+      expect(removeSpy).to.have.been.calledWith('pagehide');
+      expect(removeSpy).to.have.been.calledWith('pageshow');
+    });
+
+    it('should pause polling and close DB on pagehide, and resume on pageshow', async () => {
+      persistence._addListener(key, callback);
+      await persistence._set(key, value);
+
+      // Trigger pagehide
+      window.dispatchEvent(new Event('pagehide'));
+      expect((persistence as any).isHiding).to.be.true;
+      expect((persistence as any).pollTimer).to.be.null;
+      expect((persistence as any).dbPromise).to.be.null;
+
+      // Ensure polling doesn't run even if clock ticks
+      callback.resetHistory();
+      clock.tick(_POLLING_INTERVAL_MS + 1);
+      expect(callback).not.to.have.been.called;
+
+      // Trigger pageshow
+      window.dispatchEvent(new Event('pageshow'));
+      expect((persistence as any).isHiding).to.be.false;
+      expect((persistence as any).pollTimer).not.to.be.null;
+
+      // Modify DB in background, ensure polling picks it up after pageshow
+      await _putObject(db, key, 'new-value');
+      await waitUntilPoll(clock);
+      expect(callback).to.have.been.calledWith('new-value');
+    });
+
+    it('should handle visibilitychange hidden and visible', () => {
+      persistence._addListener(key, callback);
+
+      // Mock document.visibilityState to 'hidden'
+      sinon.stub(document, 'visibilityState').get(() => 'hidden');
+      document.dispatchEvent(new Event('visibilitychange'));
+
+      expect((persistence as any).isHiding).to.be.true;
+      expect((persistence as any).pollTimer).to.be.null;
+
+      // Mock document.visibilityState to 'visible'
+      sinon.restore(); // Restore stub
+      sinon.stub(document, 'visibilityState').get(() => 'visible');
+      document.dispatchEvent(new Event('visibilitychange'));
+
+      expect((persistence as any).isHiding).to.be.false;
+      expect((persistence as any).pollTimer).not.to.be.null;
+    });
+
+    it('should discard in-flight poll results if pagehide occurs before poll completes', async () => {
+      // 1. Seed local cache and listener
+      await persistence._set(key, value);
+      persistence._addListener(key, callback);
+      callback.resetHistory();
+
+      // 2. Intercept the _withRetries / getAll call to trigger pagehide before it resolves
+      const originalWithRetries = (persistence as any)._withRetries.bind(
+        persistence
+      );
+      sinon.stub(persistence as any, '_withRetries').callsFake(async op => {
+        // Dispatch pagehide before the operation completes
+        window.dispatchEvent(new Event('pagehide'));
+        return originalWithRetries(op);
+      });
+
+      // 3. Trigger a manual poll (or wait for the timer)
+      await (persistence as any)._poll();
+
+      // 4. Assert that the listener was NOT notified with null (sign-out prevented)
+      expect(callback).not.to.have.been.calledWith(null);
     });
   });
 });

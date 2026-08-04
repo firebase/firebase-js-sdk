@@ -1,5 +1,33 @@
 # @firebase/app-check
 
+## 0.13.0
+
+### Minor Changes
+
+- [`177f08d`](https://github.com/firebase/firebase-js-sdk/commit/177f08d487056e3c88b33071b5162b9a5025241c) [#10210](https://github.com/firebase/firebase-js-sdk/pull/10210) - Remove ability to call `initializeAppCheck` without a `provider`.
+
+### Patch Changes
+
+- Updated dependencies [[`736fa3f`](https://github.com/firebase/firebase-js-sdk/commit/736fa3fe798d6eafc9fe086d6bfbe9cfb49b8994)]:
+  - @firebase/util@1.15.2
+  - @firebase/component@0.7.4
+
+## 0.12.0
+
+### Minor Changes
+
+- [`420156e`](https://github.com/firebase/firebase-js-sdk/commit/420156ee6eb2f7cfa0c4c188d73138bc7cd3a1f2) [#10023](https://github.com/firebase/firebase-js-sdk/pull/10023) - Add ability to call `initializeAppCheck` without a `provider`. If no `provider` is passed to `initializeAppCheck`, App Check will attempt to initialize with a `ReCaptchaEnterpriseProvider` using the site key found in the `recaptchaSiteKey` field of the Firebase project config.
+
+### Patch Changes
+
+- [`e389f70`](https://github.com/firebase/firebase-js-sdk/commit/e389f70b1b9b2c3afe1672b4a6b702eceb7c5e41) [#9991](https://github.com/firebase/firebase-js-sdk/pull/9991) (fixes [#9405](https://github.com/firebase/firebase-js-sdk/issues/9405)) - Fix error causing Auth and AppCheck conflict when both are using ReCAPTCHA Enterprise.
+
+## 0.11.4
+
+### Patch Changes
+
+- [`d675580`](https://github.com/firebase/firebase-js-sdk/commit/d675580448169ce69fd0653f1adf141b2ace0439) [#9987](https://github.com/firebase/firebase-js-sdk/pull/9987) - Fix a bug where `getLimitedUseToken()` did not correctly get a limited use token because it did not send the `limited_use` param.
+
 ## 0.11.3
 
 ### Patch Changes

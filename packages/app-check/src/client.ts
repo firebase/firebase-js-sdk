@@ -37,7 +37,7 @@ interface AppCheckResponse {
 
 interface AppCheckRequest {
   url: string;
-  body: { [key: string]: string };
+  body: { [key: string]: string | boolean };
 }
 
 export async function exchangeToken(

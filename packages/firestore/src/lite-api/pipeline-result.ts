@@ -15,6 +15,10 @@
  * limitations under the License.
  */
 
+import { RealtimePipeline } from '../api/realtime_pipeline';
+import { SnapshotMetadata } from '../api/snapshot';
+import { ListenOptions } from '../core/event_manager';
+import { Document } from '../model/document';
 import { ObjectValue } from '../model/object_value';
 import { firestoreV1ApiClientInterfaces } from '../protos/firestore_proto_api';
 import { isOptionalEqual } from '../util/misc';
@@ -98,6 +102,9 @@ export class PipelineResult<AppModelType = DocumentData> {
   private readonly _createTime: Timestamp | undefined;
   private readonly _updateTime: Timestamp | undefined;
 
+  readonly _metadata: SnapshotMetadata | undefined;
+  readonly _listenOptions: ListenOptions | undefined;
+
   /**
    * @internal
    * @private
@@ -115,24 +122,57 @@ export class PipelineResult<AppModelType = DocumentData> {
    * @internal
    *
    * @param userDataWriter - The serializer used to encode/decode protobuf.
-   * @param ref - The reference to the document.
    * @param fields - The fields of the Firestore `Document` Protobuf backing
    * this document.
+   * @param ref - The reference to the document.
    * @param createTime - The time when the document was created if the result is a document, undefined otherwise.
    * @param updateTime - The time when the document was last updated if the result is a document, undefined otherwise.
+   * @param metadata
+   * @param listenOptions
    */
   constructor(
     userDataWriter: AbstractUserDataWriter,
     fields: ObjectValue,
     ref?: DocumentReference,
     createTime?: Timestamp,
-    updateTime?: Timestamp
+    updateTime?: Timestamp,
+    metadata?: SnapshotMetadata,
+    listenOptions?: ListenOptions
   ) {
     this._ref = ref;
     this._userDataWriter = userDataWriter;
     this._createTime = createTime;
     this._updateTime = updateTime;
     this._fields = fields;
+    this._metadata = metadata;
+    this._listenOptions = listenOptions;
+  }
+
+  /**
+   * @private
+   * @internal
+   * @param userDataWriter
+   * @param doc
+   * @param ref
+   * @param metadata
+   * @param listenOptions
+   */
+  static fromDocument(
+    userDataWriter: AbstractUserDataWriter,
+    doc: Document,
+    ref?: DocumentReference,
+    metadata?: SnapshotMetadata,
+    listenOptions?: ListenOptions
+  ): PipelineResult {
+    return new PipelineResult(
+      userDataWriter,
+      doc.data,
+      ref,
+      doc.createTime.toTimestamp(),
+      doc.version.toTimestamp(),
+      metadata,
+      listenOptions
+    );
   }
 
   /**
@@ -189,7 +229,8 @@ export class PipelineResult<AppModelType = DocumentData> {
    */
   data(): AppModelType {
     return this._userDataWriter.convertValue(
-      this._fields.value
+      this._fields.value,
+      this._listenOptions?.serverTimestampBehavior
     ) as AppModelType;
   }
 
@@ -239,7 +280,10 @@ export class PipelineResult<AppModelType = DocumentData> {
       fieldPathFromArgument('DocumentSnapshot.get', fieldPath)
     );
     if (value !== null) {
-      return this._userDataWriter.convertValue(value);
+      return this._userDataWriter.convertValue(
+        value,
+        this._listenOptions?.serverTimestampBehavior
+      );
     }
   }
 }
@@ -260,5 +304,21 @@ export function pipelineResultEqual(
   return (
     isOptionalEqual(left._ref, right._ref, refEqual) &&
     isOptionalEqual(left._fields, right._fields, (l, r) => l.isEqual(r))
+  );
+}
+
+export function toPipelineResult(
+  doc: Document,
+  pipeline: RealtimePipeline,
+  listenOptions?: ListenOptions
+): PipelineResult {
+  return PipelineResult.fromDocument(
+    pipeline._userDataWriter,
+    doc,
+    doc.key.path
+      ? new DocumentReference(pipeline._db, null, doc.key)
+      : undefined,
+    undefined,
+    listenOptions
   );
 }

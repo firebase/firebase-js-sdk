@@ -112,7 +112,7 @@ export function getFakeHeartbeatServiceProvider(
       () =>
         ({
           getHeartbeatsHeader: () => Promise.resolve(fakeLogString)
-        } as HeartbeatService),
+        }) as HeartbeatService,
       ComponentType.PRIVATE
     )
   );

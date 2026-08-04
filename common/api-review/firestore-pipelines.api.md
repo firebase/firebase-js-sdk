@@ -332,7 +332,9 @@ export function concat(fieldName: string, second: Expression | unknown, ...other
 export function conditional(condition: BooleanExpression, thenExpr: Expression, elseExpr: Expression): FunctionExpression;
 
 // @public
-export function constant(value: number): Expression;
+export function constant(value: number, options?: {
+    preferIntegers?: boolean;
+}): Expression;
 
 // @public
 export function constant(value: string): Expression;
@@ -922,7 +924,11 @@ export class FunctionExpression extends Expression {
     constructor(name: string, params: Expression[]);
     // (undocumented)
     readonly expressionType: ExpressionType;
-    }
+    // (undocumented)
+    readonly name: string;
+    // (undocumented)
+    readonly params: Expression[];
+}
 
 // @beta
 export function geoDistance(fieldName: string | Field, location: GeoPoint | Expression): Expression;
@@ -1258,12 +1264,10 @@ export class Pipeline {
     addFields(options: AddFieldsStageOptions): Pipeline;
     aggregate(accumulator: AliasedAggregate, ...additionalAccumulators: AliasedAggregate[]): Pipeline;
     aggregate(options: AggregateStageOptions): Pipeline;
-    // (undocumented)
     define(aliasedExpression: AliasedExpression, ...additionalExpressions: AliasedExpression[]): Pipeline;
     // (undocumented)
     define(options: DefineStageOptions): Pipeline;
     distinct(group: string | Selectable, ...additionalGroups: Array<string | Selectable>): Pipeline;
-    // (undocumented)
     distinct(options: DistinctStageOptions): Pipeline;
     findNearest(options: FindNearestStageOptions): Pipeline;
     limit(limit: number): Pipeline;
@@ -1282,18 +1286,14 @@ export class Pipeline {
     replaceWith(options: ReplaceWithStageOptions): Pipeline;
     sample(documents: number): Pipeline;
     sample(options: SampleStageOptions): Pipeline;
-    // Warning: (ae-incompatible-release-tags) The symbol "search" is marked as @public, but its signature references "SearchStageOptions" which is marked as @beta
-    //
-    // (undocumented)
+    // @beta
     search(options: SearchStageOptions): Pipeline;
     select(selection: Selectable | string, ...additionalSelections: Array<Selectable | string>): Pipeline;
     select(options: SelectStageOptions): Pipeline;
     sort(ordering: Ordering, ...additionalOrderings: Ordering[]): Pipeline;
     // (undocumented)
     sort(options: SortStageOptions): Pipeline;
-    // (undocumented)
     toArrayExpression(): Expression;
-    // (undocumented)
     toScalarExpression(): Expression;
     union(other: Pipeline): Pipeline;
     // (undocumented)
@@ -1319,6 +1319,7 @@ export class PipelineResult<AppModelType = DocumentData> {
     /* Excluded from this release type: _ref */
     /* Excluded from this release type: _fields */
     /* Excluded from this release type: __constructor */
+    /* Excluded from this release type: fromDocument */
     get createTime(): Timestamp | undefined;
     data(): AppModelType;
     get(fieldPath: string | FieldPath | Field): any;
@@ -1340,31 +1341,15 @@ export class PipelineSnapshot {
 // @public
 export class PipelineSource<PipelineType> {
     collection(collection: string | Query): PipelineType;
-    /* Excluded from this release type: _createPipeline */
-    /* Excluded from this release type: __constructor */
     collection(options: CollectionStageOptions): PipelineType;
-    /* Excluded from this release type: _createPipeline */
-    /* Excluded from this release type: __constructor */
     collectionGroup(collectionId: string): PipelineType;
-    /* Excluded from this release type: _createPipeline */
-    /* Excluded from this release type: __constructor */
     collectionGroup(options: CollectionGroupStageOptions): PipelineType;
-    /* Excluded from this release type: _createPipeline */
-    /* Excluded from this release type: __constructor */
-    createFrom(query: Query): Pipeline;
-    /* Excluded from this release type: _createPipeline */
-    /* Excluded from this release type: __constructor */
+    createFrom(query: Query): PipelineType;
     database(): PipelineType;
-    /* Excluded from this release type: _createPipeline */
-    /* Excluded from this release type: __constructor */
     database(options: DatabaseStageOptions): PipelineType;
-    /* Excluded from this release type: _createPipeline */
-    /* Excluded from this release type: __constructor */
     documents(docs: Array<string | DocumentReference>): PipelineType;
-    /* Excluded from this release type: _createPipeline */
-    /* Excluded from this release type: __constructor */
     documents(options: DocumentsStageOptions): PipelineType;
-}
+    }
 
 // @public
 export function pow(base: Expression, exponent: Expression): FunctionExpression;

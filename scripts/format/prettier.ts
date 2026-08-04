@@ -64,6 +64,7 @@ export async function doPrettier(changedFiles?: string[]) {
     'prettier',
     '--config',
     `${resolve(root, '.prettierrc')}`,
+    '--cache',
     '--write'
   ];
 

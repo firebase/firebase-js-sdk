@@ -42,6 +42,7 @@ export interface FetchResponse {
     config?: FirebaseRemoteConfigObject;
     eTag?: string;
     experiments?: FirebaseExperimentDescription[];
+    rollouts?: FirebaseRolloutMetadata[];
     status: number;
     templateVersion?: number;
 }
@@ -72,6 +73,16 @@ export interface FirebaseExperimentDescription {
 export interface FirebaseRemoteConfigObject {
     // (undocumented)
     [key: string]: string;
+}
+
+// @public (undocumented)
+export interface FirebaseRolloutMetadata {
+    // (undocumented)
+    affectedParameterKeys: string[];
+    // (undocumented)
+    rolloutId: string;
+    // (undocumented)
+    variantId: string;
 }
 
 // @public

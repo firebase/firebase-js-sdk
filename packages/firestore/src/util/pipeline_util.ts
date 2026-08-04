@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { FirestoreError, vector } from '../api';
 import {
   _constant,
   AggregateFunction,
@@ -30,10 +29,12 @@ import {
   Selectable,
   pipelineValue
 } from '../lite-api/expressions';
+import { vector } from '../lite-api/field_value_impl';
 import type { Pipeline } from '../lite-api/pipeline';
 import { VectorValue } from '../lite-api/vector_value';
 
 import { fail } from './assert';
+import { FirestoreError } from './error';
 import { isPlainObject } from './input_validation';
 import { isFirestoreValue } from './proto';
 import { isString } from './types';

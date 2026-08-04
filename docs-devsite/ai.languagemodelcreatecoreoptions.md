@@ -10,9 +10,6 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # LanguageModelCreateCoreOptions interface
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Configures the creation of an on-device language model session.
 
 <b>Signature:</b>
@@ -25,14 +22,15 @@ export interface LanguageModelCreateCoreOptions
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [expectedInputs](./ai.languagemodelcreatecoreoptions.md#languagemodelcreatecoreoptionsexpectedinputs) | [LanguageModelExpected](./ai.languagemodelexpected.md#languagemodelexpected_interface)<!-- -->\[\] | <b><i>(Public Preview)</i></b> |
-|  [temperature](./ai.languagemodelcreatecoreoptions.md#languagemodelcreatecoreoptionstemperature) | number | <b><i>(Public Preview)</i></b> |
-|  [topK](./ai.languagemodelcreatecoreoptions.md#languagemodelcreatecoreoptionstopk) | number | <b><i>(Public Preview)</i></b> |
+|  [expectedInputs](./ai.languagemodelcreatecoreoptions.md#languagemodelcreatecoreoptionsexpectedinputs) | [LanguageModelExpected](./ai.languagemodelexpected.md#languagemodelexpected_interface)<!-- -->\[\] | Defaults to image input and English text input if not overriden. |
+|  [expectedOutputs](./ai.languagemodelcreatecoreoptions.md#languagemodelcreatecoreoptionsexpectedoutputs) | [LanguageModelExpected](./ai.languagemodelexpected.md#languagemodelexpected_interface)<!-- -->\[\] | Defaults to English text output if not overriden. |
+|  [monitor](./ai.languagemodelcreatecoreoptions.md#languagemodelcreatecoreoptionsmonitor) | (monitor: [LanguageModelDownloadMonitor](./ai.languagemodeldownloadmonitor.md#languagemodeldownloadmonitor_interface)<!-- -->) =&gt; void | The native download monitor provided by the Chrome API. This provides direct access to the monitor object and is only needed for advanced cases. For a simpler download monitoring interface, provide an <code>onDownloadProgress</code> callback to [GenerativeModel.initializeDeviceModel()](./ai.generativemodel.md#generativemodelinitializedevicemodel) instead. |
+|  [temperature](./ai.languagemodelcreatecoreoptions.md#languagemodelcreatecoreoptionstemperature) | number |  |
+|  [topK](./ai.languagemodelcreatecoreoptions.md#languagemodelcreatecoreoptionstopk) | number |  |
 
 ## LanguageModelCreateCoreOptions.expectedInputs
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
+Defaults to image input and English text input if not overriden.
 
 <b>Signature:</b>
 
@@ -40,10 +38,27 @@ export interface LanguageModelCreateCoreOptions
 expectedInputs?: LanguageModelExpected[];
 ```
 
-## LanguageModelCreateCoreOptions.temperature
+## LanguageModelCreateCoreOptions.expectedOutputs
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
+Defaults to English text output if not overriden.
+
+<b>Signature:</b>
+
+```typescript
+expectedOutputs?: LanguageModelExpected[];
+```
+
+## LanguageModelCreateCoreOptions.monitor
+
+The native download monitor provided by the Chrome API. This provides direct access to the monitor object and is only needed for advanced cases. For a simpler download monitoring interface, provide an `onDownloadProgress` callback to [GenerativeModel.initializeDeviceModel()](./ai.generativemodel.md#generativemodelinitializedevicemodel) instead.
+
+<b>Signature:</b>
+
+```typescript
+monitor?: (monitor: LanguageModelDownloadMonitor) => void;
+```
+
+## LanguageModelCreateCoreOptions.temperature
 
 > Warning: This API is now obsolete.
 > 
@@ -56,9 +71,6 @@ temperature?: number;
 ```
 
 ## LanguageModelCreateCoreOptions.topK
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 > Warning: This API is now obsolete.
 > 

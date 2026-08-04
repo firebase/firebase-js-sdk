@@ -397,7 +397,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [ifError(tryExpr, catchExpr)](./firestore_lite_pipelines.md#iferror_756c12e) | Creates an expression that returns the <code>catch</code> argument if there is an error, else return the result of the <code>try</code> argument evaluation. |
 |  [ifError(tryExpr, catchValue)](./firestore_lite_pipelines.md#iferror_dc532f9) | Creates an expression that returns the <code>catch</code> argument if there is an error, else return the result of the <code>try</code> argument evaluation. |
 |  <b>function(value, ...)</b> |
-|  [constant(value)](./firestore_lite_pipelines.md#constant_0c00f91) | Creates a <code>Constant</code> instance for a number value. |
+|  [constant(value, options)](./firestore_lite_pipelines.md#constant_6ea0dde) | Creates a <code>Constant</code> instance for a number value. |
 |  [constant(value)](./firestore_lite_pipelines.md#constant_6dac335) | Creates a <code>Constant</code> instance for a VectorValue value. |
 |  [constant(value)](./firestore_lite_pipelines.md#constant_7c807cd) | Creates a <code>Constant</code> instance for a string value. |
 |  [constant(value)](./firestore_lite_pipelines.md#constant_b2e4f8d) | Creates a <code>BooleanExpression</code> instance for a boolean value. |
@@ -439,7 +439,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class) | This class defines the base class for Firestore [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class) functions, which can be evaluated within pipeline execution.<!-- -->Typically, you would not use this class or its children directly. Use either the functions like [and()](./firestore_pipelines.md#and_e0c48bd)<!-- -->, [equal()](./firestore_pipelines.md#equal_b3c3382)<!-- -->, or the methods on [Expression](./firestore_pipelines.expression.md#expression_class) ([Expression.equal()](./firestore_pipelines.expression.md#expressionequal)<!-- -->, [Expression.lessThan()](./firestore_pipelines.expression.md#expressionlessthan)<!-- -->, etc.) to construct new Function instances. |
 |  [GeoPoint](./firestore_lite_pipelines.geopoint.md#geopoint_class) | An immutable object representing a geographic location in Firestore. The location is represented as latitude/longitude pair.<!-- -->Latitude values are in the range of \[-90, 90\]. Longitude values are in the range of \[-180, 180\]. |
 |  [Ordering](./firestore_lite_pipelines.ordering.md#ordering_class) | Represents an ordering criterion for sorting documents in a Firestore pipeline.<!-- -->You create <code>Ordering</code> instances using the <code>ascending</code> and <code>descending</code> helper functions. |
-|  [Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class) | The Pipeline class provides a flexible and expressive framework for building complex data transformation and query pipelines for Firestore.<!-- -->A pipeline takes data sources, such as Firestore collections or collection groups, and applies a series of stages that are chained together. Each stage takes the output from the previous stage (or the data source) and produces an output for the next stage (or as the final output of the pipeline).<!-- -->Expressions can be used within each stage to filter and transform data through the stage.<!-- -->NOTE: The chained stages do not prescribe exactly how Firestore will execute the pipeline. Instead, Firestore only guarantees that the result is the same as if the chained stages were executed in order.<!-- -->Usage Examples: |
+|  [Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class) | The Pipeline class provides a flexible and expressive framework for building complex data transformation and query pipelines for Firestore.<!-- -->A pipeline takes data sources, such as Firestore collections or collection groups, and applies a series of stages that are chained together. Each stage takes the output from the previous stage (or the data source) and produces an output for the next stage (or as the final output of the pipeline).<!-- -->Expressions can be used within each stage to filter and transform data through the stage.<!-- -->NOTE: The chained stages do not prescribe exactly how Firestore will execute the pipeline. Instead, Firestore only guarantees that the result is the same as if the chained stages were executed in order. |
 |  [PipelineResult](./firestore_lite_pipelines.pipelineresult.md#pipelineresult_class) | A PipelineResult contains data read from a Firestore Pipeline. The data can be extracted with the [PipelineResult.data()](./firestore_pipelines.pipelineresult.md#pipelineresultdata) or [PipelineResult.get()](./firestore_pipelines.pipelineresult.md#pipelineresultget) methods.<p>If the PipelineResult represents a non-document result, <code>ref</code> will return a undefined value. |
 |  [PipelineSnapshot](./firestore_lite_pipelines.pipelinesnapshot.md#pipelinesnapshot_class) | Represents the results of a Firestore pipeline execution.<!-- -->A <code>PipelineSnapshot</code> contains zero or more [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) objects representing the documents returned by a pipeline query. It provides methods to iterate over the documents and access metadata about the query results. |
 |  [PipelineSource](./firestore_lite_pipelines.pipelinesource.md#pipelinesource_class) | Provides the entry point for defining the data source of a Firestore [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class)<!-- -->.<!-- -->Use the methods of this class (e.g., [PipelineSource.collection()](./firestore_pipelines.pipelinesource.md#pipelinesourcecollection)<!-- -->, [PipelineSource.collectionGroup()](./firestore_pipelines.pipelinesource.md#pipelinesourcecollectiongroup)<!-- -->, [PipelineSource.database()](./firestore_pipelines.pipelinesource.md#pipelinesourcedatabase)<!-- -->, or [PipelineSource.documents()](./firestore_pipelines.pipelinesource.md#pipelinesourcedocuments)<!-- -->) to specify the initial data for your pipeline, such as a collection, a collection group, the entire database, or a set of specific documents. |
@@ -9048,7 +9048,7 @@ export declare function mapMerge(firstMap: Record<string, unknown> | Expression,
 ### Example
 
 
-```
+```typescript
 // Merges the map in the settings field with, a map literal, and a map in
 // that is conditionally returned by another expression
 mapMerge(field('settings'), { enabled: true }, conditional(field('isAdmin'), { admin: true}, {})
@@ -9724,10 +9724,9 @@ export declare function mapRemove(mapExpr: Expression, key: string): FunctionExp
 ### Example
 
 
-```
+```typescript
 // Removes the key 'baz' from the input map.
 mapRemove(map({foo: 'bar', baz: true}), 'baz');
-@example
 
 ```
 
@@ -9755,10 +9754,9 @@ export declare function mapRemove(mapExpr: Expression, keyExpr: Expression): Fun
 ### Example
 
 
-```
+```typescript
 // Removes the key 'baz' from the input map.
 mapRemove(map({foo: 'bar', baz: true}), constant('baz'));
-@example
 
 ```
 
@@ -10024,7 +10022,7 @@ export declare function mapMerge(mapField: string, secondMap: Record<string, unk
 ### Example
 
 
-```
+```typescript
 // Merges the map in the settings field with, a map literal, and a map in
 // that is conditionally returned by another expression
 mapMerge('settings', { enabled: true }, conditional(field('isAdmin'), { admin: true}, {})
@@ -10055,7 +10053,7 @@ export declare function mapRemove(mapField: string, key: string): FunctionExpres
 ### Example
 
 
-```
+```typescript
 // Removes the key 'city' field from the map in the address field of the input document.
 mapRemove('address', 'city');
 
@@ -10085,7 +10083,7 @@ export declare function mapRemove(mapField: string, keyExpr: Expression): Functi
 ### Example
 
 
-```
+```typescript
 // Removes the key 'city' field from the map in the address field of the input document.
 mapRemove('address', constant('city'));
 
@@ -11464,14 +11462,16 @@ ifError(field("title").arrayGet(0), "Default Title");
 
 ## function(value, ...)
 
-### constant(value) {:#constant_0c00f91}
+### constant(value, options) {:#constant_6ea0dde}
 
 Creates a `Constant` instance for a number value.
 
 <b>Signature:</b>
 
 ```typescript
-export declare function constant(value: number): Expression;
+export declare function constant(value: number, options?: {
+    preferIntegers?: boolean;
+}): Expression;
 ```
 
 #### Parameters
@@ -11479,6 +11479,7 @@ export declare function constant(value: number): Expression;
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  value | number | The number value. |
+|  options | { preferIntegers?: boolean; } |  |
 
 <b>Returns:</b>
 
@@ -12169,7 +12170,7 @@ export declare type OneOf<T> = {
 ### Example
 
 
-```
+```typescript
 type XorY = OneOf<{ x: unknown, y: unknown }>
 let a = { x: "foo" }           // OK
 let b = { y: "foo" }           // OK

@@ -25,7 +25,7 @@ import { CountTokensRequest, GenerateContentRequest } from './requests';
  *
  * These methods should not be called directly by the user.
  *
- * @beta
+ * @public
  */
 export interface ChromeAdapter {
   /**

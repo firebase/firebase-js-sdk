@@ -16,7 +16,7 @@
  */
 
 import { DatabaseId } from '../core/database_info';
-import { toPipeline } from '../core/pipeline-util';
+import { toPipelineStages } from '../core/pipeline-util';
 import { Code, FirestoreError } from '../util/error';
 import { isString } from '../util/types';
 
@@ -42,6 +42,7 @@ import {
   DocumentsStageOptions,
   SubcollectionStageOptions
 } from './stage_options';
+import { UserDataReader, UserDataSource } from './user_data_reader';
 
 /**
  * Provides the entry point for defining the data source of a Firestore {@link @firebase/firestore/pipelines#Pipeline}.
@@ -55,10 +56,12 @@ export class PipelineSource<PipelineType> {
    * @internal
    * @private
    * @param databaseId
+   * @param userDataReader
    * @param _createPipeline
    */
   constructor(
     private databaseId: DatabaseId,
+    private userDataReader: UserDataReader,
     /**
      * @internal
      * @private
@@ -104,6 +107,14 @@ export class PipelineSource<PipelineType> {
     // Create stage object
     const stage = new CollectionSource(normalizedCollection, options);
 
+    // User data must be read in the context of the API method to
+    // provide contextual errors
+    const parseContext = this.userDataReader.createContext(
+      UserDataSource.Argument,
+      'collection'
+    );
+    stage._readUserData(parseContext);
+
     // Add stage to the pipeline
     return this._createPipeline([stage]);
   }
@@ -134,6 +145,14 @@ export class PipelineSource<PipelineType> {
     // Create stage object
     const stage = new CollectionGroupSource(collectionId, options);
 
+    // User data must be read in the context of the API method to
+    // provide contextual errors
+    const parseContext = this.userDataReader.createContext(
+      UserDataSource.Argument,
+      'collectionGroup'
+    );
+    stage._readUserData(parseContext);
+
     // Add stage to the pipeline
     return this._createPipeline([stage]);
   }
@@ -153,6 +172,14 @@ export class PipelineSource<PipelineType> {
 
     // Create stage object
     const stage = new DatabaseSource(options);
+
+    // User data must be read in the context of the API method to
+    // provide contextual errors
+    const parseContext = this.userDataReader.createContext(
+      UserDataSource.Argument,
+      'database'
+    );
+    stage._readUserData(parseContext);
 
     // Add stage to the pipeline
     return this._createPipeline([stage]);
@@ -202,6 +229,14 @@ export class PipelineSource<PipelineType> {
     // Create stage object
     const stage = new DocumentsSource(normalizedDocs, options);
 
+    // User data must be read in the context of the API method to
+    // provide contextual errors
+    const parseContext = this.userDataReader.createContext(
+      UserDataSource.Argument,
+      'documents'
+    );
+    stage._readUserData(parseContext);
+
     // Add stage to the pipeline
     return this._createPipeline([stage]);
   }
@@ -213,8 +248,10 @@ export class PipelineSource<PipelineType> {
    *
    * @throws `FirestoreError` Thrown if any of the provided DocumentReferences target a different project or database than the pipeline.
    */
-  createFrom(query: Query): Pipeline {
-    return toPipeline(query._query, query.firestore);
+  createFrom(query: Query): PipelineType {
+    return this._createPipeline(
+      toPipelineStages(query._query, query.firestore)
+    );
   }
 
   _validateReference(reference: CollectionReference | DocumentReference): void {
@@ -268,5 +305,5 @@ export function subcollection(
   // Create stage object
   const stage = new SubcollectionSource(path, options);
 
-  return new Pipeline(undefined, [stage]);
+  return new Pipeline(undefined, undefined, undefined, [stage]);
 }

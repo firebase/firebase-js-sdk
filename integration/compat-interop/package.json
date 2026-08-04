@@ -8,20 +8,20 @@
     "test:debug": "karma start --browsers Chrome --auto-watch"
   },
   "dependencies": {
-    "@firebase/app": "0.14.12",
-    "@firebase/app-compat": "0.5.12",
-    "@firebase/analytics": "0.10.22",
-    "@firebase/analytics-compat": "0.2.28",
-    "@firebase/auth": "1.13.1",
-    "@firebase/auth-compat": "0.6.6",
-    "@firebase/functions": "0.13.4",
-    "@firebase/functions-compat": "0.4.4",
-    "@firebase/messaging": "0.12.26",
-    "@firebase/messaging-compat": "0.2.26",
-    "@firebase/performance": "0.7.12",
-    "@firebase/performance-compat": "0.2.25",
-    "@firebase/remote-config": "0.8.3",
-    "@firebase/remote-config-compat": "0.2.24"
+    "@firebase/app": "0.16.0",
+    "@firebase/app-compat": "0.5.16",
+    "@firebase/analytics": "0.10.23",
+    "@firebase/analytics-compat": "0.2.29",
+    "@firebase/auth": "1.13.4",
+    "@firebase/auth-compat": "0.6.9",
+    "@firebase/functions": "0.13.6",
+    "@firebase/functions-compat": "0.4.6",
+    "@firebase/messaging": "0.13.1",
+    "@firebase/messaging-compat": "0.2.28",
+    "@firebase/performance": "0.7.13",
+    "@firebase/performance-compat": "0.2.26",
+    "@firebase/remote-config": "0.9.1",
+    "@firebase/remote-config-compat": "0.2.28"
   },
   "devDependencies": {
     "typescript": "5.5.4"

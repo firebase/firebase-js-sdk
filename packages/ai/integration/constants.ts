@@ -17,11 +17,11 @@
 
 import { initializeApp } from '@firebase/app';
 import {
+  AgentPlatformBackend,
   AI,
   Backend,
   BackendType,
   GoogleAIBackend,
-  VertexAIBackend,
   getAI,
   getGenerativeModel
 } from '../src';
@@ -45,34 +45,34 @@ function formatConfigAsString(config: { ai: AI; model: string }): string {
 
 const backends: readonly Backend[] = [
   new GoogleAIBackend(),
-  new VertexAIBackend('global')
+  new AgentPlatformBackend()
 ];
 
 /**
- * Vertex Live API only works on us-central1 at the moment.
+ * Live API only works on us-central1 at the moment.
  */
 const liveBackends: readonly Backend[] = [
   new GoogleAIBackend(),
-  new VertexAIBackend('us-central1')
+  new AgentPlatformBackend('us-central1')
 ];
 
 const backendNames: Map<BackendType, string> = new Map([
   [BackendType.GOOGLE_AI, 'Google AI'],
-  [BackendType.VERTEX_AI, 'Vertex AI']
+  [BackendType.VERTEX_AI, 'Vertex AI'],
+  [BackendType.AGENT_PLATFORM, 'Agent Platform']
 ]);
 
 const modelNames: readonly string[] = [
-  'gemini-2.0-flash-001',
-  'gemini-2.0-flash-lite-001',
-  'gemini-2.5-flash',
-  'gemini-2.5-flash-lite',
-  'gemini-2.5-pro',
-  'gemini-3-pro-preview'
+  'gemini-3.5-flash',
+  'gemini-3.1-flash-lite',
+  'gemini-3.1-pro-preview'
 ];
 
 // Used for testing non-AI behavior (e.g. Network requests). Configured to minimize cost.
-export const cheapestModel = 'gemini-2.0-flash';
-export const defaultAIInstance = getAI(app, { backend: new VertexAIBackend() });
+export const cheapestModel = 'gemini-3.1-flash-lite';
+export const defaultAIInstance = getAI(app, {
+  backend: new AgentPlatformBackend()
+});
 export const defaultGenerativeModel = getGenerativeModel(defaultAIInstance, {
   model: cheapestModel,
   generationConfig: {
@@ -82,11 +82,9 @@ export const defaultGenerativeModel = getGenerativeModel(defaultAIInstance, {
 
 // The Live API requires a different set of models, and they're different for each backend.
 const liveModelNames: Map<BackendType, string[]> = new Map([
-  [BackendType.GOOGLE_AI, ['gemini-2.5-flash-native-audio-preview-09-2025']],
-  [
-    BackendType.VERTEX_AI,
-    ['gemini-live-2.5-flash-preview-native-audio-09-2025']
-  ]
+  [BackendType.GOOGLE_AI, ['gemini-3.1-flash-live-preview']],
+  [BackendType.VERTEX_AI, ['gemini-3.1-flash-live-preview']],
+  [BackendType.AGENT_PLATFORM, ['gemini-3.1-flash-live-preview']]
 ]);
 
 /**

@@ -17,7 +17,7 @@
 
 import { deleteDB, openDB } from 'idb';
 
-import { TokenDetails } from '../interfaces/token-details';
+import { TokenDetails } from '../interfaces/registration-details';
 import { arrayToBase64 } from './array-base64-translator';
 
 // https://github.com/firebase/firebase-js-sdk/blob/7857c212f944a2a9eb421fd4cb7370181bc034b5/packages/messaging/src/interfaces/token-details.ts
@@ -34,7 +34,7 @@ export interface V2TokenDetails {
   p256dh?: string;
 }
 
-// https://github.com/firebase/firebase-js-sdk/blob/6b5b15ce4ea3df5df5df8a8b33a4e41e249c7715/packages/messaging/src/interfaces/token-details.ts
+// https://github.com/firebase/firebase-js-sdk/blob/6b5b15ce4ea3df5df5df8a8b33a4e41e249c7715/packages/messaging/src/interfaces/registration-details.ts
 export interface V3TokenDetails {
   fcmToken: string;
   swScope: string;
@@ -47,7 +47,7 @@ export interface V3TokenDetails {
   createTime: number;
 }
 
-// https://github.com/firebase/firebase-js-sdk/blob/9567dba664732f681fa7fe60f5b7032bb1daf4c9/packages/messaging/src/interfaces/token-details.ts
+// https://github.com/firebase/firebase-js-sdk/blob/9567dba664732f681fa7fe60f5b7032bb1daf4c9/packages/messaging/src/interfaces/registration-details.ts
 export interface V4TokenDetails {
   fcmToken: string;
   swScope: string;

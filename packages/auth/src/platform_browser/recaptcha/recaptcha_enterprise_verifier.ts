@@ -34,10 +34,19 @@ import { AuthErrorCode } from '../../core/errors';
 import { StartPhoneMfaEnrollmentRequest } from '../../api/account_management/mfa';
 import { StartPhoneMfaSignInRequest } from '../../api/authentication/mfa';
 import { MockGreCAPTCHATopLevel } from './recaptcha_mock';
+import { Deferred } from '@firebase/util';
 
 export const RECAPTCHA_ENTERPRISE_VERIFIER_TYPE = 'recaptcha-enterprise';
 export const FAKE_TOKEN = 'NO_RECAPTCHA';
 
+export const RECAPTCHA_ENTERPRISE_ONLOAD_CALLBACK_NAME =
+  'onFirebaseAuthREInstanceReady';
+
+declare global {
+  interface Window {
+    [RECAPTCHA_ENTERPRISE_ONLOAD_CALLBACK_NAME]: () => void;
+  }
+}
 export class RecaptchaEnterpriseVerifier {
   /**
    * Identifies the type of application verifier (e.g. "recaptcha-enterprise").
@@ -45,6 +54,19 @@ export class RecaptchaEnterpriseVerifier {
   readonly type = RECAPTCHA_ENTERPRISE_VERIFIER_TYPE;
 
   private readonly auth: AuthInternal;
+
+  /**
+   * Deferred that resolves when script tag has been injected onto the page
+   * and the script is ready (grecaptcha.ready() and script.onload are not
+   * reliable indicators, so this resolves when the global
+   * `window[RECAPTCHA_ENTERPRISE_ONLOAD_CALLBACK_NAME]()` callback provided to the recaptcha url param "onload"
+   * is triggered).
+   * As a static variable this is applied to all instances of the class.
+   * This will cause an error if users try to create multiple RecaptchaVerifiers
+   * with different Recaptcha Enterprise sitekeys, which should be an
+   * unuspported use case.
+   */
+  private static scriptInjectionDeferred: Deferred<void> | null = null;
 
   /**
    *
@@ -131,8 +153,15 @@ export class RecaptchaEnterpriseVerifier {
 
     return new Promise<string>((resolve, reject) => {
       retrieveSiteKey(this.auth)
-        .then(siteKey => {
-          if (!forceRefresh && isEnterprise(window.grecaptcha)) {
+        .then(async siteKey => {
+          if (
+            !forceRefresh &&
+            isEnterprise(window.grecaptcha) &&
+            // If download has already been initiated, do not trigger another
+            // download, await the promise here.
+            RecaptchaEnterpriseVerifier.scriptInjectionDeferred
+          ) {
+            await RecaptchaEnterpriseVerifier.scriptInjectionDeferred.promise;
             retrieveRecaptchaToken(siteKey, resolve, reject);
           } else {
             if (typeof window === 'undefined') {
@@ -143,10 +172,30 @@ export class RecaptchaEnterpriseVerifier {
             }
             let url = jsHelpers._recaptchaEnterpriseScriptUrl();
             if (url.length !== 0) {
-              url += siteKey;
+              url +=
+                siteKey +
+                `&onload=${RECAPTCHA_ENTERPRISE_ONLOAD_CALLBACK_NAME}`;
             }
+            // Existence of deferred indicates download has been initiated.
+            RecaptchaEnterpriseVerifier.scriptInjectionDeferred =
+              new Deferred();
+
+            /**
+             * Script attached to global window object that will be called
+             * when the ReCAPTCHA Enterprise instance is ready.
+             * grecaptcha.ready() is not reliable when there are multiple
+             * scripts on the page, and script.onload only indicates the
+             * script has downloaded, not that it has initialized.
+             */
+            window[RECAPTCHA_ENTERPRISE_ONLOAD_CALLBACK_NAME] = () => {
+              RecaptchaEnterpriseVerifier.scriptInjectionDeferred?.resolve();
+            };
             jsHelpers
               ._loadJS(url)
+              .then(
+                () =>
+                  RecaptchaEnterpriseVerifier.scriptInjectionDeferred?.promise
+              )
               .then(() => {
                 retrieveRecaptchaToken(siteKey, resolve, reject);
               })

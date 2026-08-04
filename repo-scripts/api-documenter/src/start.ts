@@ -21,7 +21,7 @@
 // See LICENSE in the project root for license information.
 
 import * as os from 'os';
-import colors from 'colors';
+import { bold } from './utils/style';
 
 import { PackageJsonLookup } from '@rushstack/node-core-library';
 
@@ -31,7 +31,7 @@ const myPackageVersion: string =
   PackageJsonLookup.loadOwnPackageJson(__dirname).version;
 
 console.log(
-  os.EOL + colors.bold(`@firebase/api-documenter ${myPackageVersion} ` + os.EOL)
+  os.EOL + bold(`@firebase/api-documenter ${myPackageVersion} ` + os.EOL)
 );
 
 const parser: ApiDocumenterCommandLine = new ApiDocumenterCommandLine();

@@ -53,7 +53,7 @@ describe('ReCaptchaV3Provider', () => {
   });
   it('getToken() gets a token from the exchange endpoint', async () => {
     const provider = new ReCaptchaV3Provider('fake-site-key');
-    stub(client, 'exchangeToken').resolves({
+    const exchangeStub = stub(client, 'exchangeToken').resolves({
       token: 'fake-exchange-token',
       issuedAtTimeMillis: 0,
       expireTimeMillis: 10
@@ -61,6 +61,28 @@ describe('ReCaptchaV3Provider', () => {
     provider.initialize(app);
     getStateReference(app).reCAPTCHAState!.succeeded = true;
     const token = await provider.getToken();
+    expect(exchangeStub.args[0][0].body['recaptcha_v3_token']).to.equal(
+      'fake-recaptcha-token'
+    );
+    expect(exchangeStub.args[0][0].body['limited_use']).to.be.undefined;
+    exchangeStub.restore();
+    expect(token.token).to.equal('fake-exchange-token');
+  });
+  it('getToken(true) gets a limited use token from the exchange endpoint', async () => {
+    const provider = new ReCaptchaV3Provider('fake-site-key');
+    const exchangeStub = stub(client, 'exchangeToken').resolves({
+      token: 'fake-exchange-token',
+      issuedAtTimeMillis: 0,
+      expireTimeMillis: 10
+    });
+    provider.initialize(app);
+    getStateReference(app).reCAPTCHAState!.succeeded = true;
+    const token = await provider.getToken(true);
+    expect(exchangeStub.args[0][0].body['recaptcha_v3_token']).to.equal(
+      'fake-recaptcha-token'
+    );
+    expect(exchangeStub.args[0][0].body['limited_use']).to.be.true;
+    exchangeStub.restore();
     expect(token.token).to.equal('fake-exchange-token');
   });
   it('getToken() throttles 1d on 403', async () => {
@@ -140,7 +162,7 @@ describe('ReCaptchaEnterpriseProvider', () => {
   });
   it('getToken() gets a token from the exchange endpoint', async () => {
     const provider = new ReCaptchaEnterpriseProvider('fake-site-key');
-    stub(client, 'exchangeToken').resolves({
+    const exchangeStub = stub(client, 'exchangeToken').resolves({
       token: 'fake-exchange-token',
       issuedAtTimeMillis: 0,
       expireTimeMillis: 10
@@ -148,6 +170,28 @@ describe('ReCaptchaEnterpriseProvider', () => {
     provider.initialize(app);
     getStateReference(app).reCAPTCHAState!.succeeded = true;
     const token = await provider.getToken();
+    expect(exchangeStub.args[0][0].body['recaptcha_enterprise_token']).to.equal(
+      'fake-recaptcha-token'
+    );
+    expect(exchangeStub.args[0][0].body['limited_use']).to.be.undefined;
+    exchangeStub.restore();
+    expect(token.token).to.equal('fake-exchange-token');
+  });
+  it('getToken(true) gets a token from the exchange endpoint', async () => {
+    const provider = new ReCaptchaEnterpriseProvider('fake-site-key');
+    const exchangeStub = stub(client, 'exchangeToken').resolves({
+      token: 'fake-exchange-token',
+      issuedAtTimeMillis: 0,
+      expireTimeMillis: 10
+    });
+    provider.initialize(app);
+    getStateReference(app).reCAPTCHAState!.succeeded = true;
+    const token = await provider.getToken(true);
+    expect(exchangeStub.args[0][0].body['limited_use']).to.be.true;
+    expect(exchangeStub.args[0][0].body['recaptcha_enterprise_token']).to.equal(
+      'fake-recaptcha-token'
+    );
+    exchangeStub.restore();
     expect(token.token).to.equal('fake-exchange-token');
   });
   it('getToken() throttles 1d on 403', async () => {

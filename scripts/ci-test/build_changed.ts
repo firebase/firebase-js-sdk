@@ -94,7 +94,8 @@ async function buildForTests(
       lernaCmd.push(task.pkgName);
     }
 
-    lernaCmd.push('--include-dependencies', 'build');
+    lernaCmd.push('build');
+    lernaCmd.push('--include-dependencies');
     await spawn('npx', lernaCmd, { stdio: 'inherit', cwd: root });
   } catch (e) {
     console.error(chalk`{red ${e}}`);

@@ -20,6 +20,8 @@ https://github.com/firebase/firebase-js-sdk
 |  <b>function(messaging, ...)</b> |
 |  [experimentalSetDeliveryMetricsExportedToBigQueryEnabled(messaging, enable)](./messaging_sw.md#experimentalsetdeliverymetricsexportedtobigqueryenabled_f3e53bd) | Enables or disables Firebase Cloud Messaging message delivery metrics export to BigQuery. By default, message delivery metrics are not exported to BigQuery. Use this method to enable or disable the export at runtime. |
 |  [onBackgroundMessage(messaging, nextOrObserver)](./messaging_sw.md#onbackgroundmessage_b9887da) | Called when a message is received while the app is in the background. An app is considered to be in the background if no active window is displayed. |
+|  [onRegistered(messaging, nextOrObserver)](./messaging_sw.md#onregistered_f8a466e) | Subscribes to an event that the app instance is registered with FCM via Firebase Installation ID (FID). Use the FID passed to the callback to upload it to your application server. When you receive an FID after calling [register()](./messaging_.md#register_795bb8a)<!-- -->, instruct your backend to remove any legacy token for this instance. |
+|  [onUnregistered(messaging, nextOrObserver)](./messaging_sw.md#onunregistered_f8a466e) | Subscribes to an event that the app instance is unregistered from FCM (FID no longer active). Use this to notify your backend to remove this FID to prevent 404 errors on send. |
 |  <b>function()</b> |
 |  [isSupported()](./messaging_sw.md#issupported) | Checks whether all required APIs exist within SW Context |
 
@@ -32,6 +34,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [MessagePayload](./messaging_sw.messagepayload.md#messagepayload_interface) | Message payload that contains the notification payload that is represented with [NotificationPayload](./messaging_.notificationpayload.md#notificationpayload_interface) and the data payload that contains an arbitrary number of key-value pairs sent by developers through the [Send API](https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#notification)<!-- -->. |
 |  [Messaging](./messaging_sw.messaging.md#messaging_interface) | Public interface of the Firebase Cloud Messaging SDK. |
 |  [NotificationPayload](./messaging_sw.notificationpayload.md#notificationpayload_interface) | Display notification details. Details are sent through the [Send API](https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#notification)<!-- -->. |
+|  [RegisterOptions](./messaging_sw.registeroptions.md#registeroptions_interface) | Options for [register()](./messaging_.md#register_795bb8a)<!-- -->. Same shape as GetTokenOptions for SW and VAPID configuration. |
 
 ## function(app, ...)
 
@@ -101,7 +104,53 @@ export declare function onBackgroundMessage(messaging: Messaging, nextOrObserver
 
 [Unsubscribe](./util.md#unsubscribe)
 
-To stop listening for messages execute this returned function
+To stop listening for messages execute this returned function.
+
+### onRegistered(messaging, nextOrObserver) {:#onregistered_f8a466e}
+
+Subscribes to an event that the app instance is registered with FCM via Firebase Installation ID (FID). Use the FID passed to the callback to upload it to your application server. When you receive an FID after calling [register()](./messaging_.md#register_795bb8a)<!-- -->, instruct your backend to remove any legacy token for this instance.
+
+<b>Signature:</b>
+
+```typescript
+export declare function onRegistered(messaging: Messaging, nextOrObserver: NextFn<string> | Observer<string>): Unsubscribe;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  messaging | [Messaging](./messaging_.messaging.md#messaging_interface) | The [Messaging](./messaging_.messaging.md#messaging_interface) instance. |
+|  nextOrObserver | [NextFn](./util.md#nextfn)<!-- -->&lt;string&gt; \| [Observer](./util.observer.md#observer_interface)<!-- -->&lt;string&gt; | A function or observer object called when an FID is registered. |
+
+<b>Returns:</b>
+
+[Unsubscribe](./util.md#unsubscribe)
+
+Unsubscribe function to stop listening.
+
+### onUnregistered(messaging, nextOrObserver) {:#onunregistered_f8a466e}
+
+Subscribes to an event that the app instance is unregistered from FCM (FID no longer active). Use this to notify your backend to remove this FID to prevent 404 errors on send.
+
+<b>Signature:</b>
+
+```typescript
+export declare function onUnregistered(messaging: Messaging, nextOrObserver: NextFn<string> | Observer<string>): Unsubscribe;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  messaging | [Messaging](./messaging_.messaging.md#messaging_interface) | The [Messaging](./messaging_.messaging.md#messaging_interface) instance. |
+|  nextOrObserver | [NextFn](./util.md#nextfn)<!-- -->&lt;string&gt; \| [Observer](./util.observer.md#observer_interface)<!-- -->&lt;string&gt; | A function or observer object called with the unregistered FID. |
+
+<b>Returns:</b>
+
+[Unsubscribe](./util.md#unsubscribe)
+
+Unsubscribe function to stop listening.
 
 ## function()
 

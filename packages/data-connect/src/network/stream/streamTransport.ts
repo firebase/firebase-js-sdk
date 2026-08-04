@@ -26,6 +26,7 @@ import {
   DataConnectOperationFailureResponse
 } from '../../core/error';
 import { AuthTokenProvider } from '../../core/FirebaseAuthProvider';
+import { SDK_VERSION } from '../../core/version';
 import { logError, logDebug } from '../../logger';
 import {
   AbstractDataConnectTransport,
@@ -49,18 +50,14 @@ import {
 const FIRST_REQUEST_ID = 1;
 
 /** Time to wait before closing an idle connection (no active subscriptions). */
-const IDLE_CONNECTION_TIMEOUT_MS = 60 * 1000; // 1 minute
+const IDLE_CONNECTION_TIMEOUT_MS = 15 * 1000; // 15 seconds
 
 /** Initial reconnect delay in ms */
-const INITIAL_RECONNECT_DELAY_MS = 1000;
+const INITIAL_RECONNECT_DELAY_MS = 1000; // 1 second
 /** Max reconnect delay in ms */
-const MAX_RECONNECT_DELAY_MS = 30000;
-/** Max random jitter to add to reconnect delay in ms */
-const MAX_RECONNECT_JITTER_MS = 500;
+const MAX_RECONNECT_DELAY_MS = 60 * 1000; // 60 seconds
 /** Factor to multiply delay by on failure */
-const RECONNECT_BACKOFF_FACTOR = 1.3;
-/** Max number of reconnection attempts before giving up */
-const MAX_RECONNECT_ATTEMPTS = 10;
+const RECONNECT_BACKOFF_FACTOR = 1.5;
 
 /**
  * A promise returned to the user when invoking an operation via {@linkcode AbstractDataConnectStreamTransport.invokeQuery | invokeQuery}
@@ -445,19 +442,13 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     if (this.reconnectTimer) {
       return;
     }
-    if (this.reconnectAttempts++ >= MAX_RECONNECT_ATTEMPTS) {
-      const errorString =
-        'Stream disconnected and could not reconnect - max stream reconnection attempts reached.';
-      logError(errorString);
-      void this.cleanupAndTerminate(Code.OTHER, errorString);
-      return;
-    }
+    this.reconnectAttempts++;
     const delay = this.reconnectDelayMs;
     this.reconnectDelayMs = Math.min(
       this.reconnectDelayMs * RECONNECT_BACKOFF_FACTOR,
       MAX_RECONNECT_DELAY_MS
     );
-    const jitter = Math.random() * MAX_RECONNECT_JITTER_MS;
+    const jitter = (Math.random() - 0.5) * delay;
 
     this.reconnectTimer = setTimeout(() => {
       this.reconnectTimer = null;
@@ -666,6 +657,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       this.lastSentAuthToken = this._authToken;
     }
     if (this.isFirstStreamMessage) {
+      headers['X-Client-Version'] = `web/${SDK_VERSION}`;
       if (this._appCheckToken) {
         headers['X-Firebase-App-Check'] = this._appCheckToken;
       }

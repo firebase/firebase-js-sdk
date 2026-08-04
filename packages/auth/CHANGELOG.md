@@ -1,5 +1,29 @@
 # @firebase/auth
 
+## 1.13.4
+
+### Patch Changes
+
+- [`8a9ad3a`](https://github.com/firebase/firebase-js-sdk/commit/8a9ad3a2fe49a292abf7b61970197a8ee6e3702c) [#10123](https://github.com/firebase/firebase-js-sdk/pull/10123) (fixes [#10041](https://github.com/firebase/firebase-js-sdk/issues/10041)) - Prevent null hydration / unexpected sign-out on pagehide or reload when using IndexedDB persistence.
+
+- Updated dependencies [[`736fa3f`](https://github.com/firebase/firebase-js-sdk/commit/736fa3fe798d6eafc9fe086d6bfbe9cfb49b8994)]:
+  - @firebase/util@1.15.2
+  - @firebase/component@0.7.4
+
+## 1.13.3
+
+### Patch Changes
+
+- [`e389f70`](https://github.com/firebase/firebase-js-sdk/commit/e389f70b1b9b2c3afe1672b4a6b702eceb7c5e41) [#9991](https://github.com/firebase/firebase-js-sdk/pull/9991) (fixes [#9405](https://github.com/firebase/firebase-js-sdk/issues/9405)) - Fix error causing Auth and AppCheck conflict when both are using ReCAPTCHA Enterprise.
+
+- [`712091c`](https://github.com/firebase/firebase-js-sdk/commit/712091c3962b8b3639775a4150c91d9a3962b57b) [#10049](https://github.com/firebase/firebase-js-sdk/pull/10049) - Update referrer policy for auth API requests from no-referrer to strict-origin-when-cross-origin to support HTTP Referrer-restricted API keys in browser environments.
+
+## 1.13.2
+
+### Patch Changes
+
+- [`2697919`](https://github.com/firebase/firebase-js-sdk/commit/26979196fec71447a1f635d88a25660a034edb84) [#9845](https://github.com/firebase/firebase-js-sdk/pull/9845) (fixes [#9732](https://github.com/firebase/firebase-js-sdk/issues/9732)) - Updated `_isAvailable()` to use retry logic for the initial IndexedDB availability check, preventing incorrect fallbacks to in-memory persistence in environments where transactions may occasionally drop on startup.
+
 ## 1.13.1
 
 ### Patch Changes

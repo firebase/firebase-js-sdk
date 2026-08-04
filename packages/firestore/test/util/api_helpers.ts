@@ -34,13 +34,17 @@ import {
 } from '../../src/api/credentials';
 import { ExpUserDataWriter } from '../../src/api/user_data_writer';
 import { DatabaseId } from '../../src/core/database_info';
-import { newQueryForPath, Query as InternalQuery } from '../../src/core/query';
+import {
+  newQueryForPath,
+  newQueryComparator,
+  Query as InternalQuery
+} from '../../src/core/query';
 import {
   ChangeType,
   DocumentViewChange,
   ViewSnapshot
 } from '../../src/core/view_snapshot';
-import { DocumentKeySet } from '../../src/model/collections';
+import { documentKeySet, DocumentKeySet } from '../../src/model/collections';
 import { DocumentSet } from '../../src/model/document_set';
 import { JsonObject } from '../../src/model/object_value';
 import { TEST_PROJECT } from '../unit/local/persistence_test_helpers';
@@ -56,11 +60,14 @@ export function firestore(): Firestore {
   return FIRESTORE;
 }
 
-export function newTestFirestore(projectId = 'new-project'): Firestore {
+export function newTestFirestore(
+  projectId = 'new-project',
+  databaseId: string | undefined = undefined
+): Firestore {
   return new Firestore(
     new EmptyAuthCredentialsProvider(),
     new EmptyAppCheckTokenProvider(),
-    new DatabaseId(projectId)
+    new DatabaseId(databaseId ?? projectId)
   );
 }
 
@@ -157,6 +164,42 @@ export function querySnapshot(
     syncStateChanged,
     false,
     hasCachedResults ?? false
+  );
+  const db = firestore();
+  return new QuerySnapshot(
+    db,
+    new ExpUserDataWriter(db),
+    new Query(db, /* converter= */ null, query),
+    viewSnapshot
+  );
+}
+
+export function querySnapshotWithQuery(
+  query: InternalQuery,
+  docsToAdd: { [key: string]: JsonObject<unknown> }
+): QuerySnapshot {
+  const comparator = newQueryComparator(query);
+  let newDocuments: DocumentSet = new DocumentSet(comparator);
+  const documentChanges: DocumentViewChange[] = [];
+  Object.keys(docsToAdd).forEach(key => {
+    const docToAdd = doc(
+      query.path.canonicalString() + '/' + key,
+      1,
+      docsToAdd[key]
+    );
+    newDocuments = newDocuments.add(docToAdd);
+    documentChanges.push({ type: ChangeType.Added, doc: docToAdd });
+  });
+  const viewSnapshot: ViewSnapshot = new ViewSnapshot(
+    query,
+    newDocuments,
+    new DocumentSet(comparator),
+    documentChanges,
+    documentKeySet(),
+    false,
+    true,
+    false,
+    false
   );
   const db = firestore();
   return new QuerySnapshot(

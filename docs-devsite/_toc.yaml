@@ -4,6 +4,8 @@ toc:
 - title: ai
   path: /docs/reference/js/ai.md
   section:
+  - title: AgentPlatformBackend
+    path: /docs/reference/js/ai.agentplatformbackend.md
   - title: AI
     path: /docs/reference/js/ai.ai.md
   - title: AIError
@@ -24,6 +26,8 @@ toc:
     path: /docs/reference/js/ai.backend.md
   - title: BaseParams
     path: /docs/reference/js/ai.baseparams.md
+  - title: BaseSpeechConfig
+    path: /docs/reference/js/ai.basespeechconfig.md
   - title: BooleanSchema
     path: /docs/reference/js/ai.booleanschema.md
   - title: ChatSession
@@ -142,6 +146,8 @@ toc:
     path: /docs/reference/js/ai.languagemodelcreatecoreoptions.md
   - title: LanguageModelCreateOptions
     path: /docs/reference/js/ai.languagemodelcreateoptions.md
+  - title: LanguageModelDownloadMonitor
+    path: /docs/reference/js/ai.languagemodeldownloadmonitor.md
   - title: LanguageModelExpected
     path: /docs/reference/js/ai.languagemodelexpected.md
   - title: LanguageModelMessage
@@ -174,6 +180,10 @@ toc:
     path: /docs/reference/js/ai.modalitytokencount.md
   - title: ModelParams
     path: /docs/reference/js/ai.modelparams.md
+  - title: MultiSpeakerSpeechConfig
+    path: /docs/reference/js/ai.multispeakerspeechconfig.md
+  - title: MultiSpeakerVoiceConfig
+    path: /docs/reference/js/ai.multispeakervoiceconfig.md
   - title: NumberSchema
     path: /docs/reference/js/ai.numberschema.md
   - title: ObjectSchema
@@ -214,10 +224,12 @@ toc:
     path: /docs/reference/js/ai.sessionresumptionconfig.md
   - title: SingleRequestOptions
     path: /docs/reference/js/ai.singlerequestoptions.md
+  - title: SingleSpeakerSpeechConfig
+    path: /docs/reference/js/ai.singlespeakerspeechconfig.md
   - title: SlidingWindow
     path: /docs/reference/js/ai.slidingwindow.md
-  - title: SpeechConfig
-    path: /docs/reference/js/ai.speechconfig.md
+  - title: SpeakerVoiceConfig
+    path: /docs/reference/js/ai.speakervoiceconfig.md
   - title: StartAudioConversationOptions
     path: /docs/reference/js/ai.startaudioconversationoptions.md
   - title: StartChatParams
@@ -788,6 +800,8 @@ toc:
     path: /docs/reference/js/messaging_.messaging.md
   - title: NotificationPayload
     path: /docs/reference/js/messaging_.notificationpayload.md
+  - title: RegisterOptions
+    path: /docs/reference/js/messaging_.registeroptions.md
 - title: messaging/sw
   path: /docs/reference/js/messaging_sw.md
   section:
@@ -801,6 +815,8 @@ toc:
     path: /docs/reference/js/messaging_sw.messaging.md
   - title: NotificationPayload
     path: /docs/reference/js/messaging_sw.notificationpayload.md
+  - title: RegisterOptions
+    path: /docs/reference/js/messaging_sw.registeroptions.md
 - title: performance
   path: /docs/reference/js/performance.md
   section:
@@ -825,6 +841,8 @@ toc:
     path: /docs/reference/js/remote-config.firebaseexperimentdescription.md
   - title: FirebaseRemoteConfigObject
     path: /docs/reference/js/remote-config.firebaseremoteconfigobject.md
+  - title: FirebaseRolloutMetadata
+    path: /docs/reference/js/remote-config.firebaserolloutmetadata.md
   - title: RemoteConfig
     path: /docs/reference/js/remote-config.remoteconfig.md
   - title: RemoteConfigOptions

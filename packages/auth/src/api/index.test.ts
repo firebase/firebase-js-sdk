@@ -337,11 +337,11 @@ describe('api/_performApiRequest', () => {
     afterEach(mockFetch.tearDown);
 
     it('should have referrerPolicy set', async () => {
-      let referrerPolicySet: boolean = false;
+      let referrerPolicy: string | undefined = undefined;
       mockFetch.setUpWithOverride(
         (input: RequestInfo | URL, request?: RequestInit) => {
-          if (request !== undefined && request.referrerPolicy !== undefined) {
-            referrerPolicySet = true;
+          if (request !== undefined) {
+            referrerPolicy = request.referrerPolicy;
           }
           return Promise.resolve(new Response(JSON.stringify(serverResponse)));
         }
@@ -353,7 +353,7 @@ describe('api/_performApiRequest', () => {
         request
       );
       await expect(promise).to.be.fulfilled;
-      expect(referrerPolicySet).to.be.true;
+      expect(referrerPolicy).to.eq('strict-origin-when-cross-origin');
     });
 
     it('should not have referrerPolicy set on Cloudflare workers', async () => {

@@ -62,6 +62,18 @@ export { Observer }
 // @public
 export function onBackgroundMessage(messaging: Messaging, nextOrObserver: NextFn<MessagePayload> | Observer<MessagePayload>): Unsubscribe;
 
+// @public
+export function onRegistered(messaging: Messaging, nextOrObserver: NextFn<string> | Observer<string>): Unsubscribe;
+
+// @public
+export function onUnregistered(messaging: Messaging, nextOrObserver: NextFn<string> | Observer<string>): Unsubscribe;
+
+// @public
+export interface RegisterOptions {
+    serviceWorkerRegistration?: ServiceWorkerRegistration;
+    vapidKey?: string;
+}
+
 export { Unsubscribe }
 
 

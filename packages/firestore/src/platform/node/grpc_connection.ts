@@ -45,7 +45,8 @@ function createMetadata(
   authToken: Token | null,
   appCheckToken: Token | null,
   appId: string,
-  apiKey: string | undefined
+  apiKey: string | undefined,
+  customHeaders?: Record<string, string>
 ): grpc.Metadata {
   hardAssert(
     authToken === null || authToken.type === 'OAuth',
@@ -73,6 +74,11 @@ function createMetadata(
   if (apiKey) {
     metadata.set('X-Goog-Api-Key', apiKey);
   }
+  if (customHeaders) {
+    for (const key of Object.keys(customHeaders)) {
+      metadata.set(key, customHeaders[key]);
+    }
+  }
   return metadata;
 }
 
@@ -98,7 +104,10 @@ export class GrpcConnection implements Connection {
     return true;
   }
 
-  constructor(protos: grpc.GrpcObject, private databaseInfo: DatabaseInfo) {
+  constructor(
+    protos: grpc.GrpcObject,
+    private databaseInfo: DatabaseInfo
+  ) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     this.firestore = (protos as any)['google']['firestore']['v1'];
     this.databasePath = `projects/${databaseInfo.databaseId.projectId}/databases/${databaseInfo.databaseId.database}`;
@@ -111,9 +120,16 @@ export class GrpcConnection implements Connection {
       const credentials = this.databaseInfo.ssl
         ? grpc.credentials.createSsl()
         : grpc.credentials.createInsecure();
+      const grpcOptions: Record<string, unknown> = {
+        'grpc-node.flow_control_window':
+          this.databaseInfo.grpcFlowControlWindow ?? 256 * 1024,
+        'grpc.max_receive_message_length': 17 * 1024 * 1024,
+        'grpc.max_send_message_length': 17 * 1024 * 1024
+      };
       this.cachedStub = new this.firestore.Firestore(
         this.databaseInfo.host,
-        credentials
+        credentials,
+        grpcOptions
       );
     }
     return this.cachedStub;
@@ -133,7 +149,8 @@ export class GrpcConnection implements Connection {
       authToken,
       appCheckToken,
       this.databaseInfo.appId,
-      this.databaseInfo.apiKey
+      this.databaseInfo.apiKey,
+      this.databaseInfo._customHeaders
     );
     const jsonRequest = { database: this.databasePath, ...request };
 
@@ -194,7 +211,8 @@ export class GrpcConnection implements Connection {
       authToken,
       appCheckToken,
       this.databaseInfo.appId,
-      this.databaseInfo.apiKey
+      this.databaseInfo.apiKey,
+      this.databaseInfo._customHeaders
     );
     const jsonRequest = { ...request, database: this.databasePath };
     const stream = stub[rpcName](jsonRequest, metadata);
@@ -247,7 +265,8 @@ export class GrpcConnection implements Connection {
       authToken,
       appCheckToken,
       this.databaseInfo.appId,
-      this.databaseInfo.apiKey
+      this.databaseInfo.apiKey,
+      this.databaseInfo._customHeaders
     );
     const grpcStream = stub[rpcName](metadata);
 

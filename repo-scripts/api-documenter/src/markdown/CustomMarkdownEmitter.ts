@@ -18,7 +18,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved. Licensed under the MIT license.
 // See LICENSE in the project root for license information.
 
-import colors from 'colors';
+import { yellow } from '../utils/style';
 
 import { DocNode, DocLinkTag, StringBuilder } from '@microsoft/tsdoc';
 import {
@@ -217,12 +217,12 @@ export class CustomMarkdownEmitter extends MarkdownEmitter {
           context.writer.write(encodedLinkText);
           context.writer.write(`](${filename!})`);
         } else {
-          console.log(colors.yellow('WARNING: Unable to determine link text'));
+          console.log(yellow('WARNING: Unable to determine link text'));
         }
       }
     } else if (result.errorMessage) {
       console.log(
-        colors.yellow(
+        yellow(
           `WARNING: Unable to resolve reference "${docLinkTag.codeDestination!.emitAsTsdoc()}": ` +
             result.errorMessage
         )

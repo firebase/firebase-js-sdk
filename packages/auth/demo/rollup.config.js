@@ -19,15 +19,12 @@ import strip from '@rollup/plugin-strip';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
 
-import pkg from './package.json';
+import pkg from './package.json' with { type: 'json' };
 
 const workerPlugins = [
-  strip({ functions: ['debugAssert.*'] }),
-  resolve({
-    mainFields: ['webworker', 'module', 'main']
-  }),
   typescriptPlugin({
     typescript,
+    include: ['**/*.ts'],
     tsconfigOverride: {
       compilerOptions: {
         declaration: false,
@@ -40,6 +37,10 @@ const workerPlugins = [
         ]
       }
     }
+  }),
+  strip({ functions: ['debugAssert.*'] }),
+  resolve({
+    mainFields: ['webworker', 'module', 'main']
   })
 ];
 

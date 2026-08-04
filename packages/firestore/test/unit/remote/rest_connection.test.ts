@@ -129,6 +129,37 @@ describe('RestConnection', () => {
     });
   });
 
+  it('adds custom headers when _customHeaders is set', async () => {
+    const dbInfo = new DatabaseInfo(
+      new DatabaseId('testproject'),
+      'test-app-id',
+      'persistenceKey',
+      'example.com',
+      /*ssl=*/ false,
+      /*forceLongPolling=*/ false,
+      /*autoDetectLongPolling=*/ false,
+      /*longPollingOptions=*/ {},
+      /*useFetchStreams=*/ false,
+      /*isUsingEmulator=*/ false,
+      'rest-connection-test-api-key',
+      { 'x-goog-firestore-api-requester': 'console', 'x-custom-header': 'val' }
+    );
+    const conn = new TestRestConnection(dbInfo);
+    await conn.invokeRPC(
+      'RunQuery',
+      new ResourcePath(
+        'projects/testproject/databases/(default)/documents/foo'.split('/')
+      ),
+      {},
+      null,
+      null
+    );
+    expect(conn.lastHeaders['x-goog-firestore-api-requester']).to.equal(
+      'console'
+    );
+    expect(conn.lastHeaders['x-custom-header']).to.equal('val');
+  });
+
   it('returns success', async () => {
     connection.nextResponse = Promise.resolve({ response: true });
     const response = await connection.invokeRPC(

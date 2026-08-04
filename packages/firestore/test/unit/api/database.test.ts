@@ -39,9 +39,10 @@ import {
   firestore,
   newTestFirestore,
   query,
-  querySnapshot
+  querySnapshot,
+  querySnapshotWithQuery
 } from '../../util/api_helpers';
-import { keys } from '../../util/helpers';
+import { keys, query as internalQuery, orderBy } from '../../util/helpers';
 
 describe('Bundle', () => {
   it('loadBundle does not throw with an empty bundle string)', async () => {
@@ -730,6 +731,22 @@ describe('QuerySnapshot', () => {
     }
   });
 
+  it('fromJSON respects query sort order', () => {
+    if (isNode()) {
+      const q = internalQuery('foo', orderBy('title', 'asc'));
+      const snapshot = querySnapshotWithQuery(q, {
+        docA: { title: 'C' },
+        docB: { title: 'B' },
+        docC: { title: 'A' }
+      });
+      const db = firestore();
+      const querySnap = querySnapshotFromJSON(db, snapshot.toJSON());
+      expect(querySnap).to.exist;
+      const titles = querySnap.docs.map(d => d.data()['title']);
+      expect(titles).to.deep.equal(['A', 'B', 'C']);
+    }
+  });
+
   it('fromJSON throws when parsing client-side toJSON result', () => {
     if (!isNode()) {
       const querySnap = querySnapshot(
@@ -1130,5 +1147,54 @@ describe('Settings', () => {
     const token = await credentials.getToken();
     expect(token!.type).to.eql('OAuth');
     expect(token!.user).to.eql(User.MOCK_USER);
+  });
+
+  it('allows setting grpcFlowControlWindow to a positive integer', () => {
+    const db = newTestFirestore();
+    db._setSettings({
+      grpcFlowControlWindow: 512 * 1024
+    });
+    expect(db._getSettings().grpcFlowControlWindow).to.equal(512 * 1024);
+  });
+
+  it('throws when setting grpcFlowControlWindow to non-positive value', () => {
+    const db = newTestFirestore();
+    expect(() =>
+      db._setSettings({
+        grpcFlowControlWindow: 0
+      })
+    ).to.throw(/grpcFlowControlWindow must be a positive integer/);
+
+    expect(() =>
+      db._setSettings({
+        grpcFlowControlWindow: -50
+      })
+    ).to.throw(/grpcFlowControlWindow must be a positive integer/);
+  });
+
+  it('throws when setting grpcFlowControlWindow to a non-integer', () => {
+    const db = newTestFirestore();
+    expect(() =>
+      db._setSettings({
+        grpcFlowControlWindow: 12.5
+      })
+    ).to.throw(/grpcFlowControlWindow must be a positive integer/);
+
+    expect(() =>
+      db._setSettings({
+        grpcFlowControlWindow: '100' as unknown as number
+      })
+    ).to.throw(/grpcFlowControlWindow must be a positive integer/);
+  });
+
+  it('throws when setting grpcFlowControlWindow above 2147483647', () => {
+    const db = newTestFirestore();
+    expect(() =>
+      db._setSettings({
+        grpcFlowControlWindow: 2147483648
+      })
+    ).to.throw(
+      /grpcFlowControlWindow must be a positive integer and cannot exceed 2147483647/
+    );
   });
 });

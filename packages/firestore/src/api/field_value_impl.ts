@@ -21,5 +21,7 @@ export {
   arrayUnion,
   serverTimestamp,
   deleteField,
-  vector
+  vector,
+  minimum,
+  maximum
 } from '../lite-api/field_value_impl';

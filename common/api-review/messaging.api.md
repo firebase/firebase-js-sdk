@@ -9,7 +9,7 @@ import { NextFn } from '@firebase/util';
 import { Observer } from '@firebase/util';
 import { Unsubscribe } from '@firebase/util';
 
-// @public
+// @public @deprecated
 export function deleteToken(messaging: Messaging): Promise<boolean>;
 
 // @public
@@ -21,7 +21,7 @@ export interface FcmOptions {
 // @public
 export function getMessaging(app?: FirebaseApp): Messaging;
 
-// @public
+// @public @deprecated
 export function getToken(messaging: Messaging, options?: GetTokenOptions): Promise<string>;
 
 // @public
@@ -64,6 +64,24 @@ export { Observer }
 
 // @public
 export function onMessage(messaging: Messaging, nextOrObserver: NextFn<MessagePayload> | Observer<MessagePayload>): Unsubscribe;
+
+// @public
+export function onRegistered(messaging: Messaging, nextOrObserver: NextFn<string> | Observer<string>): Unsubscribe;
+
+// @public
+export function onUnregistered(messaging: Messaging, nextOrObserver: NextFn<string> | Observer<string>): Unsubscribe;
+
+// @public
+export function register(messaging: Messaging, options?: RegisterOptions): Promise<void>;
+
+// @public
+export interface RegisterOptions {
+    serviceWorkerRegistration?: ServiceWorkerRegistration;
+    vapidKey?: string;
+}
+
+// @public
+export function unregister(messaging: Messaging): Promise<void>;
 
 export { Unsubscribe }
 

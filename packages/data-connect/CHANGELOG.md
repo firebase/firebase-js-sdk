@@ -1,5 +1,21 @@
 ## Unreleased
 
+## 0.7.2
+
+### Patch Changes
+
+- [`1d24e5f`](https://github.com/firebase/firebase-js-sdk/commit/1d24e5f72df2ec6cf54faaca32eec8155eea46e1) [#10133](https://github.com/firebase/firebase-js-sdk/pull/10133) - Refactor data connect streaming tests and revert to 15 second idle timeout for streaming connections (doesn't need a public release note)
+
+- Updated dependencies [[`736fa3f`](https://github.com/firebase/firebase-js-sdk/commit/736fa3fe798d6eafc9fe086d6bfbe9cfb49b8994)]:
+  - @firebase/util@1.15.2
+  - @firebase/component@0.7.4
+
+## 0.7.1
+
+### Patch Changes
+
+- [`51e93fc`](https://github.com/firebase/firebase-js-sdk/commit/51e93fc03fd5e71c2de71a76976dd4e95eb26c68) [#9936](https://github.com/firebase/firebase-js-sdk/pull/9936) - Eliminated the 1-minute delay before closing idle backend connections to save resources.
+
 ## 0.7.0
 
 ### Minor Changes

@@ -17,9 +17,15 @@
 
 export interface MessagingInternal {
   getToken(options?: GetTokenOptions): Promise<string>;
+  register(options?: RegisterOptions): Promise<void>;
 }
 
 interface GetTokenOptions {
+  vapidKey?: string;
+  serviceWorkerRegistration?: ServiceWorkerRegistration;
+}
+
+export interface RegisterOptions {
   vapidKey?: string;
   serviceWorkerRegistration?: ServiceWorkerRegistration;
 }
