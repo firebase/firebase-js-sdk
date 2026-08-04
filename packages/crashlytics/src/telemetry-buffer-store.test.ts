@@ -644,13 +644,26 @@ describe('TelemetryBufferStore', () => {
   });
 
   describe('clear', () => {
-    it('should clear queue and buffer map and reset telemetry count to 0', () => {
-      const store = new TelemetryBufferStore();
+    it('should clear queue and buffer map, reset telemetry count to 0, and reset shouldAddLimitLog flag', () => {
+      const store = new TelemetryBufferStore(4, 5);
 
       // Arrange
-      addTrace(store, 'trace-1', { childSpans: 1, childLogs: 1 }); // count = 3
+      const rootSpan = addTrace(store, 'trace-1', {
+        childSpans: 1,
+        childLogs: 1,
+        endRoot: false
+      }); // count = 3, queue size = 0
       const log = createMockLog();
-      store.addLogOnEmit(log); // count = 4
+      store.addLogOnEmit(log); // count = 4, queue size = 1 (contains log UUID)
+
+      // Add a child span to trace-1, which will evict the standalone log
+      store.addSpanOnStart(createMockSpan('trace-1', false)); // count becomes 4, queue size becomes 0
+
+      // Add another child span to trace-1, which will trigger the limit log flag since queue is empty
+      store.addSpanOnStart(createMockSpan('trace-1', false)); // fails capacity check, count remains 4, shouldAddLimitLog becomes true
+
+      // End the root span of trace-1 to populate the queue
+      store.addRootSpanOnEnd(rootSpan); // queue size becomes 1 (contains trace-1)
 
       // Act
       store.clear();
@@ -659,6 +672,7 @@ describe('TelemetryBufferStore', () => {
       expect(store['_totalTelemetryCount']).to.equal(0);
       expect(store['_rootTelemetryQueue'].size).to.equal(0);
       expect(store['_telemetryEmitBufferMap'].size).to.equal(0);
+      expect(store['_shouldAddLimitLog']).to.be.false;
     });
   });
 });

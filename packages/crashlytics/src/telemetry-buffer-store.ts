@@ -117,7 +117,7 @@ export class TelemetryBufferStore {
     const traceId = _logRecord.spanContext?.traceId;
 
     if (traceId) {
-      // Child Log Lifecycle - onEmit
+      // Child Log Path
       const eventList = this._telemetryEmitBufferMap.get(traceId);
       if (eventList instanceof EventList && this._ensureBufferCapacity()) {
         if (this._telemetryEmitBufferMap.has(traceId)) {
@@ -126,7 +126,7 @@ export class TelemetryBufferStore {
         }
       }
     } else {
-      // Root-Level Log Lifecycle - onEmit
+      // Root Log Path
       if (this._ensureBufferCapacity()) {
         const uuid = this._generateUuid();
         this._telemetryEmitBufferMap.set(uuid, _logRecord);
@@ -201,6 +201,7 @@ export class TelemetryBufferStore {
     this._rootTelemetryQueue.clear();
     this._telemetryEmitBufferMap.clear();
     this._totalTelemetryCount = 0;
+    this._shouldAddLimitLog = false;
   }
 }
 
