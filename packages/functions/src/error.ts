@@ -71,7 +71,7 @@ export class FunctionsError extends FirebaseError {
      */
     readonly details?: unknown,
     /**
-     * Optional. Url in the request that resulted in the error, if applicable.
+     * Optional. URL in the request that resulted in the error, if applicable.
      */
     url?: string
   ) {
