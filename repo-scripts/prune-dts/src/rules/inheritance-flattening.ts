@@ -466,7 +466,8 @@ function substituteStructureTypeArgs(
     }
     let res = str;
     for (const [param, arg] of typeArgMap) {
-      const regex = new RegExp(`\\b${param}\\b`, 'g');
+      const escapedParam = param.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const regex = new RegExp(`\\b${escapedParam}\\b`, 'g');
       res = res.replace(regex, arg);
     }
     return res;
