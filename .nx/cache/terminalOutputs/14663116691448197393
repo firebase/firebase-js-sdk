@@ -1,4 +1,0 @@
-[2K[1G[2m$ tsc && gulp copy-resources[22m
-[[35m13:31:28[39m] Using gulpfile [35m~/repos/fb-JETSKI/repo-scripts/api-documenter/gulpfile.js[39m
-[[35m13:31:28[39m] Starting '[36mcopy-resources[39m'...
-[[35m13:31:28[39m] Finished '[36mcopy-resources[39m' after [35m15 ms[39m
