@@ -16,7 +16,652 @@
  */
 
 import { expect } from 'chai';
-import { RootTelemetryQueue } from './telemetry-buffer-store';
+import {
+  RootTelemetryQueue,
+  TelemetryBufferStore,
+  EventList
+} from './telemetry-buffer-store';
+import { ReadableSpan } from '@opentelemetry/sdk-trace-base';
+import { SdkLogRecord } from '@opentelemetry/sdk-logs';
+
+describe('TelemetryBufferStore', () => {
+  /**
+   * Helper used during the ARRANGE and ACT phases of the tests to create a mock OpenTelemetry span.
+   */
+  function createMockSpan(traceId: string, isRoot: boolean): ReadableSpan {
+    return {
+      spanContext: () => ({ traceId }),
+      parentSpanContext: isRoot
+        ? undefined
+        : { traceId, spanId: 'parent-span-id' }
+    } as unknown as ReadableSpan;
+  }
+
+  /**
+   * Helper used during the ARRANGE and ACT phases of the tests to create a mock OpenTelemetry log record.
+   */
+  function createMockLog(traceId?: string): SdkLogRecord {
+    return {
+      spanContext: traceId ? { traceId } : undefined
+    } as unknown as SdkLogRecord;
+  }
+
+  /**
+   * Helper used during the ARRANGE phase of a test to populate the store
+   * with a baseline trace hierarchy.
+   */
+  function addTrace(
+    store: TelemetryBufferStore,
+    traceId: string,
+    options: {
+      childSpans?: number;
+      childLogs?: number;
+      endRoot?: boolean;
+    } = {}
+  ): ReadableSpan {
+    const { childSpans = 0, childLogs = 0, endRoot = true } = options;
+    const span = createMockSpan(traceId, true);
+    store.addSpanOnStart(span);
+
+    for (let i = 0; i < childSpans; i++) {
+      store.addSpanOnStart(createMockSpan(traceId, false));
+    }
+    for (let i = 0; i < childLogs; i++) {
+      store.addLogOnEmit(createMockLog(traceId));
+    }
+
+    if (endRoot) {
+      store.addRootSpanOnEnd(span);
+    }
+    return span;
+  }
+
+  /**
+   * Helper used during the ASSERT phase to verify the contents of a trace in the store.
+   */
+  function validateTrace(
+    store: TelemetryBufferStore,
+    traceId: string,
+    expected: { spans: number; logs: number }
+  ): void {
+    const map = store['_telemetryEmitBufferMap'];
+    expect(map.has(traceId)).to.be.true;
+    const item = map.get(traceId);
+    expect(item).to.be.an.instanceof(EventList);
+    const eventList = item as EventList;
+    expect(eventList.spans).to.have.lengthOf(expected.spans);
+    expect(eventList.logs).to.have.lengthOf(expected.logs);
+  }
+
+  /**
+   * Helper used during the ASSERT phase of the tests to extract the ordered contents of the eviction queue.
+   */
+  function getQueueContents(queue: RootTelemetryQueue): string[] {
+    const result: string[] = [];
+    const head = queue['_head'];
+    const size = queue['_size'];
+    const items = queue['_items'];
+    const limit = items.length;
+    for (let i = 0; i < size; i++) {
+      const idx = (head + i) % limit;
+      result.push(items[idx]!);
+    }
+    return result;
+  }
+
+  describe('addSpanOnStart', () => {
+    it('should add root span to buffer with no pruning if queue size == limit and buffer size < limit', () => {
+      const store = new TelemetryBufferStore(10, 1);
+
+      // Arrange
+      addTrace(store, 'trace-1'); // fills queue (queue = ['trace-1'])
+
+      // Act
+      const span2 = createMockSpan('trace-2', true);
+      store.addSpanOnStart(span2);
+
+      // Assert
+      const queue = store['_rootTelemetryQueue'];
+      validateTrace(store, 'trace-2', { spans: 1, logs: 0 });
+      expect(queue.size).to.equal(1);
+      expect(queue.peek()).to.equal('trace-1');
+      expect(store['_totalTelemetryCount']).to.equal(2);
+    });
+
+    it('should add root span to buffer and evict oldest root id if queue size < limit and buffer size == limit', () => {
+      const store = new TelemetryBufferStore(2, 5);
+
+      // Arrange
+      addTrace(store, 'trace-1'); // count = 1, queue = ['trace-1']
+      addTrace(store, 'trace-2', { endRoot: false }); // count = 2 (limit), queue = ['trace-1']
+
+      // Act
+      const span3 = createMockSpan('trace-3', true);
+      store.addSpanOnStart(span3); // triggers eviction
+
+      // Assert
+      const queue = store['_rootTelemetryQueue'];
+      expect(store['_telemetryEmitBufferMap'].has('trace-1')).to.be.false;
+      validateTrace(store, 'trace-3', { spans: 1, logs: 0 });
+      expect(getQueueContents(queue)).to.deep.equal([]);
+      expect(store['_totalTelemetryCount']).to.equal(2);
+    });
+
+    it('should not add root span to buffer if queue size == 0 and buffer size == limit', () => {
+      const store = new TelemetryBufferStore(1, 2);
+
+      // Arrange
+      addTrace(store, 'trace-1', { endRoot: false }); // count = 1 (limit), queue size = 0
+
+      // Act
+      const span2 = createMockSpan('trace-2', true);
+      store.addSpanOnStart(span2); // dropped
+
+      // Assert
+      expect(store['_telemetryEmitBufferMap'].has('trace-2')).to.be.false;
+      validateTrace(store, 'trace-1', { spans: 1, logs: 0 });
+      expect(store['_totalTelemetryCount']).to.equal(1);
+    });
+
+    it('should add child span to buffer with no pruning if queue size == limit and buffer size < limit', () => {
+      const store = new TelemetryBufferStore(10, 1);
+
+      // Arrange
+      addTrace(store, 'trace-1'); // fills queue (queue = ['trace-1'])
+      addTrace(store, 'trace-2', { endRoot: false }); // count = 2
+
+      // Act
+      const child2 = createMockSpan('trace-2', false);
+      store.addSpanOnStart(child2);
+
+      // Assert
+      const queue = store['_rootTelemetryQueue'];
+      validateTrace(store, 'trace-2', { spans: 2, logs: 0 });
+      expect(queue.size).to.equal(1);
+      expect(store['_totalTelemetryCount']).to.equal(3);
+    });
+
+    it('should add child span to buffer and evict oldest root id if queue size < limit and buffer size == limit', () => {
+      const store = new TelemetryBufferStore(2, 5);
+
+      // Arrange
+      addTrace(store, 'trace-1'); // count = 1, queue = ['trace-1']
+      addTrace(store, 'trace-2', { endRoot: false }); // count = 2 (limit), queue = ['trace-1']
+
+      // Act
+      const child2 = createMockSpan('trace-2', false);
+      store.addSpanOnStart(child2); // triggers eviction of trace-1
+
+      // Assert
+      const queue = store['_rootTelemetryQueue'];
+      expect(store['_telemetryEmitBufferMap'].has('trace-1')).to.be.false;
+      validateTrace(store, 'trace-2', { spans: 2, logs: 0 });
+      expect(getQueueContents(queue)).to.deep.equal([]);
+      expect(store['_totalTelemetryCount']).to.equal(2);
+    });
+
+    it('should not add child span to buffer if queue size == 0 and buffer size == limit', () => {
+      const store = new TelemetryBufferStore(1, 2);
+
+      // Arrange
+      addTrace(store, 'trace-1', { endRoot: false }); // count = 1 (limit), queue size = 0
+
+      // Act
+      const child1 = createMockSpan('trace-1', false);
+      store.addSpanOnStart(child1); // dropped
+
+      // Assert
+      validateTrace(store, 'trace-1', { spans: 1, logs: 0 });
+      expect(store['_totalTelemetryCount']).to.equal(1);
+    });
+
+    it('should not add child span to buffer and with no pruning if its root span was not added to buffer, queue size < limit, and buffer size == limit', () => {
+      const store = new TelemetryBufferStore(1, 2);
+
+      // Arrange
+      const span1 = addTrace(store, 'trace-1', { endRoot: false }); // count = 1 (limit), queue size = 0
+      const root2 = createMockSpan('trace-2', true);
+      store.addSpanOnStart(root2); // dropped due to capacity limits
+      store.addRootSpanOnEnd(span1); // complete trace-1 (enqueues trace-1)
+
+      // Act
+      const child2 = createMockSpan('trace-2', false);
+      store.addSpanOnStart(child2); // dropped because parent trace-2 doesn't exist
+
+      // Assert
+      const queue = store['_rootTelemetryQueue'];
+      expect(store['_telemetryEmitBufferMap'].has('trace-2')).to.be.false; // trace-2 not added
+      validateTrace(store, 'trace-1', { spans: 1, logs: 0 }); // trace-1 preserved (not evicted)
+      expect(store['_totalTelemetryCount']).to.equal(1);
+      expect(getQueueContents(queue)).to.deep.equal(['trace-1']);
+    });
+  });
+
+  describe('addRootSpanOnEnd', () => {
+    it('should add root span to queue with no pruning if queue size < limit and buffer size == limit', () => {
+      const store = new TelemetryBufferStore(2, 5);
+
+      // Arrange
+      addTrace(store, 'trace-1'); // count = 1 (ended, queue = ['trace-1'])
+      const span2 = addTrace(store, 'trace-2', { endRoot: false }); // count = 2 (limit)
+
+      // Act
+      store.addRootSpanOnEnd(span2);
+
+      // Assert
+      const queue = store['_rootTelemetryQueue'];
+      expect(getQueueContents(queue)).to.deep.equal(['trace-1', 'trace-2']);
+      expect(store['_totalTelemetryCount']).to.equal(2);
+    });
+
+    it('should add root span to queue and evict oldest root id if queue size == limit and buffer size == limit', () => {
+      const store = new TelemetryBufferStore(2, 1);
+
+      // Arrange
+      addTrace(store, 'trace-1'); // count = 1 (ended, queue = ['trace-1'])
+      const span2 = addTrace(store, 'trace-2', { endRoot: false }); // count = 2 (limit)
+
+      // Act
+      store.addRootSpanOnEnd(span2); // enqueues trace-2, evicting trace-1 from queue and map
+
+      // Assert
+      const queue = store['_rootTelemetryQueue'];
+      expect(store['_telemetryEmitBufferMap'].has('trace-1')).to.be.false; // trace-1 evicted
+      validateTrace(store, 'trace-2', { spans: 1, logs: 0 }); // trace-2 remains
+      expect(getQueueContents(queue)).to.deep.equal(['trace-2']);
+      expect(store['_totalTelemetryCount']).to.equal(1);
+    });
+
+    it('should not add root span to queue and with no pruning if it wasn’t added to the buffer onStart', () => {
+      const store = new TelemetryBufferStore(1, 2);
+
+      // Arrange
+      const span1 = addTrace(store, 'trace-1', { endRoot: false }); // count = 1 (limit), queue size = 0
+      const span2 = createMockSpan('trace-2', true);
+      store.addSpanOnStart(span2); // dropped due to capacity limits
+      store.addRootSpanOnEnd(span1); // complete trace-1 (enqueues trace-1)
+
+      // Act
+      store.addRootSpanOnEnd(span2);
+
+      // Assert
+      const queue = store['_rootTelemetryQueue'];
+      validateTrace(store, 'trace-1', { spans: 1, logs: 0 }); // trace-1 preserved (not evicted)
+      expect(getQueueContents(queue)).to.deep.equal(['trace-1']);
+      expect(store['_totalTelemetryCount']).to.equal(1);
+    });
+
+    it('should do nothing when a child span is passed in', () => {
+      const store = new TelemetryBufferStore(10, 5);
+
+      // Arrange
+      addTrace(store, 'trace-1', { endRoot: false }); // count = 1, queue size = 0
+      const child = createMockSpan('trace-1', false);
+      store.addSpanOnStart(child); // count = 2
+
+      // Act
+      store.addRootSpanOnEnd(child); // should be ignored
+
+      // Assert
+      const queue = store['_rootTelemetryQueue'];
+      expect(getQueueContents(queue)).to.deep.equal([]);
+      expect(store['_totalTelemetryCount']).to.equal(2);
+    });
+  });
+
+  describe('addLogOnEmit', () => {
+    it('should add root log to buffer and queue with no pruning if queue size < limit and buffer size < limit', () => {
+      const store = new TelemetryBufferStore(10, 5);
+
+      // Arrange: baseline count = 5 (trace-1 has size 4, standalone log has size 1)
+      addTrace(store, 'trace-1', { childSpans: 2, childLogs: 1 });
+      const log1 = createMockLog();
+      store.addLogOnEmit(log1);
+
+      // Act
+      const log2 = createMockLog();
+      store.addLogOnEmit(log2);
+
+      // Assert
+      const map = store['_telemetryEmitBufferMap'];
+      const queue = store['_rootTelemetryQueue'];
+
+      validateTrace(store, 'trace-1', { spans: 3, logs: 1 });
+
+      const queueContents = getQueueContents(queue);
+      expect(queueContents).to.have.lengthOf(3);
+      expect(queueContents[0]).to.equal('trace-1');
+      expect(map.get(queueContents[1]!)).to.equal(log1);
+      expect(map.get(queueContents[2]!)).to.equal(log2);
+      expect(store['_totalTelemetryCount']).to.equal(6);
+    });
+
+    it('should add root log to buffer and queue and evict oldest root id if queue size == limit and buffer size < limit', () => {
+      const store = new TelemetryBufferStore(10, 2);
+
+      // Arrange
+      const log1 = createMockLog();
+      store.addLogOnEmit(log1);
+      const uuid1 = store['_rootTelemetryQueue'].peek()!;
+      const log2 = createMockLog();
+      store.addLogOnEmit(log2);
+
+      // Act
+      const log3 = createMockLog();
+      store.addLogOnEmit(log3);
+
+      // Assert
+      const map = store['_telemetryEmitBufferMap'];
+      const queue = store['_rootTelemetryQueue'];
+
+      expect(map.has(uuid1)).to.be.false;
+      expect(store['_totalTelemetryCount']).to.equal(2);
+
+      const queueContents = getQueueContents(queue);
+      expect(queueContents).to.have.lengthOf(2);
+      expect(map.get(queueContents[0]!)).to.equal(log2);
+      expect(map.get(queueContents[1]!)).to.equal(log3);
+    });
+
+    it('should add root log to buffer and queue and evict oldest root id if queue size < limit and buffer size == limit', () => {
+      const store = new TelemetryBufferStore(2, 5);
+
+      // Arrange
+      const log1 = createMockLog();
+      store.addLogOnEmit(log1);
+      const uuid1 = store['_rootTelemetryQueue'].peek()!;
+      const log2 = createMockLog();
+      store.addLogOnEmit(log2);
+
+      // Act
+      const log3 = createMockLog();
+      store.addLogOnEmit(log3);
+
+      // Assert
+      const map = store['_telemetryEmitBufferMap'];
+      const queue = store['_rootTelemetryQueue'];
+      expect(map.has(uuid1)).to.be.false;
+      expect(store['_totalTelemetryCount']).to.equal(2);
+
+      const queueContents = getQueueContents(queue);
+      expect(queueContents).to.have.lengthOf(2);
+      expect(map.get(queueContents[0]!)).to.equal(log2);
+      expect(map.get(queueContents[1]!)).to.equal(log3);
+    });
+
+    it('should add child log to buffer only with no pruning if queue size == limit and buffer size < limit', () => {
+      const store = new TelemetryBufferStore(10, 1);
+
+      // Arrange
+      addTrace(store, 'trace-1'); // fills queue
+      const root2 = createMockSpan('trace-2', true);
+      store.addSpanOnStart(root2);
+
+      // Act
+      const log = createMockLog('trace-2');
+      store.addLogOnEmit(log);
+
+      // Assert
+      validateTrace(store, 'trace-2', { spans: 1, logs: 1 });
+      expect(store['_totalTelemetryCount']).to.equal(3); // trace-1 (1) + root2 (1) + childLog (1) = 3
+    });
+
+    it('should add child log to buffer only and evict oldest root id if queue size < limit and buffer size == limit', () => {
+      const store = new TelemetryBufferStore(2, 5);
+
+      // Arrange
+      addTrace(store, 'trace-1'); // count = 1 (ended, queue = ['trace-1'])
+      addTrace(store, 'trace-2', { endRoot: false }); // count = 2 (limit), queue = ['trace-1']
+
+      // Act
+      const log = createMockLog('trace-2');
+      store.addLogOnEmit(log); // triggers capacity eviction of trace-1
+
+      // Assert
+      const queue = store['_rootTelemetryQueue'];
+      expect(store['_telemetryEmitBufferMap'].has('trace-1')).to.be.false; // trace-1 evicted
+      validateTrace(store, 'trace-2', { spans: 1, logs: 1 });
+      expect(getQueueContents(queue)).to.deep.equal([]); // empty since trace-2 has not ended yet
+      expect(store['_totalTelemetryCount']).to.equal(2);
+    });
+
+    it('should not add child log to buffer if its own trace id was removed from queue due to eviction', () => {
+      const store = new TelemetryBufferStore(2, 5);
+
+      // Arrange: total count = 2 (buffer limit), oldest enqueued trace is 'trace-1'.
+      // This simulates a child log arriving asynchronously AFTER its root span ('trace-1') has already ended and entered the eviction queue.
+      addTrace(store, 'trace-1'); // count = 1, queue = ['trace-1']
+      addTrace(store, 'trace-2'); // count = 2, queue = ['trace-1', 'trace-2'] (reaches buffer limit)
+
+      // Act: child log of trace-1 triggers capacity check, evicting its own trace-1
+      const log = createMockLog('trace-1');
+      store.addLogOnEmit(log);
+
+      // Assert: trace-1 is completely evicted, and the child log is discarded
+      const queue = store['_rootTelemetryQueue'];
+
+      expect(store['_telemetryEmitBufferMap'].has('trace-1')).to.be.false;
+      expect(store['_totalTelemetryCount']).to.equal(1); // only trace-2 remains
+      expect(getQueueContents(queue)).to.deep.equal(['trace-2']);
+    });
+
+    it('should not add child log to buffer and with no pruning if its root span was not added to buffer, queue size < limit, and buffer size == limit', () => {
+      const store = new TelemetryBufferStore(1, 2);
+
+      // Arrange
+      const span1 = addTrace(store, 'trace-1', { endRoot: false }); // count = 1 (limit), queue size = 0
+      const root2 = createMockSpan('trace-2', true);
+      store.addSpanOnStart(root2); // dropped due to capacity limits
+      store.addRootSpanOnEnd(span1); // complete trace-1 (enqueues trace-1)
+
+      // Act
+      const log = createMockLog('trace-2');
+      store.addLogOnEmit(log); // dropped because parent trace-2 doesn't exist, short-circuits eviction
+
+      // Assert
+      const queue = store['_rootTelemetryQueue'];
+      expect(store['_telemetryEmitBufferMap'].has('trace-2')).to.be.false; // trace-2 not added
+      validateTrace(store, 'trace-1', { spans: 1, logs: 0 }); // trace-1 preserved (not evicted)
+      expect(store['_totalTelemetryCount']).to.equal(1);
+      expect(getQueueContents(queue)).to.deep.equal(['trace-1']);
+    });
+
+    it('should not add any log to buffer or queue if queue size == 0 and buffer size == limit', () => {
+      const store = new TelemetryBufferStore(1, 2);
+
+      // Arrange
+      addTrace(store, 'trace-1', { endRoot: false }); // reaches buffer limit
+
+      // Act
+      const log2 = createMockLog('trace-1');
+      store.addLogOnEmit(log2); // dropped child log
+
+      const log3 = createMockLog();
+      store.addLogOnEmit(log3); // dropped standalone root log
+
+      // Assert
+      validateTrace(store, 'trace-1', { spans: 1, logs: 0 }); // trace-1 remains unchanged
+    });
+  });
+
+  describe('_ensureBufferCapacity', () => {
+    it('should set shouldAddLimitLog flag to true if queue size == 0 and buffer size == limit and return false', () => {
+      const store = new TelemetryBufferStore(0, 5);
+
+      // Act
+      const result = store['_ensureBufferCapacity']();
+
+      // Assert
+      expect(result).to.be.false;
+      expect(store['_shouldAddLimitLog']).to.be.true;
+    });
+
+    it('should free up buffer capacity if queue size != 0 and buffer size == limit and return true', () => {
+      const store = new TelemetryBufferStore(1, 5);
+
+      // Arrange
+      const log = createMockLog();
+      store.addLogOnEmit(log);
+
+      // Act
+      const result = store['_ensureBufferCapacity']();
+
+      // Assert
+      const uuid = store['_rootTelemetryQueue'].peek()!;
+      expect(result).to.be.true;
+      expect(store['_telemetryEmitBufferMap'].has(uuid)).to.be.false;
+    });
+
+    it('should not do anything if buffer capacity is available and return true', () => {
+      const store = new TelemetryBufferStore(10, 5);
+
+      // Act
+      const result = store['_ensureBufferCapacity']();
+
+      // Assert
+      expect(result).to.be.true;
+      expect(store['_shouldAddLimitLog']).to.be.false;
+    });
+  });
+
+  describe('_generateUuid', () => {
+    const uuidRegex =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+    describe('when crypto is available', () => {
+      it('should generate a valid UUID v4 format string using native crypto', () => {
+        const store = new TelemetryBufferStore();
+        const uuid = store['_generateUuid']();
+        expect(uuid).to.match(uuidRegex);
+      });
+
+      it('should generate unique UUIDs with no collisions using native crypto', () => {
+        const store = new TelemetryBufferStore();
+        const uuids = new Set<string>();
+        for (let i = 0; i < 100; i++) {
+          uuids.add(store['_generateUuid']());
+        }
+        expect(uuids.size).to.equal(100);
+      });
+    });
+
+    describe('when crypto is unavailable', () => {
+      let originalCrypto: any;
+
+      beforeEach(() => {
+        originalCrypto = globalThis.crypto;
+        Object.defineProperty(globalThis, 'crypto', {
+          value: undefined,
+          configurable: true,
+          writable: true
+        });
+      });
+
+      afterEach(() => {
+        Object.defineProperty(globalThis, 'crypto', {
+          value: originalCrypto,
+          configurable: true,
+          writable: true
+        });
+      });
+
+      it('should generate a valid UUID v4 format string when crypto is unavailable', () => {
+        const store = new TelemetryBufferStore();
+        const uuid = store['_generateUuid']();
+        expect(uuid).to.match(uuidRegex);
+      });
+
+      it('should generate unique UUIDs with no collisions when crypto is unavailable', () => {
+        const store = new TelemetryBufferStore();
+        const uuids = new Set<string>();
+        for (let i = 0; i < 100; i++) {
+          uuids.add(store['_generateUuid']());
+        }
+        expect(uuids.size).to.equal(100);
+      });
+    });
+  });
+
+  describe('_evictIdFromBuffer', () => {
+    it('should evict all spans and logs for a given trace id from the buffer map and correctly update telemetry count', () => {
+      const store = new TelemetryBufferStore();
+
+      // Arrange
+      addTrace(store, 'trace-1'); // count = 1
+      addTrace(store, 'trace-2'); // count = 2
+
+      // Act
+      store['_evictIdFromBuffer']('trace-1');
+
+      // Assert
+      const map = store['_telemetryEmitBufferMap'];
+      expect(map.has('trace-1')).to.be.false;
+      validateTrace(store, 'trace-2', { spans: 1, logs: 0 }); // trace-2 preserved
+      expect(store['_totalTelemetryCount']).to.equal(1);
+    });
+
+    it('should evict the root log for a given uuid from the buffer map and correctly update telemetry count', () => {
+      const store = new TelemetryBufferStore();
+
+      // Arrange
+      const log1 = createMockLog();
+      store.addLogOnEmit(log1);
+      const uuid1 = store['_rootTelemetryQueue'].peek()!;
+
+      const log2 = createMockLog();
+      store.addLogOnEmit(log2);
+
+      // Act
+      store['_evictIdFromBuffer'](uuid1);
+
+      // Assert
+      const map = store['_telemetryEmitBufferMap'];
+      expect(map.has(uuid1)).to.be.false;
+
+      const uuid2 = Array.from(map.keys())[0]!;
+      expect(map.get(uuid2)).to.equal(log2); // log2 preserved
+      expect(store['_totalTelemetryCount']).to.equal(1);
+    });
+
+    it('should not do anything if trace id or uuid is not in the buffer map', () => {
+      const store = new TelemetryBufferStore();
+
+      // Arrange
+      addTrace(store, 'trace-1', { endRoot: false }); // count = 1
+      const log = createMockLog();
+      store.addLogOnEmit(log); // count = 2
+      const uuid = store['_rootTelemetryQueue'].peek()!;
+
+      // Act
+      store['_evictIdFromBuffer']('non-existent');
+
+      // Assert
+      const map = store['_telemetryEmitBufferMap'];
+      validateTrace(store, 'trace-1', { spans: 1, logs: 0 });
+      expect(map.has(uuid)).to.be.true;
+      expect(store['_totalTelemetryCount']).to.equal(2);
+    });
+  });
+
+  describe('clear', () => {
+    it('should clear queue and buffer map and reset telemetry count to 0', () => {
+      const store = new TelemetryBufferStore();
+
+      // Arrange
+      addTrace(store, 'trace-1', { childSpans: 1, childLogs: 1 }); // count = 3
+      const log = createMockLog();
+      store.addLogOnEmit(log); // count = 4
+
+      // Act
+      store.clear();
+
+      // Assert
+      expect(store['_totalTelemetryCount']).to.equal(0);
+      expect(store['_rootTelemetryQueue'].size).to.equal(0);
+      expect(store['_telemetryEmitBufferMap'].size).to.equal(0);
+    });
+  });
+});
 
 describe('RootTelemetryQueue', () => {
   it('should initialize empty', () => {
