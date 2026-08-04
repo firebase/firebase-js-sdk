@@ -19,7 +19,7 @@ Firebase App Check does not work in a Node.js environment using `ReCaptchaV3Prov
 |  Function | Description |
 |  --- | --- |
 |  <b>function(app, ...)</b> |
-|  [initializeAppCheck(app, options)](./app-check.md#initializeappcheck_3a806cb) | Activate App Check for the given app. Can be called only once per app. |
+|  [initializeAppCheck(app, options)](./app-check.md#initializeappcheck_5548dfc) | Activate App Check for the given app. Can be called only once per app. |
 |  <b>function(appCheckInstance, ...)</b> |
 |  [getLimitedUseToken(appCheckInstance)](./app-check.md#getlimitedusetoken_53ef5e3) | Requests a Firebase App Check token. This method should be used only if you need to authorize requests to a non-Firebase backend.<!-- -->Returns limited-use tokens that are intended for use with your non-Firebase backend endpoints that are protected with <a href="https://firebase.google.com/docs/app-check/custom-resource-backend#replay-protection"> Replay Protection</a>. This method does not affect the token generation behavior of the \#getAppCheckToken() method. |
 |  [getToken(appCheckInstance, forceRefresh)](./app-check.md#gettoken_39fc1b3) | Get the current App Check token. If <code>forceRefresh</code> is false, this function first checks for a valid token in memory, then local persistence (IndexedDB). If not found, or if <code>forceRefresh</code> is true, it makes a request to the App Check endpoint for a fresh token. That request attaches to the most recent in-flight request if one is present. |
@@ -53,21 +53,21 @@ Firebase App Check does not work in a Node.js environment using `ReCaptchaV3Prov
 
 ## function(app, ...)
 
-### initializeAppCheck(app, options) {:#initializeappcheck_3a806cb}
+### initializeAppCheck(app, options) {:#initializeappcheck_5548dfc}
 
 Activate App Check for the given app. Can be called only once per app.
 
 <b>Signature:</b>
 
 ```typescript
-export declare function initializeAppCheck(app?: FirebaseApp, options?: AppCheckOptions): AppCheck;
+export declare function initializeAppCheck(app: FirebaseApp | undefined, options: AppCheckOptions): AppCheck;
 ```
 
 #### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  app | [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | the [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) to activate App Check for |
+|  app | [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) \| undefined | the [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) to activate App Check for |
 |  options | [AppCheckOptions](./app-check.appcheckoptions.md#appcheckoptions_interface) | App Check initialization options |
 
 <b>Returns:</b>

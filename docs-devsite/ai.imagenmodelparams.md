@@ -28,7 +28,7 @@ export interface ImagenModelParams
 |  Property | Type | Description |
 |  --- | --- | --- |
 |  [generationConfig](./ai.imagenmodelparams.md#imagenmodelparamsgenerationconfig) | [ImagenGenerationConfig](./ai.imagengenerationconfig.md#imagengenerationconfig_interface) | Configuration options for generating images with Imagen. |
-|  [model](./ai.imagenmodelparams.md#imagenmodelparamsmodel) | string | The Imagen model to use for generating images. For example: <code>imagen-3.0-generate-002</code>.<!-- -->Only Imagen 3 models (named <code>imagen-3.0-*</code>) are supported.<!-- -->See [model versions](https://firebase.google.com/docs/vertex-ai/models) for a full list of supported Imagen 3 models. |
+|  [model](./ai.imagenmodelparams.md#imagenmodelparamsmodel) | string | The Imagen model to use for generating images. For example: <code>imagen-3.0-generate-002</code>.<!-- -->Only Imagen 3 models (named <code>imagen-3.0-*</code>) are supported.<!-- -->See [model versions](https://firebase.google.com/docs/ai-logic/models) for a full list of supported Imagen 3 models. |
 |  [safetySettings](./ai.imagenmodelparams.md#imagenmodelparamssafetysettings) | [ImagenSafetySettings](./ai.imagensafetysettings.md#imagensafetysettings_interface) | Safety settings for filtering potentially inappropriate content. |
 
 ## ImagenModelParams.generationConfig
@@ -47,7 +47,7 @@ The Imagen model to use for generating images. For example: `imagen-3.0-generate
 
 Only Imagen 3 models (named `imagen-3.0-*`<!-- -->) are supported.
 
-See [model versions](https://firebase.google.com/docs/vertex-ai/models) for a full list of supported Imagen 3 models.
+See [model versions](https://firebase.google.com/docs/ai-logic/models) for a full list of supported Imagen 3 models.
 
 <b>Signature:</b>
 

@@ -104,7 +104,10 @@ export class GrpcConnection implements Connection {
     return true;
   }
 
-  constructor(protos: grpc.GrpcObject, private databaseInfo: DatabaseInfo) {
+  constructor(
+    protos: grpc.GrpcObject,
+    private databaseInfo: DatabaseInfo
+  ) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     this.firestore = (protos as any)['google']['firestore']['v1'];
     this.databasePath = `projects/${databaseInfo.databaseId.projectId}/databases/${databaseInfo.databaseId.database}`;
@@ -117,9 +120,16 @@ export class GrpcConnection implements Connection {
       const credentials = this.databaseInfo.ssl
         ? grpc.credentials.createSsl()
         : grpc.credentials.createInsecure();
+      const grpcOptions: Record<string, unknown> = {
+        'grpc-node.flow_control_window':
+          this.databaseInfo.grpcFlowControlWindow ?? 256 * 1024,
+        'grpc.max_receive_message_length': 17 * 1024 * 1024,
+        'grpc.max_send_message_length': 17 * 1024 * 1024
+      };
       this.cachedStub = new this.firestore.Firestore(
         this.databaseInfo.host,
-        credentials
+        credentials,
+        grpcOptions
       );
     }
     return this.cachedStub;

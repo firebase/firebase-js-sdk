@@ -18,7 +18,6 @@ import { use, expect } from 'chai';
 import { GenerativeModel, validateGenerationConfig } from './generative-model';
 import {
   FunctionCallingMode,
-  AI,
   InferenceMode,
   AIErrorCode,
   ChromeAdapter,
@@ -35,28 +34,16 @@ import {
 import sinonChai from 'sinon-chai';
 import * as generateContentMethods from '../methods/generate-content';
 import * as countTokens from '../methods/count-tokens';
-import { VertexAIBackend } from '../backend';
 import { AIError } from '../errors';
 import chaiAsPromised from 'chai-as-promised';
-import { fakeChromeAdapter } from '../../test-utils/get-fake-firebase-services';
+import {
+  fakeAI,
+  fakeChromeAdapter
+} from '../../test-utils/get-fake-firebase-services';
 import { Availability } from '../types/language-model';
 
 use(sinonChai);
 use(chaiAsPromised);
-
-const fakeAI: AI = {
-  app: {
-    name: 'DEFAULT',
-    automaticDataCollectionEnabled: true,
-    options: {
-      apiKey: 'key',
-      projectId: 'my-project',
-      appId: 'my-appid'
-    }
-  },
-  backend: new VertexAIBackend('us-central1'),
-  location: 'us-central1'
-};
 
 describe('GenerativeModel', () => {
   afterEach(() => {
@@ -263,6 +250,86 @@ describe('GenerativeModel', () => {
         timeout: singleRequestOptions.timeout
       })
     );
+  });
+  it('passes single-speaker speechConfig through to generateContent', async () => {
+    const genModel = new GenerativeModel(
+      fakeAI,
+      {
+        model: 'my-model',
+        generationConfig: {
+          speechConfig: {
+            languageCode: 'en-US',
+            voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Puck' } }
+          }
+        }
+      },
+      {},
+      fakeChromeAdapter
+    );
+
+    const mockResponse = getMockResponse(
+      'vertexAI',
+      'unary-success-basic-reply-short.json'
+    );
+    const makeRequestStub = stub(request, 'makeRequest').resolves(
+      mockResponse as Response
+    );
+
+    await genModel.generateContent('Say hello!');
+
+    expect(makeRequestStub).to.be.calledWith(
+      {
+        model: 'publishers/google/models/my-model',
+        task: request.Task.GENERATE_CONTENT,
+        apiSettings: match.any,
+        stream: false,
+        singleRequestOptions: {}
+      },
+      match((value: string) => {
+        return value.includes('en-US') && value.includes('Puck');
+      })
+    );
+  });
+  it('passes single-speaker speechConfig through to generateContentStream', async () => {
+    const genModel = new GenerativeModel(
+      fakeAI,
+      {
+        model: 'my-model',
+        generationConfig: {
+          speechConfig: {
+            languageCode: 'en-US',
+            voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Kore' } }
+          }
+        }
+      },
+      {},
+      fakeChromeAdapter
+    );
+
+    const mockResponse = getMockResponseStreaming(
+      'vertexAI',
+      'streaming-success-basic-reply-short.txt'
+    );
+    const makeRequestStub = stub(request, 'makeRequest').resolves(
+      mockResponse as Response
+    );
+
+    await genModel.generateContentStream('Have a conversation.');
+
+    expect(makeRequestStub).to.be.calledWith(
+      {
+        model: 'publishers/google/models/my-model',
+        task: request.Task.STREAM_GENERATE_CONTENT,
+        apiSettings: match.any,
+        stream: true,
+        singleRequestOptions: {}
+      },
+      match((value: string) => {
+        return value.includes('en-US') && value.includes('Kore');
+      })
+    );
+
+    restore();
   });
   it('passes base model params through to ChatSession when there are no startChatParams', async () => {
     const genModel = new GenerativeModel(

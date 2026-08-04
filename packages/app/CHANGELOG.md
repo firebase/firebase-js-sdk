@@ -1,5 +1,19 @@
 # @firebase/app
 
+## 0.16.0
+
+### Minor Changes
+
+- [`177f08d`](https://github.com/firebase/firebase-js-sdk/commit/177f08d487056e3c88b33071b5162b9a5025241c) [#10210](https://github.com/firebase/firebase-js-sdk/pull/10210) - Remove ability to call `initializeAppCheck` without a `provider`.
+
+### Patch Changes
+
+- [`80a285d`](https://github.com/firebase/firebase-js-sdk/commit/80a285d49a9dd07724cf0c6db37a286c5601e3fc) [#10182](https://github.com/firebase/firebase-js-sdk/pull/10182) - Add more detailed error when `initializeApp()` is called a second time with different options or config, that prints the different options or config.
+
+- Updated dependencies [[`736fa3f`](https://github.com/firebase/firebase-js-sdk/commit/736fa3fe798d6eafc9fe086d6bfbe9cfb49b8994)]:
+  - @firebase/util@1.15.2
+  - @firebase/component@0.7.4
+
 ## 0.15.1
 
 ### Patch Changes

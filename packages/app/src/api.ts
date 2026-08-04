@@ -171,13 +171,22 @@ export function initializeApp(
   const existingApp = _apps.get(name) as FirebaseAppImpl;
   if (existingApp) {
     // return the existing app if options and config deep equal the ones in the existing app.
-    if (
-      deepEqual(options, existingApp.options) &&
-      deepEqual(config, existingApp.config)
-    ) {
-      return existingApp;
+    if (!deepEqual(options, existingApp.options)) {
+      throw ERROR_FACTORY.create(AppError.DUPLICATE_APP, {
+        appName: name,
+        mismatchedParam: 'options',
+        oldValue: JSON.stringify(existingApp.options),
+        newValue: JSON.stringify(options)
+      });
+    } else if (!deepEqual(config, existingApp.config)) {
+      throw ERROR_FACTORY.create(AppError.DUPLICATE_APP, {
+        appName: name,
+        mismatchedParam: 'config',
+        oldValue: JSON.stringify(existingApp.config),
+        newValue: JSON.stringify(config)
+      });
     } else {
-      throw ERROR_FACTORY.create(AppError.DUPLICATE_APP, { appName: name });
+      return existingApp;
     }
   }
 

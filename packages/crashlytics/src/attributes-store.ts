@@ -51,6 +51,7 @@ type Attribute = Record<string, AttributeValue>;
 export class AttributesStore {
   private _projectId: string | undefined;
   private _appVersion: string | undefined;
+  private _customAttributes: Record<string, unknown> | undefined;
   private _sessionId: string | undefined;
   private _installations: _FirebaseInstallationsInternal | null;
   private _iid: string | undefined;
@@ -63,8 +64,7 @@ export class AttributesStore {
     installationsProvider?: Provider<'installations-internal'>
   ) {
     this._projectId = firebaseOptions.projectId;
-    this._region = crashlyticsOptions?.region || DEFAULT_TELEMETRY_REGION;
-    this.updateAppVersion(crashlyticsOptions);
+    this.updateOptions(crashlyticsOptions);
 
     // Get session id from storage, if available
     const existingSessionId = this.getSessionIdFromStorage();
@@ -81,20 +81,23 @@ export class AttributesStore {
       void installationsProvider
         ?.get()
         .then(installations => (this._installations = installations))
-        .catch(() => {});
+        .catch(() => { });
     }
   }
 
   /**
-   * Update the app version inside the store based on new Crashlytics options.
+   * Update the options inside the store based on new Crashlytics options.
    */
-  updateAppVersion(options?: CrashlyticsOptions): void {
+  updateOptions(options?: CrashlyticsOptions): void {
     const appVersion = options?.appVersion
       ? options.appVersion
       : AUTO_CONSTANTS?.appVersion
         ? AUTO_CONSTANTS.appVersion
         : 'unset';
     this._appVersion = appVersion;
+    this._customAttributes = options?.customAttributes
+      ? { ...options.customAttributes }
+      : undefined;
   }
 
   /**
@@ -132,6 +135,9 @@ export class AttributesStore {
    */
   getLogAttributes(customAttributes?: Attributes): AnyValueMap {
     const attributes: AnyValueMap = {};
+    if (this._customAttributes) {
+      Object.assign(attributes, this._customAttributes);
+    }
     if (this._appVersion) {
       attributes[LOG_ATTR_KEY.APP_VERSION] = this._appVersion;
     }

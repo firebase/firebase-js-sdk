@@ -5,6 +5,7 @@
 ```ts
 
 import { DestroyRef } from '@angular/core';
+import { AnyValueMap } from '@opentelemetry/api-logs';
 import { ErrorHandler } from '@angular/core';
 import { FirebaseApp } from '@firebase/app';
 import { Router } from '@angular/router';
@@ -17,6 +18,7 @@ export interface Crashlytics {
 // @public
 export interface CrashlyticsOptions {
     appVersion?: string;
+    customAttributes?: AnyValueMap;
     endpointUrl?: string;
     region?: string;
     tracingUrl?: string;

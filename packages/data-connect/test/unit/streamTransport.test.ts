@@ -22,7 +22,7 @@ import * as sinon from 'sinon';
 import sinonChai from 'sinon-chai';
 
 import { DataConnectOptions } from '../../src/api/DataConnect';
-import { Code } from '../../src/core/error';
+import { Code, DataConnectError } from '../../src/core/error';
 import { AuthTokenProvider } from '../../src/core/FirebaseAuthProvider';
 import * as logger from '../../src/logger';
 import {
@@ -1496,8 +1496,8 @@ describe('AbstractDataConnectStreamTransport', () => {
         });
 
         it('should clean map correctly when handleResponse rejects', async () => {
-          transport.invokeMutation(mutationName1, variables1).catch(() => {});
-          transport.invokeMutation(mutationName2, variables2).catch(() => {});
+          transport.invokeMutation(mutationName1, variables1).catch(() => { });
+          transport.invokeMutation(mutationName2, variables2).catch(() => { });
           const expectedKey1 = transport.getMapKey(mutationName1, variables1);
           const expectedKey2 = transport.getMapKey(mutationName2, variables2);
           const activeRequests1 =
@@ -1978,114 +1978,173 @@ describe('AbstractDataConnectStreamTransport', () => {
         delete (global as any).document;
       }
     });
+
+    it('should exponentially back off with 1.5 multiplier and [-0.5x, +0.5x] jitter capped at 60s', async () => {
+      ensureConnectionStub.rejects(
+        new DataConnectError(Code.OTHER, 'Connection failed')
+      );
+      const randomStub = sinon.stub(Math, 'random');
+      const observer = {
+        onData: sinon.spy(),
+        onDisconnect: sinon.spy(),
+        onError: sinon.spy()
+      };
+      transport.invokeSubscribe(observer, queryName1, variables1);
+
+      // Attempt 1: base delay 1000ms, random=0 -> jitter -500ms -> delay 500ms
+      randomStub.returns(0);
+      transport.onStreamClose(1006, 'Abnormal Closure');
+
+      await clock.tickAsync(499);
+      expect(ensureConnectionStub).to.not.have.been.called;
+
+      // Set random=1 before attempt 1 failure triggers startReconnectBackoff for attempt 2
+      // Attempt 2: base delay 1500ms, random=1 -> jitter +750ms -> delay 2250ms
+      randomStub.returns(1);
+      await clock.tickAsync(1);
+      expect(ensureConnectionStub).to.have.been.calledOnce;
+
+      await clock.tickAsync(2249);
+      expect(ensureConnectionStub).to.have.been.calledOnce;
+
+      // Set random=0.5 before attempt 2 failure triggers startReconnectBackoff for attempt 3
+      // Attempt 3: base delay 2250ms, random=0.5 -> jitter 0ms -> delay 2250ms
+      randomStub.returns(0.5);
+      await clock.tickAsync(1);
+      expect(ensureConnectionStub).to.have.been.calledTwice;
+
+      await clock.tickAsync(2250);
+      expect(ensureConnectionStub).to.have.been.calledThrice;
+    });
+
+    it('should attempt reconnection indefinitely without a max attempt limit', async () => {
+      ensureConnectionStub.rejects(
+        new DataConnectError(Code.OTHER, 'Connection failed')
+      );
+      const observer = {
+        onData: sinon.spy(),
+        onDisconnect: sinon.spy(),
+        onError: sinon.spy()
+      };
+      transport.invokeSubscribe(observer, queryName1, variables1);
+      transport.onStreamClose(1006, 'Abnormal Closure');
+
+      // Fast-forward past 15 reconnection attempts
+      for (let i = 0; i < 15; i++) {
+        await clock.tickAsync(65000);
+      }
+
+      expect(ensureConnectionStub.callCount).to.be.at.least(15);
+    });
+  });
+});
+
+describe('Dispose', () => {
+  let clock: sinon.SinonFakeTimers;
+  let closeConnectionSpy: sinon.SinonSpy;
+
+  beforeEach(() => {
+    clock = sinon.useFakeTimers();
+    closeConnectionSpy = sinon.spy(transport, 'closeConnection');
   });
 
-  describe('Dispose', () => {
-    let clock: sinon.SinonFakeTimers;
-    let closeConnectionSpy: sinon.SinonSpy;
+  afterEach(() => {
+    clock.restore();
+    sinon.restore();
+  });
 
-    beforeEach(() => {
-      clock = sinon.useFakeTimers();
+  it('should clean up event listeners and timers on dispose', async () => {
+    const isBrowser = typeof window !== 'undefined';
+    let hadAddEventListener = false;
+    let hadRemoveEventListener = false;
+
+    let removeEventListenerSpy: sinon.SinonSpy;
+    let removeDocEventListenerSpy: sinon.SinonSpy;
+
+    if (isBrowser) {
+      removeEventListenerSpy = sinon.spy(window, 'removeEventListener');
+      removeDocEventListenerSpy = sinon.spy(document, 'removeEventListener');
+    } else {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const anyGlobalThis = globalThis as any;
+
+      hadAddEventListener = 'addEventListener' in anyGlobalThis;
+      hadRemoveEventListener = 'removeEventListener' in anyGlobalThis;
+
+      if (!hadAddEventListener) {
+        anyGlobalThis.addEventListener = () => { };
+      }
+      if (!hadRemoveEventListener) {
+        anyGlobalThis.removeEventListener = () => { };
+      }
+
+      removeEventListenerSpy = sinon.spy(
+        anyGlobalThis,
+        'removeEventListener'
+      );
+
+      anyGlobalThis.document = {
+        addEventListener: sinon.spy(),
+        removeEventListener: sinon.spy()
+      } as unknown as Document;
+      removeDocEventListenerSpy = anyGlobalThis.document.removeEventListener;
+    }
+
+    try {
+      // Recreate transport after mocking/spying to pick up the correct environment
+      transport = new TestStreamTransport(
+        dcOptions
+      ) as unknown as TransportWithInternals;
+      transport._isUsingGen = true;
+      transport._callerSdkType = CallerSdkTypeEnum.Generated;
+      transport.setAuthToken(initialAuthToken);
+      transport.setAppCheckToken(initialAppCheckToken);
+      transport.appId = initialAppId;
+      transport.hasWaitedForInitialAuth = true;
+
       closeConnectionSpy = sinon.spy(transport, 'closeConnection');
-    });
 
-    afterEach(() => {
-      clock.restore();
-      sinon.restore();
-    });
+      const observer = {
+        onData: sinon.spy(),
+        onDisconnect: sinon.spy(),
+        onError: sinon.spy()
+      };
+      transport.invokeSubscribe(observer, queryName1, variables1);
 
-    it('should clean up event listeners and timers on dispose', async () => {
-      const isBrowser = typeof window !== 'undefined';
-      let hadAddEventListener = false;
-      let hadRemoveEventListener = false;
+      transport.onStreamClose(1006, 'Abnormal Closure');
+      expect(transport.reconnectTimer).to.not.be.null;
 
-      let removeEventListenerSpy: sinon.SinonSpy;
-      let removeDocEventListenerSpy: sinon.SinonSpy;
+      await transport.cleanupAndTerminate();
 
-      if (isBrowser) {
-        removeEventListenerSpy = sinon.spy(window, 'removeEventListener');
-        removeDocEventListenerSpy = sinon.spy(document, 'removeEventListener');
-      } else {
+      expect(removeEventListenerSpy).to.have.been.calledWith(
+        'online',
+        transport.onOnlineEventListener
+      );
+      expect(removeDocEventListenerSpy).to.have.been.calledWith(
+        'visibilitychange',
+        transport.onVisibilityChangeEventListener
+      );
+    } finally {
+      // 2. Cleanup
+      sinon.restore(); // Automatically restores window/document spies in the browser!
+
+      // Delete the mock objects we added in Node
+      if (!isBrowser) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const anyGlobalThis = globalThis as any;
-
-        hadAddEventListener = 'addEventListener' in anyGlobalThis;
-        hadRemoveEventListener = 'removeEventListener' in anyGlobalThis;
-
+        delete anyGlobalThis.window;
+        delete anyGlobalThis.document;
         if (!hadAddEventListener) {
-          anyGlobalThis.addEventListener = () => {};
+          delete anyGlobalThis.addEventListener;
         }
         if (!hadRemoveEventListener) {
-          anyGlobalThis.removeEventListener = () => {};
-        }
-
-        removeEventListenerSpy = sinon.spy(
-          anyGlobalThis,
-          'removeEventListener'
-        );
-
-        anyGlobalThis.document = {
-          addEventListener: sinon.spy(),
-          removeEventListener: sinon.spy()
-        } as unknown as Document;
-        removeDocEventListenerSpy = anyGlobalThis.document.removeEventListener;
-      }
-
-      try {
-        // Recreate transport after mocking/spying to pick up the correct environment
-        transport = new TestStreamTransport(
-          dcOptions
-        ) as unknown as TransportWithInternals;
-        transport._isUsingGen = true;
-        transport._callerSdkType = CallerSdkTypeEnum.Generated;
-        transport.setAuthToken(initialAuthToken);
-        transport.setAppCheckToken(initialAppCheckToken);
-        transport.appId = initialAppId;
-        transport.hasWaitedForInitialAuth = true;
-
-        closeConnectionSpy = sinon.spy(transport, 'closeConnection');
-
-        const observer = {
-          onData: sinon.spy(),
-          onDisconnect: sinon.spy(),
-          onError: sinon.spy()
-        };
-        transport.invokeSubscribe(observer, queryName1, variables1);
-
-        transport.onStreamClose(1006, 'Abnormal Closure');
-        expect(transport.reconnectTimer).to.not.be.null;
-
-        await transport.cleanupAndTerminate();
-
-        expect(removeEventListenerSpy).to.have.been.calledWith(
-          'online',
-          transport.onOnlineEventListener
-        );
-        expect(removeDocEventListenerSpy).to.have.been.calledWith(
-          'visibilitychange',
-          transport.onVisibilityChangeEventListener
-        );
-      } finally {
-        // 2. Cleanup
-        sinon.restore(); // Automatically restores window/document spies in the browser!
-
-        // Delete the mock objects we added in Node
-        if (!isBrowser) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const anyGlobalThis = globalThis as any;
-          delete anyGlobalThis.window;
-          delete anyGlobalThis.document;
-          if (!hadAddEventListener) {
-            delete anyGlobalThis.addEventListener;
-          }
-          if (!hadRemoveEventListener) {
-            delete anyGlobalThis.removeEventListener;
-          }
+          delete anyGlobalThis.removeEventListener;
         }
       }
+    }
 
-      expect(transport.reconnectTimer).to.be.null;
-      expect(closeConnectionSpy).to.have.been.calledOnce;
-    });
+    expect(transport.reconnectTimer).to.be.null;
+    expect(closeConnectionSpy).to.have.been.calledOnce;
   });
+});
 });
