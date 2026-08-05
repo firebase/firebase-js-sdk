@@ -24,6 +24,7 @@ import sinonChai from 'sinon-chai';
 import { DataConnectOptions } from '../../src/api/DataConnect';
 import { Code, DataConnectError } from '../../src/core/error';
 import { AuthTokenProvider } from '../../src/core/FirebaseAuthProvider';
+import { SDK_VERSION } from '../../src/core/version';
 import * as logger from '../../src/logger';
 import {
   CallerSdkType,
@@ -391,6 +392,19 @@ describe('AbstractDataConnectStreamTransport', () => {
           expectedThirdGoogApiClientValue
         );
       });
+
+      it('should add X-Client-Version to only the first message', () => {
+        const firstPreparedMessage =
+          transport.prepareMessage(unpreparedMessage);
+        expect(firstPreparedMessage.headers?.['X-Client-Version']).to.equal(
+          `web/${SDK_VERSION}`
+        );
+
+        const secondPreparedMessage =
+          transport.prepareMessage(unpreparedMessage);
+        expect(secondPreparedMessage.headers?.['X-Client-Version']).to.be
+          .undefined;
+      });
     });
 
     describe('should handle name properly', () => {
@@ -417,6 +431,7 @@ describe('AbstractDataConnectStreamTransport', () => {
       expect(secondMessage.name).to.be.undefined;
       expect(secondMessage.headers?.['X-Firebase-App-Check']).to.be.undefined;
       expect(secondMessage.headers?.['X-Firebase-Auth-Token']).to.be.undefined;
+      expect(secondMessage.headers?.['X-Client-Version']).to.be.undefined;
 
       // Trigger the physical connection reset
       transport.triggerOnConnectionReady();
@@ -429,6 +444,9 @@ describe('AbstractDataConnectStreamTransport', () => {
       );
       expect(thirdMessage.headers?.['X-Firebase-Auth-Token']).to.equal(
         initialAuthToken
+      );
+      expect(thirdMessage.headers?.['X-Client-Version']).to.equal(
+        `web/${SDK_VERSION}`
       );
     });
   });

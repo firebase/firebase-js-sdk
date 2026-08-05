@@ -1,5 +1,11 @@
 # @firebase/database-compat
 
+## 2.1.6
+
+### Patch Changes
+
+- [`993e8a6`](https://github.com/firebase/firebase-js-sdk/commit/993e8a635ee94409bdc1ea59fa578a45f8191e12) [#10243](https://github.com/firebase/firebase-js-sdk/pull/10243) (fixes [#10242](https://github.com/firebase/firebase-js-sdk/issues/10242)) - Fix regression causing peerDeps to be unbundled in standalone bundle.
+
 ## 2.1.5
 
 ### Patch Changes
