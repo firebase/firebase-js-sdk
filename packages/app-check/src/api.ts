@@ -79,12 +79,24 @@ export function initializeAppCheck(
   // is called in debug mode.
   if (isDebugMode()) {
     // Do not block initialization to get the token for the message.
-    void getDebugToken().then(token =>
+    void getDebugToken().then(token => {
+      const appId = app.options.appId;
+      const projectId = app.options.projectId;
       // Not using logger because I don't think we ever want this accidentally hidden.
       console.log(
-        `App Check debug token: ${token}. You will need to add it to your app's App Check settings in the Firebase console for it to work.`
-      )
-    );
+        `To use this token for app debugging, register it with your project.\n\n` +
+          `Firebase App Check debug token: ${token}\n\n` +
+          `You can do so in the Firebase Console: \n` +
+          `https://console.firebase.google.com/project/${projectId}/appcheck/apps?selectedAppId=${appId} \n\n` +
+          `Or using the Firebase CLI: \n` +
+          `firebase appcheck:debugtokens:create ${token} --project ${projectId} --app ${appId}\n\n` +
+          `Note: To keep your project secure, please revoke and delete this token using the \n` +
+          `Firebase Console or the CLI (\`firebase appcheck:debugtokens:delete\`) when you finish debugging.\n\n` +
+          `Warning: This debug token is a secret and should not be shared or uploaded to source code.\n\n` +
+          `Debug Token Guide: https://firebase.google.com/docs/app-check/web/debug-provider\n` +
+          `Firebase CLI install instructions: https://firebase.google.com/docs/cli\n`
+      );
+    });
   }
 
   if (provider.isInitialized()) {
