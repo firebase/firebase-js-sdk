@@ -56,6 +56,7 @@ export class AttributesStore {
   private _installations: _FirebaseInstallationsInternal | null;
   private _iid: string | undefined;
   private _routePathProvider?: () => string;
+  private _region: string;
 
   constructor(
     firebaseOptions: FirebaseOptions,
@@ -63,6 +64,7 @@ export class AttributesStore {
     installationsProvider?: Provider<'installations-internal'>
   ) {
     this._projectId = firebaseOptions.projectId;
+    this._region = crashlyticsOptions?.region || DEFAULT_TELEMETRY_REGION;
     this.updateOptions(crashlyticsOptions);
 
     // Get session id from storage, if available
@@ -80,7 +82,7 @@ export class AttributesStore {
       void installationsProvider
         ?.get()
         .then(installations => (this._installations = installations))
-        .catch(() => { });
+        .catch(() => {});
     }
   }
 
@@ -178,7 +180,7 @@ export class AttributesStore {
     const attributes: Attributes = {};
     if (this._projectId) {
       attributes[SPAN_ATTR_KEY.GCP_RESOURCE_NAME] =
-        `//firebasetelemetry.googleapis.com/projects/${this._projectId}`;
+        `//firebasetelemetry.googleapis.com/projects/${this._projectId}/locations/${this._region}/`;
     }
 
     if (this._appVersion) {
