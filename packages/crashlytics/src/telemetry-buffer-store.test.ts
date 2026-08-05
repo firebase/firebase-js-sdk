@@ -81,7 +81,7 @@ describe('TelemetryBufferStore', () => {
   }
 
   describe('addSpanOnStart', () => {
-    it('should add root span to buffer with no pruning if buffer size < limit', () => {
+    it('should add root span to buffer without pruning if buffer size < limit', () => {
       const store = new TelemetryBufferStore(10, 1);
 
       // Arrange
@@ -138,7 +138,7 @@ describe('TelemetryBufferStore', () => {
       expect(store.shouldAddLimitLog).to.be.true;
     });
 
-    it('should add child span to buffer with no pruning if buffer size < limit', () => {
+    it('should add child span to buffer without pruning if buffer size < limit', () => {
       const store = new TelemetryBufferStore(10, 1);
 
       // Arrange
@@ -198,7 +198,7 @@ describe('TelemetryBufferStore', () => {
       expect(store.shouldAddLimitLog).to.be.true;
     });
 
-    it('should not add child span to buffer and with no pruning if its root span was not added to buffer', () => {
+    it('should not add child span to buffer and without pruning if its root span was not added to buffer', () => {
       const store = new TelemetryBufferStore(1, 2);
 
       // Arrange
@@ -220,7 +220,7 @@ describe('TelemetryBufferStore', () => {
   });
 
   describe('addRootSpanOnEnd', () => {
-    it('should add root span to queue with no pruning if queue size < limit', () => {
+    it('should add root span to queue without pruning if queue size < limit', () => {
       const store = new TelemetryBufferStore(2, 5);
 
       // Arrange
@@ -264,7 +264,7 @@ describe('TelemetryBufferStore', () => {
       expect(store.totalTelemetryCount).to.equal(1);
     });
 
-    it('should not add root span to queue and with no pruning if it wasn’t added to the buffer onStart', () => {
+    it('should not add root span to queue and without pruning if it wasn’t added to the buffer onStart', () => {
       const store = new TelemetryBufferStore(1, 2);
 
       // Arrange
@@ -303,7 +303,7 @@ describe('TelemetryBufferStore', () => {
   });
 
   describe('addLogOnEmit', () => {
-    it('should add root log to buffer and queue with no pruning if queue size < limit and buffer size < limit', () => {
+    it('should add root log to buffer and queue without pruning if queue size < limit and buffer size < limit', () => {
       const store = new TelemetryBufferStore(10, 5);
 
       // Arrange: baseline count = 2, queue size = 2
@@ -372,7 +372,7 @@ describe('TelemetryBufferStore', () => {
       expect(store.totalTelemetryCount).to.equal(2);
     });
 
-    it('should add child log to buffer with no pruning if buffer size < limit', () => {
+    it('should add child log to buffer without pruning if buffer size < limit', () => {
       const store = new TelemetryBufferStore(10, 1);
 
       // Arrange
@@ -443,7 +443,7 @@ describe('TelemetryBufferStore', () => {
       expect(store.totalTelemetryCount).to.equal(1); // only trace-2 remains
     });
 
-    it('should not add child log to buffer and with no pruning if its root span was not added to buffer', () => {
+    it('should not add child log to buffer and without pruning if its root span was not added to buffer', () => {
       const store = new TelemetryBufferStore(1, 2);
 
       // Arrange
