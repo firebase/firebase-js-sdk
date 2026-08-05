@@ -279,6 +279,18 @@ export class RootTelemetryQueue {
   }
 
   /**
+   * Returns the ordered items currently in the queue.
+   */
+  getValues(): string[] {
+    const result: string[] = [];
+    for (let i = 0; i < this._size; i++) {
+      const idx = (this._head + i) % this._items.length;
+      result.push(this._items[idx]!);
+    }
+    return result;
+  }
+
+  /**
    * Clears all items from the queue and resets its state.
    */
   clear(): void {
