@@ -1,5 +1,13 @@
 # firebase
 
+## 12.17.1
+
+### Patch Changes
+
+- Updated dependencies [[`993e8a6`](https://github.com/firebase/firebase-js-sdk/commit/993e8a635ee94409bdc1ea59fa578a45f8191e12), [`79d7011`](https://github.com/firebase/firebase-js-sdk/commit/79d7011edfe43b793af2c19cee7855cb0d868c18), [`b0e23db`](https://github.com/firebase/firebase-js-sdk/commit/b0e23db212a3b1e4c88469bd0f4293d949107d95)]:
+  - @firebase/database-compat@2.1.6
+  - @firebase/data-connect@0.7.3
+
 ## 12.17.0
 
 ### Minor Changes

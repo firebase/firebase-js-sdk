@@ -1,6 +1,6 @@
 {
   "name": "@firebase/database-compat",
-  "version": "2.1.5",
+  "version": "2.1.6",
   "description": "The Realtime Database component of the Firebase JS SDK.",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.js",
