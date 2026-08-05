@@ -35,7 +35,7 @@ export class EventList {
  * @internal
  */
 export class TelemetryBufferStore {
-  static readonly BUFFER_LIMIT = 1000;
+  static readonly DEFAULT_BUFFER_LIMIT = 1000;
 
   private readonly _rootTelemetryQueue: RootTelemetryQueue;
   private readonly _bufferLimit: number;
@@ -53,7 +53,7 @@ export class TelemetryBufferStore {
    * @param queueLimit - The maximum number of root telemetry items allowed in the eviction queue. Defaults to 100.
    */
   constructor(
-    bufferLimit = TelemetryBufferStore.BUFFER_LIMIT,
+    bufferLimit = TelemetryBufferStore.DEFAULT_BUFFER_LIMIT,
     queueLimit?: number
   ) {
     this._bufferLimit = bufferLimit;
@@ -65,23 +65,23 @@ export class TelemetryBufferStore {
    * Handles capacity pruning if the overall buffer limit is reached,
    * and buffers the span in the correct trace container.
    *
-   * @param _span - The span that has started.
+   * @param span - The span that has started.
    */
-  addSpanOnStart(_span: ReadableSpan): void {
-    const traceId = _span.spanContext().traceId;
-    if (!_span.parentSpanContext) {
-      // Root Span Path
-      if (this._ensureBufferCapacity()) {
-        const eventList = new EventList();
-        this._telemetryEmitBufferMap.set(traceId, eventList);
-        eventList.spans.push(_span);
+  addSpanOnStart(span: ReadableSpan): void {
+    const traceId = span.spanContext().traceId;
+    if (span.parentSpanContext) {
+      // Child Span Path
+      const eventList = this._telemetryEmitBufferMap.get(traceId);
+      if (eventList instanceof EventList && this._canEnsureBufferCapacity()) {
+        eventList.spans.push(span);
         this._totalTelemetryCount++;
       }
     } else {
-      // Child Span Path
-      const eventList = this._telemetryEmitBufferMap.get(traceId);
-      if (eventList instanceof EventList && this._ensureBufferCapacity()) {
-        eventList.spans.push(_span);
+      // Root Span Path
+      if (this._canEnsureBufferCapacity()) {
+        const eventList = new EventList();
+        this._telemetryEmitBufferMap.set(traceId, eventList);
+        eventList.spans.push(span);
         this._totalTelemetryCount++;
       }
     }
@@ -91,16 +91,17 @@ export class TelemetryBufferStore {
    * Called when a root span ends.
    * Enqueues the trace ID in the root queue for eviction if it was successfully started.
    *
-   * @param _span - The root span that has ended.
+   * @param span - The root span that has ended.
    */
-  addRootSpanOnEnd(_span: ReadableSpan): void {
-    if (!_span.parentSpanContext) {
-      const traceId = _span.spanContext().traceId;
-      if (this._telemetryEmitBufferMap.has(traceId)) {
-        const evictedTraceId = this._rootTelemetryQueue.enqueue(traceId);
-        if (evictedTraceId) {
-          this._evictIdFromBuffer(evictedTraceId);
-        }
+  addRootSpanOnEnd(span: ReadableSpan): void {
+    if (span.parentSpanContext) {
+      return;
+    }
+    const traceId = span.spanContext().traceId;
+    if (this._telemetryEmitBufferMap.has(traceId)) {
+      const evictedTraceId = this._rootTelemetryQueue.enqueue(traceId);
+      if (evictedTraceId) {
+        this._evictIdFromBuffer(evictedTraceId);
       }
     }
   }
@@ -111,25 +112,25 @@ export class TelemetryBufferStore {
    * For root-level logs (emitted outside an active trace), creates a new standalone
    * log entry in the map and enqueues its UUID.
    *
-   * @param _logRecord - The log record that was emitted.
+   * @param logRecord - The log record that was emitted.
    */
-  addLogOnEmit(_logRecord: SdkLogRecord): void {
-    const traceId = _logRecord.spanContext?.traceId;
+  addLogOnEmit(logRecord: SdkLogRecord): void {
+    const traceId = logRecord.spanContext?.traceId;
 
     if (traceId) {
       // Child Log Path
       const eventList = this._telemetryEmitBufferMap.get(traceId);
-      if (eventList instanceof EventList && this._ensureBufferCapacity()) {
+      if (eventList instanceof EventList && this._canEnsureBufferCapacity()) {
         if (this._telemetryEmitBufferMap.has(traceId)) {
-          eventList.logs.push(_logRecord);
+          eventList.logs.push(logRecord);
           this._totalTelemetryCount++;
         }
       }
     } else {
       // Root Log Path
-      if (this._ensureBufferCapacity()) {
+      if (this._canEnsureBufferCapacity()) {
         const uuid = this._generateUuid();
-        this._telemetryEmitBufferMap.set(uuid, _logRecord);
+        this._telemetryEmitBufferMap.set(uuid, logRecord);
         this._totalTelemetryCount++;
 
         const evictedTraceId = this._rootTelemetryQueue.enqueue(uuid);
@@ -146,7 +147,7 @@ export class TelemetryBufferStore {
    *
    * @returns `true` if capacity is available (or was freed by eviction), or `false` if the buffer is full and no item could be evicted.
    */
-  private _ensureBufferCapacity(): boolean {
+  private _canEnsureBufferCapacity(): boolean {
     if (this._totalTelemetryCount >= this._bufferLimit) {
       if (this._rootTelemetryQueue.size === 0) {
         this._shouldAddLimitLog = true;
@@ -194,6 +195,46 @@ export class TelemetryBufferStore {
       }
       this._telemetryEmitBufferMap.delete(key);
     }
+  }
+
+  /** The total count of all telemetry items (spans and logs) currently in the store. */
+  get totalTelemetryCount(): number {
+    return this._totalTelemetryCount;
+  }
+
+  /** Flag indicating whether a limit log entry should be added when buffer limits are exceeded. */
+  get shouldAddLimitLog(): boolean {
+    return this._shouldAddLimitLog;
+  }
+
+  /**
+   * Returns all buffered spans from completed root traces currently in the queue.
+   */
+  getBufferedSpans(): ReadableSpan[] {
+    const spans: ReadableSpan[] = [];
+    for (const key of this._rootTelemetryQueue.getValues()) {
+      const item = this._telemetryEmitBufferMap.get(key);
+      if (item instanceof EventList) {
+        spans.push(...item.spans);
+      }
+    }
+    return spans;
+  }
+
+  /**
+   * Returns all buffered log records from completed root traces and standalone root logs currently in the queue.
+   */
+  getBufferedLogs(): SdkLogRecord[] {
+    const logs: SdkLogRecord[] = [];
+    for (const key of this._rootTelemetryQueue.getValues()) {
+      const item = this._telemetryEmitBufferMap.get(key);
+      if (item instanceof EventList) {
+        logs.push(...item.logs);
+      } else if (item) {
+        logs.push(item);
+      }
+    }
+    return logs;
   }
 
   /** Clear all buffered telemetry and reset state. */
