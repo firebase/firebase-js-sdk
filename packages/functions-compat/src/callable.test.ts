@@ -28,6 +28,7 @@ async function expectError(
   promise: Promise<any>,
   code: FunctionsErrorCode,
   message: string,
+  httpStatus?: number,
   details?: any
 ): Promise<void> {
   let failed = false;
@@ -36,7 +37,13 @@ async function expectError(
   } catch (e) {
     failed = true;
     expect((e as FunctionsError).code).to.equal(code);
-    expect((e as FunctionsError).message).to.equal(message);
+    if (httpStatus != null) {
+      expect((e as FunctionsError).message).to.equal(
+        `${message} [${httpStatus}]`
+      );
+    } else {
+      expect((e as FunctionsError).message).to.equal(message);
+    }
     expect((e as FunctionsError).details).to.deep.equal(details);
   }
   if (!failed) {
@@ -114,19 +121,24 @@ describe('Firebase Functions > Call', () => {
   it('unhandled error', async () => {
     const functions = createTestService(app, region);
     const func = functions.httpsCallable('unhandledErrorTestv2');
-    await expectError(func(), 'functions/internal', 'internal');
+    await expectError(func(), 'functions/internal', 'internal', 500);
   });
 
   it('unknown error', async () => {
     const functions = createTestService(app, region);
     const func = functions.httpsCallable('unknownErrorTestv2');
-    await expectError(func(), 'functions/internal', 'internal');
+    await expectError(
+      func(),
+      'functions/internal',
+      'Unknown backend error status: THIS_IS_NOT_VALID',
+      400
+    );
   });
 
   it('explicit error', async () => {
     const functions = createTestService(app, region);
     const func = functions.httpsCallable('explicitErrorTestv2');
-    await expectError(func(), 'functions/out-of-range', 'explicit nope', {
+    await expectError(func(), 'functions/out-of-range', 'explicit nope', 400, {
       start: 10,
       end: 20,
       long: 30
@@ -136,7 +148,12 @@ describe('Firebase Functions > Call', () => {
   it('http error', async () => {
     const functions = createTestService(app, region);
     const func = functions.httpsCallable('httpErrorTestv2');
-    await expectError(func(), 'functions/invalid-argument', 'invalid-argument');
+    await expectError(
+      func(),
+      'functions/invalid-argument',
+      'invalid-argument',
+      400
+    );
   });
 
   it('timeout', async () => {
