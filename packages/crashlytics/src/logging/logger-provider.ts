@@ -130,6 +130,8 @@ export function createLoggerProvider(
     });
     const webVitals = new WebVitalsInstrumentation({
       enabled: false,
+      // TODO: Consider making the raw attribution flag configurable in the future. Some customers
+      // may want to disable this for performance or data reasons.
       includeRawAttribution: true
     });
 

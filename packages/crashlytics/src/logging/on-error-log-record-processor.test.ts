@@ -152,9 +152,15 @@ describe('OnErrorLogRecordProcessor', () => {
 
   it('should filter out web vital log records with rating === "good"', async () => {
     processor = new OnErrorLogRecordProcessor(mockExporter, 3);
-    const goodLog = createMockLog('good-vital', { 'browser.web_vital.rating': 'good' });
-    const needsImprovementLog = createMockLog('needs-improvement-vital', { 'browser.web_vital.rating': 'needs-improvement' });
-    const poorLog = createMockLog('poor-vital', { 'browser.web_vital.rating': 'poor' });
+    const goodLog = createMockLog('good-vital', {
+      'browser.web_vital.rating': 'good'
+    });
+    const needsImprovementLog = createMockLog('needs-improvement-vital', {
+      'browser.web_vital.rating': 'needs-improvement'
+    });
+    const poorLog = createMockLog('poor-vital', {
+      'browser.web_vital.rating': 'poor'
+    });
 
     processor.onEmit(goodLog);
     processor.onEmit(needsImprovementLog);
@@ -162,6 +168,9 @@ describe('OnErrorLogRecordProcessor', () => {
 
     processor.onErrorOccurred();
     await processor.forceFlush();
-    expect(mockExporter.exportedLogs).to.deep.equal([needsImprovementLog, poorLog]);
+    expect(mockExporter.exportedLogs).to.deep.equal([
+      needsImprovementLog,
+      poorLog
+    ]);
   });
 });
