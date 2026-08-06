@@ -1660,42 +1660,6 @@
   resolved "https://registry.npmjs.org/@eslint/js/-/js-8.57.1.tgz#de633db3ec2ef6a3c89e2f19038063e8a122e2c2"
   integrity sha512-d9zaMRSTIKDLhctzH12MtXvJKSSUhaHcjV+2Z+GK+EEY7XKpP5yR4x+N3TAcHTcu963nIr+TMcCb4DBCYX1z6Q==
 
-"@firebase/app@0.15.1":
-  version "0.15.1"
-  resolved "https://registry.npmjs.org/@firebase/app/-/app-0.15.1.tgz#2d5eb26abf388dc32aea5763eb26e0698d5401ca"
-  integrity sha512-iD9+Z5HcPo0Uop5f72/VYMeXwKucBhW7iFrISkJFvQ+lSZikTNgTz0FgAtaaTkAG0pEZSnCymA2Fu49n0rcufQ==
-  dependencies:
-    "@firebase/component" "0.7.3"
-    "@firebase/logger" "0.5.1"
-    "@firebase/util" "1.15.1"
-    idb "7.1.1"
-    tslib "^2.1.0"
-
-"@firebase/component@0.7.3":
-  version "0.7.3"
-  resolved "https://registry.npmjs.org/@firebase/component/-/component-0.7.3.tgz#900c9720f7e5abb2a23975f90f96366d62d085b9"
-  integrity sha512-wFofIaa2879ogD/WvkjYXJxRmfnL0scen6ORgaC3na1FNOR9ASIUANQdhqQcmWu/h77/pVHY7ch5flewa5Bcew==
-  dependencies:
-    "@firebase/util" "1.15.1"
-    tslib "^2.1.0"
-
-"@firebase/installations@0.6.22":
-  version "0.6.22"
-  resolved "https://registry.npmjs.org/@firebase/installations/-/installations-0.6.22.tgz#f5e7d2f51e58d22f8fd5c44901e56e3555d58837"
-  integrity sha512-ef6nn3GGQTdReCfotRMG77PJZu8CqEbiK5pEoBnM0gTu/Z9v0i/az2p3HABsa/1beQmmyh1OsOjf7P5+pgwdZw==
-  dependencies:
-    "@firebase/component" "0.7.3"
-    "@firebase/util" "1.15.1"
-    idb "7.1.1"
-    tslib "^2.1.0"
-
-"@firebase/util@1.15.1":
-  version "1.15.1"
-  resolved "https://registry.npmjs.org/@firebase/util/-/util-1.15.1.tgz#7efaf8903f50b601c06afbaffbeb48ed2ba7aab8"
-  integrity sha512-LUdM4Wg7YM9Pq/49nGYySJA0CSQEKnGffFzWV8+6gXN7mGxn+FL1IqvFbuZUtAQcfZgHYDwCE1wwlK7rB7gl2g==
-  dependencies:
-    tslib "^2.1.0"
-
 "@gar/promise-retry@^1.0.0", "@gar/promise-retry@^1.0.2":
   version "1.0.3"
   resolved "https://registry.npmjs.org/@gar/promise-retry/-/promise-retry-1.0.3.tgz#65e726428e794bc4453948e0a41e6de4215ce8b0"
