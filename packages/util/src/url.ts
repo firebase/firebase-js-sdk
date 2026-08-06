@@ -24,12 +24,14 @@ export function isCloudWorkstation(url: string): boolean {
   // In HTTP request builders, it's called with the protocol.
   // If called with protocol prefix, it's a valid URL, so we extract the hostname
   // If called without, we assume the string is the hostname.
+  // URL schemes and host names are both case-insensitive, so compare in lower case.
   try {
+    const lowerCaseUrl = url.toLowerCase();
     const host =
-      url.startsWith('http://') || url.startsWith('https://')
+      lowerCaseUrl.startsWith('http://') || lowerCaseUrl.startsWith('https://')
         ? new URL(url).hostname
         : url;
-    return host.endsWith('.cloudworkstations.dev');
+    return host.toLowerCase().endsWith('.cloudworkstations.dev');
   } catch {
     return false;
   }
