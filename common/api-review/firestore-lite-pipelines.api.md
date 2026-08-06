@@ -1262,6 +1262,8 @@ export class Pipeline {
     aggregate(options: AggregateStageOptions): Pipeline;
     define(aliasedExpression: AliasedExpression, ...additionalExpressions: AliasedExpression[]): Pipeline;
     define(options: DefineStageOptions): Pipeline;
+    // @beta
+    delete(): Pipeline;
     distinct(group: string | Selectable, ...additionalGroups: Array<string | Selectable>): Pipeline;
     distinct(options: DistinctStageOptions): Pipeline;
     findNearest(options: FindNearestStageOptions): Pipeline;
@@ -1291,6 +1293,10 @@ export class Pipeline {
     union(options: UnionStageOptions): Pipeline;
     unnest(selectable: Selectable, indexField?: string): Pipeline;
     unnest(options: UnnestStageOptions): Pipeline;
+    // @beta
+    update(): Pipeline;
+    // @beta
+    update(transformedFields: AliasedExpression[]): Pipeline;
     where(condition: BooleanExpression): Pipeline;
     where(options: WhereStageOptions): Pipeline;
 }
