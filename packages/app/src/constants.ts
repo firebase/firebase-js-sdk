@@ -76,7 +76,6 @@ export const PLATFORM_LOG_STRING = {
   [remoteConfigCompatName]: 'fire-rc-compat',
   [storageName]: 'fire-gcs',
   [storageCompatName]: 'fire-gcs-compat',
-  [crashlyticsName]: 'fire-crashlytics',
   [firestoreName]: 'fire-fst',
   [firestoreCompatName]: 'fire-fst-compat',
   [aiName]: 'fire-vertex',
