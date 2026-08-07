@@ -29,9 +29,6 @@ import {
   LOG_ATTR_KEY,
   SESSION_STORAGE_SESSION_ID_KEY
 } from './attributes-store';
-
-const MOCK_SESSION_ID = '00000000-0000-0000-0000-000000000000';
-
 describe('helpers', () => {
   let originalSessionStorage: Storage | undefined;
   let originalCrypto: Crypto | undefined;
@@ -108,6 +105,8 @@ describe('helpers', () => {
   });
 
   describe('startNewSession', () => {
+    const MOCK_SESSION_ID = '00000000-0000-0000-0000-000000000000';
+
     beforeEach(() => {
       const cryptoMock: Partial<Crypto> = {
         randomUUID: () => MOCK_SESSION_ID
@@ -166,6 +165,7 @@ describe('helpers', () => {
   });
 
   describe('generateUuid', () => {
+    const MOCK_UUID = '11111111-2222-3333-4444-555555555555';
     const UUID_REGEX =
       /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
 
@@ -177,13 +177,19 @@ describe('helpers', () => {
     });
 
     it('should generate a valid v4 UUID using crypto.randomUUID when crypto is available', () => {
-      if (global.crypto && typeof global.crypto.randomUUID === 'function') {
-        const randomUuidSpy = sinon.spy(global.crypto, 'randomUUID');
-        const uuid = generateUuid();
-        expect(uuid).to.match(UUID_REGEX);
-        expect(randomUuidSpy.called).to.be.true;
-        randomUuidSpy.restore();
-      }
+      const randomUUIDStub = sinon.stub().returns(MOCK_UUID);
+      const cryptoMock: Partial<Crypto> = {
+        randomUUID: randomUUIDStub
+      };
+
+      Object.defineProperty(global, 'crypto', {
+        value: cryptoMock,
+        writable: true
+      });
+
+      const uuid = generateUuid();
+      expect(uuid).to.equal(MOCK_UUID);
+      expect(randomUUIDStub.called).to.be.true;
     });
 
     it('should still generate a valid v4 UUID using Math.random when crypto is undefined', () => {
