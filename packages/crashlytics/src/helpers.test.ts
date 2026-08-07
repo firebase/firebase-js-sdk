@@ -16,10 +16,11 @@
  */
 
 import { expect } from 'chai';
+import * as sinon from 'sinon';
 import { LoggerProvider } from '@opentelemetry/sdk-logs';
 import { Logger, LogRecord } from '@opentelemetry/api-logs';
 import { isNode } from '@firebase/util';
-import { registerListeners, startNewSession } from './helpers';
+import { registerListeners, startNewSession, generateUuid } from './helpers';
 import { AUTO_CONSTANTS } from './auto-constants';
 import { CrashlyticsService } from './service';
 import { CrashlyticsInternal } from './types';
@@ -72,16 +73,8 @@ describe('helpers', () => {
         storage[key] = value;
       }
     };
-    const cryptoMock: Partial<Crypto> = {
-      randomUUID: () => MOCK_SESSION_ID
-    };
-
     Object.defineProperty(global, 'sessionStorage', {
       value: sessionStorageMock,
-      writable: true
-    });
-    Object.defineProperty(global, 'crypto', {
-      value: cryptoMock,
       writable: true
     });
 
@@ -105,10 +98,6 @@ describe('helpers', () => {
       value: originalSessionStorage,
       writable: true
     });
-    Object.defineProperty(global, 'crypto', {
-      value: originalCrypto,
-      writable: true
-    });
     if (!isNode()) {
       Object.defineProperty(document, 'visibilityState', {
         value: 'visible',
@@ -119,6 +108,23 @@ describe('helpers', () => {
   });
 
   describe('startNewSession', () => {
+    beforeEach(() => {
+      const cryptoMock: Partial<Crypto> = {
+        randomUUID: () => MOCK_SESSION_ID
+      };
+      Object.defineProperty(global, 'crypto', {
+        value: cryptoMock,
+        writable: true
+      });
+    });
+
+    afterEach(() => {
+      Object.defineProperty(global, 'crypto', {
+        value: originalCrypto,
+        writable: true
+      });
+    });
+
     it('should create a new session and log it with app version (unset)', () => {
       startNewSession(fakeCrashlytics);
 
@@ -156,6 +162,40 @@ describe('helpers', () => {
         [LOG_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID,
         [LOG_ATTR_KEY.APP_VERSION]: '9.9.9'
       });
+    });
+  });
+
+  describe('generateUuid', () => {
+    const UUID_REGEX =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
+
+    afterEach(() => {
+      Object.defineProperty(global, 'crypto', {
+        value: originalCrypto,
+        writable: true
+      });
+    });
+
+    it('should generate a valid v4 UUID using crypto.randomUUID when crypto is available', () => {
+      if (global.crypto && typeof global.crypto.randomUUID === 'function') {
+        const randomUuidSpy = sinon.spy(global.crypto, 'randomUUID');
+        const uuid = generateUuid();
+        expect(uuid).to.match(UUID_REGEX);
+        expect(randomUuidSpy.called).to.be.true;
+        randomUuidSpy.restore();
+      }
+    });
+
+    it('should still generate a valid v4 UUID using Math.random when crypto is undefined', () => {
+      Object.defineProperty(global, 'crypto', {
+        value: undefined,
+        writable: true
+      });
+      const randomSpy = sinon.spy(Math, 'random');
+      const uuid = generateUuid();
+      expect(uuid).to.match(UUID_REGEX);
+      expect(randomSpy.called).to.be.true;
+      randomSpy.restore();
     });
   });
 

@@ -20,6 +20,26 @@ import { Crashlytics } from './public-types';
 import { CrashlyticsInternal } from './types';
 
 /**
+ * Generates a unique UUID v4 format string.
+ * Uses Web Crypto API when available, otherwise falls back to a pseudo-random Math.random-based generator.
+ *
+ * @internal
+ */
+export function generateUuid(): string {
+  if (
+    typeof crypto !== 'undefined' &&
+    typeof crypto.randomUUID === 'function'
+  ) {
+    return crypto.randomUUID();
+  }
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
+
+/**
  * Generate a new session UUID. We record it in two places:
  * 1. The client browser's sessionStorage (via attributesStore)
  * 2. In Cloud Logging as its own log entry
@@ -28,12 +48,9 @@ export function startNewSession(crashlytics: Crashlytics): void {
   // Cast to CrashlyticsInternal to access internal loggerProvider
   const { loggerProvider, attributesStore } =
     crashlytics as CrashlyticsInternal;
-  if (
-    typeof sessionStorage !== 'undefined' &&
-    typeof crypto?.randomUUID === 'function'
-  ) {
+  if (typeof sessionStorage !== 'undefined') {
     try {
-      const sessionId = crypto.randomUUID();
+      const sessionId = generateUuid();
       attributesStore.setSessionId(sessionId);
 
       const customAttributes = attributesStore.getLogAttributes();
