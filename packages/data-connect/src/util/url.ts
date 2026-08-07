@@ -62,7 +62,7 @@ export function websocketUrlBuilder(
       'Incorrect type for port passed in!'
     );
   }
-  return `${baseUrl}/ws/google.firebase.dataconnect.v1.ConnectorStreamService.Connect/${projectId}/locations/${location}/services/${service}`;
+  return `${baseUrl}/${WEBSOCKET_PATH}.Connect/${projectId}/locations/${location}/services/${service}`;
 }
 
 export function addToken(url: string, apiKey?: string): string {
