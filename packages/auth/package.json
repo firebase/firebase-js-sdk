@@ -136,7 +136,7 @@
     "@rollup/plugin-strip": "3.0.4",
     "@types/express": "4.17.21",
     "@types/selenium-webdriver": "4.35.6",
-    "chromedriver": "^150.0.0",
+    "chromedriver": "150.0.3",
     "cookie-store": "4.0.0-next.4",
     "rollup": "4.62.2",
     "rollup-plugin-sourcemaps": "0.6.3",
