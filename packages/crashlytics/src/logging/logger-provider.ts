@@ -23,6 +23,7 @@ import {
 import { registerInstrumentations } from '@opentelemetry/instrumentation';
 import { NavigationTimingInstrumentation } from '@opentelemetry/browser-instrumentation/experimental/navigation-timing';
 import { UserActionInstrumentation } from '@opentelemetry/browser-instrumentation/experimental/user-action';
+import { WebVitalsInstrumentation } from '@opentelemetry/browser-instrumentation/experimental/web-vitals';
 import { ATTR_SERVICE_NAME } from '@opentelemetry/semantic-conventions';
 import { resourceFromAttributes } from '@opentelemetry/resources';
 import { JsonLogsSerializer } from '@opentelemetry/otlp-transformer';
@@ -127,6 +128,12 @@ export function createLoggerProvider(
     const navigationTiming = new NavigationTimingInstrumentation({
       enabled: false
     });
+    const webVitals = new WebVitalsInstrumentation({
+      enabled: false,
+      // TODO: Consider making the raw attribution flag configurable in the future. Some customers
+      // may want to disable this for performance or data reasons.
+      includeRawAttribution: true
+    });
 
     if (unregisterInstrumentations) {
       unregisterInstrumentations();
@@ -136,6 +143,7 @@ export function createLoggerProvider(
       loggerProvider,
       instrumentations: [
         navigationTiming,
+        webVitals,
         new UserActionInstrumentation({
           autoCapturedActions: ['click']
         })

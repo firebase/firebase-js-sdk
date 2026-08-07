@@ -37,6 +37,9 @@ export class OnErrorLogRecordProcessor extends BatchLogRecordProcessor {
   }
 
   override onEmit(logRecord: SdkLogRecord): void {
+    if (logRecord.attributes?.['browser.web_vital.rating'] === 'good') {
+      return;
+    }
     this._buffer.push(logRecord);
     if (this._buffer.length > this._maxBufferSize) {
       // TODO: shift() is O(n), use a fixed size circular buffer instead

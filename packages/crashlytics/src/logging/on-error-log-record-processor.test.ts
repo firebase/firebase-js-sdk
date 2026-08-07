@@ -24,6 +24,7 @@ import {
 } from '@opentelemetry/sdk-logs';
 import { resourceFromAttributes } from '@opentelemetry/resources';
 import { OnErrorLogRecordProcessor } from './on-error-log-record-processor';
+import { LogAttributes } from '@opentelemetry/api-logs';
 
 class MockLogRecordExporter implements LogRecordExporter {
   exportedLogs: ReadableLogRecord[] = [];
@@ -47,6 +48,18 @@ class MockLogRecordExporter implements LogRecordExporter {
   }
 }
 
+function createMockLog(
+  body: string,
+  attributes: LogAttributes = {},
+  resource = resourceFromAttributes({})
+): SdkLogRecord {
+  return {
+    body,
+    attributes,
+    resource
+  } as unknown as SdkLogRecord;
+}
+
 describe('OnErrorLogRecordProcessor', () => {
   let mockExporter: MockLogRecordExporter;
   let processor: OnErrorLogRecordProcessor;
@@ -57,19 +70,9 @@ describe('OnErrorLogRecordProcessor', () => {
   beforeEach(() => {
     mockExporter = new MockLogRecordExporter();
     processor = new OnErrorLogRecordProcessor(mockExporter, 2); // Max buffer size of 2 for testing limit
-    const emptyResource = resourceFromAttributes({});
-    mockLog1 = {
-      body: 'log1',
-      resource: emptyResource
-    } as unknown as SdkLogRecord;
-    mockLog2 = {
-      body: 'log2',
-      resource: emptyResource
-    } as unknown as SdkLogRecord;
-    mockLog3 = {
-      body: 'log3',
-      resource: emptyResource
-    } as unknown as SdkLogRecord;
+    mockLog1 = createMockLog('log1');
+    mockLog2 = createMockLog('log2');
+    mockLog3 = createMockLog('log3');
   });
 
   it('should buffer emitted log records and not export them before error occurs', async () => {
@@ -145,5 +148,29 @@ describe('OnErrorLogRecordProcessor', () => {
 
     processor.onErrorOccurred();
     expect(mockExporter.exportedLogs).to.be.empty;
+  });
+
+  it('should filter out web vital log records with rating === "good"', async () => {
+    processor = new OnErrorLogRecordProcessor(mockExporter, 3);
+    const goodLog = createMockLog('good-vital', {
+      'browser.web_vital.rating': 'good'
+    });
+    const needsImprovementLog = createMockLog('needs-improvement-vital', {
+      'browser.web_vital.rating': 'needs-improvement'
+    });
+    const poorLog = createMockLog('poor-vital', {
+      'browser.web_vital.rating': 'poor'
+    });
+
+    processor.onEmit(goodLog);
+    processor.onEmit(needsImprovementLog);
+    processor.onEmit(poorLog);
+
+    processor.onErrorOccurred();
+    await processor.forceFlush();
+    expect(mockExporter.exportedLogs).to.deep.equal([
+      needsImprovementLog,
+      poorLog
+    ]);
   });
 });
