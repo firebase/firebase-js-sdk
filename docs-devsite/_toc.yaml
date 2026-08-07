@@ -122,22 +122,6 @@ toc:
     path: /docs/reference/js/ai.hybridparams.md
   - title: ImageConfig
     path: /docs/reference/js/ai.imageconfig.md
-  - title: ImagenGCSImage
-    path: /docs/reference/js/ai.imagengcsimage.md
-  - title: ImagenGenerationConfig
-    path: /docs/reference/js/ai.imagengenerationconfig.md
-  - title: ImagenGenerationResponse
-    path: /docs/reference/js/ai.imagengenerationresponse.md
-  - title: ImagenImageFormat
-    path: /docs/reference/js/ai.imagenimageformat.md
-  - title: ImagenInlineImage
-    path: /docs/reference/js/ai.imageninlineimage.md
-  - title: ImagenModel
-    path: /docs/reference/js/ai.imagenmodel.md
-  - title: ImagenModelParams
-    path: /docs/reference/js/ai.imagenmodelparams.md
-  - title: ImagenSafetySettings
-    path: /docs/reference/js/ai.imagensafetysettings.md
   - title: InlineDataPart
     path: /docs/reference/js/ai.inlinedatapart.md
   - title: IntegerSchema
@@ -246,8 +230,6 @@ toc:
     path: /docs/reference/js/ai.templatefunctiondeclarationstool.md
   - title: TemplateGenerativeModel
     path: /docs/reference/js/ai.templategenerativemodel.md
-  - title: TemplateImagenModel
-    path: /docs/reference/js/ai.templateimagenmodel.md
   - title: TemplateToolConfig
     path: /docs/reference/js/ai.templatetoolconfig.md
   - title: TextPart
