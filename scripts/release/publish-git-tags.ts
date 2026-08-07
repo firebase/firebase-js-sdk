@@ -33,13 +33,18 @@ async function pushReleaseTagsToGithub() {
   let { stdout: currentBranch } = await exec(`git rev-parse --abbrev-ref HEAD`);
   currentBranch = currentBranch.trim();
 
-  if (!process.env.GITHUB_TOKEN) {
+  const token = process.env.GITHUB_TOKEN;
+  if (!token) {
     console.error('Unable to find GITHUB_TOKEN env variable.');
     process.exit(1);
   }
 
+  const authHeader = Buffer.from(`x-access-token:${token}`).toString('base64');
+
   await exec(
-    `git -c http.extraHeader="Authorization: Bearer ${process.env.GITHUB_TOKEN}"` +
+    'git -c http.extraHeader="Authorization: Basic ' +
+      authHeader +
+      '"' +
       ` push origin ${currentBranch} ${tags.join(' ')} --no-verify`,
     {
       cwd: root
