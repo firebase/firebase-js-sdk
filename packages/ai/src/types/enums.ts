@@ -543,3 +543,24 @@ export const ThinkingLevel = {
  * @public
  */
 export type ThinkingLevel = (typeof ThinkingLevel)[keyof typeof ThinkingLevel];
+
+/**
+ * Media resolution levels for image and video inputs.
+ *
+ * @public
+ */
+export const MediaResolution = {
+  LOW: 'MEDIA_RESOLUTION_LOW',
+  MEDIUM: 'MEDIA_RESOLUTION_MEDIUM',
+  HIGH: 'MEDIA_RESOLUTION_HIGH',
+  // ULTRA_HIGH is currently internal only, but will be added later
+  ULTRA_HIGH: 'MEDIA_RESOLUTION_ULTRA_HIGH'
+} as const;
+
+/**
+ * Media resolution levels for image and video inputs.
+ *
+ * @public
+ */
+export type MediaResolution = (typeof MediaResolution)[keyof typeof MediaResolution];
+
