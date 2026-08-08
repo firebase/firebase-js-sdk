@@ -17,7 +17,10 @@ A `QueryDocumentSnapshot` offers the same API surface as a `DocumentSnapshot`<!-
 <b>Signature:</b>
 
 ```typescript
-export declare class QueryDocumentSnapshot<AppModelType = DocumentData, DbModelType extends DocumentData = DocumentData> extends DocumentSnapshot<AppModelType, DbModelType> 
+export declare class QueryDocumentSnapshot<
+  AppModelType = DocumentData,
+  DbModelType extends DocumentData = DocumentData
+> extends DocumentSnapshot<AppModelType, DbModelType> 
 ```
 <b>Extends:</b> [DocumentSnapshot](./firestore_lite.documentsnapshot.md#documentsnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt;
 

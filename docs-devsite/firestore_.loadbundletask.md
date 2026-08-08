@@ -17,7 +17,9 @@ The API is compatible with `Promise<LoadBundleTaskProgress>`<!-- -->.
 <b>Signature:</b>
 
 ```typescript
-export declare class LoadBundleTask implements PromiseLike<LoadBundleTaskProgress> 
+export declare class LoadBundleTask
+  implements PromiseLike<LoadBundleTaskProgress>
+
 ```
 <b>Implements:</b> PromiseLike&lt;[LoadBundleTaskProgress](./firestore_.loadbundletaskprogress.md#loadbundletaskprogress_interface)<!-- -->&gt;
 
@@ -36,7 +38,9 @@ Implements the `Promise<LoadBundleTaskProgress>.catch` interface.
 <b>Signature:</b>
 
 ```typescript
-catch<R>(onRejected: (a: Error) => R | PromiseLike<R>): Promise<R | LoadBundleTaskProgress>;
+catch<R>(
+    onRejected: (a: Error) => R | PromiseLike<R>
+  ): Promise<R | LoadBundleTaskProgress>;
 ```
 
 #### Parameters
@@ -56,7 +60,11 @@ Registers functions to listen to bundle loading progress events.
 <b>Signature:</b>
 
 ```typescript
-onProgress(next?: (progress: LoadBundleTaskProgress) => unknown, error?: (err: Error) => unknown, complete?: () => void): void;
+onProgress(
+    next?: (progress: LoadBundleTaskProgress) => unknown,
+    error?: (err: Error) => unknown,
+    complete?: () => void
+  ): void;
 ```
 
 #### Parameters
@@ -78,7 +86,10 @@ Implements the `Promise<LoadBundleTaskProgress>.then` interface.
 <b>Signature:</b>
 
 ```typescript
-then<T, R>(onFulfilled?: (a: LoadBundleTaskProgress) => T | PromiseLike<T>, onRejected?: (a: Error) => R | PromiseLike<R>): Promise<T | R>;
+then<T, R>(
+    onFulfilled?: (a: LoadBundleTaskProgress) => T | PromiseLike<T>,
+    onRejected?: (a: Error) => R | PromiseLike<R>
+  ): Promise<T | R>;
 ```
 
 #### Parameters
