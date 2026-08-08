@@ -125,7 +125,11 @@ export class ReCaptchaLoaderImpl implements ReCaptchaLoader {
 }
 
 function isHostLanguageValid(hl: string): boolean {
-  return hl.length <= 6 && /^\s*[a-zA-Z0-9\-]*\s*$/.test(hl);
+  // The character class keeps the value safe to interpolate into the reCAPTCHA
+  // script URL. The length limit is only a sanity bound and must be permissive
+  // enough for valid BCP-47 language tags such as `en-GB-oxendict`, which the
+  // previous limit of 6 characters incorrectly rejected (#8357).
+  return hl.length <= 30 && /^\s*[a-zA-Z0-9\-]*\s*$/.test(hl);
 }
 
 export class MockReCaptchaLoaderImpl implements ReCaptchaLoader {

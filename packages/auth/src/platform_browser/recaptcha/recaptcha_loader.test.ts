@@ -149,6 +149,14 @@ describe('platform_browser/recaptcha/recaptcha_loader', () => {
           'auth/argument-error'
         );
       });
+
+      it('accepts a long BCP-47 host language (regression #8357)', async () => {
+        // e.g. navigator.language === 'en-GB-oxendict'
+        const promise = loader.load(auth, 'en-GB-oxendict');
+        _window().grecaptcha = new MockReCaptcha(auth);
+        spoofJsLoad();
+        expect(await promise).to.eq(_window().grecaptcha);
+      });
     });
   });
 });
