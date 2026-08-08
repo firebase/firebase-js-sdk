@@ -426,10 +426,10 @@
     "url": "git+https://github.com/firebase/firebase-js-sdk.git"
   },
   "scripts": {
-    "build": "rollup -c && gulp cdn-type-module-path && yarn build:compat",
-    "build:internal": "rollup -c && gulp cdn-type-module-path-internal && yarn build:compat",
-    "build:compat": "rollup -c compat/rollup.config.js",
-    "dev": "rollup -c -w",
+    "build": "rollup -c --bundleConfigAsCjs && gulp cdn-type-module-path && yarn build:compat",
+    "build:internal": "rollup -c --bundleConfigAsCjs && gulp cdn-type-module-path-internal && yarn build:compat",
+    "build:compat": "rollup -c --bundleConfigAsCjs compat/rollup.config.js",
+    "dev": "rollup -c --bundleConfigAsCjs -w",
     "test": "echo 'No test suite for firebase wrapper'",
     "test:ci": "echo 'No test suite for firebase wrapper'",
     "trusted-type-check": "tsec -p tsconfig.json --noEmit"

@@ -41,8 +41,7 @@ describe('helpers', () => {
       return {
         emit: (logRecord: LogRecord) => {
           emittedLogs.push(logRecord);
-        },
-        enabled: () => true
+        }
       };
     },
     forceFlush: () => {
@@ -86,6 +85,7 @@ describe('helpers', () => {
         }
       },
       loggerProvider: fakeLoggerProvider,
+      logger: fakeLoggerProvider.getLogger('session-logger'),
       attributesStore: fakeAttributesStore
     };
   });

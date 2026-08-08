@@ -16,6 +16,7 @@
  */
 
 import { LoggerProvider } from '@opentelemetry/sdk-logs';
+import { Logger } from '@opentelemetry/api-logs';
 import { Crashlytics } from './public-types';
 import { ALREADY_LOGGED_FLAG } from './constants';
 import { AttributesStore } from './attributes-store';
@@ -27,6 +28,7 @@ import { AttributesStore } from './attributes-store';
  */
 export interface CrashlyticsInternal extends Crashlytics {
   loggerProvider: LoggerProvider;
+  logger: Logger;
   attributesStore: AttributesStore;
 }
 
