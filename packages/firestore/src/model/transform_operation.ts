@@ -23,7 +23,7 @@ import { arrayEquals } from '../util/misc';
 
 import { normalizeNumber } from './normalize';
 import { serverTimestamp } from './server_timestamps';
-import { isArray, isInteger, isNumber, valueEquals } from './values';
+import { isArray, isIntegerValue, isNumber, valueEquals } from './values';
 
 /** Used to represent a field transform on a mutation. */
 export class TransformOperation {
@@ -229,7 +229,7 @@ export function applyNumericIncrementTransformOperationToLocalView(
     previousValue
   )!;
   const sum = asNumber(baseValue) + asNumber(transform.operand);
-  if (isInteger(baseValue) && isInteger(transform.operand)) {
+  if (isIntegerValue(baseValue) && isIntegerValue(transform.operand)) {
     return toInteger(sum);
   } else {
     return toDouble(transform.serializer, sum);
@@ -247,7 +247,7 @@ export function applyNumericTransformOperationToLocalView(
   const prev = asNumber(previousValue);
   const oper = asNumber(operation.operand);
   const result = transform(prev, oper);
-  if (isInteger(previousValue) && isInteger(operation.operand)) {
+  if (isIntegerValue(previousValue) && isIntegerValue(operation.operand)) {
     return toInteger(result);
   } else {
     return toDouble(operation.serializer, result);

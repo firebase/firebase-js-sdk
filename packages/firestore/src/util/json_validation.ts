@@ -59,6 +59,7 @@ export type TSType<T extends JsonTypeDesc> = T extends 'object'
 export interface Property<T extends JsonTypeDesc> {
   value?: TSType<T>;
   typeString: JsonTypeDesc;
+  optional?: boolean;
 }
 
 /**
@@ -120,7 +121,11 @@ export function validateJSON<S extends JsonSchema>(
       const typeString = schema[key].typeString;
       const value: { value: unknown } | undefined =
         'value' in schema[key] ? { value: schema[key].value } : undefined;
+      const optional = schema[key].optional;
       if (!(key in json)) {
+        if (optional) {
+          continue;
+        }
         error = `JSON missing required field: '${key}'`;
         break;
       }

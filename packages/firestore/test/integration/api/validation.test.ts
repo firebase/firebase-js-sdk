@@ -856,6 +856,20 @@ apiDescribe('Validation:', persistence => {
       ).to.throw("Invalid query. You cannot use more than one '!=' filter.");
     });
 
+    validationIt(persistence, 'rejects invalid NaN filter', db => {
+      const coll = collection(db, 'test');
+      expect(() => query(coll, where('foo', '>', NaN))).to.throw(
+        "Invalid query. You can only perform '==' and '!=' comparisons on NaN."
+      );
+    });
+
+    validationIt(persistence, 'rejects invalid Null filter', db => {
+      const coll = collection(db, 'test');
+      expect(() => query(coll, where('foo', '>', null))).to.throw(
+        "Invalid query. You can only perform '==' and '!=' comparisons on Null."
+      );
+    });
+
     validationIt(persistence, 'with != and not-in filters fail', db => {
       expect(() =>
         query(
