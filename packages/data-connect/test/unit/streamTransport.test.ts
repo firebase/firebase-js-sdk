@@ -265,7 +265,8 @@ describe('AbstractDataConnectStreamTransport', () => {
       await promise;
 
       expect(sendMessageSpy).to.have.been.calledOnce;
-      expect(sendMessageSpy).to.have.been.calledAfter(getWithAuthStub);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect(sendMessageSpy).to.have.been.calledAfter(getWithAuthStub as any);
     });
   });
 
