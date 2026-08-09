@@ -202,6 +202,7 @@ export { AbstractUserDataWriter } from './lite-api/user_data_writer';
 export {
   AddPrefixToKeys,
   ChildUpdateFields,
+  ChildTypes,
   NestedUpdateFields,
   Primitive,
   UnionToIntersection
