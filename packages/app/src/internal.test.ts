@@ -209,5 +209,14 @@ describe('Internal API tests', () => {
     it('returns false for plain FirebaseOptions', () => {
       expect(_isFirebaseServerAppSettings({ apiKey: 'KEY' })).to.be.false;
     });
+    it('returns false for null and undefined', () => {
+      expect(_isFirebaseServerAppSettings(null as any)).to.be.false;
+      expect(_isFirebaseServerAppSettings(undefined as any)).to.be.false;
+    });
+    it('returns false for primitive values', () => {
+      expect(_isFirebaseServerAppSettings('string' as any)).to.be.false;
+      expect(_isFirebaseServerAppSettings(123 as any)).to.be.false;
+      expect(_isFirebaseServerAppSettings(true as any)).to.be.false;
+    });
   });
 });

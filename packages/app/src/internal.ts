@@ -176,6 +176,9 @@ export function _isFirebaseServerAppSettings(
     | FirebaseAppSettings
     | FirebaseServerAppSettings
 ): obj is FirebaseServerAppSettings {
+  if (typeof obj !== 'object' || obj === null) {
+    return false;
+  }
   if (_isFirebaseApp(obj)) {
     return false;
   }

@@ -38,10 +38,11 @@ import {
   signOut,
   updateCurrentUser,
   updateEmail,
-  updateProfile
+  updateProfile,
+  User
 } from '@firebase/auth';
 import { isBrowser, FirebaseError } from '@firebase/util';
-import { initializeServerApp, deleteApp } from '@firebase/app';
+import { initializeServerApp, deleteApp, FirebaseServerApp } from '@firebase/app';
 import { FetchProvider } from '../../../src/core/util/fetch_provider';
 
 import {
@@ -496,6 +497,26 @@ describe('Integration test: Auth FirebaseServerApp tests', () => {
     await deleteApp(serverApp);
   });
 
+  function waitForUser(
+    authInstance: Auth,
+    timeoutMs: number
+  ): Promise<User | null> {
+    return new Promise(resolve => {
+      const timer = setTimeout(() => {
+        unsubscribe();
+        resolve(authInstance.currentUser);
+      }, timeoutMs);
+
+      const unsubscribe = onAuthStateChanged(authInstance, user => {
+        if (user) {
+          clearTimeout(timer);
+          unsubscribe();
+          resolve(user);
+        }
+      });
+    });
+  }
+
   it('recovers from transient auth failure using customIdentifier', async () => {
     if (isBrowser()) {
       return;
@@ -505,55 +526,84 @@ describe('Integration test: Auth FirebaseServerApp tests', () => {
     const authIdToken = await userCred.user.getIdToken();
     const config = getAppConfig();
 
-    // 1. Intercept fetch to simulate a transient network failure (e.g. AbortError) on getAccountInfo
     const realFetch = FetchProvider.fetch();
     let shouldFail = true;
-    FetchProvider.initialize(async (input, init) => {
-      if (
-        shouldFail &&
-        typeof input === 'string' &&
-        input.includes('getAccountInfo')
-      ) {
-        throw new Error('AbortError: The operation was aborted');
+    let failedApp: FirebaseServerApp | undefined;
+    let cachedApp: FirebaseServerApp | undefined;
+    let recoveredApp: FirebaseServerApp | undefined;
+
+    try {
+      FetchProvider.initialize(async (input, init) => {
+        const url =
+          typeof input === 'string'
+            ? input
+            : input instanceof URL
+            ? input.toString()
+            : typeof (input as Request)?.url === 'string'
+            ? (input as Request).url
+            : '';
+
+        if (shouldFail && url.includes('getAccountInfo')) {
+          throw new Error('AbortError: The operation was aborted');
+        }
+        return realFetch(input, init);
+      });
+
+      // Attempt 1: Fails due to simulated transient error; currentUser becomes null.
+      // This call always exhausts the timeout — there's no "sign-in failed" event to
+      // resolve early on, only the absence of a "sign-in succeeded" one.
+      failedApp = initializeServerApp(config, { authIdToken });
+      const failedAuth = getTestInstanceForServerApp(failedApp);
+      const failedUser = await waitForUser(failedAuth, signInWaitDuration);
+      expect(failedUser).to.be.null;
+
+      // Restore normal network conditions
+      shouldFail = false;
+
+      // Attempt 2: Re-requesting with identical settings returns the poisoned cached instance
+      cachedApp = initializeServerApp(config, { authIdToken });
+      expect(cachedApp).to.equal(failedApp);
+      const cachedAuth = getTestInstanceForServerApp(cachedApp);
+      expect(cachedAuth.currentUser).to.be.null;
+
+      // Note: customIdentifier provides failure-agnostic instance partitioning (the SDK performs
+      // no error classification or automatic retry). Supplying a new customIdentifier forces a genuinely
+      // fresh FirebaseServerApp instance, enabling callers to retry auth initialization explicitly.
+      recoveredApp = initializeServerApp(config, {
+        authIdToken,
+        customIdentifier: 'retry-request-1'
+      });
+      expect(recoveredApp).to.not.equal(failedApp);
+      const recoveredAuth = getTestInstanceForServerApp(recoveredApp);
+      const recoveredUser = await waitForUser(
+        recoveredAuth,
+        signInWaitDuration
+      );
+
+      expect(recoveredUser).to.not.be.null;
+      expect(recoveredUser?.uid).to.equal(userCred.user.uid);
+    } finally {
+      // Teardown: always restore the global FetchProvider and clean up initialized apps.
+      // Note: deleteApp is called once per initializeServerApp call to decrement refCounts
+      // back to 0 (cachedApp bumped refCount to 2 on the shared instance).
+      // Cleanup errors are collected to prevent masking original assertion failures.
+      FetchProvider.initialize(realFetch);
+      const cleanupErrors: unknown[] = [];
+      if (failedApp) {
+        await deleteApp(failedApp).catch(e => cleanupErrors.push(e));
       }
-      return realFetch(input, init);
-    });
-
-    // Attempt 1: Fails due to simulated transient error; currentUser becomes null
-    const failedApp = initializeServerApp(config, { authIdToken });
-    const failedAuth = getTestInstanceForServerApp(failedApp);
-    await new Promise(resolve => setTimeout(resolve, signInWaitDuration));
-    expect(failedAuth.currentUser).to.be.null;
-
-    // Restore normal network conditions
-    shouldFail = false;
-
-    // Attempt 2: Re-requesting with identical settings returns the poisoned cached instance
-    const cachedApp = initializeServerApp(config, { authIdToken });
-    expect(cachedApp).to.equal(failedApp);
-    const cachedAuth = getTestInstanceForServerApp(cachedApp);
-    expect(cachedAuth.currentUser).to.be.null;
-
-    // Note: customIdentifier just changes which cache bucket the instance falls into —
-    // it doesn't know or care whether the previous attempt failed, or why. The SDK never
-    // inspects the failure; it's up to the caller to decide when to retry. Passing a new
-    // customIdentifier forces a fresh FirebaseServerApp instance (and a fresh sign-in
-    // attempt) regardless of what went wrong before. This test simulates a transient
-    // AbortError, but the same mechanism works the same way for any failure.
-    const recoveredApp = initializeServerApp(config, {
-      authIdToken,
-      customIdentifier: 'retry-request-1'
-    });
-    expect(recoveredApp).to.not.equal(failedApp);
-    const recoveredAuth = getTestInstanceForServerApp(recoveredApp);
-    await new Promise(resolve => setTimeout(resolve, signInWaitDuration));
-    expect(recoveredAuth.currentUser).to.not.be.null;
-    expect(recoveredAuth.currentUser?.uid).to.equal(userCred.user.uid);
-
-    // Teardown
-    FetchProvider.initialize(realFetch);
-    await deleteApp(failedApp);
-    await deleteApp(cachedApp);
-    await deleteApp(recoveredApp);
+      if (cachedApp) {
+        await deleteApp(cachedApp).catch(e => cleanupErrors.push(e));
+      }
+      if (recoveredApp) {
+        await deleteApp(recoveredApp).catch(e => cleanupErrors.push(e));
+      }
+      if (cleanupErrors.length > 0) {
+        console.warn(
+          'Cleanup errors in firebaseserverapp test:',
+          cleanupErrors
+        );
+      }
+    }
   });
 });
