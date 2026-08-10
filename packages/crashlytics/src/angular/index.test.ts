@@ -226,7 +226,7 @@ describe('setupNavigationTracking', () => {
 
   it('should register routePath in attributesStore on initialization and clear registration on destruction', async () => {
     await router.navigate(['/home']);
-    setupNavigationTracking(app, router, destroyRef);
+    setupNavigationTracking({ firebaseApp: app, router, destroyRef });
 
     const routePath =
       attributesStore.getLogAttributes()[LOG_ATTR_KEY.ROUTE_PATH];
@@ -243,7 +243,7 @@ describe('setupNavigationTracking', () => {
     await router.navigate(['/home']);
     const logViewBoundaryStub = stub(crashlytics, 'logViewBoundary');
 
-    setupNavigationTracking(app, router, destroyRef);
+    setupNavigationTracking({ firebaseApp: app, router, destroyRef });
 
     expect(logViewBoundaryStub).to.have.been.calledWith(
       fakeCrashlytics,
@@ -254,7 +254,7 @@ describe('setupNavigationTracking', () => {
   it('should not invoke logViewBoundary on initialization if the router is not set up yet', async () => {
     const logViewBoundaryStub = stub(crashlytics, 'logViewBoundary');
 
-    setupNavigationTracking(app, router, destroyRef);
+    setupNavigationTracking({ firebaseApp: app, router, destroyRef });
 
     expect(logViewBoundaryStub).to.not.have.been.called;
 
@@ -268,7 +268,7 @@ describe('setupNavigationTracking', () => {
 
   it('should invoke logViewBoundary with new route pattern if raw path changes', async () => {
     await router.navigate(['/users/123']);
-    setupNavigationTracking(app, router, destroyRef);
+    setupNavigationTracking({ firebaseApp: app, router, destroyRef });
 
     const logViewBoundaryStub = stub(crashlytics, 'logViewBoundary');
 
@@ -281,7 +281,7 @@ describe('setupNavigationTracking', () => {
 
   it('should not invoke logViewBoundary if raw path remains the same', async () => {
     await router.navigate(['/home']);
-    setupNavigationTracking(app, router, destroyRef);
+    setupNavigationTracking({ firebaseApp: app, router, destroyRef });
 
     const logViewBoundaryStub = stub(crashlytics, 'logViewBoundary');
 
@@ -292,12 +292,26 @@ describe('setupNavigationTracking', () => {
 
   it('should set routePath in attributesStore with new route pattern if raw path changes', async () => {
     await router.navigate(['/home']);
-    setupNavigationTracking(app, router, destroyRef);
+    setupNavigationTracking({ firebaseApp: app, router, destroyRef });
 
     await router.navigate(['/about']);
 
     const routePath =
       attributesStore.getLogAttributes()[LOG_ATTR_KEY.ROUTE_PATH];
     expect(routePath).to.equal('/about');
+  });
+
+  it('should pass crashlyticsOptions to getCrashlytics', () => {
+    const getCrashlyticsStub = crashlytics.getCrashlytics as sinon.SinonStub;
+    const crashlyticsOptions = { appVersion: '2.0.0' };
+
+    setupNavigationTracking({
+      firebaseApp: app,
+      router,
+      destroyRef,
+      crashlyticsOptions
+    });
+
+    expect(getCrashlyticsStub).to.have.been.calledWith(app, crashlyticsOptions);
   });
 });
