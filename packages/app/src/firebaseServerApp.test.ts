@@ -214,4 +214,20 @@ describe('FirebaseServerApp', () => {
     }
     expect(encounteredError).to.be.false;
   });
+
+  it('preserves customIdentifier in settings', () => {
+    const options = { apiKey: 'APIKEY' };
+    const serverAppSettings: FirebaseServerAppSettings = {
+      automaticDataCollectionEnabled: false,
+      releaseOnDeref: options,
+      customIdentifier: 'test-custom-id'
+    };
+    const app = new FirebaseServerAppImpl(
+      options,
+      serverAppSettings,
+      'testName',
+      new ComponentContainer('test')
+    );
+    expect(app.settings.customIdentifier).to.equal('test-custom-id');
+  });
 });

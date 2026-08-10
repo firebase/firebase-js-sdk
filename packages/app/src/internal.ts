@@ -170,7 +170,11 @@ export function _isFirebaseApp(
  * @internal
  */
 export function _isFirebaseServerAppSettings(
-  obj: FirebaseApp | FirebaseOptions | FirebaseAppSettings
+  obj:
+    | FirebaseApp
+    | FirebaseOptions
+    | FirebaseAppSettings
+    | FirebaseServerAppSettings
 ): obj is FirebaseServerAppSettings {
   if (_isFirebaseApp(obj)) {
     return false;
@@ -179,7 +183,8 @@ export function _isFirebaseServerAppSettings(
     'authIdToken' in obj ||
     'appCheckToken' in obj ||
     'releaseOnDeref' in obj ||
-    'automaticDataCollectionEnabled' in obj
+    'automaticDataCollectionEnabled' in obj ||
+    'customIdentifier' in obj
   );
 }
 

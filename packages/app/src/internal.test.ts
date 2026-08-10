@@ -29,7 +29,8 @@ import {
   _clearComponents,
   _getProvider,
   _removeServiceInstance,
-  _isFirebaseServerApp
+  _isFirebaseServerApp,
+  _isFirebaseServerAppSettings
 } from './internal';
 import { logger } from './logger';
 import { isBrowser } from '@firebase/util';
@@ -182,6 +183,31 @@ describe('Internal API tests', () => {
     it('undefined returns false', () => {
       let app: undefined;
       expect(_isFirebaseServerApp(app)).to.be.false;
+    });
+  });
+
+  describe('_isFirebaseServerAppSettings', () => {
+    it('returns true for object with customIdentifier', () => {
+      expect(_isFirebaseServerAppSettings({ customIdentifier: 'my-scope' })).to
+        .be.true;
+    });
+    it('returns true for object with other server app settings', () => {
+      expect(_isFirebaseServerAppSettings({ authIdToken: 'token' })).to.be.true;
+      expect(_isFirebaseServerAppSettings({ appCheckToken: 'token' })).to.be
+        .true;
+      expect(_isFirebaseServerAppSettings({ releaseOnDeref: {} })).to.be.true;
+      expect(
+        _isFirebaseServerAppSettings({
+          automaticDataCollectionEnabled: false
+        })
+      ).to.be.true;
+    });
+    it('returns false for standard FirebaseApp', () => {
+      const app = initializeApp({});
+      expect(_isFirebaseServerAppSettings(app)).to.be.false;
+    });
+    it('returns false for plain FirebaseOptions', () => {
+      expect(_isFirebaseServerAppSettings({ apiKey: 'KEY' })).to.be.false;
     });
   });
 });

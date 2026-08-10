@@ -396,6 +396,59 @@ describe('API tests', () => {
     expect((appTwo as FirebaseServerAppImpl).isDeleted).to.be.true;
   });
 
+  it('creates distinct FirebaseServerApps when customIdentifier differs', async () => {
+    if (isBrowser()) {
+      return;
+    }
+
+    const options = { apiKey: 'APIKEY' };
+    const appOne = initializeServerApp(options, {
+      customIdentifier: 'scope-a'
+    });
+    const appTwo = initializeServerApp(options, {
+      customIdentifier: 'scope-b'
+    });
+
+    expect(appOne).to.not.equal(null);
+    expect(appTwo).to.not.equal(null);
+    expect(appOne).to.not.equal(appTwo);
+    expect(appOne.settings.customIdentifier).to.equal('scope-a');
+    expect(appTwo.settings.customIdentifier).to.equal('scope-b');
+
+    await deleteApp(appOne);
+    await deleteApp(appTwo);
+    expect((appOne as FirebaseServerAppImpl).isDeleted).to.be.true;
+    expect((appTwo as FirebaseServerAppImpl).isDeleted).to.be.true;
+  });
+
+  it('returns the same FirebaseServerApp when customIdentifier matches and tracks refCount', async () => {
+    if (isBrowser()) {
+      return;
+    }
+
+    const options = { apiKey: 'APIKEY' };
+    const appOne = initializeServerApp(options, {
+      customIdentifier: 'scope-a'
+    });
+    expect((appOne as FirebaseServerAppImpl).refCount).to.equal(1);
+
+    const appTwo = initializeServerApp(options, {
+      customIdentifier: 'scope-a'
+    });
+    expect(appTwo).to.equal(appOne);
+    expect((appOne as FirebaseServerAppImpl).refCount).to.equal(2);
+    expect((appTwo as FirebaseServerAppImpl).refCount).to.equal(2);
+
+    await deleteApp(appOne);
+    expect((appOne as FirebaseServerAppImpl).refCount).to.equal(1);
+    expect((appTwo as FirebaseServerAppImpl).refCount).to.equal(1);
+    expect((appOne as FirebaseServerAppImpl).isDeleted).to.be.false;
+
+    await deleteApp(appTwo);
+    expect((appOne as FirebaseServerAppImpl).refCount).to.equal(0);
+    expect((appOne as FirebaseServerAppImpl).isDeleted).to.be.true;
+  });
+
   describe('getApp', () => {
     it('retrieves DEFAULT App', () => {
       const app = initializeApp({});

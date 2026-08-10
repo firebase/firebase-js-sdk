@@ -180,6 +180,17 @@ export interface FirebaseServerAppSettings extends Omit<
   'name'
 > {
   /**
+   * An optional custom identifier used to distinguish this `FirebaseServerApp`
+   * instance from others with identical options and tokens.
+   *
+   * By default, `initializeServerApp` caches and shares `FirebaseServerApp`
+   * instances based on a hash of the Firebase options, `authIdToken`, and `appCheckToken`.
+   * Providing a distinct `customIdentifier` (such as a request ID or UUID) isolates the
+   * instance to a specific execution context or enables clean retries after transient failures.
+   */
+  customIdentifier?: string;
+
+  /**
    * An optional Auth ID token used to resume a signed in user session from a client
    * runtime environment.
    *
