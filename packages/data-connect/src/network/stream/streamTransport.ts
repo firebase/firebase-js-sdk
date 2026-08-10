@@ -659,7 +659,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     if (this.isFirstStreamMessage) {
       headers['X-Client-Version'] = `web/${SDK_VERSION}`;
       if (this._appCheckToken) {
-        headers['X-Firebase-App-Check'] = this._appCheckToken;
+        headers['X-Firebase-AppCheck'] = this._appCheckToken;
       }
       preparedRequestBody.name = this._connectorResourcePath;
     }
