@@ -42,7 +42,11 @@ import {
   User
 } from '@firebase/auth';
 import { isBrowser, FirebaseError } from '@firebase/util';
-import { initializeServerApp, deleteApp, FirebaseServerApp } from '@firebase/app';
+import {
+  initializeServerApp,
+  deleteApp,
+  FirebaseServerApp
+} from '@firebase/app';
 import { FetchProvider } from '../../../src/core/util/fetch_provider';
 
 import {
@@ -538,10 +542,10 @@ describe('Integration test: Auth FirebaseServerApp tests', () => {
           typeof input === 'string'
             ? input
             : input instanceof URL
-            ? input.toString()
-            : typeof (input as Request)?.url === 'string'
-            ? (input as Request).url
-            : '';
+              ? input.toString()
+              : typeof (input as Request)?.url === 'string'
+                ? (input as Request).url
+                : '';
 
         if (shouldFail && url.includes('getAccountInfo')) {
           throw new Error('AbortError: The operation was aborted');
