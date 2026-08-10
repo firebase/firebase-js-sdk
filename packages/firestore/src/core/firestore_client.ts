@@ -563,14 +563,15 @@ export function firestoreClientRunAggregateQuery(
 
 export function firestoreClientExecutePipeline(
   client: FirestoreClient,
-  pipeline: StructuredPipeline
+  pipeline: StructuredPipeline,
+  options?: { atomic?: boolean }
 ): Promise<PipelineStreamElement[]> {
   const deferred = new Deferred<PipelineStreamElement[]>();
 
   client.asyncQueue.enqueueAndForget(async () => {
     try {
       const datastore = await getDatastore(client);
-      deferred.resolve(invokeExecutePipeline(datastore, pipeline));
+      deferred.resolve(invokeExecutePipeline(datastore, pipeline, options));
     } catch (e) {
       deferred.reject(e as Error);
     }
