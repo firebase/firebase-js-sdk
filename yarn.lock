@@ -5916,11 +5916,6 @@ colorette@^2.0.19:
   resolved "https://registry.npmjs.org/colorette/-/colorette-2.0.20.tgz#9eb793e6833067f7235902fcd3b09917a000a95a"
   integrity sha512-IfEDxwoWIjkeXL1eXcDiow4UbKjhLdq6/EuSVR9GMN7KVH3r9gQ83e73hsz1Nd1T3ijd5xv1wcWRYO+D6kCI2w==
 
-colors@1.4.0:
-  version "1.4.0"
-  resolved "https://registry.npmjs.org/colors/-/colors-1.4.0.tgz#c50491479d4c1bdaed2c9ced32cf7c7dc2360f78"
-  integrity sha512-a+UqTh4kgZg/SlGvfbzDHpgRu7AAQOmmqRHJnxhRZICKFUT91brVhNNt58CMWU9PsBbv3PDCZUHbVxuDiH2mtA==
-
 colors@~1.2.1:
   version "1.2.5"
   resolved "https://registry.npmjs.org/colors/-/colors-1.2.5.tgz#89c7ad9a374bc030df8013241f68136ed8835afc"
@@ -6265,17 +6260,6 @@ cosmiconfig@9.0.0:
     import-fresh "^3.3.0"
     js-yaml "^4.1.0"
     parse-json "^5.2.0"
-
-coveralls@3.1.1:
-  version "3.1.1"
-  resolved "https://registry.npmjs.org/coveralls/-/coveralls-3.1.1.tgz#f5d4431d8b5ae69c5079c8f8ca00d64ac77cf081"
-  integrity sha512-+dxnG2NHncSD1NrqbSM3dn/lE57O6Qf/koe9+I7c+wzkqRmEvcp0kgJdxKInzYzkICKkFMZsX3Vct3++tsF9ww==
-  dependencies:
-    js-yaml "^3.13.1"
-    lcov-parse "^1.0.0"
-    log-driver "^1.2.7"
-    minimist "^1.2.5"
-    request "^2.88.2"
 
 crc-32@^1.2.0:
   version "1.2.2"
@@ -10939,20 +10923,6 @@ karma-sourcemap-loader@0.4.0:
   dependencies:
     graceful-fs "^4.2.10"
 
-karma-spec-reporter@0.0.36:
-  version "0.0.36"
-  resolved "https://registry.npmjs.org/karma-spec-reporter/-/karma-spec-reporter-0.0.36.tgz#c54dc155dec2ded1f92ea68dbbdd67fcedbef350"
-  integrity sha512-11bvOl1x6ryKZph7kmbmMpbi8vsngEGxGOoeTlIcDaH3ab3j8aPJnZ+r+K/SS0sBSGy5VGkGYO2+hLct7hw/6w==
-  dependencies:
-    colors "1.4.0"
-
-karma-summary-reporter@3.1.1:
-  version "3.1.1"
-  resolved "https://registry.npmjs.org/karma-summary-reporter/-/karma-summary-reporter-3.1.1.tgz#53d31560a8196027a88c01ae9ac69029286a3da8"
-  integrity sha512-7MkR8aXBZh5e773SDyzgAQhFg1FsAb4xYi7HYIludpYCPRVS+JxF8Qjxnix7OVVMDArq+prXzVNn+2U5+h1U1w==
-  dependencies:
-    chalk "^4.0.0"
-
 karma-webkit-launcher@2.6.0:
   version "2.6.0"
   resolved "https://registry.npmjs.org/karma-webkit-launcher/-/karma-webkit-launcher-2.6.0.tgz#2e3ba096b69139e608d9ce6e89816a17f358b700"
@@ -11042,11 +11012,6 @@ lazystream@^1.0.0:
   integrity sha512-b94GiNHQNy6JNTrt5w6zNyffMrNkXZb3KTkCZJb2V1xaEGCk093vkZ2jk3tpaeP33/OiXC+WvK9AxUebnf5nbw==
   dependencies:
     readable-stream "^2.0.5"
-
-lcov-parse@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.npmjs.org/lcov-parse/-/lcov-parse-1.0.0.tgz#eb0d46b54111ebc561acb4c408ef9363bdc8f7e0"
-  integrity sha512-aprLII/vPzuQvYZnDRU78Fns9I2Ag3gi4Ipga/hxnVMCZC8DnR2nI7XBqrPoywGfxqIx/DgarGvDJZAD3YBTgQ==
 
 lcov-result-merger@3.3.0:
   version "3.3.0"
@@ -11469,11 +11434,6 @@ lodash@~4.17.15, lodash@~4.17.21:
   version "4.17.23"
   resolved "https://registry.npmjs.org/lodash/-/lodash-4.17.23.tgz#f113b0378386103be4f6893388c73d0bde7f2c5a"
   integrity sha512-LgVTMpQtIopCi79SJeDiP0TfWi5CNEc/L/aRdTh3yIvmZXTnheWpKjSZhnvMl8iXbC1tFg9gdHHDMLoV7CnG+w==
-
-log-driver@^1.2.7:
-  version "1.2.7"
-  resolved "https://registry.npmjs.org/log-driver/-/log-driver-1.2.7.tgz#63b95021f0702fedfa2c9bb0a24e7797d71871d8"
-  integrity sha512-U7KCmLdqsGHBLeWqYlFA0V0Sl6P08EE1ZrmA9cxjUE0WVqT9qnyVDPz1kzpFEP0jdJuFnasWIfSd7fsaNXkpbg==
 
 log-symbols@4.1.0, log-symbols@^4.0.0, log-symbols@^4.1.0:
   version "4.1.0"
@@ -14679,7 +14639,7 @@ replacestream@^4.0.3:
     object-assign "^4.0.1"
     readable-stream "^2.0.2"
 
-request@^2.88.0, request@^2.88.2:
+request@^2.88.0:
   version "2.88.2"
   resolved "https://registry.npmjs.org/request/-/request-2.88.2.tgz#d73c918731cb5a87da047e207234146f664d12b3"
   integrity sha512-MsvtOrfG9ZcrOwAW+Qi+F6HbD0CWXEh9ou77uOb7FM2WPhwT7smM833PzanhJLsgXjN89Ir6V2PczXNnMpwKhw==
@@ -14895,13 +14855,6 @@ ripemd160@^2.0.3:
   dependencies:
     hash-base "^3.1.2"
     inherits "^2.0.4"
-
-rollup-plugin-copy-assets@2.0.3:
-  version "2.0.3"
-  resolved "https://registry.npmjs.org/rollup-plugin-copy-assets/-/rollup-plugin-copy-assets-2.0.3.tgz#9a9098894c3ded16d2eee8c4108055e332b5f59f"
-  integrity sha512-ETShhQGb9SoiwcNrvb3BhUNSGR89Jao0+XxxfzzLW1YsUzx8+rMO4z9oqWWmo6OHUmfNQRvqRj0cAyPkS9lN9w==
-  dependencies:
-    fs-extra "^7.0.1"
 
 rollup-plugin-copy@3.5.0:
   version "3.5.0"
@@ -16745,11 +16698,6 @@ ts-essentials@10.0.4:
   version "10.0.4"
   resolved "https://registry.npmjs.org/ts-essentials/-/ts-essentials-10.0.4.tgz#db8381c2e44cddb3339a2286174c4763bc1dcedb"
   integrity sha512-lwYdz28+S4nicm+jFi6V58LaAIpxzhg9rLdgNC1VsdP/xiFBseGhF1M/shwCk6zMmwahBZdXcl34LVHrEang3A==
-
-ts-essentials@9.4.2:
-  version "9.4.2"
-  resolved "https://registry.npmjs.org/ts-essentials/-/ts-essentials-9.4.2.tgz#6d4bd23b46b61bf3e031816cc887e839eb62c33c"
-  integrity sha512-mB/cDhOvD7pg3YCLk2rOtejHjjdSi9in/IBYE13S+8WA5FBSraYf4V/ws55uvs0IvQ/l0wBOlXy5yBNZ9Bl8ZQ==
 
 ts-loader@9.6.2:
   version "9.6.2"
