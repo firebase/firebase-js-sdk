@@ -10,12 +10,14 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # ThenableReference interface
-A `Promise` that can also act as a `DatabaseReference` when returned by [push()](./database.md#push_c74661c)<!-- -->. The reference is available immediately and the `Promise` resolves as the write to the backend completes.
+A `Promise` that can also act as a `DatabaseReference` when returned by [push()](./database.md#push_196853e)<!-- -->. The reference is available immediately and the `Promise` resolves as the write to the backend completes.
 
 <b>Signature:</b>
 
 ```typescript
-export declare interface ThenableReference extends DatabaseReference, Pick<Promise<DatabaseReference>, 'then' | 'catch'> 
+export declare interface ThenableReference
+  extends DatabaseReference,
+    Pick<Promise<DatabaseReference>, 'then' | 'catch'> 
 ```
 <b>Extends:</b> [DatabaseReference](./database.databasereference.md#databasereference_interface)<!-- -->, Pick&lt;Promise&lt;[DatabaseReference](./database.databasereference.md#databasereference_interface)<!-- -->&gt;, 'then' \| 'catch'&gt;
 
