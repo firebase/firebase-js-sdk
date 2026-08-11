@@ -9,7 +9,7 @@ Crashlytics for **Next.js, React, Angular, React Router, and TanStack Router app
 
 Crashlytics for web apps uses Cloud Logging for telemetry storage and Cloud Storage for sourcemap storage under the hood, which are paid products with a generous free tier. Learn more about [Logging pricing](https://cloud.google.com/stackdriver/pricing) and [Storage pricing](https://cloud.google.com/storage/pricing).
 
-As a private preview customer, your experience is incredibly valuable to our team. Please submit bugs, API feedback, or feature requests directly to our team by emailing [crashlytics-web@google.com](mailto:crashlytics-web@google.com) or filling out this [feedback form](https://forms.gle/).
+As a private preview customer, your experience is incredibly valuable to our team. Please submit bugs, API feedback, or feature requests directly to our team by emailing [crashlytics-web@google.com](mailto:crashlytics-web@google.com) or filling out this [feedback form](https://forms.gle/Us8GM4YuYcYZyRNK9).
 
 ---
 
@@ -76,11 +76,14 @@ If you prefer configuring your project via the command line or are relying on a 
 1. Ensure that you have **Firebase CLI v15.19.1 or later** installed. Follow the instructions at [firebase.google.com/docs/cli](https://firebase.google.com/docs/cli) to set up or update the CLI.
 2. Ensure you have **Owner** or **Editor** permissions to your Firebase/Cloud project.
 3. Ensure your account has billing enabled (Crashlytics requires the Blaze plan). Learn more about [Logging pricing](https://cloud.google.com/stackdriver/pricing) and [Storage pricing](https://cloud.google.com/storage/pricing).
-4. Log in to the Firebase CLI and set your active project:
+4. Log in to the Firebase CLI, enable the experiment, and set your active project:
 
 ```bash
 # Log in to Firebase CLI
 firebase login
+
+# Enable the Crashlytics for Web experiment (only needs to be run once)
+firebase experiments:enable crashlyticsWeb
 
 # Set the active project for subsequent commands
 firebase use <YOUR_FIREBASE_PROJECT_ID>
