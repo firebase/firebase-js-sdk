@@ -77,7 +77,7 @@ async function getDiffData(): Promise<{
     `git diff --name-only ${baseRef}...${headRef}`,
     { cwd: root }
   );
-  const changedFiles = diff.split('\n');
+  const changedFiles = diff.trim().split('\n').filter(Boolean);
   let changesetFile = '';
   const changedPackages = new Set<string>();
   for (const filename of changedFiles) {

@@ -103,7 +103,7 @@ export async function getTestTasks(): Promise<TestTask[]> {
     'git diff --name-only origin/main...HEAD',
     { cwd: root }
   );
-  const changedFiles = diff.split('\n');
+  const changedFiles = diff.trim().split('\n').filter(Boolean);
   let testTasks: TestTask[] = [];
   for (const filename of changedFiles) {
     // Files that trigger full test suite.

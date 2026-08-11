@@ -51,7 +51,7 @@ async function deployIfNeeded() {
     'git diff --name-only origin/main...HEAD',
     { cwd: root }
   );
-  const changedFiles = diff.split('\n');
+  const changedFiles = diff.trim().split('\n').filter(Boolean);
   let flags: string[] = [];
   for (const group of projectConfigGroups) {
     if (changedFiles.includes(group.file)) {

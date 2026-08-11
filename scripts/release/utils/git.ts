@@ -42,5 +42,5 @@ export async function getCurrentSha() {
 export async function hasDiff() {
   const { stdout: diff } = await exec('git diff', { cwd: root });
   console.log(diff);
-  return !!diff;
+  return !!diff.trim();
 }

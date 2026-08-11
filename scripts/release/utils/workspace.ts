@@ -120,7 +120,7 @@ export async function updateWorkspaceVersions(
     const pkgJsons = mapPackagestoPkgJson(packages);
 
     pkgJsons.forEach((rawPkg, idx) => {
-      let pkg = { ...rawPkg };
+      let pkg = structuredClone(rawPkg);
       const pkgJsonPath = `${packages[idx]}/package.json`;
 
       Object.keys(newVersionObj).forEach(updatedPkg => {

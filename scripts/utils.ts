@@ -30,7 +30,7 @@ export async function getChangedFiles(): Promise<string[]> {
     'git diff --name-only origin/main...HEAD',
     { cwd: projectRoot }
   );
-  const changedFiles = diff.split('\n');
+  const changedFiles = diff.trim().split('\n').filter(Boolean);
 
   return changedFiles;
 }

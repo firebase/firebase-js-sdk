@@ -61,7 +61,7 @@ const format = async () => {
           `git diff --name-only --diff-filter=d ${baseSha}`,
           { cwd: root }
         );
-        changedFiles = diff.split('\n');
+        changedFiles = diff.trim().split('\n').filter(Boolean);
 
         if (changedFiles.length === 0) {
           console.log(chalk`{green No files changed since ${baseSha}.}`);
