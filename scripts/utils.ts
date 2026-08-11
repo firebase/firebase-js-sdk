@@ -16,7 +16,6 @@
  */
 
 import { dirname, resolve } from 'path';
-import simpleGit from 'simple-git';
 import { exec } from 'child-process-promise';
 import { readFile as _readFile } from 'fs';
 import { promisify } from 'util';
@@ -27,8 +26,10 @@ export const projectRoot = dirname(resolve(__dirname, '../package.json'));
 
 export async function getChangedFiles(): Promise<string[]> {
   console.log(projectRoot);
-  const git = simpleGit(projectRoot);
-  const diff = await git.diff(['--name-only', 'origin/main...HEAD']);
+  const { stdout: diff } = await exec(
+    'git diff --name-only origin/main...HEAD',
+    { cwd: projectRoot }
+  );
   const changedFiles = diff.split('\n');
 
   return changedFiles;

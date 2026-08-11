@@ -20,10 +20,8 @@ import { existsSync } from 'fs';
 import { readFile, writeFile } from 'fs/promises';
 import { exec } from 'child-process-promise';
 import chalk from 'chalk';
-import simpleGit from 'simple-git';
 
 const root = resolve(__dirname, '../..');
-const git = simpleGit(root);
 
 const baseRef = process.env.GITHUB_PULL_REQUEST_BASE_SHA || 'main';
 const headRef = process.env.GITHUB_PULL_REQUEST_HEAD_SHA || 'HEAD';
@@ -75,7 +73,10 @@ async function getDiffData(): Promise<{
   changedPackages: Set<string>;
   changesetFile: string;
 } | null> {
-  const diff = await git.diff(['--name-only', `${baseRef}...${headRef}`]);
+  const { stdout: diff } = await exec(
+    `git diff --name-only ${baseRef}...${headRef}`,
+    { cwd: root }
+  );
   const changedFiles = diff.split('\n');
   let changesetFile = '';
   const changedPackages = new Set<string>();

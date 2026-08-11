@@ -17,13 +17,11 @@
 
 import { resolve } from 'path';
 import chalk from 'chalk';
-import simpleGit from 'simple-git';
 import { exec } from 'child-process-promise';
 const firebaseTools = require('firebase-tools');
 
 const root = resolve(__dirname, '../..');
 const config = require(resolve(root, 'config/ci.config.json'));
-const git = simpleGit(root);
 
 interface DeployOptions {
   project: string;
@@ -49,7 +47,10 @@ const projectConfigGroups = [
  * test project if there have been any changes to them.
  */
 async function deployIfNeeded() {
-  const diff = await git.diff(['--name-only', 'origin/main...HEAD']);
+  const { stdout: diff } = await exec(
+    'git diff --name-only origin/main...HEAD',
+    { cwd: root }
+  );
   const changedFiles = diff.split('\n');
   let flags: string[] = [];
   for (const group of projectConfigGroups) {
