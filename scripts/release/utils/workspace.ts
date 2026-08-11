@@ -24,9 +24,9 @@ import { writeFile as _writeFile, existsSync, readFileSync } from 'fs';
 
 const writeFile = promisify(_writeFile);
 
-const {
-  workspaces: rawWorkspaces
-}: { workspaces: string[] } = require(`${root}/package.json`);
+const { workspaces: rawWorkspaces }: { workspaces: string[] } = require(
+  `${root}/package.json`
+);
 const workspaces = rawWorkspaces.map(workspace => `${root}/${workspace}`);
 
 export function mapWorkspaceToPackages(

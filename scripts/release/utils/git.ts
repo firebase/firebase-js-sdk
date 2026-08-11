@@ -34,7 +34,9 @@ export async function resetWorkingTree() {
 }
 
 export async function getCurrentSha() {
-  return (await exec('git rev-parse --short HEAD', { cwd: root })).stdout.trim();
+  return (
+    await exec('git rev-parse --short HEAD', { cwd: root })
+  ).stdout.trim();
 }
 
 export async function hasDiff() {
