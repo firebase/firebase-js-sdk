@@ -21,6 +21,7 @@ As a private preview customer, your experience is incredibly valuable to our tea
   - [Option 2: Using Firebase CLI](#option-2-using-firebase-cli)
 - [Step 2: Core SDK Installation & Initialization](#step-2-core-sdk-installation--initialization)
 - [Step 3: Framework-Specific Setup Guides](#step-3-framework-specific-setup-guides)
+- [Step 4: Force an Initial Crash](#step-4-force-an-initial-crash)
 - [Additional Configuration & References](#additional-configuration--references)
 
 ---
@@ -160,6 +161,27 @@ Select the guide matching your application framework:
 - 🛣️ **[React Router Setup Guide](src/react-router/README.md)**
 - 🌼 **[TanStack Router Setup Guide](src/tanstack/README.md)**
 - 🔺 **[Next.js Setup Guide](src/next/README.md)**
+
+---
+
+## Step 4: Force an Initial Crash
+
+To verify that your setup is working and that crashes are properly delivered to Firebase Crashlytics, you can force a test crash in your application.
+
+Add the following line anywhere in your application's codebase:
+
+```typescript
+throw new Error("Test Crash");
+```
+
+### Verify the Crash in the Console
+
+1. Run your application and trigger the crash.
+2. Open the [Firebase Console Crashlytics dashboard](https://console.firebase.google.com/u/0/project/_/crashlytics).
+3. Select your project to view the newly logged crash report.
+
+> [!NOTE]
+> It may take a few minutes for new crash reports to appear in the Firebase Crashlytics console.
 
 ---
 
