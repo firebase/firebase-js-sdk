@@ -67,7 +67,6 @@ Automatically report uncaught errors from server routes to Firebase Crashlytics 
 ```typescript
 // instrumentation.ts
 import { nextOnRequestError } from '@firebase/crashlytics';
-import './lib/firebase'; // Ensure Firebase App is initialized on the server
 
 export const onRequestError = nextOnRequestError();
 ```
