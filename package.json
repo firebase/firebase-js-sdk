@@ -60,6 +60,13 @@
     "integration/*",
     "repo-scripts/*"
   ],
+  "peerDependencies": {
+    "typescript": ">=4.7.0"
+  },
+  "peerDependenciesMeta": {
+    "typescript": {
+      "optional": true
+    },
   "devDependencies": {
     "@babel/core": "7.29.6",
     "@babel/plugin-transform-modules-commonjs": "7.26.3",
@@ -154,4 +161,4 @@
     "webpack": "5.104.1",
     "yargs": "17.7.2"
   }
-}
+  }}
