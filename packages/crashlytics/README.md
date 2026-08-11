@@ -168,7 +168,7 @@ Select the guide matching your application framework:
 
 To verify that your setup is working and that crashes are properly delivered to Firebase Crashlytics, you can force a test crash in your application.
 
-Add the following line anywhere in your application's codebase:
+To ensure the crash is triggered on demand (and doesn't block application startup or fail server-side builds), add the following line inside a user interaction handler (such as a button click handler or event listener) in your application:
 
 ```typescript
 throw new Error("Test Crash");
@@ -176,7 +176,7 @@ throw new Error("Test Crash");
 
 ### Verify the Crash in the Console
 
-1. Run your application and trigger the crash.
+1. Run your application and trigger the crash by performing the action (such as clicking the test button).
 2. Open the [Firebase Console Crashlytics dashboard](https://console.firebase.google.com/u/0/project/_/crashlytics).
 3. Select your project to view the newly logged crash report.
 
