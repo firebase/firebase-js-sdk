@@ -164,30 +164,35 @@ export class FirebaseErrorHandler implements ErrorHandler {
  *     },
  *     provideEnvironmentInitializer(() => {
  *       inject(ErrorHandler);
- *       setupNavigationTracking(
+ *       setupNavigationTracking({
  *         firebaseApp,
- *         inject(Router),
- *         inject(DestroyRef)
- *       );
+ *         router: inject(Router),
+ *         destroyRef: inject(DestroyRef)
+ *       });
  *     })
  *   ]
  * };
  * ```
  *
- * @param app - The {@link @firebase/app#FirebaseApp} instance to use.
+ * @param firebaseApp - The {@link @firebase/app#FirebaseApp} instance to use.
  * @param router - The Angular {@link @angular/router#Router} instance to subscribe to.
  * @param destroyRef - The {@link @angular/core#DestroyRef} instance to bind teardown logic to.
  * @param crashlyticsOptions - Optional. {@link CrashlyticsOptions} that configure the Crashlytics instance.
  *
  * @public
  */
-export function setupNavigationTracking(
-  app: FirebaseApp,
-  router: Router,
-  destroyRef: DestroyRef,
-  crashlyticsOptions?: CrashlyticsOptions
-): void {
-  const crashlytics = getCrashlytics(app, crashlyticsOptions);
+export function setupNavigationTracking({
+  firebaseApp,
+  router,
+  destroyRef,
+  crashlyticsOptions
+}: {
+  firebaseApp: FirebaseApp;
+  router: Router;
+  destroyRef: DestroyRef;
+  crashlyticsOptions?: CrashlyticsOptions;
+}): void {
+  const crashlytics = getCrashlytics(firebaseApp, crashlyticsOptions);
   const attributesStore = (crashlytics as CrashlyticsInternal).attributesStore;
 
   attributesStore.setRoutePathProvider(() => getSafeRoutePath(router));

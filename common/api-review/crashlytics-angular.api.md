@@ -32,7 +32,12 @@ export class FirebaseErrorHandler implements ErrorHandler {
     }
 
 // @public
-export function setupNavigationTracking(app: FirebaseApp, router: Router, destroyRef: DestroyRef, crashlyticsOptions?: CrashlyticsOptions): void;
+export function setupNavigationTracking({ firebaseApp, router, destroyRef, crashlyticsOptions }: {
+    firebaseApp: FirebaseApp;
+    router: Router;
+    destroyRef: DestroyRef;
+    crashlyticsOptions?: CrashlyticsOptions;
+}): void;
 
 
 // (No @packageDocumentation comment for this package)
