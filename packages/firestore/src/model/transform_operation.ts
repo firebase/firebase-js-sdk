@@ -263,6 +263,7 @@ export function applyNumericIncrementTransformOperationToLocalView(
         integerValue: sum.toString()
       };
     } else {
+      // Assume the operand is also an Int32Value, so return an Int32Value.
       return {
         mapValue: {
           fields: {
