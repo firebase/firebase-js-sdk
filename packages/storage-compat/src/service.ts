@@ -36,7 +36,10 @@ import { Compat, EmulatorMockTokenOptions } from '@firebase/util';
 export class StorageServiceCompat
   implements types.FirebaseStorage, Compat<FirebaseStorage>
 {
-  constructor(public app: FirebaseApp, readonly _delegate: FirebaseStorage) {}
+  constructor(
+    public app: FirebaseApp,
+    readonly _delegate: FirebaseStorage
+  ) {}
 
   get maxOperationRetryTime(): number {
     return this._delegate.maxOperationRetryTime;

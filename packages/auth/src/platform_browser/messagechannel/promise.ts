@@ -28,8 +28,7 @@ interface PromiseRejectedResult {
 }
 
 export type PromiseSettledResult<T> =
-  | PromiseFulfilledResult<T>
-  | PromiseRejectedResult;
+  PromiseFulfilledResult<T> | PromiseRejectedResult;
 
 /**
  * Shim for Promise.allSettled, note the slightly different format of `fulfilled` vs `status`.

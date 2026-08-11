@@ -330,7 +330,10 @@ apiDescribe('Database batch writes', persistence => {
   // only to web.
   apiDescribe('withConverter() support', persistence => {
     class Post {
-      constructor(readonly title: string, readonly author: string) {}
+      constructor(
+        readonly title: string,
+        readonly author: string
+      ) {}
       byline(): string {
         return this.title + ', by ' + this.author;
       }

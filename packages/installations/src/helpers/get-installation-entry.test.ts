@@ -175,12 +175,10 @@ describe('getInstallationEntry', () => {
   });
 
   it('returns the same FID on subsequent calls', async () => {
-    const { installationEntry: entry1 } = await getInstallationEntry(
-      fakeInstallations
-    );
-    const { installationEntry: entry2 } = await getInstallationEntry(
-      fakeInstallations
-    );
+    const { installationEntry: entry1 } =
+      await getInstallationEntry(fakeInstallations);
+    const { installationEntry: entry2 } =
+      await getInstallationEntry(fakeInstallations);
     expect(entry1.fid).to.equal(entry2.fid);
   });
 
@@ -217,9 +215,8 @@ describe('getInstallationEntry', () => {
     it('returns a new unregistered InstallationEntry if app is offline', async () => {
       stub(navigator, 'onLine').value(false);
 
-      const { installationEntry } = await getInstallationEntry(
-        fakeInstallations
-      );
+      const { installationEntry } =
+        await getInstallationEntry(fakeInstallations);
 
       expect(installationEntry).to.deep.equal({
         fid: FID,
@@ -237,12 +234,10 @@ describe('getInstallationEntry', () => {
     });
 
     it('returns a registrationPromise on subsequent calls before initial promise resolves', async () => {
-      const { registrationPromise: promise1 } = await getInstallationEntry(
-        fakeInstallations
-      );
-      const { registrationPromise: promise2 } = await getInstallationEntry(
-        fakeInstallations
-      );
+      const { registrationPromise: promise1 } =
+        await getInstallationEntry(fakeInstallations);
+      const { registrationPromise: promise2 } =
+        await getInstallationEntry(fakeInstallations);
 
       expect(createInstallationRequestSpy).to.be.calledOnce;
       expect(promise1).to.be.an.instanceOf(Promise);
@@ -250,17 +245,15 @@ describe('getInstallationEntry', () => {
     });
 
     it('does not return a registrationPromise on subsequent calls after initial promise resolves', async () => {
-      const { registrationPromise: promise1 } = await getInstallationEntry(
-        fakeInstallations
-      );
+      const { registrationPromise: promise1 } =
+        await getInstallationEntry(fakeInstallations);
       expect(promise1).to.be.an.instanceOf(Promise);
 
       clock.next(); // Finish registration request.
       await expect(promise1).to.be.fulfilled;
 
-      const { registrationPromise: promise2 } = await getInstallationEntry(
-        fakeInstallations
-      );
+      const { registrationPromise: promise2 } =
+        await getInstallationEntry(fakeInstallations);
       expect(promise2).to.be.undefined;
 
       expect(createInstallationRequestSpy).to.be.calledOnce;
@@ -270,8 +263,7 @@ describe('getInstallationEntry', () => {
       clock.restore();
       clock = useFakeTimers({
         now: 1_000_000,
-        shouldAdvanceTime:
-          true /* Needed to allow the createInstallation request to complete. */
+        shouldAdvanceTime: true /* Needed to allow the createInstallation request to complete. */
       });
 
       // FID generation fails.
@@ -318,9 +310,8 @@ describe('getInstallationEntry', () => {
     it('returns the same InstallationEntry if the app is offline', async () => {
       stub(navigator, 'onLine').value(false);
 
-      const { installationEntry } = await getInstallationEntry(
-        fakeInstallations
-      );
+      const { installationEntry } =
+        await getInstallationEntry(fakeInstallations);
 
       expect(installationEntry).to.deep.equal({
         fid: FID,
@@ -343,9 +334,8 @@ describe('getInstallationEntry', () => {
     it("returns the same InstallationEntry if the request hasn't timed out", async () => {
       clock.now = 1_001_000; // One second after the request was initiated.
 
-      const { installationEntry } = await getInstallationEntry(
-        fakeInstallations
-      );
+      const { installationEntry } =
+        await getInstallationEntry(fakeInstallations);
 
       expect(installationEntry).to.deep.equal({
         fid: FID,
@@ -359,8 +349,7 @@ describe('getInstallationEntry', () => {
       clock.restore();
       clock = useFakeTimers({
         now: 1_001_000 /* One second after the request was initiated. */,
-        shouldAdvanceTime:
-          true /* Needed to allow the createInstallation request to complete. */
+        shouldAdvanceTime: true /* Needed to allow the createInstallation request to complete. */
       });
 
       const installationEntryPromise = getInstallationEntry(fakeInstallations);
@@ -401,8 +390,7 @@ describe('getInstallationEntry', () => {
       clock.restore();
       clock = useFakeTimers({
         now: 1_001_000 /* One second after the request was initiated. */,
-        shouldAdvanceTime:
-          true /* Needed to allow the createInstallation request to complete. */
+        shouldAdvanceTime: true /* Needed to allow the createInstallation request to complete. */
       });
 
       const installationEntryPromise = getInstallationEntry(fakeInstallations);
@@ -434,9 +422,8 @@ describe('getInstallationEntry', () => {
     it('returns a new pending InstallationEntry and triggers createInstallation if the request had already timed out', async () => {
       clock.now = 1_015_000; // Fifteen seconds after the request was initiated.
 
-      const { installationEntry } = await getInstallationEntry(
-        fakeInstallations
-      );
+      const { installationEntry } =
+        await getInstallationEntry(fakeInstallations);
 
       expect(installationEntry).to.deep.equal({
         fid: FID,
@@ -450,9 +437,8 @@ describe('getInstallationEntry', () => {
       stub(navigator, 'onLine').value(false);
       clock.now = 1_015_000; // Fifteen seconds after the request was initiated.
 
-      const { installationEntry } = await getInstallationEntry(
-        fakeInstallations
-      );
+      const { installationEntry } =
+        await getInstallationEntry(fakeInstallations);
 
       expect(installationEntry).to.deep.equal({
         fid: FID,
@@ -474,9 +460,8 @@ describe('getInstallationEntry', () => {
     });
 
     it('returns the InstallationEntry from the database', async () => {
-      const { installationEntry } = await getInstallationEntry(
-        fakeInstallations
-      );
+      const { installationEntry } =
+        await getInstallationEntry(fakeInstallations);
 
       expect(installationEntry).to.deep.equal({
         fid: FID,
