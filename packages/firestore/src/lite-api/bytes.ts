@@ -28,7 +28,10 @@ export class Bytes {
   _byteString: ByteString;
 
   /** @hideconstructor */
-  constructor(byteString: ByteString, readonly subtype = 0) {
+  constructor(
+    byteString: ByteString,
+    readonly subtype = 0
+  ) {
     if (!Number.isInteger(subtype) || subtype < 0 || subtype > 255) {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,

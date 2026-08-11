@@ -21,7 +21,10 @@
  * @class RegexValue
  */
 export class RegexValue {
-  constructor(readonly pattern: string, readonly options: string) {}
+  constructor(
+    readonly pattern: string,
+    readonly options: string
+  ) {}
 
   /**
    * Returns true if this `RegexValue` is equal to the provided one.

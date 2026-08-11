@@ -98,7 +98,8 @@ describe('Count Tokens', () => {
           expect(response.totalBillableCharacters).to.be.undefined;
           expect(response.promptTokensDetails![0].tokenCount).to.equal(7);
         } else if (
-          testConfig.ai.backend.backendType === BackendType.VERTEX_AI
+          testConfig.ai.backend.backendType === BackendType.VERTEX_AI ||
+          testConfig.ai.backend.backendType === BackendType.AGENT_PLATFORM
         ) {
           expect(response.totalTokens).to.equal(6);
           expect(response.totalBillableCharacters).to.equal(16);
@@ -141,7 +142,8 @@ describe('Count Tokens', () => {
             tokenCount: expectedImageTokens
           });
         } else if (
-          testConfig.ai.backend.backendType === BackendType.VERTEX_AI
+          testConfig.ai.backend.backendType === BackendType.VERTEX_AI ||
+          testConfig.ai.backend.backendType === BackendType.AGENT_PLATFORM
         ) {
           expect(response.totalTokens).to.equal(expectedImageTokens);
           expect(response.totalBillableCharacters).to.be.undefined; // Incorrect behavior
@@ -190,7 +192,8 @@ describe('Count Tokens', () => {
             tokenCount: 5
           });
         } else if (
-          testConfig.ai.backend.backendType === BackendType.VERTEX_AI
+          testConfig.ai.backend.backendType === BackendType.VERTEX_AI ||
+          testConfig.ai.backend.backendType === BackendType.AGENT_PLATFORM
         ) {
           expect(response.totalTokens).to.be.undefined;
           expect(response.promptTokensDetails!.length).to.equal(1); // Note: Text modality details absent for Vertex AI with audio-only input.
@@ -255,7 +258,8 @@ describe('Count Tokens', () => {
             tokenCount: 5
           });
         } else if (
-          testConfig.ai.backend.backendType === BackendType.VERTEX_AI
+          testConfig.ai.backend.backendType === BackendType.VERTEX_AI ||
+          testConfig.ai.backend.backendType === BackendType.AGENT_PLATFORM
         ) {
           expect(response.totalTokens).to.equal(expectedImageTokenCount + 3);
           expect(textDetails).to.deep.equal({

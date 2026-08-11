@@ -55,7 +55,10 @@ export function getEmulatorUrl(): string | null {
   const host =
     getKarma()?.config?.authEmulatorHost ||
     (USE_EMULATOR ? EMULATOR_HOST : null);
-  return host ? `http://${host}` : null;
+  if (!host) {
+    return null;
+  }
+  return `http://${host.replace('localhost', '127.0.0.1')}`;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

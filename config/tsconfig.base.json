@@ -4,6 +4,7 @@
     "declaration": true,
     "importHelpers": true,
     "strict": true,
+    "skipLibCheck": true,
     "lib": [
       "dom",
       "es2020",

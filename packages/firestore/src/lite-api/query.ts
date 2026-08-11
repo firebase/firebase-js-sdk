@@ -365,8 +365,7 @@ export type QueryNonFilterConstraint =
  * {@link QueryFieldFilterConstraint} and {@link QueryCompositeFilterConstraint}.
  */
 export type QueryFilterConstraint =
-  | QueryFieldFilterConstraint
-  | QueryCompositeFilterConstraint;
+  QueryFieldFilterConstraint | QueryCompositeFilterConstraint;
 
 /**
  * Creates a new {@link QueryCompositeFilterConstraint} that is a disjunction of
