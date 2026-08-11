@@ -15,10 +15,28 @@
  * limitations under the License.
  */
 
+const fs = require('fs');
+const { execSync } = require('child_process');
 const karma = require('karma');
 const path = require('path');
 const webpackTestConfig = require('./webpack.test');
 const { argv } = require('yargs');
+
+function promptSync(question) {
+  if (!process.stdout.isTTY || process.env.CI) return false;
+  try {
+    const ans = execSync(
+      `node -e 'const rl = require("readline").createInterface({input: process.stdin, output: process.stderr}); rl.question(${JSON.stringify(question)}, a => { process.stdout.write(a); rl.close(); });'`,
+      { stdio: ['inherit', 'pipe', 'inherit'] }
+    )
+      .toString()
+      .trim()
+      .toLowerCase();
+    return ans === 'y' || ans === 'yes';
+  } catch (e) {
+    return false;
+  }
+}
 
 function determineBrowsers() {
   const supportedBrowsers = ['ChromeHeadless', 'WebkitHeadless', 'Firefox'];
@@ -37,6 +55,38 @@ function determineBrowsers() {
       );
       return [];
     } else {
+      if (validBrowsers.some(browser => browser.includes('Webkit'))) {
+        try {
+          const playwright = require('playwright');
+          const webkitPath = playwright.webkit.executablePath();
+          if (!fs.existsSync(webkitPath)) {
+            console.log(
+              `\n[Karma Config] Required Playwright WebKit binary not found at:\n  ${webkitPath}`
+            );
+            if (
+              promptSync(
+                '[Karma Config] Would you like to download and install Playwright WebKit (~70MB) now? (y/N) '
+              )
+            ) {
+              console.log(
+                `\n[Karma Config] Running 'npx playwright install webkit'...\n`
+              );
+              execSync('npx playwright install webkit', { stdio: 'inherit' });
+              console.log(
+                `[Karma Config] Playwright WebKit installation complete. Launching Karma...\n`
+              );
+            } else {
+              console.log(
+                `\n[Karma Config] Skipping Playwright WebKit installation. If tests fail to start, run 'npx playwright install webkit' manually.\n`
+              );
+            }
+          }
+        } catch (err) {
+          console.warn(
+            `\n[Karma Config] Warning: Could not verify or auto-install Playwright WebKit binary (${err.message}). If WebKit tests fail to start, try running 'npx playwright install webkit' manually.\n`
+          );
+        }
+      }
       return validBrowsers;
     }
   } else {

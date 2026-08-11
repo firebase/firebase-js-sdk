@@ -16,6 +16,7 @@
  */
 
 import { resolve } from 'path';
+import { readFileSync } from 'fs';
 import resolveModule from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
 import sourcemaps from 'rollup-plugin-sourcemaps';
@@ -24,10 +25,12 @@ import typescript from 'typescript';
 import { uglify } from 'rollup-plugin-uglify';
 import terser from '@rollup/plugin-terser';
 import json from '@rollup/plugin-json';
-import pkg from '../package.json';
-import compatPkg from './package.json';
-import appPkg from './app/package.json';
-import { emitModulePackageFile } from '../../../scripts/build/rollup_emit_module_package_file';
+import pkg from '../package.json' with { type: 'json' };
+import compatPkg from './package.json' with { type: 'json' };
+import appPkg from './app/package.json' with { type: 'json' };
+import { emitModulePackageFile } from '../../../scripts/build/rollup_emit_module_package_file.js';
+
+const __dirname = import.meta.dirname;
 
 const external = Object.keys(pkg.dependencies || {});
 const uglifyOptions = {
@@ -122,6 +125,7 @@ const appBuilds = [
       {
         file: resolve(__dirname, 'app', appPkg.main),
         format: 'cjs',
+        esModule: true,
         sourcemap: true
       },
       {
@@ -152,7 +156,9 @@ const componentBuilds = compatPkg.components
   // The "app" component is treated differently because it doesn't depend on itself.
   .filter(component => component !== 'app')
   .map(component => {
-    const pkg = require(`${__dirname}/${component}/package.json`);
+    const pkg = JSON.parse(
+      readFileSync(`${__dirname}/${component}/package.json`, 'utf-8')
+    );
     return [
       /**
        * Component ESM build
@@ -182,6 +188,7 @@ const componentBuilds = compatPkg.components
           {
             file: resolve(__dirname, component, pkg.main),
             format: 'cjs',
+            esModule: true,
             sourcemap: true
           },
           {
@@ -253,6 +260,7 @@ const completeBuilds = [
     output: {
       file: resolve(__dirname, compatPkg.main),
       format: 'cjs',
+      esModule: true,
       sourcemap: true
     },
     plugins: [...plugins, typescriptPlugin],
@@ -266,6 +274,7 @@ const completeBuilds = [
     output: {
       file: resolve(__dirname, compatPkg['react-native']),
       format: 'cjs',
+      esModule: true,
       sourcemap: true
     },
     plugins: [...plugins, typescriptPlugin],

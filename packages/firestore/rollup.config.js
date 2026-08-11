@@ -15,24 +15,23 @@
  * limitations under the License.
  */
 
-import { version as grpcVersion } from '@grpc/grpc-js/package.json';
+import grpcPkg from '@grpc/grpc-js/package.json' with { type: 'json' };
 import alias from '@rollup/plugin-alias';
 import json from '@rollup/plugin-json';
 import replace from 'rollup-plugin-replace';
+import sourcemaps from 'rollup-plugin-sourcemaps';
 import terser from '@rollup/plugin-terser';
 import dts from 'rollup-plugin-dts';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import tmp from 'tmp';
 import typescript from 'typescript';
 
-import { generateBuildTargetReplaceConfig } from '../../scripts/build/rollup_replace_build_target';
-import { replaceDeclareModule } from '../../scripts/build/rollup_replace_declare_module';
+import * as util from './rollup.shared.cjs';
 
-import pkg from './package.json';
-import tsconfig from './tsconfig.json';
+import { generateBuildTargetReplaceConfig } from '../../scripts/build/rollup_replace_build_target.js';
+import { replaceDeclareModule } from '../../scripts/build/rollup_replace_declare_module.js';
 
-const sourcemaps = require('rollup-plugin-sourcemaps');
-const util = require('./rollup.shared');
+import tsconfig from './tsconfig.json' with { type: 'json' };
 
 const nodePlugins = [
   typescriptPlugin({
@@ -44,7 +43,7 @@ const nodePlugins = [
   }),
   json({ preferConst: true }),
   replace({
-    '__GRPC_VERSION__': grpcVersion
+    '__GRPC_VERSION__': grpcPkg.version
   })
 ];
 
@@ -144,6 +143,7 @@ const allBuilds = [
       entryFileNames: '[name].cjs.js',
       chunkFileNames: 'common-[hash].node.cjs.js',
       format: 'cjs',
+      esModule: true,
       sourcemap: true
     },
     plugins: [
@@ -220,6 +220,7 @@ const allBuilds = [
         entryFileNames: '[name].cjs.js',
         chunkFileNames: 'common-[hash].cjs.js',
         format: 'cjs',
+        esModule: true,
         sourcemap: true
       }
     ],

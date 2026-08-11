@@ -1,5 +1,15 @@
 # @firebase/auth
 
+## 1.13.4
+
+### Patch Changes
+
+- [`8a9ad3a`](https://github.com/firebase/firebase-js-sdk/commit/8a9ad3a2fe49a292abf7b61970197a8ee6e3702c) [#10123](https://github.com/firebase/firebase-js-sdk/pull/10123) (fixes [#10041](https://github.com/firebase/firebase-js-sdk/issues/10041)) - Prevent null hydration / unexpected sign-out on pagehide or reload when using IndexedDB persistence.
+
+- Updated dependencies [[`736fa3f`](https://github.com/firebase/firebase-js-sdk/commit/736fa3fe798d6eafc9fe086d6bfbe9cfb49b8994)]:
+  - @firebase/util@1.15.2
+  - @firebase/component@0.7.4
+
 ## 1.13.3
 
 ### Patch Changes

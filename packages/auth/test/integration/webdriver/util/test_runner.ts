@@ -75,7 +75,10 @@ setTimeout(() => {
       });
 
       for (const { title, generator } of SUITES) {
-        describe(title, () => generator(DRIVER, browser));
+        describe(title, function () {
+          this.timeout(20000);
+          generator(DRIVER, browser);
+        });
       }
     });
   }

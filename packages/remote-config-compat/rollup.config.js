@@ -18,8 +18,8 @@
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
 import json from '@rollup/plugin-json';
-import pkg from './package.json';
-import { emitModulePackageFile } from '../../scripts/build/rollup_emit_module_package_file';
+import pkg from './package.json' with { type: 'json' };
+import { emitModulePackageFile } from '../../scripts/build/rollup_emit_module_package_file.js';
 
 const deps = Object.keys(
   Object.assign({}, pkg.peerDependencies, pkg.dependencies)
@@ -55,6 +55,7 @@ const cjsBuild = {
   output: {
     file: pkg.main,
     format: 'cjs',
+    esModule: true,
     sourcemap: true
   },
   external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),

@@ -1,5 +1,21 @@
 # @firebase/ai
 
+## 2.14.0
+
+### Minor Changes
+
+- [`7c5e6e5`](https://github.com/firebase/firebase-js-sdk/commit/7c5e6e5fa68da49d55333975f2f6abf4674c0cd4) [#10145](https://github.com/firebase/firebase-js-sdk/pull/10145) - Added support for text-to-speech capabilities (both single- and multi-speaker configurations) for non-Live API models (for example, Gemini TTS models).
+
+- [`178daf7`](https://github.com/firebase/firebase-js-sdk/commit/178daf75c03419156152766751ddbacbde2537a5) [#10184](https://github.com/firebase/firebase-js-sdk/pull/10184) - Deprecated `VertexAIBackend` in favor of `AgentPlatformBackend` to reflect the renaming of Vertex AI to Gemini Enterprise Agent Platform.
+
+  The only difference for `AgentPlatformBackend` is the default [location for accessing the model](https://firebase.google.com/docs/ai-logic/locations?api=vertex). The default location for `AgentPlatformBackend` is `global`, whereas the default location for `VertexAIBackend` is `us-central1`. To use `us-central1` with `AgentPlatformBackend`, specify `getAI(app, { backend: new AgentPlatformBackend('us-central1') })` when initializing the SDK. However, note that most new Gemini models do not support `us-central1`.
+
+### Patch Changes
+
+- Updated dependencies [[`736fa3f`](https://github.com/firebase/firebase-js-sdk/commit/736fa3fe798d6eafc9fe086d6bfbe9cfb49b8994)]:
+  - @firebase/util@1.15.2
+  - @firebase/component@0.7.4
+
 ## 2.13.1
 
 ### Patch Changes

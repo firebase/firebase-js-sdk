@@ -18,7 +18,7 @@
 const { resolve } = require('path');
 const { spawn } = require('child-process-promise');
 const chalk = require('chalk');
-const fs = require('mz/fs');
+const fs = require('fs');
 const semver = require('semver');
 
 // CONSTANTS

@@ -1,5 +1,23 @@
 ## Unreleased
 
+## 0.7.3
+
+### Patch Changes
+
+- [`79d7011`](https://github.com/firebase/firebase-js-sdk/commit/79d7011edfe43b793af2c19cee7855cb0d868c18) [#10221](https://github.com/firebase/firebase-js-sdk/pull/10221) - Align SQL Connect Stream Transport exponential backoff parameters with other platform SDKs. No need for public release note.
+
+- [`b0e23db`](https://github.com/firebase/firebase-js-sdk/commit/b0e23db212a3b1e4c88469bd0f4293d949107d95) [#10217](https://github.com/firebase/firebase-js-sdk/pull/10217) - Add grpc request header for platform name and sdk version to enable metrics collection in cloud monitoring.
+
+## 0.7.2
+
+### Patch Changes
+
+- [`1d24e5f`](https://github.com/firebase/firebase-js-sdk/commit/1d24e5f72df2ec6cf54faaca32eec8155eea46e1) [#10133](https://github.com/firebase/firebase-js-sdk/pull/10133) - Refactor data connect streaming tests and revert to 15 second idle timeout for streaming connections (doesn't need a public release note)
+
+- Updated dependencies [[`736fa3f`](https://github.com/firebase/firebase-js-sdk/commit/736fa3fe798d6eafc9fe086d6bfbe9cfb49b8994)]:
+  - @firebase/util@1.15.2
+  - @firebase/component@0.7.4
+
 ## 0.7.1
 
 ### Patch Changes

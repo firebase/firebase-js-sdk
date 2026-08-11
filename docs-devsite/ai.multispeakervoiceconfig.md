@@ -9,33 +9,33 @@ overwritten. Changes should be made in the source code at
 https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
-# SpeechConfig interface
+# MultiSpeakerVoiceConfig interface
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Configures speech synthesis.
+Configuration for multi-speaker setup.
 
 <b>Signature:</b>
 
 ```typescript
-export interface SpeechConfig 
+export interface MultiSpeakerVoiceConfig 
 ```
 
 ## Properties
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [voiceConfig](./ai.speechconfig.md#speechconfigvoiceconfig) | [VoiceConfig](./ai.voiceconfig.md#voiceconfig_interface) | <b><i>(Public Preview)</i></b> Configures the voice to be used in speech synthesis. |
+|  [speakerVoiceConfigs](./ai.multispeakervoiceconfig.md#multispeakervoiceconfigspeakervoiceconfigs) | [SpeakerVoiceConfig](./ai.speakervoiceconfig.md#speakervoiceconfig_interface)<!-- -->\[\] | <b><i>(Public Preview)</i></b> All the enabled speaker voices. |
 
-## SpeechConfig.voiceConfig
+## MultiSpeakerVoiceConfig.speakerVoiceConfigs
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Configures the voice to be used in speech synthesis.
+All the enabled speaker voices.
 
 <b>Signature:</b>
 
 ```typescript
-voiceConfig?: VoiceConfig;
+speakerVoiceConfigs: SpeakerVoiceConfig[];
 ```
