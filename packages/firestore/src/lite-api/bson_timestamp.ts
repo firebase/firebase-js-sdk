@@ -21,7 +21,10 @@
  * @class BsonTimestamp
  */
 export class BsonTimestamp {
-  constructor(readonly seconds: number, readonly increment: number) {
+  constructor(
+    readonly seconds: number,
+    readonly increment: number
+  ) {
     // Make sure 'seconds' and 'increment' are in the range of a 32-bit unsigned integer.
     if (seconds < 0 || seconds > 4294967295) {
       throw new Error(

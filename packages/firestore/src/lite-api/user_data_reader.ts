@@ -511,7 +511,10 @@ export class ServerTimestampFieldValueImpl extends FieldValue {
 }
 
 export class ArrayUnionFieldValueImpl extends FieldValue {
-  constructor(methodName: string, private readonly _elements: unknown[]) {
+  constructor(
+    methodName: string,
+    private readonly _elements: unknown[]
+  ) {
     super(methodName);
   }
 
@@ -521,8 +524,8 @@ export class ArrayUnionFieldValueImpl extends FieldValue {
       context,
       /*array=*/ true
     );
-    const parsedElements = this._elements.map(
-      element => parseData(element, parseContext)!
+    const parsedElements = this._elements.map(element =>
+      parseData(element, parseContext)!
     );
     const arrayUnion = new ArrayUnionTransformOperation(parsedElements);
     return new FieldTransform(context.path!, arrayUnion);
@@ -537,7 +540,10 @@ export class ArrayUnionFieldValueImpl extends FieldValue {
 }
 
 export class ArrayRemoveFieldValueImpl extends FieldValue {
-  constructor(methodName: string, private readonly _elements: unknown[]) {
+  constructor(
+    methodName: string,
+    private readonly _elements: unknown[]
+  ) {
     super(methodName);
   }
 
@@ -547,8 +553,8 @@ export class ArrayRemoveFieldValueImpl extends FieldValue {
       context,
       /*array=*/ true
     );
-    const parsedElements = this._elements.map(
-      element => parseData(element, parseContext)!
+    const parsedElements = this._elements.map(element =>
+      parseData(element, parseContext)!
     );
     const arrayUnion = new ArrayRemoveTransformOperation(parsedElements);
     return new FieldTransform(context.path!, arrayUnion);
@@ -563,7 +569,10 @@ export class ArrayRemoveFieldValueImpl extends FieldValue {
 }
 
 export class NumericIncrementFieldValueImpl extends FieldValue {
-  constructor(methodName: string, private readonly _operand: number) {
+  constructor(
+    methodName: string,
+    private readonly _operand: number
+  ) {
     super(methodName);
   }
 
@@ -585,7 +594,10 @@ export class NumericIncrementFieldValueImpl extends FieldValue {
 }
 
 export class NumericMinimumFieldValueImpl extends FieldValue {
-  constructor(methodName: string, private readonly _operand: number) {
+  constructor(
+    methodName: string,
+    private readonly _operand: number
+  ) {
     super(methodName);
   }
 
@@ -607,7 +619,10 @@ export class NumericMinimumFieldValueImpl extends FieldValue {
 }
 
 export class NumericMaximumFieldValueImpl extends FieldValue {
-  constructor(methodName: string, private readonly _operand: number) {
+  constructor(
+    methodName: string,
+    private readonly _operand: number
+  ) {
     super(methodName);
   }
 
