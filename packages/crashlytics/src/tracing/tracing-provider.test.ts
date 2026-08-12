@@ -89,7 +89,7 @@ describe('createTracingProvider', () => {
     const registerSpy = sinon.spy(WebTracerProvider.prototype, 'register');
 
     const mockCrashlyticsOptions = {
-      tracingUrl: 'http://localhost:4318'
+      endpointUrl: 'http://localhost:4318'
     } as CrashlyticsOptions;
 
     const { tracingProvider: provider } = createTracingProvider(
@@ -144,19 +144,17 @@ describe('createTracingProvider', () => {
     );
 
     const mockCrashlyticsOptions = {
-      endpointUrl: 'my-custom-endpoint.url',
-      tracingUrl: 'my-custom-tracing.url'
+      endpointUrl: 'my-custom-endpoint.url'
     } as CrashlyticsOptions;
 
     createTracingProvider(mockApp, mockCrashlyticsOptions, mockAttributesStore);
 
     expect(fetchInstrumentationSpy.called).to.be.true;
     const fetchConfig = fetchInstrumentationSpy.lastCall.args[0] as any;
-    expect(fetchConfig.ignoreUrls).to.be.an('array').with.lengthOf(2);
+    expect(fetchConfig.ignoreUrls).to.be.an('array').with.lengthOf(1);
 
     const fetchPatterns = fetchConfig.ignoreUrls.map((r: RegExp) => r.source);
     expect(fetchPatterns).to.include('my-custom-endpoint\\.url');
-    expect(fetchPatterns).to.include('my-custom-tracing\\.url');
 
     expect(fetchConfig.applyCustomAttributesOnSpan).to.be.a('function');
     fetchConfig.applyCustomAttributesOnSpan(mockSpan);
@@ -178,19 +176,17 @@ describe('createTracingProvider', () => {
     );
 
     const mockCrashlyticsOptions = {
-      endpointUrl: 'my-custom-endpoint.url',
-      tracingUrl: 'my-custom-tracing.url'
+      endpointUrl: 'my-custom-endpoint.url'
     } as CrashlyticsOptions;
 
     createTracingProvider(mockApp, mockCrashlyticsOptions, mockAttributesStore);
 
     expect(xhrInstrumentationSpy.called).to.be.true;
     const xhrConfig = xhrInstrumentationSpy.lastCall.args[0] as any;
-    expect(xhrConfig.ignoreUrls).to.be.an('array').with.lengthOf(2);
+    expect(xhrConfig.ignoreUrls).to.be.an('array').with.lengthOf(1);
 
     const xhrPatterns = xhrConfig.ignoreUrls.map((r: RegExp) => r.source);
     expect(xhrPatterns).to.include('my-custom-endpoint\\.url');
-    expect(xhrPatterns).to.include('my-custom-tracing\\.url');
 
     expect(xhrConfig.applyCustomAttributesOnSpan).to.be.a('function');
     xhrConfig.applyCustomAttributesOnSpan(mockSpan);

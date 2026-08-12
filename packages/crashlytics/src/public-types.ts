@@ -45,12 +45,6 @@ export interface CrashlyticsOptions {
   endpointUrl?: string;
 
   /**
-   * The URL for the endpoint to which Crashlytics traces should be sent, in the OpenTelemetry format.
-   * By default, data will be sent to Firebase.
-   */
-  tracingUrl?: string;
-
-  /**
    * The Google Cloud region where the Crashlytics data should be sent.
    *
    * By default, data will be sent to the "global" region.

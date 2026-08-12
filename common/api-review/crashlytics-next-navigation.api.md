@@ -24,7 +24,6 @@ export interface CrashlyticsOptions {
     customAttributes?: AnyValueMap;
     endpointUrl?: string;
     region?: string;
-    tracingUrl?: string;
 }
 
 

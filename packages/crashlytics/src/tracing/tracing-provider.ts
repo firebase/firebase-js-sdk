@@ -46,6 +46,7 @@ import { JsonTraceSerializer } from '@opentelemetry/otlp-transformer';
 import { FetchTransport } from '../fetch-transport';
 import {
   RESOURCE_ATTRIBUTE_KEYS,
+  DEFAULT_TELEMETRY_ENDPOINT,
   DEFAULT_TELEMETRY_REGION
 } from '../constants';
 import { CrashlyticsOptions } from '../public-types';
@@ -76,9 +77,8 @@ export function createTracingProvider(
   if (typeof window === 'undefined') {
     return { tracingProvider: trace.getTracerProvider() };
   }
-  // TODO: change to default endpoint once it exists
-  const endpointUrl = crashlyticsOptions.endpointUrl || 'http://localhost';
-  let tracingUrl = crashlyticsOptions.tracingUrl || 'http://localhost';
+  let endpointUrl =
+    crashlyticsOptions.endpointUrl || DEFAULT_TELEMETRY_ENDPOINT;
 
   const { projectId, appId, apiKey } = app.options;
   const region = crashlyticsOptions.region || DEFAULT_TELEMETRY_REGION;
@@ -91,13 +91,13 @@ export function createTracingProvider(
     [RESOURCE_ATTRIBUTE_KEYS.GCP_PROJECT_ID]: projectId
   });
 
-  if (tracingUrl.endsWith('/')) {
-    tracingUrl = tracingUrl.slice(0, -1);
+  if (endpointUrl.endsWith('/')) {
+    endpointUrl = endpointUrl.slice(0, -1);
   }
   let otlpEndpoint;
   let traceExporter;
-  if (tracingUrl === 'http://localhost:4318') {
-    otlpEndpoint = `${tracingUrl}/v1/projects/${projectId}/apps/${appId}/traces`;
+  if (endpointUrl === 'http://localhost:4318') {
+    otlpEndpoint = `${endpointUrl}/v1/projects/${projectId}/apps/${appId}/traces`;
     traceExporter = new OTLPStandardTraceExporter({
       url: otlpEndpoint,
       headers: {
@@ -106,7 +106,7 @@ export function createTracingProvider(
       }
     });
   } else {
-    otlpEndpoint = `${tracingUrl}/v1/projects/${projectId}/apps/${appId}/locations/${region}/traces`;
+    otlpEndpoint = `${endpointUrl}/v1/projects/${projectId}/apps/${appId}/locations/${region}/traces`;
     traceExporter = new OTLPTraceExporter(
       {
         url: otlpEndpoint,
@@ -146,20 +146,13 @@ export function createTracingProvider(
     /[.*+?^${}()|[\]\\]/g,
     '\\$&'
   );
-  const cleanedRegexTracingUrl = tracingUrl.replace(
-    /[.*+?^${}()|[\]\\]/g,
-    '\\$&'
-  );
 
   const applyCustomAttributesOnSpan = (span: Span): void => {
     span.setAttributes(attributesStore.getSpanAttributes());
   };
 
   const networkInstrumentationConfig = {
-    ignoreUrls: [
-      new RegExp(cleanedRegexTracingUrl),
-      new RegExp(cleanedRegexEndpointUrl)
-    ],
+    ignoreUrls: [new RegExp(cleanedRegexEndpointUrl)],
     semconvStabilityOptIn: 'http',
     applyCustomAttributesOnSpan
   };

@@ -26,7 +26,6 @@ export interface CrashlyticsOptions
 |  [customAttributes](./crashlytics_react.crashlyticsoptions.md#crashlyticsoptionscustomattributes) | AnyValueMap | Base set of custom attributes to send with automatic error collection. Key-value pairs defined here will be sent with all error logs. If custom attributes are also specified in <code>recordError()</code>, those values will take precedence over the base set defined here. |
 |  [endpointUrl](./crashlytics_react.crashlyticsoptions.md#crashlyticsoptionsendpointurl) | string | The URL for the endpoint to which Crashlytics data should be sent, in the OpenTelemetry format. By default, data will be sent to Firebase. |
 |  [region](./crashlytics_react.crashlyticsoptions.md#crashlyticsoptionsregion) | string | The Google Cloud region where the Crashlytics data should be sent.<!-- -->By default, data will be sent to the "global" region.<!-- -->Refer to https://cloud.google.com/logging/docs/regions for the list of available regions. |
-|  [tracingUrl](./crashlytics_react.crashlyticsoptions.md#crashlyticsoptionstracingurl) | string | The URL for the endpoint to which Crashlytics traces should be sent, in the OpenTelemetry format. By default, data will be sent to Firebase. |
 
 ## CrashlyticsOptions.appVersion
 
@@ -70,14 +69,4 @@ Refer to https://cloud.google.com/logging/docs/regions for the list of available
 
 ```typescript
 region?: string;
-```
-
-## CrashlyticsOptions.tracingUrl
-
-The URL for the endpoint to which Crashlytics traces should be sent, in the OpenTelemetry format. By default, data will be sent to Firebase.
-
-<b>Signature:</b>
-
-```typescript
-tracingUrl?: string;
 ```

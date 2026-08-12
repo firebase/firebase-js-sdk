@@ -179,14 +179,12 @@ describe('Top level API', () => {
       expect(
         getCrashlytics(app, {
           endpointUrl: 'http://endpoint1',
-          tracingUrl: 'http://trace-endpoint1',
           region: 'us-central1',
           appVersion: '1.2.3'
         })
       ).to.equal(
         getCrashlytics(app, {
           endpointUrl: 'http://endpoint1',
-          tracingUrl: 'http://trace-endpoint1',
           region: 'us-central1',
           appVersion: '1.2.3'
         })
@@ -194,7 +192,6 @@ describe('Top level API', () => {
       expect(() => {
         getCrashlytics(app, {
           endpointUrl: 'http://endpoint2',
-          tracingUrl: 'http://trace-endpoint1',
           region: 'us-central1',
           appVersion: '1.2.3'
         });
@@ -202,7 +199,6 @@ describe('Top level API', () => {
       expect(() => {
         getCrashlytics(app, {
           endpointUrl: 'http://endpoint1',
-          tracingUrl: 'http://trace-endpoint1',
           region: 'us-east1',
           appVersion: '1.2.3'
         });
@@ -210,17 +206,8 @@ describe('Top level API', () => {
       expect(() => {
         getCrashlytics(app, {
           endpointUrl: 'http://endpoint1',
-          tracingUrl: 'http://trace-endpoint1',
           region: 'us-central1',
           appVersion: '1.2.4'
-        });
-      }).to.throw('getCrashlytics() cannot be called with different options');
-      expect(() => {
-        getCrashlytics(app, {
-          endpointUrl: 'http://endpoint1',
-          tracingUrl: 'http://trace-endpoint2',
-          region: 'us-central1',
-          appVersion: '1.2.3'
         });
       }).to.throw('getCrashlytics() cannot be called with different options');
       expect(() => {
