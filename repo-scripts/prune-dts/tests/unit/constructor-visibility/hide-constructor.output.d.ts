@@ -18,3 +18,4 @@
 export class A {
   private constructor();
 }
+export {};
