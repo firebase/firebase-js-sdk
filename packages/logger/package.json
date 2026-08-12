@@ -27,6 +27,11 @@
     "test:all": "run-p --npm-path npm test:browser test:node",
     "test:browser": "karma start",
     "test:browser:debug": "karma start --browsers Chrome --auto-watch",
+    "test:vitest": "vitest run",
+    "test:vitest:browser": "vitest run --project=browser",
+    "test:vitest:browser:watch": "vitest --project=browser",
+    "test:vitest:node": "vitest run --project=node",
+    "test:vitest:node:watch": "vitest --project=node",
     "test:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha test/**/*.test.* --config ../../config/mocharc.node.js",
     "trusted-type-check": "tsec -p tsconfig.json --noEmit"
   },
