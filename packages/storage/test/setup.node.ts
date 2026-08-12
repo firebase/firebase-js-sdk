@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,14 @@
  * limitations under the License.
  */
 
-export { Component } from './src/component';
-export { ComponentContainer } from './src/component_container';
-export { Provider } from './src/provider';
-export { ComponentType } from './src/types';
-export type {
-  InstanceFactory,
-  InstantiationMode,
-  NameServiceMapping,
-  Name,
-  InstanceFactoryOptions
-} from './src/types';
+import { use } from 'chai';
+import chaiAsPromised from 'chai-as-promised';
+import sinonChai from 'sinon-chai';
+import '../src/index.node';
+
+use(chaiAsPromised);
+use(sinonChai);
+
+// Shim Mocha BDD hooks to Vitest equivalents
+(globalThis as any).before = (globalThis as any).beforeAll;
+(globalThis as any).after = (globalThis as any).afterAll;

@@ -40,8 +40,8 @@ import { Deferred } from '@firebase/util';
 
 use(chaiAsPromised);
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const PROJECT_CONFIG = require('../../../../config/project.json');
+// Use ESM import instead of require() for browser test compatibility (real browsers don't have require) also vitest fails with require()
+import PROJECT_CONFIG from '../../../../config/project.json';
 
 export const PROJECT_ID = PROJECT_CONFIG.projectId;
 export const STORAGE_BUCKET = PROJECT_CONFIG.storageBucket;
@@ -189,7 +189,12 @@ describe('FirebaseStorage Exp', () => {
     expect(listResult.prefixes.map(v => v.name)).to.have.members(['c']);
   });
 
-  it('can pause uploads without an error', async () => {
+  it('can pause uploads without an error', async function (this: any) {
+    // Guard this.timeout to avoid Vitest error:
+    // "TypeError: Cannot read properties of undefined (reading 'timeout')"
+    if (this && typeof this.timeout === 'function') {
+      this.timeout(20_000);
+    }
     const referenceA = ref(storage, 'public/exp-upload/a');
     const bytesToUpload = new ArrayBuffer(1024 * 1024);
     const task = uploadBytesResumable(referenceA, bytesToUpload);
@@ -215,5 +220,5 @@ describe('FirebaseStorage Exp', () => {
     await task;
     const bytes = await getBytes(referenceA);
     expect(bytes).to.deep.eq(bytesToUpload);
-  }).timeout(10_000);
+  });
 });
