@@ -31,7 +31,7 @@ export const enum InstantiationMode {
  * PRIVATE: A private component provides a set of private APIs that are used internally by other
  * Firebase SDKs. No service namespace is created in `firebase` namespace and customers have no way to get them.
  */
-export const enum ComponentType {
+export enum ComponentType {
   PUBLIC = 'PUBLIC',
   PRIVATE = 'PRIVATE',
   VERSION = 'VERSION'

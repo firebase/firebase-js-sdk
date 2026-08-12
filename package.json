@@ -87,6 +87,9 @@
     "@typescript-eslint/eslint-plugin": "7.18.0",
     "@typescript-eslint/eslint-plugin-tslint": "7.0.2",
     "@typescript-eslint/parser": "7.18.0",
+    "@vitest/browser": "4.1.10",
+    "@vitest/browser-playwright": "4.1.10",
+    "@vitest/coverage-v8": "4.1.10",
     "api-extractor-me": "0.1.2",
     "babel-loader": "8.4.1",
     "babel-plugin-istanbul": "7.0.1",
@@ -151,6 +154,7 @@
     "tslint": "6.1.3",
     "typedoc": "0.16.11",
     "typescript": "5.5.4",
+    "vitest": "4.1.10",
     "webpack": "5.104.1",
     "yargs": "17.7.2"
   }

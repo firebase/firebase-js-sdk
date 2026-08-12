@@ -70,10 +70,11 @@ import { LoadBundleTask } from './bundle';
 import { CredentialsProvider } from './credentials';
 import { FirestoreSettings, PersistenceSettings } from './settings';
 
-export {
-  connectFirestoreEmulator,
-  EmulatorMockTokenOptions
-} from '../lite-api/database';
+export { connectFirestoreEmulator } from '../lite-api/database';
+
+// Export as type to avoid Vitest error:
+// "SyntaxError: The requested module '/src/lite-api/database.ts' does not provide an export named 'EmulatorMockTokenOptions'"
+export type { EmulatorMockTokenOptions } from '../lite-api/database';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {

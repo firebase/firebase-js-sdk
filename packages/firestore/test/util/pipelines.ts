@@ -17,6 +17,10 @@
 
 import { getModularInstance } from '@firebase/util';
 
+// Import pipeline_impl to augment Firestore.prototype.pipeline to avoid Vitest error:
+// "TypeError: db.pipeline is not a function"
+import '../../src/api/pipeline_impl';
+
 import { ensureFirestoreConfigured, Firestore } from '../../src/api/database';
 import {
   PartialObserver,

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { AggregateType } from '../core/aggregate';
+import type { AggregateType } from '../core/aggregate';
 import { ObjectValue } from '../model/object_value';
 import { FieldPath as InternalFieldPath } from '../model/path';
 import {
@@ -28,7 +28,9 @@ import { average, count, sum } from './aggregate';
 import { DocumentData, Query } from './reference';
 import { AbstractUserDataWriter } from './user_data_writer';
 
-export { AggregateType };
+// Export as type to avoid Vitest error:
+// "SyntaxError: The requested module '/src/core/aggregate.ts' does not provide an export named 'AggregateType'"
+export type { AggregateType };
 
 /**
  * Represents an aggregation that can be performed by Firestore.

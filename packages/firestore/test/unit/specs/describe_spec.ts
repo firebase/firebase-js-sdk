@@ -191,23 +191,30 @@ export function specTest(
         const mode = usePersistence ? '(Persistence)' : '(Memory)';
         const queryMode = convertToPipeline ? '(Pipeline)' : '(Query)';
         const fullName = `${mode} ${queryMode} ${name}`;
-        const queuedTest = runner(fullName, async () => {
-          const spec = builder();
-          const start = Date.now();
-          await spec.runAsTest(
-            fullName,
-            tags,
-            usePersistence,
-            convertToPipeline
-          );
-          const end = Date.now();
-          if (tags.indexOf(BENCHMARK_TAG) >= 0) {
-            // eslint-disable-next-line no-console
-            console.log(`Runtime: ${end - start} ms.`);
-          }
-        });
+        // In Vitest runner() returns void, whereas in Mocha it returns a Test object.
+        // Pass timeout as 3rd parameter and use optional chaining to avoid Vitest error:
+        // "TypeError: Cannot read properties of undefined (reading 'timeout')"
+        const queuedTest = runner(
+          fullName,
+          async () => {
+            const spec = builder();
+            const start = Date.now();
+            await spec.runAsTest(
+              fullName,
+              tags,
+              usePersistence,
+              convertToPipeline
+            );
+            const end = Date.now();
+            if (tags.indexOf(BENCHMARK_TAG) >= 0) {
+              // eslint-disable-next-line no-console
+              console.log(`Runtime: ${end - start} ms.`);
+            }
+          },
+          timeout
+        );
 
-        if (timeout !== undefined) {
+        if (timeout !== undefined && queuedTest?.timeout) {
           queuedTest.timeout(timeout);
         }
       }

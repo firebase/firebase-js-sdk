@@ -16,10 +16,21 @@
  */
 
 import { Base64DecodeError } from '../util/base64_decode_error';
+import * as nodePlatform from './node/base64';
 
-// This file is only used under ts-node.
+// In Node CommonJS / ts-node, dynamic require is used to select the platform implementation.
+// In native ESM (Vitest), dynamic require throws:
+// "Error: Cannot find module './node/base64'"
+// Fallback to static nodePlatform import.
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const platform = require(`./${process.env.TEST_PLATFORM ?? 'node'}/base64`);
+let platform: any = nodePlatform;
+try {
+  if (typeof require !== 'undefined') {
+    platform = require(`./${process.env.TEST_PLATFORM ?? 'node'}/base64`);
+  }
+} catch {
+  platform = nodePlatform;
+}
 
 /** Converts a Base64 encoded string to a binary string. */
 export function decodeBase64(encoded: string): string {

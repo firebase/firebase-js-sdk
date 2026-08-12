@@ -20,8 +20,8 @@ import { FirebaseStorageImpl } from '../../src/service';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { initializeApp, deleteApp } from '@firebase/app';
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const PROJECT_CONFIG = require('../../../../config/project.json');
+// Use ESM import instead of require() for browser test compatibility (real browsers don't have require)
+import PROJECT_CONFIG from '../../../../config/project.json';
 
 export const PROJECT_ID = PROJECT_CONFIG.projectId;
 export const STORAGE_BUCKET = PROJECT_CONFIG.storageBucket;

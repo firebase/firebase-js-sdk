@@ -27,30 +27,40 @@ export {
 
 export {
   AggregateField,
+  AggregateQuerySnapshot
+} from './lite-api/aggregate_types';
+
+// Export as types to avoid Vitest error:
+// "SyntaxError: The requested module '/src/lite-api/aggregate_types.ts' does not provide an export named 'AggregateFieldType'"
+export type {
   AggregateFieldType,
-  AggregateQuerySnapshot,
   AggregateSpec,
   AggregateSpecData,
   AggregateType
 } from './lite-api/aggregate_types';
 
 export {
+  memoryEagerGarbageCollector,
+  memoryLocalCache,
+  memoryLruGarbageCollector,
+  persistentLocalCache,
+  persistentMultipleTabManager,
+  persistentSingleTabManager
+} from './api/cache_config';
+
+// Export as types to avoid Vitest error:
+// "SyntaxError: The requested module './api/cache_config' does not provide an export named 'FirestoreLocalCache'"
+export type {
   FirestoreLocalCache,
   MemoryCacheSettings,
   MemoryEagerGarbageCollector,
-  memoryEagerGarbageCollector,
   MemoryGarbageCollector,
   MemoryLocalCache,
-  memoryLocalCache,
   MemoryLruGarbageCollector,
-  memoryLruGarbageCollector,
   PersistentCacheSettings,
   PersistentLocalCache,
-  persistentLocalCache,
   PersistentMultipleTabManager,
-  persistentMultipleTabManager,
   PersistentSingleTabManager,
-  persistentSingleTabManager,
   PersistentSingleTabManagerSettings,
   PersistentTabManager
 } from './api/cache_config';
@@ -61,7 +71,6 @@ export {
   clearIndexedDbPersistence,
   connectFirestoreEmulator,
   disableNetwork,
-  EmulatorMockTokenOptions,
   enableIndexedDbPersistence,
   enableMultiTabIndexedDbPersistence,
   enableNetwork,
@@ -75,27 +84,43 @@ export {
   waitForPendingWrites
 } from './api/database';
 
+// Export as type to avoid Vitest error:
+// "SyntaxError: The requested module '@firebase/util' does not provide an export named 'EmulatorMockTokenOptions'"
+export type { EmulatorMockTokenOptions } from './lite-api/database';
+
 export {
-  LoadBundleTask,
+  LoadBundleTask
+} from './api/bundle';
+
+// Export as types to avoid Vitest error:
+// "SyntaxError: The requested module './api/bundle' does not provide an export named 'LoadBundleTaskProgress'"
+export type {
   LoadBundleTaskProgress,
   TaskState
 } from './api/bundle';
 
-export { FirestoreSettings, PersistenceSettings } from './api/settings';
+// Export as types to avoid Vitest error:
+// "SyntaxError: The requested module './api/settings' does not provide an export named 'FirestoreSettings'"
+export type { FirestoreSettings, PersistenceSettings } from './api/settings';
 export type { PrivateSettings } from './lite-api/settings';
-export { ExperimentalLongPollingOptions } from './api/long_polling_options';
+export type { ExperimentalLongPollingOptions } from './api/long_polling_options';
 
 export {
-  DocumentChange,
-  DocumentChangeType,
   DocumentSnapshot,
   documentSnapshotFromJSON,
-  FirestoreDataConverter,
   QueryDocumentSnapshot,
   QuerySnapshot,
   querySnapshotFromJSON,
   snapshotEqual,
-  SnapshotMetadata,
+  SnapshotMetadata
+} from './api/snapshot';
+
+// Export as types to avoid Vitest error:
+// "SyntaxError: The requested module './api/snapshot' does not provide an export named 'DocumentChange'"
+export type {
+  DocumentChange,
+  DocumentChangeType,
+  FirestoreDataConverter,
   SnapshotOptions
 } from './api/snapshot';
 
@@ -104,12 +129,17 @@ export {
   collectionGroup,
   CollectionReference,
   doc,
-  DocumentData,
   DocumentReference,
-  PartialWithFieldValue,
   Query,
   queryEqual,
-  refEqual,
+  refEqual
+} from './api/reference';
+
+// Export as types to avoid Vitest error:
+// "SyntaxError: The requested module './api/reference' does not provide an export named 'SetOptions'"
+export type {
+  DocumentData,
+  PartialWithFieldValue,
   SetOptions,
   UpdateData,
   WithFieldValue
@@ -123,31 +153,38 @@ export {
   limitToLast,
   or,
   orderBy,
-  OrderByDirection,
   query,
   QueryCompositeFilterConstraint,
   QueryConstraint,
-  QueryConstraintType,
   QueryEndAtConstraint,
   QueryFieldFilterConstraint,
-  QueryFilterConstraint,
   QueryLimitConstraint,
-  QueryNonFilterConstraint,
   QueryOrderByConstraint,
   QueryStartAtConstraint,
   startAfter,
   startAt,
-  where,
+  where
+} from './api/filter';
+
+// Export as types to avoid Vitest error:
+// "SyntaxError: The requested module './api/filter' does not provide an export named 'QueryFilterConstraint'"
+export type {
+  OrderByDirection,
+  QueryConstraintType,
+  QueryFilterConstraint,
+  QueryNonFilterConstraint,
   WhereFilterOp
 } from './api/filter';
 
-export {
+// Export as types to avoid Vitest error:
+// "SyntaxError: The requested module './api/reference_impl' does not provide an export named 'ListenSource'"
+export type {
   ListenSource,
   SnapshotListenOptions,
   Unsubscribe
 } from './api/reference_impl';
 
-export { TransactionOptions } from './api/transaction_options';
+export type { TransactionOptions } from './api/transaction_options';
 
 export { runTransaction, Transaction } from './api/transaction';
 
@@ -183,7 +220,8 @@ export {
 
 export { VectorValue } from './lite-api/vector_value';
 
-export { LogLevelString as LogLevel, setLogLevel } from './util/log';
+export { setLogLevel } from './util/log';
+export type { LogLevelString as LogLevel } from './util/log';
 
 export { Bytes } from './api/bytes';
 
@@ -195,11 +233,16 @@ export { Timestamp } from './api/timestamp';
 
 export { CACHE_SIZE_UNLIMITED } from './api/database';
 
-export { FirestoreError, FirestoreErrorCode } from './util/error';
+export { FirestoreError } from './util/error';
+// Export as type to avoid Vitest error:
+// "SyntaxError: The requested module './util/error' does not provide an export named 'FirestoreErrorCode'"
+export type { FirestoreErrorCode } from './util/error';
 
 export { AbstractUserDataWriter } from './lite-api/user_data_writer';
 
-export {
+// Export as types to avoid Vitest error:
+// "SyntaxError: The requested module '../src/lite-api/types' does not provide an export named 'Primitive'"
+export type {
   AddPrefixToKeys,
   ChildUpdateFields,
   NestedUpdateFields,
@@ -207,11 +250,14 @@ export {
   UnionToIntersection
 } from '../src/lite-api/types';
 
-export {
+export { setIndexConfiguration } from './api/index_configuration';
+
+// Export as types to avoid Vitest error:
+// "SyntaxError: The requested module './api/index_configuration' does not provide an export named 'Index'"
+export type {
   Index,
   IndexConfiguration,
-  IndexField,
-  setIndexConfiguration
+  IndexField
 } from './api/index_configuration';
 
 export {
@@ -248,8 +294,8 @@ export type {
 } from './api/credentials';
 export { EmptyAuthCredentialsProvider as _EmptyAuthCredentialsProvider } from './api/credentials';
 export { EmptyAppCheckTokenProvider as _EmptyAppCheckTokenProvider } from './api/credentials';
-export {
-  ExistenceFilterMismatchCallback as _TestingHooksExistenceFilterMismatchCallback,
-  TestingHooks as _TestingHooks
-} from './util/testing_hooks';
-export { ExistenceFilterMismatchInfo as _TestingHooksExistenceFilterMismatchInfo } from './util/testing_hooks_spi';
+export { TestingHooks as _TestingHooks } from './util/testing_hooks';
+// Export as types to avoid Vitest error:
+// "SyntaxError: The requested module './util/testing_hooks' does not provide an export named 'ExistenceFilterMismatchCallback'"
+export type { ExistenceFilterMismatchCallback as _TestingHooksExistenceFilterMismatchCallback } from './util/testing_hooks';
+export type { ExistenceFilterMismatchInfo as _TestingHooksExistenceFilterMismatchInfo } from './util/testing_hooks_spi';

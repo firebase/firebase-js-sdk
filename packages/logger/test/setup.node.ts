@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,15 @@
  * limitations under the License.
  */
 
-export {
-  setLogLevel,
-  Logger,
-  LogLevel,
-  setUserLogHandler
-} from './src/logger';
+import { use } from 'chai';
+import chaiAsPromised from 'chai-as-promised';
 
-export type {
-  LogHandler,
-  LogCallback,
-  LogLevelString,
-  LogOptions
-} from './src/logger';
+use(chaiAsPromised);
+
+// Shim Mocha BDD hooks to Vitest equivalents
+// In Mocha, 'before' and 'after' are aliases for 'beforeAll' and 'afterAll'.
+// Vitest only exposes beforeAll/afterAll by default, so calling before() throws:
+// "ReferenceError: before is not defined"
+(globalThis as any).before = (globalThis as any).beforeAll;
+(globalThis as any).after = (globalThis as any).afterAll;
 

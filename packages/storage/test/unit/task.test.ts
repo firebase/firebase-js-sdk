@@ -49,18 +49,22 @@ describe('Firebase Storage > Upload Task', () => {
     injectTestConnection(null);
   });
 
-  it('Works for a small upload w/ an observer', done => {
-    const storageService = storageServiceWithHandler(fakeServerHandler());
-    const task = new UploadTask(
-      new Reference(storageService, testLocation),
-      smallBlob
-    );
-    task.on(
-      TaskEvent.STATE_CHANGED,
-      undefined,
-      () => assert.fail('Unexpected upload failure'),
-      () => done()
-    );
+  // Return a Promise instead of done() callback to avoid Vitest error:
+  // "Unhandled Rejection: Error: done() callback is deprecated, use promise instead"
+  it('Works for a small upload w/ an observer', () => {
+    return new Promise<void>((resolve, reject) => {
+      const storageService = storageServiceWithHandler(fakeServerHandler());
+      const task = new UploadTask(
+        new Reference(storageService, testLocation),
+        smallBlob
+      );
+      task.on(
+        TaskEvent.STATE_CHANGED,
+        undefined,
+        () => reject(new Error('Unexpected upload failure')),
+        () => resolve()
+      );
+    });
   });
   it('Works for a small upload w/ a promise', () => {
     const storageService = storageServiceWithHandler(fakeServerHandler());
