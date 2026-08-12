@@ -402,7 +402,7 @@ describe('api/_performApiRequest', () => {
     });
 
     it('should clear the network timeout on success', async () => {
-      const spy = sinon.spy(global, 'clearTimeout');
+      const spy = sinon.spy(globalThis, 'clearTimeout');
       mockFetch.setUp();
       mockEndpoint(Endpoint.SIGN_UP, {});
       const promise = _performApiRequest(
