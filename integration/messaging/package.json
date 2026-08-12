@@ -9,11 +9,8 @@
     "test:manual": "mocha --exit"
   },
   "devDependencies": {
-    "chai": "4.5.0",
     "chromedriver": "151.0.5",
-    "express": "5.2.1",
     "firebase": "12.17.1",
-    "mocha": "9.2.2",
     "selenium-assistant": "6.1.1"
   },
   "engines": {

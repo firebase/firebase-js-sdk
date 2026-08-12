@@ -15,4 +15,5 @@
  * limitations under the License.
  */
 
-require('@babel/register')({ extensions: ['.js', '.ts'] });
+const register = require('@babel/register');
+(register.default || register)({ extensions: ['.js', '.ts'] });

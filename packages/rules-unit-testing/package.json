@@ -29,7 +29,7 @@
     "build": "rollup -c && yarn api-report",
     "build:deps": "lerna run build --scope @firebase/rules-unit-testing",
     "dev": "rollup -c -w",
-    "test:nyc": "TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --config ./mocharc.node.js",
+    "test:nyc": "TS_NODE_FILES=true TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --config ./mocharc.node.js",
     "test": "(cd functions && yarn) && firebase --project=demo-foo --debug emulators:exec 'yarn test:nyc'",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test",
     "trusted-type-check": "tsec -p tsconfig.json --noEmit",
@@ -39,7 +39,7 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "rollup": "2.79.2",
+    "rollup": "4.62.2",
     "rollup-plugin-typescript2": "0.37.0",
     "@firebase/util": "1.x",
     "firebase": "^12.0.0"

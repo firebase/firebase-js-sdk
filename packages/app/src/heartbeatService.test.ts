@@ -32,7 +32,7 @@ import {
 import { PlatformLoggerService, SingleDateHeartbeat } from './types';
 import { FirebaseApp } from './public-types';
 import * as firebaseUtil from '@firebase/util';
-import { SinonStub, stub, useFakeTimers } from 'sinon';
+import { SinonFakeTimers, SinonStub, stub, useFakeTimers } from 'sinon';
 import * as indexedDb from './indexeddb';
 
 declare module '@firebase/component' {
@@ -65,7 +65,7 @@ function generateDates(count: number): string[] {
 describe('HeartbeatServiceImpl', () => {
   describe('If IndexedDB has no entries', () => {
     let heartbeatService: HeartbeatServiceImpl;
-    let clock = useFakeTimers();
+    let clock: SinonFakeTimers;
     let userAgentString = USER_AGENT_STRING_1;
     let writeStub: SinonStub;
     before(() => {
@@ -77,7 +77,7 @@ describe('HeartbeatServiceImpl', () => {
             ({
               options: { appId: 'an-app-id' },
               name: 'an-app-name'
-            } as FirebaseApp),
+            }) as FirebaseApp,
           ComponentType.VERSION
         )
       );
@@ -173,7 +173,7 @@ describe('HeartbeatServiceImpl', () => {
   });
   describe('If IndexedDB has entries', () => {
     let heartbeatService: HeartbeatServiceImpl;
-    let clock = useFakeTimers();
+    let clock: SinonFakeTimers;
     let writeStub: SinonStub;
     let userAgentString = USER_AGENT_STRING_1;
     const mockIndexedDBHeartbeats = [
@@ -195,7 +195,7 @@ describe('HeartbeatServiceImpl', () => {
             ({
               options: { appId: 'an-app-id' },
               name: 'an-app-name'
-            } as FirebaseApp),
+            }) as FirebaseApp,
           ComponentType.VERSION
         )
       );
@@ -335,7 +335,7 @@ describe('HeartbeatServiceImpl', () => {
             ({
               options: { appId: 'an-app-id' },
               name: 'an-app-name'
-            } as FirebaseApp),
+            }) as FirebaseApp,
           ComponentType.VERSION
         )
       );
