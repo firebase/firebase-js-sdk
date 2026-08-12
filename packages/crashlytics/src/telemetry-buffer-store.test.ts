@@ -16,14 +16,12 @@
  */
 
 import { expect } from 'chai';
-import {
-  TelemetryBufferStore,
-  RootTelemetryQueue
-} from './telemetry-buffer-store';
+import { TelemetryStore, RootTelemetryQueue } from './telemetry-buffer-store';
 import { ReadableSpan } from '@opentelemetry/sdk-trace-base';
 import { SdkLogRecord } from '@opentelemetry/sdk-logs';
+import { SeverityNumber } from '@opentelemetry/api-logs';
 
-describe('TelemetryBufferStore', () => {
+describe('TelemetryStore', () => {
   /**
    * Helper used during the ARRANGE and ACT phases of the tests to create a mock OpenTelemetry parent/root span.
    */
@@ -63,528 +61,298 @@ describe('TelemetryBufferStore', () => {
   }
 
   /**
-   * Helper used during the ASSERT phase to verify the contents of a completed trace in the store.
+   * Helper used to initialize a new TelemetryStore instance with specified capacity limits for testing.
    */
-  function validateTrace(
-    store: TelemetryBufferStore,
-    traceId: string,
-    expected: { spans: number; logs: number }
-  ): void {
-    const spans = store
-      .getBufferedSpans()
-      .filter(s => s.spanContext().traceId === traceId);
-    const logs = store
-      .getBufferedLogs()
-      .filter(l => l.spanContext?.traceId === traceId);
-    expect(spans).to.have.lengthOf(expected.spans);
-    expect(logs).to.have.lengthOf(expected.logs);
+  function setupState({ bufferLimit = 1, queueLimit = 1 } = {}): {
+    store: TelemetryStore;
+  } {
+    const store = new TelemetryStore(bufferLimit, queueLimit);
+    return { store };
   }
 
-  describe('addSpanOnStart', () => {
-    it('should add root span to buffer without pruning if buffer size < limit', () => {
-      const store = new TelemetryBufferStore(10, 1);
+  describe('Event is added but not made exportable; buffer size < limit and queue size < limit', () => {
+    it('should add root span with children but not be exportable', () => {
+      const { store } = setupState({ bufferLimit: 3, queueLimit: 1 });
 
-      // Arrange
-      const span1 = createMockRootSpan('trace-1');
-      store.addSpanOnStart(span1);
-      store.addRootSpanOnEnd(span1); // fills queue (queue = ['trace-1'])
+      const expectedRootSpan = createMockRootSpan('trace-1');
+      const expectedChildSpan = createMockChildSpan('trace-1');
+      const expectedChildLog = createMockChildLog('trace-1');
 
-      // Act
-      const span2 = createMockRootSpan('trace-2');
-      store.addSpanOnStart(span2);
+      store.add(expectedRootSpan);
+      store.add(expectedChildSpan);
+      store.add(expectedChildLog);
 
-      // Assert
-      validateTrace(store, 'trace-1', { spans: 1, logs: 0 });
-      expect(store.totalTelemetryCount).to.equal(2);
+      expect(store.getSpansToExport()).to.be.empty;
+      expect(store.getLogsToExport()).to.be.empty;
+      expect(store.totalTelemetryCount).to.equal(3);
     });
+  });
 
-    it('should add root span to buffer and evict oldest root id if queue size > 0 and buffer size == limit', () => {
-      const store = new TelemetryBufferStore(2, 5);
+  describe('Event is added and made exportable; buffer size < limit and queue size < limit', () => {
+    it('should create an exportable root span with children successfully', () => {
+      const { store } = setupState({ bufferLimit: 3, queueLimit: 1 });
 
-      // Arrange
-      const span1 = createMockRootSpan('trace-1');
-      store.addSpanOnStart(span1);
-      store.addRootSpanOnEnd(span1); // count = 1, queue = ['trace-1']
+      const expectedRootSpan = createMockRootSpan('trace-1');
+      const expectedChildSpan = createMockChildSpan('trace-1');
+      const expectedChildLog = createMockChildLog('trace-1');
 
-      const span2 = createMockRootSpan('trace-2');
-      store.addSpanOnStart(span2); // count = 2 (limit), queue = ['trace-1']
+      store.add(expectedRootSpan);
+      store.add(expectedChildSpan);
+      store.add(expectedChildLog);
+      store.update(expectedRootSpan);
 
-      // Act
-      const span3 = createMockRootSpan('trace-3');
-      store.addSpanOnStart(span3); // triggers eviction
-
-      // Assert
-      expect(
-        store
-          .getBufferedSpans()
-          .filter(s => s.spanContext().traceId === 'trace-1')
-      ).to.have.lengthOf(0);
-      expect(store.totalTelemetryCount).to.equal(2);
-    });
-
-    it('should set shouldAddLimitLog flag to true and not add root span to buffer if queue size == 0 and buffer size == limit', () => {
-      const store = new TelemetryBufferStore(1, 2);
-
-      // Arrange
-      const span1 = createMockRootSpan('trace-1');
-      store.addSpanOnStart(span1); // count = 1 (limit), queue size = 0
-
-      // Act
-      const span2 = createMockRootSpan('trace-2');
-      store.addSpanOnStart(span2); // dropped
-
-      // Assert
-      expect(store.totalTelemetryCount).to.equal(1);
-      expect(store.shouldAddLimitLog).to.be.true;
-    });
-
-    it('should add child span to buffer without pruning if buffer size < limit', () => {
-      const store = new TelemetryBufferStore(10, 1);
-
-      // Arrange
-      const span1 = createMockRootSpan('trace-1');
-      store.addSpanOnStart(span1);
-      store.addRootSpanOnEnd(span1); // fills queue (queue = ['trace-1'])
-
-      const span2 = createMockRootSpan('trace-2');
-      store.addSpanOnStart(span2); // count = 2
-
-      // Act
-      const child2 = createMockChildSpan('trace-2');
-      store.addSpanOnStart(child2);
-
-      // Assert
-      validateTrace(store, 'trace-1', { spans: 1, logs: 0 });
+      expect(store.getSpansToExport()).to.have.deep.members([
+        expectedRootSpan,
+        expectedChildSpan
+      ]);
+      expect(store.getLogsToExport()).to.have.deep.members([expectedChildLog]);
       expect(store.totalTelemetryCount).to.equal(3);
     });
 
-    it('should add child span to buffer and evict oldest root id if queue size > 0 and buffer size == limit', () => {
-      const store = new TelemetryBufferStore(2, 5);
+    it('should create an exportable root log successfully', () => {
+      const { store } = setupState({ bufferLimit: 1, queueLimit: 1 });
 
-      // Arrange
-      const span1 = createMockRootSpan('trace-1');
-      store.addSpanOnStart(span1);
-      store.addRootSpanOnEnd(span1); // count = 1, queue = ['trace-1']
+      const expectedRootLog = createMockRootLog();
 
-      const span2 = createMockRootSpan('trace-2');
-      store.addSpanOnStart(span2); // count = 2 (limit), queue = ['trace-1']
+      store.add(expectedRootLog);
 
-      // Act
-      const child2 = createMockChildSpan('trace-2');
-      store.addSpanOnStart(child2); // triggers eviction of trace-1
-
-      // Assert
-      expect(
-        store
-          .getBufferedSpans()
-          .filter(s => s.spanContext().traceId === 'trace-1')
-      ).to.have.lengthOf(0);
-      expect(store.totalTelemetryCount).to.equal(2);
-    });
-
-    it('should set shouldAddLimitLog flag to true and not add child span to buffer if queue size == 0 and buffer size == limit', () => {
-      const store = new TelemetryBufferStore(1, 2);
-
-      // Arrange
-      const span1 = createMockRootSpan('trace-1');
-      store.addSpanOnStart(span1); // count = 1 (limit), queue size = 0
-
-      // Act
-      const child1 = createMockChildSpan('trace-1');
-      store.addSpanOnStart(child1); // dropped
-
-      // Assert
-      expect(store.totalTelemetryCount).to.equal(1);
-      expect(store.shouldAddLimitLog).to.be.true;
-    });
-
-    it('should not add child span to buffer and without pruning if its root span was not added to buffer', () => {
-      const store = new TelemetryBufferStore(1, 2);
-
-      // Arrange
-      const span1 = createMockRootSpan('trace-1');
-      store.addSpanOnStart(span1); // count = 1 (limit), queue size = 0
-
-      const root2 = createMockRootSpan('trace-2');
-      store.addSpanOnStart(root2); // dropped due to capacity limits
-      store.addRootSpanOnEnd(span1); // complete trace-1 (enqueues trace-1)
-
-      // Act
-      const child2 = createMockChildSpan('trace-2');
-      store.addSpanOnStart(child2); // dropped because parent trace-2 doesn't exist
-
-      // Assert
-      validateTrace(store, 'trace-1', { spans: 1, logs: 0 }); // trace-1 preserved (not evicted)
+      expect(store.getLogsToExport()).to.have.deep.members([expectedRootLog]);
       expect(store.totalTelemetryCount).to.equal(1);
     });
   });
 
-  describe('addRootSpanOnEnd', () => {
-    it('should add root span to queue without pruning if queue size < limit', () => {
-      const store = new TelemetryBufferStore(2, 5);
+  describe('Event is added and made exportable after evicting the oldest root and all associated spans/logs', () => {
+    it('should create an exportable root span and evict oldest root id if queue size == limit and buffer size < limit', () => {
+      const { store } = setupState({ bufferLimit: 4, queueLimit: 1 });
 
-      // Arrange
-      const span1 = createMockRootSpan('trace-1');
-      store.addSpanOnStart(span1);
-      store.addRootSpanOnEnd(span1); // count = 1 (ended, queue = ['trace-1'])
+      const existingRootSpan = createMockRootSpan('trace-1');
+      const existingChildSpan = createMockChildSpan('trace-1');
+      const existingChildLog = createMockChildLog('trace-1');
+      const expectedRootSpan = createMockRootSpan('trace-2');
 
-      const span2 = createMockRootSpan('trace-2');
-      store.addSpanOnStart(span2); // count = 2 (limit)
+      store.add(existingRootSpan);
+      store.add(existingChildSpan);
+      store.add(existingChildLog);
+      store.update(existingRootSpan);
 
-      // Act
-      store.addRootSpanOnEnd(span2);
+      store.add(expectedRootSpan);
+      store.update(expectedRootSpan);
 
-      // Assert
-      validateTrace(store, 'trace-1', { spans: 1, logs: 0 });
-      validateTrace(store, 'trace-2', { spans: 1, logs: 0 });
-      expect(store.totalTelemetryCount).to.equal(2);
-    });
-
-    it('should add root span to queue and evict oldest root id if queue size == limit', () => {
-      const store = new TelemetryBufferStore(2, 1);
-
-      // Arrange
-      const span1 = createMockRootSpan('trace-1');
-      store.addSpanOnStart(span1);
-      store.addRootSpanOnEnd(span1); // count = 1 (ended, queue = ['trace-1'])
-
-      const span2 = createMockRootSpan('trace-2');
-      store.addSpanOnStart(span2); // count = 2 (limit)
-
-      // Act
-      store.addRootSpanOnEnd(span2); // enqueues trace-2, evicting trace-1 from queue and map
-
-      // Assert
-      expect(
-        store
-          .getBufferedSpans()
-          .filter(s => s.spanContext().traceId === 'trace-1')
-      ).to.have.lengthOf(0);
-      validateTrace(store, 'trace-2', { spans: 1, logs: 0 }); // trace-2 remains
+      expect(store.getSpansToExport()).to.have.deep.members([expectedRootSpan]);
+      expect(store.getLogsToExport()).to.be.empty;
       expect(store.totalTelemetryCount).to.equal(1);
     });
 
-    it('should not add root span to queue and without pruning if it wasn’t added to the buffer onStart', () => {
-      const store = new TelemetryBufferStore(1, 2);
+    it('should create an exportable root log and evict oldest root id if queue size == limit and buffer size < limit', () => {
+      const { store } = setupState({ bufferLimit: 3, queueLimit: 2 });
 
-      // Arrange
-      const span1 = createMockRootSpan('trace-1');
-      store.addSpanOnStart(span1); // count = 1 (limit), queue size = 0
+      const existingRootSpan = createMockRootSpan('trace-1');
+      const existingChildSpan = createMockChildSpan('trace-1');
+      const existingChildLog = createMockChildLog('trace-1');
+      const expectedRootLog = createMockRootLog();
 
-      const span2 = createMockRootSpan('trace-2');
-      store.addSpanOnStart(span2); // dropped due to capacity limits
-      store.addRootSpanOnEnd(span1); // complete trace-1 (enqueues trace-1)
+      store.add(existingRootSpan);
+      store.add(existingChildSpan);
+      store.add(existingChildLog);
+      store.update(existingRootSpan);
 
-      // Act
-      store.addRootSpanOnEnd(span2);
+      store.add(expectedRootLog);
 
-      // Assert
-      validateTrace(store, 'trace-1', { spans: 1, logs: 0 }); // trace-1 preserved (not evicted)
+      expect(store.getSpansToExport()).to.be.empty;
+      expect(store.getLogsToExport()).to.have.deep.members([expectedRootLog]);
       expect(store.totalTelemetryCount).to.equal(1);
     });
 
-    it('should do nothing when a child span is passed in', () => {
-      const store = new TelemetryBufferStore(10, 5);
+    it('should create an exportable event and evict oldest root id if queue size < limit and buffer size == limit', () => {
+      const { store } = setupState({ bufferLimit: 3, queueLimit: 2 });
 
-      // Arrange
-      const span1 = createMockRootSpan('trace-1');
-      store.addSpanOnStart(span1); // count = 1, queue size = 0
+      const existingRootSpan = createMockRootSpan('trace-1');
+      const existingChildSpan = createMockChildSpan('trace-1');
+      const existingChildLog = createMockChildLog('trace-1');
 
-      const child = createMockChildSpan('trace-1');
-      store.addSpanOnStart(child); // count = 2
+      store.add(existingRootSpan);
+      store.add(existingChildSpan);
+      store.add(existingChildLog);
+      store.update(existingRootSpan);
 
-      // Act
-      store.addRootSpanOnEnd(child); // should be ignored
+      const expectedRootSpan = createMockRootSpan('trace-2');
+      store.add(expectedRootSpan);
+      store.update(expectedRootSpan);
 
-      // Assert
-      expect(store.getBufferedSpans()).to.have.lengthOf(0);
-      expect(store.totalTelemetryCount).to.equal(2);
+      expect(store.getSpansToExport()).to.have.deep.members([expectedRootSpan]);
+      expect(store.getLogsToExport()).to.be.empty;
+      expect(store.totalTelemetryCount).to.equal(1);
     });
   });
 
-  describe('addLogOnEmit', () => {
-    it('should add root log to buffer and queue without pruning if queue size < limit and buffer size < limit', () => {
-      const store = new TelemetryBufferStore(10, 5);
+  describe('Event is not added and so cannot be made exportable', () => {
+    it('should not create any exportable event except for limit log if queue size == 0 and buffer size == limit', () => {
+      const { store } = setupState({ bufferLimit: 1, queueLimit: 2 });
 
-      // Arrange: baseline count = 2, queue size = 2
-      const span1 = createMockRootSpan('trace-1');
-      store.addSpanOnStart(span1);
-      store.addRootSpanOnEnd(span1);
-      const log1 = createMockRootLog();
-      store.addLogOnEmit(log1);
+      const existingRootSpan = createMockRootSpan('trace-1');
+      const ignoredRootLog = createMockRootLog();
 
-      // Act
-      const log2 = createMockRootLog();
-      store.addLogOnEmit(log2);
+      store.add(existingRootSpan);
+      store.add(ignoredRootLog);
 
-      // Assert
-      validateTrace(store, 'trace-1', { spans: 1, logs: 0 });
-
-      const logs = store.getBufferedLogs();
-      expect(logs).to.have.lengthOf(2);
-      expect(logs).to.include(log1);
-      expect(logs).to.include(log2);
-      expect(store.totalTelemetryCount).to.equal(3);
+      expect(store.getSpansToExport()).to.be.empty;
+      const exportedLogs = store.getLogsToExport();
+      expect(exportedLogs).to.have.lengthOf(1);
+      expect(exportedLogs[0]).to.deep.equal({
+        severityNumber: SeverityNumber.INFO,
+        body: 'Telemetry buffer limit reached. Some telemetry events were dropped.'
+      });
     });
 
-    it('should add root log to buffer and queue and evict oldest root id if queue size == limit and buffer size < limit', () => {
-      const store = new TelemetryBufferStore(10, 2);
+    it('should not create any additional exportable root event if already added', () => {
+      const { store } = setupState({ bufferLimit: 3, queueLimit: 3 });
 
-      // Arrange
-      const log1 = createMockRootLog();
-      store.addLogOnEmit(log1);
-      const log2 = createMockRootLog();
-      store.addLogOnEmit(log2);
+      const expectedRootSpan = createMockRootSpan('trace-1');
 
-      // Act
-      const log3 = createMockRootLog();
-      store.addLogOnEmit(log3);
+      store.add(expectedRootSpan);
+      store.add(expectedRootSpan); // should not add again
+      store.update(expectedRootSpan);
+      store.add(expectedRootSpan); // should not add again
 
-      // Assert
-      const logs = store.getBufferedLogs();
-      expect(logs).to.have.lengthOf(2);
-      expect(logs).to.not.include(log1);
-      expect(logs).to.include(log2);
-      expect(logs).to.include(log3);
-      expect(store.totalTelemetryCount).to.equal(2);
-    });
-
-    it('should add root log to buffer and queue and evict oldest root id if queue size < limit and buffer size == limit', () => {
-      const store = new TelemetryBufferStore(2, 5);
-
-      // Arrange
-      const log1 = createMockRootLog();
-      store.addLogOnEmit(log1);
-
-      const log2 = createMockRootLog();
-      store.addLogOnEmit(log2);
-
-      // Act
-      const log3 = createMockRootLog();
-      store.addLogOnEmit(log3);
-
-      // Assert
-      const logs = store.getBufferedLogs();
-      expect(logs).to.have.lengthOf(2);
-      expect(logs).to.not.include(log1);
-      expect(logs).to.include(log2);
-      expect(logs).to.include(log3);
-      expect(store.totalTelemetryCount).to.equal(2);
-    });
-
-    it('should add child log to buffer without pruning if buffer size < limit', () => {
-      const store = new TelemetryBufferStore(10, 1);
-
-      // Arrange
-      const span1 = createMockRootSpan('trace-1');
-      store.addSpanOnStart(span1);
-      store.addRootSpanOnEnd(span1); // fills queue
-
-      const root2 = createMockRootSpan('trace-2');
-      store.addSpanOnStart(root2);
-
-      // Act
-      const log = createMockChildLog('trace-2');
-      store.addLogOnEmit(log);
-
-      // Assert
-      validateTrace(store, 'trace-1', { spans: 1, logs: 0 });
-      expect(store.totalTelemetryCount).to.equal(3); // trace-1 (1) + root2 (1) + childLog (1) = 3
-    });
-
-    it('should add child log to buffer and evict oldest root id if queue size > 0 and buffer size == limit', () => {
-      const store = new TelemetryBufferStore(2, 5);
-
-      // Arrange
-      const span1 = createMockRootSpan('trace-1');
-      store.addSpanOnStart(span1);
-      store.addRootSpanOnEnd(span1); // count = 1 (ended, queue = ['trace-1'])
-
-      const span2 = createMockRootSpan('trace-2');
-      store.addSpanOnStart(span2); // count = 2 (limit), queue = ['trace-1']
-
-      // Act
-      const log = createMockChildLog('trace-2');
-      store.addLogOnEmit(log); // triggers capacity eviction of trace-1
-
-      // Assert
-      expect(
-        store
-          .getBufferedSpans()
-          .filter(s => s.spanContext().traceId === 'trace-1')
-      ).to.have.lengthOf(0);
-      expect(store.totalTelemetryCount).to.equal(2);
-    });
-
-    it('should not add child log to buffer if its own trace id was removed from queue due to eviction', () => {
-      const store = new TelemetryBufferStore(2, 5);
-
-      // Arrange: total count = 2 (buffer limit), oldest enqueued trace is 'trace-1'.
-      // This simulates a child log arriving asynchronously AFTER its root span ('trace-1') has already ended and entered the eviction queue.
-      const span1 = createMockRootSpan('trace-1');
-      store.addSpanOnStart(span1);
-      store.addRootSpanOnEnd(span1); // count = 1, queue = ['trace-1']
-
-      const span2 = createMockRootSpan('trace-2');
-      store.addSpanOnStart(span2);
-      store.addRootSpanOnEnd(span2); // count = 2, queue = ['trace-1', 'trace-2'] (reaches buffer limit)
-
-      // Act: child log of trace-1 triggers capacity check, evicting its own trace-1
-      const log = createMockChildLog('trace-1');
-      store.addLogOnEmit(log);
-
-      // Assert: trace-1 is completely evicted, and the child log is discarded
-      expect(
-        store
-          .getBufferedSpans()
-          .filter(s => s.spanContext().traceId === 'trace-1')
-      ).to.have.lengthOf(0);
-      validateTrace(store, 'trace-2', { spans: 1, logs: 0 });
-      expect(store.totalTelemetryCount).to.equal(1); // only trace-2 remains
-    });
-
-    it('should not add child log to buffer and without pruning if its root span was not added to buffer', () => {
-      const store = new TelemetryBufferStore(1, 2);
-
-      // Arrange
-      const span1 = createMockRootSpan('trace-1');
-      store.addSpanOnStart(span1); // count = 1 (limit), queue size = 0
-
-      const root2 = createMockRootSpan('trace-2');
-      store.addSpanOnStart(root2); // dropped due to capacity limits
-      store.addRootSpanOnEnd(span1); // complete trace-1 (enqueues trace-1)
-
-      // Act
-      const log = createMockChildLog('trace-2');
-      store.addLogOnEmit(log); // dropped because parent trace-2 doesn't exist, short-circuits eviction
-
-      // Assert
-      validateTrace(store, 'trace-1', { spans: 1, logs: 0 }); // trace-1 preserved (not evicted)
+      expect(store.getSpansToExport()).to.have.deep.members([expectedRootSpan]);
       expect(store.totalTelemetryCount).to.equal(1);
     });
 
-    it('should set shouldAddLimitLog flag to true and not add any log to buffer or queue if queue size == 0 and buffer size == limit', () => {
-      const store = new TelemetryBufferStore(1, 2);
+    it('should not create any additional exportable child event if already added', () => {
+      const { store } = setupState({ bufferLimit: 3, queueLimit: 3 });
 
-      // Arrange
-      const span1 = createMockRootSpan('trace-1');
-      store.addSpanOnStart(span1); // reaches buffer limit
+      const existingRootSpan = createMockRootSpan('trace-1');
+      const expectedChildSpan = createMockChildSpan('trace-1');
 
-      // Act
-      const log2 = createMockChildLog('trace-1');
-      store.addLogOnEmit(log2); // dropped child log
+      store.add(existingRootSpan);
+      store.add(expectedChildSpan);
+      store.add(expectedChildSpan); // should not add again
+      store.update(existingRootSpan);
 
-      const log3 = createMockRootLog();
-      store.addLogOnEmit(log3); // dropped standalone root log
+      expect(store.getSpansToExport()).to.have.deep.members([
+        existingRootSpan,
+        expectedChildSpan
+      ]);
+      expect(store.totalTelemetryCount).to.equal(2);
+    });
 
-      // Assert
-      expect(store.totalTelemetryCount).to.equal(1);
-      expect(store.shouldAddLimitLog).to.be.true;
+    it('should not create an exportable child event if its root span has not been added', () => {
+      const { store } = setupState({ bufferLimit: 3, queueLimit: 3 });
+
+      const ignoredChildSpan = createMockChildSpan('trace-1');
+      const ignoredChildLog = createMockChildSpan('trace-1');
+
+      store.add(ignoredChildSpan);
+      store.add(ignoredChildLog);
+
+      expect(store.getSpansToExport()).to.be.empty;
+      expect(store.getLogsToExport()).to.be.empty;
+      expect(store.totalTelemetryCount).to.equal(0);
     });
   });
 
-  describe('clear', () => {
-    it('should clear queue and buffer map, reset telemetry count to 0, and reset shouldAddLimitLog flag to false', () => {
-      const store = new TelemetryBufferStore(1, 2);
+  describe('Event cannot be made exportable', () => {
+    it('should not create any additional exportable root span if already exportable', () => {
+      const { store } = setupState({ bufferLimit: 3, queueLimit: 3 });
 
-      // Arrange
-      const rootSpan = createMockRootSpan('trace-1');
-      store.addSpanOnStart(rootSpan); // count = 1, queue size = 0
+      const expectedRootSpan = createMockRootSpan('trace-1');
 
-      store.addSpanOnStart(createMockRootSpan('trace-2')); // dropped, count = 1, shouldAddLimitLog = true
-      store.addRootSpanOnEnd(rootSpan); // enqueued, count = 1, queue size = 1
+      store.add(expectedRootSpan);
+      store.update(expectedRootSpan);
+      store.update(expectedRootSpan); // should not export again
 
-      // Act
+      expect(store.getSpansToExport()).to.have.deep.members([expectedRootSpan]);
+      expect(store.totalTelemetryCount).to.equal(1);
+    });
+
+    it('should not create an exportable child span if child span is directly queued for export', () => {
+      const { store } = setupState({ bufferLimit: 3, queueLimit: 3 });
+
+      const existingRootSpan = createMockRootSpan('trace-1');
+      const ignoredChildSpan = createMockChildSpan('trace-1');
+
+      store.add(existingRootSpan);
+      store.add(ignoredChildSpan);
+      store.update(ignoredChildSpan); // should not export
+
+      expect(store.getSpansToExport()).to.be.empty;
+    });
+  });
+
+  describe('Clear events from store', () => {
+    it('should reset telemetry count to 0 and return no spans/logs for export', () => {
+      const { store } = setupState({ bufferLimit: 4, queueLimit: 2 });
+
+      const existingRootSpan = createMockRootSpan('trace-1');
+      const existingChildSpan = createMockChildSpan('trace-1');
+      const existingChildLog = createMockChildLog('trace-1');
+      const existingRootLog = createMockRootLog();
+
+      store.add(existingRootSpan);
+      store.add(existingChildSpan);
+      store.add(existingChildLog);
+      store.add(existingRootLog);
+
       store.clear();
 
-      // Assert
+      expect(store.getSpansToExport()).to.be.empty;
+      expect(store.getLogsToExport()).to.be.empty;
       expect(store.totalTelemetryCount).to.equal(0);
-      expect(store.shouldAddLimitLog).to.be.false;
-      expect(
-        store
-          .getBufferedSpans()
-          .filter(s => s.spanContext().traceId === 'trace-1')
-      ).to.have.lengthOf(0);
-      expect(store.getBufferedSpans()).to.have.lengthOf(0);
-      expect(store.getBufferedLogs()).to.have.lengthOf(0);
+    });
+
+    it('should reset telemetry count to 0 and return no spans/logs for export if limit log is expected for export', () => {
+      const { store } = setupState({ bufferLimit: 1, queueLimit: 2 });
+
+      const existingRootSpan = createMockRootSpan('trace-1');
+      const ignoredRootLog = createMockRootLog();
+
+      store.add(existingRootSpan);
+      store.add(ignoredRootLog); // sets limit log to be exported as root log is dropped
+
+      store.clear();
+
+      expect(store.getSpansToExport()).to.be.empty;
+      expect(store.getLogsToExport()).to.be.empty;
+      expect(store.totalTelemetryCount).to.equal(0);
     });
   });
 
-  describe('getBufferedSpans', () => {
-    it('should return spans of ended root traces and ignore active traces, logs, and evicted traces', () => {
-      const store = new TelemetryBufferStore(10, 2);
+  describe('Test assumption that events can only be considered the same if they point to the same memory', () => {
+    it('should treat two identical child spans of different memory as different events', () => {
+      const { store } = setupState({ bufferLimit: 4, queueLimit: 2 });
 
-      // Arrange
-      // trace-1 is started and ended (completed). It has 1 root span and 1 child span.
-      const span1 = createMockRootSpan('trace-1');
-      store.addSpanOnStart(span1);
-      const child1 = createMockChildSpan('trace-1');
-      store.addSpanOnStart(child1);
-      store.addRootSpanOnEnd(span1);
+      const existingRootSpan = createMockRootSpan('trace-1');
+      const existingChildSpan1 = createMockChildSpan('trace-1');
+      const existingChildSpan2 = createMockChildSpan('trace-1');
 
-      // trace-2 is started but not ended (active).
-      const span2 = createMockRootSpan('trace-2');
-      store.addSpanOnStart(span2);
+      store.add(existingRootSpan);
+      store.add(existingChildSpan1);
+      store.add(existingChildSpan2);
+      store.update(existingRootSpan);
 
-      // standalone log is enqueued (queue = ['trace-1', standalone_log_uuid])
-      const log = createMockRootLog();
-      store.addLogOnEmit(log);
-
-      // trace-3 is started and ended. This will cause trace-1 (oldest in queue of size 2) to be evicted from queue and map.
-      // queue = [standalone_log_uuid, 'trace-3']
-      const span3 = createMockRootSpan('trace-3');
-      store.addSpanOnStart(span3);
-      const child3 = createMockChildSpan('trace-3');
-      store.addSpanOnStart(child3);
-      const log3 = createMockChildLog('trace-3');
-      store.addLogOnEmit(log3);
-      store.addRootSpanOnEnd(span3);
-
-      // Act
-      const spans = store.getBufferedSpans();
-
-      // Assert
-      expect(spans).to.deep.equal([span3, child3]);
+      console.log(store.getSpansToExport());
+      expect(store.getSpansToExport()).to.have.deep.members([
+        existingRootSpan,
+        existingChildSpan1,
+        existingChildSpan2
+      ]);
     });
-  });
 
-  describe('getBufferedLogs', () => {
-    it('should return child logs of ended root traces and standalone logs, and ignore active traces, spans, and evicted items', () => {
-      const store = new TelemetryBufferStore(10, 2);
+    it('should treat two identical child spans of same memory as same events', () => {
+      const { store } = setupState({ bufferLimit: 4, queueLimit: 2 });
 
-      // Arrange
-      // trace-1: started, ended. Has 1 root span and 1 child log.
-      const span1 = createMockRootSpan('trace-1');
-      store.addSpanOnStart(span1);
-      const log1 = createMockChildLog('trace-1');
-      store.addLogOnEmit(log1);
-      store.addRootSpanOnEnd(span1);
+      const existingRootSpan = createMockRootSpan('trace-1');
+      const existingChildSpan = createMockChildSpan('trace-1');
 
-      // trace-2: started, uncompleted. Has 1 child log.
-      const span2 = createMockRootSpan('trace-2');
-      store.addSpanOnStart(span2);
-      const log2 = createMockChildLog('trace-2');
-      store.addLogOnEmit(log2);
+      store.add(existingRootSpan);
+      store.add(existingChildSpan);
+      store.add(existingChildSpan);
+      store.update(existingRootSpan);
 
-      // standalone log3 (enqueued, queue = ['trace-1', standalone_log_uuid])
-      const log3 = createMockRootLog();
-      store.addLogOnEmit(log3);
-
-      // trace-4: started, ended. This evicts trace-1 (oldest in queue of size 2).
-      // queue = [standalone_log_uuid, 'trace-4']
-      const span4 = createMockRootSpan('trace-4');
-      store.addSpanOnStart(span4);
-      const child4 = createMockChildSpan('trace-4');
-      store.addSpanOnStart(child4);
-      const log4 = createMockChildLog('trace-4');
-      store.addLogOnEmit(log4);
-      store.addRootSpanOnEnd(span4);
-
-      // Act
-      const logs = store.getBufferedLogs();
-
-      // Assert
-      expect(logs).to.deep.equal([log3, log4]);
+      expect(store.getSpansToExport()).to.have.deep.members([
+        existingRootSpan,
+        existingChildSpan
+      ]);
     });
   });
 });
@@ -626,14 +394,15 @@ describe('RootTelemetryQueue', () => {
     expect(queue.dequeue()).to.be.undefined;
   });
 
-  it('should drop oldest item when limit is exceeded', () => {
+  it('should not enqueue when limit is exceeded', () => {
     const queue = new RootTelemetryQueue(2);
     expect(queue.enqueue('a')).to.be.undefined;
     expect(queue.enqueue('b')).to.be.undefined;
 
-    // Third item exceeds limit of 2, should drop and return the oldest ('a')
-    expect(queue.enqueue('c')).to.equal('a');
+    // Third item exceeds limit of 2, should do nothing
+    expect(queue.enqueue('c')).to.be.undefined;
     expect(queue.size).to.equal(2);
+    expect(queue.peek()).to.equal('a');
   });
 
   it('should clear the queue', () => {
