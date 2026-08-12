@@ -134,7 +134,7 @@ export declare function initializeServerApp(config?: FirebaseServerAppSettings):
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  config | [FirebaseServerAppSettings](./app.firebaseserverappsettings.md#firebaseserverappsettings_interface) | Optional <code>FirebaseServerApp</code> settings, including tokens, releaseOnDeref, or customIdentifier. |
+|  config | [FirebaseServerAppSettings](./app.firebaseserverappsettings.md#firebaseserverappsettings_interface) | Optional <code>FirebaseServerApp</code> settings, including tokens, <code>releaseOnDeref</code>, or <code>customIdentifier</code>. |
 
 <b>Returns:</b>
 
@@ -379,7 +379,7 @@ export declare function initializeServerApp(options: FirebaseOptions | FirebaseA
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  options | [FirebaseOptions](./app.firebaseoptions.md#firebaseoptions_interface) \| [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | <code>Firebase.AppOptions</code> to configure the app's services, or a a <code>FirebaseApp</code> instance which contains the <code>AppOptions</code> within. |
-|  config | [FirebaseServerAppSettings](./app.firebaseserverappsettings.md#firebaseserverappsettings_interface) | Optional <code>FirebaseServerApp</code> settings, including tokens, releaseOnDeref, or customIdentifier. |
+|  config | [FirebaseServerAppSettings](./app.firebaseserverappsettings.md#firebaseserverappsettings_interface) | Optional <code>FirebaseServerApp</code> settings, including tokens, <code>releaseOnDeref</code>, or <code>customIdentifier</code>. |
 
 <b>Returns:</b>
 
