@@ -90,16 +90,18 @@ export class AsyncQueueImpl implements AsyncQueue {
    * we ignore the Promise result).
    */
   enqueueAndForget<T extends unknown>(op: () => Promise<T>): void {
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    this.enqueue(op);
+    // Catch unhandled rejection from the floating promise to avoid Vitest error:
+    // "Unhandled Rejection: Error: FIRESTORE (12.17.1) INTERNAL ASSERTION FAILED: Simulated test failure"
+    void this.enqueue(op).catch(() => {});
   }
 
   enqueueAndForgetEvenWhileRestricted<T extends unknown>(
     op: () => Promise<T>
   ): void {
     this.verifyNotFailed();
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    this.enqueueInternal(op);
+    // Catch unhandled rejection from the floating promise to avoid Vitest error:
+    // "Unhandled Rejection: Error: FIRESTORE (12.17.1) INTERNAL ASSERTION FAILED: Simulated test failure"
+    void this.enqueueInternal(op).catch(() => {});
   }
 
   enterRestrictedMode(purgeExistingTasks?: boolean): void {

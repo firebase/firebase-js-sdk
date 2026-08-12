@@ -23,10 +23,15 @@ export {
   collectionGroup,
   doc,
   queryEqual,
+  refEqual
+} from '../lite-api/reference';
+
+// Export as types to avoid Vitest error:
+// "SyntaxError: The requested module '/src/lite-api/reference.ts' does not provide an export named 'SetOptions'"
+export type {
   SetOptions,
   DocumentData,
   UpdateData,
   WithFieldValue,
-  PartialWithFieldValue,
-  refEqual
+  PartialWithFieldValue
 } from '../lite-api/reference';

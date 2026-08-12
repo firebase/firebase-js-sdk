@@ -32,8 +32,9 @@ export enum TargetBackend {
   PROD = 'prod'
 }
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const PROJECT_CONFIG = require('../../../../../config/project.json');
+// Use ESM import instead of require() to avoid Vitest error:
+// "ReferenceError: require is not defined"
+import PROJECT_CONFIG from '../../../../../config/project.json';
 
 export const TARGET_DB_ID: string | '(default)' = getTargetDbId();
 

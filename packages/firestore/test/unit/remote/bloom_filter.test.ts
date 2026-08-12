@@ -209,27 +209,29 @@ describe('BloomFilter', () => {
         TEST_DATA.count50000Rate1TestResult
       );
     });
+    // Avoid chained .timeout() on it.skip to prevent Vitest error:
+    // "TypeError: Cannot read properties of undefined (reading 'timeout')"
     // eslint-disable-next-line no-restricted-properties
     it.skip(
       'mightContain result for 50000 documents with 0.01 false positive rate',
-      () => {
+      function () {
+        this.timeout(10_000);
         testBloomFilterAgainstExpectedResult(
           TEST_DATA.count50000Rate01TestData,
           TEST_DATA.count50000Rate01TestResult
         );
-        // Extend the default timeout to 10000ms
       }
-    ).timeout(10_000);
+    );
     // eslint-disable-next-line no-restricted-properties
     it.skip(
       'mightContain result for 50000 documents with 0.0001 false positive rate',
-      () => {
+      function () {
+        this.timeout(10_000);
         testBloomFilterAgainstExpectedResult(
           TEST_DATA.count50000Rate0001TestData,
           TEST_DATA.count50000Rate0001TestResult
         );
-        // Extend the default timeout to 10000ms
       }
-    ).timeout(10_000);
+    );
   });
 });

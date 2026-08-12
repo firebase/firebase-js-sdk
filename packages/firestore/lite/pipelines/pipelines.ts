@@ -29,7 +29,9 @@
 // types need to be exported here to ensure that api-extractor behaves
 // correctly. If a type from api.ts is missing from this export, then
 // api-extractor may rename it with a suffix `_#`, e.g. `YourType_2`.
-export {
+// Export as types to avoid Vitest error:
+// "SyntaxError: The requested module '/lite/index.ts' does not provide an export named 'DocumentData'"
+export type {
   Timestamp,
   DocumentReference,
   VectorValue,
@@ -53,7 +55,9 @@ export {
   subcollection
 } from '../../src/lite-api/pipeline-source';
 
-export { OneOf } from '../../src/util/types';
+// Export as type to avoid Vitest error:
+// "SyntaxError: The requested module '../../src/util/types' does not provide an export named 'OneOf'"
+export type { OneOf } from '../../src/util/types';
 
 export {
   PipelineResult,
@@ -64,7 +68,9 @@ export { Pipeline } from '../../src/lite-api/pipeline';
 
 export { execute } from '../../src/lite-api/pipeline_impl';
 
-export {
+// Export as types to avoid Vitest error:
+// "SyntaxError: The requested module '../../src/lite-api/stage_options' does not provide an export named 'StageOptions'"
+export type {
   StageOptions,
   CollectionStageOptions,
   CollectionGroupStageOptions,
@@ -242,11 +248,16 @@ export {
   Constant,
   FunctionExpression,
   Ordering,
-  ExpressionType,
   AliasedAggregate,
-  Selectable,
   BooleanExpression,
-  AggregateFunction,
+  AggregateFunction
+} from '../../src/lite-api/expressions';
+
+// Export as types to avoid Vitest error:
+// "SyntaxError: The requested module '../../src/lite-api/expressions' does not provide an export named 'Selectable'"
+export type {
+  ExpressionType,
+  Selectable,
   TimeGranularity,
   TimePart,
   TimeUnit

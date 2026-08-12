@@ -328,8 +328,10 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
     };
 
     return withDb(2, db => {
+      // Use optional chaining for test context to avoid Vitest error:
+      // "TypeError: Cannot read properties of undefined (reading 'fullTitle')"
       return db.runTransaction(
-        this.test!.fullTitle(),
+        this?.test?.fullTitle() ?? 'test-transaction',
         'readwrite',
         [DbTargetStore, DbTargetGlobalStore, DbMutationBatchStore],
         txn => {
@@ -357,8 +359,10 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
         expect(version).to.equal(3);
         expect(objectStores).to.have.members(V3_STORES);
 
+        // Use optional chaining for test context to avoid Vitest error:
+        // "TypeError: Cannot read properties of undefined (reading 'fullTitle')"
         return db.runTransaction(
-          this.test!.fullTitle(),
+          this?.test?.fullTitle() ?? 'test-transaction',
           'readwrite',
           [DbTargetStore, DbTargetGlobalStore, DbMutationBatchStore],
           txn => {
@@ -423,8 +427,10 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
     ];
 
     return withDb(3, db => {
+      // Use optional chaining for test context to avoid Vitest error:
+      // "TypeError: Cannot read properties of undefined (reading 'fullTitle')"
       return db.runTransaction(
-        this.test!.fullTitle(),
+        this?.test?.fullTitle() ?? 'test-transaction',
         'readwrite',
         [DbMutationBatchStore],
         txn => {
@@ -439,8 +445,10 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
       withDb(4, (db, version, objectStores) => {
         expect(version).to.be.equal(4);
         expect(objectStores).to.have.members(V4_STORES);
+        // Use optional chaining for test context to avoid Vitest error:
+        // "TypeError: Cannot read properties of undefined (reading 'fullTitle')"
         return db.runTransaction(
-          this.test!.fullTitle(),
+          this?.test?.fullTitle() ?? 'test-transaction',
           'readwrite',
           [DbMutationBatchStore],
           txn => {
@@ -535,8 +543,10 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
 
     return withDb(4, db => {
       // We can only use the V4 stores here, since that's as far as we've upgraded.
+      // Use optional chaining for test context to avoid Vitest error:
+      // "TypeError: Cannot read properties of undefined (reading 'fullTitle')"
       return db.runTransaction(
-        this.test!.fullTitle(),
+        this?.test?.fullTitle() ?? 'test-transaction',
         'readwrite',
         V4_STORES,
         txn => {
@@ -600,8 +610,10 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
         expect(version).to.be.equal(5);
 
         // There is no V5_STORES, continue using V4.
+        // Use optional chaining for test context to avoid Vitest error:
+        // "TypeError: Cannot read properties of undefined (reading 'fullTitle')"
         return db.runTransaction(
-          this.test!.fullTitle(),
+          this?.test?.fullTitle() ?? 'test-transaction',
           'readwrite',
           V4_STORES,
           txn => {
@@ -652,8 +664,10 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
         doc('docs/c', 3, { a: 1, b: [5, 'foo'] })
       ];
       // V5 stores doesn't exist
+      // Use optional chaining for test context to avoid Vitest error:
+      // "TypeError: Cannot read properties of undefined (reading 'fullTitle')"
       return db.runTransaction(
-        this.test!.fullTitle(),
+        this?.test?.fullTitle() ?? 'test-transaction',
         'readwrite',
         V4_STORES,
         txn => {
@@ -671,8 +685,10 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
       );
     });
     await withDb(6, db => {
+      // Use optional chaining for test context to avoid Vitest error:
+      // "TypeError: Cannot read properties of undefined (reading 'fullTitle')"
       return db.runTransaction(
-        this.test!.fullTitle(),
+        this?.test?.fullTitle() ?? 'test-transaction',
         'readwrite',
         V6_STORES,
         txn => {
@@ -697,8 +713,10 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
     const newSequenceNumber = 2;
     await withDb(6, db => {
       const serializer = TEST_SERIALIZER;
+      // Use optional chaining for test context to avoid Vitest error:
+      // "TypeError: Cannot read properties of undefined (reading 'fullTitle')"
       return db.runTransaction(
-        this.test!.fullTitle(),
+        this?.test?.fullTitle() ?? 'test-transaction',
         'readwrite',
         V6_STORES,
         txn => {
@@ -751,8 +769,10 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
 
     // Now run the migration and verify
     await withDb(7, db => {
+      // Use optional chaining for test context to avoid Vitest error:
+      // "TypeError: Cannot read properties of undefined (reading 'fullTitle')"
       return db.runTransaction(
-        this.test!.fullTitle(),
+        this?.test?.fullTitle() ?? 'test-transaction',
         'readwrite',
         V6_STORES,
         txn => {
@@ -806,8 +826,10 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
     };
 
     await withDb(7, db => {
+      // Use optional chaining for test context to avoid Vitest error:
+      // "TypeError: Cannot read properties of undefined (reading 'fullTitle')"
       return db.runTransaction(
-        this.test!.fullTitle(),
+        this?.test?.fullTitle() ?? 'test-transaction',
         'readwrite',
         V6_STORES,
         txn => {
@@ -850,8 +872,10 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
 
     // Migrate to v8 and verify index entries.
     await withDb(8, db => {
+      // Use optional chaining for test context to avoid Vitest error:
+      // "TypeError: Cannot read properties of undefined (reading 'fullTitle')"
       return db.runTransaction(
-        this.test!.fullTitle(),
+        this?.test?.fullTitle() ?? 'test-transaction',
         'readwrite',
         V8_STORES,
         txn => {
@@ -881,8 +905,10 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
 
   it('rewrites canonical IDs during upgrade from version 9 to 10', async function (this: Context) {
     await withDb(9, db => {
+      // Use optional chaining for test context to avoid Vitest error:
+      // "TypeError: Cannot read properties of undefined (reading 'fullTitle')"
       return db.runTransaction(
-        this.test!.fullTitle(),
+        this?.test?.fullTitle() ?? 'test-transaction',
         'readwrite',
         V8_STORES,
         txn => {
@@ -907,8 +933,10 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
     });
 
     await withDb(10, db => {
+      // Use optional chaining for test context to avoid Vitest error:
+      // "TypeError: Cannot read properties of undefined (reading 'fullTitle')"
       return db.runTransaction(
-        this.test!.fullTitle(),
+        this?.test?.fullTitle() ?? 'test-transaction',
         'readwrite',
         V8_STORES,
         txn => {
@@ -944,8 +972,10 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
     ];
 
     await withDb(8, db => {
+      // Use optional chaining for test context to avoid Vitest error:
+      // "TypeError: Cannot read properties of undefined (reading 'fullTitle')"
       return db.runTransaction(
-        this.test!.fullTitle(),
+        this?.test?.fullTitle() ?? 'test-transaction',
         'readwrite',
         V8_STORES,
         txn => {
@@ -980,8 +1010,10 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
 
     // Migrate to v13 and verify that new documents are indexed.
     await withDb(13, db => {
+      // Use optional chaining for test context to avoid Vitest error:
+      // "TypeError: Cannot read properties of undefined (reading 'fullTitle')"
       return db.runTransaction(
-        this.test!.fullTitle(),
+        this?.test?.fullTitle() ?? 'test-transaction',
         'readwrite',
         V13_STORES,
         txn => {
@@ -1029,8 +1061,10 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
     const newDocPaths = ['coll/doc3', 'coll/doc4', 'abc/doc2'];
 
     await withDb(13, db => {
+      // Use optional chaining for test context to avoid Vitest error:
+      // "TypeError: Cannot read properties of undefined (reading 'fullTitle')"
       return db.runTransaction(
-        this.test!.fullTitle(),
+        this?.test?.fullTitle() ?? 'test-transaction',
         'readwrite',
         V13_STORES,
         txn => {
@@ -1135,8 +1169,10 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
     ];
 
     return withDb(13, db => {
+      // Use optional chaining for test context to avoid Vitest error:
+      // "TypeError: Cannot read properties of undefined (reading 'fullTitle')"
       return db.runTransaction(
-        this.test!.fullTitle(),
+        this?.test?.fullTitle() ?? 'test-transaction',
         'readwrite',
         V13_STORES,
         txn => {
@@ -1176,8 +1212,10 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
       withDb(14, (db, version) => {
         expect(version).to.be.equal(14);
 
+        // Use optional chaining for test context to avoid Vitest error:
+        // "TypeError: Cannot read properties of undefined (reading 'fullTitle')"
         return db.runTransaction(
-          this.test!.fullTitle(),
+          this?.test?.fullTitle() ?? 'test-transaction',
           'readonly',
           V14_STORES,
           txn => {
@@ -1278,7 +1316,9 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
         downgradeVersion,
         schemaConverter
       );
-      await db.ensureDb(this.test!.fullTitle());
+      // Use optional chaining for test context to avoid Vitest error:
+      // "TypeError: Cannot read properties of undefined (reading 'fullTitle')"
+      await db.ensureDb(this?.test?.fullTitle() ?? 'test-transaction');
     } catch (e) {
       error = e as FirestoreError;
       expect(
@@ -1565,8 +1605,10 @@ describe('IndexedDb', () => {
       db.close();
       // Running a new IndexedDB transaction should re-open the database and not
       // throw.
+      // Use optional chaining for test context to avoid Vitest error:
+      // "TypeError: Cannot read properties of undefined (reading 'fullTitle')"
       await db.runTransaction(
-        this.test!.fullTitle(),
+        this?.test?.fullTitle() ?? 'test-transaction',
         'readwrite',
         V1_STORES,
         () => PersistencePromise.resolve()

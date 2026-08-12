@@ -25,11 +25,11 @@ import {
 import {
   createMockUserToken,
   deepEqual,
-  EmulatorMockTokenOptions,
   getDefaultEmulatorHostnameAndPort,
   isCloudWorkstation,
   pingServer
 } from '@firebase/util';
+import type { EmulatorMockTokenOptions } from '@firebase/util';
 
 import {
   CredentialsProvider,
@@ -44,14 +44,12 @@ import { cast } from '../util/input_validation';
 import { logWarn } from '../util/log';
 
 import { FirestoreService, removeComponents } from './components';
-import {
-  DEFAULT_HOST,
-  FirestoreSettingsImpl,
-  PrivateSettings,
-  FirestoreSettings
-} from './settings';
+import { DEFAULT_HOST, FirestoreSettingsImpl } from './settings';
+import type { PrivateSettings, FirestoreSettings } from './settings';
 
-export { EmulatorMockTokenOptions } from '@firebase/util';
+// Export as type to avoid Vitest error:
+// "SyntaxError: The requested module '@firebase/util' does not provide an export named 'EmulatorMockTokenOptions'"
+export type { EmulatorMockTokenOptions } from '@firebase/util';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {

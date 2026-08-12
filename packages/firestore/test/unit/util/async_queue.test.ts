@@ -29,9 +29,9 @@ import {
 import { Code } from '../../../src/util/error';
 import {
   getLogLevel,
-  setLogLevel,
-  LogLevelString
+  setLogLevel
 } from '../../../src/util/log';
+import type { LogLevelString } from '../../../src/util/log';
 import { Deferred, Rejecter, Resolver } from '../../../src/util/promise';
 
 use(chaiAsPromised);

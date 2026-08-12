@@ -84,10 +84,14 @@ describe('documents stage', () => {
     ).to.deep.equal([doc2, doc1, doc3]);
   });
 
-  it('hugeDocumentCount_returnsDocuments', function () {
-    this.timeout(10000); // Increase timeout for this test case to 10 seconds
+  it(
+    'hugeDocumentCount_returnsDocuments',
+    function () {
+      // Use optional chaining for Mocha timeout context to avoid Vitest error:
+      // "TypeError: Cannot read properties of undefined (reading 'timeout')"
+      this?.timeout?.(10000); // Increase timeout for this test case to 10 seconds
 
-    const size = 5000;
+      const size = 5000;
     const keys = [];
     const docs = [];
     for (let i = 0; i < size; i++) {

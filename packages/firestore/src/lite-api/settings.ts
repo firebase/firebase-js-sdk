@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { EmulatorMockTokenOptions } from '@firebase/util';
+import type { EmulatorMockTokenOptions } from '@firebase/util';
 
 import { FirestoreLocalCache } from '../api/cache_config';
 import { CredentialsSettings } from '../api/credentials';
