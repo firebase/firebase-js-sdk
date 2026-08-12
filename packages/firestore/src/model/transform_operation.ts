@@ -31,6 +31,7 @@ import {
   isDecimal128Value,
   isInt32Value,
   isDoubleValue,
+  compareNumbers,
   RESERVED_DECIMAL128_KEY,
   RESERVED_INT32_KEY
 } from './values';
@@ -311,9 +312,9 @@ export function applyNumericMinimumTransformOperationToLocalView(
   if (!isNumber(previousValue)) {
     return operation.operand;
   }
-  const prev = asNumber(previousValue);
-  const oper = asNumber(operation.operand);
-  return oper < prev ? operation.operand : previousValue;
+  return compareNumbers(operation.operand, previousValue) < 0
+    ? operation.operand
+    : previousValue;
 }
 
 export function applyNumericMaximumTransformOperationToLocalView(
@@ -323,9 +324,9 @@ export function applyNumericMaximumTransformOperationToLocalView(
   if (!isNumber(previousValue)) {
     return operation.operand;
   }
-  const prev = asNumber(previousValue);
-  const oper = asNumber(operation.operand);
-  return oper > prev ? operation.operand : previousValue;
+  return compareNumbers(operation.operand, previousValue) > 0
+    ? operation.operand
+    : previousValue;
 }
 
 function asNumber(value: ProtoValue): number {

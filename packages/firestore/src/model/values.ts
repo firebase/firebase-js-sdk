@@ -495,7 +495,7 @@ function getDecimal128StringValue(value: Value): string {
   return value.mapValue!.fields![RESERVED_DECIMAL128_KEY].stringValue!;
 }
 
-function compareNumbers(left: Value, right: Value): number {
+export function compareNumbers(left: Value, right: Value): number {
   // If either number is Decimal128, we cast both to wider (128-bit) representation, and compare those.
   if (isDecimal128Value(left) || isDecimal128Value(right)) {
     return compareQuadruples(left, right);
