@@ -990,7 +990,10 @@ export class Query<T = PublicDocumentData>
 {
   private readonly _userDataWriter: UserDataWriter;
 
-  constructor(readonly firestore: Firestore, readonly _delegate: ExpQuery<T>) {
+  constructor(
+    readonly firestore: Firestore,
+    readonly _delegate: ExpQuery<T>
+  ) {
     this._userDataWriter = new UserDataWriter(firestore);
   }
 

@@ -55,7 +55,9 @@ Deletes the document referred to by the provided [DocumentReference](./firestore
 <b>Signature:</b>
 
 ```typescript
-delete<AppModelType, DbModelType extends DocumentData>(documentRef: DocumentReference<AppModelType, DbModelType>): WriteBatch;
+delete<AppModelType, DbModelType extends DocumentData>(
+    documentRef: DocumentReference<AppModelType, DbModelType>
+  ): WriteBatch;
 ```
 
 #### Parameters
@@ -77,7 +79,10 @@ Writes to the document referred to by the provided [DocumentReference](./firesto
 <b>Signature:</b>
 
 ```typescript
-set<AppModelType, DbModelType extends DocumentData>(documentRef: DocumentReference<AppModelType, DbModelType>, data: WithFieldValue<AppModelType>): WriteBatch;
+set<AppModelType, DbModelType extends DocumentData>(
+    documentRef: DocumentReference<AppModelType, DbModelType>,
+    data: WithFieldValue<AppModelType>
+  ): WriteBatch;
 ```
 
 #### Parameters
@@ -100,7 +105,11 @@ Writes to the document referred to by the provided [DocumentReference](./firesto
 <b>Signature:</b>
 
 ```typescript
-set<AppModelType, DbModelType extends DocumentData>(documentRef: DocumentReference<AppModelType, DbModelType>, data: PartialWithFieldValue<AppModelType>, options: SetOptions): WriteBatch;
+set<AppModelType, DbModelType extends DocumentData>(
+    documentRef: DocumentReference<AppModelType, DbModelType>,
+    data: PartialWithFieldValue<AppModelType>,
+    options: SetOptions
+  ): WriteBatch;
 ```
 
 #### Parameters
@@ -128,7 +137,10 @@ Updates fields in the document referred to by the provided [DocumentReference](.
 <b>Signature:</b>
 
 ```typescript
-update<AppModelType, DbModelType extends DocumentData>(documentRef: DocumentReference<AppModelType, DbModelType>, data: UpdateData<DbModelType>): WriteBatch;
+update<AppModelType, DbModelType extends DocumentData>(
+    documentRef: DocumentReference<AppModelType, DbModelType>,
+    data: UpdateData<DbModelType>
+  ): WriteBatch;
 ```
 
 #### Parameters
@@ -157,7 +169,12 @@ Nested fields can be update by providing dot-separated field path strings or by 
 <b>Signature:</b>
 
 ```typescript
-update<AppModelType, DbModelType extends DocumentData>(documentRef: DocumentReference<AppModelType, DbModelType>, field: string | FieldPath, value: unknown, ...moreFieldsAndValues: unknown[]): WriteBatch;
+update<AppModelType, DbModelType extends DocumentData>(
+    documentRef: DocumentReference<AppModelType, DbModelType>,
+    field: string | FieldPath,
+    value: unknown,
+    ...moreFieldsAndValues: unknown[]
+  ): WriteBatch;
 ```
 
 #### Parameters

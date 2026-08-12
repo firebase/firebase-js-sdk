@@ -41,14 +41,14 @@ Returns all documents from the entire collection. The collection can be nested.
 <b>Signature:</b>
 
 ```typescript
-collection(collection: string | Query): PipelineType;
+collection(collection: string | CollectionReference): PipelineType;
 ```
 
 #### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  collection | string \| [Query](./firestore_lite.query.md#query_class) | Name or reference to the collection that will be used as the Pipeline source. |
+|  collection | string \| [CollectionReference](./firestore_lite.collectionreference.md#collectionreference_class) | Name or reference to the collection that will be used as the Pipeline source. |
 
 <b>Returns:</b>
 

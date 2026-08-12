@@ -19,7 +19,10 @@ import { FirebaseApp, _FirebaseService } from '../src/public-types';
 import { ComponentType, Component } from '@firebase/component';
 
 export class TestService implements _FirebaseService {
-  constructor(private app_: FirebaseApp, public instanceIdentifier?: string) {}
+  constructor(
+    private app_: FirebaseApp,
+    public instanceIdentifier?: string
+  ) {}
 
   get app(): FirebaseApp {
     return this.app_;

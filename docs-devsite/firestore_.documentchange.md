@@ -15,7 +15,10 @@ A `DocumentChange` represents a change to the documents matching a query. It con
 <b>Signature:</b>
 
 ```typescript
-export declare interface DocumentChange<AppModelType = DocumentData, DbModelType extends DocumentData = DocumentData> 
+export declare interface DocumentChange<
+  AppModelType = DocumentData,
+  DbModelType extends DocumentData = DocumentData
+> 
 ```
 
 ## Properties

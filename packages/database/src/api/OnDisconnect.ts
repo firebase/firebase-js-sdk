@@ -54,7 +54,10 @@ import {
  */
 export class OnDisconnect {
   /** @hideconstructor */
-  constructor(private _repo: Repo, private _path: Path) {}
+  constructor(
+    private _repo: Repo,
+    private _path: Path
+  ) {}
 
   /**
    * Cancels all previously queued `onDisconnect()` set or update events for this

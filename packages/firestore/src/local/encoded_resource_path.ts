@@ -136,7 +136,7 @@ export function decodeResourcePath(path: EncodedResourcePath): ResourcePath {
   const segments: string[] = [];
   let segmentBuilder = '';
 
-  for (let start = 0; start < length; ) {
+  for (let start = 0; start < length;) {
     // The last two characters of a valid encoded path must be a separator, so
     // there must be an end to this segment.
     const end = path.indexOf(escapeChar, start);

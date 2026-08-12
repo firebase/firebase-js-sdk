@@ -29,7 +29,10 @@ import { DocumentKey } from '../../../src/model/document_key';
  * transaction around every operation to reduce test boilerplate.
  */
 export class TestTargetCache {
-  constructor(public persistence: Persistence, public cache: TargetCache) {}
+  constructor(
+    public persistence: Persistence,
+    public cache: TargetCache
+  ) {}
 
   addTargetData(targetData: TargetData): Promise<void> {
     return this.persistence.runTransaction(

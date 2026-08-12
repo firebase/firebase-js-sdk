@@ -35,7 +35,10 @@ export abstract class MultiFactorInfoImpl implements MultiFactorInfo {
   readonly displayName?: string | null;
   readonly enrollmentTime: string;
 
-  protected constructor(readonly factorId: FactorId, response: MfaEnrollment) {
+  protected constructor(
+    readonly factorId: FactorId,
+    response: MfaEnrollment
+  ) {
     this.uid = response.mfaEnrollmentId;
     this.enrollmentTime = new Date(response.enrolledAt).toUTCString();
     this.displayName = response.displayName;

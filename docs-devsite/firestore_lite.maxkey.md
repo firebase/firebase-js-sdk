@@ -39,7 +39,7 @@ A type string to uniquely identify instances of this class.
 <b>Signature:</b>
 
 ```typescript
-readonly type = "MaxKey";
+readonly type = 'MaxKey';
 ```
 
 ## MaxKey.instance()
