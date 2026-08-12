@@ -503,8 +503,10 @@ describe('SimpleDb', () => {
       ['foo', 'd'],
       ['foob']
     ];
+    // Use optional chaining on this?.test to avoid Vitest error:
+    // "TypeError: Cannot read properties of undefined (reading 'test')"
     await db.runTransaction(
-      this.test!.fullTitle(),
+      this?.test?.fullTitle() ?? 'test-transaction',
       'readwrite',
       ['users', 'docs'],
       txn => {
@@ -519,7 +521,7 @@ describe('SimpleDb', () => {
     );
 
     await db.runTransaction(
-      this.test!.fullTitle(),
+      this?.test?.fullTitle() ?? 'test-transaction',
       'readonly',
       ['docs'],
       txn => {
@@ -562,7 +564,7 @@ describe('SimpleDb', () => {
       expectedOrder.sort(dbKeyComparator);
 
       const actualOrder = await db.runTransaction(
-        this.test!.fullTitle(),
+        this?.test?.fullTitle() ?? 'test-transaction',
         'readwrite',
         ['docs'],
         txn => {
@@ -603,7 +605,7 @@ describe('SimpleDb', () => {
     let attemptCount = 0;
 
     const result = await db.runTransaction(
-      this.test!.fullTitle(),
+      this?.test?.fullTitle() ?? 'test-transaction',
       'readwrite',
       ['users'],
       txn => {
@@ -630,16 +632,21 @@ describe('SimpleDb', () => {
     let attemptCount = 0;
 
     await expect(
-      db.runTransaction(this.test!.fullTitle(), 'readwrite', ['users'], txn => {
-        ++attemptCount;
-        const store = txn.store<string[], typeof dummyUser>('users');
-        return store
-          .add(dummyUser)
-          .next(() => {
-            return store.add(dummyUser); // Fails with a unique key violation
-          })
-          .next(() => 'Aborted');
-      })
+      db.runTransaction(
+        this?.test?.fullTitle() ?? 'test-transaction',
+        'readwrite',
+        ['users'],
+        txn => {
+          ++attemptCount;
+          const store = txn.store<string[], typeof dummyUser>('users');
+          return store
+            .add(dummyUser)
+            .next(() => {
+              return store.add(dummyUser); // Fails with a unique key violation
+            })
+            .next(() => 'Aborted');
+        }
+      )
     ).to.eventually.be.rejected;
 
     expect(attemptCount).to.equal(3);
@@ -649,11 +656,16 @@ describe('SimpleDb', () => {
     let attemptCount = 0;
 
     await expect(
-      db.runTransaction(this.test!.fullTitle(), 'readwrite', ['users'], txn => {
-        ++attemptCount;
-        txn.abort(new FirestoreError(Code.ABORTED, 'Aborted'));
-        return PersistencePromise.reject(new Error());
-      })
+      db.runTransaction(
+        this?.test?.fullTitle() ?? 'test-transaction',
+        'readwrite',
+        ['users'],
+        txn => {
+          ++attemptCount;
+          txn.abort(new FirestoreError(Code.ABORTED, 'Aborted'));
+          return PersistencePromise.reject(new Error());
+        }
+      )
     ).to.eventually.be.rejected;
 
     expect(attemptCount).to.equal(1);

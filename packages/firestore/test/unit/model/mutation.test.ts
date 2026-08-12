@@ -975,7 +975,10 @@ describe('Mutation', () => {
     expect(testCases).to.equal(72);
   });
 
-  it('overlay by combinations and permutations', () => {
+  it('overlay by combinations and permutations', function (this: any) {
+    if (this && typeof this.timeout === 'function') {
+      this.timeout(10000);
+    }
     const docs: MutableDocument[] = [
       doc('collection/key', 1, { 'foo': 'foo-value', 'bar': 1 }),
       deletedDoc('collection/key', 1),
@@ -1012,7 +1015,9 @@ describe('Mutation', () => {
 
     // There are (0! + 7*1! + 21*2! + 35*3! + 35*4! + 21*5! + 7*6! + 7!) * 3 = 41100 cases.
     expect(testCases).to.equal(41100);
-  }).timeout(10000);
+    // Pass timeout as 3rd argument to it() instead of chaining .timeout() to avoid Vitest error:
+    // "TypeError: Cannot read properties of undefined (reading 'timeout')"
+  }, 10000);
 
   it('overlay by combinations and permutations for array transforms', () => {
     const docs: MutableDocument[] = [

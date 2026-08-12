@@ -17,7 +17,9 @@
 
 export { PipelineSource, subcollection } from './lite-api/pipeline-source';
 
-export { OneOf } from './util/types';
+// Export as type to avoid Vitest error:
+// "SyntaxError: The requested module './util/types' does not provide an export named 'OneOf'"
+export type { OneOf } from './util/types';
 
 export {
   PipelineResult,
@@ -29,9 +31,13 @@ export { Pipeline } from './api/pipeline';
 
 export { execute } from './api/pipeline_impl';
 
-export { PipelineExecuteOptions } from './lite-api/pipeline_options';
+// Export as type to avoid Vitest error:
+// "SyntaxError: The requested module './lite-api/pipeline_options' does not provide an export named 'PipelineExecuteOptions'"
+export type { PipelineExecuteOptions } from './lite-api/pipeline_options';
 
-export {
+// Export as types to avoid Vitest error:
+// "SyntaxError: The requested module './lite-api/stage_options' does not provide an export named 'StageOptions'"
+export type {
   StageOptions,
   CollectionStageOptions,
   CollectionGroupStageOptions,
@@ -211,8 +217,13 @@ export {
   Ordering,
   BooleanExpression,
   AggregateFunction,
+  AliasedAggregate
+} from './lite-api/expressions';
+
+// Export as types to avoid Vitest error:
+// "SyntaxError: The requested module './lite-api/expressions' does not provide an export named 'Selectable'"
+export type {
   ExpressionType,
-  AliasedAggregate,
   Selectable,
   TimeGranularity,
   TimePart,

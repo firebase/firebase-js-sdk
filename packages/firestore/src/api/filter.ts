@@ -25,18 +25,23 @@ export {
   limit,
   or,
   orderBy,
-  OrderByDirection,
   where,
-  WhereFilterOp,
   query,
   QueryCompositeFilterConstraint,
   QueryConstraint,
-  QueryConstraintType,
-  QueryFilterConstraint,
   QueryFieldFilterConstraint,
   QueryOrderByConstraint,
   QueryLimitConstraint,
   QueryStartAtConstraint,
-  QueryEndAtConstraint,
+  QueryEndAtConstraint
+} from '../lite-api/query';
+
+// Export as types to avoid Vitest error:
+// "SyntaxError: The requested module '/src/lite-api/query.ts' does not provide an export named 'QueryFilterConstraint'"
+export type {
+  OrderByDirection,
+  WhereFilterOp,
+  QueryConstraintType,
+  QueryFilterConstraint,
   QueryNonFilterConstraint
 } from '../lite-api/query';

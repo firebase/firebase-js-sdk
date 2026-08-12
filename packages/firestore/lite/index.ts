@@ -39,30 +39,35 @@ export {
 
 export {
   AggregateField,
+  AggregateQuerySnapshot
+} from '../src/lite-api/aggregate_types';
+
+// Export as types to avoid Vitest error:
+// "SyntaxError: The requested module '/src/lite-api/aggregate_types.ts' does not provide an export named 'AggregateFieldType'"
+export type {
   AggregateFieldType,
   AggregateSpec,
   AggregateSpecData,
-  AggregateQuerySnapshot,
   AggregateType
 } from '../src/lite-api/aggregate_types';
 
-export { FirestoreSettings as Settings } from '../src/lite-api/settings';
+// Export as type to avoid Vitest error:
+// "SyntaxError: The requested module '../src/lite-api/settings' does not provide an export named 'FirestoreSettings'"
+export type { FirestoreSettings as Settings } from '../src/lite-api/settings';
 
 export {
   Firestore as Firestore,
-  EmulatorMockTokenOptions,
   initializeFirestore,
   getFirestore,
   terminate,
   connectFirestoreEmulator
 } from '../src/lite-api/database';
 
+// Export as type to avoid Vitest error:
+// "SyntaxError: The requested module '@firebase/util' does not provide an export named 'EmulatorMockTokenOptions'"
+export type { EmulatorMockTokenOptions } from '../src/lite-api/database';
+
 export {
-  DocumentData,
-  UpdateData,
-  WithFieldValue,
-  PartialWithFieldValue,
-  SetOptions,
   DocumentReference,
   Query,
   CollectionReference,
@@ -71,6 +76,16 @@ export {
   doc,
   refEqual,
   queryEqual
+} from '../src/lite-api/reference';
+
+// Export as types to avoid Vitest error:
+// "SyntaxError: The requested module '../src/lite-api/reference' does not provide an export named 'SetOptions'"
+export type {
+  DocumentData,
+  UpdateData,
+  WithFieldValue,
+  PartialWithFieldValue,
+  SetOptions
 } from '../src/lite-api/reference';
 
 export {
@@ -86,15 +101,20 @@ export {
   orderBy,
   query,
   QueryConstraint,
-  QueryConstraintType,
   QueryCompositeFilterConstraint,
-  QueryFilterConstraint,
   QueryFieldFilterConstraint,
   QueryOrderByConstraint,
   QueryLimitConstraint,
-  QueryNonFilterConstraint,
   QueryStartAtConstraint,
-  QueryEndAtConstraint,
+  QueryEndAtConstraint
+} from '../src/lite-api/query';
+
+// Export as types to avoid Vitest error:
+// "SyntaxError: The requested module '../src/lite-api/query' does not provide an export named 'QueryFilterConstraint'"
+export type {
+  QueryConstraintType,
+  QueryFilterConstraint,
+  QueryNonFilterConstraint,
   OrderByDirection,
   WhereFilterOp
 } from '../src/lite-api/query';
@@ -108,7 +128,9 @@ export {
   getDocs
 } from '../src/lite-api/reference_impl';
 
-export {
+// Export as types to avoid Vitest error:
+// "SyntaxError: The requested module '../src/lite-api/types' does not provide an export named 'Primitive'"
+export type {
   Primitive,
   NestedUpdateFields,
   ChildUpdateFields,
@@ -134,22 +156,26 @@ export {
 } from '../src/lite-api/field_value_impl';
 
 export {
-  FirestoreDataConverter,
   DocumentSnapshot,
   QueryDocumentSnapshot,
   QuerySnapshot,
   snapshotEqual
 } from '../src/lite-api/snapshot';
 
+// Export as type to avoid Vitest error:
+// "SyntaxError: The requested module '../src/lite-api/snapshot' does not provide an export named 'FirestoreDataConverter'"
+export type { FirestoreDataConverter } from '../src/lite-api/snapshot';
+
 export { VectorValue } from '../src/lite-api/vector_value';
 
 export { WriteBatch, writeBatch } from '../src/lite-api/write_batch';
 
-export { TransactionOptions } from '../src/lite-api/transaction_options';
+export type { TransactionOptions } from '../src/lite-api/transaction_options';
 
 export { Transaction, runTransaction } from '../src/lite-api/transaction';
 
-export { setLogLevel, LogLevelString as LogLevel } from '../src/util/log';
+export { setLogLevel } from '../src/util/log';
+export type { LogLevelString as LogLevel } from '../src/util/log';
 
 export { Bytes } from '../src/lite-api/bytes';
 
@@ -157,4 +183,7 @@ export { GeoPoint } from '../src/lite-api/geo_point';
 
 export { Timestamp } from '../src/lite-api/timestamp';
 
-export { FirestoreErrorCode, FirestoreError } from '../src/util/error';
+export { FirestoreError } from '../src/util/error';
+// Export as type to avoid Vitest error:
+// "SyntaxError: The requested module '../src/util/error' does not provide an export named 'FirestoreErrorCode'"
+export type { FirestoreErrorCode } from '../src/util/error';

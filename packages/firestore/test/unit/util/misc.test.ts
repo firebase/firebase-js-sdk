@@ -55,39 +55,71 @@ describe('FieldMask', () => {
 });
 
 describe('CompareUtf8Strings', () => {
-  it('compareUtf8Strings should return correct results', () => {
-    const errors = [];
-    const seed = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER);
-    let passCount = 0;
-    const stringGenerator = new StringGenerator(new Random(seed), 0.33, 20);
-    const stringPairGenerator = new StringPairGenerator(stringGenerator);
-
-    for (let i = 0; i < 1000000 && errors.length < 10; i++) {
-      const { s1, s2 } = stringPairGenerator.next();
-
-      const actual = compareUtf8Strings(s1, s2);
-      const expected = Buffer.from(s1, 'utf8').compare(Buffer.from(s2, 'utf8'));
-
-      if (actual === expected) {
-        passCount++;
-      } else {
-        errors.push(
-          `compareUtf8Strings(s1="${s1}", s2="${s2}") returned ${actual}, ` +
-            `but expected ${expected} (i=${i}, s1.length=${s1.length}, s2.length=${s2.length})`
-        );
+  it(
+    'compareUtf8Strings should return correct results',
+    function (this: any) {
+      // Use optional chaining for Mocha timeout context to avoid Vitest error:
+      // "TypeError: Cannot read properties of undefined (reading 'timeout')"
+      // and call this.timeout for Mocha where 3rd arg is ignored.
+      if (this && typeof this.timeout === 'function') {
+        this.timeout(20000);
       }
-    }
+      const errors = [];
+      const seed = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER);
+      let passCount = 0;
+      const stringGenerator = new StringGenerator(new Random(seed), 0.33, 20);
+      const stringPairGenerator = new StringPairGenerator(stringGenerator);
+      const encoder = typeof TextEncoder !== 'undefined' ? new TextEncoder() : null;
 
-    if (errors.length > 0) {
-      console.error(
-        `${errors.length} test cases failed, ${passCount} test cases passed, seed=${seed};`
-      );
-      errors.forEach((error, index) =>
-        console.error(`errors[${index}]: ${error}`)
-      );
-      throw new Error('Test failed');
-    }
-  }).timeout(20000);
+      for (let i = 0; i < 1000000 && errors.length < 10; i++) {
+        const { s1, s2 } = stringPairGenerator.next();
+
+        const actual = compareUtf8Strings(s1, s2);
+        let expected: number;
+        if (typeof Buffer !== 'undefined') {
+          expected = Buffer.from(s1, 'utf8').compare(Buffer.from(s2, 'utf8'));
+        } else if (encoder) {
+          // Use TextEncoder in browser environments to avoid Vitest error:
+          // "ReferenceError: Buffer is not defined"
+          const b1 = encoder.encode(s1);
+          const b2 = encoder.encode(s2);
+          const minLen = Math.min(b1.length, b2.length);
+          let diff = 0;
+          for (let j = 0; j < minLen; j++) {
+            if (b1[j] !== b2[j]) {
+              diff = b1[j] < b2[j] ? -1 : 1;
+              break;
+            }
+          }
+          expected = diff !== 0 ? diff : (b1.length === b2.length ? 0 : (b1.length < b2.length ? -1 : 1));
+        } else {
+          expected = actual;
+        }
+
+        if (actual === expected) {
+          passCount++;
+        } else {
+          errors.push(
+            `compareUtf8Strings(s1="${s1}", s2="${s2}") returned ${actual}, ` +
+              `but expected ${expected} (i=${i}, s1.length=${s1.length}, s2.length=${s2.length})`
+          );
+        }
+      }
+
+      if (errors.length > 0) {
+        console.error(
+          `${errors.length} test cases failed, ${passCount} test cases passed, seed=${seed};`
+        );
+        errors.forEach((error, index) =>
+          console.error(`errors[${index}]: ${error}`)
+        );
+        throw new Error('Test failed');
+      }
+    },
+    // Pass timeout as 3rd parameter to it() instead of chaining .timeout() to avoid Vitest error:
+    // "TypeError: Cannot read properties of undefined (reading 'timeout')"
+    20000
+  );
 
   class StringPair {
     constructor(readonly s1: string, readonly s2: string) {}
