@@ -267,7 +267,10 @@ export class ValidationPath {
    * @param path - Initial Path.
    * @param errorPrefix_ - Prefix for any error messages.
    */
-  constructor(path: Path, public errorPrefix_: string) {
+  constructor(
+    path: Path,
+    public errorPrefix_: string
+  ) {
     this.parts_ = pathSlice(path, 0);
     /** Initialize to number of '/' chars needed in path. */
     this.byteLength_ = Math.max(1, this.parts_.length);

@@ -272,9 +272,8 @@ function genericMutationQueueTests(): void {
     }
     const expected = [batches[1], batches[2], batches[4]];
     const query1 = query('foo');
-    const matches = await mutationQueue.getAllMutationBatchesAffectingQuery(
-      query1
-    );
+    const matches =
+      await mutationQueue.getAllMutationBatchesAffectingQuery(query1);
     expectEqualArrays(matches, expected);
   });
 
@@ -290,9 +289,8 @@ function genericMutationQueueTests(): void {
     ]);
     const expected = [batch1, batch2];
     const query1 = query('foo');
-    const matches = await mutationQueue.getAllMutationBatchesAffectingQuery(
-      query1
-    );
+    const matches =
+      await mutationQueue.getAllMutationBatchesAffectingQuery(query1);
     expectEqualArrays(matches, expected);
   });
 
