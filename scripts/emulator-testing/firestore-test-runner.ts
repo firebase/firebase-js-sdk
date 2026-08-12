@@ -22,8 +22,7 @@ import {
   SpawnPromiseResult
 } from 'child-process-promise';
 import * as path from 'path';
-// @ts-ignore
-import freePortFinder from 'find-free-port';
+import * as net from 'net';
 
 import { FirestoreEmulator } from './emulators/firestore-emulator';
 
@@ -82,8 +81,11 @@ async function run(): Promise<void> {
 
 function findFreePort(): Promise<number> {
   return new Promise((resolve, reject) => {
-    freePortFinder(10000, (err: Error, port: number) => {
-      return err ? reject(err) : resolve(port);
+    const server = net.createServer();
+    server.on('error', reject);
+    server.listen(0, () => {
+      const port = (server.address() as net.AddressInfo).port;
+      server.close(() => resolve(port));
     });
   });
 }
