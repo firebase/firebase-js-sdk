@@ -59,6 +59,9 @@ function makeStorage(url: string): Reference {
   return new Reference(service, url);
 }
 
+// Safely extract text from various body types and simulate a 200 OK response to avoid Vitest errors:
+// 1. "TypeError: Cannot read properties of null (reading 'text')" when body is null/string
+// 2. "Unhandled Rejection: FirebaseError: ... (storage/unknown)" when abort() caused unhandled promise rejections
 function withFakeSend(
   testFn: (text: string, headers?: Headers) => void,
   resolveFn: () => void
@@ -71,14 +74,18 @@ function withFakeSend(
     headers?: Headers
   ): void {
     let text: Promise<string>;
-    if (body instanceof Uint8Array) {
+    if (typeof body === 'string') {
+      text = Promise.resolve(body);
+    } else if (body instanceof Uint8Array) {
       text = Promise.resolve(decodeUint8Array(body));
-    } else {
+    } else if (body && typeof (body as Blob).text === 'function') {
       text = (body as Blob).text();
+    } else {
+      text = Promise.resolve('');
     }
     text.then(text => {
       testFn(text, headers);
-      connection.abort();
+      connection.simulateResponse(200, '{}', {});
       injectTestConnection(null);
       resolveFn();
     });
@@ -226,6 +233,7 @@ describe('Firebase Storage > Reference', () => {
     ): void {
       expect(headers).to.not.be.undefined;
       expect(headers!['Authorization']).to.be.undefined;
+      connection.simulateResponse(200, '{}', {});
       injectTestConnection(null);
       done();
     }
@@ -237,7 +245,7 @@ describe('Firebase Storage > Reference', () => {
       testShared.fakeAppCheckTokenProvider
     );
     const reference = ref(service, 'gs://test-bucket');
-    getMetadata(ref(reference, 'foo'));
+    void getMetadata(ref(reference, 'foo')).catch(() => {});
   });
 
   it('Works if the user logs in before creating the storage reference', done => {
@@ -253,6 +261,7 @@ describe('Firebase Storage > Reference', () => {
       expect(headers!['Authorization']).to.equal(
         'Firebase ' + testShared.authToken
       );
+      connection.simulateResponse(200, '{}', {});
       injectTestConnection(null);
       done();
     }
@@ -264,7 +273,7 @@ describe('Firebase Storage > Reference', () => {
       testShared.fakeAppCheckTokenProvider
     );
     const reference = ref(service, 'gs://test-bucket');
-    getMetadata(ref(reference, 'foo'));
+    void getMetadata(ref(reference, 'foo')).catch(() => {});
   });
 
   describe('uploadString', () => {
@@ -273,30 +282,30 @@ describe('Firebase Storage > Reference', () => {
       const root = withFakeSend((text: string, headers?: Headers) => {
         expect(text).to.include('"contentType":"lol/wut"');
       }, done);
-      uploadString(ref(root, 'test'), 'hello', StringFormat.RAW, {
+      void uploadString(ref(root, 'test'), 'hello', StringFormat.RAW, {
         contentType: 'lol/wut'
-      } as Metadata);
+      } as Metadata).catch(() => {});
     });
     it('Uses embedded content type in DATA_URL format', done => {
       const root = withFakeSend((text: string) => {
         expect(text).to.include('"contentType":"lol/wat"');
       }, done);
-      uploadString(
+      void uploadString(
         ref(root, 'test'),
         'data:lol/wat;base64,aaaa',
         StringFormat.DATA_URL
-      );
+      ).catch(() => {});
     });
     it('Lets metadata.contentType override embedded content type in DATA_URL format', done => {
       const root = withFakeSend((text: string) => {
         expect(text).to.include('"contentType":"tomato/soup"');
       }, done);
-      uploadString(
+      void uploadString(
         ref(root, 'test'),
         'data:ignore/me;base64,aaaa',
         StringFormat.DATA_URL,
         { contentType: 'tomato/soup' } as Metadata
-      );
+      ).catch(() => {});
     });
   });
 
@@ -305,9 +314,9 @@ describe('Firebase Storage > Reference', () => {
       const root = withFakeSend((text: string) => {
         expect(text).to.include('"contentType":"lol/wut"');
       }, done);
-      uploadBytes(ref(root, 'hello'), new Uint8Array(), {
+      void uploadBytes(ref(root, 'hello'), new Uint8Array(), {
         contentType: 'lol/wut'
-      } as Metadata);
+      } as Metadata).catch(() => {});
     });
     it('uploads without error', async () => {
       const storageService = storageServiceWithHandler(fakeServerHandler({}));

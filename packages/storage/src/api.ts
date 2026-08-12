@@ -57,7 +57,7 @@ import {
 } from '@firebase/util';
 import { StringFormat } from './implementation/string';
 
-export { EmulatorMockTokenOptions } from '@firebase/util';
+export type { EmulatorMockTokenOptions } from '@firebase/util';
 
 export { StorageError, StorageErrorCode } from './implementation/error';
 
