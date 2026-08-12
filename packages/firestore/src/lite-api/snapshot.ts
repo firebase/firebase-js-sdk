@@ -377,8 +377,7 @@ export class DocumentSnapshot<
    * if the document doesn't exist.
    */
   _fieldsProto():
-    | { [key: string]: firestoreV1ApiClientInterfaces.Value }
-    | undefined {
+    { [key: string]: firestoreV1ApiClientInterfaces.Value } | undefined {
     // Return a cloned value to prevent manipulation of the Snapshot's data
     return this._document?.data.clone().value.mapValue.fields ?? undefined;
   }

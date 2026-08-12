@@ -65,7 +65,10 @@ export const StringFormat = {
 export class StringData {
   contentType: string | null;
 
-  constructor(public data: Uint8Array, contentType?: string | null) {
+  constructor(
+    public data: Uint8Array,
+    contentType?: string | null
+  ) {
     this.contentType = contentType || null;
   }
 }
