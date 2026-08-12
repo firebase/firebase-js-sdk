@@ -821,6 +821,26 @@ describe('Mutation', () => {
         new Int32Value(5)
       );
     });
+
+    it('minimum with high-precision Decimal128Value selects smaller operand (operand smaller)', () => {
+      verifyModelTransform(
+        NumericMinimumTransformOperation,
+        applyNumericMinimumTransformOperationToLocalView,
+        new Decimal128Value('1.000000000000000000000000000000002'),
+        new Decimal128Value('1.000000000000000000000000000000001'),
+        new Decimal128Value('1.000000000000000000000000000000001')
+      );
+    });
+
+    it('minimum with high-precision Decimal128Value retains base when base is smaller', () => {
+      verifyModelTransform(
+        NumericMinimumTransformOperation,
+        applyNumericMinimumTransformOperationToLocalView,
+        new Decimal128Value('1.000000000000000000000000000000001'),
+        new Decimal128Value('1.000000000000000000000000000000002'),
+        new Decimal128Value('1.000000000000000000000000000000001')
+      );
+    });
   });
 
   describe('Model-level maximum evaluation', () => {
@@ -941,6 +961,26 @@ describe('Mutation', () => {
         null,
         new Decimal128Value('10.5'),
         new Decimal128Value('10.5')
+      );
+    });
+
+    it('maximum with high-precision Decimal128Value selects larger operand (operand larger)', () => {
+      verifyModelTransform(
+        NumericMaximumTransformOperation,
+        applyNumericMaximumTransformOperationToLocalView,
+        new Decimal128Value('1.000000000000000000000000000000001'),
+        new Decimal128Value('1.000000000000000000000000000000002'),
+        new Decimal128Value('1.000000000000000000000000000000002')
+      );
+    });
+
+    it('maximum with high-precision Decimal128Value retains base when base is larger', () => {
+      verifyModelTransform(
+        NumericMaximumTransformOperation,
+        applyNumericMaximumTransformOperationToLocalView,
+        new Decimal128Value('1.000000000000000000000000000000002'),
+        new Decimal128Value('1.000000000000000000000000000000001'),
+        new Decimal128Value('1.000000000000000000000000000000002')
       );
     });
   });
