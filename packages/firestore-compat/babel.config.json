@@ -1,6 +1,6 @@
 {
   "presets": [
     ["@babel/preset-env", { "targets": { "node": "current" }, "modules": "cjs" }],
-    "@babel/preset-typescript"
+    ["@babel/preset-typescript", { "onlyRemoveTypeImports": false }]
   ]
 }

@@ -15,5 +15,9 @@
  * limitations under the License.
  */
 
+const path = require('path');
 const register = require('@babel/register');
-(register.default || register)({ extensions: ['.js', '.ts'] });
+(register.default || register)({
+  extensions: ['.js', '.ts'],
+  configFile: path.resolve(__dirname, 'babel.config.json')
+});
