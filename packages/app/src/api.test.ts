@@ -284,6 +284,26 @@ describe('API tests', () => {
       await deleteApp(app);
       expect((app as FirebaseServerAppImpl).isDeleted).to.be.true;
     });
+
+    it('creates FirebaseServerApp with customIdentifier setting', async () => {
+      if (isBrowser()) {
+        return;
+      }
+
+      const options = { apiKey: 'APIKEY' };
+      const serverAppSettingsOne: FirebaseServerAppSettings = {
+        customIdentifier: 'app-1'
+      };
+      const serverAppSettingsTwo: FirebaseServerAppSettings = {
+        customIdentifier: 'app-2'
+      };
+
+      const appOne = initializeServerApp(options, serverAppSettingsOne);
+      const appTwo = initializeServerApp(options, serverAppSettingsTwo);
+      expect(appOne).to.not.equal(appTwo);
+      await deleteApp(appOne);
+      await deleteApp(appTwo);
+    });
   });
 
   it('create similar FirebaseServerApps does not return the same object', async () => {

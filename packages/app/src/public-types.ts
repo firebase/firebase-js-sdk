@@ -180,6 +180,12 @@ export interface FirebaseServerAppSettings extends Omit<
   'name'
 > {
   /**
+   * An optional custom identifier for the `FirebaseServerApp` instance.
+   * If provided, this identifier participates in the instance caching hash calculation,
+   * allowing developers to explicitly isolate or bypass instance deduplication per request.
+   */
+  customIdentifier?: string;
+  /**
    * An optional Auth ID token used to resume a signed in user session from a client
    * runtime environment.
    *

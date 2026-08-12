@@ -20,7 +20,7 @@ import chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 import sinonChai from 'sinon-chai';
 
-import { FirebaseApp } from '@firebase/app';
+import { FirebaseApp, initializeServerApp, deleteApp } from '@firebase/app';
 import { FirebaseError } from '@firebase/util';
 
 import {
@@ -28,6 +28,10 @@ import {
   FAKE_APP_CHECK_CONTROLLER_PROVIDER,
   FAKE_HEARTBEAT_CONTROLLER,
   FAKE_HEARTBEAT_CONTROLLER_PROVIDER,
+  TEST_HOST,
+  TEST_KEY,
+  TEST_SCHEME,
+  TEST_TOKEN_HOST,
   testAuth,
   testUser
 } from '../../../test/helpers/mock_auth';
@@ -42,7 +46,7 @@ import { AuthImpl, DefaultConfig } from './auth_impl';
 import { _initializeAuthInstance } from './initialize';
 import { _initializeRecaptchaConfig } from '../../platform_browser/recaptcha/recaptcha_enterprise_verifier';
 import { ClientPlatform } from '../util/version';
-import { mockEndpointWithParams } from '../../../test/helpers/api/helper';
+import { mockEndpoint, mockEndpointWithParams } from '../../../test/helpers/api/helper';
 import { Endpoint, RecaptchaClientType, RecaptchaVersion } from '../../api';
 import * as mockFetch from '../../../test/helpers/mock_fetch';
 import { AuthErrorCode } from '../errors';
@@ -1156,4 +1160,91 @@ describe('core/auth/auth_impl', () => {
       }, 10000);
     });
   });
+
+  describe('FirebaseServerApp transient authIdToken failure reproduction', () => {
+    beforeEach(() => {
+      mockFetch.setUp();
+    });
+
+    afterEach(async () => {
+      mockFetch.tearDown();
+    });
+
+    it('allows isolating server apps per request using customIdentifier setting', async () => {
+      // Create a valid authIdToken
+      const BASE64_DUMMY = 'ZHVtbXlzdHJpbmdz';
+      const secondPart = JSON.stringify({
+        exp: Math.trunc(Date.now() / 1000) + 3600,
+        iat: Math.trunc(Date.now() / 1000)
+      });
+      const authIdToken = BASE64_DUMMY + '.' + Buffer.from(secondPart).toString('base64') + '.' + BASE64_DUMMY;
+
+      const serverAppOptions = { apiKey: TEST_KEY, authDomain: TEST_HOST };
+      const serverAppSettingsOne = { authIdToken, customIdentifier: 'req-1' };
+
+      // 1. Mock GET_ACCOUNT_INFO to fail with 500 internal server error / network error on 1st attempt
+      const getAccountInfoRoute = mockEndpoint(
+        Endpoint.GET_ACCOUNT_INFO,
+        { error: { message: 'Internal Error' } },
+        500
+      );
+
+      const serverApp1 = initializeServerApp(serverAppOptions, serverAppSettingsOne);
+      const auth1 = new AuthImpl(
+        serverApp1,
+        FAKE_HEARTBEAT_CONTROLLER_PROVIDER,
+        FAKE_APP_CHECK_CONTROLLER_PROVIDER,
+        {
+          apiKey: serverAppOptions.apiKey,
+          apiHost: TEST_HOST,
+          apiScheme: TEST_SCHEME,
+          tokenApiHost: TEST_TOKEN_HOST,
+          clientPlatform: ClientPlatform.BROWSER,
+          sdkClientVersion: 'v'
+        }
+      );
+      _initializeAuthInstance(auth1, { persistence: inMemoryPersistence });
+
+      // Wait for background sign-in attempt 1 to complete and fail
+      await new Promise(r => setTimeout(r, 50));
+      expect(auth1.currentUser).to.be.null;
+
+      // 2. Now restore endpoint to succeed on subsequent attempts
+      getAccountInfoRoute.status = 200;
+      getAccountInfoRoute.response = {
+        users: [{ localId: 'uid123', email: 'test@example.com' }]
+      };
+
+      // 3. Initialize a second server app with customIdentifier to isolate per request
+      const serverAppSettingsTwo = { authIdToken, customIdentifier: 'req-2' };
+      const serverApp2 = initializeServerApp(serverAppOptions, serverAppSettingsTwo);
+      const auth2 = new AuthImpl(
+        serverApp2,
+        FAKE_HEARTBEAT_CONTROLLER_PROVIDER,
+        FAKE_APP_CHECK_CONTROLLER_PROVIDER,
+        {
+          apiKey: serverAppOptions.apiKey,
+          apiHost: TEST_HOST,
+          apiScheme: TEST_SCHEME,
+          tokenApiHost: TEST_TOKEN_HOST,
+          clientPlatform: ClientPlatform.BROWSER,
+          sdkClientVersion: 'v'
+        }
+      );
+      _initializeAuthInstance(auth2, { persistence: inMemoryPersistence });
+
+      await new Promise(r => setTimeout(r, 50));
+
+      try {
+        // Assert that auth2 successfully signed in because customIdentifier isolated serverApp2
+        expect(auth2.currentUser).to.not.be.null;
+        expect(auth2.currentUser?.uid).to.equal('uid123');
+      } finally {
+        await deleteApp(serverApp1).catch(() => {});
+        await deleteApp(serverApp2).catch(() => {});
+      }
+    });
+  });
 });
+
+

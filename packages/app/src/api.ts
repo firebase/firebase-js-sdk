@@ -237,7 +237,7 @@ export function initializeApp(
  *
  * @param options - `Firebase.AppOptions` to configure the app's services, or a
  *   a `FirebaseApp` instance which contains the `AppOptions` within.
- * @param config - Optional `FirebaseServerApp` settings.
+ * @param config - Optional `FirebaseServerApp` settings, including tokens, `releaseOnDeref`, or `customIdentifier`.
  *
  * @returns The initialized `FirebaseServerApp`.
  *
@@ -256,7 +256,7 @@ export function initializeServerApp(
 /**
  * Creates and initializes a {@link @firebase/app#FirebaseServerApp} instance.
  *
- * @param config - Optional `FirebaseServerApp` settings.
+ * @param config - Optional `FirebaseServerApp` settings, including tokens, `releaseOnDeref`, or `customIdentifier`.
  *
  * @returns The initialized `FirebaseServerApp`.
  *
