@@ -625,7 +625,10 @@ apiDescribe('Database transactions', (persistence: boolean) => {
   // only to web.
   apiDescribe('withConverter() support', (persistence: boolean) => {
     class Post {
-      constructor(readonly title: string, readonly author: string) {}
+      constructor(
+        readonly title: string,
+        readonly author: string
+      ) {}
       byline(): string {
         return this.title + ', by ' + this.author;
       }

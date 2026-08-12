@@ -269,7 +269,7 @@ export const base64: Base64 = {
 
     const output: number[] = [];
 
-    for (let i = 0; i < input.length; ) {
+    for (let i = 0; i < input.length;) {
       const byte1 = charToByteMap[input.charAt(i++)];
 
       const haveByte2 = i < input.length;

@@ -18,5 +18,8 @@
 import { BloomFilter as ProtoBloomFilter } from '../protos/firestore_proto_api';
 
 export class ExistenceFilter {
-  constructor(public count: number, public unchangedNames?: ProtoBloomFilter) {}
+  constructor(
+    public count: number,
+    public unchangedNames?: ProtoBloomFilter
+  ) {}
 }

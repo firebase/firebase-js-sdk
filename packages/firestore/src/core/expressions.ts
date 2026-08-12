@@ -439,8 +439,7 @@ export class CoreListOfExprs implements EvaluableExpr {
 
 function asDouble(
   protoNumber:
-    | { doubleValue: number | string }
-    | { integerValue: number | string }
+    { doubleValue: number | string } | { integerValue: number | string }
 ): number {
   if (isDouble(protoNumber)) {
     return Number(protoNumber.doubleValue);
@@ -2817,12 +2816,7 @@ export class CoreTimestampToUnixSeconds extends TimestampToUnix {
 }
 
 type TimeUnit =
-  | 'microsecond'
-  | 'millisecond'
-  | 'second'
-  | 'minute'
-  | 'hour'
-  | 'day';
+  'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day';
 function asTimeUnit(unit?: string): TimeUnit | undefined {
   switch (unit) {
     case 'microsecond':

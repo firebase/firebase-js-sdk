@@ -36,7 +36,10 @@ export class StatsReporter {
   private statsListener_: StatsListener;
   statsToReport_: { [k: string]: boolean } = {};
 
-  constructor(collection: StatsCollection, private server_: ServerActions) {
+  constructor(
+    collection: StatsCollection,
+    private server_: ServerActions
+  ) {
     this.statsListener_ = new StatsListener(collection);
 
     const timeout =

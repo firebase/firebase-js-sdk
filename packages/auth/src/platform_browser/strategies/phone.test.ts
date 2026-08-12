@@ -830,7 +830,9 @@ describe('platform_browser/strategies/phone', () => {
         return;
       }
       const mutVerifier: {
-        -readonly [K in keyof ApplicationVerifierInternal]: ApplicationVerifierInternal[K];
+        -readonly [
+          K in keyof ApplicationVerifierInternal
+        ]: ApplicationVerifierInternal[K];
       } = v2Verifier;
       mutVerifier.type = 'not-recaptcha-thats-for-sure';
       await expect(
