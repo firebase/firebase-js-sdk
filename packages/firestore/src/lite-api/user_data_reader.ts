@@ -909,12 +909,8 @@ export function parseScalarValue(
     };
   } else if (isTemporalInstant(value)) {
     const timestamp = Timestamp.fromInstant(value);
-    const truncatedTimestamp = new Timestamp(
-      timestamp.seconds,
-      Math.floor(timestamp.nanoseconds / 1000) * 1000
-    );
     return {
-      timestampValue: toTimestamp(context.serializer, truncatedTimestamp)
+      timestampValue: toTimestamp(context.serializer, timestamp)
     };
   } else if (value instanceof GeoPoint) {
     return {
