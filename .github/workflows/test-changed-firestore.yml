@@ -44,7 +44,7 @@ jobs:
       - name: Set up Node (22)
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # ratchet:actions/setup-node@v7
         with:
-          node-version: 22.12.0
+          node-version: 24.11.1
       - name: install Chrome stable
         run: |
           sudo apt-get update
@@ -91,7 +91,7 @@ jobs:
       - name: Set up Node (22)
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # ratchet:actions/setup-node@v7
         with:
-          node-version: 22.12.0
+          node-version: 24.11.1
       - name: install Chrome stable
         run: |
           sudo apt-get update
@@ -119,7 +119,7 @@ jobs:
       - name: Set up Node (22)
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # ratchet:actions/setup-node@v7
         with:
-          node-version: 22.12.0
+          node-version: 24.11.1
       - name: install Chrome stable
         run: |
           sudo apt-get update
@@ -149,7 +149,7 @@ jobs:
       - name: Set up Node (22)
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # ratchet:actions/setup-node@v7
         with:
-          node-version: 22.12.0
+          node-version: 24.11.1
       - name: install Chrome stable
         run: |
           sudo apt-get update
@@ -182,7 +182,7 @@ jobs:
       - name: Set up Node (22)
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # ratchet:actions/setup-node@v7
         with:
-          node-version: 22.12.0
+          node-version: 24.11.1
       - name: Download build archive
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # ratchet:actions/download-artifact@v8
         with:
@@ -216,7 +216,7 @@ jobs:
       - name: Set up Node (22)
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # ratchet:actions/setup-node@v7
         with:
-          node-version: 22.12.0
+          node-version: 24.11.1
       - name: Test setup and yarn install
         run: cp config/ci.config.json config/project.json
       - name: Run tests
@@ -234,7 +234,7 @@ jobs:
       - name: Set up Node (22)
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # ratchet:actions/setup-node@v7
         with:
-          node-version: 22.12.0
+          node-version: 24.11.1
       - name: Download build archive
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # ratchet:actions/download-artifact@v8
         with:
@@ -271,7 +271,7 @@ jobs:
       - name: Set up Node (22)
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # ratchet:actions/setup-node@v7
         with:
-          node-version: 22.12.0
+          node-version: 24.11.1
       - name: Test setup
         run: |
           cp config/ci.config.json config/project.json

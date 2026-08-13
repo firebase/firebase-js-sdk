@@ -65,7 +65,7 @@ jobs:
     - name: Set up node (22)
       uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # ratchet:actions/setup-node@v7
       with:
-        node-version: 22.12.0
+        node-version: 24.11.1
     - name: Merge main into release
       uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # ratchet:actions/github-script@v7
       with:
