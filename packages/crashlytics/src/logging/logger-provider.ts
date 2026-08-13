@@ -150,24 +150,6 @@ export function resolveLoggerProvider(
   return new MicroOtelLoggerProvider(app, attributesStore, crashlyticsOptions);
 }
 
-/**
- * Backward compatible alias for resolveLoggerProvider.
- * @internal
- */
-export function createLoggerProvider(
-  app: FirebaseApp,
-  crashlyticsOptions: CrashlyticsOptions,
-  attributesStore: AttributesStore,
-  dynamicHeaderProviders: DynamicHeaderProvider[] = []
-): ApiLoggerProvider {
-  return resolveLoggerProvider(
-    app,
-    crashlyticsOptions,
-    attributesStore,
-    dynamicHeaderProviders
-  );
-}
-
 /** OTLP exporter that uses custom FetchTransport and resolves async attributes. */
 class OTLPLogExporter
   extends OTLPExporterBase<ReadableLogRecord[]>
