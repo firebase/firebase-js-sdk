@@ -1,7 +1,7 @@
 # AGENTS.md
 
 ## Testing instructions
-- Before testing, create a config/project.json file. Copy config/ci.config.json if another project config is not specified by the user.
+- Before testing, create a `config/project.json` file. Copy `config/ci.config.json` if another project config is not specified by the user.
 - This is a web SDK and is most commonly used in a browser environment, so if you are running unit tests, you must run browser unit tests, not just Node tests, even if the Node tests seem like they would be faster.
 
 ## Preparing code for PRs
