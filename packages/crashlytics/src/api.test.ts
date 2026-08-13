@@ -17,7 +17,12 @@
 
 import { expect } from 'chai';
 import { trace } from '@opentelemetry/api';
-import { Logger, LoggerProvider, LogRecord, SeverityNumber } from '@opentelemetry/api-logs';
+import {
+  Logger,
+  LoggerProvider,
+  LogRecord,
+  SeverityNumber
+} from '@opentelemetry/api-logs';
 import {
   InMemorySpanExporter,
   SimpleSpanProcessor,

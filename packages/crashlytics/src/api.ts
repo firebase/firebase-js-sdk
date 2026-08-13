@@ -20,7 +20,12 @@ import { ALREADY_LOGGED_FLAG, CRASHLYTICS_TYPE } from './constants';
 import { CrashlyticsInternal, ErrorWithSymbol } from './types';
 import { Crashlytics, CrashlyticsOptions } from './public-types';
 import { Provider } from '@firebase/component';
-import { AnyValueMap, SeverityNumber, Logger, LoggerProvider } from '@opentelemetry/api-logs';
+import {
+  AnyValueMap,
+  SeverityNumber,
+  Logger,
+  LoggerProvider
+} from '@opentelemetry/api-logs';
 import { CrashlyticsService } from './service';
 import { flush } from './helpers';
 import { deepEqual } from '@firebase/util';
