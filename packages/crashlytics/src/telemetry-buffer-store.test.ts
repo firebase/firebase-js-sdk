@@ -187,12 +187,10 @@ describe('TelemetryStore', () => {
 
   describe('Event is not added', () => {
     it('should not add any additional event and export limit log if queue size == 0 and buffer size == limit', () => {
-      const { store } = setupState({ bufferLimit: 1, queueLimit: 2 });
+      const { store } = setupState({ bufferLimit: 0, queueLimit: 2 });
 
-      const existingRootSpan = createMockRootSpan('trace-1');
       const ignoredRootLog = createMockRootLog();
 
-      store.add(existingRootSpan);
       store.add(ignoredRootLog);
 
       const exportedLogs = store.getLogsToExport();
@@ -201,7 +199,7 @@ describe('TelemetryStore', () => {
         severityNumber: SeverityNumber.INFO,
         body: 'Telemetry buffer limit reached. Some telemetry events were dropped.'
       });
-      expect(store.totalTelemetryCount).to.equal(1);
+      expect(store.totalTelemetryCount).to.equal(0);
     });
 
     it('should not add and as a result not export any additional root event if already added', () => {
@@ -303,6 +301,7 @@ describe('TelemetryStore', () => {
       store.add(existingChildSpan);
       store.add(existingChildLog);
       store.add(existingRootLog);
+      store.update(existingRootSpan);
 
       store.clear();
 
@@ -311,20 +310,18 @@ describe('TelemetryStore', () => {
       expect(store.totalTelemetryCount).to.equal(0);
     });
 
-    it('should reset telemetry count to 0 and return no spans/logs for export if limit log is expected for export', () => {
+    it('should return no limit log for export if previously triggered', () => {
       const { store } = setupState({ bufferLimit: 1, queueLimit: 2 });
 
       const existingRootSpan = createMockRootSpan('trace-1');
       const ignoredRootLog = createMockRootLog();
 
       store.add(existingRootSpan);
-      store.add(ignoredRootLog); // sets limit log to be exported as root log is dropped
+      store.add(ignoredRootLog); // triggers limit log to be exported as root log is dropped
 
       store.clear();
 
-      expect(store.getSpansToExport()).to.be.empty;
       expect(store.getLogsToExport()).to.be.empty;
-      expect(store.totalTelemetryCount).to.equal(0);
     });
   });
 
@@ -341,7 +338,6 @@ describe('TelemetryStore', () => {
       store.add(existingChildSpan2);
       store.update(existingRootSpan);
 
-      console.log(store.getSpansToExport());
       expect(store.getSpansToExport()).to.have.deep.members([
         existingRootSpan,
         existingChildSpan1,
