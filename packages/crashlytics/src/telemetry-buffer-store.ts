@@ -132,7 +132,7 @@ export class TelemetryStore {
 
   private readonly _rootTelemetryQueue: RootTelemetryQueue;
   private readonly _bufferLimit: number;
-  private readonly _telemetryEmitBufferMap = new Map<EventId, EventData>();
+  private readonly _telemetryBufferMap = new Map<EventId, EventData>();
   private _totalTelemetryCount = 0;
   private _shouldAddLimitLog = false; // Flag indicating whether a limit log entry should be added when buffer limits are exceeded.
 
@@ -160,12 +160,12 @@ export class TelemetryStore {
     const eventId = this._getEventId(event);
 
     // We have a root event that already exists in the buffer, exit
-    if (isRootEvent(event) && this._telemetryEmitBufferMap.has(eventId)) {
+    if (isRootEvent(event) && this._telemetryBufferMap.has(eventId)) {
       return;
     }
 
     // We have a child event who has no root in the buffer because we stopped collection
-    if (!isRootEvent(event) && !this._telemetryEmitBufferMap.has(eventId)) {
+    if (!isRootEvent(event) && !this._telemetryBufferMap.has(eventId)) {
       return;
     }
 
@@ -182,12 +182,12 @@ export class TelemetryStore {
       case EventType.RootSpan: {
         const traceEvents = new TraceEvents();
         traceEvents.add(event);
-        this._telemetryEmitBufferMap.set(eventId, traceEvents);
+        this._telemetryBufferMap.set(eventId, traceEvents);
         this._totalTelemetryCount++;
         return;
       }
       case EventType.RootLog: {
-        this._telemetryEmitBufferMap.set(eventId, event as SdkLogRecord);
+        this._telemetryBufferMap.set(eventId, event as SdkLogRecord);
         if (this._rootTelemetryQueue.isFull()) {
           this._evictOldest();
         }
@@ -197,7 +197,7 @@ export class TelemetryStore {
       }
       case EventType.ChildSpan:
       case EventType.ChildLog: {
-        const traceEvents = this._telemetryEmitBufferMap.get(eventId);
+        const traceEvents = this._telemetryBufferMap.get(eventId);
         if (
           traceEvents &&
           traceEvents instanceof TraceEvents &&
@@ -225,7 +225,7 @@ export class TelemetryStore {
     }
 
     const eventId = this._getEventId(event);
-    const traceEvents = this._telemetryEmitBufferMap.get(eventId);
+    const traceEvents = this._telemetryBufferMap.get(eventId);
     if (traceEvents && traceEvents instanceof TraceEvents) {
       if (traceEvents.isTraceQueuedForExport) {
         return;
@@ -300,14 +300,14 @@ export class TelemetryStore {
    * @param key - The map key (trace ID or log UUID) to evict.
    */
   private _maybeEvictIdFromBuffer(key: EventId): void {
-    const eventData = this._telemetryEmitBufferMap.get(key);
+    const eventData = this._telemetryBufferMap.get(key);
     if (eventData) {
       if (eventData instanceof TraceEvents) {
         this._totalTelemetryCount -= eventData.spans.size + eventData.logs.size;
       } else {
         this._totalTelemetryCount -= 1;
       }
-      this._telemetryEmitBufferMap.delete(key);
+      this._telemetryBufferMap.delete(key);
     }
   }
 
@@ -322,7 +322,7 @@ export class TelemetryStore {
   getSpansToExport(): ReadableSpan[] {
     const spans: ReadableSpan[] = [];
     for (const key of this._rootTelemetryQueue.getValues()) {
-      const item = this._telemetryEmitBufferMap.get(key);
+      const item = this._telemetryBufferMap.get(key);
       if (item instanceof TraceEvents) {
         spans.push(...item.spans);
       }
@@ -346,7 +346,7 @@ export class TelemetryStore {
     }
 
     for (const key of this._rootTelemetryQueue.getValues()) {
-      const item = this._telemetryEmitBufferMap.get(key);
+      const item = this._telemetryBufferMap.get(key);
       if (item instanceof TraceEvents) {
         logs.push(...item.logs);
       } else if (item) {
@@ -359,7 +359,7 @@ export class TelemetryStore {
   /** Clear all buffered telemetry and reset state. */
   clear(): void {
     this._rootTelemetryQueue.clear();
-    this._telemetryEmitBufferMap.clear();
+    this._telemetryBufferMap.clear();
     this._totalTelemetryCount = 0;
     this._shouldAddLimitLog = false;
   }
