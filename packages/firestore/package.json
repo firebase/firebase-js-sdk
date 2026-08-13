@@ -151,8 +151,10 @@
     "@firebase/app": "0.16.0",
     "@firebase/app-compat": "0.5.16",
     "@firebase/auth": "1.13.4",
+    "@js-temporal/polyfill": "0.5.1",
     "@rollup/plugin-alias": "5.1.1",
     "@rollup/plugin-json": "6.1.0",
+    "@rollup/plugin-terser": "0.4.4",
     "@types/eslint": "7.29.0",
     "chai-exclude": "2.1.1",
     "json-stable-stringify": "1.2.1",
@@ -162,7 +164,6 @@
     "rollup-plugin-dts": "5.3.1",
     "rollup-plugin-replace": "2.2.0",
     "rollup-plugin-sourcemaps": "0.6.3",
-    "@rollup/plugin-terser": "0.4.4",
     "rollup-plugin-typescript2": "0.37.0",
     "ts-node": "10.9.2",
     "typescript": "5.5.4"
