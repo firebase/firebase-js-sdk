@@ -53,8 +53,8 @@ export abstract class Stage implements ProtoSerializable<ProtoStage>, UserData {
    * @protected
    */
   protected optionsProto:
-    ApiClientObjectMap<firestoreV1ApiClientInterfaces.Value> | undefined =
-    undefined;
+    | ApiClientObjectMap<firestoreV1ApiClientInterfaces.Value>
+    | undefined = undefined;
   protected knownOptions: Record<string, unknown>;
   protected rawOptions?: Record<string, unknown>;
 
@@ -118,10 +118,7 @@ export class RemoveFields extends Stage {
     return new OptionsUtil({});
   }
 
-  constructor(
-    private fields: Field[],
-    options: StageOptions
-  ) {
+  constructor(private fields: Field[], options: StageOptions) {
     super(options);
   }
 
@@ -302,10 +299,7 @@ export class CollectionGroupSource extends Stage {
     });
   }
 
-  constructor(
-    public readonly collectionId: string,
-    options: StageOptions
-  ) {
+  constructor(public readonly collectionId: string, options: StageOptions) {
     super(options);
   }
 
@@ -334,10 +328,7 @@ export class SubcollectionSource extends Stage {
     return new OptionsUtil({});
   }
 
-  constructor(
-    private path: string,
-    options: StageOptions
-  ) {
+  constructor(private path: string, options: StageOptions) {
     super(options);
   }
 
@@ -519,10 +510,7 @@ export class Limit extends Stage {
     return new OptionsUtil({});
   }
 
-  constructor(
-    public readonly limit: number,
-    options: StageOptions
-  ) {
+  constructor(public readonly limit: number, options: StageOptions) {
     hardAssert(
       !isNaN(limit) && limit !== Infinity && limit !== -Infinity,
       0x882c,
@@ -551,10 +539,7 @@ export class Offset extends Stage {
     return new OptionsUtil({});
   }
 
-  constructor(
-    public readonly offset: number,
-    options: StageOptions
-  ) {
+  constructor(public readonly offset: number, options: StageOptions) {
     super(options);
   }
 
@@ -611,10 +596,7 @@ export class Sort extends Stage {
     return new OptionsUtil({});
   }
 
-  constructor(
-    public readonly orderings: Ordering[],
-    options: StageOptions
-  ) {
+  constructor(public readonly orderings: Ordering[], options: StageOptions) {
     super(options);
   }
 
@@ -672,10 +654,7 @@ export class Union extends Stage {
     return new OptionsUtil({});
   }
 
-  constructor(
-    private other: Pipeline,
-    options: StageOptions
-  ) {
+  constructor(private other: Pipeline, options: StageOptions) {
     super(options);
   }
 
@@ -740,10 +719,7 @@ export class Replace extends Stage {
     return new OptionsUtil({});
   }
 
-  constructor(
-    private map: Expression,
-    options: StageOptions
-  ) {
+  constructor(private map: Expression, options: StageOptions) {
     super(options);
   }
 
@@ -898,7 +874,10 @@ export class RawStage extends Stage {
  */
 function readUserDataHelper<
   T extends
-    Map<string, UserData> | Record<string, UserData> | UserData[] | UserData
+    | Map<string, UserData>
+    | Record<string, UserData>
+    | UserData[]
+    | UserData
 >(expressionMap: T, context: ParseContext): T {
   if (isUserData(expressionMap)) {
     expressionMap._readUserData(context);

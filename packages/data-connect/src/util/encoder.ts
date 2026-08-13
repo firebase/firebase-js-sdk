@@ -28,13 +28,10 @@ export function setDecoder(decoder: DecodeHmacImpl): void {
 function sortKeysForObj(o: Record<string, unknown>): Record<string, unknown> {
   return Object.keys(o)
     .sort()
-    .reduce(
-      (accumulator, currentKey) => {
-        accumulator[currentKey] = o[currentKey];
-        return accumulator;
-      },
-      {} as Record<string, unknown>
-    );
+    .reduce((accumulator, currentKey) => {
+      accumulator[currentKey] = o[currentKey];
+      return accumulator;
+    }, {} as Record<string, unknown>);
 }
 setEncoder((o: Record<string, unknown>) => JSON.stringify(sortKeysForObj(o)));
 setDecoder(s => sortKeysForObj(JSON.parse(s)));

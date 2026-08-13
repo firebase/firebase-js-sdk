@@ -27,7 +27,8 @@ export interface ApiClientObjectMap<T> {
   [k: string]: T;
 }
 export declare type Timestamp =
-  string | { seconds?: string | number; nanos?: number };
+  | string
+  | { seconds?: string | number; nanos?: number };
 
 export declare type CompositeFilterOp = 'OPERATOR_UNSPECIFIED' | 'AND' | 'OR';
 export interface ICompositeFilterOpEnum {
@@ -64,7 +65,8 @@ export interface IFieldFilterOpEnum {
 }
 export declare const FieldFilterOpEnum: IFieldFilterOpEnum;
 export declare type FieldTransformSetToServerValue =
-  'SERVER_VALUE_UNSPECIFIED' | 'REQUEST_TIME';
+  | 'SERVER_VALUE_UNSPECIFIED'
+  | 'REQUEST_TIME';
 export interface IFieldTransformSetToServerValueEnum {
   SERVER_VALUE_UNSPECIFIED: FieldTransformSetToServerValue;
   REQUEST_TIME: FieldTransformSetToServerValue;
@@ -72,7 +74,9 @@ export interface IFieldTransformSetToServerValueEnum {
 }
 export declare const FieldTransformSetToServerValueEnum: IFieldTransformSetToServerValueEnum;
 export declare type IndexFieldMode =
-  'MODE_UNSPECIFIED' | 'ASCENDING' | 'DESCENDING';
+  | 'MODE_UNSPECIFIED'
+  | 'ASCENDING'
+  | 'DESCENDING';
 export interface IIndexFieldModeEnum {
   MODE_UNSPECIFIED: IndexFieldMode;
   ASCENDING: IndexFieldMode;
@@ -81,7 +85,10 @@ export interface IIndexFieldModeEnum {
 }
 export declare const IndexFieldModeEnum: IIndexFieldModeEnum;
 export declare type IndexState =
-  'STATE_UNSPECIFIED' | 'CREATING' | 'READY' | 'ERROR';
+  | 'STATE_UNSPECIFIED'
+  | 'CREATING'
+  | 'READY'
+  | 'ERROR';
 export interface IIndexStateEnum {
   STATE_UNSPECIFIED: IndexState;
   CREATING: IndexState;
@@ -91,7 +98,9 @@ export interface IIndexStateEnum {
 }
 export declare const IndexStateEnum: IIndexStateEnum;
 export declare type OrderDirection =
-  'DIRECTION_UNSPECIFIED' | 'ASCENDING' | 'DESCENDING';
+  | 'DIRECTION_UNSPECIFIED'
+  | 'ASCENDING'
+  | 'DESCENDING';
 export interface IOrderDirectionEnum {
   DIRECTION_UNSPECIFIED: OrderDirection;
   ASCENDING: OrderDirection;
@@ -100,7 +109,11 @@ export interface IOrderDirectionEnum {
 }
 export declare const OrderDirectionEnum: IOrderDirectionEnum;
 export declare type TargetChangeTargetChangeType =
-  'NO_CHANGE' | 'ADD' | 'REMOVE' | 'CURRENT' | 'RESET';
+  | 'NO_CHANGE'
+  | 'ADD'
+  | 'REMOVE'
+  | 'CURRENT'
+  | 'RESET';
 export interface ITargetChangeTargetChangeTypeEnum {
   NO_CHANGE: TargetChangeTargetChangeType;
   ADD: TargetChangeTargetChangeType;
@@ -111,7 +124,11 @@ export interface ITargetChangeTargetChangeTypeEnum {
 }
 export declare const TargetChangeTargetChangeTypeEnum: ITargetChangeTargetChangeTypeEnum;
 export declare type UnaryFilterOp =
-  'OPERATOR_UNSPECIFIED' | 'IS_NAN' | 'IS_NULL' | 'IS_NOT_NAN' | 'IS_NOT_NULL';
+  | 'OPERATOR_UNSPECIFIED'
+  | 'IS_NAN'
+  | 'IS_NULL'
+  | 'IS_NOT_NAN'
+  | 'IS_NOT_NULL';
 export interface IUnaryFilterOpEnum {
   OPERATOR_UNSPECIFIED: UnaryFilterOp;
   IS_NAN: UnaryFilterOp;
@@ -585,7 +602,9 @@ export interface IProjectsDatabasesDocumentsApiClient$XgafvEnum {
 }
 export declare const ProjectsDatabasesDocumentsApiClient$XgafvEnum: IProjectsDatabasesDocumentsApiClient$XgafvEnum;
 export declare type ProjectsDatabasesDocumentsApiClientAlt =
-  'json' | 'media' | 'proto';
+  | 'json'
+  | 'media'
+  | 'proto';
 export interface IProjectsDatabasesDocumentsApiClientAltEnum {
   JSON: ProjectsDatabasesDocumentsApiClientAlt;
   MEDIA: ProjectsDatabasesDocumentsApiClientAlt;
@@ -876,7 +895,9 @@ export abstract class ProjectsDatabasesDocumentsApiClient {
     __namedParams__?: ProjectsDatabasesDocumentsWriteNamedParameters & object
   ): Promise<WriteResponse>;
 }
-export declare class ProjectsDatabasesDocumentsApiClientImpl implements ProjectsDatabasesDocumentsApiClient {
+export declare class ProjectsDatabasesDocumentsApiClientImpl
+  implements ProjectsDatabasesDocumentsApiClient
+{
   private gapiVersion;
   private $apiClient;
   constructor(
@@ -1157,7 +1178,9 @@ export interface IProjectsDatabasesIndexesApiClient$XgafvEnum {
 }
 export declare const ProjectsDatabasesIndexesApiClient$XgafvEnum: IProjectsDatabasesIndexesApiClient$XgafvEnum;
 export declare type ProjectsDatabasesIndexesApiClientAlt =
-  'json' | 'media' | 'proto';
+  | 'json'
+  | 'media'
+  | 'proto';
 export interface IProjectsDatabasesIndexesApiClientAltEnum {
   JSON: ProjectsDatabasesIndexesApiClientAlt;
   MEDIA: ProjectsDatabasesIndexesApiClientAlt;
@@ -1248,7 +1271,9 @@ export abstract class ProjectsDatabasesIndexesApiClient {
     __namedParams__?: ProjectsDatabasesIndexesListNamedParameters & object
   ): Promise<ListIndexesResponse>;
 }
-export declare class ProjectsDatabasesIndexesApiClientImpl implements ProjectsDatabasesIndexesApiClient {
+export declare class ProjectsDatabasesIndexesApiClientImpl
+  implements ProjectsDatabasesIndexesApiClient
+{
   private gapiVersion;
   private $apiClient;
   constructor(

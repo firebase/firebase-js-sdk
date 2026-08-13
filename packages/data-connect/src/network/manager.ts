@@ -35,7 +35,9 @@ import {
  * Entry point for the transport layer. Manages routing between transport implementations.
  * @internal
  */
-export class DataConnectTransportManager implements DataConnectTransportInterface {
+export class DataConnectTransportManager
+  implements DataConnectTransportInterface
+{
   private restTransport: RESTTransport;
   private streamTransport?: AbstractDataConnectStreamTransport;
   private isUsingEmulator = false;

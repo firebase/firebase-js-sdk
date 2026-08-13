@@ -102,7 +102,8 @@ export interface LanguageModelDownloadMonitor {
  * Configures the creation of an on-device language model session.
  * @public
  */
-export interface LanguageModelCreateOptions extends LanguageModelCreateCoreOptions {
+export interface LanguageModelCreateOptions
+  extends LanguageModelCreateCoreOptions {
   signal?: AbortSignal;
   initialPrompts?: LanguageModelMessage[];
 }
@@ -165,4 +166,7 @@ export type LanguageModelMessageType = 'text' | 'image' | 'audio';
  * @public
  */
 export type LanguageModelMessageContentValue =
-  ImageBitmapSource | AudioBuffer | BufferSource | string;
+  | ImageBitmapSource
+  | AudioBuffer
+  | BufferSource
+  | string;

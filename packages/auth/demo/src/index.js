@@ -895,8 +895,9 @@ async function onStartEnrollWithTotpMultiFactor() {
   }
   try {
     multiFactorSession = await multiFactor(activeUser()).getSession();
-    totpSecret =
-      await TotpMultiFactorGenerator.generateSecret(multiFactorSession);
+    totpSecret = await TotpMultiFactorGenerator.generateSecret(
+      multiFactorSession
+    );
     const url = totpSecret.generateQrCodeUrl('test', 'testissuer');
     console.log('TOTP URL is ' + url);
     console.log(
@@ -915,8 +916,9 @@ async function onStartEnrollWithTotpMultiFactor() {
         var minutes = Math.floor(t / (1000 * 60));
         var seconds = Math.floor((t % (60 * 1000)) / 1000);
         // accessing the field using $ does not work here.
-        document.getElementById('totp-deadline').innerText =
-          `Time left - ${minutes} minutes, ${seconds} seconds.`;
+        document.getElementById(
+          'totp-deadline'
+        ).innerText = `Time left - ${minutes} minutes, ${seconds} seconds.`;
       }
     }, 1000);
     // Use the QRServer API documented at https://goqr.me/api/doc/
@@ -1701,7 +1703,8 @@ function onGetRedirectResult() {
     }
     logAdditionalUserInfo(response);
     console.log(response);
-  }, onAuthError);
+  },
+  onAuthError);
 }
 
 /**
@@ -2198,7 +2201,8 @@ function initApp() {
   ) {
     refreshUserData();
     logAdditionalUserInfo(response);
-  }, onAuthError);
+  },
+  onAuthError);
 
   // Try sign in with redirect once upon page load, not on subsequent loads.
   // This will demonstrate the behavior when signInWithRedirect is called before

@@ -31,9 +31,9 @@ let textFactoryOverride: (() => Connection<string>) | null = null;
  * Network layer for browsers. We use this instead of goog.net.XhrIo because
  * goog.net.XhrIo is hyuuuuge and doesn't work in React Native on Android.
  */
-abstract class XhrConnection<
-  T extends ConnectionType
-> implements Connection<T> {
+abstract class XhrConnection<T extends ConnectionType>
+  implements Connection<T>
+{
   protected xhr_: XMLHttpRequest;
   private errorCode_: ErrorCode;
   private sendPromise_: Promise<void>;

@@ -38,7 +38,12 @@ let apiInstance: Api | undefined;
 let windowInstance: Window | undefined;
 
 export type EntryType =
-  'mark' | 'measure' | 'paint' | 'resource' | 'frame' | 'navigation';
+  | 'mark'
+  | 'measure'
+  | 'paint'
+  | 'resource'
+  | 'frame'
+  | 'navigation';
 
 /**
  * This class holds a reference to various browser related objects injected by

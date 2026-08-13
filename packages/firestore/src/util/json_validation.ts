@@ -25,7 +25,12 @@ import { Code, FirestoreError } from './error';
  * @internal
  */
 export type JsonTypeDesc =
-  'object' | 'string' | 'number' | 'boolean' | 'null' | 'undefined';
+  | 'object'
+  | 'string'
+  | 'number'
+  | 'boolean'
+  | 'null'
+  | 'undefined';
 
 /**
  * An association of JsonTypeDesc values to their native types.
@@ -35,16 +40,16 @@ export type JsonTypeDesc =
 export type TSType<T extends JsonTypeDesc> = T extends 'object'
   ? object
   : T extends 'string'
-    ? string
-    : T extends 'number'
-      ? number
-      : T extends 'boolean'
-        ? boolean
-        : T extends 'null'
-          ? null
-          : T extends 'undefined'
-            ? undefined
-            : never;
+  ? string
+  : T extends 'number'
+  ? number
+  : T extends 'boolean'
+  ? boolean
+  : T extends 'null'
+  ? null
+  : T extends 'undefined'
+  ? undefined
+  : never;
 
 /**
  * The representation of a JSON object property name and its type value.

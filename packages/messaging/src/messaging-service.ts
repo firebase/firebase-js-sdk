@@ -38,7 +38,9 @@ export class MessagingService implements _FirebaseService {
   deliveryMetricsExportedToBigQueryEnabled: boolean = false;
 
   onBackgroundMessageHandler:
-    NextFn<MessagePayload> | Observer<MessagePayload> | null = null;
+    | NextFn<MessagePayload>
+    | Observer<MessagePayload>
+    | null = null;
 
   onMessageHandler: NextFn<MessagePayload> | Observer<MessagePayload> | null =
     null;

@@ -38,7 +38,8 @@ export interface FirebaseAppCheckInternal {
   removeTokenListener(listener: AppCheckTokenListener): void;
 }
 
-export interface AppCheckTokenObserver extends PartialObserver<AppCheckTokenResult> {
+export interface AppCheckTokenObserver
+  extends PartialObserver<AppCheckTokenResult> {
   // required
   next: AppCheckTokenListener;
   type: ListenerType;

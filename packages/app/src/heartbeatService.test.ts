@@ -77,7 +77,7 @@ describe('HeartbeatServiceImpl', () => {
             ({
               options: { appId: 'an-app-id' },
               name: 'an-app-name'
-            }) as FirebaseApp,
+            } as FirebaseApp),
           ComponentType.VERSION
         )
       );
@@ -195,7 +195,7 @@ describe('HeartbeatServiceImpl', () => {
             ({
               options: { appId: 'an-app-id' },
               name: 'an-app-name'
-            }) as FirebaseApp,
+            } as FirebaseApp),
           ComponentType.VERSION
         )
       );
@@ -335,7 +335,7 @@ describe('HeartbeatServiceImpl', () => {
             ({
               options: { appId: 'an-app-id' },
               name: 'an-app-name'
-            }) as FirebaseApp,
+            } as FirebaseApp),
           ComponentType.VERSION
         )
       );

@@ -1076,7 +1076,8 @@ declare namespace firebase {
   }
 
   export type EmulatorMockTokenOptions = (
-    { user_id: string } | { sub: string }
+    | { user_id: string }
+    | { sub: string }
   ) &
     Partial<FirebaseIdToken>;
 
@@ -2754,7 +2755,8 @@ declare namespace firebase.auth {
      */
     onAuthStateChanged(
       nextOrObserver:
-        firebase.Observer<any> | ((a: firebase.User | null) => any),
+        | firebase.Observer<any>
+        | ((a: firebase.User | null) => any),
       error?: (a: firebase.auth.Error) => any,
       completed?: firebase.Unsubscribe
     ): firebase.Unsubscribe;
@@ -2780,7 +2782,8 @@ declare namespace firebase.auth {
      */
     onIdTokenChanged(
       nextOrObserver:
-        firebase.Observer<any> | ((a: firebase.User | null) => any),
+        | firebase.Observer<any>
+        | ((a: firebase.User | null) => any),
       error?: (a: firebase.auth.Error) => any,
       completed?: firebase.Unsubscribe
     ): firebase.Unsubscribe;
@@ -6292,7 +6295,11 @@ declare namespace firebase.database {
   }
 
   type EventType =
-    'value' | 'child_added' | 'child_changed' | 'child_moved' | 'child_removed';
+    | 'value'
+    | 'child_added'
+    | 'child_changed'
+    | 'child_moved'
+    | 'child_removed';
 
   /**
    * A `Query` sorts and filters the data at a Database location so only a subset
@@ -7362,8 +7369,7 @@ declare namespace firebase.database {
   }
 
   interface ThenableReference
-    extends
-      firebase.database.Reference,
+    extends firebase.database.Reference,
       Pick<Promise<Reference>, 'then' | 'catch'> {
     key: string;
     parent: Reference;
@@ -7519,7 +7525,8 @@ declare namespace firebase.messaging {
      */
     onBackgroundMessage(
       nextOrObserver:
-        firebase.NextFn<MessagePayload> | firebase.Observer<MessagePayload>
+        | firebase.NextFn<MessagePayload>
+        | firebase.Observer<MessagePayload>
     ): firebase.Unsubscribe;
   }
 
@@ -8211,7 +8218,8 @@ declare namespace firebase.storage {
      */
     then(
       onFulfilled?:
-        ((snapshot: firebase.storage.UploadTaskSnapshot) => any) | null,
+        | ((snapshot: firebase.storage.UploadTaskSnapshot) => any)
+        | null,
       onRejected?: ((error: FirebaseStorageError) => any) | null
     ): Promise<any>;
   }

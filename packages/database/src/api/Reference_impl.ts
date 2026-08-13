@@ -567,7 +567,8 @@ export function onDisconnect(ref: DatabaseReference): OnDisconnect {
 }
 
 export interface ThenableReferenceImpl
-  extends ReferenceImpl, Pick<Promise<ReferenceImpl>, 'then' | 'catch'> {
+  extends ReferenceImpl,
+    Pick<Promise<ReferenceImpl>, 'then' | 'catch'> {
   key: string;
   parent: ReferenceImpl;
 }

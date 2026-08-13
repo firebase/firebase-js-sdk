@@ -62,8 +62,8 @@ export type PartialWithFieldValue<T> =
   | (T extends Primitive
       ? T
       : T extends {}
-        ? { [K in keyof T]?: PartialWithFieldValue<T[K]> | FieldValue }
-        : never);
+      ? { [K in keyof T]?: PartialWithFieldValue<T[K]> | FieldValue }
+      : never);
 
 /**
  * Allows FieldValues to be passed in as a property value while maintaining
@@ -74,8 +74,8 @@ export type WithFieldValue<T> =
   | (T extends Primitive
       ? T
       : T extends {}
-        ? { [K in keyof T]: WithFieldValue<T[K]> | FieldValue }
-        : never);
+      ? { [K in keyof T]: WithFieldValue<T[K]> | FieldValue }
+      : never);
 
 /**
  * Update data (for use with {@link (updateDoc:1)}) that consists of field paths
@@ -86,8 +86,8 @@ export type WithFieldValue<T> =
 export type UpdateData<T> = T extends Primitive
   ? T
   : T extends {}
-    ? { [K in keyof T]?: UpdateData<T[K]> | FieldValue } & NestedUpdateFields<T>
-    : Partial<T>;
+  ? { [K in keyof T]?: UpdateData<T[K]> | FieldValue } & NestedUpdateFields<T>
+  : Partial<T>;
 /**
  * An options object that configures the behavior of {@link @firebase/firestore/lite#(setDoc:1)}, {@link
  * @firebase/firestore/lite#(WriteBatch.set:1)} and {@link @firebase/firestore/lite#(Transaction.set:1)} calls. These calls can be

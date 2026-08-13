@@ -682,10 +682,7 @@ function localTransformResults(
 
 /** A mutation that deletes the document at the given key. */
 export class DeleteMutation extends Mutation {
-  constructor(
-    readonly key: DocumentKey,
-    readonly precondition: Precondition
-  ) {
+  constructor(readonly key: DocumentKey, readonly precondition: Precondition) {
     super();
   }
 
@@ -739,10 +736,7 @@ function deleteMutationApplyToLocalView(
  * primarily to facilitate serialization into protos.
  */
 export class VerifyMutation extends Mutation {
-  constructor(
-    readonly key: DocumentKey,
-    readonly precondition: Precondition
-  ) {
+  constructor(readonly key: DocumentKey, readonly precondition: Precondition) {
     super();
   }
 

@@ -21,7 +21,7 @@ import alias from '@rollup/plugin-alias';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
 
-import pkg from './package.json' with { type: 'json' };
+import pkg from './package.json';
 
 // This rollup configuration creates a single non-minified build for browser
 // testing. You can test code changes by running `yarn build:debug`. This

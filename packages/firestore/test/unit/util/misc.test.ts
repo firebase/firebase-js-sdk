@@ -90,10 +90,7 @@ describe('CompareUtf8Strings', () => {
   }).timeout(20000);
 
   class StringPair {
-    constructor(
-      readonly s1: string,
-      readonly s2: string
-    ) {}
+    constructor(readonly s1: string, readonly s2: string) {}
   }
 
   class StringPairGenerator {

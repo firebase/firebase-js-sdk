@@ -710,13 +710,10 @@ apiDescribe('Database', persistence => {
         { embedding: { hello: 'world' } }
       ];
 
-      const docs = docsInOrder.reduce(
-        (obj, doc) => {
-          obj[Math.random().toString()] = doc;
-          return obj;
-        },
-        {} as { [i: string]: DocumentData }
-      );
+      const docs = docsInOrder.reduce((obj, doc) => {
+        obj[Math.random().toString()] = doc;
+        return obj;
+      }, {} as { [i: string]: DocumentData });
 
       return withTestCollection(persistence, docs, async randomCol => {
         // We validate that the SDK orders the vector field the same way as the backend
@@ -778,15 +775,12 @@ apiDescribe('Database', persistence => {
         ];
 
         const documentIds: string[] = [];
-        const docs = docsInOrder.reduce(
-          (obj, doc, index) => {
-            const documentId = index.toString();
-            documentIds.push(documentId);
-            obj[documentId] = doc;
-            return obj;
-          },
-          {} as { [i: string]: DocumentData }
-        );
+        const docs = docsInOrder.reduce((obj, doc, index) => {
+          const documentId = index.toString();
+          documentIds.push(documentId);
+          obj[documentId] = doc;
+          return obj;
+        }, {} as { [i: string]: DocumentData });
 
         return withTestCollection(persistence, docs, async randomCol => {
           const orderedQuery = query(randomCol, orderBy('embedding'));

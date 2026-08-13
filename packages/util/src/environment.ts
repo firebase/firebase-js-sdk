@@ -122,8 +122,8 @@ export function isBrowserExtension(): boolean {
     typeof chrome === 'object'
       ? chrome.runtime
       : typeof browser === 'object'
-        ? browser.runtime
-        : undefined;
+      ? browser.runtime
+      : undefined;
   return typeof runtime === 'object' && runtime.id !== undefined;
 }
 

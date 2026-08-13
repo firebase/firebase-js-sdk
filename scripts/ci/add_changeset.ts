@@ -72,9 +72,8 @@ async function addChangeSet() {
     // The way actions/checkout works, there is no local `main` branch, but it
     // has access to the remote origin/main.
     await exec(`yarn changeset status --output changeset-temp.json`);
-    const changesets: ChangesetEntry[] = require(
-      `${projectRoot}/changeset-temp.json`
-    ).changesets;
+    const changesets: ChangesetEntry[] =
+      require(`${projectRoot}/changeset-temp.json`).changesets;
     // only add a changeset for @firebase/app if
     // 1. we are publishing a new firebase version. and
     // 2. @firebase/app is not already being published

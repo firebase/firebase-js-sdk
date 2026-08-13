@@ -18,9 +18,11 @@
 import { fail } from '../util/assert';
 
 export type FulfilledHandler<T, R> =
-  ((result: T) => R | PersistencePromise<R>) | null;
+  | ((result: T) => R | PersistencePromise<R>)
+  | null;
 export type RejectedHandler<R> =
-  ((reason: Error) => R | PersistencePromise<R>) | null;
+  | ((reason: Error) => R | PersistencePromise<R>)
+  | null;
 export type Resolver<T> = (value?: T) => void;
 export type Rejector = (error: Error) => void;
 

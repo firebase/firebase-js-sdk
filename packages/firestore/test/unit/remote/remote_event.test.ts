@@ -625,10 +625,9 @@ describe('RemoteEvent', () => {
   it("doesn't synthesize deletes in the wrong state", () => {
     const targets = limboListens(1);
     const limboKey = key('coll/limbo');
-    const wrongState = new WatchTargetChange(
-      WatchTargetChangeState.NoChange,
-      [1]
-    );
+    const wrongState = new WatchTargetChange(WatchTargetChangeState.NoChange, [
+      1
+    ]);
 
     const event = createRemoteEvent({
       snapshotVersion: 1,

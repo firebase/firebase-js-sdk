@@ -121,7 +121,8 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   _projectPasswordPolicy: PasswordPolicyInternal | null = null;
   _tenantPasswordPolicies: Record<string, PasswordPolicyInternal> = {};
   _resolvePersistenceManagerAvailable:
-    ((value: void | PromiseLike<void>) => void) | undefined = undefined;
+    | ((value: void | PromiseLike<void>) => void)
+    | undefined = undefined;
   _persistenceManagerAvailable: Promise<void>;
   readonly name: string;
 

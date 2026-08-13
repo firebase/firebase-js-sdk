@@ -481,8 +481,9 @@ export class RealtimeHandler {
 
       const lastFetchResponse =
         await this.storage.getLastSuccessfulFetchResponse();
-      const fetchResponse: FetchResponse =
-        await this.cachingClient.fetch(fetchRequest);
+      const fetchResponse: FetchResponse = await this.cachingClient.fetch(
+        fetchRequest
+      );
       let activatedConfigs = await this.storage.getActiveConfig();
 
       if (!this.fetchResponseIsUpToDate(fetchResponse, targetVersion)) {

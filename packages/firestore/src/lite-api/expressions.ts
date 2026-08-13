@@ -3545,7 +3545,12 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
  * Specify time units for expressions.
  */
 export type TimeUnit =
-  'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day';
+  | 'microsecond'
+  | 'millisecond'
+  | 'second'
+  | 'minute'
+  | 'hour'
+  | 'day';
 
 /**
  * Specify time granularity for expressions.
@@ -3601,10 +3606,7 @@ export class AggregateFunction implements ProtoValueSerializable, UserData {
    */
   _methodName?: string;
 
-  constructor(
-    private name: string,
-    private params: Expression[]
-  ) {}
+  constructor(private name: string, private params: Expression[]) {}
 
   /**
    * @internal
@@ -4179,8 +4181,8 @@ export class FunctionExpression extends Expression {
    * @internal
    */
   _optionsProto:
-    ApiClientObjectMap<firestoreV1ApiClientInterfaces.Value> | undefined =
-    undefined;
+    | ApiClientObjectMap<firestoreV1ApiClientInterfaces.Value>
+    | undefined = undefined;
 
   /**
    * @private
