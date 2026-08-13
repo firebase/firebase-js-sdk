@@ -185,8 +185,8 @@ describe('TelemetryStore', () => {
     });
   });
 
-  describe('Event is not added and so cannot be made exportable', () => {
-    it('should not create any exportable event except for limit log if queue size == 0 and buffer size == limit', () => {
+  describe('Event is not added', () => {
+    it('should not add any additional event and export limit log if queue size == 0 and buffer size == limit', () => {
       const { store } = setupState({ bufferLimit: 1, queueLimit: 2 });
 
       const existingRootSpan = createMockRootSpan('trace-1');
@@ -195,16 +195,16 @@ describe('TelemetryStore', () => {
       store.add(existingRootSpan);
       store.add(ignoredRootLog);
 
-      expect(store.getSpansToExport()).to.be.empty;
       const exportedLogs = store.getLogsToExport();
       expect(exportedLogs).to.have.lengthOf(1);
       expect(exportedLogs[0]).to.deep.equal({
         severityNumber: SeverityNumber.INFO,
         body: 'Telemetry buffer limit reached. Some telemetry events were dropped.'
       });
+      expect(store.totalTelemetryCount).to.equal(1);
     });
 
-    it('should not create any additional exportable root event if already added', () => {
+    it('should not add and as a result not export any additional root event if already added', () => {
       const { store } = setupState({ bufferLimit: 3, queueLimit: 3 });
 
       const expectedRootSpan = createMockRootSpan('trace-1');
@@ -218,7 +218,7 @@ describe('TelemetryStore', () => {
       expect(store.totalTelemetryCount).to.equal(1);
     });
 
-    it('should not create any additional exportable child event if already added', () => {
+    it('should not add and as a result not export any additional child event if already added', () => {
       const { store } = setupState({ bufferLimit: 3, queueLimit: 3 });
 
       const existingRootSpan = createMockRootSpan('trace-1');
@@ -236,7 +236,7 @@ describe('TelemetryStore', () => {
       expect(store.totalTelemetryCount).to.equal(2);
     });
 
-    it('should not create an exportable child event if its root span has not been added', () => {
+    it('should not add any child event if its root span has not been added', () => {
       const { store } = setupState({ bufferLimit: 3, queueLimit: 3 });
 
       const ignoredChildSpan = createMockChildSpan('trace-1');
@@ -245,8 +245,19 @@ describe('TelemetryStore', () => {
       store.add(ignoredChildSpan);
       store.add(ignoredChildLog);
 
-      expect(store.getSpansToExport()).to.be.empty;
-      expect(store.getLogsToExport()).to.be.empty;
+      expect(store.totalTelemetryCount).to.equal(0);
+    });
+
+    it('should not add any child event if its root span must be evicted in the add', () => {
+      const { store } = setupState({ bufferLimit: 1, queueLimit: 1 });
+
+      const existingRootSpan = createMockRootSpan('trace-1');
+      const ignoredChildLog = createMockChildLog('trace-1');
+
+      store.add(existingRootSpan);
+      store.update(existingRootSpan);
+      store.add(ignoredChildLog); // could be added asynchronously after its root span updates
+
       expect(store.totalTelemetryCount).to.equal(0);
     });
   });
