@@ -37,12 +37,13 @@ import {
 import { FetchTransport } from '../fetch-transport';
 import { DynamicHeaderProvider } from '../types';
 import { FirebaseApp } from '@firebase/app';
-import { ExportResult } from '@opentelemetry/core';
+import { ExportResult, ExportResultCode } from '@opentelemetry/core';
 import { CrashlyticsOptions } from '../public-types';
 import {
   DEFAULT_TELEMETRY_ENDPOINT,
   DEFAULT_TELEMETRY_REGION
 } from '../constants';
+import { isTelemetryUrl } from '../helpers';
 import { AttributesStore } from '../attributes-store';
 import { FirebaseAttributesProcessor } from './attributes-processor';
 import { MicroOtelLoggerProvider } from './micro-otel-provider';
@@ -116,6 +117,8 @@ class OTLPLogExporter
   extends OTLPExporterBase<ReadableLogRecord[]>
   implements LogRecordExporter
 {
+  private endpointUrl?: string;
+
   constructor(
     config: OTLPExporterConfigBase = {},
     dynamicHeaderProviders: DynamicHeaderProvider[] = [],
@@ -140,20 +143,34 @@ class OTLPLogExporter
         })
       )
     );
+    this.endpointUrl = config.url;
   }
 
   override async export(
     logsToExport: ReadableLogRecord[],
     resultCallback: (result: ExportResult) => void
   ): Promise<void> {
+    const filteredLogs = logsToExport.filter(log => {
+      const url =
+        log.attributes?.['url.full'] ||
+        log.attributes?.['http.url'] ||
+        log.attributes?.['resource.url'];
+      return !isTelemetryUrl(url, this.endpointUrl);
+    });
+
+    if (filteredLogs.length === 0) {
+      resultCallback({ code: ExportResultCode.SUCCESS });
+      return;
+    }
+
     const installationIdAttribute =
       await this.attributesStore.getInstallationIdAttribute();
 
     if (installationIdAttribute) {
-      logsToExport.forEach(log => {
+      filteredLogs.forEach(log => {
         Object.assign(log.attributes, installationIdAttribute);
       });
     }
-    super.export(logsToExport, resultCallback);
+    super.export(filteredLogs, resultCallback);
   }
 }

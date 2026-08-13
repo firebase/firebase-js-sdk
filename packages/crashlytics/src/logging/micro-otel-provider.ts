@@ -16,9 +16,12 @@
  */
 
 import { FirebaseApp } from '@firebase/app';
+import { context } from '@opentelemetry/api';
 import { Logger, LoggerProvider, LogRecord } from '@opentelemetry/api-logs';
+import { suppressTracing } from '@opentelemetry/core';
 import { AttributesStore } from '../attributes-store';
 import { CrashlyticsOptions } from '../public-types';
+import { isTelemetryUrl } from '../helpers';
 import {
   DEFAULT_TELEMETRY_ENDPOINT,
   DEFAULT_TELEMETRY_REGION
@@ -110,6 +113,14 @@ export class MicroOtelLogger implements Logger {
   }
 
   emit(logRecord: LogRecord): void {
+    const url =
+      logRecord.attributes?.['url.full'] ||
+      logRecord.attributes?.['http.url'] ||
+      logRecord.attributes?.['resource.url'];
+    if (isTelemetryUrl(url, this.endpointUrl)) {
+      return;
+    }
+
     this.pendingLogRecords.push(logRecord);
 
     if (
@@ -228,11 +239,15 @@ export class MicroOtelLogger implements Logger {
 
     const sendRequest = async (retriesLeft = 1): Promise<void> => {
       try {
-        const response = await fetch(this.endpointUrl, {
-          method: 'POST',
-          headers,
-          body: payloadStr
-        });
+        const response = await context.with(
+          suppressTracing(context.active()),
+          () =>
+            fetch(this.endpointUrl, {
+              method: 'POST',
+              headers,
+              body: payloadStr
+            })
+        );
         if (!response.ok && retriesLeft > 0) {
           await new Promise(resolve => setTimeout(resolve, 1000));
           return sendRequest(retriesLeft - 1);

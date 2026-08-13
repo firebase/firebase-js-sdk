@@ -114,3 +114,25 @@ export function flush(crashlytics: Crashlytics): Promise<void> {
 
   return Promise.resolve();
 }
+
+/**
+ * Determines whether a given URL string targets the Firebase Crashlytics telemetry ingestion endpoint.
+ * Used to automatically drop self-referential telemetry records (e.g. from ResourceTiming or Fetch instrumentations).
+ *
+ * @internal
+ */
+export function isTelemetryUrl(
+  url: unknown,
+  customEndpoint?: string
+): boolean {
+  if (typeof url !== 'string' || !url) {
+    return false;
+  }
+  if (url.includes('firebasetelemetry.googleapis.com')) {
+    return true;
+  }
+  if (customEndpoint && url.includes(customEndpoint)) {
+    return true;
+  }
+  return false;
+}

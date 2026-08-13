@@ -22,7 +22,8 @@ import {
   IExporterTransport,
   ExportResponse
 } from '@opentelemetry/otlp-exporter-base';
-import { diag } from '@opentelemetry/api';
+import { diag, context } from '@opentelemetry/api';
+import { suppressTracing } from '@opentelemetry/core';
 import { DynamicHeaderProvider } from './types';
 
 function isExportRetryable(statusCode: number): boolean {
@@ -96,7 +97,10 @@ export class FetchTransport implements IExporterTransport {
         mode: 'cors',
         body: data
       } as RequestInit;
-      const response = await fetch(this.parameters.url, body);
+      const response = await context.with(
+        suppressTracing(context.active()),
+        () => fetch(this.parameters.url, body)
+      );
 
       if (response.status >= 200 && response.status <= 299) {
         diag.debug('response success');
