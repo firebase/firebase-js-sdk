@@ -20,7 +20,11 @@ import { ALREADY_LOGGED_FLAG, CRASHLYTICS_TYPE } from './constants';
 import { CrashlyticsInternal, ErrorWithSymbol } from './types';
 import { Crashlytics, CrashlyticsOptions } from './public-types';
 import { Provider } from '@firebase/component';
-import { AnyValueMap, SeverityNumber } from '@opentelemetry/api-logs';
+import {
+  AnyValueMap,
+  SeverityNumber,
+  LoggerProvider
+} from '@opentelemetry/api-logs';
 import { CrashlyticsService } from './service';
 import { flush } from './helpers';
 import { deepEqual } from '@firebase/util';
@@ -135,6 +139,19 @@ export function recordError(
       attributes: customAttributes
     });
   }
+}
+
+/**
+ * Retrieves the OpenTelemetry LoggerProvider instance used by Crashlytics.
+ *
+ * @public
+ * @param crashlytics - The {@link Crashlytics} instance.
+ * @returns The underlying OpenTelemetry LoggerProvider.
+ */
+export function getOtelLoggerProvider(
+  crashlytics: Crashlytics
+): LoggerProvider {
+  return (crashlytics as CrashlyticsInternal).loggerProvider;
 }
 
 export { flush };

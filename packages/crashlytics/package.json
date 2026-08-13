@@ -64,10 +64,10 @@
   "scripts": {
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
-    "build-only": "rollup -c",
-    "build": "rollup -c && yarn api-report",
+    "build-only": "rollup -c --bundleConfigAsCjs",
+    "build": "rollup -c --bundleConfigAsCjs && yarn api-report",
     "build:deps": "lerna run --scope @firebase/crashlytics --include-dependencies build",
-    "dev": "rollup -c -w",
+    "dev": "rollup -c --bundleConfigAsCjs -w",
     "test": "run-p --npm-path npm lint test:all",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all",
     "test:all": "run-p --npm-path npm test:browser test:node",
