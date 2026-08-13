@@ -41,7 +41,8 @@ describe('helpers', () => {
       return {
         emit: (logRecord: LogRecord) => {
           emittedLogs.push(logRecord);
-        }
+        },
+        enabled: () => true
       };
     },
     forceFlush: () => {
