@@ -19,8 +19,10 @@ import {
   LoggerProvider,
   BatchLogRecordProcessor,
   ReadableLogRecord,
-  LogRecordExporter
+  LogRecordExporter,
+  LogRecordProcessor
 } from '@opentelemetry/sdk-logs';
+import { logs } from '@opentelemetry/api-logs';
 import { ATTR_SERVICE_NAME } from '@opentelemetry/semantic-conventions';
 import { resourceFromAttributes } from '@opentelemetry/resources';
 import { JsonLogsSerializer } from '@opentelemetry/otlp-transformer';
@@ -32,13 +34,15 @@ import {
 import { FetchTransport } from '../fetch-transport';
 import { DynamicHeaderProvider } from '../types';
 import { FirebaseApp } from '@firebase/app';
-import { ExportResult } from '@opentelemetry/core';
+import { ExportResult, ExportResultCode } from '@opentelemetry/core';
 import { CrashlyticsOptions } from '../public-types';
 import {
   DEFAULT_TELEMETRY_ENDPOINT,
   DEFAULT_TELEMETRY_REGION
 } from '../constants';
 import { AttributesStore } from '../attributes-store';
+import { FirebaseAttributesProcessor } from './attributes-processor';
+import { isTelemetryUrl } from '../helpers';
 
 /**
  * Create a logger provider for the current execution environment.
@@ -47,22 +51,26 @@ import { AttributesStore } from '../attributes-store';
  */
 export function createLoggerProvider(
   app: FirebaseApp,
-  crashlyticsOptions: CrashlyticsOptions,
+  crashlyticsOptions: CrashlyticsOptions = {},
   attributesStore: AttributesStore,
   dynamicHeaderProviders: DynamicHeaderProvider[] = []
 ): LoggerProvider {
   let endpointUrl =
     crashlyticsOptions.endpointUrl || DEFAULT_TELEMETRY_ENDPOINT;
-
-  const resource = resourceFromAttributes({
-    [ATTR_SERVICE_NAME]: 'firebase_telemetry_service'
-  });
   if (endpointUrl.endsWith('/')) {
     endpointUrl = endpointUrl.slice(0, -1);
   }
+
   const { projectId, appId, apiKey } = app.options;
   const region = crashlyticsOptions.region || DEFAULT_TELEMETRY_REGION;
   const otlpEndpoint = `${endpointUrl}/v1/projects/${projectId}/apps/${appId}/locations/${region}/logs`;
+
+  const resource = resourceFromAttributes({
+    [ATTR_SERVICE_NAME]: 'firebase_telemetry_service',
+    'firebase.project_id': projectId || '',
+    'firebase.app_id': appId || ''
+  });
+
   const logExporter = new OTLPLogExporter(
     {
       url: otlpEndpoint,
@@ -75,11 +83,22 @@ export function createLoggerProvider(
     attributesStore
   );
 
-  return new LoggerProvider({
+  const processors: LogRecordProcessor[] = [
+    new FirebaseAttributesProcessor(attributesStore, projectId),
+    new BatchLogRecordProcessor({ exporter: logExporter })
+  ];
+
+  const provider = new LoggerProvider({
     resource,
-    processors: [new BatchLogRecordProcessor({ exporter: logExporter })],
+    processors,
     logRecordLimits: {}
   });
+
+  if (crashlyticsOptions.registerGlobalLoggerProvider) {
+    logs.setGlobalLoggerProvider(provider);
+  }
+
+  return provider;
 }
 
 /** OTLP exporter that uses custom FetchTransport and resolves async attributes. */
@@ -87,6 +106,8 @@ class OTLPLogExporter
   extends OTLPExporterBase<ReadableLogRecord[]>
   implements LogRecordExporter
 {
+  private endpointUrl?: string;
+
   constructor(
     config: OTLPExporterConfigBase = {},
     dynamicHeaderProviders: DynamicHeaderProvider[] = [],
@@ -111,20 +132,34 @@ class OTLPLogExporter
         })
       )
     );
+    this.endpointUrl = config.url;
   }
 
   override async export(
-    logs: ReadableLogRecord[],
+    logsToExport: ReadableLogRecord[],
     resultCallback: (result: ExportResult) => void
   ): Promise<void> {
+    const filteredLogs = logsToExport.filter(log => {
+      const url =
+        log.attributes?.['url.full'] ||
+        log.attributes?.['http.url'] ||
+        log.attributes?.['resource.url'];
+      return !isTelemetryUrl(url, this.endpointUrl);
+    });
+
+    if (filteredLogs.length === 0) {
+      resultCallback({ code: ExportResultCode.SUCCESS });
+      return;
+    }
+
     const installationIdAttribute =
       await this.attributesStore.getInstallationIdAttribute();
 
     if (installationIdAttribute) {
-      logs.forEach(log => {
+      filteredLogs.forEach(log => {
         Object.assign(log.attributes, installationIdAttribute);
       });
     }
-    super.export(logs, resultCallback);
+    super.export(filteredLogs, resultCallback);
   }
 }

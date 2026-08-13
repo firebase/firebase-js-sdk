@@ -18,7 +18,12 @@
 import { expect } from 'chai';
 import { LoggerProvider } from '@opentelemetry/sdk-logs';
 import { trace } from '@opentelemetry/api';
-import { Logger, LogRecord, SeverityNumber } from '@opentelemetry/api-logs';
+import {
+  Logger,
+  LogRecord,
+  SeverityNumber,
+  logs
+} from '@opentelemetry/api-logs';
 import {
   InMemorySpanExporter,
   SimpleSpanProcessor,
@@ -32,7 +37,12 @@ import {
 } from '@firebase/app';
 import { Component, ComponentType } from '@firebase/component';
 import { FirebaseAppCheckInternal } from '@firebase/app-check-interop-types';
-import { recordError, flush, getCrashlytics } from './api';
+import {
+  recordError,
+  flush,
+  getCrashlytics,
+  getOtelLoggerProvider
+} from './api';
 import { CrashlyticsService } from './service';
 import { registerCrashlytics } from './register';
 import { _FirebaseInstallationsInternal } from '@firebase/installations';
@@ -522,6 +532,29 @@ describe('Top level API', () => {
       await flush(fakeCrashlytics);
 
       expect(emittedLogs.length).to.equal(0);
+    });
+  });
+
+  describe('OpenTelemetry Integration', () => {
+    it('should expose getOtelLoggerProvider', () => {
+      const crashlytics = getCrashlytics(getFakeApp());
+      const provider = getOtelLoggerProvider(crashlytics);
+
+      expect(provider).to.be.an('object');
+      expect(typeof provider.getLogger).to.equal('function');
+      const logger = provider.getLogger('test-logger');
+      expect(typeof logger.emit).to.equal('function');
+    });
+
+    it('should support registerGlobalLoggerProvider in options', () => {
+      const crashlytics = getCrashlytics(getFakeApp(), {
+        registerGlobalLoggerProvider: true
+      });
+
+      const provider = getOtelLoggerProvider(crashlytics);
+      expect(provider).to.be.an('object');
+      const globalLogger = logs.getLogger('global-app-logger');
+      expect(typeof globalLogger.emit).to.equal('function');
     });
   });
 });
