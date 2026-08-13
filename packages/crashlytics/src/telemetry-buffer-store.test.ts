@@ -311,12 +311,10 @@ describe('TelemetryStore', () => {
     });
 
     it('should return no limit log for export if previously triggered', () => {
-      const { store } = setupState({ bufferLimit: 1, queueLimit: 2 });
+      const { store } = setupState({ bufferLimit: 0, queueLimit: 2 });
 
-      const existingRootSpan = createMockRootSpan('trace-1');
       const ignoredRootLog = createMockRootLog();
 
-      store.add(existingRootSpan);
       store.add(ignoredRootLog); // triggers limit log to be exported as root log is dropped
 
       store.clear();
