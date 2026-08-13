@@ -167,11 +167,13 @@ export class Timestamp {
   valueOf(): string;
 }
 
-declare namespace Temporal {
-  interface Instant {
-    readonly epochMilliseconds: number;
-    readonly epochNanoseconds: bigint;
-    toString(): string;
+declare global {
+  namespace Temporal {
+    interface Instant {
+      readonly epochMilliseconds: number;
+      readonly epochNanoseconds: bigint;
+      toString(): string;
+    }
   }
 }
 
