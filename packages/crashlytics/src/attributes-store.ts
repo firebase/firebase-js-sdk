@@ -46,6 +46,7 @@ export class AttributesStore {
   private _sessionId: string | undefined;
   private _installations: _FirebaseInstallationsInternal | null;
   private _iid: string | undefined;
+  private _iidPromise?: Promise<string | undefined>;
   private _routePathProvider?: () => string;
 
   constructor(
@@ -67,12 +68,39 @@ export class AttributesStore {
       installationsProvider?.getImmediate({
         optional: true
       }) ?? null;
-    if (!this._installations) {
+    if (this._installations) {
+      void this.fetchInstallationId(this._installations);
+    } else if (installationsProvider) {
       void installationsProvider
-        ?.get()
-        .then(installations => (this._installations = installations))
+        .get()
+        .then(installations => {
+          this._installations = installations;
+          void this.fetchInstallationId(installations);
+        })
         .catch(() => {});
     }
+  }
+
+  private fetchInstallationId(
+    installations: _FirebaseInstallationsInternal
+  ): Promise<string | undefined> {
+    if (!this._iidPromise) {
+      this._iidPromise = installations
+        .getId()
+        .then(iid => {
+          if (iid) {
+            this._iid = iid;
+            return iid;
+          }
+          this._iidPromise = undefined;
+          return undefined;
+        })
+        .catch(() => {
+          this._iidPromise = undefined;
+          return undefined;
+        });
+    }
+    return this._iidPromise;
   }
 
   /**
@@ -100,7 +128,7 @@ export class AttributesStore {
   /**
    * Get the cached installation ID if resolved.
    */
-  getCachedInstallationId(): string | undefined {
+  get installationId(): string | undefined {
     return this._iid;
   }
 
@@ -141,6 +169,9 @@ export class AttributesStore {
     if (this._sessionId) {
       attributes[LOG_ATTR_KEY.SESSION_ID] = this._sessionId;
     }
+    if (this._iid) {
+      attributes[ATTR_KEY_INSTALLATION_ID] = this._iid;
+    }
 
     const activeSpanContext = trace.getActiveSpan()?.spanContext();
     if (
@@ -167,21 +198,20 @@ export class AttributesStore {
    * @returns an attribute object with installation id, or null if installation id is not available
    */
   async getInstallationIdAttribute(): Promise<Attribute | null> {
-    if (!this._installations) {
-      return null;
-    }
     if (this._iid) {
       return {
         [ATTR_KEY_INSTALLATION_ID]: this._iid
       };
     }
+    if (!this._installations) {
+      return null;
+    }
 
-    const iid = await this._installations.getId();
+    const iid = await this.fetchInstallationId(this._installations);
     if (!iid) {
       return null;
     }
 
-    this._iid = iid;
     return {
       [ATTR_KEY_INSTALLATION_ID]: iid
     };

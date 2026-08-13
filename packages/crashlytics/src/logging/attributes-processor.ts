@@ -18,7 +18,7 @@
 import { LogRecordProcessor } from '@opentelemetry/sdk-logs';
 import { AttributeValue, Context } from '@opentelemetry/api';
 import { LogRecord } from '@opentelemetry/api-logs';
-import { AttributesStore, ATTR_KEY_INSTALLATION_ID } from '../attributes-store';
+import { AttributesStore } from '../attributes-store';
 
 /**
  * An OpenTelemetry LogRecordProcessor that enriches log records with dynamic Firebase attributes
@@ -40,14 +40,6 @@ export class FirebaseAttributesProcessor implements LogRecordProcessor {
       if (value !== undefined && logRecord.attributes[key] === undefined) {
         logRecord.attributes[key] = value as AttributeValue;
       }
-    }
-
-    const cachedIid = this.attributesStore.getCachedInstallationId();
-    if (
-      cachedIid &&
-      logRecord.attributes[ATTR_KEY_INSTALLATION_ID] === undefined
-    ) {
-      logRecord.attributes[ATTR_KEY_INSTALLATION_ID] = cachedIid;
     }
   }
 

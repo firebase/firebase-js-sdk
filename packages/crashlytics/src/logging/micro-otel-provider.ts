@@ -17,7 +17,7 @@
 
 import { FirebaseApp } from '@firebase/app';
 import { Logger, LoggerProvider, LogRecord } from '@opentelemetry/api-logs';
-import { AttributesStore, ATTR_KEY_INSTALLATION_ID } from '../attributes-store';
+import { AttributesStore } from '../attributes-store';
 import { CrashlyticsOptions } from '../public-types';
 import {
   DEFAULT_TELEMETRY_ENDPOINT,
@@ -140,20 +140,12 @@ export class MicroOtelLogger implements Logger {
     this.pendingLogRecords = [];
 
     const dynamicAttributes = this.attributesStore.getLogAttributes();
-    const cachedIid = this.attributesStore.getCachedInstallationId();
 
     const formattedLogRecords = recordsToExport.map(logRecord => {
       const mergedAttributes: Record<string, unknown> = {
         ...dynamicAttributes,
         ...(logRecord.attributes || {})
       };
-
-      if (
-        cachedIid &&
-        mergedAttributes[ATTR_KEY_INSTALLATION_ID] === undefined
-      ) {
-        mergedAttributes[ATTR_KEY_INSTALLATION_ID] = cachedIid;
-      }
 
       let timeNano: string;
       if (logRecord.timestamp instanceof Date) {
