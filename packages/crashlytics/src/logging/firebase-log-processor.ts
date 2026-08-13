@@ -25,7 +25,10 @@ export class FirebaseLogProcessor implements LogRecordProcessor {
   constructor(private readonly _attributesStore: AttributesStore) {}
 
   onEmit(logRecord: ReadableLogRecord): void {
-    Object.assign(logRecord.attributes, this._attributesStore.getLogAttributes());
+    Object.assign(
+      logRecord.attributes,
+      this._attributesStore.getLogAttributes()
+    );
   }
 
   forceFlush(): Promise<void> {

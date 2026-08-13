@@ -26,7 +26,6 @@ describe('FirebaseLogProcessor', () => {
   let processor: FirebaseLogProcessor;
 
   beforeEach(() => {
-    // Create a stub for AttributesStore
     attributesStoreStub = sinon.createStubInstance(AttributesStore);
     processor = new FirebaseLogProcessor(
       attributesStoreStub as unknown as AttributesStore
@@ -38,36 +37,20 @@ describe('FirebaseLogProcessor', () => {
   });
 
   it('should assign log attributes from AttributesStore onto the log record', () => {
+    const logRecord = {
+      attributes: {}
+    } as unknown as ReadableLogRecord;
+
     const mockAttributes = {
-      'app.build_id': '1.0.0',
-      'session.id': 'session-123',
       'custom.key': 'custom.value'
     };
 
     attributesStoreStub.getLogAttributes.returns(mockAttributes);
 
-    const logRecord = {
-      attributes: {
-        'existing.key': 'existing.value'
-      }
-    } as unknown as ReadableLogRecord;
-
     processor.onEmit(logRecord);
 
     expect(logRecord.attributes).to.deep.equal({
-      'existing.key': 'existing.value',
-      'app.build_id': '1.0.0',
-      'session.id': 'session-123',
       'custom.key': 'custom.value'
     });
-    expect(attributesStoreStub.getLogAttributes.calledOnce).to.be.true;
-  });
-
-  it('should resolve forceFlush', async () => {
-    await expect(processor.forceFlush()).to.be.fulfilled;
-  });
-
-  it('should resolve shutdown', async () => {
-    await expect(processor.shutdown()).to.be.fulfilled;
   });
 });

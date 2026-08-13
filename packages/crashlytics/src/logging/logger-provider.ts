@@ -92,15 +92,13 @@ export function createLoggerProvider(
     attributesStore
   );
 
-  const onErrorLogRecordProcessor = new OnErrorLogRecordProcessor(logExporter);
+  const firebaseLogProcessor = new FirebaseLogProcessor(attributesStore);
 
-  // TODO: Remove this custom processor and use applyCustomLogRecordData in the instrumentation config once
-  // @opentelemetry/browser-instrumentation supports it across all standard/experimental packages.
-  const customAttributesProcessor = new FirebaseLogProcessor(attributesStore);
+  const onErrorLogRecordProcessor = new OnErrorLogRecordProcessor(logExporter);
 
   const loggerProvider = new LoggerProvider({
     resource,
-    processors: [customAttributesProcessor, onErrorLogRecordProcessor],
+    processors: [firebaseLogProcessor, onErrorLogRecordProcessor],
     logRecordLimits: {}
   });
 
