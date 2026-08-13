@@ -166,7 +166,7 @@ class IndexedDBLocalPersistence implements InternalPersistence {
   // setTimeout return value is platform specific
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private pollTimer: any | null = null;
-  private isHiding = false;
+  private isClosing = false;
   private pendingWrites = 0;
 
   private receiver: Receiver | null = null;
@@ -177,7 +177,7 @@ class IndexedDBLocalPersistence implements InternalPersistence {
   readonly _workerInitializationPromise: Promise<void>;
 
   private readonly onPageHide = (): void => {
-    this.isHiding = true;
+    this.isClosing = true;
     this.stopPolling();
     if (this.dbPromise) {
       this.dbPromise.then(db => db.close()).catch(() => {});
@@ -186,20 +186,10 @@ class IndexedDBLocalPersistence implements InternalPersistence {
   };
 
   private readonly onPageShow = (): void => {
-    if (this.isHiding) {
-      this.isHiding = false;
+    if (this.isClosing) {
+      this.isClosing = false;
       if (Object.keys(this.listeners).length > 0) {
         this.startPolling();
-      }
-    }
-  };
-
-  private readonly onVisibilityChange = (): void => {
-    if (typeof document !== 'undefined') {
-      if (document.visibilityState === 'hidden') {
-        this.onPageHide();
-      } else if (document.visibilityState === 'visible') {
-        this.onPageShow();
       }
     }
   };
@@ -212,12 +202,6 @@ class IndexedDBLocalPersistence implements InternalPersistence {
       window.addEventListener('pagehide', this.onPageHide);
       window.addEventListener('pageshow', this.onPageShow);
     }
-    if (
-      typeof document !== 'undefined' &&
-      typeof document.addEventListener === 'function'
-    ) {
-      document.addEventListener('visibilitychange', this.onVisibilityChange);
-    }
   }
 
   private unregisterLifecycleListeners(): void {
@@ -227,12 +211,6 @@ class IndexedDBLocalPersistence implements InternalPersistence {
     ) {
       window.removeEventListener('pagehide', this.onPageHide);
       window.removeEventListener('pageshow', this.onPageShow);
-    }
-    if (
-      typeof document !== 'undefined' &&
-      typeof document.removeEventListener === 'function'
-    ) {
-      document.removeEventListener('visibilitychange', this.onVisibilityChange);
     }
   }
 
@@ -246,8 +224,8 @@ class IndexedDBLocalPersistence implements InternalPersistence {
   }
 
   async _openDb(): Promise<IDBDatabase> {
-    if (this.isHiding) {
-      throw new Error('Database is closing/hidden');
+    if (this.isClosing) {
+      throw new Error('Database is closing');
     }
     if (this.dbPromise) {
       return this.dbPromise;
@@ -267,7 +245,7 @@ class IndexedDBLocalPersistence implements InternalPersistence {
         const db = await this._openDb();
         return await op(db);
       } catch (e) {
-        if (this.isHiding) {
+        if (this.isClosing) {
           throw e;
         }
         if (numAttempts++ > _TRANSACTION_RETRY_COUNT) {
@@ -425,7 +403,7 @@ class IndexedDBLocalPersistence implements InternalPersistence {
   }
 
   private async _poll(): Promise<string[]> {
-    if (this.isHiding) {
+    if (this.isClosing) {
       return [];
     }
     try {
@@ -435,7 +413,7 @@ class IndexedDBLocalPersistence implements InternalPersistence {
         return new DBPromise<DBObject[] | null>(getAllRequest).toPromise();
       });
 
-      if (this.isHiding) {
+      if (this.isClosing) {
         return [];
       }
 
@@ -469,7 +447,7 @@ class IndexedDBLocalPersistence implements InternalPersistence {
       }
       return keys;
     } catch (e) {
-      if (!this.isHiding) {
+      if (!this.isClosing) {
         _logWarn(`Firebase Auth cross-tab polling failed with error: ${e}`);
       }
       return [];

@@ -439,7 +439,7 @@ describe('platform_browser/persistence/indexed_db', () => {
       clock = sinon.useFakeTimers();
       callback = sinon.spy();
       // Ensure we start fresh
-      (persistence as any).isHiding = false;
+      (persistence as any).isClosing = false;
       (persistence as any).dbPromise = null;
     });
 
@@ -452,10 +452,12 @@ describe('platform_browser/persistence/indexed_db', () => {
     it('should register event listeners when first listener is added and unregister when last is removed', () => {
       const addSpy = sinon.spy(window, 'addEventListener');
       const removeSpy = sinon.spy(window, 'removeEventListener');
+      const docAddSpy = sinon.spy(document, 'addEventListener');
 
       persistence._addListener(key, callback);
       expect(addSpy).to.have.been.calledWith('pagehide');
       expect(addSpy).to.have.been.calledWith('pageshow');
+      expect(docAddSpy).not.to.have.been.calledWith('visibilitychange');
 
       persistence._removeListener(key, callback);
       expect(removeSpy).to.have.been.calledWith('pagehide');
@@ -468,7 +470,7 @@ describe('platform_browser/persistence/indexed_db', () => {
 
       // Trigger pagehide
       window.dispatchEvent(new Event('pagehide'));
-      expect((persistence as any).isHiding).to.be.true;
+      expect((persistence as any).isClosing).to.be.true;
       expect((persistence as any).pollTimer).to.be.null;
       expect((persistence as any).dbPromise).to.be.null;
 
@@ -479,7 +481,7 @@ describe('platform_browser/persistence/indexed_db', () => {
 
       // Trigger pageshow
       window.dispatchEvent(new Event('pageshow'));
-      expect((persistence as any).isHiding).to.be.false;
+      expect((persistence as any).isClosing).to.be.false;
       expect((persistence as any).pollTimer).not.to.be.null;
 
       // Modify DB in background, ensure polling picks it up after pageshow
@@ -488,23 +490,20 @@ describe('platform_browser/persistence/indexed_db', () => {
       expect(callback).to.have.been.calledWith('new-value');
     });
 
-    it('should handle visibilitychange hidden and visible', () => {
+    it('should not close DB or set isClosing on visibilitychange', async () => {
       persistence._addListener(key, callback);
+      await persistence._set(key, value);
 
-      // Mock document.visibilityState to 'hidden'
+      // Mock document.visibilityState to 'hidden' and dispatch visibilitychange
       sinon.stub(document, 'visibilityState').get(() => 'hidden');
       document.dispatchEvent(new Event('visibilitychange'));
 
-      expect((persistence as any).isHiding).to.be.true;
-      expect((persistence as any).pollTimer).to.be.null;
-
-      // Mock document.visibilityState to 'visible'
-      sinon.restore(); // Restore stub
-      sinon.stub(document, 'visibilityState').get(() => 'visible');
-      document.dispatchEvent(new Event('visibilitychange'));
-
-      expect((persistence as any).isHiding).to.be.false;
+      expect((persistence as any).isClosing).to.be.false;
       expect((persistence as any).pollTimer).not.to.be.null;
+
+      // Persistence writes should continue to succeed while document is hidden
+      await persistence._set(key, 'another-value');
+      expect(await persistence._get(key)).to.eq('another-value');
     });
 
     it('should discard in-flight poll results if pagehide occurs before poll completes', async () => {
