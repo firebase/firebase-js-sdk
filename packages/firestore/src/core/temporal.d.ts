@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-// Type definitions for Temporal (TC39 proposal-temporal)
+// Type definitions for ECMAScript Temporal API
 
 declare namespace Temporal {
   interface Instant {
