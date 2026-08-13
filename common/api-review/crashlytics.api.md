@@ -9,7 +9,6 @@ import { FirebaseApp } from '@firebase/app';
 import { Instrumentation } from 'next';
 import { Logger } from '@opentelemetry/api-logs';
 import { LoggerProvider } from '@opentelemetry/api-logs';
-import { LoggerProvider as LoggerProvider_2 } from '@opentelemetry/sdk-logs';
 import { LogRecordExporter } from '@opentelemetry/sdk-logs';
 import { LogRecordProcessor } from '@opentelemetry/sdk-logs';
 import { Resource } from '@opentelemetry/resources';
@@ -45,7 +44,7 @@ export function getCrashlytics(app?: FirebaseApp, options?: CrashlyticsOptions):
 export function getOtelLogger(crashlytics: Crashlytics): Logger;
 
 // @public
-export function getOtelLoggerProvider(crashlytics: Crashlytics): LoggerProvider_2;
+export function getOtelLoggerProvider(crashlytics: Crashlytics): LoggerProvider;
 
 export { Instrumentation }
 

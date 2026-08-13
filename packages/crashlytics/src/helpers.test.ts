@@ -17,8 +17,7 @@
 
 import { expect } from 'chai';
 import * as sinon from 'sinon';
-import { LoggerProvider } from '@opentelemetry/sdk-logs';
-import { Logger, LogRecord } from '@opentelemetry/api-logs';
+import { Logger, LoggerProvider, LogRecord } from '@opentelemetry/api-logs';
 import { isNode } from '@firebase/util';
 import { registerListeners, startNewSession, generateUuid } from './helpers';
 import { AUTO_CONSTANTS } from './auto-constants';
