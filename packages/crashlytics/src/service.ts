@@ -27,11 +27,9 @@ export class CrashlyticsService implements Crashlytics, _FirebaseService {
   constructor(
     public app: FirebaseApp,
     public loggerProvider: LoggerProvider,
-    public attributesStore: AttributesStore,
-    customLogger?: Logger
+    public attributesStore: AttributesStore
   ) {
-    this.logger =
-      customLogger || loggerProvider.getLogger('@firebase/crashlytics');
+    this.logger = loggerProvider.getLogger('@firebase/crashlytics');
   }
 
   _delete(): Promise<void> {

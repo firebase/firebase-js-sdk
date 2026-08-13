@@ -535,8 +535,8 @@ describe('Top level API', () => {
     });
   });
 
-  describe('OpenTelemetry Power User API', () => {
-    it('should expose getOtelLoggerProvider and getOtelLogger', () => {
+  describe('OpenTelemetry Integration', () => {
+    it('should expose getOtelLoggerProvider and getOtelLogger in default micro mode', () => {
       const crashlytics = getCrashlytics(getFakeApp());
       const provider = getOtelLoggerProvider(crashlytics);
       const logger = getOtelLogger(crashlytics);
@@ -546,51 +546,14 @@ describe('Top level API', () => {
       expect(typeof logger.emit).to.equal('function');
     });
 
-    it('should accept custom loggerProvider in options', () => {
-      const customProvider = fakeLoggerProvider;
+    it('should support registerGlobalLoggerProvider in options', () => {
       const crashlytics = getCrashlytics(getFakeApp(), {
-        loggerProvider: customProvider
+        registerGlobalLoggerProvider: true
       });
 
-      expect(getOtelLoggerProvider(crashlytics)).to.equal(customProvider);
-    });
-
-    it('should accept custom logger in options', () => {
-      const customLogs: LogRecord[] = [];
-      const customLogger = {
-        emit: (logRecord: LogRecord) => {
-          customLogs.push(logRecord);
-        }
-      } as Logger;
-
-      const crashlytics = getCrashlytics(getFakeApp(), {
-        logger: customLogger
-      });
-
-      expect(getOtelLogger(crashlytics)).to.equal(customLogger);
-
-      recordError(crashlytics, new Error('custom logger error'));
-      expect(customLogs.length).to.equal(1);
-      expect(customLogs[0].body).to.equal('custom logger error');
-    });
-
-    it('should support extraProcessors in options', () => {
-      const processed: LogRecord[] = [];
-      const testProcessor = {
-        onEmit: (logRecord: LogRecord) => {
-          processed.push(logRecord);
-        },
-        forceFlush: async () => {},
-        shutdown: async () => {}
-      };
-
-      const crashlytics = getCrashlytics(getFakeApp(), {
-        extraProcessors: [testProcessor]
-      });
-
-      recordError(crashlytics, new Error('processor test'));
-      expect(processed.length).to.equal(1);
-      expect(processed[0].body).to.equal('processor test');
+      const provider = getOtelLoggerProvider(crashlytics);
+      expect(provider).to.be.an('object');
+      expect(typeof provider.getLogger).to.equal('function');
     });
   });
 });

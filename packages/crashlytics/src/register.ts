@@ -63,8 +63,7 @@ export function registerCrashlytics(): void {
         const crashlyticsService = new CrashlyticsService(
           app,
           loggerProvider,
-          attributesStore,
-          crashlyticsOptions?.logger
+          attributesStore
         );
 
         // Immediately track this as a new client session (if one doesn't exist yet)

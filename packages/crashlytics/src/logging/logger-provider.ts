@@ -50,8 +50,9 @@ import { MicroOtelLoggerProvider } from './micro-otel-provider';
 /**
  * Resolves or creates an OpenTelemetry LoggerProvider for the Crashlytics instance.
  *
- * Supports zero-config defaults as well as power user options (custom LoggerProvider,
- * global OTel binding, extra processors/exporters, and custom resources).
+ * Supports two modes:
+ * 1. Default lightweight MicroOtelLoggerProvider (~1.5 kB gzipped) with zero global side effects.
+ * 2. Full OpenTelemetry SDK LoggerProvider registered globally (`registerGlobalLoggerProvider: true`).
  *
  * @internal
  */
@@ -61,27 +62,8 @@ export function resolveLoggerProvider(
   attributesStore: AttributesStore,
   dynamicHeaderProviders: DynamicHeaderProvider[] = []
 ): ApiLoggerProvider {
-  // 1. Explicit user-supplied LoggerProvider
-  if (crashlyticsOptions.loggerProvider) {
-    return crashlyticsOptions.loggerProvider;
-  }
-
-  // 2. Use global OpenTelemetry LoggerProvider if requested
-  if (crashlyticsOptions.useGlobalLoggerProvider) {
-    const globalProvider = logs.getLoggerProvider();
-    if (globalProvider && typeof globalProvider.getLogger === 'function') {
-      return globalProvider;
-    }
-  }
-
-  // 3. If extra OTel SDK features or automatic instrumentation are requested, use full SDK LoggerProvider
-  if (
-    crashlyticsOptions.extraProcessors ||
-    crashlyticsOptions.extraExporters ||
-    crashlyticsOptions.resource ||
-    crashlyticsOptions.registerGlobalLoggerProvider ||
-    crashlyticsOptions.instrumentation
-  ) {
+  // Mode 2: Register and use global OpenTelemetry SDK LoggerProvider
+  if (crashlyticsOptions.registerGlobalLoggerProvider) {
     let endpointUrl =
       crashlyticsOptions.endpointUrl || DEFAULT_TELEMETRY_ENDPOINT;
     if (endpointUrl.endsWith('/')) {
@@ -92,15 +74,11 @@ export function resolveLoggerProvider(
     const region = crashlyticsOptions.region || DEFAULT_TELEMETRY_REGION;
     const otlpEndpoint = `${endpointUrl}/v1/projects/${projectId}/apps/${appId}/locations/${region}/logs`;
 
-    let resource = resourceFromAttributes({
+    const resource = resourceFromAttributes({
       [ATTR_SERVICE_NAME]: 'firebase_telemetry_service',
       'firebase.project_id': projectId || '',
       'firebase.app_id': appId || ''
     });
-
-    if (crashlyticsOptions.resource) {
-      resource = resource.merge(crashlyticsOptions.resource);
-    }
 
     const logExporter = new OTLPLogExporter(
       {
@@ -115,20 +93,9 @@ export function resolveLoggerProvider(
     );
 
     const processors: LogRecordProcessor[] = [
-      new FirebaseAttributesProcessor(attributesStore)
+      new FirebaseAttributesProcessor(attributesStore),
+      new BatchLogRecordProcessor({ exporter: logExporter })
     ];
-
-    if (crashlyticsOptions.extraProcessors) {
-      processors.push(...crashlyticsOptions.extraProcessors);
-    }
-
-    processors.push(new BatchLogRecordProcessor({ exporter: logExporter }));
-
-    if (crashlyticsOptions.extraExporters) {
-      for (const exporter of crashlyticsOptions.extraExporters) {
-        processors.push(new BatchLogRecordProcessor({ exporter }));
-      }
-    }
 
     const provider = new SdkLoggerProvider({
       resource,
@@ -136,17 +103,11 @@ export function resolveLoggerProvider(
       logRecordLimits: {}
     });
 
-    if (
-      crashlyticsOptions.registerGlobalLoggerProvider ||
-      crashlyticsOptions.instrumentation
-    ) {
-      logs.setGlobalLoggerProvider(provider);
-    }
-
+    logs.setGlobalLoggerProvider(provider);
     return provider;
   }
 
-  // 4. Default lightweight MicroOtelLoggerProvider (~1.5 kB gzipped)
+  // Mode 1: Default lightweight MicroOtelLoggerProvider (~1.5 kB gzipped)
   return new MicroOtelLoggerProvider(app, attributesStore, crashlyticsOptions);
 }
 

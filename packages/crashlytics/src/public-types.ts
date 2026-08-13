@@ -16,9 +16,7 @@
  */
 
 import { FirebaseApp } from '@firebase/app';
-import { AnyValueMap, Logger, LoggerProvider } from '@opentelemetry/api-logs';
-import { LogRecordProcessor, LogRecordExporter } from '@opentelemetry/sdk-logs';
-import { Resource } from '@opentelemetry/resources';
+import { AnyValueMap } from '@opentelemetry/api-logs';
 
 /**
  * An instance of the Firebase Crashlytics SDK.
@@ -71,48 +69,12 @@ export interface CrashlyticsOptions {
   customAttributes?: AnyValueMap;
 
   /**
-   * Optional custom OpenTelemetry LoggerProvider instance.
-   * When provided, Firebase Crashlytics will use this provider instead of creating its own.
-   */
-  loggerProvider?: LoggerProvider;
-
-  /**
-   * Optional custom OpenTelemetry Logger instance.
-   * When provided, Crashlytics will emit logs directly through this Logger.
-   */
-  logger?: Logger;
-
-  /**
-   * If true, Crashlytics will use the global OpenTelemetry LoggerProvider (`logs.getLoggerProvider()`).
-   * Defaults to false.
-   */
-  useGlobalLoggerProvider?: boolean;
-
-  /**
-   * If true, registers the created LoggerProvider as the global OpenTelemetry LoggerProvider
-   * via `logs.setGlobalLoggerProvider()`.
-   * Defaults to false.
+   * If true, registers the OpenTelemetry SDK LoggerProvider as the global LoggerProvider
+   * (`logs.setGlobalLoggerProvider()`) so that OpenTelemetry instrumentations and logs route
+   * through the Crashlytics pipeline.
+   *
+   * When false or omitted (default), Crashlytics uses a lightweight micro exporter with zero
+   * global side effects.
    */
   registerGlobalLoggerProvider?: boolean;
-
-  /**
-   * Additional OpenTelemetry LogRecordProcessors to attach to the default LoggerProvider pipeline.
-   */
-  extraProcessors?: LogRecordProcessor[];
-
-  /**
-   * Additional OpenTelemetry LogRecordExporters to attach via BatchLogRecordProcessor.
-   */
-  extraExporters?: LogRecordExporter[];
-
-  /**
-   * Custom OpenTelemetry Resource instance to merge into the default Resource.
-   */
-  resource?: Resource;
-
-  /**
-   * If true, enables automatic browser instrumentation (user interactions, fetch/XHR tracing, document load, and active span tracing).
-   * Defaults to false.
-   */
-  instrumentation?: boolean;
 }
