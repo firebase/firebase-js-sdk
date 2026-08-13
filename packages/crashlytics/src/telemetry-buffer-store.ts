@@ -37,8 +37,9 @@ function isSpan(event: ReadableSpan | SdkLogRecord): event is ReadableSpan {
 function isRootEvent(event: ReadableSpan | SdkLogRecord): boolean {
   if (isSpan(event)) {
     return event.parentSpanContext === undefined;
+  } else {
+    return event.spanContext?.traceId === undefined;
   }
-  return event.spanContext?.traceId === undefined;
 }
 
 /**
@@ -49,8 +50,9 @@ function isRootEvent(event: ReadableSpan | SdkLogRecord): boolean {
 function getEventType(event: ReadableSpan | SdkLogRecord): EventType {
   if (isSpan(event)) {
     return isRootEvent(event) ? EventType.RootSpan : EventType.ChildSpan;
+  } else {
+    return isRootEvent(event) ? EventType.RootLog : EventType.ChildLog;
   }
-  return isRootEvent(event) ? EventType.RootLog : EventType.ChildLog;
 }
 
 /**
@@ -80,47 +82,30 @@ class TraceEvents {
    * @param event - The telemetry event to check.
    */
   has(event: ReadableSpan | SdkLogRecord): boolean {
-    if (isSpan(event)) {
-      return this.spans.has(event);
-    } else {
-      return this.logs.has(event);
-    }
-  }
-
-  /**
-   * Marks this trace as queued for export.
-   */
-  markTraceQueuedForExport(): void {
-    this.isTraceQueuedForExport = true;
+    return isSpan(event) ? this.spans.has(event) : this.logs.has(event);
   }
 }
 
 /**
  * Represents the type of a telemetry event.
- *
- * @internal
  */
-export enum EventType {
-  RootSpan = 'RootSpan',
-  RootLog = 'RootLog',
-  ChildSpan = 'ChildSpan',
-  ChildLog = 'ChildLog'
+enum EventType {
+  RootSpan,
+  RootLog,
+  ChildSpan,
+  ChildLog
 }
 
 /**
  * Represents the identifier for a telemetry event buffer, which can be a trace ID or a generated UUID.
- *
- * @internal
  */
-export type EventId = string;
+type EventId = string;
 
 /**
  * Represents the type of telemetry data buffered in memory.
  * Can be a TraceEvents collection containing spans and logs for a trace, or a standalone SdkLogRecord.
- *
- * @internal
  */
-export type EventData = TraceEvents | SdkLogRecord;
+type EventData = TraceEvents | SdkLogRecord;
 
 /**
  * A shared storage engine that buffers telemetry logs and spans in memory,
@@ -149,6 +134,11 @@ export class TelemetryStore {
   ) {
     this._bufferLimit = bufferLimit;
     this._rootTelemetryQueue = new RootTelemetryQueue(queueLimit);
+  }
+
+  /** The total count of all telemetry items (spans and logs) currently in the store. */
+  get totalTelemetryCount(): number {
+    return this._totalTelemetryCount;
   }
 
   /**
@@ -235,68 +225,8 @@ export class TelemetryStore {
         this._evictOldest();
       }
       this._rootTelemetryQueue.enqueue(eventId);
-      traceEvents.markTraceQueuedForExport();
+      traceEvents.isTraceQueuedForExport = true;
     }
-  }
-
-  /**
-   * Retrieves the ID associated with a telemetry event.
-   * For root logs, generates a new UUID.
-   *
-   * @param event - The telemetry event.
-   */
-  private _getEventId(event: ReadableSpan | SdkLogRecord): EventId {
-    if (isSpan(event)) {
-      return event.spanContext().traceId;
-    }
-    return event.spanContext?.traceId ?? generateUuid();
-  }
-
-  /**
-   * Checks if the buffer currently has capacity for more telemetry events.
-   */
-  private _bufferHasCapacity(): boolean {
-    return this._totalTelemetryCount < this._bufferLimit;
-  }
-
-  /**
-   * Checks if the root telemetry queue is empty.
-   */
-  private _isQueueEmpty(): boolean {
-    return this._rootTelemetryQueue.size === 0;
-  }
-
-  /**
-   * Evicts the oldest root telemetry item (trace or root log) to free up buffer capacity.
-   */
-  private _evictOldest(): void {
-    const evictedTraceId = this._rootTelemetryQueue.dequeue();
-    if (evictedTraceId) {
-      this._maybeEvictIdFromBuffer(evictedTraceId);
-    }
-  }
-
-  /**
-   * Evicts a telemetry item (either a trace hierarchy or a standalone root log record) from the buffer
-   * and decrements its size from the total telemetry counter.
-   *
-   * @param key - The map key (trace ID or log UUID) to evict.
-   */
-  private _maybeEvictIdFromBuffer(key: EventId): void {
-    const eventData = this._telemetryBufferMap.get(key);
-    if (eventData) {
-      if (eventData instanceof TraceEvents) {
-        this._totalTelemetryCount -= eventData.spans.size + eventData.logs.size;
-      } else {
-        this._totalTelemetryCount -= 1;
-      }
-      this._telemetryBufferMap.delete(key);
-    }
-  }
-
-  /** The total count of all telemetry items (spans and logs) currently in the store. */
-  get totalTelemetryCount(): number {
-    return this._totalTelemetryCount;
   }
 
   /**
@@ -346,6 +276,62 @@ export class TelemetryStore {
     this._totalTelemetryCount = 0;
     this._shouldAddLimitLog = false;
   }
+
+  /**
+   * Retrieves the ID associated with a telemetry event.
+   * For root logs, generates a new UUID.
+   *
+   * @param event - The telemetry event.
+   */
+  private _getEventId(event: ReadableSpan | SdkLogRecord): EventId {
+    if (isSpan(event)) {
+      return event.spanContext().traceId;
+    } else {
+      return event.spanContext?.traceId ?? generateUuid();
+    }
+  }
+
+  /**
+   * Checks if the buffer currently has capacity for more telemetry events.
+   */
+  private _bufferHasCapacity(): boolean {
+    return this._totalTelemetryCount < this._bufferLimit;
+  }
+
+  /**
+   * Checks if the root telemetry queue is empty.
+   */
+  private _isQueueEmpty(): boolean {
+    return this._rootTelemetryQueue.size === 0;
+  }
+
+  /**
+   * Evicts the oldest root telemetry item (trace or root log) to free up buffer capacity.
+   */
+  private _evictOldest(): void {
+    const evictedTraceId = this._rootTelemetryQueue.dequeue();
+    if (evictedTraceId) {
+      this._maybeEvictIdFromBuffer(evictedTraceId);
+    }
+  }
+
+  /**
+   * Evicts a telemetry item (either a trace hierarchy or a standalone root log record) from the buffer
+   * and decrements its size from the total telemetry counter.
+   *
+   * @param key - The map key (trace ID or log UUID) to evict.
+   */
+  private _maybeEvictIdFromBuffer(key: EventId): void {
+    const eventData = this._telemetryBufferMap.get(key);
+    if (eventData) {
+      if (eventData instanceof TraceEvents) {
+        this._totalTelemetryCount -= eventData.spans.size + eventData.logs.size;
+      } else {
+        this._totalTelemetryCount -= 1;
+      }
+      this._telemetryBufferMap.delete(key);
+    }
+  }
 }
 
 /**
@@ -355,7 +341,7 @@ export class TelemetryStore {
  * @internal
  */
 export class RootTelemetryQueue {
-  static readonly LIMIT = 100;
+  static readonly DEFAULT_LIMIT = 100;
   private readonly _items: Array<EventId | undefined>;
   private _head = 0;
   private _tail = 0;
@@ -366,7 +352,7 @@ export class RootTelemetryQueue {
    *
    * @param _limit - The maximum size limit of the queue. Defaults to 100.
    */
-  constructor(private readonly _limit = RootTelemetryQueue.LIMIT) {
+  constructor(private readonly _limit = RootTelemetryQueue.DEFAULT_LIMIT) {
     if (_limit <= 0) {
       throw new Error('Limit must be a positive integer greater than 0');
     }
@@ -433,7 +419,9 @@ export class RootTelemetryQueue {
     const result: EventId[] = [];
     for (let i = 0; i < this._size; i++) {
       const idx = (this._head + i) % this._items.length;
-      result.push(this._items[idx]!);
+      if (this._items[idx]) {
+        result.push(this._items[idx]);
+      }
     }
     return result;
   }

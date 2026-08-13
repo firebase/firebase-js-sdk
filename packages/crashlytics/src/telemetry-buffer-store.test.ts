@@ -401,11 +401,11 @@ describe('RootTelemetryQueue', () => {
 
   it('should not enqueue when limit is exceeded', () => {
     const queue = new RootTelemetryQueue(2);
-    expect(queue.enqueue('a')).to.be.undefined;
-    expect(queue.enqueue('b')).to.be.undefined;
+    queue.enqueue('a');
+    queue.enqueue('b');
 
     // Third item exceeds limit of 2, should do nothing
-    expect(queue.enqueue('c')).to.be.undefined;
+    queue.enqueue('c');
     expect(queue.size).to.equal(2);
     expect(queue.peek()).to.equal('a');
   });
