@@ -46,6 +46,7 @@ import {
   SPAN_ATTR_KEY,
   SESSION_STORAGE_SESSION_ID_KEY
 } from './attributes-store';
+import { TelemetryStore } from './telemetry-store';
 import { OnErrorLogRecordProcessor } from './logging/on-error-log-record-processor';
 
 const PROJECT_ID = 'my-project';
@@ -80,6 +81,7 @@ const fakeApp = {
   }
 } as FirebaseApp;
 let fakeAttributesStore = new AttributesStore(fakeApp.options);
+const fakeTelemetryStore = new TelemetryStore();
 const fakeTracingProvider = {
   getTracer: () => ({
     startActiveSpan: (name: string, fn: (span: any) => any) =>
@@ -96,7 +98,8 @@ const fakeCrashlytics: CrashlyticsInternal = {
   app: fakeApp,
   loggerProvider: fakeLoggerProvider,
   tracingProvider: fakeTracingProvider,
-  attributesStore: fakeAttributesStore
+  attributesStore: fakeAttributesStore,
+  telemetryStore: fakeTelemetryStore
 };
 
 describe('Top level API', () => {
@@ -444,7 +447,8 @@ describe('Top level API', () => {
         fakeCrashlytics.app,
         fakeLoggerProvider,
         fakeTracingProvider,
-        fakeAttributesStore
+        fakeAttributesStore,
+        fakeTelemetryStore
       );
       crashlytics.options = {
         appVersion: '1.0.0'
@@ -602,7 +606,10 @@ describe('Top level API', () => {
         forceFlush: () => Promise.resolve()
       };
 
-      const processor = new OnErrorLogRecordProcessor(mockExporter);
+      const processor = new OnErrorLogRecordProcessor(
+        mockExporter,
+        fakeTelemetryStore
+      );
       const resource = resourceFromAttributes({});
       const realLoggerProvider = new LoggerProvider({
         resource,

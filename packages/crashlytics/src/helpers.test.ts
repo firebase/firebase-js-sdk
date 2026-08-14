@@ -35,6 +35,7 @@ import {
   LOG_ATTR_KEY,
   SESSION_STORAGE_SESSION_ID_KEY
 } from './attributes-store';
+import { TelemetryStore } from './telemetry-store';
 
 describe('helpers', () => {
   let originalSessionStorage: Storage | undefined;
@@ -65,6 +66,7 @@ describe('helpers', () => {
     shutdown: () => Promise.resolve()
   } as unknown as TracerProvider;
   let fakeAttributesStore: AttributesStore;
+  let fakeTelemetryStore: TelemetryStore;
   let fakeCrashlytics: CrashlyticsInternal;
   let getActiveSpanStub: sinon.SinonStub;
 
@@ -89,6 +91,7 @@ describe('helpers', () => {
     });
 
     fakeAttributesStore = new AttributesStore({ projectId: 'my-project' });
+    fakeTelemetryStore = new TelemetryStore();
     fakeCrashlytics = {
       app: {
         name: 'DEFAULT',
@@ -100,7 +103,8 @@ describe('helpers', () => {
       },
       loggerProvider: fakeLoggerProvider,
       tracingProvider: fakeTracingProvider,
-      attributesStore: fakeAttributesStore
+      attributesStore: fakeAttributesStore,
+      telemetryStore: fakeTelemetryStore
     };
     getActiveSpanStub = sinon.stub(trace, 'getActiveSpan').returns(undefined);
   });
@@ -168,7 +172,8 @@ describe('helpers', () => {
         fakeCrashlytics.app,
         fakeLoggerProvider,
         fakeTracingProvider,
-        fakeAttributesStore
+        fakeAttributesStore,
+        fakeTelemetryStore
       );
       telemetryWithVersion.options = { appVersion: '9.9.9' };
 

@@ -16,14 +16,14 @@
  */
 
 import { expect } from 'chai';
-import { TelemetryStore, RootTelemetryQueue } from './telemetry-buffer-store';
+import { TelemetryStore, RootTelemetryQueue } from './telemetry-store';
 import { ReadableSpan } from '@opentelemetry/sdk-trace-base';
 import { SdkLogRecord } from '@opentelemetry/sdk-logs';
 import { SeverityNumber } from '@opentelemetry/api-logs';
 
 describe('TelemetryStore', () => {
   /**
-   * Helper used during the ARRANGE and ACT phases of the tests to create a mock OpenTelemetry parent/root span.
+   * Helper to create a mock OpenTelemetry parent/root span.
    */
   function createMockRootSpan(traceId: string): ReadableSpan {
     return {
@@ -33,7 +33,7 @@ describe('TelemetryStore', () => {
   }
 
   /**
-   * Helper used during the ARRANGE and ACT phases of the tests to create a mock OpenTelemetry child span.
+   * Helper to create a mock OpenTelemetry child span.
    */
   function createMockChildSpan(traceId: string): ReadableSpan {
     return {
@@ -43,7 +43,7 @@ describe('TelemetryStore', () => {
   }
 
   /**
-   * Helper used during the ARRANGE and ACT phases of the tests to create a mock OpenTelemetry root/standalone log record.
+   * Helper to create a mock OpenTelemetry root/standalone log record.
    */
   function createMockRootLog(): SdkLogRecord {
     return {
@@ -52,7 +52,7 @@ describe('TelemetryStore', () => {
   }
 
   /**
-   * Helper used during the ARRANGE and ACT phases of the tests to create a mock OpenTelemetry child log record.
+   * Helper to create a mock OpenTelemetry child log record.
    */
   function createMockChildLog(traceId: string): SdkLogRecord {
     return {
