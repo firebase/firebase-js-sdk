@@ -83,19 +83,28 @@ export function initializeAppCheck(
       const appId = app.options.appId;
       const projectId = app.options.projectId;
       // Not using logger because I don't think we ever want this accidentally hidden.
-      console.log(
+      let message =
         `To use this token for app debugging, register it with your project.\n\n` +
-          `Firebase App Check debug token: ${token}\n\n` +
-          `You can do so in the Firebase Console: \n` +
-          `https://console.firebase.google.com/project/${projectId}/appcheck/apps?selectedAppId=${appId} \n\n` +
-          `Or using the Firebase CLI: \n` +
-          `firebase appcheck:debugtokens:create ${token} --project ${projectId} --app ${appId}\n\n` +
-          `Note: To keep your project secure, please revoke and delete this token using the \n` +
-          `Firebase Console or the CLI (\`firebase appcheck:debugtokens:delete\`) when you finish debugging.\n\n` +
-          `Warning: This debug token is a secret and should not be shared or uploaded to source code.\n\n` +
-          `Debug Token Guide: https://firebase.google.com/docs/app-check/web/debug-provider\n` +
-          `Firebase CLI install instructions: https://firebase.google.com/docs/cli\n`
-      );
+        `Firebase App Check debug token: ${token}\n\n`;
+
+      if (projectId && appId) {
+        message +=
+          `You can do so in the Firebase Console:\n` +
+          `https://console.firebase.google.com/project/${projectId}/appcheck/apps?selectedAppId=${appId}\n\n` +
+          `Or using the Firebase CLI:\n` +
+          `firebase appcheck:debugtokens:create ${token} --project ${projectId} --app ${appId}\n\n`;
+      } else {
+        message += `You will need to add it to your app's App Check settings in the Firebase Console for it to work.\n\n`;
+      }
+
+      message +=
+        `Note: To keep your project secure, please revoke and delete this token using the\n` +
+        `Firebase Console or the CLI (\`firebase appcheck:debugtokens:delete\`) when you finish debugging.\n\n` +
+        `Warning: This debug token is a secret and should not be shared or uploaded to source code.\n\n` +
+        `Debug Token Guide: https://firebase.google.com/docs/app-check/web/debug-provider\n` +
+        `Firebase CLI install instructions: https://firebase.google.com/docs/cli\n`;
+
+      console.log(message);
     });
   }
 
