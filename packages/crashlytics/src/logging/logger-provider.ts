@@ -102,14 +102,6 @@ export function createLoggerProvider(
     logRecordLimits: {}
   });
 
-  // TODO: Enable once @opentelemetry/browser-instrumentation supports applyCustomLogRecordData across its packages
-  // const applyCustomLogRecordData = (logRecord: LogRecord): void => {
-  //   logRecord.attributes = {
-  //     ...logRecord.attributes,
-  //     ...attributesStore.getLogAttributes()
-  //   };
-  // };
-
   if (typeof window !== 'undefined') {
     /*
      * Initialize as disabled to prevent the instrumentation from auto-enabling during construction.
