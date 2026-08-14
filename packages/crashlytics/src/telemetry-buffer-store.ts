@@ -59,6 +59,7 @@ function getEventType(event: ReadableSpan | SdkLogRecord): EventType {
  * Represents a collection of spans and logs associated with a root span/trace.
  */
 class TraceEvents {
+  // TODO: add unique id mappings to handle idempotency issue with duplicated events of different references
   logs = new Set<SdkLogRecord>();
   spans = new Set<ReadableSpan>();
   isTraceQueuedForExport = false;
