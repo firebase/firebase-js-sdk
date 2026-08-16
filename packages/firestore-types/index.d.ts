@@ -151,6 +151,8 @@ export class Timestamp {
 
   static fromMillis(milliseconds: number): Timestamp;
 
+  static fromInstant(instant: Temporal.Instant): Timestamp;
+
   readonly seconds: number;
   readonly nanoseconds: number;
 
@@ -158,9 +160,21 @@ export class Timestamp {
 
   toMillis(): number;
 
+  toInstant(): Temporal.Instant;
+
   isEqual(other: Timestamp): boolean;
 
   valueOf(): string;
+}
+
+declare global {
+  namespace Temporal {
+    interface Instant {
+      readonly epochMilliseconds: number;
+      readonly epochNanoseconds: bigint;
+      toString(): string;
+    }
+  }
 }
 
 export class Blob {

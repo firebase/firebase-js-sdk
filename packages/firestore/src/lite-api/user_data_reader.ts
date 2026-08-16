@@ -491,10 +491,7 @@ export class ServerTimestampFieldValueImpl extends FieldValue {
 }
 
 export class ArrayUnionFieldValueImpl extends FieldValue {
-  constructor(
-    methodName: string,
-    private readonly _elements: unknown[]
-  ) {
+  constructor(methodName: string, private readonly _elements: unknown[]) {
     super(methodName);
   }
 
@@ -504,8 +501,8 @@ export class ArrayUnionFieldValueImpl extends FieldValue {
       context,
       /*array=*/ true
     );
-    const parsedElements = this._elements.map(element =>
-      parseData(element, parseContext)!
+    const parsedElements = this._elements.map(
+      element => parseData(element, parseContext)!
     );
     const arrayUnion = new ArrayUnionTransformOperation(parsedElements);
     return new FieldTransform(context.path!, arrayUnion);
@@ -520,10 +517,7 @@ export class ArrayUnionFieldValueImpl extends FieldValue {
 }
 
 export class ArrayRemoveFieldValueImpl extends FieldValue {
-  constructor(
-    methodName: string,
-    private readonly _elements: unknown[]
-  ) {
+  constructor(methodName: string, private readonly _elements: unknown[]) {
     super(methodName);
   }
 
@@ -533,8 +527,8 @@ export class ArrayRemoveFieldValueImpl extends FieldValue {
       context,
       /*array=*/ true
     );
-    const parsedElements = this._elements.map(element =>
-      parseData(element, parseContext)!
+    const parsedElements = this._elements.map(
+      element => parseData(element, parseContext)!
     );
     const arrayUnion = new ArrayRemoveTransformOperation(parsedElements);
     return new FieldTransform(context.path!, arrayUnion);
@@ -549,10 +543,7 @@ export class ArrayRemoveFieldValueImpl extends FieldValue {
 }
 
 export class NumericIncrementFieldValueImpl extends FieldValue {
-  constructor(
-    methodName: string,
-    private readonly _operand: number
-  ) {
+  constructor(methodName: string, private readonly _operand: number) {
     super(methodName);
   }
 
@@ -574,10 +565,7 @@ export class NumericIncrementFieldValueImpl extends FieldValue {
 }
 
 export class NumericMinimumFieldValueImpl extends FieldValue {
-  constructor(
-    methodName: string,
-    private readonly _operand: number
-  ) {
+  constructor(methodName: string, private readonly _operand: number) {
     super(methodName);
   }
 
@@ -599,10 +587,7 @@ export class NumericMinimumFieldValueImpl extends FieldValue {
 }
 
 export class NumericMaximumFieldValueImpl extends FieldValue {
-  constructor(
-    methodName: string,
-    private readonly _operand: number
-  ) {
+  constructor(methodName: string, private readonly _operand: number) {
     super(methodName);
   }
 
@@ -922,6 +907,11 @@ export function parseScalarValue(
     return {
       timestampValue: toTimestamp(context.serializer, timestamp)
     };
+  } else if (isTemporalInstant(value)) {
+    const timestamp = Timestamp.fromInstant(value);
+    return {
+      timestampValue: toTimestamp(context.serializer, timestamp)
+    };
   } else if (value instanceof GeoPoint) {
     return {
       geoPointValue: {
@@ -956,6 +946,28 @@ export function parseScalarValue(
       `Unsupported field value: ${valueDescription(value)}`
     );
   }
+}
+
+function isTemporalInstant(value: unknown): value is Temporal.Instant {
+  if (typeof value !== 'object' || value === null) {
+    return false;
+  }
+  if (
+    typeof Temporal !== 'undefined' &&
+    typeof (Temporal as Record<string, unknown>).Instant === 'function'
+  ) {
+    const instantCtor = (Temporal as Record<string, unknown>)
+      .Instant as new (...args: unknown[]) => unknown;
+    if (value instanceof instantCtor) {
+      return true;
+    }
+  }
+  return (
+    (value as { [Symbol.toStringTag]?: string })[Symbol.toStringTag] ===
+      'Temporal.Instant' &&
+    typeof (value as { epochNanoseconds?: unknown }).epochNanoseconds ===
+      'bigint'
+  );
 }
 
 /**
@@ -1009,6 +1021,7 @@ export function looksLikeJsonObject(input: unknown): boolean {
     !(input instanceof DocumentReference) &&
     !(input instanceof FieldValue) &&
     !(input instanceof VectorValue) &&
+    !isTemporalInstant(input) &&
     !isProtoValueSerializable(input)
   );
 }

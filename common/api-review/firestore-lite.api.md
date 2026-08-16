@@ -711,6 +711,7 @@ export class Timestamp {
     nanoseconds: number
   );
   static fromDate(date: Date): Timestamp;
+  static fromInstant(instant: Temporal.Instant): Timestamp;
   static fromJSON(json: object): Timestamp;
   static fromMillis(milliseconds: number): Timestamp;
   isEqual(other: Timestamp): boolean;
@@ -718,6 +719,7 @@ export class Timestamp {
   static now(): Timestamp;
   readonly seconds: number;
   toDate(): Date;
+  toInstant(): Temporal.Instant;
   toJSON(): {
     seconds: number;
     nanoseconds: number;

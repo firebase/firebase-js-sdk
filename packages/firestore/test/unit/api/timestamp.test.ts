@@ -20,6 +20,7 @@ import { expect } from 'chai';
 import { Timestamp } from '../../../src/api/timestamp';
 import { Code } from '../../../src/util/error';
 import { addEqualityMatcher } from '../../util/equality_matcher';
+import { field, wrap, wrapObject } from '../../util/helpers';
 
 describe('Timestamp', () => {
   addEqualityMatcher();
@@ -239,5 +240,125 @@ describe('Timestamp', () => {
     expect(() => {
       Timestamp.fromJSON({ seconds, nanoseconds, type: 'firestore/wrong/1.0' });
     }).to.throw;
+  });
+
+  describe('Temporal Instant conversions', () => {
+    let originalTemporal: unknown;
+
+    before(() => {
+      originalTemporal = (globalThis as Record<string, unknown>).Temporal;
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { Temporal } = require('@js-temporal/polyfill');
+      (globalThis as Record<string, unknown>).Temporal = Temporal;
+    });
+
+    after(() => {
+      (globalThis as Record<string, unknown>).Temporal = originalTemporal;
+    });
+
+    it('fromInstant creates Timestamp correctly', () => {
+      const instant =
+        Temporal.Instant.fromEpochNanoseconds(1488872578916000000n);
+      const ts = Timestamp.fromInstant(instant);
+      expect(ts.seconds).to.equal(1488872578);
+      expect(ts.nanoseconds).to.equal(916000000);
+
+      const instantWithNanos =
+        Temporal.Instant.fromEpochNanoseconds(1488872578916123456n);
+      const ts2 = Timestamp.fromInstant(instantWithNanos);
+      expect(ts2.seconds).to.equal(1488872578);
+      expect(ts2.nanoseconds).to.equal(916123456);
+    });
+
+    it('fromInstant handles negative epoch nanoseconds', () => {
+      // -1.25 seconds: seconds = -2, nanoseconds = 750000000
+      const instant = Temporal.Instant.fromEpochNanoseconds(-1250000000n);
+      const ts = Timestamp.fromInstant(instant);
+      expect(ts.seconds).to.equal(-2);
+      expect(ts.nanoseconds).to.equal(750000000);
+
+      // -1 nanosecond: seconds = -1, nanoseconds = 999999999
+      const instant2 = Temporal.Instant.fromEpochNanoseconds(-1n);
+      const ts2 = Timestamp.fromInstant(instant2);
+      expect(ts2.seconds).to.equal(-1);
+      expect(ts2.nanoseconds).to.equal(999999999);
+
+      // -1 second exact: seconds = -1, nanoseconds = 0
+      const instant3 = Temporal.Instant.fromEpochNanoseconds(-1000000000n);
+      const ts3 = Timestamp.fromInstant(instant3);
+      expect(ts3.seconds).to.equal(-1);
+      expect(ts3.nanoseconds).to.equal(0);
+    });
+
+    it('fromInstant throws for invalid input', () => {
+      expect(() => Timestamp.fromInstant(null as unknown as Temporal.Instant))
+        .to.throw(/Invalid Temporal.Instant/)
+        .with.property('code', Code.INVALID_ARGUMENT);
+
+      expect(() =>
+        Timestamp.fromInstant(undefined as unknown as Temporal.Instant)
+      )
+        .to.throw(/Invalid Temporal.Instant/)
+        .with.property('code', Code.INVALID_ARGUMENT);
+
+      expect(() => Timestamp.fromInstant({} as unknown as Temporal.Instant))
+        .to.throw(/Invalid Temporal.Instant/)
+        .with.property('code', Code.INVALID_ARGUMENT);
+    });
+
+    it('toInstant returns Temporal.Instant with nanosecond precision', () => {
+      const ts = new Timestamp(1488872578, 916123456);
+      const instant = ts.toInstant();
+      expect(instant.epochNanoseconds).to.equal(1488872578916123456n);
+      expect(instant.epochMilliseconds).to.equal(1488872578916);
+    });
+
+    it('toInstant handles negative timestamps', () => {
+      const ts = new Timestamp(-2, 750000000);
+      const instant = ts.toInstant();
+      expect(instant.epochNanoseconds).to.equal(-1250000000n);
+
+      const ts2 = new Timestamp(-1, 999999999);
+      const instant2 = ts2.toInstant();
+      expect(instant2.epochNanoseconds).to.equal(-1n);
+    });
+
+    it('toInstant throws when Temporal is unavailable', () => {
+      const saved = (globalThis as Record<string, unknown>).Temporal;
+      delete (globalThis as Record<string, unknown>).Temporal;
+      try {
+        const ts = new Timestamp(100, 200);
+        expect(() => ts.toInstant())
+          .to.throw(/Temporal is not available/)
+          .with.property('code', Code.FAILED_PRECONDITION);
+      } finally {
+        (globalThis as Record<string, unknown>).Temporal = saved;
+      }
+    });
+
+    it('roundtrip conversions preserve nanosecond precision', () => {
+      const original = new Timestamp(123456789, 987654321);
+      const instant = original.toInstant();
+      const fromInst = Timestamp.fromInstant(instant);
+      expect(fromInst.isEqual(original)).to.be.true;
+
+      const negativeOriginal = new Timestamp(-62135596800, 123456789);
+      const negativeInstant = negativeOriginal.toInstant();
+      const fromNegativeInst = Timestamp.fromInstant(negativeInstant);
+      expect(fromNegativeInst.isEqual(negativeOriginal)).to.be.true;
+    });
+
+    it('is recognized and parsed as a Timestamp value in document data with full nanosecond precision', () => {
+      const instant =
+        Temporal.Instant.fromEpochNanoseconds(1488872578916123456n);
+      const expectedTimestamp = new Timestamp(1488872578, 916123456);
+      const parsed = wrap(instant);
+      expect(parsed).to.deep.equal(wrap(expectedTimestamp));
+
+      const parsedObj = wrapObject({ createdAt: instant });
+      expect(parsedObj.field(field('createdAt'))).to.deep.equal(
+        wrap(expectedTimestamp)
+      );
+    });
   });
 });
