@@ -22,6 +22,7 @@ import { LoggerProvider } from '@opentelemetry/sdk-logs';
 import { TracerProvider } from '@opentelemetry/api';
 import { AttributesStore } from './attributes-store';
 import { CrashlyticsService } from './service';
+import { TelemetryStore } from './telemetry-store';
 
 describe('CrashlyticsService', () => {
   const fakeApp = {} as FirebaseApp;
@@ -29,6 +30,8 @@ describe('CrashlyticsService', () => {
   const fakeAttributesStore = {
     updateAppVersion: (): void => {}
   } as unknown as AttributesStore;
+
+  const fakeTelemetryStore = {} as unknown as TelemetryStore;
 
   afterEach(() => {
     sinon.restore();
@@ -52,7 +55,8 @@ describe('CrashlyticsService', () => {
         fakeApp,
         fakeLoggerProvider,
         fakeTracingProvider,
-        fakeAttributesStore
+        fakeAttributesStore,
+        fakeTelemetryStore
       );
 
       service.unsubscribeListeners(unsubscribeSpy);
@@ -69,7 +73,8 @@ describe('CrashlyticsService', () => {
         fakeApp,
         {} as LoggerProvider, // no shutdown method
         {} as TracerProvider, // no shutdown method
-        fakeAttributesStore
+        fakeAttributesStore,
+        fakeTelemetryStore
       );
 
       try {
@@ -102,7 +107,8 @@ describe('CrashlyticsService', () => {
         fakeApp,
         fakeLoggerProvider,
         fakeTracingProvider,
-        fakeAttributesStore
+        fakeAttributesStore,
+        fakeTelemetryStore
       );
 
       try {

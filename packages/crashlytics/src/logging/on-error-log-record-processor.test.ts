@@ -25,6 +25,7 @@ import {
 import { resourceFromAttributes } from '@opentelemetry/resources';
 import { OnErrorLogRecordProcessor } from './on-error-log-record-processor';
 import { LogAttributes } from '@opentelemetry/api-logs';
+import { TelemetryStore } from '../telemetry-store';
 
 class MockLogRecordExporter implements LogRecordExporter {
   exportedLogs: ReadableLogRecord[] = [];
@@ -62,23 +63,23 @@ function createMockLog(
 
 describe('OnErrorLogRecordProcessor', () => {
   let mockExporter: MockLogRecordExporter;
+  let telemetryStore: TelemetryStore;
   let processor: OnErrorLogRecordProcessor;
   let mockLog1: SdkLogRecord;
   let mockLog2: SdkLogRecord;
-  let mockLog3: SdkLogRecord;
 
   beforeEach(() => {
     mockExporter = new MockLogRecordExporter();
-    processor = new OnErrorLogRecordProcessor(mockExporter, 2); // Max buffer size of 2 for testing limit
+    telemetryStore = new TelemetryStore(2, 2); // Max buffer size of 2 for testing limit
+    processor = new OnErrorLogRecordProcessor(mockExporter, telemetryStore);
     mockLog1 = createMockLog('log1');
     mockLog2 = createMockLog('log2');
-    mockLog3 = createMockLog('log3');
   });
 
-  it('should buffer emitted log records and not export them before error occurs', async () => {
+  it('should buffer emitted log records and not export them until error occurs with flush', async () => {
     processor.onEmit(mockLog1);
     processor.onEmit(mockLog2);
-
+    await processor.forceFlush();
     expect(mockExporter.exportedLogs).to.be.empty;
 
     processor.onErrorOccurred();
@@ -86,59 +87,6 @@ describe('OnErrorLogRecordProcessor', () => {
 
     await processor.forceFlush();
     expect(mockExporter.exportedLogs).to.deep.equal([mockLog1, mockLog2]);
-  });
-
-  it('should drop oldest log records when buffer exceeds maxBufferSize', async () => {
-    processor.onEmit(mockLog1);
-    processor.onEmit(mockLog2);
-    processor.onEmit(mockLog3); // Over limit of 2
-
-    expect(mockExporter.exportedLogs).to.be.empty;
-
-    processor.onErrorOccurred();
-    expect(mockExporter.exportedLogs).to.be.empty;
-
-    await processor.forceFlush();
-    expect(mockExporter.exportedLogs).to.deep.equal([mockLog2, mockLog3]);
-  });
-
-  it('should forward buffered log records and flush to exporter when onErrorOccurred is called', async () => {
-    processor.onEmit(mockLog1);
-    processor.onEmit(mockLog2);
-
-    processor.onErrorOccurred();
-    await processor.forceFlush();
-
-    expect(mockExporter.exportedLogs).to.deep.equal([mockLog1, mockLog2]);
-  });
-
-  it('should buffer subsequent emitted log records again after an error is flushed and flush them on subsequent onErrorOccurred', async () => {
-    processor.onEmit(mockLog1);
-    processor.onErrorOccurred();
-    await processor.forceFlush();
-
-    expect(mockExporter.exportedLogs).to.deep.equal([mockLog1]);
-
-    // Subsequent emit should be buffered
-    processor.onEmit(mockLog2);
-    await processor.forceFlush();
-    expect(mockExporter.exportedLogs).to.deep.equal([mockLog1]);
-
-    // Second error triggers flush of the new buffer
-    processor.onErrorOccurred();
-    await processor.forceFlush();
-    expect(mockExporter.exportedLogs).to.deep.equal([mockLog1, mockLog2]);
-  });
-
-  it('should be a no-op if onErrorOccurred is called multiple times without new log records', async () => {
-    processor.onEmit(mockLog1);
-    processor.onErrorOccurred();
-    await processor.forceFlush();
-    expect(mockExporter.exportedLogs).to.deep.equal([mockLog1]);
-
-    processor.onErrorOccurred();
-    await processor.forceFlush();
-    expect(mockExporter.exportedLogs).to.deep.equal([mockLog1]);
   });
 
   it('should forward shutdown calls to exporter and clear buffer', async () => {
@@ -147,11 +95,15 @@ describe('OnErrorLogRecordProcessor', () => {
     expect(mockExporter.shutdownCount).to.equal(1);
 
     processor.onErrorOccurred();
+    await processor.forceFlush();
     expect(mockExporter.exportedLogs).to.be.empty;
   });
 
   it('should filter out web vital log records with rating === "good"', async () => {
-    processor = new OnErrorLogRecordProcessor(mockExporter, 3);
+    processor = new OnErrorLogRecordProcessor(
+      mockExporter,
+      new TelemetryStore(3, 3)
+    );
     const goodLog = createMockLog('good-vital', {
       'browser.web_vital.rating': 'good'
     });
@@ -172,5 +124,27 @@ describe('OnErrorLogRecordProcessor', () => {
       needsImprovementLog,
       poorLog
     ]);
+  });
+
+  describe('multi-error scenarios simulating SDK lifecycle', () => {
+    function simulateSDKErrorLifecycleCleanup(): void {
+      telemetryStore.clear();
+    }
+
+    it('should buffer and export subsequent emitted log records with lifecycle cleanup', async () => {
+      // First error cycle
+      processor.onEmit(mockLog1);
+      processor.onErrorOccurred();
+      simulateSDKErrorLifecycleCleanup();
+      await processor.forceFlush();
+      expect(mockExporter.exportedLogs).to.deep.equal([mockLog1]);
+
+      // Second error cycle
+      processor.onEmit(mockLog2);
+      processor.onErrorOccurred();
+      simulateSDKErrorLifecycleCleanup();
+      await processor.forceFlush();
+      expect(mockExporter.exportedLogs).to.deep.equal([mockLog1, mockLog2]);
+    });
   });
 });

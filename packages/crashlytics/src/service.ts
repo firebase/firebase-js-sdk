@@ -24,6 +24,7 @@ import { OnErrorLogRecordProcessor } from './logging/on-error-log-record-process
 import { OnErrorSpanProcessor } from './tracing/on-error-span-processor';
 import { unregisterLoggerInstrumentations } from './logging/logger-provider';
 import { unregisterTracingInstrumentations } from './tracing/tracing-provider';
+import { TelemetryStore } from './telemetry-store';
 
 export class CrashlyticsService implements Crashlytics, _FirebaseService {
   private _options?: CrashlyticsOptions;
@@ -34,6 +35,7 @@ export class CrashlyticsService implements Crashlytics, _FirebaseService {
     public loggerProvider: LoggerProvider,
     public tracingProvider: TracerProvider | null,
     public attributesStore: AttributesStore,
+    public telemetryStore: TelemetryStore,
     public onErrorLogRecordProcessor?: OnErrorLogRecordProcessor,
     public onErrorSpanProcessor?: OnErrorSpanProcessor
   ) {}

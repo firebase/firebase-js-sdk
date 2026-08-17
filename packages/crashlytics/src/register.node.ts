@@ -28,6 +28,7 @@ import { createLoggerProvider } from './logging/logger-provider';
 import { createTracingProvider } from './tracing/tracing-provider';
 import { CrashlyticsOptions } from './public-types';
 import { AttributesStore } from './attributes-store';
+import { TelemetryStore } from './telemetry-store';
 
 export function registerCrashlytics(): void {
   _registerComponent(
@@ -41,12 +42,19 @@ export function registerCrashlytics(): void {
           app.options,
           crashlyticsOptions
         );
+        const telemetryStore = new TelemetryStore();
         const { loggerProvider, onErrorLogRecordProcessor } =
-          createLoggerProvider(app, crashlyticsOptions, attributesStore);
+          createLoggerProvider(
+            app,
+            crashlyticsOptions,
+            attributesStore,
+            telemetryStore
+          );
         const { tracingProvider, onErrorSpanProcessor } = createTracingProvider(
           app,
           crashlyticsOptions,
-          attributesStore
+          attributesStore,
+          telemetryStore
         );
 
         return new CrashlyticsService(
@@ -54,6 +62,7 @@ export function registerCrashlytics(): void {
           loggerProvider,
           tracingProvider,
           attributesStore,
+          telemetryStore,
           onErrorLogRecordProcessor,
           onErrorSpanProcessor
         );

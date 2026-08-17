@@ -102,6 +102,7 @@ export function recordError(
   const {
     loggerProvider,
     attributesStore,
+    telemetryStore,
     onErrorSpanProcessor,
     onErrorLogRecordProcessor
   } = crashlytics as CrashlyticsInternal;
@@ -147,6 +148,8 @@ export function recordError(
   if (onErrorLogRecordProcessor) {
     onErrorLogRecordProcessor.onErrorOccurred();
   }
+
+  telemetryStore.clear();
 }
 
 /**
