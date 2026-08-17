@@ -209,6 +209,10 @@ export function initializeApp(
  * server side rendering environments only. Initialization will fail if invoked from a
  * browser environment.
  *
+ * By default, instances are cached and deduplicated based on a hash of the provided
+ * options and settings. To isolate an instance or bypass cached state on retry, provide
+ * a unique {@link FirebaseServerAppSettings.customIdentifier}.
+ *
  * See
  * {@link
  *   https://firebase.google.com/docs/web/setup#add_firebase_to_your_app
@@ -231,13 +235,14 @@ export function initializeApp(
  *     messagingSenderId: "123456789"                  // Cloud Messaging
  *   },
  *   {
- *    authIdToken: "Your Auth ID Token"
+ *    authIdToken: "Your Auth ID Token",
+ *    customIdentifier: "unique-request-id" // Optional: isolates instance or retries fresh
  *   });
  * ```
  *
  * @param options - `Firebase.AppOptions` to configure the app's services, or a
  *   a `FirebaseApp` instance which contains the `AppOptions` within.
- * @param config - Optional `FirebaseServerApp` settings.
+ * @param config - Optional `FirebaseServerApp` settings, including tokens, `releaseOnDeref`, or `customIdentifier`.
  *
  * @returns The initialized `FirebaseServerApp`.
  *
@@ -256,7 +261,7 @@ export function initializeServerApp(
 /**
  * Creates and initializes a {@link @firebase/app#FirebaseServerApp} instance.
  *
- * @param config - Optional `FirebaseServerApp` settings.
+ * @param config - Optional `FirebaseServerApp` settings, including tokens, `releaseOnDeref`, or `customIdentifier`.
  *
  * @returns The initialized `FirebaseServerApp`.
  *

@@ -36,7 +36,7 @@ This package coordinates the communication between the different Firebase compon
 |  <b>function(options, ...)</b> |
 |  [initializeApp(options, name)](./app.md#initializeapp_cb2f5e1) | Creates and initializes a [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) instance.<!-- -->See [Add Firebase to your app](https://firebase.google.com/docs/web/setup#add_firebase_to_your_app) and [Initialize multiple projects](https://firebase.google.com/docs/web/setup#multiple-projects) for detailed documentation. |
 |  [initializeApp(options, config)](./app.md#initializeapp_079e917) | Creates and initializes a FirebaseApp instance. |
-|  [initializeServerApp(options, config)](./app.md#initializeserverapp_30ab697) | Creates and initializes a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface) instance.<!-- -->The <code>FirebaseServerApp</code> is similar to <code>FirebaseApp</code>, but is intended for execution in server side rendering environments only. Initialization will fail if invoked from a browser environment.<!-- -->See [Add Firebase to your app](https://firebase.google.com/docs/web/setup#add_firebase_to_your_app) and [Initialize multiple projects](https://firebase.google.com/docs/web/setup#multiple-projects) for detailed documentation. |
+|  [initializeServerApp(options, config)](./app.md#initializeserverapp_30ab697) | Creates and initializes a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface) instance.<!-- -->The <code>FirebaseServerApp</code> is similar to <code>FirebaseApp</code>, but is intended for execution in server side rendering environments only. Initialization will fail if invoked from a browser environment.<!-- -->By default, instances are cached and deduplicated based on a hash of the provided options and settings. To isolate an instance or bypass cached state on retry, provide a unique [FirebaseServerAppSettings.customIdentifier](./app.firebaseserverappsettings.md#firebaseserverappsettingscustomidentifier)<!-- -->.<!-- -->See [Add Firebase to your app](https://firebase.google.com/docs/web/setup#add_firebase_to_your_app) and [Initialize multiple projects](https://firebase.google.com/docs/web/setup#multiple-projects) for detailed documentation. |
 
 ## Interfaces
 
@@ -134,7 +134,7 @@ export declare function initializeServerApp(config?: FirebaseServerAppSettings):
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  config | [FirebaseServerAppSettings](./app.firebaseserverappsettings.md#firebaseserverappsettings_interface) | Optional <code>FirebaseServerApp</code> settings. |
+|  config | [FirebaseServerAppSettings](./app.firebaseserverappsettings.md#firebaseserverappsettings_interface) | Optional <code>FirebaseServerApp</code> settings, including tokens, <code>releaseOnDeref</code>, or <code>customIdentifier</code>. |
 
 <b>Returns:</b>
 
@@ -364,6 +364,8 @@ Creates and initializes a [FirebaseServerApp](./app.firebaseserverapp.md#firebas
 
 The `FirebaseServerApp` is similar to `FirebaseApp`<!-- -->, but is intended for execution in server side rendering environments only. Initialization will fail if invoked from a browser environment.
 
+By default, instances are cached and deduplicated based on a hash of the provided options and settings. To isolate an instance or bypass cached state on retry, provide a unique [FirebaseServerAppSettings.customIdentifier](./app.firebaseserverappsettings.md#firebaseserverappsettingscustomidentifier)<!-- -->.
+
 See [Add Firebase to your app](https://firebase.google.com/docs/web/setup#add_firebase_to_your_app) and [Initialize multiple projects](https://firebase.google.com/docs/web/setup#multiple-projects) for detailed documentation.
 
 <b>Signature:</b>
@@ -377,7 +379,7 @@ export declare function initializeServerApp(options: FirebaseOptions | FirebaseA
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  options | [FirebaseOptions](./app.firebaseoptions.md#firebaseoptions_interface) \| [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | <code>Firebase.AppOptions</code> to configure the app's services, or a a <code>FirebaseApp</code> instance which contains the <code>AppOptions</code> within. |
-|  config | [FirebaseServerAppSettings](./app.firebaseserverappsettings.md#firebaseserverappsettings_interface) | Optional <code>FirebaseServerApp</code> settings. |
+|  config | [FirebaseServerAppSettings](./app.firebaseserverappsettings.md#firebaseserverappsettings_interface) | Optional <code>FirebaseServerApp</code> settings, including tokens, <code>releaseOnDeref</code>, or <code>customIdentifier</code>. |
 
 <b>Returns:</b>
 
@@ -407,7 +409,8 @@ initializeServerApp({
     messagingSenderId: "123456789"                  // Cloud Messaging
   },
   {
-   authIdToken: "Your Auth ID Token"
+   authIdToken: "Your Auth ID Token",
+   customIdentifier: "unique-request-id" // Optional: isolates instance or retries fresh
   });
 
 ```

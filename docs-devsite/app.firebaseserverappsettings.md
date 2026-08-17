@@ -25,6 +25,7 @@ export interface FirebaseServerAppSettings extends Omit<FirebaseAppSettings, 'na
 |  --- | --- | --- |
 |  [appCheckToken](./app.firebaseserverappsettings.md#firebaseserverappsettingsappchecktoken) | string | An optional App Check token. If provided, the Firebase SDKs that use App Check will utilize this App Check token in place of requiring an instance of App Check to be initialized.<!-- -->If the token fails local verification due to expiration or parsing errors, then a console error is logged at the time of initialization of the <code>FirebaseServerApp</code> instance. |
 |  [authIdToken](./app.firebaseserverappsettings.md#firebaseserverappsettingsauthidtoken) | string | An optional Auth ID token used to resume a signed in user session from a client runtime environment.<!-- -->Invoking <code>getAuth</code> with a <code>FirebaseServerApp</code> configured with a validated <code>authIdToken</code> causes an automatic attempt to sign in the user that the <code>authIdToken</code> represents. The token needs to have been recently minted for this operation to succeed.<!-- -->If the token fails local verification due to expiration or parsing errors, then a console error is logged at the time of initialization of the <code>FirebaseServerApp</code> instance.<!-- -->If the Auth service has failed to validate the token when the Auth SDK is initialized, then an warning is logged to the console and the Auth SDK will not sign in a user on initialization.<!-- -->If a user is successfully signed in, then the Auth instance's <code>onAuthStateChanged</code> callback is invoked with the <code>User</code> object as per standard Auth flows. However, <code>User</code> objects created via an <code>authIdToken</code> do not have a refresh token. Attempted <code>refreshToken</code> operations fail. |
+|  [customIdentifier](./app.firebaseserverappsettings.md#firebaseserverappsettingscustomidentifier) | string | An optional custom identifier used to distinguish this <code>FirebaseServerApp</code> instance from others with identical options and tokens.<!-- -->By default, <code>initializeServerApp</code> caches and shares <code>FirebaseServerApp</code> instances based on a hash of the Firebase options, <code>authIdToken</code>, and <code>appCheckToken</code>. Providing a distinct <code>customIdentifier</code> (such as a request ID or UUID) isolates the instance to a specific execution context or enables clean retries after transient failures. |
 |  [releaseOnDeref](./app.firebaseserverappsettings.md#firebaseserverappsettingsreleaseonderef) | object | An optional object. If provided, the Firebase SDK uses a <code>FinalizationRegistry</code> object to monitor the garbage collection status of the provided object. The Firebase SDK releases its reference on the <code>FirebaseServerApp</code> instance when the provided <code>releaseOnDeref</code> object is garbage collected.<!-- -->You can use this field to reduce memory management overhead for your application. If provided, an app running in a SSR pass does not need to perform <code>FirebaseServerApp</code> cleanup, so long as the reference object is deleted (by falling out of SSR scope, for instance.)<!-- -->If an object is not provided then the application must clean up the <code>FirebaseServerApp</code> instance by invoking <code>deleteApp</code>.<!-- -->If the application provides an object in this parameter, but the application is executed in a JavaScript engine that predates the support of <code>FinalizationRegistry</code> (introduced in node v14.6.0, for instance), then an error is thrown at <code>FirebaseServerApp</code> initialization. |
 
 ## FirebaseServerAppSettings.appCheckToken
@@ -55,6 +56,18 @@ If a user is successfully signed in, then the Auth instance's `onAuthStateChange
 
 ```typescript
 authIdToken?: string;
+```
+
+## FirebaseServerAppSettings.customIdentifier
+
+An optional custom identifier used to distinguish this `FirebaseServerApp` instance from others with identical options and tokens.
+
+By default, `initializeServerApp` caches and shares `FirebaseServerApp` instances based on a hash of the Firebase options, `authIdToken`<!-- -->, and `appCheckToken`<!-- -->. Providing a distinct `customIdentifier` (such as a request ID or UUID) isolates the instance to a specific execution context or enables clean retries after transient failures.
+
+<b>Signature:</b>
+
+```typescript
+customIdentifier?: string;
 ```
 
 ## FirebaseServerAppSettings.releaseOnDeref

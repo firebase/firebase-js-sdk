@@ -450,6 +450,10 @@ browserDescribe('WebDriver persistence test', (driver, browser) => {
       expect(await driver.getUserSnapshot()).to.be.null;
       await driver.selectMainWindow({ noWait: true });
       await driver.pause(700);
+      await driver.webDriver.wait(
+        async () => (await driver.getUserSnapshot()) === null,
+        5000
+      );
       expect(await driver.getUserSnapshot()).to.be.null;
 
       const cred2: UserCredential = await driver.call(
@@ -459,6 +463,10 @@ browserDescribe('WebDriver persistence test', (driver, browser) => {
 
       await driver.selectPopupWindow();
       await driver.pause(500);
+      await driver.webDriver.wait(
+        async () => (await driver.getUserSnapshot())?.uid === uid2,
+        5000
+      );
       expect(await driver.getUserSnapshot()).to.contain({ uid: uid2 });
     });
 
@@ -492,6 +500,10 @@ browserDescribe('WebDriver persistence test', (driver, browser) => {
       // And make sure it was updated in main window
       await driver.selectMainWindow({ noWait: true });
       await driver.pause(700);
+      await driver.webDriver.wait(
+        async () => (await driver.getUserSnapshot())?.uid === cred.user.uid,
+        5000
+      );
       expect((await driver.getUserSnapshot()).uid).to.eq(cred.user.uid);
     });
 
@@ -520,6 +532,10 @@ browserDescribe('WebDriver persistence test', (driver, browser) => {
       expect(await driver.getUserSnapshot()).to.be.null;
       await driver.selectMainWindow({ noWait: true });
       await driver.pause(500);
+      await driver.webDriver.wait(
+        async () => (await driver.getUserSnapshot()) === null,
+        5000
+      );
       expect(await driver.getUserSnapshot()).to.be.null;
 
       const cred2: UserCredential = await driver.call(
@@ -529,6 +545,10 @@ browserDescribe('WebDriver persistence test', (driver, browser) => {
 
       await driver.selectPopupWindow();
       await driver.pause(500);
+      await driver.webDriver.wait(
+        async () => (await driver.getUserSnapshot())?.uid === uid2,
+        5000
+      );
       expect(await driver.getUserSnapshot()).to.contain({ uid: uid2 });
     });
   });
