@@ -24,7 +24,7 @@ export interface CrashlyticsOptions {
 }
 
 // @public
-export function CrashlyticsRoutes({ firebaseApp, router, destroyRef, crashlyticsOptions }: {
+export function crashlyticsRoutes({ firebaseApp, router, destroyRef, crashlyticsOptions }: {
     firebaseApp: FirebaseApp;
     router: Router;
     destroyRef: DestroyRef;
