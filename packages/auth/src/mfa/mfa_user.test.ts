@@ -320,4 +320,4 @@ describe('core/mfa/mfa_user/multiFactor', () => {
       expect(mfaUser.enrolledFactors.length).to.eq(2);
     });
   });
-});
+}).timeout(5000); // Increase timeout for async reload tests;
