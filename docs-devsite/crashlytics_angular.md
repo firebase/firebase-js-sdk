@@ -15,7 +15,7 @@ https://github.com/firebase/firebase-js-sdk
 
 |  Function | Description |
 |  --- | --- |
-|  [setupNavigationTracking({ firebaseApp, router, destroyRef, crashlyticsOptions })](./crashlytics_angular.md#setupnavigationtracking_371beb1) | Configures automatic Angular router navigation tracking for Firebase Crashlytics.<!-- -->This function subscribes to router navigation events, keeps the Crashlytics route path attribute updated, and logs view boundary telemetry automatically. |
+|  [CrashlyticsRoutes({ firebaseApp, router, destroyRef, crashlyticsOptions })](./crashlytics_angular.md#crashlyticsroutes_371beb1) | Configures automatic Angular router navigation tracking for Firebase Crashlytics.<!-- -->This function subscribes to router navigation events, keeps the Crashlytics route path attribute updated, and logs view boundary telemetry automatically. |
 
 ## Classes
 
@@ -32,7 +32,7 @@ https://github.com/firebase/firebase-js-sdk
 
 ## function({ firebaseApp, router, destroyRef, crashlyticsOptions }, ...)
 
-### setupNavigationTracking({ firebaseApp, router, destroyRef, crashlyticsOptions }) {:#setupnavigationtracking_371beb1}
+### CrashlyticsRoutes({ firebaseApp, router, destroyRef, crashlyticsOptions }) {:#crashlyticsroutes_371beb1}
 
 Configures automatic Angular router navigation tracking for Firebase Crashlytics.
 
@@ -41,7 +41,7 @@ This function subscribes to router navigation events, keeps the Crashlytics rout
 <b>Signature:</b>
 
 ```typescript
-export declare function setupNavigationTracking({ firebaseApp, router, destroyRef, crashlyticsOptions }: {
+export declare function CrashlyticsRoutes({ firebaseApp, router, destroyRef, crashlyticsOptions }: {
     firebaseApp: FirebaseApp;
     router: Router;
     destroyRef: DestroyRef;
@@ -65,7 +65,7 @@ void
 ```typescript
 import { ApplicationConfig, ErrorHandler, inject, DestroyRef } from '@angular/core';
 import { Router } from '@angular/router';
-import { FirebaseErrorHandler, setupNavigationTracking } from '@firebase/crashlytics/angular';
+import { FirebaseErrorHandler, CrashlyticsRoutes } from '@firebase/crashlytics/angular';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -75,7 +75,7 @@ export const appConfig: ApplicationConfig = {
     },
     provideEnvironmentInitializer(() => {
       inject(ErrorHandler);
-      setupNavigationTracking({
+      CrashlyticsRoutes({
         firebaseApp,
         router: inject(Router),
         destroyRef: inject(DestroyRef)

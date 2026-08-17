@@ -154,7 +154,7 @@ export class FirebaseErrorHandler implements ErrorHandler {
  * ```typescript
  * import { ApplicationConfig, ErrorHandler, inject, DestroyRef } from '@angular/core';
  * import { Router } from '@angular/router';
- * import { FirebaseErrorHandler, setupNavigationTracking } from '@firebase/crashlytics/angular';
+ * import { FirebaseErrorHandler, CrashlyticsRoutes } from '@firebase/crashlytics/angular';
  *
  * export const appConfig: ApplicationConfig = {
  *   providers: [
@@ -164,7 +164,7 @@ export class FirebaseErrorHandler implements ErrorHandler {
  *     },
  *     provideEnvironmentInitializer(() => {
  *       inject(ErrorHandler);
- *       setupNavigationTracking({
+ *       CrashlyticsRoutes({
  *         firebaseApp,
  *         router: inject(Router),
  *         destroyRef: inject(DestroyRef)
@@ -181,7 +181,7 @@ export class FirebaseErrorHandler implements ErrorHandler {
  *
  * @public
  */
-export function setupNavigationTracking({
+export function CrashlyticsRoutes({
   firebaseApp,
   router,
   destroyRef,

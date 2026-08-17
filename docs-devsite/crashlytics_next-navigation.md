@@ -15,7 +15,7 @@ https://github.com/firebase/firebase-js-sdk
 
 |  Function | Description |
 |  --- | --- |
-|  [CrashlyticsNavigationTracker({ firebaseApp, crashlyticsOptions })](./crashlytics_next-navigation.md#crashlyticsnavigationtracker_c141224) | A client-side routing component for Next.js App Router that automatically captures navigation events and updates route attributes.<!-- -->This component should be mounted inside a root Client Component layout. |
+|  [CrashlyticsRoutes({ firebaseApp, crashlyticsOptions })](./crashlytics_next-navigation.md#crashlyticsroutes_c141224) | A client-side routing component for Next.js App Router that automatically captures navigation events and updates route attributes.<!-- -->This component should be mounted inside a root Client Component layout. |
 
 ## Interfaces
 
@@ -26,7 +26,7 @@ https://github.com/firebase/firebase-js-sdk
 
 ## function({ firebaseApp, crashlyticsOptions }, ...)
 
-### CrashlyticsNavigationTracker({ firebaseApp, crashlyticsOptions }) {:#crashlyticsnavigationtracker_c141224}
+### CrashlyticsRoutes({ firebaseApp, crashlyticsOptions }) {:#crashlyticsroutes_c141224}
 
 A client-side routing component for Next.js App Router that automatically captures navigation events and updates route attributes.
 
@@ -35,7 +35,7 @@ This component should be mounted inside a root Client Component layout.
 <b>Signature:</b>
 
 ```typescript
-export declare function CrashlyticsNavigationTracker({ firebaseApp, crashlyticsOptions }: {
+export declare function CrashlyticsRoutes({ firebaseApp, crashlyticsOptions }: {
     firebaseApp: FirebaseApp;
     crashlyticsOptions?: CrashlyticsOptions;
 }): null;
@@ -56,13 +56,13 @@ null
 
 ```tsx
 // app/layout.tsx
-import { CrashlyticsNavigationTracker } from '@firebase/crashlytics/next-navigation';
+import { CrashlyticsRoutes } from '@firebase/crashlytics/next-navigation';
 
 export default function RootLayout({ children }) {
   return (
     <html>
       <body>
-        <CrashlyticsNavigationTracker firebaseApp={app} />
+        <CrashlyticsRoutes firebaseApp={app} />
         {children}
       </body>
     </html>
