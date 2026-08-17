@@ -83,13 +83,13 @@ export function getParameterizedRoute(
  * @example
  * ```tsx
  * // app/layout.tsx
- * import { CrashlyticsNavigationTracker } from '@firebase/crashlytics/next-navigation';
+ * import { CrashlyticsRoutes } from '@firebase/crashlytics/next-navigation';
  *
  * export default function RootLayout({ children }) {
  *   return (
  *     <html>
  *       <body>
- *         <CrashlyticsNavigationTracker firebaseApp={app} />
+ *         <CrashlyticsRoutes firebaseApp={app} />
  *         {children}
  *       </body>
  *     </html>
@@ -99,7 +99,7 @@ export function getParameterizedRoute(
  *
  * @public
  */
-export function CrashlyticsNavigationTracker({
+export function CrashlyticsRoutes({
   firebaseApp,
   crashlyticsOptions
 }: {

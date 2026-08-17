@@ -13,18 +13,18 @@ export interface Crashlytics {
 }
 
 // @public
-export function CrashlyticsNavigationTracker({ firebaseApp, crashlyticsOptions }: {
-    firebaseApp: FirebaseApp;
-    crashlyticsOptions?: CrashlyticsOptions;
-}): null;
-
-// @public
 export interface CrashlyticsOptions {
     appVersion?: string;
     customAttributes?: AnyValueMap;
     endpointUrl?: string;
     region?: string;
 }
+
+// @public
+export function CrashlyticsRoutes({ firebaseApp, crashlyticsOptions }: {
+    firebaseApp: FirebaseApp;
+    crashlyticsOptions?: CrashlyticsOptions;
+}): null;
 
 
 // (No @packageDocumentation comment for this package)

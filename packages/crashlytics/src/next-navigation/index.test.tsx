@@ -22,7 +22,7 @@ import sinon, { restore, stub } from 'sinon';
 import * as crashlytics from '../api';
 import { FirebaseApp } from '@firebase/app';
 import { Crashlytics } from '../public-types';
-import { CrashlyticsNavigationTracker, getParameterizedRoute } from '.';
+import { CrashlyticsRoutes, getParameterizedRoute } from '.';
 import React from 'react';
 import { render } from '@testing-library/react';
 import { LOG_ATTR_KEY, AttributesStore } from '../attributes-store';
@@ -81,7 +81,7 @@ describe('getParameterizedRoute', () => {
   });
 });
 
-describe('CrashlyticsNavigationTracker', () => {
+describe('CrashlyticsRoutes', () => {
   let getCrashlyticsStub: sinon.SinonStub;
   let fakeApp: FirebaseApp;
   let fakeAttributesStore: AttributesStore;
@@ -115,7 +115,7 @@ describe('CrashlyticsNavigationTracker', () => {
   it('should register routePath in attributesStore on initial mount and clear registration on unmount', () => {
     const { unmount } = render(
       <PathnameContext.Provider value="/initial-path">
-        <CrashlyticsNavigationTracker firebaseApp={fakeApp} />
+        <CrashlyticsRoutes firebaseApp={fakeApp} />
       </PathnameContext.Provider>
     );
 
@@ -134,7 +134,7 @@ describe('CrashlyticsNavigationTracker', () => {
 
     render(
       <PathnameContext.Provider value="/initial-path">
-        <CrashlyticsNavigationTracker firebaseApp={fakeApp} />
+        <CrashlyticsRoutes firebaseApp={fakeApp} />
       </PathnameContext.Provider>
     );
 
@@ -148,7 +148,7 @@ describe('CrashlyticsNavigationTracker', () => {
     const { rerender } = render(
       <PathnameContext.Provider value="/users/123">
         <PathParamsContext.Provider value={{ id: '123' }}>
-          <CrashlyticsNavigationTracker firebaseApp={fakeApp} />
+          <CrashlyticsRoutes firebaseApp={fakeApp} />
         </PathParamsContext.Provider>
       </PathnameContext.Provider>
     );
@@ -159,7 +159,7 @@ describe('CrashlyticsNavigationTracker', () => {
     rerender(
       <PathnameContext.Provider value="/users/456">
         <PathParamsContext.Provider value={{ id: '456' }}>
-          <CrashlyticsNavigationTracker firebaseApp={fakeApp} />
+          <CrashlyticsRoutes firebaseApp={fakeApp} />
         </PathParamsContext.Provider>
       </PathnameContext.Provider>
     );
@@ -176,7 +176,7 @@ describe('CrashlyticsNavigationTracker', () => {
     const { rerender } = render(
       <PathnameContext.Provider value="/users/123">
         <PathParamsContext.Provider value={params}>
-          <CrashlyticsNavigationTracker firebaseApp={fakeApp} />
+          <CrashlyticsRoutes firebaseApp={fakeApp} />
         </PathParamsContext.Provider>
       </PathnameContext.Provider>
     );
@@ -186,7 +186,7 @@ describe('CrashlyticsNavigationTracker', () => {
     rerender(
       <PathnameContext.Provider value="/users/123">
         <PathParamsContext.Provider value={params}>
-          <CrashlyticsNavigationTracker firebaseApp={fakeApp} />
+          <CrashlyticsRoutes firebaseApp={fakeApp} />
         </PathParamsContext.Provider>
       </PathnameContext.Provider>
     );
@@ -198,7 +198,7 @@ describe('CrashlyticsNavigationTracker', () => {
     const { rerender } = render(
       <PathnameContext.Provider value="/users/123">
         <PathParamsContext.Provider value={{ id: '123' }}>
-          <CrashlyticsNavigationTracker firebaseApp={fakeApp} />
+          <CrashlyticsRoutes firebaseApp={fakeApp} />
         </PathParamsContext.Provider>
       </PathnameContext.Provider>
     );
@@ -206,7 +206,7 @@ describe('CrashlyticsNavigationTracker', () => {
     rerender(
       <PathnameContext.Provider value="/posts/456">
         <PathParamsContext.Provider value={{ postId: '456' }}>
-          <CrashlyticsNavigationTracker firebaseApp={fakeApp} />
+          <CrashlyticsRoutes firebaseApp={fakeApp} />
         </PathParamsContext.Provider>
       </PathnameContext.Provider>
     );
@@ -219,7 +219,7 @@ describe('CrashlyticsNavigationTracker', () => {
     const { rerender } = render(
       <PathnameContext.Provider value="/users/123">
         <PathParamsContext.Provider value={{ id: '123' }}>
-          <CrashlyticsNavigationTracker firebaseApp={fakeApp} />
+          <CrashlyticsRoutes firebaseApp={fakeApp} />
         </PathParamsContext.Provider>
       </PathnameContext.Provider>
     );
@@ -232,7 +232,7 @@ describe('CrashlyticsNavigationTracker', () => {
     rerender(
       <PathnameContext.Provider value="/users/456">
         <PathParamsContext.Provider value={{ id: '456' }}>
-          <CrashlyticsNavigationTracker firebaseApp={fakeApp} />
+          <CrashlyticsRoutes firebaseApp={fakeApp} />
         </PathParamsContext.Provider>
       </PathnameContext.Provider>
     );
