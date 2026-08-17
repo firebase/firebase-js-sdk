@@ -182,25 +182,45 @@ describe('popup_redirect/CompatPopupRedirectResolver', () => {
 });
 
 class FakeResolver implements exp.PopupRedirectResolverInternal {
-  _completeRedirectFn = async (): Promise<null> => null;
-  _overrideRedirectResult = (): void => {};
+  _completeRedirectFn = async (
+    _auth: exp.Auth,
+    _resolver: exp.PopupRedirectResolver,
+    _bypassAuthState: boolean
+  ): Promise<null> => null;
+  _overrideRedirectResult = (
+    _auth: exp.AuthInternal,
+    _resultGetter: () => Promise<exp.UserCredentialInternal | null>
+  ): void => {};
   _redirectPersistence = exp.inMemoryPersistence;
   _shouldInitProactively = true;
 
-  _initialize(): Promise<exp.EventManager> {
+  _initialize(_auth: exp.AuthInternal): Promise<exp.EventManager> {
     throw new Error('Method not implemented.');
   }
-  _openPopup(): Promise<exp.AuthPopup> {
+  _openPopup(
+    _auth: exp.AuthInternal,
+    _provider: exp.AuthProvider,
+    _authType: exp.AuthEventType,
+    _eventId?: string
+  ): Promise<exp.AuthPopup> {
     throw new Error('Method not implemented.');
   }
-  _openRedirect(): Promise<void> {
+  _openRedirect(
+    _auth: exp.AuthInternal,
+    _provider: exp.AuthProvider,
+    _authType: exp.AuthEventType,
+    _eventId?: string
+  ): Promise<void> {
     throw new Error('Method not implemented.');
   }
-  _isIframeWebStorageSupported(): void {
+  _isIframeWebStorageSupported(
+    _auth: exp.AuthInternal,
+    _cb: (support: boolean) => unknown
+  ): void {
     throw new Error('Method not implemented.');
   }
 
-  _originValidation(): Promise<void> {
+  _originValidation(_auth: exp.Auth): Promise<void> {
     throw new Error('Method not implemented.');
   }
 }

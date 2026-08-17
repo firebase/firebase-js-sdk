@@ -42,6 +42,6 @@
     "@types/prettier": "2.7.3",
     "@types/tmp": "0.2.6",
     "@types/yargs": "17.0.33",
-    "mocha": "9.2.2"
+    "mocha": "11.8.0"
   }
 }
