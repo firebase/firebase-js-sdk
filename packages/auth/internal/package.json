@@ -7,6 +7,6 @@
   "typings": "../dist/esm/internal/index.d.ts",
   "private": true,
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=24.12.0"
   }
 }
