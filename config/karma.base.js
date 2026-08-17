@@ -101,9 +101,9 @@ const config = {
   // disable watcher
   autoWatch: false,
 
-  // Doing 90 seconds to allow for the 20 second firestore tests
-  browserNoActivityTimeout: 90000,
-  browserDisconnectTimeout: 90000,
+  // Doing 65 seconds to allow for the 20 second firestore tests
+  browserNoActivityTimeout: 65000,
+  browserDisconnectTimeout: 65000,
 
   // Preprocess matching files before serving them to the browser.
   // Available preprocessors:
