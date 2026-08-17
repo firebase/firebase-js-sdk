@@ -55,11 +55,9 @@
   },
   "devDependencies": {
     "@firebase/app-compat": "0.5.16",
-    "@types/eslint": "7.29.0",
     "rollup": "4.62.2",
     "rollup-plugin-typescript2": "0.37.0",
     "@rollup/plugin-node-resolve": "16.0.0",
-    "ts-node": "10.9.2",
     "typescript": "5.5.4"
   },
   "license": "Apache-2.0",

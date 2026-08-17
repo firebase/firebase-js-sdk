@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as types from '@firebase/firestore-types';
+import type * as types from '@firebase/firestore-types';
 
 declare module '@firebase/app-compat' {
   interface FirebaseNamespace {

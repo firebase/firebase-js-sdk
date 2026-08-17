@@ -153,7 +153,6 @@
     "@firebase/auth": "1.13.4",
     "@rollup/plugin-alias": "5.1.1",
     "@rollup/plugin-json": "6.1.0",
-    "@types/eslint": "7.29.0",
     "chai-exclude": "2.1.1",
     "json-stable-stringify": "1.2.1",
     "protobufjs": "7.6.5",
@@ -164,7 +163,6 @@
     "rollup-plugin-sourcemaps": "0.6.3",
     "@rollup/plugin-terser": "0.4.4",
     "rollup-plugin-typescript2": "0.37.0",
-    "ts-node": "10.9.2",
     "typescript": "5.5.4"
   },
   "repository": {
