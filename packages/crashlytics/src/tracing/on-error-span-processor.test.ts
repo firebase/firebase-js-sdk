@@ -17,8 +17,13 @@
 
 import { expect } from 'chai';
 import { ExportResult, ExportResultCode } from '@opentelemetry/core';
-import { SpanExporter, ReadableSpan } from '@opentelemetry/sdk-trace-base';
+import {
+  SpanExporter,
+  ReadableSpan,
+  Span
+} from '@opentelemetry/sdk-trace-base';
 import { resourceFromAttributes } from '@opentelemetry/resources';
+import { context } from '@opentelemetry/api';
 import { OnErrorSpanProcessor } from './on-error-span-processor';
 import { TelemetryStore } from '../telemetry-store';
 
@@ -39,7 +44,7 @@ class MockSpanExporter implements SpanExporter {
   }
 }
 
-function createMockSpan(name: string, traceId: string): ReadableSpan {
+function createMockSpan(name: string, traceId: string): Span {
   return {
     name,
     resource: resourceFromAttributes({}),
@@ -47,15 +52,15 @@ function createMockSpan(name: string, traceId: string): ReadableSpan {
       traceId,
       traceFlags: 1
     })
-  } as unknown as ReadableSpan;
+  } as unknown as Span;
 }
 
 describe('OnErrorSpanProcessor', () => {
   let mockExporter: MockSpanExporter;
   let telemetryStore: TelemetryStore;
   let processor: OnErrorSpanProcessor;
-  let mockSpan1: ReadableSpan;
-  let mockSpan2: ReadableSpan;
+  let mockSpan1: Span;
+  let mockSpan2: Span;
 
   beforeEach(() => {
     mockExporter = new MockSpanExporter();
@@ -66,31 +71,30 @@ describe('OnErrorSpanProcessor', () => {
   });
 
   it('should buffer ended spans and not export them until error occurs with flush', async () => {
-    processor.onStart(mockSpan1);
+    processor.onStart(mockSpan1, context.active());
     processor.onEnd(mockSpan1);
-    processor.onStart(mockSpan2);
+    processor.onStart(mockSpan2, context.active());
     processor.onEnd(mockSpan2);
 
     await processor.forceFlush();
-
     expect(mockExporter.exportedSpans).to.be.empty;
 
     processor.onErrorOccurred();
-    await processor.forceFlush();
+    expect(mockExporter.exportedSpans).to.be.empty;
 
+    await processor.forceFlush();
     expect(mockExporter.exportedSpans).to.deep.equal([mockSpan1, mockSpan2]);
   });
 
   it('should forward shutdown calls to exporter and clear buffer', async () => {
-    processor.onStart(mockSpan1);
+    processor.onStart(mockSpan1, context.active());
     processor.onEnd(mockSpan1);
 
     await processor.shutdown();
-
     expect(mockExporter.shutdownCount).to.equal(1);
 
     processor.onErrorOccurred();
-
+    await processor.forceFlush();
     expect(mockExporter.exportedSpans).to.be.empty;
   });
 
@@ -101,7 +105,7 @@ describe('OnErrorSpanProcessor', () => {
 
     it('should buffer and export subsequent emitted spans with lifecycle cleanup', async () => {
       // First error cycle
-      processor.onStart(mockSpan1);
+      processor.onStart(mockSpan1, context.active());
       processor.onEnd(mockSpan1);
       processor.onErrorOccurred();
       simulateSDKErrorLifecycleCleanup();
@@ -109,7 +113,7 @@ describe('OnErrorSpanProcessor', () => {
       expect(mockExporter.exportedSpans).to.deep.equal([mockSpan1]);
 
       // Second error cycle
-      processor.onStart(mockSpan2);
+      processor.onStart(mockSpan2, context.active());
       processor.onEnd(mockSpan2);
       processor.onErrorOccurred();
       simulateSDKErrorLifecycleCleanup();

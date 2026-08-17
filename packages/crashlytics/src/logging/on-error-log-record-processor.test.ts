@@ -80,12 +80,12 @@ describe('OnErrorLogRecordProcessor', () => {
     processor.onEmit(mockLog1);
     processor.onEmit(mockLog2);
     await processor.forceFlush();
-
     expect(mockExporter.exportedLogs).to.be.empty;
 
     processor.onErrorOccurred();
-    await processor.forceFlush();
+    expect(mockExporter.exportedLogs).to.be.empty;
 
+    await processor.forceFlush();
     expect(mockExporter.exportedLogs).to.deep.equal([mockLog1, mockLog2]);
   });
 
@@ -95,6 +95,7 @@ describe('OnErrorLogRecordProcessor', () => {
     expect(mockExporter.shutdownCount).to.equal(1);
 
     processor.onErrorOccurred();
+    await processor.forceFlush();
     expect(mockExporter.exportedLogs).to.be.empty;
   });
 

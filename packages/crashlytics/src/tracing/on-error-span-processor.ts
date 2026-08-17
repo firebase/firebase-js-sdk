@@ -14,13 +14,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+import { Context } from '@opentelemetry/api';
 import {
   BatchSpanProcessor,
   SpanExporter,
-  ReadableSpan
+  ReadableSpan,
+  Span
 } from '@opentelemetry/sdk-trace-base';
 import { TelemetryStore } from '../telemetry-store';
+
 /**
  * A BatchSpanProcessor that buffers all spans in memory until an error occurs.
  * Once an error occurs, it releases all buffered spans to the exporter batch processor queue.
@@ -33,7 +35,7 @@ export class OnErrorSpanProcessor extends BatchSpanProcessor {
     this._store = store;
   }
 
-  override onStart(span: ReadableSpan): void {
+  override onStart(span: Span, _parentContext: Context): void {
     this._store.add(span);
   }
 
