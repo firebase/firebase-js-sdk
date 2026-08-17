@@ -31,7 +31,7 @@ import {
 import { TestBed } from '@angular/core/testing';
 import {
   FirebaseErrorHandler,
-  crashlyticsRoutes,
+  setupCrashlyticsRoutes,
   getSafeRoutePath,
   getRawPath
 } from '.';
@@ -181,7 +181,7 @@ describe('getRawPath', () => {
   });
 });
 
-describe('crashlyticsRoutes', () => {
+describe('setupCrashlyticsRoutes', () => {
   let app: FirebaseApp;
   let fakeCrashlytics: Crashlytics;
   let attributesStore: AttributesStore;
@@ -226,7 +226,7 @@ describe('crashlyticsRoutes', () => {
 
   it('should register routePath in attributesStore on initialization and clear registration on destruction', async () => {
     await router.navigate(['/home']);
-    crashlyticsRoutes({ firebaseApp: app, router, destroyRef });
+    setupCrashlyticsRoutes({ firebaseApp: app, router, destroyRef });
 
     const routePath =
       attributesStore.getLogAttributes()[LOG_ATTR_KEY.ROUTE_PATH];
@@ -243,7 +243,7 @@ describe('crashlyticsRoutes', () => {
     await router.navigate(['/home']);
     const logViewBoundaryStub = stub(crashlytics, 'logViewBoundary');
 
-    crashlyticsRoutes({ firebaseApp: app, router, destroyRef });
+    setupCrashlyticsRoutes({ firebaseApp: app, router, destroyRef });
 
     expect(logViewBoundaryStub).to.have.been.calledWith(
       fakeCrashlytics,
@@ -254,7 +254,7 @@ describe('crashlyticsRoutes', () => {
   it('should not invoke logViewBoundary on initialization if the router is not set up yet', async () => {
     const logViewBoundaryStub = stub(crashlytics, 'logViewBoundary');
 
-    crashlyticsRoutes({ firebaseApp: app, router, destroyRef });
+    setupCrashlyticsRoutes({ firebaseApp: app, router, destroyRef });
 
     expect(logViewBoundaryStub).to.not.have.been.called;
 
@@ -268,7 +268,7 @@ describe('crashlyticsRoutes', () => {
 
   it('should invoke logViewBoundary with new route pattern if raw path changes', async () => {
     await router.navigate(['/users/123']);
-    crashlyticsRoutes({ firebaseApp: app, router, destroyRef });
+    setupCrashlyticsRoutes({ firebaseApp: app, router, destroyRef });
 
     const logViewBoundaryStub = stub(crashlytics, 'logViewBoundary');
 
@@ -281,7 +281,7 @@ describe('crashlyticsRoutes', () => {
 
   it('should not invoke logViewBoundary if raw path remains the same', async () => {
     await router.navigate(['/home']);
-    crashlyticsRoutes({ firebaseApp: app, router, destroyRef });
+    setupCrashlyticsRoutes({ firebaseApp: app, router, destroyRef });
 
     const logViewBoundaryStub = stub(crashlytics, 'logViewBoundary');
 
@@ -292,7 +292,7 @@ describe('crashlyticsRoutes', () => {
 
   it('should set routePath in attributesStore with new route pattern if raw path changes', async () => {
     await router.navigate(['/home']);
-    crashlyticsRoutes({ firebaseApp: app, router, destroyRef });
+    setupCrashlyticsRoutes({ firebaseApp: app, router, destroyRef });
 
     await router.navigate(['/about']);
 
@@ -305,7 +305,7 @@ describe('crashlyticsRoutes', () => {
     const getCrashlyticsStub = crashlytics.getCrashlytics as sinon.SinonStub;
     const crashlyticsOptions = { appVersion: '2.0.0' };
 
-    crashlyticsRoutes({
+    setupCrashlyticsRoutes({
       firebaseApp: app,
       router,
       destroyRef,

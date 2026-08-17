@@ -24,19 +24,19 @@ export interface CrashlyticsOptions {
 }
 
 // @public
-export function crashlyticsRoutes({ firebaseApp, router, destroyRef, crashlyticsOptions }: {
-    firebaseApp: FirebaseApp;
-    router: Router;
-    destroyRef: DestroyRef;
-    crashlyticsOptions?: CrashlyticsOptions;
-}): void;
-
-// @public
 export class FirebaseErrorHandler implements ErrorHandler {
     constructor(app: FirebaseApp, crashlyticsOptions?: CrashlyticsOptions);
     // (undocumented)
     handleError(error: unknown): void;
     }
+
+// @public
+export function setupCrashlyticsRoutes({ firebaseApp, router, destroyRef, crashlyticsOptions }: {
+    firebaseApp: FirebaseApp;
+    router: Router;
+    destroyRef: DestroyRef;
+    crashlyticsOptions?: CrashlyticsOptions;
+}): void;
 
 
 // (No @packageDocumentation comment for this package)
