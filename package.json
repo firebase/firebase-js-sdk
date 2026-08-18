@@ -86,7 +86,6 @@
     "@typescript-eslint/eslint-plugin": "7.18.0",
     "@typescript-eslint/eslint-plugin-tslint": "7.0.2",
     "@typescript-eslint/parser": "7.18.0",
-    "api-documenter-me": "0.1.1",
     "babel-loader": "10.1.1",
     "babel-plugin-istanbul": "8.0.0",
     "chai": "4.5.0",
