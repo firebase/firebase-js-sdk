@@ -10,7 +10,7 @@
   "license": "Apache-2.0",
   "scripts": {
     "build": "tsc && gulp copy-resources",
-    "test": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha src/**/*.test.ts --config ../../config/mocharc.node.js"
+    "test": "nyc --reporter lcovonly -- node test/run.js"
   },
   "bin": {
     "api-documenter-fire": "dist/start.js"
@@ -36,5 +36,6 @@
   },
   "engines": {
     "node": ">=20.0.0"
-  }
+  },
+  "type": "commonjs"
 }

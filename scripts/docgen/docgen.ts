@@ -231,8 +231,7 @@ async function generateDocs(
     );
 
     if (skipBuild) {
-      // FIXME: hardcoding a single package while developing
-      await spawn('yarn', ['--cwd', 'firebase/messaging', 'api-report'], {
+      await spawn('yarn', ['api-report'], {
         stdio: 'inherit'
       });
     } else {
@@ -278,20 +277,20 @@ async function generateDocs(
     .map(path => join(path, 'temp'))
     .filter(path => fs.existsSync(path));
   for (const dir of apiJsonDirectories) {
-    const paths = await new Promise<string[]>(resolve =>
+    const apiJsonPaths = await new Promise<string[]>(resolve =>
       glob(`${dir}/*.api.json`, (err, paths) => {
         if (err) throw err;
         resolve(paths);
       })
     );
 
-    if (paths.length === 0) {
+    if (apiJsonPaths.length === 0) {
       throw Error(`*.api.json file is missing in ${dir}`);
     }
 
-    for (const path of paths) {
-      const fileName = path.split('/').pop();
-      fs.copyFileSync(path, `${tmpDir}/${fileName}`);
+    for (const apiJsonPath of apiJsonPaths) {
+      const fileName = apiJsonPath.split('/').pop();
+      fs.copyFileSync(apiJsonPath, `${tmpDir}/${fileName}`);
     }
   }
 
