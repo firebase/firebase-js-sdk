@@ -21,6 +21,32 @@ import { SeverityNumber } from '@opentelemetry/api-logs';
 import { generateUuid } from './helpers';
 
 /**
+ * Represents the type of a telemetry event.
+ */
+enum EventType {
+  RootSpan,
+  RootLog,
+  ChildSpan,
+  ChildLog
+}
+
+/**
+ * Represents the identifier for a telemetry event buffer, which can be a trace ID or a generated UUID.
+ */
+type EventId = string;
+
+/**
+ * Represents the type of telemetry data buffered in memory.
+ * Can be a TraceEvents collection containing spans and logs for a trace, or a standalone SdkLogRecord.
+ */
+type EventData = TraceEvents | SdkLogRecord;
+
+/**
+ * Represents the unique identifier for a span, typically a 16-character hexadecimal string.
+ */
+type SpanId = string;
+
+/**
  * Checks if a telemetry event is a Span.
  *
  * @param event - The telemetry event to check.
@@ -97,32 +123,6 @@ class TraceEvents {
       : this.logs.has(event);
   }
 }
-
-/**
- * Represents the type of a telemetry event.
- */
-enum EventType {
-  RootSpan,
-  RootLog,
-  ChildSpan,
-  ChildLog
-}
-
-/**
- * Represents the unique identifier for a span, typically a 16-character hexadecimal string.
- */
-type SpanId = string;
-
-/**
- * Represents the identifier for a telemetry event buffer, which can be a trace ID or a generated UUID.
- */
-type EventId = string;
-
-/**
- * Represents the type of telemetry data buffered in memory.
- * Can be a TraceEvents collection containing spans and logs for a trace, or a standalone SdkLogRecord.
- */
-type EventData = TraceEvents | SdkLogRecord;
 
 /**
  * A shared storage engine that buffers telemetry logs and spans in memory,
