@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import { FirebaseApp } from '@firebase/app';
+
 import { getDebugState } from './state';
 import { readOrCreateDebugTokenFromStorage } from './storage';
 import { Deferred, getGlobal } from '@firebase/util';
@@ -44,7 +46,7 @@ export async function getDebugToken(): Promise<string> {
   }
 }
 
-export function initializeDebugMode(): void {
+export function initializeDebugMode(app?: FirebaseApp): void {
   const globals = getGlobal();
   const debugState = getDebugState();
   // Set to true if this function has been called, whether or not
@@ -65,6 +67,6 @@ export function initializeDebugMode(): void {
   if (typeof globals.FIREBASE_APPCHECK_DEBUG_TOKEN === 'string') {
     deferredToken.resolve(globals.FIREBASE_APPCHECK_DEBUG_TOKEN);
   } else {
-    deferredToken.resolve(readOrCreateDebugTokenFromStorage());
+    deferredToken.resolve(readOrCreateDebugTokenFromStorage(app));
   }
 }

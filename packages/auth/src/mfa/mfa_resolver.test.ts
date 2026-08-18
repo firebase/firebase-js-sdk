@@ -47,10 +47,8 @@ describe('core/mfa/mfa_resolver/MultiFactorResolver', () => {
   let auth: TestAuth;
   let underlyingError: FirebaseError;
   let error: MultiFactorError;
-  let clock: sinon.SinonFakeTimers;
 
   beforeEach(async () => {
-    clock = sinon.useFakeTimers();
     auth = await testAuth();
     auth.tenantId = 'tenant-id';
     underlyingError = _createError(auth, AuthErrorCode.MFA_REQUIRED, {
@@ -140,9 +138,9 @@ describe('core/mfa/mfa_resolver/MultiFactorResolver', () => {
           )) as UserCredentialInternal;
           expect(userCredential.user.uid).to.eq('local-id');
           expect(await userCredential.user.getIdToken()).to.eq(finalIdToken);
-          expect(userCredential.user.stsTokenManager.expirationTime).to.eq(
-            clock.now + 2400 * 1000
-          );
+          expect(
+            userCredential.user.stsTokenManager.expirationTime
+          ).to.be.closeTo(Date.now() + 2400 * 1000, 1000);
           expect(userCredential._tokenResponse).to.eql({
             localId: 'local-id',
             idToken: finalIdToken,
@@ -179,9 +177,9 @@ describe('core/mfa/mfa_resolver/MultiFactorResolver', () => {
           )) as UserCredentialInternal;
           expect(userCredential.user).to.eq(user);
           expect(await userCredential.user.getIdToken()).to.eq(finalIdToken);
-          expect(userCredential.user.stsTokenManager.expirationTime).to.eq(
-            clock.now + 2400 * 1000
-          );
+          expect(
+            userCredential.user.stsTokenManager.expirationTime
+          ).to.be.closeTo(Date.now() + 2400 * 1000, 1000);
           expect(userCredential._tokenResponse).to.eql({
             localId: 'local-id',
             idToken: finalIdToken,

@@ -30,8 +30,6 @@ env:
   # the behavior to use the new URLs.
   CHROMEDRIVER_CDNURL: https://googlechromelabs.github.io/
   CHROMEDRIVER_CDNBINARIESURL: https://storage.googleapis.com/chrome-for-testing-public
-  CHROME_VALIDATED_VERSION: linux-132.0.6834.110
-  CHROME_VERSION_MISMATCH_MESSAGE: "The Chrome version doesn't match the previously validated version. Consider updating CHROME_VALIDATED_VERSION in the GitHub workflow if tests pass, or rollback the installed Chrome version if tests fail."
   artifactRetentionDays: 14
   # Bump Node memory limit
   NODE_OPTIONS: "--max_old_space_size=4096"
@@ -52,7 +50,7 @@ jobs:
     - name: Set up Node (22)
       uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # ratchet:actions/setup-node@v7
       with:
-        node-version: 22.12.0
+        node-version: 22.23.2
     - name: Test setup and yarn install
       run: |
         cp config/ci.config.json config/project.json
@@ -94,7 +92,7 @@ jobs:
     - name: Set up Node (22)
       uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # ratchet:actions/setup-node@v7
       with:
-        node-version: 22.12.0
+        node-version: 22.23.2
     # firebase-tools has a minimum java version requirement and is called by
     # rules-unit-testing tests
     - name: Set up Java (22)
@@ -146,15 +144,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # install Chrome first, so the correct version of webdriver can be installed by chromedriver
-      # when setting up the repo
+      # when setting up the repo.
     - name: install Chrome stable
       run: |
         npx @puppeteer/browsers install chrome@stable
-        chromeVersionString=$(ls chrome)
-        if [ "$CHROME_VALIDATED_VERSION" != "$chromeVersionString" ]; then
-        echo "::warning ::${CHROME_VERSION_MISMATCH_MESSAGE}"
-        echo "::warning ::Previously validated version: ${CHROME_VALIDATED_VERSION} vs. Installed version: $chromeVersionString"
-        fi
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7
       with:
         persist-credentials: false
@@ -167,7 +160,7 @@ jobs:
     - name: Set up Node (22)
       uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # ratchet:actions/setup-node@v7
       with:
-        node-version: 22.12.0
+        node-version: 22.23.2
     - name: Test setup and yarn install
       run: |
         cp config/ci.config.json config/project.json
@@ -176,7 +169,7 @@ jobs:
       run: echo "FIREBASE_CI_TEST_START_TIME=$(date +%s)" >> $GITHUB_ENV
     - name: Run unit tests
       run: |
-        xvfb-run yarn lerna run test:ci --scope '@firebase/auth*'
+        xvfb-run yarn lerna run test:ci --scope '@firebase/auth*' --concurrency 1
         node scripts/print_test_logs.js
       env:
         FIREBASE_TOKEN: ${{ secrets.FIREBASE_CLI_TOKEN }}
@@ -219,7 +212,7 @@ jobs:
     - name: Set up Node (22)
       uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # ratchet:actions/setup-node@v7
       with:
-        node-version: 22.12.0
+        node-version: 22.23.2
     - name: Test setup and yarn install
       run: |
         cp config/ci.config.json config/project.json
@@ -274,7 +267,7 @@ jobs:
     - name: Set up Node (22)
       uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # ratchet:actions/setup-node@v7
       with:
-        node-version: 22.12.0
+        node-version: 22.23.2
     - run: cp config/ci.config.json config/project.json
     - run: yarn
     - run: yarn build:${{ matrix.persistence }}

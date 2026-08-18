@@ -287,9 +287,8 @@ export abstract class AbstractUserDataWriter {
     if (!databaseId.isEqual(expectedDatabaseId)) {
       // TODO(b/64130202): Somehow support foreign references.
       logError(
-        `Document ${key} contains a document ` +
-          `reference within a different database (` +
-          `${databaseId.projectId}/${databaseId.database}) which is not ` +
+        `A document reference to ${key} refers to a different database (` +
+          `${databaseId.projectId}/${databaseId.database}), which is not ` +
           `supported. It will be treated as a reference in the current ` +
           `database (${expectedDatabaseId.projectId}/${expectedDatabaseId.database}) ` +
           `instead.`

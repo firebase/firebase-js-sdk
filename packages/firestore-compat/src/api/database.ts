@@ -15,8 +15,11 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app-types';
-import { _FirebaseApp, FirebaseService } from '@firebase/app-types/private';
+import type { FirebaseApp } from '@firebase/app-types';
+import type {
+  _FirebaseApp,
+  FirebaseService
+} from '@firebase/app-types/private';
 import {
   LoadBundleTask,
   Bytes,
@@ -88,7 +91,7 @@ import {
   PartialWithFieldValue,
   WithFieldValue
 } from '@firebase/firestore';
-import {
+import type {
   CollectionReference as PublicCollectionReference,
   DocumentChange as PublicDocumentChange,
   DocumentChangeType as PublicDocumentChangeType,
