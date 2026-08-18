@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # RegisterOptions interface
-Options for [register()](./messaging_.md#register_795bb8a)<!-- -->. Same shape as GetTokenOptions for SW and VAPID configuration.
+Options for . Same shape as GetTokenOptions for SW and VAPID configuration.
 
 <b>Signature:</b>
 
@@ -22,12 +22,12 @@ export interface RegisterOptions
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [serviceWorkerRegistration](./messaging_sw.registeroptions.md#registeroptionsserviceworkerregistration) | ServiceWorkerRegistration | Optional service worker registration. See [GetTokenOptions.serviceWorkerRegistration](./messaging_.gettokenoptions.md#gettokenoptionsserviceworkerregistration)<!-- -->. |
-|  [vapidKey](./messaging_sw.registeroptions.md#registeroptionsvapidkey) | string | Optional VAPID key. See [GetTokenOptions.vapidKey](./messaging_.gettokenoptions.md#gettokenoptionsvapidkey)<!-- -->. |
+|  [serviceWorkerRegistration](./messaging_sw.registeroptions.md#registeroptionsserviceworkerregistration) | ServiceWorkerRegistration | Optional service worker registration. See [GetTokenOptions.serviceWorkerRegistration](./messaging_sw.gettokenoptions.md#gettokenoptionsserviceworkerregistration)<!-- -->. |
+|  [vapidKey](./messaging_sw.registeroptions.md#registeroptionsvapidkey) | string | Optional VAPID key. See [GetTokenOptions.vapidKey](./messaging_sw.gettokenoptions.md#gettokenoptionsvapidkey)<!-- -->. |
 
 ## RegisterOptions.serviceWorkerRegistration
 
-Optional service worker registration. See [GetTokenOptions.serviceWorkerRegistration](./messaging_.gettokenoptions.md#gettokenoptionsserviceworkerregistration)<!-- -->.
+Optional service worker registration. See [GetTokenOptions.serviceWorkerRegistration](./messaging_sw.gettokenoptions.md#gettokenoptionsserviceworkerregistration)<!-- -->.
 
 <b>Signature:</b>
 
@@ -37,7 +37,7 @@ serviceWorkerRegistration?: ServiceWorkerRegistration;
 
 ## RegisterOptions.vapidKey
 
-Optional VAPID key. See [GetTokenOptions.vapidKey](./messaging_.gettokenoptions.md#gettokenoptionsvapidkey)<!-- -->.
+Optional VAPID key. See [GetTokenOptions.vapidKey](./messaging_sw.gettokenoptions.md#gettokenoptionsvapidkey)<!-- -->.
 
 <b>Signature:</b>
 

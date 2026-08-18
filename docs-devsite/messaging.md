@@ -12,8 +12,245 @@ https://github.com/firebase/firebase-js-sdk
 # messaging package
 The Firebase Cloud Messaging Web SDK. This SDK does not work in a Node.js environment.
 
-|  Entry Point | Description |
+## Functions
+
+|  Function | Description |
 |  --- | --- |
-|  [/](./messaging_.md#@firebase/messaging) |  |
-|  [/sw](./messaging_sw.md#@firebase/messaging/sw) |  |
+|  <b>function(app, ...)</b> |
+|  [getMessaging(app)](./messaging.md#getmessaging_cf608e1) | Retrieves a Firebase Cloud Messaging instance. |
+|  <b>function(messaging, ...)</b> |
+|  [deleteToken(messaging)](./messaging.md#deletetoken_3fae4b1) | Deletes the registration token associated with this [Messaging](./messaging.messaging.md#messaging_interface) instance and unsubscribes the [Messaging](./messaging.messaging.md#messaging_interface) instance from the push subscription.<!-- -->If there is no legacy registration token but the client has FID-based registration metadata (from [register()](./messaging.md#register_795bb8a)<!-- -->), this deletes that registration on the server, clears local metadata, and invokes [onUnregistered()](./messaging.md#onunregistered_f8a466e) with the removed FID when successful. |
+|  [getToken(messaging, options)](./messaging.md#gettoken_b538f38) | Subscribes the [Messaging](./messaging.messaging.md#messaging_interface) instance to push notifications. Returns a Firebase Cloud Messaging registration token that can be used to send push messages to that [Messaging](./messaging.messaging.md#messaging_interface) instance.<!-- -->If notification permission isn't already granted, this method asks the user for permission. The returned promise rejects if the user does not allow the app to show notifications. |
+|  [onMessage(messaging, nextOrObserver)](./messaging.md#onmessage_b9887da) | When a push message is received and the user is currently on a page for your origin, the message is passed to the page and an <code>onMessage()</code> event is dispatched with the payload of the push message. |
+|  [onRegistered(messaging, nextOrObserver)](./messaging.md#onregistered_f8a466e) | Subscribes to an event that the app instance is registered with FCM via Firebase Installation ID (FID). Use the FID passed to the callback to upload it to your application server. When you receive an FID after calling [register()](./messaging.md#register_795bb8a)<!-- -->, instruct your backend to remove any legacy token for this instance. |
+|  [onUnregistered(messaging, nextOrObserver)](./messaging.md#onunregistered_f8a466e) | Subscribes to an event that the app instance is unregistered from FCM (FID no longer active). Use this to notify your backend to remove this FID to prevent 404 errors on send. |
+|  [register(messaging, options)](./messaging.md#register_795bb8a) | Registers the app instance with FCM using its Firebase Installation ID (FID). The FID is delivered via the [onRegistered()](./messaging.md#onregistered_f8a466e) callback, not as a return value. Call this to establish an FID-based identity; once [onRegistered()](./messaging.md#onregistered_f8a466e) provides an FID, instruct your backend to remove any legacy token previously associated with this instance. The backend send API supports FID as a target. |
+|  [unregister(messaging)](./messaging.md#unregister_3fae4b1) | Unregisters the app instance from FCM by deleting its FID-based registration. On success, triggers [onUnregistered()](./messaging.md#onunregistered_f8a466e) (if registered) with the unregistered FID. |
+|  <b>function()</b> |
+|  [isSupported()](./messaging.md#issupported) | Checks if all required APIs exist in the browser. |
+
+## Interfaces
+
+|  Interface | Description |
+|  --- | --- |
+|  [FcmOptions](./messaging.fcmoptions.md#fcmoptions_interface) | Options for features provided by the FCM SDK for Web. See [WebpushFcmOptions](https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#webpushfcmoptions)<!-- -->. |
+|  [GetTokenOptions](./messaging.gettokenoptions.md#gettokenoptions_interface) | Options for [getToken()](./messaging.md#gettoken_b538f38)<!-- -->. |
+|  [MessagePayload](./messaging.messagepayload.md#messagepayload_interface) | Message payload that contains the notification payload that is represented with [NotificationPayload](./messaging.notificationpayload.md#notificationpayload_interface) and the data payload that contains an arbitrary number of key-value pairs sent by developers through the [Send API](https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#notification)<!-- -->. |
+|  [Messaging](./messaging.messaging.md#messaging_interface) | Public interface of the Firebase Cloud Messaging SDK. |
+|  [NotificationPayload](./messaging.notificationpayload.md#notificationpayload_interface) | Display notification details. Details are sent through the [Send API](https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#notification)<!-- -->. |
+|  [RegisterOptions](./messaging.registeroptions.md#registeroptions_interface) | Options for [register()](./messaging.md#register_795bb8a)<!-- -->. Same shape as GetTokenOptions for SW and VAPID configuration. |
+
+## function(app, ...)
+
+### getMessaging(app) {:#getmessaging_cf608e1}
+
+Retrieves a Firebase Cloud Messaging instance.
+
+<b>Signature:</b>
+
+```typescript
+export declare function getMessagingInWindow(app?: FirebaseApp): Messaging;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  app | [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) |  |
+
+<b>Returns:</b>
+
+[Messaging](./messaging.messaging.md#messaging_interface)
+
+The Firebase Cloud Messaging instance associated with the provided firebase app.
+
+## function(messaging, ...)
+
+### deleteToken(messaging) {:#deletetoken_3fae4b1}
+
+> Warning: This API is now obsolete.
+> 
+> Use [onUnregistered()](./messaging.md#onunregistered_f8a466e) to observe when the client is no longer registered and update your backend accordingly, instead of explicitly deleting the registration token with this API.
+> 
+
+Deletes the registration token associated with this [Messaging](./messaging.messaging.md#messaging_interface) instance and unsubscribes the [Messaging](./messaging.messaging.md#messaging_interface) instance from the push subscription.
+
+If there is no legacy registration token but the client has FID-based registration metadata (from [register()](./messaging.md#register_795bb8a)<!-- -->), this deletes that registration on the server, clears local metadata, and invokes [onUnregistered()](./messaging.md#onunregistered_f8a466e) with the removed FID when successful.
+
+<b>Signature:</b>
+
+```typescript
+export declare function deleteToken(messaging: Messaging): Promise<boolean>;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  messaging | [Messaging](./messaging.messaging.md#messaging_interface) | The [Messaging](./messaging.messaging.md#messaging_interface) instance. |
+
+<b>Returns:</b>
+
+Promise&lt;boolean&gt;
+
+The promise resolves when the token has been successfully deleted.
+
+### getToken(messaging, options) {:#gettoken_b538f38}
+
+> Warning: This API is now obsolete.
+> 
+> Use [register()](./messaging.md#register_795bb8a) together with [onRegistered()](./messaging.md#onregistered_f8a466e) for Firebase Installation ID-based messaging instead of retrieving an FCM registration token with this API.
+> 
+
+Subscribes the [Messaging](./messaging.messaging.md#messaging_interface) instance to push notifications. Returns a Firebase Cloud Messaging registration token that can be used to send push messages to that [Messaging](./messaging.messaging.md#messaging_interface) instance.
+
+If notification permission isn't already granted, this method asks the user for permission. The returned promise rejects if the user does not allow the app to show notifications.
+
+<b>Signature:</b>
+
+```typescript
+export declare function getToken(messaging: Messaging, options?: GetTokenOptions): Promise<string>;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  messaging | [Messaging](./messaging.messaging.md#messaging_interface) | The [Messaging](./messaging.messaging.md#messaging_interface) instance. |
+|  options | [GetTokenOptions](./messaging.gettokenoptions.md#gettokenoptions_interface) | Provides an optional vapid key and an optional service worker registration. |
+
+<b>Returns:</b>
+
+Promise&lt;string&gt;
+
+The promise resolves with an FCM registration token.
+
+### onMessage(messaging, nextOrObserver) {:#onmessage_b9887da}
+
+When a push message is received and the user is currently on a page for your origin, the message is passed to the page and an `onMessage()` event is dispatched with the payload of the push message.
+
+<b>Signature:</b>
+
+```typescript
+export declare function onMessage(messaging: Messaging, nextOrObserver: NextFn<MessagePayload> | Observer<MessagePayload>): Unsubscribe;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  messaging | [Messaging](./messaging.messaging.md#messaging_interface) | The [Messaging](./messaging.messaging.md#messaging_interface) instance. |
+|  nextOrObserver | [NextFn](./util.md#nextfn)<!-- -->&lt;[MessagePayload](./messaging.messagepayload.md#messagepayload_interface)<!-- -->&gt; \| [Observer](./util.observer.md#observer_interface)<!-- -->&lt;[MessagePayload](./messaging.messagepayload.md#messagepayload_interface)<!-- -->&gt; | This function, or observer object with <code>next</code> defined, is called when a message is received and the user is currently viewing your page. |
+
+<b>Returns:</b>
+
+[Unsubscribe](./util.md#unsubscribe)
+
+To stop listening for messages execute this returned function.
+
+### onRegistered(messaging, nextOrObserver) {:#onregistered_f8a466e}
+
+Subscribes to an event that the app instance is registered with FCM via Firebase Installation ID (FID). Use the FID passed to the callback to upload it to your application server. When you receive an FID after calling [register()](./messaging.md#register_795bb8a)<!-- -->, instruct your backend to remove any legacy token for this instance.
+
+<b>Signature:</b>
+
+```typescript
+export declare function onRegistered(messaging: Messaging, nextOrObserver: NextFn<string> | Observer<string>): Unsubscribe;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  messaging | [Messaging](./messaging.messaging.md#messaging_interface) | The [Messaging](./messaging.messaging.md#messaging_interface) instance. |
+|  nextOrObserver | [NextFn](./util.md#nextfn)<!-- -->&lt;string&gt; \| [Observer](./util.observer.md#observer_interface)<!-- -->&lt;string&gt; | A function or observer object called when an FID is registered. |
+
+<b>Returns:</b>
+
+[Unsubscribe](./util.md#unsubscribe)
+
+Unsubscribe function to stop listening.
+
+### onUnregistered(messaging, nextOrObserver) {:#onunregistered_f8a466e}
+
+Subscribes to an event that the app instance is unregistered from FCM (FID no longer active). Use this to notify your backend to remove this FID to prevent 404 errors on send.
+
+<b>Signature:</b>
+
+```typescript
+export declare function onUnregistered(messaging: Messaging, nextOrObserver: NextFn<string> | Observer<string>): Unsubscribe;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  messaging | [Messaging](./messaging.messaging.md#messaging_interface) | The [Messaging](./messaging.messaging.md#messaging_interface) instance. |
+|  nextOrObserver | [NextFn](./util.md#nextfn)<!-- -->&lt;string&gt; \| [Observer](./util.observer.md#observer_interface)<!-- -->&lt;string&gt; | A function or observer object called with the unregistered FID. |
+
+<b>Returns:</b>
+
+[Unsubscribe](./util.md#unsubscribe)
+
+Unsubscribe function to stop listening.
+
+### register(messaging, options) {:#register_795bb8a}
+
+Registers the app instance with FCM using its Firebase Installation ID (FID). The FID is delivered via the [onRegistered()](./messaging.md#onregistered_f8a466e) callback, not as a return value. Call this to establish an FID-based identity; once [onRegistered()](./messaging.md#onregistered_f8a466e) provides an FID, instruct your backend to remove any legacy token previously associated with this instance. The backend send API supports FID as a target.
+
+<b>Signature:</b>
+
+```typescript
+export declare function register(messaging: Messaging, options?: RegisterOptions): Promise<void>;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  messaging | [Messaging](./messaging.messaging.md#messaging_interface) | The [Messaging](./messaging.messaging.md#messaging_interface) instance. |
+|  options | [RegisterOptions](./messaging.registeroptions.md#registeroptions_interface) | Optional. VAPID key and/or service worker registration (same as getToken). |
+
+<b>Returns:</b>
+
+Promise&lt;void&gt;
+
+Promise that resolves when registration has been initiated; FID is delivered via onRegistered.
+
+### unregister(messaging) {:#unregister_3fae4b1}
+
+Unregisters the app instance from FCM by deleting its FID-based registration. On success, triggers [onUnregistered()](./messaging.md#onunregistered_f8a466e) (if registered) with the unregistered FID.
+
+<b>Signature:</b>
+
+```typescript
+export declare function unregister(messaging: Messaging): Promise<void>;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  messaging | [Messaging](./messaging.messaging.md#messaging_interface) | The [Messaging](./messaging.messaging.md#messaging_interface) instance. |
+
+<b>Returns:</b>
+
+Promise&lt;void&gt;
+
+## function()
+
+### isSupported() {:#issupported}
+
+Checks if all required APIs exist in the browser.
+
+<b>Signature:</b>
+
+```typescript
+export declare function isWindowSupported(): Promise<boolean>;
+```
+<b>Returns:</b>
+
+Promise&lt;boolean&gt;
+
+a Promise that resolves to a boolean.
 

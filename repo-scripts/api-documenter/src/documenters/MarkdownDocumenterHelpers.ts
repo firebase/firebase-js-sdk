@@ -59,6 +59,13 @@ export function getLinkForApiItem(
   return `./${fileName}#${headingAnchor}`;
 }
 
+const LEGACY_FILENAME_MAPPINGS: Record<string, string> = {
+  'firestore-lite': 'firestore_lite',
+  'firestore-pipelines': 'firestore_pipelines',
+  'firestore-lite-pipelines': 'firestore_lite_pipelines',
+  'messaging-sw': 'messaging_sw'
+};
+
 export function getFilenameForApiItem(
   apiItem: ApiItem,
   addFileNameSuffix: boolean
@@ -94,11 +101,13 @@ export function getFilenameForApiItem(
           }`;
         }
         baseName = Utilities.getSafeFilenameForName(entryPointName);
+        baseName = LEGACY_FILENAME_MAPPINGS[baseName] ?? baseName;
         break;
       case ApiItemKind.Package:
         baseName = Utilities.getSafeFilenameForName(
           PackageName.getUnscopedName(hierarchyItem.displayName)
         );
+        baseName = LEGACY_FILENAME_MAPPINGS[baseName] ?? baseName;
         if ((hierarchyItem as ApiPackage).entryPoints.length > 1) {
           multipleEntryPoints = true;
         }

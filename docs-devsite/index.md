@@ -22,9 +22,13 @@ https://github.com/firebase/firebase-js-sdk
 |  [@firebase/auth](./auth.md#auth_package) | Firebase Authentication |
 |  [@firebase/database](./database.md#database_package) | Firebase Realtime Database |
 |  [@firebase/firestore](./firestore.md#firestore_package) | Cloud Firestore |
+|  [@firebase/firestore-lite](./firestore_lite.md#firestore-lite_package) | Firestore Lite |
+|  [@firebase/firestore-lite-pipelines](./firestore_lite_pipelines.md#firestore-lite-pipelines_package) |  |
+|  [@firebase/firestore-pipelines](./firestore_pipelines.md#firestore-pipelines_package) |  |
 |  [@firebase/functions](./functions.md#functions_package) | Cloud Functions for Firebase |
 |  [@firebase/installations](./installations.md#installations_package) | The Firebase Installations Web SDK. This SDK does not work in a Node.js environment. |
 |  [@firebase/messaging](./messaging.md#messaging_package) | The Firebase Cloud Messaging Web SDK. This SDK does not work in a Node.js environment. |
+|  [@firebase/messaging-sw](./messaging_sw.md#messaging-sw_package) |  |
 |  [@firebase/performance](./performance.md#performance_package) | The Firebase Performance Monitoring Web SDK. This SDK does not work in a Node.js environment. |
 |  [@firebase/remote-config](./remote-config.md#remote-config_package) | The Firebase Remote Config Web SDK. This SDK does not work in a Node.js environment. |
 |  [@firebase/storage](./storage.md#storage_package) | Cloud Storage for Firebase |

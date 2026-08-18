@@ -153,7 +153,7 @@ async function generateToc() {
     await spawn(
       'yarn',
       [
-        'api-documenter-devsite',
+        'api-documenter',
         'toc',
         '--input',
         'temp',
@@ -180,7 +180,7 @@ async function generateDocs(
   skipBuild: boolean = false
 ) {
   const outputFolder = forDevsite ? 'docs-devsite' : 'docs';
-  const command = forDevsite ? 'api-documenter-devsite' : 'api-documenter';
+  const command = 'api-documenter';
 
   console.log(`Temporarily modifying auth api-extractor.json for docgen.`);
   // Use a special d.ts file for auth for doc gen only.

@@ -9,7 +9,7 @@ overwritten. Changes should be made in the source code at
 https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
-# @firebase/messaging/sw
+# messaging-sw package
 
 ## Functions
 
@@ -20,7 +20,7 @@ https://github.com/firebase/firebase-js-sdk
 |  <b>function(messaging, ...)</b> |
 |  [experimentalSetDeliveryMetricsExportedToBigQueryEnabled(messaging, enable)](./messaging_sw.md#experimentalsetdeliverymetricsexportedtobigqueryenabled_f3e53bd) | Enables or disables Firebase Cloud Messaging message delivery metrics export to BigQuery. By default, message delivery metrics are not exported to BigQuery. Use this method to enable or disable the export at runtime. |
 |  [onBackgroundMessage(messaging, nextOrObserver)](./messaging_sw.md#onbackgroundmessage_b9887da) | Called when a message is received while the app is in the background. An app is considered to be in the background if no active window is displayed. |
-|  [onRegistered(messaging, nextOrObserver)](./messaging_sw.md#onregistered_f8a466e) | Subscribes to an event that the app instance is registered with FCM via Firebase Installation ID (FID). Use the FID passed to the callback to upload it to your application server. When you receive an FID after calling [register()](./messaging_.md#register_795bb8a)<!-- -->, instruct your backend to remove any legacy token for this instance. |
+|  [onRegistered(messaging, nextOrObserver)](./messaging_sw.md#onregistered_f8a466e) | Subscribes to an event that the app instance is registered with FCM via Firebase Installation ID (FID). Use the FID passed to the callback to upload it to your application server. When you receive an FID after calling , instruct your backend to remove any legacy token for this instance. |
 |  [onUnregistered(messaging, nextOrObserver)](./messaging_sw.md#onunregistered_f8a466e) | Subscribes to an event that the app instance is unregistered from FCM (FID no longer active). Use this to notify your backend to remove this FID to prevent 404 errors on send. |
 |  <b>function()</b> |
 |  [isSupported()](./messaging_sw.md#issupported) | Checks whether all required APIs exist within SW Context |
@@ -30,11 +30,11 @@ https://github.com/firebase/firebase-js-sdk
 |  Interface | Description |
 |  --- | --- |
 |  [FcmOptions](./messaging_sw.fcmoptions.md#fcmoptions_interface) | Options for features provided by the FCM SDK for Web. See [WebpushFcmOptions](https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#webpushfcmoptions)<!-- -->. |
-|  [GetTokenOptions](./messaging_sw.gettokenoptions.md#gettokenoptions_interface) | Options for [getToken()](./messaging_.md#gettoken_b538f38)<!-- -->. |
-|  [MessagePayload](./messaging_sw.messagepayload.md#messagepayload_interface) | Message payload that contains the notification payload that is represented with [NotificationPayload](./messaging_.notificationpayload.md#notificationpayload_interface) and the data payload that contains an arbitrary number of key-value pairs sent by developers through the [Send API](https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#notification)<!-- -->. |
+|  [GetTokenOptions](./messaging_sw.gettokenoptions.md#gettokenoptions_interface) | Options for . |
+|  [MessagePayload](./messaging_sw.messagepayload.md#messagepayload_interface) | Message payload that contains the notification payload that is represented with [NotificationPayload](./messaging_sw.notificationpayload.md#notificationpayload_interface) and the data payload that contains an arbitrary number of key-value pairs sent by developers through the [Send API](https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#notification)<!-- -->. |
 |  [Messaging](./messaging_sw.messaging.md#messaging_interface) | Public interface of the Firebase Cloud Messaging SDK. |
 |  [NotificationPayload](./messaging_sw.notificationpayload.md#notificationpayload_interface) | Display notification details. Details are sent through the [Send API](https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#notification)<!-- -->. |
-|  [RegisterOptions](./messaging_sw.registeroptions.md#registeroptions_interface) | Options for [register()](./messaging_.md#register_795bb8a)<!-- -->. Same shape as GetTokenOptions for SW and VAPID configuration. |
+|  [RegisterOptions](./messaging_sw.registeroptions.md#registeroptions_interface) | Options for . Same shape as GetTokenOptions for SW and VAPID configuration. |
 
 ## function(app, ...)
 
@@ -56,7 +56,7 @@ export declare function getMessagingInSw(app?: FirebaseApp): Messaging;
 
 <b>Returns:</b>
 
-[Messaging](./messaging_.messaging.md#messaging_interface)
+[Messaging](./messaging_sw.messaging.md#messaging_interface)
 
 The Firebase Cloud Messaging instance associated with the provided firebase app.
 
@@ -76,7 +76,7 @@ export declare function experimentalSetDeliveryMetricsExportedToBigQueryEnabled(
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  messaging | [Messaging](./messaging_.messaging.md#messaging_interface) | The <code>FirebaseMessaging</code> instance. |
+|  messaging | [Messaging](./messaging_sw.messaging.md#messaging_interface) | The <code>FirebaseMessaging</code> instance. |
 |  enable | boolean | Whether Firebase Cloud Messaging should export message delivery metrics to BigQuery. |
 
 <b>Returns:</b>
@@ -97,8 +97,8 @@ export declare function onBackgroundMessage(messaging: Messaging, nextOrObserver
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  messaging | [Messaging](./messaging_.messaging.md#messaging_interface) | The [Messaging](./messaging_.messaging.md#messaging_interface) instance. |
-|  nextOrObserver | [NextFn](./util.md#nextfn)<!-- -->&lt;[MessagePayload](./messaging_.messagepayload.md#messagepayload_interface)<!-- -->&gt; \| [Observer](./util.observer.md#observer_interface)<!-- -->&lt;[MessagePayload](./messaging_.messagepayload.md#messagepayload_interface)<!-- -->&gt; | This function, or observer object with <code>next</code> defined, is called when a message is received and the app is currently in the background. |
+|  messaging | [Messaging](./messaging_sw.messaging.md#messaging_interface) | The [Messaging](./messaging_sw.messaging.md#messaging_interface) instance. |
+|  nextOrObserver | [NextFn](./util.md#nextfn)<!-- -->&lt;[MessagePayload](./messaging_sw.messagepayload.md#messagepayload_interface)<!-- -->&gt; \| [Observer](./util.observer.md#observer_interface)<!-- -->&lt;[MessagePayload](./messaging_sw.messagepayload.md#messagepayload_interface)<!-- -->&gt; | This function, or observer object with <code>next</code> defined, is called when a message is received and the app is currently in the background. |
 
 <b>Returns:</b>
 
@@ -108,7 +108,7 @@ To stop listening for messages execute this returned function.
 
 ### onRegistered(messaging, nextOrObserver) {:#onregistered_f8a466e}
 
-Subscribes to an event that the app instance is registered with FCM via Firebase Installation ID (FID). Use the FID passed to the callback to upload it to your application server. When you receive an FID after calling [register()](./messaging_.md#register_795bb8a)<!-- -->, instruct your backend to remove any legacy token for this instance.
+Subscribes to an event that the app instance is registered with FCM via Firebase Installation ID (FID). Use the FID passed to the callback to upload it to your application server. When you receive an FID after calling , instruct your backend to remove any legacy token for this instance.
 
 <b>Signature:</b>
 
@@ -120,7 +120,7 @@ export declare function onRegistered(messaging: Messaging, nextOrObserver: NextF
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  messaging | [Messaging](./messaging_.messaging.md#messaging_interface) | The [Messaging](./messaging_.messaging.md#messaging_interface) instance. |
+|  messaging | [Messaging](./messaging_sw.messaging.md#messaging_interface) | The [Messaging](./messaging_sw.messaging.md#messaging_interface) instance. |
 |  nextOrObserver | [NextFn](./util.md#nextfn)<!-- -->&lt;string&gt; \| [Observer](./util.observer.md#observer_interface)<!-- -->&lt;string&gt; | A function or observer object called when an FID is registered. |
 
 <b>Returns:</b>
@@ -143,7 +143,7 @@ export declare function onUnregistered(messaging: Messaging, nextOrObserver: Nex
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  messaging | [Messaging](./messaging_.messaging.md#messaging_interface) | The [Messaging](./messaging_.messaging.md#messaging_interface) instance. |
+|  messaging | [Messaging](./messaging_sw.messaging.md#messaging_interface) | The [Messaging](./messaging_sw.messaging.md#messaging_interface) instance. |
 |  nextOrObserver | [NextFn](./util.md#nextfn)<!-- -->&lt;string&gt; \| [Observer](./util.observer.md#observer_interface)<!-- -->&lt;string&gt; | A function or observer object called with the unregistered FID. |
 
 <b>Returns:</b>
