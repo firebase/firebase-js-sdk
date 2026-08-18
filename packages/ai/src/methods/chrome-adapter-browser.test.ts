@@ -253,7 +253,7 @@ describe('ChromeAdapter', () => {
         })
       ).to.be.false;
     });
-    it('returns false if request content has "function" role', async () => {
+    it('returns false if request content has a functionResponse part', async () => {
       const adapter = new ChromeAdapterImpl(
         {
           availability: async () => Availability.AVAILABLE
@@ -264,8 +264,12 @@ describe('ChromeAdapter', () => {
         await adapter.isAvailable({
           contents: [
             {
-              role: 'function',
-              parts: []
+              role: 'user',
+              parts: [
+                {
+                  functionResponse: {name: 'greet', response: {name: 'user'}}
+                }
+              ]
             }
           ]
         })

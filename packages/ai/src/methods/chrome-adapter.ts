@@ -229,8 +229,8 @@ export class ChromeAdapterImpl implements ChromeAdapter {
     }
 
     for (const content of request.contents) {
-      if (content.role === 'function') {
-        logger.debug(`"Function" role rejected for on-device inference.`);
+      if (content.parts.some(part => 'functionResponse' in part)) {
+        logger.debug(`Content with a function response part rejected for on-device inference.`);
         return false;
       }
 

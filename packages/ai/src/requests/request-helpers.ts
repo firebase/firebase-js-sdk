@@ -67,7 +67,7 @@ function assignRoleToPartsAndValidateSendMessageRequest(
   parts: Part[]
 ): Content {
   const userContent: Content = { role: 'user', parts: [] };
-  const functionContent: Content = { role: 'function', parts: [] };
+  const functionContent: Content = { role: 'user', parts: [] };
   let hasUserContent = false;
   let hasFunctionContent = false;
   for (const part of parts) {
