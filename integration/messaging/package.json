@@ -10,7 +10,7 @@
   },
   "devDependencies": {
     "chromedriver": "151.0.5",
-    "firebase": "12.17.1",
+    "firebase": "12.18.0",
     "selenium-assistant": "6.1.1"
   },
   "engines": {
