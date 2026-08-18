@@ -1,0 +1,3 @@
+interface PrivateInterface {
+  method(): void;
+}

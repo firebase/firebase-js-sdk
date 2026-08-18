@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { getGlobal } from '@firebase/util';
 import { AIError } from '../errors';
 import { expect, use } from 'chai';
 import sinonChai from 'sinon-chai';
@@ -861,12 +862,28 @@ describe('chromeAdapterFactory', () => {
     const fakeLanguageModel = {} as LanguageModel;
     const adapter = chromeAdapterFactory(
       InferenceMode.PREFER_ON_DEVICE,
-      { LanguageModel: fakeLanguageModel } as Window,
+      { LanguageModel: fakeLanguageModel } as unknown as Window,
       { createOptions: {} }
     );
     expect(adapter?.languageModelProvider).to.equal(fakeLanguageModel);
     expect(adapter?.mode).to.equal(InferenceMode.PREFER_ON_DEVICE);
     expect(adapter?.onDeviceParams.createOptions).to.exist;
+  });
+
+  it('creates a ChromeAdapterImpl when LanguageModel is defined on the global object', () => {
+    const fakeLanguageModel = {} as LanguageModel;
+    const globalObj = getGlobal() as any;
+    const originalLM = globalObj.LanguageModel;
+    try {
+      globalObj.LanguageModel = fakeLanguageModel;
+      const adapter = chromeAdapterFactory(
+        InferenceMode.PREFER_ON_DEVICE,
+        undefined
+      );
+      expect(adapter?.languageModelProvider).to.equal(fakeLanguageModel);
+    } finally {
+      globalObj.LanguageModel = originalLM;
+    }
   });
 });
 

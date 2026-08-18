@@ -77,7 +77,7 @@ let args = [
   '--require',
   babel,
   '--require',
-  argv.main,
+  resolve(argv.main),
   '--config',
   '../../config/mocharc.node.js'
 ];
@@ -91,7 +91,7 @@ if (argv.debug) {
     '--require',
     babel,
     '--require',
-    argv.main,
+    resolve(argv.main),
     '--config',
     '../../config/mocharc.node.js',
     '--no-timeouts'
@@ -104,7 +104,7 @@ if (argv.emulator) {
 
 if (argv.persistence) {
   process.env.USE_MOCK_PERSISTENCE = 'YES';
-  args.push('--require', 'test/util/node_persistence.ts');
+  args.push('--require', resolve('test/util/node_persistence.ts'));
 }
 
 if (argv.databaseId) {

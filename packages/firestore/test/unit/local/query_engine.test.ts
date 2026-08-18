@@ -1032,9 +1032,8 @@ function genericQueryEngineTest(
 
       const q = query('coll', filter('foo', '==', 'match'));
       const target = queryToTarget(q);
-      const preQueryExecutionIndexType = await indexManager.getIndexType(
-        target
-      );
+      const preQueryExecutionIndexType =
+        await indexManager.getIndexType(target);
       expect(
         preQueryExecutionIndexType,
         'index type for target _before_ running the query is ' +
@@ -1048,9 +1047,8 @@ function genericQueryEngineTest(
       );
       verifyResult(result, matchingDocuments);
 
-      const postQueryExecutionIndexType = await indexManager.getIndexType(
-        target
-      );
+      const postQueryExecutionIndexType =
+        await indexManager.getIndexType(target);
       expect(
         postQueryExecutionIndexType,
         'index type for target _after_ running the query is ' +

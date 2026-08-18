@@ -40,7 +40,11 @@ Constructs a new instance of the `PipelineSnapshot` class
 <b>Signature:</b>
 
 ```typescript
-constructor(pipeline: Pipeline, results: PipelineResult[], executionTime?: Timestamp);
+constructor(
+    pipeline: Pipeline,
+    results: PipelineResult[],
+    executionTime?: Timestamp
+  );
 ```
 
 #### Parameters

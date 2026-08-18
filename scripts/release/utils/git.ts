@@ -15,11 +15,9 @@
  * limitations under the License.
  */
 
-import simpleGit from 'simple-git';
 import { projectRoot as root } from '../../utils';
 import { exec } from 'child-process-promise';
 import ora from 'ora';
-const git = simpleGit(root);
 
 export async function cleanTree() {
   const spinner = ora(' Cleaning git tree').start();
@@ -32,15 +30,17 @@ export async function cleanTree() {
 }
 
 export async function resetWorkingTree() {
-  await git.checkout('.');
+  await exec('git checkout .', { cwd: root });
 }
 
 export async function getCurrentSha() {
-  return (await git.revparse(['--short', 'HEAD'])).trim();
+  return (
+    await exec('git rev-parse --short HEAD', { cwd: root })
+  ).stdout.trim();
 }
 
 export async function hasDiff() {
-  const diff = await git.diff();
+  const { stdout: diff } = await exec('git diff', { cwd: root });
   console.log(diff);
-  return !!diff;
+  return !!diff.trim();
 }

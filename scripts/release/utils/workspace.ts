@@ -21,13 +21,12 @@ import { projectRoot as root } from '../../utils';
 import { DepGraph } from 'dependency-graph';
 import { promisify } from 'util';
 import { writeFile as _writeFile, existsSync, readFileSync } from 'fs';
-import clone from 'clone';
 
 const writeFile = promisify(_writeFile);
 
-const {
-  workspaces: rawWorkspaces
-}: { workspaces: string[] } = require(`${root}/package.json`);
+const { workspaces: rawWorkspaces }: { workspaces: string[] } = require(
+  `${root}/package.json`
+);
 const workspaces = rawWorkspaces.map(workspace => `${root}/${workspace}`);
 
 export function mapWorkspaceToPackages(
@@ -121,7 +120,7 @@ export async function updateWorkspaceVersions(
     const pkgJsons = mapPackagestoPkgJson(packages);
 
     pkgJsons.forEach((rawPkg, idx) => {
-      let pkg = clone(rawPkg);
+      let pkg = structuredClone(rawPkg);
       const pkgJsonPath = `${packages[idx]}/package.json`;
 
       Object.keys(newVersionObj).forEach(updatedPkg => {

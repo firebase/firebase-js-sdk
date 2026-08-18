@@ -20,7 +20,10 @@ import { expect } from 'chai';
 import { ObjectMap } from '../../../src/util/obj_map';
 
 class TestKey {
-  constructor(private id: number, private equalityKey: number) {}
+  constructor(
+    private id: number,
+    private equalityKey: number
+  ) {}
 
   get mapKey(): string {
     return 'id:' + this.id;
