@@ -21,12 +21,47 @@ import { SeverityNumber } from '@opentelemetry/api-logs';
 import { generateUuid } from './helpers';
 
 /**
+ * Represents the type of a telemetry event.
+ */
+enum EventType {
+  RootSpan,
+  RootLog,
+  ChildSpan,
+  ChildLog
+}
+
+/**
+ * Represents the identifier for a telemetry event buffer, which can be a trace ID or a generated UUID.
+ */
+type EventId = string;
+
+/**
+ * Represents the type of telemetry data buffered in memory.
+ * Can be a TraceEvents collection containing spans and logs for a trace, or a standalone SdkLogRecord.
+ */
+type EventData = TraceEvents | SdkLogRecord;
+
+/**
+ * Represents the unique identifier for a span, typically a 16-character hexadecimal string.
+ */
+type SpanId = string;
+
+/**
  * Checks if a telemetry event is a Span.
  *
  * @param event - The telemetry event to check.
  */
 function isSpan(event: ReadableSpan | SdkLogRecord): event is ReadableSpan {
   return typeof event.spanContext === 'function';
+}
+
+/**
+ * Retrieves the SpanId associated with a span.
+ *
+ * @param span - The span.
+ */
+function getSpanId(span: ReadableSpan): SpanId {
+  return span.spanContext().spanId;
 }
 
 /**
@@ -61,7 +96,7 @@ function getEventType(event: ReadableSpan | SdkLogRecord): EventType {
 class TraceEvents {
   // TODO: add unique id mappings to handle idempotency issue with duplicated events of different references
   logs = new Set<SdkLogRecord>();
-  spans = new Set<ReadableSpan>();
+  spans = new Map<SpanId, ReadableSpan>();
   isTraceQueuedForExport = false;
 
   /**
@@ -71,7 +106,7 @@ class TraceEvents {
    */
   add(event: ReadableSpan | SdkLogRecord): void {
     if (isSpan(event)) {
-      this.spans.add(event);
+      this.spans.set(getSpanId(event), event);
     } else {
       this.logs.add(event);
     }
@@ -83,30 +118,11 @@ class TraceEvents {
    * @param event - The telemetry event to check.
    */
   has(event: ReadableSpan | SdkLogRecord): boolean {
-    return isSpan(event) ? this.spans.has(event) : this.logs.has(event);
+    return isSpan(event)
+      ? this.spans.has(getSpanId(event))
+      : this.logs.has(event);
   }
 }
-
-/**
- * Represents the type of a telemetry event.
- */
-enum EventType {
-  RootSpan,
-  RootLog,
-  ChildSpan,
-  ChildLog
-}
-
-/**
- * Represents the identifier for a telemetry event buffer, which can be a trace ID or a generated UUID.
- */
-type EventId = string;
-
-/**
- * Represents the type of telemetry data buffered in memory.
- * Can be a TraceEvents collection containing spans and logs for a trace, or a standalone SdkLogRecord.
- */
-type EventData = TraceEvents | SdkLogRecord;
 
 /**
  * A shared storage engine that buffers telemetry logs and spans in memory,
@@ -238,7 +254,7 @@ export class TelemetryStore {
     for (const key of this._rootTelemetryQueue.getValues()) {
       const item = this._telemetryBufferMap.get(key);
       if (item instanceof TraceEvents) {
-        spans.push(...item.spans);
+        spans.push(...item.spans.values());
       }
     }
     return spans;
