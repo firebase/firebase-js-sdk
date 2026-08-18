@@ -16,7 +16,7 @@
  */
 
 import yaml from 'js-yaml';
-import { ApiItem, ApiItemKind, ApiModel } from 'api-extractor-model-me';
+import { ApiItem, ApiItemKind, ApiModel } from '@microsoft/api-extractor-model';
 import { getFilenameForApiItem } from './documenters/MarkdownDocumenterHelpers';
 import { ModuleSource } from '@microsoft/tsdoc/lib-commonjs/beta/DeclarationReference';
 import { writeFileSync } from 'fs';
@@ -28,6 +28,7 @@ export interface ITocGenerationOptions {
   outputFolder: string;
   addFileNameSuffix: boolean;
   jsSdk: boolean;
+  filenameMappings?: Record<string, string>;
 }
 
 interface ITocItem {
@@ -41,7 +42,8 @@ export function generateToc({
   g3Path,
   outputFolder,
   addFileNameSuffix,
-  jsSdk
+  jsSdk,
+  filenameMappings = {}
 }: ITocGenerationOptions) {
   const toc = [];
 
@@ -53,7 +55,13 @@ export function generateToc({
     toc.push(firebaseToc);
   }
 
-  generateTocRecursively(apiModel, g3Path, addFileNameSuffix, toc);
+  generateTocRecursively(
+    apiModel,
+    g3Path,
+    addFileNameSuffix,
+    toc,
+    filenameMappings
+  );
 
   writeFileSync(
     resolve(outputFolder, 'toc.yaml'),
@@ -71,7 +79,8 @@ function generateTocRecursively(
   apiItem: ApiItem,
   g3Path: string,
   addFileNameSuffix: boolean,
-  toc: ITocItem[]
+  toc: ITocItem[],
+  filenameMappings: Record<string, string> = {}
 ) {
   // generate toc item only for entry points
   if (apiItem.kind === ApiItemKind.EntryPoint) {
@@ -81,7 +90,11 @@ function generateTocRecursively(
     ).escapedPath.replace('@firebase/', '');
     const entryPointToc: ITocItem = {
       title: entryPointName,
-      path: `${g3Path}/${getFilenameForApiItem(apiItem, addFileNameSuffix)}`,
+      path: `${g3Path}/${getFilenameForApiItem(
+        apiItem,
+        addFileNameSuffix,
+        filenameMappings
+      )}`,
       section: []
     };
 
@@ -91,7 +104,11 @@ function generateTocRecursively(
         member.kind === ApiItemKind.Class ||
         member.kind === ApiItemKind.Interface
       ) {
-        const fileName = getFilenameForApiItem(member, addFileNameSuffix);
+        const fileName = getFilenameForApiItem(
+          member,
+          addFileNameSuffix,
+          filenameMappings
+        );
         entryPointToc.section!.push({
           title: member.displayName,
           path: `${g3Path}/${fileName}`
@@ -103,7 +120,13 @@ function generateTocRecursively(
   } else {
     // travel the api tree to find the next entry point
     for (const member of apiItem.members) {
-      generateTocRecursively(member, g3Path, addFileNameSuffix, toc);
+      generateTocRecursively(
+        member,
+        g3Path,
+        addFileNameSuffix,
+        toc,
+        filenameMappings
+      );
     }
   }
 }

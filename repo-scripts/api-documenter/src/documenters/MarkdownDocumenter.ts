@@ -55,7 +55,7 @@ import {
   ApiPackage,
   ApiEntryPoint,
   ApiNamespace
-} from 'api-extractor-model-me';
+} from '@microsoft/api-extractor-model';
 
 import { CustomDocNodes } from '../nodes/CustomDocNodeKind';
 import { CustomMarkdownEmitter } from '../markdown/CustomMarkdownEmitter';
@@ -96,6 +96,7 @@ export interface IMarkdownDocumenterOptions {
   addFileNameSuffix: boolean;
   projectName: string;
   sortFunctions: string;
+  filenameMappings?: Record<string, string>;
 }
 
 /**
@@ -112,6 +113,7 @@ export class MarkdownDocumenter {
   private readonly _addFileNameSuffix: boolean;
   private readonly _projectName: string;
   private readonly _sortFunctions: string;
+  private readonly _filenameMappings: Record<string, string>;
 
   public constructor(options: IMarkdownDocumenterOptions) {
     this._apiModel = options.apiModel;
@@ -120,6 +122,7 @@ export class MarkdownDocumenter {
     this._addFileNameSuffix = options.addFileNameSuffix;
     this._projectName = options.projectName;
     this._sortFunctions = options.sortFunctions;
+    this._filenameMappings = options.filenameMappings || {};
     this._tsdocConfiguration = CustomDocNodes.configuration;
     this._markdownEmitter = new CustomMarkdownEmitter(this._apiModel);
 
@@ -134,7 +137,11 @@ export class MarkdownDocumenter {
           outputFolder: this._outputFolder,
           documenter: new MarkdownDocumenterAccessor({
             getLinkForApiItem: (apiItem: ApiItem) => {
-              return getLinkForApiItem(apiItem, this._addFileNameSuffix);
+              return getLinkForApiItem(
+                apiItem,
+                this._addFileNameSuffix,
+                this._filenameMappings
+              );
             }
           })
         });
@@ -148,6 +155,30 @@ export class MarkdownDocumenter {
     if (this._pluginLoader.markdownDocumenterFeature) {
       this._pluginLoader.markdownDocumenterFeature.onFinished({});
     }
+  }
+
+  private _createTitleCell(
+    apiItem: ApiItem,
+    configuration: TSDocConfiguration
+  ): DocTableCell {
+    return createTitleCell(
+      apiItem,
+      configuration,
+      this._addFileNameSuffix,
+      this._filenameMappings
+    );
+  }
+
+  private _createEntryPointTitleCell(
+    apiItem: ApiEntryPoint,
+    configuration: TSDocConfiguration
+  ): DocTableCell {
+    return createEntryPointTitleCell(
+      apiItem,
+      configuration,
+      this._addFileNameSuffix,
+      this._filenameMappings
+    );
   }
 
   _writeApiItemPage(apiItem: ApiItem): void {
@@ -167,7 +198,11 @@ export class MarkdownDocumenter {
     // write to file
     const filename: string = path.join(
       this._outputFolder,
-      getFilenameForApiItem(apiItem, this._addFileNameSuffix)
+      getFilenameForApiItem(
+        apiItem,
+        this._addFileNameSuffix,
+        this._filenameMappings
+      )
     );
     const stringBuilder: StringBuilder = new StringBuilder();
 
@@ -184,7 +219,11 @@ page_type: reference
     this._markdownEmitter.emit(stringBuilder, output, {
       contextApiItem: apiItem,
       onGetFilenameForApiItem: (apiItemForFilename: ApiItem) => {
-        return getLinkForApiItem(apiItemForFilename, this._addFileNameSuffix);
+        return getLinkForApiItem(
+          apiItemForFilename,
+          this._addFileNameSuffix,
+          this._filenameMappings
+        );
       }
     });
 
@@ -430,11 +469,7 @@ page_type: reference
         case ApiItemKind.Constructor: {
           constructorsTable.addRow(
             new DocTableRow({ configuration }, [
-              createTitleCell(
-                apiMember,
-                configuration,
-                this._addFileNameSuffix
-              ),
+              this._createTitleCell(apiMember, configuration),
               createModifiersCell(apiMember, configuration),
               createDescriptionCell(apiMember, configuration)
             ])
@@ -448,11 +483,7 @@ page_type: reference
         case ApiItemKind.Method: {
           methodsTable.addRow(
             new DocTableRow({ configuration }, [
-              createTitleCell(
-                apiMember,
-                configuration,
-                this._addFileNameSuffix
-              ),
+              this._createTitleCell(apiMember, configuration),
               createModifiersCell(apiMember, configuration),
               createDescriptionCell(apiMember, configuration)
             ])
@@ -467,11 +498,7 @@ page_type: reference
           if ((apiMember as ApiPropertyItem).isEventProperty) {
             eventsTable.addRow(
               new DocTableRow({ configuration }, [
-                createTitleCell(
-                  apiMember,
-                  configuration,
-                  this._addFileNameSuffix
-                ),
+                this._createTitleCell(apiMember, configuration),
                 createModifiersCell(apiMember, configuration),
                 this._createPropertyTypeCell(apiMember),
                 createDescriptionCell(apiMember, configuration)
@@ -484,11 +511,7 @@ page_type: reference
           } else {
             propertiesTable.addRow(
               new DocTableRow({ configuration }, [
-                createTitleCell(
-                  apiMember,
-                  configuration,
-                  this._addFileNameSuffix
-                ),
+                this._createTitleCell(apiMember, configuration),
                 createModifiersCell(apiMember, configuration),
                 this._createPropertyTypeCell(apiMember),
                 createDescriptionCell(apiMember, configuration)
@@ -562,11 +585,7 @@ page_type: reference
         case ApiItemKind.MethodSignature: {
           methodsTable.addRow(
             new DocTableRow({ configuration }, [
-              createTitleCell(
-                apiMember,
-                configuration,
-                this._addFileNameSuffix
-              ),
+              this._createTitleCell(apiMember, configuration),
               createDescriptionCell(apiMember, configuration)
             ])
           );
@@ -580,11 +599,7 @@ page_type: reference
           if ((apiMember as ApiPropertyItem).isEventProperty) {
             eventsTable.addRow(
               new DocTableRow({ configuration }, [
-                createTitleCell(
-                  apiMember,
-                  configuration,
-                  this._addFileNameSuffix
-                ),
+                this._createTitleCell(apiMember, configuration),
                 this._createPropertyTypeCell(apiMember),
                 createDescriptionCell(apiMember, configuration)
               ])
@@ -595,11 +610,7 @@ page_type: reference
           } else {
             propertiesTable.addRow(
               new DocTableRow({ configuration }, [
-                createTitleCell(
-                  apiMember,
-                  configuration,
-                  this._addFileNameSuffix
-                ),
+                this._createTitleCell(apiMember, configuration),
                 this._createPropertyTypeCell(apiMember),
                 createDescriptionCell(apiMember, configuration)
               ])
@@ -759,7 +770,8 @@ page_type: reference
               linkText: unwrappedTokenText,
               urlDestination: getLinkForApiItem(
                 apiItemResult.resolvedApiItem,
-                this._addFileNameSuffix
+                this._addFileNameSuffix,
+                this._filenameMappings
               )
             })
           );
@@ -788,7 +800,7 @@ page_type: reference
 
     for (const apiMember of apiModel.members) {
       const row: DocTableRow = new DocTableRow({ configuration }, [
-        createTitleCell(apiMember, configuration, this._addFileNameSuffix),
+        this._createTitleCell(apiMember, configuration),
         createDescriptionCell(apiMember, configuration)
       ]);
 
@@ -808,7 +820,7 @@ page_type: reference
     return output;
   }
 
-  /**´
+  /**
    * Generate a table of entry points if there are more than one entry points.
    * Otherwise, generate the entry point directly in the package page.
    */
@@ -829,11 +841,7 @@ page_type: reference
 
     for (const entryPoint of apiContainer.entryPoints) {
       const row: DocTableRow = new DocTableRow({ configuration }, [
-        createEntryPointTitleCell(
-          entryPoint,
-          configuration,
-          this._addFileNameSuffix
-        ),
+        this._createEntryPointTitleCell(entryPoint, configuration),
         createDescriptionCell(entryPoint, configuration)
       ]);
 
@@ -909,7 +917,7 @@ page_type: reference
 
     for (const apiMember of apiMembers) {
       const row: DocTableRow = new DocTableRow({ configuration }, [
-        createTitleCell(apiMember, configuration, this._addFileNameSuffix),
+        this._createTitleCell(apiMember, configuration),
         createDescriptionCell(apiMember, configuration)
       ]);
 

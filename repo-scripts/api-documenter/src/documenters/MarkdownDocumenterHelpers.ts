@@ -39,7 +39,7 @@ import {
   ApiEntryPoint,
   ApiStaticMixin,
   ApiEnum
-} from 'api-extractor-model-me';
+} from '@microsoft/api-extractor-model';
 import { DocEmphasisSpan } from '../nodes/DocEmphasisSpan';
 import { DocHeading } from '../nodes/DocHeading';
 import { DocTable } from '../nodes/DocTable';
@@ -52,23 +52,22 @@ import { createHash } from 'crypto';
 
 export function getLinkForApiItem(
   apiItem: ApiItem,
-  addFileNameSuffix: boolean
+  addFileNameSuffix: boolean,
+  filenameMappings: Record<string, string> = {}
 ) {
-  const fileName = getFilenameForApiItem(apiItem, addFileNameSuffix);
+  const fileName = getFilenameForApiItem(
+    apiItem,
+    addFileNameSuffix,
+    filenameMappings
+  );
   const headingAnchor = getHeadingAnchorForApiItem(apiItem);
   return `./${fileName}#${headingAnchor}`;
 }
 
-const LEGACY_FILENAME_MAPPINGS: Record<string, string> = {
-  'firestore-lite': 'firestore_lite',
-  'firestore-pipelines': 'firestore_pipelines',
-  'firestore-lite-pipelines': 'firestore_lite_pipelines',
-  'messaging-sw': 'messaging_sw'
-};
-
 export function getFilenameForApiItem(
   apiItem: ApiItem,
-  addFileNameSuffix: boolean
+  addFileNameSuffix: boolean,
+  filenameMappings: Record<string, string> = {}
 ): string {
   if (apiItem.kind === ApiItemKind.Model) {
     return 'index.md';
@@ -101,13 +100,13 @@ export function getFilenameForApiItem(
           }`;
         }
         baseName = Utilities.getSafeFilenameForName(entryPointName);
-        baseName = LEGACY_FILENAME_MAPPINGS[baseName] ?? baseName;
+        baseName = filenameMappings[baseName] ?? baseName;
         break;
       case ApiItemKind.Package:
         baseName = Utilities.getSafeFilenameForName(
           PackageName.getUnscopedName(hierarchyItem.displayName)
         );
-        baseName = LEGACY_FILENAME_MAPPINGS[baseName] ?? baseName;
+        baseName = filenameMappings[baseName] ?? baseName;
         if ((hierarchyItem as ApiPackage).entryPoints.length > 1) {
           multipleEntryPoints = true;
         }
@@ -271,7 +270,8 @@ export function createExampleSection(
 export function createTitleCell(
   apiItem: ApiItem,
   configuration: TSDocConfiguration,
-  addFileNameSuffix: boolean
+  addFileNameSuffix: boolean,
+  filenameMappings: Record<string, string> = {}
 ): DocTableCell {
   return new DocTableCell({ configuration }, [
     new DocParagraph({ configuration }, [
@@ -279,7 +279,11 @@ export function createTitleCell(
         configuration,
         tagName: '@link',
         linkText: Utilities.getConciseSignature(apiItem),
-        urlDestination: getLinkForApiItem(apiItem, addFileNameSuffix)
+        urlDestination: getLinkForApiItem(
+          apiItem,
+          addFileNameSuffix,
+          filenameMappings
+        )
       })
     ])
   ]);
@@ -395,7 +399,8 @@ export function createThrowsSection(
 export function createEntryPointTitleCell(
   apiItem: ApiEntryPoint,
   configuration: TSDocConfiguration,
-  addFileNameSuffix: boolean
+  addFileNameSuffix: boolean,
+  filenameMappings: Record<string, string> = {}
 ): DocTableCell {
   return new DocTableCell({ configuration }, [
     new DocParagraph({ configuration }, [
@@ -403,7 +408,11 @@ export function createEntryPointTitleCell(
         configuration,
         tagName: '@link',
         linkText: `/${apiItem.displayName}`,
-        urlDestination: getLinkForApiItem(apiItem, addFileNameSuffix)
+        urlDestination: getLinkForApiItem(
+          apiItem,
+          addFileNameSuffix,
+          filenameMappings
+        )
       })
     ])
   ]);
@@ -438,7 +447,7 @@ export function createEnumTables(
           new DocParagraph({ configuration }, [
             new DocCodeSpan({
               configuration,
-              code: apiEnumMember.initializerExcerpt.text
+              code: apiEnumMember.initializerExcerpt?.text ?? ''
             })
           ])
         ]),

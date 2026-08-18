@@ -50,8 +50,13 @@ export class MarkdownAction extends BaseAction {
 
   protected async onExecute(): Promise<void> {
     // override
-    const { apiModel, outputFolder, addFileNameSuffix, projectName } =
-      this.buildApiModel();
+    const {
+      apiModel,
+      outputFolder,
+      addFileNameSuffix,
+      projectName,
+      filenameMappings
+    } = this.buildApiModel();
     const sortFunctions: string = this._sortFunctions.value || '';
 
     if (!projectName) {
@@ -64,7 +69,8 @@ export class MarkdownAction extends BaseAction {
       outputFolder,
       addFileNameSuffix,
       projectName,
-      sortFunctions
+      sortFunctions,
+      filenameMappings
     });
     markdownDocumenter.generateFiles();
   }
