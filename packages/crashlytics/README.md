@@ -9,7 +9,7 @@ Crashlytics for **Next.js, React, Angular, React Router, and TanStack Router app
 
 Crashlytics for web apps uses Cloud Logging for telemetry storage and Cloud Storage for sourcemap storage under the hood, which are paid products with a generous free tier. Learn more about [Logging pricing](https://cloud.google.com/stackdriver/pricing) and [Storage pricing](https://cloud.google.com/storage/pricing).
 
-As a private preview customer, your experience is incredibly valuable to our team. Please submit bugs, API feedback, or feature requests directly to our team by emailing [crashlytics-web@google.com](mailto:crashlytics-web@google.com) or filling out this [feedback form](https://forms.gle/).
+As a private preview customer, your experience is incredibly valuable to our team. Please submit bugs, API feedback, or feature requests directly to our team by emailing [crashlytics-web@google.com](mailto:crashlytics-web@google.com) or filling out this [feedback form](https://forms.gle/Us8GM4YuYcYZyRNK9).
 
 ---
 
@@ -21,6 +21,7 @@ As a private preview customer, your experience is incredibly valuable to our tea
   - [Option 2: Using Firebase CLI](#option-2-using-firebase-cli)
 - [Step 2: Core SDK Installation & Initialization](#step-2-core-sdk-installation--initialization)
 - [Step 3: Framework-Specific Setup Guides](#step-3-framework-specific-setup-guides)
+- [Step 4: Force an Initial Crash](#step-4-force-an-initial-crash)
 - [Additional Configuration & References](#additional-configuration--references)
 
 ---
@@ -75,11 +76,14 @@ If you prefer configuring your project via the command line or are relying on a 
 1. Ensure that you have **Firebase CLI v15.19.1 or later** installed. Follow the instructions at [firebase.google.com/docs/cli](https://firebase.google.com/docs/cli) to set up or update the CLI.
 2. Ensure you have **Owner** or **Editor** permissions to your Firebase/Cloud project.
 3. Ensure your account has billing enabled (Crashlytics requires the Blaze plan). Learn more about [Logging pricing](https://cloud.google.com/stackdriver/pricing) and [Storage pricing](https://cloud.google.com/storage/pricing).
-4. Log in to the Firebase CLI and set your active project:
+4. Log in to the Firebase CLI, enable the experiment, and set your active project:
 
 ```bash
 # Log in to Firebase CLI
 firebase login
+
+# Enable the Crashlytics for Web experiment (only needs to be run once)
+firebase experiments:enable crashlyticsWeb
 
 # Set the active project for subsequent commands
 firebase use <YOUR_FIREBASE_PROJECT_ID>
@@ -160,6 +164,27 @@ Select the guide matching your application framework:
 - 🛣️ **[React Router Setup Guide](src/react-router/README.md)**
 - 🌼 **[TanStack Router Setup Guide](src/tanstack/README.md)**
 - 🔺 **[Next.js Setup Guide](src/next/README.md)**
+
+---
+
+## Step 4: Force an Initial Crash
+
+To verify that your setup is working and that crashes are properly delivered to Firebase Crashlytics, you can force a test crash in your application.
+
+To ensure the crash is triggered on demand (and doesn't block application startup or fail server-side builds), add the following line inside a user interaction handler (such as a button click handler or event listener) in your application:
+
+```typescript
+throw new Error("Test Crash");
+```
+
+### Verify the Crash in the Console
+
+1. Run your application and trigger the crash by performing the action (such as clicking the test button).
+2. Open the [Firebase Console Crashlytics dashboard](https://console.firebase.google.com/u/0/project/_/crashlytics).
+3. Select your project to view the newly logged crash report.
+
+> [!NOTE]
+> It may take a few minutes for new crash reports to appear in the Firebase Crashlytics console.
 
 ---
 

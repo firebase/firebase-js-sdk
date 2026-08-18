@@ -27,6 +27,9 @@ const router = createRouter({
 });
 ```
 
+> [!TIP]
+> `defaultOnCatch` handles errors caught during routing and component rendering within TanStack Router. If you are using React and also want to capture global uncaught window errors and unhandled promise rejections outside of router lifecycle events, wrap your root component with `<FirebaseCrashlytics firebaseApp={app} />` from `@firebase/crashlytics/react` as described in the [React Setup Guide](../react/README.md).
+
 ---
 
 <!-- #include "../../docs/ADVANCED_USAGE.md#programmatic-error-capturing" -->
