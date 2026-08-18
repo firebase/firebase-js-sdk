@@ -30,6 +30,15 @@ function isSpan(event: ReadableSpan | SdkLogRecord): event is ReadableSpan {
 }
 
 /**
+ * Retrieves the SpanId associated with a span.
+ *
+ * @param span - The span.
+ */
+function getSpanId(span: ReadableSpan): SpanId {
+  return span.spanContext().spanId;
+}
+
+/**
  * Checks if a telemetry event (span or log) is a root event.
  *
  * @param event - The telemetry event to check.
@@ -61,7 +70,7 @@ function getEventType(event: ReadableSpan | SdkLogRecord): EventType {
 class TraceEvents {
   // TODO: add unique id mappings to handle idempotency issue with duplicated events of different references
   logs = new Set<SdkLogRecord>();
-  spans = new Set<ReadableSpan>();
+  spans = new Map<SpanId, ReadableSpan>();
   isTraceQueuedForExport = false;
 
   /**
@@ -71,7 +80,7 @@ class TraceEvents {
    */
   add(event: ReadableSpan | SdkLogRecord): void {
     if (isSpan(event)) {
-      this.spans.add(event);
+      this.spans.set(getSpanId(event), event);
     } else {
       this.logs.add(event);
     }
@@ -83,7 +92,9 @@ class TraceEvents {
    * @param event - The telemetry event to check.
    */
   has(event: ReadableSpan | SdkLogRecord): boolean {
-    return isSpan(event) ? this.spans.has(event) : this.logs.has(event);
+    return isSpan(event)
+      ? this.spans.has(getSpanId(event))
+      : this.logs.has(event);
   }
 }
 
@@ -96,6 +107,11 @@ enum EventType {
   ChildSpan,
   ChildLog
 }
+
+/**
+ * Represents the unique identifier for a span, typically a 16-character hexadecimal string.
+ */
+type SpanId = string;
 
 /**
  * Represents the identifier for a telemetry event buffer, which can be a trace ID or a generated UUID.
@@ -238,7 +254,7 @@ export class TelemetryStore {
     for (const key of this._rootTelemetryQueue.getValues()) {
       const item = this._telemetryBufferMap.get(key);
       if (item instanceof TraceEvents) {
-        spans.push(...item.spans);
+        spans.push(...item.spans.values());
       }
     }
     return spans;

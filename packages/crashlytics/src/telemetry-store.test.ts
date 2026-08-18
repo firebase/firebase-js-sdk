@@ -22,12 +22,24 @@ import { SdkLogRecord } from '@opentelemetry/sdk-logs';
 import { SeverityNumber } from '@opentelemetry/api-logs';
 
 describe('TelemetryStore', () => {
+  let spanIdCounter = 0;
+
+  /**
+   * Generates a unique, incrementing span ID for mocking OpenTelemetry spans.
+   */
+  function nextSpanId(): string {
+    return `span-${++spanIdCounter}`;
+  }
+
   /**
    * Helper to create a mock OpenTelemetry parent/root span.
    */
-  function createMockRootSpan(traceId: string): ReadableSpan {
+  function createMockRootSpan(
+    traceId: string,
+    spanId = nextSpanId()
+  ): ReadableSpan {
     return {
-      spanContext: () => ({ traceId }),
+      spanContext: () => ({ traceId, spanId }),
       parentSpanContext: undefined
     } as unknown as ReadableSpan;
   }
@@ -35,9 +47,12 @@ describe('TelemetryStore', () => {
   /**
    * Helper to create a mock OpenTelemetry child span.
    */
-  function createMockChildSpan(traceId: string): ReadableSpan {
+  function createMockChildSpan(
+    traceId: string,
+    spanId = nextSpanId()
+  ): ReadableSpan {
     return {
-      spanContext: () => ({ traceId }),
+      spanContext: () => ({ traceId, spanId }),
       parentSpanContext: { traceId, spanId: 'parent-span-id' }
     } as unknown as ReadableSpan;
   }
@@ -66,6 +81,7 @@ describe('TelemetryStore', () => {
   function setupState({ bufferLimit = 1, queueLimit = 1 } = {}): {
     store: TelemetryStore;
   } {
+    spanIdCounter = 0;
     const store = new TelemetryStore(bufferLimit, queueLimit);
     return { store };
   }
@@ -323,40 +339,40 @@ describe('TelemetryStore', () => {
     });
   });
 
-  describe('Test assumption that events can only be considered the same if they point to the same memory', () => {
-    it('should treat two identical child spans of different memory as different events', () => {
+  describe('Test assertion that duplicated spans will be treated identically while duplicated logs will be treated differently', () => {
+    it('should treat two identical child spans of different memory as the same event', () => {
       const { store } = setupState({ bufferLimit: 4, queueLimit: 2 });
 
       const existingRootSpan = createMockRootSpan('trace-1');
-      const existingChildSpan1 = createMockChildSpan('trace-1');
-      const existingChildSpan2 = createMockChildSpan('trace-1');
-
-      store.add(existingRootSpan);
-      store.add(existingChildSpan1);
-      store.add(existingChildSpan2);
-      store.update(existingRootSpan);
-
-      expect(store.getSpansToExport()).to.have.deep.members([
-        existingRootSpan,
-        existingChildSpan1,
-        existingChildSpan2
-      ]);
-    });
-
-    it('should treat two identical child spans of same memory as same events', () => {
-      const { store } = setupState({ bufferLimit: 4, queueLimit: 2 });
-
-      const existingRootSpan = createMockRootSpan('trace-1');
-      const existingChildSpan = createMockChildSpan('trace-1');
+      const existingChildSpan = createMockChildSpan('trace-1', 'span-2');
+      const ignoredChildSpanCopy = createMockChildSpan('trace-1', 'span-2'); // Struturally identical
 
       store.add(existingRootSpan);
       store.add(existingChildSpan);
-      store.add(existingChildSpan);
+      store.add(ignoredChildSpanCopy);
       store.update(existingRootSpan);
 
       expect(store.getSpansToExport()).to.have.deep.members([
         existingRootSpan,
         existingChildSpan
+      ]);
+    });
+
+    it('should treat two identical child logs of different memory as different events', () => {
+      const { store } = setupState({ bufferLimit: 4, queueLimit: 2 });
+
+      const existingRootSpan = createMockRootSpan('trace-1');
+      const existingChildLog = createMockChildLog('trace-1');
+      const expectedChildLogCopy = createMockChildLog('trace-1'); // Structurally identical
+
+      store.add(existingRootSpan);
+      store.add(existingChildLog);
+      store.add(expectedChildLogCopy);
+      store.update(existingRootSpan);
+
+      expect(store.getLogsToExport()).to.have.deep.members([
+        existingChildLog,
+        expectedChildLogCopy
       ]);
     });
   });
