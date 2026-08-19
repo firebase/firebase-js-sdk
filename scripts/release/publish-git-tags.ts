@@ -48,6 +48,7 @@ async function pushReleaseTagsToGithub() {
         console.log('diff found');
         const tag = `${pkgName}@${json.version}`;
         const tagExists = await exec(`git tag -l ${tag}`);
+        console.log(tag, 'exists');
         if (!tagExists) {
           console.log('going to tag', tag);
           // await exec(`git tag ${tag}`);
