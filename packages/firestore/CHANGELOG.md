@@ -1,5 +1,19 @@
 # @firebase/firestore
 
+## 4.17.1
+
+### Patch Changes
+
+- [`589b24b`](https://github.com/firebase/firebase-js-sdk/commit/589b24bd9b30ba6b07a76da1eb5c3d1eadc5a9d2) [#10293](https://github.com/firebase/firebase-js-sdk/pull/10293) - Updated many top-level `devDependencies`.
+
+- [`2e22761`](https://github.com/firebase/firebase-js-sdk/commit/2e227618ed351ed4242781ee72b01c7fc0c81fa9) [#10250](https://github.com/firebase/firebase-js-sdk/pull/10250) - Fix the cross-database document reference log naming the referenced document rather than the document that contains the reference.
+
+- Updated dependencies [[`589b24b`](https://github.com/firebase/firebase-js-sdk/commit/589b24bd9b30ba6b07a76da1eb5c3d1eadc5a9d2)]:
+  - @firebase/component@0.7.5
+  - @firebase/logger@0.5.2
+  - @firebase/util@1.15.3
+  - @firebase/webchannel-wrapper@1.0.7
+
 ## 4.17.0
 
 ### Minor Changes
