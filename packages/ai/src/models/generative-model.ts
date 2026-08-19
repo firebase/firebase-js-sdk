@@ -275,8 +275,8 @@ export function validateGenerationConfig(
   if (
     (generationConfig.responseSchema != null ||
       generationConfig.responseJsonSchema != null) &&
-    generationConfig.responseMimeType !== 'application/json'&&
-  generationConfig.responseMimeType !== 'text/x.enum'
+    generationConfig.responseMimeType !== 'application/json' &&
+    generationConfig.responseMimeType !== 'text/x.enum'
   ) {
     throw new AIError(
       AIErrorCode.UNSUPPORTED,
