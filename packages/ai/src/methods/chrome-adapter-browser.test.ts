@@ -267,7 +267,10 @@ describe('ChromeAdapter', () => {
               role: 'user',
               parts: [
                 {
-                  functionResponse: {name: 'greet', response: {name: 'user'}}
+                  functionResponse: {
+                    name: 'greet',
+                    response: { name: 'user' }
+                  }
                 }
               ]
             }
