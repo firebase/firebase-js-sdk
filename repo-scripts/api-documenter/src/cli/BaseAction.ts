@@ -26,7 +26,8 @@ import {
   CommandLineAction,
   CommandLineFlagParameter,
   CommandLineStringListParameter,
-  CommandLineStringParameter
+  CommandLineStringParameter,
+  ICommandLineActionOptions
 } from '@rushstack/ts-command-line';
 import { FileSystem } from '@rushstack/node-core-library';
 import {
@@ -47,14 +48,15 @@ export interface IBuildApiModelResult {
 }
 
 export abstract class BaseAction extends CommandLineAction {
-  private _inputFolderParameter!: CommandLineStringParameter;
-  private _outputFolderParameter!: CommandLineStringParameter;
-  private _fileNameSuffixParameter!: CommandLineFlagParameter;
-  private _projectNameParameter!: CommandLineStringParameter;
-  private _filenameMappingsParameter!: CommandLineStringListParameter;
+  private _inputFolderParameter: CommandLineStringParameter;
+  private _outputFolderParameter: CommandLineStringParameter;
+  private _fileNameSuffixParameter: CommandLineFlagParameter;
+  private _projectNameParameter: CommandLineStringParameter;
+  private _filenameMappingsParameter: CommandLineStringListParameter;
 
-  protected onDefineParameters(): void {
-    // override
+  public constructor(options: ICommandLineActionOptions) {
+    super(options);
+
     this._inputFolderParameter = this.defineStringParameter({
       parameterLongName: '--input-folder',
       parameterShortName: '-i',

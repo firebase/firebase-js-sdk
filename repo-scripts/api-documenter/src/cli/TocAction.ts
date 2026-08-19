@@ -24,18 +24,14 @@ import { BaseAction } from './BaseAction';
 import { generateToc } from '../toc';
 
 export class TocAction extends BaseAction {
-  private _g3PathParameter!: CommandLineStringParameter;
-  private _jsSDKParameter!: CommandLineFlagParameter;
+  private _g3PathParameter: CommandLineStringParameter;
+  private _jsSDKParameter: CommandLineFlagParameter;
   public constructor(parser: ApiDocumenterCommandLine) {
     super({
       actionName: 'toc',
       summary: 'Generate TOC(table of content) for Firebase devsite.',
       documentation: 'Generate TOC(table of content) for Firebase devsite.'
     });
-  }
-
-  protected onDefineParameters(): void {
-    super.onDefineParameters();
 
     this._g3PathParameter = this.defineStringParameter({
       parameterLongName: '--host-path',
@@ -54,7 +50,7 @@ export class TocAction extends BaseAction {
     });
   }
 
-  protected async onExecute(): Promise<void> {
+  protected async onExecuteAsync(): Promise<void> {
     // override
     const { apiModel, outputFolder, addFileNameSuffix, filenameMappings } =
       this.buildApiModel();

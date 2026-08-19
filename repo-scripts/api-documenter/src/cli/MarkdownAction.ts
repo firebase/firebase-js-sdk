@@ -24,7 +24,7 @@ import { MarkdownDocumenter } from '../documenters/MarkdownDocumenter';
 import { CommandLineStringParameter } from '@rushstack/ts-command-line';
 
 export class MarkdownAction extends BaseAction {
-  private _sortFunctions!: CommandLineStringParameter;
+  private _sortFunctions: CommandLineStringParameter;
   public constructor(parser: ApiDocumenterCommandLine) {
     super({
       actionName: 'markdown',
@@ -33,10 +33,6 @@ export class MarkdownAction extends BaseAction {
         'Generates API documentation as a collection of files in' +
         ' Markdown format, suitable for example for publishing on a GitHub site.'
     });
-  }
-
-  protected onDefineParameters(): void {
-    super.onDefineParameters();
 
     this._sortFunctions = this.defineStringParameter({
       parameterLongName: '--sort-functions',
@@ -48,7 +44,7 @@ export class MarkdownAction extends BaseAction {
     });
   }
 
-  protected async onExecute(): Promise<void> {
+  protected async onExecuteAsync(): Promise<void> {
     // override
     const {
       apiModel,
