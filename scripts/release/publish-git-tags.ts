@@ -18,27 +18,35 @@
 import { exec } from 'child-process-promise';
 import { projectRoot } from '../utils';
 import { join } from 'path';
-import { existsSync, readdirSync } from 'fs';
+import { existsSync, readdirSync, readFileSync } from 'fs';
 
-async function createTags(currentBranch: string) {
-  let tags = [];
+async function createTags(): Promise<string[]> {
+  const tags: string[] = [];
   const dirs = readdirSync(join(projectRoot, 'packages'));
   for (const dir of dirs) {
-    const pkgPath = join('packages', dir, 'package.json');
-    if (existsSync(pkgPath)) {
-      const { stdout: mainText } = await exec(`git show main:${pkgPath}`);
-      const mainJson = JSON.parse(mainText);
-      const { stdout: releaseText } = await exec(
-        `git show ${currentBranch}:${pkgPath}`
-      );
-      const releaseJson = JSON.parse(releaseText);
+    const fullPkgPath = join(projectRoot, 'packages', dir, 'package.json');
+    if (existsSync(fullPkgPath)) {
+      const pkgPath = join('packages', dir, 'package.json');
+      let mainJson: Record<string, any> = {};
+      try {
+        const { stdout: mainText } = await exec(
+          `git show origin/main:${pkgPath}`,
+          { cwd: projectRoot }
+        );
+        mainJson = JSON.parse(mainText);
+      } catch {
+        mainJson = {};
+      }
+      const releaseJson = JSON.parse(readFileSync(fullPkgPath, 'utf8'));
       if (!releaseJson.private && mainJson.version !== releaseJson.version) {
         const tag = `${releaseJson.name}@${releaseJson.version}`;
-        const { stdout: tagExistOutput } = await exec(`git tag -l ${tag}`);
+        const { stdout: tagExistOutput } = await exec(`git tag -l ${tag}`, {
+          cwd: projectRoot
+        });
         if (!tagExistOutput.trim()) {
           console.log(`Adding tag: ${tag}`);
           tags.push(tag);
-          await exec(`git tag ${tag}`);
+          await exec(`git tag ${tag}`, { cwd: projectRoot });
         }
       }
     }
@@ -48,23 +56,34 @@ async function createTags(currentBranch: string) {
 
 async function pushReleaseTagsToGithub() {
   let tags: string[] = [];
-  let { stdout: currentBranch } = await exec(`git rev-parse --abbrev-ref HEAD`);
+  let { stdout: currentBranch } = await exec(
+    `git rev-parse --abbrev-ref HEAD`,
+    {
+      cwd: projectRoot
+    }
+  );
   currentBranch = currentBranch.trim();
 
   // Get tags pointing to HEAD
   // When running the release script, these tags should be release tags created by changeset
-  const { stdout: rawTags } = await exec(`git tag --points-at HEAD`);
+  const { stdout: rawTags } = await exec(`git tag --points-at HEAD`, {
+    cwd: projectRoot
+  });
 
   if (rawTags.trim()) {
-    tags = rawTags.split(/\r?\n/);
+    tags = rawTags.trim().split(/\r?\n/).filter(Boolean);
   } else {
+    // This can happen if the workflow was interrupted but the npm publish was partially
+    // or entirely complete, so the git tags will not be regenerated on the second
+    // run. In this case, diff against origin/main package.jsons to see which packages had
+    // version bumps and require new tags, and create them.
     console.log(
-      'No tags found pointing to HEAD. Diffing tags in this branch vs main.'
+      'No tags found pointing to HEAD. Diffing tags in this branch vs origin/main.'
     );
-    tags = await createTags(currentBranch);
+    tags = await createTags();
   }
 
-  if (!tags) {
+  if (!tags || tags.length === 0) {
     console.error('No tags found or added. Exiting.');
     process.exit(1);
   }
