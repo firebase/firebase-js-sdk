@@ -16,13 +16,41 @@
  */
 
 import { exec } from 'child-process-promise';
-import { projectRoot as root } from '../utils';
-import { getAllPackages, mapPkgNameToPkgJson } from './utils/workspace';
+import { projectRoot } from '../utils';
+import { join } from 'path';
+import { existsSync, readdirSync } from 'fs';
+
+async function createTags(currentBranch: string) {
+  let tags = [];
+  const dirs = readdirSync(join(projectRoot, 'packages'));
+  for (const dir of dirs) {
+    const pkgPath = join('packages', dir, 'package.json');
+    if (existsSync(pkgPath)) {
+      const { stdout: mainText } = await exec(`git show main:${pkgPath}`);
+      const mainJson = JSON.parse(mainText);
+      const { stdout: releaseText } = await exec(
+        `git show ${currentBranch}:${pkgPath}`
+      );
+      const releaseJson = JSON.parse(releaseText);
+      if (!releaseJson.private && mainJson.version !== releaseJson.version) {
+        const tag = `${releaseJson.name}@${releaseJson.version}`;
+        const { stdout: tagExistOutput } = await exec(`git tag -l ${tag}`);
+        if (!tagExistOutput.trim()) {
+          console.log(`Adding tag: ${tag}`);
+          tags.push(tag);
+          await exec(`git tag ${tag}`);
+        }
+      }
+    }
+  }
+  return tags;
+}
 
 async function pushReleaseTagsToGithub() {
-  let tags;
+  let tags: string[] = [];
   let { stdout: currentBranch } = await exec(`git rev-parse --abbrev-ref HEAD`);
   currentBranch = currentBranch.trim();
+
   // Get tags pointing to HEAD
   // When running the release script, these tags should be release tags created by changeset
   const { stdout: rawTags } = await exec(`git tag --points-at HEAD`);
@@ -33,28 +61,12 @@ async function pushReleaseTagsToGithub() {
     console.log(
       'No tags found pointing to HEAD. Diffing tags in this branch vs main.'
     );
-    const pkgNames = await getAllPackages();
-    const mainVersions = new Map();
-    await exec('git checkout main');
-    await exec('git pull origin main');
-    for (const pkgName of pkgNames) {
-      const json = await mapPkgNameToPkgJson(pkgName);
-      mainVersions.set(pkgName, json.version);
-    }
-    await exec(`git checkout ${currentBranch}`);
-    for (const pkgName of pkgNames) {
-      const json = await mapPkgNameToPkgJson(pkgName);
-      if (mainVersions.get(pkgName) !== json.version) {
-        console.log('diff found');
-        const tag = `${pkgName}@${json.version}`;
-        const tagExists = await exec(`git tag -l ${tag}`);
-        console.log(tag, 'exists');
-        if (!tagExists) {
-          console.log('going to tag', tag);
-          // await exec(`git tag ${tag}`);
-        }
-      }
-    }
+    tags = await createTags(currentBranch);
+  }
+
+  if (!tags) {
+    console.error('No tags found or added. Exiting.');
+    process.exit(1);
   }
 
   const token = process.env.GITHUB_TOKEN;
@@ -63,17 +75,17 @@ async function pushReleaseTagsToGithub() {
     process.exit(1);
   }
 
-  // const authHeader = Buffer.from(`x-access-token:${token}`).toString('base64');
+  const authHeader = Buffer.from(`x-access-token:${token}`).toString('base64');
 
-  // await exec(
-  //   'git -c http.extraHeader="Authorization: Basic ' +
-  //     authHeader +
-  //     '"' +
-  //     ` push origin ${currentBranch} ${tags.join(' ')} --no-verify`,
-  //   {
-  //     cwd: root
-  //   }
-  // );
+  await exec(
+    'git -c http.extraHeader="Authorization: Basic ' +
+      authHeader +
+      '"' +
+      ` push origin ${currentBranch} ${tags.join(' ')} --no-verify`,
+    {
+      cwd: projectRoot
+    }
+  );
 }
 
 pushReleaseTagsToGithub();
