@@ -557,4 +557,81 @@ describe('Database@exp Tests', () => {
     expect(latestValue).to.equal(2);
     unsubscribe();
   });
+
+  it('rejects the transaction promise when a rerun produces invalid data', async () => {
+    // Repro for https://github.com/firebase/firebase-js-sdk/issues/7919
+    // The first run sees an empty (not-yet-loaded) cache and returns valid
+    // data, so the transaction is queued. When the server value arrives the
+    // transaction is rerun from a data-update callback, and this time the
+    // update function produces NaN. That validation failure used to be thrown
+    // out of the event loop, leaving the returned promise forever pending.
+    const database = getDatabase(defaultApp);
+    const { readerRef, writerRef } = getRWRefs(database);
+
+    await set(writerRef, { counter: { nested: 1 } });
+
+    await expect(
+      runTransaction(readerRef, current => {
+        if (current === null) {
+          // Force the transaction to be queued and later rerun.
+          return { counter: 0 };
+        }
+        // `current.counter` is an object here, so this yields NaN.
+        return { counter: current.counter - 1 };
+      })
+    ).to.be.rejectedWith(/NaN/);
+  });
+
+  it('rejects the transaction promise when the update function throws', async () => {
+    // Repro for https://github.com/firebase/firebase-js-sdk/issues/7919
+    const database = getDatabase(defaultApp);
+    const { readerRef, writerRef } = getRWRefs(database);
+
+    await set(writerRef, { counter: 1 });
+
+    await expect(
+      runTransaction(readerRef, current => {
+        if (current === null) {
+          return { counter: 0 };
+        }
+        throw new Error('boom from update function');
+      })
+    ).to.be.rejectedWith('boom from update function');
+  });
+
+  it('rejects the transaction promise when the first run throws', async () => {
+    // Repro for https://github.com/firebase/firebase-js-sdk/issues/7919
+    // The initial run happens synchronously inside runTransaction(), so this
+    // error used to be thrown rather than delivered through the returned
+    // promise.
+    const database = getDatabase(defaultApp);
+    const { readerRef } = getRWRefs(database);
+
+    await expect(
+      runTransaction(readerRef, () => {
+        throw new Error('boom on first run');
+      })
+    ).to.be.rejectedWith('boom on first run');
+  });
+
+  it('surfaces a first-run failure to .catch() rather than throwing', async () => {
+    // Repro for https://github.com/firebase/firebase-js-sdk/issues/7919
+    // `runTransaction` is documented to return a Promise, so a caller using
+    // .catch() instead of try/catch must still be able to observe the error.
+    const database = getDatabase(defaultApp);
+    const { readerRef } = getRWRefs(database);
+
+    let caught: Error | null = null;
+    // Deliberately not wrapped in try/catch: a synchronous throw here would
+    // fail the test.
+    await runTransaction(readerRef, () => {
+      // NaN is rejected by validateFirebaseData during the initial run.
+      return { counter: NaN };
+    }).catch(e => {
+      caught = e;
+    });
+
+    expect(caught).to.be.an('error');
+    expect(caught!.message).to.match(/NaN/);
+  });
 });

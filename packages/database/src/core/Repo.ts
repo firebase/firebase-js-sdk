@@ -964,7 +964,15 @@ export function repoStartTransaction(
   // Run transaction initially.
   const currentState = repoGetLatestState(repo, path, undefined);
   transaction.currentInputSnapshot = currentState;
-  const newVal = transaction.update(currentState.val());
+  let newVal;
+  try {
+    newVal = transaction.update(currentState.val());
+  } catch (e) {
+    // The update function threw before the transaction was queued, so nothing
+    // will ever clean up the .on() listener we registered for it.
+    transaction.unwatcher();
+    throw e;
+  }
   if (newVal === undefined) {
     // Abort transaction.
     transaction.unwatcher();
@@ -974,11 +982,18 @@ export function repoStartTransaction(
       transaction.onComplete(null, false, transaction.currentInputSnapshot);
     }
   } else {
-    validateFirebaseData(
-      'transaction failed: Data returned ',
-      newVal,
-      transaction.path
-    );
+    try {
+      validateFirebaseData(
+        'transaction failed: Data returned ',
+        newVal,
+        transaction.path
+      );
+    } catch (e) {
+      // Same as above: the transaction never made it onto the queue, so clean
+      // up its listener before surfacing the error to the caller.
+      transaction.unwatcher();
+      throw e;
+    }
 
     // Mark as run and add to our queue.
     transaction.status = TransactionStatus.RUN;
@@ -1257,7 +1272,8 @@ function repoRerunTransactionQueue(
     const transaction = queue[i];
     const relativePath = newRelativePath(path, transaction.path);
     let abortTransaction = false,
-      abortReason;
+      abortReason,
+      abortError: Error | null = null;
     assert(
       relativePath !== null,
       'rerunTransactionsUnderNode_: relativePath should not be null.'
@@ -1292,13 +1308,37 @@ function repoRerunTransactionQueue(
           setsToIgnore
         );
         transaction.currentInputSnapshot = currentNode;
-        const newData = queue[i].update(currentNode.val());
-        if (newData !== undefined) {
-          validateFirebaseData(
-            'transaction failed: Data returned ',
-            newData,
-            transaction.path
+
+        // The update function is user code, and validateFirebaseData() rejects
+        // values we can't write (NaN, Infinity, invalid keys, ...). Both run
+        // inside a server-event callback, so letting them throw from here
+        // surfaces as an uncaught exception and leaves the promise returned by
+        // runTransaction() pending forever. Abort the transaction and report
+        // the error through onComplete instead.
+        let newData;
+        try {
+          newData = queue[i].update(currentNode.val());
+          if (newData !== undefined) {
+            validateFirebaseData(
+              'transaction failed: Data returned ',
+              newData,
+              transaction.path
+            );
+          }
+        } catch (e) {
+          abortTransaction = true;
+          abortError = e as Error;
+        }
+
+        if (abortTransaction) {
+          events = events.concat(
+            syncTreeAckUserWrite(
+              repo.serverSyncTree_,
+              transaction.currentWriteId,
+              true
+            )
           );
+        } else if (newData !== undefined) {
           let newDataNode = nodeFromJSON(newData);
           const hasExplicitPriority =
             typeof newData === 'object' &&
@@ -1361,7 +1401,11 @@ function repoRerunTransactionQueue(
       })(queue[i].unwatcher);
 
       if (queue[i].onComplete) {
-        if (abortReason === 'nodata') {
+        if (abortError) {
+          // Preserve the original error (and its stack) from the update
+          // function or from data validation.
+          callbacks.push(() => queue[i].onComplete(abortError, false, null));
+        } else if (abortReason === 'nodata') {
           callbacks.push(() =>
             queue[i].onComplete(null, false, queue[i].currentInputSnapshot)
           );

@@ -131,14 +131,23 @@ export function runTransaction(
   // Add a watch to make sure we get server updates.
   const unwatcher = onValue(ref, () => {});
 
-  repoStartTransaction(
-    ref._repo,
-    ref._path,
-    transactionUpdate,
-    promiseComplete,
-    unwatcher,
-    applyLocally
-  );
+  try {
+    repoStartTransaction(
+      ref._repo,
+      ref._path,
+      transactionUpdate,
+      promiseComplete,
+      unwatcher,
+      applyLocally
+    );
+  } catch (e) {
+    // The initial run happens synchronously, so an error raised by the update
+    // function (or by validation of the data it returned) used to be thrown
+    // out of runTransaction() instead of rejecting the promise it returns.
+    // That made `runTransaction(...).catch(...)` unable to observe it. Report
+    // it through the same promise as every other transaction failure.
+    deferred.reject(e as Error);
+  }
 
   return deferred.promise;
 }
