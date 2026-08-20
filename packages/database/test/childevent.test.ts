@@ -59,14 +59,21 @@ describe('Child event snapshots', () => {
   /**
    * Resolves with the first snapshot delivered to a child_added listener on
    * `q`, then unsubscribes.
+   *
+   * The listener is torn down from `finally` rather than from inside the
+   * callback: `onChildAdded` dispatches synchronously when the location is
+   * already cached, and in that case the callback runs before `unsubscribe`
+   * has been bound.
    */
-  function firstChildAdded(q: Query): Promise<DataSnapshot> {
-    return new Promise<DataSnapshot>(resolve => {
-      const unsubscribe = onChildAdded(q, snapshot => {
-        unsubscribe();
-        resolve(snapshot);
+  async function firstChildAdded(q: Query): Promise<DataSnapshot> {
+    let unsubscribe: (() => void) | undefined;
+    try {
+      return await new Promise<DataSnapshot>(resolve => {
+        unsubscribe = onChildAdded(q, snapshot => resolve(snapshot));
       });
-    });
+    } finally {
+      unsubscribe?.();
+    }
   }
 
   /** Applies a write to the local cache without waiting for a server ack. */
