@@ -56,7 +56,7 @@ export function formatNewContent(
 }
 
 /**
- * Validates the parts of a message to ensure that FunctionResponseParts 
+ * Validates the parts of a message to ensure that FunctionResponseParts
  * are not mixed with other part types in a single request.
  * All parts are now assigned the 'user' role to comply with 3.6+ model requirements.
  * @private
