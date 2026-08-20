@@ -56,7 +56,7 @@
   "devDependencies": {
     "@firebase/app": "0.16.1",
     "@firebase/auth": "1.13.5",
-    "rollup": "4.62.2",
+    "rollup": "4.62.5",
     "@rollup/plugin-alias": "5.1.1",
     "@rollup/plugin-json": "6.1.0",
     "rollup-plugin-typescript2": "0.37.0",
