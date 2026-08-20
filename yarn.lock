@@ -5567,6 +5567,19 @@ chrome-trace-event@^1.0.2:
   resolved "https://registry.npmjs.org/chrome-trace-event/-/chrome-trace-event-1.0.4.tgz#05bffd7ff928465093314708c93bdfa9bd1f0f5b"
   integrity sha512-rNjApaLzuwaOTjCiT8lSDdGN1APCiqkChLMJxJPWLunPAt5fy8xgU9/jNOchV84wfIxrA0lRQB7oCT8jrn/wrQ==
 
+chromedriver@150.0.4:
+  version "150.0.4"
+  resolved "https://registry.npmjs.org/chromedriver/-/chromedriver-150.0.4.tgz#c75f3da26fd803ddeae6183eeaadc8f3e48047b9"
+  integrity sha512-Yg2oXBONi1mqAMOG2ybwUneSvxIn04NF4qNAJ+yGO2H7WwX1WYLGQRHVHsbySEjIuqIyDmS1ZfAw6p0wtl43zQ==
+  dependencies:
+    "@testim/chrome-version" "^1.1.4"
+    adm-zip "^0.5.18"
+    axios "^1.18.1"
+    compare-versions "^6.1.1"
+    proxy-agent "^8.0.2"
+    proxy-from-env "^2.1.0"
+    tcp-port-used "^1.0.3"
+
 chromedriver@151.0.5:
   version "151.0.5"
   resolved "https://registry.npmjs.org/chromedriver/-/chromedriver-151.0.5.tgz#7f37789c5f41c498b24fa07627e364a42d0210a6"
@@ -5575,19 +5588,6 @@ chromedriver@151.0.5:
     "@testim/chrome-version" "^1.1.4"
     adm-zip "^0.6.0"
     axios "^1.19.0"
-    compare-versions "^6.1.1"
-    proxy-agent "^8.0.2"
-    proxy-from-env "^2.1.0"
-    tcp-port-used "^1.0.3"
-
-chromedriver@^150.0.0:
-  version "150.0.4"
-  resolved "https://registry.npmjs.org/chromedriver/-/chromedriver-150.0.4.tgz#c75f3da26fd803ddeae6183eeaadc8f3e48047b9"
-  integrity sha512-Yg2oXBONi1mqAMOG2ybwUneSvxIn04NF4qNAJ+yGO2H7WwX1WYLGQRHVHsbySEjIuqIyDmS1ZfAw6p0wtl43zQ==
-  dependencies:
-    "@testim/chrome-version" "^1.1.4"
-    adm-zip "^0.5.18"
-    axios "^1.18.1"
     compare-versions "^6.1.1"
     proxy-agent "^8.0.2"
     proxy-from-env "^2.1.0"
