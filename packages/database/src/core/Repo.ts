@@ -982,12 +982,35 @@ export function repoStartTransaction(
       transaction.onComplete(null, false, transaction.currentInputSnapshot);
     }
   } else {
+    // Validate everything before the transaction is queued below. An error
+    // raised after queueing would leave a transaction stranded in the queue in
+    // RUN status, where a later server update could rerun it.
+    let priorityForNode;
     try {
       validateFirebaseData(
         'transaction failed: Data returned ',
         newVal,
         transaction.path
       );
+
+      if (
+        typeof newVal === 'object' &&
+        newVal !== null &&
+        contains(newVal, '.priority')
+      ) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        priorityForNode = safeGet(newVal as any, '.priority');
+        assert(
+          isValidPriority(priorityForNode),
+          'Invalid priority returned by transaction. ' +
+            'Priority must be a valid string, finite number, server value, or null.'
+        );
+      } else {
+        const currentNode =
+          syncTreeCalcCompleteEventCache(repo.serverSyncTree_, path) ||
+          ChildrenNode.EMPTY_NODE;
+        priorityForNode = currentNode.getPriority().val();
+      }
     } catch (e) {
       // Same as above: the transaction never made it onto the queue, so clean
       // up its listener before surfacing the error to the caller.
@@ -1007,26 +1030,6 @@ export function repoStartTransaction(
     // Note: We intentionally raise events after updating all of our
     // transaction state, since the user could start new transactions from the
     // event callbacks.
-    let priorityForNode;
-    if (
-      typeof newVal === 'object' &&
-      newVal !== null &&
-      contains(newVal, '.priority')
-    ) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      priorityForNode = safeGet(newVal as any, '.priority');
-      assert(
-        isValidPriority(priorityForNode),
-        'Invalid priority returned by transaction. ' +
-          'Priority must be a valid string, finite number, server value, or null.'
-      );
-    } else {
-      const currentNode =
-        syncTreeCalcCompleteEventCache(repo.serverSyncTree_, path) ||
-        ChildrenNode.EMPTY_NODE;
-      priorityForNode = currentNode.getPriority().val();
-    }
-
     const serverValues = repoGenerateServerValues(repo);
     const newNodeUnresolved = nodeFromJSON(newVal, priorityForNode);
     const newNode = resolveDeferredValueSnapshot(

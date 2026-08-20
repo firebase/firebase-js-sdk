@@ -146,6 +146,12 @@ export function runTransaction(
     // out of runTransaction() instead of rejecting the promise it returns.
     // That made `runTransaction(...).catch(...)` unable to observe it. Report
     // it through the same promise as every other transaction failure.
+    //
+    // repoStartTransaction() already unwatches before it rethrows, but call it
+    // again for anything that escapes from outside those try blocks. Removing
+    // an event registration twice is a no-op, since the second removal finds
+    // no matching callback.
+    unwatcher();
     deferred.reject(e as Error);
   }
 

@@ -653,4 +653,32 @@ describe('Database@exp Tests', () => {
       })
     ).to.be.rejectedWith(/[Ii]nvalid priority/);
   });
+
+  it('does not queue a transaction whose first run returns an invalid priority', async () => {
+    // Repro for https://github.com/firebase/firebase-js-sdk/issues/7919
+    // The priority used to be validated after the transaction had already been
+    // pushed onto the queue, so the error left a stranded entry behind in RUN
+    // status that a later server update would try to rerun.
+    const database = getDatabase(defaultApp);
+    const { readerRef } = getRWRefs(database);
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const countQueued = (node: any): number => {
+      let total = node.value ? node.value.length : 0;
+      for (const key of Object.keys(node.children)) {
+        total += countQueued(node.children[key]);
+      }
+      return total;
+    };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const queueRoot = () => (readerRef._repo as any).transactionQueueTree_.node;
+
+    expect(countQueued(queueRoot())).to.equal(0);
+
+    await expect(
+      runTransaction(readerRef, () => ({ counter: 5, '.priority': {} }))
+    ).to.be.rejectedWith(/[Ii]nvalid priority/);
+
+    expect(countQueued(queueRoot())).to.equal(0);
+  });
 });
