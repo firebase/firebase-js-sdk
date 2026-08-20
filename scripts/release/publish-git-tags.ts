@@ -19,8 +19,33 @@ import { exec } from 'child-process-promise';
 import { projectRoot } from '../utils';
 import { join } from 'path';
 import { existsSync, readdirSync, readFileSync } from 'fs';
+import * as yargs from 'yargs';
 
-async function createTags(): Promise<string[]> {
+const argv = yargs
+  .options({
+    dryRun: {
+      type: 'boolean',
+      default: false,
+      desc: 'Log tags to be created and pushed without creating tags or pushing anywhere.'
+    }
+  })
+  .parseSync();
+
+async function createTags(dryRun: boolean): Promise<string[]> {
+  try {
+    await exec('git rev-parse --verify origin/main', { cwd: projectRoot });
+  } catch {
+    try {
+      console.log('origin/main not found locally. Fetching...');
+      await exec('git fetch origin main --depth=1', { cwd: projectRoot });
+    } catch (err) {
+      throw new Error(
+        'Unable to resolve origin/main and failed to fetch it. Aborting to prevent incorrect tagging. Error: ' +
+          err
+      );
+    }
+  }
+
   const tags: string[] = [];
   const dirs = readdirSync(join(projectRoot, 'packages'));
   for (const dir of dirs) {
@@ -38,7 +63,11 @@ async function createTags(): Promise<string[]> {
         mainJson = {};
       }
       const releaseJson = JSON.parse(readFileSync(fullPkgPath, 'utf8'));
-      if (!releaseJson.private && mainJson.version !== releaseJson.version) {
+      if (
+        !releaseJson.private &&
+        releaseJson.version &&
+        mainJson.version !== releaseJson.version
+      ) {
         const tag = `${releaseJson.name}@${releaseJson.version}`;
         const { stdout: tagExistOutput } = await exec(`git tag -l ${tag}`, {
           cwd: projectRoot
@@ -46,7 +75,9 @@ async function createTags(): Promise<string[]> {
         if (!tagExistOutput.trim()) {
           console.log(`Adding tag: ${tag}`);
           tags.push(tag);
-          await exec(`git tag ${tag}`, { cwd: projectRoot });
+          if (!dryRun) {
+            await exec(`git tag ${tag}`, { cwd: projectRoot });
+          }
         }
       }
     }
@@ -55,6 +86,11 @@ async function createTags(): Promise<string[]> {
 }
 
 async function pushReleaseTagsToGithub() {
+  const dryRun = argv.dryRun;
+  if (dryRun) {
+    console.log('Running in dry-run mode. No tags will be created or pushed.');
+  }
+
   let tags: string[] = [];
   let { stdout: currentBranch } = await exec(
     `git rev-parse --abbrev-ref HEAD`,
@@ -63,6 +99,13 @@ async function pushReleaseTagsToGithub() {
     }
   );
   currentBranch = currentBranch.trim();
+
+  // Fetch tags from remote to ensure we have the latest tags locally
+  try {
+    await exec('git fetch origin --tags', { cwd: projectRoot });
+  } catch (err) {
+    console.warn('Warning: Failed to fetch tags from origin.', err);
+  }
 
   // Get tags pointing to HEAD
   // When running the release script, these tags should be release tags created by changeset
@@ -80,12 +123,20 @@ async function pushReleaseTagsToGithub() {
     console.log(
       'No tags found pointing to HEAD. Diffing tags in this branch vs origin/main.'
     );
-    tags = await createTags();
+    tags = await createTags(dryRun);
   }
 
   if (!tags || tags.length === 0) {
     console.error('No tags found or added. Exiting.');
     process.exit(1);
+  }
+
+  if (dryRun) {
+    console.log(
+      `[DRY RUN] Would push branch '${currentBranch}' and tags to origin:`
+    );
+    console.log(tags.join('\n'));
+    return;
   }
 
   const token = process.env.GITHUB_TOKEN;
