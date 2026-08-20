@@ -37,7 +37,12 @@ async function createTags(dryRun: boolean): Promise<string[]> {
   } catch {
     try {
       console.log('origin/main not found locally. Fetching...');
-      await exec('git fetch origin main --depth=1', { cwd: projectRoot });
+      // Fetch only the latest commit of main and explicitly map it to
+      // refs/remotes/origin/main so git show origin/main:<pkgPath> can resolve it.
+      await exec('git fetch origin main:refs/remotes/origin/main --depth=1', {
+        cwd: projectRoot
+      });
+      await exec('git rev-parse --verify origin/main', { cwd: projectRoot });
     } catch (err) {
       throw new Error(
         'Unable to resolve origin/main and failed to fetch it. Error: ' + err
