@@ -73,12 +73,12 @@ async function createTags(dryRun: boolean): Promise<string[]> {
         mainJson.version !== releaseJson.version
       ) {
         const tag = `${releaseJson.name}@${releaseJson.version}`;
-        tags.push(tag);
         const { stdout: tagExistOutput } = await exec(`git tag -l ${tag}`, {
           cwd: projectRoot
         });
         if (!tagExistOutput.trim()) {
           console.log(`Adding tag: ${tag}`);
+          tags.push(tag);
           if (!dryRun) {
             await exec(`git tag ${tag}`, { cwd: projectRoot });
           }
@@ -110,11 +110,11 @@ async function pushReleaseTagsToGithub() {
     console.warn('Warning: Failed to fetch tags from origin.', err);
   }
 
-  console.log('Diffing tags in this branch vs origin/main.');
+  console.log('Diffing versions in this branch vs origin/main.');
   const tags = await createTags(dryRun);
 
-  if (!tags || tags.length === 0) {
-    console.error('No tags found or added. Exiting.');
+  if (tags.length === 0) {
+    console.error('No tags added. Exiting.');
     process.exit(1);
   }
 
