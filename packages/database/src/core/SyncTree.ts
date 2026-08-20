@@ -38,7 +38,7 @@ import {
   syncPointGetCompleteServerCache,
   syncPointGetCompleteView,
   syncPointGetQueryViews,
-  syncPointGetView,
+  syncPointGetOrCreateView,
   syncPointHasCompleteView,
   syncPointIsEmpty,
   syncPointRemoveEventRegistration,
@@ -641,13 +641,13 @@ export function syncTreeGetServerValue(
   }
   const serverCacheComplete = serverCache != null;
   const serverCacheNode: CacheNode | null = serverCacheComplete
-    ? new CacheNode(serverCache, true, false)
+    ? new CacheNode(serverCache, true, undefined)
     : null;
   const writesCache: WriteTreeRef | null = writeTreeChildWrites(
     syncTree.pendingWriteTree_,
     query._path
   );
-  const view: View = syncPointGetView(
+  const view: View = syncPointGetOrCreateView(
     syncPoint,
     query,
     writesCache,
