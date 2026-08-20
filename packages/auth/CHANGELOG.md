@@ -1,5 +1,18 @@
 # @firebase/auth
 
+## 1.13.5
+
+### Patch Changes
+
+- [`589b24b`](https://github.com/firebase/firebase-js-sdk/commit/589b24bd9b30ba6b07a76da1eb5c3d1eadc5a9d2) [#10293](https://github.com/firebase/firebase-js-sdk/pull/10293) - Updated many top-level `devDependencies`.
+
+- [`44d336b`](https://github.com/firebase/firebase-js-sdk/commit/44d336bbe7bc52ff1c62e6721f44a441479c0169) [#10300](https://github.com/firebase/firebase-js-sdk/pull/10300) (fixes [#10264](https://github.com/firebase/firebase-js-sdk/issues/10264)) - Fix issue where `signInWithPopup` and other background tab operations fail with "Database is closing/hidden" by removing the `visibilitychange` listener from `IndexedDBLocalPersistence`.
+
+- Updated dependencies [[`589b24b`](https://github.com/firebase/firebase-js-sdk/commit/589b24bd9b30ba6b07a76da1eb5c3d1eadc5a9d2)]:
+  - @firebase/component@0.7.5
+  - @firebase/logger@0.5.2
+  - @firebase/util@1.15.3
+
 ## 1.13.4
 
 ### Patch Changes

@@ -1,5 +1,18 @@
 # @firebase/app-check
 
+## 0.13.1
+
+### Patch Changes
+
+- [`d80fb9a`](https://github.com/firebase/firebase-js-sdk/commit/d80fb9aac00722f209f94ea2dddba7427db81c0f) [#10262](https://github.com/firebase/firebase-js-sdk/pull/10262) - Updated App Check debug token log message to include Firebase CLI commands, Firebase Console registration link, and debug token guide.
+
+- [`589b24b`](https://github.com/firebase/firebase-js-sdk/commit/589b24bd9b30ba6b07a76da1eb5c3d1eadc5a9d2) [#10293](https://github.com/firebase/firebase-js-sdk/pull/10293) - Updated many top-level `devDependencies`.
+
+- Updated dependencies [[`589b24b`](https://github.com/firebase/firebase-js-sdk/commit/589b24bd9b30ba6b07a76da1eb5c3d1eadc5a9d2)]:
+  - @firebase/component@0.7.5
+  - @firebase/logger@0.5.2
+  - @firebase/util@1.15.3
+
 ## 0.13.0
 
 ### Minor Changes
