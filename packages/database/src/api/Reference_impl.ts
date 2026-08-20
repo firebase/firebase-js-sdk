@@ -915,11 +915,15 @@ export class ChildEventRegistration implements EventRegistration {
       new ReferenceImpl(query._repo, query._path),
       change.childName
     );
-    const index = query._queryParams.getIndex();
+    // The query's index orders the children of the queried location, not the
+    // children of an individual child. `change.snapshotNode` is one of those
+    // children, so it is indexed by priority like any other nested snapshot --
+    // using the query index here would make `forEach()` look up an index that
+    // the child node does not maintain.
     return new DataEvent(
       change.type as EventType,
       this,
-      new DataSnapshot(change.snapshotNode, childRef, index),
+      new DataSnapshot(change.snapshotNode, childRef, PRIORITY_INDEX),
       change.prevName
     );
   }
