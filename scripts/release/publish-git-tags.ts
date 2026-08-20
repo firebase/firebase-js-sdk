@@ -40,8 +40,8 @@ async function createTags(dryRun: boolean): Promise<string[]> {
       await exec('git fetch origin main --depth=1', { cwd: projectRoot });
     } catch (err) {
       throw new Error(
-        'Unable to resolve origin/main and failed to fetch it. Aborting to prevent incorrect tagging. Error: ' +
-          err
+        'Unable to resolve origin/main and failed to fetch it. Error: ' +
+        err
       );
     }
   }
@@ -149,13 +149,16 @@ async function pushReleaseTagsToGithub() {
 
   await exec(
     'git -c http.extraHeader="Authorization: Basic ' +
-      authHeader +
-      '"' +
-      ` push origin ${currentBranch} ${tags.join(' ')} --no-verify`,
+    authHeader +
+    '"' +
+    ` push origin ${currentBranch} ${tags.join(' ')} --no-verify`,
     {
       cwd: projectRoot
     }
   );
 }
 
-pushReleaseTagsToGithub();
+pushReleaseTagsToGithub().catch(err => {
+  console.error(err);
+  process.exit(1);
+});
