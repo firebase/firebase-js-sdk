@@ -159,7 +159,7 @@ export function resolveDeclarationReferenceWithAliases(
       } else if (!declarationReference.source) {
         const contextPkg = contextApiItem
           ?.getHierarchy()
-          .find(item => item.kind === ApiItemKind.Package) as
+          ?.find(item => item.kind === ApiItemKind.Package) as
           ApiPackage | undefined;
         const candidatePackages: ApiPackage[] = [];
         if (contextPkg) {
