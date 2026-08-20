@@ -634,4 +634,23 @@ describe('Database@exp Tests', () => {
     expect(caught).to.be.an('error');
     expect(caught!.message).to.match(/NaN/);
   });
+
+  it('rejects the transaction promise when a rerun returns an invalid priority', async () => {
+    // Repro for https://github.com/firebase/firebase-js-sdk/issues/7919
+    // An invalid `.priority` was only rejected by nodeFromJSON(), which runs
+    // after the update function, so it escaped the same way the NaN case did.
+    const database = getDatabase(defaultApp);
+    const { readerRef, writerRef } = getRWRefs(database);
+
+    await set(writerRef, { counter: 1 });
+
+    await expect(
+      runTransaction(readerRef, current => {
+        if (current === null) {
+          return { counter: 0 };
+        }
+        return { counter: 5, '.priority': {} };
+      })
+    ).to.be.rejectedWith(/[Ii]nvalid priority/);
+  });
 });

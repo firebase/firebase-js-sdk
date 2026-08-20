@@ -1316,6 +1316,8 @@ function repoRerunTransactionQueue(
         // runTransaction() pending forever. Abort the transaction and report
         // the error through onComplete instead.
         let newData;
+        let newDataNode: Node | null = null;
+        let hasExplicitPriority = false;
         try {
           newData = queue[i].update(currentNode.val());
           if (newData !== undefined) {
@@ -1324,6 +1326,23 @@ function repoRerunTransactionQueue(
               newData,
               transaction.path
             );
+            hasExplicitPriority =
+              typeof newData === 'object' &&
+              newData != null &&
+              contains(newData, '.priority');
+            if (hasExplicitPriority) {
+              // Mirrors the check the initial run performs in
+              // repoStartTransaction(). Without it an invalid priority would
+              // only be caught by nodeFromJSON() below, outside this block.
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              const priorityForNode = safeGet(newData as any, '.priority');
+              assert(
+                isValidPriority(priorityForNode),
+                'Invalid priority returned by transaction. ' +
+                  'Priority must be a valid string, finite number, server value, or null.'
+              );
+            }
+            newDataNode = nodeFromJSON(newData);
           }
         } catch (e) {
           abortTransaction = true;
@@ -1339,11 +1358,6 @@ function repoRerunTransactionQueue(
             )
           );
         } else if (newData !== undefined) {
-          let newDataNode = nodeFromJSON(newData);
-          const hasExplicitPriority =
-            typeof newData === 'object' &&
-            newData != null &&
-            contains(newData, '.priority');
           if (!hasExplicitPriority) {
             // Keep the old priority if there wasn't a priority explicitly specified.
             newDataNode = newDataNode.updatePriority(currentNode.getPriority());
