@@ -78,7 +78,9 @@ import {
   createThrowsSection,
   createEntryPointTitleCell,
   createExampleSection,
-  getHeadingAnchorForApiItem
+  getHeadingAnchorForApiItem,
+  PACKAGE_HEADER_MAPPINGS,
+  resolveDeclarationReferenceWithAliases
 } from './MarkdownDocumenterHelpers';
 import * as path from 'path';
 import { DocHeading } from '../nodes/DocHeading';
@@ -303,10 +305,13 @@ page_type: reference
         const unscopedPackageName: string = PackageName.getUnscopedName(
           apiItem.displayName
         );
+        const packageHeaderTitle: string =
+          PACKAGE_HEADER_MAPPINGS[apiItem.displayName] ||
+          `${unscopedPackageName} package`;
         output.push(
           new DocHeading({
             configuration,
-            title: `${unscopedPackageName} package`
+            title: packageHeaderTitle
           })
         );
         break;
@@ -757,7 +762,8 @@ page_type: reference
         token.canonicalReference
       ) {
         const apiItemResult: IResolveDeclarationReferenceResult =
-          this._apiModel.resolveDeclarationReference(
+          resolveDeclarationReferenceWithAliases(
+            this._apiModel,
             token.canonicalReference,
             undefined
           );

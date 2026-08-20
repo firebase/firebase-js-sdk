@@ -17,7 +17,10 @@
 
 import yaml from 'js-yaml';
 import { ApiItem, ApiItemKind, ApiModel } from '@microsoft/api-extractor-model';
-import { getFilenameForApiItem } from './documenters/MarkdownDocumenterHelpers';
+import {
+  getFilenameForApiItem,
+  TOC_TITLE_MAPPINGS
+} from './documenters/MarkdownDocumenterHelpers';
 import { ModuleSource } from '@microsoft/tsdoc/lib-commonjs/beta/DeclarationReference';
 import { writeFileSync } from 'fs';
 import { resolve } from 'path';
@@ -89,7 +92,7 @@ function generateTocRecursively(
       apiItem.canonicalReference.source! as ModuleSource
     ).escapedPath.replace('@firebase/', '');
     const entryPointToc: ITocItem = {
-      title: entryPointName,
+      title: TOC_TITLE_MAPPINGS[entryPointName] || entryPointName,
       path: `${g3Path}/${getFilenameForApiItem(
         apiItem,
         addFileNameSuffix,

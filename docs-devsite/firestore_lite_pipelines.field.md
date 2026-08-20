@@ -10,11 +10,11 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # Field class
-Represents a reference to a field in a Firestore document, or outputs of a  stage.
+Represents a reference to a field in a Firestore document, or outputs of a [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class) stage.
 
 <p>Field references are used to access document field values in expressions and to specify fields for sorting, filtering, and projecting data in Firestore pipelines.
 
-<p>You can create a `Field` instance using the static  method:
+<p>You can create a `Field` instance using the static [field](./firestore_pipelines.md#field_1eaaff4) method:
 
 <b>Signature:</b>
 

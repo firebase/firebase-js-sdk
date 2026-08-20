@@ -831,7 +831,7 @@ void
 
 > Warning: This API is now obsolete.
 > 
-> Use  with `eventName` as 'screen\_view' and add relevant `eventParams`<!-- -->. See [Track Screenviews](https://firebase.google.com/docs/analytics/screenviews)<!-- -->.
+> Use [logEvent](./analytics.md#logevent_d5f1743) with `eventName` as 'screen\_view' and add relevant `eventParams`<!-- -->. See [Track Screenviews](https://firebase.google.com/docs/analytics/screenviews)<!-- -->.
 > 
 
 Use gtag `config` command to set `screen_name`<!-- -->.

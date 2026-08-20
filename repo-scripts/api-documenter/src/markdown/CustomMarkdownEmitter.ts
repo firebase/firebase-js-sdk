@@ -26,6 +26,7 @@ import {
   IResolveDeclarationReferenceResult,
   ApiItem
 } from '@microsoft/api-extractor-model';
+import { resolveDeclarationReferenceWithAliases } from '../documenters/MarkdownDocumenterHelpers';
 
 import { CustomDocNodeKind } from '../nodes/CustomDocNodeKind';
 import { DocHeading } from '../nodes/DocHeading';
@@ -192,7 +193,8 @@ export class CustomMarkdownEmitter extends MarkdownEmitter {
     const options: ICustomMarkdownEmitterOptions = context.options;
 
     const result: IResolveDeclarationReferenceResult =
-      this._apiModel.resolveDeclarationReference(
+      resolveDeclarationReferenceWithAliases(
+        this._apiModel,
         docLinkTag.codeDestination!,
         options.contextApiItem
       );
@@ -216,10 +218,29 @@ export class CustomMarkdownEmitter extends MarkdownEmitter {
           context.writer.write('[');
           context.writer.write(encodedLinkText);
           context.writer.write(`](${filename!})`);
+          return;
         } else {
           console.log(yellow('WARNING: Unable to determine link text'));
         }
       }
+    }
+
+    // Fallback: Never silently drop unresolved link text
+    let fallbackText: string = docLinkTag.linkText || '';
+    if (!fallbackText && docLinkTag.codeDestination) {
+      const memberRefs = docLinkTag.codeDestination.memberReferences;
+      if (memberRefs && memberRefs.length > 0) {
+        const lastMember = memberRefs[memberRefs.length - 1];
+        if (lastMember.memberIdentifier) {
+          fallbackText = lastMember.memberIdentifier.identifier;
+        }
+      }
+      if (!fallbackText) {
+        fallbackText = docLinkTag.codeDestination.emitAsTsdoc();
+      }
+    }
+    if (fallbackText) {
+      context.writer.write(this.getEscapedText(fallbackText));
     } else if (result.errorMessage) {
       console.log(
         yellow(

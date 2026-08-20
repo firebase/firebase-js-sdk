@@ -564,7 +564,7 @@ toc:
     path: /docs/reference/js/firestore.vectorvalue.md
   - title: WriteBatch
     path: /docs/reference/js/firestore.writebatch.md
-- title: firestore-lite
+- title: firestore/lite
   path: /docs/reference/js/firestore_lite.md
   section:
   - title: AggregateField
@@ -627,7 +627,7 @@ toc:
     path: /docs/reference/js/firestore_lite.vectorvalue.md
   - title: WriteBatch
     path: /docs/reference/js/firestore_lite.writebatch.md
-- title: firestore-lite-pipelines
+- title: firestore/lite/pipelines
   path: /docs/reference/js/firestore_lite_pipelines.md
   section:
   - title: AggregateFunction
@@ -656,7 +656,7 @@ toc:
     path: /docs/reference/js/firestore_lite_pipelines.pipelinesource.md
   - title: Selectable
     path: /docs/reference/js/firestore_lite_pipelines.selectable.md
-- title: firestore-pipelines
+- title: firestore/pipelines
   path: /docs/reference/js/firestore_pipelines.md
   section:
   - title: AggregateFunction
@@ -724,7 +724,7 @@ toc:
     path: /docs/reference/js/messaging.notificationpayload.md
   - title: RegisterOptions
     path: /docs/reference/js/messaging.registeroptions.md
-- title: messaging-sw
+- title: messaging/sw
   path: /docs/reference/js/messaging_sw.md
   section:
   - title: FcmOptions

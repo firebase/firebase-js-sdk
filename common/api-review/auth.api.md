@@ -858,7 +858,7 @@ export function updatePassword(user: User, newPassword: string): Promise<void>;
 export function updatePhoneNumber(user: User, credential: PhoneAuthCredential): Promise<void>;
 
 // @public
-export function updateProfile(user: User, input: {
+export function updateProfile(user: User, profile: {
     displayName?: string | null;
     photoURL?: string | null;
 }): Promise<void>;

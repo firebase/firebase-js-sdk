@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # RegisterOptions interface
-Options for . Same shape as GetTokenOptions for SW and VAPID configuration.
+Options for [register()](./messaging.md#register_795bb8a)<!-- -->. Same shape as GetTokenOptions for SW and VAPID configuration.
 
 <b>Signature:</b>
 

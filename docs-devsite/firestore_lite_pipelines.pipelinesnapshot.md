@@ -12,7 +12,7 @@ https://github.com/firebase/firebase-js-sdk
 # PipelineSnapshot class
 Represents the results of a Firestore pipeline execution.
 
-A `PipelineSnapshot` contains zero or more  objects representing the documents returned by a pipeline query. It provides methods to iterate over the documents and access metadata about the query results.
+A `PipelineSnapshot` contains zero or more [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) objects representing the documents returned by a pipeline query. It provides methods to iterate over the documents and access metadata about the query results.
 
 <b>Signature:</b>
 

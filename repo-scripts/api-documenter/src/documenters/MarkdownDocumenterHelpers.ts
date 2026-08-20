@@ -26,7 +26,9 @@ import {
   DocSection,
   DocCodeSpan,
   StandardTags,
-  DocNodeKind
+  DocNodeKind,
+  DocDeclarationReference,
+  DocMemberReference
 } from '@microsoft/tsdoc';
 import {
   ApiItem,
@@ -38,8 +40,14 @@ import {
   ApiDocumentedItem,
   ApiEntryPoint,
   ApiStaticMixin,
-  ApiEnum
+  ApiEnum,
+  ApiModel,
+  IResolveDeclarationReferenceResult
 } from '@microsoft/api-extractor-model';
+import {
+  DeclarationReference,
+  ModuleSource
+} from '@microsoft/tsdoc/lib-commonjs/beta/DeclarationReference';
 import { DocEmphasisSpan } from '../nodes/DocEmphasisSpan';
 import { DocHeading } from '../nodes/DocHeading';
 import { DocTable } from '../nodes/DocTable';
@@ -49,6 +57,140 @@ import { DocNoteBox } from '../nodes/DocNoteBox';
 import { DocTableRow } from '../nodes/DocTableRow';
 import { DocTableCell } from '../nodes/DocTableCell';
 import { createHash } from 'crypto';
+
+export const PACKAGE_NAME_ALIASES: Record<string, string> = {
+  '@firebase/firestore/lite': '@firebase/firestore-lite',
+  '@firebase/firestore/pipelines': '@firebase/firestore-pipelines',
+  '@firebase/firestore/lite/pipelines': '@firebase/firestore-lite-pipelines',
+  '@firebase/messaging/sw': '@firebase/messaging-sw'
+};
+
+export const PACKAGE_HEADER_MAPPINGS: Record<string, string> = {
+  '@firebase/firestore': '@firebase/firestore',
+  '@firebase/firestore-lite': '@firebase/firestore/lite',
+  '@firebase/firestore-lite-pipelines': '@firebase/firestore/lite/pipelines',
+  '@firebase/firestore-pipelines': '@firebase/firestore/pipelines',
+  '@firebase/messaging': '@firebase/messaging',
+  '@firebase/messaging-sw': '@firebase/messaging/sw'
+};
+
+export const TOC_TITLE_MAPPINGS: Record<string, string> = {
+  'firestore-lite': 'firestore/lite',
+  'firestore-lite-pipelines': 'firestore/lite/pipelines',
+  'firestore-pipelines': 'firestore/pipelines',
+  'messaging-sw': 'messaging/sw'
+};
+
+export function resolveDeclarationReferenceWithAliases(
+  apiModel: ApiModel,
+  declarationReference: DocDeclarationReference | DeclarationReference,
+  contextApiItem: ApiItem | undefined
+): IResolveDeclarationReferenceResult {
+  let result: IResolveDeclarationReferenceResult =
+    apiModel.resolveDeclarationReference(declarationReference, contextApiItem);
+
+  if (!result.resolvedApiItem && declarationReference) {
+    if (declarationReference instanceof DocDeclarationReference) {
+      const fullPath =
+        (declarationReference.packageName || '') +
+        (declarationReference.importPath || '');
+      const mappedPackageName = PACKAGE_NAME_ALIASES[fullPath];
+      if (mappedPackageName) {
+        const mappedDocRef = new DocDeclarationReference({
+          configuration: declarationReference.configuration,
+          packageName: mappedPackageName,
+          memberReferences:
+            declarationReference.memberReferences as DocMemberReference[]
+        });
+        const retry = apiModel.resolveDeclarationReference(
+          mappedDocRef,
+          contextApiItem
+        );
+        if (retry.resolvedApiItem) {
+          result = retry;
+        }
+      } else if (!declarationReference.packageName) {
+        // Prioritize the base/parent package if context is a subpackage
+        const contextPkg = contextApiItem
+          ?.getHierarchy()
+          .find(item => item.kind === ApiItemKind.Package) as
+          ApiPackage | undefined;
+        const candidatePackages: ApiPackage[] = [];
+        if (contextPkg) {
+          const baseName = contextPkg.displayName.split('-')[0];
+          const basePkg = apiModel.tryGetPackageByName(baseName);
+          if (basePkg && basePkg !== contextPkg) {
+            candidatePackages.push(basePkg);
+          }
+        }
+        for (const pkg of apiModel.packages) {
+          if (!candidatePackages.includes(pkg)) {
+            candidatePackages.push(pkg);
+          }
+        }
+
+        for (const pkg of candidatePackages) {
+          const retry = apiModel.resolveDeclarationReference(
+            declarationReference,
+            pkg
+          );
+          if (retry.resolvedApiItem) {
+            result = retry;
+            break;
+          }
+        }
+      }
+    } else if (declarationReference instanceof DeclarationReference) {
+      if (declarationReference.source instanceof ModuleSource) {
+        const sourcePath = declarationReference.source.escapedPath;
+        const mappedSourcePath = PACKAGE_NAME_ALIASES[sourcePath];
+        if (mappedSourcePath) {
+          const mappedCodeDest = declarationReference.withSource(
+            new ModuleSource(mappedSourcePath)
+          );
+          const retry = apiModel.resolveDeclarationReference(
+            mappedCodeDest,
+            contextApiItem
+          );
+          if (retry.resolvedApiItem) {
+            result = retry;
+          }
+        }
+      } else if (!declarationReference.source) {
+        const contextPkg = contextApiItem
+          ?.getHierarchy()
+          .find(item => item.kind === ApiItemKind.Package) as
+          ApiPackage | undefined;
+        const candidatePackages: ApiPackage[] = [];
+        if (contextPkg) {
+          const baseName = contextPkg.displayName.split('-')[0];
+          const basePkg = apiModel.tryGetPackageByName(baseName);
+          if (basePkg && basePkg !== contextPkg) {
+            candidatePackages.push(basePkg);
+          }
+        }
+        for (const pkg of apiModel.packages) {
+          if (!candidatePackages.includes(pkg)) {
+            candidatePackages.push(pkg);
+          }
+        }
+
+        for (const pkg of candidatePackages) {
+          const retry = apiModel.resolveDeclarationReference(
+            declarationReference,
+            pkg
+          );
+          if (retry.resolvedApiItem) {
+            result = retry;
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  return result;
+}
 
 export function getLinkForApiItem(
   apiItem: ApiItem,
