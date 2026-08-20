@@ -124,6 +124,10 @@ export abstract class BaseAction extends CommandLineAction {
       const parts = pair.split(':');
       if (parts.length === 2) {
         filenameMappings[parts[0].trim()] = parts[1].trim();
+      } else {
+        throw new Error(
+          `Invalid filename mapping format: "${pair}". Expected "from:to".`
+        );
       }
     }
 

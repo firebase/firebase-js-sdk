@@ -113,7 +113,7 @@ export function resolveDeclarationReferenceWithAliases(
         // Prioritize the base/parent package if context is a subpackage
         const contextPkg = contextApiItem
           ?.getHierarchy()
-          .find(item => item.kind === ApiItemKind.Package) as
+          ?.find(item => item.kind === ApiItemKind.Package) as
           ApiPackage | undefined;
         const candidatePackages: ApiPackage[] = [];
         if (contextPkg) {

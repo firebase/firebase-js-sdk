@@ -21,10 +21,10 @@
   "main": "dist/index.js",
   "typings": "dist/rollup.d.ts",
   "dependencies": {
-    "@microsoft/api-extractor-model": "7.33.9",
+    "@microsoft/api-extractor-model": "7.33.11",
     "@microsoft/tsdoc": "0.16.0",
-    "@rushstack/node-core-library": "5.23.2",
-    "@rushstack/ts-command-line": "5.3.11",
+    "@rushstack/node-core-library": "5.24.0",
+    "@rushstack/ts-command-line": "5.3.13",
     "tslib": "^2.1.0",
     "js-yaml": "4.3.1"
   },

@@ -15,7 +15,7 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@microsoft/api-extractor": "7.58.10",
+    "@microsoft/api-extractor": "7.58.13",
     "eslint": "8.57.1",
     "eslint-plugin-unused-imports": "3.2.0",
     "prettier": "2.8.8",
