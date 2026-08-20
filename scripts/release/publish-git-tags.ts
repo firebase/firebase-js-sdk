@@ -40,8 +40,7 @@ async function createTags(dryRun: boolean): Promise<string[]> {
       await exec('git fetch origin main --depth=1', { cwd: projectRoot });
     } catch (err) {
       throw new Error(
-        'Unable to resolve origin/main and failed to fetch it. Error: ' +
-        err
+        'Unable to resolve origin/main and failed to fetch it. Error: ' + err
       );
     }
   }
@@ -69,12 +68,12 @@ async function createTags(dryRun: boolean): Promise<string[]> {
         mainJson.version !== releaseJson.version
       ) {
         const tag = `${releaseJson.name}@${releaseJson.version}`;
+        tags.push(tag);
         const { stdout: tagExistOutput } = await exec(`git tag -l ${tag}`, {
           cwd: projectRoot
         });
         if (!tagExistOutput.trim()) {
           console.log(`Adding tag: ${tag}`);
-          tags.push(tag);
           if (!dryRun) {
             await exec(`git tag ${tag}`, { cwd: projectRoot });
           }
@@ -91,7 +90,6 @@ async function pushReleaseTagsToGithub() {
     console.log('Running in dry-run mode. No tags will be created or pushed.');
   }
 
-  let tags: string[] = [];
   let { stdout: currentBranch } = await exec(
     `git rev-parse --abbrev-ref HEAD`,
     {
@@ -107,24 +105,8 @@ async function pushReleaseTagsToGithub() {
     console.warn('Warning: Failed to fetch tags from origin.', err);
   }
 
-  // Get tags pointing to HEAD
-  // When running the release script, these tags should be release tags created by changeset
-  const { stdout: rawTags } = await exec(`git tag --points-at HEAD`, {
-    cwd: projectRoot
-  });
-
-  if (rawTags.trim()) {
-    tags = rawTags.trim().split(/\r?\n/).filter(Boolean);
-  } else {
-    // This can happen if the workflow was interrupted but the npm publish was partially
-    // or entirely complete, so the git tags will not be regenerated on the second
-    // run. In this case, diff against origin/main package.jsons to see which packages had
-    // version bumps and require new tags, and create them.
-    console.log(
-      'No tags found pointing to HEAD. Diffing tags in this branch vs origin/main.'
-    );
-    tags = await createTags(dryRun);
-  }
+  console.log('Diffing tags in this branch vs origin/main.');
+  const tags = await createTags(dryRun);
 
   if (!tags || tags.length === 0) {
     console.error('No tags found or added. Exiting.');
@@ -149,9 +131,9 @@ async function pushReleaseTagsToGithub() {
 
   await exec(
     'git -c http.extraHeader="Authorization: Basic ' +
-    authHeader +
-    '"' +
-    ` push origin ${currentBranch} ${tags.join(' ')} --no-verify`,
+      authHeader +
+      '"' +
+      ` push origin ${currentBranch} ${tags.join(' ')} --no-verify`,
     {
       cwd: projectRoot
     }
