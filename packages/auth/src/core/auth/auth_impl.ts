@@ -776,6 +776,8 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
           nextOrObserver.error(err);
         } else if (error) {
           error(err);
+        } else {
+          throw err;
         }
       });
 
