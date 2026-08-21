@@ -224,9 +224,6 @@ class IndexedDBLocalPersistence implements InternalPersistence {
   }
 
   async _openDb(): Promise<IDBDatabase> {
-    if (this.isClosing) {
-      throw new Error('Database is closing');
-    }
     if (this.dbPromise) {
       return this.dbPromise;
     }
@@ -245,15 +242,14 @@ class IndexedDBLocalPersistence implements InternalPersistence {
         const db = await this._openDb();
         return await op(db);
       } catch (e) {
-        if (this.isClosing) {
-          throw e;
-        }
         if (numAttempts++ > _TRANSACTION_RETRY_COUNT) {
           throw e;
         }
         if (this.dbPromise) {
-          const db = await this.dbPromise;
-          db.close();
+          try {
+            const db = await this.dbPromise;
+            db.close();
+          } catch {}
           this.dbPromise = null;
         }
         // TODO: consider adding exponential backoff
