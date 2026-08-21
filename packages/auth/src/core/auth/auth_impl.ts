@@ -819,9 +819,9 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
 
     if (this.persistenceManager) {
       if (user) {
-        await this.assertedPersistence.setCurrentUser(user);
+        await this.persistenceManager.setCurrentUser(user);
       } else {
-        await this.assertedPersistence.removeCurrentUser();
+        await this.persistenceManager.removeCurrentUser();
       }
     }
   }
