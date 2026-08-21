@@ -61,7 +61,6 @@ import {
   KeyName,
   PersistenceUserManager
 } from '../persistence/persistence_user_manager';
-import { inMemoryPersistence } from '../persistence/in_memory';
 import { _reloadWithoutSaving } from '../user/reload';
 import {
   _assert,
@@ -172,14 +171,10 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
         );
       } catch (e) {
         _logWarn(`Failed to initialize persistence: ${e}`);
-        try {
-          this.persistenceManager = await PersistenceUserManager.create(
-            this,
-            [_getInstance(inMemoryPersistence)]
-          );
-        } catch {
-          // If inMemory also fails, fallback is handled gracefully
-        }
+        this.persistenceManager = await PersistenceUserManager.create(
+          this,
+          []
+        );
       } finally {
         this._resolvePersistenceManagerAvailable?.();
       }
