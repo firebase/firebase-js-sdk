@@ -59,7 +59,11 @@ export class PersistenceUserManager {
       name
     );
     this.boundEventHandler = auth._onStorageEvent.bind(auth);
-    this.persistence._addListener(this.fullUserKey, this.boundEventHandler);
+    try {
+      this.persistence._addListener(this.fullUserKey, this.boundEventHandler);
+    } catch {
+      // Best effort; ignore errors if addListener throws
+    }
   }
 
   setCurrentUser(user: UserInternal): Promise<void> {
@@ -112,7 +116,9 @@ export class PersistenceUserManager {
   }
 
   delete(): void {
-    this.persistence._removeListener(this.fullUserKey, this.boundEventHandler);
+    try {
+      this.persistence._removeListener(this.fullUserKey, this.boundEventHandler);
+    } catch {}
   }
 
   static async create(
@@ -132,8 +138,12 @@ export class PersistenceUserManager {
     const availablePersistences = (
       await Promise.all(
         persistenceHierarchy.map(async persistence => {
-          if (await persistence._isAvailable()) {
-            return persistence;
+          try {
+            if (await persistence._isAvailable()) {
+              return persistence;
+            }
+          } catch {
+            return undefined;
           }
           return undefined;
         })
