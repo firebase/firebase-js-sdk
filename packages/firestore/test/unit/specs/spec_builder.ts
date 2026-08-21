@@ -48,6 +48,7 @@ import { DocumentKey } from '../../../src/model/document_key';
 import { FieldIndex } from '../../../src/model/field_index';
 import { JsonObject } from '../../../src/model/object_value';
 import { ResourcePath } from '../../../src/model/path';
+import * as api from '../../../src/protos/firestore_proto_api';
 import { BloomFilter as ProtoBloomFilter } from '../../../src/protos/firestore_proto_api';
 import {
   isPermanentWriteError,
@@ -735,7 +736,11 @@ export class SpecBuilder {
   writeAcks(
     doc: string,
     version: TestSnapshotVersion,
-    options?: { expectUserCallback?: boolean; keepInQueue?: boolean }
+    options?: {
+      expectUserCallback?: boolean;
+      keepInQueue?: boolean;
+      transformResults?: api.Value[];
+    }
   ): this {
     this.nextStep();
     options = options || {};
@@ -743,6 +748,9 @@ export class SpecBuilder {
     const writeAck: SpecWriteAck = { version };
     if (options.keepInQueue) {
       writeAck.keepInQueue = true;
+    }
+    if (options.transformResults) {
+      writeAck.transformResults = options.transformResults;
     }
     this.currentStep = { writeAck };
 
