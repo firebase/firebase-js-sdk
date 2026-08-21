@@ -149,6 +149,32 @@ describe('platform_browser/recaptcha/recaptcha_loader', () => {
           'auth/argument-error'
         );
       });
+
+      it('accepts a long BCP-47 host language', async () => {
+        // e.g. navigator.language === 'en-GB-oxendict'
+        const promise = loader.load(auth, 'en-GB-oxendict');
+        _window().grecaptcha = new MockReCaptcha(auth);
+        spoofJsLoad();
+        expect(await promise).to.eq(_window().grecaptcha);
+      });
+
+      it('accepts a host language of exactly 35 characters', async () => {
+        const hl = 'en-Latn-GB-oxendict-u-nu-latn-x-prv';
+        expect(hl).to.have.lengthOf(35);
+        const promise = loader.load(auth, hl);
+        _window().grecaptcha = new MockReCaptcha(auth);
+        spoofJsLoad();
+        expect(await promise).to.eq(_window().grecaptcha);
+      });
+
+      it('fails if the host language exceeds 35 characters', async () => {
+        const hl = 'en-Latn-GB-oxendict-u-nu-latn-x-priv';
+        expect(hl).to.have.lengthOf(36);
+        expect(() => loader.load(auth, hl)).to.throw(
+          FirebaseError,
+          'auth/argument-error'
+        );
+      });
     });
   });
 });
