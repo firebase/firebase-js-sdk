@@ -1506,4 +1506,59 @@ describeSpec('Writes:', [], () => {
       );
     }
   );
+
+  specTest(
+    'Decimal128 increment loses precision locally and recovers when watch arrives before server ack',
+    [],
+    () => {
+      const query1 = query('collection/doc');
+
+      const docInitial = doc('collection/doc', 1000, {
+        sum: new Decimal128Value('1.000000000000000000000000000000001')
+      });
+
+      const docLocal = doc('collection/doc', 1000, {
+        sum: new Decimal128Value('2')
+      }).setHasLocalMutations();
+
+      const docRemote = doc('collection/doc', 2000, {
+        sum: new Decimal128Value('2.000000000000000000000000000000001')
+      });
+
+      return (
+        spec()
+          // Listen to receive initial document
+          .userListens(query1)
+          .watchAcksFull(query1, 1000, docInitial)
+          .expectEvents(query1, { added: [docInitial] })
+
+          // User writes increment
+          .userPatches('collection/doc', { sum: increment(1) })
+
+          // Local cache writes increment
+          .expectEvents(query1, {
+            hasPendingWrites: true,
+            modified: [docLocal]
+          })
+
+          // Watch stream delivers updated document and snapshot
+          .watchSends({ affects: [query1] }, docRemote)
+          .watchSnapshots(2000)
+
+          // Server acknowledges write on write stream with transform result
+          .writeAcks('collection/doc', 2000, {
+            transformResults: [
+              wrap(new Decimal128Value('2.000000000000000000000000000000001'))
+            ]
+          })
+
+          // Local cache updates document with correct increment result
+          .expectEvents(query1, {
+            hasPendingWrites: false,
+            modified: [docRemote]
+          })
+      );
+    }
+  );
 });
+
