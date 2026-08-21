@@ -18,11 +18,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved. Licensed under the MIT license.
 // See LICENSE in the project root for license information.
 
-import {
-  FileSystem,
-  NewlineKind,
-  PackageName
-} from '@rushstack/node-core-library';
+import { FileSystem, NewlineKind } from '@rushstack/node-core-library';
 import {
   DocSection,
   TSDocConfiguration,
@@ -69,6 +65,8 @@ import { MarkdownDocumenterAccessor } from '../plugin/MarkdownDocumenterAccessor
 import {
   getLinkForApiItem,
   getFilenameForApiItem,
+  getSubpackageInfo,
+  ISubpackageInfo,
   createBetaWarning,
   createRemarksSection,
   createTitleCell,
@@ -79,7 +77,6 @@ import {
   createEntryPointTitleCell,
   createExampleSection,
   getHeadingAnchorForApiItem,
-  isSubpackage,
   resolveDeclarationReferenceWithAliases
 } from './MarkdownDocumenterHelpers';
 import * as path from 'path';
@@ -98,6 +95,7 @@ export interface IMarkdownDocumenterOptions {
   addFileNameSuffix: boolean;
   projectName: string;
   sortFunctions: string;
+  subpackages?: Map<string, ISubpackageInfo>;
 }
 
 /**
@@ -114,6 +112,7 @@ export class MarkdownDocumenter {
   private readonly _addFileNameSuffix: boolean;
   private readonly _projectName: string;
   private readonly _sortFunctions: string;
+  private readonly _subpackages?: Map<string, ISubpackageInfo>;
 
   public constructor(options: IMarkdownDocumenterOptions) {
     this._apiModel = options.apiModel;
@@ -122,6 +121,7 @@ export class MarkdownDocumenter {
     this._addFileNameSuffix = options.addFileNameSuffix;
     this._projectName = options.projectName;
     this._sortFunctions = options.sortFunctions;
+    this._subpackages = options.subpackages;
     this._tsdocConfiguration = CustomDocNodes.configuration;
     this._markdownEmitter = new CustomMarkdownEmitter(this._apiModel);
 
@@ -136,7 +136,11 @@ export class MarkdownDocumenter {
           outputFolder: this._outputFolder,
           documenter: new MarkdownDocumenterAccessor({
             getLinkForApiItem: (apiItem: ApiItem) => {
-              return getLinkForApiItem(apiItem, this._addFileNameSuffix);
+              return getLinkForApiItem(
+                apiItem,
+                this._addFileNameSuffix,
+                this._subpackages
+              );
             }
           })
         });
@@ -156,7 +160,12 @@ export class MarkdownDocumenter {
     apiItem: ApiItem,
     configuration: TSDocConfiguration
   ): DocTableCell {
-    return createTitleCell(apiItem, configuration, this._addFileNameSuffix);
+    return createTitleCell(
+      apiItem,
+      configuration,
+      this._addFileNameSuffix,
+      this._subpackages
+    );
   }
 
   private _createEntryPointTitleCell(
@@ -166,7 +175,8 @@ export class MarkdownDocumenter {
     return createEntryPointTitleCell(
       apiItem,
       configuration,
-      this._addFileNameSuffix
+      this._addFileNameSuffix,
+      this._subpackages
     );
   }
 
@@ -187,7 +197,7 @@ export class MarkdownDocumenter {
     // write to file
     const filename: string = path.join(
       this._outputFolder,
-      getFilenameForApiItem(apiItem, this._addFileNameSuffix)
+      getFilenameForApiItem(apiItem, this._addFileNameSuffix, this._subpackages)
     );
     const stringBuilder: StringBuilder = new StringBuilder();
 
@@ -204,7 +214,11 @@ page_type: reference
     this._markdownEmitter.emit(stringBuilder, output, {
       contextApiItem: apiItem,
       onGetFilenameForApiItem: (apiItemForFilename: ApiItem) => {
-        return getLinkForApiItem(apiItemForFilename, this._addFileNameSuffix);
+        return getLinkForApiItem(
+          apiItemForFilename,
+          this._addFileNameSuffix,
+          this._subpackages
+        );
       }
     });
 
@@ -281,18 +295,13 @@ page_type: reference
         );
         break;
       case ApiItemKind.Package:
-        const unscopedPackageName: string = PackageName.getUnscopedName(
-          apiItem.displayName
+        const info = getSubpackageInfo(
+          apiItem as ApiPackage,
+          this._subpackages
         );
-        let packageHeaderTitle: string;
-        if (isSubpackage(apiItem as ApiPackage, this._apiModel)) {
-          const scope = apiItem.displayName.startsWith('@')
-            ? apiItem.displayName.split('/')[0] + '/'
-            : '';
-          packageHeaderTitle = `${scope}${unscopedPackageName.replace(/-/g, '/')}`;
-        } else {
-          packageHeaderTitle = apiItem.displayName;
-        }
+        const packageHeaderTitle = info
+          ? info.canonicalName
+          : apiItem.displayName;
         output.push(
           new DocHeading({
             configuration,
@@ -761,7 +770,8 @@ page_type: reference
               linkText: unwrappedTokenText,
               urlDestination: getLinkForApiItem(
                 apiItemResult.resolvedApiItem,
-                this._addFileNameSuffix
+                this._addFileNameSuffix,
+                this._subpackages
               )
             })
           );

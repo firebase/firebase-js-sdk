@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # PipelineResult class
-A PipelineResult contains data read from a Firestore Pipeline. The data can be extracted with the [PipelineResult.data()](./firestore_pipelines.pipelineresult.md#pipelineresultdata) or [PipelineResult.get()](./firestore_pipelines.pipelineresult.md#pipelineresultget) methods.
+A PipelineResult contains data read from a Firestore Pipeline. The data can be extracted with the [PipelineResult.data()](./firestore_lite_pipelines.pipelineresult.md#pipelineresultdata) or [PipelineResult.get()](./firestore_lite_pipelines.pipelineresult.md#pipelineresultget) methods.
 
 <p>If the PipelineResult represents a non-document result, `ref` will return a undefined value.
 

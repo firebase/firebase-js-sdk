@@ -33,15 +33,15 @@ Firestore Lite is a small online-only SDK that allows read and write access to y
 |  [writeBatch(firestore)](./firestore_lite.md#writebatch_231a8e0) | Creates a write batch, used for performing multiple writes as a single atomic operation. The maximum number of writes allowed in a single WriteBatch is 500.<!-- -->The result of these writes will only be reflected in document reads that occur after the returned promise resolves. If the client is offline, the write fails. If you would like to see local modifications or buffer writes until the client is online, use the full Firestore SDK. |
 |  <b>function()</b> |
 |  [count()](./firestore_lite.md#count) | Create an AggregateField object that can be used to compute the count of documents in the result set of a query. |
-|  [deleteField()](./firestore_lite.md#deletefield) | Returns a sentinel for use with [updateDoc()](./firestore_lite.md#updatedoc_51a65e3) or [setDoc()](./firestore_lite.md#setdoc_ee215ad) with <code>{merge: true}</code> to mark a field for deletion. |
+|  [deleteField()](./firestore_lite.md#deletefield) | Returns a sentinel for use with [updateDoc()](./firestore.md#updatedoc_51a65e3) or [setDoc()](./firestore.md#setdoc_ee215ad) with <code>{merge: true}</code> to mark a field for deletion. |
 |  [documentId()](./firestore_lite.md#documentid) | Returns a special sentinel <code>FieldPath</code> to refer to the ID of a document. It can be used in queries to sort or filter by the document ID. |
 |  [getFirestore()](./firestore_lite.md#getfirestore) | Returns the existing default [Firestore](./firestore_lite.firestore.md#firestore_class) instance that is associated with the default [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. If no instance exists, initializes a new instance with default settings. |
-|  [serverTimestamp()](./firestore_lite.md#servertimestamp) | Returns a sentinel used with [setDoc()](./firestore_lite.md#setdoc_ee215ad) or [updateDoc()](./firestore_lite.md#updatedoc_51a65e3) to include a server-generated timestamp in the written data. |
+|  [serverTimestamp()](./firestore_lite.md#servertimestamp) | Returns a sentinel used with [setDoc()](./firestore.md#setdoc_ee215ad) or [updateDoc()](./firestore.md#updatedoc_51a65e3) to include a server-generated timestamp in the written data. |
 |  <b>function(databaseId, ...)</b> |
 |  [getFirestore(databaseId)](./firestore_lite.md#getfirestore_53dc891) | <b><i>(Public Preview)</i></b> Returns the existing [Firestore](./firestore_lite.firestore.md#firestore_class) instance that is associated with the default [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. If no instance exists, initializes a new instance with default settings. |
 |  <b>function(elements, ...)</b> |
 |  [arrayRemove(elements)](./firestore_lite.md#arrayremove_7d853aa) | Returns a special value that can be used with [setDoc()](./firestore_lite.md#setdoc_ee215ad) or  that tells the server to remove the given elements from any array value that already exists on the server. All instances of each element specified will be removed from the array. If the field being modified is not already an array it will be overwritten with an empty array. |
-|  [arrayUnion(elements)](./firestore_lite.md#arrayunion_7d853aa) | Returns a special value that can be used with [setDoc()](./firestore_lite.md#setdoc_ee215ad) or [updateDoc()](./firestore_lite.md#updatedoc_51a65e3) that tells the server to union the given elements with any array value that already exists on the server. Each specified element that doesn't already exist in the array will be added to the end. If the field being modified is not already an array it will be overwritten with an array containing exactly the specified elements. |
+|  [arrayUnion(elements)](./firestore_lite.md#arrayunion_7d853aa) | Returns a special value that can be used with [setDoc()](./firestore.md#setdoc_ee215ad) or [updateDoc()](./firestore.md#updatedoc_51a65e3) that tells the server to union the given elements with any array value that already exists on the server. Each specified element that doesn't already exist in the array will be added to the end. If the field being modified is not already an array it will be overwritten with an array containing exactly the specified elements. |
 |  <b>function(field, ...)</b> |
 |  [average(field)](./firestore_lite.md#average_aacc3a9) | Create an AggregateField object that can be used to compute the average of a specified field over a range of documents in the result set of a query. |
 |  [sum(field)](./firestore_lite.md#sum_aacc3a9) | Create an AggregateField object that can be used to compute the sum of a specified field over a range of documents in the result set of a query. |
@@ -65,9 +65,9 @@ Firestore Lite is a small online-only SDK that allows read and write access to y
 |  <b>function(logLevel, ...)</b> |
 |  [setLogLevel(logLevel)](./firestore_lite.md#setloglevel_d02fda2) | Sets the verbosity of Cloud Firestore logs (debug, error, or silent). |
 |  <b>function(n, ...)</b> |
-|  [increment(n)](./firestore_lite.md#increment_5685735) | Returns a special value that can be used with [setDoc()](./firestore_lite.md#setdoc_ee215ad) or [updateDoc()](./firestore_lite.md#updatedoc_51a65e3) that tells the server to increment the field's current value by the given value.<!-- -->If either the operand or the current field value uses floating point precision, all arithmetic follows IEEE 754 semantics. If both values are integers, values outside of JavaScript's safe number range (<code>Number.MIN_SAFE_INTEGER</code> to <code>Number.MAX_SAFE_INTEGER</code>) are also subject to precision loss. Furthermore, once processed by the Firestore backend, all integer operations are capped between -2^63 and 2^63-1.<!-- -->If the current field value is not of type <code>number</code>, or if the field does not yet exist, the transformation sets the field to the given value. |
-|  [maximum(n)](./firestore_lite.md#maximum_5685735) | Returns a special value that can be used with [setDoc()](./firestore_lite.md#setdoc_ee215ad) or [updateDoc()](./firestore_lite.md#updatedoc_51a65e3) that tells the server to set the field to the numeric maximum of the field's current and the given value. |
-|  [minimum(n)](./firestore_lite.md#minimum_5685735) | Returns a special value that can be used with [setDoc()](./firestore_lite.md#setdoc_ee215ad) or [updateDoc()](./firestore_lite.md#updatedoc_51a65e3) that tells the server to set the field to the numeric minimum of the field's current and the given value. |
+|  [increment(n)](./firestore_lite.md#increment_5685735) | Returns a special value that can be used with [setDoc()](./firestore.md#setdoc_ee215ad) or [updateDoc()](./firestore.md#updatedoc_51a65e3) that tells the server to increment the field's current value by the given value.<!-- -->If either the operand or the current field value uses floating point precision, all arithmetic follows IEEE 754 semantics. If both values are integers, values outside of JavaScript's safe number range (<code>Number.MIN_SAFE_INTEGER</code> to <code>Number.MAX_SAFE_INTEGER</code>) are also subject to precision loss. Furthermore, once processed by the Firestore backend, all integer operations are capped between -2^63 and 2^63-1.<!-- -->If the current field value is not of type <code>number</code>, or if the field does not yet exist, the transformation sets the field to the given value. |
+|  [maximum(n)](./firestore_lite.md#maximum_5685735) | Returns a special value that can be used with [setDoc()](./firestore.md#setdoc_ee215ad) or [updateDoc()](./firestore.md#updatedoc_51a65e3) that tells the server to set the field to the numeric maximum of the field's current and the given value. |
+|  [minimum(n)](./firestore_lite.md#minimum_5685735) | Returns a special value that can be used with [setDoc()](./firestore.md#setdoc_ee215ad) or [updateDoc()](./firestore.md#updatedoc_51a65e3) that tells the server to set the field to the numeric minimum of the field's current and the given value. |
 |  <b>function(query, ...)</b> |
 |  [getAggregate(query, aggregateSpec)](./firestore_lite.md#getaggregate_2073a74) | Calculates the specified aggregations over the documents in the result set of the given query without actually downloading the documents.<!-- -->Using this function to perform aggregations is efficient because only the final aggregation values, not the documents' data, are downloaded. This function can perform aggregations of the documents in cases where the result set is prohibitively large to download entirely (thousands of documents). |
 |  [getCount(query)](./firestore_lite.md#getcount_4e56953) | Calculates the number of documents in the result set of the given query without actually downloading the documents.<!-- -->Using this function to count the documents is efficient because only the final count, not the documents' data, is downloaded. This function can count the documents in cases where the result set is prohibitively large to download entirely (thousands of documents). |
@@ -132,7 +132,7 @@ Firestore Lite is a small online-only SDK that allows read and write access to y
 |  Interface | Description |
 |  --- | --- |
 |  [AggregateSpec](./firestore_lite.aggregatespec.md#aggregatespec_interface) | Specifies a set of aggregations and their aliases. |
-|  [DocumentData](./firestore_lite.documentdata.md#documentdata_interface) | Document data (for use with [setDoc()](./firestore_lite.md#setdoc_ee215ad)<!-- -->) consists of fields mapped to values. |
+|  [DocumentData](./firestore_lite.documentdata.md#documentdata_interface) | Document data (for use with [setDoc()](./firestore.md#setdoc_ee215ad)<!-- -->) consists of fields mapped to values. |
 |  [FirestoreDataConverter](./firestore_lite.firestoredataconverter.md#firestoredataconverter_interface) | Converter used by <code>withConverter()</code> to transform user objects of type <code>AppModelType</code> into Firestore data of type <code>DbModelType</code>.<!-- -->Using the converter allows you to specify generic type arguments when storing and retrieving objects from Firestore.<!-- -->In this context, an "AppModel" is a class that is used in an application to package together related information and functionality. Such a class could, for example, have properties with complex, nested data types, properties used for memoization, properties of types not supported by Firestore (such as <code>symbol</code> and <code>bigint</code>), and helper functions that perform compound operations. Such classes are not suitable and/or possible to store into a Firestore database. Instead, instances of such classes need to be converted to "plain old JavaScript objects" (POJOs) with exclusively primitive properties, potentially nested inside other POJOs or arrays of POJOs. In this context, this type is referred to as the "DbModel" and would be an object suitable for persisting into Firestore. For convenience, applications can implement <code>FirestoreDataConverter</code> and register the converter with Firestore objects, such as <code>DocumentReference</code> or <code>Query</code>, to automatically convert <code>AppModel</code> to <code>DbModel</code> when storing into Firestore, and convert <code>DbModel</code> to <code>AppModel</code> when retrieving from Firestore. |
 |  [Settings](./firestore_lite.settings.md#settings_interface) | Specifies custom configurations for your Cloud Firestore instance. You must set these before invoking any other methods. |
 |  [TransactionOptions](./firestore_lite.transactionoptions.md#transactionoptions_interface) | Options to customize transaction behavior. |
@@ -154,7 +154,7 @@ Firestore Lite is a small online-only SDK that allows read and write access to y
 |  [QueryConstraintType](./firestore_lite.md#queryconstrainttype) | Describes the different query constraints available in this SDK. |
 |  [QueryFilterConstraint](./firestore_lite.md#queryfilterconstraint) | <code>QueryFilterConstraint</code> is a helper union type that represents [QueryFieldFilterConstraint](./firestore_lite.queryfieldfilterconstraint.md#queryfieldfilterconstraint_class) and [QueryCompositeFilterConstraint](./firestore_lite.querycompositefilterconstraint.md#querycompositefilterconstraint_class)<!-- -->. |
 |  [QueryNonFilterConstraint](./firestore_lite.md#querynonfilterconstraint) | <code>QueryNonFilterConstraint</code> is a helper union type that represents QueryConstraints which are used to narrow or order the set of documents, but that do not explicitly filter on a document field. <code>QueryNonFilterConstraint</code>s are created by invoking [orderBy()](./firestore_lite.md#orderby_006d61f)<!-- -->, [startAt()](./firestore_lite.md#startat_9a4477f)<!-- -->, [startAfter()](./firestore_lite.md#startafter_9a4477f)<!-- -->, [endBefore()](./firestore_lite.md#endbefore_9a4477f)<!-- -->, [endAt()](./firestore_lite.md#endat_9a4477f)<!-- -->, [limit()](./firestore_lite.md#limit_ec46c78) or [limitToLast()](./firestore_lite.md#limittolast_ec46c78) and can then be passed to [query()](./firestore_lite.md#query_9f7b0f4) to create a new query instance that also contains the <code>QueryConstraint</code>. |
-|  [SetOptions](./firestore_lite.md#setoptions) | An options object that configures the behavior of [setDoc()](./firestore_lite.md#setdoc_ee215ad)<!-- -->,  and  calls. These calls can be configured to perform granular merges instead of overwriting the target documents in their entirety by providing a <code>SetOptions</code> with <code>merge: true</code>. |
+|  [SetOptions](./firestore_lite.md#setoptions) | An options object that configures the behavior of [setDoc()](./firestore.md#setdoc_ee215ad)<!-- -->,  and  calls. These calls can be configured to perform granular merges instead of overwriting the target documents in their entirety by providing a <code>SetOptions</code> with <code>merge: true</code>. |
 |  [UnionToIntersection](./firestore_lite.md#uniontointersection) | Given a union type <code>U = T1 &#124; T2 &#124; ...</code>, returns an intersected type <code>(T1 &amp; T2 &amp; ...)</code>.<!-- -->Uses distributive conditional types and inference from conditional types. This works because multiple candidates for the same type variable in contra-variant positions causes an intersection type to be inferred. https://www.typescriptlang.org/docs/handbook/advanced-types.html\#type-inference-in-conditional-types https://stackoverflow.com/questions/50374908/transform-union-type-to-intersection-type |
 |  [UpdateData](./firestore_lite.md#updatedata) | Update data (for use with [updateDoc()](./firestore_lite.md#updatedoc_51a65e3)<!-- -->) that consists of field paths (e.g. 'foo' or 'foo.baz') mapped to values. Fields that contain dots reference nested fields within the document. FieldValues can be passed in as property values. |
 |  [WhereFilterOp](./firestore_lite.md#wherefilterop) | Filter conditions in a [where()](./firestore_lite.md#where_0fae4bf) clause are specified using the strings '&amp;lt;', '&amp;lt;=', '==', '!=', '&amp;gt;=', '&amp;gt;', 'array-contains', 'in', 'array-contains-any', and 'not-in'. |
@@ -493,7 +493,7 @@ export declare function count(): AggregateField<number>;
 
 ### deleteField() {:#deletefield}
 
-Returns a sentinel for use with [updateDoc()](./firestore_lite.md#updatedoc_51a65e3) or [setDoc()](./firestore_lite.md#setdoc_ee215ad) with `{merge: true}` to mark a field for deletion.
+Returns a sentinel for use with [updateDoc()](./firestore.md#updatedoc_51a65e3) or [setDoc()](./firestore.md#setdoc_ee215ad) with `{merge: true}` to mark a field for deletion.
 
 <b>Signature:</b>
 
@@ -534,7 +534,7 @@ The [Firestore](./firestore_lite.firestore.md#firestore_class) instance of the p
 
 ### serverTimestamp() {:#servertimestamp}
 
-Returns a sentinel used with [setDoc()](./firestore_lite.md#setdoc_ee215ad) or [updateDoc()](./firestore_lite.md#updatedoc_51a65e3) to include a server-generated timestamp in the written data.
+Returns a sentinel used with [setDoc()](./firestore.md#setdoc_ee215ad) or [updateDoc()](./firestore.md#updatedoc_51a65e3) to include a server-generated timestamp in the written data.
 
 <b>Signature:</b>
 
@@ -598,7 +598,7 @@ The `FieldValue` sentinel for use in a call to `setDoc()` or `updateDoc()`
 
 ### arrayUnion(elements) {:#arrayunion_7d853aa}
 
-Returns a special value that can be used with [setDoc()](./firestore_lite.md#setdoc_ee215ad) or [updateDoc()](./firestore_lite.md#updatedoc_51a65e3) that tells the server to union the given elements with any array value that already exists on the server. Each specified element that doesn't already exist in the array will be added to the end. If the field being modified is not already an array it will be overwritten with an array containing exactly the specified elements.
+Returns a special value that can be used with [setDoc()](./firestore.md#setdoc_ee215ad) or [updateDoc()](./firestore.md#updatedoc_51a65e3) that tells the server to union the given elements with any array value that already exists on the server. Each specified element that doesn't already exist in the array will be added to the end. If the field being modified is not already an array it will be overwritten with an array containing exactly the specified elements.
 
 <b>Signature:</b>
 
@@ -1043,7 +1043,7 @@ void
 
 ### increment(n) {:#increment_5685735}
 
-Returns a special value that can be used with [setDoc()](./firestore_lite.md#setdoc_ee215ad) or [updateDoc()](./firestore_lite.md#updatedoc_51a65e3) that tells the server to increment the field's current value by the given value.
+Returns a special value that can be used with [setDoc()](./firestore.md#setdoc_ee215ad) or [updateDoc()](./firestore.md#updatedoc_51a65e3) that tells the server to increment the field's current value by the given value.
 
 If either the operand or the current field value uses floating point precision, all arithmetic follows IEEE 754 semantics. If both values are integers, values outside of JavaScript's safe number range (`Number.MIN_SAFE_INTEGER` to `Number.MAX_SAFE_INTEGER`<!-- -->) are also subject to precision loss. Furthermore, once processed by the Firestore backend, all integer operations are capped between -2^63 and 2^63-1.
 
@@ -1069,7 +1069,7 @@ The `FieldValue` sentinel for use in a call to `setDoc()` or `updateDoc()`
 
 ### maximum(n) {:#maximum_5685735}
 
-Returns a special value that can be used with [setDoc()](./firestore_lite.md#setdoc_ee215ad) or [updateDoc()](./firestore_lite.md#updatedoc_51a65e3) that tells the server to set the field to the numeric maximum of the field's current and the given value.
+Returns a special value that can be used with [setDoc()](./firestore.md#setdoc_ee215ad) or [updateDoc()](./firestore.md#updatedoc_51a65e3) that tells the server to set the field to the numeric maximum of the field's current and the given value.
 
 <b>Signature:</b>
 
@@ -1091,7 +1091,7 @@ The `FieldValue` sentinel for use in a call to `setDoc()` or `updateDoc()`
 
 ### minimum(n) {:#minimum_5685735}
 
-Returns a special value that can be used with [setDoc()](./firestore_lite.md#setdoc_ee215ad) or [updateDoc()](./firestore_lite.md#updatedoc_51a65e3) that tells the server to set the field to the numeric minimum of the field's current and the given value.
+Returns a special value that can be used with [setDoc()](./firestore.md#setdoc_ee215ad) or [updateDoc()](./firestore.md#updatedoc_51a65e3) that tells the server to set the field to the numeric minimum of the field's current and the given value.
 
 <b>Signature:</b>
 
@@ -2017,7 +2017,7 @@ export declare type QueryNonFilterConstraint =
 
 ## SetOptions
 
-An options object that configures the behavior of [setDoc()](./firestore_lite.md#setdoc_ee215ad)<!-- -->,  and  calls. These calls can be configured to perform granular merges instead of overwriting the target documents in their entirety by providing a `SetOptions` with `merge: true`<!-- -->.
+An options object that configures the behavior of [setDoc()](./firestore.md#setdoc_ee215ad)<!-- -->,  and  calls. These calls can be configured to perform granular merges instead of overwriting the target documents in their entirety by providing a `SetOptions` with `merge: true`<!-- -->.
 
 <b>Signature:</b>
 

@@ -44,10 +44,7 @@ import {
   ApiModel,
   IResolveDeclarationReferenceResult
 } from '@microsoft/api-extractor-model';
-import {
-  DeclarationReference,
-  ModuleSource
-} from '@microsoft/tsdoc/lib-commonjs/beta/DeclarationReference';
+import { DeclarationReference } from '@microsoft/tsdoc/lib-commonjs/beta/DeclarationReference';
 import { DocEmphasisSpan } from '../nodes/DocEmphasisSpan';
 import { DocHeading } from '../nodes/DocHeading';
 import { DocTable } from '../nodes/DocTable';
@@ -59,37 +56,72 @@ import { DocTableCell } from '../nodes/DocTableCell';
 import { createHash } from 'crypto';
 
 /**
- * Normalizes slash-separated subpath package names to dash-separated package names
- * used in ApiModel (e.g. '@firebase/firestore/lite' -> '@firebase/firestore-lite').
+ * Metadata describing a subpackage and its relationship to its parent package.
  */
-export function normalizePackageName(name: string): string {
-  const match = name.startsWith('@')
-    ? name.match(/^(@[^/]+\/[^/]+)\/(.+)$/)
-    : name.match(/^([^/]+)\/(.+)$/);
-  return match ? `${match[1]}-${match[2].replace(/\//g, '-')}` : name;
+export interface ISubpackageInfo {
+  /**
+   * The dash-separated npm package name used in the ApiModel (e.g. '@firebase/firestore-lite').
+   */
+  npmPackageName: string;
+  /**
+   * The slash-separated canonical package name (e.g. '@firebase/firestore/lite').
+   */
+  canonicalName: string;
+  /**
+   * The parent package name (e.g. '@firebase/firestore').
+   */
+  parentPackageName: string;
+  /**
+   * The relative export subpath within the parent package (e.g. 'lite' or 'lite/pipelines').
+   */
+  subpath: string;
 }
 
 /**
- * Determines whether an ApiPackage is a subpackage of another package
- * based on whether it shares member symbols with a base package in the ApiModel.
+ * Parses `--subpackage <npmPackageName>=<canonicalName>` CLI flag entries into
+ * a map of subpackage metadata keyed by both full package name and unscoped name.
  */
-export function isSubpackage(pkg: ApiPackage, apiModel?: ApiModel): boolean {
-  if (!apiModel) {
-    apiModel = pkg
-      .getHierarchy()
-      .find(item => item.kind === ApiItemKind.Model) as ApiModel | undefined;
+export function parseSubpackageMapping(
+  entries: readonly string[]
+): Map<string, ISubpackageInfo> {
+  const subpackages = new Map<string, ISubpackageInfo>();
+  for (const entry of entries) {
+    const [npmPackageName, canonicalName] = entry.split('=');
+    if (!npmPackageName || !canonicalName) continue;
+    let parentPackageName: string;
+    let subpath: string;
+    if (canonicalName.startsWith('@')) {
+      const parts = canonicalName.split('/');
+      parentPackageName = `${parts[0]}/${parts[1]}`;
+      subpath = parts.slice(2).join('/');
+    } else {
+      const parts = canonicalName.split('/');
+      parentPackageName = parts[0];
+      subpath = parts.slice(1).join('/');
+    }
+    const info: ISubpackageInfo = {
+      npmPackageName: npmPackageName.trim(),
+      canonicalName: canonicalName.trim(),
+      parentPackageName,
+      subpath
+    };
+    subpackages.set(npmPackageName.trim(), info);
+    subpackages.set(PackageName.getUnscopedName(npmPackageName.trim()), info);
   }
-  const baseName = pkg.displayName.split('-')[0];
-  const basePkg = apiModel?.tryGetPackageByName(baseName);
-  if (!basePkg || basePkg === pkg) return false;
+  return subpackages;
+}
 
-  const baseMembers = new Set(
-    basePkg.entryPoints.flatMap(entryPoint =>
-      entryPoint.members.map(member => member.displayName)
-    )
-  );
-  return pkg.entryPoints.some(entryPoint =>
-    entryPoint.members.some(member => baseMembers.has(member.displayName))
+/**
+ * Returns the subpackage metadata for an ApiPackage if it is registered in the subpackages map.
+ */
+export function getSubpackageInfo(
+  pkg: ApiPackage,
+  subpackages?: Map<string, ISubpackageInfo>
+): ISubpackageInfo | undefined {
+  if (!subpackages) return undefined;
+  return (
+    subpackages.get(pkg.displayName) ||
+    subpackages.get(PackageName.getUnscopedName(pkg.displayName))
   );
 }
 
@@ -124,128 +156,55 @@ export function resolveDeclarationReferenceWithAliases(
   let result: IResolveDeclarationReferenceResult =
     apiModel.resolveDeclarationReference(declarationReference, contextApiItem);
 
-  // If initial resolution failed on a valid reference, try to resolve it using fallback strategies.
+  // If initial resolution failed, search across candidate packages.
   if (!result.resolvedApiItem && declarationReference) {
-    // Step 2a: Handle TSDoc declaration references (e.g. {@link ...} tags in doc comments).
-    if (declarationReference instanceof DocDeclarationReference) {
-      const fullPath =
-        (declarationReference.packageName || '') +
-        (declarationReference.importPath || '');
-      const normalizedPkgName = fullPath
-        ? normalizePackageName(fullPath)
-        : undefined;
+    const contextPkg = contextApiItem
+      ?.getHierarchy()
+      ?.find(item => item.kind === ApiItemKind.Package) as
+      ApiPackage | undefined;
 
-      // If normalized package name differs from original, retry with normalized name.
-      if (normalizedPkgName && normalizedPkgName !== fullPath) {
-        const mappedDocRef = new DocDeclarationReference({
+    const candidatePackages = getCandidatePackages(apiModel, contextPkg);
+
+    if (declarationReference instanceof DocDeclarationReference) {
+      for (const candidatePackage of candidatePackages) {
+        const candidateDocRef = new DocDeclarationReference({
           configuration: declarationReference.configuration,
-          packageName: normalizedPkgName,
+          packageName: candidatePackage.displayName,
           memberReferences:
             declarationReference.memberReferences as DocMemberReference[]
         });
         const retry = apiModel.resolveDeclarationReference(
-          mappedDocRef,
-          contextApiItem
+          candidateDocRef,
+          candidatePackage
         );
         if (retry.resolvedApiItem) {
           result = retry;
+          break;
         }
       }
+    } else if (declarationReference instanceof DeclarationReference) {
+      // Strip local/unexported scope '~' prefix (e.g. '~Bytes:class' -> 'Bytes:class')
+      // so the member can be matched as an exported declaration in other packages.
+      const rawStr = declarationReference.toString();
+      const memberPart = rawStr.includes('!')
+        ? rawStr.split('!')[1].replace(/^~/, '')
+        : rawStr.replace(/^~/, '');
 
-      // If still unresolved, search across candidate packages.
-      if (!result.resolvedApiItem) {
-        // Determine the contextual or target package to prioritize related packages.
-        const contextPkg =
-          (contextApiItem
-            ?.getHierarchy()
-            ?.find(item => item.kind === ApiItemKind.Package) as
-            ApiPackage | undefined) ||
-          (normalizedPkgName
-            ? apiModel.tryGetPackageByName(normalizedPkgName)
-            : undefined);
-
-        const candidatePackages = getCandidatePackages(apiModel, contextPkg);
-
-        // Retry resolution against each candidate package until a match is found.
-        for (const candidatePackage of candidatePackages) {
-          const candidateDocRef = new DocDeclarationReference({
-            configuration: declarationReference.configuration,
-            packageName: candidatePackage.displayName,
-            memberReferences:
-              declarationReference.memberReferences as DocMemberReference[]
-          });
+      for (const candidatePackage of candidatePackages) {
+        try {
+          const candidateRef = DeclarationReference.parse(
+            `${candidatePackage.displayName}!${memberPart}`
+          );
           const retry = apiModel.resolveDeclarationReference(
-            candidateDocRef,
+            candidateRef,
             candidatePackage
           );
           if (retry.resolvedApiItem) {
             result = retry;
             break;
           }
-        }
-      }
-      // Step 2b: Handle canonical DeclarationReferences (e.g. type excerpts in function signatures / parameter tables).
-    } else if (declarationReference instanceof DeclarationReference) {
-      const sourcePath =
-        declarationReference.source instanceof ModuleSource
-          ? declarationReference.source.escapedPath
-          : undefined;
-      const normalizedSourcePath = sourcePath
-        ? normalizePackageName(sourcePath)
-        : undefined;
-
-      // Check if the declaration reference source path can be normalized.
-      if (normalizedSourcePath && normalizedSourcePath !== sourcePath) {
-        const mappedCodeDest = declarationReference.withSource(
-          new ModuleSource(normalizedSourcePath)
-        );
-        const retry = apiModel.resolveDeclarationReference(
-          mappedCodeDest,
-          contextApiItem
-        );
-        if (retry.resolvedApiItem) {
-          result = retry;
-        }
-      }
-
-      // If still unresolved (e.g. reference is imported from another package or has local '~' scope).
-      if (!result.resolvedApiItem) {
-        // Determine the contextual package to prioritize related packages.
-        const contextPkg =
-          (contextApiItem
-            ?.getHierarchy()
-            ?.find(item => item.kind === ApiItemKind.Package) as
-            ApiPackage | undefined) ||
-          (normalizedSourcePath
-            ? apiModel.tryGetPackageByName(normalizedSourcePath)
-            : undefined);
-
-        const candidatePackages = getCandidatePackages(apiModel, contextPkg);
-
-        // Strip local/unexported scope '~' prefix (e.g. '~Bytes:class' -> 'Bytes:class')
-        // so the member can be matched as an exported declaration in other packages.
-        const rawStr = declarationReference.toString();
-        const memberPart = rawStr.includes('!')
-          ? rawStr.split('!')[1].replace(/^~/, '')
-          : rawStr.replace(/^~/, '');
-
-        // Retry resolution against candidate packages with the exported symbol reference.
-        for (const candidatePackage of candidatePackages) {
-          try {
-            const candidateRef = DeclarationReference.parse(
-              `${candidatePackage.displayName}!${memberPart}`
-            );
-            const retry = apiModel.resolveDeclarationReference(
-              candidateRef,
-              candidatePackage
-            );
-            if (retry.resolvedApiItem) {
-              result = retry;
-              break;
-            }
-          } catch {
-            // Ignore parse errors for unparseable references
-          }
+        } catch {
+          // Ignore parse errors for unparseable references
         }
       }
     }
@@ -256,16 +215,22 @@ export function resolveDeclarationReferenceWithAliases(
 
 export function getLinkForApiItem(
   apiItem: ApiItem,
-  addFileNameSuffix: boolean
+  addFileNameSuffix: boolean,
+  subpackages?: Map<string, ISubpackageInfo>
 ) {
-  const fileName = getFilenameForApiItem(apiItem, addFileNameSuffix);
+  const fileName = getFilenameForApiItem(
+    apiItem,
+    addFileNameSuffix,
+    subpackages
+  );
   const headingAnchor = getHeadingAnchorForApiItem(apiItem);
   return `./${fileName}#${headingAnchor}`;
 }
 
 export function getFilenameForApiItem(
   apiItem: ApiItem,
-  addFileNameSuffix: boolean
+  addFileNameSuffix: boolean,
+  subpackages?: Map<string, ISubpackageInfo>
 ): string {
   if (apiItem.kind === ApiItemKind.Model) {
     return 'index.md';
@@ -297,15 +262,29 @@ export function getFilenameForApiItem(
             hierarchyItem.displayName
           }`;
         }
-        if (isSubpackage(hierarchyItem.parent as ApiPackage)) {
-          entryPointName = entryPointName.replace(/-/g, '_');
+        const entryInfo = getSubpackageInfo(
+          hierarchyItem.parent as ApiPackage,
+          subpackages
+        );
+        if (entryInfo) {
+          const parentUnscoped = PackageName.getUnscopedName(
+            entryInfo.parentPackageName
+          );
+          entryPointName = `${parentUnscoped}_${entryInfo.subpath.replace(/\//g, '_')}`;
         }
         baseName = Utilities.getSafeFilenameForName(entryPointName);
         break;
       case ApiItemKind.Package:
         let pkgName = PackageName.getUnscopedName(hierarchyItem.displayName);
-        if (isSubpackage(hierarchyItem as ApiPackage)) {
-          pkgName = pkgName.replace(/-/g, '_');
+        const pkgInfo = getSubpackageInfo(
+          hierarchyItem as ApiPackage,
+          subpackages
+        );
+        if (pkgInfo) {
+          const parentUnscoped = PackageName.getUnscopedName(
+            pkgInfo.parentPackageName
+          );
+          pkgName = `${parentUnscoped}_${pkgInfo.subpath.replace(/\//g, '_')}`;
         }
         baseName = Utilities.getSafeFilenameForName(pkgName);
         if ((hierarchyItem as ApiPackage).entryPoints.length > 1) {
@@ -471,15 +450,28 @@ export function createExampleSection(
 export function createTitleCell(
   apiItem: ApiItem,
   configuration: TSDocConfiguration,
-  addFileNameSuffix: boolean
+  addFileNameSuffix: boolean,
+  subpackages?: Map<string, ISubpackageInfo>
 ): DocTableCell {
+  let linkText: string = Utilities.getConciseSignature(apiItem);
+  if (apiItem.kind === ApiItemKind.Package) {
+    const info = getSubpackageInfo(apiItem as ApiPackage, subpackages);
+    if (info) {
+      linkText = info.canonicalName;
+    }
+  }
+
   return new DocTableCell({ configuration }, [
     new DocParagraph({ configuration }, [
       new DocLinkTag({
         configuration,
         tagName: '@link',
-        linkText: Utilities.getConciseSignature(apiItem),
-        urlDestination: getLinkForApiItem(apiItem, addFileNameSuffix)
+        linkText,
+        urlDestination: getLinkForApiItem(
+          apiItem,
+          addFileNameSuffix,
+          subpackages
+        )
       })
     ])
   ]);
@@ -595,7 +587,8 @@ export function createThrowsSection(
 export function createEntryPointTitleCell(
   apiItem: ApiEntryPoint,
   configuration: TSDocConfiguration,
-  addFileNameSuffix: boolean
+  addFileNameSuffix: boolean,
+  subpackages?: Map<string, ISubpackageInfo>
 ): DocTableCell {
   return new DocTableCell({ configuration }, [
     new DocParagraph({ configuration }, [
@@ -603,7 +596,11 @@ export function createEntryPointTitleCell(
         configuration,
         tagName: '@link',
         linkText: `/${apiItem.displayName}`,
-        urlDestination: getLinkForApiItem(apiItem, addFileNameSuffix)
+        urlDestination: getLinkForApiItem(
+          apiItem,
+          addFileNameSuffix,
+          subpackages
+        )
       })
     ])
   ]);
