@@ -246,11 +246,12 @@ class IndexedDBLocalPersistence implements InternalPersistence {
           throw e;
         }
         if (this.dbPromise) {
+          const dbPromise = this.dbPromise;
+          this.dbPromise = null;
           try {
-            const db = await this.dbPromise;
+            const db = await dbPromise;
             db.close();
           } catch {}
-          this.dbPromise = null;
         }
         // TODO: consider adding exponential backoff
       }
