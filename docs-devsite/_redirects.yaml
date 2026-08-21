@@ -1,0 +1,12 @@
+redirects:
+# Redirect legacy root package pages with trailing underscore
+- from: /docs/reference/js/firestore_
+  to: /docs/reference/js/firestore
+- from: /docs/reference/js/messaging_
+  to: /docs/reference/js/messaging
+
+# Redirect legacy member type pages with trailing underscore (e.g. firestore_.documentreference -> firestore.documentreference)
+- from: /docs/reference/js/firestore_\.(.+)
+  to: /docs/reference/js/firestore.\1
+- from: /docs/reference/js/messaging_\.(.+)
+  to: /docs/reference/js/messaging.\1
