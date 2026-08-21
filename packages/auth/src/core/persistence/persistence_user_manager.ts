@@ -117,7 +117,10 @@ export class PersistenceUserManager {
 
   delete(): void {
     try {
-      this.persistence._removeListener(this.fullUserKey, this.boundEventHandler);
+      this.persistence._removeListener(
+        this.fullUserKey,
+        this.boundEventHandler
+      );
     } catch {}
   }
 

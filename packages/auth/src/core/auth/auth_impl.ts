@@ -171,10 +171,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
         );
       } catch (e) {
         _logWarn(`Failed to initialize persistence: ${e}`);
-        this.persistenceManager = await PersistenceUserManager.create(
-          this,
-          []
-        );
+        this.persistenceManager = await PersistenceUserManager.create(this, []);
       } finally {
         this._resolvePersistenceManagerAvailable?.();
       }
