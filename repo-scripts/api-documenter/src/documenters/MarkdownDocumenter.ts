@@ -79,7 +79,7 @@ import {
   createEntryPointTitleCell,
   createExampleSection,
   getHeadingAnchorForApiItem,
-  PACKAGE_HEADER_MAPPINGS,
+  isSubpackage,
   resolveDeclarationReferenceWithAliases
 } from './MarkdownDocumenterHelpers';
 import * as path from 'path';
@@ -98,7 +98,6 @@ export interface IMarkdownDocumenterOptions {
   addFileNameSuffix: boolean;
   projectName: string;
   sortFunctions: string;
-  filenameMappings?: Record<string, string>;
 }
 
 /**
@@ -115,7 +114,6 @@ export class MarkdownDocumenter {
   private readonly _addFileNameSuffix: boolean;
   private readonly _projectName: string;
   private readonly _sortFunctions: string;
-  private readonly _filenameMappings: Record<string, string>;
 
   public constructor(options: IMarkdownDocumenterOptions) {
     this._apiModel = options.apiModel;
@@ -124,7 +122,6 @@ export class MarkdownDocumenter {
     this._addFileNameSuffix = options.addFileNameSuffix;
     this._projectName = options.projectName;
     this._sortFunctions = options.sortFunctions;
-    this._filenameMappings = options.filenameMappings || {};
     this._tsdocConfiguration = CustomDocNodes.configuration;
     this._markdownEmitter = new CustomMarkdownEmitter(this._apiModel);
 
@@ -139,11 +136,7 @@ export class MarkdownDocumenter {
           outputFolder: this._outputFolder,
           documenter: new MarkdownDocumenterAccessor({
             getLinkForApiItem: (apiItem: ApiItem) => {
-              return getLinkForApiItem(
-                apiItem,
-                this._addFileNameSuffix,
-                this._filenameMappings
-              );
+              return getLinkForApiItem(apiItem, this._addFileNameSuffix);
             }
           })
         });
@@ -163,12 +156,7 @@ export class MarkdownDocumenter {
     apiItem: ApiItem,
     configuration: TSDocConfiguration
   ): DocTableCell {
-    return createTitleCell(
-      apiItem,
-      configuration,
-      this._addFileNameSuffix,
-      this._filenameMappings
-    );
+    return createTitleCell(apiItem, configuration, this._addFileNameSuffix);
   }
 
   private _createEntryPointTitleCell(
@@ -178,8 +166,7 @@ export class MarkdownDocumenter {
     return createEntryPointTitleCell(
       apiItem,
       configuration,
-      this._addFileNameSuffix,
-      this._filenameMappings
+      this._addFileNameSuffix
     );
   }
 
@@ -200,11 +187,7 @@ export class MarkdownDocumenter {
     // write to file
     const filename: string = path.join(
       this._outputFolder,
-      getFilenameForApiItem(
-        apiItem,
-        this._addFileNameSuffix,
-        this._filenameMappings
-      )
+      getFilenameForApiItem(apiItem, this._addFileNameSuffix)
     );
     const stringBuilder: StringBuilder = new StringBuilder();
 
@@ -221,11 +204,7 @@ page_type: reference
     this._markdownEmitter.emit(stringBuilder, output, {
       contextApiItem: apiItem,
       onGetFilenameForApiItem: (apiItemForFilename: ApiItem) => {
-        return getLinkForApiItem(
-          apiItemForFilename,
-          this._addFileNameSuffix,
-          this._filenameMappings
-        );
+        return getLinkForApiItem(apiItemForFilename, this._addFileNameSuffix);
       }
     });
 
@@ -305,9 +284,15 @@ page_type: reference
         const unscopedPackageName: string = PackageName.getUnscopedName(
           apiItem.displayName
         );
-        const packageHeaderTitle: string =
-          PACKAGE_HEADER_MAPPINGS[apiItem.displayName] ||
-          `${unscopedPackageName} package`;
+        let packageHeaderTitle: string;
+        if (isSubpackage(apiItem as ApiPackage, this._apiModel)) {
+          const scope = apiItem.displayName.startsWith('@')
+            ? apiItem.displayName.split('/')[0] + '/'
+            : '';
+          packageHeaderTitle = `${scope}${unscopedPackageName.replace(/-/g, '/')}`;
+        } else {
+          packageHeaderTitle = apiItem.displayName;
+        }
         output.push(
           new DocHeading({
             configuration,
@@ -776,8 +761,7 @@ page_type: reference
               linkText: unwrappedTokenText,
               urlDestination: getLinkForApiItem(
                 apiItemResult.resolvedApiItem,
-                this._addFileNameSuffix,
-                this._filenameMappings
+                this._addFileNameSuffix
               )
             })
           );

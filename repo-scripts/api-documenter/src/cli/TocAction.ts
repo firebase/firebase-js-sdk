@@ -52,8 +52,7 @@ export class TocAction extends BaseAction {
 
   protected async onExecuteAsync(): Promise<void> {
     // override
-    const { apiModel, outputFolder, addFileNameSuffix, filenameMappings } =
-      this.buildApiModel();
+    const { apiModel, outputFolder, addFileNameSuffix } = this.buildApiModel();
     const g3Path: string | undefined = this._g3PathParameter.value;
     const jsSdk: boolean = this._jsSDKParameter.value;
 
@@ -68,8 +67,7 @@ export class TocAction extends BaseAction {
       outputFolder,
       addFileNameSuffix,
       g3Path,
-      jsSdk,
-      filenameMappings
+      jsSdk
     });
   }
 }

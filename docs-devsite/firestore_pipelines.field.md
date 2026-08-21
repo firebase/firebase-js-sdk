@@ -100,7 +100,7 @@ geoDistance(location: GeoPoint | Expression): Expression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  location | GeoPoint \| [Expression](./firestore_pipelines.expression.md#expression_class) | Compute distance to this GeoPoint. |
+|  location | [GeoPoint](./firestore.geopoint.md#geopoint_class) \| [Expression](./firestore_pipelines.expression.md#expression_class) | Compute distance to this GeoPoint. |
 
 <b>Returns:</b>
 

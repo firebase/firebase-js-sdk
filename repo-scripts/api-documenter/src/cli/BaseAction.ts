@@ -44,7 +44,6 @@ export interface IBuildApiModelResult {
   outputFolder: string;
   addFileNameSuffix: boolean;
   projectName?: string;
-  filenameMappings: Record<string, string>;
 }
 
 export abstract class BaseAction extends CommandLineAction {
@@ -52,7 +51,6 @@ export abstract class BaseAction extends CommandLineAction {
   private _outputFolderParameter: CommandLineStringParameter;
   private _fileNameSuffixParameter: CommandLineFlagParameter;
   private _projectNameParameter: CommandLineStringParameter;
-  private _filenameMappingsParameter: CommandLineStringListParameter;
 
   public constructor(options: ICommandLineActionOptions) {
     super(options);
@@ -94,15 +92,6 @@ export abstract class BaseAction extends CommandLineAction {
         `Name of the project (js, admin, functions, etc.). This will be ` +
         `used in the devsite header path to the _project.yaml file.`
     });
-
-    this._filenameMappingsParameter = this.defineStringListParameter({
-      parameterLongName: '--map-filename',
-      argumentName: 'MAPPING',
-      description:
-        `Package/entrypoint name mapping in the format from:to ` +
-        `(e.g. "--map-filename firestore-lite:firestore_lite"). ` +
-        `Can be specified multiple times.`
-    });
   }
 
   protected buildApiModel(): IBuildApiModelResult {
@@ -119,18 +108,6 @@ export abstract class BaseAction extends CommandLineAction {
 
     const addFileNameSuffix: boolean = this._fileNameSuffixParameter.value;
 
-    const filenameMappings: Record<string, string> = {};
-    for (const pair of this._filenameMappingsParameter.values) {
-      const parts = pair.split(':');
-      if (parts.length === 2) {
-        filenameMappings[parts[0].trim()] = parts[1].trim();
-      } else {
-        throw new Error(
-          `Invalid filename mapping format: "${pair}". Expected "from:to".`
-        );
-      }
-    }
-
     for (const filename of FileSystem.readFolderItemNames(inputFolder)) {
       if (filename.match(/\.api\.json$/i)) {
         console.log(`Reading ${filename}`);
@@ -146,8 +123,7 @@ export abstract class BaseAction extends CommandLineAction {
       inputFolder,
       outputFolder,
       addFileNameSuffix,
-      projectName: this._projectNameParameter.value,
-      filenameMappings
+      projectName: this._projectNameParameter.value
     };
   }
 

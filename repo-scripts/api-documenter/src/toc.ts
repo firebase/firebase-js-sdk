@@ -16,11 +16,17 @@
  */
 
 import yaml from 'js-yaml';
-import { ApiItem, ApiItemKind, ApiModel } from '@microsoft/api-extractor-model';
+import {
+  ApiItem,
+  ApiItemKind,
+  ApiModel,
+  ApiPackage
+} from '@microsoft/api-extractor-model';
 import {
   getFilenameForApiItem,
-  TOC_TITLE_MAPPINGS
+  isSubpackage
 } from './documenters/MarkdownDocumenterHelpers';
+import { PackageName } from '@rushstack/node-core-library';
 import { ModuleSource } from '@microsoft/tsdoc/lib-commonjs/beta/DeclarationReference';
 import { writeFileSync } from 'fs';
 import { resolve } from 'path';
@@ -31,7 +37,6 @@ export interface ITocGenerationOptions {
   outputFolder: string;
   addFileNameSuffix: boolean;
   jsSdk: boolean;
-  filenameMappings?: Record<string, string>;
 }
 
 interface ITocItem {
@@ -45,8 +50,7 @@ export function generateToc({
   g3Path,
   outputFolder,
   addFileNameSuffix,
-  jsSdk,
-  filenameMappings = {}
+  jsSdk
 }: ITocGenerationOptions) {
   const toc = [];
 
@@ -58,13 +62,7 @@ export function generateToc({
     toc.push(firebaseToc);
   }
 
-  generateTocRecursively(
-    apiModel,
-    g3Path,
-    addFileNameSuffix,
-    toc,
-    filenameMappings
-  );
+  generateTocRecursively(apiModel, apiModel, g3Path, addFileNameSuffix, toc);
 
   writeFileSync(
     resolve(outputFolder, 'toc.yaml'),
@@ -79,25 +77,25 @@ export function generateToc({
 }
 
 function generateTocRecursively(
+  apiModel: ApiModel,
   apiItem: ApiItem,
   g3Path: string,
   addFileNameSuffix: boolean,
-  toc: ITocItem[],
-  filenameMappings: Record<string, string> = {}
+  toc: ITocItem[]
 ) {
   // generate toc item only for entry points
   if (apiItem.kind === ApiItemKind.EntryPoint) {
     // Entry point
-    const entryPointName = (
-      apiItem.canonicalReference.source! as ModuleSource
-    ).escapedPath.replace('@firebase/', '');
+    const escapedPath = (apiItem.canonicalReference.source! as ModuleSource)
+      .escapedPath;
+    const entryPointName = PackageName.getUnscopedName(escapedPath);
+    let title = entryPointName;
+    if (isSubpackage(apiItem.parent as ApiPackage, apiModel)) {
+      title = entryPointName.replace(/-/g, '/');
+    }
     const entryPointToc: ITocItem = {
-      title: TOC_TITLE_MAPPINGS[entryPointName] || entryPointName,
-      path: `${g3Path}/${getFilenameForApiItem(
-        apiItem,
-        addFileNameSuffix,
-        filenameMappings
-      )}`,
+      title,
+      path: `${g3Path}/${getFilenameForApiItem(apiItem, addFileNameSuffix)}`,
       section: []
     };
 
@@ -107,11 +105,7 @@ function generateTocRecursively(
         member.kind === ApiItemKind.Class ||
         member.kind === ApiItemKind.Interface
       ) {
-        const fileName = getFilenameForApiItem(
-          member,
-          addFileNameSuffix,
-          filenameMappings
-        );
+        const fileName = getFilenameForApiItem(member, addFileNameSuffix);
         entryPointToc.section!.push({
           title: member.displayName,
           path: `${g3Path}/${fileName}`
@@ -123,13 +117,7 @@ function generateTocRecursively(
   } else {
     // travel the api tree to find the next entry point
     for (const member of apiItem.members) {
-      generateTocRecursively(
-        member,
-        g3Path,
-        addFileNameSuffix,
-        toc,
-        filenameMappings
-      );
+      generateTocRecursively(apiModel, member, g3Path, addFileNameSuffix, toc);
     }
   }
 }

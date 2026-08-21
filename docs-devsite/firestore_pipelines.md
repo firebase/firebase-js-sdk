@@ -2123,7 +2123,7 @@ export declare function documentId(
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  documentPath | string \| DocumentReference |  |
+|  documentPath | string \| [DocumentReference](./firestore.documentreference.md#documentreference_class) |  |
 
 <b>Returns:</b>
 
@@ -2156,7 +2156,7 @@ declare function parent_2(
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  documentPath | string \| DocumentReference | A string path or DocumentReference to get the parent from. |
+|  documentPath | string \| [DocumentReference](./firestore.documentreference.md#documentreference_class) | A string path or DocumentReference to get the parent from. |
 
 <b>Returns:</b>
 
@@ -3738,7 +3738,7 @@ export declare function ltrim(
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  expression | [Expression](./firestore_pipelines.expression.md#expression_class) | The expression representing the string or byte array. |
-|  valueToTrim | string \| [Expression](./firestore_pipelines.expression.md#expression_class) \| Bytes | Optional. A string or byte array containing the characters/bytes to trim. If not specified, whitespace will be trimmed. |
+|  valueToTrim | string \| [Expression](./firestore_pipelines.expression.md#expression_class) \| [Bytes](./firestore.bytes.md#bytes_class) | Optional. A string or byte array containing the characters/bytes to trim. If not specified, whitespace will be trimmed. |
 
 <b>Returns:</b>
 
@@ -3974,7 +3974,7 @@ export declare function rtrim(
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  expression | [Expression](./firestore_pipelines.expression.md#expression_class) | The expression representing the string or byte array. |
-|  valueToTrim | string \| [Expression](./firestore_pipelines.expression.md#expression_class) \| Bytes | Optional. A string or byte array containing the characters/bytes to trim. If not specified, whitespace will be trimmed. |
+|  valueToTrim | string \| [Expression](./firestore_pipelines.expression.md#expression_class) \| [Bytes](./firestore.bytes.md#bytes_class) | Optional. A string or byte array containing the characters/bytes to trim. If not specified, whitespace will be trimmed. |
 
 <b>Returns:</b>
 
@@ -4113,7 +4113,7 @@ export declare function stringIndexOf(
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  expression | [Expression](./firestore_pipelines.expression.md#expression_class) | The expression representing the string or byte array. |
-|  search | string \| [Expression](./firestore_pipelines.expression.md#expression_class) \| Bytes | The substring or byte sequence to search for. |
+|  search | string \| [Expression](./firestore_pipelines.expression.md#expression_class) \| [Bytes](./firestore.bytes.md#bytes_class) | The substring or byte sequence to search for. |
 
 <b>Returns:</b>
 
@@ -4184,8 +4184,8 @@ export declare function stringReplaceAll(
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  expression | [Expression](./firestore_pipelines.expression.md#expression_class) | The expression representing the string or byte array. |
-|  find | string \| [Expression](./firestore_pipelines.expression.md#expression_class) \| Bytes | The substring or byte sequence to search for. |
-|  replacement | string \| [Expression](./firestore_pipelines.expression.md#expression_class) \| Bytes | The replacement string or byte sequence. |
+|  find | string \| [Expression](./firestore_pipelines.expression.md#expression_class) \| [Bytes](./firestore.bytes.md#bytes_class) | The substring or byte sequence to search for. |
+|  replacement | string \| [Expression](./firestore_pipelines.expression.md#expression_class) \| [Bytes](./firestore.bytes.md#bytes_class) | The replacement string or byte sequence. |
 
 <b>Returns:</b>
 
@@ -4221,8 +4221,8 @@ export declare function stringReplaceOne(
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  expression | [Expression](./firestore_pipelines.expression.md#expression_class) | The expression representing the string or byte array. |
-|  find | string \| [Expression](./firestore_pipelines.expression.md#expression_class) \| Bytes | The substring or byte sequence to search for. |
-|  replacement | string \| [Expression](./firestore_pipelines.expression.md#expression_class) \| Bytes | The replacement string or byte sequence. |
+|  find | string \| [Expression](./firestore_pipelines.expression.md#expression_class) \| [Bytes](./firestore.bytes.md#bytes_class) | The substring or byte sequence to search for. |
+|  replacement | string \| [Expression](./firestore_pipelines.expression.md#expression_class) \| [Bytes](./firestore.bytes.md#bytes_class) | The replacement string or byte sequence. |
 
 <b>Returns:</b>
 
@@ -5898,7 +5898,7 @@ export declare function cosineDistance(
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  fieldName | string | The name of the field containing the first vector. |
-|  vector | number\[\] \| VectorValue | The other vector (as an array of doubles) or [VectorValue](./firestore.vectorvalue.md#vectorvalue_class) to compare against. |
+|  vector | number\[\] \| [VectorValue](./firestore.vectorvalue.md#vectorvalue_class) | The other vector (as an array of doubles) or [VectorValue](./firestore.vectorvalue.md#vectorvalue_class) to compare against. |
 
 <b>Returns:</b>
 
@@ -6101,7 +6101,7 @@ export declare function dotProduct(
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  fieldName | string | The name of the field containing the first vector. |
-|  vector | number\[\] \| VectorValue | The other vector (as an array of doubles or VectorValue) to calculate with. |
+|  vector | number\[\] \| [VectorValue](./firestore.vectorvalue.md#vectorvalue_class) | The other vector (as an array of doubles or VectorValue) to calculate with. |
 
 <b>Returns:</b>
 
@@ -6381,7 +6381,7 @@ export declare function euclideanDistance(
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  fieldName | string | The name of the field containing the first vector. |
-|  vector | number\[\] \| VectorValue | The other vector (as an array of doubles or VectorValue) to compare against. |
+|  vector | number\[\] \| [VectorValue](./firestore.vectorvalue.md#vectorvalue_class) | The other vector (as an array of doubles or VectorValue) to compare against. |
 
 <b>Returns:</b>
 
@@ -6571,7 +6571,7 @@ export declare function geoDistance(
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  fieldName | string \| [Field](./firestore_pipelines.field.md#field_class) | Specifies the field in the document which contains the first GeoPoint for distance computation. |
-|  location | GeoPoint \| [Expression](./firestore_pipelines.expression.md#expression_class) | Compute distance to this GeoPoint. |
+|  location | [GeoPoint](./firestore.geopoint.md#geopoint_class) \| [Expression](./firestore_pipelines.expression.md#expression_class) | Compute distance to this GeoPoint. |
 
 <b>Returns:</b>
 
@@ -7266,7 +7266,7 @@ export declare function ltrim(
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  fieldName | string | The name of the field containing the string or byte array. |
-|  valueToTrim | string \| [Expression](./firestore_pipelines.expression.md#expression_class) \| Bytes | Optional. A string or byte array containing the characters/bytes to trim. If not specified, whitespace will be trimmed. |
+|  valueToTrim | string \| [Expression](./firestore_pipelines.expression.md#expression_class) \| [Bytes](./firestore.bytes.md#bytes_class) | Optional. A string or byte array containing the characters/bytes to trim. If not specified, whitespace will be trimmed. |
 
 <b>Returns:</b>
 
@@ -8000,7 +8000,7 @@ export declare function rtrim(
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  fieldName | string | The name of the field containing the string or byte array. |
-|  valueToTrim | string \| [Expression](./firestore_pipelines.expression.md#expression_class) \| Bytes | Optional. A string or byte array containing the characters/bytes to trim. If not specified, whitespace will be trimmed. |
+|  valueToTrim | string \| [Expression](./firestore_pipelines.expression.md#expression_class) \| [Bytes](./firestore.bytes.md#bytes_class) | Optional. A string or byte array containing the characters/bytes to trim. If not specified, whitespace will be trimmed. |
 
 <b>Returns:</b>
 
@@ -8316,7 +8316,7 @@ export declare function stringIndexOf(
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  fieldName | string | The name of the field containing the string or byte array. |
-|  search | string \| [Expression](./firestore_pipelines.expression.md#expression_class) \| Bytes | The substring or byte sequence to search for. |
+|  search | string \| [Expression](./firestore_pipelines.expression.md#expression_class) \| [Bytes](./firestore.bytes.md#bytes_class) | The substring or byte sequence to search for. |
 
 <b>Returns:</b>
 
@@ -8387,8 +8387,8 @@ export declare function stringReplaceAll(
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  fieldName | string | The name of the field containing the string or byte array. |
-|  find | string \| [Expression](./firestore_pipelines.expression.md#expression_class) \| Bytes | The substring or byte sequence to search for. |
-|  replacement | string \| [Expression](./firestore_pipelines.expression.md#expression_class) \| Bytes | The replacement string or byte sequence. |
+|  find | string \| [Expression](./firestore_pipelines.expression.md#expression_class) \| [Bytes](./firestore.bytes.md#bytes_class) | The substring or byte sequence to search for. |
+|  replacement | string \| [Expression](./firestore_pipelines.expression.md#expression_class) \| [Bytes](./firestore.bytes.md#bytes_class) | The replacement string or byte sequence. |
 
 <b>Returns:</b>
 
@@ -8424,8 +8424,8 @@ export declare function stringReplaceOne(
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  fieldName | string | The name of the field containing the string or byte array. |
-|  find | string \| [Expression](./firestore_pipelines.expression.md#expression_class) \| Bytes | The substring or byte sequence to search for. |
-|  replacement | string \| [Expression](./firestore_pipelines.expression.md#expression_class) \| Bytes | The replacement string or byte sequence. |
+|  find | string \| [Expression](./firestore_pipelines.expression.md#expression_class) \| [Bytes](./firestore.bytes.md#bytes_class) | The substring or byte sequence to search for. |
+|  replacement | string \| [Expression](./firestore_pipelines.expression.md#expression_class) \| [Bytes](./firestore.bytes.md#bytes_class) | The replacement string or byte sequence. |
 
 <b>Returns:</b>
 
@@ -11030,7 +11030,7 @@ export declare function field(path: FieldPath): Field;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  path | FieldPath | A FieldPath specifying the field. |
+|  path | [FieldPath](./firestore.fieldpath.md#fieldpath_class) | A FieldPath specifying the field. |
 
 <b>Returns:</b>
 
@@ -12368,7 +12368,7 @@ export declare function constant(value: VectorValue): Expression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  value | VectorValue | The VectorValue value. |
+|  value | [VectorValue](./firestore.vectorvalue.md#vectorvalue_class) | The VectorValue value. |
 
 <b>Returns:</b>
 
@@ -12456,7 +12456,7 @@ export declare function constant(value: GeoPoint): Expression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  value | GeoPoint | The GeoPoint value. |
+|  value | [GeoPoint](./firestore.geopoint.md#geopoint_class) | The GeoPoint value. |
 
 <b>Returns:</b>
 
@@ -12478,7 +12478,7 @@ export declare function constant(value: Timestamp): Expression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  value | Timestamp | The Timestamp value. |
+|  value | [Timestamp](./firestore.timestamp.md#timestamp_class) | The Timestamp value. |
 
 <b>Returns:</b>
 
@@ -12522,7 +12522,7 @@ export declare function constant(value: Bytes): Expression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  value | Bytes | The Bytes value. |
+|  value | [Bytes](./firestore.bytes.md#bytes_class) | The Bytes value. |
 
 <b>Returns:</b>
 
@@ -12544,7 +12544,7 @@ export declare function constant(value: DocumentReference): Expression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  value | DocumentReference | The DocumentReference value. |
+|  value | [DocumentReference](./firestore.documentreference.md#documentreference_class) | The DocumentReference value. |
 
 <b>Returns:</b>
 
@@ -12665,7 +12665,7 @@ export declare function cosineDistance(
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  vectorExpression | [Expression](./firestore_pipelines.expression.md#expression_class) | The first vector (represented as an <code>Expression</code>) to compare against. |
-|  vector | number\[\] \| VectorValue | The other vector (as an array of doubles or VectorValue) to compare against. |
+|  vector | number\[\] \| [VectorValue](./firestore.vectorvalue.md#vectorvalue_class) | The other vector (as an array of doubles or VectorValue) to compare against. |
 
 <b>Returns:</b>
 
@@ -12735,7 +12735,7 @@ export declare function dotProduct(
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  vectorExpression | [Expression](./firestore_pipelines.expression.md#expression_class) | The first vector (represented as an <code>Expression</code>) to calculate with. |
-|  vector | number\[\] \| VectorValue | The other vector (as an array of doubles or VectorValue) to calculate with. |
+|  vector | number\[\] \| [VectorValue](./firestore.vectorvalue.md#vectorvalue_class) | The other vector (as an array of doubles or VectorValue) to calculate with. |
 
 <b>Returns:</b>
 
@@ -12805,7 +12805,7 @@ export declare function euclideanDistance(
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  vectorExpression | [Expression](./firestore_pipelines.expression.md#expression_class) | The first vector (represented as an <code>Expression</code>) to compare against. |
-|  vector | number\[\] \| VectorValue | The other vector (as an array of doubles or VectorValue) to compare against. |
+|  vector | number\[\] \| [VectorValue](./firestore.vectorvalue.md#vectorvalue_class) | The other vector (as an array of doubles or VectorValue) to compare against. |
 
 <b>Returns:</b>
 

@@ -48,7 +48,7 @@ collection(collection: string | CollectionReference): PipelineType;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  collection | string \| CollectionReference | Name or reference to the collection that will be used as the Pipeline source. |
+|  collection | string \| [CollectionReference](./firestore.collectionreference.md#collectionreference_class) | Name or reference to the collection that will be used as the Pipeline source. |
 
 <b>Returns:</b>
 
@@ -128,7 +128,7 @@ createFrom(query: Query): PipelineType;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  query | Query | A Query to be converted into a Pipeline. |
+|  query | [Query](./firestore.query.md#query_class) | A Query to be converted into a Pipeline. |
 
 <b>Returns:</b>
 
@@ -185,7 +185,7 @@ documents(docs: Array<string | DocumentReference>): PipelineType;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  docs | Array&lt;string \| DocumentReference&gt; | An array of paths and DocumentReferences specifying the individual documents that will be the source of this pipeline. The converters for these DocumentReferences will be ignored and not have an effect on this pipeline. |
+|  docs | Array&lt;string \| [DocumentReference](./firestore.documentreference.md#documentreference_class)<!-- -->&gt; | An array of paths and DocumentReferences specifying the individual documents that will be the source of this pipeline. The converters for these DocumentReferences will be ignored and not have an effect on this pipeline. |
 
 <b>Returns:</b>
 

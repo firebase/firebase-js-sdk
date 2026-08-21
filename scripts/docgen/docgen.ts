@@ -43,19 +43,6 @@ const EXCLUDED_PACKAGES = [
   'rules-unit-testing',
   'data-connect'
 ];
-const LEGACY_FILENAME_MAPPINGS: Record<string, string> = {
-  'firestore-lite': 'firestore_lite',
-  'firestore-pipelines': 'firestore_pipelines',
-  'firestore-lite-pipelines': 'firestore_lite_pipelines',
-  'messaging-sw': 'messaging_sw'
-};
-
-function getMapFilenameFlags(mappings: Record<string, string>): string[] {
-  return Object.entries(mappings).flatMap(([from, to]) => [
-    '--map-filename',
-    `${from}:${to}`
-  ]);
-}
 
 /**
  * When ordering functions, will prioritize these first params at
@@ -174,8 +161,7 @@ async function generateToc() {
         'docs-devsite',
         '-p',
         '/docs/reference/js',
-        '-j',
-        ...getMapFilenameFlags(LEGACY_FILENAME_MAPPINGS)
+        '-j'
       ],
       { stdio: 'inherit' }
     );
@@ -306,9 +292,6 @@ async function generateDocs(
     '--sort-functions',
     PREFERRED_PARAMS.join(',')
   ];
-  if (forDevsite) {
-    args.push(...getMapFilenameFlags(LEGACY_FILENAME_MAPPINGS));
-  }
   await spawn('yarn', args, { stdio: 'inherit' });
 
   if (forDevsite) {
