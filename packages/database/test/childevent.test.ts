@@ -64,12 +64,19 @@ describe('Child event snapshots', () => {
    * callback: `onChildAdded` dispatches synchronously when the location is
    * already cached, and in that case the callback runs before `unsubscribe`
    * has been bound.
+   *
+   * A cancelled listener rejects rather than leaving the promise pending, so
+   * a failure surfaces as the underlying error instead of a test timeout.
    */
   async function firstChildAdded(q: Query): Promise<DataSnapshot> {
     let unsubscribe: (() => void) | undefined;
     try {
-      return await new Promise<DataSnapshot>(resolve => {
-        unsubscribe = onChildAdded(q, snapshot => resolve(snapshot));
+      return await new Promise<DataSnapshot>((resolve, reject) => {
+        unsubscribe = onChildAdded(
+          q,
+          snapshot => resolve(snapshot),
+          error => reject(error)
+        );
       });
     } finally {
       unsubscribe?.();
