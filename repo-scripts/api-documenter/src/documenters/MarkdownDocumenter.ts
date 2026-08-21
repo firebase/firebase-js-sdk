@@ -806,7 +806,9 @@ page_type: reference
 
       switch (apiMember.kind) {
         case ApiItemKind.Package:
-          packagesTable.addRow(row);
+          if (!getSubpackageInfo(apiMember as ApiPackage, this._subpackages)) {
+            packagesTable.addRow(row);
+          }
           this._writeApiItemPage(apiMember);
           break;
       }
