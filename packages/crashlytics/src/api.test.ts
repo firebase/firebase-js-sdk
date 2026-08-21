@@ -16,9 +16,13 @@
  */
 
 import { expect } from 'chai';
-import { LoggerProvider } from '@opentelemetry/sdk-logs';
 import { trace } from '@opentelemetry/api';
-import { Logger, LogRecord, SeverityNumber } from '@opentelemetry/api-logs';
+import {
+  Logger,
+  LoggerProvider,
+  LogRecord,
+  SeverityNumber
+} from '@opentelemetry/api-logs';
 import {
   InMemorySpanExporter,
   SimpleSpanProcessor,
@@ -32,10 +36,15 @@ import {
 } from '@firebase/app';
 import { Component, ComponentType } from '@firebase/component';
 import { FirebaseAppCheckInternal } from '@firebase/app-check-interop-types';
-import { recordError, flush, getCrashlytics } from './api';
+import {
+  recordError,
+  flush,
+  getCrashlytics,
+  getOtelLoggerProvider,
+  getOtelLogger
+} from './api';
 import { CrashlyticsService } from './service';
 import { registerCrashlytics } from './register';
-import { _FirebaseInstallationsInternal } from '@firebase/installations';
 import { AUTO_CONSTANTS } from './auto-constants';
 import { CrashlyticsInternal } from './types';
 import {
@@ -120,6 +129,7 @@ describe('Top level API', () => {
         }
       },
       loggerProvider: fakeLoggerProvider,
+      logger: fakeLoggerProvider.getLogger('error-logger'),
       attributesStore: fakeAttributesStore
     };
   });
@@ -524,6 +534,28 @@ describe('Top level API', () => {
       expect(emittedLogs.length).to.equal(0);
     });
   });
+
+  describe('OpenTelemetry Integration', () => {
+    it('should expose getOtelLoggerProvider and getOtelLogger in default micro mode', () => {
+      const crashlytics = getCrashlytics(getFakeApp());
+      const provider = getOtelLoggerProvider(crashlytics);
+      const logger = getOtelLogger(crashlytics);
+
+      expect(provider).to.be.an('object');
+      expect(logger).to.be.an('object');
+      expect(typeof logger.emit).to.equal('function');
+    });
+
+    it('should support registerGlobalLoggerProvider in options', () => {
+      const crashlytics = getCrashlytics(getFakeApp(), {
+        registerGlobalLoggerProvider: true
+      });
+
+      const provider = getOtelLoggerProvider(crashlytics);
+      expect(provider).to.be.an('object');
+      expect(typeof provider.getLogger).to.equal('function');
+    });
+  });
 });
 
 function getFakeApp(): FirebaseApp {
@@ -535,34 +567,30 @@ function getFakeApp(): FirebaseApp {
   });
   _addOrOverwriteComponent(
     app,
-    //@ts-ignore
     new Component(
-      'installations-internal',
+      'installations-internal' as any,
       () =>
         ({
           getId: async () => 'iid',
           getToken: async () => 'authToken'
-        }) as _FirebaseInstallationsInternal,
+        }) as any,
       ComponentType.PUBLIC
-    )
+    ) as any
   );
   _addOrOverwriteComponent(
     app,
-    //@ts-ignore
     new Component(
-      'app-check-internal',
+      'app-check-internal' as any,
       () => {
         return {} as FirebaseAppCheckInternal;
       },
       ComponentType.PUBLIC
-    )
+    ) as any
   );
   _addOrOverwriteComponent(
     app,
-    //@ts-ignore
     new Component(
-      'heartbeat',
-      // @ts-ignore
+      'heartbeat' as any,
       () => {
         return {
           triggerHeartbeat: () => {},
@@ -570,7 +598,7 @@ function getFakeApp(): FirebaseApp {
         };
       },
       ComponentType.PUBLIC
-    )
+    ) as any
   );
   return app;
 }

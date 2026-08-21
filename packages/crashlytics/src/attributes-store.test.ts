@@ -370,5 +370,28 @@ describe('AttributesStore', () => {
         'logging.googleapis.com/spanId'
       );
     });
+
+    it('should include installation ID in log attributes once resolved', async () => {
+      const mockInstallations = {
+        getId: async () => 'iid-xyz'
+      } as unknown as _FirebaseInstallationsInternal;
+
+      const mockProvider = {
+        getImmediate: () => mockInstallations,
+        get: async () => mockInstallations
+      } as any;
+
+      const store = new AttributesStore(
+        { projectId: 'my-project' } as any,
+        {} as any,
+        mockProvider
+      );
+      await new Promise(resolve => setTimeout(resolve, 0));
+
+      expect(store.installationId).to.equal('iid-xyz');
+      expect(store.getLogAttributes()).to.include({
+        [ATTR_KEY_INSTALLATION_ID]: 'iid-xyz'
+      });
+    });
   });
 });

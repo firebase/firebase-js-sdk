@@ -17,10 +17,9 @@
 
 import { expect } from 'chai';
 import * as sinon from 'sinon';
-import { LoggerProvider } from '@opentelemetry/sdk-logs';
-import { Logger, LogRecord } from '@opentelemetry/api-logs';
+import { Logger, LoggerProvider, LogRecord } from '@opentelemetry/api-logs';
 import { isNode } from '@firebase/util';
-import { registerListeners, startNewSession, generateUuid } from './helpers';
+import { registerListeners, startNewSession, generateUuid, isTelemetryUrl } from './helpers';
 import { AUTO_CONSTANTS } from './auto-constants';
 import { CrashlyticsService } from './service';
 import { CrashlyticsInternal } from './types';
@@ -86,6 +85,7 @@ describe('helpers', () => {
         }
       },
       loggerProvider: fakeLoggerProvider,
+      logger: fakeLoggerProvider.getLogger('session-logger'),
       attributesStore: fakeAttributesStore
     };
   });
@@ -236,4 +236,41 @@ describe('helpers', () => {
       });
     }
   });
+
+  describe('isTelemetryUrl', () => {
+    it('should identify default firebasetelemetry endpoint URLs', () => {
+      expect(
+        isTelemetryUrl(
+          'https://firebasetelemetry.googleapis.com/v1/projects/p/apps/a/locations/l/logs'
+        )
+      ).to.be.true;
+    });
+
+    it('should identify custom endpoint URLs when provided', () => {
+      expect(
+        isTelemetryUrl(
+          'https://custom-proxy.internal.net/v1/projects/p/apps/a/locations/l/logs',
+          'https://custom-proxy.internal.net'
+        )
+      ).to.be.true;
+    });
+
+    it('should return false for unrelated URLs (e.g. Auth, Firestore, APIs)', () => {
+      expect(
+        isTelemetryUrl('https://identitytoolkit.googleapis.com/v1/accounts')
+      ).to.be.false;
+      expect(
+        isTelemetryUrl('https://firestore.googleapis.com/v1/projects/p/databases')
+      ).to.be.false;
+      expect(isTelemetryUrl('https://api.example.com/data')).to.be.false;
+    });
+
+    it('should handle undefined or non-string inputs safely', () => {
+      expect(isTelemetryUrl(undefined)).to.be.false;
+      expect(isTelemetryUrl(null)).to.be.false;
+      expect(isTelemetryUrl(12345)).to.be.false;
+      expect(isTelemetryUrl('')).to.be.false;
+    });
+  });
 });
+

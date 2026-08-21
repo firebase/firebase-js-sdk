@@ -67,4 +67,14 @@ export interface CrashlyticsOptions {
    * take precedence over the base set defined here.
    */
   customAttributes?: AnyValueMap;
+
+  /**
+   * If true, registers the OpenTelemetry SDK LoggerProvider as the global LoggerProvider
+   * (`logs.setGlobalLoggerProvider()`) so that OpenTelemetry instrumentations and logs route
+   * through the Crashlytics pipeline.
+   *
+   * When false or omitted (default), Crashlytics uses a lightweight micro exporter with zero
+   * global side effects.
+   */
+  registerGlobalLoggerProvider?: boolean;
 }
