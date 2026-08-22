@@ -9,6 +9,6 @@
   "typings": "./pipelines.d.ts",
   "private": true,
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=24.12.0"
   }
 }
