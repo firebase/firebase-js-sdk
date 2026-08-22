@@ -333,6 +333,15 @@ describe('core/persistence/persistence_user_manager', () => {
           user.toJSON()
         );
       });
+
+      it('swaps listeners and recovers existing session when switching to a new persistence', async () => {
+        const { persistence: nextPersistence, stub: nextStub } = makePersistence();
+        persistenceStub._get.returns(Promise.resolve(null));
+
+        await manager.setPersistence(nextPersistence);
+        expect(persistenceStub._removeListener).to.have.been.called;
+        expect(nextStub._addListener).to.have.been.called;
+      });
     });
   });
 });
