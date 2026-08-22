@@ -67,4 +67,15 @@ export interface CrashlyticsOptions {
    * take precedence over the base set defined here.
    */
   customAttributes?: AnyValueMap;
+
+  /**
+   * Whether to register the underlying OpenTelemetry LoggerProvider globally with the OpenTelemetry API
+   * (`logs.setGlobalLoggerProvider()`).
+   *
+   * When enabled, other OpenTelemetry instrumentations (such as Core Web Vitals, Console, or Fetch)
+   * and custom application loggers can automatically route logs through Firebase Crashlytics.
+   *
+   * Defaults to `false`.
+   */
+  registerGlobalLoggerProvider?: boolean;
 }

@@ -19,6 +19,7 @@ export interface CrashlyticsOptions {
     customAttributes?: AnyValueMap;
     endpointUrl?: string;
     region?: string;
+    registerGlobalLoggerProvider?: boolean;
 }
 
 // @public

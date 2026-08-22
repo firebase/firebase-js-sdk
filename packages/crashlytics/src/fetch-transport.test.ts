@@ -66,15 +66,17 @@ describe('FetchTransport', () => {
           sinon.assert.calledOnceWithMatch(
             fetchStub,
             testTransportParameters.url,
-            {
+            sinon.match({
               method: 'POST',
-              headers: new Headers({
-                foo: 'foo-value',
-                bar: 'bar-value',
-                'Content-Type': 'application/json'
-              }),
               body: testPayload
-            }
+            }) as unknown as RequestInit
+          );
+          const sentHeaders = fetchStub.firstCall.args[1]?.headers as Headers;
+          assert.strictEqual(sentHeaders?.get('foo'), 'foo-value');
+          assert.strictEqual(sentHeaders?.get('bar'), 'bar-value');
+          assert.strictEqual(
+            sentHeaders?.get('content-type'),
+            'application/json'
           );
           done();
         } catch (e) {
@@ -198,16 +200,21 @@ describe('FetchTransport', () => {
           sinon.assert.calledOnceWithMatch(
             fetchStub,
             testTransportParameters.url,
-            {
+            sinon.match({
               method: 'POST',
-              headers: new Headers({
-                foo: 'foo-value',
-                bar: 'bar-value',
-                'Content-Type': 'application/json',
-                'dynamic-header': 'dynamic-value'
-              }),
               body: testPayload
-            }
+            }) as unknown as RequestInit
+          );
+          const sentHeaders = fetchStub.firstCall.args[1]?.headers as Headers;
+          assert.strictEqual(sentHeaders?.get('foo'), 'foo-value');
+          assert.strictEqual(sentHeaders?.get('bar'), 'bar-value');
+          assert.strictEqual(
+            sentHeaders?.get('content-type'),
+            'application/json'
+          );
+          assert.strictEqual(
+            sentHeaders?.get('dynamic-header'),
+            'dynamic-value'
           );
           done();
         } catch (e) {
@@ -273,11 +280,17 @@ describe('FetchTransport', () => {
           sinon.assert.calledOnceWithMatch(
             fetchStub,
             testTransportParameters.url,
-            {
+            sinon.match({
               method: 'POST',
-              headers: testTransportParameters.headers,
               body: testPayload
-            }
+            }) as unknown as RequestInit
+          );
+          const sentHeaders = fetchStub.firstCall.args[1]?.headers as Headers;
+          assert.strictEqual(sentHeaders?.get('foo'), 'foo-value');
+          assert.strictEqual(sentHeaders?.get('bar'), 'bar-value');
+          assert.strictEqual(
+            sentHeaders?.get('content-type'),
+            'application/json'
           );
           done();
         } catch (e) {
