@@ -514,9 +514,11 @@ describe('platform_browser/persistence/indexed_db', () => {
         }
       )._openDb();
       expect(openedDb).to.be.ok;
+      openedDb.close();
     });
 
     it('should allow persistence operations to succeed after pagehide', async () => {
+      persistence._addListener(key, callback);
       await persistence._set(key, value);
       window.dispatchEvent(new Event('pagehide'));
       expect((persistence as any).isClosing).to.be.true;
