@@ -94,11 +94,32 @@ export function average(
 ): AggregateField<number | null>;
 
 // @public
+export class BsonObjectId {
+  constructor(value: string);
+  isEqual(other: BsonObjectId): boolean;
+  // (undocumented)
+  readonly value: string;
+}
+
+// @public
+export class BsonTimestamp {
+  constructor(seconds: number, increment: number);
+  // (undocumented)
+  readonly increment: number;
+  isEqual(other: BsonTimestamp): boolean;
+  // (undocumented)
+  readonly seconds: number;
+}
+
+// @public
 export class Bytes {
-  static fromBase64String(base64: string): Bytes;
+  get data(): Uint8Array;
+  static fromBase64String(base64: string, subtype?: number): Bytes;
   static fromJSON(json: object): Bytes;
-  static fromUint8Array(array: Uint8Array): Bytes;
+  static fromUint8Array(array: Uint8Array, subtype?: number): Bytes;
   isEqual(other: Bytes): boolean;
+  // (undocumented)
+  readonly subtype: number;
   toBase64(): string;
   toJSON(): object;
   toString(): string;
@@ -178,6 +199,14 @@ export function connectFirestoreEmulator(
 
 // @public
 export function count(): AggregateField<number>;
+
+// @public
+export class Decimal128Value {
+  constructor(value: string);
+  isEqual(other: Decimal128Value): boolean;
+  // (undocumented)
+  readonly stringValue: string;
+  }
 
 // @public
 export function deleteDoc<
@@ -426,6 +455,14 @@ export function initializeFirestore(
 ): Firestore;
 
 // @public
+export class Int32Value {
+  constructor(value: number);
+  isEqual(other: Int32Value): boolean;
+  // (undocumented)
+  readonly value: number;
+}
+
+// @public
 export function limit(limit: number): QueryLimitConstraint;
 
 // @public
@@ -437,7 +474,21 @@ export { LogLevel }
 export function maximum(n: number): FieldValue;
 
 // @public
+export class MaxKey {
+  // (undocumented)
+  static instance(): MaxKey;
+  readonly type = 'MaxKey';
+}
+
+// @public
 export function minimum(n: number): FieldValue;
+
+// @public
+export class MinKey {
+  // (undocumented)
+  static instance(): MinKey;
+  readonly type = 'MinKey';
+}
 
 // @public
 export type NestedUpdateFields<T extends Record<string, unknown>> =
@@ -617,6 +668,16 @@ export function refEqual<
     | DocumentReference<AppModelType, DbModelType>
     | CollectionReference<AppModelType, DbModelType>
 ): boolean;
+
+// @public
+export class RegexValue {
+  constructor(pattern: string, options: string);
+  isEqual(other: RegexValue): boolean;
+  // (undocumented)
+  readonly options: string;
+  // (undocumented)
+  readonly pattern: string;
+}
 
 // @public
 export function runTransaction<T>(
