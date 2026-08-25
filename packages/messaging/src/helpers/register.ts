@@ -48,9 +48,13 @@ const WindowMessagingFactory: InstanceFactory<'messaging'> = (
     container.getProvider('analytics-internal')
   );
 
-  navigator.serviceWorker.addEventListener('message', e =>
-    messageEventListener(messaging as MessagingService, e)
-  );
+  // Keep a reference to the listener so it can be removed in `_delete()`,
+  // otherwise it would retain a reference to the deleted instance.
+  const messageListener = (e: MessageEvent): Promise<void> =>
+    messageEventListener(messaging as MessagingService, e);
+  navigator.serviceWorker.addEventListener('message', messageListener);
+  messaging._messageEventListenerUnsubscribe = () =>
+    navigator.serviceWorker.removeEventListener('message', messageListener);
 
   messaging._fidChangeUnsubscribe = subscribeFidChangeRegistration(
     messaging as MessagingService,

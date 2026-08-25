@@ -30,7 +30,7 @@ const VALID_PART_FIELDS: Array<keyof Part> = [
 ];
 
 const VALID_PARTS_PER_ROLE: { [key in Role]: Array<keyof Part> } = {
-  user: ['text', 'inlineData'],
+  user: ['text', 'inlineData', 'functionResponse'],
   function: ['functionResponse'],
   model: ['text', 'functionCall', 'thought', 'thoughtSignature'],
   // System instructions shouldn't be in history anyway.
