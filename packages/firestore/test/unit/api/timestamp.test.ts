@@ -348,7 +348,7 @@ describe('Timestamp', () => {
       expect(fromNegativeInst.isEqual(negativeOriginal)).to.be.true;
     });
 
-    it('is recognized and parsed as a Timestamp value in document data with full nanosecond precision', () => {
+    it('is recognized and parsed as a Timestamp value in document data', () => {
       const instant =
         Temporal.Instant.fromEpochNanoseconds(1488872578916123456n);
       const expectedTimestamp = new Timestamp(1488872578, 916123456);

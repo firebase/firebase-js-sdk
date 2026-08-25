@@ -17,15 +17,19 @@
 
 // Type definitions for ECMAScript Temporal API
 
-declare namespace Temporal {
-  interface Instant {
-    readonly epochMilliseconds: number;
-    readonly epochNanoseconds: bigint;
-    toString(): string;
-  }
+declare global {
+  namespace Temporal {
+    interface Instant {
+      readonly epochMilliseconds: number;
+      readonly epochNanoseconds: bigint;
+      toString(): string;
+    }
 
-  const Instant: {
-    fromEpochNanoseconds(epochNanoseconds: bigint): Instant;
-    fromEpochMilliseconds(epochMilliseconds: number): Instant;
-  };
+    const Instant: {
+      fromEpochNanoseconds(epochNanoseconds: bigint): Instant;
+      fromEpochMilliseconds(epochMilliseconds: number): Instant;
+    };
+  }
 }
+
+export {};
