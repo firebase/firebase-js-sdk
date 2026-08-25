@@ -66,6 +66,53 @@ export const appConfig: ApplicationConfig = {
 };
 ```
 
+### Step 3: Track Route Changes
+
+To automatically track navigation changes, update the route path attribute, and log view boundary telemetry when navigating between routes, initialize `setupCrashlyticsRoutes` with `provideEnvironmentInitializer` in `src/app/app.config.ts`:
+
+```typescript
+// src/app/app.config.ts
+import {
+  ApplicationConfig,
+  DestroyRef,
+  ErrorHandler,
+  inject,
+  provideEnvironmentInitializer
+} from '@angular/core';
+import { provideRouter, Router } from '@angular/router';
+import {
+  FirebaseErrorHandler,
+  setupCrashlyticsRoutes
+} from '@firebase/crashlytics/angular';
+import { FIREBASE_APP, provideFirebaseApp } from './firebase.config';
+import { routes } from './app.routes';
+
+export const appConfig: ApplicationConfig = {
+  providers: [
+    provideRouter(routes),
+    // Provide the core Firebase App dependency token
+    {
+      provide: FIREBASE_APP,
+      useFactory: provideFirebaseApp
+    },
+    // Wire Angular runtime uncaught errors to Firebase Crashlytics
+    {
+      provide: ErrorHandler,
+      useFactory: (app: FirebaseApp) => new FirebaseErrorHandler(app),
+      deps: [FIREBASE_APP]
+    },
+    // Configure automatic route navigation tracking
+    provideEnvironmentInitializer(() => {
+      setupCrashlyticsRoutes({
+        firebaseApp: inject(FIREBASE_APP),
+        router: inject(Router),
+        destroyRef: inject(DestroyRef)
+      });
+    })
+  ]
+};
+```
+
 > [!NOTE]
 > The `FirebaseErrorHandler` tracks all zone crashes. It uses internal `Router` instances to build dynamic routes (like `/dashboard/user/:id`) rather than logging literal URLs, keeping telemetry free of personally identifiable information (PII).
 

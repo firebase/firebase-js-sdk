@@ -13,7 +13,7 @@ This guide details how to integrate Firebase Crashlytics into a Next.js applicat
 
 ### Client-Side / App Router Layout
 
-In Next.js App Router, `layout.tsx` is a Server Component by default. Because `FirebaseApp` is non-serializable, wrap `<FirebaseCrashlytics>` in a Client Component (e.g., `src/components/CrashlyticsProvider.tsx`) marked with the `"use client"` directive:
+In Next.js App Router, `layout.tsx` is a Server Component by default. Because `FirebaseApp` is non-serializable, wrap `<FirebaseCrashlytics>` (for automatic error reporting) and `<CrashlyticsRoutes>` (from `@firebase/crashlytics/next-navigation` to track route changes and update route path attributes) in a Client Component (e.g., `src/components/CrashlyticsProvider.tsx`) marked with the `"use client"` directive:
 
 ```tsx
 // src/components/CrashlyticsProvider.tsx
@@ -21,12 +21,14 @@ In Next.js App Router, `layout.tsx` is a Server Component by default. Because `F
 
 import React from 'react';
 import { FirebaseCrashlytics } from '@firebase/crashlytics/react';
+import { CrashlyticsRoutes } from '@firebase/crashlytics/next-navigation';
 import { app } from '../lib/firebase'; // Shared initialization script
 
 export function CrashlyticsProvider({ children }: { children: React.ReactNode }) {
   return (
     <>
       <FirebaseCrashlytics firebaseApp={app} />
+      <CrashlyticsRoutes firebaseApp={app} />
       {children}
     </>
   );
