@@ -9,7 +9,7 @@ Crashlytics for **Next.js, React, Angular, React Router, and TanStack Router app
 
 Crashlytics for web apps uses Cloud Logging for telemetry storage and Cloud Storage for sourcemap storage under the hood, which are paid products with a generous free tier. Learn more about [Logging pricing](https://cloud.google.com/stackdriver/pricing) and [Storage pricing](https://cloud.google.com/storage/pricing).
 
-As a private preview customer, your experience is incredibly valuable to our team. Please submit bugs, API feedback, or feature requests directly to our team by emailing [crashlytics-web@google.com](mailto:crashlytics-web@google.com) or filling out this [feedback form](https://forms.gle/Us8GM4YuYcYZyRNK9).
+As a private preview customer, your experience is incredibly valuable to our team. Please submit bugs, API feedback, or feature requests directly to our team by emailing [crashlytics-web@google.com](mailto:crashlytics-web@google.com) or filling out this [feedback form](https://forms.gle/).
 
 ---
 
@@ -19,11 +19,15 @@ As a private preview customer, your experience is incredibly valuable to our tea
 - [Step 1: Configure Firebase/Cloud Project](#step-1-configure-firebasecloud-project)
   - [Option 1: Using Firebase Console (Recommended)](#option-1-using-firebase-console-recommended)
   - [Option 2: Using Firebase CLI](#option-2-using-firebase-cli)
+  - [Option 3: Using gcloud CLI](#option-3-using-gcloud-cli)
 - [Step 2: Core SDK Installation & Initialization](#step-2-core-sdk-installation--initialization)
 - [Step 3: Framework-Specific Setup Guides](#step-3-framework-specific-setup-guides)
 - [Step 4: Force an Initial Crash](#step-4-force-an-initial-crash)
+- [Debugging with AI Agents](#debugging-with-ai-agents)
+  - [MCP Tools (`crashlytics:connect`)](#mcp-tools-crashlyticsconnect)
+  - [REST API & Web Browser Metadata](#rest-api--web-browser-metadata)
 - [Additional Configuration & References](#additional-configuration--references)
-
+  
 ---
 
 ## Agent Setup Prompt
@@ -33,7 +37,7 @@ You can ask your coding agent to do everything for you! Use our sample prompt be
 When you copy this into your coding agent, make sure to do the following before running:
 
 1. Fill in the correct `apiKey` and `appId` for your web app in `firebaseConfig`, which can be found in the Firebase Console in **Settings > General**.
-   _Note: This assumes you already have a Firebase project created with a web app within._
+   *Note: This assumes you already have a Firebase project created with a web app within.*
 2. Point your coding agent to the GitHub README files in `packages/crashlytics/`.
 
 ```markdown
@@ -47,14 +51,14 @@ const firebaseConfig = {
   appId: "<YOUR_FIREBASE_APP_ID>"
 };
 
-Follow the instructions in the Firebase Crashlytics Web Setup Guide GitHub READMEs for setting up the Crashlytics Web SDK. Start with the Cloud Project Setup (using the Firebase CLI `firebase crashlytics:onboard:web`), initialize the SDK, and then follow the Setup Guide for my app’s framework to enable automatic error collection. Do not set up programmatic error capturing for this project. Replace any of the "<SOME_VARIABLE>" values in the instructions with the appropriate values based on my Firebase app config above. Also make sure to set up source map uploading for stack trace de-obfuscation. If you encounter any issues during the setup process, please ask me and I can assist you further. Ensure that you have the necessary permissions to access the Firebase project and that you have the Firebase CLI installed and configured on your machine, logged in as me (ask me to log in on your behalf).
+Follow the instructions in the Firebase Crashlytics Web Setup Guide GitHub READMEs for setting up the Crashlytics Web SDK. Start with the Cloud Project Setup (using the gcloud CLI), initialize the SDK, and then follow the Setup Guide for my app’s framework to enable automatic error collection. Do not set up programmatic error capturing for this project. Replace any of the "<SOME_VARIABLE>" values in the instructions with the appropriate values based on my Firebase app config above. Also make sure to set up source map uploading for stack trace de-obfuscation. If you encounter any issues during the setup process, please ask me and I can assist you further. Ensure that you have the necessary permissions to access the Firebase project and that you have the gcloud CLI installed and configured on your machine, logged in as me (ask me to log in on your behalf).
 ```
 
 ---
 
 ## Step 1: Configure Firebase/Cloud Project
 
-Crashlytics for web leverages Google Cloud Logging, Error Reporting, and Storage under the hood. You can configure your project automatically using the Firebase Console (recommended), or via the Firebase CLI using the `crashlytics:onboard:web` command (useful when onboarding via the CLI or using coding agents).
+Crashlytics for web leverages Google Cloud Logging, Error Reporting, and Storage under the hood. You can configure your project automatically using the Firebase Console (recommended), Firebase CLI, or manually using the `gcloud` CLI (CLI options are particularly useful when using coding agents).
 
 > [!NOTE]
 > If you are coming from an existing Google Cloud project and have not previously used Firebase with that project, you must accept the Firebase Terms of Service in the Firebase Console before proceeding with project setup.
@@ -69,50 +73,89 @@ Crashlytics for web leverages Google Cloud Logging, Error Reporting, and Storage
 
 ### Option 2: Using Firebase CLI
 
-If you prefer configuring your project via the command line or are relying on a coding agent to execute setup steps, use the `firebase crashlytics:onboard:web` command. This command automates all required cloud setup steps.
-
-#### 1. CLI Prerequisites & Authentication
-
-1. Ensure that you have **Firebase CLI v15.19.1 or later** installed. Follow the instructions at [firebase.google.com/docs/cli](https://firebase.google.com/docs/cli) to set up or update the CLI.
-2. Ensure you have **Owner** or **Editor** permissions to your Firebase/Cloud project.
-3. Ensure your account has billing enabled (Crashlytics requires the Blaze plan). Learn more about [Logging pricing](https://cloud.google.com/stackdriver/pricing) and [Storage pricing](https://cloud.google.com/storage/pricing).
-4. Log in to the Firebase CLI, enable the experiment, and set your active project:
+If you prefer configuring your project via the terminal or using an AI coding agent, run the onboarding commands to enable the experiment and onboard:
 
 ```bash
-# Log in to Firebase CLI
-firebase login
-
-# Enable the Crashlytics for Web experiment (only needs to be run once)
 firebase experiments:enable crashlyticsWeb
-
-# Set the active project for subsequent commands
-firebase use <YOUR_FIREBASE_PROJECT_ID>
+firebase crashlytics:onboard:web <YOUR_FIREBASE_APP_ID> --project <YOUR_FIREBASE_PROJECT_ID>
 ```
 
-#### 2. Run the Onboarding Command
+> [!NOTE]
+> **Prerequisites**: Requires **Firebase CLI v15.19.1+**, Owner/Editor project permissions, and Blaze billing enabled.
+> **Authentication**: Ensure you are authenticated and using the correct project:
+>   ```bash
+>   firebase login
+>   firebase use <YOUR_FIREBASE_PROJECT_ID>
+>   ```
+> **Automated Setup**: This command automatically enables the required Telemetry APIs (`firebasetelemetry.googleapis.com` and `firebasetelemetryadmin.googleapis.com`), provisions the `firebase-telemetry` Cloud Logging bucket and routing sink, and configures telemetry settings for your web app.
 
-Run the `crashlytics:onboard:web` command to configure your project:
+---
+
+### Option 3: Using gcloud CLI
+
+If you prefer configuring your project via the command line or are relying on a coding agent to execute setup steps, do the following:
+
+#### 1. User permissions and Billing
+
+Ensure that you have **Owner** permissions to your Firebase/Cloud project. This is mandatory in order to be able to add roles and APIs in the subsequent steps.
+
+Ensure your account has billing enabled. Crashlytics web support uses Cloud Logging for telemetry storage and Cloud Storage for sourcemap storage, which are paid products with a free tier. Learn more about [Logging pricing](https://cloud.google.com/stackdriver/pricing) and [Storage pricing](https://cloud.google.com/storage/pricing).
+
+#### 2. Authentication and Project Selection
+
+Authenticate with Google Cloud and select the correct project:
 
 ```bash
-firebase crashlytics:onboard:web <YOUR_FIREBASE_APP_ID>
+# Log in to Google Cloud CLI (opens a browser window for authentication)
+gcloud auth login
+
+# List all projects to locate the target Project ID
+gcloud projects list
+
+# Set the active project for subsequent commands
+gcloud config set project <PROJECT_ID>
+```
+
+#### 3. Enable the Firebase Telemetry APIs
+
+Enable the required API services in your Google Cloud project:
+
+```bash
+gcloud services enable firebasetelemetry.googleapis.com
+gcloud services enable firebasetelemetryadmin.googleapis.com
 ```
 
 > [!TIP]
-> You can also specify the project explicitly with the `--project` flag:
->
-> ```bash
-> firebase crashlytics:onboard:web <YOUR_FIREBASE_APP_ID> --project <YOUR_FIREBASE_PROJECT_ID>
-> ```
->
-> If `<YOUR_FIREBASE_APP_ID>` is omitted, the CLI will interactively prompt you to select an app from your project.
+> **Troubleshooting tip**: The Cloud Logging, Cloud Storage, Cloud Monitoring, and Cloud Telemetry APIs are also necessary and enabled by default. If you run into issues during setup, ensure these APIs are enabled.
 
-This command automatically:
+#### 4. Restrict/Update the API Key
 
-- Verifies that billing is enabled on your Firebase project.
-- Enables the required Telemetry APIs (`firebasetelemetry.googleapis.com` and `firebasetelemetryadmin.googleapis.com`).
-- Creates and configures the `firebase-telemetry` Cloud Logging bucket with analytics enabled.
-- Configures the `firebase-telemetry-routing` Cloud Logging sink to route telemetry to the bucket.
-- Configures Crashlytics telemetry settings for your web app.
+Find the API key used by your client app (e.g. **“Browser Key (auto created by Firebase)”**) and update its API restrictions to include `firebasetelemetry.googleapis.com`:
+
+```bash
+# 1. List all API keys in the project to find your key's ID/Name
+gcloud services api-keys list
+
+# 2. Inspect the key's current configuration to check for existing restrictions
+gcloud services api-keys describe <KEY_ID>
+
+# 3. Update the key to allow both the Telemetry API and any existing API targets
+gcloud services api-keys update <KEY_ID> \
+ $(gcloud services api-keys describe <KEY_ID> \
+ --format="value(restrictions.apiTargets.service)" | sed 's/,/ /g' | awk '{print "--api-target=service=" $1}') \
+ --api-target=service=firebasetelemetry.googleapis.com
+```
+
+#### 5. Enable Observability Analytics
+
+Enable Observability Analytics for the `_Default` global bucket in order to view errors in the Firebase Console:
+
+```bash
+gcloud logging buckets update _Default --project=<PROJECT_ID> --location=global --enable-analytics
+```
+
+> [!NOTE]
+> You must have an **Owner** role on the Cloud project or equivalent permission to do this.
 
 ---
 
@@ -137,17 +180,18 @@ Create a central configuration utility file (`src/lib/firebase.ts`) using the cr
 import { initializeApp, getApps, getApp } from '@firebase/app';
 
 const firebaseConfig = {
-  apiKey: '<YOUR_FIREBASE_API_KEY>',
-  authDomain: '<YOUR_AUTH_DOMAIN>',
-  projectId: '<YOUR_FIREBASE_PROJECT_ID>',
-  storageBucket: '<YOUR_STORAGE_BUCKET>',
-  messagingSenderId: '<YOUR_MESSAGING_SENDER_ID>',
-  appId: '<YOUR_FIREBASE_APP_ID>'
+  apiKey: "<YOUR_FIREBASE_API_KEY>",
+  authDomain: "<YOUR_AUTH_DOMAIN>",
+  projectId: "<YOUR_FIREBASE_PROJECT_ID>",
+  storageBucket: "<YOUR_STORAGE_BUCKET>",
+  messagingSenderId: "<YOUR_MESSAGING_SENDER_ID>",
+  appId: "<YOUR_FIREBASE_APP_ID>"
 };
 
 // Guarantee singleton initialization
-export const app =
-  getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+export const app = getApps().length === 0
+  ? initializeApp(firebaseConfig)
+  : getApp();
 ```
 
 ---
@@ -185,6 +229,29 @@ throw new Error("Test Crash");
 
 > [!NOTE]
 > It may take a few minutes for new crash reports to appear in the Firebase Crashlytics console.
+
+---
+
+## Debugging with AI Agents
+
+AI coding agents can assist in diagnosing and resolving web crashes directly within your development environment.
+
+### MCP Tools (`crashlytics:connect`)
+Crashlytics provides [Model Context Protocol (MCP)](https://firebase.google.com/docs/crashlytics/ai-assistance-mcp) tools that let agents query crash data—including issues, report groups, event payloads, and stack traces—without manual copy-pasting.
+
+- **`crashlytics:connect` Prompt**: A guided interactive workflow that prioritizes top issues, investigates de-obfuscated sourcemaps against your local codebase, and helps the agent draft fixes. Learn more in the [Crashlytics AI assistance with MCP documentation](https://firebase.google.com/docs/crashlytics/ai-assistance-mcp#guided-workflow-prioritize-and-fix).
+
+### REST API & Web Browser Metadata
+
+You and your agents can also programmatically query the [Firebase Crashlytics REST API](https://firebase.google.com/docs/reference/crashlytics/rest).
+
+Web error events and report groups expose browser-specific telemetry dimensions to help identify platform anomalies:
+| Field | Description | Example |
+|---|---|---|
+| `browser.platform` | Client OS / platform architecture | `"macintosh"`, `"windows"`, `"linux"` |
+| `user_agent.name` | Browser client application name | `"chrome"`, `"firefox"`, `"safari"`, `"edge"` |
+| `user_agent.version` | Major/minor version of the browser client | `"150"` |
+| `user_agent.original` | Raw User-Agent string from the client request | `"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)..."` |
 
 ---
 
