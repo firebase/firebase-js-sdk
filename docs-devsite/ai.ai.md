@@ -41,7 +41,7 @@ app: FirebaseApp;
 
 ## AI.backend
 
-A [Backend](./ai.backend.md#backend_class) instance that specifies the configuration for the target backend, either the Gemini Developer API (using [GoogleAIBackend](./ai.googleaibackend#googleaibackend_class)<!-- -->) or the Agent Platform Gemini API (using [AgentPlatformBackend](./ai.agentplatformbackend.md#agentplatformbackend_class)<!-- -->).
+A [Backend](./ai.backend.md#backend_class) instance that specifies the configuration for the target backend, either the Gemini Developer API (using [GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class)<!-- -->) or the Agent Platform Gemini API (using [AgentPlatformBackend](./ai.agentplatformbackend.md#agentplatformbackend_class)<!-- -->).
 
 <b>Signature:</b>
 
