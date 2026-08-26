@@ -206,6 +206,7 @@ export class Decimal128Value {
   isEqual(other: Decimal128Value): boolean;
   // (undocumented)
   readonly stringValue: string;
+  toJSON(): object;
   }
 
 // @public
