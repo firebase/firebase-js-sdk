@@ -103,11 +103,11 @@
     "test:browser:unit:debug": "karma start --auto-watch --unit",
     "test:cordova": "karma start --cordova",
     "test:cordova:debug": "karma start --auto-watch --cordova",
-    "test:node": "run-s --npm-path npm test:node:unit test:node:integration:local",
-    "test:node:unit": "ts-node -O '{\"module\": \"commonjs\", \"target\": \"es6\"}' scripts/run_node_tests.ts",
-    "test:node:integration": "ts-node -O '{\"module\": \"commonjs\", \"target\": \"es6\"}' scripts/run_node_tests.ts --integration",
-    "test:node:integration:local": "ts-node -O '{\"module\": \"commonjs\", \"target\": \"es6\"}' scripts/run_node_tests.ts --integration --local",
-    "test:webdriver": "rollup -c test/integration/webdriver/static/rollup.config.js && ts-node -O '{\"module\": \"commonjs\", \"target\": \"es6\"}' scripts/run_node_tests.ts --webdriver",
+    "test:node": "NODE_OPTIONS='--no-strip-types' run-s --npm-path npm test:node:unit test:node:integration:local",
+    "test:node:unit": "NODE_OPTIONS='--no-strip-types' ts-node -O '{\"module\": \"commonjs\", \"target\": \"es6\"}' scripts/run_node_tests.ts",
+    "test:node:integration": "NODE_OPTIONS='--no-strip-types' ts-node -O '{\"module\": \"commonjs\", \"target\": \"es6\"}' scripts/run_node_tests.ts --integration",
+    "test:node:integration:local": "NODE_OPTIONS='--no-strip-types' ts-node -O '{\"module\": \"commonjs\", \"target\": \"es6\"}' scripts/run_node_tests.ts --integration --local",
+    "test:webdriver": "rollup -c test/integration/webdriver/static/rollup.config.js && NODE_OPTIONS='--no-strip-types' ts-node -O '{\"module\": \"commonjs\", \"target\": \"es6\"}' scripts/run_node_tests.ts --webdriver",
     "trusted-type-check": "tsec -p tsconfig.json --noEmit",
     "api-report": "api-extractor run --local --verbose --config ./api-extractor.json && api-extractor run --local --verbose --config ./web-extension/api-extractor.json && api-extractor run --local --verbose --config ./cordova/api-extractor.json",
     "doc": "api-documenter markdown --input temp --output docs",
@@ -160,6 +160,6 @@
     "reportDir": "./coverage/node"
   },
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=24.12.0"
   }
 }
