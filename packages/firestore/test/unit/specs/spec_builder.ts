@@ -48,8 +48,10 @@ import { DocumentKey } from '../../../src/model/document_key';
 import { FieldIndex } from '../../../src/model/field_index';
 import { JsonObject } from '../../../src/model/object_value';
 import { ResourcePath } from '../../../src/model/path';
-import * as api from '../../../src/protos/firestore_proto_api';
-import { BloomFilter as ProtoBloomFilter } from '../../../src/protos/firestore_proto_api';
+import {
+  BloomFilter as ProtoBloomFilter,
+  Value as ProtoValue
+} from '../../../src/protos/firestore_proto_api';
 import {
   isPermanentWriteError,
   mapCodeFromRpcCode,
@@ -739,7 +741,7 @@ export class SpecBuilder {
     options?: {
       expectUserCallback?: boolean;
       keepInQueue?: boolean;
-      transformResults?: api.Value[];
+      transformResults?: ProtoValue[];
     }
   ): this {
     this.nextStep();
