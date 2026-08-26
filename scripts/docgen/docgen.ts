@@ -351,31 +351,6 @@ async function generateDocs(
   await moveRulesUnitTestingDocs(outputFolder, command);
   await removeExcludedDocs(outputFolder);
   await removeExcludedPackageEntries(outputFolder);
-  if (forDevsite) {
-    writeDevsiteRedirects(outputFolder);
-  }
-}
-
-const DEVSITE_REDIRECTS_CONTENT = `redirects:
-# Redirect legacy root package pages with trailing underscore
-- from: /docs/reference/js/firestore_
-  to: /docs/reference/js/firestore
-- from: /docs/reference/js/messaging_
-  to: /docs/reference/js/messaging
-
-# Redirect legacy member type pages with trailing underscore (e.g. firestore_.documentreference -> firestore.documentreference)
-- from: /docs/reference/js/firestore_\\.(.+)
-  to: /docs/reference/js/firestore.\\1
-- from: /docs/reference/js/messaging_\\.(.+)
-  to: /docs/reference/js/messaging.\\1
-`;
-
-function writeDevsiteRedirects(outputFolder: string) {
-  fs.writeFileSync(
-    join(projectRoot, outputFolder, '_redirects.yaml'),
-    DEVSITE_REDIRECTS_CONTENT,
-    'utf-8'
-  );
 }
 
 /**
