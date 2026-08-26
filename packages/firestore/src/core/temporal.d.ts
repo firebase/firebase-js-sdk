@@ -20,6 +20,7 @@
 declare global {
   namespace Temporal {
     interface Instant {
+      readonly [Symbol.toStringTag]?: string;
       readonly epochMilliseconds: number;
       readonly epochNanoseconds: bigint;
       toString(): string;

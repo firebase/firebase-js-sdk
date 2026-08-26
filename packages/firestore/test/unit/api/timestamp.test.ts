@@ -243,17 +243,23 @@ describe('Timestamp', () => {
   });
 
   describe('Temporal Instant conversions', () => {
-    let originalTemporal: unknown;
+    let didPolyfill = false;
 
     before(() => {
-      originalTemporal = (globalThis as Record<string, unknown>).Temporal;
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const { Temporal } = require('@js-temporal/polyfill');
-      (globalThis as Record<string, unknown>).Temporal = Temporal;
+      if (
+        typeof (globalThis as Record<string, unknown>).Temporal === 'undefined'
+      ) {
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        const { Temporal } = require('@js-temporal/polyfill');
+        (globalThis as Record<string, unknown>).Temporal = Temporal;
+        didPolyfill = true;
+      }
     });
 
     after(() => {
-      (globalThis as Record<string, unknown>).Temporal = originalTemporal;
+      if (didPolyfill) {
+        (globalThis as Record<string, unknown>).Temporal = undefined;
+      }
     });
 
     it('fromInstant creates Timestamp correctly', () => {

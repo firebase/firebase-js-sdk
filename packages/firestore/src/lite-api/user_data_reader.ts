@@ -976,11 +976,10 @@ function isTemporalInstant(value: unknown): value is Temporal.Instant {
       return true;
     }
   }
+  const instant = value as Partial<Temporal.Instant>;
   return (
-    (value as { [Symbol.toStringTag]?: string })[Symbol.toStringTag] ===
-      'Temporal.Instant' &&
-    typeof (value as { epochNanoseconds?: unknown }).epochNanoseconds ===
-      'bigint'
+    instant[Symbol.toStringTag] === 'Temporal.Instant' &&
+    typeof instant.epochNanoseconds === 'bigint'
   );
 }
 
