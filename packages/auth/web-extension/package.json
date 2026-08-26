@@ -1,6 +1,7 @@
 {
   "name": "@firebase/auth-web-extension",
   "description": "A Chrome-Manifest-v3-specific build of the Firebase Auth JS SDK",
+  "license": "Apache-2.0",
   "main": "../dist/web-extension-cjs/index.js",
   "browser": "../dist/web-extension-esm/index.js",
   "module": "../dist/web-extension-esm/index.js",
