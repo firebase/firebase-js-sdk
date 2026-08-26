@@ -1,5 +1,21 @@
 # @firebase/functions-compat
 
+## 0.5.0
+
+### Minor Changes
+
+- [`f52201b`](https://github.com/firebase/firebase-js-sdk/commit/f52201b73cc6f1517a55d0b0f0c83c79a000a3be) [#9942](https://github.com/firebase/firebase-js-sdk/pull/9942) (fixes [#9807](https://github.com/firebase/firebase-js-sdk/issues/9807)) - Add more details to `FunctionsError`. Add HTTP status code to the `message` field and add `url` to `customData`.
+
+### Patch Changes
+
+- [`589b24b`](https://github.com/firebase/firebase-js-sdk/commit/589b24bd9b30ba6b07a76da1eb5c3d1eadc5a9d2) [#10293](https://github.com/firebase/firebase-js-sdk/pull/10293) - Updated many top-level `devDependencies`.
+
+- Updated dependencies [[`589b24b`](https://github.com/firebase/firebase-js-sdk/commit/589b24bd9b30ba6b07a76da1eb5c3d1eadc5a9d2), [`f52201b`](https://github.com/firebase/firebase-js-sdk/commit/f52201b73cc6f1517a55d0b0f0c83c79a000a3be)]:
+  - @firebase/component@0.7.5
+  - @firebase/functions@0.14.0
+  - @firebase/functions-types@0.6.5
+  - @firebase/util@1.15.3
+
 ## 0.4.6
 
 ### Patch Changes
