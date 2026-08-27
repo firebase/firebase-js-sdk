@@ -30,6 +30,7 @@ export interface ChatSession
 
 |  Method | Description |
 |  --- | --- |
+|  [getHistory()](./ai.chatsession.md#chatsessiongethistory) | Gets the chat history so far. Blocked prompts are not added to history. Neither blocked candidates nor the prompts that generated them are added to history. |
 |  [sendMessage(request, singleRequestOptions)](./ai.chatsession.md#chatsessionsendmessage) | Sends a chat message and receives a non-streaming [GenerateContentResult](./ai.generatecontentresult.md#generatecontentresult_interface) |
 |  [sendMessageStream(request, singleRequestOptions)](./ai.chatsession.md#chatsessionsendmessagestream) | Sends a chat message and receives the response as a [GenerateContentStreamResult](./ai.generatecontentstreamresult.md#generatecontentstreamresult_interface) containing an iterable stream and a response promise. |
 
@@ -56,6 +57,19 @@ params?: StartChatParams;
 ```typescript
 requestOptions?: RequestOptions;
 ```
+
+## ChatSession.getHistory()
+
+Gets the chat history so far. Blocked prompts are not added to history. Neither blocked candidates nor the prompts that generated them are added to history.
+
+<b>Signature:</b>
+
+```typescript
+getHistory(): Promise<Content[]>;
+```
+<b>Returns:</b>
+
+Promise&lt;[Content](./ai.content.md#content_interface)<!-- -->\[\]&gt;
 
 ## ChatSession.sendMessage()
 
