@@ -151,6 +151,13 @@ export interface ChatSession {
     request: string | Array<string | Part>,
     singleRequestOptions?: SingleRequestOptions
   ): Promise<GenerateContentStreamResult>;
+
+  /**
+   * Gets the chat history so far. Blocked prompts are not added to history.
+   * Neither blocked candidates nor the prompts that generated them are added
+   * to history.
+   */
+  getHistory(): Promise<Content[]>;
 }
 
 /**

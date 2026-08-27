@@ -38,7 +38,7 @@ import { ChatSession } from '../public-types';
  * ChatSession class that enables sending chat messages and stores
  * history of sent and received messages so far.
  *
- * @public
+ * @internal
  */
 export class ChatSessionImpl
   extends ChatSessionBase<

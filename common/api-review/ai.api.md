@@ -157,6 +157,7 @@ export class BooleanSchema extends Schema {
 
 // @public
 export interface ChatSession {
+    getHistory(): Promise<Content[]>;
     // (undocumented)
     model: string;
     // (undocumented)
