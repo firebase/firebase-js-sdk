@@ -32,6 +32,7 @@ import { ChromeAdapter } from '../types/chrome-adapter';
 import { ChatSessionBase } from './chat-session-base';
 import { validateChatHistory } from './chat-session-helpers';
 import { formatSystemInstruction } from '../requests/request-helpers';
+import { ChatSession } from '../public-types';
 
 /**
  * ChatSession class that enables sending chat messages and stores
@@ -39,11 +40,14 @@ import { formatSystemInstruction } from '../requests/request-helpers';
  *
  * @public
  */
-export class ChatSession extends ChatSessionBase<
-  StartChatParams,
-  GenerateContentRequest,
-  FunctionDeclarationsTool
-> {
+export class ChatSessionImpl
+  extends ChatSessionBase<
+    StartChatParams,
+    GenerateContentRequest,
+    FunctionDeclarationsTool
+  >
+  implements ChatSession
+{
   constructor(
     apiSettings: ApiSettings,
     public model: string,

@@ -156,55 +156,15 @@ export class BooleanSchema extends Schema {
 }
 
 // @public
-export class ChatSession extends ChatSessionBase<StartChatParams, GenerateContentRequest, FunctionDeclarationsTool> {
-    constructor(apiSettings: ApiSettings, model: string, chromeAdapter?: ChromeAdapter | undefined, params?: StartChatParams | undefined, requestOptions?: RequestOptions | undefined);
-    // @internal
-    _callGenerateContent(formattedRequest: GenerateContentRequest, singleRequestOptions?: RequestOptions): Promise<GenerateContentResult>;
-    // @internal
-    _callGenerateContentStream(formattedRequest: GenerateContentRequest, singleRequestOptions?: RequestOptions): Promise<GenerateContentStreamResult>;
-    // @internal
-    _formatRequest(incomingContent: Content, tempHistory: Content[]): GenerateContentRequest;
+export interface ChatSession {
     // (undocumented)
     model: string;
     // (undocumented)
-    params?: StartChatParams | undefined;
+    params?: StartChatParams;
     // (undocumented)
-    requestOptions?: RequestOptions | undefined;
+    requestOptions?: RequestOptions;
     sendMessage(request: string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentResult>;
     sendMessageStream(request: string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentStreamResult>;
-}
-
-// Warning: (ae-incompatible-release-tags) The symbol "ChatSessionBase" is marked as @public, but its signature references "StartTemplateChatParams" which is marked as @beta
-// Warning: (ae-incompatible-release-tags) The symbol "ChatSessionBase" is marked as @public, but its signature references "TemplateFunctionDeclarationsTool" which is marked as @beta
-//
-// @public
-export abstract class ChatSessionBase<ParamsType extends StartChatParams | StartTemplateChatParams, RequestType, FunctionDeclarationsToolType extends FunctionDeclarationsTool | TemplateFunctionDeclarationsTool> {
-    constructor(apiSettings: ApiSettings, params?: ParamsType | undefined, requestOptions?: RequestOptions | undefined);
-    // (undocumented)
-    protected _apiSettings: ApiSettings;
-    // @internal
-    _callFunctionsAsNeeded(functionCalls: FunctionCall[]): Promise<FunctionResponsePart[]>;
-    // @internal
-    abstract _callGenerateContent(formattedRequest: RequestType, singleRequestOptions?: RequestOptions): Promise<GenerateContentResult>;
-    // @internal
-    abstract _callGenerateContentStream(formattedRequest: RequestType, singleRequestOptions?: RequestOptions): Promise<GenerateContentStreamResult>;
-    // @internal
-    abstract _formatRequest(incomingContent: Content, tempHistory: Content[]): RequestType;
-    // @internal
-    _getCallableFunctionCalls(response?: GenerateContentResponse): FunctionCall[] | undefined;
-    getHistory(): Promise<Content[]>;
-    // (undocumented)
-    protected _history: Content[];
-    // (undocumented)
-    params?: ParamsType | undefined;
-    // (undocumented)
-    requestOptions?: RequestOptions | undefined;
-    // @internal
-    _sendMessage(request: string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentResult>;
-    // @internal
-    _sendMessageStream(request: string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentStreamResult>;
-    // @internal
-    protected _sendPromise: Promise<void>;
 }
 
 // @public

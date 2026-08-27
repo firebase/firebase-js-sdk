@@ -421,12 +421,16 @@ export interface SingleRequestOptions extends RequestOptions {
    * An `AbortSignal` instance that allows cancelling ongoing requests (like `generateContent` or
    * `generateImages`).
    *
+   * @remarks
    * If provided, calling `abort()` on the corresponding `AbortController`
    * will attempt to cancel the underlying HTTP request. An `AbortError` will be thrown
    * if cancellation is successful.
    *
    * Note that this will not cancel the request in the backend, so any applicable billing charges
    * will still be applied despite cancellation.
+   *
+   * Also see {@link https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal | AbortSignal}
+   * documentation.
    *
    * @example
    * ```javascript
@@ -442,7 +446,6 @@ export interface SingleRequestOptions extends RequestOptions {
    * // To cancel request:
    * controller.abort();
    * ```
-   * @see https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal
    */
   signal?: AbortSignal;
 }

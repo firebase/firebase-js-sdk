@@ -9,56 +9,29 @@ overwritten. Changes should be made in the source code at
 https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
-# ChatSession class
-ChatSession class that enables sending chat messages and stores history of sent and received messages so far.
+# ChatSession interface
+Interface representing a `ChatSession` class that enables sending chat messages and stores a history of sent and received messages so far.
 
 <b>Signature:</b>
 
 ```typescript
-export declare class ChatSession extends ChatSessionBase<StartChatParams, GenerateContentRequest, FunctionDeclarationsTool> 
+export interface ChatSession 
 ```
-<b>Extends:</b> [ChatSessionBase](./ai.chatsessionbase.md#chatsessionbase_class)<!-- -->&lt;[StartChatParams](./ai.startchatparams.md#startchatparams_interface)<!-- -->, [GenerateContentRequest](./ai.generatecontentrequest.md#generatecontentrequest_interface)<!-- -->, [FunctionDeclarationsTool](./ai.functiondeclarationstool.md#functiondeclarationstool_interface)<!-- -->&gt;
-
-## Constructors
-
-|  Constructor | Modifiers | Description |
-|  --- | --- | --- |
-|  [(constructor)(apiSettings, model, chromeAdapter, params, requestOptions)](./ai.chatsession.md#chatsessionconstructor) |  | Constructs a new instance of the <code>ChatSession</code> class |
 
 ## Properties
 
-|  Property | Modifiers | Type | Description |
-|  --- | --- | --- | --- |
-|  [model](./ai.chatsession.md#chatsessionmodel) |  | string |  |
-|  [params](./ai.chatsession.md#chatsessionparams) |  | [StartChatParams](./ai.startchatparams.md#startchatparams_interface) \| undefined |  |
-|  [requestOptions](./ai.chatsession.md#chatsessionrequestoptions) |  | [RequestOptions](./ai.requestoptions.md#requestoptions_interface) \| undefined |  |
+|  Property | Type | Description |
+|  --- | --- | --- |
+|  [model](./ai.chatsession.md#chatsessionmodel) | string |  |
+|  [params](./ai.chatsession.md#chatsessionparams) | [StartChatParams](./ai.startchatparams.md#startchatparams_interface) |  |
+|  [requestOptions](./ai.chatsession.md#chatsessionrequestoptions) | [RequestOptions](./ai.requestoptions.md#requestoptions_interface) |  |
 
 ## Methods
 
-|  Method | Modifiers | Description |
-|  --- | --- | --- |
-|  [sendMessage(request, singleRequestOptions)](./ai.chatsession.md#chatsessionsendmessage) |  | Sends a chat message and receives a non-streaming [GenerateContentResult](./ai.generatecontentresult.md#generatecontentresult_interface) |
-|  [sendMessageStream(request, singleRequestOptions)](./ai.chatsession.md#chatsessionsendmessagestream) |  | Sends a chat message and receives the response as a [GenerateContentStreamResult](./ai.generatecontentstreamresult.md#generatecontentstreamresult_interface) containing an iterable stream and a response promise. |
-
-## ChatSession.(constructor)
-
-Constructs a new instance of the `ChatSession` class
-
-<b>Signature:</b>
-
-```typescript
-constructor(apiSettings: ApiSettings, model: string, chromeAdapter?: ChromeAdapter | undefined, params?: StartChatParams | undefined, requestOptions?: RequestOptions | undefined);
-```
-
-#### Parameters
-
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  apiSettings | ApiSettings |  |
-|  model | string |  |
-|  chromeAdapter | [ChromeAdapter](./ai.chromeadapter.md#chromeadapter_interface) \| undefined |  |
-|  params | [StartChatParams](./ai.startchatparams.md#startchatparams_interface) \| undefined |  |
-|  requestOptions | [RequestOptions](./ai.requestoptions.md#requestoptions_interface) \| undefined |  |
+|  Method | Description |
+|  --- | --- |
+|  [sendMessage(request, singleRequestOptions)](./ai.chatsession.md#chatsessionsendmessage) | Sends a chat message and receives a non-streaming [GenerateContentResult](./ai.generatecontentresult.md#generatecontentresult_interface) |
+|  [sendMessageStream(request, singleRequestOptions)](./ai.chatsession.md#chatsessionsendmessagestream) | Sends a chat message and receives the response as a [GenerateContentStreamResult](./ai.generatecontentstreamresult.md#generatecontentstreamresult_interface) containing an iterable stream and a response promise. |
 
 ## ChatSession.model
 
@@ -73,7 +46,7 @@ model: string;
 <b>Signature:</b>
 
 ```typescript
-params?: StartChatParams | undefined;
+params?: StartChatParams;
 ```
 
 ## ChatSession.requestOptions
@@ -81,7 +54,7 @@ params?: StartChatParams | undefined;
 <b>Signature:</b>
 
 ```typescript
-requestOptions?: RequestOptions | undefined;
+requestOptions?: RequestOptions;
 ```
 
 ## ChatSession.sendMessage()
