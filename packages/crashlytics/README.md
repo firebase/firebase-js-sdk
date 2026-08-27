@@ -26,7 +26,7 @@ As a private preview customer, your experience is incredibly valuable to our tea
   - [MCP Tools (`crashlytics:connect`)](#mcp-tools-crashlyticsconnect)
   - [REST API & Web Browser Metadata](#rest-api--web-browser-metadata)
 - [Additional Configuration & References](#additional-configuration--references)
-  
+
 ---
 
 ## Agent Setup Prompt
