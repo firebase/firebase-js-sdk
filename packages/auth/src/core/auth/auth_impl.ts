@@ -164,11 +164,17 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
         return;
       }
 
-      this.persistenceManager = await PersistenceUserManager.create(
-        this,
-        persistenceHierarchy
-      );
-      this._resolvePersistenceManagerAvailable?.();
+      try {
+        this.persistenceManager = await PersistenceUserManager.create(
+          this,
+          persistenceHierarchy
+        );
+      } catch (e) {
+        _logWarn(`Failed to initialize persistence: ${e}`);
+        this.persistenceManager = await PersistenceUserManager.create(this, []);
+      } finally {
+        this._resolvePersistenceManagerAvailable?.();
+      }
 
       if (this._deleted) {
         return;
@@ -185,7 +191,12 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
         }
       }
 
-      await this.initializeCurrentUser(popupRedirectResolver);
+      try {
+        await this.initializeCurrentUser(popupRedirectResolver);
+      } catch (e) {
+        _logWarn(`Failed to initialize current user: ${e}`);
+        await this.directlySetCurrentUser(null).catch(() => {});
+      }
 
       this.lastNotifiedUid = this.currentUser?.uid || null;
 
@@ -747,12 +758,25 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     _assert(promise, this, AuthErrorCode.INTERNAL_ERROR);
     // The callback needs to be called asynchronously per the spec.
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    promise.then(() => {
-      if (isUnsubscribed) {
-        return;
-      }
-      cb(this.currentUser);
-    });
+    promise
+      .then(() => {
+        if (isUnsubscribed) {
+          return;
+        }
+        cb(this.currentUser);
+      })
+      .catch(err => {
+        if (isUnsubscribed) {
+          return;
+        }
+        if (typeof nextOrObserver !== 'function' && nextOrObserver.error) {
+          nextOrObserver.error(err);
+        } else if (error) {
+          error(err);
+        } else {
+          throw err;
+        }
+      });
 
     if (typeof nextOrObserver === 'function') {
       const unsubscribe = subscription.addObserver(
@@ -790,10 +814,12 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
 
     this.currentUser = user;
 
-    if (user) {
-      await this.assertedPersistence.setCurrentUser(user);
-    } else {
-      await this.assertedPersistence.removeCurrentUser();
+    if (this.persistenceManager) {
+      if (user) {
+        await this.persistenceManager.setCurrentUser(user);
+      } else {
+        await this.persistenceManager.removeCurrentUser();
+      }
     }
   }
 

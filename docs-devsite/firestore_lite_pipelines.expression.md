@@ -1671,7 +1671,7 @@ cosineDistance(vector: VectorValue | number[]): FunctionExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  vector | [VectorValue](./firestore_lite.vectorvalue.md#vectorvalue_class) \| number\[\] | The other vector (as a VectorValue) to compare against. |
+|  vector | [VectorValue](./firestore.vectorvalue.md#vectorvalue_class) \| number\[\] | The other vector (as a VectorValue) to compare against. |
 
 <b>Returns:</b>
 
@@ -1892,7 +1892,7 @@ dotProduct(vector: VectorValue | number[]): FunctionExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  vector | [VectorValue](./firestore_lite.vectorvalue.md#vectorvalue_class) \| number\[\] | The other vector (as an array of numbers) to calculate with. |
+|  vector | [VectorValue](./firestore.vectorvalue.md#vectorvalue_class) \| number\[\] | The other vector (as an array of numbers) to calculate with. |
 
 <b>Returns:</b>
 
@@ -2140,7 +2140,7 @@ euclideanDistance(vector: VectorValue | number[]): FunctionExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  vector | [VectorValue](./firestore_lite.vectorvalue.md#vectorvalue_class) \| number\[\] | The other vector (as a VectorValue) to compare against. |
+|  vector | [VectorValue](./firestore.vectorvalue.md#vectorvalue_class) \| number\[\] | The other vector (as a VectorValue) to compare against. |
 
 <b>Returns:</b>
 
@@ -3114,7 +3114,7 @@ ltrim(valueToTrim?: string | Expression | Bytes): FunctionExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  valueToTrim | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore_lite.bytes.md#bytes_class) | Optional. A string or byte array containing the characters/bytes to trim. If not specified, whitespace will be trimmed. |
+|  valueToTrim | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore.bytes.md#bytes_class) | Optional. A string or byte array containing the characters/bytes to trim. If not specified, whitespace will be trimmed. |
 
 <b>Returns:</b>
 
@@ -4110,7 +4110,7 @@ rtrim(valueToTrim?: string | Expression | Bytes): FunctionExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  valueToTrim | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore_lite.bytes.md#bytes_class) | Optional. A string or byte array containing the characters/bytes to trim. If not specified, whitespace will be trimmed. |
+|  valueToTrim | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore.bytes.md#bytes_class) | Optional. A string or byte array containing the characters/bytes to trim. If not specified, whitespace will be trimmed. |
 
 <b>Returns:</b>
 
@@ -4389,7 +4389,7 @@ stringIndexOf(search: string | Expression | Bytes): FunctionExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  search | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore_lite.bytes.md#bytes_class) | The substring or byte sequence to search for. |
+|  search | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore.bytes.md#bytes_class) | The substring or byte sequence to search for. |
 
 <b>Returns:</b>
 
@@ -4454,8 +4454,8 @@ stringReplaceAll(
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  find | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore_lite.bytes.md#bytes_class) | The substring or byte sequence to search for. |
-|  replacement | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore_lite.bytes.md#bytes_class) | The replacement string or byte sequence. |
+|  find | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore.bytes.md#bytes_class) | The substring or byte sequence to search for. |
+|  replacement | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore.bytes.md#bytes_class) | The replacement string or byte sequence. |
 
 <b>Returns:</b>
 
@@ -4489,8 +4489,8 @@ stringReplaceOne(
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  find | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore_lite.bytes.md#bytes_class) | The substring or byte sequence to search for. |
-|  replacement | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore_lite.bytes.md#bytes_class) | The replacement string or byte sequence. |
+|  find | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore.bytes.md#bytes_class) | The substring or byte sequence to search for. |
+|  replacement | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore.bytes.md#bytes_class) | The replacement string or byte sequence. |
 
 <b>Returns:</b>
 
@@ -5125,7 +5125,7 @@ trim(valueToTrim?: string | Expression | Bytes): FunctionExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  valueToTrim | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore_lite.bytes.md#bytes_class) | Optional This parameter is treated as a set of characters or bytes that will be trimmed from the input. If not specified, then whitespace will be trimmed. |
+|  valueToTrim | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore.bytes.md#bytes_class) | Optional This parameter is treated as a set of characters or bytes that will be trimmed from the input. If not specified, then whitespace will be trimmed. |
 
 <b>Returns:</b>
 

@@ -1159,7 +1159,7 @@ describe('validateGenerationConfig', () => {
   });
   it(
     'throws if responseSchema or responseJsonSchema are set' +
-      ' and responseMimeType is not "application/json"',
+      ' and responseMimeType is not "application/json" or "text/x.enum"',
     () => {
       expect(() => {
         validateGenerationConfig({

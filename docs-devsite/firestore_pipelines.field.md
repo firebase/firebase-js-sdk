@@ -10,11 +10,11 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # Field class
-Represents a reference to a field in a Firestore document, or outputs of a [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class) stage.
+Represents a reference to a field in a Firestore document, or outputs of a [Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class) stage.
 
 <p>Field references are used to access document field values in expressions and to specify fields for sorting, filtering, and projecting data in Firestore pipelines.
 
-<p>You can create a `Field` instance using the static  method:
+<p>You can create a `Field` instance using the static [field](./firestore_lite_pipelines.md#field_1eaaff4) method:
 
 <b>Signature:</b>
 
@@ -100,7 +100,7 @@ geoDistance(location: GeoPoint | Expression): Expression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  location | [GeoPoint](./firestore_.geopoint.md#geopoint_class) \| [Expression](./firestore_pipelines.expression.md#expression_class) | Compute distance to this GeoPoint. |
+|  location | [GeoPoint](./firestore.geopoint.md#geopoint_class) \| [Expression](./firestore_pipelines.expression.md#expression_class) | Compute distance to this GeoPoint. |
 
 <b>Returns:</b>
 

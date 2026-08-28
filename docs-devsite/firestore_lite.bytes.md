@@ -30,7 +30,7 @@ export declare class Bytes
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
 |  [fromBase64String(base64, subtype)](./firestore_lite.bytes.md#bytesfrombase64string) | <code>static</code> | Creates a new <code>Bytes</code> object from the given Base64 string, converting it to bytes. |
-|  [fromJSON(json)](./firestore_lite.bytes.md#bytesfromjson) | <code>static</code> | Builds a <code>Bytes</code> instance from a JSON object created by [Bytes.toJSON()](./firestore_.bytes.md#bytestojson)<!-- -->. |
+|  [fromJSON(json)](./firestore_lite.bytes.md#bytesfromjson) | <code>static</code> | Builds a <code>Bytes</code> instance from a JSON object created by [Bytes.toJSON()](./firestore_lite.bytes.md#bytestojson)<!-- -->. |
 |  [fromUint8Array(array, subtype)](./firestore_lite.bytes.md#bytesfromuint8array) | <code>static</code> | Creates a new <code>Bytes</code> object from the given Uint8Array. |
 |  [isEqual(other)](./firestore_lite.bytes.md#bytesisequal) |  | Returns true if this <code>Bytes</code> object is equal to the provided one. |
 |  [toBase64()](./firestore_lite.bytes.md#bytestobase64) |  | Returns the underlying bytes as a Base64-encoded string. |
@@ -79,7 +79,7 @@ static fromBase64String(base64: string, subtype?: number): Bytes;
 
 ## Bytes.fromJSON()
 
-Builds a `Bytes` instance from a JSON object created by [Bytes.toJSON()](./firestore_.bytes.md#bytestojson)<!-- -->.
+Builds a `Bytes` instance from a JSON object created by [Bytes.toJSON()](./firestore_lite.bytes.md#bytestojson)<!-- -->.
 
 <b>Signature:</b>
 
@@ -97,7 +97,7 @@ static fromJSON(json: object): Bytes;
 
 [Bytes](./firestore_lite.bytes.md#bytes_class)
 
-an instance of [Bytes](./firestore_.bytes.md#bytes_class) if the JSON object could be parsed. Throws a [FirestoreError](./firestore_.firestoreerror.md#firestoreerror_class) if an error occurs.
+an instance of [Bytes](./firestore_lite.bytes.md#bytes_class) if the JSON object could be parsed. Throws a [FirestoreError](./firestore_lite.firestoreerror.md#firestoreerror_class) if an error occurs.
 
 ## Bytes.fromUint8Array()
 

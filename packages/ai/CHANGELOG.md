@@ -1,5 +1,23 @@
 # @firebase/ai
 
+## 2.15.0
+
+### Minor Changes
+
+- [`d4b83fd`](https://github.com/firebase/firebase-js-sdk/commit/d4b83fd9defa8da9207b771ee503e05357826da0) [#10267](https://github.com/firebase/firebase-js-sdk/pull/10267) - Imagen methods and types have been removed due to Imagen models being shut down. As a replacement, you can [migrate your apps to use Gemini Image models (the "Nano Banana" models)](https://firebase.google.com/docs/ai-logic/imagen-models-migration).
+
+### Patch Changes
+
+- [`589b24b`](https://github.com/firebase/firebase-js-sdk/commit/589b24bd9b30ba6b07a76da1eb5c3d1eadc5a9d2) [#10293](https://github.com/firebase/firebase-js-sdk/pull/10293) - Updated many top-level `devDependencies`.
+
+- [`7fc34cb`](https://github.com/firebase/firebase-js-sdk/commit/7fc34cb4213e7d5595e218877f8cb95c207b50ce) [#10248](https://github.com/firebase/firebase-js-sdk/pull/10248) - Fixed incorrect detection of LanguageModel that prevented usage of on-device models in Chrome Extensions.
+
+- Updated dependencies [[`589b24b`](https://github.com/firebase/firebase-js-sdk/commit/589b24bd9b30ba6b07a76da1eb5c3d1eadc5a9d2)]:
+  - @firebase/app-check-interop-types@0.3.5
+  - @firebase/component@0.7.5
+  - @firebase/logger@0.5.2
+  - @firebase/util@1.15.3
+
 ## 2.14.0
 
 ### Minor Changes

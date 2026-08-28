@@ -1,6 +1,6 @@
 {
   "name": "@firebase/api-documenter",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Read JSON files from api-extractor, generate documentation pages",
   "repository": {
     "directory": "repo-scripts/documenter",
@@ -10,7 +10,7 @@
   "license": "Apache-2.0",
   "scripts": {
     "build": "tsc && gulp copy-resources",
-    "test": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha src/**/*.test.ts --config ../../config/mocharc.node.js"
+    "test": "nyc --reporter lcovonly -- node test/run.js"
   },
   "bin": {
     "api-documenter-fire": "dist/start.js"
@@ -21,10 +21,10 @@
   "main": "dist/index.js",
   "typings": "dist/rollup.d.ts",
   "dependencies": {
-    "api-extractor-model-me": "0.1.1",
-    "@microsoft/tsdoc": "0.12.24",
-    "@rushstack/node-core-library": "5.19.1",
-    "@rushstack/ts-command-line": "4.23.3",
+    "@microsoft/api-extractor-model": "7.33.11",
+    "@microsoft/tsdoc": "0.16.0",
+    "@rushstack/node-core-library": "5.24.0",
+    "@rushstack/ts-command-line": "5.3.13",
     "tslib": "^2.1.0",
     "js-yaml": "4.3.1"
   },
@@ -36,5 +36,6 @@
   },
   "engines": {
     "node": ">=20.0.0"
-  }
+  },
+  "type": "commonjs"
 }

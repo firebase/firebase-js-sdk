@@ -126,6 +126,29 @@ jobs:
         $RELEASE_TRACKER_URL/logProduction
       env:
         STEPS_GET_VERSION_OUTPUTS_BASE_VERSION: ${{ steps.get-version.outputs.BASE_VERSION }}
+
+  publish-tags-and-release:
+    environment: release
+    name: Publish Tags & GitHub Release
+    needs: deploy
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+    - name: Set up node (22)
+      uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # ratchet:actions/setup-node@v7
+      with:
+        node-version: 22.23.2
+    - name: Checkout release branch (with history)
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7
+      with:
+        # Release script requires git history and tags.
+        fetch-depth: 0
+        ref: ${{ github.event.inputs.release-branch }}
+        persist-credentials: false
+    - name: Yarn install
+      run: yarn
     # Fetch short-lived token from the GitHub App for 
     # publishing git tags (contents: write)
     # publishing Github release (contents: write, pull-requests: read)
@@ -143,9 +166,7 @@ jobs:
         git config --global user.name "google-oss-bot"
         git config --global user.email "firebase-oss-bot@google.com"
     - name: Publish git tags
-      # This commonly runs into permissions errors. Should not block the rest
-      # of the workflow. But should fail workflow so we notice it. So putting
-      # near the end.
+      # Publishes git tags
       run: yarn ts-node scripts/release/publish-git-tags.ts
       # The script injects this token (generated above) into the git push command
       env:
@@ -183,3 +204,4 @@ jobs:
           --title "$NEWEST_TAG" \
           --notes "$RELEASE_NOTES" \
           --verify-tag
+

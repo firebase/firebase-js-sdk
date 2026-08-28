@@ -506,6 +506,30 @@ describe('platform_browser/persistence/indexed_db', () => {
       expect(await persistence._get(key)).to.eq('another-value');
     });
 
+    it('should allow _openDb() to resolve and open database even when isClosing is true', async () => {
+      (persistence as any).isClosing = true;
+      const openedDb = await (
+        persistence as unknown as {
+          _openDb(): Promise<IDBDatabase>;
+        }
+      )._openDb();
+      expect(openedDb).to.be.ok;
+      openedDb.close();
+    });
+
+    it('should allow persistence operations to succeed after pagehide', async () => {
+      persistence._addListener(key, callback);
+      await persistence._set(key, value);
+      window.dispatchEvent(new Event('pagehide'));
+      expect((persistence as any).isClosing).to.be.true;
+
+      // Persistence operations should succeed by reopening connection
+      await persistence._set(key, 'value-after-pagehide');
+      expect(await persistence._get(key)).to.eq('value-after-pagehide');
+      await persistence._remove(key);
+      expect(await persistence._get(key)).to.be.null;
+    });
+
     it('should discard in-flight poll results if pagehide occurs before poll completes', async () => {
       // 1. Seed local cache and listener
       await persistence._set(key, value);
