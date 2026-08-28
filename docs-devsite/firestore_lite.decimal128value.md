@@ -37,6 +37,7 @@ export declare class Decimal128Value
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
 |  [isEqual(other)](./firestore_lite.decimal128value.md#decimal128valueisequal) |  | Returns true if this <code>Decimal128Value</code> is equal to the provided one. |
+|  [toJSON()](./firestore_lite.decimal128value.md#decimal128valuetojson) |  | Returns a JSON-serializable representation of this <code>Decimal128Value</code> instance. |
 
 ## Decimal128Value.(constructor)
 
@@ -81,4 +82,19 @@ isEqual(other: Decimal128Value): boolean;
 <b>Returns:</b>
 
 boolean
+
+## Decimal128Value.toJSON()
+
+Returns a JSON-serializable representation of this `Decimal128Value` instance.
+
+<b>Signature:</b>
+
+```typescript
+toJSON(): object;
+```
+<b>Returns:</b>
+
+object
+
+a JSON representation of this object.
 

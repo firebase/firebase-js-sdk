@@ -44,4 +44,15 @@ export class Decimal128Value {
     }
     return this.value.compareTo(other.value) === 0;
   }
+
+  /**
+   * Returns a JSON-serializable representation of this `Decimal128Value` instance.
+   *
+   * @returns a JSON representation of this object.
+   */
+  toJSON(): object {
+    return {
+      __decimal128__: { stringValue: this.stringValue }
+    };
+  }
 }
