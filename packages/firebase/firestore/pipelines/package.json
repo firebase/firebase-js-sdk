@@ -1,5 +1,6 @@
 {
   "name": "firebase/firestore/pipelines",
+  "license": "Apache-2.0",
   "main": "dist/pipelines.cjs.js",
   "browser": "dist/esm/pipelines.esm.js",
   "module": "dist/esm/pipelines.esm.js",
