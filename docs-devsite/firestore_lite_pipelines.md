@@ -22,382 +22,382 @@ https://github.com/firebase/firebase-js-sdk
 |  [rand()](./firestore_lite_pipelines.md#rand) | Creates an expression that generates a random number between 0.0 and 1.0 but not including 1.0. |
 |  [score()](./firestore_lite_pipelines.md#score) | <b><i>(Public Preview)</i></b> Evaluates to the search score that reflects the topicality of the document to all of the text predicates (for example: <code>documentMatches</code>) in the search query. If <code>SearchOptions.query</code> is not set or does not contain any text predicates, then this topicality score will always be <code>0</code>. |
 |  <b>function(array, ...)</b> |
-|  [arrayContains(array, element)](./firestore_lite_pipelines.md#arraycontains_c5c0267) | Creates an expression that checks if an array expression contains a specific element. |
-|  [arrayContains(array, element)](./firestore_lite_pipelines.md#arraycontains_6b4638e) | Creates an expression that checks if an array expression contains a specific element. |
-|  [arrayContainsAll(array, values)](./firestore_lite_pipelines.md#arraycontainsall_b9aca9f) | Creates an expression that checks if an array expression contains all the specified elements. |
-|  [arrayContainsAll(array, arrayExpression)](./firestore_lite_pipelines.md#arraycontainsall_7db8403) | Creates an expression that checks if an array expression contains all the specified elements. |
-|  [arrayContainsAny(array, values)](./firestore_lite_pipelines.md#arraycontainsany_b9aca9f) | Creates an expression that checks if an array expression contains any of the specified elements. |
-|  [arrayContainsAny(array, values)](./firestore_lite_pipelines.md#arraycontainsany_d74e246) | Creates an expression that checks if an array expression contains any of the specified elements. |
+|  [arrayContains(array, element)](./firestore_lite_pipelines.md#arraycontains_a00ea48) | Creates an expression that checks if an array expression contains a specific element. |
+|  [arrayContains(array, element)](./firestore_lite_pipelines.md#arraycontains_7328608) | Creates an expression that checks if an array expression contains a specific element. |
+|  [arrayContainsAll(array, values)](./firestore_lite_pipelines.md#arraycontainsall_c658ad5) | Creates an expression that checks if an array expression contains all the specified elements. |
+|  [arrayContainsAll(array, arrayExpression)](./firestore_lite_pipelines.md#arraycontainsall_7b535db) | Creates an expression that checks if an array expression contains all the specified elements. |
+|  [arrayContainsAny(array, values)](./firestore_lite_pipelines.md#arraycontainsany_c658ad5) | Creates an expression that checks if an array expression contains any of the specified elements. |
+|  [arrayContainsAny(array, values)](./firestore_lite_pipelines.md#arraycontainsany_c381a96) | Creates an expression that checks if an array expression contains any of the specified elements. |
 |  [arrayLength(array)](./firestore_lite_pipelines.md#arraylength_195e339) | Creates an expression that calculates the length of an array expression. |
 |  <b>function(arrayExpression, ...)</b> |
-|  [arrayFilter(arrayExpression, alias, filter)](./firestore_lite_pipelines.md#arrayfilter_f3e6a32) | Creates an expression that filters an array using a provided alias and predicate expression. |
-|  [arrayFirst(arrayExpression)](./firestore_lite_pipelines.md#arrayfirst_4554bc6) | Creates an expression that returns the first element of an array. |
-|  [arrayFirstN(arrayExpression, n)](./firestore_lite_pipelines.md#arrayfirstn_364b97f) | Creates an expression that returns the first <code>n</code> elements of an array. |
-|  [arrayFirstN(arrayExpression, n)](./firestore_lite_pipelines.md#arrayfirstn_8c18ec4) | Creates an expression that returns the first <code>n</code> elements of an array. |
-|  [arrayGet(arrayExpression, offset)](./firestore_lite_pipelines.md#arrayget_6269a34) | Creates an expression that indexes into an array from the beginning or end and return the element. If the offset exceeds the array length, an error is returned. A negative offset, starts from the end. |
-|  [arrayGet(arrayExpression, offsetExpr)](./firestore_lite_pipelines.md#arrayget_9c135e0) | Creates an expression that indexes into an array from the beginning or end and return the element. If the offset exceeds the array length, an error is returned. A negative offset, starts from the end. |
-|  [arrayIndexOf(arrayExpression, search)](./firestore_lite_pipelines.md#arrayindexof_2d44c49) | Creates an expression that returns the first index of the search value in an array. Returns -1 if the value is not found. |
-|  [arrayIndexOfAll(arrayExpression, search)](./firestore_lite_pipelines.md#arrayindexofall_2d44c49) | Creates an expression that returns all indices of the search value in an array. |
-|  [arrayLast(arrayExpression)](./firestore_lite_pipelines.md#arraylast_4554bc6) | Creates an expression that returns the last element of an array. |
-|  [arrayLastIndexOf(arrayExpression, search)](./firestore_lite_pipelines.md#arraylastindexof_2d44c49) | Creates an expression that returns the last index of the search value in an array. Returns -1 if the value is not found. |
-|  [arrayLastN(arrayExpression, n)](./firestore_lite_pipelines.md#arraylastn_364b97f) | Creates an expression that returns the last <code>n</code> elements of an array. |
-|  [arrayLastN(arrayExpression, n)](./firestore_lite_pipelines.md#arraylastn_8c18ec4) | Creates an expression that returns the last <code>n</code> elements of an array. |
-|  [arrayMaximum(arrayExpression)](./firestore_lite_pipelines.md#arraymaximum_4554bc6) | Creates an expression that returns the maximum value in an array. |
-|  [arrayMaximumN(arrayExpression, n)](./firestore_lite_pipelines.md#arraymaximumn_364b97f) | Creates an expression that returns the largest <code>n</code> elements of an array.<!-- -->Note: Returns the n largest non-null elements in the array, in descending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
-|  [arrayMaximumN(arrayExpression, n)](./firestore_lite_pipelines.md#arraymaximumn_8c18ec4) | Creates an expression that returns the largest <code>n</code> elements of an array.<!-- -->Note: Returns the n largest non-null elements in the array, in descending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
-|  [arrayMinimum(arrayExpression)](./firestore_lite_pipelines.md#arrayminimum_4554bc6) | Creates an expression that returns the minimum value in an array. |
-|  [arrayMinimumN(arrayExpression, n)](./firestore_lite_pipelines.md#arrayminimumn_364b97f) | Creates an expression that returns the smallest <code>n</code> elements of an array.<!-- -->Note: Returns the n smallest non-null elements in the array, in ascending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
-|  [arrayMinimumN(arrayExpression, n)](./firestore_lite_pipelines.md#arrayminimumn_8c18ec4) | Creates an expression that returns the smallest <code>n</code> elements of an array.<!-- -->Note: Returns the n smallest non-null elements in the array, in ascending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
-|  [arraySlice(arrayExpression, offset, length)](./firestore_lite_pipelines.md#arrayslice_e49ffc5) | Creates an expression that returns a slice of an array from <code>offset</code> with <code>length</code> elements. |
-|  [arrayTransform(arrayExpression, elementAlias, transform)](./firestore_lite_pipelines.md#arraytransform_26d927f) | Creates an expression that applies a provided transformation to each element in an array. |
-|  [arrayTransformWithIndex(arrayExpression, elementAlias, indexAlias, transform)](./firestore_lite_pipelines.md#arraytransformwithindex_23e1c3b) | Creates an expression that applies a provided transformation to each element in an array, providing the element's index to the transformation expression. |
-|  [join(arrayExpression, delimiterExpression)](./firestore_lite_pipelines.md#join_91d9cbc) | Creates an expression that joins the elements of an array into a string. |
-|  [join(arrayExpression, delimiter)](./firestore_lite_pipelines.md#join_e49c60c) | Creates an expression that joins the elements of an array into a string. |
+|  [arrayFilter(arrayExpression, alias, filter)](./firestore_lite_pipelines.md#arrayfilter_892d3c4) | Creates an expression that filters an array using a provided alias and predicate expression. |
+|  [arrayFirst(arrayExpression)](./firestore_lite_pipelines.md#arrayfirst_f574e12) | Creates an expression that returns the first element of an array. |
+|  [arrayFirstN(arrayExpression, n)](./firestore_lite_pipelines.md#arrayfirstn_bff7f91) | Creates an expression that returns the first <code>n</code> elements of an array. |
+|  [arrayFirstN(arrayExpression, n)](./firestore_lite_pipelines.md#arrayfirstn_19b4ef8) | Creates an expression that returns the first <code>n</code> elements of an array. |
+|  [arrayGet(arrayExpression, offset)](./firestore_lite_pipelines.md#arrayget_f2e27cc) | Creates an expression that indexes into an array from the beginning or end and return the element. If the offset exceeds the array length, an error is returned. A negative offset, starts from the end. |
+|  [arrayGet(arrayExpression, offsetExpr)](./firestore_lite_pipelines.md#arrayget_484550d) | Creates an expression that indexes into an array from the beginning or end and return the element. If the offset exceeds the array length, an error is returned. A negative offset, starts from the end. |
+|  [arrayIndexOf(arrayExpression, search)](./firestore_lite_pipelines.md#arrayindexof_694a0b4) | Creates an expression that returns the first index of the search value in an array. Returns -1 if the value is not found. |
+|  [arrayIndexOfAll(arrayExpression, search)](./firestore_lite_pipelines.md#arrayindexofall_694a0b4) | Creates an expression that returns all indices of the search value in an array. |
+|  [arrayLast(arrayExpression)](./firestore_lite_pipelines.md#arraylast_f574e12) | Creates an expression that returns the last element of an array. |
+|  [arrayLastIndexOf(arrayExpression, search)](./firestore_lite_pipelines.md#arraylastindexof_694a0b4) | Creates an expression that returns the last index of the search value in an array. Returns -1 if the value is not found. |
+|  [arrayLastN(arrayExpression, n)](./firestore_lite_pipelines.md#arraylastn_bff7f91) | Creates an expression that returns the last <code>n</code> elements of an array. |
+|  [arrayLastN(arrayExpression, n)](./firestore_lite_pipelines.md#arraylastn_19b4ef8) | Creates an expression that returns the last <code>n</code> elements of an array. |
+|  [arrayMaximum(arrayExpression)](./firestore_lite_pipelines.md#arraymaximum_f574e12) | Creates an expression that returns the maximum value in an array. |
+|  [arrayMaximumN(arrayExpression, n)](./firestore_lite_pipelines.md#arraymaximumn_bff7f91) | Creates an expression that returns the largest <code>n</code> elements of an array.<!-- -->Note: Returns the n largest non-null elements in the array, in descending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
+|  [arrayMaximumN(arrayExpression, n)](./firestore_lite_pipelines.md#arraymaximumn_19b4ef8) | Creates an expression that returns the largest <code>n</code> elements of an array.<!-- -->Note: Returns the n largest non-null elements in the array, in descending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
+|  [arrayMinimum(arrayExpression)](./firestore_lite_pipelines.md#arrayminimum_f574e12) | Creates an expression that returns the minimum value in an array. |
+|  [arrayMinimumN(arrayExpression, n)](./firestore_lite_pipelines.md#arrayminimumn_bff7f91) | Creates an expression that returns the smallest <code>n</code> elements of an array.<!-- -->Note: Returns the n smallest non-null elements in the array, in ascending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
+|  [arrayMinimumN(arrayExpression, n)](./firestore_lite_pipelines.md#arrayminimumn_19b4ef8) | Creates an expression that returns the smallest <code>n</code> elements of an array.<!-- -->Note: Returns the n smallest non-null elements in the array, in ascending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
+|  [arraySlice(arrayExpression, offset, length)](./firestore_lite_pipelines.md#arrayslice_a349bee) | Creates an expression that returns a slice of an array from <code>offset</code> with <code>length</code> elements. |
+|  [arrayTransform(arrayExpression, elementAlias, transform)](./firestore_lite_pipelines.md#arraytransform_28967fa) | Creates an expression that applies a provided transformation to each element in an array. |
+|  [arrayTransformWithIndex(arrayExpression, elementAlias, indexAlias, transform)](./firestore_lite_pipelines.md#arraytransformwithindex_2f3b17f) | Creates an expression that applies a provided transformation to each element in an array, providing the element's index to the transformation expression. |
+|  [join(arrayExpression, delimiterExpression)](./firestore_lite_pipelines.md#join_313e6aa) | Creates an expression that joins the elements of an array into a string. |
+|  [join(arrayExpression, delimiter)](./firestore_lite_pipelines.md#join_d088d29) | Creates an expression that joins the elements of an array into a string. |
 |  <b>function(arrayField, ...)</b> |
-|  [arrayGet(arrayField, offset)](./firestore_lite_pipelines.md#arrayget_875a798) | Creates an expression that indexes into an array from the beginning or end and return the element. If the offset exceeds the array length, an error is returned. A negative offset, starts from the end. |
-|  [arrayGet(arrayField, offsetExpr)](./firestore_lite_pipelines.md#arrayget_f3bfcef) | Creates an expression that indexes into an array from the beginning or end and return the element. If the offset exceeds the array length, an error is returned. A negative offset, starts from the end. |
+|  [arrayGet(arrayField, offset)](./firestore_lite_pipelines.md#arrayget_3f58471) | Creates an expression that indexes into an array from the beginning or end and return the element. If the offset exceeds the array length, an error is returned. A negative offset, starts from the end. |
+|  [arrayGet(arrayField, offsetExpr)](./firestore_lite_pipelines.md#arrayget_1904c9a) | Creates an expression that indexes into an array from the beginning or end and return the element. If the offset exceeds the array length, an error is returned. A negative offset, starts from the end. |
 |  <b>function(arrayFieldName, ...)</b> |
-|  [join(arrayFieldName, delimiter)](./firestore_lite_pipelines.md#join_868c433) | Creates an expression that joins the elements of an array into a string. |
-|  [join(arrayFieldName, delimiterExpression)](./firestore_lite_pipelines.md#join_efb1c76) | Creates an expression that joins the elements of an array into a string. |
+|  [join(arrayFieldName, delimiter)](./firestore_lite_pipelines.md#join_478ef36) | Creates an expression that joins the elements of an array into a string. |
+|  [join(arrayFieldName, delimiterExpression)](./firestore_lite_pipelines.md#join_829294c) | Creates an expression that joins the elements of an array into a string. |
 |  <b>function(base, ...)</b> |
-|  [pow(base, exponent)](./firestore_lite_pipelines.md#pow_aa3c940) | Creates an expression that returns the value of the base expression raised to the power of the exponent expression. |
-|  [pow(base, exponent)](./firestore_lite_pipelines.md#pow_3d4bfd3) | Creates an expression that returns the value of the base expression raised to the power of the exponent. |
-|  [pow(base, exponent)](./firestore_lite_pipelines.md#pow_a2e035e) | Creates an expression that returns the value of the base field raised to the power of the exponent expression. |
+|  [pow(base, exponent)](./firestore_lite_pipelines.md#pow_e4a9e64) | Creates an expression that returns the value of the base expression raised to the power of the exponent expression. |
+|  [pow(base, exponent)](./firestore_lite_pipelines.md#pow_93eae7f) | Creates an expression that returns the value of the base expression raised to the power of the exponent. |
+|  [pow(base, exponent)](./firestore_lite_pipelines.md#pow_a237721) | Creates an expression that returns the value of the base field raised to the power of the exponent expression. |
 |  [pow(base, exponent)](./firestore_lite_pipelines.md#pow_f4d7908) | Creates an expression that returns the value of the base field raised to the power of the exponent. |
 |  <b>function(booleanExpr, ...)</b> |
-|  [countIf(booleanExpr)](./firestore_lite_pipelines.md#countif_55537a4) | Creates an aggregation that counts the number of stage inputs where the provided boolean expression evaluates to true. |
+|  [countIf(booleanExpr)](./firestore_lite_pipelines.md#countif_c5b8fb1) | Creates an aggregation that counts the number of stage inputs where the provided boolean expression evaluates to true. |
 |  [not(booleanExpr)](./firestore_lite_pipelines.md#not_c5b8fb1) | Creates an expression that negates a filter condition. |
 |  <b>function(condition, ...)</b> |
-|  [conditional(condition, thenExpr, elseExpr)](./firestore_lite_pipelines.md#conditional_0c25770) | Creates a conditional expression that evaluates to a 'then' expression if a condition is true and an 'else' expression if the condition is false. |
-|  [switchOn(condition, result, others)](./firestore_lite_pipelines.md#switchon_69e5629) | Creates an expression that evaluates to the result corresponding to the first true condition. |
+|  [conditional(condition, thenExpr, elseExpr)](./firestore_lite_pipelines.md#conditional_07a206d) | Creates a conditional expression that evaluates to a 'then' expression if a condition is true and an 'else' expression if the condition is false. |
+|  [switchOn(condition, result, others)](./firestore_lite_pipelines.md#switchon_02b8caf) | Creates an expression that evaluates to the result corresponding to the first true condition. |
 |  <b>function(documentPath, ...)</b> |
-|  [documentId(documentPath)](./firestore_lite_pipelines.md#documentid_602df03) | Creates an expression that returns the document ID from a path. |
-|  [parent\_2(documentPath)](./firestore_lite_pipelines.md#parent_2_602df03) | Creates an expression that returns the parent document reference of a document reference. |
+|  [documentId(documentPath)](./firestore_lite_pipelines.md#documentid_cef293c) | Creates an expression that returns the document ID from a path. |
+|  [parent\_2(documentPath)](./firestore_lite_pipelines.md#parent_2_cef293c) | Creates an expression that returns the parent document reference of a document reference. |
 |  <b>function(documentPathExpr, ...)</b> |
-|  [documentId(documentPathExpr)](./firestore_lite_pipelines.md#documentid_98856da) | Creates an expression that returns the document ID from a path. |
+|  [documentId(documentPathExpr)](./firestore_lite_pipelines.md#documentid_9a69021) | Creates an expression that returns the document ID from a path. |
 |  [parent\_2(documentPathExpr)](./firestore_lite_pipelines.md#parent_2_9a69021) | Creates an expression that returns the parent document reference of a document reference. |
 |  <b>function(element, ...)</b> |
-|  [notEqualAny(element, values)](./firestore_lite_pipelines.md#notequalany_9e30e87) | Creates an expression that checks if an expression is not equal to any of the provided values or expressions. |
-|  [notEqualAny(element, arrayExpression)](./firestore_lite_pipelines.md#notequalany_fa996c6) | Creates an expression that checks if an expression is not equal to any of the provided values or expressions. |
+|  [notEqualAny(element, values)](./firestore_lite_pipelines.md#notequalany_c2c5bcb) | Creates an expression that checks if an expression is not equal to any of the provided values or expressions. |
+|  [notEqualAny(element, arrayExpression)](./firestore_lite_pipelines.md#notequalany_16b2851) | Creates an expression that checks if an expression is not equal to any of the provided values or expressions. |
 |  <b>function(elements, ...)</b> |
 |  [array(elements)](./firestore_lite_pipelines.md#array_7d853aa) | Creates an expression that creates a Firestore array value from an input array. |
-|  [map(elements)](./firestore_lite_pipelines.md#map_733c789) | Creates an expression that creates a Firestore map value from an input object. |
+|  [map(elements)](./firestore_lite_pipelines.md#map_ce5dee1) | Creates an expression that creates a Firestore map value from an input object. |
 |  <b>function(endExpression, ...)</b> |
-|  [timestampDiff(endExpression, startFieldName, unit)](./firestore_lite_pipelines.md#timestampdiff_8afebe7) | Creates an expression that calculates the difference between two timestamps. |
-|  [timestampDiff(endExpression, startExpression, unit)](./firestore_lite_pipelines.md#timestampdiff_1baffbd) | Creates an expression that calculates the difference between two timestamps. |
+|  [timestampDiff(endExpression, startFieldName, unit)](./firestore_lite_pipelines.md#timestampdiff_4370feb) | Creates an expression that calculates the difference between two timestamps. |
+|  [timestampDiff(endExpression, startExpression, unit)](./firestore_lite_pipelines.md#timestampdiff_bc0830f) | Creates an expression that calculates the difference between two timestamps. |
 |  <b>function(endFieldName, ...)</b> |
-|  [timestampDiff(endFieldName, startFieldName, unit)](./firestore_lite_pipelines.md#timestampdiff_81348ba) |  |
-|  [timestampDiff(endFieldName, startExpression, unit)](./firestore_lite_pipelines.md#timestampdiff_b39ccc9) | Creates an expression that calculates the difference between two timestamps. |
+|  [timestampDiff(endFieldName, startFieldName, unit)](./firestore_lite_pipelines.md#timestampdiff_f60102c) |  |
+|  [timestampDiff(endFieldName, startExpression, unit)](./firestore_lite_pipelines.md#timestampdiff_6e54d92) | Creates an expression that calculates the difference between two timestamps. |
 |  <b>function(expr, ...)</b> |
 |  [abs(expr)](./firestore_lite_pipelines.md#abs_005f3d4) | Creates an expression that computes the absolute value of a numeric value. |
 |  [ascending(expr)](./firestore_lite_pipelines.md#ascending_005f3d4) | Creates an [Ordering](./firestore_pipelines.ordering.md#ordering_class) that sorts documents in ascending order based on an expression. |
 |  [byteLength(expr)](./firestore_lite_pipelines.md#bytelength_005f3d4) | Creates an expression that calculates the byte length of a string in UTF-8, or just the length of a Blob. |
-|  [countDistinct(expr)](./firestore_lite_pipelines.md#countdistinct_04f5e99) | Creates an aggregation that counts the number of distinct values of a field. |
+|  [countDistinct(expr)](./firestore_lite_pipelines.md#countdistinct_3c28b08) | Creates an aggregation that counts the number of distinct values of a field. |
 |  [descending(expr)](./firestore_lite_pipelines.md#descending_005f3d4) | Creates an [Ordering](./firestore_pipelines.ordering.md#ordering_class) that sorts documents in descending order based on an expression. |
 |  [floor(expr)](./firestore_lite_pipelines.md#floor_005f3d4) | Creates an expression that computes the floor of a numeric value. |
-|  [timestampToUnixMicros(expr)](./firestore_lite_pipelines.md#timestamptounixmicros_24910c0) | Creates an expression that converts a timestamp expression to the number of microseconds since the Unix epoch (1970-01-01 00:00:00 UTC). |
-|  [timestampToUnixMillis(expr)](./firestore_lite_pipelines.md#timestamptounixmillis_24910c0) | Creates an expression that converts a timestamp expression to the number of milliseconds since the Unix epoch (1970-01-01 00:00:00 UTC). |
-|  [timestampToUnixSeconds(expr)](./firestore_lite_pipelines.md#timestamptounixseconds_24910c0) | Creates an expression that converts a timestamp expression to the number of seconds since the Unix epoch (1970-01-01 00:00:00 UTC). |
-|  [unixMicrosToTimestamp(expr)](./firestore_lite_pipelines.md#unixmicrostotimestamp_24910c0) | Creates an expression that interprets an expression as the number of microseconds since the Unix epoch (1970-01-01 00:00:00 UTC) and returns a timestamp. |
-|  [unixMillisToTimestamp(expr)](./firestore_lite_pipelines.md#unixmillistotimestamp_24910c0) | Creates an expression that interprets an expression as the number of milliseconds since the Unix epoch (1970-01-01 00:00:00 UTC) and returns a timestamp. |
-|  [unixSecondsToTimestamp(expr)](./firestore_lite_pipelines.md#unixsecondstotimestamp_24910c0) | Creates an expression that interprets an expression as the number of seconds since the Unix epoch (1970-01-01 00:00:00 UTC) and returns a timestamp. |
+|  [timestampToUnixMicros(expr)](./firestore_lite_pipelines.md#timestamptounixmicros_005f3d4) | Creates an expression that converts a timestamp expression to the number of microseconds since the Unix epoch (1970-01-01 00:00:00 UTC). |
+|  [timestampToUnixMillis(expr)](./firestore_lite_pipelines.md#timestamptounixmillis_005f3d4) | Creates an expression that converts a timestamp expression to the number of milliseconds since the Unix epoch (1970-01-01 00:00:00 UTC). |
+|  [timestampToUnixSeconds(expr)](./firestore_lite_pipelines.md#timestamptounixseconds_005f3d4) | Creates an expression that converts a timestamp expression to the number of seconds since the Unix epoch (1970-01-01 00:00:00 UTC). |
+|  [unixMicrosToTimestamp(expr)](./firestore_lite_pipelines.md#unixmicrostotimestamp_005f3d4) | Creates an expression that interprets an expression as the number of microseconds since the Unix epoch (1970-01-01 00:00:00 UTC) and returns a timestamp. |
+|  [unixMillisToTimestamp(expr)](./firestore_lite_pipelines.md#unixmillistotimestamp_005f3d4) | Creates an expression that interprets an expression as the number of milliseconds since the Unix epoch (1970-01-01 00:00:00 UTC) and returns a timestamp. |
+|  [unixSecondsToTimestamp(expr)](./firestore_lite_pipelines.md#unixsecondstotimestamp_005f3d4) | Creates an expression that interprets an expression as the number of seconds since the Unix epoch (1970-01-01 00:00:00 UTC) and returns a timestamp. |
 |  <b>function(expression, ...)</b> |
 |  [arrayAgg(expression)](./firestore_lite_pipelines.md#arrayagg_1138a27) | Creates an aggregation that collects all values of an expression across multiple stage inputs into an array. |
-|  [arrayAggDistinct(expression)](./firestore_lite_pipelines.md#arrayaggdistinct_5bd49e9) | Creates an aggregation that collects all distinct values of an expression across multiple stage inputs into an array. |
+|  [arrayAggDistinct(expression)](./firestore_lite_pipelines.md#arrayaggdistinct_1138a27) | Creates an aggregation that collects all distinct values of an expression across multiple stage inputs into an array. |
 |  [arraySum(expression)](./firestore_lite_pipelines.md#arraysum_1138a27) | Creates an expression that computes the sum of the elements in an array. |
 |  [average(expression)](./firestore_lite_pipelines.md#average_1138a27) | Creates an aggregation that calculates the average (mean) of values from an expression across multiple stage inputs. |
 |  [ceil(expression)](./firestore_lite_pipelines.md#ceil_1138a27) | Creates an expression that computes the ceiling of a numeric value. |
-|  [coalesce(expression, replacement, others)](./firestore_lite_pipelines.md#coalesce_4bc9761) | Creates an expression that returns the first non-null, non-absent argument, without evaluating the rest of the arguments. When all arguments are null or absent, returns the last argument. |
-|  [collectionId(expression)](./firestore_lite_pipelines.md#collectionid_5bd49e9) | Creates an expression that returns the collection ID from a path. |
+|  [coalesce(expression, replacement, others)](./firestore_lite_pipelines.md#coalesce_00859cb) | Creates an expression that returns the first non-null, non-absent argument, without evaluating the rest of the arguments. When all arguments are null or absent, returns the last argument. |
+|  [collectionId(expression)](./firestore_lite_pipelines.md#collectionid_1138a27) | Creates an expression that returns the collection ID from a path. |
 |  [count(expression)](./firestore_lite_pipelines.md#count_1138a27) | Creates an aggregation that counts the number of stage inputs with valid evaluations of the provided expression. |
-|  [divide(expression, value)](./firestore_lite_pipelines.md#divide_afe9057) | Creates an expression that divides an expression by a constant value. |
-|  [equal(expression, value)](./firestore_lite_pipelines.md#equal_afe9057) | Creates an expression that checks if an expression is equal to a constant value. |
-|  [equalAny(expression, values)](./firestore_lite_pipelines.md#equalany_17f9971) | Creates an expression that checks if an expression, when evaluated, is equal to any of the provided values or expressions. |
-|  [equalAny(expression, arrayExpression)](./firestore_lite_pipelines.md#equalany_04f9476) | Creates an expression that checks if an expression is equal to any of the provided values. |
+|  [divide(expression, value)](./firestore_lite_pipelines.md#divide_01df3cf) | Creates an expression that divides an expression by a constant value. |
+|  [equal(expression, value)](./firestore_lite_pipelines.md#equal_01df3cf) | Creates an expression that checks if an expression is equal to a constant value. |
+|  [equalAny(expression, values)](./firestore_lite_pipelines.md#equalany_7e759b5) | Creates an expression that checks if an expression, when evaluated, is equal to any of the provided values or expressions. |
+|  [equalAny(expression, arrayExpression)](./firestore_lite_pipelines.md#equalany_214ce68) | Creates an expression that checks if an expression is equal to any of the provided values. |
 |  [exp(expression)](./firestore_lite_pipelines.md#exp_1138a27) | Creates an expression that computes e to the power of the expression's result. |
 |  [first(expression)](./firestore_lite_pipelines.md#first_1138a27) | Creates an aggregation that finds the first value of an expression across multiple stage inputs. |
-|  [greaterThan(expression, value)](./firestore_lite_pipelines.md#greaterthan_afe9057) | Creates an expression that checks if an expression is greater than a constant value. |
-|  [greaterThanOrEqual(expression, value)](./firestore_lite_pipelines.md#greaterthanorequal_afe9057) | Creates an expression that checks if an expression is greater than or equal to a constant value. |
-|  [isType(expression, type)](./firestore_lite_pipelines.md#istype_7d2684a) | Creates an expression that checks if the result of an expression is of the given type. |
+|  [greaterThan(expression, value)](./firestore_lite_pipelines.md#greaterthan_01df3cf) | Creates an expression that checks if an expression is greater than a constant value. |
+|  [greaterThanOrEqual(expression, value)](./firestore_lite_pipelines.md#greaterthanorequal_01df3cf) | Creates an expression that checks if an expression is greater than or equal to a constant value. |
+|  [isType(expression, type)](./firestore_lite_pipelines.md#istype_e58f382) | Creates an expression that checks if the result of an expression is of the given type. |
 |  [last(expression)](./firestore_lite_pipelines.md#last_1138a27) | Creates an aggregation that finds the last value of an expression across multiple stage inputs. |
 |  [length\_2(expression)](./firestore_lite_pipelines.md#length_2_1138a27) | Creates an expression that calculates the length of a string, array, map, vector, or bytes. |
-|  [lessThan(expression, value)](./firestore_lite_pipelines.md#lessthan_afe9057) | Creates an expression that checks if an expression is less than a constant value. |
-|  [lessThanOrEqual(expression, value)](./firestore_lite_pipelines.md#lessthanorequal_afe9057) | Creates an expression that checks if an expression is less than or equal to a constant value. |
+|  [lessThan(expression, value)](./firestore_lite_pipelines.md#lessthan_01df3cf) | Creates an expression that checks if an expression is less than a constant value. |
+|  [lessThanOrEqual(expression, value)](./firestore_lite_pipelines.md#lessthanorequal_01df3cf) | Creates an expression that checks if an expression is less than or equal to a constant value. |
 |  [ln(expression)](./firestore_lite_pipelines.md#ln_1138a27) | Creates an expression that computes the natural logarithm of a numeric value. |
-|  [log(expression, base)](./firestore_lite_pipelines.md#log_7fad403) | Creates an expression that computes the logarithm of an expression to a given base. |
-|  [log(expression, base)](./firestore_lite_pipelines.md#log_19a06db) | Creates an expression that computes the logarithm of an expression to a given base. |
+|  [log(expression, base)](./firestore_lite_pipelines.md#log_ac183e2) | Creates an expression that computes the logarithm of an expression to a given base. |
+|  [log(expression, base)](./firestore_lite_pipelines.md#log_1894737) | Creates an expression that computes the logarithm of an expression to a given base. |
 |  [log10(expression)](./firestore_lite_pipelines.md#log10_1138a27) | Creates an expression that computes the base-10 logarithm of a numeric value. |
-|  [ltrim(expression, valueToTrim)](./firestore_lite_pipelines.md#ltrim_e456240) | Trims whitespace or a specified set of characters/bytes from the beginning of a string or byte array. |
+|  [ltrim(expression, valueToTrim)](./firestore_lite_pipelines.md#ltrim_775e2f2) | Trims whitespace or a specified set of characters/bytes from the beginning of a string or byte array. |
 |  [maximum(expression)](./firestore_lite_pipelines.md#maximum_1138a27) | Creates an aggregation that finds the maximum value of an expression across multiple stage inputs. |
 |  [minimum(expression)](./firestore_lite_pipelines.md#minimum_1138a27) | Creates an aggregation that finds the minimum value of an expression across multiple stage inputs. |
-|  [mod(expression, value)](./firestore_lite_pipelines.md#mod_afe9057) | Creates an expression that calculates the modulo (remainder) of dividing an expression by a constant. |
-|  [notEqual(expression, value)](./firestore_lite_pipelines.md#notequal_afe9057) | Creates an expression that checks if an expression is not equal to a constant value. |
+|  [mod(expression, value)](./firestore_lite_pipelines.md#mod_01df3cf) | Creates an expression that calculates the modulo (remainder) of dividing an expression by a constant. |
+|  [notEqual(expression, value)](./firestore_lite_pipelines.md#notequal_01df3cf) | Creates an expression that checks if an expression is not equal to a constant value. |
 |  [round(expression)](./firestore_lite_pipelines.md#round_1138a27) | Creates an expression that rounds a numeric value to the nearest whole number. |
-|  [round(expression, decimalPlaces)](./firestore_lite_pipelines.md#round_22e6e22) | Creates an expression that rounds a numeric value to the specified number of decimal places. |
-|  [rtrim(expression, valueToTrim)](./firestore_lite_pipelines.md#rtrim_e456240) | Trims whitespace or a specified set of characters/bytes from the end of a string or byte array. |
-|  [split(expression, delimiter)](./firestore_lite_pipelines.md#split_5888122) | Creates an expression that splits a string into an array of substrings based on the provided delimiter. |
-|  [split(expression, delimiter)](./firestore_lite_pipelines.md#split_bdb5d04) | Creates an expression that splits a string into an array of substrings based on the provided delimiter. |
+|  [round(expression, decimalPlaces)](./firestore_lite_pipelines.md#round_a3a92d0) | Creates an expression that rounds a numeric value to the specified number of decimal places. |
+|  [rtrim(expression, valueToTrim)](./firestore_lite_pipelines.md#rtrim_775e2f2) | Trims whitespace or a specified set of characters/bytes from the end of a string or byte array. |
+|  [split(expression, delimiter)](./firestore_lite_pipelines.md#split_5b5612b) | Creates an expression that splits a string into an array of substrings based on the provided delimiter. |
+|  [split(expression, delimiter)](./firestore_lite_pipelines.md#split_5a171ed) | Creates an expression that splits a string into an array of substrings based on the provided delimiter. |
 |  [sqrt(expression)](./firestore_lite_pipelines.md#sqrt_1138a27) | Creates an expression that computes the square root of a numeric value. |
-|  [stringIndexOf(expression, search)](./firestore_lite_pipelines.md#stringindexof_ef20c29) | Creates an expression that finds the index of the first occurrence of a substring or byte sequence. |
-|  [stringRepeat(expression, repetitions)](./firestore_lite_pipelines.md#stringrepeat_f27848b) | Creates an expression that repeats a string or byte array a specified number of times. |
-|  [stringReplaceAll(expression, find, replacement)](./firestore_lite_pipelines.md#stringreplaceall_d18eb3e) | Creates an expression that replaces all occurrences of a substring or byte sequence with a replacement. |
-|  [stringReplaceOne(expression, find, replacement)](./firestore_lite_pipelines.md#stringreplaceone_d18eb3e) | Creates an expression that replaces the first occurrence of a substring or byte sequence with a replacement. |
-|  [subtract(expression, value)](./firestore_lite_pipelines.md#subtract_afe9057) | Creates an expression that subtracts a constant value from an expression. |
+|  [stringIndexOf(expression, search)](./firestore_lite_pipelines.md#stringindexof_6dfca5f) | Creates an expression that finds the index of the first occurrence of a substring or byte sequence. |
+|  [stringRepeat(expression, repetitions)](./firestore_lite_pipelines.md#stringrepeat_a55ba16) | Creates an expression that repeats a string or byte array a specified number of times. |
+|  [stringReplaceAll(expression, find, replacement)](./firestore_lite_pipelines.md#stringreplaceall_197ecbe) | Creates an expression that replaces all occurrences of a substring or byte sequence with a replacement. |
+|  [stringReplaceOne(expression, find, replacement)](./firestore_lite_pipelines.md#stringreplaceone_197ecbe) | Creates an expression that replaces the first occurrence of a substring or byte sequence with a replacement. |
+|  [subtract(expression, value)](./firestore_lite_pipelines.md#subtract_01df3cf) | Creates an expression that subtracts a constant value from an expression. |
 |  [sum(expression)](./firestore_lite_pipelines.md#sum_1138a27) | Creates an aggregation that calculates the sum of values from an expression across multiple stage inputs. |
 |  [trunc(expression)](./firestore_lite_pipelines.md#trunc_1138a27) | Creates an expression that truncates the numeric value of an expression to an integer. |
-|  [trunc(expression, decimalPlaces)](./firestore_lite_pipelines.md#trunc_22e6e22) | Creates an expression that truncates a numeric value to the specified number of decimal places. |
+|  [trunc(expression, decimalPlaces)](./firestore_lite_pipelines.md#trunc_a3a92d0) | Creates an expression that truncates a numeric value to the specified number of decimal places. |
 |  [type(expression)](./firestore_lite_pipelines.md#type_1138a27) | Creates an expression that returns the data type of an expression's result. |
 |  <b>function(field, ...)</b> |
 |  [isAbsent(field)](./firestore_lite_pipelines.md#isabsent_0fb8cd4) | Creates an expression that returns <code>true</code> if a field is absent. Otherwise, returns <code>false</code> even if the field value is <code>null</code>. |
 |  [reverse(field)](./firestore_lite_pipelines.md#reverse_0fb8cd4) | Creates an expression that reverses a string value in the specified field. |
 |  [stringReverse(field)](./firestore_lite_pipelines.md#stringreverse_0fb8cd4) | Creates an expression that reverses a string value in the specified field. |
-|  [substring(field, position, length)](./firestore_lite_pipelines.md#substring_632f326) | Creates an expression that returns a substring of a string or byte array. |
-|  [substring(field, position, length)](./firestore_lite_pipelines.md#substring_e6bd41c) | Creates an expression that returns a substring of a string or byte array. |
+|  [substring(field, position, length)](./firestore_lite_pipelines.md#substring_0d9573a) | Creates an expression that returns a substring of a string or byte array. |
+|  [substring(field, position, length)](./firestore_lite_pipelines.md#substring_05cb14e) | Creates an expression that returns a substring of a string or byte array. |
 |  <b>function(fieldName, ...)</b> |
 |  [abs(fieldName)](./firestore_lite_pipelines.md#abs_e5b0480) | Creates an expression that computes the absolute value of a numeric value. |
-|  [add(fieldName, second)](./firestore_lite_pipelines.md#add_3a28021) | Creates an expression that adds a field's value to an expression. |
+|  [add(fieldName, second)](./firestore_lite_pipelines.md#add_b75bb8b) | Creates an expression that adds a field's value to an expression. |
 |  [arrayAgg(fieldName)](./firestore_lite_pipelines.md#arrayagg_e5b0480) | Creates an aggregation that collects all values of a field across multiple stage inputs into an array. |
 |  [arrayAggDistinct(fieldName)](./firestore_lite_pipelines.md#arrayaggdistinct_e5b0480) | Creates an aggregation that collects all distinct values of a field across multiple stage inputs into an array. |
-|  [arrayContains(fieldName, element)](./firestore_lite_pipelines.md#arraycontains_91888ca) | Creates an expression that checks if a field's array value contains a specific element. |
-|  [arrayContains(fieldName, element)](./firestore_lite_pipelines.md#arraycontains_c66c4c4) | Creates an expression that checks if a field's array value contains a specific value. |
-|  [arrayContainsAll(fieldName, values)](./firestore_lite_pipelines.md#arraycontainsall_ffd8514) | Creates an expression that checks if a field's array value contains all the specified values or expressions. |
-|  [arrayContainsAll(fieldName, arrayExpression)](./firestore_lite_pipelines.md#arraycontainsall_b9c42f9) | Creates an expression that checks if a field's array value contains all the specified values or expressions. |
-|  [arrayContainsAny(fieldName, values)](./firestore_lite_pipelines.md#arraycontainsany_ffd8514) | Creates an expression that checks if a field's array value contains any of the specified elements. |
-|  [arrayContainsAny(fieldName, values)](./firestore_lite_pipelines.md#arraycontainsany_b64de61) | Creates an expression that checks if a field's array value contains any of the specified elements. |
-|  [arrayFilter(fieldName, alias, filter)](./firestore_lite_pipelines.md#arrayfilter_67b2eee) | Creates an expression that filters an array using a provided alias and predicate expression. |
+|  [arrayContains(fieldName, element)](./firestore_lite_pipelines.md#arraycontains_aaace4a) | Creates an expression that checks if a field's array value contains a specific element. |
+|  [arrayContains(fieldName, element)](./firestore_lite_pipelines.md#arraycontains_999590f) | Creates an expression that checks if a field's array value contains a specific value. |
+|  [arrayContainsAll(fieldName, values)](./firestore_lite_pipelines.md#arraycontainsall_8060b23) | Creates an expression that checks if a field's array value contains all the specified values or expressions. |
+|  [arrayContainsAll(fieldName, arrayExpression)](./firestore_lite_pipelines.md#arraycontainsall_48da8d9) | Creates an expression that checks if a field's array value contains all the specified values or expressions. |
+|  [arrayContainsAny(fieldName, values)](./firestore_lite_pipelines.md#arraycontainsany_8060b23) | Creates an expression that checks if a field's array value contains any of the specified elements. |
+|  [arrayContainsAny(fieldName, values)](./firestore_lite_pipelines.md#arraycontainsany_1b4f7cd) | Creates an expression that checks if a field's array value contains any of the specified elements. |
+|  [arrayFilter(fieldName, alias, filter)](./firestore_lite_pipelines.md#arrayfilter_ab67868) | Creates an expression that filters an array using a provided alias and predicate expression. |
 |  [arrayFirst(fieldName)](./firestore_lite_pipelines.md#arrayfirst_e5b0480) | Creates an expression that returns the first element of an array. |
-|  [arrayFirstN(fieldName, n)](./firestore_lite_pipelines.md#arrayfirstn_cf62534) | Creates an expression that returns the first <code>n</code> elements of an array. |
-|  [arrayFirstN(fieldName, n)](./firestore_lite_pipelines.md#arrayfirstn_c64b3b5) | Creates an expression that returns the first <code>n</code> elements of an array. |
-|  [arrayIndexOf(fieldName, search)](./firestore_lite_pipelines.md#arrayindexof_94763f9) | Creates an expression that returns the first index of the search value in an array. Returns -1 if the value is not found. |
-|  [arrayIndexOfAll(fieldName, search)](./firestore_lite_pipelines.md#arrayindexofall_94763f9) | Creates an expression that returns all indices of the search value in an array. |
+|  [arrayFirstN(fieldName, n)](./firestore_lite_pipelines.md#arrayfirstn_597a4d9) | Creates an expression that returns the first <code>n</code> elements of an array. |
+|  [arrayFirstN(fieldName, n)](./firestore_lite_pipelines.md#arrayfirstn_1a86a2c) | Creates an expression that returns the first <code>n</code> elements of an array. |
+|  [arrayIndexOf(fieldName, search)](./firestore_lite_pipelines.md#arrayindexof_5e4c2c3) | Creates an expression that returns the first index of the search value in an array. Returns -1 if the value is not found. |
+|  [arrayIndexOfAll(fieldName, search)](./firestore_lite_pipelines.md#arrayindexofall_5e4c2c3) | Creates an expression that returns all indices of the search value in an array. |
 |  [arrayLast(fieldName)](./firestore_lite_pipelines.md#arraylast_e5b0480) | Creates an expression that returns the last element of an array. |
-|  [arrayLastIndexOf(fieldName, search)](./firestore_lite_pipelines.md#arraylastindexof_94763f9) | Creates an expression that returns the last index of the search value in an array. Returns -1 if the value is not found. |
-|  [arrayLastN(fieldName, n)](./firestore_lite_pipelines.md#arraylastn_cf62534) | Creates an expression that returns the last <code>n</code> elements of an array. |
-|  [arrayLastN(fieldName, n)](./firestore_lite_pipelines.md#arraylastn_c64b3b5) | Creates an expression that returns the last <code>n</code> elements of an array. |
+|  [arrayLastIndexOf(fieldName, search)](./firestore_lite_pipelines.md#arraylastindexof_5e4c2c3) | Creates an expression that returns the last index of the search value in an array. Returns -1 if the value is not found. |
+|  [arrayLastN(fieldName, n)](./firestore_lite_pipelines.md#arraylastn_597a4d9) | Creates an expression that returns the last <code>n</code> elements of an array. |
+|  [arrayLastN(fieldName, n)](./firestore_lite_pipelines.md#arraylastn_1a86a2c) | Creates an expression that returns the last <code>n</code> elements of an array. |
 |  [arrayLength(fieldName)](./firestore_lite_pipelines.md#arraylength_e5b0480) | Creates an expression that calculates the length of an array in a specified field. |
 |  [arrayMaximum(fieldName)](./firestore_lite_pipelines.md#arraymaximum_e5b0480) | Creates an expression that returns the maximum value in an array. |
-|  [arrayMaximumN(fieldName, n)](./firestore_lite_pipelines.md#arraymaximumn_cf62534) | Creates an expression that returns the largest <code>n</code> elements of an array.<!-- -->Note: Returns the n largest non-null elements in the array, in descending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
-|  [arrayMaximumN(fieldName, n)](./firestore_lite_pipelines.md#arraymaximumn_c64b3b5) | Creates an expression that returns the largest <code>n</code> elements of an array.<!-- -->Note: Returns the n largest non-null elements in the array, in descending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
+|  [arrayMaximumN(fieldName, n)](./firestore_lite_pipelines.md#arraymaximumn_597a4d9) | Creates an expression that returns the largest <code>n</code> elements of an array.<!-- -->Note: Returns the n largest non-null elements in the array, in descending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
+|  [arrayMaximumN(fieldName, n)](./firestore_lite_pipelines.md#arraymaximumn_1a86a2c) | Creates an expression that returns the largest <code>n</code> elements of an array.<!-- -->Note: Returns the n largest non-null elements in the array, in descending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
 |  [arrayMinimum(fieldName)](./firestore_lite_pipelines.md#arrayminimum_e5b0480) | Creates an expression that returns the minimum value in an array. |
-|  [arrayMinimumN(fieldName, n)](./firestore_lite_pipelines.md#arrayminimumn_cf62534) | Creates an expression that returns the smallest <code>n</code> elements of an array.<!-- -->Note: Returns the n smallest non-null elements in the array, in ascending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
-|  [arrayMinimumN(fieldName, n)](./firestore_lite_pipelines.md#arrayminimumn_c64b3b5) | Creates an expression that returns the smallest <code>n</code> elements of an array.<!-- -->Note: Returns the n smallest non-null elements in the array, in ascending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
-|  [arraySlice(fieldName, offset, length)](./firestore_lite_pipelines.md#arrayslice_01fb732) | Creates an expression that returns a slice of an array from <code>offset</code> with <code>length</code> elements. |
+|  [arrayMinimumN(fieldName, n)](./firestore_lite_pipelines.md#arrayminimumn_597a4d9) | Creates an expression that returns the smallest <code>n</code> elements of an array.<!-- -->Note: Returns the n smallest non-null elements in the array, in ascending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
+|  [arrayMinimumN(fieldName, n)](./firestore_lite_pipelines.md#arrayminimumn_1a86a2c) | Creates an expression that returns the smallest <code>n</code> elements of an array.<!-- -->Note: Returns the n smallest non-null elements in the array, in ascending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
+|  [arraySlice(fieldName, offset, length)](./firestore_lite_pipelines.md#arrayslice_821aa43) | Creates an expression that returns a slice of an array from <code>offset</code> with <code>length</code> elements. |
 |  [arraySum(fieldName)](./firestore_lite_pipelines.md#arraysum_e5b0480) | Creates an expression that computes the sum of the elements in an array. |
-|  [arrayTransform(fieldName, elementAlias, transform)](./firestore_lite_pipelines.md#arraytransform_9db448b) | Creates an expression that applies a provided transformation to each element in an array. |
-|  [arrayTransformWithIndex(fieldName, elementAlias, indexAlias, transform)](./firestore_lite_pipelines.md#arraytransformwithindex_d88c23d) | Creates an expression that applies a provided transformation to each element in an array, providing the element's index to the transformation expression. |
+|  [arrayTransform(fieldName, elementAlias, transform)](./firestore_lite_pipelines.md#arraytransform_328a090) | Creates an expression that applies a provided transformation to each element in an array. |
+|  [arrayTransformWithIndex(fieldName, elementAlias, indexAlias, transform)](./firestore_lite_pipelines.md#arraytransformwithindex_e6629b2) | Creates an expression that applies a provided transformation to each element in an array, providing the element's index to the transformation expression. |
 |  [ascending(fieldName)](./firestore_lite_pipelines.md#ascending_e5b0480) | Creates an [Ordering](./firestore_pipelines.ordering.md#ordering_class) that sorts documents in ascending order based on a field. |
 |  [average(fieldName)](./firestore_lite_pipelines.md#average_e5b0480) | Creates an aggregation that calculates the average (mean) of a field's values across multiple stage inputs. |
 |  [byteLength(fieldName)](./firestore_lite_pipelines.md#bytelength_e5b0480) | Creates an expression that calculates the length of a string represented by a field in UTF-8 bytes, or just the length of a Blob. |
 |  [ceil(fieldName)](./firestore_lite_pipelines.md#ceil_e5b0480) | Creates an expression that computes the ceiling of a numeric value. |
 |  [charLength(fieldName)](./firestore_lite_pipelines.md#charlength_e5b0480) | Creates an expression that calculates the character length of a string field in UTF8. |
-|  [coalesce(fieldName, replacement, others)](./firestore_lite_pipelines.md#coalesce_29893b0) | Creates an expression that returns the first non-null, non-absent argument, without evaluating the rest of the arguments. When all arguments are null or absent, returns the last argument. |
+|  [coalesce(fieldName, replacement, others)](./firestore_lite_pipelines.md#coalesce_249958e) | Creates an expression that returns the first non-null, non-absent argument, without evaluating the rest of the arguments. When all arguments are null or absent, returns the last argument. |
 |  [collectionId(fieldName)](./firestore_lite_pipelines.md#collectionid_e5b0480) | Creates an expression that returns the collection ID from a path. |
-|  [concat(fieldName, second, others)](./firestore_lite_pipelines.md#concat_0cf8d1a) | Creates an expression that concatenates strings, arrays, or blobs. Types cannot be mixed. |
-|  [cosineDistance(fieldName, vector)](./firestore_lite_pipelines.md#cosinedistance_6280b65) | Calculates the Cosine distance between a field's vector value and a literal vector value. |
-|  [cosineDistance(fieldName, vectorExpression)](./firestore_lite_pipelines.md#cosinedistance_cfadf52) | Calculates the Cosine distance between a field's vector value and a vector expression. |
+|  [concat(fieldName, second, others)](./firestore_lite_pipelines.md#concat_828272e) | Creates an expression that concatenates strings, arrays, or blobs. Types cannot be mixed. |
+|  [cosineDistance(fieldName, vector)](./firestore_lite_pipelines.md#cosinedistance_463a23e) | Calculates the Cosine distance between a field's vector value and a literal vector value. |
+|  [cosineDistance(fieldName, vectorExpression)](./firestore_lite_pipelines.md#cosinedistance_ed766a1) | Calculates the Cosine distance between a field's vector value and a vector expression. |
 |  [count(fieldName)](./firestore_lite_pipelines.md#count_e5b0480) | Creates an aggregation that counts the number of stage inputs where the input field exists. |
 |  [descending(fieldName)](./firestore_lite_pipelines.md#descending_e5b0480) | Creates an [Ordering](./firestore_pipelines.ordering.md#ordering_class) that sorts documents in descending order based on a field. |
-|  [divide(fieldName, expressions)](./firestore_lite_pipelines.md#divide_e7c924c) | Creates an expression that divides a field's value by an expression. |
-|  [divide(fieldName, value)](./firestore_lite_pipelines.md#divide_8c6cc18) | Creates an expression that divides a field's value by a constant value. |
-|  [dotProduct(fieldName, vector)](./firestore_lite_pipelines.md#dotproduct_6280b65) | Calculates the dot product between a field's vector value and a double array. |
-|  [dotProduct(fieldName, vectorExpression)](./firestore_lite_pipelines.md#dotproduct_cfadf52) | Calculates the dot product between a field's vector value and a vector expression. |
-|  [endsWith(fieldName, suffix)](./firestore_lite_pipelines.md#endswith_b4cc8ce) | Creates an expression that checks if a field's value ends with a given postfix. |
-|  [endsWith(fieldName, suffix)](./firestore_lite_pipelines.md#endswith_d6966d2) | Creates an expression that checks if a field's value ends with a given postfix. |
-|  [equal(fieldName, expression)](./firestore_lite_pipelines.md#equal_f88256e) | Creates an expression that checks if a field's value is equal to an expression. |
-|  [equal(fieldName, value)](./firestore_lite_pipelines.md#equal_8c6cc18) | Creates an expression that checks if a field's value is equal to a constant value. |
-|  [equalAny(fieldName, values)](./firestore_lite_pipelines.md#equalany_ffd8514) | Creates an expression that checks if a field's value is equal to any of the provided values or expressions. |
-|  [equalAny(fieldName, arrayExpression)](./firestore_lite_pipelines.md#equalany_b9c42f9) | Creates an expression that checks if a field's value is equal to any of the provided values or expressions. |
-|  [euclideanDistance(fieldName, vector)](./firestore_lite_pipelines.md#euclideandistance_6280b65) | Calculates the Euclidean distance between a field's vector value and a double array. |
-|  [euclideanDistance(fieldName, vectorExpression)](./firestore_lite_pipelines.md#euclideandistance_cfadf52) | Calculates the Euclidean distance between a field's vector value and a vector expression. |
+|  [divide(fieldName, expressions)](./firestore_lite_pipelines.md#divide_cf36e43) | Creates an expression that divides a field's value by an expression. |
+|  [divide(fieldName, value)](./firestore_lite_pipelines.md#divide_65e2f32) | Creates an expression that divides a field's value by a constant value. |
+|  [dotProduct(fieldName, vector)](./firestore_lite_pipelines.md#dotproduct_463a23e) | Calculates the dot product between a field's vector value and a double array. |
+|  [dotProduct(fieldName, vectorExpression)](./firestore_lite_pipelines.md#dotproduct_ed766a1) | Calculates the dot product between a field's vector value and a vector expression. |
+|  [endsWith(fieldName, suffix)](./firestore_lite_pipelines.md#endswith_05ca3b0) | Creates an expression that checks if a field's value ends with a given postfix. |
+|  [endsWith(fieldName, suffix)](./firestore_lite_pipelines.md#endswith_8fc0ebc) | Creates an expression that checks if a field's value ends with a given postfix. |
+|  [equal(fieldName, expression)](./firestore_lite_pipelines.md#equal_1e91657) | Creates an expression that checks if a field's value is equal to an expression. |
+|  [equal(fieldName, value)](./firestore_lite_pipelines.md#equal_65e2f32) | Creates an expression that checks if a field's value is equal to a constant value. |
+|  [equalAny(fieldName, values)](./firestore_lite_pipelines.md#equalany_8060b23) | Creates an expression that checks if a field's value is equal to any of the provided values or expressions. |
+|  [equalAny(fieldName, arrayExpression)](./firestore_lite_pipelines.md#equalany_48da8d9) | Creates an expression that checks if a field's value is equal to any of the provided values or expressions. |
+|  [euclideanDistance(fieldName, vector)](./firestore_lite_pipelines.md#euclideandistance_463a23e) | Calculates the Euclidean distance between a field's vector value and a double array. |
+|  [euclideanDistance(fieldName, vectorExpression)](./firestore_lite_pipelines.md#euclideandistance_ed766a1) | Calculates the Euclidean distance between a field's vector value and a vector expression. |
 |  [exists(fieldName)](./firestore_lite_pipelines.md#exists_e5b0480) | Creates an expression that checks if a field exists. |
 |  [exp(fieldName)](./firestore_lite_pipelines.md#exp_e5b0480) | Creates an expression that computes e to the power of the expression's result. |
 |  [first(fieldName)](./firestore_lite_pipelines.md#first_e5b0480) | Creates an aggregation that finds the first value of a field across multiple stage inputs. |
 |  [floor(fieldName)](./firestore_lite_pipelines.md#floor_e5b0480) | Creates an expression that computes the floor of a numeric value. |
-|  [geoDistance(fieldName, location)](./firestore_lite_pipelines.md#geodistance_545997c) | <b><i>(Public Preview)</i></b> Evaluates to the distance in meters between the location in the specified field and the query location. |
-|  [greaterThan(fieldName, expression)](./firestore_lite_pipelines.md#greaterthan_f88256e) | Creates an expression that checks if a field's value is greater than an expression. |
-|  [greaterThan(fieldName, value)](./firestore_lite_pipelines.md#greaterthan_8c6cc18) | Creates an expression that checks if a field's value is greater than a constant value. |
-|  [greaterThanOrEqual(fieldName, value)](./firestore_lite_pipelines.md#greaterthanorequal_fed7016) | Creates an expression that checks if a field's value is greater than or equal to an expression. |
-|  [greaterThanOrEqual(fieldName, value)](./firestore_lite_pipelines.md#greaterthanorequal_8c6cc18) | Creates an expression that checks if a field's value is greater than or equal to a constant value. |
-|  [isType(fieldName, type)](./firestore_lite_pipelines.md#istype_7c1d99a) | Creates an expression that checks if the value in the specified field is of the given type. |
+|  [geoDistance(fieldName, location)](./firestore_lite_pipelines.md#geodistance_ea237a8) | <b><i>(Public Preview)</i></b> Evaluates to the distance in meters between the location in the specified field and the query location. |
+|  [greaterThan(fieldName, expression)](./firestore_lite_pipelines.md#greaterthan_1e91657) | Creates an expression that checks if a field's value is greater than an expression. |
+|  [greaterThan(fieldName, value)](./firestore_lite_pipelines.md#greaterthan_65e2f32) | Creates an expression that checks if a field's value is greater than a constant value. |
+|  [greaterThanOrEqual(fieldName, value)](./firestore_lite_pipelines.md#greaterthanorequal_2e16acb) | Creates an expression that checks if a field's value is greater than or equal to an expression. |
+|  [greaterThanOrEqual(fieldName, value)](./firestore_lite_pipelines.md#greaterthanorequal_65e2f32) | Creates an expression that checks if a field's value is greater than or equal to a constant value. |
+|  [isType(fieldName, type)](./firestore_lite_pipelines.md#istype_ec95173) | Creates an expression that checks if the value in the specified field is of the given type. |
 |  [last(fieldName)](./firestore_lite_pipelines.md#last_e5b0480) | Creates an aggregation that finds the last value of a field across multiple stage inputs. |
 |  [length\_2(fieldName)](./firestore_lite_pipelines.md#length_2_e5b0480) | Creates an expression that calculates the length of a string, array, map, vector, or bytes. |
-|  [lessThan(fieldName, expression)](./firestore_lite_pipelines.md#lessthan_f88256e) | Creates an expression that checks if a field's value is less than an expression. |
-|  [lessThan(fieldName, value)](./firestore_lite_pipelines.md#lessthan_8c6cc18) | Creates an expression that checks if a field's value is less than a constant value. |
-|  [lessThanOrEqual(fieldName, expression)](./firestore_lite_pipelines.md#lessthanorequal_f88256e) | Creates an expression that checks if a field's value is less than or equal to an expression. |
-|  [lessThanOrEqual(fieldName, value)](./firestore_lite_pipelines.md#lessthanorequal_8c6cc18) | Creates an expression that checks if a field's value is less than or equal to a constant value. |
-|  [like(fieldName, pattern)](./firestore_lite_pipelines.md#like_598174e) | Creates an expression that performs a case-sensitive wildcard string comparison against a field. |
-|  [like(fieldName, pattern)](./firestore_lite_pipelines.md#like_3f62877) | Creates an expression that performs a case-sensitive wildcard string comparison against a field. |
+|  [lessThan(fieldName, expression)](./firestore_lite_pipelines.md#lessthan_1e91657) | Creates an expression that checks if a field's value is less than an expression. |
+|  [lessThan(fieldName, value)](./firestore_lite_pipelines.md#lessthan_65e2f32) | Creates an expression that checks if a field's value is less than a constant value. |
+|  [lessThanOrEqual(fieldName, expression)](./firestore_lite_pipelines.md#lessthanorequal_1e91657) | Creates an expression that checks if a field's value is less than or equal to an expression. |
+|  [lessThanOrEqual(fieldName, value)](./firestore_lite_pipelines.md#lessthanorequal_65e2f32) | Creates an expression that checks if a field's value is less than or equal to a constant value. |
+|  [like(fieldName, pattern)](./firestore_lite_pipelines.md#like_67f7432) | Creates an expression that performs a case-sensitive wildcard string comparison against a field. |
+|  [like(fieldName, pattern)](./firestore_lite_pipelines.md#like_cb1318d) | Creates an expression that performs a case-sensitive wildcard string comparison against a field. |
 |  [ln(fieldName)](./firestore_lite_pipelines.md#ln_e5b0480) | Creates an expression that computes the natural logarithm of a numeric value. |
-|  [log(fieldName, base)](./firestore_lite_pipelines.md#log_c9ae087) | Creates an expression that computes the logarithm of a field to a given base. |
-|  [log(fieldName, base)](./firestore_lite_pipelines.md#log_48b0391) | Creates an expression that computes the logarithm of a field to a given base. |
+|  [log(fieldName, base)](./firestore_lite_pipelines.md#log_a89e21b) | Creates an expression that computes the logarithm of a field to a given base. |
+|  [log(fieldName, base)](./firestore_lite_pipelines.md#log_805b11f) | Creates an expression that computes the logarithm of a field to a given base. |
 |  [log10(fieldName)](./firestore_lite_pipelines.md#log10_e5b0480) | Creates an expression that computes the base-10 logarithm of a numeric value. |
-|  [logicalMaximum(fieldName, second, others)](./firestore_lite_pipelines.md#logicalmaximum_0cf8d1a) | Creates an expression that returns the largest value between multiple input expressions or literal values. Based on Firestore's value type ordering. |
-|  [logicalMinimum(fieldName, second, others)](./firestore_lite_pipelines.md#logicalminimum_0cf8d1a) | Creates an expression that returns the smallest value between a field's value and other input expressions or literal values. Based on Firestore's value type ordering. |
-|  [ltrim(fieldName, valueToTrim)](./firestore_lite_pipelines.md#ltrim_51ce18e) | Trims whitespace or a specified set of characters/bytes from the beginning of a string or byte array. |
-|  [mapGet(fieldName, subField)](./firestore_lite_pipelines.md#mapget_cfb0508) | Accesses a value from a map (object) field using the provided key. |
+|  [logicalMaximum(fieldName, second, others)](./firestore_lite_pipelines.md#logicalmaximum_828272e) | Creates an expression that returns the largest value between multiple input expressions or literal values. Based on Firestore's value type ordering. |
+|  [logicalMinimum(fieldName, second, others)](./firestore_lite_pipelines.md#logicalminimum_828272e) | Creates an expression that returns the smallest value between a field's value and other input expressions or literal values. Based on Firestore's value type ordering. |
+|  [ltrim(fieldName, valueToTrim)](./firestore_lite_pipelines.md#ltrim_c0e3211) | Trims whitespace or a specified set of characters/bytes from the beginning of a string or byte array. |
+|  [mapGet(fieldName, subField)](./firestore_lite_pipelines.md#mapget_06663cf) | Accesses a value from a map (object) field using the provided key. |
 |  [maximum(fieldName)](./firestore_lite_pipelines.md#maximum_e5b0480) | Creates an aggregation that finds the maximum value of a field across multiple stage inputs. |
 |  [minimum(fieldName)](./firestore_lite_pipelines.md#minimum_e5b0480) | Creates an aggregation that finds the minimum value of a field across multiple stage inputs. |
-|  [mod(fieldName, expression)](./firestore_lite_pipelines.md#mod_f88256e) | Creates an expression that calculates the modulo (remainder) of dividing a field's value by an expression. |
-|  [mod(fieldName, value)](./firestore_lite_pipelines.md#mod_8c6cc18) | Creates an expression that calculates the modulo (remainder) of dividing a field's value by a constant. |
-|  [multiply(fieldName, second)](./firestore_lite_pipelines.md#multiply_3a28021) | Creates an expression that multiplies a field's value by an expression. |
-|  [notEqual(fieldName, expression)](./firestore_lite_pipelines.md#notequal_f88256e) | Creates an expression that checks if a field's value is not equal to an expression. |
-|  [notEqual(fieldName, value)](./firestore_lite_pipelines.md#notequal_8c6cc18) | Creates an expression that checks if a field's value is not equal to a constant value. |
-|  [notEqualAny(fieldName, values)](./firestore_lite_pipelines.md#notequalany_ffd8514) | Creates an expression that checks if a field's value is not equal to any of the provided values or expressions. |
-|  [notEqualAny(fieldName, arrayExpression)](./firestore_lite_pipelines.md#notequalany_b9c42f9) | Creates an expression that checks if a field's value is not equal to any of the values in the evaluated expression. |
-|  [regexContains(fieldName, pattern)](./firestore_lite_pipelines.md#regexcontains_598174e) | Creates an expression that checks if a string field contains a specified regular expression as a substring. |
-|  [regexContains(fieldName, pattern)](./firestore_lite_pipelines.md#regexcontains_3f62877) | Creates an expression that checks if a string field contains a specified regular expression as a substring. |
-|  [regexFind(fieldName, pattern)](./firestore_lite_pipelines.md#regexfind_598174e) | Creates an expression that returns the first substring of a string field that matches a specified regular expression.<!-- -->This expression uses the [RE2](https://github.com/google/re2/wiki/Syntax) regular expression syntax. |
-|  [regexFind(fieldName, pattern)](./firestore_lite_pipelines.md#regexfind_3f62877) | Creates an expression that returns the first substring of a string field that matches a specified regular expression.<!-- -->This expression uses the [RE2](https://github.com/google/re2/wiki/Syntax) regular expression syntax. |
-|  [regexFindAll(fieldName, pattern)](./firestore_lite_pipelines.md#regexfindall_598174e) | Creates an expression that evaluates to a list of all substrings in a string field that match a specified regular expression.<!-- -->This expression uses the [RE2](https://github.com/google/re2/wiki/Syntax) regular expression syntax. |
-|  [regexFindAll(fieldName, pattern)](./firestore_lite_pipelines.md#regexfindall_3f62877) | Creates an expression that evaluates to a list of all substrings in a string field that match a specified regular expression.<!-- -->This expression uses the [RE2](https://github.com/google/re2/wiki/Syntax) regular expression syntax. |
-|  [regexMatch(fieldName, pattern)](./firestore_lite_pipelines.md#regexmatch_598174e) | Creates an expression that checks if a string field matches a specified regular expression. |
-|  [regexMatch(fieldName, pattern)](./firestore_lite_pipelines.md#regexmatch_3f62877) | Creates an expression that checks if a string field matches a specified regular expression. |
+|  [mod(fieldName, expression)](./firestore_lite_pipelines.md#mod_1e91657) | Creates an expression that calculates the modulo (remainder) of dividing a field's value by an expression. |
+|  [mod(fieldName, value)](./firestore_lite_pipelines.md#mod_65e2f32) | Creates an expression that calculates the modulo (remainder) of dividing a field's value by a constant. |
+|  [multiply(fieldName, second)](./firestore_lite_pipelines.md#multiply_b75bb8b) | Creates an expression that multiplies a field's value by an expression. |
+|  [notEqual(fieldName, expression)](./firestore_lite_pipelines.md#notequal_1e91657) | Creates an expression that checks if a field's value is not equal to an expression. |
+|  [notEqual(fieldName, value)](./firestore_lite_pipelines.md#notequal_65e2f32) | Creates an expression that checks if a field's value is not equal to a constant value. |
+|  [notEqualAny(fieldName, values)](./firestore_lite_pipelines.md#notequalany_8060b23) | Creates an expression that checks if a field's value is not equal to any of the provided values or expressions. |
+|  [notEqualAny(fieldName, arrayExpression)](./firestore_lite_pipelines.md#notequalany_48da8d9) | Creates an expression that checks if a field's value is not equal to any of the values in the evaluated expression. |
+|  [regexContains(fieldName, pattern)](./firestore_lite_pipelines.md#regexcontains_67f7432) | Creates an expression that checks if a string field contains a specified regular expression as a substring. |
+|  [regexContains(fieldName, pattern)](./firestore_lite_pipelines.md#regexcontains_cb1318d) | Creates an expression that checks if a string field contains a specified regular expression as a substring. |
+|  [regexFind(fieldName, pattern)](./firestore_lite_pipelines.md#regexfind_67f7432) | Creates an expression that returns the first substring of a string field that matches a specified regular expression.<!-- -->This expression uses the [RE2](https://github.com/google/re2/wiki/Syntax) regular expression syntax. |
+|  [regexFind(fieldName, pattern)](./firestore_lite_pipelines.md#regexfind_cb1318d) | Creates an expression that returns the first substring of a string field that matches a specified regular expression.<!-- -->This expression uses the [RE2](https://github.com/google/re2/wiki/Syntax) regular expression syntax. |
+|  [regexFindAll(fieldName, pattern)](./firestore_lite_pipelines.md#regexfindall_67f7432) | Creates an expression that evaluates to a list of all substrings in a string field that match a specified regular expression.<!-- -->This expression uses the [RE2](https://github.com/google/re2/wiki/Syntax) regular expression syntax. |
+|  [regexFindAll(fieldName, pattern)](./firestore_lite_pipelines.md#regexfindall_cb1318d) | Creates an expression that evaluates to a list of all substrings in a string field that match a specified regular expression.<!-- -->This expression uses the [RE2](https://github.com/google/re2/wiki/Syntax) regular expression syntax. |
+|  [regexMatch(fieldName, pattern)](./firestore_lite_pipelines.md#regexmatch_67f7432) | Creates an expression that checks if a string field matches a specified regular expression. |
+|  [regexMatch(fieldName, pattern)](./firestore_lite_pipelines.md#regexmatch_cb1318d) | Creates an expression that checks if a string field matches a specified regular expression. |
 |  [round(fieldName)](./firestore_lite_pipelines.md#round_e5b0480) | Creates an expression that rounds a numeric value to the nearest whole number. |
-|  [round(fieldName, decimalPlaces)](./firestore_lite_pipelines.md#round_cf40bc8) | Creates an expression that rounds a numeric value to the specified number of decimal places. |
-|  [rtrim(fieldName, valueToTrim)](./firestore_lite_pipelines.md#rtrim_51ce18e) | Trims whitespace or a specified set of characters/bytes from the end of a string or byte array. |
-|  [split(fieldName, delimiter)](./firestore_lite_pipelines.md#split_13cbfd8) | Creates an expression that splits the value of a field on the provided delimiter. |
-|  [split(fieldName, delimiter)](./firestore_lite_pipelines.md#split_abff8cb) | Creates an expression that splits the value of a field on the provided delimiter. |
+|  [round(fieldName, decimalPlaces)](./firestore_lite_pipelines.md#round_07d0cf0) | Creates an expression that rounds a numeric value to the specified number of decimal places. |
+|  [rtrim(fieldName, valueToTrim)](./firestore_lite_pipelines.md#rtrim_c0e3211) | Trims whitespace or a specified set of characters/bytes from the end of a string or byte array. |
+|  [split(fieldName, delimiter)](./firestore_lite_pipelines.md#split_2cfdd37) | Creates an expression that splits the value of a field on the provided delimiter. |
+|  [split(fieldName, delimiter)](./firestore_lite_pipelines.md#split_f4fe06a) | Creates an expression that splits the value of a field on the provided delimiter. |
 |  [sqrt(fieldName)](./firestore_lite_pipelines.md#sqrt_e5b0480) | Creates an expression that computes the square root of a numeric value. |
-|  [startsWith(fieldName, prefix)](./firestore_lite_pipelines.md#startswith_637f73d) | Creates an expression that checks if a field's value starts with a given prefix. |
-|  [startsWith(fieldName, prefix)](./firestore_lite_pipelines.md#startswith_700feff) | Creates an expression that checks if a field's value starts with a given prefix. |
-|  [stringConcat(fieldName, secondString, otherStrings)](./firestore_lite_pipelines.md#stringconcat_c8c04c2) | Creates an expression that concatenates string functions, fields or constants together. |
-|  [stringContains(fieldName, substring)](./firestore_lite_pipelines.md#stringcontains_1f3cc9d) | Creates an expression that checks if a string field contains a specified substring. |
-|  [stringContains(fieldName, substring)](./firestore_lite_pipelines.md#stringcontains_2fe7957) | Creates an expression that checks if a string field contains a substring specified by an expression. |
-|  [stringIndexOf(fieldName, search)](./firestore_lite_pipelines.md#stringindexof_e932c8d) | Creates an expression that finds the index of the first occurrence of a substring or byte sequence. |
-|  [stringRepeat(fieldName, repetitions)](./firestore_lite_pipelines.md#stringrepeat_716e510) | Creates an expression that repeats a string or byte array a specified number of times. |
-|  [stringReplaceAll(fieldName, find, replacement)](./firestore_lite_pipelines.md#stringreplaceall_bfe4369) | Creates an expression that replaces all occurrences of a substring or byte sequence with a replacement. |
-|  [stringReplaceOne(fieldName, find, replacement)](./firestore_lite_pipelines.md#stringreplaceone_bfe4369) | Creates an expression that replaces the first occurrence of a substring or byte sequence with a replacement. |
-|  [subtract(fieldName, expression)](./firestore_lite_pipelines.md#subtract_f88256e) | Creates an expression that subtracts an expression from a field's value. |
-|  [subtract(fieldName, value)](./firestore_lite_pipelines.md#subtract_8c6cc18) | Creates an expression that subtracts a constant value from a field's value. |
+|  [startsWith(fieldName, prefix)](./firestore_lite_pipelines.md#startswith_89325cc) | Creates an expression that checks if a field's value starts with a given prefix. |
+|  [startsWith(fieldName, prefix)](./firestore_lite_pipelines.md#startswith_266c338) | Creates an expression that checks if a field's value starts with a given prefix. |
+|  [stringConcat(fieldName, secondString, otherStrings)](./firestore_lite_pipelines.md#stringconcat_d80077e) | Creates an expression that concatenates string functions, fields or constants together. |
+|  [stringContains(fieldName, substring)](./firestore_lite_pipelines.md#stringcontains_5b94cfe) | Creates an expression that checks if a string field contains a specified substring. |
+|  [stringContains(fieldName, substring)](./firestore_lite_pipelines.md#stringcontains_ac3ba47) | Creates an expression that checks if a string field contains a substring specified by an expression. |
+|  [stringIndexOf(fieldName, search)](./firestore_lite_pipelines.md#stringindexof_6c4650e) | Creates an expression that finds the index of the first occurrence of a substring or byte sequence. |
+|  [stringRepeat(fieldName, repetitions)](./firestore_lite_pipelines.md#stringrepeat_e144a59) | Creates an expression that repeats a string or byte array a specified number of times. |
+|  [stringReplaceAll(fieldName, find, replacement)](./firestore_lite_pipelines.md#stringreplaceall_b0db15f) | Creates an expression that replaces all occurrences of a substring or byte sequence with a replacement. |
+|  [stringReplaceOne(fieldName, find, replacement)](./firestore_lite_pipelines.md#stringreplaceone_b0db15f) | Creates an expression that replaces the first occurrence of a substring or byte sequence with a replacement. |
+|  [subtract(fieldName, expression)](./firestore_lite_pipelines.md#subtract_1e91657) | Creates an expression that subtracts an expression from a field's value. |
+|  [subtract(fieldName, value)](./firestore_lite_pipelines.md#subtract_65e2f32) | Creates an expression that subtracts a constant value from a field's value. |
 |  [sum(fieldName)](./firestore_lite_pipelines.md#sum_e5b0480) | Creates an aggregation that calculates the sum of a field's values across multiple stage inputs. |
-|  [timestampAdd(fieldName, unit, amount)](./firestore_lite_pipelines.md#timestampadd_a1a022a) | Creates an expression that adds a specified amount of time to a timestamp represented by a field. |
-|  [timestampExtract(fieldName, part, timezone)](./firestore_lite_pipelines.md#timestampextract_93ba955) | Creates an expression that extracts a specified part from a timestamp. |
-|  [timestampExtract(fieldName, part, timezone)](./firestore_lite_pipelines.md#timestampextract_f2c636c) | Creates an expression that extracts a specified part from a timestamp. |
-|  [timestampSubtract(fieldName, unit, amount)](./firestore_lite_pipelines.md#timestampsubtract_a1a022a) | Creates an expression that subtracts a specified amount of time from a timestamp represented by a field. |
-|  [timestampToUnixMicros(fieldName)](./firestore_lite_pipelines.md#timestamptounixmicros_f4ac2ad) | Creates an expression that converts a timestamp field to the number of microseconds since the Unix epoch (1970-01-01 00:00:00 UTC). |
-|  [timestampToUnixMillis(fieldName)](./firestore_lite_pipelines.md#timestamptounixmillis_f4ac2ad) | Creates an expression that converts a timestamp field to the number of milliseconds since the Unix epoch (1970-01-01 00:00:00 UTC). |
-|  [timestampToUnixSeconds(fieldName)](./firestore_lite_pipelines.md#timestamptounixseconds_f4ac2ad) | Creates an expression that converts a timestamp field to the number of seconds since the Unix epoch (1970-01-01 00:00:00 UTC). |
-|  [timestampTruncate(fieldName, granularity, timezone)](./firestore_lite_pipelines.md#timestamptruncate_47707eb) | Creates an expression that truncates a timestamp to a specified granularity. |
-|  [timestampTruncate(fieldName, granularity, timezone)](./firestore_lite_pipelines.md#timestamptruncate_383c346) | Creates an expression that truncates a timestamp to a specified granularity. |
+|  [timestampAdd(fieldName, unit, amount)](./firestore_lite_pipelines.md#timestampadd_3b0a297) | Creates an expression that adds a specified amount of time to a timestamp represented by a field. |
+|  [timestampExtract(fieldName, part, timezone)](./firestore_lite_pipelines.md#timestampextract_a51c205) | Creates an expression that extracts a specified part from a timestamp. |
+|  [timestampExtract(fieldName, part, timezone)](./firestore_lite_pipelines.md#timestampextract_2d51eac) | Creates an expression that extracts a specified part from a timestamp. |
+|  [timestampSubtract(fieldName, unit, amount)](./firestore_lite_pipelines.md#timestampsubtract_3b0a297) | Creates an expression that subtracts a specified amount of time from a timestamp represented by a field. |
+|  [timestampToUnixMicros(fieldName)](./firestore_lite_pipelines.md#timestamptounixmicros_e5b0480) | Creates an expression that converts a timestamp field to the number of microseconds since the Unix epoch (1970-01-01 00:00:00 UTC). |
+|  [timestampToUnixMillis(fieldName)](./firestore_lite_pipelines.md#timestamptounixmillis_e5b0480) | Creates an expression that converts a timestamp field to the number of milliseconds since the Unix epoch (1970-01-01 00:00:00 UTC). |
+|  [timestampToUnixSeconds(fieldName)](./firestore_lite_pipelines.md#timestamptounixseconds_e5b0480) | Creates an expression that converts a timestamp field to the number of seconds since the Unix epoch (1970-01-01 00:00:00 UTC). |
+|  [timestampTruncate(fieldName, granularity, timezone)](./firestore_lite_pipelines.md#timestamptruncate_b6c7512) | Creates an expression that truncates a timestamp to a specified granularity. |
+|  [timestampTruncate(fieldName, granularity, timezone)](./firestore_lite_pipelines.md#timestamptruncate_ed83d46) | Creates an expression that truncates a timestamp to a specified granularity. |
 |  [toLower(fieldName)](./firestore_lite_pipelines.md#tolower_e5b0480) | Creates an expression that converts a string field to lowercase. |
 |  [toUpper(fieldName)](./firestore_lite_pipelines.md#toupper_e5b0480) | Creates an expression that converts a string field to uppercase. |
-|  [trim(fieldName, valueToTrim)](./firestore_lite_pipelines.md#trim_4c35437) | Creates an expression that removes leading and trailing whitespace from a string or byte array. |
+|  [trim(fieldName, valueToTrim)](./firestore_lite_pipelines.md#trim_c9f90ee) | Creates an expression that removes leading and trailing whitespace from a string or byte array. |
 |  [trunc(fieldName)](./firestore_lite_pipelines.md#trunc_e5b0480) | Creates an expression that truncates the numeric value of a field to an integer. |
-|  [trunc(fieldName, decimalPlaces)](./firestore_lite_pipelines.md#trunc_cf40bc8) | Creates an expression that truncates a numeric expression to the specified number of decimal places. |
+|  [trunc(fieldName, decimalPlaces)](./firestore_lite_pipelines.md#trunc_07d0cf0) | Creates an expression that truncates a numeric expression to the specified number of decimal places. |
 |  [type(fieldName)](./firestore_lite_pipelines.md#type_e5b0480) | Creates an expression that returns the data type of the data in the specified field. |
-|  [unixMicrosToTimestamp(fieldName)](./firestore_lite_pipelines.md#unixmicrostotimestamp_f4ac2ad) | Creates an expression that interprets a field's value as the number of microseconds since the Unix epoch (1970-01-01 00:00:00 UTC) and returns a timestamp. |
-|  [unixMillisToTimestamp(fieldName)](./firestore_lite_pipelines.md#unixmillistotimestamp_f4ac2ad) | Creates an expression that interprets a field's value as the number of milliseconds since the Unix epoch (1970-01-01 00:00:00 UTC) and returns a timestamp. |
-|  [unixSecondsToTimestamp(fieldName)](./firestore_lite_pipelines.md#unixsecondstotimestamp_f4ac2ad) | Creates an expression that interprets a field's value as the number of seconds since the Unix epoch (1970-01-01 00:00:00 UTC) and returns a timestamp. |
+|  [unixMicrosToTimestamp(fieldName)](./firestore_lite_pipelines.md#unixmicrostotimestamp_e5b0480) | Creates an expression that interprets a field's value as the number of microseconds since the Unix epoch (1970-01-01 00:00:00 UTC) and returns a timestamp. |
+|  [unixMillisToTimestamp(fieldName)](./firestore_lite_pipelines.md#unixmillistotimestamp_e5b0480) | Creates an expression that interprets a field's value as the number of milliseconds since the Unix epoch (1970-01-01 00:00:00 UTC) and returns a timestamp. |
+|  [unixSecondsToTimestamp(fieldName)](./firestore_lite_pipelines.md#unixsecondstotimestamp_e5b0480) | Creates an expression that interprets a field's value as the number of seconds since the Unix epoch (1970-01-01 00:00:00 UTC) and returns a timestamp. |
 |  [vectorLength(fieldName)](./firestore_lite_pipelines.md#vectorlength_e5b0480) | Creates an expression that calculates the length of a Firestore Vector represented by a field. |
 |  <b>function(first, ...)</b> |
-|  [add(first, second)](./firestore_lite_pipelines.md#add_d7f0789) | Creates an expression that adds two expressions together. |
-|  [and(first, second, more)](./firestore_lite_pipelines.md#and_2d5055a) | Creates an expression that performs a logical 'AND' operation on multiple filter conditions. |
-|  [concat(first, second, others)](./firestore_lite_pipelines.md#concat_78ff353) | Creates an expression that concatenates strings, arrays, or blobs. Types cannot be mixed. |
-|  [logicalMaximum(first, second, others)](./firestore_lite_pipelines.md#logicalmaximum_78ff353) | Creates an expression that returns the largest value between multiple input expressions or literal values. Based on Firestore's value type ordering. |
-|  [logicalMinimum(first, second, others)](./firestore_lite_pipelines.md#logicalminimum_78ff353) | Creates an expression that returns the smallest value between multiple input expressions and literal values. Based on Firestore's value type ordering. |
-|  [multiply(first, second)](./firestore_lite_pipelines.md#multiply_d7f0789) | Creates an expression that multiplies two expressions together. |
-|  [nor(first, second, more)](./firestore_lite_pipelines.md#nor_2d5055a) | Creates an expression that performs a logical 'NOR' operation on multiple filter conditions. |
-|  [or(first, second, more)](./firestore_lite_pipelines.md#or_2d5055a) | Creates an expression that performs a logical 'OR' operation on multiple filter conditions. |
-|  [xor(first, second, additionalConditions)](./firestore_lite_pipelines.md#xor_e05a1af) | Creates an expression that performs a logical 'XOR' (exclusive OR) operation on multiple BooleanExpressions. |
+|  [add(first, second)](./firestore_lite_pipelines.md#add_846ca1b) | Creates an expression that adds two expressions together. |
+|  [and(first, second, more)](./firestore_lite_pipelines.md#and_e0c48bd) | Creates an expression that performs a logical 'AND' operation on multiple filter conditions. |
+|  [concat(first, second, others)](./firestore_lite_pipelines.md#concat_83be015) | Creates an expression that concatenates strings, arrays, or blobs. Types cannot be mixed. |
+|  [logicalMaximum(first, second, others)](./firestore_lite_pipelines.md#logicalmaximum_83be015) | Creates an expression that returns the largest value between multiple input expressions or literal values. Based on Firestore's value type ordering. |
+|  [logicalMinimum(first, second, others)](./firestore_lite_pipelines.md#logicalminimum_83be015) | Creates an expression that returns the smallest value between multiple input expressions and literal values. Based on Firestore's value type ordering. |
+|  [multiply(first, second)](./firestore_lite_pipelines.md#multiply_846ca1b) | Creates an expression that multiplies two expressions together. |
+|  [nor(first, second, more)](./firestore_lite_pipelines.md#nor_e0c48bd) | Creates an expression that performs a logical 'NOR' operation on multiple filter conditions. |
+|  [or(first, second, more)](./firestore_lite_pipelines.md#or_e0c48bd) | Creates an expression that performs a logical 'OR' operation on multiple filter conditions. |
+|  [xor(first, second, additionalConditions)](./firestore_lite_pipelines.md#xor_8197113) | Creates an expression that performs a logical 'XOR' (exclusive OR) operation on multiple BooleanExpressions. |
 |  <b>function(firstArray, ...)</b> |
-|  [arrayConcat(firstArray, secondArray, otherArrays)](./firestore_lite_pipelines.md#arrayconcat_2cdf1af) | Creates an expression that concatenates an array expression with other arrays. |
+|  [arrayConcat(firstArray, secondArray, otherArrays)](./firestore_lite_pipelines.md#arrayconcat_c00d5d7) | Creates an expression that concatenates an array expression with other arrays. |
 |  <b>function(firstArrayField, ...)</b> |
-|  [arrayConcat(firstArrayField, secondArray, otherArrays)](./firestore_lite_pipelines.md#arrayconcat_814a128) | Creates an expression that concatenates a field's array value with other arrays. |
+|  [arrayConcat(firstArrayField, secondArray, otherArrays)](./firestore_lite_pipelines.md#arrayconcat_f92063d) | Creates an expression that concatenates a field's array value with other arrays. |
 |  <b>function(firstMap, ...)</b> |
-|  [mapMerge(firstMap, secondMap, otherMaps)](./firestore_lite_pipelines.md#mapmerge_766c688) | Creates an expression that merges multiple map values. |
+|  [mapMerge(firstMap, secondMap, otherMaps)](./firestore_lite_pipelines.md#mapmerge_cfe77ce) | Creates an expression that merges multiple map values. |
 |  <b>function(firstString, ...)</b> |
-|  [stringConcat(firstString, secondString, otherStrings)](./firestore_lite_pipelines.md#stringconcat_138eadc) | Creates an expression that concatenates string expressions together. |
+|  [stringConcat(firstString, secondString, otherStrings)](./firestore_lite_pipelines.md#stringconcat_8a8d1b6) | Creates an expression that concatenates string expressions together. |
 |  <b>function(ifExpr, ...)</b> |
-|  [ifAbsent(ifExpr, elseExpr)](./firestore_lite_pipelines.md#ifabsent_ecf8d77) | Creates an expression that returns the <code>elseExpr</code> argument if <code>ifExpr</code> is absent, else return the result of the <code>ifExpr</code> argument evaluation. |
-|  [ifAbsent(ifExpr, elseValue)](./firestore_lite_pipelines.md#ifabsent_6d48a51) | Creates an expression that returns the <code>elseValue</code> argument if <code>ifExpr</code> is absent, else return the result of the <code>ifExpr</code> argument evaluation. |
-|  [ifNull(ifExpr, elseExpr)](./firestore_lite_pipelines.md#ifnull_ecf8d77) | Creates an expression that returns the <code>elseExpr</code> argument if <code>ifExpr</code> is null, else return the result of the <code>ifExpr</code> argument evaluation. |
-|  [ifNull(ifExpr, elseValue)](./firestore_lite_pipelines.md#ifnull_6d48a51) | Creates an expression that returns the <code>elseValue</code> argument if <code>ifExpr</code> is null, else return the result of the <code>ifExpr</code> argument evaluation. |
+|  [ifAbsent(ifExpr, elseExpr)](./firestore_lite_pipelines.md#ifabsent_0e6d161) | Creates an expression that returns the <code>elseExpr</code> argument if <code>ifExpr</code> is absent, else return the result of the <code>ifExpr</code> argument evaluation. |
+|  [ifAbsent(ifExpr, elseValue)](./firestore_lite_pipelines.md#ifabsent_c34e5ed) | Creates an expression that returns the <code>elseValue</code> argument if <code>ifExpr</code> is absent, else return the result of the <code>ifExpr</code> argument evaluation. |
+|  [ifNull(ifExpr, elseExpr)](./firestore_lite_pipelines.md#ifnull_0e6d161) | Creates an expression that returns the <code>elseExpr</code> argument if <code>ifExpr</code> is null, else return the result of the <code>ifExpr</code> argument evaluation. |
+|  [ifNull(ifExpr, elseValue)](./firestore_lite_pipelines.md#ifnull_c34e5ed) | Creates an expression that returns the <code>elseValue</code> argument if <code>ifExpr</code> is null, else return the result of the <code>ifExpr</code> argument evaluation. |
 |  <b>function(ifFieldName, ...)</b> |
-|  [ifAbsent(ifFieldName, elseExpr)](./firestore_lite_pipelines.md#ifabsent_9d152b2) | Creates an expression that returns the <code>elseExpr</code> argument if <code>ifFieldName</code> is absent, else return the value of the field. |
-|  [ifAbsent(ifFieldName, elseValue)](./firestore_lite_pipelines.md#ifabsent_c161555) | Creates an expression that returns the <code>elseValue</code> argument if <code>ifFieldName</code> is absent, else return the value of the field. |
-|  [ifNull(ifFieldName, elseExpr)](./firestore_lite_pipelines.md#ifnull_9d152b2) | Creates an expression that returns the <code>elseExpr</code> argument if <code>ifFieldName</code> field is null, else return the value of the field. |
-|  [ifNull(ifFieldName, elseValue)](./firestore_lite_pipelines.md#ifnull_f3aa6ec) | Creates an expression that returns the <code>elseValue</code> argument if <code>ifFieldName</code> field is null, else return the value of the field. |
+|  [ifAbsent(ifFieldName, elseExpr)](./firestore_lite_pipelines.md#ifabsent_e6dabea) | Creates an expression that returns the <code>elseExpr</code> argument if <code>ifFieldName</code> is absent, else return the value of the field. |
+|  [ifAbsent(ifFieldName, elseValue)](./firestore_lite_pipelines.md#ifabsent_d8f2823) | Creates an expression that returns the <code>elseValue</code> argument if <code>ifFieldName</code> is absent, else return the value of the field. |
+|  [ifNull(ifFieldName, elseExpr)](./firestore_lite_pipelines.md#ifnull_e6dabea) | Creates an expression that returns the <code>elseExpr</code> argument if <code>ifFieldName</code> field is null, else return the value of the field. |
+|  [ifNull(ifFieldName, elseValue)](./firestore_lite_pipelines.md#ifnull_587c2f0) | Creates an expression that returns the <code>elseValue</code> argument if <code>ifFieldName</code> field is null, else return the value of the field. |
 |  <b>function(input, ...)</b> |
-|  [substring(input, position, length)](./firestore_lite_pipelines.md#substring_712bf73) | Creates an expression that returns a substring of a string or byte array. |
-|  [substring(input, position, length)](./firestore_lite_pipelines.md#substring_40a2ccc) | Creates an expression that returns a substring of a string or byte array. |
+|  [substring(input, position, length)](./firestore_lite_pipelines.md#substring_e6e0aa3) | Creates an expression that returns a substring of a string or byte array. |
+|  [substring(input, position, length)](./firestore_lite_pipelines.md#substring_ab56dc6) | Creates an expression that returns a substring of a string or byte array. |
 |  <b>function(left, ...)</b> |
-|  [divide(left, right)](./firestore_lite_pipelines.md#divide_74ec81e) | Creates an expression that divides two expressions. |
-|  [equal(left, right)](./firestore_lite_pipelines.md#equal_74ec81e) | Creates an expression that checks if two expressions are equal. |
-|  [greaterThan(left, right)](./firestore_lite_pipelines.md#greaterthan_74ec81e) | Creates an expression that checks if the first expression is greater than the second expression. |
-|  [greaterThanOrEqual(left, right)](./firestore_lite_pipelines.md#greaterthanorequal_74ec81e) | Creates an expression that checks if the first expression is greater than or equal to the second expression. |
-|  [lessThan(left, right)](./firestore_lite_pipelines.md#lessthan_74ec81e) | Creates an expression that checks if the first expression is less than the second expression. |
-|  [lessThanOrEqual(left, right)](./firestore_lite_pipelines.md#lessthanorequal_74ec81e) | Creates an expression that checks if the first expression is less than or equal to the second expression. |
-|  [mod(left, right)](./firestore_lite_pipelines.md#mod_74ec81e) | Creates an expression that calculates the modulo (remainder) of dividing two expressions. |
-|  [notEqual(left, right)](./firestore_lite_pipelines.md#notequal_74ec81e) | Creates an expression that checks if two expressions are not equal. |
-|  [subtract(left, right)](./firestore_lite_pipelines.md#subtract_74ec81e) | Creates an expression that subtracts two expressions. |
+|  [divide(left, right)](./firestore_lite_pipelines.md#divide_b3c3382) | Creates an expression that divides two expressions. |
+|  [equal(left, right)](./firestore_lite_pipelines.md#equal_b3c3382) | Creates an expression that checks if two expressions are equal. |
+|  [greaterThan(left, right)](./firestore_lite_pipelines.md#greaterthan_b3c3382) | Creates an expression that checks if the first expression is greater than the second expression. |
+|  [greaterThanOrEqual(left, right)](./firestore_lite_pipelines.md#greaterthanorequal_b3c3382) | Creates an expression that checks if the first expression is greater than or equal to the second expression. |
+|  [lessThan(left, right)](./firestore_lite_pipelines.md#lessthan_b3c3382) | Creates an expression that checks if the first expression is less than the second expression. |
+|  [lessThanOrEqual(left, right)](./firestore_lite_pipelines.md#lessthanorequal_b3c3382) | Creates an expression that checks if the first expression is less than or equal to the second expression. |
+|  [mod(left, right)](./firestore_lite_pipelines.md#mod_b3c3382) | Creates an expression that calculates the modulo (remainder) of dividing two expressions. |
+|  [notEqual(left, right)](./firestore_lite_pipelines.md#notequal_b3c3382) | Creates an expression that checks if two expressions are not equal. |
+|  [subtract(left, right)](./firestore_lite_pipelines.md#subtract_b3c3382) | Creates an expression that subtracts two expressions. |
 |  <b>function(mapExpr, ...)</b> |
-|  [mapRemove(mapExpr, key)](./firestore_lite_pipelines.md#mapremove_6f63632) | Creates an expression that removes a key from the map produced by evaluating an expression. |
-|  [mapRemove(mapExpr, keyExpr)](./firestore_lite_pipelines.md#mapremove_bc71043) | Creates an expression that removes a key from the map produced by evaluating an expression. |
+|  [mapRemove(mapExpr, key)](./firestore_lite_pipelines.md#mapremove_23c7d51) | Creates an expression that removes a key from the map produced by evaluating an expression. |
+|  [mapRemove(mapExpr, keyExpr)](./firestore_lite_pipelines.md#mapremove_9fbcaa3) | Creates an expression that removes a key from the map produced by evaluating an expression. |
 |  <b>function(mapExpression, ...)</b> |
-|  [mapEntries(mapExpression)](./firestore_lite_pipelines.md#mapentries_9f5d9a5) | Creates an expression that returns the entries of a map as an array of maps, where each map contains a <code>&quot;k&quot;</code> property for the key and a <code>&quot;v&quot;</code> property for the value. For example: <code>[{ k: &quot;key1&quot;, v: &quot;value1&quot; }, ...]</code>. |
-|  [mapGet(mapExpression, subField)](./firestore_lite_pipelines.md#mapget_353ecb8) | Accesses a value from a map (object) expression using the provided key. |
+|  [mapEntries(mapExpression)](./firestore_lite_pipelines.md#mapentries_9cf124c) | Creates an expression that returns the entries of a map as an array of maps, where each map contains a <code>&quot;k&quot;</code> property for the key and a <code>&quot;v&quot;</code> property for the value. For example: <code>[{ k: &quot;key1&quot;, v: &quot;value1&quot; }, ...]</code>. |
+|  [mapGet(mapExpression, subField)](./firestore_lite_pipelines.md#mapget_688c050) | Accesses a value from a map (object) expression using the provided key. |
 |  [mapKeys(mapExpression)](./firestore_lite_pipelines.md#mapkeys_9cf124c) | Creates an expression that returns the keys of a map. |
-|  [mapSet(mapExpression, key, value, moreKeyValues)](./firestore_lite_pipelines.md#mapset_8af93e9) | Creates an expression that returns a new map with the specified entries added or updated. |
-|  [mapValues(mapExpression)](./firestore_lite_pipelines.md#mapvalues_9f5d9a5) | Creates an expression that returns the values of a map. |
+|  [mapSet(mapExpression, key, value, moreKeyValues)](./firestore_lite_pipelines.md#mapset_45b48ff) | Creates an expression that returns a new map with the specified entries added or updated. |
+|  [mapValues(mapExpression)](./firestore_lite_pipelines.md#mapvalues_9cf124c) | Creates an expression that returns the values of a map. |
 |  <b>function(mapField, ...)</b> |
 |  [mapEntries(mapField)](./firestore_lite_pipelines.md#mapentries_83ad836) | Creates an expression that returns the entries of a map as an array of maps, where each map contains a <code>&quot;k&quot;</code> property for the key and a <code>&quot;v&quot;</code> property for the value. For example: <code>[{ k: &quot;key1&quot;, v: &quot;value1&quot; }, ...]</code>. |
 |  [mapKeys(mapField)](./firestore_lite_pipelines.md#mapkeys_83ad836) | Creates an expression that returns the keys of a map. |
-|  [mapMerge(mapField, secondMap, otherMaps)](./firestore_lite_pipelines.md#mapmerge_0a5b469) | Creates an expression that merges multiple map values. |
-|  [mapRemove(mapField, key)](./firestore_lite_pipelines.md#mapremove_388e466) | Creates an expression that removes a key from the map at the specified field name. |
-|  [mapRemove(mapField, keyExpr)](./firestore_lite_pipelines.md#mapremove_4171bd5) | Creates an expression that removes a key from the map at the specified field name. |
-|  [mapSet(mapField, key, value, moreKeyValues)](./firestore_lite_pipelines.md#mapset_4eecf18) | Creates an expression that returns a new map with the specified entries added or updated. |
+|  [mapMerge(mapField, secondMap, otherMaps)](./firestore_lite_pipelines.md#mapmerge_70a564b) | Creates an expression that merges multiple map values. |
+|  [mapRemove(mapField, key)](./firestore_lite_pipelines.md#mapremove_bd5726e) | Creates an expression that removes a key from the map at the specified field name. |
+|  [mapRemove(mapField, keyExpr)](./firestore_lite_pipelines.md#mapremove_8406d13) | Creates an expression that removes a key from the map at the specified field name. |
+|  [mapSet(mapField, key, value, moreKeyValues)](./firestore_lite_pipelines.md#mapset_baadc2a) | Creates an expression that returns a new map with the specified entries added or updated. |
 |  [mapValues(mapField)](./firestore_lite_pipelines.md#mapvalues_83ad836) | Creates an expression that returns the values of a map. |
 |  <b>function(name, ...)</b> |
 |  [field(name)](./firestore_lite_pipelines.md#field_1eaaff4) | Creates a [Field](./firestore_pipelines.field.md#field_class) instance representing the field at the given path.<!-- -->The path can be a simple field name (e.g., "name") or a dot-separated path to a nested field (e.g., "address.city"). |
 |  [variable(name)](./firestore_lite_pipelines.md#variable_1eaaff4) | Creates an expression that retrieves the value of a variable bound via <code>define()</code>. |
 |  <b>function(options, ...)</b> |
-|  [subcollection(options)](./firestore_lite_pipelines.md#subcollection_801d3e4) | Creates a new Pipeline targeted at a subcollection relative to the current document context. This creates a pipeline without a database instance, suitable for embedding as a subquery. If executed directly, this pipeline will fail. |
+|  [subcollection(options)](./firestore_lite_pipelines.md#subcollection_104dbc5) | Creates a new Pipeline targeted at a subcollection relative to the current document context. This creates a pipeline without a database instance, suitable for embedding as a subquery. If executed directly, this pipeline will fail. |
 |  <b>function(path, ...)</b> |
 |  [field(path)](./firestore_lite_pipelines.md#field_34ee07d) | Creates a [Field](./firestore_pipelines.field.md#field_class) instance representing the field at the given path. |
 |  [subcollection(path)](./firestore_lite_pipelines.md#subcollection_fe1f8e4) | Creates a new Pipeline targeted at a subcollection relative to the current document context. This creates a pipeline without a database instance, suitable for embedding as a subquery. If executed directly, this pipeline will fail. |
 |  <b>function(pipeline, ...)</b> |
 |  [execute(pipeline)](./firestore_lite_pipelines.md#execute_01df620) | Executes this pipeline and returns a Promise to represent the asynchronous operation.<!-- -->The returned Promise can be used to track the progress of the pipeline execution and retrieve the results (or handle any errors) asynchronously.<!-- -->The pipeline results are returned as a [PipelineSnapshot](./firestore_pipelines.pipelinesnapshot.md#pipelinesnapshot_class) that contains a list of [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) objects. Each [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) typically represents a single key/value map that has passed through all the stages of the pipeline, however this might differ depending on the stages involved in the pipeline. For example:<ul> <li>If there are no stages or only transformation stages, each [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) represents a single document.</li> <li>If there is an aggregation, only a single [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) is returned, representing the aggregated results over the entire dataset .</li> <li>If there is an aggregation stage with grouping, each [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) represents a distinct group and its associated aggregated values.</li> </ul> |
 |  <b>function(rquery, ...)</b> |
-|  [documentMatches(rquery)](./firestore_lite_pipelines.md#documentmatches_a5b0b6a) | <b><i>(Public Preview)</i></b> Perform a full-text search on all indexed search fields in the document. |
+|  [documentMatches(rquery)](./firestore_lite_pipelines.md#documentmatches_d7a12c2) | <b><i>(Public Preview)</i></b> Perform a full-text search on all indexed search fields in the document. |
 |  <b>function(stringExpression, ...)</b> |
-|  [charLength(stringExpression)](./firestore_lite_pipelines.md#charlength_8d1643e) | Creates an expression that calculates the character length of a string expression in UTF-8. |
-|  [endsWith(stringExpression, suffix)](./firestore_lite_pipelines.md#endswith_d30bbcf) | Creates an expression that checks if a string expression ends with a given postfix. |
-|  [endsWith(stringExpression, suffix)](./firestore_lite_pipelines.md#endswith_1fcc70b) | Creates an expression that checks if a string expression ends with a given postfix. |
-|  [like(stringExpression, pattern)](./firestore_lite_pipelines.md#like_543dafa) | Creates an expression that performs a case-sensitive wildcard string comparison. |
-|  [like(stringExpression, pattern)](./firestore_lite_pipelines.md#like_e641381) | Creates an expression that performs a case-sensitive wildcard string comparison. |
-|  [regexContains(stringExpression, pattern)](./firestore_lite_pipelines.md#regexcontains_543dafa) | Creates an expression that checks if a string expression contains a specified regular expression as a substring. |
-|  [regexContains(stringExpression, pattern)](./firestore_lite_pipelines.md#regexcontains_e641381) | Creates an expression that checks if a string expression contains a specified regular expression as a substring. |
-|  [regexFind(stringExpression, pattern)](./firestore_lite_pipelines.md#regexfind_543dafa) | Creates an expression that returns the first substring of a string expression that matches a specified regular expression.<!-- -->This expression uses the [RE2](https://github.com/google/re2/wiki/Syntax) regular expression syntax. |
-|  [regexFind(stringExpression, pattern)](./firestore_lite_pipelines.md#regexfind_e641381) | Creates an expression that returns the first substring of a string expression that matches a specified regular expression.<!-- -->This expression uses the [RE2](https://github.com/google/re2/wiki/Syntax) regular expression syntax. |
-|  [regexFindAll(stringExpression, pattern)](./firestore_lite_pipelines.md#regexfindall_543dafa) | Creates an expression that evaluates to a list of all substrings in a string expression that match a specified regular expression.<!-- -->This expression uses the [RE2](https://github.com/google/re2/wiki/Syntax) regular expression syntax. |
-|  [regexFindAll(stringExpression, pattern)](./firestore_lite_pipelines.md#regexfindall_e641381) | Creates an expression that evaluates to a list of all substrings in a string expression that match a specified regular expression.<!-- -->This expression uses the [RE2](https://github.com/google/re2/wiki/Syntax) regular expression syntax. |
-|  [regexMatch(stringExpression, pattern)](./firestore_lite_pipelines.md#regexmatch_543dafa) | Creates an expression that checks if a string expression matches a specified regular expression. |
-|  [regexMatch(stringExpression, pattern)](./firestore_lite_pipelines.md#regexmatch_e641381) | Creates an expression that checks if a string expression matches a specified regular expression. |
-|  [reverse(stringExpression)](./firestore_lite_pipelines.md#reverse_8d1643e) | Creates an expression that reverses a string. |
-|  [startsWith(stringExpression, prefix)](./firestore_lite_pipelines.md#startswith_3ff28ca) | Creates an expression that checks if a string expression starts with a given prefix. |
-|  [startsWith(stringExpression, prefix)](./firestore_lite_pipelines.md#startswith_032bf92) | Creates an expression that checks if a string expression starts with a given prefix. |
-|  [stringContains(stringExpression, substring)](./firestore_lite_pipelines.md#stringcontains_77e1c19) | Creates an expression that checks if a string expression contains a specified substring. |
-|  [stringContains(stringExpression, substring)](./firestore_lite_pipelines.md#stringcontains_82a3356) | Creates an expression that checks if a string expression contains a substring specified by another expression. |
-|  [stringReverse(stringExpression)](./firestore_lite_pipelines.md#stringreverse_8d1643e) | Creates an expression that reverses a string. |
-|  [toLower(stringExpression)](./firestore_lite_pipelines.md#tolower_8d1643e) | Creates an expression that converts a string expression to lowercase. |
-|  [toUpper(stringExpression)](./firestore_lite_pipelines.md#toupper_8d1643e) | Creates an expression that converts a string expression to uppercase. |
-|  [trim(stringExpression, valueToTrim)](./firestore_lite_pipelines.md#trim_62c7d29) | Creates an expression that removes leading and trailing characters from a string or byte array expression. |
+|  [charLength(stringExpression)](./firestore_lite_pipelines.md#charlength_c25a54a) | Creates an expression that calculates the character length of a string expression in UTF-8. |
+|  [endsWith(stringExpression, suffix)](./firestore_lite_pipelines.md#endswith_0a0b889) | Creates an expression that checks if a string expression ends with a given postfix. |
+|  [endsWith(stringExpression, suffix)](./firestore_lite_pipelines.md#endswith_13aee0d) | Creates an expression that checks if a string expression ends with a given postfix. |
+|  [like(stringExpression, pattern)](./firestore_lite_pipelines.md#like_a84c581) | Creates an expression that performs a case-sensitive wildcard string comparison. |
+|  [like(stringExpression, pattern)](./firestore_lite_pipelines.md#like_b534848) | Creates an expression that performs a case-sensitive wildcard string comparison. |
+|  [regexContains(stringExpression, pattern)](./firestore_lite_pipelines.md#regexcontains_a84c581) | Creates an expression that checks if a string expression contains a specified regular expression as a substring. |
+|  [regexContains(stringExpression, pattern)](./firestore_lite_pipelines.md#regexcontains_b534848) | Creates an expression that checks if a string expression contains a specified regular expression as a substring. |
+|  [regexFind(stringExpression, pattern)](./firestore_lite_pipelines.md#regexfind_a84c581) | Creates an expression that returns the first substring of a string expression that matches a specified regular expression.<!-- -->This expression uses the [RE2](https://github.com/google/re2/wiki/Syntax) regular expression syntax. |
+|  [regexFind(stringExpression, pattern)](./firestore_lite_pipelines.md#regexfind_b534848) | Creates an expression that returns the first substring of a string expression that matches a specified regular expression.<!-- -->This expression uses the [RE2](https://github.com/google/re2/wiki/Syntax) regular expression syntax. |
+|  [regexFindAll(stringExpression, pattern)](./firestore_lite_pipelines.md#regexfindall_a84c581) | Creates an expression that evaluates to a list of all substrings in a string expression that match a specified regular expression.<!-- -->This expression uses the [RE2](https://github.com/google/re2/wiki/Syntax) regular expression syntax. |
+|  [regexFindAll(stringExpression, pattern)](./firestore_lite_pipelines.md#regexfindall_b534848) | Creates an expression that evaluates to a list of all substrings in a string expression that match a specified regular expression.<!-- -->This expression uses the [RE2](https://github.com/google/re2/wiki/Syntax) regular expression syntax. |
+|  [regexMatch(stringExpression, pattern)](./firestore_lite_pipelines.md#regexmatch_a84c581) | Creates an expression that checks if a string expression matches a specified regular expression. |
+|  [regexMatch(stringExpression, pattern)](./firestore_lite_pipelines.md#regexmatch_b534848) | Creates an expression that checks if a string expression matches a specified regular expression. |
+|  [reverse(stringExpression)](./firestore_lite_pipelines.md#reverse_c25a54a) | Creates an expression that reverses a string. |
+|  [startsWith(stringExpression, prefix)](./firestore_lite_pipelines.md#startswith_75c3dbb) | Creates an expression that checks if a string expression starts with a given prefix. |
+|  [startsWith(stringExpression, prefix)](./firestore_lite_pipelines.md#startswith_52f218a) | Creates an expression that checks if a string expression starts with a given prefix. |
+|  [stringContains(stringExpression, substring)](./firestore_lite_pipelines.md#stringcontains_3e9ff32) | Creates an expression that checks if a string expression contains a specified substring. |
+|  [stringContains(stringExpression, substring)](./firestore_lite_pipelines.md#stringcontains_cc6ee02) | Creates an expression that checks if a string expression contains a substring specified by another expression. |
+|  [stringReverse(stringExpression)](./firestore_lite_pipelines.md#stringreverse_c25a54a) | Creates an expression that reverses a string. |
+|  [toLower(stringExpression)](./firestore_lite_pipelines.md#tolower_c25a54a) | Creates an expression that converts a string expression to lowercase. |
+|  [toUpper(stringExpression)](./firestore_lite_pipelines.md#toupper_c25a54a) | Creates an expression that converts a string expression to uppercase. |
+|  [trim(stringExpression, valueToTrim)](./firestore_lite_pipelines.md#trim_dd54322) | Creates an expression that removes leading and trailing characters from a string or byte array expression. |
 |  <b>function(timestamp, ...)</b> |
-|  [timestampAdd(timestamp, unit, amount)](./firestore_lite_pipelines.md#timestampadd_1092f88) | Creates an expression that adds a specified amount of time to a timestamp. |
-|  [timestampAdd(timestamp, unit, amount)](./firestore_lite_pipelines.md#timestampadd_6eda385) | Creates an expression that adds a specified amount of time to a timestamp. |
-|  [timestampSubtract(timestamp, unit, amount)](./firestore_lite_pipelines.md#timestampsubtract_1092f88) | Creates an expression that subtracts a specified amount of time from a timestamp. |
-|  [timestampSubtract(timestamp, unit, amount)](./firestore_lite_pipelines.md#timestampsubtract_6eda385) | Creates an expression that subtracts a specified amount of time from a timestamp. |
+|  [timestampAdd(timestamp, unit, amount)](./firestore_lite_pipelines.md#timestampadd_98418f9) | Creates an expression that adds a specified amount of time to a timestamp. |
+|  [timestampAdd(timestamp, unit, amount)](./firestore_lite_pipelines.md#timestampadd_06ef927) | Creates an expression that adds a specified amount of time to a timestamp. |
+|  [timestampSubtract(timestamp, unit, amount)](./firestore_lite_pipelines.md#timestampsubtract_98418f9) | Creates an expression that subtracts a specified amount of time from a timestamp. |
+|  [timestampSubtract(timestamp, unit, amount)](./firestore_lite_pipelines.md#timestampsubtract_06ef927) | Creates an expression that subtracts a specified amount of time from a timestamp. |
 |  <b>function(timestampExpression, ...)</b> |
-|  [timestampExtract(timestampExpression, part, timezone)](./firestore_lite_pipelines.md#timestampextract_09049dc) | Creates an expression that extracts a specified part from a timestamp. |
-|  [timestampExtract(timestampExpression, part, timezone)](./firestore_lite_pipelines.md#timestampextract_3593c59) | Creates an expression that extracts a specified part from a timestamp. |
-|  [timestampTruncate(timestampExpression, granularity, timezone)](./firestore_lite_pipelines.md#timestamptruncate_741ea69) | Creates an expression that truncates a timestamp to a specified granularity. |
-|  [timestampTruncate(timestampExpression, granularity, timezone)](./firestore_lite_pipelines.md#timestamptruncate_dc7344a) | Creates an expression that truncates a timestamp to a specified granularity. |
+|  [timestampExtract(timestampExpression, part, timezone)](./firestore_lite_pipelines.md#timestampextract_b2f8f48) | Creates an expression that extracts a specified part from a timestamp. |
+|  [timestampExtract(timestampExpression, part, timezone)](./firestore_lite_pipelines.md#timestampextract_73e0311) | Creates an expression that extracts a specified part from a timestamp. |
+|  [timestampTruncate(timestampExpression, granularity, timezone)](./firestore_lite_pipelines.md#timestamptruncate_ad5d843) | Creates an expression that truncates a timestamp to a specified granularity. |
+|  [timestampTruncate(timestampExpression, granularity, timezone)](./firestore_lite_pipelines.md#timestamptruncate_d6ab2a4) | Creates an expression that truncates a timestamp to a specified granularity. |
 |  <b>function(tryExpr, ...)</b> |
-|  [ifError(tryExpr, catchExpr)](./firestore_lite_pipelines.md#iferror_0e8b0fd) | Creates an expression that returns the <code>catch</code> argument if there is an error, else return the result of the <code>try</code> argument evaluation.<!-- -->This overload is useful when a BooleanExpression is required. |
-|  [ifError(tryExpr, catchExpr)](./firestore_lite_pipelines.md#iferror_df72f2c) | Creates an expression that returns the <code>catch</code> argument if there is an error, else return the result of the <code>try</code> argument evaluation. |
-|  [ifError(tryExpr, catchValue)](./firestore_lite_pipelines.md#iferror_ae3ac16) | Creates an expression that returns the <code>catch</code> argument if there is an error, else return the result of the <code>try</code> argument evaluation. |
+|  [ifError(tryExpr, catchExpr)](./firestore_lite_pipelines.md#iferror_a99a327) | Creates an expression that returns the <code>catch</code> argument if there is an error, else return the result of the <code>try</code> argument evaluation.<!-- -->This overload is useful when a BooleanExpression is required. |
+|  [ifError(tryExpr, catchExpr)](./firestore_lite_pipelines.md#iferror_756c12e) | Creates an expression that returns the <code>catch</code> argument if there is an error, else return the result of the <code>try</code> argument evaluation. |
+|  [ifError(tryExpr, catchValue)](./firestore_lite_pipelines.md#iferror_dc532f9) | Creates an expression that returns the <code>catch</code> argument if there is an error, else return the result of the <code>try</code> argument evaluation. |
 |  <b>function(value, ...)</b> |
-|  [constant(value, options)](./firestore_lite_pipelines.md#constant_3949f19) | Creates a <code>Constant</code> instance for a number value. |
+|  [constant(value, options)](./firestore_lite_pipelines.md#constant_27f5011) | Creates a <code>Constant</code> instance for a number value. |
 |  [constant(value)](./firestore_lite_pipelines.md#constant_6dac335) | Creates a <code>Constant</code> instance for a VectorValue value. |
 |  [constant(value)](./firestore_lite_pipelines.md#constant_7c807cd) | Creates a <code>Constant</code> instance for a string value. |
 |  [constant(value)](./firestore_lite_pipelines.md#constant_b2e4f8d) | Creates a <code>BooleanExpression</code> instance for a boolean value. |
@@ -411,13 +411,13 @@ https://github.com/firebase/firebase-js-sdk
 |  [isAbsent(value)](./firestore_lite_pipelines.md#isabsent_f3daf14) | Creates an expression that returns <code>true</code> if a value is absent. Otherwise, returns <code>false</code> even if the value is <code>null</code>. |
 |  [isError(value)](./firestore_lite_pipelines.md#iserror_f3daf14) | Creates an expression that checks if a given expression produces an error. |
 |  <b>function(vectorExpression, ...)</b> |
-|  [cosineDistance(vectorExpression, vector)](./firestore_lite_pipelines.md#cosinedistance_3e3bef7) | Calculates the Cosine distance between a vector expression and a vector literal. |
-|  [cosineDistance(vectorExpression, otherVectorExpression)](./firestore_lite_pipelines.md#cosinedistance_64dc8a2) | Calculates the Cosine distance between two vector expressions. |
-|  [dotProduct(vectorExpression, vector)](./firestore_lite_pipelines.md#dotproduct_3e3bef7) | Calculates the dot product between a vector expression and a double array. |
-|  [dotProduct(vectorExpression, otherVectorExpression)](./firestore_lite_pipelines.md#dotproduct_64dc8a2) | Calculates the dot product between two vector expressions. |
-|  [euclideanDistance(vectorExpression, vector)](./firestore_lite_pipelines.md#euclideandistance_3e3bef7) | Calculates the Euclidean distance between a vector expression and a double array. |
-|  [euclideanDistance(vectorExpression, otherVectorExpression)](./firestore_lite_pipelines.md#euclideandistance_64dc8a2) | Calculates the Euclidean distance between two vector expressions. |
-|  [vectorLength(vectorExpression)](./firestore_lite_pipelines.md#vectorlength_9b5bca0) | Creates an expression that calculates the length of a Firestore Vector. |
+|  [cosineDistance(vectorExpression, vector)](./firestore_lite_pipelines.md#cosinedistance_3a80317) | Calculates the Cosine distance between a vector expression and a vector literal. |
+|  [cosineDistance(vectorExpression, otherVectorExpression)](./firestore_lite_pipelines.md#cosinedistance_17b5bcc) | Calculates the Cosine distance between two vector expressions. |
+|  [dotProduct(vectorExpression, vector)](./firestore_lite_pipelines.md#dotproduct_3a80317) | Calculates the dot product between a vector expression and a double array. |
+|  [dotProduct(vectorExpression, otherVectorExpression)](./firestore_lite_pipelines.md#dotproduct_17b5bcc) | Calculates the dot product between two vector expressions. |
+|  [euclideanDistance(vectorExpression, vector)](./firestore_lite_pipelines.md#euclideandistance_3a80317) | Calculates the Euclidean distance between a vector expression and a double array. |
+|  [euclideanDistance(vectorExpression, otherVectorExpression)](./firestore_lite_pipelines.md#euclideandistance_17b5bcc) | Calculates the Euclidean distance between two vector expressions. |
+|  [vectorLength(vectorExpression)](./firestore_lite_pipelines.md#vectorlength_58a039b) | Creates an expression that calculates the length of a Firestore Vector. |
 
 ## Classes
 
@@ -427,33 +427,19 @@ https://github.com/firebase/firebase-js-sdk
 |  [AliasedAggregate](./firestore_lite_pipelines.aliasedaggregate.md#aliasedaggregate_class) | An AggregateFunction with alias. |
 |  [AliasedExpression](./firestore_lite_pipelines.aliasedexpression.md#aliasedexpression_class) |  |
 |  [BooleanExpression](./firestore_lite_pipelines.booleanexpression.md#booleanexpression_class) | An interface that represents a filter condition. |
-|  [Bytes](./firestore_lite_pipelines.bytes.md#bytes_class) | An immutable object representing an array of bytes. |
-|  [CollectionReference](./firestore_lite_pipelines.collectionreference.md#collectionreference_class) | A <code>CollectionReference</code> object can be used for adding documents, getting document references, and querying for documents (using [query()](./firestore_.md#query_17e2432)<!-- -->). |
-|  [DocumentReference](./firestore_lite_pipelines.documentreference.md#documentreference_class) | A <code>DocumentReference</code> refers to a document location in a Firestore database and can be used to write, read, or listen to the location. The document at the referenced location may or may not exist. |
-|  [DocumentSnapshot](./firestore_lite_pipelines.documentsnapshot.md#documentsnapshot_class) | A <code>DocumentSnapshot</code> contains data read from a document in your Firestore database. The data can be extracted with <code>.data()</code> or <code>.get(&lt;field&gt;)</code> to get a specific field.<!-- -->For a <code>DocumentSnapshot</code> that points to a non-existing document, any data access will return 'undefined'. You can use the <code>exists()</code> method to explicitly verify a document's existence. |
 |  [Expression](./firestore_lite_pipelines.expression.md#expression_class) | Represents an expression that can be evaluated to a value within the execution of a [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class)<!-- -->.<!-- -->Expressions are the building blocks for creating complex queries and transformations in Firestore pipelines. They can represent:<!-- -->- \*\*Field references:\*\* Access values from document fields. - \*\*Literals:\*\* Represent constant values (strings, numbers, booleans). - \*\*Function calls:\*\* Apply functions to one or more expressions.<!-- -->The <code>Expression</code> class provides a fluent API for building expressions. You can chain together method calls to create complex expressions. |
-|  [Field](./firestore_lite_pipelines.field.md#field_class) | Represents a reference to a field in a Firestore document, or outputs of a [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class) stage.<p>Field references are used to access document field values in expressions and to specify fields for sorting, filtering, and projecting data in Firestore pipelines.<p>You can create a <code>Field</code> instance using the static  method: |
-|  [FieldPath](./firestore_lite_pipelines.fieldpath.md#fieldpath_class) | A <code>FieldPath</code> refers to a field in a document. The path may consist of a single field name (referring to a top-level field in the document), or a list of field names (referring to a nested field in the document).<!-- -->Create a <code>FieldPath</code> by providing field names. If more than one field name is provided, the path will point to a nested field in a document. |
-|  [FieldValue](./firestore_lite_pipelines.fieldvalue.md#fieldvalue_class) | Sentinel values that can be used when writing document fields with <code>set()</code> or <code>update()</code>. |
-|  [Firestore](./firestore_lite_pipelines.firestore.md#firestore_class) | The Cloud Firestore service interface.<!-- -->Do not call this constructor directly. Instead, use [getFirestore()](./firestore_.md#getfirestore)<!-- -->. |
-|  [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class) | This class defines the base class for Firestore [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class) functions, which can be evaluated within pipeline execution.<!-- -->Typically, you would not use this class or its children directly. Use either the functions like [and()](./firestore_pipelines.md#and_2d5055a)<!-- -->, [equal()](./firestore_pipelines.md#equal_74ec81e)<!-- -->, or the methods on [Expression](./firestore_pipelines.expression.md#expression_class) ([Expression.equal()](./firestore_pipelines.expression.md#expressionequal)<!-- -->, [Expression.lessThan()](./firestore_pipelines.expression.md#expressionlessthan)<!-- -->, etc.) to construct new Function instances. |
-|  [GeoPoint](./firestore_lite_pipelines.geopoint.md#geopoint_class) | An immutable object representing a geographic location in Firestore. The location is represented as latitude/longitude pair.<!-- -->Latitude values are in the range of \[-90, 90\]. Longitude values are in the range of \[-180, 180\]. |
+|  [Field](./firestore_lite_pipelines.field.md#field_class) | Represents a reference to a field in a Firestore document, or outputs of a [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class) stage.<p>Field references are used to access document field values in expressions and to specify fields for sorting, filtering, and projecting data in Firestore pipelines.<p>You can create a <code>Field</code> instance using the static [field](./firestore_pipelines.md#field_1eaaff4) method: |
+|  [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class) | This class defines the base class for Firestore [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class) functions, which can be evaluated within pipeline execution.<!-- -->Typically, you would not use this class or its children directly. Use either the functions like [and()](./firestore.md#and_e72c712)<!-- -->, [equal()](./firestore_pipelines.md#equal_b3c3382)<!-- -->, or the methods on [Expression](./firestore_pipelines.expression.md#expression_class) ([Expression.equal()](./firestore_pipelines.expression.md#expressionequal)<!-- -->, [Expression.lessThan()](./firestore_pipelines.expression.md#expressionlessthan)<!-- -->, etc.) to construct new Function instances. |
 |  [Ordering](./firestore_lite_pipelines.ordering.md#ordering_class) | Represents an ordering criterion for sorting documents in a Firestore pipeline.<!-- -->You create <code>Ordering</code> instances using the <code>ascending</code> and <code>descending</code> helper functions. |
 |  [Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class) | The Pipeline class provides a flexible and expressive framework for building complex data transformation and query pipelines for Firestore.<!-- -->A pipeline takes data sources, such as Firestore collections or collection groups, and applies a series of stages that are chained together. Each stage takes the output from the previous stage (or the data source) and produces an output for the next stage (or as the final output of the pipeline).<!-- -->Expressions can be used within each stage to filter and transform data through the stage.<!-- -->NOTE: The chained stages do not prescribe exactly how Firestore will execute the pipeline. Instead, Firestore only guarantees that the result is the same as if the chained stages were executed in order. |
 |  [PipelineResult](./firestore_lite_pipelines.pipelineresult.md#pipelineresult_class) | A PipelineResult contains data read from a Firestore Pipeline. The data can be extracted with the [PipelineResult.data()](./firestore_pipelines.pipelineresult.md#pipelineresultdata) or [PipelineResult.get()](./firestore_pipelines.pipelineresult.md#pipelineresultget) methods.<p>If the PipelineResult represents a non-document result, <code>ref</code> will return a undefined value. |
 |  [PipelineSnapshot](./firestore_lite_pipelines.pipelinesnapshot.md#pipelinesnapshot_class) | Represents the results of a Firestore pipeline execution.<!-- -->A <code>PipelineSnapshot</code> contains zero or more [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) objects representing the documents returned by a pipeline query. It provides methods to iterate over the documents and access metadata about the query results. |
 |  [PipelineSource](./firestore_lite_pipelines.pipelinesource.md#pipelinesource_class) | Provides the entry point for defining the data source of a Firestore [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class)<!-- -->.<!-- -->Use the methods of this class (e.g., [PipelineSource.collection()](./firestore_pipelines.pipelinesource.md#pipelinesourcecollection)<!-- -->, [PipelineSource.collectionGroup()](./firestore_pipelines.pipelinesource.md#pipelinesourcecollectiongroup)<!-- -->, [PipelineSource.database()](./firestore_pipelines.pipelinesource.md#pipelinesourcedatabase)<!-- -->, or [PipelineSource.documents()](./firestore_pipelines.pipelinesource.md#pipelinesourcedocuments)<!-- -->) to specify the initial data for your pipeline, such as a collection, a collection group, the entire database, or a set of specific documents. |
-|  [Query](./firestore_lite_pipelines.query.md#query_class) | A <code>Query</code> refers to a query which you can read or listen to. You can also construct refined <code>Query</code> objects by adding filters and ordering. |
-|  [QueryDocumentSnapshot](./firestore_lite_pipelines.querydocumentsnapshot.md#querydocumentsnapshot_class) | A <code>QueryDocumentSnapshot</code> contains data read from a document in your Firestore database as part of a query. The document is guaranteed to exist and its data can be extracted with <code>.data()</code> or <code>.get(&lt;field&gt;)</code> to get a specific field.<!-- -->A <code>QueryDocumentSnapshot</code> offers the same API surface as a <code>DocumentSnapshot</code>. Since query results contain only existing documents, the <code>exists</code> property will always be true and <code>data()</code> will never return 'undefined'. |
-|  [Timestamp](./firestore_lite_pipelines.timestamp.md#timestamp_class) | A <code>Timestamp</code> represents a point in time independent of any time zone or calendar, represented as seconds and fractions of seconds at nanosecond resolution in UTC Epoch time.<!-- -->It is encoded using the Proleptic Gregorian Calendar which extends the Gregorian calendar backwards to year one. It is encoded assuming all minutes are 60 seconds long, i.e. leap seconds are "smeared" so that no leap second table is needed for interpretation. Range is from 0001-01-01T00:00:00Z to 9999-12-31T23:59:59.999999999Z.<!-- -->For examples and further specifications, refer to the [Timestamp definition](https://github.com/google/protobuf/blob/master/src/google/protobuf/timestamp.proto)<!-- -->. |
-|  [VectorValue](./firestore_lite_pipelines.vectorvalue.md#vectorvalue_class) | Represents a vector type in Firestore documents. Create an instance with <code>[vector()](./firestore_.md#vector_0dbdaf2)</code>. |
 
 ## Interfaces
 
 |  Interface | Description |
 |  --- | --- |
-|  [DocumentData](./firestore_lite_pipelines.documentdata.md#documentdata_interface) | Document data (for use with [setDoc()](./firestore_lite.md#setdoc_f47a2ea)<!-- -->) consists of fields mapped to values. |
-|  [FirestoreDataConverter](./firestore_lite_pipelines.firestoredataconverter.md#firestoredataconverter_interface) | Converter used by <code>withConverter()</code> to transform user objects of type <code>AppModelType</code> into Firestore data of type <code>DbModelType</code>.<!-- -->Using the converter allows you to specify generic type arguments when storing and retrieving objects from Firestore.<!-- -->In this context, an "AppModel" is a class that is used in an application to package together related information and functionality. Such a class could, for example, have properties with complex, nested data types, properties used for memoization, properties of types not supported by Firestore (such as <code>symbol</code> and <code>bigint</code>), and helper functions that perform compound operations. Such classes are not suitable and/or possible to store into a Firestore database. Instead, instances of such classes need to be converted to "plain old JavaScript objects" (POJOs) with exclusively primitive properties, potentially nested inside other POJOs or arrays of POJOs. In this context, this type is referred to as the "DbModel" and would be an object suitable for persisting into Firestore. For convenience, applications can implement <code>FirestoreDataConverter</code> and register the converter with Firestore objects, such as <code>DocumentReference</code> or <code>Query</code>, to automatically convert <code>AppModel</code> to <code>DbModel</code> when storing into Firestore, and convert <code>DbModel</code> to <code>AppModel</code> when retrieving from Firestore. |
 |  [Selectable](./firestore_lite_pipelines.selectable.md#selectable_interface) | An interface that represents a selectable expression. |
 
 ## Type Aliases
@@ -473,14 +459,11 @@ https://github.com/firebase/firebase-js-sdk
 |  [LimitStageOptions](./firestore_lite_pipelines.md#limitstageoptions) | Options defining how a LimitStage is evaluated. See [Pipeline.limit()](./firestore_pipelines.pipeline.md#pipelinelimit)<!-- -->. |
 |  [OffsetStageOptions](./firestore_lite_pipelines.md#offsetstageoptions) | Options defining how an OffsetStage is evaluated. See [Pipeline.offset()](./firestore_pipelines.pipeline.md#pipelineoffset)<!-- -->. |
 |  [OneOf](./firestore_lite_pipelines.md#oneof) | Utility type to create an type that only allows one property of the Type param T to be set. |
-|  [PartialWithFieldValue](./firestore_lite_pipelines.md#partialwithfieldvalue) | Similar to TypeScript's <code>Partial&lt;T&gt;</code>, but allows nested fields to be omitted and FieldValues to be passed in as property values. |
-|  [Primitive](./firestore_lite_pipelines.md#primitive) | Primitive types. |
 |  [RemoveFieldsStageOptions](./firestore_lite_pipelines.md#removefieldsstageoptions) | Options defining how a RemoveFieldsStage is evaluated. See [Pipeline.removeFields()](./firestore_pipelines.pipeline.md#pipelineremovefields)<!-- -->. |
 |  [ReplaceWithStageOptions](./firestore_lite_pipelines.md#replacewithstageoptions) | Options defining how a ReplaceWithStage is evaluated. See [Pipeline.replaceWith()](./firestore_pipelines.pipeline.md#pipelinereplacewith)<!-- -->. |
 |  [SampleStageOptions](./firestore_lite_pipelines.md#samplestageoptions) | Defines the options for evaluating a sample stage within a pipeline. This type combines common [StageOptions](./firestore_pipelines.md#stageoptions) with a specific configuration where only one of the defined sampling methods can be applied.<!-- -->See [Pipeline.sample()](./firestore_pipelines.pipeline.md#pipelinesample) to create a sample stage.. |
 |  [SearchStageOptions](./firestore_lite_pipelines.md#searchstageoptions) | <b><i>(Public Preview)</i></b> Options defining how a search stage is evaluated. See [Pipeline.search()](./firestore_pipelines.pipeline.md#pipelinesearch)<!-- -->. |
 |  [SelectStageOptions](./firestore_lite_pipelines.md#selectstageoptions) | Options defining how a SelectStage is evaluated. See [Pipeline.select()](./firestore_pipelines.pipeline.md#pipelineselect)<!-- -->. |
-|  [SetOptions](./firestore_lite_pipelines.md#setoptions) | An options object that configures the behavior of [setDoc()](./firestore_lite.md#setdoc_f47a2ea)<!-- -->,  and  calls. These calls can be configured to perform granular merges instead of overwriting the target documents in their entirety by providing a <code>SetOptions</code> with <code>merge: true</code>. |
 |  [SortStageOptions](./firestore_lite_pipelines.md#sortstageoptions) | Options defining how a SortStage is evaluated. See [Pipeline.sort()](./firestore_pipelines.pipeline.md#pipelinesort)<!-- -->. |
 |  [StageOptions](./firestore_lite_pipelines.md#stageoptions) | Options defining how a Stage is evaluated. |
 |  [SubcollectionStageOptions](./firestore_lite_pipelines.md#subcollectionstageoptions) | Options defining how a <code>SubcollectionStage</code> is evaluated. |
@@ -490,7 +473,6 @@ https://github.com/firebase/firebase-js-sdk
 |  [UnionStageOptions](./firestore_lite_pipelines.md#unionstageoptions) | Options defining how a UnionStage is evaluated. See [Pipeline.union()](./firestore_pipelines.pipeline.md#pipelineunion)<!-- -->. |
 |  [UnnestStageOptions](./firestore_lite_pipelines.md#unneststageoptions) | Represents the specific options available for configuring an <code>UnnestStage</code> within a pipeline. |
 |  [WhereStageOptions](./firestore_lite_pipelines.md#wherestageoptions) | Options defining how a WhereStage is evaluated. See [Pipeline.where()](./firestore_pipelines.pipeline.md#pipelinewhere)<!-- -->. |
-|  [WithFieldValue](./firestore_lite_pipelines.md#withfieldvalue) | Allows FieldValues to be passed in as a property value while maintaining type safety. |
 
 ## function()
 
@@ -624,7 +606,7 @@ db.pipeline().collection('restaurants').search({
 
 ## function(array, ...)
 
-### arrayContains(array, element) {:#arraycontains_c5c0267}
+### arrayContains(array, element) {:#arraycontains_a00ea48}
 
 Creates an expression that checks if an array expression contains a specific element.
 
@@ -659,7 +641,7 @@ arrayContains(field("colors"), field("selectedColor"));
 
 ```
 
-### arrayContains(array, element) {:#arraycontains_6b4638e}
+### arrayContains(array, element) {:#arraycontains_7328608}
 
 Creates an expression that checks if an array expression contains a specific element.
 
@@ -694,7 +676,7 @@ arrayContains(field("colors"), "red");
 
 ```
 
-### arrayContainsAll(array, values) {:#arraycontainsall_b9aca9f}
+### arrayContainsAll(array, values) {:#arraycontainsall_c658ad5}
 
 Creates an expression that checks if an array expression contains all the specified elements.
 
@@ -729,7 +711,7 @@ arrayContainsAll(field("tags"), [field("tag1"), constant("SciFi"), "Adventure"])
 
 ```
 
-### arrayContainsAll(array, arrayExpression) {:#arraycontainsall_7db8403}
+### arrayContainsAll(array, arrayExpression) {:#arraycontainsall_7b535db}
 
 Creates an expression that checks if an array expression contains all the specified elements.
 
@@ -764,7 +746,7 @@ arrayContainsAll(field("tags"), [field("tag1"), constant("SciFi"), "Adventure"])
 
 ```
 
-### arrayContainsAny(array, values) {:#arraycontainsany_b9aca9f}
+### arrayContainsAny(array, values) {:#arraycontainsany_c658ad5}
 
 Creates an expression that checks if an array expression contains any of the specified elements.
 
@@ -799,7 +781,7 @@ arrayContainsAny(field("categories"), [field("cate1"), "Science"]);
 
 ```
 
-### arrayContainsAny(array, values) {:#arraycontainsany_d74e246}
+### arrayContainsAny(array, values) {:#arraycontainsany_c381a96}
 
 Creates an expression that checks if an array expression contains any of the specified elements.
 
@@ -867,7 +849,7 @@ arrayLength(field("cart"));
 
 ## function(arrayExpression, ...)
 
-### arrayFilter(arrayExpression, alias, filter) {:#arrayfilter_f3e6a32}
+### arrayFilter(arrayExpression, alias, filter) {:#arrayfilter_892d3c4}
 
 Creates an expression that filters an array using a provided alias and predicate expression.
 
@@ -904,7 +886,7 @@ arrayFilter(field("scores"), "score", greaterThan(variable("score"), 50));
 
 ```
 
-### arrayFirst(arrayExpression) {:#arrayfirst_4554bc6}
+### arrayFirst(arrayExpression) {:#arrayfirst_f574e12}
 
 Creates an expression that returns the first element of an array.
 
@@ -937,7 +919,7 @@ arrayFirst(field("tags"));
 
 ```
 
-### arrayFirstN(arrayExpression, n) {:#arrayfirstn_364b97f}
+### arrayFirstN(arrayExpression, n) {:#arrayfirstn_bff7f91}
 
 Creates an expression that returns the first `n` elements of an array.
 
@@ -972,7 +954,7 @@ arrayFirstN(field("tags"), 3);
 
 ```
 
-### arrayFirstN(arrayExpression, n) {:#arrayfirstn_8c18ec4}
+### arrayFirstN(arrayExpression, n) {:#arrayfirstn_19b4ef8}
 
 Creates an expression that returns the first `n` elements of an array.
 
@@ -1007,7 +989,7 @@ arrayFirstN(field("tags"), field("count"));
 
 ```
 
-### arrayGet(arrayExpression, offset) {:#arrayget_6269a34}
+### arrayGet(arrayExpression, offset) {:#arrayget_f2e27cc}
 
 Creates an expression that indexes into an array from the beginning or end and return the element. If the offset exceeds the array length, an error is returned. A negative offset, starts from the end.
 
@@ -1042,7 +1024,7 @@ arrayGet(field('tags'), 1);
 
 ```
 
-### arrayGet(arrayExpression, offsetExpr) {:#arrayget_9c135e0}
+### arrayGet(arrayExpression, offsetExpr) {:#arrayget_484550d}
 
 Creates an expression that indexes into an array from the beginning or end and return the element. If the offset exceeds the array length, an error is returned. A negative offset, starts from the end.
 
@@ -1078,7 +1060,7 @@ arrayGet(field('tags'), field('favoriteTag'));
 
 ```
 
-### arrayIndexOf(arrayExpression, search) {:#arrayindexof_2d44c49}
+### arrayIndexOf(arrayExpression, search) {:#arrayindexof_694a0b4}
 
 Creates an expression that returns the first index of the search value in an array. Returns -1 if the value is not found.
 
@@ -1113,7 +1095,7 @@ arrayIndexOf(field("tags"), "politics");
 
 ```
 
-### arrayIndexOfAll(arrayExpression, search) {:#arrayindexofall_2d44c49}
+### arrayIndexOfAll(arrayExpression, search) {:#arrayindexofall_694a0b4}
 
 Creates an expression that returns all indices of the search value in an array.
 
@@ -1148,7 +1130,7 @@ arrayIndexOfAll(field("scores"), 5);
 
 ```
 
-### arrayLast(arrayExpression) {:#arraylast_4554bc6}
+### arrayLast(arrayExpression) {:#arraylast_f574e12}
 
 Creates an expression that returns the last element of an array.
 
@@ -1181,7 +1163,7 @@ arrayLast(field("tags"));
 
 ```
 
-### arrayLastIndexOf(arrayExpression, search) {:#arraylastindexof_2d44c49}
+### arrayLastIndexOf(arrayExpression, search) {:#arraylastindexof_694a0b4}
 
 Creates an expression that returns the last index of the search value in an array. Returns -1 if the value is not found.
 
@@ -1216,7 +1198,7 @@ arrayLastIndexOf(field("tags"), "politics");
 
 ```
 
-### arrayLastN(arrayExpression, n) {:#arraylastn_364b97f}
+### arrayLastN(arrayExpression, n) {:#arraylastn_bff7f91}
 
 Creates an expression that returns the last `n` elements of an array.
 
@@ -1251,7 +1233,7 @@ arrayLastN(field("tags"), 3);
 
 ```
 
-### arrayLastN(arrayExpression, n) {:#arraylastn_8c18ec4}
+### arrayLastN(arrayExpression, n) {:#arraylastn_19b4ef8}
 
 Creates an expression that returns the last `n` elements of an array.
 
@@ -1286,7 +1268,7 @@ arrayLastN(field("tags"), field("count"));
 
 ```
 
-### arrayMaximum(arrayExpression) {:#arraymaximum_4554bc6}
+### arrayMaximum(arrayExpression) {:#arraymaximum_f574e12}
 
 Creates an expression that returns the maximum value in an array.
 
@@ -1319,7 +1301,7 @@ arrayMaximum(field("scores"));
 
 ```
 
-### arrayMaximumN(arrayExpression, n) {:#arraymaximumn_364b97f}
+### arrayMaximumN(arrayExpression, n) {:#arraymaximumn_bff7f91}
 
 Creates an expression that returns the largest `n` elements of an array.
 
@@ -1356,7 +1338,7 @@ arrayMaximumN(field("scores"), 3);
 
 ```
 
-### arrayMaximumN(arrayExpression, n) {:#arraymaximumn_8c18ec4}
+### arrayMaximumN(arrayExpression, n) {:#arraymaximumn_19b4ef8}
 
 Creates an expression that returns the largest `n` elements of an array.
 
@@ -1393,7 +1375,7 @@ arrayMaximumN(field("scores"), field("count"));
 
 ```
 
-### arrayMinimum(arrayExpression) {:#arrayminimum_4554bc6}
+### arrayMinimum(arrayExpression) {:#arrayminimum_f574e12}
 
 Creates an expression that returns the minimum value in an array.
 
@@ -1426,7 +1408,7 @@ arrayMinimum(field("scores"));
 
 ```
 
-### arrayMinimumN(arrayExpression, n) {:#arrayminimumn_364b97f}
+### arrayMinimumN(arrayExpression, n) {:#arrayminimumn_bff7f91}
 
 Creates an expression that returns the smallest `n` elements of an array.
 
@@ -1463,7 +1445,7 @@ arrayMinimumN(field("scores"), 3);
 
 ```
 
-### arrayMinimumN(arrayExpression, n) {:#arrayminimumn_8c18ec4}
+### arrayMinimumN(arrayExpression, n) {:#arrayminimumn_19b4ef8}
 
 Creates an expression that returns the smallest `n` elements of an array.
 
@@ -1500,7 +1482,7 @@ arrayMinimumN(field("scores"), field("count"));
 
 ```
 
-### arraySlice(arrayExpression, offset, length) {:#arrayslice_e49ffc5}
+### arraySlice(arrayExpression, offset, length) {:#arrayslice_a349bee}
 
 Creates an expression that returns a slice of an array from `offset` with `length` elements.
 
@@ -1540,7 +1522,7 @@ arraySlice(field("items"), 2, field("length"));
 
 ```
 
-### arrayTransform(arrayExpression, elementAlias, transform) {:#arraytransform_26d927f}
+### arrayTransform(arrayExpression, elementAlias, transform) {:#arraytransform_28967fa}
 
 Creates an expression that applies a provided transformation to each element in an array.
 
@@ -1577,7 +1559,7 @@ arrayTransform(field("scores"), "score", multiply(variable("score"), 10));
 
 ```
 
-### arrayTransformWithIndex(arrayExpression, elementAlias, indexAlias, transform) {:#arraytransformwithindex_23e1c3b}
+### arrayTransformWithIndex(arrayExpression, elementAlias, indexAlias, transform) {:#arraytransformwithindex_2f3b17f}
 
 Creates an expression that applies a provided transformation to each element in an array, providing the element's index to the transformation expression.
 
@@ -1616,7 +1598,7 @@ arrayTransformWithIndex(field("scores"), "score", "i", add(variable("score"), va
 
 ```
 
-### join(arrayExpression, delimiterExpression) {:#join_91d9cbc}
+### join(arrayExpression, delimiterExpression) {:#join_313e6aa}
 
 Creates an expression that joins the elements of an array into a string.
 
@@ -1651,7 +1633,7 @@ join(array(['foo', 'bar']), field("separator"))
 
 ```
 
-### join(arrayExpression, delimiter) {:#join_e49c60c}
+### join(arrayExpression, delimiter) {:#join_d088d29}
 
 Creates an expression that joins the elements of an array into a string.
 
@@ -1688,7 +1670,7 @@ join(field("tags"), ", ")
 
 ## function(arrayField, ...)
 
-### arrayGet(arrayField, offset) {:#arrayget_875a798}
+### arrayGet(arrayField, offset) {:#arrayget_3f58471}
 
 Creates an expression that indexes into an array from the beginning or end and return the element. If the offset exceeds the array length, an error is returned. A negative offset, starts from the end.
 
@@ -1723,7 +1705,7 @@ arrayGet('tags', 1);
 
 ```
 
-### arrayGet(arrayField, offsetExpr) {:#arrayget_f3bfcef}
+### arrayGet(arrayField, offsetExpr) {:#arrayget_1904c9a}
 
 Creates an expression that indexes into an array from the beginning or end and return the element. If the offset exceeds the array length, an error is returned. A negative offset, starts from the end.
 
@@ -1761,7 +1743,7 @@ arrayGet('tags', field('favoriteTag'));
 
 ## function(arrayFieldName, ...)
 
-### join(arrayFieldName, delimiter) {:#join_868c433}
+### join(arrayFieldName, delimiter) {:#join_478ef36}
 
 Creates an expression that joins the elements of an array into a string.
 
@@ -1796,7 +1778,7 @@ join("tags", ", ")
 
 ```
 
-### join(arrayFieldName, delimiterExpression) {:#join_efb1c76}
+### join(arrayFieldName, delimiterExpression) {:#join_829294c}
 
 Creates an expression that joins the elements of an array into a string.
 
@@ -1833,7 +1815,7 @@ join('tags', field("separator"))
 
 ## function(base, ...)
 
-### pow(base, exponent) {:#pow_aa3c940}
+### pow(base, exponent) {:#pow_e4a9e64}
 
 Creates an expression that returns the value of the base expression raised to the power of the exponent expression.
 
@@ -1868,7 +1850,7 @@ pow(field("base"), field("exponent"));
 
 ```
 
-### pow(base, exponent) {:#pow_3d4bfd3}
+### pow(base, exponent) {:#pow_93eae7f}
 
 Creates an expression that returns the value of the base expression raised to the power of the exponent.
 
@@ -1903,7 +1885,7 @@ pow(field("base"), 2);
 
 ```
 
-### pow(base, exponent) {:#pow_a2e035e}
+### pow(base, exponent) {:#pow_a237721}
 
 Creates an expression that returns the value of the base field raised to the power of the exponent expression.
 
@@ -1972,7 +1954,7 @@ pow("base", 2);
 
 ## function(booleanExpr, ...)
 
-### countIf(booleanExpr) {:#countif_55537a4}
+### countIf(booleanExpr) {:#countif_c5b8fb1}
 
 Creates an aggregation that counts the number of stage inputs where the provided boolean expression evaluates to true.
 
@@ -2038,7 +2020,7 @@ not(equal("completed", true));
 
 ## function(condition, ...)
 
-### conditional(condition, thenExpr, elseExpr) {:#conditional_0c25770}
+### conditional(condition, thenExpr, elseExpr) {:#conditional_07a206d}
 
 Creates a conditional expression that evaluates to a 'then' expression if a condition is true and an 'else' expression if the condition is false.
 
@@ -2076,7 +2058,7 @@ conditional(
 
 ```
 
-### switchOn(condition, result, others) {:#switchon_69e5629}
+### switchOn(condition, result, others) {:#switchon_02b8caf}
 
 Creates an expression that evaluates to the result corresponding to the first true condition.
 
@@ -2122,7 +2104,7 @@ switchOn(
 
 ## function(documentPath, ...)
 
-### documentId(documentPath) {:#documentid_602df03}
+### documentId(documentPath) {:#documentid_cef293c}
 
 Creates an expression that returns the document ID from a path.
 
@@ -2138,7 +2120,7 @@ export declare function documentId(
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  documentPath | string \| [DocumentReference](./firestore_lite.documentreference.md#documentreference_class) |  |
+|  documentPath | string \| [DocumentReference](./firestore.documentreference.md#documentreference_class) |  |
 
 <b>Returns:</b>
 
@@ -2155,7 +2137,7 @@ documentId(myDocumentReference);
 
 ```
 
-### parent\_2(documentPath) {:#parent_2_602df03}
+### parent\_2(documentPath) {:#parent_2_cef293c}
 
 Creates an expression that returns the parent document reference of a document reference.
 
@@ -2171,7 +2153,7 @@ declare function parent_2(
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  documentPath | string \| [DocumentReference](./firestore_lite.documentreference.md#documentreference_class) | A string path or DocumentReference to get the parent from. |
+|  documentPath | string \| [DocumentReference](./firestore.documentreference.md#documentreference_class) | A string path or DocumentReference to get the parent from. |
 
 <b>Returns:</b>
 
@@ -2190,7 +2172,7 @@ parent(myDocumentReference);
 
 ## function(documentPathExpr, ...)
 
-### documentId(documentPathExpr) {:#documentid_98856da}
+### documentId(documentPathExpr) {:#documentid_9a69021}
 
 Creates an expression that returns the document ID from a path.
 
@@ -2256,7 +2238,7 @@ parent(field("__path__"));
 
 ## function(element, ...)
 
-### notEqualAny(element, values) {:#notequalany_9e30e87}
+### notEqualAny(element, values) {:#notequalany_c2c5bcb}
 
 Creates an expression that checks if an expression is not equal to any of the provided values or expressions.
 
@@ -2291,7 +2273,7 @@ notEqualAny(field("status"), ["pending", field("rejectedStatus")]);
 
 ```
 
-### notEqualAny(element, arrayExpression) {:#notequalany_fa996c6}
+### notEqualAny(element, arrayExpression) {:#notequalany_16b2851}
 
 Creates an expression that checks if an expression is not equal to any of the provided values or expressions.
 
@@ -2359,7 +2341,7 @@ array(['bar', field('baz')]).as('foo');
 
 ```
 
-### map(elements) {:#map_733c789}
+### map(elements) {:#map_ce5dee1}
 
 Creates an expression that creates a Firestore map value from an input object.
 
@@ -2394,7 +2376,7 @@ map({foo: 'bar', baz: field('baz')}).as('data');
 
 ## function(endExpression, ...)
 
-### timestampDiff(endExpression, startFieldName, unit) {:#timestampdiff_8afebe7}
+### timestampDiff(endExpression, startFieldName, unit) {:#timestampdiff_4370feb}
 
 Creates an expression that calculates the difference between two timestamps.
 
@@ -2431,7 +2413,7 @@ timestampDiff(field('endTime'), 'startTime', 'day')
 
 ```
 
-### timestampDiff(endExpression, startExpression, unit) {:#timestampdiff_1baffbd}
+### timestampDiff(endExpression, startExpression, unit) {:#timestampdiff_bc0830f}
 
 Creates an expression that calculates the difference between two timestamps.
 
@@ -2470,7 +2452,7 @@ timestampDiff(field('endTime'), field('startTime'), 'day')
 
 ## function(endFieldName, ...)
 
-### timestampDiff(endFieldName, startFieldName, unit) {:#timestampdiff_81348ba}
+### timestampDiff(endFieldName, startFieldName, unit) {:#timestampdiff_f60102c}
 
 <b>Signature:</b>
 
@@ -2494,7 +2476,7 @@ export declare function timestampDiff(
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
 
-### timestampDiff(endFieldName, startExpression, unit) {:#timestampdiff_b39ccc9}
+### timestampDiff(endFieldName, startExpression, unit) {:#timestampdiff_6e54d92}
 
 Creates an expression that calculates the difference between two timestamps.
 
@@ -2618,7 +2600,7 @@ byteLength(field("myString"));
 
 ```
 
-### countDistinct(expr) {:#countdistinct_04f5e99}
+### countDistinct(expr) {:#countdistinct_3c28b08}
 
 Creates an aggregation that counts the number of distinct values of a field.
 
@@ -2696,7 +2678,7 @@ export declare function floor(expr: Expression): FunctionExpression;
 
 A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the floor of the numeric value.
 
-### timestampToUnixMicros(expr) {:#timestamptounixmicros_24910c0}
+### timestampToUnixMicros(expr) {:#timestamptounixmicros_005f3d4}
 
 Creates an expression that converts a timestamp expression to the number of microseconds since the Unix epoch (1970-01-01 00:00:00 UTC).
 
@@ -2729,7 +2711,7 @@ timestampToUnixMicros(field("timestamp"));
 
 ```
 
-### timestampToUnixMillis(expr) {:#timestamptounixmillis_24910c0}
+### timestampToUnixMillis(expr) {:#timestamptounixmillis_005f3d4}
 
 Creates an expression that converts a timestamp expression to the number of milliseconds since the Unix epoch (1970-01-01 00:00:00 UTC).
 
@@ -2762,7 +2744,7 @@ timestampToUnixMillis(field("timestamp"));
 
 ```
 
-### timestampToUnixSeconds(expr) {:#timestamptounixseconds_24910c0}
+### timestampToUnixSeconds(expr) {:#timestamptounixseconds_005f3d4}
 
 Creates an expression that converts a timestamp expression to the number of seconds since the Unix epoch (1970-01-01 00:00:00 UTC).
 
@@ -2795,7 +2777,7 @@ timestampToUnixSeconds(field("timestamp"));
 
 ```
 
-### unixMicrosToTimestamp(expr) {:#unixmicrostotimestamp_24910c0}
+### unixMicrosToTimestamp(expr) {:#unixmicrostotimestamp_005f3d4}
 
 Creates an expression that interprets an expression as the number of microseconds since the Unix epoch (1970-01-01 00:00:00 UTC) and returns a timestamp.
 
@@ -2828,7 +2810,7 @@ unixMicrosToTimestamp(field("microseconds"));
 
 ```
 
-### unixMillisToTimestamp(expr) {:#unixmillistotimestamp_24910c0}
+### unixMillisToTimestamp(expr) {:#unixmillistotimestamp_005f3d4}
 
 Creates an expression that interprets an expression as the number of milliseconds since the Unix epoch (1970-01-01 00:00:00 UTC) and returns a timestamp.
 
@@ -2861,7 +2843,7 @@ unixMillisToTimestamp(field("milliseconds"));
 
 ```
 
-### unixSecondsToTimestamp(expr) {:#unixsecondstotimestamp_24910c0}
+### unixSecondsToTimestamp(expr) {:#unixsecondstotimestamp_005f3d4}
 
 Creates an expression that interprets an expression as the number of seconds since the Unix epoch (1970-01-01 00:00:00 UTC) and returns a timestamp.
 
@@ -2929,7 +2911,7 @@ arrayAgg(field("tags")).as("allTags");
 
 ```
 
-### arrayAggDistinct(expression) {:#arrayaggdistinct_5bd49e9}
+### arrayAggDistinct(expression) {:#arrayaggdistinct_1138a27}
 
 Creates an aggregation that collects all distinct values of an expression across multiple stage inputs into an array.
 
@@ -3057,7 +3039,7 @@ ceil(field("price"));
 
 ```
 
-### coalesce(expression, replacement, others) {:#coalesce_4bc9761}
+### coalesce(expression, replacement, others) {:#coalesce_00859cb}
 
 Creates an expression that returns the first non-null, non-absent argument, without evaluating the rest of the arguments. When all arguments are null or absent, returns the last argument.
 
@@ -3095,7 +3077,7 @@ coalesce(field("preferredName"), field("fullName"), constant("Anonymous"))
 
 ```
 
-### collectionId(expression) {:#collectionid_5bd49e9}
+### collectionId(expression) {:#collectionid_1138a27}
 
 Creates an expression that returns the collection ID from a path.
 
@@ -3159,7 +3141,7 @@ count(field("price").greaterThan(10)).as("expensiveItemCount");
 
 ```
 
-### divide(expression, value) {:#divide_afe9057}
+### divide(expression, value) {:#divide_01df3cf}
 
 Creates an expression that divides an expression by a constant value.
 
@@ -3194,7 +3176,7 @@ divide(field("value"), 10);
 
 ```
 
-### equal(expression, value) {:#equal_afe9057}
+### equal(expression, value) {:#equal_01df3cf}
 
 Creates an expression that checks if an expression is equal to a constant value.
 
@@ -3229,7 +3211,7 @@ equal(field("age"), 21);
 
 ```
 
-### equalAny(expression, values) {:#equalany_17f9971}
+### equalAny(expression, values) {:#equalany_7e759b5}
 
 Creates an expression that checks if an expression, when evaluated, is equal to any of the provided values or expressions.
 
@@ -3264,7 +3246,7 @@ equalAny(field("category"), [constant("Electronics"), field("primaryType")]);
 
 ```
 
-### equalAny(expression, arrayExpression) {:#equalany_04f9476}
+### equalAny(expression, arrayExpression) {:#equalany_214ce68}
 
 Creates an expression that checks if an expression is equal to any of the provided values.
 
@@ -3361,7 +3343,7 @@ first(field("rating")).as("firstRating");
 
 ```
 
-### greaterThan(expression, value) {:#greaterthan_afe9057}
+### greaterThan(expression, value) {:#greaterthan_01df3cf}
 
 Creates an expression that checks if an expression is greater than a constant value.
 
@@ -3396,7 +3378,7 @@ greaterThan(field("age"), 18);
 
 ```
 
-### greaterThanOrEqual(expression, value) {:#greaterthanorequal_afe9057}
+### greaterThanOrEqual(expression, value) {:#greaterthanorequal_01df3cf}
 
 Creates an expression that checks if an expression is greater than or equal to a constant value.
 
@@ -3431,7 +3413,7 @@ greaterThanOrEqual(field("quantity"), 10);
 
 ```
 
-### isType(expression, type) {:#istype_7d2684a}
+### isType(expression, type) {:#istype_e58f382}
 
 Creates an expression that checks if the result of an expression is of the given type.
 
@@ -3533,7 +3515,7 @@ length(field("cart"));
 
 ```
 
-### lessThan(expression, value) {:#lessthan_afe9057}
+### lessThan(expression, value) {:#lessthan_01df3cf}
 
 Creates an expression that checks if an expression is less than a constant value.
 
@@ -3568,7 +3550,7 @@ lessThan(field("age"), 30);
 
 ```
 
-### lessThanOrEqual(expression, value) {:#lessthanorequal_afe9057}
+### lessThanOrEqual(expression, value) {:#lessthanorequal_01df3cf}
 
 Creates an expression that checks if an expression is less than or equal to a constant value.
 
@@ -3634,7 +3616,7 @@ ln(field("value"));
 
 ```
 
-### log(expression, base) {:#log_7fad403}
+### log(expression, base) {:#log_ac183e2}
 
 Creates an expression that computes the logarithm of an expression to a given base.
 
@@ -3669,7 +3651,7 @@ log(field("value"), 10);
 
 ```
 
-### log(expression, base) {:#log_19a06db}
+### log(expression, base) {:#log_1894737}
 
 Creates an expression that computes the logarithm of an expression to a given base.
 
@@ -3735,7 +3717,7 @@ log10(field("value"));
 
 ```
 
-### ltrim(expression, valueToTrim) {:#ltrim_e456240}
+### ltrim(expression, valueToTrim) {:#ltrim_775e2f2}
 
 Trims whitespace or a specified set of characters/bytes from the beginning of a string or byte array.
 
@@ -3753,7 +3735,7 @@ export declare function ltrim(
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  expression | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression representing the string or byte array. |
-|  valueToTrim | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore_lite.bytes.md#bytes_class) | Optional. A string or byte array containing the characters/bytes to trim. If not specified, whitespace will be trimmed. |
+|  valueToTrim | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore.bytes.md#bytes_class) | Optional. A string or byte array containing the characters/bytes to trim. If not specified, whitespace will be trimmed. |
 
 <b>Returns:</b>
 
@@ -3835,7 +3817,7 @@ minimum(field("price")).as("lowestPrice");
 
 ```
 
-### mod(expression, value) {:#mod_afe9057}
+### mod(expression, value) {:#mod_01df3cf}
 
 Creates an expression that calculates the modulo (remainder) of dividing an expression by a constant.
 
@@ -3870,7 +3852,7 @@ mod(field("field1"), 5);
 
 ```
 
-### notEqual(expression, value) {:#notequal_afe9057}
+### notEqual(expression, value) {:#notequal_01df3cf}
 
 Creates an expression that checks if an expression is not equal to a constant value.
 
@@ -3936,7 +3918,7 @@ round(field("price"));
 
 ```
 
-### round(expression, decimalPlaces) {:#round_22e6e22}
+### round(expression, decimalPlaces) {:#round_a3a92d0}
 
 Creates an expression that rounds a numeric value to the specified number of decimal places.
 
@@ -3971,7 +3953,7 @@ round(field("price"), constant(2));
 
 ```
 
-### rtrim(expression, valueToTrim) {:#rtrim_e456240}
+### rtrim(expression, valueToTrim) {:#rtrim_775e2f2}
 
 Trims whitespace or a specified set of characters/bytes from the end of a string or byte array.
 
@@ -3989,7 +3971,7 @@ export declare function rtrim(
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  expression | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression representing the string or byte array. |
-|  valueToTrim | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore_lite.bytes.md#bytes_class) | Optional. A string or byte array containing the characters/bytes to trim. If not specified, whitespace will be trimmed. |
+|  valueToTrim | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore.bytes.md#bytes_class) | Optional. A string or byte array containing the characters/bytes to trim. If not specified, whitespace will be trimmed. |
 
 <b>Returns:</b>
 
@@ -4009,7 +3991,7 @@ rtrim(field("userInput"), '"');
 
 ```
 
-### split(expression, delimiter) {:#split_5888122}
+### split(expression, delimiter) {:#split_5b5612b}
 
 Creates an expression that splits a string into an array of substrings based on the provided delimiter.
 
@@ -4044,7 +4026,7 @@ split(field('scoresCsv'), ',')
 
 ```
 
-### split(expression, delimiter) {:#split_bdb5d04}
+### split(expression, delimiter) {:#split_5a171ed}
 
 Creates an expression that splits a string into an array of substrings based on the provided delimiter.
 
@@ -4110,7 +4092,7 @@ sqrt(field("value"));
 
 ```
 
-### stringIndexOf(expression, search) {:#stringindexof_ef20c29}
+### stringIndexOf(expression, search) {:#stringindexof_6dfca5f}
 
 Creates an expression that finds the index of the first occurrence of a substring or byte sequence.
 
@@ -4128,7 +4110,7 @@ export declare function stringIndexOf(
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  expression | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression representing the string or byte array. |
-|  search | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore_lite.bytes.md#bytes_class) | The substring or byte sequence to search for. |
+|  search | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore.bytes.md#bytes_class) | The substring or byte sequence to search for. |
 
 <b>Returns:</b>
 
@@ -4145,7 +4127,7 @@ stringIndexOf(field("text"), "foo");
 
 ```
 
-### stringRepeat(expression, repetitions) {:#stringrepeat_f27848b}
+### stringRepeat(expression, repetitions) {:#stringrepeat_a55ba16}
 
 Creates an expression that repeats a string or byte array a specified number of times.
 
@@ -4180,7 +4162,7 @@ stringRepeat(field("label"), 3);
 
 ```
 
-### stringReplaceAll(expression, find, replacement) {:#stringreplaceall_d18eb3e}
+### stringReplaceAll(expression, find, replacement) {:#stringreplaceall_197ecbe}
 
 Creates an expression that replaces all occurrences of a substring or byte sequence with a replacement.
 
@@ -4199,8 +4181,8 @@ export declare function stringReplaceAll(
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  expression | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression representing the string or byte array. |
-|  find | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore_lite.bytes.md#bytes_class) | The substring or byte sequence to search for. |
-|  replacement | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore_lite.bytes.md#bytes_class) | The replacement string or byte sequence. |
+|  find | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore.bytes.md#bytes_class) | The substring or byte sequence to search for. |
+|  replacement | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore.bytes.md#bytes_class) | The replacement string or byte sequence. |
 
 <b>Returns:</b>
 
@@ -4217,7 +4199,7 @@ stringReplaceAll(field("text"), "foo", "bar");
 
 ```
 
-### stringReplaceOne(expression, find, replacement) {:#stringreplaceone_d18eb3e}
+### stringReplaceOne(expression, find, replacement) {:#stringreplaceone_197ecbe}
 
 Creates an expression that replaces the first occurrence of a substring or byte sequence with a replacement.
 
@@ -4236,8 +4218,8 @@ export declare function stringReplaceOne(
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  expression | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression representing the string or byte array. |
-|  find | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore_lite.bytes.md#bytes_class) | The substring or byte sequence to search for. |
-|  replacement | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore_lite.bytes.md#bytes_class) | The replacement string or byte sequence. |
+|  find | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore.bytes.md#bytes_class) | The substring or byte sequence to search for. |
+|  replacement | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore.bytes.md#bytes_class) | The replacement string or byte sequence. |
 
 <b>Returns:</b>
 
@@ -4254,7 +4236,7 @@ stringReplaceOne(field("text"), "foo", "bar");
 
 ```
 
-### subtract(expression, value) {:#subtract_afe9057}
+### subtract(expression, value) {:#subtract_01df3cf}
 
 Creates an expression that subtracts a constant value from an expression.
 
@@ -4351,7 +4333,7 @@ trunc(field("rating"));
 
 ```
 
-### trunc(expression, decimalPlaces) {:#trunc_22e6e22}
+### trunc(expression, decimalPlaces) {:#trunc_a3a92d0}
 
 Creates an expression that truncates a numeric value to the specified number of decimal places.
 
@@ -4512,7 +4494,7 @@ stringReverse("myString");
 
 ```
 
-### substring(field, position, length) {:#substring_632f326}
+### substring(field, position, length) {:#substring_0d9573a}
 
 Creates an expression that returns a substring of a string or byte array.
 
@@ -4538,7 +4520,7 @@ export declare function substring(
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
 
-### substring(field, position, length) {:#substring_e6bd41c}
+### substring(field, position, length) {:#substring_05cb14e}
 
 Creates an expression that returns a substring of a string or byte array.
 
@@ -4588,7 +4570,7 @@ export declare function abs(fieldName: string): FunctionExpression;
 
 A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the absolute value of the numeric value.
 
-### add(fieldName, second) {:#add_3a28021}
+### add(fieldName, second) {:#add_b75bb8b}
 
 Creates an expression that adds a field's value to an expression.
 
@@ -4689,7 +4671,7 @@ arrayAggDistinct("tags").as("allDistinctTags");
 
 ```
 
-### arrayContains(fieldName, element) {:#arraycontains_91888ca}
+### arrayContains(fieldName, element) {:#arraycontains_aaace4a}
 
 Creates an expression that checks if a field's array value contains a specific element.
 
@@ -4724,7 +4706,7 @@ arrayContains("colors", field("selectedColor"));
 
 ```
 
-### arrayContains(fieldName, element) {:#arraycontains_c66c4c4}
+### arrayContains(fieldName, element) {:#arraycontains_999590f}
 
 Creates an expression that checks if a field's array value contains a specific value.
 
@@ -4759,7 +4741,7 @@ arrayContains("colors", "red");
 
 ```
 
-### arrayContainsAll(fieldName, values) {:#arraycontainsall_ffd8514}
+### arrayContainsAll(fieldName, values) {:#arraycontainsall_8060b23}
 
 Creates an expression that checks if a field's array value contains all the specified values or expressions.
 
@@ -4794,7 +4776,7 @@ arrayContainsAll("tags", [field("tag1"), "SciFi", "Adventure"]);
 
 ```
 
-### arrayContainsAll(fieldName, arrayExpression) {:#arraycontainsall_b9c42f9}
+### arrayContainsAll(fieldName, arrayExpression) {:#arraycontainsall_48da8d9}
 
 Creates an expression that checks if a field's array value contains all the specified values or expressions.
 
@@ -4829,7 +4811,7 @@ arrayContainsAll("tags", [field("tag1"), "SciFi", "Adventure"]);
 
 ```
 
-### arrayContainsAny(fieldName, values) {:#arraycontainsany_ffd8514}
+### arrayContainsAny(fieldName, values) {:#arraycontainsany_8060b23}
 
 Creates an expression that checks if a field's array value contains any of the specified elements.
 
@@ -4865,7 +4847,7 @@ arrayContainsAny("categories", [field("cate1"), "Science"]);
 
 ```
 
-### arrayContainsAny(fieldName, values) {:#arraycontainsany_b64de61}
+### arrayContainsAny(fieldName, values) {:#arraycontainsany_1b4f7cd}
 
 Creates an expression that checks if a field's array value contains any of the specified elements.
 
@@ -4901,7 +4883,7 @@ arrayContainsAny("categories", array([field("cate1"), "Science"]));
 
 ```
 
-### arrayFilter(fieldName, alias, filter) {:#arrayfilter_67b2eee}
+### arrayFilter(fieldName, alias, filter) {:#arrayfilter_ab67868}
 
 Creates an expression that filters an array using a provided alias and predicate expression.
 
@@ -4969,7 +4951,7 @@ arrayFirst("tags");
 
 ```
 
-### arrayFirstN(fieldName, n) {:#arrayfirstn_cf62534}
+### arrayFirstN(fieldName, n) {:#arrayfirstn_597a4d9}
 
 Creates an expression that returns the first `n` elements of an array.
 
@@ -5004,7 +4986,7 @@ arrayFirstN("tags", 3);
 
 ```
 
-### arrayFirstN(fieldName, n) {:#arrayfirstn_c64b3b5}
+### arrayFirstN(fieldName, n) {:#arrayfirstn_1a86a2c}
 
 Creates an expression that returns the first `n` elements of an array.
 
@@ -5039,7 +5021,7 @@ arrayFirstN("tags", field("count"));
 
 ```
 
-### arrayIndexOf(fieldName, search) {:#arrayindexof_94763f9}
+### arrayIndexOf(fieldName, search) {:#arrayindexof_5e4c2c3}
 
 Creates an expression that returns the first index of the search value in an array. Returns -1 if the value is not found.
 
@@ -5074,7 +5056,7 @@ arrayIndexOf("tags", "politics");
 
 ```
 
-### arrayIndexOfAll(fieldName, search) {:#arrayindexofall_94763f9}
+### arrayIndexOfAll(fieldName, search) {:#arrayindexofall_5e4c2c3}
 
 Creates an expression that returns all indices of the search value in an array.
 
@@ -5140,7 +5122,7 @@ arrayLast("tags");
 
 ```
 
-### arrayLastIndexOf(fieldName, search) {:#arraylastindexof_94763f9}
+### arrayLastIndexOf(fieldName, search) {:#arraylastindexof_5e4c2c3}
 
 Creates an expression that returns the last index of the search value in an array. Returns -1 if the value is not found.
 
@@ -5175,7 +5157,7 @@ arrayLastIndexOf("tags", "politics");
 
 ```
 
-### arrayLastN(fieldName, n) {:#arraylastn_cf62534}
+### arrayLastN(fieldName, n) {:#arraylastn_597a4d9}
 
 Creates an expression that returns the last `n` elements of an array.
 
@@ -5210,7 +5192,7 @@ arrayLastN("tags", 3);
 
 ```
 
-### arrayLastN(fieldName, n) {:#arraylastn_c64b3b5}
+### arrayLastN(fieldName, n) {:#arraylastn_1a86a2c}
 
 Creates an expression that returns the last `n` elements of an array.
 
@@ -5307,7 +5289,7 @@ arrayMaximum("scores");
 
 ```
 
-### arrayMaximumN(fieldName, n) {:#arraymaximumn_cf62534}
+### arrayMaximumN(fieldName, n) {:#arraymaximumn_597a4d9}
 
 Creates an expression that returns the largest `n` elements of an array.
 
@@ -5344,7 +5326,7 @@ arrayMaximumN("scores", 3);
 
 ```
 
-### arrayMaximumN(fieldName, n) {:#arraymaximumn_c64b3b5}
+### arrayMaximumN(fieldName, n) {:#arraymaximumn_1a86a2c}
 
 Creates an expression that returns the largest `n` elements of an array.
 
@@ -5412,7 +5394,7 @@ arrayMinimum("scores");
 
 ```
 
-### arrayMinimumN(fieldName, n) {:#arrayminimumn_cf62534}
+### arrayMinimumN(fieldName, n) {:#arrayminimumn_597a4d9}
 
 Creates an expression that returns the smallest `n` elements of an array.
 
@@ -5449,7 +5431,7 @@ arrayMinimumN("scores", 3);
 
 ```
 
-### arrayMinimumN(fieldName, n) {:#arrayminimumn_c64b3b5}
+### arrayMinimumN(fieldName, n) {:#arrayminimumn_1a86a2c}
 
 Creates an expression that returns the smallest `n` elements of an array.
 
@@ -5486,7 +5468,7 @@ arrayMinimumN(field("scores"), field("count"));
 
 ```
 
-### arraySlice(fieldName, offset, length) {:#arrayslice_01fb732}
+### arraySlice(fieldName, offset, length) {:#arrayslice_821aa43}
 
 Creates an expression that returns a slice of an array from `offset` with `length` elements.
 
@@ -5557,7 +5539,7 @@ arraySum("scores");
 
 ```
 
-### arrayTransform(fieldName, elementAlias, transform) {:#arraytransform_9db448b}
+### arrayTransform(fieldName, elementAlias, transform) {:#arraytransform_328a090}
 
 Creates an expression that applies a provided transformation to each element in an array.
 
@@ -5594,7 +5576,7 @@ arrayTransform("scores", "score", multiply(variable("score"), 10));
 
 ```
 
-### arrayTransformWithIndex(fieldName, elementAlias, indexAlias, transform) {:#arraytransformwithindex_d88c23d}
+### arrayTransformWithIndex(fieldName, elementAlias, indexAlias, transform) {:#arraytransformwithindex_e6629b2}
 
 Creates an expression that applies a provided transformation to each element in an array, providing the element's index to the transformation expression.
 
@@ -5789,7 +5771,7 @@ charLength("name");
 
 ```
 
-### coalesce(fieldName, replacement, others) {:#coalesce_29893b0}
+### coalesce(fieldName, replacement, others) {:#coalesce_249958e}
 
 Creates an expression that returns the first non-null, non-absent argument, without evaluating the rest of the arguments. When all arguments are null or absent, returns the last argument.
 
@@ -5858,7 +5840,7 @@ collectionId("__name__");
 
 ```
 
-### concat(fieldName, second, others) {:#concat_0cf8d1a}
+### concat(fieldName, second, others) {:#concat_828272e}
 
 Creates an expression that concatenates strings, arrays, or blobs. Types cannot be mixed.
 
@@ -5895,7 +5877,7 @@ concat(field("firstName"), "Doe")
 
 ```
 
-### cosineDistance(fieldName, vector) {:#cosinedistance_6280b65}
+### cosineDistance(fieldName, vector) {:#cosinedistance_463a23e}
 
 Calculates the Cosine distance between a field's vector value and a literal vector value.
 
@@ -5913,7 +5895,7 @@ export declare function cosineDistance(
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  fieldName | string | The name of the field containing the first vector. |
-|  vector | number\[\] \| [VectorValue](./firestore_lite.vectorvalue.md#vectorvalue_class) | The other vector (as an array of doubles) or [VectorValue](./firestore_.vectorvalue.md#vectorvalue_class) to compare against. |
+|  vector | number\[\] \| [VectorValue](./firestore.vectorvalue.md#vectorvalue_class) | The other vector (as an array of doubles) or [VectorValue](./firestore.vectorvalue.md#vectorvalue_class) to compare against. |
 
 <b>Returns:</b>
 
@@ -5930,7 +5912,7 @@ cosineDistance("location", [37.7749, -122.4194]);
 
 ```
 
-### cosineDistance(fieldName, vectorExpression) {:#cosinedistance_cfadf52}
+### cosineDistance(fieldName, vectorExpression) {:#cosinedistance_ed766a1}
 
 Calculates the Cosine distance between a field's vector value and a vector expression.
 
@@ -6028,7 +6010,7 @@ firestore.pipeline().collection("users")
 
 ```
 
-### divide(fieldName, expressions) {:#divide_e7c924c}
+### divide(fieldName, expressions) {:#divide_cf36e43}
 
 Creates an expression that divides a field's value by an expression.
 
@@ -6063,7 +6045,7 @@ divide("total", field("count"));
 
 ```
 
-### divide(fieldName, value) {:#divide_8c6cc18}
+### divide(fieldName, value) {:#divide_65e2f32}
 
 Creates an expression that divides a field's value by a constant value.
 
@@ -6098,7 +6080,7 @@ divide("value", 10);
 
 ```
 
-### dotProduct(fieldName, vector) {:#dotproduct_6280b65}
+### dotProduct(fieldName, vector) {:#dotproduct_463a23e}
 
 Calculates the dot product between a field's vector value and a double array.
 
@@ -6116,7 +6098,7 @@ export declare function dotProduct(
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  fieldName | string | The name of the field containing the first vector. |
-|  vector | number\[\] \| [VectorValue](./firestore_lite.vectorvalue.md#vectorvalue_class) | The other vector (as an array of doubles or VectorValue) to calculate with. |
+|  vector | number\[\] \| [VectorValue](./firestore.vectorvalue.md#vectorvalue_class) | The other vector (as an array of doubles or VectorValue) to calculate with. |
 
 <b>Returns:</b>
 
@@ -6133,7 +6115,7 @@ dotProduct("features", [0.5, 0.8, 0.2]);
 
 ```
 
-### dotProduct(fieldName, vectorExpression) {:#dotproduct_cfadf52}
+### dotProduct(fieldName, vectorExpression) {:#dotproduct_ed766a1}
 
 Calculates the dot product between a field's vector value and a vector expression.
 
@@ -6168,7 +6150,7 @@ dotProduct("docVector1", field("docVector2"));
 
 ```
 
-### endsWith(fieldName, suffix) {:#endswith_b4cc8ce}
+### endsWith(fieldName, suffix) {:#endswith_05ca3b0}
 
 Creates an expression that checks if a field's value ends with a given postfix.
 
@@ -6203,7 +6185,7 @@ endsWith("filename", ".txt");
 
 ```
 
-### endsWith(fieldName, suffix) {:#endswith_d6966d2}
+### endsWith(fieldName, suffix) {:#endswith_8fc0ebc}
 
 Creates an expression that checks if a field's value ends with a given postfix.
 
@@ -6238,7 +6220,7 @@ endsWith("url", field("extension"));
 
 ```
 
-### equal(fieldName, expression) {:#equal_f88256e}
+### equal(fieldName, expression) {:#equal_1e91657}
 
 Creates an expression that checks if a field's value is equal to an expression.
 
@@ -6273,7 +6255,7 @@ equal("age", field("limit"));
 
 ```
 
-### equal(fieldName, value) {:#equal_8c6cc18}
+### equal(fieldName, value) {:#equal_65e2f32}
 
 Creates an expression that checks if a field's value is equal to a constant value.
 
@@ -6308,7 +6290,7 @@ equal("city", "London");
 
 ```
 
-### equalAny(fieldName, values) {:#equalany_ffd8514}
+### equalAny(fieldName, values) {:#equalany_8060b23}
 
 Creates an expression that checks if a field's value is equal to any of the provided values or expressions.
 
@@ -6343,7 +6325,7 @@ equalAny("category", [constant("Electronics"), field("primaryType")]);
 
 ```
 
-### equalAny(fieldName, arrayExpression) {:#equalany_b9c42f9}
+### equalAny(fieldName, arrayExpression) {:#equalany_48da8d9}
 
 Creates an expression that checks if a field's value is equal to any of the provided values or expressions.
 
@@ -6378,7 +6360,7 @@ equalAny("category", ["Electronics", field("primaryType")]);
 
 ```
 
-### euclideanDistance(fieldName, vector) {:#euclideandistance_6280b65}
+### euclideanDistance(fieldName, vector) {:#euclideandistance_463a23e}
 
 Calculates the Euclidean distance between a field's vector value and a double array.
 
@@ -6396,7 +6378,7 @@ export declare function euclideanDistance(
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  fieldName | string | The name of the field containing the first vector. |
-|  vector | number\[\] \| [VectorValue](./firestore_lite.vectorvalue.md#vectorvalue_class) | The other vector (as an array of doubles or VectorValue) to compare against. |
+|  vector | number\[\] \| [VectorValue](./firestore.vectorvalue.md#vectorvalue_class) | The other vector (as an array of doubles or VectorValue) to compare against. |
 
 <b>Returns:</b>
 
@@ -6413,7 +6395,7 @@ euclideanDistance("location", [37.7749, -122.4194]);
 
 ```
 
-### euclideanDistance(fieldName, vectorExpression) {:#euclideandistance_cfadf52}
+### euclideanDistance(fieldName, vectorExpression) {:#euclideandistance_ed766a1}
 
 Calculates the Euclidean distance between a field's vector value and a vector expression.
 
@@ -6563,7 +6545,7 @@ export declare function floor(fieldName: string): FunctionExpression;
 
 A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the floor of the numeric value.
 
-### geoDistance(fieldName, location) {:#geodistance_545997c}
+### geoDistance(fieldName, location) {:#geodistance_ea237a8}
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
@@ -6586,7 +6568,7 @@ export declare function geoDistance(
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  fieldName | string \| [Field](./firestore_lite_pipelines.field.md#field_class) | Specifies the field in the document which contains the first GeoPoint for distance computation. |
-|  location | [GeoPoint](./firestore_lite.geopoint.md#geopoint_class) \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) | Compute distance to this GeoPoint. |
+|  location | [GeoPoint](./firestore.geopoint.md#geopoint_class) \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) | Compute distance to this GeoPoint. |
 
 <b>Returns:</b>
 
@@ -6603,7 +6585,7 @@ db.pipeline().collection('restaurants').search({
 
 ```
 
-### greaterThan(fieldName, expression) {:#greaterthan_f88256e}
+### greaterThan(fieldName, expression) {:#greaterthan_1e91657}
 
 Creates an expression that checks if a field's value is greater than an expression.
 
@@ -6638,7 +6620,7 @@ greaterThan("age", field("limit"));
 
 ```
 
-### greaterThan(fieldName, value) {:#greaterthan_8c6cc18}
+### greaterThan(fieldName, value) {:#greaterthan_65e2f32}
 
 Creates an expression that checks if a field's value is greater than a constant value.
 
@@ -6673,7 +6655,7 @@ greaterThan("price", 100);
 
 ```
 
-### greaterThanOrEqual(fieldName, value) {:#greaterthanorequal_fed7016}
+### greaterThanOrEqual(fieldName, value) {:#greaterthanorequal_2e16acb}
 
 Creates an expression that checks if a field's value is greater than or equal to an expression.
 
@@ -6708,7 +6690,7 @@ greaterThanOrEqual("age", field("limit"));
 
 ```
 
-### greaterThanOrEqual(fieldName, value) {:#greaterthanorequal_8c6cc18}
+### greaterThanOrEqual(fieldName, value) {:#greaterthanorequal_65e2f32}
 
 Creates an expression that checks if a field's value is greater than or equal to a constant value.
 
@@ -6743,7 +6725,7 @@ greaterThanOrEqual("score", 80);
 
 ```
 
-### isType(fieldName, type) {:#istype_7c1d99a}
+### isType(fieldName, type) {:#istype_ec95173}
 
 Creates an expression that checks if the value in the specified field is of the given type.
 
@@ -6845,7 +6827,7 @@ length("cart");
 
 ```
 
-### lessThan(fieldName, expression) {:#lessthan_f88256e}
+### lessThan(fieldName, expression) {:#lessthan_1e91657}
 
 Creates an expression that checks if a field's value is less than an expression.
 
@@ -6880,7 +6862,7 @@ lessThan("age", field("limit"));
 
 ```
 
-### lessThan(fieldName, value) {:#lessthan_8c6cc18}
+### lessThan(fieldName, value) {:#lessthan_65e2f32}
 
 Creates an expression that checks if a field's value is less than a constant value.
 
@@ -6915,7 +6897,7 @@ lessThan("price", 50);
 
 ```
 
-### lessThanOrEqual(fieldName, expression) {:#lessthanorequal_f88256e}
+### lessThanOrEqual(fieldName, expression) {:#lessthanorequal_1e91657}
 
 Creates an expression that checks if a field's value is less than or equal to an expression.
 
@@ -6950,7 +6932,7 @@ lessThan("quantity", field("limit"));
 
 ```
 
-### lessThanOrEqual(fieldName, value) {:#lessthanorequal_8c6cc18}
+### lessThanOrEqual(fieldName, value) {:#lessthanorequal_65e2f32}
 
 Creates an expression that checks if a field's value is less than or equal to a constant value.
 
@@ -6985,7 +6967,7 @@ lessThan("score", 70);
 
 ```
 
-### like(fieldName, pattern) {:#like_598174e}
+### like(fieldName, pattern) {:#like_67f7432}
 
 Creates an expression that performs a case-sensitive wildcard string comparison against a field.
 
@@ -7020,7 +7002,7 @@ like("title", "%guide%");
 
 ```
 
-### like(fieldName, pattern) {:#like_3f62877}
+### like(fieldName, pattern) {:#like_cb1318d}
 
 Creates an expression that performs a case-sensitive wildcard string comparison against a field.
 
@@ -7086,7 +7068,7 @@ ln("value");
 
 ```
 
-### log(fieldName, base) {:#log_c9ae087}
+### log(fieldName, base) {:#log_a89e21b}
 
 Creates an expression that computes the logarithm of a field to a given base.
 
@@ -7121,7 +7103,7 @@ log("value", 10);
 
 ```
 
-### log(fieldName, base) {:#log_48b0391}
+### log(fieldName, base) {:#log_805b11f}
 
 Creates an expression that computes the logarithm of a field to a given base.
 
@@ -7187,7 +7169,7 @@ log10("value");
 
 ```
 
-### logicalMaximum(fieldName, second, others) {:#logicalmaximum_0cf8d1a}
+### logicalMaximum(fieldName, second, others) {:#logicalmaximum_828272e}
 
 Creates an expression that returns the largest value between multiple input expressions or literal values. Based on Firestore's value type ordering.
 
@@ -7225,7 +7207,7 @@ logicalMaximum("field1", field("field2"), 1000);
 
 ```
 
-### logicalMinimum(fieldName, second, others) {:#logicalminimum_0cf8d1a}
+### logicalMinimum(fieldName, second, others) {:#logicalminimum_828272e}
 
 Creates an expression that returns the smallest value between a field's value and other input expressions or literal values. Based on Firestore's value type ordering.
 
@@ -7263,7 +7245,7 @@ logicalMinimum("field1", field("field2"), 1000);
 
 ```
 
-### ltrim(fieldName, valueToTrim) {:#ltrim_51ce18e}
+### ltrim(fieldName, valueToTrim) {:#ltrim_c0e3211}
 
 Trims whitespace or a specified set of characters/bytes from the beginning of a string or byte array.
 
@@ -7281,7 +7263,7 @@ export declare function ltrim(
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  fieldName | string | The name of the field containing the string or byte array. |
-|  valueToTrim | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore_lite.bytes.md#bytes_class) | Optional. A string or byte array containing the characters/bytes to trim. If not specified, whitespace will be trimmed. |
+|  valueToTrim | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore.bytes.md#bytes_class) | Optional. A string or byte array containing the characters/bytes to trim. If not specified, whitespace will be trimmed. |
 
 <b>Returns:</b>
 
@@ -7301,7 +7283,7 @@ ltrim(field("userInput"), '"');
 
 ```
 
-### mapGet(fieldName, subField) {:#mapget_cfb0508}
+### mapGet(fieldName, subField) {:#mapget_06663cf}
 
 Accesses a value from a map (object) field using the provided key.
 
@@ -7398,7 +7380,7 @@ minimum("price").as("lowestPrice");
 
 ```
 
-### mod(fieldName, expression) {:#mod_f88256e}
+### mod(fieldName, expression) {:#mod_1e91657}
 
 Creates an expression that calculates the modulo (remainder) of dividing a field's value by an expression.
 
@@ -7433,7 +7415,7 @@ mod("field1", field("field2"));
 
 ```
 
-### mod(fieldName, value) {:#mod_8c6cc18}
+### mod(fieldName, value) {:#mod_65e2f32}
 
 Creates an expression that calculates the modulo (remainder) of dividing a field's value by a constant.
 
@@ -7468,7 +7450,7 @@ mod("field1", 5);
 
 ```
 
-### multiply(fieldName, second) {:#multiply_3a28021}
+### multiply(fieldName, second) {:#multiply_b75bb8b}
 
 Creates an expression that multiplies a field's value by an expression.
 
@@ -7503,7 +7485,7 @@ multiply("quantity", field("price"));
 
 ```
 
-### notEqual(fieldName, expression) {:#notequal_f88256e}
+### notEqual(fieldName, expression) {:#notequal_1e91657}
 
 Creates an expression that checks if a field's value is not equal to an expression.
 
@@ -7538,7 +7520,7 @@ notEqual("status", field("expectedStatus"));
 
 ```
 
-### notEqual(fieldName, value) {:#notequal_8c6cc18}
+### notEqual(fieldName, value) {:#notequal_65e2f32}
 
 Creates an expression that checks if a field's value is not equal to a constant value.
 
@@ -7573,7 +7555,7 @@ notEqual("country", "USA");
 
 ```
 
-### notEqualAny(fieldName, values) {:#notequalany_ffd8514}
+### notEqualAny(fieldName, values) {:#notequalany_8060b23}
 
 Creates an expression that checks if a field's value is not equal to any of the provided values or expressions.
 
@@ -7608,7 +7590,7 @@ notEqualAny("status", [constant("pending"), field("rejectedStatus")]);
 
 ```
 
-### notEqualAny(fieldName, arrayExpression) {:#notequalany_b9c42f9}
+### notEqualAny(fieldName, arrayExpression) {:#notequalany_48da8d9}
 
 Creates an expression that checks if a field's value is not equal to any of the values in the evaluated expression.
 
@@ -7643,7 +7625,7 @@ notEqualAny("status", field("rejectedStatuses"));
 
 ```
 
-### regexContains(fieldName, pattern) {:#regexcontains_598174e}
+### regexContains(fieldName, pattern) {:#regexcontains_67f7432}
 
 Creates an expression that checks if a string field contains a specified regular expression as a substring.
 
@@ -7678,7 +7660,7 @@ regexContains("description", "(?i)example");
 
 ```
 
-### regexContains(fieldName, pattern) {:#regexcontains_3f62877}
+### regexContains(fieldName, pattern) {:#regexcontains_cb1318d}
 
 Creates an expression that checks if a string field contains a specified regular expression as a substring.
 
@@ -7713,7 +7695,7 @@ regexContains("description", field("pattern"));
 
 ```
 
-### regexFind(fieldName, pattern) {:#regexfind_598174e}
+### regexFind(fieldName, pattern) {:#regexfind_67f7432}
 
 Creates an expression that returns the first substring of a string field that matches a specified regular expression.
 
@@ -7750,7 +7732,7 @@ regexFind("email", "@[A-Za-z0-9.-]+");
 
 ```
 
-### regexFind(fieldName, pattern) {:#regexfind_3f62877}
+### regexFind(fieldName, pattern) {:#regexfind_cb1318d}
 
 Creates an expression that returns the first substring of a string field that matches a specified regular expression.
 
@@ -7787,7 +7769,7 @@ regexFind("email", field("pattern"));
 
 ```
 
-### regexFindAll(fieldName, pattern) {:#regexfindall_598174e}
+### regexFindAll(fieldName, pattern) {:#regexfindall_67f7432}
 
 Creates an expression that evaluates to a list of all substrings in a string field that match a specified regular expression.
 
@@ -7824,7 +7806,7 @@ regexFindAll("content", "#[A-Za-z0-9_]+");
 
 ```
 
-### regexFindAll(fieldName, pattern) {:#regexfindall_3f62877}
+### regexFindAll(fieldName, pattern) {:#regexfindall_cb1318d}
 
 Creates an expression that evaluates to a list of all substrings in a string field that match a specified regular expression.
 
@@ -7861,7 +7843,7 @@ regexFindAll("content", field("pattern"));
 
 ```
 
-### regexMatch(fieldName, pattern) {:#regexmatch_598174e}
+### regexMatch(fieldName, pattern) {:#regexmatch_67f7432}
 
 Creates an expression that checks if a string field matches a specified regular expression.
 
@@ -7896,7 +7878,7 @@ regexMatch("email", "[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}");
 
 ```
 
-### regexMatch(fieldName, pattern) {:#regexmatch_3f62877}
+### regexMatch(fieldName, pattern) {:#regexmatch_cb1318d}
 
 Creates an expression that checks if a string field matches a specified regular expression.
 
@@ -7962,7 +7944,7 @@ round("price");
 
 ```
 
-### round(fieldName, decimalPlaces) {:#round_cf40bc8}
+### round(fieldName, decimalPlaces) {:#round_07d0cf0}
 
 Creates an expression that rounds a numeric value to the specified number of decimal places.
 
@@ -7997,7 +7979,7 @@ round("price", 2);
 
 ```
 
-### rtrim(fieldName, valueToTrim) {:#rtrim_51ce18e}
+### rtrim(fieldName, valueToTrim) {:#rtrim_c0e3211}
 
 Trims whitespace or a specified set of characters/bytes from the end of a string or byte array.
 
@@ -8015,7 +7997,7 @@ export declare function rtrim(
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  fieldName | string | The name of the field containing the string or byte array. |
-|  valueToTrim | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore_lite.bytes.md#bytes_class) | Optional. A string or byte array containing the characters/bytes to trim. If not specified, whitespace will be trimmed. |
+|  valueToTrim | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore.bytes.md#bytes_class) | Optional. A string or byte array containing the characters/bytes to trim. If not specified, whitespace will be trimmed. |
 
 <b>Returns:</b>
 
@@ -8035,7 +8017,7 @@ rtrim(field("userInput"), '"');
 
 ```
 
-### split(fieldName, delimiter) {:#split_13cbfd8}
+### split(fieldName, delimiter) {:#split_2cfdd37}
 
 Creates an expression that splits the value of a field on the provided delimiter.
 
@@ -8070,7 +8052,7 @@ split('scoresCsv', ',')
 
 ```
 
-### split(fieldName, delimiter) {:#split_abff8cb}
+### split(fieldName, delimiter) {:#split_f4fe06a}
 
 Creates an expression that splits the value of a field on the provided delimiter.
 
@@ -8136,7 +8118,7 @@ sqrt("value");
 
 ```
 
-### startsWith(fieldName, prefix) {:#startswith_637f73d}
+### startsWith(fieldName, prefix) {:#startswith_89325cc}
 
 Creates an expression that checks if a field's value starts with a given prefix.
 
@@ -8171,7 +8153,7 @@ startsWith("name", "Mr.");
 
 ```
 
-### startsWith(fieldName, prefix) {:#startswith_700feff}
+### startsWith(fieldName, prefix) {:#startswith_266c338}
 
 Creates an expression that checks if a field's value starts with a given prefix.
 
@@ -8206,7 +8188,7 @@ startsWith("fullName", field("firstName"));
 
 ```
 
-### stringConcat(fieldName, secondString, otherStrings) {:#stringconcat_c8c04c2}
+### stringConcat(fieldName, secondString, otherStrings) {:#stringconcat_d80077e}
 
 Creates an expression that concatenates string functions, fields or constants together.
 
@@ -8243,7 +8225,7 @@ stringConcat("firstName", " ", field("lastName"));
 
 ```
 
-### stringContains(fieldName, substring) {:#stringcontains_1f3cc9d}
+### stringContains(fieldName, substring) {:#stringcontains_5b94cfe}
 
 Creates an expression that checks if a string field contains a specified substring.
 
@@ -8278,7 +8260,7 @@ stringContains("description", "example");
 
 ```
 
-### stringContains(fieldName, substring) {:#stringcontains_2fe7957}
+### stringContains(fieldName, substring) {:#stringcontains_ac3ba47}
 
 Creates an expression that checks if a string field contains a substring specified by an expression.
 
@@ -8313,7 +8295,7 @@ stringContains("description", field("keyword"));
 
 ```
 
-### stringIndexOf(fieldName, search) {:#stringindexof_e932c8d}
+### stringIndexOf(fieldName, search) {:#stringindexof_6c4650e}
 
 Creates an expression that finds the index of the first occurrence of a substring or byte sequence.
 
@@ -8331,7 +8313,7 @@ export declare function stringIndexOf(
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  fieldName | string | The name of the field containing the string or byte array. |
-|  search | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore_lite.bytes.md#bytes_class) | The substring or byte sequence to search for. |
+|  search | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore.bytes.md#bytes_class) | The substring or byte sequence to search for. |
 
 <b>Returns:</b>
 
@@ -8348,7 +8330,7 @@ stringIndexOf("text", "foo");
 
 ```
 
-### stringRepeat(fieldName, repetitions) {:#stringrepeat_716e510}
+### stringRepeat(fieldName, repetitions) {:#stringrepeat_e144a59}
 
 Creates an expression that repeats a string or byte array a specified number of times.
 
@@ -8383,7 +8365,7 @@ stringRepeat("label", 3);
 
 ```
 
-### stringReplaceAll(fieldName, find, replacement) {:#stringreplaceall_bfe4369}
+### stringReplaceAll(fieldName, find, replacement) {:#stringreplaceall_b0db15f}
 
 Creates an expression that replaces all occurrences of a substring or byte sequence with a replacement.
 
@@ -8402,8 +8384,8 @@ export declare function stringReplaceAll(
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  fieldName | string | The name of the field containing the string or byte array. |
-|  find | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore_lite.bytes.md#bytes_class) | The substring or byte sequence to search for. |
-|  replacement | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore_lite.bytes.md#bytes_class) | The replacement string or byte sequence. |
+|  find | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore.bytes.md#bytes_class) | The substring or byte sequence to search for. |
+|  replacement | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore.bytes.md#bytes_class) | The replacement string or byte sequence. |
 
 <b>Returns:</b>
 
@@ -8420,7 +8402,7 @@ stringReplaceAll("text", "foo", "bar");
 
 ```
 
-### stringReplaceOne(fieldName, find, replacement) {:#stringreplaceone_bfe4369}
+### stringReplaceOne(fieldName, find, replacement) {:#stringreplaceone_b0db15f}
 
 Creates an expression that replaces the first occurrence of a substring or byte sequence with a replacement.
 
@@ -8439,8 +8421,8 @@ export declare function stringReplaceOne(
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  fieldName | string | The name of the field containing the string or byte array. |
-|  find | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore_lite.bytes.md#bytes_class) | The substring or byte sequence to search for. |
-|  replacement | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore_lite.bytes.md#bytes_class) | The replacement string or byte sequence. |
+|  find | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore.bytes.md#bytes_class) | The substring or byte sequence to search for. |
+|  replacement | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore.bytes.md#bytes_class) | The replacement string or byte sequence. |
 
 <b>Returns:</b>
 
@@ -8457,7 +8439,7 @@ stringReplaceOne("text", "foo", "bar");
 
 ```
 
-### subtract(fieldName, expression) {:#subtract_f88256e}
+### subtract(fieldName, expression) {:#subtract_1e91657}
 
 Creates an expression that subtracts an expression from a field's value.
 
@@ -8492,7 +8474,7 @@ subtract("price", field("discount"));
 
 ```
 
-### subtract(fieldName, value) {:#subtract_8c6cc18}
+### subtract(fieldName, value) {:#subtract_65e2f32}
 
 Creates an expression that subtracts a constant value from a field's value.
 
@@ -8558,7 +8540,7 @@ sum("orderAmount").as("totalRevenue");
 
 ```
 
-### timestampAdd(fieldName, unit, amount) {:#timestampadd_a1a022a}
+### timestampAdd(fieldName, unit, amount) {:#timestampadd_3b0a297}
 
 Creates an expression that adds a specified amount of time to a timestamp represented by a field.
 
@@ -8595,7 +8577,7 @@ timestampAdd("timestamp", "day", 1);
 
 ```
 
-### timestampExtract(fieldName, part, timezone) {:#timestampextract_93ba955}
+### timestampExtract(fieldName, part, timezone) {:#timestampextract_a51c205}
 
 Creates an expression that extracts a specified part from a timestamp.
 
@@ -8632,7 +8614,7 @@ timestampExtract('createdAt', 'year')
 
 ```
 
-### timestampExtract(fieldName, part, timezone) {:#timestampextract_f2c636c}
+### timestampExtract(fieldName, part, timezone) {:#timestampextract_2d51eac}
 
 Creates an expression that extracts a specified part from a timestamp.
 
@@ -8669,7 +8651,7 @@ timestampExtract('createdAt', field('part'))
 
 ```
 
-### timestampSubtract(fieldName, unit, amount) {:#timestampsubtract_a1a022a}
+### timestampSubtract(fieldName, unit, amount) {:#timestampsubtract_3b0a297}
 
 Creates an expression that subtracts a specified amount of time from a timestamp represented by a field.
 
@@ -8706,7 +8688,7 @@ timestampSubtract("timestamp", "day", 1);
 
 ```
 
-### timestampToUnixMicros(fieldName) {:#timestamptounixmicros_f4ac2ad}
+### timestampToUnixMicros(fieldName) {:#timestamptounixmicros_e5b0480}
 
 Creates an expression that converts a timestamp field to the number of microseconds since the Unix epoch (1970-01-01 00:00:00 UTC).
 
@@ -8739,7 +8721,7 @@ timestampToUnixMicros("timestamp");
 
 ```
 
-### timestampToUnixMillis(fieldName) {:#timestamptounixmillis_f4ac2ad}
+### timestampToUnixMillis(fieldName) {:#timestamptounixmillis_e5b0480}
 
 Creates an expression that converts a timestamp field to the number of milliseconds since the Unix epoch (1970-01-01 00:00:00 UTC).
 
@@ -8772,7 +8754,7 @@ timestampToUnixMillis("timestamp");
 
 ```
 
-### timestampToUnixSeconds(fieldName) {:#timestamptounixseconds_f4ac2ad}
+### timestampToUnixSeconds(fieldName) {:#timestamptounixseconds_e5b0480}
 
 Creates an expression that converts a timestamp field to the number of seconds since the Unix epoch (1970-01-01 00:00:00 UTC).
 
@@ -8805,7 +8787,7 @@ timestampToUnixSeconds("timestamp");
 
 ```
 
-### timestampTruncate(fieldName, granularity, timezone) {:#timestamptruncate_47707eb}
+### timestampTruncate(fieldName, granularity, timezone) {:#timestamptruncate_b6c7512}
 
 Creates an expression that truncates a timestamp to a specified granularity.
 
@@ -8842,7 +8824,7 @@ timestampTruncate('createdAt', 'day')
 
 ```
 
-### timestampTruncate(fieldName, granularity, timezone) {:#timestamptruncate_383c346}
+### timestampTruncate(fieldName, granularity, timezone) {:#timestamptruncate_ed83d46}
 
 Creates an expression that truncates a timestamp to a specified granularity.
 
@@ -8941,7 +8923,7 @@ toUpper("title");
 
 ```
 
-### trim(fieldName, valueToTrim) {:#trim_4c35437}
+### trim(fieldName, valueToTrim) {:#trim_c9f90ee}
 
 Creates an expression that removes leading and trailing whitespace from a string or byte array.
 
@@ -9010,7 +8992,7 @@ trunc("rating");
 
 ```
 
-### trunc(fieldName, decimalPlaces) {:#trunc_cf40bc8}
+### trunc(fieldName, decimalPlaces) {:#trunc_07d0cf0}
 
 Creates an expression that truncates a numeric expression to the specified number of decimal places.
 
@@ -9078,7 +9060,7 @@ type('title')
 
 ```
 
-### unixMicrosToTimestamp(fieldName) {:#unixmicrostotimestamp_f4ac2ad}
+### unixMicrosToTimestamp(fieldName) {:#unixmicrostotimestamp_e5b0480}
 
 Creates an expression that interprets a field's value as the number of microseconds since the Unix epoch (1970-01-01 00:00:00 UTC) and returns a timestamp.
 
@@ -9111,7 +9093,7 @@ unixMicrosToTimestamp("microseconds");
 
 ```
 
-### unixMillisToTimestamp(fieldName) {:#unixmillistotimestamp_f4ac2ad}
+### unixMillisToTimestamp(fieldName) {:#unixmillistotimestamp_e5b0480}
 
 Creates an expression that interprets a field's value as the number of milliseconds since the Unix epoch (1970-01-01 00:00:00 UTC) and returns a timestamp.
 
@@ -9144,7 +9126,7 @@ unixMillisToTimestamp("milliseconds");
 
 ```
 
-### unixSecondsToTimestamp(fieldName) {:#unixsecondstotimestamp_f4ac2ad}
+### unixSecondsToTimestamp(fieldName) {:#unixsecondstotimestamp_e5b0480}
 
 Creates an expression that interprets a field's value as the number of seconds since the Unix epoch (1970-01-01 00:00:00 UTC) and returns a timestamp.
 
@@ -9210,7 +9192,7 @@ vectorLength("embedding");
 
 ## function(first, ...)
 
-### add(first, second) {:#add_d7f0789}
+### add(first, second) {:#add_846ca1b}
 
 Creates an expression that adds two expressions together.
 
@@ -9245,7 +9227,7 @@ add(field("quantity"), field("reserve"));
 
 ```
 
-### and(first, second, more) {:#and_2d5055a}
+### and(first, second, more) {:#and_e0c48bd}
 
 Creates an expression that performs a logical 'AND' operation on multiple filter conditions.
 
@@ -9283,7 +9265,7 @@ const condition = and(greaterThan("age", 18), equal("city", "London"), equal("st
 
 ```
 
-### concat(first, second, others) {:#concat_78ff353}
+### concat(first, second, others) {:#concat_83be015}
 
 Creates an expression that concatenates strings, arrays, or blobs. Types cannot be mixed.
 
@@ -9320,7 +9302,7 @@ concat(field("firstName"), " ", field("lastName"))
 
 ```
 
-### logicalMaximum(first, second, others) {:#logicalmaximum_78ff353}
+### logicalMaximum(first, second, others) {:#logicalmaximum_83be015}
 
 Creates an expression that returns the largest value between multiple input expressions or literal values. Based on Firestore's value type ordering.
 
@@ -9358,7 +9340,7 @@ logicalMaximum(field("field1"), field("field2"), 1000);
 
 ```
 
-### logicalMinimum(first, second, others) {:#logicalminimum_78ff353}
+### logicalMinimum(first, second, others) {:#logicalminimum_83be015}
 
 Creates an expression that returns the smallest value between multiple input expressions and literal values. Based on Firestore's value type ordering.
 
@@ -9396,7 +9378,7 @@ logicalMinimum(field("field1"), field("field2"), 1000);
 
 ```
 
-### multiply(first, second) {:#multiply_d7f0789}
+### multiply(first, second) {:#multiply_846ca1b}
 
 Creates an expression that multiplies two expressions together.
 
@@ -9431,7 +9413,7 @@ multiply(field("quantity"), field("price"));
 
 ```
 
-### nor(first, second, more) {:#nor_2d5055a}
+### nor(first, second, more) {:#nor_e0c48bd}
 
 Creates an expression that performs a logical 'NOR' operation on multiple filter conditions.
 
@@ -9471,7 +9453,7 @@ const condition = nor(
 
 ```
 
-### or(first, second, more) {:#or_2d5055a}
+### or(first, second, more) {:#or_e0c48bd}
 
 Creates an expression that performs a logical 'OR' operation on multiple filter conditions.
 
@@ -9509,7 +9491,7 @@ const condition = or(greaterThan("age", 18), equal("city", "London"), equal("sta
 
 ```
 
-### xor(first, second, additionalConditions) {:#xor_e05a1af}
+### xor(first, second, additionalConditions) {:#xor_8197113}
 
 Creates an expression that performs a logical 'XOR' (exclusive OR) operation on multiple BooleanExpressions.
 
@@ -9552,7 +9534,7 @@ const condition = xor(
 
 ## function(firstArray, ...)
 
-### arrayConcat(firstArray, secondArray, otherArrays) {:#arrayconcat_2cdf1af}
+### arrayConcat(firstArray, secondArray, otherArrays) {:#arrayconcat_c00d5d7}
 
 Creates an expression that concatenates an array expression with other arrays.
 
@@ -9591,7 +9573,7 @@ arrayConcat(field("items"), [field("newItems"), field("otherItems")]);
 
 ## function(firstArrayField, ...)
 
-### arrayConcat(firstArrayField, secondArray, otherArrays) {:#arrayconcat_814a128}
+### arrayConcat(firstArrayField, secondArray, otherArrays) {:#arrayconcat_f92063d}
 
 Creates an expression that concatenates a field's array value with other arrays.
 
@@ -9630,7 +9612,7 @@ arrayConcat("items", [field("newItems"), field("otherItems")]);
 
 ## function(firstMap, ...)
 
-### mapMerge(firstMap, secondMap, otherMaps) {:#mapmerge_766c688}
+### mapMerge(firstMap, secondMap, otherMaps) {:#mapmerge_cfe77ce}
 
 Creates an expression that merges multiple map values.
 
@@ -9668,7 +9650,7 @@ mapMerge(field('settings'), { enabled: true }, conditional(field('isAdmin'), { a
 
 ## function(firstString, ...)
 
-### stringConcat(firstString, secondString, otherStrings) {:#stringconcat_138eadc}
+### stringConcat(firstString, secondString, otherStrings) {:#stringconcat_8a8d1b6}
 
 Creates an expression that concatenates string expressions together.
 
@@ -9707,7 +9689,7 @@ stringConcat(field("firstName"), " ", field("lastName"));
 
 ## function(ifExpr, ...)
 
-### ifAbsent(ifExpr, elseExpr) {:#ifabsent_ecf8d77}
+### ifAbsent(ifExpr, elseExpr) {:#ifabsent_0e6d161}
 
 Creates an expression that returns the `elseExpr` argument if `ifExpr` is absent, else return the result of the `ifExpr` argument evaluation.
 
@@ -9743,7 +9725,7 @@ ifAbsent(field("optional_field"), constant("default_value"))
 
 ```
 
-### ifAbsent(ifExpr, elseValue) {:#ifabsent_6d48a51}
+### ifAbsent(ifExpr, elseValue) {:#ifabsent_c34e5ed}
 
 Creates an expression that returns the `elseValue` argument if `ifExpr` is absent, else return the result of the `ifExpr` argument evaluation.
 
@@ -9779,7 +9761,7 @@ ifAbsent(field("optional_field"), "default_value")
 
 ```
 
-### ifNull(ifExpr, elseExpr) {:#ifnull_ecf8d77}
+### ifNull(ifExpr, elseExpr) {:#ifnull_0e6d161}
 
 Creates an expression that returns the `elseExpr` argument if `ifExpr` is null, else return the result of the `ifExpr` argument evaluation.
 
@@ -9816,7 +9798,7 @@ ifNull(field("preferredName"), field("fullName"))
 
 ```
 
-### ifNull(ifExpr, elseValue) {:#ifnull_6d48a51}
+### ifNull(ifExpr, elseValue) {:#ifnull_c34e5ed}
 
 Creates an expression that returns the `elseValue` argument if `ifExpr` is null, else return the result of the `ifExpr` argument evaluation.
 
@@ -9855,7 +9837,7 @@ ifNull(field("displayName"), "Anonymous")
 
 ## function(ifFieldName, ...)
 
-### ifAbsent(ifFieldName, elseExpr) {:#ifabsent_9d152b2}
+### ifAbsent(ifFieldName, elseExpr) {:#ifabsent_e6dabea}
 
 Creates an expression that returns the `elseExpr` argument if `ifFieldName` is absent, else return the value of the field.
 
@@ -9891,7 +9873,7 @@ ifAbsent("optional_field", field("default_field"))
 
 ```
 
-### ifAbsent(ifFieldName, elseValue) {:#ifabsent_c161555}
+### ifAbsent(ifFieldName, elseValue) {:#ifabsent_d8f2823}
 
 Creates an expression that returns the `elseValue` argument if `ifFieldName` is absent, else return the value of the field.
 
@@ -9927,7 +9909,7 @@ ifAbsent("optional_field", "default_value")
 
 ```
 
-### ifNull(ifFieldName, elseExpr) {:#ifnull_9d152b2}
+### ifNull(ifFieldName, elseExpr) {:#ifnull_e6dabea}
 
 Creates an expression that returns the `elseExpr` argument if `ifFieldName` field is null, else return the value of the field.
 
@@ -9964,7 +9946,7 @@ ifNull("preferredName", field("fullName"))
 
 ```
 
-### ifNull(ifFieldName, elseValue) {:#ifnull_f3aa6ec}
+### ifNull(ifFieldName, elseValue) {:#ifnull_587c2f0}
 
 Creates an expression that returns the `elseValue` argument if `ifFieldName` field is null, else return the value of the field.
 
@@ -10003,7 +9985,7 @@ ifNull("displayName", "Anonymous")
 
 ## function(input, ...)
 
-### substring(input, position, length) {:#substring_712bf73}
+### substring(input, position, length) {:#substring_e6e0aa3}
 
 Creates an expression that returns a substring of a string or byte array.
 
@@ -10029,7 +10011,7 @@ export declare function substring(
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
 
-### substring(input, position, length) {:#substring_40a2ccc}
+### substring(input, position, length) {:#substring_ab56dc6}
 
 Creates an expression that returns a substring of a string or byte array.
 
@@ -10057,7 +10039,7 @@ export declare function substring(
 
 ## function(left, ...)
 
-### divide(left, right) {:#divide_74ec81e}
+### divide(left, right) {:#divide_b3c3382}
 
 Creates an expression that divides two expressions.
 
@@ -10092,7 +10074,7 @@ divide(field("total"), field("count"));
 
 ```
 
-### equal(left, right) {:#equal_74ec81e}
+### equal(left, right) {:#equal_b3c3382}
 
 Creates an expression that checks if two expressions are equal.
 
@@ -10127,7 +10109,7 @@ equal(field("age"), field("minAge").add(10));
 
 ```
 
-### greaterThan(left, right) {:#greaterthan_74ec81e}
+### greaterThan(left, right) {:#greaterthan_b3c3382}
 
 Creates an expression that checks if the first expression is greater than the second expression.
 
@@ -10162,7 +10144,7 @@ greaterThan(field("age"), constant(9).add(9));
 
 ```
 
-### greaterThanOrEqual(left, right) {:#greaterthanorequal_74ec81e}
+### greaterThanOrEqual(left, right) {:#greaterthanorequal_b3c3382}
 
 Creates an expression that checks if the first expression is greater than or equal to the second expression.
 
@@ -10197,7 +10179,7 @@ greaterThanOrEqual(field("quantity"), field("threshold"));
 
 ```
 
-### lessThan(left, right) {:#lessthan_74ec81e}
+### lessThan(left, right) {:#lessthan_b3c3382}
 
 Creates an expression that checks if the first expression is less than the second expression.
 
@@ -10232,7 +10214,7 @@ lessThan(field("age"), field("limit"));
 
 ```
 
-### lessThanOrEqual(left, right) {:#lessthanorequal_74ec81e}
+### lessThanOrEqual(left, right) {:#lessthanorequal_b3c3382}
 
 Creates an expression that checks if the first expression is less than or equal to the second expression.
 
@@ -10267,7 +10249,7 @@ lessThan(field("quantity"), field("limit"));
 
 ```
 
-### mod(left, right) {:#mod_74ec81e}
+### mod(left, right) {:#mod_b3c3382}
 
 Creates an expression that calculates the modulo (remainder) of dividing two expressions.
 
@@ -10302,7 +10284,7 @@ mod(field("field1"), field("field2"));
 
 ```
 
-### notEqual(left, right) {:#notequal_74ec81e}
+### notEqual(left, right) {:#notequal_b3c3382}
 
 Creates an expression that checks if two expressions are not equal.
 
@@ -10337,7 +10319,7 @@ notEqual(field("status"), field("finalState"));
 
 ```
 
-### subtract(left, right) {:#subtract_74ec81e}
+### subtract(left, right) {:#subtract_b3c3382}
 
 Creates an expression that subtracts two expressions.
 
@@ -10374,7 +10356,7 @@ subtract(field("price"), field("discount"));
 
 ## function(mapExpr, ...)
 
-### mapRemove(mapExpr, key) {:#mapremove_6f63632}
+### mapRemove(mapExpr, key) {:#mapremove_23c7d51}
 
 Creates an expression that removes a key from the map produced by evaluating an expression.
 
@@ -10407,7 +10389,7 @@ mapRemove(map({foo: 'bar', baz: true}), 'baz');
 
 ```
 
-### mapRemove(mapExpr, keyExpr) {:#mapremove_bc71043}
+### mapRemove(mapExpr, keyExpr) {:#mapremove_9fbcaa3}
 
 Creates an expression that removes a key from the map produced by evaluating an expression.
 
@@ -10442,7 +10424,7 @@ mapRemove(map({foo: 'bar', baz: true}), constant('baz'));
 
 ## function(mapExpression, ...)
 
-### mapEntries(mapExpression) {:#mapentries_9f5d9a5}
+### mapEntries(mapExpression) {:#mapentries_9cf124c}
 
 Creates an expression that returns the entries of a map as an array of maps, where each map contains a `"k"` property for the key and a `"v"` property for the value. For example: `[{ k: "key1", v: "value1" }, ...]`<!-- -->.
 
@@ -10477,7 +10459,7 @@ mapEntries(map({"city": "San Francisco"}));
 
 ```
 
-### mapGet(mapExpression, subField) {:#mapget_353ecb8}
+### mapGet(mapExpression, subField) {:#mapget_688c050}
 
 Accesses a value from a map (object) expression using the provided key.
 
@@ -10545,7 +10527,7 @@ mapKeys(map({"city": "San Francisco"}));
 
 ```
 
-### mapSet(mapExpression, key, value, moreKeyValues) {:#mapset_8af93e9}
+### mapSet(mapExpression, key, value, moreKeyValues) {:#mapset_45b48ff}
 
 Creates an expression that returns a new map with the specified entries added or updated.
 
@@ -10586,7 +10568,7 @@ mapSet(map({"state": "California"}), "city", "San Francisco");
 
 ```
 
-### mapValues(mapExpression) {:#mapvalues_9f5d9a5}
+### mapValues(mapExpression) {:#mapvalues_9cf124c}
 
 Creates an expression that returns the values of a map.
 
@@ -10689,7 +10671,7 @@ mapKeys("address");
 
 ```
 
-### mapMerge(mapField, secondMap, otherMaps) {:#mapmerge_0a5b469}
+### mapMerge(mapField, secondMap, otherMaps) {:#mapmerge_70a564b}
 
 Creates an expression that merges multiple map values.
 
@@ -10725,7 +10707,7 @@ mapMerge('settings', { enabled: true }, conditional(field('isAdmin'), { admin: t
 
 ```
 
-### mapRemove(mapField, key) {:#mapremove_388e466}
+### mapRemove(mapField, key) {:#mapremove_bd5726e}
 
 Creates an expression that removes a key from the map at the specified field name.
 
@@ -10758,7 +10740,7 @@ mapRemove('address', 'city');
 
 ```
 
-### mapRemove(mapField, keyExpr) {:#mapremove_4171bd5}
+### mapRemove(mapField, keyExpr) {:#mapremove_8406d13}
 
 Creates an expression that removes a key from the map at the specified field name.
 
@@ -10791,7 +10773,7 @@ mapRemove('address', constant('city'));
 
 ```
 
-### mapSet(mapField, key, value, moreKeyValues) {:#mapset_4eecf18}
+### mapSet(mapField, key, value, moreKeyValues) {:#mapset_baadc2a}
 
 Creates an expression that returns a new map with the specified entries added or updated.
 
@@ -10941,7 +10923,7 @@ db.pipeline().collection("products")
 
 ## function(options, ...)
 
-### subcollection(options) {:#subcollection_801d3e4}
+### subcollection(options) {:#subcollection_104dbc5}
 
 Creates a new Pipeline targeted at a subcollection relative to the current document context. This creates a pipeline without a database instance, suitable for embedding as a subquery. If executed directly, this pipeline will fail.
 
@@ -10979,7 +10961,7 @@ export declare function field(path: FieldPath): Field;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  path | [FieldPath](./firestore_lite.fieldpath.md#fieldpath_class) | A FieldPath specifying the field. |
+|  path | [FieldPath](./firestore.fieldpath.md#fieldpath_class) | A FieldPath specifying the field. |
 
 <b>Returns:</b>
 
@@ -11051,7 +11033,7 @@ const results: PipelineResults = snapshot.results;
 
 ## function(rquery, ...)
 
-### documentMatches(rquery) {:#documentmatches_a5b0b6a}
+### documentMatches(rquery) {:#documentmatches_d7a12c2}
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
@@ -11090,7 +11072,7 @@ db.pipeline().collection('restaurants').search({
 
 ## function(stringExpression, ...)
 
-### charLength(stringExpression) {:#charlength_8d1643e}
+### charLength(stringExpression) {:#charlength_c25a54a}
 
 Creates an expression that calculates the character length of a string expression in UTF-8.
 
@@ -11123,7 +11105,7 @@ charLength(field("name"));
 
 ```
 
-### endsWith(stringExpression, suffix) {:#endswith_d30bbcf}
+### endsWith(stringExpression, suffix) {:#endswith_0a0b889}
 
 Creates an expression that checks if a string expression ends with a given postfix.
 
@@ -11158,7 +11140,7 @@ endsWith(field("fullName"), "Jr.");
 
 ```
 
-### endsWith(stringExpression, suffix) {:#endswith_1fcc70b}
+### endsWith(stringExpression, suffix) {:#endswith_13aee0d}
 
 Creates an expression that checks if a string expression ends with a given postfix.
 
@@ -11193,7 +11175,7 @@ endsWith(field("fullName"), constant("Jr."));
 
 ```
 
-### like(stringExpression, pattern) {:#like_543dafa}
+### like(stringExpression, pattern) {:#like_a84c581}
 
 Creates an expression that performs a case-sensitive wildcard string comparison.
 
@@ -11228,7 +11210,7 @@ like(field("title"), "%guide%");
 
 ```
 
-### like(stringExpression, pattern) {:#like_e641381}
+### like(stringExpression, pattern) {:#like_b534848}
 
 Creates an expression that performs a case-sensitive wildcard string comparison.
 
@@ -11263,7 +11245,7 @@ like(field("title"), field("pattern"));
 
 ```
 
-### regexContains(stringExpression, pattern) {:#regexcontains_543dafa}
+### regexContains(stringExpression, pattern) {:#regexcontains_a84c581}
 
 Creates an expression that checks if a string expression contains a specified regular expression as a substring.
 
@@ -11298,7 +11280,7 @@ regexContains(field("description"), "(?i)example");
 
 ```
 
-### regexContains(stringExpression, pattern) {:#regexcontains_e641381}
+### regexContains(stringExpression, pattern) {:#regexcontains_b534848}
 
 Creates an expression that checks if a string expression contains a specified regular expression as a substring.
 
@@ -11333,7 +11315,7 @@ regexContains(field("description"), field("pattern"));
 
 ```
 
-### regexFind(stringExpression, pattern) {:#regexfind_543dafa}
+### regexFind(stringExpression, pattern) {:#regexfind_a84c581}
 
 Creates an expression that returns the first substring of a string expression that matches a specified regular expression.
 
@@ -11370,7 +11352,7 @@ regexFind(field("email"), "@[A-Za-z0-9.-]+");
 
 ```
 
-### regexFind(stringExpression, pattern) {:#regexfind_e641381}
+### regexFind(stringExpression, pattern) {:#regexfind_b534848}
 
 Creates an expression that returns the first substring of a string expression that matches a specified regular expression.
 
@@ -11407,7 +11389,7 @@ regexFind(field("email"), field("pattern"));
 
 ```
 
-### regexFindAll(stringExpression, pattern) {:#regexfindall_543dafa}
+### regexFindAll(stringExpression, pattern) {:#regexfindall_a84c581}
 
 Creates an expression that evaluates to a list of all substrings in a string expression that match a specified regular expression.
 
@@ -11444,7 +11426,7 @@ regexFindAll(field("comment"), "@[A-Za-z0-9_]+");
 
 ```
 
-### regexFindAll(stringExpression, pattern) {:#regexfindall_e641381}
+### regexFindAll(stringExpression, pattern) {:#regexfindall_b534848}
 
 Creates an expression that evaluates to a list of all substrings in a string expression that match a specified regular expression.
 
@@ -11481,7 +11463,7 @@ regexFindAll(field("comment"), field("pattern"));
 
 ```
 
-### regexMatch(stringExpression, pattern) {:#regexmatch_543dafa}
+### regexMatch(stringExpression, pattern) {:#regexmatch_a84c581}
 
 Creates an expression that checks if a string expression matches a specified regular expression.
 
@@ -11516,7 +11498,7 @@ regexMatch(field("email"), "[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}");
 
 ```
 
-### regexMatch(stringExpression, pattern) {:#regexmatch_e641381}
+### regexMatch(stringExpression, pattern) {:#regexmatch_b534848}
 
 Creates an expression that checks if a string expression matches a specified regular expression.
 
@@ -11551,7 +11533,7 @@ regexMatch(field("email"), field("pattern"));
 
 ```
 
-### reverse(stringExpression) {:#reverse_8d1643e}
+### reverse(stringExpression) {:#reverse_c25a54a}
 
 Creates an expression that reverses a string.
 
@@ -11584,7 +11566,7 @@ reverse(field("myString"));
 
 ```
 
-### startsWith(stringExpression, prefix) {:#startswith_3ff28ca}
+### startsWith(stringExpression, prefix) {:#startswith_75c3dbb}
 
 Creates an expression that checks if a string expression starts with a given prefix.
 
@@ -11619,7 +11601,7 @@ startsWith(field("fullName"), "Mr.");
 
 ```
 
-### startsWith(stringExpression, prefix) {:#startswith_032bf92}
+### startsWith(stringExpression, prefix) {:#startswith_52f218a}
 
 Creates an expression that checks if a string expression starts with a given prefix.
 
@@ -11654,7 +11636,7 @@ startsWith(field("fullName"), field("prefix"));
 
 ```
 
-### stringContains(stringExpression, substring) {:#stringcontains_77e1c19}
+### stringContains(stringExpression, substring) {:#stringcontains_3e9ff32}
 
 Creates an expression that checks if a string expression contains a specified substring.
 
@@ -11689,7 +11671,7 @@ stringContains(field("description"), "example");
 
 ```
 
-### stringContains(stringExpression, substring) {:#stringcontains_82a3356}
+### stringContains(stringExpression, substring) {:#stringcontains_cc6ee02}
 
 Creates an expression that checks if a string expression contains a substring specified by another expression.
 
@@ -11724,7 +11706,7 @@ stringContains(field("description"), field("keyword"));
 
 ```
 
-### stringReverse(stringExpression) {:#stringreverse_8d1643e}
+### stringReverse(stringExpression) {:#stringreverse_c25a54a}
 
 Creates an expression that reverses a string.
 
@@ -11757,7 +11739,7 @@ stringReverse(field("myString"));
 
 ```
 
-### toLower(stringExpression) {:#tolower_8d1643e}
+### toLower(stringExpression) {:#tolower_c25a54a}
 
 Creates an expression that converts a string expression to lowercase.
 
@@ -11790,7 +11772,7 @@ toLower(field("name"));
 
 ```
 
-### toUpper(stringExpression) {:#toupper_8d1643e}
+### toUpper(stringExpression) {:#toupper_c25a54a}
 
 Creates an expression that converts a string expression to uppercase.
 
@@ -11823,7 +11805,7 @@ toUpper(field("title"));
 
 ```
 
-### trim(stringExpression, valueToTrim) {:#trim_62c7d29}
+### trim(stringExpression, valueToTrim) {:#trim_dd54322}
 
 Creates an expression that removes leading and trailing characters from a string or byte array expression.
 
@@ -11863,7 +11845,7 @@ trim(field("userInput"), '"');
 
 ## function(timestamp, ...)
 
-### timestampAdd(timestamp, unit, amount) {:#timestampadd_1092f88}
+### timestampAdd(timestamp, unit, amount) {:#timestampadd_98418f9}
 
 Creates an expression that adds a specified amount of time to a timestamp.
 
@@ -11900,7 +11882,7 @@ timestampAdd(field("timestamp"), field("unit"), field("amount"));
 
 ```
 
-### timestampAdd(timestamp, unit, amount) {:#timestampadd_6eda385}
+### timestampAdd(timestamp, unit, amount) {:#timestampadd_06ef927}
 
 Creates an expression that adds a specified amount of time to a timestamp.
 
@@ -11937,7 +11919,7 @@ timestampAdd(field("timestamp"), "day", 1);
 
 ```
 
-### timestampSubtract(timestamp, unit, amount) {:#timestampsubtract_1092f88}
+### timestampSubtract(timestamp, unit, amount) {:#timestampsubtract_98418f9}
 
 Creates an expression that subtracts a specified amount of time from a timestamp.
 
@@ -11974,7 +11956,7 @@ timestampSubtract(field("timestamp"), field("unit"), field("amount"));
 
 ```
 
-### timestampSubtract(timestamp, unit, amount) {:#timestampsubtract_6eda385}
+### timestampSubtract(timestamp, unit, amount) {:#timestampsubtract_06ef927}
 
 Creates an expression that subtracts a specified amount of time from a timestamp.
 
@@ -12013,7 +11995,7 @@ timestampSubtract(field("timestamp"), "day", 1);
 
 ## function(timestampExpression, ...)
 
-### timestampExtract(timestampExpression, part, timezone) {:#timestampextract_09049dc}
+### timestampExtract(timestampExpression, part, timezone) {:#timestampextract_b2f8f48}
 
 Creates an expression that extracts a specified part from a timestamp.
 
@@ -12050,7 +12032,7 @@ timestampExtract(field('createdAt'), 'year')
 
 ```
 
-### timestampExtract(timestampExpression, part, timezone) {:#timestampextract_3593c59}
+### timestampExtract(timestampExpression, part, timezone) {:#timestampextract_73e0311}
 
 Creates an expression that extracts a specified part from a timestamp.
 
@@ -12087,7 +12069,7 @@ timestampExtract(field('createdAt'), field('part'))
 
 ```
 
-### timestampTruncate(timestampExpression, granularity, timezone) {:#timestamptruncate_741ea69}
+### timestampTruncate(timestampExpression, granularity, timezone) {:#timestamptruncate_ad5d843}
 
 Creates an expression that truncates a timestamp to a specified granularity.
 
@@ -12124,7 +12106,7 @@ timestampTruncate(field('createdAt'), 'day')
 
 ```
 
-### timestampTruncate(timestampExpression, granularity, timezone) {:#timestamptruncate_dc7344a}
+### timestampTruncate(timestampExpression, granularity, timezone) {:#timestamptruncate_d6ab2a4}
 
 Creates an expression that truncates a timestamp to a specified granularity.
 
@@ -12163,7 +12145,7 @@ timestampTruncate(field('createdAt'), field('granularity'))
 
 ## function(tryExpr, ...)
 
-### ifError(tryExpr, catchExpr) {:#iferror_0e8b0fd}
+### ifError(tryExpr, catchExpr) {:#iferror_a99a327}
 
 Creates an expression that returns the `catch` argument if there is an error, else return the result of the `try` argument evaluation.
 
@@ -12201,7 +12183,7 @@ ifError(constant(50).divide(field('length')).greaterThan(1), constant(false));
 
 ```
 
-### ifError(tryExpr, catchExpr) {:#iferror_df72f2c}
+### ifError(tryExpr, catchExpr) {:#iferror_756c12e}
 
 Creates an expression that returns the `catch` argument if there is an error, else return the result of the `try` argument evaluation.
 
@@ -12237,7 +12219,7 @@ ifError(field("title").arrayGet(0), field("title"));
 
 ```
 
-### ifError(tryExpr, catchValue) {:#iferror_ae3ac16}
+### ifError(tryExpr, catchValue) {:#iferror_dc532f9}
 
 Creates an expression that returns the `catch` argument if there is an error, else return the result of the `try` argument evaluation.
 
@@ -12275,7 +12257,7 @@ ifError(field("title").arrayGet(0), "Default Title");
 
 ## function(value, ...)
 
-### constant(value, options) {:#constant_3949f19}
+### constant(value, options) {:#constant_27f5011}
 
 Creates a `Constant` instance for a number value.
 
@@ -12317,7 +12299,7 @@ export declare function constant(value: VectorValue): Expression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  value | [VectorValue](./firestore_lite.vectorvalue.md#vectorvalue_class) | The VectorValue value. |
+|  value | [VectorValue](./firestore.vectorvalue.md#vectorvalue_class) | The VectorValue value. |
 
 <b>Returns:</b>
 
@@ -12405,7 +12387,7 @@ export declare function constant(value: GeoPoint): Expression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  value | [GeoPoint](./firestore_lite.geopoint.md#geopoint_class) | The GeoPoint value. |
+|  value | [GeoPoint](./firestore.geopoint.md#geopoint_class) | The GeoPoint value. |
 
 <b>Returns:</b>
 
@@ -12427,7 +12409,7 @@ export declare function constant(value: Timestamp): Expression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  value | [Timestamp](./firestore_lite.timestamp.md#timestamp_class) | The Timestamp value. |
+|  value | [Timestamp](./firestore.timestamp.md#timestamp_class) | The Timestamp value. |
 
 <b>Returns:</b>
 
@@ -12471,7 +12453,7 @@ export declare function constant(value: Bytes): Expression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  value | [Bytes](./firestore_lite.bytes.md#bytes_class) | The Bytes value. |
+|  value | [Bytes](./firestore.bytes.md#bytes_class) | The Bytes value. |
 
 <b>Returns:</b>
 
@@ -12493,7 +12475,7 @@ export declare function constant(value: DocumentReference): Expression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  value | [DocumentReference](./firestore_lite.documentreference.md#documentreference_class) | The DocumentReference value. |
+|  value | [DocumentReference](./firestore.documentreference.md#documentreference_class) | The DocumentReference value. |
 
 <b>Returns:</b>
 
@@ -12596,7 +12578,7 @@ isError(field("title").arrayContains(1));
 
 ## function(vectorExpression, ...)
 
-### cosineDistance(vectorExpression, vector) {:#cosinedistance_3e3bef7}
+### cosineDistance(vectorExpression, vector) {:#cosinedistance_3a80317}
 
 Calculates the Cosine distance between a vector expression and a vector literal.
 
@@ -12614,7 +12596,7 @@ export declare function cosineDistance(
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  vectorExpression | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The first vector (represented as an <code>Expression</code>) to compare against. |
-|  vector | number\[\] \| [VectorValue](./firestore_lite.vectorvalue.md#vectorvalue_class) | The other vector (as an array of doubles or VectorValue) to compare against. |
+|  vector | number\[\] \| [VectorValue](./firestore.vectorvalue.md#vectorvalue_class) | The other vector (as an array of doubles or VectorValue) to compare against. |
 
 <b>Returns:</b>
 
@@ -12631,7 +12613,7 @@ cosineDistance(field("location"), [37.7749, -122.4194]);
 
 ```
 
-### cosineDistance(vectorExpression, otherVectorExpression) {:#cosinedistance_64dc8a2}
+### cosineDistance(vectorExpression, otherVectorExpression) {:#cosinedistance_17b5bcc}
 
 Calculates the Cosine distance between two vector expressions.
 
@@ -12666,7 +12648,7 @@ cosineDistance(field("userVector"), field("itemVector"));
 
 ```
 
-### dotProduct(vectorExpression, vector) {:#dotproduct_3e3bef7}
+### dotProduct(vectorExpression, vector) {:#dotproduct_3a80317}
 
 Calculates the dot product between a vector expression and a double array.
 
@@ -12684,7 +12666,7 @@ export declare function dotProduct(
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  vectorExpression | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The first vector (represented as an <code>Expression</code>) to calculate with. |
-|  vector | number\[\] \| [VectorValue](./firestore_lite.vectorvalue.md#vectorvalue_class) | The other vector (as an array of doubles or VectorValue) to calculate with. |
+|  vector | number\[\] \| [VectorValue](./firestore.vectorvalue.md#vectorvalue_class) | The other vector (as an array of doubles or VectorValue) to calculate with. |
 
 <b>Returns:</b>
 
@@ -12701,7 +12683,7 @@ dotProduct(field("features"), [0.5, 0.8, 0.2]);
 
 ```
 
-### dotProduct(vectorExpression, otherVectorExpression) {:#dotproduct_64dc8a2}
+### dotProduct(vectorExpression, otherVectorExpression) {:#dotproduct_17b5bcc}
 
 Calculates the dot product between two vector expressions.
 
@@ -12736,7 +12718,7 @@ dotProduct(field("docVector1"), field("docVector2"));
 
 ```
 
-### euclideanDistance(vectorExpression, vector) {:#euclideandistance_3e3bef7}
+### euclideanDistance(vectorExpression, vector) {:#euclideandistance_3a80317}
 
 Calculates the Euclidean distance between a vector expression and a double array.
 
@@ -12754,7 +12736,7 @@ export declare function euclideanDistance(
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  vectorExpression | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The first vector (represented as an <code>Expression</code>) to compare against. |
-|  vector | number\[\] \| [VectorValue](./firestore_lite.vectorvalue.md#vectorvalue_class) | The other vector (as an array of doubles or VectorValue) to compare against. |
+|  vector | number\[\] \| [VectorValue](./firestore.vectorvalue.md#vectorvalue_class) | The other vector (as an array of doubles or VectorValue) to compare against. |
 
 <b>Returns:</b>
 
@@ -12772,7 +12754,7 @@ euclideanDistance(field("location"), [37.7749, -122.4194]);
 
 ```
 
-### euclideanDistance(vectorExpression, otherVectorExpression) {:#euclideandistance_64dc8a2}
+### euclideanDistance(vectorExpression, otherVectorExpression) {:#euclideandistance_17b5bcc}
 
 Calculates the Euclidean distance between two vector expressions.
 
@@ -12807,7 +12789,7 @@ euclideanDistance(field("pointA"), field("pointB"));
 
 ```
 
-### vectorLength(vectorExpression) {:#vectorlength_9b5bca0}
+### vectorLength(vectorExpression) {:#vectorlength_58a039b}
 
 Creates an expression that calculates the length of a Firestore Vector.
 
@@ -13022,34 +13004,6 @@ let c = { a: "foo", y: "foo" } // Not OK
 
 ```
 
-## PartialWithFieldValue
-
-Similar to TypeScript's `Partial<T>`<!-- -->, but allows nested fields to be omitted and FieldValues to be passed in as property values.
-
-<b>Signature:</b>
-
-```typescript
-export declare type PartialWithFieldValue<T> =
-  | Partial<T>
-  | (T extends Primitive
-      ? T
-      : T extends {}
-      ? {
-          [K in keyof T]?: PartialWithFieldValue<T[K]> | FieldValue;
-        }
-      : never);
-```
-
-## Primitive
-
-Primitive types.
-
-<b>Signature:</b>
-
-```typescript
-export declare type Primitive = string | number | boolean | undefined | null;
-```
-
 ## RemoveFieldsStageOptions
 
 Options defining how a RemoveFieldsStage is evaluated. See [Pipeline.removeFields()](./firestore_pipelines.pipeline.md#pipelineremovefields)<!-- -->.
@@ -13121,22 +13075,6 @@ Options defining how a SelectStage is evaluated. See [Pipeline.select()](./fires
 export declare type SelectStageOptions = StageOptions & {
   selections: Array<Selectable | string>;
 };
-```
-
-## SetOptions
-
-An options object that configures the behavior of [setDoc()](./firestore_lite.md#setdoc_f47a2ea)<!-- -->,  and  calls. These calls can be configured to perform granular merges instead of overwriting the target documents in their entirety by providing a `SetOptions` with `merge: true`<!-- -->.
-
-<b>Signature:</b>
-
-```typescript
-export declare type SetOptions =
-  | {
-      readonly merge?: boolean;
-    }
-  | {
-      readonly mergeFields?: Array<string | FieldPath>;
-    };
 ```
 
 ## SortStageOptions
@@ -13262,22 +13200,4 @@ Options defining how a WhereStage is evaluated. See [Pipeline.where()](./firesto
 export declare type WhereStageOptions = StageOptions & {
   condition: BooleanExpression;
 };
-```
-
-## WithFieldValue
-
-Allows FieldValues to be passed in as a property value while maintaining type safety.
-
-<b>Signature:</b>
-
-```typescript
-export declare type WithFieldValue<T> =
-  | T
-  | (T extends Primitive
-      ? T
-      : T extends {}
-      ? {
-          [K in keyof T]: WithFieldValue<T[K]> | FieldValue;
-        }
-      : never);
 ```
