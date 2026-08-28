@@ -27,6 +27,7 @@ import {
   isArray,
   isIntegerValue,
   isNumber,
+  isNanValue,
   valueEquals,
   isDecimal128Value,
   isInt32Value,
@@ -312,6 +313,12 @@ export function applyNumericMinimumTransformOperationToLocalView(
   if (!isNumber(previousValue)) {
     return operation.operand;
   }
+  if (isNanValue(operation.operand)) {
+    return operation.operand;
+  }
+  if (isNanValue(previousValue)) {
+    return previousValue;
+  }
   return compareNumbers(operation.operand, previousValue) < 0
     ? operation.operand
     : previousValue;
@@ -323,6 +330,12 @@ export function applyNumericMaximumTransformOperationToLocalView(
 ): ProtoValue {
   if (!isNumber(previousValue)) {
     return operation.operand;
+  }
+  if (isNanValue(operation.operand)) {
+    return operation.operand;
+  }
+  if (isNanValue(previousValue)) {
+    return previousValue;
   }
   return compareNumbers(operation.operand, previousValue) > 0
     ? operation.operand

@@ -302,7 +302,7 @@ export function valueEquals(
     case TypeOrder.GeoPointValue:
       return geoPointEquals(left, right);
     case TypeOrder.NumberValue:
-      return numberEquals(left, right);
+      return numberEquals(left, right, options);
     case TypeOrder.ArrayValue:
       return arrayEquals(
         left.arrayValue!.values || [],

@@ -20,6 +20,7 @@ import { Deferred, isNode } from '@firebase/util';
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
+import { addEqualityMatcher } from '../../util/equality_matcher';
 import { it } from '../../util/mocha_extensions';
 import { EventsAccumulator } from '../util/events_accumulator';
 import {
@@ -3155,6 +3156,7 @@ apiDescribe('Database', persistence => {
   });
 
   describe('BSON types', () => {
+    addEqualityMatcher();
     // TODO(Mila/BSON): simplify the test setup once prod support BSON and
     // remove the cache population after the test helper is updated
     const NIGHTLY_PROJECT_ID = 'firestore-sdk-nightly';
