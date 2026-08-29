@@ -53,8 +53,11 @@ const WindowMessagingFactory: InstanceFactory<'messaging'> = (
   const messageListener = (e: MessageEvent): Promise<void> =>
     messageEventListener(messaging as MessagingService, e);
   navigator.serviceWorker.addEventListener('message', messageListener);
-  messaging._messageEventListenerUnsubscribe = () =>
-    navigator.serviceWorker.removeEventListener('message', messageListener);
+  messaging._messageEventListenerUnsubscribe = () => {
+    if (typeof navigator !== 'undefined' && navigator.serviceWorker) {
+      navigator.serviceWorker.removeEventListener('message', messageListener);
+    }
+  };
 
   messaging._fidChangeUnsubscribe = subscribeFidChangeRegistration(
     messaging as MessagingService,
