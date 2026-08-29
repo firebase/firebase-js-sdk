@@ -95,9 +95,44 @@ export function registerListeners(crashlytics: Crashlytics): void {
  */
 export function flush(crashlytics: Crashlytics): Promise<void> {
   // Cast to CrashlyticsInternal to access internal loggerProvider
-  return (crashlytics as CrashlyticsInternal).loggerProvider
-    .forceFlush()
-    .catch(err => {
+  const provider = (crashlytics as CrashlyticsInternal).loggerProvider as {
+    forceFlush?: () => Promise<void>;
+    flush?: () => Promise<void>;
+  };
+
+  if (typeof provider?.forceFlush === 'function') {
+    return provider.forceFlush().catch(err => {
       console.error('Error flushing logs from Firebase Crashlytics:', err);
     });
+  }
+
+  if (typeof provider?.flush === 'function') {
+    return provider.flush().catch(err => {
+      console.error('Error flushing logs from Firebase Crashlytics:', err);
+    });
+  }
+
+  return Promise.resolve();
+}
+
+/**
+ * Determines whether a given URL string targets the Firebase Crashlytics telemetry ingestion endpoint.
+ * Used to automatically drop self-referential telemetry records (e.g. from ResourceTiming or Fetch instrumentations).
+ *
+ * @internal
+ */
+export function isTelemetryUrl(
+  url: unknown,
+  customEndpoint?: string
+): boolean {
+  if (typeof url !== 'string' || !url) {
+    return false;
+  }
+  if (url.includes('firebasetelemetry.googleapis.com')) {
+    return true;
+  }
+  if (customEndpoint && url.includes(customEndpoint)) {
+    return true;
+  }
+  return false;
 }

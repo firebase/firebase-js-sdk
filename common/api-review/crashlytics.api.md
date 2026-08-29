@@ -7,6 +7,8 @@
 import { AnyValueMap } from '@opentelemetry/api-logs';
 import { FirebaseApp } from '@firebase/app';
 import { Instrumentation } from 'next';
+import { Logger } from '@opentelemetry/api-logs';
+import { LoggerProvider } from '@opentelemetry/api-logs';
 
 // @public
 export interface Crashlytics {
@@ -19,6 +21,7 @@ export interface CrashlyticsOptions {
     customAttributes?: AnyValueMap;
     endpointUrl?: string;
     region?: string;
+    registerGlobalLoggerProvider?: boolean;
 }
 
 // @public
@@ -27,6 +30,12 @@ export function flush(crashlytics: Crashlytics): Promise<void>;
 // @public
 export function getCrashlytics(app?: FirebaseApp, options?: CrashlyticsOptions): Crashlytics;
 
+// @public
+export function getOtelLogger(crashlytics: Crashlytics): Logger;
+
+// @public
+export function getOtelLoggerProvider(crashlytics: Crashlytics): LoggerProvider;
+
 export { Instrumentation }
 
 // @public
@@ -34,6 +43,9 @@ export function nextOnRequestError(crashlyticsOptions?: CrashlyticsOptions): Ins
 
 // @public
 export function recordError(crashlytics: Crashlytics, error: unknown, attributes?: AnyValueMap): void;
+
+// @public (undocumented)
+export function registerCrashlytics(): void;
 
 
 // (No @packageDocumentation comment for this package)
