@@ -9,7 +9,7 @@ overwritten. Changes should be made in the source code at
 https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
-# analytics package
+# @firebase/analytics
 The Firebase Analytics Web SDK. This SDK does not work in a Node.js environment.
 
 ## Functions
@@ -831,7 +831,7 @@ void
 
 > Warning: This API is now obsolete.
 > 
-> Use  with `eventName` as 'screen\_view' and add relevant `eventParams`<!-- -->. See [Track Screenviews](https://firebase.google.com/docs/analytics/screenviews)<!-- -->.
+> Use [logEvent](./analytics.md#logevent_d5f1743) with `eventName` as 'screen\_view' and add relevant `eventParams`<!-- -->. See [Track Screenviews](https://firebase.google.com/docs/analytics/screenviews)<!-- -->.
 > 
 
 Use gtag `config` command to set `screen_name`<!-- -->.

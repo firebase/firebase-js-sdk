@@ -46,7 +46,7 @@
     "api-report": "lerna run --scope @firebase/* api-report",
     "postinstall": "patch-package && yarn --cwd repo-scripts/changelog-generator build",
     "sa": "ts-node-script repo-scripts/size-analysis/cli.ts",
-    "api-documenter-devsite": "ts-node-script repo-scripts/api-documenter/src/start.ts",
+    "api-documenter": "ts-node-script repo-scripts/api-documenter/src/start.ts",
     "format": "ts-node ./scripts/format/format.ts"
   },
   "repository": {
@@ -66,6 +66,7 @@
     "@babel/register": "8.0.1",
     "@changesets/changelog-github": "0.5.0",
     "@changesets/cli": "2.27.12",
+    "@microsoft/api-extractor": "7.58.13",
     "@types/chai": "4.3.20",
     "@types/chai-as-promised": "7.1.8",
     "@types/child-process-promise": "2.2.6",
@@ -85,7 +86,6 @@
     "@typescript-eslint/eslint-plugin": "7.18.0",
     "@typescript-eslint/eslint-plugin-tslint": "7.0.2",
     "@typescript-eslint/parser": "7.18.0",
-    "api-extractor-me": "0.1.2",
     "babel-loader": "10.1.1",
     "babel-plugin-istanbul": "8.0.0",
     "chai": "4.5.0",
