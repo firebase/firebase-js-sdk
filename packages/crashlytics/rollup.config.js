@@ -22,6 +22,7 @@ import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
 import pkg from './package.json';
 import { emitModulePackageFile } from '../../scripts/build/rollup_emit_module_package_file';
+import { generateBuildTargetReplaceConfig } from '../../scripts/build/rollup_replace_build_target';
 
 const deps = [
   ...Object.keys(Object.assign({}, pkg.peerDependencies, pkg.dependencies)),
@@ -37,6 +38,13 @@ function replaceSource(path) {
   });
 }
 
+function replaceBuildTarget(format) {
+  return replacePlugin({
+    ...generateBuildTargetReplaceConfig(format, 2020),
+    preventAssignment: true
+  });
+}
+
 const buildPlugins = [typescriptPlugin({ typescript }), json()];
 
 const browserBuilds = [
@@ -47,7 +55,11 @@ const browserBuilds = [
       format: 'es',
       sourcemap: true
     },
-    plugins: [...buildPlugins, replaceSource('./auto-constants.mjs')],
+    plugins: [
+      ...buildPlugins,
+      replaceSource('./auto-constants.mjs'),
+      replaceBuildTarget('esm')
+    ],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
   {
@@ -57,7 +69,11 @@ const browserBuilds = [
       format: 'cjs',
       sourcemap: true
     },
-    plugins: [...buildPlugins, replaceSource('./auto-constants.js')],
+    plugins: [
+      ...buildPlugins,
+      replaceSource('./auto-constants.js'),
+      replaceBuildTarget('cjs')
+    ],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }
 ];
@@ -70,7 +86,11 @@ const nodeBuilds = [
       format: 'cjs',
       sourcemap: true
     },
-    plugins: [...buildPlugins, replaceSource('./auto-constants.js')],
+    plugins: [
+      ...buildPlugins,
+      replaceSource('./auto-constants.js'),
+      replaceBuildTarget('cjs')
+    ],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
   {
@@ -83,7 +103,8 @@ const nodeBuilds = [
     plugins: [
       ...buildPlugins,
       emitModulePackageFile(),
-      replaceSource('../auto-constants.mjs')
+      replaceSource('../auto-constants.mjs'),
+      replaceBuildTarget('esm')
     ],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }
@@ -116,7 +137,8 @@ const reactBuilds = [
           }
         ]
       }),
-      replaceSource('../auto-constants.mjs')
+      replaceSource('../auto-constants.mjs'),
+      replaceBuildTarget('esm')
     ],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
@@ -134,7 +156,8 @@ const reactBuilds = [
         tsconfig: 'tsconfig.react.json'
       }),
       json(),
-      replaceSource('../auto-constants.js')
+      replaceSource('../auto-constants.js'),
+      replaceBuildTarget('cjs')
     ],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }
@@ -167,7 +190,8 @@ const reactRouterBuilds = [
           }
         ]
       }),
-      replaceSource('../auto-constants.mjs')
+      replaceSource('../auto-constants.mjs'),
+      replaceBuildTarget('esm')
     ],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
@@ -185,7 +209,8 @@ const reactRouterBuilds = [
         tsconfig: 'tsconfig.react.json'
       }),
       json(),
-      replaceSource('../auto-constants.js')
+      replaceSource('../auto-constants.js'),
+      replaceBuildTarget('cjs')
     ],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }
@@ -217,7 +242,8 @@ const angularBuilds = [
           }
         ]
       }),
-      replaceSource('../auto-constants.mjs')
+      replaceSource('../auto-constants.mjs'),
+      replaceBuildTarget('esm')
     ],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
@@ -234,7 +260,8 @@ const angularBuilds = [
         tsconfig: 'tsconfig.angular.json'
       }),
       json(),
-      replaceSource('../auto-constants.js')
+      replaceSource('../auto-constants.js'),
+      replaceBuildTarget('cjs')
     ],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }
