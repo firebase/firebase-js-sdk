@@ -55,10 +55,19 @@ export class FetchConnection extends RestConnection {
       }
       response = await fetch(url, fetchArgs);
     } catch (e) {
-      const err = e as { status: number | undefined; statusText: string };
+      const err = e as {
+        message?: string;
+        status?: number;
+        statusText?: string;
+        cause?: unknown;
+      };
+      const errorMessage =
+        (err?.cause ? `${err.message} (${err.cause})` : err?.message) ??
+        err?.statusText ??
+        String(e);
       throw new FirestoreError(
-        mapCodeFromHttpStatus(err.status),
-        'Request failed with error: ' + err.statusText
+        mapCodeFromHttpStatus(err?.status),
+        `Request failed with error: ${errorMessage}`
       );
     }
 
