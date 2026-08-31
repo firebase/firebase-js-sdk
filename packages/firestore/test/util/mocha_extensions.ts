@@ -37,7 +37,7 @@ declare module 'mocha' {
   interface TestFunction extends ExtendMochaTypeWithHelpers<TestFunction> {}
   interface PendingTestFunction extends ExtendMochaTypeWithHelpers<PendingTestFunction> {}
   interface SuiteFunction extends ExtendMochaTypeWithHelpers<SuiteFunction> {}
-  interface PendingSuiteFunction extends ExtendMochaTypeWithHelpers<PendingTestFunction> {}
+  interface PendingSuiteFunction extends ExtendMochaTypeWithHelpers<PendingSuiteFunction> {}
 }
 
 // Define helpers

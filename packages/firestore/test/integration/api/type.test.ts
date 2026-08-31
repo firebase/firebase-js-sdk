@@ -51,12 +51,10 @@ import {
 } from '../util/firebase_export';
 import {
   apiDescribe,
-  withTestProjectIdAndCollectionSettings,
+  withTestCollection,
   withTestDb,
-  withTestDbsSettings,
   withTestDoc
 } from '../util/helpers';
-import { DEFAULT_SETTINGS } from '../util/settings';
 
 apiDescribe('Firestore', persistence => {
   addEqualityMatcher();
@@ -85,43 +83,6 @@ apiDescribe('Firestore', persistence => {
       docSnapshot = await transaction.get(docRef);
       expect(docSnapshot.data()).to.deep.equal(expectedData);
     });
-
-    if (validateSnapshots) {
-      let querySnapshot = await getDocs(collRef);
-      docSnapshot = querySnapshot.docs[0];
-      expect(docSnapshot.data()).to.deep.equal(expectedData);
-
-      const eventsAccumulator = new EventsAccumulator<QuerySnapshot>();
-      const unlisten = onSnapshot(collRef, eventsAccumulator.storeEvent);
-      querySnapshot = await eventsAccumulator.awaitEvent();
-      docSnapshot = querySnapshot.docs[0];
-      expect(docSnapshot.data()).to.deep.equal(expectedData);
-
-      unlisten();
-    }
-
-    return docSnapshot;
-  }
-
-  // TODO(Mila/BSON): Transactions against nightly is having issue, remove this after prod supports BSON
-  async function expectRoundtripWithoutTransaction(
-    db: Firestore,
-    data: {},
-    validateSnapshots = true,
-    expectedData?: {}
-  ): Promise<DocumentSnapshot> {
-    expectedData = expectedData ?? data;
-
-    const collRef = collection(db, doc(collection(db, 'a')).id);
-    const docRef = doc(collRef);
-
-    await setDoc(docRef, data);
-    let docSnapshot = await getDoc(docRef);
-    expect(docSnapshot.data()).to.deep.equal(expectedData);
-
-    await updateDoc(docRef, data);
-    docSnapshot = await getDoc(docRef);
-    expect(docSnapshot.data()).to.deep.equal(expectedData);
 
     if (validateSnapshots) {
       let querySnapshot = await getDocs(collRef);
@@ -242,78 +203,42 @@ apiDescribe('Firestore', persistence => {
     });
   });
 
-  // TODO(Mila/BSON): simplify the test setup once prod support BSON
-  const NIGHTLY_PROJECT_ID = 'firestore-sdk-nightly';
-  const settings = {
-    ...DEFAULT_SETTINGS,
-    host: 'test-firestore.sandbox.googleapis.com',
-    databaseId: '(default)'
-  };
-
-  it('can read and write minKey fields', () => {
-    return withTestDbsSettings(
-      persistence,
-      NIGHTLY_PROJECT_ID,
-      settings,
-      1,
-      async dbs => {
-        await expectRoundtripWithoutTransaction(dbs[0], {
+  describe.skipEmulator.skipClassic('BSON types', () => {
+    it('can read and write minKey fields', () => {
+      return withTestDb(persistence, async db => {
+        await expectRoundtrip(db, {
           min: MinKey.instance()
         });
-      }
-    );
-  });
+      });
+    });
 
-  it('can read and write maxKey fields', () => {
-    return withTestDbsSettings(
-      persistence,
-      NIGHTLY_PROJECT_ID,
-      settings,
-      1,
-      async dbs => {
-        await expectRoundtripWithoutTransaction(dbs[0], {
+    it('can read and write maxKey fields', () => {
+      return withTestDb(persistence, async db => {
+        await expectRoundtrip(db, {
           max: MaxKey.instance()
         });
-      }
-    );
-  });
+      });
+    });
 
-  it('can read and write regex fields', () => {
-    return withTestDbsSettings(
-      persistence,
-      NIGHTLY_PROJECT_ID,
-      settings,
-      1,
-      async dbs => {
-        await expectRoundtripWithoutTransaction(dbs[0], {
+    it('can read and write regex fields', () => {
+      return withTestDb(persistence, async db => {
+        await expectRoundtrip(db, {
           regex: new RegexValue('^foo', 'i')
         });
-      }
-    );
-  });
+      });
+    });
 
-  it('can read and write int32 fields', () => {
-    return withTestDbsSettings(
-      persistence,
-      NIGHTLY_PROJECT_ID,
-      settings,
-      1,
-      async dbs => {
-        await expectRoundtripWithoutTransaction(dbs[0], {
+    it('can read and write int32 fields', () => {
+      return withTestDb(persistence, async db => {
+        await expectRoundtrip(db, {
           int32: new Int32Value(1)
         });
-      }
-    );
-  });
+      });
+    });
 
-  it('can read and write decimal128 fields', () => {
-    return withTestDbsSettings(
-      persistence,
-      NIGHTLY_PROJECT_ID,
-      settings,
-      1,
-      async dbs => {
-        await expectRoundtripWithoutTransaction(dbs[0], {
+    it('can read and write decimal128 fields', () => {
+      return withTestDb(persistence, async db => {
+        await expectRoundtrip(db, {
           decimalSciPositive: new Decimal128Value('1.2e3'),
           decimalSciNegative: new Decimal128Value('-2.5e-2'),
           decimalSciPositiveCapE: new Decimal128Value('1.2345E+5'),
@@ -337,60 +262,36 @@ apiDescribe('Firestore', persistence => {
             '-1234567890123456789012345678901234'
           )
         });
-      }
-    );
-  });
+      });
+    });
 
-  it('can read and write bsonTimestamp fields', () => {
-    return withTestDbsSettings(
-      persistence,
-      NIGHTLY_PROJECT_ID,
-      settings,
-      1,
-      async dbs => {
-        await expectRoundtripWithoutTransaction(dbs[0], {
+    it('can read and write bsonTimestamp fields', () => {
+      return withTestDb(persistence, async db => {
+        await expectRoundtrip(db, {
           bsonTimestamp: new BsonTimestamp(1, 2)
         });
-      }
-    );
-  });
+      });
+    });
 
-  it('can read and write bsonObjectId fields', () => {
-    return withTestDbsSettings(
-      persistence,
-      NIGHTLY_PROJECT_ID,
-      settings,
-      1,
-      async dbs => {
-        await expectRoundtripWithoutTransaction(dbs[0], {
+    it('can read and write bsonObjectId fields', () => {
+      return withTestDb(persistence, async db => {
+        await expectRoundtrip(db, {
           objectId: new BsonObjectId('507f191e810c19729de860ea')
         });
-      }
-    );
-  });
+      });
+    });
 
-  it('can read and write bsonBinaryData fields', () => {
-    return withTestDbsSettings(
-      persistence,
-      NIGHTLY_PROJECT_ID,
-      settings,
-      1,
-      async dbs => {
-        await expectRoundtripWithoutTransaction(dbs[0], {
+    it('can read and write bsonBinaryData fields', () => {
+      return withTestDb(persistence, async db => {
+        await expectRoundtrip(db, {
           binary: Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1)
         });
-      }
-    );
-  });
+      });
+    });
 
-  it('can read and write bson fields in an array', () => {
-    return withTestDbsSettings(
-      persistence,
-      NIGHTLY_PROJECT_ID,
-      settings,
-      1,
-      async dbs => {
-        await expectRoundtripWithoutTransaction(dbs[0], {
+    it('can read and write bson fields in an array', () => {
+      return withTestDb(persistence, async db => {
+        await expectRoundtrip(db, {
           array: [
             Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1),
             new BsonObjectId('507f191e810c19729de860ea'),
@@ -402,18 +303,12 @@ apiDescribe('Firestore', persistence => {
             new RegexValue('^foo', 'i')
           ]
         });
-      }
-    );
-  });
+      });
+    });
 
-  it('can read and write bson fields in an object', () => {
-    return withTestDbsSettings(
-      persistence,
-      NIGHTLY_PROJECT_ID,
-      settings,
-      1,
-      async dbs => {
-        await expectRoundtripWithoutTransaction(dbs[0], {
+    it('can read and write bson fields in an object', () => {
+      return withTestDb(persistence, async db => {
+        await expectRoundtrip(db, {
           object: {
             binary: Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1),
             objectId: new BsonObjectId('507f191e810c19729de860ea'),
@@ -425,17 +320,11 @@ apiDescribe('Firestore', persistence => {
             regex: new RegexValue('^foo', 'i')
           }
         });
-      }
-    );
-  });
+      });
+    });
 
-  it('invalid 32-bit integer gets rejected', async () => {
-    return withTestProjectIdAndCollectionSettings(
-      persistence,
-      NIGHTLY_PROJECT_ID,
-      settings,
-      {},
-      async coll => {
+    it('invalid 32-bit integer gets rejected', async () => {
+      return withTestCollection(persistence, {}, async coll => {
         const docRef = doc(coll, 'test-doc');
         let errorMessage;
         try {
@@ -455,17 +344,11 @@ apiDescribe('Firestore', persistence => {
         expect(errorMessage).to.contains(
           "The field '__int__' value (-2,147,483,650) is too large to be converted to a 32-bit integer."
         );
-      }
-    );
-  });
+      });
+    });
 
-  it('invalid decimal128 gets rejected', async () => {
-    return withTestProjectIdAndCollectionSettings(
-      persistence,
-      NIGHTLY_PROJECT_ID,
-      settings,
-      {},
-      async coll => {
+    it('invalid decimal128 gets rejected', async () => {
+      return withTestCollection(persistence, {}, async coll => {
         const docRef = doc(coll, 'test-doc');
         let errorMessage;
         try {
@@ -488,17 +371,11 @@ apiDescribe('Firestore', persistence => {
           errorMessage = (err as FirestoreError)?.message;
         }
         expect(errorMessage).to.contains('Invalid number abc');
-      }
-    );
-  });
+      });
+    });
 
-  it('invalid BSON timestamp gets rejected', async () => {
-    return withTestProjectIdAndCollectionSettings(
-      persistence,
-      NIGHTLY_PROJECT_ID,
-      settings,
-      {},
-      async coll => {
+    it('invalid BSON timestamp gets rejected', async () => {
+      return withTestCollection(persistence, {}, async coll => {
         const docRef = doc(coll, 'test-doc');
         let errorMessage;
         try {
@@ -520,17 +397,11 @@ apiDescribe('Firestore', persistence => {
         expect(errorMessage).to.contains(
           "BsonTimestamp 'seconds' must be in the range of a 32-bit unsigned integer."
         );
-      }
-    );
-  });
+      });
+    });
 
-  it('invalid regex value gets rejected', async () => {
-    return withTestProjectIdAndCollectionSettings(
-      persistence,
-      NIGHTLY_PROJECT_ID,
-      settings,
-      {},
-      async coll => {
+    it('invalid regex value gets rejected', async () => {
+      return withTestCollection(persistence, {}, async coll => {
         const docRef = doc(coll, 'test-doc');
         let errorMessage;
         try {
@@ -541,17 +412,11 @@ apiDescribe('Firestore', persistence => {
         expect(errorMessage).to.contains(
           "Invalid regex option 'a'. Supported options are 'i', 'm', 's', 'u', and 'x'."
         );
-      }
-    );
-  });
+      });
+    });
 
-  it('invalid bsonObjectId value gets rejected', async () => {
-    return withTestProjectIdAndCollectionSettings(
-      persistence,
-      NIGHTLY_PROJECT_ID,
-      settings,
-      {},
-      async coll => {
+    it('invalid bsonObjectId value gets rejected', async () => {
+      return withTestCollection(persistence, {}, async coll => {
         const docRef = doc(coll, 'test-doc');
 
         let errorMessage;
@@ -564,17 +429,11 @@ apiDescribe('Firestore', persistence => {
         expect(errorMessage).to.contains(
           'Object ID hex string has incorrect length.'
         );
-      }
-    );
-  });
+      });
+    });
 
-  it('invalid bsonBinaryData value gets rejected', async () => {
-    return withTestProjectIdAndCollectionSettings(
-      persistence,
-      NIGHTLY_PROJECT_ID,
-      settings,
-      {},
-      async coll => {
+    it('invalid bsonBinaryData value gets rejected', async () => {
+      return withTestCollection(persistence, {}, async coll => {
         const docRef = doc(coll, 'test-doc');
         let errorMessage;
         try {
@@ -587,45 +446,38 @@ apiDescribe('Firestore', persistence => {
         expect(errorMessage).to.contains(
           'The subtype for Bytes must be a value in the inclusive [0, 255] range.'
         );
-      }
-    );
-  });
+      });
+    });
 
-  it('can order values of different TypeOrder together', async () => {
-    const testDocs: { [key: string]: DocumentData } = {
-      nullValue: { key: null },
-      minValue: { key: MinKey.instance() },
-      booleanValue: { key: true },
-      nanValue: { key: NaN },
-      int32Value: { key: new Int32Value(1) },
-      decimal128Value: { key: new Decimal128Value('1.2e3') },
-      doubleValue: { key: 2.0 },
-      integerValue: { key: 3 },
-      timestampValue: { key: new Timestamp(100, 123456000) },
-      bsonTimestampValue: { key: new BsonTimestamp(1, 2) },
-      stringValue: { key: 'string' },
-      bytesValue: { key: Bytes.fromUint8Array(new Uint8Array([0, 1, 255])) },
-      bsonBinaryValue: {
-        key: Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1)
-      },
-      // referenceValue: {key: ref('coll/doc')},
-      referenceValue: { key: 'placeholder' },
-      objectIdValue: { key: new BsonObjectId('507f191e810c19729de860ea') },
-      geoPointValue: { key: new GeoPoint(0, 0) },
-      regexValue: { key: new RegexValue('^foo', 'i') },
-      arrayValue: { key: [1, 2] },
-      vectorValue: { key: vector([1, 2]) },
-      objectValue: { key: { a: 1 } },
-      maxValue: { key: MaxKey.instance() }
-    };
+    it('can order values of different TypeOrder together', async () => {
+      const testDocs: { [key: string]: DocumentData } = {
+        nullValue: { key: null },
+        minValue: { key: MinKey.instance() },
+        booleanValue: { key: true },
+        nanValue: { key: NaN },
+        int32Value: { key: new Int32Value(1) },
+        decimal128Value: { key: new Decimal128Value('1.2e3') },
+        doubleValue: { key: 2.0 },
+        integerValue: { key: 3 },
+        timestampValue: { key: new Timestamp(100, 123456000) },
+        bsonTimestampValue: { key: new BsonTimestamp(1, 2) },
+        stringValue: { key: 'string' },
+        bytesValue: { key: Bytes.fromUint8Array(new Uint8Array([0, 1, 255])) },
+        bsonBinaryValue: {
+          key: Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1)
+        },
+        // referenceValue: {key: ref('coll/doc')},
+        referenceValue: { key: 'placeholder' },
+        objectIdValue: { key: new BsonObjectId('507f191e810c19729de860ea') },
+        geoPointValue: { key: new GeoPoint(0, 0) },
+        regexValue: { key: new RegexValue('^foo', 'i') },
+        arrayValue: { key: [1, 2] },
+        vectorValue: { key: vector([1, 2]) },
+        objectValue: { key: { a: 1 } },
+        maxValue: { key: MaxKey.instance() }
+      };
 
-    return withTestProjectIdAndCollectionSettings(
-      persistence,
-      NIGHTLY_PROJECT_ID,
-      settings,
-      testDocs,
-      async coll => {
-        // TODO(Mila/BSON): remove after prod supports bson
+      return withTestCollection(persistence, testDocs, async coll => {
         const docRef = doc(coll, 'doc');
         await setDoc(doc(coll, 'referenceValue'), { key: docRef });
 
@@ -642,7 +494,7 @@ apiDescribe('Firestore', persistence => {
             expect(actualDoc).to.deep.equal(expectedDoc);
           }
         }
-      }
-    );
+      });
+    });
   });
 });

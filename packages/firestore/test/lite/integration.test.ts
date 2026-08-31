@@ -3050,9 +3050,7 @@ describe('Vectors', () => {
   });
 });
 
-// eslint-disable-next-line no-restricted-properties
-describe.skip('BSON types', () => {
-  // TODO(Mila/BSON): enable this test once prod supports bson
+describe.skipEmulator.skipClassic('BSON types', () => {
   it('can be read and written using the lite SDK', async () => {
     return withTestCollection(async coll => {
       const ref = await addDoc(coll, {
