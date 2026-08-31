@@ -187,7 +187,7 @@ export class Timestamp {
    * Converts a `Timestamp` to a `Temporal.Instant` object.
    *
    * @returns `Temporal.Instant` object representing the same point in time as
-   *     this `Timestamp`, with nanosecond precision.
+   *     this `Timestamp`.
    */
   toInstant(): Temporal.Instant {
     if (typeof Temporal === 'undefined' || !Temporal.Instant) {

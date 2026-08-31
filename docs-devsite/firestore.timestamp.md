@@ -243,7 +243,7 @@ toInstant(): Temporal.Instant;
 
 Temporal.Instant
 
-`Temporal.Instant` object representing the same point in time as this `Timestamp`<!-- -->, with nanosecond precision.
+`Temporal.Instant` object representing the same point in time as this `Timestamp`<!-- -->.
 
 ## Timestamp.toJSON()
 
