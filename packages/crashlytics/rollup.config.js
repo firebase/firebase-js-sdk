@@ -38,9 +38,9 @@ function replaceSource(path) {
   });
 }
 
-function replaceBuildTarget(format) {
+function replaceBuildTarget(format, target = 2020) {
   return replacePlugin({
-    ...generateBuildTargetReplaceConfig(format, 2020),
+    ...generateBuildTargetReplaceConfig(format, target),
     preventAssignment: true
   });
 }
