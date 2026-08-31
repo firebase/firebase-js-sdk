@@ -30,8 +30,8 @@ export function isCloudWorkstation(url: string): boolean {
     const host =
       lowerCaseUrl.startsWith('http://') || lowerCaseUrl.startsWith('https://')
         ? new URL(url).hostname
-        : url;
-    return host.toLowerCase().endsWith('.cloudworkstations.dev');
+        : lowerCaseUrl;
+    return host.endsWith('.cloudworkstations.dev');
   } catch {
     return false;
   }
