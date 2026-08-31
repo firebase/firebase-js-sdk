@@ -61,8 +61,10 @@ export class FetchConnection extends RestConnection {
         statusText?: string;
         cause?: unknown;
       };
+      const message = err?.message;
+      const cause = err?.cause ? String(err.cause) : undefined;
       const errorMessage =
-        (err?.cause ? `${err.message} (${err.cause})` : err?.message) ??
+        (message && cause ? `${message} (${cause})` : (message ?? cause)) ??
         err?.statusText ??
         String(e);
       throw new FirestoreError(
