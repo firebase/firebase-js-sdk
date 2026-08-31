@@ -528,12 +528,12 @@ abstract class TestRunner {
       querySpec instanceof CorePipeline
         ? querySpec
         : this.convertToPipeline
-        ? toCorePipeline(
-            pipelineFromStages(
-              toPipelineStages(parseQuery(querySpec), newTestFirestore())
+          ? toCorePipeline(
+              pipelineFromStages(
+                toPipelineStages(parseQuery(querySpec), newTestFirestore())
+              )
             )
-          )
-        : parseQuery(querySpec);
+          : parseQuery(querySpec);
 
     const aggregator = new EventAggregator(query, e => {
       if (e.error) {
@@ -605,12 +605,12 @@ abstract class TestRunner {
       querySpec instanceof CorePipeline
         ? querySpec
         : this.convertToPipeline
-        ? toCorePipeline(
-            pipelineFromStages(
-              toPipelineStages(parseQuery(querySpec), newTestFirestore())
+          ? toCorePipeline(
+              pipelineFromStages(
+                toPipelineStages(parseQuery(querySpec), newTestFirestore())
+              )
             )
-          )
-        : parseQuery(querySpec);
+          : parseQuery(querySpec);
     const eventEmitter = this.queryListeners.get(query);
     debugAssert(!!eventEmitter, 'There must be a query to unlisten too!');
     this.queryListeners.delete(query);
@@ -945,8 +945,14 @@ abstract class TestRunner {
     const nextMutation = writeAck.keepInQueue
       ? this.sharedWrites.peek()
       : this.sharedWrites.shift();
+    const mutationResults: api.WriteResult[] = [
+      {
+        updateTime,
+        transformResults: writeAck.transformResults
+      }
+    ];
     return this.validateNextWriteRequest(nextMutation).then(() => {
-      this.connection.ackWrite(updateTime, [{ updateTime }]);
+      this.connection.ackWrite(updateTime, mutationResults);
     });
   }
 
@@ -1870,6 +1876,8 @@ export interface SpecWriteAck {
    */
   // PORTING NOTE: Multi-Tab only.
   keepInQueue?: boolean;
+
+  transformResults?: api.Value[];
 }
 
 export interface SpecWriteFailure {

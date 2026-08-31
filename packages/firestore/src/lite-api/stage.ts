@@ -20,7 +20,8 @@ import { OptionsUtil } from '../core/options_util';
 import {
   ApiClientObjectMap,
   firestoreV1ApiClientInterfaces,
-  Stage as ProtoStage
+  Stage as ProtoStage,
+  Value as ProtoValue
 } from '../protos/firestore_proto_api';
 import { toNumber } from '../remote/number_serializer';
 import {

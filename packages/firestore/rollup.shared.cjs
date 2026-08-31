@@ -81,14 +81,14 @@ const nodeDeps = [...browserDeps, 'util', 'path', 'url'];
 
 /** Resolves the external dependencies for the browser build. */
 exports.resolveBrowserExterns = function (id) {
-  return [...browserDeps, '@firebase/firestore'].some(
+  return [...browserDeps, '@firebase/firestore', 'idb', '@firebase/firestore-types'].some(
     dep => id === dep || id.startsWith(`${dep}/`)
   );
 };
 
 /** Resolves the external dependencies for the Node build. */
 exports.resolveNodeExterns = function (id) {
-  return [...nodeDeps, '@firebase/firestore'].some(
+  return [...nodeDeps, '@firebase/firestore', 'idb', '@firebase/firestore-types'].some(
     dep => id === dep || id.startsWith(`${dep}/`)
   );
 };
@@ -97,6 +97,13 @@ exports.resolveNodeExterns = function (id) {
 exports.onwarn = function (warning, defaultWarn) {
   if (warning.code === 'CIRCULAR_DEPENDENCY') {
     throw new Error(warning);
+  }
+  if (
+    warning.code === 'UNUSED_EXTERNAL_IMPORT' &&
+    (warning.exporter === '@firebase/firestore-types' ||
+      warning.exporter === '@firebase/webchannel-wrapper/webchannel-blob')
+  ) {
+    return;
   }
   defaultWarn(warning);
 };

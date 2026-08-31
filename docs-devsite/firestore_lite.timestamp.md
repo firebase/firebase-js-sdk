@@ -40,7 +40,7 @@ export declare class Timestamp
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
 |  [fromDate(date)](./firestore_lite.timestamp.md#timestampfromdate) | <code>static</code> | Creates a new timestamp from the given date. |
-|  [fromJSON(json)](./firestore_lite.timestamp.md#timestampfromjson) | <code>static</code> | Builds a <code>Timestamp</code> instance from a JSON object created by [Timestamp.toJSON()](./firestore_.timestamp.md#timestamptojson)<!-- -->. |
+|  [fromJSON(json)](./firestore_lite.timestamp.md#timestampfromjson) | <code>static</code> | Builds a <code>Timestamp</code> instance from a JSON object created by [Timestamp.toJSON()](./firestore_lite.timestamp.md#timestamptojson)<!-- -->. |
 |  [fromMillis(milliseconds)](./firestore_lite.timestamp.md#timestampfrommillis) | <code>static</code> | Creates a new timestamp from the given number of milliseconds. |
 |  [isEqual(other)](./firestore_lite.timestamp.md#timestampisequal) |  | Returns true if this <code>Timestamp</code> is equal to the provided one. |
 |  [now()](./firestore_lite.timestamp.md#timestampnow) | <code>static</code> | Creates a new timestamp with the current date, with millisecond precision. |
@@ -58,8 +58,9 @@ Creates a new timestamp.
 
 ```typescript
 constructor(
-    seconds: number, 
-    nanoseconds: number);
+    seconds: number,
+    nanoseconds: number
+  );
 ```
 
 #### Parameters
@@ -113,7 +114,7 @@ A new `Timestamp` representing the same point in time as the given date.
 
 ## Timestamp.fromJSON()
 
-Builds a `Timestamp` instance from a JSON object created by [Timestamp.toJSON()](./firestore_.timestamp.md#timestamptojson)<!-- -->.
+Builds a `Timestamp` instance from a JSON object created by [Timestamp.toJSON()](./firestore_lite.timestamp.md#timestamptojson)<!-- -->.
 
 <b>Signature:</b>
 
@@ -213,10 +214,10 @@ Returns a JSON-serializable representation of this `Timestamp`<!-- -->.
 
 ```typescript
 toJSON(): {
-        seconds: number;
-        nanoseconds: number;
-        type: string;
-    };
+    seconds: number;
+    nanoseconds: number;
+    type: string;
+  };
 ```
 <b>Returns:</b>
 

@@ -12,7 +12,6 @@
   ],
   "ignoreDeps": [
     "long",
-    "rollup-plugin-copy-assets",
     "typedoc",
     "@microsoft/tsdoc",
     "idb",

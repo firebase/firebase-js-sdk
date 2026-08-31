@@ -397,7 +397,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [ifError(tryExpr, catchExpr)](./firestore_lite_pipelines.md#iferror_756c12e) | Creates an expression that returns the <code>catch</code> argument if there is an error, else return the result of the <code>try</code> argument evaluation. |
 |  [ifError(tryExpr, catchValue)](./firestore_lite_pipelines.md#iferror_dc532f9) | Creates an expression that returns the <code>catch</code> argument if there is an error, else return the result of the <code>try</code> argument evaluation. |
 |  <b>function(value, ...)</b> |
-|  [constant(value, options)](./firestore_lite_pipelines.md#constant_6ea0dde) | Creates a <code>Constant</code> instance for a number value. |
+|  [constant(value, options)](./firestore_lite_pipelines.md#constant_27f5011) | Creates a <code>Constant</code> instance for a number value. |
 |  [constant(value)](./firestore_lite_pipelines.md#constant_6dac335) | Creates a <code>Constant</code> instance for a VectorValue value. |
 |  [constant(value)](./firestore_lite_pipelines.md#constant_7c807cd) | Creates a <code>Constant</code> instance for a string value. |
 |  [constant(value)](./firestore_lite_pipelines.md#constant_b2e4f8d) | Creates a <code>BooleanExpression</code> instance for a boolean value. |
@@ -427,33 +427,19 @@ https://github.com/firebase/firebase-js-sdk
 |  [AliasedAggregate](./firestore_lite_pipelines.aliasedaggregate.md#aliasedaggregate_class) | An AggregateFunction with alias. |
 |  [AliasedExpression](./firestore_lite_pipelines.aliasedexpression.md#aliasedexpression_class) |  |
 |  [BooleanExpression](./firestore_lite_pipelines.booleanexpression.md#booleanexpression_class) | An interface that represents a filter condition. |
-|  [Bytes](./firestore_lite_pipelines.bytes.md#bytes_class) | An immutable object representing an array of bytes. |
-|  [CollectionReference](./firestore_lite_pipelines.collectionreference.md#collectionreference_class) | A <code>CollectionReference</code> object can be used for adding documents, getting document references, and querying for documents (using [query()](./firestore_.md#query_9f7b0f4)<!-- -->). |
-|  [DocumentReference](./firestore_lite_pipelines.documentreference.md#documentreference_class) | A <code>DocumentReference</code> refers to a document location in a Firestore database and can be used to write, read, or listen to the location. The document at the referenced location may or may not exist. |
-|  [DocumentSnapshot](./firestore_lite_pipelines.documentsnapshot.md#documentsnapshot_class) | A <code>DocumentSnapshot</code> contains data read from a document in your Firestore database. The data can be extracted with <code>.data()</code> or <code>.get(&lt;field&gt;)</code> to get a specific field.<!-- -->For a <code>DocumentSnapshot</code> that points to a non-existing document, any data access will return 'undefined'. You can use the <code>exists()</code> method to explicitly verify a document's existence. |
 |  [Expression](./firestore_lite_pipelines.expression.md#expression_class) | Represents an expression that can be evaluated to a value within the execution of a [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class)<!-- -->.<!-- -->Expressions are the building blocks for creating complex queries and transformations in Firestore pipelines. They can represent:<!-- -->- \*\*Field references:\*\* Access values from document fields. - \*\*Literals:\*\* Represent constant values (strings, numbers, booleans). - \*\*Function calls:\*\* Apply functions to one or more expressions.<!-- -->The <code>Expression</code> class provides a fluent API for building expressions. You can chain together method calls to create complex expressions. |
-|  [Field](./firestore_lite_pipelines.field.md#field_class) | Represents a reference to a field in a Firestore document, or outputs of a [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class) stage.<p>Field references are used to access document field values in expressions and to specify fields for sorting, filtering, and projecting data in Firestore pipelines.<p>You can create a <code>Field</code> instance using the static  method: |
-|  [FieldPath](./firestore_lite_pipelines.fieldpath.md#fieldpath_class) | A <code>FieldPath</code> refers to a field in a document. The path may consist of a single field name (referring to a top-level field in the document), or a list of field names (referring to a nested field in the document).<!-- -->Create a <code>FieldPath</code> by providing field names. If more than one field name is provided, the path will point to a nested field in a document. |
-|  [FieldValue](./firestore_lite_pipelines.fieldvalue.md#fieldvalue_class) | Sentinel values that can be used when writing document fields with <code>set()</code> or <code>update()</code>. |
-|  [Firestore](./firestore_lite_pipelines.firestore.md#firestore_class) | The Cloud Firestore service interface.<!-- -->Do not call this constructor directly. Instead, use [getFirestore()](./firestore_.md#getfirestore)<!-- -->. |
-|  [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class) | This class defines the base class for Firestore [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class) functions, which can be evaluated within pipeline execution.<!-- -->Typically, you would not use this class or its children directly. Use either the functions like [and()](./firestore_pipelines.md#and_e0c48bd)<!-- -->, [equal()](./firestore_pipelines.md#equal_b3c3382)<!-- -->, or the methods on [Expression](./firestore_pipelines.expression.md#expression_class) ([Expression.equal()](./firestore_pipelines.expression.md#expressionequal)<!-- -->, [Expression.lessThan()](./firestore_pipelines.expression.md#expressionlessthan)<!-- -->, etc.) to construct new Function instances. |
-|  [GeoPoint](./firestore_lite_pipelines.geopoint.md#geopoint_class) | An immutable object representing a geographic location in Firestore. The location is represented as latitude/longitude pair.<!-- -->Latitude values are in the range of \[-90, 90\]. Longitude values are in the range of \[-180, 180\]. |
+|  [Field](./firestore_lite_pipelines.field.md#field_class) | Represents a reference to a field in a Firestore document, or outputs of a [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class) stage.<p>Field references are used to access document field values in expressions and to specify fields for sorting, filtering, and projecting data in Firestore pipelines.<p>You can create a <code>Field</code> instance using the static [field](./firestore_pipelines.md#field_1eaaff4) method: |
+|  [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class) | This class defines the base class for Firestore [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class) functions, which can be evaluated within pipeline execution.<!-- -->Typically, you would not use this class or its children directly. Use either the functions like [and()](./firestore.md#and_e72c712)<!-- -->, [equal()](./firestore_pipelines.md#equal_b3c3382)<!-- -->, or the methods on [Expression](./firestore_pipelines.expression.md#expression_class) ([Expression.equal()](./firestore_pipelines.expression.md#expressionequal)<!-- -->, [Expression.lessThan()](./firestore_pipelines.expression.md#expressionlessthan)<!-- -->, etc.) to construct new Function instances. |
 |  [Ordering](./firestore_lite_pipelines.ordering.md#ordering_class) | Represents an ordering criterion for sorting documents in a Firestore pipeline.<!-- -->You create <code>Ordering</code> instances using the <code>ascending</code> and <code>descending</code> helper functions. |
 |  [Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class) | The Pipeline class provides a flexible and expressive framework for building complex data transformation and query pipelines for Firestore.<!-- -->A pipeline takes data sources, such as Firestore collections or collection groups, and applies a series of stages that are chained together. Each stage takes the output from the previous stage (or the data source) and produces an output for the next stage (or as the final output of the pipeline).<!-- -->Expressions can be used within each stage to filter and transform data through the stage.<!-- -->NOTE: The chained stages do not prescribe exactly how Firestore will execute the pipeline. Instead, Firestore only guarantees that the result is the same as if the chained stages were executed in order. |
 |  [PipelineResult](./firestore_lite_pipelines.pipelineresult.md#pipelineresult_class) | A PipelineResult contains data read from a Firestore Pipeline. The data can be extracted with the [PipelineResult.data()](./firestore_pipelines.pipelineresult.md#pipelineresultdata) or [PipelineResult.get()](./firestore_pipelines.pipelineresult.md#pipelineresultget) methods.<p>If the PipelineResult represents a non-document result, <code>ref</code> will return a undefined value. |
 |  [PipelineSnapshot](./firestore_lite_pipelines.pipelinesnapshot.md#pipelinesnapshot_class) | Represents the results of a Firestore pipeline execution.<!-- -->A <code>PipelineSnapshot</code> contains zero or more [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) objects representing the documents returned by a pipeline query. It provides methods to iterate over the documents and access metadata about the query results. |
 |  [PipelineSource](./firestore_lite_pipelines.pipelinesource.md#pipelinesource_class) | Provides the entry point for defining the data source of a Firestore [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class)<!-- -->.<!-- -->Use the methods of this class (e.g., [PipelineSource.collection()](./firestore_pipelines.pipelinesource.md#pipelinesourcecollection)<!-- -->, [PipelineSource.collectionGroup()](./firestore_pipelines.pipelinesource.md#pipelinesourcecollectiongroup)<!-- -->, [PipelineSource.database()](./firestore_pipelines.pipelinesource.md#pipelinesourcedatabase)<!-- -->, or [PipelineSource.documents()](./firestore_pipelines.pipelinesource.md#pipelinesourcedocuments)<!-- -->) to specify the initial data for your pipeline, such as a collection, a collection group, the entire database, or a set of specific documents. |
-|  [Query](./firestore_lite_pipelines.query.md#query_class) | A <code>Query</code> refers to a query which you can read or listen to. You can also construct refined <code>Query</code> objects by adding filters and ordering. |
-|  [QueryDocumentSnapshot](./firestore_lite_pipelines.querydocumentsnapshot.md#querydocumentsnapshot_class) | A <code>QueryDocumentSnapshot</code> contains data read from a document in your Firestore database as part of a query. The document is guaranteed to exist and its data can be extracted with <code>.data()</code> or <code>.get(&lt;field&gt;)</code> to get a specific field.<!-- -->A <code>QueryDocumentSnapshot</code> offers the same API surface as a <code>DocumentSnapshot</code>. Since query results contain only existing documents, the <code>exists</code> property will always be true and <code>data()</code> will never return 'undefined'. |
-|  [Timestamp](./firestore_lite_pipelines.timestamp.md#timestamp_class) | A <code>Timestamp</code> represents a point in time independent of any time zone or calendar, represented as seconds and fractions of seconds at nanosecond resolution in UTC Epoch time.<!-- -->It is encoded using the Proleptic Gregorian Calendar which extends the Gregorian calendar backwards to year one. It is encoded assuming all minutes are 60 seconds long, i.e. leap seconds are "smeared" so that no leap second table is needed for interpretation. Range is from 0001-01-01T00:00:00Z to 9999-12-31T23:59:59.999999999Z.<!-- -->For examples and further specifications, refer to the [Timestamp definition](https://github.com/google/protobuf/blob/master/src/google/protobuf/timestamp.proto)<!-- -->. |
-|  [VectorValue](./firestore_lite_pipelines.vectorvalue.md#vectorvalue_class) | Represents a vector type in Firestore documents. Create an instance with <code>[vector()](./firestore_.md#vector_0dbdaf2)</code>. |
 
 ## Interfaces
 
 |  Interface | Description |
 |  --- | --- |
-|  [DocumentData](./firestore_lite_pipelines.documentdata.md#documentdata_interface) | Document data (for use with [setDoc()](./firestore_lite.md#setdoc_ee215ad)<!-- -->) consists of fields mapped to values. |
-|  [FirestoreDataConverter](./firestore_lite_pipelines.firestoredataconverter.md#firestoredataconverter_interface) | Converter used by <code>withConverter()</code> to transform user objects of type <code>AppModelType</code> into Firestore data of type <code>DbModelType</code>.<!-- -->Using the converter allows you to specify generic type arguments when storing and retrieving objects from Firestore.<!-- -->In this context, an "AppModel" is a class that is used in an application to package together related information and functionality. Such a class could, for example, have properties with complex, nested data types, properties used for memoization, properties of types not supported by Firestore (such as <code>symbol</code> and <code>bigint</code>), and helper functions that perform compound operations. Such classes are not suitable and/or possible to store into a Firestore database. Instead, instances of such classes need to be converted to "plain old JavaScript objects" (POJOs) with exclusively primitive properties, potentially nested inside other POJOs or arrays of POJOs. In this context, this type is referred to as the "DbModel" and would be an object suitable for persisting into Firestore. For convenience, applications can implement <code>FirestoreDataConverter</code> and register the converter with Firestore objects, such as <code>DocumentReference</code> or <code>Query</code>, to automatically convert <code>AppModel</code> to <code>DbModel</code> when storing into Firestore, and convert <code>DbModel</code> to <code>AppModel</code> when retrieving from Firestore. |
 |  [Selectable](./firestore_lite_pipelines.selectable.md#selectable_interface) | An interface that represents a selectable expression. |
 
 ## Type Aliases
@@ -473,14 +459,11 @@ https://github.com/firebase/firebase-js-sdk
 |  [LimitStageOptions](./firestore_lite_pipelines.md#limitstageoptions) | Options defining how a LimitStage is evaluated. See [Pipeline.limit()](./firestore_pipelines.pipeline.md#pipelinelimit)<!-- -->. |
 |  [OffsetStageOptions](./firestore_lite_pipelines.md#offsetstageoptions) | Options defining how an OffsetStage is evaluated. See [Pipeline.offset()](./firestore_pipelines.pipeline.md#pipelineoffset)<!-- -->. |
 |  [OneOf](./firestore_lite_pipelines.md#oneof) | Utility type to create an type that only allows one property of the Type param T to be set. |
-|  [PartialWithFieldValue](./firestore_lite_pipelines.md#partialwithfieldvalue) | Similar to TypeScript's <code>Partial&lt;T&gt;</code>, but allows nested fields to be omitted and FieldValues to be passed in as property values. |
-|  [Primitive](./firestore_lite_pipelines.md#primitive) | Primitive types. |
 |  [RemoveFieldsStageOptions](./firestore_lite_pipelines.md#removefieldsstageoptions) | Options defining how a RemoveFieldsStage is evaluated. See [Pipeline.removeFields()](./firestore_pipelines.pipeline.md#pipelineremovefields)<!-- -->. |
 |  [ReplaceWithStageOptions](./firestore_lite_pipelines.md#replacewithstageoptions) | Options defining how a ReplaceWithStage is evaluated. See [Pipeline.replaceWith()](./firestore_pipelines.pipeline.md#pipelinereplacewith)<!-- -->. |
 |  [SampleStageOptions](./firestore_lite_pipelines.md#samplestageoptions) | Defines the options for evaluating a sample stage within a pipeline. This type combines common [StageOptions](./firestore_pipelines.md#stageoptions) with a specific configuration where only one of the defined sampling methods can be applied.<!-- -->See [Pipeline.sample()](./firestore_pipelines.pipeline.md#pipelinesample) to create a sample stage.. |
 |  [SearchStageOptions](./firestore_lite_pipelines.md#searchstageoptions) | <b><i>(Public Preview)</i></b> Options defining how a search stage is evaluated. See [Pipeline.search()](./firestore_pipelines.pipeline.md#pipelinesearch)<!-- -->. |
 |  [SelectStageOptions](./firestore_lite_pipelines.md#selectstageoptions) | Options defining how a SelectStage is evaluated. See [Pipeline.select()](./firestore_pipelines.pipeline.md#pipelineselect)<!-- -->. |
-|  [SetOptions](./firestore_lite_pipelines.md#setoptions) | An options object that configures the behavior of [setDoc()](./firestore_lite.md#setdoc_ee215ad)<!-- -->,  and  calls. These calls can be configured to perform granular merges instead of overwriting the target documents in their entirety by providing a <code>SetOptions</code> with <code>merge: true</code>. |
 |  [SortStageOptions](./firestore_lite_pipelines.md#sortstageoptions) | Options defining how a SortStage is evaluated. See [Pipeline.sort()](./firestore_pipelines.pipeline.md#pipelinesort)<!-- -->. |
 |  [StageOptions](./firestore_lite_pipelines.md#stageoptions) | Options defining how a Stage is evaluated. |
 |  [SubcollectionStageOptions](./firestore_lite_pipelines.md#subcollectionstageoptions) | Options defining how a <code>SubcollectionStage</code> is evaluated. |
@@ -490,7 +473,6 @@ https://github.com/firebase/firebase-js-sdk
 |  [UnionStageOptions](./firestore_lite_pipelines.md#unionstageoptions) | Options defining how a UnionStage is evaluated. See [Pipeline.union()](./firestore_pipelines.pipeline.md#pipelineunion)<!-- -->. |
 |  [UnnestStageOptions](./firestore_lite_pipelines.md#unneststageoptions) | Represents the specific options available for configuring an <code>UnnestStage</code> within a pipeline. |
 |  [WhereStageOptions](./firestore_lite_pipelines.md#wherestageoptions) | Options defining how a WhereStage is evaluated. See [Pipeline.where()](./firestore_pipelines.pipeline.md#pipelinewhere)<!-- -->. |
-|  [WithFieldValue](./firestore_lite_pipelines.md#withfieldvalue) | Allows FieldValues to be passed in as a property value while maintaining type safety. |
 
 ## function()
 
@@ -631,7 +613,10 @@ Creates an expression that checks if an array expression contains a specific ele
 <b>Signature:</b>
 
 ```typescript
-export declare function arrayContains(array: Expression, element: Expression): BooleanExpression;
+export declare function arrayContains(
+  array: Expression,
+  element: Expression
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -663,7 +648,10 @@ Creates an expression that checks if an array expression contains a specific ele
 <b>Signature:</b>
 
 ```typescript
-export declare function arrayContains(array: Expression, element: unknown): BooleanExpression;
+export declare function arrayContains(
+  array: Expression,
+  element: unknown
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -695,7 +683,10 @@ Creates an expression that checks if an array expression contains all the specif
 <b>Signature:</b>
 
 ```typescript
-export declare function arrayContainsAll(array: Expression, values: Array<Expression | unknown>): BooleanExpression;
+export declare function arrayContainsAll(
+  array: Expression,
+  values: Array<Expression | unknown>
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -727,7 +718,10 @@ Creates an expression that checks if an array expression contains all the specif
 <b>Signature:</b>
 
 ```typescript
-export declare function arrayContainsAll(array: Expression, arrayExpression: Expression): BooleanExpression;
+export declare function arrayContainsAll(
+  array: Expression,
+  arrayExpression: Expression
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -759,7 +753,10 @@ Creates an expression that checks if an array expression contains any of the spe
 <b>Signature:</b>
 
 ```typescript
-export declare function arrayContainsAny(array: Expression, values: Array<Expression | unknown>): BooleanExpression;
+export declare function arrayContainsAny(
+  array: Expression,
+  values: Array<Expression | unknown>
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -791,7 +788,10 @@ Creates an expression that checks if an array expression contains any of the spe
 <b>Signature:</b>
 
 ```typescript
-export declare function arrayContainsAny(array: Expression, values: Expression): BooleanExpression;
+export declare function arrayContainsAny(
+  array: Expression,
+  values: Expression
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -856,7 +856,11 @@ Creates an expression that filters an array using a provided alias and predicate
 <b>Signature:</b>
 
 ```typescript
-export declare function arrayFilter(arrayExpression: Expression, alias: string, filter: BooleanExpression): FunctionExpression;
+export declare function arrayFilter(
+  arrayExpression: Expression,
+  alias: string,
+  filter: BooleanExpression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -889,7 +893,9 @@ Creates an expression that returns the first element of an array.
 <b>Signature:</b>
 
 ```typescript
-export declare function arrayFirst(arrayExpression: Expression): FunctionExpression;
+export declare function arrayFirst(
+  arrayExpression: Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -920,7 +926,10 @@ Creates an expression that returns the first `n` elements of an array.
 <b>Signature:</b>
 
 ```typescript
-export declare function arrayFirstN(arrayExpression: Expression, n: number): FunctionExpression;
+export declare function arrayFirstN(
+  arrayExpression: Expression,
+  n: number
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -952,7 +961,10 @@ Creates an expression that returns the first `n` elements of an array.
 <b>Signature:</b>
 
 ```typescript
-export declare function arrayFirstN(arrayExpression: Expression, n: Expression): FunctionExpression;
+export declare function arrayFirstN(
+  arrayExpression: Expression,
+  n: Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -984,7 +996,10 @@ Creates an expression that indexes into an array from the beginning or end and r
 <b>Signature:</b>
 
 ```typescript
-export declare function arrayGet(arrayExpression: Expression, offset: number): FunctionExpression;
+export declare function arrayGet(
+  arrayExpression: Expression,
+  offset: number
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -1016,7 +1031,10 @@ Creates an expression that indexes into an array from the beginning or end and r
 <b>Signature:</b>
 
 ```typescript
-export declare function arrayGet(arrayExpression: Expression, offsetExpr: Expression): FunctionExpression;
+export declare function arrayGet(
+  arrayExpression: Expression,
+  offsetExpr: Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -1049,7 +1067,10 @@ Creates an expression that returns the first index of the search value in an arr
 <b>Signature:</b>
 
 ```typescript
-export declare function arrayIndexOf(arrayExpression: Expression, search: unknown | Expression): FunctionExpression;
+export declare function arrayIndexOf(
+  arrayExpression: Expression,
+  search: unknown | Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -1081,7 +1102,10 @@ Creates an expression that returns all indices of the search value in an array.
 <b>Signature:</b>
 
 ```typescript
-export declare function arrayIndexOfAll(arrayExpression: Expression, search: unknown | Expression): FunctionExpression;
+export declare function arrayIndexOfAll(
+  arrayExpression: Expression,
+  search: unknown | Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -1113,7 +1137,9 @@ Creates an expression that returns the last element of an array.
 <b>Signature:</b>
 
 ```typescript
-export declare function arrayLast(arrayExpression: Expression): FunctionExpression;
+export declare function arrayLast(
+  arrayExpression: Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -1144,7 +1170,10 @@ Creates an expression that returns the last index of the search value in an arra
 <b>Signature:</b>
 
 ```typescript
-export declare function arrayLastIndexOf(arrayExpression: Expression, search: unknown | Expression): FunctionExpression;
+export declare function arrayLastIndexOf(
+  arrayExpression: Expression,
+  search: unknown | Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -1176,7 +1205,10 @@ Creates an expression that returns the last `n` elements of an array.
 <b>Signature:</b>
 
 ```typescript
-export declare function arrayLastN(arrayExpression: Expression, n: number): FunctionExpression;
+export declare function arrayLastN(
+  arrayExpression: Expression,
+  n: number
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -1208,7 +1240,10 @@ Creates an expression that returns the last `n` elements of an array.
 <b>Signature:</b>
 
 ```typescript
-export declare function arrayLastN(arrayExpression: Expression, n: Expression): FunctionExpression;
+export declare function arrayLastN(
+  arrayExpression: Expression,
+  n: Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -1240,7 +1275,9 @@ Creates an expression that returns the maximum value in an array.
 <b>Signature:</b>
 
 ```typescript
-export declare function arrayMaximum(arrayExpression: Expression): FunctionExpression;
+export declare function arrayMaximum(
+  arrayExpression: Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -1273,7 +1310,10 @@ Note: Returns the n largest non-null elements in the array, in descending order.
 <b>Signature:</b>
 
 ```typescript
-export declare function arrayMaximumN(arrayExpression: Expression, n: number): FunctionExpression;
+export declare function arrayMaximumN(
+  arrayExpression: Expression,
+  n: number
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -1307,7 +1347,10 @@ Note: Returns the n largest non-null elements in the array, in descending order.
 <b>Signature:</b>
 
 ```typescript
-export declare function arrayMaximumN(arrayExpression: Expression, n: Expression): FunctionExpression;
+export declare function arrayMaximumN(
+  arrayExpression: Expression,
+  n: Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -1339,7 +1382,9 @@ Creates an expression that returns the minimum value in an array.
 <b>Signature:</b>
 
 ```typescript
-export declare function arrayMinimum(arrayExpression: Expression): FunctionExpression;
+export declare function arrayMinimum(
+  arrayExpression: Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -1372,7 +1417,10 @@ Note: Returns the n smallest non-null elements in the array, in ascending order.
 <b>Signature:</b>
 
 ```typescript
-export declare function arrayMinimumN(arrayExpression: Expression, n: number): FunctionExpression;
+export declare function arrayMinimumN(
+  arrayExpression: Expression,
+  n: number
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -1406,7 +1454,10 @@ Note: Returns the n smallest non-null elements in the array, in ascending order.
 <b>Signature:</b>
 
 ```typescript
-export declare function arrayMinimumN(arrayExpression: Expression, n: Expression): FunctionExpression;
+export declare function arrayMinimumN(
+  arrayExpression: Expression,
+  n: Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -1438,7 +1489,11 @@ Creates an expression that returns a slice of an array from `offset` with `lengt
 <b>Signature:</b>
 
 ```typescript
-export declare function arraySlice(arrayExpression: Expression, offset: number | Expression, length?: number | Expression): FunctionExpression;
+export declare function arraySlice(
+  arrayExpression: Expression,
+  offset: number | Expression,
+  length?: number | Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -1474,7 +1529,11 @@ Creates an expression that applies a provided transformation to each element in 
 <b>Signature:</b>
 
 ```typescript
-export declare function arrayTransform(arrayExpression: Expression, elementAlias: string, transform: Expression): FunctionExpression;
+export declare function arrayTransform(
+  arrayExpression: Expression,
+  elementAlias: string,
+  transform: Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -1507,7 +1566,12 @@ Creates an expression that applies a provided transformation to each element in 
 <b>Signature:</b>
 
 ```typescript
-export declare function arrayTransformWithIndex(arrayExpression: Expression, elementAlias: string, indexAlias: string, transform: Expression): FunctionExpression;
+export declare function arrayTransformWithIndex(
+  arrayExpression: Expression,
+  elementAlias: string,
+  indexAlias: string,
+  transform: Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -1541,7 +1605,10 @@ Creates an expression that joins the elements of an array into a string.
 <b>Signature:</b>
 
 ```typescript
-export declare function join(arrayExpression: Expression, delimiterExpression: Expression): Expression;
+export declare function join(
+  arrayExpression: Expression,
+  delimiterExpression: Expression
+): Expression;
 ```
 
 #### Parameters
@@ -1573,7 +1640,10 @@ Creates an expression that joins the elements of an array into a string.
 <b>Signature:</b>
 
 ```typescript
-export declare function join(arrayExpression: Expression, delimiter: string): Expression;
+export declare function join(
+  arrayExpression: Expression,
+  delimiter: string
+): Expression;
 ```
 
 #### Parameters
@@ -1607,7 +1677,10 @@ Creates an expression that indexes into an array from the beginning or end and r
 <b>Signature:</b>
 
 ```typescript
-export declare function arrayGet(arrayField: string, offset: number): FunctionExpression;
+export declare function arrayGet(
+  arrayField: string,
+  offset: number
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -1639,7 +1712,10 @@ Creates an expression that indexes into an array from the beginning or end and r
 <b>Signature:</b>
 
 ```typescript
-export declare function arrayGet(arrayField: string, offsetExpr: Expression): FunctionExpression;
+export declare function arrayGet(
+  arrayField: string,
+  offsetExpr: Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -1674,7 +1750,10 @@ Creates an expression that joins the elements of an array into a string.
 <b>Signature:</b>
 
 ```typescript
-export declare function join(arrayFieldName: string, delimiter: string): Expression;
+export declare function join(
+  arrayFieldName: string,
+  delimiter: string
+): Expression;
 ```
 
 #### Parameters
@@ -1706,7 +1785,10 @@ Creates an expression that joins the elements of an array into a string.
 <b>Signature:</b>
 
 ```typescript
-export declare function join(arrayFieldName: string, delimiterExpression: Expression): Expression;
+export declare function join(
+  arrayFieldName: string,
+  delimiterExpression: Expression
+): Expression;
 ```
 
 #### Parameters
@@ -1740,7 +1822,10 @@ Creates an expression that returns the value of the base expression raised to th
 <b>Signature:</b>
 
 ```typescript
-export declare function pow(base: Expression, exponent: Expression): FunctionExpression;
+export declare function pow(
+  base: Expression,
+  exponent: Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -1772,7 +1857,10 @@ Creates an expression that returns the value of the base expression raised to th
 <b>Signature:</b>
 
 ```typescript
-export declare function pow(base: Expression, exponent: number): FunctionExpression;
+export declare function pow(
+  base: Expression,
+  exponent: number
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -1804,7 +1892,10 @@ Creates an expression that returns the value of the base field raised to the pow
 <b>Signature:</b>
 
 ```typescript
-export declare function pow(base: string, exponent: Expression): FunctionExpression;
+export declare function pow(
+  base: string,
+  exponent: Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -1870,7 +1961,9 @@ Creates an aggregation that counts the number of stage inputs where the provided
 <b>Signature:</b>
 
 ```typescript
-export declare function countIf(booleanExpr: BooleanExpression): AggregateFunction;
+export declare function countIf(
+  booleanExpr: BooleanExpression
+): AggregateFunction;
 ```
 
 #### Parameters
@@ -1934,7 +2027,11 @@ Creates a conditional expression that evaluates to a 'then' expression if a cond
 <b>Signature:</b>
 
 ```typescript
-export declare function conditional(condition: BooleanExpression, thenExpr: Expression, elseExpr: Expression): FunctionExpression;
+export declare function conditional(
+  condition: BooleanExpression,
+  thenExpr: Expression,
+  elseExpr: Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -1970,7 +2067,11 @@ This function behaves like a `switch` statement. It accepts an alternating seque
 <b>Signature:</b>
 
 ```typescript
-export declare function switchOn(condition: BooleanExpression, result: Expression, ...others: Array<BooleanExpression | Expression>): FunctionExpression;
+export declare function switchOn(
+  condition: BooleanExpression,
+  result: Expression,
+  ...others: Array<BooleanExpression | Expression>
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -2010,14 +2111,16 @@ Creates an expression that returns the document ID from a path.
 <b>Signature:</b>
 
 ```typescript
-export declare function documentId(documentPath: string | DocumentReference): FunctionExpression;
+export declare function documentId(
+  documentPath: string | DocumentReference
+): FunctionExpression;
 ```
 
 #### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  documentPath | string \| [DocumentReference](./firestore_lite.documentreference.md#documentreference_class) |  |
+|  documentPath | string \| [DocumentReference](./firestore.documentreference.md#documentreference_class) |  |
 
 <b>Returns:</b>
 
@@ -2041,14 +2144,16 @@ Creates an expression that returns the parent document reference of a document r
 <b>Signature:</b>
 
 ```typescript
-declare function parent_2(documentPath: string | DocumentReference): FunctionExpression;
+declare function parent_2(
+  documentPath: string | DocumentReference
+): FunctionExpression;
 ```
 
 #### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  documentPath | string \| [DocumentReference](./firestore_lite.documentreference.md#documentreference_class) | A string path or DocumentReference to get the parent from. |
+|  documentPath | string \| [DocumentReference](./firestore.documentreference.md#documentreference_class) | A string path or DocumentReference to get the parent from. |
 
 <b>Returns:</b>
 
@@ -2074,7 +2179,9 @@ Creates an expression that returns the document ID from a path.
 <b>Signature:</b>
 
 ```typescript
-export declare function documentId(documentPathExpr: Expression): FunctionExpression;
+export declare function documentId(
+  documentPathExpr: Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -2138,7 +2245,10 @@ Creates an expression that checks if an expression is not equal to any of the pr
 <b>Signature:</b>
 
 ```typescript
-export declare function notEqualAny(element: Expression, values: Array<Expression | unknown>): BooleanExpression;
+export declare function notEqualAny(
+  element: Expression,
+  values: Array<Expression | unknown>
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -2170,7 +2280,10 @@ Creates an expression that checks if an expression is not equal to any of the pr
 <b>Signature:</b>
 
 ```typescript
-export declare function notEqualAny(element: Expression, arrayExpression: Expression): BooleanExpression;
+export declare function notEqualAny(
+  element: Expression,
+  arrayExpression: Expression
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -2235,7 +2348,9 @@ Creates an expression that creates a Firestore map value from an input object.
 <b>Signature:</b>
 
 ```typescript
-export declare function map(elements: Record<string, unknown>): FunctionExpression;
+export declare function map(
+  elements: Record<string, unknown>
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -2268,7 +2383,11 @@ Creates an expression that calculates the difference between two timestamps.
 <b>Signature:</b>
 
 ```typescript
-export declare function timestampDiff(endExpression: Expression, startFieldName: string, unit: TimeUnit | Expression): FunctionExpression;
+export declare function timestampDiff(
+  endExpression: Expression,
+  startFieldName: string,
+  unit: TimeUnit | Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -2301,7 +2420,11 @@ Creates an expression that calculates the difference between two timestamps.
 <b>Signature:</b>
 
 ```typescript
-export declare function timestampDiff(endExpression: Expression, startExpression: Expression, unit: TimeUnit | Expression): FunctionExpression;
+export declare function timestampDiff(
+  endExpression: Expression,
+  startExpression: Expression,
+  unit: TimeUnit | Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -2334,7 +2457,11 @@ timestampDiff(field('endTime'), field('startTime'), 'day')
 <b>Signature:</b>
 
 ```typescript
-export declare function timestampDiff(endFieldName: string, startFieldName: string, unit: TimeUnit | Expression): FunctionExpression;
+export declare function timestampDiff(
+  endFieldName: string,
+  startFieldName: string,
+  unit: TimeUnit | Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -2356,7 +2483,11 @@ Creates an expression that calculates the difference between two timestamps.
 <b>Signature:</b>
 
 ```typescript
-export declare function timestampDiff(endFieldName: string, startExpression: Expression, unit: TimeUnit | Expression): FunctionExpression;
+export declare function timestampDiff(
+  endFieldName: string,
+  startExpression: Expression,
+  unit: TimeUnit | Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -2476,7 +2607,9 @@ Creates an aggregation that counts the number of distinct values of a field.
 <b>Signature:</b>
 
 ```typescript
-export declare function countDistinct(expr: Expression | string): AggregateFunction;
+export declare function countDistinct(
+  expr: Expression | string
+): AggregateFunction;
 ```
 
 #### Parameters
@@ -2552,7 +2685,9 @@ Creates an expression that converts a timestamp expression to the number of micr
 <b>Signature:</b>
 
 ```typescript
-export declare function timestampToUnixMicros(expr: Expression): FunctionExpression;
+export declare function timestampToUnixMicros(
+  expr: Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -2583,7 +2718,9 @@ Creates an expression that converts a timestamp expression to the number of mill
 <b>Signature:</b>
 
 ```typescript
-export declare function timestampToUnixMillis(expr: Expression): FunctionExpression;
+export declare function timestampToUnixMillis(
+  expr: Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -2614,7 +2751,9 @@ Creates an expression that converts a timestamp expression to the number of seco
 <b>Signature:</b>
 
 ```typescript
-export declare function timestampToUnixSeconds(expr: Expression): FunctionExpression;
+export declare function timestampToUnixSeconds(
+  expr: Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -2645,7 +2784,9 @@ Creates an expression that interprets an expression as the number of microsecond
 <b>Signature:</b>
 
 ```typescript
-export declare function unixMicrosToTimestamp(expr: Expression): FunctionExpression;
+export declare function unixMicrosToTimestamp(
+  expr: Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -2676,7 +2817,9 @@ Creates an expression that interprets an expression as the number of millisecond
 <b>Signature:</b>
 
 ```typescript
-export declare function unixMillisToTimestamp(expr: Expression): FunctionExpression;
+export declare function unixMillisToTimestamp(
+  expr: Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -2707,7 +2850,9 @@ Creates an expression that interprets an expression as the number of seconds sin
 <b>Signature:</b>
 
 ```typescript
-export declare function unixSecondsToTimestamp(expr: Expression): FunctionExpression;
+export declare function unixSecondsToTimestamp(
+  expr: Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -2775,7 +2920,9 @@ If the expression resolves to an absent value, it is converted to `null`<!-- -->
 <b>Signature:</b>
 
 ```typescript
-export declare function arrayAggDistinct(expression: Expression): AggregateFunction;
+export declare function arrayAggDistinct(
+  expression: Expression
+): AggregateFunction;
 ```
 
 #### Parameters
@@ -2899,7 +3046,11 @@ Creates an expression that returns the first non-null, non-absent argument, with
 <b>Signature:</b>
 
 ```typescript
-export declare function coalesce(expression: Expression, replacement: Expression | unknown, ...others: Array<Expression | unknown>): FunctionExpression;
+export declare function coalesce(
+  expression: Expression,
+  replacement: Expression | unknown,
+  ...others: Array<Expression | unknown>
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -2933,7 +3084,9 @@ Creates an expression that returns the collection ID from a path.
 <b>Signature:</b>
 
 ```typescript
-export declare function collectionId(expression: Expression): FunctionExpression;
+export declare function collectionId(
+  expression: Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -2995,7 +3148,10 @@ Creates an expression that divides an expression by a constant value.
 <b>Signature:</b>
 
 ```typescript
-export declare function divide(expression: Expression, value: unknown): FunctionExpression;
+export declare function divide(
+  expression: Expression,
+  value: unknown
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -3027,7 +3183,10 @@ Creates an expression that checks if an expression is equal to a constant value.
 <b>Signature:</b>
 
 ```typescript
-export declare function equal(expression: Expression, value: unknown): BooleanExpression;
+export declare function equal(
+  expression: Expression,
+  value: unknown
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -3059,7 +3218,10 @@ Creates an expression that checks if an expression, when evaluated, is equal to 
 <b>Signature:</b>
 
 ```typescript
-export declare function equalAny(expression: Expression, values: Array<Expression | unknown>): BooleanExpression;
+export declare function equalAny(
+  expression: Expression,
+  values: Array<Expression | unknown>
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -3091,7 +3253,10 @@ Creates an expression that checks if an expression is equal to any of the provid
 <b>Signature:</b>
 
 ```typescript
-export declare function equalAny(expression: Expression, arrayExpression: Expression): BooleanExpression;
+export declare function equalAny(
+  expression: Expression,
+  arrayExpression: Expression
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -3185,7 +3350,10 @@ Creates an expression that checks if an expression is greater than a constant va
 <b>Signature:</b>
 
 ```typescript
-export declare function greaterThan(expression: Expression, value: unknown): BooleanExpression;
+export declare function greaterThan(
+  expression: Expression,
+  value: unknown
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -3217,7 +3385,10 @@ Creates an expression that checks if an expression is greater than or equal to a
 <b>Signature:</b>
 
 ```typescript
-export declare function greaterThanOrEqual(expression: Expression, value: unknown): BooleanExpression;
+export declare function greaterThanOrEqual(
+  expression: Expression,
+  value: unknown
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -3251,7 +3422,10 @@ Null or undefined fields evaluate to skip/error. Use `ifAbsent()` / `isAbsent()`
 <b>Signature:</b>
 
 ```typescript
-export declare function isType(expression: Expression, type: string): BooleanExpression;
+export declare function isType(
+  expression: Expression,
+  type: string
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -3348,7 +3522,10 @@ Creates an expression that checks if an expression is less than a constant value
 <b>Signature:</b>
 
 ```typescript
-export declare function lessThan(expression: Expression, value: unknown): BooleanExpression;
+export declare function lessThan(
+  expression: Expression,
+  value: unknown
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -3380,7 +3557,10 @@ Creates an expression that checks if an expression is less than or equal to a co
 <b>Signature:</b>
 
 ```typescript
-export declare function lessThanOrEqual(expression: Expression, value: unknown): BooleanExpression;
+export declare function lessThanOrEqual(
+  expression: Expression,
+  value: unknown
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -3443,7 +3623,10 @@ Creates an expression that computes the logarithm of an expression to a given ba
 <b>Signature:</b>
 
 ```typescript
-export declare function log(expression: Expression, base: number): FunctionExpression;
+export declare function log(
+  expression: Expression,
+  base: number
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -3475,7 +3658,10 @@ Creates an expression that computes the logarithm of an expression to a given ba
 <b>Signature:</b>
 
 ```typescript
-export declare function log(expression: Expression, base: Expression): FunctionExpression;
+export declare function log(
+  expression: Expression,
+  base: Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -3538,7 +3724,10 @@ Trims whitespace or a specified set of characters/bytes from the beginning of a 
 <b>Signature:</b>
 
 ```typescript
-export declare function ltrim(expression: Expression, valueToTrim?: string | Expression | Bytes): FunctionExpression;
+export declare function ltrim(
+  expression: Expression,
+  valueToTrim?: string | Expression | Bytes
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -3546,7 +3735,7 @@ export declare function ltrim(expression: Expression, valueToTrim?: string | Exp
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  expression | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression representing the string or byte array. |
-|  valueToTrim | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore_lite.bytes.md#bytes_class) | Optional. A string or byte array containing the characters/bytes to trim. If not specified, whitespace will be trimmed. |
+|  valueToTrim | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore.bytes.md#bytes_class) | Optional. A string or byte array containing the characters/bytes to trim. If not specified, whitespace will be trimmed. |
 
 <b>Returns:</b>
 
@@ -3635,7 +3824,10 @@ Creates an expression that calculates the modulo (remainder) of dividing an expr
 <b>Signature:</b>
 
 ```typescript
-export declare function mod(expression: Expression, value: unknown): FunctionExpression;
+export declare function mod(
+  expression: Expression,
+  value: unknown
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -3667,7 +3859,10 @@ Creates an expression that checks if an expression is not equal to a constant va
 <b>Signature:</b>
 
 ```typescript
-export declare function notEqual(expression: Expression, value: unknown): BooleanExpression;
+export declare function notEqual(
+  expression: Expression,
+  value: unknown
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -3730,7 +3925,10 @@ Creates an expression that rounds a numeric value to the specified number of dec
 <b>Signature:</b>
 
 ```typescript
-export declare function round(expression: Expression, decimalPlaces: number | Expression): FunctionExpression;
+export declare function round(
+  expression: Expression,
+  decimalPlaces: number | Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -3762,7 +3960,10 @@ Trims whitespace or a specified set of characters/bytes from the end of a string
 <b>Signature:</b>
 
 ```typescript
-export declare function rtrim(expression: Expression, valueToTrim?: string | Expression | Bytes): FunctionExpression;
+export declare function rtrim(
+  expression: Expression,
+  valueToTrim?: string | Expression | Bytes
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -3770,7 +3971,7 @@ export declare function rtrim(expression: Expression, valueToTrim?: string | Exp
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  expression | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression representing the string or byte array. |
-|  valueToTrim | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore_lite.bytes.md#bytes_class) | Optional. A string or byte array containing the characters/bytes to trim. If not specified, whitespace will be trimmed. |
+|  valueToTrim | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore.bytes.md#bytes_class) | Optional. A string or byte array containing the characters/bytes to trim. If not specified, whitespace will be trimmed. |
 
 <b>Returns:</b>
 
@@ -3797,7 +3998,10 @@ Creates an expression that splits a string into an array of substrings based on 
 <b>Signature:</b>
 
 ```typescript
-export declare function split(expression: Expression, delimiter: string): FunctionExpression;
+export declare function split(
+  expression: Expression,
+  delimiter: string
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -3829,7 +4033,10 @@ Creates an expression that splits a string into an array of substrings based on 
 <b>Signature:</b>
 
 ```typescript
-export declare function split(expression: Expression, delimiter: Expression): FunctionExpression;
+export declare function split(
+  expression: Expression,
+  delimiter: Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -3892,7 +4099,10 @@ Creates an expression that finds the index of the first occurrence of a substrin
 <b>Signature:</b>
 
 ```typescript
-export declare function stringIndexOf(expression: Expression, search: string | Expression | Bytes): FunctionExpression;
+export declare function stringIndexOf(
+  expression: Expression,
+  search: string | Expression | Bytes
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -3900,7 +4110,7 @@ export declare function stringIndexOf(expression: Expression, search: string | E
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  expression | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression representing the string or byte array. |
-|  search | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore_lite.bytes.md#bytes_class) | The substring or byte sequence to search for. |
+|  search | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore.bytes.md#bytes_class) | The substring or byte sequence to search for. |
 
 <b>Returns:</b>
 
@@ -3924,7 +4134,10 @@ Creates an expression that repeats a string or byte array a specified number of 
 <b>Signature:</b>
 
 ```typescript
-export declare function stringRepeat(expression: Expression, repetitions: number | Expression): FunctionExpression;
+export declare function stringRepeat(
+  expression: Expression,
+  repetitions: number | Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -3956,7 +4169,11 @@ Creates an expression that replaces all occurrences of a substring or byte seque
 <b>Signature:</b>
 
 ```typescript
-export declare function stringReplaceAll(expression: Expression, find: string | Expression | Bytes, replacement: string | Expression | Bytes): FunctionExpression;
+export declare function stringReplaceAll(
+  expression: Expression,
+  find: string | Expression | Bytes,
+  replacement: string | Expression | Bytes
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -3964,8 +4181,8 @@ export declare function stringReplaceAll(expression: Expression, find: string | 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  expression | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression representing the string or byte array. |
-|  find | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore_lite.bytes.md#bytes_class) | The substring or byte sequence to search for. |
-|  replacement | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore_lite.bytes.md#bytes_class) | The replacement string or byte sequence. |
+|  find | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore.bytes.md#bytes_class) | The substring or byte sequence to search for. |
+|  replacement | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore.bytes.md#bytes_class) | The replacement string or byte sequence. |
 
 <b>Returns:</b>
 
@@ -3989,7 +4206,11 @@ Creates an expression that replaces the first occurrence of a substring or byte 
 <b>Signature:</b>
 
 ```typescript
-export declare function stringReplaceOne(expression: Expression, find: string | Expression | Bytes, replacement: string | Expression | Bytes): FunctionExpression;
+export declare function stringReplaceOne(
+  expression: Expression,
+  find: string | Expression | Bytes,
+  replacement: string | Expression | Bytes
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -3997,8 +4218,8 @@ export declare function stringReplaceOne(expression: Expression, find: string | 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  expression | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression representing the string or byte array. |
-|  find | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore_lite.bytes.md#bytes_class) | The substring or byte sequence to search for. |
-|  replacement | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore_lite.bytes.md#bytes_class) | The replacement string or byte sequence. |
+|  find | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore.bytes.md#bytes_class) | The substring or byte sequence to search for. |
+|  replacement | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore.bytes.md#bytes_class) | The replacement string or byte sequence. |
 
 <b>Returns:</b>
 
@@ -4022,7 +4243,10 @@ Creates an expression that subtracts a constant value from an expression.
 <b>Signature:</b>
 
 ```typescript
-export declare function subtract(expression: Expression, value: unknown): FunctionExpression;
+export declare function subtract(
+  expression: Expression,
+  value: unknown
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -4116,7 +4340,10 @@ Creates an expression that truncates a numeric value to the specified number of 
 <b>Signature:</b>
 
 ```typescript
-export declare function trunc(expression: Expression, decimalPlaces: number | Expression): FunctionExpression;
+export declare function trunc(
+  expression: Expression,
+  decimalPlaces: number | Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -4274,7 +4501,11 @@ Creates an expression that returns a substring of a string or byte array.
 <b>Signature:</b>
 
 ```typescript
-export declare function substring(field: string, position: number, length?: number): FunctionExpression;
+export declare function substring(
+  field: string,
+  position: number,
+  length?: number
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -4296,7 +4527,11 @@ Creates an expression that returns a substring of a string or byte array.
 <b>Signature:</b>
 
 ```typescript
-export declare function substring(field: string, position: Expression, length?: Expression): FunctionExpression;
+export declare function substring(
+  field: string,
+  position: Expression,
+  length?: Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -4342,7 +4577,10 @@ Creates an expression that adds a field's value to an expression.
 <b>Signature:</b>
 
 ```typescript
-export declare function add(fieldName: string, second: Expression | unknown): FunctionExpression;
+export declare function add(
+  fieldName: string,
+  second: Expression | unknown
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -4440,7 +4678,10 @@ Creates an expression that checks if a field's array value contains a specific e
 <b>Signature:</b>
 
 ```typescript
-export declare function arrayContains(fieldName: string, element: Expression): BooleanExpression;
+export declare function arrayContains(
+  fieldName: string,
+  element: Expression
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -4472,7 +4713,10 @@ Creates an expression that checks if a field's array value contains a specific v
 <b>Signature:</b>
 
 ```typescript
-export declare function arrayContains(fieldName: string, element: unknown): BooleanExpression;
+export declare function arrayContains(
+  fieldName: string,
+  element: unknown
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -4504,7 +4748,10 @@ Creates an expression that checks if a field's array value contains all the spec
 <b>Signature:</b>
 
 ```typescript
-export declare function arrayContainsAll(fieldName: string, values: Array<Expression | unknown>): BooleanExpression;
+export declare function arrayContainsAll(
+  fieldName: string,
+  values: Array<Expression | unknown>
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -4536,7 +4783,10 @@ Creates an expression that checks if a field's array value contains all the spec
 <b>Signature:</b>
 
 ```typescript
-export declare function arrayContainsAll(fieldName: string, arrayExpression: Expression): BooleanExpression;
+export declare function arrayContainsAll(
+  fieldName: string,
+  arrayExpression: Expression
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -4568,7 +4818,10 @@ Creates an expression that checks if a field's array value contains any of the s
 <b>Signature:</b>
 
 ```typescript
-export declare function arrayContainsAny(fieldName: string, values: Array<Expression | unknown>): BooleanExpression;
+export declare function arrayContainsAny(
+  fieldName: string,
+  values: Array<Expression | unknown>
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -4601,7 +4854,10 @@ Creates an expression that checks if a field's array value contains any of the s
 <b>Signature:</b>
 
 ```typescript
-export declare function arrayContainsAny(fieldName: string, values: Expression): BooleanExpression;
+export declare function arrayContainsAny(
+  fieldName: string,
+  values: Expression
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -4634,7 +4890,11 @@ Creates an expression that filters an array using a provided alias and predicate
 <b>Signature:</b>
 
 ```typescript
-export declare function arrayFilter(fieldName: string, alias: string, filter: BooleanExpression): FunctionExpression;
+export declare function arrayFilter(
+  fieldName: string,
+  alias: string,
+  filter: BooleanExpression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -4698,7 +4958,10 @@ Creates an expression that returns the first `n` elements of an array.
 <b>Signature:</b>
 
 ```typescript
-export declare function arrayFirstN(fieldName: string, n: number): FunctionExpression;
+export declare function arrayFirstN(
+  fieldName: string,
+  n: number
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -4730,7 +4993,10 @@ Creates an expression that returns the first `n` elements of an array.
 <b>Signature:</b>
 
 ```typescript
-export declare function arrayFirstN(fieldName: string, n: Expression): FunctionExpression;
+export declare function arrayFirstN(
+  fieldName: string,
+  n: Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -4762,7 +5028,10 @@ Creates an expression that returns the first index of the search value in an arr
 <b>Signature:</b>
 
 ```typescript
-export declare function arrayIndexOf(fieldName: string, search: unknown | Expression): FunctionExpression;
+export declare function arrayIndexOf(
+  fieldName: string,
+  search: unknown | Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -4794,7 +5063,10 @@ Creates an expression that returns all indices of the search value in an array.
 <b>Signature:</b>
 
 ```typescript
-export declare function arrayIndexOfAll(fieldName: string, search: unknown | Expression): FunctionExpression;
+export declare function arrayIndexOfAll(
+  fieldName: string,
+  search: unknown | Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -4857,7 +5129,10 @@ Creates an expression that returns the last index of the search value in an arra
 <b>Signature:</b>
 
 ```typescript
-export declare function arrayLastIndexOf(fieldName: string, search: unknown | Expression): FunctionExpression;
+export declare function arrayLastIndexOf(
+  fieldName: string,
+  search: unknown | Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -4889,7 +5164,10 @@ Creates an expression that returns the last `n` elements of an array.
 <b>Signature:</b>
 
 ```typescript
-export declare function arrayLastN(fieldName: string, n: number): FunctionExpression;
+export declare function arrayLastN(
+  fieldName: string,
+  n: number
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -4921,7 +5199,10 @@ Creates an expression that returns the last `n` elements of an array.
 <b>Signature:</b>
 
 ```typescript
-export declare function arrayLastN(fieldName: string, n: Expression): FunctionExpression;
+export declare function arrayLastN(
+  fieldName: string,
+  n: Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -5017,7 +5298,10 @@ Note: Returns the n largest non-null elements in the array, in descending order.
 <b>Signature:</b>
 
 ```typescript
-export declare function arrayMaximumN(fieldName: string, n: number): FunctionExpression;
+export declare function arrayMaximumN(
+  fieldName: string,
+  n: number
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -5051,7 +5335,10 @@ Note: Returns the n largest non-null elements in the array, in descending order.
 <b>Signature:</b>
 
 ```typescript
-export declare function arrayMaximumN(fieldName: string, n: Expression): FunctionExpression;
+export declare function arrayMaximumN(
+  fieldName: string,
+  n: Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -5116,7 +5403,10 @@ Note: Returns the n smallest non-null elements in the array, in ascending order.
 <b>Signature:</b>
 
 ```typescript
-export declare function arrayMinimumN(fieldName: string, n: number): FunctionExpression;
+export declare function arrayMinimumN(
+  fieldName: string,
+  n: number
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -5150,7 +5440,10 @@ Note: Returns the n smallest non-null elements in the array, in ascending order.
 <b>Signature:</b>
 
 ```typescript
-export declare function arrayMinimumN(fieldName: string, n: Expression): FunctionExpression;
+export declare function arrayMinimumN(
+  fieldName: string,
+  n: Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -5182,7 +5475,11 @@ Creates an expression that returns a slice of an array from `offset` with `lengt
 <b>Signature:</b>
 
 ```typescript
-export declare function arraySlice(fieldName: string, offset: number | Expression, length?: number | Expression): FunctionExpression;
+export declare function arraySlice(
+  fieldName: string,
+  offset: number | Expression,
+  length?: number | Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -5249,7 +5546,11 @@ Creates an expression that applies a provided transformation to each element in 
 <b>Signature:</b>
 
 ```typescript
-export declare function arrayTransform(fieldName: string, elementAlias: string, transform: Expression): FunctionExpression;
+export declare function arrayTransform(
+  fieldName: string,
+  elementAlias: string,
+  transform: Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -5282,7 +5583,12 @@ Creates an expression that applies a provided transformation to each element in 
 <b>Signature:</b>
 
 ```typescript
-export declare function arrayTransformWithIndex(fieldName: string, elementAlias: string, indexAlias: string, transform: Expression): FunctionExpression;
+export declare function arrayTransformWithIndex(
+  fieldName: string,
+  elementAlias: string,
+  indexAlias: string,
+  transform: Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -5472,7 +5778,11 @@ Creates an expression that returns the first non-null, non-absent argument, with
 <b>Signature:</b>
 
 ```typescript
-export declare function coalesce(fieldName: string, replacement: Expression | unknown, ...others: Array<Expression | unknown>): FunctionExpression;
+export declare function coalesce(
+  fieldName: string,
+  replacement: Expression | unknown,
+  ...others: Array<Expression | unknown>
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -5537,7 +5847,11 @@ Creates an expression that concatenates strings, arrays, or blobs. Types cannot 
 <b>Signature:</b>
 
 ```typescript
-export declare function concat(fieldName: string, second: Expression | unknown, ...others: Array<Expression | unknown>): FunctionExpression;
+export declare function concat(
+  fieldName: string,
+  second: Expression | unknown,
+  ...others: Array<Expression | unknown>
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -5570,7 +5884,10 @@ Calculates the Cosine distance between a field's vector value and a literal vect
 <b>Signature:</b>
 
 ```typescript
-export declare function cosineDistance(fieldName: string, vector: number[] | VectorValue): FunctionExpression;
+export declare function cosineDistance(
+  fieldName: string,
+  vector: number[] | VectorValue
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -5578,7 +5895,7 @@ export declare function cosineDistance(fieldName: string, vector: number[] | Vec
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  fieldName | string | The name of the field containing the first vector. |
-|  vector | number\[\] \| [VectorValue](./firestore_lite.vectorvalue.md#vectorvalue_class) | The other vector (as an array of doubles) or [VectorValue](./firestore_.vectorvalue.md#vectorvalue_class) to compare against. |
+|  vector | number\[\] \| [VectorValue](./firestore.vectorvalue.md#vectorvalue_class) | The other vector (as an array of doubles) or [VectorValue](./firestore.vectorvalue.md#vectorvalue_class) to compare against. |
 
 <b>Returns:</b>
 
@@ -5602,7 +5919,10 @@ Calculates the Cosine distance between a field's vector value and a vector expre
 <b>Signature:</b>
 
 ```typescript
-export declare function cosineDistance(fieldName: string, vectorExpression: Expression): FunctionExpression;
+export declare function cosineDistance(
+  fieldName: string,
+  vectorExpression: Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -5697,7 +6017,10 @@ Creates an expression that divides a field's value by an expression.
 <b>Signature:</b>
 
 ```typescript
-export declare function divide(fieldName: string, expressions: Expression): FunctionExpression;
+export declare function divide(
+  fieldName: string,
+  expressions: Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -5729,7 +6052,10 @@ Creates an expression that divides a field's value by a constant value.
 <b>Signature:</b>
 
 ```typescript
-export declare function divide(fieldName: string, value: unknown): FunctionExpression;
+export declare function divide(
+  fieldName: string,
+  value: unknown
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -5761,7 +6087,10 @@ Calculates the dot product between a field's vector value and a double array.
 <b>Signature:</b>
 
 ```typescript
-export declare function dotProduct(fieldName: string, vector: number[] | VectorValue): FunctionExpression;
+export declare function dotProduct(
+  fieldName: string,
+  vector: number[] | VectorValue
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -5769,7 +6098,7 @@ export declare function dotProduct(fieldName: string, vector: number[] | VectorV
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  fieldName | string | The name of the field containing the first vector. |
-|  vector | number\[\] \| [VectorValue](./firestore_lite.vectorvalue.md#vectorvalue_class) | The other vector (as an array of doubles or VectorValue) to calculate with. |
+|  vector | number\[\] \| [VectorValue](./firestore.vectorvalue.md#vectorvalue_class) | The other vector (as an array of doubles or VectorValue) to calculate with. |
 
 <b>Returns:</b>
 
@@ -5793,7 +6122,10 @@ Calculates the dot product between a field's vector value and a vector expressio
 <b>Signature:</b>
 
 ```typescript
-export declare function dotProduct(fieldName: string, vectorExpression: Expression): FunctionExpression;
+export declare function dotProduct(
+  fieldName: string,
+  vectorExpression: Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -5825,7 +6157,10 @@ Creates an expression that checks if a field's value ends with a given postfix.
 <b>Signature:</b>
 
 ```typescript
-export declare function endsWith(fieldName: string, suffix: string): BooleanExpression;
+export declare function endsWith(
+  fieldName: string,
+  suffix: string
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -5857,7 +6192,10 @@ Creates an expression that checks if a field's value ends with a given postfix.
 <b>Signature:</b>
 
 ```typescript
-export declare function endsWith(fieldName: string, suffix: Expression): BooleanExpression;
+export declare function endsWith(
+  fieldName: string,
+  suffix: Expression
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -5889,7 +6227,10 @@ Creates an expression that checks if a field's value is equal to an expression.
 <b>Signature:</b>
 
 ```typescript
-export declare function equal(fieldName: string, expression: Expression): BooleanExpression;
+export declare function equal(
+  fieldName: string,
+  expression: Expression
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -5921,7 +6262,10 @@ Creates an expression that checks if a field's value is equal to a constant valu
 <b>Signature:</b>
 
 ```typescript
-export declare function equal(fieldName: string, value: unknown): BooleanExpression;
+export declare function equal(
+  fieldName: string,
+  value: unknown
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -5953,7 +6297,10 @@ Creates an expression that checks if a field's value is equal to any of the prov
 <b>Signature:</b>
 
 ```typescript
-export declare function equalAny(fieldName: string, values: Array<Expression | unknown>): BooleanExpression;
+export declare function equalAny(
+  fieldName: string,
+  values: Array<Expression | unknown>
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -5985,7 +6332,10 @@ Creates an expression that checks if a field's value is equal to any of the prov
 <b>Signature:</b>
 
 ```typescript
-export declare function equalAny(fieldName: string, arrayExpression: Expression): BooleanExpression;
+export declare function equalAny(
+  fieldName: string,
+  arrayExpression: Expression
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -6017,7 +6367,10 @@ Calculates the Euclidean distance between a field's vector value and a double ar
 <b>Signature:</b>
 
 ```typescript
-export declare function euclideanDistance(fieldName: string, vector: number[] | VectorValue): FunctionExpression;
+export declare function euclideanDistance(
+  fieldName: string,
+  vector: number[] | VectorValue
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -6025,7 +6378,7 @@ export declare function euclideanDistance(fieldName: string, vector: number[] | 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  fieldName | string | The name of the field containing the first vector. |
-|  vector | number\[\] \| [VectorValue](./firestore_lite.vectorvalue.md#vectorvalue_class) | The other vector (as an array of doubles or VectorValue) to compare against. |
+|  vector | number\[\] \| [VectorValue](./firestore.vectorvalue.md#vectorvalue_class) | The other vector (as an array of doubles or VectorValue) to compare against. |
 
 <b>Returns:</b>
 
@@ -6049,7 +6402,10 @@ Calculates the Euclidean distance between a field's vector value and a vector ex
 <b>Signature:</b>
 
 ```typescript
-export declare function euclideanDistance(fieldName: string, vectorExpression: Expression): FunctionExpression;
+export declare function euclideanDistance(
+  fieldName: string,
+  vectorExpression: Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -6201,7 +6557,10 @@ This Expression can only be used within a `search` stage.
 <b>Signature:</b>
 
 ```typescript
-export declare function geoDistance(fieldName: string | Field, location: GeoPoint | Expression): Expression;
+export declare function geoDistance(
+  fieldName: string | Field,
+  location: GeoPoint | Expression
+): Expression;
 ```
 
 #### Parameters
@@ -6209,7 +6568,7 @@ export declare function geoDistance(fieldName: string | Field, location: GeoPoin
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  fieldName | string \| [Field](./firestore_lite_pipelines.field.md#field_class) | Specifies the field in the document which contains the first GeoPoint for distance computation. |
-|  location | [GeoPoint](./firestore_lite.geopoint.md#geopoint_class) \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) | Compute distance to this GeoPoint. |
+|  location | [GeoPoint](./firestore.geopoint.md#geopoint_class) \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) | Compute distance to this GeoPoint. |
 
 <b>Returns:</b>
 
@@ -6233,7 +6592,10 @@ Creates an expression that checks if a field's value is greater than an expressi
 <b>Signature:</b>
 
 ```typescript
-export declare function greaterThan(fieldName: string, expression: Expression): BooleanExpression;
+export declare function greaterThan(
+  fieldName: string,
+  expression: Expression
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -6265,7 +6627,10 @@ Creates an expression that checks if a field's value is greater than a constant 
 <b>Signature:</b>
 
 ```typescript
-export declare function greaterThan(fieldName: string, value: unknown): BooleanExpression;
+export declare function greaterThan(
+  fieldName: string,
+  value: unknown
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -6297,7 +6662,10 @@ Creates an expression that checks if a field's value is greater than or equal to
 <b>Signature:</b>
 
 ```typescript
-export declare function greaterThanOrEqual(fieldName: string, value: Expression): BooleanExpression;
+export declare function greaterThanOrEqual(
+  fieldName: string,
+  value: Expression
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -6329,7 +6697,10 @@ Creates an expression that checks if a field's value is greater than or equal to
 <b>Signature:</b>
 
 ```typescript
-export declare function greaterThanOrEqual(fieldName: string, value: unknown): BooleanExpression;
+export declare function greaterThanOrEqual(
+  fieldName: string,
+  value: unknown
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -6363,7 +6734,10 @@ Null or undefined fields evaluate to skip/error. Use `ifAbsent()` / `isAbsent()`
 <b>Signature:</b>
 
 ```typescript
-export declare function isType(fieldName: string, type: string): BooleanExpression;
+export declare function isType(
+  fieldName: string,
+  type: string
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -6460,7 +6834,10 @@ Creates an expression that checks if a field's value is less than an expression.
 <b>Signature:</b>
 
 ```typescript
-export declare function lessThan(fieldName: string, expression: Expression): BooleanExpression;
+export declare function lessThan(
+  fieldName: string,
+  expression: Expression
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -6492,7 +6869,10 @@ Creates an expression that checks if a field's value is less than a constant val
 <b>Signature:</b>
 
 ```typescript
-export declare function lessThan(fieldName: string, value: unknown): BooleanExpression;
+export declare function lessThan(
+  fieldName: string,
+  value: unknown
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -6524,7 +6904,10 @@ Creates an expression that checks if a field's value is less than or equal to an
 <b>Signature:</b>
 
 ```typescript
-export declare function lessThanOrEqual(fieldName: string, expression: Expression): BooleanExpression;
+export declare function lessThanOrEqual(
+  fieldName: string,
+  expression: Expression
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -6556,7 +6939,10 @@ Creates an expression that checks if a field's value is less than or equal to a 
 <b>Signature:</b>
 
 ```typescript
-export declare function lessThanOrEqual(fieldName: string, value: unknown): BooleanExpression;
+export declare function lessThanOrEqual(
+  fieldName: string,
+  value: unknown
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -6588,7 +6974,10 @@ Creates an expression that performs a case-sensitive wildcard string comparison 
 <b>Signature:</b>
 
 ```typescript
-export declare function like(fieldName: string, pattern: string): BooleanExpression;
+export declare function like(
+  fieldName: string,
+  pattern: string
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -6620,7 +7009,10 @@ Creates an expression that performs a case-sensitive wildcard string comparison 
 <b>Signature:</b>
 
 ```typescript
-export declare function like(fieldName: string, pattern: Expression): BooleanExpression;
+export declare function like(
+  fieldName: string,
+  pattern: Expression
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -6683,7 +7075,10 @@ Creates an expression that computes the logarithm of a field to a given base.
 <b>Signature:</b>
 
 ```typescript
-export declare function log(fieldName: string, base: number): FunctionExpression;
+export declare function log(
+  fieldName: string,
+  base: number
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -6715,7 +7110,10 @@ Creates an expression that computes the logarithm of a field to a given base.
 <b>Signature:</b>
 
 ```typescript
-export declare function log(fieldName: string, base: Expression): FunctionExpression;
+export declare function log(
+  fieldName: string,
+  base: Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -6778,7 +7176,11 @@ Creates an expression that returns the largest value between multiple input expr
 <b>Signature:</b>
 
 ```typescript
-export declare function logicalMaximum(fieldName: string, second: Expression | unknown, ...others: Array<Expression | unknown>): FunctionExpression;
+export declare function logicalMaximum(
+  fieldName: string,
+  second: Expression | unknown,
+  ...others: Array<Expression | unknown>
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -6812,7 +7214,11 @@ Creates an expression that returns the smallest value between a field's value an
 <b>Signature:</b>
 
 ```typescript
-export declare function logicalMinimum(fieldName: string, second: Expression | unknown, ...others: Array<Expression | unknown>): FunctionExpression;
+export declare function logicalMinimum(
+  fieldName: string,
+  second: Expression | unknown,
+  ...others: Array<Expression | unknown>
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -6846,7 +7252,10 @@ Trims whitespace or a specified set of characters/bytes from the beginning of a 
 <b>Signature:</b>
 
 ```typescript
-export declare function ltrim(fieldName: string, valueToTrim?: string | Expression | Bytes): FunctionExpression;
+export declare function ltrim(
+  fieldName: string,
+  valueToTrim?: string | Expression | Bytes
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -6854,7 +7263,7 @@ export declare function ltrim(fieldName: string, valueToTrim?: string | Expressi
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  fieldName | string | The name of the field containing the string or byte array. |
-|  valueToTrim | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore_lite.bytes.md#bytes_class) | Optional. A string or byte array containing the characters/bytes to trim. If not specified, whitespace will be trimmed. |
+|  valueToTrim | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore.bytes.md#bytes_class) | Optional. A string or byte array containing the characters/bytes to trim. If not specified, whitespace will be trimmed. |
 
 <b>Returns:</b>
 
@@ -6881,7 +7290,10 @@ Accesses a value from a map (object) field using the provided key.
 <b>Signature:</b>
 
 ```typescript
-export declare function mapGet(fieldName: string, subField: string): FunctionExpression;
+export declare function mapGet(
+  fieldName: string,
+  subField: string
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -6975,7 +7387,10 @@ Creates an expression that calculates the modulo (remainder) of dividing a field
 <b>Signature:</b>
 
 ```typescript
-export declare function mod(fieldName: string, expression: Expression): FunctionExpression;
+export declare function mod(
+  fieldName: string,
+  expression: Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -7007,7 +7422,10 @@ Creates an expression that calculates the modulo (remainder) of dividing a field
 <b>Signature:</b>
 
 ```typescript
-export declare function mod(fieldName: string, value: unknown): FunctionExpression;
+export declare function mod(
+  fieldName: string,
+  value: unknown
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -7039,7 +7457,10 @@ Creates an expression that multiplies a field's value by an expression.
 <b>Signature:</b>
 
 ```typescript
-export declare function multiply(fieldName: string, second: Expression | unknown): FunctionExpression;
+export declare function multiply(
+  fieldName: string,
+  second: Expression | unknown
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -7071,7 +7492,10 @@ Creates an expression that checks if a field's value is not equal to an expressi
 <b>Signature:</b>
 
 ```typescript
-export declare function notEqual(fieldName: string, expression: Expression): BooleanExpression;
+export declare function notEqual(
+  fieldName: string,
+  expression: Expression
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -7103,7 +7527,10 @@ Creates an expression that checks if a field's value is not equal to a constant 
 <b>Signature:</b>
 
 ```typescript
-export declare function notEqual(fieldName: string, value: unknown): BooleanExpression;
+export declare function notEqual(
+  fieldName: string,
+  value: unknown
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -7135,7 +7562,10 @@ Creates an expression that checks if a field's value is not equal to any of the 
 <b>Signature:</b>
 
 ```typescript
-export declare function notEqualAny(fieldName: string, values: Array<Expression | unknown>): BooleanExpression;
+export declare function notEqualAny(
+  fieldName: string,
+  values: Array<Expression | unknown>
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -7167,7 +7597,10 @@ Creates an expression that checks if a field's value is not equal to any of the 
 <b>Signature:</b>
 
 ```typescript
-export declare function notEqualAny(fieldName: string, arrayExpression: Expression): BooleanExpression;
+export declare function notEqualAny(
+  fieldName: string,
+  arrayExpression: Expression
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -7199,7 +7632,10 @@ Creates an expression that checks if a string field contains a specified regular
 <b>Signature:</b>
 
 ```typescript
-export declare function regexContains(fieldName: string, pattern: string): BooleanExpression;
+export declare function regexContains(
+  fieldName: string,
+  pattern: string
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -7231,7 +7667,10 @@ Creates an expression that checks if a string field contains a specified regular
 <b>Signature:</b>
 
 ```typescript
-export declare function regexContains(fieldName: string, pattern: Expression): BooleanExpression;
+export declare function regexContains(
+  fieldName: string,
+  pattern: Expression
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -7265,7 +7704,10 @@ This expression uses the [RE2](https://github.com/google/re2/wiki/Syntax) regula
 <b>Signature:</b>
 
 ```typescript
-export declare function regexFind(fieldName: string, pattern: string): FunctionExpression;
+export declare function regexFind(
+  fieldName: string,
+  pattern: string
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -7299,7 +7741,10 @@ This expression uses the [RE2](https://github.com/google/re2/wiki/Syntax) regula
 <b>Signature:</b>
 
 ```typescript
-export declare function regexFind(fieldName: string, pattern: Expression): FunctionExpression;
+export declare function regexFind(
+  fieldName: string,
+  pattern: Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -7333,7 +7778,10 @@ This expression uses the [RE2](https://github.com/google/re2/wiki/Syntax) regula
 <b>Signature:</b>
 
 ```typescript
-export declare function regexFindAll(fieldName: string, pattern: string): FunctionExpression;
+export declare function regexFindAll(
+  fieldName: string,
+  pattern: string
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -7367,7 +7815,10 @@ This expression uses the [RE2](https://github.com/google/re2/wiki/Syntax) regula
 <b>Signature:</b>
 
 ```typescript
-export declare function regexFindAll(fieldName: string, pattern: Expression): FunctionExpression;
+export declare function regexFindAll(
+  fieldName: string,
+  pattern: Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -7399,7 +7850,10 @@ Creates an expression that checks if a string field matches a specified regular 
 <b>Signature:</b>
 
 ```typescript
-export declare function regexMatch(fieldName: string, pattern: string): BooleanExpression;
+export declare function regexMatch(
+  fieldName: string,
+  pattern: string
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -7431,7 +7885,10 @@ Creates an expression that checks if a string field matches a specified regular 
 <b>Signature:</b>
 
 ```typescript
-export declare function regexMatch(fieldName: string, pattern: Expression): BooleanExpression;
+export declare function regexMatch(
+  fieldName: string,
+  pattern: Expression
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -7494,7 +7951,10 @@ Creates an expression that rounds a numeric value to the specified number of dec
 <b>Signature:</b>
 
 ```typescript
-export declare function round(fieldName: string, decimalPlaces: number | Expression): FunctionExpression;
+export declare function round(
+  fieldName: string,
+  decimalPlaces: number | Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -7526,7 +7986,10 @@ Trims whitespace or a specified set of characters/bytes from the end of a string
 <b>Signature:</b>
 
 ```typescript
-export declare function rtrim(fieldName: string, valueToTrim?: string | Expression | Bytes): FunctionExpression;
+export declare function rtrim(
+  fieldName: string,
+  valueToTrim?: string | Expression | Bytes
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -7534,7 +7997,7 @@ export declare function rtrim(fieldName: string, valueToTrim?: string | Expressi
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  fieldName | string | The name of the field containing the string or byte array. |
-|  valueToTrim | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore_lite.bytes.md#bytes_class) | Optional. A string or byte array containing the characters/bytes to trim. If not specified, whitespace will be trimmed. |
+|  valueToTrim | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore.bytes.md#bytes_class) | Optional. A string or byte array containing the characters/bytes to trim. If not specified, whitespace will be trimmed. |
 
 <b>Returns:</b>
 
@@ -7561,7 +8024,10 @@ Creates an expression that splits the value of a field on the provided delimiter
 <b>Signature:</b>
 
 ```typescript
-export declare function split(fieldName: string, delimiter: string): FunctionExpression;
+export declare function split(
+  fieldName: string,
+  delimiter: string
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -7593,7 +8059,10 @@ Creates an expression that splits the value of a field on the provided delimiter
 <b>Signature:</b>
 
 ```typescript
-export declare function split(fieldName: string, delimiter: Expression): FunctionExpression;
+export declare function split(
+  fieldName: string,
+  delimiter: Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -7656,7 +8125,10 @@ Creates an expression that checks if a field's value starts with a given prefix.
 <b>Signature:</b>
 
 ```typescript
-export declare function startsWith(fieldName: string, prefix: string): BooleanExpression;
+export declare function startsWith(
+  fieldName: string,
+  prefix: string
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -7688,7 +8160,10 @@ Creates an expression that checks if a field's value starts with a given prefix.
 <b>Signature:</b>
 
 ```typescript
-export declare function startsWith(fieldName: string, prefix: Expression): BooleanExpression;
+export declare function startsWith(
+  fieldName: string,
+  prefix: Expression
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -7720,7 +8195,11 @@ Creates an expression that concatenates string functions, fields or constants to
 <b>Signature:</b>
 
 ```typescript
-export declare function stringConcat(fieldName: string, secondString: Expression | string, ...otherStrings: Array<Expression | string>): FunctionExpression;
+export declare function stringConcat(
+  fieldName: string,
+  secondString: Expression | string,
+  ...otherStrings: Array<Expression | string>
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -7753,7 +8232,10 @@ Creates an expression that checks if a string field contains a specified substri
 <b>Signature:</b>
 
 ```typescript
-export declare function stringContains(fieldName: string, substring: string): BooleanExpression;
+export declare function stringContains(
+  fieldName: string,
+  substring: string
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -7785,7 +8267,10 @@ Creates an expression that checks if a string field contains a substring specifi
 <b>Signature:</b>
 
 ```typescript
-export declare function stringContains(fieldName: string, substring: Expression): BooleanExpression;
+export declare function stringContains(
+  fieldName: string,
+  substring: Expression
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -7817,7 +8302,10 @@ Creates an expression that finds the index of the first occurrence of a substrin
 <b>Signature:</b>
 
 ```typescript
-export declare function stringIndexOf(fieldName: string, search: string | Expression | Bytes): FunctionExpression;
+export declare function stringIndexOf(
+  fieldName: string,
+  search: string | Expression | Bytes
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -7825,7 +8313,7 @@ export declare function stringIndexOf(fieldName: string, search: string | Expres
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  fieldName | string | The name of the field containing the string or byte array. |
-|  search | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore_lite.bytes.md#bytes_class) | The substring or byte sequence to search for. |
+|  search | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore.bytes.md#bytes_class) | The substring or byte sequence to search for. |
 
 <b>Returns:</b>
 
@@ -7849,7 +8337,10 @@ Creates an expression that repeats a string or byte array a specified number of 
 <b>Signature:</b>
 
 ```typescript
-export declare function stringRepeat(fieldName: string, repetitions: number | Expression): FunctionExpression;
+export declare function stringRepeat(
+  fieldName: string,
+  repetitions: number | Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -7881,7 +8372,11 @@ Creates an expression that replaces all occurrences of a substring or byte seque
 <b>Signature:</b>
 
 ```typescript
-export declare function stringReplaceAll(fieldName: string, find: string | Expression | Bytes, replacement: string | Expression | Bytes): FunctionExpression;
+export declare function stringReplaceAll(
+  fieldName: string,
+  find: string | Expression | Bytes,
+  replacement: string | Expression | Bytes
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -7889,8 +8384,8 @@ export declare function stringReplaceAll(fieldName: string, find: string | Expre
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  fieldName | string | The name of the field containing the string or byte array. |
-|  find | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore_lite.bytes.md#bytes_class) | The substring or byte sequence to search for. |
-|  replacement | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore_lite.bytes.md#bytes_class) | The replacement string or byte sequence. |
+|  find | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore.bytes.md#bytes_class) | The substring or byte sequence to search for. |
+|  replacement | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore.bytes.md#bytes_class) | The replacement string or byte sequence. |
 
 <b>Returns:</b>
 
@@ -7914,7 +8409,11 @@ Creates an expression that replaces the first occurrence of a substring or byte 
 <b>Signature:</b>
 
 ```typescript
-export declare function stringReplaceOne(fieldName: string, find: string | Expression | Bytes, replacement: string | Expression | Bytes): FunctionExpression;
+export declare function stringReplaceOne(
+  fieldName: string,
+  find: string | Expression | Bytes,
+  replacement: string | Expression | Bytes
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -7922,8 +8421,8 @@ export declare function stringReplaceOne(fieldName: string, find: string | Expre
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  fieldName | string | The name of the field containing the string or byte array. |
-|  find | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore_lite.bytes.md#bytes_class) | The substring or byte sequence to search for. |
-|  replacement | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore_lite.bytes.md#bytes_class) | The replacement string or byte sequence. |
+|  find | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore.bytes.md#bytes_class) | The substring or byte sequence to search for. |
+|  replacement | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore.bytes.md#bytes_class) | The replacement string or byte sequence. |
 
 <b>Returns:</b>
 
@@ -7947,7 +8446,10 @@ Creates an expression that subtracts an expression from a field's value.
 <b>Signature:</b>
 
 ```typescript
-export declare function subtract(fieldName: string, expression: Expression): FunctionExpression;
+export declare function subtract(
+  fieldName: string,
+  expression: Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -7979,7 +8481,10 @@ Creates an expression that subtracts a constant value from a field's value.
 <b>Signature:</b>
 
 ```typescript
-export declare function subtract(fieldName: string, value: unknown): FunctionExpression;
+export declare function subtract(
+  fieldName: string,
+  value: unknown
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -8042,7 +8547,11 @@ Creates an expression that adds a specified amount of time to a timestamp repres
 <b>Signature:</b>
 
 ```typescript
-export declare function timestampAdd(fieldName: string, unit: TimeUnit, amount: number): FunctionExpression;
+export declare function timestampAdd(
+  fieldName: string,
+  unit: TimeUnit,
+  amount: number
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -8075,7 +8584,11 @@ Creates an expression that extracts a specified part from a timestamp.
 <b>Signature:</b>
 
 ```typescript
-export declare function timestampExtract(fieldName: string, part: TimePart, timezone?: string | Expression): FunctionExpression;
+export declare function timestampExtract(
+  fieldName: string,
+  part: TimePart,
+  timezone?: string | Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -8108,7 +8621,11 @@ Creates an expression that extracts a specified part from a timestamp.
 <b>Signature:</b>
 
 ```typescript
-export declare function timestampExtract(fieldName: string, part: Expression, timezone?: string | Expression): FunctionExpression;
+export declare function timestampExtract(
+  fieldName: string,
+  part: Expression,
+  timezone?: string | Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -8141,7 +8658,11 @@ Creates an expression that subtracts a specified amount of time from a timestamp
 <b>Signature:</b>
 
 ```typescript
-export declare function timestampSubtract(fieldName: string, unit: TimeUnit, amount: number): FunctionExpression;
+export declare function timestampSubtract(
+  fieldName: string,
+  unit: TimeUnit,
+  amount: number
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -8174,7 +8695,9 @@ Creates an expression that converts a timestamp field to the number of microseco
 <b>Signature:</b>
 
 ```typescript
-export declare function timestampToUnixMicros(fieldName: string): FunctionExpression;
+export declare function timestampToUnixMicros(
+  fieldName: string
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -8205,7 +8728,9 @@ Creates an expression that converts a timestamp field to the number of milliseco
 <b>Signature:</b>
 
 ```typescript
-export declare function timestampToUnixMillis(fieldName: string): FunctionExpression;
+export declare function timestampToUnixMillis(
+  fieldName: string
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -8236,7 +8761,9 @@ Creates an expression that converts a timestamp field to the number of seconds s
 <b>Signature:</b>
 
 ```typescript
-export declare function timestampToUnixSeconds(fieldName: string): FunctionExpression;
+export declare function timestampToUnixSeconds(
+  fieldName: string
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -8267,7 +8794,11 @@ Creates an expression that truncates a timestamp to a specified granularity.
 <b>Signature:</b>
 
 ```typescript
-export declare function timestampTruncate(fieldName: string, granularity: TimeGranularity, timezone?: string | Expression): FunctionExpression;
+export declare function timestampTruncate(
+  fieldName: string,
+  granularity: TimeGranularity,
+  timezone?: string | Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -8300,7 +8831,11 @@ Creates an expression that truncates a timestamp to a specified granularity.
 <b>Signature:</b>
 
 ```typescript
-export declare function timestampTruncate(fieldName: string, granularity: Expression, timezone?: string | Expression): FunctionExpression;
+export declare function timestampTruncate(
+  fieldName: string,
+  granularity: Expression,
+  timezone?: string | Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -8395,7 +8930,10 @@ Creates an expression that removes leading and trailing whitespace from a string
 <b>Signature:</b>
 
 ```typescript
-export declare function trim(fieldName: string, valueToTrim?: string | Expression): FunctionExpression;
+export declare function trim(
+  fieldName: string,
+  valueToTrim?: string | Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -8461,7 +8999,10 @@ Creates an expression that truncates a numeric expression to the specified numbe
 <b>Signature:</b>
 
 ```typescript
-export declare function trunc(fieldName: string, decimalPlaces: number | Expression): FunctionExpression;
+export declare function trunc(
+  fieldName: string,
+  decimalPlaces: number | Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -8526,7 +9067,9 @@ Creates an expression that interprets a field's value as the number of microseco
 <b>Signature:</b>
 
 ```typescript
-export declare function unixMicrosToTimestamp(fieldName: string): FunctionExpression;
+export declare function unixMicrosToTimestamp(
+  fieldName: string
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -8557,7 +9100,9 @@ Creates an expression that interprets a field's value as the number of milliseco
 <b>Signature:</b>
 
 ```typescript
-export declare function unixMillisToTimestamp(fieldName: string): FunctionExpression;
+export declare function unixMillisToTimestamp(
+  fieldName: string
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -8588,7 +9133,9 @@ Creates an expression that interprets a field's value as the number of seconds s
 <b>Signature:</b>
 
 ```typescript
-export declare function unixSecondsToTimestamp(fieldName: string): FunctionExpression;
+export declare function unixSecondsToTimestamp(
+  fieldName: string
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -8652,7 +9199,10 @@ Creates an expression that adds two expressions together.
 <b>Signature:</b>
 
 ```typescript
-export declare function add(first: Expression, second: Expression | unknown): FunctionExpression;
+export declare function add(
+  first: Expression,
+  second: Expression | unknown
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -8684,7 +9234,11 @@ Creates an expression that performs a logical 'AND' operation on multiple filter
 <b>Signature:</b>
 
 ```typescript
-export declare function and(first: BooleanExpression, second: BooleanExpression, ...more: BooleanExpression[]): BooleanExpression;
+export declare function and(
+  first: BooleanExpression,
+  second: BooleanExpression,
+  ...more: BooleanExpression[]
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -8718,7 +9272,11 @@ Creates an expression that concatenates strings, arrays, or blobs. Types cannot 
 <b>Signature:</b>
 
 ```typescript
-export declare function concat(first: Expression, second: Expression | unknown, ...others: Array<Expression | unknown>): FunctionExpression;
+export declare function concat(
+  first: Expression,
+  second: Expression | unknown,
+  ...others: Array<Expression | unknown>
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -8751,7 +9309,11 @@ Creates an expression that returns the largest value between multiple input expr
 <b>Signature:</b>
 
 ```typescript
-export declare function logicalMaximum(first: Expression, second: Expression | unknown, ...others: Array<Expression | unknown>): FunctionExpression;
+export declare function logicalMaximum(
+  first: Expression,
+  second: Expression | unknown,
+  ...others: Array<Expression | unknown>
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -8785,7 +9347,11 @@ Creates an expression that returns the smallest value between multiple input exp
 <b>Signature:</b>
 
 ```typescript
-export declare function logicalMinimum(first: Expression, second: Expression | unknown, ...others: Array<Expression | unknown>): FunctionExpression;
+export declare function logicalMinimum(
+  first: Expression,
+  second: Expression | unknown,
+  ...others: Array<Expression | unknown>
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -8819,7 +9385,10 @@ Creates an expression that multiplies two expressions together.
 <b>Signature:</b>
 
 ```typescript
-export declare function multiply(first: Expression, second: Expression | unknown): FunctionExpression;
+export declare function multiply(
+  first: Expression,
+  second: Expression | unknown
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -8851,7 +9420,11 @@ Creates an expression that performs a logical 'NOR' operation on multiple filter
 <b>Signature:</b>
 
 ```typescript
-export declare function nor(first: BooleanExpression, second: BooleanExpression, ...more: BooleanExpression[]): BooleanExpression;
+export declare function nor(
+  first: BooleanExpression,
+  second: BooleanExpression,
+  ...more: BooleanExpression[]
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -8887,7 +9460,11 @@ Creates an expression that performs a logical 'OR' operation on multiple filter 
 <b>Signature:</b>
 
 ```typescript
-export declare function or(first: BooleanExpression, second: BooleanExpression, ...more: BooleanExpression[]): BooleanExpression;
+export declare function or(
+  first: BooleanExpression,
+  second: BooleanExpression,
+  ...more: BooleanExpression[]
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -8921,7 +9498,11 @@ Creates an expression that performs a logical 'XOR' (exclusive OR) operation on 
 <b>Signature:</b>
 
 ```typescript
-export declare function xor(first: BooleanExpression, second: BooleanExpression, ...additionalConditions: BooleanExpression[]): BooleanExpression;
+export declare function xor(
+  first: BooleanExpression,
+  second: BooleanExpression,
+  ...additionalConditions: BooleanExpression[]
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -8960,7 +9541,11 @@ Creates an expression that concatenates an array expression with other arrays.
 <b>Signature:</b>
 
 ```typescript
-export declare function arrayConcat(firstArray: Expression, secondArray: Expression | unknown[], ...otherArrays: Array<Expression | unknown[]>): FunctionExpression;
+export declare function arrayConcat(
+  firstArray: Expression,
+  secondArray: Expression | unknown[],
+  ...otherArrays: Array<Expression | unknown[]>
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -8995,7 +9580,11 @@ Creates an expression that concatenates a field's array value with other arrays.
 <b>Signature:</b>
 
 ```typescript
-export declare function arrayConcat(firstArrayField: string, secondArray: Expression | unknown[], ...otherArrays: Array<Expression | unknown[]>): FunctionExpression;
+export declare function arrayConcat(
+  firstArrayField: string,
+  secondArray: Expression | unknown[],
+  ...otherArrays: Array<Expression | unknown[]>
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -9030,7 +9619,11 @@ Creates an expression that merges multiple map values.
 <b>Signature:</b>
 
 ```typescript
-export declare function mapMerge(firstMap: Record<string, unknown> | Expression, secondMap: Record<string, unknown> | Expression, ...otherMaps: Array<Record<string, unknown> | Expression>): FunctionExpression;
+export declare function mapMerge(
+  firstMap: Record<string, unknown> | Expression,
+  secondMap: Record<string, unknown> | Expression,
+  ...otherMaps: Array<Record<string, unknown> | Expression>
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -9064,7 +9657,11 @@ Creates an expression that concatenates string expressions together.
 <b>Signature:</b>
 
 ```typescript
-export declare function stringConcat(firstString: Expression, secondString: Expression | string, ...otherStrings: Array<Expression | string>): FunctionExpression;
+export declare function stringConcat(
+  firstString: Expression,
+  secondString: Expression | string,
+  ...otherStrings: Array<Expression | string>
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -9099,7 +9696,10 @@ Creates an expression that returns the `elseExpr` argument if `ifExpr` is absent
 <b>Signature:</b>
 
 ```typescript
-export declare function ifAbsent(ifExpr: Expression, elseExpr: Expression): Expression;
+export declare function ifAbsent(
+  ifExpr: Expression,
+  elseExpr: Expression
+): Expression;
 ```
 
 #### Parameters
@@ -9132,7 +9732,10 @@ Creates an expression that returns the `elseValue` argument if `ifExpr` is absen
 <b>Signature:</b>
 
 ```typescript
-export declare function ifAbsent(ifExpr: Expression, elseValue: unknown): Expression;
+export declare function ifAbsent(
+  ifExpr: Expression,
+  elseValue: unknown
+): Expression;
 ```
 
 #### Parameters
@@ -9167,7 +9770,10 @@ This function provides a fallback for both absent and explicit null values. In c
 <b>Signature:</b>
 
 ```typescript
-export declare function ifNull(ifExpr: Expression, elseExpr: Expression): FunctionExpression;
+export declare function ifNull(
+  ifExpr: Expression,
+  elseExpr: Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -9201,7 +9807,10 @@ This function provides a fallback for both absent and explicit null values. In c
 <b>Signature:</b>
 
 ```typescript
-export declare function ifNull(ifExpr: Expression, elseValue: unknown): FunctionExpression;
+export declare function ifNull(
+  ifExpr: Expression,
+  elseValue: unknown
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -9235,7 +9844,10 @@ Creates an expression that returns the `elseExpr` argument if `ifFieldName` is a
 <b>Signature:</b>
 
 ```typescript
-export declare function ifAbsent(ifFieldName: string, elseExpr: Expression): Expression;
+export declare function ifAbsent(
+  ifFieldName: string,
+  elseExpr: Expression
+): Expression;
 ```
 
 #### Parameters
@@ -9268,7 +9880,10 @@ Creates an expression that returns the `elseValue` argument if `ifFieldName` is 
 <b>Signature:</b>
 
 ```typescript
-export declare function ifAbsent(ifFieldName: string | Expression, elseValue: Expression | unknown): Expression;
+export declare function ifAbsent(
+  ifFieldName: string | Expression,
+  elseValue: Expression | unknown
+): Expression;
 ```
 
 #### Parameters
@@ -9303,7 +9918,10 @@ This function provides a fallback for both absent and explicit null values. In c
 <b>Signature:</b>
 
 ```typescript
-export declare function ifNull(ifFieldName: string, elseExpr: Expression): FunctionExpression;
+export declare function ifNull(
+  ifFieldName: string,
+  elseExpr: Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -9337,7 +9955,10 @@ This function provides a fallback for both absent and explicit null values. In c
 <b>Signature:</b>
 
 ```typescript
-export declare function ifNull(ifFieldName: string, elseValue: unknown): FunctionExpression;
+export declare function ifNull(
+  ifFieldName: string,
+  elseValue: unknown
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -9371,7 +9992,11 @@ Creates an expression that returns a substring of a string or byte array.
 <b>Signature:</b>
 
 ```typescript
-export declare function substring(input: Expression, position: number, length?: number): FunctionExpression;
+export declare function substring(
+  input: Expression,
+  position: number,
+  length?: number
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -9393,7 +10018,11 @@ Creates an expression that returns a substring of a string or byte array.
 <b>Signature:</b>
 
 ```typescript
-export declare function substring(input: Expression, position: Expression, length?: Expression): FunctionExpression;
+export declare function substring(
+  input: Expression,
+  position: Expression,
+  length?: Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -9417,7 +10046,10 @@ Creates an expression that divides two expressions.
 <b>Signature:</b>
 
 ```typescript
-export declare function divide(left: Expression, right: Expression): FunctionExpression;
+export declare function divide(
+  left: Expression,
+  right: Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -9449,7 +10081,10 @@ Creates an expression that checks if two expressions are equal.
 <b>Signature:</b>
 
 ```typescript
-export declare function equal(left: Expression, right: Expression): BooleanExpression;
+export declare function equal(
+  left: Expression,
+  right: Expression
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -9481,7 +10116,10 @@ Creates an expression that checks if the first expression is greater than the se
 <b>Signature:</b>
 
 ```typescript
-export declare function greaterThan(left: Expression, right: Expression): BooleanExpression;
+export declare function greaterThan(
+  left: Expression,
+  right: Expression
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -9513,7 +10151,10 @@ Creates an expression that checks if the first expression is greater than or equ
 <b>Signature:</b>
 
 ```typescript
-export declare function greaterThanOrEqual(left: Expression, right: Expression): BooleanExpression;
+export declare function greaterThanOrEqual(
+  left: Expression,
+  right: Expression
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -9545,7 +10186,10 @@ Creates an expression that checks if the first expression is less than the secon
 <b>Signature:</b>
 
 ```typescript
-export declare function lessThan(left: Expression, right: Expression): BooleanExpression;
+export declare function lessThan(
+  left: Expression,
+  right: Expression
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -9577,7 +10221,10 @@ Creates an expression that checks if the first expression is less than or equal 
 <b>Signature:</b>
 
 ```typescript
-export declare function lessThanOrEqual(left: Expression, right: Expression): BooleanExpression;
+export declare function lessThanOrEqual(
+  left: Expression,
+  right: Expression
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -9609,7 +10256,10 @@ Creates an expression that calculates the modulo (remainder) of dividing two exp
 <b>Signature:</b>
 
 ```typescript
-export declare function mod(left: Expression, right: Expression): FunctionExpression;
+export declare function mod(
+  left: Expression,
+  right: Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -9641,7 +10291,10 @@ Creates an expression that checks if two expressions are not equal.
 <b>Signature:</b>
 
 ```typescript
-export declare function notEqual(left: Expression, right: Expression): BooleanExpression;
+export declare function notEqual(
+  left: Expression,
+  right: Expression
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -9673,7 +10326,10 @@ Creates an expression that subtracts two expressions.
 <b>Signature:</b>
 
 ```typescript
-export declare function subtract(left: Expression, right: Expression): FunctionExpression;
+export declare function subtract(
+  left: Expression,
+  right: Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -9707,7 +10363,10 @@ Creates an expression that removes a key from the map produced by evaluating an 
 <b>Signature:</b>
 
 ```typescript
-export declare function mapRemove(mapExpr: Expression, key: string): FunctionExpression;
+export declare function mapRemove(
+  mapExpr: Expression,
+  key: string
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -9737,7 +10396,10 @@ Creates an expression that removes a key from the map produced by evaluating an 
 <b>Signature:</b>
 
 ```typescript
-export declare function mapRemove(mapExpr: Expression, keyExpr: Expression): FunctionExpression;
+export declare function mapRemove(
+  mapExpr: Expression,
+  keyExpr: Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -9771,7 +10433,9 @@ While the backend generally preserves insertion order, relying on the order of t
 <b>Signature:</b>
 
 ```typescript
-export declare function mapEntries(mapExpression: Expression): FunctionExpression;
+export declare function mapEntries(
+  mapExpression: Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -9802,7 +10466,10 @@ Accesses a value from a map (object) expression using the provided key.
 <b>Signature:</b>
 
 ```typescript
-export declare function mapGet(mapExpression: Expression, subField: string): FunctionExpression;
+export declare function mapGet(
+  mapExpression: Expression,
+  subField: string
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -9869,7 +10536,12 @@ This only performs shallow updates to the map. Setting a value to `null` will re
 <b>Signature:</b>
 
 ```typescript
-export declare function mapSet(mapExpression: Expression, key: string | Expression, value: unknown, ...moreKeyValues: unknown[]): FunctionExpression;
+export declare function mapSet(
+  mapExpression: Expression,
+  key: string | Expression,
+  value: unknown,
+  ...moreKeyValues: unknown[]
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -9905,7 +10577,9 @@ While the backend generally preserves insertion order, relying on the order of t
 <b>Signature:</b>
 
 ```typescript
-export declare function mapValues(mapExpression: Expression): FunctionExpression;
+export declare function mapValues(
+  mapExpression: Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -10004,7 +10678,11 @@ Creates an expression that merges multiple map values.
 <b>Signature:</b>
 
 ```typescript
-export declare function mapMerge(mapField: string, secondMap: Record<string, unknown> | Expression, ...otherMaps: Array<Record<string, unknown> | Expression>): FunctionExpression;
+export declare function mapMerge(
+  mapField: string,
+  secondMap: Record<string, unknown> | Expression,
+  ...otherMaps: Array<Record<string, unknown> | Expression>
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -10036,7 +10714,10 @@ Creates an expression that removes a key from the map at the specified field nam
 <b>Signature:</b>
 
 ```typescript
-export declare function mapRemove(mapField: string, key: string): FunctionExpression;
+export declare function mapRemove(
+  mapField: string,
+  key: string
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -10066,7 +10747,10 @@ Creates an expression that removes a key from the map at the specified field nam
 <b>Signature:</b>
 
 ```typescript
-export declare function mapRemove(mapField: string, keyExpr: Expression): FunctionExpression;
+export declare function mapRemove(
+  mapField: string,
+  keyExpr: Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -10098,7 +10782,12 @@ This only performs shallow updates to the map. Setting a value to `null` will re
 <b>Signature:</b>
 
 ```typescript
-export declare function mapSet(mapField: string, key: string | Expression, value: unknown, ...moreKeyValues: unknown[]): FunctionExpression;
+export declare function mapSet(
+  mapField: string,
+  key: string | Expression,
+  value: unknown,
+  ...moreKeyValues: unknown[]
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -10241,7 +10930,9 @@ Creates a new Pipeline targeted at a subcollection relative to the current docum
 <b>Signature:</b>
 
 ```typescript
-export declare function subcollection(options: SubcollectionStageOptions): Pipeline;
+export declare function subcollection(
+  options: SubcollectionStageOptions
+): Pipeline;
 ```
 
 #### Parameters
@@ -10270,7 +10961,7 @@ export declare function field(path: FieldPath): Field;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  path | [FieldPath](./firestore_lite.fieldpath.md#fieldpath_class) | A FieldPath specifying the field. |
+|  path | [FieldPath](./firestore.fieldpath.md#fieldpath_class) | A FieldPath specifying the field. |
 
 <b>Returns:</b>
 
@@ -10354,7 +11045,9 @@ This Expression can only be used within a `search` stage.
 <b>Signature:</b>
 
 ```typescript
-export declare function documentMatches(rquery: string | Expression): BooleanExpression;
+export declare function documentMatches(
+  rquery: string | Expression
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -10386,7 +11079,9 @@ Creates an expression that calculates the character length of a string expressio
 <b>Signature:</b>
 
 ```typescript
-export declare function charLength(stringExpression: Expression): FunctionExpression;
+export declare function charLength(
+  stringExpression: Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -10417,7 +11112,10 @@ Creates an expression that checks if a string expression ends with a given postf
 <b>Signature:</b>
 
 ```typescript
-export declare function endsWith(stringExpression: Expression, suffix: string): BooleanExpression;
+export declare function endsWith(
+  stringExpression: Expression,
+  suffix: string
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -10449,7 +11147,10 @@ Creates an expression that checks if a string expression ends with a given postf
 <b>Signature:</b>
 
 ```typescript
-export declare function endsWith(stringExpression: Expression, suffix: Expression): BooleanExpression;
+export declare function endsWith(
+  stringExpression: Expression,
+  suffix: Expression
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -10481,7 +11182,10 @@ Creates an expression that performs a case-sensitive wildcard string comparison.
 <b>Signature:</b>
 
 ```typescript
-export declare function like(stringExpression: Expression, pattern: string): BooleanExpression;
+export declare function like(
+  stringExpression: Expression,
+  pattern: string
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -10513,7 +11217,10 @@ Creates an expression that performs a case-sensitive wildcard string comparison.
 <b>Signature:</b>
 
 ```typescript
-export declare function like(stringExpression: Expression, pattern: Expression): BooleanExpression;
+export declare function like(
+  stringExpression: Expression,
+  pattern: Expression
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -10545,7 +11252,10 @@ Creates an expression that checks if a string expression contains a specified re
 <b>Signature:</b>
 
 ```typescript
-export declare function regexContains(stringExpression: Expression, pattern: string): BooleanExpression;
+export declare function regexContains(
+  stringExpression: Expression,
+  pattern: string
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -10577,7 +11287,10 @@ Creates an expression that checks if a string expression contains a specified re
 <b>Signature:</b>
 
 ```typescript
-export declare function regexContains(stringExpression: Expression, pattern: Expression): BooleanExpression;
+export declare function regexContains(
+  stringExpression: Expression,
+  pattern: Expression
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -10611,7 +11324,10 @@ This expression uses the [RE2](https://github.com/google/re2/wiki/Syntax) regula
 <b>Signature:</b>
 
 ```typescript
-export declare function regexFind(stringExpression: Expression, pattern: string): FunctionExpression;
+export declare function regexFind(
+  stringExpression: Expression,
+  pattern: string
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -10645,7 +11361,10 @@ This expression uses the [RE2](https://github.com/google/re2/wiki/Syntax) regula
 <b>Signature:</b>
 
 ```typescript
-export declare function regexFind(stringExpression: Expression, pattern: Expression): FunctionExpression;
+export declare function regexFind(
+  stringExpression: Expression,
+  pattern: Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -10679,7 +11398,10 @@ This expression uses the [RE2](https://github.com/google/re2/wiki/Syntax) regula
 <b>Signature:</b>
 
 ```typescript
-export declare function regexFindAll(stringExpression: Expression, pattern: string): FunctionExpression;
+export declare function regexFindAll(
+  stringExpression: Expression,
+  pattern: string
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -10713,7 +11435,10 @@ This expression uses the [RE2](https://github.com/google/re2/wiki/Syntax) regula
 <b>Signature:</b>
 
 ```typescript
-export declare function regexFindAll(stringExpression: Expression, pattern: Expression): FunctionExpression;
+export declare function regexFindAll(
+  stringExpression: Expression,
+  pattern: Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -10745,7 +11470,10 @@ Creates an expression that checks if a string expression matches a specified reg
 <b>Signature:</b>
 
 ```typescript
-export declare function regexMatch(stringExpression: Expression, pattern: string): BooleanExpression;
+export declare function regexMatch(
+  stringExpression: Expression,
+  pattern: string
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -10777,7 +11505,10 @@ Creates an expression that checks if a string expression matches a specified reg
 <b>Signature:</b>
 
 ```typescript
-export declare function regexMatch(stringExpression: Expression, pattern: Expression): BooleanExpression;
+export declare function regexMatch(
+  stringExpression: Expression,
+  pattern: Expression
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -10809,7 +11540,9 @@ Creates an expression that reverses a string.
 <b>Signature:</b>
 
 ```typescript
-export declare function reverse(stringExpression: Expression): FunctionExpression;
+export declare function reverse(
+  stringExpression: Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -10840,7 +11573,10 @@ Creates an expression that checks if a string expression starts with a given pre
 <b>Signature:</b>
 
 ```typescript
-export declare function startsWith(stringExpression: Expression, prefix: string): BooleanExpression;
+export declare function startsWith(
+  stringExpression: Expression,
+  prefix: string
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -10872,7 +11608,10 @@ Creates an expression that checks if a string expression starts with a given pre
 <b>Signature:</b>
 
 ```typescript
-export declare function startsWith(stringExpression: Expression, prefix: Expression): BooleanExpression;
+export declare function startsWith(
+  stringExpression: Expression,
+  prefix: Expression
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -10904,7 +11643,10 @@ Creates an expression that checks if a string expression contains a specified su
 <b>Signature:</b>
 
 ```typescript
-export declare function stringContains(stringExpression: Expression, substring: string): BooleanExpression;
+export declare function stringContains(
+  stringExpression: Expression,
+  substring: string
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -10936,7 +11678,10 @@ Creates an expression that checks if a string expression contains a substring sp
 <b>Signature:</b>
 
 ```typescript
-export declare function stringContains(stringExpression: Expression, substring: Expression): BooleanExpression;
+export declare function stringContains(
+  stringExpression: Expression,
+  substring: Expression
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -10968,7 +11713,9 @@ Creates an expression that reverses a string.
 <b>Signature:</b>
 
 ```typescript
-export declare function stringReverse(stringExpression: Expression): FunctionExpression;
+export declare function stringReverse(
+  stringExpression: Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -10999,7 +11746,9 @@ Creates an expression that converts a string expression to lowercase.
 <b>Signature:</b>
 
 ```typescript
-export declare function toLower(stringExpression: Expression): FunctionExpression;
+export declare function toLower(
+  stringExpression: Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -11030,7 +11779,9 @@ Creates an expression that converts a string expression to uppercase.
 <b>Signature:</b>
 
 ```typescript
-export declare function toUpper(stringExpression: Expression): FunctionExpression;
+export declare function toUpper(
+  stringExpression: Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -11061,7 +11812,10 @@ Creates an expression that removes leading and trailing characters from a string
 <b>Signature:</b>
 
 ```typescript
-export declare function trim(stringExpression: Expression, valueToTrim?: string | Expression): FunctionExpression;
+export declare function trim(
+  stringExpression: Expression,
+  valueToTrim?: string | Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -11098,7 +11852,11 @@ Creates an expression that adds a specified amount of time to a timestamp.
 <b>Signature:</b>
 
 ```typescript
-export declare function timestampAdd(timestamp: Expression, unit: Expression, amount: Expression): FunctionExpression;
+export declare function timestampAdd(
+  timestamp: Expression,
+  unit: Expression,
+  amount: Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -11131,7 +11889,11 @@ Creates an expression that adds a specified amount of time to a timestamp.
 <b>Signature:</b>
 
 ```typescript
-export declare function timestampAdd(timestamp: Expression, unit: TimeUnit, amount: number): FunctionExpression;
+export declare function timestampAdd(
+  timestamp: Expression,
+  unit: TimeUnit,
+  amount: number
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -11164,7 +11926,11 @@ Creates an expression that subtracts a specified amount of time from a timestamp
 <b>Signature:</b>
 
 ```typescript
-export declare function timestampSubtract(timestamp: Expression, unit: Expression, amount: Expression): FunctionExpression;
+export declare function timestampSubtract(
+  timestamp: Expression,
+  unit: Expression,
+  amount: Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -11197,7 +11963,11 @@ Creates an expression that subtracts a specified amount of time from a timestamp
 <b>Signature:</b>
 
 ```typescript
-export declare function timestampSubtract(timestamp: Expression, unit: TimeUnit, amount: number): FunctionExpression;
+export declare function timestampSubtract(
+  timestamp: Expression,
+  unit: TimeUnit,
+  amount: number
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -11232,7 +12002,11 @@ Creates an expression that extracts a specified part from a timestamp.
 <b>Signature:</b>
 
 ```typescript
-export declare function timestampExtract(timestampExpression: Expression, part: TimePart, timezone?: string | Expression): FunctionExpression;
+export declare function timestampExtract(
+  timestampExpression: Expression,
+  part: TimePart,
+  timezone?: string | Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -11265,7 +12039,11 @@ Creates an expression that extracts a specified part from a timestamp.
 <b>Signature:</b>
 
 ```typescript
-export declare function timestampExtract(timestampExpression: Expression, part: Expression, timezone?: string | Expression): FunctionExpression;
+export declare function timestampExtract(
+  timestampExpression: Expression,
+  part: Expression,
+  timezone?: string | Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -11298,7 +12076,11 @@ Creates an expression that truncates a timestamp to a specified granularity.
 <b>Signature:</b>
 
 ```typescript
-export declare function timestampTruncate(timestampExpression: Expression, granularity: TimeGranularity, timezone?: string | Expression): FunctionExpression;
+export declare function timestampTruncate(
+  timestampExpression: Expression,
+  granularity: TimeGranularity,
+  timezone?: string | Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -11331,7 +12113,11 @@ Creates an expression that truncates a timestamp to a specified granularity.
 <b>Signature:</b>
 
 ```typescript
-export declare function timestampTruncate(timestampExpression: Expression, granularity: Expression, timezone?: string | Expression): FunctionExpression;
+export declare function timestampTruncate(
+  timestampExpression: Expression,
+  granularity: Expression,
+  timezone?: string | Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -11368,7 +12154,10 @@ This overload is useful when a BooleanExpression is required.
 <b>Signature:</b>
 
 ```typescript
-export declare function ifError(tryExpr: BooleanExpression, catchExpr: BooleanExpression): BooleanExpression;
+export declare function ifError(
+  tryExpr: BooleanExpression,
+  catchExpr: BooleanExpression
+): BooleanExpression;
 ```
 
 #### Parameters
@@ -11401,7 +12190,10 @@ Creates an expression that returns the `catch` argument if there is an error, el
 <b>Signature:</b>
 
 ```typescript
-export declare function ifError(tryExpr: Expression, catchExpr: Expression): FunctionExpression;
+export declare function ifError(
+  tryExpr: Expression,
+  catchExpr: Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -11434,7 +12226,10 @@ Creates an expression that returns the `catch` argument if there is an error, el
 <b>Signature:</b>
 
 ```typescript
-export declare function ifError(tryExpr: Expression, catchValue: unknown): FunctionExpression;
+export declare function ifError(
+  tryExpr: Expression,
+  catchValue: unknown
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -11462,16 +12257,19 @@ ifError(field("title").arrayGet(0), "Default Title");
 
 ## function(value, ...)
 
-### constant(value, options) {:#constant_6ea0dde}
+### constant(value, options) {:#constant_27f5011}
 
 Creates a `Constant` instance for a number value.
 
 <b>Signature:</b>
 
 ```typescript
-export declare function constant(value: number, options?: {
+export declare function constant(
+  value: number,
+  options?: {
     preferIntegers?: boolean;
-}): Expression;
+  }
+): Expression;
 ```
 
 #### Parameters
@@ -11501,7 +12299,7 @@ export declare function constant(value: VectorValue): Expression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  value | [VectorValue](./firestore_lite.vectorvalue.md#vectorvalue_class) | The VectorValue value. |
+|  value | [VectorValue](./firestore.vectorvalue.md#vectorvalue_class) | The VectorValue value. |
 
 <b>Returns:</b>
 
@@ -11589,7 +12387,7 @@ export declare function constant(value: GeoPoint): Expression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  value | [GeoPoint](./firestore_lite.geopoint.md#geopoint_class) | The GeoPoint value. |
+|  value | [GeoPoint](./firestore.geopoint.md#geopoint_class) | The GeoPoint value. |
 
 <b>Returns:</b>
 
@@ -11611,7 +12409,7 @@ export declare function constant(value: Timestamp): Expression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  value | [Timestamp](./firestore_lite.timestamp.md#timestamp_class) | The Timestamp value. |
+|  value | [Timestamp](./firestore.timestamp.md#timestamp_class) | The Timestamp value. |
 
 <b>Returns:</b>
 
@@ -11655,7 +12453,7 @@ export declare function constant(value: Bytes): Expression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  value | [Bytes](./firestore_lite.bytes.md#bytes_class) | The Bytes value. |
+|  value | [Bytes](./firestore.bytes.md#bytes_class) | The Bytes value. |
 
 <b>Returns:</b>
 
@@ -11677,7 +12475,7 @@ export declare function constant(value: DocumentReference): Expression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  value | [DocumentReference](./firestore_lite.documentreference.md#documentreference_class) | The DocumentReference value. |
+|  value | [DocumentReference](./firestore.documentreference.md#documentreference_class) | The DocumentReference value. |
 
 <b>Returns:</b>
 
@@ -11787,7 +12585,10 @@ Calculates the Cosine distance between a vector expression and a vector literal.
 <b>Signature:</b>
 
 ```typescript
-export declare function cosineDistance(vectorExpression: Expression, vector: number[] | VectorValue): FunctionExpression;
+export declare function cosineDistance(
+  vectorExpression: Expression,
+  vector: number[] | VectorValue
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -11795,7 +12596,7 @@ export declare function cosineDistance(vectorExpression: Expression, vector: num
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  vectorExpression | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The first vector (represented as an <code>Expression</code>) to compare against. |
-|  vector | number\[\] \| [VectorValue](./firestore_lite.vectorvalue.md#vectorvalue_class) | The other vector (as an array of doubles or VectorValue) to compare against. |
+|  vector | number\[\] \| [VectorValue](./firestore.vectorvalue.md#vectorvalue_class) | The other vector (as an array of doubles or VectorValue) to compare against. |
 
 <b>Returns:</b>
 
@@ -11819,7 +12620,10 @@ Calculates the Cosine distance between two vector expressions.
 <b>Signature:</b>
 
 ```typescript
-export declare function cosineDistance(vectorExpression: Expression, otherVectorExpression: Expression): FunctionExpression;
+export declare function cosineDistance(
+  vectorExpression: Expression,
+  otherVectorExpression: Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -11851,7 +12655,10 @@ Calculates the dot product between a vector expression and a double array.
 <b>Signature:</b>
 
 ```typescript
-export declare function dotProduct(vectorExpression: Expression, vector: number[] | VectorValue): FunctionExpression;
+export declare function dotProduct(
+  vectorExpression: Expression,
+  vector: number[] | VectorValue
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -11859,7 +12666,7 @@ export declare function dotProduct(vectorExpression: Expression, vector: number[
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  vectorExpression | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The first vector (represented as an <code>Expression</code>) to calculate with. |
-|  vector | number\[\] \| [VectorValue](./firestore_lite.vectorvalue.md#vectorvalue_class) | The other vector (as an array of doubles or VectorValue) to calculate with. |
+|  vector | number\[\] \| [VectorValue](./firestore.vectorvalue.md#vectorvalue_class) | The other vector (as an array of doubles or VectorValue) to calculate with. |
 
 <b>Returns:</b>
 
@@ -11883,7 +12690,10 @@ Calculates the dot product between two vector expressions.
 <b>Signature:</b>
 
 ```typescript
-export declare function dotProduct(vectorExpression: Expression, otherVectorExpression: Expression): FunctionExpression;
+export declare function dotProduct(
+  vectorExpression: Expression,
+  otherVectorExpression: Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -11915,7 +12725,10 @@ Calculates the Euclidean distance between a vector expression and a double array
 <b>Signature:</b>
 
 ```typescript
-export declare function euclideanDistance(vectorExpression: Expression, vector: number[] | VectorValue): FunctionExpression;
+export declare function euclideanDistance(
+  vectorExpression: Expression,
+  vector: number[] | VectorValue
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -11923,7 +12736,7 @@ export declare function euclideanDistance(vectorExpression: Expression, vector: 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  vectorExpression | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The first vector (represented as an <code>Expression</code>) to compare against. |
-|  vector | number\[\] \| [VectorValue](./firestore_lite.vectorvalue.md#vectorvalue_class) | The other vector (as an array of doubles or VectorValue) to compare against. |
+|  vector | number\[\] \| [VectorValue](./firestore.vectorvalue.md#vectorvalue_class) | The other vector (as an array of doubles or VectorValue) to compare against. |
 
 <b>Returns:</b>
 
@@ -11948,7 +12761,10 @@ Calculates the Euclidean distance between two vector expressions.
 <b>Signature:</b>
 
 ```typescript
-export declare function euclideanDistance(vectorExpression: Expression, otherVectorExpression: Expression): FunctionExpression;
+export declare function euclideanDistance(
+  vectorExpression: Expression,
+  otherVectorExpression: Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -11980,7 +12796,9 @@ Creates an expression that calculates the length of a Firestore Vector.
 <b>Signature:</b>
 
 ```typescript
-export declare function vectorLength(vectorExpression: Expression): FunctionExpression;
+export declare function vectorLength(
+  vectorExpression: Expression
+): FunctionExpression;
 ```
 
 #### Parameters
@@ -12012,7 +12830,7 @@ Options defining how an AddFieldsStage is evaluated. See [Pipeline.addFields()](
 
 ```typescript
 export declare type AddFieldsStageOptions = StageOptions & {
-    fields: Selectable[];
+  fields: Selectable[];
 };
 ```
 
@@ -12024,8 +12842,8 @@ Options defining how an AggregateStage is evaluated. See [Pipeline.aggregate()](
 
 ```typescript
 export declare type AggregateStageOptions = StageOptions & {
-    accumulators: AliasedAggregate[];
-    groups?: Array<string | Selectable>;
+  accumulators: AliasedAggregate[];
+  groups?: Array<string | Selectable>;
 };
 ```
 
@@ -12039,8 +12857,8 @@ See [PipelineSource.collectionGroup()](./firestore_pipelines.pipelinesource.md#p
 
 ```typescript
 export declare type CollectionGroupStageOptions = StageOptions & {
-    collectionId: string;
-    forceIndex?: string;
+  collectionId: string;
+  forceIndex?: string;
 };
 ```
 
@@ -12052,8 +12870,8 @@ Options defining how a CollectionStage is evaluated. See [PipelineSource.collect
 
 ```typescript
 export declare type CollectionStageOptions = StageOptions & {
-    collection: string | Query;
-    forceIndex?: string;
+  collection: string | CollectionReference;
+  forceIndex?: string;
 };
 ```
 
@@ -12075,7 +12893,7 @@ Options defining how a DefineStage is evaluated. See [Pipeline.define()](./fires
 
 ```typescript
 export declare type DefineStageOptions = StageOptions & {
-    variables: AliasedExpression[];
+  variables: AliasedExpression[];
 };
 ```
 
@@ -12087,7 +12905,7 @@ Options defining how a DistinctStage is evaluated. See [Pipeline.distinct()](./f
 
 ```typescript
 export declare type DistinctStageOptions = StageOptions & {
-    groups: Array<string | Selectable>;
+  groups: Array<string | Selectable>;
 };
 ```
 
@@ -12099,7 +12917,7 @@ Options defining how a DocumentsStage is evaluated. See [PipelineSource.document
 
 ```typescript
 export declare type DocumentsStageOptions = StageOptions & {
-    docs: Array<string | DocumentReference>;
+  docs: Array<string | DocumentReference>;
 };
 ```
 
@@ -12110,7 +12928,15 @@ An enumeration of the different types of expressions.
 <b>Signature:</b>
 
 ```typescript
-export declare type ExpressionType = 'Field' | 'Constant' | 'Function' | 'AggregateFunction' | 'ListOfExpressions' | 'AliasedExpression' | 'Variable' | 'PipelineValue';
+export declare type ExpressionType =
+  | 'Field'
+  | 'Constant'
+  | 'Function'
+  | 'AggregateFunction'
+  | 'ListOfExpressions'
+  | 'AliasedExpression'
+  | 'Variable'
+  | 'PipelineValue';
 ```
 
 ## FindNearestStageOptions
@@ -12121,11 +12947,11 @@ Options defining how a FindNearestStage is evaluated. See [Pipeline.findNearest(
 
 ```typescript
 export declare type FindNearestStageOptions = StageOptions & {
-    field: Field | string;
-    vectorValue: VectorValue | number[];
-    distanceMeasure: 'euclidean' | 'cosine' | 'dot_product';
-    limit?: number;
-    distanceField?: string;
+  field: Field | string;
+  vectorValue: VectorValue | number[];
+  distanceMeasure: 'euclidean' | 'cosine' | 'dot_product';
+  limit?: number;
+  distanceField?: string;
 };
 ```
 
@@ -12137,7 +12963,7 @@ Options defining how a LimitStage is evaluated. See [Pipeline.limit()](./firesto
 
 ```typescript
 export declare type LimitStageOptions = StageOptions & {
-    limit: number;
+  limit: number;
 };
 ```
 
@@ -12149,7 +12975,7 @@ Options defining how an OffsetStage is evaluated. See [Pipeline.offset()](./fire
 
 ```typescript
 export declare type OffsetStageOptions = StageOptions & {
-    offset: number;
+  offset: number;
 };
 ```
 
@@ -12161,9 +12987,9 @@ Utility type to create an type that only allows one property of the Type param T
 
 ```typescript
 export declare type OneOf<T> = {
-    [K in keyof T]: Pick<T, K> & {
-        [P in Exclude<keyof T, K>]?: undefined;
-    };
+  [K in keyof T]: Pick<T, K> & {
+    [P in Exclude<keyof T, K>]?: undefined;
+  };
 }[keyof T];
 ```
 
@@ -12178,28 +13004,6 @@ let c = { a: "foo", y: "foo" } // Not OK
 
 ```
 
-## PartialWithFieldValue
-
-Similar to TypeScript's `Partial<T>`<!-- -->, but allows nested fields to be omitted and FieldValues to be passed in as property values.
-
-<b>Signature:</b>
-
-```typescript
-export declare type PartialWithFieldValue<T> = Partial<T> | (T extends Primitive ? T : T extends {} ? {
-    [K in keyof T]?: PartialWithFieldValue<T[K]> | FieldValue;
-} : never);
-```
-
-## Primitive
-
-Primitive types.
-
-<b>Signature:</b>
-
-```typescript
-export declare type Primitive = string | number | boolean | undefined | null;
-```
-
 ## RemoveFieldsStageOptions
 
 Options defining how a RemoveFieldsStage is evaluated. See [Pipeline.removeFields()](./firestore_pipelines.pipeline.md#pipelineremovefields)<!-- -->.
@@ -12208,7 +13012,7 @@ Options defining how a RemoveFieldsStage is evaluated. See [Pipeline.removeField
 
 ```typescript
 export declare type RemoveFieldsStageOptions = StageOptions & {
-    fields: Array<Field | string>;
+  fields: Array<Field | string>;
 };
 ```
 
@@ -12220,7 +13024,7 @@ Options defining how a ReplaceWithStage is evaluated. See [Pipeline.replaceWith(
 
 ```typescript
 export declare type ReplaceWithStageOptions = StageOptions & {
-    map: Expression | string;
+  map: Expression | string;
 };
 ```
 
@@ -12233,10 +13037,11 @@ See [Pipeline.sample()](./firestore_pipelines.pipeline.md#pipelinesample) to cre
 <b>Signature:</b>
 
 ```typescript
-export declare type SampleStageOptions = StageOptions & OneOf<{
+export declare type SampleStageOptions = StageOptions &
+  OneOf<{
     percentage: number;
     documents: number;
-}>;
+  }>;
 ```
 
 ## SearchStageOptions
@@ -12250,13 +13055,13 @@ Options defining how a search stage is evaluated. See [Pipeline.search()](./fire
 
 ```typescript
 export declare type SearchStageOptions = StageOptions & {
-    query: BooleanExpression | string;
-    languageCode?: string;
-    retrievalDepth?: number;
-    sort?: Ordering | Ordering[];
-    offset?: number;
-    limit?: number;
-    addFields?: Selectable[];
+  query: BooleanExpression | string;
+  languageCode?: string;
+  retrievalDepth?: number;
+  sort?: Ordering | Ordering[];
+  offset?: number;
+  limit?: number;
+  addFields?: Selectable[];
 };
 ```
 
@@ -12268,21 +13073,7 @@ Options defining how a SelectStage is evaluated. See [Pipeline.select()](./fires
 
 ```typescript
 export declare type SelectStageOptions = StageOptions & {
-    selections: Array<Selectable | string>;
-};
-```
-
-## SetOptions
-
-An options object that configures the behavior of [setDoc()](./firestore_lite.md#setdoc_ee215ad)<!-- -->,  and  calls. These calls can be configured to perform granular merges instead of overwriting the target documents in their entirety by providing a `SetOptions` with `merge: true`<!-- -->.
-
-<b>Signature:</b>
-
-```typescript
-export declare type SetOptions = {
-    readonly merge?: boolean;
-} | {
-    readonly mergeFields?: Array<string | FieldPath>;
+  selections: Array<Selectable | string>;
 };
 ```
 
@@ -12294,7 +13085,7 @@ Options defining how a SortStage is evaluated. See [Pipeline.sort()](./firestore
 
 ```typescript
 export declare type SortStageOptions = StageOptions & {
-    orderings: Ordering[];
+  orderings: Ordering[];
 };
 ```
 
@@ -12306,9 +13097,9 @@ Options defining how a Stage is evaluated.
 
 ```typescript
 export declare type StageOptions = {
-    rawOptions?: {
-        [name: string]: unknown;
-    };
+  rawOptions?: {
+    [name: string]: unknown;
+  };
 };
 ```
 
@@ -12320,7 +13111,7 @@ Options defining how a `SubcollectionStage` is evaluated.
 
 ```typescript
 export declare type SubcollectionStageOptions = StageOptions & {
-    path: string;
+  path: string;
 };
 ```
 
@@ -12331,7 +13122,21 @@ Specify time granularity for expressions.
 <b>Signature:</b>
 
 ```typescript
-export declare type TimeGranularity = TimeUnit | 'week' | 'week(monday)' | 'week(tuesday)' | 'week(wednesday)' | 'week(thursday)' | 'week(friday)' | 'week(saturday)' | 'week(sunday)' | 'isoweek' | 'month' | 'quarter' | 'year' | 'isoyear';
+export declare type TimeGranularity =
+  | TimeUnit
+  | 'week'
+  | 'week(monday)'
+  | 'week(tuesday)'
+  | 'week(wednesday)'
+  | 'week(thursday)'
+  | 'week(friday)'
+  | 'week(saturday)'
+  | 'week(sunday)'
+  | 'isoweek'
+  | 'month'
+  | 'quarter'
+  | 'year'
+  | 'isoyear';
 ```
 
 ## TimePart
@@ -12351,7 +13156,13 @@ Specify time units for expressions.
 <b>Signature:</b>
 
 ```typescript
-export declare type TimeUnit = 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day';
+export declare type TimeUnit =
+  | 'microsecond'
+  | 'millisecond'
+  | 'second'
+  | 'minute'
+  | 'hour'
+  | 'day';
 ```
 
 ## UnionStageOptions
@@ -12362,7 +13173,7 @@ Options defining how a UnionStage is evaluated. See [Pipeline.union()](./firesto
 
 ```typescript
 export declare type UnionStageOptions = StageOptions & {
-    other: Pipeline;
+  other: Pipeline;
 };
 ```
 
@@ -12374,8 +13185,8 @@ Represents the specific options available for configuring an `UnnestStage` withi
 
 ```typescript
 export declare type UnnestStageOptions = StageOptions & {
-    selectable: Selectable;
-    indexField?: string;
+  selectable: Selectable;
+  indexField?: string;
 };
 ```
 
@@ -12387,18 +13198,6 @@ Options defining how a WhereStage is evaluated. See [Pipeline.where()](./firesto
 
 ```typescript
 export declare type WhereStageOptions = StageOptions & {
-    condition: BooleanExpression;
+  condition: BooleanExpression;
 };
-```
-
-## WithFieldValue
-
-Allows FieldValues to be passed in as a property value while maintaining type safety.
-
-<b>Signature:</b>
-
-```typescript
-export declare type WithFieldValue<T> = T | (T extends Primitive ? T : T extends {} ? {
-    [K in keyof T]: WithFieldValue<T[K]> | FieldValue;
-} : never);
 ```

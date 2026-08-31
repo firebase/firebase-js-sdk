@@ -14,24 +14,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {
-  ImagenModelParams,
-  ModelParams,
-  AIErrorCode,
-  InferenceMode
-} from './types';
+import { ModelParams, AIErrorCode, InferenceMode } from './types';
 import { AIError } from './errors';
 import {
   getAI,
-  ImagenModel,
   LiveGenerativeModel,
   getGenerativeModel,
-  getImagenModel,
   getLiveGenerativeModel,
   getTemplateGenerativeModel,
-  TemplateGenerativeModel,
-  getTemplateImagenModel,
-  TemplateImagenModel
+  TemplateGenerativeModel
 } from './api';
 import { expect, use } from 'chai';
 import { stub } from 'sinon';
@@ -155,70 +146,6 @@ describe('Top level API', () => {
     expect(warnStub).to.be.calledWithMatch('generationConfig');
     warnStub.restore();
   });
-  it('getImagenModel throws if no model is provided', () => {
-    try {
-      getImagenModel(fakeAI, {} as ImagenModelParams);
-    } catch (e) {
-      expect((e as AIError).code).includes(AIErrorCode.NO_MODEL);
-      expect((e as AIError).message).includes(
-        `AI: Must provide a model name. Example: ` +
-          `getImagenModel({ model: 'my-model-name' }) (${AI_TYPE}/${AIErrorCode.NO_MODEL})`
-      );
-    }
-  });
-  it('getImagenModel throws if no apiKey is provided', () => {
-    const fakeVertexNoApiKey = {
-      ...fakeAI,
-      app: { options: { projectId: 'my-project', appId: 'my-appid' } }
-    } as AI;
-    try {
-      getImagenModel(fakeVertexNoApiKey, { model: 'my-model' });
-    } catch (e) {
-      expect((e as AIError).code).includes(AIErrorCode.NO_API_KEY);
-      expect((e as AIError).message).equals(
-        `AI: The "apiKey" field is empty in the local ` +
-          `Firebase config. Firebase AI requires this field to` +
-          ` contain a valid API key. (${AI_TYPE}/${AIErrorCode.NO_API_KEY})`
-      );
-    }
-  });
-  it('getImagenModel throws if no projectId is provided', () => {
-    const fakeVertexNoProject = {
-      ...fakeAI,
-      app: { options: { apiKey: 'my-key', appId: 'my-appid' } }
-    } as AI;
-    try {
-      getImagenModel(fakeVertexNoProject, { model: 'my-model' });
-    } catch (e) {
-      expect((e as AIError).code).includes(AIErrorCode.NO_PROJECT_ID);
-      expect((e as AIError).message).equals(
-        `AI: The "projectId" field is empty in the local` +
-          ` Firebase config. Firebase AI requires this field ` +
-          `to contain a valid project ID. (${AI_TYPE}/${AIErrorCode.NO_PROJECT_ID})`
-      );
-    }
-  });
-  it('getImagenModel throws if no appId is provided', () => {
-    const fakeVertexNoProject = {
-      ...fakeAI,
-      app: { options: { apiKey: 'my-key', projectId: 'my-project' } }
-    } as AI;
-    try {
-      getImagenModel(fakeVertexNoProject, { model: 'my-model' });
-    } catch (e) {
-      expect((e as AIError).code).includes(AIErrorCode.NO_APP_ID);
-      expect((e as AIError).message).equals(
-        `AI: The "appId" field is empty in the local` +
-          ` Firebase config. Firebase AI requires this field ` +
-          `to contain a valid app ID. (${AI_TYPE}/${AIErrorCode.NO_APP_ID})`
-      );
-    }
-  });
-  it('getImagenModel gets an ImagenModel', () => {
-    const genModel = getImagenModel(fakeAI, { model: 'my-model' });
-    expect(genModel).to.be.an.instanceOf(ImagenModel);
-    expect(genModel.model).to.equal('publishers/google/models/my-model');
-  });
 
   it('getLiveGenerativeModel throws if no apiKey is provided', () => {
     const fakeVertexNoApiKey = {
@@ -280,11 +207,6 @@ describe('Top level API', () => {
   it('getTemplateGenerativeModel gets a TemplateGenerativeModel', () => {
     expect(getTemplateGenerativeModel(fakeAI)).to.be.an.instanceOf(
       TemplateGenerativeModel
-    );
-  });
-  it('getImagenModel gets a TemplateImagenModel', () => {
-    expect(getTemplateImagenModel(fakeAI)).to.be.an.instanceOf(
-      TemplateImagenModel
     );
   });
 });

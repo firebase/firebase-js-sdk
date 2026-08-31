@@ -3545,12 +3545,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
  * Specify time units for expressions.
  */
 export type TimeUnit =
-  | 'microsecond'
-  | 'millisecond'
-  | 'second'
-  | 'minute'
-  | 'hour'
-  | 'day';
+  'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day';
 
 /**
  * Specify time granularity for expressions.
@@ -3606,7 +3601,10 @@ export class AggregateFunction implements ProtoValueSerializable, UserData {
    */
   _methodName?: string;
 
-  constructor(private name: string, private params: Expression[]) {}
+  constructor(
+    private name: string,
+    private params: Expression[]
+  ) {}
 
   /**
    * @internal
@@ -3751,7 +3749,7 @@ export class ListOfExprs extends Expression implements UserData {
  * <p>Field references are used to access document field values in expressions and to specify fields
  * for sorting, filtering, and projecting data in Firestore pipelines.
  *
- * <p>You can create a `Field` instance using the static {@link @firebase/firestore/pipelines#field} method:
+ * <p>You can create a `Field` instance using the static {@link @firebase/firestore/pipelines#(field:1) | field} method:
  *
  * @example
  * ```typescript
@@ -3895,7 +3893,7 @@ export function _field(
  *
  * Represents a constant value that can be used in a Firestore pipeline expression.
  *
- * You can create a `Constant` instance using the static {@link @firebase/firestore/pipelines#field} method:
+ * You can create a `Constant` instance using the static {@link @firebase/firestore/pipelines#(constant:1) | constant} method:
  *
  * @example
  * ```typescript
@@ -4181,8 +4179,8 @@ export class FunctionExpression extends Expression {
    * @internal
    */
   _optionsProto:
-    | ApiClientObjectMap<firestoreV1ApiClientInterfaces.Value>
-    | undefined = undefined;
+    ApiClientObjectMap<firestoreV1ApiClientInterfaces.Value> | undefined =
+    undefined;
 
   /**
    * @private

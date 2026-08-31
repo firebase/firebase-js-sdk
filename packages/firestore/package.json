@@ -1,6 +1,6 @@
 {
   "name": "@firebase/firestore",
-  "version": "4.17.0",
+  "version": "4.17.1",
   "engines": {
     "node": ">=20.0.0"
   },
@@ -56,7 +56,7 @@
     "api-report:pipelines": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' ts-node ../../repo-scripts/prune-dts/extract-public-api.ts --package firestore-pipelines --packageRoot . --typescriptDts ./dist/firestore/pipelines/pipelines.d.ts --rollupDts ./dist/private.pipelines.d.ts --untrimmedRollupDts ./dist/internal.pipelines.d.ts --publicDts ./dist/pipelines.d.ts --otherExportsPublicDtsFiles ./dist/index.d.ts  --excludeForgottenExportWarning && TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' ts-node scripts/build-console-ui-types.ts --input ./dist/pipelines.d.ts --output ./dist/pipelines_extra_lib.txt",
     "api-report:lite": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' ts-node ../../repo-scripts/prune-dts/extract-public-api.ts --package firestore-lite --packageRoot . --typescriptDts ./dist/firestore/lite/index.d.ts --rollupDts ./dist/lite/private.d.ts --untrimmedRollupDts ./dist/lite/internal.d.ts --publicDts ./dist/lite/index.d.ts",
     "api-report:lite:pipelines": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' ts-node ../../repo-scripts/prune-dts/extract-public-api.ts --package firestore-lite-pipelines --packageRoot . --typescriptDts ./dist/firestore/lite/pipelines/pipelines.d.ts --rollupDts ./dist/lite/private.pipelines.d.ts --untrimmedRollupDts ./dist/lite/internal.pipelines.d.ts --publicDts ./dist/lite/pipelines.d.ts --otherExportsPublicDtsFiles ./dist/lite/index.d.ts --excludeForgottenExportWarning",
-    "api-report:api-json": "rm -rf temp && api-extractor run --local --verbose",
+    "api-report:api-json": "rm -rf temp && api-extractor run --local --verbose && api-extractor run -c lite/api-extractor.lite.json --local --verbose && api-extractor run -c pipelines/api-extractor.pipelines.json --local --verbose && api-extractor run -c lite/pipelines/api-extractor.lite.pipelines.json --local --verbose",
     "api-report": "run-s --npm-path npm api-report:main api-report:pipelines api-report:lite api-report:lite:pipelines && yarn api-report:api-json",
     "doc": "api-documenter markdown --input temp --output docs",
     "typings:public": "node ../../scripts/build/use_typings.js ./dist/index.d.ts",
@@ -135,10 +135,10 @@
     "lite/pipelines/pipelines.d.ts"
   ],
   "dependencies": {
-    "@firebase/component": "0.7.4",
-    "@firebase/logger": "0.5.1",
-    "@firebase/util": "1.15.2",
-    "@firebase/webchannel-wrapper": "1.0.6",
+    "@firebase/component": "0.7.5",
+    "@firebase/logger": "0.5.2",
+    "@firebase/util": "1.15.3",
+    "@firebase/webchannel-wrapper": "1.0.7",
     "@grpc/grpc-js": "~1.9.0",
     "@grpc/proto-loader": "^0.7.8",
     "re2js": "^2.8.3",
@@ -148,24 +148,21 @@
     "@firebase/app": "0.x"
   },
   "devDependencies": {
-    "@firebase/app": "0.16.0",
-    "@firebase/app-compat": "0.5.16",
-    "@firebase/auth": "1.13.4",
+    "@firebase/app": "0.16.1",
+    "@firebase/app-compat": "0.5.17",
+    "@firebase/auth": "1.13.5",
     "@rollup/plugin-alias": "5.1.1",
     "@rollup/plugin-json": "6.1.0",
-    "@types/eslint": "7.29.0",
     "chai-exclude": "2.1.1",
     "json-stable-stringify": "1.2.1",
     "protobufjs": "7.6.5",
     "rollup": "4.62.2",
     "rollup-plugin-copy": "3.5.0",
-    "rollup-plugin-copy-assets": "2.0.3",
     "rollup-plugin-dts": "5.3.1",
     "rollup-plugin-replace": "2.2.0",
     "rollup-plugin-sourcemaps": "0.6.3",
     "@rollup/plugin-terser": "0.4.4",
     "rollup-plugin-typescript2": "0.37.0",
-    "ts-node": "10.9.2",
     "typescript": "5.5.4"
   },
   "repository": {

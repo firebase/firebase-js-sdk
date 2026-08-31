@@ -122,22 +122,6 @@ toc:
     path: /docs/reference/js/ai.hybridparams.md
   - title: ImageConfig
     path: /docs/reference/js/ai.imageconfig.md
-  - title: ImagenGCSImage
-    path: /docs/reference/js/ai.imagengcsimage.md
-  - title: ImagenGenerationConfig
-    path: /docs/reference/js/ai.imagengenerationconfig.md
-  - title: ImagenGenerationResponse
-    path: /docs/reference/js/ai.imagengenerationresponse.md
-  - title: ImagenImageFormat
-    path: /docs/reference/js/ai.imagenimageformat.md
-  - title: ImagenInlineImage
-    path: /docs/reference/js/ai.imageninlineimage.md
-  - title: ImagenModel
-    path: /docs/reference/js/ai.imagenmodel.md
-  - title: ImagenModelParams
-    path: /docs/reference/js/ai.imagenmodelparams.md
-  - title: ImagenSafetySettings
-    path: /docs/reference/js/ai.imagensafetysettings.md
   - title: InlineDataPart
     path: /docs/reference/js/ai.inlinedatapart.md
   - title: IntegerSchema
@@ -246,8 +230,6 @@ toc:
     path: /docs/reference/js/ai.templatefunctiondeclarationstool.md
   - title: TemplateGenerativeModel
     path: /docs/reference/js/ai.templategenerativemodel.md
-  - title: TemplateImagenModel
-    path: /docs/reference/js/ai.templateimagenmodel.md
   - title: TemplateToolConfig
     path: /docs/reference/js/ai.templatetoolconfig.md
   - title: TextPart
@@ -476,112 +458,126 @@ toc:
   - title: TransactionResult
     path: /docs/reference/js/database.transactionresult.md
 - title: firestore
-  path: /docs/reference/js/firestore_.md
+  path: /docs/reference/js/firestore.md
   section:
   - title: AggregateField
-    path: /docs/reference/js/firestore_.aggregatefield.md
+    path: /docs/reference/js/firestore.aggregatefield.md
   - title: AggregateQuerySnapshot
-    path: /docs/reference/js/firestore_.aggregatequerysnapshot.md
+    path: /docs/reference/js/firestore.aggregatequerysnapshot.md
   - title: AggregateSpec
-    path: /docs/reference/js/firestore_.aggregatespec.md
+    path: /docs/reference/js/firestore.aggregatespec.md
+  - title: BsonObjectId
+    path: /docs/reference/js/firestore.bsonobjectid.md
+  - title: BsonTimestamp
+    path: /docs/reference/js/firestore.bsontimestamp.md
   - title: Bytes
-    path: /docs/reference/js/firestore_.bytes.md
+    path: /docs/reference/js/firestore.bytes.md
   - title: CollectionReference
-    path: /docs/reference/js/firestore_.collectionreference.md
+    path: /docs/reference/js/firestore.collectionreference.md
+  - title: Decimal128Value
+    path: /docs/reference/js/firestore.decimal128value.md
   - title: DocumentChange
-    path: /docs/reference/js/firestore_.documentchange.md
+    path: /docs/reference/js/firestore.documentchange.md
   - title: DocumentData
-    path: /docs/reference/js/firestore_.documentdata.md
+    path: /docs/reference/js/firestore.documentdata.md
   - title: DocumentReference
-    path: /docs/reference/js/firestore_.documentreference.md
+    path: /docs/reference/js/firestore.documentreference.md
   - title: DocumentSnapshot
-    path: /docs/reference/js/firestore_.documentsnapshot.md
+    path: /docs/reference/js/firestore.documentsnapshot.md
   - title: ExperimentalLongPollingOptions
-    path: /docs/reference/js/firestore_.experimentallongpollingoptions.md
+    path: /docs/reference/js/firestore.experimentallongpollingoptions.md
   - title: FieldPath
-    path: /docs/reference/js/firestore_.fieldpath.md
+    path: /docs/reference/js/firestore.fieldpath.md
   - title: FieldValue
-    path: /docs/reference/js/firestore_.fieldvalue.md
+    path: /docs/reference/js/firestore.fieldvalue.md
   - title: Firestore
-    path: /docs/reference/js/firestore_.firestore.md
+    path: /docs/reference/js/firestore.firestore.md
   - title: FirestoreDataConverter
-    path: /docs/reference/js/firestore_.firestoredataconverter.md
+    path: /docs/reference/js/firestore.firestoredataconverter.md
   - title: FirestoreError
-    path: /docs/reference/js/firestore_.firestoreerror.md
+    path: /docs/reference/js/firestore.firestoreerror.md
   - title: FirestoreSettings
-    path: /docs/reference/js/firestore_.firestoresettings.md
+    path: /docs/reference/js/firestore.firestoresettings.md
   - title: GeoPoint
-    path: /docs/reference/js/firestore_.geopoint.md
+    path: /docs/reference/js/firestore.geopoint.md
   - title: Index
-    path: /docs/reference/js/firestore_.index.md
+    path: /docs/reference/js/firestore.index.md
   - title: IndexConfiguration
-    path: /docs/reference/js/firestore_.indexconfiguration.md
+    path: /docs/reference/js/firestore.indexconfiguration.md
   - title: IndexField
-    path: /docs/reference/js/firestore_.indexfield.md
+    path: /docs/reference/js/firestore.indexfield.md
+  - title: Int32Value
+    path: /docs/reference/js/firestore.int32value.md
   - title: LoadBundleTask
-    path: /docs/reference/js/firestore_.loadbundletask.md
+    path: /docs/reference/js/firestore.loadbundletask.md
   - title: LoadBundleTaskProgress
-    path: /docs/reference/js/firestore_.loadbundletaskprogress.md
+    path: /docs/reference/js/firestore.loadbundletaskprogress.md
+  - title: MaxKey
+    path: /docs/reference/js/firestore.maxkey.md
   - title: MemoryCacheSettings
-    path: /docs/reference/js/firestore_.memorycachesettings.md
+    path: /docs/reference/js/firestore.memorycachesettings.md
   - title: MemoryEagerGarbageCollector
-    path: /docs/reference/js/firestore_.memoryeagergarbagecollector.md
+    path: /docs/reference/js/firestore.memoryeagergarbagecollector.md
   - title: MemoryLocalCache
-    path: /docs/reference/js/firestore_.memorylocalcache.md
+    path: /docs/reference/js/firestore.memorylocalcache.md
   - title: MemoryLruGarbageCollector
-    path: /docs/reference/js/firestore_.memorylrugarbagecollector.md
+    path: /docs/reference/js/firestore.memorylrugarbagecollector.md
+  - title: MinKey
+    path: /docs/reference/js/firestore.minkey.md
   - title: PersistenceSettings
-    path: /docs/reference/js/firestore_.persistencesettings.md
+    path: /docs/reference/js/firestore.persistencesettings.md
   - title: PersistentCacheIndexManager
-    path: /docs/reference/js/firestore_.persistentcacheindexmanager.md
+    path: /docs/reference/js/firestore.persistentcacheindexmanager.md
   - title: PersistentCacheSettings
-    path: /docs/reference/js/firestore_.persistentcachesettings.md
+    path: /docs/reference/js/firestore.persistentcachesettings.md
   - title: PersistentLocalCache
-    path: /docs/reference/js/firestore_.persistentlocalcache.md
+    path: /docs/reference/js/firestore.persistentlocalcache.md
   - title: PersistentMultipleTabManager
-    path: /docs/reference/js/firestore_.persistentmultipletabmanager.md
+    path: /docs/reference/js/firestore.persistentmultipletabmanager.md
   - title: PersistentSingleTabManager
-    path: /docs/reference/js/firestore_.persistentsingletabmanager.md
+    path: /docs/reference/js/firestore.persistentsingletabmanager.md
   - title: PersistentSingleTabManagerSettings
-    path: /docs/reference/js/firestore_.persistentsingletabmanagersettings.md
+    path: /docs/reference/js/firestore.persistentsingletabmanagersettings.md
   - title: Query
-    path: /docs/reference/js/firestore_.query.md
+    path: /docs/reference/js/firestore.query.md
   - title: QueryCompositeFilterConstraint
-    path: /docs/reference/js/firestore_.querycompositefilterconstraint.md
+    path: /docs/reference/js/firestore.querycompositefilterconstraint.md
   - title: QueryConstraint
-    path: /docs/reference/js/firestore_.queryconstraint.md
+    path: /docs/reference/js/firestore.queryconstraint.md
   - title: QueryDocumentSnapshot
-    path: /docs/reference/js/firestore_.querydocumentsnapshot.md
+    path: /docs/reference/js/firestore.querydocumentsnapshot.md
   - title: QueryEndAtConstraint
-    path: /docs/reference/js/firestore_.queryendatconstraint.md
+    path: /docs/reference/js/firestore.queryendatconstraint.md
   - title: QueryFieldFilterConstraint
-    path: /docs/reference/js/firestore_.queryfieldfilterconstraint.md
+    path: /docs/reference/js/firestore.queryfieldfilterconstraint.md
   - title: QueryLimitConstraint
-    path: /docs/reference/js/firestore_.querylimitconstraint.md
+    path: /docs/reference/js/firestore.querylimitconstraint.md
   - title: QueryOrderByConstraint
-    path: /docs/reference/js/firestore_.queryorderbyconstraint.md
+    path: /docs/reference/js/firestore.queryorderbyconstraint.md
   - title: QuerySnapshot
-    path: /docs/reference/js/firestore_.querysnapshot.md
+    path: /docs/reference/js/firestore.querysnapshot.md
   - title: QueryStartAtConstraint
-    path: /docs/reference/js/firestore_.querystartatconstraint.md
+    path: /docs/reference/js/firestore.querystartatconstraint.md
+  - title: RegexValue
+    path: /docs/reference/js/firestore.regexvalue.md
   - title: SnapshotListenOptions
-    path: /docs/reference/js/firestore_.snapshotlistenoptions.md
+    path: /docs/reference/js/firestore.snapshotlistenoptions.md
   - title: SnapshotMetadata
-    path: /docs/reference/js/firestore_.snapshotmetadata.md
+    path: /docs/reference/js/firestore.snapshotmetadata.md
   - title: SnapshotOptions
-    path: /docs/reference/js/firestore_.snapshotoptions.md
+    path: /docs/reference/js/firestore.snapshotoptions.md
   - title: Timestamp
-    path: /docs/reference/js/firestore_.timestamp.md
+    path: /docs/reference/js/firestore.timestamp.md
   - title: Transaction
-    path: /docs/reference/js/firestore_.transaction.md
+    path: /docs/reference/js/firestore.transaction.md
   - title: TransactionOptions
-    path: /docs/reference/js/firestore_.transactionoptions.md
+    path: /docs/reference/js/firestore.transactionoptions.md
   - title: Unsubscribe
-    path: /docs/reference/js/firestore_.unsubscribe.md
+    path: /docs/reference/js/firestore.unsubscribe.md
   - title: VectorValue
-    path: /docs/reference/js/firestore_.vectorvalue.md
+    path: /docs/reference/js/firestore.vectorvalue.md
   - title: WriteBatch
-    path: /docs/reference/js/firestore_.writebatch.md
+    path: /docs/reference/js/firestore.writebatch.md
 - title: firestore/lite
   path: /docs/reference/js/firestore_lite.md
   section:
@@ -591,10 +587,16 @@ toc:
     path: /docs/reference/js/firestore_lite.aggregatequerysnapshot.md
   - title: AggregateSpec
     path: /docs/reference/js/firestore_lite.aggregatespec.md
+  - title: BsonObjectId
+    path: /docs/reference/js/firestore_lite.bsonobjectid.md
+  - title: BsonTimestamp
+    path: /docs/reference/js/firestore_lite.bsontimestamp.md
   - title: Bytes
     path: /docs/reference/js/firestore_lite.bytes.md
   - title: CollectionReference
     path: /docs/reference/js/firestore_lite.collectionreference.md
+  - title: Decimal128Value
+    path: /docs/reference/js/firestore_lite.decimal128value.md
   - title: DocumentData
     path: /docs/reference/js/firestore_lite.documentdata.md
   - title: DocumentReference
@@ -613,6 +615,12 @@ toc:
     path: /docs/reference/js/firestore_lite.firestoreerror.md
   - title: GeoPoint
     path: /docs/reference/js/firestore_lite.geopoint.md
+  - title: Int32Value
+    path: /docs/reference/js/firestore_lite.int32value.md
+  - title: MaxKey
+    path: /docs/reference/js/firestore_lite.maxkey.md
+  - title: MinKey
+    path: /docs/reference/js/firestore_lite.minkey.md
   - title: Query
     path: /docs/reference/js/firestore_lite.query.md
   - title: QueryCompositeFilterConstraint
@@ -633,6 +641,8 @@ toc:
     path: /docs/reference/js/firestore_lite.querysnapshot.md
   - title: QueryStartAtConstraint
     path: /docs/reference/js/firestore_lite.querystartatconstraint.md
+  - title: RegexValue
+    path: /docs/reference/js/firestore_lite.regexvalue.md
   - title: Settings
     path: /docs/reference/js/firestore_lite.settings.md
   - title: Timestamp
@@ -656,32 +666,12 @@ toc:
     path: /docs/reference/js/firestore_lite_pipelines.aliasedexpression.md
   - title: BooleanExpression
     path: /docs/reference/js/firestore_lite_pipelines.booleanexpression.md
-  - title: Bytes
-    path: /docs/reference/js/firestore_lite_pipelines.bytes.md
-  - title: CollectionReference
-    path: /docs/reference/js/firestore_lite_pipelines.collectionreference.md
-  - title: DocumentData
-    path: /docs/reference/js/firestore_lite_pipelines.documentdata.md
-  - title: DocumentReference
-    path: /docs/reference/js/firestore_lite_pipelines.documentreference.md
-  - title: DocumentSnapshot
-    path: /docs/reference/js/firestore_lite_pipelines.documentsnapshot.md
   - title: Expression
     path: /docs/reference/js/firestore_lite_pipelines.expression.md
   - title: Field
     path: /docs/reference/js/firestore_lite_pipelines.field.md
-  - title: FieldPath
-    path: /docs/reference/js/firestore_lite_pipelines.fieldpath.md
-  - title: FieldValue
-    path: /docs/reference/js/firestore_lite_pipelines.fieldvalue.md
-  - title: Firestore
-    path: /docs/reference/js/firestore_lite_pipelines.firestore.md
-  - title: FirestoreDataConverter
-    path: /docs/reference/js/firestore_lite_pipelines.firestoredataconverter.md
   - title: FunctionExpression
     path: /docs/reference/js/firestore_lite_pipelines.functionexpression.md
-  - title: GeoPoint
-    path: /docs/reference/js/firestore_lite_pipelines.geopoint.md
   - title: Ordering
     path: /docs/reference/js/firestore_lite_pipelines.ordering.md
   - title: Pipeline
@@ -692,16 +682,8 @@ toc:
     path: /docs/reference/js/firestore_lite_pipelines.pipelinesnapshot.md
   - title: PipelineSource
     path: /docs/reference/js/firestore_lite_pipelines.pipelinesource.md
-  - title: Query
-    path: /docs/reference/js/firestore_lite_pipelines.query.md
-  - title: QueryDocumentSnapshot
-    path: /docs/reference/js/firestore_lite_pipelines.querydocumentsnapshot.md
   - title: Selectable
     path: /docs/reference/js/firestore_lite_pipelines.selectable.md
-  - title: Timestamp
-    path: /docs/reference/js/firestore_lite_pipelines.timestamp.md
-  - title: VectorValue
-    path: /docs/reference/js/firestore_lite_pipelines.vectorvalue.md
 - title: firestore/pipelines
   path: /docs/reference/js/firestore_pipelines.md
   section:
@@ -713,32 +695,12 @@ toc:
     path: /docs/reference/js/firestore_pipelines.aliasedexpression.md
   - title: BooleanExpression
     path: /docs/reference/js/firestore_pipelines.booleanexpression.md
-  - title: Bytes
-    path: /docs/reference/js/firestore_pipelines.bytes.md
-  - title: CollectionReference
-    path: /docs/reference/js/firestore_pipelines.collectionreference.md
-  - title: DocumentData
-    path: /docs/reference/js/firestore_pipelines.documentdata.md
-  - title: DocumentReference
-    path: /docs/reference/js/firestore_pipelines.documentreference.md
-  - title: DocumentSnapshot
-    path: /docs/reference/js/firestore_pipelines.documentsnapshot.md
   - title: Expression
     path: /docs/reference/js/firestore_pipelines.expression.md
   - title: Field
     path: /docs/reference/js/firestore_pipelines.field.md
-  - title: FieldPath
-    path: /docs/reference/js/firestore_pipelines.fieldpath.md
-  - title: FieldValue
-    path: /docs/reference/js/firestore_pipelines.fieldvalue.md
-  - title: Firestore
-    path: /docs/reference/js/firestore_pipelines.firestore.md
-  - title: FirestoreDataConverter
-    path: /docs/reference/js/firestore_pipelines.firestoredataconverter.md
   - title: FunctionExpression
     path: /docs/reference/js/firestore_pipelines.functionexpression.md
-  - title: GeoPoint
-    path: /docs/reference/js/firestore_pipelines.geopoint.md
   - title: Ordering
     path: /docs/reference/js/firestore_pipelines.ordering.md
   - title: Pipeline
@@ -751,20 +713,8 @@ toc:
     path: /docs/reference/js/firestore_pipelines.pipelinesnapshot.md
   - title: PipelineSource
     path: /docs/reference/js/firestore_pipelines.pipelinesource.md
-  - title: Query
-    path: /docs/reference/js/firestore_pipelines.query.md
-  - title: QueryDocumentSnapshot
-    path: /docs/reference/js/firestore_pipelines.querydocumentsnapshot.md
   - title: Selectable
     path: /docs/reference/js/firestore_pipelines.selectable.md
-  - title: SnapshotMetadata
-    path: /docs/reference/js/firestore_pipelines.snapshotmetadata.md
-  - title: SnapshotOptions
-    path: /docs/reference/js/firestore_pipelines.snapshotoptions.md
-  - title: Timestamp
-    path: /docs/reference/js/firestore_pipelines.timestamp.md
-  - title: VectorValue
-    path: /docs/reference/js/firestore_pipelines.vectorvalue.md
 - title: functions
   path: /docs/reference/js/functions.md
   section:
@@ -788,20 +738,20 @@ toc:
   - title: Installations
     path: /docs/reference/js/installations.installations.md
 - title: messaging
-  path: /docs/reference/js/messaging_.md
+  path: /docs/reference/js/messaging.md
   section:
   - title: FcmOptions
-    path: /docs/reference/js/messaging_.fcmoptions.md
+    path: /docs/reference/js/messaging.fcmoptions.md
   - title: GetTokenOptions
-    path: /docs/reference/js/messaging_.gettokenoptions.md
+    path: /docs/reference/js/messaging.gettokenoptions.md
   - title: MessagePayload
-    path: /docs/reference/js/messaging_.messagepayload.md
+    path: /docs/reference/js/messaging.messagepayload.md
   - title: Messaging
-    path: /docs/reference/js/messaging_.messaging.md
+    path: /docs/reference/js/messaging.messaging.md
   - title: NotificationPayload
-    path: /docs/reference/js/messaging_.notificationpayload.md
+    path: /docs/reference/js/messaging.notificationpayload.md
   - title: RegisterOptions
-    path: /docs/reference/js/messaging_.registeroptions.md
+    path: /docs/reference/js/messaging.registeroptions.md
 - title: messaging/sw
   path: /docs/reference/js/messaging_sw.md
   section:

@@ -19,10 +19,8 @@ import { resolve } from 'path';
 import { existsSync } from 'fs';
 import { exec } from 'child-process-promise';
 import chalk from 'chalk';
-import simpleGit from 'simple-git';
 import { TestConfig } from './testConfig';
 const root = resolve(__dirname, '../..');
-const git = simpleGit(root);
 
 export interface TestTask {
   pkgName: string;
@@ -101,8 +99,11 @@ export async function getTestTasks(): Promise<TestTask[]> {
   const depGraph: { [key: string]: any } = JSON.parse(
     (await exec('npx lerna ls --all --graph', { cwd: root })).stdout
   );
-  const diff = await git.diff(['--name-only', 'origin/main...HEAD']);
-  const changedFiles = diff.split('\n');
+  const { stdout: diff } = await exec(
+    'git diff --name-only origin/main...HEAD',
+    { cwd: root }
+  );
+  const changedFiles = diff.trim().split('\n').filter(Boolean);
   let testTasks: TestTask[] = [];
   for (const filename of changedFiles) {
     // Files that trigger full test suite.
@@ -155,10 +156,9 @@ export async function getTestTasks(): Promise<TestTask[]> {
           if (depGraph[pkgName].includes(changedPkg.name)) {
             const depData = packageInfo.find(item => item.name === pkgName);
             if (depData) {
-              const depPkgJson = require(resolve(
-                depData.location,
-                'package.json'
-              ));
+              const depPkgJson = require(
+                resolve(depData.location, 'package.json')
+              );
               if (depPkgJson) {
                 if (!testTasks.find(t => t.pkgName === depPkgJson.name)) {
                   testTasks.push(

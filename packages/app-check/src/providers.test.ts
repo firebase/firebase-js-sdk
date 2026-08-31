@@ -21,7 +21,7 @@ import { ReCaptchaEnterpriseProvider, ReCaptchaV3Provider } from './providers';
 import * as client from './client';
 import * as reCAPTCHA from './recaptcha';
 import * as util from './util';
-import { stub, useFakeTimers } from 'sinon';
+import { SinonFakeTimers, stub, useFakeTimers } from 'sinon';
 import { expect } from 'chai';
 import { FirebaseError } from '@firebase/util';
 import { AppCheckError } from './errors';
@@ -35,7 +35,7 @@ import { deleteApp, FirebaseApp } from '@firebase/app';
 
 describe('ReCaptchaV3Provider', () => {
   let app: FirebaseApp;
-  let clock = useFakeTimers();
+  let clock: SinonFakeTimers;
   beforeEach(() => {
     clock = useFakeTimers();
     app = getFullApp();
@@ -144,7 +144,7 @@ describe('ReCaptchaV3Provider', () => {
 
 describe('ReCaptchaEnterpriseProvider', () => {
   let app: FirebaseApp;
-  let clock = useFakeTimers();
+  let clock: SinonFakeTimers;
   beforeEach(() => {
     clock = useFakeTimers();
     app = getFullApp();

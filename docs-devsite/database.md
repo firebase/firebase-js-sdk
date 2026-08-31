@@ -9,7 +9,7 @@ overwritten. Changes should be made in the source code at
 https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
-# database package
+# @firebase/database
 Firebase Realtime Database
 
 ## Functions
@@ -19,7 +19,7 @@ Firebase Realtime Database
 |  <b>function(app, ...)</b> |
 |  [getDatabase(app, url)](./database.md#getdatabase_d9cea01) | Returns the instance of the Realtime Database SDK that is associated with the provided [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. Initializes a new instance with default settings if no instance exists or if the existing instance uses a custom database URL. |
 |  <b>function(db, ...)</b> |
-|  [connectDatabaseEmulator(db, host, port, options)](./database.md#connectdatabaseemulator_27b9e93) | Modify the provided instance to communicate with the Realtime Database emulator.<p>Note: This method must be called before performing any other operation. |
+|  [connectDatabaseEmulator(db, host, port, options)](./database.md#connectdatabaseemulator_f2170fa) | Modify the provided instance to communicate with the Realtime Database emulator.<p>Note: This method must be called before performing any other operation. |
 |  [goOffline(db)](./database.md#gooffline_732b338) | Disconnects from the server (all Database operations will be completed offline).<!-- -->The client automatically maintains a persistent connection to the Database server, which will remain active indefinitely and reconnect when disconnected. However, the <code>goOffline()</code> and <code>goOnline()</code> methods may be used to control the client connection in cases where a persistent connection is undesirable.<!-- -->While offline, the client will no longer receive data updates from the Database. However, all Database operations performed locally will continue to immediately fire events, allowing your application to continue behaving normally. Additionally, each operation performed locally will automatically be queued and retried upon reconnection to the Database server.<!-- -->To reconnect to the Database and begin receiving remote events, see <code>goOnline()</code>. |
 |  [goOnline(db)](./database.md#goonline_732b338) | Reconnects to the server and synchronizes the offline Database state with the server state.<!-- -->This method should be used after disabling the active connection with <code>goOffline()</code>. Once reconnected, the client will transmit the proper data and fire the appropriate events so that your client "catches up" automatically. |
 |  [ref(db, path)](./database.md#ref_5f88fa2) | Returns a <code>Reference</code> representing the location in the Database corresponding to the provided path. If no path is provided, the <code>Reference</code> will point to the root of the Database. |
@@ -47,16 +47,16 @@ Firebase Realtime Database
 |  [orderByChild(path)](./database.md#orderbychild_fe1f8e4) | Creates a new <code>QueryConstraint</code> that orders by the specified child key.<!-- -->Queries can only order by one key at a time. Calling <code>orderByChild()</code> multiple times on the same query is an error.<!-- -->Firebase queries allow you to order your data by any child key on the fly. However, if you know in advance what your indexes will be, you can define them via the .indexOn rule in your Security Rules for better performance. See the[https://firebase.google.com/docs/database/security/indexing-data](https://firebase.google.com/docs/database/security/indexing-data) rule for more information.<!-- -->You can read more about <code>orderByChild()</code> in [Sort data](https://firebase.google.com/docs/database/web/lists-of-data#sort_data)<!-- -->. |
 |  <b>function(query, ...)</b> |
 |  [get(query)](./database.md#get_20b2416) | Gets the most up-to-date result for this query. |
-|  [off(query, eventType, callback)](./database.md#off_17bb961) | Detaches a callback previously attached with the corresponding <code>on*()</code> (<code>onValue</code>, <code>onChildAdded</code>) listener. Note: This is not the recommended way to remove a listener. Instead, please use the returned callback function from the respective <code>on*</code> callbacks.<!-- -->Detach a callback previously attached with <code>on*()</code>. Calling <code>off()</code> on a parent listener will not automatically remove listeners registered on child nodes, <code>off()</code> must also be called on any child listeners to remove the callback.<!-- -->If a callback is not specified, all callbacks for the specified eventType will be removed. Similarly, if no eventType is specified, all callbacks for the <code>Reference</code> will be removed.<!-- -->Individual listeners can also be removed by invoking their unsubscribe callbacks. |
-|  [onChildAdded(query, callback, cancelCallback)](./database.md#onchildadded_139c747) | Listens for data changes at a particular location.<!-- -->This is the primary way to read data from a Database. Your callback will be triggered for the initial data and again whenever the data changes. Invoke the returned unsubscribe callback to stop receiving updates. See [Retrieve Data on the Web](https://firebase.google.com/docs/database/web/retrieve-data) for more details.<!-- -->An <code>onChildAdded</code> event will be triggered once for each initial child at this location, and it will be triggered again every time a new child is added. The <code>DataSnapshot</code> passed into the callback will reflect the data for the relevant child. For ordering purposes, it is passed a second argument which is a string containing the key of the previous sibling child by sort order, or <code>null</code> if it is the first child. |
-|  [onChildAdded(query, callback, options)](./database.md#onchildadded_cf4f177) | Listens for data changes at a particular location.<!-- -->This is the primary way to read data from a Database. Your callback will be triggered for the initial data and again whenever the data changes. Invoke the returned unsubscribe callback to stop receiving updates. See [Retrieve Data on the Web](https://firebase.google.com/docs/database/web/retrieve-data) for more details.<!-- -->An <code>onChildAdded</code> event will be triggered once for each initial child at this location, and it will be triggered again every time a new child is added. The <code>DataSnapshot</code> passed into the callback will reflect the data for the relevant child. For ordering purposes, it is passed a second argument which is a string containing the key of the previous sibling child by sort order, or <code>null</code> if it is the first child. |
-|  [onChildAdded(query, callback, cancelCallback, options)](./database.md#onchildadded_456d092) | Listens for data changes at a particular location.<!-- -->This is the primary way to read data from a Database. Your callback will be triggered for the initial data and again whenever the data changes. Invoke the returned unsubscribe callback to stop receiving updates. See [Retrieve Data on the Web](https://firebase.google.com/docs/database/web/retrieve-data) for more details.<!-- -->An <code>onChildAdded</code> event will be triggered once for each initial child at this location, and it will be triggered again every time a new child is added. The <code>DataSnapshot</code> passed into the callback will reflect the data for the relevant child. For ordering purposes, it is passed a second argument which is a string containing the key of the previous sibling child by sort order, or <code>null</code> if it is the first child. |
-|  [onChildChanged(query, callback, cancelCallback)](./database.md#onchildchanged_c1edf58) | Listens for data changes at a particular location.<!-- -->This is the primary way to read data from a Database. Your callback will be triggered for the initial data and again whenever the data changes. Invoke the returned unsubscribe callback to stop receiving updates. See [Retrieve Data on the Web](https://firebase.google.com/docs/database/web/retrieve-data) for more details.<!-- -->An <code>onChildChanged</code> event will be triggered when the data stored in a child (or any of its descendants) changes. Note that a single <code>child_changed</code> event may represent multiple changes to the child. The <code>DataSnapshot</code> passed to the callback will contain the new child contents. For ordering purposes, the callback is also passed a second argument which is a string containing the key of the previous sibling child by sort order, or <code>null</code> if it is the first child. |
-|  [onChildChanged(query, callback, options)](./database.md#onchildchanged_cf4f177) | Listens for data changes at a particular location.<!-- -->This is the primary way to read data from a Database. Your callback will be triggered for the initial data and again whenever the data changes. Invoke the returned unsubscribe callback to stop receiving updates. See [Retrieve Data on the Web](https://firebase.google.com/docs/database/web/retrieve-data) for more details.<!-- -->An <code>onChildChanged</code> event will be triggered when the data stored in a child (or any of its descendants) changes. Note that a single <code>child_changed</code> event may represent multiple changes to the child. The <code>DataSnapshot</code> passed to the callback will contain the new child contents. For ordering purposes, the callback is also passed a second argument which is a string containing the key of the previous sibling child by sort order, or <code>null</code> if it is the first child. |
-|  [onChildChanged(query, callback, cancelCallback, options)](./database.md#onchildchanged_456d092) | Listens for data changes at a particular location.<!-- -->This is the primary way to read data from a Database. Your callback will be triggered for the initial data and again whenever the data changes. Invoke the returned unsubscribe callback to stop receiving updates. See [Retrieve Data on the Web](https://firebase.google.com/docs/database/web/retrieve-data) for more details.<!-- -->An <code>onChildChanged</code> event will be triggered when the data stored in a child (or any of its descendants) changes. Note that a single <code>child_changed</code> event may represent multiple changes to the child. The <code>DataSnapshot</code> passed to the callback will contain the new child contents. For ordering purposes, the callback is also passed a second argument which is a string containing the key of the previous sibling child by sort order, or <code>null</code> if it is the first child. |
-|  [onChildMoved(query, callback, cancelCallback)](./database.md#onchildmoved_c1edf58) | Listens for data changes at a particular location.<!-- -->This is the primary way to read data from a Database. Your callback will be triggered for the initial data and again whenever the data changes. Invoke the returned unsubscribe callback to stop receiving updates. See [Retrieve Data on the Web](https://firebase.google.com/docs/database/web/retrieve-data) for more details.<!-- -->An <code>onChildMoved</code> event will be triggered when a child's sort order changes such that its position relative to its siblings changes. The <code>DataSnapshot</code> passed to the callback will be for the data of the child that has moved. It is also passed a second argument which is a string containing the key of the previous sibling child by sort order, or <code>null</code> if it is the first child. |
-|  [onChildMoved(query, callback, options)](./database.md#onchildmoved_cf4f177) | Listens for data changes at a particular location.<!-- -->This is the primary way to read data from a Database. Your callback will be triggered for the initial data and again whenever the data changes. Invoke the returned unsubscribe callback to stop receiving updates. See [Retrieve Data on the Web](https://firebase.google.com/docs/database/web/retrieve-data) for more details.<!-- -->An <code>onChildMoved</code> event will be triggered when a child's sort order changes such that its position relative to its siblings changes. The <code>DataSnapshot</code> passed to the callback will be for the data of the child that has moved. It is also passed a second argument which is a string containing the key of the previous sibling child by sort order, or <code>null</code> if it is the first child. |
-|  [onChildMoved(query, callback, cancelCallback, options)](./database.md#onchildmoved_456d092) | Listens for data changes at a particular location.<!-- -->This is the primary way to read data from a Database. Your callback will be triggered for the initial data and again whenever the data changes. Invoke the returned unsubscribe callback to stop receiving updates. See [Retrieve Data on the Web](https://firebase.google.com/docs/database/web/retrieve-data) for more details.<!-- -->An <code>onChildMoved</code> event will be triggered when a child's sort order changes such that its position relative to its siblings changes. The <code>DataSnapshot</code> passed to the callback will be for the data of the child that has moved. It is also passed a second argument which is a string containing the key of the previous sibling child by sort order, or <code>null</code> if it is the first child. |
+|  [off(query, eventType, callback)](./database.md#off_0fac5f1) | Detaches a callback previously attached with the corresponding <code>on*()</code> (<code>onValue</code>, <code>onChildAdded</code>) listener. Note: This is not the recommended way to remove a listener. Instead, please use the returned callback function from the respective <code>on*</code> callbacks.<!-- -->Detach a callback previously attached with <code>on*()</code>. Calling <code>off()</code> on a parent listener will not automatically remove listeners registered on child nodes, <code>off()</code> must also be called on any child listeners to remove the callback.<!-- -->If a callback is not specified, all callbacks for the specified eventType will be removed. Similarly, if no eventType is specified, all callbacks for the <code>Reference</code> will be removed.<!-- -->Individual listeners can also be removed by invoking their unsubscribe callbacks. |
+|  [onChildAdded(query, callback, cancelCallback)](./database.md#onchildadded_547e810) | Listens for data changes at a particular location.<!-- -->This is the primary way to read data from a Database. Your callback will be triggered for the initial data and again whenever the data changes. Invoke the returned unsubscribe callback to stop receiving updates. See [Retrieve Data on the Web](https://firebase.google.com/docs/database/web/retrieve-data) for more details.<!-- -->An <code>onChildAdded</code> event will be triggered once for each initial child at this location, and it will be triggered again every time a new child is added. The <code>DataSnapshot</code> passed into the callback will reflect the data for the relevant child. For ordering purposes, it is passed a second argument which is a string containing the key of the previous sibling child by sort order, or <code>null</code> if it is the first child. |
+|  [onChildAdded(query, callback, options)](./database.md#onchildadded_0e863ba) | Listens for data changes at a particular location.<!-- -->This is the primary way to read data from a Database. Your callback will be triggered for the initial data and again whenever the data changes. Invoke the returned unsubscribe callback to stop receiving updates. See [Retrieve Data on the Web](https://firebase.google.com/docs/database/web/retrieve-data) for more details.<!-- -->An <code>onChildAdded</code> event will be triggered once for each initial child at this location, and it will be triggered again every time a new child is added. The <code>DataSnapshot</code> passed into the callback will reflect the data for the relevant child. For ordering purposes, it is passed a second argument which is a string containing the key of the previous sibling child by sort order, or <code>null</code> if it is the first child. |
+|  [onChildAdded(query, callback, cancelCallback, options)](./database.md#onchildadded_17e9b31) | Listens for data changes at a particular location.<!-- -->This is the primary way to read data from a Database. Your callback will be triggered for the initial data and again whenever the data changes. Invoke the returned unsubscribe callback to stop receiving updates. See [Retrieve Data on the Web](https://firebase.google.com/docs/database/web/retrieve-data) for more details.<!-- -->An <code>onChildAdded</code> event will be triggered once for each initial child at this location, and it will be triggered again every time a new child is added. The <code>DataSnapshot</code> passed into the callback will reflect the data for the relevant child. For ordering purposes, it is passed a second argument which is a string containing the key of the previous sibling child by sort order, or <code>null</code> if it is the first child. |
+|  [onChildChanged(query, callback, cancelCallback)](./database.md#onchildchanged_7a659f5) | Listens for data changes at a particular location.<!-- -->This is the primary way to read data from a Database. Your callback will be triggered for the initial data and again whenever the data changes. Invoke the returned unsubscribe callback to stop receiving updates. See [Retrieve Data on the Web](https://firebase.google.com/docs/database/web/retrieve-data) for more details.<!-- -->An <code>onChildChanged</code> event will be triggered when the data stored in a child (or any of its descendants) changes. Note that a single <code>child_changed</code> event may represent multiple changes to the child. The <code>DataSnapshot</code> passed to the callback will contain the new child contents. For ordering purposes, the callback is also passed a second argument which is a string containing the key of the previous sibling child by sort order, or <code>null</code> if it is the first child. |
+|  [onChildChanged(query, callback, options)](./database.md#onchildchanged_0e863ba) | Listens for data changes at a particular location.<!-- -->This is the primary way to read data from a Database. Your callback will be triggered for the initial data and again whenever the data changes. Invoke the returned unsubscribe callback to stop receiving updates. See [Retrieve Data on the Web](https://firebase.google.com/docs/database/web/retrieve-data) for more details.<!-- -->An <code>onChildChanged</code> event will be triggered when the data stored in a child (or any of its descendants) changes. Note that a single <code>child_changed</code> event may represent multiple changes to the child. The <code>DataSnapshot</code> passed to the callback will contain the new child contents. For ordering purposes, the callback is also passed a second argument which is a string containing the key of the previous sibling child by sort order, or <code>null</code> if it is the first child. |
+|  [onChildChanged(query, callback, cancelCallback, options)](./database.md#onchildchanged_17e9b31) | Listens for data changes at a particular location.<!-- -->This is the primary way to read data from a Database. Your callback will be triggered for the initial data and again whenever the data changes. Invoke the returned unsubscribe callback to stop receiving updates. See [Retrieve Data on the Web](https://firebase.google.com/docs/database/web/retrieve-data) for more details.<!-- -->An <code>onChildChanged</code> event will be triggered when the data stored in a child (or any of its descendants) changes. Note that a single <code>child_changed</code> event may represent multiple changes to the child. The <code>DataSnapshot</code> passed to the callback will contain the new child contents. For ordering purposes, the callback is also passed a second argument which is a string containing the key of the previous sibling child by sort order, or <code>null</code> if it is the first child. |
+|  [onChildMoved(query, callback, cancelCallback)](./database.md#onchildmoved_7a659f5) | Listens for data changes at a particular location.<!-- -->This is the primary way to read data from a Database. Your callback will be triggered for the initial data and again whenever the data changes. Invoke the returned unsubscribe callback to stop receiving updates. See [Retrieve Data on the Web](https://firebase.google.com/docs/database/web/retrieve-data) for more details.<!-- -->An <code>onChildMoved</code> event will be triggered when a child's sort order changes such that its position relative to its siblings changes. The <code>DataSnapshot</code> passed to the callback will be for the data of the child that has moved. It is also passed a second argument which is a string containing the key of the previous sibling child by sort order, or <code>null</code> if it is the first child. |
+|  [onChildMoved(query, callback, options)](./database.md#onchildmoved_0e863ba) | Listens for data changes at a particular location.<!-- -->This is the primary way to read data from a Database. Your callback will be triggered for the initial data and again whenever the data changes. Invoke the returned unsubscribe callback to stop receiving updates. See [Retrieve Data on the Web](https://firebase.google.com/docs/database/web/retrieve-data) for more details.<!-- -->An <code>onChildMoved</code> event will be triggered when a child's sort order changes such that its position relative to its siblings changes. The <code>DataSnapshot</code> passed to the callback will be for the data of the child that has moved. It is also passed a second argument which is a string containing the key of the previous sibling child by sort order, or <code>null</code> if it is the first child. |
+|  [onChildMoved(query, callback, cancelCallback, options)](./database.md#onchildmoved_17e9b31) | Listens for data changes at a particular location.<!-- -->This is the primary way to read data from a Database. Your callback will be triggered for the initial data and again whenever the data changes. Invoke the returned unsubscribe callback to stop receiving updates. See [Retrieve Data on the Web](https://firebase.google.com/docs/database/web/retrieve-data) for more details.<!-- -->An <code>onChildMoved</code> event will be triggered when a child's sort order changes such that its position relative to its siblings changes. The <code>DataSnapshot</code> passed to the callback will be for the data of the child that has moved. It is also passed a second argument which is a string containing the key of the previous sibling child by sort order, or <code>null</code> if it is the first child. |
 |  [onChildRemoved(query, callback, cancelCallback)](./database.md#onchildremoved_47c1ae9) | Listens for data changes at a particular location.<!-- -->This is the primary way to read data from a Database. Your callback will be triggered for the initial data and again whenever the data changes. Invoke the returned unsubscribe callback to stop receiving updates. See [Retrieve Data on the Web](https://firebase.google.com/docs/database/web/retrieve-data) for more details.<!-- -->An <code>onChildRemoved</code> event will be triggered once every time a child is removed. The <code>DataSnapshot</code> passed into the callback will be the old data for the child that was removed. A child will get removed when either:<!-- -->- a client explicitly calls <code>remove()</code> on that child or one of its ancestors - a client calls <code>set(null)</code> on that child or one of its ancestors - that child has all of its children removed - there is a query in effect which now filters out the child (because it's sort order changed or the max limit was hit) |
 |  [onChildRemoved(query, callback, options)](./database.md#onchildremoved_7357cb6) | Listens for data changes at a particular location.<!-- -->This is the primary way to read data from a Database. Your callback will be triggered for the initial data and again whenever the data changes. Invoke the returned unsubscribe callback to stop receiving updates. See [Retrieve Data on the Web](https://firebase.google.com/docs/database/web/retrieve-data) for more details.<!-- -->An <code>onChildRemoved</code> event will be triggered once every time a child is removed. The <code>DataSnapshot</code> passed into the callback will be the old data for the child that was removed. A child will get removed when either:<!-- -->- a client explicitly calls <code>remove()</code> on that child or one of its ancestors - a client calls <code>set(null)</code> on that child or one of its ancestors - that child has all of its children removed - there is a query in effect which now filters out the child (because it's sort order changed or the max limit was hit) |
 |  [onChildRemoved(query, callback, cancelCallback, options)](./database.md#onchildremoved_e66d5b6) | Listens for data changes at a particular location.<!-- -->This is the primary way to read data from a Database. Your callback will be triggered for the initial data and again whenever the data changes. Invoke the returned unsubscribe callback to stop receiving updates. See [Retrieve Data on the Web](https://firebase.google.com/docs/database/web/retrieve-data) for more details.<!-- -->An <code>onChildRemoved</code> event will be triggered once every time a child is removed. The <code>DataSnapshot</code> passed into the callback will be the old data for the child that was removed. A child will get removed when either:<!-- -->- a client explicitly calls <code>remove()</code> on that child or one of its ancestors - a client calls <code>set(null)</code> on that child or one of its ancestors - that child has all of its children removed - there is a query in effect which now filters out the child (because it's sort order changed or the max limit was hit) |
@@ -135,7 +135,7 @@ The `Database` instance of the provided app.
 
 ## function(db, ...)
 
-### connectDatabaseEmulator(db, host, port, options) {:#connectdatabaseemulator_27b9e93}
+### connectDatabaseEmulator(db, host, port, options) {:#connectdatabaseemulator_f2170fa}
 
 Modify the provided instance to communicate with the Realtime Database emulator.
 
@@ -144,9 +144,14 @@ Modify the provided instance to communicate with the Realtime Database emulator.
 <b>Signature:</b>
 
 ```typescript
-export declare function connectDatabaseEmulator(db: Database, host: string, port: number, options?: {
+export declare function connectDatabaseEmulator(
+  db: Database,
+  host: string,
+  port: number,
+  options?: {
     mockUserToken?: EmulatorMockTokenOptions | string;
-}): void;
+  }
+): void;
 ```
 
 #### Parameters
@@ -244,7 +249,10 @@ Note that all query parameters (`orderBy`<!-- -->, `limitToLast`<!-- -->, etc.) 
 <b>Signature:</b>
 
 ```typescript
-export declare function refFromURL(db: Database, url: string): DatabaseReference;
+export declare function refFromURL(
+  db: Database,
+  url: string
+): DatabaseReference;
 ```
 
 #### Parameters
@@ -383,7 +391,10 @@ Logs debugging information to the console.
 <b>Signature:</b>
 
 ```typescript
-export declare function enableLogging(enabled: boolean, persistent?: boolean): any;
+export declare function enableLogging(
+  enabled: boolean,
+  persistent?: boolean
+): any;
 ```
 
 #### Parameters
@@ -456,7 +467,9 @@ Logs debugging information to the console.
 <b>Signature:</b>
 
 ```typescript
-export declare function enableLogging(logger: (message: string) => unknown): any;
+export declare function enableLogging(
+  logger: (message: string) => unknown
+): any;
 ```
 
 #### Parameters
@@ -480,7 +493,10 @@ The relative path can either be a simple child name (for example, "ada") or a de
 <b>Signature:</b>
 
 ```typescript
-export declare function child(parent: DatabaseReference, path: string): DatabaseReference;
+export declare function child(
+  parent: DatabaseReference,
+  path: string
+): DatabaseReference;
 ```
 
 #### Parameters
@@ -511,7 +527,10 @@ See [Append to a list of data](https://firebase.google.com/docs/database/web/lis
 <b>Signature:</b>
 
 ```typescript
-export declare function push(parent: DatabaseReference, value?: unknown): ThenableReference;
+export declare function push(
+  parent: DatabaseReference,
+  value?: unknown
+): ThenableReference;
 ```
 
 #### Parameters
@@ -579,7 +598,7 @@ Promise&lt;[DataSnapshot](./database.datasnapshot.md#datasnapshot_class)<!-- -->
 
 A `Promise` which resolves to the resulting DataSnapshot if a value is available, or rejects if the client is unable to return a value (e.g., if the server is unreachable and there is nothing cached).
 
-### off(query, eventType, callback) {:#off_17bb961}
+### off(query, eventType, callback) {:#off_0fac5f1}
 
 Detaches a callback previously attached with the corresponding `on*()` (`onValue`<!-- -->, `onChildAdded`<!-- -->) listener. Note: This is not the recommended way to remove a listener. Instead, please use the returned callback function from the respective `on*` callbacks.
 
@@ -592,7 +611,14 @@ Individual listeners can also be removed by invoking their unsubscribe callbacks
 <b>Signature:</b>
 
 ```typescript
-export declare function off(query: Query, eventType?: EventType, callback?: (snapshot: DataSnapshot, previousChildName?: string | null) => unknown): void;
+export declare function off(
+  query: Query,
+  eventType?: EventType,
+  callback?: (
+    snapshot: DataSnapshot,
+    previousChildName?: string | null
+  ) => unknown
+): void;
 ```
 
 #### Parameters
@@ -601,13 +627,13 @@ export declare function off(query: Query, eventType?: EventType, callback?: (sna
 |  --- | --- | --- |
 |  query | [Query](./database.query.md#query_interface) | The query that the listener was registered with. |
 |  eventType | [EventType](./database.md#eventtype) | One of the following strings: "value", "child\_added", "child\_changed", "child\_removed", or "child\_moved." If omitted, all callbacks for the <code>Reference</code> will be removed. |
-|  callback | (snapshot: [DataSnapshot](./database.datasnapshot.md#datasnapshot_class)<!-- -->, previousChildName?: string \| null) =&gt; unknown | The callback function that was passed to <code>on()</code> or <code>undefined</code> to remove all callbacks. |
+|  callback | ( snapshot: [DataSnapshot](./database.datasnapshot.md#datasnapshot_class)<!-- -->, previousChildName?: string \| null ) =&gt; unknown | The callback function that was passed to <code>on()</code> or <code>undefined</code> to remove all callbacks. |
 
 <b>Returns:</b>
 
 void
 
-### onChildAdded(query, callback, cancelCallback) {:#onchildadded_139c747}
+### onChildAdded(query, callback, cancelCallback) {:#onchildadded_547e810}
 
 Listens for data changes at a particular location.
 
@@ -618,7 +644,14 @@ An `onChildAdded` event will be triggered once for each initial child at this lo
 <b>Signature:</b>
 
 ```typescript
-export declare function onChildAdded(query: Query, callback: (snapshot: DataSnapshot, previousChildName?: string | null) => unknown, cancelCallback?: (error: Error) => unknown): Unsubscribe;
+export declare function onChildAdded(
+  query: Query,
+  callback: (
+    snapshot: DataSnapshot,
+    previousChildName?: string | null
+  ) => unknown,
+  cancelCallback?: (error: Error) => unknown
+): Unsubscribe;
 ```
 
 #### Parameters
@@ -626,7 +659,7 @@ export declare function onChildAdded(query: Query, callback: (snapshot: DataSnap
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  query | [Query](./database.query.md#query_interface) | The query to run. |
-|  callback | (snapshot: [DataSnapshot](./database.datasnapshot.md#datasnapshot_class)<!-- -->, previousChildName?: string \| null) =&gt; unknown | A callback that fires when the specified event occurs. The callback will be passed a DataSnapshot and a string containing the key of the previous child, by sort order, or <code>null</code> if it is the first child. |
+|  callback | ( snapshot: [DataSnapshot](./database.datasnapshot.md#datasnapshot_class)<!-- -->, previousChildName?: string \| null ) =&gt; unknown | A callback that fires when the specified event occurs. The callback will be passed a DataSnapshot and a string containing the key of the previous child, by sort order, or <code>null</code> if it is the first child. |
 |  cancelCallback | (error: Error) =&gt; unknown | An optional callback that will be notified if your event subscription is ever canceled because your client does not have permission to read this data (or it had permission but has now lost it). This callback will be passed an <code>Error</code> object indicating why the failure occurred. |
 
 <b>Returns:</b>
@@ -635,7 +668,7 @@ export declare function onChildAdded(query: Query, callback: (snapshot: DataSnap
 
 A function that can be invoked to remove the listener.
 
-### onChildAdded(query, callback, options) {:#onchildadded_cf4f177}
+### onChildAdded(query, callback, options) {:#onchildadded_0e863ba}
 
 Listens for data changes at a particular location.
 
@@ -646,7 +679,14 @@ An `onChildAdded` event will be triggered once for each initial child at this lo
 <b>Signature:</b>
 
 ```typescript
-export declare function onChildAdded(query: Query, callback: (snapshot: DataSnapshot, previousChildName: string | null) => unknown, options: ListenOptions): Unsubscribe;
+export declare function onChildAdded(
+  query: Query,
+  callback: (
+    snapshot: DataSnapshot,
+    previousChildName: string | null
+  ) => unknown,
+  options: ListenOptions
+): Unsubscribe;
 ```
 
 #### Parameters
@@ -654,7 +694,7 @@ export declare function onChildAdded(query: Query, callback: (snapshot: DataSnap
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  query | [Query](./database.query.md#query_interface) | The query to run. |
-|  callback | (snapshot: [DataSnapshot](./database.datasnapshot.md#datasnapshot_class)<!-- -->, previousChildName: string \| null) =&gt; unknown | A callback that fires when the specified event occurs. The callback will be passed a DataSnapshot and a string containing the key of the previous child, by sort order, or <code>null</code> if it is the first child. |
+|  callback | ( snapshot: [DataSnapshot](./database.datasnapshot.md#datasnapshot_class)<!-- -->, previousChildName: string \| null ) =&gt; unknown | A callback that fires when the specified event occurs. The callback will be passed a DataSnapshot and a string containing the key of the previous child, by sort order, or <code>null</code> if it is the first child. |
 |  options | [ListenOptions](./database.listenoptions.md#listenoptions_interface) | An object that can be used to configure <code>onlyOnce</code>, which then removes the listener after its first invocation. |
 
 <b>Returns:</b>
@@ -663,7 +703,7 @@ export declare function onChildAdded(query: Query, callback: (snapshot: DataSnap
 
 A function that can be invoked to remove the listener.
 
-### onChildAdded(query, callback, cancelCallback, options) {:#onchildadded_456d092}
+### onChildAdded(query, callback, cancelCallback, options) {:#onchildadded_17e9b31}
 
 Listens for data changes at a particular location.
 
@@ -674,7 +714,15 @@ An `onChildAdded` event will be triggered once for each initial child at this lo
 <b>Signature:</b>
 
 ```typescript
-export declare function onChildAdded(query: Query, callback: (snapshot: DataSnapshot, previousChildName: string | null) => unknown, cancelCallback: (error: Error) => unknown, options: ListenOptions): Unsubscribe;
+export declare function onChildAdded(
+  query: Query,
+  callback: (
+    snapshot: DataSnapshot,
+    previousChildName: string | null
+  ) => unknown,
+  cancelCallback: (error: Error) => unknown,
+  options: ListenOptions
+): Unsubscribe;
 ```
 
 #### Parameters
@@ -682,7 +730,7 @@ export declare function onChildAdded(query: Query, callback: (snapshot: DataSnap
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  query | [Query](./database.query.md#query_interface) | The query to run. |
-|  callback | (snapshot: [DataSnapshot](./database.datasnapshot.md#datasnapshot_class)<!-- -->, previousChildName: string \| null) =&gt; unknown | A callback that fires when the specified event occurs. The callback will be passed a DataSnapshot and a string containing the key of the previous child, by sort order, or <code>null</code> if it is the first child. |
+|  callback | ( snapshot: [DataSnapshot](./database.datasnapshot.md#datasnapshot_class)<!-- -->, previousChildName: string \| null ) =&gt; unknown | A callback that fires when the specified event occurs. The callback will be passed a DataSnapshot and a string containing the key of the previous child, by sort order, or <code>null</code> if it is the first child. |
 |  cancelCallback | (error: Error) =&gt; unknown | An optional callback that will be notified if your event subscription is ever canceled because your client does not have permission to read this data (or it had permission but has now lost it). This callback will be passed an <code>Error</code> object indicating why the failure occurred. |
 |  options | [ListenOptions](./database.listenoptions.md#listenoptions_interface) | An object that can be used to configure <code>onlyOnce</code>, which then removes the listener after its first invocation. |
 
@@ -692,7 +740,7 @@ export declare function onChildAdded(query: Query, callback: (snapshot: DataSnap
 
 A function that can be invoked to remove the listener.
 
-### onChildChanged(query, callback, cancelCallback) {:#onchildchanged_c1edf58}
+### onChildChanged(query, callback, cancelCallback) {:#onchildchanged_7a659f5}
 
 Listens for data changes at a particular location.
 
@@ -703,7 +751,14 @@ An `onChildChanged` event will be triggered when the data stored in a child (or 
 <b>Signature:</b>
 
 ```typescript
-export declare function onChildChanged(query: Query, callback: (snapshot: DataSnapshot, previousChildName: string | null) => unknown, cancelCallback?: (error: Error) => unknown): Unsubscribe;
+export declare function onChildChanged(
+  query: Query,
+  callback: (
+    snapshot: DataSnapshot,
+    previousChildName: string | null
+  ) => unknown,
+  cancelCallback?: (error: Error) => unknown
+): Unsubscribe;
 ```
 
 #### Parameters
@@ -711,7 +766,7 @@ export declare function onChildChanged(query: Query, callback: (snapshot: DataSn
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  query | [Query](./database.query.md#query_interface) | The query to run. |
-|  callback | (snapshot: [DataSnapshot](./database.datasnapshot.md#datasnapshot_class)<!-- -->, previousChildName: string \| null) =&gt; unknown | A callback that fires when the specified event occurs. The callback will be passed a DataSnapshot and a string containing the key of the previous child, by sort order, or <code>null</code> if it is the first child. |
+|  callback | ( snapshot: [DataSnapshot](./database.datasnapshot.md#datasnapshot_class)<!-- -->, previousChildName: string \| null ) =&gt; unknown | A callback that fires when the specified event occurs. The callback will be passed a DataSnapshot and a string containing the key of the previous child, by sort order, or <code>null</code> if it is the first child. |
 |  cancelCallback | (error: Error) =&gt; unknown | An optional callback that will be notified if your event subscription is ever canceled because your client does not have permission to read this data (or it had permission but has now lost it). This callback will be passed an <code>Error</code> object indicating why the failure occurred. |
 
 <b>Returns:</b>
@@ -720,7 +775,7 @@ export declare function onChildChanged(query: Query, callback: (snapshot: DataSn
 
 A function that can be invoked to remove the listener.
 
-### onChildChanged(query, callback, options) {:#onchildchanged_cf4f177}
+### onChildChanged(query, callback, options) {:#onchildchanged_0e863ba}
 
 Listens for data changes at a particular location.
 
@@ -731,7 +786,14 @@ An `onChildChanged` event will be triggered when the data stored in a child (or 
 <b>Signature:</b>
 
 ```typescript
-export declare function onChildChanged(query: Query, callback: (snapshot: DataSnapshot, previousChildName: string | null) => unknown, options: ListenOptions): Unsubscribe;
+export declare function onChildChanged(
+  query: Query,
+  callback: (
+    snapshot: DataSnapshot,
+    previousChildName: string | null
+  ) => unknown,
+  options: ListenOptions
+): Unsubscribe;
 ```
 
 #### Parameters
@@ -739,7 +801,7 @@ export declare function onChildChanged(query: Query, callback: (snapshot: DataSn
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  query | [Query](./database.query.md#query_interface) | The query to run. |
-|  callback | (snapshot: [DataSnapshot](./database.datasnapshot.md#datasnapshot_class)<!-- -->, previousChildName: string \| null) =&gt; unknown | A callback that fires when the specified event occurs. The callback will be passed a DataSnapshot and a string containing the key of the previous child, by sort order, or <code>null</code> if it is the first child. |
+|  callback | ( snapshot: [DataSnapshot](./database.datasnapshot.md#datasnapshot_class)<!-- -->, previousChildName: string \| null ) =&gt; unknown | A callback that fires when the specified event occurs. The callback will be passed a DataSnapshot and a string containing the key of the previous child, by sort order, or <code>null</code> if it is the first child. |
 |  options | [ListenOptions](./database.listenoptions.md#listenoptions_interface) | An object that can be used to configure <code>onlyOnce</code>, which then removes the listener after its first invocation. |
 
 <b>Returns:</b>
@@ -748,7 +810,7 @@ export declare function onChildChanged(query: Query, callback: (snapshot: DataSn
 
 A function that can be invoked to remove the listener.
 
-### onChildChanged(query, callback, cancelCallback, options) {:#onchildchanged_456d092}
+### onChildChanged(query, callback, cancelCallback, options) {:#onchildchanged_17e9b31}
 
 Listens for data changes at a particular location.
 
@@ -759,7 +821,15 @@ An `onChildChanged` event will be triggered when the data stored in a child (or 
 <b>Signature:</b>
 
 ```typescript
-export declare function onChildChanged(query: Query, callback: (snapshot: DataSnapshot, previousChildName: string | null) => unknown, cancelCallback: (error: Error) => unknown, options: ListenOptions): Unsubscribe;
+export declare function onChildChanged(
+  query: Query,
+  callback: (
+    snapshot: DataSnapshot,
+    previousChildName: string | null
+  ) => unknown,
+  cancelCallback: (error: Error) => unknown,
+  options: ListenOptions
+): Unsubscribe;
 ```
 
 #### Parameters
@@ -767,7 +837,7 @@ export declare function onChildChanged(query: Query, callback: (snapshot: DataSn
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  query | [Query](./database.query.md#query_interface) | The query to run. |
-|  callback | (snapshot: [DataSnapshot](./database.datasnapshot.md#datasnapshot_class)<!-- -->, previousChildName: string \| null) =&gt; unknown | A callback that fires when the specified event occurs. The callback will be passed a DataSnapshot and a string containing the key of the previous child, by sort order, or <code>null</code> if it is the first child. |
+|  callback | ( snapshot: [DataSnapshot](./database.datasnapshot.md#datasnapshot_class)<!-- -->, previousChildName: string \| null ) =&gt; unknown | A callback that fires when the specified event occurs. The callback will be passed a DataSnapshot and a string containing the key of the previous child, by sort order, or <code>null</code> if it is the first child. |
 |  cancelCallback | (error: Error) =&gt; unknown | An optional callback that will be notified if your event subscription is ever canceled because your client does not have permission to read this data (or it had permission but has now lost it). This callback will be passed an <code>Error</code> object indicating why the failure occurred. |
 |  options | [ListenOptions](./database.listenoptions.md#listenoptions_interface) | An object that can be used to configure <code>onlyOnce</code>, which then removes the listener after its first invocation. |
 
@@ -777,7 +847,7 @@ export declare function onChildChanged(query: Query, callback: (snapshot: DataSn
 
 A function that can be invoked to remove the listener.
 
-### onChildMoved(query, callback, cancelCallback) {:#onchildmoved_c1edf58}
+### onChildMoved(query, callback, cancelCallback) {:#onchildmoved_7a659f5}
 
 Listens for data changes at a particular location.
 
@@ -788,7 +858,14 @@ An `onChildMoved` event will be triggered when a child's sort order changes such
 <b>Signature:</b>
 
 ```typescript
-export declare function onChildMoved(query: Query, callback: (snapshot: DataSnapshot, previousChildName: string | null) => unknown, cancelCallback?: (error: Error) => unknown): Unsubscribe;
+export declare function onChildMoved(
+  query: Query,
+  callback: (
+    snapshot: DataSnapshot,
+    previousChildName: string | null
+  ) => unknown,
+  cancelCallback?: (error: Error) => unknown
+): Unsubscribe;
 ```
 
 #### Parameters
@@ -796,7 +873,7 @@ export declare function onChildMoved(query: Query, callback: (snapshot: DataSnap
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  query | [Query](./database.query.md#query_interface) | The query to run. |
-|  callback | (snapshot: [DataSnapshot](./database.datasnapshot.md#datasnapshot_class)<!-- -->, previousChildName: string \| null) =&gt; unknown | A callback that fires when the specified event occurs. The callback will be passed a DataSnapshot and a string containing the key of the previous child, by sort order, or <code>null</code> if it is the first child. |
+|  callback | ( snapshot: [DataSnapshot](./database.datasnapshot.md#datasnapshot_class)<!-- -->, previousChildName: string \| null ) =&gt; unknown | A callback that fires when the specified event occurs. The callback will be passed a DataSnapshot and a string containing the key of the previous child, by sort order, or <code>null</code> if it is the first child. |
 |  cancelCallback | (error: Error) =&gt; unknown | An optional callback that will be notified if your event subscription is ever canceled because your client does not have permission to read this data (or it had permission but has now lost it). This callback will be passed an <code>Error</code> object indicating why the failure occurred. |
 
 <b>Returns:</b>
@@ -805,7 +882,7 @@ export declare function onChildMoved(query: Query, callback: (snapshot: DataSnap
 
 A function that can be invoked to remove the listener.
 
-### onChildMoved(query, callback, options) {:#onchildmoved_cf4f177}
+### onChildMoved(query, callback, options) {:#onchildmoved_0e863ba}
 
 Listens for data changes at a particular location.
 
@@ -816,7 +893,14 @@ An `onChildMoved` event will be triggered when a child's sort order changes such
 <b>Signature:</b>
 
 ```typescript
-export declare function onChildMoved(query: Query, callback: (snapshot: DataSnapshot, previousChildName: string | null) => unknown, options: ListenOptions): Unsubscribe;
+export declare function onChildMoved(
+  query: Query,
+  callback: (
+    snapshot: DataSnapshot,
+    previousChildName: string | null
+  ) => unknown,
+  options: ListenOptions
+): Unsubscribe;
 ```
 
 #### Parameters
@@ -824,7 +908,7 @@ export declare function onChildMoved(query: Query, callback: (snapshot: DataSnap
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  query | [Query](./database.query.md#query_interface) | The query to run. |
-|  callback | (snapshot: [DataSnapshot](./database.datasnapshot.md#datasnapshot_class)<!-- -->, previousChildName: string \| null) =&gt; unknown | A callback that fires when the specified event occurs. The callback will be passed a DataSnapshot and a string containing the key of the previous child, by sort order, or <code>null</code> if it is the first child. |
+|  callback | ( snapshot: [DataSnapshot](./database.datasnapshot.md#datasnapshot_class)<!-- -->, previousChildName: string \| null ) =&gt; unknown | A callback that fires when the specified event occurs. The callback will be passed a DataSnapshot and a string containing the key of the previous child, by sort order, or <code>null</code> if it is the first child. |
 |  options | [ListenOptions](./database.listenoptions.md#listenoptions_interface) | An object that can be used to configure <code>onlyOnce</code>, which then removes the listener after its first invocation. |
 
 <b>Returns:</b>
@@ -833,7 +917,7 @@ export declare function onChildMoved(query: Query, callback: (snapshot: DataSnap
 
 A function that can be invoked to remove the listener.
 
-### onChildMoved(query, callback, cancelCallback, options) {:#onchildmoved_456d092}
+### onChildMoved(query, callback, cancelCallback, options) {:#onchildmoved_17e9b31}
 
 Listens for data changes at a particular location.
 
@@ -844,7 +928,15 @@ An `onChildMoved` event will be triggered when a child's sort order changes such
 <b>Signature:</b>
 
 ```typescript
-export declare function onChildMoved(query: Query, callback: (snapshot: DataSnapshot, previousChildName: string | null) => unknown, cancelCallback: (error: Error) => unknown, options: ListenOptions): Unsubscribe;
+export declare function onChildMoved(
+  query: Query,
+  callback: (
+    snapshot: DataSnapshot,
+    previousChildName: string | null
+  ) => unknown,
+  cancelCallback: (error: Error) => unknown,
+  options: ListenOptions
+): Unsubscribe;
 ```
 
 #### Parameters
@@ -852,7 +944,7 @@ export declare function onChildMoved(query: Query, callback: (snapshot: DataSnap
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  query | [Query](./database.query.md#query_interface) | The query to run. |
-|  callback | (snapshot: [DataSnapshot](./database.datasnapshot.md#datasnapshot_class)<!-- -->, previousChildName: string \| null) =&gt; unknown | A callback that fires when the specified event occurs. The callback will be passed a DataSnapshot and a string containing the key of the previous child, by sort order, or <code>null</code> if it is the first child. |
+|  callback | ( snapshot: [DataSnapshot](./database.datasnapshot.md#datasnapshot_class)<!-- -->, previousChildName: string \| null ) =&gt; unknown | A callback that fires when the specified event occurs. The callback will be passed a DataSnapshot and a string containing the key of the previous child, by sort order, or <code>null</code> if it is the first child. |
 |  cancelCallback | (error: Error) =&gt; unknown | An optional callback that will be notified if your event subscription is ever canceled because your client does not have permission to read this data (or it had permission but has now lost it). This callback will be passed an <code>Error</code> object indicating why the failure occurred. |
 |  options | [ListenOptions](./database.listenoptions.md#listenoptions_interface) | An object that can be used to configure <code>onlyOnce</code>, which then removes the listener after its first invocation. |
 
@@ -875,7 +967,11 @@ An `onChildRemoved` event will be triggered once every time a child is removed. 
 <b>Signature:</b>
 
 ```typescript
-export declare function onChildRemoved(query: Query, callback: (snapshot: DataSnapshot) => unknown, cancelCallback?: (error: Error) => unknown): Unsubscribe;
+export declare function onChildRemoved(
+  query: Query,
+  callback: (snapshot: DataSnapshot) => unknown,
+  cancelCallback?: (error: Error) => unknown
+): Unsubscribe;
 ```
 
 #### Parameters
@@ -905,7 +1001,11 @@ An `onChildRemoved` event will be triggered once every time a child is removed. 
 <b>Signature:</b>
 
 ```typescript
-export declare function onChildRemoved(query: Query, callback: (snapshot: DataSnapshot) => unknown, options: ListenOptions): Unsubscribe;
+export declare function onChildRemoved(
+  query: Query,
+  callback: (snapshot: DataSnapshot) => unknown,
+  options: ListenOptions
+): Unsubscribe;
 ```
 
 #### Parameters
@@ -935,7 +1035,12 @@ An `onChildRemoved` event will be triggered once every time a child is removed. 
 <b>Signature:</b>
 
 ```typescript
-export declare function onChildRemoved(query: Query, callback: (snapshot: DataSnapshot) => unknown, cancelCallback: (error: Error) => unknown, options: ListenOptions): Unsubscribe;
+export declare function onChildRemoved(
+  query: Query,
+  callback: (snapshot: DataSnapshot) => unknown,
+  cancelCallback: (error: Error) => unknown,
+  options: ListenOptions
+): Unsubscribe;
 ```
 
 #### Parameters
@@ -964,7 +1069,11 @@ An `onValue` event will trigger once with the initial data stored at this locati
 <b>Signature:</b>
 
 ```typescript
-export declare function onValue(query: Query, callback: (snapshot: DataSnapshot) => unknown, cancelCallback?: (error: Error) => unknown): Unsubscribe;
+export declare function onValue(
+  query: Query,
+  callback: (snapshot: DataSnapshot) => unknown,
+  cancelCallback?: (error: Error) => unknown
+): Unsubscribe;
 ```
 
 #### Parameters
@@ -992,7 +1101,11 @@ An `onValue` event will trigger once with the initial data stored at this locati
 <b>Signature:</b>
 
 ```typescript
-export declare function onValue(query: Query, callback: (snapshot: DataSnapshot) => unknown, options: ListenOptions): Unsubscribe;
+export declare function onValue(
+  query: Query,
+  callback: (snapshot: DataSnapshot) => unknown,
+  options: ListenOptions
+): Unsubscribe;
 ```
 
 #### Parameters
@@ -1020,7 +1133,12 @@ An `onValue` event will trigger once with the initial data stored at this locati
 <b>Signature:</b>
 
 ```typescript
-export declare function onValue(query: Query, callback: (snapshot: DataSnapshot) => unknown, cancelCallback: (error: Error) => unknown, options: ListenOptions): Unsubscribe;
+export declare function onValue(
+  query: Query,
+  callback: (snapshot: DataSnapshot) => unknown,
+  cancelCallback: (error: Error) => unknown,
+  options: ListenOptions
+): Unsubscribe;
 ```
 
 #### Parameters
@@ -1045,7 +1163,10 @@ Creates a new immutable instance of `Query` that is extended to also include add
 <b>Signature:</b>
 
 ```typescript
-export declare function query(query: Query, ...queryConstraints: QueryConstraint[]): Query;
+export declare function query(
+  query: Query,
+  ...queryConstraints: QueryConstraint[]
+): Query;
 ```
 
 #### Parameters
@@ -1126,7 +1247,11 @@ Note: When using transactions with Security and Firebase Rules in place, be awar
 <b>Signature:</b>
 
 ```typescript
-export declare function runTransaction(ref: DatabaseReference, transactionUpdate: (currentData: any) => unknown, options?: TransactionOptions): Promise<TransactionResult>;
+export declare function runTransaction(
+  ref: DatabaseReference,
+  transactionUpdate: (currentData: any) => unknown,
+  options?: TransactionOptions
+): Promise<TransactionResult>;
 ```
 
 #### Parameters
@@ -1162,7 +1287,10 @@ A single `set()` will generate a single "value" event at the location where the 
 <b>Signature:</b>
 
 ```typescript
-export declare function set(ref: DatabaseReference, value: unknown): Promise<void>;
+export declare function set(
+  ref: DatabaseReference,
+  value: unknown
+): Promise<void>;
 ```
 
 #### Parameters
@@ -1187,7 +1315,10 @@ Applications need not use priority but can order collections by ordinary propert
 <b>Signature:</b>
 
 ```typescript
-export declare function setPriority(ref: DatabaseReference, priority: string | number | null): Promise<void>;
+export declare function setPriority(
+  ref: DatabaseReference,
+  priority: string | number | null
+): Promise<void>;
 ```
 
 #### Parameters
@@ -1212,7 +1343,11 @@ Applications need not use priority but can order collections by ordinary propert
 <b>Signature:</b>
 
 ```typescript
-export declare function setWithPriority(ref: DatabaseReference, value: unknown, priority: string | number | null): Promise<void>;
+export declare function setWithPriority(
+  ref: DatabaseReference,
+  value: unknown,
+  priority: string | number | null
+): Promise<void>;
 ```
 
 #### Parameters
@@ -1250,7 +1385,10 @@ See [Introducing multi-location updates and more](https://firebase.googleblog.co
 <b>Signature:</b>
 
 ```typescript
-export declare function update(ref: DatabaseReference, values: object): Promise<void>;
+export declare function update(
+  ref: DatabaseReference,
+  values: object
+): Promise<void>;
 ```
 
 #### Parameters
@@ -1281,7 +1419,10 @@ You can read more about `endAt()` in [Filtering data](https://firebase.google.co
 <b>Signature:</b>
 
 ```typescript
-export declare function endAt(value: number | string | boolean | null, key?: string): QueryConstraint;
+export declare function endAt(
+  value: number | string | boolean | null,
+  key?: string
+): QueryConstraint;
 ```
 
 #### Parameters
@@ -1306,7 +1447,10 @@ The ending point is exclusive. If only a value is provided, children with a valu
 <b>Signature:</b>
 
 ```typescript
-export declare function endBefore(value: number | string | boolean | null, key?: string): QueryConstraint;
+export declare function endBefore(
+  value: number | string | boolean | null,
+  key?: string
+): QueryConstraint;
 ```
 
 #### Parameters
@@ -1333,7 +1477,10 @@ You can read more about `equalTo()` in [Filtering data](https://firebase.google.
 <b>Signature:</b>
 
 ```typescript
-export declare function equalTo(value: number | string | boolean | null, key?: string): QueryConstraint;
+export declare function equalTo(
+  value: number | string | boolean | null,
+  key?: string
+): QueryConstraint;
 ```
 
 #### Parameters
@@ -1358,7 +1505,10 @@ The starting point is exclusive. If only a value is provided, children with a va
 <b>Signature:</b>
 
 ```typescript
-export declare function startAfter(value: number | string | boolean | null, key?: string): QueryConstraint;
+export declare function startAfter(
+  value: number | string | boolean | null,
+  key?: string
+): QueryConstraint;
 ```
 
 #### Parameters
@@ -1385,7 +1535,10 @@ You can read more about `startAt()` in [Filtering data](https://firebase.google.
 <b>Signature:</b>
 
 ```typescript
-export declare function startAt(value?: number | string | boolean | null, key?: string): QueryConstraint;
+export declare function startAt(
+  value?: number | string | boolean | null,
+  key?: string
+): QueryConstraint;
 ```
 
 #### Parameters
@@ -1406,7 +1559,12 @@ One of the following strings: "value", "child\_added", "child\_changed", "child\
 <b>Signature:</b>
 
 ```typescript
-export declare type EventType = 'value' | 'child_added' | 'child_changed' | 'child_moved' | 'child_removed';
+export declare type EventType =
+  | 'value'
+  | 'child_added'
+  | 'child_changed'
+  | 'child_moved'
+  | 'child_removed';
 ```
 
 ## QueryConstraintType
@@ -1416,7 +1574,18 @@ Describes the different query constraints available in this SDK.
 <b>Signature:</b>
 
 ```typescript
-export declare type QueryConstraintType = 'endAt' | 'endBefore' | 'startAt' | 'startAfter' | 'limitToFirst' | 'limitToLast' | 'orderByChild' | 'orderByKey' | 'orderByPriority' | 'orderByValue' | 'equalTo';
+export declare type QueryConstraintType =
+  | 'endAt'
+  | 'endBefore'
+  | 'startAt'
+  | 'startAfter'
+  | 'limitToFirst'
+  | 'limitToLast'
+  | 'orderByChild'
+  | 'orderByKey'
+  | 'orderByPriority'
+  | 'orderByValue'
+  | 'equalTo';
 ```
 
 ## Unsubscribe

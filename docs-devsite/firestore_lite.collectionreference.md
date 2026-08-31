@@ -10,12 +10,15 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # CollectionReference class
-A `CollectionReference` object can be used for adding documents, getting document references, and querying for documents (using [query()](./firestore_.md#query_9f7b0f4)<!-- -->).
+A `CollectionReference` object can be used for adding documents, getting document references, and querying for documents (using [query()](./firestore_lite.md#query_9f7b0f4)<!-- -->).
 
 <b>Signature:</b>
 
 ```typescript
-export declare class CollectionReference<AppModelType = DocumentData, DbModelType extends DocumentData = DocumentData> extends Query<AppModelType, DbModelType> 
+export declare class CollectionReference<
+  AppModelType = DocumentData,
+  DbModelType extends DocumentData = DocumentData
+> extends Query<AppModelType, DbModelType> 
 ```
 <b>Extends:</b> [Query](./firestore_lite.query.md#query_class)<!-- -->&lt;AppModelType, DbModelType&gt;
 
@@ -32,7 +35,7 @@ export declare class CollectionReference<AppModelType = DocumentData, DbModelTyp
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [withConverter(converter)](./firestore_lite.collectionreference.md#collectionreferencewithconverter) |  | Applies a custom data converter to this <code>CollectionReference</code>, allowing you to use your own custom model objects with Firestore. When you call [addDoc()](./firestore_.md#adddoc_6e783ff) with the returned <code>CollectionReference</code> instance, the provided converter will convert between Firestore data of type <code>NewDbModelType</code> and your custom type <code>NewAppModelType</code>. |
+|  [withConverter(converter)](./firestore_lite.collectionreference.md#collectionreferencewithconverter) |  | Applies a custom data converter to this <code>CollectionReference</code>, allowing you to use your own custom model objects with Firestore. When you call [addDoc()](./firestore_lite.md#adddoc_6e783ff) with the returned <code>CollectionReference</code> instance, the provided converter will convert between Firestore data of type <code>NewDbModelType</code> and your custom type <code>NewAppModelType</code>. |
 |  [withConverter(converter)](./firestore_lite.collectionreference.md#collectionreferencewithconverter) |  | Removes the current converter. |
 
 ## CollectionReference.id
@@ -72,17 +75,22 @@ The type of this Firestore reference.
 <b>Signature:</b>
 
 ```typescript
-readonly type = "collection";
+readonly type = 'collection';
 ```
 
 ## CollectionReference.withConverter()
 
-Applies a custom data converter to this `CollectionReference`<!-- -->, allowing you to use your own custom model objects with Firestore. When you call [addDoc()](./firestore_.md#adddoc_6e783ff) with the returned `CollectionReference` instance, the provided converter will convert between Firestore data of type `NewDbModelType` and your custom type `NewAppModelType`<!-- -->.
+Applies a custom data converter to this `CollectionReference`<!-- -->, allowing you to use your own custom model objects with Firestore. When you call [addDoc()](./firestore_lite.md#adddoc_6e783ff) with the returned `CollectionReference` instance, the provided converter will convert between Firestore data of type `NewDbModelType` and your custom type `NewAppModelType`<!-- -->.
 
 <b>Signature:</b>
 
 ```typescript
-withConverter<NewAppModelType, NewDbModelType extends DocumentData = DocumentData>(converter: FirestoreDataConverter<NewAppModelType, NewDbModelType>): CollectionReference<NewAppModelType, NewDbModelType>;
+withConverter<
+    NewAppModelType,
+    NewDbModelType extends DocumentData = DocumentData
+  >(
+    converter: FirestoreDataConverter<NewAppModelType, NewDbModelType>
+  ): CollectionReference<NewAppModelType, NewDbModelType>;
 ```
 
 #### Parameters
@@ -104,7 +112,9 @@ Removes the current converter.
 <b>Signature:</b>
 
 ```typescript
-withConverter(converter: null): CollectionReference<DocumentData, DocumentData>;
+withConverter(
+    converter: null
+  ): CollectionReference<DocumentData, DocumentData>;
 ```
 
 #### Parameters

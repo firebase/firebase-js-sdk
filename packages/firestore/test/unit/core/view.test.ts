@@ -78,8 +78,11 @@ describe('View', () => {
 
     // delete doc2, add doc3
     const changes = view.computeDocChanges(documentUpdates(doc2.key, doc3));
-    const snapshot = view.applyChanges(changes, true, ackTarget(doc1, doc3))
-      .snapshot!;
+    const snapshot = view.applyChanges(
+      changes,
+      true,
+      ackTarget(doc1, doc3)
+    ).snapshot!;
 
     expect(snapshot.query).to.deep.equal(query1);
     expect(documentSetAsArray(snapshot.docs)).to.deep.equal([doc1, doc3]);
@@ -123,8 +126,14 @@ describe('View', () => {
     const doc4 = doc('rooms/eros/messages/4', 0, {}); // no sort, no match
     const doc5 = doc('rooms/eros/messages/5', 0, { sort: 1 });
 
-    const snapshot = applyDocChanges(view, doc1, doc2, doc3, doc4, doc5)
-      .snapshot!;
+    const snapshot = applyDocChanges(
+      view,
+      doc1,
+      doc2,
+      doc3,
+      doc4,
+      doc5
+    ).snapshot!;
 
     expect(snapshot.query).to.deep.equal(query1);
     expect(documentSetAsArray(snapshot.docs)).to.deep.equal([doc1, doc5, doc2]);

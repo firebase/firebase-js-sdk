@@ -37,7 +37,7 @@ export declare class GeoPoint
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [fromJSON(json)](./firestore_lite.geopoint.md#geopointfromjson) | <code>static</code> | Builds a <code>GeoPoint</code> instance from a JSON object created by [GeoPoint.toJSON()](./firestore_.geopoint.md#geopointtojson)<!-- -->. |
+|  [fromJSON(json)](./firestore_lite.geopoint.md#geopointfromjson) | <code>static</code> | Builds a <code>GeoPoint</code> instance from a JSON object created by [GeoPoint.toJSON()](./firestore_lite.geopoint.md#geopointtojson)<!-- -->. |
 |  [isEqual(other)](./firestore_lite.geopoint.md#geopointisequal) |  | Returns true if this <code>GeoPoint</code> is equal to the provided one. |
 |  [toJSON()](./firestore_lite.geopoint.md#geopointtojson) |  | Returns a JSON-serializable representation of this <code>GeoPoint</code> instance. |
 
@@ -80,7 +80,7 @@ get longitude(): number;
 
 ## GeoPoint.fromJSON()
 
-Builds a `GeoPoint` instance from a JSON object created by [GeoPoint.toJSON()](./firestore_.geopoint.md#geopointtojson)<!-- -->.
+Builds a `GeoPoint` instance from a JSON object created by [GeoPoint.toJSON()](./firestore_lite.geopoint.md#geopointtojson)<!-- -->.
 
 <b>Signature:</b>
 
@@ -98,7 +98,7 @@ static fromJSON(json: object): GeoPoint;
 
 [GeoPoint](./firestore_lite.geopoint.md#geopoint_class)
 
-an instance of [GeoPoint](./firestore_.geopoint.md#geopoint_class) if the JSON object could be parsed. Throws a [FirestoreError](./firestore_.firestoreerror.md#firestoreerror_class) if an error occurs.
+an instance of [GeoPoint](./firestore_lite.geopoint.md#geopoint_class) if the JSON object could be parsed. Throws a [FirestoreError](./firestore_lite.firestoreerror.md#firestoreerror_class) if an error occurs.
 
 ## GeoPoint.isEqual()
 
@@ -130,10 +130,10 @@ Returns a JSON-serializable representation of this `GeoPoint` instance.
 
 ```typescript
 toJSON(): {
-        latitude: number;
-        longitude: number;
-        type: string;
-    };
+    latitude: number;
+    longitude: number;
+    type: string;
+  };
 ```
 <b>Returns:</b>
 
