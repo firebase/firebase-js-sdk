@@ -16,33 +16,107 @@
  */
 
 const path = require('path');
-const { existsSync, unlinkSync, readFileSync } = require('fs');
-const glob = require('glob');
+const fs = require('fs');
 
-const LOGDIR = process.env.CI ? process.env.HOME : '/tmp';
+const LOG_DIR =
+  process.env.FIREBASE_CI_LOG_DIR ||
+  (process.env.CI
+    ? path.join(process.env.HOME, '.firebase-ci-logs')
+    : path.resolve(__dirname, '../.ci-logs'));
 
-const EXCESSIVE_RUN_TIME = 1000 * 60 * 60; // 1 hour
+function loadSuites(logDir = LOG_DIR) {
+  const suites = new Map();
 
-(async () => {
-  const now = Date.now();
-  const startTimeMillis = process.env.FIREBASE_CI_TEST_START_TIME
-    ? process.env.FIREBASE_CI_TEST_START_TIME * 1000
-    : null;
-  if (startTimeMillis && now - startTimeMillis > EXCESSIVE_RUN_TIME) {
-    console.log(
-      `Runtime of ${
-        (now - startTimeMillis) / 1000
-      } seconds exceeded threshold of ${EXCESSIVE_RUN_TIME / 1000} seconds.`
-    );
-    console.log(`Printing full logs.`);
-
-    const summaryFiles = glob.sync(path.join(LOGDIR, '*-ci-summary.txt'));
-    const logFiles = glob.sync(path.join(LOGDIR, '*-ci-log.txt'));
-    for (const file of summaryFiles.concat(logFiles)) {
-      if (existsSync(file)) {
-        console.log(readFileSync(file, { encoding: 'utf8' }));
-        unlinkSync(file);
+  // Read individual manifest files: manifests/*.json
+  const manifestsDir = path.join(logDir, 'manifests');
+  if (fs.existsSync(manifestsDir)) {
+    try {
+      const files = fs.readdirSync(manifestsDir);
+      for (const file of files) {
+        if (file.endsWith('.json') && !file.startsWith('.')) {
+          try {
+            const raw = fs.readFileSync(path.join(manifestsDir, file), 'utf8');
+            const entry = JSON.parse(raw);
+            if (entry && entry.packageName) {
+              const key = `${entry.packageName}:${entry.scriptName || 'test'}`;
+              suites.set(key, entry);
+            }
+          } catch (e) {}
+        }
       }
-    }
+    } catch (e) {}
   }
-})();
+
+  // Fallback for raw log files without a manifest (e.g. killed abruptly before completion)
+  if (fs.existsSync(logDir)) {
+    try {
+      const files = fs.readdirSync(logDir);
+      for (const file of files) {
+        if (file.endsWith('-ci-log.txt')) {
+          const logFile = path.join(logDir, file);
+          const alreadyRecorded = Array.from(suites.values()).some(
+            s => s.logFile === logFile
+          );
+          if (!alreadyRecorded) {
+            const safeName = file.replace(/-ci-log\.txt$/, '');
+            suites.set(`${safeName}:test`, {
+              packageName: safeName,
+              scriptName: 'test',
+              status: 'Failure',
+              logFile
+            });
+          }
+        }
+      }
+    } catch (e) {}
+  }
+
+  return Array.from(suites.values());
+}
+
+function dumpSuiteLog(s) {
+  if (fs.existsSync(s.logFile)) {
+    console.log(
+      '\n================================================================================'
+    );
+    console.log(
+      `TEST LOG: ${s.packageName} (${s.scriptName || 'test'}) [${s.status}]`
+    );
+    console.log(`Log File: ${s.logFile}`);
+    console.log(
+      '================================================================================'
+    );
+    console.log(fs.readFileSync(s.logFile, 'utf8'));
+    console.log(`─── End of log for ${s.packageName} ───\n`);
+  } else {
+    console.warn(`\nLog file not found for ${s.packageName}: ${s.logFile}\n`);
+  }
+}
+
+module.exports = {
+  loadSuites,
+  dumpSuiteLog
+};
+
+if (require.main === module) {
+  const logDir = LOG_DIR;
+  if (!fs.existsSync(logDir)) {
+    process.exit(0);
+  }
+
+  const suites = loadSuites(logDir);
+  const failedSuites = suites.filter(s => s.status !== 'Success');
+
+  if (failedSuites.length === 0) {
+    console.log('All tests passed.');
+    process.exit(0);
+  }
+
+  console.log(
+    `\n--- Printing Full Logs for ${failedSuites.length} Failed Suite(s) ---\n`
+  );
+
+  for (const suite of failedSuites) {
+    dumpSuiteLog(suite);
+  }
+}

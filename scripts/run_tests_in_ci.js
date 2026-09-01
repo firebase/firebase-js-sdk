@@ -17,10 +17,15 @@
 
 const yargs = require('yargs');
 const path = require('path');
+const fs = require('fs');
 const { spawn } = require('child-process-promise');
-const { writeFileSync } = require('fs');
 
-const LOGDIR = process.env.CI ? process.env.HOME : '/tmp';
+const LOG_DIR =
+  process.env.FIREBASE_CI_LOG_DIR ||
+  (process.env.CI
+    ? path.join(process.env.HOME, '.firebase-ci-logs')
+    : path.resolve(__dirname, '../.ci-logs'));
+
 // Maps the packages where we should not run `test:all` and instead isolate the cross-browser tests.
 // TODO(dwyfrequency): Update object with `storage` and `firestore` packages.
 const crossBrowserPackages = {
@@ -31,18 +36,6 @@ const crossBrowserPackages = {
   'packages/storage': 'test:browser:unit',
   'packages/storage-compat': 'test:browser:unit'
 };
-
-function writeLogs(status, name, logText) {
-  const safeName = name.replace(/@/g, 'at_').replace(/\//g, '_');
-  writeFileSync(path.join(LOGDIR, `${safeName}-ci-log.txt`), logText, {
-    encoding: 'utf8'
-  });
-  writeFileSync(
-    path.join(LOGDIR, `${safeName}-ci-summary.txt`),
-    `${status}: ${name}`,
-    { encoding: 'utf8' }
-  );
-}
 
 const argv = yargs.options({
   d: {
@@ -63,48 +56,77 @@ const argv = yargs.options({
   const dir = path.resolve(myPath);
   const { name, scripts } = require(`${dir}/package.json`);
 
-  let testProcessOutput = '';
-  try {
-    if (process.env?.BROWSERS) {
-      if (scripts['test:browser']) {
-        scriptName = 'test:browser';
-      }
-      for (const package in crossBrowserPackages) {
-        if (dir.endsWith(package)) {
-          scriptName = crossBrowserPackages[package];
-        }
+  if (process.env?.BROWSERS) {
+    if (scripts['test:browser']) {
+      scriptName = 'test:browser';
+    }
+    for (const package in crossBrowserPackages) {
+      if (dir.endsWith(package)) {
+        scriptName = crossBrowserPackages[package];
       }
     }
+  }
 
-    console.log(
-      `[${name}][${
-        process.env.BROWSERS ?? 'chrome/node'
-      }]: Running script ${scriptName}`
-    );
+  const browser = process.env.BROWSERS ?? 'chrome/node';
+  const safeName = name.replace(/@/g, 'at_').replace(/\//g, '_');
+  const safeScript = scriptName
+    .replace(/@/g, 'at_')
+    .replace(/[^a-zA-Z0-9_-]/g, '_');
 
-    const testProcess = spawn('yarn', ['--cwd', dir, scriptName]);
+  const manifestsDir = path.join(LOG_DIR, 'manifests');
+  fs.mkdirSync(manifestsDir, { recursive: true });
 
-    testProcess.childProcess.stdout.on('data', data => {
-      testProcessOutput += '[stdout]' + data.toString();
-    });
-    testProcess.childProcess.stderr.on('data', data => {
-      testProcessOutput += '[stderr]' + data.toString();
-    });
+  const logFile = path.join(LOG_DIR, `${safeName}-ci-log.txt`);
+  const fd = fs.openSync(logFile, 'w');
 
+  console.log(`[${name}][${browser}]: Running script ${scriptName}`);
+
+  const testProcess = spawn('yarn', ['--cwd', dir, scriptName]);
+
+  testProcess.childProcess.stdout.on('data', data => {
+    fs.writeSync(fd, data);
+  });
+  testProcess.childProcess.stderr.on('data', data => {
+    fs.writeSync(fd, data);
+  });
+
+  function recordManifest(status, exitCode) {
+    try {
+      fs.closeSync(fd);
+    } catch (e) {}
+    try {
+      const manifestPath = path.join(
+        manifestsDir,
+        `${safeName}-${safeScript}.json`
+      );
+      fs.writeFileSync(
+        manifestPath,
+        JSON.stringify({
+          packageName: name,
+          scriptName,
+          status,
+          exitCode,
+          logFile
+        })
+      );
+    } catch (e) {}
+  }
+
+  try {
     await testProcess;
+    recordManifest('Success', 0);
     console.log('Success: ' + name);
-    writeLogs('Success', name, testProcessOutput);
   } catch (e) {
+    const exitCode = typeof e.code === 'number' ? e.code : 1;
+    recordManifest('Failure', exitCode);
     console.error('Failure: ' + name);
-    console.error(testProcessOutput);
+    console.error(`Log: ${logFile}`);
 
     if (process.env.CHROME_VERSION_NOTES) {
       console.error();
       console.error(process.env.CHROME_VERSION_NOTES);
       console.error();
     }
-
-    writeLogs('Failure', name, testProcessOutput);
 
     process.exit(1);
   }

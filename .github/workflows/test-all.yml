@@ -108,11 +108,12 @@ jobs:
       run: echo "FIREBASE_CI_TEST_START_TIME=$(date +%s)" >> $GITHUB_ENV
     - name: Run unit tests
       # Ignore auth and firestore since they're handled in their own separate jobs.
-      run: |
-        xvfb-run yarn lerna run --ignore '{firebase-messaging-integration-test,@firebase/auth*,@firebase/firestore*,firebase-firestore-integration-test}' test:ci
-        node scripts/print_test_logs.js
+      run: xvfb-run yarn lerna run --ignore '{firebase-messaging-integration-test,@firebase/auth*,@firebase/firestore*,firebase-firestore-integration-test}' test:ci
       env:
         FIREBASE_TOKEN: ${{ secrets.FIREBASE_CLI_TOKEN }}
+    - name: Print Test Failure Logs
+      if: always()
+      run: node scripts/print_test_logs.js
     - name: Generate coverage file
       run: yarn ci:coverage
     - name: Merge and fix coverage files for test-the-rest
@@ -168,11 +169,12 @@ jobs:
     - name: Set start timestamp env var
       run: echo "FIREBASE_CI_TEST_START_TIME=$(date +%s)" >> $GITHUB_ENV
     - name: Run unit tests
-      run: |
-        xvfb-run yarn lerna run test:ci --scope '@firebase/auth*' --concurrency 1
-        node scripts/print_test_logs.js
+      run: xvfb-run yarn lerna run test:ci --scope '@firebase/auth*' --concurrency 1
       env:
         FIREBASE_TOKEN: ${{ secrets.FIREBASE_CLI_TOKEN }}
+    - name: Print Test Failure Logs
+      if: always()
+      run: node scripts/print_test_logs.js
     - name: Generate coverage file
       run: yarn ci:coverage
     - name: Merge and fix coverage files for test-auth
