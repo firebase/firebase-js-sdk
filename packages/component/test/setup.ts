@@ -19,16 +19,9 @@ import { use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import { restore } from 'sinon';
 import sinonChai from 'sinon-chai';
-import { beforeAll, afterAll, beforeEach, afterEach } from 'vitest';
 
 use(chaiAsPromised);
 use(sinonChai);
-
-// Mocha global hook compatibility
-(globalThis as any).before = beforeAll;
-(globalThis as any).after = afterAll;
-(globalThis as any).beforeEach = beforeEach;
-(globalThis as any).afterEach = afterEach;
 
 afterEach(async () => {
   restore();
