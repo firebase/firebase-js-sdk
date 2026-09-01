@@ -191,10 +191,10 @@ export class Quadruple {
    * is:
    *
    * <ul>
-   *   <li>NaN for Quadruple.NaN
-   *   <li>Infinity or +Infinity for Quadruple.POSITIVE_INFINITY
-   *   <li>-Infinity for Quadruple.NEGATIVE_INFINITY
-   *   <li>regular expression: [+-]?[0-9]*(.[0-9]*)?([eE][+-]?[0-9]+)? - the exponent cannot be more
+   *   <li><code>NaN</code> for Quadruple.NaN
+   *   <li><code>Infinity</code> or <code>+Infinity</code> for Quadruple.POSITIVE_INFINITY
+   *   <li><code>-Infinity</code> for Quadruple.NEGATIVE_INFINITY
+   *   <li>String matching the regular expression: <code>[+-]?[0-9]*(\.[0-9]*)?([eE][+-]?[0-9]+)?</code> - the exponent cannot be more
    *       than 9 digits, and the whole string cannot be empty
    * </ul>
    */
