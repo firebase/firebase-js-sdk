@@ -17,17 +17,42 @@
 
 const { execSync } = require('child_process');
 const fs = require('fs');
+const path = require('path');
 
 function isChromiumInstalled() {
   try {
     const { chromium } = require('playwright');
     const execPath = chromium.executablePath();
     if (!fs.existsSync(execPath)) return false;
-    const headlessShellPath = execPath
-      .replace('/chromium-', '/chromium_headless_shell-')
-      .replace(/\/chrome$/, '/headless_shell');
-    if (!fs.existsSync(headlessShellPath)) return false;
-    return true;
+
+    const parts = execPath.split(path.sep);
+    const chromiumDirIndex = parts.findIndex(part =>
+      part.startsWith('chromium-')
+    );
+    if (chromiumDirIndex === -1) return false;
+
+    const revision = parts[chromiumDirIndex].substring('chromium-'.length);
+    const msPlaywrightRoot = parts.slice(0, chromiumDirIndex).join(path.sep);
+
+    let platformSuffix = '';
+    let exeName = 'headless_shell';
+    if (process.platform === 'win32') {
+      platformSuffix = 'win';
+      exeName = 'headless_shell.exe';
+    } else if (process.platform === 'darwin') {
+      platformSuffix = 'mac';
+    } else {
+      platformSuffix = 'linux';
+    }
+
+    const headlessShellPath = path.join(
+      msPlaywrightRoot,
+      `chromium_headless_shell-${revision}`,
+      `chromium_headless_shell-${platformSuffix}`,
+      exeName
+    );
+
+    return fs.existsSync(headlessShellPath);
   } catch {
     return false;
   }
