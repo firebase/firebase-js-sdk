@@ -58,19 +58,29 @@ function isChromiumInstalled() {
   }
 }
 
-if (!isChromiumInstalled()) {
-  console.log(
-    '[ensure_playwright] Playwright Chromium / Headless Shell not found. Installing...'
-  );
-  try {
-    execSync('npx playwright install chromium chromium-headless-shell', {
-      stdio: 'inherit'
-    });
-  } catch (err) {
-    console.error(
-      '[ensure_playwright] Failed to install Playwright Chromium:',
-      err
+function ensurePlaywright() {
+  if (!isChromiumInstalled()) {
+    console.log(
+      '[ensure_playwright] Playwright Chromium / Headless Shell not found. Installing...'
     );
-    process.exit(1);
+    try {
+      execSync('npx playwright install chromium chromium-headless-shell', {
+        stdio: 'inherit'
+      });
+    } catch (err) {
+      console.error(
+        '[ensure_playwright] Failed to install Playwright Chromium:',
+        err
+      );
+      process.exit(1);
+    }
   }
 }
+
+// Ensure binary exists on execution
+ensurePlaywright();
+
+module.exports = {
+  isChromiumInstalled,
+  ensurePlaywright
+};

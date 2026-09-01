@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import '../../scripts/ensure_playwright.js';
 import { defineConfig } from 'vitest/config';
 import { playwright } from '@vitest/browser-playwright';
 import { fileURLToPath } from 'url';

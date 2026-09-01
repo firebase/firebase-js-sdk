@@ -24,9 +24,9 @@
     "dev": "rollup -c -w",
     "test": "run-p --npm-path npm lint test:all",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all",
-    "test:all": "node ../../scripts/ensure_playwright.js && vitest run",
-    "test:browser": "node ../../scripts/ensure_playwright.js && vitest run --project=browser",
-    "test:browser:debug": "node ../../scripts/ensure_playwright.js && vitest --project=browser",
+    "test:all": "vitest run",
+    "test:browser": "vitest run --project=browser",
+    "test:browser:debug": "vitest --project=browser --browser.headless=false",
     "test:node": "vitest run --project=node",
     "trusted-type-check": "tsec -p tsconfig.json --noEmit"
   },

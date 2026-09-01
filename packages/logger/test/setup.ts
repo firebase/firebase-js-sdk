@@ -24,10 +24,6 @@ import chaiAsPromised from 'chai-as-promised';
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
 
-// Mocha compatibility aliases for before/after
-(globalThis as any).before = beforeAll;
-(globalThis as any).after = afterAll;
-
 afterEach(() => {
   sinon.restore();
 });
