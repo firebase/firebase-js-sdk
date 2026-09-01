@@ -17,108 +17,52 @@
 
 const path = require('path');
 const fs = require('fs');
+const glob = require('glob');
 
-const LOG_DIR =
+const LOGDIR =
   process.env.FIREBASE_CI_LOG_DIR ||
-  (process.env.CI
-    ? path.join(process.env.HOME, '.firebase-ci-logs')
-    : path.resolve(__dirname, '../.ci-logs'));
+  (process.env.CI ? process.env.HOME : '/tmp');
 
-function loadSuites(logDir = LOG_DIR) {
-  const suites = new Map();
+const summaryFiles = glob.sync(path.join(LOGDIR, '*-ci-summary.txt'));
+const logFiles = glob.sync(path.join(LOGDIR, '*-ci-log.txt'));
 
-  // Read individual manifest files: manifests/*.json
-  const manifestsDir = path.join(logDir, 'manifests');
-  if (fs.existsSync(manifestsDir)) {
-    try {
-      const files = fs.readdirSync(manifestsDir);
-      for (const file of files) {
-        if (file.endsWith('.json') && !file.startsWith('.')) {
-          try {
-            const raw = fs.readFileSync(path.join(manifestsDir, file), 'utf8');
-            const entry = JSON.parse(raw);
-            if (entry && entry.packageName) {
-              const key = `${entry.packageName}:${entry.scriptName || 'test'}`;
-              suites.set(key, entry);
-            }
-          } catch (e) {}
-        }
-      }
-    } catch (e) {}
+const failedLogs = [];
+
+for (const summaryFile of summaryFiles) {
+  const summary = fs.readFileSync(summaryFile, 'utf8').trim();
+  if (summary.startsWith('Failure')) {
+    const logFile = summaryFile.replace('-ci-summary.txt', '-ci-log.txt');
+    failedLogs.push({ title: summary, logFile });
   }
-
-  // Fallback for raw log files without a manifest (e.g. killed abruptly before completion)
-  if (fs.existsSync(logDir)) {
-    try {
-      const recordedLogFiles = new Set(
-        Array.from(suites.values())
-          .map(s => s.logFile)
-          .filter(Boolean)
-      );
-      const files = fs.readdirSync(logDir);
-      for (const file of files) {
-        if (file.endsWith('-ci-log.txt')) {
-          const logFile = path.join(logDir, file);
-          if (!recordedLogFiles.has(logFile)) {
-            const safeName = file.replace(/-ci-log\.txt$/, '');
-            suites.set(`${safeName}:test`, {
-              packageName: safeName,
-              scriptName: 'test',
-              status: 'Failure',
-              logFile
-            });
-          }
-        }
-      }
-    } catch (e) {}
-  }
-
-  return Array.from(suites.values());
 }
 
-function dumpSuiteLog(s) {
-  if (fs.existsSync(s.logFile)) {
-    console.log(
-      '\n================================================================================'
-    );
-    console.log(
-      `TEST LOG: ${s.packageName} (${s.scriptName || 'test'}) [${s.status}]`
-    );
-    console.log(`Log File: ${s.logFile}`);
+// Also check for log files without a summary (crashed before writing summary)
+for (const logFile of logFiles) {
+  const summaryFile = logFile.replace('-ci-log.txt', '-ci-summary.txt');
+  if (!fs.existsSync(summaryFile)) {
+    failedLogs.push({ title: `Crashed: ${path.basename(logFile)}`, logFile });
+  }
+}
+
+if (failedLogs.length === 0) {
+  console.log('All tests passed.');
+  process.exit(0);
+}
+
+console.log(
+  `\n--- Printing Full Logs for ${failedLogs.length} Failed Suite(s) ---\n`
+);
+
+for (const { title, logFile } of failedLogs) {
+  if (fs.existsSync(logFile)) {
     console.log(
       '================================================================================'
     );
-    console.log(fs.readFileSync(s.logFile, 'utf8'));
-    console.log(`─── End of log for ${s.packageName} ───\n`);
-  } else {
-    console.warn(`\nLog file not found for ${s.packageName}: ${s.logFile}\n`);
-  }
-}
-
-module.exports = {
-  loadSuites,
-  dumpSuiteLog
-};
-
-if (require.main === module) {
-  const logDir = LOG_DIR;
-  if (!fs.existsSync(logDir)) {
-    process.exit(0);
-  }
-
-  const suites = loadSuites(logDir);
-  const failedSuites = suites.filter(s => s.status !== 'Success');
-
-  if (failedSuites.length === 0) {
-    console.log('All tests passed.');
-    process.exit(0);
-  }
-
-  console.log(
-    `\n--- Printing Full Logs for ${failedSuites.length} Failed Suite(s) ---\n`
-  );
-
-  for (const suite of failedSuites) {
-    dumpSuiteLog(suite);
+    console.log(`TEST LOG: ${title}`);
+    console.log(
+      '================================================================================'
+    );
+    console.log(fs.readFileSync(logFile, 'utf8'));
+    console.log(`─── End of log for ${title} ───\n`);
   }
 }

@@ -20,11 +20,9 @@ const path = require('path');
 const fs = require('fs');
 const { spawn } = require('child-process-promise');
 
-const LOG_DIR =
+const LOGDIR =
   process.env.FIREBASE_CI_LOG_DIR ||
-  (process.env.CI
-    ? path.join(process.env.HOME, '.firebase-ci-logs')
-    : path.resolve(__dirname, '../.ci-logs'));
+  (process.env.CI ? process.env.HOME : '/tmp');
 
 // Maps the packages where we should not run `test:all` and instead isolate the cross-browser tests.
 // TODO(dwyfrequency): Update object with `storage` and `firestore` packages.
@@ -69,14 +67,9 @@ const argv = yargs.options({
 
   const browser = process.env.BROWSERS ?? 'chrome/node';
   const safeName = name.replace(/@/g, 'at_').replace(/\//g, '_');
-  const safeScript = scriptName
-    .replace(/@/g, 'at_')
-    .replace(/[^a-zA-Z0-9_-]/g, '_');
 
-  const manifestsDir = path.join(LOG_DIR, 'manifests');
-  fs.mkdirSync(manifestsDir, { recursive: true });
-
-  const logFile = path.join(LOG_DIR, `${safeName}-ci-log.txt`);
+  const logFile = path.join(LOGDIR, `${safeName}-ci-log.txt`);
+  const summaryFile = path.join(LOGDIR, `${safeName}-ci-summary.txt`);
   const logStream = fs.createWriteStream(logFile);
 
   console.log(`[${name}][${browser}]: Running script ${scriptName}`);
@@ -86,37 +79,15 @@ const argv = yargs.options({
   testProcess.childProcess.stdout.pipe(logStream, { end: false });
   testProcess.childProcess.stderr.pipe(logStream, { end: false });
 
-  async function recordManifest(status, exitCode) {
-    try {
-      await new Promise(resolve => logStream.end(resolve));
-    } catch (e) {}
-    try {
-      const manifestPath = path.join(
-        manifestsDir,
-        `${safeName}-${safeScript}.json`
-      );
-      fs.writeFileSync(
-        manifestPath,
-        JSON.stringify({
-          packageName: name,
-          scriptName,
-          status,
-          exitCode,
-          logFile
-        })
-      );
-    } catch (e) {}
-  }
-
   try {
     await testProcess;
-    await recordManifest('Success', 0);
+    await new Promise(resolve => logStream.end(resolve));
+    fs.writeFileSync(summaryFile, `Success: ${name}`);
     console.log('Success: ' + name);
   } catch (e) {
-    const exitCode = typeof e.code === 'number' ? e.code : 1;
-    await recordManifest('Failure', exitCode);
+    await new Promise(resolve => logStream.end(resolve));
+    fs.writeFileSync(summaryFile, `Failure: ${name}`);
     console.error('Failure: ' + name);
-    console.error(`Log: ${logFile}`);
 
     if (process.env.CHROME_VERSION_NOTES) {
       console.error();
