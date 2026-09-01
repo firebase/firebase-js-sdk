@@ -227,6 +227,9 @@ jobs:
       env:
         FIREBASE_TOKEN: ${{ secrets.FIREBASE_CLI_TOKEN }}
         EXPERIMENTAL_MODE: true
+    - name: Print Test Failure Logs
+      if: always()
+      run: node scripts/print_test_logs.js
     - name: Generate coverage file
       run: yarn ci:coverage
     - name: Merge and fix coverage files for test-firestore

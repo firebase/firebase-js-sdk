@@ -63,6 +63,9 @@ jobs:
         run: yarn build:changed auth
       - name: Run tests on changed packages
         run: xvfb-run yarn test:changed auth --concurrency 1
+      - name: Print Test Failure Logs
+        if: always()
+        run: node scripts/print_test_logs.js
   test-firefox:
     name: Test Auth on Firefox If Changed
 
@@ -93,6 +96,9 @@ jobs:
         run: xvfb-run yarn test:changed auth --concurrency 1
         env:
           BROWSERS: 'Firefox'
+      - name: Print Test Failure Logs
+        if: always()
+        run: node scripts/print_test_logs.js
 
   test-webkit:
     name: Test Auth on Webkit if Changed
@@ -121,3 +127,6 @@ jobs:
         run: yarn test:changed auth --concurrency 1
         env:
           BROWSERS: 'WebkitHeadless'
+      - name: Print Test Failure Logs
+        if: always()
+        run: node scripts/print_test_logs.js

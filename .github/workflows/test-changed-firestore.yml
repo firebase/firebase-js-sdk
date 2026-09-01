@@ -106,6 +106,9 @@ jobs:
         run: cp config/ci.config.json config/project.json
       - name: Run compat tests
         run: cd packages/firestore-compat && yarn run test:ci
+      - name: Print Test Failure Logs
+        if: always()
+        run: node scripts/print_test_logs.js
 
   test-chrome:
     name: Test Firestore
@@ -195,6 +198,9 @@ jobs:
         run: cd packages/firestore-compat && xvfb-run yarn run test:ci
         env:
           BROWSERS: 'Firefox'
+      - name: Print Test Failure Logs
+        if: always()
+        run: node scripts/print_test_logs.js
 
   test-firefox:
     name: Test Firestore on Firefox
@@ -249,6 +255,9 @@ jobs:
         run: cd packages/firestore-compat && yarn run test:ci
         env:
           BROWSERS: 'WebkitHeadless'
+      - name: Print Test Failure Logs
+        if: always()
+        run: node scripts/print_test_logs.js
 
   test-webkit:
     name: Test Firestore on Webkit

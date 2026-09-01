@@ -60,3 +60,6 @@ jobs:
       run: yarn test:changed misc
       env:
         FIREBASE_TOKEN: ${{ secrets.FIREBASE_CLI_TOKEN }}
+    - name: Print Test Failure Logs
+      if: always()
+      run: node scripts/print_test_logs.js
