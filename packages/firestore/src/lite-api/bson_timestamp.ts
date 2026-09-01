@@ -28,12 +28,12 @@ export class BsonTimestamp {
     // Make sure 'seconds' and 'increment' are in the range of a 32-bit unsigned integer.
     if (seconds < 0 || seconds > 4294967295) {
       throw new Error(
-        "BsonTimestamp 'seconds' must be in the range of a 32-bit unsigned integer."
+        "BsonTimestamp 'seconds' must be in the range of a 32-bit unsigned integer (0-4294967295)."
       );
     }
     if (increment < 0 || increment > 4294967295) {
       throw new Error(
-        "BsonTimestamp 'increment' must be in the range of a 32-bit unsigned integer."
+        "BsonTimestamp 'increment' must be in the range of a 32-bit unsigned integer (0-4294967295)."
       );
     }
   }
