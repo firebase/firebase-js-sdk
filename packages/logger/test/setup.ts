@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,20 +15,27 @@
  * limitations under the License.
  */
 
-const karmaBase = require('../../config/karma.base');
+/* eslint-disable import/no-extraneous-dependencies */
+import sinon from 'sinon';
+import chai from 'chai';
+import sinonChai from 'sinon-chai';
+import chaiAsPromised from 'chai-as-promised';
 
-const files = [`test/**/*`];
+chai.use(sinonChai);
+chai.use(chaiAsPromised);
 
-module.exports = function (config) {
-  const karmaConfig = Object.assign({}, karmaBase, {
-    // files to load into karma
-    files,
-    // frameworks to use
-    // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
-    frameworks: ['mocha']
-  });
+afterEach(() => {
+  sinon.restore();
+});
 
-  config.set(karmaConfig);
-};
-
-module.exports.files = files;
+export function getTestTitle(ctx: any): string {
+  const parts: string[] = [];
+  let node = ctx?.task;
+  while (node && node.type !== 'file') {
+    if (node.name) {
+      parts.unshift(node.name);
+    }
+    node = node.suite;
+  }
+  return parts.join(' ');
+}
