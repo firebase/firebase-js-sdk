@@ -33,15 +33,13 @@ function replaceSource(path) {
   return replacePlugin({
     './src/auto-constants': `'${path}'`,
     '../auto-constants': `'${path}'`,
-    delimiters: ["'", "'"],
-    preventAssignment: true
+    delimiters: ["'", "'"]
   });
 }
 
 function replaceBuildTarget(format, target = 2020) {
   return replacePlugin({
-    ...generateBuildTargetReplaceConfig(format, target),
-    preventAssignment: true
+    ...generateBuildTargetReplaceConfig(format, target)
   });
 }
 
