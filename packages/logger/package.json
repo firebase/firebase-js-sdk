@@ -35,11 +35,9 @@
     "tslib": "^2.1.0"
   },
   "devDependencies": {
-    "@vitest/browser-playwright": "4.1.10",
     "rollup": "4.62.2",
     "rollup-plugin-typescript2": "0.37.0",
-    "typescript": "5.5.4",
-    "vitest": "4.1.10"
+    "typescript": "5.5.4"
   },
   "repository": {
     "directory": "packages/logger",
