@@ -77,22 +77,18 @@ const argv = yargs.options({
   fs.mkdirSync(manifestsDir, { recursive: true });
 
   const logFile = path.join(LOG_DIR, `${safeName}-ci-log.txt`);
-  const fd = fs.openSync(logFile, 'w');
+  const logStream = fs.createWriteStream(logFile);
 
   console.log(`[${name}][${browser}]: Running script ${scriptName}`);
 
   const testProcess = spawn('yarn', ['--cwd', dir, scriptName]);
 
-  testProcess.childProcess.stdout.on('data', data => {
-    fs.writeSync(fd, data);
-  });
-  testProcess.childProcess.stderr.on('data', data => {
-    fs.writeSync(fd, data);
-  });
+  testProcess.childProcess.stdout.pipe(logStream, { end: false });
+  testProcess.childProcess.stderr.pipe(logStream, { end: false });
 
-  function recordManifest(status, exitCode) {
+  async function recordManifest(status, exitCode) {
     try {
-      fs.closeSync(fd);
+      await new Promise(resolve => logStream.end(resolve));
     } catch (e) {}
     try {
       const manifestPath = path.join(
@@ -114,11 +110,11 @@ const argv = yargs.options({
 
   try {
     await testProcess;
-    recordManifest('Success', 0);
+    await recordManifest('Success', 0);
     console.log('Success: ' + name);
   } catch (e) {
     const exitCode = typeof e.code === 'number' ? e.code : 1;
-    recordManifest('Failure', exitCode);
+    await recordManifest('Failure', exitCode);
     console.error('Failure: ' + name);
     console.error(`Log: ${logFile}`);
 

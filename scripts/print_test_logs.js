@@ -50,14 +50,16 @@ function loadSuites(logDir = LOG_DIR) {
   // Fallback for raw log files without a manifest (e.g. killed abruptly before completion)
   if (fs.existsSync(logDir)) {
     try {
+      const recordedLogFiles = new Set(
+        Array.from(suites.values())
+          .map(s => s.logFile)
+          .filter(Boolean)
+      );
       const files = fs.readdirSync(logDir);
       for (const file of files) {
         if (file.endsWith('-ci-log.txt')) {
           const logFile = path.join(logDir, file);
-          const alreadyRecorded = Array.from(suites.values()).some(
-            s => s.logFile === logFile
-          );
-          if (!alreadyRecorded) {
+          if (!recordedLogFiles.has(logFile)) {
             const safeName = file.replace(/-ci-log\.txt$/, '');
             suites.set(`${safeName}:test`, {
               packageName: safeName,
