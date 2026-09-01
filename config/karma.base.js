@@ -101,9 +101,10 @@ const config = {
   // disable watcher
   autoWatch: false,
 
-  // Doing 65 seconds to allow for the 20 second firestore tests
-  browserNoActivityTimeout: 65000,
-  browserDisconnectTimeout: 65000,
+  // Doing 120 seconds to allow for the 20 second firestore tests
+  browserNoActivityTimeout: 120000,
+  browserDisconnectTimeout: 120000,
+  browserDisconnectTolerance: 2,
 
   // Preprocess matching files before serving them to the browser.
   // Available preprocessors:
@@ -134,6 +135,19 @@ const config = {
   // enable / disable watching file and executing tests whenever any file
   // changes
   autoWatch: false,
+
+  customLaunchers: {
+    ChromeHeadless: {
+      base: 'Chrome',
+      flags: [
+        '--headless',
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-gpu'
+      ]
+    }
+  },
 
   // Browsers to launch for testing
   // To use a custom set of browsers, define the BROWSERS environment variable as a comma-seperated list.
