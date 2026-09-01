@@ -136,19 +136,6 @@ const config = {
   // changes
   autoWatch: false,
 
-  customLaunchers: {
-    ChromeHeadless: {
-      base: 'Chrome',
-      flags: [
-        '--headless',
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-gpu'
-      ]
-    }
-  },
-
   // Browsers to launch for testing
   // To use a custom set of browsers, define the BROWSERS environment variable as a comma-seperated list.
   // Supported browsers are 'ChromeHeadless', 'WebkitHeadless', and 'Firefox'.
