@@ -31,7 +31,6 @@
     "dev": "rollup -c -w",
     "test:nyc": "TS_NODE_FILES=true TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --config ./mocharc.node.js",
     "test": "(cd functions && yarn) && firebase --project=demo-foo --debug emulators:exec 'yarn test:nyc'",
-    "test:ci": "node ../../scripts/run_tests_in_ci.js -s test",
     "trusted-type-check": "tsec -p tsconfig.json --noEmit",
     "api-report": "api-extractor run --local --verbose",
     "doc": "api-documenter markdown --input temp --output docs",

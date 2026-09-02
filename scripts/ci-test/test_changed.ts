@@ -25,7 +25,11 @@ const root = resolve(__dirname, '../..');
 
 const argv = yargs.parseSync();
 const inputTestConfigName = argv._[0].toString();
-const testCommand = 'test:ci';
+const testCommand = argv.script
+  ? String(argv.script)
+  : process.env.BROWSERS
+    ? 'test:browser'
+    : 'test';
 
 const allTestConfigNames = Object.keys(testConfig);
 if (!inputTestConfigName) {

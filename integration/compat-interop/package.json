@@ -4,7 +4,6 @@
   "version": "0.1.0",
   "scripts": {
     "test": "karma start",
-    "test:ci": "node ../../scripts/run_tests_in_ci.js -s test",
     "test:debug": "karma start --browsers Chrome --auto-watch"
   },
   "dependencies": {

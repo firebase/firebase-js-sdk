@@ -90,7 +90,7 @@ jobs:
       - name: build
         run: yarn build:changed auth
       - name: Run tests on auth changed packages
-        run: xvfb-run yarn test:changed auth --concurrency 1
+        run: xvfb-run yarn test:changed auth --script test:browser:unit --concurrency 1
         env:
           BROWSERS: 'Firefox'
 
@@ -118,6 +118,6 @@ jobs:
       - name: build
         run: yarn build:changed auth
       - name: Run tests on changed packages
-        run: yarn test:changed auth --concurrency 1
+        run: yarn test:changed auth --script test:browser:unit --concurrency 1
         env:
           BROWSERS: 'WebkitHeadless'

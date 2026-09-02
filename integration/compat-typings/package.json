@@ -3,8 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "scripts": {
-    "test": "tsc",
-    "test:ci": "node ../../scripts/run_tests_in_ci.js -s test"
+    "test": "tsc"
   },
   "dependencies": {
     "firebase": "*"

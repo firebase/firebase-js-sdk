@@ -104,13 +104,10 @@ jobs:
       run: |
         cp config/ci.config.json config/project.json
         yarn
-    - name: Set start timestamp env var
-      run: echo "FIREBASE_CI_TEST_START_TIME=$(date +%s)" >> $GITHUB_ENV
     - name: Run unit tests
       # Ignore auth and firestore since they're handled in their own separate jobs.
       run: |
-        xvfb-run yarn lerna run --ignore '{firebase-messaging-integration-test,@firebase/auth*,@firebase/firestore*,firebase-firestore-integration-test}' test:ci
-        node scripts/print_test_logs.js
+        xvfb-run yarn lerna run --ignore '{firebase-messaging-integration-test,@firebase/auth*,@firebase/firestore*,firebase-firestore-integration-test}' test
       env:
         FIREBASE_TOKEN: ${{ secrets.FIREBASE_CLI_TOKEN }}
     - name: Generate coverage file
@@ -165,12 +162,9 @@ jobs:
       run: |
         cp config/ci.config.json config/project.json
         yarn
-    - name: Set start timestamp env var
-      run: echo "FIREBASE_CI_TEST_START_TIME=$(date +%s)" >> $GITHUB_ENV
     - name: Run unit tests
       run: |
-        xvfb-run yarn lerna run test:ci --scope '@firebase/auth*' --concurrency 1
-        node scripts/print_test_logs.js
+        xvfb-run yarn lerna run test:all --scope '@firebase/auth*' --concurrency 1
       env:
         FIREBASE_TOKEN: ${{ secrets.FIREBASE_CLI_TOKEN }}
     - name: Generate coverage file
@@ -217,11 +211,9 @@ jobs:
       run: |
         cp config/ci.config.json config/project.json
         yarn
-    - name: Set start timestamp env var
-      run: echo "FIREBASE_CI_TEST_START_TIME=$(date +%s)" >> $GITHUB_ENV
     - name: Run unit tests
       run: |
-        yarn lerna run test:all:ci --scope '@firebase/firestore*' --stream --concurrency 1
+        yarn lerna run test:all:ci --scope '@firebase/firestore*' --concurrency 1
       env:
         FIREBASE_TOKEN: ${{ secrets.FIREBASE_CLI_TOKEN }}
         EXPERIMENTAL_MODE: true

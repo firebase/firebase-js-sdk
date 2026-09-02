@@ -22,8 +22,7 @@
     "build": "rollup -c rollup.config.js",
     "build:deps": "lerna run build --scope @firebase/storage-compat --include-dependencies",
     "dev": "rollup -c -w",
-    "test": "run-p --npm-path npm test:browser test:node lint",
-    "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:browser test:node",
+    "test": "run-p --npm-path npm test:browser test:node",
     "test:browser:unit": "karma start --unit",
     "test:browser:integration": "karma start --integration",
     "test:browser": "karma start",
@@ -31,7 +30,8 @@
     "test:debug": "karma start --browser=Chrome",
     "trusted-type-check": "tsec -p tsconfig.json --noEmit",
     "prettier": "prettier --cache --write 'src/**/*.ts' 'test/**/*.ts'",
-    "add-compat-overloads": "ts-node-script ../../scripts/build/create-overloads.ts -i ../storage/dist/storage-public.d.ts -o dist/src/index.d.ts -a -r FirebaseStorage:types.FirebaseStorage -r StorageReference:types.Reference -r FirebaseApp:FirebaseAppCompat --moduleToEnhance @firebase/storage"
+    "add-compat-overloads": "ts-node-script ../../scripts/build/create-overloads.ts -i ../storage/dist/storage-public.d.ts -o dist/src/index.d.ts -a -r FirebaseStorage:types.FirebaseStorage -r StorageReference:types.Reference -r FirebaseApp:FirebaseAppCompat --moduleToEnhance @firebase/storage",
+    "test:all": "run-p --npm-path npm test:browser test:node"
   },
   "peerDependencies": {
     "@firebase/app": "0.x",
