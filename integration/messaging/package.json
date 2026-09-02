@@ -5,7 +5,6 @@
   "scripts": {
     "pretest:manual": "node ./download-browsers.js",
     "test": "mocha --exit",
-    "test:ci": "node ../../scripts/run_tests_in_ci.js -s test",
     "test:manual": "mocha --exit"
   },
   "devDependencies": {

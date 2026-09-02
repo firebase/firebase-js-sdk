@@ -105,7 +105,7 @@ jobs:
       - name: Test setup and yarn install
         run: cp config/ci.config.json config/project.json
       - name: Run compat tests
-        run: cd packages/firestore-compat && yarn run test:ci
+        run: cd packages/firestore-compat && yarn run test:all
 
   test-chrome:
     name: Test Firestore
@@ -192,7 +192,7 @@ jobs:
       - name: Test setup and yarn install
         run: cp config/ci.config.json config/project.json
       - name: Run compat tests
-        run: cd packages/firestore-compat && xvfb-run yarn run test:ci
+        run: cd packages/firestore-compat && xvfb-run yarn run test:browser
         env:
           BROWSERS: 'Firefox'
 
@@ -246,7 +246,7 @@ jobs:
           cp config/ci.config.json config/project.json
           npx playwright install webkit
       - name: Run compat tests
-        run: cd packages/firestore-compat && yarn run test:ci
+        run: cd packages/firestore-compat && yarn run test:browser
         env:
           BROWSERS: 'WebkitHeadless'
 
