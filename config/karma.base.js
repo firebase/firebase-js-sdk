@@ -21,6 +21,43 @@ const karma = require('karma');
 const path = require('path');
 const webpackTestConfig = require('./webpack.test');
 const { argv } = require('yargs');
+const http = require('http');
+
+// DIAGNOSTIC HOOK 1: Intercept process.kill to catch internal SIGINT (e.g. from stopper.js)
+const origKill = process.kill;
+process.kill = function (pid, sig) {
+  if (sig === 'SIGINT' || sig === 2) {
+    console.error(
+      `[DIAGNOSTIC] process.kill(SIGINT) called for pid=${pid}!\nStack trace:\n`,
+      new Error().stack
+    );
+  }
+  return origKill.apply(this, arguments);
+};
+
+// DIAGNOSTIC HOOK 2: Intercept HTTP requests to Karma server to catch /stop requests
+const origCreateServer = http.createServer;
+http.createServer = function (...args) {
+  const server = origCreateServer.apply(this, args);
+  server.on('request', (req, res) => {
+    if (req.url && req.url.includes('stop')) {
+      console.error(
+        `[DIAGNOSTIC] HTTP request matching 'stop' received!\nMethod: ${req.method}\nURL: ${req.url}\nHeaders: ${JSON.stringify(req.headers)}`
+      );
+    }
+  });
+  return server;
+};
+
+// DIAGNOSTIC HOOK 3: Intercept SIGINT signal received by Karma process
+process.prependListener('SIGINT', () => {
+  console.error('[DIAGNOSTIC] Karma process received SIGINT signal!');
+  console.error(`[DIAGNOSTIC] PID: ${process.pid}, PPID: ${process.ppid}`);
+  console.error(
+    `[DIAGNOSTIC] Memory usage: ${JSON.stringify(process.memoryUsage())}`
+  );
+  console.trace('[DIAGNOSTIC] SIGINT listener trace');
+});
 
 function promptSync(question) {
   if (!process.stdout.isTTY || process.env.CI) return false;
