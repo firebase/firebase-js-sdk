@@ -20,6 +20,7 @@ import '../test/setup';
 import {
   countBytes,
   HeartbeatServiceImpl,
+  HeartbeatStorageImpl,
   extractHeartbeatsForHeader,
   getEarliestHeartbeatIdx,
   MAX_NUM_STORED_HEARTBEATS
@@ -33,7 +34,6 @@ import { PlatformLoggerService, SingleDateHeartbeat } from './types';
 import { FirebaseApp } from './public-types';
 import * as firebaseUtil from '@firebase/util';
 import { SinonFakeTimers, SinonStub, stub, useFakeTimers } from 'sinon';
-import * as indexedDb from './indexeddb';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
@@ -68,7 +68,7 @@ describe('HeartbeatServiceImpl', () => {
     let clock: SinonFakeTimers;
     let userAgentString = USER_AGENT_STRING_1;
     let writeStub: SinonStub;
-    before(() => {
+    beforeAll(() => {
       const container = new ComponentContainer('heartbeatTestContainer');
       container.addComponent(
         new Component(
@@ -186,7 +186,7 @@ describe('HeartbeatServiceImpl', () => {
         date: '1969-12-31'
       }
     ];
-    before(() => {
+    beforeAll(() => {
       const container = new ComponentContainer('heartbeatTestContainer');
       container.addComponent(
         new Component(
@@ -206,9 +206,11 @@ describe('HeartbeatServiceImpl', () => {
           ComponentType.VERSION
         )
       );
-      stub(indexedDb, 'readHeartbeatsFromIndexedDB').resolves({
-        heartbeats: [...mockIndexedDBHeartbeats]
-      });
+      if (firebaseUtil.isIndexedDBAvailable()) {
+        stub(HeartbeatStorageImpl.prototype, 'read').resolves({
+          heartbeats: [...mockIndexedDBHeartbeats]
+        });
+      }
       heartbeatService = new HeartbeatServiceImpl(container);
     });
     beforeEach(() => {
@@ -326,7 +328,7 @@ describe('HeartbeatServiceImpl', () => {
         date: '1969-12-31'
       }
     ];
-    before(() => {
+    beforeAll(() => {
       const container = new ComponentContainer('heartbeatTestContainer');
       container.addComponent(
         new Component(
@@ -346,10 +348,12 @@ describe('HeartbeatServiceImpl', () => {
           ComponentType.VERSION
         )
       );
-      stub(indexedDb, 'readHeartbeatsFromIndexedDB').resolves({
-        lastSentHeartbeatDate: '1970-01-01',
-        heartbeats: [...mockIndexedDBHeartbeats]
-      });
+      if (firebaseUtil.isIndexedDBAvailable()) {
+        stub(HeartbeatStorageImpl.prototype, 'read').resolves({
+          lastSentHeartbeatDate: '1970-01-01',
+          heartbeats: [...mockIndexedDBHeartbeats]
+        });
+      }
       heartbeatService = new HeartbeatServiceImpl(container);
     });
     beforeEach(() => {
@@ -380,8 +384,8 @@ describe('HeartbeatServiceImpl', () => {
     });
     it(`triggerHeartbeat() will skip storing new data`, async () => {
       await heartbeatService.triggerHeartbeat();
-      expect(writeStub).to.not.be.called;
       if (firebaseUtil.isIndexedDBAvailable()) {
+        expect(writeStub).to.not.be.called;
         expect(heartbeatService._heartbeatsCache?.heartbeats).to.deep.equal(
           mockIndexedDBHeartbeats
         );
