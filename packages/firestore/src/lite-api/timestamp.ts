@@ -77,6 +77,42 @@ export class Timestamp {
   }
 
   /**
+   * Creates a new timestamp from the given `Temporal.Instant`.
+   *
+   * @param instant - The `Temporal.Instant` to initialize the `Timestamp` from.
+   * @returns A new `Timestamp` representing the same point in time as the given
+   *     instant.
+   */
+  static fromInstant(instant: Temporal.Instant): Timestamp {
+    if (!instant || typeof instant.epochNanoseconds !== 'bigint') {
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        'Invalid Temporal.Instant object provided.'
+      );
+    }
+    return Timestamp._fromEpochNanoseconds(instant.epochNanoseconds);
+  }
+
+  private static _fromEpochNanoseconds(nanos: bigint): Timestamp {
+    let seconds: number;
+    let nanoseconds: number;
+    if (nanos >= 0n) {
+      seconds = Number(nanos / 1000000000n);
+      nanoseconds = Number(nanos % 1000000000n);
+    } else {
+      const rem = nanos % 1000000000n;
+      if (rem === 0n) {
+        seconds = Number(nanos / 1000000000n);
+        nanoseconds = 0;
+      } else {
+        seconds = Number(nanos / 1000000000n - 1n);
+        nanoseconds = Number(rem + 1000000000n);
+      }
+    }
+    return new Timestamp(seconds, nanoseconds);
+  }
+
+  /**
    * Creates a new timestamp.
    *
    * @param seconds - The number of seconds of UTC time since Unix epoch
@@ -145,6 +181,23 @@ export class Timestamp {
    */
   toMillis(): number {
     return this.seconds * 1000 + this.nanoseconds / MS_TO_NANOS;
+  }
+
+  /**
+   * Converts a `Timestamp` to a `Temporal.Instant` object.
+   *
+   * @returns `Temporal.Instant` object representing the same point in time as
+   *     this `Timestamp`.
+   */
+  toInstant(): Temporal.Instant {
+    if (typeof Temporal === 'undefined' || !Temporal.Instant) {
+      throw new FirestoreError(
+        Code.FAILED_PRECONDITION,
+        'The Temporal object is not available in the current environment.'
+      );
+    }
+    const nanos = BigInt(this.seconds) * 1000000000n + BigInt(this.nanoseconds);
+    return Temporal.Instant.fromEpochNanoseconds(nanos);
   }
 
   _compareTo(other: Timestamp): number {
