@@ -33,7 +33,13 @@ import {
 import { PlatformLoggerService, SingleDateHeartbeat } from './types';
 import { FirebaseApp } from './public-types';
 import * as firebaseUtil from '@firebase/util';
-import { SinonFakeTimers, SinonStub, stub, useFakeTimers } from 'sinon';
+import {
+  SinonFakeTimers,
+  SinonStub,
+  createSandbox,
+  stub,
+  useFakeTimers
+} from 'sinon';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
@@ -176,6 +182,7 @@ describe('HeartbeatServiceImpl', () => {
     let clock: SinonFakeTimers;
     let writeStub: SinonStub;
     let userAgentString = USER_AGENT_STRING_1;
+    const sandbox = createSandbox();
     const mockIndexedDBHeartbeats = [
       {
         agent: 'old-user-agent',
@@ -207,11 +214,14 @@ describe('HeartbeatServiceImpl', () => {
         )
       );
       if (firebaseUtil.isIndexedDBAvailable()) {
-        stub(HeartbeatStorageImpl.prototype, 'read').resolves({
+        sandbox.stub(HeartbeatStorageImpl.prototype, 'read').resolves({
           heartbeats: [...mockIndexedDBHeartbeats]
         });
       }
       heartbeatService = new HeartbeatServiceImpl(container);
+    });
+    afterAll(() => {
+      sandbox.restore();
     });
     beforeEach(() => {
       clock = useFakeTimers();
@@ -318,6 +328,7 @@ describe('HeartbeatServiceImpl', () => {
     let heartbeatService: HeartbeatServiceImpl;
     let writeStub: SinonStub;
     const userAgentString = USER_AGENT_STRING_1;
+    const sandbox = createSandbox();
     const mockIndexedDBHeartbeats = [
       {
         agent: 'old-user-agent',
@@ -349,12 +360,15 @@ describe('HeartbeatServiceImpl', () => {
         )
       );
       if (firebaseUtil.isIndexedDBAvailable()) {
-        stub(HeartbeatStorageImpl.prototype, 'read').resolves({
+        sandbox.stub(HeartbeatStorageImpl.prototype, 'read').resolves({
           lastSentHeartbeatDate: '1970-01-01',
           heartbeats: [...mockIndexedDBHeartbeats]
         });
       }
       heartbeatService = new HeartbeatServiceImpl(container);
+    });
+    afterAll(() => {
+      sandbox.restore();
     });
     beforeEach(() => {
       useFakeTimers();
@@ -382,15 +396,16 @@ describe('HeartbeatServiceImpl', () => {
         });
       }
     });
-    it(`triggerHeartbeat() will skip storing new data`, async () => {
-      await heartbeatService.triggerHeartbeat();
-      if (firebaseUtil.isIndexedDBAvailable()) {
+    it.skipIf(!firebaseUtil.isIndexedDBAvailable())(
+      `triggerHeartbeat() will skip storing new data`,
+      async () => {
+        await heartbeatService.triggerHeartbeat();
         expect(writeStub).to.not.be.called;
         expect(heartbeatService._heartbeatsCache?.heartbeats).to.deep.equal(
           mockIndexedDBHeartbeats
         );
       }
-    });
+    );
   });
 
   describe('countBytes()', () => {
