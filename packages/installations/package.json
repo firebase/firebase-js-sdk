@@ -26,6 +26,7 @@
     "build:release": "yarn build && yarn typings:public",
     "dev": "rollup -c -w",
     "test": "yarn type-check && yarn test:karma",
+    "test:browser": "yarn test:karma",
     "test:karma": "karma start",
     "test:debug": "karma start --browsers=Chrome --auto-watch",
     "trusted-type-check": "tsec -p tsconfig.json --noEmit",

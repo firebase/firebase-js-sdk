@@ -4,6 +4,7 @@
   "version": "0.1.0",
   "scripts": {
     "test": "karma start",
+    "test:browser": "yarn test",
     "test:debug": "karma start --browsers Chrome --auto-watch"
   },
   "dependencies": {

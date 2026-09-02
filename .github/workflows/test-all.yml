@@ -164,7 +164,7 @@ jobs:
         yarn
     - name: Run unit tests
       run: |
-        xvfb-run yarn lerna run test:all --scope '@firebase/auth*' --concurrency 1
+        xvfb-run yarn lerna run test --scope '@firebase/auth*' --concurrency 1
       env:
         FIREBASE_TOKEN: ${{ secrets.FIREBASE_CLI_TOKEN }}
     - name: Generate coverage file

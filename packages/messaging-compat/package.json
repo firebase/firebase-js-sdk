@@ -27,6 +27,7 @@
     "build:release": "yarn build && yarn add-compat-overloads",
     "dev": "rollup -c -w",
     "test": "run-p --npm-path npm test:karma",
+    "test:browser": "yarn test:karma",
     "test:karma": "karma start",
     "test:debug": "karma start --browsers=Chrome --auto-watch",
     "trusted-type-check": "tsec -p tsconfig.json --noEmit",

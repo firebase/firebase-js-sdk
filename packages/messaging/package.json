@@ -35,6 +35,7 @@
     "build:release": "yarn build && yarn typings:public",
     "dev": "rollup -c -w",
     "test": "run-p --npm-path npm test:karma type-check",
+    "test:browser": "yarn test:karma",
     "test:integration": "run-p --npm-path npm test:karma type-check && cd ../../integration/messaging && npm run-script test",
     "test:karma": "karma start",
     "test:debug": "karma start --browsers=Chrome --auto-watch",
