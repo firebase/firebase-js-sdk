@@ -77,7 +77,7 @@ export class Timestamp {
   }
 
   /**
-   * Creates a new timestamp from the given Temporal Instant.
+   * Creates a new timestamp from the given `Temporal.Instant`.
    *
    * @param instant - The `Temporal.Instant` to initialize the `Timestamp` from.
    * @returns A new `Timestamp` representing the same point in time as the given
@@ -193,7 +193,7 @@ export class Timestamp {
     if (typeof Temporal === 'undefined' || !Temporal.Instant) {
       throw new FirestoreError(
         Code.FAILED_PRECONDITION,
-        'Temporal is not available in the current environment.'
+        'The Temporal object is not available in the current environment.'
       );
     }
     const nanos = BigInt(this.seconds) * 1000000000n + BigInt(this.nanoseconds);

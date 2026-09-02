@@ -335,7 +335,7 @@ describe('Timestamp', () => {
       try {
         const ts = new Timestamp(100, 200);
         expect(() => ts.toInstant())
-          .to.throw(/Temporal is not available/)
+          .to.throw(/The Temporal object is not available/)
           .with.property('code', Code.FAILED_PRECONDITION);
       } finally {
         (globalThis as Record<string, unknown>).Temporal = saved;

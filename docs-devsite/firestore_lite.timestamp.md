@@ -40,7 +40,7 @@ export declare class Timestamp
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
 |  [fromDate(date)](./firestore_lite.timestamp.md#timestampfromdate) | <code>static</code> | Creates a new timestamp from the given date. |
-|  [fromInstant(instant)](./firestore_lite.timestamp.md#timestampfrominstant) | <code>static</code> | Creates a new timestamp from the given Temporal Instant. |
+|  [fromInstant(instant)](./firestore_lite.timestamp.md#timestampfrominstant) | <code>static</code> | Creates a new timestamp from the given <code>Temporal.Instant</code>. |
 |  [fromJSON(json)](./firestore_lite.timestamp.md#timestampfromjson) | <code>static</code> | Builds a <code>Timestamp</code> instance from a JSON object created by [Timestamp.toJSON()](./firestore_lite.timestamp.md#timestamptojson)<!-- -->. |
 |  [fromMillis(milliseconds)](./firestore_lite.timestamp.md#timestampfrommillis) | <code>static</code> | Creates a new timestamp from the given number of milliseconds. |
 |  [isEqual(other)](./firestore_lite.timestamp.md#timestampisequal) |  | Returns true if this <code>Timestamp</code> is equal to the provided one. |
@@ -116,7 +116,7 @@ A new `Timestamp` representing the same point in time as the given date.
 
 ## Timestamp.fromInstant()
 
-Creates a new timestamp from the given Temporal Instant.
+Creates a new timestamp from the given `Temporal.Instant`<!-- -->.
 
 <b>Signature:</b>
 
