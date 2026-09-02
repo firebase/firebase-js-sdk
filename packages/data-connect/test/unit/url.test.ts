@@ -16,11 +16,12 @@
  */
 
 import { expect } from 'chai';
-import { restUrlBuilder, websocketUrlBuilder } from '../../src/util/url';
+
 import type {
   DataConnectOptions,
   TransportOptions
 } from '../../src/api/DataConnect';
+import { restUrlBuilder, websocketUrlBuilder } from '../../src/util/url';
 
 describe('url builders', () => {
   const projectConfig = Object.freeze({
