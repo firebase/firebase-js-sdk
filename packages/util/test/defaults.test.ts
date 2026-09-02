@@ -38,8 +38,18 @@ describe('getDefaultEmulatorHost', () => {
 
   describe('with no config and process.env undefined', () => {
     it('returns undefined and does not throw', () => {
-      expect(getDefaultEmulatorHost('firestore')).to.be.undefined;
-      expect(getDefaultEmulatorHost('firestore')).to.not.throw;
+      if (typeof process !== 'undefined') {
+        const envStub = stub(process, 'env').value(undefined);
+        try {
+          expect(getDefaultEmulatorHost('firestore')).to.be.undefined;
+          expect(getDefaultEmulatorHost('firestore')).to.not.throw;
+        } finally {
+          envStub.restore();
+        }
+      } else {
+        expect(getDefaultEmulatorHost('firestore')).to.be.undefined;
+        expect(getDefaultEmulatorHost('firestore')).to.not.throw;
+      }
     });
   });
 
@@ -71,9 +81,6 @@ describe('getDefaultEmulatorHost', () => {
     });
     afterAll(() => {
       delete getGlobal().__FIREBASE_DEFAULTS__;
-      if (typeof process !== 'undefined') {
-        delete process.env.__FIREBASE_DEFAULTS__;
-      }
       restore();
     });
     it('returns undefined and calls console.info with the error', () => {
