@@ -45,7 +45,7 @@ export function getFakeComponent<T extends Name>(
   name: T,
   factory: InstanceFactory<T>,
   multipleInstance: boolean = false,
-  instantiationMode = InstantiationMode.LAZY
+  instantiationMode: InstantiationMode = InstantiationMode.LAZY
 ): Component<T> {
   return new Component(name, factory, ComponentType.PUBLIC)
     .setMultipleInstances(multipleInstance)

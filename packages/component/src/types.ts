@@ -17,11 +17,14 @@
 
 import { ComponentContainer } from './component_container';
 
-export enum InstantiationMode {
-  LAZY = 'LAZY', // Currently most components are LAZY in JS SDK
-  EAGER = 'EAGER', // EAGER components are initialized immediately upon registration
-  EXPLICIT = 'EXPLICIT' // component needs to be initialized explicitly by calling Provider.initialize()
-}
+export const InstantiationMode = {
+  LAZY: 'LAZY', // Currently most components are LAZY in JS SDK
+  EAGER: 'EAGER', // EAGER components are initialized immediately upon registration
+  EXPLICIT: 'EXPLICIT' // component needs to be initialized explicitly by calling Provider.initialize()
+} as const;
+
+export type InstantiationMode =
+  (typeof InstantiationMode)[keyof typeof InstantiationMode];
 
 /**
  * PUBLIC: A public component provides a set of public APIs to customers. A service namespace will be patched
@@ -31,11 +34,13 @@ export enum InstantiationMode {
  * PRIVATE: A private component provides a set of private APIs that are used internally by other
  * Firebase SDKs. No service namespace is created in `firebase` namespace and customers have no way to get them.
  */
-export enum ComponentType {
-  PUBLIC = 'PUBLIC',
-  PRIVATE = 'PRIVATE',
-  VERSION = 'VERSION'
-}
+export const ComponentType = {
+  PUBLIC: 'PUBLIC',
+  PRIVATE: 'PRIVATE',
+  VERSION: 'VERSION'
+} as const;
+
+export type ComponentType = (typeof ComponentType)[keyof typeof ComponentType];
 
 export interface InstanceFactoryOptions {
   instanceIdentifier?: string;
