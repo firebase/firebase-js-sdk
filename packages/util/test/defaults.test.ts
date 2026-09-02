@@ -38,8 +38,6 @@ describe('getDefaultEmulatorHost', () => {
 
   describe('with no config and process.env undefined', () => {
     beforeAll(() => {
-      // In browser environments, process is undefined.
-      // Guard process access to avoid Vitest browser error: "ReferenceError: process is not defined"
       if (typeof process !== 'undefined') {
         stub(process, 'env').value(undefined);
       }
@@ -55,7 +53,6 @@ describe('getDefaultEmulatorHost', () => {
 
   describe('with no config and no document or document.cookie throws', () => {
     beforeAll(() => {
-      // In Node tests document will not exist
       if (typeof document !== 'undefined') {
         stub(document, 'cookie').get(() => new Error('aaaah'));
       }
@@ -72,8 +69,6 @@ describe('getDefaultEmulatorHost', () => {
   describe('with no config and something unexpected throws', () => {
     let consoleInfoStub: SinonStub;
     beforeAll(() => {
-      // Define a throwing getter on __FIREBASE_DEFAULTS__ instead of stubbing the getGlobal export
-      // to avoid native ESM error: "TypeError: ES Modules cannot be stubbed"
       Object.defineProperty(global.getGlobal(), '__FIREBASE_DEFAULTS__', {
         get() {
           throw new Error('getGlobal threw!');

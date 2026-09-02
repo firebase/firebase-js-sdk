@@ -27,8 +27,6 @@ const firebaseDefaults: FirebaseDefaults = {
 };
 
 describe('isNode()', () => {
-  // Use global.__FIREBASE_DEFAULTS__ instead of sinon.stub(defaults, 'getDefaults')
-  // to avoid native ESM error: "TypeError: ES Modules cannot be stubbed"
   afterEach(async () => {
     delete getGlobal().__FIREBASE_DEFAULTS__;
   });
