@@ -16,7 +16,7 @@
  */
 
 import { expect } from 'chai';
-import { LogRecord } from '@opentelemetry/api-logs';
+import { SdkLogRecord } from '@opentelemetry/sdk-logs';
 import { trace, context, SpanContext, TraceFlags } from '@opentelemetry/api';
 import { FirebaseAttributesProcessor } from './attributes-processor';
 import { AttributesStore, LOG_ATTR_KEY } from '../attributes-store';
@@ -36,9 +36,9 @@ describe('FirebaseAttributesProcessor', () => {
       attributesStore,
       'test-project'
     );
-    const logRecord: LogRecord = {
+    const logRecord = {
       attributes: { customKey: 'customValue' }
-    };
+    } as unknown as SdkLogRecord;
 
     processor.onEmit(logRecord);
 
@@ -51,9 +51,9 @@ describe('FirebaseAttributesProcessor', () => {
       attributesStore,
       'test-project'
     );
-    const logRecord: LogRecord = {
+    const logRecord = {
       attributes: { appLevel: 'overridden' }
-    };
+    } as unknown as SdkLogRecord;
 
     processor.onEmit(logRecord);
 
@@ -71,7 +71,7 @@ describe('FirebaseAttributesProcessor', () => {
         traceId: '4bf92f3577b34da6a3ce929d0e0e4736',
         spanId: '00f067aa0ba902b7'
       }
-    } as unknown as LogRecord;
+    } as unknown as SdkLogRecord;
 
     processor.onEmit(logRecord);
 
@@ -88,9 +88,9 @@ describe('FirebaseAttributesProcessor', () => {
       attributesStore,
       'test-project'
     );
-    const logRecord: LogRecord = {
+    const logRecord = {
       attributes: {}
-    };
+    } as unknown as SdkLogRecord;
 
     const spanContext: SpanContext = {
       traceId: '1234567890abcdef1234567890abcdef',
@@ -106,6 +106,34 @@ describe('FirebaseAttributesProcessor', () => {
     );
     expect(logRecord.attributes?.[LOG_ATTR_KEY.SPAN_ID]).to.equal(
       'abcdef1234567890'
+    );
+  });
+
+  it('should correlate trace and span IDs from ambient active span when record and context lack spanContext', () => {
+    const processor = new FirebaseAttributesProcessor(
+      attributesStore,
+      'test-project'
+    );
+    const logRecord = {
+      attributes: {}
+    } as unknown as SdkLogRecord;
+
+    const spanContext: SpanContext = {
+      traceId: 'fedcba0987654321fedcba0987654321',
+      spanId: '0987654321fedcba',
+      traceFlags: TraceFlags.SAMPLED
+    };
+    const ctx = trace.setSpanContext(context.active(), spanContext);
+
+    context.with(ctx, () => {
+      processor.onEmit(logRecord);
+    });
+
+    expect(logRecord.attributes?.[LOG_ATTR_KEY.TRACE]).to.equal(
+      'projects/test-project/traces/fedcba0987654321fedcba0987654321'
+    );
+    expect(logRecord.attributes?.[LOG_ATTR_KEY.SPAN_ID]).to.equal(
+      '0987654321fedcba'
     );
   });
 

@@ -15,9 +15,8 @@
  * limitations under the License.
  */
 
-import { LogRecordProcessor } from '@opentelemetry/sdk-logs';
-import { AttributeValue, Context, trace } from '@opentelemetry/api';
-import { LogRecord } from '@opentelemetry/api-logs';
+import { LogRecordProcessor, SdkLogRecord } from '@opentelemetry/sdk-logs';
+import { AttributeValue, Context, context as otelContext, trace } from '@opentelemetry/api';
 import { AttributesStore, LOG_ATTR_KEY } from '../attributes-store';
 
 /**
@@ -32,31 +31,29 @@ export class FirebaseAttributesProcessor implements LogRecordProcessor {
     private projectId?: string
   ) {}
 
-  onEmit(logRecord: LogRecord, context?: Context): void {
+  onEmit(logRecord: SdkLogRecord, context?: Context): void {
     if (!logRecord.attributes) {
-      logRecord.attributes = {};
+      (logRecord as { attributes: Record<string, unknown> }).attributes = {};
     }
 
     const dynamicAttributes = this.attributesStore.getLogAttributes();
 
     for (const [key, value] of Object.entries(dynamicAttributes)) {
-      if (value !== undefined && logRecord.attributes[key] === undefined) {
-        logRecord.attributes[key] = value as AttributeValue;
+      if (value !== undefined) {
+        logRecord.attributes[key] ??= value as AttributeValue;
       }
     }
 
     const spanContext =
-      (logRecord as { spanContext?: { traceId?: string; spanId?: string } })
-        .spanContext || (context ? trace.getSpanContext(context) : undefined);
+      logRecord.spanContext ??
+      (context ? trace.getSpanContext(context) : undefined) ??
+      trace.getSpanContext(otelContext.active()) ??
+      trace.getActiveSpan()?.spanContext();
 
     if (spanContext?.traceId && spanContext?.spanId && this.projectId) {
-      if (logRecord.attributes[LOG_ATTR_KEY.TRACE] === undefined) {
-        logRecord.attributes[LOG_ATTR_KEY.TRACE] =
-          `projects/${this.projectId}/traces/${spanContext.traceId}`;
-      }
-      if (logRecord.attributes[LOG_ATTR_KEY.SPAN_ID] === undefined) {
-        logRecord.attributes[LOG_ATTR_KEY.SPAN_ID] = spanContext.spanId;
-      }
+      logRecord.attributes[LOG_ATTR_KEY.TRACE] ??=
+        `projects/${this.projectId}/traces/${spanContext.traceId}`;
+      logRecord.attributes[LOG_ATTR_KEY.SPAN_ID] ??= spanContext.spanId;
     }
   }
 

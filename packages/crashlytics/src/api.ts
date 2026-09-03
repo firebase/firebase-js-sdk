@@ -104,16 +104,9 @@ export function recordError(
   }
 
   // Cast to CrashlyticsInternal to access internal loggerProvider
-  const { loggerProvider, attributesStore } =
-    crashlytics as CrashlyticsInternal;
+  const { loggerProvider } = crashlytics as CrashlyticsInternal;
   const logger = loggerProvider.getLogger('error-logger');
-  const customAttributes: AnyValueMap = attributesStore.getLogAttributes();
-
-  // Merge in any additional attributes. Explicitly provided attributes take precedence over
-  // automatically added attributes.
-  if (attributes) {
-    Object.assign(customAttributes, attributes);
-  }
+  const customAttributes: AnyValueMap = attributes ? { ...attributes } : {};
 
   if (error instanceof Error) {
     logger.emit({

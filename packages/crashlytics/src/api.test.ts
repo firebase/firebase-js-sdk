@@ -16,7 +16,7 @@
  */
 
 import { expect } from 'chai';
-import { LoggerProvider } from '@opentelemetry/sdk-logs';
+import { LoggerProvider, SdkLogRecord } from '@opentelemetry/sdk-logs';
 import { trace } from '@opentelemetry/api';
 import {
   Logger,
@@ -53,6 +53,7 @@ import {
   LOG_ATTR_KEY,
   SESSION_STORAGE_SESSION_ID_KEY
 } from './attributes-store';
+import { FirebaseAttributesProcessor } from './logging/attributes-processor';
 
 const PROJECT_ID = 'my-project';
 const APP_ID = 'my-appid';
@@ -65,6 +66,11 @@ const fakeLoggerProvider = {
   getLogger: (): Logger => {
     return {
       emit: (logRecord: LogRecord) => {
+        const processor = new FirebaseAttributesProcessor(
+          fakeAttributesStore,
+          PROJECT_ID
+        );
+        processor.onEmit(logRecord as unknown as SdkLogRecord);
         emittedLogs.push(logRecord);
       },
       enabled: () => true
