@@ -17,24 +17,22 @@
 
 import { ErrorFactory, ErrorMap } from '@firebase/util';
 
-export const AppError = {
-  NO_APP: 'no-app',
-  BAD_APP_NAME: 'bad-app-name',
-  DUPLICATE_APP: 'duplicate-app',
-  APP_DELETED: 'app-deleted',
-  SERVER_APP_DELETED: 'server-app-deleted',
-  NO_OPTIONS: 'no-options',
-  INVALID_APP_ARGUMENT: 'invalid-app-argument',
-  INVALID_LOG_ARGUMENT: 'invalid-log-argument',
-  IDB_OPEN: 'idb-open',
-  IDB_GET: 'idb-get',
-  IDB_WRITE: 'idb-set',
-  IDB_DELETE: 'idb-delete',
-  FINALIZATION_REGISTRY_NOT_SUPPORTED: 'finalization-registry-not-supported',
-  INVALID_SERVER_APP_ENVIRONMENT: 'invalid-server-app-environment'
-} as const;
-
-export type AppError = (typeof AppError)[keyof typeof AppError];
+export const enum AppError {
+  NO_APP = 'no-app',
+  BAD_APP_NAME = 'bad-app-name',
+  DUPLICATE_APP = 'duplicate-app',
+  APP_DELETED = 'app-deleted',
+  SERVER_APP_DELETED = 'server-app-deleted',
+  NO_OPTIONS = 'no-options',
+  INVALID_APP_ARGUMENT = 'invalid-app-argument',
+  INVALID_LOG_ARGUMENT = 'invalid-log-argument',
+  IDB_OPEN = 'idb-open',
+  IDB_GET = 'idb-get',
+  IDB_WRITE = 'idb-set',
+  IDB_DELETE = 'idb-delete',
+  FINALIZATION_REGISTRY_NOT_SUPPORTED = 'finalization-registry-not-supported',
+  INVALID_SERVER_APP_ENVIRONMENT = 'invalid-server-app-environment'
+}
 
 const ERRORS: ErrorMap<AppError> = {
   [AppError.NO_APP]:
