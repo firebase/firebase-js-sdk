@@ -16,7 +16,12 @@
  */
 
 import { LogRecordProcessor, SdkLogRecord } from '@opentelemetry/sdk-logs';
-import { AttributeValue, Context, context as otelContext, trace } from '@opentelemetry/api';
+import {
+  AttributeValue,
+  Context,
+  context as otelContext,
+  trace
+} from '@opentelemetry/api';
 import { AttributesStore, LOG_ATTR_KEY } from '../attributes-store';
 
 /**
