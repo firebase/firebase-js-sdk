@@ -386,7 +386,7 @@ apiDescribe('Firestore', persistence => {
           errorMessage = (err as FirestoreError)?.message;
         }
         expect(errorMessage).to.contains(
-          "BsonTimestamp 'seconds' must be in the range of a 32-bit unsigned integer."
+          "BsonTimestamp 'seconds' must be in the range of a 32-bit unsigned integer (0-4294967295)."
         );
 
         try {
@@ -396,7 +396,7 @@ apiDescribe('Firestore', persistence => {
           errorMessage = (err as FirestoreError)?.message;
         }
         expect(errorMessage).to.contains(
-          "BsonTimestamp 'seconds' must be in the range of a 32-bit unsigned integer."
+          "BsonTimestamp 'seconds' must be in the range of a 32-bit unsigned integer (0-4294967295)."
         );
       });
     });
