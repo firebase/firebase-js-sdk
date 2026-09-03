@@ -16,12 +16,7 @@
  */
 
 import { LogRecordProcessor, SdkLogRecord } from '@opentelemetry/sdk-logs';
-import {
-  AttributeValue,
-  Context,
-  context as otelContext,
-  trace
-} from '@opentelemetry/api';
+import { AttributeValue, Context, trace } from '@opentelemetry/api';
 import { AttributesStore, LOG_ATTR_KEY } from '../attributes-store';
 
 /**
@@ -52,7 +47,6 @@ export class FirebaseAttributesProcessor implements LogRecordProcessor {
     const spanContext =
       logRecord.spanContext ??
       (context ? trace.getSpanContext(context) : undefined) ??
-      trace.getSpanContext(otelContext.active()) ??
       trace.getActiveSpan()?.spanContext();
 
     if (spanContext?.traceId && spanContext?.spanId && this.projectId) {
