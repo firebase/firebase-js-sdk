@@ -772,23 +772,25 @@ export class Timestamp {
     constructor(
     seconds: number,
     nanoseconds: number
-    );
-    static fromDate(date: Date): Timestamp;
-    static fromJSON(json: object): Timestamp;
-    static fromMillis(milliseconds: number): Timestamp;
-    isEqual(other: Timestamp): boolean;
-    readonly nanoseconds: number;
-    static now(): Timestamp;
-    readonly seconds: number;
-    toDate(): Date;
-    toJSON(): {
-        seconds: number;
-        nanoseconds: number;
-        type: string;
-    };
-    toMillis(): number;
-    toString(): string;
-    valueOf(): string;
+  );
+  static fromDate(date: Date): Timestamp;
+  static fromInstant(instant: Temporal.Instant): Timestamp;
+  static fromJSON(json: object): Timestamp;
+  static fromMillis(milliseconds: number): Timestamp;
+  isEqual(other: Timestamp): boolean;
+  readonly nanoseconds: number;
+  static now(): Timestamp;
+  readonly seconds: number;
+  toDate(): Date;
+  toInstant(): Temporal.Instant;
+  toJSON(): {
+    seconds: number;
+    nanoseconds: number;
+    type: string;
+  };
+  toMillis(): number;
+  toString(): string;
+  valueOf(): string;
 }
 
 // @public

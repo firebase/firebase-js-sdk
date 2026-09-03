@@ -40,11 +40,13 @@ export declare class Timestamp
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
 |  [fromDate(date)](./firestore.timestamp.md#timestampfromdate) | <code>static</code> | Creates a new timestamp from the given date. |
+|  [fromInstant(instant)](./firestore.timestamp.md#timestampfrominstant) | <code>static</code> | Creates a new timestamp from the given <code>Temporal.Instant</code>. |
 |  [fromJSON(json)](./firestore.timestamp.md#timestampfromjson) | <code>static</code> | Builds a <code>Timestamp</code> instance from a JSON object created by [Timestamp.toJSON()](./firestore.timestamp.md#timestamptojson)<!-- -->. |
 |  [fromMillis(milliseconds)](./firestore.timestamp.md#timestampfrommillis) | <code>static</code> | Creates a new timestamp from the given number of milliseconds. |
 |  [isEqual(other)](./firestore.timestamp.md#timestampisequal) |  | Returns true if this <code>Timestamp</code> is equal to the provided one. |
 |  [now()](./firestore.timestamp.md#timestampnow) | <code>static</code> | Creates a new timestamp with the current date, with millisecond precision. |
 |  [toDate()](./firestore.timestamp.md#timestamptodate) |  | Converts a <code>Timestamp</code> to a JavaScript <code>Date</code> object. This conversion causes a loss of precision since <code>Date</code> objects only support millisecond precision. |
+|  [toInstant()](./firestore.timestamp.md#timestamptoinstant) |  | Converts a <code>Timestamp</code> to a <code>Temporal.Instant</code> object. |
 |  [toJSON()](./firestore.timestamp.md#timestamptojson) |  | Returns a JSON-serializable representation of this <code>Timestamp</code>. |
 |  [toMillis()](./firestore.timestamp.md#timestamptomillis) |  | Converts a <code>Timestamp</code> to a numeric timestamp (in milliseconds since epoch). This operation causes a loss of precision. |
 |  [toString()](./firestore.timestamp.md#timestamptostring) |  | Returns a textual representation of this <code>Timestamp</code>. |
@@ -111,6 +113,28 @@ static fromDate(date: Date): Timestamp;
 [Timestamp](./firestore.timestamp.md#timestamp_class)
 
 A new `Timestamp` representing the same point in time as the given date.
+
+## Timestamp.fromInstant()
+
+Creates a new timestamp from the given `Temporal.Instant`<!-- -->.
+
+<b>Signature:</b>
+
+```typescript
+static fromInstant(instant: Temporal.Instant): Timestamp;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  instant | Temporal.Instant | The <code>Temporal.Instant</code> to initialize the <code>Timestamp</code> from. |
+
+<b>Returns:</b>
+
+[Timestamp](./firestore.timestamp.md#timestamp_class)
+
+A new `Timestamp` representing the same point in time as the given instant.
 
 ## Timestamp.fromJSON()
 
@@ -205,6 +229,21 @@ toDate(): Date;
 Date
 
 JavaScript `Date` object representing the same point in time as this `Timestamp`<!-- -->, with millisecond precision.
+
+## Timestamp.toInstant()
+
+Converts a `Timestamp` to a `Temporal.Instant` object.
+
+<b>Signature:</b>
+
+```typescript
+toInstant(): Temporal.Instant;
+```
+<b>Returns:</b>
+
+Temporal.Instant
+
+`Temporal.Instant` object representing the same point in time as this `Timestamp`<!-- -->.
 
 ## Timestamp.toJSON()
 
