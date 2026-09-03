@@ -12,8 +12,7 @@ export function areCookiesEnabled(): boolean;
 // Warning: (ae-missing-release-tag) "assert" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
-const assert_2: (assertion: unknown, message: string) => void;
-export { assert_2 as assert }
+export const assert: (assertion: unknown, message: string) => void;
 
 // Warning: (ae-missing-release-tag) "assertionError" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //

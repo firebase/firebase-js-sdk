@@ -17,6 +17,7 @@
 import { expect, use } from 'chai';
 import { match, restore, SinonStub, stub } from 'sinon';
 import sinonChai from 'sinon-chai';
+import { beforeAll, afterAll } from 'vitest';
 import {
   getDefaultEmulatorHost,
   getDefaultEmulatorHostnameAndPort
