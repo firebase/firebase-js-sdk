@@ -17,10 +17,13 @@
 
 const yargs = require('yargs');
 const path = require('path');
+const fs = require('fs');
 const { spawn } = require('child-process-promise');
-const { writeFileSync } = require('fs');
 
-const LOGDIR = process.env.CI ? process.env.HOME : '/tmp';
+const LOGDIR =
+  process.env.FIREBASE_CI_LOG_DIR ||
+  (process.env.CI ? process.env.HOME : '/tmp');
+
 // Maps the packages where we should not run `test:all` and instead isolate the cross-browser tests.
 // TODO(dwyfrequency): Update object with `storage` and `firestore` packages.
 const crossBrowserPackages = {
@@ -31,18 +34,6 @@ const crossBrowserPackages = {
   'packages/storage': 'test:browser:unit',
   'packages/storage-compat': 'test:browser:unit'
 };
-
-function writeLogs(status, name, logText) {
-  const safeName = name.replace(/@/g, 'at_').replace(/\//g, '_');
-  writeFileSync(path.join(LOGDIR, `${safeName}-ci-log.txt`), logText, {
-    encoding: 'utf8'
-  });
-  writeFileSync(
-    path.join(LOGDIR, `${safeName}-ci-summary.txt`),
-    `${status}: ${name}`,
-    { encoding: 'utf8' }
-  );
-}
 
 const argv = yargs.options({
   d: {
@@ -63,48 +54,46 @@ const argv = yargs.options({
   const dir = path.resolve(myPath);
   const { name, scripts } = require(`${dir}/package.json`);
 
-  let testProcessOutput = '';
-  try {
-    if (process.env?.BROWSERS) {
-      if (scripts['test:browser']) {
-        scriptName = 'test:browser';
-      }
-      for (const package in crossBrowserPackages) {
-        if (dir.endsWith(package)) {
-          scriptName = crossBrowserPackages[package];
-        }
+  if (process.env?.BROWSERS) {
+    if (scripts['test:browser']) {
+      scriptName = 'test:browser';
+    }
+    for (const package in crossBrowserPackages) {
+      if (dir.endsWith(package)) {
+        scriptName = crossBrowserPackages[package];
       }
     }
+  }
 
-    console.log(
-      `[${name}][${
-        process.env.BROWSERS ?? 'chrome/node'
-      }]: Running script ${scriptName}`
-    );
+  const browser = process.env.BROWSERS ?? 'chrome/node';
+  const safeName = name.replace(/@/g, 'at_').replace(/\//g, '_');
 
-    const testProcess = spawn('yarn', ['--cwd', dir, scriptName]);
+  const logFile = path.join(LOGDIR, `${safeName}-ci-log.txt`);
+  const summaryFile = path.join(LOGDIR, `${safeName}-ci-summary.txt`);
+  const logStream = fs.createWriteStream(logFile);
 
-    testProcess.childProcess.stdout.on('data', data => {
-      testProcessOutput += '[stdout]' + data.toString();
-    });
-    testProcess.childProcess.stderr.on('data', data => {
-      testProcessOutput += '[stderr]' + data.toString();
-    });
+  console.log(`[${name}][${browser}]: Running script ${scriptName}`);
 
+  const testProcess = spawn('yarn', ['--cwd', dir, scriptName]);
+
+  testProcess.childProcess.stdout.pipe(logStream, { end: false });
+  testProcess.childProcess.stderr.pipe(logStream, { end: false });
+
+  try {
     await testProcess;
+    await new Promise(resolve => logStream.end(resolve));
+    fs.writeFileSync(summaryFile, `Success: ${name}`);
     console.log('Success: ' + name);
-    writeLogs('Success', name, testProcessOutput);
   } catch (e) {
+    await new Promise(resolve => logStream.end(resolve));
+    fs.writeFileSync(summaryFile, `Failure: ${name}`);
     console.error('Failure: ' + name);
-    console.error(testProcessOutput);
 
     if (process.env.CHROME_VERSION_NOTES) {
       console.error();
       console.error(process.env.CHROME_VERSION_NOTES);
       console.error();
     }
-
-    writeLogs('Failure', name, testProcessOutput);
 
     process.exit(1);
   }

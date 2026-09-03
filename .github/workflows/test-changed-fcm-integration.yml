@@ -54,3 +54,6 @@ jobs:
       run: yarn build:changed fcm-integration
     - name: Run tests if FCM or its dependencies has changed
       run: xvfb-run yarn test:changed fcm-integration
+    - name: Print Test Failure Logs
+      if: always()
+      run: node scripts/print_test_logs.js

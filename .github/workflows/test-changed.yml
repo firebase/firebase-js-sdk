@@ -57,6 +57,9 @@ jobs:
         run: yarn build:changed core
       - name: Run tests on changed packages
         run: xvfb-run yarn test:changed core
+      - name: Print Test Failure Logs
+        if: always()
+        run: node scripts/print_test_logs.js
 
   test-firefox:
     name: Test Packages With Changed Files in Firefox
@@ -86,6 +89,9 @@ jobs:
         run: xvfb-run yarn test:changed core
         env:
           BROWSERS: 'Firefox'
+      - name: Print Test Failure Logs
+        if: always()
+        run: node scripts/print_test_logs.js
           
           
   test-webkit:
@@ -115,3 +121,6 @@ jobs:
         run: yarn test:changed core
         env:
           BROWSERS: 'WebkitHeadless'
+      - name: Print Test Failure Logs
+        if: always()
+        run: node scripts/print_test_logs.js

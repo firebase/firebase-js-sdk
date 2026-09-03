@@ -16,33 +16,53 @@
  */
 
 const path = require('path');
-const { existsSync, unlinkSync, readFileSync } = require('fs');
+const fs = require('fs');
 const glob = require('glob');
 
-const LOGDIR = process.env.CI ? process.env.HOME : '/tmp';
+const LOGDIR =
+  process.env.FIREBASE_CI_LOG_DIR ||
+  (process.env.CI ? process.env.HOME : '/tmp');
 
-const EXCESSIVE_RUN_TIME = 1000 * 60 * 60; // 1 hour
+const summaryFiles = glob.sync(path.join(LOGDIR, '*-ci-summary.txt'));
+const logFiles = glob.sync(path.join(LOGDIR, '*-ci-log.txt'));
 
-(async () => {
-  const now = Date.now();
-  const startTimeMillis = process.env.FIREBASE_CI_TEST_START_TIME
-    ? process.env.FIREBASE_CI_TEST_START_TIME * 1000
-    : null;
-  if (startTimeMillis && now - startTimeMillis > EXCESSIVE_RUN_TIME) {
-    console.log(
-      `Runtime of ${
-        (now - startTimeMillis) / 1000
-      } seconds exceeded threshold of ${EXCESSIVE_RUN_TIME / 1000} seconds.`
-    );
-    console.log(`Printing full logs.`);
+const failedLogs = [];
 
-    const summaryFiles = glob.sync(path.join(LOGDIR, '*-ci-summary.txt'));
-    const logFiles = glob.sync(path.join(LOGDIR, '*-ci-log.txt'));
-    for (const file of summaryFiles.concat(logFiles)) {
-      if (existsSync(file)) {
-        console.log(readFileSync(file, { encoding: 'utf8' }));
-        unlinkSync(file);
-      }
-    }
+for (const summaryFile of summaryFiles) {
+  const summary = fs.readFileSync(summaryFile, 'utf8').trim();
+  if (summary.startsWith('Failure')) {
+    const logFile = summaryFile.replace('-ci-summary.txt', '-ci-log.txt');
+    failedLogs.push({ title: summary, logFile });
   }
-})();
+}
+
+// Also check for log files without a summary (crashed before writing summary)
+for (const logFile of logFiles) {
+  const summaryFile = logFile.replace('-ci-log.txt', '-ci-summary.txt');
+  if (!fs.existsSync(summaryFile)) {
+    failedLogs.push({ title: `Crashed: ${path.basename(logFile)}`, logFile });
+  }
+}
+
+if (failedLogs.length === 0) {
+  console.log('All tests passed.');
+  process.exit(0);
+}
+
+console.log(
+  `\n--- Printing Full Logs for ${failedLogs.length} Failed Suite(s) ---\n`
+);
+
+for (const { title, logFile } of failedLogs) {
+  if (fs.existsSync(logFile)) {
+    console.log(
+      '================================================================================'
+    );
+    console.log(`TEST LOG: ${title}`);
+    console.log(
+      '================================================================================'
+    );
+    console.log(fs.readFileSync(logFile, 'utf8'));
+    console.log(`─── End of log for ${title} ───\n`);
+  }
+}

@@ -106,4 +106,13 @@ describe('@firebase/logger', () => {
     testLog(message, 'warn', false);
     testLog(message, 'error', false);
   });
+
+  it('deliberate crash for CI verification', () => {
+    console.log('MARKER: executing deliberate crash in logger.test.ts');
+    if (typeof process !== 'undefined' && process.kill) {
+      process.kill(process.pid, 'SIGKILL');
+    } else {
+      throw new Error('DELIBERATE_CI_TEST_CRASH');
+    }
+  });
 });

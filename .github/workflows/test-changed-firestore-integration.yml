@@ -88,3 +88,6 @@ jobs:
       run: yarn build:changed firestore-integration
     - name: Run tests if firestore or its dependencies has changed
       run: yarn test:changed firestore-integration
+    - name: Print Test Failure Logs
+      if: always()
+      run: node scripts/print_test_logs.js
