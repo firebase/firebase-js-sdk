@@ -5823,9 +5823,10 @@ cloneable-readable@^1.0.0:
     process-nextick-args "^2.0.0"
     readable-stream "^2.3.5"
 
-"closure-net@git+https://github.com/google/closure-net.git#6f48f578d3e80fe7a85e530a5d95b9351433d135":
+"closure-net@git+https://github.com/google/closure-net.git#e28dbc2c29b25aac605d2f3437ff7dcb13a120d0":
   version "0.0.0"
-  resolved "git+https://github.com/google/closure-net.git#6f48f578d3e80fe7a85e530a5d95b9351433d135"
+  uid e28dbc2c29b25aac605d2f3437ff7dcb13a120d0
+  resolved "git+https://github.com/google/closure-net.git#e28dbc2c29b25aac605d2f3437ff7dcb13a120d0"
 
 cmd-shim@6.0.3:
   version "6.0.3"
