@@ -33,7 +33,7 @@ export class Component<T extends Name = Name> {
    */
   serviceProps: Dictionary = {};
 
-  instantiationMode: InstantiationMode = InstantiationMode.LAZY;
+  instantiationMode = InstantiationMode.LAZY;
 
   onInstanceCreated: onInstanceCreatedCallback<T> | null = null;
 
