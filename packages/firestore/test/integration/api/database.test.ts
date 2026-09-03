@@ -21,7 +21,7 @@ import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
 import { addEqualityMatcher } from '../../util/equality_matcher';
-import { it } from '../../util/mocha_extensions';
+import { it, describe } from '../../util/mocha_extensions';
 import { EventsAccumulator } from '../util/events_accumulator';
 import {
   addDoc,

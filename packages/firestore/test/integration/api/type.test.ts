@@ -18,6 +18,7 @@
 import { expect } from 'chai';
 
 import { addEqualityMatcher } from '../../util/equality_matcher';
+import { describe } from '../../util/mocha_extensions';
 import { EventsAccumulator } from '../util/events_accumulator';
 import {
   BsonObjectId,
