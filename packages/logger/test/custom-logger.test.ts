@@ -27,7 +27,7 @@ describe(`Custom log handler`, () => {
   let spies: any = {};
 
   describe('Callback log level set to INFO (default)', () => {
-    before(() => {
+    beforeAll(() => {
       setUserLogHandler(callbackParams => {
         result = callbackParams;
       });
@@ -106,7 +106,7 @@ describe(`Custom log handler`, () => {
   });
 
   describe('Callback log level set to WARN with options', () => {
-    before(() => {
+    beforeAll(() => {
       setUserLogHandler(
         callbackParams => {
           result = callbackParams;
@@ -164,7 +164,7 @@ describe(`Custom log handler`, () => {
   });
 
   describe('Global log level set to VERBOSE with setLogLevel()', () => {
-    before(() => {
+    beforeAll(() => {
       setLogLevel('verbose');
       setUserLogHandler(callbackParams => {
         result = callbackParams;

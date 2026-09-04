@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,22 @@
  * limitations under the License.
  */
 
-export {
-  setLogLevel,
-  Logger,
-  LogLevel,
-  type LogHandler,
-  setUserLogHandler,
-  type LogCallback,
-  type LogLevelString,
-  type LogOptions
-} from './src/logger';
+// Type definitions for ECMAScript Temporal API
+
+declare global {
+  namespace Temporal {
+    interface Instant {
+      readonly [Symbol.toStringTag]?: string;
+      readonly epochMilliseconds: number;
+      readonly epochNanoseconds: bigint;
+      toString(): string;
+    }
+
+    const Instant: {
+      fromEpochNanoseconds(epochNanoseconds: bigint): Instant;
+      fromEpochMilliseconds(epochMilliseconds: number): Instant;
+    };
+  }
+}
+
+export {};
