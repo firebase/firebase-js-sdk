@@ -964,8 +964,7 @@ export function isInt32Value(value: Value): boolean {
   const fields = value.mapValue.fields;
   return (
     objectSize(fields) === 1 &&
-    fields[RESERVED_INT32_KEY] &&
-    !!fields[RESERVED_INT32_KEY].integerValue
+    fields[RESERVED_INT32_KEY]?.integerValue !== undefined
   );
 }
 
@@ -1064,7 +1063,7 @@ export function detectMapRepresentation(value: Value): MapRepresentation {
   // For BSON-related mappings, they typically have a single, unique key.
   if (objectSize(fields) === 1) {
     const keys = Object.keys(fields);
-    return BSON_REPRESENTATIONS[keys[0]];
+    return BSON_REPRESENTATIONS[keys[0]] ?? MapRepresentation.REGULAR_MAP;
   }
 
   return MapRepresentation.REGULAR_MAP;

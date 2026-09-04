@@ -51,7 +51,10 @@ import {
   MIN_KEY_VALUE,
   MIN_REGEX_VALUE,
   MIN_BSON_OBJECT_ID_VALUE,
-  RESERVED_DECIMAL128_KEY
+  RESERVED_DECIMAL128_KEY,
+  detectMapRepresentation,
+  MapRepresentation,
+  isInt32Value
 } from '../../../src/model/values';
 import * as api from '../../../src/protos/firestore_proto_api';
 import { primitiveComparator } from '../../../src/util/misc';
@@ -839,5 +842,37 @@ describe('Values', () => {
       const arrayValue = { arrayValue: { values: [value] } };
       expect(deepClone(arrayValue)).to.deep.equal(arrayValue);
     }
+  });
+
+  it('detectMapRepresentation handles single-key regular maps correctly', () => {
+    const singleKeyRegularMap = {
+      mapValue: {
+        fields: {
+          name: { stringValue: 'Alice' }
+        }
+      }
+    };
+    expect(detectMapRepresentation(singleKeyRegularMap)).to.equal(
+      MapRepresentation.REGULAR_MAP
+    );
+  });
+
+  it('isInt32Value correctly identifies integer value 0', () => {
+    const intZeroNumber = {
+      mapValue: {
+        fields: {
+          [RESERVED_INT32_KEY]: { integerValue: 0 }
+        }
+      }
+    };
+    const intZeroString = {
+      mapValue: {
+        fields: {
+          [RESERVED_INT32_KEY]: { integerValue: '0' }
+        }
+      }
+    };
+    expect(isInt32Value(intZeroNumber)).to.be.true;
+    expect(isInt32Value(intZeroString)).to.be.true;
   });
 });

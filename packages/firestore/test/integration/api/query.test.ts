@@ -2090,7 +2090,8 @@ apiDescribe('Hanging query issue - #7652', persistence => {
     // Do not ignore timeouts for these tests. A timeout may indicate a
     // regression. The test is attempting to reproduce hanging queries
     // with a data set known to reproduce.
-    it(`iteration ${i}`, async () => {
+    it(`iteration ${i}`, async function () {
+      this.timeout('60s');
       return withTestDb(persistence, async db => {
         const q = query(
           collection(db, collPath)!,

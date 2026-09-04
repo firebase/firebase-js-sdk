@@ -398,6 +398,30 @@ apiDescribe('Firestore', persistence => {
         expect(errorMessage).to.contains(
           "BsonTimestamp 'seconds' must be in the range of a 32-bit unsigned integer (0-4294967295)."
         );
+
+        expect(() => new BsonTimestamp(NaN, 2)).to.throw(
+          "BsonTimestamp 'seconds' must be in the range of a 32-bit unsigned integer (0-4294967295)."
+        );
+
+        expect(() => new BsonTimestamp(1.5, 2)).to.throw(
+          "BsonTimestamp 'seconds' must be in the range of a 32-bit unsigned integer (0-4294967295)."
+        );
+
+        expect(() => new BsonTimestamp(2, NaN)).to.throw(
+          "BsonTimestamp 'increment' must be in the range of a 32-bit unsigned integer (0-4294967295)."
+        );
+
+        expect(() => new BsonTimestamp(2, 1.5)).to.throw(
+          "BsonTimestamp 'increment' must be in the range of a 32-bit unsigned integer (0-4294967295)."
+        );
+
+        expect(() => new BsonTimestamp(2, -1)).to.throw(
+          "BsonTimestamp 'increment' must be in the range of a 32-bit unsigned integer (0-4294967295)."
+        );
+
+        expect(() => new BsonTimestamp(2, 4294967296)).to.throw(
+          "BsonTimestamp 'increment' must be in the range of a 32-bit unsigned integer (0-4294967295)."
+        );
       });
     });
 
