@@ -1077,14 +1077,20 @@ export function validateQueryOperator(
     typeof value === 'number' &&
     isNaN(value) &&
     operator !== '==' &&
-    operator !== '!='
+    operator !== '!=' &&
+    operator !== 'array-contains'
   ) {
     throw new Error(
       "Invalid query. You can only perform '==' and '!=' comparisons on NaN."
     );
   }
 
-  if (value === null && operator !== '==' && operator !== '!=') {
+  if (
+    value === null &&
+    operator !== '==' &&
+    operator !== '!=' &&
+    operator !== 'array-contains'
+  ) {
     throw new Error(
       "Invalid query. You can only perform '==' and '!=' comparisons on Null."
     );
