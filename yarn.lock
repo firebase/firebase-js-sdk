@@ -13701,7 +13701,7 @@ proto3-json-serializer@3.0.4:
   dependencies:
     protobufjs "^7.4.0"
 
-protobufjs-cli@^1.3.3:
+protobufjs-cli@1.3.3:
   version "1.3.3"
   resolved "https://registry.npmjs.org/protobufjs-cli/-/protobufjs-cli-1.3.3.tgz#72ed54b9b634e9191351d2a4db68363dde76fc4a"
   integrity sha512-zwmt6JeStPjeofZbl+QADexAVzP1EgsIAsO7mCfKkW/8oBxHwgTqJ1aD7zDrcCC0Nb+SLWSvCR3RDaKgIO3P8w==
