@@ -4263,11 +4263,6 @@ acorn@^8.16.0:
   resolved "https://registry.npmjs.org/acorn/-/acorn-8.18.0.tgz#4faf01b2d6d326bfeed97aea1f52220b5f4c1940"
   integrity sha512-lGq+9yr1/GuAWaVYIHRjvvySG5/4VfKIvC8EWxStPdcDh/Ka7FG3twP6v4d5BkravUilhIAsG4Qj83t02LWUPQ==
 
-adm-zip@^0.5.18:
-  version "0.5.18"
-  resolved "https://registry.npmjs.org/adm-zip/-/adm-zip-0.5.18.tgz#283a05f2bf1e3fd315f0f31cde29b7a6e3c1619d"
-  integrity sha512-ufJnssQGbxzLNS1Ho9bCtX4rQKCCvoVuDLHoJyc3F9dOGDB4BkWs2Ci0kv53lqocAEQ/Cbi+I2XCsNYGqVYqng==
-
 adm-zip@^0.6.0:
   version "0.6.0"
   resolved "https://registry.npmjs.org/adm-zip/-/adm-zip-0.6.0.tgz#bbc5c6c333755e967a06dd98747f431e1d53a3cf"
@@ -4817,7 +4812,7 @@ aws4@^1.8.0:
   resolved "https://registry.npmjs.org/aws4/-/aws4-1.13.2.tgz#0aa167216965ac9474ccfa83892cfb6b3e1e52ef"
   integrity sha512-lHe62zvbTB5eEABUVi/AwVh0ZKY9rMMDhmm+eeyuuUQbQ3+J+fONVQOZyj+DdrvD4BY33uYniyRJ4UJIaSKAfw==
 
-axios@1.18.1, axios@^1.18.1:
+axios@1.18.1:
   version "1.18.1"
   resolved "https://registry.npmjs.org/axios/-/axios-1.18.1.tgz#d63f9863bcd8938815c86f9e2abd380189d96dfe"
   integrity sha512-3nTvFlvpn9Zu/RkHUqtc7/+al4UpRW5az71ap5zccp6e8RAYEzhMTecX8Dz1wWDYrPpUoB1HAQEGEAEvUr7S9g==
@@ -5632,19 +5627,6 @@ chromedriver@151.0.5:
     "@testim/chrome-version" "^1.1.4"
     adm-zip "^0.6.0"
     axios "^1.19.0"
-    compare-versions "^6.1.1"
-    proxy-agent "^8.0.2"
-    proxy-from-env "^2.1.0"
-    tcp-port-used "^1.0.3"
-
-chromedriver@^150.0.0:
-  version "150.0.4"
-  resolved "https://registry.npmjs.org/chromedriver/-/chromedriver-150.0.4.tgz#c75f3da26fd803ddeae6183eeaadc8f3e48047b9"
-  integrity sha512-Yg2oXBONi1mqAMOG2ybwUneSvxIn04NF4qNAJ+yGO2H7WwX1WYLGQRHVHsbySEjIuqIyDmS1ZfAw6p0wtl43zQ==
-  dependencies:
-    "@testim/chrome-version" "^1.1.4"
-    adm-zip "^0.5.18"
-    axios "^1.18.1"
     compare-versions "^6.1.1"
     proxy-agent "^8.0.2"
     proxy-from-env "^2.1.0"
