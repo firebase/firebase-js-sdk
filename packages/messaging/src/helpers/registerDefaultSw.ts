@@ -22,7 +22,7 @@ import {
 } from '../util/constants';
 import { ERROR_FACTORY, ErrorCode } from '../util/errors';
 
-import { MessagingService } from '../messaging-service';
+import type { MessagingService } from '../messaging-service';
 
 export async function registerDefaultSw(
   messaging: MessagingService
@@ -59,6 +59,17 @@ export async function registerDefaultSw(
  * swRegistration.pushManager.subscribe() too soon after register(). The only
  * solution seems to be waiting for the service worker registration `state`
  * to become "active".
+ *
+ * The worker that is installing/waiting when this is first called can be
+ * replaced before it activates. For example registerDefaultSw() calls
+ * update() right after register(), which may install a new worker and drive
+ * the originally observed worker to the "redundant" state, where it never
+ * fires "activated". Watching only that first worker's statechange therefore
+ * hangs until the timeout even though a replacement worker activates
+ * successfully. To handle this we (1) resolve as soon as the registration has
+ * any active worker, (2) follow replacement workers via "updatefound", and
+ * (3) re-attach to the next incoming worker when the one we were watching
+ * becomes redundant.
  */
 async function waitForRegistrationActive(
   registration: ServiceWorkerRegistration
@@ -73,21 +84,54 @@ async function waitForRegistrationActive(
         ),
       DEFAULT_REGISTRATION_TIMEOUT
     );
-    const incomingSw = registration.installing || registration.waiting;
-    if (registration.active) {
+
+    let watchedSw: ServiceWorker | null = null;
+
+    const cleanup = (): void => {
       clearTimeout(rejectTimeout);
-      resolve();
-    } else if (incomingSw) {
-      incomingSw.onstatechange = ev => {
-        if ((ev.target as ServiceWorker)?.state === 'activated') {
-          incomingSw.onstatechange = null;
-          clearTimeout(rejectTimeout);
-          resolve();
-        }
-      };
-    } else {
-      clearTimeout(rejectTimeout);
-      reject(new Error('No incoming service worker found.'));
+      registration.removeEventListener('updatefound', onUpdateFound);
+      watchedSw?.removeEventListener('statechange', onStateChange);
+    };
+
+    // Resolve as soon as the registration has an active worker, regardless of
+    // which specific worker reached the "activated" state.
+    const resolveIfActive = (): boolean => {
+      if (registration.active) {
+        cleanup();
+        resolve();
+        return true;
+      }
+      return false;
+    };
+
+    // Watch a single incoming worker for state transitions.
+    const watch = (sw: ServiceWorker | null): void => {
+      watchedSw?.removeEventListener('statechange', onStateChange);
+      watchedSw = sw;
+      watchedSw?.addEventListener('statechange', onStateChange);
+    };
+
+    const onStateChange = (): void => {
+      if (resolveIfActive()) {
+        return;
+      }
+      // The worker we were watching was replaced and will never activate;
+      // follow the next incoming worker instead.
+      if (watchedSw?.state === 'redundant') {
+        watch(registration.installing || registration.waiting);
+      }
+    };
+
+    function onUpdateFound(): void {
+      watch(registration.installing);
+      resolveIfActive();
     }
+
+    if (resolveIfActive()) {
+      return;
+    }
+
+    registration.addEventListener('updatefound', onUpdateFound);
+    watch(registration.installing || registration.waiting);
   });
 }
