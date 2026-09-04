@@ -101,7 +101,7 @@ const config = {
   // disable watcher
   autoWatch: false,
 
-  // Doing 120 seconds to allow for the 20 second firestore tests
+  // Doing 120 seconds to allow for the 20 second firestore tests with 5 retries
   browserNoActivityTimeout: 120000,
   browserDisconnectTimeout: 120000,
   browserDisconnectTolerance: 2,
