@@ -17,46 +17,50 @@
 import { expect, use } from 'chai';
 import { match, restore, SinonStub, stub } from 'sinon';
 import sinonChai from 'sinon-chai';
+import { beforeAll, afterAll } from 'vitest';
 import {
   getDefaultEmulatorHost,
   getDefaultEmulatorHostnameAndPort
 } from '../src/defaults';
-import * as global from '../src/global';
+import { getGlobal } from '../src/global';
 
 use(sinonChai);
 
 describe('getDefaultEmulatorHost', () => {
-  after(() => {
-    delete global.getGlobal().__FIREBASE_DEFAULTS__;
+  afterAll(() => {
+    delete getGlobal().__FIREBASE_DEFAULTS__;
   });
 
-  context('with no config', () => {
+  describe('with no config', () => {
     it('returns undefined', () => {
       expect(getDefaultEmulatorHost('firestore')).to.be.undefined;
     });
   });
 
-  context('with no config and process.env undefined', () => {
-    before(() => {
-      stub(process, 'env').value(undefined);
-    });
-    after(() => {
-      restore();
-    });
+  describe('with no config and process.env undefined', () => {
     it('returns undefined and does not throw', () => {
-      expect(getDefaultEmulatorHost('firestore')).to.be.undefined;
-      expect(getDefaultEmulatorHost('firestore')).to.not.throw;
+      if (typeof process !== 'undefined') {
+        const envStub = stub(process, 'env').value(undefined);
+        try {
+          expect(getDefaultEmulatorHost('firestore')).to.be.undefined;
+          expect(getDefaultEmulatorHost('firestore')).to.not.throw;
+        } finally {
+          envStub.restore();
+        }
+      } else {
+        expect(getDefaultEmulatorHost('firestore')).to.be.undefined;
+        expect(getDefaultEmulatorHost('firestore')).to.not.throw;
+      }
     });
   });
 
-  context('with no config and no document or document.cookie throws', () => {
-    before(() => {
-      // In Node tests document will not exist
+  describe('with no config and no document or document.cookie throws', () => {
+    beforeAll(() => {
       if (typeof document !== 'undefined') {
         stub(document, 'cookie').get(() => new Error('aaaah'));
       }
     });
-    after(() => {
+    afterAll(() => {
       restore();
     });
     it('returns undefined and does not throw', () => {
@@ -65,14 +69,19 @@ describe('getDefaultEmulatorHost', () => {
     });
   });
 
-  context('with no config and something unexpected throws', () => {
+  describe('with no config and something unexpected throws', () => {
     let consoleInfoStub: SinonStub;
-    before(() => {
-      stub(global, 'getGlobal').throws(new Error('getGlobal threw!'));
+    beforeAll(() => {
+      Object.defineProperty(getGlobal(), '__FIREBASE_DEFAULTS__', {
+        get() {
+          throw new Error('getGlobal threw!');
+        },
+        configurable: true
+      });
       consoleInfoStub = stub(console, 'info');
     });
-    after(() => {
-      delete process.env.__FIREBASE_DEFAULTS__;
+    afterAll(() => {
+      delete getGlobal().__FIREBASE_DEFAULTS__;
       restore();
     });
     it('returns undefined and calls console.info with the error', () => {
@@ -81,9 +90,9 @@ describe('getDefaultEmulatorHost', () => {
     });
   });
 
-  context('with global config not listing the emulator', () => {
-    before(() => {
-      global.getGlobal().__FIREBASE_DEFAULTS__ = {
+  describe('with global config not listing the emulator', () => {
+    beforeAll(() => {
+      getGlobal().__FIREBASE_DEFAULTS__ = {
         emulatorHosts: {
           /* no firestore */
           database: '127.0.0.1:8080'
@@ -96,9 +105,9 @@ describe('getDefaultEmulatorHost', () => {
     });
   });
 
-  context('with IPv4 hostname in global config', () => {
-    before(() => {
-      global.getGlobal().__FIREBASE_DEFAULTS__ = {
+  describe('with IPv4 hostname in global config', () => {
+    beforeAll(() => {
+      getGlobal().__FIREBASE_DEFAULTS__ = {
         emulatorHosts: {
           firestore: '127.0.0.1:8080'
         }
@@ -110,9 +119,9 @@ describe('getDefaultEmulatorHost', () => {
     });
   });
 
-  context('with quoted IPv6 hostname in global config', () => {
-    before(() => {
-      global.getGlobal().__FIREBASE_DEFAULTS__ = {
+  describe('with quoted IPv6 hostname in global config', () => {
+    beforeAll(() => {
+      getGlobal().__FIREBASE_DEFAULTS__ = {
         emulatorHosts: {
           firestore: '[::1]:8080'
         }
@@ -126,19 +135,19 @@ describe('getDefaultEmulatorHost', () => {
 });
 
 describe('getDefaultEmulatorHostnameAndPort', () => {
-  after(() => {
-    delete global.getGlobal().__FIREBASE_DEFAULTS__;
+  afterAll(() => {
+    delete getGlobal().__FIREBASE_DEFAULTS__;
   });
 
-  context('with no config', () => {
+  describe('with no config', () => {
     it('returns undefined', () => {
       expect(getDefaultEmulatorHostnameAndPort('firestore')).to.be.undefined;
     });
   });
 
-  context('with global config not listing the emulator', () => {
-    before(() => {
-      global.getGlobal().__FIREBASE_DEFAULTS__ = {
+  describe('with global config not listing the emulator', () => {
+    beforeAll(() => {
+      getGlobal().__FIREBASE_DEFAULTS__ = {
         emulatorHosts: {
           /* no firestore */
           database: '127.0.0.1:8080'
@@ -151,9 +160,9 @@ describe('getDefaultEmulatorHostnameAndPort', () => {
     });
   });
 
-  context('with IPv4 hostname in global config', () => {
-    before(() => {
-      global.getGlobal().__FIREBASE_DEFAULTS__ = {
+  describe('with IPv4 hostname in global config', () => {
+    beforeAll(() => {
+      getGlobal().__FIREBASE_DEFAULTS__ = {
         emulatorHosts: {
           firestore: '127.0.0.1:8080'
         }
@@ -168,9 +177,9 @@ describe('getDefaultEmulatorHostnameAndPort', () => {
     });
   });
 
-  context('with quoted IPv6 hostname in global config', () => {
-    before(() => {
-      global.getGlobal().__FIREBASE_DEFAULTS__ = {
+  describe('with quoted IPv6 hostname in global config', () => {
+    beforeAll(() => {
+      getGlobal().__FIREBASE_DEFAULTS__ = {
         emulatorHosts: {
           firestore: '[::1]:8080'
         }
