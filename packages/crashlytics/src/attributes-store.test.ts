@@ -15,11 +15,13 @@
  * limitations under the License.
  */
 
-import { AttributesStore, ATTR_KEY_INSTALLATION_ID } from './attributes-store';
+import {
+  AttributesStore,
+  ATTR_KEY_INSTALLATION_ID,
+  LOG_ATTR_KEY
+} from './attributes-store';
 import { _FirebaseInstallationsInternal } from '@firebase/installations';
 import { expect } from 'chai';
-import * as sinon from 'sinon';
-import { trace } from '@opentelemetry/api';
 import { AUTO_CONSTANTS } from './auto-constants';
 
 describe('AttributesStore', () => {
@@ -327,48 +329,24 @@ describe('AttributesStore', () => {
   });
 
   describe('getLogAttributes', () => {
-    let getActiveSpanStub: sinon.SinonStub;
-
-    beforeEach(() => {
-      getActiveSpanStub = sinon.stub(trace, 'getActiveSpan');
-    });
-
-    afterEach(() => {
-      getActiveSpanStub.restore();
-    });
-
-    it('should include projectId in trace context if trace and span are active', () => {
-      const mockSpanContext = {
-        traceId: 'mock-trace-id-1234567890abcdef',
-        spanId: 'mock-span-id-123'
-      };
-      const mockSpan = {
-        spanContext: () => mockSpanContext
-      };
-      getActiveSpanStub.returns(mockSpan);
-
-      const store = new AttributesStore({ projectId: 'my-project-123' } as any);
+    it('should return session id, app version, route path, and custom attributes', () => {
+      const store = new AttributesStore(
+        { projectId: 'my-project-123' } as any,
+        {
+          appVersion: '1.0.0',
+          customAttributes: { custom: 'value' }
+        }
+      );
+      store.setSessionId('sess-123');
+      store.setRoutePathProvider(() => '/home');
 
       const logAttributes = store.getLogAttributes();
-      expect(logAttributes).to.include({
-        'logging.googleapis.com/trace':
-          'projects/my-project-123/traces/mock-trace-id-1234567890abcdef',
-        'logging.googleapis.com/spanId': 'mock-span-id-123'
+      expect(logAttributes).to.deep.equal({
+        custom: 'value',
+        [LOG_ATTR_KEY.APP_VERSION]: '1.0.0',
+        [LOG_ATTR_KEY.SESSION_ID]: 'sess-123',
+        [LOG_ATTR_KEY.ROUTE_PATH]: '/home'
       });
-    });
-
-    it('should not include trace context if getActiveSpan returns undefined', () => {
-      getActiveSpanStub.returns(undefined);
-
-      const store = new AttributesStore({ projectId: 'my-project-123' } as any);
-
-      const logAttributes = store.getLogAttributes();
-      expect(logAttributes).not.to.have.property(
-        'logging.googleapis.com/trace'
-      );
-      expect(logAttributes).not.to.have.property(
-        'logging.googleapis.com/spanId'
-      );
     });
   });
 });

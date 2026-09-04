@@ -16,7 +16,7 @@
  */
 
 import { Provider } from '@firebase/component';
-import { AttributeValue, trace } from '@opentelemetry/api';
+import { AttributeValue } from '@opentelemetry/api';
 import { AnyValueMap } from '@opentelemetry/api-logs';
 import { _FirebaseInstallationsInternal } from '@firebase/installations';
 import { CrashlyticsOptions } from './public-types';
@@ -133,17 +133,6 @@ export class AttributesStore {
     }
     if (this._sessionId) {
       attributes[LOG_ATTR_KEY.SESSION_ID] = this._sessionId;
-    }
-
-    const activeSpanContext = trace.getActiveSpan()?.spanContext();
-    if (
-      activeSpanContext?.traceId &&
-      activeSpanContext?.spanId &&
-      this._projectId
-    ) {
-      attributes[LOG_ATTR_KEY.TRACE] =
-        `projects/${this._projectId}/traces/${activeSpanContext.traceId}`;
-      attributes[LOG_ATTR_KEY.SPAN_ID] = activeSpanContext.spanId;
     }
 
     const path = this._routePathProvider?.();

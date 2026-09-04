@@ -101,3 +101,25 @@ export function flush(crashlytics: Crashlytics): Promise<void> {
       console.error('Error flushing logs from Firebase Crashlytics:', err);
     });
 }
+
+/**
+ * Determines whether a given URL string targets the Firebase Crashlytics telemetry ingestion endpoint.
+ * Used to automatically drop self-referential telemetry records (e.g. from ResourceTiming or Fetch instrumentations).
+ *
+ * @internal
+ */
+export function isTelemetryUrl(url: unknown, customEndpoint?: string): boolean {
+  if (typeof url !== 'string' || !url) {
+    return false;
+  }
+  if (
+    url.startsWith('https://firebasetelemetry.googleapis.com') ||
+    url.startsWith('http://firebasetelemetry.googleapis.com')
+  ) {
+    return true;
+  }
+  if (customEndpoint && url.startsWith(customEndpoint)) {
+    return true;
+  }
+  return false;
+}
