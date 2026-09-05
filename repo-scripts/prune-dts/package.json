@@ -38,7 +38,7 @@
     "reportDir": "./coverage/node"
   },
   "devDependencies": {
-    "@types/eslint": "7.29.0",
+    "@types/eslint": "9.6.1",
     "@types/prettier": "2.7.3",
     "@types/tmp": "0.2.6",
     "@types/yargs": "17.0.33",
