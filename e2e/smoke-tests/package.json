@@ -17,21 +17,21 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "firebase": "12.17.1"
+    "firebase": "12.18.0"
   },
   "devDependencies": {
     "@babel/core": "8.0.1",
     "@babel/preset-env": "8.0.2",
     "@babel/preset-typescript": "8.0.1",
     "@types/jest": "30.0.0",
-    "babel-jest": "30.4.1",
+    "babel-jest": "30.5.1",
     "babel-loader": "8.4.1",
-    "jest": "30.4.2",
-    "jest-environment-jsdom": "30.4.1",
+    "jest": "30.5.1",
+    "jest-environment-jsdom": "30.5.1",
     "ts-node": "10.9.2",
     "typescript": "5.5.4",
-    "webpack": "5.109.2",
-    "webpack-cli": "7.2.2",
+    "webpack": "5.110.3",
+    "webpack-cli": "7.2.3",
     "webpack-dev-server": "6.0.0"
   },
   "engines": {
