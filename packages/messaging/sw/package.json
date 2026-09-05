@@ -1,6 +1,7 @@
 {
   "name": "@firebase/messaging-sw",
   "description": "",
+  "license": "Apache-2.0",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "../dist/index.sw.cjs",
   "module": "../dist/esm/index.sw.esm.js",

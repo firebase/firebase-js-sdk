@@ -1,5 +1,6 @@
 {
   "name": "firebase/compat",
+  "license": "Apache-2.0",
   "main": "dist/index.node.cjs",
   "browser": "dist/esm/index.esm.js",
   "module": "dist/esm/index.esm.js",
