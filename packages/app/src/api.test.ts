@@ -26,7 +26,9 @@ import {
   getApp,
   registerVersion,
   setLogLevel,
-  onLog
+  onLog,
+  offAppInit,
+  onAppInit
 } from './api';
 import { DEFAULT_ENTRY_NAME } from './constants';
 import { FirebaseServerAppSettings, _FirebaseService } from './public-types';
@@ -446,6 +448,67 @@ describe('API tests', () => {
 
       expect(apps.length).to.equal(1);
       expect(apps[0]).to.equal(app2);
+    });
+  });
+
+  describe('onAppInit', () => {
+    it('calls onAppInit callback', async () => {
+      const initCb = stub();
+      onAppInit(initCb);
+      expect(initCb).not.to.have.been.called;
+      const app = initializeApp({
+        apiKey: 'APIKEY'
+      });
+      expect(initCb).to.have.been.calledOnce;
+      await deleteApp(app);
+    });
+    it('calls multiple onAppInit callbacks', async () => {
+      const initCb1 = stub();
+      const initCb2 = stub();
+      onAppInit(initCb1);
+      onAppInit(initCb2);
+      expect(initCb1).not.to.have.been.called;
+      expect(initCb2).not.to.have.been.called;
+      const app = initializeApp({
+        apiKey: 'APIKEY'
+      });
+      expect(initCb1).to.have.been.calledOnce;
+      expect(initCb2).to.have.been.calledOnce;
+      await deleteApp(app);
+    });
+    it('successfully de-registers callback from onAppInit', async () => {
+      const callback = stub();
+      onAppInit(callback);
+      expect(callback).not.to.have.been.called;
+      offAppInit(callback);
+      const app = initializeApp({
+        apiKey: 'APIKEY'
+      });
+      expect(callback).not.to.have.been.called;
+      await deleteApp(app);
+    });
+
+    it('calls onInitApp for each app', async () => {
+      const callback = stub();
+      onAppInit(callback);
+      expect(callback).not.to.have.been.called;
+      const app1 = initializeApp(
+        {
+          apiKey: 'APIKEY'
+        },
+        { name: 'app1' }
+      );
+      const app2 = initializeApp(
+        {
+          apiKey: 'APIKEY'
+        },
+        { name: 'app2' }
+      );
+      expect(callback).to.have.been.calledTwice;
+      expect(callback).to.have.been.calledWith(app1);
+      expect(callback).to.have.been.calledWith(app2);
+      await deleteApp(app1);
+      await deleteApp(app2);
     });
   });
 
