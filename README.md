@@ -49,7 +49,7 @@ https://yarnpkg.com/en/docs/install
 
 This repo currently supports building with yarn `1.x`. For instance, after installing yarn, run
 ```bash
-$ yarn set version 1.22.11
+$ yarn set version 1.22.22
 ```
 
 #### Java
@@ -67,7 +67,7 @@ $ java -version
 ```
 
 Your `node` version should be `20.19.0` or greater, your `yarn` version should
-be between `1.0.0` and `1.22.11`, and your `java` version should be `11.0` or greater.
+be `^1.22.22` (Yarn 1.x), and your `java` version should be `11.0` or greater.
 
 _NOTE: We will update the documentation as new versions are required, however
 for continuing development on the SDK, staying up to date on the stable versions
