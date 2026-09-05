@@ -26,7 +26,7 @@
     "@rushstack/node-core-library": "5.24.0",
     "@rushstack/ts-command-line": "5.3.13",
     "tslib": "^2.1.0",
-    "js-yaml": "4.3.1"
+    "js-yaml": "5.2.2"
   },
   "devDependencies": {
     "@types/js-yaml": "4.0.9",
