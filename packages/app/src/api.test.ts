@@ -417,10 +417,13 @@ describe('API tests', () => {
     });
 
     it('does not throw on a nonexistent App (default name) if a defaults object exists', () => {
-      global.__FIREBASE_DEFAULTS__ = { config: { apiKey: 'abcd' } };
-      const app = getApp();
-      expect(app.options.apiKey).to.equal('abcd');
-      global.__FIREBASE_DEFAULTS__ = undefined;
+      globalThis.__FIREBASE_DEFAULTS__ = { config: { apiKey: 'abcd' } };
+      try {
+        const app = getApp();
+        expect(app.options.apiKey).to.equal('abcd');
+      } finally {
+        globalThis.__FIREBASE_DEFAULTS__ = undefined;
+      }
     });
   });
 
