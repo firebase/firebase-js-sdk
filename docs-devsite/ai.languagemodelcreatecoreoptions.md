@@ -62,6 +62,7 @@ monitor?: (monitor: LanguageModelDownloadMonitor) => void;
 
 > Warning: This API is now obsolete.
 > 
+> - Sampling parameters are deprecated. It is recommended to omit these parameters and let the model manage sampling automatically.
 > 
 
 <b>Signature:</b>
@@ -74,6 +75,7 @@ temperature?: number;
 
 > Warning: This API is now obsolete.
 > 
+> - Sampling parameters are deprecated. It is recommended to omit these parameters and let the model manage sampling automatically.
 > 
 
 <b>Signature:</b>

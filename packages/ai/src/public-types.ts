@@ -24,6 +24,7 @@ import {
   Part,
   RequestOptions,
   SingleRequestOptions,
+  StartChatParams,
   StartTemplateChatParams
 } from './types';
 
@@ -122,7 +123,45 @@ export interface AIOptions {
 }
 
 /**
- * Interface representing a `ChatSession` class for use with server
+ * Interface representing a `ChatSession` class that enables sending
+ * chat messages and stores a history of sent and received messages so far.
+ *
+ * @public
+ */
+export interface ChatSession {
+  model: string;
+  params?: StartChatParams;
+  requestOptions?: RequestOptions;
+
+  /**
+   * Sends a chat message and receives a non-streaming
+   * {@link GenerateContentResult}
+   */
+  sendMessage(
+    request: string | Array<string | Part>,
+    singleRequestOptions?: SingleRequestOptions
+  ): Promise<GenerateContentResult>;
+
+  /**
+   * Sends a chat message and receives the response as a
+   * {@link GenerateContentStreamResult} containing an iterable stream
+   * and a response promise.
+   */
+  sendMessageStream(
+    request: string | Array<string | Part>,
+    singleRequestOptions?: SingleRequestOptions
+  ): Promise<GenerateContentStreamResult>;
+
+  /**
+   * Gets the chat history so far. Blocked prompts are not added to history.
+   * Neither blocked candidates nor the prompts that generated them are added
+   * to history.
+   */
+  getHistory(): Promise<Content[]>;
+}
+
+/**
+ * Interface representing a `TemplateChatSession` class for use with server
  * prompt templates that enables sending chat messages and stores
  * history of sent and received messages so far.
  *
