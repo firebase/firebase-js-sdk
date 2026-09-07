@@ -136,7 +136,7 @@ order to run the tests, you will need to update your bucket's CORS rules.
     }
 ]
 ```
-1. Install `gsutil` from https://cloud.google.com/storage/docs/gsutil_install
+1. Install `gcloud storage` from https://docs.cloud.google.com/sdk/docs/install-sdk
 1. You will need to login if this is your first time using `gcloud storage`. Run `gcloud auth login`
 and follow the instructions to login.
 1. Run `gcloud storage buckets update gs://<your-cloud-storage-bucket> --cors-file=cors.json`
