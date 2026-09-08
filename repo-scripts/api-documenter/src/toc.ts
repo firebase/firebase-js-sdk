@@ -79,8 +79,8 @@ export function generateToc({
     yaml.dump(
       { toc },
       {
-        quotingType: '"',
-        noArrayIndent: true
+        quoteStyle: 'double',
+        seqNoIndent: true
       }
     )
   );
