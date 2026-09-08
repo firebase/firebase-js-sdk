@@ -40,6 +40,11 @@ export interface GenerationConfig
 
 ## GenerationConfig.candidateCount
 
+> Warning: This API is now obsolete.
+> 
+> Not supported in newer Gemini models (Gemini 2.0+). Make parallel requests instead.
+> 
+
 <b>Signature:</b>
 
 ```typescript
@@ -47,6 +52,11 @@ candidateCount?: number;
 ```
 
 ## GenerationConfig.frequencyPenalty
+
+> Warning: This API is now obsolete.
+> 
+> Not supported in newer Gemini models (Gemini 2.5+). Omit this parameter.
+> 
 
 <b>Signature:</b>
 
@@ -73,6 +83,11 @@ maxOutputTokens?: number;
 ```
 
 ## GenerationConfig.presencePenalty
+
+> Warning: This API is now obsolete.
+> 
+> Not supported in newer Gemini models (Gemini 2.5+). Omit this parameter.
+> 
 
 <b>Signature:</b>
 
@@ -152,6 +167,11 @@ stopSequences?: string[];
 
 ## GenerationConfig.temperature
 
+> Warning: This API is now obsolete.
+> 
+> Deprecated for Gemini 3 models. Omit this parameter and let the model manage sampling automatically.
+> 
+
 <b>Signature:</b>
 
 ```typescript
@@ -170,6 +190,11 @@ thinkingConfig?: ThinkingConfig;
 
 ## GenerationConfig.topK
 
+> Warning: This API is now obsolete.
+> 
+> Deprecated for Gemini 3 models. Omit this parameter and let the model manage sampling automatically.
+> 
+
 <b>Signature:</b>
 
 ```typescript
@@ -177,6 +202,11 @@ topK?: number;
 ```
 
 ## GenerationConfig.topP
+
+> Warning: This API is now obsolete.
+> 
+> Deprecated for Gemini 3 models. Omit this parameter and let the model manage sampling automatically.
+> 
 
 <b>Signature:</b>
 

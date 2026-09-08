@@ -136,13 +136,31 @@ export interface ImageConfig {
  * @public
  */
 export interface GenerationConfig {
+  /**
+   * @deprecated Not supported in newer Gemini models (Gemini 2.0+). Make parallel requests instead.
+   */
   candidateCount?: number;
   stopSequences?: string[];
   maxOutputTokens?: number;
+  /**
+   * @deprecated Deprecated for Gemini 3 models. Omit this parameter and let the model manage sampling automatically.
+   */
   temperature?: number;
+  /**
+   * @deprecated Deprecated for Gemini 3 models. Omit this parameter and let the model manage sampling automatically.
+   */
   topP?: number;
+  /**
+   * @deprecated Deprecated for Gemini 3 models. Omit this parameter and let the model manage sampling automatically.
+   */
   topK?: number;
+  /**
+   * @deprecated Not supported in newer Gemini models (Gemini 2.5+). Omit this parameter.
+   */
   presencePenalty?: number;
+  /**
+   * @deprecated Not supported in newer Gemini models (Gemini 2.5+). Omit this parameter.
+   */
   frequencyPenalty?: number;
 
   /**
@@ -212,12 +230,16 @@ export interface LiveGenerationConfig {
    */
   maxOutputTokens?: number;
   /**
+   * @deprecated Deprecated for Gemini 3 models. Omit this parameter and let the model manage sampling automatically.
+   *
    * Controls the degree of randomness in token selection. A `temperature` value of 0 means that the highest
    * probability tokens are always selected. In this case, responses for a given prompt are mostly
    * deterministic, but a small amount of variation is still possible.
    */
   temperature?: number;
   /**
+   * @deprecated Deprecated for Gemini 3 models. Omit this parameter and let the model manage sampling automatically.
+   *
    * Changes how the model selects tokens for output. Tokens are
    * selected from the most to least probable until the sum of their probabilities equals the `topP`
    * value. For example, if tokens A, B, and C have probabilities of 0.3, 0.2, and 0.1 respectively
@@ -226,6 +248,8 @@ export interface LiveGenerationConfig {
    */
   topP?: number;
   /**
+   * @deprecated Deprecated for Gemini 3 models. Omit this parameter and let the model manage sampling automatically.
+   *
    * Changes how the model selects token for output. A `topK` value of 1 means the select token is
    * the most probable among all tokens in the model's vocabulary, while a `topK` value 3 means that
    * the next token is selected from among the 3 most probably using probabilities sampled. Tokens
@@ -234,10 +258,14 @@ export interface LiveGenerationConfig {
    */
   topK?: number;
   /**
+   * @deprecated Not supported in newer Gemini models (Gemini 2.5+). Omit this parameter.
+   *
    * Positive penalties.
    */
   presencePenalty?: number;
   /**
+   * @deprecated Not supported in newer Gemini models (Gemini 2.5+). Omit this parameter.
+   *
    * Frequency penalties.
    */
   frequencyPenalty?: number;
