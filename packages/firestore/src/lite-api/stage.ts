@@ -1123,15 +1123,17 @@ export class Upsert extends Stage {
 
   private readonly collectionPath?: string;
   private readonly documentIdExpr?: Expression;
-  private readonly transforms: Map<string, Expression>;
+  private readonly additionalFields: Map<string, Expression>;
 
   constructor(
-    transforms: AliasedExpression[],
-    options: Omit<UpsertStageOptions, 'transforms'> = {}
+    additionalFields: AliasedExpression[] = [],
+    options: UpsertStageOptions = {}
   ) {
     const { collection, documentIdExpression, ...rest } = options;
     super(rest);
-    this.transforms = selectablesToMap(transforms);
+    const resolvedFields =
+      options.additionalFields ?? options.transforms ?? additionalFields;
+    this.additionalFields = selectablesToMap(resolvedFields);
     if (collection) {
       this.collectionPath =
         typeof collection === 'string' ? collection : collection.path;
@@ -1158,7 +1160,7 @@ export class Upsert extends Stage {
       options['document_id'] = this.documentIdExpr._toProto(serializer);
     }
 
-    const args = [toMapValue(serializer, this.transforms)];
+    const args = [toMapValue(serializer, this.additionalFields)];
 
     return {
       ...proto,
@@ -1169,7 +1171,7 @@ export class Upsert extends Stage {
 
   _readUserData(context: ParseContext): void {
     super._readUserData(context);
-    readUserDataHelper(this.transforms, context);
+    readUserDataHelper(this.additionalFields, context);
     if (this.documentIdExpr) {
       readUserDataHelper(this.documentIdExpr, context);
     }

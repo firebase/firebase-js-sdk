@@ -2647,6 +2647,39 @@ apiDescribe.skipClassic('Pipelines', persistence => {
         });
       });
 
+      it('can upsert with additionalFields provided in options', async () => {
+        const targetColName = randomCol.id + '_target_upsert_options';
+        const targetColRef = collection(firestore, targetColName);
+
+        const res = await execute({
+          pipeline: firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .where(equal(field('__name__').documentId(), 'book1'))
+            .addFields(constant('upserted_opt_id').as('targetId'))
+            .upsert([], {
+              collection: targetColRef,
+              documentIdExpression: 'targetId',
+              additionalFields: [
+                constant('Options Genre').as('genre'),
+                constant('Options Title').as('title')
+              ]
+            }),
+          atomic: true
+        });
+        expectResults(res, { documents_modified: 1 });
+
+        const docSnap = await getDoc(doc(targetColRef, 'upserted_opt_id'));
+        expect(docSnap.exists()).to.be.true;
+        expect(docSnap.get('title')).to.equal('Options Title');
+        expect(docSnap.get('genre')).to.equal('Options Genre');
+
+        await execute({
+          pipeline: firestore.pipeline().collection(targetColRef.path).delete(),
+          atomic: true
+        });
+      });
+
       it('can execute pipeline with literals stage source', async () => {
         const res = await execute(
           firestore
@@ -2683,21 +2716,24 @@ apiDescribe.skipClassic('Pipelines', persistence => {
         expectResults(res, { documents_modified: 1 });
       });
 
-      it('can perform non-transactional upsert from literals source', async () => {
+      it('rejects non-transactional upsert from literals source', async () => {
         const targetColRef = collection(
           firestore,
           randomCol.id + '_lit_upsert'
         );
-        const res = await execute(
-          firestore
-            .pipeline()
-            .literals({ id: 'doc1', title: 'Literal Upserted' })
-            .upsert([constant('Literal Upserted').as('title')], {
-              collection: targetColRef,
-              documentIdExpression: 'id'
-            })
+        await expect(
+          execute(
+            firestore
+              .pipeline()
+              .literals({ id: 'doc1', title: 'Literal Upserted' })
+              .upsert([constant('Literal Upserted').as('title')], {
+                collection: targetColRef,
+                documentIdExpression: 'id'
+              })
+          )
+        ).to.be.rejectedWith(
+          /The non-transactional DML operation was rejected/
         );
-        expectResults(res, { documents_modified: 1 });
       });
     });
   });

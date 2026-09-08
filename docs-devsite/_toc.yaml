@@ -676,6 +676,8 @@ toc:
     path: /docs/reference/js/firestore_lite_pipelines.ordering.md
   - title: Pipeline
     path: /docs/reference/js/firestore_lite_pipelines.pipeline.md
+  - title: PipelineExecuteOptions
+    path: /docs/reference/js/firestore_lite_pipelines.pipelineexecuteoptions.md
   - title: PipelineResult
     path: /docs/reference/js/firestore_lite_pipelines.pipelineresult.md
   - title: PipelineSnapshot
