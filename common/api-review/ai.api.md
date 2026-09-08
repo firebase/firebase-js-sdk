@@ -993,20 +993,20 @@ export interface LatLng {
 // @beta
 export interface LiveGenerationConfig {
     contextWindowCompression?: ContextWindowCompressionConfig;
-    // @deprecated (undocumented)
+    // @deprecated
     frequencyPenalty?: number;
     inputAudioTranscription?: AudioTranscriptionConfig;
     maxOutputTokens?: number;
     outputAudioTranscription?: AudioTranscriptionConfig;
-    // @deprecated (undocumented)
+    // @deprecated
     presencePenalty?: number;
     responseModalities?: ResponseModality[];
     speechConfig?: SpeechConfig;
-    // @deprecated (undocumented)
+    // @deprecated
     temperature?: number;
-    // @deprecated (undocumented)
+    // @deprecated
     topK?: number;
-    // @deprecated (undocumented)
+    // @deprecated
     topP?: number;
 }
 
