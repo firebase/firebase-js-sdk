@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,22 +15,6 @@
  * limitations under the License.
  */
 
-const karma = require('karma');
-const path = require('path');
-const karmaBase = require('../../config/karma.base');
+import createBaseConfig from '../../config/vitest.base.mjs';
 
-const files = ['src/**/*.test.ts'];
-
-module.exports = function (config) {
-  config.set({
-    ...karmaBase,
-    // files to load into karma
-    files: files,
-    preprocessors: { '**/*.ts': ['webpack', 'sourcemap'] },
-    // frameworks to use
-    // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
-    frameworks: ['mocha']
-  });
-};
-
-module.exports.files = files;
+export default createBaseConfig(import.meta.url);
