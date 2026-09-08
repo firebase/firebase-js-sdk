@@ -19,7 +19,7 @@
     "eslint": "8.57.1",
     "eslint-plugin-unused-imports": "3.2.0",
     "prettier": "2.8.8",
-    "tmp": "0.2.6",
+    "tmp": "0.2.7",
     "ts-morph": "28.0.0",
     "yargs": "17.7.2"
   },
