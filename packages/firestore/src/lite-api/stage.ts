@@ -20,7 +20,8 @@ import { OptionsUtil } from '../core/options_util';
 import {
   ApiClientObjectMap,
   firestoreV1ApiClientInterfaces,
-  Stage as ProtoStage
+  Stage as ProtoStage,
+  Value as ProtoValue
 } from '../protos/firestore_proto_api';
 import { toNumber } from '../remote/number_serializer';
 import {
@@ -1066,7 +1067,7 @@ export class Insert extends Stage {
   private readonly documentIdExpr?: Expression;
 
   constructor(options: InsertStageOptions = {}) {
-    const { collection, documentId, ...rest } = options;
+    const { collection, documentIdExpression, ...rest } = options;
     super(rest);
     if (collection) {
       this.collectionPath =
@@ -1075,9 +1076,11 @@ export class Insert extends Stage {
         this.collectionPath = '/' + this.collectionPath;
       }
     }
-    if (documentId) {
+    if (documentIdExpression) {
       this.documentIdExpr =
-        typeof documentId === 'string' ? field(documentId) : documentId;
+        typeof documentIdExpression === 'string'
+          ? field(documentIdExpression)
+          : documentIdExpression;
     }
   }
 
@@ -1126,7 +1129,7 @@ export class Upsert extends Stage {
     transforms: AliasedExpression[],
     options: Omit<UpsertStageOptions, 'transforms'> = {}
   ) {
-    const { collection, documentId, ...rest } = options;
+    const { collection, documentIdExpression, ...rest } = options;
     super(rest);
     this.transforms = selectablesToMap(transforms);
     if (collection) {
@@ -1136,9 +1139,11 @@ export class Upsert extends Stage {
         this.collectionPath = '/' + this.collectionPath;
       }
     }
-    if (documentId) {
+    if (documentIdExpression) {
       this.documentIdExpr =
-        typeof documentId === 'string' ? field(documentId) : documentId;
+        typeof documentIdExpression === 'string'
+          ? field(documentIdExpression)
+          : documentIdExpression;
     }
   }
 

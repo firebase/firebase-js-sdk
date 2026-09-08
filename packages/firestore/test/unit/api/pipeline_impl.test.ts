@@ -379,7 +379,7 @@ describe('stage serialization', () => {
       await execute(
         firestore.pipeline().collection('foo').insert({
           collection: 'customers',
-          documentId: 'idField'
+          documentIdExpression: 'idField'
         })
       );
 
@@ -408,7 +408,7 @@ describe('stage serialization', () => {
           .collection('foo')
           .insert({
             collection: targetColRef,
-            documentId: constant('fixedId')
+            documentIdExpression: constant('fixedId')
           })
       );
 
@@ -433,7 +433,7 @@ describe('stage serialization', () => {
           .pipeline()
           .collection('foo')
           .insert({
-            documentId: field('otherId')
+            documentIdExpression: field('otherId')
           })
       );
       const req2 = spy2.args[0][
@@ -455,7 +455,7 @@ describe('stage serialization', () => {
           .collection('foo')
           .upsert([constant('Alice').as('name')], {
             collection: 'customers',
-            documentId: 'idField'
+            documentIdExpression: 'idField'
           })
       );
 

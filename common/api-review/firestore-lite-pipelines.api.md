@@ -1605,7 +1605,7 @@ elseValue: unknown
 // @beta
 export type InsertStageOptions = StageOptions & {
     collection?: string | Query;
-    documentId?: string | Expression;
+    documentIdExpression?: string | Expression;
 };
 
 // @public
@@ -2923,7 +2923,7 @@ export type UnnestStageOptions = StageOptions & {
 // @beta
 export type UpsertStageOptions = StageOptions & {
     collection?: string | Query;
-    documentId?: string | Expression;
+    documentIdExpression?: string | Expression;
 };
 
 // @public
