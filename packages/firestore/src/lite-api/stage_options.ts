@@ -460,6 +460,14 @@ export type UpsertStageOptions = StageOptions & {
    * The document ID expression or string.
    */
   documentIdExpression?: string | Expression;
+  /**
+   * The list of additional fields / transformations to apply.
+   */
+  additionalFields?: AliasedExpression[];
+  /**
+   * @deprecated Use `additionalFields` instead.
+   */
+  transforms?: AliasedExpression[];
 };
 
 /**

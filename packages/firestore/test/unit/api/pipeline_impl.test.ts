@@ -444,7 +444,7 @@ describe('stage serialization', () => {
       });
     });
 
-    it('serializes upsert stage with transforms and options', async () => {
+    it('serializes upsert stage with additional fields and options', async () => {
       const firestore = newTestFirestore();
       const spy = fakePipelineResponse(firestore);
 
@@ -480,7 +480,7 @@ describe('stage serialization', () => {
       });
     });
 
-    it('serializes upsert stage with multiple transforms', async () => {
+    it('serializes upsert stage with multiple additional fields', async () => {
       const firestore = newTestFirestore();
       const spy = fakePipelineResponse(firestore);
 
@@ -500,6 +500,52 @@ describe('stage serialization', () => {
       expect(upsertStage?.args?.[0]?.mapValue?.fields).to.deep.equal({
         name: { stringValue: 'Bob' },
         finalScore: { fieldReferenceValue: 'score' }
+      });
+    });
+
+    it('serializes upsert stage with additionalFields in options', async () => {
+      const firestore = newTestFirestore();
+      const spy = fakePipelineResponse(firestore);
+
+      await execute(
+        firestore
+          .pipeline()
+          .collection('foo')
+          .upsert([], {
+            collection: 'customers',
+            additionalFields: [constant('Alice').as('name')]
+          })
+      );
+
+      const req = spy.args[0][
+        EXECUTE_PIPELINE_REQUEST
+      ] as ProtoExecutePipelineRequest;
+      const upsertStage = req.structuredPipeline?.pipeline?.stages?.[1];
+      expect(upsertStage?.args?.[0]?.mapValue?.fields).to.deep.equal({
+        name: { stringValue: 'Alice' }
+      });
+    });
+
+    it('serializes upsert stage with deprecated transforms in options', async () => {
+      const firestore = newTestFirestore();
+      const spy = fakePipelineResponse(firestore);
+
+      await execute(
+        firestore
+          .pipeline()
+          .collection('foo')
+          .upsert([], {
+            collection: 'customers',
+            transforms: [constant('Alice').as('name')]
+          })
+      );
+
+      const req = spy.args[0][
+        EXECUTE_PIPELINE_REQUEST
+      ] as ProtoExecutePipelineRequest;
+      const upsertStage = req.structuredPipeline?.pipeline?.stages?.[1];
+      expect(upsertStage?.args?.[0]?.mapValue?.fields).to.deep.equal({
+        name: { stringValue: 'Alice' }
       });
     });
   });

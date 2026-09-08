@@ -33,6 +33,8 @@ export declare class PipelineSource<PipelineType>
 |  [database(options)](./firestore_lite_pipelines.pipelinesource.md#pipelinesourcedatabase) |  | Returns all documents from the entire database. |
 |  [documents(docs)](./firestore_lite_pipelines.pipelinesource.md#pipelinesourcedocuments) |  | Set the pipeline's source to the documents specified by the given paths and DocumentReferences. |
 |  [documents(options)](./firestore_lite_pipelines.pipelinesource.md#pipelinesourcedocuments) |  | Set the pipeline's source to the documents specified by the given paths and DocumentReferences. |
+|  [literals(document, additionalDocuments)](./firestore_lite_pipelines.pipelinesource.md#pipelinesourceliterals) |  | Set the pipeline's source to in-memory literal document objects. |
+|  [literals(options)](./firestore_lite_pipelines.pipelinesource.md#pipelinesourceliterals) |  | Set the pipeline's source to in-memory literal document objects with options. |
 
 ## PipelineSource.collection()
 
@@ -218,4 +220,48 @@ PipelineType
 #### Exceptions
 
 `FirestoreError` Thrown if any of the provided DocumentReferences target a different project or database than the pipeline.
+
+## PipelineSource.literals()
+
+Set the pipeline's source to in-memory literal document objects.
+
+<b>Signature:</b>
+
+```typescript
+literals(
+    document: Record<string, unknown>,
+    ...additionalDocuments: Array<Record<string, unknown>>
+  ): PipelineType;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  document | Record&lt;string, unknown&gt; | A document object (key-value map). |
+|  additionalDocuments | Array&lt;Record&lt;string, unknown&gt;&gt; | Optional additional document objects. |
+
+<b>Returns:</b>
+
+PipelineType
+
+## PipelineSource.literals()
+
+Set the pipeline's source to in-memory literal document objects with options.
+
+<b>Signature:</b>
+
+```typescript
+literals(options: LiteralsStageOptions): PipelineType;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  options | [LiteralsStageOptions](./firestore_lite_pipelines.md#literalsstageoptions) | Options containing the documents array. |
+
+<b>Returns:</b>
+
+PipelineType
 

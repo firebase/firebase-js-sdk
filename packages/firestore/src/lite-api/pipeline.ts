@@ -1642,27 +1642,27 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    * @beta
    * Performs an upsert operation using documents from previous stages.
    *
-   * @param transforms - The list of transformations to apply.
+   * @param additionalFields - The list of additional fields to apply.
    * @returns A new {@link @firebase/firestore/pipelines#Pipeline} object with this stage appended to the stage list.
    */
-  upsert(transforms: AliasedExpression[]): Pipeline;
+  upsert(additionalFields: AliasedExpression[]): Pipeline;
   /**
    * @beta
    * Performs an upsert operation with options.
    *
-   * @param transforms - The list of transformations to apply.
+   * @param additionalFields - The list of additional fields to apply.
    * @param options - Options defining the target collection and document ID.
    * @returns A new {@link @firebase/firestore/pipelines#Pipeline} object with this stage appended to the stage list.
    */
   upsert(
-    transforms: AliasedExpression[],
+    additionalFields: AliasedExpression[],
     options: UpsertStageOptions
   ): Pipeline;
   upsert(
-    transforms: AliasedExpression[],
+    additionalFields: AliasedExpression[],
     options: UpsertStageOptions = {}
   ): Pipeline {
-    return this._addStage(new Upsert(transforms, options));
+    return this._addStage(new Upsert(additionalFields, options));
   }
 
   /**

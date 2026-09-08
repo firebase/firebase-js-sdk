@@ -814,7 +814,9 @@ otherVectorExpression: Expression
 export function execute(pipeline: Pipeline): Promise<PipelineSnapshot>;
 
 // @public
-export function execute(options: PipelineExecuteOptions): Promise<PipelineSnapshot>;
+export function execute(
+options: PipelineExecuteOptions
+): Promise<PipelineSnapshot>;
 
 // @public
 export function exists(value: Expression): BooleanExpression;
@@ -1604,7 +1606,7 @@ elseValue: unknown
 
 // @beta
 export type InsertStageOptions = StageOptions & {
-    collection?: string | Query;
+    collection?: string | CollectionReference;
     documentIdExpression?: string | Expression;
 };
 
@@ -2138,9 +2140,12 @@ export class Pipeline {
     // @beta
     update(transformedFields: AliasedExpression[]): Pipeline;
     // @beta
-    upsert(transforms: AliasedExpression[]): Pipeline;
+    upsert(additionalFields: AliasedExpression[]): Pipeline;
     // @beta
-    upsert(transforms: AliasedExpression[], options: UpsertStageOptions): Pipeline;
+    upsert(
+    additionalFields: AliasedExpression[],
+    options: UpsertStageOptions
+    ): Pipeline;
     where(condition: BooleanExpression): Pipeline;
     where(options: WhereStageOptions): Pipeline;
     /* Excluded from this release type: _toProto */
@@ -2193,7 +2198,10 @@ export class PipelineSource<PipelineType> {
     database(options: DatabaseStageOptions): PipelineType;
     documents(docs: Array<string | DocumentReference>): PipelineType;
     documents(options: DocumentsStageOptions): PipelineType;
-    literals(document: Record<string, unknown>, ...additionalDocuments: Array<Record<string, unknown>>): PipelineType;
+    literals(
+    document: Record<string, unknown>,
+    ...additionalDocuments: Array<Record<string, unknown>>
+    ): PipelineType;
     // Warning: (ae-incompatible-release-tags) The symbol "literals" is marked as @public, but its signature references "LiteralsStageOptions" which is marked as @beta
     literals(options: LiteralsStageOptions): PipelineType;
 }
@@ -2922,8 +2930,10 @@ export type UnnestStageOptions = StageOptions & {
 
 // @beta
 export type UpsertStageOptions = StageOptions & {
-    collection?: string | Query;
+    collection?: string | CollectionReference;
     documentIdExpression?: string | Expression;
+    additionalFields?: AliasedExpression[];
+    transforms?: AliasedExpression[];
 };
 
 // @public
