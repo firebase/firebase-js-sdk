@@ -89,7 +89,7 @@ function setupGlobalMocks(): void {
     connect: sinon.stub(),
     disconnect: sinon.stub()
   } as any;
-  sinon.stub(global, 'AudioWorkletNode').returns(mockWorkletNode);
+  sinon.stub(globalThis, 'AudioWorkletNode').returns(mockWorkletNode);
 
   // Mock AudioContext
   mockAudioBufferSource = {
@@ -117,10 +117,10 @@ function setupGlobalMocks(): void {
     state: 'suspended' as AudioContextState,
     currentTime: 0
   } as any;
-  sinon.stub(global, 'AudioContext').returns(mockAudioContext);
+  sinon.stub(globalThis, 'AudioContext').returns(mockAudioContext);
 
   // Mock other globals
-  sinon.stub(global, 'Blob').returns({} as Blob);
+  sinon.stub(globalThis, 'Blob').returns({} as Blob);
   sinon.stub(URL, 'createObjectURL').returns('blob:http://localhost/fake-url');
 
   // Mock getUserMedia
@@ -129,7 +129,7 @@ function setupGlobalMocks(): void {
   } as any;
   getUserMediaStub = sinon.stub().resolves(mockMediaStream);
   if (typeof navigator === 'undefined') {
-    (global as any).navigator = {
+    (globalThis as any).navigator = {
       mediaDevices: { getUserMedia: getUserMediaStub }
     };
   } else {
@@ -142,12 +142,9 @@ function setupGlobalMocks(): void {
   }
 }
 
-describe('Audio Conversation Helpers', () => {
+// eslint-disable-next-line no-restricted-properties
+(isNode() ? describe.skip : describe)('Audio Conversation Helpers', () => {
   let clock: SinonFakeTimers;
-
-  if (isNode()) {
-    return;
-  }
 
   beforeEach(() => {
     clock = sinon.useFakeTimers();
@@ -180,7 +177,7 @@ describe('Audio Conversation Helpers', () => {
     });
 
     it('should throw if APIs are not supported.', async () => {
-      (global as any).AudioWorkletNode = undefined; // Simulate lack of support
+      (globalThis as any).AudioWorkletNode = undefined; // Simulate lack of support
       await expect(
         startAudioConversation(liveSession as any)
       ).to.be.rejectedWith(AIError, /not supported in this environment/);

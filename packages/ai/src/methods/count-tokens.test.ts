@@ -16,11 +16,39 @@
  */
 
 import { expect, use } from 'chai';
-import Sinon, { match, restore, stub } from 'sinon';
+import Sinon, { match, restore, stub as sinonStub } from 'sinon';
 import sinonChai from 'sinon-chai';
 import chaiAsPromised from 'chai-as-promised';
 import { getMockResponse } from '../../test-utils/mock-response';
 import * as request from '../requests/request';
+
+const { mockRequest } = vi.hoisted(() => ({
+  mockRequest: {
+    makeRequest: null as any
+  }
+}));
+
+vi.mock('../requests/request', async importOriginal => {
+  const actual = await importOriginal<any>();
+  return {
+    ...actual,
+    makeRequest: (...args: any[]) =>
+      (mockRequest.makeRequest || actual.makeRequest)(...args)
+  };
+});
+
+function stub(obj?: any, method?: any): any {
+  if (obj === request) {
+    const s = sinonStub();
+    (mockRequest as any)[method] = s;
+    return s;
+  }
+  return (sinonStub as any)(...arguments);
+}
+
+afterEach(() => {
+  mockRequest.makeRequest = null;
+});
 import { countTokens } from './count-tokens';
 import { CountTokensRequest, InferenceMode } from '../types';
 import { ApiSettings } from '../types/internal';

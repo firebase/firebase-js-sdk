@@ -17,11 +17,36 @@
 
 import { use, expect } from 'chai';
 import sinonChai from 'sinon-chai';
-import { restore, stub } from 'sinon';
+import { restore, stub as sinonStub } from 'sinon';
 import { TemplateToolConfig, RetrievalConfig, LatLng } from '../public-types';
 import { TemplateGenerativeModel } from './template-generative-model';
 import * as generateContentMethods from '../methods/generate-content';
 import { fakeAI } from '../../test-utils/get-fake-firebase-services';
+
+const { mockGenerateContent } = vi.hoisted(() => ({
+  mockGenerateContent: {
+    templateGenerateContent: (..._args: any[]): any => {},
+    templateGenerateContentStream: (..._args: any[]): any => {}
+  }
+}));
+
+vi.mock('../methods/generate-content', async importOriginal => {
+  const actual = await importOriginal<any>();
+  return {
+    ...actual,
+    templateGenerateContent: (...args: any[]) =>
+      mockGenerateContent.templateGenerateContent(...args),
+    templateGenerateContentStream: (...args: any[]) =>
+      mockGenerateContent.templateGenerateContentStream(...args)
+  };
+});
+
+function stub(obj?: any, method?: any): any {
+  if (obj === generateContentMethods) {
+    return sinonStub(mockGenerateContent, method);
+  }
+  return (sinonStub as any)(...arguments);
+}
 
 use(sinonChai);
 

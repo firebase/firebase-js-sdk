@@ -26,7 +26,12 @@ import {
   ImageConfigImageSize
 } from '../public-types';
 import * as request from '../requests/request';
-import { SinonStub, match, restore, stub } from 'sinon';
+import {
+  SinonStub,
+  match,
+  restore as sinonRestore,
+  stub as sinonStub
+} from 'sinon';
 import {
   getMockResponse,
   getMockResponseStreaming
@@ -41,6 +46,80 @@ import {
   fakeChromeAdapter
 } from '../../test-utils/get-fake-firebase-services';
 import { Availability } from '../types/language-model';
+
+const { mockRequest, mockGenerateContent, mockCountTokens } = vi.hoisted(
+  () => ({
+    mockRequest: {
+      makeRequest: null as any
+    },
+    mockGenerateContent: {
+      generateContent: null as any,
+      generateContentStream: null as any
+    },
+    mockCountTokens: {
+      countTokens: null as any
+    }
+  })
+);
+
+vi.mock('../requests/request', async importOriginal => {
+  const actual = await importOriginal<any>();
+  return {
+    ...actual,
+    makeRequest: (...args: any[]) =>
+      (mockRequest.makeRequest || actual.makeRequest)(...args)
+  };
+});
+
+vi.mock('../methods/generate-content', async importOriginal => {
+  const actual = await importOriginal<any>();
+  return {
+    ...actual,
+    generateContent: (...args: any[]) =>
+      (mockGenerateContent.generateContent || actual.generateContent)(...args),
+    generateContentStream: (...args: any[]) =>
+      (
+        mockGenerateContent.generateContentStream ||
+        actual.generateContentStream
+      )(...args)
+  };
+});
+
+vi.mock('../methods/count-tokens', async importOriginal => {
+  const actual = await importOriginal<any>();
+  return {
+    ...actual,
+    countTokens: (...args: any[]) =>
+      (mockCountTokens.countTokens || actual.countTokens)(...args)
+  };
+});
+
+function restore(): void {
+  sinonRestore();
+  mockRequest.makeRequest = null;
+  mockGenerateContent.generateContent = null;
+  mockGenerateContent.generateContentStream = null;
+  mockCountTokens.countTokens = null;
+}
+
+function stub(obj?: any, method?: any): any {
+  if (obj === request) {
+    const s = sinonStub();
+    (mockRequest as any)[method] = s;
+    return s;
+  }
+  if (obj === generateContentMethods) {
+    const s = sinonStub();
+    (mockGenerateContent as any)[method] = s;
+    return s;
+  }
+  if (obj === countTokens) {
+    const s = sinonStub();
+    (mockCountTokens as any)[method] = s;
+    return s;
+  }
+  return (sinonStub as any)(...arguments);
+}
 
 use(sinonChai);
 use(chaiAsPromised);

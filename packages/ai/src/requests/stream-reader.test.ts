@@ -371,7 +371,7 @@ describe('aggregateResponses', () => {
   });
   describe('multiple responses, has candidates', () => {
     let response: GenerateContentResponse;
-    before(() => {
+    beforeAll(() => {
       const responsesToAggregate: GenerateContentResponse[] = [
         {
           candidates: [

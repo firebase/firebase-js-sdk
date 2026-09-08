@@ -16,7 +16,7 @@
  */
 
 import { expect, use } from 'chai';
-import Sinon, { match, restore, stub } from 'sinon';
+import Sinon, { match, restore, stub as sinonStub } from 'sinon';
 import sinonChai from 'sinon-chai';
 import chaiAsPromised from 'chai-as-promised';
 import {
@@ -24,6 +24,34 @@ import {
   getMockResponseStreaming
 } from '../../test-utils/mock-response';
 import * as request from '../requests/request';
+
+const { mockRequest } = vi.hoisted(() => ({
+  mockRequest: {
+    makeRequest: null as any
+  }
+}));
+
+vi.mock('../requests/request', async importOriginal => {
+  const actual = await importOriginal<any>();
+  return {
+    ...actual,
+    makeRequest: (...args: any[]) =>
+      (mockRequest.makeRequest || actual.makeRequest)(...args)
+  };
+});
+
+function stub(obj?: any, method?: any): any {
+  if (obj === request) {
+    const s = sinonStub();
+    (mockRequest as any)[method] = s;
+    return s;
+  }
+  return (sinonStub as any)(...arguments);
+}
+
+afterEach(() => {
+  mockRequest.makeRequest = null;
+});
 import {
   generateContent,
   generateContentStream,
@@ -265,59 +293,55 @@ describe('generateContent()', () => {
       },
       JSON.stringify(fakeRequestParams)
     );
+  });
 
-    it('url context', async () => {
-      const mockResponse = getMockResponse(
-        'vertexAI',
-        'unary-success-url-context.json'
-      );
-      const makeRequestStub = stub(request, 'makeRequest').resolves(
-        mockResponse as Response
-      );
-      const result = await generateContent(
-        fakeApiSettings,
-        'model',
-        fakeRequestParams
-      );
-      expect(result.response.text()).to.include(
-        'The temperature is 67°F (19°C)'
-      );
-      const groundingMetadata =
-        result.response.candidates?.[0].groundingMetadata;
-      expect(groundingMetadata).to.not.be.undefined;
-      expect(groundingMetadata!.searchEntryPoint?.renderedContent).to.contain(
-        'div'
-      );
-      expect(groundingMetadata!.groundingChunks?.length).to.equal(2);
-      expect(groundingMetadata!.groundingChunks?.[0].web?.uri).to.contain(
-        'https://vertexaisearch.cloud.google.com'
-      );
-      expect(groundingMetadata!.groundingChunks?.[0].web?.title).to.equal(
-        'accuweather.com'
-      );
-      expect(groundingMetadata!.groundingSupports?.length).to.equal(3);
-      expect(
-        groundingMetadata!.groundingSupports?.[0].groundingChunkIndices
-      ).to.deep.equal([0]);
-      expect(groundingMetadata!.groundingSupports?.[0].segment).to.deep.equal({
-        endIndex: 56,
-        text: 'The current weather in London, United Kingdom is cloudy.'
-      });
-      expect(groundingMetadata!.groundingSupports?.[0].segment?.partIndex).to.be
-        .undefined;
-      expect(groundingMetadata!.groundingSupports?.[0].segment?.startIndex).to
-        .be.undefined;
-
-      expect(makeRequestStub).to.be.calledWith(
-        {
-          model: 'model',
-          task: Task.GENERATE_CONTENT,
-          apiSettings: fakeApiSettings,
-          stream: false
-        },
-        match.any
-      );
+  it('url context', async () => {
+    const mockResponse = getMockResponse(
+      'vertexAI',
+      'unary-success-url-context.json'
+    );
+    const makeRequestStub = stub(request, 'makeRequest').resolves(
+      mockResponse as Response
+    );
+    const result = await generateContent(
+      fakeApiSettings,
+      'model',
+      fakeRequestParams
+    );
+    expect(result.response.text()).to.include(
+      'The Berkshire Hathaway Inc. website serves'
+    );
+    const groundingMetadata = result.response.candidates?.[0].groundingMetadata;
+    expect(groundingMetadata).to.not.be.undefined;
+    expect(groundingMetadata!.groundingChunks?.length).to.equal(1);
+    expect(groundingMetadata!.groundingChunks?.[0].web?.uri).to.contain(
+      'https://berkshirehathaway.com'
+    );
+    expect(groundingMetadata!.groundingChunks?.[0].web?.title).to.equal(
+      'BERKSHIRE HATHAWAY INC.'
+    );
+    expect(groundingMetadata!.groundingSupports?.length).to.equal(2);
+    expect(
+      groundingMetadata!.groundingSupports?.[0].groundingChunkIndices
+    ).to.deep.equal([0]);
+    expect(groundingMetadata!.groundingSupports?.[0].segment).to.deep.equal({
+      startIndex: 273,
+      endIndex: 450,
+      text: "The site also features letters from Warren Buffett and Charlie Munger, details on corporate governance and sustainability, and links to Berkshire Hathaway's operating companies."
     });
+    expect(groundingMetadata!.groundingSupports?.[0].segment?.partIndex).to.be
+      .undefined;
+
+    expect(makeRequestStub).to.be.calledWith(
+      {
+        model: 'model',
+        task: Task.GENERATE_CONTENT,
+        apiSettings: fakeApiSettings,
+        stream: false,
+        singleRequestOptions: undefined
+      },
+      match.any
+    );
   });
   it('google maps grounding', async () => {
     const mockResponse = getMockResponse(

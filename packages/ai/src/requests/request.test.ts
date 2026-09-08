@@ -548,13 +548,15 @@ describe('request methods', () => {
         '{}'
       );
 
-      await clock.tickAsync(0);
-      controller.abort(abortReason);
-
-      await expect(requestPromise).to.be.rejectedWith(
+      const assertion = expect(requestPromise).to.be.rejectedWith(
         DOMException,
         abortReason
       );
+
+      await clock.tickAsync(0);
+      controller.abort(abortReason);
+
+      await assertion;
     });
 
     it('should abort fetch if timeout expires during request', async () => {
@@ -572,12 +574,14 @@ describe('request methods', () => {
         '{}'
       );
 
-      await clock.tickAsync(timeoutDuration + 100);
-
-      await expect(requestPromise).to.be.rejectedWith(
+      const assertion = expect(requestPromise).to.be.rejectedWith(
         DOMException,
         TIMEOUT_EXPIRED_MESSAGE
       );
+
+      await clock.tickAsync(timeoutDuration + 100);
+
+      await assertion;
 
       expect(fetchStub).to.have.been.calledOnce;
       const fetchOptions = fetchStub.firstCall.args[1] as RequestInit;
@@ -639,14 +643,16 @@ describe('request methods', () => {
         '{}'
       );
 
+      const assertion = expect(requestPromise).to.be.rejectedWith(
+        DOMException,
+        abortReason
+      );
+
       // Advance time, but less than the timeout
       await clock.tickAsync(timeoutDuration / 2);
       controller.abort(abortReason);
 
-      await expect(requestPromise).to.be.rejectedWith(
-        DOMException,
-        abortReason
-      );
+      await assertion;
     });
 
     it('should use timeout reason if it occurs before external signal abort', async () => {
@@ -672,13 +678,15 @@ describe('request methods', () => {
       // Schedule external abort after timeout
       setTimeout(() => controller.abort(abortReason), timeoutDuration * 2);
 
-      // Advance time past the timeout
-      await clock.tickAsync(timeoutDuration + 1);
-
-      await expect(requestPromise).to.be.rejectedWith(
+      const assertion = expect(requestPromise).to.be.rejectedWith(
         DOMException,
         TIMEOUT_EXPIRED_MESSAGE
       );
+
+      // Advance time past the timeout
+      await clock.tickAsync(timeoutDuration + 1);
+
+      await assertion;
     });
 
     it('should pass internal signal to fetch options', async () => {
@@ -718,13 +726,15 @@ describe('request methods', () => {
         '{}'
       );
 
-      // Tick the clock just enough to trigger a timeout(0)
-      await clock.tickAsync(1);
-
-      await expect(requestPromise).to.be.rejectedWith(
+      const assertion = expect(requestPromise).to.be.rejectedWith(
         DOMException,
         TIMEOUT_EXPIRED_MESSAGE
       );
+
+      // Tick the clock just enough to trigger a timeout(0)
+      await clock.tickAsync(1);
+
+      await assertion;
     });
 
     it('should not error if signal is aborted after completion', async () => {

@@ -16,10 +16,42 @@
  */
 
 import { expect, use } from 'chai';
-import { match, restore, SinonSpy, spy, stub, useFakeTimers } from 'sinon';
+import {
+  match,
+  restore,
+  SinonSpy,
+  spy,
+  stub as sinonStub,
+  useFakeTimers
+} from 'sinon';
 import sinonChai from 'sinon-chai';
 import chaiAsPromised from 'chai-as-promised';
 import * as generateContentMethods from './generate-content';
+
+const { mockGenerateContent } = vi.hoisted(() => ({
+  mockGenerateContent: {
+    generateContent: (..._args: any[]): any => {},
+    generateContentStream: (..._args: any[]): any => {}
+  }
+}));
+
+vi.mock('./generate-content', async importOriginal => {
+  const actual = await importOriginal<any>();
+  return {
+    ...actual,
+    generateContent: (...args: any[]) =>
+      mockGenerateContent.generateContent(...args),
+    generateContentStream: (...args: any[]) =>
+      mockGenerateContent.generateContentStream(...args)
+  };
+});
+
+function stub(obj?: any, method?: any): any {
+  if (obj === generateContentMethods) {
+    return sinonStub(mockGenerateContent, method);
+  }
+  return (sinonStub as any)(...arguments);
+}
 import {
   Content,
   FunctionDeclaration,

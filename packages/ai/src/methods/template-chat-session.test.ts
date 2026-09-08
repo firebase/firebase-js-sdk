@@ -16,10 +16,35 @@
  */
 
 import { expect, use } from 'chai';
-import { match, restore, SinonSpy, spy, stub } from 'sinon';
+import { match, restore, SinonSpy, spy, stub as sinonStub } from 'sinon';
 import sinonChai from 'sinon-chai';
 import chaiAsPromised from 'chai-as-promised';
 import * as generateContentMethods from './generate-content';
+
+const { mockGenerateContent } = vi.hoisted(() => ({
+  mockGenerateContent: {
+    templateGenerateContent: (..._args: any[]): any => {},
+    templateGenerateContentStream: (..._args: any[]): any => {}
+  }
+}));
+
+vi.mock('./generate-content', async importOriginal => {
+  const actual = await importOriginal<any>();
+  return {
+    ...actual,
+    templateGenerateContent: (...args: any[]) =>
+      mockGenerateContent.templateGenerateContent(...args),
+    templateGenerateContentStream: (...args: any[]) =>
+      mockGenerateContent.templateGenerateContentStream(...args)
+  };
+});
+
+function stub(obj?: any, method?: any): any {
+  if (obj === generateContentMethods) {
+    return sinonStub(mockGenerateContent, method);
+  }
+  return (sinonStub as any)(...arguments);
+}
 import { Content, TemplateFunctionDeclaration } from '../types';
 import { TemplateChatSessionImpl } from './template-chat-session';
 import { ApiSettings } from '../types/internal';

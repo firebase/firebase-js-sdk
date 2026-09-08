@@ -27,16 +27,17 @@ use(sinonChai);
 use(chaiAsPromised);
 
 describe('chromeAdapterFactory', () => {
-  it('returns undefined in native Node environment', function () {
-    if (!isNode()) {
-      this.skip();
+  // eslint-disable-next-line no-restricted-properties
+  (isNode() ? it : it.skip)(
+    'returns undefined in native Node environment',
+    () => {
+      const adapter = chromeAdapterFactory(
+        InferenceMode.PREFER_ON_DEVICE,
+        undefined
+      );
+      expect(adapter).to.be.undefined;
     }
-    const adapter = chromeAdapterFactory(
-      InferenceMode.PREFER_ON_DEVICE,
-      undefined
-    );
-    expect(adapter).to.be.undefined;
-  });
+  );
 
   it('returns undefined when LanguageModel is not defined on global object', () => {
     const globalObj = getGlobal() as Record<string, unknown>;

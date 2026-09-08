@@ -97,6 +97,14 @@ describe('WebSocketHandlerImpl', () => {
   let webSocketStub: SinonStub;
 
   beforeEach(() => {
+    if (typeof (globalThis as any).WebSocket === 'undefined') {
+      (globalThis as any).WebSocket = class {
+        static readonly CONNECTING = 0;
+        static readonly OPEN = 1;
+        static readonly CLOSING = 2;
+        static readonly CLOSED = 3;
+      };
+    }
     webSocketStub = sinon
       .stub(globalThis, 'WebSocket')
       .callsFake((url: string) => {
@@ -159,7 +167,9 @@ describe('WebSocketHandlerImpl', () => {
       await clock.tickAsync(10);
       mockWebSocket.triggerMessage(new Blob([JSON.stringify({ foo: 2 })]));
 
-      await clock.tickAsync(5);
+      while (received.length < 2) {
+        await clock.tickAsync(10);
+      }
       mockWebSocket.close();
       await clock.runAllAsync(); // Let timers finish
 
@@ -191,7 +201,9 @@ describe('WebSocketHandlerImpl', () => {
       mockWebSocket.triggerMessage(new Blob([JSON.stringify({ foo: 1 })]));
       mockWebSocket.triggerMessage(new Blob([JSON.stringify({ foo: 2 })]));
 
-      await clock.tickAsync(1);
+      while (received.length < 2) {
+        await clock.tickAsync(10);
+      }
       mockWebSocket.close();
       await clock.runAllAsync();
 
