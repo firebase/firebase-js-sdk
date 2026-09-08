@@ -272,7 +272,9 @@ export class PipelineSource<PipelineType> {
       Array.isArray((docOrOptions as LiteralsStageOptions).documents) &&
       additionalDocuments.length === 0
     ) {
-      ({ documents, ...options } = docOrOptions as LiteralsStageOptions);
+      ({ documents, ...options } = docOrOptions as LiteralsStageOptions as {
+        documents: Array<Record<string, unknown>>;
+      });
     } else {
       documents = [
         docOrOptions as Record<string, unknown>,

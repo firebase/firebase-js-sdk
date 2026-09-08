@@ -444,7 +444,7 @@ export type InsertStageOptions = StageOptions & {
   /**
    * The document ID expression or string.
    */
-  documentId?: string | Expression;
+  documentIdExpression?: string | Expression;
 };
 
 /**
@@ -459,7 +459,7 @@ export type UpsertStageOptions = StageOptions & {
   /**
    * The document ID expression or string.
    */
-  documentId?: string | Expression;
+  documentIdExpression?: string | Expression;
 };
 
 /**

@@ -2523,7 +2523,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
             .addFields(constant('my_custom_id_123').as('customIdField'))
             .insert({
               collection: targetColRef,
-              documentId: 'customIdField'
+              documentIdExpression: 'customIdField'
             }),
           atomic: true
         });
@@ -2552,7 +2552,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
             .where(equal(field('__name__').documentId(), 'book1'))
             .insert({
               collection: targetColRef,
-              documentId: field('genre')
+              documentIdExpression: field('genre')
             }),
           atomic: true
         });
@@ -2626,7 +2626,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
               ],
               {
                 collection: targetColRef,
-                documentId: 'targetId'
+                documentIdExpression: 'targetId'
               }
             ),
           atomic: true
@@ -2691,7 +2691,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
             .literals({ id: 'doc1', title: 'Literal Upserted' })
             .upsert([constant('Literal Upserted').as('title')], {
               collection: targetColRef,
-              documentId: 'id'
+              documentIdExpression: 'id'
             })
         );
         expectResults(res, { documents_modified: 1 });
