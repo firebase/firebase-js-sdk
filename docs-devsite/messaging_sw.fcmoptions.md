@@ -37,7 +37,7 @@ analyticsLabel?: string;
 
 ## FcmOptions.link
 
-The link to open when the user clicks on the notification.
+The link to open when the user clicks on the notification. For all URL values, HTTPS is required. The hostname of this property must be the same as the hostname of the registered service worker handling the notification.
 
 <b>Signature:</b>
 
