@@ -9,7 +9,7 @@ overwritten. Changes should be made in the source code at
 https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
-# remote-config package
+# @firebase/remote-config
 The Firebase Remote Config Web SDK. This SDK does not work in a Node.js environment.
 
 ## Functions

@@ -12,7 +12,7 @@ https://github.com/firebase/firebase-js-sdk
 # Transaction class
 A reference to a transaction.
 
-The `Transaction` object passed to a transaction's `updateFunction` provides the methods to read and write data within the transaction context. See [runTransaction()](./firestore_.md#runtransaction_9617ea4)<!-- -->.
+The `Transaction` object passed to a transaction's `updateFunction` provides the methods to read and write data within the transaction context. See [runTransaction()](./firestore_lite.md#runtransaction_6f03ec4)<!-- -->.
 
 <b>Signature:</b>
 
@@ -24,16 +24,16 @@ export declare class Transaction
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [delete(documentRef)](./firestore_lite.transaction.md#transactiondelete) |  | Deletes the document referred to by the provided [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->. |
-|  [get(documentRef)](./firestore_lite.transaction.md#transactionget) |  | Reads the document referenced by the provided [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->. |
-|  [set(documentRef, data)](./firestore_lite.transaction.md#transactionset) |  | Writes to the document referred to by the provided [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->. If the document does not exist yet, it will be created. |
-|  [set(documentRef, data, options)](./firestore_lite.transaction.md#transactionset) |  | Writes to the document referred to by the provided [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->. If the document does not exist yet, it will be created. If you provide <code>merge</code> or <code>mergeFields</code>, the provided data can be merged into an existing document. |
-|  [update(documentRef, data)](./firestore_lite.transaction.md#transactionupdate) |  | Updates fields in the document referred to by the provided [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->. The update will fail if applied to a document that does not exist. |
-|  [update(documentRef, field, value, moreFieldsAndValues)](./firestore_lite.transaction.md#transactionupdate) |  | Updates fields in the document referred to by the provided [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->. The update will fail if applied to a document that does not exist.<!-- -->Nested fields can be updated by providing dot-separated field path strings or by providing <code>FieldPath</code> objects. |
+|  [delete(documentRef)](./firestore_lite.transaction.md#transactiondelete) |  | Deletes the document referred to by the provided [DocumentReference](./firestore_lite.documentreference.md#documentreference_class)<!-- -->. |
+|  [get(documentRef)](./firestore_lite.transaction.md#transactionget) |  | Reads the document referenced by the provided [DocumentReference](./firestore_lite.documentreference.md#documentreference_class)<!-- -->. |
+|  [set(documentRef, data)](./firestore_lite.transaction.md#transactionset) |  | Writes to the document referred to by the provided [DocumentReference](./firestore_lite.documentreference.md#documentreference_class)<!-- -->. If the document does not exist yet, it will be created. |
+|  [set(documentRef, data, options)](./firestore_lite.transaction.md#transactionset) |  | Writes to the document referred to by the provided [DocumentReference](./firestore_lite.documentreference.md#documentreference_class)<!-- -->. If the document does not exist yet, it will be created. If you provide <code>merge</code> or <code>mergeFields</code>, the provided data can be merged into an existing document. |
+|  [update(documentRef, data)](./firestore_lite.transaction.md#transactionupdate) |  | Updates fields in the document referred to by the provided [DocumentReference](./firestore_lite.documentreference.md#documentreference_class)<!-- -->. The update will fail if applied to a document that does not exist. |
+|  [update(documentRef, field, value, moreFieldsAndValues)](./firestore_lite.transaction.md#transactionupdate) |  | Updates fields in the document referred to by the provided [DocumentReference](./firestore_lite.documentreference.md#documentreference_class)<!-- -->. The update will fail if applied to a document that does not exist.<!-- -->Nested fields can be updated by providing dot-separated field path strings or by providing <code>FieldPath</code> objects. |
 
 ## Transaction.delete()
 
-Deletes the document referred to by the provided [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->.
+Deletes the document referred to by the provided [DocumentReference](./firestore_lite.documentreference.md#documentreference_class)<!-- -->.
 
 <b>Signature:</b>
 
@@ -57,7 +57,7 @@ This `Transaction` instance. Used for chaining method calls.
 
 ## Transaction.get()
 
-Reads the document referenced by the provided [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->.
+Reads the document referenced by the provided [DocumentReference](./firestore_lite.documentreference.md#documentreference_class)<!-- -->.
 
 <b>Signature:</b>
 
@@ -81,7 +81,7 @@ A `DocumentSnapshot` with the read data.
 
 ## Transaction.set()
 
-Writes to the document referred to by the provided [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->. If the document does not exist yet, it will be created.
+Writes to the document referred to by the provided [DocumentReference](./firestore_lite.documentreference.md#documentreference_class)<!-- -->. If the document does not exist yet, it will be created.
 
 <b>Signature:</b>
 
@@ -111,7 +111,7 @@ Error - If the provided input is not a valid Firestore document.
 
 ## Transaction.set()
 
-Writes to the document referred to by the provided [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->. If the document does not exist yet, it will be created. If you provide `merge` or `mergeFields`<!-- -->, the provided data can be merged into an existing document.
+Writes to the document referred to by the provided [DocumentReference](./firestore_lite.documentreference.md#documentreference_class)<!-- -->. If the document does not exist yet, it will be created. If you provide `merge` or `mergeFields`<!-- -->, the provided data can be merged into an existing document.
 
 <b>Signature:</b>
 
@@ -143,7 +143,7 @@ Error - If the provided input is not a valid Firestore document.
 
 ## Transaction.update()
 
-Updates fields in the document referred to by the provided [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->. The update will fail if applied to a document that does not exist.
+Updates fields in the document referred to by the provided [DocumentReference](./firestore_lite.documentreference.md#documentreference_class)<!-- -->. The update will fail if applied to a document that does not exist.
 
 <b>Signature:</b>
 
@@ -173,7 +173,7 @@ Error - If the provided input is not valid Firestore data.
 
 ## Transaction.update()
 
-Updates fields in the document referred to by the provided [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->. The update will fail if applied to a document that does not exist.
+Updates fields in the document referred to by the provided [DocumentReference](./firestore_lite.documentreference.md#documentreference_class)<!-- -->. The update will fail if applied to a document that does not exist.
 
 Nested fields can be updated by providing dot-separated field path strings or by providing `FieldPath` objects.
 

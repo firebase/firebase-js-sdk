@@ -27,7 +27,7 @@ export declare class QuerySnapshot<
 |  --- | --- | --- | --- |
 |  [docs](./firestore_lite.querysnapshot.md#querysnapshotdocs) |  | Array&lt;[QueryDocumentSnapshot](./firestore_lite.querydocumentsnapshot.md#querydocumentsnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt;&gt; | An array of all the documents in the <code>QuerySnapshot</code>. |
 |  [empty](./firestore_lite.querysnapshot.md#querysnapshotempty) |  | boolean | True if there are no documents in the <code>QuerySnapshot</code>. |
-|  [query](./firestore_lite.querysnapshot.md#querysnapshotquery) |  | [Query](./firestore_lite.query.md#query_class)<!-- -->&lt;AppModelType, DbModelType&gt; | The query on which you called [getDocs()](./firestore_.md#getdocs_8ca86e0) in order to get this <code>QuerySnapshot</code>. |
+|  [query](./firestore_lite.querysnapshot.md#querysnapshotquery) |  | [Query](./firestore_lite.query.md#query_class)<!-- -->&lt;AppModelType, DbModelType&gt; | The query on which you called [getDocs()](./firestore_lite.md#getdocs_4e56953) in order to get this <code>QuerySnapshot</code>. |
 |  [size](./firestore_lite.querysnapshot.md#querysnapshotsize) |  | number | The number of documents in the <code>QuerySnapshot</code>. |
 
 ## Methods
@@ -58,7 +58,7 @@ get empty(): boolean;
 
 ## QuerySnapshot.query
 
-The query on which you called [getDocs()](./firestore_.md#getdocs_8ca86e0) in order to get this `QuerySnapshot`<!-- -->.
+The query on which you called [getDocs()](./firestore_lite.md#getdocs_4e56953) in order to get this `QuerySnapshot`<!-- -->.
 
 <b>Signature:</b>
 

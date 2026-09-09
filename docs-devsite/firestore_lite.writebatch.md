@@ -12,7 +12,7 @@ https://github.com/firebase/firebase-js-sdk
 # WriteBatch class
 A write batch, used to perform multiple writes as a single atomic unit.
 
-A `WriteBatch` object can be acquired by calling [writeBatch()](./firestore_.md#writebatch_231a8e0)<!-- -->. It provides methods for adding writes to the write batch. None of the writes will be committed (or visible locally) until [WriteBatch.commit()](./firestore_.writebatch.md#writebatchcommit) is called.
+A `WriteBatch` object can be acquired by calling [writeBatch()](./firestore_lite.md#writebatch_231a8e0)<!-- -->. It provides methods for adding writes to the write batch. None of the writes will be committed (or visible locally) until [WriteBatch.commit()](./firestore_lite.writebatch.md#writebatchcommit) is called.
 
 <b>Signature:</b>
 
@@ -25,11 +25,11 @@ export declare class WriteBatch
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
 |  [commit()](./firestore_lite.writebatch.md#writebatchcommit) |  | Commits all of the writes in this write batch as a single atomic unit.<!-- -->The result of these writes will only be reflected in document reads that occur after the returned promise resolves. If the client is offline, the write fails. If you would like to see local modifications or buffer writes until the client is online, use the full Firestore SDK. |
-|  [delete(documentRef)](./firestore_lite.writebatch.md#writebatchdelete) |  | Deletes the document referred to by the provided [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->. |
-|  [set(documentRef, data)](./firestore_lite.writebatch.md#writebatchset) |  | Writes to the document referred to by the provided [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->. If the document does not exist yet, it will be created. |
-|  [set(documentRef, data, options)](./firestore_lite.writebatch.md#writebatchset) |  | Writes to the document referred to by the provided [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->. If the document does not exist yet, it will be created. If you provide <code>merge</code> or <code>mergeFields</code>, the provided data can be merged into an existing document. |
-|  [update(documentRef, data)](./firestore_lite.writebatch.md#writebatchupdate) |  | Updates fields in the document referred to by the provided [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->. The update will fail if applied to a document that does not exist. |
-|  [update(documentRef, field, value, moreFieldsAndValues)](./firestore_lite.writebatch.md#writebatchupdate) |  | Updates fields in the document referred to by this [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->. The update will fail if applied to a document that does not exist.<!-- -->Nested fields can be update by providing dot-separated field path strings or by providing <code>FieldPath</code> objects. |
+|  [delete(documentRef)](./firestore_lite.writebatch.md#writebatchdelete) |  | Deletes the document referred to by the provided [DocumentReference](./firestore_lite.documentreference.md#documentreference_class)<!-- -->. |
+|  [set(documentRef, data)](./firestore_lite.writebatch.md#writebatchset) |  | Writes to the document referred to by the provided [DocumentReference](./firestore_lite.documentreference.md#documentreference_class)<!-- -->. If the document does not exist yet, it will be created. |
+|  [set(documentRef, data, options)](./firestore_lite.writebatch.md#writebatchset) |  | Writes to the document referred to by the provided [DocumentReference](./firestore_lite.documentreference.md#documentreference_class)<!-- -->. If the document does not exist yet, it will be created. If you provide <code>merge</code> or <code>mergeFields</code>, the provided data can be merged into an existing document. |
+|  [update(documentRef, data)](./firestore_lite.writebatch.md#writebatchupdate) |  | Updates fields in the document referred to by the provided [DocumentReference](./firestore_lite.documentreference.md#documentreference_class)<!-- -->. The update will fail if applied to a document that does not exist. |
+|  [update(documentRef, field, value, moreFieldsAndValues)](./firestore_lite.writebatch.md#writebatchupdate) |  | Updates fields in the document referred to by this [DocumentReference](./firestore_lite.documentreference.md#documentreference_class)<!-- -->. The update will fail if applied to a document that does not exist.<!-- -->Nested fields can be update by providing dot-separated field path strings or by providing <code>FieldPath</code> objects. |
 
 ## WriteBatch.commit()
 
@@ -50,7 +50,7 @@ A `Promise` resolved once all of the writes in the batch have been successfully 
 
 ## WriteBatch.delete()
 
-Deletes the document referred to by the provided [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->.
+Deletes the document referred to by the provided [DocumentReference](./firestore_lite.documentreference.md#documentreference_class)<!-- -->.
 
 <b>Signature:</b>
 
@@ -74,7 +74,7 @@ This `WriteBatch` instance. Used for chaining method calls.
 
 ## WriteBatch.set()
 
-Writes to the document referred to by the provided [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->. If the document does not exist yet, it will be created.
+Writes to the document referred to by the provided [DocumentReference](./firestore_lite.documentreference.md#documentreference_class)<!-- -->. If the document does not exist yet, it will be created.
 
 <b>Signature:</b>
 
@@ -100,7 +100,7 @@ This `WriteBatch` instance. Used for chaining method calls.
 
 ## WriteBatch.set()
 
-Writes to the document referred to by the provided [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->. If the document does not exist yet, it will be created. If you provide `merge` or `mergeFields`<!-- -->, the provided data can be merged into an existing document.
+Writes to the document referred to by the provided [DocumentReference](./firestore_lite.documentreference.md#documentreference_class)<!-- -->. If the document does not exist yet, it will be created. If you provide `merge` or `mergeFields`<!-- -->, the provided data can be merged into an existing document.
 
 <b>Signature:</b>
 
@@ -132,7 +132,7 @@ Error - If the provided input is not a valid Firestore document.
 
 ## WriteBatch.update()
 
-Updates fields in the document referred to by the provided [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->. The update will fail if applied to a document that does not exist.
+Updates fields in the document referred to by the provided [DocumentReference](./firestore_lite.documentreference.md#documentreference_class)<!-- -->. The update will fail if applied to a document that does not exist.
 
 <b>Signature:</b>
 
@@ -162,7 +162,7 @@ Error - If the provided input is not valid Firestore data.
 
 ## WriteBatch.update()
 
-Updates fields in the document referred to by this [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->. The update will fail if applied to a document that does not exist.
+Updates fields in the document referred to by this [DocumentReference](./firestore_lite.documentreference.md#documentreference_class)<!-- -->. The update will fail if applied to a document that does not exist.
 
 Nested fields can be update by providing dot-separated field path strings or by providing `FieldPath` objects.
 

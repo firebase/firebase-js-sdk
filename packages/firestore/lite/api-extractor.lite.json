@@ -1,0 +1,10 @@
+{
+  "extends": "../../../config/api-extractor.json",
+  "mainEntryPointFilePath": "<projectFolder>/dist/lite/index.d.ts",
+  "docModel": {
+    "apiJsonFilePath": "<projectFolder>/temp/firestore-lite.api.json"
+  },
+  "apiReport": {
+    "enabled": false
+  }
+}

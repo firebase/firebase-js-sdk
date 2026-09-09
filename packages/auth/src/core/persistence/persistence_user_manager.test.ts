@@ -71,6 +71,21 @@ describe('core/persistence/persistence_user_manager', () => {
       expect(manager.persistence).to.eq(_getInstance(inMemoryPersistence));
     });
 
+    it('handles _isAvailable throwing an error and falls back to inMemory', async () => {
+      const { persistence, stub } = makePersistence();
+      stub._isAvailable.rejects(new Error('IndexedDB blocked'));
+      const manager = await PersistenceUserManager.create(auth, [persistence]);
+      expect(manager.persistence).to.eq(_getInstance(inMemoryPersistence));
+    });
+
+    it('does not throw in constructor if _addListener throws', async () => {
+      const { persistence, stub } = makePersistence();
+      stub._addListener.throws(new Error('addListener not supported'));
+      stub._isAvailable.resolves(true);
+      const manager = await PersistenceUserManager.create(auth, [persistence]);
+      expect(manager.persistence).to.eq(persistence);
+    });
+
     it('chooses the first one with a user', async () => {
       const a = makePersistence();
       const b = makePersistence();

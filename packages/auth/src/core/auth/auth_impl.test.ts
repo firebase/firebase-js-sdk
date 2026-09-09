@@ -33,7 +33,7 @@ import {
 } from '../../../test/helpers/mock_auth';
 import { AuthInternal } from '../../model/auth';
 import { UserInternal } from '../../model/user';
-import { PersistenceInternal } from '../persistence';
+import { PersistenceInternal, PersistenceType } from '../persistence';
 import { inMemoryPersistence } from '../persistence/in_memory';
 import { _getInstance } from '../util/instantiator';
 import * as navigator from '../util/navigator';
@@ -147,6 +147,41 @@ describe('core/auth/auth_impl', () => {
         FirebaseError,
         '(auth/tenant-id-mismatch)'
       );
+    });
+
+    it('wraps persistence setCurrentUser failure into FirebaseError (auth/internal-error)', async () => {
+      const user = testUser(auth, 'uid');
+      const originalError = new Error('Database is closing');
+      persistenceStub._set.rejects(originalError);
+
+      let caughtError: any;
+      try {
+        await auth._updateCurrentUser(user);
+      } catch (e) {
+        caughtError = e;
+      }
+
+      expect(caughtError).to.be.instanceOf(FirebaseError);
+      expect(caughtError.code).to.eq('auth/internal-error');
+      expect(caughtError.message).to.include('Database is closing');
+      expect(caughtError.customData?.originalError).to.eq(originalError);
+    });
+
+    it('wraps persistence removeCurrentUser failure into FirebaseError (auth/internal-error)', async () => {
+      const originalError = new Error('IndexedDB access denied');
+      persistenceStub._remove.rejects(originalError);
+
+      let caughtError: any;
+      try {
+        await auth._updateCurrentUser(null);
+      } catch (e) {
+        caughtError = e;
+      }
+
+      expect(caughtError).to.be.instanceOf(FirebaseError);
+      expect(caughtError.code).to.eq('auth/internal-error');
+      expect(caughtError.message).to.include('IndexedDB access denied');
+      expect(caughtError.customData?.originalError).to.eq(originalError);
     });
   });
 
@@ -1154,6 +1189,132 @@ describe('core/auth/auth_impl', () => {
             throw new Error(error);
           });
       }, 10000);
+    });
+  });
+
+  describe('_initializeWithPersistence error boundaries and fallbacks', () => {
+    it('falls back to in-memory persistence when persistence manager creation fails', async () => {
+      const authImpl = new AuthImpl(
+        FAKE_APP,
+        FAKE_HEARTBEAT_CONTROLLER_PROVIDER,
+        FAKE_APP_CHECK_CONTROLLER_PROVIDER,
+        {
+          apiKey: FAKE_APP.options.apiKey!,
+          apiHost: DefaultConfig.API_HOST,
+          apiScheme: DefaultConfig.API_SCHEME,
+          tokenApiHost: DefaultConfig.TOKEN_API_HOST,
+          clientPlatform: ClientPlatform.BROWSER,
+          sdkClientVersion: 'v'
+        }
+      );
+
+      const erroringPersistence: PersistenceInternal = {
+        type: PersistenceType.LOCAL,
+        _isAvailable: () => Promise.reject(new Error('Storage disabled')),
+        _set: async () => {},
+        _get: async () => null,
+        _remove: async () => {},
+        _addListener: () => {
+          throw new Error('Storage disabled');
+        },
+        _removeListener: () => {},
+        _shouldAllowMigration: false
+      };
+
+      await authImpl._initializeWithPersistence([erroringPersistence]);
+      expect(authImpl._isInitialized).to.be.true;
+      expect(authImpl.currentUser).to.be.null;
+      await expect(authImpl._persistenceManagerAvailable).to.be.fulfilled;
+      await expect(authImpl.authStateReady()).to.be.fulfilled;
+    });
+
+    it('falls back to currentUser = null when initializeCurrentUser fails', async () => {
+      const authImpl = new AuthImpl(
+        FAKE_APP,
+        FAKE_HEARTBEAT_CONTROLLER_PROVIDER,
+        FAKE_APP_CHECK_CONTROLLER_PROVIDER,
+        {
+          apiKey: FAKE_APP.options.apiKey!,
+          apiHost: DefaultConfig.API_HOST,
+          apiScheme: DefaultConfig.API_SCHEME,
+          tokenApiHost: DefaultConfig.TOKEN_API_HOST,
+          clientPlatform: ClientPlatform.BROWSER,
+          sdkClientVersion: 'v'
+        }
+      );
+
+      sinon
+        .stub(authImpl as any, 'initializeCurrentUser')
+        .rejects(new Error('Corrupt storage'));
+
+      await authImpl._initializeWithPersistence([
+        _getInstance(inMemoryPersistence)
+      ]);
+      expect(authImpl._isInitialized).to.be.true;
+      expect(authImpl.currentUser).to.be.null;
+      await expect(authImpl.authStateReady()).to.be.fulfilled;
+    });
+  });
+
+  describe('registerStateListener rejection handling', () => {
+    it('calls observer error callback if initialization promise rejects', async () => {
+      const authImpl = new AuthImpl(
+        FAKE_APP,
+        FAKE_HEARTBEAT_CONTROLLER_PROVIDER,
+        FAKE_APP_CHECK_CONTROLLER_PROVIDER,
+        {
+          apiKey: FAKE_APP.options.apiKey!,
+          apiHost: DefaultConfig.API_HOST,
+          apiScheme: DefaultConfig.API_SCHEME,
+          tokenApiHost: DefaultConfig.TOKEN_API_HOST,
+          clientPlatform: ClientPlatform.BROWSER,
+          sdkClientVersion: 'v'
+        }
+      );
+
+      const initError = new Error('Fatal initialization failure');
+      (authImpl as any)._initializationPromise = Promise.reject(initError);
+
+      const nextSpy = sinon.spy();
+      const errorSpy = sinon.spy();
+
+      authImpl.onAuthStateChanged({
+        next: nextSpy,
+        error: errorSpy,
+        complete: sinon.spy()
+      });
+
+      await new Promise(resolve => setTimeout(resolve, 10));
+      expect(nextSpy).not.to.have.been.called;
+      expect(errorSpy).to.have.been.calledWith(initError);
+    });
+
+    it('calls error function parameter if initialization promise rejects', async () => {
+      const authImpl = new AuthImpl(
+        FAKE_APP,
+        FAKE_HEARTBEAT_CONTROLLER_PROVIDER,
+        FAKE_APP_CHECK_CONTROLLER_PROVIDER,
+        {
+          apiKey: FAKE_APP.options.apiKey!,
+          apiHost: DefaultConfig.API_HOST,
+          apiScheme: DefaultConfig.API_SCHEME,
+          tokenApiHost: DefaultConfig.TOKEN_API_HOST,
+          clientPlatform: ClientPlatform.BROWSER,
+          sdkClientVersion: 'v'
+        }
+      );
+
+      const initError = new Error('Fatal initialization failure');
+      (authImpl as any)._initializationPromise = Promise.reject(initError);
+
+      const nextSpy = sinon.spy();
+      const errorSpy = sinon.spy();
+
+      authImpl.onAuthStateChanged(nextSpy, errorSpy);
+
+      await new Promise(resolve => setTimeout(resolve, 10));
+      expect(nextSpy).not.to.have.been.called;
+      expect(errorSpy).to.have.been.calledWith(initError);
     });
   });
 });
