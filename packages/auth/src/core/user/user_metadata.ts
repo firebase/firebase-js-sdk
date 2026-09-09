@@ -24,27 +24,35 @@ export class UserMetadata implements UserMetadataType {
   lastSignInTime?: string;
 
   constructor(
-    private createdAt?: string | number,
-    private lastLoginAt?: string | number
+    private _createdAt?: string | number,
+    private _lastLoginAt?: string | number
   ) {
     this._initializeTime();
   }
 
   private _initializeTime(): void {
-    this.lastSignInTime = utcTimestampToDateString(this.lastLoginAt);
-    this.creationTime = utcTimestampToDateString(this.createdAt);
+    this.lastSignInTime = utcTimestampToDateString(this._lastLoginAt);
+    this.creationTime = utcTimestampToDateString(this._createdAt);
   }
 
   _copy(metadata: UserMetadata): void {
-    this.createdAt = metadata.createdAt;
-    this.lastLoginAt = metadata.lastLoginAt;
+    this._createdAt = metadata._createdAt;
+    this._lastLoginAt = metadata._lastLoginAt;
     this._initializeTime();
   }
 
   toJSON(): object {
     return {
-      createdAt: this.createdAt,
-      lastLoginAt: this.lastLoginAt
+      createdAt: this._createdAt,
+      lastLoginAt: this._lastLoginAt
     };
+  }
+
+  get createdAt(): string | number | undefined {
+    return this._createdAt;
+  }
+
+  get lastLoginAt(): string | number | undefined {
+    return this._createdAt;
   }
 }
