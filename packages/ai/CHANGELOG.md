@@ -1,5 +1,15 @@
 # @firebase/ai
 
+## 2.16.0
+
+### Minor Changes
+
+- [`6b17ef5`](https://github.com/firebase/firebase-js-sdk/commit/6b17ef50b4db73557e834535656e586d32a2f86a) [#10319](https://github.com/firebase/firebase-js-sdk/pull/10319) - Fixed the issue where the SDK hardcodes invalid 'function' role, causing 400 errors during function calling on gemini-3.6-flash
+
+### Patch Changes
+
+- [`6f86596`](https://github.com/firebase/firebase-js-sdk/commit/6f865964baf5b4bd23b077fecec1028434a7387e) [#10320](https://github.com/firebase/firebase-js-sdk/pull/10320) - Fixed a client-side validation guardrail that incorrectly blocked `text/x.enum` when `responseSchema` or `responseJsonSchema` was provided. The SDK now correctly accepts both `application/json` and `text/x.enum` for structured outputs.
+
 ## 2.15.0
 
 ### Minor Changes

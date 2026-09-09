@@ -1,5 +1,15 @@
 # @firebase/firestore
 
+## 4.17.2
+
+### Patch Changes
+
+- [`0e8554b`](https://github.com/firebase/firebase-js-sdk/commit/0e8554b78acbb2d44d0bbecebc8c66439cf54476) [#10301](https://github.com/firebase/firebase-js-sdk/pull/10301) - feat(firestore): support conversion and serialization for Temporal.Instant to Firestore's Timestamp
+
+- [`50213a1`](https://github.com/firebase/firebase-js-sdk/commit/50213a1cdba8e3b0f029197ec20f47c1110060a6) [#10233](https://github.com/firebase/firebase-js-sdk/pull/10233) - Update api-extractor and documentation pipeline. Includes some fixes to documentation comments and links.
+
+- [`392bce0`](https://github.com/firebase/firebase-js-sdk/commit/392bce079f376149736311f0017d5863e58c8dff) [#10340](https://github.com/firebase/firebase-js-sdk/pull/10340) - Fixes fetch connection error messages that were undefined.
+
 ## 4.17.1
 
 ### Patch Changes

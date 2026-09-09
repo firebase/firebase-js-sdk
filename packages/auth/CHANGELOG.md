@@ -1,5 +1,17 @@
 # @firebase/auth
 
+## 1.13.6
+
+### Patch Changes
+
+- [`8676365`](https://github.com/firebase/firebase-js-sdk/commit/8676365bdb4113785b48e5bea5b8a55dfadb3233) [#10325](https://github.com/firebase/firebase-js-sdk/pull/10325) (fixes [#10318](https://github.com/firebase/firebase-js-sdk/issues/10318)) - Allow IndexedDB persistence reconnection on demand after `pagehide` events, fixing `Database is closing` errors during `signInWithPopup` authentication on iPadOS and iOS Safari.
+
+- [`8316986`](https://github.com/firebase/firebase-js-sdk/commit/831698647c842d4c6f96f6cb73efa694e0425f3a) [#10326](https://github.com/firebase/firebase-js-sdk/pull/10326) (fixes [#10311](https://github.com/firebase/firebase-js-sdk/issues/10311)) - Gracefully fall back to in-memory persistence when persistence initialization fails or storage is inaccessible, preventing initialization deadlocks and ensuring `authStateReady()` resolves.
+
+- [`b74b53c`](https://github.com/firebase/firebase-js-sdk/commit/b74b53c02de39cff0a7091faa5eeb059952bb31b) [#10335](https://github.com/firebase/firebase-js-sdk/pull/10335) - Wrap storage and persistence errors in `FirebaseError` (`auth/internal-error`) during current user updates, ensuring `error.code` is always defined and attaching the underlying exception under `error.customData.originalError`.
+
+- [`50213a1`](https://github.com/firebase/firebase-js-sdk/commit/50213a1cdba8e3b0f029197ec20f47c1110060a6) [#10233](https://github.com/firebase/firebase-js-sdk/pull/10233) - Update api-extractor and documentation pipeline. Includes some fixes to documentation comments and links.
+
 ## 1.13.5
 
 ### Patch Changes

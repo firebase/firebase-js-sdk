@@ -1,5 +1,11 @@
 # @firebase/analytics
 
+## 0.10.25
+
+### Patch Changes
+
+- [`50213a1`](https://github.com/firebase/firebase-js-sdk/commit/50213a1cdba8e3b0f029197ec20f47c1110060a6) [#10233](https://github.com/firebase/firebase-js-sdk/pull/10233) - Update api-extractor and documentation pipeline. Includes some fixes to documentation comments and links.
+
 ## 0.10.24
 
 ### Patch Changes
