@@ -42,7 +42,7 @@ export interface GenerationConfig
 
 > Warning: This API is now obsolete.
 > 
-> Not supported in newer Gemini models (Gemini 2.0+). Make parallel requests instead.
+> Not supported in Gemini 3.x and later models. Requests that include this parameter will fail with a 400 error. Make parallel requests instead.
 > 
 
 <b>Signature:</b>
@@ -55,7 +55,7 @@ candidateCount?: number;
 
 > Warning: This API is now obsolete.
 > 
-> Not supported in newer Gemini models (Gemini 2.5+). Omit this parameter.
+> Not supported in Gemini 3.x and later models. Requests that include this parameter will fail with a 400 error. Omit this parameter.
 > 
 
 <b>Signature:</b>
@@ -86,7 +86,7 @@ maxOutputTokens?: number;
 
 > Warning: This API is now obsolete.
 > 
-> Not supported in newer Gemini models (Gemini 2.5+). Omit this parameter.
+> Not supported in Gemini 3.x and later models. Requests that include this parameter will fail with a 400 error. Omit this parameter.
 > 
 
 <b>Signature:</b>
@@ -169,7 +169,7 @@ stopSequences?: string[];
 
 > Warning: This API is now obsolete.
 > 
-> Deprecated for Gemini 3 models. Omit this parameter and let the model manage sampling automatically.
+> Not supported in Gemini 3.x and later models. The model will ignore this parameter if it's included in a request. Omit this parameter and let the model manage sampling automatically.
 > 
 
 <b>Signature:</b>
@@ -192,7 +192,7 @@ thinkingConfig?: ThinkingConfig;
 
 > Warning: This API is now obsolete.
 > 
-> Deprecated for Gemini 3 models. Omit this parameter and let the model manage sampling automatically.
+> Not supported in Gemini 3.x and later models. The model will ignore this parameter if it's included in a request. Omit this parameter and let the model manage sampling automatically.
 > 
 
 <b>Signature:</b>
@@ -205,7 +205,7 @@ topK?: number;
 
 > Warning: This API is now obsolete.
 > 
-> Deprecated for Gemini 3 models. Omit this parameter and let the model manage sampling automatically.
+> Not supported in Gemini 3.x and later models. The model will ignore this parameter if it's included in a request. Omit this parameter and let the model manage sampling automatically.
 > 
 
 <b>Signature:</b>

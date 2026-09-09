@@ -137,29 +137,29 @@ export interface ImageConfig {
  */
 export interface GenerationConfig {
   /**
-   * @deprecated Not supported in newer Gemini models (Gemini 2.0+). Make parallel requests instead.
+   * @deprecated Not supported in Gemini 3.x and later models. Requests that include this parameter will fail with a 400 error. Make parallel requests instead.
    */
   candidateCount?: number;
   stopSequences?: string[];
   maxOutputTokens?: number;
   /**
-   * @deprecated Deprecated for Gemini 3 models. Omit this parameter and let the model manage sampling automatically.
+   * @deprecated Not supported in Gemini 3.x and later models. The model will ignore this parameter if it's included in a request. Omit this parameter and let the model manage sampling automatically.
    */
   temperature?: number;
   /**
-   * @deprecated Deprecated for Gemini 3 models. Omit this parameter and let the model manage sampling automatically.
+   * @deprecated Not supported in Gemini 3.x and later models. The model will ignore this parameter if it's included in a request. Omit this parameter and let the model manage sampling automatically.
    */
   topP?: number;
   /**
-   * @deprecated Deprecated for Gemini 3 models. Omit this parameter and let the model manage sampling automatically.
+   * @deprecated Not supported in Gemini 3.x and later models. The model will ignore this parameter if it's included in a request. Omit this parameter and let the model manage sampling automatically.
    */
   topK?: number;
   /**
-   * @deprecated Not supported in newer Gemini models (Gemini 2.5+). Omit this parameter.
+   * @deprecated Not supported in Gemini 3.x and later models. Requests that include this parameter will fail with a 400 error. Omit this parameter.
    */
   presencePenalty?: number;
   /**
-   * @deprecated Not supported in newer Gemini models (Gemini 2.5+). Omit this parameter.
+   * @deprecated Not supported in Gemini 3.x and later models. Requests that include this parameter will fail with a 400 error. Omit this parameter.
    */
   frequencyPenalty?: number;
 
@@ -234,7 +234,7 @@ export interface LiveGenerationConfig {
    * probability tokens are always selected. In this case, responses for a given prompt are mostly
    * deterministic, but a small amount of variation is still possible.
    *
-   * @deprecated Deprecated for Gemini 3 models. Omit this parameter and let the model manage sampling automatically.
+   * @deprecated Not supported in Gemini 3.x and later models. The model will ignore this parameter if it's included in a request. Omit this parameter and let the model manage sampling automatically.
    */
   temperature?: number;
   /**
@@ -244,7 +244,7 @@ export interface LiveGenerationConfig {
    * and the `topP` value is 0.5, then the model will select either A or B as the next token by using
    * the `temperature` and exclude C as a candidate. Defaults to 0.95 if unset.
    *
-   * @deprecated Deprecated for Gemini 3 models. Omit this parameter and let the model manage sampling automatically.
+   * @deprecated Not supported in Gemini 3.x and later models. The model will ignore this parameter if it's included in a request. Omit this parameter and let the model manage sampling automatically.
    */
   topP?: number;
   /**
@@ -254,19 +254,19 @@ export interface LiveGenerationConfig {
    * are then further filtered with the highest selected `temperature` sampling. Defaults to 40
    * if unspecified.
    *
-   * @deprecated Deprecated for Gemini 3 models. Omit this parameter and let the model manage sampling automatically.
+   * @deprecated Not supported in Gemini 3.x and later models. The model will ignore this parameter if it's included in a request. Omit this parameter and let the model manage sampling automatically.
    */
   topK?: number;
   /**
    * Positive penalties.
    *
-   * @deprecated Not supported in newer Gemini models (Gemini 2.5+). Omit this parameter.
+   * @deprecated Not supported in Gemini 3.x and later models. Requests that include this parameter will fail with a 400 error. Omit this parameter.
    */
   presencePenalty?: number;
   /**
    * Frequency penalties.
    *
-   * @deprecated Not supported in newer Gemini models (Gemini 2.5+). Omit this parameter.
+   * @deprecated Not supported in Gemini 3.x and later models. Requests that include this parameter will fail with a 400 error. Omit this parameter.
    */
   frequencyPenalty?: number;
   /**
