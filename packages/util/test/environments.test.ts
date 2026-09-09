@@ -17,37 +17,31 @@
 
 import { expect } from 'chai';
 import { isNode } from '../src/environment';
-import { SinonStub, stub, restore } from 'sinon';
-import * as defaults from '../src/defaults';
+import { getGlobal } from '../src/global';
+import { FirebaseDefaults } from '../src/defaults';
 
-const firebaseDefaults: defaults.FirebaseDefaults = {
+const firebaseDefaults: FirebaseDefaults = {
   _authTokenSyncURL: 'string',
   _authIdTokenMaxAge: 200,
   forceEnvironment: 'node'
 };
 
 describe('isNode()', () => {
-  let getDefaultsFromGlobalStub: SinonStub;
-
-  beforeEach(async () => {
-    getDefaultsFromGlobalStub = stub(defaults, 'getDefaults');
-  });
-
   afterEach(async () => {
-    restore();
+    delete getGlobal().__FIREBASE_DEFAULTS__;
   });
 
   it('returns true if forceEnvironment lists `node`', () => {
-    getDefaultsFromGlobalStub.returns(firebaseDefaults);
+    getGlobal().__FIREBASE_DEFAULTS__ = firebaseDefaults;
 
     expect(isNode()).to.be.true;
   });
 
   it('returns false if forceEnvironment lists `browser`', () => {
-    getDefaultsFromGlobalStub.returns({
+    getGlobal().__FIREBASE_DEFAULTS__ = {
       ...firebaseDefaults,
       forceEnvironment: 'browser'
-    });
+    };
 
     expect(isNode()).to.be.false;
   });

@@ -6,8 +6,10 @@
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",
   "engines": {
-    "node": ">=20.11.0"
+    "node": ">=20.11.0",
+    "yarn": "^1.22.22"
   },
+  "packageManager": "yarn@1.22.22",
   "homepage": "https://github.com/firebase/firebase-js-sdk",
   "keywords": [
     "authentication",
@@ -103,7 +105,7 @@
     "http-server": "14.1.1",
     "indexeddbshim": "10.1.0",
     "inquirer": "8.2.6",
-    "js-yaml": "4.3.1",
+    "js-yaml": "5.4.1",
     "karma": "6.4.4",
     "karma-chrome-launcher": "3.2.0",
     "karma-cli": "2.0.0",
