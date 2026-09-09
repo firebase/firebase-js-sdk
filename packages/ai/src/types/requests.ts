@@ -137,7 +137,7 @@ export interface ImageConfig {
  */
 export interface GenerationConfig {
   /**
-   * @deprecated Not supported in Gemini 3.x and later models. Requests that include this parameter will fail with a 400 error. Make parallel requests instead.
+   * @deprecated Not supported in Gemini 3.x and later models. The model will ignore this parameter if it's included in a request. Make parallel requests instead.
    */
   candidateCount?: number;
   stopSequences?: string[];

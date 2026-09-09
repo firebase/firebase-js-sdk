@@ -42,7 +42,7 @@ export interface GenerationConfig
 
 > Warning: This API is now obsolete.
 > 
-> Not supported in Gemini 3.x and later models. Requests that include this parameter will fail with a 400 error. Make parallel requests instead.
+> Not supported in Gemini 3.x and later models. The model will ignore this parameter if it's included in a request. Make parallel requests instead.
 > 
 
 <b>Signature:</b>
