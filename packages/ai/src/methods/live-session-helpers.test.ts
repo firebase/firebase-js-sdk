@@ -142,8 +142,7 @@ function setupGlobalMocks(): void {
   }
 }
 
-// eslint-disable-next-line no-restricted-properties
-(isNode() ? describe.skip : describe)('Audio Conversation Helpers', () => {
+describe.runIf(!isNode())('Audio Conversation Helpers', () => {
   let clock: SinonFakeTimers;
 
   beforeEach(() => {

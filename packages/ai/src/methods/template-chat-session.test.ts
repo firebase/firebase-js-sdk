@@ -30,6 +30,10 @@ const { mockGenerateContent } = vi.hoisted(() => ({
 
 vi.mock('./generate-content', async importOriginal => {
   const actual = await importOriginal<any>();
+  mockGenerateContent.templateGenerateContent = (...args: any[]) =>
+    actual.templateGenerateContent(...args);
+  mockGenerateContent.templateGenerateContentStream = (...args: any[]) =>
+    actual.templateGenerateContentStream(...args);
   return {
     ...actual,
     templateGenerateContent: (...args: any[]) =>

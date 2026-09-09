@@ -27,31 +27,25 @@ import * as request from '../requests/request';
 
 const { mockRequest } = vi.hoisted(() => ({
   mockRequest: {
-    makeRequest: null as any
+    makeRequest: (..._args: any[]): any => {}
   }
 }));
 
 vi.mock('../requests/request', async importOriginal => {
   const actual = await importOriginal<any>();
+  mockRequest.makeRequest = (...args: any[]) => actual.makeRequest(...args);
   return {
     ...actual,
-    makeRequest: (...args: any[]) =>
-      (mockRequest.makeRequest || actual.makeRequest)(...args)
+    makeRequest: (...args: any[]) => mockRequest.makeRequest(...args)
   };
 });
 
 function stub(obj?: any, method?: any): any {
   if (obj === request) {
-    const s = sinonStub();
-    (mockRequest as any)[method] = s;
-    return s;
+    return sinonStub(mockRequest, method);
   }
   return (sinonStub as any)(...arguments);
 }
-
-afterEach(() => {
-  mockRequest.makeRequest = null;
-});
 import {
   generateContent,
   generateContentStream,

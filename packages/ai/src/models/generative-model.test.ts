@@ -26,12 +26,7 @@ import {
   ImageConfigImageSize
 } from '../public-types';
 import * as request from '../requests/request';
-import {
-  SinonStub,
-  match,
-  restore as sinonRestore,
-  stub as sinonStub
-} from 'sinon';
+import { SinonStub, match, restore, stub as sinonStub } from 'sinon';
 import {
   getMockResponse,
   getMockResponseStreaming
@@ -50,73 +45,60 @@ import { Availability } from '../types/language-model';
 const { mockRequest, mockGenerateContent, mockCountTokens } = vi.hoisted(
   () => ({
     mockRequest: {
-      makeRequest: null as any
+      makeRequest: (..._args: any[]): any => {}
     },
     mockGenerateContent: {
-      generateContent: null as any,
-      generateContentStream: null as any
+      generateContent: (..._args: any[]): any => {},
+      generateContentStream: (..._args: any[]): any => {}
     },
     mockCountTokens: {
-      countTokens: null as any
+      countTokens: (..._args: any[]): any => {}
     }
   })
 );
 
 vi.mock('../requests/request', async importOriginal => {
   const actual = await importOriginal<any>();
+  mockRequest.makeRequest = (...args: any[]) => actual.makeRequest(...args);
   return {
     ...actual,
-    makeRequest: (...args: any[]) =>
-      (mockRequest.makeRequest || actual.makeRequest)(...args)
+    makeRequest: (...args: any[]) => mockRequest.makeRequest(...args)
   };
 });
 
 vi.mock('../methods/generate-content', async importOriginal => {
   const actual = await importOriginal<any>();
+  mockGenerateContent.generateContent = (...args: any[]) =>
+    actual.generateContent(...args);
+  mockGenerateContent.generateContentStream = (...args: any[]) =>
+    actual.generateContentStream(...args);
   return {
     ...actual,
     generateContent: (...args: any[]) =>
-      (mockGenerateContent.generateContent || actual.generateContent)(...args),
+      mockGenerateContent.generateContent(...args),
     generateContentStream: (...args: any[]) =>
-      (
-        mockGenerateContent.generateContentStream ||
-        actual.generateContentStream
-      )(...args)
+      mockGenerateContent.generateContentStream(...args)
   };
 });
 
 vi.mock('../methods/count-tokens', async importOriginal => {
   const actual = await importOriginal<any>();
+  mockCountTokens.countTokens = (...args: any[]) => actual.countTokens(...args);
   return {
     ...actual,
-    countTokens: (...args: any[]) =>
-      (mockCountTokens.countTokens || actual.countTokens)(...args)
+    countTokens: (...args: any[]) => mockCountTokens.countTokens(...args)
   };
 });
 
-function restore(): void {
-  sinonRestore();
-  mockRequest.makeRequest = null;
-  mockGenerateContent.generateContent = null;
-  mockGenerateContent.generateContentStream = null;
-  mockCountTokens.countTokens = null;
-}
-
 function stub(obj?: any, method?: any): any {
   if (obj === request) {
-    const s = sinonStub();
-    (mockRequest as any)[method] = s;
-    return s;
+    return sinonStub(mockRequest, method);
   }
   if (obj === generateContentMethods) {
-    const s = sinonStub();
-    (mockGenerateContent as any)[method] = s;
-    return s;
+    return sinonStub(mockGenerateContent, method);
   }
   if (obj === countTokens) {
-    const s = sinonStub();
-    (mockCountTokens as any)[method] = s;
-    return s;
+    return sinonStub(mockCountTokens, method);
   }
   return (sinonStub as any)(...arguments);
 }
