@@ -52,7 +52,7 @@
     "rollup-plugin-replace": "2.2.0",
     "rollup-plugin-typescript2": "0.37.0",
     "typescript": "5.5.4",
-    "@firebase/app-compat": "0.5.17"
+    "@firebase/app-compat": "0.5.18"
   },
   "repository": {
     "directory": "packages/performance-compat",
