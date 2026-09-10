@@ -295,7 +295,8 @@ export function syncTreeApplyListenComplete(
 export function syncTreeApplyTaggedListenComplete(
   syncTree: SyncTree,
   path: Path,
-  tag: number
+  tag: number,
+  filter = false
 ): Event[] {
   const queryKey = syncTreeQueryKeyForTag_(syncTree, tag);
   if (queryKey) {
@@ -307,7 +308,7 @@ export function syncTreeApplyTaggedListenComplete(
       newOperationSourceServerTaggedQuery(queryId),
       relativePath
     );
-    return syncTreeApplyTaggedOperation_(syncTree, queryPath, op);
+    return syncTreeApplyTaggedOperation_(syncTree, queryPath, op, filter);
   } else {
     // We've already removed the query. No big deal, ignore the update
     return [];
@@ -791,10 +792,16 @@ function syncTreeCreateListenerForView_(
       const cache = viewGetServerCache(view) || ChildrenNode.EMPTY_NODE;
       return cache.hash();
     },
-    onComplete: (status: string): Event[] => {
+    onComplete: (status: string, b?: unknown): Event[] => {
       if (status === 'ok') {
         if (tag) {
-          return syncTreeApplyTaggedListenComplete(syncTree, query._path, tag);
+          return syncTreeApplyTaggedListenComplete(
+            syncTree,
+            query._path,
+            tag,
+            // @ts-ignore
+            b.filter
+          );
         } else {
           return syncTreeApplyListenComplete(syncTree, query._path);
         }
@@ -865,7 +872,8 @@ function syncTreeParseQueryKey_(queryKey: string): {
 function syncTreeApplyTaggedOperation_(
   syncTree: SyncTree,
   queryPath: Path,
-  operation: Operation
+  operation: Operation,
+  filter = false
 ): Event[] {
   const syncPoint = syncTree.syncPointTree_.get(queryPath);
   assert(syncPoint, "Missing sync point for query tag that we're tracking");
@@ -873,7 +881,13 @@ function syncTreeApplyTaggedOperation_(
     syncTree.pendingWriteTree_,
     queryPath
   );
-  return syncPointApplyOperation(syncPoint, operation, writesCache, null);
+  return syncPointApplyOperation(
+    syncPoint,
+    operation,
+    writesCache,
+    null,
+    filter
+  );
 }
 
 /**
