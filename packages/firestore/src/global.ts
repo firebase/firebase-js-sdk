@@ -21,6 +21,17 @@
 import * as pipelines from './api_pipelines';
 export * from './api';
 export { pipelines };
+// Type definitions for ECMAScript Temporal API
+declare global {
+  namespace Temporal {
+    interface Instant {
+      readonly [Symbol.toStringTag]?: string;
+      readonly epochMilliseconds: number;
+      readonly epochNanoseconds: bigint;
+      toString(): string;
+    }
+  }
+}
 
 // Console specific exports
 export {
