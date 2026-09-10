@@ -23,8 +23,8 @@ declare class HeadersWithEntries extends Headers {
   entries?(): Iterable<[string, string]>;
 }
 
-// Chai doesn't check if Headers objects contain the same entries,
-// so we need to do that manually.
+// Headers objects do not expose enumerable properties for direct comparison,
+// so we need to compare their entries manually via Maps.
 export function compareHeaders(
   expectedHeaders: HeadersWithEntries,
   actualHeaders: HeadersWithEntries

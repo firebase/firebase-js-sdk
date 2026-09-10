@@ -30,7 +30,6 @@
     "test:all": "vitest run",
     "test:browser": "vitest run --project=browser",
     "test:browser:debug": "vitest --project=browser --browser.headless=false",
-    "test:node": "vitest run --project=node",
     "trusted-type-check": "tsec -p tsconfig.json --noEmit",
     "type-check": "tsc -p . --noEmit",
     "serve": "yarn serve:build && yarn serve:host",

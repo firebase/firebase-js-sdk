@@ -29,6 +29,6 @@ describe('sleep', () => {
     await sleep(100);
     const t1 = Date.now();
 
-    expect(t1 - t0).to.equal(100);
+    expect(t1 - t0).toBe(100);
   });
 });
