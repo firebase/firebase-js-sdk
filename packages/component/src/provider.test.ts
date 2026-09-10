@@ -156,7 +156,7 @@ describe('Provider', () => {
       provider.onInit(callback1);
 
       provider.initialize();
-      expect(callback1).to.have.been.calledOnce;
+      expect(callback1).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -176,8 +176,8 @@ describe('Provider', () => {
       provider.onInit(callback2);
 
       provider.initialize();
-      expect(callback1).to.have.been.calledOnce;
-      expect(callback2).to.have.been.calledOnce;
+      expect(callback1).toHaveBeenCalledTimes(1);
+      expect(callback2).toHaveBeenCalledTimes(1);
     });
 
     it('invokes callback for existing instance', () => {
@@ -193,7 +193,7 @@ describe('Provider', () => {
       provider.initialize();
       provider.onInit(callback);
 
-      expect(callback).to.have.been.calledOnce;
+      expect(callback).toHaveBeenCalledTimes(1);
     });
 
     it('passes service instance', () => {
@@ -206,11 +206,8 @@ describe('Provider', () => {
 
       provider.onInit(callback);
 
-      expect(callback).to.have.been.calledOnce;
-      expect(callback).to.have.been.calledWith(
-        serviceInstance,
-        expect.anything()
-      );
+      expect(callback).toHaveBeenCalledTimes(1);
+      expect(callback).toHaveBeenCalledWith(serviceInstance, expect.anything());
     });
 
     it('passes instance identifier', () => {
@@ -231,10 +228,10 @@ describe('Provider', () => {
       provider.onInit(callback1, 'id1');
       provider.onInit(callback2, 'id2');
 
-      expect(callback1).to.have.been.calledOnce;
-      expect(callback1).to.have.been.calledWith(expect.anything(), 'id1');
-      expect(callback2).to.have.been.calledOnce;
-      expect(callback2).to.have.been.calledWith(expect.anything(), 'id2');
+      expect(callback1).toHaveBeenCalledTimes(1);
+      expect(callback1).toHaveBeenCalledWith(expect.anything(), 'id1');
+      expect(callback2).toHaveBeenCalledTimes(1);
+      expect(callback2).toHaveBeenCalledWith(expect.anything(), 'id2');
     });
 
     it('returns a function to unregister the callback', () => {
@@ -253,8 +250,8 @@ describe('Provider', () => {
       unregister();
 
       provider.initialize();
-      expect(callback1).to.have.been.calledOnce;
-      expect(callback2).to.not.have.been.called;
+      expect(callback1).toHaveBeenCalledTimes(1);
+      expect(callback2).not.toHaveBeenCalled();
     });
   });
 
@@ -376,7 +373,7 @@ describe('Provider', () => {
 
         void provider.delete();
 
-        expect(deleteFake).to.have.been.called;
+        expect(deleteFake).toHaveBeenCalled();
       });
 
       it('calls delete() on the service instance that implements next FirebaseService', () => {
@@ -398,7 +395,7 @@ describe('Provider', () => {
 
         void provider.delete();
 
-        expect(deleteFake).to.have.been.called;
+        expect(deleteFake).toHaveBeenCalled();
       });
     });
 
@@ -537,7 +534,7 @@ describe('Provider', () => {
 
         expect(deleteFakes.length).to.equal(2);
         for (const f of deleteFakes) {
-          expect(f).to.have.been.called;
+          expect(f).toHaveBeenCalled();
         }
       });
     });

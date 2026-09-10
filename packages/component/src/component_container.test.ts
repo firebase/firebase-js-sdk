@@ -62,7 +62,7 @@ describe('Component Container', () => {
     );
     container.addComponent(component);
 
-    expect(setComponentStub).has.been.calledWith(component);
+    expect(setComponentStub).toHaveBeenCalledWith(component);
   });
 
   it('throws when registering multiple components with the same name, when overwrite is false', () => {
