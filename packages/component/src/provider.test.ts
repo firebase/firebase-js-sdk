@@ -15,8 +15,7 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-import { fake, SinonSpy, match } from 'sinon';
+import { expect, vi, MockInstance } from 'vitest';
 import { ComponentContainer } from './component_container';
 import { FirebaseService } from '@firebase/app-types/private';
 // eslint-disable-next-line import/no-extraneous-dependencies
@@ -127,7 +126,7 @@ describe('Provider', () => {
       expect((instance as any).options).to.deep.equal(options);
     });
 
-    it('resolve pending promises created by Provider.get() with the same identifier', () => {
+    it('resolve pending promises created by Provider.get() with the same identifier', async () => {
       provider.setComponent(
         getFakeComponent(
           'test',
@@ -141,7 +140,7 @@ describe('Provider', () => {
 
       provider.initialize();
       expect((provider as any).instances.size).to.equal(1);
-      return expect(servicePromise).to.eventually.deep.equal({ test: true });
+      await expect(servicePromise).resolves.toEqual({ test: true });
     });
 
     it('invokes onInit callbacks synchronously', () => {
@@ -153,7 +152,7 @@ describe('Provider', () => {
           InstantiationMode.EXPLICIT
         )
       );
-      const callback1 = fake();
+      const callback1 = vi.fn();
       provider.onInit(callback1);
 
       provider.initialize();
@@ -171,8 +170,8 @@ describe('Provider', () => {
           InstantiationMode.EXPLICIT
         )
       );
-      const callback1 = fake();
-      const callback2 = fake();
+      const callback1 = vi.fn();
+      const callback2 = vi.fn();
       provider.onInit(callback1);
       provider.onInit(callback2);
 
@@ -190,7 +189,7 @@ describe('Provider', () => {
           InstantiationMode.EXPLICIT
         )
       );
-      const callback = fake();
+      const callback = vi.fn();
       provider.initialize();
       provider.onInit(callback);
 
@@ -200,7 +199,7 @@ describe('Provider', () => {
     it('passes service instance', () => {
       const serviceInstance = { test: true };
       provider.setComponent(getFakeComponent('test', () => serviceInstance));
-      const callback = fake();
+      const callback = vi.fn();
 
       // initialize the service instance
       provider.getImmediate();
@@ -208,7 +207,10 @@ describe('Provider', () => {
       provider.onInit(callback);
 
       expect(callback).to.have.been.calledOnce;
-      expect(callback).to.have.been.calledWith(serviceInstance);
+      expect(callback).to.have.been.calledWith(
+        serviceInstance,
+        expect.anything()
+      );
     });
 
     it('passes instance identifier', () => {
@@ -220,8 +222,8 @@ describe('Provider', () => {
           InstantiationMode.EAGER
         )
       );
-      const callback1 = fake();
-      const callback2 = fake();
+      const callback1 = vi.fn();
+      const callback2 = vi.fn();
 
       provider.getImmediate({ identifier: 'id1' });
       provider.getImmediate({ identifier: 'id2' });
@@ -230,9 +232,9 @@ describe('Provider', () => {
       provider.onInit(callback2, 'id2');
 
       expect(callback1).to.have.been.calledOnce;
-      expect(callback1).to.have.been.calledWith(match.any, 'id1');
+      expect(callback1).to.have.been.calledWith(expect.anything(), 'id1');
       expect(callback2).to.have.been.calledOnce;
-      expect(callback2).to.have.been.calledWith(match.any, 'id2');
+      expect(callback2).to.have.been.calledWith(expect.anything(), 'id2');
     });
 
     it('returns a function to unregister the callback', () => {
@@ -244,8 +246,8 @@ describe('Provider', () => {
           InstantiationMode.EXPLICIT
         )
       );
-      const callback1 = fake();
-      const callback2 = fake();
+      const callback1 = vi.fn();
+      const callback2 = vi.fn();
       provider.onInit(callback1);
       const unregister = provider.onInit(callback2);
       unregister();
@@ -295,18 +297,14 @@ describe('Provider', () => {
     describe('get()', () => {
       it('get the service instance asynchronously', async () => {
         provider.setComponent(getFakeComponent('test', () => ({ test: true })));
-        await expect(provider.get()).to.eventually.deep.equal({ test: true });
+        await expect(provider.get()).resolves.toEqual({ test: true });
       });
 
       it('ignore parameter identifier and return the default service instance async', async () => {
         provider.setComponent(getFakeComponent('test', () => ({ test: true })));
         const defaultService = provider.getImmediate();
-        await expect(provider.get('spider1')).to.eventually.equal(
-          defaultService
-        );
-        await expect(provider.get('spider2')).to.eventually.equal(
-          defaultService
-        );
+        await expect(provider.get('spider1')).resolves.toBe(defaultService);
+        await expect(provider.get('spider2')).resolves.toBe(defaultService);
       });
     });
 
@@ -351,14 +349,14 @@ describe('Provider', () => {
 
         const defaultService = provider.getImmediate();
 
-        await expect(promise1).to.eventually.equal(defaultService);
-        await expect(promise2).to.eventually.equal(defaultService);
+        await expect(promise1).resolves.toBe(defaultService);
+        await expect(promise2).resolves.toBe(defaultService);
       });
     });
 
     describe('delete()', () => {
       it('calls delete() on the service instance that implements legacy FirebaseService', () => {
-        const deleteFake = fake();
+        const deleteFake = vi.fn();
         const myService: FirebaseService = {
           app: getFakeApp(),
           INTERNAL: {
@@ -382,7 +380,7 @@ describe('Provider', () => {
       });
 
       it('calls delete() on the service instance that implements next FirebaseService', () => {
-        const deleteFake = fake();
+        const deleteFake = vi.fn();
         const myService: _FirebaseService = {
           app: getFakeApp(),
           _delete: deleteFake
@@ -515,10 +513,10 @@ describe('Provider', () => {
 
     describe('delete()', () => {
       it('calls delete() on all service instances that implement FirebaseService', () => {
-        const deleteFakes: SinonSpy[] = [];
+        const deleteFakes: MockInstance[] = [];
 
         function getService(): FirebaseService {
-          const deleteFake = fake();
+          const deleteFake = vi.fn();
           deleteFakes.push(deleteFake);
           return {
             app: getFakeApp(),

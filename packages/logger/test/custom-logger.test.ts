@@ -15,11 +15,9 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-import { spy } from 'sinon';
+import { expect, vi } from 'vitest';
 import { Logger, setLogLevel } from '../src/logger';
 import { setUserLogHandler } from '../index';
-
 describe(`Custom log handler`, () => {
   const client1 = new Logger('@firebase/test-logger');
   const client2 = new Logger('@firebase/other-logger');
@@ -36,18 +34,18 @@ describe(`Custom log handler`, () => {
     beforeEach(() => {
       result = null;
       spies = {
-        logSpy: spy(console, 'log'),
-        infoSpy: spy(console, 'info'),
-        warnSpy: spy(console, 'warn'),
-        errorSpy: spy(console, 'error')
+        logSpy: vi.spyOn(console, 'log'),
+        infoSpy: vi.spyOn(console, 'info'),
+        warnSpy: vi.spyOn(console, 'warn'),
+        errorSpy: vi.spyOn(console, 'error')
       };
     });
 
     afterEach(() => {
-      spies.logSpy.restore();
-      spies.infoSpy.restore();
-      spies.warnSpy.restore();
-      spies.errorSpy.restore();
+      spies.logSpy.mockRestore();
+      spies.infoSpy.mockRestore();
+      spies.warnSpy.mockRestore();
+      spies.errorSpy.mockRestore();
     });
 
     it('calls custom callback with correct data for calling instance', () => {
@@ -57,14 +55,14 @@ describe(`Custom log handler`, () => {
       expect(result.args[0]).to.equal('info message!');
       expect(result.level).to.equal('info');
       expect(result.type).to.equal('@firebase/test-logger');
-      expect(spies.infoSpy.called).to.be.true;
-      spies.infoSpy.resetHistory();
+      expect(spies.infoSpy.mock.calls.length > 0).to.be.true;
+      spies.infoSpy.mockClear();
       client2.info('another info message!');
       expect(result.message).to.equal('another info message!');
       expect(result.args[0]).to.equal('another info message!');
       expect(result.level).to.equal('info');
       expect(result.type).to.equal('@firebase/other-logger');
-      expect(spies.infoSpy.called).to.be.true;
+      expect(spies.infoSpy.mock.calls.length > 0).to.be.true;
     });
 
     it('parses multiple arguments correctly', () => {
@@ -87,21 +85,21 @@ describe(`Custom log handler`, () => {
       client1.warn('warning message!');
       expect(result.message).to.equal('warning message!');
       expect(result.level).to.equal('warn');
-      expect(spies.warnSpy.called).to.be.true;
+      expect(spies.warnSpy.mock.calls.length > 0).to.be.true;
       client1.error('error message!');
       expect(result.message).to.equal('error message!');
       expect(result.level).to.equal('error');
-      expect(spies.errorSpy.called).to.be.true;
+      expect(spies.errorSpy.mock.calls.length > 0).to.be.true;
     });
 
     it('does not call custom callback when log call is not above set log level', () => {
       // Default log level is INFO.
       client1.log('message you should not see');
       expect(result).to.be.null;
-      expect(spies.logSpy.called).to.be.false;
+      expect(spies.logSpy.mock.calls.length > 0).to.be.false;
       client1.debug('message you should not see');
       expect(result).to.be.null;
-      expect(spies.logSpy.called).to.be.false;
+      expect(spies.logSpy.mock.calls.length > 0).to.be.false;
     });
   });
 
@@ -118,18 +116,18 @@ describe(`Custom log handler`, () => {
     beforeEach(() => {
       result = null;
       spies = {
-        logSpy: spy(console, 'log'),
-        infoSpy: spy(console, 'info'),
-        warnSpy: spy(console, 'warn'),
-        errorSpy: spy(console, 'error')
+        logSpy: vi.spyOn(console, 'log'),
+        infoSpy: vi.spyOn(console, 'info'),
+        warnSpy: vi.spyOn(console, 'warn'),
+        errorSpy: vi.spyOn(console, 'error')
       };
     });
 
     afterEach(() => {
-      spies.logSpy.restore();
-      spies.infoSpy.restore();
-      spies.warnSpy.restore();
-      spies.errorSpy.restore();
+      spies.logSpy.mockRestore();
+      spies.infoSpy.mockRestore();
+      spies.warnSpy.mockRestore();
+      spies.errorSpy.mockRestore();
     });
 
     it('calls custom callback when log call is above set log level', () => {
@@ -138,20 +136,20 @@ describe(`Custom log handler`, () => {
       expect(result.args[0]).to.equal('warning message!');
       expect(result.level).to.equal('warn');
       expect(result.type).to.equal('@firebase/test-logger');
-      expect(spies.warnSpy.called).to.be.true;
+      expect(spies.warnSpy.mock.calls.length > 0).to.be.true;
       client1.error('error message!');
       expect(result.message).to.equal('error message!');
       expect(result.level).to.equal('error');
-      expect(spies.errorSpy.called).to.be.true;
+      expect(spies.errorSpy.mock.calls.length > 0).to.be.true;
     });
 
     it('does not call custom callback when log call is not above set log level', () => {
       client1.debug('message you should not see');
       expect(result).to.be.null;
-      expect(spies.logSpy.called).to.be.false;
+      expect(spies.logSpy.mock.calls.length > 0).to.be.false;
       client1.log('message you should not see');
       expect(result).to.be.null;
-      expect(spies.logSpy.called).to.be.false;
+      expect(spies.logSpy.mock.calls.length > 0).to.be.false;
       client1.info('message you should not see');
       expect(result).to.be.null;
     });
@@ -159,7 +157,7 @@ describe(`Custom log handler`, () => {
     it('logLevel set in setUserLogHandler should not affect internal logging level', () => {
       client1.info('message you should not see');
       expect(result).to.be.null;
-      expect(spies.infoSpy.called).to.be.true;
+      expect(spies.infoSpy.mock.calls.length > 0).to.be.true;
     });
   });
 
@@ -174,43 +172,43 @@ describe(`Custom log handler`, () => {
     beforeEach(() => {
       result = null;
       spies = {
-        logSpy: spy(console, 'log'),
-        infoSpy: spy(console, 'info'),
-        warnSpy: spy(console, 'warn'),
-        errorSpy: spy(console, 'error')
+        logSpy: vi.spyOn(console, 'log'),
+        infoSpy: vi.spyOn(console, 'info'),
+        warnSpy: vi.spyOn(console, 'warn'),
+        errorSpy: vi.spyOn(console, 'error')
       };
     });
 
     afterEach(() => {
-      spies.logSpy.restore();
-      spies.infoSpy.restore();
-      spies.warnSpy.restore();
-      spies.errorSpy.restore();
+      spies.logSpy.mockRestore();
+      spies.infoSpy.mockRestore();
+      spies.warnSpy.mockRestore();
+      spies.errorSpy.mockRestore();
     });
 
     it('calls custom callback when log call is above set log level', () => {
       client1.log('log message!');
       expect(result.message).to.equal('log message!');
       expect(result.level).to.equal('verbose');
-      expect(spies.logSpy.called).to.be.true;
+      expect(spies.logSpy.mock.calls.length > 0).to.be.true;
       client1.info('info message!');
       expect(result.message).to.equal('info message!');
       expect(result.level).to.equal('info');
-      expect(spies.infoSpy.called).to.be.true;
+      expect(spies.infoSpy.mock.calls.length > 0).to.be.true;
       client1.warn('warning message!');
       expect(result.message).to.equal('warning message!');
       expect(result.level).to.equal('warn');
-      expect(spies.warnSpy.called).to.be.true;
+      expect(spies.warnSpy.mock.calls.length > 0).to.be.true;
       client1.error('error message!');
       expect(result.message).to.equal('error message!');
       expect(result.level).to.equal('error');
-      expect(spies.errorSpy.called).to.be.true;
+      expect(spies.errorSpy.mock.calls.length > 0).to.be.true;
     });
 
     it('does not call custom callback when log call is not above set log level', () => {
       client1.debug('message you should not see');
       expect(result).to.be.null;
-      expect(spies.logSpy.called).to.be.false;
+      expect(spies.logSpy.mock.calls.length > 0).to.be.false;
     });
   });
 });

@@ -14,17 +14,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { expect, use } from 'chai';
-import { match, restore, SinonStub, stub } from 'sinon';
-import sinonChai from 'sinon-chai';
-import { beforeAll, afterAll } from 'vitest';
+import { expect, beforeAll, afterAll, vi, MockInstance } from 'vitest';
 import {
   getDefaultEmulatorHost,
   getDefaultEmulatorHostnameAndPort
 } from '../src/defaults';
 import { getGlobal } from '../src/global';
-
-use(sinonChai);
 
 describe('getDefaultEmulatorHost', () => {
   afterAll(() => {
@@ -40,12 +35,14 @@ describe('getDefaultEmulatorHost', () => {
   describe('with no config and process.env undefined', () => {
     it('returns undefined and does not throw', () => {
       if (typeof process !== 'undefined') {
-        const envStub = stub(process, 'env').value(undefined);
+        const envStub = vi
+          .spyOn(process, 'env', 'get')
+          .mockReturnValue(undefined as any);
         try {
           expect(getDefaultEmulatorHost('firestore')).to.be.undefined;
           expect(getDefaultEmulatorHost('firestore')).to.not.throw;
         } finally {
-          envStub.restore();
+          envStub.mockRestore();
         }
       } else {
         expect(getDefaultEmulatorHost('firestore')).to.be.undefined;
@@ -57,11 +54,13 @@ describe('getDefaultEmulatorHost', () => {
   describe('with no config and no document or document.cookie throws', () => {
     beforeAll(() => {
       if (typeof document !== 'undefined') {
-        stub(document, 'cookie').get(() => new Error('aaaah'));
+        vi.spyOn(document, 'cookie', 'get').mockReturnValue(
+          new Error('aaaah') as any
+        );
       }
     });
     afterAll(() => {
-      restore();
+      vi.restoreAllMocks();
     });
     it('returns undefined and does not throw', () => {
       expect(getDefaultEmulatorHost('firestore')).to.be.undefined;
@@ -70,7 +69,7 @@ describe('getDefaultEmulatorHost', () => {
   });
 
   describe('with no config and something unexpected throws', () => {
-    let consoleInfoStub: SinonStub;
+    let consoleInfoStub: MockInstance;
     beforeAll(() => {
       Object.defineProperty(getGlobal(), '__FIREBASE_DEFAULTS__', {
         get() {
@@ -78,15 +77,17 @@ describe('getDefaultEmulatorHost', () => {
         },
         configurable: true
       });
-      consoleInfoStub = stub(console, 'info');
+      consoleInfoStub = vi.spyOn(console, 'info');
     });
     afterAll(() => {
       delete getGlobal().__FIREBASE_DEFAULTS__;
-      restore();
+      vi.restoreAllMocks();
     });
     it('returns undefined and calls console.info with the error', () => {
       expect(getDefaultEmulatorHost('firestore')).to.be.undefined;
-      expect(consoleInfoStub).to.be.calledWith(match('getGlobal threw!'));
+      expect(consoleInfoStub).toHaveBeenCalledWith(
+        expect.stringContaining('getGlobal threw!')
+      );
     });
   });
 
