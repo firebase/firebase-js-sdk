@@ -213,12 +213,14 @@ async function testCollectionWithDocs(
   docs: { [id: string]: DocumentData }
 ): Promise<CollectionReference<DocumentData>> {
   beginDocCreation = new Date().valueOf();
+  const batch = writeBatch(collection.firestore as unknown as Firestore);
   for (const id in docs) {
     if (docs.hasOwnProperty(id)) {
       const ref = doc(collection, id);
-      await setDoc(ref, docs[id]);
+      batch.set(ref, docs[id]);
     }
   }
+  await batch.commit();
   endDocCreation = new Date().valueOf();
   return collection;
 }

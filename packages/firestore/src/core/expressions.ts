@@ -44,8 +44,8 @@ import {
   isArray,
   isBoolean,
   isBytes,
-  isDouble,
-  isInteger,
+  isDoubleValue,
+  isIntegerValue,
   isMapValue,
   isNanValue,
   isNullValue,
@@ -53,7 +53,7 @@ import {
   isString,
   isTimestampValue,
   isVectorValue,
-  MIN_VALUE,
+  INTERNAL_MIN_VALUE,
   TRUE_VALUE,
   typeOrder,
   valueCompare,
@@ -112,17 +112,17 @@ export class EvaluateResult {
   }
 
   static newNull(): EvaluateResult {
-    return new EvaluateResult('NULL', MIN_VALUE);
+    return new EvaluateResult('NULL', INTERNAL_MIN_VALUE);
   }
 
   static newValue(value: Value): EvaluateResult {
     if (isNullValue(value)) {
-      return new EvaluateResult('NULL', MIN_VALUE);
+      return new EvaluateResult('NULL', INTERNAL_MIN_VALUE);
     } else if (isBoolean(value)) {
       return new EvaluateResult('BOOLEAN', value);
-    } else if (isInteger(value)) {
+    } else if (isIntegerValue(value)) {
       return new EvaluateResult('INT', value);
-    } else if (isDouble(value)) {
+    } else if (isDoubleValue(value)) {
       return new EvaluateResult('DOUBLE', value);
     } else if (isTimestampValue(value)) {
       return new EvaluateResult('TIMESTAMP', value);
@@ -441,7 +441,7 @@ function asDouble(
   protoNumber:
     { doubleValue: number | string } | { integerValue: number | string }
 ): number {
-  if (isDouble(protoNumber)) {
+  if (isDoubleValue(protoNumber)) {
     return Number(protoNumber.doubleValue);
   }
   return Number(protoNumber.integerValue);
@@ -518,14 +518,14 @@ abstract class BigIntOrDoubleArithmetics implements EvaluableExpr {
     const leftVal = left.value;
     const rightVal = right.value;
     if (
-      (!isDouble(leftVal) && !isInteger(leftVal)) ||
-      (!isDouble(rightVal) && !isInteger(rightVal))
+      (!isDoubleValue(leftVal) && !isIntegerValue(leftVal)) ||
+      (!isDoubleValue(rightVal) && !isIntegerValue(rightVal))
     ) {
       return EvaluateResult.newError(); // Type error
     }
 
     // Perform arithmetic based on types.
-    if (isDouble(leftVal) || isDouble(rightVal)) {
+    if (isDoubleValue(leftVal) || isDoubleValue(rightVal)) {
       const result = this.doubleArith(leftVal, rightVal);
       if (!result) {
         return EvaluateResult.newError();
@@ -533,7 +533,7 @@ abstract class BigIntOrDoubleArithmetics implements EvaluableExpr {
       return EvaluateResult.newValue(result);
     }
 
-    if (isInteger(leftVal) && isInteger(rightVal)) {
+    if (isIntegerValue(leftVal) && isIntegerValue(rightVal)) {
       // Pass the narrowed Value types
       const result = this.bigIntArith(leftVal, rightVal);
       if (result === undefined) {
@@ -1395,7 +1395,7 @@ export class CoreEq extends ComparisonBase {
     if (left.isNull() || right.isNull()) {
       return EvaluateResult.newValue(FALSE_VALUE);
     }
-    if (isNanValue(left.value) || isNanValue(right.value)) {
+    if (isNanValue(left.value!) || isNanValue(right.value!)) {
       return EvaluateResult.newValue(FALSE_VALUE);
     }
 
@@ -1448,7 +1448,7 @@ export class CoreLt extends ComparisonBase {
     if (typeOrder(left.value!) !== typeOrder(right.value!)) {
       return EvaluateResult.newValue(FALSE_VALUE);
     }
-    if (isNanValue(left.value) || isNanValue(right.value)) {
+    if (isNanValue(left.value!) || isNanValue(right.value!)) {
       return EvaluateResult.newValue(FALSE_VALUE);
     }
     return EvaluateResult.newValue({
@@ -1489,7 +1489,7 @@ export class CoreGt extends ComparisonBase {
     if (typeOrder(left.value!) !== typeOrder(right.value!)) {
       return EvaluateResult.newValue(FALSE_VALUE);
     }
-    if (isNanValue(left.value) || isNanValue(right.value)) {
+    if (isNanValue(left.value!) || isNanValue(right.value!)) {
       return EvaluateResult.newValue(FALSE_VALUE);
     }
     return EvaluateResult.newValue({
