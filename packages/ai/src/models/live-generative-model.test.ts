@@ -14,25 +14,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { use, expect } from 'chai';
-import sinon, { SinonFakeTimers, stub } from 'sinon';
-import sinonChai from 'sinon-chai';
-import chaiAsPromised from 'chai-as-promised';
+import { expect, vi } from 'vitest';
 import { AI } from '../public-types';
 import { LiveSession } from '../methods/live-session';
 import { WebSocketHandler } from '../websocket';
 import { GoogleAIBackend } from '../backend';
 import { LiveGenerativeModel } from './live-generative-model';
-import { AIError } from '../errors';
-
-use(sinonChai);
-use(chaiAsPromised);
 
 // A controllable mock for the WebSocketHandler interface
 class MockWebSocketHandler implements WebSocketHandler {
-  connect = stub().resolves();
-  send = stub();
-  close = stub().resolves();
+  connect = vi.fn().mockResolvedValue(undefined);
+  send = vi.fn();
+  close = vi.fn().mockResolvedValue(undefined);
 
   private serverMessages: unknown[] = [];
   private generatorController: {
@@ -79,16 +72,15 @@ const fakeAI: AI = {
 
 describe('LiveGenerativeModel', () => {
   let mockHandler: MockWebSocketHandler;
-  let clock: SinonFakeTimers;
 
   beforeEach(() => {
     mockHandler = new MockWebSocketHandler();
-    clock = sinon.useFakeTimers();
+    vi.useFakeTimers({ now: 0 });
   });
 
   afterEach(() => {
-    sinon.restore();
-    clock.restore();
+    vi.restoreAllMocks();
+    vi.useRealTimers();
   });
 
   it('connect() should call handler.connect and send setup message', async () => {
@@ -100,13 +92,13 @@ describe('LiveGenerativeModel', () => {
     const connectPromise = model.connect();
 
     // Ensure connect was called before simulating server response
-    expect(mockHandler.connect).to.have.been.calledOnce;
+    expect(mockHandler.connect).toHaveBeenCalledOnce();
 
     // Wait for the setup message to be sent
-    await clock.runAllAsync();
+    await vi.runAllTimersAsync();
 
-    expect(mockHandler.send).to.have.been.calledOnce;
-    const setupMessage = JSON.parse(mockHandler.send.getCall(0).args[0]);
+    expect(mockHandler.send).toHaveBeenCalledOnce();
+    const setupMessage = JSON.parse(mockHandler.send.mock.calls[0][0]);
     expect(setupMessage.setup.model).to.include('my-model');
 
     // Simulate successful handshake and resolve the promise
@@ -125,24 +117,23 @@ describe('LiveGenerativeModel', () => {
     const connectPromise = model.connect();
 
     // Wait for setup message
-    await clock.runAllAsync();
+    await vi.runAllTimersAsync();
 
     // Simulate a failed handshake
     mockHandler.simulateServerMessage({ error: 'handshake failed' });
-    await expect(connectPromise).to.be.rejectedWith(
-      AIError,
+    await expect(connectPromise).rejects.toThrow(
       /Server connection handshake failed/
     );
   });
 
   it('connect() should pass through connection errors', async () => {
-    mockHandler.connect.rejects(new Error('Connection refused'));
+    mockHandler.connect.mockRejectedValue(new Error('Connection refused'));
     const model = new LiveGenerativeModel(
       fakeAI,
       { model: 'my-model' },
       mockHandler
     );
-    await expect(model.connect()).to.be.rejectedWith('Connection refused');
+    await expect(model.connect()).rejects.toThrow('Connection refused');
   });
 
   it('connect() should pass through setup parameters correctly', async () => {
@@ -158,9 +149,9 @@ describe('LiveGenerativeModel', () => {
     const connectPromise = model.connect();
 
     // Wait for setup message
-    await clock.runAllAsync();
+    await vi.runAllTimersAsync();
 
-    const sentData = JSON.parse(mockHandler.send.getCall(0).args[0]);
+    const sentData = JSON.parse(mockHandler.send.mock.calls[0][0]);
     expect(sentData.setup.generationConfig).to.deep.equal({ temperature: 0.8 });
     expect(sentData.setup.systemInstruction.parts[0].text).to.equal(
       'Be a pirate'
@@ -185,9 +176,9 @@ describe('LiveGenerativeModel', () => {
     const connectPromise = model.connect();
 
     // Wait for setup message
-    await clock.runAllAsync();
+    await vi.runAllTimersAsync();
 
-    const sentData = JSON.parse(mockHandler.send.getCall(0).args[0]);
+    const sentData = JSON.parse(mockHandler.send.mock.calls[0][0]);
     // inputAudioTranscription and outputAudioTranscription should be at the top-level setup message,
     // rather than in the generationConfig.
     expect(sentData.setup.generationConfig).to.deep.equal({ temperature: 0.8 });

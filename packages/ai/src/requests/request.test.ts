@@ -15,10 +15,7 @@
  * limitations under the License.
  */
 
-import { expect, use } from 'chai';
-import Sinon, { match, restore, stub, useFakeTimers } from 'sinon';
-import sinonChai from 'sinon-chai';
-import chaiAsPromised from 'chai-as-promised';
+import { expect, vi, MockInstance } from 'vitest';
 import {
   ABORT_ERROR_NAME,
   RequestURL,
@@ -35,9 +32,6 @@ import { AIError } from '../errors';
 import { getMockResponse } from '../../test-utils/mock-response';
 import { AgentPlatformBackend } from '../backend';
 
-use(sinonChai);
-use(chaiAsPromised);
-
 const fakeApiSettings: ApiSettings = {
   apiKey: 'key',
   project: 'my-project',
@@ -48,7 +42,7 @@ const fakeApiSettings: ApiSettings = {
 
 describe('request methods', () => {
   afterEach(() => {
-    restore();
+    vi.restoreAllMocks();
   });
   describe('RequestURL', () => {
     it('stream', async () => {
@@ -59,8 +53,8 @@ describe('request methods', () => {
         stream: true,
         singleRequestOptions: undefined
       });
-      expect(url.toString()).to.include('models/model-name:generateContent');
-      expect(url.toString()).to.include('alt=sse');
+      expect(url.toString()).toContain('models/model-name:generateContent');
+      expect(url.toString()).toContain('alt=sse');
     });
     it('non-stream', async () => {
       const url = new RequestURL({
@@ -70,9 +64,9 @@ describe('request methods', () => {
         stream: false,
         singleRequestOptions: undefined
       });
-      expect(url.toString()).to.include('models/model-name:generateContent');
-      expect(url.toString()).to.not.include(fakeApiSettings);
-      expect(url.toString()).to.not.include('alt=sse');
+      expect(url.toString()).toContain('models/model-name:generateContent');
+      expect(url.toString()).not.toContain(fakeApiSettings);
+      expect(url.toString()).not.toContain('alt=sse');
     });
     it('default apiVersion', async () => {
       const url = new RequestURL({
@@ -82,7 +76,7 @@ describe('request methods', () => {
         stream: false,
         singleRequestOptions: undefined
       });
-      expect(url.toString()).to.include(DEFAULT_API_VERSION);
+      expect(url.toString()).toContain(DEFAULT_API_VERSION);
     });
     it('custom baseUrl', async () => {
       const url = new RequestURL({
@@ -92,7 +86,7 @@ describe('request methods', () => {
         stream: false,
         singleRequestOptions: { baseUrl: 'https://my.special.endpoint' }
       });
-      expect(url.toString()).to.include('https://my.special.endpoint');
+      expect(url.toString()).toContain('https://my.special.endpoint');
     });
     it('non-stream - tunedModels/', async () => {
       const url = new RequestURL({
@@ -102,11 +96,11 @@ describe('request methods', () => {
         stream: false,
         singleRequestOptions: undefined
       });
-      expect(url.toString()).to.include(
+      expect(url.toString()).toContain(
         'tunedModels/model-name:generateContent'
       );
-      expect(url.toString()).to.not.include(fakeApiSettings);
-      expect(url.toString()).to.not.include('alt=sse');
+      expect(url.toString()).not.toContain(fakeApiSettings);
+      expect(url.toString()).not.toContain('alt=sse');
     });
     it('prompt server template', async () => {
       const url = new RequestURL({
@@ -116,10 +110,10 @@ describe('request methods', () => {
         stream: false,
         singleRequestOptions: undefined
       });
-      expect(url.toString()).to.include(
+      expect(url.toString()).toContain(
         'templates/my-template:templateGenerateContent'
       );
-      expect(url.toString()).to.not.include(fakeApiSettings);
+      expect(url.toString()).not.toContain(fakeApiSettings);
     });
   });
   describe('getHeaders', () => {
@@ -141,7 +135,7 @@ describe('request methods', () => {
     });
     it('adds client headers (no hybrid)', async () => {
       const headers = await getHeaders(fakeUrl);
-      expect(headers.get('x-goog-api-client')).to.match(
+      expect(headers.get('x-goog-api-client')).toMatch(
         /gl-js\/[0-9\.]+ fire\/[0-9\.]+$/
       );
     });
@@ -157,13 +151,13 @@ describe('request methods', () => {
         singleRequestOptions: undefined
       });
       const headers = await getHeaders(fakeUrlWithHybrid);
-      expect(headers.get('x-goog-api-client')).to.match(
+      expect(headers.get('x-goog-api-client')).toMatch(
         /gl-js\/[0-9\.]+ fire\/[0-9\.]+ hybrid$/
       );
     });
     it('adds api key', async () => {
       const headers = await getHeaders(fakeUrl);
-      expect(headers.get('x-goog-api-key')).to.equal('key');
+      expect(headers.get('x-goog-api-key')).toBe('key');
     });
     it('adds app id if automatedDataCollectionEnabled is true', async () => {
       const fakeApiSettings: ApiSettings = {
@@ -184,11 +178,11 @@ describe('request methods', () => {
         singleRequestOptions: undefined
       });
       const headers = await getHeaders(fakeUrl);
-      expect(headers.get('X-Firebase-Appid')).to.equal('my-appid');
+      expect(headers.get('X-Firebase-Appid')).toBe('my-appid');
     });
     it('does not add app id if automatedDataCollectionEnabled is undefined', async () => {
       const headers = await getHeaders(fakeUrl);
-      expect(headers.get('X-Firebase-Appid')).to.be.null;
+      expect(headers.get('X-Firebase-Appid')).toBeNull();
     });
     it('does not add app id if automatedDataCollectionEnabled is false', async () => {
       const fakeApiSettings: ApiSettings = {
@@ -209,11 +203,11 @@ describe('request methods', () => {
         singleRequestOptions: undefined
       });
       const headers = await getHeaders(fakeUrl);
-      expect(headers.get('X-Firebase-Appid')).to.be.null;
+      expect(headers.get('X-Firebase-Appid')).toBeNull();
     });
     it('adds app check token if it exists', async () => {
       const headers = await getHeaders(fakeUrl);
-      expect(headers.get('X-Firebase-AppCheck')).to.equal('appchecktoken');
+      expect(headers.get('X-Firebase-AppCheck')).toBe('appchecktoken');
     });
     it('ignores app check token header if no appcheck service', async () => {
       const fakeUrl = new RequestURL({
@@ -230,7 +224,7 @@ describe('request methods', () => {
         singleRequestOptions: undefined
       });
       const headers = await getHeaders(fakeUrl);
-      expect(headers.has('X-Firebase-AppCheck')).to.be.false;
+      expect(headers.has('X-Firebase-AppCheck')).toBe(false);
     });
     it('ignores app check token header if returned token was undefined', async () => {
       const fakeUrl = new RequestURL({
@@ -247,7 +241,7 @@ describe('request methods', () => {
         singleRequestOptions: undefined
       });
       const headers = await getHeaders(fakeUrl);
-      expect(headers.has('X-Firebase-AppCheck')).to.be.false;
+      expect(headers.has('X-Firebase-AppCheck')).toBe(false);
     });
     it('ignores app check token header if returned token had error', async () => {
       const fakeUrl = new RequestURL({
@@ -265,17 +259,18 @@ describe('request methods', () => {
         stream: true,
         singleRequestOptions: undefined
       });
-      const warnStub = stub(console, 'warn');
+      const warnStub = vi.spyOn(console, 'warn').mockImplementation(() => {});
       const headers = await getHeaders(fakeUrl);
-      expect(headers.get('X-Firebase-AppCheck')).to.equal('dummytoken');
-      expect(warnStub).to.be.calledWith(
-        match(/vertexai/),
-        match(/App Check.*oops/)
+      expect(headers.get('X-Firebase-AppCheck')).toBe('dummytoken');
+      expect(warnStub).toHaveBeenCalledWith(
+        expect.stringMatching(/vertexai/),
+        expect.stringMatching(/App Check.*oops/)
       );
+      warnStub.mockRestore();
     });
     it('adds auth token if it exists', async () => {
       const headers = await getHeaders(fakeUrl);
-      expect(headers.get('Authorization')).to.equal('Firebase authtoken');
+      expect(headers.get('Authorization')).toBe('Firebase authtoken');
     });
     it('ignores auth token header if no auth service', async () => {
       const fakeUrl = new RequestURL({
@@ -292,7 +287,7 @@ describe('request methods', () => {
         singleRequestOptions: undefined
       });
       const headers = await getHeaders(fakeUrl);
-      expect(headers.has('Authorization')).to.be.false;
+      expect(headers.has('Authorization')).toBe(false);
     });
     it('ignores auth token header if returned token was undefined', async () => {
       const fakeUrl = new RequestURL({
@@ -309,18 +304,17 @@ describe('request methods', () => {
         singleRequestOptions: undefined
       });
       const headers = await getHeaders(fakeUrl);
-      expect(headers.has('Authorization')).to.be.false;
+      expect(headers.has('Authorization')).toBe(false);
     });
   });
   describe('makeRequest', () => {
-    let fetchStub: Sinon.SinonStub;
-    let clock: Sinon.SinonFakeTimers;
+    let fetchStub: MockInstance;
     const fetchAborter = (
       _url: string,
       options?: RequestInit
     ): Promise<unknown> => {
-      expect(options).to.not.be.undefined;
-      expect(options!.signal).to.not.be.undefined;
+      expect(options).toBeDefined();
+      expect(options!.signal).toBeDefined();
       const signal = options!.signal;
       return new Promise((_resolve, reject): void => {
         const abortListener = (): void => {
@@ -334,17 +328,17 @@ describe('request methods', () => {
     };
 
     beforeEach(() => {
-      fetchStub = stub(globalThis, 'fetch');
-      clock = useFakeTimers();
+      fetchStub = vi.spyOn(globalThis, 'fetch');
+      vi.useFakeTimers({ now: 0 });
     });
 
     afterEach(() => {
-      restore();
-      clock.restore();
+      vi.restoreAllMocks();
+      vi.useRealTimers();
     });
 
     it('no error', async () => {
-      fetchStub.resolves({
+      fetchStub.mockResolvedValue({
         ok: true
       } as Response);
       const response = await makeRequest(
@@ -356,11 +350,11 @@ describe('request methods', () => {
         },
         ''
       );
-      expect(fetchStub).to.be.calledOnce;
-      expect(response.ok).to.be.true;
+      expect(fetchStub).toHaveBeenCalledTimes(1);
+      expect(response.ok).toBe(true);
     });
     it('error with timeout', async () => {
-      fetchStub.resolves({
+      fetchStub.mockResolvedValue({
         ok: false,
         status: 500,
         statusText: ABORT_ERROR_NAME
@@ -380,18 +374,18 @@ describe('request methods', () => {
           ''
         );
       } catch (e) {
-        expect((e as AIError).code).to.equal(AIErrorCode.FETCH_ERROR);
-        expect((e as AIError).customErrorData?.status).to.equal(500);
-        expect((e as AIError).customErrorData?.statusText).to.equal(
+        expect((e as AIError).code).toBe(AIErrorCode.FETCH_ERROR);
+        expect((e as AIError).customErrorData?.status).toBe(500);
+        expect((e as AIError).customErrorData?.statusText).toBe(
           ABORT_ERROR_NAME
         );
-        expect((e as AIError).message).to.include('500 AbortError');
+        expect((e as AIError).message).toContain('500 AbortError');
       }
 
-      expect(fetchStub).to.be.calledOnce;
+      expect(fetchStub).toHaveBeenCalledTimes(1);
     });
     it('Network error, no response.json()', async () => {
-      fetchStub.resolves({
+      fetchStub.mockResolvedValue({
         ok: false,
         status: 500,
         statusText: 'Server Error'
@@ -407,17 +401,15 @@ describe('request methods', () => {
           ''
         );
       } catch (e) {
-        expect((e as AIError).code).to.equal(AIErrorCode.FETCH_ERROR);
-        expect((e as AIError).customErrorData?.status).to.equal(500);
-        expect((e as AIError).customErrorData?.statusText).to.equal(
-          'Server Error'
-        );
-        expect((e as AIError).message).to.include('500 Server Error');
+        expect((e as AIError).code).toBe(AIErrorCode.FETCH_ERROR);
+        expect((e as AIError).customErrorData?.status).toBe(500);
+        expect((e as AIError).customErrorData?.statusText).toBe('Server Error');
+        expect((e as AIError).message).toContain('500 Server Error');
       }
-      expect(fetchStub).to.be.calledOnce;
+      expect(fetchStub).toHaveBeenCalledTimes(1);
     });
     it('Network error, includes response.json()', async () => {
-      fetchStub.resolves({
+      fetchStub.mockResolvedValue({
         ok: false,
         status: 500,
         statusText: 'Server Error',
@@ -434,18 +426,16 @@ describe('request methods', () => {
           ''
         );
       } catch (e) {
-        expect((e as AIError).code).to.equal(AIErrorCode.FETCH_ERROR);
-        expect((e as AIError).customErrorData?.status).to.equal(500);
-        expect((e as AIError).customErrorData?.statusText).to.equal(
-          'Server Error'
-        );
-        expect((e as AIError).message).to.include('500 Server Error');
-        expect((e as AIError).message).to.include('extra info');
+        expect((e as AIError).code).toBe(AIErrorCode.FETCH_ERROR);
+        expect((e as AIError).customErrorData?.status).toBe(500);
+        expect((e as AIError).customErrorData?.statusText).toBe('Server Error');
+        expect((e as AIError).message).toContain('500 Server Error');
+        expect((e as AIError).message).toContain('extra info');
       }
-      expect(fetchStub).to.be.calledOnce;
+      expect(fetchStub).toHaveBeenCalledTimes(1);
     });
     it('Network error, includes response.json() and details', async () => {
-      fetchStub.resolves({
+      fetchStub.mockResolvedValue({
         ok: false,
         status: 500,
         statusText: 'Server Error',
@@ -474,23 +464,21 @@ describe('request methods', () => {
           ''
         );
       } catch (e) {
-        expect((e as AIError).code).to.equal(AIErrorCode.FETCH_ERROR);
-        expect((e as AIError).customErrorData?.status).to.equal(500);
-        expect((e as AIError).customErrorData?.statusText).to.equal(
-          'Server Error'
-        );
-        expect((e as AIError).message).to.include('500 Server Error');
-        expect((e as AIError).message).to.include('extra info');
-        expect((e as AIError).message).to.include('generic::invalid_argument');
+        expect((e as AIError).code).toBe(AIErrorCode.FETCH_ERROR);
+        expect((e as AIError).customErrorData?.status).toBe(500);
+        expect((e as AIError).customErrorData?.statusText).toBe('Server Error');
+        expect((e as AIError).message).toContain('500 Server Error');
+        expect((e as AIError).message).toContain('extra info');
+        expect((e as AIError).message).toContain('generic::invalid_argument');
       }
-      expect(fetchStub).to.be.calledOnce;
+      expect(fetchStub).toHaveBeenCalledTimes(1);
     });
     it('Network error, API not enabled', async () => {
       const mockResponse = getMockResponse(
         'vertexAI',
         'unary-failure-firebasevertexai-api-not-enabled.json'
       );
-      fetchStub.resolves(mockResponse as Response);
+      fetchStub.mockResolvedValue(mockResponse as Response);
       try {
         await makeRequest(
           {
@@ -502,11 +490,11 @@ describe('request methods', () => {
           ''
         );
       } catch (e) {
-        expect((e as AIError).code).to.equal(AIErrorCode.API_NOT_ENABLED);
-        expect((e as AIError).message).to.include('my-project');
-        expect((e as AIError).message).to.include('googleapis.com');
+        expect((e as AIError).code).toBe(AIErrorCode.API_NOT_ENABLED);
+        expect((e as AIError).message).toContain('my-project');
+        expect((e as AIError).message).toContain('googleapis.com');
       }
-      expect(fetchStub).to.be.calledOnce;
+      expect(fetchStub).toHaveBeenCalledTimes(1);
     });
 
     it('should throw DOMException if external signal is already aborted', async () => {
@@ -525,15 +513,12 @@ describe('request methods', () => {
         '{}'
       );
 
-      await expect(requestPromise).to.be.rejectedWith(
-        DOMException,
-        abortReason
-      );
+      await expect(requestPromise).rejects.toThrow(abortReason);
 
-      expect(fetchStub).not.to.have.been.called;
+      expect(fetchStub).not.toHaveBeenCalled();
     });
     it('should throw DOMException if external signal aborts during request', async () => {
-      fetchStub.callsFake(fetchAborter);
+      fetchStub.mockImplementation(fetchAborter);
       const controller = new AbortController();
       const abortReason = 'Aborted during request';
 
@@ -548,18 +533,17 @@ describe('request methods', () => {
         '{}'
       );
 
-      await clock.tickAsync(0);
+      const assertion = expect(requestPromise).rejects.toThrow(abortReason);
+
+      await vi.advanceTimersByTimeAsync(0);
       controller.abort(abortReason);
 
-      await expect(requestPromise).to.be.rejectedWith(
-        DOMException,
-        abortReason
-      );
+      await assertion;
     });
 
     it('should abort fetch if timeout expires during request', async () => {
       const timeoutDuration = 100;
-      fetchStub.callsFake(fetchAborter);
+      fetchStub.mockImplementation(fetchAborter);
 
       const requestPromise = makeRequest(
         {
@@ -572,20 +556,21 @@ describe('request methods', () => {
         '{}'
       );
 
-      await clock.tickAsync(timeoutDuration + 100);
-
-      await expect(requestPromise).to.be.rejectedWith(
-        DOMException,
+      const assertion = expect(requestPromise).rejects.toThrow(
         TIMEOUT_EXPIRED_MESSAGE
       );
 
-      expect(fetchStub).to.have.been.calledOnce;
-      const fetchOptions = fetchStub.firstCall.args[1] as RequestInit;
+      await vi.advanceTimersByTimeAsync(timeoutDuration + 100);
+
+      await assertion;
+
+      expect(fetchStub).toHaveBeenCalledTimes(1);
+      const fetchOptions = fetchStub.mock.calls[0][1] as RequestInit;
       const internalSignal = fetchOptions.signal;
 
-      expect(internalSignal?.aborted).to.be.true;
-      expect((internalSignal?.reason as Error).name).to.equal(ABORT_ERROR_NAME);
-      expect((internalSignal?.reason as Error).message).to.equal(
+      expect(internalSignal?.aborted).toBe(true);
+      expect((internalSignal?.reason as Error).name).toBe(ABORT_ERROR_NAME);
+      expect((internalSignal?.reason as Error).message).toBe(
         'Timeout has expired.'
       );
     });
@@ -596,8 +581,8 @@ describe('request methods', () => {
         statusText: 'OK'
       });
       const fetchPromise = Promise.resolve(mockResponse);
-      fetchStub.resolves(fetchPromise);
-      const clearTimeoutStub = stub(globalThis, 'clearTimeout');
+      fetchStub.mockResolvedValue(fetchPromise);
+      const clearTimeoutStub = vi.spyOn(globalThis, 'clearTimeout');
 
       const requestPromise = makeRequest(
         {
@@ -611,19 +596,19 @@ describe('request methods', () => {
       );
 
       // Advance time slightly, well within timeout
-      await clock.tickAsync(10);
+      await vi.advanceTimersByTimeAsync(10);
 
       const response = await requestPromise;
-      expect(response.ok).to.be.true;
-      expect(clearTimeoutStub).to.have.been.calledOnce;
-      expect(fetchStub).to.have.been.calledOnce;
+      expect(response.ok).toBe(true);
+      expect(clearTimeoutStub).toHaveBeenCalledTimes(1);
+      expect(fetchStub).toHaveBeenCalledTimes(1);
     });
 
     it('should use external signal abort reason if it occurs before timeout', async () => {
       const controller = new AbortController();
       const abortReason = 'External Abort Wins';
       const timeoutDuration = 500;
-      fetchStub.callsFake(fetchAborter);
+      fetchStub.mockImplementation(fetchAborter);
 
       const requestPromise = makeRequest(
         {
@@ -639,21 +624,20 @@ describe('request methods', () => {
         '{}'
       );
 
+      const assertion = expect(requestPromise).rejects.toThrow(abortReason);
+
       // Advance time, but less than the timeout
-      await clock.tickAsync(timeoutDuration / 2);
+      await vi.advanceTimersByTimeAsync(timeoutDuration / 2);
       controller.abort(abortReason);
 
-      await expect(requestPromise).to.be.rejectedWith(
-        DOMException,
-        abortReason
-      );
+      await assertion;
     });
 
     it('should use timeout reason if it occurs before external signal abort', async () => {
       const controller = new AbortController();
       const abortReason = 'External Abort Loses';
       const timeoutDuration = 100;
-      fetchStub.callsFake(fetchAborter);
+      fetchStub.mockImplementation(fetchAborter);
 
       const requestPromise = makeRequest(
         {
@@ -672,13 +656,14 @@ describe('request methods', () => {
       // Schedule external abort after timeout
       setTimeout(() => controller.abort(abortReason), timeoutDuration * 2);
 
-      // Advance time past the timeout
-      await clock.tickAsync(timeoutDuration + 1);
-
-      await expect(requestPromise).to.be.rejectedWith(
-        DOMException,
+      const assertion = expect(requestPromise).rejects.toThrow(
         TIMEOUT_EXPIRED_MESSAGE
       );
+
+      // Advance time past the timeout
+      await vi.advanceTimersByTimeAsync(timeoutDuration + 1);
+
+      await assertion;
     });
 
     it('should pass internal signal to fetch options', async () => {
@@ -686,7 +671,7 @@ describe('request methods', () => {
         status: 200,
         statusText: 'OK'
       });
-      fetchStub.resolves(mockResponse);
+      fetchStub.mockResolvedValue(mockResponse);
 
       await makeRequest(
         {
@@ -698,15 +683,15 @@ describe('request methods', () => {
         ''
       );
 
-      expect(fetchStub).to.have.been.calledOnce;
-      const fetchOptions = fetchStub.firstCall.args[1] as RequestInit;
-      expect(fetchOptions.signal).to.exist;
-      expect(fetchOptions.signal).to.be.instanceOf(AbortSignal);
-      expect(fetchOptions.signal?.aborted).to.be.false;
+      expect(fetchStub).toHaveBeenCalledTimes(1);
+      const fetchOptions = fetchStub.mock.calls[0][1] as RequestInit;
+      expect(fetchOptions.signal).toBeDefined();
+      expect(fetchOptions.signal).toBeInstanceOf(AbortSignal);
+      expect(fetchOptions.signal?.aborted).toBe(false);
     });
 
     it('should abort immediately if timeout is 0', async () => {
-      fetchStub.callsFake(fetchAborter);
+      fetchStub.mockImplementation(fetchAborter);
       const requestPromise = makeRequest(
         {
           model: 'models/model-name',
@@ -718,13 +703,14 @@ describe('request methods', () => {
         '{}'
       );
 
-      // Tick the clock just enough to trigger a timeout(0)
-      await clock.tickAsync(1);
-
-      await expect(requestPromise).to.be.rejectedWith(
-        DOMException,
+      const assertion = expect(requestPromise).rejects.toThrow(
         TIMEOUT_EXPIRED_MESSAGE
       );
+
+      // Tick the clock just enough to trigger a timeout(0)
+      await vi.advanceTimersByTimeAsync(1);
+
+      await assertion;
     });
 
     it('should not error if signal is aborted after completion', async () => {
@@ -733,7 +719,7 @@ describe('request methods', () => {
         status: 200,
         statusText: 'OK'
       });
-      fetchStub.resolves(mockResponse);
+      fetchStub.mockResolvedValue(mockResponse);
 
       const response = await makeRequest(
         {
@@ -749,7 +735,7 @@ describe('request methods', () => {
       // Listener should be removed, so this abort should do nothing.
       controller.abort('Too late');
 
-      expect(response.ok).to.be.true;
+      expect(response.ok).toBe(true);
     });
   });
 });

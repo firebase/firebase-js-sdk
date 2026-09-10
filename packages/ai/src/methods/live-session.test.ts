@@ -15,10 +15,7 @@
  * limitations under the License.
  */
 
-import { expect, use } from 'chai';
-import { match, spy, stub } from 'sinon';
-import sinonChai from 'sinon-chai';
-import chaiAsPromised from 'chai-as-promised';
+import { expect, vi } from 'vitest';
 import {
   FunctionResponse,
   LiveResponseType,
@@ -30,12 +27,8 @@ import {
 } from '../types';
 import { LiveSession } from './live-session';
 import { WebSocketHandler } from '../websocket';
-import { AIError } from '../errors';
 import { logger } from '../logger';
 import { GoogleAIBackend } from '../backend';
-
-use(sinonChai);
-use(chaiAsPromised);
 
 const fakeApiSettings = {
   apiKey: 'MY_KEY',
@@ -46,9 +39,9 @@ const fakeApiSettings = {
 };
 
 class MockWebSocketHandler implements WebSocketHandler {
-  connect = stub().resolves();
-  send = spy();
-  close = stub().resolves();
+  connect = vi.fn().mockResolvedValue(undefined);
+  send = vi.fn();
+  close = vi.fn().mockResolvedValue(undefined);
 
   private messageQueue: unknown[] = [];
   private streamClosed = false;
@@ -101,15 +94,15 @@ describe('LiveSession', () => {
       setupComplete: true
     });
     await session.connectionPromise;
-    mockHandler.send.resetHistory();
+    mockHandler.send.mockClear();
   });
 
   describe('send()', () => {
     it('should format and send a valid text message', async () => {
       await session.send('Hello there');
-      expect(mockHandler.send).to.have.been.calledOnce;
-      const sentData = JSON.parse(mockHandler.send.getCall(0).args[0]);
-      expect(sentData).to.deep.equal({
+      expect(mockHandler.send).toHaveBeenCalledTimes(1);
+      const sentData = JSON.parse(mockHandler.send.mock.calls[0][0]);
+      expect(sentData).toEqual({
         clientContent: {
           turns: [{ role: 'user', parts: [{ text: 'Hello there' }] }],
           turnComplete: true
@@ -123,9 +116,9 @@ describe('LiveSession', () => {
         { inlineData: { mimeType: 'image/png', data: 'base64==' } }
       ];
       await session.send(parts);
-      expect(mockHandler.send).to.have.been.calledOnce;
-      const sentData = JSON.parse(mockHandler.send.getCall(0).args[0]);
-      expect(sentData.clientContent.turns[0].parts).to.deep.equal(parts);
+      expect(mockHandler.send).toHaveBeenCalledTimes(1);
+      const sentData = JSON.parse(mockHandler.send.mock.calls[0][0]);
+      expect(sentData.clientContent.turns[0].parts).toEqual(parts);
     });
   });
 
@@ -133,9 +126,9 @@ describe('LiveSession', () => {
     it('should send a correctly formatted realtimeInput message', async () => {
       const text = 'foo';
       await session.sendTextRealtime(text);
-      expect(mockHandler.send).to.have.been.calledOnce;
-      const sentData = JSON.parse(mockHandler.send.getCall(0).args[0]);
-      expect(sentData).to.deep.equal({
+      expect(mockHandler.send).toHaveBeenCalledTimes(1);
+      const sentData = JSON.parse(mockHandler.send.mock.calls[0][0]);
+      expect(sentData).toEqual({
         realtimeInput: { text }
       });
     });
@@ -145,9 +138,9 @@ describe('LiveSession', () => {
     it('should send a correctly formatted realtimeInput message', async () => {
       const blob = { data: 'abcdef', mimeType: 'audio/pcm' };
       await session.sendAudioRealtime(blob);
-      expect(mockHandler.send).to.have.been.calledOnce;
-      const sentData = JSON.parse(mockHandler.send.getCall(0).args[0]);
-      expect(sentData).to.deep.equal({
+      expect(mockHandler.send).toHaveBeenCalledTimes(1);
+      const sentData = JSON.parse(mockHandler.send.mock.calls[0][0]);
+      expect(sentData).toEqual({
         realtimeInput: { audio: blob }
       });
     });
@@ -157,9 +150,9 @@ describe('LiveSession', () => {
     it('should send a correctly formatted realtimeInput message', async () => {
       const blob = { data: 'abcdef', mimeType: 'image/jpeg' };
       await session.sendVideoRealtime(blob);
-      expect(mockHandler.send).to.have.been.calledOnce;
-      const sentData = JSON.parse(mockHandler.send.getCall(0).args[0]);
-      expect(sentData).to.deep.equal({
+      expect(mockHandler.send).toHaveBeenCalledTimes(1);
+      const sentData = JSON.parse(mockHandler.send.mock.calls[0][0]);
+      expect(sentData).toEqual({
         realtimeInput: { video: blob }
       });
     });
@@ -169,9 +162,9 @@ describe('LiveSession', () => {
     it('should send a correctly formatted realtimeInput message', async () => {
       const chunks = [{ data: 'base64', mimeType: 'audio/webm' }];
       await session.sendMediaChunks(chunks);
-      expect(mockHandler.send).to.have.been.calledOnce;
-      const sentData = JSON.parse(mockHandler.send.getCall(0).args[0]);
-      expect(sentData).to.deep.equal({
+      expect(mockHandler.send).toHaveBeenCalledTimes(1);
+      const sentData = JSON.parse(mockHandler.send.mock.calls[0][0]);
+      expect(sentData).toEqual({
         realtimeInput: { mediaChunks: chunks }
       });
     });
@@ -189,11 +182,11 @@ describe('LiveSession', () => {
 
       await session.sendMediaStream(stream);
 
-      expect(mockHandler.send).to.have.been.calledTwice;
-      const firstCall = JSON.parse(mockHandler.send.getCall(0).args[0]);
-      const secondCall = JSON.parse(mockHandler.send.getCall(1).args[0]);
-      expect(firstCall.realtimeInput.mediaChunks[0].data).to.equal('chunk1');
-      expect(secondCall.realtimeInput.mediaChunks[0].data).to.equal('chunk2');
+      expect(mockHandler.send).toHaveBeenCalledTimes(2);
+      const firstCall = JSON.parse(mockHandler.send.mock.calls[0][0]);
+      const secondCall = JSON.parse(mockHandler.send.mock.calls[1][0]);
+      expect(firstCall.realtimeInput.mediaChunks[0].data).toBe('chunk1');
+      expect(secondCall.realtimeInput.mediaChunks[0].data).toBe('chunk2');
     });
 
     it('should re-throw an AIError if the stream reader throws', async () => {
@@ -202,8 +195,7 @@ describe('LiveSession', () => {
           controller.error(new Error('Stream failed!'));
         }
       });
-      await expect(session.sendMediaStream(errorStream)).to.be.rejectedWith(
-        AIError,
+      await expect(session.sendMediaStream(errorStream)).rejects.toThrow(
         /Stream failed!/
       );
     });
@@ -228,9 +220,9 @@ describe('LiveSession', () => {
         }
       ];
       await session.sendFunctionResponses(functionResponses);
-      expect(mockHandler.send).to.have.been.calledOnce;
-      const sentData = JSON.parse(mockHandler.send.getCall(0).args[0]);
-      expect(sentData).to.deep.equal({
+      expect(mockHandler.send).toHaveBeenCalledTimes(1);
+      const sentData = JSON.parse(mockHandler.send.mock.calls[0][0]);
+      expect(sentData).toEqual({
         toolResponse: {
           functionResponses
         }
@@ -240,16 +232,18 @@ describe('LiveSession', () => {
 
   describe('resumeSession()', () => {
     it('should close existing session and start a new one using handle.send', async () => {
-      expect(session.isClosed).to.be.false;
+      expect(session.isClosed).toBe(false);
 
       mockHandler.simulateServerMessage({
         setupComplete: true
       });
       await session.resumeSession({ handle: 'testHandle' });
 
-      expect(mockHandler.close).to.have.been.calledOnce;
-      expect(mockHandler.send).to.have.been.calledWith(match('testHandle'));
-      expect(session.isClosed).to.be.false;
+      expect(mockHandler.close).toHaveBeenCalledTimes(1);
+      expect(mockHandler.send).toHaveBeenCalledWith(
+        expect.stringContaining('testHandle')
+      );
+      expect(session.isClosed).toBe(false);
     });
 
     it('should throw if sessionResumption is not provided', async () => {
@@ -259,8 +253,7 @@ describe('LiveSession', () => {
         undefined,
         mockHandler
       );
-      await expect(basicSession.resumeSession()).to.be.rejectedWith(
-        AIError,
+      await expect(basicSession.resumeSession()).rejects.toThrow(
         /Cannot resume session/
       );
     });
@@ -302,30 +295,30 @@ describe('LiveSession', () => {
       mockHandler.endStream();
 
       const responses = await receivePromise;
-      expect(responses).to.have.lengthOf(6);
-      expect(responses[0]).to.deep.equal({
+      expect(responses).toHaveLength(6);
+      expect(responses[0]).toEqual({
         type: LiveResponseType.SERVER_CONTENT,
         modelTurn: { parts: [{ text: 'response 1' }] }
       } as LiveServerContent);
-      expect(responses[1]).to.deep.equal({
+      expect(responses[1]).toEqual({
         type: LiveResponseType.TOOL_CALL,
         functionCalls: [{ name: 'test_func' }]
       } as LiveServerToolCall);
-      expect(responses[2]).to.deep.equal({
+      expect(responses[2]).toEqual({
         type: LiveResponseType.TOOL_CALL_CANCELLATION,
         functionIds: ['123']
       } as LiveServerToolCallCancellation);
-      expect(responses[3]).to.deep.equal({
+      expect(responses[3]).toEqual({
         type: LiveResponseType.GOING_AWAY_NOTICE,
         timeLeft: 30
       } as LiveServerGoingAwayNotice);
-      expect(responses[4]).to.deep.equal({
+      expect(responses[4]).toEqual({
         type: LiveResponseType.SESSION_RESUMPTION_UPDATE,
         newHandle: 'test',
         resumable: true,
         lastConsumedClientMessageIndex: 5
       } as LiveSessionResumptionUpdate);
-      expect(responses[5]).to.deep.equal({
+      expect(responses[5]).toEqual({
         type: LiveResponseType.SERVER_CONTENT,
         turnComplete: true
       } as LiveServerContent);
@@ -347,8 +340,8 @@ describe('LiveSession', () => {
       mockHandler.endStream();
 
       const responses = await receivePromise;
-      expect(responses).to.have.lengthOf(1);
-      expect(responses[0]).to.deep.equal({
+      expect(responses).toHaveLength(1);
+      expect(responses[0]).toEqual({
         type: LiveResponseType.GOING_AWAY_NOTICE,
         timeLeft: 3.000000001
       } as LiveServerGoingAwayNotice);
@@ -370,15 +363,15 @@ describe('LiveSession', () => {
       mockHandler.endStream();
 
       const responses = await receivePromise;
-      expect(responses).to.have.lengthOf(1);
-      expect(responses[0]).to.deep.equal({
+      expect(responses).toHaveLength(1);
+      expect(responses[0]).toEqual({
         type: LiveResponseType.GOING_AWAY_NOTICE,
         timeLeft: 0
       } as LiveServerGoingAwayNotice);
     });
 
     it('should log a warning and skip messages that are not objects', async () => {
-      const loggerStub = stub(logger, 'warn');
+      const loggerStub = vi.spyOn(logger, 'warn').mockImplementation(() => {});
       const receivePromise = (async () => {
         const responses = [];
         for await (const response of session.receive()) {
@@ -393,17 +386,17 @@ describe('LiveSession', () => {
       mockHandler.endStream();
 
       const responses = await receivePromise;
-      expect(responses).to.be.empty;
-      expect(loggerStub).to.have.been.calledTwice;
-      expect(loggerStub).to.have.been.calledWithMatch(
-        /Received an invalid message/
+      expect(responses).toHaveLength(0);
+      expect(loggerStub).toHaveBeenCalledTimes(2);
+      expect(loggerStub).toHaveBeenCalledWith(
+        expect.stringMatching(/Received an invalid message/)
       );
 
-      loggerStub.restore();
+      loggerStub.mockRestore();
     });
 
     it('should log a warning and skip objects of unknown type', async () => {
-      const loggerStub = stub(logger, 'warn');
+      const loggerStub = vi.spyOn(logger, 'warn').mockImplementation(() => {});
       const receivePromise = (async () => {
         const responses = [];
         for await (const response of session.receive()) {
@@ -417,26 +410,26 @@ describe('LiveSession', () => {
       mockHandler.endStream();
 
       const responses = await receivePromise;
-      expect(responses).to.be.empty;
-      expect(loggerStub).to.have.been.calledOnce;
-      expect(loggerStub).to.have.been.calledWithMatch(
-        /Received an unknown message type/
+      expect(responses).toHaveLength(0);
+      expect(loggerStub).toHaveBeenCalledTimes(1);
+      expect(loggerStub).toHaveBeenCalledWith(
+        expect.stringMatching(/Received an unknown message type/)
       );
 
-      loggerStub.restore();
+      loggerStub.mockRestore();
     });
   });
 
   describe('close()', () => {
     it('should call the handler, set the isClosed flag, and be idempotent', async () => {
-      expect(session.isClosed).to.be.false;
+      expect(session.isClosed).toBe(false);
       await session.close();
-      expect(mockHandler.close).to.have.been.calledOnce;
-      expect(session.isClosed).to.be.true;
+      expect(mockHandler.close).toHaveBeenCalledTimes(1);
+      expect(session.isClosed).toBe(true);
 
       // Call again to test idempotency
       await session.close();
-      expect(mockHandler.close).to.have.been.calledOnce; // Should not be called again
+      expect(mockHandler.close).toHaveBeenCalledTimes(1); // Should not be called again
     });
 
     it('should terminate an active receive() loop', async () => {
@@ -452,7 +445,7 @@ describe('LiveSession', () => {
       });
       // Allow the first message to be processed
       await new Promise(r => setTimeout(r, 10));
-      expect(received).to.have.lengthOf(1);
+      expect(received).toHaveLength(1);
 
       await session.close();
       mockHandler.endStream(); // End the mock stream
@@ -460,18 +453,15 @@ describe('LiveSession', () => {
       await receivePromise; // This should now resolve
 
       // No more messages should have been processed
-      expect(received).to.have.lengthOf(1);
+      expect(received).toHaveLength(1);
     });
 
     it('methods should throw after session is closed', async () => {
       await session.close();
-      await expect(session.send('test')).to.be.rejectedWith(AIError, /closed/);
-      await expect(session.sendMediaChunks([])).to.be.rejectedWith(
-        AIError,
-        /closed/
-      );
+      await expect(session.send('test')).rejects.toThrow(/closed/);
+      await expect(session.sendMediaChunks([])).rejects.toThrow(/closed/);
       const generator = session.receive();
-      await expect(generator.next()).to.be.rejectedWith(AIError, /closed/);
+      await expect(generator.next()).rejects.toThrow(/closed/);
     });
   });
 });

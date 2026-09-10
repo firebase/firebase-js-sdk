@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 import { getAI, getGenerativeModel } from './api';
-import { expect } from 'chai';
+import { expect } from 'vitest';
 import { InferenceMode } from './public-types';
 import { getFullApp } from '../test-utils/get-fake-firebase-services';
 import { DEFAULT_HYBRID_IN_CLOUD_MODEL } from './constants';

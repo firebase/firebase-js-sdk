@@ -15,27 +15,19 @@
  * limitations under the License.
  */
 
-import { expect, use } from 'chai';
-import sinonChai from 'sinon-chai';
-import chaiAsPromised from 'chai-as-promised';
+import { describe, expect, it } from 'vitest';
 import { getGlobal, isNode } from '@firebase/util';
 import { chromeAdapterFactory, ChromeAdapterImpl } from './chrome-adapter';
 import { InferenceMode } from '../types';
 import { LanguageModel } from '../types/language-model';
 
-use(sinonChai);
-use(chaiAsPromised);
-
 describe('chromeAdapterFactory', () => {
-  it('returns undefined in native Node environment', function () {
-    if (!isNode()) {
-      this.skip();
-    }
+  it.skipIf(!isNode())('returns undefined in native Node environment', () => {
     const adapter = chromeAdapterFactory(
       InferenceMode.PREFER_ON_DEVICE,
       undefined
     );
-    expect(adapter).to.be.undefined;
+    expect(adapter).toBeUndefined();
   });
 
   it('returns undefined when LanguageModel is not defined on global object', () => {
@@ -47,7 +39,7 @@ describe('chromeAdapterFactory', () => {
         InferenceMode.PREFER_ON_DEVICE,
         undefined
       );
-      expect(adapter).to.be.undefined;
+      expect(adapter).toBeUndefined();
     } finally {
       if (originalLM !== undefined) {
         globalObj.LanguageModel = originalLM;
@@ -65,8 +57,8 @@ describe('chromeAdapterFactory', () => {
         InferenceMode.PREFER_ON_DEVICE,
         undefined
       );
-      expect(adapter).to.be.an.instanceOf(ChromeAdapterImpl);
-      expect(adapter?.languageModelProvider).to.equal(fakeLanguageModel);
+      expect(adapter).toBeInstanceOf(ChromeAdapterImpl);
+      expect(adapter?.languageModelProvider).toBe(fakeLanguageModel);
     } finally {
       if (originalLM !== undefined) {
         globalObj.LanguageModel = originalLM;

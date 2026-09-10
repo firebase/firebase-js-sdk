@@ -35,17 +35,19 @@
     "dev": "rollup -c -w",
     "update-responses": "../../scripts/update_vertexai_responses.sh",
     "testsetup": "yarn update-responses && yarn ts-node ./test-utils/convert-mocks.ts",
-    "test": "run-p --npm-path npm lint type-check test:browser",
-    "test:ci": "yarn testsetup && node ../../scripts/run_tests_in_ci.js -s test",
-    "test:skip-clone": "karma start",
-    "test:browser": "yarn testsetup && karma start",
-    "test:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' mocha --require ts-node/register --require src/index.node.ts 'src/**/!(*-browser)*.test.ts' --config ../../config/mocharc.node.js",
+    "test": "run-p --npm-path npm lint type-check test:all",
+    "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all",
+    "test:skip-clone": "yarn ts-node ./test-utils/convert-mocks.ts && vitest run",
+    "test:browser": "yarn testsetup && vitest run --project=browser",
+    "test:node": "vitest run --project=node",
     "test:integration": "karma start --integration",
     "test:integration:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' mocha integration/**/*.test.ts --config ../../config/mocharc.node.js",
     "api-report": "api-extractor run --local --verbose",
     "typings:public": "node ../../scripts/build/use_typings.js ./dist/ai-public.d.ts",
     "type-check": "yarn tsc --noEmit",
-    "trusted-type-check": "tsec -p tsconfig.json --noEmit"
+    "trusted-type-check": "tsec -p tsconfig.json --noEmit",
+    "test:all": "yarn testsetup && vitest run",
+    "test:browser:debug": "yarn testsetup && vitest --project=browser --browser.headless=false"
   },
   "peerDependencies": {
     "@firebase/app": "0.x",
@@ -75,11 +77,5 @@
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
-  "typings": "dist/src/index.d.ts",
-  "nyc": {
-    "extension": [
-      ".ts"
-    ],
-    "reportDir": "./coverage/node"
-  }
+  "typings": "dist/src/index.d.ts"
 }

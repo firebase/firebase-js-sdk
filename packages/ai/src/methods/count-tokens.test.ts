@@ -15,12 +15,24 @@
  * limitations under the License.
  */
 
-import { expect, use } from 'chai';
-import Sinon, { match, restore, stub } from 'sinon';
-import sinonChai from 'sinon-chai';
-import chaiAsPromised from 'chai-as-promised';
+import { expect, vi, MockInstance } from 'vitest';
 import { getMockResponse } from '../../test-utils/mock-response';
-import * as request from '../requests/request';
+
+const { mockRequest } = vi.hoisted(() => ({
+  mockRequest: {
+    makeRequest: (..._args: any[]): any => {}
+  }
+}));
+
+vi.mock('../requests/request', async importOriginal => {
+  const actual = await importOriginal<any>();
+  mockRequest.makeRequest = (...args: any[]) => actual.makeRequest(...args);
+  return {
+    ...actual,
+    makeRequest: (...args: any[]) => mockRequest.makeRequest(...args)
+  };
+});
+
 import { countTokens } from './count-tokens';
 import { CountTokensRequest, InferenceMode } from '../types';
 import { ApiSettings } from '../types/internal';
@@ -28,9 +40,6 @@ import { Task } from '../requests/request';
 import { mapCountTokensRequest } from '../googleai-mappers';
 import { GoogleAIBackend, AgentPlatformBackend } from '../backend';
 import { fakeChromeAdapter } from '../../test-utils/get-fake-firebase-services';
-
-use(sinonChai);
-use(chaiAsPromised);
 
 const fakeApiSettings: ApiSettings = {
   apiKey: 'key',
@@ -54,16 +63,16 @@ const fakeRequestParams: CountTokensRequest = {
 
 describe('countTokens()', () => {
   afterEach(() => {
-    restore();
+    vi.restoreAllMocks();
   });
   it('total tokens', async () => {
     const mockResponse = getMockResponse(
       'vertexAI',
       'unary-success-total-tokens.json'
     );
-    const makeRequestStub = stub(request, 'makeRequest').resolves(
-      mockResponse as Response
-    );
+    const makeRequestStub = vi
+      .spyOn(mockRequest, 'makeRequest')
+      .mockResolvedValue(mockResponse as Response);
     const result = await countTokens(
       fakeApiSettings,
       'model',
@@ -71,7 +80,7 @@ describe('countTokens()', () => {
       fakeChromeAdapter
     );
     expect(result.totalTokens).to.equal(6);
-    expect(makeRequestStub).to.be.calledWith(
+    expect(makeRequestStub).toHaveBeenCalledWith(
       {
         model: 'model',
         task: Task.COUNT_TOKENS,
@@ -79,9 +88,7 @@ describe('countTokens()', () => {
         stream: false,
         singleRequestOptions: undefined
       },
-      match((value: string) => {
-        return value.includes('contents');
-      })
+      expect.stringContaining('contents')
     );
   });
   it('total tokens with modality details', async () => {
@@ -89,9 +96,9 @@ describe('countTokens()', () => {
       'vertexAI',
       'unary-success-detailed-token-response.json'
     );
-    const makeRequestStub = stub(request, 'makeRequest').resolves(
-      mockResponse as Response
-    );
+    const makeRequestStub = vi
+      .spyOn(mockRequest, 'makeRequest')
+      .mockResolvedValue(mockResponse as Response);
     const result = await countTokens(
       fakeApiSettings,
       'model',
@@ -102,7 +109,7 @@ describe('countTokens()', () => {
     expect(result.totalBillableCharacters).to.equal(117);
     expect(result.promptTokensDetails?.[0].modality).to.equal('IMAGE');
     expect(result.promptTokensDetails?.[0].tokenCount).to.equal(1806);
-    expect(makeRequestStub).to.be.calledWith(
+    expect(makeRequestStub).toHaveBeenCalledWith(
       {
         model: 'model',
         task: Task.COUNT_TOKENS,
@@ -110,9 +117,7 @@ describe('countTokens()', () => {
         stream: false,
         singleRequestOptions: undefined
       },
-      match((value: string) => {
-        return value.includes('contents');
-      })
+      expect.stringContaining('contents')
     );
   });
   it('total tokens no billable characters', async () => {
@@ -120,9 +125,9 @@ describe('countTokens()', () => {
       'vertexAI',
       'unary-success-no-billable-characters.json'
     );
-    const makeRequestStub = stub(request, 'makeRequest').resolves(
-      mockResponse as Response
-    );
+    const makeRequestStub = vi
+      .spyOn(mockRequest, 'makeRequest')
+      .mockResolvedValue(mockResponse as Response);
     const result = await countTokens(
       fakeApiSettings,
       'model',
@@ -131,7 +136,7 @@ describe('countTokens()', () => {
     );
     expect(result.totalTokens).to.equal(258);
     expect(result).to.not.have.property('totalBillableCharacters');
-    expect(makeRequestStub).to.be.calledWith(
+    expect(makeRequestStub).toHaveBeenCalledWith(
       {
         model: 'model',
         task: Task.COUNT_TOKENS,
@@ -139,9 +144,7 @@ describe('countTokens()', () => {
         stream: false,
         singleRequestOptions: undefined
       },
-      match((value: string) => {
-        return value.includes('contents');
-      })
+      expect.stringContaining('contents')
     );
   });
   it('model not found', async () => {
@@ -149,7 +152,7 @@ describe('countTokens()', () => {
       'vertexAI',
       'unary-failure-model-not-found.json'
     );
-    const mockFetch = stub(globalThis, 'fetch').resolves({
+    const mockFetch = vi.spyOn(globalThis, 'fetch').mockResolvedValue({
       ok: false,
       status: 404,
       json: mockResponse.json
@@ -161,22 +164,25 @@ describe('countTokens()', () => {
         fakeRequestParams,
         fakeChromeAdapter
       )
-    ).to.be.rejectedWith(/404.*not found/);
-    expect(mockFetch).to.be.called;
+    ).rejects.toThrow(/404.*not found/);
+    expect(mockFetch).toHaveBeenCalled();
   });
   describe('googleAI', () => {
-    let makeRequestStub: Sinon.SinonStub;
+    let makeRequestStub: MockInstance;
 
     beforeEach(() => {
-      makeRequestStub = stub(request, 'makeRequest');
+      makeRequestStub = vi.spyOn(mockRequest, 'makeRequest');
     });
 
     afterEach(() => {
-      restore();
+      vi.restoreAllMocks();
     });
 
     it('maps request to GoogleAI format', async () => {
-      makeRequestStub.resolves({ ok: true, json: () => {} } as Response); // Unused
+      makeRequestStub.mockResolvedValue({
+        ok: true,
+        json: () => {}
+      } as Response); // Unused
 
       await countTokens(
         fakeGoogleAIApiSettings,
@@ -185,7 +191,7 @@ describe('countTokens()', () => {
         fakeChromeAdapter
       );
 
-      expect(makeRequestStub).to.be.calledWith(
+      expect(makeRequestStub).toHaveBeenCalledWith(
         {
           model: 'model',
           task: Task.COUNT_TOKENS,
@@ -204,8 +210,6 @@ describe('countTokens()', () => {
     };
     await expect(
       countTokens(fakeApiSettings, 'model', fakeRequestParams, chromeAdapter)
-    ).to.be.rejectedWith(
-      /countTokens\(\) is not supported for on-device models/
-    );
+    ).rejects.toThrow(/countTokens\(\) is not supported for on-device models/);
   });
 });

@@ -16,9 +16,7 @@
  */
 
 import { addHelpers, formatBlockErrorMessage } from './response-helpers';
-import { expect, use } from 'chai';
-import { restore } from 'sinon';
-import sinonChai from 'sinon-chai';
+import { expect, vi } from 'vitest';
 import {
   BlockReason,
   Content,
@@ -26,8 +24,6 @@ import {
   GenerateContentResponse,
   InlineDataPart
 } from '../types';
-
-use(sinonChai);
 
 const fakeResponseText: GenerateContentResponse = {
   candidates: [
@@ -188,7 +184,7 @@ const badFakeResponse: GenerateContentResponse = {
 
 describe('response-helpers methods', () => {
   afterEach(() => {
-    restore();
+    vi.restoreAllMocks();
   });
   describe('addHelpers', () => {
     it('good response text', async () => {

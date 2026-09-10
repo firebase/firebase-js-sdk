@@ -16,7 +16,7 @@
  */
 
 import { validateChatHistory } from './chat-session-helpers';
-import { expect } from 'chai';
+import { expect } from 'vitest';
 import { Content } from '../types';
 import { FirebaseError } from '@firebase/util';
 
