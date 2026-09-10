@@ -125,7 +125,7 @@ export class ReCaptchaLoaderImpl implements ReCaptchaLoader {
 }
 
 function isHostLanguageValid(hl: string): boolean {
-  return hl.length <= 6 && /^\s*[a-zA-Z0-9\-]*\s*$/.test(hl);
+  return /^\s*[a-zA-Z0-9-]*\s*$/.test(hl);
 }
 
 export class MockReCaptchaLoaderImpl implements ReCaptchaLoader {
