@@ -69,7 +69,7 @@ export abstract class AIModel {
     readonly model: string;
     // @internal
     static normalizeModelName(modelName: string, backendType: BackendType): string;
-    }
+}
 
 // @public
 export interface AIOptions {
@@ -319,7 +319,6 @@ interface Date_2 {
     // (undocumented)
     year: number;
 }
-
 export { Date_2 as Date }
 
 // @public
@@ -574,14 +573,14 @@ export interface GenerateContentStreamResult {
 
 // @public
 export interface GenerationConfig {
-    // (undocumented)
+    // @deprecated (undocumented)
     candidateCount?: number;
-    // (undocumented)
+    // @deprecated (undocumented)
     frequencyPenalty?: number;
     imageConfig?: ImageConfig;
     // (undocumented)
     maxOutputTokens?: number;
-    // (undocumented)
+    // @deprecated (undocumented)
     presencePenalty?: number;
     responseJsonSchema?: {
         [key: string]: unknown;
@@ -594,12 +593,12 @@ export interface GenerationConfig {
     speechConfig?: SpeechConfig;
     // (undocumented)
     stopSequences?: string[];
-    // (undocumented)
+    // @deprecated (undocumented)
     temperature?: number;
     thinkingConfig?: ThinkingConfig;
-    // (undocumented)
+    // @deprecated (undocumented)
     topK?: number;
-    // (undocumented)
+    // @deprecated (undocumented)
     topP?: number;
 }
 
@@ -994,15 +993,20 @@ export interface LatLng {
 // @beta
 export interface LiveGenerationConfig {
     contextWindowCompression?: ContextWindowCompressionConfig;
+    // @deprecated
     frequencyPenalty?: number;
     inputAudioTranscription?: AudioTranscriptionConfig;
     maxOutputTokens?: number;
     outputAudioTranscription?: AudioTranscriptionConfig;
+    // @deprecated
     presencePenalty?: number;
     responseModalities?: ResponseModality[];
     speechConfig?: SpeechConfig;
+    // @deprecated
     temperature?: number;
+    // @deprecated
     topK?: number;
+    // @deprecated
     topP?: number;
 }
 
@@ -1022,7 +1026,7 @@ export class LiveGenerativeModel extends AIModel {
     toolConfig?: ToolConfig;
     // (undocumented)
     tools?: Tool[];
-    }
+}
 
 // @beta
 export interface LiveModelParams {
@@ -1103,7 +1107,7 @@ export class LiveSession {
     sendMediaStream(mediaChunkStream: ReadableStream<GenerativeContentBlob>): Promise<void>;
     sendTextRealtime(text: string): Promise<void>;
     sendVideoRealtime(blob: GenerativeContentBlob): Promise<void>;
-    }
+}
 
 // @beta
 export interface LiveSessionResumptionUpdate {
@@ -1677,6 +1681,5 @@ export interface WebGroundingChunk {
     title?: string;
     uri?: string;
 }
-
 
 ```
