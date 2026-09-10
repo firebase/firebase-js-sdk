@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { AssertionError, expect } from 'chai';
+import { expect, describe, it } from 'vitest';
 import '../testing/setup';
 import { compareHeaders } from './compare-headers';
 
@@ -31,7 +31,7 @@ describe('compareHeaders', () => {
     const headers2 = new Headers({ a: '123', b: '456' });
     expect(() => {
       compareHeaders(headers1, headers2);
-    }).to.throw(AssertionError);
+    }).toThrow();
   });
 
   it('fails if headers contain different values', () => {
@@ -39,6 +39,6 @@ describe('compareHeaders', () => {
     const headers2 = new Headers({ a: '123', b: 'differentValue' });
     expect(() => {
       compareHeaders(headers1, headers2);
-    }).to.throw(AssertionError);
+    }).toThrow();
   });
 });

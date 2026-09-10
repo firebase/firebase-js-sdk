@@ -15,9 +15,11 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-import { SinonFakeTimers, SinonStub, stub, useFakeTimers } from 'sinon';
+import { describe, beforeEach, it, expect, vi } from 'vitest';
 import * as generateAuthTokenRequestModule from '../functions/generate-auth-token-request';
+
+vi.mock('../functions/generate-auth-token-request', { spy: true });
+
 import {
   CompletedAuthToken,
   RegisteredInstallationEntry,
@@ -39,18 +41,13 @@ const ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
 describe('refreshAuthToken', () => {
   let installations: FirebaseInstallationsImpl;
-  let generateAuthTokenRequestSpy: SinonStub<
-    [FirebaseInstallationsImpl, RegisteredInstallationEntry],
-    Promise<CompletedAuthToken>
-  >;
 
   beforeEach(() => {
     installations = getFakeInstallations();
 
-    generateAuthTokenRequestSpy = stub(
-      generateAuthTokenRequestModule,
-      'generateAuthTokenRequest'
-    ).callsFake(async () => {
+    vi.mocked(
+      generateAuthTokenRequestModule.generateAuthTokenRequest
+    ).mockImplementation(async () => {
       await sleep(100); // Request would take some time
       const result: CompletedAuthToken = {
         token: AUTH_TOKEN,
@@ -63,7 +60,7 @@ describe('refreshAuthToken', () => {
   });
 
   it('throws when there is no installation in the DB', async () => {
-    await expect(refreshAuthToken(installations)).to.be.rejected;
+    await expect(refreshAuthToken(installations)).rejects.toThrow();
   });
 
   it('throws when there is an unregistered installation in the db', async () => {
@@ -73,7 +70,7 @@ describe('refreshAuthToken', () => {
     };
     await set(installations.appConfig, installationEntry);
 
-    await expect(refreshAuthToken(installations)).to.be.rejected;
+    await expect(refreshAuthToken(installations)).rejects.toThrow();
   });
 
   describe('when there is a valid auth token in the DB', () => {
@@ -94,27 +91,27 @@ describe('refreshAuthToken', () => {
 
     it('returns the token from the DB', async () => {
       const { token } = await refreshAuthToken(installations);
-      expect(token).to.equal(AUTH_TOKEN);
+      expect(token).toBe(AUTH_TOKEN);
     });
 
     it('does not call any server APIs', async () => {
       await refreshAuthToken(installations);
-      expect(generateAuthTokenRequestSpy).not.to.be.called;
+      expect(
+        generateAuthTokenRequestModule.generateAuthTokenRequest
+      ).not.toHaveBeenCalled();
     });
 
     it('works even if the app is offline', async () => {
-      stub(navigator, 'onLine').value(false);
+      vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
 
       const { token } = await refreshAuthToken(installations);
-      expect(token).to.equal(AUTH_TOKEN);
+      expect(token).toBe(AUTH_TOKEN);
     });
   });
 
   describe('when there is an auth token that is about to expire in the DB', () => {
-    let clock: SinonFakeTimers;
-
     beforeEach(async () => {
-      clock = useFakeTimers({ shouldAdvanceTime: true });
+      vi.useFakeTimers({ shouldAdvanceTime: true });
 
       const installationEntry: RegisteredInstallationEntry = {
         fid: FID,
@@ -134,15 +131,17 @@ describe('refreshAuthToken', () => {
 
     it('returns a different token after expiration', async () => {
       const token1 = await refreshAuthToken(installations);
-      expect(token1.token).to.equal(DB_AUTH_TOKEN);
+      expect(token1.token).toBe(DB_AUTH_TOKEN);
 
       // Wait 30 minutes.
-      clock.tick('30:00');
+      vi.advanceTimersByTime(30 * 60 * 1000);
 
       const token2 = await refreshAuthToken(installations);
-      await expect(token2.token).to.equal(AUTH_TOKEN);
-      await expect(token2.token).not.to.equal(DB_AUTH_TOKEN);
-      expect(generateAuthTokenRequestSpy).to.be.calledOnce;
+      expect(token2.token).toBe(AUTH_TOKEN);
+      expect(token2.token).not.toBe(DB_AUTH_TOKEN);
+      expect(
+        generateAuthTokenRequestModule.generateAuthTokenRequest
+      ).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -165,7 +164,9 @@ describe('refreshAuthToken', () => {
     it('does not call generateAuthToken twice on subsequent calls', async () => {
       await refreshAuthToken(installations);
       await refreshAuthToken(installations);
-      expect(generateAuthTokenRequestSpy).to.be.calledOnce;
+      expect(
+        generateAuthTokenRequestModule.generateAuthTokenRequest
+      ).toHaveBeenCalledTimes(1);
     });
 
     it('does not call generateAuthToken twice on simultaneous calls', async () => {
@@ -173,20 +174,24 @@ describe('refreshAuthToken', () => {
         refreshAuthToken(installations),
         refreshAuthToken(installations)
       ]);
-      expect(generateAuthTokenRequestSpy).to.be.calledOnce;
+      expect(
+        generateAuthTokenRequestModule.generateAuthTokenRequest
+      ).toHaveBeenCalledTimes(1);
     });
 
     it('returns a new token', async () => {
       const { token } = await refreshAuthToken(installations);
-      await expect(token).to.equal(AUTH_TOKEN);
-      await expect(token).not.to.equal(DB_AUTH_TOKEN);
-      expect(generateAuthTokenRequestSpy).to.be.calledOnce;
+      expect(token).toBe(AUTH_TOKEN);
+      expect(token).not.toBe(DB_AUTH_TOKEN);
+      expect(
+        generateAuthTokenRequestModule.generateAuthTokenRequest
+      ).toHaveBeenCalledTimes(1);
     });
 
     it('throws if the app is offline', async () => {
-      stub(navigator, 'onLine').value(false);
+      vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
 
-      await expect(refreshAuthToken(installations)).to.be.rejected;
+      await expect(refreshAuthToken(installations)).rejects.toThrow();
     });
 
     it('saves the new token in the DB', async () => {
@@ -195,14 +200,14 @@ describe('refreshAuthToken', () => {
       const installationEntry = (await get(
         installations.appConfig
       )) as RegisteredInstallationEntry;
-      expect(installationEntry).not.to.be.undefined;
-      expect(installationEntry.registrationStatus).to.equal(
+      expect(installationEntry).toBeDefined();
+      expect(installationEntry.registrationStatus).toBe(
         RequestStatus.COMPLETED
       );
 
       const authToken = installationEntry.authToken as CompletedAuthToken;
-      expect(authToken.requestStatus).to.equal(RequestStatus.COMPLETED);
-      expect(authToken.token).to.equal(token);
+      expect(authToken.requestStatus).toBe(RequestStatus.COMPLETED);
+      expect(authToken.token).toBe(token);
     });
   });
 });

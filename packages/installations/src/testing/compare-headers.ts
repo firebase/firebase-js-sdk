@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { AssertionError, expect } from 'chai';
+import { expect } from 'vitest';
 
 // Trick TS since it's set to target ES5.
 // TODO(dlarocque): Improve this since we no longer target ES5.
@@ -33,10 +33,10 @@ export function compareHeaders(
     expectedHeaders.entries === undefined ||
     actualHeaders.entries === undefined
   ) {
-    throw new AssertionError('Headers object does not have entries method');
+    throw new Error('Headers object does not have entries method');
   }
 
   const expected = new Map(Array.from(expectedHeaders.entries()));
   const actual = new Map(Array.from(actualHeaders.entries()));
-  expect(actual).to.deep.equal(expected);
+  expect(actual).toEqual(expected);
 }

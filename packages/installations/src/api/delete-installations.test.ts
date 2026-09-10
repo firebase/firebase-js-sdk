@@ -15,9 +15,11 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-import { SinonStub, stub } from 'sinon';
+import { describe, beforeEach, it, expect, vi } from 'vitest';
 import * as deleteInstallationRequestModule from '../functions/delete-installation-request';
+
+vi.mock('../functions/delete-installation-request', { spy: true });
+
 import { get, set } from '../helpers/idb-manager';
 import {
   InProgressInstallationEntry,
@@ -30,34 +32,28 @@ import '../testing/setup';
 import { ErrorCode } from '../util/errors';
 import { sleep } from '../util/sleep';
 import { deleteInstallations } from './delete-installations';
-import {
-  FirebaseInstallationsImpl,
-  AppConfig
-} from '../interfaces/installation-impl';
+import { FirebaseInstallationsImpl } from '../interfaces/installation-impl';
 
 const FID = 'children-of-the-damned';
 
 describe('deleteInstallation', () => {
   let installations: FirebaseInstallationsImpl;
-  let deleteInstallationRequestSpy: SinonStub<
-    [AppConfig, RegisteredInstallationEntry],
-    Promise<void>
-  >;
 
   beforeEach(() => {
     installations = getFakeInstallations();
 
-    deleteInstallationRequestSpy = stub(
-      deleteInstallationRequestModule,
-      'deleteInstallationRequest'
-    ).callsFake(
+    vi.mocked(
+      deleteInstallationRequestModule.deleteInstallationRequest
+    ).mockImplementation(
       () => sleep(100) // Request would take some time
     );
   });
 
   it('resolves without calling server API if there is no installation', async () => {
-    await expect(deleteInstallations(installations)).to.be.fulfilled;
-    expect(deleteInstallationRequestSpy).not.to.have.been.called;
+    await expect(deleteInstallations(installations)).resolves.not.toThrow();
+    expect(
+      deleteInstallationRequestModule.deleteInstallationRequest
+    ).not.toHaveBeenCalled();
   });
 
   it('deletes and resolves without calling server API if the installation is unregistered', async () => {
@@ -67,9 +63,11 @@ describe('deleteInstallation', () => {
     };
     await set(installations.appConfig, entry);
 
-    await expect(deleteInstallations(installations)).to.be.fulfilled;
-    expect(deleteInstallationRequestSpy).not.to.have.been.called;
-    await expect(get(installations.appConfig)).to.eventually.be.undefined;
+    await expect(deleteInstallations(installations)).resolves.not.toThrow();
+    expect(
+      deleteInstallationRequestModule.deleteInstallationRequest
+    ).not.toHaveBeenCalled();
+    expect(await get(installations.appConfig)).toBeUndefined();
   });
 
   it('rejects without calling server API if the installation is pending', async () => {
@@ -80,10 +78,12 @@ describe('deleteInstallation', () => {
     };
     await set(installations.appConfig, entry);
 
-    await expect(deleteInstallations(installations)).to.be.rejectedWith(
+    await expect(deleteInstallations(installations)).rejects.toThrow(
       ErrorCode.DELETE_PENDING_REGISTRATION
     );
-    expect(deleteInstallationRequestSpy).not.to.have.been.called;
+    expect(
+      deleteInstallationRequestModule.deleteInstallationRequest
+    ).not.toHaveBeenCalled();
   });
 
   it('rejects without calling server API if the installation is registered and app is offline', async () => {
@@ -99,12 +99,14 @@ describe('deleteInstallation', () => {
       }
     };
     await set(installations.appConfig, entry);
-    stub(navigator, 'onLine').value(false);
+    vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
 
-    await expect(deleteInstallations(installations)).to.be.rejectedWith(
+    await expect(deleteInstallations(installations)).rejects.toThrow(
       ErrorCode.APP_OFFLINE
     );
-    expect(deleteInstallationRequestSpy).not.to.have.been.called;
+    expect(
+      deleteInstallationRequestModule.deleteInstallationRequest
+    ).not.toHaveBeenCalled();
   });
 
   it('deletes and resolves after calling server API if the installation is registered', async () => {
@@ -121,11 +123,13 @@ describe('deleteInstallation', () => {
     };
     await set(installations.appConfig, entry);
 
-    await expect(deleteInstallations(installations)).to.be.fulfilled;
-    expect(deleteInstallationRequestSpy).to.have.been.calledOnceWith(
-      installations.appConfig,
-      entry
-    );
-    await expect(get(installations.appConfig)).to.eventually.be.undefined;
+    await expect(deleteInstallations(installations)).resolves.not.toThrow();
+    expect(
+      deleteInstallationRequestModule.deleteInstallationRequest
+    ).toHaveBeenCalledTimes(1);
+    expect(
+      deleteInstallationRequestModule.deleteInstallationRequest
+    ).toHaveBeenCalledWith(installations.appConfig, entry);
+    expect(await get(installations.appConfig)).toBeUndefined();
   });
 });

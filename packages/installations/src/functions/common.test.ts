@@ -15,60 +15,59 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-import { SinonStub, stub } from 'sinon';
+import { expect, vi, Mock, describe, it, beforeEach } from 'vitest';
 import '../testing/setup';
 import { retryIfServerError } from './common';
 
 describe('common', () => {
   describe('retryIfServerError', () => {
-    let fetchStub: SinonStub<[], Promise<Response>>;
+    let fetchStub: Mock<() => Promise<Response>>;
 
     beforeEach(() => {
-      fetchStub = stub();
+      fetchStub = vi.fn();
     });
 
     it('retries once if the server returns a 5xx error', async () => {
       const expectedResponse = new Response();
-      fetchStub.onCall(0).resolves(new Response(null, { status: 500 }));
-      fetchStub.onCall(1).resolves(expectedResponse);
+      fetchStub.mockResolvedValueOnce(new Response(null, { status: 500 }));
+      fetchStub.mockResolvedValueOnce(expectedResponse);
 
-      await expect(retryIfServerError(fetchStub)).to.eventually.equal(
+      await expect(retryIfServerError(fetchStub)).resolves.toEqual(
         expectedResponse
       );
-      expect(fetchStub).to.be.calledTwice;
+      expect(fetchStub).toHaveBeenCalledTimes(2);
     });
 
     it('does not retry again if the server returns a 5xx error twice', async () => {
       const expectedResponse = new Response(null, { status: 500 });
-      fetchStub.onCall(0).resolves(new Response(null, { status: 500 }));
-      fetchStub.onCall(1).resolves(expectedResponse);
-      fetchStub.onCall(2).resolves(new Response());
+      fetchStub.mockResolvedValueOnce(new Response(null, { status: 500 }));
+      fetchStub.mockResolvedValueOnce(expectedResponse);
+      fetchStub.mockResolvedValueOnce(new Response());
 
-      await expect(retryIfServerError(fetchStub)).to.eventually.equal(
+      await expect(retryIfServerError(fetchStub)).resolves.toEqual(
         expectedResponse
       );
-      expect(fetchStub).to.be.calledTwice;
+      expect(fetchStub).toHaveBeenCalledTimes(2);
     });
 
     it('does not retry if the error is not 5xx', async () => {
       const expectedResponse = new Response(null, { status: 404 });
-      fetchStub.resolves(expectedResponse);
+      fetchStub.mockResolvedValue(expectedResponse);
 
-      await expect(retryIfServerError(fetchStub)).to.eventually.equal(
+      await expect(retryIfServerError(fetchStub)).resolves.toEqual(
         expectedResponse
       );
-      expect(fetchStub).to.be.calledOnce;
+      expect(fetchStub).toHaveBeenCalledTimes(1);
     });
 
     it('does not retry if response is ok', async () => {
       const expectedResponse = new Response();
-      fetchStub.resolves(expectedResponse);
+      fetchStub.mockResolvedValue(expectedResponse);
 
-      await expect(retryIfServerError(fetchStub)).to.eventually.equal(
+      await expect(retryIfServerError(fetchStub)).resolves.toEqual(
         expectedResponse
       );
-      expect(fetchStub).to.be.calledOnce;
+      expect(fetchStub).toHaveBeenCalledTimes(1);
     });
   });
 });

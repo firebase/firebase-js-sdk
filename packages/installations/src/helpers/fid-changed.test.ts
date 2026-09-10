@@ -15,8 +15,7 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-import { stub } from 'sinon';
+import { expect, vi, describe, it, beforeEach } from 'vitest';
 import '../testing/setup';
 import { AppConfig } from '../interfaces/installation-impl';
 import {
@@ -37,45 +36,48 @@ describe('onIdChange', () => {
     });
 
     it('calls the provided callback when FID changes', () => {
-      const stubFn = stub();
+      const stubFn = vi.fn();
       addCallback(appConfig, stubFn);
 
       fidChanged(appConfig, FID);
 
-      expect(stubFn).to.have.been.calledOnceWith(FID);
+      expect(stubFn).toHaveBeenCalledTimes(1);
+      expect(stubFn).toHaveBeenCalledWith(FID);
     });
 
     it('calls multiple callbacks', () => {
-      const stubA = stub();
+      const stubA = vi.fn();
       addCallback(appConfig, stubA);
-      const stubB = stub();
+      const stubB = vi.fn();
       addCallback(appConfig, stubB);
 
       fidChanged(appConfig, FID);
 
-      expect(stubA).to.have.been.calledOnceWith(FID);
-      expect(stubB).to.have.been.calledOnceWith(FID);
+      expect(stubA).toHaveBeenCalledTimes(1);
+      expect(stubA).toHaveBeenCalledWith(FID);
+      expect(stubB).toHaveBeenCalledTimes(1);
+      expect(stubB).toHaveBeenCalledWith(FID);
     });
 
     it('does not call removed callbacks', () => {
-      const stubFn = stub();
+      const stubFn = vi.fn();
       addCallback(appConfig, stubFn);
 
       removeCallback(appConfig, stubFn);
       fidChanged(appConfig, FID);
 
-      expect(stubFn).not.to.have.been.called;
+      expect(stubFn).not.toHaveBeenCalled();
     });
 
     it('does not throw when removeCallback is called multiple times', () => {
-      const stubFn = stub();
+      const stubFn = vi.fn();
       addCallback(appConfig, stubFn);
 
       removeCallback(appConfig, stubFn);
       removeCallback(appConfig, stubFn);
       fidChanged(appConfig, FID);
 
-      expect(stubFn).not.to.have.been.called;
+      expect(stubFn).not.toHaveBeenCalled();
     });
   });
 
@@ -89,15 +91,16 @@ describe('onIdChange', () => {
     });
 
     it('calls the correct callback when FID changes', () => {
-      const stubA = stub();
+      const stubA = vi.fn();
       addCallback(appConfigA, stubA);
-      const stubB = stub();
+      const stubB = vi.fn();
       addCallback(appConfigB, stubB);
 
       fidChanged(appConfigA, FID);
 
-      expect(stubA).to.have.been.calledOnceWith(FID);
-      expect(stubB).not.to.have.been.called;
+      expect(stubA).toHaveBeenCalledTimes(1);
+      expect(stubA).toHaveBeenCalledWith(FID);
+      expect(stubB).not.toHaveBeenCalled();
     });
   });
 });

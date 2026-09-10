@@ -16,7 +16,7 @@
  */
 
 import { FirebaseError } from '@firebase/util';
-import { expect } from 'chai';
+import { expect, describe, it } from 'vitest';
 import { AppConfig } from '../interfaces/installation-impl';
 import { getFakeApp } from '../testing/fake-generators';
 import '../testing/setup';
