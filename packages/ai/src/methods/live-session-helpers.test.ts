@@ -15,11 +15,7 @@
  * limitations under the License.
  */
 
-import { expect, use } from 'chai';
-import sinon, { SinonFakeTimers, SinonStub, SinonStubbedInstance } from 'sinon';
-import sinonChai from 'sinon-chai';
-import chaiAsPromised from 'chai-as-promised';
-import { AIError } from '../errors';
+import { describe, expect, it, vi, MockInstance } from 'vitest';
 import { startAudioConversation } from './live-session-helpers';
 import {
   FunctionResponse,
@@ -28,9 +24,6 @@ import {
 } from '../types';
 import { logger } from '../logger';
 import { isNode } from '@firebase/util';
-
-use(sinonChai);
-use(chaiAsPromised);
 
 // A mock message generator to simulate receiving messages from the server.
 class MockMessageGenerator {
@@ -64,70 +57,80 @@ class MockMessageGenerator {
 class MockLiveSession {
   isClosed = false;
   inConversation = false;
-  send = sinon.stub();
-  sendAudioRealtime = sinon.stub();
-  sendFunctionResponses = sinon.stub();
+  send = vi.fn();
+  sendAudioRealtime = vi.fn();
+  sendFunctionResponses = vi.fn();
   messageGenerator = new MockMessageGenerator();
   receive = (): MockMessageGenerator => this.messageGenerator;
 }
 
 // Stubs and mocks for Web APIs used by the helpers.
-let mockAudioContext: SinonStubbedInstance<AudioContext>;
-let mockMediaStream: SinonStubbedInstance<MediaStream>;
-let getUserMediaStub: SinonStub;
-let mockWorkletNode: SinonStubbedInstance<AudioWorkletNode>;
-let mockSourceNode: SinonStubbedInstance<MediaStreamAudioSourceNode>;
+let mockAudioContext: any;
+let mockMediaStream: any;
+let getUserMediaStub: any;
+let mockWorkletNode: any;
+let mockSourceNode: any;
 let mockAudioBufferSource: any;
 
 function setupGlobalMocks(): void {
   // Mock AudioWorkletNode
   mockWorkletNode = {
     port: {
-      postMessage: sinon.stub(),
+      postMessage: vi.fn(),
       onmessage: null
     },
-    connect: sinon.stub(),
-    disconnect: sinon.stub()
+    connect: vi.fn(),
+    disconnect: vi.fn()
   } as any;
-  sinon.stub(globalThis, 'AudioWorkletNode').returns(mockWorkletNode);
+  (globalThis as any).AudioWorkletNode = vi.fn(
+    class {
+      constructor() {
+        return mockWorkletNode;
+      }
+    }
+  );
 
   // Mock AudioContext
   mockAudioBufferSource = {
-    connect: sinon.stub(),
-    start: sinon.stub(),
-    stop: sinon.stub(),
+    connect: vi.fn(),
+    start: vi.fn(),
+    stop: vi.fn(),
     onended: null,
     buffer: { duration: 0.5 } // Mock duration for scheduling
   };
   mockSourceNode = {
-    connect: sinon.stub(),
-    disconnect: sinon.stub()
+    connect: vi.fn(),
+    disconnect: vi.fn()
   } as any;
   mockAudioContext = {
-    resume: sinon.stub().resolves(),
-    close: sinon.stub().resolves(),
-    createBuffer: sinon.stub().returns({
-      getChannelData: sinon.stub().returns(new Float32Array(1))
+    resume: vi.fn().mockResolvedValue(undefined),
+    close: vi.fn().mockResolvedValue(undefined),
+    createBuffer: vi.fn().mockReturnValue({
+      getChannelData: vi.fn().mockReturnValue(new Float32Array(1))
     } as any),
-    createBufferSource: sinon.stub().returns(mockAudioBufferSource),
-    createMediaStreamSource: sinon.stub().returns(mockSourceNode),
+    createBufferSource: vi.fn().mockReturnValue(mockAudioBufferSource),
+    createMediaStreamSource: vi.fn().mockReturnValue(mockSourceNode),
     audioWorklet: {
-      addModule: sinon.stub().resolves()
+      addModule: vi.fn().mockResolvedValue(undefined)
     },
     state: 'suspended' as AudioContextState,
     currentTime: 0
   } as any;
-  sinon.stub(globalThis, 'AudioContext').returns(mockAudioContext);
+  /* eslint-disable-next-line prefer-arrow-callback */
+  (globalThis as any).AudioContext = vi.fn().mockImplementation(function () {
+    return mockAudioContext;
+  });
 
   // Mock other globals
-  sinon.stub(globalThis, 'Blob').returns({} as Blob);
-  sinon.stub(URL, 'createObjectURL').returns('blob:http://localhost/fake-url');
+  vi.spyOn(URL, 'createObjectURL').mockReturnValue(
+    'blob:http://localhost/fake-url'
+  );
 
   // Mock getUserMedia
   mockMediaStream = {
-    getTracks: sinon.stub().returns([{ stop: sinon.stub() } as any])
+    getTracks: vi.fn().mockReturnValue([{ stop: vi.fn() } as any])
   } as any;
-  getUserMediaStub = sinon.stub().resolves(mockMediaStream);
+  getUserMediaStub = vi.fn().mockResolvedValue(mockMediaStream);
   if (typeof navigator === 'undefined') {
     (globalThis as any).navigator = {
       mediaDevices: { getUserMedia: getUserMediaStub }
@@ -136,23 +139,21 @@ function setupGlobalMocks(): void {
     if (!navigator.mediaDevices) {
       (navigator as any).mediaDevices = {};
     }
-    sinon
-      .stub(navigator.mediaDevices, 'getUserMedia')
-      .callsFake(getUserMediaStub);
+    vi.spyOn(navigator.mediaDevices, 'getUserMedia').mockImplementation(
+      getUserMediaStub
+    );
   }
 }
 
-describe.runIf(!isNode())('Audio Conversation Helpers', () => {
-  let clock: SinonFakeTimers;
-
+describe.skipIf(isNode())('Audio Conversation Helpers', () => {
   beforeEach(() => {
-    clock = sinon.useFakeTimers();
+    vi.useFakeTimers({ now: 0 });
     setupGlobalMocks();
   });
 
   afterEach(() => {
-    sinon.restore();
-    clock.restore();
+    vi.restoreAllMocks();
+    vi.useRealTimers();
   });
 
   describe('startAudioConversation', () => {
@@ -163,69 +164,69 @@ describe.runIf(!isNode())('Audio Conversation Helpers', () => {
 
     it('should throw if the session is closed.', async () => {
       liveSession.isClosed = true;
-      await expect(
-        startAudioConversation(liveSession as any)
-      ).to.be.rejectedWith(AIError, /on a closed LiveSession/);
+      await expect(startAudioConversation(liveSession as any)).rejects.toThrow(
+        /on a closed LiveSession/
+      );
     });
 
     it('should throw if a conversation is in progress.', async () => {
       liveSession.inConversation = true;
-      await expect(
-        startAudioConversation(liveSession as any)
-      ).to.be.rejectedWith(AIError, /is already in progress/);
+      await expect(startAudioConversation(liveSession as any)).rejects.toThrow(
+        /is already in progress/
+      );
     });
 
     it('should throw if APIs are not supported.', async () => {
       (globalThis as any).AudioWorkletNode = undefined; // Simulate lack of support
-      await expect(
-        startAudioConversation(liveSession as any)
-      ).to.be.rejectedWith(AIError, /not supported in this environment/);
+      await expect(startAudioConversation(liveSession as any)).rejects.toThrow(
+        /not supported in this environment/
+      );
     });
 
     it('should throw if microphone permissions are denied.', async () => {
-      getUserMediaStub.rejects(
+      getUserMediaStub.mockRejectedValue(
         new DOMException('Permission denied', 'NotAllowedError')
       );
-      await expect(
-        startAudioConversation(liveSession as any)
-      ).to.be.rejectedWith(DOMException, /Permission denied/);
+      await expect(startAudioConversation(liveSession as any)).rejects.toThrow(
+        /Permission denied/
+      );
     });
 
     it('should return a controller with a stop method on success.', async () => {
       const controller = await startAudioConversation(liveSession as any);
-      expect(controller).to.have.property('stop').that.is.a('function');
+      expect(typeof controller.stop).toBe('function');
       // Ensure it doesn't throw during cleanup
-      await expect(controller.stop()).to.be.fulfilled;
+      await expect(controller.stop()).resolves.toBeUndefined();
     });
   });
 
   describe('AudioConversationRunner', () => {
     let liveSession: MockLiveSession;
-    let warnStub: SinonStub;
+    let warnStub: MockInstance;
 
     beforeEach(() => {
       liveSession = new MockLiveSession();
-      warnStub = sinon.stub(logger, 'warn');
+      warnStub = vi.spyOn(logger, 'warn').mockImplementation(() => {});
     });
 
     afterEach(() => {
-      warnStub.restore();
+      warnStub.mockRestore();
     });
 
     it('should send processed audio chunks received from the worklet.', async () => {
       const controller = await startAudioConversation(liveSession as any);
-      expect(mockWorkletNode.port.onmessage).to.be.a('function');
+      expect(typeof mockWorkletNode.port.onmessage).toBe('function');
 
       // Simulate the worklet sending a message
       const fakeAudioData = new Int16Array(128);
       mockWorkletNode.port.onmessage!({ data: fakeAudioData } as MessageEvent);
 
-      await clock.tickAsync(1);
+      await vi.advanceTimersByTimeAsync(1);
 
-      expect(liveSession.sendAudioRealtime).to.have.been.calledOnce;
-      const sentChunk = liveSession.sendAudioRealtime.getCall(0).args[0];
-      expect(sentChunk.mimeType).to.equal('audio/pcm');
-      expect(sentChunk.data).to.be.a('string');
+      expect(liveSession.sendAudioRealtime).toHaveBeenCalledTimes(1);
+      const sentChunk = liveSession.sendAudioRealtime.mock.calls[0][0];
+      expect(sentChunk.mimeType).toBe('audio/pcm');
+      expect(typeof sentChunk.data).toBe('string');
       await controller.stop();
     });
 
@@ -242,10 +243,10 @@ describe.runIf(!isNode())('Audio Conversation Helpers', () => {
       };
 
       liveSession.messageGenerator.simulateMessage(serverMessage);
-      await clock.tickAsync(1); // allow message processing
+      await vi.advanceTimersByTimeAsync(1); // allow message processing
 
-      expect(mockAudioContext.createBuffer).to.have.been.calledOnce;
-      expect(mockAudioBufferSource.start).to.have.been.calledOnce;
+      expect(mockAudioContext.createBuffer).toHaveBeenCalledTimes(1);
+      expect(mockAudioBufferSource.start).toHaveBeenCalledTimes(1);
       await controller.stop();
     });
 
@@ -255,7 +256,7 @@ describe.runIf(!isNode())('Audio Conversation Helpers', () => {
         name: 'get_weather',
         response: { temp: '72F' }
       };
-      const handlerStub = sinon.stub().resolves(functionResponse);
+      const handlerStub = vi.fn().mockResolvedValue(functionResponse);
       const controller = await startAudioConversation(liveSession as any, {
         functionCallingHandler: handlerStub
       });
@@ -268,12 +269,12 @@ describe.runIf(!isNode())('Audio Conversation Helpers', () => {
       };
 
       liveSession.messageGenerator.simulateMessage(toolCallMessage);
-      await clock.tickAsync(1);
+      await vi.advanceTimersByTimeAsync(1);
 
-      expect(handlerStub).to.have.been.calledOnceWith(
-        toolCallMessage.functionCalls
-      );
-      expect(liveSession.sendFunctionResponses).to.have.been.calledOnceWith([
+      expect(handlerStub).toHaveBeenCalledTimes(1);
+      expect(handlerStub).toHaveBeenCalledWith(toolCallMessage.functionCalls);
+      expect(liveSession.sendFunctionResponses).toHaveBeenCalledTimes(1);
+      expect(liveSession.sendFunctionResponses).toHaveBeenCalledWith([
         functionResponse
       ]);
       await controller.stop();
@@ -293,13 +294,13 @@ describe.runIf(!isNode())('Audio Conversation Helpers', () => {
         }
       };
       liveSession.messageGenerator.simulateMessage(playingMessage);
-      await clock.tickAsync(1);
-      expect(mockAudioBufferSource.start).to.have.been.calledOnce;
+      await vi.advanceTimersByTimeAsync(1);
+      expect(mockAudioBufferSource.start).toHaveBeenCalledTimes(1);
 
       // 2. Enqueue another chunk that is now scheduled
       liveSession.messageGenerator.simulateMessage(playingMessage);
-      await clock.tickAsync(1);
-      expect(mockAudioBufferSource.start).to.have.been.calledTwice;
+      await vi.advanceTimersByTimeAsync(1);
+      expect(mockAudioBufferSource.start).toHaveBeenCalledTimes(2);
 
       // 3. Send interruption message
       const interruptionMessage: LiveServerContent = {
@@ -307,10 +308,10 @@ describe.runIf(!isNode())('Audio Conversation Helpers', () => {
         interrupted: true
       };
       liveSession.messageGenerator.simulateMessage(interruptionMessage);
-      await clock.tickAsync(1);
+      await vi.advanceTimersByTimeAsync(1);
 
       // Assert that all scheduled sources were stopped.
-      expect(mockAudioBufferSource.stop).to.have.been.calledTwice;
+      expect(mockAudioBufferSource.stop).toHaveBeenCalledTimes(2);
 
       // 4. Send new audio post-interruption
       const newMessage: LiveServerContent = {
@@ -323,10 +324,10 @@ describe.runIf(!isNode())('Audio Conversation Helpers', () => {
         }
       };
       liveSession.messageGenerator.simulateMessage(newMessage);
-      await clock.tickAsync(1);
+      await vi.advanceTimersByTimeAsync(1);
 
       // Assert a new source was created and started (total of 3 starts)
-      expect(mockAudioBufferSource.start).to.have.been.calledThrice;
+      expect(mockAudioBufferSource.start).toHaveBeenCalledTimes(3);
 
       await controller.stop();
     });
@@ -337,10 +338,10 @@ describe.runIf(!isNode())('Audio Conversation Helpers', () => {
         type: 'toolCall',
         functionCalls: [{ name: 'test' }]
       });
-      await clock.tickAsync(1);
+      await vi.advanceTimersByTimeAsync(1);
 
-      expect(warnStub).to.have.been.calledWithMatch(
-        /functionCallingHandler is undefined/
+      expect(warnStub).toHaveBeenCalledWith(
+        expect.stringMatching(/functionCallingHandler is undefined/)
       );
       await controller.stop();
     });
@@ -352,11 +353,11 @@ describe.runIf(!isNode())('Audio Conversation Helpers', () => {
       // We can't do it directly. Instead, we'll just check the mock results.
       await controller.stop();
 
-      expect(mockWorkletNode.disconnect).to.have.been.calledOnce;
-      expect(mockSourceNode.disconnect).to.have.been.calledOnce;
-      expect(mockMediaStream.getTracks()[0].stop).to.have.been.calledOnce;
-      expect(mockAudioContext.close).to.have.been.calledOnce;
-      expect(liveSession.inConversation).to.be.false;
+      expect(mockWorkletNode.disconnect).toHaveBeenCalledTimes(1);
+      expect(mockSourceNode.disconnect).toHaveBeenCalledTimes(1);
+      expect(mockMediaStream.getTracks()[0].stop).toHaveBeenCalledTimes(1);
+      expect(mockAudioContext.close).toHaveBeenCalledTimes(1);
+      expect(liveSession.inConversation).toBe(false);
     });
   });
 });

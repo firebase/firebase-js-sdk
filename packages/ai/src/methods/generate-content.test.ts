@@ -15,15 +15,11 @@
  * limitations under the License.
  */
 
-import { expect, use } from 'chai';
-import Sinon, { match, restore, stub as sinonStub } from 'sinon';
-import sinonChai from 'sinon-chai';
-import chaiAsPromised from 'chai-as-promised';
+import { expect, vi, MockInstance } from 'vitest';
 import {
   getMockResponse,
   getMockResponseStreaming
 } from '../../test-utils/mock-response';
-import * as request from '../requests/request';
 
 const { mockRequest } = vi.hoisted(() => ({
   mockRequest: {
@@ -40,12 +36,6 @@ vi.mock('../requests/request', async importOriginal => {
   };
 });
 
-function stub(obj?: any, method?: any): any {
-  if (obj === request) {
-    return sinonStub(mockRequest, method);
-  }
-  return (sinonStub as any)(...arguments);
-}
 import {
   generateContent,
   generateContentStream,
@@ -64,13 +54,9 @@ import {
 } from '../types';
 import { ApiSettings } from '../types/internal';
 import { Task } from '../requests/request';
-import { AIError } from '../api';
 import { mapGenerateContentRequest } from '../googleai-mappers';
 import { GoogleAIBackend, AgentPlatformBackend } from '../backend';
 import { fakeChromeAdapter } from '../../test-utils/get-fake-firebase-services';
-
-use(sinonChai);
-use(chaiAsPromised);
 
 const fakeApiSettings: ApiSettings = {
   apiKey: 'key',
@@ -117,23 +103,23 @@ const fakeGoogleAIRequestParams: GenerateContentRequest = {
 
 describe('generateContent()', () => {
   afterEach(() => {
-    restore();
+    vi.restoreAllMocks();
   });
   it('short response', async () => {
     const mockResponse = getMockResponse(
       'vertexAI',
       'unary-success-basic-reply-short.json'
     );
-    const makeRequestStub = stub(request, 'makeRequest').resolves(
-      mockResponse as Response
-    );
+    const makeRequestStub = vi
+      .spyOn(mockRequest, 'makeRequest')
+      .mockResolvedValue(mockResponse as Response);
     const result = await generateContent(
       fakeApiSettings,
       'model',
       fakeRequestParams
     );
     expect(result.response.text()).to.include('Mountain View, California');
-    expect(makeRequestStub).to.be.calledWith(
+    expect(makeRequestStub).toHaveBeenCalledWith(
       {
         model: 'model',
         task: Task.GENERATE_CONTENT,
@@ -149,9 +135,9 @@ describe('generateContent()', () => {
       'vertexAI',
       'unary-success-basic-reply-long.json'
     );
-    const makeRequestStub = stub(request, 'makeRequest').resolves(
-      mockResponse as Response
-    );
+    const makeRequestStub = vi
+      .spyOn(mockRequest, 'makeRequest')
+      .mockResolvedValue(mockResponse as Response);
     const result = await generateContent(
       fakeApiSettings,
       'model',
@@ -159,7 +145,7 @@ describe('generateContent()', () => {
     );
     expect(result.response.text()).to.include('Use Freshly Ground Coffee');
     expect(result.response.text()).to.include('30 minutes of brewing');
-    expect(makeRequestStub).to.be.calledWith(
+    expect(makeRequestStub).toHaveBeenCalledWith(
       {
         model: 'model',
         task: Task.GENERATE_CONTENT,
@@ -175,9 +161,9 @@ describe('generateContent()', () => {
       'vertexAI',
       'unary-success-basic-response-long-usage-metadata.json'
     );
-    const makeRequestStub = stub(request, 'makeRequest').resolves(
-      mockResponse as Response
-    );
+    const makeRequestStub = vi
+      .spyOn(mockRequest, 'makeRequest')
+      .mockResolvedValue(mockResponse as Response);
     const result = await generateContent(
       fakeApiSettings,
       'model',
@@ -197,7 +183,7 @@ describe('generateContent()', () => {
     expect(
       result.response.usageMetadata?.candidatesTokensDetails?.[0].tokenCount
     ).to.equal(76);
-    expect(makeRequestStub).to.be.calledWith(
+    expect(makeRequestStub).toHaveBeenCalledWith(
       {
         model: 'model',
         task: Task.GENERATE_CONTENT,
@@ -213,9 +199,9 @@ describe('generateContent()', () => {
       'vertexAI',
       'unary-success-citations.json'
     );
-    const makeRequestStub = stub(request, 'makeRequest').resolves(
-      mockResponse as Response
-    );
+    const makeRequestStub = vi
+      .spyOn(mockRequest, 'makeRequest')
+      .mockResolvedValue(mockResponse as Response);
     const result = await generateContent(
       fakeApiSettings,
       'model',
@@ -227,7 +213,7 @@ describe('generateContent()', () => {
     expect(
       result.response.candidates?.[0].citationMetadata?.citations.length
     ).to.equal(3);
-    expect(makeRequestStub).to.be.calledWith(
+    expect(makeRequestStub).toHaveBeenCalledWith(
       {
         model: 'model',
         task: Task.GENERATE_CONTENT,
@@ -243,9 +229,9 @@ describe('generateContent()', () => {
       'vertexAI',
       'unary-success-google-search-grounding.json'
     );
-    const makeRequestStub = stub(request, 'makeRequest').resolves(
-      mockResponse as Response
-    );
+    const makeRequestStub = vi
+      .spyOn(mockRequest, 'makeRequest')
+      .mockResolvedValue(mockResponse as Response);
     const result = await generateContent(
       fakeApiSettings,
       'model',
@@ -277,7 +263,7 @@ describe('generateContent()', () => {
     expect(groundingMetadata!.groundingSupports?.[0].segment?.startIndex).to.be
       .undefined;
 
-    expect(makeRequestStub).to.be.calledWith(
+    expect(makeRequestStub).toHaveBeenCalledWith(
       {
         model: 'model',
         task: Task.GENERATE_CONTENT,
@@ -294,9 +280,9 @@ describe('generateContent()', () => {
       'vertexAI',
       'unary-success-url-context.json'
     );
-    const makeRequestStub = stub(request, 'makeRequest').resolves(
-      mockResponse as Response
-    );
+    const makeRequestStub = vi
+      .spyOn(mockRequest, 'makeRequest')
+      .mockResolvedValue(mockResponse as Response);
     const result = await generateContent(
       fakeApiSettings,
       'model',
@@ -326,7 +312,7 @@ describe('generateContent()', () => {
     expect(groundingMetadata!.groundingSupports?.[0].segment?.partIndex).to.be
       .undefined;
 
-    expect(makeRequestStub).to.be.calledWith(
+    expect(makeRequestStub).toHaveBeenCalledWith(
       {
         model: 'model',
         task: Task.GENERATE_CONTENT,
@@ -334,7 +320,7 @@ describe('generateContent()', () => {
         stream: false,
         singleRequestOptions: undefined
       },
-      match.any
+      expect.anything()
     );
   });
   it('google maps grounding', async () => {
@@ -342,9 +328,9 @@ describe('generateContent()', () => {
       'vertexAI',
       'unary-success-google-maps-grounding.json'
     );
-    const makeRequestStub = stub(request, 'makeRequest').resolves(
-      mockResponse as Response
-    );
+    const makeRequestStub = vi
+      .spyOn(mockRequest, 'makeRequest')
+      .mockResolvedValue(mockResponse as Response);
     const result = await generateContent(
       fakeApiSettings,
       'model',
@@ -384,7 +370,7 @@ describe('generateContent()', () => {
       "Joe's Pizza"
     );
 
-    expect(makeRequestStub).to.be.calledWith(
+    expect(makeRequestStub).toHaveBeenCalledWith(
       {
         model: 'model',
         task: Task.GENERATE_CONTENT,
@@ -400,7 +386,9 @@ describe('generateContent()', () => {
       'vertexAI',
       'unary-success-code-execution.json'
     );
-    stub(request, 'makeRequest').resolves(mockResponse as Response);
+    vi.spyOn(mockRequest, 'makeRequest').mockResolvedValue(
+      mockResponse as Response
+    );
     const result = await generateContent(
       fakeApiSettings,
       'model',
@@ -419,16 +407,16 @@ describe('generateContent()', () => {
       'vertexAI',
       'unary-failure-prompt-blocked-safety.json'
     );
-    const makeRequestStub = stub(request, 'makeRequest').resolves(
-      mockResponse as Response
-    );
+    const makeRequestStub = vi
+      .spyOn(mockRequest, 'makeRequest')
+      .mockResolvedValue(mockResponse as Response);
     const result = await generateContent(
       fakeApiSettings,
       'model',
       fakeRequestParams
     );
     expect(result.response.text).to.throw('SAFETY');
-    expect(makeRequestStub).to.be.calledWith(
+    expect(makeRequestStub).toHaveBeenCalledWith(
       {
         model: 'model',
         task: Task.GENERATE_CONTENT,
@@ -444,16 +432,16 @@ describe('generateContent()', () => {
       'vertexAI',
       'unary-failure-finish-reason-safety.json'
     );
-    const makeRequestStub = stub(request, 'makeRequest').resolves(
-      mockResponse as Response
-    );
+    const makeRequestStub = vi
+      .spyOn(mockRequest, 'makeRequest')
+      .mockResolvedValue(mockResponse as Response);
     const result = await generateContent(
       fakeApiSettings,
       'model',
       fakeRequestParams
     );
     expect(result.response.text).to.throw('SAFETY');
-    expect(makeRequestStub).to.be.calledWith(
+    expect(makeRequestStub).toHaveBeenCalledWith(
       {
         model: 'model',
         task: Task.GENERATE_CONTENT,
@@ -469,16 +457,16 @@ describe('generateContent()', () => {
       'vertexAI',
       'unary-failure-empty-content.json'
     );
-    const makeRequestStub = stub(request, 'makeRequest').resolves(
-      mockResponse as Response
-    );
+    const makeRequestStub = vi
+      .spyOn(mockRequest, 'makeRequest')
+      .mockResolvedValue(mockResponse as Response);
     const result = await generateContent(
       fakeApiSettings,
       'model',
       fakeRequestParams
     );
     expect(result.response.text()).to.equal('');
-    expect(makeRequestStub).to.be.calledWith(
+    expect(makeRequestStub).toHaveBeenCalledWith(
       {
         model: 'model',
         task: Task.GENERATE_CONTENT,
@@ -494,7 +482,9 @@ describe('generateContent()', () => {
       'vertexAI',
       'unary-success-empty-part.json'
     );
-    stub(request, 'makeRequest').resolves(mockResponse as Response);
+    vi.spyOn(mockRequest, 'makeRequest').mockResolvedValue(
+      mockResponse as Response
+    );
     const result = await generateContent(
       fakeApiSettings,
       'model',
@@ -510,16 +500,16 @@ describe('generateContent()', () => {
       'vertexAI',
       'unary-success-unknown-enum-safety-ratings.json'
     );
-    const makeRequestStub = stub(request, 'makeRequest').resolves(
-      mockResponse as Response
-    );
+    const makeRequestStub = vi
+      .spyOn(mockRequest, 'makeRequest')
+      .mockResolvedValue(mockResponse as Response);
     const result = await generateContent(
       fakeApiSettings,
       'model',
       fakeRequestParams
     );
     expect(result.response.text()).to.include('Some text');
-    expect(makeRequestStub).to.be.calledWith(
+    expect(makeRequestStub).toHaveBeenCalledWith(
       {
         model: 'model',
         task: Task.GENERATE_CONTENT,
@@ -535,42 +525,42 @@ describe('generateContent()', () => {
       'vertexAI',
       'unary-failure-image-rejected.json'
     );
-    const mockFetch = stub(globalThis, 'fetch').resolves({
+    const mockFetch = vi.spyOn(globalThis, 'fetch').mockResolvedValue({
       ok: false,
       status: 400,
       json: mockResponse.json
     } as Response);
     await expect(
       generateContent(fakeApiSettings, 'model', fakeRequestParams)
-    ).to.be.rejectedWith(/400.*invalid argument/);
-    expect(mockFetch).to.be.called;
+    ).rejects.toThrow(/400.*invalid argument/);
+    expect(mockFetch).toHaveBeenCalled();
   });
   it('api not enabled (403)', async () => {
     const mockResponse = getMockResponse(
       'vertexAI',
       'unary-failure-firebasevertexai-api-not-enabled.json'
     );
-    const mockFetch = stub(globalThis, 'fetch').resolves({
+    const mockFetch = vi.spyOn(globalThis, 'fetch').mockResolvedValue({
       ok: false,
       status: 403,
       json: mockResponse.json
     } as Response);
     await expect(
       generateContent(fakeApiSettings, 'model', fakeRequestParams)
-    ).to.be.rejectedWith(
+    ).rejects.toThrow(
       /firebasevertexai\.googleapis[\s\S]*my-project[\s\S]*api-not-enabled/
     );
-    expect(mockFetch).to.be.called;
+    expect(mockFetch).toHaveBeenCalled();
   });
   describe('googleAI', () => {
-    let makeRequestStub: Sinon.SinonStub;
+    let makeRequestStub: MockInstance;
 
     beforeEach(() => {
-      makeRequestStub = stub(request, 'makeRequest');
+      makeRequestStub = vi.spyOn(mockRequest, 'makeRequest');
     });
 
     afterEach(() => {
-      restore();
+      vi.restoreAllMocks();
     });
 
     it('throws error when method is defined', async () => {
@@ -578,7 +568,7 @@ describe('generateContent()', () => {
         'googleAI',
         'unary-success-basic-reply-short.txt'
       );
-      makeRequestStub.resolves(mockResponse as Response);
+      makeRequestStub.mockResolvedValue(mockResponse as Response);
 
       const requestParamsWithMethod: GenerateContentRequest = {
         contents: [{ parts: [{ text: 'hello' }], role: 'user' }],
@@ -598,15 +588,15 @@ describe('generateContent()', () => {
           'model',
           requestParamsWithMethod
         )
-      ).to.be.rejectedWith(AIError, AIErrorCode.UNSUPPORTED);
-      expect(makeRequestStub).to.not.be.called;
+      ).rejects.toThrow(AIErrorCode.UNSUPPORTED);
+      expect(makeRequestStub).not.toHaveBeenCalled();
     });
     it('maps request to GoogleAI format', async () => {
       const mockResponse = getMockResponse(
         'googleAI',
         'unary-success-basic-reply-short.txt'
       );
-      makeRequestStub.resolves(mockResponse as Response);
+      makeRequestStub.mockResolvedValue(mockResponse as Response);
 
       await generateContent(
         fakeGoogleAIApiSettings,
@@ -614,13 +604,13 @@ describe('generateContent()', () => {
         fakeGoogleAIRequestParams
       );
 
-      expect(makeRequestStub).to.be.calledWith(
+      expect(makeRequestStub).toHaveBeenCalledWith(
         {
           model: 'model',
           task: Task.GENERATE_CONTENT,
           apiSettings: fakeGoogleAIApiSettings,
           stream: false,
-          singleRequestOptions: match.any
+          singleRequestOptions: undefined
         },
         JSON.stringify(mapGenerateContentRequest(fakeGoogleAIRequestParams))
       );
@@ -628,14 +618,16 @@ describe('generateContent()', () => {
   });
   it('generateContent on-device', async () => {
     const chromeAdapter = fakeChromeAdapter;
-    const isAvailableStub = stub(chromeAdapter, 'isAvailable').resolves(true);
+    const isAvailableStub = vi
+      .spyOn(chromeAdapter, 'isAvailable')
+      .mockResolvedValue(true);
     const mockResponse = getMockResponse(
       'vertexAI',
       'unary-success-basic-reply-short.json'
     );
-    const generateContentStub = stub(chromeAdapter, 'generateContent').resolves(
-      mockResponse as Response
-    );
+    const generateContentStub = vi
+      .spyOn(chromeAdapter, 'generateContent')
+      .mockResolvedValue(mockResponse as Response);
     const result = await generateContent(
       fakeApiSettings,
       'model',
@@ -644,20 +636,21 @@ describe('generateContent()', () => {
     );
     expect(result.response.text()).to.include('Mountain View, California');
     expect(result.response.inferenceSource).to.equal(InferenceSource.ON_DEVICE);
-    expect(isAvailableStub).to.be.called;
-    expect(generateContentStub).to.be.calledWith(fakeRequestParams);
+    expect(isAvailableStub).toHaveBeenCalled();
+    expect(generateContentStub).toHaveBeenCalledWith(fakeRequestParams);
   });
   it('generateContentStream on-device', async () => {
     const chromeAdapter = fakeChromeAdapter;
-    const isAvailableStub = stub(chromeAdapter, 'isAvailable').resolves(true);
+    const isAvailableStub = vi
+      .spyOn(chromeAdapter, 'isAvailable')
+      .mockResolvedValue(true);
     const mockResponse = getMockResponseStreaming(
       'vertexAI',
       'streaming-success-basic-reply-short.txt'
     );
-    const generateContentStreamStub = stub(
-      chromeAdapter,
-      'generateContentStream'
-    ).resolves(mockResponse as Response);
+    const generateContentStreamStub = vi
+      .spyOn(chromeAdapter, 'generateContentStream')
+      .mockResolvedValue(mockResponse as Response);
     const result = await generateContentStream(
       fakeApiSettings,
       'model',
@@ -669,23 +662,23 @@ describe('generateContent()', () => {
     expect(aggregatedResponse.inferenceSource).to.equal(
       InferenceSource.ON_DEVICE
     );
-    expect(isAvailableStub).to.be.called;
-    expect(generateContentStreamStub).to.be.calledWith(fakeRequestParams);
+    expect(isAvailableStub).toHaveBeenCalled();
+    expect(generateContentStreamStub).toHaveBeenCalledWith(fakeRequestParams);
   });
 });
 
 describe('templateGenerateContent', () => {
   afterEach(() => {
-    restore();
+    vi.restoreAllMocks();
   });
   it('should call makeRequest with correct parameters and process the response', async () => {
     const mockResponse = getMockResponse(
       'vertexAI',
       'unary-success-basic-reply-short.json'
     );
-    const makeRequestStub = stub(request, 'makeRequest').resolves(
-      mockResponse as Response
-    );
+    const makeRequestStub = vi
+      .spyOn(mockRequest, 'makeRequest')
+      .mockResolvedValue(mockResponse as Response);
     const templateId = 'my-template';
     const templateParams = { name: 'world' };
     const singleRequestOptions = { timeout: 5000 };
@@ -697,7 +690,7 @@ describe('templateGenerateContent', () => {
       singleRequestOptions
     );
 
-    expect(makeRequestStub).to.have.been.calledOnceWith(
+    expect(makeRequestStub).toHaveBeenCalledWith(
       {
         task: 'templateGenerateContent',
         templateId,
@@ -713,16 +706,16 @@ describe('templateGenerateContent', () => {
 
 describe('templateGenerateContentStream', () => {
   afterEach(() => {
-    restore();
+    vi.restoreAllMocks();
   });
   it('should call makeRequest with correct parameters for streaming', async () => {
     const mockResponse = getMockResponseStreaming(
       'vertexAI',
       'streaming-success-basic-reply-short.txt'
     );
-    const makeRequestStub = stub(request, 'makeRequest').resolves(
-      mockResponse as Response
-    );
+    const makeRequestStub = vi
+      .spyOn(mockRequest, 'makeRequest')
+      .mockResolvedValue(mockResponse as Response);
     const templateId = 'my-stream-template';
     const templateParams = { name: 'streaming world' };
     const singleRequestOptions = { timeout: 10000 };
@@ -734,7 +727,7 @@ describe('templateGenerateContentStream', () => {
       singleRequestOptions
     );
 
-    expect(makeRequestStub).to.have.been.calledOnceWith(
+    expect(makeRequestStub).toHaveBeenCalledWith(
       {
         task: 'templateStreamGenerateContent',
         templateId,

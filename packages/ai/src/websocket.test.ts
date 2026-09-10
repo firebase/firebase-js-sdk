@@ -15,15 +15,8 @@
  * limitations under the License.
  */
 
-import { expect, use } from 'chai';
-import sinon, { SinonFakeTimers, SinonStub } from 'sinon';
-import sinonChai from 'sinon-chai';
-import chaiAsPromised from 'chai-as-promised';
+import { expect, vi } from 'vitest';
 import { WebSocketHandlerImpl } from './websocket';
-import { AIError } from './errors';
-
-use(sinonChai);
-use(chaiAsPromised);
 
 class MockWebSocket {
   static CONNECTING = 0;
@@ -93,8 +86,7 @@ class MockWebSocket {
 describe('WebSocketHandlerImpl', () => {
   let handler: WebSocketHandlerImpl;
   let mockWebSocket: MockWebSocket;
-  let clock: SinonFakeTimers;
-  let webSocketStub: SinonStub;
+  let webSocketStub: any;
 
   beforeEach(() => {
     if (typeof (globalThis as any).WebSocket === 'undefined') {
@@ -105,39 +97,38 @@ describe('WebSocketHandlerImpl', () => {
         static readonly CLOSED = 3;
       };
     }
-    webSocketStub = sinon
-      .stub(globalThis, 'WebSocket')
-      .callsFake((url: string) => {
+    webSocketStub = vi
+      .spyOn(globalThis, 'WebSocket')
+      .mockImplementation(function (url: any) {
         mockWebSocket = new MockWebSocket(url);
         return mockWebSocket as any;
-      });
-    clock = sinon.useFakeTimers();
+      } as any);
+    vi.useFakeTimers({ now: 0 });
     handler = new WebSocketHandlerImpl();
   });
 
   afterEach(() => {
-    sinon.restore();
-    clock.restore();
+    vi.restoreAllMocks();
+    vi.useRealTimers();
   });
 
   describe('connect()', () => {
     it('should resolve on open event', async () => {
       const connectPromise = handler.connect('ws://test-url');
-      expect(webSocketStub).to.have.been.calledWith('ws://test-url');
+      expect(webSocketStub).toHaveBeenCalledWith('ws://test-url');
 
-      await clock.tickAsync(1);
+      await vi.advanceTimersByTimeAsync(1);
       mockWebSocket.triggerOpen();
 
-      await expect(connectPromise).to.be.fulfilled;
+      await expect(connectPromise).resolves.toBeUndefined();
     });
 
     it('should reject on error event', async () => {
       const connectPromise = handler.connect('ws://test-url');
-      await clock.tickAsync(1);
+      await vi.advanceTimersByTimeAsync(1);
       mockWebSocket.triggerError();
 
-      await expect(connectPromise).to.be.rejectedWith(
-        AIError,
+      await expect(connectPromise).rejects.toThrow(
         /Error event raised on WebSocket/
       );
     });
@@ -161,17 +152,17 @@ describe('WebSocketHandlerImpl', () => {
       })();
 
       // Use tickAsync to allow the consumer to start listening
-      await clock.tickAsync(1);
+      await vi.advanceTimersByTimeAsync(1);
       mockWebSocket.triggerMessage(new Blob([JSON.stringify({ foo: 1 })]));
 
-      await clock.tickAsync(10);
+      await vi.advanceTimersByTimeAsync(10);
       mockWebSocket.triggerMessage(new Blob([JSON.stringify({ foo: 2 })]));
 
       while (received.length < 2) {
-        await clock.tickAsync(10);
+        await vi.advanceTimersByTimeAsync(10);
       }
       mockWebSocket.close();
-      await clock.runAllAsync(); // Let timers finish
+      await vi.runAllTimersAsync(); // Let timers finish
 
       await listenPromise; // Wait for the consumer to finish
 
@@ -196,16 +187,16 @@ describe('WebSocketHandlerImpl', () => {
         }
       })();
 
-      await clock.tickAsync(1);
+      await vi.advanceTimersByTimeAsync(1);
 
       mockWebSocket.triggerMessage(new Blob([JSON.stringify({ foo: 1 })]));
       mockWebSocket.triggerMessage(new Blob([JSON.stringify({ foo: 2 })]));
 
       while (received.length < 2) {
-        await clock.tickAsync(10);
+        await vi.advanceTimersByTimeAsync(10);
       }
       mockWebSocket.close();
-      await clock.runAllAsync();
+      await vi.runAllTimersAsync();
 
       await consumptionPromise;
 
@@ -227,10 +218,10 @@ describe('WebSocketHandlerImpl', () => {
       await connectPromise;
 
       const closePromise1 = handler.close();
-      await clock.runAllAsync();
+      await vi.runAllTimersAsync();
       await closePromise1;
 
-      await expect(handler.close()).to.be.fulfilled;
+      await expect(handler.close()).resolves.toBeUndefined();
     });
 
     it('should wait for the onclose event before resolving', async () => {
@@ -244,13 +235,13 @@ describe('WebSocketHandlerImpl', () => {
       });
 
       // The promise should not have resolved yet
-      await clock.tickAsync(5);
+      await vi.advanceTimersByTimeAsync(5);
       expect(closed).to.be.false;
 
       // Now, let the mock's setTimeout for closing run, which triggers onclose
-      await clock.tickAsync(10);
+      await vi.advanceTimersByTimeAsync(10);
 
-      await expect(closePromise).to.be.fulfilled;
+      await expect(closePromise).resolves.toBeUndefined();
       expect(closed).to.be.true;
     });
   });
@@ -270,10 +261,10 @@ describe('WebSocketHandlerImpl', () => {
 
       const closePromise = handler.close();
 
-      await clock.runAllAsync();
+      await vi.runAllTimersAsync();
 
-      await expect(closePromise).to.be.fulfilled;
-      await expect(listenPromise).to.be.fulfilled;
+      await expect(closePromise).resolves.toBeUndefined();
+      await expect(listenPromise).resolves.toBeUndefined();
 
       expect(mockWebSocket.readyState).to.equal(MockWebSocket.CLOSED);
     });
