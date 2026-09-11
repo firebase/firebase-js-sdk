@@ -21,8 +21,7 @@ import {
   RemoteConfig as RemoteConfigType,
   LogLevel as RemoteConfigLogLevel
 } from '../src/public_types';
-import { expect } from 'chai';
-import * as sinon from 'sinon';
+import { expect, vi, MockInstance } from 'vitest';
 import { StorageCache } from '../src/storage/storage_cache';
 import { Storage } from '../src/storage/storage';
 import { RemoteConfig } from '../src/remote_config';
@@ -45,11 +44,33 @@ import {
 } from '../src/api';
 import * as api from '../src/api';
 import { fetchAndActivate } from '../src';
-import { restore } from 'sinon';
 import { Experiment } from '../src/abt/experiment';
 import { Provider } from '@firebase/component';
 import { FirebaseAnalyticsInternalName } from '@firebase/analytics-interop-types';
 import { RealtimeHandler } from '../src/client/realtime_handler';
+
+const { mockFetchConfig, mockActivate, realState } = vi.hoisted(() => ({
+  mockFetchConfig: vi.fn(),
+  mockActivate: vi.fn(),
+  realState: { realFetchConfig: null as any, realActivate: null as any }
+}));
+
+vi.mock('../src/api', async importOriginal => {
+  const actual = await importOriginal<typeof import('../src/api')>();
+  realState.realFetchConfig = actual.fetchConfig;
+  realState.realActivate = actual.activate;
+  mockFetchConfig.mockImplementation((...args: unknown[]) =>
+    actual.fetchConfig(...(args as [any]))
+  );
+  mockActivate.mockImplementation((...args: unknown[]) =>
+    actual.activate(...(args as [any]))
+  );
+  return {
+    ...actual,
+    fetchConfig: (...args: unknown[]) => mockFetchConfig(...args),
+    activate: (...args: unknown[]) => mockActivate(...args)
+  };
+});
 
 describe('RemoteConfig', () => {
   const ACTIVE_CONFIG = {
@@ -75,9 +96,9 @@ describe('RemoteConfig', () => {
   let rc: RemoteConfigType;
   let analyticsProvider: Provider<FirebaseAnalyticsInternalName>;
 
-  let getActiveConfigStub: sinon.SinonStub;
-  let loggerDebugSpy: sinon.SinonSpy;
-  let loggerLogLevelSpy: any;
+  let getActiveConfigStub: MockInstance;
+  let loggerDebugSpy: MockInstance;
+  let loggerLogLevelSpy: MockInstance;
 
   beforeEach(() => {
     // Clears stubbed behavior between each test.
@@ -88,10 +109,10 @@ describe('RemoteConfig', () => {
     analyticsProvider = {} as Provider<FirebaseAnalyticsInternalName>;
     realtimeHandler = {} as RealtimeHandler;
     logger = new Logger('package-name');
-    getActiveConfigStub = sinon.stub().returns(undefined);
+    getActiveConfigStub = vi.fn().mockReturnValue(undefined);
     storageCache.getActiveConfig = getActiveConfigStub;
-    loggerDebugSpy = sinon.spy(logger, 'debug');
-    loggerLogLevelSpy = sinon.spy(logger, 'logLevel', ['set']);
+    loggerDebugSpy = vi.spyOn(logger, 'debug');
+    loggerLogLevelSpy = vi.spyOn(logger, 'logLevel', 'set');
     rc = new RemoteConfig(
       app,
       client,
@@ -104,21 +125,21 @@ describe('RemoteConfig', () => {
   });
 
   afterEach(() => {
-    loggerDebugSpy.restore();
-    loggerLogLevelSpy.set.restore();
+    loggerDebugSpy.mockRestore();
+    loggerLogLevelSpy.mockRestore();
   });
 
   describe('setCustomSignals', () => {
     beforeEach(() => {
-      storageCache.setCustomSignals = sinon.stub();
-      storage.setCustomSignals = sinon.stub();
-      logger.error = sinon.stub();
+      storageCache.setCustomSignals = vi.fn();
+      storage.setCustomSignals = vi.fn();
+      logger.error = vi.fn();
     });
 
     it('call storage API to store signals', async () => {
       await setCustomSignals(rc, { key: 'value' });
 
-      expect(storageCache.setCustomSignals).to.have.been.calledWith({
+      expect(storageCache.setCustomSignals).toHaveBeenCalledWith({
         key: 'value'
       });
     });
@@ -129,8 +150,8 @@ describe('RemoteConfig', () => {
 
       await setCustomSignals(rc, customSignals);
 
-      expect(storageCache.setCustomSignals).to.not.have.been.called;
-      expect(logger.error).to.have.been.called;
+      expect(storageCache.setCustomSignals).not.toHaveBeenCalled();
+      expect(logger.error).toHaveBeenCalled();
     });
 
     it('logs an error when supplied with a custom signal value greater than 500 characters', async () => {
@@ -139,14 +160,14 @@ describe('RemoteConfig', () => {
 
       await setCustomSignals(rc, customSignals);
 
-      expect(storageCache.setCustomSignals).to.not.have.been.called;
-      expect(logger.error).to.have.been.called;
+      expect(storageCache.setCustomSignals).not.toHaveBeenCalled();
+      expect(logger.error).toHaveBeenCalled();
     });
 
     it('empty custom signals map does nothing', async () => {
       await setCustomSignals(rc, {});
 
-      expect(storageCache.setCustomSignals).to.not.have.been.called;
+      expect(storageCache.setCustomSignals).not.toHaveBeenCalled();
     });
   });
 
@@ -155,85 +176,81 @@ describe('RemoteConfig', () => {
     it('proxies to the FirebaseLogger instance', () => {
       setLogLevel(rc, 'debug');
 
-      // Casts spy to any because property setters aren't defined on the SinonSpy type.
-      expect(loggerLogLevelSpy.set).to.have.been.calledWith(
-        FirebaseLogLevel.DEBUG
-      );
+      expect(loggerLogLevelSpy).toHaveBeenCalledWith(FirebaseLogLevel.DEBUG);
     });
 
     it('normalizes levels other than DEBUG and SILENT to ERROR', () => {
       for (const logLevel of ['info', 'verbose', 'error', 'severe']) {
         setLogLevel(rc, logLevel as RemoteConfigLogLevel);
 
-        // Casts spy to any because property setters aren't defined on the SinonSpy type.
-        expect(loggerLogLevelSpy.set).to.have.been.calledWith(
-          FirebaseLogLevel.ERROR
-        );
+        expect(loggerLogLevelSpy).toHaveBeenCalledWith(FirebaseLogLevel.ERROR);
       }
     });
   });
 
   describe('ensureInitialized', () => {
     it('warms cache', async () => {
-      storageCache.loadFromStorage = sinon.stub().returns(Promise.resolve());
+      storageCache.loadFromStorage = vi.fn().mockResolvedValue(undefined);
 
       await ensureInitialized(rc);
 
-      expect(storageCache.loadFromStorage).to.have.been.calledOnce;
+      expect(storageCache.loadFromStorage).toHaveBeenCalledTimes(1);
     });
 
     it('de-duplicates repeated calls', async () => {
-      storageCache.loadFromStorage = sinon.stub().returns(Promise.resolve());
+      storageCache.loadFromStorage = vi.fn().mockResolvedValue(undefined);
 
       await ensureInitialized(rc);
       await ensureInitialized(rc);
 
-      expect(storageCache.loadFromStorage).to.have.been.calledOnce;
+      expect(storageCache.loadFromStorage).toHaveBeenCalledTimes(1);
     });
   });
 
   describe('fetchTimeMillis', () => {
     it('normalizes undefined values', async () => {
-      storageCache.getLastSuccessfulFetchTimestampMillis = sinon
-        .stub()
-        .returns(undefined);
+      storageCache.getLastSuccessfulFetchTimestampMillis = vi
+        .fn()
+        .mockReturnValue(undefined);
 
-      expect(rc.fetchTimeMillis).to.eq(-1);
+      expect(rc.fetchTimeMillis).toBe(-1);
     });
 
     it('reads from cache', async () => {
       const lastFetchTimeMillis = 123;
 
-      storageCache.getLastSuccessfulFetchTimestampMillis = sinon
-        .stub()
-        .returns(lastFetchTimeMillis);
+      storageCache.getLastSuccessfulFetchTimestampMillis = vi
+        .fn()
+        .mockReturnValue(lastFetchTimeMillis);
 
-      expect(rc.fetchTimeMillis).to.eq(lastFetchTimeMillis);
+      expect(rc.fetchTimeMillis).toBe(lastFetchTimeMillis);
     });
   });
 
   describe('lastFetchStatus', () => {
     it('normalizes undefined values', async () => {
-      storageCache.getLastFetchStatus = sinon.stub().returns(undefined);
+      storageCache.getLastFetchStatus = vi.fn().mockReturnValue(undefined);
 
-      expect(rc.lastFetchStatus).to.eq('no-fetch-yet');
+      expect(rc.lastFetchStatus).toBe('no-fetch-yet');
     });
 
     it('reads from cache', async () => {
       const lastFetchStatus = 'success';
 
-      storageCache.getLastFetchStatus = sinon.stub().returns(lastFetchStatus);
+      storageCache.getLastFetchStatus = vi
+        .fn()
+        .mockReturnValue(lastFetchStatus);
 
-      expect(rc.lastFetchStatus).to.eq(lastFetchStatus);
+      expect(rc.lastFetchStatus).toBe(lastFetchStatus);
     });
   });
 
   describe('getValue', () => {
     it('returns the active value if available', () => {
-      getActiveConfigStub.returns(ACTIVE_CONFIG);
+      getActiveConfigStub.mockReturnValue(ACTIVE_CONFIG);
       rc.defaultConfig = DEFAULT_CONFIG;
 
-      expect(getValue(rc, 'key1')).to.deep.eq(
+      expect(getValue(rc, 'key1')).toEqual(
         new Value('remote', ACTIVE_CONFIG.key1)
       );
     });
@@ -241,7 +258,7 @@ describe('RemoteConfig', () => {
     it('returns the default value if active is not available', () => {
       rc.defaultConfig = DEFAULT_CONFIG;
 
-      expect(getValue(rc, 'key1')).to.deep.eq(
+      expect(getValue(rc, 'key1')).toEqual(
         new Value('default', DEFAULT_CONFIG.key1)
       );
     });
@@ -250,10 +267,10 @@ describe('RemoteConfig', () => {
       const DEFAULTS = { trueVal: true, falseVal: false };
       rc.defaultConfig = DEFAULTS;
 
-      expect(getValue(rc, 'trueVal')).to.deep.eq(
+      expect(getValue(rc, 'trueVal')).toEqual(
         new Value('default', String(DEFAULTS.trueVal))
       );
-      expect(getValue(rc, 'falseVal')).to.deep.eq(
+      expect(getValue(rc, 'falseVal')).toEqual(
         new Value('default', String(DEFAULTS.falseVal))
       );
     });
@@ -262,22 +279,22 @@ describe('RemoteConfig', () => {
       const DEFAULTS = { negative: -1, zero: 0, positive: 11 };
       rc.defaultConfig = DEFAULTS;
 
-      expect(getValue(rc, 'negative')).to.deep.eq(
+      expect(getValue(rc, 'negative')).toEqual(
         new Value('default', String(DEFAULTS.negative))
       );
-      expect(getValue(rc, 'zero')).to.deep.eq(
+      expect(getValue(rc, 'zero')).toEqual(
         new Value('default', String(DEFAULTS.zero))
       );
-      expect(getValue(rc, 'positive')).to.deep.eq(
+      expect(getValue(rc, 'positive')).toEqual(
         new Value('default', String(DEFAULTS.positive))
       );
     });
 
     it('returns the static value if active and default are not available', () => {
-      expect(getValue(rc, 'key1')).to.deep.eq(new Value('static'));
+      expect(getValue(rc, 'key1')).toEqual(new Value('static'));
 
       // Asserts debug message logged if static value is returned, per EAP feedback.
-      expect(logger.debug).to.have.been.called;
+      expect(logger.debug).toHaveBeenCalled();
     });
 
     it('logs if initialization is incomplete', async () => {
@@ -288,10 +305,10 @@ describe('RemoteConfig', () => {
       getValue(rc, 'key1');
 
       // Asserts getValue logs.
-      expect(logger.debug).to.have.been.called;
+      expect(logger.debug).toHaveBeenCalled();
 
       // Enables initialization to complete.
-      storageCache.loadFromStorage = sinon.stub().returns(Promise.resolve());
+      storageCache.loadFromStorage = vi.fn().mockResolvedValue(undefined);
 
       // Ensures initialization completes.
       await ensureInitialized(rc);
@@ -300,73 +317,73 @@ describe('RemoteConfig', () => {
       getValue(rc, 'key1');
 
       // Asserts getValue doesn't log after initialization is complete.
-      expect(logger.debug).to.have.been.calledOnce;
+      expect(logger.debug).toHaveBeenCalledTimes(1);
     });
   });
 
   describe('getBoolean', () => {
     it('returns the active value if available', () => {
-      getActiveConfigStub.returns(ACTIVE_CONFIG);
+      getActiveConfigStub.mockReturnValue(ACTIVE_CONFIG);
       rc.defaultConfig = DEFAULT_CONFIG;
 
-      expect(getBoolean(rc, 'key3')).to.be.true;
+      expect(getBoolean(rc, 'key3')).toBe(true);
     });
 
     it('returns the default value if active is not available', () => {
       rc.defaultConfig = DEFAULT_CONFIG;
 
-      expect(getBoolean(rc, 'key3')).to.be.false;
+      expect(getBoolean(rc, 'key3')).toBe(false);
     });
 
     it('returns the static value if active and default are not available', () => {
-      expect(getBoolean(rc, 'key3')).to.be.false;
+      expect(getBoolean(rc, 'key3')).toBe(false);
     });
   });
 
   describe('getString', () => {
     it('returns the active value if available', () => {
-      getActiveConfigStub.returns(ACTIVE_CONFIG);
+      getActiveConfigStub.mockReturnValue(ACTIVE_CONFIG);
       rc.defaultConfig = DEFAULT_CONFIG;
 
-      expect(getString(rc, 'key1')).to.eq(ACTIVE_CONFIG.key1);
+      expect(getString(rc, 'key1')).toBe(ACTIVE_CONFIG.key1);
     });
 
     it('returns the default value if active is not available', () => {
       rc.defaultConfig = DEFAULT_CONFIG;
 
-      expect(getString(rc, 'key2')).to.eq(DEFAULT_CONFIG.key2);
+      expect(getString(rc, 'key2')).toBe(DEFAULT_CONFIG.key2);
     });
 
     it('returns the static value if active and default are not available', () => {
-      expect(getString(rc, 'key1')).to.eq('');
+      expect(getString(rc, 'key1')).toBe('');
     });
   });
 
   describe('getNumber', () => {
     it('returns the active value if available', () => {
-      getActiveConfigStub.returns(ACTIVE_CONFIG);
+      getActiveConfigStub.mockReturnValue(ACTIVE_CONFIG);
       rc.defaultConfig = DEFAULT_CONFIG;
 
-      expect(getNumber(rc, 'key4')).to.eq(Number(ACTIVE_CONFIG.key4));
+      expect(getNumber(rc, 'key4')).toBe(Number(ACTIVE_CONFIG.key4));
     });
 
     it('returns the default value if active is not available', () => {
       rc.defaultConfig = DEFAULT_CONFIG;
 
-      expect(getNumber(rc, 'key4')).to.eq(Number(DEFAULT_CONFIG.key4));
+      expect(getNumber(rc, 'key4')).toBe(Number(DEFAULT_CONFIG.key4));
     });
 
     it('returns the static value if active and default are not available', () => {
-      expect(getNumber(rc, 'key1')).to.eq(0);
+      expect(getNumber(rc, 'key1')).toBe(0);
     });
   });
 
   describe('getAll', () => {
     it('returns values for all keys included in active and default configs', () => {
-      getActiveConfigStub.returns(ACTIVE_CONFIG);
+      getActiveConfigStub.mockReturnValue(ACTIVE_CONFIG);
       rc.defaultConfig = DEFAULT_CONFIG;
 
-      expect(getAll(rc)).to.deep.eq({
+      expect(getAll(rc)).toEqual({
         key1: new Value('remote', ACTIVE_CONFIG.key1),
         key2: new Value('remote', ACTIVE_CONFIG.key2),
         key3: new Value('remote', ACTIVE_CONFIG.key3),
@@ -378,7 +395,7 @@ describe('RemoteConfig', () => {
     it('returns values in default if active is not available', () => {
       rc.defaultConfig = DEFAULT_CONFIG;
 
-      expect(getAll(rc)).to.deep.eq({
+      expect(getAll(rc)).toEqual({
         key1: new Value('default', DEFAULT_CONFIG.key1),
         key2: new Value('default', DEFAULT_CONFIG.key2),
         key3: new Value('default', DEFAULT_CONFIG.key3),
@@ -388,7 +405,7 @@ describe('RemoteConfig', () => {
     });
 
     it('returns empty object if both active and default configs are not defined', () => {
-      expect(getAll(rc)).to.deep.eq({});
+      expect(getAll(rc)).toEqual({});
     });
   });
 
@@ -407,27 +424,24 @@ describe('RemoteConfig', () => {
       }
     ];
 
-    let sandbox: sinon.SinonSandbox;
-    let updateActiveExperimentsStub: sinon.SinonStub;
-    let getLastSuccessfulFetchResponseStub: sinon.SinonStub;
-    let getActiveConfigEtagStub: sinon.SinonStub;
-    let getActiveConfigTemplateVersionStub: sinon.SinonStub;
-    let setActiveConfigEtagStub: sinon.SinonStub;
-    let setActiveConfigStub: sinon.SinonStub;
-    let setActiveConfigTemplateVersionStub: sinon.SinonStub;
+    let updateActiveExperimentsStub: MockInstance;
+    let getLastSuccessfulFetchResponseStub: MockInstance;
+    let getActiveConfigEtagStub: MockInstance;
+    let getActiveConfigTemplateVersionStub: MockInstance;
+    let setActiveConfigEtagStub: MockInstance;
+    let setActiveConfigStub: MockInstance;
+    let setActiveConfigTemplateVersionStub: MockInstance;
 
     beforeEach(() => {
-      sandbox = sinon.createSandbox();
-      updateActiveExperimentsStub = sandbox.stub(
-        Experiment.prototype,
-        'updateActiveExperiments'
-      );
-      getLastSuccessfulFetchResponseStub = sinon.stub();
-      getActiveConfigEtagStub = sinon.stub();
-      getActiveConfigTemplateVersionStub = sinon.stub();
-      setActiveConfigEtagStub = sinon.stub();
-      setActiveConfigStub = sinon.stub();
-      setActiveConfigTemplateVersionStub = sinon.stub();
+      updateActiveExperimentsStub = vi
+        .spyOn(Experiment.prototype, 'updateActiveExperiments')
+        .mockResolvedValue(undefined);
+      getLastSuccessfulFetchResponseStub = vi.fn();
+      getActiveConfigEtagStub = vi.fn();
+      getActiveConfigTemplateVersionStub = vi.fn();
+      setActiveConfigEtagStub = vi.fn();
+      setActiveConfigStub = vi.fn();
+      setActiveConfigTemplateVersionStub = vi.fn();
 
       storage.getLastSuccessfulFetchResponse =
         getLastSuccessfulFetchResponseStub;
@@ -441,144 +455,134 @@ describe('RemoteConfig', () => {
     });
 
     afterEach(() => {
-      sandbox.restore();
-    });
-
-    afterEach(() => {
-      sandbox.restore();
+      updateActiveExperimentsStub.mockRestore();
     });
 
     it('does not activate if last successful fetch response is undefined', async () => {
-      getLastSuccessfulFetchResponseStub.returns(Promise.resolve());
-      getActiveConfigEtagStub.returns(Promise.resolve(ETAG));
-      getActiveConfigTemplateVersionStub.returns(
-        Promise.resolve(TEMPLATE_VERSION)
-      );
+      getLastSuccessfulFetchResponseStub.mockResolvedValue(undefined);
+      getActiveConfigEtagStub.mockResolvedValue(ETAG);
+      getActiveConfigTemplateVersionStub.mockResolvedValue(TEMPLATE_VERSION);
 
       const activateResponse = await activate(rc);
 
-      expect(activateResponse).to.be.false;
-      expect(storage.setActiveConfigEtag).to.not.have.been.called;
-      expect(storageCache.setActiveConfig).to.not.have.been.called;
-      expect(storage.setActiveConfigTemplateVersion).to.not.have.been.called;
-      expect(updateActiveExperimentsStub).to.not.have.been.called;
+      expect(activateResponse).toBe(false);
+      expect(storage.setActiveConfigEtag).not.toHaveBeenCalled();
+      expect(storageCache.setActiveConfig).not.toHaveBeenCalled();
+      expect(storage.setActiveConfigTemplateVersion).not.toHaveBeenCalled();
+      expect(updateActiveExperimentsStub).not.toHaveBeenCalled();
     });
 
     it('does not activate if fetched and active etags are the same', async () => {
-      getLastSuccessfulFetchResponseStub.returns(
-        Promise.resolve({
-          config: {},
-          eTag: ETAG,
-          templateVersion: TEMPLATE_VERSION
-        })
-      );
-      getActiveConfigEtagStub.returns(Promise.resolve(ETAG));
+      getLastSuccessfulFetchResponseStub.mockResolvedValue({
+        config: {},
+        eTag: ETAG,
+        templateVersion: TEMPLATE_VERSION
+      });
+      getActiveConfigEtagStub.mockResolvedValue(ETAG);
 
       const activateResponse = await activate(rc);
 
-      expect(activateResponse).to.be.false;
-      expect(storage.setActiveConfigEtag).to.not.have.been.called;
-      expect(storageCache.setActiveConfig).to.not.have.been.called;
-      expect(storage.setActiveConfigTemplateVersion).to.not.have.been.called;
-      expect(updateActiveExperimentsStub).to.not.have.been.called;
+      expect(activateResponse).toBe(false);
+      expect(storage.setActiveConfigEtag).not.toHaveBeenCalled();
+      expect(storageCache.setActiveConfig).not.toHaveBeenCalled();
+      expect(storage.setActiveConfigTemplateVersion).not.toHaveBeenCalled();
+      expect(updateActiveExperimentsStub).not.toHaveBeenCalled();
     });
 
     it('activates if fetched and active etags are different', async () => {
-      getLastSuccessfulFetchResponseStub.returns(
-        Promise.resolve({
-          config: CONFIG,
-          eTag: NEW_ETAG,
-          templateVersion: TEMPLATE_VERSION,
-          experiments: EXPERIMENTS
-        })
-      );
-      getActiveConfigEtagStub.returns(Promise.resolve(ETAG));
+      getLastSuccessfulFetchResponseStub.mockResolvedValue({
+        config: CONFIG,
+        eTag: NEW_ETAG,
+        templateVersion: TEMPLATE_VERSION,
+        experiments: EXPERIMENTS
+      });
+      getActiveConfigEtagStub.mockResolvedValue(ETAG);
 
       const activateResponse = await activate(rc);
 
-      expect(activateResponse).to.be.true;
-      expect(storage.setActiveConfigEtag).to.have.been.calledWith(NEW_ETAG);
-      expect(storageCache.setActiveConfig).to.have.been.calledWith(CONFIG);
-      expect(storage.setActiveConfigTemplateVersion).to.have.been.calledWith(
+      expect(activateResponse).toBe(true);
+      expect(storage.setActiveConfigEtag).toHaveBeenCalledWith(NEW_ETAG);
+      expect(storageCache.setActiveConfig).toHaveBeenCalledWith(CONFIG);
+      expect(storage.setActiveConfigTemplateVersion).toHaveBeenCalledWith(
         TEMPLATE_VERSION
       );
     });
 
     it('activates if fetched is defined but active config is not', async () => {
-      getLastSuccessfulFetchResponseStub.returns(
-        Promise.resolve({
-          config: CONFIG,
-          eTag: NEW_ETAG,
-          templateVersion: TEMPLATE_VERSION,
-          experiments: EXPERIMENTS
-        })
-      );
-      getActiveConfigEtagStub.returns(Promise.resolve());
+      getLastSuccessfulFetchResponseStub.mockResolvedValue({
+        config: CONFIG,
+        eTag: NEW_ETAG,
+        templateVersion: TEMPLATE_VERSION,
+        experiments: EXPERIMENTS
+      });
+      getActiveConfigEtagStub.mockResolvedValue(undefined);
 
       const activateResponse = await activate(rc);
 
-      expect(activateResponse).to.be.true;
-      expect(storage.setActiveConfigEtag).to.have.been.calledWith(NEW_ETAG);
-      expect(storageCache.setActiveConfig).to.have.been.calledWith(CONFIG);
-      expect(storage.setActiveConfigTemplateVersion).to.have.been.calledWith(
+      expect(activateResponse).toBe(true);
+      expect(storage.setActiveConfigEtag).toHaveBeenCalledWith(NEW_ETAG);
+      expect(storageCache.setActiveConfig).toHaveBeenCalledWith(CONFIG);
+      expect(storage.setActiveConfigTemplateVersion).toHaveBeenCalledWith(
         TEMPLATE_VERSION
       );
-      expect(updateActiveExperimentsStub).to.have.been.calledWith(EXPERIMENTS);
+      expect(updateActiveExperimentsStub).toHaveBeenCalledWith(EXPERIMENTS);
     });
   });
 
   describe('fetchAndActivate', () => {
-    let rcActivateStub: sinon.SinonStub<[RemoteConfigType], Promise<boolean>>;
-
     beforeEach(() => {
-      sinon.stub(api, 'fetchConfig').returns(Promise.resolve());
-      rcActivateStub = sinon.stub(api, 'activate');
+      mockFetchConfig.mockResolvedValue(undefined as any);
     });
 
-    afterEach(() => restore());
+    afterEach(() => {
+      mockFetchConfig.mockImplementation((...args: unknown[]) =>
+        realState.realFetchConfig(...(args as [any]))
+      );
+      mockActivate.mockImplementation((...args: unknown[]) =>
+        realState.realActivate(...(args as [any]))
+      );
+    });
 
     it('calls fetch and activate and returns activation boolean if true', async () => {
-      rcActivateStub.returns(Promise.resolve(true));
+      mockActivate.mockResolvedValue(true);
 
       const response = await fetchAndActivate(rc);
 
-      expect(response).to.be.true;
-      expect(api.fetchConfig).to.have.been.calledWith(rc);
-      expect(api.activate).to.have.been.calledWith(rc);
+      expect(response).toBe(true);
+      expect(mockFetchConfig).toHaveBeenCalledWith(rc);
+      expect(mockActivate).toHaveBeenCalledWith(rc);
     });
 
     it('calls fetch and activate and returns activation boolean if false', async () => {
-      rcActivateStub.returns(Promise.resolve(false));
+      mockActivate.mockResolvedValue(false);
 
       const response = await fetchAndActivate(rc);
 
-      expect(response).to.be.false;
-      expect(api.fetchConfig).to.have.been.calledWith(rc);
-      expect(api.activate).to.have.been.calledWith(rc);
+      expect(response).toBe(false);
+      expect(mockFetchConfig).toHaveBeenCalledWith(rc);
+      expect(mockActivate).toHaveBeenCalledWith(rc);
     });
   });
 
   describe('fetch', () => {
-    let timeoutStub: sinon.SinonStub<
-      [callback: (args: void) => void, ms?: number | undefined]
-    >;
+    let timeoutStub: MockInstance;
     beforeEach(() => {
-      client.fetch = sinon
-        .stub()
-        .returns(Promise.resolve({ status: 200 } as FetchResponse));
-      storageCache.setLastFetchStatus = sinon.stub();
-      storageCache.getCustomSignals = sinon.stub();
-      timeoutStub = sinon.stub(window, 'setTimeout');
+      client.fetch = vi
+        .fn()
+        .mockResolvedValue({ status: 200 } as FetchResponse);
+      storageCache.setLastFetchStatus = vi.fn();
+      storageCache.getCustomSignals = vi.fn();
+      timeoutStub = vi.spyOn(window, 'setTimeout');
     });
 
     afterEach(() => {
-      timeoutStub.restore();
+      timeoutStub.mockRestore();
     });
 
     it('defines a default timeout', async () => {
       await fetchConfig(rc);
 
-      expect(timeoutStub).to.have.been.calledWith(sinon.match.any, 60000);
+      expect(timeoutStub).toHaveBeenCalledWith(expect.anything(), 60000);
     });
 
     it('honors a custom timeout', async () => {
@@ -586,61 +590,53 @@ describe('RemoteConfig', () => {
 
       await fetchConfig(rc);
 
-      expect(timeoutStub).to.have.been.calledWith(sinon.match.any, 1000);
+      expect(timeoutStub).toHaveBeenCalledWith(expect.anything(), 1000);
     });
 
     it('sets success status', async () => {
       for (const status of [200, 304]) {
-        client.fetch = sinon
-          .stub()
-          .returns(Promise.resolve({ status } as FetchResponse));
+        client.fetch = vi.fn().mockResolvedValue({ status } as FetchResponse);
 
         await fetchConfig(rc);
 
-        expect(storageCache.setLastFetchStatus).to.have.been.calledWith(
-          'success'
-        );
+        expect(storageCache.setLastFetchStatus).toHaveBeenCalledWith('success');
       }
     });
 
     it('sets throttle status', async () => {
-      storage.getThrottleMetadata = sinon.stub().returns(Promise.resolve({}));
+      storage.getThrottleMetadata = vi.fn().mockResolvedValue({});
 
       const error = ERROR_FACTORY.create(ErrorCode.FETCH_THROTTLE, {
         throttleEndTimeMillis: 123
       });
 
-      client.fetch = sinon.stub().returns(Promise.reject(error));
+      client.fetch = vi.fn().mockRejectedValue(error);
 
       const fetchPromise = fetchConfig(rc);
 
-      await expect(fetchPromise).to.eventually.be.rejectedWith(error);
-      expect(storageCache.setLastFetchStatus).to.have.been.calledWith(
-        'throttle'
-      );
+      await expect(fetchPromise).rejects.toThrow(error);
+      expect(storageCache.setLastFetchStatus).toHaveBeenCalledWith('throttle');
     });
 
     it('defaults to failure status', async () => {
-      storage.getThrottleMetadata = sinon.stub().returns(Promise.resolve());
+      storage.getThrottleMetadata = vi.fn().mockResolvedValue(undefined);
 
       const error = ERROR_FACTORY.create(ErrorCode.FETCH_STATUS, {
         httpStatus: 400
       });
 
-      client.fetch = sinon.stub().returns(Promise.reject(error));
+      client.fetch = vi.fn().mockRejectedValue(error);
 
       const fetchPromise = fetchConfig(rc);
 
-      await expect(fetchPromise).to.eventually.be.rejectedWith(error);
-      expect(storageCache.setLastFetchStatus).to.have.been.calledWith(
-        'failure'
-      );
+      await expect(fetchPromise).rejects.toThrow(error);
+      expect(storageCache.setLastFetchStatus).toHaveBeenCalledWith('failure');
     });
 
     it('sends custom signals', async () => {
       await fetchConfig(rc);
 
-      expect(storageCache.getCustomSignals).to.have.been.called;
+      expect(storageCache.getCustomSignals).toHaveBeenCalled();
     });
   });
 });

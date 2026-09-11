@@ -16,14 +16,13 @@
  */
 
 import '../setup';
-import { expect } from 'chai';
+import { expect, vi } from 'vitest';
 import { FetchResponse } from '../../src';
 import {
   RemoteConfigFetchClient,
   FetchRequest,
   RemoteConfigAbortSignal
 } from '../../src/client/remote_config_fetch_client';
-import * as sinon from 'sinon';
 import { CachingClient } from '../../src/client/caching_client';
 import { StorageCache } from '../../src/storage/storage_cache';
 import { Storage } from '../../src/storage/storage';
@@ -41,21 +40,20 @@ describe('CachingClient', () => {
   const logger = {} as Logger;
   const storage = {} as Storage;
   let cachingClient: CachingClient;
-  let clock: sinon.SinonFakeTimers;
 
   beforeEach(() => {
-    logger.debug = sinon.stub();
+    logger.debug = vi.fn();
     cachingClient = new CachingClient(
       backingClient,
       storage,
       storageCache,
       logger
     );
-    clock = sinon.useFakeTimers({ now: 3000 }); // Mocks Date.now as 3000.
+    vi.useFakeTimers({ now: 3000 }); // Mocks Date.now as 3000.
   });
 
   afterEach(() => {
-    clock.restore();
+    vi.useRealTimers();
   });
 
   describe('isCacheDataFresh', () => {
@@ -67,59 +65,59 @@ describe('CachingClient', () => {
           // Tolerates a cache one second old.
           1000
         )
-      ).to.be.false;
+      ).toBe(false);
     });
 
     it('returns true if cached response is equal to max age', () => {
-      expect(cachingClient.isCachedDataFresh(2000, 1000)).to.be.true;
+      expect(cachingClient.isCachedDataFresh(2000, 1000)).toBe(true);
     });
 
     it('returns true if cached response is younger than max age', () => {
-      expect(cachingClient.isCachedDataFresh(3000, 1000)).to.be.true;
+      expect(cachingClient.isCachedDataFresh(3000, 1000)).toBe(true);
     });
   });
 
   describe('fetch', () => {
     beforeEach(() => {
-      storage.getLastSuccessfulFetchTimestampMillis = sinon
-        .stub()
-        .returns(1000); // Mocks a cache set when Date.now was 1000, ie it's two seconds old.
-      storageCache.setLastSuccessfulFetchTimestampMillis = sinon.stub();
-      storage.getLastSuccessfulFetchResponse = sinon.stub();
-      storage.setLastSuccessfulFetchResponse = sinon.stub();
-      backingClient.fetch = sinon.stub().returns(Promise.resolve({}));
+      storage.getLastSuccessfulFetchTimestampMillis = vi
+        .fn()
+        .mockReturnValue(1000); // Mocks a cache set when Date.now was 1000, ie it's two seconds old.
+      storageCache.setLastSuccessfulFetchTimestampMillis = vi.fn();
+      storage.getLastSuccessfulFetchResponse = vi.fn();
+      storage.setLastSuccessfulFetchResponse = vi.fn();
+      backingClient.fetch = vi.fn().mockResolvedValue({});
     });
 
     it('exits early on cache hit', async () => {
       const expectedResponse = { config: { eTag: 'etag', color: 'taupe' } };
-      storage.getLastSuccessfulFetchResponse = sinon
-        .stub()
-        .returns(expectedResponse);
+      storage.getLastSuccessfulFetchResponse = vi
+        .fn()
+        .mockReturnValue(expectedResponse);
 
       const actualResponse = await cachingClient.fetch({
         cacheMaxAgeMillis: 2000,
         signal: new RemoteConfigAbortSignal()
       });
 
-      expect(actualResponse).to.deep.eq(expectedResponse);
-      expect(backingClient.fetch).not.to.have.been.called;
+      expect(actualResponse).toEqual(expectedResponse);
+      expect(backingClient.fetch).not.toHaveBeenCalled();
     });
 
     it('fetches on cache miss', async () => {
       await cachingClient.fetch(DEFAULT_REQUEST);
 
-      expect(backingClient.fetch).to.have.been.called;
+      expect(backingClient.fetch).toHaveBeenCalled();
     });
 
     it('passes etag from last successful fetch', async () => {
       const lastSuccessfulFetchResponse = { eTag: 'etag' } as FetchResponse;
-      storage.getLastSuccessfulFetchResponse = sinon
-        .stub()
-        .returns(lastSuccessfulFetchResponse);
+      storage.getLastSuccessfulFetchResponse = vi
+        .fn()
+        .mockReturnValue(lastSuccessfulFetchResponse);
 
       await cachingClient.fetch(DEFAULT_REQUEST);
 
-      expect(backingClient.fetch).to.have.been.calledWith(
+      expect(backingClient.fetch).toHaveBeenCalledWith(
         Object.assign({}, DEFAULT_REQUEST, {
           eTag: lastSuccessfulFetchResponse.eTag
         })
@@ -132,29 +130,27 @@ describe('CachingClient', () => {
         eTag: 'etag',
         config: { color: 'clear' }
       };
-      backingClient.fetch = sinon.stub().returns(Promise.resolve(response));
+      backingClient.fetch = vi.fn().mockResolvedValue(response);
 
       await cachingClient.fetch(DEFAULT_REQUEST);
 
       expect(
         storageCache.setLastSuccessfulFetchTimestampMillis
-      ).to.have.been.calledWith(3000); // Based on mock timer in beforeEach.
-      expect(storage.setLastSuccessfulFetchResponse).to.have.been.calledWith(
+      ).toHaveBeenCalledWith(3000); // Based on mock timer in beforeEach.
+      expect(storage.setLastSuccessfulFetchResponse).toHaveBeenCalledWith(
         response
       );
     });
 
     it('sets timestamp, but not config, if 304', async () => {
-      backingClient.fetch = sinon
-        .stub()
-        .returns(Promise.resolve({ status: 304 }));
+      backingClient.fetch = vi.fn().mockResolvedValue({ status: 304 });
 
       await cachingClient.fetch(DEFAULT_REQUEST);
 
       expect(
         storageCache.setLastSuccessfulFetchTimestampMillis
-      ).to.have.been.calledWith(3000); // Based on mock timer in beforeEach.
-      expect(storage.setLastSuccessfulFetchResponse).not.to.have.been.called;
+      ).toHaveBeenCalledWith(3000); // Based on mock timer in beforeEach.
+      expect(storage.setLastSuccessfulFetchResponse).not.toHaveBeenCalled();
     });
   });
 });

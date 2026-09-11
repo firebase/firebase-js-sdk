@@ -15,8 +15,7 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-import * as sinon from 'sinon';
+import { expect, vi } from 'vitest';
 import { Storage, ThrottleMetadata } from '../../src/storage/storage';
 import { FetchResponse } from '../../src';
 import {
@@ -46,53 +45,32 @@ describe('RetryingClient', () => {
     backingClient = {} as RemoteConfigFetchClient;
     storage = {} as Storage;
     retryingClient = new RetryingClient(backingClient, storage);
-    storage.getThrottleMetadata = sinon.stub().returns(Promise.resolve());
-    storage.deleteThrottleMetadata = sinon.stub().returns(Promise.resolve());
-    storage.setThrottleMetadata = sinon.stub().returns(Promise.resolve());
-    backingClient.fetch = sinon
-      .stub()
-      .returns(Promise.resolve({ status: 200 }));
+    storage.getThrottleMetadata = vi.fn().mockResolvedValue(undefined);
+    storage.deleteThrottleMetadata = vi.fn().mockResolvedValue(undefined);
+    storage.setThrottleMetadata = vi.fn().mockResolvedValue(undefined);
+    backingClient.fetch = vi.fn().mockResolvedValue({ status: 200 });
     abortSignal = new RemoteConfigAbortSignal();
   });
 
   describe('setAbortableTimeout', () => {
-    let clock: sinon.SinonFakeTimers;
-
-    beforeEach(() => {
-      // Sets Date.now() to zero.
-      clock = sinon.useFakeTimers();
-    });
-
-    afterEach(() => {
-      clock.restore();
-    });
-
     it('Derives backoff from end time', async () => {
-      const setTimeoutSpy = sinon.spy(window, 'setTimeout');
-
+      const setTimeoutSpy = vi.spyOn(window, 'setTimeout');
       const timeoutPromise = setAbortableTimeout(abortSignal, Date.now() + 1);
-
-      // Advances mocked clock so setTimeout logic runs.
-      clock.runAll();
 
       await timeoutPromise;
 
-      expect(setTimeoutSpy).to.have.been.calledWith(sinon.match.any, 1);
+      expect(setTimeoutSpy).toHaveBeenCalledWith(expect.anything(), 1);
+      setTimeoutSpy.mockRestore();
     });
 
     it('Normalizes end time in the past to zero backoff', async () => {
-      const setTimeoutSpy = sinon.spy(window, 'setTimeout');
-
+      const setTimeoutSpy = vi.spyOn(window, 'setTimeout');
       const timeoutPromise = setAbortableTimeout(abortSignal, Date.now() - 1);
-
-      // Advances mocked clock so setTimeout logic runs.
-      clock.runAll();
 
       await timeoutPromise;
 
-      expect(setTimeoutSpy).to.have.been.calledWith(sinon.match.any, 0);
-
-      setTimeoutSpy.restore();
+      expect(setTimeoutSpy).toHaveBeenCalledWith(expect.anything(), 0);
+      setTimeoutSpy.mockRestore();
     });
 
     it('listens for abort event and rejects promise', async () => {
@@ -109,64 +87,63 @@ describe('RetryingClient', () => {
         throttleEndTimeMillis
       });
 
-      await expect(timeoutPromise).to.eventually.be.rejectedWith(
-        expectedError.message
-      );
+      await expect(timeoutPromise).rejects.toThrow(expectedError.message);
     });
   });
 
   describe('fetch', () => {
     it('returns success response', async () => {
-      const setTimeoutSpy = sinon.spy(window, 'setTimeout');
+      const setTimeoutSpy = vi.spyOn(window, 'setTimeout');
 
       const expectedResponse: FetchResponse = {
         status: 200,
         eTag: 'etag',
         config: {}
       };
-      backingClient.fetch = sinon
-        .stub()
-        .returns(Promise.resolve(expectedResponse));
+      backingClient.fetch = vi.fn().mockResolvedValue(expectedResponse);
 
       const actualResponse = retryingClient.fetch(DEFAULT_REQUEST);
-
-      await expect(actualResponse).to.eventually.deep.eq(expectedResponse);
+      await expect(actualResponse).resolves.toEqual(expectedResponse);
 
       // Asserts setTimeout is passed a zero delay, since throttleEndTimeMillis is set to Date.now,
       // which is faked to be a constant.
-      expect(setTimeoutSpy).to.have.been.calledWith(sinon.match.any, 0);
+      expect(setTimeoutSpy).toHaveBeenCalledWith(expect.anything(), 0);
 
-      expect(storage.deleteThrottleMetadata).to.have.been.called;
+      expect(storage.deleteThrottleMetadata).toHaveBeenCalled();
 
-      setTimeoutSpy.restore();
+      setTimeoutSpy.mockRestore();
     });
 
     it('rethrows unretriable errors rather than retrying', async () => {
       const expectedError = ERROR_FACTORY.create(ErrorCode.FETCH_STATUS, {
         httpStatus: 400
       });
-      backingClient.fetch = sinon.stub().returns(Promise.reject(expectedError));
+      backingClient.fetch = vi.fn().mockRejectedValue(expectedError);
 
       const fetchPromise = retryingClient.fetch(DEFAULT_REQUEST);
 
-      await expect(fetchPromise).to.eventually.be.rejectedWith(expectedError);
+      await expect(fetchPromise).rejects.toThrow(expectedError);
     });
 
     it('retries on retriable errors', async () => {
       // Configures Date.now() to advance clock from zero in 20ms increments, enabling
       // tests to assert a known throttle end time and allow setTimeout to work.
-      const clock = sinon.useFakeTimers({ shouldAdvanceTime: true });
+      vi.useFakeTimers({
+        now: 0,
+        shouldAdvanceTime: true,
+        advanceTimeDelta: 20
+      });
 
       // Ensures backoff is always zero, which simplifies reasoning about timer.
-      const powSpy = sinon.stub(Math, 'pow').returns(0);
-      const randomSpy = sinon.stub(Math, 'random').returns(0.5);
+      const powSpy = vi.spyOn(Math, 'pow').mockReturnValue(0);
+      const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0.5);
 
       // Simulates a service call that returns errors several times before returning success.
       // Error codes from logs.
       const errorResponseStatuses = [429, 500, 503, 504];
       const errorResponseCount = errorResponseStatuses.length;
 
-      backingClient.fetch = sinon.stub().callsFake(() => {
+      backingClient.fetch = vi.fn().mockImplementation(() => {
         const httpStatus = errorResponseStatuses.pop();
 
         if (httpStatus) {
@@ -186,22 +163,22 @@ describe('RetryingClient', () => {
 
       // Asserts throttle metadata was persisted after each error response.
       for (let i = 1; i <= errorResponseCount; i++) {
-        expect(storage.setThrottleMetadata).to.have.been.calledWith({
+        expect(storage.setThrottleMetadata).toHaveBeenCalledWith({
           backoffCount: i,
           throttleEndTimeMillis: i * 20
         });
       }
 
-      powSpy.restore();
-      randomSpy.restore();
-      clock.restore();
+      powSpy.mockRestore();
+      randomSpy.mockRestore();
+      vi.useRealTimers();
     });
   });
 
   describe('attemptFetch', () => {
     it('honors metadata when initializing', async () => {
-      const clock = sinon.useFakeTimers({ shouldAdvanceTime: true });
-      const setTimeoutSpy = sinon.spy(window, 'setTimeout');
+      vi.useFakeTimers({ now: 0, shouldAdvanceTime: true });
+      const setTimeoutSpy = vi.spyOn(window, 'setTimeout');
 
       const throttleMetadata = {
         throttleEndTimeMillis: 123
@@ -209,10 +186,10 @@ describe('RetryingClient', () => {
 
       await retryingClient.attemptFetch(DEFAULT_REQUEST, throttleMetadata);
 
-      expect(setTimeoutSpy).to.have.been.calledWith(sinon.match.any, 123);
+      expect(setTimeoutSpy).toHaveBeenCalledWith(expect.anything(), 123);
 
-      clock.restore();
-      setTimeoutSpy.restore();
+      vi.useRealTimers();
+      setTimeoutSpy.mockRestore();
     });
   });
 });

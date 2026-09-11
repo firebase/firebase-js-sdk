@@ -16,8 +16,7 @@
  */
 
 import '../setup';
-import { expect } from 'chai';
-import * as sinon from 'sinon';
+import { expect, vi } from 'vitest';
 import { Storage } from '../../src/storage/storage';
 import { StorageCache } from '../../src/storage/storage_cache';
 
@@ -39,31 +38,25 @@ describe('StorageCache', () => {
       const activeConfig = { key: 'value' };
       const customSignals = { 'key': 'value' };
 
-      storage.getLastFetchStatus = sinon
-        .stub()
-        .returns(Promise.resolve(status));
-      storage.getLastSuccessfulFetchTimestampMillis = sinon
-        .stub()
-        .returns(Promise.resolve(lastSuccessfulFetchTimestampMillis));
-      storage.getActiveConfig = sinon
-        .stub()
-        .returns(Promise.resolve(activeConfig));
-      storage.getCustomSignals = sinon
-        .stub()
-        .returns(Promise.resolve(customSignals));
+      storage.getLastFetchStatus = vi.fn().mockResolvedValue(status);
+      storage.getLastSuccessfulFetchTimestampMillis = vi
+        .fn()
+        .mockResolvedValue(lastSuccessfulFetchTimestampMillis);
+      storage.getActiveConfig = vi.fn().mockResolvedValue(activeConfig);
+      storage.getCustomSignals = vi.fn().mockResolvedValue(customSignals);
 
       await storageCache.loadFromStorage();
 
-      expect(storage.getLastFetchStatus).to.have.been.called;
-      expect(storage.getLastSuccessfulFetchTimestampMillis).to.have.been.called;
-      expect(storage.getActiveConfig).to.have.been.called;
-      expect(storage.getCustomSignals).to.have.been.called;
+      expect(storage.getLastFetchStatus).toHaveBeenCalled();
+      expect(storage.getLastSuccessfulFetchTimestampMillis).toHaveBeenCalled();
+      expect(storage.getActiveConfig).toHaveBeenCalled();
+      expect(storage.getCustomSignals).toHaveBeenCalled();
 
-      expect(storageCache.getLastFetchStatus()).to.eq(status);
-      expect(storageCache.getLastSuccessfulFetchTimestampMillis()).to.deep.eq(
+      expect(storageCache.getLastFetchStatus()).toBe(status);
+      expect(storageCache.getLastSuccessfulFetchTimestampMillis()).toEqual(
         lastSuccessfulFetchTimestampMillis
       );
-      expect(storageCache.getActiveConfig()).to.deep.eq(activeConfig);
+      expect(storageCache.getActiveConfig()).toEqual(activeConfig);
     });
   });
 
@@ -71,19 +64,19 @@ describe('StorageCache', () => {
     const activeConfig = { key: 'value2' };
 
     beforeEach(() => {
-      storage.setActiveConfig = sinon.stub().returns(Promise.resolve());
+      storage.setActiveConfig = vi.fn().mockResolvedValue(undefined);
     });
 
     it('writes to memory cache', async () => {
       await storageCache.setActiveConfig(activeConfig);
 
-      expect(storageCache.getActiveConfig()).to.deep.eq(activeConfig);
+      expect(storageCache.getActiveConfig()).toEqual(activeConfig);
     });
 
     it('writes to persistent storage', async () => {
       await storageCache.setActiveConfig(activeConfig);
 
-      expect(storage.setActiveConfig).to.have.been.calledWith(activeConfig);
+      expect(storage.setActiveConfig).toHaveBeenCalledWith(activeConfig);
     });
   });
 
@@ -91,21 +84,19 @@ describe('StorageCache', () => {
     const customSignals = { key: 'value' };
 
     beforeEach(() => {
-      storage.setCustomSignals = sinon
-        .stub()
-        .returns(Promise.resolve(customSignals));
+      storage.setCustomSignals = vi.fn().mockResolvedValue(customSignals);
     });
 
     it('writes to memory cache', async () => {
       await storageCache.setCustomSignals(customSignals);
 
-      expect(storageCache.getCustomSignals()).to.deep.eq(customSignals);
+      expect(storageCache.getCustomSignals()).toEqual(customSignals);
     });
 
     it('writes to persistent storage', async () => {
       await storageCache.setCustomSignals(customSignals);
 
-      expect(storage.setCustomSignals).to.have.been.calledWith(customSignals);
+      expect(storage.setCustomSignals).toHaveBeenCalledWith(customSignals);
     });
   });
 });
