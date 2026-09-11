@@ -1442,7 +1442,6 @@ export interface StartChatParams extends BaseParams {
 export interface StartTemplateChatParams extends Omit<StartChatParams, 'tools'> {
     templateId: string;
     templateVariables: Record<string, unknown>;
-    // (undocumented)
     tools?: TemplateTool[];
 }
 

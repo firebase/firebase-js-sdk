@@ -79,12 +79,16 @@ export interface GenerateContentRequest extends BaseParams {
 /**
  * Request parameters for {@link TemplateGenerativeModel.generateContent}
  * and {@link TemplateGenerativeModel.generateContentStream}.
+ * Request parameters for calling into a server prompt template with
+ * {@link TemplateGenerativeModel.generateContent} and
+ * {@link TemplateGenerativeModel.generateContentStream}.
  *
  * @beta
  */
 export interface TemplateRequest {
   /**
    * The ID of the server-side template to execute.
+   * The ID of the server prompt template to use.
    */
   templateId: string;
   /**
@@ -94,6 +98,7 @@ export interface TemplateRequest {
   /**
    * Optional tool configuration for this request. Only retrieval/grounding
    * configs are supported for server-side templates with unary and streaming
+   * configs are supported for server prompt templates with unary and streaming
    * generateContent.
    */
   toolConfig?: TemplateToolConfig;
@@ -393,6 +398,9 @@ export interface StartChatParams extends BaseParams {
 
 /**
  * Params for {@link TemplateGenerativeModel.startChat}.
+ * Parameters for starting a template-based chat session with
+ * {@link TemplateGenerativeModel.startChat}.
+ *
  * @beta
  */
 export interface StartTemplateChatParams extends Omit<
@@ -401,12 +409,17 @@ export interface StartTemplateChatParams extends Omit<
 > {
   /**
    * The ID of the server-side template to execute.
+   * The ID of the server prompt template to use.
    */
   templateId: string;
   /**
    * A key-value map of variables to populate the template with.
    */
   templateVariables: Record<string, unknown>;
+  /**
+   * Optional. A list of template tools that the model can use to access
+   * external systems or execute client functions.
+   */
   tools?: TemplateTool[];
 }
 
@@ -735,6 +748,7 @@ export interface TemplateFunctionDeclarationsTool {
   /**
    * Optional. One or more function declarations
    * to be passed to the server-side template execution.
+   * to be passed to the server prompt template execution.
    */
   functionDeclarations?: TemplateFunctionDeclaration[];
 }
@@ -747,6 +761,7 @@ export interface TemplateFunctionDeclarationsToolInternal {
   /**
    * Optional. One or more function declarations
    * to be passed to the server-side template execution.
+   * to be passed to the server prompt template execution.
    */
   templateFunctions?: TemplateFunctionDeclarationInternal[];
 }
