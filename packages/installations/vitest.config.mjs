@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,21 +15,14 @@
  * limitations under the License.
  */
 
-const karmaBase = require('../../config/karma.base');
+import createBaseConfig from '../../config/vitest.base.mjs';
 
-const files = [`src/**/*.test.ts`];
+const config = createBaseConfig(import.meta.url);
 
-module.exports = function (config) {
-  const karmaConfig = {
-    ...karmaBase,
-    // files to load into karma
-    files,
-    // frameworks to use
-    // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
-    frameworks: ['mocha']
-  };
+// @firebase/installations is a client SDK relying on browser APIs (IndexedDB, crypto).
+// All unit tests run in the browser project (Playwright Chromium).
+config.test.projects = config.test.projects.filter(
+  project => project.test?.name === 'browser'
+);
 
-  config.set(karmaConfig);
-};
-
-module.exports.files = files;
+export default config;

@@ -16,7 +16,7 @@
  */
 
 import { FirebaseError } from '@firebase/util';
-import { expect } from 'chai';
+import { expect, describe, it } from 'vitest';
 import { AppConfig } from '../interfaces/installation-impl';
 import { getFakeApp } from '../testing/fake-generators';
 import '../testing/setup';
@@ -31,30 +31,30 @@ describe('extractAppConfig', () => {
       projectId: 'projectId',
       appId: '1:777777777777:web:d93b5ca1475efe57'
     };
-    expect(extractAppConfig(firebaseApp)).to.deep.equal(expected);
+    expect(extractAppConfig(firebaseApp)).toEqual(expected);
   });
 
   it('throws if a necessary value is missing', () => {
-    expect(() => extractAppConfig(undefined as any)).to.throw(FirebaseError);
+    expect(() => extractAppConfig(undefined as any)).toThrow(FirebaseError);
 
     let firebaseApp = getFakeApp();
     delete (firebaseApp as any).name;
-    expect(() => extractAppConfig(firebaseApp)).to.throw(FirebaseError);
+    expect(() => extractAppConfig(firebaseApp)).toThrow(FirebaseError);
 
     firebaseApp = getFakeApp();
     delete (firebaseApp as any).options;
-    expect(() => extractAppConfig(firebaseApp)).to.throw(FirebaseError);
+    expect(() => extractAppConfig(firebaseApp)).toThrow(FirebaseError);
 
     firebaseApp = getFakeApp();
     delete firebaseApp.options.projectId;
-    expect(() => extractAppConfig(firebaseApp)).to.throw(FirebaseError);
+    expect(() => extractAppConfig(firebaseApp)).toThrow(FirebaseError);
 
     firebaseApp = getFakeApp();
     delete firebaseApp.options.apiKey;
-    expect(() => extractAppConfig(firebaseApp)).to.throw(FirebaseError);
+    expect(() => extractAppConfig(firebaseApp)).toThrow(FirebaseError);
 
     firebaseApp = getFakeApp();
     delete firebaseApp.options.appId;
-    expect(() => extractAppConfig(firebaseApp)).to.throw(FirebaseError);
+    expect(() => extractAppConfig(firebaseApp)).toThrow(FirebaseError);
   });
 });

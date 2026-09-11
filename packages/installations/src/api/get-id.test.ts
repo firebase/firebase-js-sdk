@@ -15,10 +15,13 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-import { SinonStub, stub } from 'sinon';
+import { describe, beforeEach, it, expect, vi } from 'vitest';
 import * as getInstallationEntryModule from '../helpers/get-installation-entry';
 import * as refreshAuthTokenModule from '../helpers/refresh-auth-token';
+
+vi.mock('../helpers/get-installation-entry', { spy: true });
+vi.mock('../helpers/refresh-auth-token', { spy: true });
+
 import {
   RegisteredInstallationEntry,
   RequestStatus
@@ -32,22 +35,15 @@ const FID = 'disciples-of-the-watch';
 
 describe('getId', () => {
   let installations: FirebaseInstallationsImpl;
-  let getInstallationEntrySpy: SinonStub<
-    [FirebaseInstallationsImpl],
-    Promise<getInstallationEntryModule.InstallationEntryWithRegistrationPromise>
-  >;
 
   beforeEach(() => {
     installations = getFakeInstallations();
-
-    getInstallationEntrySpy = stub(
-      getInstallationEntryModule,
-      'getInstallationEntry'
-    );
   });
 
   it('returns the FID in InstallationEntry returned by getInstallationEntry', async () => {
-    getInstallationEntrySpy.resolves({
+    vi.mocked(
+      getInstallationEntryModule.getInstallationEntry
+    ).mockResolvedValue({
       installationEntry: {
         fid: FID,
         registrationStatus: RequestStatus.NOT_STARTED
@@ -56,12 +52,16 @@ describe('getId', () => {
     });
 
     const fid = await getId(installations);
-    expect(fid).to.equal(FID);
-    expect(getInstallationEntrySpy).to.be.calledOnce;
+    expect(fid).toBe(FID);
+    expect(
+      getInstallationEntryModule.getInstallationEntry
+    ).toHaveBeenCalledTimes(1);
   });
 
   it('calls refreshAuthToken if the installation is registered', async () => {
-    getInstallationEntrySpy.resolves({
+    vi.mocked(
+      getInstallationEntryModule.getInstallationEntry
+    ).mockResolvedValue({
       installationEntry: {
         fid: FID,
         registrationStatus: RequestStatus.COMPLETED,
@@ -72,10 +72,7 @@ describe('getId', () => {
       }
     });
 
-    const refreshAuthTokenSpy = stub(
-      refreshAuthTokenModule,
-      'refreshAuthToken'
-    ).resolves({
+    vi.mocked(refreshAuthTokenModule.refreshAuthToken).mockResolvedValue({
       token: 'authToken',
       expiresIn: 123456,
       requestStatus: RequestStatus.COMPLETED,
@@ -83,6 +80,6 @@ describe('getId', () => {
     });
 
     await getId(installations);
-    expect(refreshAuthTokenSpy).to.be.calledOnce;
+    expect(refreshAuthTokenModule.refreshAuthToken).toHaveBeenCalledTimes(1);
   });
 });

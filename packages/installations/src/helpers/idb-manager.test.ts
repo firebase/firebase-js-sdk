@@ -15,8 +15,11 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-import { stub } from 'sinon';
+import { describe, beforeEach, it, expect, vi } from 'vitest';
+import * as fidChangedModule from './fid-changed';
+
+vi.mock('./fid-changed', { spy: true });
+
 import { AppConfig } from '../interfaces/installation-impl';
 import {
   InstallationEntry,
@@ -25,7 +28,6 @@ import {
 import { getFakeAppConfig } from '../testing/fake-generators';
 import '../testing/setup';
 import { clear, get, remove, set, update } from './idb-manager';
-import * as fidChangedModule from './fid-changed';
 
 const VALUE_A: InstallationEntry = {
   fid: 'VALUE_A',
@@ -40,6 +42,7 @@ describe('idb manager', () => {
   let appConfig: AppConfig;
 
   beforeEach(() => {
+    vi.mocked(fidChangedModule.fidChanged).mockClear();
     appConfig = { ...getFakeAppConfig(), appName: 'appName1' };
   });
 
@@ -47,12 +50,12 @@ describe('idb manager', () => {
     it('sets a value and then gets the same value back', async () => {
       await set(appConfig, VALUE_A);
       const value = await get(appConfig);
-      expect(value).to.deep.equal(VALUE_A);
+      expect(value).toEqual(VALUE_A);
     });
 
     it('gets undefined for a key that does not exist', async () => {
       const value = await get(appConfig);
-      expect(value).to.be.undefined;
+      expect(value).toBeUndefined();
     });
 
     it('sets and gets multiple values with different keys', async () => {
@@ -63,21 +66,21 @@ describe('idb manager', () => {
 
       await set(appConfig, VALUE_A);
       await set(appConfig2, VALUE_B);
-      expect(await get(appConfig)).to.deep.equal(VALUE_A);
-      expect(await get(appConfig2)).to.deep.equal(VALUE_B);
+      expect(await get(appConfig)).toEqual(VALUE_A);
+      expect(await get(appConfig2)).toEqual(VALUE_B);
     });
 
     it('overwrites a value', async () => {
       await set(appConfig, VALUE_A);
       await set(appConfig, VALUE_B);
-      expect(await get(appConfig)).to.deep.equal(VALUE_B);
+      expect(await get(appConfig)).toEqual(VALUE_B);
     });
 
     it('calls fidChanged when a new FID is generated', async () => {
-      const fidChangedStub = stub(fidChangedModule, 'fidChanged');
       await set(appConfig, VALUE_A);
 
-      expect(fidChangedStub).to.have.been.calledOnceWith(
+      expect(fidChangedModule.fidChanged).toHaveBeenCalledTimes(1);
+      expect(fidChangedModule.fidChanged).toHaveBeenCalledWith(
         appConfig,
         VALUE_A.fid
       );
@@ -85,11 +88,12 @@ describe('idb manager', () => {
 
     it('calls fidChanged when the FID changes', async () => {
       await set(appConfig, VALUE_A);
+      vi.mocked(fidChangedModule.fidChanged).mockClear();
 
-      const fidChangedStub = stub(fidChangedModule, 'fidChanged');
       await set(appConfig, VALUE_B);
 
-      expect(fidChangedStub).to.have.been.calledOnceWith(
+      expect(fidChangedModule.fidChanged).toHaveBeenCalledTimes(1);
+      expect(fidChangedModule.fidChanged).toHaveBeenCalledWith(
         appConfig,
         VALUE_B.fid
       );
@@ -97,11 +101,11 @@ describe('idb manager', () => {
 
     it('does not call fidChanged when the FID is the same', async () => {
       await set(appConfig, VALUE_A);
+      vi.mocked(fidChangedModule.fidChanged).mockClear();
 
-      const fidChangedStub = stub(fidChangedModule, 'fidChanged');
       await set(appConfig, /* Same value */ VALUE_A);
 
-      expect(fidChangedStub).not.to.have.been.called;
+      expect(fidChangedModule.fidChanged).not.toHaveBeenCalled();
     });
   });
 
@@ -109,12 +113,12 @@ describe('idb manager', () => {
     it('deletes a key', async () => {
       await set(appConfig, VALUE_A);
       await remove(appConfig);
-      expect(await get(appConfig)).to.be.undefined;
+      expect(await get(appConfig)).toBeUndefined();
     });
 
     it('does not throw if key does not exist', async () => {
       await remove(appConfig);
-      expect(await get(appConfig)).to.be.undefined;
+      expect(await get(appConfig)).toBeUndefined();
     });
   });
 
@@ -128,8 +132,8 @@ describe('idb manager', () => {
       await set(appConfig, VALUE_A);
       await set(appConfig2, VALUE_B);
       await clear();
-      expect(await get(appConfig)).to.be.undefined;
-      expect(await get(appConfig2)).to.be.undefined;
+      expect(await get(appConfig)).toBeUndefined();
+      expect(await get(appConfig2)).toBeUndefined();
     });
   });
 
@@ -143,9 +147,9 @@ describe('idb manager', () => {
         // get is already called for the same key, but it will only complete
         // after update transaction finishes, at which point it will return the
         // new value.
-        expect(isGetCalled).to.be.true;
+        expect(isGetCalled).toBe(true);
 
-        expect(oldValue).to.deep.equal(VALUE_A);
+        expect(oldValue).toEqual(VALUE_A);
         return VALUE_B;
       });
 
@@ -154,17 +158,17 @@ describe('idb manager', () => {
       isGetCalled = true;
 
       // Update returns the new value
-      expect(await resultPromise).to.deep.equal(VALUE_B);
+      expect(await resultPromise).toEqual(VALUE_B);
 
       // If update weren't atomic, this would return the old value.
-      expect(await getPromise).to.deep.equal(VALUE_B);
+      expect(await getPromise).toEqual(VALUE_B);
     });
 
     it('calls fidChanged when a new FID is generated', async () => {
-      const fidChangedStub = stub(fidChangedModule, 'fidChanged');
       await update(appConfig, () => VALUE_A);
 
-      expect(fidChangedStub).to.have.been.calledOnceWith(
+      expect(fidChangedModule.fidChanged).toHaveBeenCalledTimes(1);
+      expect(fidChangedModule.fidChanged).toHaveBeenCalledWith(
         appConfig,
         VALUE_A.fid
       );
@@ -172,11 +176,12 @@ describe('idb manager', () => {
 
     it('calls fidChanged when the FID changes', async () => {
       await set(appConfig, VALUE_A);
+      vi.mocked(fidChangedModule.fidChanged).mockClear();
 
-      const fidChangedStub = stub(fidChangedModule, 'fidChanged');
       await update(appConfig, () => VALUE_B);
 
-      expect(fidChangedStub).to.have.been.calledOnceWith(
+      expect(fidChangedModule.fidChanged).toHaveBeenCalledTimes(1);
+      expect(fidChangedModule.fidChanged).toHaveBeenCalledWith(
         appConfig,
         VALUE_B.fid
       );
@@ -184,11 +189,11 @@ describe('idb manager', () => {
 
     it('does not call fidChanged when the FID is the same', async () => {
       await set(appConfig, VALUE_A);
+      vi.mocked(fidChangedModule.fidChanged).mockClear();
 
-      const fidChangedStub = stub(fidChangedModule, 'fidChanged');
       await update(appConfig, () => /* Same value */ VALUE_A);
 
-      expect(fidChangedStub).not.to.have.been.called;
+      expect(fidChangedModule.fidChanged).not.toHaveBeenCalled();
     });
   });
 });

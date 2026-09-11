@@ -15,9 +15,13 @@
  * limitations under the License.
  */
 
-import { AssertionError, expect } from 'chai';
-import { SinonFakeTimers, SinonStub, stub, useFakeTimers } from 'sinon';
+import { describe, beforeEach, afterEach, it, expect, vi } from 'vitest';
 import * as createInstallationRequestModule from '../functions/create-installation-request';
+import * as generateFidModule from './generate-fid';
+
+vi.mock('../functions/create-installation-request', { spy: true });
+vi.mock('./generate-fid', { spy: true });
+
 import {
   AppConfig,
   FirebaseInstallationsImpl
@@ -32,29 +36,24 @@ import { getFakeInstallations } from '../testing/fake-generators';
 import '../testing/setup';
 import { ERROR_FACTORY, ErrorCode } from '../util/errors';
 import { sleep } from '../util/sleep';
-import * as generateFidModule from './generate-fid';
 import { getInstallationEntry } from './get-installation-entry';
 import { get, set } from './idb-manager';
 
 const FID = 'cry-of-the-black-birds';
 
 describe('getInstallationEntry', () => {
-  let clock: SinonFakeTimers;
   let fakeInstallations: FirebaseInstallationsImpl;
   let appConfig: AppConfig;
-  let createInstallationRequestSpy: SinonStub<
-    [FirebaseInstallationsImpl, InProgressInstallationEntry],
-    Promise<RegisteredInstallationEntry>
-  >;
 
   beforeEach(() => {
-    clock = useFakeTimers({ now: 1_000_000 });
+    vi.clearAllMocks();
+    vi.useFakeTimers({ now: 1_000_000 });
     fakeInstallations = getFakeInstallations();
     appConfig = fakeInstallations.appConfig;
-    createInstallationRequestSpy = stub(
-      createInstallationRequestModule,
-      'createInstallationRequest'
-    ).callsFake(
+
+    vi.mocked(
+      createInstallationRequestModule.createInstallationRequest
+    ).mockImplementation(
       async (_, installationEntry): Promise<RegisteredInstallationEntry> => {
         await sleep(500); // Request would take some time
         const registeredInstallationEntry: RegisteredInstallationEntry = {
@@ -74,53 +73,55 @@ describe('getInstallationEntry', () => {
     );
   });
 
-  afterEach(() => {
+  afterEach(async () => {
     // Clean up all pending requests.
-    clock.runAll();
+    await vi.runAllTimersAsync();
   });
 
   it('saves the InstallationEntry in the database before returning it', async () => {
     const oldDbEntry = await get(appConfig);
-    expect(oldDbEntry).to.be.undefined;
+    expect(oldDbEntry).toBeUndefined();
 
     const { installationEntry } = await getInstallationEntry(fakeInstallations);
 
     const newDbEntry = await get(appConfig);
-    expect(newDbEntry).to.deep.equal(installationEntry);
+    expect(newDbEntry).toEqual(installationEntry);
   });
 
   it('saves the InstallationEntry in the database if app is offline', async () => {
-    stub(navigator, 'onLine').value(false);
+    vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
 
     const oldDbEntry = await get(appConfig);
-    expect(oldDbEntry).to.be.undefined;
+    expect(oldDbEntry).toBeUndefined();
 
     const { installationEntry } = await getInstallationEntry(fakeInstallations);
 
     const newDbEntry = await get(appConfig);
-    expect(newDbEntry).to.deep.equal(installationEntry);
+    expect(newDbEntry).toEqual(installationEntry);
   });
 
   it('saves the InstallationEntry in the database when registration completes', async () => {
     const { installationEntry, registrationPromise } =
       await getInstallationEntry(fakeInstallations);
-    expect(installationEntry.registrationStatus).to.equal(
+    expect(installationEntry.registrationStatus).toBe(
       RequestStatus.IN_PROGRESS
     );
-    expect(registrationPromise).to.be.an.instanceOf(Promise);
+    expect(registrationPromise).toBeInstanceOf(Promise);
 
     const oldDbEntry = await get(appConfig);
-    expect(oldDbEntry).to.deep.equal(installationEntry);
+    expect(oldDbEntry).toEqual(installationEntry);
 
-    clock.next(); // Finish registration request.
-    await expect(registrationPromise).to.be.fulfilled;
+    await vi.advanceTimersToNextTimerAsync(); // Finish registration request.
+    await expect(registrationPromise).resolves.toBeDefined();
 
     const newDbEntry = await get(appConfig);
-    expect(newDbEntry!.registrationStatus).to.equal(RequestStatus.COMPLETED);
+    expect(newDbEntry!.registrationStatus).toBe(RequestStatus.COMPLETED);
   });
 
   it('saves the InstallationEntry in the database when registration fails', async () => {
-    createInstallationRequestSpy.callsFake(async () => {
+    vi.mocked(
+      createInstallationRequestModule.createInstallationRequest
+    ).mockImplementation(async () => {
       await sleep(500); // Request would take some time
       throw ERROR_FACTORY.create(ErrorCode.REQUEST_FAILED, {
         requestName: 'Create Installation',
@@ -132,23 +133,25 @@ describe('getInstallationEntry', () => {
 
     const { installationEntry, registrationPromise } =
       await getInstallationEntry(fakeInstallations);
-    expect(installationEntry.registrationStatus).to.equal(
+    expect(installationEntry.registrationStatus).toBe(
       RequestStatus.IN_PROGRESS
     );
-    expect(registrationPromise).to.be.an.instanceOf(Promise);
+    expect(registrationPromise).toBeInstanceOf(Promise);
 
     const oldDbEntry = await get(appConfig);
-    expect(oldDbEntry).to.deep.equal(installationEntry);
+    expect(oldDbEntry).toEqual(installationEntry);
 
-    clock.next(); // Finish registration request.
-    await expect(registrationPromise).to.be.rejected;
+    await vi.advanceTimersToNextTimerAsync(); // Finish registration request.
+    await expect(registrationPromise).rejects.toThrow();
 
     const newDbEntry = await get(appConfig);
-    expect(newDbEntry!.registrationStatus).to.equal(RequestStatus.NOT_STARTED);
+    expect(newDbEntry!.registrationStatus).toBe(RequestStatus.NOT_STARTED);
   });
 
   it('removes the InstallationEntry from the database when registration fails with 409', async () => {
-    createInstallationRequestSpy.callsFake(async () => {
+    vi.mocked(
+      createInstallationRequestModule.createInstallationRequest
+    ).mockImplementation(async () => {
       await sleep(500); // Request would take some time
       throw ERROR_FACTORY.create(ErrorCode.REQUEST_FAILED, {
         requestName: 'Create Installation',
@@ -160,18 +163,18 @@ describe('getInstallationEntry', () => {
 
     const { installationEntry, registrationPromise } =
       await getInstallationEntry(fakeInstallations);
-    expect(installationEntry.registrationStatus).to.equal(
+    expect(installationEntry.registrationStatus).toBe(
       RequestStatus.IN_PROGRESS
     );
 
     const oldDbEntry = await get(appConfig);
-    expect(oldDbEntry).to.deep.equal(installationEntry);
+    expect(oldDbEntry).toEqual(installationEntry);
 
-    clock.next(); // Finish registration request.
-    await expect(registrationPromise).to.be.rejected;
+    await vi.advanceTimersToNextTimerAsync(); // Finish registration request.
+    await expect(registrationPromise).rejects.toThrow();
 
     const newDbEntry = await get(appConfig);
-    expect(newDbEntry).to.be.undefined;
+    expect(newDbEntry).toBeUndefined();
   });
 
   it('returns the same FID on subsequent calls', async () => {
@@ -179,58 +182,57 @@ describe('getInstallationEntry', () => {
       await getInstallationEntry(fakeInstallations);
     const { installationEntry: entry2 } =
       await getInstallationEntry(fakeInstallations);
-    expect(entry1.fid).to.equal(entry2.fid);
+    expect(entry1.fid).toBe(entry2.fid);
   });
 
   describe('when there is no InstallationEntry in database', () => {
-    let generateInstallationEntrySpy: SinonStub<[], string>;
-
     beforeEach(() => {
-      generateInstallationEntrySpy = stub(
-        generateFidModule,
-        'generateFid'
-      ).returns(FID);
+      vi.mocked(generateFidModule.generateFid).mockReturnValue(FID);
     });
 
     it('returns a new pending InstallationEntry and triggers createInstallation', async () => {
       const { installationEntry, registrationPromise } =
         await getInstallationEntry(fakeInstallations);
 
-      if (installationEntry.registrationStatus !== RequestStatus.IN_PROGRESS) {
-        throw new AssertionError('InstallationEntry is not IN_PROGRESS.');
-      }
-
-      expect(registrationPromise).to.be.an.instanceOf(Promise);
-      expect(installationEntry).to.deep.equal({
+      expect(installationEntry.registrationStatus).toBe(
+        RequestStatus.IN_PROGRESS
+      );
+      expect(registrationPromise).toBeInstanceOf(Promise);
+      expect(installationEntry).toEqual({
         fid: FID,
         registrationStatus: RequestStatus.IN_PROGRESS,
-
-        // https://github.com/chaijs/chai/issues/644
-        registrationTime: installationEntry.registrationTime
+        registrationTime: (installationEntry as InProgressInstallationEntry)
+          .registrationTime
       });
-      expect(generateInstallationEntrySpy).to.be.called;
-      expect(createInstallationRequestSpy).to.be.called;
+      expect(generateFidModule.generateFid).toHaveBeenCalled();
+      expect(
+        createInstallationRequestModule.createInstallationRequest
+      ).toHaveBeenCalled();
     });
 
     it('returns a new unregistered InstallationEntry if app is offline', async () => {
-      stub(navigator, 'onLine').value(false);
+      vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
 
       const { installationEntry } =
         await getInstallationEntry(fakeInstallations);
 
-      expect(installationEntry).to.deep.equal({
+      expect(installationEntry).toEqual({
         fid: FID,
         registrationStatus: RequestStatus.NOT_STARTED
       });
-      expect(generateInstallationEntrySpy).to.be.called;
-      expect(createInstallationRequestSpy).not.to.be.called;
+      expect(generateFidModule.generateFid).toHaveBeenCalled();
+      expect(
+        createInstallationRequestModule.createInstallationRequest
+      ).not.toHaveBeenCalled();
     });
 
     it('does not trigger createInstallation REST call on subsequent calls', async () => {
       await getInstallationEntry(fakeInstallations);
       await getInstallationEntry(fakeInstallations);
 
-      expect(createInstallationRequestSpy).to.be.calledOnce;
+      expect(
+        createInstallationRequestModule.createInstallationRequest
+      ).toHaveBeenCalledTimes(1);
     });
 
     it('returns a registrationPromise on subsequent calls before initial promise resolves', async () => {
@@ -239,35 +241,41 @@ describe('getInstallationEntry', () => {
       const { registrationPromise: promise2 } =
         await getInstallationEntry(fakeInstallations);
 
-      expect(createInstallationRequestSpy).to.be.calledOnce;
-      expect(promise1).to.be.an.instanceOf(Promise);
-      expect(promise2).to.be.an.instanceOf(Promise);
+      expect(
+        createInstallationRequestModule.createInstallationRequest
+      ).toHaveBeenCalledTimes(1);
+      expect(promise1).toBeInstanceOf(Promise);
+      expect(promise2).toBeInstanceOf(Promise);
     });
 
     it('does not return a registrationPromise on subsequent calls after initial promise resolves', async () => {
       const { registrationPromise: promise1 } =
         await getInstallationEntry(fakeInstallations);
-      expect(promise1).to.be.an.instanceOf(Promise);
+      expect(promise1).toBeInstanceOf(Promise);
 
-      clock.next(); // Finish registration request.
-      await expect(promise1).to.be.fulfilled;
+      await vi.advanceTimersToNextTimerAsync(); // Finish registration request.
+      await expect(promise1).resolves.toBeDefined();
 
       const { registrationPromise: promise2 } =
         await getInstallationEntry(fakeInstallations);
-      expect(promise2).to.be.undefined;
+      expect(promise2).toBeUndefined();
 
-      expect(createInstallationRequestSpy).to.be.calledOnce;
+      expect(
+        createInstallationRequestModule.createInstallationRequest
+      ).toHaveBeenCalledTimes(1);
     });
 
     it('waits for the FID from the server if FID generation fails', async () => {
-      clock.restore();
-      clock = useFakeTimers({
+      vi.useRealTimers();
+      vi.useFakeTimers({
         now: 1_000_000,
         shouldAdvanceTime: true /* Needed to allow the createInstallation request to complete. */
       });
 
       // FID generation fails.
-      generateInstallationEntrySpy.returns(generateFidModule.INVALID_FID);
+      vi.mocked(generateFidModule.generateFid).mockReturnValue(
+        generateFidModule.INVALID_FID
+      );
 
       const getInstallationEntryPromise =
         getInstallationEntry(fakeInstallations);
@@ -275,8 +283,8 @@ describe('getInstallationEntry', () => {
       const { installationEntry, registrationPromise } =
         await getInstallationEntryPromise;
 
-      expect(installationEntry.fid).to.equal(FID);
-      expect(registrationPromise).to.be.undefined;
+      expect(installationEntry.fid).toBe(FID);
+      expect(registrationPromise).toBeUndefined();
     });
   });
 
@@ -293,31 +301,34 @@ describe('getInstallationEntry', () => {
       const { installationEntry, registrationPromise } =
         await getInstallationEntry(fakeInstallations);
 
-      if (installationEntry.registrationStatus !== RequestStatus.IN_PROGRESS) {
-        throw new AssertionError('InstallationEntry is not IN_PROGRESS.');
-      }
-
-      expect(registrationPromise).to.be.an.instanceOf(Promise);
-      expect(installationEntry).to.deep.equal({
+      expect(installationEntry.registrationStatus).toBe(
+        RequestStatus.IN_PROGRESS
+      );
+      expect(registrationPromise).toBeInstanceOf(Promise);
+      expect(installationEntry).toEqual({
         fid: FID,
         registrationStatus: RequestStatus.IN_PROGRESS,
-        // https://github.com/chaijs/chai/issues/644
-        registrationTime: installationEntry.registrationTime
+        registrationTime: (installationEntry as InProgressInstallationEntry)
+          .registrationTime
       });
-      expect(createInstallationRequestSpy).to.be.calledOnce;
+      expect(
+        createInstallationRequestModule.createInstallationRequest
+      ).toHaveBeenCalledTimes(1);
     });
 
     it('returns the same InstallationEntry if the app is offline', async () => {
-      stub(navigator, 'onLine').value(false);
+      vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
 
       const { installationEntry } =
         await getInstallationEntry(fakeInstallations);
 
-      expect(installationEntry).to.deep.equal({
+      expect(installationEntry).toEqual({
         fid: FID,
         registrationStatus: RequestStatus.NOT_STARTED
       });
-      expect(createInstallationRequestSpy).not.to.be.called;
+      expect(
+        createInstallationRequestModule.createInstallationRequest
+      ).not.toHaveBeenCalled();
     });
   });
 
@@ -332,30 +343,33 @@ describe('getInstallationEntry', () => {
     });
 
     it("returns the same InstallationEntry if the request hasn't timed out", async () => {
-      clock.now = 1_001_000; // One second after the request was initiated.
+      vi.setSystemTime(1_001_000); // One second after the request was initiated.
 
       const { installationEntry } =
         await getInstallationEntry(fakeInstallations);
 
-      expect(installationEntry).to.deep.equal({
+      expect(installationEntry).toEqual({
         fid: FID,
         registrationStatus: RequestStatus.IN_PROGRESS,
         registrationTime: 1_000_000
       });
-      expect(createInstallationRequestSpy).not.to.be.called;
+      expect(
+        createInstallationRequestModule.createInstallationRequest
+      ).not.toHaveBeenCalled();
     });
 
     it('updates the InstallationEntry and triggers createInstallation if the request fails', async () => {
-      clock.restore();
-      clock = useFakeTimers({
+      vi.useRealTimers();
+      vi.useFakeTimers({
         now: 1_001_000 /* One second after the request was initiated. */,
         shouldAdvanceTime: true /* Needed to allow the createInstallation request to complete. */
       });
+      vi.clearAllMocks();
 
       const installationEntryPromise = getInstallationEntry(fakeInstallations);
 
       // The pending request fails after a while.
-      clock.tick(3000);
+      await vi.advanceTimersByTimeAsync(3000);
       await set(appConfig, {
         fid: FID,
         registrationStatus: RequestStatus.NOT_STARTED
@@ -369,26 +383,28 @@ describe('getInstallationEntry', () => {
       const tokenDetails = (await get(
         appConfig
       )) as InProgressInstallationEntry;
-      expect(tokenDetails.registrationTime).to.be.at.least(
+      expect(tokenDetails.registrationTime).toBeGreaterThanOrEqual(
         /* When the first pending request failed. */ 1_004_000
       );
-      expect(tokenDetails).to.deep.equal({
+      expect(tokenDetails).toEqual({
         fid: FID,
         registrationStatus: RequestStatus.IN_PROGRESS,
         // Ignore registrationTime as we already checked it.
         registrationTime: tokenDetails.registrationTime
       });
 
-      expect(registrationPromise).to.be.an.instanceOf(Promise);
+      expect(registrationPromise).toBeInstanceOf(Promise);
       await registrationPromise;
-      expect(createInstallationRequestSpy).to.be.calledOnce;
+      expect(
+        createInstallationRequestModule.createInstallationRequest
+      ).toHaveBeenCalledTimes(1);
     });
 
     it('updates the InstallationEntry if the request fails and the app is offline', async () => {
-      stub(navigator, 'onLine').value(false);
+      vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
 
-      clock.restore();
-      clock = useFakeTimers({
+      vi.useRealTimers();
+      vi.useFakeTimers({
         now: 1_001_000 /* One second after the request was initiated. */,
         shouldAdvanceTime: true /* Needed to allow the createInstallation request to complete. */
       });
@@ -396,7 +412,7 @@ describe('getInstallationEntry', () => {
       const installationEntryPromise = getInstallationEntry(fakeInstallations);
 
       // The pending request fails after a while.
-      clock.tick(3000);
+      await vi.advanceTimersByTimeAsync(3000);
       await set(appConfig, {
         fid: FID,
         registrationStatus: RequestStatus.NOT_STARTED
@@ -407,44 +423,48 @@ describe('getInstallationEntry', () => {
       // Let the new getInstallationEntry process start.
       await sleep(250);
 
-      expect(await get(appConfig)).to.deep.equal({
+      expect(await get(appConfig)).toEqual({
         fid: FID,
         registrationStatus: RequestStatus.NOT_STARTED
       });
 
-      expect(registrationPromise).to.be.an.instanceOf(Promise);
-      await expect(registrationPromise).to.be.rejectedWith(
-        'Application offline'
-      );
-      expect(createInstallationRequestSpy).not.to.be.called;
+      expect(registrationPromise).toBeInstanceOf(Promise);
+      await expect(registrationPromise).rejects.toThrow('Application offline');
+      expect(
+        createInstallationRequestModule.createInstallationRequest
+      ).not.toHaveBeenCalled();
     });
 
     it('returns a new pending InstallationEntry and triggers createInstallation if the request had already timed out', async () => {
-      clock.now = 1_015_000; // Fifteen seconds after the request was initiated.
+      vi.setSystemTime(1_015_000); // Fifteen seconds after the request was initiated.
 
       const { installationEntry } =
         await getInstallationEntry(fakeInstallations);
 
-      expect(installationEntry).to.deep.equal({
+      expect(installationEntry).toEqual({
         fid: FID,
         registrationStatus: RequestStatus.IN_PROGRESS,
         registrationTime: 1_015_000
       });
-      expect(createInstallationRequestSpy).to.be.calledOnce;
+      expect(
+        createInstallationRequestModule.createInstallationRequest
+      ).toHaveBeenCalledTimes(1);
     });
 
     it('returns a new unregistered InstallationEntry if the request had already timed out and the app is offline', async () => {
-      stub(navigator, 'onLine').value(false);
-      clock.now = 1_015_000; // Fifteen seconds after the request was initiated.
+      vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
+      vi.setSystemTime(1_015_000); // Fifteen seconds after the request was initiated.
 
       const { installationEntry } =
         await getInstallationEntry(fakeInstallations);
 
-      expect(installationEntry).to.deep.equal({
+      expect(installationEntry).toEqual({
         fid: FID,
         registrationStatus: RequestStatus.NOT_STARTED
       });
-      expect(createInstallationRequestSpy).not.to.be.called;
+      expect(
+        createInstallationRequestModule.createInstallationRequest
+      ).not.toHaveBeenCalled();
     });
   });
 
@@ -463,13 +483,15 @@ describe('getInstallationEntry', () => {
       const { installationEntry } =
         await getInstallationEntry(fakeInstallations);
 
-      expect(installationEntry).to.deep.equal({
+      expect(installationEntry).toEqual({
         fid: FID,
         registrationStatus: RequestStatus.COMPLETED,
         refreshToken: 'refreshToken',
         authToken: { requestStatus: RequestStatus.NOT_STARTED }
       });
-      expect(createInstallationRequestSpy).not.to.be.called;
+      expect(
+        createInstallationRequestModule.createInstallationRequest
+      ).not.toHaveBeenCalled();
     });
   });
 });

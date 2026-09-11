@@ -16,8 +16,7 @@
  */
 
 import { FirebaseError } from '@firebase/util';
-import { expect } from 'chai';
-import { SinonStub, stub } from 'sinon';
+import { expect, vi, MockInstance, describe, it, beforeEach } from 'vitest';
 import { AppConfig } from '../interfaces/installation-impl';
 import {
   RegisteredInstallationEntry,
@@ -37,7 +36,7 @@ const FID = 'foreclosure-of-a-dream';
 
 describe('deleteInstallationRequest', () => {
   let appConfig: AppConfig;
-  let fetchSpy: SinonStub<[RequestInfo | URL, RequestInit?], Promise<Response>>;
+  let fetchSpy: MockInstance<typeof fetch>;
   let registeredInstallationEntry: RegisteredInstallationEntry;
 
   beforeEach(() => {
@@ -52,12 +51,12 @@ describe('deleteInstallationRequest', () => {
       }
     };
 
-    fetchSpy = stub(self, 'fetch');
+    fetchSpy = vi.spyOn(self, 'fetch') as unknown as MockInstance<typeof fetch>;
   });
 
   describe('successful request', () => {
     beforeEach(() => {
-      fetchSpy.resolves(new Response());
+      fetchSpy.mockResolvedValue(new Response());
     });
 
     it('calls the deleteInstallation server API with correct parameters', async () => {
@@ -75,8 +74,10 @@ describe('deleteInstallationRequest', () => {
 
       await deleteInstallationRequest(appConfig, registeredInstallationEntry);
 
-      expect(fetchSpy).to.be.calledOnceWith(expectedEndpoint, expectedRequest);
-      const actualHeaders = fetchSpy.lastCall.lastArg.headers;
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
+      expect(fetchSpy).toHaveBeenCalledWith(expectedEndpoint, expectedRequest);
+      const lastCall = fetchSpy.mock.calls[fetchSpy.mock.calls.length - 1];
+      const actualHeaders = (lastCall[1] as RequestInit).headers as Headers;
       compareHeaders(expectedHeaders, actualHeaders);
     });
   });
@@ -91,13 +92,13 @@ describe('deleteInstallationRequest', () => {
         }
       };
 
-      fetchSpy.resolves(
+      fetchSpy.mockResolvedValue(
         new Response(JSON.stringify(errorResponse), { status: 409 })
       );
 
       await expect(
         deleteInstallationRequest(appConfig, registeredInstallationEntry)
-      ).to.be.rejectedWith(FirebaseError);
+      ).rejects.toThrow(FirebaseError);
     });
 
     it('retries once if the server returns a 5xx error', async () => {
@@ -110,14 +111,15 @@ describe('deleteInstallationRequest', () => {
       };
 
       fetchSpy
-        .onCall(0)
-        .resolves(new Response(JSON.stringify(errorResponse), { status: 500 }));
-      fetchSpy.onCall(1).resolves(new Response());
+        .mockResolvedValueOnce(
+          new Response(JSON.stringify(errorResponse), { status: 500 })
+        )
+        .mockResolvedValueOnce(new Response());
 
       await expect(
         deleteInstallationRequest(appConfig, registeredInstallationEntry)
-      ).to.be.fulfilled;
-      expect(fetchSpy).to.be.calledTwice;
+      ).resolves.not.toThrow();
+      expect(fetchSpy).toHaveBeenCalledTimes(2);
     });
   });
 });

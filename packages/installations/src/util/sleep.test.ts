@@ -15,23 +15,20 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-import { SinonFakeTimers, useFakeTimers } from 'sinon';
+import { expect, vi, describe, it, beforeEach } from 'vitest';
 import '../testing/setup';
 import { sleep } from './sleep';
 
 describe('sleep', () => {
-  let clock: SinonFakeTimers;
-
   beforeEach(() => {
-    clock = useFakeTimers({ shouldAdvanceTime: true });
+    vi.useFakeTimers({ shouldAdvanceTime: true });
   });
 
   it('returns a promise that resolves after a given amount of time', async () => {
-    const t0 = clock.now;
+    const t0 = Date.now();
     await sleep(100);
-    const t1 = clock.now;
+    const t1 = Date.now();
 
-    expect(t1 - t0).to.equal(100);
+    expect(t1 - t0).toBe(100);
   });
 });
