@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
+import { expect } from 'vitest';
 import '../test/setup';
 import { FirebaseAppImpl } from './firebaseApp';
 import { ComponentContainer } from '@firebase/component';
