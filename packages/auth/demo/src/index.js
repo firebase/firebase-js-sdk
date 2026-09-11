@@ -1799,8 +1799,13 @@ function revokeAppleTokenAndDeleteUser() {
  */
 function getParameterByName(name) {
   try {
-    const searchParams = new URL(window.location.href).searchParams;
-    return searchParams.get(name);
+    const url = new URL(window.location.href);
+    let value = url.searchParams.get(name);
+    if (value === null && url.hash.includes('?')) {
+      const hashParams = new URLSearchParams(url.hash.split('?')[1]);
+      value = hashParams.get(name);
+    }
+    return value;
   } catch (e) {
     return null;
   }
