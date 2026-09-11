@@ -74,8 +74,8 @@ function matchDomain(expected: string): boolean {
     return hostname === expected;
   }
 
-  // Dots in pattern should be escaped.
-  const escapedDomainPattern = expected.replace(/\./g, '\\.');
+  // Metacharacters in pattern should be escaped.
+  const escapedDomainPattern = expected.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   // Non ip address domains.
   // domain.com = *.domain.com OR domain.com
   const re = new RegExp(

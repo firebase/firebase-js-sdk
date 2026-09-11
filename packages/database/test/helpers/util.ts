@@ -65,7 +65,7 @@ export const DATABASE_URL = USE_EMULATOR
   : TEST_PROJECT.databaseURL;
 
 export function testRepoInfo(url) {
-  const regex = /https?:\/\/(.*).firebaseio.com/;
+  const regex = /https?:\/\/(.*?)\.firebaseio\.com/;
   const match = url.match(regex);
   if (!match) {
     throw new Error('Couldnt get Namespace from passed URL');

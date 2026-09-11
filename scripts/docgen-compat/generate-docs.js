@@ -87,9 +87,14 @@ function moveFilesToRoot(subdir) {
  */
 function fixLinks(file) {
   return fs.readFile(file, 'utf8').then(data => {
-    const flattenedLinks = data
-      .replace(/\.\.\//g, '')
-      .replace(/(modules|interfaces|classes|enums)\//g, '');
+    let flattenedLinks = data;
+    while (flattenedLinks.includes('../')) {
+      flattenedLinks = flattenedLinks.replace(/\.\.\//g, '');
+    }
+    flattenedLinks = flattenedLinks.replace(
+      /(modules|interfaces|classes|enums)\//g,
+      ''
+    );
     let caseFixedLinks = flattenedLinks;
     for (const lower in lowerToUpperLookup) {
       const re = new RegExp(lower, 'g');

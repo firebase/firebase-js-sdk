@@ -119,7 +119,7 @@ const cjsBuilds = [
     input: 'src/index.standalone.ts',
     output: [
       {
-        file: standalonePkg.main.replace('../', ''),
+        file: standalonePkg.main.replace(/\.\.\//g, ''),
         format: 'cjs',
         esModule: true,
         sourcemap: true

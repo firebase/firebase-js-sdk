@@ -89,7 +89,7 @@ export class Location {
       loc.path_ = decodeURIComponent(loc.path);
     }
     const version = 'v[A-Za-z0-9_]+';
-    const firebaseStorageHost = host.replace(/[.]/g, '\\.');
+    const firebaseStorageHost = host.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const firebaseStoragePath = '(/([^?#]*).*)?$';
     const firebaseStorageRegExp = new RegExp(
       `^https?://${firebaseStorageHost}/${version}/b/${bucketDomain}/o${firebaseStoragePath}`,
@@ -99,8 +99,8 @@ export class Location {
 
     const cloudStorageHost =
       host === DEFAULT_HOST
-        ? '(?:storage.googleapis.com|storage.cloud.google.com)'
-        : host;
+        ? '(?:storage\\.googleapis\\.com|storage\\.cloud\\.google\\.com)'
+        : host.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const cloudStoragePath = '([^?#]*)';
     const cloudStorageRegExp = new RegExp(
       `^https?://${cloudStorageHost}/${bucketDomain}/${cloudStoragePath}`,
