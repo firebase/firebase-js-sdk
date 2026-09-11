@@ -18,6 +18,7 @@
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import { FirebaseApp } from '@firebase/app';
+import * as sdkLogs from '@opentelemetry/sdk-logs';
 import {
   LoggerProvider,
   BatchLogRecordProcessor
@@ -52,43 +53,36 @@ describe('createLoggerProvider', () => {
       }
     )._sharedState;
     expect(sharedState.registeredLogRecordProcessors).to.have.lengthOf(2);
-    expect(
-      sharedState.registeredLogRecordProcessors[0]
-    ).to.be.an.instanceOf(FirebaseAttributesProcessor);
-    expect(
-      sharedState.registeredLogRecordProcessors[1]
-    ).to.be.an.instanceOf(BatchLogRecordProcessor);
+    expect(sharedState.registeredLogRecordProcessors[0]).to.be.an.instanceOf(
+      FirebaseAttributesProcessor
+    );
+    expect(sharedState.registeredLogRecordProcessors[1]).to.be.an.instanceOf(
+      BatchLogRecordProcessor
+    );
   });
 
   describe('BatchLogRecordProcessor auto-flush on document hide', () => {
-    it('does not register document event listeners when disableAutoFlushOnDocumentHide is true', () => {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const { BatchLogRecordProcessor: BrowserBatchLogRecordProcessor } = require('@opentelemetry/sdk-logs/build/src/platform/browser/export/BatchLogRecordProcessor');
-
-      const addEventListenerSpy = sinon.spy();
-      const originalDocument = (global as unknown as { document?: unknown })
-        .document;
-      (global as unknown as { document: unknown }).document = {
-        addEventListener: addEventListenerSpy,
-        removeEventListener: sinon.spy()
-      };
-
+    it('should pass disableAutoFlushOnDocumentHide: true to BatchLogRecordProcessor', () => {
+      const origDesc = Object.getOwnPropertyDescriptor(
+        sdkLogs,
+        'BatchLogRecordProcessor'
+      );
+      Object.defineProperty(sdkLogs, 'BatchLogRecordProcessor', {
+        value: origDesc?.get ? origDesc.get() : sdkLogs.BatchLogRecordProcessor,
+        configurable: true,
+        writable: true
+      });
+      const batchProcessorSpy = sinon.spy(sdkLogs, 'BatchLogRecordProcessor');
       try {
-        new BrowserBatchLogRecordProcessor({
-          exporter: { export: sinon.spy(), shutdown: sinon.stub().resolves() },
-          disableAutoFlushOnDocumentHide: true
-        });
-        expect(addEventListenerSpy.called).to.be.false;
-
-        new BrowserBatchLogRecordProcessor({
-          exporter: { export: sinon.spy(), shutdown: sinon.stub().resolves() },
-          disableAutoFlushOnDocumentHide: false
-        });
-        expect(addEventListenerSpy.calledWith('visibilitychange')).to.be.true;
-        expect(addEventListenerSpy.calledWith('pagehide')).to.be.true;
+        createLoggerProvider(app, {}, attributesStore, []);
+        expect(batchProcessorSpy.calledOnce).to.be.true;
+        const args = batchProcessorSpy.firstCall.args[0];
+        expect(args).to.have.property('disableAutoFlushOnDocumentHide', true);
       } finally {
-        (global as unknown as { document: unknown }).document =
-          originalDocument;
+        batchProcessorSpy.restore();
+        if (origDesc) {
+          Object.defineProperty(sdkLogs, 'BatchLogRecordProcessor', origDesc);
+        }
       }
     });
   });
