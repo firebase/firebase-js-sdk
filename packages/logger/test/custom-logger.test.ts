@@ -34,10 +34,10 @@ describe(`Custom log handler`, () => {
     beforeEach(() => {
       result = null;
       spies = {
-        logSpy: vi.spyOn(console, 'log'),
-        infoSpy: vi.spyOn(console, 'info'),
-        warnSpy: vi.spyOn(console, 'warn'),
-        errorSpy: vi.spyOn(console, 'error')
+        logSpy: vi.spyOn(console, 'log').mockImplementation(() => {}),
+        infoSpy: vi.spyOn(console, 'info').mockImplementation(() => {}),
+        warnSpy: vi.spyOn(console, 'warn').mockImplementation(() => {}),
+        errorSpy: vi.spyOn(console, 'error').mockImplementation(() => {})
       };
     });
 
@@ -116,10 +116,10 @@ describe(`Custom log handler`, () => {
     beforeEach(() => {
       result = null;
       spies = {
-        logSpy: vi.spyOn(console, 'log'),
-        infoSpy: vi.spyOn(console, 'info'),
-        warnSpy: vi.spyOn(console, 'warn'),
-        errorSpy: vi.spyOn(console, 'error')
+        logSpy: vi.spyOn(console, 'log').mockImplementation(() => {}),
+        infoSpy: vi.spyOn(console, 'info').mockImplementation(() => {}),
+        warnSpy: vi.spyOn(console, 'warn').mockImplementation(() => {}),
+        errorSpy: vi.spyOn(console, 'error').mockImplementation(() => {})
       };
     });
 
@@ -172,10 +172,10 @@ describe(`Custom log handler`, () => {
     beforeEach(() => {
       result = null;
       spies = {
-        logSpy: vi.spyOn(console, 'log'),
-        infoSpy: vi.spyOn(console, 'info'),
-        warnSpy: vi.spyOn(console, 'warn'),
-        errorSpy: vi.spyOn(console, 'error')
+        logSpy: vi.spyOn(console, 'log').mockImplementation(() => {}),
+        infoSpy: vi.spyOn(console, 'info').mockImplementation(() => {}),
+        warnSpy: vi.spyOn(console, 'warn').mockImplementation(() => {}),
+        errorSpy: vi.spyOn(console, 'error').mockImplementation(() => {})
       };
     });
 

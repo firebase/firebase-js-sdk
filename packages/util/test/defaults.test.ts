@@ -77,7 +77,7 @@ describe('getDefaultEmulatorHost', () => {
         },
         configurable: true
       });
-      consoleInfoStub = vi.spyOn(console, 'info');
+      consoleInfoStub = vi.spyOn(console, 'info').mockImplementation(() => {});
     });
     afterAll(() => {
       delete getGlobal().__FIREBASE_DEFAULTS__;
