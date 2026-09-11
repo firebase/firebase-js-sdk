@@ -82,7 +82,7 @@ describe('Remote Config API', () => {
   let fetchStub: MockInstance;
 
   beforeEach(() => {
-    fetchStub = vi.spyOn(window, 'fetch');
+    fetchStub = vi.spyOn(window, 'fetch').mockResolvedValue(new Response());
     app = initializeApp(fakeFirebaseConfig);
     _addOrOverwriteComponent(
       app,
@@ -96,6 +96,18 @@ describe('Remote Config API', () => {
         },
         ComponentType.PUBLIC
       ) as any
+    );
+    _addOrOverwriteComponent(
+      app,
+      new Component(
+        'heartbeat',
+        () =>
+          ({
+            triggerHeartbeat: () => {},
+            getHeartbeatsHeader: () => Promise.resolve('')
+          }) as any,
+        ComponentType.PUBLIC
+      )
     );
   });
 

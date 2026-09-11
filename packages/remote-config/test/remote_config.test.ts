@@ -111,7 +111,7 @@ describe('RemoteConfig', () => {
     logger = new Logger('package-name');
     getActiveConfigStub = vi.fn().mockReturnValue(undefined);
     storageCache.getActiveConfig = getActiveConfigStub;
-    loggerDebugSpy = vi.spyOn(logger, 'debug');
+    loggerDebugSpy = vi.spyOn(logger, 'debug').mockImplementation(() => {});
     loggerLogLevelSpy = vi.spyOn(logger, 'logLevel', 'set');
     rc = new RemoteConfig(
       app,
