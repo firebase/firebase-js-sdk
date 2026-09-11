@@ -99,7 +99,9 @@ describe('HeartbeatServiceImpl', () => {
     });
     beforeEach(() => {
       vi.useFakeTimers({ now: 0 });
-      writeStub = vi.spyOn(heartbeatService._storage, 'overwrite');
+      writeStub = vi
+        .spyOn(heartbeatService._storage, 'overwrite')
+        .mockResolvedValue(undefined);
     });
     /**
      * NOTE: The clock is being reset between each test because of the global
@@ -224,7 +226,9 @@ describe('HeartbeatServiceImpl', () => {
     });
     beforeEach(() => {
       vi.useFakeTimers({ now: 0 });
-      writeStub = vi.spyOn(heartbeatService._storage, 'overwrite');
+      writeStub = vi
+        .spyOn(heartbeatService._storage, 'overwrite')
+        .mockResolvedValue(undefined);
     });
     /**
      * NOTE: The clock is being reset between each test because of the global
@@ -370,7 +374,9 @@ describe('HeartbeatServiceImpl', () => {
     });
     beforeEach(() => {
       vi.useFakeTimers({ now: 0 });
-      writeStub = vi.spyOn(heartbeatService._storage, 'overwrite');
+      writeStub = vi
+        .spyOn(heartbeatService._storage, 'overwrite')
+        .mockResolvedValue(undefined);
     });
     it(`new heartbeat service reads from indexedDB cache`, async () => {
       const promiseResult = await heartbeatService._heartbeatsCachePromise;

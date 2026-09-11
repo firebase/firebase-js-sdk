@@ -546,9 +546,9 @@ describe('API tests', () => {
       });
 
       it(`respects log level set through setLogLevel()`, () => {
-        const warnSpy = vi.spyOn(console, 'warn');
-        const infoSpy = vi.spyOn(console, 'info');
-        const logSpy = vi.spyOn(console, 'log');
+        const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+        const infoSpy = vi.spyOn(console, 'info').mockImplementation(() => {});
+        const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
         const app = initializeApp({});
         _registerComponent(
           new Component(
@@ -579,7 +579,7 @@ describe('API tests', () => {
       });
 
       it(`correctly triggers callback given to onLog()`, () => {
-        const infoSpy = vi.spyOn(console, 'info');
+        const infoSpy = vi.spyOn(console, 'info').mockImplementation(() => {});
         let result: any = null;
         // Note: default log level is INFO.
         const app = initializeApp({});

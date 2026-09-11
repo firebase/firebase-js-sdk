@@ -62,7 +62,7 @@ describe('Internal API tests', () => {
     it('does NOT throw registering duplicate components', () => {
       const app = initializeApp({}) as FirebaseAppImpl;
       const testComp = createTestComponent('test');
-      const debugStub = vi.spyOn(logger, 'debug');
+      const debugStub = vi.spyOn(logger, 'debug').mockImplementation(() => {});
 
       _addComponent(app, testComp);
 
