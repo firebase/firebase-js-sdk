@@ -15,9 +15,7 @@
  * limitations under the License.
  */
 
-import { expect, use } from 'chai';
-import * as sinon from 'sinon';
-import sinonChai from 'sinon-chai';
+import { expect, use, vi, MockInstance } from 'vitest';
 import { RealtimeHandler } from '../../src/client/realtime_handler';
 import { _FirebaseInstallationsInternal } from '@firebase/installations';
 import { Logger } from '@firebase/logger';
@@ -27,9 +25,6 @@ import { CachingClient } from '../../src/client/caching_client';
 import { ConfigUpdateObserver, FetchResponse } from '../../src/public_types';
 import { ErrorCode } from '../../src/errors';
 import { VisibilityMonitor } from '../../src/client/visibility_monitor';
-
-use(sinonChai);
-
 const FAKE_APP_ID = '1:123456789:web:abcdef';
 const INSTALLATION_ID_STRING = 'installation-id-123';
 const INSTALLATION_AUTH_TOKEN_STRING = 'installation-auth-token-456';
@@ -67,66 +62,76 @@ function createStreamingMockReader(
   const stream = createMockReadableStream(chunks);
   const reader = stream.getReader();
   const originalRead = reader.read;
-  sinon.stub(reader, 'read').callsFake(originalRead.bind(reader));
+  vi.spyOn(reader, 'read').mockImplementation(originalRead.bind(reader));
   return reader;
 }
 
 describe('RealtimeHandler', () => {
-  let mockFetch: sinon.SinonStub;
-  let mockInstallations: sinon.SinonStubbedInstance<_FirebaseInstallationsInternal>;
-  let mockStorage: sinon.SinonStubbedInstance<Storage>;
-  let mockStorageCache: sinon.SinonStubbedInstance<StorageCache>;
-  let mockCachingClient: sinon.SinonStubbedInstance<CachingClient>;
-  let mockLogger: sinon.SinonStubbedInstance<Logger>;
+  let mockFetch: MockInstance;
+  let mockInstallations: any;
+  let mockStorage: any;
+  let mockStorageCache: any;
+  let mockCachingClient: any;
+  let mockLogger: any;
   let realtime: RealtimeHandler;
-  let clock: sinon.SinonFakeTimers;
-  let visibilityMonitorOnStub: sinon.SinonStub;
+  let clock: any;
+  let visibilityMonitorOnStub: MockInstance;
 
   beforeEach(async () => {
-    mockFetch = sinon.stub(window, 'fetch');
+    mockFetch = vi.spyOn(window, 'fetch').mockResolvedValue(new Response());
     mockInstallations = {
-      getId: sinon.stub().resolves(INSTALLATION_ID_STRING),
-      getToken: sinon.stub().resolves(INSTALLATION_AUTH_TOKEN_STRING)
+      getId: vi.fn().mockResolvedValue(INSTALLATION_ID_STRING),
+      getToken: vi.fn().mockResolvedValue(INSTALLATION_AUTH_TOKEN_STRING)
     } as any;
 
-    mockLogger = sinon.createStubInstance(Logger);
+    mockLogger = {
+      debug: vi.fn(),
+      info: vi.fn(),
+      warn: vi.fn(),
+      error: vi.fn()
+    } as any;
 
     mockStorage = {
-      getRealtimeBackoffMetadata: sinon.stub().resolves(undefined),
-      setRealtimeBackoffMetadata: sinon.stub().resolves(),
-      getActiveConfigEtag: sinon.stub().resolves('etag-1'),
-      getActiveConfigTemplateVersion: sinon.stub().resolves(1),
-      getActiveConfig: sinon.stub().resolves({}),
+      getRealtimeBackoffMetadata: vi.fn().mockResolvedValue(undefined),
+      setRealtimeBackoffMetadata: vi.fn().mockResolvedValue(),
+      getActiveConfigEtag: vi.fn().mockResolvedValue('etag-1'),
+      getActiveConfigTemplateVersion: vi.fn().mockResolvedValue(1),
+      getActiveConfig: vi.fn().mockResolvedValue({}),
 
-      getLastFetchStatus: sinon.stub(),
-      setLastFetchStatus: sinon.stub(),
-      getLastSuccessfulFetchTimestampMillis: sinon.stub(),
-      setLastSuccessfulFetchTimestampMillis: sinon.stub(),
-      getLastSuccessfulFetchResponse: sinon.stub(),
-      setLastSuccessfulFetchResponse: sinon.stub(),
-      setActiveConfig: sinon.stub(),
-      setActiveConfigEtag: sinon.stub(),
-      getThrottleMetadata: sinon.stub(),
-      setThrottleMetadata: sinon.stub(),
-      deleteThrottleMetadata: sinon.stub(),
-      getCustomSignals: sinon.stub(),
-      setCustomSignals: sinon.stub(),
-      setActiveConfigTemplateVersion: sinon.stub()
-    } as sinon.SinonStubbedInstance<Storage>;
+      getLastFetchStatus: vi.fn(),
+      setLastFetchStatus: vi.fn(),
+      getLastSuccessfulFetchTimestampMillis: vi.fn(),
+      setLastSuccessfulFetchTimestampMillis: vi.fn(),
+      getLastSuccessfulFetchResponse: vi.fn(),
+      setLastSuccessfulFetchResponse: vi.fn(),
+      setActiveConfig: vi.fn(),
+      setActiveConfigEtag: vi.fn(),
+      getThrottleMetadata: vi.fn(),
+      setThrottleMetadata: vi.fn(),
+      deleteThrottleMetadata: vi.fn(),
+      getCustomSignals: vi.fn(),
+      setCustomSignals: vi.fn(),
+      setActiveConfigTemplateVersion: vi.fn()
+    } as any;
 
-    mockStorageCache = sinon.createStubInstance(StorageCache);
-    mockStorageCache.getLastFetchStatus.returns('success');
-    mockStorageCache.getCustomSignals.returns(undefined);
+    mockStorageCache = {
+      getLastFetchStatus: vi.fn().mockReturnValue('success'),
+      getCustomSignals: vi.fn().mockReturnValue(undefined)
+    } as any;
+    mockStorageCache.getLastFetchStatus.mockReturnValue('success');
+    mockStorageCache.getCustomSignals.mockReturnValue(undefined);
 
-    mockCachingClient = sinon.createStubInstance(CachingClient);
-    mockCachingClient.fetch.resolves(DUMMY_FETCH_RESPONSE);
+    mockCachingClient = {
+      fetch: vi.fn().mockResolvedValue(DUMMY_FETCH_RESPONSE)
+    } as any;
+    mockCachingClient.fetch.mockResolvedValue(DUMMY_FETCH_RESPONSE);
 
-    visibilityMonitorOnStub = sinon.stub();
-    sinon.stub(VisibilityMonitor, 'getInstance').returns({
+    visibilityMonitorOnStub = vi.fn();
+    vi.spyOn(VisibilityMonitor, 'getInstance').mockReturnValue({
       on: visibilityMonitorOnStub
     } as any);
 
-    clock = sinon.useFakeTimers(FAKE_NOW);
+    vi.useFakeTimers({ now: FAKE_NOW });
 
     realtime = new RealtimeHandler(
       mockInstallations,
@@ -143,18 +148,18 @@ describe('RealtimeHandler', () => {
   });
 
   afterEach(() => {
-    sinon.restore();
-    clock.restore();
+    vi.restoreAllMocks();
+    vi.useRealTimers();
   });
 
   describe('constructor', () => {
     it('should initialize with default retries if no backoff metadata in storage', async () => {
-      await clock.runAllAsync();
-      expect((realtime as any).httpRetriesRemaining).to.equal(ORIGINAL_RETRIES);
+      await vi.runAllTimersAsync();
+      expect((realtime as any).httpRetriesRemaining).toBe(ORIGINAL_RETRIES);
     });
 
     it('should set retries remaining from storage if available', async () => {
-      mockStorage.getRealtimeBackoffMetadata.resolves({
+      mockStorage.getRealtimeBackoffMetadata.mockResolvedValue({
         backoffEndTimeMillis: new Date(FAKE_NOW - 1000), // In the past, so no backoff
         numFailedStreams: 3
       });
@@ -171,17 +176,15 @@ describe('RealtimeHandler', () => {
         mockStorageCache as any,
         mockCachingClient as any
       );
-      await clock.runAllAsync();
-      expect((realtime as any).httpRetriesRemaining).to.equal(
-        ORIGINAL_RETRIES - 3
-      );
+      await vi.runAllTimersAsync();
+      expect((realtime as any).httpRetriesRemaining).toBe(ORIGINAL_RETRIES - 3);
     });
   });
 
   describe('getRealtimeUrl', () => {
     it('should construct the correct URL', () => {
       const url = (realtime as any).getRealtimeUrl();
-      expect(url.toString()).to.equal(
+      expect(url.toString()).toBe(
         `https://firebaseremoteconfigrealtime.googleapis.com/v1/projects/${PROJECT_NUMBER}/namespaces/namespace:streamFetchInvalidations?key=${API_KEY}`
       );
     });
@@ -190,7 +193,7 @@ describe('RealtimeHandler', () => {
       (window as any).FIREBASE_REMOTE_CONFIG_URL_BASE =
         'https://test.googleapis.com';
       const url = (realtime as any).getRealtimeUrl();
-      expect(url.toString()).to.equal(
+      expect(url.toString()).toBe(
         `https://test.googleapis.com/v1/projects/${PROJECT_NUMBER}/namespaces/namespace:streamFetchInvalidations?key=${API_KEY}`
       );
       delete (window as any).FIREBASE_REMOTE_CONFIG_URL_BASE;
@@ -201,19 +204,19 @@ describe('RealtimeHandler', () => {
     it('should return true for retryable status codes', () => {
       const retryableCodes = [408, 429, 502, 503, 504];
       retryableCodes.forEach(code => {
-        expect((realtime as any).isStatusCodeRetryable(code)).to.be.true;
+        expect((realtime as any).isStatusCodeRetryable(code)).toBe(true);
       });
     });
 
     it('should return true for undefined status code', () => {
-      expect((realtime as any).isStatusCodeRetryable(undefined)).to.be.true;
+      expect((realtime as any).isStatusCodeRetryable(undefined)).toBe(true);
     });
 
     it('should return false for non-retryable status codes', () => {
       // This is a sample of non-retryable codes for testing purposes.
       const nonRetryableCodes = [200, 304, 400, 401, 403];
       nonRetryableCodes.forEach(code => {
-        expect((realtime as any).isStatusCodeRetryable(code)).to.be.false;
+        expect((realtime as any).isStatusCodeRetryable(code)).toBe(false);
       });
     });
   });
@@ -227,10 +230,10 @@ describe('RealtimeHandler', () => {
         realtime as any
       ).updateBackoffMetadataWithLastFailedStreamConnectionTime(lastFailedTime);
 
-      expect(spy).to.have.been.calledOnce;
-      const metadata = spy.getCall(0).args[0];
-      expect(metadata.numFailedStreams).to.equal(1);
-      expect(metadata.backoffEndTimeMillis.getTime()).to.be.greaterThan(
+      expect(spy).toHaveBeenCalledTimes(1);
+      const metadata = spy.mock.calls[0][0];
+      expect(metadata.numFailedStreams).toBe(1);
+      expect(metadata.backoffEndTimeMillis.getTime()).toBeGreaterThan(
         lastFailedTime.getTime()
       );
     });
@@ -239,7 +242,7 @@ describe('RealtimeHandler', () => {
   describe('updateBackoffMetadataWithRetryInterval', () => {
     it('should set backoffEndTimeMillis based on provided retryIntervalSeconds and then retry connection', async () => {
       const setMetadataSpy = mockStorage.setRealtimeBackoffMetadata;
-      const retryHttpConnectionSpy = sinon.spy(
+      const retryHttpConnectionSpy = vi.spyOn(
         realtime as any,
         'retryHttpConnectionWhenBackoffEnds'
       );
@@ -249,59 +252,62 @@ describe('RealtimeHandler', () => {
         retryInterval
       );
 
-      expect(setMetadataSpy).to.have.been.calledOnce;
-      const metadata = setMetadataSpy.getCall(0).args[0];
-      expect(metadata.backoffEndTimeMillis.getTime()).to.be.closeTo(
+      expect(setMetadataSpy).toHaveBeenCalledTimes(1);
+      const metadata = setMetadataSpy.mock.calls[0][0];
+      expect(metadata.backoffEndTimeMillis.getTime()).toBeCloseTo(
         FAKE_NOW + retryInterval * 1000,
         100
       );
-      expect(retryHttpConnectionSpy).to.have.been.calledOnce;
+      expect(retryHttpConnectionSpy).toHaveBeenCalledTimes(1);
     });
   });
 
   describe('closeRealtimeHttpConnection', () => {
-    let mockController: sinon.SinonStubbedInstance<AbortController>;
-    let mockReader: sinon.SinonStubbedInstance<
-      ReadableStreamDefaultReader<Uint8Array>
-    >;
+    let mockController: any;
+    let mockReader: any;
 
     beforeEach(() => {
-      mockController = sinon.createStubInstance(AbortController);
-      mockReader = sinon.createStubInstance(ReadableStreamDefaultReader);
+      mockController = {
+        abort: vi.fn()
+      } as any;
+      mockReader = {
+        cancel: vi.fn().mockResolvedValue(undefined),
+        read: vi.fn()
+      } as any;
       (realtime as any).controller = mockController;
       (realtime as any).reader = mockReader;
     });
 
     it('should abort controller and cancel reader', async () => {
       await (realtime as any).closeRealtimeHttpConnection();
-      expect(mockController.abort).to.have.been.calledOnce;
-      expect(mockReader.cancel).to.have.been.calledOnce;
-      expect((realtime as any).controller).to.be.undefined;
-      expect((realtime as any).reader).to.be.undefined;
+      expect(mockController.abort).toHaveBeenCalledTimes(1);
+      expect(mockReader.cancel).toHaveBeenCalledTimes(1);
+      expect((realtime as any).controller).toBeUndefined();
+      expect((realtime as any).reader).toBeUndefined();
     });
 
     it('should handle reader cancellation failure gracefully', async () => {
-      mockReader.cancel.rejects(new Error('test error'));
+      mockReader.cancel.mockRejectedValue(new Error('test error'));
       await (realtime as any).closeRealtimeHttpConnection();
-      expect(mockLogger.debug).to.have.been.calledWith(
+      expect(mockLogger.debug).toHaveBeenCalledWith(
         'Failed to cancel the reader, connection was lost.'
       );
       // Should still clear reader
-      expect((realtime as any).reader).to.be.undefined;
+      expect((realtime as any).reader).toBeUndefined();
     });
 
     it('should handle being called when reader is already undefined', async () => {
       (realtime as any).reader = undefined;
       await (realtime as any).closeRealtimeHttpConnection();
-      expect(mockController.abort).to.have.been.calledOnce;
-      expect((realtime as any).controller).to.be.undefined;
+      expect(mockController.abort).toHaveBeenCalledTimes(1);
+      expect((realtime as any).controller).toBeUndefined();
     });
 
     it('should handle being called when controller is already undefined', async () => {
       (realtime as any).controller = undefined;
       await (realtime as any).closeRealtimeHttpConnection();
-      expect(mockReader.cancel).to.have.been.calledOnce;
-      expect((realtime as any).reader).to.be.undefined;
+      expect(mockReader.cancel).toHaveBeenCalledTimes(1);
+      expect((realtime as any).reader).toBeUndefined();
     });
   });
 
@@ -309,17 +315,17 @@ describe('RealtimeHandler', () => {
     it('should reset backoff metadata in storage', async () => {
       const spy = mockStorage.setRealtimeBackoffMetadata;
       await (realtime as any).resetRealtimeBackoff();
-      expect(spy).to.have.been.calledOnce;
-      const metadata = spy.getCall(0).args[0];
-      expect(metadata.numFailedStreams).to.equal(0);
-      expect(metadata.backoffEndTimeMillis.getTime()).to.equal(-1);
+      expect(spy).toHaveBeenCalledTimes(1);
+      const metadata = spy.mock.calls[0][0];
+      expect(metadata.numFailedStreams).toBe(0);
+      expect(metadata.backoffEndTimeMillis.getTime()).toBe(-1);
     });
   });
 
   describe('establishRealtimeConnection', () => {
     it('should send correct headers and body for realtime connection', async () => {
-      mockStorage.getActiveConfigEtag.resolves('current-etag');
-      mockStorage.getActiveConfigTemplateVersion.resolves(10);
+      mockStorage.getActiveConfigEtag.mockResolvedValue('current-etag');
+      mockStorage.getActiveConfigTemplateVersion.mockResolvedValue(10);
 
       const url = new URL('https://example.com/stream');
       const signal = new AbortController().signal;
@@ -331,20 +337,22 @@ describe('RealtimeHandler', () => {
         signal
       );
 
-      expect(mockFetch).to.have.been.calledOnce;
-      const [fetchUrl, fetchOptions] = mockFetch.getCall(0).args;
-      expect(fetchUrl).to.equal(url);
-      expect(fetchOptions.method).to.equal('POST');
-      expect(fetchOptions.headers).to.deep.include({
-        'X-Goog-Api-Key': API_KEY,
-        'X-Goog-Firebase-Installations-Auth': INSTALLATION_AUTH_TOKEN_STRING,
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-        'If-None-Match': 'current-etag',
-        'Content-Encoding': 'gzip'
-      });
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      const [fetchUrl, fetchOptions] = mockFetch.mock.calls[0];
+      expect(fetchUrl).toBe(url);
+      expect(fetchOptions.method).toBe('POST');
+      expect(fetchOptions.headers).toEqual(
+        expect.objectContaining({
+          'X-Goog-Api-Key': API_KEY,
+          'X-Goog-Firebase-Installations-Auth': INSTALLATION_AUTH_TOKEN_STRING,
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+          'If-None-Match': 'current-etag',
+          'Content-Encoding': 'gzip'
+        })
+      );
       const body = JSON.parse(fetchOptions.body as string);
-      expect(body).to.deep.equal({
+      expect(body).toEqual({
         project: PROJECT_NUMBER,
         namespace: 'namespace',
         lastKnownVersionNumber: 10,
@@ -356,31 +364,31 @@ describe('RealtimeHandler', () => {
   });
 
   describe('retryHttpConnectionWhenBackoffEnds', () => {
-    let makeRealtimeHttpConnectionSpy: sinon.SinonSpy;
+    let makeRealtimeHttpConnectionSpy: MockInstance;
 
     beforeEach(() => {
-      makeRealtimeHttpConnectionSpy = sinon.spy(
+      makeRealtimeHttpConnectionSpy = vi.spyOn(
         realtime as any,
         'makeRealtimeHttpConnection'
       );
     });
 
     it('should call makeRealtimeHttpConnection with 0 delay if no backoff metadata', async () => {
-      mockStorage.getRealtimeBackoffMetadata.resolves(undefined);
+      mockStorage.getRealtimeBackoffMetadata.mockResolvedValue(undefined);
       await (realtime as any).retryHttpConnectionWhenBackoffEnds();
-      expect(makeRealtimeHttpConnectionSpy).to.have.been.calledWith(0);
+      expect(makeRealtimeHttpConnectionSpy).toHaveBeenCalledWith(0);
     });
 
     it('should call makeRealtimeHttpConnection with calculated delay if backoff metadata exists', async () => {
-      mockStorage.getRealtimeBackoffMetadata.resolves({
+      mockStorage.getRealtimeBackoffMetadata.mockResolvedValue({
         // 5 seconds in the future
         backoffEndTimeMillis: new Date(FAKE_NOW + 5000),
         numFailedStreams: 1
       });
       await (realtime as any).retryHttpConnectionWhenBackoffEnds();
-      expect(makeRealtimeHttpConnectionSpy).to.have.been.calledOnce;
-      const delay = makeRealtimeHttpConnectionSpy.getCall(0).args[0];
-      expect(delay).to.be.closeTo(5000, 100);
+      expect(makeRealtimeHttpConnectionSpy).toHaveBeenCalledTimes(1);
+      const delay = makeRealtimeHttpConnectionSpy.mock.calls[0][0];
+      expect(delay).toBeCloseTo(5000, 100);
     });
   });
 
@@ -396,7 +404,7 @@ describe('RealtimeHandler', () => {
         fetchResponse,
         5
       );
-      expect(result).to.be.true;
+      expect(result).toBe(true);
     });
 
     it('should return false if templateVersion is smaller', () => {
@@ -410,7 +418,7 @@ describe('RealtimeHandler', () => {
         fetchResponse,
         5
       );
-      expect(result).to.be.false;
+      expect(result).toBe(false);
     });
 
     it('should return true if no config and lastFetchStatus is success', () => {
@@ -420,12 +428,12 @@ describe('RealtimeHandler', () => {
         status: 304,
         eTag: 'e'
       };
-      mockStorageCache.getLastFetchStatus.returns('success');
+      mockStorageCache.getLastFetchStatus.mockReturnValue('success');
       const result = (realtime as any).fetchResponseIsUpToDate(
         fetchResponse,
         5
       );
-      expect(result).to.be.true;
+      expect(result).toBe(true);
     });
 
     it('should return false if no config and lastFetchStatus is not success', () => {
@@ -435,36 +443,36 @@ describe('RealtimeHandler', () => {
         status: 304,
         eTag: 'e'
       };
-      mockStorageCache.getLastFetchStatus.returns('throttle'); // Or any other non-'success' status
+      mockStorageCache.getLastFetchStatus.mockReturnValue('throttle'); // Or any other non-'success' status
       const result = (realtime as any).fetchResponseIsUpToDate(
         fetchResponse,
         5
       );
-      expect(result).to.be.false;
+      expect(result).toBe(false);
     });
   });
 
   describe('fetchLatestConfig', () => {
-    let autoFetchSpy: sinon.SinonSpy;
-    let executeAllListenerCallbacksSpy: sinon.SinonSpy;
+    let autoFetchSpy: MockInstance;
+    let executeAllListenerCallbacksSpy: MockInstance;
 
     beforeEach(() => {
-      autoFetchSpy = sinon.spy(realtime as any, 'autoFetch');
-      executeAllListenerCallbacksSpy = sinon.spy(
+      autoFetchSpy = vi.spyOn(realtime as any, 'autoFetch');
+      executeAllListenerCallbacksSpy = vi.spyOn(
         realtime as any,
         'executeAllListenerCallbacks'
       );
-      mockStorage.getActiveConfig.resolves({ existingKey: 'value' });
-      mockStorage.getActiveConfigTemplateVersion.resolves(1);
+      mockStorage.getActiveConfig.mockResolvedValue({ existingKey: 'value' });
+      mockStorage.getActiveConfigTemplateVersion.mockResolvedValue(1);
     });
 
     afterEach(() => {
-      autoFetchSpy.restore();
-      executeAllListenerCallbacksSpy.restore();
+      autoFetchSpy.mockRestore();
+      executeAllListenerCallbacksSpy.mockRestore();
     });
 
     it('should fetch, identify changed keys, and notify observers', async () => {
-      mockCachingClient.fetch.resolves({
+      mockCachingClient.fetch.mockResolvedValue({
         config: { existingKey: 'new_value', newKey: 'value' },
         templateVersion: 2,
         status: 200,
@@ -473,37 +481,36 @@ describe('RealtimeHandler', () => {
 
       await (realtime as any).fetchLatestConfig(MAXIMUM_FETCH_ATTEMPTS, 2);
 
-      expect(mockCachingClient.fetch).to.have.been.calledOnce;
-      expect(executeAllListenerCallbacksSpy).to.have.been.calledOnce;
-      const configUpdate = executeAllListenerCallbacksSpy.getCall(0).args[0];
-      expect(configUpdate.getUpdatedKeys()).to.deep.equal(
+      expect(mockCachingClient.fetch).toHaveBeenCalledTimes(1);
+      expect(executeAllListenerCallbacksSpy).toHaveBeenCalledTimes(1);
+      const configUpdate = executeAllListenerCallbacksSpy.mock.calls[0][0];
+      expect(configUpdate.getUpdatedKeys()).toEqual(
         new Set(['existingKey', 'newKey'])
       );
     });
 
     it('should retry with autoFetch if fetched version is not up-to-date', async () => {
-      autoFetchSpy.restore();
-      const autoFetchStub = sinon.stub(realtime as any, 'autoFetch');
+      autoFetchSpy.mockRestore();
+      const autoFetchStub = vi
+        .spyOn(realtime as any, 'autoFetch')
+        .mockResolvedValue(undefined);
 
-      mockCachingClient.fetch.resolves({
+      mockCachingClient.fetch.mockResolvedValue({
         config: { k: 'v' },
         templateVersion: 1,
         status: 200,
         eTag: 'e'
       });
-      mockStorage.getActiveConfigTemplateVersion.resolves(0);
+      mockStorage.getActiveConfigTemplateVersion.mockResolvedValue(0);
 
       await (realtime as any).fetchLatestConfig(MAXIMUM_FETCH_ATTEMPTS, 2);
 
-      expect(mockCachingClient.fetch).to.have.been.calledOnce;
-      expect(autoFetchStub).to.have.been.calledOnceWith(
-        MAXIMUM_FETCH_ATTEMPTS - 1,
-        2
-      );
+      expect(mockCachingClient.fetch).toHaveBeenCalledTimes(1);
+      expect(autoFetchStub).toHaveBeenCalledWith(MAXIMUM_FETCH_ATTEMPTS - 1, 2);
     });
 
     it('should not notify if no keys have changed', async () => {
-      mockCachingClient.fetch.resolves({
+      mockCachingClient.fetch.mockResolvedValue({
         config: { existingKey: 'value' },
         templateVersion: 2,
         status: 200,
@@ -512,37 +519,37 @@ describe('RealtimeHandler', () => {
 
       await (realtime as any).fetchLatestConfig(MAXIMUM_FETCH_ATTEMPTS, 2);
 
-      expect(executeAllListenerCallbacksSpy).not.to.have.been.called;
+      expect(executeAllListenerCallbacksSpy).not.toHaveBeenCalled();
     });
 
     it('should propagate error on fetch failure', async () => {
       const testError = new Error('Network failed');
-      mockCachingClient.fetch.rejects(testError);
-      const propagateErrorSpy = sinon.spy(realtime as any, 'propagateError');
+      mockCachingClient.fetch.mockRejectedValue(testError);
+      const propagateErrorSpy = vi.spyOn(realtime as any, 'propagateError');
 
       await (realtime as any).fetchLatestConfig(MAXIMUM_FETCH_ATTEMPTS, 2);
 
-      expect(propagateErrorSpy).to.have.been.calledOnce;
-      const error = propagateErrorSpy.getCall(0).args[0];
-      expect(error.code).to.include(ErrorCode.CONFIG_UPDATE_NOT_FETCHED);
+      expect(propagateErrorSpy).toHaveBeenCalledTimes(1);
+      const error = propagateErrorSpy.mock.calls[0][0];
+      expect(error.code).toContain(ErrorCode.CONFIG_UPDATE_NOT_FETCHED);
     });
 
     it('should include custom signals in fetch request', async () => {
-      mockStorageCache.getCustomSignals.returns({ signal1: 'value1' });
+      mockStorageCache.getCustomSignals.mockReturnValue({ signal1: 'value1' });
 
       await (realtime as any).fetchLatestConfig(MAXIMUM_FETCH_ATTEMPTS, 2);
-      expect(mockLogger.debug).to.have.been.calledWith(
+      expect(mockLogger.debug).toHaveBeenCalledWith(
         `Fetching config with custom signals: {"signal1":"value1"}`
       );
     });
 
     it('should identify changed keys from updated experiment descriptions', async () => {
-      mockStorage.getActiveConfig.resolves({
+      mockStorage.getActiveConfig.mockResolvedValue({
         keyA: 'valueA',
         keyB: 'valueB',
         keyC: 'valueC'
       });
-      mockStorage.getLastSuccessfulFetchResponse.resolves({
+      mockStorage.getLastSuccessfulFetchResponse.mockResolvedValue({
         status: 200,
         config: { keyA: 'valueA', keyB: 'valueB', keyC: 'valueC' },
         experiments: [
@@ -557,7 +564,7 @@ describe('RealtimeHandler', () => {
         ]
       });
 
-      mockCachingClient.fetch.resolves({
+      mockCachingClient.fetch.mockResolvedValue({
         config: { keyA: 'valueA', keyB: 'valueB', keyC: 'valueC' },
         templateVersion: 2,
         status: 200,
@@ -576,15 +583,16 @@ describe('RealtimeHandler', () => {
 
       await (realtime as any).fetchLatestConfig(MAXIMUM_FETCH_ATTEMPTS, 2);
 
-      expect(executeAllListenerCallbacksSpy).to.have.been.calledOnce;
-      const configUpdate = executeAllListenerCallbacksSpy.getCall(0).args[0];
-      expect(configUpdate.getUpdatedKeys()).to.deep.equal(
-        new Set(['keyA', 'keyC'])
-      );
+      expect(executeAllListenerCallbacksSpy).toHaveBeenCalledTimes(1);
+      const configUpdate = executeAllListenerCallbacksSpy.mock.calls[0][0];
+      expect(configUpdate.getUpdatedKeys()).toEqual(new Set(['keyA', 'keyC']));
     });
 
     it('should ignore experiments if descriptions have not changed', async () => {
-      mockStorage.getActiveConfig.resolves({ keyA: 'valueA', keyB: 'valueB' });
+      mockStorage.getActiveConfig.mockResolvedValue({
+        keyA: 'valueA',
+        keyB: 'valueB'
+      });
       const experiments = [
         {
           experimentId: 'exp1',
@@ -595,13 +603,13 @@ describe('RealtimeHandler', () => {
           affectedParameterKeys: ['keyA', 'keyB']
         }
       ];
-      mockStorage.getLastSuccessfulFetchResponse.resolves({
+      mockStorage.getLastSuccessfulFetchResponse.mockResolvedValue({
         status: 200,
         config: { keyA: 'valueA', keyB: 'valueB' },
         experiments
       });
 
-      mockCachingClient.fetch.resolves({
+      mockCachingClient.fetch.mockResolvedValue({
         config: { keyA: 'valueA', keyB: 'valueB' },
         templateVersion: 2,
         status: 200,
@@ -611,12 +619,15 @@ describe('RealtimeHandler', () => {
 
       await (realtime as any).fetchLatestConfig(MAXIMUM_FETCH_ATTEMPTS, 2);
 
-      expect(executeAllListenerCallbacksSpy).not.to.have.been.called;
+      expect(executeAllListenerCallbacksSpy).not.toHaveBeenCalled();
     });
 
     it('should identify changed keys when an experiment variant ID is updated', async () => {
-      mockStorage.getActiveConfig.resolves({ keyA: 'valueA', keyB: 'valueB' });
-      mockStorage.getLastSuccessfulFetchResponse.resolves({
+      mockStorage.getActiveConfig.mockResolvedValue({
+        keyA: 'valueA',
+        keyB: 'valueB'
+      });
+      mockStorage.getLastSuccessfulFetchResponse.mockResolvedValue({
         status: 200,
         config: { keyA: 'valueA', keyB: 'valueB' },
         experiments: [
@@ -631,7 +642,7 @@ describe('RealtimeHandler', () => {
         ]
       });
 
-      mockCachingClient.fetch.resolves({
+      mockCachingClient.fetch.mockResolvedValue({
         config: { keyA: 'valueA', keyB: 'valueB' },
         templateVersion: 2,
         status: 200,
@@ -650,20 +661,18 @@ describe('RealtimeHandler', () => {
 
       await (realtime as any).fetchLatestConfig(MAXIMUM_FETCH_ATTEMPTS, 2);
 
-      expect(executeAllListenerCallbacksSpy).to.have.been.calledOnce;
-      const configUpdate = executeAllListenerCallbacksSpy.getCall(0).args[0];
-      expect(configUpdate.getUpdatedKeys()).to.deep.equal(
-        new Set(['keyA', 'keyB'])
-      );
+      expect(executeAllListenerCallbacksSpy).toHaveBeenCalledTimes(1);
+      const configUpdate = executeAllListenerCallbacksSpy.mock.calls[0][0];
+      expect(configUpdate.getUpdatedKeys()).toEqual(new Set(['keyA', 'keyB']));
     });
 
     it('should ignore experiment descriptions starting with _exp_rollout', async () => {
-      mockStorage.getActiveConfig.resolves({
+      mockStorage.getActiveConfig.mockResolvedValue({
         keyA: 'valueA',
         keyB: 'valueB',
         keyC: 'valueC'
       });
-      mockStorage.getLastSuccessfulFetchResponse.resolves({
+      mockStorage.getLastSuccessfulFetchResponse.mockResolvedValue({
         status: 200,
         config: { keyA: 'valueA', keyB: 'valueB', keyC: 'valueC' },
         experiments: [
@@ -678,7 +687,7 @@ describe('RealtimeHandler', () => {
         ]
       });
 
-      mockCachingClient.fetch.resolves({
+      mockCachingClient.fetch.mockResolvedValue({
         config: { keyA: 'valueA', keyB: 'valueB', keyC: 'valueC' },
         templateVersion: 2,
         status: 200,
@@ -697,18 +706,21 @@ describe('RealtimeHandler', () => {
 
       await (realtime as any).fetchLatestConfig(MAXIMUM_FETCH_ATTEMPTS, 2);
 
-      expect(executeAllListenerCallbacksSpy).not.to.have.been.called;
+      expect(executeAllListenerCallbacksSpy).not.toHaveBeenCalled();
     });
 
     it('should identify changed keys from updated rollout metadata (new rollout added)', async () => {
-      mockStorage.getActiveConfig.resolves({ keyA: 'valueA', keyB: 'valueB' });
-      mockStorage.getLastSuccessfulFetchResponse.resolves({
+      mockStorage.getActiveConfig.mockResolvedValue({
+        keyA: 'valueA',
+        keyB: 'valueB'
+      });
+      mockStorage.getLastSuccessfulFetchResponse.mockResolvedValue({
         status: 200,
         config: { keyA: 'valueA', keyB: 'valueB' },
         rollouts: []
       });
 
-      mockCachingClient.fetch.resolves({
+      mockCachingClient.fetch.mockResolvedValue({
         config: { keyA: 'valueA', keyB: 'valueB' },
         templateVersion: 2,
         status: 200,
@@ -724,14 +736,17 @@ describe('RealtimeHandler', () => {
 
       await (realtime as any).fetchLatestConfig(MAXIMUM_FETCH_ATTEMPTS, 2);
 
-      expect(executeAllListenerCallbacksSpy).to.have.been.calledOnce;
-      const configUpdate = executeAllListenerCallbacksSpy.getCall(0).args[0];
-      expect(configUpdate.getUpdatedKeys()).to.deep.equal(new Set(['keyA']));
+      expect(executeAllListenerCallbacksSpy).toHaveBeenCalledTimes(1);
+      const configUpdate = executeAllListenerCallbacksSpy.mock.calls[0][0];
+      expect(configUpdate.getUpdatedKeys()).toEqual(new Set(['keyA']));
     });
 
     it('should identify changed keys from updated rollout metadata (rollout removed)', async () => {
-      mockStorage.getActiveConfig.resolves({ keyA: 'valueA', keyB: 'valueB' });
-      mockStorage.getLastSuccessfulFetchResponse.resolves({
+      mockStorage.getActiveConfig.mockResolvedValue({
+        keyA: 'valueA',
+        keyB: 'valueB'
+      });
+      mockStorage.getLastSuccessfulFetchResponse.mockResolvedValue({
         status: 200,
         config: { keyA: 'valueA', keyB: 'valueB' },
         rollouts: [
@@ -743,7 +758,7 @@ describe('RealtimeHandler', () => {
         ]
       });
 
-      mockCachingClient.fetch.resolves({
+      mockCachingClient.fetch.mockResolvedValue({
         config: { keyA: 'valueA', keyB: 'valueB' },
         templateVersion: 2,
         status: 200,
@@ -753,14 +768,17 @@ describe('RealtimeHandler', () => {
 
       await (realtime as any).fetchLatestConfig(MAXIMUM_FETCH_ATTEMPTS, 2);
 
-      expect(executeAllListenerCallbacksSpy).to.have.been.calledOnce;
-      const configUpdate = executeAllListenerCallbacksSpy.getCall(0).args[0];
-      expect(configUpdate.getUpdatedKeys()).to.deep.equal(new Set(['keyA']));
+      expect(executeAllListenerCallbacksSpy).toHaveBeenCalledTimes(1);
+      const configUpdate = executeAllListenerCallbacksSpy.mock.calls[0][0];
+      expect(configUpdate.getUpdatedKeys()).toEqual(new Set(['keyA']));
     });
 
     it('should identify changed keys when a rollout variant ID is updated', async () => {
-      mockStorage.getActiveConfig.resolves({ keyA: 'valueA', keyB: 'valueB' });
-      mockStorage.getLastSuccessfulFetchResponse.resolves({
+      mockStorage.getActiveConfig.mockResolvedValue({
+        keyA: 'valueA',
+        keyB: 'valueB'
+      });
+      mockStorage.getLastSuccessfulFetchResponse.mockResolvedValue({
         status: 200,
         config: { keyA: 'valueA', keyB: 'valueB' },
         rollouts: [
@@ -772,7 +790,7 @@ describe('RealtimeHandler', () => {
         ]
       });
 
-      mockCachingClient.fetch.resolves({
+      mockCachingClient.fetch.mockResolvedValue({
         config: { keyA: 'valueA', keyB: 'valueB' },
         templateVersion: 2,
         status: 200,
@@ -788,14 +806,17 @@ describe('RealtimeHandler', () => {
 
       await (realtime as any).fetchLatestConfig(MAXIMUM_FETCH_ATTEMPTS, 2);
 
-      expect(executeAllListenerCallbacksSpy).to.have.been.calledOnce;
-      const configUpdate = executeAllListenerCallbacksSpy.getCall(0).args[0];
-      expect(configUpdate.getUpdatedKeys()).to.deep.equal(new Set(['keyA']));
+      expect(executeAllListenerCallbacksSpy).toHaveBeenCalledTimes(1);
+      const configUpdate = executeAllListenerCallbacksSpy.mock.calls[0][0];
+      expect(configUpdate.getUpdatedKeys()).toEqual(new Set(['keyA']));
     });
 
     it('should ignore rollouts if their metadata has not changed', async () => {
-      mockStorage.getActiveConfig.resolves({ keyA: 'valueA', keyB: 'valueB' });
-      mockStorage.getLastSuccessfulFetchResponse.resolves({
+      mockStorage.getActiveConfig.mockResolvedValue({
+        keyA: 'valueA',
+        keyB: 'valueB'
+      });
+      mockStorage.getLastSuccessfulFetchResponse.mockResolvedValue({
         status: 200,
         config: { keyA: 'valueA', keyB: 'valueB' },
         rollouts: [
@@ -807,7 +828,7 @@ describe('RealtimeHandler', () => {
         ]
       });
 
-      mockCachingClient.fetch.resolves({
+      mockCachingClient.fetch.mockResolvedValue({
         config: { keyA: 'valueA', keyB: 'valueB' },
         templateVersion: 2,
         status: 200,
@@ -823,45 +844,47 @@ describe('RealtimeHandler', () => {
 
       await (realtime as any).fetchLatestConfig(MAXIMUM_FETCH_ATTEMPTS, 2);
 
-      expect(executeAllListenerCallbacksSpy).not.to.have.been.called;
+      expect(executeAllListenerCallbacksSpy).not.toHaveBeenCalled();
     });
 
     it('should handle null activatedConfigs gracefully', async () => {
-      mockCachingClient.fetch.resolves({
+      mockCachingClient.fetch.mockResolvedValue({
         config: { newKey: 'value' },
         templateVersion: 2,
         status: 200,
         eTag: 'e'
       });
-      mockStorage.getActiveConfig.resolves(null as any);
+      mockStorage.getActiveConfig.mockResolvedValue(null as any);
 
       await (realtime as any).fetchLatestConfig(MAXIMUM_FETCH_ATTEMPTS, 2);
 
-      expect(executeAllListenerCallbacksSpy).to.have.been.calledOnce;
-      const configUpdate = executeAllListenerCallbacksSpy.getCall(0).args[0];
-      expect(configUpdate.getUpdatedKeys()).to.deep.equal(new Set(['newKey']));
+      expect(executeAllListenerCallbacksSpy).toHaveBeenCalledTimes(1);
+      const configUpdate = executeAllListenerCallbacksSpy.mock.calls[0][0];
+      expect(configUpdate.getUpdatedKeys()).toEqual(new Set(['newKey']));
     });
   });
 
   describe('autoFetch', () => {
-    let fetchLatestConfigStub: sinon.SinonStub;
-    let propagateErrorSpy: sinon.SinonSpy;
+    let fetchLatestConfigStub: MockInstance;
+    let propagateErrorSpy: MockInstance;
 
     beforeEach(() => {
-      fetchLatestConfigStub = sinon.stub(realtime as any, 'fetchLatestConfig');
-      propagateErrorSpy = sinon.spy(realtime as any, 'propagateError');
+      fetchLatestConfigStub = vi
+        .spyOn(realtime as any, 'fetchLatestConfig')
+        .mockResolvedValue(undefined);
+      propagateErrorSpy = vi.spyOn(realtime as any, 'propagateError');
     });
 
     afterEach(() => {
-      fetchLatestConfigStub.restore();
-      propagateErrorSpy.restore();
+      fetchLatestConfigStub.mockRestore();
+      propagateErrorSpy.mockRestore();
     });
 
     it('should call fetchLatestConfig after a random delay', async () => {
       (realtime as any).autoFetch(MAXIMUM_FETCH_ATTEMPTS, 10);
-      await clock.runAllAsync();
+      await vi.runAllTimersAsync();
 
-      expect(fetchLatestConfigStub).to.have.been.calledOnceWith(
+      expect(fetchLatestConfigStub).toHaveBeenCalledWith(
         MAXIMUM_FETCH_ATTEMPTS,
         10
       );
@@ -869,45 +892,45 @@ describe('RealtimeHandler', () => {
 
     it('should propagate an error if remaining attempts is zero', async () => {
       await (realtime as any).autoFetch(0, 10);
-      expect(propagateErrorSpy).to.have.been.calledOnce;
-      const error = propagateErrorSpy.getCall(0).args[0];
-      expect(error.code).to.include(ErrorCode.CONFIG_UPDATE_NOT_FETCHED);
-      expect(fetchLatestConfigStub).not.to.have.been.called;
+      expect(propagateErrorSpy).toHaveBeenCalledTimes(1);
+      const error = propagateErrorSpy.mock.calls[0][0];
+      expect(error.code).toContain(ErrorCode.CONFIG_UPDATE_NOT_FETCHED);
+      expect(fetchLatestConfigStub).not.toHaveBeenCalled();
     });
   });
 
   describe('handleNotifications', () => {
     let mockReader: ReadableStreamDefaultReader<Uint8Array>;
-    let autoFetchSpy: sinon.SinonSpy;
-    let executeAllListenerCallbacksSpy: sinon.SinonSpy;
-    let propagateErrorSpy: sinon.SinonSpy;
+    let autoFetchSpy: MockInstance;
+    let executeAllListenerCallbacksSpy: MockInstance;
+    let propagateErrorSpy: MockInstance;
 
     beforeEach(() => {
-      autoFetchSpy = sinon.spy(realtime as any, 'autoFetch');
-      executeAllListenerCallbacksSpy = sinon.spy(
+      autoFetchSpy = vi.spyOn(realtime as any, 'autoFetch');
+      executeAllListenerCallbacksSpy = vi.spyOn(
         realtime as any,
         'executeAllListenerCallbacks'
       );
-      propagateErrorSpy = sinon.spy(realtime as any, 'propagateError');
+      propagateErrorSpy = vi.spyOn(realtime as any, 'propagateError');
       (realtime as any).observers.add({});
     });
 
     afterEach(() => {
-      autoFetchSpy.restore();
-      executeAllListenerCallbacksSpy.restore();
-      propagateErrorSpy.restore();
+      autoFetchSpy.mockRestore();
+      executeAllListenerCallbacksSpy.mockRestore();
+      propagateErrorSpy.mockRestore();
     });
 
     it('should set backoff metadata if REALTIME_RETRY_INTERVAL is present', async () => {
-      const updateBackoffStub = sinon
-        .stub(realtime as any, 'updateBackoffMetadataWithRetryInterval')
-        .resolves();
+      const updateBackoffStub = vi
+        .spyOn(realtime as any, 'updateBackoffMetadataWithRetryInterval')
+        .mockResolvedValue(undefined);
 
       mockReader = createStreamingMockReader(['{"retryIntervalSeconds": 60}']);
 
       await (realtime as any).handleNotifications(mockReader);
 
-      expect(updateBackoffStub).to.have.been.calledOnceWith(60);
+      expect(updateBackoffStub).toHaveBeenCalledWith(60);
     });
 
     it('should propagate error on invalid JSON', async () => {
@@ -915,19 +938,19 @@ describe('RealtimeHandler', () => {
 
       await (realtime as any).handleNotifications(mockReader);
 
-      expect(propagateErrorSpy).to.have.been.calledOnce;
-      const error = propagateErrorSpy.getCall(0).args[0];
-      expect(error.code).to.include(ErrorCode.CONFIG_UPDATE_MESSAGE_INVALID);
+      expect(propagateErrorSpy).toHaveBeenCalledTimes(1);
+      const error = propagateErrorSpy.mock.calls[0][0];
+      expect(error.code).toContain(ErrorCode.CONFIG_UPDATE_MESSAGE_INVALID);
     });
 
     it('should break if event listeners become empty during handling', async () => {
-      autoFetchSpy.restore();
+      autoFetchSpy.mockRestore();
 
       mockReader = createStreamingMockReader([
         '{"latestTemplateVersionNumber": 10}'
       ]);
-      mockStorage.getActiveConfigTemplateVersion.resolves(5);
-      mockCachingClient.fetch.resolves({
+      mockStorage.getActiveConfigTemplateVersion.mockResolvedValue(5);
+      mockCachingClient.fetch.mockResolvedValue({
         config: { k: 'v' },
         templateVersion: 10,
         status: 200,
@@ -943,52 +966,52 @@ describe('RealtimeHandler', () => {
 
       await (realtime as any).handleNotifications(mockReader);
 
-      expect(mockReader.read).to.have.been.calledOnce;
+      expect(mockReader.read).toHaveBeenCalledTimes(1);
 
       JSON.parse = originalJsonParse;
     });
   });
 
   describe('beginRealtimeHttpStream', () => {
-    let createRealtimeConnectionSpy: sinon.SinonStub;
-    let listenForNotificationsSpy: sinon.SinonSpy;
-    let closeRealtimeHttpConnectionSpy: sinon.SinonSpy;
-    let retryHttpConnectionWhenBackoffEndsSpy: sinon.SinonStub;
-    let updateBackoffMetadataWithLastFailedStreamConnectionTimeSpy: sinon.SinonSpy;
-    let propagateErrorSpy: sinon.SinonSpy;
-    let checkAndSetHttpConnectionFlagIfNotRunningSpy: sinon.SinonStub;
+    let createRealtimeConnectionSpy: MockInstance;
+    let listenForNotificationsSpy: MockInstance;
+    let closeRealtimeHttpConnectionSpy: MockInstance;
+    let retryHttpConnectionWhenBackoffEndsSpy: MockInstance;
+    let updateBackoffMetadataWithLastFailedStreamConnectionTimeSpy: MockInstance;
+    let propagateErrorSpy: MockInstance;
+    let checkAndSetHttpConnectionFlagIfNotRunningSpy: MockInstance;
 
     beforeEach(() => {
-      createRealtimeConnectionSpy = sinon.stub(
+      createRealtimeConnectionSpy = vi.spyOn(
         realtime as any,
         'createRealtimeConnection'
       );
-      listenForNotificationsSpy = sinon.spy(
+      listenForNotificationsSpy = vi.spyOn(
         realtime as any,
         'listenForNotifications'
       );
-      closeRealtimeHttpConnectionSpy = sinon.spy(
+      closeRealtimeHttpConnectionSpy = vi.spyOn(
         realtime as any,
         'closeRealtimeHttpConnection'
       );
 
-      retryHttpConnectionWhenBackoffEndsSpy = sinon
-        .stub(realtime as any, 'retryHttpConnectionWhenBackoffEnds')
-        .resolves();
-      updateBackoffMetadataWithLastFailedStreamConnectionTimeSpy = sinon.spy(
+      retryHttpConnectionWhenBackoffEndsSpy = vi
+        .spyOn(realtime as any, 'retryHttpConnectionWhenBackoffEnds')
+        .mockResolvedValue(undefined);
+      updateBackoffMetadataWithLastFailedStreamConnectionTimeSpy = vi.spyOn(
         realtime as any,
         'updateBackoffMetadataWithLastFailedStreamConnectionTime'
       );
-      propagateErrorSpy = sinon.spy(realtime as any, 'propagateError');
-      checkAndSetHttpConnectionFlagIfNotRunningSpy = sinon
-        .stub(realtime as any, 'checkAndSetHttpConnectionFlagIfNotRunning')
-        .returns(true);
+      propagateErrorSpy = vi.spyOn(realtime as any, 'propagateError');
+      checkAndSetHttpConnectionFlagIfNotRunningSpy = vi
+        .spyOn(realtime as any, 'checkAndSetHttpConnectionFlagIfNotRunning')
+        .mockReturnValue(true);
 
-      createRealtimeConnectionSpy.resolves(
+      createRealtimeConnectionSpy.mockResolvedValue(
         new Response(createMockReadableStream(), { status: 200 })
       );
 
-      mockStorage.getRealtimeBackoffMetadata.resolves({
+      mockStorage.getRealtimeBackoffMetadata.mockResolvedValue({
         backoffEndTimeMillis: new Date(-1),
         numFailedStreams: 0
       });
@@ -996,51 +1019,54 @@ describe('RealtimeHandler', () => {
     });
 
     afterEach(() => {
-      retryHttpConnectionWhenBackoffEndsSpy.restore();
+      retryHttpConnectionWhenBackoffEndsSpy.mockRestore();
     });
 
     it('should successfully establish and handle a connection', async () => {
-      const resetRealtimeBackoffSpy = sinon.spy(
+      const resetRealtimeBackoffSpy = vi.spyOn(
         realtime as any,
         'resetRealtimeBackoff'
       );
       (realtime as any).observers.add({});
       await (realtime as any).prepareAndBeginRealtimeHttpStream();
 
-      expect(createRealtimeConnectionSpy).to.have.been.calledOnce;
-      expect(listenForNotificationsSpy).to.have.been.calledOnce;
-      expect(resetRealtimeBackoffSpy).to.have.been.calledOnce;
-      expect(closeRealtimeHttpConnectionSpy).to.have.been.calledOnce;
-      expect(retryHttpConnectionWhenBackoffEndsSpy).to.have.been.calledOnce;
+      expect(createRealtimeConnectionSpy).toHaveBeenCalledTimes(1);
+      expect(listenForNotificationsSpy).toHaveBeenCalledTimes(1);
+      expect(resetRealtimeBackoffSpy).toHaveBeenCalledTimes(1);
+      expect(closeRealtimeHttpConnectionSpy).toHaveBeenCalledTimes(1);
+      expect(retryHttpConnectionWhenBackoffEndsSpy).toHaveBeenCalledTimes(1);
     });
 
     it('should return early if connection flag cannot be set', async () => {
-      checkAndSetHttpConnectionFlagIfNotRunningSpy.returns(false);
+      checkAndSetHttpConnectionFlagIfNotRunningSpy.mockReturnValue(false);
       await (realtime as any).prepareAndBeginRealtimeHttpStream();
-      expect(createRealtimeConnectionSpy).not.to.have.been.called;
+      expect(createRealtimeConnectionSpy).not.toHaveBeenCalled();
     });
 
     it('should retry if currently in backoff period', async () => {
-      mockStorage.getRealtimeBackoffMetadata.resolves({
+      mockStorage.getRealtimeBackoffMetadata.mockResolvedValue({
         backoffEndTimeMillis: new Date(FAKE_NOW + 1000),
         numFailedStreams: 1
       });
       await (realtime as any).prepareAndBeginRealtimeHttpStream();
-      expect(retryHttpConnectionWhenBackoffEndsSpy).to.have.been.calledOnce;
-      expect(createRealtimeConnectionSpy).not.to.have.been.called;
+      expect(retryHttpConnectionWhenBackoffEndsSpy).toHaveBeenCalledTimes(1);
+      expect(createRealtimeConnectionSpy).not.toHaveBeenCalled();
     });
 
     it('should update backoff metadata on connection failure in foreground', async () => {
       (realtime as any).httpRetriesRemaining = 1;
 
-      createRealtimeConnectionSpy.resolves(new Response(null, { status: 502 }));
+      createRealtimeConnectionSpy.mockResolvedValue(
+        new Response(null, { status: 502 })
+      );
       (realtime as any).observers.add({});
 
       await (realtime as any).prepareAndBeginRealtimeHttpStream();
 
-      expect(updateBackoffMetadataWithLastFailedStreamConnectionTimeSpy).to.have
-        .been.calledOnce;
-      expect(retryHttpConnectionWhenBackoffEndsSpy).to.have.been.calledOnce;
+      expect(
+        updateBackoffMetadataWithLastFailedStreamConnectionTimeSpy
+      ).toHaveBeenCalledTimes(1);
+      expect(retryHttpConnectionWhenBackoffEndsSpy).toHaveBeenCalledTimes(1);
     });
 
     it('should NOT schedule a retry on connection failure in background', async () => {
@@ -1048,36 +1074,43 @@ describe('RealtimeHandler', () => {
 
       (realtime as any).observers.add({});
 
-      createRealtimeConnectionSpy.resolves(new Response(null, { status: 503 }));
+      createRealtimeConnectionSpy.mockResolvedValue(
+        new Response(null, { status: 503 })
+      );
 
       await (realtime as any).prepareAndBeginRealtimeHttpStream();
 
-      expect(updateBackoffMetadataWithLastFailedStreamConnectionTimeSpy).not.to
-        .have.been.called;
+      expect(
+        updateBackoffMetadataWithLastFailedStreamConnectionTimeSpy
+      ).not.toHaveBeenCalled();
 
-      expect(retryHttpConnectionWhenBackoffEndsSpy).not.to.have.been.called;
+      expect(retryHttpConnectionWhenBackoffEndsSpy).not.toHaveBeenCalled();
     });
 
     it('should propagate CONFIG_UPDATE_STREAM_ERROR if connection fails non-retryably', async () => {
       (realtime as any).httpRetriesRemaining = 1;
-      createRealtimeConnectionSpy.resolves(new Response(null, { status: 400 }));
+      createRealtimeConnectionSpy.mockResolvedValue(
+        new Response(null, { status: 400 })
+      );
       (realtime as any).observers.add({});
 
       await (realtime as any).prepareAndBeginRealtimeHttpStream();
 
-      expect(retryHttpConnectionWhenBackoffEndsSpy).not.to.have.been.called;
-      expect(propagateErrorSpy).to.have.been.calledOnce;
+      expect(retryHttpConnectionWhenBackoffEndsSpy).not.toHaveBeenCalled();
+      expect(propagateErrorSpy).toHaveBeenCalledTimes(1);
     });
 
     it('should not propagate error if connection fails non-retryably in background', async () => {
       (realtime as any).httpRetriesRemaining = 1;
-      createRealtimeConnectionSpy.resolves(new Response(null, { status: 400 }));
+      createRealtimeConnectionSpy.mockResolvedValue(
+        new Response(null, { status: 400 })
+      );
       (realtime as any).observers.add({});
       (realtime as any).isInBackground = true;
 
       await (realtime as any).prepareAndBeginRealtimeHttpStream();
 
-      expect(propagateErrorSpy).to.have.been.calledOnce;
+      expect(propagateErrorSpy).toHaveBeenCalledTimes(1);
     });
 
     it('should propagate CONFIG_UPDATE_STREAM_ERROR if retries are exhausted', async () => {
@@ -1085,21 +1118,22 @@ describe('RealtimeHandler', () => {
       (realtime as any).observers.add({});
       await (realtime as any).makeRealtimeHttpConnection(0);
 
-      expect(propagateErrorSpy).to.have.been.calledOnce;
-      const error = propagateErrorSpy.getCall(0).args[0];
-      expect(error.code).to.include(ErrorCode.CONFIG_UPDATE_STREAM_ERROR);
+      expect(propagateErrorSpy).toHaveBeenCalledTimes(1);
+      const error = propagateErrorSpy.mock.calls[0][0];
+      expect(error.code).toContain(ErrorCode.CONFIG_UPDATE_STREAM_ERROR);
     });
 
     it('should handle rejection from createRealtimeConnection', async () => {
       const testError = new Error('Connection refused');
-      createRealtimeConnectionSpy.rejects(testError);
+      createRealtimeConnectionSpy.mockRejectedValue(testError);
       (realtime as any).observers.add({});
 
       await (realtime as any).prepareAndBeginRealtimeHttpStream();
 
-      expect(updateBackoffMetadataWithLastFailedStreamConnectionTimeSpy).to.have
-        .been.calledOnce;
-      expect(retryHttpConnectionWhenBackoffEndsSpy).to.have.been.calledOnce;
+      expect(
+        updateBackoffMetadataWithLastFailedStreamConnectionTimeSpy
+      ).toHaveBeenCalledTimes(1);
+      expect(retryHttpConnectionWhenBackoffEndsSpy).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -1109,35 +1143,35 @@ describe('RealtimeHandler', () => {
       (realtime as any).isRealtimeDisabled = false;
       (realtime as any).isConnectionActive = false;
       (realtime as any).isInBackground = false;
-      expect((realtime as any).canEstablishStreamConnection()).to.be.true;
+      expect((realtime as any).canEstablishStreamConnection()).toBe(true);
     });
 
     it('returns false if there are no observers', () => {
       (realtime as any).observers.clear();
-      expect((realtime as any).canEstablishStreamConnection()).to.be.false;
+      expect((realtime as any).canEstablishStreamConnection()).toBe(false);
     });
 
     it('returns false if realtime is disabled', () => {
       (realtime as any).observers.add({});
       (realtime as any).isRealtimeDisabled = true;
-      expect((realtime as any).canEstablishStreamConnection()).to.be.false;
+      expect((realtime as any).canEstablishStreamConnection()).toBe(false);
     });
 
     it('returns false if a connection is already active', () => {
       (realtime as any).observers.add({});
       (realtime as any).isConnectionActive = true;
-      expect((realtime as any).canEstablishStreamConnection()).to.be.false;
+      expect((realtime as any).canEstablishStreamConnection()).toBe(false);
     });
 
     it('returns false if app is in background', () => {
       (realtime as any).observers.add({});
       (realtime as any).isInBackground = true;
-      expect((realtime as any).canEstablishStreamConnection()).to.be.false;
+      expect((realtime as any).canEstablishStreamConnection()).toBe(false);
     });
   });
 
   describe('addObserver/removeObserver', () => {
-    let beginRealtimeStub: sinon.SinonStub;
+    let beginRealtimeStub: MockInstance;
     const observer: ConfigUpdateObserver = {
       next: () => {},
       error: () => {},
@@ -1145,57 +1179,57 @@ describe('RealtimeHandler', () => {
     };
 
     beforeEach(() => {
-      beginRealtimeStub = sinon
-        .stub(realtime as any, 'beginRealtime')
-        .resolves();
+      beginRealtimeStub = vi
+        .spyOn(realtime as any, 'beginRealtime')
+        .mockResolvedValue(undefined);
     });
 
     afterEach(() => {
-      beginRealtimeStub.restore();
+      beginRealtimeStub.mockRestore();
     });
 
     it('addObserver should add an observer and start the realtime connection', async () => {
       await realtime.addObserver(observer);
-      expect((realtime as any).observers.has(observer)).to.be.true;
+      expect((realtime as any).observers.has(observer)).toBe(true);
 
-      expect(beginRealtimeStub).to.have.been.calledOnce;
+      expect(beginRealtimeStub).toHaveBeenCalledTimes(1);
     });
 
     it('removeObserver should remove an observer', () => {
       (realtime as any).observers.add(observer);
       realtime.removeObserver(observer);
-      expect((realtime as any).observers.has(observer)).to.be.false;
+      expect((realtime as any).observers.has(observer)).toBe(false);
     });
   });
   describe('onVisibilityChange', () => {
-    let closeConnectionSpy: sinon.SinonSpy;
-    let beginRealtimeSpy: sinon.SinonSpy;
+    let closeConnectionSpy: MockInstance;
+    let beginRealtimeSpy: MockInstance;
 
     beforeEach(() => {
-      closeConnectionSpy = sinon.spy(
+      closeConnectionSpy = vi.spyOn(
         realtime as any,
         'closeRealtimeHttpConnection'
       );
-      beginRealtimeSpy = sinon.spy(realtime as any, 'beginRealtime');
+      beginRealtimeSpy = vi.spyOn(realtime as any, 'beginRealtime');
     });
 
     afterEach(() => {
-      closeConnectionSpy.restore();
-      beginRealtimeSpy.restore();
+      closeConnectionSpy.mockRestore();
+      beginRealtimeSpy.mockRestore();
     });
 
     it('should close connection when app goes to background', async () => {
       await (realtime as any).onVisibilityChange(false);
-      expect((realtime as any).isInBackground).to.be.true;
-      expect(closeConnectionSpy).to.have.been.calledOnce;
-      expect(beginRealtimeSpy).not.to.have.been.called;
+      expect((realtime as any).isInBackground).toBe(true);
+      expect(closeConnectionSpy).toHaveBeenCalledTimes(1);
+      expect(beginRealtimeSpy).not.toHaveBeenCalled();
     });
 
     it('should start connection when app comes to foreground', async () => {
       await (realtime as any).onVisibilityChange(true);
-      expect((realtime as any).isInBackground).to.be.false;
-      expect(closeConnectionSpy).not.to.have.been.called;
-      expect(beginRealtimeSpy).to.have.been.calledOnce;
+      expect((realtime as any).isInBackground).toBe(false);
+      expect(closeConnectionSpy).not.toHaveBeenCalled();
+      expect(beginRealtimeSpy).toHaveBeenCalledTimes(1);
     });
   });
 });

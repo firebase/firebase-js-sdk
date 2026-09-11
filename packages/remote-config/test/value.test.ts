@@ -16,63 +16,63 @@
  */
 
 import './setup';
-import { expect } from 'chai';
+import { expect } from 'vitest';
 import { Value } from '../src/value';
 
 describe('Value', () => {
   describe('asString', () => {
     it('returns static default string if source is static', () => {
-      expect(new Value('static').asString()).to.eq('');
+      expect(new Value('static').asString()).toBe('');
     });
 
     it('returns the value as a string', () => {
       const VALUE = 'test';
       const value = new Value('remote', VALUE);
 
-      expect(value.asString()).to.eq(VALUE);
+      expect(value.asString()).toBe(VALUE);
     });
   });
 
   describe('asBoolean', () => {
     it('returns static default boolean if source is static', () => {
-      expect(new Value('static').asBoolean()).to.be.false;
+      expect(new Value('static').asBoolean()).toBe(false);
     });
 
     it('returns true for a truthy values', () => {
-      expect(new Value('remote', '1').asBoolean()).to.be.true;
-      expect(new Value('remote', 'true').asBoolean()).to.be.true;
-      expect(new Value('remote', 't').asBoolean()).to.be.true;
-      expect(new Value('remote', 'yes').asBoolean()).to.be.true;
-      expect(new Value('remote', 'y').asBoolean()).to.be.true;
-      expect(new Value('remote', 'on').asBoolean()).to.be.true;
+      expect(new Value('remote', '1').asBoolean()).toBe(true);
+      expect(new Value('remote', 'true').asBoolean()).toBe(true);
+      expect(new Value('remote', 't').asBoolean()).toBe(true);
+      expect(new Value('remote', 'yes').asBoolean()).toBe(true);
+      expect(new Value('remote', 'y').asBoolean()).toBe(true);
+      expect(new Value('remote', 'on').asBoolean()).toBe(true);
     });
 
     it('returns false for non-truthy values', () => {
-      expect(new Value('remote', '').asBoolean()).to.be.false;
-      expect(new Value('remote', 'false').asBoolean()).to.be.false;
-      expect(new Value('remote', 'random string').asBoolean()).to.be.false;
+      expect(new Value('remote', '').asBoolean()).toBe(false);
+      expect(new Value('remote', 'false').asBoolean()).toBe(false);
+      expect(new Value('remote', 'random string').asBoolean()).toBe(false);
     });
   });
 
   describe('asNumber', () => {
     it('returns static default number if source is static', () => {
-      expect(new Value('static').asNumber()).to.eq(0);
+      expect(new Value('static').asNumber()).toBe(0);
     });
 
     it('returns value as a number', () => {
-      expect(new Value('default', '33').asNumber()).to.eq(33);
-      expect(new Value('default', 'not a number').asNumber()).to.eq(0);
-      expect(new Value('default', '-10').asNumber()).to.eq(-10);
-      expect(new Value('default', '0').asNumber()).to.eq(0);
-      expect(new Value('default', '5.3').asNumber()).to.eq(5.3);
+      expect(new Value('default', '33').asNumber()).toBe(33);
+      expect(new Value('default', 'not a number').asNumber()).toBe(0);
+      expect(new Value('default', '-10').asNumber()).toBe(-10);
+      expect(new Value('default', '0').asNumber()).toBe(0);
+      expect(new Value('default', '5.3').asNumber()).toBe(5.3);
     });
   });
 
   describe('getSource', () => {
     it('returns the source of the value', () => {
-      expect(new Value('default', 'test').getSource()).to.eq('default');
-      expect(new Value('remote', 'test').getSource()).to.eq('remote');
-      expect(new Value('static').getSource()).to.eq('static');
+      expect(new Value('default', 'test').getSource()).toBe('default');
+      expect(new Value('remote', 'test').getSource()).toBe('remote');
+      expect(new Value('static').getSource()).toBe('static');
     });
   });
 });
