@@ -39,8 +39,8 @@ export declare class TemplateGenerativeModel
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [generateContent(templateId, templateVariables, singleRequestOptions, templateToolConfig)](./ai.templategenerativemodel.md#templategenerativemodelgeneratecontent) |  | <b><i>(Public Preview)</i></b> Makes a single non-streaming call to the model and returns an object containing a single [GenerateContentResponse](./ai.generatecontentresponse.md#generatecontentresponse_interface)<!-- -->. |
-|  [generateContentStream(templateId, templateVariables, singleRequestOptions, templateToolConfig)](./ai.templategenerativemodel.md#templategenerativemodelgeneratecontentstream) |  | <b><i>(Public Preview)</i></b> Makes a single streaming call to the model and returns an object containing an iterable stream that iterates over all chunks in the streaming response as well as a promise that returns the final aggregated response. |
+|  [generateContent(request, singleRequestOptions)](./ai.templategenerativemodel.md#templategenerativemodelgeneratecontent) |  | <b><i>(Public Preview)</i></b> Makes a single non-streaming call to the model and returns an object containing a single [GenerateContentResponse](./ai.generatecontentresponse.md#generatecontentresponse_interface)<!-- -->. |
+|  [generateContentStream(request, singleRequestOptions)](./ai.templategenerativemodel.md#templategenerativemodelgeneratecontentstream) |  | <b><i>(Public Preview)</i></b> Makes a single streaming call to the model and returns an object containing an iterable stream that iterates over all chunks in the streaming response as well as a promise that returns the final aggregated response. |
 |  [startChat(params)](./ai.templategenerativemodel.md#templategenerativemodelstartchat) |  | <b><i>(Public Preview)</i></b> Starts a [TemplateChatSession](./ai.templatechatsession.md#templatechatsession_interface) that will use this template to respond to messages. |
 
 ## TemplateGenerativeModel.(constructor)
@@ -86,17 +86,15 @@ Makes a single non-streaming call to the model and returns an object containing 
 <b>Signature:</b>
 
 ```typescript
-generateContent(templateId: string, templateVariables: Record<string, unknown>, singleRequestOptions?: SingleRequestOptions, templateToolConfig?: TemplateToolConfig): Promise<GenerateContentResult>;
+generateContent(request: TemplateRequest, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentResult>;
 ```
 
 #### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  templateId | string | The ID of the server-side template to execute. |
-|  templateVariables | Record&lt;string, unknown&gt; | A key-value map of variables to populate the template with. |
+|  request | [TemplateRequest](./ai.templaterequest.md#templaterequest_interface) | The request parameters for executing the server-side template. |
 |  singleRequestOptions | [SingleRequestOptions](./ai.singlerequestoptions.md#singlerequestoptions_interface) | Optional. Options to use for this request. |
-|  templateToolConfig | [TemplateToolConfig](./ai.templatetoolconfig.md#templatetoolconfig_interface) | Optional. Configuration for tools to use with this request. |
 
 <b>Returns:</b>
 
@@ -112,17 +110,15 @@ Makes a single streaming call to the model and returns an object containing an i
 <b>Signature:</b>
 
 ```typescript
-generateContentStream(templateId: string, templateVariables: Record<string, unknown>, singleRequestOptions?: SingleRequestOptions, templateToolConfig?: TemplateToolConfig): Promise<GenerateContentStreamResult>;
+generateContentStream(request: TemplateRequest, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentStreamResult>;
 ```
 
 #### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  templateId | string | The ID of the server-side template to execute. |
-|  templateVariables | Record&lt;string, unknown&gt; | A key-value map of variables to populate the template with. |
-|  singleRequestOptions | [SingleRequestOptions](./ai.singlerequestoptions.md#singlerequestoptions_interface) | Optional.Options to use for this request. |
-|  templateToolConfig | [TemplateToolConfig](./ai.templatetoolconfig.md#templatetoolconfig_interface) | Optional. Configuration for tools to use with this request. |
+|  request | [TemplateRequest](./ai.templaterequest.md#templaterequest_interface) | The request parameters for executing the server-side template. |
+|  singleRequestOptions | [SingleRequestOptions](./ai.singlerequestoptions.md#singlerequestoptions_interface) | Optional. Options to use for this request. |
 
 <b>Returns:</b>
 

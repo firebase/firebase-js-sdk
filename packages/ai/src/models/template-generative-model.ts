@@ -26,7 +26,7 @@ import {
   SingleRequestOptions,
   StartTemplateChatParams,
   TemplateChatSession,
-  TemplateToolConfig
+  TemplateRequest
 } from '../public-types';
 import { ApiSettings } from '../types/internal';
 import { initApiSettings } from './utils';
@@ -62,26 +62,25 @@ export class TemplateGenerativeModel {
    * Makes a single non-streaming call to the model and returns an object
    * containing a single {@link GenerateContentResponse}.
    *
-   * @param templateId - The ID of the server-side template to execute.
-   * @param templateVariables - A key-value map of variables to populate the
-   * template with.
+   * @param request - The request parameters for executing the server-side template.
    * @param singleRequestOptions - Optional. Options to use for this request.
-   * @param templateToolConfig - Optional. Configuration for tools to use with this request.
    *
    * @beta
    */
   async generateContent(
-    templateId: string,
-    templateVariables: Record<string, unknown>,
-    singleRequestOptions?: SingleRequestOptions,
-    templateToolConfig?: TemplateToolConfig
+    request: TemplateRequest,
+    singleRequestOptions?: SingleRequestOptions
   ): Promise<GenerateContentResult> {
     return templateGenerateContent(
       this._apiSettings,
-      templateId,
+      request.templateId,
       {
-        inputs: templateVariables,
-        ...(templateToolConfig && { toolConfig: templateToolConfig })
+        ...(request.templateVariables !== undefined && {
+          inputs: request.templateVariables
+        }),
+        ...(request.templateToolConfig !== undefined && {
+          toolConfig: request.templateToolConfig
+        })
       },
       {
         ...this.requestOptions,
@@ -96,26 +95,25 @@ export class TemplateGenerativeModel {
    * streaming response as well as a promise that returns the final aggregated
    * response.
    *
-   * @param templateId - The ID of the server-side template to execute.
-   * @param templateVariables - A key-value map of variables to populate the
-   * template with.
-   * @param singleRequestOptions - Optional.Options to use for this request.
-   * @param templateToolConfig - Optional. Configuration for tools to use with this request.
+   * @param request - The request parameters for executing the server-side template.
+   * @param singleRequestOptions - Optional. Options to use for this request.
    *
    * @beta
    */
   async generateContentStream(
-    templateId: string,
-    templateVariables: Record<string, unknown>,
-    singleRequestOptions?: SingleRequestOptions,
-    templateToolConfig?: TemplateToolConfig
+    request: TemplateRequest,
+    singleRequestOptions?: SingleRequestOptions
   ): Promise<GenerateContentStreamResult> {
     return templateGenerateContentStream(
       this._apiSettings,
-      templateId,
+      request.templateId,
       {
-        inputs: templateVariables,
-        ...(templateToolConfig && { toolConfig: templateToolConfig })
+        ...(request.templateVariables !== undefined && {
+          inputs: request.templateVariables
+        }),
+        ...(request.templateToolConfig !== undefined && {
+          toolConfig: request.templateToolConfig
+        })
       },
       {
         ...this.requestOptions,

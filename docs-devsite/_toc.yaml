@@ -230,6 +230,8 @@ toc:
     path: /docs/reference/js/ai.templatefunctiondeclarationstool.md
   - title: TemplateGenerativeModel
     path: /docs/reference/js/ai.templategenerativemodel.md
+  - title: TemplateRequest
+    path: /docs/reference/js/ai.templaterequest.md
   - title: TemplateToolConfig
     path: /docs/reference/js/ai.templatetoolconfig.md
   - title: TextPart

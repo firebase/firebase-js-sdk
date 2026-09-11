@@ -77,6 +77,27 @@ export interface GenerateContentRequest extends BaseParams {
 }
 
 /**
+ * Request parameters for {@link TemplateGenerativeModel.generateContent}
+ * and {@link TemplateGenerativeModel.generateContentStream}.
+ *
+ * @beta
+ */
+export interface TemplateRequest {
+  /**
+   * The ID of the server-side template to execute.
+   */
+  templateId: string;
+  /**
+   * A key-value map of variables to populate the template with.
+   */
+  templateVariables?: Record<string, unknown>;
+  /**
+   * Configuration for tools to use with this request.
+   */
+  templateToolConfig?: TemplateToolConfig;
+}
+
+/**
  * Request sent through {@link TemplateGenerativeModel.generateContent}
  * @internal
  */
