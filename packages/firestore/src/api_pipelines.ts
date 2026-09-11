@@ -48,10 +48,13 @@ export {
   DistinctStageOptions,
   AggregateStageOptions,
   FindNearestStageOptions,
+  InsertStageOptions,
+  LiteralsStageOptions,
   ReplaceWithStageOptions,
   SampleStageOptions,
   UnionStageOptions,
   UnnestStageOptions,
+  UpsertStageOptions,
   SortStageOptions,
   SearchStageOptions
   // TODO(search) export with backend support
