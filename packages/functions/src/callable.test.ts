@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { vi, MockInstance } from 'vitest';
 import { FirebaseApp } from '@firebase/app';
 import { FunctionsErrorCodeCore } from './public-types';
 import {
@@ -246,7 +245,9 @@ describe('Firebase Functions > Call', () => {
 
     // Stub out the messaging method get an instance id token.
     const stub = vi.spyOn(messagingMock, 'getToken');
-    vi.spyOn(Notification, 'permission', 'get').mockReturnValue('granted');
+    const permissionSpy = vi
+      .spyOn(Notification, 'permission', 'get')
+      .mockReturnValue('granted');
 
     const func = httpsCallable(functions, 'instanceIdTestv2');
     const result = await func({});
@@ -254,6 +255,7 @@ describe('Firebase Functions > Call', () => {
 
     expect(stub).toHaveBeenCalledTimes(1);
     stub.mockRestore();
+    permissionSpy.mockRestore();
   });
 
   it('null', async () => {
@@ -316,7 +318,7 @@ describe('Firebase Functions > Call', () => {
 describe('Firebase Functions > Stream', () => {
   let app: FirebaseApp;
   let functions: FunctionsService;
-  let mockFetch: MockInstance;
+  let mockFetch: ReturnType<typeof vi.spyOn>;
   const region = 'us-central1';
 
   beforeEach(() => {
