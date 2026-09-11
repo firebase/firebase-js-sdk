@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +15,6 @@
  * limitations under the License.
  */
 
-import {
-  spy,
-  stub,
-  restore as sinonRestore,
-  SinonSpy,
-  SinonStub,
-  useFakeTimers,
-  SinonFakeTimers
-} from 'sinon';
-import { expect } from 'chai';
 import { Api, setupApi, EntryType } from './api_service';
 import * as iidService from './iid_service';
 import { setupOobResources, resetForUnitTests } from './oob_resources_service';
@@ -42,6 +32,9 @@ import {
   LCPAttribution,
   LCPMetricWithAttribution
 } from 'web-vitals/attribution';
+import { vi, MockInstance } from 'vitest';
+
+vi.mock('./iid_service', { spy: true });
 
 // eslint-disable-next-line no-restricted-properties
 describe('Firebase Performance > oob_resources_service', () => {
@@ -91,35 +84,15 @@ describe('Firebase Performance > oob_resources_service', () => {
     toJSON: () => {}
   };
 
-  let getIidStub: SinonStub<[], string | undefined>;
-  let apiGetInstanceSpy: SinonSpy<[], Api>;
-  let eventListenerSpy: SinonSpy<
-    [
-      type: string,
-      listener: EventListenerOrEventListenerObject,
-      options?: boolean | AddEventListenerOptions | undefined
-    ],
-    void
-  >;
-  let getEntriesByTypeStub: SinonStub<[EntryType], PerformanceEntry[]>;
-  let setupObserverStub: SinonStub<
-    [EntryType, (entry: PerformanceEntry) => void],
-    void
-  >;
-  let createOobTraceSpy: SinonSpy<
-    [
-      PerformanceController,
-      PerformanceNavigationTiming[],
-      PerformanceEntry[],
-      WebVitalMetrics,
-      (number | undefined)?
-    ],
-    void
-  >;
-  let clock: SinonFakeTimers;
-  let lcpSpy: SinonSpy<[(m: LCPMetricWithAttribution) => void], void>;
-  let inpSpy: SinonSpy<[(m: INPMetricWithAttribution) => void], void>;
-  let clsSpy: SinonSpy<[(m: CLSMetricWithAttribution) => void], void>;
+  let getIidStub: MockInstance;
+  let apiGetInstanceSpy: MockInstance;
+  let eventListenerSpy: MockInstance;
+  let getEntriesByTypeStub: MockInstance;
+  let setupObserverStub: MockInstance;
+  let createOobTraceSpy: MockInstance;
+  let lcpSpy: MockInstance;
+  let inpSpy: MockInstance;
+  let clsSpy: MockInstance;
 
   const mockWindow = { ...self };
   setupApi(mockWindow);
@@ -145,8 +118,8 @@ describe('Firebase Performance > oob_resources_service', () => {
   );
 
   function callEventListener(name: string): void {
-    for (let i = eventListenerSpy.callCount; i > 0; i--) {
-      const [eventName, eventFn] = eventListenerSpy.getCall(i - 1).args;
+    for (let i = eventListenerSpy.mock.calls.length; i > 0; i--) {
+      const [eventName, eventFn] = eventListenerSpy.mock.calls[i - 1];
       if (eventName === name) {
         if (typeof eventFn === 'function') {
           eventFn(new CustomEvent(name));
@@ -157,30 +130,33 @@ describe('Firebase Performance > oob_resources_service', () => {
 
   beforeEach(() => {
     resetForUnitTests();
-    getIidStub = stub(iidService, 'getIid');
-    eventListenerSpy = spy(mockWindow.document, 'addEventListener');
+    getIidStub = vi.mocked(iidService.getIid);
+    eventListenerSpy = vi.spyOn(mockWindow.document, 'addEventListener');
 
-    clock = useFakeTimers();
-    getEntriesByTypeStub = stub(Api.prototype, 'getEntriesByType').callsFake(
-      entry => {
+    vi.useFakeTimers();
+    getEntriesByTypeStub = vi
+      .spyOn(Api.prototype, 'getEntriesByType')
+      .mockImplementation(entry => {
         if (entry === 'navigation') {
           return [NAVIGATION_PERFORMANCE_ENTRY];
         }
         return [PAINT_PERFORMANCE_ENTRY];
-      }
-    );
-    setupObserverStub = stub(Api.prototype, 'setupObserver');
-    createOobTraceSpy = spy(Trace, 'createOobTrace');
+      });
+    setupObserverStub = vi
+      .spyOn(Api.prototype, 'setupObserver')
+      .mockImplementation(() => {});
+    createOobTraceSpy = vi.spyOn(Trace, 'createOobTrace');
     const api = Api.getInstance();
-    lcpSpy = spy(api, 'onLCP');
-    inpSpy = spy(api, 'onINP');
-    clsSpy = spy(api, 'onCLS');
-    apiGetInstanceSpy = spy(Api, 'getInstance');
+    lcpSpy = vi.spyOn(api, 'onLCP');
+    inpSpy = vi.spyOn(api, 'onINP');
+    clsSpy = vi.spyOn(api, 'onCLS');
+    apiGetInstanceSpy = vi.spyOn(Api, 'getInstance');
   });
 
   afterEach(() => {
-    clock.restore();
-    sinonRestore();
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+    vi.clearAllMocks();
     const api = Api.getInstance();
     //@ts-ignore Assignment to read-only property.
     api.onFirstInputDelay = undefined;
@@ -188,43 +164,48 @@ describe('Firebase Performance > oob_resources_service', () => {
 
   describe('setupOobResources', () => {
     it('does not start if there is no iid', () => {
-      getIidStub.returns(undefined);
+      getIidStub.mockReturnValue(undefined);
       setupOobResources(performanceController);
 
-      expect(apiGetInstanceSpy).not.to.be.called;
+      expect(apiGetInstanceSpy).not.toHaveBeenCalled();
     });
 
     it('sets up network request collection', () => {
-      getIidStub.returns(MOCK_ID);
+      getIidStub.mockReturnValue(MOCK_ID);
       setupOobResources(performanceController);
-      clock.tick(1);
+      vi.advanceTimersByTime(1);
 
-      expect(apiGetInstanceSpy).to.be.called;
-      expect(getEntriesByTypeStub).to.be.calledWith('resource');
-      expect(setupObserverStub).to.be.calledWith('resource');
+      expect(apiGetInstanceSpy).toHaveBeenCalled();
+      expect(getEntriesByTypeStub).toHaveBeenCalledWith('resource');
+      expect(setupObserverStub).toHaveBeenCalledWith(
+        'resource',
+        expect.any(Function)
+      );
     });
 
     it('does not create page load trace before hidden', () => {
-      getIidStub.returns(MOCK_ID);
+      getIidStub.mockReturnValue(MOCK_ID);
       setupOobResources(performanceController);
-      clock.tick(1);
+      vi.advanceTimersByTime(1);
 
-      expect(apiGetInstanceSpy).to.be.called;
-      expect(createOobTraceSpy).not.to.be.called;
+      expect(apiGetInstanceSpy).toHaveBeenCalled();
+      expect(createOobTraceSpy).not.toHaveBeenCalled();
     });
 
     it('creates page load trace after hidden', () => {
-      getIidStub.returns(MOCK_ID);
+      getIidStub.mockReturnValue(MOCK_ID);
       setupOobResources(performanceController);
-      clock.tick(1);
+      vi.advanceTimersByTime(1);
 
-      stub(mockWindow.document, 'visibilityState').value('hidden');
+      vi.spyOn(mockWindow.document, 'visibilityState', 'get').mockReturnValue(
+        'hidden'
+      );
       callEventListener('visibilitychange');
-      clock.tick(1);
+      vi.advanceTimersByTime(1);
 
-      expect(getEntriesByTypeStub).to.be.calledWith('navigation');
-      expect(getEntriesByTypeStub).to.be.calledWith('paint');
-      expect(createOobTraceSpy).to.be.calledWithExactly(
+      expect(getEntriesByTypeStub).toHaveBeenCalledWith('navigation');
+      expect(getEntriesByTypeStub).toHaveBeenCalledWith('paint');
+      expect(createOobTraceSpy).toHaveBeenCalledWith(
         performanceController,
         [NAVIGATION_PERFORMANCE_ENTRY],
         [PAINT_PERFORMANCE_ENTRY],
@@ -234,16 +215,16 @@ describe('Firebase Performance > oob_resources_service', () => {
     });
 
     it('creates page load trace after pagehide', () => {
-      getIidStub.returns(MOCK_ID);
+      getIidStub.mockReturnValue(MOCK_ID);
       setupOobResources(performanceController);
-      clock.tick(1);
+      vi.advanceTimersByTime(1);
 
       callEventListener('pagehide');
-      clock.tick(1);
+      vi.advanceTimersByTime(1);
 
-      expect(getEntriesByTypeStub).to.be.calledWith('navigation');
-      expect(getEntriesByTypeStub).to.be.calledWith('paint');
-      expect(createOobTraceSpy).to.be.calledWithExactly(
+      expect(getEntriesByTypeStub).toHaveBeenCalledWith('navigation');
+      expect(getEntriesByTypeStub).toHaveBeenCalledWith('paint');
+      expect(createOobTraceSpy).toHaveBeenCalledWith(
         performanceController,
         [NAVIGATION_PERFORMANCE_ENTRY],
         [PAINT_PERFORMANCE_ENTRY],
@@ -253,7 +234,7 @@ describe('Firebase Performance > oob_resources_service', () => {
     });
 
     it('logs first input delay if polyfill is available and callback is called', () => {
-      getIidStub.returns(MOCK_ID);
+      getIidStub.mockReturnValue(MOCK_ID);
       const api = Api.getInstance();
       const FIRST_INPUT_DELAY = 123;
       // Underscore is to avoid compiler complaining about variable being declared but not used.
@@ -264,15 +245,17 @@ describe('Firebase Performance > oob_resources_service', () => {
         firstInputDelayCallback = cb;
       };
       setupOobResources(performanceController);
-      clock.tick(1);
+      vi.advanceTimersByTime(1);
       firstInputDelayCallback(FIRST_INPUT_DELAY);
 
       // Force the page load event to be sent
-      stub(mockWindow.document, 'visibilityState').value('hidden');
+      vi.spyOn(mockWindow.document, 'visibilityState', 'get').mockReturnValue(
+        'hidden'
+      );
       callEventListener('visibilitychange');
-      clock.tick(1);
+      vi.advanceTimersByTime(1);
 
-      expect(createOobTraceSpy).to.be.calledWithExactly(
+      expect(createOobTraceSpy).toHaveBeenCalledWith(
         performanceController,
         [NAVIGATION_PERFORMANCE_ENTRY],
         [PAINT_PERFORMANCE_ENTRY],
@@ -282,21 +265,24 @@ describe('Firebase Performance > oob_resources_service', () => {
     });
 
     it('sets up user timing traces', () => {
-      getIidStub.returns(MOCK_ID);
+      getIidStub.mockReturnValue(MOCK_ID);
       setupOobResources(performanceController);
-      clock.tick(1);
+      vi.advanceTimersByTime(1);
 
-      expect(apiGetInstanceSpy).to.be.called;
-      expect(getEntriesByTypeStub).to.be.calledWith('measure');
-      expect(setupObserverStub).to.be.calledWith('measure');
+      expect(apiGetInstanceSpy).toHaveBeenCalled();
+      expect(getEntriesByTypeStub).toHaveBeenCalledWith('measure');
+      expect(setupObserverStub).toHaveBeenCalledWith(
+        'measure',
+        expect.any(Function)
+      );
     });
 
     it('sends LCP metrics with attribution', () => {
-      getIidStub.returns(MOCK_ID);
+      getIidStub.mockReturnValue(MOCK_ID);
       setupOobResources(performanceController);
-      clock.tick(1);
+      vi.advanceTimersByTime(1);
 
-      lcpSpy.getCall(-1).args[0]({
+      lcpSpy.mock.lastCall![0]({
         value: 12.34,
         attribution: {
           element: 'some-element'
@@ -304,11 +290,13 @@ describe('Firebase Performance > oob_resources_service', () => {
       } as LCPMetricWithAttribution);
 
       // Force the page load event to be sent
-      stub(mockWindow.document, 'visibilityState').value('hidden');
+      vi.spyOn(mockWindow.document, 'visibilityState', 'get').mockReturnValue(
+        'hidden'
+      );
       callEventListener('visibilitychange');
-      clock.tick(1);
+      vi.advanceTimersByTime(1);
 
-      expect(createOobTraceSpy).to.be.calledWithExactly(
+      expect(createOobTraceSpy).toHaveBeenCalledWith(
         performanceController,
         [NAVIGATION_PERFORMANCE_ENTRY],
         [PAINT_PERFORMANCE_ENTRY],
@@ -320,11 +308,11 @@ describe('Firebase Performance > oob_resources_service', () => {
     });
 
     it('sends INP metrics with attribution', () => {
-      getIidStub.returns(MOCK_ID);
+      getIidStub.mockReturnValue(MOCK_ID);
       setupOobResources(performanceController);
-      clock.tick(1);
+      vi.advanceTimersByTime(1);
 
-      inpSpy.getCall(-1).args[0]({
+      inpSpy.mock.lastCall![0]({
         value: 0.198,
         attribution: {
           interactionTarget: 'another-element'
@@ -332,11 +320,13 @@ describe('Firebase Performance > oob_resources_service', () => {
       } as INPMetricWithAttribution);
 
       // Force the page load event to be sent
-      stub(mockWindow.document, 'visibilityState').value('hidden');
+      vi.spyOn(mockWindow.document, 'visibilityState', 'get').mockReturnValue(
+        'hidden'
+      );
       callEventListener('visibilitychange');
-      clock.tick(1);
+      vi.advanceTimersByTime(1);
 
-      expect(createOobTraceSpy).to.be.calledWithExactly(
+      expect(createOobTraceSpy).toHaveBeenCalledWith(
         performanceController,
         [NAVIGATION_PERFORMANCE_ENTRY],
         [PAINT_PERFORMANCE_ENTRY],
@@ -348,11 +338,11 @@ describe('Firebase Performance > oob_resources_service', () => {
     });
 
     it('sends CLS metrics with attribution', () => {
-      getIidStub.returns(MOCK_ID);
+      getIidStub.mockReturnValue(MOCK_ID);
       setupOobResources(performanceController);
-      clock.tick(1);
+      vi.advanceTimersByTime(1);
 
-      clsSpy.getCall(-1).args[0]({
+      clsSpy.mock.lastCall![0]({
         value: 0.3,
         // eslint-disable-next-line
         attribution: {
@@ -361,11 +351,13 @@ describe('Firebase Performance > oob_resources_service', () => {
       } as CLSMetricWithAttribution);
 
       // Force the page load event to be sent
-      stub(mockWindow.document, 'visibilityState').value('hidden');
+      vi.spyOn(mockWindow.document, 'visibilityState', 'get').mockReturnValue(
+        'hidden'
+      );
       callEventListener('visibilitychange');
-      clock.tick(1);
+      vi.advanceTimersByTime(1);
 
-      expect(createOobTraceSpy).to.be.calledWithExactly(
+      expect(createOobTraceSpy).toHaveBeenCalledWith(
         performanceController,
         [NAVIGATION_PERFORMANCE_ENTRY],
         [PAINT_PERFORMANCE_ENTRY],
@@ -377,18 +369,18 @@ describe('Firebase Performance > oob_resources_service', () => {
     });
 
     it('sends all core web vitals metrics', () => {
-      getIidStub.returns(MOCK_ID);
+      getIidStub.mockReturnValue(MOCK_ID);
       setupOobResources(performanceController);
-      clock.tick(1);
+      vi.advanceTimersByTime(1);
 
-      lcpSpy.getCall(-1).args[0]({
+      lcpSpy.mock.lastCall![0]({
         value: 5.91,
         attribution: { element: 'an-element' } as LCPAttribution
       } as LCPMetricWithAttribution);
-      inpSpy.getCall(-1).args[0]({
+      inpSpy.mock.lastCall![0]({
         value: 0.1
       } as INPMetricWithAttribution);
-      clsSpy.getCall(-1).args[0]({
+      clsSpy.mock.lastCall![0]({
         value: 0.3,
         attribution: {
           largestShiftTarget: 'large-shift-element'
@@ -396,11 +388,13 @@ describe('Firebase Performance > oob_resources_service', () => {
       } as CLSMetricWithAttribution);
 
       // Force the page load event to be sent
-      stub(mockWindow.document, 'visibilityState').value('hidden');
+      vi.spyOn(mockWindow.document, 'visibilityState', 'get').mockReturnValue(
+        'hidden'
+      );
       callEventListener('visibilitychange');
-      clock.tick(1);
+      vi.advanceTimersByTime(1);
 
-      expect(createOobTraceSpy).to.be.calledWithExactly(
+      expect(createOobTraceSpy).toHaveBeenCalledWith(
         performanceController,
         [NAVIGATION_PERFORMANCE_ENTRY],
         [PAINT_PERFORMANCE_ENTRY],

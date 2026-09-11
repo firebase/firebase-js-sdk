@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,6 @@
  * limitations under the License.
  */
 
-import { stub, useFakeTimers, SinonFakeTimers, SinonStub } from 'sinon';
-import { use, expect } from 'chai';
-import sinonChai from 'sinon-chai';
 import {
   transportHandler,
   setupTransportService,
@@ -25,68 +22,60 @@ import {
   flushQueuedEvents
 } from './transport_service';
 import { SettingsService } from './settings_service';
-
-use(sinonChai);
+import { vi, MockInstance } from 'vitest';
 
 /* eslint-disable no-restricted-properties */
 describe('Firebase Performance > transport_service', () => {
-  let sendBeaconStub: SinonStub<
-    [url: string | URL, data?: BodyInit | null | undefined],
-    boolean
-  >;
-  let fetchStub: SinonStub<
-    [RequestInfo | URL, RequestInit?],
-    Promise<Response>
-  >;
+  let sendBeaconStub: MockInstance;
+  let fetchStub: MockInstance;
   const INITIAL_SEND_TIME_DELAY_MS = 5.5 * 1000;
   const DEFAULT_SEND_INTERVAL_MS = 10 * 1000;
   const MAX_EVENT_COUNT_PER_REQUEST = 1000;
-  // Starts date at timestamp 1 instead of 0, otherwise it causes validation errors.
-  let clock: SinonFakeTimers;
   const testTransportHandler = transportHandler((...args) => {
     return args[0];
   });
 
   beforeEach(() => {
-    clock = useFakeTimers(1);
+    vi.useFakeTimers({ now: 1 });
     setupTransportService();
-    sendBeaconStub = stub(navigator, 'sendBeacon');
-    sendBeaconStub.returns(true);
-    fetchStub = stub(window, 'fetch');
+    sendBeaconStub = vi.spyOn(navigator, 'sendBeacon');
+    sendBeaconStub.mockReturnValue(true);
+    fetchStub = vi.spyOn(window, 'fetch').mockResolvedValue(new Response('{}'));
   });
 
   afterEach(() => {
-    clock.restore();
+    vi.useRealTimers();
     resetTransportService();
-    sendBeaconStub.restore();
-    fetchStub.restore();
+    sendBeaconStub.mockRestore();
+    fetchStub.mockRestore();
+    vi.clearAllMocks();
   });
 
   it('throws an error when logging an empty message', () => {
     expect(() => {
       testTransportHandler('');
-    }).to.throw;
+    }).toThrow();
   });
 
   it('does not attempt to log an event after INITIAL_SEND_TIME_DELAY_MS if queue is empty', () => {
-    clock.tick(INITIAL_SEND_TIME_DELAY_MS);
-    expect(sendBeaconStub).to.not.have.been.called;
-    expect(fetchStub).to.not.have.been.called;
+    vi.advanceTimersByTime(INITIAL_SEND_TIME_DELAY_MS);
+    expect(sendBeaconStub).not.toHaveBeenCalled();
+    expect(fetchStub).not.toHaveBeenCalled();
   });
 
   it('attempts to log an event after DEFAULT_SEND_INTERVAL_MS if queue not empty', async () => {
-    clock.tick(INITIAL_SEND_TIME_DELAY_MS);
+    vi.advanceTimersByTime(INITIAL_SEND_TIME_DELAY_MS);
     testTransportHandler('someEvent');
-    clock.tick(DEFAULT_SEND_INTERVAL_MS);
-    expect(sendBeaconStub).to.have.been.calledOnce;
-    expect(fetchStub).to.not.have.been.called;
+    vi.advanceTimersByTime(DEFAULT_SEND_INTERVAL_MS);
+    expect(sendBeaconStub).toHaveBeenCalledTimes(1);
+    expect(fetchStub).not.toHaveBeenCalled();
   });
 
   it('successful send a message to transport', () => {
     testTransportHandler('event1');
-    clock.tick(INITIAL_SEND_TIME_DELAY_MS);
-    expect(sendBeaconStub).to.have.been.calledOnce;
-    expect(fetchStub).to.not.have.been.called;
+    vi.advanceTimersByTime(INITIAL_SEND_TIME_DELAY_MS);
+    expect(sendBeaconStub).toHaveBeenCalledTimes(1);
+    expect(fetchStub).not.toHaveBeenCalled();
   });
 
   it('sends up to the maximum event limit in one request if payload is under 64 KB', async () => {
@@ -102,10 +91,10 @@ describe('Firebase Performance > transport_service', () => {
       testTransportHandler('event' + i);
     }
     // Wait for first and second event dispatch to happen.
-    clock.tick(INITIAL_SEND_TIME_DELAY_MS);
+    vi.advanceTimersByTime(INITIAL_SEND_TIME_DELAY_MS);
     // This is to resolve the floating promise chain in transport service.
     await Promise.resolve().then().then().then();
-    clock.tick(DEFAULT_SEND_INTERVAL_MS);
+    vi.advanceTimersByTime(DEFAULT_SEND_INTERVAL_MS);
 
     // Assert
     // Expects the first logRequest which contains first 1000 events.
@@ -116,7 +105,7 @@ describe('Firebase Performance > transport_service', () => {
         'event_time_ms': '1'
       });
     }
-    expect(sendBeaconStub).which.to.have.been.calledWith(
+    expect(sendBeaconStub).toHaveBeenCalledWith(
       flTransportFullUrl,
       JSON.stringify(firstLogRequest)
     );
@@ -129,11 +118,11 @@ describe('Firebase Performance > transport_service', () => {
         'event_time_ms': '1'
       });
     }
-    expect(sendBeaconStub).calledWith(
+    expect(sendBeaconStub).toHaveBeenCalledWith(
       flTransportFullUrl,
       JSON.stringify(secondLogRequest)
     );
-    expect(fetchStub).to.not.have.been.called;
+    expect(fetchStub).not.toHaveBeenCalled();
   });
 
   it('sends fetch if payload is above 64 KB', async () => {
@@ -141,7 +130,7 @@ describe('Firebase Performance > transport_service', () => {
     const setting = SettingsService.getInstance();
     const flTransportFullUrl =
       setting.flTransportEndpointUrl + '?key=' + setting.transportKey;
-    fetchStub.resolves(
+    fetchStub.mockResolvedValue(
       new Response('{}', {
         status: 200,
         headers: { 'Content-type': 'application/json' }
@@ -155,10 +144,10 @@ describe('Firebase Performance > transport_service', () => {
       testTransportHandler(payload + i);
     }
     // Wait for first and second event dispatch to happen.
-    clock.tick(INITIAL_SEND_TIME_DELAY_MS);
+    vi.advanceTimersByTime(INITIAL_SEND_TIME_DELAY_MS);
     // This is to resolve the floating promise chain in transport service.
     await Promise.resolve().then().then().then();
-    clock.tick(DEFAULT_SEND_INTERVAL_MS);
+    vi.advanceTimersByTime(DEFAULT_SEND_INTERVAL_MS);
 
     // Assert
     // Expects the first logRequest which contains first 1000 events.
@@ -169,7 +158,7 @@ describe('Firebase Performance > transport_service', () => {
         'event_time_ms': '1'
       });
     }
-    expect(fetchStub).calledWith(flTransportFullUrl, {
+    expect(fetchStub).toHaveBeenCalledWith(flTransportFullUrl, {
       method: 'POST',
       body: JSON.stringify(firstLogRequest)
     });
@@ -182,23 +171,23 @@ describe('Firebase Performance > transport_service', () => {
         'event_time_ms': '1'
       });
     }
-    expect(sendBeaconStub).calledWith(
+    expect(sendBeaconStub).toHaveBeenCalledWith(
       flTransportFullUrl,
       JSON.stringify(secondLogRequest)
     );
   });
 
   it('falls back to fetch if sendBeacon fails.', async () => {
-    sendBeaconStub.returns(false);
-    fetchStub.resolves(
+    sendBeaconStub.mockReturnValue(false);
+    fetchStub.mockResolvedValue(
       new Response('{}', {
         status: 200,
         headers: { 'Content-type': 'application/json' }
       })
     );
     testTransportHandler('event1');
-    clock.tick(INITIAL_SEND_TIME_DELAY_MS);
-    expect(fetchStub).to.have.been.calledOnce;
+    vi.advanceTimersByTime(INITIAL_SEND_TIME_DELAY_MS);
+    expect(fetchStub).toHaveBeenCalledTimes(1);
   });
 
   it('flushes the queue with multiple sendBeacons in batches of 40', async () => {
@@ -206,7 +195,7 @@ describe('Firebase Performance > transport_service', () => {
     const setting = SettingsService.getInstance();
     const flTransportFullUrl =
       setting.flTransportEndpointUrl + '?key=' + setting.transportKey;
-    fetchStub.resolves(
+    fetchStub.mockResolvedValue(
       new Response('{}', {
         status: 200,
         headers: { 'Content-type': 'application/json' }
@@ -235,15 +224,15 @@ describe('Firebase Performance > transport_service', () => {
         'event_time_ms': '1'
       });
     }
-    expect(sendBeaconStub).calledWith(
+    expect(sendBeaconStub).toHaveBeenCalledWith(
       flTransportFullUrl,
       JSON.stringify(firstLogRequest)
     );
-    expect(sendBeaconStub).calledWith(
+    expect(sendBeaconStub).toHaveBeenCalledWith(
       flTransportFullUrl,
       JSON.stringify(secondLogRequest)
     );
-    expect(fetchStub).to.not.have.been.called;
+    expect(fetchStub).not.toHaveBeenCalled();
   });
 
   it('flushes the queue with fetch for sendBeacons that failed', async () => {
@@ -251,7 +240,7 @@ describe('Firebase Performance > transport_service', () => {
     const setting = SettingsService.getInstance();
     const flTransportFullUrl =
       setting.flTransportEndpointUrl + '?key=' + setting.transportKey;
-    fetchStub.resolves(
+    fetchStub.mockResolvedValue(
       new Response('{}', {
         status: 200,
         headers: { 'Content-type': 'application/json' }
@@ -264,8 +253,7 @@ describe('Firebase Performance > transport_service', () => {
     for (let i = 0; i < 80; i++) {
       testTransportHandler(payload + i);
     }
-    sendBeaconStub.onCall(0).returns(true);
-    sendBeaconStub.onCall(1).returns(false);
+    sendBeaconStub.mockReturnValueOnce(true).mockReturnValueOnce(false);
     flushQueuedEvents();
 
     // Assert
@@ -283,11 +271,11 @@ describe('Firebase Performance > transport_service', () => {
         'event_time_ms': '1'
       });
     }
-    expect(sendBeaconStub).calledWith(
+    expect(sendBeaconStub).toHaveBeenCalledWith(
       flTransportFullUrl,
       JSON.stringify(firstLogRequest)
     );
-    expect(fetchStub).calledWith(flTransportFullUrl, {
+    expect(fetchStub).toHaveBeenCalledWith(flTransportFullUrl, {
       method: 'POST',
       body: JSON.stringify(secondLogRequest)
     });
