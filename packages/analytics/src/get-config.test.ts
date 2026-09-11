@@ -15,8 +15,7 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-import { SinonStub, stub, useFakeTimers, restore, match } from 'sinon';
+import { expect, vi, MockInstance } from 'vitest';
 import '../testing/setup';
 import {
   fetchDynamicConfig,
@@ -34,28 +33,30 @@ const fakeAppId = 'abcdefgh12345:23405';
 const fakeAppParams = { appId: fakeAppId, apiKey: 'AAbbCCdd12345' };
 const fakeUrl = DYNAMIC_CONFIG_URL.replace('{app-id}', fakeAppId);
 const successObject = { measurementId: fakeMeasurementId, appId: fakeAppId };
-let fetchStub: SinonStub;
+let fetchStub: MockInstance;
 
 function stubFetch(status: number, body: { [key: string]: any }): void {
-  fetchStub = stub(window, 'fetch');
+  fetchStub = vi.spyOn(window, 'fetch');
   const mockResponse = new window.Response(JSON.stringify(body), {
     status
   });
-  fetchStub.returns(Promise.resolve(mockResponse));
+  fetchStub.mockResolvedValue(mockResponse);
 }
 
 describe('Dynamic Config Fetch Functions', () => {
-  afterEach(restore);
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
   describe('fetchDynamicConfig() - no retry', () => {
     it('successfully request and receives dynamic config JSON data', async () => {
       stubFetch(200, successObject);
       const config: DynamicConfig = await fetchDynamicConfig(fakeAppParams);
-      expect(fetchStub.args[0][0]).to.equal(fakeUrl);
-      expect(fetchStub.args[0][1].headers.get('x-goog-api-key')).to.equal(
+      expect(fetchStub.mock.calls[0][0]).toBe(fakeUrl);
+      expect(fetchStub.mock.calls[0][1].headers.get('x-goog-api-key')).toBe(
         fakeAppParams.apiKey
       );
-      expect(config.appId).to.equal(fakeAppId);
-      expect(config.measurementId).to.equal(fakeMeasurementId);
+      expect(config.appId).toBe(fakeAppId);
+      expect(config.measurementId).toBe(fakeMeasurementId);
     });
     it('throws error on failed response', async () => {
       stubFetch(500, {
@@ -64,14 +65,14 @@ describe('Dynamic Config Fetch Functions', () => {
       const app = getFakeApp(fakeAppParams);
       await expect(
         fetchDynamicConfig(app.options as AppFields)
-      ).to.be.rejectedWith(AnalyticsError.CONFIG_FETCH_FAILED);
+      ).rejects.toThrow(AnalyticsError.CONFIG_FETCH_FAILED);
     });
     it('throws error on failed response, includes server error message if provided', async () => {
       stubFetch(500, { error: { message: 'Oops' } });
       const app = getFakeApp(fakeAppParams);
       await expect(
         fetchDynamicConfig(app.options as AppFields)
-      ).to.be.rejectedWith(
+      ).rejects.toThrow(
         new RegExp(`Oops.+${AnalyticsError.CONFIG_FETCH_FAILED}`)
       );
     });
@@ -82,19 +83,19 @@ describe('Dynamic Config Fetch Functions', () => {
       const app = getFakeApp(fakeAppParams);
       const config: DynamicConfig | MinimalDynamicConfig =
         await fetchDynamicConfigWithRetry(app);
-      expect(fetchStub.args[0][0]).to.equal(fakeUrl);
-      expect(fetchStub.args[0][1].headers.get('x-goog-api-key')).to.equal(
+      expect(fetchStub.mock.calls[0][0]).toBe(fakeUrl);
+      expect(fetchStub.mock.calls[0][1].headers.get('x-goog-api-key')).toBe(
         fakeAppParams.apiKey
       );
-      expect(config.appId).to.equal(fakeAppId);
-      expect(config.measurementId).to.equal(fakeMeasurementId);
+      expect(config.appId).toBe(fakeAppId);
+      expect(config.measurementId).toBe(fakeMeasurementId);
     });
     it('throws error on non-retriable failed response', async () => {
       stubFetch(404, {
         error: {/* no message */}
       });
       const app = getFakeApp(fakeAppParams);
-      await expect(fetchDynamicConfigWithRetry(app)).to.be.rejectedWith(
+      await expect(fetchDynamicConfigWithRetry(app)).rejects.toThrow(
         AnalyticsError.CONFIG_FETCH_FAILED
       );
     });
@@ -102,39 +103,41 @@ describe('Dynamic Config Fetch Functions', () => {
       stubFetch(404, {
         error: {/* no message */}
       });
-      const consoleStub = stub(console, 'warn');
+      const consoleStub = vi
+        .spyOn(console, 'warn')
+        .mockImplementation(() => {});
       const app = getFakeApp({
         ...fakeAppParams,
         measurementId: fakeMeasurementId
       });
       await fetchDynamicConfigWithRetry(app);
-      expect(consoleStub.args[0][1]).to.include(fakeMeasurementId);
-      consoleStub.restore();
+      expect(consoleStub.mock.calls[0][1]).toContain(fakeMeasurementId);
+      consoleStub.mockRestore();
     });
     it('retries on retriable error until success', async () => {
       // Configures Date.now() to advance clock from zero in 20ms increments, enabling
       // tests to assert a known throttle end time and allow setTimeout to work.
-      const clock = useFakeTimers({ shouldAdvanceTime: true });
+      vi.useFakeTimers({ shouldAdvanceTime: true, now: 0 });
 
       // Ensures backoff is always zero, which simplifies reasoning about timer.
-      const powSpy = stub(Math, 'pow').returns(0);
-      const randomSpy = stub(Math, 'random').returns(0.5);
+      const powSpy = vi.spyOn(Math, 'pow').mockReturnValue(0);
+      const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0.5);
       const fakeRetryData = {
         throttleMetadata: {},
-        getThrottleMetadata: stub(),
-        setThrottleMetadata: stub(),
-        deleteThrottleMetadata: stub(),
+        getThrottleMetadata: vi.fn(),
+        setThrottleMetadata: vi.fn(),
+        deleteThrottleMetadata: vi.fn(),
         intervalMillis: 5
       };
 
       // Returns responses with each of 4 retriable statuses, then a success response.
       const retriableStatuses = [429, 500, 503, 504];
-      fetchStub = stub(window, 'fetch');
-      retriableStatuses.forEach((status, index) => {
+      fetchStub = vi.spyOn(window, 'fetch');
+      retriableStatuses.forEach(status => {
         const failResponse = new window.Response(JSON.stringify({}), {
           status
         });
-        fetchStub.onCall(index).resolves(failResponse);
+        fetchStub.mockResolvedValueOnce(failResponse);
       });
       const successResponse = new window.Response(
         JSON.stringify(successObject),
@@ -142,7 +145,7 @@ describe('Dynamic Config Fetch Functions', () => {
           status: 200
         }
       );
-      fetchStub.onCall(retriableStatuses.length).resolves(successResponse);
+      fetchStub.mockResolvedValueOnce(successResponse);
 
       const app = getFakeApp(fakeAppParams);
       const config: DynamicConfig | MinimalDynamicConfig =
@@ -151,29 +154,29 @@ describe('Dynamic Config Fetch Functions', () => {
       // Verify retryData.setThrottleMetadata() was called on each retry.
       for (let i = 0; i < retriableStatuses.length; i++) {
         retriableStatuses[i];
-        expect(fakeRetryData.setThrottleMetadata.args[i][1]).to.deep.equal({
+        expect(fakeRetryData.setThrottleMetadata.mock.calls[i][1]).toEqual({
           backoffCount: i + 1,
           throttleEndTimeMillis: (i + 1) * 20
         });
       }
 
-      expect(fetchStub.args[0][0]).to.equal(fakeUrl);
-      expect(fetchStub.args[0][1].headers.get('x-goog-api-key')).to.equal(
+      expect(fetchStub.mock.calls[0][0]).toBe(fakeUrl);
+      expect(fetchStub.mock.calls[0][1].headers.get('x-goog-api-key')).toBe(
         fakeAppParams.apiKey
       );
-      expect(config.appId).to.equal(fakeAppId);
-      expect(config.measurementId).to.equal(fakeMeasurementId);
+      expect(config.appId).toBe(fakeAppId);
+      expect(config.measurementId).toBe(fakeMeasurementId);
 
-      powSpy.restore();
-      randomSpy.restore();
-      clock.restore();
+      powSpy.mockRestore();
+      randomSpy.mockRestore();
+      vi.useRealTimers();
     });
     it('retries on retriable error until aborted by timeout', async () => {
       const fakeRetryData = {
         throttleMetadata: {},
-        getThrottleMetadata: stub(),
-        setThrottleMetadata: stub(),
-        deleteThrottleMetadata: stub(),
+        getThrottleMetadata: vi.fn(),
+        setThrottleMetadata: vi.fn(),
+        deleteThrottleMetadata: vi.fn(),
         intervalMillis: 10
       };
 
@@ -183,18 +186,18 @@ describe('Dynamic Config Fetch Functions', () => {
       const app = getFakeApp(fakeAppParams);
       // Set fetch timeout to 50 ms.
       const fetchPromise = fetchDynamicConfigWithRetry(app, fakeRetryData, 50);
-      await expect(fetchPromise).to.be.rejectedWith(
-        AnalyticsError.FETCH_THROTTLE
-      );
+      await expect(fetchPromise).rejects.toThrow(AnalyticsError.FETCH_THROTTLE);
       // Should be enough time for at least 2 retries, including fuzzing.
-      expect(fakeRetryData.setThrottleMetadata.callCount).to.be.greaterThan(1);
+      expect(
+        fakeRetryData.setThrottleMetadata.mock.calls.length
+      ).toBeGreaterThan(1);
     });
     it('retries on 503 error until aborted by timeout', async () => {
       const fakeRetryData = {
         throttleMetadata: {},
-        getThrottleMetadata: stub(),
-        setThrottleMetadata: stub(),
-        deleteThrottleMetadata: stub(),
+        getThrottleMetadata: vi.fn(),
+        setThrottleMetadata: vi.fn(),
+        deleteThrottleMetadata: vi.fn(),
         intervalMillis: 10
       };
 
@@ -204,17 +207,17 @@ describe('Dynamic Config Fetch Functions', () => {
       const app = getFakeApp(fakeAppParams);
       // Set fetch timeout to 50 ms.
       const fetchPromise = fetchDynamicConfigWithRetry(app, fakeRetryData, 50);
-      await expect(fetchPromise).to.be.rejectedWith(
-        AnalyticsError.FETCH_THROTTLE
-      );
+      await expect(fetchPromise).rejects.toThrow(AnalyticsError.FETCH_THROTTLE);
       const retryTime1 =
-        fakeRetryData.setThrottleMetadata.args[0][1].throttleEndTimeMillis;
+        fakeRetryData.setThrottleMetadata.mock.calls[0][1]
+          .throttleEndTimeMillis;
       const retryTime2 =
-        fakeRetryData.setThrottleMetadata.args[1][1].throttleEndTimeMillis;
-      expect(fakeRetryData.setThrottleMetadata).to.be.called;
+        fakeRetryData.setThrottleMetadata.mock.calls[1][1]
+          .throttleEndTimeMillis;
+      expect(fakeRetryData.setThrottleMetadata).toHaveBeenCalled();
       // Interval between first and second retry should be greater than lowest fuzzable
       // value of LONG_RETRY_FACTOR.
-      expect(retryTime2 - retryTime1).to.be.at.least(
+      expect(retryTime2 - retryTime1).toBeGreaterThanOrEqual(
         Math.floor(LONG_RETRY_FACTOR / 2) * fakeRetryData.intervalMillis
       );
     });
@@ -224,15 +227,17 @@ describe('Dynamic Config Fetch Functions', () => {
       async () => {
         const fakeRetryData = {
           throttleMetadata: {},
-          getThrottleMetadata: stub(),
-          setThrottleMetadata: stub(),
-          deleteThrottleMetadata: stub(),
+          getThrottleMetadata: vi.fn(),
+          setThrottleMetadata: vi.fn(),
+          deleteThrottleMetadata: vi.fn(),
           intervalMillis: 10
         };
 
         // Always returns retriable server error.
         stubFetch(500, {});
-        const consoleStub = stub(console, 'warn');
+        const consoleStub = vi
+          .spyOn(console, 'warn')
+          .mockImplementation(() => {});
 
         const app = getFakeApp({
           ...fakeAppParams,
@@ -240,8 +245,11 @@ describe('Dynamic Config Fetch Functions', () => {
         });
         // Set fetch timeout to 50 ms.
         await fetchDynamicConfigWithRetry(app, fakeRetryData, 50);
-        expect(consoleStub).calledWith(match.any, match(fakeMeasurementId));
-        consoleStub.restore();
+        expect(consoleStub).toHaveBeenCalledWith(
+          expect.anything(),
+          expect.stringContaining(fakeMeasurementId)
+        );
+        consoleStub.mockRestore();
       }
     );
   });

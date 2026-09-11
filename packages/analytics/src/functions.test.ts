@@ -15,8 +15,7 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-import { SinonStub, stub } from 'sinon';
+import { expect, vi, MockInstance } from 'vitest';
 import '../testing/setup';
 import {
   setCurrentScreen,
@@ -39,10 +38,10 @@ const fakeMeasurementId = 'abcd-efgh-ijkl';
 const fakeInitializationPromise = Promise.resolve(fakeMeasurementId);
 
 describe('FirebaseAnalytics methods', () => {
-  const gtagStub: SinonStub = stub();
+  const gtagStub: MockInstance = vi.fn();
 
   afterEach(() => {
-    gtagStub.reset();
+    gtagStub.mockReset();
   });
 
   it('logEvent() calls gtag function correctly', async () => {
@@ -50,7 +49,7 @@ describe('FirebaseAnalytics methods', () => {
       currency: 'USD'
     });
 
-    expect(gtagStub).to.have.been.calledWith(GtagCommand.EVENT, 'add_to_cart', {
+    expect(gtagStub).toHaveBeenCalledWith(GtagCommand.EVENT, 'add_to_cart', {
       'send_to': fakeMeasurementId,
       currency: 'USD'
     });
@@ -59,7 +58,7 @@ describe('FirebaseAnalytics methods', () => {
   it('logEvent() with no event params calls gtag function correctly', async () => {
     await logEvent(gtagStub, fakeInitializationPromise, 'view_item');
 
-    expect(gtagStub).to.have.been.calledWith(GtagCommand.EVENT, 'view_item', {
+    expect(gtagStub).toHaveBeenCalledWith(GtagCommand.EVENT, 'view_item', {
       'send_to': fakeMeasurementId
     });
   });
@@ -75,7 +74,7 @@ describe('FirebaseAnalytics methods', () => {
       { global: true }
     );
 
-    expect(gtagStub).to.have.been.calledWith(GtagCommand.EVENT, 'add_to_cart', {
+    expect(gtagStub).toHaveBeenCalledWith(GtagCommand.EVENT, 'add_to_cart', {
       currency: 'USD'
     });
   });
@@ -91,7 +90,7 @@ describe('FirebaseAnalytics methods', () => {
       }
     );
 
-    expect(gtagStub).to.have.been.calledWith(
+    expect(gtagStub).toHaveBeenCalledWith(
       GtagCommand.EVENT,
       'add_to_cart',
       undefined
@@ -100,7 +99,7 @@ describe('FirebaseAnalytics methods', () => {
 
   it('setCurrentScreen() (deprecated) calls gtag correctly (instance)', async () => {
     await setCurrentScreen(gtagStub, fakeInitializationPromise, 'home');
-    expect(gtagStub).to.have.been.calledWith(
+    expect(gtagStub).toHaveBeenCalledWith(
       GtagCommand.CONFIG,
       fakeMeasurementId,
       {
@@ -114,14 +113,14 @@ describe('FirebaseAnalytics methods', () => {
     await setCurrentScreen(gtagStub, fakeInitializationPromise, 'home', {
       global: true
     });
-    expect(gtagStub).to.be.calledWith(GtagCommand.SET, {
+    expect(gtagStub).toHaveBeenCalledWith(GtagCommand.SET, {
       'screen_name': 'home'
     });
   });
 
   it('setUserId() with null (user) id calls gtag correctly (instance)', async () => {
     await setUserId(gtagStub, fakeInitializationPromise, null);
-    expect(gtagStub).to.have.been.calledWith(
+    expect(gtagStub).toHaveBeenCalledWith(
       GtagCommand.CONFIG,
       fakeMeasurementId,
       {
@@ -133,7 +132,7 @@ describe('FirebaseAnalytics methods', () => {
 
   it('setUserId() calls gtag correctly (instance)', async () => {
     await setUserId(gtagStub, fakeInitializationPromise, 'user123');
-    expect(gtagStub).to.have.been.calledWith(
+    expect(gtagStub).toHaveBeenCalledWith(
       GtagCommand.CONFIG,
       fakeMeasurementId,
       {
@@ -147,7 +146,7 @@ describe('FirebaseAnalytics methods', () => {
     await setUserId(gtagStub, fakeInitializationPromise, 'user123', {
       global: true
     });
-    expect(gtagStub).to.be.calledWith(GtagCommand.SET, {
+    expect(gtagStub).toHaveBeenCalledWith(GtagCommand.SET, {
       'user_id': 'user123'
     });
   });
@@ -156,7 +155,7 @@ describe('FirebaseAnalytics methods', () => {
     await setUserId(gtagStub, fakeInitializationPromise, null, {
       global: true
     });
-    expect(gtagStub).to.be.calledWith(GtagCommand.SET, {
+    expect(gtagStub).toHaveBeenCalledWith(GtagCommand.SET, {
       'user_id': null
     });
   });
@@ -166,7 +165,7 @@ describe('FirebaseAnalytics methods', () => {
       'currency': 'USD',
       'language': 'en'
     });
-    expect(gtagStub).to.have.been.calledWith(
+    expect(gtagStub).toHaveBeenCalledWith(
       GtagCommand.CONFIG,
       fakeMeasurementId,
       {
@@ -186,7 +185,7 @@ describe('FirebaseAnalytics methods', () => {
       { 'currency': 'USD', 'language': 'en' },
       { global: true }
     );
-    expect(gtagStub).to.be.calledWith(GtagCommand.SET, {
+    expect(gtagStub).toHaveBeenCalledWith(GtagCommand.SET, {
       'user_properties.currency': 'USD',
       'user_properties.language': 'en'
     });
@@ -194,9 +193,9 @@ describe('FirebaseAnalytics methods', () => {
 
   it('setAnalyticsCollectionEnabled() calls gtag correctly', async () => {
     await setAnalyticsCollectionEnabled(fakeInitializationPromise, true);
-    expect(window[`ga-disable-${fakeMeasurementId}`]).to.be.false;
+    expect(window[`ga-disable-${fakeMeasurementId}`]).toBe(false);
     await setAnalyticsCollectionEnabled(fakeInitializationPromise, false);
-    expect(window[`ga-disable-${fakeMeasurementId}`]).to.be.true;
+    expect(window[`ga-disable-${fakeMeasurementId}`]).toBe(true);
     delete window[`ga-disable-${fakeMeasurementId}`];
   });
   it('_setDefaultEventParametersForInit() stores individual params correctly', async () => {
@@ -205,7 +204,7 @@ describe('FirebaseAnalytics methods', () => {
       'company': 'google'
     };
     _setDefaultEventParametersForInit(eventParametersForInit);
-    expect(defaultEventParametersForInit).to.deep.equal(eventParametersForInit);
+    expect(defaultEventParametersForInit).toEqual(eventParametersForInit);
   });
   it('_setDefaultEventParametersForInit() replaces previous params with new params', async () => {
     const eventParametersForInit = {
@@ -215,7 +214,7 @@ describe('FirebaseAnalytics methods', () => {
     const additionalParams = { 'food': 'sushi' };
     _setDefaultEventParametersForInit(eventParametersForInit);
     _setDefaultEventParametersForInit(additionalParams);
-    expect(defaultEventParametersForInit).to.deep.equal({
+    expect(defaultEventParametersForInit).toEqual({
       ...additionalParams
     });
   });
@@ -225,9 +224,7 @@ describe('FirebaseAnalytics methods', () => {
       'functionality_storage': 'denied'
     };
     _setConsentDefaultForInit(consentParametersForInit);
-    expect(defaultConsentSettingsForInit).to.deep.equal(
-      consentParametersForInit
-    );
+    expect(defaultConsentSettingsForInit).toEqual(consentParametersForInit);
   });
   it('_setConsentDefaultForInit() replaces previous params with new params', async () => {
     const consentParametersForInit: ConsentSettings = {
@@ -237,7 +234,7 @@ describe('FirebaseAnalytics methods', () => {
     const additionalParams = { 'wait_for_update': 500 };
     _setConsentDefaultForInit(consentParametersForInit);
     _setConsentDefaultForInit(additionalParams);
-    expect(defaultConsentSettingsForInit).to.deep.equal({
+    expect(defaultConsentSettingsForInit).toEqual({
       ...additionalParams
     });
   });
@@ -254,7 +251,7 @@ describe('FirebaseAnalytics methods', () => {
         } as Gtag,
         fakeInitializationPromise
       )
-    ).to.be.rejectedWith(AnalyticsError.NO_CLIENT_ID);
+    ).rejects.toThrow(AnalyticsError.NO_CLIENT_ID);
   });
   it('internalGetGoogleAnalyticsClientId() returns client_id when available', async () => {
     const CLIENT_ID = 'clientId1234';
@@ -269,6 +266,6 @@ describe('FirebaseAnalytics methods', () => {
       } as Gtag,
       fakeInitializationPromise
     );
-    expect(id).to.equal(CLIENT_ID);
+    expect(id).toBe(CLIENT_ID);
   });
 });
