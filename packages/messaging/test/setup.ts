@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,4 @@
  * limitations under the License.
  */
 
-import { deleteDB } from 'idb';
-import { afterEach, vi } from 'vitest';
-
-afterEach(async () => {
-  vi.restoreAllMocks();
-  await deleteDB('firebase-messaging-database');
-  await deleteDB('fcm_token_details_db');
-});
+import '../src/testing/setup';
