@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,7 @@
  * limitations under the License.
  */
 
-import { spy, stub, restore } from 'sinon';
 import { Trace } from '../resources/trace';
-import { expect } from 'chai';
 import { Api, setupApi } from '../services/api_service';
 import * as perfLogger from '../services/perf_logger';
 import { PerformanceController } from '../controllers/perf';
@@ -25,6 +23,9 @@ import { FirebaseApp } from '@firebase/app';
 import { FirebaseInstallations } from '@firebase/installations-types';
 
 import '../../test/setup';
+import { vi } from 'vitest';
+
+vi.mock('../services/perf_logger', { spy: true });
 
 describe('Firebase Performance > trace', () => {
   setupApi(window);
@@ -54,13 +55,13 @@ describe('Firebase Performance > trace', () => {
   };
 
   beforeEach(() => {
-    spy(Api.prototype, 'mark');
-    stub(perfLogger, 'logTrace');
+    vi.spyOn(Api.prototype, 'mark');
     trace = createTrace();
   });
 
   afterEach(() => {
-    restore();
+    vi.restoreAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('#start', () => {
@@ -69,11 +70,11 @@ describe('Firebase Performance > trace', () => {
     });
 
     it('uses the underlying api method', () => {
-      expect(Api.getInstance().mark).to.be.calledOnce;
+      expect(Api.getInstance().mark).toHaveBeenCalledTimes(1);
     });
 
     it('throws if a trace is started twice', () => {
-      expect(() => trace.start()).to.throw();
+      expect(() => trace.start()).toThrow();
     });
   });
 
@@ -82,46 +83,50 @@ describe('Firebase Performance > trace', () => {
       trace.start();
       trace.stop();
 
-      expect(Api.getInstance().mark).to.be.calledTwice;
+      expect(Api.getInstance().mark).toHaveBeenCalledTimes(2);
     });
 
     it('logs the trace', () => {
       trace.start();
       trace.stop();
 
-      expect((perfLogger.logTrace as any).calledOnceWith(trace)).to.be.true;
+      expect(perfLogger.logTrace).toHaveBeenCalledTimes(1);
+      expect(perfLogger.logTrace).toHaveBeenCalledWith(trace);
     });
   });
 
   describe('#record', () => {
     it('logs a custom trace with non-positive start time value', () => {
-      expect(() => trace.record(0, 20)).to.throw();
-      expect(() => trace.record(-100, 20)).to.throw();
+      expect(() => trace.record(0, 20)).toThrow();
+      expect(() => trace.record(-100, 20)).toThrow();
     });
 
     it('logs a custom trace with non-positive duration value', () => {
-      expect(() => trace.record(1000, 0)).to.throw();
-      expect(() => trace.record(1000, -200)).to.throw();
+      expect(() => trace.record(1000, 0)).toThrow();
+      expect(() => trace.record(1000, -200)).toThrow();
     });
 
     it('logs a trace without metrics or custom attributes', () => {
       trace.record(1, 20);
 
-      expect((perfLogger.logTrace as any).calledOnceWith(trace)).to.be.true;
+      expect(perfLogger.logTrace).toHaveBeenCalledTimes(1);
+      expect(perfLogger.logTrace).toHaveBeenCalledWith(trace);
     });
 
     it('logs a trace with metrics', () => {
       trace.record(1, 20, { metrics: { cacheHits: 1 } });
 
-      expect((perfLogger.logTrace as any).calledOnceWith(trace)).to.be.true;
-      expect(trace.getMetric('cacheHits')).to.eql(1);
+      expect(perfLogger.logTrace).toHaveBeenCalledTimes(1);
+      expect(perfLogger.logTrace).toHaveBeenCalledWith(trace);
+      expect(trace.getMetric('cacheHits')).toEqual(1);
     });
 
     it('logs a trace with custom attributes', () => {
       trace.record(1, 20, { attributes: { level: '1' } });
 
-      expect((perfLogger.logTrace as any).calledOnceWith(trace)).to.be.true;
-      expect(trace.getAttributes()).to.eql({ level: '1' });
+      expect(perfLogger.logTrace).toHaveBeenCalledTimes(1);
+      expect(perfLogger.logTrace).toHaveBeenCalledWith(trace);
+      expect(trace.getAttributes()).toEqual({ level: '1' });
     });
 
     it('logs a trace with custom attributes and metrics', () => {
@@ -130,9 +135,10 @@ describe('Firebase Performance > trace', () => {
         metrics: { cacheHits: 1 }
       });
 
-      expect((perfLogger.logTrace as any).calledOnceWith(trace)).to.be.true;
-      expect(trace.getAttributes()).to.eql({ level: '1' });
-      expect(trace.getMetric('cacheHits')).to.eql(1);
+      expect(perfLogger.logTrace).toHaveBeenCalledTimes(1);
+      expect(perfLogger.logTrace).toHaveBeenCalledWith(trace);
+      expect(trace.getAttributes()).toEqual({ level: '1' });
+      expect(trace.getMetric('cacheHits')).toEqual(1);
     });
 
     it('does not log counter with invalid counter value', () => {
@@ -140,8 +146,9 @@ describe('Firebase Performance > trace', () => {
         metrics: { level: NaN }
       });
 
-      expect((perfLogger.logTrace as any).calledOnceWith(trace)).to.be.true;
-      expect(trace.getMetric('level')).to.eql(0);
+      expect(perfLogger.logTrace).toHaveBeenCalledTimes(1);
+      expect(perfLogger.logTrace).toHaveBeenCalledWith(trace);
+      expect(trace.getMetric('level')).toEqual(0);
     });
   });
 
@@ -149,32 +156,32 @@ describe('Firebase Performance > trace', () => {
     it('creates new metric if one doesnt exist.', () => {
       trace.incrementMetric('cacheHits', 200);
 
-      expect(trace.getMetric('cacheHits')).to.eql(200);
+      expect(trace.getMetric('cacheHits')).toEqual(200);
     });
 
     it('increments metric if it already exists.', () => {
       trace.incrementMetric('cacheHits', 200);
       trace.incrementMetric('cacheHits', 400);
 
-      expect(trace.getMetric('cacheHits')).to.eql(600);
+      expect(trace.getMetric('cacheHits')).toEqual(600);
     });
 
     it('increments metric value as an integer even if the value is provided in float.', () => {
       trace.incrementMetric('cacheHits', 200);
       trace.incrementMetric('cacheHits', 400.38);
 
-      expect(trace.getMetric('cacheHits')).to.eql(600);
+      expect(trace.getMetric('cacheHits')).toEqual(600);
     });
 
     it('increments metric value with a negative float.', () => {
       trace.incrementMetric('cacheHits', 200);
       trace.incrementMetric('cacheHits', -230.38);
 
-      expect(trace.getMetric('cacheHits')).to.eql(-31);
+      expect(trace.getMetric('cacheHits')).toEqual(-31);
     });
 
     it('throws error if metric doesnt exist and has invalid name', () => {
-      expect(() => trace.incrementMetric('_invalidMetric', 1)).to.throw();
+      expect(() => trace.incrementMetric('_invalidMetric', 1)).toThrow();
     });
   });
 
@@ -182,58 +189,58 @@ describe('Firebase Performance > trace', () => {
     it('creates new metric if one doesnt exist and has valid name.', () => {
       trace.putMetric('cacheHits', 200);
 
-      expect(trace.getMetric('cacheHits')).to.eql(200);
+      expect(trace.getMetric('cacheHits')).toEqual(200);
     });
 
     it('sets the metric value as an integer even if the value is provided in float.', () => {
       trace.putMetric('timelapse', 200.48);
 
-      expect(trace.getMetric('timelapse')).to.eql(200);
+      expect(trace.getMetric('timelapse')).toEqual(200);
     });
 
     it('replaces metric if it already exists.', () => {
       trace.putMetric('cacheHits', 200);
       trace.putMetric('cacheHits', 400);
 
-      expect(trace.getMetric('cacheHits')).to.eql(400);
+      expect(trace.getMetric('cacheHits')).toEqual(400);
     });
 
     it('replaces undefined metrics with 0', () => {
       // @ts-ignore A non-TS user could provide undefined.
       trace.putMetric('cacheHits', undefined);
 
-      expect(trace.getMetric('cacheHits')).to.eql(0);
+      expect(trace.getMetric('cacheHits')).toEqual(0);
     });
 
     it('throws error if metric doesnt exist and has invalid name', () => {
-      expect(() => trace.putMetric('_invalidMetric', 1)).to.throw();
-      expect(() => trace.putMetric('_fid', 1)).to.throw();
+      expect(() => trace.putMetric('_invalidMetric', 1)).toThrow();
+      expect(() => trace.putMetric('_fid', 1)).toThrow();
     });
   });
 
   describe('#getMetric', () => {
     it('returns 0 if metric doesnt exist', () => {
-      expect(trace.getMetric('doesThisExist')).to.equal(0);
+      expect(trace.getMetric('doesThisExist')).toBe(0);
     });
 
     it('returns 0 if it exists and equals 0', () => {
       trace.putMetric('cacheHits', 0);
 
-      expect(trace.getMetric('cacheHits')).to.equal(0);
+      expect(trace.getMetric('cacheHits')).toBe(0);
     });
 
     it('returns metric if it exists', () => {
       trace.putMetric('cacheHits', 200);
 
-      expect(trace.getMetric('cacheHits')).to.equal(200);
+      expect(trace.getMetric('cacheHits')).toBe(200);
     });
 
     it('returns multiple metrics if they exist', () => {
       trace.putMetric('cacheHits', 200);
       trace.putMetric('bytesDownloaded', 25);
 
-      expect(trace.getMetric('cacheHits')).to.equal(200);
-      expect(trace.getMetric('bytesDownloaded')).to.equal(25);
+      expect(trace.getMetric('cacheHits')).toBe(200);
+      expect(trace.getMetric('bytesDownloaded')).toBe(25);
     });
   });
 
@@ -241,18 +248,18 @@ describe('Firebase Performance > trace', () => {
     it('creates new attribute if it doesnt exist', () => {
       trace.putAttribute('level', '4');
 
-      expect(trace.getAttributes()).to.eql({ level: '4' });
+      expect(trace.getAttributes()).toEqual({ level: '4' });
     });
 
     it('replaces attribute if it exists', () => {
       trace.putAttribute('level', '4');
       trace.putAttribute('level', '7');
 
-      expect(trace.getAttributes()).to.eql({ level: '7' });
+      expect(trace.getAttributes()).toEqual({ level: '7' });
     });
 
     it('throws error if attribute name is invalid', () => {
-      expect(() => trace.putAttribute('_invalidAttribute', '1')).to.throw();
+      expect(() => trace.putAttribute('_invalidAttribute', '1')).toThrow();
     });
 
     it('throws error if attribute value is invalid', () => {
@@ -261,26 +268,26 @@ describe('Firebase Performance > trace', () => {
         'hundred-charac';
       expect(() =>
         trace.putAttribute('validName', longAttributeValue)
-      ).to.throw();
+      ).toThrow();
     });
   });
 
   describe('#getAttribute', () => {
     it('returns undefined for attribute that doesnt exist', () => {
-      expect(trace.getAttribute('level')).to.be.undefined;
+      expect(trace.getAttribute('level')).toBeUndefined();
     });
 
     it('returns attribute if it exists', () => {
       trace.putAttribute('level', '4');
-      expect(trace.getAttribute('level')).to.equal('4');
+      expect(trace.getAttribute('level')).toBe('4');
     });
 
     it('returns separate attributes if they exist', () => {
       trace.putAttribute('level', '4');
       trace.putAttribute('stage', 'beginning');
 
-      expect(trace.getAttribute('level')).to.equal('4');
-      expect(trace.getAttribute('stage')).to.equal('beginning');
+      expect(trace.getAttribute('level')).toBe('4');
+      expect(trace.getAttribute('stage')).toBe('beginning');
     });
   });
 
@@ -291,10 +298,10 @@ describe('Firebase Performance > trace', () => {
 
     it('removes attribute if it exists', () => {
       trace.putAttribute('level', '4');
-      expect(trace.getAttribute('level')).to.equal('4');
+      expect(trace.getAttribute('level')).toBe('4');
 
       trace.removeAttribute('level');
-      expect(trace.getAttribute('level')).to.be.undefined;
+      expect(trace.getAttribute('level')).toBeUndefined();
     });
 
     it('retains other attributes', () => {
@@ -302,8 +309,8 @@ describe('Firebase Performance > trace', () => {
       trace.putAttribute('stage', 'beginning');
 
       trace.removeAttribute('level');
-      expect(trace.getAttribute('level')).to.be.undefined;
-      expect(trace.getAttribute('stage')).to.equal('beginning');
+      expect(trace.getAttribute('level')).toBeUndefined();
+      expect(trace.getAttribute('stage')).toBe('beginning');
     });
   });
 

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,7 @@
  * limitations under the License.
  */
 
-import { stub, restore } from 'sinon';
 import { createNetworkRequestEntry } from '../../src/resources/network_request';
-import { expect } from 'chai';
 import { Api, setupApi } from '../services/api_service';
 import * as perfLogger from '../services/perf_logger';
 
@@ -25,6 +23,9 @@ import { FirebaseApp } from '@firebase/app';
 import { PerformanceController } from '../controllers/perf';
 import { FirebaseInstallations } from '@firebase/installations-types';
 import '../../test/setup';
+import { vi } from 'vitest';
+
+vi.mock('../services/perf_logger', { spy: true });
 
 describe('Firebase Performance > network_request', () => {
   setupApi(window);
@@ -40,12 +41,14 @@ describe('Firebase Performance > network_request', () => {
   );
 
   beforeEach(() => {
-    stub(Api.prototype, 'getTimeOrigin').returns(1528521843799.5032);
-    stub(perfLogger, 'logNetworkRequest');
+    vi.spyOn(Api.prototype, 'getTimeOrigin').mockReturnValue(
+      1528521843799.5032
+    );
   });
 
   afterEach(() => {
-    restore();
+    vi.restoreAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('#createNetworkRequestEntry', () => {
@@ -69,11 +72,9 @@ describe('Firebase Performance > network_request', () => {
 
       createNetworkRequestEntry(performanceController, PERFORMANCE_ENTRY);
 
-      expect(
-        (perfLogger.logNetworkRequest as any).calledWith(
-          EXPECTED_NETWORK_REQUEST
-        )
-      ).to.be.true;
+      expect(perfLogger.logNetworkRequest).toHaveBeenCalledWith(
+        EXPECTED_NETWORK_REQUEST
+      );
     });
 
     it('doesnt log network request when responseStart is absent', () => {
@@ -86,7 +87,7 @@ describe('Firebase Performance > network_request', () => {
 
       createNetworkRequestEntry(performanceController, PERFORMANCE_ENTRY);
 
-      expect(perfLogger.logNetworkRequest).to.not.have.been.called;
+      expect(perfLogger.logNetworkRequest).not.toHaveBeenCalled();
     });
   });
 });

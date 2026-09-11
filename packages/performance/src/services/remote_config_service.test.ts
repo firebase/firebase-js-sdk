@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { stub, useFakeTimers, SinonFakeTimers, SinonStub } from 'sinon';
-import { expect } from 'chai';
 import { SettingsService } from './settings_service';
 import { CONFIG_EXPIRY_LOCAL_STORAGE_KEY } from '../constants';
 import { setupApi, Api } from './api_service';
@@ -26,6 +24,9 @@ import { FirebaseApp } from '@firebase/app';
 import '../../test/setup';
 import { FirebaseInstallations } from '@firebase/installations-types';
 import { PerformanceController } from '../controllers/perf';
+import { vi, MockInstance } from 'vitest';
+
+vi.mock('./iid_service', { spy: true });
 
 describe('Performance Monitoring > remote_config_service', () => {
   const IID = 'asd123';
@@ -47,8 +48,6 @@ describe('Performance Monitoring > remote_config_service', () => {
   const APP_ID = '1:23r:web:fewq';
   const API_KEY = 'asdfghjk';
   const NOT_VALID_CONFIG = 'not a valid config and should not be used';
-
-  let clock: SinonFakeTimers;
 
   setupApi(self);
   const ApiInstance = Api.getInstance();
@@ -89,43 +88,34 @@ describe('Performance Monitoring > remote_config_service', () => {
     storageConfig: { expiry: string; config: string },
     fetchConfig?: { reject: boolean; value?: Response }
   ): {
-    storageGetItemStub: SinonStub<[string], string | null>;
-    fetchStub: SinonStub<[RequestInfo | URL, RequestInit?], Promise<Response>>;
+    storageGetItemStub: MockInstance;
+    fetchStub: MockInstance;
   } {
-    const fetchStub = stub(self, 'fetch');
+    const fetchStub = vi.spyOn(self, 'fetch');
 
     if (fetchConfig) {
       fetchConfig.reject
-        ? fetchStub.rejects()
-        : fetchStub.resolves(fetchConfig.value);
+        ? fetchStub.mockRejectedValue(new Error('Network error'))
+        : fetchStub.mockResolvedValue(fetchConfig.value);
     }
 
-    stub(iidService, 'getAuthTokenPromise').returns(
-      Promise.resolve(AUTH_TOKEN)
-    );
+    vi.mocked(iidService.getAuthTokenPromise).mockResolvedValue(AUTH_TOKEN);
 
-    clock = useFakeTimers(GLOBAL_CLOCK_NOW);
+    vi.useFakeTimers({ now: GLOBAL_CLOCK_NOW });
 
-    // we need to stub the entire localStorage, because storage can't be stubbed in Firefox and IE.
-    // stubbing on self(window) seems to only work the first time (at least in Firefox), the subsequent
-    // tests will have the same stub. stub.reset() in afterEach doesn't help either. As a result, we stub on ApiInstance.
-    // https://github.com/sinonjs/sinon/issues/662
-    const storageStub = stub(ApiInstance, 'localStorage');
-    const getItemStub: SinonStub<[string], string | null> = stub();
-
-    storageStub.value({
-      getItem: getItemStub.callsFake(
+    const getItemStub: MockInstance = vi.fn();
+    vi.spyOn(ApiInstance, 'localStorage', 'get').mockReturnValue({
+      getItem: getItemStub.mockImplementation(
         storageGetItemFakeFactory(storageConfig.expiry, storageConfig.config)
       ),
       setItem: () => {}
-    });
+    } as unknown as Storage);
 
     return { storageGetItemStub: getItemStub, fetchStub };
   }
 
   afterEach(() => {
     resetSettingsService();
-    clock.restore();
   });
 
   describe('getConfig', () => {
@@ -139,20 +129,18 @@ describe('Performance Monitoring > remote_config_service', () => {
 
       await getConfig(performanceController, IID);
 
-      expect(getItemStub).to.be.called;
-      expect(SettingsService.getInstance().loggingEnabled).to.be.true;
-      expect(SettingsService.getInstance().logEndPointUrl).to.equal(LOG_URL);
-      expect(SettingsService.getInstance().transportKey).to.equal(
-        TRANSPORT_KEY
+      expect(getItemStub).toHaveBeenCalled();
+      expect(SettingsService.getInstance().loggingEnabled).toBe(true);
+      expect(SettingsService.getInstance().logEndPointUrl).toBe(LOG_URL);
+      expect(SettingsService.getInstance().transportKey).toBe(TRANSPORT_KEY);
+      expect(SettingsService.getInstance().logSource).toBe(LOG_SOURCE);
+      expect(SettingsService.getInstance().networkRequestsSamplingRate).toBe(
+        NETWORK_SAMPLING_RATE
       );
-      expect(SettingsService.getInstance().logSource).to.equal(LOG_SOURCE);
-      expect(
-        SettingsService.getInstance().networkRequestsSamplingRate
-      ).to.equal(NETWORK_SAMPLING_RATE);
-      expect(SettingsService.getInstance().tracesSamplingRate).to.equal(
+      expect(SettingsService.getInstance().tracesSamplingRate).toBe(
         TRACE_SAMPLING_RATE
       );
-      expect(SettingsService.getInstance().logMaxFlushSize).to.equal(10);
+      expect(SettingsService.getInstance().logMaxFlushSize).toBe(10);
     });
 
     it('does not call remote config if a valid config is in local storage', async () => {
@@ -166,7 +154,7 @@ describe('Performance Monitoring > remote_config_service', () => {
 
       await getConfig(performanceController, IID);
 
-      expect(fetchStub).not.to.be.called;
+      expect(fetchStub).not.toHaveBeenCalled();
     });
 
     it('gets the config from RC if local version is not valid', async () => {
@@ -180,20 +168,18 @@ describe('Performance Monitoring > remote_config_service', () => {
 
       await getConfig(performanceController, IID);
 
-      expect(getItemStub).to.be.calledOnce;
-      expect(SettingsService.getInstance().loggingEnabled).to.be.true;
-      expect(SettingsService.getInstance().logEndPointUrl).to.equal(LOG_URL);
-      expect(SettingsService.getInstance().transportKey).to.equal(
-        TRANSPORT_KEY
+      expect(getItemStub).toHaveBeenCalledTimes(1);
+      expect(SettingsService.getInstance().loggingEnabled).toBe(true);
+      expect(SettingsService.getInstance().logEndPointUrl).toBe(LOG_URL);
+      expect(SettingsService.getInstance().transportKey).toBe(TRANSPORT_KEY);
+      expect(SettingsService.getInstance().logSource).toBe(LOG_SOURCE);
+      expect(SettingsService.getInstance().networkRequestsSamplingRate).toBe(
+        NETWORK_SAMPLING_RATE
       );
-      expect(SettingsService.getInstance().logSource).to.equal(LOG_SOURCE);
-      expect(
-        SettingsService.getInstance().networkRequestsSamplingRate
-      ).to.equal(NETWORK_SAMPLING_RATE);
-      expect(SettingsService.getInstance().tracesSamplingRate).to.equal(
+      expect(SettingsService.getInstance().tracesSamplingRate).toBe(
         TRACE_SAMPLING_RATE
       );
-      expect(SettingsService.getInstance().logMaxFlushSize).to.equal(10);
+      expect(SettingsService.getInstance().logMaxFlushSize).toBe(10);
     });
 
     it('does not change the default config if call to RC fails', async () => {
@@ -210,8 +196,8 @@ describe('Performance Monitoring > remote_config_service', () => {
 
       await getConfig(performanceController, IID);
 
-      expect(SettingsService.getInstance().loggingEnabled).to.equal(false);
-      expect(SettingsService.getInstance().logMaxFlushSize).to.equal(40);
+      expect(SettingsService.getInstance().loggingEnabled).toBe(false);
+      expect(SettingsService.getInstance().logMaxFlushSize).toBe(40);
     });
 
     it('uses secondary configs if the response does not have all the fields', async () => {
@@ -232,7 +218,7 @@ describe('Performance Monitoring > remote_config_service', () => {
 
       await getConfig(performanceController, IID);
 
-      expect(SettingsService.getInstance().loggingEnabled).to.be.true;
+      expect(SettingsService.getInstance().loggingEnabled).toBe(true);
     });
 
     it('uses secondary configs if the response does not have any fields', async () => {
@@ -249,7 +235,7 @@ describe('Performance Monitoring > remote_config_service', () => {
       );
       await getConfig(performanceController, IID);
 
-      expect(SettingsService.getInstance().loggingEnabled).to.be.true;
+      expect(SettingsService.getInstance().loggingEnabled).toBe(true);
     });
 
     it('gets the config from RC even with deprecated transport flag', async () => {
@@ -271,17 +257,15 @@ describe('Performance Monitoring > remote_config_service', () => {
 
       await getConfig(performanceController, IID);
 
-      expect(getItemStub).to.be.calledOnce;
-      expect(SettingsService.getInstance().loggingEnabled).to.be.true;
-      expect(SettingsService.getInstance().logEndPointUrl).to.equal(LOG_URL);
-      expect(SettingsService.getInstance().transportKey).to.equal(
-        TRANSPORT_KEY
+      expect(getItemStub).toHaveBeenCalledTimes(1);
+      expect(SettingsService.getInstance().loggingEnabled).toBe(true);
+      expect(SettingsService.getInstance().logEndPointUrl).toBe(LOG_URL);
+      expect(SettingsService.getInstance().transportKey).toBe(TRANSPORT_KEY);
+      expect(SettingsService.getInstance().logSource).toBe(LOG_SOURCE);
+      expect(SettingsService.getInstance().networkRequestsSamplingRate).toBe(
+        NETWORK_SAMPLING_RATE
       );
-      expect(SettingsService.getInstance().logSource).to.equal(LOG_SOURCE);
-      expect(
-        SettingsService.getInstance().networkRequestsSamplingRate
-      ).to.equal(NETWORK_SAMPLING_RATE);
-      expect(SettingsService.getInstance().tracesSamplingRate).to.equal(
+      expect(SettingsService.getInstance().tracesSamplingRate).toBe(
         TRACE_SAMPLING_RATE
       );
     });

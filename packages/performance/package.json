@@ -24,10 +24,11 @@
     "build:deps": "lerna run build --scope @firebase/performance --include-dependencies",
     "build:release": "yarn build",
     "dev": "rollup -c -w",
-    "test": "run-p --npm-path npm lint test:browser",
-    "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:browser",
-    "test:browser": "karma start",
-    "test:debug": "karma start --browsers=Chrome --auto-watch",
+    "test": "run-p --npm-path npm lint test:all",
+    "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all",
+    "test:all": "vitest run",
+    "test:browser": "vitest run --project=browser",
+    "test:browser:debug": "vitest --project=browser --browser.headless=false",
     "trusted-type-check": "tsec -p tsconfig.json --noEmit",
     "prettier": "prettier --cache --write '{src,test}/**/*.{js,ts}'",
     "api-report": "api-extractor run --local --verbose",
@@ -61,11 +62,5 @@
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
-  "typings": "dist/src/index.d.ts",
-  "nyc": {
-    "extension": [
-      ".ts"
-    ],
-    "reportDir": "./coverage/node"
-  }
+  "typings": "dist/src/index.d.ts"
 }
