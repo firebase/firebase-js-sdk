@@ -25,15 +25,16 @@
     "build:deps": "lerna run build --scope @firebase/analytics --include-dependencies",
     "dev": "rollup -c -w",
     "test": "run-p --npm-path npm lint test:all",
-    "test:all": "run-p --npm-path npm test:browser test:integration",
+    "test:all": "vitest run",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all",
-    "test:browser": "karma start --nocache",
+    "test:browser": "vitest run --project=browser",
     "test:integration": "karma start ./karma.integration.conf.js --nocache",
     "trusted-type-check": "tsec -p tsconfig.json --noEmit",
     "api-report": "api-extractor run --local --verbose",
     "doc": "api-documenter markdown --input temp --output docs",
     "build:doc": "yarn build && yarn doc",
-    "typings:public": "node ../../scripts/build/use_typings.js ./dist/analytics-public.d.ts"
+    "typings:public": "node ../../scripts/build/use_typings.js ./dist/analytics-public.d.ts",
+    "test:browser:debug": "vitest --project=browser --browser.headless=false"
   },
   "peerDependencies": {
     "@firebase/app": "0.x"
@@ -64,11 +65,5 @@
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
-  "typings": "dist/src/index.d.ts",
-  "nyc": {
-    "extension": [
-      ".ts"
-    ],
-    "reportDir": "./coverage/node"
-  }
+  "typings": "dist/src/index.d.ts"
 }

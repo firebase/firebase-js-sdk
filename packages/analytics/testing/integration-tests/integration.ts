@@ -19,9 +19,7 @@ import { initializeApp, deleteApp, FirebaseApp } from '@firebase/app';
 import '@firebase/installations';
 import { getAnalytics, initializeAnalytics, logEvent } from '../../src/index';
 import '../setup';
-import { expect } from 'chai';
-import { stub } from 'sinon';
-
+import { expect, vi } from 'vitest';
 let config: Record<string, string>;
 try {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -62,12 +60,12 @@ describe('FirebaseAnalytics Integration Smoke Tests', () => {
       app = initializeApp(config);
       logEvent(getAnalytics(app), 'login', { method: 'phone' });
       const eventCalls = await checkForEventCalls();
-      expect(eventCalls.length).to.equal(1);
-      expect(eventCalls[0].name).to.include('method=phone');
+      expect(eventCalls.length).toBe(1);
+      expect(eventCalls[0].name).toContain('method=phone');
     });
     it("Warns if measurement ID doesn't match.", done => {
-      const warnStub = stub(console, 'warn').callsFake(() => {
-        expect(warnStub.args[0][1]).to.include('does not match');
+      const warnStub = vi.spyOn(console, 'warn').mockImplementation(() => {
+        expect(warnStub.mock.calls[0][1]).toContain('does not match');
         done();
       });
       app = initializeApp({
@@ -82,8 +80,8 @@ describe('FirebaseAnalytics Integration Smoke Tests', () => {
       app = initializeApp(config);
       logEvent(initializeAnalytics(app), 'login', { method: 'email' });
       const eventCalls = await checkForEventCalls();
-      expect(eventCalls.length).to.equal(1);
-      expect(eventCalls[0].name).to.include('method=email');
+      expect(eventCalls.length).toBe(1);
+      expect(eventCalls[0].name).toContain('method=email');
     });
   });
 });

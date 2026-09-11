@@ -15,8 +15,7 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-import { SinonStub, stub } from 'sinon';
+import { expect, vi, MockInstance } from 'vitest';
 import '../testing/setup';
 import { _initializeAnalytics } from './initialize-analytics';
 import {
@@ -41,22 +40,22 @@ const fakeMeasurementId = 'abcd-efgh-ijkl';
 const fakeFid = 'fid-1234-zyxw';
 const fakeAppId = 'abcdefgh12345:23405';
 const fakeAppParams = { appId: fakeAppId, apiKey: 'AAbbCCdd12345' };
-let fetchStub: SinonStub;
+let fetchStub: MockInstance;
 let fakeInstallations: _FirebaseInstallationsInternal;
 
 function stubFetch(): void {
-  fetchStub = stub(window, 'fetch');
+  fetchStub = vi.spyOn(window, 'fetch');
   const mockResponse = new window.Response(
     JSON.stringify({ measurementId: fakeMeasurementId, appId: fakeAppId }),
     {
       status: 200
     }
   );
-  fetchStub.returns(Promise.resolve(mockResponse));
+  fetchStub.mockResolvedValue(mockResponse);
 }
 
 describe('initializeAnalytics()', () => {
-  const gtagStub: SinonStub = stub();
+  const gtagStub: MockInstance = vi.fn();
   const dynamicPromisesList: Array<Promise<DynamicConfig>> = [];
   const measurementIdToAppId: { [key: string]: string } = {};
   let app: FirebaseApp;
@@ -67,7 +66,7 @@ describe('initializeAnalytics()', () => {
     fakeInstallations = getFakeInstallations(fakeFid, fidDeferred.resolve);
   });
   afterEach(() => {
-    fetchStub.restore();
+    fetchStub.mockRestore();
     removeGtagScripts();
   });
   it('gets FID and measurement ID and calls gtag config with them', async () => {
@@ -80,11 +79,15 @@ describe('initializeAnalytics()', () => {
       gtagStub,
       'dataLayer'
     );
-    expect(gtagStub).to.be.calledWith(GtagCommand.CONFIG, fakeMeasurementId, {
-      'firebase_id': fakeFid,
-      'origin': 'firebase',
-      update: true
-    });
+    expect(gtagStub).toHaveBeenCalledWith(
+      GtagCommand.CONFIG,
+      fakeMeasurementId,
+      {
+        'firebase_id': fakeFid,
+        'origin': 'firebase',
+        update: true
+      }
+    );
   });
   it('calls gtag config with options if provided', async () => {
     stubFetch();
@@ -97,12 +100,16 @@ describe('initializeAnalytics()', () => {
       'dataLayer',
       { config: { 'send_page_view': false } }
     );
-    expect(gtagStub).to.be.calledWith(GtagCommand.CONFIG, fakeMeasurementId, {
-      'firebase_id': fakeFid,
-      'origin': 'firebase',
-      update: true,
-      'send_page_view': false
-    });
+    expect(gtagStub).toHaveBeenCalledWith(
+      GtagCommand.CONFIG,
+      fakeMeasurementId,
+      {
+        'firebase_id': fakeFid,
+        'origin': 'firebase',
+        update: true,
+        'send_page_view': false
+      }
+    );
   });
   it('calls gtag set if there are default event parameters', async () => {
     stubFetch();
@@ -119,9 +126,12 @@ describe('initializeAnalytics()', () => {
       gtagStub,
       'dataLayer'
     );
-    expect(gtagStub).to.be.calledWith(GtagCommand.SET, eventParametersForInit);
+    expect(gtagStub).toHaveBeenCalledWith(
+      GtagCommand.SET,
+      eventParametersForInit
+    );
     // defaultEventParametersForInit is reset after initialization.
-    expect(defaultEventParametersForInit).to.equal(undefined);
+    expect(defaultEventParametersForInit).toBe(undefined);
   });
   it('calls gtag consent if there are default consent parameters', async () => {
     stubFetch();
@@ -138,13 +148,13 @@ describe('initializeAnalytics()', () => {
       gtagStub,
       'dataLayer'
     );
-    expect(gtagStub).to.be.calledWith(
+    expect(gtagStub).toHaveBeenCalledWith(
       GtagCommand.CONSENT,
       'default',
       consentParametersForInit
     );
     // defaultEventParametersForInit is reset after initialization.
-    expect(defaultConsentSettingsForInit).to.equal(undefined);
+    expect(defaultConsentSettingsForInit).toBe(undefined);
   });
   it('puts dynamic fetch promise into dynamic promises list', async () => {
     stubFetch();
@@ -157,8 +167,8 @@ describe('initializeAnalytics()', () => {
       'dataLayer'
     );
     const dynamicPromiseResult = await dynamicPromisesList[0];
-    expect(dynamicPromiseResult.measurementId).to.equal(fakeMeasurementId);
-    expect(dynamicPromiseResult.appId).to.equal(fakeAppId);
+    expect(dynamicPromiseResult.measurementId).toBe(fakeMeasurementId);
+    expect(dynamicPromiseResult.appId).toBe(fakeAppId);
   });
   it('puts dynamically fetched measurementId into lookup table', async () => {
     stubFetch();
@@ -170,11 +180,11 @@ describe('initializeAnalytics()', () => {
       gtagStub,
       'dataLayer'
     );
-    expect(measurementIdToAppId[fakeMeasurementId]).to.equal(fakeAppId);
+    expect(measurementIdToAppId[fakeMeasurementId]).toBe(fakeAppId);
   });
   it('warns on local/fetched measurement ID mismatch', async () => {
     stubFetch();
-    const consoleStub = stub(console, 'warn');
+    const consoleStub = vi.spyOn(console, 'warn');
     await _initializeAnalytics(
       getFakeApp({ ...fakeAppParams, measurementId: 'old-measurement-id' }),
       dynamicPromisesList,
@@ -183,9 +193,9 @@ describe('initializeAnalytics()', () => {
       gtagStub,
       'dataLayer'
     );
-    expect(consoleStub.args[0][1]).to.include(fakeMeasurementId);
-    expect(consoleStub.args[0][1]).to.include('old-measurement-id');
-    expect(consoleStub.args[0][1]).to.include('does not match');
-    consoleStub.restore();
+    expect(consoleStub.mock.calls[0][1]).toContain(fakeMeasurementId);
+    expect(consoleStub.mock.calls[0][1]).toContain('old-measurement-id');
+    expect(consoleStub.mock.calls[0][1]).toContain('does not match');
+    consoleStub.mockRestore();
   });
 });
