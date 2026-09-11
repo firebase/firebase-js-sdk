@@ -17,6 +17,7 @@
 
 import '../testing/setup';
 
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   refreshFidRegistrationIfStored,
   subscribeFidChangeRegistration
@@ -27,23 +28,60 @@ import {
   getFakeApp
 } from '../testing/fakes/firebase-dependencies';
 import { FakeServiceWorkerRegistration } from '../testing/fakes/service-worker';
-import { stub } from 'sinon';
-import { expect } from 'chai';
 import * as installationsApi from '@firebase/installations';
-import * as requestsModule from '../internals/requests';
-import * as idbManager from '../internals/idb-manager';
-import { Stub } from '../testing/sinon-types';
 import { _FirebaseInstallationsInternal } from '@firebase/installations';
 import { dbDelete } from '../internals/idb-manager';
 
+const {
+  mockOnIdChange,
+  mockRequestCreateRegistration,
+  mockDbGetFidRegistration
+} = vi.hoisted(() => ({
+  mockOnIdChange: vi.fn(),
+  mockRequestCreateRegistration: vi.fn(),
+  mockDbGetFidRegistration: vi.fn()
+}));
+
+vi.mock('@firebase/installations', async importOriginal => {
+  const actual =
+    await importOriginal<typeof import('@firebase/installations')>();
+  return {
+    ...actual,
+    onIdChange: (...args: unknown[]) =>
+      mockOnIdChange.getMockImplementation()
+        ? mockOnIdChange(...args)
+        : actual.onIdChange(...(args as [any, any]))
+  };
+});
+
+vi.mock('../internals/requests', async importOriginal => {
+  const actual = await importOriginal<typeof import('../internals/requests')>();
+  return {
+    ...actual,
+    requestCreateRegistration: (...args: unknown[]) =>
+      mockRequestCreateRegistration.getMockImplementation()
+        ? mockRequestCreateRegistration(...args)
+        : actual.requestCreateRegistration(...(args as [any, any]))
+  };
+});
+
+vi.mock('../internals/idb-manager', async importOriginal => {
+  const actual =
+    await importOriginal<typeof import('../internals/idb-manager')>();
+  return {
+    ...actual,
+    dbGetFidRegistration: (...args: unknown[]) =>
+      mockDbGetFidRegistration.getMockImplementation()
+        ? mockDbGetFidRegistration(...args)
+        : actual.dbGetFidRegistration(...(args as [any]))
+  };
+});
+
 describe('refreshFidRegistrationIfStored', () => {
   let messaging: MessagingService;
-  let requestCreateRegistrationStub: Stub<
-    typeof requestsModule.requestCreateRegistration
-  >;
-  let dbGetFidRegistrationStub: Stub<typeof idbManager.dbGetFidRegistration>;
 
   beforeEach(() => {
+    vi.clearAllMocks();
     const app = getFakeApp();
     messaging = new MessagingService(
       app,
@@ -56,42 +94,32 @@ describe('refreshFidRegistrationIfStored', () => {
     messaging.swRegistration =
       new FakeServiceWorkerRegistration() as unknown as ServiceWorkerRegistration;
 
-    requestCreateRegistrationStub = stub(
-      requestsModule,
-      'requestCreateRegistration'
-    ).callsFake(async () => ({
+    mockRequestCreateRegistration.mockReset().mockImplementation(async () => ({
       responseFid: 'fid-1'
-    })) as Stub<typeof requestsModule.requestCreateRegistration>;
+    }));
 
-    dbGetFidRegistrationStub = stub(
-      idbManager,
-      'dbGetFidRegistration'
-    ).resolves(undefined) as Stub<typeof idbManager.dbGetFidRegistration>;
-  });
-
-  afterEach(() => {
-    requestCreateRegistrationStub.restore();
-    dbGetFidRegistrationStub.restore();
+    mockDbGetFidRegistration.mockReset().mockResolvedValue(undefined);
   });
 
   it('re-registers with FCM when FID metadata exists and notifies onRegistered', async () => {
-    const onRegisteredSpy = stub();
+    const onRegisteredSpy = vi.fn();
     messaging.onRegisteredHandler = onRegisteredSpy;
-    dbGetFidRegistrationStub.resolves({
+    mockDbGetFidRegistration.mockResolvedValue({
       fid: 'fid-1',
       lastRegisterTime: Date.now()
     });
 
     await refreshFidRegistrationIfStored(messaging);
 
-    expect(requestCreateRegistrationStub).to.have.been.calledOnce;
-    expect(onRegisteredSpy).to.have.been.calledOnceWith('fid-1');
+    expect(mockRequestCreateRegistration).toHaveBeenCalledTimes(1);
+    expect(onRegisteredSpy).toHaveBeenCalledTimes(1);
+    expect(onRegisteredSpy).toHaveBeenCalledWith('fid-1');
   });
 
   it('uses stored VAPID key when available', async () => {
-    const onRegisteredSpy = stub();
+    const onRegisteredSpy = vi.fn();
     messaging.onRegisteredHandler = onRegisteredSpy;
-    dbGetFidRegistrationStub.resolves({
+    mockDbGetFidRegistration.mockResolvedValue({
       fid: 'fid-1',
       lastRegisterTime: Date.now(),
       vapidKey: 'custom-vapid-key'
@@ -99,16 +127,16 @@ describe('refreshFidRegistrationIfStored', () => {
 
     await refreshFidRegistrationIfStored(messaging);
 
-    expect(messaging.vapidKey).to.equal('custom-vapid-key');
+    expect(messaging.vapidKey).toEqual('custom-vapid-key');
   });
 
   it('no-ops when the app instance was never registered with FCM', async () => {
-    messaging.onRegisteredHandler = stub();
-    dbGetFidRegistrationStub.resolves(undefined);
+    messaging.onRegisteredHandler = vi.fn() as any;
+    mockDbGetFidRegistration.mockResolvedValue(undefined);
 
     await refreshFidRegistrationIfStored(messaging);
 
-    expect(requestCreateRegistrationStub).to.not.have.been.called;
+    expect(mockRequestCreateRegistration).not.toHaveBeenCalled();
   });
 });
 
@@ -118,16 +146,12 @@ describe('subscribeFidChangeRegistration', () => {
   let installationsInternal: _FirebaseInstallationsInternal;
   let currentFid: string;
   let installations: installationsApi.Installations;
-  let onIdChangeStub: Stub<typeof installationsApi.onIdChange>;
-  let requestCreateRegistrationStub: Stub<
-    typeof requestsModule.requestCreateRegistration
-  >;
   let fidChangeCallback: installationsApi.IdChangeCallbackFn | undefined;
-  let unsubscribeStub: ReturnType<typeof stub>;
-  let dbGetFidRegistrationStub: Stub<typeof idbManager.dbGetFidRegistration>;
+  let unsubscribeStub: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
-    stub(Notification, 'permission').value('granted');
+    vi.clearAllMocks();
+    vi.spyOn(Notification, 'permission', 'get').mockReturnValue('granted');
     const app = getFakeApp();
     currentFid = 'fid-before-rotation';
     installationsInternal = {
@@ -146,38 +170,31 @@ describe('subscribeFidChangeRegistration', () => {
       new FakeServiceWorkerRegistration() as unknown as ServiceWorkerRegistration;
 
     fidChangeCallback = undefined;
-    unsubscribeStub = stub();
-    onIdChangeStub = stub(installationsApi, 'onIdChange').callsFake(
-      (_installations, cb: installationsApi.IdChangeCallbackFn) => {
-        fidChangeCallback = cb;
-        return unsubscribeStub;
-      }
-    ) as Stub<typeof installationsApi.onIdChange>;
+    unsubscribeStub = vi.fn();
+    mockOnIdChange
+      .mockReset()
+      .mockImplementation(
+        (_installations: any, cb: installationsApi.IdChangeCallbackFn) => {
+          fidChangeCallback = cb;
+          return unsubscribeStub;
+        }
+      );
 
-    requestCreateRegistrationStub = stub(
-      requestsModule,
-      'requestCreateRegistration'
-    ).callsFake(async () => ({
+    mockRequestCreateRegistration.mockReset().mockImplementation(async () => ({
       responseFid: currentFid
-    })) as Stub<typeof requestsModule.requestCreateRegistration>;
+    }));
 
-    dbGetFidRegistrationStub = stub(
-      idbManager,
-      'dbGetFidRegistration'
-    ).resolves(undefined) as Stub<typeof idbManager.dbGetFidRegistration>;
+    mockDbGetFidRegistration.mockReset().mockResolvedValue(undefined);
   });
 
   afterEach(async () => {
-    onIdChangeStub.restore();
-    requestCreateRegistrationStub.restore();
-    dbGetFidRegistrationStub.restore();
     await dbDelete();
   });
 
   it('runs real register when Installations invokes the FID change callback and delivers the new FID via onRegistered', async () => {
-    const onRegisteredSpy = stub();
+    const onRegisteredSpy = vi.fn();
     messaging.onRegisteredHandler = onRegisteredSpy;
-    dbGetFidRegistrationStub.resolves({
+    mockDbGetFidRegistration.mockResolvedValue({
       fid: 'fid-before-rotation',
       lastRegisterTime: Date.now()
     });
@@ -192,13 +209,14 @@ describe('subscribeFidChangeRegistration', () => {
     await new Promise<void>(resolve => setTimeout(resolve, 0));
     await messaging._registerNotifyChain;
 
-    expect(onRegisteredSpy).to.have.been.calledOnceWith('fid-after-rotation');
-    expect(requestCreateRegistrationStub).to.have.been.calledOnce;
+    expect(onRegisteredSpy).toHaveBeenCalledTimes(1);
+    expect(onRegisteredSpy).toHaveBeenCalledWith('fid-after-rotation');
+    expect(mockRequestCreateRegistration).toHaveBeenCalledTimes(1);
   });
 
   it('does not call register when the app instance was never registered with FCM', async () => {
-    messaging.onRegisteredHandler = stub();
-    dbGetFidRegistrationStub.resolves(undefined);
+    messaging.onRegisteredHandler = vi.fn() as any;
+    mockDbGetFidRegistration.mockResolvedValue(undefined);
 
     subscribeFidChangeRegistration(messaging, installations);
 
@@ -208,12 +226,12 @@ describe('subscribeFidChangeRegistration', () => {
     await new Promise<void>(resolve => setTimeout(resolve, 0));
     await messaging._registerNotifyChain;
 
-    expect(requestCreateRegistrationStub).to.not.have.been.called;
+    expect(mockRequestCreateRegistration).not.toHaveBeenCalled();
   });
 
   it('does not call register when onRegistered handler is not set', async () => {
     messaging.onRegisteredHandler = null;
-    dbGetFidRegistrationStub.resolves({
+    mockDbGetFidRegistration.mockResolvedValue({
       fid: 'fid-before-rotation',
       lastRegisterTime: Date.now()
     });
@@ -226,17 +244,17 @@ describe('subscribeFidChangeRegistration', () => {
     await new Promise<void>(resolve => setTimeout(resolve, 0));
     await messaging._registerNotifyChain;
 
-    expect(requestCreateRegistrationStub).to.not.have.been.called;
+    expect(mockRequestCreateRegistration).not.toHaveBeenCalled();
   });
 
   it('does not call the unsubscribe function when FID changes (unsubscribe is only for teardown)', async () => {
-    messaging.onRegisteredHandler = stub();
+    messaging.onRegisteredHandler = vi.fn() as any;
 
     const unsubscribe = subscribeFidChangeRegistration(
       messaging,
       installations
     );
-    expect(unsubscribe).to.equal(unsubscribeStub);
+    expect(unsubscribe).toEqual(unsubscribeStub);
 
     currentFid = 'b';
     fidChangeCallback!('b');
@@ -246,6 +264,6 @@ describe('subscribeFidChangeRegistration', () => {
     await new Promise<void>(resolve => setTimeout(resolve, 0));
     await messaging._registerNotifyChain;
 
-    expect(unsubscribeStub).to.not.have.been.called;
+    expect(unsubscribeStub).not.toHaveBeenCalled();
   });
 });

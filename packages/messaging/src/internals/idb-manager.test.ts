@@ -16,8 +16,7 @@
  */
 
 import '../testing/setup';
-
-import * as migrateOldDatabaseModule from '../helpers/migrate-old-database';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 import {
   dbDelete,
@@ -32,13 +31,26 @@ import {
 } from '../internals/idb-manager';
 
 import { FirebaseInternalDependencies } from '../interfaces/internal-dependencies';
-import { Stub } from '../testing/sinon-types';
 import { TokenDetails } from '../interfaces/registration-details';
-import { expect } from 'chai';
 import { getFakeFirebaseDependencies } from '../testing/fakes/firebase-dependencies';
 import { getFakeTokenDetails } from '../testing/fakes/token-details';
-import { stub } from 'sinon';
 import { deleteDB, openDB } from 'idb';
+
+const { mockMigrateOldDatabase } = vi.hoisted(() => ({
+  mockMigrateOldDatabase: vi.fn()
+}));
+
+vi.mock('../helpers/migrate-old-database', async importOriginal => {
+  const actual =
+    await importOriginal<typeof import('../helpers/migrate-old-database')>();
+  return {
+    ...actual,
+    migrateOldDatabase: (...args: unknown[]) =>
+      mockMigrateOldDatabase.getMockImplementation()
+        ? mockMigrateOldDatabase(...args)
+        : actual.migrateOldDatabase(...(args as [any]))
+  };
+});
 
 describe('idb manager', () => {
   let firebaseDependencies: FirebaseInternalDependencies;
@@ -47,7 +59,7 @@ describe('idb manager', () => {
   let idbForTests: any;
 
   beforeEach(async () => {
-    // Wrap the module namespace in a mutable object so sinon can stub methods reliably.
+    // Wrap the module namespace in a mutable object so spies can stub methods reliably.
     idbForTests = Object.assign({}, { openDB, deleteDB });
     _setIdbForTests(idbForTests);
     // Ensure no prior suite left an open connection or cached promise.
@@ -68,12 +80,12 @@ describe('idb manager', () => {
     it('sets a value and then gets the same value back', async () => {
       await dbSet(firebaseDependencies, tokenDetailsA);
       const value = await dbGet(firebaseDependencies);
-      expect(value).to.deep.equal(tokenDetailsA);
+      expect(value).toEqual(tokenDetailsA);
     });
 
     it('gets undefined for a key that does not exist', async () => {
       const value = await dbGet(firebaseDependencies);
-      expect(value).to.be.undefined;
+      expect(value).toBeUndefined();
     });
 
     it('sets and gets multiple values with different keys', async () => {
@@ -82,32 +94,30 @@ describe('idb manager', () => {
       });
       await dbSet(firebaseDependencies, tokenDetailsA);
       await dbSet(firebaseDependenciesB, tokenDetailsB);
-      expect(await dbGet(firebaseDependencies)).to.deep.equal(tokenDetailsA);
-      expect(await dbGet(firebaseDependenciesB)).to.deep.equal(tokenDetailsB);
+      expect(await dbGet(firebaseDependencies)).toEqual(tokenDetailsA);
+      expect(await dbGet(firebaseDependenciesB)).toEqual(tokenDetailsB);
     });
 
     it('overwrites a value', async () => {
       await dbSet(firebaseDependencies, tokenDetailsA);
       await dbSet(firebaseDependencies, tokenDetailsB);
-      expect(await dbGet(firebaseDependencies)).to.deep.equal(tokenDetailsB);
+      expect(await dbGet(firebaseDependencies)).toEqual(tokenDetailsB);
     });
 
     describe('old DB migration', () => {
-      let migrateOldDatabaseStub: Stub<
-        (typeof migrateOldDatabaseModule)['migrateOldDatabase']
-      >;
-
       beforeEach(() => {
-        migrateOldDatabaseStub = stub(
-          migrateOldDatabaseModule,
-          'migrateOldDatabase'
-        ).resolves(tokenDetailsA);
+        mockMigrateOldDatabase.mockResolvedValue(tokenDetailsA);
+      });
+
+      afterEach(() => {
+        mockMigrateOldDatabase.mockReset();
       });
 
       it('gets value from old DB if there is one', async () => {
         await dbGet(firebaseDependencies);
 
-        expect(migrateOldDatabaseStub).to.have.been.calledOnceWith(
+        expect(mockMigrateOldDatabase).toHaveBeenCalledTimes(1);
+        expect(mockMigrateOldDatabase).toHaveBeenCalledWith(
           firebaseDependencies.appConfig.senderId
         );
       });
@@ -116,7 +126,8 @@ describe('idb manager', () => {
         await dbGet(firebaseDependencies);
         await dbGet(firebaseDependencies);
 
-        expect(migrateOldDatabaseStub).to.have.been.calledOnceWith(
+        expect(mockMigrateOldDatabase).toHaveBeenCalledTimes(1);
+        expect(mockMigrateOldDatabase).toHaveBeenCalledWith(
           firebaseDependencies.appConfig.senderId
         );
       });
@@ -126,7 +137,7 @@ describe('idb manager', () => {
 
         await dbGet(firebaseDependencies);
 
-        expect(migrateOldDatabaseStub).not.to.have.been.called;
+        expect(mockMigrateOldDatabase).not.toHaveBeenCalled();
       });
     });
   });
@@ -135,12 +146,12 @@ describe('idb manager', () => {
     it('deletes a key', async () => {
       await dbSet(firebaseDependencies, tokenDetailsA);
       await dbRemove(firebaseDependencies);
-      expect(await dbGet(firebaseDependencies)).to.be.undefined;
+      expect(await dbGet(firebaseDependencies)).toBeUndefined();
     });
 
     it('does not throw if key does not exist', async () => {
       await dbRemove(firebaseDependencies);
-      expect(await dbGet(firebaseDependencies)).to.be.undefined;
+      expect(await dbGet(firebaseDependencies)).toBeUndefined();
     });
   });
 
@@ -159,7 +170,7 @@ describe('idb manager', () => {
     dbV1.close();
 
     const realOpenDB = openDB;
-    const openDbStub = stub(idbForTests, 'openDB').callsFake(((
+    const openDbStub = vi.spyOn(idbForTests, 'openDB').mockImplementation(((
       name: string,
       version?: number,
       options?: unknown
@@ -171,8 +182,8 @@ describe('idb manager', () => {
     }) as any);
 
     const value = await dbGet(firebaseDependencies);
-    expect(value).to.deep.equal(tokenDetailsA);
-    expect(openDbStub).to.have.been.called;
+    expect(value).toEqual(tokenDetailsA);
+    expect(openDbStub).toHaveBeenCalled();
   });
 
   it('dbGetFidRegistration and dbSetFidRegistration reject when v2 open fails and the FID object store is missing', async () => {
@@ -189,7 +200,7 @@ describe('idb manager', () => {
     dbV1.close();
 
     const realOpenDB = openDB;
-    stub(idbForTests, 'openDB').callsFake(((
+    vi.spyOn(idbForTests, 'openDB').mockImplementation(((
       name: string,
       version?: number,
       options?: unknown
@@ -202,7 +213,7 @@ describe('idb manager', () => {
 
     const schemaError = 'messaging/fid-registration-idb-schema-unavailable';
 
-    await expect(dbGetFidRegistration(firebaseDependencies)).to.be.rejectedWith(
+    await expect(dbGetFidRegistration(firebaseDependencies)).rejects.toThrow(
       schemaError
     );
     await expect(
@@ -210,7 +221,7 @@ describe('idb manager', () => {
         fid: 'some-fid',
         lastRegisterTime: Date.now()
       })
-    ).to.be.rejectedWith(schemaError);
+    ).rejects.toThrow(schemaError);
   });
 
   it('only initiates one openDB call under concurrent access', async () => {
@@ -220,7 +231,7 @@ describe('idb manager', () => {
       releaseOpen = resolve;
     });
 
-    const openDbStub = stub(idbForTests, 'openDB').callsFake(((
+    const openDbStub = vi.spyOn(idbForTests, 'openDB').mockImplementation(((
       name: string,
       version?: number,
       options?: unknown
@@ -237,7 +248,7 @@ describe('idb manager', () => {
     const p2 = dbSet(firebaseDependencies, tokenDetailsA);
 
     // Both calls should share the same in-flight openDB promise.
-    expect(openDbStub.callCount).to.equal(1);
+    expect(openDbStub).toHaveBeenCalledTimes(1);
 
     releaseOpen();
     await Promise.all([p1, p2]);
@@ -245,19 +256,22 @@ describe('idb manager', () => {
 
   it('dbDelete calls deleteDB even if dbPromise is rejected', async () => {
     // Force both "open latest" and fallback open to fail, leaving dbPromise rejected.
-    const openDbStub = stub(idbForTests, 'openDB').rejects(
-      new Error('open failed')
-    );
+    const openDbStub = vi
+      .spyOn(idbForTests, 'openDB')
+      .mockRejectedValue(new Error('open failed'));
 
     // Trigger dbPromise creation (it will end up rejected).
-    await expect(dbGet(firebaseDependencies)).to.be.rejected;
-    expect(openDbStub).to.have.been.called;
+    await expect(dbGet(firebaseDependencies)).rejects.toThrow();
+    expect(openDbStub).toHaveBeenCalled();
 
-    const deleteDbStub = stub(idbForTests, 'deleteDB').resolves();
+    const deleteDbStub = vi
+      .spyOn(idbForTests, 'deleteDB')
+      .mockResolvedValue(undefined as any);
 
     // Should still attempt deletion and not throw.
     await dbDelete();
-    expect(deleteDbStub).to.have.been.calledOnceWith(DATABASE_NAME);
+    expect(deleteDbStub).toHaveBeenCalledTimes(1);
+    expect(deleteDbStub).toHaveBeenCalledWith(DATABASE_NAME);
   });
 
   describe('mutual exclusivity', () => {
@@ -267,26 +281,26 @@ describe('idb manager', () => {
         lastRegisterTime: Date.now()
       });
 
-      expect(await dbGetFidRegistration(firebaseDependencies)).to.exist;
+      expect(await dbGetFidRegistration(firebaseDependencies)).toBeDefined();
 
       await dbSet(firebaseDependencies, tokenDetailsA);
 
-      expect(await dbGetFidRegistration(firebaseDependencies)).to.be.undefined;
-      expect(await dbGet(firebaseDependencies)).to.deep.equal(tokenDetailsA);
+      expect(await dbGetFidRegistration(firebaseDependencies)).toBeUndefined();
+      expect(await dbGet(firebaseDependencies)).toEqual(tokenDetailsA);
     });
 
     it('dbSetFidRegistration deletes legacy token if it exists', async () => {
       await dbSet(firebaseDependencies, tokenDetailsA);
 
-      expect(await dbGet(firebaseDependencies)).to.deep.equal(tokenDetailsA);
+      expect(await dbGet(firebaseDependencies)).toEqual(tokenDetailsA);
 
       await dbSetFidRegistration(firebaseDependencies, {
         fid: 'FID',
         lastRegisterTime: Date.now()
       });
 
-      expect(await dbGet(firebaseDependencies)).to.be.undefined;
-      expect((await dbGetFidRegistration(firebaseDependencies))?.fid).to.equal(
+      expect(await dbGet(firebaseDependencies)).toBeUndefined();
+      expect((await dbGetFidRegistration(firebaseDependencies))?.fid).toEqual(
         'FID'
       );
     });
