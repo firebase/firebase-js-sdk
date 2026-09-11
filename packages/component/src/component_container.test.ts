@@ -15,8 +15,7 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-import { stub } from 'sinon';
+import { expect, vi } from 'vitest';
 import { ComponentContainer } from './component_container';
 import '../test/setup';
 import { Provider } from './provider';
@@ -54,7 +53,7 @@ describe('Component Container', () => {
 
   it('calls setComponent() on provider with the same name when registering a component', () => {
     const provider = container.getProvider('fireball');
-    const setComponentStub = stub(provider, 'setComponent').callThrough();
+    const setComponentStub = vi.spyOn(provider, 'setComponent');
     const component = getFakeComponent(
       'fireball',
       () => ({ test: 1 }),
@@ -63,7 +62,7 @@ describe('Component Container', () => {
     );
     container.addComponent(component);
 
-    expect(setComponentStub).has.been.calledWith(component);
+    expect(setComponentStub).toHaveBeenCalledWith(component);
   });
 
   it('throws when registering multiple components with the same name, when overwrite is false', () => {
