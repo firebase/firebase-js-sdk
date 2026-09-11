@@ -15,37 +15,36 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
 import { _errorForResponse } from './error';
 
 describe('Error handling', () => {
   describe('_errorForResponse()', () => {
     it('returns null if ok', () => {
-      expect(_errorForResponse(200, null)).to.be.null;
+      expect(_errorForResponse(200, null)).toBeNull();
     });
     it('returns not-found error if 404', () => {
       const err = _errorForResponse(404, null, 'http://wrong-url.com');
-      expect(err?.message).to.equal('not-found [404]');
-      expect(err?.code).to.equal('functions/not-found');
-      expect(err?.customData?.url).to.equal('http://wrong-url.com');
+      expect(err?.message).toBe('not-found [404]');
+      expect(err?.code).toBe('functions/not-found');
+      expect(err?.customData?.url).toBe('http://wrong-url.com');
     });
     it('returns internal error and httpStatus if 0', () => {
       const err = _errorForResponse(0, null, 'http://wrong-url.com');
-      expect(err?.message).to.equal('internal [0]');
-      expect(err?.code).to.equal('functions/internal');
-      expect(err?.customData?.url).to.equal('http://wrong-url.com');
+      expect(err?.message).toBe('internal [0]');
+      expect(err?.code).toBe('functions/internal');
+      expect(err?.customData?.url).toBe('http://wrong-url.com');
     });
     it('returns internal error and httpStatus if 500', () => {
       const err = _errorForResponse(500, null, 'http://wrong-url.com');
-      expect(err?.message).to.equal('internal [500]');
-      expect(err?.code).to.equal('functions/internal');
-      expect(err?.customData?.url).to.equal('http://wrong-url.com');
+      expect(err?.message).toBe('internal [500]');
+      expect(err?.code).toBe('functions/internal');
+      expect(err?.customData?.url).toBe('http://wrong-url.com');
     });
     it('returns unknown and httpStatus if unknown http status', () => {
       const err = _errorForResponse(300, null, 'http://wrong-url.com');
-      expect(err?.message).to.equal('unknown [300]');
-      expect(err?.code).to.equal('functions/unknown');
-      expect(err?.customData?.url).to.equal('http://wrong-url.com');
+      expect(err?.message).toBe('unknown [300]');
+      expect(err?.code).toBe('functions/unknown');
+      expect(err?.customData?.url).toBe('http://wrong-url.com');
     });
     it('returns backend error message if json error.status is a known code', () => {
       const err = _errorForResponse(
@@ -53,9 +52,9 @@ describe('Error handling', () => {
         { error: { status: 'NOT_FOUND' } },
         'http://wrong-url.com'
       );
-      expect(err?.message).to.equal('Backend error status: NOT_FOUND [404]');
-      expect(err?.code).to.equal('functions/not-found');
-      expect(err?.customData?.url).to.equal('http://wrong-url.com');
+      expect(err?.message).toBe('Backend error status: NOT_FOUND [404]');
+      expect(err?.code).toBe('functions/not-found');
+      expect(err?.customData?.url).toBe('http://wrong-url.com');
     });
     it(
       'returns backend error message if httpStatus is 0 and ' +
@@ -66,9 +65,9 @@ describe('Error handling', () => {
           { error: { status: 'NOT_FOUND' } },
           'http://wrong-url.com'
         );
-        expect(err?.message).to.equal('Backend error status: NOT_FOUND [0]');
-        expect(err?.code).to.equal('functions/not-found');
-        expect(err?.customData?.url).to.equal('http://wrong-url.com');
+        expect(err?.message).toBe('Backend error status: NOT_FOUND [0]');
+        expect(err?.code).toBe('functions/not-found');
+        expect(err?.customData?.url).toBe('http://wrong-url.com');
       }
     );
     it(
@@ -82,11 +81,11 @@ describe('Error handling', () => {
           },
           'http://wrong-url.com'
         );
-        expect(err?.message).to.equal(
+        expect(err?.message).toBe(
           'Unknown backend error status: page not found [404]'
         );
-        expect(err?.code).to.equal('functions/internal');
-        expect(err?.customData?.url).to.equal('http://wrong-url.com');
+        expect(err?.code).toBe('functions/internal');
+        expect(err?.customData?.url).toBe('http://wrong-url.com');
       }
     );
     it(
@@ -100,11 +99,9 @@ describe('Error handling', () => {
           },
           'http://wrong-url.com'
         );
-        expect(err?.message).to.equal(
-          'Unknown backend error status: weird [0]'
-        );
-        expect(err?.code).to.equal('functions/internal');
-        expect(err?.customData?.url).to.equal('http://wrong-url.com');
+        expect(err?.message).toBe('Unknown backend error status: weird [0]');
+        expect(err?.code).toBe('functions/internal');
+        expect(err?.customData?.url).toBe('http://wrong-url.com');
       }
     );
     it('processes details correctly', () => {
@@ -121,10 +118,10 @@ describe('Error handling', () => {
         },
         'http://wrong-url.com'
       );
-      expect(err?.message).to.equal('Backend error status: NOT_FOUND [404]');
-      expect(err?.code).to.equal('functions/not-found');
-      expect(err?.customData?.url).to.equal('http://wrong-url.com');
-      expect(err?.details).to.equal(4);
+      expect(err?.message).toBe('Backend error status: NOT_FOUND [404]');
+      expect(err?.code).toBe('functions/not-found');
+      expect(err?.customData?.url).toBe('http://wrong-url.com');
+      expect(err?.details).toBe(4);
     });
     it('processes details correctly (no url)', () => {
       const err = _errorForResponse(404, {
@@ -136,16 +133,16 @@ describe('Error handling', () => {
           }
         }
       });
-      expect(err?.message).to.equal('Backend error status: NOT_FOUND [404]');
-      expect(err?.code).to.equal('functions/not-found');
-      expect(err?.customData?.url).to.be.undefined;
-      expect(err?.details).to.equal(4);
+      expect(err?.message).toBe('Backend error status: NOT_FOUND [404]');
+      expect(err?.code).toBe('functions/not-found');
+      expect(err?.customData?.url).toBeUndefined();
+      expect(err?.details).toBe(4);
     });
     it('processes correctly when there are no details and no url', () => {
       const err = _errorForResponse(404, null);
-      expect(err?.message).to.equal('not-found [404]');
-      expect(err?.code).to.equal('functions/not-found');
-      expect(err?.customData).to.be.undefined;
+      expect(err?.message).toBe('not-found [404]');
+      expect(err?.code).toBe('functions/not-found');
+      expect(err?.customData).toBeUndefined();
     });
   });
 });

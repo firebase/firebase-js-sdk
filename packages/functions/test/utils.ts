@@ -64,9 +64,15 @@ export function createTestService(
     appCheckProvider,
     region
   );
-  const useEmulator = !!process.env.FIREBASE_FUNCTIONS_EMULATOR_ORIGIN;
-  if (useEmulator) {
-    const url = new URL(process.env.FIREBASE_FUNCTIONS_EMULATOR_ORIGIN!);
+  const useEmulator =
+    typeof process !== 'undefined' &&
+    !!process.env?.FIREBASE_FUNCTIONS_EMULATOR_ORIGIN;
+  if (
+    useEmulator &&
+    typeof process !== 'undefined' &&
+    process.env.FIREBASE_FUNCTIONS_EMULATOR_ORIGIN
+  ) {
+    const url = new URL(process.env.FIREBASE_FUNCTIONS_EMULATOR_ORIGIN);
     connectFunctionsEmulator(
       functions,
       url.hostname,
