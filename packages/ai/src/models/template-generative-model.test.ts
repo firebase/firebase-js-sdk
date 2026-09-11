@@ -97,7 +97,7 @@ describe('TemplateGenerativeModel', () => {
       await model.generateContent({
         templateId: TEMPLATE_ID,
         templateVariables: TEMPLATE_VARS,
-        templateToolConfig
+        toolConfig: templateToolConfig
       });
 
       expect(templateGenerateContentStub).to.have.been.calledOnceWith(
@@ -124,7 +124,7 @@ describe('TemplateGenerativeModel', () => {
         {
           templateId: TEMPLATE_ID,
           templateVariables: TEMPLATE_VARS,
-          templateToolConfig
+          toolConfig: templateToolConfig
         },
         { timeout: 5000 }
       );
@@ -134,22 +134,6 @@ describe('TemplateGenerativeModel', () => {
         TEMPLATE_ID,
         { inputs: TEMPLATE_VARS, toolConfig: templateToolConfig },
         { timeout: 5000 }
-      );
-    });
-
-    it('should call templateGenerateContent without templateVariables or templateToolConfig', async () => {
-      const templateGenerateContentStub = stub(
-        generateContentMethods,
-        'templateGenerateContent'
-      ).resolves({} as any);
-      const model = new TemplateGenerativeModel(fakeAI);
-
-      await model.generateContent({ templateId: TEMPLATE_ID });
-
-      expect(templateGenerateContentStub).to.have.been.calledOnceWith(
-        model._apiSettings,
-        TEMPLATE_ID,
-        {}
       );
     });
 
@@ -263,7 +247,7 @@ describe('TemplateGenerativeModel', () => {
       await model.generateContentStream({
         templateId: TEMPLATE_ID,
         templateVariables: TEMPLATE_VARS,
-        templateToolConfig
+        toolConfig: templateToolConfig
       });
 
       expect(templateGenerateContentStreamStub).to.have.been.calledOnceWith(
@@ -289,7 +273,7 @@ describe('TemplateGenerativeModel', () => {
         {
           templateId: TEMPLATE_ID,
           templateVariables: TEMPLATE_VARS,
-          templateToolConfig
+          toolConfig: templateToolConfig
         },
         { timeout: 5000 }
       );
@@ -299,22 +283,6 @@ describe('TemplateGenerativeModel', () => {
         TEMPLATE_ID,
         { inputs: TEMPLATE_VARS, toolConfig: templateToolConfig },
         { timeout: 5000 }
-      );
-    });
-
-    it('should call templateGenerateContentStream without templateVariables or templateToolConfig', async () => {
-      const templateGenerateContentStreamStub = stub(
-        generateContentMethods,
-        'templateGenerateContentStream'
-      ).resolves({} as any);
-      const model = new TemplateGenerativeModel(fakeAI);
-
-      await model.generateContentStream({ templateId: TEMPLATE_ID });
-
-      expect(templateGenerateContentStreamStub).to.have.been.calledOnceWith(
-        model._apiSettings,
-        TEMPLATE_ID,
-        {}
       );
     });
 

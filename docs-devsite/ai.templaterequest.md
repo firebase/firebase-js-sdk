@@ -26,8 +26,8 @@ export interface TemplateRequest
 |  Property | Type | Description |
 |  --- | --- | --- |
 |  [templateId](./ai.templaterequest.md#templaterequesttemplateid) | string | <b><i>(Public Preview)</i></b> The ID of the server-side template to execute. |
-|  [templateToolConfig](./ai.templaterequest.md#templaterequesttemplatetoolconfig) | [TemplateToolConfig](./ai.templatetoolconfig.md#templatetoolconfig_interface) | <b><i>(Public Preview)</i></b> Configuration for tools to use with this request. |
 |  [templateVariables](./ai.templaterequest.md#templaterequesttemplatevariables) | Record&lt;string, unknown&gt; | <b><i>(Public Preview)</i></b> A key-value map of variables to populate the template with. |
+|  [toolConfig](./ai.templaterequest.md#templaterequesttoolconfig) | [TemplateToolConfig](./ai.templatetoolconfig.md#templatetoolconfig_interface) | <b><i>(Public Preview)</i></b> Optional tool configuration for this request. Only retrieval/grounding configs are supported for server-side templates with unary and streaming generateContent. |
 
 ## TemplateRequest.templateId
 
@@ -42,19 +42,6 @@ The ID of the server-side template to execute.
 templateId: string;
 ```
 
-## TemplateRequest.templateToolConfig
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-Configuration for tools to use with this request.
-
-<b>Signature:</b>
-
-```typescript
-templateToolConfig?: TemplateToolConfig;
-```
-
 ## TemplateRequest.templateVariables
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
@@ -65,5 +52,18 @@ A key-value map of variables to populate the template with.
 <b>Signature:</b>
 
 ```typescript
-templateVariables?: Record<string, unknown>;
+templateVariables: Record<string, unknown>;
+```
+
+## TemplateRequest.toolConfig
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Optional tool configuration for this request. Only retrieval/grounding configs are supported for server-side templates with unary and streaming generateContent.
+
+<b>Signature:</b>
+
+```typescript
+toolConfig?: TemplateToolConfig;
 ```

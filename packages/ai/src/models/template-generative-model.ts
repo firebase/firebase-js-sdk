@@ -75,11 +75,9 @@ export class TemplateGenerativeModel {
       this._apiSettings,
       request.templateId,
       {
-        ...(request.templateVariables !== undefined && {
-          inputs: request.templateVariables
-        }),
-        ...(request.templateToolConfig !== undefined && {
-          toolConfig: request.templateToolConfig
+        inputs: request.templateVariables,
+        ...(request.toolConfig !== undefined && {
+          toolConfig: request.toolConfig
         })
       },
       {
@@ -108,11 +106,9 @@ export class TemplateGenerativeModel {
       this._apiSettings,
       request.templateId,
       {
-        ...(request.templateVariables !== undefined && {
-          inputs: request.templateVariables
-        }),
-        ...(request.templateToolConfig !== undefined && {
-          toolConfig: request.templateToolConfig
+        inputs: request.templateVariables,
+        ...(request.toolConfig !== undefined && {
+          toolConfig: request.toolConfig
         })
       },
       {

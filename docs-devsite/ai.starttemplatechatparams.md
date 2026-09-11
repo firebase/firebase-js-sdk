@@ -53,7 +53,7 @@ A key-value map of variables to populate the template with.
 <b>Signature:</b>
 
 ```typescript
-templateVariables?: Record<string, unknown>;
+templateVariables: Record<string, unknown>;
 ```
 
 ## StartTemplateChatParams.tools

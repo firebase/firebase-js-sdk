@@ -90,11 +90,13 @@ export interface TemplateRequest {
   /**
    * A key-value map of variables to populate the template with.
    */
-  templateVariables?: Record<string, unknown>;
+  templateVariables: Record<string, unknown>;
   /**
-   * Configuration for tools to use with this request.
+   * Optional tool configuration for this request. Only retrieval/grounding
+   * configs are supported for server-side templates with unary and streaming
+   * generateContent.
    */
-  templateToolConfig?: TemplateToolConfig;
+  toolConfig?: TemplateToolConfig;
 }
 
 /**
@@ -404,7 +406,7 @@ export interface StartTemplateChatParams extends Omit<
   /**
    * A key-value map of variables to populate the template with.
    */
-  templateVariables?: Record<string, unknown>;
+  templateVariables: Record<string, unknown>;
   tools?: TemplateTool[];
 }
 
