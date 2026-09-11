@@ -131,6 +131,7 @@ describe('internal api', () => {
   let app: FirebaseApp;
   let storageReadStub: MockInstance;
   let storageWriteStub: MockInstance;
+  let consoleStub: MockInstance;
 
   function stubGetRecaptchaToken(
     token: string = fakeRecaptchaToken,
@@ -142,6 +143,7 @@ describe('internal api', () => {
   }
 
   beforeEach(() => {
+    consoleStub = vi.spyOn(console, 'log').mockImplementation(() => {});
     app = getFullApp();
     mockReadTokenFromStorage.mockReset();
     mockWriteTokenToStorage.mockReset();
@@ -155,6 +157,7 @@ describe('internal api', () => {
   });
 
   afterEach(() => {
+    consoleStub.mockRestore();
     vi.useRealTimers();
     clearState();
     removegreCAPTCHAScriptsOnPage();

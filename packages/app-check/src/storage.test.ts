@@ -84,7 +84,7 @@ describe('Storage', () => {
   });
 
   it('writeTokenToStorage() still resolves if writing to indexeddb failed', async () => {
-    const warnStub = vi.spyOn(logger, 'warn');
+    const warnStub = vi.spyOn(logger, 'warn').mockImplementation(() => {});
     mockWriteTokenToIndexedDB.mockRejectedValue('something went wrong!');
     await expect(writeTokenToStorage(app, fakeToken)).resolves.not.toThrow();
     expect(warnStub.mock.calls[0][0]).toContain('something went wrong!');
@@ -97,7 +97,7 @@ describe('Storage', () => {
   });
 
   it('resolves with undefined if reading indexeddb failed', async () => {
-    const warnStub = vi.spyOn(logger, 'warn');
+    const warnStub = vi.spyOn(logger, 'warn').mockImplementation(() => {});
     mockReadTokenFromIndexedDB.mockRejectedValue('something went wrong!');
     expect(await readTokenFromStorage(app)).toBe(undefined);
     expect(warnStub.mock.calls[0][0]).toContain('something went wrong!');

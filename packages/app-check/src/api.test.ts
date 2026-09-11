@@ -377,12 +377,16 @@ describe('api', () => {
     });
 
     it('global false + local true = false', () => {
+      const warnStub = vi
+        .spyOn(logger.logger, 'warn')
+        .mockImplementation(() => {});
       app.automaticDataCollectionEnabled = false;
       initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY),
         isTokenAutoRefreshEnabled: true
       });
       expect(getStateReference(app).isTokenAutoRefreshEnabled).toBe(false);
+      warnStub.mockRestore();
     });
 
     it('global false + local false = false', () => {
