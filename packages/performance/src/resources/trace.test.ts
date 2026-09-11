@@ -25,6 +25,8 @@ import { FirebaseInstallations } from '@firebase/installations-types';
 import '../../test/setup';
 import { vi } from 'vitest';
 
+import { consoleLogger } from '../utils/console_logger';
+
 vi.mock('../services/perf_logger', { spy: true });
 
 describe('Firebase Performance > trace', () => {
@@ -56,6 +58,7 @@ describe('Firebase Performance > trace', () => {
 
   beforeEach(() => {
     vi.spyOn(Api.prototype, 'mark');
+    vi.spyOn(consoleLogger, 'info').mockImplementation(() => {});
     trace = createTrace();
   });
 

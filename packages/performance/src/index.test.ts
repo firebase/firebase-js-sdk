@@ -18,7 +18,13 @@
 import { initializePerformance } from './index';
 import { ERROR_FACTORY, ErrorCode } from './utils/errors';
 import '../test/setup';
-import { deleteApp, FirebaseApp, initializeApp } from '@firebase/app';
+import {
+  deleteApp,
+  FirebaseApp,
+  initializeApp,
+  _addOrOverwriteComponent
+} from '@firebase/app';
+import { Component, ComponentType } from '@firebase/component';
 import { PerformanceController } from './controllers/perf';
 import { vi } from 'vitest';
 
@@ -39,9 +45,23 @@ describe('Firebase Performance > initializePerformance()', () => {
       () => {}
     );
     app = initializeApp(fakeFirebaseConfig);
+    _addOrOverwriteComponent(
+      app,
+      new Component(
+        'heartbeat',
+        () =>
+          ({
+            triggerHeartbeat: () => {},
+            getHeartbeatsHeader: () => Promise.resolve('')
+          }) as any,
+        ComponentType.PUBLIC
+      )
+    );
   });
-  afterEach(() => {
-    return deleteApp(app);
+  afterEach(async () => {
+    if (app) {
+      await deleteApp(app);
+    }
   });
   it('returns same instance if given same (no) params a second time', () => {
     const performanceInstance = initializePerformance(app);

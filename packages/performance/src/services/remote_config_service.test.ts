@@ -25,6 +25,7 @@ import '../../test/setup';
 import { FirebaseInstallations } from '@firebase/installations-types';
 import { PerformanceController } from '../controllers/perf';
 import { vi, MockInstance } from 'vitest';
+import { consoleLogger } from '../utils/console_logger';
 
 vi.mock('./iid_service', { spy: true });
 
@@ -91,13 +92,17 @@ describe('Performance Monitoring > remote_config_service', () => {
     storageGetItemStub: MockInstance;
     fetchStub: MockInstance;
   } {
-    const fetchStub = vi.spyOn(self, 'fetch');
+    const fetchStub = vi
+      .spyOn(self, 'fetch')
+      .mockResolvedValue(new Response('{}'));
 
     if (fetchConfig) {
       fetchConfig.reject
         ? fetchStub.mockRejectedValue(new Error('Network error'))
         : fetchStub.mockResolvedValue(fetchConfig.value);
     }
+
+    vi.spyOn(consoleLogger, 'info').mockImplementation(() => {});
 
     vi.mocked(iidService.getAuthTokenPromise).mockResolvedValue(AUTH_TOKEN);
 

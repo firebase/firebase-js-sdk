@@ -142,7 +142,9 @@ describe('Firebase Performance > oob_resources_service', () => {
         }
         return [PAINT_PERFORMANCE_ENTRY];
       });
-    setupObserverStub = vi.spyOn(Api.prototype, 'setupObserver');
+    setupObserverStub = vi
+      .spyOn(Api.prototype, 'setupObserver')
+      .mockImplementation(() => {});
     createOobTraceSpy = vi.spyOn(Trace, 'createOobTrace');
     const api = Api.getInstance();
     lcpSpy = vi.spyOn(api, 'onLCP');

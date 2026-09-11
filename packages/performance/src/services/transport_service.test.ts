@@ -40,7 +40,7 @@ describe('Firebase Performance > transport_service', () => {
     setupTransportService();
     sendBeaconStub = vi.spyOn(navigator, 'sendBeacon');
     sendBeaconStub.mockReturnValue(true);
-    fetchStub = vi.spyOn(window, 'fetch');
+    fetchStub = vi.spyOn(window, 'fetch').mockResolvedValue(new Response('{}'));
   });
 
   afterEach(() => {
