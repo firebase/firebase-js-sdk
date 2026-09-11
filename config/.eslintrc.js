@@ -24,12 +24,7 @@ module.exports = {
     'node': true
   },
   'parser': '@typescript-eslint/parser',
-  'plugins': [
-    '@typescript-eslint',
-    '@typescript-eslint/tslint',
-    'import',
-    'unused-imports'
-  ],
+  'plugins': ['@typescript-eslint', 'import', 'unused-imports'],
   'parserOptions': {
     'ecmaVersion': 2020,
     'sourceType': 'module'
@@ -223,15 +218,6 @@ module.exports = {
         'argsIgnorePattern': '^_'
       }
     ],
-    '@typescript-eslint/no-floating-promises': 'error',
-    '@typescript-eslint/tslint/config': [
-      'error',
-      {
-        'rules': {
-          'jsdoc-format': true,
-          'arrow-return-shorthand': true
-        }
-      }
-    ]
+    '@typescript-eslint/no-floating-promises': 'error'
   }
 };
