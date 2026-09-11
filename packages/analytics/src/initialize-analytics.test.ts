@@ -184,7 +184,7 @@ describe('initializeAnalytics()', () => {
   });
   it('warns on local/fetched measurement ID mismatch', async () => {
     stubFetch();
-    const consoleStub = vi.spyOn(console, 'warn');
+    const consoleStub = vi.spyOn(console, 'warn').mockImplementation(() => {});
     await _initializeAnalytics(
       getFakeApp({ ...fakeAppParams, measurementId: 'old-measurement-id' }),
       dynamicPromisesList,

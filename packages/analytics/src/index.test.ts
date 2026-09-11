@@ -90,7 +90,7 @@ describe('FirebaseAnalytics instance tests', () => {
     it('Warns if config has no apiKey but does have a measurementId', async () => {
       // Since this is a warning and doesn't block the rest of initialization
       // all the async stuff needs to be stubbed and cleaned up.
-      const warnStub = vi.spyOn(console, 'warn');
+      const warnStub = vi.spyOn(console, 'warn').mockImplementation(() => {});
       const docStub = vi.spyOn(document, 'createElement');
       stubFetch(200, { measurementId: fakeMeasurementId });
       const app = getFakeApp({
@@ -198,7 +198,7 @@ describe('FirebaseAnalytics instance tests', () => {
       window['gtag'] = gtagStub;
       window['dataLayer'] = [];
       stubFetch(200, { measurementId: fakeMeasurementId });
-      warnStub = vi.spyOn(console, 'warn');
+      warnStub = vi.spyOn(console, 'warn').mockImplementation(() => {});
       stubIdbOpen();
     });
     afterEach(() => {

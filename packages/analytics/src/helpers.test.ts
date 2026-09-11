@@ -88,7 +88,9 @@ describe('Trusted Types policies and functions', () => {
 
       it('createGtagTrustedTypesScriptURL rejects URLs with non-gtag base', () => {
         const NON_GTAG_URL = 'http://iamnotgtag.com';
-        const loggerWarnStub = vi.spyOn(logger, 'warn');
+        const loggerWarnStub = vi
+          .spyOn(logger, 'warn')
+          .mockImplementation(() => {});
         const errorMessage = ERROR_FACTORY.create(
           AnalyticsError.INVALID_GTAG_RESOURCE,
           {

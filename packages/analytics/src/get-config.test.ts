@@ -103,7 +103,9 @@ describe('Dynamic Config Fetch Functions', () => {
       stubFetch(404, {
         error: {/* no message */}
       });
-      const consoleStub = vi.spyOn(console, 'warn');
+      const consoleStub = vi
+        .spyOn(console, 'warn')
+        .mockImplementation(() => {});
       const app = getFakeApp({
         ...fakeAppParams,
         measurementId: fakeMeasurementId
@@ -233,7 +235,9 @@ describe('Dynamic Config Fetch Functions', () => {
 
         // Always returns retriable server error.
         stubFetch(500, {});
-        const consoleStub = vi.spyOn(console, 'warn');
+        const consoleStub = vi
+          .spyOn(console, 'warn')
+          .mockImplementation(() => {});
 
         const app = getFakeApp({
           ...fakeAppParams,
