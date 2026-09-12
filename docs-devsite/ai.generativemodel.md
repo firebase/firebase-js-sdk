@@ -44,7 +44,7 @@ export declare class GenerativeModel extends AIModel
 |  [generateContent(request, singleRequestOptions)](./ai.generativemodel.md#generativemodelgeneratecontent) |  | Makes a single non-streaming call to the model and returns an object containing a single [GenerateContentResponse](./ai.generatecontentresponse.md#generatecontentresponse_interface)<!-- -->. |
 |  [generateContentStream(request, singleRequestOptions)](./ai.generativemodel.md#generativemodelgeneratecontentstream) |  | Makes a single streaming call to the model and returns an object containing an iterable stream that iterates over all chunks in the streaming response as well as a promise that returns the final aggregated response. |
 |  [initializeDeviceModel(onDownloadProgress)](./ai.generativemodel.md#generativemodelinitializedevicemodel) |  | Initializes on-device models. |
-|  [startChat(startChatParams)](./ai.generativemodel.md#generativemodelstartchat) |  | Gets a new [ChatSession](./ai.chatsession.md#chatsession_class) instance which can be used for multi-turn chats. |
+|  [startChat(startChatParams)](./ai.generativemodel.md#generativemodelstartchat) |  | Gets a new [ChatSession](./ai.chatsession.md#chatsession_interface) instance which can be used for multi-turn chats. |
 
 ## GenerativeModel.(constructor)
 
@@ -204,7 +204,7 @@ Promise&lt;void&gt;
 
 ## GenerativeModel.startChat()
 
-Gets a new [ChatSession](./ai.chatsession.md#chatsession_class) instance which can be used for multi-turn chats.
+Gets a new [ChatSession](./ai.chatsession.md#chatsession_interface) instance which can be used for multi-turn chats.
 
 <b>Signature:</b>
 
@@ -220,5 +220,5 @@ startChat(startChatParams?: StartChatParams): ChatSession;
 
 <b>Returns:</b>
 
-[ChatSession](./ai.chatsession.md#chatsession_class)
+[ChatSession](./ai.chatsession.md#chatsession_interface)
 

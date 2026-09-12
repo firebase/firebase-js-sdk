@@ -27,7 +27,7 @@ export declare class TemplateGenerativeModel
 
 |  Constructor | Modifiers | Description |
 |  --- | --- | --- |
-|  [(constructor)(ai, requestOptions)](./ai.templategenerativemodel.md#templategenerativemodelconstructor) |  | <b><i>(Public Preview)</i></b>  Constructs a new instance of the <code>TemplateGenerativeModel</code> class |
+|  [(constructor)(ai, requestOptions)](./ai.templategenerativemodel.md#templategenerativemodelconstructor) |  | <b><i>(Public Preview)</i></b> Constructs a new instance of the <code>TemplateGenerativeModel</code> class |
 
 ## Properties
 
@@ -48,7 +48,7 @@ export declare class TemplateGenerativeModel
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
- Constructs a new instance of the `TemplateGenerativeModel` class
+Constructs a new instance of the `TemplateGenerativeModel` class
 
 <b>Signature:</b>
 
