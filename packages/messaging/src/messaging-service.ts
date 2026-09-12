@@ -58,6 +58,13 @@ export class MessagingService implements _FirebaseService {
   /** Unsubscribe from Installations `onIdChange` when messaging is deleted. */
   _fidChangeUnsubscribe: IdChangeUnsubscribeFn | null = null;
 
+  /**
+   * Removes the window-scoped `message` event listener registered on
+   * `navigator.serviceWorker` when messaging is deleted, so the listener does
+   * not retain a reference to this instance.
+   */
+  _messageEventListenerUnsubscribe: (() => void) | null = null;
+
   logEvents: LogEvent[] = [];
   /**
    * Single source of truth for the logging loop lifecycle.
@@ -86,10 +93,19 @@ export class MessagingService implements _FirebaseService {
       this._fidChangeUnsubscribe();
       this._fidChangeUnsubscribe = null;
     }
+    if (this._messageEventListenerUnsubscribe) {
+      this._messageEventListenerUnsubscribe();
+      this._messageEventListenerUnsubscribe = null;
+    }
     if (this.logQueue.state === 'scheduled') {
       clearTimeout(this.logQueue.timerId);
     }
     this.logQueue = { state: 'stopped' };
+    this.logEvents = [];
+    this.onBackgroundMessageHandler = null;
+    this.onMessageHandler = null;
+    this.onRegisteredHandler = null;
+    this.onUnregisteredHandler = null;
     return Promise.resolve();
   }
 }
