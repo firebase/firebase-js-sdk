@@ -13,7 +13,7 @@ https://github.com/firebase/firebase-js-sdk
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-[GenerativeModel](./ai.generativemodel.md#generativemodel_class) APIs that execute on a server-side template.
+[GenerativeModel](./ai.generativemodel.md#generativemodel_class) APIs that execute on a server-side template. [GenerativeModel](./ai.generativemodel.md#generativemodel_class) APIs that execute on a server prompt template.
 
 This class should only be instantiated with [getTemplateGenerativeModel()](./ai.md#gettemplategenerativemodel_9476bbc)<!-- -->.
 
@@ -39,9 +39,9 @@ export declare class TemplateGenerativeModel
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [generateContent(templateId, templateVariables, singleRequestOptions, templateToolConfig)](./ai.templategenerativemodel.md#templategenerativemodelgeneratecontent) |  | <b><i>(Public Preview)</i></b> Makes a single non-streaming call to the model and returns an object containing a single [GenerateContentResponse](./ai.generatecontentresponse.md#generatecontentresponse_interface)<!-- -->. |
-|  [generateContentStream(templateId, templateVariables, singleRequestOptions, templateToolConfig)](./ai.templategenerativemodel.md#templategenerativemodelgeneratecontentstream) |  | <b><i>(Public Preview)</i></b> Makes a single streaming call to the model and returns an object containing an iterable stream that iterates over all chunks in the streaming response as well as a promise that returns the final aggregated response. |
-|  [startChat(params)](./ai.templategenerativemodel.md#templategenerativemodelstartchat) |  | <b><i>(Public Preview)</i></b> Starts a [TemplateChatSession](./ai.templatechatsession.md#templatechatsession_interface) that will use this template to respond to messages. |
+|  [generateContent(request, singleRequestOptions)](./ai.templategenerativemodel.md#templategenerativemodelgeneratecontent) |  | <b><i>(Public Preview)</i></b> Makes a single non-streaming call to the model and returns an object containing a single [GenerateContentResponse](./ai.generatecontentresponse.md#generatecontentresponse_interface)<!-- -->. Generates new content by calling into a server prompt template and returns an object containing a single [GenerateContentResponse](./ai.generatecontentresponse.md#generatecontentresponse_interface)<!-- -->. |
+|  [generateContentStream(request, singleRequestOptions)](./ai.templategenerativemodel.md#templategenerativemodelgeneratecontentstream) |  | <b><i>(Public Preview)</i></b> Makes a single streaming call to the model and returns an object containing an iterable stream that iterates over all chunks in the streaming response as well as a promise that returns the final aggregated response. Generates new content as a stream by calling into a server prompt template and returns an object containing an iterable stream that iterates over all chunks in the streaming response as well as a promise that returns the final aggregated response. |
+|  [startChat(params)](./ai.templategenerativemodel.md#templategenerativemodelstartchat) |  | <b><i>(Public Preview)</i></b> Starts a [TemplateChatSession](./ai.templatechatsession.md#templatechatsession_interface) that will use this template to Starts a [TemplateChatSession](./ai.templatechatsession.md#templatechatsession_interface) that will use this server prompt template to respond to messages. |
 
 ## TemplateGenerativeModel.(constructor)
 
@@ -81,22 +81,20 @@ requestOptions?: RequestOptions;
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Makes a single non-streaming call to the model and returns an object containing a single [GenerateContentResponse](./ai.generatecontentresponse.md#generatecontentresponse_interface)<!-- -->.
+Makes a single non-streaming call to the model and returns an object containing a single [GenerateContentResponse](./ai.generatecontentresponse.md#generatecontentresponse_interface)<!-- -->. Generates new content by calling into a server prompt template and returns an object containing a single [GenerateContentResponse](./ai.generatecontentresponse.md#generatecontentresponse_interface)<!-- -->.
 
 <b>Signature:</b>
 
 ```typescript
-generateContent(templateId: string, templateVariables: Record<string, unknown>, singleRequestOptions?: SingleRequestOptions, templateToolConfig?: TemplateToolConfig): Promise<GenerateContentResult>;
+generateContent(request: TemplateRequest, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentResult>;
 ```
 
 #### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  templateId | string | The ID of the server-side template to execute. |
-|  templateVariables | Record&lt;string, unknown&gt; | A key-value map of variables to populate the template with. |
+|  request | [TemplateRequest](./ai.templaterequest.md#templaterequest_interface) | The request parameters for executing the server-side template. |
 |  singleRequestOptions | [SingleRequestOptions](./ai.singlerequestoptions.md#singlerequestoptions_interface) | Optional. Options to use for this request. |
-|  templateToolConfig | [TemplateToolConfig](./ai.templatetoolconfig.md#templatetoolconfig_interface) | Optional. Configuration for tools to use with this request. |
 
 <b>Returns:</b>
 
@@ -107,22 +105,20 @@ Promise&lt;[GenerateContentResult](./ai.generatecontentresult.md#generatecontent
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Makes a single streaming call to the model and returns an object containing an iterable stream that iterates over all chunks in the streaming response as well as a promise that returns the final aggregated response.
+Makes a single streaming call to the model and returns an object containing an iterable stream that iterates over all chunks in the streaming response as well as a promise that returns the final aggregated response. Generates new content as a stream by calling into a server prompt template and returns an object containing an iterable stream that iterates over all chunks in the streaming response as well as a promise that returns the final aggregated response.
 
 <b>Signature:</b>
 
 ```typescript
-generateContentStream(templateId: string, templateVariables: Record<string, unknown>, singleRequestOptions?: SingleRequestOptions, templateToolConfig?: TemplateToolConfig): Promise<GenerateContentStreamResult>;
+generateContentStream(request: TemplateRequest, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentStreamResult>;
 ```
 
 #### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  templateId | string | The ID of the server-side template to execute. |
-|  templateVariables | Record&lt;string, unknown&gt; | A key-value map of variables to populate the template with. |
-|  singleRequestOptions | [SingleRequestOptions](./ai.singlerequestoptions.md#singlerequestoptions_interface) | Optional.Options to use for this request. |
-|  templateToolConfig | [TemplateToolConfig](./ai.templatetoolconfig.md#templatetoolconfig_interface) | Optional. Configuration for tools to use with this request. |
+|  request | [TemplateRequest](./ai.templaterequest.md#templaterequest_interface) | The request parameters for executing the server-side template. |
+|  singleRequestOptions | [SingleRequestOptions](./ai.singlerequestoptions.md#singlerequestoptions_interface) | Optional. Options to use for this request. |
 
 <b>Returns:</b>
 
@@ -133,7 +129,7 @@ Promise&lt;[GenerateContentStreamResult](./ai.generatecontentstreamresult.md#gen
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Starts a [TemplateChatSession](./ai.templatechatsession.md#templatechatsession_interface) that will use this template to respond to messages.
+Starts a [TemplateChatSession](./ai.templatechatsession.md#templatechatsession_interface) that will use this template to Starts a [TemplateChatSession](./ai.templatechatsession.md#templatechatsession_interface) that will use this server prompt template to respond to messages.
 
 <b>Signature:</b>
 

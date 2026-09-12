@@ -125,6 +125,9 @@ export interface AIOptions {
  * Interface representing a `ChatSession` class for use with server
  * prompt templates that enables sending chat messages and stores
  * history of sent and received messages so far.
+ * Interface representing a chat session for use with server prompt
+ * templates that enables sending chat messages and maintains conversation
+ * history.
  *
  * @beta
  */

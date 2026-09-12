@@ -1441,8 +1441,7 @@ export interface StartChatParams extends BaseParams {
 // @beta
 export interface StartTemplateChatParams extends Omit<StartChatParams, 'tools'> {
     templateId: string;
-    templateVariables?: Record<string, unknown>;
-    // (undocumented)
+    templateVariables: Record<string, unknown>;
     tools?: TemplateTool[];
 }
 
@@ -1515,10 +1514,17 @@ export class TemplateGenerativeModel {
     constructor(ai: AI, requestOptions?: RequestOptions);
     // @internal (undocumented)
     _apiSettings: ApiSettings;
-    generateContent(templateId: string, templateVariables: Record<string, unknown>, singleRequestOptions?: SingleRequestOptions, templateToolConfig?: TemplateToolConfig): Promise<GenerateContentResult>;
-    generateContentStream(templateId: string, templateVariables: Record<string, unknown>, singleRequestOptions?: SingleRequestOptions, templateToolConfig?: TemplateToolConfig): Promise<GenerateContentStreamResult>;
+    generateContent(request: TemplateRequest, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentResult>;
+    generateContentStream(request: TemplateRequest, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentStreamResult>;
     requestOptions?: RequestOptions;
     startChat(params: StartTemplateChatParams): TemplateChatSession;
+}
+
+// @beta
+export interface TemplateRequest {
+    templateId: string;
+    templateVariables: Record<string, unknown>;
+    toolConfig?: TemplateToolConfig;
 }
 
 // Warning: (ae-internal-missing-underscore) The name "TemplateRequestInternal" should be prefixed with an underscore because the declaration is marked as @internal
