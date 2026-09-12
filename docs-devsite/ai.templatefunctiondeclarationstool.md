@@ -25,14 +25,14 @@ export interface TemplateFunctionDeclarationsTool
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [functionDeclarations](./ai.templatefunctiondeclarationstool.md#templatefunctiondeclarationstoolfunctiondeclarations) | [TemplateFunctionDeclaration](./ai.templatefunctiondeclaration.md#templatefunctiondeclaration_interface)<!-- -->\[\] | <b><i>(Public Preview)</i></b> Optional. One or more function declarations to be passed to the server prompt template execution. |
+|  [functionDeclarations](./ai.templatefunctiondeclarationstool.md#templatefunctiondeclarationstoolfunctiondeclarations) | [TemplateFunctionDeclaration](./ai.templatefunctiondeclaration.md#templatefunctiondeclaration_interface)<!-- -->\[\] | <b><i>(Public Preview)</i></b> Optional. One or more function declarations to be passed to the server-side template execution. to be passed to the server prompt template execution. |
 
 ## TemplateFunctionDeclarationsTool.functionDeclarations
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Optional. One or more function declarations to be passed to the server prompt template execution.
+Optional. One or more function declarations to be passed to the server-side template execution. to be passed to the server prompt template execution.
 
 <b>Signature:</b>
 

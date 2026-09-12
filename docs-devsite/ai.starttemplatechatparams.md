@@ -13,7 +13,7 @@ https://github.com/firebase/firebase-js-sdk
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Parameters for starting a template-based chat session with [TemplateGenerativeModel.startChat()](./ai.templategenerativemodel.md#templategenerativemodelstartchat)<!-- -->.
+Params for [TemplateGenerativeModel.startChat()](./ai.templategenerativemodel.md#templategenerativemodelstartchat)<!-- -->. Parameters for starting a template-based chat session with [TemplateGenerativeModel.startChat()](./ai.templategenerativemodel.md#templategenerativemodelstartchat)<!-- -->.
 
 <b>Signature:</b>
 
@@ -26,7 +26,7 @@ export interface StartTemplateChatParams extends Omit<StartChatParams, 'tools'>
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [templateId](./ai.starttemplatechatparams.md#starttemplatechatparamstemplateid) | string | <b><i>(Public Preview)</i></b> The ID of the server prompt template to use. |
+|  [templateId](./ai.starttemplatechatparams.md#starttemplatechatparamstemplateid) | string | <b><i>(Public Preview)</i></b> The ID of the server-side template to execute. The ID of the server prompt template to use. |
 |  [templateVariables](./ai.starttemplatechatparams.md#starttemplatechatparamstemplatevariables) | Record&lt;string, unknown&gt; | <b><i>(Public Preview)</i></b> A key-value map of variables to populate the template with. |
 |  [tools](./ai.starttemplatechatparams.md#starttemplatechatparamstools) | [TemplateTool](./ai.md#templatetool)<!-- -->\[\] | <b><i>(Public Preview)</i></b> Optional. A list of template tools that the model can use to access external systems or execute client functions. |
 
@@ -35,7 +35,7 @@ export interface StartTemplateChatParams extends Omit<StartChatParams, 'tools'>
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-The ID of the server prompt template to use.
+The ID of the server-side template to execute. The ID of the server prompt template to use.
 
 <b>Signature:</b>
 
