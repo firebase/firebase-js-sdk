@@ -37,6 +37,12 @@ export * from './index.shared';
 // providers
 export { PhoneAuthProvider } from './src/platform_browser/providers/phone';
 
+// For react-native-web
+// https://github.com/expo/router/issues/37#issuecomment-1275925758
+export { browserLocalPersistence } from './src/platform_browser/persistence/local_storage';
+export { browserSessionPersistence } from './src/platform_browser/persistence/session_storage';
+export { indexedDBLocalPersistence } from './src/platform_browser/persistence/indexed_db';
+
 // strategies
 export {
   signInWithPhoneNumber,
