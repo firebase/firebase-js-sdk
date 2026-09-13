@@ -352,15 +352,6 @@ export interface UploadTask {
    *       // Stop after receiving one update.
    *       unsubscribe();
    *     });
-   *
-   * // This code is equivalent to the above.
-   * var handle = uploadTask.on(firebase.storage.TaskEvent.STATE_CHANGED);
-   * unsubscribe = handle(function(snapshot) {
-   *   var percent = snapshot.bytesTransferred / snapshot.totalBytes * 100;
-   *   console.log(percent + "% done");
-   *   // Stop after receiving one update.
-   *   unsubscribe();
-   * });
    * ```
    *
    * @param event - The type of event to listen for.
