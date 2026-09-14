@@ -50,7 +50,10 @@ describe('TemplateGenerativeModel', () => {
       ).resolves({} as any);
       const model = new TemplateGenerativeModel(fakeAI);
 
-      await model.generateContent(TEMPLATE_ID, TEMPLATE_VARS);
+      await model.generateContent({
+        templateId: TEMPLATE_ID,
+        templateVariables: TEMPLATE_VARS
+      });
 
       expect(templateGenerateContentStub).to.have.been.calledOnceWith(
         model._apiSettings,
@@ -66,7 +69,10 @@ describe('TemplateGenerativeModel', () => {
       ).resolves({} as any);
       const model = new TemplateGenerativeModel(fakeAI);
 
-      await model.generateContent(TEMPLATE_ID, TEMPLATE_VARS);
+      await model.generateContent({
+        templateId: TEMPLATE_ID,
+        templateVariables: TEMPLATE_VARS
+      });
 
       expect(templateGenerateContentStub).to.have.been.calledOnceWith(
         model._apiSettings,
@@ -88,12 +94,11 @@ describe('TemplateGenerativeModel', () => {
       const retrievalConfig: RetrievalConfig = { latLng };
       const templateToolConfig: TemplateToolConfig = { retrievalConfig };
 
-      await model.generateContent(
-        TEMPLATE_ID,
-        TEMPLATE_VARS,
-        undefined,
-        templateToolConfig
-      );
+      await model.generateContent({
+        templateId: TEMPLATE_ID,
+        templateVariables: TEMPLATE_VARS,
+        toolConfig: templateToolConfig
+      });
 
       expect(templateGenerateContentStub).to.have.been.calledOnceWith(
         model._apiSettings,
@@ -116,10 +121,12 @@ describe('TemplateGenerativeModel', () => {
       const templateToolConfig: TemplateToolConfig = { retrievalConfig };
 
       await model.generateContent(
-        TEMPLATE_ID,
-        TEMPLATE_VARS,
-        { timeout: 5000 },
-        templateToolConfig
+        {
+          templateId: TEMPLATE_ID,
+          templateVariables: TEMPLATE_VARS,
+          toolConfig: templateToolConfig
+        },
+        { timeout: 5000 }
       );
 
       expect(templateGenerateContentStub).to.have.been.calledOnceWith(
@@ -139,8 +146,10 @@ describe('TemplateGenerativeModel', () => {
       const singleRequestOptions = { timeout: 2000 };
 
       await model.generateContent(
-        TEMPLATE_ID,
-        TEMPLATE_VARS,
+        {
+          templateId: TEMPLATE_ID,
+          templateVariables: TEMPLATE_VARS
+        },
         singleRequestOptions
       );
 
@@ -162,8 +171,10 @@ describe('TemplateGenerativeModel', () => {
       const singleRequestOptions = { signal: abortController.signal };
 
       await model.generateContent(
-        TEMPLATE_ID,
-        TEMPLATE_VARS,
+        {
+          templateId: TEMPLATE_ID,
+          templateVariables: TEMPLATE_VARS
+        },
         singleRequestOptions
       );
 
@@ -184,7 +195,10 @@ describe('TemplateGenerativeModel', () => {
       ).resolves({} as any);
       const model = new TemplateGenerativeModel(fakeAI, { timeout: 5000 });
 
-      await model.generateContentStream(TEMPLATE_ID, TEMPLATE_VARS);
+      await model.generateContentStream({
+        templateId: TEMPLATE_ID,
+        templateVariables: TEMPLATE_VARS
+      });
 
       expect(templateGenerateContentStreamStub).to.have.been.calledOnceWith(
         model._apiSettings,
@@ -200,9 +214,15 @@ describe('TemplateGenerativeModel', () => {
         'templateGenerateContentStream'
       ).resolves({} as any);
       const model = new TemplateGenerativeModel(fakeAI);
-      await model.generateContentStream(TEMPLATE_ID, TEMPLATE_VARS, {
-        timeout: 5000
-      });
+      await model.generateContentStream(
+        {
+          templateId: TEMPLATE_ID,
+          templateVariables: TEMPLATE_VARS
+        },
+        {
+          timeout: 5000
+        }
+      );
 
       expect(templateGenerateContentStreamStub).to.have.been.calledOnceWith(
         model._apiSettings,
@@ -224,12 +244,11 @@ describe('TemplateGenerativeModel', () => {
       const retrievalConfig: RetrievalConfig = { latLng };
       const templateToolConfig: TemplateToolConfig = { retrievalConfig };
       const model = new TemplateGenerativeModel(fakeAI);
-      await model.generateContentStream(
-        TEMPLATE_ID,
-        TEMPLATE_VARS,
-        undefined,
-        templateToolConfig
-      );
+      await model.generateContentStream({
+        templateId: TEMPLATE_ID,
+        templateVariables: TEMPLATE_VARS,
+        toolConfig: templateToolConfig
+      });
 
       expect(templateGenerateContentStreamStub).to.have.been.calledOnceWith(
         model._apiSettings,
@@ -251,10 +270,12 @@ describe('TemplateGenerativeModel', () => {
       const templateToolConfig: TemplateToolConfig = { retrievalConfig };
       const model = new TemplateGenerativeModel(fakeAI);
       await model.generateContentStream(
-        TEMPLATE_ID,
-        TEMPLATE_VARS,
-        { timeout: 5000 },
-        templateToolConfig
+        {
+          templateId: TEMPLATE_ID,
+          templateVariables: TEMPLATE_VARS,
+          toolConfig: templateToolConfig
+        },
+        { timeout: 5000 }
       );
 
       expect(templateGenerateContentStreamStub).to.have.been.calledOnceWith(
@@ -274,8 +295,10 @@ describe('TemplateGenerativeModel', () => {
       const singleRequestOptions = { timeout: 2000 };
 
       await model.generateContentStream(
-        TEMPLATE_ID,
-        TEMPLATE_VARS,
+        {
+          templateId: TEMPLATE_ID,
+          templateVariables: TEMPLATE_VARS
+        },
         singleRequestOptions
       );
 
@@ -297,8 +320,10 @@ describe('TemplateGenerativeModel', () => {
       const singleRequestOptions = { signal: abortController.signal };
 
       await model.generateContentStream(
-        TEMPLATE_ID,
-        TEMPLATE_VARS,
+        {
+          templateId: TEMPLATE_ID,
+          templateVariables: TEMPLATE_VARS
+        },
         singleRequestOptions
       );
 
