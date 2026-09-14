@@ -33,7 +33,6 @@ import { initApiSettings } from './utils';
 import { TemplateChatSessionImpl } from '../methods/template-chat-session';
 
 /**
- * {@link GenerativeModel} APIs that execute on a server-side template.
  * {@link GenerativeModel} APIs that execute on a server prompt template.
  *
  * This class should only be instantiated with {@link getTemplateGenerativeModel}.
@@ -60,12 +59,9 @@ export class TemplateGenerativeModel {
   }
 
   /**
-   * Makes a single non-streaming call to the model and returns an object
-   * containing a single {@link GenerateContentResponse}.
    * Generates new content by calling into a server prompt template and returns
    * an object containing a single {@link GenerateContentResponse}.
    *
-   * @param request - The request parameters for executing the server-side template.
    * @param request - The request parameters for calling into the server prompt template.
    * @param singleRequestOptions - Optional. Options to use for this request.
    *
@@ -92,16 +88,11 @@ export class TemplateGenerativeModel {
   }
 
   /**
-   * Makes a single streaming call to the model and returns an object
-   * containing an iterable stream that iterates over all chunks in the
-   * streaming response as well as a promise that returns the final aggregated
-   * response.
    * Generates new content as a stream by calling into a server prompt template
    * and returns an object containing an iterable stream that iterates over all
    * chunks in the streaming response as well as a promise that returns the final
    * aggregated response.
    *
-   * @param request - The request parameters for executing the server-side template.
    * @param request - The request parameters for calling into the server prompt template.
    * @param singleRequestOptions - Optional. Options to use for this request.
    *
@@ -128,7 +119,6 @@ export class TemplateGenerativeModel {
   }
 
   /**
-   * Starts a {@link TemplateChatSession} that will use this template to
    * Starts a {@link TemplateChatSession} that will use this server prompt template to
    * respond to messages.
    *

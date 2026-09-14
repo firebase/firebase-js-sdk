@@ -77,8 +77,6 @@ export interface GenerateContentRequest extends BaseParams {
 }
 
 /**
- * Request parameters for {@link TemplateGenerativeModel.generateContent}
- * and {@link TemplateGenerativeModel.generateContentStream}.
  * Request parameters for calling into a server prompt template with
  * {@link TemplateGenerativeModel.generateContent} and
  * {@link TemplateGenerativeModel.generateContentStream}.
@@ -87,7 +85,6 @@ export interface GenerateContentRequest extends BaseParams {
  */
 export interface TemplateRequest {
   /**
-   * The ID of the server-side template to execute.
    * The ID of the server prompt template to use.
    */
   templateId: string;
@@ -97,7 +94,6 @@ export interface TemplateRequest {
   templateVariables: Record<string, unknown>;
   /**
    * Optional tool configuration for this request. Only retrieval/grounding
-   * configs are supported for server-side templates with unary and streaming
    * configs are supported for server prompt templates with unary and streaming
    * generateContent.
    */
@@ -397,7 +393,6 @@ export interface StartChatParams extends BaseParams {
 }
 
 /**
- * Params for {@link TemplateGenerativeModel.startChat}.
  * Parameters for starting a template-based chat session with
  * {@link TemplateGenerativeModel.startChat}.
  *
@@ -408,7 +403,6 @@ export interface StartTemplateChatParams extends Omit<
   'tools'
 > {
   /**
-   * The ID of the server-side template to execute.
    * The ID of the server prompt template to use.
    */
   templateId: string;
@@ -747,7 +741,6 @@ export interface TemplateFunctionDeclarationInternal extends Omit<
 export interface TemplateFunctionDeclarationsTool {
   /**
    * Optional. One or more function declarations
-   * to be passed to the server-side template execution.
    * to be passed to the server prompt template execution.
    */
   functionDeclarations?: TemplateFunctionDeclaration[];
@@ -760,7 +753,6 @@ export interface TemplateFunctionDeclarationsTool {
 export interface TemplateFunctionDeclarationsToolInternal {
   /**
    * Optional. One or more function declarations
-   * to be passed to the server-side template execution.
    * to be passed to the server prompt template execution.
    */
   templateFunctions?: TemplateFunctionDeclarationInternal[];
