@@ -51,9 +51,10 @@ async function logChangesets() {
   const headers = {
     'Content-Type': 'application/json'
   };
-  if (process.env.RELEASE_TRACKER_ID_TOKEN) {
-    headers['Authorization'] = `Bearer ${process.env.RELEASE_TRACKER_ID_TOKEN}`;
+  if (!process.env.RELEASE_TRACKER_ID_TOKEN) {
+    throw new Error('RELEASE_TRACKER_ID_TOKEN environment variable is missing.');
   }
+  headers['Authorization'] = 'Bearer ' + process.env.RELEASE_TRACKER_ID_TOKEN;
 
   const options = {
     method: 'POST',
