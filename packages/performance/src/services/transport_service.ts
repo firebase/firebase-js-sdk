@@ -157,8 +157,9 @@ function addToQueue(evt: BatchEvent): void {
   if (!evt.eventTime || !evt.message) {
     throw ERROR_FACTORY.create(ErrorCode.INVALID_CC_LOG);
   }
-  // Add the new event to the queue.
-  queue = [...queue, evt];
+  // Append in place; rebuilding the array here is O(N) per event and the queue
+  // can grow unbounded once processQueue stops draining.
+  queue.push(evt);
 }
 
 /** Log handler for cc service to send the performance logs to the server. */
