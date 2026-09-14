@@ -115,13 +115,22 @@ jobs:
         echo "Base version: ${STEPS_GET_VERSION_OUTPUTS_BASE_VERSION}"
       env:
         STEPS_GET_VERSION_OUTPUTS_BASE_VERSION: ${{ steps.get-version.outputs.BASE_VERSION }}
+    - name: Authenticate to Google Cloud (Release Tracker)
+      id: release-tracker-auth
+      uses: google-github-actions/auth@fc2174804b84f912b1f6d334e9463f484f1c552d
+      with:
+        credentials_json: ${{ secrets.RELEASE_TRACKER_SA_KEY }}
+        token_format: 'id_token'
+        id_token_audience: ${{ secrets.RELEASE_TRACKER_URL }}
     - name: Log to release tracker
       # Sends release information to cloud functions endpoint of release tracker.
       run: |
         DATE=$(date +'%m/%d/%Y')
         BASE_VERSION=${STEPS_GET_VERSION_OUTPUTS_BASE_VERSION}
         RELEASE_TRACKER_URL=${{ secrets.RELEASE_TRACKER_URL }}
+        ID_TOKEN=${{ steps.release-tracker-auth.outputs.id_token }}
         curl -X POST -H "Content-Type:application/json" \
+        -H "Authorization: Bearer $ID_TOKEN" \
         -d "{\"version\":\"$BASE_VERSION\",\"date\":\"$DATE\"}" \
         $RELEASE_TRACKER_URL/logProduction
       env:
