@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { assert } from 'chai';
 import { dataFromString, StringFormat } from '../../src/implementation/string';
 import { assertThrows, assertUint8ArrayEquals } from './testshared';
 
@@ -126,25 +125,25 @@ describe('Firebase Storage > String', () => {
     const str = 'data:image/png;param1=value;base64,aaaa';
     const data = dataFromString(StringFormat.DATA_URL, str);
     assertUint8ArrayEquals(new Uint8Array([0x69, 0xa6, 0x9a]), data.data);
-    assert.equal(data.contentType, 'image/png;param1=value');
+    expect(data.contentType).toBe('image/png;param1=value');
   });
   it('Encodes non-base64 data URLs with no content type correctly', () => {
     const str = 'data:,aaaa';
     const data = dataFromString(StringFormat.DATA_URL, str);
     assertUint8ArrayEquals(new Uint8Array([0x61, 0x61, 0x61, 0x61]), data.data);
-    assert.equal(data.contentType, null);
+    expect(data.contentType).toBe(null);
   });
   it('Encodes base64 data URLs with no content type correctly', () => {
     const str = 'data:;base64,aaaa';
     const data = dataFromString(StringFormat.DATA_URL, str);
     assertUint8ArrayEquals(new Uint8Array([0x69, 0xa6, 0x9a]), data.data);
-    assert.equal(data.contentType, null);
+    expect(data.contentType).toBe(null);
   });
   it('Encodes non-base64 data URLs with content type correctly', () => {
     const str = 'data:text/plain,arst';
     const data = dataFromString(StringFormat.DATA_URL, str);
     assertUint8ArrayEquals(new Uint8Array([0x61, 0x72, 0x73, 0x74]), data.data);
-    assert.equal(data.contentType, 'text/plain');
+    expect(data.contentType).toBe('text/plain');
   });
   it('Encodes non-base64 data URLs with URL-encoded text correctly', () => {
     const str = 'data:,a%20data';
