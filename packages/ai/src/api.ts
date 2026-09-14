@@ -208,7 +208,6 @@ export function getLiveGenerativeModel(
 }
 
 /**
- * Returns a {@link TemplateGenerativeModel} class for executing server-side
  * Returns a {@link TemplateGenerativeModel} class for executing server prompt
  * templates.
  *
