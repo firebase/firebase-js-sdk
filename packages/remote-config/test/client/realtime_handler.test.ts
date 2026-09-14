@@ -1056,6 +1056,9 @@ describe('RealtimeHandler', () => {
         .have.been.called;
 
       expect(retryHttpConnectionWhenBackoffEndsSpy).not.to.have.been.called;
+
+      // A retryable status must never surface an error to listeners while hidden.
+      expect(propagateErrorSpy).not.to.have.been.called;
     });
 
     it('should propagate CONFIG_UPDATE_STREAM_ERROR if connection fails non-retryably', async () => {
@@ -1077,7 +1080,27 @@ describe('RealtimeHandler', () => {
 
       await (realtime as any).prepareAndBeginRealtimeHttpStream();
 
-      expect(propagateErrorSpy).to.have.been.calledOnce;
+      expect(propagateErrorSpy).not.to.have.been.called;
+    });
+
+    it('should not propagate error when a pending fetch is aborted by backgrounding', async () => {
+      // Regression test for #9426: hiding the tab while the initial fetch is still
+      // pending rejects with an AbortError, leaving responseCode undefined. That used
+      // to surface "Unable to connect to the server. HTTP status code: undefined".
+      const abortError = new DOMException(
+        'The user aborted a request.',
+        'AbortError'
+      );
+      createRealtimeConnectionSpy.rejects(abortError);
+      (realtime as any).observers.add({});
+      (realtime as any).isInBackground = true;
+
+      await (realtime as any).prepareAndBeginRealtimeHttpStream();
+
+      expect(propagateErrorSpy).not.to.have.been.called;
+      expect(updateBackoffMetadataWithLastFailedStreamConnectionTimeSpy).not.to
+        .have.been.called;
+      expect(retryHttpConnectionWhenBackoffEndsSpy).not.to.have.been.called;
     });
 
     it('should propagate CONFIG_UPDATE_STREAM_ERROR if retries are exhausted', async () => {

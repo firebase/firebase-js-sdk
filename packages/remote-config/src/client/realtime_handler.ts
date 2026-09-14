@@ -724,29 +724,32 @@ export class RealtimeHandler {
       await this.closeRealtimeHttpConnection();
       this.setIsHttpConnectionRunning(false);
 
-      // Update backoff metadata if the connection failed in the foreground.
-      const connectionFailed =
-        !this.isInBackground &&
-        (responseCode === undefined ||
-          this.isStatusCodeRetryable(responseCode));
+      // Only handle retries and errors if the failure occurred in the foreground.
+      // Closing the connection when moving to the background is expected lifecycle behavior.
+      if (!this.isInBackground) {
+        // Update backoff metadata if the connection failed in the foreground.
+        const connectionFailed =
+          responseCode === undefined ||
+          this.isStatusCodeRetryable(responseCode);
 
-      if (connectionFailed) {
-        await this.updateBackoffMetadataWithLastFailedStreamConnectionTime(
-          new Date()
-        );
-      }
-      // If responseCode is null then no connection was made to server and the SDK should still retry.
-      if (connectionFailed || response?.ok) {
-        await this.retryHttpConnectionWhenBackoffEnds();
-      } else {
-        const errorMessage = `Unable to connect to the server. HTTP status code: ${responseCode}`;
-        const firebaseError = ERROR_FACTORY.create(
-          ErrorCode.CONFIG_UPDATE_STREAM_ERROR,
-          {
-            originalErrorMessage: errorMessage
-          }
-        );
-        this.propagateError(firebaseError);
+        if (connectionFailed) {
+          await this.updateBackoffMetadataWithLastFailedStreamConnectionTime(
+            new Date()
+          );
+        }
+        // If responseCode is null then no connection was made to server and the SDK should still retry.
+        if (connectionFailed || response?.ok) {
+          await this.retryHttpConnectionWhenBackoffEnds();
+        } else {
+          const errorMessage = `Unable to connect to the server. HTTP status code: ${responseCode}`;
+          const firebaseError = ERROR_FACTORY.create(
+            ErrorCode.CONFIG_UPDATE_STREAM_ERROR,
+            {
+              originalErrorMessage: errorMessage
+            }
+          );
+          this.propagateError(firebaseError);
+        }
       }
     }
   }
