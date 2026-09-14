@@ -76,15 +76,13 @@ async function notifyTestResults() {
       'Content-Type': 'application/json'
     };
     if (process.env.RELEASE_TRACKER_ID_TOKEN) {
-      headers['Authorization'] = `Bearer ${process.env.RELEASE_TRACKER_ID_TOKEN}`;
+      headers['Authorization'] =
+        `Bearer ${process.env.RELEASE_TRACKER_ID_TOKEN}`;
     }
     const req = https.request(
       `${process.env.RELEASE_TRACKER_URL}/logE2EResult`,
       {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        }
         headers
       },
       res => {

@@ -57,9 +57,6 @@ async function logChangesets() {
 
   const options = {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    }
     headers
   };
 
