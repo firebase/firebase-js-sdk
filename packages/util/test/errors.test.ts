@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { assert } from 'chai';
+import { assert } from 'vitest';
 import { ErrorFactory, ErrorMap, FirebaseError } from '../src/errors';
 
 type ErrorCode =

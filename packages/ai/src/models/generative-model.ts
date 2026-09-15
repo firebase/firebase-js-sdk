@@ -275,11 +275,12 @@ export function validateGenerationConfig(
   if (
     (generationConfig.responseSchema != null ||
       generationConfig.responseJsonSchema != null) &&
-    generationConfig.responseMimeType !== 'application/json'
+    generationConfig.responseMimeType !== 'application/json' &&
+    generationConfig.responseMimeType !== 'text/x.enum'
   ) {
     throw new AIError(
       AIErrorCode.UNSUPPORTED,
-      `responseMimeType must be set to "application/json" if` +
+      `responseMimeType must be set to "application/json" or "text/x.enum" if` +
         ` responseSchema or responseJsonSchema are set.`
     );
   }

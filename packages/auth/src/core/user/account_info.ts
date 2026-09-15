@@ -39,11 +39,9 @@ import { _serverAppCurrentUserOperationNotSupportedError } from '../../core/util
  */
 export async function updateProfile(
   user: User,
-  {
-    displayName,
-    photoURL: photoUrl
-  }: { displayName?: string | null; photoURL?: string | null }
+  profile: { displayName?: string | null; photoURL?: string | null }
 ): Promise<void> {
+  const { displayName, photoURL: photoUrl } = profile;
   if (displayName === undefined && photoUrl === undefined) {
     return;
   }

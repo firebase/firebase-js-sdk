@@ -9,7 +9,7 @@ overwritten. Changes should be made in the source code at
 https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
-# ai package
+# @firebase/ai
 The Firebase AI Web SDK.
 
 ## Functions

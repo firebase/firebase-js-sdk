@@ -38,7 +38,17 @@ jobs:
         with:
           node-version: 24.19.0
 
+      - id: auth
+        name: Authenticate to Google Cloud (Release Tracker)
+        uses: google-github-actions/auth@fc2174804b84f912b1f6d334e9463f484f1c552d
+        with:
+          credentials_json: ${{ secrets.RELEASE_TRACKER_SA_KEY }}
+          token_format: 'id_token'
+          id_token_audience: ${{ secrets.RELEASE_TRACKER_URL }}
+
       - name: Get PR number and send to tracker.
         run: node scripts/ci/log-changesets.js
         env:
           RELEASE_TRACKER_URL: ${{ secrets.RELEASE_TRACKER_URL }}
+          RELEASE_TRACKER_ID_TOKEN: ${{ steps.auth.outputs.id_token }}
+

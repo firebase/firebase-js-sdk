@@ -192,6 +192,14 @@ jobs:
         else
         echo "DOCS_NEEDED=false" >> $GITHUB_OUTPUT
         fi
+    - name: Authenticate to Google Cloud (Release Tracker)
+      if: ${{ always() }}
+      id: release-tracker-auth
+      uses: google-github-actions/auth@fc2174804b84f912b1f6d334e9463f484f1c552d
+      with:
+        credentials_json: ${{ secrets.RELEASE_TRACKER_SA_KEY }}
+        token_format: 'id_token'
+        id_token_audience: ${{ secrets.RELEASE_TRACKER_URL }}
     - name: Log to release tracker
       # Sends release information to cloud functions endpoint of release tracker.
       if: ${{ always() }}
@@ -201,8 +209,10 @@ jobs:
         STAGING_VERSION=${STEPS_GET_VERSION_OUTPUTS_STAGING_VERSION}
         OPERATOR=${GITHUB_ACTOR}
         RELEASE_TRACKER_URL=${{ secrets.RELEASE_TRACKER_URL }}
+        ID_TOKEN=${{ steps.release-tracker-auth.outputs.id_token }}
         DOCS_NEEDED=${STEPS_DOCS_CHECK_OUTPUTS_DOCS_NEEDED}
         curl -X POST -H "Content-Type:application/json" \
+        -H "Authorization: Bearer $ID_TOKEN" \
         -d "{\"version\":\"$BASE_VERSION\",\"tag\":\"$STAGING_VERSION\",\"date\":\"$DATE\",\"operator\":\"$OPERATOR\",\"docs_needed\":\"$DOCS_NEEDED\"}" \
         $RELEASE_TRACKER_URL/logStaging
       env:

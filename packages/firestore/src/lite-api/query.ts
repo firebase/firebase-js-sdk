@@ -811,6 +811,8 @@ export function newQueryFilter(
   value: unknown
 ): FieldFilter {
   let fieldValue: ProtoValue;
+  validateQueryOperator(value, op);
+
   if (fieldPath.isKeyField()) {
     if (op === Operator.ARRAY_CONTAINS || op === Operator.ARRAY_CONTAINS_ANY) {
       throw new FirestoreError(
@@ -1060,6 +1062,37 @@ function validateDisjunctiveFilterElements(
       Code.INVALID_ARGUMENT,
       'Invalid Query. A non-empty array is required for ' +
         `'${operator.toString()}' filters.`
+    );
+  }
+}
+
+/**
+ * Validates the input string as a field comparison operator.
+ */
+export function validateQueryOperator(
+  value: unknown,
+  operator: Operator
+): void {
+  if (
+    typeof value === 'number' &&
+    isNaN(value) &&
+    operator !== '==' &&
+    operator !== '!=' &&
+    operator !== 'array-contains'
+  ) {
+    throw new Error(
+      "Invalid query. You can only perform '==' and '!=' comparisons on NaN."
+    );
+  }
+
+  if (
+    value === null &&
+    operator !== '==' &&
+    operator !== '!=' &&
+    operator !== 'array-contains'
+  ) {
+    throw new Error(
+      "Invalid query. You can only perform '==' and '!=' comparisons on Null."
     );
   }
 }

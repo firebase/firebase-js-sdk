@@ -56,28 +56,26 @@ export function formatNewContent(
 }
 
 /**
- * When multiple Part types (i.e. FunctionResponsePart and TextPart) are
- * passed in a single Part array, we may need to assign different roles to each
- * part. Currently only FunctionResponsePart requires a role other than 'user'.
+ * Validates the parts of a message to ensure that FunctionResponseParts
+ * are not mixed with other part types in a single request.
+ * All parts are now assigned the 'user' role to comply with 3.6+ model requirements.
  * @private
  * @param parts Array of parts to pass to the model
- * @returns Array of content items
+ * @returns A single Content item formatted for the model
  */
 function assignRoleToPartsAndValidateSendMessageRequest(
   parts: Part[]
 ): Content {
-  const userContent: Content = { role: 'user', parts: [] };
-  const functionContent: Content = { role: 'function', parts: [] };
+  const content: Content = { role: 'user', parts: [] };
   let hasUserContent = false;
   let hasFunctionContent = false;
   for (const part of parts) {
     if ('functionResponse' in part) {
-      functionContent.parts.push(part);
       hasFunctionContent = true;
     } else {
-      userContent.parts.push(part);
       hasUserContent = true;
     }
+    content.parts.push(part);
   }
 
   if (hasUserContent && hasFunctionContent) {
@@ -94,11 +92,7 @@ function assignRoleToPartsAndValidateSendMessageRequest(
     );
   }
 
-  if (hasUserContent) {
-    return userContent;
-  }
-
-  return functionContent;
+  return content;
 }
 
 export function formatGenerateContentInput(

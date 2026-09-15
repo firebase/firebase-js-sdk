@@ -1,5 +1,21 @@
 ## Unreleased
 
+## 0.7.4
+
+### Patch Changes
+
+- [`589b24b`](https://github.com/firebase/firebase-js-sdk/commit/589b24bd9b30ba6b07a76da1eb5c3d1eadc5a9d2) [#10293](https://github.com/firebase/firebase-js-sdk/pull/10293) - Updated many top-level `devDependencies`.
+
+- [`981204d`](https://github.com/firebase/firebase-js-sdk/commit/981204d8b948c1141559cac434fdee5556fab589) [#10256](https://github.com/firebase/firebase-js-sdk/pull/10256) - Update WebSocket URL path for SQL Connect server affinity, to improve server resource usage efficiency and performance
+
+- [`72632ee`](https://github.com/firebase/firebase-js-sdk/commit/72632ee29b8257081cb33c676f2dfebc0cc93221) [#10270](https://github.com/firebase/firebase-js-sdk/pull/10270) - Fix issue preventing App Check tokens from being properly recognized when sent in Firebase SQL Connect Realtime requests
+
+- Updated dependencies [[`589b24b`](https://github.com/firebase/firebase-js-sdk/commit/589b24bd9b30ba6b07a76da1eb5c3d1eadc5a9d2)]:
+  - @firebase/auth-interop-types@0.2.6
+  - @firebase/component@0.7.5
+  - @firebase/logger@0.5.2
+  - @firebase/util@1.15.3
+
 ## 0.7.3
 
 ### Patch Changes

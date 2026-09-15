@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # QueryCompositeFilterConstraint class
-A `QueryCompositeFilterConstraint` is used to narrow the set of documents returned by a Firestore query by performing the logical OR or AND of multiple [QueryFieldFilterConstraint](./firestore_.queryfieldfilterconstraint.md#queryfieldfilterconstraint_class)<!-- -->s or [QueryCompositeFilterConstraint](./firestore_.querycompositefilterconstraint.md#querycompositefilterconstraint_class)<!-- -->s. `QueryCompositeFilterConstraint`<!-- -->s are created by invoking [or()](./firestore_.md#or_febfc1f) or [and()](./firestore_.md#and_febfc1f) and can then be passed to [query()](./firestore_.md#query_17e2432) to create a new query instance that also contains the `QueryCompositeFilterConstraint`<!-- -->.
+A `QueryCompositeFilterConstraint` is used to narrow the set of documents returned by a Firestore query by performing the logical OR or AND of multiple [QueryFieldFilterConstraint](./firestore_lite.queryfieldfilterconstraint.md#queryfieldfilterconstraint_class)<!-- -->s or [QueryCompositeFilterConstraint](./firestore_lite.querycompositefilterconstraint.md#querycompositefilterconstraint_class)<!-- -->s. `QueryCompositeFilterConstraint`<!-- -->s are created by invoking [or()](./firestore_lite.md#or_e72c712) or [and()](./firestore_lite.md#and_e72c712) and can then be passed to [query()](./firestore_lite.md#query_9f7b0f4) to create a new query instance that also contains the `QueryCompositeFilterConstraint`<!-- -->.
 
 <b>Signature:</b>
 

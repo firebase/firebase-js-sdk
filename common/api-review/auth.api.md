@@ -539,7 +539,7 @@ export class OAuthProvider extends BaseOAuthProvider {
     static credentialFromError(error: FirebaseError): OAuthCredential | null;
     static credentialFromJSON(json: object | string): OAuthCredential;
     static credentialFromResult(userCredential: UserCredential): OAuthCredential | null;
-    }
+}
 
 // @public
 export function onAuthStateChanged(auth: Auth, nextOrObserver: NextOrObserver<User>, error?: ErrorFn, completed?: CompleteFn): Unsubscribe;
@@ -728,7 +728,7 @@ export class RecaptchaVerifier implements ApplicationVerifierInternal {
     _reset(): void;
     readonly type = "recaptcha";
     verify(): Promise<string>;
-    }
+}
 
 // @public
 export function reload(user: User): Promise<void>;
@@ -744,7 +744,7 @@ export class SAMLAuthProvider extends FederatedAuthProvider {
     static credentialFromError(error: FirebaseError): AuthCredential | null;
     static credentialFromJSON(json: string | object): AuthCredential;
     static credentialFromResult(userCredential: UserCredential): AuthCredential | null;
-    }
+}
 
 // @public
 export function sendEmailVerification(user: User, actionCodeSettings?: ActionCodeSettings | null): Promise<void>;
@@ -828,7 +828,7 @@ export class TotpSecret {
     // @internal (undocumented)
     _makeTotpVerificationInfo(otp: string): TotpVerificationInfo;
     readonly secretKey: string;
-    }
+}
 
 // @public
 export class TwitterAuthProvider extends BaseOAuthProvider {
@@ -858,7 +858,7 @@ export function updatePassword(user: User, newPassword: string): Promise<void>;
 export function updatePhoneNumber(user: User, credential: PhoneAuthCredential): Promise<void>;
 
 // @public
-export function updateProfile(user: User, { displayName, photoURL: photoUrl }: {
+export function updateProfile(user: User, profile: {
     displayName?: string | null;
     photoURL?: string | null;
 }): Promise<void>;
@@ -915,6 +915,5 @@ export function verifyBeforeUpdateEmail(user: User, newEmail: string, actionCode
 
 // @public
 export function verifyPasswordResetCode(auth: Auth, code: string): Promise<string>;
-
 
 ```

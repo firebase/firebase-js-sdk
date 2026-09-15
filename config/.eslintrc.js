@@ -45,6 +45,8 @@ module.exports = {
     }
   ],
   'rules': {
+    'no-eval': 'error',
+    '@typescript-eslint/no-implied-eval': 'error',
     'curly': ['error', 'all'],
     'guard-for-in': 'error',
     'no-extra-label': 'error',

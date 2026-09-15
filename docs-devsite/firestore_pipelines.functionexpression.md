@@ -10,9 +10,9 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # FunctionExpression class
-This class defines the base class for Firestore [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class) functions, which can be evaluated within pipeline execution.
+This class defines the base class for Firestore [Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class) functions, which can be evaluated within pipeline execution.
 
-Typically, you would not use this class or its children directly. Use either the functions like [and()](./firestore_pipelines.md#and_2d5055a)<!-- -->, [equal()](./firestore_pipelines.md#equal_74ec81e)<!-- -->, or the methods on [Expression](./firestore_pipelines.expression.md#expression_class) ([Expression.equal()](./firestore_pipelines.expression.md#expressionequal)<!-- -->, [Expression.lessThan()](./firestore_pipelines.expression.md#expressionlessthan)<!-- -->, etc.) to construct new Function instances.
+Typically, you would not use this class or its children directly. Use either the functions like [and()](./firestore.md#and_e72c712)<!-- -->, [equal()](./firestore_lite_pipelines.md#equal_b3c3382)<!-- -->, or the methods on [Expression](./firestore_lite_pipelines.expression.md#expression_class) ([Expression.equal()](./firestore_lite_pipelines.expression.md#expressionequal)<!-- -->, [Expression.lessThan()](./firestore_lite_pipelines.expression.md#expressionlessthan)<!-- -->, etc.) to construct new Function instances.
 
 <b>Signature:</b>
 
