@@ -15,8 +15,7 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-import { SinonStub, stub, useFakeTimers } from 'sinon';
+import { expect, vi, MockInstance } from 'vitest';
 import '../testing/setup';
 import { settings } from './index';
 import {
@@ -41,10 +40,9 @@ import { _FirebaseInstallationsInternal } from '@firebase/installations';
 let analyticsInstance: AnalyticsService = {} as AnalyticsService;
 const fakeMeasurementId = 'abcd-efgh';
 const fakeAppParams = { appId: 'abcdefgh12345:23405', apiKey: 'AAbbCCdd12345' };
-let fetchStub: SinonStub = stub();
+let fetchStub: MockInstance = vi.fn();
 const customGtagName = 'customGtag';
 const customDataLayerName = 'customDataLayer';
-let clock: sinon.SinonFakeTimers;
 let fakeInstallations: _FirebaseInstallationsInternal;
 
 // Fake indexedDB.open() request
@@ -54,20 +52,20 @@ const fakeRequest = {
     close: () => {}
   }
 };
-let idbOpenStub = stub();
+let idbOpenStub: MockInstance = vi.fn();
 
 function stubFetch(status: number, body: object): void {
-  fetchStub = stub(window, 'fetch');
+  fetchStub = vi.spyOn(window, 'fetch');
   const mockResponse = new Response(JSON.stringify(body), {
     status
   });
-  fetchStub.returns(Promise.resolve(mockResponse));
+  fetchStub.mockResolvedValue(mockResponse);
 }
 
 // Stub indexedDB.open() because sinon's clock does not know
 // how to wait for the real indexedDB callbacks to resolve.
 function stubIdbOpen(): void {
-  idbOpenStub = stub(indexedDB, 'open').returns(fakeRequest as any);
+  idbOpenStub = vi.spyOn(indexedDB, 'open').mockReturnValue(fakeRequest as any);
 }
 
 describe('FirebaseAnalytics instance tests', () => {
@@ -79,21 +77,21 @@ describe('FirebaseAnalytics instance tests', () => {
 
     it('Throws if no appId in config', () => {
       const app = getFakeApp({ apiKey: fakeAppParams.apiKey });
-      expect(() => analyticsFactory(app, fakeInstallations)).to.throw(
+      expect(() => analyticsFactory(app, fakeInstallations)).toThrow(
         AnalyticsError.NO_APP_ID
       );
     });
     it('Throws if no apiKey or measurementId in config', () => {
       const app = getFakeApp({ appId: fakeAppParams.appId });
-      expect(() => analyticsFactory(app, fakeInstallations)).to.throw(
+      expect(() => analyticsFactory(app, fakeInstallations)).toThrow(
         AnalyticsError.NO_API_KEY
       );
     });
     it('Warns if config has no apiKey but does have a measurementId', async () => {
       // Since this is a warning and doesn't block the rest of initialization
       // all the async stuff needs to be stubbed and cleaned up.
-      const warnStub = stub(console, 'warn');
-      const docStub = stub(document, 'createElement');
+      const warnStub = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const docStub = vi.spyOn(document, 'createElement');
       stubFetch(200, { measurementId: fakeMeasurementId });
       const app = getFakeApp({
         appId: fakeAppParams.appId,
@@ -103,22 +101,23 @@ describe('FirebaseAnalytics instance tests', () => {
       analyticsFactory(app, fakeInstallations);
       // Successfully resolves fake IDB open request.
       fakeRequest.onsuccess();
-      // Lets async IDB validation process complete.
-      // await clock.runAllAsync();
-      expect(warnStub.args[0][1]).to.include(
+      const { initializationPromisesMap } = getGlobalVars();
+      await initializationPromisesMap[fakeAppParams.appId];
+      expect(warnStub.mock.calls[0][1]).toContain(
         `Falling back to the measurement ID ${fakeMeasurementId}`
       );
-      warnStub.restore();
-      docStub.restore();
-      fetchStub.restore();
-      idbOpenStub.restore();
+      warnStub.mockRestore();
+      docStub.mockRestore();
+      fetchStub.mockRestore();
+      idbOpenStub.mockRestore();
       delete window['gtag'];
       delete window['dataLayer'];
+      removeGtagScripts();
     });
     it('Throws if creating an instance with already-used appId', () => {
       const app = getFakeApp(fakeAppParams);
       resetGlobalVars(false, { [fakeAppParams.appId]: Promise.resolve() });
-      expect(() => analyticsFactory(app, fakeInstallations)).to.throw(
+      expect(() => analyticsFactory(app, fakeInstallations)).toThrow(
         AnalyticsError.ALREADY_EXISTS
       );
     });
@@ -126,9 +125,9 @@ describe('FirebaseAnalytics instance tests', () => {
   describe('Standard app, page already has user gtag script', () => {
     let app: FirebaseApp = {} as FirebaseApp;
     let fidDeferred: Deferred<void>;
-    const gtagStub: SinonStub = stub();
+    const gtagStub: MockInstance = vi.fn();
     beforeEach(async () => {
-      clock = useFakeTimers({ toFake: ['Date', 'setTimeout', 'clearTimeout'] });
+      vi.useFakeTimers({ toFake: ['Date', 'setTimeout', 'clearTimeout'] });
       resetGlobalVars();
       app = getFakeApp(fakeAppParams);
       fidDeferred = new Deferred<void>();
@@ -143,25 +142,26 @@ describe('FirebaseAnalytics instance tests', () => {
       // Successfully resolves fake IDB open request.
       fakeRequest.onsuccess();
     });
-    afterEach(() => {
+    afterEach(async () => {
+      await vi.runAllTimersAsync();
       delete window['gtag'];
       delete window['dataLayer'];
       removeGtagScripts();
-      fetchStub.restore();
-      idbOpenStub.restore();
-      clock.restore();
+      fetchStub.mockRestore();
+      idbOpenStub.mockRestore();
+      vi.useRealTimers();
     });
     it('Contains reference to parent app', () => {
-      expect(analyticsInstance.app).to.equal(app);
+      expect(analyticsInstance.app).toBe(app);
     });
     it('Calls gtag correctly on logEvent (instance)', async () => {
       logEvent(analyticsInstance, 'add_payment_info', {
         currency: 'USD'
       });
       // Clear promise chain started by logEvent.
-      await clock.runAllAsync();
-      expect(gtagStub).to.have.been.calledWith('js');
-      expect(gtagStub).to.have.been.calledWith(
+      await vi.runAllTimersAsync();
+      expect(gtagStub).toHaveBeenCalledWith('js', expect.any(Date));
+      expect(gtagStub).toHaveBeenCalledWith(
         GtagCommand.CONFIG,
         fakeMeasurementId,
         {
@@ -170,7 +170,7 @@ describe('FirebaseAnalytics instance tests', () => {
           update: true
         }
       );
-      expect(gtagStub).to.have.been.calledWith(
+      expect(gtagStub).toHaveBeenCalledWith(
         GtagCommand.EVENT,
         'add_payment_info',
         {
@@ -183,12 +183,12 @@ describe('FirebaseAnalytics instance tests', () => {
 
   describe('Standard app, mismatched environment', () => {
     let app: FirebaseApp = {} as FirebaseApp;
-    const gtagStub: SinonStub = stub();
+    const gtagStub: MockInstance = vi.fn();
     let fidDeferred: Deferred<void>;
-    let warnStub: SinonStub;
-    let cookieStub: SinonStub;
+    let warnStub: MockInstance;
+    let cookieStub: MockInstance;
     beforeEach(() => {
-      clock = useFakeTimers({ toFake: ['Date', 'setTimeout', 'clearTimeout'] });
+      vi.useFakeTimers({ toFake: ['Date', 'setTimeout', 'clearTimeout'] });
       resetGlobalVars();
       app = getFakeApp(fakeAppParams);
       fidDeferred = new Deferred<void>();
@@ -198,92 +198,100 @@ describe('FirebaseAnalytics instance tests', () => {
       window['gtag'] = gtagStub;
       window['dataLayer'] = [];
       stubFetch(200, { measurementId: fakeMeasurementId });
-      warnStub = stub(console, 'warn');
+      warnStub = vi.spyOn(console, 'warn').mockImplementation(() => {});
       stubIdbOpen();
     });
     afterEach(() => {
       delete window['gtag'];
       delete window['dataLayer'];
       removeGtagScripts();
-      fetchStub.restore();
-      warnStub.restore();
-      idbOpenStub.restore();
-      gtagStub.resetHistory();
-      clock.restore();
+      fetchStub.mockRestore();
+      warnStub.mockRestore();
+      idbOpenStub.mockRestore();
+      gtagStub.mockClear();
+      vi.useRealTimers();
     });
     it('Warns on initialization if cookies not available', async () => {
-      cookieStub = stub(navigator, 'cookieEnabled').value(false);
+      cookieStub = vi
+        .spyOn(navigator, 'cookieEnabled', 'get')
+        .mockReturnValue(false);
       analyticsInstance = analyticsFactory(app, fakeInstallations);
       // Successfully resolves fake IDB open request.
       fakeRequest.onsuccess();
-      expect(warnStub.args[0][1]).to.include(
+      expect(warnStub.mock.calls[0][1]).toContain(
         AnalyticsError.INVALID_ANALYTICS_CONTEXT
       );
-      expect(warnStub.args[0][1]).to.include('Cookies');
-      cookieStub.restore();
+      expect(warnStub.mock.calls[0][1]).toContain('Cookies');
+      cookieStub.mockRestore();
     });
     it('Warns on initialization if in browser extension', async () => {
       window.chrome = { runtime: { id: 'blah' } };
       analyticsInstance = analyticsFactory(app, fakeInstallations);
       // Successfully resolves fake IDB open request.
       fakeRequest.onsuccess();
-      expect(warnStub.args[0][1]).to.include(
+      expect(warnStub.mock.calls[0][1]).toContain(
         AnalyticsError.INVALID_ANALYTICS_CONTEXT
       );
-      expect(warnStub.args[0][1]).to.include('browser extension');
+      expect(warnStub.mock.calls[0][1]).toContain('browser extension');
       window.chrome = undefined;
     });
     it('Warns on logEvent if indexedDB API not available', async () => {
-      idbOpenStub.restore();
-      const idbStub = stub(window, 'indexedDB').value(undefined);
+      idbOpenStub.mockRestore();
+      const idbStub = vi
+        .spyOn(window, 'indexedDB', 'get')
+        .mockReturnValue(undefined as any);
       try {
         analyticsInstance = analyticsFactory(app, fakeInstallations);
         logEvent(analyticsInstance, 'add_payment_info', {
           currency: 'USD'
         });
         // Clear promise chain started by logEvent.
-        await clock.runAllAsync();
+        await vi.runAllTimersAsync();
         // gtag config call omits FID
-        expect(gtagStub).to.be.calledWith('config', 'abcd-efgh', {
+        expect(gtagStub).toHaveBeenCalledWith('config', 'abcd-efgh', {
           update: true,
           origin: 'firebase'
         });
-        expect(warnStub.args[0][1]).to.include(
+        expect(warnStub.mock.calls[0][1]).toContain(
           AnalyticsError.INDEXEDDB_UNAVAILABLE
         );
-        expect(warnStub.args[0][1]).to.include('IndexedDB is not available');
+        expect(warnStub.mock.calls[0][1]).toContain(
+          'IndexedDB is not available'
+        );
       } finally {
-        idbStub.restore();
+        idbStub.mockRestore();
         stubIdbOpen();
       }
     });
     it('Warns on logEvent if indexedDB.open() not allowed', async () => {
-      idbOpenStub.restore();
-      idbOpenStub = stub(indexedDB, 'open').throws('idb open error test');
+      idbOpenStub.mockRestore();
+      idbOpenStub = vi.spyOn(indexedDB, 'open').mockImplementation(() => {
+        throw new Error('idb open error test');
+      });
       analyticsInstance = analyticsFactory(app, fakeInstallations);
       logEvent(analyticsInstance, 'add_payment_info', {
         currency: 'USD'
       });
       // Clear promise chain started by logEvent.
-      await clock.runAllAsync();
+      await vi.runAllTimersAsync();
       // gtag config call omits FID
-      expect(gtagStub).to.be.calledWith('config', 'abcd-efgh', {
+      expect(gtagStub).toHaveBeenCalledWith('config', 'abcd-efgh', {
         update: true,
         origin: 'firebase'
       });
-      expect(warnStub.args[0][1]).to.include(
+      expect(warnStub.mock.calls[0][1]).toContain(
         AnalyticsError.INDEXEDDB_UNAVAILABLE
       );
-      expect(warnStub.args[0][1]).to.include('idb open error test');
+      expect(warnStub.mock.calls[0][1]).toContain('idb open error test');
     });
   });
 
   describe('Page has user gtag script with custom gtag and dataLayer names', () => {
     let app: FirebaseApp = {} as FirebaseApp;
     let fidDeferred: Deferred<void>;
-    const gtagStub: SinonStub = stub();
+    const gtagStub: MockInstance = vi.fn();
     beforeEach(() => {
-      clock = useFakeTimers({ toFake: ['Date', 'setTimeout', 'clearTimeout'] });
+      vi.useFakeTimers({ toFake: ['Date', 'setTimeout', 'clearTimeout'] });
       resetGlobalVars();
       app = getFakeApp(fakeAppParams);
       fidDeferred = new Deferred<void>();
@@ -302,22 +310,23 @@ describe('FirebaseAnalytics instance tests', () => {
       // Successfully resolves fake IDB open request.
       fakeRequest.onsuccess();
     });
-    afterEach(() => {
+    afterEach(async () => {
+      await vi.runAllTimersAsync();
       delete window[customGtagName];
       delete window[customDataLayerName];
       removeGtagScripts();
-      fetchStub.restore();
-      idbOpenStub.restore();
-      clock.restore();
+      fetchStub.mockRestore();
+      idbOpenStub.mockRestore();
+      vi.useRealTimers();
     });
     it('Calls gtag correctly on logEvent (instance)', async () => {
       logEvent(analyticsInstance, 'add_payment_info', {
         currency: 'USD'
       });
       // Clear promise chain started by logEvent.
-      await clock.runAllAsync();
-      expect(gtagStub).to.have.been.calledWith('js');
-      expect(gtagStub).to.have.been.calledWith(
+      await vi.runAllTimersAsync();
+      expect(gtagStub).toHaveBeenCalledWith('js', expect.any(Date));
+      expect(gtagStub).toHaveBeenCalledWith(
         GtagCommand.CONFIG,
         fakeMeasurementId,
         {
@@ -326,7 +335,7 @@ describe('FirebaseAnalytics instance tests', () => {
           update: true
         }
       );
-      expect(gtagStub).to.have.been.calledWith(
+      expect(gtagStub).toHaveBeenCalledWith(
         GtagCommand.EVENT,
         'add_payment_info',
         {
@@ -350,15 +359,15 @@ describe('FirebaseAnalytics instance tests', () => {
       // Successfully resolves fake IDB open request.
       fakeRequest.onsuccess();
       await initializationPromisesMap[fakeAppParams.appId];
-      expect(findGtagScriptOnPage('dataLayer')).to.not.be.null;
-      expect(typeof window['gtag']).to.equal('function');
-      expect(Array.isArray(window['dataLayer'])).to.be.true;
+      expect(findGtagScriptOnPage('dataLayer')).not.toBeNull();
+      expect(typeof window['gtag']).toBe('function');
+      expect(Array.isArray(window['dataLayer'])).toBe(true);
 
       delete window['gtag'];
       delete window['dataLayer'];
       removeGtagScripts();
-      fetchStub.restore();
-      idbOpenStub.restore();
+      fetchStub.mockRestore();
+      idbOpenStub.mockRestore();
     });
   });
 });

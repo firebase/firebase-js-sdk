@@ -15,8 +15,7 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-import { SinonStub, stub } from 'sinon';
+import { expect, vi, MockInstance } from 'vitest';
 import '../testing/setup';
 import { DataLayer, Gtag, DynamicConfig } from './types';
 import {
@@ -53,20 +52,22 @@ const fakeDynamicConfigPromises = [Promise.resolve(fakeDynamicConfig)];
 describe('Trusted Types policies and functions', () => {
   if (window.trustedTypes) {
     describe('Trusted types exists', () => {
-      let ttStub: SinonStub;
+      let ttStub: MockInstance;
 
       beforeEach(() => {
-        ttStub = stub(
-          window.trustedTypes as TrustedTypePolicyFactory,
-          'createPolicy'
-        ).returns({
-          createScriptURL: (s: string) => s
-        } as any);
+        ttStub = vi
+          .spyOn(
+            window.trustedTypes as TrustedTypePolicyFactory,
+            'createPolicy'
+          )
+          .mockReturnValue({
+            createScriptURL: (s: string) => s
+          } as any);
       });
 
       afterEach(() => {
         removeGtagScripts();
-        ttStub.restore();
+        ttStub.mockRestore();
       });
 
       it('Verify trustedTypes is called if the API is available', () => {
@@ -77,17 +78,19 @@ describe('Trusted Types policies and functions', () => {
           }
         );
 
-        expect(ttStub).to.be.called;
-        expect(trustedTypesPolicy).not.to.be.undefined;
+        expect(ttStub).toHaveBeenCalled();
+        expect(trustedTypesPolicy).toBeDefined();
       });
 
       it('createGtagTrustedTypesScriptURL verifies gtag URL base exists when a URL is provided', () => {
-        expect(createGtagTrustedTypesScriptURL(GTAG_URL)).to.equal(GTAG_URL);
+        expect(createGtagTrustedTypesScriptURL(GTAG_URL)).toBe(GTAG_URL);
       });
 
       it('createGtagTrustedTypesScriptURL rejects URLs with non-gtag base', () => {
         const NON_GTAG_URL = 'http://iamnotgtag.com';
-        const loggerWarnStub = stub(logger, 'warn');
+        const loggerWarnStub = vi
+          .spyOn(logger, 'warn')
+          .mockImplementation(() => {});
         const errorMessage = ERROR_FACTORY.create(
           AnalyticsError.INVALID_GTAG_RESOURCE,
           {
@@ -95,8 +98,8 @@ describe('Trusted Types policies and functions', () => {
           }
         ).message;
 
-        expect(createGtagTrustedTypesScriptURL(NON_GTAG_URL)).to.equal('');
-        expect(loggerWarnStub).to.be.calledWith(errorMessage);
+        expect(createGtagTrustedTypesScriptURL(NON_GTAG_URL)).toBe('');
+        expect(loggerWarnStub).toHaveBeenCalledWith(errorMessage);
       });
     });
   }
@@ -110,7 +113,7 @@ describe('Trusted Types policies and functions', () => {
         }
       );
 
-      expect(trustedTypesPolicy).to.be.undefined;
+      expect(trustedTypesPolicy).toBeUndefined();
     });
   });
 });
@@ -122,22 +125,22 @@ describe('Gtag wrapping functions', () => {
 
   it('getOrCreateDataLayer is able to create a new data layer if none exists', () => {
     delete window['dataLayer'];
-    expect(getOrCreateDataLayer('dataLayer')).to.deep.equal([]);
+    expect(getOrCreateDataLayer('dataLayer')).toEqual([]);
   });
 
   it('getOrCreateDataLayer is able to correctly identify an existing data layer', () => {
     const existingDataLayer = (window['dataLayer'] = []);
-    expect(getOrCreateDataLayer('dataLayer')).to.equal(existingDataLayer);
+    expect(getOrCreateDataLayer('dataLayer')).toBe(existingDataLayer);
   });
 
   it('insertScriptIfNeeded inserts script tag', () => {
     const customDataLayerName = 'customDataLayerName';
-    expect(findGtagScriptOnPage(customDataLayerName)).to.be.null;
+    expect(findGtagScriptOnPage(customDataLayerName)).toBeNull();
     insertScriptTag(customDataLayerName, fakeMeasurementId);
     const scriptTag = findGtagScriptOnPage(customDataLayerName);
-    expect(scriptTag).to.not.be.null;
-    expect(scriptTag!.src).to.contain(`l=customDataLayerName`);
-    expect(scriptTag!.src).to.contain(`id=${fakeMeasurementId}`);
+    expect(scriptTag).not.toBeNull();
+    expect(scriptTag!.src).toContain(`l=customDataLayerName`);
+    expect(scriptTag!.src).toContain(`id=${fakeMeasurementId}`);
   });
 
   // The test above essentially already touches this functionality but it is still valuable
@@ -145,8 +148,8 @@ describe('Gtag wrapping functions', () => {
     const defaultDataLayerName = 'dataLayer';
     insertScriptTag(defaultDataLayerName, fakeMeasurementId);
     const scriptTag = findGtagScriptOnPage(defaultDataLayerName);
-    expect(scriptTag!.src).to.contain(`l=${defaultDataLayerName}`);
-    expect(findGtagScriptOnPage('NON_EXISTENT_DATA_LAYER_ID')).to.be.null;
+    expect(scriptTag!.src).toContain(`l=${defaultDataLayerName}`);
+    expect(findGtagScriptOnPage('NON_EXISTENT_DATA_LAYER_ID')).toBeNull();
   });
 
   describe('wrapOrCreateGtag() when user has not previously inserted a gtag script tag on this page', () => {
@@ -156,9 +159,9 @@ describe('Gtag wrapping functions', () => {
     });
 
     it('wrapOrCreateGtag creates new gtag function if needed', () => {
-      expect(window['gtag']).to.not.exist;
+      expect(window['gtag']).toBeFalsy();
       wrapOrCreateGtag({}, fakeDynamicConfigPromises, {}, 'dataLayer', 'gtag');
-      expect(window['gtag']).to.exist;
+      expect(window['gtag']).toBeDefined();
     });
 
     it('new window.gtag function waits for all initialization promises before sending group events', async () => {
@@ -180,20 +183,20 @@ describe('Gtag wrapping functions', () => {
         'send_to': 'some_group'
       };
       (window['gtag'] as Gtag)(GtagCommand.EVENT, 'purchase', eventObject);
-      expect((window['dataLayer'] as DataLayer).length).to.equal(0);
+      expect((window['dataLayer'] as DataLayer).length).toBe(0);
 
       initPromise1.resolve(fakeMeasurementId); // Resolves first initialization promise.
-      expect((window['dataLayer'] as DataLayer).length).to.equal(0);
+      expect((window['dataLayer'] as DataLayer).length).toBe(0);
 
       initPromise2.resolve('other-measurement-id'); // Resolves second initialization promise.
       await Promise.all([initPromise1, initPromise2]); // Wait for resolution of Promise.all()
       await promiseAllSettled(fakeDynamicConfigPromises);
       const dataLayer = window['dataLayer'] as DataLayer;
-      expect(dataLayer.length).to.equal(1);
+      expect(dataLayer.length).toBe(1);
       const data = dataLayer[0];
-      expect(data[0]).to.equal('event');
-      expect(data[1]).to.equal('purchase');
-      expect(data[2]).to.equal(eventObject);
+      expect(data[0]).toBe('event');
+      expect(data[1]).toBe('purchase');
+      expect(data[2]).toBe(eventObject);
     });
 
     it(
@@ -218,21 +221,21 @@ describe('Gtag wrapping functions', () => {
           'send_to': [fakeMeasurementId, 'some_group']
         };
         (window['gtag'] as Gtag)(GtagCommand.EVENT, 'purchase', eventObject);
-        expect((window['dataLayer'] as DataLayer).length).to.equal(0);
+        expect((window['dataLayer'] as DataLayer).length).toBe(0);
 
         initPromise1.resolve(); // Resolves first initialization promise.
-        expect((window['dataLayer'] as DataLayer).length).to.equal(0);
+        expect((window['dataLayer'] as DataLayer).length).toBe(0);
 
         initPromise2.resolve(); // Resolves second initialization promise.
         await Promise.all([initPromise1, initPromise2]); // Wait for resolution of Promise.all()
         await promiseAllSettled(fakeDynamicConfigPromises);
 
         const dataLayer = window['dataLayer'] as DataLayer;
-        expect(dataLayer.length).to.equal(1);
+        expect(dataLayer.length).toBe(1);
         const data = dataLayer[0];
-        expect(data[0]).to.equal('event');
-        expect(data[1]).to.equal('purchase');
-        expect(data[2]).to.equal(eventObject);
+        expect(data[0]).toBe('event');
+        expect(data[1]).toBe('purchase');
+        expect(data[2]).toBe(eventObject);
       }
     );
 
@@ -257,20 +260,20 @@ describe('Gtag wrapping functions', () => {
           'transaction_id': 'abcd123'
         };
         (window['gtag'] as Gtag)(GtagCommand.EVENT, 'purchase', eventObject);
-        expect((window['dataLayer'] as DataLayer).length).to.equal(0);
+        expect((window['dataLayer'] as DataLayer).length).toBe(0);
 
         initPromise1.resolve(); // Resolves first initialization promise.
-        expect((window['dataLayer'] as DataLayer).length).to.equal(0);
+        expect((window['dataLayer'] as DataLayer).length).toBe(0);
 
         initPromise2.resolve(); // Resolves second initialization promise.
         await Promise.all([initPromise1, initPromise2]); // Wait for resolution of Promise.all()
 
         const dataLayer = window['dataLayer'] as DataLayer;
-        expect(dataLayer.length).to.equal(1);
+        expect(dataLayer.length).toBe(1);
         const data = dataLayer[0];
-        expect(data[0]).to.equal('event');
-        expect(data[1]).to.equal('purchase');
-        expect(data[2]).to.equal(eventObject);
+        expect(data[0]).toBe('event');
+        expect(data[1]).toBe('purchase');
+        expect(data[2]).toBe(eventObject);
       }
     );
 
@@ -296,18 +299,18 @@ describe('Gtag wrapping functions', () => {
           'send_to': fakeMeasurementId
         };
         (window['gtag'] as Gtag)(GtagCommand.EVENT, 'purchase', eventObject);
-        expect((window['dataLayer'] as DataLayer).length).to.equal(0);
+        expect((window['dataLayer'] as DataLayer).length).toBe(0);
 
         initPromise1.resolve(); // Resolves first initialization promise.
         await promiseAllSettled(fakeDynamicConfigPromises);
         await Promise.all([initPromise1]); // Wait for resolution of Promise.all()
 
         const dataLayer = window['dataLayer'] as DataLayer;
-        expect(dataLayer.length).to.equal(1);
+        expect(dataLayer.length).toBe(1);
         const data = dataLayer[0];
-        expect(data[0]).to.equal('event');
-        expect(data[1]).to.equal('purchase');
-        expect(data[2]).to.equal(eventObject);
+        expect(data[0]).toBe('event');
+        expect(data[1]).toBe('purchase');
+        expect(data[2]).toBe(eventObject);
       }
     );
 
@@ -318,7 +321,7 @@ describe('Gtag wrapping functions', () => {
         'transaction_id': 'abcd123'
       });
       await Promise.all([]); // Promise.all() always runs before event call, even if empty.
-      expect((window['dataLayer'] as DataLayer).length).to.equal(1);
+      expect((window['dataLayer'] as DataLayer).length).toBe(1);
     });
 
     it('new window.gtag function does not wait when sending "set" calls', async () => {
@@ -333,10 +336,10 @@ describe('Gtag wrapping functions', () => {
       const eventObject = { 'language': 'en' };
       (window['gtag'] as Gtag)(GtagCommand.SET, eventObject);
       const dataLayer = window['dataLayer'] as DataLayer;
-      expect(dataLayer.length).to.equal(1);
+      expect(dataLayer.length).toBe(1);
       const data = dataLayer[0];
-      expect(data[0]).to.equal('set');
-      expect(data[1]).to.equal(eventObject);
+      expect(data[0]).toBe('set');
+      expect(data[1]).toBe(eventObject);
     });
 
     it('new window.gtag function does not wait when sending "consent" calls', async () => {
@@ -358,11 +361,11 @@ describe('Gtag wrapping functions', () => {
         consentParameters
       );
       const dataLayer = window['dataLayer'] as DataLayer;
-      expect(dataLayer.length).to.equal(1);
+      expect(dataLayer.length).toBe(1);
       const data = dataLayer[0];
-      expect(data[0]).to.equal('consent');
-      expect(data[1]).to.equal('update');
-      expect(data[2]).to.equal(consentParameters);
+      expect(data[0]).toBe('consent');
+      expect(data[1]).toBe('update');
+      expect(data[2]).toBe(consentParameters);
     });
 
     it('new window.gtag function does not wait when sending "get" calls', async () => {
@@ -381,12 +384,12 @@ describe('Gtag wrapping functions', () => {
         clientId => console.log(clientId)
       );
       const dataLayer = window['dataLayer'] as DataLayer;
-      expect(dataLayer.length).to.equal(1);
+      expect(dataLayer.length).toBe(1);
       const data = dataLayer[0];
-      expect(data[0]).to.equal('get');
-      expect(data[1]).to.equal(fakeMeasurementId);
-      expect(data[2]).to.equal('client_id');
-      expect(data[3]).to.not.be.undefined;
+      expect(data[0]).toBe('get');
+      expect(data[1]).toBe(fakeMeasurementId);
+      expect(data[2]).toBe('client_id');
+      expect(data[3]).toBeDefined();
     });
 
     it('new window.gtag function does not wait when sending an unknown command', async () => {
@@ -400,10 +403,10 @@ describe('Gtag wrapping functions', () => {
       window['dataLayer'] = [];
       (window['gtag'] as Gtag)('new-command-from-gtag-team', fakeMeasurementId);
       const dataLayer = window['dataLayer'] as DataLayer;
-      expect(dataLayer.length).to.equal(1);
+      expect(dataLayer.length).toBe(1);
       const data = dataLayer[0];
-      expect(data[0]).to.equal('new-command-from-gtag-team');
-      expect(data[1]).to.equal(fakeMeasurementId);
+      expect(data[0]).toBe('new-command-from-gtag-team');
+      expect(data[1]).toBe(fakeMeasurementId);
     });
 
     it('new window.gtag function waits for initialization promise when sending "config" calls', async () => {
@@ -424,19 +427,19 @@ describe('Gtag wrapping functions', () => {
         fakeMeasurementId,
         eventObject
       );
-      expect((window['dataLayer'] as DataLayer).length).to.equal(0);
+      expect((window['dataLayer'] as DataLayer).length).toBe(0);
 
       initPromise1.resolve(fakeMeasurementId);
       await promiseAllSettled(fakeDynamicConfigPromises); // Resolves dynamic config fetches.
-      expect((window['dataLayer'] as DataLayer).length).to.equal(0);
+      expect((window['dataLayer'] as DataLayer).length).toBe(0);
 
       await Promise.all([initPromise1]); // Wait for resolution of Promise.all()
       const dataLayer = window['dataLayer'] as DataLayer;
-      expect(dataLayer.length).to.equal(1);
+      expect(dataLayer.length).toBe(1);
       const data = dataLayer[0];
-      expect(data[0]).to.equal('config');
-      expect(data[1]).to.equal(fakeMeasurementId);
-      expect(data[2]).to.equal(eventObject);
+      expect(data[0]).toBe('config');
+      expect(data[1]).toBe(fakeMeasurementId);
+      expect(data[2]).toBe(eventObject);
     });
 
     it('new window.gtag function does not wait when sending "config" calls if there are no pending initialization promises', async () => {
@@ -453,23 +456,23 @@ describe('Gtag wrapping functions', () => {
       await promiseAllSettled(fakeDynamicConfigPromises);
       await Promise.resolve(); // Config call is always chained onto initialization promise list, even if empty.
       const dataLayer = window['dataLayer'] as DataLayer;
-      expect(dataLayer.length).to.equal(1);
+      expect(dataLayer.length).toBe(1);
       const data = dataLayer[0];
-      expect(data[0]).to.equal('config');
-      expect(data[1]).to.equal(fakeMeasurementId);
-      expect(data[2]).to.equal(eventObject);
+      expect(data[0]).toBe('config');
+      expect(data[1]).toBe(fakeMeasurementId);
+      expect(data[2]).toBe(eventObject);
     });
   });
 
   describe('wrapOrCreateGtag() when user has previously inserted gtag script tag on this page', () => {
-    const existingGtagStub: SinonStub = stub();
+    const existingGtagStub: MockInstance = vi.fn();
 
     beforeEach(() => {
       window['gtag'] = existingGtagStub;
     });
 
     afterEach(() => {
-      existingGtagStub.reset();
+      existingGtagStub.mockReset();
     });
 
     it('new window.gtag function waits for all initialization promises before sending group events', async () => {
@@ -489,21 +492,25 @@ describe('Gtag wrapping functions', () => {
         'transaction_id': 'abcd123',
         'send_to': 'some_group'
       });
-      expect(existingGtagStub).to.not.be.called;
+      expect(existingGtagStub).not.toHaveBeenCalled();
 
       initPromise1.resolve(); // Resolves first initialization promise.
-      expect(existingGtagStub).to.not.be.called;
+      expect(existingGtagStub).not.toHaveBeenCalled();
 
       initPromise2.resolve(); // Resolves second initialization promise.
       await promiseAllSettled(fakeDynamicConfigPromises); // Resolves dynamic config fetches.
-      expect(existingGtagStub).to.not.be.called;
+      expect(existingGtagStub).not.toHaveBeenCalled();
 
       await Promise.all([initPromise1, initPromise2]); // Wait for resolution of Promise.all()
 
-      expect(existingGtagStub).to.be.calledWith(GtagCommand.EVENT, 'purchase', {
-        'send_to': 'some_group',
-        'transaction_id': 'abcd123'
-      });
+      expect(existingGtagStub).toHaveBeenCalledWith(
+        GtagCommand.EVENT,
+        'purchase',
+        {
+          'send_to': 'some_group',
+          'transaction_id': 'abcd123'
+        }
+      );
     });
 
     it(
@@ -526,18 +533,18 @@ describe('Gtag wrapping functions', () => {
           'transaction_id': 'abcd123',
           'send_to': [fakeMeasurementId, 'some_group']
         });
-        expect(existingGtagStub).to.not.be.called;
+        expect(existingGtagStub).not.toHaveBeenCalled();
 
         initPromise1.resolve(); // Resolves first initialization promise.
-        expect(existingGtagStub).to.not.be.called;
+        expect(existingGtagStub).not.toHaveBeenCalled();
 
         initPromise2.resolve(); // Resolves second initialization promise.
         await promiseAllSettled(fakeDynamicConfigPromises); // Resolves dynamic config fetches.
-        expect(existingGtagStub).to.not.be.called;
+        expect(existingGtagStub).not.toHaveBeenCalled();
 
         await Promise.all([initPromise1, initPromise2]); // Wait for resolution of Promise.all()
 
-        expect(existingGtagStub).to.be.calledWith(
+        expect(existingGtagStub).toHaveBeenCalledWith(
           GtagCommand.EVENT,
           'purchase',
           {
@@ -567,16 +574,16 @@ describe('Gtag wrapping functions', () => {
         (window['gtag'] as Gtag)(GtagCommand.EVENT, 'purchase', {
           'transaction_id': 'abcd123'
         });
-        expect(existingGtagStub).to.not.be.called;
+        expect(existingGtagStub).not.toHaveBeenCalled();
 
         initPromise1.resolve(); // Resolves first initialization promise.
-        expect(existingGtagStub).to.not.be.called;
+        expect(existingGtagStub).not.toHaveBeenCalled();
 
         initPromise2.resolve(); // Resolves second initialization promise.
 
         await Promise.all([initPromise1, initPromise2]); // Wait for resolution of Promise.all()
 
-        expect(existingGtagStub).to.be.calledWith(
+        expect(existingGtagStub).toHaveBeenCalledWith(
           GtagCommand.EVENT,
           'purchase',
           { 'transaction_id': 'abcd123' }
@@ -604,15 +611,15 @@ describe('Gtag wrapping functions', () => {
           'transaction_id': 'abcd123',
           'send_to': fakeMeasurementId
         });
-        expect(existingGtagStub).to.not.be.called;
+        expect(existingGtagStub).not.toHaveBeenCalled();
 
         initPromise1.resolve(); // Resolves first initialization promise.
         await promiseAllSettled(fakeDynamicConfigPromises); // Resolves dynamic config fetches.
-        expect(existingGtagStub).to.not.be.called;
+        expect(existingGtagStub).not.toHaveBeenCalled();
 
         await Promise.all([initPromise1]); // Wait for resolution of Promise.all()
 
-        expect(existingGtagStub).to.be.calledWith(
+        expect(existingGtagStub).toHaveBeenCalledWith(
           GtagCommand.EVENT,
           'purchase',
           { 'send_to': fakeMeasurementId, 'transaction_id': 'abcd123' }
@@ -627,9 +634,13 @@ describe('Gtag wrapping functions', () => {
         'transaction_id': 'abcd321'
       });
       await Promise.all([]); // Promise.all() always runs before event call, even if empty.
-      expect(existingGtagStub).to.be.calledWith(GtagCommand.EVENT, 'purchase', {
-        'transaction_id': 'abcd321'
-      });
+      expect(existingGtagStub).toHaveBeenCalledWith(
+        GtagCommand.EVENT,
+        'purchase',
+        {
+          'transaction_id': 'abcd321'
+        }
+      );
     });
 
     it('wrapped window.gtag function does not wait when sending "set" calls', async () => {
@@ -642,7 +653,7 @@ describe('Gtag wrapping functions', () => {
       );
       window['dataLayer'] = [];
       (window['gtag'] as Gtag)(GtagCommand.SET, { 'language': 'en' });
-      expect(existingGtagStub).to.be.calledWith(GtagCommand.SET, {
+      expect(existingGtagStub).toHaveBeenCalledWith(GtagCommand.SET, {
         'language': 'en'
       });
     });
@@ -660,15 +671,15 @@ describe('Gtag wrapping functions', () => {
       (window['gtag'] as Gtag)(GtagCommand.CONFIG, fakeMeasurementId, {
         'language': 'en'
       });
-      expect(existingGtagStub).to.not.be.called;
+      expect(existingGtagStub).not.toHaveBeenCalled();
 
       initPromise1.resolve(fakeMeasurementId);
       await promiseAllSettled(fakeDynamicConfigPromises); // Resolves dynamic config fetches.
-      expect(existingGtagStub).to.not.be.called;
+      expect(existingGtagStub).not.toHaveBeenCalled();
 
       await Promise.all([initPromise1]); // Wait for resolution of Promise.all()
 
-      expect(existingGtagStub).to.be.calledWith(
+      expect(existingGtagStub).toHaveBeenCalledWith(
         GtagCommand.CONFIG,
         fakeMeasurementId,
         {
@@ -684,9 +695,9 @@ describe('Gtag wrapping functions', () => {
         'transaction_id': 'abcd123'
       });
       await promiseAllSettled(fakeDynamicConfigPromises); // Resolves dynamic config fetches.
-      expect(existingGtagStub).to.not.be.called;
+      expect(existingGtagStub).not.toHaveBeenCalled();
       await Promise.resolve(); // Config call is always chained onto initialization promise list, even if empty.
-      expect(existingGtagStub).to.be.calledWith(
+      expect(existingGtagStub).toHaveBeenCalledWith(
         GtagCommand.CONFIG,
         fakeMeasurementId,
         {

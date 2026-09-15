@@ -15,8 +15,7 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-import { SinonStub, stub } from 'sinon';
+import { expect, vi } from 'vitest';
 import '../testing/setup';
 import { getFullApp } from '../testing/get-fake-firebase-services';
 import {
@@ -29,7 +28,22 @@ import { FirebaseApp, deleteApp } from '@firebase/app';
 import { AnalyticsError } from './errors';
 import * as init from './initialize-analytics';
 const fakeAppParams = { appId: 'abcdefgh12345:23405', apiKey: 'AAbbCCdd12345' };
-import * as factory from './factory';
+
+const { mockInitializeAnalytics } = vi.hoisted(() => ({
+  mockInitializeAnalytics: vi.fn()
+}));
+
+vi.mock('./initialize-analytics', async importOriginal => {
+  const actual =
+    await importOriginal<typeof import('./initialize-analytics')>();
+  return {
+    ...actual,
+    _initializeAnalytics: mockInitializeAnalytics
+  };
+});
+
+import { _setWrappedGtagFunction } from './factory';
+
 import {
   defaultConsentSettingsForInit,
   defaultEventParametersForInit
@@ -37,25 +51,25 @@ import {
 import { ConsentSettings } from './public-types';
 
 describe('FirebaseAnalytics API tests', () => {
-  let initStub: SinonStub = stub();
   let app: FirebaseApp;
-  const wrappedGtag: SinonStub = stub();
+  const wrappedGtag = vi.fn();
 
   beforeEach(() => {
-    initStub = stub(init, '_initializeAnalytics').resolves(
-      'FAKE_MEASUREMENT_ID'
-    );
+    mockInitializeAnalytics.mockResolvedValue('FAKE_MEASUREMENT_ID');
+    _setWrappedGtagFunction(undefined);
   });
 
   afterEach(async () => {
-    await initStub();
-    initStub.restore();
+    await mockInitializeAnalytics();
+    mockInitializeAnalytics.mockReset();
+    _setWrappedGtagFunction(undefined);
+    wrappedGtag.mockReset();
     if (app) {
       return deleteApp(app);
     }
   });
 
-  after(() => {
+  afterAll(() => {
     delete window['gtag'];
     delete window['dataLayer'];
   });
@@ -64,7 +78,7 @@ describe('FirebaseAnalytics API tests', () => {
     app = getFullApp(fakeAppParams);
     const analyticsInstance = initializeAnalytics(app);
     const newInstance = initializeAnalytics(app);
-    expect(analyticsInstance).to.equal(newInstance);
+    expect(analyticsInstance).toBe(newInstance);
   });
   it('initializeAnalytics() with same options returns same instance', () => {
     app = getFullApp(fakeAppParams);
@@ -74,7 +88,7 @@ describe('FirebaseAnalytics API tests', () => {
     const newInstance = initializeAnalytics(app, {
       config: { 'send_page_view': false }
     });
-    expect(analyticsInstance).to.equal(newInstance);
+    expect(analyticsInstance).toBe(newInstance);
   });
   it('initializeAnalytics() with different options throws', () => {
     app = getFullApp(fakeAppParams);
@@ -85,7 +99,7 @@ describe('FirebaseAnalytics API tests', () => {
       initializeAnalytics(app, {
         config: { 'send_page_view': true }
       })
-    ).to.throw(AnalyticsError.ALREADY_INITIALIZED);
+    ).toThrow(AnalyticsError.ALREADY_INITIALIZED);
   });
   it('initializeAnalytics() with different options (one undefined) throws', () => {
     app = getFullApp(fakeAppParams);
@@ -94,17 +108,17 @@ describe('FirebaseAnalytics API tests', () => {
       initializeAnalytics(app, {
         config: { 'send_page_view': true }
       })
-    ).to.throw(AnalyticsError.ALREADY_INITIALIZED);
+    ).toThrow(AnalyticsError.ALREADY_INITIALIZED);
   });
   it('getAnalytics() returns same instance created by previous getAnalytics()', () => {
     app = getFullApp(fakeAppParams);
     const analyticsInstance = getAnalytics(app);
-    expect(getAnalytics(app)).to.equal(analyticsInstance);
+    expect(getAnalytics(app)).toBe(analyticsInstance);
   });
   it('getAnalytics() returns same instance created by initializeAnalytics()', () => {
     app = getFullApp(fakeAppParams);
     const analyticsInstance = initializeAnalytics(app);
-    expect(getAnalytics(app)).to.equal(analyticsInstance);
+    expect(getAnalytics(app)).toBe(analyticsInstance);
   });
   it('setDefaultEventParameters() updates defaultEventParametersForInit if gtag does not exist ', () => {
     const eventParametersForInit = {
@@ -113,42 +127,37 @@ describe('FirebaseAnalytics API tests', () => {
     };
     app = getFullApp(fakeAppParams);
     setDefaultEventParameters(eventParametersForInit);
-    expect(defaultEventParametersForInit).to.deep.equal(eventParametersForInit);
+    expect(defaultEventParametersForInit).toEqual(eventParametersForInit);
   });
   it('setDefaultEventParameters() calls gtag set if wrappedGtagFunction exists', () => {
     const eventParametersForInit = {
       'github_user': 'dwyfrequency',
       'company': 'google'
     };
-    stub(factory, 'wrappedGtagFunction').get(() => wrappedGtag);
+    _setWrappedGtagFunction(wrappedGtag);
     app = getFullApp(fakeAppParams);
     setDefaultEventParameters(eventParametersForInit);
-    expect(wrappedGtag).to.have.been.calledWithExactly(
-      'set',
-      eventParametersForInit
-    );
+    expect(wrappedGtag).toHaveBeenCalledWith('set', eventParametersForInit);
   });
   it('setConsent() updates defaultConsentSettingsForInit if gtag does not exist ', () => {
     const consentParametersForInit: ConsentSettings = {
       'analytics_storage': 'granted',
       'functionality_storage': 'denied'
     };
-    stub(factory, 'wrappedGtagFunction').get(() => undefined);
+    _setWrappedGtagFunction(undefined);
     app = getFullApp(fakeAppParams);
     setConsent(consentParametersForInit);
-    expect(defaultConsentSettingsForInit).to.deep.equal(
-      consentParametersForInit
-    );
+    expect(defaultConsentSettingsForInit).toEqual(consentParametersForInit);
   });
   it('setConsent() calls gtag consent "update" if wrappedGtagFunction exists', () => {
     const consentParametersForInit: ConsentSettings = {
       'analytics_storage': 'granted',
       'functionality_storage': 'denied'
     };
-    stub(factory, 'wrappedGtagFunction').get(() => wrappedGtag);
+    _setWrappedGtagFunction(wrappedGtag);
     app = getFullApp(fakeAppParams);
     setConsent(consentParametersForInit);
-    expect(wrappedGtag).to.have.been.calledWithExactly(
+    expect(wrappedGtag).toHaveBeenCalledWith(
       'consent',
       'update',
       consentParametersForInit
