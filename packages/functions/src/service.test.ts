@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { assert } from 'chai';
 import { createTestService } from '../test/utils';
 import { FunctionsService, connectFunctionsEmulator } from './service';
 
@@ -31,10 +30,13 @@ describe('Firebase Functions > Service', () => {
       };
     });
 
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
     it('has valid urls', () => {
       service = createTestService(app);
-      assert.equal(
-        service._url('foo'),
+      expect(service._url('foo')).toBe(
         'https://us-central1-my-project.cloudfunctions.net/foo'
       );
     });
@@ -42,25 +44,25 @@ describe('Firebase Functions > Service', () => {
     it('can use emulator', () => {
       service = createTestService(app);
       connectFunctionsEmulator(service, 'localhost', 5005);
-      assert.equal(
-        service._url('foo'),
+      expect(service._url('foo')).toBe(
         'http://localhost:5005/my-project/us-central1/foo'
       );
     });
     it('can use emulator with SSL', () => {
+      vi.spyOn(globalThis, 'fetch').mockImplementation(() =>
+        Promise.resolve(new Response('ok'))
+      );
       service = createTestService(app);
       const workstationHost = 'abc.cloudworkstations.dev';
       connectFunctionsEmulator(service, workstationHost, 5005);
-      assert.equal(
-        service._url('foo'),
+      expect(service._url('foo')).toBe(
         `https://${workstationHost}:5005/my-project/us-central1/foo`
       );
     });
 
     it('correctly sets region', () => {
       service = createTestService(app, 'my-region');
-      assert.equal(
-        service._url('foo'),
+      expect(service._url('foo')).toBe(
         'https://my-region-my-project.cloudfunctions.net/foo'
       );
     });
@@ -68,27 +70,25 @@ describe('Firebase Functions > Service', () => {
     it('correctly sets region with emulator', () => {
       service = createTestService(app, 'my-region');
       connectFunctionsEmulator(service, 'localhost', 5005);
-      assert.equal(
-        service._url('foo'),
+      expect(service._url('foo')).toBe(
         'http://localhost:5005/my-project/my-region/foo'
       );
     });
 
     it('correctly sets custom domain', () => {
       service = createTestService(app, 'https://mydomain.com');
-      assert.equal(service._url('foo'), 'https://mydomain.com/foo');
+      expect(service._url('foo')).toBe('https://mydomain.com/foo');
     });
 
     it('correctly sets custom domain with path', () => {
       service = createTestService(app, 'https://mydomain.com/functions');
-      assert.equal(service._url('foo'), 'https://mydomain.com/functions/foo');
+      expect(service._url('foo')).toBe('https://mydomain.com/functions/foo');
     });
 
     it('prefers emulator to custom domain', () => {
       const service = createTestService(app, 'https://mydomain.com');
       connectFunctionsEmulator(service, 'localhost', 5005);
-      assert.equal(
-        service._url('foo'),
+      expect(service._url('foo')).toBe(
         'http://localhost:5005/my-project/us-central1/foo'
       );
     });

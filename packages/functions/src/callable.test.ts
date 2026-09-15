@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { expect } from 'chai';
-import * as sinon from 'sinon';
 import { FirebaseApp } from '@firebase/app';
 import { FunctionsErrorCodeCore } from './public-types';
 import {
@@ -44,9 +42,7 @@ import {
 } from './service';
 import { FUNCTIONS_TYPE } from './constants';
 import { FunctionsError } from './error';
-
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-export const TEST_PROJECT = require('../../../config/project.json');
+import TEST_PROJECT from '../../../config/project.json';
 
 // Chai doesn't handle Error comparisons in a useful way.
 // https://github.com/chaijs/chai/issues/608
@@ -62,18 +58,18 @@ async function expectError(
     await promise;
   } catch (e) {
     failed = true;
-    expect(e).to.be.instanceOf(FunctionsError);
+    expect(e).toBeInstanceOf(FunctionsError);
     const error = e as FunctionsError;
-    expect(error.code).to.equal(`${FUNCTIONS_TYPE}/${code}`);
+    expect(error.code).toBe(`${FUNCTIONS_TYPE}/${code}`);
     if (httpStatus != null) {
-      expect(error.message).to.equal(`${message} [${httpStatus}]`);
+      expect(error.message).toBe(`${message} [${httpStatus}]`);
     } else {
-      expect(error.message).to.equal(message);
+      expect(error.message).toBe(message);
     }
-    expect(error.details).to.deep.equal(details);
+    expect(error.details).toEqual(details);
   }
   if (!failed) {
-    expect(false, 'Promise should have failed.').to.be.true;
+    expect(false, 'Promise should have failed.').toBe(true);
   }
 }
 
@@ -81,8 +77,10 @@ describe('Firebase Functions > Call', () => {
   let app: FirebaseApp;
   const region = 'us-central1';
 
-  before(() => {
-    const useEmulator = !!process.env.FIREBASE_FUNCTIONS_EMULATOR_ORIGIN;
+  beforeAll(() => {
+    const useEmulator =
+      typeof process !== 'undefined' &&
+      !!process.env?.FIREBASE_FUNCTIONS_EMULATOR_ORIGIN;
     const projectId = useEmulator
       ? 'functions-integration-test'
       : TEST_PROJECT.projectId;
@@ -108,7 +106,7 @@ describe('Firebase Functions > Call', () => {
     >(functions, 'dataTestv2');
     const result = await func(data);
 
-    expect(result.data).to.deep.equal({
+    expect(result.data).toEqual({
       message: 'stub response',
       code: 42,
       long: 420
@@ -119,7 +117,7 @@ describe('Firebase Functions > Call', () => {
     const functions = createTestService(app, region);
     const func = httpsCallable<number, number>(functions, 'scalarTestv2');
     const result = await func(17);
-    expect(result.data).to.equal(76);
+    expect(result.data).toBe(76);
   });
 
   it('auth token', async () => {
@@ -138,13 +136,13 @@ describe('Firebase Functions > Call', () => {
     const functions = createTestService(app, region, authProvider);
 
     // Stub out the internals to get an auth token.
-    const stub = sinon.stub(authMock, 'getToken').callThrough();
+    const stub = vi.spyOn(authMock, 'getToken');
     const func = httpsCallable(functions, 'tokenTestv2');
     const result = await func({});
-    expect(result.data).to.deep.equal({});
+    expect(result.data).toEqual({});
 
-    expect(stub.callCount).to.equal(1);
-    stub.restore();
+    expect(stub).toHaveBeenCalledTimes(1);
+    stub.mockRestore();
   });
 
   it('app check token', async () => {
@@ -171,13 +169,13 @@ describe('Firebase Functions > Call', () => {
     );
 
     // Stub out the internals to get an app check token.
-    const stub = sinon.stub(appCheckMock, 'getToken').callThrough();
+    const stub = vi.spyOn(appCheckMock, 'getToken');
     const func = httpsCallable(functions, 'appCheckTestv2');
     const result = await func({});
-    expect(result.data).to.deep.equal({ token: 'app-check-token' });
+    expect(result.data).toEqual({ token: 'app-check-token' });
 
-    expect(stub.callCount).to.equal(1);
-    stub.restore();
+    expect(stub).toHaveBeenCalledTimes(1);
+    stub.mockRestore();
   });
 
   it('app check limited use token', async () => {
@@ -204,21 +202,21 @@ describe('Firebase Functions > Call', () => {
     );
 
     // Stub out the internals to get an app check token.
-    const stub = sinon.stub(appCheckMock, 'getLimitedUseToken').callThrough();
+    const stub = vi.spyOn(appCheckMock, 'getLimitedUseToken');
     const func = httpsCallable(functions, 'appCheckTestv2', {
       limitedUseAppCheckTokens: true
     });
     const result = await func({});
-    expect(result.data).to.deep.equal({ token: 'app-check-single-use-token' });
+    expect(result.data).toEqual({ token: 'app-check-single-use-token' });
 
-    expect(stub.callCount).to.equal(1);
-    stub.restore();
+    expect(stub).toHaveBeenCalledTimes(1);
+    stub.mockRestore();
   });
 
   it('instance id', async () => {
     // Should effectively skip this test in environments where messaging doesn't work.
     // (Node, IE)
-    if (process || !('Notification' in self)) {
+    if (typeof process !== 'undefined' || !('Notification' in self)) {
       console.log('No Notification API: skipping instance id test.');
       return;
     }
@@ -246,26 +244,29 @@ describe('Firebase Functions > Call', () => {
     );
 
     // Stub out the messaging method get an instance id token.
-    const stub = sinon.stub(messagingMock, 'getToken').callThrough();
-    sinon.stub(Notification, 'permission').value('granted');
+    const stub = vi.spyOn(messagingMock, 'getToken');
+    const permissionSpy = vi
+      .spyOn(Notification, 'permission', 'get')
+      .mockReturnValue('granted');
 
     const func = httpsCallable(functions, 'instanceIdTestv2');
     const result = await func({});
-    expect(result.data).to.deep.equal({});
+    expect(result.data).toEqual({});
 
-    expect(stub.callCount).to.equal(1);
-    stub.restore();
+    expect(stub).toHaveBeenCalledTimes(1);
+    stub.mockRestore();
+    permissionSpy.mockRestore();
   });
 
   it('null', async () => {
     const functions = createTestService(app, region);
     const func = httpsCallable(functions, 'nullTestv2');
     let result = await func(null);
-    expect(result.data).to.be.null;
+    expect(result.data).toBeNull();
 
     // Test with void arguments version.
     result = await func();
-    expect(result.data).to.be.null;
+    expect(result.data).toBeNull();
   });
 
   it('missing result', async () => {
@@ -317,22 +318,24 @@ describe('Firebase Functions > Call', () => {
 describe('Firebase Functions > Stream', () => {
   let app: FirebaseApp;
   let functions: FunctionsService;
-  let mockFetch: sinon.SinonStub;
+  let mockFetch: ReturnType<typeof vi.spyOn>;
   const region = 'us-central1';
 
   beforeEach(() => {
-    const useEmulator = !!process.env.FIREBASE_FUNCTIONS_EMULATOR_ORIGIN;
+    const useEmulator =
+      typeof process !== 'undefined' &&
+      !!process.env?.FIREBASE_FUNCTIONS_EMULATOR_ORIGIN;
     const projectId = useEmulator
       ? 'functions-integration-test'
       : TEST_PROJECT.projectId;
     const messagingSenderId = 'messaging-sender-id';
     app = makeFakeApp({ projectId, messagingSenderId });
     functions = createTestService(app, region);
-    mockFetch = sinon.stub(functions, 'fetchImpl' as any);
+    mockFetch = vi.spyOn(functions, 'fetchImpl' as any);
   });
 
   afterEach(() => {
-    mockFetch.restore();
+    mockFetch.mockRestore();
   });
 
   it('successfully streams data and resolves final result', async () => {
@@ -351,7 +354,7 @@ describe('Firebase Functions > Stream', () => {
       }
     });
 
-    mockFetch.resolves({
+    mockFetch.mockResolvedValue({
       body: mockResponse,
       headers: new Headers({ 'Content-Type': 'text/event-stream' }),
       status: 200,
@@ -369,8 +372,8 @@ describe('Firebase Functions > Stream', () => {
       messages.push(message);
     }
 
-    expect(messages).to.deep.equal(['Hello', 'World']);
-    expect(await streamResult.data).to.equal('Final Result');
+    expect(messages).toEqual(['Hello', 'World']);
+    expect(await streamResult.data).toBe('Final Result');
   });
 
   it('successfully process request chunk with multiple events', async () => {
@@ -388,7 +391,7 @@ describe('Firebase Functions > Stream', () => {
       }
     });
 
-    mockFetch.resolves({
+    mockFetch.mockResolvedValue({
       body: mockResponse,
       headers: new Headers({ 'Content-Type': 'text/event-stream' }),
       status: 200,
@@ -406,18 +409,24 @@ describe('Firebase Functions > Stream', () => {
       messages.push(message);
     }
 
-    expect(messages).to.deep.equal(['Hello', 'World']);
-    expect(await streamResult.data).to.equal('Final Result');
+    expect(messages).toEqual(['Hello', 'World']);
+    expect(await streamResult.data).toBe('Final Result');
   });
 
   it('handles network errors', async () => {
-    mockFetch.rejects(new Error('Network error'));
+    mockFetch.mockRejectedValue(new Error('Network error'));
 
     const func = httpsCallable<Record<string, any>, string, string>(
       functions,
       'errTest'
     );
     const streamResult = await func.stream({});
+    const dataErrorPromise = expectError(
+      streamResult.data,
+      'internal',
+      'internal',
+      0
+    );
 
     let errorThrown = false;
     try {
@@ -426,12 +435,10 @@ describe('Firebase Functions > Stream', () => {
       }
     } catch (error: unknown) {
       errorThrown = true;
-      expect((error as FunctionsError).code).to.equal(
-        `${FUNCTIONS_TYPE}/internal`
-      );
+      expect((error as FunctionsError).code).toBe(`${FUNCTIONS_TYPE}/internal`);
     }
-    expect(errorThrown).to.be.true;
-    await expectError(streamResult.data, 'internal', 'internal', 0);
+    expect(errorThrown).toBe(true);
+    await dataErrorPromise;
   });
 
   it('handles server-side errors', async () => {
@@ -446,7 +453,7 @@ describe('Firebase Functions > Stream', () => {
       }
     });
 
-    mockFetch.resolves({
+    mockFetch.mockResolvedValue({
       body: mockResponse,
       headers: new Headers({ 'Content-Type': 'text/event-stream' }),
       status: 200,
@@ -458,6 +465,12 @@ describe('Firebase Functions > Stream', () => {
       'stream'
     );
     const streamResult = await func.stream({});
+    const dataErrorPromise = expectError(
+      streamResult.data,
+      'invalid-argument',
+      'Invalid input',
+      0
+    );
 
     let errorThrown = false;
     try {
@@ -466,19 +479,14 @@ describe('Firebase Functions > Stream', () => {
       }
     } catch (error) {
       errorThrown = true;
-      expect((error as FunctionsError).code).to.equal(
+      expect((error as FunctionsError).code).toBe(
         `${FUNCTIONS_TYPE}/invalid-argument`
       );
-      expect((error as FunctionsError).message).to.equal('Invalid input [0]');
+      expect((error as FunctionsError).message).toBe('Invalid input [0]');
     }
 
-    expect(errorThrown).to.be.true;
-    await expectError(
-      streamResult.data,
-      'invalid-argument',
-      'Invalid input',
-      0
-    );
+    expect(errorThrown).toBe(true);
+    await dataErrorPromise;
   });
 
   it('includes authentication and app check tokens in request headers', async () => {
@@ -514,7 +522,7 @@ describe('Firebase Functions > Stream', () => {
       undefined,
       appCheckProvider
     );
-    const mockFetch = sinon.stub(functions, 'fetchImpl' as any);
+    const mockFetch = vi.spyOn(functions, 'fetchImpl' as any);
 
     const mockResponse = new ReadableStream({
       start(controller) {
@@ -525,7 +533,7 @@ describe('Firebase Functions > Stream', () => {
       }
     });
 
-    mockFetch.resolves({
+    mockFetch.mockResolvedValue({
       body: mockResponse,
       headers: new Headers({ 'Content-Type': 'text/event-stream' }),
       status: 200,
@@ -538,12 +546,12 @@ describe('Firebase Functions > Stream', () => {
     );
     await func.stream({});
 
-    expect(mockFetch.calledOnce).to.be.true;
-    const [_, options] = mockFetch.firstCall.args;
-    expect(options.headers['Authorization']).to.equal('Bearer auth-token');
-    expect(options.headers['Content-Type']).to.equal('application/json');
-    expect(options.credentials).to.equal(undefined);
-    expect(options.headers['Accept']).to.equal('text/event-stream');
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+    const [_, options] = mockFetch.mock.calls[0];
+    expect(options.headers['Authorization']).toBe('Bearer auth-token');
+    expect(options.headers['Content-Type']).toBe('application/json');
+    expect(options.credentials).toBe(undefined);
+    expect(options.headers['Accept']).toBe('text/event-stream');
   });
 
   it('calls cloud workstations with credentials', async () => {
@@ -580,7 +588,7 @@ describe('Firebase Functions > Stream', () => {
       appCheckProvider
     );
     functions.emulatorOrigin = 'test.cloudworkstations.dev';
-    const mockFetch = sinon.stub(functions, 'fetchImpl' as any);
+    const mockFetch = vi.spyOn(functions, 'fetchImpl' as any);
 
     const mockResponse = new ReadableStream({
       start(controller) {
@@ -591,7 +599,7 @@ describe('Firebase Functions > Stream', () => {
       }
     });
 
-    mockFetch.resolves({
+    mockFetch.mockResolvedValue({
       body: mockResponse,
       headers: new Headers({ 'Content-Type': 'text/event-stream' }),
       status: 200,
@@ -604,9 +612,9 @@ describe('Firebase Functions > Stream', () => {
     );
     await func.stream({});
 
-    expect(mockFetch.calledOnce).to.be.true;
-    const [_, options] = mockFetch.firstCall.args;
-    expect(options.credentials).to.equal('include');
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+    const [_, options] = mockFetch.mock.calls[0];
+    expect(options.credentials).toBe('include');
   });
 
   it('calls streamFromURL cloud workstations with credentials', async () => {
@@ -643,7 +651,7 @@ describe('Firebase Functions > Stream', () => {
       appCheckProvider
     );
     functions.emulatorOrigin = 'test.cloudworkstations.dev';
-    const mockFetch = sinon.stub(functions, 'fetchImpl' as any);
+    const mockFetch = vi.spyOn(functions, 'fetchImpl' as any);
 
     const mockResponse = new ReadableStream({
       start(controller) {
@@ -654,7 +662,7 @@ describe('Firebase Functions > Stream', () => {
       }
     });
 
-    mockFetch.resolves({
+    mockFetch.mockResolvedValue({
       body: mockResponse,
       headers: new Headers({ 'Content-Type': 'text/event-stream' }),
       status: 200,
@@ -667,9 +675,9 @@ describe('Firebase Functions > Stream', () => {
     );
     await func.stream({});
 
-    expect(mockFetch.calledOnce).to.be.true;
-    const [_, options] = mockFetch.firstCall.args;
-    expect(options.credentials).to.equal('include');
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+    const [_, options] = mockFetch.mock.calls[0];
+    expect(options.credentials).toBe('include');
   });
 
   it('aborts during initial fetch', async () => {
@@ -683,7 +691,7 @@ describe('Firebase Functions > Stream', () => {
         reject(error);
       });
     });
-    mockFetch.returns(fetchPromise);
+    mockFetch.mockReturnValue(fetchPromise);
 
     const func = httpsCallable<Record<string, any>, string, string>(
       functions,
@@ -694,11 +702,16 @@ describe('Firebase Functions > Stream', () => {
     controller.abort();
 
     const streamResult = await streamPromise;
+    const dataErrorPromise = expectError(
+      streamResult.data,
+      'cancelled',
+      'Request was cancelled.'
+    );
 
     // Verify fetch was called with abort signal
-    expect(mockFetch.calledOnce).to.be.true;
-    const [_, options] = mockFetch.firstCall.args;
-    expect(options.signal).to.equal(controller.signal);
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+    const [_, options] = mockFetch.mock.calls[0];
+    expect(options.signal).toBe(controller.signal);
 
     // Verify stream iteration throws AbortError
     let errorThrown = false;
@@ -708,12 +721,12 @@ describe('Firebase Functions > Stream', () => {
       }
     } catch (error) {
       errorThrown = true;
-      expect((error as FunctionsError).code).to.equal(
+      expect((error as FunctionsError).code).toBe(
         `${FUNCTIONS_TYPE}/cancelled`
       );
     }
-    expect(errorThrown).to.be.true;
-    await expectError(streamResult.data, 'cancelled', 'Request was cancelled.');
+    expect(errorThrown).toBe(true);
+    await dataErrorPromise;
   });
 
   it('aborts during streaming', async () => {
@@ -737,7 +750,7 @@ describe('Firebase Functions > Stream', () => {
       }
     });
 
-    mockFetch.resolves({
+    mockFetch.mockResolvedValue({
       body: mockResponse,
       headers: new Headers({ 'Content-Type': 'text/event-stream' }),
       status: 200,
@@ -749,6 +762,11 @@ describe('Firebase Functions > Stream', () => {
       'streamTest'
     );
     const streamResult = await func.stream({}, { signal: controller.signal });
+    const dataErrorPromise = expectError(
+      streamResult.data,
+      'cancelled',
+      'Request was cancelled.'
+    );
 
     const messages: string[] = [];
     try {
@@ -761,16 +779,16 @@ describe('Firebase Functions > Stream', () => {
       }
       throw new Error('Stream should have been aborted');
     } catch (error) {
-      expect((error as FunctionsError).code).to.equal(
+      expect((error as FunctionsError).code).toBe(
         `${FUNCTIONS_TYPE}/cancelled`
       );
     }
-    expect(messages).to.deep.equal(['First']);
-    await expectError(streamResult.data, 'cancelled', 'Request was cancelled.');
+    expect(messages).toEqual(['First']);
+    await dataErrorPromise;
   });
 
   it('fails immediately with pre-aborted signal', async () => {
-    mockFetch.callsFake((url: string, options: RequestInit) => {
+    mockFetch.mockImplementation((url: string, options: RequestInit) => {
       if (options.signal?.aborted) {
         const error = new Error('The operation was aborted');
         error.name = 'AbortError';
@@ -783,6 +801,11 @@ describe('Firebase Functions > Stream', () => {
       'streamTest'
     );
     const streamResult = await func.stream({}, { signal: AbortSignal.abort() });
+    const dataErrorPromise = expectError(
+      streamResult.data,
+      'cancelled',
+      'Request was cancelled.'
+    );
 
     let errorThrown = false;
     try {
@@ -791,19 +814,19 @@ describe('Firebase Functions > Stream', () => {
       }
     } catch (error) {
       errorThrown = true;
-      expect((error as FunctionsError).code).to.equal(
+      expect((error as FunctionsError).code).toBe(
         `${FUNCTIONS_TYPE}/cancelled`
       );
     }
-    expect(errorThrown).to.be.true;
-    await expectError(streamResult.data, 'cancelled', 'Request was cancelled.');
+    expect(errorThrown).toBe(true);
+    await dataErrorPromise;
   });
 
   it('properly handles AbortSignal.timeout()', async () => {
     const timeoutMs = 50;
     const signal = AbortSignal.timeout(timeoutMs);
 
-    mockFetch.callsFake(async (url: string, options: RequestInit) => {
+    mockFetch.mockImplementation(async (url: string, options: RequestInit) => {
       await new Promise((resolve, reject) => {
         options.signal?.addEventListener('abort', () => {
           const error = new Error('The operation was aborted');
@@ -822,6 +845,11 @@ describe('Firebase Functions > Stream', () => {
       'streamTest'
     );
     const streamResult = await func.stream({}, { signal });
+    const dataErrorPromise = expectError(
+      streamResult.data,
+      'cancelled',
+      'Request was cancelled.'
+    );
 
     try {
       for await (const _ of streamResult.stream) {
@@ -829,10 +857,10 @@ describe('Firebase Functions > Stream', () => {
       }
       throw new Error('Stream should have timed out');
     } catch (error) {
-      expect((error as FunctionsError).code).to.equal(
+      expect((error as FunctionsError).code).toBe(
         `${FUNCTIONS_TYPE}/cancelled`
       );
     }
-    await expectError(streamResult.data, 'cancelled', 'Request was cancelled.');
+    await dataErrorPromise;
   });
 });
