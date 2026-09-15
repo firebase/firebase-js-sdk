@@ -25,8 +25,7 @@ import {
   Expression,
   Field,
   Ordering,
-  Selectable,
-  TimeGranularity
+  Selectable
 } from './expressions';
 import { Pipeline } from './pipeline';
 import { CollectionReference, DocumentReference } from './reference';
@@ -185,25 +184,25 @@ export interface RangeWindowFrame {
    * The unit used to calculate range boundaries when the `sort` field contains date or time values.
    */
   unit?:
-  | 'microsecond'
-  | 'millisecond'
-  | 'second'
-  | 'minute'
-  | 'hour'
-  | 'day'
-  | 'week'
-  | 'week(monday)'
-  | 'week(tuesday)'
-  | 'week(wednesday)'
-  | 'week(thursday)'
-  | 'week(friday)'
-  | 'week(saturday)'
-  | 'week(sunday)'
-  | 'isoweek'
-  | 'month'
-  | 'quarter'
-  | 'year'
-  | Expression;
+    | 'microsecond'
+    | 'millisecond'
+    | 'second'
+    | 'minute'
+    | 'hour'
+    | 'day'
+    | 'week'
+    | 'week(monday)'
+    | 'week(tuesday)'
+    | 'week(wednesday)'
+    | 'week(thursday)'
+    | 'week(friday)'
+    | 'week(saturday)'
+    | 'week(sunday)'
+    | 'isoweek'
+    | 'month'
+    | 'quarter'
+    | 'year'
+    | Expression;
 }
 
 /**
@@ -229,18 +228,18 @@ export type WindowSpec = {
    */
   sort?: Ordering | Ordering[];
 } & OneOf<{
-    /**
-     * Defines a document-count based window frame relative to the position of the current document in the sorted group.
-     * 
-     * See {@link @firebase/firestore/pipelines#WindowSpec} for default frame specifications if `documents` or `range` is not set.
-     */
+  /**
+   * Defines a document-count based window frame relative to the position of the current document in the sorted group.
+   *
+   * See {@link @firebase/firestore/pipelines#WindowSpec} for default frame specifications if `documents` or `range` is not set.
+   */
   documents?: DocumentWindowFrame;
 
-    /**
-     * Defines a range-value based window frame relative to the sort value of the current document.
-     * 
-     * See {@link @firebase/firestore/pipelines#WindowSpec} for default frame specifications if `documents` or `range` is not set.
-     */
+  /**
+   * Defines a range-value based window frame relative to the sort value of the current document.
+   *
+   * See {@link @firebase/firestore/pipelines#WindowSpec} for default frame specifications if `documents` or `range` is not set.
+   */
   range?: RangeWindowFrame;
 }>;
 

@@ -35,7 +35,6 @@ export class AggregateFunction {
     as(name: string): AliasedAggregate;
     // (undocumented)
     exprType: ExpressionType;
-    // (undocumented)
     over(window?: WindowSpec): WindowFunction;
     }
 
@@ -67,7 +66,7 @@ export class AliasedExpression implements Selectable {
     selectable: true;
 }
 
-// @public (undocumented)
+// @public
 export class AliasedWindowFunction {
     constructor(windowFunction: WindowFunction, alias: string, _methodName: string | undefined);
     // (undocumented)
@@ -421,7 +420,7 @@ export type DefineStageOptions = StageOptions & {
     variables: AliasedExpression[];
 };
 
-// @public (undocumented)
+// @public
 export function denseRank(): WindowFunction;
 
 // @public
@@ -1379,7 +1378,7 @@ export interface RangeWindowFrame {
     unit?: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day' | 'week' | 'week(monday)' | 'week(tuesday)' | 'week(wednesday)' | 'week(thursday)' | 'week(friday)' | 'week(saturday)' | 'week(sunday)' | 'isoweek' | 'month' | 'quarter' | 'year' | Expression;
 }
 
-// @public (undocumented)
+// @public
 export function rank(): WindowFunction;
 
 // @public
@@ -1458,7 +1457,7 @@ export function round(fieldName: string, decimalPlaces: number | Expression): Fu
 // @public
 export function round(expression: Expression, decimalPlaces: number | Expression): FunctionExpression;
 
-// @public (undocumented)
+// @public
 export function rowNumber(): WindowFunction;
 
 // @public
@@ -1792,14 +1791,12 @@ export type WhereStageOptions = StageOptions & {
     condition: BooleanExpression;
 };
 
-// @public (undocumented)
+// @public
 export class WindowFunction {
     constructor(name: string, params?: Expression[]);
-    // (undocumented)
     as(name: string): AliasedWindowFunction;
     // (undocumented)
     exprType: ExpressionType;
-    // (undocumented)
     over(window?: WindowSpec): WindowFunction;
     }
 

@@ -25,6 +25,7 @@ import { isPlainObject } from '../util/input_validation';
 import {
   aliasedAggregateToMap,
   fieldOrExpression,
+  isAddWindowFieldsStageOptions,
   selectablesToMap,
   selectablesToObject,
   vectorToExpr
@@ -55,10 +56,12 @@ import {
   FunctionExpression,
   isAliasedExpr,
   documentMatches,
-  AliasedWindowFunction
+  AliasedWindowFunction,
+  WindowSpecInternal
 } from './expressions';
 import {
   AddFields,
+  AddWindowFields,
   Aggregate,
   Distinct,
   FindNearest,
@@ -368,7 +371,28 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
     field?: AliasedAggregate | AliasedWindowFunction,
     ...additionalFields: Array<AliasedAggregate | AliasedWindowFunction>
   ): Pipeline {
-    throw new Error('not implemented');
+    // Process argument union(s) from method overloads
+    const usesOptions = isAddWindowFieldsStageOptions(windowOrOptions);
+    // The whole options object is forwarded, including `window` and `fields`.
+    // That is safe because `OptionsUtil` only serializes keys declared in the
+    // stage's option definitions, and this stage declares none.
+    const options: StageOptions = usesOptions ? windowOrOptions : {};
+    const window: WindowSpec = usesOptions
+      ? windowOrOptions.window
+      : windowOrOptions;
+    const fields: Array<AliasedAggregate | AliasedWindowFunction> = usesOptions
+      ? windowOrOptions.fields
+      : [field!, ...additionalFields];
+
+    // Create stage object
+    const stage = new AddWindowFields(
+      new WindowSpecInternal(window),
+      aliasedAggregateToMap(fields),
+      options
+    );
+
+    // Add stage to the pipeline
+    return this._addStage(stage);
   }
 
   /**

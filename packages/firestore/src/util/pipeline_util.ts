@@ -19,18 +19,25 @@ import {
   _constant,
   AggregateFunction,
   AliasedAggregate,
+  AliasedWindowFunction,
   array,
   constant,
   Expression,
   AliasedExpression,
   field,
   Field,
+  isAliasedWindowFunction,
   map,
   Selectable,
-  pipelineValue
+  pipelineValue,
+  WindowFunction
 } from '../lite-api/expressions';
 import { vector } from '../lite-api/field_value_impl';
 import type { Pipeline } from '../lite-api/pipeline';
+import type {
+  AddWindowFieldsStageOptions,
+  WindowSpec
+} from '../lite-api/stage_options';
 import { VectorValue } from '../lite-api/vector_value';
 
 import { fail } from './assert';
@@ -81,24 +88,65 @@ export function selectablesToObject(
   return result;
 }
 
+/**
+ * Converts a list of aliased aggregate functions, and/or aliased window
+ * functions, into a map of output field name to the function that computes it.
+ */
 export function aliasedAggregateToMap(
-  aliasedAggregatees: AliasedAggregate[]
-): Map<string, AggregateFunction> {
-  return aliasedAggregatees.reduce(
-    (map: Map<string, AggregateFunction>, selectable: AliasedAggregate) => {
-      if (map.get(selectable.alias) !== undefined) {
+  aliasedAggregates: AliasedAggregate[]
+): Map<string, AggregateFunction>;
+export function aliasedAggregateToMap(
+  aliasedAggregates: Array<AliasedAggregate | AliasedWindowFunction>
+): Map<string, AggregateFunction | WindowFunction>;
+export function aliasedAggregateToMap(
+  aliasedAggregates: Array<AliasedAggregate | AliasedWindowFunction>
+): Map<string, AggregateFunction | WindowFunction> {
+  return aliasedAggregates.reduce(
+    (
+      map: Map<string, AggregateFunction | WindowFunction>,
+      aliased: AliasedAggregate | AliasedWindowFunction
+    ) => {
+      // Validated client side because a duplicate alias cannot be encoded: the
+      // second entry would silently overwrite the first in the map, and the
+      // backend would never see it.
+      if (map.get(aliased.alias) !== undefined) {
         throw new FirestoreError(
           'invalid-argument',
-          `Duplicate alias or field '${selectable.alias}'`
+          `Duplicate alias or field '${aliased.alias}'`
         );
       }
 
-      map.set(selectable.alias, selectable.aggregate as AggregateFunction);
+      map.set(
+        aliased.alias,
+        isAliasedWindowFunction(aliased)
+          ? aliased.windowFunction
+          : aliased.aggregate
+      );
       return map;
     },
-    new Map() as Map<string, AggregateFunction>
+    new Map() as Map<string, AggregateFunction | WindowFunction>
   );
 }
+
+/**
+ * Discriminates between the two `Pipeline.addWindowFields()` overloads.
+ *
+ * @private
+ * @internal
+ */
+export function isAddWindowFieldsStageOptions(
+  value: WindowSpec | AddWindowFieldsStageOptions
+): value is AddWindowFieldsStageOptions {
+  const candidate = value as AddWindowFieldsStageOptions;
+  return (
+    typeof candidate === 'object' &&
+    candidate !== null &&
+    typeof candidate.window === 'object' &&
+    candidate.window !== null &&
+    Array.isArray(candidate.fields)
+  );
+}
+
 
 /**
  * Converts a value to an Expression, Returning either a Constant, MapFunction,
