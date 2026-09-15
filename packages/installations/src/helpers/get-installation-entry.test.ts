@@ -111,7 +111,7 @@ describe('getInstallationEntry', () => {
     const oldDbEntry = await get(appConfig);
     expect(oldDbEntry).toEqual(installationEntry);
 
-    await vi.advanceTimersToNextTimerAsync(); // Finish registration request.
+    await vi.advanceTimersByTimeAsync(500); // Finish registration request.
     await expect(registrationPromise).resolves.toBeDefined();
 
     const newDbEntry = await get(appConfig);
@@ -141,7 +141,7 @@ describe('getInstallationEntry', () => {
     const oldDbEntry = await get(appConfig);
     expect(oldDbEntry).toEqual(installationEntry);
 
-    await vi.advanceTimersToNextTimerAsync(); // Finish registration request.
+    await vi.advanceTimersByTimeAsync(500); // Finish registration request.
     await expect(registrationPromise).rejects.toThrow();
 
     const newDbEntry = await get(appConfig);
@@ -170,7 +170,7 @@ describe('getInstallationEntry', () => {
     const oldDbEntry = await get(appConfig);
     expect(oldDbEntry).toEqual(installationEntry);
 
-    await vi.advanceTimersToNextTimerAsync(); // Finish registration request.
+    await vi.advanceTimersByTimeAsync(500); // Finish registration request.
     await expect(registrationPromise).rejects.toThrow();
 
     const newDbEntry = await get(appConfig);
@@ -246,6 +246,12 @@ describe('getInstallationEntry', () => {
       ).toHaveBeenCalledTimes(1);
       expect(promise1).toBeInstanceOf(Promise);
       expect(promise2).toBeInstanceOf(Promise);
+
+      // Clean up pending registration and polling promises to prevent leaking into subsequent tests.
+      await vi.advanceTimersByTimeAsync(500);
+      await promise1;
+      await vi.advanceTimersByTimeAsync(100);
+      await promise2;
     });
 
     it('does not return a registrationPromise on subsequent calls after initial promise resolves', async () => {
@@ -253,7 +259,7 @@ describe('getInstallationEntry', () => {
         await getInstallationEntry(fakeInstallations);
       expect(promise1).toBeInstanceOf(Promise);
 
-      await vi.advanceTimersToNextTimerAsync(); // Finish registration request.
+      await vi.advanceTimersByTimeAsync(500); // Finish registration request.
       await expect(promise1).resolves.toBeDefined();
 
       const { registrationPromise: promise2 } =

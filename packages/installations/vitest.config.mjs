@@ -21,8 +21,13 @@ const config = createBaseConfig(import.meta.url);
 
 // @firebase/installations is a client SDK relying on browser APIs (IndexedDB, crypto).
 // All unit tests run in the browser project (Playwright Chromium).
+// Disable file parallelism because tests share the same IndexedDB database name and key.
+config.test.fileParallelism = false;
 config.test.projects = config.test.projects.filter(
   project => project.test?.name === 'browser'
 );
+for (const project of config.test.projects) {
+  project.test.fileParallelism = false;
+}
 
 export default config;
