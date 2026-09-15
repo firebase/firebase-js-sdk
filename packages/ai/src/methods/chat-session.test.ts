@@ -17,6 +17,7 @@
 
 import { expect, vi, type Mock } from 'vitest';
 
+// This inserts mockGenerateContent as a spy layer on methods coming from ./generate-content.ts
 const { mockGenerateContent } = vi.hoisted(() => ({
   mockGenerateContent: {
     generateContent: (..._args: any[]): any => {},
@@ -450,10 +451,8 @@ describe('ChatSession', () => {
       const consoleStub = vi
         .spyOn(console, 'error')
         .mockImplementation(() => {});
-      const customErr = new Error('foo');
-      customErr.name = 'foo';
       vi.spyOn(mockGenerateContent, 'generateContentStream').mockRejectedValue(
-        customErr
+        new Error('foo')
       );
       const chatSession = new ChatSession(
         fakeApiSettings,
@@ -464,7 +463,7 @@ describe('ChatSession', () => {
         // This will throw since generateContentStream will reject immediately.
         await chatSession.sendMessageStream('hello');
       } catch (e) {
-        expect((e as unknown as any).name).to.equal('foo');
+        expect((e as Error).message).to.equal('foo');
       }
 
       expect(consoleStub).not.toHaveBeenCalled();

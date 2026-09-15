@@ -497,7 +497,7 @@ describe('request methods', () => {
       expect(fetchStub).toHaveBeenCalledTimes(1);
     });
 
-    it('should throw DOMException if external signal is already aborted', async () => {
+    it('should throw if external signal is already aborted', async () => {
       const controller = new AbortController();
       const abortReason = 'Aborted before request';
       controller.abort(abortReason);
@@ -517,7 +517,7 @@ describe('request methods', () => {
 
       expect(fetchStub).not.toHaveBeenCalled();
     });
-    it('should throw DOMException if external signal aborts during request', async () => {
+    it('should throw if external signal aborts during request', async () => {
       fetchStub.mockImplementation(fetchAborter);
       const controller = new AbortController();
       const abortReason = 'Aborted during request';
