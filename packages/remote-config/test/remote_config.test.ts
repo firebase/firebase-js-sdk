@@ -105,7 +105,7 @@ describe('RemoteConfig', () => {
 
   afterEach(() => {
     loggerDebugSpy.restore();
-    loggerLogLevelSpy.restore();
+    loggerLogLevelSpy.set.restore();
   });
 
   describe('setCustomSignals', () => {

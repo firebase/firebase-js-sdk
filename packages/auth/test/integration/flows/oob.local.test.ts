@@ -338,9 +338,7 @@ describe('Integration test: oob codes', () => {
     const { user } = await signInWithEmailLink(
       auth,
       email,
-      (
-        await code(email)
-      ).oobLink
+      (await code(email)).oobLink
     );
     await verifyBeforeUpdateEmail(user, updatedEmail, BASE_SETTINGS);
     expect(user.email).to.eq(email);

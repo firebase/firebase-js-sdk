@@ -27,7 +27,7 @@ import {
 } from '../types';
 import { ChatSession } from './chat-session';
 import { ApiSettings } from '../types/internal';
-import { VertexAIBackend } from '../backend';
+import { AgentPlatformBackend } from '../backend';
 import { fakeChromeAdapter } from '../../test-utils/get-fake-firebase-services';
 import { logger } from '../logger';
 import { Schema } from '../api';
@@ -39,8 +39,8 @@ const fakeApiSettings: ApiSettings = {
   apiKey: 'key',
   project: 'my-project',
   appId: 'my-appid',
-  location: 'us-central1',
-  backend: new VertexAIBackend()
+  location: 'global',
+  backend: new AgentPlatformBackend()
 };
 
 function getGreeting({

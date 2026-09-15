@@ -36,19 +36,19 @@ import {
 } from './types/googleai';
 
 /**
- * This SDK supports both the Vertex AI Gemini API and the Gemini Developer API (using Google AI).
- * The public API prioritizes the format used by the Vertex AI Gemini API.
+ * This SDK supports both the Agent Platform Gemini API and the Gemini Developer API (using Google AI).
+ * The public API prioritizes the format used by the Agent Platform Gemini API.
  * We avoid having two sets of types by translating requests and responses between the two API formats.
- * This translation allows developers to switch between the Vertex AI Gemini API and the Gemini Developer API
+ * This translation allows developers to switch between the Agent Platform Gemini API and the Gemini Developer API
  * with minimal code changes.
  *
  * In here are functions that map requests and responses between the two API formats.
- * Requests in the Vertex AI format are mapped to the Google AI format before being sent.
- * Responses from the Google AI backend are mapped back to the Vertex AI format before being returned to the user.
+ * Requests in the AgentPlatform format are mapped to the Google AI format before being sent.
+ * Responses from the Google AI backend are mapped back to the AgentPlatform format before being returned to the user.
  */
 
 /**
- * Maps a Vertex AI {@link GenerateContentRequest} to a format that can be sent to Google AI.
+ * Maps a AgentPlatform {@link GenerateContentRequest} to a format that can be sent to Google AI.
  *
  * @param generateContentRequest The {@link GenerateContentRequest} to map.
  * @returns A {@link GenerateContentResponse} that conforms to the Google AI format.
@@ -87,7 +87,7 @@ export function mapGenerateContentRequest(
 
 /**
  * Maps a {@link GenerateContentResponse} from Google AI to the format of the
- * {@link GenerateContentResponse} that we get from VertexAI that is exposed in the public API.
+ * {@link GenerateContentResponse} that we get from AgentPlatform that is exposed in the public API.
  *
  * @param googleAIResponse The {@link GenerateContentResponse} from Google AI.
  * @returns A {@link GenerateContentResponse} that conforms to the public API's format.
@@ -111,7 +111,7 @@ export function mapGenerateContentResponse(
 }
 
 /**
- * Maps a Vertex AI {@link CountTokensRequest} to a format that can be sent to Google AI.
+ * Maps a AgentPlatform {@link CountTokensRequest} to a format that can be sent to Google AI.
  *
  * @param countTokensRequest The {@link CountTokensRequest} to map.
  * @param model The model to count tokens with.
@@ -135,10 +135,10 @@ export function mapCountTokensRequest(
 
 /**
  * Maps a Google AI {@link GoogleAIGenerateContentCandidate} to a format that conforms
- * to the Vertex AI API format.
+ * to the AgentPlatform API format.
  *
  * @param candidates The {@link GoogleAIGenerateContentCandidate} to map.
- * @returns A {@link GenerateContentCandidate} that conforms to the Vertex AI format.
+ * @returns A {@link GenerateContentCandidate} that conforms to the AgentPlatform format.
  *
  * @throws If any {@link Part} in the candidates has a `videoMetadata` property.
  *

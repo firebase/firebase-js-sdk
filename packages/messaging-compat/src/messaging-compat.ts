@@ -96,7 +96,10 @@ function isSwSupported(): boolean {
 }
 
 export class MessagingCompatImpl implements MessagingCompat, _FirebaseService {
-  constructor(readonly app: AppCompat, readonly _delegate: Messaging) {
+  constructor(
+    readonly app: AppCompat,
+    readonly _delegate: Messaging
+  ) {
     this.app = app;
     this._delegate = _delegate;
   }

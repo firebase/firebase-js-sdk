@@ -402,8 +402,7 @@ describe('api/_performApiRequest', () => {
     });
 
     it('should clear the network timeout on success', async () => {
-      const clock = useFakeTimers();
-      sinon.spy(clock, 'clearTimeout');
+      const spy = sinon.spy(globalThis, 'clearTimeout');
       mockFetch.setUp();
       mockEndpoint(Endpoint.SIGN_UP, {});
       const promise = _performApiRequest(
@@ -413,8 +412,8 @@ describe('api/_performApiRequest', () => {
         request
       );
       await promise;
-      expect(clock.clearTimeout).to.have.been.called;
-      clock.restore();
+      expect(spy).to.have.been.called;
+      spy.restore();
     });
 
     it('should handle network failure', async () => {

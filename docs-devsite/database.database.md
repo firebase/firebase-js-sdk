@@ -42,5 +42,5 @@ Represents a `Database` instance.
 <b>Signature:</b>
 
 ```typescript
-readonly 'type' = "database";
+readonly 'type' = 'database';
 ```

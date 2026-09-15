@@ -16,23 +16,26 @@
  */
 
 import { expect } from 'chai';
-import { SinonFakeXMLHttpRequest, useFakeXMLHttpRequest } from 'sinon';
+import { stub } from 'sinon';
 import { ErrorCode } from '../../src/implementation/connection';
 import { XhrBytesConnection } from '../../src/platform/browser/connection';
 
 describe('Connections', () => {
   it('XhrConnection.send() should not reject on network errors', async () => {
-    const fakeXHR = useFakeXMLHttpRequest();
+    const openStub = stub(XMLHttpRequest.prototype, 'open');
+    const sendStub = stub(XMLHttpRequest.prototype, 'send');
     const connection = new XhrBytesConnection();
     const sendPromise = connection.send('testurl', 'GET', false);
     // simulate a network error
-    ((connection as any).xhr_ as SinonFakeXMLHttpRequest).error();
+    (connection as any).xhr_.dispatchEvent(new Event('error'));
     await sendPromise;
     expect(connection.getErrorCode()).to.equal(ErrorCode.NETWORK_ERROR);
-    fakeXHR.restore();
+    openStub.restore();
+    sendStub.restore();
   });
   it('XhrConnection.send() should send credentials when using cloud workstation', async () => {
-    const fakeXHR = useFakeXMLHttpRequest();
+    const openStub = stub(XMLHttpRequest.prototype, 'open');
+    const sendStub = stub(XMLHttpRequest.prototype, 'send');
     const connection = new XhrBytesConnection();
     const sendPromise = connection.send(
       'https://abc.cloudworkstations.dev/test',
@@ -40,11 +43,10 @@ describe('Connections', () => {
       true
     );
     // simulate a network error
-    ((connection as any).xhr_ as SinonFakeXMLHttpRequest).error();
+    (connection as any).xhr_.dispatchEvent(new Event('error'));
     await sendPromise;
-    expect(
-      ((connection as any).xhr_ as SinonFakeXMLHttpRequest).withCredentials
-    ).to.be.true;
-    fakeXHR.restore();
+    expect((connection as any).xhr_.withCredentials).to.be.true;
+    openStub.restore();
+    sendStub.restore();
   });
 });

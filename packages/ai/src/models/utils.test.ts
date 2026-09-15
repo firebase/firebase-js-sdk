@@ -19,25 +19,12 @@ import { AI, AIErrorCode } from '../public-types';
 import sinonChai from 'sinon-chai';
 import { stub } from 'sinon';
 import { AIError } from '../errors';
-import { VertexAIBackend } from '../backend';
+import { AgentPlatformBackend } from '../backend';
 import { AIService } from '../service';
 import { initApiSettings } from './utils';
+import { fakeAI } from '../../test-utils/get-fake-firebase-services';
 
 use(sinonChai);
-
-const fakeAI: AI = {
-  app: {
-    name: 'DEFAULT',
-    automaticDataCollectionEnabled: true,
-    options: {
-      apiKey: 'key',
-      projectId: 'my-project',
-      appId: 'my-appid'
-    }
-  },
-  backend: new VertexAIBackend('us-central1'),
-  location: 'us-central1'
-};
 
 describe('initApiSettings', () => {
   it('calls regular app check token when option is set', async () => {
@@ -93,8 +80,8 @@ describe('initApiSettings', () => {
           projectId: 'my-project'
         }
       },
-      backend: new VertexAIBackend('us-central1'),
-      location: 'us-central1'
+      backend: new AgentPlatformBackend('global'),
+      location: 'global'
     };
     try {
       initApiSettings(fakeAI);
@@ -111,8 +98,8 @@ describe('initApiSettings', () => {
           apiKey: 'key'
         }
       },
-      backend: new VertexAIBackend('us-central1'),
-      location: 'us-central1'
+      backend: new AgentPlatformBackend('global'),
+      location: 'global'
     };
     try {
       initApiSettings(fakeAI);
@@ -130,8 +117,8 @@ describe('initApiSettings', () => {
           projectId: 'my-project'
         }
       },
-      backend: new VertexAIBackend('us-central1'),
-      location: 'us-central1'
+      backend: new AgentPlatformBackend('global'),
+      location: 'global'
     };
     try {
       initApiSettings(fakeAI);

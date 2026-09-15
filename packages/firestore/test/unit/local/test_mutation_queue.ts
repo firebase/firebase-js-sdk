@@ -31,7 +31,10 @@ import { SortedMap } from '../../../src/util/sorted_map';
  * transaction around every operation to reduce test boilerplate.
  */
 export class TestMutationQueue {
-  constructor(public persistence: Persistence, public queue: MutationQueue) {}
+  constructor(
+    public persistence: Persistence,
+    public queue: MutationQueue
+  ) {}
 
   checkEmpty(): Promise<boolean> {
     return this.persistence.runTransaction('checkEmpty', 'readonly', txn => {

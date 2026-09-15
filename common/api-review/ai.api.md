@@ -10,6 +10,16 @@ import { FirebaseAuthTokenData } from '@firebase/auth-interop-types';
 import { FirebaseError } from '@firebase/util';
 
 // @public
+export class AgentPlatformBackend extends Backend {
+    constructor(location?: string);
+    // @internal (undocumented)
+    _getModelPath(project: string, model: string): string;
+    // @internal (undocumented)
+    _getTemplatePath(project: string, templateId: string): string;
+    readonly location: string;
+}
+
+// @public
 export interface AI {
     app: FirebaseApp;
     backend: Backend;
@@ -59,7 +69,7 @@ export abstract class AIModel {
     readonly model: string;
     // @internal
     static normalizeModelName(modelName: string, backendType: BackendType): string;
-    }
+}
 
 // @public
 export interface AIOptions {
@@ -92,7 +102,7 @@ export interface AudioConversationController {
     stop: () => Promise<void>;
 }
 
-// @public
+// @beta
 export interface AudioTranscriptionConfig {
 }
 
@@ -108,6 +118,7 @@ export abstract class Backend {
 
 // @public
 export const BackendType: {
+    readonly AGENT_PLATFORM: "AGENT_PLATFORM";
     readonly VERTEX_AI: "VERTEX_AI";
     readonly GOOGLE_AI: "GOOGLE_AI";
 };
@@ -121,6 +132,11 @@ export interface BaseParams {
     generationConfig?: GenerationConfig;
     // (undocumented)
     safetySettings?: SafetySetting[];
+}
+
+// @beta
+export interface BaseSpeechConfig {
+    languageCode?: string;
 }
 
 // @public
@@ -303,7 +319,6 @@ interface Date_2 {
     // (undocumented)
     year: number;
 }
-
 export { Date_2 as Date }
 
 // @public
@@ -558,14 +573,14 @@ export interface GenerateContentStreamResult {
 
 // @public
 export interface GenerationConfig {
-    // (undocumented)
+    // @deprecated (undocumented)
     candidateCount?: number;
-    // (undocumented)
+    // @deprecated (undocumented)
     frequencyPenalty?: number;
     imageConfig?: ImageConfig;
     // (undocumented)
     maxOutputTokens?: number;
-    // (undocumented)
+    // @deprecated (undocumented)
     presencePenalty?: number;
     responseJsonSchema?: {
         [key: string]: unknown;
@@ -574,14 +589,16 @@ export interface GenerationConfig {
     // @beta
     responseModalities?: ResponseModality[];
     responseSchema?: TypedSchema | SchemaRequest;
+    // @beta
+    speechConfig?: SpeechConfig;
     // (undocumented)
     stopSequences?: string[];
-    // (undocumented)
+    // @deprecated (undocumented)
     temperature?: number;
     thinkingConfig?: ThinkingConfig;
-    // (undocumented)
+    // @deprecated (undocumented)
     topK?: number;
-    // (undocumented)
+    // @deprecated (undocumented)
     topP?: number;
 }
 
@@ -620,17 +637,11 @@ export function getAI(app?: FirebaseApp, options?: AIOptions): AI;
 // @public
 export function getGenerativeModel(ai: AI, modelParams: ModelParams | HybridParams, requestOptions?: RequestOptions): GenerativeModel;
 
-// @public @deprecated
-export function getImagenModel(ai: AI, modelParams: ImagenModelParams, requestOptions?: RequestOptions): ImagenModel;
-
 // @beta
 export function getLiveGenerativeModel(ai: AI, modelParams: LiveModelParams): LiveGenerativeModel;
 
 // @beta
 export function getTemplateGenerativeModel(ai: AI, requestOptions?: RequestOptions): TemplateGenerativeModel;
-
-// @public @deprecated
-export function getTemplateImagenModel(ai: AI, requestOptions?: RequestOptions): TemplateImagenModel;
 
 // @public
 export class GoogleAIBackend extends Backend {
@@ -848,99 +859,6 @@ export const ImageConfigImageSize: {
 // @public
 export type ImageConfigImageSize = (typeof ImageConfigImageSize)[keyof typeof ImageConfigImageSize];
 
-// @public @deprecated
-export const ImagenAspectRatio: {
-    readonly SQUARE: "1:1";
-    readonly LANDSCAPE_3x4: "3:4";
-    readonly PORTRAIT_4x3: "4:3";
-    readonly LANDSCAPE_16x9: "16:9";
-    readonly PORTRAIT_9x16: "9:16";
-};
-
-// @public @deprecated
-export type ImagenAspectRatio = (typeof ImagenAspectRatio)[keyof typeof ImagenAspectRatio];
-
-// @public @deprecated
-export interface ImagenGCSImage {
-    gcsURI: string;
-    mimeType: string;
-}
-
-// @public @deprecated
-export interface ImagenGenerationConfig {
-    addWatermark?: boolean;
-    aspectRatio?: ImagenAspectRatio;
-    imageFormat?: ImagenImageFormat;
-    negativePrompt?: string;
-    numberOfImages?: number;
-}
-
-// @public @deprecated
-export interface ImagenGenerationResponse<T extends ImagenInlineImage | ImagenGCSImage> {
-    filteredReason?: string;
-    images: T[];
-}
-
-// @public @deprecated
-export class ImagenImageFormat {
-    compressionQuality?: number;
-    static jpeg(compressionQuality?: number): ImagenImageFormat;
-    mimeType: string;
-    static png(): ImagenImageFormat;
-}
-
-// @public @deprecated
-export interface ImagenInlineImage {
-    bytesBase64Encoded: string;
-    mimeType: string;
-}
-
-// @public @deprecated
-export class ImagenModel extends AIModel {
-    constructor(ai: AI, modelParams: ImagenModelParams, requestOptions?: RequestOptions | undefined);
-    generateImages(prompt: string, singleRequestOptions?: SingleRequestOptions): Promise<ImagenGenerationResponse<ImagenInlineImage>>;
-    // @internal
-    generateImagesGCS(prompt: string, gcsURI: string, singleRequestOptions?: SingleRequestOptions): Promise<ImagenGenerationResponse<ImagenGCSImage>>;
-    generationConfig?: ImagenGenerationConfig;
-    // (undocumented)
-    requestOptions?: RequestOptions | undefined;
-    safetySettings?: ImagenSafetySettings;
-}
-
-// @public @deprecated
-export interface ImagenModelParams {
-    generationConfig?: ImagenGenerationConfig;
-    model: string;
-    safetySettings?: ImagenSafetySettings;
-}
-
-// @public @deprecated
-export const ImagenPersonFilterLevel: {
-    readonly BLOCK_ALL: "dont_allow";
-    readonly ALLOW_ADULT: "allow_adult";
-    readonly ALLOW_ALL: "allow_all";
-};
-
-// @public @deprecated
-export type ImagenPersonFilterLevel = (typeof ImagenPersonFilterLevel)[keyof typeof ImagenPersonFilterLevel];
-
-// @public @deprecated
-export const ImagenSafetyFilterLevel: {
-    readonly BLOCK_LOW_AND_ABOVE: "block_low_and_above";
-    readonly BLOCK_MEDIUM_AND_ABOVE: "block_medium_and_above";
-    readonly BLOCK_ONLY_HIGH: "block_only_high";
-    readonly BLOCK_NONE: "block_none";
-};
-
-// @public @deprecated
-export type ImagenSafetyFilterLevel = (typeof ImagenSafetyFilterLevel)[keyof typeof ImagenSafetyFilterLevel];
-
-// @public @deprecated
-export interface ImagenSafetySettings {
-    personFilterLevel?: ImagenPersonFilterLevel;
-    safetyFilterLevel?: ImagenSafetyFilterLevel;
-}
-
 // @public
 export const InferenceMode: {
     readonly PREFER_ON_DEVICE: "prefer_on_device";
@@ -1075,15 +993,20 @@ export interface LatLng {
 // @beta
 export interface LiveGenerationConfig {
     contextWindowCompression?: ContextWindowCompressionConfig;
+    // @deprecated
     frequencyPenalty?: number;
     inputAudioTranscription?: AudioTranscriptionConfig;
     maxOutputTokens?: number;
     outputAudioTranscription?: AudioTranscriptionConfig;
+    // @deprecated
     presencePenalty?: number;
     responseModalities?: ResponseModality[];
     speechConfig?: SpeechConfig;
+    // @deprecated
     temperature?: number;
+    // @deprecated
     topK?: number;
+    // @deprecated
     topP?: number;
 }
 
@@ -1103,7 +1026,7 @@ export class LiveGenerativeModel extends AIModel {
     toolConfig?: ToolConfig;
     // (undocumented)
     tools?: Tool[];
-    }
+}
 
 // @beta
 export interface LiveModelParams {
@@ -1184,7 +1107,7 @@ export class LiveSession {
     sendMediaStream(mediaChunkStream: ReadableStream<GenerativeContentBlob>): Promise<void>;
     sendTextRealtime(text: string): Promise<void>;
     sendVideoRealtime(blob: GenerativeContentBlob): Promise<void>;
-    }
+}
 
 // @beta
 export interface LiveSessionResumptionUpdate {
@@ -1224,6 +1147,17 @@ export interface ModelParams extends BaseParams {
     toolConfig?: ToolConfig;
     // (undocumented)
     tools?: Tool[];
+}
+
+// @beta
+export interface MultiSpeakerSpeechConfig extends BaseSpeechConfig {
+    multiSpeakerVoiceConfig?: MultiSpeakerVoiceConfig;
+    voiceConfig?: never;
+}
+
+// @beta
+export interface MultiSpeakerVoiceConfig {
+    speakerVoiceConfigs: SpeakerVoiceConfig[];
 }
 
 // @public
@@ -1465,14 +1399,24 @@ export interface SingleRequestOptions extends RequestOptions {
 }
 
 // @beta
+export interface SingleSpeakerSpeechConfig extends BaseSpeechConfig {
+    multiSpeakerVoiceConfig?: never;
+    voiceConfig?: VoiceConfig;
+}
+
+// @beta
 export interface SlidingWindow {
     targetTokens?: number;
 }
 
 // @beta
-export interface SpeechConfig {
-    voiceConfig?: VoiceConfig;
+export interface SpeakerVoiceConfig {
+    speaker: string;
+    voiceConfig: VoiceConfig;
 }
+
+// @beta
+export type SpeechConfig = SingleSpeakerSpeechConfig | MultiSpeakerSpeechConfig;
 
 // @beta
 export function startAudioConversation(liveSession: LiveSession, options?: StartAudioConversationOptions): Promise<AudioConversationController>;
@@ -1575,16 +1519,6 @@ export class TemplateGenerativeModel {
     generateContentStream(templateId: string, templateVariables: Record<string, unknown>, singleRequestOptions?: SingleRequestOptions, templateToolConfig?: TemplateToolConfig): Promise<GenerateContentStreamResult>;
     requestOptions?: RequestOptions;
     startChat(params: StartTemplateChatParams): TemplateChatSession;
-}
-
-// @public @deprecated
-export class TemplateImagenModel {
-    constructor(ai: AI, requestOptions?: RequestOptions);
-    // @internal (undocumented)
-    _apiSettings: ApiSettings;
-    // @beta
-    generateImages(templateId: string, templateVariables: object, singleRequestOptions?: SingleRequestOptions): Promise<ImagenGenerationResponse<ImagenInlineImage>>;
-    requestOptions?: RequestOptions;
 }
 
 // Warning: (ae-internal-missing-underscore) The name "TemplateRequestInternal" should be prefixed with an underscore because the declaration is marked as @internal
@@ -1712,7 +1646,7 @@ export interface UsageMetadata {
     totalTokenCount: number;
 }
 
-// @public
+// @public @deprecated
 export class VertexAIBackend extends Backend {
     constructor(location?: string);
     // @internal (undocumented)
@@ -1747,6 +1681,5 @@ export interface WebGroundingChunk {
     title?: string;
     uri?: string;
 }
-
 
 ```

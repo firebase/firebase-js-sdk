@@ -21,7 +21,6 @@ export * from './requests';
 export * from './responses';
 export * from './error';
 export * from './schema';
-export * from './imagen';
 export * from './googleai';
 export {
   LanguageModelCreateOptions,

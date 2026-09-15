@@ -76,6 +76,7 @@ async function runTests(config: TestConfig) {
     }
 
     lernaCmd.push(testCommand);
+    lernaCmd.push('--no-bail');
 
     if (argv.concurrency) {
       lernaCmd.push('--concurrency', String(argv.concurrency));

@@ -38,9 +38,7 @@ export class SizedBundleElement {
 }
 
 export type BundleSource =
-  | ReadableStream<Uint8Array>
-  | ArrayBuffer
-  | Uint8Array;
+  ReadableStream<Uint8Array> | ArrayBuffer | Uint8Array;
 
 /**
  * A class representing a bundle.

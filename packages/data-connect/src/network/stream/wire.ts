@@ -53,11 +53,12 @@ export interface StreamRequestHeaders {
   /** used to initially authenticate or re-authenticate user */
   'X-Firebase-Auth-Token'?: string;
   /** used to initially attest app */
-  'X-Firebase-App-Check'?: string;
+  'X-Firebase-AppCheck'?: string;
   /** SDK telemetry header */
   'X-Goog-Api-Client'?: string;
   /** firebase appid */
   'x-firebase-gmpid'?: string;
+  'X-Client-Version'?: string;
 }
 
 /**

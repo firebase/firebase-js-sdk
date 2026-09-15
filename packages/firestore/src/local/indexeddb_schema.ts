@@ -257,9 +257,7 @@ export interface DbRemoteDocumentGlobal {
  * order to avoid writing extra serialization logic.
  */
 export type DbQuery =
-  | ProtoQueryTarget
-  | ProtoDocumentsTarget
-  | ProtoPipelineQueryTarget;
+  ProtoQueryTarget | ProtoDocumentsTarget | ProtoPipelineQueryTarget;
 
 /**
  * An object to be stored in the 'targets' store in IndexedDb.

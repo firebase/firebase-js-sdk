@@ -18,7 +18,7 @@ import { use, expect } from 'chai';
 import { AI } from '../public-types';
 import sinonChai from 'sinon-chai';
 import { AIModel } from './ai-model';
-import { VertexAIBackend } from '../backend';
+import { fakeAI } from '../../test-utils/get-fake-firebase-services';
 
 use(sinonChai);
 
@@ -31,20 +31,6 @@ class TestModel extends AIModel {
     super(ai, modelName);
   }
 }
-
-const fakeAI: AI = {
-  app: {
-    name: 'DEFAULT',
-    automaticDataCollectionEnabled: true,
-    options: {
-      apiKey: 'key',
-      projectId: 'my-project',
-      appId: 'my-appid'
-    }
-  },
-  backend: new VertexAIBackend('us-central1'),
-  location: 'us-central1'
-};
 
 describe('AIModel', () => {
   it('handles plain model name', () => {

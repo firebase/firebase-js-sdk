@@ -38,7 +38,10 @@ import { Direction, OrderBy } from './order_by';
  * just after the provided values.
  */
 export class Bound {
-  constructor(readonly position: ProtoValue[], readonly inclusive: boolean) {}
+  constructor(
+    readonly position: ProtoValue[],
+    readonly inclusive: boolean
+  ) {}
 }
 
 function boundCompareToDocument(

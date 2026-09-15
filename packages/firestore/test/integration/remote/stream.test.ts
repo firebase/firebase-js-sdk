@@ -113,9 +113,7 @@ class StreamStatusListener implements WatchStreamListener, WriteStreamListener {
 
   onWatchChange(
     watchChange:
-      | DocumentWatchChange
-      | WatchTargetChange
-      | ExistenceFilterChange,
+      DocumentWatchChange | WatchTargetChange | ExistenceFilterChange,
     snapshot: SnapshotVersion
   ): Promise<void> {
     return this.resolvePending('watchChange');

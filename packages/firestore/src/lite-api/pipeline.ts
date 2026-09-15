@@ -772,7 +772,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    * <ul>
    *   <li>field comparators: {@link @firebase/firestore/pipelines#Expression.(equal:1)}, {@link @firebase/firestore/pipelines#Expression.(lessThan:1)}, {@link
    *       @firebase/firestore/pipelines#Expression.(greaterThan:1)}, etc.</li>
-   *   <li>logical operators: {@link @firebase/firestore/pipelines#Expression.(and:1)}, {@link @firebase/firestore/pipelines#Expression.(or:1)}, {@link @firebase/firestore/pipelines#Expression.(not:1)}, etc.</li>
+   *   <li>logical operators: {@link @firebase/firestore/pipelines#(and:1) | and}, {@link @firebase/firestore/pipelines#(or:1) | or}, {@link @firebase/firestore/pipelines#(not:1) | not}, etc.</li>
    *   <li>advanced functions: {@link @firebase/firestore/pipelines#Expression.(regexMatch:1)}, {@link
    *       @firebase/firestore/pipelines#Expression.(arrayContains:1)}, etc.</li>
    * </ul>
@@ -801,9 +801,9 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    * @firebase/firestore/pipelines#BooleanExpression}, typically including but not limited to:
    *
    * <ul>
-   *   <li>field comparators: {@link @firebase/firestore/pipelines#Expression.(eq:1)}, {@link @firebase/firestore/pipelines#Expression.(lt:1)} (less than), {@link
+   *   <li>field comparators: {@link @firebase/firestore/pipelines#Expression.(equal:1)}, {@link @firebase/firestore/pipelines#Expression.(lessThan:1)} (less than), {@link
    *       @firebase/firestore/pipelines#Expression.(greaterThan:1)}, etc.</li>
-   *   <li>logical operators: {@link @firebase/firestore/pipelines#Expression.(and:1)}, {@link @firebase/firestore/pipelines#Expression.(or:1)}, {@link @firebase/firestore/pipelines#Expression.(not:1)}, etc.</li>
+   *   <li>logical operators: {@link @firebase/firestore/pipelines#(and:1) | and}, {@link @firebase/firestore/pipelines#(or:1) | or}, {@link @firebase/firestore/pipelines#(not:1) | not}, etc.</li>
    *   <li>advanced functions: {@link @firebase/firestore/pipelines#Expression.(regexMatch:1)}, {@link
    *       @firebase/firestore/pipelines#Expression.(arrayContains:1)}, etc.</li>
    * </ul>
@@ -841,7 +841,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    * Skips the first `offset` number of documents from the results of previous stages.
    *
    * <p>This stage is useful for implementing pagination in your pipelines, allowing you to retrieve
-   * results in chunks. It is typically used in conjunction with {@link @firebase/firestore/pipelines#Pipeline.limit} to control the
+   * results in chunks. It is typically used in conjunction with {@link @firebase/firestore/pipelines#Pipeline.(limit:1) | Pipeline.limit} to control the
    * size of each page.
    *
    * @example
@@ -861,7 +861,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    * Skips the first `offset` number of documents from the results of previous stages.
    *
    * <p>This stage is useful for implementing pagination in your pipelines, allowing you to retrieve
-   * results in chunks. It is typically used in conjunction with {@link @firebase/firestore/pipelines#Pipeline.limit} to control the
+   * results in chunks. It is typically used in conjunction with {@link @firebase/firestore/pipelines#Pipeline.(limit:1) | Pipeline.limit} to control the
    * size of each page.
    *
    * @example
@@ -903,7 +903,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    * a potentially large result set. It's often used for:
    *
    * <ul>
-   *   <li>Pagination: In combination with {@link @firebase/firestore/pipelines#Pipeline.offset} to retrieve specific pages of
+   *   <li>Pagination: In combination with {@link @firebase/firestore/pipelines#Pipeline.(offset:1) | Pipeline.offset} to retrieve specific pages of
    *       results.</li>
    *   <li>Limiting Data Retrieval: To prevent excessive data transfer and improve performance,
    *       especially when dealing with large collections.</li>
@@ -928,7 +928,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    * a potentially large result set. It's often used for:
    *
    * <ul>
-   *   <li>Pagination: In combination with {@link @firebase/firestore/pipelines#Pipeline.offset} to retrieve specific pages of
+   *   <li>Pagination: In combination with {@link @firebase/firestore/pipelines#Pipeline.(offset:1) | Pipeline.offset} to retrieve specific pages of
    *       results.</li>
    *   <li>Limiting Data Retrieval: To prevent excessive data transfer and improve performance,
    *       especially when dealing with large collections.</li>
@@ -1116,7 +1116,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
       targetOrOptions
     )
       ? []
-      : targetOrOptions.groups ?? [];
+      : (targetOrOptions.groups ?? []);
 
     // Convert user land convenience types to internal types
     const convertedAccumulators: Map<string, AggregateFunction> =

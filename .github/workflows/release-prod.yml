@@ -28,23 +28,20 @@ jobs:
     environment: release
     name: Production Release
     runs-on: ubuntu-latest
-    # Allow GITHUB_TOKEN to have write permissions
     permissions:
-      contents: write
+      contents: read
 
     steps:
     - name: Set up node (22)
-      uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # ratchet:actions/setup-node@v4
+      uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # ratchet:actions/setup-node@v7
       with:
-        node-version: 22.12.0
+        node-version: 22.23.2
     - name: Checkout release branch (with history)
-      uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # ratchet:actions/checkout@v4
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7
       with:
         # Release script requires git history and tags.
         fetch-depth: 0
         ref: ${{ github.event.inputs.release-branch }}
-        token: ${{ secrets.OSS_BOT_GITHUB_TOKEN }}
-        # This is ok since this workflow uses a custom token.
         persist-credentials: false
     - name: Yarn install
       run: yarn
@@ -118,20 +115,75 @@ jobs:
         echo "Base version: ${STEPS_GET_VERSION_OUTPUTS_BASE_VERSION}"
       env:
         STEPS_GET_VERSION_OUTPUTS_BASE_VERSION: ${{ steps.get-version.outputs.BASE_VERSION }}
+    - name: Authenticate to Google Cloud (Release Tracker)
+      id: release-tracker-auth
+      uses: google-github-actions/auth@fc2174804b84f912b1f6d334e9463f484f1c552d
+      with:
+        credentials_json: ${{ secrets.RELEASE_TRACKER_SA_KEY }}
+        token_format: 'id_token'
+        id_token_audience: ${{ secrets.RELEASE_TRACKER_URL }}
     - name: Log to release tracker
       # Sends release information to cloud functions endpoint of release tracker.
       run: |
         DATE=$(date +'%m/%d/%Y')
         BASE_VERSION=${STEPS_GET_VERSION_OUTPUTS_BASE_VERSION}
         RELEASE_TRACKER_URL=${{ secrets.RELEASE_TRACKER_URL }}
+        ID_TOKEN=${{ steps.release-tracker-auth.outputs.id_token }}
         curl -X POST -H "Content-Type:application/json" \
+        -H "Authorization: Bearer $ID_TOKEN" \
         -d "{\"version\":\"$BASE_VERSION\",\"date\":\"$DATE\"}" \
         $RELEASE_TRACKER_URL/logProduction
       env:
         STEPS_GET_VERSION_OUTPUTS_BASE_VERSION: ${{ steps.get-version.outputs.BASE_VERSION }}
-    - name: Create GitHub release
+
+  publish-tags-and-release:
+    environment: release
+    name: Publish Tags & GitHub Release
+    needs: deploy
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+    - name: Set up node (22)
+      uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # ratchet:actions/setup-node@v7
+      with:
+        node-version: 22.23.2
+    - name: Checkout release branch (with history)
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7
+      with:
+        # Release script requires git history and tags.
+        fetch-depth: 0
+        ref: ${{ github.event.inputs.release-branch }}
+        persist-credentials: false
+    - name: Yarn install
+      run: yarn
+    # Fetch short-lived token from the GitHub App for 
+    # publishing git tags (contents: write)
+    # publishing Github release (contents: write, pull-requests: read)
+    - name: Generate Temporary Token
+      id: generate-token
+      uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # ratchet:actions/create-github-app-token@v3
+      with:
+        client-id: ${{ secrets.FIREBASE_RELEASE_APP_ID }}
+        private-key: ${{ secrets.FIREBASE_RELEASE_APP_PRIVATE_KEY }}
+        permission-contents: write
+        permission-pull-requests: read
+    # Configures git user as "google-oss-bot" for the next step
+    - name: Configure Git User
+      run: |
+        git config --global user.name "google-oss-bot"
+        git config --global user.email "firebase-oss-bot@google.com"
+    - name: Publish git tags
+      # Publishes git tags
+      run: yarn ts-node scripts/release/publish-git-tags.ts
+      # The script injects this token (generated above) into the git push command
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
+    - name: Create GitHub release
+      # Depends on generated tag above.
+      env:
+        GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
       run: |
         # Get the newest release tag for the firebase package (e.g. firebase@10.12.0)
         NEWEST_TAG=$(git describe --tags --match "firebase@[0-9]*.[0-9]*.[0-9]*" --abbrev=0)
@@ -161,3 +213,4 @@ jobs:
           --title "$NEWEST_TAG" \
           --notes "$RELEASE_NOTES" \
           --verify-tag
+

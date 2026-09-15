@@ -1,5 +1,35 @@
 # @firebase/analytics-compat
 
+## 0.2.31
+
+### Patch Changes
+
+- Updated dependencies [[`50213a1`](https://github.com/firebase/firebase-js-sdk/commit/50213a1cdba8e3b0f029197ec20f47c1110060a6)]:
+  - @firebase/analytics@0.10.25
+
+## 0.2.30
+
+### Patch Changes
+
+- [`589b24b`](https://github.com/firebase/firebase-js-sdk/commit/589b24bd9b30ba6b07a76da1eb5c3d1eadc5a9d2) [#10293](https://github.com/firebase/firebase-js-sdk/pull/10293) - Updated many top-level `devDependencies`.
+
+- Updated dependencies [[`589b24b`](https://github.com/firebase/firebase-js-sdk/commit/589b24bd9b30ba6b07a76da1eb5c3d1eadc5a9d2)]:
+  - @firebase/analytics@0.10.24
+  - @firebase/analytics-types@0.8.5
+  - @firebase/component@0.7.5
+  - @firebase/util@1.15.3
+
+## 0.2.29
+
+### Patch Changes
+
+- [`0fe3bbc`](https://github.com/firebase/firebase-js-sdk/commit/0fe3bbc3196a18d01941acbdaab3301a391016b1) [#10097](https://github.com/firebase/firebase-js-sdk/pull/10097) - Added "@firebase/app" as a peerDependency of compat packages.
+
+- Updated dependencies [[`736fa3f`](https://github.com/firebase/firebase-js-sdk/commit/736fa3fe798d6eafc9fe086d6bfbe9cfb49b8994)]:
+  - @firebase/util@1.15.2
+  - @firebase/analytics@0.10.23
+  - @firebase/component@0.7.4
+
 ## 0.2.28
 
 ### Patch Changes

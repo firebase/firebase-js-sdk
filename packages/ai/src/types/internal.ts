@@ -20,8 +20,6 @@ import { FirebaseAuthTokenData } from '@firebase/auth-interop-types';
 import { Backend } from '../backend';
 import { InferenceMode } from './enums';
 
-export * from './imagen/internal';
-
 export interface ApiSettings {
   apiKey: string;
   project: string;

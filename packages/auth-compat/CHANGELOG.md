@@ -1,5 +1,35 @@
 # @firebase/auth-compat
 
+## 0.6.11
+
+### Patch Changes
+
+- Updated dependencies [[`8676365`](https://github.com/firebase/firebase-js-sdk/commit/8676365bdb4113785b48e5bea5b8a55dfadb3233), [`8316986`](https://github.com/firebase/firebase-js-sdk/commit/831698647c842d4c6f96f6cb73efa694e0425f3a), [`b74b53c`](https://github.com/firebase/firebase-js-sdk/commit/b74b53c02de39cff0a7091faa5eeb059952bb31b), [`50213a1`](https://github.com/firebase/firebase-js-sdk/commit/50213a1cdba8e3b0f029197ec20f47c1110060a6)]:
+  - @firebase/auth@1.13.6
+
+## 0.6.10
+
+### Patch Changes
+
+- [`589b24b`](https://github.com/firebase/firebase-js-sdk/commit/589b24bd9b30ba6b07a76da1eb5c3d1eadc5a9d2) [#10293](https://github.com/firebase/firebase-js-sdk/pull/10293) - Updated many top-level `devDependencies`.
+
+- Updated dependencies [[`589b24b`](https://github.com/firebase/firebase-js-sdk/commit/589b24bd9b30ba6b07a76da1eb5c3d1eadc5a9d2), [`44d336b`](https://github.com/firebase/firebase-js-sdk/commit/44d336bbe7bc52ff1c62e6721f44a441479c0169)]:
+  - @firebase/auth@1.13.5
+  - @firebase/auth-types@0.13.2
+  - @firebase/component@0.7.5
+  - @firebase/util@1.15.3
+
+## 0.6.9
+
+### Patch Changes
+
+- [`0fe3bbc`](https://github.com/firebase/firebase-js-sdk/commit/0fe3bbc3196a18d01941acbdaab3301a391016b1) [#10097](https://github.com/firebase/firebase-js-sdk/pull/10097) - Added "@firebase/app" as a peerDependency of compat packages.
+
+- Updated dependencies [[`736fa3f`](https://github.com/firebase/firebase-js-sdk/commit/736fa3fe798d6eafc9fe086d6bfbe9cfb49b8994), [`8a9ad3a`](https://github.com/firebase/firebase-js-sdk/commit/8a9ad3a2fe49a292abf7b61970197a8ee6e3702c)]:
+  - @firebase/util@1.15.2
+  - @firebase/auth@1.13.4
+  - @firebase/component@0.7.4
+
 ## 0.6.8
 
 ### Patch Changes

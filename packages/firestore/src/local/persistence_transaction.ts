@@ -22,9 +22,7 @@ export const PRIMARY_LEASE_LOST_ERROR_MSG =
 
 /** The different modes supported by `Persistence.runTransaction()`. */
 export type PersistenceTransactionMode =
-  | 'readonly'
-  | 'readwrite'
-  | 'readwrite-primary';
+  'readonly' | 'readwrite' | 'readwrite-primary';
 
 /**
  * A base class representing a persistence transaction, encapsulating both the

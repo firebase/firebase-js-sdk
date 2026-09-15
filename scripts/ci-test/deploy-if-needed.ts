@@ -17,13 +17,11 @@
 
 import { resolve } from 'path';
 import chalk from 'chalk';
-import simpleGit from 'simple-git';
 import { exec } from 'child-process-promise';
 const firebaseTools = require('firebase-tools');
 
 const root = resolve(__dirname, '../..');
 const config = require(resolve(root, 'config/ci.config.json'));
-const git = simpleGit(root);
 
 interface DeployOptions {
   project: string;
@@ -49,12 +47,11 @@ const projectConfigGroups = [
  * test project if there have been any changes to them.
  */
 async function deployIfNeeded() {
-  const token = process.env.FIREBASE_CLI_TOKEN;
-  if (!token) {
-    throw new Error('No FIREBASE_CLI_TOKEN found, exiting.');
-  }
-  const diff = await git.diff(['--name-only', 'origin/main...HEAD']);
-  const changedFiles = diff.split('\n');
+  const { stdout: diff } = await exec(
+    'git diff --name-only origin/main...HEAD',
+    { cwd: root }
+  );
+  const changedFiles = diff.trim().split('\n').filter(Boolean);
   let flags: string[] = [];
   for (const group of projectConfigGroups) {
     if (changedFiles.includes(group.file)) {
@@ -65,18 +62,25 @@ async function deployIfNeeded() {
       flags.push(group.flag);
     }
   }
-  const deployOptions: DeployOptions = {
-    project: config.projectId,
-    token,
-    cwd: resolve(root, 'config'),
-    force: true
-  };
+
   if (flags.length === 0) {
     console.log(
       chalk`{green No changes detected in project config files. Not deploying. }`
     );
     return;
   }
+
+  const token = process.env.FIREBASE_CLI_TOKEN;
+  if (!token) {
+    throw new Error('No FIREBASE_CLI_TOKEN found, exiting.');
+  }
+  const deployOptions: DeployOptions = {
+    project: config.projectId,
+    token,
+    cwd: resolve(root, 'config'),
+    force: true
+  };
+
   if (flags[0] !== 'all') {
     deployOptions.only = flags.join(',');
     console.log(chalk`{blue Deploying to ${flags.toString()} }`);

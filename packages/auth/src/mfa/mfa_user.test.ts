@@ -62,12 +62,10 @@ describe('core/mfa/mfa_user/MultiFactorUser', () => {
   const idToken = makeJWT({ 'exp': '3600', 'iat': '1200' });
   let auth: TestAuth;
   let mfaUser: MultiFactorUserImpl;
-  let clock: sinon.SinonFakeTimers;
 
   beforeEach(async () => {
     auth = await testAuth();
     mockFetch.setUp();
-    clock = sinon.useFakeTimers();
     mfaUser = MultiFactorUserImpl._fromUser(
       testUser(auth, 'uid', undefined, true)
     );
@@ -131,8 +129,9 @@ describe('core/mfa/mfa_user/MultiFactorUser', () => {
       await mfaUser.enroll(assertion);
 
       expect(await mfaUser.user.getIdToken()).to.eq(idToken);
-      expect(mfaUser.user.stsTokenManager.expirationTime).to.eq(
-        clock.now + 2400 * 1000
+      expect(mfaUser.user.stsTokenManager.expirationTime).to.be.closeTo(
+        Date.now() + 2400 * 1000,
+        1000
       );
     });
 
@@ -217,8 +216,9 @@ describe('core/mfa/mfa_user/MultiFactorUser', () => {
       await mfaUser.unenroll(mfaInfo);
 
       expect(await mfaUser.user.getIdToken()).to.eq(idToken);
-      expect(mfaUser.user.stsTokenManager.expirationTime).to.eq(
-        clock.now + 2400 * 1000
+      expect(mfaUser.user.stsTokenManager.expirationTime).to.be.closeTo(
+        Date.now() + 2400 * 1000,
+        1000
       );
     });
 

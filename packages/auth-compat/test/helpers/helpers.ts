@@ -51,10 +51,13 @@ export function initializeTestInstance(): void {
 }
 
 export async function cleanUpTestInstance(): Promise<void> {
-  for (const app of firebase.apps) {
-    await app.delete();
+  try {
+    await resetEmulator();
+  } finally {
+    for (const app of firebase.apps) {
+      await app.delete();
+    }
   }
-  await resetEmulator();
 }
 
 export function randomEmail(): string {

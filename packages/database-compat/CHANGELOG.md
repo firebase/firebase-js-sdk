@@ -1,5 +1,36 @@
 # @firebase/database-compat
 
+## 2.1.7
+
+### Patch Changes
+
+- [`589b24b`](https://github.com/firebase/firebase-js-sdk/commit/589b24bd9b30ba6b07a76da1eb5c3d1eadc5a9d2) [#10293](https://github.com/firebase/firebase-js-sdk/pull/10293) - Updated many top-level `devDependencies`.
+
+- Updated dependencies [[`589b24b`](https://github.com/firebase/firebase-js-sdk/commit/589b24bd9b30ba6b07a76da1eb5c3d1eadc5a9d2)]:
+  - @firebase/component@0.7.5
+  - @firebase/database@1.1.5
+  - @firebase/database-types@1.0.22
+  - @firebase/logger@0.5.2
+  - @firebase/util@1.15.3
+
+## 2.1.6
+
+### Patch Changes
+
+- [`993e8a6`](https://github.com/firebase/firebase-js-sdk/commit/993e8a635ee94409bdc1ea59fa578a45f8191e12) [#10243](https://github.com/firebase/firebase-js-sdk/pull/10243) (fixes [#10242](https://github.com/firebase/firebase-js-sdk/issues/10242)) - Fix regression causing peerDeps to be unbundled in standalone bundle.
+
+## 2.1.5
+
+### Patch Changes
+
+- [`0fe3bbc`](https://github.com/firebase/firebase-js-sdk/commit/0fe3bbc3196a18d01941acbdaab3301a391016b1) [#10097](https://github.com/firebase/firebase-js-sdk/pull/10097) - Added "@firebase/app" as a peerDependency of compat packages.
+
+- Updated dependencies [[`736fa3f`](https://github.com/firebase/firebase-js-sdk/commit/736fa3fe798d6eafc9fe086d6bfbe9cfb49b8994)]:
+  - @firebase/util@1.15.2
+  - @firebase/component@0.7.4
+  - @firebase/database@1.1.4
+  - @firebase/database-types@1.0.21
+
 ## 2.1.4
 
 ### Patch Changes

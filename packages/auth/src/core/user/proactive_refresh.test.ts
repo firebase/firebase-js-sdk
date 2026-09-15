@@ -67,6 +67,7 @@ describe('core/user/proactive_refresh', () => {
   });
 
   afterEach(() => {
+    clock.restore();
     sinon.restore();
   });
 

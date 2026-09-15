@@ -1,5 +1,49 @@
 # @firebase/ai
 
+## 2.16.0
+
+### Minor Changes
+
+- [`6b17ef5`](https://github.com/firebase/firebase-js-sdk/commit/6b17ef50b4db73557e834535656e586d32a2f86a) [#10319](https://github.com/firebase/firebase-js-sdk/pull/10319) - Fixed the issue where the SDK hardcodes invalid 'function' role, causing 400 errors during function calling on gemini-3.6-flash
+
+### Patch Changes
+
+- [`6f86596`](https://github.com/firebase/firebase-js-sdk/commit/6f865964baf5b4bd23b077fecec1028434a7387e) [#10320](https://github.com/firebase/firebase-js-sdk/pull/10320) - Fixed a client-side validation guardrail that incorrectly blocked `text/x.enum` when `responseSchema` or `responseJsonSchema` was provided. The SDK now correctly accepts both `application/json` and `text/x.enum` for structured outputs.
+
+## 2.15.0
+
+### Minor Changes
+
+- [`d4b83fd`](https://github.com/firebase/firebase-js-sdk/commit/d4b83fd9defa8da9207b771ee503e05357826da0) [#10267](https://github.com/firebase/firebase-js-sdk/pull/10267) - Imagen methods and types have been removed due to Imagen models being shut down. As a replacement, you can [migrate your apps to use Gemini Image models (the "Nano Banana" models)](https://firebase.google.com/docs/ai-logic/imagen-models-migration).
+
+### Patch Changes
+
+- [`589b24b`](https://github.com/firebase/firebase-js-sdk/commit/589b24bd9b30ba6b07a76da1eb5c3d1eadc5a9d2) [#10293](https://github.com/firebase/firebase-js-sdk/pull/10293) - Updated many top-level `devDependencies`.
+
+- [`7fc34cb`](https://github.com/firebase/firebase-js-sdk/commit/7fc34cb4213e7d5595e218877f8cb95c207b50ce) [#10248](https://github.com/firebase/firebase-js-sdk/pull/10248) - Fixed incorrect detection of LanguageModel that prevented usage of on-device models in Chrome Extensions.
+
+- Updated dependencies [[`589b24b`](https://github.com/firebase/firebase-js-sdk/commit/589b24bd9b30ba6b07a76da1eb5c3d1eadc5a9d2)]:
+  - @firebase/app-check-interop-types@0.3.5
+  - @firebase/component@0.7.5
+  - @firebase/logger@0.5.2
+  - @firebase/util@1.15.3
+
+## 2.14.0
+
+### Minor Changes
+
+- [`7c5e6e5`](https://github.com/firebase/firebase-js-sdk/commit/7c5e6e5fa68da49d55333975f2f6abf4674c0cd4) [#10145](https://github.com/firebase/firebase-js-sdk/pull/10145) - Added support for text-to-speech capabilities (both single- and multi-speaker configurations) for non-Live API models (for example, Gemini TTS models).
+
+- [`178daf7`](https://github.com/firebase/firebase-js-sdk/commit/178daf75c03419156152766751ddbacbde2537a5) [#10184](https://github.com/firebase/firebase-js-sdk/pull/10184) - Deprecated `VertexAIBackend` in favor of `AgentPlatformBackend` to reflect the renaming of Vertex AI to Gemini Enterprise Agent Platform.
+
+  The only difference for `AgentPlatformBackend` is the default [location for accessing the model](https://firebase.google.com/docs/ai-logic/locations?api=vertex). The default location for `AgentPlatformBackend` is `global`, whereas the default location for `VertexAIBackend` is `us-central1`. To use `us-central1` with `AgentPlatformBackend`, specify `getAI(app, { backend: new AgentPlatformBackend('us-central1') })` when initializing the SDK. However, note that most new Gemini models do not support `us-central1`.
+
+### Patch Changes
+
+- Updated dependencies [[`736fa3f`](https://github.com/firebase/firebase-js-sdk/commit/736fa3fe798d6eafc9fe086d6bfbe9cfb49b8994)]:
+  - @firebase/util@1.15.2
+  - @firebase/component@0.7.4
+
 ## 2.13.1
 
 ### Patch Changes

@@ -54,6 +54,7 @@ async function expectError(
   promise: Promise<any>,
   code: FunctionsErrorCodeCore,
   message: string,
+  httpStatus?: number,
   details?: any
 ): Promise<void> {
   let failed = false;
@@ -64,7 +65,11 @@ async function expectError(
     expect(e).to.be.instanceOf(FunctionsError);
     const error = e as FunctionsError;
     expect(error.code).to.equal(`${FUNCTIONS_TYPE}/${code}`);
-    expect(error.message).to.equal(message);
+    if (httpStatus != null) {
+      expect(error.message).to.equal(`${message} [${httpStatus}]`);
+    } else {
+      expect(error.message).to.equal(message);
+    }
     expect(error.details).to.deep.equal(details);
   }
   if (!failed) {
@@ -272,19 +277,24 @@ describe('Firebase Functions > Call', () => {
   it('unhandled error', async () => {
     const functions = createTestService(app, region);
     const func = httpsCallable(functions, 'unhandledErrorTestv2');
-    await expectError(func(), 'internal', 'internal');
+    await expectError(func(), 'internal', 'internal', 500);
   });
 
   it('unknown error', async () => {
     const functions = createTestService(app, region);
     const func = httpsCallable(functions, 'unknownErrorTestv2');
-    await expectError(func(), 'internal', 'internal');
+    await expectError(
+      func(),
+      'internal',
+      'Unknown backend error status: THIS_IS_NOT_VALID',
+      400
+    );
   });
 
   it('explicit error', async () => {
     const functions = createTestService(app, region);
     const func = httpsCallable(functions, 'explicitErrorTestv2');
-    await expectError(func(), 'out-of-range', 'explicit nope', {
+    await expectError(func(), 'out-of-range', 'explicit nope', 400, {
       start: 10,
       end: 20,
       long: 30
@@ -294,7 +304,7 @@ describe('Firebase Functions > Call', () => {
   it('http error', async () => {
     const functions = createTestService(app, region);
     const func = httpsCallable(functions, 'httpErrorTestv2');
-    await expectError(func(), 'invalid-argument', 'invalid-argument');
+    await expectError(func(), 'invalid-argument', 'invalid-argument', 400);
   });
 
   it('timeout', async () => {
@@ -421,7 +431,7 @@ describe('Firebase Functions > Stream', () => {
       );
     }
     expect(errorThrown).to.be.true;
-    await expectError(streamResult.data, 'internal', 'internal');
+    await expectError(streamResult.data, 'internal', 'internal', 0);
   });
 
   it('handles server-side errors', async () => {
@@ -459,11 +469,16 @@ describe('Firebase Functions > Stream', () => {
       expect((error as FunctionsError).code).to.equal(
         `${FUNCTIONS_TYPE}/invalid-argument`
       );
-      expect((error as FunctionsError).message).to.equal('Invalid input');
+      expect((error as FunctionsError).message).to.equal('Invalid input [0]');
     }
 
     expect(errorThrown).to.be.true;
-    await expectError(streamResult.data, 'invalid-argument', 'Invalid input');
+    await expectError(
+      streamResult.data,
+      'invalid-argument',
+      'Invalid input',
+      0
+    );
   });
 
   it('includes authentication and app check tokens in request headers', async () => {

@@ -88,19 +88,26 @@ function rewriteCopyrightLine(contents: string) {
 export async function doLicense(changedFiles?: string[]) {
   let count = 0;
 
-  let filesToChange: string[] = changedFiles ?? [];
+  const ignorePatterns = [
+    '**/node_modules/**',
+    './node_modules/**',
+    '**/dist/**',
+    '**/mocks-lookup.ts',
+    '**/repo-scripts/prune-dts/tests/**'
+  ];
+
+  let filesToChange: string[] = changedFiles
+    ? changedFiles.filter(
+        file => !file.includes('repo-scripts/prune-dts/tests/')
+      )
+    : [];
 
   if (!changedFiles) {
     filesToChange = await new Promise(resolve => {
       glob(
         '+(packages|repo-scripts)/**/*.+(ts|js)',
         {
-          ignore: [
-            '**/node_modules/**',
-            './node_modules/**',
-            '**/dist/**',
-            '**/mocks-lookup.ts'
-          ]
+          ignore: ignorePatterns
         },
         (err, res) => resolve(res)
       );

@@ -25,7 +25,9 @@ import { yellow } from '../utils/style';
 import {
   CommandLineAction,
   CommandLineFlagParameter,
-  CommandLineStringParameter
+  CommandLineStringListParameter,
+  CommandLineStringParameter,
+  ICommandLineActionOptions
 } from '@rushstack/ts-command-line';
 import { FileSystem } from '@rushstack/node-core-library';
 import {
@@ -34,7 +36,11 @@ import {
   ApiItemContainerMixin,
   ApiDocumentedItem,
   IResolveDeclarationReferenceResult
-} from 'api-extractor-model-me';
+} from '@microsoft/api-extractor-model';
+import {
+  ISubpackageInfo,
+  parseSubpackageMapping
+} from '../documenters/MarkdownDocumenterHelpers';
 
 export interface IBuildApiModelResult {
   apiModel: ApiModel;
@@ -42,16 +48,19 @@ export interface IBuildApiModelResult {
   outputFolder: string;
   addFileNameSuffix: boolean;
   projectName?: string;
+  subpackages?: Map<string, ISubpackageInfo>;
 }
 
 export abstract class BaseAction extends CommandLineAction {
-  private _inputFolderParameter!: CommandLineStringParameter;
-  private _outputFolderParameter!: CommandLineStringParameter;
-  private _fileNameSuffixParameter!: CommandLineFlagParameter;
-  private _projectNameParameter!: CommandLineStringParameter;
+  private _inputFolderParameter: CommandLineStringParameter;
+  private _outputFolderParameter: CommandLineStringParameter;
+  private _fileNameSuffixParameter: CommandLineFlagParameter;
+  private _projectNameParameter: CommandLineStringParameter;
+  private _subpackageParameter: CommandLineStringListParameter;
 
-  protected onDefineParameters(): void {
-    // override
+  public constructor(options: ICommandLineActionOptions) {
+    super(options);
+
     this._inputFolderParameter = this.defineStringParameter({
       parameterLongName: '--input-folder',
       parameterShortName: '-i',
@@ -89,6 +98,13 @@ export abstract class BaseAction extends CommandLineAction {
         `Name of the project (js, admin, functions, etc.). This will be ` +
         `used in the devsite header path to the _project.yaml file.`
     });
+
+    this._subpackageParameter = this.defineStringListParameter({
+      parameterLongName: '--subpackage',
+      argumentName: 'MAPPING',
+      description:
+        'Subpackage mapping in the format "<npmPackageName>=<canonicalName>" (e.g. "@firebase/firestore-lite=@firebase/firestore/lite")'
+    });
   }
 
   protected buildApiModel(): IBuildApiModelResult {
@@ -115,12 +131,17 @@ export abstract class BaseAction extends CommandLineAction {
 
     this._applyInheritDoc(apiModel, apiModel);
 
+    const subpackages = parseSubpackageMapping(
+      this._subpackageParameter.values || []
+    );
+
     return {
       apiModel,
       inputFolder,
       outputFolder,
       addFileNameSuffix,
-      projectName: this._projectNameParameter.value
+      projectName: this._projectNameParameter.value,
+      subpackages
     };
   }
 

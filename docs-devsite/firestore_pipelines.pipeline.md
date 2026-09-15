@@ -20,40 +20,40 @@ export declare class Pipeline
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [addFields(field, additionalFields)](./firestore_pipelines.pipeline.md#pipelineaddfields) |  | Adds new fields to outputs from previous stages.<!-- -->This stage allows you to compute values on-the-fly based on existing data from previous stages or constants. You can use this to create new fields or overwrite existing ones (if there is name overlaps).<!-- -->The added fields are defined using [Selectable](./firestore_pipelines.selectable.md#selectable_interface)<!-- -->s, which can be:<ul> <li>[Field](./firestore_pipelines.field.md#field_class)<!-- -->: References an existing document field.</li> <li>[Expression](./firestore_pipelines.expression.md#expression_class)<!-- -->: Either a literal value (see [constant()](./firestore_pipelines.md#constant_6ea0dde)<!-- -->) or a computed value with an assigned alias using [Expression.as()](./firestore_pipelines.expression.md#expressionas)<!-- -->.</li> </ul> |
-|  [addFields(options)](./firestore_pipelines.pipeline.md#pipelineaddfields) |  |  |
-|  [aggregate(accumulator, additionalAccumulators)](./firestore_pipelines.pipeline.md#pipelineaggregate) |  | Performs aggregation operations on the documents from previous stages.<!-- -->This stage allows you to calculate aggregate values over a set of documents. You define the aggregations to perform using [AliasedAggregate](./firestore_pipelines.aliasedaggregate.md#aliasedaggregate_class) expressions which are typically results of calling [Expression.as()](./firestore_pipelines.expression.md#expressionas) on [AggregateFunction](./firestore_pipelines.aggregatefunction.md#aggregatefunction_class) instances. |
-|  [aggregate(options)](./firestore_pipelines.pipeline.md#pipelineaggregate) |  | Performs optionally grouped aggregation operations on the documents from previous stages.<!-- -->This stage allows you to calculate aggregate values over a set of documents, optionally grouped by one or more fields or functions. You can specify:<ul> <li>Grouping Fields or Functions: One or more fields or functions to group the documents by. For each distinct combination of values in these fields, a separate group is created. If no grouping fields are provided, a single group containing all documents is used. Not specifying groups is the same as putting the entire inputs into one group.</li> <li>Accumulators: One or more accumulation operations to perform within each group. These are defined using [AliasedAggregate](./firestore_pipelines.aliasedaggregate.md#aliasedaggregate_class) expressions, which are typically created by calling [Expression.as()](./firestore_pipelines.expression.md#expressionas) on [AggregateFunction](./firestore_pipelines.aggregatefunction.md#aggregatefunction_class) instances. Each aggregation calculates a value (e.g., sum, average, count) based on the documents within its group.</li> </ul> |
-|  [define(aliasedExpression, additionalExpressions)](./firestore_pipelines.pipeline.md#pipelinedefine) |  | Defines one or more variables in the pipeline's scope. <code>define</code> is used to bind a value to a variable for internal reuse within the pipeline body (accessed via the <code>variable()</code> function).<!-- -->This stage is useful for declaring reusable values or intermediate calculations that can be referenced multiple times in later parts of the pipeline, improving readability and maintainability.<!-- -->Each variable is defined using an [AliasedExpression](./firestore_pipelines.aliasedexpression.md#aliasedexpression_class)<!-- -->, which pairs an expression with a name (alias). The expression can be a simple constant, a field reference, or a complex computation. |
-|  [define(options)](./firestore_pipelines.pipeline.md#pipelinedefine) |  |  |
-|  [distinct(group, additionalGroups)](./firestore_pipelines.pipeline.md#pipelinedistinct) |  | Returns a set of distinct values from the inputs to this stage.<!-- -->This stage runs through the results from previous stages to include only results with unique combinations of [Expression](./firestore_pipelines.expression.md#expression_class) values ([Field](./firestore_pipelines.field.md#field_class)<!-- -->, [AliasedExpression](./firestore_pipelines.aliasedexpression.md#aliasedexpression_class)<!-- -->, etc).<!-- -->The parameters to this stage are defined using [Selectable](./firestore_pipelines.selectable.md#selectable_interface) expressions or strings:<ul> <li> <code>string</code>: Name of an existing field</li> <li> [Field](./firestore_pipelines.field.md#field_class)<!-- -->: References an existing document field.</li> <li> [AliasedExpression](./firestore_pipelines.aliasedexpression.md#aliasedexpression_class)<!-- -->: Represents the result of a function with an assigned alias name using [Expression.as()](./firestore_pipelines.expression.md#expressionas)<!-- -->.</li> </ul> |
-|  [distinct(options)](./firestore_pipelines.pipeline.md#pipelinedistinct) |  | Returns a set of distinct values from the inputs to this stage.<!-- -->This stage runs through the results from previous stages to include only results with unique combinations of [Expression](./firestore_pipelines.expression.md#expression_class) values ([Field](./firestore_pipelines.field.md#field_class)<!-- -->, [AliasedExpression](./firestore_pipelines.aliasedexpression.md#aliasedexpression_class)<!-- -->, etc).<!-- -->The parameters to this stage are defined using [Selectable](./firestore_pipelines.selectable.md#selectable_interface) expressions or strings:<ul> <li><code>string</code>: Name of an existing field</li> <li>[Field](./firestore_pipelines.field.md#field_class)<!-- -->: References an existing document field.</li> <li>[AliasedExpression](./firestore_pipelines.aliasedexpression.md#aliasedexpression_class)<!-- -->: Represents the result of a function with an assigned alias name using [Expression.as()](./firestore_pipelines.expression.md#expressionas)<!-- -->.</li> </ul> |
+|  [addFields(field, additionalFields)](./firestore_pipelines.pipeline.md#pipelineaddfields) |  | Adds new fields to outputs from previous stages.<!-- -->This stage allows you to compute values on-the-fly based on existing data from previous stages or constants. You can use this to create new fields or overwrite existing ones (if there is name overlaps).<!-- -->The added fields are defined using [Selectable](./firestore_lite_pipelines.selectable.md#selectable_interface)<!-- -->s, which can be:<ul> <li>[Field](./firestore_lite_pipelines.field.md#field_class)<!-- -->: References an existing document field.</li> <li>[Expression](./firestore_lite_pipelines.expression.md#expression_class)<!-- -->: Either a literal value (see [constant()](./firestore_lite_pipelines.md#constant_27f5011)<!-- -->) or a computed value with an assigned alias using [Expression.as()](./firestore_lite_pipelines.expression.md#expressionas)<!-- -->.</li> </ul> |
+|  [addFields(options)](./firestore_pipelines.pipeline.md#pipelineaddfields) |  | Adds new fields to outputs from previous stages.<!-- -->This stage allows you to compute values on-the-fly based on existing data from previous stages or constants. You can use this to create new fields or overwrite existing ones (if there is name overlaps).<!-- -->The added fields are defined using [Selectable](./firestore_lite_pipelines.selectable.md#selectable_interface)<!-- -->s, which can be:<ul> <li>[Field](./firestore_lite_pipelines.field.md#field_class)<!-- -->: References an existing document field.</li> <li>[Expression](./firestore_lite_pipelines.expression.md#expression_class)<!-- -->: Either a literal value (see [constant()](./firestore_lite_pipelines.md#constant_27f5011)<!-- -->) or a computed value with an assigned alias using [Expression.as()](./firestore_lite_pipelines.expression.md#expressionas)<!-- -->.</li> </ul> |
+|  [aggregate(accumulator, additionalAccumulators)](./firestore_pipelines.pipeline.md#pipelineaggregate) |  | Performs aggregation operations on the documents from previous stages.<!-- -->This stage allows you to calculate aggregate values over a set of documents. You define the aggregations to perform using [AliasedAggregate](./firestore_lite_pipelines.aliasedaggregate.md#aliasedaggregate_class) expressions which are typically results of calling [Expression.as()](./firestore_lite_pipelines.expression.md#expressionas) on [AggregateFunction](./firestore_lite_pipelines.aggregatefunction.md#aggregatefunction_class) instances. |
+|  [aggregate(options)](./firestore_pipelines.pipeline.md#pipelineaggregate) |  | Performs optionally grouped aggregation operations on the documents from previous stages.<!-- -->This stage allows you to calculate aggregate values over a set of documents, optionally grouped by one or more fields or functions. You can specify:<ul> <li>Grouping Fields or Functions: One or more fields or functions to group the documents by. For each distinct combination of values in these fields, a separate group is created. If no grouping fields are provided, a single group containing all documents is used. Not specifying groups is the same as putting the entire inputs into one group.</li> <li>Accumulators: One or more accumulation operations to perform within each group. These are defined using [AliasedAggregate](./firestore_lite_pipelines.aliasedaggregate.md#aliasedaggregate_class) expressions, which are typically created by calling [Expression.as()](./firestore_lite_pipelines.expression.md#expressionas) on [AggregateFunction](./firestore_lite_pipelines.aggregatefunction.md#aggregatefunction_class) instances. Each aggregation calculates a value (e.g., sum, average, count) based on the documents within its group.</li> </ul> |
+|  [define(aliasedExpression, additionalExpressions)](./firestore_pipelines.pipeline.md#pipelinedefine) |  | Defines one or more variables in the pipeline's scope. <code>define</code> is used to bind a value to a variable for internal reuse within the pipeline body (accessed via the <code>variable()</code> function).<!-- -->This stage is useful for declaring reusable values or intermediate calculations that can be referenced multiple times in later parts of the pipeline, improving readability and maintainability.<!-- -->Each variable is defined using an [AliasedExpression](./firestore_lite_pipelines.aliasedexpression.md#aliasedexpression_class)<!-- -->, which pairs an expression with a name (alias). The expression can be a simple constant, a field reference, or a complex computation. |
+|  [define(options)](./firestore_pipelines.pipeline.md#pipelinedefine) |  | Defines one or more variables in the pipeline's scope. <code>define</code> is used to bind a value to a variable for internal reuse within the pipeline body (accessed via the <code>variable()</code> function).<!-- -->This stage is useful for declaring reusable values or intermediate calculations that can be referenced multiple times in later parts of the pipeline, improving readability and maintainability.<!-- -->Each variable is defined using an [AliasedExpression](./firestore_lite_pipelines.aliasedexpression.md#aliasedexpression_class)<!-- -->, which pairs an expression with a name (alias). The expression can be a simple constant, a field reference, or a complex computation. |
+|  [distinct(group, additionalGroups)](./firestore_pipelines.pipeline.md#pipelinedistinct) |  | Returns a set of distinct values from the inputs to this stage.<!-- -->This stage runs through the results from previous stages to include only results with unique combinations of [Expression](./firestore_lite_pipelines.expression.md#expression_class) values ([Field](./firestore_lite_pipelines.field.md#field_class)<!-- -->, [AliasedExpression](./firestore_lite_pipelines.aliasedexpression.md#aliasedexpression_class)<!-- -->, etc).<!-- -->The parameters to this stage are defined using [Selectable](./firestore_lite_pipelines.selectable.md#selectable_interface) expressions or strings:<ul> <li> <code>string</code>: Name of an existing field</li> <li> [Field](./firestore_lite_pipelines.field.md#field_class)<!-- -->: References an existing document field.</li> <li> [AliasedExpression](./firestore_lite_pipelines.aliasedexpression.md#aliasedexpression_class)<!-- -->: Represents the result of a function with an assigned alias name using [Expression.as()](./firestore_lite_pipelines.expression.md#expressionas)<!-- -->.</li> </ul> |
+|  [distinct(options)](./firestore_pipelines.pipeline.md#pipelinedistinct) |  | Returns a set of distinct values from the inputs to this stage.<!-- -->This stage runs through the results from previous stages to include only results with unique combinations of [Expression](./firestore_lite_pipelines.expression.md#expression_class) values ([Field](./firestore_lite_pipelines.field.md#field_class)<!-- -->, [AliasedExpression](./firestore_lite_pipelines.aliasedexpression.md#aliasedexpression_class)<!-- -->, etc).<!-- -->The parameters to this stage are defined using [Selectable](./firestore_lite_pipelines.selectable.md#selectable_interface) expressions or strings:<ul> <li><code>string</code>: Name of an existing field</li> <li>[Field](./firestore_lite_pipelines.field.md#field_class)<!-- -->: References an existing document field.</li> <li>[AliasedExpression](./firestore_lite_pipelines.aliasedexpression.md#aliasedexpression_class)<!-- -->: Represents the result of a function with an assigned alias name using [Expression.as()](./firestore_lite_pipelines.expression.md#expressionas)<!-- -->.</li> </ul> |
 |  [findNearest(options)](./firestore_pipelines.pipeline.md#pipelinefindnearest) |  | Performs a vector proximity search on the documents from the previous stage, returning the K-nearest documents based on the specified query <code>vectorValue</code> and <code>distanceMeasure</code>. The returned documents will be sorted in order from nearest to furthest from the query <code>vectorValue</code>. |
-|  [limit(limit)](./firestore_pipelines.pipeline.md#pipelinelimit) |  | Limits the maximum number of documents returned by previous stages to <code>limit</code>.<p>This stage is particularly useful when you want to retrieve a controlled subset of data from a potentially large result set. It's often used for:<ul> <li>Pagination: In combination with  to retrieve specific pages of results.</li> <li>Limiting Data Retrieval: To prevent excessive data transfer and improve performance, especially when dealing with large collections.</li> </ul> |
-|  [limit(options)](./firestore_pipelines.pipeline.md#pipelinelimit) |  |  |
-|  [offset(offset)](./firestore_pipelines.pipeline.md#pipelineoffset) |  | Skips the first <code>offset</code> number of documents from the results of previous stages.<p>This stage is useful for implementing pagination in your pipelines, allowing you to retrieve results in chunks. It is typically used in conjunction with  to control the size of each page. |
-|  [offset(options)](./firestore_pipelines.pipeline.md#pipelineoffset) |  |  |
+|  [limit(limit)](./firestore_pipelines.pipeline.md#pipelinelimit) |  | Limits the maximum number of documents returned by previous stages to <code>limit</code>.<p>This stage is particularly useful when you want to retrieve a controlled subset of data from a potentially large result set. It's often used for:<ul> <li>Pagination: In combination with [Pipeline.offset](./firestore_lite_pipelines.pipeline.md#pipelineoffset) to retrieve specific pages of results.</li> <li>Limiting Data Retrieval: To prevent excessive data transfer and improve performance, especially when dealing with large collections.</li> </ul> |
+|  [limit(options)](./firestore_pipelines.pipeline.md#pipelinelimit) |  | Limits the maximum number of documents returned by previous stages to <code>limit</code>.<p>This stage is particularly useful when you want to retrieve a controlled subset of data from a potentially large result set. It's often used for:<ul> <li>Pagination: In combination with [Pipeline.offset](./firestore_lite_pipelines.pipeline.md#pipelineoffset) to retrieve specific pages of results.</li> <li>Limiting Data Retrieval: To prevent excessive data transfer and improve performance, especially when dealing with large collections.</li> </ul> |
+|  [offset(offset)](./firestore_pipelines.pipeline.md#pipelineoffset) |  | Skips the first <code>offset</code> number of documents from the results of previous stages.<p>This stage is useful for implementing pagination in your pipelines, allowing you to retrieve results in chunks. It is typically used in conjunction with [Pipeline.limit](./firestore_lite_pipelines.pipeline.md#pipelinelimit) to control the size of each page. |
+|  [offset(options)](./firestore_pipelines.pipeline.md#pipelineoffset) |  | Skips the first <code>offset</code> number of documents from the results of previous stages.<p>This stage is useful for implementing pagination in your pipelines, allowing you to retrieve results in chunks. It is typically used in conjunction with [Pipeline.limit](./firestore_lite_pipelines.pipeline.md#pipelinelimit) to control the size of each page. |
 |  [rawStage(name, params, options)](./firestore_pipelines.pipeline.md#pipelinerawstage) |  | Adds a raw stage to the pipeline.<p>This method provides a flexible way to extend the pipeline's functionality by adding custom stages. Each raw stage is defined by a unique <code>name</code> and a set of <code>params</code> that control its behavior.<p>Example (Assuming there is no 'where' stage available in SDK): |
 |  [removeFields(fieldValue, additionalFields)](./firestore_pipelines.pipeline.md#pipelineremovefields) |  | Remove fields from outputs of previous stages. |
-|  [removeFields(options)](./firestore_pipelines.pipeline.md#pipelineremovefields) |  |  |
+|  [removeFields(options)](./firestore_pipelines.pipeline.md#pipelineremovefields) |  | Remove fields from outputs of previous stages. |
 |  [replaceWith(fieldName)](./firestore_pipelines.pipeline.md#pipelinereplacewith) |  | Fully overwrites all fields in a document with those coming from a nested map.<p>This stage allows you to emit a map value as a document. Each key of the map becomes a field on the document that contains the corresponding value. |
 |  [replaceWith(expr)](./firestore_pipelines.pipeline.md#pipelinereplacewith) |  | Fully overwrites all fields in a document with those coming from a map.<p>This stage allows you to emit a map value as a document. Each key of the map becomes a field on the document that contains the corresponding value. |
-|  [replaceWith(options)](./firestore_pipelines.pipeline.md#pipelinereplacewith) |  |  |
+|  [replaceWith(options)](./firestore_pipelines.pipeline.md#pipelinereplacewith) |  | Fully overwrites all fields in a document with those coming from a map.<p>This stage allows you to emit a map value as a document. Each key of the map becomes a field on the document that contains the corresponding value. |
 |  [sample(documents)](./firestore_pipelines.pipeline.md#pipelinesample) |  | Performs a pseudo-random sampling of the documents from the previous stage.<p>This stage will filter documents pseudo-randomly. The parameter specifies how number of documents to be returned.<p>Examples: |
-|  [sample(options)](./firestore_pipelines.pipeline.md#pipelinesample) |  | Performs a pseudo-random sampling of the documents from the previous stage.<p>This stage will filter documents pseudo-randomly. The 'options' parameter specifies how sampling will be performed. See [SampleStageOptions](./firestore_pipelines.md#samplestageoptions) for more information. |
+|  [sample(options)](./firestore_pipelines.pipeline.md#pipelinesample) |  | Performs a pseudo-random sampling of the documents from the previous stage.<p>This stage will filter documents pseudo-randomly. The 'options' parameter specifies how sampling will be performed. See [SampleStageOptions](./firestore_lite_pipelines.md#samplestageoptions) for more information. |
 |  [search(options)](./firestore_pipelines.pipeline.md#pipelinesearch) |  | <b><i>(Public Preview)</i></b> Add a search stage to the Pipeline. The search stage supports full-text search and geo search expressions. |
-|  [select(selection, additionalSelections)](./firestore_pipelines.pipeline.md#pipelineselect) |  | Selects or creates a set of fields from the outputs of previous stages.<p>The selected fields are defined using [Selectable](./firestore_pipelines.selectable.md#selectable_interface) expressions, which can be:<ul> <li><code>string</code> : Name of an existing field</li> <li>[Field](./firestore_pipelines.field.md#field_class)<!-- -->: References an existing field.</li> <li>[AliasedExpression](./firestore_pipelines.aliasedexpression.md#aliasedexpression_class)<!-- -->: Represents the result of a function with an assigned alias name using [Expression.as()](./firestore_pipelines.expression.md#expressionas)</li> </ul><p>If no selections are provided, the output of this stage is empty. Use [Pipeline.addFields()](./firestore_pipelines.pipeline.md#pipelineaddfields) instead if only additions are desired. |
-|  [select(options)](./firestore_pipelines.pipeline.md#pipelineselect) |  | Selects or creates a set of fields from the outputs of previous stages.<p>The selected fields are defined using [Selectable](./firestore_pipelines.selectable.md#selectable_interface) expressions, which can be:<ul> <li><code>string</code>: Name of an existing field</li> <li>[Field](./firestore_pipelines.field.md#field_class)<!-- -->: References an existing field.</li> <li>[AliasedExpression](./firestore_pipelines.aliasedexpression.md#aliasedexpression_class)<!-- -->: Represents the result of a function with an assigned alias name using [Expression.as()](./firestore_pipelines.expression.md#expressionas)</li> </ul><p>If no selections are provided, the output of this stage is empty. Use [Pipeline.addFields()](./firestore_pipelines.pipeline.md#pipelineaddfields) instead if only additions are desired. |
-|  [sort(ordering, additionalOrderings)](./firestore_pipelines.pipeline.md#pipelinesort) |  | Sorts the documents from previous stages based on one or more [Ordering](./firestore_pipelines.ordering.md#ordering_class) criteria.<p>This stage allows you to order the results of your pipeline. You can specify multiple [Ordering](./firestore_pipelines.ordering.md#ordering_class) instances to sort by multiple fields in ascending or descending order. If documents have the same value for a field used for sorting, the next specified ordering will be used. If all orderings result in equal comparison, the documents are considered equal and the order is unspecified. |
-|  [sort(options)](./firestore_pipelines.pipeline.md#pipelinesort) |  |  |
+|  [select(selection, additionalSelections)](./firestore_pipelines.pipeline.md#pipelineselect) |  | Selects or creates a set of fields from the outputs of previous stages.<p>The selected fields are defined using [Selectable](./firestore_lite_pipelines.selectable.md#selectable_interface) expressions, which can be:<ul> <li><code>string</code> : Name of an existing field</li> <li>[Field](./firestore_lite_pipelines.field.md#field_class)<!-- -->: References an existing field.</li> <li>[AliasedExpression](./firestore_lite_pipelines.aliasedexpression.md#aliasedexpression_class)<!-- -->: Represents the result of a function with an assigned alias name using [Expression.as()](./firestore_lite_pipelines.expression.md#expressionas)</li> </ul><p>If no selections are provided, the output of this stage is empty. Use [Pipeline.addFields()](./firestore_lite_pipelines.pipeline.md#pipelineaddfields) instead if only additions are desired. |
+|  [select(options)](./firestore_pipelines.pipeline.md#pipelineselect) |  | Selects or creates a set of fields from the outputs of previous stages.<p>The selected fields are defined using [Selectable](./firestore_lite_pipelines.selectable.md#selectable_interface) expressions, which can be:<ul> <li><code>string</code>: Name of an existing field</li> <li>[Field](./firestore_lite_pipelines.field.md#field_class)<!-- -->: References an existing field.</li> <li>[AliasedExpression](./firestore_lite_pipelines.aliasedexpression.md#aliasedexpression_class)<!-- -->: Represents the result of a function with an assigned alias name using [Expression.as()](./firestore_lite_pipelines.expression.md#expressionas)</li> </ul><p>If no selections are provided, the output of this stage is empty. Use [Pipeline.addFields()](./firestore_lite_pipelines.pipeline.md#pipelineaddfields) instead if only additions are desired. |
+|  [sort(ordering, additionalOrderings)](./firestore_pipelines.pipeline.md#pipelinesort) |  | Sorts the documents from previous stages based on one or more [Ordering](./firestore_lite_pipelines.ordering.md#ordering_class) criteria.<p>This stage allows you to order the results of your pipeline. You can specify multiple [Ordering](./firestore_lite_pipelines.ordering.md#ordering_class) instances to sort by multiple fields in ascending or descending order. If documents have the same value for a field used for sorting, the next specified ordering will be used. If all orderings result in equal comparison, the documents are considered equal and the order is unspecified. |
+|  [sort(options)](./firestore_pipelines.pipeline.md#pipelinesort) |  | Sorts the documents from previous stages based on one or more [Ordering](./firestore_lite_pipelines.ordering.md#ordering_class) criteria.<p>This stage allows you to order the results of your pipeline. You can specify multiple [Ordering](./firestore_lite_pipelines.ordering.md#ordering_class) instances to sort by multiple fields in ascending or descending order. If documents have the same value for a field used for sorting, the next specified ordering will be used. If all orderings result in equal comparison, the documents are considered equal and the order is unspecified. |
 |  [toArrayExpression()](./firestore_pipelines.pipeline.md#pipelinetoarrayexpression) |  | Converts this Pipeline into an expression that evaluates to an array of results.<p>Result Unwrapping:</p> <ul> <li>If the items have a single field, their values are unwrapped and returned directly in the array.</li> <li>If the items have multiple fields, they are returned as objects in the array</li> </ul> |
 |  [toScalarExpression()](./firestore_pipelines.pipeline.md#pipelinetoscalarexpression) |  | Converts this Pipeline into an expression that evaluates to a single scalar result.<p><b>Runtime Validation:</b> The runtime validates that the result set contains zero or one item. If zero items, it evaluates to <code>null</code>.</p><p>Result Unwrapping:</p> <ul> <li>If the item has a single field, its value is unwrapped and returned directly.</li> <li>If the item has multiple fields, they are returned as an object.</li> </ul> |
-|  [union(other)](./firestore_pipelines.pipeline.md#pipelineunion) |  | Performs union of all documents from two pipelines, including duplicates.<p>This stage will pass through documents from previous stage, and also pass through documents from previous stage of the <code>other</code> [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class) given in parameter. The order of documents emitted from this stage is undefined. |
-|  [union(options)](./firestore_pipelines.pipeline.md#pipelineunion) |  |  |
+|  [union(other)](./firestore_pipelines.pipeline.md#pipelineunion) |  | Performs union of all documents from two pipelines, including duplicates.<p>This stage will pass through documents from previous stage, and also pass through documents from previous stage of the <code>other</code> [Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class) given in parameter. The order of documents emitted from this stage is undefined. |
+|  [union(options)](./firestore_pipelines.pipeline.md#pipelineunion) |  | Performs union of all documents from two pipelines, including duplicates.<p>This stage will pass through documents from previous stage, and also pass through documents from previous stage of the <code>other</code> [Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class) given in parameter. The order of documents emitted from this stage is undefined. |
 |  [unnest(selectable, indexField)](./firestore_pipelines.pipeline.md#pipelineunnest) |  | Produces a document for each element in an input array.<!-- -->For each previous stage document, this stage will emit zero or more augmented documents. The input array specified by the <code>selectable</code> parameter, will emit an augmented document for each input array element. The input array element will augment the previous stage document by setting the <code>alias</code> field with the array element value.<!-- -->When <code>selectable</code> evaluates to a non-array value (ex: number, null, absent), then the stage becomes a no-op for the current input document, returning it as is with the <code>alias</code> field absent.<!-- -->No documents are emitted when <code>selectable</code> evaluates to an empty array. |
-|  [unnest(options)](./firestore_pipelines.pipeline.md#pipelineunnest) |  |  |
-|  [where(condition)](./firestore_pipelines.pipeline.md#pipelinewhere) |  | Filters the documents from previous stages to only include those matching the specified [BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class)<!-- -->.<p>This stage allows you to apply conditions to the data, similar to a "WHERE" clause in SQL. You can filter documents based on their field values, using implementations of [BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class)<!-- -->, typically including but not limited to:<ul> <li>field comparators: [Expression.equal()](./firestore_pipelines.expression.md#expressionequal)<!-- -->, [Expression.lessThan()](./firestore_pipelines.expression.md#expressionlessthan)<!-- -->, [Expression.greaterThan()](./firestore_pipelines.expression.md#expressiongreaterthan)<!-- -->, etc.</li> <li>logical operators: , , , etc.</li> <li>advanced functions: [Expression.regexMatch()](./firestore_pipelines.expression.md#expressionregexmatch)<!-- -->, [Expression.arrayContains()](./firestore_pipelines.expression.md#expressionarraycontains)<!-- -->, etc.</li> </ul> |
-|  [where(options)](./firestore_pipelines.pipeline.md#pipelinewhere) |  | Filters the documents from previous stages to only include those matching the specified [BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class)<!-- -->.<p>This stage allows you to apply conditions to the data, similar to a "WHERE" clause in SQL. You can filter documents based on their field values, using implementations of [BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class)<!-- -->, typically including but not limited to:<ul> <li>field comparators: ,  (less than), [Expression.greaterThan()](./firestore_pipelines.expression.md#expressiongreaterthan)<!-- -->, etc.</li> <li>logical operators: , , , etc.</li> <li>advanced functions: [Expression.regexMatch()](./firestore_pipelines.expression.md#expressionregexmatch)<!-- -->, [Expression.arrayContains()](./firestore_pipelines.expression.md#expressionarraycontains)<!-- -->, etc.</li> </ul> |
+|  [unnest(options)](./firestore_pipelines.pipeline.md#pipelineunnest) |  | Produces a document for each element in an input array.<!-- -->For each previous stage document, this stage will emit zero or more augmented documents. The input array specified by the <code>selectable</code> parameter, will emit an augmented document for each input array element. The input array element will augment the previous stage document by setting the <code>alias</code> field with the array element value.<!-- -->When <code>selectable</code> evaluates to a non-array value (ex: number, null, absent), then the stage becomes a no-op for the current input document, returning it as is with the <code>alias</code> field absent.<!-- -->No documents are emitted when <code>selectable</code> evaluates to an empty array. |
+|  [where(condition)](./firestore_pipelines.pipeline.md#pipelinewhere) |  | Filters the documents from previous stages to only include those matching the specified [BooleanExpression](./firestore_lite_pipelines.booleanexpression.md#booleanexpression_class)<!-- -->.<p>This stage allows you to apply conditions to the data, similar to a "WHERE" clause in SQL. You can filter documents based on their field values, using implementations of [BooleanExpression](./firestore_lite_pipelines.booleanexpression.md#booleanexpression_class)<!-- -->, typically including but not limited to:<ul> <li>field comparators: [Expression.equal()](./firestore_lite_pipelines.expression.md#expressionequal)<!-- -->, [Expression.lessThan()](./firestore_lite_pipelines.expression.md#expressionlessthan)<!-- -->, [Expression.greaterThan()](./firestore_lite_pipelines.expression.md#expressiongreaterthan)<!-- -->, etc.</li> <li>logical operators: [and](./firestore.md#and_e72c712)<!-- -->, [or](./firestore.md#or_e72c712)<!-- -->, [not](./firestore_lite_pipelines.md#not_c5b8fb1)<!-- -->, etc.</li> <li>advanced functions: [Expression.regexMatch()](./firestore_lite_pipelines.expression.md#expressionregexmatch)<!-- -->, [Expression.arrayContains()](./firestore_lite_pipelines.expression.md#expressionarraycontains)<!-- -->, etc.</li> </ul> |
+|  [where(options)](./firestore_pipelines.pipeline.md#pipelinewhere) |  | Filters the documents from previous stages to only include those matching the specified [BooleanExpression](./firestore_lite_pipelines.booleanexpression.md#booleanexpression_class)<!-- -->.<p>This stage allows you to apply conditions to the data, similar to a "WHERE" clause in SQL. You can filter documents based on their field values, using implementations of [BooleanExpression](./firestore_lite_pipelines.booleanexpression.md#booleanexpression_class)<!-- -->, typically including but not limited to:<ul> <li>field comparators: [Expression.equal()](./firestore_lite_pipelines.expression.md#expressionequal)<!-- -->, [Expression.lessThan()](./firestore_lite_pipelines.expression.md#expressionlessthan) (less than), [Expression.greaterThan()](./firestore_lite_pipelines.expression.md#expressiongreaterthan)<!-- -->, etc.</li> <li>logical operators: [and](./firestore.md#and_e72c712)<!-- -->, [or](./firestore.md#or_e72c712)<!-- -->, [not](./firestore_lite_pipelines.md#not_c5b8fb1)<!-- -->, etc.</li> <li>advanced functions: [Expression.regexMatch()](./firestore_lite_pipelines.expression.md#expressionregexmatch)<!-- -->, [Expression.arrayContains()](./firestore_lite_pipelines.expression.md#expressionarraycontains)<!-- -->, etc.</li> </ul> |
 
 ## Pipeline.addFields()
 
@@ -61,9 +61,9 @@ Adds new fields to outputs from previous stages.
 
 This stage allows you to compute values on-the-fly based on existing data from previous stages or constants. You can use this to create new fields or overwrite existing ones (if there is name overlaps).
 
-The added fields are defined using [Selectable](./firestore_pipelines.selectable.md#selectable_interface)<!-- -->s, which can be:
+The added fields are defined using [Selectable](./firestore_lite_pipelines.selectable.md#selectable_interface)<!-- -->s, which can be:
 
-<ul> <li>[Field](./firestore_pipelines.field.md#field_class)<!-- -->: References an existing document field.</li> <li>[Expression](./firestore_pipelines.expression.md#expression_class)<!-- -->: Either a literal value (see [constant()](./firestore_pipelines.md#constant_6ea0dde)<!-- -->) or a computed value with an assigned alias using [Expression.as()](./firestore_pipelines.expression.md#expressionas)<!-- -->.</li> </ul>
+<ul> <li>[Field](./firestore_lite_pipelines.field.md#field_class)<!-- -->: References an existing document field.</li> <li>[Expression](./firestore_lite_pipelines.expression.md#expression_class)<!-- -->: Either a literal value (see [constant()](./firestore_lite_pipelines.md#constant_27f5011)<!-- -->) or a computed value with an assigned alias using [Expression.as()](./firestore_lite_pipelines.expression.md#expressionas)<!-- -->.</li> </ul>
 
 <b>Signature:</b>
 
@@ -75,8 +75,8 @@ addFields(field: Selectable, ...additionalFields: Selectable[]): Pipeline;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  field | [Selectable](./firestore_pipelines.selectable.md#selectable_interface) | The first field to add to the documents, specified as a [Selectable](./firestore_pipelines.selectable.md#selectable_interface)<!-- -->. |
-|  additionalFields | [Selectable](./firestore_pipelines.selectable.md#selectable_interface)<!-- -->\[\] | Optional additional fields to add to the documents, specified as [Selectable](./firestore_pipelines.selectable.md#selectable_interface)<!-- -->s. |
+|  field | [Selectable](./firestore_pipelines.selectable.md#selectable_interface) | The first field to add to the documents, specified as a [Selectable](./firestore_lite_pipelines.selectable.md#selectable_interface)<!-- -->. |
+|  additionalFields | [Selectable](./firestore_pipelines.selectable.md#selectable_interface)<!-- -->\[\] | Optional additional fields to add to the documents, specified as [Selectable](./firestore_lite_pipelines.selectable.md#selectable_interface)<!-- -->s. |
 
 <b>Returns:</b>
 
@@ -89,14 +89,22 @@ A new Pipeline object with this stage appended to the stage list.
 
 ```typescript
 firestore.pipeline().collection("books")
-.addFields(
-field("rating").as("bookRating"), // Rename 'rating' to 'bookRating'
-add(field("quantity"), 5).as("totalCost")  // Calculate 'totalCost'
-);
+  .addFields(
+    field("rating").as("bookRating"), // Rename 'rating' to 'bookRating'
+    add(field("quantity"), 5).as("totalCost")  // Calculate 'totalCost'
+  );
 
 ```
 
 ## Pipeline.addFields()
+
+Adds new fields to outputs from previous stages.
+
+This stage allows you to compute values on-the-fly based on existing data from previous stages or constants. You can use this to create new fields or overwrite existing ones (if there is name overlaps).
+
+The added fields are defined using [Selectable](./firestore_lite_pipelines.selectable.md#selectable_interface)<!-- -->s, which can be:
+
+<ul> <li>[Field](./firestore_lite_pipelines.field.md#field_class)<!-- -->: References an existing document field.</li> <li>[Expression](./firestore_lite_pipelines.expression.md#expression_class)<!-- -->: Either a literal value (see [constant()](./firestore_lite_pipelines.md#constant_27f5011)<!-- -->) or a computed value with an assigned alias using [Expression.as()](./firestore_lite_pipelines.expression.md#expressionas)<!-- -->.</li> </ul>
 
 <b>Signature:</b>
 
@@ -108,30 +116,47 @@ addFields(options: AddFieldsStageOptions): Pipeline;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  options | [AddFieldsStageOptions](./firestore_pipelines.md#addfieldsstageoptions) |  |
+|  options | [AddFieldsStageOptions](./firestore_pipelines.md#addfieldsstageoptions) | An object that specifies required and optional parameters for the stage. |
 
 <b>Returns:</b>
 
 [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class)
 
+A new Pipeline object with this stage appended to the stage list.
+
+### Example
+
+
+```typescript
+firestore.pipeline().collection("books")
+  .addFields(
+    field("rating").as("bookRating"), // Rename 'rating' to 'bookRating'
+    add(field("quantity"), 5).as("totalCost")  // Calculate 'totalCost'
+  );
+
+```
+
 ## Pipeline.aggregate()
 
 Performs aggregation operations on the documents from previous stages.
 
-This stage allows you to calculate aggregate values over a set of documents. You define the aggregations to perform using [AliasedAggregate](./firestore_pipelines.aliasedaggregate.md#aliasedaggregate_class) expressions which are typically results of calling [Expression.as()](./firestore_pipelines.expression.md#expressionas) on [AggregateFunction](./firestore_pipelines.aggregatefunction.md#aggregatefunction_class) instances.
+This stage allows you to calculate aggregate values over a set of documents. You define the aggregations to perform using [AliasedAggregate](./firestore_lite_pipelines.aliasedaggregate.md#aliasedaggregate_class) expressions which are typically results of calling [Expression.as()](./firestore_lite_pipelines.expression.md#expressionas) on [AggregateFunction](./firestore_lite_pipelines.aggregatefunction.md#aggregatefunction_class) instances.
 
 <b>Signature:</b>
 
 ```typescript
-aggregate(accumulator: AliasedAggregate, ...additionalAccumulators: AliasedAggregate[]): Pipeline;
+aggregate(
+    accumulator: AliasedAggregate,
+    ...additionalAccumulators: AliasedAggregate[]
+  ): Pipeline;
 ```
 
 #### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  accumulator | [AliasedAggregate](./firestore_pipelines.aliasedaggregate.md#aliasedaggregate_class) | The first [AliasedAggregate](./firestore_pipelines.aliasedaggregate.md#aliasedaggregate_class)<!-- -->, wrapping an [AggregateFunction](./firestore_pipelines.aggregatefunction.md#aggregatefunction_class) and providing a name for the accumulated results. |
-|  additionalAccumulators | [AliasedAggregate](./firestore_pipelines.aliasedaggregate.md#aliasedaggregate_class)<!-- -->\[\] | Optional additional [AliasedAggregate](./firestore_pipelines.aliasedaggregate.md#aliasedaggregate_class)<!-- -->, each wrapping an [AggregateFunction](./firestore_pipelines.aggregatefunction.md#aggregatefunction_class) and providing a name for the accumulated results. |
+|  accumulator | [AliasedAggregate](./firestore_pipelines.aliasedaggregate.md#aliasedaggregate_class) | The first [AliasedAggregate](./firestore_lite_pipelines.aliasedaggregate.md#aliasedaggregate_class)<!-- -->, wrapping an [AggregateFunction](./firestore_lite_pipelines.aggregatefunction.md#aggregatefunction_class) and providing a name for the accumulated results. |
+|  additionalAccumulators | [AliasedAggregate](./firestore_pipelines.aliasedaggregate.md#aliasedaggregate_class)<!-- -->\[\] | Optional additional [AliasedAggregate](./firestore_lite_pipelines.aliasedaggregate.md#aliasedaggregate_class)<!-- -->, each wrapping an [AggregateFunction](./firestore_lite_pipelines.aggregatefunction.md#aggregatefunction_class) and providing a name for the accumulated results. |
 
 <b>Returns:</b>
 
@@ -145,10 +170,10 @@ A new Pipeline object with this stage appended to the stage list.
 ```typescript
 // Calculate the average rating and the total number of books
 firestore.pipeline().collection("books")
-.aggregate(
-field("rating").average().as("averageRating"),
-countAll().as("totalBooks")
-);
+    .aggregate(
+        field("rating").average().as("averageRating"),
+        countAll().as("totalBooks")
+    );
 
 ```
 
@@ -158,7 +183,7 @@ Performs optionally grouped aggregation operations on the documents from previou
 
 This stage allows you to calculate aggregate values over a set of documents, optionally grouped by one or more fields or functions. You can specify:
 
-<ul> <li>Grouping Fields or Functions: One or more fields or functions to group the documents by. For each distinct combination of values in these fields, a separate group is created. If no grouping fields are provided, a single group containing all documents is used. Not specifying groups is the same as putting the entire inputs into one group.</li> <li>Accumulators: One or more accumulation operations to perform within each group. These are defined using [AliasedAggregate](./firestore_pipelines.aliasedaggregate.md#aliasedaggregate_class) expressions, which are typically created by calling [Expression.as()](./firestore_pipelines.expression.md#expressionas) on [AggregateFunction](./firestore_pipelines.aggregatefunction.md#aggregatefunction_class) instances. Each aggregation calculates a value (e.g., sum, average, count) based on the documents within its group.</li> </ul>
+<ul> <li>Grouping Fields or Functions: One or more fields or functions to group the documents by. For each distinct combination of values in these fields, a separate group is created. If no grouping fields are provided, a single group containing all documents is used. Not specifying groups is the same as putting the entire inputs into one group.</li> <li>Accumulators: One or more accumulation operations to perform within each group. These are defined using [AliasedAggregate](./firestore_lite_pipelines.aliasedaggregate.md#aliasedaggregate_class) expressions, which are typically created by calling [Expression.as()](./firestore_lite_pipelines.expression.md#expressionas) on [AggregateFunction](./firestore_lite_pipelines.aggregatefunction.md#aggregatefunction_class) instances. Each aggregation calculates a value (e.g., sum, average, count) based on the documents within its group.</li> </ul>
 
 <b>Signature:</b>
 
@@ -176,7 +201,7 @@ aggregate(options: AggregateStageOptions): Pipeline;
 
 [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class)
 
-A new [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class) object with this stage appended to the stage list.
+A new [Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class) object with this stage appended to the stage list.
 
 ### Example
 
@@ -184,10 +209,10 @@ A new [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class) object with t
 ```typescript
 // Calculate the average rating for each genre.
 firestore.pipeline().collection("books")
-.aggregate({
-accumulators: [average(field("rating")).as("avg_rating")],
-groups: ["genre"]
-});
+  .aggregate({
+      accumulators: [average(field("rating")).as("avg_rating")],
+      groups: ["genre"]
+      });
 
 ```
 
@@ -197,12 +222,15 @@ Defines one or more variables in the pipeline's scope. `define` is used to bind 
 
 This stage is useful for declaring reusable values or intermediate calculations that can be referenced multiple times in later parts of the pipeline, improving readability and maintainability.
 
-Each variable is defined using an [AliasedExpression](./firestore_pipelines.aliasedexpression.md#aliasedexpression_class)<!-- -->, which pairs an expression with a name (alias). The expression can be a simple constant, a field reference, or a complex computation.
+Each variable is defined using an [AliasedExpression](./firestore_lite_pipelines.aliasedexpression.md#aliasedexpression_class)<!-- -->, which pairs an expression with a name (alias). The expression can be a simple constant, a field reference, or a complex computation.
 
 <b>Signature:</b>
 
 ```typescript
-define(aliasedExpression: AliasedExpression, ...additionalExpressions: AliasedExpression[]): Pipeline;
+define(
+    aliasedExpression: AliasedExpression,
+    ...additionalExpressions: AliasedExpression[]
+  ): Pipeline;
 ```
 
 #### Parameters
@@ -223,16 +251,22 @@ A new Pipeline object with this stage appended to the stage list.
 
 ```typescript
 db.pipeline().collection("products")
-.define(
-field("price").multiply(0.9).as("discountedPrice"),
-field("stock").add(10).as("newStock")
-)
-.where(variable("discountedPrice").lessThan(100))
-.select(field("name"), variable("newStock"));
+  .define(
+    field("price").multiply(0.9).as("discountedPrice"),
+    field("stock").add(10).as("newStock")
+  )
+  .where(variable("discountedPrice").lessThan(100))
+  .select(field("name"), variable("newStock"));
 
 ```
 
 ## Pipeline.define()
+
+Defines one or more variables in the pipeline's scope. `define` is used to bind a value to a variable for internal reuse within the pipeline body (accessed via the `variable()` function).
+
+This stage is useful for declaring reusable values or intermediate calculations that can be referenced multiple times in later parts of the pipeline, improving readability and maintainability.
+
+Each variable is defined using an [AliasedExpression](./firestore_lite_pipelines.aliasedexpression.md#aliasedexpression_class)<!-- -->, which pairs an expression with a name (alias). The expression can be a simple constant, a field reference, or a complex computation.
 
 <b>Signature:</b>
 
@@ -244,40 +278,59 @@ define(options: DefineStageOptions): Pipeline;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  options | [DefineStageOptions](./firestore_pipelines.md#definestageoptions) |  |
+|  options | [DefineStageOptions](./firestore_pipelines.md#definestageoptions) | An object that specifies required and optional parameters for the stage. |
 
 <b>Returns:</b>
 
 [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class)
 
+A new Pipeline object with this stage appended to the stage list.
+
+### Example
+
+
+```typescript
+db.pipeline().collection("products")
+  .define(
+    field("price").multiply(0.9).as("discountedPrice"),
+    field("stock").add(10).as("newStock")
+  )
+  .where(variable("discountedPrice").lessThan(100))
+  .select(field("name"), variable("newStock"));
+
+```
+
 ## Pipeline.distinct()
 
 Returns a set of distinct values from the inputs to this stage.
 
-This stage runs through the results from previous stages to include only results with unique combinations of [Expression](./firestore_pipelines.expression.md#expression_class) values ([Field](./firestore_pipelines.field.md#field_class)<!-- -->, [AliasedExpression](./firestore_pipelines.aliasedexpression.md#aliasedexpression_class)<!-- -->, etc).
+This stage runs through the results from previous stages to include only results with unique combinations of [Expression](./firestore_lite_pipelines.expression.md#expression_class) values ([Field](./firestore_lite_pipelines.field.md#field_class)<!-- -->, [AliasedExpression](./firestore_lite_pipelines.aliasedexpression.md#aliasedexpression_class)<!-- -->, etc).
 
-The parameters to this stage are defined using [Selectable](./firestore_pipelines.selectable.md#selectable_interface) expressions or strings:
+The parameters to this stage are defined using [Selectable](./firestore_lite_pipelines.selectable.md#selectable_interface) expressions or strings:
 
-<ul> <li> `string`<!-- -->: Name of an existing field</li> <li> [Field](./firestore_pipelines.field.md#field_class)<!-- -->: References an existing document field.</li> <li> [AliasedExpression](./firestore_pipelines.aliasedexpression.md#aliasedexpression_class)<!-- -->: Represents the result of a function with an assigned alias name using [Expression.as()](./firestore_pipelines.expression.md#expressionas)<!-- -->.</li> </ul>
+<ul> <li> `string`<!-- -->: Name of an existing field</li> <li> [Field](./firestore_lite_pipelines.field.md#field_class)<!-- -->: References an existing document field.</li> <li> [AliasedExpression](./firestore_lite_pipelines.aliasedexpression.md#aliasedexpression_class)<!-- -->: Represents the result of a function with an assigned alias name using [Expression.as()](./firestore_lite_pipelines.expression.md#expressionas)<!-- -->.</li> </ul>
 
 <b>Signature:</b>
 
 ```typescript
-distinct(group: string | Selectable, ...additionalGroups: Array<string | Selectable>): Pipeline;
+distinct(
+    group: string | Selectable,
+    ...additionalGroups: Array<string | Selectable>
+  ): Pipeline;
 ```
 
 #### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  group | string \| [Selectable](./firestore_pipelines.selectable.md#selectable_interface) | The [Selectable](./firestore_pipelines.selectable.md#selectable_interface) expression or field name to consider when determining distinct value combinations. |
-|  additionalGroups | Array&lt;string \| [Selectable](./firestore_pipelines.selectable.md#selectable_interface)<!-- -->&gt; | Optional additional [Selectable](./firestore_pipelines.selectable.md#selectable_interface) expressions to consider when determining distinct value combinations or strings representing field names. |
+|  group | string \| [Selectable](./firestore_pipelines.selectable.md#selectable_interface) | The [Selectable](./firestore_lite_pipelines.selectable.md#selectable_interface) expression or field name to consider when determining distinct value combinations. |
+|  additionalGroups | Array&lt;string \| [Selectable](./firestore_pipelines.selectable.md#selectable_interface)<!-- -->&gt; | Optional additional [Selectable](./firestore_lite_pipelines.selectable.md#selectable_interface) expressions to consider when determining distinct value combinations or strings representing field names. |
 
 <b>Returns:</b>
 
 [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class)
 
-A new [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class) object with this stage appended to the stage list.
+A new [Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class) object with this stage appended to the stage list.
 
 ### Example
 
@@ -285,8 +338,8 @@ A new [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class) object with t
 ```typescript
 // Get a list of unique author names in uppercase and genre combinations.
 firestore.pipeline().collection("books")
-.distinct(toUpper(field("author")).as("authorName"), field("genre"), "publishedAt")
-.select("authorName");
+    .distinct(toUpper(field("author")).as("authorName"), field("genre"), "publishedAt")
+    .select("authorName");
 
 ```
 
@@ -294,11 +347,11 @@ firestore.pipeline().collection("books")
 
 Returns a set of distinct values from the inputs to this stage.
 
-This stage runs through the results from previous stages to include only results with unique combinations of [Expression](./firestore_pipelines.expression.md#expression_class) values ([Field](./firestore_pipelines.field.md#field_class)<!-- -->, [AliasedExpression](./firestore_pipelines.aliasedexpression.md#aliasedexpression_class)<!-- -->, etc).
+This stage runs through the results from previous stages to include only results with unique combinations of [Expression](./firestore_lite_pipelines.expression.md#expression_class) values ([Field](./firestore_lite_pipelines.field.md#field_class)<!-- -->, [AliasedExpression](./firestore_lite_pipelines.aliasedexpression.md#aliasedexpression_class)<!-- -->, etc).
 
-The parameters to this stage are defined using [Selectable](./firestore_pipelines.selectable.md#selectable_interface) expressions or strings:
+The parameters to this stage are defined using [Selectable](./firestore_lite_pipelines.selectable.md#selectable_interface) expressions or strings:
 
-<ul> <li>`string`<!-- -->: Name of an existing field</li> <li>[Field](./firestore_pipelines.field.md#field_class)<!-- -->: References an existing document field.</li> <li>[AliasedExpression](./firestore_pipelines.aliasedexpression.md#aliasedexpression_class)<!-- -->: Represents the result of a function with an assigned alias name using [Expression.as()](./firestore_pipelines.expression.md#expressionas)<!-- -->.</li> </ul>
+<ul> <li>`string`<!-- -->: Name of an existing field</li> <li>[Field](./firestore_lite_pipelines.field.md#field_class)<!-- -->: References an existing document field.</li> <li>[AliasedExpression](./firestore_lite_pipelines.aliasedexpression.md#aliasedexpression_class)<!-- -->: Represents the result of a function with an assigned alias name using [Expression.as()](./firestore_lite_pipelines.expression.md#expressionas)<!-- -->.</li> </ul>
 
 <b>Signature:</b>
 
@@ -316,7 +369,7 @@ distinct(options: DistinctStageOptions): Pipeline;
 
 [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class)
 
-A new [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class) object with this stage appended to the stage list.
+A new [Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class) object with this stage appended to the stage list.
 
 ### Example
 
@@ -324,8 +377,8 @@ A new [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class) object with t
 ```typescript
 // Get a list of unique author names in uppercase and genre combinations.
 firestore.pipeline().collection("books")
-.distinct(toUpper(field("author")).as("authorName"), field("genre"), "publishedAt")
-.select("authorName");
+    .distinct(toUpper(field("author")).as("authorName"), field("genre"), "publishedAt")
+    .select("authorName");
 
 ```
 
@@ -349,7 +402,7 @@ findNearest(options: FindNearestStageOptions): Pipeline;
 
 [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class)
 
-A new [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class) object with this stage appended to the stage list.
+A new [Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class) object with this stage appended to the stage list.
 
 ### Example
 
@@ -358,14 +411,15 @@ A new [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class) object with t
 // Find the 10 most similar books based on the book description.
 const bookDescription = "Lorem ipsum...";
 const queryVector: number[] = ...; // compute embedding of `bookDescription`
+
 firestore.pipeline().collection("books")
-.findNearest({
-field: 'embedding',
-vectorValue: queryVector,
-distanceMeasure: 'euclidean',
-limit: 10,                        // optional
-distanceField: 'computedDistance' // optional
-});
+    .findNearest({
+      field: 'embedding',
+      vectorValue: queryVector,
+      distanceMeasure: 'euclidean',
+      limit: 10,                        // optional
+      distanceField: 'computedDistance' // optional
+    });
 
 ```
 
@@ -375,7 +429,7 @@ Limits the maximum number of documents returned by previous stages to `limit`<!-
 
 <p>This stage is particularly useful when you want to retrieve a controlled subset of data from a potentially large result set. It's often used for:
 
-<ul> <li>Pagination: In combination with  to retrieve specific pages of results.</li> <li>Limiting Data Retrieval: To prevent excessive data transfer and improve performance, especially when dealing with large collections.</li> </ul>
+<ul> <li>Pagination: In combination with [Pipeline.offset](./firestore_lite_pipelines.pipeline.md#pipelineoffset) to retrieve specific pages of results.</li> <li>Limiting Data Retrieval: To prevent excessive data transfer and improve performance, especially when dealing with large collections.</li> </ul>
 
 <b>Signature:</b>
 
@@ -401,12 +455,18 @@ A new Pipeline object with this stage appended to the stage list.
 ```typescript
 // Limit the results to the top 10 highest-rated books
 firestore.pipeline().collection('books')
-.sort(field('rating').descending())
-.limit(10);
+    .sort(field('rating').descending())
+    .limit(10);
 
 ```
 
 ## Pipeline.limit()
+
+Limits the maximum number of documents returned by previous stages to `limit`<!-- -->.
+
+<p>This stage is particularly useful when you want to retrieve a controlled subset of data from a potentially large result set. It's often used for:
+
+<ul> <li>Pagination: In combination with [Pipeline.offset](./firestore_lite_pipelines.pipeline.md#pipelineoffset) to retrieve specific pages of results.</li> <li>Limiting Data Retrieval: To prevent excessive data transfer and improve performance, especially when dealing with large collections.</li> </ul>
 
 <b>Signature:</b>
 
@@ -418,17 +478,30 @@ limit(options: LimitStageOptions): Pipeline;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  options | [LimitStageOptions](./firestore_pipelines.md#limitstageoptions) |  |
+|  options | [LimitStageOptions](./firestore_pipelines.md#limitstageoptions) | An object that specifies required and optional parameters for the stage. |
 
 <b>Returns:</b>
 
 [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class)
 
+A new Pipeline object with this stage appended to the stage list.
+
+### Example
+
+
+```typescript
+// Limit the results to the top 10 highest-rated books
+firestore.pipeline().collection('books')
+    .sort(field('rating').descending())
+    .limit(10);
+
+```
+
 ## Pipeline.offset()
 
 Skips the first `offset` number of documents from the results of previous stages.
 
-<p>This stage is useful for implementing pagination in your pipelines, allowing you to retrieve results in chunks. It is typically used in conjunction with  to control the size of each page.
+<p>This stage is useful for implementing pagination in your pipelines, allowing you to retrieve results in chunks. It is typically used in conjunction with [Pipeline.limit](./firestore_lite_pipelines.pipeline.md#pipelinelimit) to control the size of each page.
 
 <b>Signature:</b>
 
@@ -454,13 +527,17 @@ A new Pipeline object with this stage appended to the stage list.
 ```typescript
 // Retrieve the second page of 20 results
 firestore.pipeline().collection('books')
-.sort(field('published').descending())
-.offset(20)  // Skip the first 20 results
-.limit(20);   // Take the next 20 results
+    .sort(field('published').descending())
+    .offset(20)  // Skip the first 20 results
+    .limit(20);   // Take the next 20 results
 
 ```
 
 ## Pipeline.offset()
+
+Skips the first `offset` number of documents from the results of previous stages.
+
+<p>This stage is useful for implementing pagination in your pipelines, allowing you to retrieve results in chunks. It is typically used in conjunction with [Pipeline.limit](./firestore_lite_pipelines.pipeline.md#pipelinelimit) to control the size of each page.
 
 <b>Signature:</b>
 
@@ -472,11 +549,25 @@ offset(options: OffsetStageOptions): Pipeline;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  options | [OffsetStageOptions](./firestore_pipelines.md#offsetstageoptions) |  |
+|  options | [OffsetStageOptions](./firestore_pipelines.md#offsetstageoptions) | An object that specifies required and optional parameters for the stage. |
 
 <b>Returns:</b>
 
 [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class)
+
+A new Pipeline object with this stage appended to the stage list.
+
+### Example
+
+
+```typescript
+// Retrieve the second page of 20 results
+firestore.pipeline().collection('books')
+    .sort(field('published').descending())
+    .offset(20)  // Skip the first 20 results
+    .limit(20);   // Take the next 20 results
+
+```
 
 ## Pipeline.rawStage()
 
@@ -489,7 +580,13 @@ Adds a raw stage to the pipeline.
 <b>Signature:</b>
 
 ```typescript
-rawStage(name: string, params: unknown[], options?: { [key: string]: Expression | unknown; }): Pipeline;
+rawStage(
+    name: string,
+    params: unknown[],
+    options?: {
+      [key: string]: Expression | unknown;
+    }
+  ): Pipeline;
 ```
 
 #### Parameters
@@ -504,7 +601,7 @@ rawStage(name: string, params: unknown[], options?: { [key: string]: Expression 
 
 [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class)
 
-A new [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class) object with this stage appended to the stage list.
+A new [Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class) object with this stage appended to the stage list.
 
 ### Example
 
@@ -512,8 +609,8 @@ A new [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class) object with t
 ```typescript
 // Assume we don't have a built-in 'where' stage
 firestore.pipeline().collection('books')
-.rawStage('where', [field('published').lessThan(1900)]) // Custom 'where' stage
-.select('title', 'author');
+    .rawStage('where', [field('published').lessThan(1900)]) // Custom 'where' stage
+    .select('title', 'author');
 
 ```
 
@@ -524,7 +621,10 @@ Remove fields from outputs of previous stages.
 <b>Signature:</b>
 
 ```typescript
-removeFields(fieldValue: Field | string, ...additionalFields: Array<Field | string>): Pipeline;
+removeFields(
+    fieldValue: Field | string,
+    ...additionalFields: Array<Field | string>
+  ): Pipeline;
 ```
 
 #### Parameters
@@ -545,15 +645,17 @@ A new Pipeline object with this stage appended to the stage list.
 
 ```typescript
 firestore.pipeline().collection('books')
-// removes field 'rating' and 'cost' from the previous stage outputs.
-.removeFields(
-field('rating'),
-'cost'
-);
+  // removes field 'rating' and 'cost' from the previous stage outputs.
+  .removeFields(
+    field('rating'),
+    'cost'
+  );
 
 ```
 
 ## Pipeline.removeFields()
+
+Remove fields from outputs of previous stages.
 
 <b>Signature:</b>
 
@@ -565,11 +667,26 @@ removeFields(options: RemoveFieldsStageOptions): Pipeline;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  options | [RemoveFieldsStageOptions](./firestore_pipelines.md#removefieldsstageoptions) |  |
+|  options | [RemoveFieldsStageOptions](./firestore_pipelines.md#removefieldsstageoptions) | An object that specifies required and optional parameters for the stage. |
 
 <b>Returns:</b>
 
 [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class)
+
+A new Pipeline object with this stage appended to the stage list.
+
+### Example
+
+
+```typescript
+firestore.pipeline().collection('books')
+  // removes field 'rating' and 'cost' from the previous stage outputs.
+  .removeFields(
+    field('rating'),
+    'cost'
+  );
+
+```
 
 ## Pipeline.replaceWith()
 
@@ -587,13 +704,13 @@ replaceWith(fieldName: string): Pipeline;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  fieldName | string | The [Field](./firestore_pipelines.field.md#field_class) field containing the nested map. |
+|  fieldName | string | The [Field](./firestore_lite_pipelines.field.md#field_class) field containing the nested map. |
 
 <b>Returns:</b>
 
 [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class)
 
-A new [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class) object with this stage appended to the stage list.
+A new [Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class) object with this stage appended to the stage list.
 
 ### Example
 
@@ -607,8 +724,10 @@ A new [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class) object with t
 //    'mother': 'Jane Doe'
 //   }
 // }
+
 // Emit parents as document.
 firestore.pipeline().collection('people').replaceWith('parents');
+
 // Output
 // {
 //  'father': 'John Doe Sr.',
@@ -633,13 +752,13 @@ replaceWith(expr: Expression): Pipeline;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  expr | [Expression](./firestore_pipelines.expression.md#expression_class) | An [Expression](./firestore_pipelines.expression.md#expression_class) that when returned evaluates to a map. |
+|  expr | [Expression](./firestore_pipelines.expression.md#expression_class) | An [Expression](./firestore_lite_pipelines.expression.md#expression_class) that when returned evaluates to a map. |
 
 <b>Returns:</b>
 
 [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class)
 
-A new [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class) object with this stage appended to the stage list.
+A new [Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class) object with this stage appended to the stage list.
 
 ### Example
 
@@ -653,13 +772,15 @@ A new [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class) object with t
 //    'mother': 'Jane Doe'
 //   }
 // }
+
 // Emit parents as document.
 firestore.pipeline().collection('people').replaceWith(map({
-foo: 'bar',
-info: {
-name: field('name')
-}
+  foo: 'bar',
+  info: {
+    name: field('name')
+  }
 }));
+
 // Output
 // {
 //  'father': 'John Doe Sr.',
@@ -669,6 +790,10 @@ name: field('name')
 ```
 
 ## Pipeline.replaceWith()
+
+Fully overwrites all fields in a document with those coming from a map.
+
+<p>This stage allows you to emit a map value as a document. Each key of the map becomes a field on the document that contains the corresponding value.
 
 <b>Signature:</b>
 
@@ -680,11 +805,42 @@ replaceWith(options: ReplaceWithStageOptions): Pipeline;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  options | [ReplaceWithStageOptions](./firestore_pipelines.md#replacewithstageoptions) |  |
+|  options | [ReplaceWithStageOptions](./firestore_pipelines.md#replacewithstageoptions) | An object that specifies required and optional parameters for the stage. |
 
 <b>Returns:</b>
 
 [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class)
+
+A new [Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class) object with this stage appended to the stage list.
+
+### Example
+
+
+```typescript
+// Input.
+// {
+//  'name': 'John Doe Jr.',
+//  'parents': {
+//    'father': 'John Doe Sr.',
+//    'mother': 'Jane Doe'
+//   }
+// }
+
+// Emit parents as document.
+firestore.pipeline().collection('people').replaceWith(map({
+  foo: 'bar',
+  info: {
+    name: field('name')
+  }
+}));
+
+// Output
+// {
+//  'father': 'John Doe Sr.',
+//  'mother': 'Jane Doe'
+// }
+
+```
 
 ## Pipeline.sample()
 
@@ -710,7 +866,7 @@ sample(documents: number): Pipeline;
 
 [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class)
 
-A new [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class) object with this stage appended to the stage list.
+A new [Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class) object with this stage appended to the stage list.
 
 ### Example
 
@@ -718,7 +874,7 @@ A new [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class) object with t
 ```typescript
 // Sample 25 books, if available.
 firestore.pipeline().collection('books')
-.sample(25);
+    .sample(25);
 
 ```
 
@@ -726,7 +882,7 @@ firestore.pipeline().collection('books')
 
 Performs a pseudo-random sampling of the documents from the previous stage.
 
-<p>This stage will filter documents pseudo-randomly. The 'options' parameter specifies how sampling will be performed. See [SampleStageOptions](./firestore_pipelines.md#samplestageoptions) for more information.
+<p>This stage will filter documents pseudo-randomly. The 'options' parameter specifies how sampling will be performed. See [SampleStageOptions](./firestore_lite_pipelines.md#samplestageoptions) for more information.
 
 <b>Signature:</b>
 
@@ -744,7 +900,7 @@ sample(options: SampleStageOptions): Pipeline;
 
 [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class)
 
-A new [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class) object with this stage appended to the stage list.
+A new [Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class) object with this stage appended to the stage list.
 
 ### Example
 
@@ -752,10 +908,11 @@ A new [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class) object with t
 ```typescript
 // Sample 10 books, if available.
 firestore.pipeline().collection("books")
-.sample({ documents: 10 });
+    .sample({ documents: 10 });
+
 // Sample 50% of books.
 firestore.pipeline().collection("books")
-.sample({ percentage: 0.5 });
+    .sample({ percentage: 0.5 });
 
 ```
 
@@ -791,13 +948,13 @@ search(options: SearchStageOptions): Pipeline;
 // Full-text search example
 firestore.pipeline().collection("restaurants")
 .search({
-query: documentMatches("waffles OR pancakes"),
-sort: [
-score().descending(),
-],
-addFields: [
-score().as("searchScore"),
-]
+  query: documentMatches("waffles OR pancakes"),
+  sort: [
+    score().descending(),
+  ],
+  addFields: [
+    score().as("searchScore"),
+  ]
 })
 
 ```
@@ -809,10 +966,10 @@ score().as("searchScore"),
 // Geo distance search example
 const queryLocation = new GeoPoint(0, 0);
 db.pipeline().collection('restaurants').search({
-query: field('location').geoDistance(queryLocation).lessThanOrEqual(1000),
-sort: [
-score().descending(),
-],
+  query: field('location').geoDistance(queryLocation).lessThanOrEqual(1000),
+  sort: [
+    score().descending(),
+  ],
 })
 
 ```
@@ -821,24 +978,27 @@ score().descending(),
 
 Selects or creates a set of fields from the outputs of previous stages.
 
-<p>The selected fields are defined using [Selectable](./firestore_pipelines.selectable.md#selectable_interface) expressions, which can be:
+<p>The selected fields are defined using [Selectable](./firestore_lite_pipelines.selectable.md#selectable_interface) expressions, which can be:
 
-<ul> <li>`string` : Name of an existing field</li> <li>[Field](./firestore_pipelines.field.md#field_class)<!-- -->: References an existing field.</li> <li>[AliasedExpression](./firestore_pipelines.aliasedexpression.md#aliasedexpression_class)<!-- -->: Represents the result of a function with an assigned alias name using [Expression.as()](./firestore_pipelines.expression.md#expressionas)</li> </ul>
+<ul> <li>`string` : Name of an existing field</li> <li>[Field](./firestore_lite_pipelines.field.md#field_class)<!-- -->: References an existing field.</li> <li>[AliasedExpression](./firestore_lite_pipelines.aliasedexpression.md#aliasedexpression_class)<!-- -->: Represents the result of a function with an assigned alias name using [Expression.as()](./firestore_lite_pipelines.expression.md#expressionas)</li> </ul>
 
-<p>If no selections are provided, the output of this stage is empty. Use [Pipeline.addFields()](./firestore_pipelines.pipeline.md#pipelineaddfields) instead if only additions are desired.
+<p>If no selections are provided, the output of this stage is empty. Use [Pipeline.addFields()](./firestore_lite_pipelines.pipeline.md#pipelineaddfields) instead if only additions are desired.
 
 <b>Signature:</b>
 
 ```typescript
-select(selection: Selectable | string, ...additionalSelections: Array<Selectable | string>): Pipeline;
+select(
+    selection: Selectable | string,
+    ...additionalSelections: Array<Selectable | string>
+  ): Pipeline;
 ```
 
 #### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  selection | [Selectable](./firestore_pipelines.selectable.md#selectable_interface) \| string | The first field to include in the output documents, specified as [Selectable](./firestore_pipelines.selectable.md#selectable_interface) expression or string value representing the field name. |
-|  additionalSelections | Array&lt;[Selectable](./firestore_pipelines.selectable.md#selectable_interface) \| string&gt; | Optional additional fields to include in the output documents, specified as [Selectable](./firestore_pipelines.selectable.md#selectable_interface) expressions or <code>string</code> values representing field names. |
+|  selection | [Selectable](./firestore_pipelines.selectable.md#selectable_interface) \| string | The first field to include in the output documents, specified as [Selectable](./firestore_lite_pipelines.selectable.md#selectable_interface) expression or string value representing the field name. |
+|  additionalSelections | Array&lt;[Selectable](./firestore_pipelines.selectable.md#selectable_interface) \| string&gt; | Optional additional fields to include in the output documents, specified as [Selectable](./firestore_lite_pipelines.selectable.md#selectable_interface) expressions or <code>string</code> values representing field names. |
 
 <b>Returns:</b>
 
@@ -851,11 +1011,11 @@ A new Pipeline object with this stage appended to the stage list.
 
 ```typescript
 db.pipeline().collection("books")
-.select(
-"firstName",
-field("lastName"),
-field("address").toUpper().as("upperAddress"),
-);
+  .select(
+    "firstName",
+    field("lastName"),
+    field("address").toUpper().as("upperAddress"),
+  );
 
 ```
 
@@ -863,11 +1023,11 @@ field("address").toUpper().as("upperAddress"),
 
 Selects or creates a set of fields from the outputs of previous stages.
 
-<p>The selected fields are defined using [Selectable](./firestore_pipelines.selectable.md#selectable_interface) expressions, which can be:
+<p>The selected fields are defined using [Selectable](./firestore_lite_pipelines.selectable.md#selectable_interface) expressions, which can be:
 
-<ul> <li>`string`<!-- -->: Name of an existing field</li> <li>[Field](./firestore_pipelines.field.md#field_class)<!-- -->: References an existing field.</li> <li>[AliasedExpression](./firestore_pipelines.aliasedexpression.md#aliasedexpression_class)<!-- -->: Represents the result of a function with an assigned alias name using [Expression.as()](./firestore_pipelines.expression.md#expressionas)</li> </ul>
+<ul> <li>`string`<!-- -->: Name of an existing field</li> <li>[Field](./firestore_lite_pipelines.field.md#field_class)<!-- -->: References an existing field.</li> <li>[AliasedExpression](./firestore_lite_pipelines.aliasedexpression.md#aliasedexpression_class)<!-- -->: Represents the result of a function with an assigned alias name using [Expression.as()](./firestore_lite_pipelines.expression.md#expressionas)</li> </ul>
 
-<p>If no selections are provided, the output of this stage is empty. Use [Pipeline.addFields()](./firestore_pipelines.pipeline.md#pipelineaddfields) instead if only additions are desired.
+<p>If no selections are provided, the output of this stage is empty. Use [Pipeline.addFields()](./firestore_lite_pipelines.pipeline.md#pipelineaddfields) instead if only additions are desired.
 
 <b>Signature:</b>
 
@@ -892,19 +1052,19 @@ A new Pipeline object with this stage appended to the stage list.
 
 ```typescript
 db.pipeline().collection("books")
-.select(
-"firstName",
-field("lastName"),
-field("address").toUpper().as("upperAddress"),
-);
+  .select(
+    "firstName",
+    field("lastName"),
+    field("address").toUpper().as("upperAddress"),
+  );
 
 ```
 
 ## Pipeline.sort()
 
-Sorts the documents from previous stages based on one or more [Ordering](./firestore_pipelines.ordering.md#ordering_class) criteria.
+Sorts the documents from previous stages based on one or more [Ordering](./firestore_lite_pipelines.ordering.md#ordering_class) criteria.
 
-<p>This stage allows you to order the results of your pipeline. You can specify multiple [Ordering](./firestore_pipelines.ordering.md#ordering_class) instances to sort by multiple fields in ascending or descending order. If documents have the same value for a field used for sorting, the next specified ordering will be used. If all orderings result in equal comparison, the documents are considered equal and the order is unspecified.
+<p>This stage allows you to order the results of your pipeline. You can specify multiple [Ordering](./firestore_lite_pipelines.ordering.md#ordering_class) instances to sort by multiple fields in ascending or descending order. If documents have the same value for a field used for sorting, the next specified ordering will be used. If all orderings result in equal comparison, the documents are considered equal and the order is unspecified.
 
 <b>Signature:</b>
 
@@ -916,14 +1076,14 @@ sort(ordering: Ordering, ...additionalOrderings: Ordering[]): Pipeline;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  ordering | [Ordering](./firestore_pipelines.ordering.md#ordering_class) | The first [Ordering](./firestore_pipelines.ordering.md#ordering_class) instance specifying the sorting criteria. |
-|  additionalOrderings | [Ordering](./firestore_pipelines.ordering.md#ordering_class)<!-- -->\[\] | Optional additional [Ordering](./firestore_pipelines.ordering.md#ordering_class) instances specifying the additional sorting criteria. |
+|  ordering | [Ordering](./firestore_pipelines.ordering.md#ordering_class) | The first [Ordering](./firestore_lite_pipelines.ordering.md#ordering_class) instance specifying the sorting criteria. |
+|  additionalOrderings | [Ordering](./firestore_pipelines.ordering.md#ordering_class)<!-- -->\[\] | Optional additional [Ordering](./firestore_lite_pipelines.ordering.md#ordering_class) instances specifying the additional sorting criteria. |
 
 <b>Returns:</b>
 
 [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class)
 
-A new [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class) object with this stage appended to the stage list.
+A new [Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class) object with this stage appended to the stage list.
 
 ### Example
 
@@ -932,14 +1092,18 @@ A new [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class) object with t
 // Sort books by rating in descending order, and then by title in ascending order for books
 // with the same rating
 firestore.pipeline().collection("books")
-.sort(
-field("rating").descending(),
-field("title").ascending()
-);
+    .sort(
+        field("rating").descending(),
+        field("title").ascending()
+    );
 
 ```
 
 ## Pipeline.sort()
+
+Sorts the documents from previous stages based on one or more [Ordering](./firestore_lite_pipelines.ordering.md#ordering_class) criteria.
+
+<p>This stage allows you to order the results of your pipeline. You can specify multiple [Ordering](./firestore_lite_pipelines.ordering.md#ordering_class) instances to sort by multiple fields in ascending or descending order. If documents have the same value for a field used for sorting, the next specified ordering will be used. If all orderings result in equal comparison, the documents are considered equal and the order is unspecified.
 
 <b>Signature:</b>
 
@@ -951,11 +1115,27 @@ sort(options: SortStageOptions): Pipeline;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  options | [SortStageOptions](./firestore_pipelines.md#sortstageoptions) |  |
+|  options | [SortStageOptions](./firestore_pipelines.md#sortstageoptions) | An object that specifies required and optional parameters for the stage. |
 
 <b>Returns:</b>
 
 [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class)
+
+A new [Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class) object with this stage appended to the stage list.
+
+### Example
+
+
+```typescript
+// Sort books by rating in descending order, and then by title in ascending order for books
+// with the same rating
+firestore.pipeline().collection("books")
+    .sort(
+        field("rating").descending(),
+        field("title").ascending()
+    );
+
+```
 
 ## Pipeline.toArrayExpression()
 
@@ -980,25 +1160,25 @@ An `Expression` representing the execution of this pipeline.
 ```typescript
 // Get a list of reviewers for each book
 db.pipeline().collection("books")
-.define(field("id").as("book_id"))
-.addFields(
-db.pipeline().collection("reviews")
-.where(field("book_id").equal(variable("book_id")))
-.select(field("reviewer"))
-.toArrayExpression()
-.as("reviewers")
-)
+    .define(field("id").as("book_id"))
+    .addFields(
+        db.pipeline().collection("reviews")
+            .where(field("book_id").equal(variable("book_id")))
+            .select(field("reviewer"))
+            .toArrayExpression()
+            .as("reviewers")
+    )
 
 ```
 Output:
 
 ```json
 [
-{
-"id": "1",
-"title": "1984",
-"reviewers": ["Alice", "Bob"]
-}
+  {
+    "id": "1",
+    "title": "1984",
+    "reviewers": ["Alice", "Bob"]
+  }
 ]
 
 ```
@@ -1007,27 +1187,27 @@ Multiple Fields:
 ```typescript
 // Get a list of reviews (reviewer and rating) for each book
 db.pipeline().collection("books")
-.define(field("id").as("book_id"))
-.addFields(
-db.pipeline().collection("reviews")
-.where(field("book_id").equal(variable("book_id")))
-.select(field("reviewer"), field("rating"))
-.toArrayExpression()
-.as("reviews"))
+    .define(field("id").as("book_id"))
+    .addFields(
+        db.pipeline().collection("reviews")
+            .where(field("book_id").equal(variable("book_id")))
+            .select(field("reviewer"), field("rating"))
+            .toArrayExpression()
+            .as("reviews"))
 
 ```
 Output:
 
 ```json
 [
-{
-"id": "1",
-"title": "1984",
-"reviews": [
-{ "reviewer": "Alice", "rating": 5 },
-{ "reviewer": "Bob", "rating": 4 }
-]
-}
+  {
+    "id": "1",
+    "title": "1984",
+    "reviews": [
+      { "reviewer": "Alice", "rating": 5 },
+      { "reviewer": "Bob", "rating": 4 }
+    ]
+  }
 ]
 
 ```
@@ -1057,11 +1237,11 @@ An `Expression` representing the execution of this pipeline.
 ```typescript
 // Calculate average rating for a restaurant
 db.pipeline().collection("restaurants").addFields(
-db.pipeline().collection("reviews")
-.where(field("restaurant_id").equal(variable("rid")))
-.aggregate(average("rating").as("avg"))
-// Unwraps the single "avg" field to a scalar double
-.toScalarExpression().as("average_rating")
+  db.pipeline().collection("reviews")
+    .where(field("restaurant_id").equal(variable("rid")))
+    .aggregate(average("rating").as("avg"))
+    // Unwraps the single "avg" field to a scalar double
+    .toScalarExpression().as("average_rating")
 )
 
 ```
@@ -1069,8 +1249,8 @@ Output:
 
 ```json
 {
-"name": "The Burger Joint",
-"average_rating": 4.5
+  "name": "The Burger Joint",
+  "average_rating": 4.5
 }
 
 ```
@@ -1079,14 +1259,14 @@ Multiple Fields:
 ```typescript
 // Calculate average rating AND count for a restaurant
 db.pipeline().collection("restaurants").addFields(
-db.pipeline().collection("reviews")
-.where(field("restaurant_id").equal(variable("rid")))
-.aggregate(
-average("rating").as("avg"),
-count().as("count")
-)
-// Returns an object with "avg" and "count" fields
-.toScalarExpression().as("stats")
+  db.pipeline().collection("reviews")
+    .where(field("restaurant_id").equal(variable("rid")))
+    .aggregate(
+      average("rating").as("avg"),
+      count().as("count")
+    )
+    // Returns an object with "avg" and "count" fields
+    .toScalarExpression().as("stats")
 )
 
 ```
@@ -1094,11 +1274,11 @@ Output:
 
 ```json
 {
-"name": "The Burger Joint",
-"stats": {
-"avg": 4.5,
-"count": 100
-}
+  "name": "The Burger Joint",
+  "stats": {
+    "avg": 4.5,
+    "count": 100
+  }
 }
 
 ```
@@ -1107,7 +1287,7 @@ Output:
 
 Performs union of all documents from two pipelines, including duplicates.
 
-<p>This stage will pass through documents from previous stage, and also pass through documents from previous stage of the `other` [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class) given in parameter. The order of documents emitted from this stage is undefined.
+<p>This stage will pass through documents from previous stage, and also pass through documents from previous stage of the `other` [Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class) given in parameter. The order of documents emitted from this stage is undefined.
 
 <b>Signature:</b>
 
@@ -1119,13 +1299,13 @@ union(other: Pipeline): Pipeline;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  other | [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class) | The other [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class) that is part of union. |
+|  other | [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class) | The other [Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class) that is part of union. |
 
 <b>Returns:</b>
 
 [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class)
 
-A new [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class) object with this stage appended to the stage list.
+A new [Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class) object with this stage appended to the stage list.
 
 ### Example
 
@@ -1133,11 +1313,15 @@ A new [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class) object with t
 ```typescript
 // Emit documents from books collection and magazines collection.
 firestore.pipeline().collection('books')
-.union(firestore.pipeline().collection('magazines'));
+    .union(firestore.pipeline().collection('magazines'));
 
 ```
 
 ## Pipeline.union()
+
+Performs union of all documents from two pipelines, including duplicates.
+
+<p>This stage will pass through documents from previous stage, and also pass through documents from previous stage of the `other` [Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class) given in parameter. The order of documents emitted from this stage is undefined.
 
 <b>Signature:</b>
 
@@ -1149,11 +1333,23 @@ union(options: UnionStageOptions): Pipeline;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  options | [UnionStageOptions](./firestore_pipelines.md#unionstageoptions) |  |
+|  options | [UnionStageOptions](./firestore_pipelines.md#unionstageoptions) | An object that specifies required and optional parameters for the stage. |
 
 <b>Returns:</b>
 
 [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class)
+
+A new [Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class) object with this stage appended to the stage list.
+
+### Example
+
+
+```typescript
+// Emit documents from books collection and magazines collection.
+firestore.pipeline().collection('books')
+    .union(firestore.pipeline().collection('magazines'));
+
+```
 
 ## Pipeline.unnest()
 
@@ -1182,7 +1378,7 @@ unnest(selectable: Selectable, indexField?: string): Pipeline;
 
 [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class)
 
-A new [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class) object with this stage appended to the stage list.
+A new [Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class) object with this stage appended to the stage list.
 
 ### Example
 
@@ -1190,9 +1386,11 @@ A new [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class) object with t
 ```typescript
 // Input:
 // { "title": "The Hitchhiker's Guide to the Galaxy", "tags": [ "comedy", "space", "adventure" ], ... }
+
 // Emit a book document for each tag of the book.
 firestore.pipeline().collection("books")
-.unnest(field("tags").as('tag'), 'tagIndex');
+    .unnest(field("tags").as('tag'), 'tagIndex');
+
 // Output:
 // { "title": "The Hitchhiker's Guide to the Galaxy", "tag": "comedy", "tagIndex": 0, ... }
 // { "title": "The Hitchhiker's Guide to the Galaxy", "tag": "space", "tagIndex": 1, ... }
@@ -1201,6 +1399,14 @@ firestore.pipeline().collection("books")
 ```
 
 ## Pipeline.unnest()
+
+Produces a document for each element in an input array.
+
+For each previous stage document, this stage will emit zero or more augmented documents. The input array specified by the `selectable` parameter, will emit an augmented document for each input array element. The input array element will augment the previous stage document by setting the `alias` field with the array element value.
+
+When `selectable` evaluates to a non-array value (ex: number, null, absent), then the stage becomes a no-op for the current input document, returning it as is with the `alias` field absent.
+
+No documents are emitted when `selectable` evaluates to an empty array.
 
 <b>Signature:</b>
 
@@ -1212,19 +1418,39 @@ unnest(options: UnnestStageOptions): Pipeline;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  options | [UnnestStageOptions](./firestore_pipelines.md#unneststageoptions) |  |
+|  options | [UnnestStageOptions](./firestore_pipelines.md#unneststageoptions) | An object that specifies required and optional parameters for the stage. |
 
 <b>Returns:</b>
 
 [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class)
 
+A new [Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class) object with this stage appended to the stage list.
+
+### Example
+
+
+```typescript
+// Input:
+// { "title": "The Hitchhiker's Guide to the Galaxy", "tags": [ "comedy", "space", "adventure" ], ... }
+
+// Emit a book document for each tag of the book.
+firestore.pipeline().collection("books")
+    .unnest(field("tags").as('tag'), 'tagIndex');
+
+// Output:
+// { "title": "The Hitchhiker's Guide to the Galaxy", "tag": "comedy", "tagIndex": 0, ... }
+// { "title": "The Hitchhiker's Guide to the Galaxy", "tag": "space", "tagIndex": 1, ... }
+// { "title": "The Hitchhiker's Guide to the Galaxy", "tag": "adventure", "tagIndex": 2, ... }
+
+```
+
 ## Pipeline.where()
 
-Filters the documents from previous stages to only include those matching the specified [BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class)<!-- -->.
+Filters the documents from previous stages to only include those matching the specified [BooleanExpression](./firestore_lite_pipelines.booleanexpression.md#booleanexpression_class)<!-- -->.
 
-<p>This stage allows you to apply conditions to the data, similar to a "WHERE" clause in SQL. You can filter documents based on their field values, using implementations of [BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class)<!-- -->, typically including but not limited to:
+<p>This stage allows you to apply conditions to the data, similar to a "WHERE" clause in SQL. You can filter documents based on their field values, using implementations of [BooleanExpression](./firestore_lite_pipelines.booleanexpression.md#booleanexpression_class)<!-- -->, typically including but not limited to:
 
-<ul> <li>field comparators: [Expression.equal()](./firestore_pipelines.expression.md#expressionequal)<!-- -->, [Expression.lessThan()](./firestore_pipelines.expression.md#expressionlessthan)<!-- -->, [Expression.greaterThan()](./firestore_pipelines.expression.md#expressiongreaterthan)<!-- -->, etc.</li> <li>logical operators: , , , etc.</li> <li>advanced functions: [Expression.regexMatch()](./firestore_pipelines.expression.md#expressionregexmatch)<!-- -->, [Expression.arrayContains()](./firestore_pipelines.expression.md#expressionarraycontains)<!-- -->, etc.</li> </ul>
+<ul> <li>field comparators: [Expression.equal()](./firestore_lite_pipelines.expression.md#expressionequal)<!-- -->, [Expression.lessThan()](./firestore_lite_pipelines.expression.md#expressionlessthan)<!-- -->, [Expression.greaterThan()](./firestore_lite_pipelines.expression.md#expressiongreaterthan)<!-- -->, etc.</li> <li>logical operators: [and](./firestore.md#and_e72c712)<!-- -->, [or](./firestore.md#or_e72c712)<!-- -->, [not](./firestore_lite_pipelines.md#not_c5b8fb1)<!-- -->, etc.</li> <li>advanced functions: [Expression.regexMatch()](./firestore_lite_pipelines.expression.md#expressionregexmatch)<!-- -->, [Expression.arrayContains()](./firestore_lite_pipelines.expression.md#expressionarraycontains)<!-- -->, etc.</li> </ul>
 
 <b>Signature:</b>
 
@@ -1236,7 +1462,7 @@ where(condition: BooleanExpression): Pipeline;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  condition | [BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class) | The [BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class) to apply. |
+|  condition | [BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class) | The [BooleanExpression](./firestore_lite_pipelines.booleanexpression.md#booleanexpression_class) to apply. |
 
 <b>Returns:</b>
 
@@ -1249,22 +1475,22 @@ A new Pipeline object with this stage appended to the stage list.
 
 ```typescript
 firestore.pipeline().collection("books")
-.where(
-and(
-greaterThan(field("rating"), 4.0),   // Filter for ratings greater than 4.0
-field("genre").equal("Science Fiction") // Equivalent to equal("genre", "Science Fiction")
-)
-);
+  .where(
+    and(
+        greaterThan(field("rating"), 4.0),   // Filter for ratings greater than 4.0
+        field("genre").equal("Science Fiction") // Equivalent to equal("genre", "Science Fiction")
+    )
+  );
 
 ```
 
 ## Pipeline.where()
 
-Filters the documents from previous stages to only include those matching the specified [BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class)<!-- -->.
+Filters the documents from previous stages to only include those matching the specified [BooleanExpression](./firestore_lite_pipelines.booleanexpression.md#booleanexpression_class)<!-- -->.
 
-<p>This stage allows you to apply conditions to the data, similar to a "WHERE" clause in SQL. You can filter documents based on their field values, using implementations of [BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class)<!-- -->, typically including but not limited to:
+<p>This stage allows you to apply conditions to the data, similar to a "WHERE" clause in SQL. You can filter documents based on their field values, using implementations of [BooleanExpression](./firestore_lite_pipelines.booleanexpression.md#booleanexpression_class)<!-- -->, typically including but not limited to:
 
-<ul> <li>field comparators: ,  (less than), [Expression.greaterThan()](./firestore_pipelines.expression.md#expressiongreaterthan)<!-- -->, etc.</li> <li>logical operators: , , , etc.</li> <li>advanced functions: [Expression.regexMatch()](./firestore_pipelines.expression.md#expressionregexmatch)<!-- -->, [Expression.arrayContains()](./firestore_pipelines.expression.md#expressionarraycontains)<!-- -->, etc.</li> </ul>
+<ul> <li>field comparators: [Expression.equal()](./firestore_lite_pipelines.expression.md#expressionequal)<!-- -->, [Expression.lessThan()](./firestore_lite_pipelines.expression.md#expressionlessthan) (less than), [Expression.greaterThan()](./firestore_lite_pipelines.expression.md#expressiongreaterthan)<!-- -->, etc.</li> <li>logical operators: [and](./firestore.md#and_e72c712)<!-- -->, [or](./firestore.md#or_e72c712)<!-- -->, [not](./firestore_lite_pipelines.md#not_c5b8fb1)<!-- -->, etc.</li> <li>advanced functions: [Expression.regexMatch()](./firestore_lite_pipelines.expression.md#expressionregexmatch)<!-- -->, [Expression.arrayContains()](./firestore_lite_pipelines.expression.md#expressionarraycontains)<!-- -->, etc.</li> </ul>
 
 <b>Signature:</b>
 
@@ -1289,12 +1515,12 @@ A new Pipeline object with this stage appended to the stage list.
 
 ```typescript
 firestore.pipeline().collection("books")
-.where(
-and(
-greaterThan(field("rating"), 4.0),   // Filter for ratings greater than 4.0
-field("genre").equal("Science Fiction") // Equivalent to equal("genre", "Science Fiction")
-)
-);
+  .where(
+    and(
+        greaterThan(field("rating"), 4.0),   // Filter for ratings greater than 4.0
+        field("genre").equal("Science Fiction") // Equivalent to equal("genre", "Science Fiction")
+    )
+  );
 
 ```
 

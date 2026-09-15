@@ -17,7 +17,7 @@
 
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
-import pkg from './package.json';
+import pkg from './package.json' with { type: 'json' };
 import json from '@rollup/plugin-json';
 
 const deps = Object.keys(
@@ -58,6 +58,7 @@ export default [
       {
         file: 'dist/cli.js',
         format: 'cjs',
+        esModule: true,
         sourcemap: false
       }
     ],

@@ -26,6 +26,7 @@ import {
   AuthEventError,
   AuthEventType
 } from '../../model/popup_redirect';
+import { FirebaseError } from '@firebase/util';
 import { AuthErrorCode } from '../errors';
 import { AuthEventManager } from './auth_event_manager';
 
@@ -39,8 +40,8 @@ describe('core/auth/auth_event_manager', () => {
   ): sinon.SinonStubbedInstance<AuthEventConsumer> {
     const stub = sinon.stub({
       filter: Array.isArray(filter) ? filter : [filter],
-      onAuthEvent: () => {},
-      onError: () => {},
+      onAuthEvent: (_event: AuthEvent) => {},
+      onError: (_error: FirebaseError) => {},
       eventId: null
     });
 
@@ -201,6 +202,7 @@ describe('core/auth/auth_event_manager', () => {
     });
 
     afterEach(() => {
+      clock.restore();
       sinon.restore();
     });
 

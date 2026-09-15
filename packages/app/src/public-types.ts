@@ -151,10 +151,6 @@ export interface FirebaseOptions {
    * and higher, this parameter is optional.
    */
   measurementId?: string;
-  /**
-   * ReCAPTCHA Enterprise site key associated with this app.
-   */
-  recaptchaSiteKey?: string;
 }
 
 /**
@@ -179,8 +175,10 @@ export interface FirebaseAppSettings {
  *
  * Configuration options given to {@link (initializeServerApp:1) | initializeServerApp()}
  */
-export interface FirebaseServerAppSettings
-  extends Omit<FirebaseAppSettings, 'name'> {
+export interface FirebaseServerAppSettings extends Omit<
+  FirebaseAppSettings,
+  'name'
+> {
   /**
    * An optional Auth ID token used to resume a signed in user session from a client
    * runtime environment.

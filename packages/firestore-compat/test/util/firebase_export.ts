@@ -21,9 +21,9 @@
 // you need to also adjust "integration/firestore/firebase_export.ts".
 
 import firebase from '@firebase/app-compat';
-import { FirebaseApp } from '@firebase/app-types';
+import type { FirebaseApp } from '@firebase/app-types';
 import { GeoPoint, Timestamp } from '@firebase/firestore';
-import * as firestore from '@firebase/firestore-types';
+import type * as firestore from '@firebase/firestore-types';
 
 import { Blob } from '../../src/api/blob';
 import {

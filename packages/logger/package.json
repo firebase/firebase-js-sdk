@@ -1,6 +1,6 @@
 {
   "name": "@firebase/logger",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "description": "A logger package for use in the Firebase JS SDK",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
@@ -20,14 +20,14 @@
     "lint": "eslint --cache --cache-location '../../node_modules/.cache/eslint/' -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --cache --cache-location '../../node_modules/.cache/eslint/' --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "build": "rollup -c",
-    "build:deps": "lerna run build --scope @firebase/logger",
+    "build:deps": "lerna run build --scope @firebase/logger --include-dependencies",
     "dev": "rollup -c -w",
     "test": "run-p --npm-path npm lint test:all",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all",
-    "test:all": "run-p --npm-path npm test:browser test:node",
-    "test:browser": "karma start",
-    "test:browser:debug": "karma start --browsers Chrome --auto-watch",
-    "test:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha test/**/*.test.* --config ../../config/mocharc.node.js",
+    "test:all": "vitest run",
+    "test:browser": "vitest run --project=browser",
+    "test:browser:debug": "vitest --project=browser --browser.headless=false",
+    "test:node": "vitest run --project=node",
     "trusted-type-check": "tsec -p tsconfig.json --noEmit"
   },
   "license": "Apache-2.0",
@@ -35,7 +35,7 @@
     "tslib": "^2.1.0"
   },
   "devDependencies": {
-    "rollup": "2.79.2",
+    "rollup": "4.62.2",
     "rollup-plugin-typescript2": "0.37.0",
     "typescript": "5.5.4"
   },

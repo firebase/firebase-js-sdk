@@ -32,8 +32,8 @@ Please see [Environment Support](https://firebase.google.com/support/guides/envi
 #### Node.js
 
 Before you can start working on the Firebase JS SDK, you need to have Node.js
-installed on your machine. As of April 19th, 2024 the team has been testing with Node.js version 
-`20.12.2`, but the required version of Node.js may change as we update our dependencies.
+installed on your machine. As of July 17th, 2026 the team has been testing with Node.js version 
+`20.19.0`, but the required version of Node.js may change as we update our dependencies.
 
 To download Node.js visit https://nodejs.org/en/download/.
 
@@ -49,7 +49,7 @@ https://yarnpkg.com/en/docs/install
 
 This repo currently supports building with yarn `1.x`. For instance, after installing yarn, run
 ```bash
-$ yarn set version 1.22.11
+$ yarn set version 1.22.22
 ```
 
 #### Java
@@ -66,8 +66,8 @@ $ yarn -v
 $ java -version
 ```
 
-Your `node` version should be `20.12.2`, your `yarn` version should
-be between `1.0.0` and `1.22.11`, and your `java` version should be `11.0` or greater.
+Your `node` version should be `20.19.0` or greater, your `yarn` version should
+be `^1.22.22` (Yarn 1.x), and your `java` version should be `11.0` or greater.
 
 _NOTE: We will update the documentation as new versions are required, however
 for continuing development on the SDK, staying up to date on the stable versions
@@ -136,8 +136,8 @@ order to run the tests, you will need to update your bucket's CORS rules.
     }
 ]
 ```
-1. Install `gsutil` from https://cloud.google.com/storage/docs/gsutil_install
-1. You will need to login if this is your first time using `gsutil`. Run `gcloud auth login`
+1. Install `gcloud storage` from https://docs.cloud.google.com/sdk/docs/install-sdk
+1. You will need to login if this is your first time using `gcloud storage`. Run `gcloud auth login`
 and follow the instructions to login.
 1. Run `gcloud storage buckets update gs://<your-cloud-storage-bucket> --cors-file=cors.json`
 

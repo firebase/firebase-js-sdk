@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-const del = require('del');
+const { rm } = require('fs/promises');
 const gulp = require('gulp');
 const replace = require('gulp-replace');
 const { resolve } = require('path');
@@ -23,8 +23,11 @@ const webpackStream = require('webpack-stream');
 const webpack = require('webpack');
 const filter = require('gulp-filter');
 
-function clean() {
-  return del(['temp/**/*', 'dist/**/*']);
+async function clean() {
+  await Promise.all([
+    rm(resolve(__dirname, 'temp'), { recursive: true, force: true }),
+    rm(resolve(__dirname, 'dist'), { recursive: true, force: true })
+  ]);
 }
 
 function isPersistenceEnabled() {
@@ -42,9 +45,6 @@ function copyTests() {
     .src(
       [
         testBase + '/integration/api/*.ts',
-        '!' + testBase + '/integration/api/pipeline.listen.test.ts',
-        '!' + testBase + '/integration/api/snapshot_listener_source.test.ts',
-        '!' + testBase + '/integration/api/pipeline.query.test.ts',
         testBase + '/integration/util/composite_index_test_helper.ts',
         testBase + '/integration/util/events_accumulator.ts',
         testBase + '/integration/util/helpers.ts',
@@ -52,7 +52,10 @@ function copyTests() {
         testBase + '/integration/util/testing_hooks_util.ts',
         testBase + '/util/equality_matcher.ts',
         testBase + '/util/promise.ts',
-        testBase + '/util/mocha_extensions.ts'
+        testBase + '/util/mocha_extensions.ts',
+        '!' + testBase + '/integration/api/pipeline.listen.test.ts',
+        '!' + testBase + '/integration/api/snapshot_listener_source.test.ts',
+        '!' + testBase + '/integration/api/pipeline.query.test.ts'
       ],
       { base: '../../packages/firestore' }
     )

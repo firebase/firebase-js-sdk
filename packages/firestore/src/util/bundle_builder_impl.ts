@@ -66,7 +66,10 @@ export class BundleBuilder {
   private readonly serializer: JsonProtoSerializer;
   private readonly userDataReader: UserDataReader;
 
-  constructor(private firestore: Firestore, readonly bundleId: string) {
+  constructor(
+    private firestore: Firestore,
+    readonly bundleId: string
+  ) {
     this.databaseId = firestore._databaseId;
 
     // useProto3Json is true because the objects will be serialized to JSON string

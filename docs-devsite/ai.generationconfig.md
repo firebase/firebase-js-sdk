@@ -31,6 +31,7 @@ export interface GenerationConfig
 |  [responseMimeType](./ai.generationconfig.md#generationconfigresponsemimetype) | string | Output response MIME type of the generated candidate text. Supported MIME types are <code>text/plain</code> (default, text output), <code>application/json</code> (JSON response in the candidates), and <code>text/x.enum</code>. |
 |  [responseModalities](./ai.generationconfig.md#generationconfigresponsemodalities) | [ResponseModality](./ai.md#responsemodality)<!-- -->\[\] | <b><i>(Public Preview)</i></b> Generation modalities to be returned in generation responses. |
 |  [responseSchema](./ai.generationconfig.md#generationconfigresponseschema) | [TypedSchema](./ai.md#typedschema) \| [SchemaRequest](./ai.schemarequest.md#schemarequest_interface) | Output response schema of the generated candidate text. This value can be a class generated with a [Schema](./ai.schema.md#schema_class) static method like <code>Schema.string()</code> or <code>Schema.object()</code> or it can be a plain JS object matching the [SchemaRequest](./ai.schemarequest.md#schemarequest_interface) interface. <br/>Note: This only applies when the specified <code>responseMimeType</code> supports a schema; currently this is limited to <code>application/json</code> and <code>text/x.enum</code>. |
+|  [speechConfig](./ai.generationconfig.md#generationconfigspeechconfig) | [SpeechConfig](./ai.md#speechconfig) | <b><i>(Public Preview)</i></b> Configuration for speech synthesis for text-to-speech (TTS) models. |
 |  [stopSequences](./ai.generationconfig.md#generationconfigstopsequences) | string\[\] |  |
 |  [temperature](./ai.generationconfig.md#generationconfigtemperature) | number |  |
 |  [thinkingConfig](./ai.generationconfig.md#generationconfigthinkingconfig) | [ThinkingConfig](./ai.thinkingconfig.md#thinkingconfig_interface) | Configuration for "thinking" behavior of compatible Gemini models. |
@@ -39,6 +40,11 @@ export interface GenerationConfig
 
 ## GenerationConfig.candidateCount
 
+> Warning: This API is now obsolete.
+> 
+> Not supported in Gemini 3.x and later models. The model will ignore this parameter if it's included in a request. Make parallel requests instead.
+> 
+
 <b>Signature:</b>
 
 ```typescript
@@ -46,6 +52,11 @@ candidateCount?: number;
 ```
 
 ## GenerationConfig.frequencyPenalty
+
+> Warning: This API is now obsolete.
+> 
+> Not supported in Gemini 3.x and later models. Requests that include this parameter will fail with a 400 error. Omit this parameter.
+> 
 
 <b>Signature:</b>
 
@@ -72,6 +83,11 @@ maxOutputTokens?: number;
 ```
 
 ## GenerationConfig.presencePenalty
+
+> Warning: This API is now obsolete.
+> 
+> Not supported in Gemini 3.x and later models. Requests that include this parameter will fail with a 400 error. Omit this parameter.
+> 
 
 <b>Signature:</b>
 
@@ -110,7 +126,7 @@ responseMimeType?: string;
 
 Generation modalities to be returned in generation responses.
 
-- Multimodal response generation is only supported by some Gemini models and versions; see [model versions](https://firebase.google.com/docs/vertex-ai/models)<!-- -->. - Only image generation (`ResponseModality.IMAGE`<!-- -->) is supported.
+- Multimodal response generation is only supported by some Gemini models and versions; see [model versions](https://firebase.google.com/docs/ai-logic/models)<!-- -->. - Only image generation (`ResponseModality.IMAGE`<!-- -->) is supported.
 
 <b>Signature:</b>
 
@@ -128,6 +144,19 @@ Output response schema of the generated candidate text. This value can be a clas
 responseSchema?: TypedSchema | SchemaRequest;
 ```
 
+## GenerationConfig.speechConfig
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Configuration for speech synthesis for text-to-speech (TTS) models.
+
+<b>Signature:</b>
+
+```typescript
+speechConfig?: SpeechConfig;
+```
+
 ## GenerationConfig.stopSequences
 
 <b>Signature:</b>
@@ -137,6 +166,11 @@ stopSequences?: string[];
 ```
 
 ## GenerationConfig.temperature
+
+> Warning: This API is now obsolete.
+> 
+> Not supported in Gemini 3.x and later models. The model will ignore this parameter if it's included in a request. Omit this parameter and let the model manage sampling automatically.
+> 
 
 <b>Signature:</b>
 
@@ -156,6 +190,11 @@ thinkingConfig?: ThinkingConfig;
 
 ## GenerationConfig.topK
 
+> Warning: This API is now obsolete.
+> 
+> Not supported in Gemini 3.x and later models. The model will ignore this parameter if it's included in a request. Omit this parameter and let the model manage sampling automatically.
+> 
+
 <b>Signature:</b>
 
 ```typescript
@@ -163,6 +202,11 @@ topK?: number;
 ```
 
 ## GenerationConfig.topP
+
+> Warning: This API is now obsolete.
+> 
+> Not supported in Gemini 3.x and later models. The model will ignore this parameter if it's included in a request. Omit this parameter and let the model manage sampling automatically.
+> 
 
 <b>Signature:</b>
 

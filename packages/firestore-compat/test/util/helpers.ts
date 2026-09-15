@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as firestore from '@firebase/firestore-types';
+import type * as firestore from '@firebase/firestore-types';
 import { isIndexedDBAvailable } from '@firebase/util';
 
 import * as firebaseExport from './firebase_export';

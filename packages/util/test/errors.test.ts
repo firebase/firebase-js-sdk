@@ -14,14 +14,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { assert } from 'chai';
+import { assert } from 'vitest';
 import { ErrorFactory, ErrorMap, FirebaseError } from '../src/errors';
 
 type ErrorCode =
-  | 'generic-error'
-  | 'file-not-found'
-  | 'anon-replace'
-  | 'overwrite-field';
+  'generic-error' | 'file-not-found' | 'anon-replace' | 'overwrite-field';
 
 const ERROR_MAP: ErrorMap<ErrorCode> = {
   'generic-error': 'Unknown error',
@@ -77,6 +74,19 @@ describe('FirebaseError', () => {
     assert.equal(
       e.message,
       "Fake: Could not find file: '<file?>' (fake/file-not-found)."
+    );
+  });
+
+  it('falls back to template if template replacement throws', () => {
+    const e = ERROR_FACTORY.create('file-not-found', {
+      get file() {
+        throw new Error('accessing file throws');
+      }
+    } as any);
+    assert.equal((e as FirebaseError)?.code, 'fake/file-not-found');
+    assert.equal(
+      e.message,
+      "Fake: Could not find file: '{$file}' (fake/file-not-found)."
     );
   });
 

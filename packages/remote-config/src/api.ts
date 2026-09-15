@@ -204,10 +204,13 @@ export function getAll(remoteConfig: RemoteConfig): Record<string, Value> {
   return getAllKeys(
     rc._storageCache.getActiveConfig(),
     rc.defaultConfig
-  ).reduce((allConfigs, key) => {
-    allConfigs[key] = getValue(remoteConfig, key);
-    return allConfigs;
-  }, {} as Record<string, Value>);
+  ).reduce(
+    (allConfigs, key) => {
+      allConfigs[key] = getValue(remoteConfig, key);
+      return allConfigs;
+    },
+    {} as Record<string, Value>
+  );
 }
 
 /**

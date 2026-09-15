@@ -59,23 +59,33 @@ export function getTestInstance(requireEmulator = false): Auth {
   });
 
   auth.cleanUp = async () => {
-    // If we're in an emulated environment, the emulator will clean up for us
-    if (emulatorUrl) {
-      await resetEmulator();
-    } else {
-      // Clear out any new users that were created in the course of the test
-      for (const user of createdUsers) {
-        if (!user.email?.includes('donotdelete')) {
-          try {
-            await user.delete();
-          } catch {
-            // Best effort. Maybe the test already deleted the user ¯\_(ツ)_/¯
+    try {
+      // If we're in an emulated environment, the emulator will clean up for us
+      if (emulatorUrl) {
+        try {
+          await resetEmulator();
+        } catch (e) {
+          console.error('resetEmulator failed', e);
+        }
+      } else {
+        // Clear out any new users that were created in the course of the test
+        for (const user of createdUsers) {
+          if (!user.email?.includes('donotdelete')) {
+            try {
+              await user.delete();
+            } catch {
+              // Best effort. Maybe the test already deleted the user ¯\_(ツ)_/¯
+            }
           }
         }
       }
+    } finally {
+      try {
+        await deleteApp(app);
+      } catch (e) {
+        console.error('deleteApp failed', e);
+      }
     }
-
-    await deleteApp(app);
   };
 
   return auth;

@@ -16,12 +16,7 @@
  */
 
 export type LogLevelString =
-  | 'debug'
-  | 'verbose'
-  | 'info'
-  | 'warn'
-  | 'error'
-  | 'silent';
+  'debug' | 'verbose' | 'info' | 'warn' | 'error' | 'silent';
 
 export interface LogOptions {
   level: LogLevelString;

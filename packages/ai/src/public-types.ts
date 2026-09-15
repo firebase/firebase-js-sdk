@@ -44,7 +44,7 @@ export interface AI {
   /**
    * A {@link Backend} instance that specifies the configuration for the target backend,
    * either the Gemini Developer API (using {@link GoogleAIBackend}) or the
-   * Vertex AI Gemini API (using {@link VertexAIBackend}).
+   * Agent Platform Gemini API (using {@link AgentPlatformBackend}).
    */
   backend: Backend;
   /**
@@ -54,7 +54,8 @@ export interface AI {
   /**
    * @deprecated use `AI.backend.location` instead.
    *
-   * The location configured for this AI service instance, relevant for Vertex AI backends.
+   * The location configured for this AI service instance, relevant for
+   * Agent Platform Gemini API backends.
    */
   location: string;
 }
@@ -62,19 +63,27 @@ export interface AI {
 /**
  * An enum-like object containing constants that represent the supported backends
  * for the Firebase AI SDK.
- * This determines which backend service (Vertex AI Gemini API or Gemini Developer API)
+ * This determines which backend service (Gemini Developer API or Agent Platform Gemini API)
  * the SDK will communicate with.
  *
  * These values are assigned to the `backendType` property within the specific backend
- * configuration objects ({@link GoogleAIBackend} or {@link VertexAIBackend}) to identify
+ * configuration objects ({@link GoogleAIBackend} or {@link AgentPlatformBackend}) to identify
  * which service to target.
  *
  * @public
  */
 export const BackendType = {
   /**
-   * Identifies the backend service for the Vertex AI Gemini API provided through Google Cloud.
+   * Identifies the backend service for the Agent Platform Gemini API provided through Google Cloud.
+   * Use this constant when creating a {@link AgentPlatformBackend} configuration.
+   */
+  AGENT_PLATFORM: 'AGENT_PLATFORM',
+
+  /**
+   * Identifies the backend service for the Agent Platform Gemini API
+   * (formerly known as Vertex AI Gemini API) provided through Google Cloud.
    * Use this constant when creating a {@link VertexAIBackend} configuration.
+   * @deprecated - Use {@link AgentPlatformBackend} instead.
    */
   VERTEX_AI: 'VERTEX_AI',
 
@@ -87,7 +96,7 @@ export const BackendType = {
 
 /**
  * Type alias representing valid backend types.
- * It can be either `'VERTEX_AI'` or `'GOOGLE_AI'`.
+ * It should be either `'AGENT_PLATFORM'` or `'GOOGLE_AI'` (`'VERTEX_AI'` is deprecated).
  *
  * @public
  */
@@ -95,8 +104,8 @@ export type BackendType = (typeof BackendType)[keyof typeof BackendType];
 
 /**
  * Options for initializing the AI service using {@link getAI | getAI()}.
- * This allows specifying which backend to use (Vertex AI Gemini API or Gemini Developer API)
- * and configuring its specific options (like location for Vertex AI).
+ * This allows specifying which backend to use (Gemini Developer API or Agent Platform Gemini API)
+ * and configuring its specific options (like location for Agent Platform).
  *
  * @public
  */

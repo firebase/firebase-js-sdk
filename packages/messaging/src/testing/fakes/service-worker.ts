@@ -100,9 +100,7 @@ class FakeWindowClient implements WindowClient {
   postMessage() {}
 }
 
-export class FakeServiceWorkerRegistration
-  implements ServiceWorkerRegistration
-{
+export class FakeServiceWorkerRegistration implements ServiceWorkerRegistration {
   active = null;
   installing = null;
   waiting = null;
@@ -211,7 +209,10 @@ export class FakeEvent implements ExtendableEvent {
     return [];
   }
 
-  constructor(public type: string, options: EventInit = {}) {
+  constructor(
+    public type: string,
+    options: EventInit = {}
+  ) {
     this.bubbles = options.bubbles ?? false;
     this.cancelable = options.cancelable ?? false;
     this.composed = options.composed ?? false;

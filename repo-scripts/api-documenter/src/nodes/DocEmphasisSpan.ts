@@ -28,8 +28,7 @@ import { CustomDocNodeKind } from './CustomDocNodeKind';
 /**
  * Constructor parameters for {@link DocEmphasisSpan}.
  */
-export interface IDocEmphasisSpanParameters
-  extends IDocNodeContainerParameters {
+export interface IDocEmphasisSpanParameters extends IDocNodeContainerParameters {
   bold?: boolean;
   italic?: boolean;
 }

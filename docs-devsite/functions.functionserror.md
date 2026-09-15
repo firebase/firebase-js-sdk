@@ -25,7 +25,7 @@ export declare class FunctionsError extends FirebaseError
 
 |  Constructor | Modifiers | Description |
 |  --- | --- | --- |
-|  [(constructor)(code, message, details)](./functions.functionserror.md#functionserrorconstructor) |  | Constructs a new instance of the <code>FunctionsError</code> class. |
+|  [(constructor)(code, message, details, url)](./functions.functionserror.md#functionserrorconstructor) |  | Constructs a new instance of the <code>FunctionsError</code> class. |
 
 ## Properties
 
@@ -42,7 +42,8 @@ Constructs a new instance of the `FunctionsError` class.
 ```typescript
 constructor(
     code: FunctionsErrorCode, message?: string, 
-    details?: unknown);
+    details?: unknown, 
+    url?: string);
 ```
 
 #### Parameters
@@ -52,6 +53,7 @@ constructor(
 |  code | [FunctionsErrorCode](./functions.md#functionserrorcodecore) |  |
 |  message | string |  |
 |  details | unknown |  |
+|  url | string |  |
 
 ## FunctionsError.details
 

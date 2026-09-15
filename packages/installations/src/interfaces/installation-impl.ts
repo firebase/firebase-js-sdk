@@ -20,8 +20,7 @@ import { _FirebaseService } from '@firebase/app';
 import { Installations } from '../interfaces/public-types';
 
 export interface FirebaseInstallationsImpl
-  extends Installations,
-    _FirebaseService {
+  extends Installations, _FirebaseService {
   readonly appConfig: AppConfig;
   readonly heartbeatServiceProvider: Provider<'heartbeat'>;
 }

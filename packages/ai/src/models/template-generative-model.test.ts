@@ -18,31 +18,12 @@
 import { use, expect } from 'chai';
 import sinonChai from 'sinon-chai';
 import { restore, stub } from 'sinon';
-import {
-  AI,
-  TemplateToolConfig,
-  RetrievalConfig,
-  LatLng
-} from '../public-types';
-import { VertexAIBackend } from '../backend';
+import { TemplateToolConfig, RetrievalConfig, LatLng } from '../public-types';
 import { TemplateGenerativeModel } from './template-generative-model';
 import * as generateContentMethods from '../methods/generate-content';
+import { fakeAI } from '../../test-utils/get-fake-firebase-services';
 
 use(sinonChai);
-
-const fakeAI: AI = {
-  app: {
-    name: 'DEFAULT',
-    automaticDataCollectionEnabled: true,
-    options: {
-      apiKey: 'key',
-      projectId: 'my-project',
-      appId: 'my-appid'
-    }
-  },
-  backend: new VertexAIBackend('us-central1'),
-  location: 'us-central1'
-};
 
 const TEMPLATE_ID = 'my-template';
 const TEMPLATE_VARS = { a: 1, b: '2' };

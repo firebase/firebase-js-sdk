@@ -34,14 +34,12 @@ export const ABORT_ERROR_NAME = 'AbortError';
 export const enum Task {
   GENERATE_CONTENT = 'generateContent',
   STREAM_GENERATE_CONTENT = 'streamGenerateContent',
-  COUNT_TOKENS = 'countTokens',
-  PREDICT = 'predict'
+  COUNT_TOKENS = 'countTokens'
 }
 
 export const enum ServerPromptTemplateTask {
   TEMPLATE_GENERATE_CONTENT = 'templateGenerateContent',
-  TEMPLATE_STREAM_GENERATE_CONTENT = 'templateStreamGenerateContent',
-  TEMPLATE_PREDICT = 'templatePredict'
+  TEMPLATE_STREAM_GENERATE_CONTENT = 'templateStreamGenerateContent'
 }
 
 interface BaseRequestURLParams {

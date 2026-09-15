@@ -17,16 +17,8 @@
 
 import { expect, use } from 'chai';
 import sinonChai from 'sinon-chai';
-import {
-  Content,
-  ImagenAspectRatio,
-  ImagenPersonFilterLevel,
-  ImagenSafetyFilterLevel
-} from '../types';
-import {
-  createPredictRequestBody,
-  formatGenerateContentInput
-} from './request-helpers';
+import { Content } from '../types';
+import { formatGenerateContentInput } from './request-helpers';
 
 use(sinonChai);
 
@@ -178,99 +170,167 @@ describe('request formatting methods', () => {
         ],
         systemInstruction: { role: 'system', parts: [{ text: 'be excited' }] }
       });
-    }),
-      it('formats fileData as part if provided as part', () => {
-        const result = formatGenerateContentInput([
-          'What is this?',
+    });
+    it('preserves SpeechConfig for single-speaker setups', () => {
+      const result = formatGenerateContentInput({
+        contents: [
           {
-            fileData: {
-              mimeType: 'image/jpeg',
-              fileUri: 'gs://sample.appspot.com/image.jpeg'
+            role: 'user',
+            parts: [{ text: 'Hello' }]
+          }
+        ],
+        generationConfig: {
+          speechConfig: {
+            languageCode: 'en-US',
+            voiceConfig: {
+              prebuiltVoiceConfig: {
+                voiceName: 'Puck'
+              }
             }
           }
-        ]);
-        expect(result).to.be.deep.equal({
-          contents: [
-            {
-              role: 'user',
-              parts: [
-                { text: 'What is this?' },
+        }
+      });
+      expect(result.generationConfig?.speechConfig).to.deep.equal({
+        languageCode: 'en-US',
+        voiceConfig: {
+          prebuiltVoiceConfig: {
+            voiceName: 'Puck'
+          }
+        }
+      });
+    });
+
+    it('preserves SpeechConfig for multi-speaker setups', () => {
+      const result = formatGenerateContentInput({
+        contents: [
+          {
+            role: 'user',
+            parts: [{ text: 'Write a dialogue.' }]
+          }
+        ],
+        generationConfig: {
+          speechConfig: {
+            languageCode: 'en-US',
+            multiSpeakerVoiceConfig: {
+              speakerVoiceConfigs: [
                 {
-                  fileData: {
-                    mimeType: 'image/jpeg',
-                    fileUri: 'gs://sample.appspot.com/image.jpeg'
+                  speaker: 'narrator',
+                  voiceConfig: {
+                    prebuiltVoiceConfig: { voiceName: 'Aoede' }
+                  }
+                },
+                {
+                  speaker: 'character',
+                  voiceConfig: {
+                    prebuiltVoiceConfig: { voiceName: 'Charon' }
                   }
                 }
               ]
             }
-          ]
-        });
+          }
+        }
       });
-  });
-  describe('createPredictRequestBody', () => {
-    it('creates body with default request parameters', () => {
-      const prompt = 'A photorealistic image of a toy boat at sea.';
-      const body = createPredictRequestBody(prompt, {});
-      expect(body.instances[0].prompt).to.equal(prompt);
-      expect(body.parameters.sampleCount).to.equal(1);
-      expect(body.parameters.includeRaiReason).to.be.true;
-      expect(body.parameters.includeSafetyAttributes).to.be.true;
-
-      // Parameters without default values should be undefined
-      expect(body.parameters.storageUri).to.be.undefined;
-      expect(body.parameters.storageUri).to.be.undefined;
-      expect(body.parameters.outputOptions).to.be.undefined;
-      expect(body.parameters.negativePrompt).to.be.undefined;
-      expect(body.parameters.aspectRatio).to.be.undefined;
-      expect(body.parameters.addWatermark).to.be.undefined;
-      expect(body.parameters.safetyFilterLevel).to.be.undefined;
-      expect(body.parameters.personGeneration).to.be.undefined;
+      expect(result.generationConfig?.speechConfig).to.deep.equal({
+        languageCode: 'en-US',
+        multiSpeakerVoiceConfig: {
+          speakerVoiceConfigs: [
+            {
+              speaker: 'narrator',
+              voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Aoede' } }
+            },
+            {
+              speaker: 'character',
+              voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Charon' } }
+            }
+          ]
+        }
+      });
     });
-  });
-  it('creates body with non-default request paramaters', () => {
-    const prompt = 'A photorealistic image of a toy boat at sea.';
-    const imageFormat = { mimeType: 'image/jpeg', compressionQuality: 75 };
-    const safetySettings = {
-      safetyFilterLevel: ImagenSafetyFilterLevel.BLOCK_LOW_AND_ABOVE,
-      personFilterLevel: ImagenPersonFilterLevel.ALLOW_ADULT
-    };
-    const addWatermark = true;
-    const numberOfImages = 4;
-    const negativePrompt = 'do not hallucinate';
-    const aspectRatio = ImagenAspectRatio.LANDSCAPE_16x9;
-    const body = createPredictRequestBody(prompt, {
-      numberOfImages,
-      imageFormat,
-      addWatermark,
-      negativePrompt,
-      aspectRatio,
-      ...safetySettings
-    });
-    expect(body.instances[0].prompt).to.equal(prompt);
-    expect(body.parameters).deep.equal({
-      sampleCount: numberOfImages,
-      outputOptions: {
-        mimeType: imageFormat.mimeType,
-        compressionQuality: imageFormat.compressionQuality
-      },
-      addWatermark,
-      negativePrompt,
-      safetyFilterLevel: safetySettings.safetyFilterLevel,
-      personGeneration: safetySettings.personFilterLevel,
-      aspectRatio,
-      includeRaiReason: true,
-      includeSafetyAttributes: true,
-      storageUri: undefined
-    });
-  });
-  it('creates body with GCS URI', () => {
-    const prompt = 'A photorealistic image of a toy boat at sea.';
-    const gcsURI = 'gcs-uri';
-    const body = createPredictRequestBody(prompt, {
-      gcsURI
+    it('preserves SpeechConfig alongside other GenerationConfig parameters', () => {
+      const req = formatGenerateContentInput({
+        contents: [{ role: 'user', parts: [{ text: 'Hello' }] }],
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 100,
+          responseMimeType: 'audio/mp3',
+          speechConfig: {
+            voiceConfig: {
+              prebuiltVoiceConfig: {
+                voiceName: 'Puck'
+              }
+            }
+          }
+        }
+      });
+      expect(req.generationConfig?.temperature).to.equal(0.7);
+      expect(req.generationConfig?.maxOutputTokens).to.equal(100);
+      expect(req.generationConfig?.responseMimeType).to.equal('audio/mp3');
+      expect(
+        req.generationConfig?.speechConfig?.voiceConfig?.prebuiltVoiceConfig
+          ?.voiceName
+      ).to.equal('Puck');
     });
 
-    expect(body.instances[0].prompt).to.equal(prompt);
-    expect(body.parameters.storageUri).to.equal(gcsURI);
+    it('serializes language code without nested voice configurations', () => {
+      const result = formatGenerateContentInput({
+        contents: [
+          {
+            role: 'user',
+            parts: [{ text: 'Hola' }]
+          }
+        ],
+        generationConfig: {
+          speechConfig: {
+            languageCode: 'es-ES'
+          }
+        }
+      });
+      expect(result.generationConfig?.speechConfig).to.deep.equal({
+        languageCode: 'es-ES'
+      });
+    });
+
+    it('safely passes through an empty speechConfig object', () => {
+      const result = formatGenerateContentInput({
+        contents: [
+          {
+            role: 'user',
+            parts: [{ text: 'Hello' }]
+          }
+        ],
+        generationConfig: {
+          speechConfig: {}
+        }
+      });
+      expect(result.generationConfig?.speechConfig).to.deep.equal({});
+    });
+
+    it('formats fileData as part if provided as part', () => {
+      const result = formatGenerateContentInput([
+        'What is this?',
+        {
+          fileData: {
+            mimeType: 'image/jpeg',
+            fileUri: 'gs://sample.appspot.com/image.jpeg'
+          }
+        }
+      ]);
+      expect(result).to.be.deep.equal({
+        contents: [
+          {
+            role: 'user',
+            parts: [
+              { text: 'What is this?' },
+              {
+                fileData: {
+                  mimeType: 'image/jpeg',
+                  fileUri: 'gs://sample.appspot.com/image.jpeg'
+                }
+              }
+            ]
+          }
+        ]
+      });
+    });
   });
 });

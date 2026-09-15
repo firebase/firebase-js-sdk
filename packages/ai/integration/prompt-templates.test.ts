@@ -16,11 +16,7 @@
  */
 
 import { expect } from 'chai';
-import {
-  BackendType,
-  getTemplateGenerativeModel,
-  getTemplateImagenModel
-} from '../src';
+import { BackendType, getTemplateGenerativeModel } from '../src';
 import { promptTemplatesTestConfigs } from './constants';
 
 const templateBackendSuffix = (
@@ -42,18 +38,6 @@ describe('Prompt templates', function () {
             { name: 'John' }
           );
           expect(response.text()).to.contain('John'); // Template asks to address directly by name
-        });
-      });
-      describe('Imagen model', async () => {
-        it('successfully generates images', async () => {
-          const model = getTemplateImagenModel(testConfig.ai);
-          const { images } = await model.generateImages(
-            `portrait-${templateBackendSuffix(
-              testConfig.ai.backend.backendType
-            )}`,
-            { animal: 'Rhino' }
-          );
-          expect(images.length).to.equal(1); // The template is configured to generate one image.
         });
       });
     });

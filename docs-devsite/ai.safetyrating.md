@@ -25,9 +25,9 @@ export interface SafetyRating
 |  [blocked](./ai.safetyrating.md#safetyratingblocked) | boolean |  |
 |  [category](./ai.safetyrating.md#safetyratingcategory) | [HarmCategory](./ai.md#harmcategory) |  |
 |  [probability](./ai.safetyrating.md#safetyratingprobability) | [HarmProbability](./ai.md#harmprobability) |  |
-|  [probabilityScore](./ai.safetyrating.md#safetyratingprobabilityscore) | number | The probability score of the harm category.<!-- -->This property is only supported when using the Vertex AI Gemini API ([VertexAIBackend](./ai.vertexaibackend.md#vertexaibackend_class)<!-- -->). When using the Gemini Developer API ([GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class)<!-- -->), this property is not supported and will default to 0. |
-|  [severity](./ai.safetyrating.md#safetyratingseverity) | [HarmSeverity](./ai.md#harmseverity) | The harm severity level.<!-- -->This property is only supported when using the Vertex AI Gemini API ([VertexAIBackend](./ai.vertexaibackend.md#vertexaibackend_class)<!-- -->). When using the Gemini Developer API ([GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class)<!-- -->), this property is not supported and will default to <code>HarmSeverity.UNSUPPORTED</code>. |
-|  [severityScore](./ai.safetyrating.md#safetyratingseverityscore) | number | The severity score of the harm category.<!-- -->This property is only supported when using the Vertex AI Gemini API ([VertexAIBackend](./ai.vertexaibackend.md#vertexaibackend_class)<!-- -->). When using the Gemini Developer API ([GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class)<!-- -->), this property is not supported and will default to 0. |
+|  [probabilityScore](./ai.safetyrating.md#safetyratingprobabilityscore) | number | The probability score of the harm category.<!-- -->This property is only supported when using the Agent Platform Gemini API ([AgentPlatformBackend](./ai.agentplatformbackend.md#agentplatformbackend_class)<!-- -->). When using the Gemini Developer API ([GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class)<!-- -->), this property is not supported and will default to 0. |
+|  [severity](./ai.safetyrating.md#safetyratingseverity) | [HarmSeverity](./ai.md#harmseverity) | The harm severity level.<!-- -->This property is only supported when using the Agent Platform Gemini API ([AgentPlatformBackend](./ai.agentplatformbackend.md#agentplatformbackend_class)<!-- -->). When using the Gemini Developer API ([GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class)<!-- -->), this property is not supported and will default to <code>HarmSeverity.UNSUPPORTED</code>. |
+|  [severityScore](./ai.safetyrating.md#safetyratingseverityscore) | number | The severity score of the harm category.<!-- -->This property is only supported when using the Agent Platform Gemini API ([AgentPlatformBackend](./ai.agentplatformbackend.md#agentplatformbackend_class)<!-- -->). When using the Gemini Developer API ([GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class)<!-- -->), this property is not supported and will default to 0. |
 
 ## SafetyRating.blocked
 
@@ -57,7 +57,7 @@ probability: HarmProbability;
 
 The probability score of the harm category.
 
-This property is only supported when using the Vertex AI Gemini API ([VertexAIBackend](./ai.vertexaibackend.md#vertexaibackend_class)<!-- -->). When using the Gemini Developer API ([GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class)<!-- -->), this property is not supported and will default to 0.
+This property is only supported when using the Agent Platform Gemini API ([AgentPlatformBackend](./ai.agentplatformbackend.md#agentplatformbackend_class)<!-- -->). When using the Gemini Developer API ([GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class)<!-- -->), this property is not supported and will default to 0.
 
 <b>Signature:</b>
 
@@ -69,7 +69,7 @@ probabilityScore: number;
 
 The harm severity level.
 
-This property is only supported when using the Vertex AI Gemini API ([VertexAIBackend](./ai.vertexaibackend.md#vertexaibackend_class)<!-- -->). When using the Gemini Developer API ([GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class)<!-- -->), this property is not supported and will default to `HarmSeverity.UNSUPPORTED`<!-- -->.
+This property is only supported when using the Agent Platform Gemini API ([AgentPlatformBackend](./ai.agentplatformbackend.md#agentplatformbackend_class)<!-- -->). When using the Gemini Developer API ([GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class)<!-- -->), this property is not supported and will default to `HarmSeverity.UNSUPPORTED`<!-- -->.
 
 <b>Signature:</b>
 
@@ -81,7 +81,7 @@ severity: HarmSeverity;
 
 The severity score of the harm category.
 
-This property is only supported when using the Vertex AI Gemini API ([VertexAIBackend](./ai.vertexaibackend.md#vertexaibackend_class)<!-- -->). When using the Gemini Developer API ([GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class)<!-- -->), this property is not supported and will default to 0.
+This property is only supported when using the Agent Platform Gemini API ([AgentPlatformBackend](./ai.agentplatformbackend.md#agentplatformbackend_class)<!-- -->). When using the Gemini Developer API ([GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class)<!-- -->), this property is not supported and will default to 0.
 
 <b>Signature:</b>
 

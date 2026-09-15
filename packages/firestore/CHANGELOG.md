@@ -1,5 +1,45 @@
 # @firebase/firestore
 
+## 4.17.2
+
+### Patch Changes
+
+- [`0e8554b`](https://github.com/firebase/firebase-js-sdk/commit/0e8554b78acbb2d44d0bbecebc8c66439cf54476) [#10301](https://github.com/firebase/firebase-js-sdk/pull/10301) - feat(firestore): support conversion and serialization for Temporal.Instant to Firestore's Timestamp
+
+- [`50213a1`](https://github.com/firebase/firebase-js-sdk/commit/50213a1cdba8e3b0f029197ec20f47c1110060a6) [#10233](https://github.com/firebase/firebase-js-sdk/pull/10233) - Update api-extractor and documentation pipeline. Includes some fixes to documentation comments and links.
+
+- [`392bce0`](https://github.com/firebase/firebase-js-sdk/commit/392bce079f376149736311f0017d5863e58c8dff) [#10340](https://github.com/firebase/firebase-js-sdk/pull/10340) - Fixes fetch connection error messages that were undefined.
+
+## 4.17.1
+
+### Patch Changes
+
+- [`589b24b`](https://github.com/firebase/firebase-js-sdk/commit/589b24bd9b30ba6b07a76da1eb5c3d1eadc5a9d2) [#10293](https://github.com/firebase/firebase-js-sdk/pull/10293) - Updated many top-level `devDependencies`.
+
+- [`2e22761`](https://github.com/firebase/firebase-js-sdk/commit/2e227618ed351ed4242781ee72b01c7fc0c81fa9) [#10250](https://github.com/firebase/firebase-js-sdk/pull/10250) - Fix the cross-database document reference log naming the referenced document rather than the document that contains the reference.
+
+- Updated dependencies [[`589b24b`](https://github.com/firebase/firebase-js-sdk/commit/589b24bd9b30ba6b07a76da1eb5c3d1eadc5a9d2)]:
+  - @firebase/component@0.7.5
+  - @firebase/logger@0.5.2
+  - @firebase/util@1.15.3
+  - @firebase/webchannel-wrapper@1.0.7
+
+## 4.17.0
+
+### Minor Changes
+
+- [`d2d89d2`](https://github.com/firebase/firebase-js-sdk/commit/d2d89d2b0eb1dc3c929ccd17f85f1c0fda1a5fef) [#10116](https://github.com/firebase/firebase-js-sdk/pull/10116) - Changed the HTTP/2 flow control window size from 64 KB to 256 KB, and added a `grpcFlowControlWindow` configuration option to `FirestoreSettings`. This change is only applicable to Node environments.
+
+### Patch Changes
+
+- [`736fa3f`](https://github.com/firebase/firebase-js-sdk/commit/736fa3fe798d6eafc9fe086d6bfbe9cfb49b8994) [#10146](https://github.com/firebase/firebase-js-sdk/pull/10146) - Fix ReDoS vulnerability in FirebaseError template replacement
+
+- [`2894e91`](https://github.com/firebase/firebase-js-sdk/commit/2894e91619a51f23f01a77e43255d1329bbcc55c) [#10104](https://github.com/firebase/firebase-js-sdk/pull/10104) - Update re2js version
+
+- Updated dependencies [[`736fa3f`](https://github.com/firebase/firebase-js-sdk/commit/736fa3fe798d6eafc9fe086d6bfbe9cfb49b8994)]:
+  - @firebase/util@1.15.2
+  - @firebase/component@0.7.4
+
 ## 4.16.0
 
 ### Minor Changes

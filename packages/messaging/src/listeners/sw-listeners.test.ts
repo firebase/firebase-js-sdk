@@ -434,9 +434,8 @@ describe('SwController', () => {
     });
 
     it('focuses on and sends the message to an open WindowClient', async () => {
-      const client: Writable<WindowClient> = (await self.clients.openWindow(
-        TEST_LINK
-      ))!;
+      const client: Writable<WindowClient> =
+        (await self.clients.openWindow(TEST_LINK))!;
       const focusSpy = spy(client, 'focus');
       const matchAllSpy = spy(self.clients, 'matchAll');
       const openWindowSpy = spy(self.clients, 'openWindow');

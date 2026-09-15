@@ -23,7 +23,10 @@ export class ListenComplete implements Operation {
   /** @inheritDoc */
   type = OperationType.LISTEN_COMPLETE;
 
-  constructor(public source: OperationSource, public path: Path) {}
+  constructor(
+    public source: OperationSource,
+    public path: Path
+  ) {}
 
   operationForChild(childName: string): ListenComplete {
     if (pathIsEmpty(this.path)) {

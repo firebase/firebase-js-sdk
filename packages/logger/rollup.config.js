@@ -17,8 +17,8 @@
 
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
-import pkg from './package.json';
-import { emitModulePackageFile } from '../../scripts/build/rollup_emit_module_package_file';
+import pkg from './package.json' with { type: 'json' };
+import { emitModulePackageFile } from '../../scripts/build/rollup_emit_module_package_file.js';
 
 const buildPlugins = [typescriptPlugin({ typescript })];
 
@@ -42,6 +42,7 @@ const cjsBuild = {
   output: {
     file: pkg.main,
     format: 'cjs',
+    esModule: true,
     sourcemap: true
   },
   plugins: buildPlugins,

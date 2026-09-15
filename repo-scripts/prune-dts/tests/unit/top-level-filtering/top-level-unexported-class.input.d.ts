@@ -1,0 +1,3 @@
+class PrivateClass {
+  prop: string;
+}

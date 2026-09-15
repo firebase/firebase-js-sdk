@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@
 const { resolve } = require('path');
 const { spawn } = require('child-process-promise');
 const chalk = require('chalk');
-const fs = require('mz/fs');
+const fs = require('fs');
 const semver = require('semver');
 
 // CONSTANTS

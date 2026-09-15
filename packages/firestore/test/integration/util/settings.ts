@@ -128,7 +128,9 @@ function getSslEnabled(targetBackend: TargetBackend): boolean {
 
 export const DEFAULT_PROJECT_ID = USE_EMULATOR
   ? process.env.FIRESTORE_EMULATOR_PROJECT_ID || 'test-emulator'
-  : PROJECT_CONFIG.projectId;
+  : process.env.FIRESTORE_PROJECT_ID ||
+    process.env.GCLOUD_PROJECT ||
+    PROJECT_CONFIG.projectId;
 export const ALT_PROJECT_ID = 'test-db2';
 
 export const COMPOSITE_INDEX_TEST_COLLECTION =

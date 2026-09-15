@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { getGlobal } from '@firebase/util';
 import { AIError } from '../errors';
 import { logger } from '../logger';
 import {
@@ -228,8 +229,10 @@ export class ChromeAdapterImpl implements ChromeAdapter {
     }
 
     for (const content of request.contents) {
-      if (content.role === 'function') {
-        logger.debug(`"Function" role rejected for on-device inference.`);
+      if (content.parts.some(part => 'functionResponse' in part)) {
+        logger.debug(
+          `Content with a function response part rejected for on-device inference.`
+        );
         return false;
       }
 
@@ -445,12 +448,11 @@ export function chromeAdapterFactory(
   window?: Window,
   params?: OnDeviceParams
 ): ChromeAdapterImpl | undefined {
+  const globalObj = window || getGlobal();
+  const languageModel = (globalObj as Record<string, unknown>).LanguageModel as
+    LanguageModel | undefined;
   // Do not initialize a ChromeAdapter if we are not in hybrid mode.
-  if (typeof window !== 'undefined' && mode) {
-    return new ChromeAdapterImpl(
-      (window as Window).LanguageModel as LanguageModel,
-      mode,
-      params
-    );
+  if (languageModel && mode) {
+    return new ChromeAdapterImpl(languageModel, mode, params);
   }
 }

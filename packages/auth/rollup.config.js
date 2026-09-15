@@ -21,10 +21,10 @@ import json from '@rollup/plugin-json';
 import replace from 'rollup-plugin-replace';
 import typescript from 'typescript';
 import alias from '@rollup/plugin-alias';
-import { generateBuildTargetReplaceConfig } from '../../scripts/build/rollup_replace_build_target';
-import { emitModulePackageFile } from '../../scripts/build/rollup_emit_module_package_file';
-import pkg from './package.json';
-import tsconfig from './tsconfig.json';
+import { generateBuildTargetReplaceConfig } from '../../scripts/build/rollup_replace_build_target.js';
+import { emitModulePackageFile } from '../../scripts/build/rollup_emit_module_package_file.js';
+import pkg from './package.json' with { type: 'json' };
+import tsconfig from './tsconfig.json' with { type: 'json' };
 
 const deps = Object.keys(
   Object.assign({}, pkg.peerDependencies, pkg.dependencies)
@@ -76,7 +76,14 @@ const browserBuilds = [
       index: 'index.ts',
       internal: 'internal/index.ts'
     },
-    output: [{ dir: 'dist/browser-cjs', format: 'cjs', sourcemap: true }],
+    output: [
+      {
+        dir: 'dist/browser-cjs',
+        format: 'cjs',
+        esModule: true,
+        sourcemap: true
+      }
+    ],
     plugins: [
       ...buildPlugins,
       replace(generateBuildTargetReplaceConfig('cjs', 2020))
@@ -108,7 +115,14 @@ const browserWebExtensionBuilds = [
       index: 'index.web-extension.ts',
       internal: 'internal/index.ts'
     },
-    output: [{ dir: 'dist/web-extension-cjs', format: 'cjs', sourcemap: true }],
+    output: [
+      {
+        dir: 'dist/web-extension-cjs',
+        format: 'cjs',
+        esModule: true,
+        sourcemap: true
+      }
+    ],
     plugins: [
       ...buildPlugins,
       replace(generateBuildTargetReplaceConfig('cjs', 2020))
@@ -123,7 +137,9 @@ const nodeBuilds = [
       index: 'index.node.ts',
       internal: 'internal/index.ts'
     },
-    output: [{ dir: 'dist/node', format: 'cjs', sourcemap: true }],
+    output: [
+      { dir: 'dist/node', format: 'cjs', esModule: true, sourcemap: true }
+    ],
     plugins: [
       nodeAliasPlugin,
       ...buildPlugins,
@@ -170,7 +186,7 @@ const rnBuild = {
     index: 'index.rn.ts',
     internal: 'internal/index.ts'
   },
-  output: [{ dir: 'dist/rn', format: 'cjs', sourcemap: true }],
+  output: [{ dir: 'dist/rn', format: 'cjs', esModule: true, sourcemap: true }],
   plugins: [
     ...buildPlugins,
     replace(generateBuildTargetReplaceConfig('cjs', 2020))

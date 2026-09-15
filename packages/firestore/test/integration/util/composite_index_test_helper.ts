@@ -132,7 +132,8 @@ export class CompositeIndexTestHelper {
     return {
       ...doc,
       [this.TEST_ID_FIELD]: this.testId,
-      [this.TTL_FIELD]: new Timestamp( // Expire test data after 24 hours
+      [this.TTL_FIELD]: new Timestamp(
+        // Expire test data after 24 hours
         Timestamp.now().seconds + 24 * 60 * 60,
         Timestamp.now().nanoseconds
       )

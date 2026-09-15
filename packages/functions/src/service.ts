@@ -383,13 +383,18 @@ async function callAtURL(
   }
 
   // Check for an error status, regardless of http status.
-  const error = _errorForResponse(response.status, response.json);
+  const error = _errorForResponse(response.status, response.json, url);
   if (error) {
     throw error;
   }
 
   if (!response.json) {
-    throw new FunctionsError('internal', 'Response is not valid JSON object.');
+    throw new FunctionsError(
+      'internal',
+      'Response is not valid JSON object.',
+      undefined,
+      url
+    );
   }
 
   let responseData = response.json.data;
@@ -400,7 +405,12 @@ async function callAtURL(
   }
   if (typeof responseData === 'undefined') {
     // Consider the response malformed.
-    throw new FunctionsError('internal', 'Response is missing data field.');
+    throw new FunctionsError(
+      'internal',
+      'Response is missing data field.',
+      undefined,
+      url
+    );
   }
 
   // Decode any special types, such as dates, in the returned data.
@@ -475,7 +485,7 @@ async function streamAtURL(
     // network error. There's no way to know, since an unhandled error on the
     // backend will fail to set the proper CORS header, and thus will be
     // treated as a network error by fetch.
-    const error = _errorForResponse(0, null);
+    const error = _errorForResponse(0, null, url);
     return {
       data: Promise.reject(error),
       // Return an empty async iterator
@@ -505,7 +515,8 @@ async function streamAtURL(
     reader,
     resultResolver!,
     resultRejecter!,
-    options?.signal
+    options?.signal,
+    url
   );
   return {
     stream: {
@@ -546,7 +557,8 @@ function createResponseStream(
   reader: ReadableStreamDefaultReader<Uint8Array>,
   resultResolver: (value: unknown) => void,
   resultRejecter: (reason: unknown) => void,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  url?: string
 ): ReadableStream<unknown> {
   const processLine = (
     line: string,
@@ -569,7 +581,7 @@ function createResponseStream(
         return;
       }
       if ('error' in jsonData) {
-        const error = _errorForResponse(0, jsonData);
+        const error = _errorForResponse(0, jsonData, url);
         controller.error(error);
         resultRejecter(error);
         return;
@@ -631,7 +643,7 @@ function createResponseStream(
           const functionsError =
             error instanceof FunctionsError
               ? error
-              : _errorForResponse(0, null);
+              : _errorForResponse(0, null, url);
           controller.error(functionsError);
           resultRejecter(functionsError);
         }

@@ -18,24 +18,44 @@
 import { expect } from 'chai';
 
 import { addEqualityMatcher } from '../../util/equality_matcher';
+import { describe } from '../../util/mocha_extensions';
 import { EventsAccumulator } from '../util/events_accumulator';
 import {
+  BsonObjectId,
+  BsonTimestamp,
   Bytes,
   collection,
+  Decimal128Value,
   doc,
+  DocumentData,
+  DocumentReference,
   DocumentSnapshot,
   Firestore,
+  FirestoreError,
   GeoPoint,
   getDoc,
   getDocs,
+  Int32Value,
+  MaxKey,
+  MinKey,
   onSnapshot,
+  orderBy,
+  query,
   QuerySnapshot,
+  refEqual,
+  RegexValue,
   runTransaction,
   setDoc,
   Timestamp,
-  updateDoc
+  updateDoc,
+  vector
 } from '../util/firebase_export';
-import { apiDescribe, withTestDb, withTestDoc } from '../util/helpers';
+import {
+  apiDescribe,
+  withTestCollection,
+  withTestDb,
+  withTestDoc
+} from '../util/helpers';
 
 apiDescribe('Firestore', persistence => {
   addEqualityMatcher();
@@ -175,6 +195,331 @@ apiDescribe('Firestore', persistence => {
   it('can read and write document references in an array', () => {
     return withTestDoc(persistence, async (doc, db) => {
       await expectRoundtrip(db, { a: 42, refs: [doc] });
+    });
+  });
+
+  it('can read and write vector fields', () => {
+    return withTestDoc(persistence, async (doc, db) => {
+      await expectRoundtrip(db, { vector: vector([1, 2, 3]) });
+    });
+  });
+
+  describe.skipEmulator.skipClassic('BSON types', () => {
+    it('can read and write minKey fields', () => {
+      return withTestDb(persistence, async db => {
+        await expectRoundtrip(db, {
+          min: MinKey.instance()
+        });
+      });
+    });
+
+    it('can read and write maxKey fields', () => {
+      return withTestDb(persistence, async db => {
+        await expectRoundtrip(db, {
+          max: MaxKey.instance()
+        });
+      });
+    });
+
+    it('can read and write regex fields', () => {
+      return withTestDb(persistence, async db => {
+        await expectRoundtrip(db, {
+          regex: new RegexValue('^foo', 'i')
+        });
+      });
+    });
+
+    it('can read and write int32 fields', () => {
+      return withTestDb(persistence, async db => {
+        await expectRoundtrip(db, {
+          int32: new Int32Value(1)
+        });
+      });
+    });
+
+    it('can read and write decimal128 fields', () => {
+      return withTestDb(persistence, async db => {
+        await expectRoundtrip(db, {
+          decimalSciPositive: new Decimal128Value('1.2e3'),
+          decimalSciNegative: new Decimal128Value('-2.5e-2'),
+          decimalSciPositiveCapE: new Decimal128Value('1.2345E+5'),
+          decimalSciNegativeCapE: new Decimal128Value('-9.876E-3'),
+          decimalIntPositive: new Decimal128Value('12345'),
+          decimalIntNegative: new Decimal128Value('-67890'),
+          decimalFloatPositive: new Decimal128Value('123.456'),
+          decimalFloatNegative: new Decimal128Value('-789.012'),
+          decimalZeroFloat: new Decimal128Value('0.0'),
+          decimalZeroInt: new Decimal128Value('0'),
+          decimalPrecisePositive: new Decimal128Value(
+            '0.1234567890123456789012345678901234'
+          ),
+          decimalLargePositive: new Decimal128Value(
+            '1234567890123456789012345678901234'
+          ),
+          decimalPreciseNegative: new Decimal128Value(
+            '-0.1234567890123456789012345678901234'
+          ),
+          decimalLargeNegative: new Decimal128Value(
+            '-1234567890123456789012345678901234'
+          )
+        });
+      });
+    });
+
+    it('can read and write bsonTimestamp fields', () => {
+      return withTestDb(persistence, async db => {
+        await expectRoundtrip(db, {
+          bsonTimestamp: new BsonTimestamp(1, 2)
+        });
+      });
+    });
+
+    it('can read and write bsonObjectId fields', () => {
+      return withTestDb(persistence, async db => {
+        await expectRoundtrip(db, {
+          objectId: new BsonObjectId('507f191e810c19729de860ea')
+        });
+      });
+    });
+
+    it('can read and write bsonBinaryData fields', () => {
+      return withTestDb(persistence, async db => {
+        await expectRoundtrip(db, {
+          binary: Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1)
+        });
+      });
+    });
+
+    it('can read and write bson fields in an array', () => {
+      return withTestDb(persistence, async db => {
+        await expectRoundtrip(db, {
+          array: [
+            Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1),
+            new BsonObjectId('507f191e810c19729de860ea'),
+            new Int32Value(1),
+            new Decimal128Value('1.2e3'),
+            new BsonTimestamp(1, 2),
+            MinKey.instance(),
+            MaxKey.instance(),
+            new RegexValue('^foo', 'i')
+          ]
+        });
+      });
+    });
+
+    it('can read and write bson fields in an object', () => {
+      return withTestDb(persistence, async db => {
+        await expectRoundtrip(db, {
+          object: {
+            binary: Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1),
+            objectId: new BsonObjectId('507f191e810c19729de860ea'),
+            int32: new Int32Value(1),
+            decimal128: new Decimal128Value('1.2e3'),
+            bsonTimestamp: new BsonTimestamp(1, 2),
+            min: MinKey.instance(),
+            max: MaxKey.instance(),
+            regex: new RegexValue('^foo', 'i')
+          }
+        });
+      });
+    });
+
+    it('invalid 32-bit integer gets rejected', async () => {
+      return withTestCollection(persistence, {}, async coll => {
+        const docRef = doc(coll, 'test-doc');
+        let errorMessage;
+        try {
+          await setDoc(docRef, { key: new Int32Value(2147483648) });
+        } catch (err) {
+          errorMessage = (err as FirestoreError)?.message;
+        }
+        expect(errorMessage).to.contains(
+          "The field '__int__' value (2,147,483,648) is too large to be converted to a 32-bit integer."
+        );
+
+        try {
+          await setDoc(docRef, { key: new Int32Value(-2147483650) });
+        } catch (err) {
+          errorMessage = (err as FirestoreError)?.message;
+        }
+        expect(errorMessage).to.contains(
+          "The field '__int__' value (-2,147,483,650) is too large to be converted to a 32-bit integer."
+        );
+      });
+    });
+
+    it('invalid decimal128 gets rejected', async () => {
+      return withTestCollection(persistence, {}, async coll => {
+        const docRef = doc(coll, 'test-doc');
+        let errorMessage;
+        try {
+          await setDoc(docRef, { key: new Decimal128Value('') });
+        } catch (err) {
+          errorMessage = (err as FirestoreError)?.message;
+        }
+        expect(errorMessage).to.contains('Invalid number');
+
+        try {
+          await setDoc(docRef, { key: new Decimal128Value('1 23. 4') });
+        } catch (err) {
+          errorMessage = (err as FirestoreError)?.message;
+        }
+        expect(errorMessage).to.contains('Invalid number 1 23. 4');
+
+        try {
+          await setDoc(docRef, { key: new Decimal128Value('abc') });
+        } catch (err) {
+          errorMessage = (err as FirestoreError)?.message;
+        }
+        expect(errorMessage).to.contains('Invalid number abc');
+      });
+    });
+
+    it('invalid BSON timestamp gets rejected', async () => {
+      return withTestCollection(persistence, {}, async coll => {
+        const docRef = doc(coll, 'test-doc');
+        let errorMessage;
+        try {
+          // BSON timestamp larger than 32-bit integer gets rejected
+          await setDoc(docRef, { key: new BsonTimestamp(4294967296, 2) });
+        } catch (err) {
+          errorMessage = (err as FirestoreError)?.message;
+        }
+        expect(errorMessage).to.contains(
+          "BsonTimestamp 'seconds' must be in the range of a 32-bit unsigned integer (0-4294967295)."
+        );
+
+        try {
+          // negative BSON timestamp gets rejected
+          await setDoc(docRef, { key: new BsonTimestamp(-1, 2) });
+        } catch (err) {
+          errorMessage = (err as FirestoreError)?.message;
+        }
+        expect(errorMessage).to.contains(
+          "BsonTimestamp 'seconds' must be in the range of a 32-bit unsigned integer (0-4294967295)."
+        );
+
+        expect(() => new BsonTimestamp(NaN, 2)).to.throw(
+          "BsonTimestamp 'seconds' must be in the range of a 32-bit unsigned integer (0-4294967295)."
+        );
+
+        expect(() => new BsonTimestamp(1.5, 2)).to.throw(
+          "BsonTimestamp 'seconds' must be in the range of a 32-bit unsigned integer (0-4294967295)."
+        );
+
+        expect(() => new BsonTimestamp(2, NaN)).to.throw(
+          "BsonTimestamp 'increment' must be in the range of a 32-bit unsigned integer (0-4294967295)."
+        );
+
+        expect(() => new BsonTimestamp(2, 1.5)).to.throw(
+          "BsonTimestamp 'increment' must be in the range of a 32-bit unsigned integer (0-4294967295)."
+        );
+
+        expect(() => new BsonTimestamp(2, -1)).to.throw(
+          "BsonTimestamp 'increment' must be in the range of a 32-bit unsigned integer (0-4294967295)."
+        );
+
+        expect(() => new BsonTimestamp(2, 4294967296)).to.throw(
+          "BsonTimestamp 'increment' must be in the range of a 32-bit unsigned integer (0-4294967295)."
+        );
+      });
+    });
+
+    it('invalid regex value gets rejected', async () => {
+      return withTestCollection(persistence, {}, async coll => {
+        const docRef = doc(coll, 'test-doc');
+        let errorMessage;
+        try {
+          await setDoc(docRef, { key: new RegexValue('foo', 'a') });
+        } catch (err) {
+          errorMessage = (err as FirestoreError)?.message;
+        }
+        expect(errorMessage).to.contains(
+          "Invalid regex option 'a'. Supported options are 'i', 'm', 's', 'u', and 'x'."
+        );
+      });
+    });
+
+    it('invalid bsonObjectId value gets rejected', async () => {
+      return withTestCollection(persistence, {}, async coll => {
+        const docRef = doc(coll, 'test-doc');
+
+        let errorMessage;
+        try {
+          // bsonObjectId with length not equal to 24 gets rejected
+          await setDoc(docRef, { key: new BsonObjectId('foo') });
+        } catch (err) {
+          errorMessage = (err as FirestoreError)?.message;
+        }
+        expect(errorMessage).to.contains(
+          'Object ID hex string has incorrect length.'
+        );
+      });
+    });
+
+    it('invalid bsonBinaryData value gets rejected', async () => {
+      return withTestCollection(persistence, {}, async coll => {
+        const docRef = doc(coll, 'test-doc');
+        let errorMessage;
+        try {
+          await setDoc(docRef, {
+            key: Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1234)
+          });
+        } catch (err) {
+          errorMessage = (err as FirestoreError)?.message;
+        }
+        expect(errorMessage).to.contains(
+          'The subtype for Bytes must be a value in the inclusive [0, 255] range.'
+        );
+      });
+    });
+
+    it('can order values of different TypeOrder together', async () => {
+      const testDocs: { [key: string]: DocumentData } = {
+        nullValue: { key: null },
+        minValue: { key: MinKey.instance() },
+        booleanValue: { key: true },
+        nanValue: { key: NaN },
+        int32Value: { key: new Int32Value(1) },
+        decimal128Value: { key: new Decimal128Value('1.2e3') },
+        doubleValue: { key: 2.0 },
+        integerValue: { key: 3 },
+        timestampValue: { key: new Timestamp(100, 123456000) },
+        bsonTimestampValue: { key: new BsonTimestamp(1, 2) },
+        stringValue: { key: 'string' },
+        bytesValue: { key: Bytes.fromUint8Array(new Uint8Array([0, 1, 255])) },
+        bsonBinaryValue: {
+          key: Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1)
+        },
+        // referenceValue: {key: ref('coll/doc')},
+        referenceValue: { key: 'placeholder' },
+        objectIdValue: { key: new BsonObjectId('507f191e810c19729de860ea') },
+        geoPointValue: { key: new GeoPoint(0, 0) },
+        regexValue: { key: new RegexValue('^foo', 'i') },
+        arrayValue: { key: [1, 2] },
+        vectorValue: { key: vector([1, 2]) },
+        objectValue: { key: { a: 1 } },
+        maxValue: { key: MaxKey.instance() }
+      };
+
+      return withTestCollection(persistence, testDocs, async coll => {
+        const docRef = doc(coll, 'doc');
+        await setDoc(doc(coll, 'referenceValue'), { key: docRef });
+
+        const orderedQuery = query(coll, orderBy('key'));
+        const snapshot = await getDocs(orderedQuery);
+        for (let i = 0; i < snapshot.docs.length; i++) {
+          const actualDoc = snapshot.docs[i].data().key;
+          const expectedDoc =
+            testDocs[snapshot.docs[i].id as keyof typeof testDocs].key;
+          if (actualDoc instanceof DocumentReference) {
+            // deep.equal doesn't work with DocumentReference
+            expect(refEqual(actualDoc, docRef)).to.be.true;
+          } else {
+            expect(actualDoc).to.deep.equal(expectedDoc);
+          }
+        }
+      });
     });
   });
 });

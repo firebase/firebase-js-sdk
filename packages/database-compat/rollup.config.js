@@ -21,11 +21,15 @@ import typescript from 'typescript';
 import commonjs from '@rollup/plugin-commonjs';
 import resolveModule from '@rollup/plugin-node-resolve';
 
-import pkg from './package.json';
-import standalonePkg from './standalone/package.json';
-import { emitModulePackageFile } from '../../scripts/build/rollup_emit_module_package_file';
+import pkg from './package.json' with { type: 'json' };
+import standalonePkg from './standalone/package.json' with { type: 'json' };
+import { emitModulePackageFile } from '../../scripts/build/rollup_emit_module_package_file.js';
 
-const deps = Object.keys({ ...pkg.peerDependencies, ...pkg.dependencies });
+const depsAndPeerDeps = Object.keys({
+  ...pkg.peerDependencies,
+  ...pkg.dependencies
+});
+const depsOnly = Object.keys(pkg.dependencies);
 
 function onWarn(warning, defaultWarn) {
   if (warning.code === 'CIRCULAR_DEPENDENCY') {
@@ -59,7 +63,8 @@ const esmBuilds = [
     treeshake: {
       moduleSideEffects: false
     },
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+    external: id =>
+      depsAndPeerDeps.some(dep => id === dep || id.startsWith(`${dep}/`)),
     onwarn: onWarn
   },
   /**
@@ -78,7 +83,8 @@ const esmBuilds = [
     treeshake: {
       moduleSideEffects: false
     },
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+    external: id =>
+      depsAndPeerDeps.some(dep => id === dep || id.startsWith(`${dep}/`)),
     onwarn: onWarn
   }
 ];
@@ -93,6 +99,7 @@ const cjsBuilds = [
       {
         file: pkg.main,
         format: 'cjs',
+        esModule: true,
         sourcemap: true
       }
     ],
@@ -100,7 +107,8 @@ const cjsBuilds = [
     treeshake: {
       moduleSideEffects: false
     },
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+    external: id =>
+      depsAndPeerDeps.some(dep => id === dep || id.startsWith(`${dep}/`)),
     onwarn: onWarn
   },
   /**
@@ -113,6 +121,7 @@ const cjsBuilds = [
       {
         file: standalonePkg.main.replace('../', ''),
         format: 'cjs',
+        esModule: true,
         sourcemap: true
       }
     ],
@@ -128,7 +137,9 @@ const cjsBuilds = [
       moduleSideEffects: false
     },
     external: id =>
-      deps
+      // For the standalone bundle, exclude peerDependencies from externals,
+      // so app and app-compat will be bundled.
+      depsOnly
         .filter(dep => dep !== '@firebase/database')
         .some(dep => id === dep || id.startsWith(`${dep}/`)),
     onwarn: onWarn

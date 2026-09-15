@@ -92,8 +92,10 @@ export interface TemplateGenerateContentRequest {
  * Internal version of the template generate content request.
  * @internal
  */
-export interface TemplateRequestInternal
-  extends Omit<TemplateGenerateContentRequest, 'tools'> {
+export interface TemplateRequestInternal extends Omit<
+  TemplateGenerateContentRequest,
+  'tools'
+> {
   tools?: TemplateFunctionDeclarationsToolInternal[];
 }
 
@@ -107,7 +109,7 @@ export interface SafetySetting {
   /**
    * The harm block method.
    *
-   * This property is only supported in the Vertex AI Gemini API ({@link VertexAIBackend}).
+   * This property is only supported in the Agent Platform Gemini API ({@link AgentPlatformBackend}).
    * When using the Gemini Developer API ({@link GoogleAIBackend}), an {@link AIError} will be
    * thrown if this property is defined.
    */
@@ -134,14 +136,39 @@ export interface ImageConfig {
  * @public
  */
 export interface GenerationConfig {
+  /**
+   * @deprecated Not supported in Gemini 3.x and later models. The model will ignore this parameter if it's included in a request. Make parallel requests instead.
+   */
   candidateCount?: number;
   stopSequences?: string[];
   maxOutputTokens?: number;
+  /**
+   * @deprecated Not supported in Gemini 3.x and later models. The model will ignore this parameter if it's included in a request. Omit this parameter and let the model manage sampling automatically.
+   */
   temperature?: number;
+  /**
+   * @deprecated Not supported in Gemini 3.x and later models. The model will ignore this parameter if it's included in a request. Omit this parameter and let the model manage sampling automatically.
+   */
   topP?: number;
+  /**
+   * @deprecated Not supported in Gemini 3.x and later models. The model will ignore this parameter if it's included in a request. Omit this parameter and let the model manage sampling automatically.
+   */
   topK?: number;
+  /**
+   * @deprecated Not supported in Gemini 3.x and later models. Requests that include this parameter will fail with a 400 error. Omit this parameter.
+   */
   presencePenalty?: number;
+  /**
+   * @deprecated Not supported in Gemini 3.x and later models. Requests that include this parameter will fail with a 400 error. Omit this parameter.
+   */
   frequencyPenalty?: number;
+
+  /**
+   * Configuration for speech synthesis for text-to-speech (TTS) models.
+   *
+   * @beta
+   */
+  speechConfig?: SpeechConfig;
   /**
    * Output response MIME type of the generated candidate text.
    * Supported MIME types are `text/plain` (default, text output),
@@ -170,7 +197,7 @@ export interface GenerationConfig {
    * Generation modalities to be returned in generation responses.
    *
    * @remarks
-   *  - Multimodal response generation is only supported by some Gemini models and versions; see {@link https://firebase.google.com/docs/vertex-ai/models | model versions}.
+   *  - Multimodal response generation is only supported by some Gemini models and versions; see {@link https://firebase.google.com/docs/ai-logic/models | model versions}.
    *  - Only image generation (`ResponseModality.IMAGE`) is supported.
    *
    * @beta
@@ -194,7 +221,7 @@ export interface GenerationConfig {
  */
 export interface LiveGenerationConfig {
   /**
-   * Configuration for speech synthesis.
+   * Configuration for speech synthesis for Live API Models.
    */
   speechConfig?: SpeechConfig;
   /**
@@ -206,6 +233,8 @@ export interface LiveGenerationConfig {
    * Controls the degree of randomness in token selection. A `temperature` value of 0 means that the highest
    * probability tokens are always selected. In this case, responses for a given prompt are mostly
    * deterministic, but a small amount of variation is still possible.
+   *
+   * @deprecated Not supported in Gemini 3.x and later models. The model will ignore this parameter if it's included in a request. Omit this parameter and let the model manage sampling automatically.
    */
   temperature?: number;
   /**
@@ -214,6 +243,8 @@ export interface LiveGenerationConfig {
    * value. For example, if tokens A, B, and C have probabilities of 0.3, 0.2, and 0.1 respectively
    * and the `topP` value is 0.5, then the model will select either A or B as the next token by using
    * the `temperature` and exclude C as a candidate. Defaults to 0.95 if unset.
+   *
+   * @deprecated Not supported in Gemini 3.x and later models. The model will ignore this parameter if it's included in a request. Omit this parameter and let the model manage sampling automatically.
    */
   topP?: number;
   /**
@@ -222,14 +253,20 @@ export interface LiveGenerationConfig {
    * the next token is selected from among the 3 most probably using probabilities sampled. Tokens
    * are then further filtered with the highest selected `temperature` sampling. Defaults to 40
    * if unspecified.
+   *
+   * @deprecated Not supported in Gemini 3.x and later models. The model will ignore this parameter if it's included in a request. Omit this parameter and let the model manage sampling automatically.
    */
   topK?: number;
   /**
    * Positive penalties.
+   *
+   * @deprecated Not supported in Gemini 3.x and later models. Requests that include this parameter will fail with a 400 error. Omit this parameter.
    */
   presencePenalty?: number;
   /**
    * Frequency penalties.
+   *
+   * @deprecated Not supported in Gemini 3.x and later models. Requests that include this parameter will fail with a 400 error. Omit this parameter.
    */
   frequencyPenalty?: number;
   /**
@@ -335,8 +372,10 @@ export interface StartChatParams extends BaseParams {
  * Params for {@link TemplateGenerativeModel.startChat}.
  * @beta
  */
-export interface StartTemplateChatParams
-  extends Omit<StartChatParams, 'tools'> {
+export interface StartTemplateChatParams extends Omit<
+  StartChatParams,
+  'tools'
+> {
   /**
    * The ID of the server-side template to execute.
    */
@@ -488,7 +527,7 @@ export interface FunctionDeclaration {
  *
  * Important: If using Grounding with Google Search, you are required to comply with the
  * "Grounding with Google Search" usage requirements for your chosen API provider: {@link https://ai.google.dev/gemini-api/terms#grounding-with-google-search | Gemini Developer API}
- * or Vertex AI Gemini API (see {@link https://cloud.google.com/terms/service-terms | Service Terms}
+ * or Agent Platform Gemini API (see {@link https://cloud.google.com/terms/service-terms | Service Terms}
  * section within the Service Specific Terms).
  *
  * @public
@@ -500,7 +539,7 @@ export interface GoogleSearchTool {
    *
    * When using this feature, you are required to comply with the "Grounding with Google Search"
    * usage requirements for your chosen API provider: {@link https://ai.google.dev/gemini-api/terms#grounding-with-google-search | Gemini Developer API}
-   * or Vertex AI Gemini API (see {@link https://cloud.google.com/terms/service-terms | Service Terms}
+   * or Agent Platform Gemini API (see {@link https://cloud.google.com/terms/service-terms | Service Terms}
    * section within the Service Specific Terms).
    */
   googleSearch: GoogleSearch;
@@ -512,7 +551,7 @@ export interface GoogleSearchTool {
  *
  * Important: If using Grounding with Google Maps, you are required to comply with the
  * "Grounding with Google Maps" usage requirements for your chosen API provider: {@link https://ai.google.dev/gemini-api/terms#grounding-with-google-maps | Gemini Developer API}
- * or Vertex AI Gemini API (see {@link https://cloud.google.com/terms/service-terms | Service Terms}
+ * or Agent Platform Gemini API (see {@link https://cloud.google.com/terms/service-terms | Service Terms}
  * section within the Service Specific Terms).
  *
  * @public
@@ -523,7 +562,7 @@ export interface GoogleMapsTool {
    *
    * When using this feature, you are required to comply with the "Grounding with Google Maps"
    * usage requirements for your chosen API provider: {@link https://ai.google.dev/gemini-api/terms#grounding-with-google-maps | Gemini Developer API}
-   * or Vertex AI Gemini API (see {@link https://cloud.google.com/terms/service-terms | Service Terms}
+   * or Agent Platform Gemini API (see {@link https://cloud.google.com/terms/service-terms | Service Terms}
    * section within the Service Specific Terms).
    */
   googleMaps: GoogleMaps;
@@ -658,8 +697,10 @@ export interface TemplateFunctionDeclaration {
 /**
  * @internal
  */
-export interface TemplateFunctionDeclarationInternal
-  extends Omit<TemplateFunctionDeclaration, 'parameters'> {
+export interface TemplateFunctionDeclarationInternal extends Omit<
+  TemplateFunctionDeclaration,
+  'parameters'
+> {
   inputSchema?: ObjectSchema | ObjectSchemaRequest;
 }
 
@@ -835,14 +876,14 @@ export interface ThinkingConfig {
 export interface PrebuiltVoiceConfig {
   /**
    * The voice name to use for speech synthesis.
-   *
+   * @remarks
    * For a full list of names and demos of what each voice sounds like, see {@link https://cloud.google.com/text-to-speech/docs/chirp3-hd | Chirp 3: HD Voices}.
    */
   voiceName?: string;
 }
 
 /**
- * Configuration for the voice to used in speech synthesis.
+ * Configuration for the voice to be used for speech synthesis.
  *
  * @beta
  */
@@ -855,17 +896,69 @@ export interface VoiceConfig {
 
 /**
  * Configures speech synthesis.
+ * @beta
+ */
+
+export type SpeechConfig = SingleSpeakerSpeechConfig | MultiSpeakerSpeechConfig;
+
+/**
+ * Base configuration for speech synthesis.
  *
  * @beta
  */
-export interface SpeechConfig {
-  /**
-   * Configures the voice to be used in speech synthesis.
-   */
-  voiceConfig?: VoiceConfig;
+export interface BaseSpeechConfig {
+  /** IETF BCP-47 language code. */
+  languageCode?: string;
 }
 
 /**
  * The audio transcription configuration.
+ *
+ * @beta
  */
 export interface AudioTranscriptionConfig {}
+
+/**
+ * Configuration for speech synthesis for a single speaker.
+ * @beta
+ */
+export interface SingleSpeakerSpeechConfig extends BaseSpeechConfig {
+  /** Configures the voice to be used in speech synthesis. */
+  voiceConfig?: VoiceConfig;
+  /** Multi-speaker configuration must not be set when using a single speaker. */
+  multiSpeakerVoiceConfig?: never;
+}
+
+/**
+ * Configuration for speech synthesis with multiple speakers.
+ * @beta
+ */
+
+export interface MultiSpeakerSpeechConfig extends BaseSpeechConfig {
+  /** Single-speaker voice configuration must not be set when using multiple speakers. */
+  voiceConfig?: never;
+  /** Configuration for multi-speaker setup. */
+  multiSpeakerVoiceConfig?: MultiSpeakerVoiceConfig;
+}
+
+/**
+ * Configuration for multi-speaker setup.
+ *
+ * @beta
+ */
+export interface MultiSpeakerVoiceConfig {
+  /** All the enabled speaker voices. */
+  speakerVoiceConfigs: SpeakerVoiceConfig[];
+}
+
+/**
+ * Configuration for a single speaker's voice.
+ *
+ * @beta
+ */
+export interface SpeakerVoiceConfig {
+  /** The name of the speaker to use (same as in prompt). */
+  speaker: string;
+  /** The configuration for the voice to use. */
+  voiceConfig: VoiceConfig;
+}
