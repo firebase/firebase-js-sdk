@@ -26,9 +26,12 @@ export declare class Pipeline
 |  [aggregate(options)](./firestore_pipelines.pipeline.md#pipelineaggregate) |  | Performs optionally grouped aggregation operations on the documents from previous stages.<!-- -->This stage allows you to calculate aggregate values over a set of documents, optionally grouped by one or more fields or functions. You can specify:<ul> <li>Grouping Fields or Functions: One or more fields or functions to group the documents by. For each distinct combination of values in these fields, a separate group is created. If no grouping fields are provided, a single group containing all documents is used. Not specifying groups is the same as putting the entire inputs into one group.</li> <li>Accumulators: One or more accumulation operations to perform within each group. These are defined using [AliasedAggregate](./firestore_lite_pipelines.aliasedaggregate.md#aliasedaggregate_class) expressions, which are typically created by calling [Expression.as()](./firestore_lite_pipelines.expression.md#expressionas) on [AggregateFunction](./firestore_lite_pipelines.aggregatefunction.md#aggregatefunction_class) instances. Each aggregation calculates a value (e.g., sum, average, count) based on the documents within its group.</li> </ul> |
 |  [define(aliasedExpression, additionalExpressions)](./firestore_pipelines.pipeline.md#pipelinedefine) |  | Defines one or more variables in the pipeline's scope. <code>define</code> is used to bind a value to a variable for internal reuse within the pipeline body (accessed via the <code>variable()</code> function).<!-- -->This stage is useful for declaring reusable values or intermediate calculations that can be referenced multiple times in later parts of the pipeline, improving readability and maintainability.<!-- -->Each variable is defined using an [AliasedExpression](./firestore_lite_pipelines.aliasedexpression.md#aliasedexpression_class)<!-- -->, which pairs an expression with a name (alias). The expression can be a simple constant, a field reference, or a complex computation. |
 |  [define(options)](./firestore_pipelines.pipeline.md#pipelinedefine) |  | Defines one or more variables in the pipeline's scope. <code>define</code> is used to bind a value to a variable for internal reuse within the pipeline body (accessed via the <code>variable()</code> function).<!-- -->This stage is useful for declaring reusable values or intermediate calculations that can be referenced multiple times in later parts of the pipeline, improving readability and maintainability.<!-- -->Each variable is defined using an [AliasedExpression](./firestore_lite_pipelines.aliasedexpression.md#aliasedexpression_class)<!-- -->, which pairs an expression with a name (alias). The expression can be a simple constant, a field reference, or a complex computation. |
+|  [delete()](./firestore_pipelines.pipeline.md#pipelinedelete) |  | <b><i>(Public Preview)</i></b> Performs a delete operation on documents from previous stages. |
 |  [distinct(group, additionalGroups)](./firestore_pipelines.pipeline.md#pipelinedistinct) |  | Returns a set of distinct values from the inputs to this stage.<!-- -->This stage runs through the results from previous stages to include only results with unique combinations of [Expression](./firestore_lite_pipelines.expression.md#expression_class) values ([Field](./firestore_lite_pipelines.field.md#field_class)<!-- -->, [AliasedExpression](./firestore_lite_pipelines.aliasedexpression.md#aliasedexpression_class)<!-- -->, etc).<!-- -->The parameters to this stage are defined using [Selectable](./firestore_lite_pipelines.selectable.md#selectable_interface) expressions or strings:<ul> <li> <code>string</code>: Name of an existing field</li> <li> [Field](./firestore_lite_pipelines.field.md#field_class)<!-- -->: References an existing document field.</li> <li> [AliasedExpression](./firestore_lite_pipelines.aliasedexpression.md#aliasedexpression_class)<!-- -->: Represents the result of a function with an assigned alias name using [Expression.as()](./firestore_lite_pipelines.expression.md#expressionas)<!-- -->.</li> </ul> |
 |  [distinct(options)](./firestore_pipelines.pipeline.md#pipelinedistinct) |  | Returns a set of distinct values from the inputs to this stage.<!-- -->This stage runs through the results from previous stages to include only results with unique combinations of [Expression](./firestore_lite_pipelines.expression.md#expression_class) values ([Field](./firestore_lite_pipelines.field.md#field_class)<!-- -->, [AliasedExpression](./firestore_lite_pipelines.aliasedexpression.md#aliasedexpression_class)<!-- -->, etc).<!-- -->The parameters to this stage are defined using [Selectable](./firestore_lite_pipelines.selectable.md#selectable_interface) expressions or strings:<ul> <li><code>string</code>: Name of an existing field</li> <li>[Field](./firestore_lite_pipelines.field.md#field_class)<!-- -->: References an existing document field.</li> <li>[AliasedExpression](./firestore_lite_pipelines.aliasedexpression.md#aliasedexpression_class)<!-- -->: Represents the result of a function with an assigned alias name using [Expression.as()](./firestore_lite_pipelines.expression.md#expressionas)<!-- -->.</li> </ul> |
 |  [findNearest(options)](./firestore_pipelines.pipeline.md#pipelinefindnearest) |  | Performs a vector proximity search on the documents from the previous stage, returning the K-nearest documents based on the specified query <code>vectorValue</code> and <code>distanceMeasure</code>. The returned documents will be sorted in order from nearest to furthest from the query <code>vectorValue</code>. |
+|  [insert()](./firestore_pipelines.pipeline.md#pipelineinsert) |  | <b><i>(Public Preview)</i></b> Performs an insert operation using documents from previous stages. |
+|  [insert(options)](./firestore_pipelines.pipeline.md#pipelineinsert) |  | <b><i>(Public Preview)</i></b> Performs an insert operation with options. |
 |  [limit(limit)](./firestore_pipelines.pipeline.md#pipelinelimit) |  | Limits the maximum number of documents returned by previous stages to <code>limit</code>.<p>This stage is particularly useful when you want to retrieve a controlled subset of data from a potentially large result set. It's often used for:<ul> <li>Pagination: In combination with [Pipeline.offset](./firestore_lite_pipelines.pipeline.md#pipelineoffset) to retrieve specific pages of results.</li> <li>Limiting Data Retrieval: To prevent excessive data transfer and improve performance, especially when dealing with large collections.</li> </ul> |
 |  [limit(options)](./firestore_pipelines.pipeline.md#pipelinelimit) |  | Limits the maximum number of documents returned by previous stages to <code>limit</code>.<p>This stage is particularly useful when you want to retrieve a controlled subset of data from a potentially large result set. It's often used for:<ul> <li>Pagination: In combination with [Pipeline.offset](./firestore_lite_pipelines.pipeline.md#pipelineoffset) to retrieve specific pages of results.</li> <li>Limiting Data Retrieval: To prevent excessive data transfer and improve performance, especially when dealing with large collections.</li> </ul> |
 |  [offset(offset)](./firestore_pipelines.pipeline.md#pipelineoffset) |  | Skips the first <code>offset</code> number of documents from the results of previous stages.<p>This stage is useful for implementing pagination in your pipelines, allowing you to retrieve results in chunks. It is typically used in conjunction with [Pipeline.limit](./firestore_lite_pipelines.pipeline.md#pipelinelimit) to control the size of each page. |
@@ -52,6 +55,10 @@ export declare class Pipeline
 |  [union(options)](./firestore_pipelines.pipeline.md#pipelineunion) |  | Performs union of all documents from two pipelines, including duplicates.<p>This stage will pass through documents from previous stage, and also pass through documents from previous stage of the <code>other</code> [Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class) given in parameter. The order of documents emitted from this stage is undefined. |
 |  [unnest(selectable, indexField)](./firestore_pipelines.pipeline.md#pipelineunnest) |  | Produces a document for each element in an input array.<!-- -->For each previous stage document, this stage will emit zero or more augmented documents. The input array specified by the <code>selectable</code> parameter, will emit an augmented document for each input array element. The input array element will augment the previous stage document by setting the <code>alias</code> field with the array element value.<!-- -->When <code>selectable</code> evaluates to a non-array value (ex: number, null, absent), then the stage becomes a no-op for the current input document, returning it as is with the <code>alias</code> field absent.<!-- -->No documents are emitted when <code>selectable</code> evaluates to an empty array. |
 |  [unnest(options)](./firestore_pipelines.pipeline.md#pipelineunnest) |  | Produces a document for each element in an input array.<!-- -->For each previous stage document, this stage will emit zero or more augmented documents. The input array specified by the <code>selectable</code> parameter, will emit an augmented document for each input array element. The input array element will augment the previous stage document by setting the <code>alias</code> field with the array element value.<!-- -->When <code>selectable</code> evaluates to a non-array value (ex: number, null, absent), then the stage becomes a no-op for the current input document, returning it as is with the <code>alias</code> field absent.<!-- -->No documents are emitted when <code>selectable</code> evaluates to an empty array. |
+|  [update()](./firestore_pipelines.pipeline.md#pipelineupdate) |  | <b><i>(Public Preview)</i></b> Performs an update operation using documents from previous stages. |
+|  [update(transformedFields)](./firestore_pipelines.pipeline.md#pipelineupdate) |  | <b><i>(Public Preview)</i></b> Performs an update operation using documents from previous stages. |
+|  [upsert(additionalFields)](./firestore_pipelines.pipeline.md#pipelineupsert) |  | <b><i>(Public Preview)</i></b> Performs an upsert operation using documents from previous stages. |
+|  [upsert(additionalFields, options)](./firestore_pipelines.pipeline.md#pipelineupsert) |  | <b><i>(Public Preview)</i></b> Performs an upsert operation with options. |
 |  [where(condition)](./firestore_pipelines.pipeline.md#pipelinewhere) |  | Filters the documents from previous stages to only include those matching the specified [BooleanExpression](./firestore_lite_pipelines.booleanexpression.md#booleanexpression_class)<!-- -->.<p>This stage allows you to apply conditions to the data, similar to a "WHERE" clause in SQL. You can filter documents based on their field values, using implementations of [BooleanExpression](./firestore_lite_pipelines.booleanexpression.md#booleanexpression_class)<!-- -->, typically including but not limited to:<ul> <li>field comparators: [Expression.equal()](./firestore_lite_pipelines.expression.md#expressionequal)<!-- -->, [Expression.lessThan()](./firestore_lite_pipelines.expression.md#expressionlessthan)<!-- -->, [Expression.greaterThan()](./firestore_lite_pipelines.expression.md#expressiongreaterthan)<!-- -->, etc.</li> <li>logical operators: [and](./firestore.md#and_e72c712)<!-- -->, [or](./firestore.md#or_e72c712)<!-- -->, [not](./firestore_lite_pipelines.md#not_c5b8fb1)<!-- -->, etc.</li> <li>advanced functions: [Expression.regexMatch()](./firestore_lite_pipelines.expression.md#expressionregexmatch)<!-- -->, [Expression.arrayContains()](./firestore_lite_pipelines.expression.md#expressionarraycontains)<!-- -->, etc.</li> </ul> |
 |  [where(options)](./firestore_pipelines.pipeline.md#pipelinewhere) |  | Filters the documents from previous stages to only include those matching the specified [BooleanExpression](./firestore_lite_pipelines.booleanexpression.md#booleanexpression_class)<!-- -->.<p>This stage allows you to apply conditions to the data, similar to a "WHERE" clause in SQL. You can filter documents based on their field values, using implementations of [BooleanExpression](./firestore_lite_pipelines.booleanexpression.md#booleanexpression_class)<!-- -->, typically including but not limited to:<ul> <li>field comparators: [Expression.equal()](./firestore_lite_pipelines.expression.md#expressionequal)<!-- -->, [Expression.lessThan()](./firestore_lite_pipelines.expression.md#expressionlessthan) (less than), [Expression.greaterThan()](./firestore_lite_pipelines.expression.md#expressiongreaterthan)<!-- -->, etc.</li> <li>logical operators: [and](./firestore.md#and_e72c712)<!-- -->, [or](./firestore.md#or_e72c712)<!-- -->, [not](./firestore_lite_pipelines.md#not_c5b8fb1)<!-- -->, etc.</li> <li>advanced functions: [Expression.regexMatch()](./firestore_lite_pipelines.expression.md#expressionregexmatch)<!-- -->, [Expression.arrayContains()](./firestore_lite_pipelines.expression.md#expressionarraycontains)<!-- -->, etc.</li> </ul> |
 
@@ -300,6 +307,35 @@ db.pipeline().collection("products")
 
 ```
 
+## Pipeline.delete()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Performs a delete operation on documents from previous stages.
+
+<b>Signature:</b>
+
+```typescript
+delete(): Pipeline;
+```
+<b>Returns:</b>
+
+[Pipeline](./firestore_pipelines.pipeline.md#pipeline_class)
+
+A new [Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class) object with this stage appended to the stage list.
+
+### Example
+
+
+```typescript
+// Deletes all documents in the "books" collection matching condition.
+firestore.pipeline().collection("books")
+   .where(equal(field("genre"), "Science Fiction"))
+   .delete();
+
+```
+
 ## Pipeline.distinct()
 
 Returns a set of distinct values from the inputs to this stage.
@@ -422,6 +458,49 @@ firestore.pipeline().collection("books")
     });
 
 ```
+
+## Pipeline.insert()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Performs an insert operation using documents from previous stages.
+
+<b>Signature:</b>
+
+```typescript
+insert(): Pipeline;
+```
+<b>Returns:</b>
+
+[Pipeline](./firestore_pipelines.pipeline.md#pipeline_class)
+
+A new [Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class) object with this stage appended to the stage list.
+
+## Pipeline.insert()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Performs an insert operation with options.
+
+<b>Signature:</b>
+
+```typescript
+insert(options: InsertStageOptions): Pipeline;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  options | [InsertStageOptions](./firestore_pipelines.md#insertstageoptions) | Options defining the collection and document ID. |
+
+<b>Returns:</b>
+
+[Pipeline](./firestore_pipelines.pipeline.md#pipeline_class)
+
+A new [Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class) object with this stage appended to the stage list.
 
 ## Pipeline.limit()
 
@@ -1443,6 +1522,103 @@ firestore.pipeline().collection("books")
 // { "title": "The Hitchhiker's Guide to the Galaxy", "tag": "adventure", "tagIndex": 2, ... }
 
 ```
+
+## Pipeline.update()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Performs an update operation using documents from previous stages.
+
+<b>Signature:</b>
+
+```typescript
+update(): Pipeline;
+```
+<b>Returns:</b>
+
+[Pipeline](./firestore_pipelines.pipeline.md#pipeline_class)
+
+A new [Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class) object with this stage appended to the stage list.
+
+## Pipeline.update()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Performs an update operation using documents from previous stages.
+
+<b>Signature:</b>
+
+```typescript
+update(transformedFields: AliasedExpression[]): Pipeline;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  transformedFields | [AliasedExpression](./firestore_pipelines.aliasedexpression.md#aliasedexpression_class)<!-- -->\[\] | The list of transformations to apply. |
+
+<b>Returns:</b>
+
+[Pipeline](./firestore_pipelines.pipeline.md#pipeline_class)
+
+A new [Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class) object with this stage appended to the stage list.
+
+## Pipeline.upsert()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Performs an upsert operation using documents from previous stages.
+
+<b>Signature:</b>
+
+```typescript
+upsert(additionalFields: AliasedExpression[]): Pipeline;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  additionalFields | [AliasedExpression](./firestore_pipelines.aliasedexpression.md#aliasedexpression_class)<!-- -->\[\] | The list of additional fields to apply. |
+
+<b>Returns:</b>
+
+[Pipeline](./firestore_pipelines.pipeline.md#pipeline_class)
+
+A new [Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class) object with this stage appended to the stage list.
+
+## Pipeline.upsert()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Performs an upsert operation with options.
+
+<b>Signature:</b>
+
+```typescript
+upsert(
+    additionalFields: AliasedExpression[],
+    options: UpsertStageOptions
+  ): Pipeline;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  additionalFields | [AliasedExpression](./firestore_pipelines.aliasedexpression.md#aliasedexpression_class)<!-- -->\[\] | The list of additional fields to apply. |
+|  options | [UpsertStageOptions](./firestore_pipelines.md#upsertstageoptions) | Options defining the target collection and document ID. |
+
+<b>Returns:</b>
+
+[Pipeline](./firestore_pipelines.pipeline.md#pipeline_class)
+
+A new [Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class) object with this stage appended to the stage list.
 
 ## Pipeline.where()
 
