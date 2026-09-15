@@ -17,8 +17,6 @@
 
 import { initializeApp, deleteApp } from '@firebase/app';
 import { Deferred } from '@firebase/util';
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
 
 import {
   child,
@@ -50,13 +48,12 @@ import {
   EMULATOR_PORT,
   getFreshRepo,
   getRWRefs,
+  getUniqueRef,
   USE_EMULATOR,
   waitFor,
   waitUntil,
   writeAndValidate
 } from '../helpers/util';
-
-use(chaiAsPromised);
 
 export function createTestApp() {
   return initializeApp({ databaseURL: DATABASE_URL });
@@ -78,7 +75,7 @@ describe('Database@exp Tests', () => {
 
   it('Can get database', () => {
     const db = getDatabase(defaultApp);
-    expect(db).to.be.ok;
+    expect(db).toBeTruthy();
   });
   it("doesn't try to connect to emulator after database has already started", async () => {
     const db = getDatabase(defaultApp);
@@ -95,27 +92,27 @@ describe('Database@exp Tests', () => {
         database: 'localhost:9000'
       }
     });
-    expect(() => getDatabase(defaultApp)).to.not.throw();
+    expect(() => getDatabase(defaultApp)).not.toThrow();
     delete process.env.__FIREBASE_DEFAULTS__;
   });
 
   it('Can get database with custom URL', () => {
     const db = getDatabase(defaultApp, 'http://foo.bar.com');
-    expect(db).to.be.ok;
+    expect(db).toBeTruthy();
     // The URL is assumed to be secure if no port is specified.
-    expect(ref(db).toString()).to.equal('https://foo.bar.com/');
+    expect(ref(db).toString()).toBe('https://foo.bar.com/');
   });
 
   it('Can get app', () => {
     const db = getDatabase(defaultApp);
-    expect(db.app).to.equal(defaultApp);
+    expect(db.app).toBe(defaultApp);
   });
 
   it('Can set and get ref', async () => {
     const db = getDatabase(defaultApp);
     await set(ref(db, 'foo/bar'), 'foobar');
     const snap = await get(ref(db, 'foo/bar'));
-    expect(snap.val()).to.equal('foobar');
+    expect(snap.val()).toBe('foobar');
   });
 
   it('Can get refFromUrl', async () => {
@@ -136,8 +133,8 @@ describe('Database@exp Tests', () => {
     await set(fooRef, 'b');
 
     const [snap1, snap2] = await ea.promise;
-    expect(snap1).to.equal('a');
-    expect(snap2).to.equal('b');
+    expect(snap1).toBe('a');
+    expect(snap2).toBe('b');
     unsubscribe();
   });
 
@@ -168,7 +165,7 @@ describe('Database@exp Tests', () => {
       await get(refFromURL(db, `${DATABASE_ADDRESS}/foo/bar`));
       expect(() => {
         connectDatabaseEmulator(db, 'localhost', 9001);
-      }).to.throw();
+      }).toThrow();
     });
   }
 
@@ -176,7 +173,7 @@ describe('Database@exp Tests', () => {
     // Note: This test requires `testIndex` to be added as an index.
     // Please run `yarn test:setup` to ensure that this gets added.
     const database = getDatabase(defaultApp);
-    const root = ref(database, 'testing');
+    const root = getUniqueRef(database);
     await set(root, {});
 
     const q = query(root, orderByChild('testIndex'), limitToFirst(2));
@@ -212,9 +209,9 @@ describe('Database@exp Tests', () => {
     const results = await ec.promise;
     results.forEach(result => {
       const value = result.val();
-      expect(value).to.haveOwnProperty('timestamp');
-      expect(value).to.haveOwnProperty('action');
-      expect(value).to.haveOwnProperty('testIndex');
+      expect(value).toHaveProperty('timestamp');
+      expect(value).toHaveProperty('action');
+      expect(value).toHaveProperty('testIndex');
     });
     onChildAddedCb();
     onValueCb();
@@ -241,7 +238,7 @@ describe('Database@exp Tests', () => {
         await get(q);
         await waitFor(2000);
         const [snap] = await ec.promise;
-        expect(snap.val()).to.deep.equal(initial);
+        expect(snap.val()).toEqual(initial);
         unsubscribe();
       })
     );
@@ -271,9 +268,9 @@ describe('Database@exp Tests', () => {
       ec.addEvent(snapshot.val());
     });
     const events = await ec.promise;
-    expect(events.length).to.eq(1);
+    expect(events.length).toBe(1);
     const snapshot = events[0];
-    expect(snapshot).to.deep.eq({ a: 1 });
+    expect(snapshot).toEqual({ a: 1 });
   });
 
   it('calls onValue and expects no issues with removing the listener', async () => {
@@ -291,7 +288,7 @@ describe('Database@exp Tests', () => {
     unsubscribe();
     await set(writerRef, update);
     const [snap1] = await ea.promise;
-    expect(snap1).to.deep.eq(initial);
+    expect(snap1).toEqual(initial);
   });
 
   it('calls onValue only once after get request with a default query', async () => {
@@ -303,12 +300,12 @@ describe('Database@exp Tests', () => {
     await set(writerRef, initial);
     const unsubscribe = onValue(readerRef, snapshot => {
       ea.addEvent(snapshot);
-      expect(snapshot.val()).to.deep.eq(initial);
+      expect(snapshot.val()).toEqual(initial);
     });
     await get(query(readerRef));
     await waitFor(2000);
     const [snap] = await ea.promise;
-    expect(snap.val()).to.deep.equal(initial);
+    expect(snap.val()).toEqual(initial);
     unsubscribe();
   });
 
@@ -329,8 +326,8 @@ describe('Database@exp Tests', () => {
     const result = await get(query(nestedRef));
     await waitFor(2000);
     const [snap] = await ea.promise;
-    expect(snap.val()).to.deep.equal(initial);
-    expect(result.val()).to.deep.eq(initial.test);
+    expect(snap.val()).toEqual(initial);
+    expect(result.val()).toEqual(initial.test);
     unsubscribe();
   });
   it('calls onValue only once after parent get request', async () => {
@@ -351,9 +348,9 @@ describe('Database@exp Tests', () => {
     const result = await get(query(readerRef));
     const events = await ea.promise;
     await waitFor(2000);
-    expect(events.length).to.equal(1);
-    expect(events[0].val()).to.deep.eq(initial.test);
-    expect(result.val()).to.deep.equal(initial);
+    expect(events.length).toBe(1);
+    expect(events[0].val()).toEqual(initial.test);
+    expect(result.val()).toEqual(initial);
     unsubscribe();
   });
 
@@ -374,7 +371,7 @@ describe('Database@exp Tests', () => {
     await set(fooRef, 'b');
 
     const [snap1] = await ea.promise;
-    expect(snap1).to.equal('a'); // This doesn't test that onValue was only triggered once
+    expect(snap1).toBe('a'); // This doesn't test that onValue was only triggered once
     unsubscribe();
   });
 
@@ -392,14 +389,14 @@ describe('Database@exp Tests', () => {
     await set(fooRef, 'b');
 
     const events = await ea.promise;
-    expect(events.length).to.equal(1);
-    expect(events[0]).to.equal('a');
+    expect(events.length).toBe(1);
+    expect(events[0]).toBe('a');
   });
 
   it('Can delete app', async () => {
     const db = getDatabase(defaultApp);
     await deleteApp(defaultApp);
-    expect(() => ref(db)).to.throw('Cannot call ref on a deleted database.');
+    expect(() => ref(db)).toThrow('Cannot call ref on a deleted database.');
     defaultApp = undefined;
   });
 
@@ -422,10 +419,10 @@ describe('Database@exp Tests', () => {
       }
     );
     await waitFor(2000);
-    expect(resolvedData).to.equal(null);
+    expect(resolvedData).toBe(null);
     goOnline(db);
     await waitFor(2000);
-    expect(resolvedData.val()).to.deep.equal(initial);
+    expect(resolvedData.val()).toEqual(initial);
   });
 
   it('resolves get to serverCache when the database is offline', async () => {
@@ -437,7 +434,7 @@ describe('Database@exp Tests', () => {
     await set(writerRef, expected);
     goOffline(db);
     const result = await get(writerRef);
-    expect(result.val()).to.deep.eq(expected);
+    expect(result.val()).toEqual(expected);
     goOnline(db);
   });
 
@@ -455,7 +452,7 @@ describe('Database@exp Tests', () => {
     await ec.promise;
     goOffline(db);
     const result = await get(child(readerRef, 'test'));
-    expect(result.val()).to.deep.eq(toWrite.test);
+    expect(result.val()).toEqual(toWrite.test);
     goOnline(db);
   });
 
@@ -473,7 +470,7 @@ describe('Database@exp Tests', () => {
     const expected = {
       child1: 'test1'
     };
-    expect(snapshot.val()).to.deep.eq(expected);
+    expect(snapshot.val()).toEqual(expected);
   });
 
   it('should listen to a disjointed path and get should return the corresponding value', async () => {
@@ -501,9 +498,9 @@ describe('Database@exp Tests', () => {
       child3: 'test3'
     };
     const [child1Snapshot] = await ec.promise;
-    expect(child1Snapshot.val()).to.eq('test1');
+    expect(child1Snapshot.val()).toBe('test1');
     const snapshot = await get(otherChildrenQuery);
-    expect(snapshot.val()).to.deep.eq(expected);
+    expect(snapshot.val()).toEqual(expected);
   });
 
   it('should test startAt get with listener only fires once', async () => {
@@ -522,7 +519,7 @@ describe('Database@exp Tests', () => {
       child2: 'test2',
       child3: 'test3'
     };
-    expect(snapshot.val()).to.deep.eq(expectedQRes);
+    expect(snapshot.val()).toEqual(expectedQRes);
   });
 
   it('Can listen to transaction changes', async () => {
@@ -549,12 +546,12 @@ describe('Database@exp Tests', () => {
       await deferred.promise;
     }
 
-    expect(latestValue).to.equal(0);
+    expect(latestValue).toBe(0);
 
     await incrementViaTransaction();
-    expect(latestValue).to.equal(1);
+    expect(latestValue).toBe(1);
     await incrementViaTransaction();
-    expect(latestValue).to.equal(2);
+    expect(latestValue).toBe(2);
     unsubscribe();
   });
 });
