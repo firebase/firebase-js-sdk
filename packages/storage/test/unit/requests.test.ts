@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { assert } from 'chai';
+
 import { FbsBlob } from '../../src/implementation/blob';
 import { Location } from '../../src/implementation/location';
 import {
@@ -157,16 +157,16 @@ describe('Firebase Storage > Requests', () => {
       return body
         .text()
         .then(str => {
-          assert.equal(str, expectedStr);
+          expect(str).toBe(expectedStr);
         })
         .catch(err => {
           return Promise.reject(err);
         });
     } else if (body instanceof Uint8Array) {
       const str = decodeUint8Array(body);
-      assert.equal(str, expectedStr);
+      expect(str).toBe(expectedStr);
     } else {
-      assert.equal(body as string, expectedStr);
+      expect(body as string).toBe(expectedStr);
       return Promise.resolve(undefined);
     }
   }
@@ -175,7 +175,7 @@ describe('Firebase Storage > Requests', () => {
     requestInfo: RequestInfo<string, Metadata>
   ): void {
     const metadata = requestInfo.handler(fakeXhrIo({}), serverResourceString);
-    assert.deepEqual(metadata, metadataFromServerResource);
+    expect(metadata).toEqual(metadataFromServerResource);
   }
 
   function checkNoOpHandler<T>(requestInfo: RequestInfo<string, T>): void {
@@ -288,10 +288,10 @@ describe('Firebase Storage > Requests', () => {
     };
     const listResponseString = JSON.stringify(listResponse);
     const listResult = requestInfo.handler(fakeXhrIo({}), listResponseString);
-    assert.equal(listResult.prefixes[0].fullPath, 'a/f');
-    assert.equal(listResult.items[0].fullPath, 'a/a');
-    assert.equal(listResult.items[1].fullPath, 'a/b');
-    assert.equal(listResult.nextPageToken, pageToken);
+    expect(listResult.prefixes[0].fullPath).toBe('a/f');
+    expect(listResult.items[0].fullPath).toBe('a/a');
+    expect(listResult.items[1].fullPath).toBe('a/b');
+    expect(listResult.nextPageToken).toBe(pageToken);
   });
 
   it('list handler with custom bucket', () => {
@@ -308,7 +308,7 @@ describe('Firebase Storage > Requests', () => {
     };
     const listResponseString = JSON.stringify(listResponse);
     const listResult = requestInfo.handler(fakeXhrIo({}), listResponseString);
-    assert.equal(listResult.items[0].bucket, differentBucket);
+    expect(listResult.items[0].bucket).toBe(differentBucket);
   });
 
   it('getDownloadUrl request info', () => {
@@ -337,7 +337,7 @@ describe('Firebase Storage > Requests', () => {
       mappings
     );
     const url = requestInfo.handler(fakeXhrIo({}), serverResourceString);
-    assert.equal(url, downloadUrlFromServerResource);
+    expect(url).toBe(downloadUrlFromServerResource);
   });
   it('getBytes handler', () => {
     const requestInfo = getBytes(storageService, locationNormal);
@@ -345,7 +345,7 @@ describe('Firebase Storage > Requests', () => {
       fakeXhrIo({}),
       new Uint8Array([1, 128, 255])
     ) as ArrayBuffer; // Narrow type to ArrayBuffer
-    assert.deepEqual(new Uint8Array(bytes), new Uint8Array([1, 128, 255]));
+    expect(new Uint8Array(bytes)).toEqual(new Uint8Array([1, 128, 255]));
   });
   it('updateMetadata requestinfo', () => {
     const maps = [
@@ -451,8 +451,8 @@ describe('Firebase Storage > Requests', () => {
       const matches = (requestInfo.headers['Content-Type'] as string).match(
         multipartHeaderRegex
       );
-      assert.isNotNull(matches);
-      assert.equal(matches!.length, 2);
+      expect(matches).not.toBeNull();
+      expect(matches!.length).toBe(2);
       const boundary = matches![1];
       promises.push(
         assertBodyEquals(requestInfo.body, makeMultipartBodyString(boundary))
@@ -543,7 +543,7 @@ describe('Firebase Storage > Requests', () => {
       ''
     );
 
-    assert.equal(handlerUrl, uploadUrl);
+    expect(handlerUrl).toBe(uploadUrl);
   }
   it('getResumableUploadStatus request info', () => {
     const url =
@@ -564,7 +564,7 @@ describe('Firebase Storage > Requests', () => {
       requestInfo
     );
   });
-  describe('getResumableUploadStatus handler', () => {
+  it('getResumableUploadStatus handler', () => {
     const url =
       'https://this.is.totally.a.real.url.com/hello/upload?whatsgoingon';
     const requestInfo = getResumableUploadStatus(
@@ -582,7 +582,7 @@ describe('Firebase Storage > Requests', () => {
       ''
     );
     let expectedStatus = new ResumableUploadStatus(0, smallBlob.size(), false);
-    assert.deepEqual(status, expectedStatus);
+    expect(status).toEqual(expectedStatus);
 
     status = requestInfo.handler(
       fakeXhrIo({
@@ -596,7 +596,7 @@ describe('Firebase Storage > Requests', () => {
       smallBlob.size(),
       true
     );
-    assert.deepEqual(status, expectedStatus);
+    expect(status).toEqual(expectedStatus);
   });
   it('continueResumableUpload request info', () => {
     const url =
@@ -648,8 +648,7 @@ describe('Firebase Storage > Requests', () => {
       requestInfo
     );
 
-    assert.deepEqual(
-      requestInfo.body,
+    expect(requestInfo.body).toEqual(
       bigBlob.slice(0, RESUMABLE_UPLOAD_CHUNK_SIZE)!.uploadData()
     );
   });
@@ -684,8 +683,7 @@ describe('Firebase Storage > Requests', () => {
       requestInfo
     );
 
-    assert.deepEqual(
-      requestInfo.body,
+    expect(requestInfo.body).toEqual(
       bigBlob.slice(blobSize, blobSize)!.uploadData()
     );
   });
@@ -694,7 +692,7 @@ describe('Firebase Storage > Requests', () => {
       'https://this.is.totally.a.real.url.com/hello/upload?whatsgoingon';
     const chunkSize = RESUMABLE_UPLOAD_CHUNK_SIZE;
 
-    assert.isTrue(smallBlob.size() < chunkSize);
+    expect(smallBlob.size() < chunkSize).toBe(true);
     let requestInfo = continueResumableUpload(
       locationNormal,
       storageService,
@@ -713,9 +711,9 @@ describe('Firebase Storage > Requests', () => {
       true,
       metadataFromServerResource
     );
-    assert.deepEqual(status, expectedStatus);
+    expect(status).toEqual(expectedStatus);
 
-    assert.isTrue(bigBlob.size() > chunkSize);
+    expect(bigBlob.size() > chunkSize).toBe(true);
     requestInfo = continueResumableUpload(
       locationNormal,
       storageService,
@@ -733,25 +731,27 @@ describe('Firebase Storage > Requests', () => {
       bigBlob.size(),
       false
     );
-    assert.deepEqual(status, expectedStatus);
+    expect(status).toEqual(expectedStatus);
   });
 
   it('error handler passes through unknown errors', () => {
     const requestInfo = getMetadata(storageService, locationNormal, mappings);
     const error = unknown();
     const resultError = requestInfo.errorHandler!(fakeXhrIo({}, 509), error);
-    assert.equal(resultError, error);
+    expect(resultError).toBe(error);
   });
   it('error handler converts 404 to not found', () => {
     const requestInfo = getMetadata(storageService, locationNormal, mappings);
     const error = unknown();
     const resultError = requestInfo.errorHandler!(fakeXhrIo({}, 404), error);
-    assert.isTrue(resultError._codeEquals(StorageErrorCode.OBJECT_NOT_FOUND));
+    expect(resultError._codeEquals(StorageErrorCode.OBJECT_NOT_FOUND)).toBe(
+      true
+    );
   });
   it('error handler converts 402 to quota exceeded', () => {
     const requestInfo = getMetadata(storageService, locationNormal, mappings);
     const error = unknown();
     const resultError = requestInfo.errorHandler!(fakeXhrIo({}, 402), error);
-    assert.isTrue(resultError._codeEquals(StorageErrorCode.QUOTA_EXCEEDED));
+    expect(resultError._codeEquals(StorageErrorCode.QUOTA_EXCEEDED)).toBe(true);
   });
 });
