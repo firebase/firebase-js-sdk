@@ -126,10 +126,10 @@ export class WebSocketUrl {
   }
 
   private get pathname(): string {
-    if (this.apiSettings.backend.backendType === BackendType.GOOGLE_AI) {
-      return 'ws/google.firebase.vertexai.v1beta.GenerativeService/BidiGenerateContent';
-    } else {
+    if (this.apiSettings.backend instanceof AgentPlatformBackend) {
       return `ws/google.firebase.vertexai.v1beta.LlmBidiService/BidiGenerateContent/locations/${(this.apiSettings.backend as AgentPlatformBackend).location}`;
+    } else {
+      return 'ws/google.firebase.vertexai.v1beta.GenerativeService/BidiGenerateContent';
     }
   }
 }
