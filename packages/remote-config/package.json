@@ -26,7 +26,7 @@
     "dev": "rollup -c -w",
     "test": "run-p --npm-path npm lint test:all",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all",
-    "test:browser": "vitest run --project=browser",
+    "test:browser": "vitest run",
     "trusted-type-check": "tsec -p tsconfig.json --noEmit",
     "prettier": "prettier --cache --write '{src,test}/**/*.{js,ts}'",
     "api-report": "api-extractor run --local --verbose",
@@ -35,7 +35,7 @@
     "typings:public": "node ../../scripts/build/use_typings.js ./dist/remote-config-public.d.ts",
     "typings:internal": "node ../../scripts/build/use_typings.js ./dist/src/index.d.ts",
     "test:all": "vitest run",
-    "test:browser:debug": "vitest --project=browser --browser.headless=false"
+    "test:browser:debug": "vitest --browser.headless=false"
   },
   "peerDependencies": {
     "@firebase/app": "0.x"
