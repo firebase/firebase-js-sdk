@@ -15,9 +15,7 @@
  * limitations under the License.
  */
 
-import { expect, use } from 'chai';
-import sinon, { restore, stub } from 'sinon';
-import sinonChai from 'sinon-chai';
+import { expect, vi, MockInstance } from 'vitest';
 import {
   mapCountTokensRequest,
   mapGenerateContentCandidates,
@@ -49,21 +47,19 @@ import { logger } from './logger';
 import { AIError } from './errors';
 import { getMockResponse } from '../test-utils/mock-response';
 
-use(sinonChai);
-
 const fakeModel = 'models/gemini-pro';
 
 const fakeContents: Content[] = [{ role: 'user', parts: [{ text: 'hello' }] }];
 
 describe('Google AI Mappers', () => {
-  let loggerWarnStub: sinon.SinonStub;
+  let loggerWarnStub: MockInstance;
 
   beforeEach(() => {
-    loggerWarnStub = stub(logger, 'warn');
+    loggerWarnStub = vi.spyOn(logger, 'warn').mockImplementation(() => {});
   });
 
   afterEach(() => {
-    restore();
+    vi.restoreAllMocks();
   });
 
   describe('mapGenerateContentRequest', () => {
@@ -91,7 +87,8 @@ describe('Google AI Mappers', () => {
         }
       };
       const mappedRequest = mapGenerateContentRequest(request);
-      expect(loggerWarnStub).to.have.been.calledOnceWith(
+      expect(loggerWarnStub).toHaveBeenCalledTimes(1);
+      expect(loggerWarnStub).toHaveBeenCalledWith(
         'topK in GenerationConfig has been rounded to the nearest integer to match the format for requests to the Gemini Developer API.'
       );
       expect(mappedRequest.generationConfig?.topK).to.equal(16);
@@ -105,7 +102,7 @@ describe('Google AI Mappers', () => {
         }
       };
       const mappedRequest = mapGenerateContentRequest(request);
-      expect(loggerWarnStub).to.not.have.been.called;
+      expect(loggerWarnStub).not.toHaveBeenCalled();
       expect(mappedRequest.generationConfig?.topK).to.equal(16);
     });
 
@@ -124,7 +121,7 @@ describe('Google AI Mappers', () => {
       };
       const mappedRequest = mapGenerateContentRequest({ ...request });
       expect(mappedRequest).to.deep.equal(request);
-      expect(loggerWarnStub).to.not.have.been.called;
+      expect(loggerWarnStub).not.toHaveBeenCalled();
     });
   });
 
@@ -135,7 +132,7 @@ describe('Google AI Mappers', () => {
       ).json();
       const mappedResponse = mapGenerateContentResponse(googleAIMockResponse);
 
-      expect(mappedResponse.candidates).to.exist;
+      expect(mappedResponse.candidates).toBeDefined();
       expect(mappedResponse.candidates?.[0].content.parts[0].text).to.contain(
         'quantum mechanics'
       );
@@ -272,7 +269,7 @@ describe('Google AI Mappers', () => {
         }
       ];
       const mapped = mapGenerateContentCandidates(candidates);
-      expect(mapped[0].citationMetadata).to.exist;
+      expect(mapped[0].citationMetadata).toBeDefined();
       expect(mapped[0].citationMetadata?.citations).to.deep.equal(
         candidates[0].citationMetadata?.citationSources
       );
@@ -297,7 +294,7 @@ describe('Google AI Mappers', () => {
         }
       ];
       const mapped = mapGenerateContentCandidates(candidates);
-      expect(mapped[0].safetyRatings).to.exist;
+      expect(mapped[0].safetyRatings).toBeDefined();
       const safetyRating = mapped[0].safetyRatings?.[0] as SafetyRating; // Type assertion
       expect(safetyRating.severity).to.equal(
         HarmSeverity.HARM_SEVERITY_UNSUPPORTED
@@ -344,14 +341,14 @@ describe('Google AI Mappers', () => {
       expect(mapped[0].citationMetadata).to.be.undefined;
       expect(mapped[0].safetyRatings).to.be.undefined;
       expect(mapped[0].content.parts[0].text).to.equal('Simple text');
-      expect(loggerWarnStub).to.not.have.been.called;
+      expect(loggerWarnStub).not.toHaveBeenCalled();
     });
 
     it('should handle empty candidate array', () => {
       const candidates: GoogleAIGenerateContentCandidate[] = [];
       const mapped = mapGenerateContentCandidates(candidates);
       expect(mapped).to.deep.equal([]);
-      expect(loggerWarnStub).to.not.have.been.called;
+      expect(loggerWarnStub).not.toHaveBeenCalled();
     });
   });
 
@@ -370,7 +367,7 @@ describe('Google AI Mappers', () => {
         // Missing blockReasonMessage
       };
       const mapped = mapPromptFeedback(feedback);
-      expect(mapped.safetyRatings).to.exist;
+      expect(mapped.safetyRatings).toBeDefined();
       const safetyRating = mapped.safetyRatings[0] as SafetyRating; // Type assertion
       expect(safetyRating.severity).to.equal(
         HarmSeverity.HARM_SEVERITY_UNSUPPORTED
