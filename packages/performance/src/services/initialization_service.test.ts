@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { stub } from 'sinon';
-import { expect } from 'chai';
 import {
   getInitializationPromise,
   isPerfInitialized
@@ -26,12 +24,13 @@ import { FirebaseApp } from '@firebase/app';
 import '../../test/setup';
 import { FirebaseInstallations } from '@firebase/installations-types';
 import { PerformanceController } from '../controllers/perf';
+import { vi } from 'vitest';
 
 describe('Firebase Performance > initialization_service', () => {
   const IID = 'fid';
   const AUTH_TOKEN = 'authToken';
-  const getId = stub();
-  const getToken = stub();
+  const getId = vi.fn();
+  const getToken = vi.fn();
 
   const fakeFirebaseConfig = {
     apiKey: 'api-key',
@@ -60,26 +59,26 @@ describe('Firebase Performance > initialization_service', () => {
   mockWindow.document = { ...mockWindow.document, readyState: 'complete' };
 
   beforeEach(() => {
-    stub(self, 'fetch').resolves(new Response('{}'));
-    mockWindow.localStorage = { ...mockWindow.localStorage, setItem: stub() };
+    vi.spyOn(self, 'fetch').mockResolvedValue(new Response('{}'));
+    mockWindow.localStorage = { ...mockWindow.localStorage, setItem: vi.fn() };
 
     setupApi(mockWindow);
   });
 
   it('changes initialization status after initialization is done', async () => {
-    getId.resolves(IID);
-    getToken.resolves(AUTH_TOKEN);
+    getId.mockResolvedValue(IID);
+    getToken.mockResolvedValue(AUTH_TOKEN);
     await getInitializationPromise(performanceController);
 
-    expect(isPerfInitialized()).to.be.true;
+    expect(isPerfInitialized()).toBe(true);
   });
 
   it('returns initialization as not done before promise is resolved', async () => {
-    getId.resolves(IID);
-    getToken.resolves(AUTH_TOKEN);
+    getId.mockResolvedValue(IID);
+    getToken.mockResolvedValue(AUTH_TOKEN);
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     getInitializationPromise(performanceController);
 
-    expect(isPerfInitialized()).to.be.false;
+    expect(isPerfInitialized()).toBe(false);
   });
 });

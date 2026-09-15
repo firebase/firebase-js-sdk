@@ -15,9 +15,13 @@
  * limitations under the License.
  */
 
-import { vi } from 'vitest';
-afterEach(() => {
-  vi.useRealTimers();
-  vi.restoreAllMocks();
-  vi.clearAllMocks();
-});
+import createBaseConfig from '../../config/vitest.base.mjs';
+
+const config = createBaseConfig(import.meta.url);
+
+// Browser-only SDK: filter test projects to browser runner
+config.test.projects = config.test.projects.filter(
+  project => project.test?.name === 'browser'
+);
+
+export default config;

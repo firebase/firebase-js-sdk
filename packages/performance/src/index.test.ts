@@ -15,11 +15,18 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
 import { initializePerformance } from './index';
 import { ERROR_FACTORY, ErrorCode } from './utils/errors';
 import '../test/setup';
-import { deleteApp, FirebaseApp, initializeApp } from '@firebase/app';
+import {
+  deleteApp,
+  FirebaseApp,
+  initializeApp,
+  _addOrOverwriteComponent
+} from '@firebase/app';
+import { Component, ComponentType } from '@firebase/component';
+import { PerformanceController } from './controllers/perf';
+import { vi } from 'vitest';
 
 const fakeFirebaseConfig = {
   apiKey: 'api-key',
@@ -34,40 +41,57 @@ const fakeFirebaseConfig = {
 describe('Firebase Performance > initializePerformance()', () => {
   let app: FirebaseApp;
   beforeEach(() => {
+    vi.spyOn(PerformanceController.prototype, '_init').mockImplementation(
+      () => {}
+    );
     app = initializeApp(fakeFirebaseConfig);
+    _addOrOverwriteComponent(
+      app,
+      new Component(
+        'heartbeat',
+        () =>
+          ({
+            triggerHeartbeat: () => {},
+            getHeartbeatsHeader: () => Promise.resolve('')
+          }) as any,
+        ComponentType.PUBLIC
+      )
+    );
   });
-  afterEach(() => {
-    return deleteApp(app);
+  afterEach(async () => {
+    if (app) {
+      await deleteApp(app);
+    }
   });
   it('returns same instance if given same (no) params a second time', () => {
     const performanceInstance = initializePerformance(app);
-    expect(initializePerformance(app)).to.equal(performanceInstance);
+    expect(initializePerformance(app)).toBe(performanceInstance);
   });
   it('returns same instance if given same params a second time', () => {
     const performanceInstance = initializePerformance(app, {
       dataCollectionEnabled: false
     });
-    expect(
-      initializePerformance(app, { dataCollectionEnabled: false })
-    ).to.equal(performanceInstance);
+    expect(initializePerformance(app, { dataCollectionEnabled: false })).toBe(
+      performanceInstance
+    );
   });
   it('throws if called with params after being called with no params', () => {
     initializePerformance(app);
     const expectedError = ERROR_FACTORY.create(ErrorCode.ALREADY_INITIALIZED);
     expect(() =>
       initializePerformance(app, { dataCollectionEnabled: false })
-    ).to.throw(expectedError.message);
+    ).toThrow(expectedError.message);
   });
   it('throws if called with no params after being called with params', () => {
     initializePerformance(app, { instrumentationEnabled: false });
     const expectedError = ERROR_FACTORY.create(ErrorCode.ALREADY_INITIALIZED);
-    expect(() => initializePerformance(app)).to.throw(expectedError.message);
+    expect(() => initializePerformance(app)).toThrow(expectedError.message);
   });
   it('throws if called a second time with different params', () => {
     initializePerformance(app, { instrumentationEnabled: true });
     const expectedError = ERROR_FACTORY.create(ErrorCode.ALREADY_INITIALIZED);
     expect(() =>
       initializePerformance(app, { instrumentationEnabled: false })
-    ).to.throw(expectedError.message);
+    ).toThrow(expectedError.message);
   });
 });

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { stub } from 'sinon';
-import { expect } from 'chai';
 import {
   getIid,
   getIidPromise,
@@ -25,15 +23,16 @@ import {
 } from './iid_service';
 import '../../test/setup';
 import { _FirebaseInstallationsInternal } from '@firebase/installations';
+import { vi } from 'vitest';
 
 describe('Firebase Performance > iid_service', () => {
   const IID = 'fid';
   const AUTH_TOKEN = 'authToken';
 
   let fakeInstallations: _FirebaseInstallationsInternal;
-  before(() => {
-    const getId = stub().resolves(IID);
-    const getToken = stub().resolves(AUTH_TOKEN);
+  beforeAll(() => {
+    const getId = vi.fn().mockResolvedValue(IID);
+    const getToken = vi.fn().mockResolvedValue(AUTH_TOKEN);
     fakeInstallations = {
       getId,
       getToken
@@ -44,8 +43,8 @@ describe('Firebase Performance > iid_service', () => {
     it('provides iid', async () => {
       const iid = await getIidPromise(fakeInstallations);
 
-      expect(iid).to.be.equal(IID);
-      expect(getIid()).to.be.equal(IID);
+      expect(iid).toBe(IID);
+      expect(getIid()).toBe(IID);
     });
   });
 
@@ -53,8 +52,8 @@ describe('Firebase Performance > iid_service', () => {
     it('provides authentication token', async () => {
       const token = await getAuthTokenPromise(fakeInstallations);
 
-      expect(token).to.be.equal(AUTH_TOKEN);
-      expect(getAuthenticationToken()).to.be.equal(AUTH_TOKEN);
+      expect(token).toBe(AUTH_TOKEN);
+      expect(getAuthenticationToken()).toBe(AUTH_TOKEN);
     });
   });
 });

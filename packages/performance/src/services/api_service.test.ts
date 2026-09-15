@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,9 @@
  * limitations under the License.
  */
 
-import { stub } from 'sinon';
-import { expect } from 'chai';
 import { Api, setupApi } from './api_service';
 import '../../test/setup';
+import { vi } from 'vitest';
 
 describe('Firebase Performance > api_service', () => {
   const PAGE_URL = 'http://www.test.com/abcd?a=2';
@@ -37,12 +36,16 @@ describe('Firebase Performance > api_service', () => {
   let api: Api;
 
   beforeEach(() => {
-    stub(mockWindow.performance, 'mark');
-    stub(mockWindow.performance, 'measure');
-    stub(mockWindow.performance, 'getEntriesByType').returns([
+    vi.spyOn(mockWindow.performance, 'mark').mockImplementation(
+      () => undefined as any
+    );
+    vi.spyOn(mockWindow.performance, 'measure').mockImplementation(
+      () => undefined as any
+    );
+    vi.spyOn(mockWindow.performance, 'getEntriesByType').mockReturnValue([
       PERFORMANCE_ENTRY
     ]);
-    stub(mockWindow.performance, 'getEntriesByName').returns([
+    vi.spyOn(mockWindow.performance, 'getEntriesByName').mockReturnValue([
       PERFORMANCE_ENTRY
     ]);
     // This is to make sure the test page is not changed by changing the href of location object.
@@ -52,9 +55,14 @@ describe('Firebase Performance > api_service', () => {
     api = Api.getInstance();
   });
 
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.clearAllMocks();
+  });
+
   describe('getUrl', () => {
     it('removes the query params', () => {
-      expect(api.getUrl()).to.equal('http://www.test.com/abcd');
+      expect(api.getUrl()).toBe('http://www.test.com/abcd');
     });
   });
 
@@ -63,7 +71,8 @@ describe('Firebase Performance > api_service', () => {
       const MARK_NAME = 'mark1';
       api.mark(MARK_NAME);
 
-      expect(mockWindow.performance.mark).to.be.calledOnceWith(MARK_NAME);
+      expect(mockWindow.performance.mark).toHaveBeenCalledTimes(1);
+      expect(mockWindow.performance.mark).toHaveBeenCalledWith(MARK_NAME);
     });
   });
 
@@ -74,7 +83,8 @@ describe('Firebase Performance > api_service', () => {
       const MARK_2_NAME = 'mark2';
       api.measure(MEASURE_NAME, MARK_1_NAME, MARK_2_NAME);
 
-      expect(mockWindow.performance.measure).to.be.calledOnceWith(
+      expect(mockWindow.performance.measure).toHaveBeenCalledTimes(1);
+      expect(mockWindow.performance.measure).toHaveBeenCalledWith(
         MEASURE_NAME,
         MARK_1_NAME,
         MARK_2_NAME
@@ -84,7 +94,7 @@ describe('Firebase Performance > api_service', () => {
 
   describe('getEntriesByType', () => {
     it('calls the underlying performance api', () => {
-      expect(api.getEntriesByType('paint')).to.deep.equal([PERFORMANCE_ENTRY]);
+      expect(api.getEntriesByType('paint')).toEqual([PERFORMANCE_ENTRY]);
     });
 
     it('does not throw if the browser does not include underlying api', () => {
@@ -92,14 +102,14 @@ describe('Firebase Performance > api_service', () => {
 
       expect(() => {
         api.getEntriesByType('paint');
-      }).to.not.throw();
-      expect(api.getEntriesByType('paint')).to.deep.equal([]);
+      }).not.toThrow();
+      expect(api.getEntriesByType('paint')).toEqual([]);
     });
   });
 
   describe('getEntriesByName', () => {
     it('calls the underlying performance api', () => {
-      expect(api.getEntriesByName('paint')).to.deep.equal([PERFORMANCE_ENTRY]);
+      expect(api.getEntriesByName('paint')).toEqual([PERFORMANCE_ENTRY]);
     });
 
     it('does not throw if the browser does not include underlying api', () => {
@@ -107,8 +117,8 @@ describe('Firebase Performance > api_service', () => {
 
       expect(() => {
         api.getEntriesByName('paint');
-      }).to.not.throw();
-      expect(api.getEntriesByName('paint')).to.deep.equal([]);
+      }).not.toThrow();
+      expect(api.getEntriesByName('paint')).toEqual([]);
     });
   });
 });

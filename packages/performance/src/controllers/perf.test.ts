@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-import { stub } from 'sinon';
 import { PerformanceController } from '../controllers/perf';
 import { Api, setupApi } from '../services/api_service';
 import * as initializationService from '../services/initialization_service';
@@ -25,6 +23,9 @@ import { consoleLogger } from '../utils/console_logger';
 import { FirebaseApp } from '@firebase/app';
 import { _FirebaseInstallationsInternal } from '@firebase/installations';
 import '../../test/setup';
+import { vi } from 'vitest';
+
+vi.mock('../services/initialization_service', { spy: true });
 
 describe('Firebase Performance Test', () => {
   setupApi(window);
@@ -47,18 +48,19 @@ describe('Firebase Performance Test', () => {
 
   describe('#constructor', () => {
     it('does not initialize performance if the required apis are not available', () => {
-      stub(Api.prototype, 'requiredApisAvailable').returns(false);
-      stub(initializationService, 'getInitializationPromise');
-      stub(consoleLogger, 'info');
+      vi.spyOn(Api.prototype, 'requiredApisAvailable').mockReturnValue(false);
+      vi.spyOn(consoleLogger, 'info').mockImplementation(() => {});
       const performanceController = new PerformanceController(
         fakeFirebaseApp,
         fakeInstallations
       );
       performanceController._init();
 
-      expect(initializationService.getInitializationPromise).not.be.called;
-      expect(consoleLogger.info).to.be.calledWithMatch(
-        /.*Fetch.*Promise.*cookies.*/
+      expect(
+        initializationService.getInitializationPromise
+      ).not.toHaveBeenCalled();
+      expect(consoleLogger.info).toHaveBeenCalledWith(
+        expect.stringMatching(/.*Fetch.*Promise.*cookies.*/)
       );
     });
   });
@@ -76,8 +78,8 @@ describe('Firebase Performance Test', () => {
       );
       performance._init(settings);
 
-      expect(performance.instrumentationEnabled).is.equal(false);
-      expect(performance.dataCollectionEnabled).is.equal(false);
+      expect(performance.instrumentationEnabled).toBe(false);
+      expect(performance.dataCollectionEnabled).toBe(false);
     });
 
     it('uses defaults when settings are not provided', async () => {
@@ -92,10 +94,10 @@ describe('Firebase Performance Test', () => {
       );
       performance._init();
 
-      expect(performance.instrumentationEnabled).is.equal(
+      expect(performance.instrumentationEnabled).toBe(
         expectedInstrumentationEnabled
       );
-      expect(performance.dataCollectionEnabled).is.equal(
+      expect(performance.dataCollectionEnabled).toBe(
         expectedDataCollectionEnabled
       );
     });
@@ -109,7 +111,7 @@ describe('Firebase Performance Test', () => {
         performance._init();
 
         performance.instrumentationEnabled = true;
-        expect(performance.instrumentationEnabled).is.equal(true);
+        expect(performance.instrumentationEnabled).toBe(true);
       });
 
       it('sets instrumentationEnabled to disabled', async () => {
@@ -120,7 +122,7 @@ describe('Firebase Performance Test', () => {
         performance._init();
 
         performance.instrumentationEnabled = false;
-        expect(performance.instrumentationEnabled).is.equal(false);
+        expect(performance.instrumentationEnabled).toBe(false);
       });
     });
 
@@ -133,7 +135,7 @@ describe('Firebase Performance Test', () => {
         performance._init();
 
         performance.dataCollectionEnabled = true;
-        expect(performance.dataCollectionEnabled).is.equal(true);
+        expect(performance.dataCollectionEnabled).toBe(true);
       });
 
       it('sets dataCollectionEnabled to disabled', () => {
@@ -144,7 +146,7 @@ describe('Firebase Performance Test', () => {
         performance._init();
 
         performance.dataCollectionEnabled = false;
-        expect(performance.dataCollectionEnabled).is.equal(false);
+        expect(performance.dataCollectionEnabled).toBe(false);
       });
     });
   });
