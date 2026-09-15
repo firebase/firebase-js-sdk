@@ -16,9 +16,22 @@
  */
 
 import { describe, beforeEach, it, expect, vi } from 'vitest';
-import * as generateAuthTokenRequestModule from '../functions/generate-auth-token-request';
 
-vi.mock('../functions/generate-auth-token-request', { spy: true });
+const { mockGenerateAuthTokenRequest } = vi.hoisted(() => ({
+  mockGenerateAuthTokenRequest: vi.fn()
+}));
+
+// This inserts mockGenerateAuthTokenRequest as a spy layer on methods coming from ./generate-auth-token-request.ts
+vi.mock('../functions/generate-auth-token-request', async importOriginal => {
+  const actual =
+    await importOriginal<
+      typeof import('../functions/generate-auth-token-request')
+    >();
+  return {
+    ...actual,
+    generateAuthTokenRequest: mockGenerateAuthTokenRequest
+  };
+});
 
 import {
   CompletedAuthToken,
@@ -45,9 +58,7 @@ describe('refreshAuthToken', () => {
   beforeEach(() => {
     installations = getFakeInstallations();
 
-    vi.mocked(
-      generateAuthTokenRequestModule.generateAuthTokenRequest
-    ).mockImplementation(async () => {
+    mockGenerateAuthTokenRequest.mockImplementation(async () => {
       await sleep(100); // Request would take some time
       const result: CompletedAuthToken = {
         token: AUTH_TOKEN,
@@ -96,9 +107,7 @@ describe('refreshAuthToken', () => {
 
     it('does not call any server APIs', async () => {
       await refreshAuthToken(installations);
-      expect(
-        generateAuthTokenRequestModule.generateAuthTokenRequest
-      ).not.toHaveBeenCalled();
+      expect(mockGenerateAuthTokenRequest).not.toHaveBeenCalled();
     });
 
     it('works even if the app is offline', async () => {
@@ -139,9 +148,7 @@ describe('refreshAuthToken', () => {
       const token2 = await refreshAuthToken(installations);
       expect(token2.token).toBe(AUTH_TOKEN);
       expect(token2.token).not.toBe(DB_AUTH_TOKEN);
-      expect(
-        generateAuthTokenRequestModule.generateAuthTokenRequest
-      ).toHaveBeenCalledTimes(1);
+      expect(mockGenerateAuthTokenRequest).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -164,9 +171,7 @@ describe('refreshAuthToken', () => {
     it('does not call generateAuthToken twice on subsequent calls', async () => {
       await refreshAuthToken(installations);
       await refreshAuthToken(installations);
-      expect(
-        generateAuthTokenRequestModule.generateAuthTokenRequest
-      ).toHaveBeenCalledTimes(1);
+      expect(mockGenerateAuthTokenRequest).toHaveBeenCalledTimes(1);
     });
 
     it('does not call generateAuthToken twice on simultaneous calls', async () => {
@@ -174,18 +179,14 @@ describe('refreshAuthToken', () => {
         refreshAuthToken(installations),
         refreshAuthToken(installations)
       ]);
-      expect(
-        generateAuthTokenRequestModule.generateAuthTokenRequest
-      ).toHaveBeenCalledTimes(1);
+      expect(mockGenerateAuthTokenRequest).toHaveBeenCalledTimes(1);
     });
 
     it('returns a new token', async () => {
       const { token } = await refreshAuthToken(installations);
       expect(token).toBe(AUTH_TOKEN);
       expect(token).not.toBe(DB_AUTH_TOKEN);
-      expect(
-        generateAuthTokenRequestModule.generateAuthTokenRequest
-      ).toHaveBeenCalledTimes(1);
+      expect(mockGenerateAuthTokenRequest).toHaveBeenCalledTimes(1);
     });
 
     it('throws if the app is offline', async () => {
