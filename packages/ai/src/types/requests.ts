@@ -594,15 +594,7 @@ export interface GoogleSearch {}
  *
  * @public
  */
-export interface GoogleMaps {
-  /**
-   * @deprecated The `enableWidget` feature has been deprecated by the Grounding for Google Maps
-   * service.
-   *
-   * If true, include the widget context token in the response.
-   */
-  enableWidget?: boolean;
-}
+export interface GoogleMaps {}
 
 /**
  * A tool that allows you to provide additional context to the models in the form of public web

@@ -54,7 +54,6 @@ const fakeApiSettings: ApiSettings = {
   apiKey: 'key',
   project: 'my-project',
   appId: 'my-appid',
-  location: 'global',
   backend: new AgentPlatformBackend()
 };
 
@@ -62,7 +61,6 @@ const fakeGoogleAIApiSettings: ApiSettings = {
   apiKey: 'key',
   project: 'my-project',
   appId: 'my-appid',
-  location: 'global',
   backend: new GoogleAIBackend()
 };
 

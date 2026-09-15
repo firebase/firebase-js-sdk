@@ -250,8 +250,6 @@ toc:
     path: /docs/reference/js/ai.urlmetadata.md
   - title: UsageMetadata
     path: /docs/reference/js/ai.usagemetadata.md
-  - title: VertexAIBackend
-    path: /docs/reference/js/ai.vertexaibackend.md
   - title: VideoMetadata
     path: /docs/reference/js/ai.videometadata.md
   - title: VoiceConfig

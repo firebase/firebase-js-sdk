@@ -121,12 +121,13 @@ describe('ChromeAdapter', () => {
         languageModelProvider,
         'availability'
       ).resolves(Availability.AVAILABLE);
+      const fakeMonitor = (): void => {};
       const adapter = new ChromeAdapterImpl(
         languageModelProvider,
         InferenceMode.PREFER_ON_DEVICE,
         {
           createOptions: {
-            topK: 22
+            monitor: fakeMonitor
           }
         }
       );
@@ -139,7 +140,7 @@ describe('ChromeAdapter', () => {
         ]
       });
       expect(availabilityStub).to.have.been.calledWith({
-        topK: 22,
+        monitor: fakeMonitor,
         expectedInputs: defaultExpectedInputs,
         expectedOutputs: defaultExpectedOutputs
       });

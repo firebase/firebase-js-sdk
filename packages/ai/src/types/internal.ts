@@ -25,10 +25,6 @@ export interface ApiSettings {
   project: string;
   appId: string;
   automaticDataCollectionEnabled?: boolean;
-  /**
-   * @deprecated Use `backend.location` instead.
-   */
-  location: string;
   backend: Backend;
   getAuthToken?: () => Promise<FirebaseAuthTokenData | null>;
   getAppCheckToken?: () => Promise<AppCheckTokenResult>;

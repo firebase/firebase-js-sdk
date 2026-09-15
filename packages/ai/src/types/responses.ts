@@ -261,10 +261,6 @@ export interface GroundingMetadata {
    */
   webSearchQueries?: string[];
   /**
-   * @deprecated Use {@link GroundingSupport} instead.
-   */
-  retrievalQueries?: string[];
-  /**
    * Resource name of the Google Maps widget context token that can be used with the
    * `PlacesContextElement` widget in order to render contextual data. Only populated in the case
    * that grounding with Google Maps is enabled.
@@ -575,13 +571,6 @@ export interface CountTokensResponse {
    * The total number of tokens counted across all instances from the request.
    */
   totalTokens: number;
-  /**
-   * @deprecated Use `totalTokens` instead. This property is undefined when using models greater than `gemini-1.5-*`.
-   *
-   * The total number of billable characters counted across all instances
-   * from the request.
-   */
-  totalBillableCharacters?: number;
   /**
    * The breakdown, by modality, of how many tokens are consumed by the prompt.
    */
