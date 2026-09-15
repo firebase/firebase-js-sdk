@@ -16,10 +16,9 @@
  */
 
 import '../setup';
-import { expect } from 'chai';
+import { expect, vi, MockInstance } from 'vitest';
 import { RestClient } from '../../src/client/rest_client';
 import { FirebaseInstallations } from '@firebase/installations-types';
-import * as sinon from 'sinon';
 import { ERROR_FACTORY, ErrorCode } from '../../src/errors';
 import { FirebaseError } from '@firebase/util';
 import {
@@ -47,29 +46,22 @@ describe('RestClient', () => {
       'api-key',
       'app-id'
     );
-    firebaseInstallations.getId = sinon
-      .stub()
-      .returns(Promise.resolve('fis-id'));
-    firebaseInstallations.getToken = sinon
-      .stub()
-      .returns(Promise.resolve('fis-token'));
-    storage.setActiveConfigTemplateVersion = sinon.stub();
+    firebaseInstallations.getId = vi.fn().mockResolvedValue('fis-id');
+    firebaseInstallations.getToken = vi.fn().mockResolvedValue('fis-token');
+    storage.setActiveConfigTemplateVersion = vi.fn();
   });
 
   describe('fetch', () => {
-    let fetchStub: sinon.SinonStub<
-      [RequestInfo | URL, RequestInit?],
-      Promise<Response>
-    >;
+    let fetchStub: MockInstance;
 
     beforeEach(() => {
-      fetchStub = sinon
-        .stub(window, 'fetch')
-        .returns(Promise.resolve(new Response('{}')));
+      fetchStub = vi
+        .spyOn(window, 'fetch')
+        .mockResolvedValue(new Response('{}'));
     });
 
     afterEach(() => {
-      fetchStub.restore();
+      fetchStub.mockRestore();
     });
 
     it('handles 200/UPDATE responses', async () => {
@@ -97,7 +89,7 @@ describe('RestClient', () => {
         ]
       };
 
-      fetchStub.returns(
+      fetchStub.mockResolvedValue(
         Promise.resolve({
           ok: true,
           status: expectedResponse.status,
@@ -115,7 +107,7 @@ describe('RestClient', () => {
 
       const response = await client.fetch(DEFAULT_REQUEST);
 
-      expect(response).to.deep.eq({
+      expect(response).toEqual({
         status: expectedResponse.status,
         eTag: expectedResponse.eTag,
         config: expectedResponse.entries,
@@ -128,18 +120,18 @@ describe('RestClient', () => {
     it('calls the correct endpoint', async () => {
       await client.fetch(DEFAULT_REQUEST);
 
-      expect(fetchStub).to.be.calledWith(
+      expect(fetchStub).toHaveBeenCalledWith(
         'https://firebaseremoteconfig.googleapis.com/v1/projects/project-id/namespaces/namespace:fetch?key=api-key',
-        sinon.match.object
+        expect.any(Object)
       );
     });
 
     it('passes injected params', async () => {
       await client.fetch(DEFAULT_REQUEST);
 
-      expect(fetchStub).to.be.calledWith(
-        sinon.match.string,
-        sinon.match({
+      expect(fetchStub).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
           body: '{"sdk_version":"sdk-version","app_instance_id":"fis-id","app_instance_id_token":"fis-token","app_id":"app-id","language_code":"en-US"}'
         })
       );
@@ -149,7 +141,7 @@ describe('RestClient', () => {
       // The Fetch API throws a TypeError on network failure:
       // https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/fetch#Exceptions
       const originalError = new TypeError('Network request failed');
-      fetchStub.returns(Promise.reject(originalError));
+      fetchStub.mockRejectedValue(originalError);
 
       const fetchPromise = client.fetch(DEFAULT_REQUEST);
 
@@ -157,22 +149,21 @@ describe('RestClient', () => {
         originalErrorMessage: (originalError as Error)?.message
       });
 
-      await expect(fetchPromise)
-        .to.eventually.be.rejectedWith(FirebaseError, firebaseError.message)
-        .with.nested.property(
-          'customData.originalErrorMessage',
-          'Network request failed'
-        );
+      await expect(fetchPromise).rejects.toThrow(firebaseError.message);
+      await expect(fetchPromise).rejects.toHaveProperty(
+        'customData.originalErrorMessage',
+        'Network request failed'
+      );
     });
 
     it('throws on JSON parse failure', async () => {
       // JSON parsing throws a SyntaxError on failure:
       // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse#Exceptions
       const res = new Response(/* empty body */);
-      sinon
-        .stub(res, 'json')
-        .throws(new SyntaxError('Unexpected end of input'));
-      fetchStub.returns(Promise.resolve(res));
+      vi.spyOn(res, 'json').mockImplementation(() => {
+        throw new SyntaxError('Unexpected end of input');
+      });
+      fetchStub.mockResolvedValue(res);
 
       const fetchPromise = client.fetch(DEFAULT_REQUEST);
 
@@ -180,16 +171,15 @@ describe('RestClient', () => {
         originalErrorMessage: 'Unexpected end of input'
       });
 
-      await expect(fetchPromise)
-        .to.eventually.be.rejectedWith(FirebaseError, firebaseError.message)
-        .with.nested.property(
-          'customData.originalErrorMessage',
-          'Unexpected end of input'
-        );
+      await expect(fetchPromise).rejects.toThrow(firebaseError.message);
+      await expect(fetchPromise).rejects.toHaveProperty(
+        'customData.originalErrorMessage',
+        'Unexpected end of input'
+      );
     });
 
     it('handles 304 status code and empty body', async () => {
-      fetchStub.returns(
+      fetchStub.mockResolvedValue(
         Promise.resolve({
           status: 304,
           headers: new Headers({ ETag: 'response-etag' })
@@ -202,12 +192,14 @@ describe('RestClient', () => {
         })
       );
 
-      expect(fetchStub).to.be.calledWith(
-        sinon.match.string,
-        sinon.match({ headers: { 'If-None-Match': 'request-etag' } })
+      expect(fetchStub).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          headers: expect.objectContaining({ 'If-None-Match': 'request-etag' })
+        })
       );
 
-      expect(response).to.deep.eq({
+      expect(response).toEqual({
         status: 304,
         eTag: 'response-etag',
         config: undefined,
@@ -218,7 +210,7 @@ describe('RestClient', () => {
     });
 
     it('normalizes INSTANCE_STATE_UNSPECIFIED state to server error', async () => {
-      fetchStub.returns(
+      fetchStub.mockResolvedValue(
         Promise.resolve({
           status: 200,
           headers: new Headers({ ETag: 'etag' }),
@@ -232,13 +224,15 @@ describe('RestClient', () => {
         httpStatus: 500
       });
 
-      await expect(fetchPromise)
-        .to.eventually.be.rejectedWith(FirebaseError, error.message)
-        .with.nested.property('customData.httpStatus', 500);
+      await expect(fetchPromise).rejects.toThrow(error.message);
+      await expect(fetchPromise).rejects.toHaveProperty(
+        'customData.httpStatus',
+        500
+      );
     });
 
     it('normalizes NO_CHANGE state to 304 status', async () => {
-      fetchStub.returns(
+      fetchStub.mockResolvedValue(
         Promise.resolve({
           status: 200,
           headers: new Headers({ ETag: 'etag' }),
@@ -248,7 +242,7 @@ describe('RestClient', () => {
 
       const response = await client.fetch(DEFAULT_REQUEST);
 
-      expect(response).to.deep.eq({
+      expect(response).toEqual({
         status: 304,
         eTag: 'etag',
         config: undefined,
@@ -260,7 +254,7 @@ describe('RestClient', () => {
 
     it('normalizes empty change states', async () => {
       for (const state of ['NO_TEMPLATE', 'EMPTY_CONFIG']) {
-        fetchStub.returns(
+        fetchStub.mockResolvedValue(
           Promise.resolve({
             status: 200,
             headers: new Headers({ ETag: 'etag' }),
@@ -268,7 +262,7 @@ describe('RestClient', () => {
           } as Response)
         );
 
-        await expect(client.fetch(DEFAULT_REQUEST)).to.eventually.be.deep.eq({
+        await expect(client.fetch(DEFAULT_REQUEST)).resolves.toEqual({
           status: 200,
           eTag: 'etag',
           config: {},
@@ -282,7 +276,7 @@ describe('RestClient', () => {
     it('throws error on HTTP error status', async () => {
       // Error codes from logs plus an arbitrary unexpected code (300)
       for (const status of [300, 400, 403, 404, 415, 429, 500, 503, 504]) {
-        fetchStub.returns(
+        fetchStub.mockResolvedValue(
           Promise.resolve({
             status,
             headers: new Headers()
@@ -295,9 +289,11 @@ describe('RestClient', () => {
           httpStatus: status
         });
 
-        await expect(fetchPromise)
-          .to.eventually.be.rejectedWith(FirebaseError, error.message)
-          .with.nested.property('customData.httpStatus', status);
+        await expect(fetchPromise).rejects.toThrow(error.message);
+        await expect(fetchPromise).rejects.toHaveProperty(
+          'customData.httpStatus',
+          status
+        );
       }
     });
   });

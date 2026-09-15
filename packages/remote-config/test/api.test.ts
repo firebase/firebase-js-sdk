@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
+import { expect, vi, MockInstance } from 'vitest';
 import {
   ConfigUpdateObserver,
   ensureInitialized,
@@ -32,7 +32,6 @@ import {
   initializeApp,
   _addOrOverwriteComponent
 } from '@firebase/app';
-import * as sinon from 'sinon';
 import { Component, ComponentType } from '@firebase/component';
 import { FirebaseInstallations } from '@firebase/installations-types';
 import { openDatabase, APP_NAMESPACE_STORE } from '../src/storage/storage';
@@ -51,9 +50,9 @@ const fakeFirebaseConfig = {
 };
 
 const mockObserver = {
-  next: sinon.stub(),
-  error: sinon.stub(),
-  complete: sinon.stub()
+  next: vi.fn(),
+  error: vi.fn(),
+  complete: vi.fn()
 };
 
 async function clearDatabase(): Promise<void> {
@@ -80,10 +79,10 @@ describe('Remote Config API', () => {
       }
     ]
   };
-  let fetchStub: sinon.SinonStub;
+  let fetchStub: MockInstance;
 
   beforeEach(() => {
-    fetchStub = sinon.stub(window, 'fetch');
+    fetchStub = vi.spyOn(window, 'fetch').mockResolvedValue(new Response());
     app = initializeApp(fakeFirebaseConfig);
     _addOrOverwriteComponent(
       app,
@@ -98,16 +97,28 @@ describe('Remote Config API', () => {
         ComponentType.PUBLIC
       ) as any
     );
+    _addOrOverwriteComponent(
+      app,
+      new Component(
+        'heartbeat',
+        () =>
+          ({
+            triggerHeartbeat: () => {},
+            getHeartbeatsHeader: () => Promise.resolve('')
+          }) as any,
+        ComponentType.PUBLIC
+      )
+    );
   });
 
   afterEach(async () => {
-    fetchStub.restore();
+    fetchStub.mockRestore();
     await clearDatabase();
     await deleteApp(app);
   });
 
   function setFetchResponse(response: FetchResponse = { status: 200 }): void {
-    fetchStub.returns(
+    fetchStub.mockResolvedValue(
       Promise.resolve({
         ok: response.status === 200,
         status: response.status,
@@ -126,14 +137,14 @@ describe('Remote Config API', () => {
   it('allows multiple initializations if options are same', () => {
     const rc = getRemoteConfig(app, { templateId: 'altTemplate' });
     const rc2 = getRemoteConfig(app, { templateId: 'altTemplate' });
-    expect(rc).to.equal(rc2);
+    expect(rc).toBe(rc2);
   });
 
   it('throws an error if options are different', () => {
     getRemoteConfig(app);
     expect(() => {
       getRemoteConfig(app, { templateId: 'altTemplate' });
-    }).to.throw(/Remote Config already initialized/);
+    }).toThrow(/Remote Config already initialized/);
   });
 
   it('makes a fetch call', async () => {
@@ -141,7 +152,7 @@ describe('Remote Config API', () => {
     setFetchResponse(STUB_FETCH_RESPONSE);
     await fetchAndActivate(rc);
     await ensureInitialized(rc);
-    expect(getString(rc, 'foobar')).to.equal('hello world');
+    expect(getString(rc, 'foobar')).toBe('hello world');
   });
 
   it('calls fetch with default templateId', async () => {
@@ -149,9 +160,9 @@ describe('Remote Config API', () => {
     setFetchResponse();
     await fetchAndActivate(rc);
     await ensureInitialized(rc);
-    expect(fetchStub).to.be.calledOnceWith(
+    expect(fetchStub).toHaveBeenCalledWith(
       'https://firebaseremoteconfig.googleapis.com/v1/projects/project-id/namespaces/firebase:fetch?key=api-key',
-      sinon.match.object
+      expect.any(Object)
     );
   });
 
@@ -159,9 +170,9 @@ describe('Remote Config API', () => {
     const rc = getRemoteConfig(app, { templateId: 'altTemplate' });
     setFetchResponse();
     await fetchAndActivate(rc);
-    expect(fetchStub).to.be.calledOnceWith(
+    expect(fetchStub).toHaveBeenCalledWith(
       'https://firebaseremoteconfig.googleapis.com/v1/projects/project-id/namespaces/altTemplate:fetch?key=api-key',
-      sinon.match.object
+      expect.any(Object)
     );
   });
 
@@ -170,7 +181,7 @@ describe('Remote Config API', () => {
       initialFetchResponse: STUB_FETCH_RESPONSE
     });
     await ensureInitialized(rc);
-    expect(getString(rc, 'foobar')).to.equal('hello world');
+    expect(getString(rc, 'foobar')).toBe('hello world');
   });
 
   it('calls updateActiveExperiments with empty experiments if no experiments are available in fetch response', async () => {
@@ -180,63 +191,61 @@ describe('Remote Config API', () => {
       experiments: undefined
     };
     setFetchResponse(responseWithoutExperiments);
-    const updateActiveExperimentsStub = sinon.stub(
+    const updateActiveExperimentsStub = vi.spyOn(
       Experiment.prototype,
       'updateActiveExperiments'
     );
     try {
       await fetchAndActivate(rc);
       await ensureInitialized(rc);
-      expect(updateActiveExperimentsStub).to.have.been.calledWith([]);
+      expect(updateActiveExperimentsStub).toHaveBeenCalledWith([]);
     } finally {
-      updateActiveExperimentsStub.restore();
+      updateActiveExperimentsStub.mockRestore();
     }
   });
 
   describe('onConfigUpdate', () => {
     let capturedObserver: ConfigUpdateObserver | undefined;
     let rc: RemoteConfigImpl;
-    let addObserverStub: sinon.SinonStub;
-    let removeObserverStub: sinon.SinonStub;
+    let addObserverStub: MockInstance;
+    let removeObserverStub: MockInstance;
 
     beforeEach(() => {
       rc = getRemoteConfig(app) as RemoteConfigImpl;
 
-      addObserverStub = sinon
-        .stub(rc._realtimeHandler, 'addObserver')
-        .resolves();
-      removeObserverStub = sinon
-        .stub(rc._realtimeHandler, 'removeObserver')
-        .resolves();
-
-      addObserverStub.callsFake(async (observer: ConfigUpdateObserver) => {
-        capturedObserver = observer;
-      });
+      addObserverStub = vi
+        .spyOn(rc._realtimeHandler, 'addObserver')
+        .mockImplementation(async (observer: ConfigUpdateObserver) => {
+          capturedObserver = observer;
+        });
+      removeObserverStub = vi
+        .spyOn(rc._realtimeHandler, 'removeObserver')
+        .mockResolvedValue();
     });
 
     afterEach(() => {
       capturedObserver = undefined;
-      addObserverStub.restore();
-      removeObserverStub.restore();
+      addObserverStub.mockRestore();
+      removeObserverStub.mockRestore();
     });
 
     it('should call addObserver on the internal realtimeHandler', async () => {
       await onConfigUpdate(rc, mockObserver);
-      expect(addObserverStub).to.have.been.calledOnce;
-      expect(addObserverStub).to.have.been.calledWith(mockObserver);
+      expect(addObserverStub).toHaveBeenCalledTimes(1);
+      expect(addObserverStub).toHaveBeenCalledWith(mockObserver);
     });
 
     it('should return an unsubscribe function', async () => {
       const unsubscribe = await onConfigUpdate(rc, mockObserver);
-      expect(unsubscribe).to.be.a('function');
+      expect(typeof unsubscribe).toBe('function');
     });
 
     it('returned unsubscribe function should call removeObserver', async () => {
       const unsubscribe = await onConfigUpdate(rc, mockObserver);
 
       unsubscribe();
-      expect(removeObserverStub).to.have.been.calledOnce;
-      expect(removeObserverStub).to.have.been.calledWith(mockObserver);
+      expect(removeObserverStub).toHaveBeenCalledTimes(1);
+      expect(removeObserverStub).toHaveBeenCalledWith(mockObserver);
     });
 
     it('observer.next should be called when realtimeHandler propagates an update', async () => {
@@ -249,13 +258,15 @@ describe('Remote Config API', () => {
         expect.fail('Observer was not captured or next method is missing.');
       }
 
-      expect(mockObserver.next).to.have.been.calledOnce;
-      expect(mockObserver.next).to.have.been.calledWithMatch({
-        getUpdatedKeys: sinon.match.func
-      });
-      expect(
-        mockObserver.next.getCall(0).args[0].getUpdatedKeys()
-      ).to.deep.equal(new Set(['new_key']));
+      expect(mockObserver.next).toHaveBeenCalledTimes(1);
+      expect(mockObserver.next).toHaveBeenCalledWith(
+        expect.objectContaining({
+          getUpdatedKeys: expect.any(Function)
+        })
+      );
+      expect(mockObserver.next.mock.calls[0][0].getUpdatedKeys()).toEqual(
+        new Set(['new_key'])
+      );
     });
 
     it('observer.error should be called when realtimeHandler propagates an error', async () => {
@@ -274,17 +285,17 @@ describe('Remote Config API', () => {
         expect.fail('Observer was not captured or error method is missing.');
       }
 
-      expect(mockObserver.error).to.have.been.calledOnce;
-      const receivedError = mockObserver.error.getCall(0).args[0];
+      expect(mockObserver.error).toHaveBeenCalledTimes(1);
+      const receivedError = mockObserver.error.mock.calls[0][0];
 
-      expect(receivedError.message).to.equal(
+      expect(receivedError.message).toBe(
         'Remote Config: The stream was not able to connect to the backend: Realtime stream error. (remoteconfig/stream-error).'
       );
-      expect(receivedError).to.have.nested.property(
+      expect(receivedError).toHaveProperty(
         'customData.originalErrorMessage',
         'Realtime stream error'
       );
-      expect((receivedError as any).code).to.equal('remoteconfig/stream-error');
+      expect((receivedError as any).code).toBe('remoteconfig/stream-error');
     });
   });
 });

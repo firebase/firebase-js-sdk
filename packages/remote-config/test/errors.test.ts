@@ -15,17 +15,17 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
+import { expect } from 'vitest';
 import { hasErrorCode, ERROR_FACTORY, ErrorCode } from '../src/errors';
 import './setup';
 
 describe('hasErrorCode', () => {
   it('defaults false', () => {
     const error = new Error();
-    expect(hasErrorCode(error, ErrorCode.REGISTRATION_PROJECT_ID)).to.be.false;
+    expect(hasErrorCode(error, ErrorCode.REGISTRATION_PROJECT_ID)).toBe(false);
   });
   it('returns true for FirebaseError with given code', () => {
     const error = ERROR_FACTORY.create(ErrorCode.REGISTRATION_PROJECT_ID);
-    expect(hasErrorCode(error, ErrorCode.REGISTRATION_PROJECT_ID)).to.be.true;
+    expect(hasErrorCode(error, ErrorCode.REGISTRATION_PROJECT_ID)).toBe(true);
   });
 });
