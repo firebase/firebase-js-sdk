@@ -17,43 +17,82 @@
 
 import '../testing/setup';
 
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { unregister } from '../api/unregister';
-import * as apiModule from './requests';
-
 import {
   dbGet,
   dbGetFidRegistration,
   dbSet,
   dbSetFidRegistration
 } from './idb-manager';
-import * as idbManager from './idb-manager';
 import { getTokenInternal, revokeRegistrationInternal } from './token-manager';
 import {
   getFakeAnalyticsProvider,
   getFakeApp,
   getFakeInstallations
 } from '../testing/fakes/firebase-dependencies';
-import { spy, stub, useFakeTimers } from 'sinon';
 
 import { FakeServiceWorkerRegistration } from '../testing/fakes/service-worker';
 import { MessagingService } from '../messaging-service';
-import { Stub } from '../testing/sinon-types';
 import { TokenDetails } from '../interfaces/registration-details';
-// import { arrayToBase64 } from '../helpers/array-base64-translator';
-import { expect } from 'chai';
 import { getFakeTokenDetails } from '../testing/fakes/token-details';
+
+const {
+  mockRequestGetToken,
+  mockRequestUpdateToken,
+  mockRequestDeleteToken,
+  mockRequestDeleteRegistration,
+  mockDbRemoveFidRegistration
+} = vi.hoisted(() => ({
+  mockRequestGetToken: vi.fn(),
+  mockRequestUpdateToken: vi.fn(),
+  mockRequestDeleteToken: vi.fn(),
+  mockRequestDeleteRegistration: vi.fn(),
+  mockDbRemoveFidRegistration: vi.fn()
+}));
+
+vi.mock('./requests', async importOriginal => {
+  const actual = await importOriginal<typeof import('./requests')>();
+  return {
+    ...actual,
+    requestGetToken: (...args: unknown[]) =>
+      mockRequestGetToken.getMockImplementation()
+        ? mockRequestGetToken(...args)
+        : actual.requestGetToken(...(args as [any, any])),
+    requestUpdateToken: (...args: unknown[]) =>
+      mockRequestUpdateToken.getMockImplementation()
+        ? mockRequestUpdateToken(...args)
+        : actual.requestUpdateToken(...(args as [any, any])),
+    requestDeleteToken: (...args: unknown[]) =>
+      mockRequestDeleteToken.getMockImplementation()
+        ? mockRequestDeleteToken(...args)
+        : actual.requestDeleteToken(...(args as [any, any])),
+    requestDeleteRegistration: (...args: unknown[]) =>
+      mockRequestDeleteRegistration.getMockImplementation()
+        ? mockRequestDeleteRegistration(...args)
+        : actual.requestDeleteRegistration(...(args as [any, any]))
+  };
+});
+
+vi.mock('./idb-manager', async importOriginal => {
+  const actual = await importOriginal<typeof import('./idb-manager')>();
+  return {
+    ...actual,
+    dbRemoveFidRegistration: (...args: unknown[]) =>
+      mockDbRemoveFidRegistration.getMockImplementation()
+        ? mockDbRemoveFidRegistration(...args)
+        : actual.dbRemoveFidRegistration(...(args as [any]))
+  };
+});
 
 describe('Token Manager', () => {
   let tokenDetails: TokenDetails;
   let messaging: MessagingService;
-  let requestGetTokenStub: Stub<(typeof apiModule)['requestGetToken']>;
-  let requestUpdateTokenStub: Stub<(typeof apiModule)['requestUpdateToken']>;
-  let requestDeleteTokenStub: Stub<(typeof apiModule)['requestDeleteToken']>;
-  let requestDeleteRegistrationStub: Stub<
-    (typeof apiModule)['requestDeleteRegistration']
-  >;
 
   beforeEach(() => {
+    vi.clearAllMocks();
+    vi.useFakeTimers({ now: 1234567890 });
+
     tokenDetails = getFakeTokenDetails();
     messaging = new MessagingService(
       getFakeApp(),
@@ -64,18 +103,15 @@ describe('Token Manager', () => {
     messaging.vapidKey = 'dmFwaWQta2V5LXZhbHVl';
     messaging.swRegistration = new FakeServiceWorkerRegistration();
 
-    requestGetTokenStub = stub(apiModule, 'requestGetToken').resolves(
-      'token-value' // new token.
-    );
-    requestUpdateTokenStub = stub(apiModule, 'requestUpdateToken').resolves(
-      tokenDetails.token // same as current token.
-    );
-    requestDeleteTokenStub = stub(apiModule, 'requestDeleteToken').resolves();
-    requestDeleteRegistrationStub = stub(
-      apiModule,
-      'requestDeleteRegistration'
-    ).resolves();
-    useFakeTimers({ now: 1234567890 });
+    mockRequestGetToken.mockReset().mockResolvedValue('token-value');
+    mockRequestUpdateToken.mockReset().mockResolvedValue(tokenDetails.token);
+    mockRequestDeleteToken.mockReset().mockResolvedValue(undefined);
+    mockRequestDeleteRegistration.mockReset().mockResolvedValue(undefined);
+    mockDbRemoveFidRegistration.mockReset();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   describe('getTokenInternal', () => {
@@ -84,17 +120,18 @@ describe('Token Manager', () => {
       const token = await getTokenInternal(messaging);
 
       // Assert
-      expect(token).to.equal('token-value');
-      expect(requestGetTokenStub).to.have.been.calledOnceWith(
+      expect(token).toEqual('token-value');
+      expect(mockRequestGetToken).toHaveBeenCalledTimes(1);
+      expect(mockRequestGetToken).toHaveBeenCalledWith(
         messaging.firebaseDependencies,
         tokenDetails.subscriptionOptions
       );
-      expect(requestUpdateTokenStub).not.to.have.been.called;
-      expect(requestDeleteTokenStub).not.to.have.been.called;
+      expect(mockRequestUpdateToken).not.toHaveBeenCalled();
+      expect(mockRequestDeleteToken).not.toHaveBeenCalled();
 
       const tokenFromDb = await dbGet(messaging.firebaseDependencies);
-      expect(token).to.equal(tokenFromDb!.token);
-      expect(tokenFromDb).to.deep.equal({
+      expect(token).toEqual(tokenFromDb!.token);
+      expect(tokenFromDb).toEqual({
         ...tokenDetails,
         token: 'token-value'
       });
@@ -108,34 +145,35 @@ describe('Token Manager', () => {
       const token = await getTokenInternal(messaging);
 
       // Assert
-      expect(token).to.equal(tokenDetails.token);
-      expect(requestGetTokenStub).not.to.have.been.called;
-      expect(requestUpdateTokenStub).not.to.have.been.called;
-      expect(requestDeleteTokenStub).not.to.have.been.called;
+      expect(token).toEqual(tokenDetails.token);
+      expect(mockRequestGetToken).not.toHaveBeenCalled();
+      expect(mockRequestUpdateToken).not.toHaveBeenCalled();
+      expect(mockRequestDeleteToken).not.toHaveBeenCalled();
 
       const tokenFromDb = await dbGet(messaging.firebaseDependencies);
-      expect(tokenFromDb).to.deep.equal(tokenDetails);
+      expect(tokenFromDb).toEqual(tokenDetails);
     });
 
     it('gets a fresh token after unregister clears the stored token details', async () => {
       const firstToken = await getTokenInternal(messaging);
 
-      expect(firstToken).to.equal('token-value');
-      expect(requestGetTokenStub).to.have.been.calledOnce;
+      expect(firstToken).toEqual('token-value');
+      expect(mockRequestGetToken).toHaveBeenCalledTimes(1);
 
       await unregister(messaging);
 
-      expect(requestDeleteRegistrationStub).to.have.been.calledOnceWith(
+      expect(mockRequestDeleteRegistration).toHaveBeenCalledTimes(1);
+      expect(mockRequestDeleteRegistration).toHaveBeenCalledWith(
         messaging.firebaseDependencies,
         'FID'
       );
 
       const secondToken = await getTokenInternal(messaging);
 
-      expect(secondToken).to.equal('token-value');
-      expect(requestGetTokenStub).to.have.been.calledTwice;
-      expect(requestUpdateTokenStub).not.to.have.been.called;
-      expect(requestDeleteTokenStub).not.to.have.been.called;
+      expect(secondToken).toEqual('token-value');
+      expect(mockRequestGetToken).toHaveBeenCalledTimes(2);
+      expect(mockRequestUpdateToken).not.toHaveBeenCalled();
+      expect(mockRequestDeleteToken).not.toHaveBeenCalled();
     });
 
     it('cleans up stored FID registration metadata without calling FID unregister', async () => {
@@ -146,11 +184,12 @@ describe('Token Manager', () => {
 
       const token = await getTokenInternal(messaging);
 
-      expect(token).to.equal('token-value');
-      expect(requestGetTokenStub).to.have.been.calledOnce;
-      expect(await dbGetFidRegistration(messaging.firebaseDependencies)).to.be
-        .undefined;
-      expect(requestDeleteRegistrationStub).not.to.have.been.called;
+      expect(token).toEqual('token-value');
+      expect(mockRequestGetToken).toHaveBeenCalledTimes(1);
+      expect(
+        await dbGetFidRegistration(messaging.firebaseDependencies)
+      ).toBeUndefined();
+      expect(mockRequestDeleteRegistration).not.toHaveBeenCalled();
     });
 
     it('update the token if it was last updated more than a week ago', async () => {
@@ -165,42 +204,39 @@ describe('Token Manager', () => {
         createTime: Date.now()
       };
 
-      expect(token).to.equal(tokenDetails.token); // Same token.
-      expect(requestGetTokenStub).not.to.have.been.called;
-      expect(requestUpdateTokenStub).to.have.been.calledOnceWith(
+      expect(token).toEqual(tokenDetails.token); // Same token.
+      expect(mockRequestGetToken).not.toHaveBeenCalled();
+      expect(mockRequestUpdateToken).toHaveBeenCalledTimes(1);
+      expect(mockRequestUpdateToken).toHaveBeenCalledWith(
         messaging.firebaseDependencies,
         expectedTokenDetails
       );
-      expect(requestDeleteTokenStub).not.to.have.been.called;
+      expect(mockRequestDeleteToken).not.toHaveBeenCalled();
 
       const tokenFromDb = await dbGet(messaging.firebaseDependencies);
-      expect(token).to.equal(tokenFromDb!.token);
-      expect(tokenFromDb).to.deep.equal(expectedTokenDetails);
+      expect(token).toEqual(tokenFromDb!.token);
+      expect(tokenFromDb).toEqual(expectedTokenDetails);
     });
 
     it('retains the token upon update failure due to potential server error, allowing for future update attempts', async () => {
       // Arrange
       tokenDetails.createTime = Date.now() - 8 * 24 * 60 * 60 * 1000; // 8 days ago, triggering an update
       await dbSet(messaging.firebaseDependencies, tokenDetails);
-      requestUpdateTokenStub.rejects(new Error('Temporary server error'));
+      mockRequestUpdateToken.mockRejectedValue(
+        new Error('Temporary server error')
+      );
 
       // Act
-      await expect(getTokenInternal(messaging)).to.be.rejectedWith(
+      await expect(getTokenInternal(messaging)).rejects.toThrow(
         'Temporary server error'
       );
 
       // Assert
-      expect(requestUpdateTokenStub).to.have.been.called;
-      expect(requestDeleteTokenStub).not.to.have.been.called; // Verify delete was not called
-
-      // Reasoning documentation
-      // This test ensures that the token is not deleted upon an update failure,
-      // recognizing that such failures may be temporary server-side issues.
-      // By not deleting the token, we allow the system to retry the update in the future,
-      // avoiding unnecessary token churn and preserving continuity for the user.
+      expect(mockRequestUpdateToken).toHaveBeenCalled();
+      expect(mockRequestDeleteToken).not.toHaveBeenCalled();
 
       const tokenFromDb = await dbGet(messaging.firebaseDependencies);
-      expect(tokenFromDb).to.not.be.null; // Ensure the token still exists
+      expect(tokenFromDb).not.toBeNull();
     });
   });
 
@@ -208,10 +244,10 @@ describe('Token Manager', () => {
     it('returns if there is no token in the db', async () => {
       await revokeRegistrationInternal(messaging);
 
-      expect(requestGetTokenStub).not.to.have.been.called;
-      expect(requestUpdateTokenStub).not.to.have.been.called;
-      expect(requestDeleteTokenStub).not.to.have.been.called;
-      expect(requestDeleteRegistrationStub).not.to.have.been.called;
+      expect(mockRequestGetToken).not.toHaveBeenCalled();
+      expect(mockRequestUpdateToken).not.toHaveBeenCalled();
+      expect(mockRequestDeleteToken).not.toHaveBeenCalled();
+      expect(mockRequestDeleteRegistration).not.toHaveBeenCalled();
     });
 
     it('calls requestDeleteRegistration and onUnregistered when only FID metadata exists', async () => {
@@ -220,19 +256,22 @@ describe('Token Manager', () => {
         fid,
         lastRegisterTime: Date.now()
       });
-      const onUnregisteredSpy = stub();
+      const onUnregisteredSpy = vi.fn();
       messaging.onUnregisteredHandler = onUnregisteredSpy;
 
       await revokeRegistrationInternal(messaging);
 
-      expect(requestDeleteTokenStub).not.to.have.been.called;
-      expect(requestDeleteRegistrationStub).to.have.been.calledOnceWith(
+      expect(mockRequestDeleteToken).not.toHaveBeenCalled();
+      expect(mockRequestDeleteRegistration).toHaveBeenCalledTimes(1);
+      expect(mockRequestDeleteRegistration).toHaveBeenCalledWith(
         messaging.firebaseDependencies,
         fid
       );
-      expect(await dbGetFidRegistration(messaging.firebaseDependencies)).to.be
-        .undefined;
-      expect(onUnregisteredSpy).to.have.been.calledOnceWith(fid);
+      expect(
+        await dbGetFidRegistration(messaging.firebaseDependencies)
+      ).toBeUndefined();
+      expect(onUnregisteredSpy).toHaveBeenCalledTimes(1);
+      expect(onUnregisteredSpy).toHaveBeenCalledWith(fid);
     });
 
     it('does not remove FID metadata or notify onUnregistered when requestDeleteRegistration fails', async () => {
@@ -241,18 +280,18 @@ describe('Token Manager', () => {
         fid,
         lastRegisterTime: Date.now()
       });
-      requestDeleteRegistrationStub.rejects(new Error('network'));
-      const onUnregisteredSpy = stub();
+      mockRequestDeleteRegistration.mockRejectedValue(new Error('network'));
+      const onUnregisteredSpy = vi.fn();
       messaging.onUnregisteredHandler = onUnregisteredSpy;
 
-      await expect(revokeRegistrationInternal(messaging)).to.be.rejectedWith(
+      await expect(revokeRegistrationInternal(messaging)).rejects.toThrow(
         'network'
       );
 
       expect(
         (await dbGetFidRegistration(messaging.firebaseDependencies))?.fid
-      ).to.equal(fid);
-      expect(onUnregisteredSpy).not.to.have.been.called;
+      ).toEqual(fid);
+      expect(onUnregisteredSpy).not.toHaveBeenCalled();
     });
 
     it('does not throw when only FID metadata exists and onUnregisteredHandler is unset', async () => {
@@ -265,40 +304,38 @@ describe('Token Manager', () => {
 
       await revokeRegistrationInternal(messaging);
 
-      expect(requestDeleteRegistrationStub).to.have.been.calledOnceWith(
+      expect(mockRequestDeleteRegistration).toHaveBeenCalledTimes(1);
+      expect(mockRequestDeleteRegistration).toHaveBeenCalledWith(
         messaging.firebaseDependencies,
         fid
       );
     });
 
     it('removes token from the db, calls requestDeleteToken and unsubscribes the push subscription', async () => {
-      const unsubscribeSpy = spy(
-        await messaging.swRegistration!.pushManager.subscribe(),
-        'unsubscribe'
-      );
+      const sub = await messaging.swRegistration!.pushManager.subscribe();
+      const unsubscribeSpy = vi.spyOn(sub, 'unsubscribe');
       await dbSet(messaging.firebaseDependencies, tokenDetails);
 
       await revokeRegistrationInternal(messaging);
 
-      expect(await dbGet(messaging.firebaseDependencies)).to.be.undefined;
-      expect(requestGetTokenStub).not.to.have.been.called;
-      expect(requestUpdateTokenStub).not.to.have.been.called;
-      expect(requestDeleteTokenStub).to.have.been.calledOnceWith(
+      expect(await dbGet(messaging.firebaseDependencies)).toBeUndefined();
+      expect(mockRequestGetToken).not.toHaveBeenCalled();
+      expect(mockRequestUpdateToken).not.toHaveBeenCalled();
+      expect(mockRequestDeleteToken).toHaveBeenCalledTimes(1);
+      expect(mockRequestDeleteToken).toHaveBeenCalledWith(
         messaging.firebaseDependencies,
         tokenDetails.token
       );
-      expect(unsubscribeSpy).to.have.been.called;
+      expect(unsubscribeSpy).toHaveBeenCalled();
     });
 
     it('also cleans up stored FID registration metadata', async () => {
-      const dbRemoveFidStub = stub(
-        idbManager,
-        'dbRemoveFidRegistration'
-      ).resolves();
+      mockDbRemoveFidRegistration.mockResolvedValue(undefined);
 
       await revokeRegistrationInternal(messaging);
 
-      expect(dbRemoveFidStub).to.have.been.calledOnceWith(
+      expect(mockDbRemoveFidRegistration).toHaveBeenCalledTimes(1);
+      expect(mockDbRemoveFidRegistration).toHaveBeenCalledWith(
         messaging.firebaseDependencies
       );
     });

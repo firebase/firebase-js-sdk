@@ -31,29 +31,39 @@ import {
 
 import { ENDPOINT } from '../util/constants';
 import { FirebaseInternalDependencies } from '../interfaces/internal-dependencies';
-import { Stub } from '../testing/sinon-types';
 import { TokenDetails } from '../interfaces/registration-details';
 import { compareHeaders } from '../testing/compare-headers';
-import { expect } from 'chai';
+import {
+  describe,
+  beforeEach,
+  afterEach,
+  it,
+  expect,
+  vi,
+  type MockInstance
+} from 'vitest';
 import { getFakeFirebaseDependencies } from '../testing/fakes/firebase-dependencies';
 import { getFakeTokenDetails } from '../testing/fakes/token-details';
-import { stub } from 'sinon';
 import { version as fcmSdkVersion } from '../../package.json';
 
 describe('API', () => {
   let tokenDetails: TokenDetails;
   let firebaseDependencies: FirebaseInternalDependencies;
-  let fetchStub: Stub<typeof fetch>;
+  let fetchSpy: MockInstance;
 
   beforeEach(() => {
     tokenDetails = getFakeTokenDetails();
     firebaseDependencies = getFakeFirebaseDependencies();
-    fetchStub = stub(self, 'fetch');
+    fetchSpy = vi.spyOn(self, 'fetch');
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   describe('getToken', () => {
     it('calls the createRegistration server API with correct parameters', async () => {
-      fetchStub.resolves(
+      fetchSpy.mockResolvedValue(
         new Response(JSON.stringify({ token: 'fcm-token-from-server' }))
       );
 
@@ -87,15 +97,16 @@ describe('API', () => {
       };
       const expectedEndpoint = `${ENDPOINT}/projects/projectId/registrations`;
 
-      expect(response).to.equal('fcm-token-from-server');
-      expect(fetchStub).to.be.calledOnceWith(expectedEndpoint, expectedRequest);
+      expect(response).toBe('fcm-token-from-server');
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
+      expect(fetchSpy).toHaveBeenCalledWith(expectedEndpoint, expectedRequest);
       // TODO: expect fis.getToken to be called. There is some issue w/ stubbing the fis module.
-      const actualHeaders = fetchStub.lastCall.lastArg.headers;
+      const actualHeaders = fetchSpy.mock.calls[0][1]?.headers;
       compareHeaders(expectedHeaders, actualHeaders);
     });
 
     it('does not include fcm_sdk_version in legacy createToken request payload', async () => {
-      fetchStub.resolves(
+      fetchSpy.mockResolvedValue(
         new Response(JSON.stringify({ token: 'fcm-token-from-server' }))
       );
 
@@ -104,41 +115,40 @@ describe('API', () => {
         tokenDetails.subscriptionOptions!
       );
 
-      const [, requestInit] = fetchStub.getCall(0).args as [
-        string,
-        RequestInit
-      ];
+      const [, requestInit] = fetchSpy.mock.calls[0] as [string, RequestInit];
       const body = JSON.parse(requestInit.body as string) as Record<
         string,
         unknown
       >;
 
-      expect(body).to.not.have.property('fcm_sdk_version');
+      expect(body).not.toHaveProperty('fcm_sdk_version');
     });
 
     it('throws if there is a problem with the response', async () => {
-      fetchStub.rejects(new Error('Fetch failed'));
+      fetchSpy.mockRejectedValue(new Error('Fetch failed'));
       await expect(
         requestGetToken(firebaseDependencies, tokenDetails.subscriptionOptions!)
-      ).to.be.rejectedWith('Fetch failed');
+      ).rejects.toThrow('Fetch failed');
 
-      fetchStub.resolves(
+      fetchSpy.mockResolvedValue(
         new Response(JSON.stringify({ error: { message: 'error message' } }))
       );
       await expect(
         requestGetToken(firebaseDependencies, tokenDetails.subscriptionOptions!)
-      ).to.be.rejectedWith('messaging/token-subscribe-failed');
+      ).rejects.toThrow('messaging/token-subscribe-failed');
 
-      fetchStub.resolves(new Response(JSON.stringify({/* no token */})));
+      fetchSpy.mockResolvedValue(
+        new Response(JSON.stringify({/* no token */}))
+      );
       await expect(
         requestGetToken(firebaseDependencies, tokenDetails.subscriptionOptions!)
-      ).to.be.rejectedWith('messaging/token-subscribe-no-token');
+      ).rejects.toThrow('messaging/token-subscribe-no-token');
     });
   });
 
   describe('createRegistration', () => {
     function stubSetTimeoutImmediate(): void {
-      stub(self, 'setTimeout').callsFake(
+      vi.spyOn(self, 'setTimeout').mockImplementation(
         (handler: TimerHandler, _timeout?: number) => {
           if (typeof handler === 'function') {
             handler();
@@ -152,7 +162,7 @@ describe('API', () => {
       `projects/projectId/registrations/${fid}`;
 
     it('calls fetch once when the first attempt succeeds', async () => {
-      fetchStub.resolves(
+      fetchSpy.mockResolvedValue(
         new Response(
           JSON.stringify({
             name: registrationResourceName('installation-fid-1')
@@ -168,11 +178,11 @@ describe('API', () => {
         tokenDetails.subscriptionOptions!
       );
 
-      expect(fetchStub).to.have.callCount(1);
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
     });
 
     it('includes fcm_sdk_version in the CreateRegistration request payload', async () => {
-      fetchStub.resolves(
+      fetchSpy.mockResolvedValue(
         new Response(
           JSON.stringify({
             name: registrationResourceName('installation-fid-1')
@@ -186,17 +196,14 @@ describe('API', () => {
         tokenDetails.subscriptionOptions!
       );
 
-      const [, requestInit] = fetchStub.getCall(0).args as [
-        string,
-        RequestInit
-      ];
+      const [, requestInit] = fetchSpy.mock.calls[0] as [string, RequestInit];
       const body = JSON.parse(requestInit.body as string) as ApiRequestBody;
 
-      expect(body.fcm_sdk_version).to.equal(fcmSdkVersion);
+      expect(body.fcm_sdk_version).toBe(fcmSdkVersion);
     });
 
     it('returns responseFid when the success body includes a registration resource name', async () => {
-      fetchStub.resolves(
+      fetchSpy.mockResolvedValue(
         new Response(
           JSON.stringify({
             name: registrationResourceName('installation-fid-1')
@@ -212,11 +219,11 @@ describe('API', () => {
         tokenDetails.subscriptionOptions!
       );
 
-      expect(result).to.deep.equal({ responseFid: 'installation-fid-1' });
+      expect(result).toEqual({ responseFid: 'installation-fid-1' });
     });
 
     it('rejects when name is not a valid registration resource name (no slash)', async () => {
-      fetchStub.resolves(
+      fetchSpy.mockResolvedValue(
         new Response(JSON.stringify({ name: 'installation-fid-invalid' }), {
           status: 200
         })
@@ -227,23 +234,23 @@ describe('API', () => {
           firebaseDependencies,
           tokenDetails.subscriptionOptions!
         )
-      ).to.be.rejectedWith('messaging/fid-registration-failed');
+      ).rejects.toThrow('messaging/fid-registration-failed');
     });
 
     it('rejects when the success body is empty', async () => {
-      fetchStub.resolves(new Response(null, { status: 200 }));
+      fetchSpy.mockResolvedValue(new Response(null, { status: 200 }));
 
       await expect(
         requestCreateRegistration(
           firebaseDependencies,
           tokenDetails.subscriptionOptions!
         )
-      ).to.be.rejectedWith('messaging/fid-registration-failed');
+      ).rejects.toThrow('messaging/fid-registration-failed');
     });
 
     it('retries fetch on thrown errors with exponential backoff then succeeds', async () => {
       const delays: number[] = [];
-      stub(self, 'setTimeout').callsFake(
+      vi.spyOn(self, 'setTimeout').mockImplementation(
         (handler: TimerHandler, timeout?: number) => {
           delays.push(timeout ?? 0);
           if (typeof handler === 'function') {
@@ -252,13 +259,10 @@ describe('API', () => {
           return 0 as unknown as ReturnType<typeof setTimeout>;
         }
       );
-      fetchStub
-        .onFirstCall()
-        .rejects(new Error('network 1'))
-        .onSecondCall()
-        .rejects(new Error('network 2'))
-        .onThirdCall()
-        .resolves(
+      fetchSpy
+        .mockRejectedValueOnce(new Error('network 1'))
+        .mockRejectedValueOnce(new Error('network 2'))
+        .mockResolvedValueOnce(
           new Response(
             JSON.stringify({
               name: registrationResourceName('installation-fid-1')
@@ -274,8 +278,10 @@ describe('API', () => {
         tokenDetails.subscriptionOptions!
       );
 
-      expect(fetchStub.callCount).to.equal(FID_REGISTRATION_FETCH_MAX_ATTEMPTS);
-      expect(delays).to.deep.equal([
+      expect(fetchSpy).toHaveBeenCalledTimes(
+        FID_REGISTRATION_FETCH_MAX_ATTEMPTS
+      );
+      expect(delays).toEqual([
         FID_REGISTRATION_FETCH_BASE_BACKOFF_MS,
         FID_REGISTRATION_FETCH_BASE_BACKOFF_MS * 2
       ]);
@@ -283,22 +289,24 @@ describe('API', () => {
 
     it('stops after max attempts when fetch keeps throwing', async () => {
       stubSetTimeoutImmediate();
-      fetchStub.rejects(new Error('persistent network failure'));
+      fetchSpy.mockRejectedValue(new Error('persistent network failure'));
 
       await expect(
         requestCreateRegistration(
           firebaseDependencies,
           tokenDetails.subscriptionOptions!
         )
-      ).to.be.rejectedWith('messaging/fid-registration-failed');
+      ).rejects.toThrow('messaging/fid-registration-failed');
 
-      expect(fetchStub.callCount).to.equal(FID_REGISTRATION_FETCH_MAX_ATTEMPTS);
+      expect(fetchSpy).toHaveBeenCalledTimes(
+        FID_REGISTRATION_FETCH_MAX_ATTEMPTS
+      );
     });
   });
 
   describe('updateToken', () => {
     it('calls the updateRegistration server API with correct parameters', async () => {
-      fetchStub.resolves(
+      fetchSpy.mockResolvedValue(
         new Response(JSON.stringify({ token: 'fcm-token-from-server' }))
       );
 
@@ -332,54 +340,54 @@ describe('API', () => {
       };
       const expectedEndpoint = `${ENDPOINT}/projects/projectId/registrations/token-value`;
 
-      expect(response).to.equal('fcm-token-from-server');
-      expect(fetchStub).to.be.calledOnceWith(expectedEndpoint, expectedRequest);
-      const actualHeaders = fetchStub.lastCall.lastArg.headers;
+      expect(response).toBe('fcm-token-from-server');
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
+      expect(fetchSpy).toHaveBeenCalledWith(expectedEndpoint, expectedRequest);
+      const actualHeaders = fetchSpy.mock.calls[0][1]?.headers;
       compareHeaders(expectedHeaders, actualHeaders);
     });
 
     it('does not include fcm_sdk_version in legacy updateToken request payload', async () => {
-      fetchStub.resolves(
+      fetchSpy.mockResolvedValue(
         new Response(JSON.stringify({ token: 'fcm-token-from-server' }))
       );
 
       await requestUpdateToken(firebaseDependencies, tokenDetails);
 
-      const [, requestInit] = fetchStub.getCall(0).args as [
-        string,
-        RequestInit
-      ];
+      const [, requestInit] = fetchSpy.mock.calls[0] as [string, RequestInit];
       const body = JSON.parse(requestInit.body as string) as Record<
         string,
         unknown
       >;
 
-      expect(body).to.not.have.property('fcm_sdk_version');
+      expect(body).not.toHaveProperty('fcm_sdk_version');
     });
 
     it('throws if there is a problem with the response', async () => {
-      fetchStub.rejects(new Error('Fetch failed'));
+      fetchSpy.mockRejectedValue(new Error('Fetch failed'));
       await expect(
         requestUpdateToken(firebaseDependencies, tokenDetails)
-      ).to.be.rejectedWith('Fetch failed');
+      ).rejects.toThrow('Fetch failed');
 
-      fetchStub.resolves(
+      fetchSpy.mockResolvedValue(
         new Response(JSON.stringify({ error: { message: 'error message' } }))
       );
       await expect(
         requestUpdateToken(firebaseDependencies, tokenDetails)
-      ).to.be.rejectedWith('messaging/token-update-failed');
+      ).rejects.toThrow('messaging/token-update-failed');
 
-      fetchStub.resolves(new Response(JSON.stringify({/* no token */})));
+      fetchSpy.mockResolvedValue(
+        new Response(JSON.stringify({/* no token */}))
+      );
       await expect(
         requestUpdateToken(firebaseDependencies, tokenDetails)
-      ).to.be.rejectedWith('messaging/token-update-no-token');
+      ).rejects.toThrow('messaging/token-update-no-token');
     });
   });
 
   describe('deleteToken', () => {
     it('calls the deleteRegistration server API with correct parameters', async () => {
-      fetchStub.resolves(new Response(JSON.stringify({})));
+      fetchSpy.mockResolvedValue(new Response(JSON.stringify({})));
 
       const response = await requestDeleteToken(
         firebaseDependencies,
@@ -398,30 +406,31 @@ describe('API', () => {
       };
       const expectedEndpoint = `${ENDPOINT}/projects/projectId/registrations/token-value`;
 
-      expect(response).to.be.undefined;
-      expect(fetchStub).to.be.calledOnceWith(expectedEndpoint, expectedRequest);
-      const actualHeaders = fetchStub.lastCall.lastArg.headers;
+      expect(response).toBeUndefined();
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
+      expect(fetchSpy).toHaveBeenCalledWith(expectedEndpoint, expectedRequest);
+      const actualHeaders = fetchSpy.mock.calls[0][1]?.headers;
       compareHeaders(expectedHeaders, actualHeaders);
     });
 
     it('throws if there is a problem with the response', async () => {
-      fetchStub.rejects(new Error('Fetch failed'));
+      fetchSpy.mockRejectedValue(new Error('Fetch failed'));
       await expect(
         requestDeleteToken(firebaseDependencies, tokenDetails.token)
-      ).to.be.rejectedWith('Fetch failed');
+      ).rejects.toThrow('Fetch failed');
 
-      fetchStub.resolves(
+      fetchSpy.mockResolvedValue(
         new Response(JSON.stringify({ error: { message: 'error message' } }))
       );
       await expect(
         requestDeleteToken(firebaseDependencies, tokenDetails.token)
-      ).to.be.rejectedWith('messaging/token-unsubscribe-failed');
+      ).rejects.toThrow('messaging/token-unsubscribe-failed');
     });
   });
 
   describe('deleteRegistration (FID)', () => {
     it('calls the deleteRegistration server API with correct parameters', async () => {
-      fetchStub.resolves(new Response(JSON.stringify({})));
+      fetchSpy.mockResolvedValue(new Response(JSON.stringify({})));
 
       const response = await requestDeleteRegistration(
         firebaseDependencies,
@@ -440,26 +449,27 @@ describe('API', () => {
       };
       const expectedEndpoint = `${ENDPOINT}/projects/projectId/registrations/fid-value`;
 
-      expect(response).to.be.undefined;
-      expect(fetchStub).to.be.calledOnceWith(expectedEndpoint, expectedRequest);
-      const actualHeaders = fetchStub.lastCall.lastArg.headers;
+      expect(response).toBeUndefined();
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
+      expect(fetchSpy).toHaveBeenCalledWith(expectedEndpoint, expectedRequest);
+      const actualHeaders = fetchSpy.mock.calls[0][1]?.headers;
       compareHeaders(expectedHeaders, actualHeaders);
     });
 
     it('throws if fetch fails or backend returns an error', async () => {
-      fetchStub.rejects(new Error('Fetch failed'));
+      fetchSpy.mockRejectedValue(new Error('Fetch failed'));
       await expect(
         requestDeleteRegistration(firebaseDependencies, 'fid-value')
-      ).to.be.rejectedWith('messaging/fid-unregister-failed');
+      ).rejects.toThrow('messaging/fid-unregister-failed');
 
-      fetchStub.resolves(
+      fetchSpy.mockResolvedValue(
         new Response(JSON.stringify({ error: { message: 'error message' } }), {
           status: 400
         })
       );
       await expect(
         requestDeleteRegistration(firebaseDependencies, 'fid-value')
-      ).to.be.rejectedWith('messaging/fid-unregister-failed');
+      ).rejects.toThrow('messaging/fid-unregister-failed');
     });
   });
 });

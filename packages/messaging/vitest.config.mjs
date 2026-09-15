@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,13 @@
  * limitations under the License.
  */
 
-import { deleteDB } from 'idb';
-import { afterEach, vi } from 'vitest';
+import createBaseConfig from '../../config/vitest.base.mjs';
 
-afterEach(async () => {
-  vi.restoreAllMocks();
-  await deleteDB('firebase-messaging-database');
-  await deleteDB('fcm_token_details_db');
-});
+const config = createBaseConfig(import.meta.url);
+
+// Browser-only SDK: filter test projects to browser runner
+config.test.projects = config.test.projects.filter(
+  project => project.test?.name === 'browser'
+);
+
+export default config;

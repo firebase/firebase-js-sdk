@@ -16,16 +16,19 @@
  */
 
 import * as LogModule from './logToFirelog';
-import chaiAsPromised from 'chai-as-promised';
-import sinonChai from 'sinon-chai';
-
-import { expect, use } from 'chai';
+import {
+  describe,
+  beforeEach,
+  afterEach,
+  it,
+  expect,
+  vi,
+  type MockInstance
+} from 'vitest';
 import {
   getFakeLogEvent,
   getSuccessResponse
 } from '../testing/fakes/logging-object';
-import { restore, stub, useFakeTimers } from 'sinon';
-
 import { _setDeliveryMetricsExportedToBigQueryEnabled } from '../api/setDeliveryMetricsExportedToBigQueryEnabled';
 import { MessagePayloadInternal } from '../interfaces/internal-message-payload';
 import {
@@ -33,7 +36,6 @@ import {
   MAX_NUMBER_OF_EVENTS_PER_LOG_REQUEST
 } from '../util/constants';
 import { MessagingService } from '../messaging-service';
-import { Stub } from '../testing/sinon-types';
 import { getFakeMessagingService } from '../testing/fakes/messaging-service';
 
 const LOG_ENDPOINT = 'https://play.google.com/log?format=json_proto3';
@@ -46,20 +48,18 @@ const FCM_TRANSPORT_KEY = LogModule._mergeStrings(
   'Iaya3yLKwmgvh7cF0q4'
 );
 
-use(chaiAsPromised);
-use(sinonChai);
-
 describe('logToFirelog', () => {
-  let fetchStub: Stub<typeof fetch>;
+  let fetchSpy: MockInstance;
   let messaging: MessagingService;
 
   beforeEach(() => {
-    fetchStub = stub(window, 'fetch');
+    fetchSpy = vi.spyOn(window, 'fetch');
     messaging = getFakeMessagingService();
   });
 
-  afterEach(async () => {
-    restore();
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.useRealTimers();
   });
 
   describe('_dispatchLogEvents', () => {
@@ -69,28 +69,31 @@ describe('logToFirelog', () => {
 
     it('dispatches queue successfully ', async () => {
       // set up
-      fetchStub.resolves(new Response(JSON.stringify(getSuccessResponse())));
+      fetchSpy.mockResolvedValue(
+        new Response(JSON.stringify(getSuccessResponse()))
+      );
       messaging.logEvents.push(getFakeLogEvent());
 
       // call
       await LogModule._dispatchLogEvents(messaging);
 
       // assert
-      expect(fetchStub).to.be.calledOnceWith(
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
+      expect(fetchSpy).toHaveBeenCalledWith(
         LOG_ENDPOINT.concat('&key=', FCM_TRANSPORT_KEY),
         {
           method: 'POST',
           body: JSON.stringify(LogModule._createLogRequest([getFakeLogEvent()]))
         }
       );
-      expect(messaging.logEvents).to.be.empty;
+      expect(messaging.logEvents).toEqual([]);
     });
 
     it('does not lose events enqueued during an in-flight dispatch', async () => {
-      const clock = useFakeTimers();
+      vi.useFakeTimers();
 
       let resolveFetch: ((value: Response) => void) | undefined;
-      fetchStub.callsFake(() => {
+      fetchSpy.mockImplementation(() => {
         return new Promise<Response>(resolve => {
           resolveFetch = resolve;
         });
@@ -109,62 +112,75 @@ describe('logToFirelog', () => {
       await dispatchPromise;
 
       // First request drains only the swapped queue; the late event remains queued.
-      expect(fetchStub).to.have.been.calledOnce;
-      expect(messaging.logEvents).to.have.length(1);
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
+      expect(messaging.logEvents).toHaveLength(1);
 
       // The follow-up flush should be scheduled ASAP (0ms).
-      fetchStub.resolves(new Response(JSON.stringify(getSuccessResponse())));
-      await clock.tickAsync(INITIAL_FLUSH_FAKE_TICK_MS);
+      fetchSpy.mockResolvedValue(
+        new Response(JSON.stringify(getSuccessResponse()))
+      );
+      await vi.advanceTimersByTimeAsync(INITIAL_FLUSH_FAKE_TICK_MS);
 
-      expect(fetchStub).to.have.been.calledTwice;
-      expect(messaging.logEvents).to.be.empty;
+      expect(fetchSpy).toHaveBeenCalledTimes(2);
+      expect(messaging.logEvents).toEqual([]);
 
-      clock.restore();
+      vi.useRealTimers();
     });
 
     it('Retries at most max retries times', async () => {
+      vi.useFakeTimers();
       // set up
-      fetchStub.rejects(new Error('err'));
+      fetchSpy.mockRejectedValue(new Error('err'));
       messaging.logEvents.push(getFakeLogEvent());
 
       // call
-      await LogModule._dispatchLogEvents(messaging);
+      const dispatchPromise = LogModule._dispatchLogEvents(messaging);
+      for (let i = 0; i < 3; i++) {
+        await vi.advanceTimersByTimeAsync(5000);
+      }
+      await dispatchPromise;
 
       //assert
-      expect(fetchStub).to.be.calledThrice;
-      expect(messaging.logEvents).to.be.empty;
+      expect(fetchSpy).toHaveBeenCalledTimes(3);
+      expect(messaging.logEvents).toEqual([]);
+      vi.useRealTimers();
     });
 
     it('Retries when retriable(429) status returned ', async () => {
+      vi.useFakeTimers();
       // set up
-      fetchStub.resolves(
-        new Response(
-          /** body= */ new Blob(),
-          /** init= */ {
-            'status': 429,
-            'statusText': 'retriable(429) error returned'
-          }
-        )
+      fetchSpy.mockImplementation(() =>
+        Promise.resolve({
+          ok: false,
+          status: 429,
+          statusText: 'retriable(429) error returned',
+          json: () => Promise.reject(new Error('retriable error body'))
+        } as unknown as Response)
       );
 
       messaging.logEvents.push(getFakeLogEvent());
 
       // call
-      await LogModule._dispatchLogEvents(messaging);
+      const dispatchPromise = LogModule._dispatchLogEvents(messaging);
+      for (let i = 0; i < 3; i++) {
+        await vi.advanceTimersByTimeAsync(5000);
+      }
+      await dispatchPromise;
 
       //assert
-      expect(fetchStub).to.be.calledThrice;
-      expect(messaging.logEvents).to.be.empty;
+      expect(fetchSpy).toHaveBeenCalledTimes(3);
+      expect(messaging.logEvents).toEqual([]);
+      vi.useRealTimers();
     });
 
     it('Do not retry when non-retriable(405) status returned ', async () => {
       // set up
-      fetchStub.resolves(
+      fetchSpy.mockResolvedValue(
         new Response(
           /** body= */ new Blob(),
           /** init= */ {
-            'status': 405,
-            'statusText': 'non-retriable(405) status returned'
+            status: 405,
+            statusText: 'non-retriable(405) status returned'
           }
         )
       );
@@ -175,30 +191,36 @@ describe('logToFirelog', () => {
       await LogModule._dispatchLogEvents(messaging);
 
       //assert
-      expect(fetchStub).to.be.calledOnce;
-      expect(messaging.logEvents).to.be.empty;
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
+      expect(messaging.logEvents).toEqual([]);
     });
 
     it('Rejects 1st request, Passes 2nd request', async () => {
+      vi.useFakeTimers();
       // set up
-      fetchStub
-        .onFirstCall()
-        .rejects(new Error('reject 1st time. 2 retry remain'))
-        .onSecondCall()
-        .resolves(new Response(JSON.stringify(getSuccessResponse())));
+      fetchSpy
+        .mockRejectedValueOnce(new Error('reject 1st time. 2 retry remain'))
+        .mockResolvedValueOnce(
+          new Response(JSON.stringify(getSuccessResponse()))
+        );
       messaging.logEvents.push(getFakeLogEvent());
 
       // call
-      await LogModule._dispatchLogEvents(messaging);
+      const dispatchPromise = LogModule._dispatchLogEvents(messaging);
+      await vi.advanceTimersByTimeAsync(10000);
+      await dispatchPromise;
 
       //assert
-      expect(fetchStub).to.be.calledTwice;
-      expect(messaging.logEvents).to.be.empty;
+      expect(fetchSpy).toHaveBeenCalledTimes(2);
+      expect(messaging.logEvents).toEqual([]);
+      vi.useRealTimers();
     });
 
     it('Slices logEvents based on max events per request', async () => {
       // set up
-      fetchStub.resolves(new Response(JSON.stringify(getSuccessResponse())));
+      fetchSpy.mockResolvedValue(
+        new Response(JSON.stringify(getSuccessResponse()))
+      );
       for (let i = 0; i < MAX_NUMBER_OF_EVENTS_PER_LOG_REQUEST * 3; i++) {
         messaging.logEvents.push(getFakeLogEvent());
       }
@@ -207,26 +229,28 @@ describe('logToFirelog', () => {
       await LogModule._dispatchLogEvents(messaging);
 
       //assert
-      expect(fetchStub).to.be.calledThrice;
-      expect(messaging.logEvents).to.be.empty;
+      expect(fetchSpy).toHaveBeenCalledTimes(3);
+      expect(messaging.logEvents).toEqual([]);
     });
 
     it('Empty queue', async () => {
       // set up
-      fetchStub.resolves(new Response(JSON.stringify(getSuccessResponse())));
+      fetchSpy.mockResolvedValue(
+        new Response(JSON.stringify(getSuccessResponse()))
+      );
       messaging.logEvents = [];
 
       // call
       await LogModule._dispatchLogEvents(messaging);
 
       //assert
-      expect(fetchStub).to.not.have.been.called;
-      expect(messaging.logEvents).to.be.empty;
+      expect(fetchSpy).not.toHaveBeenCalled();
+      expect(messaging.logEvents).toEqual([]);
     });
   });
 
   describe('_processQueue', () => {
-    it('clears log events if no user logging permission', done => {
+    it('clears log events if no user logging permission', () => {
       // set up
       messaging = getFakeMessagingService();
       messaging.logEvents.push(getFakeLogEvent());
@@ -236,16 +260,15 @@ describe('logToFirelog', () => {
       LogModule._processQueue(messaging, /** offsetInMs= */ 100);
 
       // assert
-      setTimeout(() => {
-        expect(messaging.logEvents.length).to.equal(0);
-        expect(messaging.logQueue.state).to.equal('stopped');
-        done();
-      }, 1000);
+      expect(messaging.logEvents.length).toBe(0);
+      expect(messaging.logQueue.state).toBe('stopped');
     });
 
-    it('sends log events if user logging permission is granted', done => {
+    it('sends log events if user logging permission is granted', async () => {
       // set up
-      fetchStub.resolves(new Response(JSON.stringify(getSuccessResponse())));
+      fetchSpy.mockResolvedValue(
+        new Response(JSON.stringify(getSuccessResponse()))
+      );
       messaging = getFakeMessagingService();
       messaging.logEvents.push(getFakeLogEvent());
       messaging.deliveryMetricsExportedToBigQueryEnabled = true;
@@ -254,60 +277,66 @@ describe('logToFirelog', () => {
       LogModule._processQueue(messaging, /** offsetInMs= */ 100);
 
       // assert
-      setTimeout(() => {
-        expect(messaging.logEvents.length).to.equal(0);
-        done();
-      }, 1000);
+      await new Promise<void>(resolve => setTimeout(resolve, 200));
+      expect(messaging.logEvents.length).toBe(0);
     });
   });
 
   describe('startLoggingService', () => {
     it('does not start when the queue is empty (avoids idle timer blocking later stageLog)', async () => {
-      fetchStub.resolves(new Response(JSON.stringify(getSuccessResponse())));
+      fetchSpy.mockResolvedValue(
+        new Response(JSON.stringify(getSuccessResponse()))
+      );
       messaging.deliveryMetricsExportedToBigQueryEnabled = true;
       messaging.logEvents = [];
 
       LogModule.startLoggingService(messaging);
 
       await new Promise<void>(resolve => setTimeout(resolve, 50));
-      expect(fetchStub).to.not.have.been.called;
-      expect(messaging.logQueue.state).to.equal('stopped');
+      expect(fetchSpy).not.toHaveBeenCalled();
+      expect(messaging.logQueue.state).toBe('stopped');
     });
 
     it('dispatches first queued batch promptly', async () => {
-      fetchStub.resolves(new Response(JSON.stringify(getSuccessResponse())));
+      fetchSpy.mockResolvedValue(
+        new Response(JSON.stringify(getSuccessResponse()))
+      );
       messaging.deliveryMetricsExportedToBigQueryEnabled = true;
       messaging.logEvents.push(getFakeLogEvent());
 
       LogModule.startLoggingService(messaging);
 
       await new Promise<void>(resolve => setTimeout(resolve, 50));
-      expect(fetchStub).to.have.been.called;
-      expect(messaging.logEvents).to.be.empty;
+      expect(fetchSpy).toHaveBeenCalled();
+      expect(messaging.logEvents).toEqual([]);
     });
 
     it('after first flush, waits LOG_INTERVAL_IN_MS before next dispatch', async () => {
-      const clock = useFakeTimers();
-      fetchStub.resolves(new Response(JSON.stringify(getSuccessResponse())));
+      vi.useFakeTimers();
+      fetchSpy.mockResolvedValue(
+        new Response(JSON.stringify(getSuccessResponse()))
+      );
       messaging.deliveryMetricsExportedToBigQueryEnabled = true;
       messaging.logEvents.push(getFakeLogEvent());
 
       LogModule.startLoggingService(messaging);
-      await clock.tickAsync(INITIAL_FLUSH_FAKE_TICK_MS);
-      expect(fetchStub).to.have.been.calledOnce;
+      await vi.advanceTimersByTimeAsync(INITIAL_FLUSH_FAKE_TICK_MS);
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
 
       messaging.logEvents.push(getFakeLogEvent());
-      await clock.tickAsync(LOG_INTERVAL_IN_MS);
-      expect(fetchStub).to.have.been.calledTwice;
-      expect(messaging.logEvents).to.be.empty;
+      await vi.advanceTimersByTimeAsync(LOG_INTERVAL_IN_MS);
+      expect(fetchSpy).toHaveBeenCalledTimes(2);
+      expect(messaging.logEvents).toEqual([]);
 
-      clock.restore();
+      vi.useRealTimers();
     });
   });
 
   describe('stageLog', () => {
     it('starts logging service so first delivery metrics flush promptly', async () => {
-      fetchStub.resolves(new Response(JSON.stringify(getSuccessResponse())));
+      fetchSpy.mockResolvedValue(
+        new Response(JSON.stringify(getSuccessResponse()))
+      );
       messaging.deliveryMetricsExportedToBigQueryEnabled = true;
 
       const internalPayload: MessagePayloadInternal = {
@@ -323,57 +352,63 @@ describe('logToFirelog', () => {
       await LogModule.stageLog(messaging, internalPayload);
 
       await new Promise<void>(resolve => setTimeout(resolve, 50));
-      expect(fetchStub).to.have.been.called;
-      expect(messaging.logEvents).to.be.empty;
+      expect(fetchSpy).toHaveBeenCalled();
+      expect(messaging.logEvents).toEqual([]);
     });
   });
 
   describe('_setDeliveryMetricsExportedToBigQueryEnabled integration', () => {
     it('starts logging service when enabling export', async () => {
-      fetchStub.resolves(new Response(JSON.stringify(getSuccessResponse())));
+      fetchSpy.mockResolvedValue(
+        new Response(JSON.stringify(getSuccessResponse()))
+      );
       messaging.logEvents.push(getFakeLogEvent());
 
       _setDeliveryMetricsExportedToBigQueryEnabled(messaging, true);
 
       await new Promise<void>(resolve => setTimeout(resolve, 50));
-      expect(fetchStub).to.have.been.called;
-      expect(messaging.logEvents).to.be.empty;
-      expect(messaging.deliveryMetricsExportedToBigQueryEnabled).to.be.true;
+      expect(fetchSpy).toHaveBeenCalled();
+      expect(messaging.logEvents).toEqual([]);
+      expect(messaging.deliveryMetricsExportedToBigQueryEnabled).toBe(true);
     });
 
     it('clears queued events immediately when disabling export without waiting LOG_INTERVAL_IN_MS', async () => {
-      const clock = useFakeTimers();
-      fetchStub.resolves(new Response(JSON.stringify(getSuccessResponse())));
+      vi.useFakeTimers();
+      fetchSpy.mockResolvedValue(
+        new Response(JSON.stringify(getSuccessResponse()))
+      );
       messaging.deliveryMetricsExportedToBigQueryEnabled = true;
       messaging.logEvents.push(getFakeLogEvent());
 
       LogModule.startLoggingService(messaging);
-      await clock.tickAsync(INITIAL_FLUSH_FAKE_TICK_MS);
-      expect(fetchStub).to.have.been.calledOnce;
-      expect(messaging.logEvents).to.be.empty;
+      await vi.advanceTimersByTimeAsync(INITIAL_FLUSH_FAKE_TICK_MS);
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
+      expect(messaging.logEvents).toEqual([]);
 
       messaging.logEvents.push(getFakeLogEvent());
       _setDeliveryMetricsExportedToBigQueryEnabled(messaging, false);
 
-      expect(messaging.logEvents).to.be.empty;
-      expect(messaging.logQueue.state).to.equal('stopped');
+      expect(messaging.logEvents).toEqual([]);
+      expect(messaging.logQueue.state).toBe('stopped');
 
-      await clock.tickAsync(LOG_INTERVAL_IN_MS);
-      expect(fetchStub).to.have.been.calledOnce;
+      await vi.advanceTimersByTimeAsync(LOG_INTERVAL_IN_MS);
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
 
-      clock.restore();
+      vi.useRealTimers();
     });
 
     it('does not arm idle polling when enabling export with an empty queue; stageLog still flushes', async () => {
-      fetchStub.resolves(new Response(JSON.stringify(getSuccessResponse())));
+      fetchSpy.mockResolvedValue(
+        new Response(JSON.stringify(getSuccessResponse()))
+      );
       messaging.logEvents = [];
       messaging.deliveryMetricsExportedToBigQueryEnabled = false;
 
       _setDeliveryMetricsExportedToBigQueryEnabled(messaging, true);
 
       await new Promise<void>(resolve => setTimeout(resolve, 50));
-      expect(fetchStub).to.not.have.been.called;
-      expect(messaging.logQueue.state).to.equal('stopped');
+      expect(fetchSpy).not.toHaveBeenCalled();
+      expect(messaging.logQueue.state).toBe('stopped');
 
       const internalPayload: MessagePayloadInternal = {
         from: '1234567890',
@@ -388,8 +423,8 @@ describe('logToFirelog', () => {
       await LogModule.stageLog(messaging, internalPayload);
 
       await new Promise<void>(resolve => setTimeout(resolve, 50));
-      expect(fetchStub).to.have.been.called;
-      expect(messaging.logEvents).to.be.empty;
+      expect(fetchSpy).toHaveBeenCalled();
+      expect(messaging.logEvents).toEqual([]);
     });
   });
 });

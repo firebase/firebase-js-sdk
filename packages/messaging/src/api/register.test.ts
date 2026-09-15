@@ -17,11 +17,11 @@
 
 import '../testing/setup';
 
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { deleteToken } from './deleteToken';
 import { getToken } from './getToken';
 import { register } from './register';
 import { dbGet, dbGetFidRegistration } from '../internals/idb-manager';
-import * as idbManager from '../internals/idb-manager';
 import { MessagingService } from '../messaging-service';
 import {
   getFakeAnalyticsProvider,
@@ -29,35 +29,105 @@ import {
   getFakeInstallations
 } from '../testing/fakes/firebase-dependencies';
 import { FakeServiceWorkerRegistration } from '../testing/fakes/service-worker';
-import { stub, useFakeTimers } from 'sinon';
-import { expect } from 'chai';
-import * as updateVapidKeyModule from '../helpers/updateVapidKey';
-import * as updateSwRegModule from '../helpers/updateSwReg';
-import { Stub } from '../testing/sinon-types';
-import * as requestsModule from '../internals/requests';
 
 function makeSwRegistration(): ServiceWorkerRegistration {
   return new FakeServiceWorkerRegistration() as unknown as ServiceWorkerRegistration;
 }
 
+const {
+  mockUpdateVapidKey,
+  mockUpdateSwReg,
+  mockRequestCreateRegistration,
+  mockRequestDeleteRegistration,
+  mockRequestGetToken,
+  mockRequestDeleteToken,
+  mockDbSetFidRegistration,
+  mockDbRemove
+} = vi.hoisted(() => ({
+  mockUpdateVapidKey: vi.fn(),
+  mockUpdateSwReg: vi.fn(),
+  mockRequestCreateRegistration: vi.fn(),
+  mockRequestDeleteRegistration: vi.fn(),
+  mockRequestGetToken: vi.fn(),
+  mockRequestDeleteToken: vi.fn(),
+  mockDbSetFidRegistration: vi.fn(),
+  mockDbRemove: vi.fn()
+}));
+
+vi.mock('../helpers/updateVapidKey', async importOriginal => {
+  const actual =
+    await importOriginal<typeof import('../helpers/updateVapidKey')>();
+  return {
+    ...actual,
+    updateVapidKey: (...args: unknown[]) =>
+      mockUpdateVapidKey.getMockImplementation()
+        ? mockUpdateVapidKey(...args)
+        : actual.updateVapidKey(...(args as [any, any]))
+  };
+});
+
+vi.mock('../helpers/updateSwReg', async importOriginal => {
+  const actual =
+    await importOriginal<typeof import('../helpers/updateSwReg')>();
+  return {
+    ...actual,
+    updateSwReg: (...args: unknown[]) =>
+      mockUpdateSwReg.getMockImplementation()
+        ? mockUpdateSwReg(...args)
+        : actual.updateSwReg(...(args as [any, any]))
+  };
+});
+
+vi.mock('../internals/requests', async importOriginal => {
+  const actual = await importOriginal<typeof import('../internals/requests')>();
+  return {
+    ...actual,
+    requestCreateRegistration: (...args: unknown[]) =>
+      mockRequestCreateRegistration.getMockImplementation()
+        ? mockRequestCreateRegistration(...args)
+        : actual.requestCreateRegistration(...(args as [any, any])),
+    requestDeleteRegistration: (...args: unknown[]) =>
+      mockRequestDeleteRegistration.getMockImplementation()
+        ? mockRequestDeleteRegistration(...args)
+        : actual.requestDeleteRegistration(...(args as [any, any])),
+    requestGetToken: (...args: unknown[]) =>
+      mockRequestGetToken.getMockImplementation()
+        ? mockRequestGetToken(...args)
+        : actual.requestGetToken(...(args as [any, any])),
+    requestDeleteToken: (...args: unknown[]) =>
+      mockRequestDeleteToken.getMockImplementation()
+        ? mockRequestDeleteToken(...args)
+        : actual.requestDeleteToken(...(args as [any, any]))
+  };
+});
+
+vi.mock('../internals/idb-manager', async importOriginal => {
+  const actual =
+    await importOriginal<typeof import('../internals/idb-manager')>();
+  return {
+    ...actual,
+    dbSetFidRegistration: (...args: unknown[]) =>
+      mockDbSetFidRegistration.getMockImplementation()
+        ? mockDbSetFidRegistration(...args)
+        : actual.dbSetFidRegistration(...(args as [any, any])),
+    dbRemove: (...args: unknown[]) =>
+      mockDbRemove.getMockImplementation()
+        ? mockDbRemove(...args)
+        : actual.dbRemove(...(args as [any]))
+  };
+});
+
 describe('register', () => {
   let messaging: MessagingService;
-  let updateVapidKeyStub: Stub<typeof updateVapidKeyModule.updateVapidKey>;
-  let updateSwRegStub: Stub<typeof updateSwRegModule.updateSwReg>;
-  let requestCreateRegistrationStub: Stub<
-    typeof requestsModule.requestCreateRegistration
-  >;
-  let requestDeleteRegistrationStub: Stub<
-    typeof requestsModule.requestDeleteRegistration
-  >;
-  let clock: ReturnType<typeof useFakeTimers>;
 
   beforeEach(() => {
-    clock = useFakeTimers({
+    vi.clearAllMocks();
+    vi.useFakeTimers({
       now: 1_700_000_000_000,
       toFake: ['Date', 'setTimeout', 'clearTimeout']
     });
-    stub(Notification, 'permission').value('granted');
+    vi.spyOn(Notification, 'permission', 'get').mockReturnValue('granted');
+
     messaging = new MessagingService(
       getFakeApp(),
       getFakeInstallations(),
@@ -66,46 +136,39 @@ describe('register', () => {
     messaging.vapidKey = 'dmFwaWQta2V5LXZhbHVl';
     messaging.swRegistration = makeSwRegistration();
 
-    updateVapidKeyStub = stub(
-      updateVapidKeyModule,
-      'updateVapidKey'
-    ).resolves() as Stub<typeof updateVapidKeyModule.updateVapidKey>;
-    updateSwRegStub = stub(updateSwRegModule, 'updateSwReg').resolves() as Stub<
-      typeof updateSwRegModule.updateSwReg
-    >;
-
-    requestCreateRegistrationStub = stub(
-      requestsModule,
-      'requestCreateRegistration'
-    ).resolves({ responseFid: 'FID' });
-
-    requestDeleteRegistrationStub = stub(
-      requestsModule,
-      'requestDeleteRegistration'
-    ).resolves();
+    mockUpdateVapidKey.mockReset().mockResolvedValue(undefined);
+    mockUpdateSwReg.mockReset().mockResolvedValue(undefined);
+    mockRequestCreateRegistration
+      .mockReset()
+      .mockResolvedValue({ responseFid: 'FID' });
+    mockRequestDeleteRegistration.mockReset().mockResolvedValue(undefined);
+    mockRequestGetToken.mockReset();
+    mockRequestDeleteToken.mockReset();
+    mockDbSetFidRegistration.mockReset();
+    mockDbRemove.mockReset();
   });
 
   afterEach(() => {
-    clock.restore();
+    vi.useRealTimers();
   });
 
   it('calls updateVapidKey and updateSwReg then delivers FID via onRegisteredHandler', async () => {
-    const onRegisteredSpy = stub();
+    const onRegisteredSpy = vi.fn();
     messaging.onRegisteredHandler = onRegisteredSpy;
 
     await register(messaging);
 
-    expect(updateVapidKeyStub).to.have.been.calledOnceWith(
-      messaging,
-      undefined
-    );
-    expect(updateSwRegStub).to.have.been.calledOnceWith(messaging, undefined);
-    expect(onRegisteredSpy).to.have.been.calledOnceWith('FID');
-    expect(requestCreateRegistrationStub).to.have.been.calledOnce;
+    expect(mockUpdateVapidKey).toHaveBeenCalledTimes(1);
+    expect(mockUpdateVapidKey).toHaveBeenCalledWith(messaging, undefined);
+    expect(mockUpdateSwReg).toHaveBeenCalledTimes(1);
+    expect(mockUpdateSwReg).toHaveBeenCalledWith(messaging, undefined);
+    expect(onRegisteredSpy).toHaveBeenCalledTimes(1);
+    expect(onRegisteredSpy).toHaveBeenCalledWith('FID');
+    expect(mockRequestCreateRegistration).toHaveBeenCalledTimes(1);
   });
 
   it('passes options to updateVapidKey and updateSwReg when provided', async () => {
-    messaging.onRegisteredHandler = stub();
+    messaging.onRegisteredHandler = vi.fn() as any;
     const swReg = makeSwRegistration();
     const options = {
       vapidKey: 'custom-vapid',
@@ -114,29 +177,25 @@ describe('register', () => {
 
     await register(messaging, options);
 
-    expect(updateVapidKeyStub).to.have.been.calledOnceWith(
-      messaging,
-      'custom-vapid'
-    );
-    expect(updateSwRegStub).to.have.been.calledOnceWith(messaging, swReg);
+    expect(mockUpdateVapidKey).toHaveBeenCalledTimes(1);
+    expect(mockUpdateVapidKey).toHaveBeenCalledWith(messaging, 'custom-vapid');
+    expect(mockUpdateSwReg).toHaveBeenCalledTimes(1);
+    expect(mockUpdateSwReg).toHaveBeenCalledWith(messaging, swReg);
   });
 
   it('saves VAPID key in FID registration metadata', async () => {
-    messaging.onRegisteredHandler = stub();
+    messaging.onRegisteredHandler = vi.fn() as any;
     const options = {
       vapidKey: 'custom-vapid'
     };
 
-    const dbSetFidRegistrationStub = stub(
-      idbManager,
-      'dbSetFidRegistration'
-    ).resolves({
+    mockDbSetFidRegistration.mockResolvedValue({
       fid: 'FID',
       lastRegisterTime: 1_700_000_000_000,
       vapidKey: 'custom-vapid'
     });
 
-    updateVapidKeyStub.callsFake(async (msg, key) => {
+    mockUpdateVapidKey.mockImplementation(async (msg: any, key: any) => {
       if (key) {
         msg.vapidKey = key;
       }
@@ -144,7 +203,8 @@ describe('register', () => {
 
     await register(messaging, options);
 
-    expect(dbSetFidRegistrationStub).to.have.been.calledOnceWith(
+    expect(mockDbSetFidRegistration).toHaveBeenCalledTimes(1);
+    expect(mockDbSetFidRegistration).toHaveBeenCalledWith(
       messaging.firebaseDependencies,
       {
         fid: 'FID',
@@ -152,38 +212,37 @@ describe('register', () => {
         vapidKey: 'custom-vapid'
       }
     );
-
-    dbSetFidRegistrationStub.restore();
   });
 
   it('throws when no onRegistered callback handler is provided or registered', async () => {
     messaging.onRegisteredHandler = null;
 
-    await expect(register(messaging)).to.be.rejectedWith(
+    await expect(register(messaging)).rejects.toThrow(
       'messaging/invalid-on-registered-handler'
     );
-    expect(updateVapidKeyStub).to.not.have.been.called;
-    expect(updateSwRegStub).to.not.have.been.called;
+    expect(mockUpdateVapidKey).not.toHaveBeenCalled();
+    expect(mockUpdateSwReg).not.toHaveBeenCalled();
   });
 
   it('calls observer.next when onRegisteredHandler is an observer object', async () => {
     const observer = {
-      next: stub(),
-      error: stub(),
-      complete: stub()
+      next: vi.fn(),
+      error: vi.fn(),
+      complete: vi.fn()
     };
     messaging.onRegisteredHandler = observer;
 
     await register(messaging);
 
-    expect(observer.next).to.have.been.calledOnceWith('FID');
+    expect(observer.next).toHaveBeenCalledTimes(1);
+    expect(observer.next).toHaveBeenCalledWith('FID');
   });
 
   it('retries CreateRegistration when response FID mismatches Installations then succeeds', async () => {
     const customInstallations = getFakeInstallations();
-    const getTokenStub = stub(customInstallations, 'getToken').callsFake(
-      async (_force?: boolean) => 'authToken'
-    );
+    const getTokenSpy = vi
+      .spyOn(customInstallations, 'getToken')
+      .mockImplementation(async (_force?: boolean) => 'authToken');
     messaging = new MessagingService(
       getFakeApp(),
       customInstallations,
@@ -191,25 +250,24 @@ describe('register', () => {
     );
     messaging.vapidKey = 'dmFwaWQta2V5LXZhbHVl';
     messaging.swRegistration = makeSwRegistration();
-    messaging.onRegisteredHandler = stub();
+    messaging.onRegisteredHandler = vi.fn() as any;
 
-    requestCreateRegistrationStub
-      .onFirstCall()
-      .resolves({ responseFid: 'wrong-fid' })
-      .onSecondCall()
-      .resolves({ responseFid: 'FID' });
+    mockRequestCreateRegistration
+      .mockResolvedValueOnce({ responseFid: 'wrong-fid' })
+      .mockResolvedValueOnce({ responseFid: 'FID' });
 
     await register(messaging);
 
-    expect(requestCreateRegistrationStub).to.have.been.calledTwice;
-    expect(getTokenStub).to.have.been.calledOnceWith(true);
+    expect(mockRequestCreateRegistration).toHaveBeenCalledTimes(2);
+    expect(getTokenSpy).toHaveBeenCalledTimes(1);
+    expect(getTokenSpy).toHaveBeenCalledWith(true);
   });
 
   it('rejects when CreateRegistration FID never matches Installations after retries', async () => {
     const customInstallations = getFakeInstallations();
-    const getTokenStub = stub(customInstallations, 'getToken').callsFake(
-      async () => 'authToken'
-    );
+    const getTokenSpy = vi
+      .spyOn(customInstallations, 'getToken')
+      .mockImplementation(async () => 'authToken');
     messaging = new MessagingService(
       getFakeApp(),
       customInstallations,
@@ -217,10 +275,10 @@ describe('register', () => {
     );
     messaging.vapidKey = 'dmFwaWQta2V5LXZhbHVl';
     messaging.swRegistration = makeSwRegistration();
-    messaging.onRegisteredHandler = stub();
+    messaging.onRegisteredHandler = vi.fn() as any;
 
     let createRegistrationCalls = 0;
-    requestCreateRegistrationStub.callsFake(async () => {
+    mockRequestCreateRegistration.mockImplementation(async () => {
       createRegistrationCalls++;
       if (createRegistrationCalls > 3) {
         throw new Error('unexpected fourth CreateRegistration invocation');
@@ -228,19 +286,19 @@ describe('register', () => {
       return { responseFid: 'always-wrong' };
     });
 
-    await expect(register(messaging)).to.be.rejectedWith(
+    await expect(register(messaging)).rejects.toThrow(
       'messaging/fid-registration-failed'
     );
 
-    expect(createRegistrationCalls).to.equal(3);
-    expect(getTokenStub).to.have.been.calledTwice;
-    expect(getTokenStub).to.have.been.calledWith(true);
+    expect(createRegistrationCalls).toEqual(3);
+    expect(getTokenSpy).toHaveBeenCalledTimes(2);
+    expect(getTokenSpy).toHaveBeenCalledWith(true);
   });
 
   it('uses FID from installations.getId()', async () => {
     const customFid = 'custom-installation-id';
     const customInstallations = getFakeInstallations();
-    stub(customInstallations, 'getId').resolves(customFid);
+    vi.spyOn(customInstallations, 'getId').mockResolvedValue(customFid);
     messaging = new MessagingService(
       getFakeApp(),
       customInstallations,
@@ -249,163 +307,161 @@ describe('register', () => {
     messaging.vapidKey = 'dmFwaWQta2V5LXZhbHVl';
     messaging.swRegistration = makeSwRegistration();
 
-    const onRegisteredSpy = stub();
+    const onRegisteredSpy = vi.fn();
     messaging.onRegisteredHandler = onRegisteredSpy;
 
-    requestCreateRegistrationStub.resolves({ responseFid: customFid });
+    mockRequestCreateRegistration.mockResolvedValue({ responseFid: customFid });
 
     await register(messaging);
 
-    expect(onRegisteredSpy).to.have.been.calledOnceWith(customFid);
+    expect(onRegisteredSpy).toHaveBeenCalledTimes(1);
+    expect(onRegisteredSpy).toHaveBeenCalledWith(customFid);
   });
 
   it('calls onRegisteredHandler again when FID unchanged but still delivers FID', async () => {
-    const onRegisteredSpy = stub();
+    const onRegisteredSpy = vi.fn();
     messaging.onRegisteredHandler = onRegisteredSpy;
 
     await register(messaging);
     await register(messaging);
 
-    expect(onRegisteredSpy).to.have.been.calledTwice;
-    expect(onRegisteredSpy.getCall(1)).to.have.been.calledWith('FID');
-    expect(requestCreateRegistrationStub).to.have.been.calledOnce;
+    expect(onRegisteredSpy).toHaveBeenCalledTimes(2);
+    expect(onRegisteredSpy).toHaveBeenNthCalledWith(2, 'FID');
+    expect(mockRequestCreateRegistration).toHaveBeenCalledTimes(1);
   });
 
   it('does not clean up legacy token details when FID is unchanged within refresh window', async () => {
-    const onRegisteredSpy = stub();
+    const onRegisteredSpy = vi.fn();
     messaging.onRegisteredHandler = onRegisteredSpy;
 
     await register(messaging);
 
-    const legacyDbRemoveStub = stub(idbManager, 'dbRemove').resolves();
+    mockDbRemove.mockResolvedValue(undefined);
     await register(messaging);
 
-    expect(legacyDbRemoveStub).to.not.have.been.called;
-    expect(onRegisteredSpy).to.have.been.calledTwice;
-    expect(onRegisteredSpy.getCall(1)).to.have.been.calledWith('FID');
-    expect(requestCreateRegistrationStub).to.have.been.calledOnce;
+    expect(mockDbRemove).not.toHaveBeenCalled();
+    expect(onRegisteredSpy).toHaveBeenCalledTimes(2);
+    expect(onRegisteredSpy).toHaveBeenNthCalledWith(2, 'FID');
+    expect(mockRequestCreateRegistration).toHaveBeenCalledTimes(1);
   });
 
   it('allows a later register call to retry after a previous register failure', async () => {
-    const onRegisteredSpy = stub();
+    const onRegisteredSpy = vi.fn();
     messaging.onRegisteredHandler = onRegisteredSpy;
 
-    requestCreateRegistrationStub
-      .onFirstCall()
-      .rejects(new Error('temporary network error'))
-      .onSecondCall()
-      .resolves({ responseFid: 'FID' });
+    mockRequestCreateRegistration
+      .mockRejectedValueOnce(new Error('temporary network error'))
+      .mockResolvedValueOnce({ responseFid: 'FID' });
 
-    await expect(register(messaging)).to.be.rejectedWith(
+    await expect(register(messaging)).rejects.toThrow(
       'temporary network error'
     );
     await register(messaging);
 
-    expect(requestCreateRegistrationStub).to.have.been.calledTwice;
-    expect(onRegisteredSpy).to.have.been.calledOnceWith('FID');
+    expect(mockRequestCreateRegistration).toHaveBeenCalledTimes(2);
+    expect(onRegisteredSpy).toHaveBeenCalledTimes(1);
+    expect(onRegisteredSpy).toHaveBeenCalledWith('FID');
   });
 
   it('calls backend again after deleteToken clears stored FID registration', async () => {
-    const onRegisteredSpy = stub();
+    const onRegisteredSpy = vi.fn();
     messaging.onRegisteredHandler = onRegisteredSpy;
 
     await register(messaging);
-    expect(onRegisteredSpy).to.have.been.calledOnceWith('FID');
-    expect(requestCreateRegistrationStub).to.have.been.calledOnce;
+    expect(onRegisteredSpy).toHaveBeenCalledTimes(1);
+    expect(onRegisteredSpy).toHaveBeenCalledWith('FID');
+    expect(mockRequestCreateRegistration).toHaveBeenCalledTimes(1);
 
     await deleteToken(messaging);
 
-    expect(requestDeleteRegistrationStub).to.have.been.calledOnceWith(
+    expect(mockRequestDeleteRegistration).toHaveBeenCalledTimes(1);
+    expect(mockRequestDeleteRegistration).toHaveBeenCalledWith(
       messaging.firebaseDependencies,
       'FID'
     );
 
     await register(messaging);
 
-    expect(onRegisteredSpy).to.have.been.calledTwice;
-    expect(onRegisteredSpy.getCall(1)).to.have.been.calledWith('FID');
-    expect(requestCreateRegistrationStub).to.have.been.calledTwice;
+    expect(onRegisteredSpy).toHaveBeenCalledTimes(2);
+    expect(onRegisteredSpy).toHaveBeenNthCalledWith(2, 'FID');
+    expect(mockRequestCreateRegistration).toHaveBeenCalledTimes(2);
   });
 
   it('deletes stored token for getToken -> register', async () => {
-    const onRegisteredSpy = stub();
-    const requestGetTokenStub = stub(
-      requestsModule,
-      'requestGetToken'
-    ).resolves('legacy-token');
-    const requestDeleteTokenStub = stub(
-      requestsModule,
-      'requestDeleteToken'
-    ).throws(new Error('unexpected requestDeleteToken()'));
+    const onRegisteredSpy = vi.fn();
+    mockRequestGetToken.mockResolvedValue('legacy-token');
+    mockRequestDeleteToken.mockImplementation(() => {
+      throw new Error('unexpected requestDeleteToken()');
+    });
     messaging.onRegisteredHandler = onRegisteredSpy;
 
     await getToken(messaging);
 
-    expect(requestGetTokenStub).to.have.been.calledOnce;
-    expect((await dbGet(messaging.firebaseDependencies))?.token).to.equal(
+    expect(mockRequestGetToken).toHaveBeenCalledTimes(1);
+    expect((await dbGet(messaging.firebaseDependencies))?.token).toEqual(
       'legacy-token'
     );
 
     await register(messaging);
 
-    expect(requestCreateRegistrationStub).to.have.been.calledOnce;
-    expect(onRegisteredSpy).to.have.been.calledOnceWith('FID');
-    expect(await dbGet(messaging.firebaseDependencies)).to.be.undefined;
-    expect(requestDeleteTokenStub).to.not.have.been.called;
+    expect(mockRequestCreateRegistration).toHaveBeenCalledTimes(1);
+    expect(onRegisteredSpy).toHaveBeenCalledTimes(1);
+    expect(onRegisteredSpy).toHaveBeenCalledWith('FID');
+    expect(await dbGet(messaging.firebaseDependencies)).toBeUndefined();
+    expect(mockRequestDeleteToken).not.toHaveBeenCalled();
   });
 
   it('deletes stored fid for register -> getToken', async () => {
-    const onRegisteredSpy = stub();
-    const requestGetTokenStub = stub(
-      requestsModule,
-      'requestGetToken'
-    ).resolves('legacy-token');
-    requestDeleteRegistrationStub.throws(
-      new Error('unexpected requestDeleteRegistration()')
-    );
+    const onRegisteredSpy = vi.fn();
+    mockRequestGetToken.mockResolvedValue('legacy-token');
+    mockRequestDeleteRegistration.mockImplementation(() => {
+      throw new Error('unexpected requestDeleteRegistration()');
+    });
     messaging.onRegisteredHandler = onRegisteredSpy;
 
     await register(messaging);
 
-    expect(onRegisteredSpy).to.have.been.calledOnceWith('FID');
+    expect(onRegisteredSpy).toHaveBeenCalledTimes(1);
+    expect(onRegisteredSpy).toHaveBeenCalledWith('FID');
     expect(
       (await dbGetFidRegistration(messaging.firebaseDependencies))?.fid
-    ).to.equal('FID');
-    expect(requestCreateRegistrationStub).to.have.been.calledOnce;
+    ).toEqual('FID');
+    expect(mockRequestCreateRegistration).toHaveBeenCalledTimes(1);
 
     const token = await getToken(messaging);
 
-    expect(token).to.equal('legacy-token');
-    expect(requestGetTokenStub).to.have.been.calledOnce;
-    expect(await dbGetFidRegistration(messaging.firebaseDependencies)).to.be
-      .undefined;
-    expect(requestDeleteRegistrationStub).to.not.have.been.called;
+    expect(token).toEqual('legacy-token');
+    expect(mockRequestGetToken).toHaveBeenCalledTimes(1);
+    expect(
+      await dbGetFidRegistration(messaging.firebaseDependencies)
+    ).toBeUndefined();
+    expect(mockRequestDeleteRegistration).not.toHaveBeenCalled();
   });
 
   it('refreshes registration weekly even when FID unchanged and notifies onRegisteredHandler again', async () => {
-    const onRegisteredSpy = stub();
+    const onRegisteredSpy = vi.fn();
     messaging.onRegisteredHandler = onRegisteredSpy;
 
     await register(messaging);
-    expect(onRegisteredSpy).to.have.been.calledOnceWith('FID');
-    expect(requestCreateRegistrationStub).to.have.been.calledOnce;
+    expect(onRegisteredSpy).toHaveBeenCalledTimes(1);
+    expect(onRegisteredSpy).toHaveBeenCalledWith('FID');
+    expect(mockRequestCreateRegistration).toHaveBeenCalledTimes(1);
 
     // 8 days later: refresh should run and onRegistered should fire again even if FID unchanged.
-    clock.tick(8 * 24 * 60 * 60 * 1000);
+    vi.advanceTimersByTime(8 * 24 * 60 * 60 * 1000);
     await register(messaging);
 
-    expect(onRegisteredSpy).to.have.been.calledTwice;
-    expect(onRegisteredSpy.getCall(1)).to.have.been.calledWith('FID');
-    expect(requestCreateRegistrationStub).to.have.been.calledTwice;
+    expect(onRegisteredSpy).toHaveBeenCalledTimes(2);
+    expect(onRegisteredSpy).toHaveBeenNthCalledWith(2, 'FID');
+    expect(mockRequestCreateRegistration).toHaveBeenCalledTimes(2);
   });
 
   it('calls onRegisteredHandler when FID changed', async () => {
     const customInstallations = getFakeInstallations();
-    const getIdStub = stub(customInstallations, 'getId')
-      .onFirstCall()
-      .resolves('FID_OLD')
-      .onSecondCall()
-      .resolves('FID_NEW');
+    const getIdSpy = vi
+      .spyOn(customInstallations, 'getId')
+      .mockResolvedValueOnce('FID_OLD')
+      .mockResolvedValueOnce('FID_NEW');
     messaging = new MessagingService(
       getFakeApp(),
       customInstallations,
@@ -414,34 +470,31 @@ describe('register', () => {
     messaging.vapidKey = 'dmFwaWQta2V5LXZhbHVl';
     messaging.swRegistration = makeSwRegistration();
 
-    const onRegisteredSpy = stub();
+    const onRegisteredSpy = vi.fn();
     messaging.onRegisteredHandler = onRegisteredSpy;
 
-    requestCreateRegistrationStub
-      .onFirstCall()
-      .resolves({ responseFid: 'FID_OLD' })
-      .onSecondCall()
-      .resolves({ responseFid: 'FID_NEW' });
+    mockRequestCreateRegistration
+      .mockResolvedValueOnce({ responseFid: 'FID_OLD' })
+      .mockResolvedValueOnce({ responseFid: 'FID_NEW' });
 
     await register(messaging);
-    expect(onRegisteredSpy).to.have.been.calledOnceWith('FID_OLD');
+    expect(onRegisteredSpy).toHaveBeenCalledTimes(1);
+    expect(onRegisteredSpy).toHaveBeenCalledWith('FID_OLD');
 
     await register(messaging);
-    expect(getIdStub).to.have.been.calledTwice;
-    expect(onRegisteredSpy).to.have.been.calledTwice;
-    expect(onRegisteredSpy.getCall(1)).to.have.been.calledWith('FID_NEW');
-    expect(requestCreateRegistrationStub).to.have.been.calledTwice;
+    expect(getIdSpy).toHaveBeenCalledTimes(2);
+    expect(onRegisteredSpy).toHaveBeenCalledTimes(2);
+    expect(onRegisteredSpy).toHaveBeenNthCalledWith(2, 'FID_NEW');
+    expect(mockRequestCreateRegistration).toHaveBeenCalledTimes(2);
   });
 
   it('notifies on each register when FID unchanged and within refresh window', async () => {
     const customInstallations = getFakeInstallations();
-    const getIdStub = stub(customInstallations, 'getId')
-      .onFirstCall()
-      .resolves('FID_A')
-      .onSecondCall()
-      .resolves('FID_B')
-      .onThirdCall()
-      .resolves('FID_B');
+    const getIdSpy = vi
+      .spyOn(customInstallations, 'getId')
+      .mockResolvedValueOnce('FID_A')
+      .mockResolvedValueOnce('FID_B')
+      .mockResolvedValueOnce('FID_B');
     messaging = new MessagingService(
       getFakeApp(),
       customInstallations,
@@ -450,26 +503,25 @@ describe('register', () => {
     messaging.vapidKey = 'dmFwaWQta2V5LXZhbHVl';
     messaging.swRegistration = makeSwRegistration();
 
-    const onRegisteredSpy = stub();
+    const onRegisteredSpy = vi.fn();
     messaging.onRegisteredHandler = onRegisteredSpy;
 
-    requestCreateRegistrationStub
-      .onFirstCall()
-      .resolves({ responseFid: 'FID_A' })
-      .onSecondCall()
-      .resolves({ responseFid: 'FID_B' });
+    mockRequestCreateRegistration
+      .mockResolvedValueOnce({ responseFid: 'FID_A' })
+      .mockResolvedValueOnce({ responseFid: 'FID_B' });
 
     await register(messaging);
-    expect(onRegisteredSpy).to.have.been.calledOnceWith('FID_A');
+    expect(onRegisteredSpy).toHaveBeenCalledTimes(1);
+    expect(onRegisteredSpy).toHaveBeenCalledWith('FID_A');
 
     await register(messaging);
-    expect(onRegisteredSpy).to.have.been.calledTwice;
-    expect(onRegisteredSpy.getCall(1)).to.have.been.calledWith('FID_B');
+    expect(onRegisteredSpy).toHaveBeenCalledTimes(2);
+    expect(onRegisteredSpy).toHaveBeenNthCalledWith(2, 'FID_B');
 
     await register(messaging);
-    expect(getIdStub).to.have.been.calledThrice;
-    expect(onRegisteredSpy).to.have.been.calledThrice;
-    expect(onRegisteredSpy.getCall(2)).to.have.been.calledWith('FID_B');
-    expect(requestCreateRegistrationStub).to.have.been.calledTwice;
+    expect(getIdSpy).toHaveBeenCalledTimes(3);
+    expect(onRegisteredSpy).toHaveBeenCalledTimes(3);
+    expect(onRegisteredSpy).toHaveBeenNthCalledWith(3, 'FID_B');
+    expect(mockRequestCreateRegistration).toHaveBeenCalledTimes(2);
   });
 });
