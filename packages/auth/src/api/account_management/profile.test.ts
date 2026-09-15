@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,6 @@
  * limitations under the License.
  */
 
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-
 import { FirebaseError } from '@firebase/util';
 
 import { Endpoint, HttpHeader } from '../';
@@ -26,9 +23,6 @@ import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 import * as mockFetch from '../../../test/helpers/mock_fetch';
 import { ServerError } from '../errors';
 import { updateProfile } from './profile';
-
-use(chaiAsPromised);
-
 describe('api/account_management/updateProfile', () => {
   const request = {
     idToken: 'my-token',
@@ -53,13 +47,13 @@ describe('api/account_management/updateProfile', () => {
     });
 
     const response = await updateProfile(auth, request);
-    expect(response.displayName).to.eq('my-name');
-    expect(mock.calls[0].request).to.eql(request);
-    expect(mock.calls[0].method).to.eq('POST');
-    expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
+    expect(response.displayName).toBe('my-name');
+    expect(mock.calls[0].request).toEqual(request);
+    expect(mock.calls[0].method).toBe('POST');
+    expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).toBe(
       'application/json'
     );
-    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).to.eq(
+    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).toBe(
       'testSDK/0.0.0'
     );
   });
@@ -81,10 +75,10 @@ describe('api/account_management/updateProfile', () => {
       400
     );
 
-    await expect(updateProfile(auth, request)).to.be.rejectedWith(
+    await expect(updateProfile(auth, request)).rejects.toThrow(
       FirebaseError,
       'Firebase: The email address is already in use by another account. (auth/email-already-in-use).'
     );
-    expect(mock.calls[0].request).to.eql(request);
+    expect(mock.calls[0].request).toEqual(request);
   });
 });

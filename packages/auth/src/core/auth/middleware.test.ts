@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2022 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,18 +15,10 @@
  * limitations under the License.
  */
 
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-import * as sinon from 'sinon';
-import sinonChai from 'sinon-chai';
 import { testAuth, testUser } from '../../../test/helpers/mock_auth';
 import { AuthInternal } from '../../model/auth';
 import { User } from '../../model/public_types';
 import { AuthMiddlewareQueue } from './middleware';
-
-use(chaiAsPromised);
-use(sinonChai);
-
 describe('Auth middleware', () => {
   let middlewareQueue: AuthMiddlewareQueue;
   let user: User;
@@ -39,7 +31,7 @@ describe('Auth middleware', () => {
   });
 
   afterEach(() => {
-    sinon.restore();
+    vi.restoreAllMocks();
   });
 
   it('calls middleware in order', async () => {
@@ -57,28 +49,28 @@ describe('Auth middleware', () => {
 
     await middlewareQueue.runMiddleware(user);
 
-    expect(calls).to.eql([1, 2, 3]);
+    expect(calls).toEqual([1, 2, 3]);
   });
 
   it('rejects on error', async () => {
     middlewareQueue.pushCallback(() => {
       throw new Error('no');
     });
-    await expect(middlewareQueue.runMiddleware(user)).to.be.rejectedWith(
+    await expect(middlewareQueue.runMiddleware(user)).rejects.toThrow(
       'auth/login-blocked'
     );
   });
 
   it('rejects on promise rejection', async () => {
     middlewareQueue.pushCallback(() => Promise.reject('no'));
-    await expect(middlewareQueue.runMiddleware(user)).to.be.rejectedWith(
+    await expect(middlewareQueue.runMiddleware(user)).rejects.toThrow(
       'auth/login-blocked'
     );
   });
 
   it('awaits middleware completion before calling next', async () => {
-    const firstCb = sinon.spy();
-    const secondCb = sinon.spy();
+    const firstCb = vi.fn();
+    const secondCb = vi.fn();
 
     middlewareQueue.pushCallback(() => {
       // Force the first one to run one tick later
@@ -96,33 +88,33 @@ describe('Auth middleware', () => {
   });
 
   it('subsequent middleware not run after rejection', async () => {
-    const spy = sinon.spy();
+    const spy = vi.fn();
 
     middlewareQueue.pushCallback(() => {
       throw new Error('no');
     });
     middlewareQueue.pushCallback(spy);
 
-    await expect(middlewareQueue.runMiddleware(user)).to.be.rejectedWith(
+    await expect(middlewareQueue.runMiddleware(user)).rejects.toThrow(
       'auth/login-blocked'
     );
-    expect(spy).not.to.have.been.called;
+    expect(spy).not.toHaveBeenCalled();
   });
 
   it('calls onAbort if provided but only for earlier runs', async () => {
-    const firstOnAbort = sinon.spy();
-    const secondOnAbort = sinon.spy();
+    const firstOnAbort = vi.fn();
+    const secondOnAbort = vi.fn();
 
     middlewareQueue.pushCallback(() => {}, firstOnAbort);
     middlewareQueue.pushCallback(() => {
       throw new Error('no');
     }, secondOnAbort);
 
-    await expect(middlewareQueue.runMiddleware(user)).to.be.rejectedWith(
+    await expect(middlewareQueue.runMiddleware(user)).rejects.toThrow(
       'auth/login-blocked'
     );
-    expect(firstOnAbort).to.have.been.called;
-    expect(secondOnAbort).not.to.have.been.called;
+    expect(firstOnAbort).toHaveBeenCalled();
+    expect(secondOnAbort).not.toHaveBeenCalled();
   });
 
   it('calls onAbort in reverse order', async () => {
@@ -150,23 +142,23 @@ describe('Auth middleware', () => {
       throw new Error('no');
     });
 
-    await expect(middlewareQueue.runMiddleware(user)).to.be.rejectedWith(
+    await expect(middlewareQueue.runMiddleware(user)).rejects.toThrow(
       'auth/login-blocked'
     );
-    expect(calls).to.eql([3, 2, 1]);
+    expect(calls).toEqual([3, 2, 1]);
   });
 
   it('does not call any middleware if user matches null', async () => {
-    const spy = sinon.spy();
+    const spy = vi.fn();
 
     middlewareQueue.pushCallback(spy);
     await middlewareQueue.runMiddleware(null);
 
-    expect(spy).not.to.have.been.called;
+    expect(spy).not.toHaveBeenCalled();
   });
 
   it('does not call any middleware if user matches object', async () => {
-    const spy = sinon.spy();
+    const spy = vi.fn();
 
     // Directly set it manually since the public function creates a
     // copy of the user.
@@ -175,6 +167,6 @@ describe('Auth middleware', () => {
     middlewareQueue.pushCallback(spy);
     await middlewareQueue.runMiddleware(user);
 
-    expect(spy).not.to.have.been.called;
+    expect(spy).not.toHaveBeenCalled();
   });
 });

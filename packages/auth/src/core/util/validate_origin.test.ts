@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,6 @@
  * limitations under the License.
  */
 
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-import * as sinon from 'sinon';
-
 import { FirebaseError } from '@firebase/util';
 
 import { mockEndpoint } from '../../../test/helpers/api/helper';
@@ -29,13 +25,14 @@ import { AuthInternal } from '../../model/auth';
 import * as location from './location';
 import { _validateOrigin } from './validate_origin';
 
-use(chaiAsPromised);
+vi.mock('./location', { spy: true });
 
 describe('core/util/validate_origin', () => {
   let auth: AuthInternal;
   let authorizedDomains: string[];
   let currentUrl: string;
   beforeEach(async () => {
+    vi.clearAllMocks();
     authorizedDomains = [];
     currentUrl = '';
 
@@ -47,24 +44,24 @@ describe('core/util/validate_origin', () => {
       }
     });
 
-    sinon.stub(location, '_getCurrentUrl').callsFake(() => currentUrl);
+    vi.spyOn(location, '_getCurrentUrl').mockImplementation(() => currentUrl);
   });
 
   afterEach(() => {
     fetch.tearDown();
-    sinon.restore();
+    vi.restoreAllMocks();
   });
 
   it('smoke test', async () => {
     currentUrl = 'https://google.com';
     authorizedDomains = ['google.com'];
-    await expect(_validateOrigin(auth)).to.be.fulfilled;
+    await expect(_validateOrigin(auth)).resolves.not.toThrow();
   });
 
   it('failure smoke test', async () => {
     currentUrl = 'https://google.com';
     authorizedDomains = ['youtube.com'];
-    await expect(_validateOrigin(auth)).to.be.rejectedWith(
+    await expect(_validateOrigin(auth)).rejects.toThrow(
       FirebaseError,
       'auth/unauthorized-domain'
     );
@@ -73,13 +70,13 @@ describe('core/util/validate_origin', () => {
   it('works when one domain matches', async () => {
     currentUrl = 'https://google.com';
     authorizedDomains = ['youtube.com', 'google.com'];
-    await expect(_validateOrigin(auth)).to.be.fulfilled;
+    await expect(_validateOrigin(auth)).resolves.not.toThrow();
   });
 
   it('fails when all domains fail', async () => {
     currentUrl = 'https://google.com';
     authorizedDomains = ['youtube.com', 'firebase.com'];
-    await expect(_validateOrigin(auth)).to.be.rejectedWith(
+    await expect(_validateOrigin(auth)).rejects.toThrow(
       FirebaseError,
       'auth/unauthorized-domain'
     );
@@ -91,7 +88,7 @@ describe('core/util/validate_origin', () => {
       'google.com',
       'chrome-extension://somereallylongcomplexstring'
     ];
-    await expect(_validateOrigin(auth)).to.be.fulfilled;
+    await expect(_validateOrigin(auth)).resolves.not.toThrow();
   });
 
   it('fails for wrong chrome extensions', async () => {
@@ -100,7 +97,7 @@ describe('core/util/validate_origin', () => {
       'google.com',
       'chrome-extension://someOTHERreallylongcomplexstring'
     ];
-    await expect(_validateOrigin(auth)).to.be.rejectedWith(
+    await expect(_validateOrigin(auth)).rejects.toThrow(
       FirebaseError,
       'auth/unauthorized-domain'
     );
@@ -109,25 +106,25 @@ describe('core/util/validate_origin', () => {
   it('works for subdomains', async () => {
     currentUrl = 'http://firebase.google.com';
     authorizedDomains = ['google.com'];
-    await expect(_validateOrigin(auth)).to.be.fulfilled;
+    await expect(_validateOrigin(auth)).resolves.not.toThrow();
   });
 
   it('works for deeply-linked pages', async () => {
     currentUrl = 'http://firebase.google.com/a/b/c/d/e/f/g.html';
     authorizedDomains = ['google.com'];
-    await expect(_validateOrigin(auth)).to.be.fulfilled;
+    await expect(_validateOrigin(auth)).resolves.not.toThrow();
   });
 
   it('works with IP addresses', async () => {
     currentUrl = 'http://192.168.0.1/a/b/c';
     authorizedDomains = ['192.168.0.1'];
-    await expect(_validateOrigin(auth)).to.be.fulfilled;
+    await expect(_validateOrigin(auth)).resolves.not.toThrow();
   });
 
   it('fails with different IP addresses', async () => {
     currentUrl = 'http://192.168.0.100/a/b/c';
     authorizedDomains = ['192.168.0.1'];
-    await expect(_validateOrigin(auth)).to.be.rejectedWith(
+    await expect(_validateOrigin(auth)).rejects.toThrow(
       FirebaseError,
       'auth/unauthorized-domain'
     );

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,6 @@
  * limitations under the License.
  */
 
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-
 import { FirebaseError } from '@firebase/util';
 
 import { testAuth, testUser } from '../../../test/helpers/mock_auth';
@@ -26,9 +23,6 @@ import { UserInternal } from '../../model/user';
 import { AuthErrorCode } from '../errors';
 import { _logoutIfInvalidated } from './invalidation';
 import { _createError } from '../util/assert';
-
-use(chaiAsPromised);
-
 describe('core/user/invalidation', () => {
   let user: UserInternal;
   let auth: AuthInternal;
@@ -47,21 +41,21 @@ describe('core/user/invalidation', () => {
     const error = makeError(AuthErrorCode.TOO_MANY_ATTEMPTS_TRY_LATER);
     await expect(
       _logoutIfInvalidated(user, Promise.reject(error))
-    ).to.be.rejectedWith(error);
-    expect(auth.currentUser).to.eq(user);
+    ).rejects.toThrow(error);
+    expect(auth.currentUser).toBe(user);
   });
 
   it('does nothing if the promise resolves', async () => {
     await _logoutIfInvalidated(user, Promise.resolve({}));
-    expect(auth.currentUser).to.eq(user);
+    expect(auth.currentUser).toBe(user);
   });
 
   it('logs out the user if the error is user_disabled', async () => {
     const error = makeError(AuthErrorCode.USER_DISABLED);
     await expect(
       _logoutIfInvalidated(user, Promise.reject(error))
-    ).to.be.rejectedWith(error);
-    expect(auth.currentUser).to.be.null;
+    ).rejects.toThrow(error);
+    expect(auth.currentUser).toBeNull();
   });
 
   it('does not log out if bypass auth state is true', async () => {
@@ -69,18 +63,18 @@ describe('core/user/invalidation', () => {
     try {
       await _logoutIfInvalidated(user, Promise.reject(error), true);
     } catch {}
-    expect(auth.currentUser).to.eq(user);
+    expect(auth.currentUser).toBe(user);
   });
 
   it('logs out the user if the error is token_expired', async () => {
     const error = makeError(AuthErrorCode.TOKEN_EXPIRED);
     await expect(
       _logoutIfInvalidated(user, Promise.reject(error))
-    ).to.be.rejectedWith(error);
-    expect(auth.currentUser).to.be.null;
+    ).rejects.toThrow(error);
+    expect(auth.currentUser).toBeNull();
   });
 
-  context('with another logged in user', () => {
+  describe('with another logged in user', () => {
     let user2: UserInternal;
 
     beforeEach(async () => {
@@ -92,8 +86,8 @@ describe('core/user/invalidation', () => {
       const error = makeError(AuthErrorCode.USER_DISABLED);
       await expect(
         _logoutIfInvalidated(user, Promise.reject(error))
-      ).to.be.rejectedWith(error);
-      expect(auth.currentUser).to.eq(user2);
+      ).rejects.toThrow(error);
+      expect(auth.currentUser).toBe(user2);
     });
   });
 });

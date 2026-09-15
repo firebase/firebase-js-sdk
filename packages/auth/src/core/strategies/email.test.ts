@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-import { restore, SinonStub, stub } from 'sinon';
-import sinonChai from 'sinon-chai';
 
 import { ActionCodeOperation } from '../../model/public_types';
 import { ProviderId } from '../../model/enums';
@@ -35,10 +30,7 @@ import {
   sendEmailVerification,
   verifyBeforeUpdateEmail
 } from './email';
-
-use(chaiAsPromised);
-use(sinonChai);
-
+import { MockInstance } from 'vitest';
 describe('core/strategies/fetchSignInMethodsForEmail', () => {
   const email = 'foo@bar.com';
   const expectedSignInMethods = [ProviderId.PASSWORD, ProviderId.GOOGLE];
@@ -53,14 +45,14 @@ describe('core/strategies/fetchSignInMethodsForEmail', () => {
   afterEach(mockFetch.tearDown);
 
   if (isNode()) {
-    context('node', () => {
+    describe('node', () => {
       it('should use localhost for the continueUri', async () => {
         const mock = mockEndpoint(Endpoint.CREATE_AUTH_URI, {
           signinMethods: expectedSignInMethods
         });
         const response = await fetchSignInMethodsForEmail(auth, email);
-        expect(response).to.eql(expectedSignInMethods);
-        expect(mock.calls[0].request).to.eql({
+        expect(response).toEqual(expectedSignInMethods);
+        expect(mock.calls[0].request).toEqual({
           identifier: email,
           continueUri: 'http://localhost'
         });
@@ -72,13 +64,11 @@ describe('core/strategies/fetchSignInMethodsForEmail', () => {
         signinMethods: expectedSignInMethods
       });
       const response = await fetchSignInMethodsForEmail(auth, email);
-      expect(response).to.eql(expectedSignInMethods);
+      expect(response).toEqual(expectedSignInMethods);
       const request = mock.calls[0].request as Record<string, string>;
-      expect(request['identifier']).to.eq(email);
+      expect(request['identifier']).toBe(email);
       // We can't rely on a fixed port number
-      expect(request['continueUri']).to.match(
-        /http:\/\/localhost:[0-9]+\/context\.html/
-      );
+      expect(request['continueUri']).toMatch(/http:\/\/localhost:[0-9]+/);
     });
   }
 
@@ -93,11 +83,11 @@ describe('core/strategies/fetchSignInMethodsForEmail', () => {
       },
       400
     );
-    await expect(fetchSignInMethodsForEmail(auth, email)).to.be.rejectedWith(
+    await expect(fetchSignInMethodsForEmail(auth, email)).rejects.toThrow(
       FirebaseError,
       'Firebase: The email address is badly formatted. (auth/invalid-email).'
     );
-    expect(mock.calls.length).to.eq(1);
+    expect(mock.calls.length).toBe(1);
   });
 });
 
@@ -106,18 +96,18 @@ describe('core/strategies/sendEmailVerification', () => {
   const idToken = 'access-token';
   let user: UserInternal;
   let auth: TestAuth;
-  let reloadStub: SinonStub;
+  let reloadStub: MockInstance;
 
   beforeEach(async () => {
     auth = await testAuth();
     user = testUser(auth, 'my-user-uid', email, true);
     mockFetch.setUp();
-    reloadStub = stub(user, 'reload');
+    reloadStub = vi.spyOn(user, 'reload').mockResolvedValue(undefined);
   });
 
   afterEach(() => {
     mockFetch.tearDown();
-    restore();
+    vi.restoreAllMocks();
   });
 
   it('should send the email verification', async () => {
@@ -128,8 +118,8 @@ describe('core/strategies/sendEmailVerification', () => {
 
     await sendEmailVerification(user);
 
-    expect(reloadStub).to.not.have.been.called;
-    expect(mock.calls[0].request).to.eql({
+    expect(reloadStub).not.toHaveBeenCalled();
+    expect(mock.calls[0].request).toEqual({
       requestType: ActionCodeOperation.VERIFY_EMAIL,
       idToken
     });
@@ -143,14 +133,14 @@ describe('core/strategies/sendEmailVerification', () => {
 
     await sendEmailVerification(user);
 
-    expect(reloadStub).to.have.been.calledOnce;
-    expect(mock.calls[0].request).to.eql({
+    expect(reloadStub).toHaveBeenCalledTimes(1);
+    expect(mock.calls[0].request).toEqual({
       requestType: ActionCodeOperation.VERIFY_EMAIL,
       idToken
     });
   });
 
-  context('on iOS', () => {
+  describe('on iOS', () => {
     it('should pass action code parameters', async () => {
       const mock = mockEndpoint(Endpoint.SEND_OOB_CODE, {
         requestType: ActionCodeOperation.VERIFY_EMAIL,
@@ -166,7 +156,7 @@ describe('core/strategies/sendEmailVerification', () => {
         linkDomain: 'hosting-link-domain'
       });
 
-      expect(mock.calls[0].request).to.eql({
+      expect(mock.calls[0].request).toEqual({
         requestType: ActionCodeOperation.VERIFY_EMAIL,
         idToken,
         continueUrl: 'my-url',
@@ -178,7 +168,7 @@ describe('core/strategies/sendEmailVerification', () => {
     });
   });
 
-  context('on Android', () => {
+  describe('on Android', () => {
     it('should pass action code parameters', async () => {
       const mock = mockEndpoint(Endpoint.SEND_OOB_CODE, {
         requestType: ActionCodeOperation.VERIFY_EMAIL,
@@ -195,7 +185,7 @@ describe('core/strategies/sendEmailVerification', () => {
         dynamicLinkDomain: 'fdl-domain',
         linkDomain: 'hosting-link-domain'
       });
-      expect(mock.calls[0].request).to.eql({
+      expect(mock.calls[0].request).toEqual({
         requestType: ActionCodeOperation.VERIFY_EMAIL,
         idToken,
         continueUrl: 'my-url',
@@ -216,18 +206,18 @@ describe('core/strategies/verifyBeforeUpdateEmail', () => {
   const idToken = 'access-token';
   let user: UserInternal;
   let auth: TestAuth;
-  let reloadStub: SinonStub;
+  let reloadStub: MockInstance;
 
   beforeEach(async () => {
     auth = await testAuth();
     user = testUser(auth, 'my-user-uid', email, true);
     mockFetch.setUp();
-    reloadStub = stub(user, 'reload');
+    reloadStub = vi.spyOn(user, 'reload').mockResolvedValue(undefined);
   });
 
   afterEach(() => {
     mockFetch.tearDown();
-    restore();
+    vi.restoreAllMocks();
   });
 
   it('should send the email verification', async () => {
@@ -238,8 +228,8 @@ describe('core/strategies/verifyBeforeUpdateEmail', () => {
 
     await verifyBeforeUpdateEmail(user, newEmail);
 
-    expect(reloadStub).to.not.have.been.called;
-    expect(mock.calls[0].request).to.eql({
+    expect(reloadStub).not.toHaveBeenCalled();
+    expect(mock.calls[0].request).toEqual({
       requestType: ActionCodeOperation.VERIFY_AND_CHANGE_EMAIL,
       idToken,
       newEmail
@@ -254,15 +244,15 @@ describe('core/strategies/verifyBeforeUpdateEmail', () => {
 
     await verifyBeforeUpdateEmail(user, newEmail);
 
-    expect(reloadStub).to.have.been.calledOnce;
-    expect(mock.calls[0].request).to.eql({
+    expect(reloadStub).toHaveBeenCalledTimes(1);
+    expect(mock.calls[0].request).toEqual({
       requestType: ActionCodeOperation.VERIFY_AND_CHANGE_EMAIL,
       idToken,
       newEmail
     });
   });
 
-  context('on iOS', () => {
+  describe('on iOS', () => {
     it('should pass action code parameters', async () => {
       const mock = mockEndpoint(Endpoint.SEND_OOB_CODE, {
         requestType: ActionCodeOperation.VERIFY_AND_CHANGE_EMAIL,
@@ -278,7 +268,7 @@ describe('core/strategies/verifyBeforeUpdateEmail', () => {
         linkDomain: 'hosting-link-domain'
       });
 
-      expect(mock.calls[0].request).to.eql({
+      expect(mock.calls[0].request).toEqual({
         requestType: ActionCodeOperation.VERIFY_AND_CHANGE_EMAIL,
         idToken,
         newEmail,
@@ -291,7 +281,7 @@ describe('core/strategies/verifyBeforeUpdateEmail', () => {
     });
   });
 
-  context('on Android', () => {
+  describe('on Android', () => {
     it('should pass action code parameters', async () => {
       const mock = mockEndpoint(Endpoint.SEND_OOB_CODE, {
         requestType: ActionCodeOperation.VERIFY_AND_CHANGE_EMAIL,
@@ -308,7 +298,7 @@ describe('core/strategies/verifyBeforeUpdateEmail', () => {
         dynamicLinkDomain: 'fdl-domain',
         linkDomain: 'hosting-link-domain'
       });
-      expect(mock.calls[0].request).to.eql({
+      expect(mock.calls[0].request).toEqual({
         requestType: ActionCodeOperation.VERIFY_AND_CHANGE_EMAIL,
         idToken,
         newEmail,

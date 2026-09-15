@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import * as sinon from 'sinon';
 
 export interface TimerTripFn {
   (): void;
@@ -35,19 +33,21 @@ export function stubTimeouts(ids?: number[]): TimerMap {
   const callbacks: { [key: number]: TimerTripFn } = {};
   let idCounter = 0;
 
-  sinon.stub(window, 'setTimeout').callsFake((cb: () => void, duration) => {
-    if (duration !== undefined) {
-      callbacks[duration] = cb;
-    } else {
-      callbacks[0] = cb;
+  vi.spyOn(window, 'setTimeout').mockImplementation(
+    (cb: () => void, duration) => {
+      if (duration !== undefined) {
+        callbacks[duration] = cb;
+      } else {
+        callbacks[0] = cb;
+      }
+      // For some bizarre reason setTimeout always get shoehorned into NodeJS.Timeout,
+      // which is flat-wrong. This is the easiest way to fix it.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const id = ids ? ids[idCounter] : idCounter + 100;
+      idCounter++;
+      return id as any;
     }
-    // For some bizarre reason setTimeout always get shoehorned into NodeJS.Timeout,
-    // which is flat-wrong. This is the easiest way to fix it.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const id = ids ? ids[idCounter] : idCounter + 100;
-    idCounter++;
-    return id as any;
-  });
+  );
 
   return callbacks;
 }

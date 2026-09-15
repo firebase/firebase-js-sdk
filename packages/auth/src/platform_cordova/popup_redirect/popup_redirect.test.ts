@@ -16,10 +16,6 @@
  */
 
 import { AuthProvider } from '../../model/public_types';
-import * as sinon from 'sinon';
-import chaiAsPromised from 'chai-as-promised';
-import sinonChai from 'sinon-chai';
-import { expect, use } from 'chai';
 import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 import { SingletonInstantiator } from '../../core/util/instantiator';
 import {
@@ -38,10 +34,6 @@ import {
   TimerTripFn
 } from '../../../test/helpers/timeout_stub';
 import { _cordovaWindow } from '../plugins';
-
-use(chaiAsPromised);
-use(sinonChai);
-
 const win = _cordovaWindow();
 
 describe('platform_cordova/popup_redirect/popup_redirect', () => {
@@ -64,13 +56,13 @@ describe('platform_cordova/popup_redirect/popup_redirect', () => {
       cordovaPopupRedirectResolver as SingletonInstantiator<PopupRedirectResolverInternal>
     )();
     provider = new GoogleAuthProvider();
-    utilsStubs = sinon.stub(utils);
+    utilsStubs = vi.fn(utils);
     eventsStubs = {
-      _generateNewEvent: sinon.stub(events, '_generateNewEvent'),
-      _savePartialEvent: sinon.stub(events, '_savePartialEvent'),
-      _getAndRemoveEvent: sinon.stub(events, '_getAndRemoveEvent'),
-      _eventFromPartialAndUrl: sinon.stub(events, '_eventFromPartialAndUrl'),
-      _getDeepLinkFromCallback: sinon.stub(events, '_getDeepLinkFromCallback')
+      _generateNewEvent: vi.spyOn(events, '_generateNewEvent'),
+      _savePartialEvent: vi.spyOn(events, '_savePartialEvent'),
+      _getAndRemoveEvent: vi.spyOn(events, '_getAndRemoveEvent'),
+      _eventFromPartialAndUrl: vi.spyOn(events, '_eventFromPartialAndUrl'),
+      _getDeepLinkFromCallback: vi.spyOn(events, '_getDeepLinkFromCallback')
     };
 
     win.universalLinks = {
@@ -83,11 +75,11 @@ describe('platform_cordova/popup_redirect/popup_redirect', () => {
       displayName: ''
     };
     tripNoEventTimer = stubSingleTimeout(NO_EVENT_TIMER_ID);
-    sinon.stub(win, 'clearTimeout');
+    vi.spyOn(win, 'clearTimeout');
   });
 
   afterEach(() => {
-    sinon.restore();
+    vi.restoreAllMocks();
     universalLinksCb = null;
     const anyWindow = win as unknown as Record<string, unknown>;
     delete anyWindow.universalLinks;
@@ -101,13 +93,13 @@ describe('platform_cordova/popup_redirect/popup_redirect', () => {
     // utils.
     it('performs the redirect with the correct url after checking config', async () => {
       const event = {} as AuthEvent;
-      utilsStubs._generateHandlerUrl.returns(
+      utilsStubs._generateHandlerUrl.mockReturnValue(
         Promise.resolve('https://localhost/__/auth/handler')
       );
-      utilsStubs._performRedirect.returns(Promise.resolve({}));
-      utilsStubs._waitForAppResume.returns(Promise.resolve());
-      utilsStubs._validateOrigin.returns(Promise.resolve());
-      eventsStubs._generateNewEvent!.returns(event);
+      utilsStubs._performRedirect.mockReturnValue(Promise.resolve({}));
+      utilsStubs._waitForAppResume.mockReturnValue(Promise.resolve());
+      utilsStubs._validateOrigin.mockReturnValue(Promise.resolve());
+      eventsStubs._generateNewEvent!.mockReturnValue(event);
 
       const redirectPromise = resolver._openRedirect(
         auth,
@@ -118,16 +110,16 @@ describe('platform_cordova/popup_redirect/popup_redirect', () => {
       tripNoEventTimer();
       await redirectPromise;
 
-      expect(utilsStubs._checkCordovaConfiguration).to.have.been.called;
-      expect(utilsStubs._generateHandlerUrl).to.have.been.calledWith(
+      expect(utilsStubs._checkCordovaConfiguration).toHaveBeenCalled();
+      expect(utilsStubs._generateHandlerUrl).toHaveBeenCalledWith(
         auth,
         event,
         provider
       );
-      expect(utilsStubs._performRedirect).to.have.been.calledWith(
+      expect(utilsStubs._performRedirect).toHaveBeenCalledWith(
         'https://localhost/__/auth/handler'
       );
-      expect(utilsStubs._waitForAppResume).to.have.been.called;
+      expect(utilsStubs._waitForAppResume).toHaveBeenCalled();
     });
   });
 
@@ -138,16 +130,16 @@ describe('platform_cordova/popup_redirect/popup_redirect', () => {
       });
     }
 
-    context('when no event is present', () => {
+    describe('when no event is present', () => {
       it('clears local storage and dispatches no-event event', async () => {
         const promise = event(await resolver._initialize(auth));
         tripNoEventTimer();
         const { error, ...rest } = await promise;
 
         expect(error)
-          .to.be.instanceOf(FirebaseError)
+          .toBeInstanceOf(FirebaseError)
           .with.property('code', 'auth/no-auth-event');
-        expect(rest).to.eql({
+        expect(rest).toEqual({
           type: AuthEventType.UNKNOWN,
           eventId: null,
           sessionId: null,
@@ -155,15 +147,15 @@ describe('platform_cordova/popup_redirect/popup_redirect', () => {
           postBody: null,
           tenantId: null
         });
-        expect(events._getAndRemoveEvent).to.have.been.called;
+        expect(events._getAndRemoveEvent).toHaveBeenCalled();
       });
     });
 
-    context('when an event is present', () => {
+    describe('when an event is present', () => {
       it('clears the no event timeout', async () => {
         await resolver._initialize(auth);
         await universalLinksCb!({});
-        expect(win.clearTimeout).to.have.been.calledWith(NO_EVENT_TIMER_ID);
+        expect(win.clearTimeout).toHaveBeenCalledWith(NO_EVENT_TIMER_ID);
       });
 
       it('signals no event if no url in event data', async () => {
@@ -172,9 +164,9 @@ describe('platform_cordova/popup_redirect/popup_redirect', () => {
         const { error, ...rest } = await promise;
 
         expect(error)
-          .to.be.instanceOf(FirebaseError)
+          .toBeInstanceOf(FirebaseError)
           .with.property('code', 'auth/no-auth-event');
-        expect(rest).to.eql({
+        expect(rest).toEqual({
           type: AuthEventType.UNKNOWN,
           eventId: null,
           sessionId: null,
@@ -186,8 +178,8 @@ describe('platform_cordova/popup_redirect/popup_redirect', () => {
 
       it('signals no event if partial parse turns up null', async () => {
         const promise = event(await resolver._initialize(auth));
-        eventsStubs._eventFromPartialAndUrl!.returns(null);
-        eventsStubs._getAndRemoveEvent!.returns(
+        eventsStubs._eventFromPartialAndUrl!.mockReturnValue(null);
+        eventsStubs._getAndRemoveEvent!.mockReturnValue(
           Promise.resolve({
             type: AuthEventType.REAUTH_VIA_REDIRECT
           } as AuthEvent)
@@ -196,9 +188,9 @@ describe('platform_cordova/popup_redirect/popup_redirect', () => {
         const { error, ...rest } = await promise;
 
         expect(error)
-          .to.be.instanceOf(FirebaseError)
+          .toBeInstanceOf(FirebaseError)
           .with.property('code', 'auth/no-auth-event');
-        expect(rest).to.eql({
+        expect(rest).toEqual({
           type: AuthEventType.UNKNOWN,
           eventId: null,
           sessionId: null,
@@ -213,36 +205,38 @@ describe('platform_cordova/popup_redirect/popup_redirect', () => {
           type: AuthEventType.REAUTH_VIA_REDIRECT,
           postBody: 'foo'
         };
-        eventsStubs._getAndRemoveEvent!.returns(
+        eventsStubs._getAndRemoveEvent!.mockReturnValue(
           Promise.resolve({
             type: AuthEventType.REAUTH_VIA_REDIRECT
           } as AuthEvent)
         );
 
         const promise = event(await resolver._initialize(auth));
-        eventsStubs._eventFromPartialAndUrl!.returns(finalEvent as AuthEvent);
+        eventsStubs._eventFromPartialAndUrl!.mockReturnValue(
+          finalEvent as AuthEvent
+        );
         await universalLinksCb!({ url: 'foo-bar' });
-        expect(await promise).to.eq(finalEvent);
-        expect(events._eventFromPartialAndUrl).to.have.been.calledWith(
+        expect(await promise).toBe(finalEvent);
+        expect(events._eventFromPartialAndUrl).toHaveBeenCalledWith(
           { type: AuthEventType.REAUTH_VIA_REDIRECT },
           'foo-bar'
         );
       });
     });
 
-    context('when using global handleOpenURL callback', () => {
+    describe('when using global handleOpenURL callback', () => {
       it('ignores inbound callbacks that are not for this app', async () => {
         await resolver._initialize(auth);
         win.handleOpenURL(`${NOT_PACKAGE_NAME}://foo`);
 
         // Clear timeout is called in the handler so we can check that
-        expect(win.clearTimeout).not.to.have.been.called;
+        expect(win.clearTimeout).not.toHaveBeenCalled();
       });
 
       it('passes through callback if package name matches', async () => {
         await resolver._initialize(auth);
         win.handleOpenURL(`${PACKAGE_NAME}://foo`);
-        expect(win.clearTimeout).to.have.been.calledWith(NO_EVENT_TIMER_ID);
+        expect(win.clearTimeout).toHaveBeenCalledWith(NO_EVENT_TIMER_ID);
       });
 
       it('signals the final event if partial expansion success', async () => {
@@ -250,40 +244,40 @@ describe('platform_cordova/popup_redirect/popup_redirect', () => {
           type: AuthEventType.REAUTH_VIA_REDIRECT,
           postBody: 'foo'
         };
-        eventsStubs._getAndRemoveEvent!.returns(
+        eventsStubs._getAndRemoveEvent!.mockReturnValue(
           Promise.resolve({
             type: AuthEventType.REAUTH_VIA_REDIRECT
           } as AuthEvent)
         );
 
         const promise = event(await resolver._initialize(auth));
-        eventsStubs._eventFromPartialAndUrl!.returns(finalEvent as AuthEvent);
+        eventsStubs._eventFromPartialAndUrl!.mockReturnValue(
+          finalEvent as AuthEvent
+        );
         win.handleOpenURL(`${PACKAGE_NAME}://foo`);
-        expect(await promise).to.eq(finalEvent);
-        expect(events._eventFromPartialAndUrl).to.have.been.calledWith(
+        expect(await promise).toBe(finalEvent);
+        expect(events._eventFromPartialAndUrl).toHaveBeenCalledWith(
           { type: AuthEventType.REAUTH_VIA_REDIRECT },
           `${PACKAGE_NAME}://foo`
         );
       });
 
       it('calls the dev existing handleOpenURL function', async () => {
-        const oldHandleOpenURL = sinon.stub();
+        const oldHandleOpenURL = vi.fn();
         win.handleOpenURL = oldHandleOpenURL;
 
         await resolver._initialize(auth);
         win.handleOpenURL(`${PACKAGE_NAME}://foo`);
-        expect(oldHandleOpenURL).to.have.been.calledWith(
-          `${PACKAGE_NAME}://foo`
-        );
+        expect(oldHandleOpenURL).toHaveBeenCalledWith(`${PACKAGE_NAME}://foo`);
       });
 
       it('calls the dev existing handleOpenURL function for other package', async () => {
-        const oldHandleOpenURL = sinon.stub();
+        const oldHandleOpenURL = vi.fn();
         win.handleOpenURL = oldHandleOpenURL;
 
         await resolver._initialize(auth);
         win.handleOpenURL(`${NOT_PACKAGE_NAME}://foo`);
-        expect(oldHandleOpenURL).to.have.been.calledWith(
+        expect(oldHandleOpenURL).toHaveBeenCalledWith(
           `${NOT_PACKAGE_NAME}://foo`
         );
       });
@@ -294,7 +288,7 @@ describe('platform_cordova/popup_redirect/popup_redirect', () => {
     it('throws an error', () => {
       expect(() =>
         resolver._openPopup(auth, provider, AuthEventType.LINK_VIA_POPUP)
-      ).to.throw(
+      ).toThrow(
         FirebaseError,
         'auth/operation-not-supported-in-this-environment'
       );

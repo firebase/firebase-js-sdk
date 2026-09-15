@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
 
 // eslint-disable-next-line import/no-extraneous-dependencies
 import {
@@ -43,9 +40,6 @@ import {
 } from '../../helpers/integration/helpers';
 import { getPhoneVerificationCodes } from '../../helpers/integration/emulator_rest_helpers';
 import { generateMiddlewareTests } from './middleware_test_generator';
-
-use(chaiAsPromised);
-
 // NOTE: These tests don't use a real phone number. In order to run these tests
 // you must whitelist the following phone numbers as "testing" numbers in the
 // auth console
@@ -111,13 +105,13 @@ describe('Integration test: phone auth', () => {
     const cr = await signInWithPhoneNumber(auth, PHONE_A.phoneNumber, verifier);
     const userCred = await cr.confirm(await code(cr, PHONE_A.code));
 
-    expect(auth.currentUser).to.eq(userCred.user);
-    expect(userCred.operationType).to.eq(OperationType.SIGN_IN);
+    expect(auth.currentUser).toBe(userCred.user);
+    expect(userCred.operationType).toBe(OperationType.SIGN_IN);
 
     const user = userCred.user;
-    expect(user.isAnonymous).to.be.false;
+    expect(user.isAnonymous).toBe(false);
     expect(user.uid).to.be.a('string');
-    expect(user.phoneNumber).to.eq(PHONE_A.phoneNumber);
+    expect(user.phoneNumber).toBe(PHONE_A.phoneNumber);
   });
 
   it('anonymous users can link (and unlink) phone number', async () => {
@@ -126,15 +120,15 @@ describe('Integration test: phone auth', () => {
 
     const cr = await linkWithPhoneNumber(user, PHONE_A.phoneNumber, verifier);
     const linkResult = await cr.confirm(await code(cr, PHONE_A.code));
-    expect(linkResult.operationType).to.eq(OperationType.LINK);
-    expect(linkResult.user.uid).to.eq(user.uid);
-    expect(linkResult.user.phoneNumber).to.eq(PHONE_A.phoneNumber);
+    expect(linkResult.operationType).toBe(OperationType.LINK);
+    expect(linkResult.user.uid).toBe(user.uid);
+    expect(linkResult.user.phoneNumber).toBe(PHONE_A.phoneNumber);
 
     await unlink(user, ProviderId.PHONE);
-    expect(auth.currentUser!.uid).to.eq(anonId);
+    expect(auth.currentUser!.uid).toBe(anonId);
     // Is anonymous stays false even after unlinking
-    expect(auth.currentUser!.isAnonymous).to.be.false;
-    expect(auth.currentUser!.phoneNumber).to.be.null;
+    expect(auth.currentUser!.isAnonymous).toBe(false);
+    expect(auth.currentUser!.phoneNumber).toBeNull();
   });
 
   it('anonymous users can upgrade using phone number', async () => {
@@ -154,7 +148,7 @@ describe('Integration test: phone auth', () => {
         await code(verificationId, PHONE_B.code)
       )
     );
-    expect(user.phoneNumber).to.eq(PHONE_B.phoneNumber);
+    expect(user.phoneNumber).toBe(PHONE_B.phoneNumber);
 
     await auth.signOut();
     resetVerifier();
@@ -163,13 +157,13 @@ describe('Integration test: phone auth', () => {
     const { user: secondSignIn } = await cr.confirm(
       await code(cr, PHONE_B.code)
     );
-    expect(secondSignIn.uid).to.eq(anonId);
-    expect(secondSignIn.isAnonymous).to.be.false;
-    expect(secondSignIn.providerData[0].phoneNumber).to.eq(PHONE_B.phoneNumber);
-    expect(secondSignIn.providerData[0].providerId).to.eq('phone');
+    expect(secondSignIn.uid).toBe(anonId);
+    expect(secondSignIn.isAnonymous).toBe(false);
+    expect(secondSignIn.providerData[0].phoneNumber).toBe(PHONE_B.phoneNumber);
+    expect(secondSignIn.providerData[0].providerId).toBe('phone');
   });
 
-  context('with already-created user', () => {
+  describe('with already-created user', () => {
     let signUpCred: UserCredential;
 
     beforeEach(async () => {
@@ -191,7 +185,7 @@ describe('Integration test: phone auth', () => {
       );
       const signInCred = await cr.confirm(await code(cr, PHONE_A.code));
 
-      expect(signInCred.user.uid).to.eq(signUpCred.user.uid);
+      expect(signInCred.user.uid).toBe(signUpCred.user.uid);
     });
 
     it('allows the user to update their phone number', async () => {
@@ -213,7 +207,7 @@ describe('Integration test: phone auth', () => {
           await code(verificationId, PHONE_B.code)
         )
       );
-      expect(user.phoneNumber).to.eq(PHONE_B.phoneNumber);
+      expect(user.phoneNumber).toBe(PHONE_B.phoneNumber);
 
       await auth.signOut();
       resetVerifier();
@@ -222,7 +216,7 @@ describe('Integration test: phone auth', () => {
       const { user: secondSignIn } = await cr.confirm(
         await code(cr, PHONE_B.code)
       );
-      expect(secondSignIn.uid).to.eq(user.uid);
+      expect(secondSignIn.uid).toBe(user.uid);
     });
 
     it('allows the user to reauthenticate with phone number', async () => {
@@ -244,7 +238,7 @@ describe('Integration test: phone auth', () => {
       );
       await cr.confirm(await code(cr, PHONE_A.code));
 
-      expect(await user.getIdToken()).not.to.eq(oldToken);
+      expect(await user.getIdToken()).not.toBe(oldToken);
     });
 
     it('prevents reauthentication with wrong phone number', async () => {
@@ -258,7 +252,7 @@ describe('Integration test: phone auth', () => {
         PHONE_B.phoneNumber,
         verifier
       );
-      await expect(cr.confirm(await code(cr, PHONE_B.code))).to.be.rejectedWith(
+      await expect(cr.confirm(await code(cr, PHONE_B.code))).rejects.toThrow(
         FirebaseError,
         'auth/user-mismatch'
       );
@@ -276,7 +270,7 @@ describe('Integration test: phone auth', () => {
     it('handles account exists with credential errors', async () => {
       // PHONE_A is already a user. Try to link it with an email account
       const { user } = await signInAnonymously(auth);
-      expect(user.uid).not.to.eq(signUpCred.user.uid);
+      expect(user.uid).not.toBe(signUpCred.user.uid);
 
       const provider = new PhoneAuthProvider(auth);
       const verificationId = await provider.verifyPhoneNumber(
@@ -297,14 +291,12 @@ describe('Integration test: phone auth', () => {
         error = e as FirebaseError;
       }
 
-      expect(error!.customData!.phoneNumber).to.eq(PHONE_A.phoneNumber);
-      expect(error!.code).to.eq(
-        'auth/account-exists-with-different-credential'
-      );
+      expect(error!.customData!.phoneNumber).toBe(PHONE_A.phoneNumber);
+      expect(error!.code).toBe('auth/account-exists-with-different-credential');
       const credential = PhoneAuthProvider.credentialFromError(error!);
-      expect(credential).not.be.null;
+      expect(credential).not.toBeNull();
       const errorUserCred = await signInWithCredential(auth, credential!);
-      expect(errorUserCred.user.uid).to.eq(signUpCred.user.uid);
+      expect(errorUserCred.user.uid).toBe(signUpCred.user.uid);
     });
   });
 

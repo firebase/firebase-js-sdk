@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,11 @@
  * limitations under the License.
  */
 
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-
 import { ProviderId, SignInMethod } from '../../model/enums';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { FirebaseError } from '@firebase/util';
 
 import { EmailAuthProvider } from './email';
-
-use(chaiAsPromised);
-
 describe('core/providers/email', () => {
   describe('.credential', () => {
     it('should return an email & password credential', () => {
@@ -33,10 +27,10 @@ describe('core/providers/email', () => {
         'some-email',
         'some-password'
       );
-      expect(credential._email).to.eq('some-email');
-      expect(credential._password).to.eq('some-password');
-      expect(credential.providerId).to.eq(ProviderId.PASSWORD);
-      expect(credential.signInMethod).to.eq(SignInMethod.EMAIL_PASSWORD);
+      expect(credential._email).toBe('some-email');
+      expect(credential._password).toBe('some-password');
+      expect(credential.providerId).toBe(ProviderId.PASSWORD);
+      expect(credential.signInMethod).toBe(SignInMethod.EMAIL_PASSWORD);
     });
   });
 
@@ -54,18 +48,18 @@ describe('core/providers/email', () => {
         'some-email',
         actionLink
       );
-      expect(credential._email).to.eq('some-email');
-      expect(credential._password).to.eq('CODE');
-      expect(credential.providerId).to.eq(ProviderId.PASSWORD);
-      expect(credential.signInMethod).to.eq(SignInMethod.EMAIL_LINK);
+      expect(credential._email).toBe('some-email');
+      expect(credential._password).toBe('CODE');
+      expect(credential.providerId).toBe(ProviderId.PASSWORD);
+      expect(credential.signInMethod).toBe(SignInMethod.EMAIL_LINK);
     });
 
-    context('invalid email link', () => {
+    describe('invalid email link', () => {
       it('should throw an error', () => {
         const actionLink = 'https://www.example.com/finishSignIn?';
         expect(() =>
           EmailAuthProvider.credentialWithLink('some-email', actionLink)
-        ).to.throw(FirebaseError, 'Firebase: Error (auth/argument-error)');
+        ).toThrow(FirebaseError, 'Firebase: Error (auth/argument-error)');
       });
     });
   });

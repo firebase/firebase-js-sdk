@@ -16,17 +16,10 @@
  */
 
 import { FirebaseError } from '@firebase/util';
-import { expect, use } from 'chai';
-import * as sinon from 'sinon';
-import chaiAsPromised from 'chai-as-promised';
-
 import { testAuth, testUser } from '../../../test/helpers/mock_auth';
 import { AuthInternal } from '../../model/auth';
 import { UserInternal } from '../../model/user';
 import { AuthInterop } from './firebase_internal';
-
-use(chaiAsPromised);
-
 describe('core/auth/firebase_internal', () => {
   let auth: AuthInternal;
   let authInternal: AuthInterop;
@@ -36,34 +29,34 @@ describe('core/auth/firebase_internal', () => {
   });
 
   afterEach(() => {
-    sinon.restore();
+    vi.restoreAllMocks();
   });
 
-  context('getUid', () => {
+  describe('getUid', () => {
     it('returns null if currentUser is undefined', () => {
-      expect(authInternal.getUid()).to.be.null;
+      expect(authInternal.getUid()).toBeNull();
     });
 
     it('returns the uid of the user if set', async () => {
       const user = testUser(auth, 'uid');
       await auth._updateCurrentUser(user);
-      expect(authInternal.getUid()).to.eq('uid');
+      expect(authInternal.getUid()).toBe('uid');
     });
 
     it('errors if Auth is not initialized', () => {
       delete (auth as unknown as Record<string, unknown>)[
         '_initializationPromise'
       ];
-      expect(() => authInternal.getUid()).to.throw(
+      expect(() => authInternal.getUid()).toThrow(
         FirebaseError,
         'auth/dependent-sdk-initialized-before-auth'
       );
     });
   });
 
-  context('getToken', () => {
+  describe('getToken', () => {
     it('returns null if currentUser is undefined', async () => {
-      expect(await authInternal.getToken()).to.be.null;
+      expect(await authInternal.getToken()).toBeNull();
     });
 
     it('returns the id token of the current user correctly', async () => {
@@ -72,7 +65,7 @@ describe('core/auth/firebase_internal', () => {
       user.stsTokenManager.accessToken = 'access-token';
       user.stsTokenManager.refreshToken = 'refresh-token';
       user.stsTokenManager.expirationTime = Date.now() + 1000 * 60 * 60 * 24;
-      expect(await authInternal.getToken()).to.eql({
+      expect(await authInternal.getToken()).toEqual({
         accessToken: 'access-token'
       });
     });
@@ -81,14 +74,14 @@ describe('core/auth/firebase_internal', () => {
       delete (auth as unknown as Record<string, unknown>)[
         '_initializationPromise'
       ];
-      await expect(authInternal.getToken()).to.be.rejectedWith(
+      await expect(authInternal.getToken()).rejects.toThrow(
         FirebaseError,
         'auth/dependent-sdk-initialized-before-auth'
       );
     });
   });
 
-  context('token listeners', () => {
+  describe('token listeners', () => {
     let isProactiveRefresh = false;
     let user: UserInternal;
 
@@ -96,19 +89,21 @@ describe('core/auth/firebase_internal', () => {
       user = testUser(auth, 'uid', undefined, true);
       await auth._updateCurrentUser(user);
       let i = 0;
-      sinon.stub(user.stsTokenManager, 'getToken').callsFake(async () => {
-        i += 1;
-        return `new-access-token-${i}`;
-      });
-      sinon
-        .stub(user, '_startProactiveRefresh')
-        .callsFake(() => (isProactiveRefresh = true));
-      sinon
-        .stub(user, '_stopProactiveRefresh')
-        .callsFake(() => (isProactiveRefresh = false));
+      vi.spyOn(user.stsTokenManager, 'getToken').mockImplementation(
+        async () => {
+          i += 1;
+          return `new-access-token-${i}`;
+        }
+      );
+      vi.spyOn(user, '_startProactiveRefresh').mockImplementation(
+        () => (isProactiveRefresh = true)
+      );
+      vi.spyOn(user, '_stopProactiveRefresh').mockImplementation(
+        () => (isProactiveRefresh = false)
+      );
     });
 
-    context('addAuthTokenListener', () => {
+    describe('addAuthTokenListener', () => {
       it('gets called with the token, starts proactive refresh', done => {
         // The listener always fires first time. Ignore that one
         let firstCall = true;
@@ -120,8 +115,8 @@ describe('core/auth/firebase_internal', () => {
             return;
           }
 
-          expect(token).to.eq('access-token');
-          expect(isProactiveRefresh).to.be.true;
+          expect(token).toBe('access-token');
+          expect(isProactiveRefresh).toBe(true);
           done();
         });
       });
@@ -137,21 +132,21 @@ describe('core/auth/firebase_internal', () => {
         await user.getIdToken(true);
         await user.getIdToken(true);
 
-        expect(tokenCount).to.eq(5);
+        expect(tokenCount).toBe(5);
       });
 
       it('errors if Auth is not initialized', () => {
         delete (auth as unknown as Record<string, unknown>)[
           '_initializationPromise'
         ];
-        expect(() => authInternal.addAuthTokenListener(() => {})).to.throw(
+        expect(() => authInternal.addAuthTokenListener(() => {})).toThrow(
           FirebaseError,
           'auth/dependent-sdk-initialized-before-auth'
         );
       });
     });
 
-    context('removeAuthTokenListener', () => {
+    describe('removeAuthTokenListener', () => {
       it('listeners no longer receive token updates', async () => {
         let tokenCount = 0;
         function listener(): void {
@@ -160,21 +155,21 @@ describe('core/auth/firebase_internal', () => {
         authInternal.addAuthTokenListener(listener);
 
         await user.getIdToken(true);
-        expect(tokenCount).to.eq(2);
+        expect(tokenCount).toBe(2);
         authInternal.removeAuthTokenListener(listener);
         await user.getIdToken(true);
         await user.getIdToken(true);
         await user.getIdToken(true);
-        expect(tokenCount).to.eq(2);
+        expect(tokenCount).toBe(2);
       });
 
       it('toggles proactive refresh when listeners fall to 0', () => {
         function listenerA(): void {}
 
         authInternal.addAuthTokenListener(listenerA);
-        expect(isProactiveRefresh).to.be.true;
+        expect(isProactiveRefresh).toBe(true);
         authInternal.removeAuthTokenListener(listenerA);
-        expect(isProactiveRefresh).to.be.false;
+        expect(isProactiveRefresh).toBe(false);
       });
 
       it('toggles proactive refresh when single listener subbed twice', () => {
@@ -182,9 +177,9 @@ describe('core/auth/firebase_internal', () => {
 
         authInternal.addAuthTokenListener(listenerA);
         authInternal.addAuthTokenListener(listenerA);
-        expect(isProactiveRefresh).to.be.true;
+        expect(isProactiveRefresh).toBe(true);
         authInternal.removeAuthTokenListener(listenerA);
-        expect(isProactiveRefresh).to.be.false;
+        expect(isProactiveRefresh).toBe(false);
       });
 
       it('toggles proactive refresh properly multiple listeners', () => {
@@ -193,21 +188,21 @@ describe('core/auth/firebase_internal', () => {
 
         authInternal.addAuthTokenListener(listenerA);
         authInternal.addAuthTokenListener(listenerB);
-        expect(isProactiveRefresh).to.be.true;
+        expect(isProactiveRefresh).toBe(true);
         authInternal.removeAuthTokenListener(listenerA);
-        expect(isProactiveRefresh).to.be.true;
+        expect(isProactiveRefresh).toBe(true);
         authInternal.removeAuthTokenListener(listenerB);
-        expect(isProactiveRefresh).to.be.false;
+        expect(isProactiveRefresh).toBe(false);
 
         authInternal.addAuthTokenListener(listenerB);
-        expect(isProactiveRefresh).to.be.true;
+        expect(isProactiveRefresh).toBe(true);
       });
 
       it('errors if Auth is not initialized', () => {
         delete (auth as unknown as Record<string, unknown>)[
           '_initializationPromise'
         ];
-        expect(() => authInternal.removeAuthTokenListener(() => {})).to.throw(
+        expect(() => authInternal.removeAuthTokenListener(() => {})).toThrow(
           FirebaseError,
           'auth/dependent-sdk-initialized-before-auth'
         );

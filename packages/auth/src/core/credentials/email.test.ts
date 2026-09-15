@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-import * as sinon from 'sinon';
 
 import { ProviderId, SignInMethod } from '../../model/enums';
 
@@ -39,11 +35,9 @@ import { MockGreCAPTCHATopLevel } from '../../platform_browser/recaptcha/recaptc
 import * as jsHelpers from '../../platform_browser/load_js';
 import { ServerError } from '../../api/errors';
 import { _initializeRecaptchaConfig } from '../../platform_browser/recaptcha/recaptcha_enterprise_verifier';
-import assert from 'assert';
 import { mockLoadJS } from '../../../test/helpers/mock_loadjs';
 
-use(chaiAsPromised);
-
+vi.mock('../../platform_browser/load_js', { spy: true });
 const recaptchaConfigResponseEnforce = {
   recaptchaKey: 'foo/bar/to/site-key',
   recaptchaEnforcementState: [
@@ -94,7 +88,7 @@ function mockRecaptchaEnterpriseTokenFailure(): mockFetch.Route | undefined {
     return;
   }
   // Mock recaptcha js loading method but not set window.recaptcha to simulate recaptcha token retrieval failure
-  sinon.stub(jsHelpers, '_loadJS').callsFake(mockLoadJS);
+  vi.spyOn(jsHelpers, '_loadJS').mockImplementation(mockLoadJS);
   window.grecaptcha = undefined;
 
   return mockEndpointWithParams(
@@ -109,7 +103,7 @@ function mockRecaptchaEnterpriseTokenFailure(): mockFetch.Route | undefined {
 
 function mockRecaptchaEnterpriseTokenSuccess(action: string): void {
   // Mock recaptcha js loading method and manually set window.recaptcha
-  sinon.stub(jsHelpers, '_loadJS').callsFake(mockLoadJS);
+  vi.spyOn(jsHelpers, '_loadJS').mockImplementation(mockLoadJS);
   const recaptcha = new MockGreCAPTCHATopLevel();
   window.grecaptcha = recaptcha;
   const stub = sinon.stub(recaptcha.enterprise, 'execute');
@@ -141,7 +135,7 @@ describe('core/credentials/email', () => {
     auth.settings.appVerificationDisabledForTesting = false;
   });
 
-  context('email & password', () => {
+  describe('email & password', () => {
     const credential = EmailAuthCredential._fromEmailAndPassword(
       'some-email',
       'some-password'
@@ -159,27 +153,27 @@ describe('core/credentials/email', () => {
     afterEach(mockFetch.tearDown);
 
     it('should have an email provider', () => {
-      expect(credential.providerId).to.eq(ProviderId.PASSWORD);
+      expect(credential.providerId).toBe(ProviderId.PASSWORD);
     });
 
     it('should have an anonymous sign in method', () => {
-      expect(credential.signInMethod).to.eq(SignInMethod.EMAIL_PASSWORD);
+      expect(credential.signInMethod).toBe(SignInMethod.EMAIL_PASSWORD);
     });
 
     describe('#toJSON', () => {
       it('throws', () => {
-        expect(credential.toJSON).to.throw(Error);
+        expect(credential.toJSON).toThrow(Error);
       });
     });
 
     describe('#_getIdTokenResponse', () => {
       it('calls sign in with password', async () => {
         const idTokenResponse = await credential._getIdTokenResponse(auth);
-        expect(idTokenResponse.idToken).to.eq('id-token');
-        expect(idTokenResponse.refreshToken).to.eq('refresh-token');
-        expect(idTokenResponse.expiresIn).to.eq('1234');
-        expect(idTokenResponse.localId).to.eq(serverUser.localId);
-        expect(apiMock.calls[0].request).to.eql({
+        expect(idTokenResponse.idToken).toBe('id-token');
+        expect(idTokenResponse.refreshToken).toBe('refresh-token');
+        expect(idTokenResponse.expiresIn).toBe('1234');
+        expect(idTokenResponse.localId).toBe(serverUser.localId);
+        expect(apiMock.calls[0].request).toEqual({
           returnSecureToken: true,
           email: 'some-email',
           password: 'some-password',
@@ -187,11 +181,11 @@ describe('core/credentials/email', () => {
         });
       });
 
-      context('#recaptcha', () => {
+      describe('#recaptcha', () => {
         beforeEach(async () => {});
 
         afterEach(() => {
-          sinon.restore();
+          vi.restoreAllMocks();
         });
 
         it('calls sign in with password with recaptcha enabled', async () => {
@@ -202,16 +196,16 @@ describe('core/credentials/email', () => {
             return;
           }
           mockRecaptchaEnterpriseEnablement(RECAPTCHA_MODE_ENFORCE);
-          sinon.stub(jsHelpers, '_loadJS').callsFake(mockLoadJS);
+          vi.spyOn(jsHelpers, '_loadJS').mockImplementation(mockLoadJS);
 
           await _initializeRecaptchaConfig(auth);
           const idTokenResponse = await credential._getIdTokenResponse(auth);
 
-          expect(idTokenResponse.idToken).to.eq('id-token');
-          expect(idTokenResponse.refreshToken).to.eq('refresh-token');
-          expect(idTokenResponse.expiresIn).to.eq('1234');
-          expect(idTokenResponse.localId).to.eq(serverUser.localId);
-          expect(apiMock.calls[0].request).to.eql({
+          expect(idTokenResponse.idToken).toBe('id-token');
+          expect(idTokenResponse.refreshToken).toBe('refresh-token');
+          expect(idTokenResponse.expiresIn).toBe('1234');
+          expect(idTokenResponse.localId).toBe(serverUser.localId);
+          expect(apiMock.calls[0].request).toEqual({
             captchaResponse: FAKE_RECAPTCHA_TOKEN,
             clientType: RecaptchaClientType.WEB,
             email: 'some-email',
@@ -227,16 +221,16 @@ describe('core/credentials/email', () => {
             return;
           }
           mockRecaptchaEnterpriseEnablement(RECAPTCHA_MODE_OFF);
-          sinon.stub(jsHelpers, '_loadJS').callsFake(mockLoadJS);
+          vi.spyOn(jsHelpers, '_loadJS').mockImplementation(mockLoadJS);
 
           await _initializeRecaptchaConfig(auth);
           const idTokenResponse = await credential._getIdTokenResponse(auth);
 
-          expect(idTokenResponse.idToken).to.eq('id-token');
-          expect(idTokenResponse.refreshToken).to.eq('refresh-token');
-          expect(idTokenResponse.expiresIn).to.eq('1234');
-          expect(idTokenResponse.localId).to.eq(serverUser.localId);
-          expect(apiMock.calls[0].request).to.eql({
+          expect(idTokenResponse.idToken).toBe('id-token');
+          expect(idTokenResponse.refreshToken).toBe('refresh-token');
+          expect(idTokenResponse.expiresIn).toBe('1234');
+          expect(idTokenResponse.localId).toBe(serverUser.localId);
+          expect(apiMock.calls[0].request).toEqual({
             email: 'some-email',
             password: 'some-password',
             returnSecureToken: true,
@@ -251,17 +245,17 @@ describe('core/credentials/email', () => {
           }
           mockRecaptchaEnterpriseEnablement(RECAPTCHA_MODE_ENFORCE);
           const getRecaptchaConfigMock = mockRecaptchaEnterpriseTokenFailure();
-          assert(getRecaptchaConfigMock !== undefined);
+          expect(getRecaptchaConfigMock).toBeDefined();
 
           await _initializeRecaptchaConfig(auth);
           auth._agentRecaptchaConfig!.siteKey = 'cached-site-key';
 
-          await expect(credential._getIdTokenResponse(auth)).to.be.rejectedWith(
+          await expect(credential._getIdTokenResponse(auth)).rejects.toThrow(
             'No reCAPTCHA enterprise script loaded.'
           );
           // Should call getRecaptchaConfig once to refresh the cached recaptcha config
-          expect(getRecaptchaConfigMock.calls.length).to.eq(2);
-          expect(auth._agentRecaptchaConfig?.siteKey).to.eq('site-key');
+          expect(getRecaptchaConfigMock.calls.length).toBe(2);
+          expect(auth._agentRecaptchaConfig?.siteKey).toBe('site-key');
         });
 
         it('calls fallback to recaptcha flow when receiving MISSING_RECAPTCHA_TOKEN error', async () => {
@@ -287,21 +281,18 @@ describe('core/credentials/email', () => {
           // Though the internal implementation retries with a reCAPTCHA Enterprise token, the second call will fail in this test.
           // This is because our endpoint mock does not support returning different responses based on different request body params.
           // TODO(renkelvin) - refactor this once we expose a mockEndpointWithBodyParams or similar method.
-          await expect(credential._getIdTokenResponse(auth)).to.be.rejectedWith(
+          await expect(credential._getIdTokenResponse(auth)).rejects.toThrow(
             'Firebase: The reCAPTCHA token is missing when sending request to the backend. (auth/missing-recaptcha-token).'
           );
 
-          assert(
-            failureMock.calls.length === 2,
-            'Expected 2 calls to the backend API'
-          );
-          expect(failureMock.calls[0].request).to.eql({
+          expect(failureMock.calls.length).toBe(2);
+          expect(failureMock.calls[0].request).toEqual({
             returnSecureToken: true,
             email: 'some-email',
             password: 'some-password',
             clientType: RecaptchaClientType.WEB
           });
-          expect(failureMock.calls[1].request).to.eql({
+          expect(failureMock.calls[1].request).toEqual({
             returnSecureToken: true,
             email: 'some-email',
             password: 'some-password',
@@ -326,11 +317,11 @@ describe('core/credentials/email', () => {
           auth,
           'id-token-2'
         );
-        expect(idTokenResponse.idToken).to.eq('id-token');
-        expect(idTokenResponse.refreshToken).to.eq('refresh-token');
-        expect(idTokenResponse.expiresIn).to.eq('1234');
-        expect(idTokenResponse.localId).to.eq(serverUser.localId);
-        expect(apiMock.calls[0].request).to.eql({
+        expect(idTokenResponse.idToken).toBe('id-token');
+        expect(idTokenResponse.refreshToken).toBe('refresh-token');
+        expect(idTokenResponse.expiresIn).toBe('1234');
+        expect(idTokenResponse.localId).toBe(serverUser.localId);
+        expect(apiMock.calls[0].request).toEqual({
           idToken: 'id-token-2',
           returnSecureToken: true,
           email: 'some-email',
@@ -338,7 +329,7 @@ describe('core/credentials/email', () => {
           clientType: RecaptchaClientType.WEB
         });
       });
-      context('#recaptcha', () => {
+      describe('#recaptcha', () => {
         beforeEach(async () => {
           apiMock = mockEndpoint(Endpoint.SIGN_UP, {
             idToken: 'id-token',
@@ -349,7 +340,7 @@ describe('core/credentials/email', () => {
         });
 
         afterEach(() => {
-          sinon.restore();
+          vi.restoreAllMocks();
         });
 
         it('calls sign up with password with recaptcha enabled', async () => {
@@ -358,7 +349,7 @@ describe('core/credentials/email', () => {
             return;
           }
           mockRecaptchaEnterpriseEnablement(RECAPTCHA_MODE_ENFORCE);
-          sinon.stub(jsHelpers, '_loadJS').callsFake(mockLoadJS);
+          vi.spyOn(jsHelpers, '_loadJS').mockImplementation(mockLoadJS);
 
           // proactively initialize config so that token fetch is attempted with the first request.
           await _initializeRecaptchaConfig(auth);
@@ -367,11 +358,11 @@ describe('core/credentials/email', () => {
             auth,
             'id-token-2'
           );
-          expect(idTokenResponse.idToken).to.eq('id-token');
-          expect(idTokenResponse.refreshToken).to.eq('refresh-token');
-          expect(idTokenResponse.expiresIn).to.eq('1234');
-          expect(idTokenResponse.localId).to.eq(serverUser.localId);
-          expect(apiMock.calls[0].request).to.eql({
+          expect(idTokenResponse.idToken).toBe('id-token');
+          expect(idTokenResponse.refreshToken).toBe('refresh-token');
+          expect(idTokenResponse.expiresIn).toBe('1234');
+          expect(idTokenResponse.localId).toBe(serverUser.localId);
+          expect(apiMock.calls[0].request).toEqual({
             captchaResponse: FAKE_RECAPTCHA_TOKEN,
             recaptchaVersion: RecaptchaVersion.ENTERPRISE,
             idToken: 'id-token-2',
@@ -396,11 +387,11 @@ describe('core/credentials/email', () => {
             'id-token-2'
           );
 
-          expect(idTokenResponse.idToken).to.eq('id-token');
-          expect(idTokenResponse.refreshToken).to.eq('refresh-token');
-          expect(idTokenResponse.expiresIn).to.eq('1234');
-          expect(idTokenResponse.localId).to.eq(serverUser.localId);
-          expect(apiMock.calls[0].request).to.eql({
+          expect(idTokenResponse.idToken).toBe('id-token');
+          expect(idTokenResponse.refreshToken).toBe('refresh-token');
+          expect(idTokenResponse.expiresIn).toBe('1234');
+          expect(idTokenResponse.localId).toBe(serverUser.localId);
+          expect(apiMock.calls[0].request).toEqual({
             idToken: 'id-token-2',
             returnSecureToken: true,
             email: 'some-email',
@@ -415,7 +406,7 @@ describe('core/credentials/email', () => {
             return;
           }
           const getRecaptchaConfigMock = mockRecaptchaEnterpriseTokenFailure();
-          assert(getRecaptchaConfigMock !== undefined);
+          expect(getRecaptchaConfigMock).toBeDefined();
 
           // proactively initialize config so that token fetch is attempted with the first request.
           await _initializeRecaptchaConfig(auth);
@@ -423,10 +414,10 @@ describe('core/credentials/email', () => {
 
           await expect(
             credential._linkToIdToken(auth, 'id-token-2')
-          ).to.be.rejectedWith('No reCAPTCHA enterprise script loaded.');
+          ).rejects.toThrow('No reCAPTCHA enterprise script loaded.');
           // Should call getRecaptchaConfig once to refresh the cached recaptcha config
-          expect(getRecaptchaConfigMock.calls.length).to.eq(2);
-          expect(auth._agentRecaptchaConfig?.siteKey).to.eq('site-key');
+          expect(getRecaptchaConfigMock.calls.length).toBe(2);
+          expect(auth._agentRecaptchaConfig?.siteKey).toBe('site-key');
         });
 
         it('calls fallback to recaptcha flow when receiving MISSING_RECAPTCHA_TOKEN error', async () => {
@@ -454,22 +445,19 @@ describe('core/credentials/email', () => {
           // TODO(renkelvin) - refactor this once we expose a mockEndpointWithBodyParams or similar method.
           await expect(
             credential._linkToIdToken(auth, 'id-token-2')
-          ).to.be.rejectedWith(
+          ).rejects.toThrow(
             'Firebase: The reCAPTCHA token is missing when sending request to the backend. (auth/missing-recaptcha-token).'
           );
 
-          assert(
-            failureMock.calls.length === 2,
-            'Expected 2 calls to the backend API'
-          );
-          expect(failureMock.calls[0].request).to.eql({
+          expect(failureMock.calls.length).toBe(2);
+          expect(failureMock.calls[0].request).toEqual({
             idToken: 'id-token-2',
             returnSecureToken: true,
             email: 'some-email',
             password: 'some-password',
             clientType: RecaptchaClientType.WEB
           });
-          expect(failureMock.calls[1].request).to.eql({
+          expect(failureMock.calls[1].request).toEqual({
             idToken: 'id-token-2',
             returnSecureToken: true,
             email: 'some-email',
@@ -485,11 +473,11 @@ describe('core/credentials/email', () => {
     describe('#_getReauthenticationResolver', () => {
       it('calls sign in with password', async () => {
         const idTokenResponse = await credential._getIdTokenResponse(auth);
-        expect(idTokenResponse.idToken).to.eq('id-token');
-        expect(idTokenResponse.refreshToken).to.eq('refresh-token');
-        expect(idTokenResponse.expiresIn).to.eq('1234');
-        expect(idTokenResponse.localId).to.eq(serverUser.localId);
-        expect(apiMock.calls[0].request).to.eql({
+        expect(idTokenResponse.idToken).toBe('id-token');
+        expect(idTokenResponse.refreshToken).toBe('refresh-token');
+        expect(idTokenResponse.expiresIn).toBe('1234');
+        expect(idTokenResponse.localId).toBe(serverUser.localId);
+        expect(apiMock.calls[0].request).toEqual({
           returnSecureToken: true,
           email: 'some-email',
           password: 'some-password',
@@ -499,7 +487,7 @@ describe('core/credentials/email', () => {
     });
   });
 
-  context('email link', () => {
+  describe('email link', () => {
     const credential = EmailAuthCredential._fromEmailAndCode(
       'some-email',
       'oob-code'
@@ -517,27 +505,27 @@ describe('core/credentials/email', () => {
     afterEach(mockFetch.tearDown);
 
     it('should have an email provider', () => {
-      expect(credential.providerId).to.eq(ProviderId.PASSWORD);
+      expect(credential.providerId).toBe(ProviderId.PASSWORD);
     });
 
     it('should have an anonymous sign in method', () => {
-      expect(credential.signInMethod).to.eq(SignInMethod.EMAIL_LINK);
+      expect(credential.signInMethod).toBe(SignInMethod.EMAIL_LINK);
     });
 
     describe('#toJSON', () => {
       it('throws', () => {
-        expect(credential.toJSON).to.throw(Error);
+        expect(credential.toJSON).toThrow(Error);
       });
     });
 
     describe('#_getIdTokenResponse', () => {
       it('call sign in with email link', async () => {
         const idTokenResponse = await credential._getIdTokenResponse(auth);
-        expect(idTokenResponse.idToken).to.eq('id-token');
-        expect(idTokenResponse.refreshToken).to.eq('refresh-token');
-        expect(idTokenResponse.expiresIn).to.eq('1234');
-        expect(idTokenResponse.localId).to.eq(serverUser.localId);
-        expect(apiMock.calls[0].request).to.eql({
+        expect(idTokenResponse.idToken).toBe('id-token');
+        expect(idTokenResponse.refreshToken).toBe('refresh-token');
+        expect(idTokenResponse.expiresIn).toBe('1234');
+        expect(idTokenResponse.localId).toBe(serverUser.localId);
+        expect(apiMock.calls[0].request).toEqual({
           email: 'some-email',
           oobCode: 'oob-code'
         });
@@ -550,11 +538,11 @@ describe('core/credentials/email', () => {
           auth,
           'id-token-2'
         );
-        expect(idTokenResponse.idToken).to.eq('id-token');
-        expect(idTokenResponse.refreshToken).to.eq('refresh-token');
-        expect(idTokenResponse.expiresIn).to.eq('1234');
-        expect(idTokenResponse.localId).to.eq(serverUser.localId);
-        expect(apiMock.calls[0].request).to.eql({
+        expect(idTokenResponse.idToken).toBe('id-token');
+        expect(idTokenResponse.refreshToken).toBe('refresh-token');
+        expect(idTokenResponse.expiresIn).toBe('1234');
+        expect(idTokenResponse.localId).toBe(serverUser.localId);
+        expect(apiMock.calls[0].request).toEqual({
           idToken: 'id-token-2',
           email: 'some-email',
           oobCode: 'oob-code'
@@ -565,11 +553,11 @@ describe('core/credentials/email', () => {
     describe('#_matchIdTokenWithUid', () => {
       it('call sign in with email link', async () => {
         const idTokenResponse = await credential._getIdTokenResponse(auth);
-        expect(idTokenResponse.idToken).to.eq('id-token');
-        expect(idTokenResponse.refreshToken).to.eq('refresh-token');
-        expect(idTokenResponse.expiresIn).to.eq('1234');
-        expect(idTokenResponse.localId).to.eq(serverUser.localId);
-        expect(apiMock.calls[0].request).to.eql({
+        expect(idTokenResponse.idToken).toBe('id-token');
+        expect(idTokenResponse.refreshToken).toBe('refresh-token');
+        expect(idTokenResponse.expiresIn).toBe('1234');
+        expect(idTokenResponse.localId).toBe(serverUser.localId);
+        expect(apiMock.calls[0].request).toEqual({
           email: 'some-email',
           oobCode: 'oob-code'
         });

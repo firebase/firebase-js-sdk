@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
 
 import { FirebaseError } from '@firebase/util';
 
@@ -37,9 +34,6 @@ import {
   startEnrollTotpMfa,
   withdrawMfa
 } from './mfa';
-
-use(chaiAsPromised);
-
 describe('api/account_management/startEnrollPhoneMfa', () => {
   const request = {
     idToken: 'id-token',
@@ -69,13 +63,13 @@ describe('api/account_management/startEnrollPhoneMfa', () => {
     });
 
     const response = await startEnrollPhoneMfa(auth, request);
-    expect(response.phoneSessionInfo.sessionInfo).to.eq('session-info');
-    expect(mock.calls[0].request).to.eql(request);
-    expect(mock.calls[0].method).to.eq('POST');
-    expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
+    expect(response.phoneSessionInfo.sessionInfo).toBe('session-info');
+    expect(mock.calls[0].request).toEqual(request);
+    expect(mock.calls[0].method).toBe('POST');
+    expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).toBe(
       'application/json'
     );
-    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).to.eq(
+    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).toBe(
       'testSDK/0.0.0'
     );
   });
@@ -97,11 +91,11 @@ describe('api/account_management/startEnrollPhoneMfa', () => {
       400
     );
 
-    await expect(startEnrollPhoneMfa(auth, request)).to.be.rejectedWith(
+    await expect(startEnrollPhoneMfa(auth, request)).rejects.toThrow(
       FirebaseError,
       'auth/invalid-user-token'
     );
-    expect(mock.calls[0].request).to.eql(request);
+    expect(mock.calls[0].request).toEqual(request);
   });
 });
 
@@ -132,14 +126,14 @@ describe('api/account_management/finalizeEnrollPhoneMfa', () => {
     });
 
     const response = await finalizeEnrollPhoneMfa(auth, request);
-    expect(response.idToken).to.eq('id-token');
-    expect(response.refreshToken).to.eq('refresh-token');
-    expect(mock.calls[0].request).to.eql(request);
-    expect(mock.calls[0].method).to.eq('POST');
-    expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
+    expect(response.idToken).toBe('id-token');
+    expect(response.refreshToken).toBe('refresh-token');
+    expect(mock.calls[0].request).toEqual(request);
+    expect(mock.calls[0].method).toBe('POST');
+    expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).toBe(
       'application/json'
     );
-    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).to.eq(
+    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).toBe(
       'testSDK/0.0.0'
     );
   });
@@ -161,11 +155,11 @@ describe('api/account_management/finalizeEnrollPhoneMfa', () => {
       400
     );
 
-    await expect(finalizeEnrollPhoneMfa(auth, request)).to.be.rejectedWith(
+    await expect(finalizeEnrollPhoneMfa(auth, request)).rejects.toThrow(
       FirebaseError,
       'auth/invalid-verification-id'
     );
-    expect(mock.calls[0].request).to.eql(request);
+    expect(mock.calls[0].request).toEqual(request);
   });
 });
 
@@ -198,18 +192,18 @@ describe('api/account_management/startEnrollTotpMfa', () => {
     });
 
     const response = await startEnrollTotpMfa(auth, request);
-    expect(response.totpSessionInfo.sharedSecretKey).to.eq('key123');
-    expect(response.totpSessionInfo.verificationCodeLength).to.eq(6);
-    expect(response.totpSessionInfo.hashingAlgorithm).to.eq('SHA256');
-    expect(response.totpSessionInfo.periodSec).to.eq(30);
-    expect(response.totpSessionInfo.sessionInfo).to.eq('session-info');
-    expect(response.totpSessionInfo.finalizeEnrollmentTime).to.eq(currentTime);
-    expect(mock.calls[0].request).to.eql(request);
-    expect(mock.calls[0].method).to.eq('POST');
-    expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
+    expect(response.totpSessionInfo.sharedSecretKey).toBe('key123');
+    expect(response.totpSessionInfo.verificationCodeLength).toBe(6);
+    expect(response.totpSessionInfo.hashingAlgorithm).toBe('SHA256');
+    expect(response.totpSessionInfo.periodSec).toBe(30);
+    expect(response.totpSessionInfo.sessionInfo).toBe('session-info');
+    expect(response.totpSessionInfo.finalizeEnrollmentTime).toBe(currentTime);
+    expect(mock.calls[0].request).toEqual(request);
+    expect(mock.calls[0].method).toBe('POST');
+    expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).toBe(
       'application/json'
     );
-    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).to.eq(
+    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).toBe(
       'testSDK/0.0.0'
     );
   });
@@ -231,11 +225,11 @@ describe('api/account_management/startEnrollTotpMfa', () => {
       400
     );
 
-    await expect(startEnrollTotpMfa(auth, request)).to.be.rejectedWith(
+    await expect(startEnrollTotpMfa(auth, request)).rejects.toThrow(
       FirebaseError,
       'auth/invalid-user-token'
     );
-    expect(mock.calls[0].request).to.eql(request);
+    expect(mock.calls[0].request).toEqual(request);
   });
 });
 
@@ -265,14 +259,14 @@ describe('api/account_management/finalizeEnrollTotpMfa', () => {
     });
 
     const response = await finalizeEnrollTotpMfa(auth, request);
-    expect(response.idToken).to.eq('id-token');
-    expect(response.refreshToken).to.eq('refresh-token');
-    expect(mock.calls[0].request).to.eql(request);
-    expect(mock.calls[0].method).to.eq('POST');
-    expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
+    expect(response.idToken).toBe('id-token');
+    expect(response.refreshToken).toBe('refresh-token');
+    expect(mock.calls[0].request).toEqual(request);
+    expect(mock.calls[0].method).toBe('POST');
+    expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).toBe(
       'application/json'
     );
-    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).to.eq(
+    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).toBe(
       'testSDK/0.0.0'
     );
   });
@@ -294,11 +288,11 @@ describe('api/account_management/finalizeEnrollTotpMfa', () => {
       400
     );
 
-    await expect(finalizeEnrollTotpMfa(auth, request)).to.be.rejectedWith(
+    await expect(finalizeEnrollTotpMfa(auth, request)).rejects.toThrow(
       FirebaseError,
       'Firebase: The verification ID used to create the phone auth credential is invalid. (auth/invalid-verification-id).'
     );
-    expect(mock.calls[0].request).to.eql(request);
+    expect(mock.calls[0].request).toEqual(request);
   });
 });
 
@@ -324,14 +318,14 @@ describe('api/account_management/withdrawMfa', () => {
     });
 
     const response = await withdrawMfa(auth, request);
-    expect(response.idToken).to.eq('id-token');
-    expect(response.refreshToken).to.eq('refresh-token');
-    expect(mock.calls[0].request).to.eql(request);
-    expect(mock.calls[0].method).to.eq('POST');
-    expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
+    expect(response.idToken).toBe('id-token');
+    expect(response.refreshToken).toBe('refresh-token');
+    expect(mock.calls[0].request).toEqual(request);
+    expect(mock.calls[0].method).toBe('POST');
+    expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).toBe(
       'application/json'
     );
-    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).to.eq(
+    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).toBe(
       'testSDK/0.0.0'
     );
   });
@@ -353,10 +347,10 @@ describe('api/account_management/withdrawMfa', () => {
       400
     );
 
-    await expect(withdrawMfa(auth, request)).to.be.rejectedWith(
+    await expect(withdrawMfa(auth, request)).rejects.toThrow(
       FirebaseError,
       "Firebase: This user's credential isn't valid for this project. This can happen if the user's token has been tampered with, or if the user isn't for the project associated with this API key. (auth/invalid-user-token)."
     );
-    expect(mock.calls[0].request).to.eql(request);
+    expect(mock.calls[0].request).toEqual(request);
   });
 });
