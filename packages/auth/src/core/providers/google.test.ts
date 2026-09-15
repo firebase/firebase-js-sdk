@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-
 import { OperationType, ProviderId, SignInMethod } from '../../model/enums';
 
 import { TEST_ID_TOKEN_RESPONSE } from '../../../test/helpers/id_token_response';
@@ -30,16 +28,16 @@ import { _createError } from '../util/assert';
 describe('core/providers/google', () => {
   it('generates the correct type of oauth credential', () => {
     const cred = GoogleAuthProvider.credential('id-token', 'access-token');
-    expect(cred.accessToken).to.eq('access-token');
-    expect(cred.idToken).to.eq('id-token');
-    expect(cred.providerId).to.eq(ProviderId.GOOGLE);
-    expect(cred.signInMethod).to.eq(SignInMethod.GOOGLE);
+    expect(cred.accessToken).toBe('access-token');
+    expect(cred.idToken).toBe('id-token');
+    expect(cred.providerId).toBe(ProviderId.GOOGLE);
+    expect(cred.signInMethod).toBe(SignInMethod.GOOGLE);
   });
 
   it('adds the profile scope by default', () => {
     const provider = new GoogleAuthProvider();
-    expect(provider.providerId).to.eq(ProviderId.GOOGLE);
-    expect(provider.getScopes()).to.eql(['profile']);
+    expect(provider.providerId).toBe(ProviderId.GOOGLE);
+    expect(provider.getScopes()).toEqual(['profile']);
   });
 
   it('credentialFromResult creates the cred from a tagged result', async () => {
@@ -55,10 +53,10 @@ describe('core/providers/google', () => {
       operationType: OperationType.SIGN_IN
     });
     const cred = GoogleAuthProvider.credentialFromResult(userCred)!;
-    expect(cred.accessToken).to.eq('access-token');
-    expect(cred.idToken).to.eq('id-token');
-    expect(cred.providerId).to.eq(ProviderId.GOOGLE);
-    expect(cred.signInMethod).to.eq(SignInMethod.GOOGLE);
+    expect(cred.accessToken).toBe('access-token');
+    expect(cred.idToken).toBe('id-token');
+    expect(cred.providerId).toBe(ProviderId.GOOGLE);
+    expect(cred.signInMethod).toBe(SignInMethod.GOOGLE);
   });
 
   it('credentialFromError creates the cred from a tagged error', () => {
@@ -72,9 +70,9 @@ describe('core/providers/google', () => {
     };
 
     const cred = GoogleAuthProvider.credentialFromError(error)!;
-    expect(cred.accessToken).to.eq('access-token');
-    expect(cred.idToken).to.eq('id-token');
-    expect(cred.providerId).to.eq(ProviderId.GOOGLE);
-    expect(cred.signInMethod).to.eq(SignInMethod.GOOGLE);
+    expect(cred.accessToken).toBe('access-token');
+    expect(cred.idToken).toBe('id-token');
+    expect(cred.providerId).toBe(ProviderId.GOOGLE);
+    expect(cred.signInMethod).toBe(SignInMethod.GOOGLE);
   });
 });

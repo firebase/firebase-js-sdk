@@ -16,8 +16,6 @@
  */
 
 import { FirebaseError } from '@firebase/util';
-import { expect } from 'chai';
-
 import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 import { GetOobCodeRequest } from '../../api/authentication/email_and_password';
 import { _setActionCodeSettingsOnRequest } from './action_code_settings';
@@ -44,7 +42,7 @@ describe('core/strategies/action_code_settings', () => {
         url: '',
         dynamicLinkDomain: TEST_FDL_DOMAIN
       })
-    ).to.throw(FirebaseError, '(auth/invalid-continue-uri)');
+    ).toThrow(FirebaseError, '(auth/invalid-continue-uri)');
   });
 
   it('should allow undefined dynamic link URL', () => {
@@ -56,7 +54,7 @@ describe('core/strategies/action_code_settings', () => {
         },
         url: TEST_URL
       })
-    ).to.not.throw();
+    ).not.toThrow();
   });
 
   it('should require a non empty dynamic link URL', () => {
@@ -69,7 +67,7 @@ describe('core/strategies/action_code_settings', () => {
         url: TEST_URL,
         dynamicLinkDomain: ''
       })
-    ).to.throw(FirebaseError, '(auth/invalid-dynamic-link-domain)');
+    ).toThrow(FirebaseError, '(auth/invalid-dynamic-link-domain)');
   });
 
   it('should require a non empty Hosting link URL', () => {
@@ -82,7 +80,7 @@ describe('core/strategies/action_code_settings', () => {
         url: TEST_URL,
         linkDomain: ''
       })
-    ).to.throw(FirebaseError, '(auth/invalid-hosting-link-domain)');
+    ).toThrow(FirebaseError, '(auth/invalid-hosting-link-domain)');
   });
 
   it('should require a non-empty bundle ID', () => {
@@ -95,7 +93,7 @@ describe('core/strategies/action_code_settings', () => {
         url: TEST_URL,
         dynamicLinkDomain: TEST_FDL_DOMAIN
       })
-    ).to.throw(FirebaseError, '(auth/missing-ios-bundle-id)');
+    ).toThrow(FirebaseError, '(auth/missing-ios-bundle-id)');
   });
 
   it('should require a non-empty package name', () => {
@@ -108,6 +106,6 @@ describe('core/strategies/action_code_settings', () => {
         url: TEST_URL,
         dynamicLinkDomain: TEST_FDL_DOMAIN
       })
-    ).to.throw(FirebaseError, '(auth/missing-android-pkg-name)');
+    ).toThrow(FirebaseError, '(auth/missing-android-pkg-name)');
   });
 });

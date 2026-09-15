@@ -15,15 +15,10 @@
  * limitations under the License.
  */
 
-import { assert, expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-import * as sinon from 'sinon';
-import { useFakeTimers } from 'sinon';
-import sinonChai from 'sinon-chai';
-
 import { FirebaseError, getUA } from '@firebase/util';
 import * as utils from '@firebase/util';
 
+vi.mock('@firebase/util', { spy: true });
 import { mockEndpoint } from '../../test/helpers/api/helper';
 import { testAuth, TestAuth } from '../../test/helpers/mock_auth';
 import * as mockFetch from '../../test/helpers/mock_fetch';
@@ -41,10 +36,6 @@ import {
 import { ServerError } from './errors';
 import { SDK_VERSION } from '@firebase/app';
 import { _getBrowserName } from '../core/util/browser';
-
-use(sinonChai);
-use(chaiAsPromised);
-
 describe('api/_performApiRequest', () => {
   const request = {
     requestKey: 'request-value'
@@ -61,10 +52,10 @@ describe('api/_performApiRequest', () => {
   });
 
   afterEach(() => {
-    sinon.restore();
+    vi.restoreAllMocks();
   });
 
-  context('with regular requests', () => {
+  describe('with regular requests', () => {
     beforeEach(mockFetch.setUp);
     afterEach(mockFetch.tearDown);
 
@@ -74,17 +65,17 @@ describe('api/_performApiRequest', () => {
         typeof request,
         typeof serverResponse
       >(auth, HttpMethod.POST, Endpoint.SIGN_UP, request);
-      expect(response).to.eql(serverResponse);
-      expect(mock.calls.length).to.eq(1);
-      expect(mock.calls[0].method).to.eq(HttpMethod.POST);
-      expect(mock.calls[0].request).to.eql(request);
-      expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
+      expect(response).toEqual(serverResponse);
+      expect(mock.calls.length).toBe(1);
+      expect(mock.calls[0].method).toBe(HttpMethod.POST);
+      expect(mock.calls[0].request).toEqual(request);
+      expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).toBe(
         'application/json'
       );
-      expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).to.eq(
+      expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).toBe(
         'testSDK/0.0.0'
       );
-      expect(mock.calls[0].fullRequest?.credentials).to.be.undefined;
+      expect(mock.calls[0].fullRequest?.credentials).toBeUndefined();
     });
 
     it('should set credentials to "include" when using IDX and emulator', async () => {
@@ -103,7 +94,7 @@ describe('api/_performApiRequest', () => {
         Endpoint.SIGN_UP,
         request
       );
-      expect(mock.calls[0].fullRequest?.credentials).to.eq('include');
+      expect(mock.calls[0].fullRequest?.credentials).toBe('include');
     });
 
     it('should set the device language if available', async () => {
@@ -113,14 +104,14 @@ describe('api/_performApiRequest', () => {
         typeof request,
         typeof serverResponse
       >(auth, HttpMethod.POST, Endpoint.SIGN_UP, request);
-      expect(response).to.eql(serverResponse);
-      expect(mock.calls[0].headers.get(HttpHeader.X_FIREBASE_LOCALE)).to.eq(
+      expect(response).toEqual(serverResponse);
+      expect(mock.calls[0].headers.get(HttpHeader.X_FIREBASE_LOCALE)).toBe(
         'jp'
       );
     });
 
     it('should include whatever headers the auth impl attaches', async () => {
-      sinon.stub(auth, '_getAdditionalHeaders').returns(
+      vi.spyOn(auth, '_getAdditionalHeaders').mockReturnValue(
         Promise.resolve({
           'look-at-me-im-a-header': 'header-value',
           'anotherheader': 'header-value-2'
@@ -134,12 +125,10 @@ describe('api/_performApiRequest', () => {
         Endpoint.SIGN_UP,
         request
       );
-      expect(mock.calls[0].headers.get('look-at-me-im-a-header')).to.eq(
+      expect(mock.calls[0].headers.get('look-at-me-im-a-header')).toBe(
         'header-value'
       );
-      expect(mock.calls[0].headers.get('anotherheader')).to.eq(
-        'header-value-2'
-      );
+      expect(mock.calls[0].headers.get('anotherheader')).toBe('header-value-2');
     });
 
     it('should set the framework in clientVersion if logged', async () => {
@@ -149,8 +138,8 @@ describe('api/_performApiRequest', () => {
         typeof request,
         typeof serverResponse
       >(auth, HttpMethod.POST, Endpoint.SIGN_UP, request);
-      expect(response).to.eql(serverResponse);
-      expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).to.eq(
+      expect(response).toEqual(serverResponse);
+      expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).toBe(
         `${_getBrowserName(getUA())}/JsCore/${SDK_VERSION}/Mythical`
       );
 
@@ -160,9 +149,8 @@ describe('api/_performApiRequest', () => {
         typeof request,
         typeof serverResponse
       >(auth, HttpMethod.POST, Endpoint.SIGN_UP, request);
-      expect(response2).to.eql(serverResponse);
-      expect(mock.calls[1].headers!.get(HttpHeader.X_CLIENT_VERSION)).to.eq(
-        // frameworks should be sorted alphabetically
+      expect(response2).toEqual(serverResponse);
+      expect(mock.calls[1].headers!.get(HttpHeader.X_CLIENT_VERSION)).toBe(
         `${_getBrowserName(getUA())}/JsCore/${SDK_VERSION}/Magical,Mythical`
       );
     });
@@ -189,11 +177,11 @@ describe('api/_performApiRequest', () => {
         Endpoint.SIGN_UP,
         request
       );
-      await expect(promise).to.be.rejectedWith(
+      await expect(promise).rejects.toThrow(
         FirebaseError,
         'auth/email-already-in-use'
       );
-      expect(mock.calls[0].request).to.eql(request);
+      expect(mock.calls[0].request).toEqual(request);
     });
 
     it('should translate server success with errorMessage into auth error', async () => {
@@ -208,13 +196,20 @@ describe('api/_performApiRequest', () => {
         Endpoint.SIGN_IN_WITH_IDP,
         request
       );
-      await expect(promise)
-        .to.be.rejectedWith(FirebaseError, 'auth/credential-already-in-use')
-        .eventually.with.deep.property('customData', {
-          appName: 'test-app',
-          _tokenResponse: response
-        });
-      expect(mock.calls[0].request).to.eql(request);
+      let error: any;
+      try {
+        await promise;
+        expect.unreachable();
+      } catch (e) {
+        error = e;
+      }
+      expect(error).toBeInstanceOf(FirebaseError);
+      expect(error.code).toBe('auth/credential-already-in-use');
+      expect(error.customData).toEqual({
+        appName: 'test-app',
+        _tokenResponse: response
+      });
+      expect(mock.calls[0].request).toEqual(request);
     });
 
     it('should translate complex server errors to auth errors', async () => {
@@ -239,11 +234,11 @@ describe('api/_performApiRequest', () => {
         Endpoint.SIGN_UP,
         request
       );
-      await expect(promise).to.be.rejectedWith(
+      await expect(promise).rejects.toThrow(
         FirebaseError,
         'auth/invalid-phone-number'
       );
-      expect(mock.calls[0].request).to.eql(request);
+      expect(mock.calls[0].request).toEqual(request);
     });
 
     it('should pass through server messages if applicable', async () => {
@@ -268,7 +263,7 @@ describe('api/_performApiRequest', () => {
         Endpoint.SIGN_UP,
         request
       );
-      await expect(promise).to.be.rejectedWith(FirebaseError, 'Text text text');
+      await expect(promise).rejects.toThrow(FirebaseError, 'Text text text');
     });
 
     it('should handle unknown server errors', async () => {
@@ -293,11 +288,11 @@ describe('api/_performApiRequest', () => {
         Endpoint.SIGN_UP,
         request
       );
-      await expect(promise).to.be.rejectedWith(
+      await expect(promise).rejects.toThrow(
         FirebaseError,
         'auth/awesome-error'
       );
-      expect(mock.calls[0].request).to.eql(request);
+      expect(mock.calls[0].request).toEqual(request);
     });
 
     it('should support custom error handling per endpoint', async () => {
@@ -325,15 +320,15 @@ describe('api/_performApiRequest', () => {
           [ServerError.EXPIRED_OOB_CODE]: AuthErrorCode.ARGUMENT_ERROR
         }
       );
-      await expect(promise).to.be.rejectedWith(
+      await expect(promise).rejects.toThrow(
         FirebaseError,
         'auth/argument-error'
       );
-      expect(mock.calls[0].request).to.eql(request);
+      expect(mock.calls[0].request).toEqual(request);
     });
   });
 
-  context('referer policy exists on fetch request', () => {
+  describe('referer policy exists on fetch request', () => {
     afterEach(mockFetch.tearDown);
 
     it('should have referrerPolicy set', async () => {
@@ -352,12 +347,12 @@ describe('api/_performApiRequest', () => {
         Endpoint.SIGN_UP,
         request
       );
-      await expect(promise).to.be.fulfilled;
-      expect(referrerPolicy).to.eq('strict-origin-when-cross-origin');
+      await expect(promise).resolves.toBeDefined();
+      expect(referrerPolicy).toBe('strict-origin-when-cross-origin');
     });
 
     it('should not have referrerPolicy set on Cloudflare workers', async () => {
-      sinon.stub(utils, 'isCloudflareWorker').returns(true);
+      vi.spyOn(utils, 'isCloudflareWorker').mockReturnValue(true);
       let referrerPolicySet: boolean = false;
       mockFetch.setUpWithOverride(
         (input: RequestInfo | URL, request?: RequestInit) => {
@@ -373,17 +368,17 @@ describe('api/_performApiRequest', () => {
         Endpoint.SIGN_UP,
         request
       );
-      await expect(promise).to.be.fulfilled;
-      expect(referrerPolicySet).to.be.false;
-      sinon.restore();
+      await expect(promise).resolves.toBeDefined();
+      expect(referrerPolicySet).toBe(false);
+      vi.restoreAllMocks();
     });
   });
 
-  context('with network issues', () => {
+  describe('with network issues', () => {
     afterEach(mockFetch.tearDown);
 
     it('should handle timeouts', async () => {
-      const clock = useFakeTimers();
+      vi.useFakeTimers();
       mockFetch.setUpWithOverride(() => {
         return new Promise<never>(() => null);
       });
@@ -393,16 +388,13 @@ describe('api/_performApiRequest', () => {
         Endpoint.SIGN_UP,
         request
       );
-      clock.tick(DEFAULT_API_TIMEOUT_MS.get() + 1);
-      await expect(promise).to.be.rejectedWith(
-        FirebaseError,
-        'auth/network-request-failed'
-      );
-      clock.restore();
+      vi.advanceTimersByTime(DEFAULT_API_TIMEOUT_MS.get() + 1);
+      await expect(promise).rejects.toThrow('auth/network-request-failed');
+      vi.useRealTimers();
     });
 
     it('should clear the network timeout on success', async () => {
-      const spy = sinon.spy(globalThis, 'clearTimeout');
+      const spy = vi.spyOn(globalThis, 'clearTimeout');
       mockFetch.setUp();
       mockEndpoint(Endpoint.SIGN_UP, {});
       const promise = _performApiRequest(
@@ -412,8 +404,8 @@ describe('api/_performApiRequest', () => {
         request
       );
       await promise;
-      expect(spy).to.have.been.called;
-      spy.restore();
+      expect(spy).toHaveBeenCalled();
+      spy.mockRestore();
     });
 
     it('should handle network failure', async () => {
@@ -428,16 +420,20 @@ describe('api/_performApiRequest', () => {
         Endpoint.SIGN_UP,
         request
       );
-      await expect(promise)
-        .to.be.rejectedWith(FirebaseError, 'auth/network-request-failed')
-        .eventually.with.nested.property(
-          'customData.message',
-          'Error: network error'
-        );
+      let error: any;
+      try {
+        await promise;
+        expect.unreachable();
+      } catch (e) {
+        error = e;
+      }
+      expect((error as FirebaseError).name).toBe('FirebaseError');
+      expect(error.code).toBe('auth/network-request-failed');
+      expect(error.customData?.message).toBe('Error: network error');
     });
   });
 
-  context('edge case error mapping', () => {
+  describe('edge case error mapping', () => {
     beforeEach(mockFetch.setUp);
     afterEach(mockFetch.tearDown);
 
@@ -453,12 +449,12 @@ describe('api/_performApiRequest', () => {
           Endpoint.SIGN_UP,
           request
         );
-        assert.fail('Call should have failed');
+        expect.fail('Call should have failed');
       } catch (e) {
-        expect((e as FirebaseError).code).to.eq(
+        expect((e as FirebaseError).code).toBe(
           `auth/${AuthErrorCode.NEED_CONFIRMATION}`
         );
-        expect((e as FirebaseError).customData!._tokenResponse).to.eql({
+        expect((e as FirebaseError).customData!._tokenResponse).toEqual({
           needConfirmation: true,
           idToken: 'id-token'
         });
@@ -485,12 +481,12 @@ describe('api/_performApiRequest', () => {
           Endpoint.SIGN_UP,
           request
         );
-        assert.fail('Call should have failed');
+        expect.fail('Call should have failed');
       } catch (e) {
-        expect((e as FirebaseError).code).to.eq(
+        expect((e as FirebaseError).code).toBe(
           `auth/${AuthErrorCode.CREDENTIAL_ALREADY_IN_USE}`
         );
-        expect((e as FirebaseError).customData!._tokenResponse).to.eql(
+        expect((e as FirebaseError).customData!._tokenResponse).toEqual(
           response
         );
       }
@@ -518,22 +514,22 @@ describe('api/_performApiRequest', () => {
           Endpoint.SIGN_UP,
           request
         );
-        assert.fail('Call should have failed');
+        expect.fail('Call should have failed');
       } catch (e) {
-        expect((e as FirebaseError).code).to.eq(
+        expect((e as FirebaseError).code).toBe(
           `auth/${AuthErrorCode.EMAIL_EXISTS}`
         );
-        expect((e as FirebaseError).customData!.email).to.eq('email@test.com');
-        expect((e as FirebaseError).customData!.phoneNumber).to.eq(
+        expect((e as FirebaseError).customData!.email).toBe('email@test.com');
+        expect((e as FirebaseError).customData!.phoneNumber).toBe(
           '+1555-this-is-a-number'
         );
       }
     });
   });
 
-  context('_getFinalTarget', () => {
+  describe('_getFinalTarget', () => {
     it('works properly with a non-emulated environment', async () => {
-      expect(await _getFinalTarget(auth, 'host', '/path', 'query=test')).to.eq(
+      expect(await _getFinalTarget(auth, 'host', '/path', 'query=test')).toBe(
         'mock://host/path?query=test'
       );
     });
@@ -542,18 +538,18 @@ describe('api/_performApiRequest', () => {
       (auth.config as ConfigInternal).emulator = {
         url: 'http://localhost:5000/'
       };
-      expect(await _getFinalTarget(auth, 'host', '/path', 'query=test')).to.eq(
+      expect(await _getFinalTarget(auth, 'host', '/path', 'query=test')).toBe(
         'http://localhost:5000/host/path?query=test'
       );
     });
   });
 
-  context('_addTidIfNecessary', () => {
+  describe('_addTidIfNecessary', () => {
     it('adds the tenant ID if it is not already defined', () => {
       auth.tenantId = 'auth-tenant-id';
       expect(
         _addTidIfNecessary<Record<string, string>>(auth, { foo: 'bar' })
-      ).to.eql({
+      ).toEqual({
         tenantId: 'auth-tenant-id',
         foo: 'bar'
       });
@@ -566,7 +562,7 @@ describe('api/_performApiRequest', () => {
           foo: 'bar',
           tenantId: 'request-tenant-id'
         })
-      ).to.eql({
+      ).toEqual({
         tenantId: 'request-tenant-id',
         foo: 'bar'
       });
@@ -579,7 +575,7 @@ describe('api/_performApiRequest', () => {
           foo: 'bar',
           tenantId: 'request-tenant-id'
         })
-      ).to.eql({
+      ).toEqual({
         tenantId: 'request-tenant-id',
         foo: 'bar'
       });
@@ -588,7 +584,7 @@ describe('api/_performApiRequest', () => {
     it('does not attach the tenant ID at all if not specified', () => {
       auth.tenantId = null;
       expect(_addTidIfNecessary<Record<string, string>>(auth, { foo: 'bar' }))
-        .to.eql({
+        .toEqual({
           foo: 'bar'
         })
         .and.not.have.property('tenantId');

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,7 @@
  * limitations under the License.
  */
 
-import sinonChai from 'sinon-chai';
-import * as sinon from 'sinon';
 import { FirebaseError, querystring } from '@firebase/util';
-import { expect, use } from 'chai';
 import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 import { AuthEvent, AuthEventType } from '../../model/popup_redirect';
 import {
@@ -31,9 +28,6 @@ import {
 } from './events';
 import { _createError } from '../../core/util/assert';
 import { AuthErrorCode } from '../../core/errors';
-
-use(sinonChai);
-
 describe('platform_cordova/popup_redirect/events', () => {
   let auth: TestAuth;
   beforeEach(async () => {
@@ -41,15 +35,15 @@ describe('platform_cordova/popup_redirect/events', () => {
   });
 
   afterEach(() => {
-    sinon.restore();
+    vi.restoreAllMocks();
   });
 
   describe('_generateNewEvent', () => {
     it('sets the correct type and tenantId', () => {
       auth.tenantId = 'tid---------------';
       const event = _generateNewEvent(auth, AuthEventType.LINK_VIA_REDIRECT);
-      expect(event.type).to.eq(AuthEventType.LINK_VIA_REDIRECT);
-      expect(event.tenantId).to.eq(auth.tenantId);
+      expect(event.type).toBe(AuthEventType.LINK_VIA_REDIRECT);
+      expect(event.tenantId).toBe(auth.tenantId);
     });
 
     it('creates an event with a 20-char session id', () => {
@@ -63,17 +57,17 @@ describe('platform_cordova/popup_redirect/events', () => {
         AuthEventType.REAUTH_VIA_REDIRECT
       );
       expect(error)
-        .to.be.instanceOf(FirebaseError)
+        .toBeInstanceOf(FirebaseError)
         .with.property('code', 'auth/no-auth-event');
     });
   });
 
   describe('_savePartialEvent', () => {
     it('sets the event', async () => {
-      const spy = sinon.spy(Storage.prototype, 'setItem');
+      const spy = vi.spyOn(Storage.prototype, 'setItem');
       const event = _generateNewEvent(auth, AuthEventType.REAUTH_VIA_REDIRECT);
       await _savePartialEvent(auth, event);
-      expect(spy).to.have.been.calledWith(
+      expect(spy).toHaveBeenCalledWith(
         'firebase:authEvent:test-api-key:test-app',
         JSON.stringify(event)
       );
@@ -82,18 +76,18 @@ describe('platform_cordova/popup_redirect/events', () => {
 
   describe('_getAndRemoveEvent', () => {
     it('returns null if no event is present', async () => {
-      sinon.stub(Storage.prototype, 'getItem').returns(null);
-      expect(await _getAndRemoveEvent(auth)).to.be.null;
+      vi.spyOn(Storage.prototype, 'getItem').mockReturnValue(null);
+      expect(await _getAndRemoveEvent(auth)).toBeNull();
     });
 
     it('returns the event and deletes the key if present', async () => {
       const event = JSON.stringify(
         _generateNewEvent(auth, AuthEventType.REAUTH_VIA_REDIRECT)
       );
-      sinon.stub(Storage.prototype, 'getItem').returns(event);
-      const spy = sinon.spy(Storage.prototype, 'removeItem');
-      expect(await _getAndRemoveEvent(auth)).to.eql(JSON.parse(event));
-      expect(spy).to.have.been.calledWith(
+      vi.spyOn(Storage.prototype, 'getItem').mockReturnValue(event);
+      const spy = vi.spyOn(Storage.prototype, 'removeItem');
+      expect(await _getAndRemoveEvent(auth)).toEqual(JSON.parse(event));
+      expect(spy).toHaveBeenCalledWith(
         'firebase:authEvent:test-api-key:test-app'
       );
     });
@@ -116,7 +110,7 @@ describe('platform_cordova/popup_redirect/events', () => {
 
     it('returns the proper event if everything is correct w/ no error', () => {
       const url = generateCallbackUrl({});
-      expect(_eventFromPartialAndUrl(partialEvent, url)).to.eql({
+      expect(_eventFromPartialAndUrl(partialEvent, url)).toEqual({
         type: AuthEventType.REAUTH_VIA_REDIRECT,
         eventId: 'id',
         tenantId: null,
@@ -127,7 +121,7 @@ describe('platform_cordova/popup_redirect/events', () => {
     });
 
     it('returns null if the callback url has no link', () => {
-      expect(_eventFromPartialAndUrl(partialEvent, 'http://foo')).to.be.null;
+      expect(_eventFromPartialAndUrl(partialEvent, 'http://foo')).toBeNull();
     });
 
     it('generates an error if the callback has an error', () => {
@@ -138,9 +132,9 @@ describe('platform_cordova/popup_redirect/events', () => {
       const { error, ...rest } = _eventFromPartialAndUrl(partialEvent, url)!;
 
       expect(error)
-        .to.be.instanceOf(FirebaseError)
+        .toBeInstanceOf(FirebaseError)
         .with.property('code', 'auth/internal-error');
-      expect(rest).to.eql({
+      expect(rest).toEqual({
         type: AuthEventType.REAUTH_VIA_REDIRECT,
         eventId: 'id',
         tenantId: null,
@@ -158,7 +152,7 @@ describe('platform_cordova/popup_redirect/events', () => {
           'https://foo?link=http%3A%2F%2Ffoo%3Flink%3DdoubleDeep' +
             '&deep_link_id=http%3A%2F%2Ffoo%3Flink%3DdoubleDeepIos'
         )
-      ).to.eq('doubleDeepIos');
+      ).toBe('doubleDeepIos');
     });
 
     it('returns the iOS deep link preferentially', () => {
@@ -167,7 +161,7 @@ describe('platform_cordova/popup_redirect/events', () => {
           'https://foo?link=http%3A%2F%2Ffoo%3Flink%3DdoubleDeep' +
             '&deep_link_id=http%3A%2F%2FfooIOS'
         )
-      ).to.eq('http://fooIOS');
+      ).toBe('http://fooIOS');
     });
 
     it('returns double deep link preferentially', () => {
@@ -175,7 +169,7 @@ describe('platform_cordova/popup_redirect/events', () => {
         _getDeepLinkFromCallback(
           'https://foo?link=http%3A%2F%2Ffoo%3Flink%3DdoubleDeep'
         )
-      ).to.eq('doubleDeep');
+      ).toBe('doubleDeep');
     });
 
     it('returns the deep link preferentially', () => {
@@ -183,11 +177,11 @@ describe('platform_cordova/popup_redirect/events', () => {
         _getDeepLinkFromCallback(
           'https://foo?link=http%3A%2F%2Ffoo%3Funrelated%3Dyeah'
         )
-      ).to.eq('http://foo?unrelated=yeah');
+      ).toBe('http://foo?unrelated=yeah');
     });
 
     it('returns the passed-in url when all else fails', () => {
-      expect(_getDeepLinkFromCallback('https://foo?bar=baz')).to.eq(
+      expect(_getDeepLinkFromCallback('https://foo?bar=baz')).toBe(
         'https://foo?bar=baz'
       );
     });
@@ -204,7 +198,7 @@ describe('platform_cordova/popup_redirect/events', () => {
 
     it('triggers passive listeners on events', done => {
       eventManager.addPassiveListener(actual => {
-        expect(actual).to.eq(event);
+        expect(actual).toBe(event);
         done();
       });
 
@@ -212,12 +206,12 @@ describe('platform_cordova/popup_redirect/events', () => {
     });
 
     it('removes passive listeners properly', () => {
-      const stub = sinon.stub();
+      const stub = vi.fn();
       eventManager.addPassiveListener(stub);
       eventManager.onEvent(event);
       eventManager.removePassiveListener(stub);
       eventManager.onEvent(event);
-      expect(stub).to.have.been.calledOnce;
+      expect(stub).toHaveBeenCalledTimes(1);
     });
 
     it('initialization resolves after first event', async () => {

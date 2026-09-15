@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-import * as sinon from 'sinon';
-import sinonChai from 'sinon-chai';
 
 import { FirebaseApp } from '@firebase/app';
 import { FirebaseError } from '@firebase/util';
@@ -38,6 +33,9 @@ import { inMemoryPersistence } from '../persistence/in_memory';
 import { _getInstance } from '../util/instantiator';
 import * as navigator from '../util/navigator';
 import * as reload from '../user/reload';
+
+vi.mock('../util/navigator', { spy: true });
+vi.mock('../user/reload', { spy: true });
 import { AuthImpl, DefaultConfig } from './auth_impl';
 import { _initializeAuthInstance } from './initialize';
 import { _initializeRecaptchaConfig } from '../../platform_browser/recaptcha/recaptcha_enterprise_verifier';
@@ -48,10 +46,7 @@ import * as mockFetch from '../../../test/helpers/mock_fetch';
 import { AuthErrorCode } from '../errors';
 import { PasswordValidationStatus } from '../../model/public_types';
 import { PasswordPolicyImpl } from './password_policy_impl';
-
-use(sinonChai);
-use(chaiAsPromised);
-
+import { MockInstance } from 'vitest';
 const FAKE_APP: FirebaseApp = {
   name: 'test-app',
   options: {
@@ -63,10 +58,15 @@ const FAKE_APP: FirebaseApp = {
 
 describe('core/auth/auth_impl', () => {
   let auth: AuthInternal;
-  let persistenceStub: sinon.SinonStubbedInstance<PersistenceInternal>;
+  let persistenceStub: any;
 
   beforeEach(async () => {
-    persistenceStub = sinon.stub(_getInstance(inMemoryPersistence));
+    persistenceStub = _getInstance(inMemoryPersistence);
+    vi.spyOn(persistenceStub, '_get');
+    vi.spyOn(persistenceStub, '_set');
+    vi.spyOn(persistenceStub, '_remove');
+    vi.spyOn(persistenceStub, '_addListener');
+    vi.spyOn(persistenceStub, '_removeListener');
     const authImpl = new AuthImpl(
       FAKE_APP,
       FAKE_HEARTBEAT_CONTROLLER_PROVIDER,
@@ -85,13 +85,15 @@ describe('core/auth/auth_impl', () => {
     auth = authImpl;
   });
 
-  afterEach(sinon.restore);
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
 
   describe('#updateCurrentUser', () => {
     it('sets the field on the auth object', async () => {
       const user = testUser(auth, 'uid');
       await auth._updateCurrentUser(user);
-      expect(auth.currentUser).to.eq(user);
+      expect(auth.currentUser).toBe(user);
     });
 
     it('public version makes a copy', async () => {
@@ -100,15 +102,15 @@ describe('core/auth/auth_impl', () => {
 
       // currentUser should deeply equal the user passed in, but should be a
       // different block in memory.
-      expect(auth.currentUser).not.to.eq(user);
-      expect(auth.currentUser).to.eql(user);
+      expect(auth.currentUser).not.toBe(user);
+      expect(auth.currentUser).toEqual(user);
     });
 
     it('public version throws if the auth is mismatched', async () => {
       const auth2 = await testAuth();
       Object.assign(auth2.config, { apiKey: 'not-the-right-auth' });
       const user = testUser(auth2, 'uid');
-      await expect(auth.updateCurrentUser(user)).to.be.rejectedWith(
+      await expect(auth.updateCurrentUser(user)).rejects.toThrow(
         FirebaseError,
         'auth/invalid-user-token'
       );
@@ -119,7 +121,7 @@ describe('core/auth/auth_impl', () => {
         return testUser(auth, `${n}`);
       });
 
-      persistenceStub._set.callsFake(() => {
+      persistenceStub._set.mockImplementation(() => {
         return new Promise(resolve => {
           // Force into the async flow to make this test actually meaningful
           setTimeout(() => resolve(), 1);
@@ -128,8 +130,9 @@ describe('core/auth/auth_impl', () => {
 
       await Promise.all(users.map(u => auth._updateCurrentUser(u)));
       for (let i = 0; i < 10; i++) {
-        expect(persistenceStub._set.getCall(i)).to.have.been.calledWith(
-          sinon.match.any,
+        expect(persistenceStub._set).toHaveBeenNthCalledWith(
+          i + 1,
+          expect.anything(),
           users[i].toJSON()
         );
       }
@@ -137,13 +140,13 @@ describe('core/auth/auth_impl', () => {
 
     it('setting to null triggers a remove call', async () => {
       await auth._updateCurrentUser(null);
-      expect(persistenceStub._remove).to.have.been.called;
+      expect(persistenceStub._remove).toHaveBeenCalled();
     });
 
     it('should throw an error if the user is from a different tenant', async () => {
       const user = testUser(auth, 'uid');
       user.tenantId = 'other-tenant-id';
-      await expect(auth._updateCurrentUser(user)).to.be.rejectedWith(
+      await expect(auth._updateCurrentUser(user)).rejects.toThrow(
         FirebaseError,
         '(auth/tenant-id-mismatch)'
       );
@@ -152,7 +155,7 @@ describe('core/auth/auth_impl', () => {
     it('wraps persistence setCurrentUser failure into FirebaseError (auth/internal-error)', async () => {
       const user = testUser(auth, 'uid');
       const originalError = new Error('Database is closing');
-      persistenceStub._set.rejects(originalError);
+      persistenceStub._set.mockRejectedValue(originalError);
 
       let caughtError: any;
       try {
@@ -161,15 +164,15 @@ describe('core/auth/auth_impl', () => {
         caughtError = e;
       }
 
-      expect(caughtError).to.be.instanceOf(FirebaseError);
-      expect(caughtError.code).to.eq('auth/internal-error');
-      expect(caughtError.message).to.include('Database is closing');
-      expect(caughtError.customData?.originalError).to.eq(originalError);
+      expect(caughtError).toBeInstanceOf(FirebaseError);
+      expect(caughtError.code).toBe('auth/internal-error');
+      expect(caughtError.message).toContain('Database is closing');
+      expect(caughtError.customData?.originalError).toBe(originalError);
     });
 
     it('wraps persistence removeCurrentUser failure into FirebaseError (auth/internal-error)', async () => {
       const originalError = new Error('IndexedDB access denied');
-      persistenceStub._remove.rejects(originalError);
+      persistenceStub._remove.mockRejectedValue(originalError);
 
       let caughtError: any;
       try {
@@ -178,10 +181,10 @@ describe('core/auth/auth_impl', () => {
         caughtError = e;
       }
 
-      expect(caughtError).to.be.instanceOf(FirebaseError);
-      expect(caughtError.code).to.eq('auth/internal-error');
-      expect(caughtError.message).to.include('IndexedDB access denied');
-      expect(caughtError.customData?.originalError).to.eq(originalError);
+      expect(caughtError).toBeInstanceOf(FirebaseError);
+      expect(caughtError.code).toBe('auth/internal-error');
+      expect(caughtError.message).toContain('IndexedDB access denied');
+      expect(caughtError.customData?.originalError).toBe(originalError);
     });
   });
 
@@ -189,25 +192,27 @@ describe('core/auth/auth_impl', () => {
     it('sets currentUser to null, calls remove', async () => {
       await auth._updateCurrentUser(testUser(auth, 'test'));
       await auth.signOut();
-      expect(persistenceStub._remove).to.have.been.called;
-      expect(auth.currentUser).to.be.null;
+      expect(persistenceStub._remove).toHaveBeenCalled();
+      expect(auth.currentUser).toBeNull();
     });
     it('is blocked if a beforeAuthStateChanged callback throws', async () => {
       await auth._updateCurrentUser(testUser(auth, 'test'));
-      auth.beforeAuthStateChanged(sinon.stub().throws());
-      await expect(auth.signOut()).to.be.rejectedWith(
-        AuthErrorCode.LOGIN_BLOCKED
+      auth.beforeAuthStateChanged(
+        vi.fn().mockImplementation(() => {
+          throw new Error();
+        })
       );
+      await expect(auth.signOut()).rejects.toThrow(AuthErrorCode.LOGIN_BLOCKED);
     });
   });
 
   describe('#useDeviceLanguage', () => {
     it('should update the language code', () => {
-      const mock = sinon.stub(navigator, '_getUserLanguage');
-      mock.callsFake(() => 'jp');
-      expect(auth.languageCode).to.be.null;
+      const mock = vi.spyOn(navigator, '_getUserLanguage');
+      mock.mockImplementation(() => 'jp');
+      expect(auth.languageCode).toBeNull();
       auth.useDeviceLanguage();
-      expect(auth.languageCode).to.eq('jp');
+      expect(auth.languageCode).toBe('jp');
     });
   });
 
@@ -215,43 +220,51 @@ describe('core/auth/auth_impl', () => {
     // // Helpers to convert auth state change results to promise
     // function onAuthStateChange(callback: NextFn<User|null>)
 
-    it('immediately calls authStateChange if initialization finished', done => {
+    it('immediately calls authStateChange if initialization finished', async () => {
       const user = testUser(auth, 'uid');
       auth.currentUser = user;
       auth._isInitialized = true;
-      auth.onAuthStateChanged(user => {
-        expect(user).to.eq(user);
-        done();
+      await new Promise<void>(resolve => {
+        auth.onAuthStateChanged(u => {
+          expect(u).toBe(user);
+          resolve();
+        });
       });
     });
 
-    it('waits for initialization for authStateChange', done => {
+    it('waits for initialization for authStateChange', async () => {
       const user = testUser(auth, 'uid');
       auth.currentUser = user;
       auth._isInitialized = false;
-      auth.onAuthStateChanged(user => {
-        expect(user).to.eq(user);
-        done();
+      await new Promise<void>(resolve => {
+        auth.onAuthStateChanged(u => {
+          expect(u).toBe(user);
+          resolve();
+        });
       });
     });
 
-    it('immediately calls idTokenChange if initialization finished', done => {
+    it('immediately calls idTokenChange if initialization finished', async () => {
       const user = testUser(auth, 'uid');
       auth.currentUser = user;
       auth._isInitialized = true;
-      auth.onIdTokenChanged(user => {
-        expect(user).to.eq(user);
-        done();
+      await new Promise<void>(resolve => {
+        auth.onIdTokenChanged(u => {
+          expect(u).toBe(user);
+          resolve();
+        });
       });
     });
 
-    it('waits for initialization for idTokenChanged', done => {
+    it('waits for initialization for idTokenChanged', async () => {
       const user = testUser(auth, 'uid');
       auth.currentUser = user;
       auth._isInitialized = false;
-      auth.onIdTokenChanged(user => {
-        expect(user).to.eq(user);
-        done();
+      await new Promise<void>(resolve => {
+        auth.onIdTokenChanged(u => {
+          expect(u).toBe(user);
+          resolve();
+        });
       });
     });
 
@@ -262,103 +275,103 @@ describe('core/auth/auth_impl', () => {
         callbackCalled = true;
       });
 
-      expect(callbackCalled).to.be.false;
+      expect(callbackCalled).toBe(false);
     });
 
     describe('user logs in/out, tokens refresh', () => {
       let user: UserInternal;
-      let authStateCallback: sinon.SinonSpy;
-      let idTokenCallback: sinon.SinonSpy;
-      let beforeAuthCallback: sinon.SinonSpy;
+      let authStateCallback: MockInstance;
+      let idTokenCallback: MockInstance;
+      let beforeAuthCallback: MockInstance;
 
       beforeEach(() => {
         user = testUser(auth, 'uid');
-        authStateCallback = sinon.spy();
-        idTokenCallback = sinon.spy();
-        beforeAuthCallback = sinon.spy();
+        authStateCallback = vi.fn();
+        idTokenCallback = vi.fn();
+        beforeAuthCallback = vi.fn();
       });
 
-      context('initially currentUser is null', () => {
+      describe('initially currentUser is null', () => {
         beforeEach(async () => {
           auth.onAuthStateChanged(authStateCallback);
           auth.onIdTokenChanged(idTokenCallback);
           auth.beforeAuthStateChanged(beforeAuthCallback);
           await auth._updateCurrentUser(null);
-          authStateCallback.resetHistory();
-          idTokenCallback.resetHistory();
-          beforeAuthCallback.resetHistory();
+          authStateCallback.mockClear();
+          idTokenCallback.mockClear();
+          beforeAuthCallback.mockClear();
         });
 
         it('onAuthStateChange triggers on log in', async () => {
           await auth._updateCurrentUser(user);
-          expect(authStateCallback).to.have.been.calledWith(user);
+          expect(authStateCallback).toHaveBeenCalledWith(user);
         });
 
         it('onIdTokenChange triggers on log in', async () => {
           await auth._updateCurrentUser(user);
-          expect(idTokenCallback).to.have.been.calledWith(user);
+          expect(idTokenCallback).toHaveBeenCalledWith(user);
         });
 
         it('beforeAuthStateChanged triggers on log in', async () => {
           await auth._updateCurrentUser(user);
-          expect(beforeAuthCallback).to.have.been.calledWith(user);
+          expect(beforeAuthCallback).toHaveBeenCalledWith(user);
         });
       });
 
-      context('initially currentUser is user', () => {
+      describe('initially currentUser is user', () => {
         beforeEach(async () => {
           auth.onAuthStateChanged(authStateCallback);
           auth.onIdTokenChanged(idTokenCallback);
           auth.beforeAuthStateChanged(beforeAuthCallback);
           await auth._updateCurrentUser(user);
-          authStateCallback.resetHistory();
-          idTokenCallback.resetHistory();
-          beforeAuthCallback.resetHistory();
+          authStateCallback.mockClear();
+          idTokenCallback.mockClear();
+          beforeAuthCallback.mockClear();
         });
 
         it('onAuthStateChange triggers on log out', async () => {
           await auth._updateCurrentUser(null);
-          expect(authStateCallback).to.have.been.calledWith(null);
+          expect(authStateCallback).toHaveBeenCalledWith(null);
         });
 
         it('onIdTokenChange triggers on log out', async () => {
           await auth._updateCurrentUser(null);
-          expect(idTokenCallback).to.have.been.calledWith(null);
+          expect(idTokenCallback).toHaveBeenCalledWith(null);
         });
 
         it('beforeAuthStateChanged triggers on log out', async () => {
           await auth._updateCurrentUser(null);
-          expect(beforeAuthCallback).to.have.been.calledWith(null);
+          expect(beforeAuthCallback).toHaveBeenCalledWith(null);
         });
 
         it('onAuthStateChange does not trigger for user props change', async () => {
           user.photoURL = 'blah';
           await auth._updateCurrentUser(user);
-          expect(authStateCallback).not.to.have.been.called;
+          expect(authStateCallback).not.toHaveBeenCalled();
         });
 
         it('onIdTokenChange triggers for user props change', async () => {
           user.photoURL = 'hey look I changed';
           await auth._updateCurrentUser(user);
-          expect(idTokenCallback).to.have.been.calledWith(user);
+          expect(idTokenCallback).toHaveBeenCalledWith(user);
         });
 
         it('onAuthStateChange triggers if uid changes', async () => {
           const newUser = testUser(auth, 'different-uid');
           await auth._updateCurrentUser(newUser);
-          expect(authStateCallback).to.have.been.calledWith(newUser);
+          expect(authStateCallback).toHaveBeenCalledWith(newUser);
         });
       });
 
-      context('with Proactive Refresh', () => {
+      describe('with Proactive Refresh', () => {
         let oldUser: UserInternal;
 
         beforeEach(() => {
           oldUser = testUser(auth, 'old-user-uid');
 
           for (const u of [user, oldUser]) {
-            sinon.spy(u, '_startProactiveRefresh');
-            sinon.spy(u, '_stopProactiveRefresh');
+            vi.spyOn(u, '_startProactiveRefresh');
+            vi.spyOn(u, '_stopProactiveRefresh');
           }
         });
 
@@ -366,7 +379,7 @@ describe('core/auth/auth_impl', () => {
           await auth._updateCurrentUser(null);
           await auth._updateCurrentUser(user);
 
-          expect(user._startProactiveRefresh).not.to.have.been.called;
+          expect(user._startProactiveRefresh).not.toHaveBeenCalled();
         });
 
         it('null -> user: turns on if enabled', async () => {
@@ -374,14 +387,14 @@ describe('core/auth/auth_impl', () => {
           auth._startProactiveRefresh();
           await auth._updateCurrentUser(user);
 
-          expect(user._startProactiveRefresh).to.have.been.called;
+          expect(user._startProactiveRefresh).toHaveBeenCalled();
         });
 
         it('user -> user: does not turn on if not enabled', async () => {
           await auth._updateCurrentUser(oldUser);
           await auth._updateCurrentUser(user);
 
-          expect(user._startProactiveRefresh).not.to.have.been.called;
+          expect(user._startProactiveRefresh).not.toHaveBeenCalled();
         });
 
         it('user -> user: turns on if enabled', async () => {
@@ -389,15 +402,15 @@ describe('core/auth/auth_impl', () => {
           await auth._updateCurrentUser(oldUser);
           await auth._updateCurrentUser(user);
 
-          expect(oldUser._stopProactiveRefresh).to.have.been.called;
-          expect(user._startProactiveRefresh).to.have.been.called;
+          expect(oldUser._stopProactiveRefresh).toHaveBeenCalled();
+          expect(user._startProactiveRefresh).toHaveBeenCalled();
         });
 
         it('calling start on auth triggers user to start', async () => {
           await auth._updateCurrentUser(user);
           auth._startProactiveRefresh();
 
-          expect(user._startProactiveRefresh).to.have.been.calledOnce;
+          expect(user._startProactiveRefresh).toHaveBeenCalledTimes(1);
         });
 
         it('calling stop stops the refresh on the current user', async () => {
@@ -405,221 +418,227 @@ describe('core/auth/auth_impl', () => {
           await auth._updateCurrentUser(user);
           auth._stopProactiveRefresh();
 
-          expect(user._stopProactiveRefresh).to.have.been.called;
+          expect(user._stopProactiveRefresh).toHaveBeenCalled();
         });
       });
 
       it('onAuthStateChange works for multiple listeners', async () => {
-        const cb1 = sinon.spy();
-        const cb2 = sinon.spy();
+        const cb1 = vi.fn();
+        const cb2 = vi.fn();
         auth.onAuthStateChanged(cb1);
         auth.onAuthStateChanged(cb2);
         await auth._updateCurrentUser(null);
-        cb1.resetHistory();
-        cb2.resetHistory();
+        cb1.mockClear();
+        cb2.mockClear();
 
         await auth._updateCurrentUser(user);
-        expect(cb1).to.have.been.calledWith(user);
-        expect(cb2).to.have.been.calledWith(user);
+        expect(cb1).toHaveBeenCalledWith(user);
+        expect(cb2).toHaveBeenCalledWith(user);
       });
 
       it('onIdTokenChange works for multiple listeners', async () => {
-        const cb1 = sinon.spy();
-        const cb2 = sinon.spy();
+        const cb1 = vi.fn();
+        const cb2 = vi.fn();
         auth.onIdTokenChanged(cb1);
         auth.onIdTokenChanged(cb2);
         await auth._updateCurrentUser(null);
-        cb1.resetHistory();
-        cb2.resetHistory();
+        cb1.mockClear();
+        cb2.mockClear();
 
         await auth._updateCurrentUser(user);
-        expect(cb1).to.have.been.calledWith(user);
-        expect(cb2).to.have.been.calledWith(user);
+        expect(cb1).toHaveBeenCalledWith(user);
+        expect(cb2).toHaveBeenCalledWith(user);
       });
 
       it('beforeAuthStateChange works for multiple listeners', async () => {
-        const cb1 = sinon.spy();
-        const cb2 = sinon.spy();
+        const cb1 = vi.fn();
+        const cb2 = vi.fn();
         auth.beforeAuthStateChanged(cb1);
         auth.beforeAuthStateChanged(cb2);
         await auth._updateCurrentUser(null);
-        cb1.resetHistory();
-        cb2.resetHistory();
+        cb1.mockClear();
+        cb2.mockClear();
 
         await auth._updateCurrentUser(user);
-        expect(cb1).to.have.been.calledWith(user);
-        expect(cb2).to.have.been.calledWith(user);
+        expect(cb1).toHaveBeenCalledWith(user);
+        expect(cb2).toHaveBeenCalledWith(user);
       });
 
       it('_updateCurrentUser throws if a beforeAuthStateChange callback throws', async () => {
         await auth._updateCurrentUser(null);
-        const cb1 = sinon.stub().throws();
-        const cb2 = sinon.spy();
+        const cb1 = vi.fn().mockImplementation(() => {
+          throw new Error();
+        });
+        const cb2 = vi.fn();
         auth.beforeAuthStateChanged(cb1);
         auth.beforeAuthStateChanged(cb2);
 
-        await expect(auth._updateCurrentUser(user)).to.be.rejectedWith(
+        await expect(auth._updateCurrentUser(user)).rejects.toThrow(
           AuthErrorCode.LOGIN_BLOCKED
         );
-        expect(cb2).not.to.be.called;
+        expect(cb2).not.toHaveBeenCalled();
       });
 
       it('_updateCurrentUser throws if a beforeAuthStateChange callback rejects', async () => {
         await auth._updateCurrentUser(null);
-        const cb1 = sinon.stub().rejects();
-        const cb2 = sinon.spy();
+        const cb1 = vi.fn().mockRejectedValue();
+        const cb2 = vi.fn();
         auth.beforeAuthStateChanged(cb1);
         auth.beforeAuthStateChanged(cb2);
 
-        await expect(auth._updateCurrentUser(user)).to.be.rejectedWith(
+        await expect(auth._updateCurrentUser(user)).rejects.toThrow(
           AuthErrorCode.LOGIN_BLOCKED
         );
-        expect(cb2).not.to.be.called;
+        expect(cb2).not.toHaveBeenCalled();
       });
     });
   });
 
   describe('#_onStorageEvent', () => {
-    let authStateCallback: sinon.SinonSpy;
-    let idTokenCallback: sinon.SinonSpy;
-    let beforeStateCallback: sinon.SinonSpy;
+    let authStateCallback: MockInstance;
+    let idTokenCallback: MockInstance;
+    let beforeStateCallback: MockInstance;
 
     beforeEach(async () => {
-      authStateCallback = sinon.spy();
-      idTokenCallback = sinon.spy();
-      beforeStateCallback = sinon.spy();
+      authStateCallback = vi.fn();
+      idTokenCallback = vi.fn();
+      beforeStateCallback = vi.fn();
       auth.onAuthStateChanged(authStateCallback);
       auth.onIdTokenChanged(idTokenCallback);
       auth.beforeAuthStateChanged(beforeStateCallback);
       await auth._updateCurrentUser(null); // force event handlers to clear out
-      authStateCallback.resetHistory();
-      idTokenCallback.resetHistory();
-      beforeStateCallback.resetHistory();
+      authStateCallback.mockClear();
+      idTokenCallback.mockClear();
+      beforeStateCallback.mockClear();
     });
 
-    context('previously logged out', () => {
-      context('still logged out', () => {
+    describe('previously logged out', () => {
+      describe('still logged out', () => {
         it('should do nothing', async () => {
           await auth._onStorageEvent();
 
-          expect(authStateCallback).not.to.have.been.called;
-          expect(idTokenCallback).not.to.have.been.called;
-          expect(beforeStateCallback).not.to.have.been.called;
+          expect(authStateCallback).not.toHaveBeenCalled();
+          expect(idTokenCallback).not.toHaveBeenCalled();
+          expect(beforeStateCallback).not.toHaveBeenCalled();
         });
       });
 
-      context('now logged in', () => {
+      describe('now logged in', () => {
         let user: UserInternal;
 
         beforeEach(() => {
           user = testUser(auth, 'uid');
-          persistenceStub._get.returns(Promise.resolve(user.toJSON()));
+          persistenceStub._get.mockReturnValue(Promise.resolve(user.toJSON()));
         });
 
         it('should update the current user', async () => {
           await auth._onStorageEvent();
 
-          expect(auth.currentUser?.toJSON()).to.eql(user.toJSON());
-          expect(authStateCallback).to.have.been.called;
-          expect(idTokenCallback).to.have.been.called;
+          expect(auth.currentUser?.toJSON()).toEqual(user.toJSON());
+          expect(authStateCallback).toHaveBeenCalled();
+          expect(idTokenCallback).toHaveBeenCalled();
           // This should never be called on a storage event.
-          expect(beforeStateCallback).not.to.have.been.called;
+          expect(beforeStateCallback).not.toHaveBeenCalled();
         });
       });
     });
 
-    context('previously logged in', () => {
+    describe('previously logged in', () => {
       let user: UserInternal;
 
       beforeEach(async () => {
         user = testUser(auth, 'uid', undefined, true);
         await auth._updateCurrentUser(user);
-        authStateCallback.resetHistory();
-        idTokenCallback.resetHistory();
-        beforeStateCallback.resetHistory();
+        authStateCallback.mockClear();
+        idTokenCallback.mockClear();
+        beforeStateCallback.mockClear();
       });
 
-      context('now logged out', () => {
+      describe('now logged out', () => {
         beforeEach(() => {
-          persistenceStub._get.returns(Promise.resolve(null));
+          persistenceStub._get.mockReturnValue(Promise.resolve(null));
         });
 
         it('should log out', async () => {
           await auth._onStorageEvent();
 
-          expect(auth.currentUser).to.be.null;
-          expect(authStateCallback).to.have.been.called;
-          expect(idTokenCallback).to.have.been.called;
+          expect(auth.currentUser).toBeNull();
+          expect(authStateCallback).toHaveBeenCalled();
+          expect(idTokenCallback).toHaveBeenCalled();
           // This should never be called on a storage event.
-          expect(beforeStateCallback).not.to.have.been.called;
+          expect(beforeStateCallback).not.toHaveBeenCalled();
         });
       });
 
-      context('still logged in as same user', () => {
+      describe('still logged in as same user', () => {
         it('should do nothing if nothing changed', async () => {
-          persistenceStub._get.returns(Promise.resolve(user.toJSON()));
+          persistenceStub._get.mockReturnValue(Promise.resolve(user.toJSON()));
 
           await auth._onStorageEvent();
 
-          expect(auth.currentUser?.toJSON()).to.eql(user.toJSON());
-          expect(authStateCallback).not.to.have.been.called;
-          expect(idTokenCallback).not.to.have.been.called;
-          expect(beforeStateCallback).not.to.have.been.called;
+          expect(auth.currentUser?.toJSON()).toEqual(user.toJSON());
+          expect(authStateCallback).not.toHaveBeenCalled();
+          expect(idTokenCallback).not.toHaveBeenCalled();
+          expect(beforeStateCallback).not.toHaveBeenCalled();
         });
 
         it('should update fields if they have changed', async () => {
           const userObj = user.toJSON();
           userObj['displayName'] = 'other-name';
-          persistenceStub._get.returns(Promise.resolve(userObj));
+          persistenceStub._get.mockReturnValue(Promise.resolve(userObj));
 
           await auth._onStorageEvent();
 
-          expect(auth.currentUser?.uid).to.eq(user.uid);
-          expect(auth.currentUser?.displayName).to.eq('other-name');
-          expect(authStateCallback).not.to.have.been.called;
-          expect(idTokenCallback).not.to.have.been.called;
-          expect(beforeStateCallback).not.to.have.been.called;
+          expect(auth.currentUser?.uid).toBe(user.uid);
+          expect(auth.currentUser?.displayName).toBe('other-name');
+          expect(authStateCallback).not.toHaveBeenCalled();
+          expect(idTokenCallback).not.toHaveBeenCalled();
+          expect(beforeStateCallback).not.toHaveBeenCalled();
         });
 
         it('should update tokens if they have changed', async () => {
           const userObj = user.toJSON();
           (userObj['stsTokenManager'] as any)['accessToken'] =
             'new-access-token';
-          persistenceStub._get.returns(Promise.resolve(userObj));
+          persistenceStub._get.mockReturnValue(Promise.resolve(userObj));
 
           await auth._onStorageEvent();
 
-          expect(auth.currentUser?.uid).to.eq(user.uid);
+          expect(auth.currentUser?.uid).toBe(user.uid);
           expect(
             (auth.currentUser as UserInternal)?.stsTokenManager.accessToken
-          ).to.eq('new-access-token');
-          expect(authStateCallback).not.to.have.been.called;
-          expect(idTokenCallback).to.have.been.called;
+          ).toBe('new-access-token');
+          expect(authStateCallback).not.toHaveBeenCalled();
+          expect(idTokenCallback).toHaveBeenCalled();
           // This should never be called on a storage event.
-          expect(beforeStateCallback).not.to.have.been.called;
+          expect(beforeStateCallback).not.toHaveBeenCalled();
         });
       });
 
-      context('now logged in as different user', () => {
+      describe('now logged in as different user', () => {
         it('should re-login as the new user', async () => {
           const newUser = testUser(auth, 'other-uid', undefined, true);
-          persistenceStub._get.returns(Promise.resolve(newUser.toJSON()));
+          persistenceStub._get.mockReturnValue(
+            Promise.resolve(newUser.toJSON())
+          );
 
           await auth._onStorageEvent();
 
-          expect(auth.currentUser?.toJSON()).to.eql(newUser.toJSON());
-          expect(authStateCallback).to.have.been.called;
-          expect(idTokenCallback).to.have.been.called;
+          expect(auth.currentUser?.toJSON()).toEqual(newUser.toJSON());
+          expect(authStateCallback).toHaveBeenCalled();
+          expect(idTokenCallback).toHaveBeenCalled();
           // This should never be called on a storage event.
-          expect(beforeStateCallback).not.to.have.been.called;
+          expect(beforeStateCallback).not.toHaveBeenCalled();
         });
       });
     });
   });
 
-  context('#_delete', () => {
+  describe('#_delete', () => {
     beforeEach(async () => {
-      sinon.stub(reload, '_reloadWithoutSaving').returns(Promise.resolve());
+      vi.spyOn(reload, '_reloadWithoutSaving').mockReturnValue(
+        Promise.resolve()
+      );
     });
 
     it('prevents initialization from completing', async () => {
@@ -637,37 +656,37 @@ describe('core/auth/auth_impl', () => {
         }
       );
 
-      persistenceStub._get.returns(
+      persistenceStub._get.mockReturnValue(
         Promise.resolve(testUser(auth, 'uid').toJSON())
       );
       await authImpl._delete();
       await authImpl._initializeWithPersistence([
         persistenceStub as PersistenceInternal
       ]);
-      expect(authImpl.currentUser).to.be.null;
+      expect(authImpl.currentUser).toBeNull();
     });
 
     it('no longer calls listeners', async () => {
-      const spy = sinon.spy();
+      const spy = vi.fn();
       auth.onAuthStateChanged(spy);
       await Promise.resolve();
-      spy.resetHistory();
+      spy.mockClear();
       await (auth as AuthImpl)._delete();
       await auth._updateCurrentUser(testUser(auth, 'blah'));
-      expect(spy).not.to.have.been.called;
+      expect(spy).not.toHaveBeenCalled();
     });
   });
 
-  context('#_getAdditionalHeaders', () => {
+  describe('#_getAdditionalHeaders', () => {
     it('always adds the client version', async () => {
-      expect(await auth._getAdditionalHeaders()).to.eql({
+      expect(await auth._getAdditionalHeaders()).toEqual({
         'X-Client-Version': 'v'
       });
     });
 
     it('adds the gmp app ID if available', async () => {
       auth.app.options.appId = 'app-id';
-      expect(await auth._getAdditionalHeaders()).to.eql({
+      expect(await auth._getAdditionalHeaders()).toEqual({
         'X-Client-Version': 'v',
         'X-Firebase-gmpid': 'app-id'
       });
@@ -675,63 +694,66 @@ describe('core/auth/auth_impl', () => {
     });
 
     it('adds the heartbeat if available', async () => {
-      sinon
-        .stub(FAKE_HEARTBEAT_CONTROLLER, 'getHeartbeatsHeader')
-        .returns(Promise.resolve('heartbeat'));
-      expect(await auth._getAdditionalHeaders()).to.eql({
+      vi.spyOn(
+        FAKE_HEARTBEAT_CONTROLLER,
+        'getHeartbeatsHeader'
+      ).mockReturnValue(Promise.resolve('heartbeat'));
+      expect(await auth._getAdditionalHeaders()).toEqual({
         'X-Client-Version': 'v',
         'X-Firebase-Client': 'heartbeat'
       });
     });
 
     it('does not add heartbeat if none returned', async () => {
-      sinon
-        .stub(FAKE_HEARTBEAT_CONTROLLER, 'getHeartbeatsHeader')
-        .returns(Promise.resolve(''));
-      expect(await auth._getAdditionalHeaders()).to.eql({
+      vi.spyOn(
+        FAKE_HEARTBEAT_CONTROLLER,
+        'getHeartbeatsHeader'
+      ).mockReturnValue(Promise.resolve(''));
+      expect(await auth._getAdditionalHeaders()).toEqual({
         'X-Client-Version': 'v'
       });
     });
 
     it('does not add heartbeat if controller unavailable', async () => {
-      sinon
-        .stub(FAKE_HEARTBEAT_CONTROLLER_PROVIDER, 'getImmediate')
-        .returns(undefined as any);
-      expect(await auth._getAdditionalHeaders()).to.eql({
+      vi.spyOn(
+        FAKE_HEARTBEAT_CONTROLLER_PROVIDER,
+        'getImmediate'
+      ).mockReturnValue(undefined as any);
+      expect(await auth._getAdditionalHeaders()).toEqual({
         'X-Client-Version': 'v'
       });
     });
 
     it('adds the App Check token if available', async () => {
-      sinon
-        .stub(FAKE_APP_CHECK_CONTROLLER, 'getToken')
-        .returns(Promise.resolve({ token: 'fake-token' }));
-      expect(await auth._getAdditionalHeaders()).to.eql({
+      vi.spyOn(FAKE_APP_CHECK_CONTROLLER, 'getToken').mockReturnValue(
+        Promise.resolve({ token: 'fake-token' })
+      );
+      expect(await auth._getAdditionalHeaders()).toEqual({
         'X-Client-Version': 'v',
         'X-Firebase-AppCheck': 'fake-token'
       });
     });
 
     it('does not add the App Check token if none returned', async () => {
-      sinon
-        .stub(FAKE_APP_CHECK_CONTROLLER, 'getToken')
-        .returns(Promise.resolve({ token: '' }));
-      expect(await auth._getAdditionalHeaders()).to.eql({
+      vi.spyOn(FAKE_APP_CHECK_CONTROLLER, 'getToken').mockReturnValue(
+        Promise.resolve({ token: '' })
+      );
+      expect(await auth._getAdditionalHeaders()).toEqual({
         'X-Client-Version': 'v'
       });
     });
 
     it('does not add the App Check token if controller unavailable', async () => {
-      sinon
-        .stub(FAKE_APP_CHECK_CONTROLLER, 'getToken')
-        .returns(undefined as any);
-      expect(await auth._getAdditionalHeaders()).to.eql({
+      vi.spyOn(FAKE_APP_CHECK_CONTROLLER, 'getToken').mockReturnValue(
+        undefined as any
+      );
+      expect(await auth._getAdditionalHeaders()).toEqual({
         'X-Client-Version': 'v'
       });
     });
   });
 
-  context('recaptchaEnforcementState', () => {
+  describe('recaptchaEnforcementState', () => {
     const recaptchaConfigResponseEnforce = {
       recaptchaKey: 'foo/bar/to/site-key',
       recaptchaEnforcementState: [
@@ -784,7 +806,7 @@ describe('core/auth/auth_impl', () => {
       );
       await _initializeRecaptchaConfig(auth);
 
-      expect(auth._getRecaptchaConfig()).to.eql(cachedRecaptchaConfigEnforce);
+      expect(auth._getRecaptchaConfig()).toEqual(cachedRecaptchaConfigEnforce);
     });
 
     it('recaptcha config should be set for tenant if tenant id is not null.', async () => {
@@ -801,7 +823,7 @@ describe('core/auth/auth_impl', () => {
       );
       await _initializeRecaptchaConfig(auth);
 
-      expect(auth._getRecaptchaConfig()).to.eql(cachedRecaptchaConfigOFF);
+      expect(auth._getRecaptchaConfig()).toEqual(cachedRecaptchaConfigOFF);
     });
 
     it('recaptcha config should dynamically switch if tenant id switches.', async () => {
@@ -829,13 +851,13 @@ describe('core/auth/auth_impl', () => {
       await _initializeRecaptchaConfig(auth);
 
       auth.tenantId = null;
-      expect(auth._getRecaptchaConfig()).to.eql(cachedRecaptchaConfigEnforce);
+      expect(auth._getRecaptchaConfig()).toEqual(cachedRecaptchaConfigEnforce);
       auth.tenantId = 'tenant-id';
-      expect(auth._getRecaptchaConfig()).to.eql(cachedRecaptchaConfigOFF);
+      expect(auth._getRecaptchaConfig()).toEqual(cachedRecaptchaConfigOFF);
     });
   });
 
-  context('passwordPolicy', () => {
+  describe('passwordPolicy', () => {
     const TEST_ALLOWED_NON_ALPHANUMERIC_CHARS = ['!', '(', ')'];
     const TEST_ALLOWED_NON_ALPHANUMERIC_STRING =
       TEST_ALLOWED_NON_ALPHANUMERIC_CHARS.join('');
@@ -936,7 +958,7 @@ describe('core/auth/auth_impl', () => {
       auth.tenantId = null;
       await auth._updatePasswordPolicy();
 
-      expect(auth._getPasswordPolicyInternal()).to.eql(CACHED_PASSWORD_POLICY);
+      expect(auth._getPasswordPolicyInternal()).toEqual(CACHED_PASSWORD_POLICY);
     });
 
     it('password policy should be set for tenant if tenant ID is not null', async () => {
@@ -944,7 +966,7 @@ describe('core/auth/auth_impl', () => {
       auth.tenantId = TEST_TENANT_ID;
       await auth._updatePasswordPolicy();
 
-      expect(auth._getPasswordPolicyInternal()).to.eql(
+      expect(auth._getPasswordPolicyInternal()).toEqual(
         CACHED_PASSWORD_POLICY_REQUIRE_NUMERIC
       );
     });
@@ -958,26 +980,26 @@ describe('core/auth/auth_impl', () => {
       await auth._updatePasswordPolicy();
 
       auth.tenantId = null;
-      expect(auth._getPasswordPolicyInternal()).to.eql(CACHED_PASSWORD_POLICY);
+      expect(auth._getPasswordPolicyInternal()).toEqual(CACHED_PASSWORD_POLICY);
       auth.tenantId = TEST_TENANT_ID;
-      expect(auth._getPasswordPolicyInternal()).to.eql(
+      expect(auth._getPasswordPolicyInternal()).toEqual(
         CACHED_PASSWORD_POLICY_REQUIRE_NUMERIC
       );
       auth.tenantId = 'other-tenant-id';
-      expect(auth._getPasswordPolicyInternal()).to.be.undefined;
+      expect(auth._getPasswordPolicyInternal()).toBeUndefined();
     });
 
     it('password policy should still be set when the schema version is not supported', async () => {
       auth = await testAuth();
       auth.tenantId = TEST_TENANT_ID_UNSUPPORTED_POLICY_VERSION;
-      await expect(auth._updatePasswordPolicy()).to.be.fulfilled;
+      await expect(auth._updatePasswordPolicy()).resolves.not.toThrow();
 
-      expect(auth._getPasswordPolicyInternal()).to.eql(
+      expect(auth._getPasswordPolicyInternal()).toEqual(
         CACHED_PASSWORD_POLICY_UNSUPPORTED_SCHEMA_VERSION
       );
     });
 
-    context('#validatePassword', () => {
+    describe('#validatePassword', () => {
       const PASSWORD_POLICY_IMPL = new PasswordPolicyImpl(
         PASSWORD_POLICY_RESPONSE
       );
@@ -995,7 +1017,7 @@ describe('core/auth/auth_impl', () => {
 
         auth = await testAuth();
         const status = await auth.validatePassword(TEST_BASIC_PASSWORD);
-        expect(status).to.eql(expectedValidationStatus);
+        expect(status).toEqual(expectedValidationStatus);
       });
 
       it('password not meeting the policy for the project should be considered invalid', async () => {
@@ -1007,7 +1029,7 @@ describe('core/auth/auth_impl', () => {
 
         auth = await testAuth();
         const status = await auth.validatePassword('pass');
-        expect(status).to.eql(expectedValidationStatus);
+        expect(status).toEqual(expectedValidationStatus);
       });
 
       it('password meeting the policy for the tenant should be considered valid', async () => {
@@ -1021,7 +1043,7 @@ describe('core/auth/auth_impl', () => {
         auth = await testAuth();
         auth.tenantId = TEST_TENANT_ID;
         const status = await auth.validatePassword('passw0rd');
-        expect(status).to.eql(expectedValidationStatus);
+        expect(status).toEqual(expectedValidationStatus);
       });
 
       it('password not meeting the policy for the tenant should be considered invalid', async () => {
@@ -1035,7 +1057,7 @@ describe('core/auth/auth_impl', () => {
         auth = await testAuth();
         auth.tenantId = TEST_TENANT_ID;
         const status = await auth.validatePassword('pass');
-        expect(status).to.eql(expectedValidationStatus);
+        expect(status).toEqual(expectedValidationStatus);
       });
 
       it('should use the password policy associated with the tenant ID when the tenant ID switches', async () => {
@@ -1048,7 +1070,7 @@ describe('core/auth/auth_impl', () => {
         auth = await testAuth();
 
         let status = await auth.validatePassword(TEST_BASIC_PASSWORD);
-        expect(status).to.eql(expectedValidationStatus);
+        expect(status).toEqual(expectedValidationStatus);
 
         expectedValidationStatus = {
           isValid: false,
@@ -1059,7 +1081,7 @@ describe('core/auth/auth_impl', () => {
 
         auth.tenantId = TEST_TENANT_ID;
         status = await auth.validatePassword(TEST_BASIC_PASSWORD);
-        expect(status).to.eql(expectedValidationStatus);
+        expect(status).toEqual(expectedValidationStatus);
       });
 
       it('should throw an error when a password policy with an unsupported schema version is received', async () => {
@@ -1067,7 +1089,7 @@ describe('core/auth/auth_impl', () => {
         auth.tenantId = TEST_TENANT_ID_UNSUPPORTED_POLICY_VERSION;
         await expect(
           auth.validatePassword(TEST_BASIC_PASSWORD)
-        ).to.be.rejectedWith(
+        ).rejects.toThrow(
           AuthErrorCode.UNSUPPORTED_PASSWORD_POLICY_SCHEMA_VERSION
         );
       });
@@ -1078,7 +1100,7 @@ describe('core/auth/auth_impl', () => {
         await auth._updatePasswordPolicy();
         await expect(
           auth.validatePassword(TEST_BASIC_PASSWORD)
-        ).to.be.rejectedWith(
+        ).rejects.toThrow(
           AuthErrorCode.UNSUPPORTED_PASSWORD_POLICY_SCHEMA_VERSION
         );
       });
@@ -1087,12 +1109,12 @@ describe('core/auth/auth_impl', () => {
 
   describe('AuthStateReady', () => {
     let user: UserInternal;
-    let authStateChangedSpy: sinon.SinonSpy;
+    let authStateChangedSpy: MockInstance;
 
     beforeEach(async () => {
       user = testUser(auth, 'uid');
 
-      authStateChangedSpy = sinon.spy(auth, 'onAuthStateChanged');
+      authStateChangedSpy = vi.spyOn(auth, 'onAuthStateChanged');
 
       await auth._updateCurrentUser(null);
     });
@@ -1103,8 +1125,8 @@ describe('core/auth/auth_impl', () => {
       await auth
         .authStateReady()
         .then(() => {
-          expect(authStateChangedSpy).to.not.have.been.called;
-          expect(auth.currentUser).to.eq(user);
+          expect(authStateChangedSpy).not.toHaveBeenCalled();
+          expect(auth.currentUser).toBe(user);
         })
         .catch(error => {
           throw new Error(error);
@@ -1112,63 +1134,63 @@ describe('core/auth/auth_impl', () => {
     });
 
     it('calls onAuthStateChanged if there is no currentUser available, and returns resolved promise once the user is updated', async () => {
-      expect(authStateChangedSpy).to.not.have.been.called;
+      expect(authStateChangedSpy).not.toHaveBeenCalled();
       const promiseVar = auth.authStateReady();
-      expect(authStateChangedSpy).to.be.calledOnce;
+      expect(authStateChangedSpy).toHaveBeenCalledTimes(1);
 
       await auth._updateCurrentUser(user);
 
       await promiseVar
         .then(() => {
-          expect(auth.currentUser).to.eq(user);
+          expect(auth.currentUser).toBe(user);
         })
         .catch(error => {
           throw new Error(error);
         });
 
-      expect(authStateChangedSpy).to.be.calledOnce;
+      expect(authStateChangedSpy).toHaveBeenCalledTimes(1);
     });
 
     it('resolves the promise during repeated logout', async () => {
-      expect(authStateChangedSpy).to.not.have.been.called;
+      expect(authStateChangedSpy).not.toHaveBeenCalled();
       const promiseVar = auth.authStateReady();
-      expect(authStateChangedSpy).to.be.calledOnce;
+      expect(authStateChangedSpy).toHaveBeenCalledTimes(1);
 
       await auth._updateCurrentUser(null);
 
       await promiseVar
         .then(() => {
-          expect(auth.currentUser).to.eq(null);
+          expect(auth.currentUser).toBe(null);
         })
         .catch(error => {
           throw new Error(error);
         });
 
-      expect(authStateChangedSpy).to.be.calledOnce;
+      expect(authStateChangedSpy).toHaveBeenCalledTimes(1);
     });
 
     it('resolves the promise with currentUser being null during log in failure', async () => {
-      expect(authStateChangedSpy).to.not.have.been.called;
+      expect(authStateChangedSpy).not.toHaveBeenCalled();
       const promiseVar = auth.authStateReady();
-      expect(authStateChangedSpy).to.be.calledOnce;
+      expect(authStateChangedSpy).toHaveBeenCalledTimes(1);
 
       const auth2 = await testAuth();
       Object.assign(auth2.config, { apiKey: 'not-the-right-auth' });
       const user = testUser(auth2, 'uid');
-      await expect(auth.updateCurrentUser(user)).to.be.rejectedWith(
+      await expect(auth.updateCurrentUser(user)).rejects.toThrow(
         FirebaseError,
         'auth/invalid-user-token'
       );
 
       await promiseVar
         .then(() => {
-          expect(auth.currentUser).to.eq(null);
+          expect(auth.currentUser).toBe(null);
         })
         .catch(error => {
           throw new Error(error);
         });
 
-      expect(authStateChangedSpy).to.be.calledOnce;
+      expect(authStateChangedSpy).toHaveBeenCalledTimes(1);
     });
 
     it('resolves the promise in a delayed user log in process', async () => {
@@ -1177,13 +1199,13 @@ describe('core/auth/auth_impl', () => {
       }, 5000);
 
       const promiseVar = auth.authStateReady();
-      expect(auth.currentUser).to.eq(null);
-      expect(authStateChangedSpy).to.be.calledOnce;
+      expect(auth.currentUser).toBe(null);
+      expect(authStateChangedSpy).toHaveBeenCalledTimes(1);
 
       await setTimeout(() => {
         promiseVar
           .then(async () => {
-            await expect(auth.currentUser).to.eq(user);
+            await expect(auth.currentUser).toBe(user);
           })
           .catch(error => {
             throw new Error(error);
@@ -1222,10 +1244,12 @@ describe('core/auth/auth_impl', () => {
       };
 
       await authImpl._initializeWithPersistence([erroringPersistence]);
-      expect(authImpl._isInitialized).to.be.true;
-      expect(authImpl.currentUser).to.be.null;
-      await expect(authImpl._persistenceManagerAvailable).to.be.fulfilled;
-      await expect(authImpl.authStateReady()).to.be.fulfilled;
+      expect(authImpl._isInitialized).toBe(true);
+      expect(authImpl.currentUser).toBeNull();
+      await expect(
+        authImpl._persistenceManagerAvailable
+      ).resolves.not.toThrow();
+      await expect(authImpl.authStateReady()).resolves.not.toThrow();
     });
 
     it('falls back to currentUser = null when initializeCurrentUser fails', async () => {
@@ -1243,16 +1267,16 @@ describe('core/auth/auth_impl', () => {
         }
       );
 
-      sinon
-        .stub(authImpl as any, 'initializeCurrentUser')
-        .rejects(new Error('Corrupt storage'));
+      vi.spyOn(authImpl as any, 'initializeCurrentUser').mockRejectedValue(
+        new Error('Corrupt storage')
+      );
 
       await authImpl._initializeWithPersistence([
         _getInstance(inMemoryPersistence)
       ]);
-      expect(authImpl._isInitialized).to.be.true;
-      expect(authImpl.currentUser).to.be.null;
-      await expect(authImpl.authStateReady()).to.be.fulfilled;
+      expect(authImpl._isInitialized).toBe(true);
+      expect(authImpl.currentUser).toBeNull();
+      await expect(authImpl.authStateReady()).resolves.not.toThrow();
     });
   });
 
@@ -1275,18 +1299,18 @@ describe('core/auth/auth_impl', () => {
       const initError = new Error('Fatal initialization failure');
       (authImpl as any)._initializationPromise = Promise.reject(initError);
 
-      const nextSpy = sinon.spy();
-      const errorSpy = sinon.spy();
+      const nextSpy = vi.fn();
+      const errorSpy = vi.fn();
 
       authImpl.onAuthStateChanged({
         next: nextSpy,
         error: errorSpy,
-        complete: sinon.spy()
+        complete: vi.fn()
       });
 
       await new Promise(resolve => setTimeout(resolve, 10));
-      expect(nextSpy).not.to.have.been.called;
-      expect(errorSpy).to.have.been.calledWith(initError);
+      expect(nextSpy).not.toHaveBeenCalled();
+      expect(errorSpy).toHaveBeenCalledWith(initError);
     });
 
     it('calls error function parameter if initialization promise rejects', async () => {
@@ -1307,14 +1331,14 @@ describe('core/auth/auth_impl', () => {
       const initError = new Error('Fatal initialization failure');
       (authImpl as any)._initializationPromise = Promise.reject(initError);
 
-      const nextSpy = sinon.spy();
-      const errorSpy = sinon.spy();
+      const nextSpy = vi.fn();
+      const errorSpy = vi.fn();
 
       authImpl.onAuthStateChanged(nextSpy, errorSpy);
 
       await new Promise(resolve => setTimeout(resolve, 10));
-      expect(nextSpy).not.to.have.been.called;
-      expect(errorSpy).to.have.been.calledWith(initError);
+      expect(nextSpy).not.toHaveBeenCalled();
+      expect(errorSpy).toHaveBeenCalledWith(initError);
     });
   });
 });

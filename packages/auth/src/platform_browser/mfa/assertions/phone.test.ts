@@ -16,9 +16,6 @@
  */
 
 import { ProviderId } from '../../../model/enums';
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-
 import { mockEndpoint } from '../../../../test/helpers/api/helper';
 import {
   testAuth,
@@ -35,9 +32,6 @@ import {
   PhoneMultiFactorAssertionImpl,
   PhoneMultiFactorGenerator
 } from './phone';
-
-use(chaiAsPromised);
-
 describe('platform_browser/mfa/phone', () => {
   let auth: TestAuth;
   let credential: PhoneAuthCredential;
@@ -75,19 +69,19 @@ describe('platform_browser/mfa/phone', () => {
         serverResponse
       );
       const response = await assertion._process(auth, session);
-      expect(response).to.eql(serverResponse);
-      expect(mock.calls[0].request).to.eql({
+      expect(response).toEqual(serverResponse);
+      expect(mock.calls[0].request).toEqual({
         idToken: 'enrollment-id-token',
         phoneVerificationInfo: {
           code: 'verification-code',
           sessionInfo: 'verification-id'
         }
       });
-      expect(session.user).to.not.be.undefined;
-      expect(session.user).to.eql(user);
+      expect(session.user).toBeDefined();
+      expect(session.user).toEqual(user);
     });
 
-    context('with display name', () => {
+    describe('with display name', () => {
       it('should set the display name', async () => {
         const mock = mockEndpoint(
           Endpoint.FINALIZE_MFA_ENROLLMENT,
@@ -98,8 +92,8 @@ describe('platform_browser/mfa/phone', () => {
           session,
           'display-name'
         );
-        expect(response).to.eql(serverResponse);
-        expect(mock.calls[0].request).to.eql({
+        expect(response).toEqual(serverResponse);
+        expect(mock.calls[0].request).toEqual({
           idToken: 'enrollment-id-token',
           displayName: 'display-name',
           phoneVerificationInfo: {
@@ -107,8 +101,8 @@ describe('platform_browser/mfa/phone', () => {
             sessionInfo: 'verification-id'
           }
         });
-        expect(session.user).to.not.be.undefined;
-        expect(session.user).to.eql(user);
+        expect(session.user).toBeDefined();
+        expect(session.user).toEqual(user);
       });
     });
   });
@@ -123,15 +117,15 @@ describe('platform_browser/mfa/phone', () => {
     it('should finalize the MFA sign in', async () => {
       const mock = mockEndpoint(Endpoint.FINALIZE_MFA_SIGN_IN, serverResponse);
       const response = await assertion._process(auth, session);
-      expect(response).to.eql(serverResponse);
-      expect(mock.calls[0].request).to.eql({
+      expect(response).toEqual(serverResponse);
+      expect(mock.calls[0].request).toEqual({
         mfaPendingCredential: 'mfa-pending-credential',
         phoneVerificationInfo: {
           code: 'verification-code',
           sessionInfo: 'verification-id'
         }
       });
-      expect(session.user).to.be.undefined;
+      expect(session.user).toBeUndefined();
     });
   });
 });
@@ -149,7 +143,7 @@ describe('core/mfa/phone/PhoneMultiFactorGenerator', () => {
 
     it('can be used to create an assertion', () => {
       const assertion = PhoneMultiFactorGenerator.assertion(credential);
-      expect(assertion.factorId).to.eq(ProviderId.PHONE);
+      expect(assertion.factorId).toBe(ProviderId.PHONE);
     });
   });
 });

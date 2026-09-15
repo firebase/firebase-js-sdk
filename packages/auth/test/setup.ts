@@ -15,18 +15,6 @@
  * limitations under the License.
  */
 
-import { _generateEventId } from './event_id';
+import * as sinon from 'sinon';
 
-describe('core/util/event_id', () => {
-  it('sub-15 digit id', () => {
-    expect(_generateEventId('', 10)).toHaveLength(10);
-  });
-
-  it('15 digit id', () => {
-    expect(_generateEventId('', 15)).toHaveLength(15);
-  });
-
-  it('above-15 digit id', () => {
-    expect(_generateEventId('', 20)).toHaveLength(20);
-  });
-});
+(globalThis as any).sinon = sinon;

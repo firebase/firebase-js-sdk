@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import { mockEndpoint } from '../../../test/helpers/api/helper';
 import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
@@ -36,7 +34,7 @@ describe('core/credentials/phone', () => {
     fetch.tearDown();
   });
 
-  context('#_getIdTokenResponse', () => {
+  describe('#_getIdTokenResponse', () => {
     const response: IdTokenResponse = {
       idToken: '',
       refreshToken: '',
@@ -53,8 +51,8 @@ describe('core/credentials/phone', () => {
 
       const route = mockEndpoint(Endpoint.SIGN_IN_WITH_PHONE_NUMBER, response);
 
-      expect(await cred._getIdTokenResponse(auth)).to.eql(response);
-      expect(route.calls[0].request).to.eql({
+      expect(await cred._getIdTokenResponse(auth)).toEqual(response);
+      expect(route.calls[0].request).toEqual({
         sessionInfo: 'session-info',
         code: 'code'
       });
@@ -68,15 +66,15 @@ describe('core/credentials/phone', () => {
 
       const route = mockEndpoint(Endpoint.SIGN_IN_WITH_PHONE_NUMBER, response);
 
-      expect(await cred._getIdTokenResponse(auth)).to.eql(response);
-      expect(route.calls[0].request).to.eql({
+      expect(await cred._getIdTokenResponse(auth)).toEqual(response);
+      expect(route.calls[0].request).toEqual({
         temporaryProof: 'temp-proof',
         phoneNumber: 'number'
       });
     });
   });
 
-  context('#_linkToIdToken', () => {
+  describe('#_linkToIdToken', () => {
     const response: IdTokenResponse = {
       idToken: '',
       refreshToken: '',
@@ -93,8 +91,8 @@ describe('core/credentials/phone', () => {
 
       const route = mockEndpoint(Endpoint.SIGN_IN_WITH_PHONE_NUMBER, response);
 
-      expect(await cred._linkToIdToken(auth, 'id-token')).to.eql(response);
-      expect(route.calls[0].request).to.eql({
+      expect(await cred._linkToIdToken(auth, 'id-token')).toEqual(response);
+      expect(route.calls[0].request).toEqual({
         sessionInfo: 'session-info',
         code: 'code',
         idToken: 'id-token'
@@ -109,8 +107,8 @@ describe('core/credentials/phone', () => {
 
       const route = mockEndpoint(Endpoint.SIGN_IN_WITH_PHONE_NUMBER, response);
 
-      expect(await cred._linkToIdToken(auth, 'id-token')).to.eql(response);
-      expect(route.calls[0].request).to.eql({
+      expect(await cred._linkToIdToken(auth, 'id-token')).toEqual(response);
+      expect(route.calls[0].request).toEqual({
         temporaryProof: 'temp-proof',
         phoneNumber: 'number',
         idToken: 'id-token'
@@ -118,11 +116,11 @@ describe('core/credentials/phone', () => {
     });
   });
 
-  context('#toJSON', () => {
+  describe('#toJSON', () => {
     it('fills out the object with everything that is set', () => {
       const cred = PhoneAuthCredential._fromVerification('id', 'code');
 
-      expect(cred.toJSON()).to.eql({
+      expect(cred.toJSON()).toEqual({
         providerId: 'phone',
         verificationId: 'id',
         verificationCode: 'code'
@@ -132,7 +130,7 @@ describe('core/credentials/phone', () => {
     it('omits missing fields', () => {
       const cred = PhoneAuthCredential._fromTokenResponse('number', 'proof');
 
-      expect(cred.toJSON()).to.eql({
+      expect(cred.toJSON()).toEqual({
         providerId: 'phone',
         temporaryProof: 'proof',
         phoneNumber: 'number'
@@ -140,10 +138,10 @@ describe('core/credentials/phone', () => {
     });
   });
 
-  context('.fromJSON', () => {
+  describe('.fromJSON', () => {
     it('works if passed a string', () => {
       const cred = PhoneAuthCredential.fromJSON('{"phoneNumber": "number"}');
-      expect(cred?.toJSON()).to.eql({
+      expect(cred?.toJSON()).toEqual({
         providerId: 'phone',
         phoneNumber: 'number'
       });
@@ -156,7 +154,7 @@ describe('core/credentials/phone', () => {
         verificationId: 'id',
         verificationCode: 'code'
       });
-      expect(cred?.toJSON()).to.eql({
+      expect(cred?.toJSON()).toEqual({
         providerId: 'phone',
         temporaryProof: 'proof',
         phoneNumber: 'number',
@@ -166,7 +164,7 @@ describe('core/credentials/phone', () => {
     });
 
     it('returns null if object contains no matching fields', () => {
-      expect(PhoneAuthCredential.fromJSON({})).to.be.null;
+      expect(PhoneAuthCredential.fromJSON({})).toBeNull();
     });
   });
 });

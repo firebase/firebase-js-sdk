@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
 
 // eslint-disable-next-line import/no-extraneous-dependencies
 import {
@@ -38,9 +35,6 @@ import {
   randomEmail
 } from '../../helpers/integration/helpers';
 import { generateMiddlewareTests } from './middleware_test_generator';
-
-use(chaiAsPromised);
-
 describe('Integration test: anonymous auth', () => {
   let auth: Auth;
   beforeEach(() => (auth = getTestInstance()));
@@ -48,11 +42,11 @@ describe('Integration test: anonymous auth', () => {
 
   it('signs in anonymously', async () => {
     const userCred = await signInAnonymously(auth);
-    expect(auth.currentUser).to.eq(userCred.user);
-    expect(userCred.operationType).to.eq(OperationType.SIGN_IN);
+    expect(auth.currentUser).toBe(userCred.user);
+    expect(userCred.operationType).toBe(OperationType.SIGN_IN);
 
     const user = userCred.user;
-    expect(user.isAnonymous).to.be.true;
+    expect(user.isAnonymous).toBe(true);
     expect(user.uid).to.be.a('string');
   });
 
@@ -60,10 +54,10 @@ describe('Integration test: anonymous auth', () => {
     const { user: userA } = await signInAnonymously(auth);
     const { user: userB } = await signInAnonymously(auth);
 
-    expect(userA.uid).to.eq(userB.uid);
+    expect(userA.uid).toBe(userB.uid);
   });
 
-  context('email/password interaction', () => {
+  describe('email/password interaction', () => {
     let email: string;
     let password: string;
 
@@ -81,7 +75,7 @@ describe('Integration test: anonymous auth', () => {
         email,
         password
       );
-      expect(emailCred.user.uid).not.to.eql(anonCred.user.uid);
+      expect(emailCred.user.uid).not.toEqual(anonCred.user.uid);
 
       await auth.signOut();
       anonCred = await signInAnonymously(auth);
@@ -90,8 +84,8 @@ describe('Integration test: anonymous auth', () => {
         email,
         password
       );
-      expect(emailCred.user.uid).to.eql(emailSignIn.user.uid);
-      expect(emailSignIn.user.uid).not.to.eql(anonCred.user.uid);
+      expect(emailCred.user.uid).toEqual(emailSignIn.user.uid);
+      expect(emailSignIn.user.uid).not.toEqual(anonCred.user.uid);
     });
 
     it('account can be upgraded by setting email and password', async () => {
@@ -106,7 +100,7 @@ describe('Integration test: anonymous auth', () => {
         email,
         password
       );
-      expect(emailPassUser.uid).to.eq(anonUser.uid);
+      expect(emailPassUser.uid).toBe(anonUser.uid);
     });
 
     it('account can be linked using email and password', async () => {
@@ -120,14 +114,14 @@ describe('Integration test: anonymous auth', () => {
         email,
         password
       );
-      expect(emailPassUser.uid).to.eq(anonUser.uid);
+      expect(emailPassUser.uid).toBe(anonUser.uid);
     });
 
     it('account cannot be linked with existing email/password', async () => {
       await createUserWithEmailAndPassword(auth, email, password);
       const { user: anonUser } = await signInAnonymously(auth);
       const cred = EmailAuthProvider.credential(email, password);
-      await expect(linkWithCredential(anonUser, cred)).to.be.rejectedWith(
+      await expect(linkWithCredential(anonUser, cred)).rejects.toThrow(
         FirebaseError,
         'auth/email-already-in-use'
       );

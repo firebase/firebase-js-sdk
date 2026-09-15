@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-import { stub } from 'sinon';
 
 import { OperationType, ProviderId, SignInMethod } from '../../model/enums';
 import { FirebaseError } from '@firebase/util';
@@ -42,9 +38,6 @@ import {
   _signInWithCredential
 } from './credential';
 import { _createError } from '../util/assert';
-
-use(chaiAsPromised);
-
 describe('core/strategies/credential', () => {
   const serverUser: APIUserInfo = {
     localId: 'local-id',
@@ -88,36 +81,36 @@ describe('core/strategies/credential', () => {
 
   describe('signInWithCredential', () => {
     it('should return a valid user credential', async () => {
-      stub(authCredential, '_getIdTokenResponse').returns(
+      vi.spyOn(authCredential, '_getIdTokenResponse').mockReturnValue(
         Promise.resolve(idTokenResponse)
       );
       const { user, operationType, ...rest } = await signInWithCredential(
         auth,
         authCredential
       );
-      expect((rest as UserCredentialInternal)._tokenResponse).to.eq(
+      expect((rest as UserCredentialInternal)._tokenResponse).toBe(
         idTokenResponse
       );
-      expect(user.uid).to.eq('local-id');
-      expect(user.displayName).to.eq('display-name');
-      expect(operationType).to.eq(OperationType.SIGN_IN);
+      expect(user.uid).toBe('local-id');
+      expect(user.displayName).toBe('display-name');
+      expect(operationType).toBe(OperationType.SIGN_IN);
     });
 
     it('should update the current user', async () => {
-      stub(authCredential, '_getIdTokenResponse').returns(
+      vi.spyOn(authCredential, '_getIdTokenResponse').mockReturnValue(
         Promise.resolve(idTokenResponse)
       );
       const { user } = await signInWithCredential(auth, authCredential);
-      expect(auth.currentUser).to.eq(user);
+      expect(auth.currentUser).toBe(user);
     });
 
     it('does not update the current user if bypass is true', async () => {
-      stub(authCredential, '_getIdTokenResponse').returns(
+      vi.spyOn(authCredential, '_getIdTokenResponse').mockReturnValue(
         Promise.resolve(idTokenResponse)
       );
       const { user } = await _signInWithCredential(auth, authCredential, true);
-      expect(auth.currentUser).to.be.null;
-      expect(user).not.to.be.null;
+      expect(auth.currentUser).toBeNull();
+      expect(user).not.toBeNull();
     });
 
     it('should handle MFA', async () => {
@@ -132,24 +125,29 @@ describe('core/strategies/credential', () => {
         ],
         mfaPendingCredential: 'mfa-pending-credential'
       };
-      stub(authCredential, '_getIdTokenResponse').returns(
+      vi.spyOn(authCredential, '_getIdTokenResponse').mockReturnValue(
         Promise.reject(
           _createError(auth, AuthErrorCode.MFA_REQUIRED, {
             _serverResponse: serverResponse
           })
         )
       );
-      const error = await expect(
-        signInWithCredential(auth, authCredential)
-      ).to.be.rejectedWith(MultiFactorError);
-      expect(error.customData.operationType).to.eq(OperationType.SIGN_IN);
-      expect(error.customData._serverResponse).to.eql(serverResponse);
+      let error: MultiFactorError | undefined;
+      try {
+        await signInWithCredential(auth, authCredential);
+        expect.unreachable();
+      } catch (e) {
+        error = e as MultiFactorError;
+      }
+      expect(error).toBeInstanceOf(MultiFactorError);
+      expect(error.customData.operationType).toBe(OperationType.SIGN_IN);
+      expect(error.customData._serverResponse).toEqual(serverResponse);
     });
   });
 
   describe('reauthenticateWithCredential', () => {
     it('should throw an error if the uid is mismatched', async () => {
-      stub(authCredential, '_getReauthenticationResolver').returns(
+      vi.spyOn(authCredential, '_getReauthenticationResolver').mockReturnValue(
         Promise.resolve({
           ...idTokenResponse,
           idToken: makeJWT({ sub: 'not-my-uid' })
@@ -158,14 +156,14 @@ describe('core/strategies/credential', () => {
 
       await expect(
         reauthenticateWithCredential(user, authCredential)
-      ).to.be.rejectedWith(
+      ).rejects.toThrow(
         FirebaseError,
         'Firebase: The supplied credentials do not correspond to the previously signed in user. (auth/user-mismatch).'
       );
     });
 
     it('should return the expected user credential', async () => {
-      stub(authCredential, '_getReauthenticationResolver').returns(
+      vi.spyOn(authCredential, '_getReauthenticationResolver').mockReturnValue(
         Promise.resolve({
           ...idTokenResponse,
           idToken: makeJWT({ sub: 'uid' })
@@ -177,9 +175,9 @@ describe('core/strategies/credential', () => {
         operationType,
         ...rest
       } = await reauthenticateWithCredential(user, authCredential);
-      expect(operationType).to.eq(OperationType.REAUTHENTICATE);
-      expect(newUser).to.eq(user);
-      expect((rest as UserCredentialInternal)._tokenResponse).to.eql({
+      expect(operationType).toBe(OperationType.REAUTHENTICATE);
+      expect(newUser).toBe(user);
+      expect((rest as UserCredentialInternal)._tokenResponse).toEqual({
         ...idTokenResponse,
         idToken: makeJWT({ sub: 'uid' })
       });
@@ -188,7 +186,7 @@ describe('core/strategies/credential', () => {
 
   describe('linkWithCredential', () => {
     it('should throw an error if the provider is already linked', async () => {
-      stub(authCredential, '_linkToIdToken').returns(
+      vi.spyOn(authCredential, '_linkToIdToken').mockReturnValue(
         Promise.resolve(idTokenResponse)
       );
       getAccountInfoEndpoint.response = {
@@ -200,14 +198,14 @@ describe('core/strategies/credential', () => {
         ]
       };
 
-      await expect(linkWithCredential(user, authCredential)).to.be.rejectedWith(
+      await expect(linkWithCredential(user, authCredential)).rejects.toThrow(
         FirebaseError,
         'Firebase: User can only be linked to one identity for the given provider. (auth/provider-already-linked).'
       );
     });
 
     it('should return a valid user credential', async () => {
-      stub(authCredential, '_linkToIdToken').returns(
+      vi.spyOn(authCredential, '_linkToIdToken').mockReturnValue(
         Promise.resolve(idTokenResponse)
       );
       const {
@@ -215,9 +213,9 @@ describe('core/strategies/credential', () => {
         operationType,
         ...rest
       } = await linkWithCredential(user, authCredential);
-      expect(operationType).to.eq(OperationType.LINK);
-      expect(newUser).to.eq(user);
-      expect((rest as UserCredentialInternal)._tokenResponse).to.eq(
+      expect(operationType).toBe(OperationType.LINK);
+      expect(newUser).toBe(user);
+      expect((rest as UserCredentialInternal)._tokenResponse).toBe(
         idTokenResponse
       );
     });

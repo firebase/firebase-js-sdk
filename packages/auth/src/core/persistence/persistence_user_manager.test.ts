@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,6 @@
  * limitations under the License.
  */
 
-import * as chai from 'chai';
-import { expect } from 'chai';
-import * as sinon from 'sinon';
-import sinonChai from 'sinon-chai';
-
 import { testAuth, testUser, TestAuth } from '../../../test/helpers/mock_auth';
 import { UserImpl } from '../user/user_impl';
 import { _getInstance } from '../util/instantiator';
@@ -32,30 +27,25 @@ import {
 import { inMemoryPersistence } from './in_memory';
 import { KeyName, PersistenceUserManager } from './persistence_user_manager';
 
-chai.use(sinonChai);
-
 function makePersistence(
   type = PersistenceType.NONE,
   shouldAllowMigration = false
 ): {
   persistence: PersistenceInternal;
-  stub: sinon.SinonStubbedInstance<PersistenceInternal>;
+  stub: any;
 } {
-  const persistence: PersistenceInternal = {
+  const persistence: any = {
     type,
-    _isAvailable: () => Promise.resolve(true),
-    _set: async () => {},
-    _get() {
-      return Promise.resolve(null);
-    },
-    _remove: async () => {},
-    _addListener(_key: string, _listener: StorageEventListener) {},
-    _removeListener(_key: string, _listener: StorageEventListener) {},
+    _isAvailable: vi.fn().mockResolvedValue(true),
+    _set: vi.fn().mockResolvedValue(undefined),
+    _get: vi.fn().mockResolvedValue(null),
+    _remove: vi.fn().mockResolvedValue(undefined),
+    _addListener: vi.fn(),
+    _removeListener: vi.fn(),
     _shouldAllowMigration: shouldAllowMigration
   };
 
-  const stub = sinon.stub(persistence);
-  return { persistence, stub };
+  return { persistence, stub: persistence };
 }
 
 describe('core/persistence/persistence_user_manager', () => {
@@ -68,22 +58,24 @@ describe('core/persistence/persistence_user_manager', () => {
   describe('.create', () => {
     it('defaults to inMemory if no list provided', async () => {
       const manager = await PersistenceUserManager.create(auth, []);
-      expect(manager.persistence).to.eq(_getInstance(inMemoryPersistence));
+      expect(manager.persistence).toBe(_getInstance(inMemoryPersistence));
     });
 
     it('handles _isAvailable throwing an error and falls back to inMemory', async () => {
       const { persistence, stub } = makePersistence();
-      stub._isAvailable.rejects(new Error('IndexedDB blocked'));
+      stub._isAvailable.mockRejectedValue(new Error('IndexedDB blocked'));
       const manager = await PersistenceUserManager.create(auth, [persistence]);
-      expect(manager.persistence).to.eq(_getInstance(inMemoryPersistence));
+      expect(manager.persistence).toBe(_getInstance(inMemoryPersistence));
     });
 
     it('does not throw in constructor if _addListener throws', async () => {
       const { persistence, stub } = makePersistence();
-      stub._addListener.throws(new Error('addListener not supported'));
-      stub._isAvailable.resolves(true);
+      stub._addListener.mockImplementation(() => {
+        throw new Error('addListener not supported');
+      });
+      stub._isAvailable.mockResolvedValue(true);
       const manager = await PersistenceUserManager.create(auth, [persistence]);
-      expect(manager.persistence).to.eq(persistence);
+      expect(manager.persistence).toBe(persistence);
     });
 
     it('chooses the first one with a user', async () => {
@@ -92,18 +84,18 @@ describe('core/persistence/persistence_user_manager', () => {
       const c = makePersistence();
       const search = [a.persistence, b.persistence, c.persistence];
       const auth = await testAuth();
-      a.stub._isAvailable.resolves(false);
-      a.stub._get.onFirstCall().resolves(testUser(auth, 'uid').toJSON());
-      b.stub._isAvailable.resolves(true);
-      a.stub._get.onFirstCall().resolves(testUser(auth, 'uid-b').toJSON());
+      a.stub._isAvailable.mockResolvedValue(false);
+      a.stub._get.mockResolvedValueOnce(testUser(auth, 'uid').toJSON());
+      b.stub._isAvailable.mockResolvedValue(true);
+      b.stub._get.mockResolvedValueOnce(testUser(auth, 'uid-b').toJSON());
 
       const out = await PersistenceUserManager.create(auth, search);
-      expect(a.stub._isAvailable).to.have.been.calledOnce;
-      expect(b.stub._isAvailable).to.have.been.calledOnce;
-      expect(c.stub._isAvailable).to.have.been.calledOnce;
+      expect(a.stub._isAvailable).toHaveBeenCalledTimes(1);
+      expect(b.stub._isAvailable).toHaveBeenCalledTimes(1);
+      expect(c.stub._isAvailable).toHaveBeenCalledTimes(1);
 
       // a should not be chosen since it is not available (despite having a user).
-      expect(out.persistence).to.eq(a.persistence);
+      expect(out.persistence).toBe(a.persistence);
     });
 
     it('defaults to first available persistence if no user', async () => {
@@ -112,17 +104,17 @@ describe('core/persistence/persistence_user_manager', () => {
       const c = makePersistence();
       const search = [a.persistence, b.persistence, c.persistence];
       const auth = await testAuth();
-      a.stub._isAvailable.resolves(false);
-      b.stub._isAvailable.resolves(true);
-      c.stub._isAvailable.resolves(true);
+      a.stub._isAvailable.mockResolvedValue(false);
+      b.stub._isAvailable.mockResolvedValue(true);
+      c.stub._isAvailable.mockResolvedValue(true);
 
       const out = await PersistenceUserManager.create(auth, search);
-      expect(a.stub._isAvailable).to.have.been.calledOnce;
-      expect(b.stub._isAvailable).to.have.been.calledOnce;
-      expect(c.stub._isAvailable).to.have.been.calledOnce;
+      expect(a.stub._isAvailable).toHaveBeenCalledTimes(1);
+      expect(b.stub._isAvailable).toHaveBeenCalledTimes(1);
+      expect(c.stub._isAvailable).toHaveBeenCalledTimes(1);
 
       // a should not be chosen since it is not available (despite having a user).
-      expect(out.persistence).to.eq(b.persistence);
+      expect(out.persistence).toBe(b.persistence);
     });
 
     it('searches in order for a user', async () => {
@@ -132,17 +124,17 @@ describe('core/persistence/persistence_user_manager', () => {
       const search = [a.persistence, b.persistence, c.persistence];
       const auth = await testAuth();
       const user = testUser(auth, 'uid');
-      a.stub._isAvailable.resolves(true);
-      a.stub._get.resolves(user.toJSON());
-      b.stub._get.resolves(testUser(auth, 'wrong-uid').toJSON());
+      a.stub._isAvailable.mockResolvedValue(true);
+      a.stub._get.mockResolvedValue(user.toJSON());
+      b.stub._get.mockResolvedValue(testUser(auth, 'wrong-uid').toJSON());
 
       const out = await PersistenceUserManager.create(auth, search);
-      expect(a.stub._get).to.have.been.calledOnce;
-      expect(b.stub._get).not.to.have.been.called;
-      expect(c.stub._get).not.to.have.been.called;
+      expect(a.stub._get).toHaveBeenCalledTimes(1);
+      expect(b.stub._get).not.toHaveBeenCalled();
+      expect(c.stub._get).not.toHaveBeenCalled();
 
-      expect(out.persistence).to.eq(a.persistence);
-      expect((await out.getCurrentUser())!.uid).to.eq(user.uid);
+      expect(out.persistence).toBe(a.persistence);
+      expect((await out.getCurrentUser())!.uid).toBe(user.uid);
     });
 
     it('migrate found user to higher order persistence, if applicable', async () => {
@@ -152,34 +144,34 @@ describe('core/persistence/persistence_user_manager', () => {
       const search = [a.persistence, b.persistence, c.persistence];
       const auth = await testAuth();
       const user = testUser(auth, 'uid');
-      a.stub._isAvailable.resolves(true);
-      b.stub._isAvailable.resolves(true);
-      c.stub._isAvailable.resolves(true);
-      b.stub._get.resolves(user.toJSON());
-      c.stub._get.resolves(testUser(auth, 'wrong-uid').toJSON());
+      a.stub._isAvailable.mockResolvedValue(true);
+      b.stub._isAvailable.mockResolvedValue(true);
+      c.stub._isAvailable.mockResolvedValue(true);
+      b.stub._get.mockResolvedValue(user.toJSON());
+      c.stub._get.mockResolvedValue(testUser(auth, 'wrong-uid').toJSON());
 
       let persistedUserInA: PersistenceValue | null = null;
-      a.stub._set.callsFake(async (_, value) => {
+      a.stub._set.mockImplementation(async (_, value) => {
         persistedUserInA = value;
       });
-      a.stub._get.callsFake(async () => persistedUserInA);
+      a.stub._get.mockImplementation(async () => persistedUserInA);
 
       const out = await PersistenceUserManager.create(auth, search);
-      expect(a.stub._set).to.have.been.calledOnceWith(
+      expect(a.stub._set).toHaveBeenCalledWith(
         'firebase:authUser:test-api-key:test-app',
         user.toJSON()
       );
-      expect(b.stub._set).to.not.have.been.called;
-      expect(c.stub._set).to.not.have.been.called;
-      expect(b.stub._remove).to.have.been.calledOnceWith(
+      expect(b.stub._set).not.toHaveBeenCalled();
+      expect(c.stub._set).not.toHaveBeenCalled();
+      expect(b.stub._remove).toHaveBeenCalledWith(
         'firebase:authUser:test-api-key:test-app'
       );
-      expect(c.stub._remove).to.have.been.calledOnceWith(
+      expect(c.stub._remove).toHaveBeenCalledWith(
         'firebase:authUser:test-api-key:test-app'
       );
 
-      expect(out.persistence).to.eq(a.persistence);
-      expect((await out.getCurrentUser())!.uid).to.eq(user.uid);
+      expect(out.persistence).toBe(a.persistence);
+      expect((await out.getCurrentUser())!.uid).toBe(user.uid);
     });
 
     it('migrate found user to available persistence, if applicable', async () => {
@@ -189,54 +181,54 @@ describe('core/persistence/persistence_user_manager', () => {
       const search = [a.persistence, b.persistence, c.persistence];
       const auth = await testAuth();
       const user = testUser(auth, 'uid');
-      a.stub._isAvailable.resolves(false); // Important
-      b.stub._isAvailable.resolves(true);
-      c.stub._isAvailable.resolves(true);
-      a.stub._get.resolves(user.toJSON());
-      c.stub._get.resolves(testUser(auth, 'wrong-uid').toJSON());
+      a.stub._isAvailable.mockResolvedValue(false); // Important
+      b.stub._isAvailable.mockResolvedValue(true);
+      c.stub._isAvailable.mockResolvedValue(true);
+      a.stub._get.mockResolvedValue(user.toJSON());
+      c.stub._get.mockResolvedValue(testUser(auth, 'wrong-uid').toJSON());
 
       let persistedUserInB: PersistenceValue | null = null;
-      b.stub._set.callsFake(async (_, value) => {
+      b.stub._set.mockImplementation(async (_, value) => {
         persistedUserInB = value;
       });
-      b.stub._get.callsFake(async () => persistedUserInB);
+      b.stub._get.mockImplementation(async () => persistedUserInB);
 
       const out = await PersistenceUserManager.create(auth, search);
-      expect(b.stub._set).to.have.been.calledOnceWith(
+      expect(b.stub._set).toHaveBeenCalledWith(
         'firebase:authUser:test-api-key:test-app',
         user.toJSON()
       );
-      expect(a.stub._set).to.not.have.been.called;
-      expect(c.stub._set).to.not.have.been.called;
-      expect(a.stub._remove).to.have.been.calledOnceWith(
+      expect(a.stub._set).not.toHaveBeenCalled();
+      expect(c.stub._set).not.toHaveBeenCalled();
+      expect(a.stub._remove).toHaveBeenCalledWith(
         'firebase:authUser:test-api-key:test-app'
       );
-      expect(c.stub._remove).to.have.been.calledOnceWith(
+      expect(c.stub._remove).toHaveBeenCalledWith(
         'firebase:authUser:test-api-key:test-app'
       );
 
-      expect(out.persistence).to.eq(b.persistence);
-      expect((await out.getCurrentUser())!.uid).to.eq(user.uid);
+      expect(out.persistence).toBe(b.persistence);
+      expect((await out.getCurrentUser())!.uid).toBe(user.uid);
     });
 
     it('uses default user key if none provided', async () => {
       const { stub, persistence } = makePersistence();
-      stub._isAvailable.resolves(true);
+      stub._isAvailable.mockResolvedValue(true);
       await PersistenceUserManager.create(auth, [persistence]);
-      expect(stub._get).to.have.been.calledWith(
+      expect(stub._get).toHaveBeenCalledWith(
         'firebase:authUser:test-api-key:test-app'
       );
     });
 
     it('uses user key if provided', async () => {
       const { stub, persistence } = makePersistence();
-      stub._isAvailable.resolves(true);
+      stub._isAvailable.mockResolvedValue(true);
       await PersistenceUserManager.create(
         auth,
         [persistence],
         KeyName.REDIRECT_USER
       );
-      expect(stub._get).to.have.been.calledWith(
+      expect(stub._get).toHaveBeenCalledWith(
         'firebase:redirectUser:test-api-key:test-app'
       );
     });
@@ -246,15 +238,15 @@ describe('core/persistence/persistence_user_manager', () => {
       const b = makePersistence();
       const c = makePersistence();
       const search = [a.persistence, b.persistence, c.persistence];
-      a.stub._isAvailable.resolves(false);
-      b.stub._isAvailable.resolves(false);
-      c.stub._isAvailable.resolves(false);
+      a.stub._isAvailable.mockResolvedValue(false);
+      b.stub._isAvailable.mockResolvedValue(false);
+      c.stub._isAvailable.mockResolvedValue(false);
 
       const out = await PersistenceUserManager.create(auth, search);
-      expect(out.persistence).to.eq(_getInstance(inMemoryPersistence));
-      expect(a.stub._get).to.have.been.calledOnce;
-      expect(b.stub._get).to.have.been.calledOnce;
-      expect(c.stub._get).to.have.been.calledOnce;
+      expect(out.persistence).toBe(_getInstance(inMemoryPersistence));
+      expect(a.stub._get).toHaveBeenCalledTimes(1);
+      expect(b.stub._get).toHaveBeenCalledTimes(1);
+      expect(c.stub._get).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -264,7 +256,7 @@ describe('core/persistence/persistence_user_manager', () => {
 
     beforeEach(async () => {
       const { persistence, stub } = makePersistence(PersistenceType.SESSION);
-      stub._isAvailable.resolves(true);
+      stub._isAvailable.mockResolvedValue(true);
       persistenceStub = stub;
       manager = await PersistenceUserManager.create(auth, [persistence]);
     });
@@ -272,7 +264,7 @@ describe('core/persistence/persistence_user_manager', () => {
     it('#setCurrentUser calls underlying persistence w/ key', async () => {
       const user = testUser(auth, 'uid');
       await manager.setCurrentUser(user);
-      expect(persistenceStub._set).to.have.been.calledWith(
+      expect(persistenceStub._set).toHaveBeenCalledWith(
         'firebase:authUser:test-api-key:test-app',
         user.toJSON()
       );
@@ -280,25 +272,27 @@ describe('core/persistence/persistence_user_manager', () => {
 
     it('#removeCurrentUser calls underlying persistence', async () => {
       await manager.removeCurrentUser();
-      expect(persistenceStub._remove).to.have.been.calledWith(
+      expect(persistenceStub._remove).toHaveBeenCalledWith(
         'firebase:authUser:test-api-key:test-app'
       );
     });
 
     it('#getCurrentUser calls with instantiator', async () => {
       const rawObject = {};
-      const userImplStub = sinon.stub(UserImpl, '_fromJSON');
-      persistenceStub._get.returns(Promise.resolve(rawObject));
+      const userImplStub = vi
+        .spyOn(UserImpl, '_fromJSON')
+        .mockReturnValue(null as any);
+      persistenceStub._get.mockReturnValue(Promise.resolve(rawObject));
 
       await manager.getCurrentUser();
-      expect(userImplStub).to.have.been.calledWith(auth, rawObject);
+      expect(userImplStub).toHaveBeenCalledWith(auth, rawObject);
 
-      userImplStub.restore();
+      userImplStub.mockRestore();
     });
 
     it('#savePersistenceForRedirect calls through', async () => {
       await manager.savePersistenceForRedirect();
-      expect(persistenceStub._set).to.have.been.calledWith(
+      expect(persistenceStub._set).toHaveBeenCalledWith(
         'firebase:persistence:test-api-key:test-app',
         'SESSION'
       );
@@ -306,10 +300,10 @@ describe('core/persistence/persistence_user_manager', () => {
 
     describe('#setPersistence', () => {
       it('returns immediately if persistence is not changed', async () => {
-        const spy = sinon.spy(manager, 'getCurrentUser');
+        const spy = vi.spyOn(manager, 'getCurrentUser');
         await manager.setPersistence(manager.persistence);
-        expect(spy).not.to.have.been.called;
-        spy.restore();
+        expect(spy).not.toHaveBeenCalled();
+        spy.mockRestore();
       });
 
       it('removes current user & sets it in the new persistence', async () => {
@@ -317,12 +311,12 @@ describe('core/persistence/persistence_user_manager', () => {
           makePersistence();
         const auth = await testAuth();
         const user = testUser(auth, 'uid');
-        persistenceStub._get.returns(Promise.resolve(user.toJSON()));
+        persistenceStub._get.mockReturnValue(Promise.resolve(user.toJSON()));
 
         await manager.setPersistence(nextPersistence);
-        expect(persistenceStub._get).to.have.been.called;
-        expect(persistenceStub._remove).to.have.been.called;
-        expect(nextStub._set).to.have.been.calledWith(
+        expect(persistenceStub._get).toHaveBeenCalled();
+        expect(persistenceStub._remove).toHaveBeenCalled();
+        expect(nextStub._set).toHaveBeenCalledWith(
           'firebase:authUser:test-api-key:test-app',
           user.toJSON()
         );
@@ -333,7 +327,7 @@ describe('core/persistence/persistence_user_manager', () => {
         await manager.setPersistence(persistence);
         const auth = await testAuth();
         const user = testUser(auth, 'uid');
-        stub._get.returns(Promise.resolve(user.toJSON()));
+        stub._get.mockReturnValue(Promise.resolve(user.toJSON()));
 
         const { persistence: nextPersistence, stub: nextStub } =
           makePersistence(PersistenceType.LOCAL);
@@ -341,9 +335,9 @@ describe('core/persistence/persistence_user_manager', () => {
         // This should migrate the user even if both has type LOCAL. For example, developer may want
         // to switch from localStorage to indexedDB (both type LOCAL) and we should honor that.
         await manager.setPersistence(nextPersistence);
-        expect(stub._get).to.have.been.called;
-        expect(stub._remove).to.have.been.called;
-        expect(nextStub._set).to.have.been.calledWith(
+        expect(stub._get).toHaveBeenCalled();
+        expect(stub._remove).toHaveBeenCalled();
+        expect(nextStub._set).toHaveBeenCalledWith(
           'firebase:authUser:test-api-key:test-app',
           user.toJSON()
         );
