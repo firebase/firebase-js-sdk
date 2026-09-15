@@ -27,7 +27,7 @@ import {
   PACKAGE_VERSION
 } from '../constants';
 import { logger } from '../logger';
-import { BackendType, InferenceMode } from '../public-types';
+import { InferenceMode } from '../public-types';
 
 export const TIMEOUT_EXPIRED_MESSAGE = 'Timeout has expired.';
 export const ABORT_ERROR_NAME = 'AbortError';
@@ -127,7 +127,7 @@ export class WebSocketUrl {
 
   private get pathname(): string {
     if (this.apiSettings.backend instanceof AgentPlatformBackend) {
-      return `ws/google.firebase.vertexai.v1beta.LlmBidiService/BidiGenerateContent/locations/${(this.apiSettings.backend as AgentPlatformBackend).location}`;
+      return `ws/google.firebase.vertexai.v1beta.LlmBidiService/BidiGenerateContent/locations/${this.apiSettings.backend.location}`;
     } else {
       return 'ws/google.firebase.vertexai.v1beta.GenerativeService/BidiGenerateContent';
     }
