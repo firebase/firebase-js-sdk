@@ -15,16 +15,7 @@
  * limitations under the License.
  */
 
-import '../../scripts/ensure_playwright.js';
-import { defineConfig } from 'vitest/config';
-import { playwright } from '@vitest/browser-playwright';
-import path from 'path';
-import fs from 'fs';
-import { fileURLToPath } from 'url';
-
-const packageDir = path.dirname(fileURLToPath(import.meta.url));
-const setupFile = path.resolve(packageDir, 'test/setup.ts');
-const setupFiles = fs.existsSync(setupFile) ? [setupFile] : [];
+import createBaseConfig from '../../config/vitest.base.mjs';
 
 function generateAliasConfig(platform) {
   return [
@@ -35,47 +26,13 @@ function generateAliasConfig(platform) {
   ];
 }
 
-export default defineConfig({
-  test: {
-    globals: true,
-    reporters: process.env.GITHUB_ACTIONS ? ['default', 'github-actions'] : ['default'],
-    projects: [
-      {
-        test: {
-          name: 'node',
-          globals: true,
-          environment: 'node',
-          pool: 'forks',
-          isolate: true,
-          passWithNoTests: false,
-          include: ['test/**/*.test.ts', 'src/**/*.test.ts'],
-          exclude: ['**/browser/**', '**/*.browser.test.ts', 'test/integration/**'],
-          setupFiles
-        },
-        resolve: {
-          alias: generateAliasConfig('node')
-        }
-      },
-      {
-        test: {
-          name: 'browser',
-          globals: true,
-          browser: {
-            enabled: true,
-            provider: playwright(),
-            instances: [{ browser: 'chromium' }],
-            headless: true
-          },
-          isolate: true,
-          passWithNoTests: false,
-          include: ['test/**/*.test.ts', 'src/**/*.test.ts'],
-          exclude: ['**/node/**', '**/*.node.test.ts', 'test/integration/**'],
-          setupFiles
-        },
-        resolve: {
-          alias: generateAliasConfig('browser')
-        }
-      }
-    ]
-  }
-});
+const config = createBaseConfig(import.meta.url);
+
+for (const project of config.test.projects) {
+  project.test.exclude = [...(project.test.exclude || []), 'test/integration/**'];
+  project.resolve = {
+    alias: generateAliasConfig(project.test.name)
+  };
+}
+
+export default config;
