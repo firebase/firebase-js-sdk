@@ -16,14 +16,9 @@
  */
 
 import '../test/setup';
-import { getFakeGreCAPTCHA, getFullApp } from '../test/util';
-import { ReCaptchaEnterpriseProvider, ReCaptchaV3Provider } from './providers';
-import * as client from './client';
-import * as reCAPTCHA from './recaptcha';
-import * as util from './util';
-import { SinonFakeTimers, stub, useFakeTimers } from 'sinon';
-import { expect } from 'chai';
-import { FirebaseError } from '@firebase/util';
+import { getFullApp } from '../test/util';
+import { expect, vi } from 'vitest';
+import { FirebaseError, Deferred } from '@firebase/util';
 import { AppCheckError } from './errors';
 import {
   clearState,
@@ -33,27 +28,77 @@ import {
 } from './state';
 import { deleteApp, FirebaseApp } from '@firebase/app';
 
+const {
+  mockExchangeToken,
+  mockGetReCAPTCHAToken,
+  mockInitializeRecaptchaV3,
+  mockInitializeRecaptchaEnterprise
+} = vi.hoisted(() => ({
+  mockExchangeToken: vi.fn(),
+  mockGetReCAPTCHAToken: vi.fn(),
+  mockInitializeRecaptchaV3: vi.fn(),
+  mockInitializeRecaptchaEnterprise: vi.fn()
+}));
+
+vi.mock('./client', async importOriginal => {
+  const actual = await importOriginal<typeof import('./client')>();
+  return {
+    ...actual,
+    exchangeToken: (...args: unknown[]) =>
+      mockExchangeToken.getMockImplementation()
+        ? mockExchangeToken(...args)
+        : actual.exchangeToken(...(args as [any, any]))
+  };
+});
+
+vi.mock('./recaptcha', async importOriginal => {
+  const actual = await importOriginal<typeof import('./recaptcha')>();
+  return {
+    ...actual,
+    getToken: (...args: unknown[]) =>
+      mockGetReCAPTCHAToken.getMockImplementation()
+        ? mockGetReCAPTCHAToken(...args)
+        : actual.getToken(...(args as [any])),
+    initializeV3: (...args: unknown[]) =>
+      mockInitializeRecaptchaV3.getMockImplementation()
+        ? mockInitializeRecaptchaV3(...args)
+        : actual.initializeV3(...(args as [any, any])),
+    initializeEnterprise: (...args: unknown[]) =>
+      mockInitializeRecaptchaEnterprise.getMockImplementation()
+        ? mockInitializeRecaptchaEnterprise(...args)
+        : actual.initializeEnterprise(...(args as [any, any]))
+  };
+});
+
+import { ReCaptchaEnterpriseProvider, ReCaptchaV3Provider } from './providers';
+
 describe('ReCaptchaV3Provider', () => {
   let app: FirebaseApp;
-  let clock: SinonFakeTimers;
+
   beforeEach(() => {
-    clock = useFakeTimers();
+    vi.useFakeTimers({ now: 0 });
     app = getFullApp();
     setInitialState(app, DEFAULT_STATE);
-    stub(util, 'getRecaptcha').returns(getFakeGreCAPTCHA());
-    stub(reCAPTCHA, 'getToken').returns(
-      Promise.resolve('fake-recaptcha-token')
-    );
+    mockGetReCAPTCHAToken.mockResolvedValue('fake-recaptcha-token');
+    mockInitializeRecaptchaV3.mockImplementation((appToInit: FirebaseApp) => {
+      const state = getStateReference(appToInit);
+      state.reCAPTCHAState = { initialized: new Deferred() };
+      return Promise.resolve({} as any);
+    });
   });
 
   afterEach(() => {
-    clock.restore();
+    vi.useRealTimers();
     clearState();
+    mockExchangeToken.mockReset();
+    mockGetReCAPTCHAToken.mockReset();
+    mockInitializeRecaptchaV3.mockReset();
     return deleteApp(app);
   });
+
   it('getToken() gets a token from the exchange endpoint', async () => {
     const provider = new ReCaptchaV3Provider('fake-site-key');
-    const exchangeStub = stub(client, 'exchangeToken').resolves({
+    mockExchangeToken.mockResolvedValue({
       token: 'fake-exchange-token',
       issuedAtTimeMillis: 0,
       expireTimeMillis: 10
@@ -61,16 +106,18 @@ describe('ReCaptchaV3Provider', () => {
     provider.initialize(app);
     getStateReference(app).reCAPTCHAState!.succeeded = true;
     const token = await provider.getToken();
-    expect(exchangeStub.args[0][0].body['recaptcha_v3_token']).to.equal(
-      'fake-recaptcha-token'
-    );
-    expect(exchangeStub.args[0][0].body['limited_use']).to.be.undefined;
-    exchangeStub.restore();
-    expect(token.token).to.equal('fake-exchange-token');
+    expect(
+      (mockExchangeToken.mock.calls[0][0] as any).body['recaptcha_v3_token']
+    ).toBe('fake-recaptcha-token');
+    expect(
+      (mockExchangeToken.mock.calls[0][0] as any).body['limited_use']
+    ).toBeUndefined();
+    expect(token.token).toBe('fake-exchange-token');
   });
+
   it('getToken(true) gets a limited use token from the exchange endpoint', async () => {
     const provider = new ReCaptchaV3Provider('fake-site-key');
-    const exchangeStub = stub(client, 'exchangeToken').resolves({
+    mockExchangeToken.mockResolvedValue({
       token: 'fake-exchange-token',
       issuedAtTimeMillis: 0,
       expireTimeMillis: 10
@@ -78,91 +125,102 @@ describe('ReCaptchaV3Provider', () => {
     provider.initialize(app);
     getStateReference(app).reCAPTCHAState!.succeeded = true;
     const token = await provider.getToken(true);
-    expect(exchangeStub.args[0][0].body['recaptcha_v3_token']).to.equal(
-      'fake-recaptcha-token'
-    );
-    expect(exchangeStub.args[0][0].body['limited_use']).to.be.true;
-    exchangeStub.restore();
-    expect(token.token).to.equal('fake-exchange-token');
+    expect(
+      (mockExchangeToken.mock.calls[0][0] as any).body['recaptcha_v3_token']
+    ).toBe('fake-recaptcha-token');
+    expect(
+      (mockExchangeToken.mock.calls[0][0] as any).body['limited_use']
+    ).toBe(true);
+    expect(token.token).toBe('fake-exchange-token');
   });
+
   it('getToken() throttles 1d on 403', async () => {
     const provider = new ReCaptchaV3Provider('fake-site-key');
-    stub(client, 'exchangeToken').rejects(
+    mockExchangeToken.mockRejectedValue(
       new FirebaseError(AppCheckError.FETCH_STATUS_ERROR, 'some-message', {
         httpStatus: 403
       })
     );
     provider.initialize(app);
     getStateReference(app).reCAPTCHAState!.succeeded = true;
-    await expect(provider.getToken()).to.be.rejectedWith('1d');
+    await expect(provider.getToken()).rejects.toThrow('1d');
     // Wait 10s and try again to see if wait time string decreases.
-    clock.tick(10000);
-    await expect(provider.getToken()).to.be.rejectedWith('23h');
+    vi.advanceTimersByTime(10000);
+    await expect(provider.getToken()).rejects.toThrow('23h');
   });
+
   it('getToken() throttles exponentially on 503', async () => {
     const provider = new ReCaptchaV3Provider('fake-site-key');
-    let exchangeTokenStub = stub(client, 'exchangeToken').rejects(
+    mockExchangeToken.mockRejectedValue(
       new FirebaseError(AppCheckError.FETCH_STATUS_ERROR, 'some-message', {
         httpStatus: 503
       })
     );
     provider.initialize(app);
     getStateReference(app).reCAPTCHAState!.succeeded = true;
-    await expect(provider.getToken()).to.be.rejectedWith('503');
-    expect(exchangeTokenStub).to.be.called;
-    exchangeTokenStub.resetHistory();
+    await expect(provider.getToken()).rejects.toThrow('503');
+    expect(mockExchangeToken).toHaveBeenCalled();
+    mockExchangeToken.mockClear();
     // Try again immediately, should be rejected.
-    await expect(provider.getToken()).to.be.rejectedWith('503');
-    expect(exchangeTokenStub).not.to.be.called;
-    exchangeTokenStub.resetHistory();
+    await expect(provider.getToken()).rejects.toThrow('503');
+    expect(mockExchangeToken).not.toHaveBeenCalled();
+    mockExchangeToken.mockClear();
     // Times below are max range of each random exponential wait,
     // the possible range is 2^(backoff_count) plus or minus 50%
     // Wait for 1.5 seconds to pass, should call exchange endpoint again
     // (and be rejected again)
-    clock.tick(1500);
-    await expect(provider.getToken()).to.be.rejectedWith('503');
-    expect(exchangeTokenStub).to.be.called;
-    exchangeTokenStub.resetHistory();
+    vi.advanceTimersByTime(1500);
+    await expect(provider.getToken()).rejects.toThrow('503');
+    expect(mockExchangeToken).toHaveBeenCalled();
+    mockExchangeToken.mockClear();
     // Wait for 3 seconds to pass, should call exchange endpoint again
     // (and be rejected again)
-    clock.tick(3000);
-    await expect(provider.getToken()).to.be.rejectedWith('503');
-    expect(exchangeTokenStub).to.be.called;
+    vi.advanceTimersByTime(3000);
+    await expect(provider.getToken()).rejects.toThrow('503');
+    expect(mockExchangeToken).toHaveBeenCalled();
+    mockExchangeToken.mockClear();
     // Wait for 6 seconds to pass, should call exchange endpoint again
     // (and succeed)
-    clock.tick(6000);
-    exchangeTokenStub.restore();
-    exchangeTokenStub = stub(client, 'exchangeToken').resolves({
+    vi.advanceTimersByTime(6000);
+    mockExchangeToken.mockResolvedValue({
       token: 'fake-exchange-token',
       issuedAtTimeMillis: 0,
       expireTimeMillis: 10
     });
     const token = await provider.getToken();
-    expect(token.token).to.equal('fake-exchange-token');
+    expect(token.token).toBe('fake-exchange-token');
   });
 });
 
 describe('ReCaptchaEnterpriseProvider', () => {
   let app: FirebaseApp;
-  let clock: SinonFakeTimers;
+
   beforeEach(() => {
-    clock = useFakeTimers();
+    vi.useFakeTimers({ now: 0 });
     app = getFullApp();
     setInitialState(app, DEFAULT_STATE);
-    stub(util, 'getRecaptcha').returns(getFakeGreCAPTCHA());
-    stub(reCAPTCHA, 'getToken').returns(
-      Promise.resolve('fake-recaptcha-token')
+    mockGetReCAPTCHAToken.mockResolvedValue('fake-recaptcha-token');
+    mockInitializeRecaptchaEnterprise.mockImplementation(
+      (appToInit: FirebaseApp) => {
+        const state = getStateReference(appToInit);
+        state.reCAPTCHAState = { initialized: new Deferred() };
+        return Promise.resolve({} as any);
+      }
     );
   });
 
   afterEach(() => {
-    clock.restore();
+    vi.useRealTimers();
     clearState();
+    mockExchangeToken.mockReset();
+    mockGetReCAPTCHAToken.mockReset();
+    mockInitializeRecaptchaEnterprise.mockReset();
     return deleteApp(app);
   });
+
   it('getToken() gets a token from the exchange endpoint', async () => {
     const provider = new ReCaptchaEnterpriseProvider('fake-site-key');
-    const exchangeStub = stub(client, 'exchangeToken').resolves({
+    mockExchangeToken.mockResolvedValue({
       token: 'fake-exchange-token',
       issuedAtTimeMillis: 0,
       expireTimeMillis: 10
@@ -170,16 +228,20 @@ describe('ReCaptchaEnterpriseProvider', () => {
     provider.initialize(app);
     getStateReference(app).reCAPTCHAState!.succeeded = true;
     const token = await provider.getToken();
-    expect(exchangeStub.args[0][0].body['recaptcha_enterprise_token']).to.equal(
-      'fake-recaptcha-token'
-    );
-    expect(exchangeStub.args[0][0].body['limited_use']).to.be.undefined;
-    exchangeStub.restore();
-    expect(token.token).to.equal('fake-exchange-token');
+    expect(
+      (mockExchangeToken.mock.calls[0][0] as any).body[
+        'recaptcha_enterprise_token'
+      ]
+    ).toBe('fake-recaptcha-token');
+    expect(
+      (mockExchangeToken.mock.calls[0][0] as any).body['limited_use']
+    ).toBeUndefined();
+    expect(token.token).toBe('fake-exchange-token');
   });
+
   it('getToken(true) gets a token from the exchange endpoint', async () => {
     const provider = new ReCaptchaEnterpriseProvider('fake-site-key');
-    const exchangeStub = stub(client, 'exchangeToken').resolves({
+    mockExchangeToken.mockResolvedValue({
       token: 'fake-exchange-token',
       issuedAtTimeMillis: 0,
       expireTimeMillis: 10
@@ -187,66 +249,71 @@ describe('ReCaptchaEnterpriseProvider', () => {
     provider.initialize(app);
     getStateReference(app).reCAPTCHAState!.succeeded = true;
     const token = await provider.getToken(true);
-    expect(exchangeStub.args[0][0].body['limited_use']).to.be.true;
-    expect(exchangeStub.args[0][0].body['recaptcha_enterprise_token']).to.equal(
-      'fake-recaptcha-token'
-    );
-    exchangeStub.restore();
-    expect(token.token).to.equal('fake-exchange-token');
+    expect(
+      (mockExchangeToken.mock.calls[0][0] as any).body['limited_use']
+    ).toBe(true);
+    expect(
+      (mockExchangeToken.mock.calls[0][0] as any).body[
+        'recaptcha_enterprise_token'
+      ]
+    ).toBe('fake-recaptcha-token');
+    expect(token.token).toBe('fake-exchange-token');
   });
+
   it('getToken() throttles 1d on 403', async () => {
     const provider = new ReCaptchaEnterpriseProvider('fake-site-key');
-    stub(client, 'exchangeToken').rejects(
+    mockExchangeToken.mockRejectedValue(
       new FirebaseError(AppCheckError.FETCH_STATUS_ERROR, 'some-message', {
         httpStatus: 403
       })
     );
     provider.initialize(app);
     getStateReference(app).reCAPTCHAState!.succeeded = true;
-    await expect(provider.getToken()).to.be.rejectedWith('1d');
+    await expect(provider.getToken()).rejects.toThrow('1d');
     // Wait 10s and try again to see if wait time string decreases.
-    clock.tick(10000);
-    await expect(provider.getToken()).to.be.rejectedWith('23h');
+    vi.advanceTimersByTime(10000);
+    await expect(provider.getToken()).rejects.toThrow('23h');
   });
+
   it('getToken() throttles exponentially on 503', async () => {
     const provider = new ReCaptchaEnterpriseProvider('fake-site-key');
-    let exchangeTokenStub = stub(client, 'exchangeToken').rejects(
+    mockExchangeToken.mockRejectedValue(
       new FirebaseError(AppCheckError.FETCH_STATUS_ERROR, 'some-message', {
         httpStatus: 503
       })
     );
     provider.initialize(app);
     getStateReference(app).reCAPTCHAState!.succeeded = true;
-    await expect(provider.getToken()).to.be.rejectedWith('503');
-    expect(exchangeTokenStub).to.be.called;
-    exchangeTokenStub.resetHistory();
+    await expect(provider.getToken()).rejects.toThrow('503');
+    expect(mockExchangeToken).toHaveBeenCalled();
+    mockExchangeToken.mockClear();
     // Try again immediately, should be rejected.
-    await expect(provider.getToken()).to.be.rejectedWith('503');
-    expect(exchangeTokenStub).not.to.be.called;
-    exchangeTokenStub.resetHistory();
+    await expect(provider.getToken()).rejects.toThrow('503');
+    expect(mockExchangeToken).not.toHaveBeenCalled();
+    mockExchangeToken.mockClear();
     // Times below are max range of each random exponential wait,
     // the possible range is 2^(backoff_count) plus or minus 50%
     // Wait for 1.5 seconds to pass, should call exchange endpoint again
     // (and be rejected again)
-    clock.tick(1500);
-    await expect(provider.getToken()).to.be.rejectedWith('503');
-    expect(exchangeTokenStub).to.be.called;
-    exchangeTokenStub.resetHistory();
+    vi.advanceTimersByTime(1500);
+    await expect(provider.getToken()).rejects.toThrow('503');
+    expect(mockExchangeToken).toHaveBeenCalled();
+    mockExchangeToken.mockClear();
     // Wait for 3 seconds to pass, should call exchange endpoint again
     // (and be rejected again)
-    clock.tick(3000);
-    await expect(provider.getToken()).to.be.rejectedWith('503');
-    expect(exchangeTokenStub).to.be.called;
+    vi.advanceTimersByTime(3000);
+    await expect(provider.getToken()).rejects.toThrow('503');
+    expect(mockExchangeToken).toHaveBeenCalled();
+    mockExchangeToken.mockClear();
     // Wait for 6 seconds to pass, should call exchange endpoint again
     // (and succeed)
-    clock.tick(6000);
-    exchangeTokenStub.restore();
-    exchangeTokenStub = stub(client, 'exchangeToken').resolves({
+    vi.advanceTimersByTime(6000);
+    mockExchangeToken.mockResolvedValue({
       token: 'fake-exchange-token',
       issuedAtTimeMillis: 0,
       expireTimeMillis: 10
     });
     const token = await provider.getToken();
-    expect(token.token).to.equal('fake-exchange-token');
+    expect(token.token).toBe('fake-exchange-token');
   });
 });

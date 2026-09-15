@@ -16,13 +16,47 @@
  */
 
 import '../test/setup';
-import { writeTokenToStorage, readTokenFromStorage } from './storage';
-import * as indexeddbOperations from './indexeddb';
 import { getFakeApp } from '../test/util';
-import * as util from '@firebase/util';
 import { logger } from './logger';
-import { expect } from 'chai';
-import { stub } from 'sinon';
+import { expect, vi } from 'vitest';
+
+const {
+  mockWriteTokenToIndexedDB,
+  mockReadTokenFromIndexedDB,
+  mockIsIndexedDBAvailable
+} = vi.hoisted(() => ({
+  mockWriteTokenToIndexedDB: vi.fn(),
+  mockReadTokenFromIndexedDB: vi.fn(),
+  mockIsIndexedDBAvailable: vi.fn()
+}));
+
+vi.mock('./indexeddb', async importOriginal => {
+  const actual = await importOriginal<typeof import('./indexeddb')>();
+  return {
+    ...actual,
+    writeTokenToIndexedDB: (...args: unknown[]) =>
+      mockWriteTokenToIndexedDB.getMockImplementation()
+        ? mockWriteTokenToIndexedDB(...args)
+        : actual.writeTokenToIndexedDB(...(args as [any, any])),
+    readTokenFromIndexedDB: (...args: unknown[]) =>
+      mockReadTokenFromIndexedDB.getMockImplementation()
+        ? mockReadTokenFromIndexedDB(...args)
+        : actual.readTokenFromIndexedDB(...(args as [any]))
+  };
+});
+
+vi.mock('@firebase/util', async importOriginal => {
+  const actual = await importOriginal<typeof import('@firebase/util')>();
+  return {
+    ...actual,
+    isIndexedDBAvailable: () =>
+      mockIsIndexedDBAvailable.getMockImplementation()
+        ? mockIsIndexedDBAvailable()
+        : actual.isIndexedDBAvailable()
+  };
+});
+
+import { writeTokenToStorage, readTokenFromStorage } from './storage';
 
 describe('Storage', () => {
   const app = getFakeApp();
@@ -32,39 +66,41 @@ describe('Storage', () => {
     issuedAtTimeMillis: 0
   };
 
+  beforeEach(() => {
+    mockWriteTokenToIndexedDB.mockReset();
+    mockReadTokenFromIndexedDB.mockReset();
+    mockIsIndexedDBAvailable.mockReset();
+  });
+
   it('sets and gets appCheck token to indexeddb', async () => {
     await writeTokenToStorage(app, fakeToken);
-    expect(await readTokenFromStorage(app)).to.deep.equal(fakeToken);
+    expect(await readTokenFromStorage(app)).toEqual(fakeToken);
   });
 
   it('no op for writeTokenToStorage() if indexeddb is not available', async () => {
-    stub(util, 'isIndexedDBAvailable').returns(false);
+    mockIsIndexedDBAvailable.mockReturnValue(false);
     await writeTokenToStorage(app, fakeToken);
-    expect(await readTokenFromStorage(app)).to.equal(undefined);
+    expect(await readTokenFromStorage(app)).toBe(undefined);
   });
 
   it('writeTokenToStorage() still resolves if writing to indexeddb failed', async () => {
-    const warnStub = stub(logger, 'warn');
-    stub(indexeddbOperations, 'writeTokenToIndexedDB').returns(
-      Promise.reject('something went wrong!')
-    );
-    await expect(writeTokenToStorage(app, fakeToken)).to.eventually.fulfilled;
-    expect(warnStub.args[0][0]).to.include('something went wrong!');
-    warnStub.restore();
+    const warnStub = vi.spyOn(logger, 'warn').mockImplementation(() => {});
+    mockWriteTokenToIndexedDB.mockRejectedValue('something went wrong!');
+    await expect(writeTokenToStorage(app, fakeToken)).resolves.not.toThrow();
+    expect(warnStub.mock.calls[0][0]).toContain('something went wrong!');
+    warnStub.mockRestore();
   });
 
   it('resolves with undefined if indexeddb is not available', async () => {
-    stub(util, 'isIndexedDBAvailable').returns(false);
-    expect(await readTokenFromStorage(app)).to.equal(undefined);
+    mockIsIndexedDBAvailable.mockReturnValue(false);
+    expect(await readTokenFromStorage(app)).toBe(undefined);
   });
 
   it('resolves with undefined if reading indexeddb failed', async () => {
-    const warnStub = stub(logger, 'warn');
-    stub(indexeddbOperations, 'readTokenFromIndexedDB').returns(
-      Promise.reject('something went wrong!')
-    );
-    expect(await readTokenFromStorage(app)).to.equal(undefined);
-    expect(warnStub.args[0][0]).to.include('something went wrong!');
-    warnStub.restore();
+    const warnStub = vi.spyOn(logger, 'warn').mockImplementation(() => {});
+    mockReadTokenFromIndexedDB.mockRejectedValue('something went wrong!');
+    expect(await readTokenFromStorage(app)).toBe(undefined);
+    expect(warnStub.mock.calls[0][0]).toContain('something went wrong!');
+    warnStub.mockRestore();
   });
 });

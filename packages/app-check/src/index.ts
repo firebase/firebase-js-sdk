@@ -31,13 +31,13 @@ import {
   ComponentType,
   InstantiationMode
 } from '@firebase/component';
-import { _AppCheckComponentName } from './public-types';
+import type { _AppCheckComponentName } from './public-types';
 import { factory, internalFactory } from './factory';
-import { _AppCheckInternalComponentName } from './types';
+import type { _AppCheckInternalComponentName } from './types';
 import { name, version } from '../package.json';
 
 // Used by other Firebase packages.
-export { _AppCheckInternalComponentName };
+export type { _AppCheckInternalComponentName };
 
 export * from './api';
 export * from './public-types';
