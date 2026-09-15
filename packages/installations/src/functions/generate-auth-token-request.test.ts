@@ -16,8 +16,7 @@
  */
 
 import { FirebaseError } from '@firebase/util';
-import { expect } from 'chai';
-import { SinonStub, stub } from 'sinon';
+import { expect, vi, MockInstance, describe, it, beforeEach } from 'vitest';
 import { GenerateAuthTokenResponse } from '../interfaces/api-response';
 import {
   CompletedAuthToken,
@@ -40,7 +39,7 @@ const FID = 'evil-has-no-boundaries';
 
 describe('generateAuthTokenRequest', () => {
   let installations: FirebaseInstallationsImpl;
-  let fetchSpy: SinonStub<[RequestInfo | URL, RequestInit?], Promise<Response>>;
+  let fetchSpy: MockInstance<typeof fetch>;
   let registeredInstallationEntry: RegisteredInstallationEntry;
   let response: GenerateAuthTokenResponse;
 
@@ -62,12 +61,12 @@ describe('generateAuthTokenRequest', () => {
       expiresIn: '604800s'
     };
 
-    fetchSpy = stub(self, 'fetch');
+    fetchSpy = vi.spyOn(self, 'fetch') as unknown as MockInstance<typeof fetch>;
   });
 
   describe('successful request', () => {
     beforeEach(() => {
-      fetchSpy.resolves(new Response(JSON.stringify(response)));
+      fetchSpy.mockResolvedValue(new Response(JSON.stringify(response)));
     });
 
     it('fetches a new Authentication Token', async () => {
@@ -76,9 +75,7 @@ describe('generateAuthTokenRequest', () => {
           installations,
           registeredInstallationEntry
         );
-      expect(completedAuthToken.requestStatus).to.equal(
-        RequestStatus.COMPLETED
-      );
+      expect(completedAuthToken.requestStatus).toBe(RequestStatus.COMPLETED);
     });
 
     it('calls the generateAuthToken server API with correct parameters', async () => {
@@ -107,8 +104,10 @@ describe('generateAuthTokenRequest', () => {
         registeredInstallationEntry
       );
 
-      expect(fetchSpy).to.be.calledOnceWith(expectedEndpoint, expectedRequest);
-      const actualHeaders = fetchSpy.lastCall.lastArg.headers;
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
+      expect(fetchSpy).toHaveBeenCalledWith(expectedEndpoint, expectedRequest);
+      const lastCall = fetchSpy.mock.calls[fetchSpy.mock.calls.length - 1];
+      const actualHeaders = (lastCall[1] as RequestInit).headers as Headers;
       compareHeaders(expectedHeaders, actualHeaders);
     });
   });
@@ -123,13 +122,13 @@ describe('generateAuthTokenRequest', () => {
         }
       };
 
-      fetchSpy.resolves(
+      fetchSpy.mockResolvedValue(
         new Response(JSON.stringify(errorResponse), { status: 409 })
       );
 
       await expect(
         generateAuthTokenRequest(installations, registeredInstallationEntry)
-      ).to.be.rejectedWith(FirebaseError);
+      ).rejects.toThrow(FirebaseError);
     });
 
     it('retries once if the server returns a 5xx error', async () => {
@@ -142,14 +141,15 @@ describe('generateAuthTokenRequest', () => {
       };
 
       fetchSpy
-        .onCall(0)
-        .resolves(new Response(JSON.stringify(errorResponse), { status: 500 }));
-      fetchSpy.onCall(1).resolves(new Response(JSON.stringify(response)));
+        .mockResolvedValueOnce(
+          new Response(JSON.stringify(errorResponse), { status: 500 })
+        )
+        .mockResolvedValueOnce(new Response(JSON.stringify(response)));
 
       await expect(
         generateAuthTokenRequest(installations, registeredInstallationEntry)
-      ).to.be.fulfilled;
-      expect(fetchSpy).to.be.calledTwice;
+      ).resolves.not.toThrow();
+      expect(fetchSpy).toHaveBeenCalledTimes(2);
     });
   });
 });

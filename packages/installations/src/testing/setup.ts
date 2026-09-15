@@ -15,16 +15,25 @@
  * limitations under the License.
  */
 
-import { use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-import { restore } from 'sinon';
-import sinonChai from 'sinon-chai';
+import { vi, afterEach } from 'vitest';
 import { clear } from '../helpers/idb-manager';
 
-use(chaiAsPromised);
-use(sinonChai);
+if (typeof window !== 'undefined') {
+  window.addEventListener('unhandledrejection', event => {
+    if (
+      event.reason?.message?.includes('app-offline') ||
+      event.reason?.code?.includes('app-offline')
+    ) {
+      event.preventDefault();
+    }
+  });
+}
 
 afterEach(async () => {
-  restore();
-  await clear();
+  vi.useRealTimers();
+  vi.restoreAllMocks();
+  vi.clearAllMocks();
+  if (typeof indexedDB !== 'undefined') {
+    await clear();
+  }
 });

@@ -15,10 +15,13 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-import { SinonFakeTimers, SinonStub, stub, useFakeTimers } from 'sinon';
+import { describe, beforeEach, it, expect, vi } from 'vitest';
 import * as createInstallationRequestModule from '../functions/create-installation-request';
 import * as generateAuthTokenRequestModule from '../functions/generate-auth-token-request';
+
+vi.mock('../functions/create-installation-request', { spy: true });
+vi.mock('../functions/generate-auth-token-request', { spy: true });
+
 import { get, set } from '../helpers/idb-manager';
 import {
   CompletedAuthToken,
@@ -174,22 +177,13 @@ const setupInstallationEntryMap: Map<
 
 describe('getToken', () => {
   let installations: FirebaseInstallationsImpl;
-  let createInstallationRequestSpy: SinonStub<
-    [FirebaseInstallationsImpl, InProgressInstallationEntry],
-    Promise<RegisteredInstallationEntry>
-  >;
-  let generateAuthTokenRequestSpy: SinonStub<
-    [FirebaseInstallationsImpl, RegisteredInstallationEntry],
-    Promise<CompletedAuthToken>
-  >;
 
   beforeEach(() => {
     installations = getFakeInstallations();
 
-    createInstallationRequestSpy = stub(
-      createInstallationRequestModule,
-      'createInstallationRequest'
-    ).callsFake(async (_, installationEntry) => {
+    vi.mocked(
+      createInstallationRequestModule.createInstallationRequest
+    ).mockImplementation(async (_, installationEntry) => {
       await sleep(100); // Request would take some time
       const result: RegisteredInstallationEntry = {
         fid: installationEntry.fid,
@@ -204,10 +198,10 @@ describe('getToken', () => {
       };
       return result;
     });
-    generateAuthTokenRequestSpy = stub(
-      generateAuthTokenRequestModule,
-      'generateAuthTokenRequest'
-    ).callsFake(async () => {
+
+    vi.mocked(
+      generateAuthTokenRequestModule.generateAuthTokenRequest
+    ).mockImplementation(async () => {
       await sleep(100); // Request would take some time
       const result: CompletedAuthToken = {
         token: NEW_AUTH_TOKEN,
@@ -226,7 +220,7 @@ describe('getToken', () => {
 
         it('resolves with an auth token', async () => {
           const token = await getToken(installations);
-          expect(token).to.be.oneOf([AUTH_TOKEN, NEW_AUTH_TOKEN]);
+          expect([AUTH_TOKEN, NEW_AUTH_TOKEN]).toContain(token);
         });
 
         it('saves the token in the DB', async () => {
@@ -234,22 +228,22 @@ describe('getToken', () => {
           const installationEntry = (await get(
             installations.appConfig
           )) as RegisteredInstallationEntry;
-          expect(installationEntry).not.to.be.undefined;
-          expect(installationEntry.registrationStatus).to.equal(
+          expect(installationEntry).toBeDefined();
+          expect(installationEntry.registrationStatus).toBe(
             RequestStatus.COMPLETED
           );
-          expect(installationEntry.authToken.requestStatus).to.equal(
+          expect(installationEntry.authToken.requestStatus).toBe(
             RequestStatus.COMPLETED
           );
           expect(
             (installationEntry.authToken as CompletedAuthToken).token
-          ).to.equal(token);
+          ).toBe(token);
         });
 
         it('returns the same token on subsequent calls', async () => {
           const token1 = await getToken(installations);
           const token2 = await getToken(installations);
-          expect(token1).to.equal(token2);
+          expect(token1).toBe(token2);
         });
       });
     }
@@ -258,20 +252,26 @@ describe('getToken', () => {
   describe('when there is no FID in the DB', () => {
     it('gets the token by registering a new FID', async () => {
       await getToken(installations);
-      expect(createInstallationRequestSpy).to.be.called;
-      expect(generateAuthTokenRequestSpy).not.to.be.called;
+      expect(
+        createInstallationRequestModule.createInstallationRequest
+      ).toHaveBeenCalled();
+      expect(
+        generateAuthTokenRequestModule.generateAuthTokenRequest
+      ).not.toHaveBeenCalled();
     });
 
     it('does not register a new FID on subsequent calls', async () => {
       await getToken(installations);
       await getToken(installations);
-      expect(createInstallationRequestSpy).to.be.calledOnce;
+      expect(
+        createInstallationRequestModule.createInstallationRequest
+      ).toHaveBeenCalledTimes(1);
     });
 
     it('throws if the app is offline', async () => {
-      stub(navigator, 'onLine').value(false);
+      vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
 
-      await expect(getToken(installations)).to.be.rejected;
+      await expect(getToken(installations)).rejects.toThrow();
     });
   });
 
@@ -292,30 +292,40 @@ describe('getToken', () => {
 
     it('gets the token by calling generateAuthToken', async () => {
       await getToken(installations);
-      expect(generateAuthTokenRequestSpy).to.be.called;
-      expect(createInstallationRequestSpy).not.to.be.called;
+      expect(
+        generateAuthTokenRequestModule.generateAuthTokenRequest
+      ).toHaveBeenCalled();
+      expect(
+        createInstallationRequestModule.createInstallationRequest
+      ).not.toHaveBeenCalled();
     });
 
     it('does not call generateAuthToken twice on subsequent calls', async () => {
       await getToken(installations);
       await getToken(installations);
-      expect(generateAuthTokenRequestSpy).to.be.calledOnce;
+      expect(
+        generateAuthTokenRequestModule.generateAuthTokenRequest
+      ).toHaveBeenCalledTimes(1);
     });
 
     it('does not call generateAuthToken twice on simultaneous calls', async () => {
       await Promise.all([getToken(installations), getToken(installations)]);
-      expect(generateAuthTokenRequestSpy).to.be.calledOnce;
+      expect(
+        generateAuthTokenRequestModule.generateAuthTokenRequest
+      ).toHaveBeenCalledTimes(1);
     });
 
     it('throws if the app is offline', async () => {
-      stub(navigator, 'onLine').value(false);
+      vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
 
-      await expect(getToken(installations)).to.be.rejected;
+      await expect(getToken(installations)).rejects.toThrow();
     });
 
     describe('and the server returns an error', () => {
       it('removes the FID from the DB if the server returns a 401 response', async () => {
-        generateAuthTokenRequestSpy.callsFake(async () => {
+        vi.mocked(
+          generateAuthTokenRequestModule.generateAuthTokenRequest
+        ).mockImplementation(async () => {
           throw ERROR_FACTORY.create(ErrorCode.REQUEST_FAILED, {
             requestName: 'Generate Auth Token',
             serverCode: 401,
@@ -324,12 +334,14 @@ describe('getToken', () => {
           });
         });
 
-        await expect(getToken(installations)).to.be.rejected;
-        await expect(get(installations.appConfig)).to.eventually.be.undefined;
+        await expect(getToken(installations)).rejects.toThrow();
+        expect(await get(installations.appConfig)).toBeUndefined();
       });
 
       it('removes the FID from the DB if the server returns a 404 response', async () => {
-        generateAuthTokenRequestSpy.callsFake(async () => {
+        vi.mocked(
+          generateAuthTokenRequestModule.generateAuthTokenRequest
+        ).mockImplementation(async () => {
           throw ERROR_FACTORY.create(ErrorCode.REQUEST_FAILED, {
             requestName: 'Generate Auth Token',
             serverCode: 404,
@@ -338,12 +350,14 @@ describe('getToken', () => {
           });
         });
 
-        await expect(getToken(installations)).to.be.rejected;
-        await expect(get(installations.appConfig)).to.eventually.be.undefined;
+        await expect(getToken(installations)).rejects.toThrow();
+        expect(await get(installations.appConfig)).toBeUndefined();
       });
 
       it('does not remove the FID from the DB if the server returns any other response', async () => {
-        generateAuthTokenRequestSpy.callsFake(async () => {
+        vi.mocked(
+          generateAuthTokenRequestModule.generateAuthTokenRequest
+        ).mockImplementation(async () => {
           throw ERROR_FACTORY.create(ErrorCode.REQUEST_FAILED, {
             requestName: 'Generate Auth Token',
             serverCode: 500,
@@ -352,10 +366,8 @@ describe('getToken', () => {
           });
         });
 
-        await expect(getToken(installations)).to.be.rejected;
-        await expect(get(installations.appConfig)).to.eventually.deep.equal(
-          installationEntry
-        );
+        await expect(getToken(installations)).rejects.toThrow();
+        expect(await get(installations.appConfig)).toEqual(installationEntry);
       });
     });
   });
@@ -378,35 +390,39 @@ describe('getToken', () => {
 
     it('does not call any server APIs', async () => {
       await getToken(installations);
-      expect(createInstallationRequestSpy).not.to.be.called;
-      expect(generateAuthTokenRequestSpy).not.to.be.called;
+      expect(
+        createInstallationRequestModule.createInstallationRequest
+      ).not.toHaveBeenCalled();
+      expect(
+        generateAuthTokenRequestModule.generateAuthTokenRequest
+      ).not.toHaveBeenCalled();
     });
 
     it('refreshes the token if forceRefresh is true', async () => {
       const token = await getToken(installations, true);
-      expect(token).to.equal(NEW_AUTH_TOKEN);
-      expect(generateAuthTokenRequestSpy).to.be.called;
+      expect(token).toBe(NEW_AUTH_TOKEN);
+      expect(
+        generateAuthTokenRequestModule.generateAuthTokenRequest
+      ).toHaveBeenCalled();
     });
 
     it('works even if the app is offline', async () => {
-      stub(navigator, 'onLine').value(false);
+      vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
 
       const token = await getToken(installations);
-      expect(token).to.equal(AUTH_TOKEN);
+      expect(token).toBe(AUTH_TOKEN);
     });
 
     it('throws if the app is offline and forceRefresh is true', async () => {
-      stub(navigator, 'onLine').value(false);
+      vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
 
-      await expect(getToken(installations, true)).to.be.rejected;
+      await expect(getToken(installations, true)).rejects.toThrow();
     });
   });
 
   describe('when there is an auth token that is about to expire in the DB', () => {
-    let clock: SinonFakeTimers;
-
     beforeEach(async () => {
-      clock = useFakeTimers({ shouldAdvanceTime: true });
+      vi.useFakeTimers({ shouldAdvanceTime: true });
       const installationEntry: RegisteredInstallationEntry = {
         fid: FID,
         registrationStatus: RequestStatus.COMPLETED,
@@ -425,14 +441,14 @@ describe('getToken', () => {
 
     it('returns a different token after expiration', async () => {
       const token1 = await getToken(installations);
-      expect(token1).to.equal(AUTH_TOKEN);
+      expect(token1).toBe(AUTH_TOKEN);
 
       // Wait 30 minutes.
-      clock.tick('30:00');
+      vi.advanceTimersByTime(30 * 60 * 1000);
 
       const token2 = await getToken(installations);
-      await expect(token2).to.equal(NEW_AUTH_TOKEN);
-      await expect(token2).not.to.equal(token1);
+      expect(token2).toBe(NEW_AUTH_TOKEN);
+      expect(token2).not.toBe(token1);
     });
   });
 
@@ -454,14 +470,16 @@ describe('getToken', () => {
 
     it('returns a different token', async () => {
       const token = await getToken(installations);
-      expect(token).to.equal(NEW_AUTH_TOKEN);
-      expect(generateAuthTokenRequestSpy).to.be.called;
+      expect(token).toBe(NEW_AUTH_TOKEN);
+      expect(
+        generateAuthTokenRequestModule.generateAuthTokenRequest
+      ).toHaveBeenCalled();
     });
 
     it('throws if the app is offline', async () => {
-      stub(navigator, 'onLine').value(false);
+      vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
 
-      await expect(getToken(installations)).to.be.rejected;
+      await expect(getToken(installations)).rejects.toThrow();
     });
   });
 });
