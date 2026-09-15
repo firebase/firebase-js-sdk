@@ -1026,7 +1026,7 @@ export class PersistentConnection extends ServerActions {
     } else {
       if ('msg' in body) {
         console.log(
-          'FIREBASE: ' + (body['msg'] as string).replace('\n', '\nFIREBASE: ')
+          'FIREBASE: ' + (body['msg'] as string).replace(/\n/g, '\nFIREBASE: ')
         );
       }
     }
