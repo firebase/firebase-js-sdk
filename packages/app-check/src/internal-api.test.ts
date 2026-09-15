@@ -362,9 +362,7 @@ describe('internal api', () => {
         isTokenAutoRefreshEnabled: true
       });
       stubGetRecaptchaToken();
-      const err = new Error('exchange error');
-      err.name = 'exchange error';
-      mockExchangeToken.mockRejectedValue(err);
+      mockExchangeToken.mockRejectedValue(new Error('exchange error'));
       const listener1 = vi.fn();
       const errorFn1 = vi.fn();
 
@@ -378,7 +376,7 @@ describe('internal api', () => {
       await getToken(appCheck as AppCheckService);
 
       expect(errorFn1).toHaveBeenCalledTimes(1);
-      expect(errorFn1.mock.calls[0][0].name).toContain('exchange error');
+      expect(errorFn1.mock.calls[0][0].message).toContain('exchange error');
     });
 
     it('ignores listeners that throw', async () => {

@@ -622,9 +622,7 @@ describe('api', () => {
 
       const fakeRecaptchaToken = 'fake-recaptcha-token';
       mockGetReCAPTCHAToken.mockResolvedValue(fakeRecaptchaToken);
-      const err = new Error('exchange error');
-      err.name = 'exchange error';
-      mockExchangeToken.mockRejectedValue(err);
+      mockExchangeToken.mockRejectedValue(new Error('exchange error'));
       storageWriteStub.mockResolvedValue(undefined);
 
       const listener1 = vi.fn();
@@ -638,7 +636,7 @@ describe('api', () => {
       expect(getStateReference(app).tokenObservers.length).toBe(1);
 
       expect(errorFn1).toHaveBeenCalledTimes(1);
-      expect(errorFn1.mock.calls[0][0].name).toContain('exchange error');
+      expect(errorFn1.mock.calls[0][0].message).toContain('exchange error');
 
       unsubscribe1();
       expect(getStateReference(app).tokenObservers.length).toBe(0);
