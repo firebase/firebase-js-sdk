@@ -51,13 +51,6 @@ export interface AI {
    * Options applied to this {@link AI} instance.
    */
   options?: AIOptions;
-  /**
-   * @deprecated use `AI.backend.location` instead.
-   *
-   * The location configured for this AI service instance, relevant for
-   * Agent Platform Gemini API backends.
-   */
-  location: string;
 }
 
 /**
@@ -80,14 +73,6 @@ export const BackendType = {
   AGENT_PLATFORM: 'AGENT_PLATFORM',
 
   /**
-   * Identifies the backend service for the Agent Platform Gemini API
-   * (formerly known as Vertex AI Gemini API) provided through Google Cloud.
-   * Use this constant when creating a {@link VertexAIBackend} configuration.
-   * @deprecated - Use {@link AgentPlatformBackend} instead.
-   */
-  VERTEX_AI: 'VERTEX_AI',
-
-  /**
    * Identifies the backend service for the Gemini Developer API ({@link https://ai.google/ | Google AI}).
    * Use this constant when creating a {@link GoogleAIBackend} configuration.
    */
@@ -96,7 +81,7 @@ export const BackendType = {
 
 /**
  * Type alias representing valid backend types.
- * It should be either `'AGENT_PLATFORM'` or `'GOOGLE_AI'` (`'VERTEX_AI'` is deprecated).
+ * It should be either `'AGENT_PLATFORM'` or `'GOOGLE_AI'`.
  *
  * @public
  */

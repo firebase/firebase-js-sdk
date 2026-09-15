@@ -47,12 +47,7 @@ export {
   TemplateGenerativeModel,
   AIError
 };
-export {
-  Backend,
-  VertexAIBackend,
-  GoogleAIBackend,
-  AgentPlatformBackend
-} from './backend';
+export { Backend, GoogleAIBackend, AgentPlatformBackend } from './backend';
 export {
   startAudioConversation,
   AudioConversationController,

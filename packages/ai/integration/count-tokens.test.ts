@@ -95,14 +95,11 @@ describe('Count Tokens', () => {
         );
         if (testConfig.ai.backend.backendType === BackendType.GOOGLE_AI) {
           expect(response.totalTokens).to.equal(7);
-          expect(response.totalBillableCharacters).to.be.undefined;
           expect(response.promptTokensDetails![0].tokenCount).to.equal(7);
         } else if (
-          testConfig.ai.backend.backendType === BackendType.VERTEX_AI ||
           testConfig.ai.backend.backendType === BackendType.AGENT_PLATFORM
         ) {
           expect(response.totalTokens).to.equal(6);
-          expect(response.totalBillableCharacters).to.equal(16);
           expect(response.promptTokensDetails![0].tokenCount).to.equal(6);
         }
       });
@@ -131,7 +128,6 @@ describe('Count Tokens', () => {
 
         if (testConfig.ai.backend.backendType === BackendType.GOOGLE_AI) {
           expect(response.totalTokens).to.equal(expectedImageTokens + 1); // There will be 1 unexpected text token
-          expect(response.totalBillableCharacters).to.be.undefined; // Incorrect behavior
           expect(response.promptTokensDetails!.length).to.equal(2);
           expect(response.promptTokensDetails![0]).to.deep.equal({
             modality: Modality.TEXT, // Note: 1 unexpected text token observed for Google AI with image-only input.
@@ -142,13 +138,11 @@ describe('Count Tokens', () => {
             tokenCount: expectedImageTokens
           });
         } else if (
-          testConfig.ai.backend.backendType === BackendType.VERTEX_AI ||
           testConfig.ai.backend.backendType === BackendType.AGENT_PLATFORM
         ) {
           expect(response.totalTokens).to.equal(expectedImageTokens);
-          expect(response.totalBillableCharacters).to.be.undefined; // Incorrect behavior
           expect(response.promptTokensDetails!.length).to.equal(1);
-          // Note: No text tokens are present for Vertex AI with image-only input.
+          // Note: No text tokens are present for Agent Platform with image-only input.
           expect(response.promptTokensDetails![0]).to.deep.equal({
             modality: Modality.IMAGE,
             tokenCount: expectedImageTokens
@@ -192,15 +186,12 @@ describe('Count Tokens', () => {
             tokenCount: 5
           });
         } else if (
-          testConfig.ai.backend.backendType === BackendType.VERTEX_AI ||
           testConfig.ai.backend.backendType === BackendType.AGENT_PLATFORM
         ) {
           expect(response.totalTokens).to.be.undefined;
-          expect(response.promptTokensDetails!.length).to.equal(1); // Note: Text modality details absent for Vertex AI with audio-only input.
-          expect(audioDetails).to.deep.equal({ modality: Modality.AUDIO }); // Note: Audio tokenCount is undefined for Vertex AI with audio-only input.
+          expect(response.promptTokensDetails!.length).to.equal(1); // Note: Text modality details absent for Agent Platform with audio-only input.
+          expect(audioDetails).to.deep.equal({ modality: Modality.AUDIO }); // Note: Audio tokenCount is undefined for Agent Platform with audio-only input.
         }
-
-        expect(response.totalBillableCharacters).to.be.undefined; // Incorrect behavior
       });
 
       it('text, image, and audio input', async () => {
@@ -248,7 +239,6 @@ describe('Count Tokens', () => {
 
         if (testConfig.ai.backend.backendType === BackendType.GOOGLE_AI) {
           expect(response.totalTokens).to.equal(expectedImageTokenCount + 9);
-          expect(response.totalBillableCharacters).to.be.undefined;
           expect(textDetails).to.deep.equal({
             modality: Modality.TEXT,
             tokenCount: 4
@@ -258,7 +248,6 @@ describe('Count Tokens', () => {
             tokenCount: 5
           });
         } else if (
-          testConfig.ai.backend.backendType === BackendType.VERTEX_AI ||
           testConfig.ai.backend.backendType === BackendType.AGENT_PLATFORM
         ) {
           expect(response.totalTokens).to.equal(expectedImageTokenCount + 3);
@@ -266,10 +255,6 @@ describe('Count Tokens', () => {
             modality: Modality.TEXT,
             tokenCount: 3
           });
-          const expectedText = 'Describe these:';
-          expect(response.totalBillableCharacters).to.equal(
-            expectedText.length - 1
-          ); // Note: BillableCharacters observed as (text length - 1) for Vertex AI.
           expect(audioDetails).to.deep.equal({ modality: Modality.AUDIO }); // Incorrect behavior because there's no tokenCount
         }
       });
@@ -298,7 +283,6 @@ describe('Count Tokens', () => {
           expectedFileTokens = 258;
         }
         expect(response.totalTokens).to.equal(expectedFileTokens);
-        expect(response.totalBillableCharacters).to.be.undefined;
         expect(response.promptTokensDetails).to.exist;
         expect(response.promptTokensDetails!.length).to.equal(1);
         expect(response.promptTokensDetails![0].modality).to.equal(

@@ -16,17 +16,9 @@
  */
 
 import { expect } from 'chai';
-import {
-  AgentPlatformBackend,
-  GoogleAIBackend,
-  VertexAIBackend
-} from './backend';
+import { AgentPlatformBackend, GoogleAIBackend } from './backend';
 import { BackendType } from './public-types';
-import {
-  DEFAULT_API_VERSION,
-  DEFAULT_LOCATION,
-  LEGACY_DEFAULT_LOCATION
-} from './constants';
+import { DEFAULT_API_VERSION, DEFAULT_LOCATION } from './constants';
 
 describe('Backend', () => {
   describe('GoogleAIBackend', () => {
@@ -44,40 +36,6 @@ describe('Backend', () => {
       const backend = new GoogleAIBackend();
       expect(backend._getTemplatePath('my-project', 'template-id')).to.equal(
         `/${DEFAULT_API_VERSION}/projects/my-project/templates/template-id`
-      );
-    });
-  });
-  describe('VertexAIBackend', () => {
-    it('set backendType to VERTEX_AI', () => {
-      const backend = new VertexAIBackend();
-      expect(backend.backendType).to.equal(BackendType.VERTEX_AI);
-      expect(backend.location).to.equal(LEGACY_DEFAULT_LOCATION);
-    });
-    it('sets custom location', () => {
-      const backend = new VertexAIBackend('test-location');
-      expect(backend.backendType).to.equal(BackendType.VERTEX_AI);
-      expect(backend.location).to.equal('test-location');
-    });
-    it('uses default location if location is empty string', () => {
-      const backend = new VertexAIBackend('');
-      expect(backend.backendType).to.equal(BackendType.VERTEX_AI);
-      expect(backend.location).to.equal(LEGACY_DEFAULT_LOCATION);
-    });
-    it('uses default location if location is null', () => {
-      const backend = new VertexAIBackend(null as any);
-      expect(backend.backendType).to.equal(BackendType.VERTEX_AI);
-      expect(backend.location).to.equal(LEGACY_DEFAULT_LOCATION);
-    });
-    it('getModelPath', () => {
-      const backend = new VertexAIBackend();
-      expect(backend._getModelPath('my-project', 'model-name')).to.equal(
-        `/${DEFAULT_API_VERSION}/projects/my-project/locations/${backend.location}/model-name`
-      );
-    });
-    it('getTemplatePath', () => {
-      const backend = new VertexAIBackend();
-      expect(backend._getTemplatePath('my-project', 'template-id')).to.equal(
-        `/${DEFAULT_API_VERSION}/projects/my-project/locations/${backend.location}/templates/template-id`
       );
     });
   });

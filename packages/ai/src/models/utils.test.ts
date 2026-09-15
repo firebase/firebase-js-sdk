@@ -80,8 +80,7 @@ describe('initApiSettings', () => {
           projectId: 'my-project'
         }
       },
-      backend: new AgentPlatformBackend('global'),
-      location: 'global'
+      backend: new AgentPlatformBackend('global')
     };
     try {
       initApiSettings(fakeAI);
@@ -98,8 +97,7 @@ describe('initApiSettings', () => {
           apiKey: 'key'
         }
       },
-      backend: new AgentPlatformBackend('global'),
-      location: 'global'
+      backend: new AgentPlatformBackend('global')
     };
     try {
       initApiSettings(fakeAI);
@@ -117,8 +115,7 @@ describe('initApiSettings', () => {
           projectId: 'my-project'
         }
       },
-      backend: new AgentPlatformBackend('global'),
-      location: 'global'
+      backend: new AgentPlatformBackend('global')
     };
     try {
       initApiSettings(fakeAI);

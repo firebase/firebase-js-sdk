@@ -42,7 +42,6 @@ const fakeApiSettings: ApiSettings = {
   apiKey: 'key',
   project: 'my-project',
   appId: 'my-appid',
-  location: 'global',
   backend: new AgentPlatformBackend()
 };
 
@@ -127,7 +126,6 @@ describe('request methods', () => {
       apiKey: 'key',
       project: 'myproject',
       appId: 'my-appid',
-      location: 'moon',
       backend: new AgentPlatformBackend(),
       getAuthToken: () => Promise.resolve({ accessToken: 'authtoken' }),
       getAppCheckToken: () => Promise.resolve({ token: 'appchecktoken' })
@@ -170,7 +168,6 @@ describe('request methods', () => {
         apiKey: 'key',
         project: 'myproject',
         appId: 'my-appid',
-        location: 'moon',
         backend: new AgentPlatformBackend(),
         automaticDataCollectionEnabled: true,
         getAuthToken: () => Promise.resolve({ accessToken: 'authtoken' }),
@@ -195,7 +192,6 @@ describe('request methods', () => {
         apiKey: 'key',
         project: 'myproject',
         appId: 'my-appid',
-        location: 'moon',
         backend: new AgentPlatformBackend(),
         automaticDataCollectionEnabled: false,
         getAuthToken: () => Promise.resolve({ accessToken: 'authtoken' }),
@@ -223,7 +219,6 @@ describe('request methods', () => {
           apiKey: 'key',
           project: 'myproject',
           appId: 'my-appid',
-          location: 'moon',
           backend: new AgentPlatformBackend()
         },
         stream: true,
@@ -239,7 +234,6 @@ describe('request methods', () => {
         apiSettings: {
           apiKey: 'key',
           project: 'myproject',
-          location: 'moon',
           //@ts-ignore
           getAppCheckToken: () => Promise.resolve()
         },
@@ -257,7 +251,6 @@ describe('request methods', () => {
           apiKey: 'key',
           project: 'myproject',
           appId: 'my-appid',
-          location: 'moon',
           backend: new AgentPlatformBackend(),
           getAppCheckToken: () =>
             Promise.resolve({ token: 'dummytoken', error: Error('oops') })
@@ -285,7 +278,6 @@ describe('request methods', () => {
           apiKey: 'key',
           project: 'myproject',
           appId: 'my-appid',
-          location: 'moon',
           backend: new AgentPlatformBackend()
         },
         stream: true,
@@ -301,7 +293,6 @@ describe('request methods', () => {
         apiSettings: {
           apiKey: 'key',
           project: 'myproject',
-          location: 'moon',
           //@ts-ignore
           getAppCheckToken: () => Promise.resolve()
         },

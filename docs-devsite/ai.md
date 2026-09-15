@@ -48,7 +48,6 @@ The Firebase AI Web SDK.
 |  [Schema](./ai.schema.md#schema_class) | Parent class encompassing all Schema types, with static methods that allow building specific Schema types. This class can be converted with <code>JSON.stringify()</code> into a JSON string accepted by Agent Platform Gemini API and Gemini Developer API REST endpoints. (This string conversion is automatically done when calling SDK methods.) |
 |  [StringSchema](./ai.stringschema.md#stringschema_class) | Schema class for "string" types. Can be used with or without enum values. |
 |  [TemplateGenerativeModel](./ai.templategenerativemodel.md#templategenerativemodel_class) | <b><i>(Public Preview)</i></b> [GenerativeModel](./ai.generativemodel.md#generativemodel_class) APIs that execute on a server-side template.<!-- -->This class should only be instantiated with [getTemplateGenerativeModel()](./ai.md#gettemplategenerativemodel_9476bbc)<!-- -->. |
-|  [VertexAIBackend](./ai.vertexaibackend.md#vertexaibackend_class) | Configuration class for the Agent Platform Gemini API (formerly known as the Vertex AI Gemini API).<!-- -->Use this with [AIOptions](./ai.aioptions.md#aioptions_interface) when initializing the AI service via [getAI()](./ai.md#getai_a94a413) to specify the Agent Platform Gemini API as the backend. |
 
 ## Interfaces
 
@@ -196,7 +195,7 @@ The Firebase AI Web SDK.
 |  Type Alias | Description |
 |  --- | --- |
 |  [AIErrorCode](./ai.md#aierrorcode) | Standardized error codes that [AIError](./ai.aierror.md#aierror_class) can have. |
-|  [BackendType](./ai.md#backendtype) | Type alias representing valid backend types. It should be either <code>'AGENT_PLATFORM'</code> or <code>'GOOGLE_AI'</code> (<code>'VERTEX_AI'</code> is deprecated). |
+|  [BackendType](./ai.md#backendtype) | Type alias representing valid backend types. It should be either <code>'AGENT_PLATFORM'</code> or <code>'GOOGLE_AI'</code>. |
 |  [BlockReason](./ai.md#blockreason) | Reason that a prompt was blocked. |
 |  [FinishReason](./ai.md#finishreason) | Reason that a candidate finished. |
 |  [FunctionCallingMode](./ai.md#functioncallingmode) |  |
@@ -462,7 +461,6 @@ These values are assigned to the `backendType` property within the specific back
 ```typescript
 BackendType: {
     readonly AGENT_PLATFORM: "AGENT_PLATFORM";
-    readonly VERTEX_AI: "VERTEX_AI";
     readonly GOOGLE_AI: "GOOGLE_AI";
 }
 ```
@@ -823,7 +821,7 @@ export type AIErrorCode = (typeof AIErrorCode)[keyof typeof AIErrorCode];
 
 ## BackendType
 
-Type alias representing valid backend types. It should be either `'AGENT_PLATFORM'` or `'GOOGLE_AI'` (`'VERTEX_AI'` is deprecated).
+Type alias representing valid backend types. It should be either `'AGENT_PLATFORM'` or `'GOOGLE_AI'`<!-- -->.
 
 <b>Signature:</b>
 
