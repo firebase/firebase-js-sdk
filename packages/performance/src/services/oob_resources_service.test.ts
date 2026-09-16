@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Api, setupApi, EntryType } from './api_service';
+import { Api, setupApi } from './api_service';
 import * as iidService from './iid_service';
 import { setupOobResources, resetForUnitTests } from './oob_resources_service';
 import { Trace } from '../resources/trace';
@@ -23,7 +23,6 @@ import '../../test/setup';
 import { PerformanceController } from '../controllers/perf';
 import { FirebaseApp } from '@firebase/app';
 import { FirebaseInstallations } from '@firebase/installations-types';
-import { WebVitalMetrics } from '../resources/web_vitals';
 import {
   CLSAttribution,
   CLSMetricWithAttribution,
