@@ -18,6 +18,8 @@
 import { vi, afterEach } from 'vitest';
 import { clear } from '../helpers/idb-manager';
 
+// Suppress app-offline rejections emitted by Chromium during async IndexedDB
+// writes in getInstallationEntry() before the promise is returned to callers.
 if (typeof window !== 'undefined') {
   window.addEventListener('unhandledrejection', event => {
     if (

@@ -94,10 +94,12 @@ describe('getInstallationEntry', () => {
     const oldDbEntry = await get(appConfig);
     expect(oldDbEntry).toBeUndefined();
 
-    const { installationEntry } = await getInstallationEntry(fakeInstallations);
+    const { installationEntry, registrationPromise } =
+      await getInstallationEntry(fakeInstallations);
 
     const newDbEntry = await get(appConfig);
     expect(newDbEntry).toEqual(installationEntry);
+    await expect(registrationPromise).rejects.toThrow('Application offline');
   });
 
   it('saves the InstallationEntry in the database when registration completes', async () => {
@@ -213,7 +215,7 @@ describe('getInstallationEntry', () => {
     it('returns a new unregistered InstallationEntry if app is offline', async () => {
       vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
 
-      const { installationEntry } =
+      const { installationEntry, registrationPromise } =
         await getInstallationEntry(fakeInstallations);
 
       expect(installationEntry).toEqual({
@@ -224,6 +226,7 @@ describe('getInstallationEntry', () => {
       expect(
         createInstallationRequestModule.createInstallationRequest
       ).not.toHaveBeenCalled();
+      await expect(registrationPromise).rejects.toThrow('Application offline');
     });
 
     it('does not trigger createInstallation REST call on subsequent calls', async () => {
@@ -325,7 +328,7 @@ describe('getInstallationEntry', () => {
     it('returns the same InstallationEntry if the app is offline', async () => {
       vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
 
-      const { installationEntry } =
+      const { installationEntry, registrationPromise } =
         await getInstallationEntry(fakeInstallations);
 
       expect(installationEntry).toEqual({
@@ -335,6 +338,7 @@ describe('getInstallationEntry', () => {
       expect(
         createInstallationRequestModule.createInstallationRequest
       ).not.toHaveBeenCalled();
+      await expect(registrationPromise).rejects.toThrow('Application offline');
     });
   });
 
@@ -461,7 +465,7 @@ describe('getInstallationEntry', () => {
       vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
       vi.setSystemTime(1_015_000); // Fifteen seconds after the request was initiated.
 
-      const { installationEntry } =
+      const { installationEntry, registrationPromise } =
         await getInstallationEntry(fakeInstallations);
 
       expect(installationEntry).toEqual({
@@ -471,6 +475,7 @@ describe('getInstallationEntry', () => {
       expect(
         createInstallationRequestModule.createInstallationRequest
       ).not.toHaveBeenCalled();
+      await expect(registrationPromise).rejects.toThrow('Application offline');
     });
   });
 
