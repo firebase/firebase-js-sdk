@@ -18,13 +18,7 @@
 import { initializePerformance } from './index';
 import { ERROR_FACTORY, ErrorCode } from './utils/errors';
 import '../test/setup';
-import {
-  deleteApp,
-  FirebaseApp,
-  initializeApp,
-  _addOrOverwriteComponent
-} from '@firebase/app';
-import { Component, ComponentType } from '@firebase/component';
+import { deleteApp, FirebaseApp, initializeApp } from '@firebase/app';
 import { PerformanceController } from './controllers/perf';
 import { vi } from 'vitest';
 
@@ -41,22 +35,11 @@ const fakeFirebaseConfig = {
 describe('Firebase Performance > initializePerformance()', () => {
   let app: FirebaseApp;
   beforeEach(() => {
+    // Stub _init to prevent background IndexedDB and transport setup during tests.
     vi.spyOn(PerformanceController.prototype, '_init').mockImplementation(
       () => {}
     );
     app = initializeApp(fakeFirebaseConfig);
-    _addOrOverwriteComponent(
-      app,
-      new Component(
-        'heartbeat',
-        () =>
-          ({
-            triggerHeartbeat: () => {},
-            getHeartbeatsHeader: () => Promise.resolve('')
-          }) as any,
-        ComponentType.PUBLIC
-      )
-    );
   });
   afterEach(async () => {
     if (app) {

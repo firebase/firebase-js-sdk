@@ -44,11 +44,7 @@ describe('Firebase Performance > transport_service', () => {
   });
 
   afterEach(() => {
-    vi.useRealTimers();
     resetTransportService();
-    sendBeaconStub.mockRestore();
-    fetchStub.mockRestore();
-    vi.clearAllMocks();
   });
 
   it('throws an error when logging an empty message', () => {

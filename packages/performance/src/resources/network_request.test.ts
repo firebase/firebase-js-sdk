@@ -46,11 +46,6 @@ describe('Firebase Performance > network_request', () => {
     );
   });
 
-  afterEach(() => {
-    vi.restoreAllMocks();
-    vi.clearAllMocks();
-  });
-
   describe('#createNetworkRequestEntry', () => {
     it('logs network request when all required fields present', () => {
       const PERFORMANCE_ENTRY = {

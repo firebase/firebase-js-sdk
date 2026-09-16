@@ -55,11 +55,6 @@ describe('Firebase Performance > api_service', () => {
     api = Api.getInstance();
   });
 
-  afterEach(() => {
-    vi.restoreAllMocks();
-    vi.clearAllMocks();
-  });
-
   describe('getUrl', () => {
     it('removes the query params', () => {
       expect(api.getUrl()).toBe('http://www.test.com/abcd');
