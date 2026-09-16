@@ -64,8 +64,8 @@ describe('FirebaseAnalytics Integration Smoke Tests', () => {
       expect(eventCalls[0].name).toContain('method=phone');
     });
     it("Warns if measurement ID doesn't match.", done => {
-      const warnStub = vi.spyOn(console, 'warn').mockImplementation(() => {
-        expect(warnStub.mock.calls[0][1]).toContain('does not match');
+      vi.spyOn(console, 'warn').mockImplementation((_tag, message) => {
+        expect(message).toContain('does not match');
         done();
       });
       app = initializeApp({

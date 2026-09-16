@@ -16,7 +16,6 @@
  */
 
 import { expect, vi, MockInstance } from 'vitest';
-import '../testing/setup';
 import { DataLayer, Gtag, DynamicConfig } from './types';
 import {
   getOrCreateDataLayer,

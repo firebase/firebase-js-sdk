@@ -16,7 +16,6 @@
  */
 
 import { expect, vi, MockInstance } from 'vitest';
-import '../testing/setup';
 import { settings } from './index';
 import {
   getFakeApp,
@@ -186,7 +185,6 @@ describe('FirebaseAnalytics instance tests', () => {
     const gtagStub: MockInstance = vi.fn();
     let fidDeferred: Deferred<void>;
     let warnStub: MockInstance;
-    let cookieStub: MockInstance;
     beforeEach(() => {
       vi.useFakeTimers({ toFake: ['Date', 'setTimeout', 'clearTimeout'] });
       resetGlobalVars();
@@ -205,34 +203,31 @@ describe('FirebaseAnalytics instance tests', () => {
       delete window['gtag'];
       delete window['dataLayer'];
       removeGtagScripts();
-      fetchStub.mockRestore();
-      warnStub.mockRestore();
-      idbOpenStub.mockRestore();
       gtagStub.mockClear();
-      vi.useRealTimers();
     });
     it('Warns on initialization if cookies not available', async () => {
-      cookieStub = vi
-        .spyOn(navigator, 'cookieEnabled', 'get')
-        .mockReturnValue(false);
+      vi.spyOn(navigator, 'cookieEnabled', 'get').mockReturnValue(false);
       analyticsInstance = analyticsFactory(app, fakeInstallations);
       // Successfully resolves fake IDB open request.
       fakeRequest.onsuccess();
-      expect(warnStub.mock.calls[0][1]).toContain(
+      expect(warnStub).toHaveBeenCalled();
+      const warningMessage = warnStub.mock.calls[0][1];
+      expect(warningMessage).toContain(
         AnalyticsError.INVALID_ANALYTICS_CONTEXT
       );
-      expect(warnStub.mock.calls[0][1]).toContain('Cookies');
-      cookieStub.mockRestore();
+      expect(warningMessage).toContain('Cookies');
     });
     it('Warns on initialization if in browser extension', async () => {
       window.chrome = { runtime: { id: 'blah' } };
       analyticsInstance = analyticsFactory(app, fakeInstallations);
       // Successfully resolves fake IDB open request.
       fakeRequest.onsuccess();
-      expect(warnStub.mock.calls[0][1]).toContain(
+      expect(warnStub).toHaveBeenCalled();
+      const warningMessage = warnStub.mock.calls[0][1];
+      expect(warningMessage).toContain(
         AnalyticsError.INVALID_ANALYTICS_CONTEXT
       );
-      expect(warnStub.mock.calls[0][1]).toContain('browser extension');
+      expect(warningMessage).toContain('browser extension');
       window.chrome = undefined;
     });
     it('Warns on logEvent if indexedDB API not available', async () => {
@@ -252,12 +247,10 @@ describe('FirebaseAnalytics instance tests', () => {
           update: true,
           origin: 'firebase'
         });
-        expect(warnStub.mock.calls[0][1]).toContain(
-          AnalyticsError.INDEXEDDB_UNAVAILABLE
-        );
-        expect(warnStub.mock.calls[0][1]).toContain(
-          'IndexedDB is not available'
-        );
+        expect(warnStub).toHaveBeenCalled();
+        const warningMessage1 = warnStub.mock.calls[0][1];
+        expect(warningMessage1).toContain(AnalyticsError.INDEXEDDB_UNAVAILABLE);
+        expect(warningMessage1).toContain('IndexedDB is not available');
       } finally {
         idbStub.mockRestore();
         stubIdbOpen();
@@ -279,10 +272,10 @@ describe('FirebaseAnalytics instance tests', () => {
         update: true,
         origin: 'firebase'
       });
-      expect(warnStub.mock.calls[0][1]).toContain(
-        AnalyticsError.INDEXEDDB_UNAVAILABLE
-      );
-      expect(warnStub.mock.calls[0][1]).toContain('idb open error test');
+      expect(warnStub).toHaveBeenCalled();
+      const warningMessage2 = warnStub.mock.calls[0][1];
+      expect(warningMessage2).toContain(AnalyticsError.INDEXEDDB_UNAVAILABLE);
+      expect(warningMessage2).toContain('idb open error test');
     });
   });
 
@@ -315,9 +308,6 @@ describe('FirebaseAnalytics instance tests', () => {
       delete window[customGtagName];
       delete window[customDataLayerName];
       removeGtagScripts();
-      fetchStub.mockRestore();
-      idbOpenStub.mockRestore();
-      vi.useRealTimers();
     });
     it('Calls gtag correctly on logEvent (instance)', async () => {
       logEvent(analyticsInstance, 'add_payment_info', {
@@ -366,8 +356,6 @@ describe('FirebaseAnalytics instance tests', () => {
       delete window['gtag'];
       delete window['dataLayer'];
       removeGtagScripts();
-      fetchStub.mockRestore();
-      idbOpenStub.mockRestore();
     });
   });
 });

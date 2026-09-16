@@ -16,7 +16,6 @@
  */
 
 import { expect, vi, MockInstance } from 'vitest';
-import '../testing/setup';
 import {
   fetchDynamicConfig,
   fetchDynamicConfigWithRetry,
@@ -111,8 +110,10 @@ describe('Dynamic Config Fetch Functions', () => {
         measurementId: fakeMeasurementId
       });
       await fetchDynamicConfigWithRetry(app);
-      expect(consoleStub.mock.calls[0][1]).toContain(fakeMeasurementId);
-      consoleStub.mockRestore();
+      expect(consoleStub).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.stringContaining(fakeMeasurementId)
+      );
     });
     it('retries on retriable error until success', async () => {
       // Configures Date.now() to advance clock from zero in 20ms increments, enabling
@@ -120,8 +121,8 @@ describe('Dynamic Config Fetch Functions', () => {
       vi.useFakeTimers({ shouldAdvanceTime: true, now: 0 });
 
       // Ensures backoff is always zero, which simplifies reasoning about timer.
-      const powSpy = vi.spyOn(Math, 'pow').mockReturnValue(0);
-      const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0.5);
+      vi.spyOn(Math, 'pow').mockReturnValue(0);
+      vi.spyOn(Math, 'random').mockReturnValue(0.5);
       const fakeRetryData = {
         throttleMetadata: {},
         getThrottleMetadata: vi.fn(),
@@ -166,10 +167,6 @@ describe('Dynamic Config Fetch Functions', () => {
       );
       expect(config.appId).toBe(fakeAppId);
       expect(config.measurementId).toBe(fakeMeasurementId);
-
-      powSpy.mockRestore();
-      randomSpy.mockRestore();
-      vi.useRealTimers();
     });
     it('retries on retriable error until aborted by timeout', async () => {
       const fakeRetryData = {
@@ -249,7 +246,6 @@ describe('Dynamic Config Fetch Functions', () => {
           expect.anything(),
           expect.stringContaining(fakeMeasurementId)
         );
-        consoleStub.mockRestore();
       }
     );
   });

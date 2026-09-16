@@ -16,7 +16,6 @@
  */
 
 import { expect, vi, MockInstance } from 'vitest';
-import '../testing/setup';
 import { _initializeAnalytics } from './initialize-analytics';
 import {
   getFakeApp,
@@ -66,7 +65,6 @@ describe('initializeAnalytics()', () => {
     fakeInstallations = getFakeInstallations(fakeFid, fidDeferred.resolve);
   });
   afterEach(() => {
-    fetchStub.mockRestore();
     removeGtagScripts();
   });
   it('gets FID and measurement ID and calls gtag config with them', async () => {
@@ -193,9 +191,10 @@ describe('initializeAnalytics()', () => {
       gtagStub,
       'dataLayer'
     );
-    expect(consoleStub.mock.calls[0][1]).toContain(fakeMeasurementId);
-    expect(consoleStub.mock.calls[0][1]).toContain('old-measurement-id');
-    expect(consoleStub.mock.calls[0][1]).toContain('does not match');
-    consoleStub.mockRestore();
+    expect(consoleStub).toHaveBeenCalled();
+    const warningMessage = consoleStub.mock.calls[0][1];
+    expect(warningMessage).toContain(fakeMeasurementId);
+    expect(warningMessage).toContain('old-measurement-id');
+    expect(warningMessage).toContain('does not match');
   });
 });

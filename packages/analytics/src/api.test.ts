@@ -16,7 +16,6 @@
  */
 
 import { expect, vi } from 'vitest';
-import '../testing/setup';
 import { getFullApp } from '../testing/get-fake-firebase-services';
 import {
   getAnalytics,
@@ -26,7 +25,6 @@ import {
 } from './api';
 import { FirebaseApp, deleteApp } from '@firebase/app';
 import { AnalyticsError } from './errors';
-import * as init from './initialize-analytics';
 const fakeAppParams = { appId: 'abcdefgh12345:23405', apiKey: 'AAbbCCdd12345' };
 
 const { mockInitializeAnalytics } = vi.hoisted(() => ({
@@ -60,7 +58,6 @@ describe('FirebaseAnalytics API tests', () => {
   });
 
   afterEach(async () => {
-    await mockInitializeAnalytics();
     mockInitializeAnalytics.mockReset();
     _setWrappedGtagFunction(undefined);
     wrappedGtag.mockReset();
