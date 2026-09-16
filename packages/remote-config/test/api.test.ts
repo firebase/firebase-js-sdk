@@ -97,22 +97,9 @@ describe('Remote Config API', () => {
         ComponentType.PUBLIC
       ) as any
     );
-    _addOrOverwriteComponent(
-      app,
-      new Component(
-        'heartbeat',
-        () =>
-          ({
-            triggerHeartbeat: () => {},
-            getHeartbeatsHeader: () => Promise.resolve('')
-          }) as any,
-        ComponentType.PUBLIC
-      )
-    );
   });
 
   afterEach(async () => {
-    fetchStub.mockRestore();
     await clearDatabase();
     await deleteApp(app);
   });
@@ -225,8 +212,6 @@ describe('Remote Config API', () => {
 
     afterEach(() => {
       capturedObserver = undefined;
-      addObserverStub.mockRestore();
-      removeObserverStub.mockRestore();
     });
 
     it('should call addObserver on the internal realtimeHandler', async () => {

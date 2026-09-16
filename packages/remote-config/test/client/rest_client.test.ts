@@ -20,7 +20,7 @@ import { expect, vi, MockInstance } from 'vitest';
 import { RestClient } from '../../src/client/rest_client';
 import { FirebaseInstallations } from '@firebase/installations-types';
 import { ERROR_FACTORY, ErrorCode } from '../../src/errors';
-import { FirebaseError } from '@firebase/util';
+import { getUserLanguage } from '../../src/language';
 import {
   FetchRequest,
   RemoteConfigAbortSignal
@@ -58,10 +58,6 @@ describe('RestClient', () => {
       fetchStub = vi
         .spyOn(window, 'fetch')
         .mockResolvedValue(new Response('{}'));
-    });
-
-    afterEach(() => {
-      fetchStub.mockRestore();
     });
 
     it('handles 200/UPDATE responses', async () => {
@@ -132,9 +128,17 @@ describe('RestClient', () => {
       expect(fetchStub).toHaveBeenCalledWith(
         expect.any(String),
         expect.objectContaining({
-          body: '{"sdk_version":"sdk-version","app_instance_id":"fis-id","app_instance_id_token":"fis-token","app_id":"app-id","language_code":"en-US"}'
+          body: expect.any(String)
         })
       );
+      const requestInit = fetchStub.mock.calls[0][1];
+      expect(JSON.parse(requestInit.body)).toEqual({
+        'sdk_version': 'sdk-version',
+        'app_instance_id': 'fis-id',
+        'app_instance_id_token': 'fis-token',
+        'app_id': 'app-id',
+        'language_code': getUserLanguage()
+      });
     });
 
     it('throws on network failure', async () => {

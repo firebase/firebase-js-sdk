@@ -52,10 +52,6 @@ describe('CachingClient', () => {
     vi.useFakeTimers({ now: 3000 }); // Mocks Date.now as 3000.
   });
 
-  afterEach(() => {
-    vi.useRealTimers();
-  });
-
   describe('isCacheDataFresh', () => {
     it('returns false if cached response is older than max age', () => {
       expect(

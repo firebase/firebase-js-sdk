@@ -60,7 +60,6 @@ describe('RetryingClient', () => {
       await timeoutPromise;
 
       expect(setTimeoutSpy).toHaveBeenCalledWith(expect.anything(), 1);
-      setTimeoutSpy.mockRestore();
     });
 
     it('Normalizes end time in the past to zero backoff', async () => {
@@ -70,7 +69,6 @@ describe('RetryingClient', () => {
       await timeoutPromise;
 
       expect(setTimeoutSpy).toHaveBeenCalledWith(expect.anything(), 0);
-      setTimeoutSpy.mockRestore();
     });
 
     it('listens for abort event and rejects promise', async () => {
@@ -110,8 +108,6 @@ describe('RetryingClient', () => {
       expect(setTimeoutSpy).toHaveBeenCalledWith(expect.anything(), 0);
 
       expect(storage.deleteThrottleMetadata).toHaveBeenCalled();
-
-      setTimeoutSpy.mockRestore();
     });
 
     it('rethrows unretriable errors rather than retrying', async () => {
@@ -135,8 +131,8 @@ describe('RetryingClient', () => {
       });
 
       // Ensures backoff is always zero, which simplifies reasoning about timer.
-      const powSpy = vi.spyOn(Math, 'pow').mockReturnValue(0);
-      const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0.5);
+      vi.spyOn(Math, 'pow').mockReturnValue(0);
+      vi.spyOn(Math, 'random').mockReturnValue(0.5);
 
       // Simulates a service call that returns errors several times before returning success.
       // Error codes from logs.
@@ -168,10 +164,6 @@ describe('RetryingClient', () => {
           throttleEndTimeMillis: i * 20
         });
       }
-
-      powSpy.mockRestore();
-      randomSpy.mockRestore();
-      vi.useRealTimers();
     });
   });
 
@@ -187,9 +179,6 @@ describe('RetryingClient', () => {
       await retryingClient.attemptFetch(DEFAULT_REQUEST, throttleMetadata);
 
       expect(setTimeoutSpy).toHaveBeenCalledWith(expect.anything(), 123);
-
-      vi.useRealTimers();
-      setTimeoutSpy.mockRestore();
     });
   });
 });

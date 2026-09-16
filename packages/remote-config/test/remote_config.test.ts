@@ -42,7 +42,6 @@ import {
   fetchConfig,
   setCustomSignals
 } from '../src/api';
-import * as api from '../src/api';
 import { fetchAndActivate } from '../src';
 import { Experiment } from '../src/abt/experiment';
 import { Provider } from '@firebase/component';
@@ -97,7 +96,6 @@ describe('RemoteConfig', () => {
   let analyticsProvider: Provider<FirebaseAnalyticsInternalName>;
 
   let getActiveConfigStub: MockInstance;
-  let loggerDebugSpy: MockInstance;
   let loggerLogLevelSpy: MockInstance;
 
   beforeEach(() => {
@@ -111,7 +109,7 @@ describe('RemoteConfig', () => {
     logger = new Logger('package-name');
     getActiveConfigStub = vi.fn().mockReturnValue(undefined);
     storageCache.getActiveConfig = getActiveConfigStub;
-    loggerDebugSpy = vi.spyOn(logger, 'debug').mockImplementation(() => {});
+    vi.spyOn(logger, 'debug').mockImplementation(() => {});
     loggerLogLevelSpy = vi.spyOn(logger, 'logLevel', 'set');
     rc = new RemoteConfig(
       app,
@@ -122,11 +120,6 @@ describe('RemoteConfig', () => {
       realtimeHandler,
       analyticsProvider
     );
-  });
-
-  afterEach(() => {
-    loggerDebugSpy.mockRestore();
-    loggerLogLevelSpy.mockRestore();
   });
 
   describe('setCustomSignals', () => {
@@ -454,10 +447,6 @@ describe('RemoteConfig', () => {
         setActiveConfigTemplateVersionStub;
     });
 
-    afterEach(() => {
-      updateActiveExperimentsStub.mockRestore();
-    });
-
     it('does not activate if last successful fetch response is undefined', async () => {
       getLastSuccessfulFetchResponseStub.mockResolvedValue(undefined);
       getActiveConfigEtagStub.mockResolvedValue(ETAG);
@@ -573,10 +562,6 @@ describe('RemoteConfig', () => {
       storageCache.setLastFetchStatus = vi.fn();
       storageCache.getCustomSignals = vi.fn();
       timeoutStub = vi.spyOn(window, 'setTimeout');
-    });
-
-    afterEach(() => {
-      timeoutStub.mockRestore();
     });
 
     it('defines a default timeout', async () => {

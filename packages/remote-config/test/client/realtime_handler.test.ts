@@ -15,13 +15,8 @@
  * limitations under the License.
  */
 
-import { expect, use, vi, MockInstance } from 'vitest';
+import { expect, vi, MockInstance } from 'vitest';
 import { RealtimeHandler } from '../../src/client/realtime_handler';
-import { _FirebaseInstallationsInternal } from '@firebase/installations';
-import { Logger } from '@firebase/logger';
-import { Storage } from '../../src/storage/storage';
-import { StorageCache } from '../../src/storage/storage_cache';
-import { CachingClient } from '../../src/client/caching_client';
 import { ConfigUpdateObserver, FetchResponse } from '../../src/public_types';
 import { ErrorCode } from '../../src/errors';
 import { VisibilityMonitor } from '../../src/client/visibility_monitor';
@@ -74,7 +69,6 @@ describe('RealtimeHandler', () => {
   let mockCachingClient: any;
   let mockLogger: any;
   let realtime: RealtimeHandler;
-  let clock: any;
   let visibilityMonitorOnStub: MockInstance;
 
   beforeEach(async () => {
@@ -145,11 +139,6 @@ describe('RealtimeHandler', () => {
       mockStorageCache as any,
       mockCachingClient as any
     );
-  });
-
-  afterEach(() => {
-    vi.restoreAllMocks();
-    vi.useRealTimers();
   });
 
   describe('constructor', () => {
@@ -464,11 +453,6 @@ describe('RealtimeHandler', () => {
       );
       mockStorage.getActiveConfig.mockResolvedValue({ existingKey: 'value' });
       mockStorage.getActiveConfigTemplateVersion.mockResolvedValue(1);
-    });
-
-    afterEach(() => {
-      autoFetchSpy.mockRestore();
-      executeAllListenerCallbacksSpy.mockRestore();
     });
 
     it('should fetch, identify changed keys, and notify observers', async () => {
@@ -875,11 +859,6 @@ describe('RealtimeHandler', () => {
       propagateErrorSpy = vi.spyOn(realtime as any, 'propagateError');
     });
 
-    afterEach(() => {
-      fetchLatestConfigStub.mockRestore();
-      propagateErrorSpy.mockRestore();
-    });
-
     it('should call fetchLatestConfig after a random delay', async () => {
       (realtime as any).autoFetch(MAXIMUM_FETCH_ATTEMPTS, 10);
       await vi.runAllTimersAsync();
@@ -902,23 +881,12 @@ describe('RealtimeHandler', () => {
   describe('handleNotifications', () => {
     let mockReader: ReadableStreamDefaultReader<Uint8Array>;
     let autoFetchSpy: MockInstance;
-    let executeAllListenerCallbacksSpy: MockInstance;
     let propagateErrorSpy: MockInstance;
 
     beforeEach(() => {
       autoFetchSpy = vi.spyOn(realtime as any, 'autoFetch');
-      executeAllListenerCallbacksSpy = vi.spyOn(
-        realtime as any,
-        'executeAllListenerCallbacks'
-      );
       propagateErrorSpy = vi.spyOn(realtime as any, 'propagateError');
       (realtime as any).observers.add({});
-    });
-
-    afterEach(() => {
-      autoFetchSpy.mockRestore();
-      executeAllListenerCallbacksSpy.mockRestore();
-      propagateErrorSpy.mockRestore();
     });
 
     it('should set backoff metadata if REALTIME_RETRY_INTERVAL is present', async () => {
@@ -1016,10 +984,6 @@ describe('RealtimeHandler', () => {
         numFailedStreams: 0
       });
       (realtime as any).httpRetriesRemaining = ORIGINAL_RETRIES;
-    });
-
-    afterEach(() => {
-      retryHttpConnectionWhenBackoffEndsSpy.mockRestore();
     });
 
     it('should successfully establish and handle a connection', async () => {
@@ -1184,10 +1148,6 @@ describe('RealtimeHandler', () => {
         .mockResolvedValue(undefined);
     });
 
-    afterEach(() => {
-      beginRealtimeStub.mockRestore();
-    });
-
     it('addObserver should add an observer and start the realtime connection', async () => {
       await realtime.addObserver(observer);
       expect((realtime as any).observers.has(observer)).toBe(true);
@@ -1211,11 +1171,6 @@ describe('RealtimeHandler', () => {
         'closeRealtimeHttpConnection'
       );
       beginRealtimeSpy = vi.spyOn(realtime as any, 'beginRealtime');
-    });
-
-    afterEach(() => {
-      closeConnectionSpy.mockRestore();
-      beginRealtimeSpy.mockRestore();
     });
 
     it('should close connection when app goes to background', async () => {
