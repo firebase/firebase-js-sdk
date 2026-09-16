@@ -249,12 +249,6 @@ describe('getInstallationEntry', () => {
       ).toHaveBeenCalledTimes(1);
       expect(promise1).toBeInstanceOf(Promise);
       expect(promise2).toBeInstanceOf(Promise);
-
-      // Clean up pending registration and polling promises to prevent leaking into subsequent tests.
-      await vi.advanceTimersByTimeAsync(500);
-      await promise1;
-      await vi.advanceTimersByTimeAsync(100);
-      await promise2;
     });
 
     it('does not return a registrationPromise on subsequent calls after initial promise resolves', async () => {
