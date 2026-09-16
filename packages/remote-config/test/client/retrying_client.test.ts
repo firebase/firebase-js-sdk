@@ -54,6 +54,7 @@ describe('RetryingClient', () => {
 
   describe('setAbortableTimeout', () => {
     it('Derives backoff from end time', async () => {
+      vi.spyOn(Date, 'now').mockReturnValue(1000);
       const setTimeoutSpy = vi.spyOn(window, 'setTimeout');
       const timeoutPromise = setAbortableTimeout(abortSignal, Date.now() + 1);
 
@@ -63,6 +64,7 @@ describe('RetryingClient', () => {
     });
 
     it('Normalizes end time in the past to zero backoff', async () => {
+      vi.spyOn(Date, 'now').mockReturnValue(1000);
       const setTimeoutSpy = vi.spyOn(window, 'setTimeout');
       const timeoutPromise = setAbortableTimeout(abortSignal, Date.now() - 1);
 

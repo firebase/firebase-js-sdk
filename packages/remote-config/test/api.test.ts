@@ -178,10 +178,9 @@ describe('Remote Config API', () => {
       experiments: undefined
     };
     setFetchResponse(responseWithoutExperiments);
-    const updateActiveExperimentsStub = vi.spyOn(
-      Experiment.prototype,
-      'updateActiveExperiments'
-    );
+    const updateActiveExperimentsStub = vi
+      .spyOn(Experiment.prototype, 'updateActiveExperiments')
+      .mockResolvedValue(undefined);
     try {
       await fetchAndActivate(rc);
       await ensureInitialized(rc);
