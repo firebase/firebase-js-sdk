@@ -28,7 +28,7 @@
     "test:all": "vitest run",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all",
     "test:browser": "vitest run",
-    "test:integration": "karma start ./karma.integration.conf.js --nocache",
+    "test:integration": "vitest run -c vitest.integration.config.mjs",
     "trusted-type-check": "tsec -p tsconfig.json --noEmit",
     "api-report": "api-extractor run --local --verbose",
     "doc": "api-documenter markdown --input temp --output docs",

@@ -20,15 +20,7 @@ import '@firebase/installations';
 import { getAnalytics, initializeAnalytics, logEvent } from '../../src/index';
 import '../setup';
 import { expect, vi } from 'vitest';
-let config: Record<string, string>;
-try {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  config = require('../../../../config/project.json');
-} catch (e) {
-  throw new Error(
-    "Couldn't find config/project.json, make sure you ran test:setup."
-  );
-}
+import config from '../../../../config/project.json';
 
 const RETRY_INTERVAL = 1000;
 const TIMEOUT_MILLIS = 20000;
@@ -63,19 +55,26 @@ describe('FirebaseAnalytics Integration Smoke Tests', () => {
       expect(eventCalls.length).toBe(1);
       expect(eventCalls[0].name).toContain('method=phone');
     });
-    it("Warns if measurement ID doesn't match.", done => {
-      vi.spyOn(console, 'warn').mockImplementation((_tag, message) => {
-        expect(message).toContain('does not match');
-        done();
+    it("Warns if measurement ID doesn't match.", () => {
+      return new Promise<void>(resolve => {
+        vi.spyOn(console, 'warn').mockImplementation((_tag, message) => {
+          expect(message).toContain('does not match');
+          resolve();
+        });
+        app = initializeApp({
+          ...config,
+          measurementId: 'wrong-id'
+        });
+        getAnalytics(app);
       });
-      app = initializeApp({
-        ...config,
-        measurementId: 'wrong-id'
-      });
-      getAnalytics(app);
     });
   });
   describe('Using initializeAnalytics()', () => {
+    afterEach(() => {
+      if (app) {
+        return deleteApp(app);
+      }
+    });
     it('logEvent() sends correct network request.', async () => {
       app = initializeApp(config);
       logEvent(initializeAnalytics(app), 'login', { method: 'email' });
