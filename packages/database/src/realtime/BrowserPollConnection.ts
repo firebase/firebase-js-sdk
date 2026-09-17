@@ -467,7 +467,7 @@ export class FirebaseIFrameScriptHolder {
       // for ie9, but ie8 needs to do it again in the document itself.
       if (
         this.myIFrame.src &&
-        this.myIFrame.src.substr(0, 'javascript:'.length) === 'javascript:'
+        this.myIFrame.src.slice(0, 'javascript:'.length) === 'javascript:'
       ) {
         const currentDomain = document.domain;
         script = '<script>document.domain="' + currentDomain + '";</script>';
