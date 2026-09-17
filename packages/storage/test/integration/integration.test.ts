@@ -16,12 +16,10 @@
  */
 
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { initializeApp, deleteApp, FirebaseApp } from '@firebase/app';
+import { deleteApp, FirebaseApp } from '@firebase/app';
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { getAuth, signInAnonymously } from '@firebase/auth';
 import {
   getDownloadURL,
-  getStorage,
   ref,
   uploadBytes,
   uploadBytesResumable,
@@ -33,35 +31,25 @@ import {
   getBytes
 } from '../../src';
 
-import { use, expect } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
 import * as types from '../../src/public-types';
 import { Deferred } from '@firebase/util';
+import {
+  PROJECT_ID,
+  STORAGE_BUCKET,
+  API_KEY,
+  AUTH_DOMAIN,
+  createApp,
+  createStorage
+} from './testshared';
 
-use(chaiAsPromised);
-
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const PROJECT_CONFIG = require('../../../../config/project.json');
-
-export const PROJECT_ID = PROJECT_CONFIG.projectId;
-export const STORAGE_BUCKET = PROJECT_CONFIG.storageBucket;
-export const API_KEY = PROJECT_CONFIG.apiKey;
-export const AUTH_DOMAIN = PROJECT_CONFIG.authDomain;
-
-export async function createApp(): Promise<FirebaseApp> {
-  const app = initializeApp({
-    apiKey: API_KEY,
-    projectId: PROJECT_ID,
-    storageBucket: STORAGE_BUCKET,
-    authDomain: AUTH_DOMAIN
-  });
-  await signInAnonymously(getAuth(app));
-  return app;
-}
-
-export function createStorage(app: FirebaseApp): types.FirebaseStorage {
-  return getStorage(app);
-}
+export {
+  PROJECT_ID,
+  STORAGE_BUCKET,
+  API_KEY,
+  AUTH_DOMAIN,
+  createApp,
+  createStorage
+};
 
 describe('FirebaseStorage Exp', () => {
   let app: FirebaseApp;
@@ -79,23 +67,21 @@ describe('FirebaseStorage Exp', () => {
   it('can upload bytes', async () => {
     const reference = ref(storage, 'public/exp-bytes');
     const snap = await uploadBytes(reference, new Uint8Array([0, 1, 3]));
-    expect(snap.metadata.timeCreated).to.exist;
+    expect(snap.metadata.timeCreated).toBeDefined();
   });
 
   it('can get bytes', async () => {
     const reference = ref(storage, 'public/exp-bytes');
     await uploadBytes(reference, new Uint8Array([0, 1, 3, 128, 255]));
     const bytes = await getBytes(reference);
-    expect(new Uint8Array(bytes)).to.deep.equal(
-      new Uint8Array([0, 1, 3, 128, 255])
-    );
+    expect(new Uint8Array(bytes)).toEqual(new Uint8Array([0, 1, 3, 128, 255]));
   });
 
   it('can get first n bytes', async () => {
     const reference = ref(storage, 'public/exp-bytes');
     await uploadBytes(reference, new Uint8Array([0, 1, 3]));
     const bytes = await getBytes(reference, 2);
-    expect(new Uint8Array(bytes)).to.deep.equal(new Uint8Array([0, 1]));
+    expect(new Uint8Array(bytes)).toEqual(new Uint8Array([0, 1]));
   });
 
   it('getBytes() throws for missing file', async () => {
@@ -104,8 +90,8 @@ describe('FirebaseStorage Exp', () => {
       await getBytes(reference);
       expect.fail();
     } catch (e) {
-      expect((e as Error)?.message).to.satisfy((v: string) =>
-        v.match(/Object 'public\/exp-bytes-missing' does not exist/)
+      expect((e as Error)?.message).toMatch(
+        /Object 'public\/exp-bytes-missing' does not exist/
       );
     }
   });
@@ -116,13 +102,13 @@ describe('FirebaseStorage Exp', () => {
       reference,
       new Uint8Array([0, 1, 3])
     );
-    expect(snap.metadata.timeCreated).to.exist;
+    expect(snap.metadata.timeCreated).toBeDefined();
   });
 
   it('can upload string', async () => {
     const reference = ref(storage, 'public/exp-string');
     const snap = await uploadString(reference, 'foo');
-    expect(snap.metadata.timeCreated).to.exist;
+    expect(snap.metadata.timeCreated).toBeDefined();
   });
 
   it('validates operations on root', async () => {
@@ -131,10 +117,8 @@ describe('FirebaseStorage Exp', () => {
       await uploadString(reference, 'foo');
       expect.fail();
     } catch (e) {
-      expect((e as Error)?.message).to.satisfy((v: string) =>
-        v.match(
-          /The operation 'uploadString' cannot be performed on a root reference/
-        )
+      expect((e as Error)?.message).toMatch(
+        /The operation 'uploadString' cannot be performed on a root reference/
       );
     }
   });
@@ -144,8 +128,7 @@ describe('FirebaseStorage Exp', () => {
     await uploadString(reference, 'foo');
     await getDownloadURL(reference);
     await deleteObject(reference);
-    await expect(getDownloadURL(reference)).to.eventually.be.rejectedWith(
-      Error,
+    await expect(getDownloadURL(reference)).rejects.toThrow(
       /Object 'public\/exp-delete' does not exist/
     );
   });
@@ -154,10 +137,8 @@ describe('FirebaseStorage Exp', () => {
     const reference = ref(storage, 'public/exp-downloadurl');
     await uploadBytes(reference, new Uint8Array([0, 1, 3]));
     const url = await getDownloadURL(reference);
-    expect(url).to.satisfy((v: string) =>
-      v.match(
-        /https:\/\/firebasestorage\.googleapis\.com\/v0\/b\/.*\/o\/public%2Fexp-downloadurl/
-      )
+    expect(url).toMatch(
+      /https:\/\/firebasestorage\.googleapis\.com\/v0\/b\/.*\/o\/public%2Fexp-downloadurl/
     );
   });
 
@@ -165,7 +146,7 @@ describe('FirebaseStorage Exp', () => {
     const reference = ref(storage, 'public/exp-getmetadata');
     await uploadBytes(reference, new Uint8Array([0, 1, 3]));
     const metadata = await getMetadata(reference);
-    expect(metadata.name).to.equal('exp-getmetadata');
+    expect(metadata.name).toBe('exp-getmetadata');
   });
 
   it('can update metadata', async () => {
@@ -174,7 +155,7 @@ describe('FirebaseStorage Exp', () => {
     const metadata = await updateMetadata(reference, {
       customMetadata: { foo: 'bar' }
     });
-    expect(metadata.customMetadata).to.deep.equal({ foo: 'bar' });
+    expect(metadata.customMetadata).toEqual({ foo: 'bar' });
   });
 
   it('can list files', async () => {
@@ -185,8 +166,8 @@ describe('FirebaseStorage Exp', () => {
     await uploadString(referenceB, '');
     await uploadString(referenceCD, '');
     const listResult = await listAll(ref(storage, 'public/exp-list'));
-    expect(listResult.items.map(v => v.name)).to.have.members(['a', 'b']);
-    expect(listResult.prefixes.map(v => v.name)).to.have.members(['c']);
+    expect(listResult.items.map(v => v.name).sort()).toEqual(['a', 'b']);
+    expect(listResult.prefixes.map(v => v.name)).toEqual(['c']);
   });
 
   it('can pause uploads without an error', async () => {
@@ -214,6 +195,6 @@ describe('FirebaseStorage Exp', () => {
     task.resume();
     await task;
     const bytes = await getBytes(referenceA);
-    expect(bytes).to.deep.eq(bytesToUpload);
-  }).timeout(10_000);
+    expect(bytes).toEqual(bytesToUpload);
+  }, 10_000);
 });
