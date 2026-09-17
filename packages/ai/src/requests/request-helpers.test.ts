@@ -30,7 +30,7 @@ describe('request formatting methods', () => {
         contents: [
           {
             role: 'user',
-            parts: [{ text: 'some text content' }]
+            parts: [{ type: 'text', text: 'some text content' }]
           }
         ]
       });
@@ -41,32 +41,75 @@ describe('request formatting methods', () => {
         contents: [
           {
             role: 'user',
-            parts: [{ text: 'txt1' }, { text: 'txt2' }]
+            parts: [
+              { type: 'text', text: 'txt1' },
+              { type: 'text', text: 'txt2' }
+            ]
           }
         ]
       });
     });
     it('formats an array of Parts into a request', () => {
       const result = formatGenerateContentInput([
-        { text: 'txt1' },
-        { text: 'txtB' }
+        { type: 'text', text: 'txt1' },
+        { type: 'text', text: 'txtB' }
       ]);
       expect(result).to.deep.equal({
         contents: [
           {
             role: 'user',
-            parts: [{ text: 'txt1' }, { text: 'txtB' }]
+            parts: [
+              { type: 'text', text: 'txt1' },
+              { type: 'text', text: 'txtB' }
+            ]
           }
         ]
       });
     });
-    it('formats a mixed array into a request', () => {
-      const result = formatGenerateContentInput(['txtA', { text: 'txtB' }]);
+    it('normalizes untagged parts into a request at runtime', () => {
+      const result = formatGenerateContentInput([
+        { text: 'txt1' } as any,
+        { text: 'txtB' } as any
+      ]);
       expect(result).to.deep.equal({
         contents: [
           {
             role: 'user',
-            parts: [{ text: 'txtA' }, { text: 'txtB' }]
+            parts: [
+              { type: 'text', text: 'txt1' },
+              { type: 'text', text: 'txtB' }
+            ]
+          }
+        ]
+      });
+    });
+    it('normalizes untagged parts inside contents property', () => {
+      const result = formatGenerateContentInput({
+        contents: [
+          {
+            role: 'user',
+            parts: [{ text: 'untagged' } as any]
+          }
+        ]
+      });
+      expect(result.contents[0].parts[0]).to.deep.equal({
+        type: 'text',
+        text: 'untagged'
+      });
+    });
+    it('formats a mixed array into a request', () => {
+      const result = formatGenerateContentInput([
+        'txtA',
+        { type: 'text', text: 'txtB' }
+      ]);
+      expect(result).to.deep.equal({
+        contents: [
+          {
+            role: 'user',
+            parts: [
+              { type: 'text', text: 'txtA' },
+              { type: 'text', text: 'txtB' }
+            ]
           }
         ]
       });
@@ -76,7 +119,7 @@ describe('request formatting methods', () => {
         contents: [
           {
             role: 'user',
-            parts: [{ text: 'txtA' }]
+            parts: [{ type: 'text', text: 'txtA' }]
           }
         ],
         generationConfig: { topK: 100 }
@@ -85,7 +128,7 @@ describe('request formatting methods', () => {
         contents: [
           {
             role: 'user',
-            parts: [{ text: 'txtA' }]
+            parts: [{ type: 'text', text: 'txtA' }]
           }
         ],
         generationConfig: { topK: 100 }
@@ -96,7 +139,7 @@ describe('request formatting methods', () => {
         contents: [
           {
             role: 'user',
-            parts: [{ text: 'txtA' }]
+            parts: [{ type: 'text', text: 'txtA' }]
           }
         ],
         systemInstruction: 'be excited'
@@ -105,10 +148,13 @@ describe('request formatting methods', () => {
         contents: [
           {
             role: 'user',
-            parts: [{ text: 'txtA' }]
+            parts: [{ type: 'text', text: 'txtA' }]
           }
         ],
-        systemInstruction: { role: 'system', parts: [{ text: 'be excited' }] }
+        systemInstruction: {
+          role: 'system',
+          parts: [{ type: 'text', text: 'be excited' }]
+        }
       });
     });
     it('formats systemInstructions if provided as Part', () => {
@@ -116,19 +162,22 @@ describe('request formatting methods', () => {
         contents: [
           {
             role: 'user',
-            parts: [{ text: 'txtA' }]
+            parts: [{ type: 'text', text: 'txtA' }]
           }
         ],
-        systemInstruction: { text: 'be excited' }
+        systemInstruction: { type: 'text', text: 'be excited' }
       });
       expect(result).to.deep.equal({
         contents: [
           {
             role: 'user',
-            parts: [{ text: 'txtA' }]
+            parts: [{ type: 'text', text: 'txtA' }]
           }
         ],
-        systemInstruction: { role: 'system', parts: [{ text: 'be excited' }] }
+        systemInstruction: {
+          role: 'system',
+          parts: [{ type: 'text', text: 'be excited' }]
+        }
       });
     });
     it('formats systemInstructions if provided as Content (no role)', () => {
@@ -136,19 +185,24 @@ describe('request formatting methods', () => {
         contents: [
           {
             role: 'user',
-            parts: [{ text: 'txtA' }]
+            parts: [{ type: 'text', text: 'txtA' }]
           }
         ],
-        systemInstruction: { parts: [{ text: 'be excited' }] } as Content
+        systemInstruction: {
+          parts: [{ type: 'text', text: 'be excited' }]
+        } as Content
       });
       expect(result).to.deep.equal({
         contents: [
           {
             role: 'user',
-            parts: [{ text: 'txtA' }]
+            parts: [{ type: 'text', text: 'txtA' }]
           }
         ],
-        systemInstruction: { role: 'system', parts: [{ text: 'be excited' }] }
+        systemInstruction: {
+          role: 'system',
+          parts: [{ type: 'text', text: 'be excited' }]
+        }
       });
     });
     it('passes thru systemInstructions if provided as Content', () => {
@@ -156,19 +210,25 @@ describe('request formatting methods', () => {
         contents: [
           {
             role: 'user',
-            parts: [{ text: 'txtA' }]
+            parts: [{ type: 'text', text: 'txtA' }]
           }
         ],
-        systemInstruction: { role: 'system', parts: [{ text: 'be excited' }] }
+        systemInstruction: {
+          role: 'system',
+          parts: [{ type: 'text', text: 'be excited' }]
+        }
       });
       expect(result).to.deep.equal({
         contents: [
           {
             role: 'user',
-            parts: [{ text: 'txtA' }]
+            parts: [{ type: 'text', text: 'txtA' }]
           }
         ],
-        systemInstruction: { role: 'system', parts: [{ text: 'be excited' }] }
+        systemInstruction: {
+          role: 'system',
+          parts: [{ type: 'text', text: 'be excited' }]
+        }
       });
     });
     it('preserves SpeechConfig for single-speaker setups', () => {
@@ -176,7 +236,7 @@ describe('request formatting methods', () => {
         contents: [
           {
             role: 'user',
-            parts: [{ text: 'Hello' }]
+            parts: [{ type: 'text', text: 'Hello' }]
           }
         ],
         generationConfig: {
@@ -205,7 +265,7 @@ describe('request formatting methods', () => {
         contents: [
           {
             role: 'user',
-            parts: [{ text: 'Write a dialogue.' }]
+            parts: [{ type: 'text', text: 'Write a dialogue.' }]
           }
         ],
         generationConfig: {
@@ -248,7 +308,7 @@ describe('request formatting methods', () => {
     });
     it('preserves SpeechConfig alongside other GenerationConfig parameters', () => {
       const req = formatGenerateContentInput({
-        contents: [{ role: 'user', parts: [{ text: 'Hello' }] }],
+        contents: [{ role: 'user', parts: [{ type: 'text', text: 'Hello' }] }],
         generationConfig: {
           temperature: 0.7,
           maxOutputTokens: 100,
@@ -276,7 +336,7 @@ describe('request formatting methods', () => {
         contents: [
           {
             role: 'user',
-            parts: [{ text: 'Hola' }]
+            parts: [{ type: 'text', text: 'Hola' }]
           }
         ],
         generationConfig: {
@@ -295,7 +355,7 @@ describe('request formatting methods', () => {
         contents: [
           {
             role: 'user',
-            parts: [{ text: 'Hello' }]
+            parts: [{ type: 'text', text: 'Hello' }]
           }
         ],
         generationConfig: {
@@ -309,6 +369,7 @@ describe('request formatting methods', () => {
       const result = formatGenerateContentInput([
         'What is this?',
         {
+          type: 'fileData',
           fileData: {
             mimeType: 'image/jpeg',
             fileUri: 'gs://sample.appspot.com/image.jpeg'
@@ -320,8 +381,9 @@ describe('request formatting methods', () => {
           {
             role: 'user',
             parts: [
-              { text: 'What is this?' },
+              { type: 'text', text: 'What is this?' },
               {
+                type: 'fileData',
                 fileData: {
                   mimeType: 'image/jpeg',
                   fileUri: 'gs://sample.appspot.com/image.jpeg'

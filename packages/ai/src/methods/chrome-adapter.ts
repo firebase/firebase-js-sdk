@@ -229,7 +229,7 @@ export class ChromeAdapterImpl implements ChromeAdapter {
     }
 
     for (const content of request.contents) {
-      if (content.parts.some(part => 'functionResponse' in part)) {
+      if (content.parts.some(part => part.type === 'functionResponse')) {
         logger.debug(
           `Content with a function response part rejected for on-device inference.`
         );
@@ -239,7 +239,7 @@ export class ChromeAdapterImpl implements ChromeAdapter {
       // Returns false if request contains an image with an unsupported mime type.
       for (const part of content.parts) {
         if (
-          part.inlineData &&
+          part.type === 'inlineData' &&
           ChromeAdapterImpl.SUPPORTED_MIME_TYPES.indexOf(
             part.inlineData.mimeType
           ) === -1
@@ -329,12 +329,12 @@ export class ChromeAdapterImpl implements ChromeAdapter {
   private static async toLanguageModelMessageContent(
     part: Part
   ): Promise<LanguageModelMessageContent> {
-    if (part.text) {
+    if (part.type === 'text') {
       return {
         type: 'text',
         value: part.text
       };
-    } else if (part.inlineData) {
+    } else if (part.type === 'inlineData') {
       const formattedImageContent = await fetch(
         `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`
       );

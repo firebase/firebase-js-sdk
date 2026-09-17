@@ -422,7 +422,7 @@ export abstract class ChatSessionBase<
       }
       // Wait for promises to finish.
       await Promise.all(promiseList);
-      const functionResponseParts = [];
+      const functionResponseParts: FunctionResponsePart[] = [];
       for (const { name, id, results } of activeCallList) {
         const functionResponse: FunctionResponse = {
           name,
@@ -432,6 +432,7 @@ export abstract class ChatSessionBase<
           functionResponse.id = id;
         }
         functionResponseParts.push({
+          type: 'functionResponse',
           functionResponse
         });
       }

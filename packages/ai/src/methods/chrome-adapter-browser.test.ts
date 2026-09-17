@@ -33,7 +33,12 @@ import {
   LanguageModelMessage
 } from '../types/language-model';
 import { match, stub } from 'sinon';
-import { GenerateContentRequest, AIErrorCode, InferenceMode } from '../types';
+import {
+  GenerateContentRequest,
+  AIErrorCode,
+  InferenceMode,
+  TextPart
+} from '../types';
 import { Schema } from '../api';
 
 use(sinonChai);
@@ -76,7 +81,7 @@ describe('ChromeAdapter', () => {
         contents: [
           {
             role: 'user',
-            parts: [{ text: 'hi' }]
+            parts: [{ type: 'text', text: 'hi' }]
           }
         ]
       });
@@ -104,7 +109,7 @@ describe('ChromeAdapter', () => {
         contents: [
           {
             role: 'user',
-            parts: [{ text: 'hi' }]
+            parts: [{ type: 'text', text: 'hi' }]
           }
         ]
       });
@@ -134,7 +139,7 @@ describe('ChromeAdapter', () => {
         contents: [
           {
             role: 'user',
-            parts: [{ text: 'hi' }]
+            parts: [{ type: 'text', text: 'hi' }]
           }
         ]
       });
@@ -168,7 +173,7 @@ describe('ChromeAdapter', () => {
         contents: [
           {
             role: 'user',
-            parts: [{ text: 'hi' }]
+            parts: [{ type: 'text', text: 'hi' }]
           }
         ]
       });
@@ -267,6 +272,7 @@ describe('ChromeAdapter', () => {
               role: 'user',
               parts: [
                 {
+                  type: 'functionResponse',
                   functionResponse: {
                     name: 'greet',
                     response: { name: 'user' }
@@ -293,6 +299,7 @@ describe('ChromeAdapter', () => {
                 role: 'user',
                 parts: [
                   {
+                    type: 'inlineData',
                     inlineData: {
                       mimeType,
                       data: ''
@@ -319,8 +326,11 @@ describe('ChromeAdapter', () => {
             {
               role: 'user',
               parts: [
-                { text: 'describe this image' },
-                { inlineData: { mimeType: 'image/jpeg', data: 'asd' } }
+                { type: 'text', text: 'describe this image' },
+                {
+                  type: 'inlineData',
+                  inlineData: { mimeType: 'image/jpeg', data: 'asd' }
+                }
               ]
             }
           ]
@@ -343,7 +353,7 @@ describe('ChromeAdapter', () => {
       );
       expect(
         await adapter.isAvailable({
-          contents: [{ role: 'user', parts: [{ text: 'hi' }] }]
+          contents: [{ role: 'user', parts: [{ type: 'text', text: 'hi' }] }]
         })
       ).to.be.false;
     });
@@ -358,7 +368,7 @@ describe('ChromeAdapter', () => {
       );
       expect(
         await adapter.isAvailable({
-          contents: [{ role: 'user', parts: [{ text: 'hi' }] }]
+          contents: [{ role: 'user', parts: [{ type: 'text', text: 'hi' }] }]
         })
       ).to.be.false;
     });
@@ -474,7 +484,9 @@ describe('ChromeAdapter', () => {
         { createOptions }
       );
       const request = {
-        contents: [{ role: 'user', parts: [{ text: 'anything' }] }]
+        contents: [
+          { role: 'user', parts: [{ type: 'text', text: 'anything' }] }
+        ]
       } as GenerateContentRequest;
       const response = await adapter.generateContent(request);
       // Asserts initialization params are proxied.
@@ -486,7 +498,7 @@ describe('ChromeAdapter', () => {
           content: [
             {
               type: 'text',
-              value: request.contents[0].parts[0].text
+              value: (request.contents[0].parts[0] as TextPart).text
             }
           ]
         }
@@ -529,8 +541,9 @@ describe('ChromeAdapter', () => {
           {
             role: 'user',
             parts: [
-              { text: 'anything' },
+              { type: 'text', text: 'anything' },
               {
+                type: 'inlineData',
                 inlineData: {
                   data: sampleBase64EncodedImage,
                   mimeType: 'image/jpeg'
@@ -550,7 +563,7 @@ describe('ChromeAdapter', () => {
           content: [
             {
               type: 'text',
-              value: request.contents[0].parts[0].text
+              value: (request.contents[0].parts[0] as TextPart).text
             },
             {
               type: 'image',
@@ -591,7 +604,9 @@ describe('ChromeAdapter', () => {
         { promptOptions }
       );
       const request = {
-        contents: [{ role: 'user', parts: [{ text: 'anything' }] }]
+        contents: [
+          { role: 'user', parts: [{ type: 'text', text: 'anything' }] }
+        ]
       } as GenerateContentRequest;
       await adapter.generateContent(request);
       expect(promptStub).to.have.been.calledOnceWith(
@@ -601,7 +616,7 @@ describe('ChromeAdapter', () => {
             content: [
               {
                 type: 'text',
-                value: request.contents[0].parts[0].text
+                value: (request.contents[0].parts[0] as TextPart).text
               }
             ]
           }
@@ -623,7 +638,7 @@ describe('ChromeAdapter', () => {
         InferenceMode.PREFER_ON_DEVICE
       );
       const request = {
-        contents: [{ role: 'model', parts: [{ text: 'unused' }] }]
+        contents: [{ role: 'model', parts: [{ type: 'text', text: 'unused' }] }]
       } as GenerateContentRequest;
       await adapter.generateContent(request);
       expect(promptStub).to.have.been.calledOnceWith([
@@ -633,7 +648,7 @@ describe('ChromeAdapter', () => {
           content: [
             {
               type: 'text',
-              value: request.contents[0].parts[0].text
+              value: (request.contents[0].parts[0] as TextPart).text
             }
           ]
         }
@@ -704,7 +719,9 @@ describe('ChromeAdapter', () => {
         { createOptions }
       );
       const request = {
-        contents: [{ role: 'user', parts: [{ text: 'anything' }] }]
+        contents: [
+          { role: 'user', parts: [{ type: 'text', text: 'anything' }] }
+        ]
       } as GenerateContentRequest;
       const response = await adapter.generateContentStream(request);
       expect(createStub).to.have.been.calledOnceWith(createOptions);
@@ -714,7 +731,7 @@ describe('ChromeAdapter', () => {
           content: [
             {
               type: 'text',
-              value: request.contents[0].parts[0].text
+              value: (request.contents[0].parts[0] as TextPart).text
             }
           ]
         }
@@ -756,8 +773,9 @@ describe('ChromeAdapter', () => {
           {
             role: 'user',
             parts: [
-              { text: 'anything' },
+              { type: 'text', text: 'anything' },
               {
+                type: 'inlineData',
                 inlineData: {
                   data: sampleBase64EncodedImage,
                   mimeType: 'image/jpeg'
@@ -775,7 +793,7 @@ describe('ChromeAdapter', () => {
           content: [
             {
               type: 'text',
-              value: request.contents[0].parts[0].text
+              value: (request.contents[0].parts[0] as TextPart).text
             },
             {
               type: 'image',
@@ -811,7 +829,9 @@ describe('ChromeAdapter', () => {
         { promptOptions }
       );
       const request = {
-        contents: [{ role: 'user', parts: [{ text: 'anything' }] }]
+        contents: [
+          { role: 'user', parts: [{ type: 'text', text: 'anything' }] }
+        ]
       } as GenerateContentRequest;
       await adapter.generateContentStream(request);
       expect(promptStub).to.have.been.calledOnceWith(
@@ -821,7 +841,7 @@ describe('ChromeAdapter', () => {
             content: [
               {
                 type: 'text',
-                value: request.contents[0].parts[0].text
+                value: (request.contents[0].parts[0] as TextPart).text
               }
             ]
           }
@@ -845,7 +865,7 @@ describe('ChromeAdapter', () => {
         InferenceMode.PREFER_ON_DEVICE
       );
       const request = {
-        contents: [{ role: 'model', parts: [{ text: 'unused' }] }]
+        contents: [{ role: 'model', parts: [{ type: 'text', text: 'unused' }] }]
       } as GenerateContentRequest;
       await adapter.generateContentStream(request);
       expect(promptStub).to.have.been.calledOnceWith([
@@ -855,7 +875,7 @@ describe('ChromeAdapter', () => {
           content: [
             {
               type: 'text',
-              value: request.contents[0].parts[0].text
+              value: (request.contents[0].parts[0] as TextPart).text
             }
           ]
         }

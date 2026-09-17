@@ -29,6 +29,7 @@ import {
   SessionResumptionConfig
 } from '../public-types';
 import { formatNewContent } from '../requests/request-helpers';
+import { assignPartType } from '../requests/response-helpers';
 import { AIError } from '../errors';
 import { WebSocketHandler, WebSocketHandlerImpl } from '../websocket';
 import { logger } from '../logger';
@@ -333,10 +334,17 @@ export class LiveSession {
       for await (const message of this._serverMessages) {
         if (message && typeof message === 'object') {
           if (LiveResponseType.SERVER_CONTENT in message) {
+            const serverContent = (
+              message as { serverContent: Omit<LiveServerContent, 'type'> }
+            ).serverContent;
+            if (serverContent.modelTurn?.parts) {
+              for (const part of serverContent.modelTurn.parts) {
+                assignPartType(part);
+              }
+            }
             yield {
               type: 'serverContent',
-              ...(message as { serverContent: Omit<LiveServerContent, 'type'> })
-                .serverContent
+              ...serverContent
             } as LiveServerContent;
           } else if (LiveResponseType.TOOL_CALL in message) {
             yield {

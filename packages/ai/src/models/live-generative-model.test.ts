@@ -151,7 +151,10 @@ describe('LiveGenerativeModel', () => {
       {
         model: 'gemini-pro',
         generationConfig: { temperature: 0.8 },
-        systemInstruction: { role: 'system', parts: [{ text: 'Be a pirate' }] }
+        systemInstruction: {
+          role: 'system',
+          parts: [{ type: 'text', text: 'Be a pirate' }]
+        }
       },
       mockHandler
     );
@@ -178,7 +181,10 @@ describe('LiveGenerativeModel', () => {
           inputAudioTranscription: {},
           outputAudioTranscription: {}
         },
-        systemInstruction: { role: 'system', parts: [{ text: 'Be a pirate' }] }
+        systemInstruction: {
+          role: 'system',
+          parts: [{ type: 'text', text: 'Be a pirate' }]
+        }
       },
       mockHandler
     );

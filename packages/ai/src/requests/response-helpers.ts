@@ -24,6 +24,7 @@ import {
   AIErrorCode,
   InlineDataPart,
   Part,
+  UnknownPart,
   InferenceSource
 } from '../types';
 import { AIError } from '../errors';
@@ -60,6 +61,39 @@ function hasValidCandidates(response: GenerateContentResponse): boolean {
 }
 
 /**
+ * Ensures a `Part` or `UnknownPart` object has its `type` discriminator populated.
+ *
+ * @internal
+ */
+export function assignPartType(part: Part | UnknownPart): Part {
+  if (part.type) {
+    return part as Part;
+  }
+  if ('text' in part && part.text !== undefined) {
+    (part as { type?: string }).type = 'text';
+  } else if ('inlineData' in part && part.inlineData !== undefined) {
+    (part as { type?: string }).type = 'inlineData';
+  } else if ('functionCall' in part && part.functionCall !== undefined) {
+    (part as { type?: string }).type = 'functionCall';
+  } else if (
+    'functionResponse' in part &&
+    part.functionResponse !== undefined
+  ) {
+    (part as { type?: string }).type = 'functionResponse';
+  } else if ('fileData' in part && part.fileData !== undefined) {
+    (part as { type?: string }).type = 'fileData';
+  } else if ('executableCode' in part && part.executableCode !== undefined) {
+    (part as { type?: string }).type = 'executableCode';
+  } else if (
+    'codeExecutionResult' in part &&
+    part.codeExecutionResult !== undefined
+  ) {
+    (part as { type?: string }).type = 'codeExecutionResult';
+  }
+  return part as Part;
+}
+
+/**
  * Creates an EnhancedGenerateContentResponse object that has helper functions and
  * other modifications that improve usability.
  */
@@ -77,6 +111,16 @@ export function createEnhancedContentResponse(
     response.candidates[0].index = 0;
   }
 
+  if (response.candidates) {
+    for (const candidate of response.candidates) {
+      if (candidate.content?.parts) {
+        for (const part of candidate.content.parts) {
+          assignPartType(part);
+        }
+      }
+    }
+  }
+
   const responseWithHelpers = addHelpers(response);
   responseWithHelpers.inferenceSource = inferenceSource;
   return responseWithHelpers;
@@ -91,7 +135,7 @@ export function addHelpers(
 ): EnhancedGenerateContentResponse {
   (response as EnhancedGenerateContentResponse).text = () => {
     if (hasValidCandidates(response)) {
-      return getText(response, part => !part.thought);
+      return getText(response, part => !('thought' in part && part.thought));
     } else if (response.promptFeedback) {
       throw new AIError(
         AIErrorCode.RESPONSE_ERROR,
@@ -105,7 +149,10 @@ export function addHelpers(
   };
   (response as EnhancedGenerateContentResponse).thoughtSummary = () => {
     if (hasValidCandidates(response)) {
-      const result = getText(response, part => !!part.thought);
+      const result = getText(
+        response,
+        part => !!('thought' in part && part.thought)
+      );
       return result === '' ? undefined : result;
     } else if (response.promptFeedback) {
       throw new AIError(
@@ -164,7 +211,8 @@ export function getText(
   const textStrings = [];
   if (response.candidates?.[0].content?.parts) {
     for (const part of response.candidates?.[0].content?.parts) {
-      if (part.text && partFilter(part)) {
+      assignPartType(part);
+      if (part.type === 'text' && partFilter(part)) {
         textStrings.push(part.text);
       }
     }
@@ -188,7 +236,8 @@ export function getFunctionCalls(
   const functionCalls: FunctionCall[] = [];
   if (response.candidates?.[0].content?.parts) {
     for (const part of response.candidates?.[0].content?.parts) {
-      if (part.functionCall) {
+      assignPartType(part);
+      if (part.type === 'functionCall') {
         functionCalls.push(part.functionCall);
       }
     }
@@ -212,7 +261,8 @@ export function getInlineDataParts(
 
   if (response.candidates?.[0].content?.parts) {
     for (const part of response.candidates?.[0].content?.parts) {
-      if (part.inlineData) {
+      assignPartType(part);
+      if (part.type === 'inlineData') {
         data.push(part);
       }
     }

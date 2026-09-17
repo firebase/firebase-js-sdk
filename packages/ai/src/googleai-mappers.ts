@@ -24,7 +24,6 @@ import {
   GenerateContentRequest,
   GenerateContentResponse,
   HarmSeverity,
-  InlineDataPart,
   PromptFeedback,
   SafetyRating,
   AIErrorCode
@@ -177,7 +176,7 @@ export function mapGenerateContentCandidates(
       // for inference on a small portion of the video.
       if (
         candidate.content?.parts?.some(
-          part => (part as InlineDataPart)?.videoMetadata
+          part => part.type === 'inlineData' && part.videoMetadata
         )
       ) {
         throw new AIError(

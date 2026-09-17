@@ -22,8 +22,11 @@ import chaiAsPromised from 'chai-as-promised';
 import * as generateContentMethods from './generate-content';
 import {
   Content,
+  FunctionCallPart,
   FunctionDeclaration,
-  GenerateContentStreamResult
+  FunctionResponsePart,
+  GenerateContentStreamResult,
+  TextPart
 } from '../types';
 import { ChatSession } from './chat-session';
 import { ApiSettings } from '../types/internal';
@@ -70,13 +73,13 @@ describe('ChatSession', () => {
     );
     expect(chatSession.params?.systemInstruction).to.deep.equal({
       role: 'system',
-      parts: [{ text: 'be friendly' }]
+      parts: [{ type: 'text', text: 'be friendly' }]
     });
   });
   it('leaves systemInstruction unchanged if it is already a Content object', () => {
     const systemInstruction: Content = {
       role: 'system',
-      parts: [{ text: 'be friendly' }]
+      parts: [{ type: 'text', text: 'be friendly' }]
     };
     const chatSession = new ChatSession(
       fakeApiSettings,
@@ -110,11 +113,11 @@ describe('ChatSession', () => {
         {
           systemInstruction: {
             role: 'system',
-            parts: [{ text: 'system instruction text' }]
+            parts: [{ type: 'text', text: 'system instruction text' }]
           },
           history: [
-            { role: 'user', parts: [{ text: 'user turn 1' }] },
-            { role: 'model', parts: [{ text: 'model turn 1' }] }
+            { role: 'user', parts: [{ type: 'text', text: 'user turn 1' }] },
+            { role: 'model', parts: [{ type: 'text', text: 'model turn 1' }] }
           ]
         }
       );
@@ -126,15 +129,15 @@ describe('ChatSession', () => {
         match({
           systemInstruction: {
             role: 'system',
-            parts: [{ text: 'system instruction text' }]
+            parts: [{ type: 'text', text: 'system instruction text' }]
           }
         }),
         match.any
       );
       expect(generateContentStub.args[0][2].contents).to.deep.equal([
-        { role: 'user', parts: [{ text: 'user turn 1' }] },
-        { role: 'model', parts: [{ text: 'model turn 1' }] },
-        { role: 'user', parts: [{ text: 'user turn 2' }] }
+        { role: 'user', parts: [{ type: 'text', text: 'user turn 1' }] },
+        { role: 'model', parts: [{ type: 'text', text: 'model turn 1' }] },
+        { role: 'user', parts: [{ type: 'text', text: 'user turn 2' }] }
       ]);
     });
     it('generateContent errors should be catchable', async () => {
@@ -220,8 +223,9 @@ describe('ChatSession', () => {
       const fakeContent: Content = {
         role: 'model',
         parts: [
-          { text: 'hi' },
+          { type: 'text', text: 'hi' },
           {
+            type: 'text',
             text: 'thought about hi',
             thoughtSignature: 'thought signature'
           }
@@ -249,19 +253,19 @@ describe('ChatSession', () => {
       // Test: stores history correctly?
       const history = await chatSession.getHistory();
       expect(history[0].role).to.equal('user');
-      expect(history[0].parts[0].text).to.equal('hello');
+      expect((history[0].parts[0] as TextPart).text).to.equal('hello');
       expect(history[1]).to.deep.equal(fakeResponse.candidates[0].content);
       // Test: sends history correctly?
       await chatSession.sendMessage('hello 2');
-      expect(generateContentStub.args[1][2].contents[0].parts[0].text).to.equal(
-        'hello'
-      );
+      expect(
+        (generateContentStub.args[1][2].contents[0].parts[0] as TextPart).text
+      ).to.equal('hello');
       expect(generateContentStub.args[1][2].contents[1]).to.deep.equal(
         fakeResponse.candidates[0].content
       );
-      expect(generateContentStub.args[1][2].contents[2].parts[0].text).to.equal(
-        'hello 2'
-      );
+      expect(
+        (generateContentStub.args[1][2].contents[2].parts[0] as TextPart).text
+      ).to.equal('hello 2');
       expect(generateContentStub.args[1][2].contents.length).to.equal(3);
     });
   });
@@ -279,11 +283,11 @@ describe('ChatSession', () => {
         {
           systemInstruction: {
             role: 'system',
-            parts: [{ text: 'system instruction text' }]
+            parts: [{ type: 'text', text: 'system instruction text' }]
           },
           history: [
-            { role: 'user', parts: [{ text: 'user turn 1' }] },
-            { role: 'model', parts: [{ text: 'model turn 1' }] }
+            { role: 'user', parts: [{ type: 'text', text: 'user turn 1' }] },
+            { role: 'model', parts: [{ type: 'text', text: 'model turn 1' }] }
           ]
         }
       );
@@ -295,15 +299,15 @@ describe('ChatSession', () => {
         match({
           systemInstruction: {
             role: 'system',
-            parts: [{ text: 'system instruction text' }]
+            parts: [{ type: 'text', text: 'system instruction text' }]
           }
         }),
         match.any
       );
       expect(generateContentStreamStub.args[0][2].contents).to.deep.equal([
-        { role: 'user', parts: [{ text: 'user turn 1' }] },
-        { role: 'model', parts: [{ text: 'model turn 1' }] },
-        { role: 'user', parts: [{ text: 'user turn 2' }] }
+        { role: 'user', parts: [{ type: 'text', text: 'user turn 1' }] },
+        { role: 'model', parts: [{ type: 'text', text: 'model turn 1' }] },
+        { role: 'user', parts: [{ type: 'text', text: 'user turn 2' }] }
       ]);
       await clock.runAllAsync();
       clock.restore();
@@ -559,14 +563,16 @@ describe('ChatSession', () => {
         }
       })
     });
-    const functionCallPartGreeting = {
+    const functionCallPartGreeting: FunctionCallPart = {
+      type: 'functionCall',
       functionCall: {
-        id: 123,
+        id: 123 as any,
         name: 'getGreeting',
         args: { username: 'Bob' }
       }
     };
-    const functionCallPartFarewell = {
+    const functionCallPartFarewell: FunctionCallPart = {
+      type: 'functionCall',
       functionCall: {
         name: 'getFarewell',
         args: { username: 'Bob' }
@@ -581,7 +587,7 @@ describe('ChatSession', () => {
           // @ts-ignore
         ).callsFake(async (apiSettings, model, params) => {
           const parts = params.contents[params.contents.length - 1].parts;
-          if (parts[0].text?.includes('Bob')) {
+          if ((parts[0] as TextPart).text?.includes('Bob')) {
             return {
               response: {
                 candidates: [
@@ -595,7 +601,7 @@ describe('ChatSession', () => {
                 ]
               }
             };
-          } else if (parts[0].functionResponse) {
+          } else if (parts[0].type === 'functionResponse') {
             return {
               response: finalResponse
             };
@@ -617,7 +623,7 @@ describe('ChatSession', () => {
         );
         const result = await chatSession.sendMessage('My name is Bob');
         expect(
-          result.response.candidates?.[0].content.parts[0].text
+          (result.response.candidates?.[0].content.parts[0] as TextPart).text
         ).to.include('final response');
         expect(generateContentStub).to.be.calledTwice;
         const functionResponseContents =
@@ -627,8 +633,10 @@ describe('ChatSession', () => {
             .length
         ).to.equal(1);
         expect(
-          functionResponseContents[functionResponseContents.length - 1].parts[0]
-            .functionResponse
+          (
+            functionResponseContents[functionResponseContents.length - 1]
+              .parts[0] as FunctionResponsePart
+          ).functionResponse
         ).to.deep.equal({
           id: 123,
           name: 'getGreeting',
@@ -645,7 +653,7 @@ describe('ChatSession', () => {
           // @ts-ignore
         ).callsFake(async (apiSettings, model, params) => {
           const parts = params.contents[params.contents.length - 1].parts;
-          if (parts[0].text?.includes('Bob')) {
+          if ((parts[0] as TextPart).text?.includes('Bob')) {
             return {
               response: {
                 candidates: [
@@ -662,7 +670,7 @@ describe('ChatSession', () => {
                 ]
               }
             };
-          } else if (parts[0].functionResponse) {
+          } else if (parts[0].type === 'functionResponse') {
             return {
               response: finalResponse
             };
@@ -685,7 +693,7 @@ describe('ChatSession', () => {
         );
         const result = await chatSession.sendMessage('My name is Bob');
         expect(
-          result.response.candidates?.[0].content.parts[0].text
+          (result.response.candidates?.[0].content.parts[0] as TextPart).text
         ).to.include('final response');
         expect(generateContentStub).to.be.calledTwice;
         const functionResponseContents =
@@ -695,16 +703,20 @@ describe('ChatSession', () => {
             .length
         ).to.equal(2);
         expect(
-          functionResponseContents[functionResponseContents.length - 1].parts[0]
-            .functionResponse
+          (
+            functionResponseContents[functionResponseContents.length - 1]
+              .parts[0] as FunctionResponsePart
+          ).functionResponse
         ).to.deep.equal({
           id: 123,
           name: 'getGreeting',
           response: { greeting: 'Hi, Bob' }
         });
         expect(
-          functionResponseContents[functionResponseContents.length - 1].parts[1]
-            .functionResponse
+          (
+            functionResponseContents[functionResponseContents.length - 1]
+              .parts[1] as FunctionResponsePart
+          ).functionResponse
         ).to.deep.equal({
           name: 'getFarewell',
           response: { farewell: 'Bye, Bob' }
@@ -721,7 +733,7 @@ describe('ChatSession', () => {
           // @ts-ignore
         ).callsFake(async (apiSettings, model, params) => {
           const parts = params.contents[params.contents.length - 1].parts;
-          if (parts[0].text?.includes('Bob')) {
+          if ((parts[0] as TextPart).text?.includes('Bob')) {
             return {
               response: {
                 candidates: [
@@ -735,7 +747,7 @@ describe('ChatSession', () => {
                 ]
               }
             };
-          } else if (parts[0].functionResponse) {
+          } else if (parts[0].type === 'functionResponse') {
             return {
               response: finalResponse
             };
@@ -760,7 +772,8 @@ describe('ChatSession', () => {
         );
         const result = await chatSession.sendMessage('My name is Bob');
         expect(
-          result.response.candidates?.[0].content.parts[0].functionCall?.name
+          (result.response.candidates?.[0].content.parts[0] as FunctionCallPart)
+            .functionCall?.name
         ).to.equal('getGreeting');
         expect(generateContentStub).to.be.calledOnce;
         expect(warnStub).calledWithMatch('exceeded the limit');
@@ -776,7 +789,7 @@ describe('ChatSession', () => {
           // @ts-ignore
         ).callsFake(async (apiSettings, model, params) => {
           const parts = params.contents[params.contents.length - 1].parts;
-          if (parts[0].text?.includes('Bob')) {
+          if ((parts[0] as TextPart).text?.includes('Bob')) {
             return {
               firstValue: {
                 candidates: [
@@ -790,7 +803,7 @@ describe('ChatSession', () => {
                 ]
               }
             };
-          } else if (parts[0].functionResponse) {
+          } else if (parts[0].type === 'functionResponse') {
             return {
               firstValue: finalResponse,
               response: finalResponse
@@ -822,8 +835,10 @@ describe('ChatSession', () => {
             .length
         ).to.equal(1);
         expect(
-          functionResponseContents[functionResponseContents.length - 1].parts[0]
-            .functionResponse
+          (
+            functionResponseContents[functionResponseContents.length - 1]
+              .parts[0] as FunctionResponsePart
+          ).functionResponse
         ).to.deep.equal({
           id: 123,
           name: 'getGreeting',
@@ -840,7 +855,7 @@ describe('ChatSession', () => {
           // @ts-ignore
         ).callsFake(async (apiSettings, model, params) => {
           const parts = params.contents[params.contents.length - 1].parts;
-          if (parts[0].text?.includes('Bob')) {
+          if ((parts[0] as TextPart).text?.includes('Bob')) {
             return {
               firstValue: {
                 candidates: [
@@ -857,7 +872,7 @@ describe('ChatSession', () => {
                 ]
               }
             };
-          } else if (parts[0].functionResponse) {
+          } else if (parts[0].type === 'functionResponse') {
             return {
               firstValue: finalResponse,
               response: finalResponse
@@ -889,16 +904,20 @@ describe('ChatSession', () => {
             .length
         ).to.equal(2);
         expect(
-          functionResponseContents[functionResponseContents.length - 1].parts[0]
-            .functionResponse
+          (
+            functionResponseContents[functionResponseContents.length - 1]
+              .parts[0] as FunctionResponsePart
+          ).functionResponse
         ).to.deep.equal({
           id: 123,
           name: 'getGreeting',
           response: { greeting: 'Hi, Bob' }
         });
         expect(
-          functionResponseContents[functionResponseContents.length - 1].parts[1]
-            .functionResponse
+          (
+            functionResponseContents[functionResponseContents.length - 1]
+              .parts[1] as FunctionResponsePart
+          ).functionResponse
         ).to.deep.equal({
           name: 'getFarewell',
           response: { farewell: 'Bye, Bob' }
@@ -926,12 +945,12 @@ describe('ChatSession', () => {
           // @ts-ignore
         ).callsFake(async (apiSettings, model, params) => {
           const parts = params.contents[params.contents.length - 1].parts;
-          if (parts[0].text?.includes('Bob')) {
+          if ((parts[0] as TextPart).text?.includes('Bob')) {
             return {
               firstValue: functionCallResponse,
               response: functionCallResponse
             };
-          } else if (parts[0].functionResponse) {
+          } else if (parts[0].type === 'functionResponse') {
             return {
               firstValue: finalResponse,
               response: finalResponse
@@ -959,7 +978,8 @@ describe('ChatSession', () => {
         // No sense testing the stream fully, it's just stubbed data.
         const response = await result.response;
         expect(
-          response.candidates?.[0].content.parts[0].functionCall?.name
+          (response.candidates?.[0].content.parts[0] as FunctionCallPart)
+            .functionCall?.name
         ).to.equal('getGreeting');
         expect(generateContentStreamStub).to.be.calledOnce;
         expect(warnStub).calledWithMatch('exceeded the limit');
@@ -1012,7 +1032,12 @@ describe('ChatSession', () => {
             index: 1,
             content: {
               role: 'model',
-              parts: [{ functionCall: { name: 'myFunction1', args: {} } }]
+              parts: [
+                {
+                  type: 'functionCall',
+                  functionCall: { name: 'myFunction1', args: {} }
+                }
+              ]
             }
           }
         ]
@@ -1025,8 +1050,14 @@ describe('ChatSession', () => {
             content: {
               role: 'model',
               parts: [
-                { functionCall: { name: 'myFunction1', args: {} } },
-                { functionCall: { name: 'myFunction2', args: {} } }
+                {
+                  type: 'functionCall',
+                  functionCall: { name: 'myFunction1', args: {} }
+                },
+                {
+                  type: 'functionCall',
+                  functionCall: { name: 'myFunction2', args: {} }
+                }
               ]
             }
           }
@@ -1077,7 +1108,12 @@ describe('ChatSession', () => {
             index: 1,
             content: {
               role: 'model',
-              parts: [{ functionCall: { name: 'myFunction1', args: {} } }]
+              parts: [
+                {
+                  type: 'functionCall',
+                  functionCall: { name: 'myFunction1', args: {} }
+                }
+              ]
             }
           }
         ]
@@ -1090,8 +1126,14 @@ describe('ChatSession', () => {
             content: {
               role: 'model',
               parts: [
-                { functionCall: { name: 'myFunction1', args: {} } },
-                { functionCall: { name: 'myFunction2', args: {} } }
+                {
+                  type: 'functionCall',
+                  functionCall: { name: 'myFunction1', args: {} }
+                },
+                {
+                  type: 'functionCall',
+                  functionCall: { name: 'myFunction2', args: {} }
+                }
               ]
             }
           }

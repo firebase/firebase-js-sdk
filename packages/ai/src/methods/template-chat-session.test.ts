@@ -20,7 +20,12 @@ import { match, restore, SinonSpy, spy, stub } from 'sinon';
 import sinonChai from 'sinon-chai';
 import chaiAsPromised from 'chai-as-promised';
 import * as generateContentMethods from './generate-content';
-import { Content, TemplateFunctionDeclaration } from '../types';
+import {
+  Content,
+  FunctionCallPart,
+  TemplateFunctionDeclaration,
+  TextPart
+} from '../types';
 import { TemplateChatSessionImpl } from './template-chat-session';
 import { ApiSettings } from '../types/internal';
 import { AgentPlatformBackend } from '../backend';
@@ -126,7 +131,7 @@ describe('TemplateChatSession', () => {
     it('adds message and response to history', async () => {
       const fakeContent: Content = {
         role: 'model',
-        parts: [{ text: 'hi' }]
+        parts: [{ type: 'text', text: 'hi' }]
       };
       const fakeResponse = {
         candidates: [
@@ -153,7 +158,7 @@ describe('TemplateChatSession', () => {
       // Test: stores history correctly?
       const history = await chatSession.getHistory();
       expect(history[0].role).to.equal('user');
-      expect(history[0].parts[0].text).to.equal('hello');
+      expect((history[0].parts[0] as TextPart).text).to.equal('hello');
       expect(history[1]).to.deep.equal(fakeResponse.candidates[0].content);
 
       // Test: sends history correctly?
@@ -212,15 +217,17 @@ describe('TemplateChatSession', () => {
         }
       })
     });
-    const functionCallPartGreeting = {
+    const functionCallPartGreeting: FunctionCallPart = {
+      type: 'functionCall',
       functionCall: {
         name: 'getGreeting',
         args: { username: 'Bob' }
       }
     };
-    const functionCallPartFarewell = {
+    const functionCallPartFarewell: FunctionCallPart = {
+      type: 'functionCall',
       functionCall: {
-        id: 789,
+        id: 789 as any,
         name: 'getFarewell',
         args: { username: 'Bob' }
       }
@@ -267,7 +274,7 @@ describe('TemplateChatSession', () => {
         });
         const result = await chatSession.sendMessage('My name is Bob');
         expect(
-          result.response.candidates?.[0].content.parts[0].text
+          (result.response.candidates?.[0].content.parts[0] as TextPart).text
         ).to.include('final response');
         expect(templateGenerateContentStub).to.be.calledTwice;
 
@@ -330,7 +337,7 @@ describe('TemplateChatSession', () => {
         });
         const result = await chatSession.sendMessage('My name is Bob');
         expect(
-          result.response.candidates?.[0].content.parts[0].text
+          (result.response.candidates?.[0].content.parts[0] as TextPart).text
         ).to.include('final response');
         expect(templateGenerateContentStub).to.be.calledTwice;
 
@@ -401,7 +408,8 @@ describe('TemplateChatSession', () => {
         );
         const result = await chatSession.sendMessage('My name is Bob');
         expect(
-          result.response.candidates?.[0].content.parts[0].functionCall?.name
+          (result.response.candidates?.[0].content.parts[0] as FunctionCallPart)
+            .functionCall?.name
         ).to.equal('getGreeting');
         expect(templateGenerateContentStub).to.be.calledOnce;
         expect(warnStub).calledWithMatch('exceeded the limit');

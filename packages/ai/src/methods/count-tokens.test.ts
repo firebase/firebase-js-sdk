@@ -49,7 +49,7 @@ const fakeGoogleAIApiSettings: ApiSettings = {
 };
 
 const fakeRequestParams: CountTokensRequest = {
-  contents: [{ parts: [{ text: 'hello' }], role: 'user' }]
+  contents: [{ parts: [{ type: 'text', text: 'hello' }], role: 'user' }]
 };
 
 describe('countTokens()', () => {

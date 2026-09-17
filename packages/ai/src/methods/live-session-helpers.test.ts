@@ -240,7 +240,10 @@ describe('Audio Conversation Helpers', () => {
         modelTurn: {
           role: 'model',
           parts: [
-            { inlineData: { mimeType: 'audio/pcm', data: '1111222233334444' } }
+            {
+              type: 'inlineData',
+              inlineData: { mimeType: 'audio/pcm', data: '1111222233334444' }
+            }
           ] // base64 for dummy data
         }
       };
@@ -291,7 +294,10 @@ describe('Audio Conversation Helpers', () => {
         type: 'serverContent',
         modelTurn: {
           parts: [
-            { inlineData: { mimeType: 'audio/pcm', data: '1111222233334444' } }
+            {
+              type: 'inlineData',
+              inlineData: { mimeType: 'audio/pcm', data: '1111222233334444' }
+            }
           ],
           role: 'model'
         }
@@ -321,7 +327,10 @@ describe('Audio Conversation Helpers', () => {
         type: 'serverContent',
         modelTurn: {
           parts: [
-            { inlineData: { mimeType: 'audio/pcm', data: '1111222233334444' } }
+            {
+              type: 'inlineData',
+              inlineData: { mimeType: 'audio/pcm', data: '1111222233334444' }
+            }
           ],
           role: 'model'
         }

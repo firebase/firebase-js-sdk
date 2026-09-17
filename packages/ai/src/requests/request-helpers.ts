@@ -17,6 +17,7 @@
 
 import { Content, GenerateContentRequest, Part, AIErrorCode } from '../types';
 import { AIError } from '../errors';
+import { assignPartType } from './response-helpers';
 
 export function formatSystemInstruction(
   input?: string | Part | Content
@@ -25,14 +26,23 @@ export function formatSystemInstruction(
   if (input == null) {
     return undefined;
   } else if (typeof input === 'string') {
-    return { role: 'system', parts: [{ text: input }] } as Content;
-  } else if ((input as Part).text) {
-    return { role: 'system', parts: [input as Part] };
+    return {
+      role: 'system',
+      parts: [{ type: 'text', text: input }]
+    } as Content;
+  } else if (
+    (input as Part).type === 'text' ||
+    ('text' in (input as object) &&
+      typeof (input as { text?: unknown }).text === 'string')
+  ) {
+    const part = assignPartType(input as Part);
+    return { role: 'system', parts: [part] };
   } else if ((input as Content).parts) {
+    const parts = (input as Content).parts.map(p => assignPartType(p));
     if (!(input as Content).role) {
-      return { role: 'system', parts: (input as Content).parts };
+      return { role: 'system', parts };
     } else {
-      return input as Content;
+      return { ...(input as Content), parts };
     }
   }
 }
@@ -42,13 +52,13 @@ export function formatNewContent(
 ): Content {
   let newParts: Part[] = [];
   if (typeof request === 'string') {
-    newParts = [{ text: request }];
+    newParts = [{ type: 'text', text: request }];
   } else {
     for (const partOrString of request) {
       if (typeof partOrString === 'string') {
-        newParts.push({ text: partOrString });
+        newParts.push({ type: 'text', text: partOrString });
       } else {
-        newParts.push(partOrString);
+        newParts.push(assignPartType(partOrString));
       }
     }
   }
@@ -70,7 +80,7 @@ function assignRoleToPartsAndValidateSendMessageRequest(
   let hasUserContent = false;
   let hasFunctionContent = false;
   for (const part of parts) {
-    if ('functionResponse' in part) {
+    if (part.type === 'functionResponse') {
       hasFunctionContent = true;
     } else {
       hasUserContent = true;
@@ -101,6 +111,13 @@ export function formatGenerateContentInput(
   let formattedRequest: GenerateContentRequest;
   if ((params as GenerateContentRequest).contents) {
     formattedRequest = params as GenerateContentRequest;
+    for (const content of formattedRequest.contents) {
+      if (content.parts) {
+        for (let i = 0; i < content.parts.length; i++) {
+          content.parts[i] = assignPartType(content.parts[i]);
+        }
+      }
+    }
   } else {
     // Array or string
     const content = formatNewContent(params as string | Array<string | Part>);

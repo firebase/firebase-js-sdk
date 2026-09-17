@@ -67,7 +67,7 @@ const fakeGoogleAIApiSettings: ApiSettings = {
 };
 
 const fakeRequestParams: GenerateContentRequest = {
-  contents: [{ parts: [{ text: 'hello' }], role: 'user' }],
+  contents: [{ parts: [{ type: 'text', text: 'hello' }], role: 'user' }],
   generationConfig: {
     topK: 16
   },
@@ -81,7 +81,7 @@ const fakeRequestParams: GenerateContentRequest = {
 };
 
 const fakeGoogleAIRequestParams: GenerateContentRequest = {
-  contents: [{ parts: [{ text: 'hello' }], role: 'user' }],
+  contents: [{ parts: [{ type: 'text', text: 'hello' }], role: 'user' }],
   generationConfig: {
     topK: 16
   },
@@ -390,10 +390,18 @@ describe('generateContent()', () => {
     );
     const parts = result.response.candidates?.[0].content.parts;
     expect(
-      parts?.some(part => part.codeExecutionResult?.outcome === Outcome.OK)
+      parts?.some(
+        part =>
+          part.type === 'codeExecutionResult' &&
+          part.codeExecutionResult?.outcome === Outcome.OK
+      )
     ).to.be.true;
     expect(
-      parts?.some(part => part.executableCode?.language === Language.PYTHON)
+      parts?.some(
+        part =>
+          part.type === 'executableCode' &&
+          part.executableCode?.language === Language.PYTHON
+      )
     ).to.be.true;
   });
   it('blocked prompt', async () => {
@@ -563,7 +571,7 @@ describe('generateContent()', () => {
       makeRequestStub.resolves(mockResponse as Response);
 
       const requestParamsWithMethod: GenerateContentRequest = {
-        contents: [{ parts: [{ text: 'hello' }], role: 'user' }],
+        contents: [{ parts: [{ type: 'text', text: 'hello' }], role: 'user' }],
         safetySettings: [
           {
             category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,

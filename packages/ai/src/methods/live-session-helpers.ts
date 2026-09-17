@@ -321,10 +321,12 @@ export class AudioConversationRunner {
           this.interruptPlayback();
         }
 
-        const audioPart = serverContent.modelTurn?.parts.find(part =>
-          part.inlineData?.mimeType.startsWith('audio/')
+        const audioPart = serverContent.modelTurn?.parts.find(
+          part =>
+            part.type === 'inlineData' &&
+            part.inlineData.mimeType.startsWith('audio/')
         );
-        if (audioPart?.inlineData) {
+        if (audioPart && audioPart.type === 'inlineData') {
           const audioData = Uint8Array.from(
             atob(audioPart.inlineData.data),
             c => c.charCodeAt(0)

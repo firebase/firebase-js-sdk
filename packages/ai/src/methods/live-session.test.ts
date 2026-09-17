@@ -111,7 +111,9 @@ describe('LiveSession', () => {
       const sentData = JSON.parse(mockHandler.send.getCall(0).args[0]);
       expect(sentData).to.deep.equal({
         clientContent: {
-          turns: [{ role: 'user', parts: [{ text: 'Hello there' }] }],
+          turns: [
+            { role: 'user', parts: [{ type: 'text', text: 'Hello there' }] }
+          ],
           turnComplete: true
         }
       });
@@ -119,8 +121,11 @@ describe('LiveSession', () => {
 
     it('should format and send a message with an array of Parts', async () => {
       const parts = [
-        { text: 'Part 1' },
-        { inlineData: { mimeType: 'image/png', data: 'base64==' } }
+        { type: 'text' as const, text: 'Part 1' },
+        {
+          type: 'inlineData' as const,
+          inlineData: { mimeType: 'image/png', data: 'base64==' }
+        }
       ];
       await session.send(parts);
       expect(mockHandler.send).to.have.been.calledOnce;
@@ -305,7 +310,7 @@ describe('LiveSession', () => {
       expect(responses).to.have.lengthOf(6);
       expect(responses[0]).to.deep.equal({
         type: LiveResponseType.SERVER_CONTENT,
-        modelTurn: { parts: [{ text: 'response 1' }] }
+        modelTurn: { parts: [{ type: 'text', text: 'response 1' }] }
       } as LiveServerContent);
       expect(responses[1]).to.deep.equal({
         type: LiveResponseType.TOOL_CALL,

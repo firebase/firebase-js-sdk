@@ -41,21 +41,43 @@ export type Part =
   | CodeExecutionResultPart;
 
 /**
- * Content part interface if the part represents a text string.
+ * Content part interface representing a raw, untagged part before being tagged with a `type`,
+ * such as a part received from the model wire API or provided by a caller.
+ *
  * @public
  */
-export interface TextPart {
-  text: string;
-  inlineData?: never;
-  functionCall?: never;
-  functionResponse?: never;
+export interface UnknownPart {
+  type?: string;
+  text?: string;
+  inlineData?: GenerativeContentBlob;
+  functionCall?: FunctionCall;
+  functionResponse?: FunctionResponse;
+  fileData?: FileData;
+  executableCode?: ExecutableCode;
+  codeExecutionResult?: CodeExecutionResult;
   thought?: boolean;
   /**
    * @internal
    */
   thoughtSignature?: string;
-  executableCode?: never;
-  codeExecutionResult?: never;
+  /**
+   * Applicable if `inlineData` is a video.
+   */
+  videoMetadata?: VideoMetadata;
+}
+
+/**
+ * Content part interface if the part represents a text string.
+ * @public
+ */
+export interface TextPart {
+  type: 'text';
+  text: string;
+  thought?: boolean;
+  /**
+   * @internal
+   */
+  thoughtSignature?: string;
 }
 
 /**
@@ -63,21 +85,13 @@ export interface TextPart {
  * @public
  */
 export interface InlineDataPart {
-  text?: never;
+  type: 'inlineData';
   inlineData: GenerativeContentBlob;
-  functionCall?: never;
-  functionResponse?: never;
   /**
    * Applicable if `inlineData` is a video.
    */
   videoMetadata?: VideoMetadata;
   thought?: boolean;
-  /**
-   * @internal
-   */
-  thoughtSignature?: never;
-  executableCode?: never;
-  codeExecutionResult?: never;
 }
 
 /**
@@ -102,17 +116,9 @@ export interface VideoMetadata {
  * @public
  */
 export interface FunctionCallPart {
-  text?: never;
-  inlineData?: never;
+  type: 'functionCall';
   functionCall: FunctionCall;
-  functionResponse?: never;
   thought?: boolean;
-  /**
-   * @internal
-   */
-  thoughtSignature?: never;
-  executableCode?: never;
-  codeExecutionResult?: never;
 }
 
 /**
@@ -120,17 +126,9 @@ export interface FunctionCallPart {
  * @public
  */
 export interface FunctionResponsePart {
-  text?: never;
-  inlineData?: never;
-  functionCall?: never;
+  type: 'functionResponse';
   functionResponse: FunctionResponse;
   thought?: boolean;
-  /**
-   * @internal
-   */
-  thoughtSignature?: never;
-  executableCode?: never;
-  codeExecutionResult?: never;
 }
 
 /**
@@ -138,18 +136,9 @@ export interface FunctionResponsePart {
  * @public
  */
 export interface FileDataPart {
-  text?: never;
-  inlineData?: never;
-  functionCall?: never;
-  functionResponse?: never;
+  type: 'fileData';
   fileData: FileData;
   thought?: boolean;
-  /**
-   * @internal
-   */
-  thoughtSignature?: never;
-  executableCode?: never;
-  codeExecutionResult?: never;
 }
 
 /**
@@ -158,18 +147,8 @@ export interface FileDataPart {
  * @public
  */
 export interface ExecutableCodePart {
-  text?: never;
-  inlineData?: never;
-  functionCall?: never;
-  functionResponse?: never;
-  fileData: never;
-  thought?: never;
-  /**
-   * @internal
-   */
-  thoughtSignature?: never;
+  type: 'executableCode';
   executableCode?: ExecutableCode;
-  codeExecutionResult?: never;
 }
 
 /**
@@ -178,17 +157,7 @@ export interface ExecutableCodePart {
  * @public
  */
 export interface CodeExecutionResultPart {
-  text?: never;
-  inlineData?: never;
-  functionCall?: never;
-  functionResponse?: never;
-  fileData: never;
-  thought?: never;
-  /**
-   * @internal
-   */
-  thoughtSignature?: never;
-  executableCode?: never;
+  type: 'codeExecutionResult';
   codeExecutionResult?: CodeExecutionResult;
 }
 
