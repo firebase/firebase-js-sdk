@@ -48,28 +48,9 @@ import { Provider } from '@firebase/component';
 import { FirebaseAnalyticsInternalName } from '@firebase/analytics-interop-types';
 import { RealtimeHandler } from '../src/client/realtime_handler';
 
-const { mockFetchConfig, mockActivate, realState } = vi.hoisted(() => ({
-  mockFetchConfig: vi.fn(),
-  mockActivate: vi.fn(),
-  realState: { realFetchConfig: null as any, realActivate: null as any }
-}));
+import * as api from '../src/api';
 
-vi.mock('../src/api', async importOriginal => {
-  const actual = await importOriginal<typeof import('../src/api')>();
-  realState.realFetchConfig = actual.fetchConfig;
-  realState.realActivate = actual.activate;
-  mockFetchConfig.mockImplementation((...args: unknown[]) =>
-    actual.fetchConfig(...(args as [any]))
-  );
-  mockActivate.mockImplementation((...args: unknown[]) =>
-    actual.activate(...(args as [any]))
-  );
-  return {
-    ...actual,
-    fetchConfig: (...args: unknown[]) => mockFetchConfig(...args),
-    activate: (...args: unknown[]) => mockActivate(...args)
-  };
-});
+vi.mock('../src/api', { spy: true });
 
 describe('RemoteConfig', () => {
   const ACTIVE_CONFIG = {
@@ -520,36 +501,27 @@ describe('RemoteConfig', () => {
 
   describe('fetchAndActivate', () => {
     beforeEach(() => {
-      mockFetchConfig.mockResolvedValue(undefined as any);
-    });
-
-    afterEach(() => {
-      mockFetchConfig.mockImplementation((...args: unknown[]) =>
-        realState.realFetchConfig(...(args as [any]))
-      );
-      mockActivate.mockImplementation((...args: unknown[]) =>
-        realState.realActivate(...(args as [any]))
-      );
+      vi.spyOn(api, 'fetchConfig').mockResolvedValue();
     });
 
     it('calls fetch and activate and returns activation boolean if true', async () => {
-      mockActivate.mockResolvedValue(true);
+      vi.spyOn(api, 'activate').mockResolvedValue(true);
 
       const response = await fetchAndActivate(rc);
 
       expect(response).toBe(true);
-      expect(mockFetchConfig).toHaveBeenCalledWith(rc);
-      expect(mockActivate).toHaveBeenCalledWith(rc);
+      expect(api.fetchConfig).toHaveBeenCalledWith(rc);
+      expect(api.activate).toHaveBeenCalledWith(rc);
     });
 
     it('calls fetch and activate and returns activation boolean if false', async () => {
-      mockActivate.mockResolvedValue(false);
+      vi.spyOn(api, 'activate').mockResolvedValue(false);
 
       const response = await fetchAndActivate(rc);
 
       expect(response).toBe(false);
-      expect(mockFetchConfig).toHaveBeenCalledWith(rc);
-      expect(mockActivate).toHaveBeenCalledWith(rc);
+      expect(api.fetchConfig).toHaveBeenCalledWith(rc);
+      expect(api.activate).toHaveBeenCalledWith(rc);
     });
   });
 
