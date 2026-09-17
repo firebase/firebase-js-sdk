@@ -49,130 +49,20 @@ import { AppCheckService } from './factory';
 import { AppCheckToken } from './public-types';
 import { getDebugToken } from './debug';
 
-const {
-  mockReadTokenFromStorage,
-  mockWriteTokenToStorage,
-  mockGetRecaptcha,
-  mockWriteDebugTokenToIndexedDB,
-  mockReadDebugTokenFromIndexedDB,
-  mockInitializeDebugMode,
-  mockInitializeRecaptchaV3,
-  mockInitializeRecaptchaEnterprise,
-  mockGetReCAPTCHAToken,
-  mockExchangeToken,
-  mockInternalGetToken,
-  mockInternalGetLimitedUseToken
-} = vi.hoisted(() => ({
-  mockReadTokenFromStorage: vi.fn(),
-  mockWriteTokenToStorage: vi.fn(),
-  mockGetRecaptcha: vi.fn(),
-  mockWriteDebugTokenToIndexedDB: vi.fn(),
-  mockReadDebugTokenFromIndexedDB: vi.fn(),
-  mockInitializeDebugMode: vi.fn(),
-  mockInitializeRecaptchaV3: vi.fn(),
-  mockInitializeRecaptchaEnterprise: vi.fn(),
-  mockGetReCAPTCHAToken: vi.fn(),
-  mockExchangeToken: vi.fn(),
-  mockInternalGetToken: vi.fn(),
-  mockInternalGetLimitedUseToken: vi.fn()
-}));
+import * as storage from './storage';
+import * as util from './util';
+import * as indexeddb from './indexeddb';
+import * as debug from './debug';
+import * as recaptcha from './recaptcha';
+import * as client from './client';
 
-vi.mock('./storage', async importOriginal => {
-  const actual = await importOriginal<typeof import('./storage')>();
-  return {
-    ...actual,
-    readTokenFromStorage: (...args: unknown[]) =>
-      mockReadTokenFromStorage.getMockImplementation()
-        ? mockReadTokenFromStorage(...args)
-        : actual.readTokenFromStorage(...(args as [any])),
-    writeTokenToStorage: (...args: unknown[]) =>
-      mockWriteTokenToStorage.getMockImplementation()
-        ? mockWriteTokenToStorage(...args)
-        : actual.writeTokenToStorage(...(args as [any, any]))
-  };
-});
-
-vi.mock('./util', async importOriginal => {
-  const actual = await importOriginal<typeof import('./util')>();
-  return {
-    ...actual,
-    getRecaptcha: (isEnterprise?: boolean) =>
-      mockGetRecaptcha.getMockImplementation()
-        ? mockGetRecaptcha(isEnterprise)
-        : actual.getRecaptcha(isEnterprise)
-  };
-});
-
-vi.mock('./indexeddb', async importOriginal => {
-  const actual = await importOriginal<typeof import('./indexeddb')>();
-  return {
-    ...actual,
-    writeDebugTokenToIndexedDB: (...args: unknown[]) =>
-      mockWriteDebugTokenToIndexedDB.getMockImplementation()
-        ? mockWriteDebugTokenToIndexedDB(...args)
-        : actual.writeDebugTokenToIndexedDB(...(args as [any])),
-    readDebugTokenFromIndexedDB: () =>
-      mockReadDebugTokenFromIndexedDB.getMockImplementation()
-        ? mockReadDebugTokenFromIndexedDB()
-        : actual.readDebugTokenFromIndexedDB()
-  };
-});
-
-vi.mock('./debug', async importOriginal => {
-  const actual = await importOriginal<typeof import('./debug')>();
-  return {
-    ...actual,
-    initializeDebugMode: (...args: unknown[]) => {
-      mockInitializeDebugMode(...args);
-      return actual.initializeDebugMode(...(args as [any]));
-    }
-  };
-});
-
-vi.mock('./recaptcha', async importOriginal => {
-  const actual = await importOriginal<typeof import('./recaptcha')>();
-  return {
-    ...actual,
-    initializeV3: (...args: unknown[]) =>
-      mockInitializeRecaptchaV3.getMockImplementation()
-        ? mockInitializeRecaptchaV3(...args)
-        : actual.initializeV3(...(args as [any, any])),
-    initializeEnterprise: (...args: unknown[]) =>
-      mockInitializeRecaptchaEnterprise.getMockImplementation()
-        ? mockInitializeRecaptchaEnterprise(...args)
-        : actual.initializeEnterprise(...(args as [any, any])),
-    getToken: (...args: unknown[]) =>
-      mockGetReCAPTCHAToken.getMockImplementation()
-        ? mockGetReCAPTCHAToken(...args)
-        : actual.getToken(...(args as [any]))
-  };
-});
-
-vi.mock('./client', async importOriginal => {
-  const actual = await importOriginal<typeof import('./client')>();
-  return {
-    ...actual,
-    exchangeToken: (...args: unknown[]) =>
-      mockExchangeToken.getMockImplementation()
-        ? mockExchangeToken(...args)
-        : actual.exchangeToken(...(args as [any, any]))
-  };
-});
-
-vi.mock('./internal-api', async importOriginal => {
-  const actual = await importOriginal<typeof import('./internal-api')>();
-  return {
-    ...actual,
-    getToken: (...args: unknown[]) =>
-      mockInternalGetToken.getMockImplementation()
-        ? mockInternalGetToken(...args)
-        : actual.getToken(...(args as [any, any?])),
-    getLimitedUseToken: (...args: unknown[]) =>
-      mockInternalGetLimitedUseToken.getMockImplementation()
-        ? mockInternalGetLimitedUseToken(...args)
-        : actual.getLimitedUseToken(...(args as [any]))
-  };
-});
+vi.mock('./storage', { spy: true });
+vi.mock('./util', { spy: true });
+vi.mock('./indexeddb', { spy: true });
+vi.mock('./debug', { spy: true });
+vi.mock('./recaptcha', { spy: true });
+vi.mock('./client', { spy: true });
+vi.mock('./internal-api', { spy: true });
 
 describe('api', () => {
   let app: FirebaseApp;
@@ -183,22 +73,9 @@ describe('api', () => {
 
   beforeEach(() => {
     app = getFullApp();
-    mockReadTokenFromStorage.mockReset();
-    mockWriteTokenToStorage.mockReset();
-    mockGetRecaptcha.mockReset();
-    mockWriteDebugTokenToIndexedDB.mockReset();
-    mockReadDebugTokenFromIndexedDB.mockReset();
-    mockInitializeDebugMode.mockReset();
-    mockInitializeRecaptchaV3.mockReset();
-    mockInitializeRecaptchaEnterprise.mockReset();
-    mockGetReCAPTCHAToken.mockReset();
-    mockExchangeToken.mockReset();
-    mockInternalGetToken.mockReset();
-    mockInternalGetLimitedUseToken.mockReset();
-
-    mockReadTokenFromStorage.mockResolvedValue(undefined);
-    mockWriteTokenToStorage.mockResolvedValue(undefined);
-    mockGetRecaptcha.mockReturnValue(getFakeGreCAPTCHA());
+    vi.spyOn(storage, 'readTokenFromStorage').mockResolvedValue(undefined);
+    vi.spyOn(storage, 'writeTokenToStorage').mockResolvedValue(undefined);
+    vi.spyOn(util, 'getRecaptcha').mockReturnValue(getFakeGreCAPTCHA());
   });
 
   afterEach(async () => {
@@ -295,8 +172,12 @@ describe('api', () => {
         token = tokenToWrite;
         return Promise.resolve();
       };
-      mockWriteDebugTokenToIndexedDB.mockImplementation(fakeWrite);
-      mockReadDebugTokenFromIndexedDB.mockResolvedValue(token);
+      vi.spyOn(indexeddb, 'writeDebugTokenToIndexedDB').mockImplementation(
+        fakeWrite
+      );
+      vi.spyOn(indexeddb, 'readDebugTokenFromIndexedDB').mockResolvedValue(
+        token
+      );
       const consoleStub = vi.spyOn(console, 'log').mockImplementation(() => {});
       self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
       initializeAppCheck(app, {
@@ -311,7 +192,7 @@ describe('api', () => {
     it('does not call initializeDebugMode on second call', async () => {
       self.FIREBASE_APPCHECK_DEBUG_TOKEN = 'abcdefg';
       const consoleStub = vi.spyOn(console, 'log').mockImplementation(() => {});
-      const initializeDebugModeSpy = mockInitializeDebugMode;
+      const initializeDebugModeSpy = vi.spyOn(debug, 'initializeDebugMode');
       // First call, should call initializeDebugMode()
       initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
@@ -332,9 +213,9 @@ describe('api', () => {
     });
 
     it('initialize reCAPTCHA when a ReCaptchaV3Provider is provided', () => {
-      const initReCAPTCHAStub = mockInitializeRecaptchaV3.mockResolvedValue(
-        {} as any
-      );
+      const initReCAPTCHAStub = vi
+        .spyOn(recaptcha, 'initializeV3')
+        .mockResolvedValue({} as any);
       initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
       });
@@ -342,8 +223,9 @@ describe('api', () => {
     });
 
     it('initialize reCAPTCHA when a ReCaptchaEnterpriseProvider is provided', () => {
-      const initReCAPTCHAStub =
-        mockInitializeRecaptchaEnterprise.mockResolvedValue({} as any);
+      const initReCAPTCHAStub = vi
+        .spyOn(recaptcha, 'initializeEnterprise')
+        .mockResolvedValue({} as any);
       initializeAppCheck(app, {
         provider: new ReCaptchaEnterpriseProvider(FAKE_SITE_KEY)
       });
@@ -458,9 +340,11 @@ describe('api', () => {
     it('getToken() calls the internal getToken() function', async () => {
       const app = getFakeApp({ automaticDataCollectionEnabled: true });
       const appCheck = getFakeAppCheck(app);
-      const internalGetToken = mockInternalGetToken.mockResolvedValue({
-        token: 'a-token-string'
-      });
+      const internalGetToken = vi
+        .spyOn(internalApi, 'getToken')
+        .mockResolvedValue({
+          token: 'a-token-string'
+        });
       await getToken(appCheck, true);
       expect(internalGetToken).toHaveBeenCalledWith(appCheck, true);
     });
@@ -469,7 +353,7 @@ describe('api', () => {
       const appCheck = getFakeAppCheck(app);
       // If getToken() errors, it returns a dummy token with an error field
       // instead of throwing.
-      mockInternalGetToken.mockResolvedValue({
+      vi.spyOn(internalApi, 'getToken').mockResolvedValue({
         token: 'a-dummy-token',
         error: Error('there was an error')
       });
@@ -482,8 +366,9 @@ describe('api', () => {
     it('getLimitedUseToken() calls the internal getLimitedUseToken() function', async () => {
       const app = getFakeApp({ automaticDataCollectionEnabled: true });
       const appCheck = getFakeAppCheck(app);
-      const internalgetLimitedUseToken =
-        mockInternalGetLimitedUseToken.mockResolvedValue({
+      const internalgetLimitedUseToken = vi
+        .spyOn(internalApi, 'getLimitedUseToken')
+        .mockResolvedValue({
           token: 'a-token-string'
         });
       expect(await getLimitedUseToken(appCheck)).toEqual({
@@ -509,8 +394,10 @@ describe('api', () => {
         expireTimeMillis: 123,
         issuedAtTimeMillis: 0
       };
-      mockGetReCAPTCHAToken.mockResolvedValue(fakeRecaptchaToken);
-      mockExchangeToken.mockResolvedValue(fakeRecaptchaAppCheckToken);
+      vi.spyOn(recaptcha, 'getToken').mockResolvedValue(fakeRecaptchaToken);
+      vi.spyOn(client, 'exchangeToken').mockResolvedValue(
+        fakeRecaptchaAppCheckToken
+      );
 
       const listener1 = vi.fn().mockImplementation(() => {
         throw new Error();
@@ -555,8 +442,10 @@ describe('api', () => {
         expireTimeMillis: 123,
         issuedAtTimeMillis: 0
       };
-      mockGetReCAPTCHAToken.mockResolvedValue(fakeRecaptchaToken);
-      mockExchangeToken.mockResolvedValue(fakeRecaptchaAppCheckToken);
+      vi.spyOn(recaptcha, 'getToken').mockResolvedValue(fakeRecaptchaToken);
+      vi.spyOn(client, 'exchangeToken').mockResolvedValue(
+        fakeRecaptchaAppCheckToken
+      );
 
       const listener1 = vi.fn().mockImplementation(() => {
         throw new Error();
@@ -607,8 +496,10 @@ describe('api', () => {
       expect(getStateReference(app).tokenObservers.length).toBe(0);
 
       const fakeRecaptchaToken = 'fake-recaptcha-token';
-      mockGetReCAPTCHAToken.mockResolvedValue(fakeRecaptchaToken);
-      mockExchangeToken.mockRejectedValue(new Error('exchange error'));
+      vi.spyOn(recaptcha, 'getToken').mockResolvedValue(fakeRecaptchaToken);
+      vi.spyOn(client, 'exchangeToken').mockRejectedValue(
+        new Error('exchange error')
+      );
 
       const listener1 = vi.fn();
 

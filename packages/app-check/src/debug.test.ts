@@ -17,51 +17,16 @@
 
 import { expect, vi } from 'vitest';
 import { clearState, getDebugState } from './state';
-
-const {
-  mockReadOrCreateDebugTokenFromStorage,
-  mockWriteDebugTokenToIndexedDB,
-  mockReadDebugTokenFromIndexedDB
-} = vi.hoisted(() => ({
-  mockReadOrCreateDebugTokenFromStorage: vi.fn(),
-  mockWriteDebugTokenToIndexedDB: vi.fn(),
-  mockReadDebugTokenFromIndexedDB: vi.fn()
-}));
-
-vi.mock('./storage', async importOriginal => {
-  const actual = await importOriginal<typeof import('./storage')>();
-  return {
-    ...actual,
-    readOrCreateDebugTokenFromStorage: (...args: unknown[]) =>
-      mockReadOrCreateDebugTokenFromStorage.getMockImplementation()
-        ? mockReadOrCreateDebugTokenFromStorage(...args)
-        : actual.readOrCreateDebugTokenFromStorage(...(args as [any]))
-  };
-});
-
-vi.mock('./indexeddb', async importOriginal => {
-  const actual = await importOriginal<typeof import('./indexeddb')>();
-  return {
-    ...actual,
-    writeDebugTokenToIndexedDB: (...args: unknown[]) =>
-      mockWriteDebugTokenToIndexedDB.getMockImplementation()
-        ? mockWriteDebugTokenToIndexedDB(...args)
-        : actual.writeDebugTokenToIndexedDB(...(args as [any])),
-    readDebugTokenFromIndexedDB: () =>
-      mockReadDebugTokenFromIndexedDB.getMockImplementation()
-        ? mockReadDebugTokenFromIndexedDB()
-        : actual.readDebugTokenFromIndexedDB()
-  };
-});
-
+import * as storage from './storage';
+import * as indexeddb from './indexeddb';
 import { initializeDebugMode } from './debug';
+
+vi.mock('./storage', { spy: true });
+vi.mock('./indexeddb', { spy: true });
 
 describe('debug mode', () => {
   beforeEach(() => {
     vi.spyOn(console, 'log').mockImplementation(() => {});
-    mockReadOrCreateDebugTokenFromStorage.mockReset();
-    mockWriteDebugTokenToIndexedDB.mockReset();
-    mockReadDebugTokenFromIndexedDB.mockReset();
   });
 
   afterEach(() => {
@@ -80,7 +45,9 @@ describe('debug mode', () => {
   });
 
   it('generates a debug token if self.FIREBASE_APPCHECK_DEBUG_TOKEN is set to true', async () => {
-    mockReadOrCreateDebugTokenFromStorage.mockResolvedValue('my-debug-token');
+    vi.spyOn(storage, 'readOrCreateDebugTokenFromStorage').mockResolvedValue(
+      'my-debug-token'
+    );
 
     self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
     initializeDebugMode();
@@ -91,17 +58,21 @@ describe('debug mode', () => {
   });
 
   it('saves the generated debug token to indexedDB', async () => {
-    mockWriteDebugTokenToIndexedDB.mockResolvedValue(undefined);
+    const saveDebugTokenStub = vi
+      .spyOn(indexeddb, 'writeDebugTokenToIndexedDB')
+      .mockResolvedValue(undefined);
 
     self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
     initializeDebugMode();
 
     await getDebugState().token?.promise;
-    expect(mockWriteDebugTokenToIndexedDB).toHaveBeenCalled();
+    expect(saveDebugTokenStub).toHaveBeenCalled();
   });
 
   it('uses the cached debug token when it exists if self.FIREBASE_APPCHECK_DEBUG_TOKEN is set to true', async () => {
-    mockReadDebugTokenFromIndexedDB.mockResolvedValue('cached-debug-token');
+    vi.spyOn(indexeddb, 'readDebugTokenFromIndexedDB').mockResolvedValue(
+      'cached-debug-token'
+    );
 
     self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
     initializeDebugMode();

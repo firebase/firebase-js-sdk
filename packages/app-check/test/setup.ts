@@ -19,5 +19,6 @@ import { vi } from 'vitest';
 
 afterEach(() => {
   vi.useRealTimers();
+  vi.resetAllMocks();
   vi.restoreAllMocks();
 });
