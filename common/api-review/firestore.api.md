@@ -20,7 +20,9 @@ export type AddPrefixToKeys<
 Prefix extends string,
 T extends Record<string, unknown>
 > = {
-    [K in keyof T & string as `${Prefix}.${K}`]+?: string extends K ? any : T[K];
+    [K in keyof T & string as `${Prefix}.${K}`]+?: string extends K
+    ? PartialWithFieldValue<ChildTypes<T[K]>> | FieldValue
+    : T[K];
 };
 
 // @public
@@ -1436,7 +1438,7 @@ export type UpdateData<T> = T extends Primitive
 : T extends {}
 ? {
     [K in keyof T]?: string extends K
-    ? PartialWithFieldValue<ChildTypes<T[K]>>
+    ? PartialWithFieldValue<ChildTypes<T[K]>> | FieldValue
     : UpdateData<T[K]> | FieldValue;
 } & NestedUpdateFields<T>
 : Partial<T>;

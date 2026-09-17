@@ -91,7 +91,7 @@ export type UpdateData<T> = T extends Primitive
         // `{[key: string]: { foo: bool }}`. In the generated UpdateData
         // indexed properties can match their type or any child types.
         [K in keyof T]?: string extends K
-          ? PartialWithFieldValue<ChildTypes<T[K]>>
+          ? PartialWithFieldValue<ChildTypes<T[K]>> | FieldValue
           : UpdateData<T[K]> | FieldValue;
       } & NestedUpdateFields<T>
     : Partial<T>;

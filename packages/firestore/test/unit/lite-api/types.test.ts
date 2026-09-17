@@ -16,7 +16,7 @@
  */
 import { expect } from 'chai';
 
-import { Firestore, runTransaction } from '../../../lite/index';
+import { deleteField, Firestore, runTransaction } from '../../../lite/index';
 import {
   DocumentData,
   DocumentReference,
@@ -502,18 +502,25 @@ describe('UpdateData - v9', () => {
           'indexed.bar.numberProperty': 1
         };
 
-        // does not enforce type
+        // allows any child property type of the indexed object
         _ = {
-          'indexed.bar.booleanProperty': 'string value is not rejected'
+          'indexed.bar.booleanProperty': 1
+        };
+
+        // rejects types that are not a child property type
+        _ = {
+          // @ts-expect-error Unsupported type
+          'indexed.bar.booleanProperty': 'string value is rejected'
         };
 
         _ = {
-          'indexed.bar.numberProperty': 'string value is not rejected'
+          // @ts-expect-error Unsupported type
+          'indexed.bar.numberProperty': 'string value is rejected'
         };
 
-        // rejects properties that don't exist
         _ = {
-          'indexed.bar.unknown': 'string value is not rejected'
+          // @ts-expect-error Unsupported type
+          'indexed.bar.unknown': 'string value is rejected'
         };
 
         expect(true).to.be.true;
@@ -529,14 +536,20 @@ describe('UpdateData - v9', () => {
           'layer.indexed.bar.booleanProperty': true
         };
 
-        // allows the property, but does not enforce type
+        // allows any child property type of the indexed object
         _ = {
-          'layer.indexed.bar.booleanProperty': 'string value is not rejected'
+          'layer.indexed.bar.booleanProperty': 1
         };
 
-        // Allows unknown properties in sub types
+        // rejects types that are not a child property type
         _ = {
-          'layer.indexed.bar.unknownProperty': 'This just allows anything'
+          // @ts-expect-error Unsupported type
+          'layer.indexed.bar.booleanProperty': 'string value is rejected'
+        };
+
+        _ = {
+          // @ts-expect-error Unsupported type
+          'layer.indexed.bar.unknownProperty': 'string value is rejected'
         };
 
         expect(true).to.be.true;
@@ -856,6 +869,30 @@ describe('UpdateData - v9', () => {
       }
 
       expect(true).to.be.true;
+    });
+
+    it('fixes issues/10283', () => {
+      interface TestDoc {
+        dynamicKeys: Record<string, string>;
+        staticKeys: {
+          staticKey: number;
+        };
+      }
+
+      let update: UpdateData<TestDoc>;
+
+      update = {
+        'dynamicKeys.foo': 'valid string',
+        'dynamicKeys.bar': deleteField(),
+        'staticKeys.staticKey': 42
+      };
+
+      update = {
+        // @ts-expect-error number is not assignable to string | FieldValue | undefined
+        'dynamicKeys.foo': 123
+      };
+
+      expect(update).to.not.be.null;
     });
   });
 });
