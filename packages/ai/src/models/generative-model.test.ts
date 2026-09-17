@@ -37,53 +37,14 @@ import {
 } from '../../test-utils/get-fake-firebase-services';
 import { Availability } from '../types/language-model';
 
-const { mockRequest, mockGenerateContent, mockCountTokens } = vi.hoisted(
-  () => ({
-    mockRequest: {
-      makeRequest: (..._args: any[]): any => {}
-    },
-    mockGenerateContent: {
-      generateContent: (..._args: any[]): any => {},
-      generateContentStream: (..._args: any[]): any => {}
-    },
-    mockCountTokens: {
-      countTokens: (..._args: any[]): any => {}
-    }
-  })
-);
+import * as mockGenerateContent from '../methods/generate-content';
+import * as mockCountTokens from '../methods/count-tokens';
 
-vi.mock('../requests/request', async importOriginal => {
-  const actual = await importOriginal<any>();
-  mockRequest.makeRequest = (...args: any[]) => actual.makeRequest(...args);
-  return {
-    ...actual,
-    makeRequest: (...args: any[]) => mockRequest.makeRequest(...args)
-  };
-});
+vi.mock('../requests/request', { spy: true });
+vi.mock('../methods/generate-content', { spy: true });
+vi.mock('../methods/count-tokens', { spy: true });
 
-vi.mock('../methods/generate-content', async importOriginal => {
-  const actual = await importOriginal<any>();
-  mockGenerateContent.generateContent = (...args: any[]) =>
-    actual.generateContent(...args);
-  mockGenerateContent.generateContentStream = (...args: any[]) =>
-    actual.generateContentStream(...args);
-  return {
-    ...actual,
-    generateContent: (...args: any[]) =>
-      mockGenerateContent.generateContent(...args),
-    generateContentStream: (...args: any[]) =>
-      mockGenerateContent.generateContentStream(...args)
-  };
-});
-
-vi.mock('../methods/count-tokens', async importOriginal => {
-  const actual = await importOriginal<any>();
-  mockCountTokens.countTokens = (...args: any[]) => actual.countTokens(...args);
-  return {
-    ...actual,
-    countTokens: (...args: any[]) => mockCountTokens.countTokens(...args)
-  };
-});
+const mockRequest = request;
 
 describe('GenerativeModel', () => {
   afterEach(() => {

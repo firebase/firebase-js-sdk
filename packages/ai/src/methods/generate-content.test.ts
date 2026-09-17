@@ -21,20 +21,9 @@ import {
   getMockResponseStreaming
 } from '../../test-utils/mock-response';
 
-const { mockRequest } = vi.hoisted(() => ({
-  mockRequest: {
-    makeRequest: (..._args: any[]): any => {}
-  }
-}));
+import * as mockRequest from '../requests/request';
 
-vi.mock('../requests/request', async importOriginal => {
-  const actual = await importOriginal<any>();
-  mockRequest.makeRequest = (...args: any[]) => actual.makeRequest(...args);
-  return {
-    ...actual,
-    makeRequest: (...args: any[]) => mockRequest.makeRequest(...args)
-  };
-});
+vi.mock('../requests/request', { spy: true });
 
 import {
   generateContent,

@@ -17,27 +17,9 @@
 
 import { expect, vi, Mock } from 'vitest';
 
-const { mockGenerateContent } = vi.hoisted(() => ({
-  mockGenerateContent: {
-    templateGenerateContent: (..._args: any[]): any => {},
-    templateGenerateContentStream: (..._args: any[]): any => {}
-  }
-}));
+import * as mockGenerateContent from './generate-content';
 
-vi.mock('./generate-content', async importOriginal => {
-  const actual = await importOriginal<any>();
-  mockGenerateContent.templateGenerateContent = (...args: any[]) =>
-    actual.templateGenerateContent(...args);
-  mockGenerateContent.templateGenerateContentStream = (...args: any[]) =>
-    actual.templateGenerateContentStream(...args);
-  return {
-    ...actual,
-    templateGenerateContent: (...args: any[]) =>
-      mockGenerateContent.templateGenerateContent(...args),
-    templateGenerateContentStream: (...args: any[]) =>
-      mockGenerateContent.templateGenerateContentStream(...args)
-  };
-});
+vi.mock('./generate-content', { spy: true });
 
 import { Content, TemplateFunctionDeclaration } from '../types';
 import { TemplateChatSessionImpl } from './template-chat-session';

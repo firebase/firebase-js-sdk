@@ -20,27 +20,9 @@ import { TemplateToolConfig, RetrievalConfig, LatLng } from '../public-types';
 import { TemplateGenerativeModel } from './template-generative-model';
 import { fakeAI } from '../../test-utils/get-fake-firebase-services';
 
-const { mockGenerateContent } = vi.hoisted(() => ({
-  mockGenerateContent: {
-    templateGenerateContent: (..._args: any[]): any => {},
-    templateGenerateContentStream: (..._args: any[]): any => {}
-  }
-}));
+import * as mockGenerateContent from '../methods/generate-content';
 
-vi.mock('../methods/generate-content', async importOriginal => {
-  const actual = await importOriginal<any>();
-  mockGenerateContent.templateGenerateContent = (...args: any[]) =>
-    actual.templateGenerateContent(...args);
-  mockGenerateContent.templateGenerateContentStream = (...args: any[]) =>
-    actual.templateGenerateContentStream(...args);
-  return {
-    ...actual,
-    templateGenerateContent: (...args: any[]) =>
-      mockGenerateContent.templateGenerateContent(...args),
-    templateGenerateContentStream: (...args: any[]) =>
-      mockGenerateContent.templateGenerateContentStream(...args)
-  };
-});
+vi.mock('../methods/generate-content', { spy: true });
 
 const TEMPLATE_ID = 'my-template';
 const TEMPLATE_VARS = { a: 1, b: '2' };

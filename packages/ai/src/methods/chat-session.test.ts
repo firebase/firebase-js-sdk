@@ -17,28 +17,9 @@
 
 import { expect, vi, type Mock } from 'vitest';
 
-// This inserts mockGenerateContent as a spy layer on methods coming from ./generate-content.ts
-const { mockGenerateContent } = vi.hoisted(() => ({
-  mockGenerateContent: {
-    generateContent: (..._args: any[]): any => {},
-    generateContentStream: (..._args: any[]): any => {}
-  }
-}));
+import * as mockGenerateContent from './generate-content';
 
-vi.mock('./generate-content', async importOriginal => {
-  const actual = await importOriginal<any>();
-  mockGenerateContent.generateContent = (...args: any[]) =>
-    actual.generateContent(...args);
-  mockGenerateContent.generateContentStream = (...args: any[]) =>
-    actual.generateContentStream(...args);
-  return {
-    ...actual,
-    generateContent: (...args: any[]) =>
-      mockGenerateContent.generateContent(...args),
-    generateContentStream: (...args: any[]) =>
-      mockGenerateContent.generateContentStream(...args)
-  };
-});
+vi.mock('./generate-content', { spy: true });
 
 import {
   Content,
