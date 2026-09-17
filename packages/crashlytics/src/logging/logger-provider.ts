@@ -18,6 +18,7 @@
 import {
   LoggerProvider,
   BatchLogRecordProcessor,
+  BatchLogRecordProcessorBrowserOptions,
   ReadableLogRecord,
   LogRecordExporter,
   LogRecordProcessor
@@ -85,7 +86,10 @@ export function createLoggerProvider(
 
   const processors: LogRecordProcessor[] = [
     new FirebaseAttributesProcessor(attributesStore, projectId),
-    new BatchLogRecordProcessor({ exporter: logExporter })
+    new BatchLogRecordProcessor({
+      exporter: logExporter,
+      disableAutoFlushOnDocumentHide: true
+    } as BatchLogRecordProcessorBrowserOptions)
   ];
 
   const provider = new LoggerProvider({
