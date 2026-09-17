@@ -33,10 +33,6 @@ import {
   defaultTokenErrorData,
   getLimitedUseToken
 } from './internal-api';
-import * as reCAPTCHA from './recaptcha';
-import * as client from './client';
-import * as storage from './storage';
-import * as util from './util';
 import { logger } from './logger';
 import {
   getStateReference,
@@ -171,7 +167,7 @@ describe('internal api', () => {
       const token = await getToken(appCheck as AppCheckService);
 
       expect(customProviderSpy).toHaveBeenCalled();
-      expect(token).to.deep.equal({
+      expect(token).toEqual({
         token: 'fake-custom-app-check-token'
       });
     });
@@ -192,7 +188,7 @@ describe('internal api', () => {
 
       expect(
         exchangeTokenStub.mock.calls[0][0].body['recaptcha_v3_token']
-      ).to.equal(fakeRecaptchaToken);
+      ).toBe(fakeRecaptchaToken);
       expect(token).toEqual({ token: fakeRecaptchaAppCheckToken.token });
     });
 
@@ -231,14 +227,13 @@ describe('internal api', () => {
       const token = await getToken(appCheck as AppCheckService, false, true);
 
       expect(reCAPTCHASpy).toHaveBeenCalled();
-      expect(token).to.deep.equal({
+      expect(token).toEqual({
         token: formatDummyToken(defaultTokenErrorData),
         error
       });
       expect(errorStub.mock.calls[0][1].message).toContain(
         'oops, something went wrong'
       );
-      errorStub.mockRestore();
     });
 
     it('resolves with a dummy token and an error if failed to get a token in debug mode', async () => {
@@ -253,7 +248,7 @@ describe('internal api', () => {
 
       const token = await getToken(appCheck as AppCheckService, false, true);
 
-      expect(token).to.deep.equal({
+      expect(token).toEqual({
         token: formatDummyToken(defaultTokenErrorData),
         error
       });
@@ -261,7 +256,6 @@ describe('internal api', () => {
         'oops, something went wrong'
       );
       delete window.FIREBASE_APPCHECK_DEBUG_TOKEN;
-      errorStub.mockRestore();
     });
 
     it('resolves with a dummy token and an error if recaptcha failed', async () => {
@@ -276,12 +270,11 @@ describe('internal api', () => {
       const token = await getToken(appCheck as AppCheckService, false, true);
 
       expect(reCAPTCHASpy).toHaveBeenCalled();
-      expect(exchangeTokenStub).to.not.be.called;
+      expect(exchangeTokenStub).not.toHaveBeenCalled();
       expect(token.token).toBe(formatDummyToken(defaultTokenErrorData));
       expect(errorStub.mock.calls[0][1].message).toContain(
         AppCheckError.RECAPTCHA_ERROR
       );
-      errorStub.mockRestore();
     });
 
     it('notifies listeners using cached token', async () => {
@@ -417,11 +410,11 @@ describe('internal api', () => {
       const clientStub = mockExchangeToken;
 
       expect(getStateReference(app).token).toBe(undefined);
-      expect(await getToken(appCheck as AppCheckService)).to.deep.equal({
+      expect(await getToken(appCheck as AppCheckService)).toEqual({
         token: fakeCachedAppCheckToken.token
       });
       expect(getStateReference(app).token).toBe(fakeCachedAppCheckToken);
-      expect(clientStub).has.not.been.called;
+      expect(clientStub).not.toHaveBeenCalled();
     });
 
     it('persists token to storage', async () => {
@@ -451,10 +444,10 @@ describe('internal api', () => {
       });
 
       const clientStub = mockExchangeToken;
-      expect(await getToken(appCheck as AppCheckService)).to.deep.equal({
+      expect(await getToken(appCheck as AppCheckService)).toEqual({
         token: fakeRecaptchaAppCheckToken.token
       });
-      expect(clientStub).to.not.have.been.called;
+      expect(clientStub).not.toHaveBeenCalled();
     });
 
     it('force to get new token when forceRefresh is true', async () => {
@@ -473,7 +466,7 @@ describe('internal api', () => {
         issuedAtTimeMillis: 0
       });
 
-      expect(await getToken(appCheck as AppCheckService, true)).to.deep.equal({
+      expect(await getToken(appCheck as AppCheckService, true)).toEqual({
         token: 'new-recaptcha-app-check-token'
       });
     });
@@ -498,15 +491,13 @@ describe('internal api', () => {
 
       const getTokenPromise = getToken(appCheck as AppCheckService, true);
 
-      expect(getStateReference(app).exchangeTokenPromise).to.be.instanceOf(
+      expect(getStateReference(app).exchangeTokenPromise).toBeInstanceOf(
         Promise
       );
 
       await getTokenPromise;
 
-      expect(getStateReference(app).exchangeTokenPromise).to.be.equal(
-        undefined
-      );
+      expect(getStateReference(app).exchangeTokenPromise).toBe(undefined);
     });
 
     it('no dangling exchangeToken promise', async () => {
@@ -589,7 +580,7 @@ describe('internal api', () => {
         issuedAtTimeMillis: 0
       });
 
-      expect(await getToken(appCheck as AppCheckService)).to.deep.equal({
+      expect(await getToken(appCheck as AppCheckService)).toEqual({
         token: 'new-recaptcha-app-check-token'
       });
     });
@@ -603,10 +594,10 @@ describe('internal api', () => {
       });
 
       const clientStub = mockExchangeToken;
-      expect(await getToken(appCheck as AppCheckService)).to.deep.equal({
+      expect(await getToken(appCheck as AppCheckService)).toEqual({
         token: fakeCachedAppCheckToken.token
       });
-      expect(clientStub).to.not.have.been.called;
+      expect(clientStub).not.toHaveBeenCalled();
     });
 
     it('deletes cached token if it is invalid and continues to exchange request', async () => {
@@ -628,7 +619,7 @@ describe('internal api', () => {
       stubGetRecaptchaToken();
       mockExchangeToken.mockResolvedValue(freshToken);
 
-      expect(await getToken(appCheck as AppCheckService)).to.deep.equal({
+      expect(await getToken(appCheck as AppCheckService)).toEqual({
         token: 'new-recaptcha-app-check-token'
       });
 
@@ -722,7 +713,7 @@ describe('internal api', () => {
       // console.warn
       expect(token.error?.message).toContain('503');
       expect(token.error?.message).toContain('00m');
-      expect(token.error?.message).to.not.include('1d');
+      expect(token.error?.message).not.toContain('1d');
       expect(warnStub.mock.calls[0][0]).toContain('503');
     });
 
@@ -762,7 +753,7 @@ describe('internal api', () => {
       const token = await getLimitedUseToken(appCheck as AppCheckService);
 
       expect(customProviderSpy).toHaveBeenCalledWith(true);
-      expect(token).to.deep.equal({
+      expect(token).toEqual({
         token: 'fake-custom-app-check-token'
       });
     });
@@ -796,7 +787,7 @@ describe('internal api', () => {
 
       expect(
         exchangeTokenStub.mock.calls[0][0].body['recaptcha_v3_token']
-      ).to.equal(fakeRecaptchaToken);
+      ).toBe(fakeRecaptchaToken);
 
       expect(exchangeTokenStub.mock.calls[0][0].body['limited_use']).toBe(true);
 
@@ -886,8 +877,9 @@ describe('internal api', () => {
         listener
       );
 
-      expect(getStateReference(app).tokenRefresher?.isRunning()).to.be
-        .undefined;
+      expect(
+        getStateReference(app).tokenRefresher?.isRunning()
+      ).toBeUndefined();
 
       // addTokenListener() waits for the result of cachedTokenPromise
       // before starting the refresher
@@ -923,7 +915,7 @@ describe('internal api', () => {
       });
     });
 
-    it('notifies the listener with the valid token in storage', done => {
+    it('notifies the listener with the valid token in storage', async () => {
       storageReadStub.mockResolvedValue({
         token: `fake-cached-app-check-token`,
         expireTimeMillis: Date.now() + 60000,
@@ -934,18 +926,18 @@ describe('internal api', () => {
         isTokenAutoRefreshEnabled: true
       });
 
-      const fakeListener: AppCheckTokenListener = token => {
-        expect(token).to.deep.equal({
-          token: `fake-cached-app-check-token`
-        });
-        done();
-      };
+      const fakeListener = vi.fn();
 
       addTokenListener(
         appCheck as AppCheckService,
         ListenerType.INTERNAL,
         fakeListener
       );
+
+      await getStateReference(app).cachedTokenPromise;
+      expect(fakeListener).toHaveBeenCalledWith({
+        token: `fake-cached-app-check-token`
+      });
     });
 
     it('does not make rapid requests within proactive refresh window', async () => {

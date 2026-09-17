@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { vi, afterEach } from 'vitest';
+import { vi } from 'vitest';
 
 afterEach(() => {
   vi.useRealTimers();

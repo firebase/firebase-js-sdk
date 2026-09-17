@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
-import { getFullApp } from '../test/util';
+import { getFakeGreCAPTCHA, getFullApp } from '../test/util';
 import { expect, vi } from 'vitest';
-import { FirebaseError, Deferred } from '@firebase/util';
+import { FirebaseError } from '@firebase/util';
 import { AppCheckError } from './errors';
 import {
   clearState,
@@ -27,16 +27,9 @@ import {
 } from './state';
 import { deleteApp, FirebaseApp } from '@firebase/app';
 
-const {
-  mockExchangeToken,
-  mockGetReCAPTCHAToken,
-  mockInitializeRecaptchaV3,
-  mockInitializeRecaptchaEnterprise
-} = vi.hoisted(() => ({
+const { mockExchangeToken, mockGetReCAPTCHAToken } = vi.hoisted(() => ({
   mockExchangeToken: vi.fn(),
-  mockGetReCAPTCHAToken: vi.fn(),
-  mockInitializeRecaptchaV3: vi.fn(),
-  mockInitializeRecaptchaEnterprise: vi.fn()
+  mockGetReCAPTCHAToken: vi.fn()
 }));
 
 vi.mock('./client', async importOriginal => {
@@ -57,15 +50,7 @@ vi.mock('./recaptcha', async importOriginal => {
     getToken: (...args: unknown[]) =>
       mockGetReCAPTCHAToken.getMockImplementation()
         ? mockGetReCAPTCHAToken(...args)
-        : actual.getToken(...(args as [any])),
-    initializeV3: (...args: unknown[]) =>
-      mockInitializeRecaptchaV3.getMockImplementation()
-        ? mockInitializeRecaptchaV3(...args)
-        : actual.initializeV3(...(args as [any, any])),
-    initializeEnterprise: (...args: unknown[]) =>
-      mockInitializeRecaptchaEnterprise.getMockImplementation()
-        ? mockInitializeRecaptchaEnterprise(...args)
-        : actual.initializeEnterprise(...(args as [any, any]))
+        : actual.getToken(...(args as [any]))
   };
 });
 
@@ -78,19 +63,14 @@ describe('ReCaptchaV3Provider', () => {
     vi.useFakeTimers({ now: 0 });
     app = getFullApp();
     setInitialState(app, DEFAULT_STATE);
+    self.grecaptcha = getFakeGreCAPTCHA() as any;
     mockGetReCAPTCHAToken.mockResolvedValue('fake-recaptcha-token');
-    mockInitializeRecaptchaV3.mockImplementation((appToInit: FirebaseApp) => {
-      const state = getStateReference(appToInit);
-      state.reCAPTCHAState = { initialized: new Deferred() };
-      return Promise.resolve({} as any);
-    });
   });
 
   afterEach(() => {
     clearState();
     mockExchangeToken.mockReset();
     mockGetReCAPTCHAToken.mockReset();
-    mockInitializeRecaptchaV3.mockReset();
     return deleteApp(app);
   });
 
@@ -197,21 +177,14 @@ describe('ReCaptchaEnterpriseProvider', () => {
     vi.useFakeTimers({ now: 0 });
     app = getFullApp();
     setInitialState(app, DEFAULT_STATE);
+    self.grecaptcha = getFakeGreCAPTCHA() as any;
     mockGetReCAPTCHAToken.mockResolvedValue('fake-recaptcha-token');
-    mockInitializeRecaptchaEnterprise.mockImplementation(
-      (appToInit: FirebaseApp) => {
-        const state = getStateReference(appToInit);
-        state.reCAPTCHAState = { initialized: new Deferred() };
-        return Promise.resolve({} as any);
-      }
-    );
   });
 
   afterEach(() => {
     clearState();
     mockExchangeToken.mockReset();
     mockGetReCAPTCHAToken.mockReset();
-    mockInitializeRecaptchaEnterprise.mockReset();
     return deleteApp(app);
   });
 

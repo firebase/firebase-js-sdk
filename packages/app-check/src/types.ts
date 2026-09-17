@@ -16,7 +16,7 @@
  */
 
 import { FirebaseApp } from '@firebase/app';
-import type { PartialObserver } from '@firebase/util';
+import { PartialObserver } from '@firebase/util';
 import { AppCheckToken, AppCheckTokenListener } from './public-types';
 
 export interface FirebaseAppCheckInternal {

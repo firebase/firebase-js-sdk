@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { expect, vi, MockInstance } from 'vitest';
+import { expect, vi } from 'vitest';
 import {
   setTokenAutoRefreshEnabled,
   initializeAppCheck,
@@ -37,14 +37,8 @@ import {
   getStateReference,
   setInitialState
 } from './state';
-import * as reCAPTCHA from './recaptcha';
-import * as util from './util';
-import * as logger from './logger';
-import * as client from './client';
-import * as storage from './storage';
+import { logger } from './logger';
 import * as internalApi from './internal-api';
-import * as indexeddb from './indexeddb';
-import * as debug from './debug';
 import { deleteApp, FirebaseApp } from '@firebase/app';
 import {
   CustomProvider,
@@ -182,8 +176,6 @@ vi.mock('./internal-api', async importOriginal => {
 
 describe('api', () => {
   let app: FirebaseApp;
-  let storageReadStub: MockInstance;
-  let storageWriteStub: MockInstance;
 
   function setRecaptchaSuccess(isSuccess: boolean = true): void {
     getStateReference(app).reCAPTCHAState!.succeeded = isSuccess;
@@ -204,8 +196,8 @@ describe('api', () => {
     mockInternalGetToken.mockReset();
     mockInternalGetLimitedUseToken.mockReset();
 
-    storageReadStub = mockReadTokenFromStorage.mockResolvedValue(undefined);
-    storageWriteStub = mockWriteTokenToStorage.mockResolvedValue(undefined);
+    mockReadTokenFromStorage.mockResolvedValue(undefined);
+    mockWriteTokenToStorage.mockResolvedValue(undefined);
     mockGetRecaptcha.mockReturnValue(getFakeGreCAPTCHA());
   });
 
@@ -226,7 +218,7 @@ describe('api', () => {
             getToken: () => Promise.resolve({ token: 'mm' } as AppCheckToken)
           })
         })
-      ).to.throw(/appCheck\/already-initialized/);
+      ).toThrow(/appCheck\/already-initialized/);
     });
     it('can only be called once (if given different ReCaptchaV3Providers)', () => {
       initializeAppCheck(app, {
@@ -236,7 +228,7 @@ describe('api', () => {
         initializeAppCheck(app, {
           provider: new ReCaptchaV3Provider(FAKE_SITE_KEY + 'X')
         })
-      ).to.throw(/appCheck\/already-initialized/);
+      ).toThrow(/appCheck\/already-initialized/);
     });
     it('can only be called once (if given different ReCaptchaEnterpriseProviders)', () => {
       initializeAppCheck(app, {
@@ -246,7 +238,7 @@ describe('api', () => {
         initializeAppCheck(app, {
           provider: new ReCaptchaEnterpriseProvider(FAKE_SITE_KEY + 'X')
         })
-      ).to.throw(/appCheck\/already-initialized/);
+      ).toThrow(/appCheck\/already-initialized/);
     });
     it('can only be called once (if given different CustomProviders)', () => {
       initializeAppCheck(app, {
@@ -260,7 +252,7 @@ describe('api', () => {
             getToken: () => Promise.resolve({ token: 'gg' } as AppCheckToken)
           })
         })
-      ).to.throw(/appCheck\/already-initialized/);
+      ).toThrow(/appCheck\/already-initialized/);
     });
     it('can be called multiple times (if given equivalent ReCaptchaV3Providers)', () => {
       const appCheckInstance = initializeAppCheck(app, {
@@ -376,16 +368,13 @@ describe('api', () => {
     });
 
     it('global false + local true = false', () => {
-      const warnStub = vi
-        .spyOn(logger.logger, 'warn')
-        .mockImplementation(() => {});
+      vi.spyOn(logger, 'warn').mockImplementation(() => {});
       app.automaticDataCollectionEnabled = false;
       initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY),
         isTokenAutoRefreshEnabled: true
       });
       expect(getStateReference(app).isTokenAutoRefreshEnabled).toBe(false);
-      warnStub.mockRestore();
     });
 
     it('global false + local false = false', () => {
@@ -569,7 +558,6 @@ describe('api', () => {
       };
       mockGetReCAPTCHAToken.mockResolvedValue(fakeRecaptchaToken);
       mockExchangeToken.mockResolvedValue(fakeRecaptchaAppCheckToken);
-      storageWriteStub.mockResolvedValue(undefined);
 
       const listener1 = vi.fn().mockImplementation(() => {
         throw new Error();
@@ -609,7 +597,7 @@ describe('api', () => {
     });
 
     it('onError() catches token errors', async () => {
-      vi.spyOn(logger.logger, 'error').mockImplementation(() => {});
+      vi.spyOn(logger, 'error').mockImplementation(() => {});
       const appCheck = initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY),
         isTokenAutoRefreshEnabled: false
@@ -622,7 +610,6 @@ describe('api', () => {
       const fakeRecaptchaToken = 'fake-recaptcha-token';
       mockGetReCAPTCHAToken.mockResolvedValue(fakeRecaptchaToken);
       mockExchangeToken.mockRejectedValue(new Error('exchange error'));
-      storageWriteStub.mockResolvedValue(undefined);
 
       const listener1 = vi.fn();
 

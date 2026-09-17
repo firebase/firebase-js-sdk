@@ -31,9 +31,9 @@ import {
   ComponentType,
   InstantiationMode
 } from '@firebase/component';
-import type { _AppCheckComponentName } from './public-types';
+import { _AppCheckComponentName } from './public-types';
 import { factory, internalFactory } from './factory';
-import type { _AppCheckInternalComponentName } from './types';
+import { _AppCheckInternalComponentName } from './types';
 import { name, version } from '../package.json';
 
 // Used by other Firebase packages.

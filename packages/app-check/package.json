@@ -24,9 +24,8 @@
     "build:release": "yarn build && yarn api-report && yarn typings:public",
     "build:deps": "lerna run build --scope @firebase/app-check --include-dependencies",
     "dev": "rollup -c -w",
-    "test": "run-p --npm-path npm lint test:all",
-    "test:all": "vitest run",
-    "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all",
+    "test": "run-p --npm-path npm lint test:browser",
+    "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:browser",
     "test:browser": "vitest run",
     "test:browser:debug": "vitest --browser.headless=false",
     "trusted-type-check": "tsec -p tsconfig.json --noEmit",
@@ -63,12 +62,6 @@
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
   "typings": "dist/src/index.d.ts",
-  "nyc": {
-    "extension": [
-      ".ts"
-    ],
-    "reportDir": "./coverage/node"
-  },
   "engines": {
     "node": ">=20.0.0"
   }
