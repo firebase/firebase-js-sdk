@@ -15,15 +15,20 @@
  * limitations under the License.
  */
 
-import '../test/setup';
-import { expect } from 'chai';
-import { stub } from 'sinon';
+import { expect, vi } from 'vitest';
+import { clearState, getDebugState } from './state';
 import * as storage from './storage';
 import * as indexeddb from './indexeddb';
-import { clearState, getDebugState } from './state';
 import { initializeDebugMode } from './debug';
 
+vi.mock('./storage', { spy: true });
+vi.mock('./indexeddb', { spy: true });
+
 describe('debug mode', () => {
+  beforeEach(() => {
+    vi.spyOn(console, 'log').mockImplementation(() => {});
+  });
+
   afterEach(() => {
     clearState();
     // reset the global variable for debug mode
@@ -35,52 +40,45 @@ describe('debug mode', () => {
     initializeDebugMode();
     const debugState = getDebugState();
 
-    expect(debugState.enabled).to.be.true;
-    await expect(debugState.token?.promise).to.eventually.equal(
-      'my-debug-token'
-    );
+    expect(debugState.enabled).toBe(true);
+    await expect(debugState.token?.promise).resolves.toBe('my-debug-token');
   });
 
   it('generates a debug token if self.FIREBASE_APPCHECK_DEBUG_TOKEN is set to true', async () => {
-    stub(storage, 'readOrCreateDebugTokenFromStorage').returns(
-      Promise.resolve('my-debug-token')
+    vi.spyOn(storage, 'readOrCreateDebugTokenFromStorage').mockResolvedValue(
+      'my-debug-token'
     );
 
     self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
     initializeDebugMode();
     const debugState = getDebugState();
 
-    expect(debugState.enabled).to.be.true;
-    await expect(debugState.token?.promise).to.eventually.equal(
-      'my-debug-token'
-    );
+    expect(debugState.enabled).toBe(true);
+    await expect(debugState.token?.promise).resolves.toBe('my-debug-token');
   });
 
   it('saves the generated debug token to indexedDB', async () => {
-    const saveToIndexedDBStub = stub(
-      indexeddb,
-      'writeDebugTokenToIndexedDB'
-    ).callsFake(() => Promise.resolve());
+    const saveDebugTokenStub = vi
+      .spyOn(indexeddb, 'writeDebugTokenToIndexedDB')
+      .mockResolvedValue(undefined);
 
     self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
     initializeDebugMode();
 
     await getDebugState().token?.promise;
-    expect(saveToIndexedDBStub).to.have.been.called;
+    expect(saveDebugTokenStub).toHaveBeenCalled();
   });
 
   it('uses the cached debug token when it exists if self.FIREBASE_APPCHECK_DEBUG_TOKEN is set to true', async () => {
-    stub(indexeddb, 'readDebugTokenFromIndexedDB').returns(
-      Promise.resolve('cached-debug-token')
+    vi.spyOn(indexeddb, 'readDebugTokenFromIndexedDB').mockResolvedValue(
+      'cached-debug-token'
     );
 
     self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
     initializeDebugMode();
 
     const debugState = getDebugState();
-    expect(debugState.enabled).to.be.true;
-    await expect(debugState.token?.promise).to.eventually.equal(
-      'cached-debug-token'
-    );
+    expect(debugState.enabled).toBe(true);
+    await expect(debugState.token?.promise).resolves.toBe('cached-debug-token');
   });
 });

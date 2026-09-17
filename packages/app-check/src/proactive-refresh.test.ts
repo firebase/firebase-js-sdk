@@ -15,9 +15,7 @@
  * limitations under the License.
  */
 
-import '../test/setup';
-import { useFakeTimers } from 'sinon';
-import { expect } from 'chai';
+import { expect, vi } from 'vitest';
 import { Deferred } from '@firebase/util';
 import { Refresher } from './proactive-refresh';
 
@@ -32,11 +30,11 @@ describe('proactive refresh', () => {
           100,
           99
         )
-    ).to.throw(/Proactive refresh lower bound greater than upper bound!/);
+    ).toThrow(/Proactive refresh lower bound greater than upper bound!/);
   });
 
   it('runs operation after wait', async () => {
-    const clock = useFakeTimers();
+    vi.useFakeTimers();
     const operations = [new Deferred(), new Deferred(), new Deferred()];
     let counter = 0;
     const waitTime = 10;
@@ -52,18 +50,18 @@ describe('proactive refresh', () => {
       100
     );
 
-    expect(refresher.isRunning()).to.be.false;
+    expect(refresher.isRunning()).toBe(false);
     refresher.start();
-    expect(refresher.isRunning()).to.be.true;
+    expect(refresher.isRunning()).toBe(true);
 
-    clock.tick(waitTime);
-    await expect(operations[0].promise).to.eventually.fulfilled;
-    clock.tick(waitTime);
-    await expect(operations[1].promise).to.eventually.fulfilled;
-    clock.tick(waitTime);
-    await expect(operations[2].promise).to.eventually.fulfilled;
+    await vi.advanceTimersByTimeAsync(waitTime);
+    await expect(operations[0].promise).resolves.toBeUndefined();
+    await vi.advanceTimersByTimeAsync(waitTime);
+    await expect(operations[1].promise).resolves.toBeUndefined();
+    await vi.advanceTimersByTimeAsync(waitTime);
+    await expect(operations[2].promise).resolves.toBeUndefined();
 
-    clock.restore();
+    refresher.stop();
   });
 
   it('retries on retriable errors', async () => {
@@ -87,8 +85,9 @@ describe('proactive refresh', () => {
 
     refresher.start();
 
-    await expect(successOperation.promise).to.eventually.fulfilled;
-    expect(refresher.isRunning()).to.be.true;
+    await expect(successOperation.promise).resolves.toBeUndefined();
+    expect(refresher.isRunning()).toBe(true);
+    refresher.stop();
   });
 
   it('does not retry and stop refreshing on non-retriable errors', async () => {
@@ -108,11 +107,11 @@ describe('proactive refresh', () => {
     refresher.start();
 
     await retryCheck.promise;
-    expect(refresher.isRunning()).to.be.false;
+    expect(refresher.isRunning()).toBe(false);
   });
 
   it('backs off exponentially when retrying', async () => {
-    const clock = useFakeTimers();
+    vi.useFakeTimers();
     const minWaitTime = 10;
     const maxWaitTime = 100;
     let counter = 0;
@@ -130,18 +129,17 @@ describe('proactive refresh', () => {
 
     refresher.start();
 
-    clock.tick(minWaitTime);
+    await vi.advanceTimersByTimeAsync(minWaitTime);
 
-    await expect(operations[0].promise).to.eventually.fulfilled;
-    clock.tick(minWaitTime * 2);
-    await expect(operations[1].promise).to.eventually.fulfilled;
+    await expect(operations[0].promise).resolves.toBeUndefined();
+    await vi.advanceTimersByTimeAsync(minWaitTime * 2);
+    await expect(operations[1].promise).resolves.toBeUndefined();
 
     refresher.stop();
-    clock.restore();
   });
 
   it('can be stopped during wait', async () => {
-    const clock = useFakeTimers();
+    vi.useFakeTimers();
     const waitTime = 10;
     const operation = new Deferred();
     const refresher = new Refresher(
@@ -156,18 +154,17 @@ describe('proactive refresh', () => {
     );
 
     refresher.start();
-    clock.tick(0.5 * waitTime);
+    await vi.advanceTimersByTimeAsync(0.5 * waitTime);
     refresher.stop();
-    clock.tick(waitTime);
+    await vi.advanceTimersByTimeAsync(waitTime);
 
     operation.reject('not resolved');
-    await expect(operation.promise).to.eventually.rejectedWith('not resolved');
-    expect(refresher.isRunning()).to.be.false;
-    clock.restore();
+    await expect(operation.promise).rejects.toBe('not resolved');
+    expect(refresher.isRunning()).toBe(false);
   });
 
   it('can be restarted after being stopped', async () => {
-    const clock = useFakeTimers();
+    vi.useFakeTimers();
     const waitTime = 10;
     const operation = new Deferred();
     const operationAfterRestart = new Deferred();
@@ -184,18 +181,18 @@ describe('proactive refresh', () => {
     );
 
     refresher.start();
-    clock.tick(0.5 * waitTime);
+    await vi.advanceTimersByTimeAsync(0.5 * waitTime);
     refresher.stop();
-    clock.tick(waitTime);
+    await vi.advanceTimersByTimeAsync(waitTime);
 
     operation.reject('not resolved');
-    await expect(operation.promise).to.eventually.rejectedWith('not resolved');
-    expect(refresher.isRunning()).to.be.false;
+    await expect(operation.promise).rejects.toBe('not resolved');
+    expect(refresher.isRunning()).toBe(false);
 
     refresher.start();
-    clock.tick(waitTime);
-    await expect(operationAfterRestart.promise).to.eventually.fulfilled;
+    await vi.advanceTimersByTimeAsync(waitTime);
+    await expect(operationAfterRestart.promise).resolves.toBeUndefined();
 
-    clock.restore();
+    refresher.stop();
   });
 });
