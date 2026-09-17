@@ -32,50 +32,20 @@ import * as installationsApi from '@firebase/installations';
 import { _FirebaseInstallationsInternal } from '@firebase/installations';
 import { dbDelete } from '../internals/idb-manager';
 
-const {
-  mockOnIdChange,
-  mockRequestCreateRegistration,
-  mockDbGetFidRegistration
-} = vi.hoisted(() => ({
-  mockOnIdChange: vi.fn(),
-  mockRequestCreateRegistration: vi.fn(),
-  mockDbGetFidRegistration: vi.fn()
-}));
+import * as requestsModule from '../internals/requests';
+import * as idbManagerModule from '../internals/idb-manager';
 
-vi.mock('@firebase/installations', async importOriginal => {
-  const actual =
-    await importOriginal<typeof import('@firebase/installations')>();
-  return {
-    ...actual,
-    onIdChange: (...args: unknown[]) =>
-      mockOnIdChange.getMockImplementation()
-        ? mockOnIdChange(...args)
-        : actual.onIdChange(...(args as [any, any]))
-  };
-});
+vi.mock('@firebase/installations', { spy: true });
+vi.mock('../internals/requests', { spy: true });
+vi.mock('../internals/idb-manager', { spy: true });
 
-vi.mock('../internals/requests', async importOriginal => {
-  const actual = await importOriginal<typeof import('../internals/requests')>();
-  return {
-    ...actual,
-    requestCreateRegistration: (...args: unknown[]) =>
-      mockRequestCreateRegistration.getMockImplementation()
-        ? mockRequestCreateRegistration(...args)
-        : actual.requestCreateRegistration(...(args as [any, any]))
-  };
-});
-
-vi.mock('../internals/idb-manager', async importOriginal => {
-  const actual =
-    await importOriginal<typeof import('../internals/idb-manager')>();
-  return {
-    ...actual,
-    dbGetFidRegistration: (...args: unknown[]) =>
-      mockDbGetFidRegistration.getMockImplementation()
-        ? mockDbGetFidRegistration(...args)
-        : actual.dbGetFidRegistration(...(args as [any]))
-  };
-});
+const mockOnIdChange = vi.mocked(installationsApi.onIdChange);
+const mockRequestCreateRegistration = vi.mocked(
+  requestsModule.requestCreateRegistration
+);
+const mockDbGetFidRegistration = vi.mocked(
+  idbManagerModule.dbGetFidRegistration
+);
 
 describe('refreshFidRegistrationIfStored', () => {
   let messaging: MessagingService;

@@ -34,88 +34,30 @@ function makeSwRegistration(): ServiceWorkerRegistration {
   return new FakeServiceWorkerRegistration() as unknown as ServiceWorkerRegistration;
 }
 
-const {
-  mockUpdateVapidKey,
-  mockUpdateSwReg,
-  mockRequestCreateRegistration,
-  mockRequestDeleteRegistration,
-  mockRequestGetToken,
-  mockRequestDeleteToken,
-  mockDbSetFidRegistration,
-  mockDbRemove
-} = vi.hoisted(() => ({
-  mockUpdateVapidKey: vi.fn(),
-  mockUpdateSwReg: vi.fn(),
-  mockRequestCreateRegistration: vi.fn(),
-  mockRequestDeleteRegistration: vi.fn(),
-  mockRequestGetToken: vi.fn(),
-  mockRequestDeleteToken: vi.fn(),
-  mockDbSetFidRegistration: vi.fn(),
-  mockDbRemove: vi.fn()
-}));
+import * as updateVapidKeyModule from '../helpers/updateVapidKey';
+import * as updateSwRegModule from '../helpers/updateSwReg';
+import * as requestsModule from '../internals/requests';
+import * as idbManagerModule from '../internals/idb-manager';
 
-vi.mock('../helpers/updateVapidKey', async importOriginal => {
-  const actual =
-    await importOriginal<typeof import('../helpers/updateVapidKey')>();
-  return {
-    ...actual,
-    updateVapidKey: (...args: unknown[]) =>
-      mockUpdateVapidKey.getMockImplementation()
-        ? mockUpdateVapidKey(...args)
-        : actual.updateVapidKey(...(args as [any, any]))
-  };
-});
+vi.mock('../helpers/updateVapidKey', { spy: true });
+vi.mock('../helpers/updateSwReg', { spy: true });
+vi.mock('../internals/requests', { spy: true });
+vi.mock('../internals/idb-manager', { spy: true });
 
-vi.mock('../helpers/updateSwReg', async importOriginal => {
-  const actual =
-    await importOriginal<typeof import('../helpers/updateSwReg')>();
-  return {
-    ...actual,
-    updateSwReg: (...args: unknown[]) =>
-      mockUpdateSwReg.getMockImplementation()
-        ? mockUpdateSwReg(...args)
-        : actual.updateSwReg(...(args as [any, any]))
-  };
-});
-
-vi.mock('../internals/requests', async importOriginal => {
-  const actual = await importOriginal<typeof import('../internals/requests')>();
-  return {
-    ...actual,
-    requestCreateRegistration: (...args: unknown[]) =>
-      mockRequestCreateRegistration.getMockImplementation()
-        ? mockRequestCreateRegistration(...args)
-        : actual.requestCreateRegistration(...(args as [any, any])),
-    requestDeleteRegistration: (...args: unknown[]) =>
-      mockRequestDeleteRegistration.getMockImplementation()
-        ? mockRequestDeleteRegistration(...args)
-        : actual.requestDeleteRegistration(...(args as [any, any])),
-    requestGetToken: (...args: unknown[]) =>
-      mockRequestGetToken.getMockImplementation()
-        ? mockRequestGetToken(...args)
-        : actual.requestGetToken(...(args as [any, any])),
-    requestDeleteToken: (...args: unknown[]) =>
-      mockRequestDeleteToken.getMockImplementation()
-        ? mockRequestDeleteToken(...args)
-        : actual.requestDeleteToken(...(args as [any, any]))
-  };
-});
-
-vi.mock('../internals/idb-manager', async importOriginal => {
-  const actual =
-    await importOriginal<typeof import('../internals/idb-manager')>();
-  return {
-    ...actual,
-    dbSetFidRegistration: (...args: unknown[]) =>
-      mockDbSetFidRegistration.getMockImplementation()
-        ? mockDbSetFidRegistration(...args)
-        : actual.dbSetFidRegistration(...(args as [any, any])),
-    dbRemove: (...args: unknown[]) =>
-      mockDbRemove.getMockImplementation()
-        ? mockDbRemove(...args)
-        : actual.dbRemove(...(args as [any]))
-  };
-});
+const mockUpdateVapidKey = vi.mocked(updateVapidKeyModule.updateVapidKey);
+const mockUpdateSwReg = vi.mocked(updateSwRegModule.updateSwReg);
+const mockRequestCreateRegistration = vi.mocked(
+  requestsModule.requestCreateRegistration
+);
+const mockRequestDeleteRegistration = vi.mocked(
+  requestsModule.requestDeleteRegistration
+);
+const mockRequestGetToken = vi.mocked(requestsModule.requestGetToken);
+const mockRequestDeleteToken = vi.mocked(requestsModule.requestDeleteToken);
+const mockDbSetFidRegistration = vi.mocked(
+  idbManagerModule.dbSetFidRegistration
+);
+const mockDbRemove = vi.mocked(idbManagerModule.dbRemove);
 
 describe('register', () => {
   let messaging: MessagingService;

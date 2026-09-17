@@ -36,21 +36,13 @@ import { getFakeFirebaseDependencies } from '../testing/fakes/firebase-dependenc
 import { getFakeTokenDetails } from '../testing/fakes/token-details';
 import { deleteDB, openDB } from 'idb';
 
-const { mockMigrateOldDatabase } = vi.hoisted(() => ({
-  mockMigrateOldDatabase: vi.fn()
-}));
+import * as migrateOldDatabaseModule from '../helpers/migrate-old-database';
 
-vi.mock('../helpers/migrate-old-database', async importOriginal => {
-  const actual =
-    await importOriginal<typeof import('../helpers/migrate-old-database')>();
-  return {
-    ...actual,
-    migrateOldDatabase: (...args: unknown[]) =>
-      mockMigrateOldDatabase.getMockImplementation()
-        ? mockMigrateOldDatabase(...args)
-        : actual.migrateOldDatabase(...(args as [any]))
-  };
-});
+vi.mock('../helpers/migrate-old-database', { spy: true });
+
+const mockMigrateOldDatabase = vi.mocked(
+  migrateOldDatabaseModule.migrateOldDatabase
+);
 
 describe('idb manager', () => {
   let firebaseDependencies: FirebaseInternalDependencies;

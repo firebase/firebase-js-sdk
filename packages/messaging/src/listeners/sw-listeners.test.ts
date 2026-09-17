@@ -54,61 +54,27 @@ import { onNotificationClick, onPush, onSubChange } from './sw-listeners';
 import * as LogToFirelog from '../helpers/logToFirelog';
 import { MessagingService } from '../messaging-service';
 
-const {
-  mockGetTokenInternal,
-  mockRevokeRegistrationInternal,
-  mockRefreshFidRegistrationIfStored,
-  mockDbGetFidRegistration
-} = vi.hoisted(() => ({
-  mockGetTokenInternal: vi.fn(),
-  mockRevokeRegistrationInternal: vi.fn(),
-  mockRefreshFidRegistrationIfStored: vi.fn(),
-  mockDbGetFidRegistration: vi.fn()
-}));
+import * as tokenManagerModule from '../internals/token-manager';
+import * as fidChangeRegistrationModule from '../helpers/fid-change-registration';
+import * as idbManagerModule from '../internals/idb-manager';
 
-vi.mock('../internals/token-manager', async importOriginal => {
-  const actual =
-    await importOriginal<typeof import('../internals/token-manager')>();
-  return {
-    ...actual,
-    getTokenInternal: (...args: unknown[]) =>
-      mockGetTokenInternal.getMockImplementation()
-        ? mockGetTokenInternal(...args)
-        : actual.getTokenInternal(...(args as [any])),
-    revokeRegistrationInternal: (...args: unknown[]) =>
-      mockRevokeRegistrationInternal.getMockImplementation()
-        ? mockRevokeRegistrationInternal(...args)
-        : actual.revokeRegistrationInternal(...(args as [any]))
-  };
-});
-
-vi.mock('../helpers/fid-change-registration', async importOriginal => {
-  const actual =
-    await importOriginal<typeof import('../helpers/fid-change-registration')>();
-  return {
-    ...actual,
-    refreshFidRegistrationIfStored: (...args: unknown[]) =>
-      mockRefreshFidRegistrationIfStored.getMockImplementation()
-        ? mockRefreshFidRegistrationIfStored(...args)
-        : actual.refreshFidRegistrationIfStored(...(args as [any]))
-  };
-});
-
-vi.mock('../internals/idb-manager', async importOriginal => {
-  const actual =
-    await importOriginal<typeof import('../internals/idb-manager')>();
-  return {
-    ...actual,
-    dbGetFidRegistration: (...args: unknown[]) =>
-      mockDbGetFidRegistration.getMockImplementation()
-        ? mockDbGetFidRegistration(...args)
-        : actual.dbGetFidRegistration(...(args as [any]))
-  };
-});
-
+vi.mock('../internals/token-manager', { spy: true });
+vi.mock('../helpers/fid-change-registration', { spy: true });
+vi.mock('../internals/idb-manager', { spy: true });
 vi.mock('../helpers/sleep', () => ({
-  sleep: vi.fn().mockResolvedValue(undefined)
+  sleep: () => Promise.resolve()
 }));
+
+const mockGetTokenInternal = vi.mocked(tokenManagerModule.getTokenInternal);
+const mockRevokeRegistrationInternal = vi.mocked(
+  tokenManagerModule.revokeRegistrationInternal
+);
+const mockRefreshFidRegistrationIfStored = vi.mocked(
+  fidChangeRegistrationModule.refreshFidRegistrationIfStored
+);
+const mockDbGetFidRegistration = vi.mocked(
+  idbManagerModule.dbGetFidRegistration
+);
 
 const LOCAL_HOST = self.location.host;
 const FIRELOG_ENDPOINT = 'https://play.google.com/log?format=json_proto3';
@@ -149,7 +115,7 @@ interface NotificationExperimental extends Notification {
 
 describe('SwController', () => {
   let addEventListenerStub: any;
-  let eventListenerMap: Map<string, Function>;
+  let eventListenerMap: Map<string, (...args: any[]) => any>;
   let messaging: MessagingService;
 
   beforeEach(() => {

@@ -26,54 +26,23 @@ import {
 } from '../testing/fakes/firebase-dependencies';
 import { unregister } from './unregister';
 
-const {
-  mockDbGetFidRegistration,
-  mockDbRemoveFidRegistration,
-  mockDbRemove,
-  mockRequestDeleteRegistration,
-  mockRequestDeleteToken
-} = vi.hoisted(() => ({
-  mockDbGetFidRegistration: vi.fn(),
-  mockDbRemoveFidRegistration: vi.fn(),
-  mockDbRemove: vi.fn(),
-  mockRequestDeleteRegistration: vi.fn(),
-  mockRequestDeleteToken: vi.fn()
-}));
+import * as idbManagerModule from '../internals/idb-manager';
+import * as requestsModule from '../internals/requests';
 
-vi.mock('../internals/idb-manager', async importOriginal => {
-  const actual =
-    await importOriginal<typeof import('../internals/idb-manager')>();
-  return {
-    ...actual,
-    dbGetFidRegistration: (...args: unknown[]) =>
-      mockDbGetFidRegistration.getMockImplementation()
-        ? mockDbGetFidRegistration(...args)
-        : actual.dbGetFidRegistration(...(args as [any])),
-    dbRemoveFidRegistration: (...args: unknown[]) =>
-      mockDbRemoveFidRegistration.getMockImplementation()
-        ? mockDbRemoveFidRegistration(...args)
-        : actual.dbRemoveFidRegistration(...(args as [any])),
-    dbRemove: (...args: unknown[]) =>
-      mockDbRemove.getMockImplementation()
-        ? mockDbRemove(...args)
-        : actual.dbRemove(...(args as [any]))
-  };
-});
+vi.mock('../internals/idb-manager', { spy: true });
+vi.mock('../internals/requests', { spy: true });
 
-vi.mock('../internals/requests', async importOriginal => {
-  const actual = await importOriginal<typeof import('../internals/requests')>();
-  return {
-    ...actual,
-    requestDeleteRegistration: (...args: unknown[]) =>
-      mockRequestDeleteRegistration.getMockImplementation()
-        ? mockRequestDeleteRegistration(...args)
-        : actual.requestDeleteRegistration(...(args as [any, any])),
-    requestDeleteToken: (...args: unknown[]) =>
-      mockRequestDeleteToken.getMockImplementation()
-        ? mockRequestDeleteToken(...args)
-        : actual.requestDeleteToken(...(args as [any, any]))
-  };
-});
+const mockDbGetFidRegistration = vi.mocked(
+  idbManagerModule.dbGetFidRegistration
+);
+const mockDbRemoveFidRegistration = vi.mocked(
+  idbManagerModule.dbRemoveFidRegistration
+);
+const mockDbRemove = vi.mocked(idbManagerModule.dbRemove);
+const mockRequestDeleteRegistration = vi.mocked(
+  requestsModule.requestDeleteRegistration
+);
+const mockRequestDeleteToken = vi.mocked(requestsModule.requestDeleteToken);
 
 describe('unregister', () => {
   let messaging: MessagingService;

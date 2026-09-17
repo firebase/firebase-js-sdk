@@ -19,7 +19,9 @@ import { deleteDB } from 'idb';
 import { afterEach, vi } from 'vitest';
 
 afterEach(async () => {
+  vi.resetAllMocks();
   vi.restoreAllMocks();
+  vi.useRealTimers();
   await deleteDB('firebase-messaging-database');
   await deleteDB('fcm_token_details_db');
 });
