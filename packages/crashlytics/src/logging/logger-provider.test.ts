@@ -63,25 +63,46 @@ describe('createLoggerProvider', () => {
 
   describe('BatchLogRecordProcessor auto-flush on document hide', () => {
     it('should pass disableAutoFlushOnDocumentHide: true to BatchLogRecordProcessor', () => {
-      const origDesc = Object.getOwnPropertyDescriptor(
-        sdkLogs,
-        'BatchLogRecordProcessor'
-      );
-      Object.defineProperty(sdkLogs, 'BatchLogRecordProcessor', {
-        value: origDesc?.get ? origDesc.get() : sdkLogs.BatchLogRecordProcessor,
-        configurable: true,
-        writable: true
-      });
-      const batchProcessorSpy = sinon.spy(sdkLogs, 'BatchLogRecordProcessor');
-      try {
-        createLoggerProvider(app, {}, attributesStore, []);
-        expect(batchProcessorSpy.calledOnce).to.be.true;
-        const args = batchProcessorSpy.firstCall.args[0];
-        expect(args).to.have.property('disableAutoFlushOnDocumentHide', true);
-      } finally {
-        batchProcessorSpy.restore();
-        if (origDesc) {
-          Object.defineProperty(sdkLogs, 'BatchLogRecordProcessor', origDesc);
+      if ('_onInit' in BatchLogRecordProcessor.prototype) {
+        // Browser environment (Webpack ES module bundle where namespace exports are non-configurable)
+        const onInitSpy = sinon.spy(
+          BatchLogRecordProcessor.prototype as unknown as {
+            _onInit: (options: unknown) => void;
+          },
+          '_onInit'
+        );
+        try {
+          createLoggerProvider(app, {}, attributesStore, []);
+          expect(onInitSpy.calledOnce).to.be.true;
+          const args = onInitSpy.firstCall.args[0];
+          expect(args).to.have.property('disableAutoFlushOnDocumentHide', true);
+        } finally {
+          onInitSpy.restore();
+        }
+      } else {
+        // Node environment (CommonJS where exports are configurable)
+        const origDesc = Object.getOwnPropertyDescriptor(
+          sdkLogs,
+          'BatchLogRecordProcessor'
+        );
+        Object.defineProperty(sdkLogs, 'BatchLogRecordProcessor', {
+          value: origDesc?.get
+            ? origDesc.get()
+            : sdkLogs.BatchLogRecordProcessor,
+          configurable: true,
+          writable: true
+        });
+        const batchProcessorSpy = sinon.spy(sdkLogs, 'BatchLogRecordProcessor');
+        try {
+          createLoggerProvider(app, {}, attributesStore, []);
+          expect(batchProcessorSpy.calledOnce).to.be.true;
+          const args = batchProcessorSpy.firstCall.args[0];
+          expect(args).to.have.property('disableAutoFlushOnDocumentHide', true);
+        } finally {
+          batchProcessorSpy.restore();
+          if (origDesc) {
+            Object.defineProperty(sdkLogs, 'BatchLogRecordProcessor', origDesc);
+          }
         }
       }
     });
