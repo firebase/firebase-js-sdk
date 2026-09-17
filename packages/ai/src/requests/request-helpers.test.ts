@@ -15,12 +15,9 @@
  * limitations under the License.
  */
 
-import { expect, use } from 'chai';
-import sinonChai from 'sinon-chai';
+import { expect } from 'vitest';
 import { Content } from '../types';
 import { formatGenerateContentInput } from './request-helpers';
-
-use(sinonChai);
 
 describe('request formatting methods', () => {
   describe('formatGenerateContentInput', () => {

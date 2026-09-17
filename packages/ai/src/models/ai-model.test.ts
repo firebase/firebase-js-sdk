@@ -14,13 +14,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { use, expect } from 'chai';
+import { expect } from 'vitest';
 import { AI } from '../public-types';
-import sinonChai from 'sinon-chai';
 import { AIModel } from './ai-model';
 import { fakeAI } from '../../test-utils/get-fake-firebase-services';
-
-use(sinonChai);
 
 /**
  * A class that extends AIModel that allows us to test the protected constructor.

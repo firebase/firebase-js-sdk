@@ -14,22 +14,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { use, expect } from 'chai';
+import { expect, vi } from 'vitest';
 import { AI, AIErrorCode } from '../public-types';
-import sinonChai from 'sinon-chai';
-import { stub } from 'sinon';
 import { AIError } from '../errors';
 import { AgentPlatformBackend } from '../backend';
 import { AIService } from '../service';
 import { initApiSettings } from './utils';
 import { fakeAI } from '../../test-utils/get-fake-firebase-services';
 
-use(sinonChai);
-
 describe('initApiSettings', () => {
   it('calls regular app check token when option is set', async () => {
-    const getTokenStub = stub().resolves();
-    const getLimitedUseTokenStub = stub().resolves();
+    const getTokenStub = vi.fn().mockResolvedValue(undefined);
+    const getLimitedUseTokenStub = vi.fn().mockResolvedValue(undefined);
     const apiSettings = initApiSettings(
       //@ts-ignore
       {
@@ -44,14 +40,14 @@ describe('initApiSettings', () => {
     if (apiSettings?.getAppCheckToken) {
       await apiSettings.getAppCheckToken();
     }
-    expect(getTokenStub).to.be.called;
-    expect(getLimitedUseTokenStub).to.not.be.called;
-    getTokenStub.reset();
-    getLimitedUseTokenStub.reset();
+    expect(getTokenStub).toHaveBeenCalled();
+    expect(getLimitedUseTokenStub).not.toHaveBeenCalled();
+    getTokenStub.mockReset();
+    getLimitedUseTokenStub.mockReset();
   });
   it('calls limited use token when option is set', async () => {
-    const getTokenStub = stub().resolves();
-    const getLimitedUseTokenStub = stub().resolves();
+    const getTokenStub = vi.fn().mockResolvedValue(undefined);
+    const getLimitedUseTokenStub = vi.fn().mockResolvedValue(undefined);
     const apiSettings = initApiSettings(
       //@ts-ignore
       {
@@ -66,10 +62,10 @@ describe('initApiSettings', () => {
     if (apiSettings?.getAppCheckToken) {
       await apiSettings.getAppCheckToken();
     }
-    expect(getTokenStub).to.not.be.called;
-    expect(getLimitedUseTokenStub).to.be.called;
-    getTokenStub.reset();
-    getLimitedUseTokenStub.reset();
+    expect(getTokenStub).not.toHaveBeenCalled();
+    expect(getLimitedUseTokenStub).toHaveBeenCalled();
+    getTokenStub.mockReset();
+    getLimitedUseTokenStub.mockReset();
   });
   it('throws if not passed an api key', () => {
     const fakeAI: AI = {

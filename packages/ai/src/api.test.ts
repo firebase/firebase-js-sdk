@@ -24,17 +24,13 @@ import {
   getTemplateGenerativeModel,
   TemplateGenerativeModel
 } from './api';
-import { expect, use } from 'chai';
-import { stub } from 'sinon';
+import { expect, vi } from 'vitest';
 import { AI } from './public-types';
 import { GenerativeModel } from './models/generative-model';
 import { GoogleAIBackend, AgentPlatformBackend } from './backend';
 import { fakeAI, getFullApp } from '../test-utils/get-fake-firebase-services';
 import { AI_TYPE } from './constants';
 import { logger } from './logger';
-import sinonChai from 'sinon-chai';
-
-use(sinonChai);
 
 describe('Top level API', () => {
   describe('getAI()', () => {
@@ -136,15 +132,19 @@ describe('Top level API', () => {
     expect(genModel.model).to.equal('publishers/google/models/my-model');
   });
   it('getGenerativeModel warns in hybrid mode if top-level params are set', () => {
-    const warnStub = stub(logger, 'warn');
+    const warnStub = vi.spyOn(logger, 'warn').mockImplementation(() => {});
     const genModel = getGenerativeModel(fakeAI, {
       mode: InferenceMode.PREFER_ON_DEVICE,
       generationConfig: {}
     });
     expect(genModel).to.be.an.instanceOf(GenerativeModel);
-    expect(warnStub).to.be.calledWithMatch(InferenceMode.PREFER_ON_DEVICE);
-    expect(warnStub).to.be.calledWithMatch('generationConfig');
-    warnStub.restore();
+    expect(warnStub).toHaveBeenCalledWith(
+      expect.stringContaining(InferenceMode.PREFER_ON_DEVICE)
+    );
+    expect(warnStub).toHaveBeenCalledWith(
+      expect.stringContaining('generationConfig')
+    );
+    warnStub.mockRestore();
   });
 
   it('getLiveGenerativeModel throws if no apiKey is provided', () => {
