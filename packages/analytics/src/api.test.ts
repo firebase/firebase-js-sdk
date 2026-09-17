@@ -27,18 +27,9 @@ import { FirebaseApp, deleteApp } from '@firebase/app';
 import { AnalyticsError } from './errors';
 const fakeAppParams = { appId: 'abcdefgh12345:23405', apiKey: 'AAbbCCdd12345' };
 
-const { mockInitializeAnalytics } = vi.hoisted(() => ({
-  mockInitializeAnalytics: vi.fn()
-}));
+import * as initAnalytics from './initialize-analytics';
 
-vi.mock('./initialize-analytics', async importOriginal => {
-  const actual =
-    await importOriginal<typeof import('./initialize-analytics')>();
-  return {
-    ...actual,
-    _initializeAnalytics: mockInitializeAnalytics
-  };
-});
+vi.mock('./initialize-analytics', { spy: true });
 
 import { _setWrappedGtagFunction } from './factory';
 
@@ -53,12 +44,13 @@ describe('FirebaseAnalytics API tests', () => {
   const wrappedGtag = vi.fn();
 
   beforeEach(() => {
-    mockInitializeAnalytics.mockResolvedValue('FAKE_MEASUREMENT_ID');
+    vi.spyOn(initAnalytics, '_initializeAnalytics').mockResolvedValue(
+      'FAKE_MEASUREMENT_ID'
+    );
     _setWrappedGtagFunction(undefined);
   });
 
   afterEach(async () => {
-    mockInitializeAnalytics.mockReset();
     _setWrappedGtagFunction(undefined);
     wrappedGtag.mockReset();
     if (app) {
