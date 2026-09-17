@@ -71,6 +71,7 @@ describe('ReCaptchaV3Provider', () => {
     clearState();
     mockExchangeToken.mockReset();
     mockGetReCAPTCHAToken.mockReset();
+    self.grecaptcha = undefined;
     return deleteApp(app);
   });
 
@@ -185,6 +186,7 @@ describe('ReCaptchaEnterpriseProvider', () => {
     clearState();
     mockExchangeToken.mockReset();
     mockGetReCAPTCHAToken.mockReset();
+    self.grecaptcha = undefined;
     return deleteApp(app);
   });
 

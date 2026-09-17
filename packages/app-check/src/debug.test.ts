@@ -47,9 +47,9 @@ vi.mock('./indexeddb', async importOriginal => {
       mockWriteDebugTokenToIndexedDB.getMockImplementation()
         ? mockWriteDebugTokenToIndexedDB(...args)
         : actual.writeDebugTokenToIndexedDB(...(args as [any])),
-    readDebugTokenFromIndexedDB: (...args: unknown[]) =>
+    readDebugTokenFromIndexedDB: () =>
       mockReadDebugTokenFromIndexedDB.getMockImplementation()
-        ? mockReadDebugTokenFromIndexedDB(...args)
+        ? mockReadDebugTokenFromIndexedDB()
         : actual.readDebugTokenFromIndexedDB()
   };
 });

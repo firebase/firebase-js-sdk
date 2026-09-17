@@ -111,9 +111,9 @@ vi.mock('./indexeddb', async importOriginal => {
       mockWriteDebugTokenToIndexedDB.getMockImplementation()
         ? mockWriteDebugTokenToIndexedDB(...args)
         : actual.writeDebugTokenToIndexedDB(...(args as [any])),
-    readDebugTokenFromIndexedDB: (...args: unknown[]) =>
+    readDebugTokenFromIndexedDB: () =>
       mockReadDebugTokenFromIndexedDB.getMockImplementation()
-        ? mockReadDebugTokenFromIndexedDB(...args)
+        ? mockReadDebugTokenFromIndexedDB()
         : actual.readDebugTokenFromIndexedDB()
   };
 });
@@ -204,6 +204,7 @@ describe('api', () => {
   afterEach(async () => {
     clearState();
     removegreCAPTCHAScriptsOnPage();
+    self.FIREBASE_APPCHECK_DEBUG_TOKEN = undefined;
     return deleteApp(app);
   });
 
@@ -306,7 +307,6 @@ describe('api', () => {
       // written to indexedDB.
       expect(await getDebugToken()).toBe(token);
       expect(consoleStub.mock.calls[0][0]).toContain(token);
-      self.FIREBASE_APPCHECK_DEBUG_TOKEN = undefined;
     });
     it('does not call initializeDebugMode on second call', async () => {
       self.FIREBASE_APPCHECK_DEBUG_TOKEN = 'abcdefg';
@@ -329,7 +329,6 @@ describe('api', () => {
       expect(consoleStub.mock.calls[1][0]).toContain(token);
       expect(consoleStub.mock.calls[1][0]).toBe(consoleStub.mock.calls[0][0]);
       expect(initializeDebugModeSpy).not.toHaveBeenCalled();
-      self.FIREBASE_APPCHECK_DEBUG_TOKEN = undefined;
     });
 
     it('initialize reCAPTCHA when a ReCaptchaV3Provider is provided', () => {
