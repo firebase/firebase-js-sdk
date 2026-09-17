@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import '../test/setup';
 import { expect, vi } from 'vitest';
 import { deleteApp, FirebaseApp } from '@firebase/app';
 import {

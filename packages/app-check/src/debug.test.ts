@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import '../test/setup';
 import { expect, vi } from 'vitest';
 import { clearState, getDebugState } from './state';
 
@@ -58,16 +57,14 @@ vi.mock('./indexeddb', async importOriginal => {
 import { initializeDebugMode } from './debug';
 
 describe('debug mode', () => {
-  let consoleStub: MockInstance;
   beforeEach(() => {
-    consoleStub = vi.spyOn(console, 'log').mockImplementation(() => {});
+    vi.spyOn(console, 'log').mockImplementation(() => {});
     mockReadOrCreateDebugTokenFromStorage.mockReset();
     mockWriteDebugTokenToIndexedDB.mockReset();
     mockReadDebugTokenFromIndexedDB.mockReset();
   });
 
   afterEach(() => {
-    consoleStub.mockRestore();
     clearState();
     // reset the global variable for debug mode
     self.FIREBASE_APPCHECK_DEBUG_TOKEN = undefined;

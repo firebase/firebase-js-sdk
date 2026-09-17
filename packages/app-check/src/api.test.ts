@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import '../test/setup';
+
 import { expect, vi, MockInstance } from 'vitest';
 import {
   setTokenAutoRefreshEnabled,
@@ -210,7 +210,6 @@ describe('api', () => {
   });
 
   afterEach(async () => {
-    vi.useRealTimers();
     clearState();
     removegreCAPTCHAScriptsOnPage();
     return deleteApp(app);

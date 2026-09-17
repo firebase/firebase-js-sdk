@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import '../test/setup';
 import { expect, vi, MockInstance } from 'vitest';
 import { FirebaseApp } from '@firebase/app';
 import { getFakeApp, getFakeHeartbeatServiceProvider } from '../test/util';
@@ -34,11 +33,6 @@ describe('client', () => {
   beforeEach(() => {
     app = getFakeApp();
     fetchStub = vi.spyOn(window, 'fetch').mockResolvedValue(new Response('{}'));
-  });
-
-  afterEach(() => {
-    fetchStub.mockRestore();
-    vi.useRealTimers();
   });
 
   it('creates exchange recaptcha token request correctly', () => {
@@ -98,7 +92,6 @@ describe('client', () => {
       expireTimeMillis: 3600,
       issuedAtTimeMillis: 0
     });
-    vi.useRealTimers();
   });
 
   it('throws when there is a network error', async () => {

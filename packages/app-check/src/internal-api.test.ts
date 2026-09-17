@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import '../test/setup';
 import { expect, vi, MockInstance } from 'vitest';
 import { deleteApp, FirebaseApp } from '@firebase/app';
 import {
@@ -131,7 +130,6 @@ describe('internal api', () => {
   let app: FirebaseApp;
   let storageReadStub: MockInstance;
   let storageWriteStub: MockInstance;
-  let consoleStub: MockInstance;
 
   function stubGetRecaptchaToken(
     token: string = fakeRecaptchaToken,
@@ -143,7 +141,7 @@ describe('internal api', () => {
   }
 
   beforeEach(() => {
-    consoleStub = vi.spyOn(console, 'log').mockImplementation(() => {});
+    vi.spyOn(console, 'log').mockImplementation(() => {});
     app = getFullApp();
     mockReadTokenFromStorage.mockReset();
     mockWriteTokenToStorage.mockReset();
@@ -157,8 +155,6 @@ describe('internal api', () => {
   });
 
   afterEach(() => {
-    consoleStub.mockRestore();
-    vi.useRealTimers();
     clearState();
     removegreCAPTCHAScriptsOnPage();
     return deleteApp(app);
@@ -239,7 +235,7 @@ describe('internal api', () => {
         token: formatDummyToken(defaultTokenErrorData),
         error
       });
-      expect(errorStub.mock.calls[0][1].message).to.include(
+      expect(errorStub.mock.calls[0][1].message).toContain(
         'oops, something went wrong'
       );
       errorStub.mockRestore();
@@ -261,7 +257,7 @@ describe('internal api', () => {
         token: formatDummyToken(defaultTokenErrorData),
         error
       });
-      expect(errorStub.mock.calls[0][1].message).to.include(
+      expect(errorStub.mock.calls[0][1].message).toContain(
         'oops, something went wrong'
       );
       delete window.FIREBASE_APPCHECK_DEBUG_TOKEN;
@@ -282,7 +278,7 @@ describe('internal api', () => {
       expect(reCAPTCHASpy).toHaveBeenCalled();
       expect(exchangeTokenStub).to.not.be.called;
       expect(token.token).toBe(formatDummyToken(defaultTokenErrorData));
-      expect(errorStub.mock.calls[0][1].message).to.include(
+      expect(errorStub.mock.calls[0][1].message).toContain(
         AppCheckError.RECAPTCHA_ERROR
       );
       errorStub.mockRestore();
@@ -320,8 +316,6 @@ describe('internal api', () => {
       expect(listener2).toHaveBeenCalledWith({
         token: fakeCachedAppCheckToken.token
       });
-
-      vi.useRealTimers();
     });
 
     it('notifies listeners using new token', async () => {
@@ -428,8 +422,6 @@ describe('internal api', () => {
       });
       expect(getStateReference(app).token).toBe(fakeCachedAppCheckToken);
       expect(clientStub).has.not.been.called;
-
-      vi.useRealTimers();
     });
 
     it('persists token to storage', async () => {
@@ -463,8 +455,6 @@ describe('internal api', () => {
         token: fakeRecaptchaAppCheckToken.token
       });
       expect(clientStub).to.not.have.been.called;
-
-      vi.useRealTimers();
     });
 
     it('force to get new token when forceRefresh is true', async () => {
@@ -577,7 +567,6 @@ describe('internal api', () => {
       expect(await newToken).toEqual({
         token: 'recaptcha-app-check-token-new-1'
       });
-      vi.useRealTimers();
     });
 
     it('ignores in-memory token if it is invalid and continues to exchange request', async () => {
@@ -618,8 +607,6 @@ describe('internal api', () => {
         token: fakeCachedAppCheckToken.token
       });
       expect(clientStub).to.not.have.been.called;
-
-      vi.useRealTimers();
     });
 
     it('deletes cached token if it is invalid and continues to exchange request', async () => {
@@ -683,7 +670,7 @@ describe('internal api', () => {
       });
 
       const token = await getToken(appCheck as AppCheckService);
-      expect(exchangeTokenStub.mock.calls[0][0].body['debug_token']).to.equal(
+      expect(exchangeTokenStub.mock.calls[0][0].body['debug_token']).toBe(
         'my-debug-token'
       );
       expect(token).toEqual({ token: fakeRecaptchaAppCheckToken.token });
@@ -705,7 +692,7 @@ describe('internal api', () => {
         getToken(appCheckService),
         getToken(appCheckService)
       ]);
-      expect(exchangeTokenStub.mock.calls[0][0].body['debug_token']).to.equal(
+      expect(exchangeTokenStub.mock.calls[0][0].body['debug_token']).toBe(
         'my-debug-token'
       );
       expect(token1).toEqual({ token: fakeRecaptchaAppCheckToken.token });
@@ -851,7 +838,7 @@ describe('internal api', () => {
       });
 
       const token = await getLimitedUseToken(appCheck as AppCheckService);
-      expect(exchangeTokenStub.mock.calls[0][0].body['debug_token']).to.equal(
+      expect(exchangeTokenStub.mock.calls[0][0].body['debug_token']).toBe(
         'my-debug-token'
       );
       expect(exchangeTokenStub.mock.calls[0][0].body['limited_use']).toBe(true);
@@ -934,7 +921,6 @@ describe('internal api', () => {
       expect(listener).toHaveBeenCalledWith({
         token: 'fake-memory-app-check-token'
       });
-      vi.useRealTimers();
     });
 
     it('notifies the listener with the valid token in storage', done => {
@@ -1002,7 +988,6 @@ describe('internal api', () => {
         token: 'new-recaptcha-app-check-token'
       });
       expect(fakeExchange).toHaveBeenCalledTimes(1);
-      vi.useRealTimers();
     });
 
     it('proactive refresh window test - exchange request fails - wait 10s', async () => {
@@ -1043,7 +1028,6 @@ describe('internal api', () => {
       // once on init and once invoked directly in this test
       expect(fakeListener).toHaveBeenCalledTimes(2);
       expect(fakeExchange).toHaveBeenCalledTimes(1);
-      vi.useRealTimers();
     });
 
     it('proactive refresh window test - exchange request fails - wait 40s', async () => {
@@ -1081,7 +1065,6 @@ describe('internal api', () => {
       await vi.advanceTimersByTimeAsync(40000);
       expect(fakeListener).toHaveBeenCalledTimes(2);
       expect(fakeExchange).toHaveBeenCalledTimes(2);
-      vi.useRealTimers();
     });
 
     it('expired token - exchange request fails - wait 10s', async () => {
@@ -1122,7 +1105,6 @@ describe('internal api', () => {
       expect(fakeListener).not.toHaveBeenCalled();
       expect(fakeExchange).toHaveBeenCalledTimes(1);
       expect(errorHandler).toHaveBeenCalledWith(fakeNetworkError);
-      vi.useRealTimers();
     });
 
     it('expired token - exchange request fails - wait 40s', async () => {
@@ -1164,7 +1146,6 @@ describe('internal api', () => {
       expect(fakeListener).not.toHaveBeenCalled();
       expect(fakeExchange).toHaveBeenCalledTimes(2);
       expect(errorHandler).toHaveBeenCalledTimes(2);
-      vi.useRealTimers();
     });
   });
 

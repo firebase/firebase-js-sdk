@@ -15,16 +15,11 @@
  * limitations under the License.
  */
 
-import '../test/setup';
 import { expect, vi } from 'vitest';
 import { Deferred } from '@firebase/util';
 import { Refresher } from './proactive-refresh';
 
 describe('proactive refresh', () => {
-  afterEach(() => {
-    vi.useRealTimers();
-  });
-
   it('throws if lowerbound is greater than the upperbound', () => {
     expect(
       () =>

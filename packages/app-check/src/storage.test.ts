@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import '../test/setup';
 import { getFakeApp } from '../test/util';
 import { logger } from './logger';
 import { expect, vi } from 'vitest';
@@ -88,7 +87,6 @@ describe('Storage', () => {
     mockWriteTokenToIndexedDB.mockRejectedValue('something went wrong!');
     await expect(writeTokenToStorage(app, fakeToken)).resolves.not.toThrow();
     expect(warnStub.mock.calls[0][0]).toContain('something went wrong!');
-    warnStub.mockRestore();
   });
 
   it('resolves with undefined if indexeddb is not available', async () => {
@@ -101,6 +99,5 @@ describe('Storage', () => {
     mockReadTokenFromIndexedDB.mockRejectedValue('something went wrong!');
     expect(await readTokenFromStorage(app)).toBe(undefined);
     expect(warnStub.mock.calls[0][0]).toContain('something went wrong!');
-    warnStub.mockRestore();
   });
 });

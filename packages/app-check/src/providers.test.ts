@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import '../test/setup';
 import { getFullApp } from '../test/util';
 import { expect, vi } from 'vitest';
 import { FirebaseError, Deferred } from '@firebase/util';
@@ -88,7 +87,6 @@ describe('ReCaptchaV3Provider', () => {
   });
 
   afterEach(() => {
-    vi.useRealTimers();
     clearState();
     mockExchangeToken.mockReset();
     mockGetReCAPTCHAToken.mockReset();
@@ -210,7 +208,6 @@ describe('ReCaptchaEnterpriseProvider', () => {
   });
 
   afterEach(() => {
-    vi.useRealTimers();
     clearState();
     mockExchangeToken.mockReset();
     mockGetReCAPTCHAToken.mockReset();
