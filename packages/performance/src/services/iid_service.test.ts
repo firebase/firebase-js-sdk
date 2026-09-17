@@ -30,7 +30,7 @@ describe('Firebase Performance > iid_service', () => {
   const AUTH_TOKEN = 'authToken';
 
   let fakeInstallations: _FirebaseInstallationsInternal;
-  beforeAll(() => {
+  beforeEach(() => {
     const getId = vi.fn().mockResolvedValue(IID);
     const getToken = vi.fn().mockResolvedValue(AUTH_TOKEN);
     fakeInstallations = {
