@@ -16,12 +16,10 @@
  */
 
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { initializeApp, deleteApp, FirebaseApp } from '@firebase/app';
+import { deleteApp, FirebaseApp } from '@firebase/app';
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { getAuth, signInAnonymously } from '@firebase/auth';
 import {
   getDownloadURL,
-  getStorage,
   ref,
   uploadBytes,
   uploadBytesResumable,

@@ -697,7 +697,6 @@ describe('Firebase Storage > Upload Task', () => {
       totalBytes: blobSize
     });
     expect(vi.getTimerCount()).toBe(0);
-    vi.useRealTimers();
   });
   it('properly errors with a pause StorageError if a pending timeout remains', async () => {
     // Kick off upload
@@ -735,7 +734,6 @@ describe('Firebase Storage > Upload Task', () => {
       totalBytes: blobSize
     });
     expect(vi.getTimerCount()).toBe(0);
-    vi.useRealTimers();
   });
   it('does not error when pausing inflight request', async () => {
     // Kick off upload

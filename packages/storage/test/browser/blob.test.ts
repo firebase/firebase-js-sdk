@@ -23,33 +23,18 @@ import * as testShared from '../unit/testshared';
 import { createApp, createStorage } from '../integration/testshared';
 import { getBlob, ref, uploadBytes } from '../../src';
 import * as types from '../../src/public-types';
-import { vi, MockInstance } from 'vitest';
+import { vi } from 'vitest';
+import * as type from '../../src/implementation/type';
 
-const { isNativeBlobDefinedMock } = vi.hoisted(() => ({
-  isNativeBlobDefinedMock: vi.fn(() => false)
-}));
-
-vi.mock('../../src/implementation/type', async importOriginal => {
-  const actual =
-    await importOriginal<typeof import('../../src/implementation/type')>();
-  return {
-    ...actual,
-    isNativeBlobDefined: () => isNativeBlobDefinedMock()
-  };
-});
+vi.mock('../../src/implementation/type', { spy: true });
 
 describe('Firebase Storage > Blob', () => {
   describe('FbsBlob without native Blob', () => {
-    let blobStub: MockInstance;
-    beforeAll(() => {
-      isNativeBlobDefinedMock.mockReturnValue(false);
-      blobStub = vi.spyOn(window, 'Blob').mockImplementation(() => {
+    beforeEach(() => {
+      vi.spyOn(type, 'isNativeBlobDefined').mockReturnValue(false);
+      vi.spyOn(window, 'Blob').mockImplementation(() => {
         throw new Error("I don't exist");
       });
-    });
-    afterAll(() => {
-      isNativeBlobDefinedMock.mockReturnValue(true);
-      blobStub.mockRestore();
     });
 
     it('Slicing works', () => {
@@ -92,7 +77,6 @@ describe('Firebase Storage > Blob', () => {
     let storage: types.FirebaseStorage;
 
     beforeEach(async () => {
-      isNativeBlobDefinedMock.mockReturnValue(true);
       app = await createApp();
       storage = createStorage(app);
     });
