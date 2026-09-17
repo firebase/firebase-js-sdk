@@ -37,7 +37,7 @@ import '../testing/setup';
 import { ERROR_FACTORY, ErrorCode } from '../util/errors';
 import { sleep } from '../util/sleep';
 import { getInstallationEntry } from './get-installation-entry';
-import { get, set } from './idb-manager';
+import { clear, get, set } from './idb-manager';
 
 const FID = 'cry-of-the-black-birds';
 
@@ -74,8 +74,9 @@ describe('getInstallationEntry', () => {
   });
 
   afterEach(async () => {
-    // Clean up all pending requests.
-    await vi.runAllTimersAsync();
+    // Wait for any in-flight IndexedDB transactions to settle, then discard pending timers.
+    await clear();
+    vi.clearAllTimers();
   });
 
   it('saves the InstallationEntry in the database before returning it', async () => {

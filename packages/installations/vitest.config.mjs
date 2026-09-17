@@ -28,6 +28,9 @@ config.test.projects = config.test.projects.filter(
 );
 for (const project of config.test.projects) {
   project.test.fileParallelism = false;
+  if (project.test?.browser) {
+    project.test.browser.screenshotFailures = false;
+  }
 }
 
 export default config;

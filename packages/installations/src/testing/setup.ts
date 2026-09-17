@@ -32,10 +32,11 @@ if (typeof window !== 'undefined') {
 }
 
 afterEach(async () => {
-  vi.useRealTimers();
-  vi.restoreAllMocks();
-  vi.clearAllMocks();
   if (typeof indexedDB !== 'undefined') {
     await clear();
   }
+  vi.clearAllTimers();
+  vi.useRealTimers();
+  vi.resetAllMocks();
+  vi.restoreAllMocks();
 });

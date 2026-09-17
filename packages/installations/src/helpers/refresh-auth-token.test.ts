@@ -15,23 +15,10 @@
  * limitations under the License.
  */
 
-import { describe, beforeEach, it, expect, vi } from 'vitest';
+import { describe, beforeEach, it, expect, vi, MockInstance } from 'vitest';
+import * as generateAuthTokenRequestModule from '../functions/generate-auth-token-request';
 
-const { mockGenerateAuthTokenRequest } = vi.hoisted(() => ({
-  mockGenerateAuthTokenRequest: vi.fn()
-}));
-
-// This inserts mockGenerateAuthTokenRequest as a spy layer on methods coming from ./generate-auth-token-request.ts
-vi.mock('../functions/generate-auth-token-request', async importOriginal => {
-  const actual =
-    await importOriginal<
-      typeof import('../functions/generate-auth-token-request')
-    >();
-  return {
-    ...actual,
-    generateAuthTokenRequest: mockGenerateAuthTokenRequest
-  };
-});
+vi.mock('../functions/generate-auth-token-request', { spy: true });
 
 import {
   CompletedAuthToken,
@@ -54,20 +41,23 @@ const ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
 describe('refreshAuthToken', () => {
   let installations: FirebaseInstallationsImpl;
+  let mockGenerateAuthTokenRequest: MockInstance;
 
   beforeEach(() => {
     installations = getFakeInstallations();
 
-    mockGenerateAuthTokenRequest.mockImplementation(async () => {
-      await sleep(100); // Request would take some time
-      const result: CompletedAuthToken = {
-        token: AUTH_TOKEN,
-        expiresIn: ONE_WEEK_MS,
-        requestStatus: RequestStatus.COMPLETED,
-        creationTime: Date.now()
-      };
-      return result;
-    });
+    mockGenerateAuthTokenRequest = vi
+      .spyOn(generateAuthTokenRequestModule, 'generateAuthTokenRequest')
+      .mockImplementation(async () => {
+        await sleep(100); // Request would take some time
+        const result: CompletedAuthToken = {
+          token: AUTH_TOKEN,
+          expiresIn: ONE_WEEK_MS,
+          requestStatus: RequestStatus.COMPLETED,
+          creationTime: Date.now()
+        };
+        return result;
+      });
   });
 
   it('throws when there is no installation in the DB', async () => {
