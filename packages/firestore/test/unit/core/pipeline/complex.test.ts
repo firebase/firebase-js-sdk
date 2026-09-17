@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2025 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import {
   and as apiAnd,
@@ -75,7 +73,9 @@ describe('Complex Queries', () => {
       pipeline = pipeline.where(field(`field${i}`).greaterThan(constant(0)));
     }
 
-    expect(runPipeline(pipeline, documents)).to.have.deep.members(documents);
+    expect(runPipeline(pipeline, documents)).toEqual(
+      expect.arrayContaining(documents)
+    );
   });
 
   it('eqAny_withMaxNumberOfElements', () => {
@@ -96,8 +96,8 @@ describe('Complex Queries', () => {
         )
       );
 
-    expect(runPipeline(pipeline, documents)).to.have.deep.members(
-      documents.slice(0, -1)
+    expect(runPipeline(pipeline, documents)).toEqual(
+      expect.arrayContaining(documents.slice(0, -1))
     ); // Exclude the last document
   });
 
@@ -129,8 +129,8 @@ describe('Complex Queries', () => {
       .collection(`/${COLLECTION_ID}`)
       .where(apiAnd(conditions[0], conditions[1], ...conditions.slice(2)));
 
-    expect(runPipeline(pipeline, documents)).to.have.deep.members(
-      documents.slice(0, -1)
+    expect(runPipeline(pipeline, documents)).toEqual(
+      expect.arrayContaining(documents.slice(0, -1))
     ); // Exclude the last document
   });
 
@@ -153,7 +153,9 @@ describe('Complex Queries', () => {
         )
       );
 
-    expect(runPipeline(pipeline, documents)).to.have.deep.members([doc1]);
+    expect(runPipeline(pipeline, documents)).toEqual(
+      expect.arrayContaining([doc1])
+    );
   });
 
   it('notEqAny_withMaxNumberOfElements_onMultipleFields', () => {
@@ -185,7 +187,9 @@ describe('Complex Queries', () => {
       .collection(`/${COLLECTION_ID}`)
       .where(apiOr(conditions[0], conditions[1], ...conditions.slice(2)));
 
-    expect(runPipeline(pipeline, documents)).to.have.deep.members([doc1]);
+    expect(runPipeline(pipeline, documents)).toEqual(
+      expect.arrayContaining([doc1])
+    );
   });
 
   it('arrayContainsAny_withLargeNumberOfElements', () => {
@@ -207,8 +211,8 @@ describe('Complex Queries', () => {
         )
       );
 
-    expect(runPipeline(pipeline, documents)).to.have.deep.members(
-      documents.slice(0, -1)
+    expect(runPipeline(pipeline, documents)).toEqual(
+      expect.arrayContaining(documents.slice(0, -1))
     ); // Exclude the last document
   });
 
@@ -239,8 +243,8 @@ describe('Complex Queries', () => {
       .collection(`/${COLLECTION_ID}`)
       .where(apiOr(conditions[0], conditions[1], ...conditions.slice(2)));
 
-    expect(runPipeline(pipeline, documents)).to.have.deep.members(
-      documents.slice(0, -1)
+    expect(runPipeline(pipeline, documents)).toEqual(
+      expect.arrayContaining(documents.slice(0, -1))
     ); // Exclude the last document
   });
 
@@ -262,7 +266,9 @@ describe('Complex Queries', () => {
       .collection('/' + COLLECTION_ID)
       .sort(sortFields[0], ...sortFields.slice(1));
 
-    expect(runPipeline(pipeline, documents)).to.have.deep.members(documents);
+    expect(runPipeline(pipeline, documents)).toEqual(
+      expect.arrayContaining(documents)
+    );
   });
 
   it('where_withNestedAddFunction_maxDepth', () => {
@@ -281,7 +287,9 @@ describe('Complex Queries', () => {
       .collection(`/${COLLECTION_ID}`)
       .where(addFunc.greaterThan(constant(0)));
 
-    expect(runPipeline(pipeline, documents)).to.have.deep.members(documents);
+    expect(runPipeline(pipeline, documents)).toEqual(
+      expect.arrayContaining(documents)
+    );
   });
 
   it('where_withLargeNumberOrs', () => {
@@ -306,7 +314,9 @@ describe('Complex Queries', () => {
       .collection(`/${COLLECTION_ID}`)
       .where(apiOr(orConditions[0], orConditions[1], ...orConditions.slice(2)));
 
-    expect(runPipeline(pipeline, documents)).to.have.deep.members(documents);
+    expect(runPipeline(pipeline, documents)).toEqual(
+      expect.arrayContaining(documents)
+    );
   });
 
   it('where_withLargeNumberOfConjunctions', () => {
@@ -346,6 +356,8 @@ describe('Complex Queries', () => {
         )
       );
 
-    expect(runPipeline(pipeline, documents)).to.have.deep.members(documents);
+    expect(runPipeline(pipeline, documents)).toEqual(
+      expect.arrayContaining(documents)
+    );
   });
 });

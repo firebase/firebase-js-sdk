@@ -12,10 +12,6 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import { _onRealtimePipelineSnapshot } from '../../util/pipelines';
 import { Deferred } from '../../util/promise';
@@ -46,9 +42,6 @@ import {
   toDataArray
 } from '../util/pipeline_helpers';
 import { USE_EMULATOR } from '../util/settings';
-
-use(chaiAsPromised);
-
 apiDescribe.skipClassic('RealtimePipelines', persistence => {
   if (!USE_EMULATOR) {
     return;
@@ -213,7 +206,7 @@ apiDescribe.skipClassic('RealtimePipelines', persistence => {
     );
     let snapshot = await storeEvent.awaitEvent();
 
-    expect(toDataArray(snapshot)).to.deep.equal([
+    expect(toDataArray(snapshot)).toEqual([
       {
         title: "The Hitchhiker's Guide to the Galaxy",
         author: 'Douglas Adams',
@@ -232,7 +225,7 @@ apiDescribe.skipClassic('RealtimePipelines', persistence => {
 
     await updateDoc(doc(randomCol, 'book1'), { rating: 4.3 });
     snapshot = await storeEvent.awaitEvent();
-    expect(toDataArray(snapshot)).to.deep.equal([
+    expect(toDataArray(snapshot)).toEqual([
       {
         title: "The Hitchhiker's Guide to the Galaxy",
         author: 'Douglas Adams',
@@ -251,7 +244,7 @@ apiDescribe.skipClassic('RealtimePipelines', persistence => {
 
     await updateDoc(doc(randomCol, 'book2'), { author: 'Douglas Adams' });
     snapshot = await storeEvent.awaitEvent();
-    expect(toDataArray(snapshot)).to.deep.equal([
+    expect(toDataArray(snapshot)).toEqual([
       {
         title: "The Hitchhiker's Guide to the Galaxy",
         author: 'Douglas Adams',
@@ -293,7 +286,7 @@ apiDescribe.skipClassic('RealtimePipelines', persistence => {
     );
     let snapshot = await storeEvent.awaitEvent();
 
-    expect(toDataArray(snapshot)).to.deep.equal([
+    expect(toDataArray(snapshot)).toEqual([
       {
         title: 'Dune',
         author: 'Frank Herbert',
@@ -307,7 +300,7 @@ apiDescribe.skipClassic('RealtimePipelines', persistence => {
 
     await updateDoc(doc(randomCol, 'book10'), { author: 'F.Herbert' });
     snapshot = await storeEvent.awaitEvent();
-    expect(toDataArray(snapshot)).to.deep.equal([
+    expect(toDataArray(snapshot)).toEqual([
       {
         title: "The Hitchhiker's Guide to the Galaxy",
         author: 'Douglas Adams',
@@ -326,7 +319,7 @@ apiDescribe.skipClassic('RealtimePipelines', persistence => {
 
     await updateDoc(doc(randomCol, 'book2'), { author: 'Douglas Adams' });
     snapshot = await storeEvent.awaitEvent();
-    expect(toDataArray(snapshot)).to.deep.equal([
+    expect(toDataArray(snapshot)).toEqual([
       {
         title: 'Pride and Prejudice',
         author: 'Douglas Adams', //'Jane Austen',
@@ -350,45 +343,35 @@ apiDescribe.skipClassic('RealtimePipelines', persistence => {
     );
 
     let snapshot = await storeEvent.awaitEvent();
-    expect(snapshot.metadata.fromCache).to.be.true;
-    expect(snapshot.results.length).to.equal(3);
-    expect(snapshot.results[0].data()!['title']).to.equal('Dune');
-    expect(snapshot.results[1].data()!['title']).to.equal(
-      'Pride and Prejudice'
-    );
-    expect(snapshot.results[2].data()!['title']).to.equal(
-      'The Lord of the Rings'
-    );
+    expect(snapshot.metadata.fromCache).toBe(true);
+    expect(snapshot.results.length).toBe(3);
+    expect(snapshot.results[0].data()!['title']).toBe('Dune');
+    expect(snapshot.results[1].data()!['title']).toBe('Pride and Prejudice');
+    expect(snapshot.results[2].data()!['title']).toBe('The Lord of the Rings');
 
     // dropping Dune out of the result set
     await updateDoc(doc(randomCol, 'book10'), { rating: 4.4 });
     snapshot = await storeEvent.awaitEvent();
-    expect(snapshot.results.length).to.equal(2);
-    expect(snapshot.results[0].data()!['title']).to.equal(
-      'Pride and Prejudice'
-    );
-    expect(snapshot.results[1].data()!['title']).to.equal(
-      'The Lord of the Rings'
-    );
+    expect(snapshot.results.length).toBe(2);
+    expect(snapshot.results[0].data()!['title']).toBe('Pride and Prejudice');
+    expect(snapshot.results[1].data()!['title']).toBe('The Lord of the Rings');
 
     // Adding book1 to the result
     await updateDoc(doc(randomCol, 'book1'), { rating: 4.7 });
     snapshot = await storeEvent.awaitEvent();
-    expect(snapshot.results.length).to.equal(3);
-    expect(snapshot.results[0].data()!['title']).to.equal(
+    expect(snapshot.results.length).toBe(3);
+    expect(snapshot.results[0].data()!['title']).toBe(
       "The Hitchhiker's Guide to the Galaxy"
     );
 
     // Deleting book2
     await deleteDoc(doc(randomCol, 'book2'));
     snapshot = await storeEvent.awaitEvent();
-    expect(snapshot.results.length).to.equal(2);
-    expect(snapshot.results[0].data()!['title']).to.equal(
+    expect(snapshot.results.length).toBe(2);
+    expect(snapshot.results[0].data()!['title']).toBe(
       "The Hitchhiker's Guide to the Galaxy"
     );
-    expect(snapshot.results[1].data()!['title']).to.equal(
-      'The Lord of the Rings'
-    );
+    expect(snapshot.results[1].data()!['title']).toBe('The Lord of the Rings');
 
     unsubscribe();
   });
@@ -405,47 +388,45 @@ apiDescribe.skipClassic('RealtimePipelines', persistence => {
 
     let snapshot = await storeEvent.awaitEvent();
     let changes = snapshot.resultChanges();
-    expect(changes.length).to.equal(3);
-    expect(changes[0].result.data()!['title']).to.equal('Dune');
-    expect(changes[0].type).to.equal('added');
-    expect(changes[1].result.data()!['title']).to.equal('Pride and Prejudice');
-    expect(changes[1].type).to.equal('added');
-    expect(changes[2].result.data()!['title']).to.equal(
-      'The Lord of the Rings'
-    );
-    expect(changes[2].type).to.equal('added');
+    expect(changes.length).toBe(3);
+    expect(changes[0].result.data()!['title']).toBe('Dune');
+    expect(changes[0].type).toBe('added');
+    expect(changes[1].result.data()!['title']).toBe('Pride and Prejudice');
+    expect(changes[1].type).toBe('added');
+    expect(changes[2].result.data()!['title']).toBe('The Lord of the Rings');
+    expect(changes[2].type).toBe('added');
 
     // dropping Dune out of the result set
     await updateDoc(doc(randomCol, 'book10'), { rating: 4.4 });
     snapshot = await storeEvent.awaitEvent();
     changes = snapshot.resultChanges();
-    expect(changes.length).to.equal(1);
-    expect(changes[0].result.data()!['title']).to.equal('Dune');
-    expect(changes[0].type).to.equal('removed');
-    expect(changes[0].oldIndex).to.equal(0);
-    expect(changes[0].newIndex).to.equal(-1);
+    expect(changes.length).toBe(1);
+    expect(changes[0].result.data()!['title']).toBe('Dune');
+    expect(changes[0].type).toBe('removed');
+    expect(changes[0].oldIndex).toBe(0);
+    expect(changes[0].newIndex).toBe(-1);
 
     // Adding book1 to the result
     await updateDoc(doc(randomCol, 'book1'), { rating: 4.7 });
     snapshot = await storeEvent.awaitEvent();
     changes = snapshot.resultChanges();
-    expect(changes.length).to.equal(1);
-    expect(changes[0].result.data()!['title']).to.equal(
+    expect(changes.length).toBe(1);
+    expect(changes[0].result.data()!['title']).toBe(
       "The Hitchhiker's Guide to the Galaxy"
     );
-    expect(changes[0].type).to.equal('added');
-    expect(changes[0].oldIndex).to.equal(-1);
-    expect(changes[0].newIndex).to.equal(0);
+    expect(changes[0].type).toBe('added');
+    expect(changes[0].oldIndex).toBe(-1);
+    expect(changes[0].newIndex).toBe(0);
 
     // Delete book 2
     await deleteDoc(doc(randomCol, 'book2'));
     snapshot = await storeEvent.awaitEvent();
     changes = snapshot.resultChanges();
-    expect(changes.length).to.equal(1);
-    expect(changes[0].result.data()!['title']).to.equal('Pride and Prejudice');
-    expect(changes[0].type).to.equal('removed');
-    expect(changes[0].oldIndex).to.equal(1);
-    expect(changes[0].newIndex).to.equal(-1);
+    expect(changes.length).toBe(1);
+    expect(changes[0].result.data()!['title']).toBe('Pride and Prejudice');
+    expect(changes[0].type).toBe('removed');
+    expect(changes[0].oldIndex).toBe(1);
+    expect(changes[0].newIndex).toBe(-1);
 
     unsubscribe();
   });
@@ -462,15 +443,11 @@ apiDescribe.skipClassic('RealtimePipelines', persistence => {
     );
 
     const snapshot = await storeEvent.awaitEvent();
-    expect(snapshot.metadata.fromCache).to.be.true;
-    expect(snapshot.results.length).to.equal(3);
-    expect(snapshot.results[0].data()!['title']).to.equal('Dune');
-    expect(snapshot.results[1].data()!['title']).to.equal(
-      'Pride and Prejudice'
-    );
-    expect(snapshot.results[2].data()!['title']).to.equal(
-      'The Lord of the Rings'
-    );
+    expect(snapshot.metadata.fromCache).toBe(true);
+    expect(snapshot.results.length).toBe(3);
+    expect(snapshot.results[0].data()!['title']).toBe('Dune');
+    expect(snapshot.results[1].data()!['title']).toBe('Pride and Prejudice');
+    expect(snapshot.results[2].data()!['title']).toBe('The Lord of the Rings');
 
     await storeEvent.assertNoAdditionalEvents();
     unsubscribe();
@@ -488,23 +465,19 @@ apiDescribe.skipClassic('RealtimePipelines', persistence => {
     );
 
     let snapshot = await storeEvent.awaitEvent();
-    expect(snapshot.metadata.fromCache).to.be.true;
-    expect(snapshot.results.length).to.equal(3);
-    expect(snapshot.results[0].data()!['title']).to.equal('Dune');
-    expect(snapshot.results[1].data()!['title']).to.equal(
-      'Pride and Prejudice'
-    );
-    expect(snapshot.results[2].data()!['title']).to.equal(
-      'The Lord of the Rings'
-    );
+    expect(snapshot.metadata.fromCache).toBe(true);
+    expect(snapshot.results.length).toBe(3);
+    expect(snapshot.results[0].data()!['title']).toBe('Dune');
+    expect(snapshot.results[1].data()!['title']).toBe('Pride and Prejudice');
+    expect(snapshot.results[2].data()!['title']).toBe('The Lord of the Rings');
 
     await disableNetwork(firestore);
     await enableNetwork(firestore);
 
     snapshot = await storeEvent.awaitEvent();
-    expect(snapshot.metadata.fromCache).to.be.false;
-    expect(snapshot.results.length).to.equal(3);
-    expect(snapshot.resultChanges().length).to.equal(0);
+    expect(snapshot.metadata.fromCache).toBe(false);
+    expect(snapshot.results.length).toBe(3);
+    expect(snapshot.resultChanges().length).toBe(0);
 
     unsubscribe();
   });
@@ -528,13 +501,13 @@ apiDescribe.skipClassic('RealtimePipelines', persistence => {
 
     let snapshot = await storeEvent.awaitEvent();
     const result = snapshot.results[0];
-    expect(snapshot.metadata.fromCache).to.be.true;
-    expect(result.data()!['rating']).to.be.an.instanceof(Timestamp);
+    expect(snapshot.metadata.fromCache).toBe(true);
+    expect(result.data()!['rating']).toBeInstanceOf(Timestamp);
 
     await enableNetwork(firestore);
     snapshot = await storeEvent.awaitEvent();
-    expect(snapshot.metadata.fromCache).to.be.false;
-    expect(snapshot.results[0].data()!['rating']).to.not.deep.equal(
+    expect(snapshot.metadata.fromCache).toBe(false);
+    expect(snapshot.results[0].data()!['rating']).not.toEqual(
       result.data()!['rating']
     );
     unsubscribe();
@@ -559,9 +532,9 @@ apiDescribe.skipClassic('RealtimePipelines', persistence => {
     );
 
     const snapshot = await storeEvent.awaitEvent();
-    expect(snapshot.metadata.fromCache).to.be.true;
-    expect(snapshot.results.length).to.equal(1);
-    expect(snapshot.results[0].data()!['title']).to.equal(
+    expect(snapshot.metadata.fromCache).toBe(true);
+    expect(snapshot.results.length).toBe(1);
+    expect(snapshot.results[0].data()!['title']).toBe(
       "The Hitchhiker's Guide to the Galaxy"
     );
 
@@ -593,15 +566,13 @@ apiDescribe.skipClassic('RealtimePipelines', persistence => {
 
     let snapshot = await storeEvent.awaitEvent();
     const result = snapshot.results[0];
-    expect(snapshot.metadata.fromCache).to.be.true;
-    expect(result.data()!['rating']).to.equal(4.2);
+    expect(snapshot.metadata.fromCache).toBe(true);
+    expect(result.data()!['rating']).toBe(4.2);
 
     await enableNetwork(firestore);
     snapshot = await storeEvent.awaitEvent();
-    expect(snapshot.metadata.fromCache).to.be.false;
-    expect(snapshot.results[0].data()!['rating']).to.be.an.instanceof(
-      Timestamp
-    );
+    expect(snapshot.metadata.fromCache).toBe(false);
+    expect(snapshot.results[0].data()!['rating']).toBeInstanceOf(Timestamp);
     unsubscribe();
   });
 
@@ -623,9 +594,9 @@ apiDescribe.skipClassic('RealtimePipelines', persistence => {
     );
 
     const snapshot = await storeEvent.awaitEvent();
-    expect(snapshot.metadata.fromCache).to.be.true;
-    expect(snapshot.results.length).to.equal(1);
-    expect(snapshot.results[0].data()!['title']).to.equal(
+    expect(snapshot.metadata.fromCache).toBe(true);
+    expect(snapshot.results.length).toBe(1);
+    expect(snapshot.results[0].data()!['title']).toBe(
       "The Hitchhiker's Guide to the Galaxy"
     );
     unsubscribe();
@@ -649,15 +620,13 @@ apiDescribe.skipClassic('RealtimePipelines', persistence => {
 
     let snapshot = await storeEvent.awaitEvent();
     const result = snapshot.results[0];
-    expect(snapshot.metadata.fromCache).to.be.true;
-    expect(result.data()!['rating']).to.be.null;
+    expect(snapshot.metadata.fromCache).toBe(true);
+    expect(result.data()!['rating']).toBeNull();
 
     await enableNetwork(firestore);
     snapshot = await storeEvent.awaitEvent();
-    expect(snapshot.metadata.fromCache).to.be.false;
-    expect(snapshot.results[0].data()!['rating']).to.be.an.instanceof(
-      Timestamp
-    );
+    expect(snapshot.metadata.fromCache).toBe(false);
+    expect(snapshot.results[0].data()!['rating']).toBeInstanceOf(Timestamp);
     unsubscribe();
   });
 
@@ -678,9 +647,9 @@ apiDescribe.skipClassic('RealtimePipelines', persistence => {
     );
 
     const snapshot = await storeEvent.awaitEvent();
-    expect(snapshot.metadata.fromCache).to.be.true;
-    expect(snapshot.results.length).to.equal(1);
-    expect(snapshot.results[0].data()!['title']).to.be.null;
+    expect(snapshot.metadata.fromCache).toBe(true);
+    expect(snapshot.results.length).toBe(1);
+    expect(snapshot.results[0].data()!['title']).toBeNull();
     unsubscribe();
   });
 
@@ -714,27 +683,27 @@ apiDescribe.skipClassic('RealtimePipelines', persistence => {
     let snapshot1 = await storeEvent1.awaitEvent();
     let result1 = snapshot1.results[0];
 
-    expect(snapshot1.metadata.fromCache).to.be.true;
-    expect(result1.data()!['title']).to.equal(
+    expect(snapshot1.metadata.fromCache).toBe(true);
+    expect(result1.data()!['title']).toBe(
       "The Hitchhiker's Guide to the Galaxy"
     );
 
     let snapshot2 = await storeEvent2.awaitEvent();
     let result2 = snapshot2.results[0];
-    expect(snapshot2.metadata.fromCache).to.be.true;
-    expect(result2.data()!['title']).to.be.an.instanceof(Timestamp);
+    expect(snapshot2.metadata.fromCache).toBe(true);
+    expect(result2.data()!['title']).toBeInstanceOf(Timestamp);
 
     await enableNetwork(firestore);
 
     snapshot1 = await storeEvent1.awaitEvent();
     result1 = snapshot1.results[0];
-    expect(snapshot1.metadata.fromCache).to.be.false;
-    expect(result1.data()!['title']).to.be.an.instanceof(Timestamp);
+    expect(snapshot1.metadata.fromCache).toBe(false);
+    expect(result1.data()!['title']).toBeInstanceOf(Timestamp);
 
     snapshot2 = await storeEvent2.awaitEvent();
     result2 = snapshot2.results[0];
-    expect(snapshot2.metadata.fromCache).to.be.false;
-    expect(result2.data()!['title']).to.be.an.instanceof(Timestamp);
+    expect(snapshot2.metadata.fromCache).toBe(false);
+    expect(result2.data()!['title']).toBeInstanceOf(Timestamp);
 
     unsubscribe1();
     unsubscribe2();

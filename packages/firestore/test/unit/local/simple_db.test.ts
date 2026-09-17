@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,6 @@
  * limitations under the License.
  */
 
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-import { Context } from 'mocha';
-
 import { dbKeyComparator } from '../../../src/local/indexeddb_remote_document_cache';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import {
@@ -31,8 +27,6 @@ import {
 import { DocumentKey } from '../../../src/model/document_key';
 import { fail } from '../../../src/util/assert';
 import { Code, FirestoreError } from '../../../src/util/error';
-
-use(chaiAsPromised);
 
 interface User {
   id: number;
@@ -83,12 +77,7 @@ class TestSchemaConverter implements SimpleDbSchemaConverter {
   }
 }
 
-describe('SimpleDb', () => {
-  if (!SimpleDb.isAvailable()) {
-    console.warn('Skipping SimpleDb tests due to lack of indexedDB support.');
-    return;
-  }
-
+describe.skipIf(!SimpleDb.isAvailable())('SimpleDb', () => {
   const dbName = 'simpledb-tests';
   let db: SimpleDb;
 
@@ -123,7 +112,7 @@ describe('SimpleDb', () => {
 
   afterEach(() => db.close());
 
-  after(() => SimpleDb.delete(dbName));
+  afterAll(() => SimpleDb.delete(dbName));
 
   it('regex test', () => {
     const iPhoneSafariAgent =
@@ -136,9 +125,9 @@ describe('SimpleDb', () => {
     const androidAgent =
       'Mozilla/5.0 (Linux; U; Android 2.2.1; fr-fr; Desire HD Build/FRG83D)' +
       ' AppleWebKit/533.1 (KHTML, like Gecko) Version/4.0 Mobile Safari/533.1';
-    expect(SimpleDb.getIOSVersion(iPhoneSafariAgent)).to.equal(10.14);
-    expect(SimpleDb.getIOSVersion(iPadSafariAgent)).to.equal(9.0);
-    expect(getAndroidVersion(androidAgent)).to.equal(2.2);
+    expect(SimpleDb.getIOSVersion(iPhoneSafariAgent)).toBe(10.14);
+    expect(SimpleDb.getIOSVersion(iPadSafariAgent)).toBe(9.0);
+    expect(getAndroidVersion(androidAgent)).toBe(2.2);
   });
 
   it('can get', async () => {
@@ -146,11 +135,11 @@ describe('SimpleDb', () => {
       return store
         .get(42)
         .next(user => {
-          expect(user).to.equal(null);
+          expect(user).toBe(null);
           return store.get(1);
         })
         .next(user => {
-          expect(user).to.deep.equal(testData[1]);
+          expect(user).toEqual(testData[1]);
         });
     });
   });
@@ -161,7 +150,7 @@ describe('SimpleDb', () => {
     });
     await runTransaction(store => {
       return store.get(dummyUser.id).next(user => {
-        expect(user).to.deep.equal(dummyUser);
+        expect(user).toEqual(dummyUser);
       });
     });
   });
@@ -175,7 +164,7 @@ describe('SimpleDb', () => {
 
     await runTransaction(store => {
       return store.get(dummyUser.id).next(user => {
-        expect(user).to.deep.equal(null);
+        expect(user).toEqual(null);
       });
     });
   });
@@ -187,11 +176,11 @@ describe('SimpleDb', () => {
           throw new Error('Generated error');
         });
       })
-    ).to.eventually.be.rejectedWith('Generated error');
+    ).rejects.toThrow('Generated error');
 
     await runTransaction(store => {
       return store.get(dummyUser.id).next(user => {
-        expect(user).to.deep.equal(null);
+        expect(user).toEqual(null);
       });
     });
   });
@@ -203,11 +192,11 @@ describe('SimpleDb', () => {
           return PersistencePromise.reject(new Error('Generated error'));
         });
       })
-    ).to.eventually.be.rejectedWith('Generated error');
+    ).rejects.toThrow('Generated error');
 
     await runTransaction(store => {
       return store.get(dummyUser.id).next(user => {
-        expect(user).to.deep.equal(null);
+        expect(user).toEqual(null);
       });
     });
   });
@@ -222,11 +211,11 @@ describe('SimpleDb', () => {
         () => {},
         error => Promise.reject(error)
       )
-    ).to.eventually.be.rejectedWith('Generated error');
+    ).rejects.toThrow('Generated error');
 
     await runTransaction(store => {
       return store.get(dummyUser.id).next(user => {
-        expect(user).to.deep.equal(null);
+        expect(user).toEqual(null);
       });
     });
   });
@@ -237,8 +226,8 @@ describe('SimpleDb', () => {
     });
     await runTransaction(store => {
       return store.loadAll().next(users => {
-        expect(users.length).to.deep.equal(testData.length - 1);
-        expect(users).to.deep.equal(testData.filter(user => user.id !== 3));
+        expect(users.length).toEqual(testData.length - 1);
+        expect(users).toEqual(testData.filter(user => user.id !== 3));
       });
     });
   });
@@ -248,23 +237,23 @@ describe('SimpleDb', () => {
     await runTransaction(store => {
       return store.loadAll(range).next(users => {
         const expected = testData.filter(user => user.id >= 3 && user.id <= 5);
-        expect(users.length).to.equal(expected.length);
-        expect(users).to.deep.equal(expected);
+        expect(users.length).toBe(expected.length);
+        expect(users).toEqual(expected);
       });
     });
     await runTransaction(store => {
       return store.loadAll().next(users => {
         const expected = testData;
-        expect(users.length).to.equal(expected.length);
-        expect(users).to.deep.equal(expected);
+        expect(users.length).toBe(expected.length);
+        expect(users).toEqual(expected);
       });
     });
     const indexRange = IDBKeyRange.bound([8], [10, 're']);
     await runTransaction(store => {
       return store.loadAll('age-name', indexRange).next(users => {
         const expected = testData.filter(user => user.id >= 3 && user.id <= 6);
-        expect(users.length).to.equal(expected.length);
-        expect(users).to.deep.equal(expected);
+        expect(users.length).toBe(expected.length);
+        expect(users).toEqual(expected);
       });
     });
   });
@@ -276,8 +265,8 @@ describe('SimpleDb', () => {
         const expected = testData
           .filter(user => user.id >= 3 && user.id <= 5)
           .slice(0, 2);
-        expect(users.length).to.equal(expected.length);
-        expect(users).to.deep.equal(expected);
+        expect(users.length).toBe(expected.length);
+        expect(users).toEqual(expected);
       });
     });
   });
@@ -290,7 +279,7 @@ describe('SimpleDb', () => {
           return store.loadAll();
         })
         .next(users => {
-          expect(users).to.deep.equal([]);
+          expect(users).toEqual([]);
         });
     });
   });
@@ -305,8 +294,8 @@ describe('SimpleDb', () => {
         })
         .next(users => {
           const expected = testData.filter(user => user.id < 3 || user.id > 5);
-          expect(users.length).to.equal(expected.length);
-          expect(users).to.deep.equal(expected);
+          expect(users.length).toBe(expected.length);
+          expect(users).toEqual(expected);
         });
     });
   });
@@ -321,8 +310,8 @@ describe('SimpleDb', () => {
         })
         .next(users => {
           const expected = testData.filter(user => user.id < 3 || user.id > 6);
-          expect(users.length).to.equal(expected.length);
-          expect(users).to.deep.equal(expected);
+          expect(users.length).toBe(expected.length);
+          expect(users).toEqual(expected);
         });
     });
   });
@@ -335,7 +324,7 @@ describe('SimpleDb', () => {
           iterated.push(value);
         })
         .next(() => {
-          expect(iterated).to.deep.equal(testData);
+          expect(iterated).toEqual(testData);
         });
     });
   });
@@ -350,7 +339,7 @@ describe('SimpleDb', () => {
           control.skip(value.id + 2);
         })
         .next(() => {
-          expect(iterated).to.deep.equal(testData.filter(v => v.id % 2 === 0));
+          expect(iterated).toEqual(testData.filter(v => v.id % 2 === 0));
         });
     });
   });
@@ -365,8 +354,8 @@ describe('SimpleDb', () => {
         })
         .next(() => fail(0xb9b3, 'Promise not rejected'))
         .catch(err => {
-          expect(err.message).to.eq('Expected error');
-          expect(iterated).to.deep.equal([testData[0]]);
+          expect(err.message).toBe('Expected error');
+          expect(iterated).toEqual([testData[0]]);
         });
     });
   });
@@ -381,7 +370,7 @@ describe('SimpleDb', () => {
         .next(() => {
           const expected = testData.slice();
           expected.reverse();
-          expect(iterated).to.deep.equal(expected);
+          expect(iterated).toEqual(expected);
         });
     });
   });
@@ -402,7 +391,7 @@ describe('SimpleDb', () => {
           .next(() => {
             const expected = testData.filter(user => user.id % 2 === 1);
             expected.reverse();
-            expect(iterated).to.deep.equal(expected);
+            expect(iterated).toEqual(expected);
           });
       });
     }
@@ -424,9 +413,9 @@ describe('SimpleDb', () => {
         })
         .next(() => {
           // should have gotten greg and sally but not derek or rachel.
-          expect(iterated.length).to.equal(2);
-          expect(iterated[0].name).to.equal('greg');
-          expect(iterated[1].name).to.equal('sally');
+          expect(iterated.length).toBe(2);
+          expect(iterated[0].name).toBe('greg');
+          expect(iterated[1].name).toBe('sally');
         });
     });
   });
@@ -444,9 +433,9 @@ describe('SimpleDb', () => {
         })
         .next(() => {
           // should have gotten greg and rachel but not derek or sally.
-          expect(iterated.length).to.equal(2);
-          expect(iterated[0].name).to.equal('greg');
-          expect(iterated[1].name).to.equal('rachel');
+          expect(iterated.length).toBe(2);
+          expect(iterated[0].name).toBe('greg');
+          expect(iterated[1].name).toBe('rachel');
         });
     });
   });
@@ -458,7 +447,7 @@ describe('SimpleDb', () => {
         .iterate(
           { index: 'age-name', keysOnly: true },
           (key, value, control) => {
-            expect(value).to.equal(undefined);
+            expect(value).toBe(undefined);
             iterated.push(key);
           }
         )
@@ -468,7 +457,7 @@ describe('SimpleDb', () => {
               a.age !== b.age ? a.age - b.age : a.name.localeCompare(b.name)
             )
             .map(user => user.id);
-          expect(iterated).to.deep.equal(expected);
+          expect(iterated).toEqual(expected);
         });
     });
   });
@@ -484,8 +473,8 @@ describe('SimpleDb', () => {
         })
         .next(() => {
           // should have gotten greg and rachel but not derek or sally.
-          expect(iterated.length).to.equal(4);
-          expect(iterated.map(u => u.name)).to.deep.equal([
+          expect(iterated.length).toBe(4);
+          expect(iterated.map(u => u.name)).toEqual([
             'derek',
             'greg',
             'rachel',
@@ -495,7 +484,7 @@ describe('SimpleDb', () => {
     });
   });
 
-  it('can use arrays as keys and do partial bounds ranges', async function (this: Context) {
+  it('can use arrays as keys and do partial bounds ranges', async () => {
     const keys = [
       ['fo'],
       ['foo'],
@@ -504,7 +493,7 @@ describe('SimpleDb', () => {
       ['foob']
     ];
     await db.runTransaction(
-      this.test!.fullTitle(),
+      expect.getState().currentTestName ?? 'test',
       'readwrite',
       ['users', 'docs'],
       txn => {
@@ -519,14 +508,14 @@ describe('SimpleDb', () => {
     );
 
     await db.runTransaction(
-      this.test!.fullTitle(),
+      expect.getState().currentTestName ?? 'test',
       'readonly',
       ['docs'],
       txn => {
         const store = txn.store<string[], string>('docs');
         const range = IDBKeyRange.bound(['foo'], ['foo', 'c']);
         return store.loadAll(range).next(results => {
-          expect(results).to.deep.equal(['doc foo', 'doc foo/bar/baz']);
+          expect(results).toEqual(['doc foo', 'doc foo/bar/baz']);
         });
       }
     );
@@ -536,7 +525,7 @@ describe('SimpleDb', () => {
   // eslint-disable-next-line no-restricted-properties
   (isIndexedDbMock() ? it.skip : it)(
     'correctly sorts keys with nested arrays',
-    async function (this: Context) {
+    async () => {
       // This test verifies that the sorting in IndexedDb matches
       // `dbKeyComparator()`
 
@@ -562,7 +551,7 @@ describe('SimpleDb', () => {
       expectedOrder.sort(dbKeyComparator);
 
       const actualOrder = await db.runTransaction(
-        this.test!.fullTitle(),
+        expect.getState().currentTestName ?? 'test',
         'readwrite',
         ['docs'],
         txn => {
@@ -593,17 +582,17 @@ describe('SimpleDb', () => {
         }
       );
 
-      expect(actualOrder.map(k => k.toString())).to.deep.equal(
+      expect(actualOrder.map(k => k.toString())).toEqual(
         expectedOrder.map(k => k.toString())
       );
     }
   );
 
-  it('retries transactions', async function (this: Context) {
+  it('retries transactions', async () => {
     let attemptCount = 0;
 
     const result = await db.runTransaction(
-      this.test!.fullTitle(),
+      expect.getState().currentTestName ?? 'test',
       'readwrite',
       ['users'],
       txn => {
@@ -622,41 +611,51 @@ describe('SimpleDb', () => {
       }
     );
 
-    expect(result).to.equal('success');
-    expect(attemptCount).to.equal(2);
+    expect(result).toBe('success');
+    expect(attemptCount).toBe(2);
   });
 
-  it('retries transactions only three times', async function (this: Context) {
+  it('retries transactions only three times', async () => {
     let attemptCount = 0;
 
     await expect(
-      db.runTransaction(this.test!.fullTitle(), 'readwrite', ['users'], txn => {
-        ++attemptCount;
-        const store = txn.store<string[], typeof dummyUser>('users');
-        return store
-          .add(dummyUser)
-          .next(() => {
-            return store.add(dummyUser); // Fails with a unique key violation
-          })
-          .next(() => 'Aborted');
-      })
-    ).to.eventually.be.rejected;
+      db.runTransaction(
+        expect.getState().currentTestName ?? 'test',
+        'readwrite',
+        ['users'],
+        txn => {
+          ++attemptCount;
+          const store = txn.store<string[], typeof dummyUser>('users');
+          return store
+            .add(dummyUser)
+            .next(() => {
+              return store.add(dummyUser); // Fails with a unique key violation
+            })
+            .next(() => 'Aborted');
+        }
+      )
+    ).rejects.toThrow();
 
-    expect(attemptCount).to.equal(3);
+    expect(attemptCount).toBe(3);
   });
 
-  it('does not retry explicitly aborted transactions', async function (this: Context) {
+  it('does not retry explicitly aborted transactions', async () => {
     let attemptCount = 0;
 
     await expect(
-      db.runTransaction(this.test!.fullTitle(), 'readwrite', ['users'], txn => {
-        ++attemptCount;
-        txn.abort(new FirestoreError(Code.ABORTED, 'Aborted'));
-        return PersistencePromise.reject(new Error());
-      })
-    ).to.eventually.be.rejected;
+      db.runTransaction(
+        expect.getState().currentTestName ?? 'test',
+        'readwrite',
+        ['users'],
+        txn => {
+          ++attemptCount;
+          txn.abort(new FirestoreError(Code.ABORTED, 'Aborted'));
+          return PersistencePromise.reject(new Error());
+        }
+      )
+    ).rejects.toThrow();
 
-    expect(attemptCount).to.equal(1);
+    expect(attemptCount).toBe(1);
   });
 
   // A little perf test for convenient benchmarking

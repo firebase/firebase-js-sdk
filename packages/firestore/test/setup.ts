@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,22 @@
  * limitations under the License.
  */
 
-import { registerFirestore } from '../../lite/register';
-registerFirestore();
-/**
- * This will include all of the test files and compile them as needed
- *
- * Taken from karma-webpack source:
- * https://github.com/webpack-contrib/karma-webpack#alternative-usage
- */
+import { Buffer } from 'buffer';
 
-// 'context()' definition requires additional dependency on webpack-env package.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const testsContext = (require as any).context('.', true, /^.*\.test.*$/);
-const browserTests = testsContext.keys();
-browserTests.forEach(testsContext);
+import { afterEach, vi } from 'vitest';
+
+import '../src/api/pipeline_impl';
+import '../src/lite-api/pipeline_impl';
+import { registerFirestore } from '../src/register';
+
+if (typeof globalThis.Buffer === 'undefined') {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (globalThis as any).Buffer = Buffer;
+}
+
+registerFirestore();
+
+afterEach(() => {
+  vi.useRealTimers();
+  vi.restoreAllMocks();
+});

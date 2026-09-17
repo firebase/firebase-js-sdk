@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2022 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import {
   queryToTarget,
@@ -230,7 +228,7 @@ describe('Target Bounds', () => {
         queryToTarget(query('collId2'))
       );
       const index = fieldIndex('collId');
-      expect(() => targetIndexMatcher.servedByIndex(index)).to.throw(
+      expect(() => targetIndexMatcher.servedByIndex(index)).toThrow(
         'Collection IDs do not match'
       );
     }
@@ -964,20 +962,21 @@ describe('Target Bounds', () => {
         );
         const target = queryToTarget(q);
         const targetIndexMatcher = new TargetIndexMatcher(target);
-        expect(targetIndexMatcher.hasMultipleInequality).is.true;
+        expect(targetIndexMatcher.hasMultipleInequality).toBe(true);
         const actualIndex = targetIndexMatcher.buildTargetIndex();
-        expect(actualIndex).is.null;
+        expect(actualIndex).toBeNull();
       });
     });
 
     function validateBuildTargetIndexCreateFullMatchIndex(q: Query): void {
       const target = queryToTarget(q);
       const targetIndexMatcher = new TargetIndexMatcher(target);
-      expect(targetIndexMatcher.hasMultipleInequality).is.false;
+      expect(targetIndexMatcher.hasMultipleInequality).toBe(false);
       const actualIndex = targetIndexMatcher.buildTargetIndex();
-      expect(actualIndex).is.not.null;
-      expect(targetIndexMatcher.servedByIndex(actualIndex as FieldIndex)).is
-        .true;
+      expect(actualIndex).not.toBeNull();
+      expect(targetIndexMatcher.servedByIndex(actualIndex as FieldIndex)).toBe(
+        true
+      );
       expect(
         (actualIndex as FieldIndex).fields.length >=
           targetGetSegmentCount(target)
@@ -995,7 +994,7 @@ describe('Target Bounds', () => {
       fields: convertToFieldsArray(field, kind, fieldsAndKind)
     });
     const targetIndexMatcher = new TargetIndexMatcher(queryToTarget(query));
-    expect(targetIndexMatcher.servedByIndex(expectedIndex)).to.be.true;
+    expect(targetIndexMatcher.servedByIndex(expectedIndex)).toBe(true);
   }
 
   function validateDoesNotServeTarget(
@@ -1008,7 +1007,7 @@ describe('Target Bounds', () => {
       fields: convertToFieldsArray(field, kind, fieldsAndKind)
     });
     const targetIndexMatcher = new TargetIndexMatcher(queryToTarget(query));
-    expect(targetIndexMatcher.servedByIndex(expectedIndex)).to.be.false;
+    expect(targetIndexMatcher.servedByIndex(expectedIndex)).toBe(false);
   }
 
   function convertToFieldsArray(

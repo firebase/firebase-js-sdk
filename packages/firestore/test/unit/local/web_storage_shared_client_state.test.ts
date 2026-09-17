@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -10,12 +10,10 @@
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
- * withOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import { User } from '../../../src/auth/user';
 import {
@@ -146,11 +144,11 @@ class TestSharedClientSyncer implements SharedClientStateSyncer {
     removed: TargetId[]
   ): Promise<void> {
     for (const targetId of added) {
-      expect(this.activeTargets.has(targetId)).to.be.false;
+      expect(this.activeTargets.has(targetId)).toBe(false);
       this.activeTargets = this.activeTargets.add(targetId);
     }
     for (const targetId of removed) {
-      expect(this.activeTargets.has(targetId)).to.be.true;
+      expect(this.activeTargets.has(targetId)).toBe(true);
       this.activeTargets = this.activeTargets.delete(targetId);
     }
   }
@@ -243,13 +241,13 @@ describe('WebStorageSharedClientState', () => {
       )!
     );
 
-    expect(Object.keys(actual)).to.have.members([
-      'activeTargetIds',
-      'updateTimeMs'
-    ]);
-    expect(actual.activeTargetIds)
-      .to.be.an('array')
-      .and.have.members(activeTargetIds);
+    expect(Object.keys(actual)).toEqual(
+      expect.arrayContaining(['activeTargetIds', 'updateTimeMs'])
+    );
+    expect(Array.isArray(actual.activeTargetIds)).toBe(true);
+    expect(actual.activeTargetIds).toEqual(
+      expect.arrayContaining(activeTargetIds)
+    );
   }
 
   describe('persists mutation batches', () => {
@@ -262,22 +260,25 @@ describe('WebStorageSharedClientState', () => {
         webStorage.getItem(mutationKey(AUTHENTICATED_USER, batchId))!
       );
 
-      expect(actual.state).to.equal(mutationBatchState);
+      expect(actual.state).toBe(mutationBatchState);
 
       const expectedMembers = ['state', 'updateTimeMs'];
 
       if (mutationBatchState === 'rejected') {
         expectedMembers.push('error');
-        expect(actual.error.code).to.equal(err!.code);
-        expect(actual.error.message).to.equal(err!.message);
+        expect(actual.error.code).toBe(err!.code);
+        expect(actual.error.message).toBe(err!.message);
       }
 
-      expect(Object.keys(actual)).to.have.members(expectedMembers);
+      expect(Object.keys(actual)).toEqual(
+        expect.arrayContaining(expectedMembers)
+      );
     }
 
     function assertNoBatchState(batchId: BatchId): void {
-      expect(webStorage.getItem(mutationKey(AUTHENTICATED_USER, batchId))).to.be
-        .null;
+      expect(
+        webStorage.getItem(mutationKey(AUTHENTICATED_USER, batchId))
+      ).toBeNull();
     }
 
     beforeEach(() => sharedClientState.start());
@@ -311,18 +312,20 @@ describe('WebStorageSharedClientState', () => {
       err?: FirestoreError
     ): void {
       if (queryTargetState === 'pending') {
-        expect(webStorage.getItem(targetKey(targetId))).to.be.null;
+        expect(webStorage.getItem(targetKey(targetId))).toBeNull();
       } else {
         const actual = JSON.parse(webStorage.getItem(targetKey(targetId))!);
-        expect(actual.state).to.equal(queryTargetState);
+        expect(actual.state).toBe(queryTargetState);
 
         const expectedMembers = ['state', 'updateTimeMs'];
         if (queryTargetState === 'rejected') {
           expectedMembers.push('error');
-          expect(actual.error.code).to.equal(err!.code);
-          expect(actual.error.message).to.equal(err!.message);
+          expect(actual.error.code).toBe(err!.code);
+          expect(actual.error.message).toBe(err!.message);
         }
-        expect(Object.keys(actual)).to.have.members(expectedMembers);
+        expect(Object.keys(actual)).toEqual(
+          expect.arrayContaining(expectedMembers)
+        );
       }
     }
 
@@ -380,7 +383,7 @@ describe('WebStorageSharedClientState', () => {
       sharedClientState.removeLocalQueryTarget(0);
       assertTargetState(0, 'current');
       sharedClientState.clearQueryState(0);
-      expect(webStorage.getItem(targetKey(0))).to.be.null;
+      expect(webStorage.getItem(targetKey(0))).toBeNull();
     });
   });
 
@@ -411,8 +414,10 @@ describe('WebStorageSharedClientState', () => {
       const actualOnlineState = clientSyncer.sharedClientState.onlineState;
       const actualTargets = sharedClientState.getAllActiveQueryTargets();
 
-      expect(actualTargets.toArray()).to.have.members(expectedTargets);
-      expect(actualOnlineState).to.equal(expectedOnlineState);
+      expect(actualTargets.toArray()).toEqual(
+        expect.arrayContaining(expectedTargets)
+      );
+      expect(actualOnlineState).toBe(expectedOnlineState);
     }
 
     it('with targets from existing client', async () => {
@@ -559,8 +564,8 @@ describe('WebStorageSharedClientState', () => {
           ).toWebStorageJSON()
         );
       }).then(clientState => {
-        expect(clientState.mutationCount).to.equal(1);
-        expect(clientState.mutationState[1].state).to.equal('pending');
+        expect(clientState.mutationCount).toBe(1);
+        expect(clientState.mutationState[1].state).toBe('pending');
       });
     });
 
@@ -575,8 +580,8 @@ describe('WebStorageSharedClientState', () => {
           ).toWebStorageJSON()
         );
       }).then(clientState => {
-        expect(clientState.mutationCount).to.equal(1);
-        expect(clientState.mutationState[1].state).to.equal('acknowledged');
+        expect(clientState.mutationCount).toBe(1);
+        expect(clientState.mutationState[1].state).toBe('acknowledged');
       });
     });
 
@@ -592,12 +597,12 @@ describe('WebStorageSharedClientState', () => {
           ).toWebStorageJSON()
         );
       }).then(clientState => {
-        expect(clientState.mutationCount).to.equal(1);
-        expect(clientState.mutationState[1].state).to.equal('rejected');
+        expect(clientState.mutationCount).toBe(1);
+        expect(clientState.mutationState[1].state).toBe('rejected');
 
         const firestoreError = clientState.mutationState[1].error!;
-        expect(firestoreError.code).to.equal('internal');
-        expect(firestoreError.message).to.equal('Test Error');
+        expect(firestoreError.code).toBe('internal');
+        expect(firestoreError.message).toBe('Test Error');
       });
     });
 
@@ -612,8 +617,8 @@ describe('WebStorageSharedClientState', () => {
           ).toWebStorageJSON()
         );
       }).then(clientState => {
-        expect(clientState.mutationCount).to.equal(1);
-        expect(clientState.mutationState[1].state).to.equal('pending');
+        expect(clientState.mutationCount).toBe(1);
+        expect(clientState.mutationState[1].state).toBe('pending');
       });
     });
 
@@ -634,8 +639,8 @@ describe('WebStorageSharedClientState', () => {
           new MutationMetadata(otherUser, 2, 'pending').toWebStorageJSON()
         );
       }).then(clientState => {
-        expect(clientState.mutationCount).to.equal(1);
-        expect(clientState.mutationState[1].state).to.equal('pending');
+        expect(clientState.mutationCount).toBe(1);
+        expect(clientState.mutationState[1].state).toBe('pending');
       });
     });
 
@@ -650,7 +655,7 @@ describe('WebStorageSharedClientState', () => {
           ).toWebStorageJSON()
         );
       }).then(clientState => {
-        expect(clientState.mutationCount).to.equal(0);
+        expect(clientState.mutationCount).toBe(0);
       });
     });
   });
@@ -691,7 +696,7 @@ describe('WebStorageSharedClientState', () => {
         );
       });
 
-      expect(clientState.targetIds.size).to.equal(2);
+      expect(clientState.targetIds.size).toBe(2);
 
       clientState = await withClientState(async () => {
         // Add a target that already exist in the first client
@@ -702,7 +707,7 @@ describe('WebStorageSharedClientState', () => {
         );
       });
 
-      expect(clientState.targetIds.size).to.equal(2);
+      expect(clientState.targetIds.size).toBe(2);
     });
 
     it('for removed target', async () => {
@@ -715,7 +720,7 @@ describe('WebStorageSharedClientState', () => {
         );
       });
 
-      expect(clientState.targetIds.size).to.equal(2);
+      expect(clientState.targetIds.size).toBe(2);
 
       clientState = await withClientState(async () => {
         // Remove a target that also exists in the first client
@@ -726,7 +731,7 @@ describe('WebStorageSharedClientState', () => {
         );
       });
 
-      expect(clientState.targetIds.size).to.equal(2);
+      expect(clientState.targetIds.size).toBe(2);
 
       clientState = await withClientState(async () => {
         // Remove a target that only exists in the second client
@@ -737,7 +742,7 @@ describe('WebStorageSharedClientState', () => {
         );
       });
 
-      expect(clientState.targetIds.size).to.equal(1);
+      expect(clientState.targetIds.size).toBe(1);
     });
 
     it('for not-current target', () => {
@@ -750,8 +755,8 @@ describe('WebStorageSharedClientState', () => {
           ).toWebStorageJSON()
         );
       }).then(clientState => {
-        expect(clientState.targetIds.size).to.equal(1);
-        expect(clientState.targetState[firstClientTargetId].state).to.equal(
+        expect(clientState.targetIds.size).toBe(1);
+        expect(clientState.targetState[firstClientTargetId].state).toBe(
           'not-current'
         );
       });
@@ -767,8 +772,8 @@ describe('WebStorageSharedClientState', () => {
           ).toWebStorageJSON()
         );
       }).then(clientState => {
-        expect(clientState.targetIds.size).to.equal(1);
-        expect(clientState.targetState[firstClientTargetId].state).to.equal(
+        expect(clientState.targetIds.size).toBe(1);
+        expect(clientState.targetState[firstClientTargetId].state).toBe(
           'current'
         );
       });
@@ -785,15 +790,15 @@ describe('WebStorageSharedClientState', () => {
           ).toWebStorageJSON()
         );
       }).then(clientState => {
-        expect(clientState.targetIds.size).to.equal(1);
-        expect(clientState.targetState[firstClientTargetId].state).to.equal(
+        expect(clientState.targetIds.size).toBe(1);
+        expect(clientState.targetState[firstClientTargetId].state).toBe(
           'rejected'
         );
 
         const firestoreError =
           clientState.targetState[firstClientTargetId].error!;
-        expect(firestoreError.code).to.equal('internal');
-        expect(firestoreError.message).to.equal('Test Error');
+        expect(firestoreError.code).toBe('internal');
+        expect(firestoreError.message).toBe('Test Error');
       });
     });
 
@@ -807,8 +812,8 @@ describe('WebStorageSharedClientState', () => {
           ).toWebStorageJSON()
         );
       }).then(clientState => {
-        expect(clientState.targetIds.size).to.equal(1);
-        expect(clientState.targetState[firstClientTargetId]).to.be.undefined;
+        expect(clientState.targetIds.size).toBe(1);
+        expect(clientState.targetState[firstClientTargetId]).toBeUndefined();
       });
     });
   });
@@ -818,9 +823,9 @@ describe('WebStorageSharedClientState', () => {
 
     function assertSequenceNumber(expected: ListenSequenceNumber): void {
       const sequenceNumberString = webStorage.getItem(sequenceNumberKey());
-      expect(sequenceNumberString).to.not.be.null;
+      expect(sequenceNumberString).not.toBeNull();
       const actual = JSON.parse(sequenceNumberString!) as ListenSequenceNumber;
-      expect(actual).to.equal(expected);
+      expect(actual).toBe(expected);
     }
 
     it('writes out new sequence numbers', () => {
@@ -834,11 +839,11 @@ describe('WebStorageSharedClientState', () => {
         sequenceNumbers.push(sequenceNumber);
       writeToWebStorage(sequenceNumberKey(), '1');
       await queue.drain();
-      expect(sequenceNumbers).to.deep.equal([1]);
+      expect(sequenceNumbers).toEqual([1]);
       writeToWebStorage(sequenceNumberKey(), '2');
       writeToWebStorage(sequenceNumberKey(), '3');
       await queue.drain();
-      expect(sequenceNumbers).to.deep.equal([1, 2, 3]);
+      expect(sequenceNumbers).toEqual([1, 2, 3]);
     });
   });
 
@@ -847,9 +852,9 @@ describe('WebStorageSharedClientState', () => {
 
     function assertsBundlesLoaded(...collectionGroups: string[]): void {
       const bundleValue = webStorage.getItem(bundleLoadedKey());
-      expect(bundleValue).to.not.be.null;
+      expect(bundleValue).not.toBeNull();
       const actual = JSON.parse(bundleValue!) as string[];
-      expect(actual).to.have.members(collectionGroups);
+      expect(actual).toEqual(expect.arrayContaining(collectionGroups));
     }
 
     it('writes out collection groups', () => {

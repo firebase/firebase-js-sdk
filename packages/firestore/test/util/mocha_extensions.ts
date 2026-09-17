@@ -34,9 +34,16 @@ interface ExtendMochaTypeWithHelpers<T> {
 
 declare module 'mocha' {
   // TODO add mocha types that must be extended
-  interface TestFunction extends ExtendMochaTypeWithHelpers<TestFunction> {}
-  interface PendingTestFunction extends ExtendMochaTypeWithHelpers<PendingTestFunction> {}
-  interface SuiteFunction extends ExtendMochaTypeWithHelpers<SuiteFunction> {}
+  interface TestFunction extends ExtendMochaTypeWithHelpers<TestFunction> {
+    (title: string, fn?: Func | AsyncFunc, timeout?: number): Test;
+    skipIf(condition: boolean): TestFunction;
+  }
+  interface PendingTestFunction extends ExtendMochaTypeWithHelpers<PendingTestFunction> {
+    (title: string, fn?: Func | AsyncFunc, timeout?: number): Test;
+  }
+  interface SuiteFunction extends ExtendMochaTypeWithHelpers<SuiteFunction> {
+    skipIf(condition: boolean): SuiteFunction;
+  }
   interface PendingSuiteFunction extends ExtendMochaTypeWithHelpers<PendingSuiteFunction> {}
 }
 
@@ -93,11 +100,14 @@ export function mixinSkipImplementations(obj: unknown): void {
 }
 
 // TODO add mocha functions that must be extended
-[global.it, global.it.skip, global.describe, global.describe.skip].forEach(
-  mixinSkipImplementations
-);
+[
+  globalThis.it,
+  globalThis.it.skip,
+  globalThis.describe,
+  globalThis.describe.skip
+].forEach(mixinSkipImplementations);
 
 // Export modified it and describe.
-const it = global.it;
-const describe = global.describe;
+const it = globalThis.it;
+const describe = globalThis.describe;
 export { it, describe };

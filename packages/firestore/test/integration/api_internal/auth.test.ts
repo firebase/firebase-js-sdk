@@ -17,8 +17,8 @@
 
 import { FirebaseApp, initializeApp } from '@firebase/app';
 import { getAuth, signInAnonymously } from '@firebase/auth';
-import { expect } from 'chai';
 
+import firebaseConfig from '../../../../../config/project.json';
 import {
   getDoc,
   getFirestore,
@@ -29,8 +29,6 @@ import {
 } from '../../../src';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const firebaseConfig = require('../../../../../config/project.json');
-
 let appCount = 0;
 
 function getNextApp(): FirebaseApp {
@@ -86,7 +84,7 @@ describe('Initialization', () => {
     // setDoc() did not actually persist the document until the sign in attempt.
     // Hence there was no user change and we can read the same document back.
     const cachedDoc = await getDoc(testDoc);
-    expect(cachedDoc.exists()).to.be.true;
+    expect(cachedDoc.exists()).toBe(true);
   });
 
   it('uses user from asynchronously loaded getAuth()', async () => {
@@ -103,7 +101,7 @@ describe('Initialization', () => {
     // setDoc() did not actually persist the document until the sign in attempt.
     // Hence there was no user change and we can read the same document back.
     const cachedDoc = await getDoc(testDoc);
-    expect(cachedDoc.exists()).to.be.true;
+    expect(cachedDoc.exists()).toBe(true);
   });
 
   it('uses user from getAuth()', async () => {
@@ -114,7 +112,7 @@ describe('Initialization', () => {
 
     // Wait for the document. This waits for client initialization.
     const cachedDoc = await getDoc(testDoc);
-    expect(cachedDoc.exists()).to.be.true;
+    expect(cachedDoc.exists()).toBe(true);
 
     const auth = getAuth(app);
     void signInAnonymously(auth);

@@ -16,7 +16,6 @@
  */
 
 import { isSafariOrWebkit } from '@firebase/util';
-import { expect } from 'chai';
 
 import { Timestamp } from '../../../../src';
 import {
@@ -44,13 +43,14 @@ function constantInt(valueStr: string): Expression {
 describe('Timestamp Functions', () => {
   describe('UnixMicrosToTimestamp', () => {
     it('stringType_returnsError', () => {
-      expect(evaluateToValue(unixMicrosToTimestamp(constant('abc')))).to.be
-        .undefined;
+      expect(
+        evaluateToValue(unixMicrosToTimestamp(constant('abc')))
+      ).toBeUndefined();
     });
 
     it('zeroValue_returnsTimestampEpoch', () => {
       const result = evaluateToValue(unixMicrosToTimestamp(constant(0)));
-      expect(result?.timestampValue).to.deep.equal({
+      expect(result?.timestampValue).toEqual({
         seconds: 0,
         nanos: 0
       });
@@ -58,7 +58,7 @@ describe('Timestamp Functions', () => {
 
     it('intType_returnsTimestamp', () => {
       const result = evaluateToValue(unixMicrosToTimestamp(constant(1000000)));
-      expect(result?.timestampValue).to.deep.equal({
+      expect(result?.timestampValue).toEqual({
         seconds: 1,
         nanos: 0
       });
@@ -68,7 +68,7 @@ describe('Timestamp Functions', () => {
       const result = evaluateToValue(
         unixMicrosToTimestamp(constant(9876543210))
       );
-      expect(result?.timestampValue).to.deep.equal({
+      expect(result?.timestampValue).toEqual({
         seconds: 9876,
         nanos: 543210000
       });
@@ -76,7 +76,7 @@ describe('Timestamp Functions', () => {
 
     it('longType_negative_returnsTimestamp', () => {
       const result = evaluateToValue(unixMicrosToTimestamp(constant(-10000)));
-      expect(result?.timestampValue).to.deep.equal({
+      expect(result?.timestampValue).toEqual({
         seconds: -1,
         nanos: 990000000
       });
@@ -86,7 +86,7 @@ describe('Timestamp Functions', () => {
       const result1 = evaluateToValue(
         unixMicrosToTimestamp(constantInt('-62135596800000000'))
       );
-      expect(result1?.timestampValue).to.deep.equal({
+      expect(result1?.timestampValue).toEqual({
         seconds: -62135596800,
         nanos: 0
       });
@@ -96,7 +96,7 @@ describe('Timestamp Functions', () => {
           subtract(constantInt('-62135596800000000'), constant(1))
         )
       );
-      expect(result2).to.deep.equal(undefined);
+      expect(result2).toEqual(undefined);
     });
 
     it('longType_positive_overflow_returnsError', () => {
@@ -105,7 +105,7 @@ describe('Timestamp Functions', () => {
           subtract(constantInt('253402300800000000'), constant(1))
         )
       );
-      expect(result1?.timestampValue).to.deep.equal({
+      expect(result1?.timestampValue).toEqual({
         seconds: 253402300799,
         nanos: 999999000
       });
@@ -113,19 +113,20 @@ describe('Timestamp Functions', () => {
       const result2 = evaluateToValue(
         unixMicrosToTimestamp(constantInt('253402300800000000'))
       );
-      expect(result2).to.deep.equal(undefined);
+      expect(result2).toEqual(undefined);
     });
   });
 
   describe('UnixMillisToTimestamp', () => {
     it('stringType_returnsError', () => {
-      expect(evaluateToValue(unixMillisToTimestamp(constant('abc')))).to.be
-        .undefined;
+      expect(
+        evaluateToValue(unixMillisToTimestamp(constant('abc')))
+      ).toBeUndefined();
     });
 
     it('zeroValue_returnsTimestampEpoch', () => {
       const result = evaluateToValue(unixMillisToTimestamp(constant(0)));
-      expect(result?.timestampValue).to.deep.equal({
+      expect(result?.timestampValue).toEqual({
         seconds: 0,
         nanos: 0
       });
@@ -133,7 +134,7 @@ describe('Timestamp Functions', () => {
 
     it('intType_returnsTimestamp', () => {
       const result = evaluateToValue(unixMillisToTimestamp(constant(1000)));
-      expect(result?.timestampValue).to.deep.equal({
+      expect(result?.timestampValue).toEqual({
         seconds: 1,
         nanos: 0
       });
@@ -143,7 +144,7 @@ describe('Timestamp Functions', () => {
       const result = evaluateToValue(
         unixMillisToTimestamp(constant(9876543210))
       );
-      expect(result?.timestampValue).to.deep.equal({
+      expect(result?.timestampValue).toEqual({
         seconds: 9876543,
         nanos: 210000000
       });
@@ -151,7 +152,7 @@ describe('Timestamp Functions', () => {
 
     it('longType_negative_returnsTimestamp', () => {
       const result = evaluateToValue(unixMillisToTimestamp(constant(-10000)));
-      expect(result?.timestampValue).to.deep.equal({
+      expect(result?.timestampValue).toEqual({
         seconds: -10,
         nanos: 0
       });
@@ -165,7 +166,7 @@ describe('Timestamp Functions', () => {
           })
         )
       );
-      expect(result1?.timestampValue).to.deep.equal({
+      expect(result1?.timestampValue).toEqual({
         seconds: -62135596800,
         nanos: 0
       });
@@ -177,7 +178,7 @@ describe('Timestamp Functions', () => {
           })
         )
       );
-      expect(result2).to.deep.equal(undefined);
+      expect(result2).toEqual(undefined);
     });
 
     it('longType_positive_overflow_returnsError', () => {
@@ -188,7 +189,7 @@ describe('Timestamp Functions', () => {
           })
         )
       );
-      expect(result1?.timestampValue).to.deep.equal({
+      expect(result1?.timestampValue).toEqual({
         seconds: 253402300799,
         nanos: 999000000
       });
@@ -200,19 +201,20 @@ describe('Timestamp Functions', () => {
           })
         )
       );
-      expect(result2).to.deep.equal(undefined);
+      expect(result2).toEqual(undefined);
     });
   });
 
   describe('UnixSecondsToTimestamp', () => {
     it('stringType_returnsError', () => {
-      expect(evaluateToValue(unixSecondsToTimestamp(constant('abc')))).to.be
-        .undefined;
+      expect(
+        evaluateToValue(unixSecondsToTimestamp(constant('abc')))
+      ).toBeUndefined();
     });
 
     it('zeroValue_returnsTimestampEpoch', () => {
       const result = evaluateToValue(unixSecondsToTimestamp(constant(0)));
-      expect(result?.timestampValue).to.deep.equal({
+      expect(result?.timestampValue).toEqual({
         seconds: 0,
         nanos: 0
       });
@@ -220,7 +222,7 @@ describe('Timestamp Functions', () => {
 
     it('intType_returnsTimestamp', () => {
       const result = evaluateToValue(unixSecondsToTimestamp(constant(1)));
-      expect(result?.timestampValue).to.deep.equal({
+      expect(result?.timestampValue).toEqual({
         seconds: 1,
         nanos: 0
       });
@@ -230,7 +232,7 @@ describe('Timestamp Functions', () => {
       const result = evaluateToValue(
         unixSecondsToTimestamp(constant(9876543210))
       );
-      expect(result?.timestampValue).to.deep.equal({
+      expect(result?.timestampValue).toEqual({
         seconds: 9876543210,
         nanos: 0
       });
@@ -238,7 +240,7 @@ describe('Timestamp Functions', () => {
 
     it('longType_negative_returnsTimestamp', () => {
       const result = evaluateToValue(unixSecondsToTimestamp(constant(-10000)));
-      expect(result?.timestampValue).to.deep.equal({
+      expect(result?.timestampValue).toEqual({
         seconds: -10000,
         nanos: 0
       });
@@ -252,7 +254,7 @@ describe('Timestamp Functions', () => {
           })
         )
       );
-      expect(result1?.timestampValue).to.deep.equal({
+      expect(result1?.timestampValue).toEqual({
         seconds: -62135596800,
         nanos: 0
       });
@@ -264,7 +266,7 @@ describe('Timestamp Functions', () => {
           })
         )
       );
-      expect(result2).to.deep.equal(undefined);
+      expect(result2).toEqual(undefined);
     });
 
     it('longType_positive_overflow_returnsError', () => {
@@ -275,7 +277,7 @@ describe('Timestamp Functions', () => {
           })
         )
       );
-      expect(result1?.timestampValue).to.deep.equal({
+      expect(result1?.timestampValue).toEqual({
         seconds: 253402300799,
         nanos: 0
       });
@@ -287,14 +289,15 @@ describe('Timestamp Functions', () => {
           })
         )
       );
-      expect(result2).to.deep.equal(undefined);
+      expect(result2).toEqual(undefined);
     });
   });
 
   describe('TimestampToUnixMicros', () => {
     it('nonTimestampType_returnsError', () => {
-      expect(evaluateToValue(timestampToUnixMicros(constant(123)))).to.be
-        .undefined;
+      expect(
+        evaluateToValue(timestampToUnixMicros(constant(123)))
+      ).toBeUndefined();
     });
 
     it('timestamp_returnsMicros', () => {
@@ -302,7 +305,7 @@ describe('Timestamp Functions', () => {
       const result = evaluateToValue(
         timestampToUnixMicros(constant(timestamp))
       );
-      expect(result?.integerValue).to.equal('347068800000000');
+      expect(result?.integerValue).toBe('347068800000000');
     });
 
     it('epochTimestamp_returnsMicros', () => {
@@ -310,27 +313,24 @@ describe('Timestamp Functions', () => {
       const result = evaluateToValue(
         timestampToUnixMicros(constant(timestamp))
       );
-      expect(result?.integerValue).to.equal('0');
+      expect(result?.integerValue).toBe('0');
     });
 
     it('currentTimestamp_returnsMicros', () => {
       const now = Timestamp.now();
       const result = evaluateToValue(timestampToUnixMicros(constant(now)));
-      expect(result?.integerValue).to.equal(
+      expect(result?.integerValue).toBe(
         (BigInt(now.toMillis()) * BigInt(1000)).toString()
       );
     });
 
     // Skipped in Safari/WebKit due to year 10,000 boundary floating-point precision overflow
-    it('maxTimestamp_returnsMicros', function () {
-      if (isSafariOrWebkit()) {
-        this.skip();
-      }
+    it.skipIf(isSafariOrWebkit())('maxTimestamp_returnsMicros', () => {
       const maxTimestamp = new Timestamp(253402300799, 999999999);
       const result = evaluateToValue(
         timestampToUnixMicros(constant(maxTimestamp))
       );
-      expect(result?.integerValue).to.equal('253402300799999999');
+      expect(result?.integerValue).toBe('253402300799999999');
     });
 
     it('minTimestamp_returnsMicros', () => {
@@ -338,7 +338,7 @@ describe('Timestamp Functions', () => {
       const result = evaluateToValue(
         timestampToUnixMicros(constant(minTimestamp))
       );
-      expect(result?.integerValue).to.equal('-62135596800000000');
+      expect(result?.integerValue).toBe('-62135596800000000');
     });
 
     it('timestampOverflow_returnsError', () => {
@@ -353,26 +353,24 @@ describe('Timestamp Functions', () => {
             })
           )
         )
-      ).to.be.undefined;
+      ).toBeUndefined();
     });
 
     // Skipped in Safari/WebKit due to pre-epoch negative sub-second truncation quirk
-    it('timestampTruncatesToMicros', function () {
-      if (isSafariOrWebkit()) {
-        this.skip();
-      }
+    it.skipIf(isSafariOrWebkit())('timestampTruncatesToMicros', () => {
       const timestamp = new Timestamp(-1, 999999999);
       const result = evaluateToValue(
         timestampToUnixMicros(constant(timestamp))
       );
-      expect(result?.integerValue).to.equal('-1');
+      expect(result?.integerValue).toBe('-1');
     });
   });
 
   describe('TimestampToUnixMillisFunction', () => {
     it('nonTimestampType_returnsError', () => {
-      expect(evaluateToValue(timestampToUnixMillis(constant(123)))).to.be
-        .undefined;
+      expect(
+        evaluateToValue(timestampToUnixMillis(constant(123)))
+      ).toBeUndefined();
     });
 
     it('timestamp_returnsMillis', () => {
@@ -380,7 +378,7 @@ describe('Timestamp Functions', () => {
       const result = evaluateToValue(
         timestampToUnixMillis(constant(timestamp))
       );
-      expect(result?.integerValue).to.equal('347068800000');
+      expect(result?.integerValue).toBe('347068800000');
     });
 
     it('epochTimestamp_returnsMillis', () => {
@@ -388,13 +386,13 @@ describe('Timestamp Functions', () => {
       const result = evaluateToValue(
         timestampToUnixMillis(constant(timestamp))
       );
-      expect(result?.integerValue).to.equal('0');
+      expect(result?.integerValue).toBe('0');
     });
 
     it('currentTimestamp_returnsMillis', () => {
       const now = Timestamp.now();
       const result = evaluateToValue(timestampToUnixMillis(constant(now)));
-      expect(result?.integerValue).to.equal(now.toMillis().toString());
+      expect(result?.integerValue).toBe(now.toMillis().toString());
     });
 
     it('maxTimestamp_returnsMillis', () => {
@@ -402,7 +400,7 @@ describe('Timestamp Functions', () => {
       const result = evaluateToValue(
         timestampToUnixMillis(constant(maxTimestamp))
       );
-      expect(result?.integerValue).to.equal('253402300799999');
+      expect(result?.integerValue).toBe('253402300799999');
     });
 
     it('minTimestamp_returnsMillis', () => {
@@ -410,19 +408,16 @@ describe('Timestamp Functions', () => {
       const result = evaluateToValue(
         timestampToUnixMillis(constant(minTimestamp))
       );
-      expect(result?.integerValue).to.equal('-62135596800000');
+      expect(result?.integerValue).toBe('-62135596800000');
     });
 
     // Skipped in Safari/WebKit due to pre-epoch negative sub-second truncation quirk
-    it('timestampTruncatesToMillis', function () {
-      if (isSafariOrWebkit()) {
-        this.skip();
-      }
+    it.skipIf(isSafariOrWebkit())('timestampTruncatesToMillis', () => {
       const timestamp = new Timestamp(-1, 999999999);
       const result = evaluateToValue(
         timestampToUnixMillis(constant(timestamp))
       );
-      expect(result?.integerValue).to.equal('-1');
+      expect(result?.integerValue).toBe('-1');
     });
 
     it('timestampOverflow_returnsError', () => {
@@ -437,14 +432,15 @@ describe('Timestamp Functions', () => {
             })
           )
         )
-      ).to.be.undefined;
+      ).toBeUndefined();
     });
   });
 
   describe('TimestampToUnixSecondsFunctionTest', () => {
     it('nonTimestampType_returnsError', () => {
-      expect(evaluateToValue(timestampToUnixSeconds(constant(123)))).to.be
-        .undefined;
+      expect(
+        evaluateToValue(timestampToUnixSeconds(constant(123)))
+      ).toBeUndefined();
     });
 
     it('timestamp_returnsSeconds', () => {
@@ -452,7 +448,7 @@ describe('Timestamp Functions', () => {
       const result = evaluateToValue(
         timestampToUnixSeconds(constant(timestamp))
       );
-      expect(result?.integerValue).to.equal('347068800');
+      expect(result?.integerValue).toBe('347068800');
     });
 
     it('epochTimestamp_returnsSeconds', () => {
@@ -460,27 +456,24 @@ describe('Timestamp Functions', () => {
       const result = evaluateToValue(
         timestampToUnixSeconds(constant(timestamp))
       );
-      expect(result?.integerValue).to.equal('0');
+      expect(result?.integerValue).toBe('0');
     });
 
     it('currentTimestamp_returnsSeconds', () => {
       const now = Timestamp.now();
       const result = evaluateToValue(timestampToUnixSeconds(constant(now)));
-      expect(result?.integerValue).to.equal(
+      expect(result?.integerValue).toBe(
         Math.floor(now.toMillis() / 1000).toString()
       );
     });
 
     // Skipped in Safari/WebKit due to year 10,000 boundary floating-point precision overflow
-    it('maxTimestamp_returnsSeconds', function () {
-      if (isSafariOrWebkit()) {
-        this.skip();
-      }
+    it.skipIf(isSafariOrWebkit())('maxTimestamp_returnsSeconds', () => {
       const maxTimestamp = new Timestamp(253402300799, 999999000);
       const result = evaluateToValue(
         timestampToUnixSeconds(constant(maxTimestamp))
       );
-      expect(result?.integerValue).to.equal('253402300799');
+      expect(result?.integerValue).toBe('253402300799');
     });
 
     it('minTimestamp_returnsSeconds', () => {
@@ -488,19 +481,16 @@ describe('Timestamp Functions', () => {
       const result = evaluateToValue(
         timestampToUnixSeconds(constant(minTimestamp))
       );
-      expect(result?.integerValue).to.equal('-62135596800');
+      expect(result?.integerValue).toBe('-62135596800');
     });
 
     // Skipped in Safari/WebKit due to pre-epoch negative sub-second truncation quirk
-    it('timestampTruncatesToSeconds', function () {
-      if (isSafariOrWebkit()) {
-        this.skip();
-      }
+    it.skipIf(isSafariOrWebkit())('timestampTruncatesToSeconds', () => {
       const timestamp = new Timestamp(-1, 999999999);
       const result = evaluateToValue(
         timestampToUnixSeconds(constant(timestamp))
       );
-      expect(result?.integerValue).to.equal('-1');
+      expect(result?.integerValue).toBe('-1');
     });
 
     it('timestampOverflow_returnsError', () => {
@@ -515,7 +505,7 @@ describe('Timestamp Functions', () => {
             })
           )
         )
-      ).to.be.undefined;
+      ).toBeUndefined();
     });
   });
 
@@ -525,7 +515,7 @@ describe('Timestamp Functions', () => {
         evaluateToValue(
           constant('abc').timestampAdd(constant('second'), constant(1))
         )
-      ).to.be.undefined;
+      ).toBeUndefined();
     });
 
     it('timestampAdd_zeroValue_returnsTimestampEpoch', () => {
@@ -535,7 +525,7 @@ describe('Timestamp Functions', () => {
           constant(0)
         )
       );
-      expect(result?.timestampValue).to.deep.equal({
+      expect(result?.timestampValue).toEqual({
         seconds: 0,
         nanos: 0
       });
@@ -548,7 +538,7 @@ describe('Timestamp Functions', () => {
           constant(1)
         )
       );
-      expect(result?.timestampValue).to.deep.equal({
+      expect(result?.timestampValue).toEqual({
         seconds: 1,
         nanos: 0
       });
@@ -561,7 +551,7 @@ describe('Timestamp Functions', () => {
           constant(9876543210)
         )
       );
-      expect(result?.timestampValue).to.deep.equal({
+      expect(result?.timestampValue).toEqual({
         seconds: 9876543210,
         nanos: 0
       });
@@ -574,7 +564,7 @@ describe('Timestamp Functions', () => {
           constant(-10000)
         )
       );
-      expect(result?.timestampValue).to.deep.equal({
+      expect(result?.timestampValue).toEqual({
         seconds: -10000,
         nanos: 0
       });
@@ -587,7 +577,7 @@ describe('Timestamp Functions', () => {
           constant(0)
         )
       );
-      expect(result1?.timestampValue).to.deep.equal({
+      expect(result1?.timestampValue).toEqual({
         seconds: -62135596800,
         nanos: 0
       });
@@ -598,33 +588,33 @@ describe('Timestamp Functions', () => {
           constant(-1)
         )
       );
-      expect(result2).to.deep.equal(undefined);
+      expect(result2).toEqual(undefined);
     });
 
     // Skipped in Safari/WebKit due to year 10,000 boundary floating-point precision overflow
-    it('timestampAdd_longType_positive_overflow_returnsError', function () {
-      if (isSafariOrWebkit()) {
-        this.skip();
-      }
-      const result1 = evaluateToValue(
-        constant(new Timestamp(253402300799, 999999000)).timestampAdd(
-          constant('second'),
-          constant(0)
-        )
-      );
-      expect(result1?.timestampValue).to.deep.equal({
-        seconds: 253402300799,
-        nanos: 999999000
-      });
+    it.skipIf(isSafariOrWebkit())(
+      'timestampAdd_longType_positive_overflow_returnsError',
+      () => {
+        const result1 = evaluateToValue(
+          constant(new Timestamp(253402300799, 999999000)).timestampAdd(
+            constant('second'),
+            constant(0)
+          )
+        );
+        expect(result1?.timestampValue).toEqual({
+          seconds: 253402300799,
+          nanos: 999999000
+        });
 
-      const result2 = evaluateToValue(
-        constant(new Timestamp(253402300799, 999999000)).timestampAdd(
-          constant('second'),
-          constant(1)
-        )
-      );
-      expect(result2).to.deep.equal(undefined);
-    });
+        const result2 = evaluateToValue(
+          constant(new Timestamp(253402300799, 999999000)).timestampAdd(
+            constant('second'),
+            constant(1)
+          )
+        );
+        expect(result2).toEqual(undefined);
+      }
+    );
 
     it('timestampAdd_longType_minute_returnsTimestamp', () => {
       const result = evaluateToValue(
@@ -633,7 +623,7 @@ describe('Timestamp Functions', () => {
           constant(1)
         )
       );
-      expect(result?.timestampValue).to.deep.equal({
+      expect(result?.timestampValue).toEqual({
         seconds: 60,
         nanos: 0
       });
@@ -646,7 +636,7 @@ describe('Timestamp Functions', () => {
           constant(1)
         )
       );
-      expect(result?.timestampValue).to.deep.equal({
+      expect(result?.timestampValue).toEqual({
         seconds: 3600,
         nanos: 0
       });
@@ -656,7 +646,7 @@ describe('Timestamp Functions', () => {
       const result = evaluateToValue(
         constant(new Timestamp(0, 0)).timestampAdd(constant('day'), constant(1))
       );
-      expect(result?.timestampValue).to.deep.equal({
+      expect(result?.timestampValue).toEqual({
         seconds: 86400,
         nanos: 0
       });
@@ -669,7 +659,7 @@ describe('Timestamp Functions', () => {
           constant(1)
         )
       );
-      expect(result?.timestampValue).to.deep.equal({
+      expect(result?.timestampValue).toEqual({
         seconds: 0,
         nanos: 1000000
       });
@@ -682,7 +672,7 @@ describe('Timestamp Functions', () => {
           constant(1)
         )
       );
-      expect(result?.timestampValue).to.deep.equal({
+      expect(result?.timestampValue).toEqual({
         seconds: 0,
         nanos: 1000
       });
@@ -696,7 +686,7 @@ describe('Timestamp Functions', () => {
             constant(1)
           )
         )
-      ).to.be.undefined;
+      ).toBeUndefined();
     });
 
     it('timestampAdd_invalidAmount_returnsError', () => {
@@ -707,7 +697,7 @@ describe('Timestamp Functions', () => {
             constant('abc')
           )
         )
-      ).to.be.undefined;
+      ).toBeUndefined();
     });
 
     it('timestampAdd_nullAmount_returnsNull', () => {

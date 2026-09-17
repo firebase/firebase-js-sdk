@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-
 import {
   collection,
   doc,
@@ -48,21 +46,16 @@ import {
 apiDescribe('Large Documents', persistence => {
   let seedColName: string;
 
-  beforeEach(function () {
-    this.currentTest?.timeout(120_000); // Tests are very slow because large doc reads have very high latency.
-  });
-
-  before(async function () {
-    this.timeout(180_000); // Tests are very slow because large doc reads have very high latency.
+  beforeAll(async () => {
     const runLargeTests = process.env.FIRESTORE_RUN_LARGE_DOC_TESTS;
     if (runLargeTests !== 'YES' && runLargeTests !== 'true') {
-      this.skip();
+      return;
     }
     if (
       getTargetBackend() !== TargetBackend.NIGHTLY ||
       !getRunEnterpriseTests()
     ) {
-      this.skip();
+      return;
     }
 
     seedColName = `large_doc_tests_js_${Date.now()}`;
@@ -84,7 +77,7 @@ apiDescribe('Large Documents', persistence => {
     });
   });
 
-  after(async () => {
+  afterAll(async () => {
     if (!seedColName) {
       return;
     }
@@ -104,14 +97,14 @@ apiDescribe('Large Documents', persistence => {
       const docRef = doc(collection(db, seedColName), 'doc_15_9MB_unicode');
       try {
         const serverSnapshot = await getDocFromServer(docRef);
-        expect(serverSnapshot.exists()).to.be.true;
+        expect(serverSnapshot.exists()).toBe(true);
 
         await disableNetwork(db);
 
         const cacheSnapshot = await getDocFromCache(docRef);
-        expect(cacheSnapshot.exists()).to.be.true;
+        expect(cacheSnapshot.exists()).toBe(true);
 
-        expect(serverSnapshot.data()).to.deep.equal(cacheSnapshot.data());
+        expect(serverSnapshot.data()).toEqual(cacheSnapshot.data());
       } finally {
         await enableNetwork(db);
       }
@@ -133,11 +126,11 @@ apiDescribe('Large Documents', persistence => {
         const cacheSnapshotA = await getDocFromCache(docA);
         const cacheSnapshotB = await getDocFromCache(docB);
 
-        expect(cacheSnapshotA.exists()).to.be.true;
-        expect(cacheSnapshotB.exists()).to.be.true;
+        expect(cacheSnapshotA.exists()).toBe(true);
+        expect(cacheSnapshotB.exists()).toBe(true);
 
-        expect(cacheSnapshotA.data()!.chunk).to.exist;
-        expect(cacheSnapshotB.data()!.chunk).to.exist;
+        expect(cacheSnapshotA.data()!.chunk).toBeDefined();
+        expect(cacheSnapshotB.data()!.chunk).toBeDefined();
       } finally {
         await enableNetwork(db);
       }
@@ -168,7 +161,7 @@ apiDescribe('Large Documents', persistence => {
 
       await updateDoc(docRef, { differentialField: 'updated_value' });
       await deferred;
-      expect(updateReceived).to.be.true;
+      expect(updateReceived).toBe(true);
     });
   });
 
@@ -177,7 +170,7 @@ apiDescribe('Large Documents', persistence => {
       const docRef = doc(collection(db, seedColName), 'doc_15_9MB_unicode');
       await runTransaction(db, async transaction => {
         const snapshot = await transaction.get(docRef);
-        expect(snapshot.exists()).to.be.true;
+        expect(snapshot.exists()).toBe(true);
         transaction.update(docRef, {
           // eslint-disable-next-line camelcase
           transaction_timestamp: serverTimestamp()
@@ -193,14 +186,14 @@ apiDescribe('Large Documents', persistence => {
 
       try {
         const serverSnapshot = await getDocsFromServer(q);
-        expect(serverSnapshot.size).to.equal(2);
+        expect(serverSnapshot.size).toBe(2);
 
         await disableNetwork(db);
 
         const cacheSnapshot = await getDocsFromCache(q);
-        expect(cacheSnapshot.size).to.equal(2);
+        expect(cacheSnapshot.size).toBe(2);
 
-        expect(serverSnapshot.docs[0].data()).to.deep.equal(
+        expect(serverSnapshot.docs[0].data()).toEqual(
           cacheSnapshot.docs[0].data()
         );
       } finally {
@@ -223,8 +216,8 @@ apiDescribe('Large Documents', persistence => {
 
         const q = query(colRef, orderBy(documentId()), limit(2));
         const cacheSnapshot = await getDocsFromCache(q);
-        expect(cacheSnapshot.size).to.equal(2);
-        expect(cacheSnapshot.docs[0].data()!.chunk).to.exist;
+        expect(cacheSnapshot.size).toBe(2);
+        expect(cacheSnapshot.docs[0].data()!.chunk).toBeDefined();
       } finally {
         await enableNetwork(db);
       }
@@ -244,7 +237,7 @@ apiDescribe('Large Documents', persistence => {
         );
       } catch (error: unknown) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        expect((error as any).code).to.equal('invalid-argument');
+        expect((error as any).code).toBe('invalid-argument');
       }
     });
   });
@@ -259,8 +252,8 @@ apiDescribe('Large Documents', persistence => {
       try {
         await setDoc(docRef, { chunk: largePayload });
         const snapshot = await getDocFromServer(docRef);
-        expect(snapshot.exists()).to.be.true;
-        expect(snapshot.data()!.chunk.length).to.equal(targetBytes);
+        expect(snapshot.exists()).toBe(true);
+        expect(snapshot.data()!.chunk.length).toBe(targetBytes);
       } finally {
         try {
           await deleteDoc(docRef);

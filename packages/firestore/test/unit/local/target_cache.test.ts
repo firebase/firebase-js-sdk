@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import { Timestamp } from '../../../src/api/timestamp';
 import { queryToTarget } from '../../../src/core/query';
@@ -46,66 +44,66 @@ describe('MemoryTargetCache', () => {
   genericTargetCacheTests(persistenceHelpers.testMemoryEagerPersistence);
 });
 
-describe('IndexedDbTargetCache', () => {
-  if (!IndexedDbPersistence.isAvailable()) {
-    console.warn('No IndexedDB. Skipping IndexedDbTargetCache tests.');
-    return;
-  }
-
-  let persistencePromise: Promise<Persistence>;
-  beforeEach(async () => {
-    persistencePromise = persistenceHelpers.testIndexedDbPersistence();
-  });
-
-  genericTargetCacheTests(() => persistencePromise);
-
-  it('persists metadata across restarts', async () => {
-    const db1 = await persistencePromise;
-
-    const targetCache1 = new TestTargetCache(db1, db1.getTargetCache());
-    expect(await targetCache1.getHighestSequenceNumber()).to.equal(0);
-
-    const originalSequenceNumber = 1234;
-    const targetId = 5;
-    const snapshotVersion = SnapshotVersion.fromTimestamp(new Timestamp(1, 2));
-    const lastLimboFreeSnapshotVersion = SnapshotVersion.fromTimestamp(
-      new Timestamp(3, 4)
-    );
-    const target = queryToTarget(query('rooms'));
-    const targetData = new TargetData(
-      target,
-      targetId,
-      TargetPurpose.Listen,
-      originalSequenceNumber,
-      snapshotVersion,
-      lastLimboFreeSnapshotVersion
-    );
-
-    await targetCache1.addTargetData(targetData);
-    // Snapshot version needs to be set separately
-    await targetCache1.setTargetsMetadata(
-      originalSequenceNumber,
-      snapshotVersion
-    );
-    await db1.shutdown();
-
-    const db2 = await persistenceHelpers.testIndexedDbPersistence({
-      dontPurgeData: true
+describe.skipIf(!IndexedDbPersistence.isAvailable())(
+  'IndexedDbTargetCache',
+  () => {
+    let persistencePromise: Promise<Persistence>;
+    beforeEach(async () => {
+      persistencePromise = persistenceHelpers.testIndexedDbPersistence();
     });
-    const targetCache2 = new TestTargetCache(db2, db2.getTargetCache());
-    expect(await targetCache2.getHighestSequenceNumber()).to.equal(
-      originalSequenceNumber
-    );
-    const actualTargetData = await targetCache2.getTargetData(target);
-    expect(targetData).to.deep.equal(actualTargetData);
 
-    const actualSnapshotVersion =
-      await targetCache2.getLastRemoteSnapshotVersion();
-    expect(snapshotVersion.isEqual(actualSnapshotVersion)).to.be.true;
-    await db2.shutdown();
-    await persistenceHelpers.clearTestPersistence();
-  });
-});
+    genericTargetCacheTests(() => persistencePromise);
+
+    it('persists metadata across restarts', async () => {
+      const db1 = await persistencePromise;
+
+      const targetCache1 = new TestTargetCache(db1, db1.getTargetCache());
+      expect(await targetCache1.getHighestSequenceNumber()).toBe(0);
+
+      const originalSequenceNumber = 1234;
+      const targetId = 5;
+      const snapshotVersion = SnapshotVersion.fromTimestamp(
+        new Timestamp(1, 2)
+      );
+      const lastLimboFreeSnapshotVersion = SnapshotVersion.fromTimestamp(
+        new Timestamp(3, 4)
+      );
+      const target = queryToTarget(query('rooms'));
+      const targetData = new TargetData(
+        target,
+        targetId,
+        TargetPurpose.Listen,
+        originalSequenceNumber,
+        snapshotVersion,
+        lastLimboFreeSnapshotVersion
+      );
+
+      await targetCache1.addTargetData(targetData);
+      // Snapshot version needs to be set separately
+      await targetCache1.setTargetsMetadata(
+        originalSequenceNumber,
+        snapshotVersion
+      );
+      await db1.shutdown();
+
+      const db2 = await persistenceHelpers.testIndexedDbPersistence({
+        dontPurgeData: true
+      });
+      const targetCache2 = new TestTargetCache(db2, db2.getTargetCache());
+      expect(await targetCache2.getHighestSequenceNumber()).toBe(
+        originalSequenceNumber
+      );
+      const actualTargetData = await targetCache2.getTargetData(target);
+      expect(targetData).toEqual(actualTargetData);
+
+      const actualSnapshotVersion =
+        await targetCache2.getLastRemoteSnapshotVersion();
+      expect(snapshotVersion.isEqual(actualSnapshotVersion)).toBe(true);
+      await db2.shutdown();
+      await persistenceHelpers.clearTestPersistence();
+    });
+  }
+);
 
 /**
  * Defines the set of tests to run against both target cache implementations.
@@ -161,7 +159,7 @@ function genericTargetCacheTests(
 
   it('returns null for target not in cache', () => {
     return cache.getTargetData(QUERY_ROOMS).then(targetData => {
-      expect(targetData).to.equal(null);
+      expect(targetData).toBe(null);
     });
   });
 
@@ -169,7 +167,7 @@ function genericTargetCacheTests(
     const targetData = testTargetData(QUERY_ROOMS, 1, 1);
     await cache.addTargetData(targetData);
     const read = await cache.getTargetData(targetData.target);
-    expect(read).to.deep.equal(targetData);
+    expect(read).toEqual(targetData);
   });
 
   it('handles canonical ID collisions', async () => {
@@ -177,33 +175,33 @@ function genericTargetCacheTests(
     // this currently an easy way to force colliding canonicalIDs
     const q1 = queryToTarget(query('a', filter('foo', '==', 1)));
     const q2 = queryToTarget(query('a', filter('foo', '==', '1')));
-    expect(canonifyTarget(q1)).to.equal(canonifyTarget(q2));
+    expect(canonifyTarget(q1)).toBe(canonifyTarget(q2));
 
     const data1 = testTargetData(q1, 1, 1);
     await cache.addTargetData(data1);
 
     // Using the other query should not return the query cache entry despite
     // equal canonicalIDs.
-    expect(await cache.getTargetData(q2)).to.equal(null);
-    expect(await cache.getTargetData(q1)).to.deep.equal(data1);
-    expect(await cache.getTargetCount()).to.equal(1);
+    expect(await cache.getTargetData(q2)).toBe(null);
+    expect(await cache.getTargetData(q1)).toEqual(data1);
+    expect(await cache.getTargetCount()).toBe(1);
 
     const data2 = testTargetData(q2, 2, 1);
     await cache.addTargetData(data2);
-    expect(await cache.getTargetCount()).to.equal(2);
+    expect(await cache.getTargetCount()).toBe(2);
 
-    expect(await cache.getTargetData(q1)).to.deep.equal(data1);
-    expect(await cache.getTargetData(q2)).to.deep.equal(data2);
+    expect(await cache.getTargetData(q1)).toEqual(data1);
+    expect(await cache.getTargetData(q2)).toEqual(data2);
 
     await cache.removeTargetData(data1);
-    expect(await cache.getTargetData(q1)).to.equal(null);
-    expect(await cache.getTargetData(q2)).to.deep.equal(data2);
-    expect(await cache.getTargetCount()).to.equal(1);
+    expect(await cache.getTargetData(q1)).toBe(null);
+    expect(await cache.getTargetData(q2)).toEqual(data2);
+    expect(await cache.getTargetCount()).toBe(1);
 
     await cache.removeTargetData(data2);
-    expect(await cache.getTargetData(q1)).to.equal(null);
-    expect(await cache.getTargetData(q2)).to.equal(null);
-    expect(await cache.getTargetCount()).to.equal(0);
+    expect(await cache.getTargetData(q1)).toBe(null);
+    expect(await cache.getTargetData(q2)).toBe(null);
+    expect(await cache.getTargetCount()).toBe(0);
   });
 
   it('can set target to new value', async () => {
@@ -211,7 +209,7 @@ function genericTargetCacheTests(
     const updated = testTargetData(QUERY_ROOMS, 1, 2);
     await cache.updateTargetData(updated);
     const retrieved = await cache.getTargetData(updated.target);
-    expect(retrieved).to.deep.equal(updated);
+    expect(retrieved).toEqual(updated);
   });
 
   it('can remove a target', async () => {
@@ -219,7 +217,7 @@ function genericTargetCacheTests(
     await cache.addTargetData(targetData);
     await cache.removeTargetData(targetData);
     const read = await cache.getTargetData(QUERY_ROOMS);
-    expect(read).to.equal(null);
+    expect(read).toBe(null);
   });
 
   it('can remove matching keys when a target is removed', async () => {
@@ -229,34 +227,34 @@ function genericTargetCacheTests(
     const key1 = key('rooms/foo');
     const key2 = key('rooms/bar');
 
-    expect(await cache.containsKey(key1)).to.equal(false);
+    expect(await cache.containsKey(key1)).toBe(false);
 
     await cache.addMatchingKeys([key1], rooms.targetId);
     await cache.addMatchingKeys([key2], rooms.targetId);
 
-    expect(await cache.containsKey(key1)).to.equal(true);
-    expect(await cache.containsKey(key2)).to.equal(true);
+    expect(await cache.containsKey(key1)).toBe(true);
+    expect(await cache.containsKey(key2)).toBe(true);
 
     await cache.removeTargetData(rooms);
-    expect(await cache.containsKey(key1)).to.equal(false);
-    expect(await cache.containsKey(key2)).to.equal(false);
+    expect(await cache.containsKey(key1)).toBe(false);
+    expect(await cache.containsKey(key2)).toBe(false);
   });
 
   it('adds or removes matching keys', async () => {
     const k = key('foo/bar');
-    expect(await cache.containsKey(k)).to.equal(false);
+    expect(await cache.containsKey(k)).toBe(false);
 
     await cache.addMatchingKeys([k], 1);
-    expect(await cache.containsKey(k)).to.equal(true);
+    expect(await cache.containsKey(k)).toBe(true);
 
     await cache.addMatchingKeys([k], 2);
-    expect(await cache.containsKey(k)).to.equal(true);
+    expect(await cache.containsKey(k)).toBe(true);
 
     await cache.removeMatchingKeys([k], 1);
-    expect(await cache.containsKey(k)).to.equal(true);
+    expect(await cache.containsKey(k)).toBe(true);
 
     await cache.removeMatchingKeys([k], 2);
-    expect(await cache.containsKey(k)).to.equal(false);
+    expect(await cache.containsKey(k)).toBe(false);
   });
 
   it('can remove matching keys for a targetId', async () => {
@@ -266,19 +264,19 @@ function genericTargetCacheTests(
 
     await cache.addMatchingKeys([key1, key2], 1);
     await cache.addMatchingKeys([key3], 2);
-    expect(await cache.containsKey(key1)).to.equal(true);
-    expect(await cache.containsKey(key2)).to.equal(true);
-    expect(await cache.containsKey(key3)).to.equal(true);
+    expect(await cache.containsKey(key1)).toBe(true);
+    expect(await cache.containsKey(key2)).toBe(true);
+    expect(await cache.containsKey(key3)).toBe(true);
 
     await cache.removeMatchingKeysForTargetId(1);
-    expect(await cache.containsKey(key1)).to.equal(false);
-    expect(await cache.containsKey(key2)).to.equal(false);
-    expect(await cache.containsKey(key3)).to.equal(true);
+    expect(await cache.containsKey(key1)).toBe(false);
+    expect(await cache.containsKey(key2)).toBe(false);
+    expect(await cache.containsKey(key3)).toBe(true);
 
     await cache.removeMatchingKeysForTargetId(2);
-    expect(await cache.containsKey(key1)).to.equal(false);
-    expect(await cache.containsKey(key2)).to.equal(false);
-    expect(await cache.containsKey(key3)).to.equal(false);
+    expect(await cache.containsKey(key1)).toBe(false);
+    expect(await cache.containsKey(key2)).toBe(false);
+    expect(await cache.containsKey(key3)).toBe(false);
   });
 
   it('can get matching keys for targetId', async () => {
@@ -289,25 +287,16 @@ function genericTargetCacheTests(
     await cache.addMatchingKeys([key1, key2], 1);
     await cache.addMatchingKeys([key3], 2);
 
-    expect(await cache.getMatchingKeysForTargetId(1)).to.deep.equal([
-      key1,
-      key2
-    ]);
-    expect(await cache.getMatchingKeysForTargetId(2)).to.deep.equal([key3]);
+    expect(await cache.getMatchingKeysForTargetId(1)).toEqual([key1, key2]);
+    expect(await cache.getMatchingKeysForTargetId(2)).toEqual([key3]);
 
     await cache.addMatchingKeys([key1], 2);
-    expect(await cache.getMatchingKeysForTargetId(1)).to.deep.equal([
-      key1,
-      key2
-    ]);
-    expect(await cache.getMatchingKeysForTargetId(2)).to.deep.equal([
-      key1,
-      key3
-    ]);
+    expect(await cache.getMatchingKeysForTargetId(1)).toEqual([key1, key2]);
+    expect(await cache.getMatchingKeysForTargetId(2)).toEqual([key1, key3]);
   });
 
   it('can allocate target ID', async () => {
-    expect(await cache.allocateTargetId()).to.deep.equal(2);
+    expect(await cache.allocateTargetId()).toEqual(2);
     const targetData1 = testTargetData(QUERY_ROOMS, 2);
 
     await cache.addTargetData(targetData1);
@@ -315,41 +304,41 @@ function genericTargetCacheTests(
     const key2 = key('rooms/foo');
     await cache.addMatchingKeys([key1, key2], 2);
 
-    expect(await cache.allocateTargetId()).to.deep.equal(4);
+    expect(await cache.allocateTargetId()).toEqual(4);
 
     const targetData2 = testTargetData(QUERY_HALLS, 4);
     await cache.addTargetData(targetData2);
     const key3 = key('halls/foo');
     await cache.addMatchingKeys([key3], 4);
 
-    expect(await cache.allocateTargetId()).to.deep.equal(6);
+    expect(await cache.allocateTargetId()).toEqual(6);
 
     await cache.removeTargetData(targetData2);
 
     // Target IDs never come down.
-    expect(await cache.allocateTargetId()).to.deep.equal(8);
+    expect(await cache.allocateTargetId()).toEqual(8);
 
     // A target with an empty result set still counts.
     const targetData3 = testTargetData(QUERY_GARAGES, 42);
     await cache.addTargetData(targetData3);
-    expect(await cache.allocateTargetId()).to.deep.equal(44);
+    expect(await cache.allocateTargetId()).toEqual(44);
 
     await cache.removeTargetData(targetData1);
-    expect(await cache.allocateTargetId()).to.deep.equal(46);
+    expect(await cache.allocateTargetId()).toEqual(46);
 
     await cache.removeTargetData(targetData3);
-    expect(await cache.allocateTargetId()).to.deep.equal(48);
+    expect(await cache.allocateTargetId()).toEqual(48);
 
     // Verify that the highestTargetId persists restarts.
     const otherCache = new TestTargetCache(
       persistence,
       persistence.getTargetCache()
     );
-    expect(await otherCache.allocateTargetId()).to.deep.equal(50);
+    expect(await otherCache.allocateTargetId()).toEqual(50);
   });
 
   it('can get / set targets metadata', async () => {
-    expect(await cache.getLastRemoteSnapshotVersion()).to.deep.equal(
+    expect(await cache.getLastRemoteSnapshotVersion()).toEqual(
       SnapshotVersion.min()
     );
 
@@ -357,9 +346,7 @@ function genericTargetCacheTests(
     return cache
       .setTargetsMetadata(/* highestListenSequenceNumber= */ 0, version(42))
       .then(async () => {
-        expect(await cache.getLastRemoteSnapshotVersion()).to.deep.equal(
-          version(42)
-        );
+        expect(await cache.getLastRemoteSnapshotVersion()).toEqual(version(42));
       })
       .then(async () => {
         // Verify snapshot version persists restarts.
@@ -367,7 +354,7 @@ function genericTargetCacheTests(
           persistence,
           persistence.getTargetCache()
         );
-        expect(await otherCache.getLastRemoteSnapshotVersion()).to.deep.equal(
+        expect(await otherCache.getLastRemoteSnapshotVersion()).toEqual(
           version(42)
         );
       });
@@ -378,19 +365,19 @@ function genericTargetCacheTests(
     await cache.addTargetData(target1);
     const target2 = new TargetData(QUERY_HALLS, 2, TargetPurpose.Listen, 20);
     await cache.addTargetData(target2);
-    expect(await cache.getHighestSequenceNumber()).to.equal(20);
+    expect(await cache.getHighestSequenceNumber()).toBe(20);
 
     // Sequence numbers can never come down
     await cache.removeTargetData(target2);
-    expect(await cache.getHighestSequenceNumber()).to.equal(20);
+    expect(await cache.getHighestSequenceNumber()).toBe(20);
 
     const target3 = new TargetData(QUERY_GARAGES, 3, TargetPurpose.Listen, 100);
     await cache.addTargetData(target3);
-    expect(await cache.getHighestSequenceNumber()).to.equal(100);
+    expect(await cache.getHighestSequenceNumber()).toBe(100);
 
     await cache.removeTargetData(target1);
-    expect(await cache.getHighestSequenceNumber()).to.equal(100);
+    expect(await cache.getHighestSequenceNumber()).toBe(100);
     await cache.removeTargetData(target3);
-    expect(await cache.getHighestSequenceNumber()).to.equal(100);
+    expect(await cache.getHighestSequenceNumber()).toBe(100);
   });
 }

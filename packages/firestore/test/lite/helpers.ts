@@ -17,7 +17,6 @@
 
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { initializeApp } from '@firebase/app';
-import { expect } from 'chai';
 
 import { initializeFirestore, Firestore } from '../../src/lite-api/database';
 import {
@@ -134,9 +133,9 @@ export const postConverterMerge = {
       ((options as { merge: true }).merge ||
         (options as { mergeFields: Array<string | number> }).mergeFields)
     ) {
-      expect(post).to.not.be.an.instanceof(Post);
+      expect(post).not.toBeInstanceOf(Post);
     } else {
-      expect(post).to.be.an.instanceof(Post);
+      expect(post).toBeInstanceOf(Post);
     }
     const result: DocumentData = {};
     if (post.title) {

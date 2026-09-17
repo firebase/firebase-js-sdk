@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import { Timestamp } from '../../../src/api/timestamp';
 import { User } from '../../../src/auth/user';
@@ -52,16 +50,14 @@ import { doc, key, query, wrapObject } from '../../util/helpers';
 
 import * as PersistenceTestHelpers from './persistence_test_helpers';
 
-describe('IndexedDbLruDelegate', () => {
-  if (!IndexedDbPersistence.isAvailable()) {
-    console.warn('No IndexedDB. Skipping IndexedDbLruReferenceDelegate tests.');
-    return;
+describe.skipIf(!IndexedDbPersistence.isAvailable())(
+  'IndexedDbLruDelegate',
+  () => {
+    genericLruGarbageCollectorTests((params, queue) =>
+      PersistenceTestHelpers.testIndexedDbPersistence({ queue }, params)
+    );
   }
-
-  genericLruGarbageCollectorTests((params, queue) =>
-    PersistenceTestHelpers.testIndexedDbPersistence({ queue }, params)
-  );
-});
+);
 
 describe('MemoryLruDelegate', () => {
   genericLruGarbageCollectorTests(params =>
@@ -293,16 +289,15 @@ function genericLruGarbageCollectorTests(
         await addNextTarget();
       }
       const tenth = await calculateTargetCount(10);
-      expect(tenth).to.equal(
-        expected,
-        'Expected 10% of ' + targets + ' to be ' + expected
+      expect(tenth, 'Expected 10% of ' + targets + ' to be ' + expected).toBe(
+        expected
       );
     }
   });
 
   describe('nthSequenceNumber()', () => {
     it('sequence number for no targets', async () => {
-      expect(await nthSequenceNumber(0)).to.equal(ListenSequence.INVALID);
+      expect(await nthSequenceNumber(0)).toBe(ListenSequence.INVALID);
     });
 
     it('with 50 targets', async () => {
@@ -312,7 +307,7 @@ function genericLruGarbageCollectorTests(
         await addNextTarget();
       }
       const expected = initialSequenceNumber + 10;
-      expect(await nthSequenceNumber(10)).to.equal(expected);
+      expect(await nthSequenceNumber(10)).toBe(expected);
     });
 
     it('with multiple targets in a transaction', async () => {
@@ -333,7 +328,7 @@ function genericLruGarbageCollectorTests(
         await addNextTarget();
       }
       const expected = initialSequenceNumber + 2;
-      expect(await nthSequenceNumber(10)).to.equal(expected);
+      expect(await nthSequenceNumber(10)).toBe(expected);
     });
 
     it('with all collected targets in a single transaction', async () => {
@@ -352,7 +347,7 @@ function genericLruGarbageCollectorTests(
         await addNextTarget();
       }
       const expected = initialSequenceNumber + 1;
-      expect(await nthSequenceNumber(10)).to.equal(expected);
+      expect(await nthSequenceNumber(10)).toBe(expected);
     });
 
     it('with mutation and sequential targets', async () => {
@@ -364,7 +359,7 @@ function genericLruGarbageCollectorTests(
       }
 
       const expected = initialSequenceNumber + 10;
-      expect(await nthSequenceNumber(10)).to.equal(expected);
+      expect(await nthSequenceNumber(10)).toBe(expected);
     });
 
     it('with mutations in targets', async () => {
@@ -399,7 +394,7 @@ function genericLruGarbageCollectorTests(
         }
       );
       const expected = initialSequenceNumber + 3;
-      expect(await nthSequenceNumber(10)).to.equal(expected);
+      expect(await nthSequenceNumber(10)).toBe(expected);
     });
   });
 
@@ -418,7 +413,7 @@ function genericLruGarbageCollectorTests(
     // Expect to have GC'd 10 targets, since every other target is live
     const upperBound = 20 + initialSequenceNumber;
     const removed = await removeTargets(upperBound, activeTargetIds);
-    expect(removed).to.equal(10);
+    expect(removed).toBe(10);
     // Make sure we removed the even targets with targetID <= 20.
     await persistence.runTransaction(
       'verify remaining targets > 20 or odd',
@@ -426,7 +421,7 @@ function genericLruGarbageCollectorTests(
       txn => {
         return targetCache.forEachTarget(txn, targetData => {
           const targetId = targetData.targetId;
-          expect(targetId > 20 || targetId % 2 === 1).to.be.true;
+          expect(targetId > 20 || targetId % 2 === 1).toBe(true);
         });
       }
     );
@@ -523,20 +518,20 @@ function genericLruGarbageCollectorTests(
     // We expect only the orphaned documents, those not in a mutation or a target, to be removed.
     // use a large sequence number to remove as much as possible
     const removed = await removeOrphanedDocuments(1000);
-    expect(removed).to.equal(toBeRemoved.size);
+    expect(removed).toBe(toBeRemoved.size);
     await persistence.runTransaction('verify', 'readwrite', txn => {
       let p = PersistencePromise.resolve();
       toBeRemoved.forEach(docKey => {
         p = p.next(() => {
           return documentCache.getEntry(txn, docKey).next(maybeDoc => {
-            expect(maybeDoc.isValidDocument()).to.be.false;
+            expect(maybeDoc.isValidDocument()).toBe(false);
           });
         });
       });
       expectedRetained.forEach(docKey => {
         p = p.next(() => {
           return documentCache.getEntry(txn, docKey).next(maybeDoc => {
-            expect(maybeDoc).to.not.be.null;
+            expect(maybeDoc).not.toBeNull();
           });
         });
       });
@@ -579,7 +574,7 @@ function genericLruGarbageCollectorTests(
       'readonly',
       txn => persistence.getRemoteDocumentCache().getSize(txn)
     );
-    expect(initialSize).to.equal(0);
+    expect(initialSize).toBe(0);
 
     // Add oldest target, 5 documents, and add those documents to the target.
     // This target will not be removed, so all documents that are part of it
@@ -821,27 +816,27 @@ function genericLruGarbageCollectorTests(
       'readonly',
       txn => persistence.getRemoteDocumentCache().getSize(txn)
     );
-    expect(preCollectSize).to.be.greaterThan(initialSize);
+    expect(preCollectSize).toBeGreaterThan(initialSize);
 
     // Expect to remove newest target
     const removed = await removeTargets(upperBound, activeTargetIds);
-    expect(removed).to.equal(1);
+    expect(removed).toBe(1);
     const docsRemoved = await removeOrphanedDocuments(upperBound);
-    expect(docsRemoved).to.equal(expectedRemoved.size);
+    expect(docsRemoved).toBe(expectedRemoved.size);
     await persistence.runTransaction('verify results', 'readwrite', txn => {
       let p = PersistencePromise.resolve();
       expectedRemoved.forEach(key => {
         p = p
           .next(() => documentCache.getEntry(txn, key))
           .next(maybeDoc => {
-            expect(maybeDoc.isValidDocument()).to.be.false;
+            expect(maybeDoc.isValidDocument()).toBe(false);
           });
       });
       expectedRetained.forEach(key => {
         p = p
           .next(() => documentCache.getEntry(txn, key))
           .next(maybeDoc => {
-            expect(maybeDoc).to.not.be.null;
+            expect(maybeDoc).not.toBeNull();
           });
       });
       return p;
@@ -852,7 +847,7 @@ function genericLruGarbageCollectorTests(
       'readonly',
       txn => persistence.getRemoteDocumentCache().getSize(txn)
     );
-    expect(postCollectSize).to.be.lessThan(preCollectSize);
+    expect(postCollectSize).toBeLessThan(preCollectSize);
   });
 
   it('gets cache size', async () => {
@@ -882,7 +877,7 @@ function genericLruGarbageCollectorTests(
     );
     // Document sizes are approximate, so we don't test an exact value here. Instead, just confirm
     // that the size is larger than the initial size.
-    expect(finalSize).to.be.greaterThan(initialSize);
+    expect(finalSize).toBeGreaterThan(initialSize);
   });
 
   it('can be disabled', async () => {
@@ -908,7 +903,7 @@ function genericLruGarbageCollectorTests(
       'readwrite-primary',
       txn => garbageCollector.collect(txn, emptyTargetDataMap())
     );
-    expect(results.didRun).to.be.false;
+    expect(results.didRun).toBe(false);
   });
 
   it('skips a cache that is too small', async () => {
@@ -933,20 +928,20 @@ function genericLruGarbageCollectorTests(
       'readonly',
       txn => garbageCollector.getCacheSize(txn)
     );
-    expect(cacheSize).to.be.lessThan(lruParams.cacheSizeCollectionThreshold);
+    expect(cacheSize).toBeLessThan(lruParams.cacheSizeCollectionThreshold);
 
     const results = await persistence.runTransaction(
       'collect garbage',
       'readwrite-primary',
       txn => garbageCollector.collect(txn, emptyTargetDataMap())
     );
-    expect(results.didRun).to.be.false;
+    expect(results.didRun).toBe(false);
   });
 
   it('runs when the cache is large enough', async () => {
     // Set a low byte threshold so we can guarantee that GC will run
     await initializeTestResources(LruParams.withCacheSize(100));
-    expect(persistence.started).to.be.true;
+    expect(persistence.started).toBe(true);
 
     // Add 20 targets and 5 documents to each.
     for (let i = 0; i < 20; i++) {
@@ -984,16 +979,16 @@ function genericLruGarbageCollectorTests(
       'readonly',
       txn => garbageCollector.getCacheSize(txn)
     );
-    expect(cacheSize).to.be.greaterThan(lruParams.cacheSizeCollectionThreshold);
+    expect(cacheSize).toBeGreaterThan(lruParams.cacheSizeCollectionThreshold);
 
     const results = await persistence.runTransaction(
       'collect garbage',
       'readwrite-primary',
       txn => garbageCollector.collect(txn, emptyTargetDataMap())
     );
-    expect(results.didRun).to.be.true;
-    expect(results.targetsRemoved).to.equal(2);
-    expect(results.documentsRemoved).to.equal(10);
+    expect(results.didRun).toBe(true);
+    expect(results.targetsRemoved).toBe(2);
+    expect(results.documentsRemoved).toBe(10);
 
     // Verify that we updated the cache size by checking that it's smaller now.
     const finalCacheSize = await persistence.runTransaction(
@@ -1001,7 +996,7 @@ function genericLruGarbageCollectorTests(
       'readonly',
       txn => garbageCollector.getCacheSize(txn)
     );
-    expect(finalCacheSize).to.be.lessThan(cacheSize);
+    expect(finalCacheSize).toBeLessThan(cacheSize);
   });
 
   it('caps sequence numbers to collect', async () => {
@@ -1046,6 +1041,6 @@ function genericLruGarbageCollectorTests(
       'readwrite-primary',
       txn => garbageCollector.collect(txn, emptyTargetDataMap())
     );
-    expect(results.sequenceNumbersCollected).to.equal(5);
+    expect(results.sequenceNumbersCollected).toBe(5);
   });
 }

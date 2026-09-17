@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-
 import { ParseContext } from '../../../src/api/parse_context';
 import { UserDataSource } from '../../../src/lite-api/user_data_reader';
 import { constant, FunctionExpression } from '../../lite/pipeline_export';
@@ -99,7 +97,7 @@ describe('expressions', () => {
 
       const proto = snippetExpression._toProto(context!.serializer);
 
-      expect(proto).to.deep.equal({
+      expect(proto).toEqual({
         functionValue: {
           name: 'name',
           args: [

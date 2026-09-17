@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import { WebChannelConnection } from '../../../src/platform/browser/webchannel_connection';
 import * as api from '../../../src/protos/firestore_proto_api';
@@ -82,7 +80,7 @@ describeFn('WebChannel', () => {
         // target to be a bad payload. If this does not fail stream, then we
         // might receive message that it was successfully added. The following
         // assertion will catch failure to validate data on backend.
-        expect(msg.targetChange?.targetIds).to.not.include(2);
+        expect(msg.targetChange?.targetIds).not.toContain(2);
 
         payload.database = 'projects/some-other-project-id/databases/(default)';
         didSendBadPayload = true;
@@ -92,10 +90,10 @@ describeFn('WebChannel', () => {
 
     // Expect to receive an error after the second request is sent
     stream.onClose(err => {
-      expect(didSendBadPayload).to.equal(true);
-      expect(err).to.exist;
-      expect(err!.code).to.equal('invalid-argument');
-      expect(err!.message).to.be.ok;
+      expect(didSendBadPayload).toBe(true);
+      expect(err).toBeDefined();
+      expect(err!.code).toBe('invalid-argument');
+      expect(err!.message).toBeTruthy();
       done();
     });
   });

@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-
 import { describe } from '../../util/mocha_extensions';
 import { onPipelineSnapshot } from '../../util/pipelines';
 import { Deferred } from '../../util/promise';
@@ -142,7 +140,7 @@ export async function checkOnlineAndOfflineResultsMatchWithPipelineMode(
     const idsFromServer = snapshot.results.map((r: PipelineResult) => r.id);
 
     if (expectedDocs.length !== 0) {
-      expect(expectedDocs).to.deep.equal(idsFromServer);
+      expect(expectedDocs).toEqual(idsFromServer);
     }
 
     const cacheDeferred = new Deferred<RealtimePipelineSnapshot>();
@@ -156,7 +154,7 @@ export async function checkOnlineAndOfflineResultsMatchWithPipelineMode(
     );
     const cacheSnapshot = await cacheDeferred.promise;
     const idsFromCache = cacheSnapshot.results.map((r: PipelineResult) => r.id);
-    expect(idsFromServer).to.deep.equal(idsFromCache);
+    expect(idsFromServer).toEqual(idsFromCache);
   }
 }
 
@@ -296,7 +294,7 @@ export class PipelineEventsAccumulator<T = RealtimePipelineSnapshot> {
   };
 
   awaitEvents(length: number): Promise<T[]> {
-    expect(this.deferred).to.equal(null, 'Already waiting for events.');
+    expect(this.deferred, 'Already waiting for events.').toBe(null);
     this.waitingFor = length;
     this.deferred = new Deferred<T[]>();
     const promise = this.deferred.promise;
