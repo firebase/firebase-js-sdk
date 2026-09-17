@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,9 @@
  * limitations under the License.
  */
 
-import { stub, SinonStub, useFakeTimers, SinonFakeTimers } from 'sinon';
 import { Trace } from '../resources/trace';
 import * as transportService from './transport_service';
 import * as iidService from './iid_service';
-import { expect } from 'chai';
 import { Api, setupApi } from './api_service';
 import { SettingsService } from './settings_service';
 import { FirebaseApp } from '@firebase/app';
@@ -31,6 +29,12 @@ import '../../test/setup';
 import { mergeStrings } from '../utils/string_merger';
 import { FirebaseInstallations } from '@firebase/installations-types';
 import { PerformanceController } from '../controllers/perf';
+import { vi, MockInstance } from 'vitest';
+
+vi.mock('./iid_service', { spy: true });
+vi.mock('./transport_service', { spy: true });
+vi.mock('./initialization_service', { spy: true });
+vi.mock('../utils/attributes_utils', { spy: true });
 
 // eslint-disable-next-line no-restricted-properties
 describe('Performance Monitoring > perf_logger', () => {
@@ -51,12 +55,8 @@ describe('Performance Monitoring > perf_logger', () => {
 "visibility_state":${VISIBILITY_STATE},"effective_connection_type":${EFFECTIVE_CONNECTION_TYPE}},\
 "application_process_state":0}`;
 
-  let addToQueueStub: SinonStub<
-    Array<{ message: string; eventTime: number }>,
-    void
-  >;
-  let getIidStub: SinonStub<[], string | undefined>;
-  let clock: SinonFakeTimers;
+  let addToQueueStub: MockInstance;
+  let getIidStub: MockInstance;
 
   function mockTransportHandler(
     serializer: (...args: any[]) => string
@@ -82,42 +82,46 @@ describe('Performance Monitoring > perf_logger', () => {
   );
 
   beforeEach(() => {
-    getIidStub = stub(iidService, 'getIid');
-    addToQueueStub = stub();
-    stub(transportService, 'transportHandler').callsFake(mockTransportHandler);
-    stub(Api.prototype, 'getUrl').returns(PAGE_URL);
-    stub(Api.prototype, 'getTimeOrigin').returns(TIME_ORIGIN);
-    stub(attributeUtils, 'getEffectiveConnectionType').returns(
+    getIidStub = vi.mocked(iidService.getIid);
+    addToQueueStub = vi.fn();
+    vi.mocked(transportService.transportHandler).mockImplementation(
+      mockTransportHandler
+    );
+    vi.spyOn(Api.prototype, 'getUrl').mockReturnValue(PAGE_URL);
+    vi.spyOn(Api.prototype, 'getTimeOrigin').mockReturnValue(TIME_ORIGIN);
+    vi.mocked(attributeUtils.getEffectiveConnectionType).mockReturnValue(
       EFFECTIVE_CONNECTION_TYPE
     );
-    stub(attributeUtils, 'getServiceWorkerStatus').returns(
+    vi.mocked(attributeUtils.getServiceWorkerStatus).mockReturnValue(
       SERVICE_WORKER_STATUS
     );
-    clock = useFakeTimers();
+    vi.useFakeTimers();
   });
 
   describe('logTrace', () => {
     it('will not drop custom events sent before initialization finishes', async () => {
-      getIidStub.returns(IID);
-      stub(attributeUtils, 'getVisibilityState').returns(VISIBILITY_STATE);
-      stub(initializationService, 'isPerfInitialized').returns(false);
+      getIidStub.mockReturnValue(IID);
+      vi.mocked(attributeUtils.getVisibilityState).mockReturnValue(
+        VISIBILITY_STATE
+      );
+      vi.mocked(initializationService.isPerfInitialized).mockReturnValue(false);
 
       // Simulates logging being enabled after initialization completes.
       const initializationPromise = Promise.resolve().then(() => {
         SettingsService.getInstance().loggingEnabled = true;
         SettingsService.getInstance().logTraceAfterSampling = true;
       });
-      stub(initializationService, 'getInitializationPromise').returns(
+      vi.mocked(initializationService.getInitializationPromise).mockReturnValue(
         initializationPromise
       );
 
       const trace = new Trace(performanceController, TRACE_NAME);
       trace.record(START_TIME, DURATION);
       await initializationPromise.then(() => {
-        clock.tick(1);
+        vi.advanceTimersByTime(1);
       });
 
-      expect(addToQueueStub).to.be.called;
+      expect(addToQueueStub).toHaveBeenCalled();
     });
 
     it('creates, serializes and sends a trace to transport service', () => {
@@ -127,32 +131,36 @@ describe('Performance Monitoring > perf_logger', () => {
         `,"trace_metric":{"name":"${TRACE_NAME}","is_auto":false,\
 "client_start_time_us":${START_TIME * 1000},"duration_us":${DURATION * 1000},\
 "counters":{"counter1":3},"custom_attributes":{"attr":"val"}}}`;
-      getIidStub.returns(IID);
-      stub(attributeUtils, 'getVisibilityState').returns(VISIBILITY_STATE);
-      stub(initializationService, 'isPerfInitialized').returns(true);
+      getIidStub.mockReturnValue(IID);
+      vi.mocked(attributeUtils.getVisibilityState).mockReturnValue(
+        VISIBILITY_STATE
+      );
+      vi.mocked(initializationService.isPerfInitialized).mockReturnValue(true);
       SettingsService.getInstance().loggingEnabled = true;
       SettingsService.getInstance().logTraceAfterSampling = true;
       const trace = new Trace(performanceController, TRACE_NAME);
       trace.putAttribute('attr', 'val');
       trace.putMetric('counter1', 3);
       trace.record(START_TIME, DURATION);
-      clock.tick(1);
+      vi.advanceTimersByTime(1);
 
-      expect(addToQueueStub).to.be.called;
-      expect(addToQueueStub.getCall(0).args[0].message).to.be.equal(
+      expect(addToQueueStub).toHaveBeenCalled();
+      expect(addToQueueStub.mock.calls[0][0].message).toBe(
         EXPECTED_TRACE_MESSAGE
       );
     });
 
     it('does not log an event if cookies are disabled in the browser', () => {
-      stub(Api.prototype, 'requiredApisAvailable').returns(false);
-      stub(attributeUtils, 'getVisibilityState').returns(VISIBILITY_STATE);
-      stub(initializationService, 'isPerfInitialized').returns(true);
+      vi.spyOn(Api.prototype, 'requiredApisAvailable').mockReturnValue(false);
+      vi.mocked(attributeUtils.getVisibilityState).mockReturnValue(
+        VISIBILITY_STATE
+      );
+      vi.mocked(initializationService.isPerfInitialized).mockReturnValue(true);
       const trace = new Trace(performanceController, TRACE_NAME);
       trace.record(START_TIME, DURATION);
-      clock.tick(1);
+      vi.advanceTimersByTime(1);
 
-      expect(addToQueueStub).not.to.be.called;
+      expect(addToQueueStub).not.toHaveBeenCalled();
     });
 
     it('ascertains that the max number of customMetric allowed is 32', () => {
@@ -167,9 +175,11 @@ describe('Performance Monitoring > perf_logger', () => {
 "counter19":19,"counter20":20,"counter21":21,"counter22":22,"counter23":23,"counter24":24,\
 "counter25":25,"counter26":26,"counter27":27,"counter28":28,"counter29":29,"counter30":30,\
 "counter31":31,"counter32":32}}}`;
-      getIidStub.returns(IID);
-      stub(attributeUtils, 'getVisibilityState').returns(VISIBILITY_STATE);
-      stub(initializationService, 'isPerfInitialized').returns(true);
+      getIidStub.mockReturnValue(IID);
+      vi.mocked(attributeUtils.getVisibilityState).mockReturnValue(
+        VISIBILITY_STATE
+      );
+      vi.mocked(initializationService.isPerfInitialized).mockReturnValue(true);
       SettingsService.getInstance().loggingEnabled = true;
       SettingsService.getInstance().logTraceAfterSampling = true;
       const trace = new Trace(performanceController, TRACE_NAME);
@@ -177,10 +187,10 @@ describe('Performance Monitoring > perf_logger', () => {
         trace.putMetric('counter' + i, i);
       }
       trace.record(START_TIME, DURATION);
-      clock.tick(1);
+      vi.advanceTimersByTime(1);
 
-      expect(addToQueueStub).to.be.called;
-      expect(addToQueueStub.getCall(0).args[0].message).to.be.equal(
+      expect(addToQueueStub).toHaveBeenCalled();
+      expect(addToQueueStub.mock.calls[0][0].message).toBe(
         EXPECTED_TRACE_MESSAGE
       );
     });
@@ -192,9 +202,11 @@ describe('Performance Monitoring > perf_logger', () => {
         `,"trace_metric":{"name":"${TRACE_NAME}","is_auto":false,\
 "client_start_time_us":${START_TIME * 1000},"duration_us":${DURATION * 1000},\
 "custom_attributes":{"attr1":"val1","attr2":"val2","attr3":"val3","attr4":"val4","attr5":"val5"}}}`;
-      getIidStub.returns(IID);
-      stub(attributeUtils, 'getVisibilityState').returns(VISIBILITY_STATE);
-      stub(initializationService, 'isPerfInitialized').returns(true);
+      getIidStub.mockReturnValue(IID);
+      vi.mocked(attributeUtils.getVisibilityState).mockReturnValue(
+        VISIBILITY_STATE
+      );
+      vi.mocked(initializationService.isPerfInitialized).mockReturnValue(true);
       SettingsService.getInstance().loggingEnabled = true;
       SettingsService.getInstance().logTraceAfterSampling = true;
       const trace = new Trace(performanceController, TRACE_NAME);
@@ -202,10 +214,10 @@ describe('Performance Monitoring > perf_logger', () => {
         trace.putAttribute('attr' + i, 'val' + i);
       }
       trace.record(START_TIME, DURATION);
-      clock.tick(1);
+      vi.advanceTimersByTime(1);
 
-      expect(addToQueueStub).to.be.called;
-      expect(addToQueueStub.getCall(0).args[0].message).to.be.equal(
+      expect(addToQueueStub).toHaveBeenCalled();
+      expect(addToQueueStub.mock.calls[0][0].message).toBe(
         EXPECTED_TRACE_MESSAGE
       );
     });
@@ -226,12 +238,12 @@ describe('Performance Monitoring > perf_logger', () => {
 "_fp":40000,"_fcp":50000,"_fid":90000,"_lcp":3999,"_cls":250,"_inp":100},\
 "custom_attributes":{"lcp_element":"lcp-element","cls_largestShiftTarget":"cls-element",\
 "inp_interactionTarget":"inp-element"}}}`;
-      stub(initializationService, 'isPerfInitialized').returns(true);
-      getIidStub.returns(IID);
+      vi.mocked(initializationService.isPerfInitialized).mockReturnValue(true);
+      getIidStub.mockReturnValue(IID);
       SettingsService.getInstance().loggingEnabled = true;
       SettingsService.getInstance().logTraceAfterSampling = true;
 
-      stub(attributeUtils, 'getVisibilityState').returns(
+      vi.mocked(attributeUtils.getVisibilityState).mockReturnValue(
         attributeUtils.VisibilityState.VISIBLE
       );
 
@@ -285,10 +297,10 @@ describe('Performance Monitoring > perf_logger', () => {
         },
         90
       );
-      clock.tick(1);
+      vi.advanceTimersByTime(1);
 
-      expect(addToQueueStub).to.be.called;
-      expect(addToQueueStub.getCall(0).args[0].message).to.be.equal(
+      expect(addToQueueStub).toHaveBeenCalled();
+      expect(addToQueueStub.mock.calls[0][0].message).toBe(
         EXPECTED_TRACE_MESSAGE
       );
     });
@@ -338,9 +350,11 @@ describe('Performance Monitoring > perf_logger', () => {
 "response_payload_bytes":${RESOURCE_PERFORMANCE_ENTRY.transferSize},\
 "client_start_time_us":${START_TIME},\
 "time_to_response_completed_us":${TIME_TO_RESPONSE_COMPLETED}}}`;
-      stub(initializationService, 'isPerfInitialized').returns(true);
-      getIidStub.returns(IID);
-      stub(attributeUtils, 'getVisibilityState').returns(VISIBILITY_STATE);
+      vi.mocked(initializationService.isPerfInitialized).mockReturnValue(true);
+      getIidStub.mockReturnValue(IID);
+      vi.mocked(attributeUtils.getVisibilityState).mockReturnValue(
+        VISIBILITY_STATE
+      );
       SettingsService.getInstance().loggingEnabled = true;
       SettingsService.getInstance().logNetworkAfterSampling = true;
       // Calls logNetworkRequest under the hood.
@@ -348,10 +362,10 @@ describe('Performance Monitoring > perf_logger', () => {
         performanceController,
         RESOURCE_PERFORMANCE_ENTRY
       );
-      clock.tick(1);
+      vi.advanceTimersByTime(1);
 
-      expect(addToQueueStub).to.be.called;
-      expect(addToQueueStub.getCall(0).args[0].message).to.be.equal(
+      expect(addToQueueStub).toHaveBeenCalled();
+      expect(addToQueueStub.mock.calls[0][0].message).toBe(
         EXPECTED_NETWORK_MESSAGE
       );
     });
@@ -384,8 +398,8 @@ describe('Performance Monitoring > perf_logger', () => {
         workerStart: 0,
         toJSON: () => {}
       };
-      stub(initializationService, 'isPerfInitialized').returns(true);
-      getIidStub.returns(IID);
+      vi.mocked(initializationService.isPerfInitialized).mockReturnValue(true);
+      getIidStub.mockReturnValue(IID);
       SettingsService.getInstance().loggingEnabled = true;
       SettingsService.getInstance().logNetworkAfterSampling = true;
       // Calls logNetworkRequest under the hood.
@@ -393,9 +407,9 @@ describe('Performance Monitoring > perf_logger', () => {
         performanceController,
         CC_NETWORK_PERFORMANCE_ENTRY
       );
-      clock.tick(1);
+      vi.advanceTimersByTime(1);
 
-      expect(addToQueueStub).not.called;
+      expect(addToQueueStub).not.toHaveBeenCalled();
     });
 
     // Performance SDK doesn't instrument requests sent from SDK itself, therefore blacklist
@@ -429,8 +443,8 @@ describe('Performance Monitoring > perf_logger', () => {
         workerStart: 0,
         toJSON: () => {}
       };
-      stub(initializationService, 'isPerfInitialized').returns(true);
-      getIidStub.returns(IID);
+      vi.mocked(initializationService.isPerfInitialized).mockReturnValue(true);
+      getIidStub.mockReturnValue(IID);
       SettingsService.getInstance().loggingEnabled = true;
       SettingsService.getInstance().logNetworkAfterSampling = true;
       // Calls logNetworkRequest under the hood.
@@ -438,9 +452,9 @@ describe('Performance Monitoring > perf_logger', () => {
         performanceController,
         FL_NETWORK_PERFORMANCE_ENTRY
       );
-      clock.tick(1);
+      vi.advanceTimersByTime(1);
 
-      expect(addToQueueStub).not.called;
+      expect(addToQueueStub).not.toHaveBeenCalled();
     });
   });
 });

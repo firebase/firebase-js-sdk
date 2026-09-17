@@ -14,9 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
-
 import { mergeStrings } from './string_merger';
 import { FirebaseError } from '@firebase/util';
 import '../../test/setup';
@@ -24,29 +21,29 @@ import '../../test/setup';
 describe('Firebase Performance > string_merger', () => {
   describe('#mergeStrings', () => {
     it('Throws exception when string length has | diff | > 1', () => {
-      expect(() => mergeStrings('', '123')).to.throw(
+      expect(() => mergeStrings('', '123')).toThrow(
         FirebaseError,
         'performance/invalid String merger input'
       );
     });
 
     it('returns empty string when both inputs are empty', () => {
-      expect(mergeStrings('', '')).equal('');
+      expect(mergeStrings('', '')).toBe('');
     });
 
     it('returns merge result string when both inputs have same length', () => {
-      expect(mergeStrings('12345', 'abcde')).equal('1a2b3c4d5e');
+      expect(mergeStrings('12345', 'abcde')).toBe('1a2b3c4d5e');
     });
 
     it('returns merge result string when input length diff == 1', () => {
-      expect(() => mergeStrings('1234', 'abcde')).to.throw(
+      expect(() => mergeStrings('1234', 'abcde')).toThrow(
         FirebaseError,
         'performance/invalid String merger input'
       );
     });
 
     it('returns merge result string when input length diff == -1', () => {
-      expect(mergeStrings('12345', 'abcd')).equal('1a2b3c4d5');
+      expect(mergeStrings('12345', 'abcd')).toBe('1a2b3c4d5');
     });
   });
 });
