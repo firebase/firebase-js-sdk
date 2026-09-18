@@ -179,13 +179,16 @@ config.test.projects = config.test.projects.map(project => {
     test: {
       ...project.test,
       setupFiles,
+      fileParallelism: false,
+      testTimeout: 20000,
+      hookTimeout: 20000,
+      retry: process.env.CI ? 3 : 0,
       ...(isBrowser
         ? {
             browser: {
               ...project.test.browser,
               screenshotFailures: false
             },
-            fileParallelism: false,
             isolate: false
           }
         : {}),

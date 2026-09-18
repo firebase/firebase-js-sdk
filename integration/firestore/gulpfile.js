@@ -44,10 +44,12 @@ function copyTests() {
   return gulp
     .src(
       [
+        testBase + '/setup.ts',
         testBase + '/integration/api/*.ts',
         testBase + '/integration/util/composite_index_test_helper.ts',
         testBase + '/integration/util/events_accumulator.ts',
         testBase + '/integration/util/helpers.ts',
+        testBase + '/integration/util/pipeline_helpers.ts',
         testBase + '/integration/util/settings.ts',
         testBase + '/integration/util/testing_hooks_util.ts',
         testBase + '/util/equality_matcher.ts',
@@ -116,4 +118,4 @@ function compileWebpack() {
     .pipe(gulp.dest('dist'));
 }
 
-gulp.task('compile-tests', gulp.series(clean, copyTests, compileWebpack));
+gulp.task('compile-tests', gulp.series(clean, copyTests));

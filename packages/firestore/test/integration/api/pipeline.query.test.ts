@@ -2230,8 +2230,9 @@ apiPipelineDescribe('Queries', (persistence, pipelineMode) => {
           }
         );
       });
-    }
-  ).timeout('90s');
+    },
+    90_000
+  );
 
   // TODO(b/291365820): Stop skipping this test when running against the
   // Firestore emulator once the emulator is improved to include a bloom filter
@@ -2405,8 +2406,9 @@ apiPipelineDescribe('Queries', (persistence, pipelineMode) => {
           ).toBe(true);
         });
       });
-    }
-  ).timeout('90s');
+    },
+    90_000
+  );
 
   // TODO(b/291365820): Stop skipping this test when running against the
   // Firestore emulator once the emulator is improved to include a bloom filter
@@ -2547,8 +2549,9 @@ apiPipelineDescribe('Queries', (persistence, pipelineMode) => {
           ).toBe(true);
         }
       });
-    }
-  ).timeout('90s');
+    },
+    90_000
+  );
 
   it('can query large documents with multi-byte character strings', () => {
     function randomMultiByteCharString(length: number): string {

@@ -623,7 +623,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           .sort(ascending('order'))
       );
       expectResults(snapshot, doc1.id, doc2.id);
-    }).timeout(30_000);
+    }, 30_000);
   });
 
   describe('supported data types', () => {
@@ -4233,7 +4233,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
         minus10micros: new Timestamp(1741380234, 999990000),
         minus10millis: new Timestamp(1741380234, 990000000)
       });
-    }).timeout(10000);
+    }, 10000);
 
     it('supports byteLength', async () => {
       const snapshot = await execute(
@@ -5514,7 +5514,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
         diffSecond: 9296,
         diffHourNeg: -2
       });
-    }).timeout(10000);
+    }, 10000);
 
     it('supports timestamp extraction', async () => {
       const snapshot = await execute(
@@ -5551,7 +5551,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
         dayOfYear: 67,
         hourLa: 4
       });
-    }).timeout(10000);
+    }, 10000);
 
     it('supports split', async () => {
       const results = await execute(

@@ -273,7 +273,7 @@ apiDescribe('Database transactions', persistence => {
         .run(get, set1, set2)
         .expectDoc({ foo: 'bar2' });
     });
-  }).timeout(10000);
+  }, 10000);
 
   it('runs transactions after getting nonexistent document', async () => {
     return withTestDb(persistence, async db => {
@@ -312,7 +312,7 @@ apiDescribe('Database transactions', persistence => {
         .run(get, set1, set2)
         .expectDoc({ foo: 'bar2' });
     });
-  }).timeout(10000);
+  }, 10000);
 
   // This test is identical to the test above, except that withNonexistentDoc()
   // is replaced by withDeletedDoc(), to guard against regression of
@@ -353,7 +353,7 @@ apiDescribe('Database transactions', persistence => {
         .expectDoc({ foo: 'bar2' });
       await tt.withDeletedDoc().run(get, set1, set2).expectDoc({ foo: 'bar2' });
     });
-  }).timeout(10000);
+  }, 10000);
 
   it('runs transactions on existing document', async () => {
     return withTestDb(persistence, async db => {

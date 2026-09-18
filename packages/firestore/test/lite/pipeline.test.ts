@@ -621,7 +621,7 @@ describe.skipClassic('Firestore Pipelines', () => {
           .sort(ascending('order'))
       );
       expectResults(snapshot, doc1.id, doc2.id);
-    }).timeout(30_000); // Database-wide pipelines can be slow to execute.
+    }, 30_000); // Database-wide pipelines can be slow to execute.
 
     it('can create pipeline from a query', async () => {
       const snapshot = await execute(
@@ -4168,7 +4168,7 @@ describe.skipClassic('Firestore Pipelines', () => {
         minus10micros: new Timestamp(1741380234, 999990000),
         minus10millis: new Timestamp(1741380234, 990000000)
       });
-    }).timeout(10000);
+    }, 10000);
 
     it('supports timestamp truncation', async () => {
       const snapshot = await execute(
@@ -4199,7 +4199,7 @@ describe.skipClassic('Firestore Pipelines', () => {
         truncSecond: new Timestamp(1741437296, 0),
         truncIsoweek: new Timestamp(1740960000, 0)
       });
-    }).timeout(10000);
+    }, 10000);
 
     it('supports timestamp truncation with timezone', async () => {
       const snapshot = await execute(
@@ -4222,7 +4222,7 @@ describe.skipClassic('Firestore Pipelines', () => {
       expectResults(snapshot, {
         truncDayLa: new Timestamp(1741420800, 0)
       });
-    }).timeout(10000);
+    }, 10000);
 
     it('supports timestamp difference', async () => {
       const snapshot = await execute(
@@ -4252,7 +4252,7 @@ describe.skipClassic('Firestore Pipelines', () => {
         diffSecond: 9296,
         diffHourNeg: -2
       });
-    }).timeout(10000);
+    }, 10000);
 
     it('supports timestamp extraction', async () => {
       const snapshot = await execute(
@@ -4289,7 +4289,7 @@ describe.skipClassic('Firestore Pipelines', () => {
         dayOfYear: 67,
         hourLa: 4
       });
-    }).timeout(10000);
+    }, 10000);
 
     it('supports byteLength', async () => {
       const snapshot = await execute(

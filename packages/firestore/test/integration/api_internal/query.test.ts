@@ -161,8 +161,9 @@ apiDescribe('Queries', persistence => {
           }
         );
       });
-    }
-  ).timeout('90s');
+    },
+    90_000
+  );
 
   // TODO(b/291365820): Stop skipping this test when running against the
   // Firestore emulator once the emulator is improved to include a bloom filter
@@ -330,8 +331,9 @@ apiDescribe('Queries', persistence => {
           ).toBe(true);
         });
       });
-    }
-  ).timeout('90s');
+    },
+    90_000
+  );
 
   // TODO(b/291365820): Stop skipping this test when running against the
   // Firestore emulator once the emulator is improved to include a bloom filter
@@ -467,6 +469,7 @@ apiDescribe('Queries', persistence => {
           ).toBe(true);
         }
       });
-    }
-  ).timeout('90s');
+    },
+    90_000
+  );
 });
