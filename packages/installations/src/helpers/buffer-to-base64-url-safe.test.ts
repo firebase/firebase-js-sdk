@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
+import { expect, describe, it } from 'vitest';
 import '../testing/setup';
 import { bufferToBase64UrlSafe } from './buffer-to-base64-url-safe';
 
@@ -29,7 +29,7 @@ const BASE_64_REPRESENTATION = btoa(str);
 
 describe('bufferToBase64', () => {
   it('returns a base64 representation of a Uint8Array', () => {
-    expect(bufferToBase64UrlSafe(TYPED_ARRAY_REPRESENTATION)).to.equal(
+    expect(bufferToBase64UrlSafe(TYPED_ARRAY_REPRESENTATION)).toBe(
       BASE_64_REPRESENTATION
     );
   });

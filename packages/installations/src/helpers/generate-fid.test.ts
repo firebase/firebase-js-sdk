@@ -15,8 +15,7 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-import { stub } from 'sinon';
+import { describe, it, expect, vi } from 'vitest';
 import '../testing/setup';
 import { generateFid, VALID_FID_PATTERN } from './generate-fid';
 
@@ -34,7 +33,7 @@ const MOCK_RANDOM_VALUES = [
   [117, 150, 2, 180, 116, 230, 45, 188, 183, 43, 152, 100, 50, 255, 101, 175, 190],
   [156, 129, 30, 101, 58, 137, 217, 249, 12, 227, 235, 80, 248, 81, 191, 2, 5],
   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255],
+  [255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255]
 ];
 
 /** The FIDs that should be generated based on MOCK_RANDOM_VALUES. */
@@ -56,7 +55,7 @@ const EXPECTED_FIDS = [
 describe('generateFid', () => {
   it('deterministically generates FIDs based on crypto.getRandomValues', () => {
     let randomValueIndex = 0;
-    stub(crypto, 'getRandomValues').callsFake(array => {
+    vi.spyOn(crypto, 'getRandomValues').mockImplementation((array: any) => {
       if (!(array instanceof Uint8Array)) {
         throw new Error('what');
       }
@@ -68,17 +67,14 @@ describe('generateFid', () => {
     });
 
     for (const expectedFid of EXPECTED_FIDS) {
-      expect(generateFid()).to.deep.equal(expectedFid);
+      expect(generateFid()).toBe(expectedFid);
     }
   });
 
   it('generates valid FIDs', () => {
     for (let i = 0; i < 1000; i++) {
       const fid = generateFid();
-      expect(VALID_FID_PATTERN.test(fid)).to.equal(
-        true,
-        `${fid} is not a valid FID`
-      );
+      expect(VALID_FID_PATTERN.test(fid)).toBe(true);
     }
   });
 
@@ -103,26 +99,28 @@ describe('generateFid', () => {
       const map = charOccurrencesMapList[i];
       if (i === 0) {
         // In the first location only 4 characters (c, d, e, f) are valid.
-        expect(map.size).to.equal(4);
+        expect(map.size).toBe(4);
       } else {
         // In locations other than the first, all 64 characters are valid.
-        expect(map.size).to.equal(64);
+        expect(map.size).toBe(64);
       }
 
       Array.from(map.entries()).forEach(([_, occurrence]) => {
         const expectedOccurrence = numTries / map.size;
 
         // 10% margin of error
-        expect(occurrence).to.be.above(expectedOccurrence * 0.9);
-        expect(occurrence).to.be.below(expectedOccurrence * 1.1);
+        expect(occurrence).toBeGreaterThan(expectedOccurrence * 0.9);
+        expect(occurrence).toBeLessThan(expectedOccurrence * 1.1);
       });
     }
-  }).timeout(30000);
+  }, 30000);
 
   it('returns an empty string if FID generation fails', () => {
-    stub(crypto, 'getRandomValues').throws();
+    vi.spyOn(crypto, 'getRandomValues').mockImplementation(() => {
+      throw new Error();
+    });
 
     const fid = generateFid();
-    expect(fid).to.equal('');
+    expect(fid).toBe('');
   });
 });
