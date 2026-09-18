@@ -542,7 +542,7 @@ apiDescribe('Database transactions', persistence => {
         // commit will fail even if the code does not await
         // `transaction.get(...)`.
         // eslint-disable-next-line
-        transaction.get(docRef);
+        void transaction.get(docRef).catch(() => {});
       })
         .then(() => {
           expect.fail('transaction should fail');

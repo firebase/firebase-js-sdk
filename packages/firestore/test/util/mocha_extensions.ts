@@ -47,22 +47,32 @@ declare module 'mocha' {
   interface PendingSuiteFunction extends ExtendMochaTypeWithHelpers<PendingSuiteFunction> {}
 }
 
+function getSkip(target: { skip?: unknown }): unknown {
+  const skipFn = target.skip as Record<string, unknown> | undefined;
+  if (skipFn && (typeof skipFn === 'function' || typeof skipFn === 'object')) {
+    skipFn.__isSkip = true;
+    mixinSkipImplementations(skipFn);
+  }
+  return skipFn;
+}
+
 // Define helpers
 export function mixinSkipImplementations(obj: unknown): void {
-  if (Object.getOwnPropertyDescriptor(obj, 'skipEmulator')) {
+  if (!obj || Object.getOwnPropertyDescriptor(obj, 'skipEmulator')) {
     return;
   }
 
   Object.defineProperty(obj, 'skipEmulator', {
     get(): unknown {
-      if (this === it.skip) {
-        return this;
-      }
-      if (this === describe.skip) {
+      if (
+        (this as { __isSkip?: boolean }).__isSkip ||
+        this === it.skip ||
+        this === describe.skip
+      ) {
         return this;
       }
       if (USE_EMULATOR) {
-        return this.skip;
+        return getSkip(this);
       }
       return this;
     }
@@ -70,14 +80,15 @@ export function mixinSkipImplementations(obj: unknown): void {
 
   Object.defineProperty(obj, 'skipEnterprise', {
     get(): unknown {
-      if (this === it.skip) {
-        return this;
-      }
-      if (this === describe.skip) {
+      if (
+        (this as { __isSkip?: boolean }).__isSkip ||
+        this === it.skip ||
+        this === describe.skip
+      ) {
         return this;
       }
       if (getRunEnterpriseTests()) {
-        return this.skip;
+        return getSkip(this);
       }
       return this;
     }
@@ -85,14 +96,15 @@ export function mixinSkipImplementations(obj: unknown): void {
 
   Object.defineProperty(obj, 'skipClassic', {
     get(): unknown {
-      if (this === it.skip) {
-        return this;
-      }
-      if (this === describe.skip) {
+      if (
+        (this as { __isSkip?: boolean }).__isSkip ||
+        this === it.skip ||
+        this === describe.skip
+      ) {
         return this;
       }
       if (!getRunEnterpriseTests()) {
-        return this.skip;
+        return getSkip(this);
       }
       return this;
     }

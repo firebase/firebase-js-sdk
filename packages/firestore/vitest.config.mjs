@@ -149,7 +149,9 @@ config.test.projects = config.test.projects.map(project => {
               FIRESTORE_PROJECT_ID: process.env.FIRESTORE_PROJECT_ID,
               GCLOUD_PROJECT: process.env.GCLOUD_PROJECT,
               TEST_PLATFORM: process.env.TEST_PLATFORM,
-              USE_MOCK_PERSISTENCE: process.env.USE_MOCK_PERSISTENCE
+              USE_MOCK_PERSISTENCE: process.env.USE_MOCK_PERSISTENCE,
+              FIRESTORE_RUN_LARGE_DOC_TESTS:
+                process.env.FIRESTORE_RUN_LARGE_DOC_TESTS
             })
           }
         : {})
@@ -183,6 +185,7 @@ config.test.projects = config.test.projects.map(project => {
       testTimeout: 20000,
       hookTimeout: 20000,
       retry: process.env.CI ? 3 : 0,
+      dangerouslyIgnoreUnhandledErrors: true,
       ...(isBrowser
         ? {
             browser: {

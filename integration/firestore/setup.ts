@@ -21,8 +21,13 @@ import { afterEach, vi } from 'vitest';
 if (typeof globalThis.Buffer === 'undefined') {
   (globalThis as unknown as { Buffer: typeof Buffer }).Buffer = Buffer;
 }
-if (typeof (globalThis as unknown as { process?: unknown }).process === 'undefined') {
-  (globalThis as unknown as { process: { env: Record<string, string> } }).process = {
+if (
+  typeof (globalThis as unknown as { process?: unknown }).process ===
+  'undefined'
+) {
+  (
+    globalThis as unknown as { process: { env: Record<string, string> } }
+  ).process = {
     env: {}
   };
 }

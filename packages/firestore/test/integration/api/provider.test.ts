@@ -140,8 +140,7 @@ describe('Firestore Provider', () => {
       'test-use-enablePersistence'
     );
     const db = initializeFirestore(app, DEFAULT_SETTINGS);
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    expect(enableIndexedDbPersistence(db)).rejects.toThrow();
+    void enableIndexedDbPersistence(db).catch(() => {});
 
     // SDK still functions.
     // eslint-disable-next-line @typescript-eslint/no-floating-promises

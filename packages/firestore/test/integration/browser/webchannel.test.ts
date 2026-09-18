@@ -37,64 +37,75 @@ describeFn('WebChannel', () => {
   // emulator to allow sharing the same stream across different projects and
   // databases.
   // eslint-disable-next-line no-restricted-properties
-  (USE_EMULATOR ? it.skip : it)('receives error messages', done => {
-    const projectId = DEFAULT_PROJECT_ID;
-    const info = getDefaultDatabaseInfo();
-    const conn = new WebChannelConnection(info);
-    const stream = conn.openStream<api.ListenRequest, api.ListenResponse>(
-      'Listen',
-      null,
-      null
-    );
+  (USE_EMULATOR ? it.skip : it)('receives error messages', () => {
+    return new Promise<void>((resolve, reject) => {
+      const projectId = DEFAULT_PROJECT_ID;
+      const info = getDefaultDatabaseInfo();
+      const conn = new WebChannelConnection(info);
+      const stream = conn.openStream<api.ListenRequest, api.ListenResponse>(
+        'Listen',
+        null,
+        null
+      );
 
-    // Test data
-    let didSendBadPayload = false;
-    const payload = {
-      database: 'projects/' + projectId + '/databases/(default)',
-      addTarget: {
-        query: {
-          parent: 'projects/' + projectId + '/databases/(default)',
-          structuredQuery: {
-            from: [{ collectionId: 'foo' }]
+      // Test data
+      let didSendBadPayload = false;
+      const payload = {
+        database: 'projects/' + projectId + '/databases/(default)',
+        addTarget: {
+          query: {
+            parent: 'projects/' + projectId + '/databases/(default)',
+            structuredQuery: {
+              from: [{ collectionId: 'foo' }]
+            }
           }
         }
-      }
-    };
+      };
 
-    // Register an "onConnected" callback since it's required, even though we
-    // don't care about this event.
-    stream.onConnected(() => {});
+      // Register an "onConnected" callback since it's required, even though we
+      // don't care about this event.
+      stream.onConnected(() => {});
 
-    // Once the stream is open, send an "add_target" request
-    stream.onOpen(() => {
-      stream.send(payload);
-    });
-
-    // Wait until we receive data, then send a bad "addTarget" request, causing
-    // the stream to be closed with an error. In this case, bad means having a
-    // different project id.
-    stream.onMessage(msg => {
-      if (msg.targetChange) {
-        // Assertion will fail when additional targets are added. This works so
-        // long as backend target id counts up from 1. We expect the second
-        // target to be a bad payload. If this does not fail stream, then we
-        // might receive message that it was successfully added. The following
-        // assertion will catch failure to validate data on backend.
-        expect(msg.targetChange?.targetIds).not.toContain(2);
-
-        payload.database = 'projects/some-other-project-id/databases/(default)';
-        didSendBadPayload = true;
+      // Once the stream is open, send an "add_target" request
+      stream.onOpen(() => {
         stream.send(payload);
-      }
-    });
+      });
 
-    // Expect to receive an error after the second request is sent
-    stream.onClose(err => {
-      expect(didSendBadPayload).toBe(true);
-      expect(err).toBeDefined();
-      expect(err!.code).toBe('invalid-argument');
-      expect(err!.message).toBeTruthy();
-      done();
+      // Wait until we receive data, then send a bad "addTarget" request, causing
+      // the stream to be closed with an error. In this case, bad means having a
+      // different project id.
+      stream.onMessage(msg => {
+        if (msg.targetChange) {
+          try {
+            // Assertion will fail when additional targets are added. This works so
+            // long as backend target id counts up from 1. We expect the second
+            // target to be a bad payload. If this does not fail stream, then we
+            // might receive message that it was successfully added. The following
+            // assertion will catch failure to validate data on backend.
+            expect(msg.targetChange?.targetIds).not.toContain(2);
+
+            payload.database =
+              'projects/some-other-project-id/databases/(default)';
+            didSendBadPayload = true;
+            stream.send(payload);
+          } catch (e) {
+            reject(e);
+          }
+        }
+      });
+
+      // Expect to receive an error after the second request is sent
+      stream.onClose(err => {
+        try {
+          expect(didSendBadPayload).toBe(true);
+          expect(err).toBeDefined();
+          expect(err!.code).toBe('invalid-argument');
+          expect(err!.message).toBeTruthy();
+          resolve();
+        } catch (e) {
+          reject(e);
+        }
+      });
     });
   });
 });

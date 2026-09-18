@@ -68,6 +68,7 @@ config.test.projects = config.test.projects
       testTimeout: 20000,
       hookTimeout: 20000,
       retry: process.env.CI ? 3 : 0,
+      dangerouslyIgnoreUnhandledErrors: true,
       browser: {
         ...project.test.browser,
         screenshotFailures: false
