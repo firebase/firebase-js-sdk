@@ -44,7 +44,6 @@ function copyTests() {
   return gulp
     .src(
       [
-        testBase + '/setup.ts',
         testBase + '/integration/api/*.ts',
         testBase + '/integration/util/composite_index_test_helper.ts',
         testBase + '/integration/util/events_accumulator.ts',
@@ -70,8 +69,8 @@ function copyTests() {
         /\s+from '\.(\.\/util)?\/firebase_export';/,
         ` from '${resolve(__dirname, './firebase_export')}';
         
-if (typeof process === 'undefined') {
-  process = { env: { INCLUDE_FIRESTORE_PERSISTENCE: '${isPersistenceEnabled()}' } } as any;
+if (typeof (globalThis as any).process === 'undefined') {
+  (globalThis as any).process = { env: { INCLUDE_FIRESTORE_PERSISTENCE: '${isPersistenceEnabled()}' } };
 } else {
   process.env.INCLUDE_FIRESTORE_PERSISTENCE = '${isPersistenceEnabled()}';
 }

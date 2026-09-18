@@ -62,7 +62,7 @@ config.test.projects = config.test.projects
     test: {
       ...project.test,
       include: ['temp/test/integration/api/**/*.test.ts'],
-      setupFiles: [path.resolve(__dirname, 'temp/test/setup.ts')],
+      setupFiles: [path.resolve(__dirname, 'setup.ts')],
       fileParallelism: false,
       isolate: false,
       testTimeout: 20000,

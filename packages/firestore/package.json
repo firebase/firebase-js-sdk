@@ -39,7 +39,7 @@
     "test:browser:prod": "FIRESTORE_TARGET_BACKEND=prod vitest run --project=browser",
     "test:webkit:prod": "FIRESTORE_TARGET_BACKEND=prod vitest run --project=browser --browser.name=webkit",
     "test:webkit:unit": "vitest run --project=browser --browser.name=webkit test/unit",
-    "test:browser:prod:enterprise": "FIRESTORE_TARGET_BACKEND=prod FIRESTORE_TARGET_DB_ID=enterprise RUN_ENTERPRISE_TESTS=true vitest run --project=browser",
+    "test:browser:prod:enterprise": "FIRESTORE_TARGET_BACKEND=prod FIRESTORE_TARGET_DB_ID=enterprise RUN_ENTERPRISE_TESTS=true vitest run --project=browser test/integration",
     "test:browser:unit": "vitest run --project=browser test/unit",
     "test:browser:debug": "vitest --project=browser --browser.headless=false",
     "test:node": "vitest run --project=node",

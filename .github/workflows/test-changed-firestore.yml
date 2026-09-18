@@ -275,6 +275,7 @@ jobs:
       - name: Test setup
         run: |
           cp config/ci.config.json config/project.json
+          yarn --check-files
           npx playwright install webkit
       - name: Run tests
         run: cd packages/firestore && yarn run ${{ matrix.test-name }}
