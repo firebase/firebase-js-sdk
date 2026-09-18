@@ -82,6 +82,18 @@ function platformBase64Plugin(isBrowser) {
           map: null
         };
       }
+      if (
+        cleanId.endsWith('.ts') &&
+        code.includes("require('../../../../../config/project.json')")
+      ) {
+        return {
+          code: code.replace(
+            /const (\w+) = require\('\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/config\/project\.json'\);/g,
+            "import $1 from '../../../../../config/project.json';"
+          ),
+          map: null
+        };
+      }
       return null;
     }
   };

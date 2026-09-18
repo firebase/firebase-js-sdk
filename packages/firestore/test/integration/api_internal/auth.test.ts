@@ -18,7 +18,6 @@
 import { FirebaseApp, initializeApp } from '@firebase/app';
 import { getAuth, signInAnonymously } from '@firebase/auth';
 
-import firebaseConfig from '../../../../../config/project.json';
 import {
   getDoc,
   getFirestore,
@@ -29,6 +28,8 @@ import {
 } from '../../../src';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
+const firebaseConfig = require('../../../../../config/project.json');
+
 let appCount = 0;
 
 function getNextApp(): FirebaseApp {

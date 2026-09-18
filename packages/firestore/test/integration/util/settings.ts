@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import PROJECT_CONFIG from '../../../../../config/project.json';
-
 import { PrivateSettings } from './firebase_export';
 
 /**
@@ -33,6 +31,9 @@ export enum TargetBackend {
   NIGHTLY = 'nightly',
   PROD = 'prod'
 }
+
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const PROJECT_CONFIG = require('../../../../../config/project.json');
 
 export const TARGET_DB_ID: string | '(default)' = getTargetDbId();
 
