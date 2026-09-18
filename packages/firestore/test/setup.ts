@@ -21,6 +21,7 @@ import { afterEach, vi } from 'vitest';
 
 import '../src/api/pipeline_impl';
 import '../src/lite-api/pipeline_impl';
+import { registerFirestore as registerFirestoreLite } from '../lite/register';
 import { registerFirestore } from '../src/register';
 
 if (typeof globalThis.Buffer === 'undefined') {
@@ -28,7 +29,11 @@ if (typeof globalThis.Buffer === 'undefined') {
   (globalThis as any).Buffer = Buffer;
 }
 
+registerFirestoreLite();
 registerFirestore();
+if ((process.env.TEST_PLATFORM || '').endsWith('_lite')) {
+  registerFirestoreLite();
+}
 
 afterEach(() => {
   vi.useRealTimers();

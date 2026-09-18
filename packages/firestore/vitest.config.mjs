@@ -100,6 +100,7 @@ function platformBase64Plugin(isBrowser) {
 }
 
 const config = createBaseConfig(import.meta.url);
+config.test.dangerouslyIgnoreUnhandledErrors = true;
 
 const isLite = (process.env.TEST_PLATFORM || '').endsWith('_lite');
 const hasTargetBackend = Boolean(

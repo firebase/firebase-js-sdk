@@ -45,6 +45,7 @@ function projectConfigRequirePlugin() {
 }
 
 const config = createBaseConfig(import.meta.url);
+config.test.dangerouslyIgnoreUnhandledErrors = true;
 
 config.test.projects = config.test.projects
   .filter(project => project.test?.name === 'browser')

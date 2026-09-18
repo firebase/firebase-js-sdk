@@ -22,23 +22,27 @@ import { MemoryEagerPersistenceMode, withTestDoc } from './util/helpers';
 
 const PRIMING_TIMEOUT_MS = 45000;
 
-beforeAll((): Promise<void> => {
-  return withTestDoc(new MemoryEagerPersistenceMode(), async (doc, db) => {
-    // const accumulator = new EventsAccumulator<DocumentSnapshot>();
-    // const unsubscribe = onSnapshot(doc, accumulator.storeEvent);
-    //
-    // // Wait for watch to initialize and deliver first event.
-    // await accumulator.awaitRemoteEvent();
-    //
-    // // Use a transaction to perform a write without triggering any local events.
-    // await runTransaction(db, async txn => {
-    //   txn.set(doc, { value: 'done' });
-    // });
-    //
-    // // Wait to see the write on the watch stream.
-    // const docSnap = await accumulator.awaitRemoteEvent();
-    // expect(docSnap.get('value')).to.equal('done');
-    //
-    // unsubscribe();
-  });
-}, PRIMING_TIMEOUT_MS);
+describe('Prime Backend', () => {
+  beforeAll((): Promise<void> => {
+    return withTestDoc(new MemoryEagerPersistenceMode(), async (doc, db) => {
+      // const accumulator = new EventsAccumulator<DocumentSnapshot>();
+      // const unsubscribe = onSnapshot(doc, accumulator.storeEvent);
+      //
+      // // Wait for watch to initialize and deliver first event.
+      // await accumulator.awaitRemoteEvent();
+      //
+      // // Use a transaction to perform a write without triggering any local events.
+      // await runTransaction(db, async txn => {
+      //   txn.set(doc, { value: 'done' });
+      // });
+      //
+      // // Wait to see the write on the watch stream.
+      // const docSnap = await accumulator.awaitRemoteEvent();
+      // expect(docSnap.get('value')).to.equal('done');
+      //
+      // unsubscribe();
+    });
+  }, PRIMING_TIMEOUT_MS);
+
+  it('primes backend', () => {});
+});

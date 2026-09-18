@@ -65,6 +65,12 @@ function apiPipelineDescribeInternal(
     pipelineModes.push('query-to-pipeline');
   }
 
+  if (pipelineModes.length === 0) {
+    // eslint-disable-next-line no-restricted-properties
+    describe.skip(message, () => {});
+    return;
+  }
+
   for (const persistenceMode of persistenceModes) {
     for (const pipelineMode of pipelineModes) {
       describeFn(
