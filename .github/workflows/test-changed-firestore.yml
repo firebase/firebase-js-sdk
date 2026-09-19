@@ -218,7 +218,9 @@ jobs:
         with:
           node-version: 22.23.2
       - name: Test setup and yarn install
-        run: cp config/ci.config.json config/project.json
+        run: |
+          cp config/ci.config.json config/project.json
+          npx playwright install firefox
       - name: Run tests
         run: cd packages/firestore && xvfb-run yarn run ${{ matrix.test-name }}
         env:
@@ -275,6 +277,7 @@ jobs:
       - name: Test setup
         run: |
           cp config/ci.config.json config/project.json
+          yarn --check-files
           npx playwright install webkit
       - name: Run tests
         run: cd packages/firestore && yarn run ${{ matrix.test-name }}

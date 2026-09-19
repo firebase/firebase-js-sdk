@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import { User } from '../../../src/auth/user';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
@@ -46,20 +44,18 @@ describe('MemoryMutationQueue', () => {
   genericMutationQueueTests();
 });
 
-describe('IndexedDbMutationQueue', () => {
-  if (!IndexedDbPersistence.isAvailable()) {
-    console.warn('No IndexedDB. Skipping IndexedDbMutationQueue tests.');
-    return;
-  }
-
-  beforeEach(() => {
-    return persistenceHelpers.testIndexedDbPersistence().then(p => {
-      persistence = p;
+describe.skipIf(!IndexedDbPersistence.isAvailable())(
+  'IndexedDbMutationQueue',
+  () => {
+    beforeEach(() => {
+      return persistenceHelpers.testIndexedDbPersistence().then(p => {
+        persistence = p;
+      });
     });
-  });
 
-  genericMutationQueueTests();
-});
+    genericMutationQueueTests();
+  }
+);
 
 /**
  * Defines the set of tests to run against both mutation queue
@@ -132,27 +128,27 @@ function genericMutationQueueTests(): void {
   }
 
   it('can count batches', async () => {
-    expect(await mutationQueue.countBatches()).to.equal(0);
-    expect(await mutationQueue.checkEmpty()).to.equal(true);
+    expect(await mutationQueue.countBatches()).toBe(0);
+    expect(await mutationQueue.checkEmpty()).toBe(true);
 
     const batch1 = await addMutationBatch();
-    expect(await mutationQueue.countBatches()).to.equal(1);
-    expect(await mutationQueue.checkEmpty()).to.equal(false);
+    expect(await mutationQueue.countBatches()).toBe(1);
+    expect(await mutationQueue.checkEmpty()).toBe(false);
 
     const batch2 = await addMutationBatch();
-    expect(await mutationQueue.countBatches()).to.equal(2);
+    expect(await mutationQueue.countBatches()).toBe(2);
 
     await mutationQueue.removeMutationBatch(batch1);
-    expect(await mutationQueue.countBatches()).to.equal(1);
+    expect(await mutationQueue.countBatches()).toBe(1);
 
     await mutationQueue.removeMutationBatch(batch2);
-    expect(await mutationQueue.countBatches()).to.equal(0);
+    expect(await mutationQueue.countBatches()).toBe(0);
   });
 
   it('can lookup mutation batch', async () => {
     // Searching on an empty queue should not find a nonexistent batch
     let notFound = await mutationQueue.lookupMutationBatch(42);
-    expect(notFound).to.be.null;
+    expect(notFound).toBeNull();
 
     const batches = await createBatches(10);
     const removed = await removeFirstBatches(3, batches);
@@ -160,18 +156,18 @@ function genericMutationQueueTests(): void {
     // After removing, a batch should not be found
     for (const batch of removed) {
       const notFound = await mutationQueue.lookupMutationBatch(batch.batchId);
-      expect(notFound).to.be.null;
+      expect(notFound).toBeNull();
     }
 
     // Remaining entries should still be found
     for (const batch of batches) {
       const found = await mutationQueue.lookupMutationBatch(batch.batchId);
-      expect(found!.batchId).to.equal(batch.batchId);
+      expect(found!.batchId).toBe(batch.batchId);
     }
 
     // Even on a nonempty queue searching should not find a nonexistent batch
     notFound = await mutationQueue.lookupMutationBatch(42);
-    expect(notFound).to.be.null;
+    expect(notFound).toBeNull();
   });
 
   it('can getNextMutationBatchAfterBatchId()', async () => {
@@ -184,7 +180,7 @@ function genericMutationQueueTests(): void {
       const found = await mutationQueue.getNextMutationBatchAfterBatchId(
         current.batchId
       );
-      expect(found!.batchId).to.equal(next.batchId);
+      expect(found!.batchId).toBe(next.batchId);
     }
 
     for (let i = 0; i < removed.length; i++) {
@@ -193,20 +189,20 @@ function genericMutationQueueTests(): void {
       const found = await mutationQueue.getNextMutationBatchAfterBatchId(
         current.batchId
       );
-      expect(found!.batchId).to.equal(next.batchId);
+      expect(found!.batchId).toBe(next.batchId);
     }
 
     const first = batches[0];
     const found = await mutationQueue.getNextMutationBatchAfterBatchId(
       first.batchId - 42
     );
-    expect(found!.batchId).to.equal(first.batchId);
+    expect(found!.batchId).toBe(first.batchId);
 
     const last = batches[batches.length - 1];
     const notFound = await mutationQueue.getNextMutationBatchAfterBatchId(
       last.batchId
     );
-    expect(notFound).to.be.null;
+    expect(notFound).toBeNull();
   });
 
   it('can getAllMutationBatchesAffectingDocumentKey()', async () => {
@@ -299,51 +295,51 @@ function genericMutationQueueTests(): void {
 
     await mutationQueue.removeMutationBatch(batches[0]);
     batches.splice(0, 1);
-    expect(await mutationQueue.countBatches()).to.equal(9);
+    expect(await mutationQueue.countBatches()).toBe(9);
 
     let found;
 
     found = await mutationQueue.getAllMutationBatches();
     expectEqualArrays(found, batches);
-    expect(found.length).to.equal(9);
+    expect(found.length).toBe(9);
 
     await mutationQueue.removeMutationBatch(batches[0]);
     await mutationQueue.removeMutationBatch(batches[1]);
     await mutationQueue.removeMutationBatch(batches[2]);
     batches.splice(0, 3);
-    expect(await mutationQueue.countBatches()).to.equal(6);
+    expect(await mutationQueue.countBatches()).toBe(6);
 
     found = await mutationQueue.getAllMutationBatches();
     expectEqualArrays(found, batches);
-    expect(found.length).to.equal(6);
+    expect(found.length).toBe(6);
 
     await mutationQueue.removeMutationBatch(batches[0]);
     batches.shift();
-    expect(await mutationQueue.countBatches()).to.equal(5);
+    expect(await mutationQueue.countBatches()).toBe(5);
 
     found = await mutationQueue.getAllMutationBatches();
     expectEqualArrays(found, batches);
-    expect(found.length).to.equal(5);
+    expect(found.length).toBe(5);
 
     await mutationQueue.removeMutationBatch(batches[0]);
     batches.shift();
-    expect(await mutationQueue.countBatches()).to.equal(4);
+    expect(await mutationQueue.countBatches()).toBe(4);
 
     await mutationQueue.removeMutationBatch(batches[0]);
     batches.shift();
-    expect(await mutationQueue.countBatches()).to.equal(3);
+    expect(await mutationQueue.countBatches()).toBe(3);
 
     found = await mutationQueue.getAllMutationBatches();
     expectEqualArrays(found, batches);
-    expect(found.length).to.equal(3);
-    expect(await mutationQueue.checkEmpty()).to.equal(false);
+    expect(found.length).toBe(3);
+    expect(await mutationQueue.checkEmpty()).toBe(false);
 
     for (const batch of batches) {
       await mutationQueue.removeMutationBatch(batch);
     }
     found = await mutationQueue.getAllMutationBatches();
     expectEqualArrays(found, []);
-    expect(found.length).to.equal(0);
-    expect(await mutationQueue.checkEmpty()).to.equal(true);
+    expect(found.length).toBe(0);
+    expect(await mutationQueue.checkEmpty()).toBe(true);
   });
 }

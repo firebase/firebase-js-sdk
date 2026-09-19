@@ -17,8 +17,6 @@
 
 import { deleteApp } from '@firebase/app';
 import { Deferred, isNode } from '@firebase/util';
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
 
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import { it, describe } from '../../util/mocha_extensions';
@@ -99,9 +97,6 @@ import {
   assertSDKQueryResultsConsistentWithBackend
 } from '../util/helpers';
 import { DEFAULT_SETTINGS, DEFAULT_PROJECT_ID } from '../util/settings';
-
-use(chaiAsPromised);
-
 apiDescribe('Database', persistence => {
   it('can set a document', () => {
     return withTestDoc(persistence, docRef => {
@@ -119,7 +114,7 @@ apiDescribe('Database', persistence => {
     return withTestDb(persistence, async db => {
       const ref = doc(collection(db, 'foo'));
       // Auto IDs are 20 characters long
-      expect(ref.id.length).to.equal(20);
+      expect(ref.id.length).toBe(20);
     });
   });
 
@@ -129,12 +124,12 @@ apiDescribe('Database', persistence => {
       return setDoc(docRef, { foo: 'bar' })
         .then(() => getDoc(docRef))
         .then(doc => {
-          expect(doc.data()).to.deep.equal({ foo: 'bar' });
+          expect(doc.data()).toEqual({ foo: 'bar' });
           return deleteDoc(docRef);
         })
         .then(() => getDoc(docRef))
         .then(doc => {
-          expect(doc.exists()).to.equal(false);
+          expect(doc.exists()).toBe(false);
         });
     });
   });
@@ -157,8 +152,8 @@ apiDescribe('Database', persistence => {
         .then(() => updateDoc(doc, updateData))
         .then(() => getDoc(doc))
         .then(docSnapshot => {
-          expect(docSnapshot.exists).to.be.ok;
-          expect(docSnapshot.data()).to.deep.equal(finalData);
+          expect(docSnapshot.exists).toBeTruthy();
+          expect(docSnapshot.data()).toEqual(finalData);
         });
     });
   });
@@ -166,9 +161,9 @@ apiDescribe('Database', persistence => {
   it('can retrieve document that does not exist', () => {
     return withTestDoc(persistence, doc => {
       return getDoc(doc).then(snapshot => {
-        expect(snapshot.exists()).to.equal(false);
-        expect(snapshot.data()).to.equal(undefined);
-        expect(snapshot.get('foo')).to.equal(undefined);
+        expect(snapshot.exists()).toBe(false);
+        expect(snapshot.data()).toBe(undefined);
+        expect(snapshot.get('foo')).toBe(undefined);
       });
     });
   });
@@ -182,20 +177,20 @@ apiDescribe('Database', persistence => {
         const readerRef = doc(collection(reader, 'collection'), writerRef.id);
         await setDoc(writerRef, { a: 'a' });
         await updateDoc(readerRef, { b: 'b' });
-        await getDocFromCache(writerRef).then(
-          doc => expect(doc.exists()).to.be.true
+        await getDocFromCache(writerRef).then(doc =>
+          expect(doc.exists()).toBe(true)
         );
         await getDocFromCache(readerRef).then(
           () => {
             expect.fail('Expected cache miss');
           },
-          err => expect(err.code).to.be.equal('unavailable')
+          err => expect(err.code).toBe('unavailable')
         );
         await getDoc(writerRef).then(doc =>
-          expect(doc.data()).to.deep.equal({ a: 'a', b: 'b' })
+          expect(doc.data()).toEqual({ a: 'a', b: 'b' })
         );
         await getDoc(readerRef).then(doc =>
-          expect(doc.data()).to.deep.equal({ a: 'a', b: 'b' })
+          expect(doc.data()).toEqual({ a: 'a', b: 'b' })
         );
       });
     }
@@ -220,8 +215,8 @@ apiDescribe('Database', persistence => {
         .then(() => setDoc(doc, mergeData, { merge: true }))
         .then(() => getDoc(doc))
         .then(docSnapshot => {
-          expect(docSnapshot.exists).to.be.ok;
-          expect(docSnapshot.data()).to.deep.equal(finalData);
+          expect(docSnapshot.exists).toBeTruthy();
+          expect(docSnapshot.data()).toEqual(finalData);
         });
     });
   });
@@ -239,10 +234,10 @@ apiDescribe('Database', persistence => {
         .then(() => setDoc(doc, mergeData, { merge: true }))
         .then(() => getDoc(doc))
         .then(docSnapshot => {
-          expect(docSnapshot.exists).to.be.ok;
-          expect(docSnapshot.get('updated')).to.be.false;
-          expect(docSnapshot.get('time')).to.be.an.instanceof(Timestamp);
-          expect(docSnapshot.get('nested.time')).to.be.an.instanceof(Timestamp);
+          expect(docSnapshot.exists).toBeTruthy();
+          expect(docSnapshot.get('updated')).toBe(false);
+          expect(docSnapshot.get('time')).toBeInstanceOf(Timestamp);
+          expect(docSnapshot.get('nested.time')).toBeInstanceOf(Timestamp);
         });
     });
   });
@@ -255,20 +250,18 @@ apiDescribe('Database', persistence => {
         .awaitEvent()
         .then(() => setDoc(doc, {}))
         .then(() => accumulator.awaitEvent())
-        .then(docSnapshot => expect(docSnapshot.data()).to.be.deep.equal({}))
+        .then(docSnapshot => expect(docSnapshot.data()).toEqual({}))
         .then(() => setDoc(doc, { a: {} }, { mergeFields: ['a'] }))
         .then(() => accumulator.awaitEvent())
-        .then(docSnapshot =>
-          expect(docSnapshot.data()).to.be.deep.equal({ a: {} })
-        )
+        .then(docSnapshot => expect(docSnapshot.data()).toEqual({ a: {} }))
         .then(() => setDoc(doc, { b: {} }, { merge: true }))
         .then(() => accumulator.awaitEvent())
         .then(docSnapshot =>
-          expect(docSnapshot.data()).to.be.deep.equal({ a: {}, b: {} })
+          expect(docSnapshot.data()).toEqual({ a: {}, b: {} })
         )
         .then(() => getDocFromServer(doc))
         .then(docSnapshot => {
-          expect(docSnapshot.data()).to.be.deep.equal({ a: {}, b: {} });
+          expect(docSnapshot.data()).toEqual({ a: {}, b: {} });
         });
 
       unsubscribe();
@@ -280,7 +273,7 @@ apiDescribe('Database', persistence => {
       await setDoc(doc, { a: 'a' });
       await updateDoc(doc, 'a', {});
       const docSnapshot = await getDoc(doc);
-      expect(docSnapshot.data()).to.be.deep.equal({ a: {} });
+      expect(docSnapshot.data()).toEqual({ a: {} });
     });
   });
 
@@ -289,7 +282,7 @@ apiDescribe('Database', persistence => {
       await setDoc(doc, { a: 'a' });
       await setDoc(doc, { 'a': {} }, { merge: true });
       const docSnapshot = await getDoc(doc);
-      expect(docSnapshot.data()).to.be.deep.equal({ a: {} });
+      expect(docSnapshot.data()).toEqual({ a: {} });
     });
   });
 
@@ -312,8 +305,8 @@ apiDescribe('Database', persistence => {
         .then(() => setDoc(doc, mergeData, { merge: true }))
         .then(() => getDoc(doc))
         .then(docSnapshot => {
-          expect(docSnapshot.exists).to.be.ok;
-          expect(docSnapshot.data()).to.deep.equal(finalData);
+          expect(docSnapshot.exists).toBeTruthy();
+          expect(docSnapshot.data()).toEqual(finalData);
         });
     });
   });
@@ -347,8 +340,8 @@ apiDescribe('Database', persistence => {
         )
         .then(() => getDoc(doc))
         .then(docSnapshot => {
-          expect(docSnapshot.exists).to.be.ok;
-          expect(docSnapshot.data()).to.deep.equal(finalData);
+          expect(docSnapshot.exists).toBeTruthy();
+          expect(docSnapshot.data()).toEqual(finalData);
         });
     });
   });
@@ -373,10 +366,10 @@ apiDescribe('Database', persistence => {
         )
         .then(() => getDoc(doc))
         .then(docSnapshot => {
-          expect(docSnapshot.exists).to.be.ok;
-          expect(docSnapshot.get('foo')).to.be.instanceof(Timestamp);
-          expect(docSnapshot.get('inner.foo')).to.be.instanceof(Timestamp);
-          expect(docSnapshot.get('nested.foo')).to.be.instanceof(Timestamp);
+          expect(docSnapshot.exists).toBeTruthy();
+          expect(docSnapshot.get('foo')).toBeInstanceOf(Timestamp);
+          expect(docSnapshot.get('inner.foo')).toBeInstanceOf(Timestamp);
+          expect(docSnapshot.get('nested.foo')).toBeInstanceOf(Timestamp);
         });
     });
   });
@@ -404,8 +397,8 @@ apiDescribe('Database', persistence => {
         .then(() => setDoc(doc, mergeData, { merge: true }))
         .then(() => getDoc(doc))
         .then(docSnapshot => {
-          expect(docSnapshot.exists).to.be.ok;
-          expect(docSnapshot.data()).to.deep.equal(finalData);
+          expect(docSnapshot.exists).toBeTruthy();
+          expect(docSnapshot.data()).toEqual(finalData);
         });
     });
   });
@@ -418,7 +411,7 @@ apiDescribe('Database', persistence => {
           { desc: 'NewDescription' },
           { mergeFields: ['desc', 'owner'] }
         );
-      }).to.throw(
+      }).toThrow(
         "Field 'owner' is specified in your field mask but missing from your input data."
       );
     });
@@ -437,7 +430,7 @@ apiDescribe('Database', persistence => {
         { mergeFields: ['owner'] }
       );
       const result = await getDoc(docRef);
-      expect(result.data()).to.deep.equal(finalData);
+      expect(result.data()).toEqual(finalData);
     });
   });
 
@@ -454,7 +447,7 @@ apiDescribe('Database', persistence => {
         { mergeFields: ['owner'] }
       );
       const result = await getDoc(docRef);
-      expect(result.data()).to.deep.equal(finalData);
+      expect(result.data()).toEqual(finalData);
     });
   });
 
@@ -474,7 +467,7 @@ apiDescribe('Database', persistence => {
         { mergeFields: ['owner'] }
       );
       const result = await getDoc(docRef);
-      expect(result.data()).to.deep.equal(finalData);
+      expect(result.data()).toEqual(finalData);
     });
   });
 
@@ -491,7 +484,7 @@ apiDescribe('Database', persistence => {
         { mergeFields: [] }
       );
       const result = await getDoc(docRef);
-      expect(result.data()).to.deep.equal(finalData);
+      expect(result.data()).toEqual(finalData);
     });
   });
 
@@ -514,7 +507,7 @@ apiDescribe('Database', persistence => {
         { mergeFields: ['owner.name', 'owner', 'owner'] }
       );
       const result = await getDoc(docRef);
-      expect(result.data()).to.deep.equal(finalData);
+      expect(result.data()).toEqual(finalData);
     });
   });
 
@@ -524,13 +517,13 @@ apiDescribe('Database', persistence => {
         .then(
           () => Promise.reject('update should have failed.'),
           err => {
-            expect(err.message).to.exist;
-            expect(err.code).to.equal('not-found');
+            expect(err.message).toBeDefined();
+            expect(err.code).toBe('not-found');
           }
         )
         .then(() => getDoc(doc))
         .then(docSnapshot => {
-          expect(docSnapshot.exists()).to.equal(false);
+          expect(docSnapshot.exists()).toBe(false);
         });
     });
   });
@@ -552,8 +545,8 @@ apiDescribe('Database', persistence => {
         .then(() => updateDoc(doc, updateData))
         .then(() => getDoc(doc))
         .then(docSnapshot => {
-          expect(docSnapshot.exists).to.be.ok;
-          expect(docSnapshot.data()).to.deep.equal(finalData);
+          expect(docSnapshot.exists).toBeTruthy();
+          expect(docSnapshot.data()).toEqual(finalData);
         });
     });
   });
@@ -582,8 +575,8 @@ apiDescribe('Database', persistence => {
         )
         .then(() => getDoc(doc))
         .then(docSnapshot => {
-          expect(docSnapshot.exists).to.be.ok;
-          expect(docSnapshot.data()).to.deep.equal(finalData);
+          expect(docSnapshot.exists).toBeTruthy();
+          expect(docSnapshot.data()).toEqual(finalData);
         });
     });
   });
@@ -594,7 +587,7 @@ apiDescribe('Database', persistence => {
         .then(() => updateDoc(doc, 'field', 100, new FieldPath('field'), 200))
         .then(() => getDoc(doc))
         .then(docSnap => {
-          expect(docSnap.data()).to.deep.equal({ field: 200 });
+          expect(docSnap.data()).toEqual({ field: 200 });
         });
     });
   });
@@ -616,11 +609,12 @@ apiDescribe('Database', persistence => {
         });
 
         const snap1 = await getDoc(ref);
-        expect(snap1.get('vector0').isEqual(vector([0.0]))).to.be.true;
-        expect(snap1.get('vector1').isEqual(vector([1, 2, 3.99]))).to.be.true;
-        expect(snap1.get('vector2').isEqual(vector([0, 0, 0]))).to.be.true;
-        expect(snap1.get('vector3').isEqual(vector([-1, -200, -999]))).to.be
-          .true;
+        expect(snap1.get('vector0').isEqual(vector([0.0]))).toBe(true);
+        expect(snap1.get('vector1').isEqual(vector([1, 2, 3.99]))).toBe(true);
+        expect(snap1.get('vector2').isEqual(vector([0, 0, 0]))).toBe(true);
+        expect(snap1.get('vector3').isEqual(vector([-1, -200, -999]))).toBe(
+          true
+        );
       });
     });
 
@@ -655,7 +649,7 @@ apiDescribe('Database', persistence => {
         });
 
         await initialDeferred.promise;
-        expect(document).to.be.null;
+        expect(document).toBeNull();
 
         await setDoc(ref, {
           purpose: 'vector tests',
@@ -664,10 +658,11 @@ apiDescribe('Database', persistence => {
         });
 
         await createDeferred.promise;
-        expect(document).to.be.not.null;
-        expect(document!.get('vector0').isEqual(vector([0.0]))).to.be.true;
-        expect(document!.get('vector1').isEqual(vector([1, 2, 3.99]))).to.be
-          .true;
+        expect(document).not.toBeNull();
+        expect(document!.get('vector0').isEqual(vector([0.0]))).toBe(true);
+        expect(document!.get('vector1').isEqual(vector([1, 2, 3.99]))).toBe(
+          true
+        );
 
         await setDoc(ref, {
           purpose: 'vector tests',
@@ -676,27 +671,30 @@ apiDescribe('Database', persistence => {
           vector2: vector([0, 0, 0])
         });
         await setDeferred.promise;
-        expect(document).to.be.not.null;
-        expect(document!.get('vector0').isEqual(vector([0.0]))).to.be.true;
-        expect(document!.get('vector1').isEqual(vector([1, 2, 3.99]))).to.be
-          .true;
-        expect(document!.get('vector2').isEqual(vector([0, 0, 0]))).to.be.true;
+        expect(document).not.toBeNull();
+        expect(document!.get('vector0').isEqual(vector([0.0]))).toBe(true);
+        expect(document!.get('vector1').isEqual(vector([1, 2, 3.99]))).toBe(
+          true
+        );
+        expect(document!.get('vector2').isEqual(vector([0, 0, 0]))).toBe(true);
 
         await updateDoc(ref, {
           vector3: vector([-1, -200, -999])
         });
         await updateDeferred.promise;
-        expect(document).to.be.not.null;
-        expect(document!.get('vector0').isEqual(vector([0.0]))).to.be.true;
-        expect(document!.get('vector1').isEqual(vector([1, 2, 3.99]))).to.be
-          .true;
-        expect(document!.get('vector2').isEqual(vector([0, 0, 0]))).to.be.true;
-        expect(document!.get('vector3').isEqual(vector([-1, -200, -999]))).to.be
-          .true;
+        expect(document).not.toBeNull();
+        expect(document!.get('vector0').isEqual(vector([0.0]))).toBe(true);
+        expect(document!.get('vector1').isEqual(vector([1, 2, 3.99]))).toBe(
+          true
+        );
+        expect(document!.get('vector2').isEqual(vector([0, 0, 0]))).toBe(true);
+        expect(document!.get('vector3').isEqual(vector([-1, -200, -999]))).toBe(
+          true
+        );
 
         await deleteDoc(ref);
         await deleteDeferred.promise;
-        expect(document).to.be.null;
+        expect(document).toBeNull();
 
         unlisten();
       });
@@ -756,14 +754,12 @@ apiDescribe('Database', persistence => {
 
         // Compare the snapshot (including sort order) of a snapshot
         // from Query.onSnapshot() to an actual snapshot from Query.get()
-        expect(toDataArray(watchSnapshot)).to.deep.equal(
-          toDataArray(getSnapshot)
-        );
+        expect(toDataArray(watchSnapshot)).toEqual(toDataArray(getSnapshot));
 
         // Compare the snapshot (including sort order) of a snapshot
         // from Query.onSnapshot() to the expected sort order from
         // the backend.
-        expect(toDataArray(watchSnapshot)).to.deep.equal(docsInOrder);
+        expect(toDataArray(watchSnapshot)).toEqual(docsInOrder);
       });
     });
 
@@ -841,10 +837,10 @@ apiDescribe('Database', persistence => {
         return withTestDoc(persistence, async doc => {
           // Intentionally passing bad types.
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          expect(() => setDoc(doc, val as any)).to.throw();
+          expect(() => setDoc(doc, val as any)).toThrow();
           // Intentionally passing bad types.
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          expect(() => updateDoc(doc, val as any)).to.throw();
+          expect(() => updateDoc(doc, val as any)).toThrow();
         });
       });
     }
@@ -855,7 +851,7 @@ apiDescribe('Database', persistence => {
       return addDoc(coll, { foo: 1 })
         .then(docRef => getDoc(docRef))
         .then(docSnap => {
-          expect(docSnap.data()).to.deep.equal({ foo: 1 });
+          expect(docSnap.data()).toEqual({ foo: 1 });
         });
     });
   });
@@ -883,7 +879,7 @@ apiDescribe('Database', persistence => {
           // We should have an initial snapshots-in-sync event, then a snapshot
           // event for set(), then another event to indicate we're in sync
           // again.
-          expect(events).to.deep.equal([
+          expect(events).toEqual([
             'snapshots-in-sync',
             'doc',
             'snapshots-in-sync'
@@ -904,7 +900,7 @@ apiDescribe('Database', persistence => {
       return withTestCollection(persistence, {}, async coll => {
         expect(() =>
           query(coll, where('x', '>=', 32), where('x', '<=', 'cat'))
-        ).not.to.throw();
+        ).not.toThrow();
       });
     });
 
@@ -912,7 +908,7 @@ apiDescribe('Database', persistence => {
       return withTestCollection(persistence, {}, async coll => {
         expect(() =>
           query(coll, where('x', '>=', 32), where('y', '==', 'cat'))
-        ).not.to.throw();
+        ).not.toThrow();
       });
     });
 
@@ -920,7 +916,7 @@ apiDescribe('Database', persistence => {
       return withTestCollection(persistence, {}, async coll => {
         expect(() =>
           query(coll, where('x', '>=', 32), where('y', '!=', 'cat'))
-        ).not.to.throw();
+        ).not.toThrow();
       });
     });
 
@@ -928,7 +924,7 @@ apiDescribe('Database', persistence => {
       return withTestCollection(persistence, {}, async coll => {
         expect(() =>
           query(coll, where(documentId(), '>=', 'aa'), where('x', '>=', 32))
-        ).not.to.throw();
+        ).not.toThrow();
       });
     });
 
@@ -936,7 +932,7 @@ apiDescribe('Database', persistence => {
       return withTestCollection(persistence, {}, async coll => {
         expect(() =>
           query(coll, where('x', '>=', 32), where('y', 'array-contains', 'cat'))
-        ).not.to.throw();
+        ).not.toThrow();
       });
     });
 
@@ -948,7 +944,7 @@ apiDescribe('Database', persistence => {
             where('x', '>=', 32),
             where('y', 'array-contains-any', [1, 2])
           )
-        ).not.to.throw();
+        ).not.toThrow();
       });
     });
 
@@ -961,7 +957,7 @@ apiDescribe('Database', persistence => {
             where('y', 'array-contains', 'cat'),
             where('z', '<=', 42)
           )
-        ).not.to.throw();
+        ).not.toThrow();
       });
     });
 
@@ -974,7 +970,7 @@ apiDescribe('Database', persistence => {
             where('y', 'array-contains-any', [1, 2]),
             where('z', '<=', 42)
           )
-        ).not.to.throw();
+        ).not.toThrow();
       });
     });
 
@@ -982,7 +978,7 @@ apiDescribe('Database', persistence => {
       return withTestCollection(persistence, {}, async coll => {
         expect(() =>
           query(coll, where('x', '>=', 32), where('y', 'in', [1, 2]))
-        ).not.to.throw();
+        ).not.toThrow();
       });
     });
 
@@ -995,7 +991,7 @@ apiDescribe('Database', persistence => {
             where('y', 'in', [1, 2]),
             where('z', '<=', 42)
           )
-        ).not.to.throw();
+        ).not.toThrow();
       });
     });
 
@@ -1003,7 +999,7 @@ apiDescribe('Database', persistence => {
       return withTestCollection(persistence, {}, async coll => {
         expect(() =>
           query(coll, where('x', '>=', 32), where('y', 'not-in', [1, 2]))
-        ).not.to.throw();
+        ).not.toThrow();
       });
     });
 
@@ -1016,7 +1012,7 @@ apiDescribe('Database', persistence => {
             where('y', 'not-in', [1, 2]),
             where('z', '<=', 42)
           )
-        ).not.to.throw();
+        ).not.toThrow();
       });
     });
 
@@ -1024,10 +1020,10 @@ apiDescribe('Database', persistence => {
       return withTestCollection(persistence, {}, async coll => {
         expect(() =>
           query(coll, where('x', '>', 32), orderBy('x'))
-        ).not.to.throw();
+        ).not.toThrow();
         expect(() =>
           query(coll, orderBy('x'), where('x', '>', 32))
-        ).not.to.throw();
+        ).not.toThrow();
       });
     });
 
@@ -1035,10 +1031,10 @@ apiDescribe('Database', persistence => {
       return withTestCollection(persistence, {}, async coll => {
         expect(() =>
           query(coll, where('x', '!=', 32), orderBy('x'))
-        ).not.to.throw();
+        ).not.toThrow();
         expect(() =>
           query(coll, orderBy('x'), where('x', '!=', 32))
-        ).not.to.throw();
+        ).not.toThrow();
       });
     });
 
@@ -1046,7 +1042,7 @@ apiDescribe('Database', persistence => {
       return withTestCollection(persistence, {}, async coll => {
         expect(() =>
           query(coll, orderBy('x'), where('y', '==', 'cat'))
-        ).not.to.throw();
+        ).not.toThrow();
       });
     });
 
@@ -1054,16 +1050,16 @@ apiDescribe('Database', persistence => {
       return withTestCollection(persistence, {}, async coll => {
         expect(() =>
           query(coll, where('x', '>', 32), orderBy('y'))
-        ).not.to.throw();
+        ).not.toThrow();
         expect(() =>
           query(coll, orderBy('y'), where('x', '>', 32))
-        ).not.to.throw();
+        ).not.toThrow();
         expect(() =>
           query(coll, where('x', '>', 32), orderBy('y'), orderBy('z'))
-        ).not.to.throw();
+        ).not.toThrow();
         expect(() =>
           query(coll, orderBy('y'), where('x', '>', 32), orderBy('x'))
-        ).not.to.throw();
+        ).not.toThrow();
       });
     });
 
@@ -1076,7 +1072,7 @@ apiDescribe('Database', persistence => {
             where('y', '!=', 'cat'),
             orderBy('z')
           )
-        ).not.to.throw();
+        ).not.toThrow();
         expect(() =>
           query(
             coll,
@@ -1084,7 +1080,7 @@ apiDescribe('Database', persistence => {
             where('x', '>', 32),
             where('y', '!=', 'cat')
           )
-        ).not.to.throw();
+        ).not.toThrow();
       });
     });
 
@@ -1092,7 +1088,7 @@ apiDescribe('Database', persistence => {
       return withTestCollection(persistence, {}, async coll => {
         expect(() =>
           query(coll, orderBy('x'), where('y', 'array-contains', 'cat'))
-        ).not.to.throw();
+        ).not.toThrow();
       });
     });
 
@@ -1100,7 +1096,7 @@ apiDescribe('Database', persistence => {
       return withTestCollection(persistence, {}, async coll => {
         expect(() =>
           query(coll, orderBy('x'), where('y', 'in', [1, 2]))
-        ).not.to.throw();
+        ).not.toThrow();
       });
     });
 
@@ -1108,7 +1104,7 @@ apiDescribe('Database', persistence => {
       return withTestCollection(persistence, {}, async coll => {
         expect(() =>
           query(coll, orderBy('x'), where('y', 'array-contains-any', [1, 2]))
-        ).not.to.throw();
+        ).not.toThrow();
       });
     });
   });
@@ -1119,8 +1115,8 @@ apiDescribe('Database', persistence => {
       const storeEvent = new EventsAccumulator<DocumentSnapshot>();
       onSnapshot(docA, storeEvent.storeEvent);
       return storeEvent.awaitEvent().then(snap => {
-        expect(snap.exists()).to.be.false;
-        expect(snap.data()).to.equal(undefined);
+        expect(snap.exists()).toBe(false);
+        expect(snap.data()).toBe(undefined);
         return storeEvent.assertNoAdditionalEvents();
       });
     });
@@ -1134,20 +1130,20 @@ apiDescribe('Database', persistence => {
       return storeEvent
         .awaitEvent()
         .then(snap => {
-          expect(snap.exists()).to.be.false;
-          expect(snap.data()).to.equal(undefined);
+          expect(snap.exists()).toBe(false);
+          expect(snap.data()).toBe(undefined);
         })
         .then(() => setDoc(docA, { a: 1 }))
         .then(() => storeEvent.awaitEvent())
         .then(snap => {
-          expect(snap.exists()).to.be.true;
-          expect(snap.data()).to.deep.equal({ a: 1 });
-          expect(snap.metadata.hasPendingWrites).to.be.true;
+          expect(snap.exists()).toBe(true);
+          expect(snap.data()).toEqual({ a: 1 });
+          expect(snap.metadata.hasPendingWrites).toBe(true);
         })
         .then(() => storeEvent.awaitEvent())
         .then(snap => {
-          expect(snap.exists()).to.be.true;
-          expect(snap.data()).to.deep.equal({ a: 1 });
+          expect(snap.exists()).toBe(true);
+          expect(snap.data()).toEqual({ a: 1 });
           // This event could be a metadata change for fromCache as well.
           // We comment this line out to reduce flakiness.
           // TODO(b/295872012): Figure out a way to check for all scenarios.
@@ -1167,18 +1163,18 @@ apiDescribe('Database', persistence => {
       return storeEvent
         .awaitEvent()
         .then(snap => {
-          expect(snap.data()).to.deep.equal(initialData);
-          expect(snap.metadata.hasPendingWrites).to.be.false;
+          expect(snap.data()).toEqual(initialData);
+          expect(snap.metadata.hasPendingWrites).toBe(false);
         })
         .then(() => setDoc(doc1, changedData))
         .then(() => storeEvent.awaitEvent())
         .then(snap => {
-          expect(snap.data()).to.deep.equal(changedData);
-          expect(snap.metadata.hasPendingWrites).to.be.true;
+          expect(snap.data()).toEqual(changedData);
+          expect(snap.metadata.hasPendingWrites).toBe(true);
         })
         .then(() => storeEvent.awaitEvent())
         .then(snap => {
-          expect(snap.data()).to.deep.equal(changedData);
+          expect(snap.data()).toEqual(changedData);
           // This event could be a metadata change for fromCache as well.
           // We comment this line out to reduce flakiness.
           // TODO(b/295872012): Figure out a way to check for all scenarios.
@@ -1197,16 +1193,16 @@ apiDescribe('Database', persistence => {
       return storeEvent
         .awaitEvent()
         .then(snap => {
-          expect(snap.exists()).to.be.true;
-          expect(snap.data()).to.deep.equal(initialData);
-          expect(snap.metadata.hasPendingWrites).to.be.false;
+          expect(snap.exists()).toBe(true);
+          expect(snap.data()).toEqual(initialData);
+          expect(snap.metadata.hasPendingWrites).toBe(false);
         })
         .then(() => deleteDoc(doc1))
         .then(() => storeEvent.awaitEvent())
         .then(snap => {
-          expect(snap.exists()).to.be.false;
-          expect(snap.data()).to.equal(undefined);
-          expect(snap.metadata.hasPendingWrites).to.be.false;
+          expect(snap.exists()).toBe(false);
+          expect(snap.data()).toBe(undefined);
+          expect(snap.metadata.hasPendingWrites).toBe(false);
         })
         .then(() => storeEvent.assertNoAdditionalEvents());
     });
@@ -1247,14 +1243,14 @@ apiDescribe('Database', persistence => {
             .awaitEvent()
             .then(snap => {
               console.error('DEDB accumulator event 1');
-              expect(snap.exists()).to.be.true;
-              expect(snap.data()).to.deep.equal(initialData);
+              expect(snap.exists()).toBe(true);
+              expect(snap.data()).toEqual(initialData);
             })
             .then(() => setDoc(docRef, finalData))
             .then(() => accumulator.awaitEvent())
             .then(snap => {
-              expect(snap.exists()).to.be.true;
-              expect(snap.data()).to.deep.equal(finalData);
+              expect(snap.exists()).toBe(true);
+              expect(snap.data()).toEqual(finalData);
             });
           unsubscribe();
         }
@@ -1280,14 +1276,14 @@ apiDescribe('Database', persistence => {
           await accumulator
             .awaitEvent()
             .then(snap => {
-              expect(snap.exists()).to.be.true;
-              expect(snap.data()).to.deep.equal(initialData);
+              expect(snap.exists()).toBe(true);
+              expect(snap.data()).toEqual(initialData);
             })
             .then(() => setDoc(docRef, finalData))
             .then(() => accumulator.awaitEvent())
             .then(snap => {
-              expect(snap.exists()).to.be.true;
-              expect(snap.data()).to.deep.equal(finalData);
+              expect(snap.exists()).toBe(true);
+              expect(snap.data()).toEqual(finalData);
             });
           unsubscribe();
         }
@@ -1311,14 +1307,14 @@ apiDescribe('Database', persistence => {
           await accumulator
             .awaitEvent()
             .then(snap => {
-              expect(snap.exists()).to.be.true;
-              expect(snap.data()).to.deep.equal(initialData);
+              expect(snap.exists()).toBe(true);
+              expect(snap.data()).toEqual(initialData);
             })
             .then(() => setDoc(docRef, finalData))
             .then(() => accumulator.awaitEvent())
             .then(snap => {
-              expect(snap.exists()).to.be.true;
-              expect(snap.data()).to.deep.equal(finalData);
+              expect(snap.exists()).toBe(true);
+              expect(snap.data()).toEqual(finalData);
             });
           unsubscribe();
         }
@@ -1338,12 +1334,12 @@ apiDescribe('Database', persistence => {
         db,
         json,
         ds => {
-          expect(ds).to.not.exist;
+          expect(ds).toBeFalsy();
           deferred.resolve();
         },
         err => {
-          expect(err.name).to.exist;
-          expect(err.message).to.exist;
+          expect(err.name).toBeDefined();
+          expect(err.message).toBeDefined();
           deferred.resolve();
         }
       );
@@ -1362,12 +1358,12 @@ apiDescribe('Database', persistence => {
       const deferred = new Deferred();
       const unsubscribe = onSnapshotResume(db, json, {
         next: ds => {
-          expect(ds).to.not.exist;
+          expect(ds).toBeFalsy();
           deferred.resolve();
         },
         error: err => {
-          expect(err.name).to.exist;
-          expect(err.message).to.exist;
+          expect(err.name).toBeDefined();
+          expect(err.message).toBeDefined();
           deferred.resolve();
         }
       });
@@ -1395,14 +1391,14 @@ apiDescribe('Database', persistence => {
           await accumulator
             .awaitEvent()
             .then(snap => {
-              expect(snap.exists()).to.be.true;
-              expect(snap.data()).to.deep.equal(initialData);
+              expect(snap.exists()).toBe(true);
+              expect(snap.data()).toEqual(initialData);
             })
             .then(() => setDoc(docRef, finalData))
             .then(() => accumulator.awaitEvent())
             .then(snap => {
-              expect(snap.exists()).to.be.true;
-              expect(snap.data()).to.deep.equal(finalData);
+              expect(snap.exists()).toBe(true);
+              expect(snap.data()).toEqual(finalData);
             });
           unsubscribe();
         }
@@ -1428,14 +1424,14 @@ apiDescribe('Database', persistence => {
           await accumulator
             .awaitEvent()
             .then(snap => {
-              expect(snap.exists()).to.be.true;
-              expect(snap.data()).to.deep.equal(initialData);
+              expect(snap.exists()).toBe(true);
+              expect(snap.data()).toEqual(initialData);
             })
             .then(() => setDoc(docRef, finalData))
             .then(() => accumulator.awaitEvent())
             .then(snap => {
-              expect(snap.exists()).to.be.true;
-              expect(snap.data()).to.deep.equal(finalData);
+              expect(snap.exists()).toBe(true);
+              expect(snap.data()).toEqual(finalData);
             });
           unsubscribe();
         }
@@ -1458,10 +1454,10 @@ apiDescribe('Database', persistence => {
           accumulator.storeEvent
         );
         await accumulator.awaitEvent().then(snap => {
-          expect(snap.docs).not.to.be.null;
-          expect(snap.docs.length).to.equal(2);
-          expect(snap.docs[0].data()).to.deep.equal(testDocs.a);
-          expect(snap.docs[1].data()).to.deep.equal(testDocs.b);
+          expect(snap.docs).not.toBeNull();
+          expect(snap.docs.length).toBe(2);
+          expect(snap.docs[0].data()).toEqual(testDocs.a);
+          expect(snap.docs[1].data()).toEqual(testDocs.b);
         });
         unsubscribe();
       });
@@ -1481,10 +1477,10 @@ apiDescribe('Database', persistence => {
           next: accumulator.storeEvent
         });
         await accumulator.awaitEvent().then(snap => {
-          expect(snap.docs).not.to.be.null;
-          expect(snap.docs.length).to.equal(2);
-          expect(snap.docs[0].data()).to.deep.equal(testDocs.a);
-          expect(snap.docs[1].data()).to.deep.equal(testDocs.b);
+          expect(snap.docs).not.toBeNull();
+          expect(snap.docs.length).toBe(2);
+          expect(snap.docs[0].data()).toEqual(testDocs.a);
+          expect(snap.docs[1].data()).toEqual(testDocs.b);
         });
         unsubscribe();
       });
@@ -1503,12 +1499,12 @@ apiDescribe('Database', persistence => {
         db,
         json,
         qs => {
-          expect(qs).to.not.exist;
+          expect(qs).toBeFalsy();
           deferred.resolve();
         },
         err => {
-          expect(err.name).to.exist;
-          expect(err.message).to.exist;
+          expect(err.name).toBeDefined();
+          expect(err.message).toBeDefined();
           deferred.resolve();
         }
       );
@@ -1527,12 +1523,12 @@ apiDescribe('Database', persistence => {
       const deferred = new Deferred();
       const unsubscribe = onSnapshotResume(db, json, {
         next: qs => {
-          expect(qs).to.not.exist;
+          expect(qs).toBeFalsy();
           deferred.resolve();
         },
         error: err => {
-          expect(err.name).to.exist;
-          expect(err.message).to.exist;
+          expect(err.name).toBeDefined();
+          expect(err.message).toBeDefined();
           deferred.resolve();
         }
       });
@@ -1559,18 +1555,18 @@ apiDescribe('Database', persistence => {
         await accumulator
           .awaitEvent()
           .then(snap => {
-            expect(snap.docs).not.to.be.null;
-            expect(snap.docs.length).to.equal(2);
-            expect(snap.docs[0].data()).to.deep.equal(testDocs.a);
-            expect(snap.docs[1].data()).to.deep.equal(testDocs.b);
+            expect(snap.docs).not.toBeNull();
+            expect(snap.docs.length).toBe(2);
+            expect(snap.docs[0].data()).toEqual(testDocs.a);
+            expect(snap.docs[1].data()).toEqual(testDocs.b);
           })
           .then(() => setDoc(refForDocA, { foo: 0 }))
           .then(() => accumulator.awaitEvent())
           .then(snap => {
-            expect(snap.docs).not.to.be.null;
-            expect(snap.docs.length).to.equal(2);
-            expect(snap.docs[0].data()).to.deep.equal({ foo: 0 });
-            expect(snap.docs[1].data()).to.deep.equal(testDocs.b);
+            expect(snap.docs).not.toBeNull();
+            expect(snap.docs.length).toBe(2);
+            expect(snap.docs[0].data()).toEqual({ foo: 0 });
+            expect(snap.docs[1].data()).toEqual(testDocs.b);
           });
         unsubscribe();
       });
@@ -1597,18 +1593,18 @@ apiDescribe('Database', persistence => {
         await accumulator
           .awaitEvent()
           .then(snap => {
-            expect(snap.docs).not.to.be.null;
-            expect(snap.docs.length).to.equal(2);
-            expect(snap.docs[0].data()).to.deep.equal(testDocs.a);
-            expect(snap.docs[1].data()).to.deep.equal(testDocs.b);
+            expect(snap.docs).not.toBeNull();
+            expect(snap.docs.length).toBe(2);
+            expect(snap.docs[0].data()).toEqual(testDocs.a);
+            expect(snap.docs[1].data()).toEqual(testDocs.b);
           })
           .then(() => setDoc(refForDocA, { foo: 0 }))
           .then(() => accumulator.awaitEvent())
           .then(snap => {
-            expect(snap.docs).not.to.be.null;
-            expect(snap.docs.length).to.equal(2);
-            expect(snap.docs[0].data()).to.deep.equal({ foo: 0 });
-            expect(snap.docs[1].data()).to.deep.equal(testDocs.b);
+            expect(snap.docs).not.toBeNull();
+            expect(snap.docs.length).toBe(2);
+            expect(snap.docs[0].data()).toEqual({ foo: 0 });
+            expect(snap.docs[1].data()).toEqual(testDocs.b);
           });
         unsubscribe();
       });
@@ -1633,18 +1629,18 @@ apiDescribe('Database', persistence => {
         await accumulator
           .awaitEvent()
           .then(snap => {
-            expect(snap.docs).not.to.be.null;
-            expect(snap.docs.length).to.equal(2);
-            expect(snap.docs[0].data()).to.deep.equal(testDocs.a);
-            expect(snap.docs[1].data()).to.deep.equal(testDocs.b);
+            expect(snap.docs).not.toBeNull();
+            expect(snap.docs.length).toBe(2);
+            expect(snap.docs[0].data()).toEqual(testDocs.a);
+            expect(snap.docs[1].data()).toEqual(testDocs.b);
           })
           .then(() => setDoc(refForDocA, { foo: 0 }))
           .then(() => accumulator.awaitEvent())
           .then(snap => {
-            expect(snap.docs).not.to.be.null;
-            expect(snap.docs.length).to.equal(2);
-            expect(snap.docs[0].data()).to.deep.equal({ foo: 0 });
-            expect(snap.docs[1].data()).to.deep.equal(testDocs.b);
+            expect(snap.docs).not.toBeNull();
+            expect(snap.docs.length).toBe(2);
+            expect(snap.docs[0].data()).toEqual({ foo: 0 });
+            expect(snap.docs[1].data()).toEqual(testDocs.b);
           });
         unsubscribe();
       });
@@ -1659,9 +1655,9 @@ apiDescribe('Database', persistence => {
         if (doc) {
           count++;
           if (count === 1) {
-            expect(doc.data()).to.deep.equal({ a: 1 });
+            expect(doc.data()).toEqual({ a: 1 });
           } else {
-            expect(doc.data()).to.deep.equal({ b: 1 });
+            expect(doc.data()).toEqual({ b: 1 });
             secondUpdateFound.resolve();
           }
         }
@@ -1690,8 +1686,8 @@ apiDescribe('Database', persistence => {
           queryForRejection,
           () => {},
           (err: Error) => {
-            expect(err.name).to.exist;
-            expect(err.message).to.exist;
+            expect(err.name).toBeDefined();
+            expect(err.message).toBeDefined();
             deferred.resolve();
           }
         );
@@ -1707,14 +1703,14 @@ apiDescribe('Database', persistence => {
           queryForRejection,
           () => {},
           (err: Error) => {
-            expect(err.name).to.exist;
-            expect(err.message).to.exist;
+            expect(err.name).toBeDefined();
+            expect(err.message).toBeDefined();
             onSnapshot(
               queryForRejection,
               () => {},
               (err2: Error) => {
-                expect(err2.name).to.exist;
-                expect(err2.message).to.exist;
+                expect(err2.name).toBeDefined();
+                expect(err2.message).toBeDefined();
                 deferred.resolve();
               }
             );
@@ -1732,8 +1728,8 @@ apiDescribe('Database', persistence => {
             expect.fail('Promise resolved even though error was expected.');
           },
           err => {
-            expect(err.name).to.exist;
-            expect(err.message).to.exist;
+            expect(err.name).toBeDefined();
+            expect(err.message).toBeDefined();
           }
         );
       });
@@ -1748,8 +1744,8 @@ apiDescribe('Database', persistence => {
               expect.fail('Promise resolved even though error was expected.');
             },
             err => {
-              expect(err.name).to.exist;
-              expect(err.message).to.exist;
+              expect(err.name).toBeDefined();
+              expect(err.message).toBeDefined();
             }
           )
           .then(() => getDocs(queryForRejection))
@@ -1758,8 +1754,8 @@ apiDescribe('Database', persistence => {
               expect.fail('Promise resolved even though error was expected.');
             },
             err => {
-              expect(err.name).to.exist;
-              expect(err.message).to.exist;
+              expect(err.name).toBeDefined();
+              expect(err.message).toBeDefined();
             }
           );
       });
@@ -1768,13 +1764,13 @@ apiDescribe('Database', persistence => {
 
   it('exposes "firestore" on document references.', () => {
     return withTestDb(persistence, async db => {
-      expect(doc(db, 'foo/bar').firestore).to.equal(db);
+      expect(doc(db, 'foo/bar').firestore).toBe(db);
     });
   });
 
   it('exposes "firestore" on query references.', () => {
     return withTestDb(persistence, async db => {
-      expect(query(collection(db, 'foo'), limit(5)).firestore).to.equal(db);
+      expect(query(collection(db, 'foo'), limit(5)).firestore).toBe(db);
     });
   });
 
@@ -1782,12 +1778,12 @@ apiDescribe('Database', persistence => {
     return withTestDb(persistence, firestore => {
       return withTestDb(persistence, async otherFirestore => {
         const docRef = doc(firestore, 'foo/bar');
-        expect(refEqual(docRef, doc(firestore, 'foo/bar'))).to.be.true;
-        expect(refEqual(collection(docRef, 'baz').parent!, docRef)).to.be.true;
+        expect(refEqual(docRef, doc(firestore, 'foo/bar'))).toBe(true);
+        expect(refEqual(collection(docRef, 'baz').parent!, docRef)).toBe(true);
 
-        expect(refEqual(doc(firestore, 'foo/BAR'), docRef)).to.be.false;
+        expect(refEqual(doc(firestore, 'foo/BAR'), docRef)).toBe(false);
 
-        expect(refEqual(doc(otherFirestore, 'foo/bar'), docRef)).to.be.false;
+        expect(refEqual(doc(otherFirestore, 'foo/bar'), docRef)).toBe(false);
       });
     });
   });
@@ -1805,21 +1801,21 @@ apiDescribe('Database', persistence => {
           orderBy('bar'),
           where('baz', '==', 42)
         );
-        expect(queryEqual(query1, query2)).to.be.true;
+        expect(queryEqual(query1, query2)).toBe(true);
 
         const query3 = query(
           collection(firestore, 'foo'),
           orderBy('BAR'),
           where('baz', '==', 42)
         );
-        expect(queryEqual(query1, query3)).to.be.false;
+        expect(queryEqual(query1, query3)).toBe(false);
 
         const query4 = query(
           collection(otherFirestore, 'foo'),
           orderBy('bar'),
           where('baz', '==', 42)
         );
-        expect(queryEqual(query4, query1)).to.be.false;
+        expect(queryEqual(query4, query1)).toBe(false);
       });
     });
   });
@@ -1838,7 +1834,7 @@ apiDescribe('Database', persistence => {
         where('y', '!=', 42),
         orderBy('z')
       );
-      expect(queryEqual(query1, query2)).to.be.true;
+      expect(queryEqual(query1, query2)).toBe(true);
 
       // Inequality fields in different order
       const query3 = query(
@@ -1847,7 +1843,7 @@ apiDescribe('Database', persistence => {
         where('x', '>=', 42),
         orderBy('z')
       );
-      expect(queryEqual(query1, query3)).to.be.false;
+      expect(queryEqual(query1, query3)).toBe(false);
     });
   });
 
@@ -1855,31 +1851,29 @@ apiDescribe('Database', persistence => {
     return withTestDb(persistence, async db => {
       const expected = 'a/b/c/d';
       // doc path from root Firestore.
-      expect(doc(db, 'a/b/c/d').path).to.deep.equal(expected);
+      expect(doc(db, 'a/b/c/d').path).toEqual(expected);
       // collection path from root Firestore.
-      expect(doc(collection(db, 'a/b/c'), 'd').path).to.deep.equal(expected);
+      expect(doc(collection(db, 'a/b/c'), 'd').path).toEqual(expected);
       // doc path from CollectionReference.
-      expect(doc(collection(db, 'a'), 'b/c/d').path).to.deep.equal(expected);
+      expect(doc(collection(db, 'a'), 'b/c/d').path).toEqual(expected);
       // collection path from DocumentReference.
-      expect(collection(doc(db, 'a/b'), 'c/d/e').path).to.deep.equal(
-        expected + '/e'
-      );
+      expect(collection(doc(db, 'a/b'), 'c/d/e').path).toEqual(expected + '/e');
     });
   });
 
   it('can traverse collection and document parents.', () => {
     return withTestDb(persistence, async db => {
       let coll = collection(db, 'a/b/c');
-      expect(coll.path).to.deep.equal('a/b/c');
+      expect(coll.path).toEqual('a/b/c');
 
       const doc = coll.parent!;
-      expect(doc.path).to.deep.equal('a/b');
+      expect(doc.path).toEqual('a/b');
 
       coll = doc.parent;
-      expect(coll.path).to.equal('a');
+      expect(coll.path).toBe('a');
 
       const nullDoc = coll.parent;
-      expect(nullDoc).to.equal(null);
+      expect(nullDoc).toBe(null);
     });
   });
 
@@ -1894,7 +1888,7 @@ apiDescribe('Database', persistence => {
         )
         .then(() => getDoc(docRef))
         .then(doc => {
-          expect(doc.data()).to.deep.equal({ foo: 'bar' });
+          expect(doc.data()).toEqual({ foo: 'bar' });
         });
     });
   });
@@ -1926,8 +1920,8 @@ apiDescribe('Database', persistence => {
         await waitForPendingWrites(firestore2);
         const doc2 = await getDoc(doc(firestore2, docRef.path));
 
-        expect(doc2.exists()).to.be.true;
-        expect(doc2.metadata.hasPendingWrites).to.be.false;
+        expect(doc2.exists()).toBe(true);
+        expect(doc2.metadata.hasPendingWrites).toBe(false);
       });
     }
   );
@@ -1938,7 +1932,7 @@ apiDescribe('Database', persistence => {
         expect(() => {
           // eslint-disable-next-line @typescript-eslint/no-floating-promises
           disableNetwork(db);
-        }).to.throw('The client has already been terminated.');
+        }).toThrow('The client has already been terminated.');
       });
     });
   });
@@ -1971,7 +1965,7 @@ apiDescribe('Database', persistence => {
         await enableIndexedDbPersistence(firestore2);
         const docRef2 = doc(firestore2, docRef.path);
         const docSnap2 = await getDocFromCache(docRef2);
-        expect(docSnap2.exists()).to.be.true;
+        expect(docSnap2.exists()).toBe(true);
       });
     }
   );
@@ -1993,7 +1987,7 @@ apiDescribe('Database', persistence => {
         );
         await enableIndexedDbPersistence(firestore2);
         const docRef2 = doc(firestore2, docRef.path);
-        await expect(getDocFromCache(docRef2)).to.eventually.be.rejectedWith(
+        await expect(getDocFromCache(docRef2)).rejects.toThrow(
           'Failed to get document from cache.'
         );
       });
@@ -2017,7 +2011,7 @@ apiDescribe('Database', persistence => {
         await clearIndexedDbPersistence(firestore2);
         await enableIndexedDbPersistence(firestore2);
         const docRef2 = doc(firestore2, docRef.path);
-        await expect(getDocFromCache(docRef2)).to.eventually.be.rejectedWith(
+        await expect(getDocFromCache(docRef2)).rejects.toThrow(
           'Failed to get document from cache.'
         );
       });
@@ -2033,7 +2027,7 @@ apiDescribe('Database', persistence => {
         const expectedError =
           'Persistence can only be cleared before a Firestore instance is ' +
           'initialized or after it is terminated.';
-        expect(() => clearIndexedDbPersistence(firestore)).to.throw(
+        expect(() => clearIndexedDbPersistence(firestore)).toThrow(
           expectedError
         );
       });
@@ -2043,20 +2037,20 @@ apiDescribe('Database', persistence => {
   it('can get documents while offline', async () => {
     await withTestDoc(persistence, async (docRef, firestore) => {
       await disableNetwork(firestore);
-      await expect(getDoc(docRef)).to.eventually.be.rejectedWith(
+      await expect(getDoc(docRef)).rejects.toThrow(
         'Failed to get document because the client is offline.'
       );
 
       const writePromise = setDoc(docRef, { foo: 'bar' });
       const doc = await getDoc(docRef);
-      expect(doc.metadata.fromCache).to.be.true;
+      expect(doc.metadata.fromCache).toBe(true);
 
       await enableNetwork(firestore);
       await writePromise;
 
       const doc2 = await getDoc(docRef);
-      expect(doc2.metadata.fromCache).to.be.false;
-      expect(doc2.data()).to.deep.equal({ foo: 'bar' });
+      expect(doc2.metadata.fromCache).toBe(false);
+      expect(doc2.data()).toEqual({ foo: 'bar' });
     });
   });
 
@@ -2078,13 +2072,13 @@ apiDescribe('Database', persistence => {
       await terminate(firestore);
 
       const newFirestore = initializeFirestore(app, DEFAULT_SETTINGS);
-      expect(newFirestore).to.not.equal(firestore);
+      expect(newFirestore).not.toBe(firestore);
 
       // New instance functions.
       const docRef2 = doc(newFirestore, docRef.path);
       await setDoc(docRef2, { foo: 'bar' });
       const docSnap = await getDoc(docRef2);
-      expect(docSnap.data()).to.deep.equal({ foo: 'bar' });
+      expect(docSnap.data()).toEqual({ foo: 'bar' });
     });
   });
 
@@ -2095,7 +2089,7 @@ apiDescribe('Database', persistence => {
       expect(() => {
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         setDoc(doc(firestore, docRef.path), { foo: 'bar' });
-      }).to.throw('The client has already been terminated.');
+      }).toThrow('The client has already been terminated.');
     });
   });
 
@@ -2107,7 +2101,7 @@ apiDescribe('Database', persistence => {
       expect(() => {
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         setDoc(doc(firestore, docRef.path), { foo: 'bar' });
-      }).to.throw();
+      }).toThrow();
     });
   });
 
@@ -2133,16 +2127,17 @@ apiDescribe('Database', persistence => {
       // @ts-ignore internal API usage
       await firestore._restart();
 
-      await expect(deferred.promise)
-        .to.eventually.haveOwnProperty('message')
-        .equal('Firestore shutting down');
+      await expect(deferred.promise).resolves.toHaveProperty(
+        'message',
+        'Firestore shutting down'
+      );
 
       // Call should proceed without error.
       unsubscribe();
 
       await setDoc(docRef, { foo: 'bar' });
       const docSnap = await getDoc(docRef);
-      expect(docSnap.data()).to.deep.equal({ foo: 'bar' });
+      expect(docSnap.data()).toEqual({ foo: 'bar' });
     });
   });
 
@@ -2153,9 +2148,10 @@ apiDescribe('Database', persistence => {
 
       await terminate(firestore);
 
-      await expect(deferred.promise)
-        .to.eventually.haveOwnProperty('message')
-        .equal('Firestore shutting down');
+      await expect(deferred.promise).resolves.toHaveProperty(
+        'message',
+        'Firestore shutting down'
+      );
 
       // Call should proceed without error.
       unsubscribe();
@@ -2207,7 +2203,7 @@ apiDescribe('Database', persistence => {
         return { title: post.title, author: post.author };
       },
       fromFirestore(snapshot: QueryDocumentSnapshot): Post {
-        expect(snapshot).to.be.an.instanceof(QueryDocumentSnapshot);
+        expect(snapshot).toBeInstanceOf(QueryDocumentSnapshot);
         const data = snapshot.data();
         return new Post(data.title, data.author, snapshot.ref);
       }
@@ -2219,9 +2215,9 @@ apiDescribe('Database', persistence => {
         options?: SetOptions
       ): DocumentData {
         if (options && ('merge' in options || 'mergeFields' in options)) {
-          expect(post).to.not.be.an.instanceof(Post);
+          expect(post).not.toBeInstanceOf(Post);
         } else {
-          expect(post).to.be.an.instanceof(Post);
+          expect(post).toBeInstanceOf(Post);
         }
         const result: DocumentData = {};
         if (post.title) {
@@ -2247,8 +2243,8 @@ apiDescribe('Database', persistence => {
         await setDoc(docRef, new Post('post', 'author'));
         const postData = await getDoc(docRef);
         const post = postData.data();
-        expect(post).to.not.equal(undefined);
-        expect(post!.byline()).to.equal('post, by author');
+        expect(post).not.toBe(undefined);
+        expect(post!.byline()).toBe('post, by author');
       });
     });
 
@@ -2258,7 +2254,7 @@ apiDescribe('Database', persistence => {
           .withConverter(postConverter)
           .withConverter(null);
 
-        expect(() => setDoc(docRef, new Post('post', 'author'))).to.throw();
+        expect(() => setDoc(docRef, new Post('post', 'author'))).toThrow();
       });
     });
 
@@ -2269,8 +2265,8 @@ apiDescribe('Database', persistence => {
         const docRef = await addDoc(coll, new Post('post', 'author'));
         const postData = await getDoc(docRef);
         const post = postData.data();
-        expect(post).to.not.equal(undefined);
-        expect(post!.byline()).to.equal('post, by author');
+        expect(post).not.toBe(undefined);
+        expect(post!.byline()).toBe('post, by author');
       });
     });
 
@@ -2280,7 +2276,7 @@ apiDescribe('Database', persistence => {
           .withConverter(postConverter)
           .withConverter(null);
 
-        expect(() => addDoc(coll, new Post('post', 'author'))).to.throw();
+        expect(() => addDoc(coll, new Post('post', 'author'))).toThrow();
       });
     });
 
@@ -2297,8 +2293,8 @@ apiDescribe('Database', persistence => {
         const posts = await getDocs(
           collectionGroup(db, 'postings').withConverter(postConverter)
         );
-        expect(posts.size).to.equal(2);
-        expect(posts.docs[0].data()!.byline()).to.equal('post1, by author1');
+        expect(posts.size).toBe(2);
+        expect(posts.docs[0].data()!.byline()).toBe('post1, by author1');
       });
     });
 
@@ -2313,7 +2309,7 @@ apiDescribe('Database', persistence => {
             .withConverter(postConverter)
             .withConverter(null)
         );
-        expect(posts.docs[0].data()).to.not.be.an.instanceof(Post);
+        expect(posts.docs[0].data()).not.toBeInstanceOf(Post);
       });
     });
 
@@ -2324,7 +2320,7 @@ apiDescribe('Database', persistence => {
         const batch = writeBatch(db);
         expect(() =>
           batch.set(ref, { title: 'olive' }, { merge: true })
-        ).to.throw(
+        ).toThrow(
           'Function WriteBatch.set() called with invalid ' +
             'data (via `toFirestore()`). Unsupported field value: undefined ' +
             '(found in field author in document posts/some-post)'
@@ -2342,8 +2338,8 @@ apiDescribe('Database', persistence => {
         batch.set(ref, { title: 'olive' }, { merge: true });
         await batch.commit();
         const docSnap = await getDoc(ref);
-        expect(docSnap.get('title')).to.equal('olive');
-        expect(docSnap.get('author')).to.equal('author');
+        expect(docSnap.get('title')).toBe('olive');
+        expect(docSnap.get('author')).toBe('author');
       });
     });
 
@@ -2361,8 +2357,8 @@ apiDescribe('Database', persistence => {
         );
         await batch.commit();
         const docSnap = await getDoc(ref);
-        expect(docSnap.get('title')).to.equal('olive');
-        expect(docSnap.get('author')).to.equal('author');
+        expect(docSnap.get('title')).toBe('olive');
+        expect(docSnap.get('author')).toBe('author');
       });
     });
 
@@ -2376,8 +2372,8 @@ apiDescribe('Database', persistence => {
           tx.set(ref, { title: 'olive' }, { merge: true });
         });
         const docSnap = await getDoc(ref);
-        expect(docSnap.get('title')).to.equal('olive');
-        expect(docSnap.get('author')).to.equal('author');
+        expect(docSnap.get('title')).toBe('olive');
+        expect(docSnap.get('author')).toBe('author');
       });
     });
 
@@ -2395,8 +2391,8 @@ apiDescribe('Database', persistence => {
           );
         });
         const docSnap = await getDoc(ref);
-        expect(docSnap.get('title')).to.equal('olive');
-        expect(docSnap.get('author')).to.equal('author');
+        expect(docSnap.get('title')).toBe('olive');
+        expect(docSnap.get('author')).toBe('author');
       });
     });
 
@@ -2408,8 +2404,8 @@ apiDescribe('Database', persistence => {
         await setDoc(ref, new Post('walnut', 'author'));
         await setDoc(ref, { title: 'olive' }, { merge: true });
         const docSnap = await getDoc(ref);
-        expect(docSnap.get('title')).to.equal('olive');
-        expect(docSnap.get('author')).to.equal('author');
+        expect(docSnap.get('title')).toBe('olive');
+        expect(docSnap.get('author')).toBe('author');
       });
     });
 
@@ -2425,8 +2421,8 @@ apiDescribe('Database', persistence => {
           { mergeFields: ['title'] }
         );
         const docSnap = await getDoc(ref);
-        expect(docSnap.get('title')).to.equal('olive');
-        expect(docSnap.get('author')).to.equal('author');
+        expect(docSnap.get('title')).toBe('olive');
+        expect(docSnap.get('author')).toBe('author');
       });
     });
 
@@ -2441,7 +2437,7 @@ apiDescribe('Database', persistence => {
             // firestore-lite converter which does not have options
             const options = arguments[1] as SnapshotOptions;
             // Check that options were passed in properly.
-            expect(options).to.deep.equal({ serverTimestamps: 'estimate' });
+            expect(options).toEqual({ serverTimestamps: 'estimate' });
 
             const data = snapshot.data(options);
             return new Post(data.title, data.author, snapshot.ref);
@@ -2462,7 +2458,7 @@ apiDescribe('Database', persistence => {
         ).withConverter(postConverter);
 
         const usersCollection = postsCollection.parent;
-        expect(refEqual(usersCollection!, doc(db, 'users/user1'))).to.be.true;
+        expect(refEqual(usersCollection!, doc(db, 'users/user1'))).toBe(true);
       });
     });
 
@@ -2478,11 +2474,11 @@ apiDescribe('Database', persistence => {
           db,
           'users/user1/posts'
         ).withConverter(postConverter2);
-        expect(refEqual(postsCollection, postsCollection2)).to.be.false;
+        expect(refEqual(postsCollection, postsCollection2)).toBe(false);
 
         const docRef = doc(db, 'some/doc').withConverter(postConverter);
         const docRef2 = doc(db, 'some/doc').withConverter(postConverter2);
-        expect(refEqual(docRef, docRef2)).to.be.false;
+        expect(refEqual(docRef, docRef2)).toBe(false);
       });
     });
 
@@ -2493,8 +2489,8 @@ apiDescribe('Database', persistence => {
         await setDoc(docRef, new Post('post', 'author'));
         const docSnapshot = await getDoc(docRef);
         const ref = docSnapshot.data()!.ref!;
-        expect(ref).to.be.an.instanceof(DocumentReference);
-        expect(refEqual(untypedDocRef, ref)).to.be.true;
+        expect(ref).toBeInstanceOf(DocumentReference);
+        expect(refEqual(untypedDocRef, ref)).toBe(true);
       });
     });
 
@@ -2508,11 +2504,11 @@ apiDescribe('Database', persistence => {
         const docRef = doc(typedCollection);
         await setDoc(docRef, new Post('post', 'author', docRef));
         const querySnapshot = await getDocs(typedCollection);
-        expect(querySnapshot.size).to.equal(1);
+        expect(querySnapshot.size).toBe(1);
         const ref = querySnapshot.docs[0].data().ref!;
-        expect(ref).to.be.an.instanceof(DocumentReference);
+        expect(ref).toBeInstanceOf(DocumentReference);
         const untypedDocRef = doc(untypedCollection, docRef.id);
-        expect(refEqual(untypedDocRef, ref)).to.be.true;
+        expect(refEqual(untypedDocRef, ref)).toBe(true);
       });
     });
 
@@ -2527,10 +2523,10 @@ apiDescribe('Database', persistence => {
           where(documentId(), '==', docRef.id)
         ).withConverter(postConverter);
         const querySnapshot = await getDocs(filteredQuery);
-        expect(querySnapshot.size).to.equal(1);
+        expect(querySnapshot.size).toBe(1);
         const ref = querySnapshot.docs[0].data().ref!;
-        expect(ref).to.be.an.instanceof(DocumentReference);
-        expect(refEqual(untypedDocRef, ref)).to.be.true;
+        expect(ref).toBeInstanceOf(DocumentReference);
+        expect(refEqual(untypedDocRef, ref)).toBe(true);
       });
     });
 
@@ -2549,7 +2545,7 @@ apiDescribe('Database', persistence => {
         const typedDocRef = docRef.withConverter<number>(converter);
         await setDoc(typedDocRef, 42);
         const snapshot = await getDoc(typedDocRef);
-        expect(snapshot.data()).to.equal(42);
+        expect(snapshot.data()).toBe(42);
       });
     });
 
@@ -2569,8 +2565,8 @@ apiDescribe('Database', persistence => {
         const typedCollectionRef =
           collectionRef.withConverter<number>(converter);
         const snapshot = await getDocs(typedCollectionRef);
-        expect(snapshot.size).to.equal(1);
-        expect(snapshot.docs[0].data()).to.equal(42);
+        expect(snapshot.size).toBe(1);
+        expect(snapshot.docs[0].data()).toBe(42);
       });
     });
 
@@ -2590,8 +2586,8 @@ apiDescribe('Database', persistence => {
         // Query.withConverter() has a default value.
         const typedQuery = query_.withConverter<number>(converter);
         const snapshot = await getDocs(typedQuery);
-        expect(snapshot.size).to.equal(1);
-        expect(snapshot.docs[0].data()).to.equal(42);
+        expect(snapshot.size).toBe(1);
+        expect(snapshot.docs[0].data()).toBe(42);
       });
     });
   });
@@ -2616,8 +2612,8 @@ apiDescribe('Database', persistence => {
         return setDoc(ref, data)
           .then(() => getDoc(ref))
           .then(snapshot => {
-            expect(snapshot.exists()).to.be.ok;
-            expect(snapshot.data()).to.deep.equal(data);
+            expect(snapshot.exists()).toBeTruthy();
+            expect(snapshot.data()).toEqual(data);
           });
       }
     );
@@ -2633,12 +2629,12 @@ apiDescribe('Database', persistence => {
         const ref1 = await doc(collection(db1, 'users'), 'doc1');
         await setDoc(ref1, data);
         const snapshot1 = await getDoc(ref1);
-        expect(snapshot1.exists()).to.be.ok;
-        expect(snapshot1.data()).to.be.deep.equals(data);
+        expect(snapshot1.exists()).toBeTruthy();
+        expect(snapshot1.data()).toEqual(data);
 
         const ref2 = await doc(collection(db2, 'users'), 'doc1');
         const snapshot2 = await getDocFromServer(ref2);
-        expect(snapshot2.exists()).to.not.be.ok;
+        expect(snapshot2.exists()).toBeFalsy();
       }
     );
   });
@@ -2655,11 +2651,11 @@ apiDescribe('Database', persistence => {
         const ref1 = await doc(collection(db1, 'users'));
         void setDoc(ref1, data);
         const snapshot = await getDocFromCache(ref1);
-        expect(snapshot.exists()).to.be.ok;
-        expect(snapshot.data()).to.be.deep.equals(data);
+        expect(snapshot.exists()).toBeTruthy();
+        expect(snapshot.data()).toEqual(data);
 
         const ref2 = await doc(collection(db2, 'users'));
-        await expect(getDocFromCache(ref2)).to.eventually.rejectedWith(
+        await expect(getDocFromCache(ref2)).rejects.toThrow(
           'Failed to get document from cache.'
         );
       }
@@ -2671,7 +2667,7 @@ apiDescribe('Database', persistence => {
     return withTestDb(persistence.toEagerGc(), async db => {
       const docRef = doc(collection(db, 'test-collection'));
       await setDoc(docRef, initialData);
-      await expect(getDocFromCache(docRef)).to.be.rejectedWith('Failed to get');
+      await expect(getDocFromCache(docRef)).rejects.toThrow('Failed to get');
     });
   });
 
@@ -2681,9 +2677,9 @@ apiDescribe('Database', persistence => {
       const docRef = doc(collection(db, 'test-collection'));
       await setDoc(docRef, initialData);
       return getDocFromCache(docRef).then(doc => {
-        expect(doc.exists()).to.be.true;
-        expect(doc.metadata.fromCache).to.be.true;
-        expect(doc.data()).to.deep.equal(initialData);
+        expect(doc.exists()).toBe(true);
+        expect(doc.metadata.fromCache).toBe(true);
+        expect(doc.data()).toEqual(initialData);
       });
     });
   });
@@ -2694,9 +2690,9 @@ apiDescribe('Database', persistence => {
       const docRef = doc(collection(db, 'test-collection'));
       await setDoc(docRef, initialData);
       return getDocFromCache(docRef).then(doc => {
-        expect(doc.exists()).to.be.true;
-        expect(doc.metadata.fromCache).to.be.true;
-        expect(doc.data()).to.deep.equal(initialData);
+        expect(doc.exists()).toBe(true);
+        expect(doc.metadata.fromCache).toBe(true);
+        expect(doc.data()).toEqual(initialData);
       });
     });
   });
@@ -2744,12 +2740,12 @@ apiDescribe('Database', persistence => {
         ];
 
         const getSnapshot = await getDocsFromServer(orderedQuery);
-        expect(toIds(getSnapshot)).to.deep.equal(expectedDocs);
+        expect(toIds(getSnapshot)).toEqual(expectedDocs);
 
         const storeEvent = new EventsAccumulator<QuerySnapshot>();
         const unsubscribe = onSnapshot(orderedQuery, storeEvent.storeEvent);
         const watchSnapshot = await storeEvent.awaitEvent();
-        expect(toIds(watchSnapshot)).to.deep.equal(expectedDocs);
+        expect(toIds(watchSnapshot)).toEqual(expectedDocs);
 
         unsubscribe();
       });
@@ -2800,7 +2796,7 @@ apiDescribe('Database', persistence => {
             ];
 
             const getSnapshot = await getDocsFromServer(filteredQuery);
-            expect(toIds(getSnapshot)).to.deep.equal(expectedDocs);
+            expect(toIds(getSnapshot)).toEqual(expectedDocs);
 
             const storeEvent = new EventsAccumulator<QuerySnapshot>();
             const unsubscribe = onSnapshot(
@@ -2808,7 +2804,7 @@ apiDescribe('Database', persistence => {
               storeEvent.storeEvent
             );
             const watchSnapshot = await storeEvent.awaitEvent();
-            expect(toIds(watchSnapshot)).to.deep.equal(expectedDocs);
+            expect(toIds(watchSnapshot)).toEqual(expectedDocs);
             unsubscribe();
           }
         );
@@ -2928,12 +2924,12 @@ apiDescribe('Database', persistence => {
         const orderedQuery = query(collectionRef, orderBy('value'));
 
         const getSnapshot = await getDocsFromServer(orderedQuery);
-        expect(toIds(getSnapshot)).to.deep.equal(expectedDocs);
+        expect(toIds(getSnapshot)).toEqual(expectedDocs);
 
         const storeEvent = new EventsAccumulator<QuerySnapshot>();
         const unsubscribe = onSnapshot(orderedQuery, storeEvent.storeEvent);
         const watchSnapshot = await storeEvent.awaitEvent();
-        expect(toIds(watchSnapshot)).to.deep.equal(toIds(getSnapshot));
+        expect(toIds(watchSnapshot)).toEqual(toIds(getSnapshot));
 
         unsubscribe();
 
@@ -2964,12 +2960,12 @@ apiDescribe('Database', persistence => {
         const orderedQuery = query(collectionRef, orderBy('value'));
 
         const getSnapshot = await getDocsFromServer(orderedQuery);
-        expect(toIds(getSnapshot)).to.deep.equal(expectedDocs);
+        expect(toIds(getSnapshot)).toEqual(expectedDocs);
 
         const storeEvent = new EventsAccumulator<QuerySnapshot>();
         const unsubscribe = onSnapshot(orderedQuery, storeEvent.storeEvent);
         const watchSnapshot = await storeEvent.awaitEvent();
-        expect(toIds(watchSnapshot)).to.deep.equal(toIds(getSnapshot));
+        expect(toIds(watchSnapshot)).toEqual(toIds(getSnapshot));
 
         unsubscribe();
 
@@ -3000,12 +2996,12 @@ apiDescribe('Database', persistence => {
         const orderedQuery = query(collectionRef, orderBy('value'));
 
         const getSnapshot = await getDocsFromServer(orderedQuery);
-        expect(toIds(getSnapshot)).to.deep.equal(expectedDocs);
+        expect(toIds(getSnapshot)).toEqual(expectedDocs);
 
         const storeEvent = new EventsAccumulator<QuerySnapshot>();
         const unsubscribe = onSnapshot(orderedQuery, storeEvent.storeEvent);
         const watchSnapshot = await storeEvent.awaitEvent();
-        expect(toIds(watchSnapshot)).to.deep.equal(toIds(getSnapshot));
+        expect(toIds(watchSnapshot)).toEqual(toIds(getSnapshot));
 
         unsubscribe();
 
@@ -3036,12 +3032,12 @@ apiDescribe('Database', persistence => {
         const orderedQuery = query(collectionRef, orderBy('value'));
 
         const getSnapshot = await getDocsFromServer(orderedQuery);
-        expect(toIds(getSnapshot)).to.deep.equal(expectedDocs);
+        expect(toIds(getSnapshot)).toEqual(expectedDocs);
 
         const storeEvent = new EventsAccumulator<QuerySnapshot>();
         const unsubscribe = onSnapshot(orderedQuery, storeEvent.storeEvent);
         const watchSnapshot = await storeEvent.awaitEvent();
-        expect(toIds(watchSnapshot)).to.deep.equal(toIds(getSnapshot));
+        expect(toIds(watchSnapshot)).toEqual(toIds(getSnapshot));
 
         unsubscribe();
 
@@ -3085,12 +3081,12 @@ apiDescribe('Database', persistence => {
           '😀',
           '😁'
         ];
-        expect(toIds(getSnapshot)).to.deep.equal(expectedDocs);
+        expect(toIds(getSnapshot)).toEqual(expectedDocs);
 
         const storeEvent = new EventsAccumulator<QuerySnapshot>();
         const unsubscribe = onSnapshot(orderedQuery, storeEvent.storeEvent);
         const watchSnapshot = await storeEvent.awaitEvent();
-        expect(toIds(watchSnapshot)).to.deep.equal(toIds(getSnapshot));
+        expect(toIds(watchSnapshot)).toEqual(toIds(getSnapshot));
 
         unsubscribe();
 
@@ -3127,7 +3123,7 @@ apiDescribe('Database', persistence => {
             const orderedQuery = query(collectionRef, orderBy('value'));
 
             const getSnapshot = await getDocsFromServer(orderedQuery);
-            expect(toIds(getSnapshot)).to.deep.equal([
+            expect(toIds(getSnapshot)).toEqual([
               'Sierpiński',
               'Łukasiewicz',
               '你好',
@@ -3145,7 +3141,7 @@ apiDescribe('Database', persistence => {
             const unsubscribe = onSnapshot(orderedQuery, storeEvent.storeEvent);
             const watchSnapshot = await storeEvent.awaitEvent();
             // TODO: IndexedDB sorts string lexicographically, and misses the document with ID '🄟','🐵'
-            expect(toIds(watchSnapshot)).to.deep.equal(toIds(getSnapshot));
+            expect(toIds(watchSnapshot)).toEqual(toIds(getSnapshot));
 
             unsubscribe();
           }
@@ -3184,21 +3180,24 @@ apiDescribe('Database', persistence => {
           snapshot
             .get('objectId')
             .isEqual(new BsonObjectId('507f191e810c19729de860ea'))
-        ).to.be.true;
-        expect(snapshot.get('int32').isEqual(new Int32Value(2))).to.be.true;
-        expect(snapshot.get('decimal128').isEqual(new Decimal128Value('1.2e3')))
-          .to.be.true;
-        expect(snapshot.get('min') === MinKey.instance()).to.be.true;
-        expect(snapshot.get('max') === MaxKey.instance()).to.be.true;
+        ).toBe(true);
+        expect(snapshot.get('int32').isEqual(new Int32Value(2))).toBe(true);
+        expect(
+          snapshot.get('decimal128').isEqual(new Decimal128Value('1.2e3'))
+        ).toBe(true);
+        expect(snapshot.get('min') === MinKey.instance()).toBe(true);
+        expect(snapshot.get('max') === MaxKey.instance()).toBe(true);
         expect(
           snapshot
             .get('binary')
             .isEqual(Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1))
-        ).to.be.true;
-        expect(snapshot.get('timestamp').isEqual(new BsonTimestamp(1, 2))).to.be
-          .true;
-        expect(snapshot.get('regex').isEqual(new RegexValue('^foo', 'i'))).to.be
-          .true;
+        ).toBe(true);
+        expect(snapshot.get('timestamp').isEqual(new BsonTimestamp(1, 2))).toBe(
+          true
+        );
+        expect(snapshot.get('regex').isEqual(new RegexValue('^foo', 'i'))).toBe(
+          true
+        );
       });
     });
 
@@ -3225,21 +3224,24 @@ apiDescribe('Database', persistence => {
           snapshot
             .get('binary')
             .isEqual(Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1))
-        ).to.be.true;
+        ).toBe(true);
         expect(
           snapshot
             .get('objectId')
             .isEqual(new BsonObjectId('507f191e810c19729de860ea'))
-        ).to.be.true;
-        expect(snapshot.get('int32').isEqual(new Int32Value(1))).to.be.true;
-        expect(snapshot.get('decimal128').isEqual(new Decimal128Value('1.2e3')))
-          .to.be.true;
-        expect(snapshot.get('regex').isEqual(new RegexValue('^foo', 'i'))).to.be
-          .true;
-        expect(snapshot.get('timestamp').isEqual(new BsonTimestamp(1, 2))).to.be
-          .true;
-        expect(snapshot.get('min') === MinKey.instance()).to.be.true;
-        expect(snapshot.get('max') === MaxKey.instance()).to.be.true;
+        ).toBe(true);
+        expect(snapshot.get('int32').isEqual(new Int32Value(1))).toBe(true);
+        expect(
+          snapshot.get('decimal128').isEqual(new Decimal128Value('1.2e3'))
+        ).toBe(true);
+        expect(snapshot.get('regex').isEqual(new RegexValue('^foo', 'i'))).toBe(
+          true
+        );
+        expect(snapshot.get('timestamp').isEqual(new BsonTimestamp(1, 2))).toBe(
+          true
+        );
+        expect(snapshot.get('min') === MinKey.instance()).toBe(true);
+        expect(snapshot.get('max') === MaxKey.instance()).toBe(true);
       });
     });
 
@@ -3258,10 +3260,7 @@ apiDescribe('Database', persistence => {
         );
 
         let snapshot = await getDocs(orderedQuery);
-        expect(toDataArray(snapshot)).to.deep.equal([
-          testDocs['c'],
-          testDocs['b']
-        ]);
+        expect(toDataArray(snapshot)).toEqual([testDocs['c'], testDocs['b']]);
         await assertSDKQueryResultsConsistentWithBackend(
           coll,
           orderedQuery,
@@ -3279,10 +3278,7 @@ apiDescribe('Database', persistence => {
         );
 
         snapshot = await getDocs(orderedQuery);
-        expect(toDataArray(snapshot)).to.deep.equal([
-          testDocs['b'],
-          testDocs['a']
-        ]);
+        expect(toDataArray(snapshot)).toEqual([testDocs['b'], testDocs['a']]);
         await assertSDKQueryResultsConsistentWithBackend(
           coll,
           orderedQuery,
@@ -3307,10 +3303,7 @@ apiDescribe('Database', persistence => {
 
         let snapshot = await getDocs(orderedQuery);
 
-        expect(toDataArray(snapshot)).to.deep.equal([
-          testDocs['c'],
-          testDocs['b']
-        ]);
+        expect(toDataArray(snapshot)).toEqual([testDocs['c'], testDocs['b']]);
         await assertSDKQueryResultsConsistentWithBackend(
           coll,
           orderedQuery,
@@ -3325,10 +3318,7 @@ apiDescribe('Database', persistence => {
         );
 
         snapshot = await getDocs(orderedQuery);
-        expect(toDataArray(snapshot)).to.deep.equal([
-          testDocs['c'],
-          testDocs['a']
-        ]);
+        expect(toDataArray(snapshot)).toEqual([testDocs['c'], testDocs['a']]);
         await assertSDKQueryResultsConsistentWithBackend(
           coll,
           orderedQuery,
@@ -3358,7 +3348,7 @@ apiDescribe('Database', persistence => {
         );
 
         let snapshot = await getDocs(orderedQuery);
-        expect(toDataArray(snapshot)).to.deep.equal([
+        expect(toDataArray(snapshot)).toEqual([
           testDocs['f'],
           testDocs['c'],
           testDocs['b']
@@ -3378,7 +3368,7 @@ apiDescribe('Database', persistence => {
         );
 
         snapshot = await getDocs(orderedQuery);
-        expect(toDataArray(snapshot)).to.deep.equal([
+        expect(toDataArray(snapshot)).toEqual([
           testDocs['f'],
           testDocs['c'],
           testDocs['a'],
@@ -3399,7 +3389,7 @@ apiDescribe('Database', persistence => {
         );
 
         snapshot = await getDocs(orderedQuery);
-        expect(toDataArray(snapshot)).to.deep.equal([
+        expect(toDataArray(snapshot)).toEqual([
           testDocs['f'],
           testDocs['c'],
           testDocs['b']
@@ -3416,7 +3406,7 @@ apiDescribe('Database', persistence => {
           where('key', '!=', new Decimal128Value('NaN'))
         );
         snapshot = await getDocs(orderedQuery);
-        expect(toDataArray(snapshot)).to.deep.equal([
+        expect(toDataArray(snapshot)).toEqual([
           testDocs['e'],
           testDocs['a'],
           testDocs['b'],
@@ -3443,7 +3433,7 @@ apiDescribe('Database', persistence => {
         // `matches` function gracefully handles it and removes the incorrect
         // doc "d".
         snapshot = await getDocs(orderedQuery);
-        expect(toDataArray(snapshot)).to.deep.equal([
+        expect(toDataArray(snapshot)).toEqual([
           testDocs['b'],
           testDocs['a'],
           testDocs['e']
@@ -3471,10 +3461,7 @@ apiDescribe('Database', persistence => {
         );
 
         let snapshot = await getDocs(orderedQuery);
-        expect(toDataArray(snapshot)).to.deep.equal([
-          testDocs['c'],
-          testDocs['b']
-        ]);
+        expect(toDataArray(snapshot)).toEqual([testDocs['c'], testDocs['b']]);
         await assertSDKQueryResultsConsistentWithBackend(
           coll,
           orderedQuery,
@@ -3489,10 +3476,7 @@ apiDescribe('Database', persistence => {
         );
 
         snapshot = await getDocs(orderedQuery);
-        expect(toDataArray(snapshot)).to.deep.equal([
-          testDocs['c'],
-          testDocs['b']
-        ]);
+        expect(toDataArray(snapshot)).toEqual([testDocs['c'], testDocs['b']]);
         await assertSDKQueryResultsConsistentWithBackend(
           coll,
           orderedQuery,
@@ -3516,10 +3500,7 @@ apiDescribe('Database', persistence => {
         );
 
         let snapshot = await getDocs(orderedQuery);
-        expect(toDataArray(snapshot)).to.deep.equal([
-          testDocs['c'],
-          testDocs['b']
-        ]);
+        expect(toDataArray(snapshot)).toEqual([testDocs['c'], testDocs['b']]);
         await assertSDKQueryResultsConsistentWithBackend(
           coll,
           orderedQuery,
@@ -3539,10 +3520,7 @@ apiDescribe('Database', persistence => {
         );
 
         snapshot = await getDocs(orderedQuery);
-        expect(toDataArray(snapshot)).to.deep.equal([
-          testDocs['b'],
-          testDocs['a']
-        ]);
+        expect(toDataArray(snapshot)).toEqual([testDocs['b'], testDocs['a']]);
         await assertSDKQueryResultsConsistentWithBackend(
           coll,
           orderedQuery,
@@ -3569,10 +3547,7 @@ apiDescribe('Database', persistence => {
         );
 
         const snapshot = await getDocs(orderedQuery);
-        expect(toDataArray(snapshot)).to.deep.equal([
-          testDocs['c'],
-          testDocs['a']
-        ]);
+        expect(toDataArray(snapshot)).toEqual([testDocs['c'], testDocs['a']]);
         await assertSDKQueryResultsConsistentWithBackend(
           coll,
           orderedQuery,
@@ -3593,10 +3568,7 @@ apiDescribe('Database', persistence => {
       return withTestCollection(persistence, testDocs, async coll => {
         let filteredQuery = query(coll, where('key', '==', MinKey.instance()));
         let snapshot = await getDocs(filteredQuery);
-        expect(toDataArray(snapshot)).to.deep.equal([
-          testDocs['a'],
-          testDocs['b']
-        ]);
+        expect(toDataArray(snapshot)).toEqual([testDocs['a'], testDocs['b']]);
         await assertSDKQueryResultsConsistentWithBackend(
           coll,
           filteredQuery,
@@ -3606,10 +3578,7 @@ apiDescribe('Database', persistence => {
 
         filteredQuery = query(coll, where('key', '!=', MinKey.instance()));
         snapshot = await getDocs(filteredQuery);
-        expect(toDataArray(snapshot)).to.deep.equal([
-          testDocs['d'],
-          testDocs['e']
-        ]);
+        expect(toDataArray(snapshot)).toEqual([testDocs['d'], testDocs['e']]);
         await assertSDKQueryResultsConsistentWithBackend(
           coll,
           filteredQuery,
@@ -3619,10 +3588,7 @@ apiDescribe('Database', persistence => {
 
         filteredQuery = query(coll, where('key', '>=', MinKey.instance()));
         snapshot = await getDocs(filteredQuery);
-        expect(toDataArray(snapshot)).to.deep.equal([
-          testDocs['a'],
-          testDocs['b']
-        ]);
+        expect(toDataArray(snapshot)).toEqual([testDocs['a'], testDocs['b']]);
         await assertSDKQueryResultsConsistentWithBackend(
           coll,
           filteredQuery,
@@ -3632,10 +3598,7 @@ apiDescribe('Database', persistence => {
 
         filteredQuery = query(coll, where('key', '<=', MinKey.instance()));
         snapshot = await getDocs(filteredQuery);
-        expect(toDataArray(snapshot)).to.deep.equal([
-          testDocs['a'],
-          testDocs['b']
-        ]);
+        expect(toDataArray(snapshot)).toEqual([testDocs['a'], testDocs['b']]);
         await assertSDKQueryResultsConsistentWithBackend(
           coll,
           filteredQuery,
@@ -3645,7 +3608,7 @@ apiDescribe('Database', persistence => {
 
         filteredQuery = query(coll, where('key', '>', MinKey.instance()));
         snapshot = await getDocs(filteredQuery);
-        expect(toDataArray(snapshot)).to.deep.equal([]);
+        expect(toDataArray(snapshot)).toEqual([]);
         await assertSDKQueryResultsConsistentWithBackend(
           coll,
           filteredQuery,
@@ -3655,7 +3618,7 @@ apiDescribe('Database', persistence => {
 
         filteredQuery = query(coll, where('key', '<', MinKey.instance()));
         snapshot = await getDocs(filteredQuery);
-        expect(toDataArray(snapshot)).to.deep.equal([]);
+        expect(toDataArray(snapshot)).toEqual([]);
         await assertSDKQueryResultsConsistentWithBackend(
           coll,
           filteredQuery,
@@ -3665,7 +3628,7 @@ apiDescribe('Database', persistence => {
 
         filteredQuery = query(coll, where('key', '<', 1));
         snapshot = await getDocs(filteredQuery);
-        expect(toDataArray(snapshot)).to.deep.equal([]);
+        expect(toDataArray(snapshot)).toEqual([]);
         await assertSDKQueryResultsConsistentWithBackend(
           coll,
           filteredQuery,
@@ -3686,10 +3649,7 @@ apiDescribe('Database', persistence => {
       return withTestCollection(persistence, testDocs, async coll => {
         let filteredQuery = query(coll, where('key', '==', MaxKey.instance()));
         let snapshot = await getDocs(filteredQuery);
-        expect(toDataArray(snapshot)).to.deep.equal([
-          testDocs['c'],
-          testDocs['d']
-        ]);
+        expect(toDataArray(snapshot)).toEqual([testDocs['c'], testDocs['d']]);
         await assertSDKQueryResultsConsistentWithBackend(
           coll,
           filteredQuery,
@@ -3699,10 +3659,7 @@ apiDescribe('Database', persistence => {
 
         filteredQuery = query(coll, where('key', '!=', MaxKey.instance()));
         snapshot = await getDocs(filteredQuery);
-        expect(toDataArray(snapshot)).to.deep.equal([
-          testDocs['a'],
-          testDocs['b']
-        ]);
+        expect(toDataArray(snapshot)).toEqual([testDocs['a'], testDocs['b']]);
         await assertSDKQueryResultsConsistentWithBackend(
           coll,
           filteredQuery,
@@ -3712,10 +3669,7 @@ apiDescribe('Database', persistence => {
 
         filteredQuery = query(coll, where('key', '>=', MaxKey.instance()));
         snapshot = await getDocs(filteredQuery);
-        expect(toDataArray(snapshot)).to.deep.equal([
-          testDocs['c'],
-          testDocs['d']
-        ]);
+        expect(toDataArray(snapshot)).toEqual([testDocs['c'], testDocs['d']]);
         await assertSDKQueryResultsConsistentWithBackend(
           coll,
           filteredQuery,
@@ -3725,10 +3679,7 @@ apiDescribe('Database', persistence => {
 
         filteredQuery = query(coll, where('key', '<=', MaxKey.instance()));
         snapshot = await getDocs(filteredQuery);
-        expect(toDataArray(snapshot)).to.deep.equal([
-          testDocs['c'],
-          testDocs['d']
-        ]);
+        expect(toDataArray(snapshot)).toEqual([testDocs['c'], testDocs['d']]);
         await assertSDKQueryResultsConsistentWithBackend(
           coll,
           filteredQuery,
@@ -3738,7 +3689,7 @@ apiDescribe('Database', persistence => {
 
         filteredQuery = query(coll, where('key', '>', MaxKey.instance()));
         snapshot = await getDocs(filteredQuery);
-        expect(toDataArray(snapshot)).to.deep.equal([]);
+        expect(toDataArray(snapshot)).toEqual([]);
         await assertSDKQueryResultsConsistentWithBackend(
           coll,
           filteredQuery,
@@ -3748,7 +3699,7 @@ apiDescribe('Database', persistence => {
 
         filteredQuery = query(coll, where('key', '<', MaxKey.instance()));
         snapshot = await getDocs(filteredQuery);
-        expect(toDataArray(snapshot)).to.deep.equal([]);
+        expect(toDataArray(snapshot)).toEqual([]);
         await assertSDKQueryResultsConsistentWithBackend(
           coll,
           filteredQuery,
@@ -3758,7 +3709,7 @@ apiDescribe('Database', persistence => {
 
         filteredQuery = query(coll, where('key', '>', 1));
         snapshot = await getDocs(filteredQuery);
-        expect(toDataArray(snapshot)).to.deep.equal([]);
+        expect(toDataArray(snapshot)).toEqual([]);
         await assertSDKQueryResultsConsistentWithBackend(
           coll,
           filteredQuery,
@@ -3780,10 +3731,7 @@ apiDescribe('Database', persistence => {
       return withTestCollection(persistence, testDocs, async coll => {
         let filteredQuery = query(coll, where('key', '==', null));
         let snapshot = await getDocs(filteredQuery);
-        expect(toDataArray(snapshot)).to.deep.equal([
-          testDocs['b'],
-          testDocs['c']
-        ]);
+        expect(toDataArray(snapshot)).toEqual([testDocs['b'], testDocs['c']]);
         await assertSDKQueryResultsConsistentWithBackend(
           coll,
           filteredQuery,
@@ -3793,7 +3741,7 @@ apiDescribe('Database', persistence => {
 
         filteredQuery = query(coll, where('key', '!=', null));
         snapshot = await getDocs(filteredQuery);
-        expect(toDataArray(snapshot)).to.deep.equal([
+        expect(toDataArray(snapshot)).toEqual([
           testDocs['a'],
           testDocs['d'],
           testDocs['e']
@@ -3829,7 +3777,7 @@ apiDescribe('Database', persistence => {
 
         let orderedQuery = query(coll, orderBy('key', 'desc'));
         let snapshot = await getDocs(orderedQuery);
-        expect(toIds(snapshot)).to.deep.equal([
+        expect(toIds(snapshot)).toEqual([
           'l', // Infinity
           'h', // 2
           'f', // 1.0
@@ -3856,7 +3804,7 @@ apiDescribe('Database', persistence => {
           where('key', '!=', new Decimal128Value('1.0'))
         );
         snapshot = await getDocs(orderedQuery);
-        expect(toIds(snapshot)).to.deep.equal([
+        expect(toIds(snapshot)).toEqual([
           'l',
           'h',
           'g',
@@ -3879,7 +3827,7 @@ apiDescribe('Database', persistence => {
           where('key', '==', 1)
         );
         snapshot = await getDocs(orderedQuery);
-        expect(toIds(snapshot)).to.deep.equal(['f', 'e', 'd', 'c']);
+        expect(toIds(snapshot)).toEqual(['f', 'e', 'd', 'c']);
         await assertSDKQueryResultsConsistentWithBackend(
           coll,
           orderedQuery,
@@ -3907,7 +3855,7 @@ apiDescribe('Database', persistence => {
           where('key', '==', new Decimal128Value('1.1'))
         );
         let snapshot = await getDocs(orderedQuery);
-        expect(toIds(snapshot)).to.deep.equal(['b']);
+        expect(toIds(snapshot)).toEqual(['b']);
         await assertSDKQueryResultsConsistentWithBackend(
           coll,
           orderedQuery,
@@ -3920,7 +3868,7 @@ apiDescribe('Database', persistence => {
           where('key', '!=', new Decimal128Value('1.1'))
         );
         snapshot = await getDocs(orderedQuery);
-        expect(toIds(snapshot)).to.deep.equal(['a', 'e', 'd', 'c']);
+        expect(toIds(snapshot)).toEqual(['a', 'e', 'd', 'c']);
         await assertSDKQueryResultsConsistentWithBackend(
           coll,
           orderedQuery,
@@ -3930,7 +3878,7 @@ apiDescribe('Database', persistence => {
 
         orderedQuery = query(coll, where('key', '==', 1.1));
         snapshot = await getDocs(orderedQuery);
-        expect(toIds(snapshot)).to.deep.equal(['c']);
+        expect(toIds(snapshot)).toEqual(['c']);
         await assertSDKQueryResultsConsistentWithBackend(
           coll,
           orderedQuery,
@@ -3940,7 +3888,7 @@ apiDescribe('Database', persistence => {
 
         orderedQuery = query(coll, where('key', '!=', 1.1));
         snapshot = await getDocs(orderedQuery);
-        expect(toIds(snapshot)).to.deep.equal(['a', 'e', 'd', 'b']);
+        expect(toIds(snapshot)).toEqual(['a', 'e', 'd', 'b']);
         await assertSDKQueryResultsConsistentWithBackend(
           coll,
           orderedQuery,
@@ -3967,7 +3915,7 @@ apiDescribe('Database', persistence => {
         const unsubscribe = onSnapshot(orderedQuery, storeEvent.storeEvent);
 
         let listenSnapshot = await storeEvent.awaitEvent();
-        expect(toDataArray(listenSnapshot)).to.deep.equal([
+        expect(toDataArray(listenSnapshot)).toEqual([
           testDocs['b'],
           testDocs['g'],
           testDocs['c'],
@@ -3980,7 +3928,7 @@ apiDescribe('Database', persistence => {
         const newData = { key: new Int32Value(2) };
         await setDoc(doc(coll, 'h'), newData);
         listenSnapshot = await storeEvent.awaitEvent();
-        expect(toDataArray(listenSnapshot)).to.deep.equal([
+        expect(toDataArray(listenSnapshot)).toEqual([
           testDocs['b'],
           newData,
           testDocs['g'],
@@ -4008,7 +3956,7 @@ apiDescribe('Database', persistence => {
 
         await runTransaction(db, async transaction => {
           const docSnapshot = await transaction.get(docA);
-          expect(docSnapshot.data()).to.deep.equal(testDocs['a']);
+          expect(docSnapshot.data()).toEqual(testDocs['a']);
           transaction.set(docB, testDocs['b']);
           transaction.delete(docC);
         });
@@ -4016,10 +3964,7 @@ apiDescribe('Database', persistence => {
         const orderedQuery = query(coll, orderBy('key', 'asc'));
         const snapshot = await getDocs(orderedQuery);
 
-        expect(toDataArray(snapshot)).to.deep.equal([
-          testDocs['a'],
-          testDocs['b']
-        ]);
+        expect(toDataArray(snapshot)).toEqual([testDocs['a'], testDocs['b']]);
       });
     });
 

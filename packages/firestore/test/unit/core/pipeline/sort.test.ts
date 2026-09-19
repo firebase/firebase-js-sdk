@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2025 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import {
   add,
@@ -40,7 +38,7 @@ describe('Sort Tests', () => {
       .collection('/users')
       .sort(field('age').ascending());
 
-    expect(runPipeline(pipeline, [])).to.be.empty;
+    expect(runPipeline(pipeline, [])).toHaveLength(0);
   });
 
   it('empty_descending', () => {
@@ -49,7 +47,7 @@ describe('Sort Tests', () => {
       .collection('/users')
       .sort(field('age').descending());
 
-    expect(runPipeline(pipeline, [])).to.be.empty;
+    expect(runPipeline(pipeline, [])).toHaveLength(0);
   });
 
   it('singleResult_ascending', () => {
@@ -60,7 +58,7 @@ describe('Sort Tests', () => {
       .collection('/users')
       .sort(field('age').ascending());
 
-    expect(runPipeline(pipeline, [doc1])).to.deep.equal([doc1]);
+    expect(runPipeline(pipeline, [doc1])).toEqual([doc1]);
   });
 
   it('singleResult_ascending_explicitExists', () => {
@@ -72,7 +70,7 @@ describe('Sort Tests', () => {
       .where(exists(field('age')))
       .sort(field('age').ascending());
 
-    expect(runPipeline(pipeline, [doc1])).to.deep.equal([doc1]);
+    expect(runPipeline(pipeline, [doc1])).toEqual([doc1]);
   });
 
   it('singleResult_ascending_explicitNotExists_empty', () => {
@@ -84,7 +82,7 @@ describe('Sort Tests', () => {
       .where(not(exists(field('age'))))
       .sort(field('age').ascending());
 
-    expect(runPipeline(pipeline, [doc1])).to.be.empty;
+    expect(runPipeline(pipeline, [doc1])).toHaveLength(0);
   });
 
   it('singleResult_ascending_implicitExists', () => {
@@ -96,7 +94,7 @@ describe('Sort Tests', () => {
       .where(field('age').equal(constant(10)))
       .sort(field('age').ascending());
 
-    expect(runPipeline(pipeline, [doc1])).to.deep.equal([doc1]);
+    expect(runPipeline(pipeline, [doc1])).toEqual([doc1]);
   });
 
   it('singleResult_descending', () => {
@@ -107,7 +105,7 @@ describe('Sort Tests', () => {
       .collection('/users')
       .sort(field('age').descending());
 
-    expect(runPipeline(pipeline, [doc1])).to.deep.equal([doc1]);
+    expect(runPipeline(pipeline, [doc1])).toEqual([doc1]);
   });
 
   it('singleResult_descending_explicitExists', () => {
@@ -119,7 +117,7 @@ describe('Sort Tests', () => {
       .where(exists(field('age')))
       .sort(field('age').descending());
 
-    expect(runPipeline(pipeline, [doc1])).to.deep.equal([doc1]);
+    expect(runPipeline(pipeline, [doc1])).toEqual([doc1]);
   });
 
   it('singleResult_descending_implicitExists', () => {
@@ -131,7 +129,7 @@ describe('Sort Tests', () => {
       .where(field('age').equal(constant(10)))
       .sort(field('age').descending());
 
-    expect(runPipeline(pipeline, [doc1])).to.deep.equal([doc1]);
+    expect(runPipeline(pipeline, [doc1])).toEqual([doc1]);
   });
 
   it('multipleResults_ambiguousOrder', () => {
@@ -146,9 +144,9 @@ describe('Sort Tests', () => {
       .collection('/users')
       .sort(field('age').descending());
 
-    expect(
-      runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
-    ).to.have.members([doc3, doc1, doc2, doc4, doc5]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual(
+      expect.arrayContaining([doc3, doc1, doc2, doc4, doc5])
+    );
   });
 
   it('multipleResults_ambiguousOrder_explicitExists', () => {
@@ -164,9 +162,9 @@ describe('Sort Tests', () => {
       .where(exists(field('age')))
       .sort(field('age').descending());
 
-    expect(
-      runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
-    ).to.have.members([doc3, doc1, doc2, doc4, doc5]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual(
+      expect.arrayContaining([doc3, doc1, doc2, doc4, doc5])
+    );
   });
 
   it('multipleResults_ambiguousOrder_implicitExists', () => {
@@ -182,9 +180,9 @@ describe('Sort Tests', () => {
       .where(field('age').greaterThan(constant(0)))
       .sort(field('age').descending());
 
-    expect(
-      runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
-    ).to.have.members([doc3, doc1, doc2, doc4, doc5]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual(
+      expect.arrayContaining([doc3, doc1, doc2, doc4, doc5])
+    );
   });
 
   it('multipleResults_fullOrder', () => {
@@ -199,9 +197,13 @@ describe('Sort Tests', () => {
       .collection('/users')
       .sort(field('age').descending(), field('name').ascending());
 
-    expect(
-      runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
-    ).to.have.ordered.members([doc3, doc1, doc2, doc4, doc5]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc3,
+      doc1,
+      doc2,
+      doc4,
+      doc5
+    ]);
   });
 
   it('multipleResults_fullOrder_explicitExists', () => {
@@ -218,9 +220,13 @@ describe('Sort Tests', () => {
       .where(exists(field('name')))
       .sort(field('age').descending(), field('name').ascending());
 
-    expect(
-      runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
-    ).to.have.ordered.members([doc3, doc1, doc2, doc4, doc5]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc3,
+      doc1,
+      doc2,
+      doc4,
+      doc5
+    ]);
   });
 
   it('multipleResults_fullOrder_explicitNotExists_empty', () => {
@@ -237,15 +243,15 @@ describe('Sort Tests', () => {
       .where(not(exists(field('name'))))
       .sort(field('age').descending(), field('name').ascending());
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).to.contain(
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toContain(
       doc4
     );
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).to.contain(
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toContain(
       doc5
     );
-    expect(
-      runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
-    ).to.have.lengthOf(2);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toHaveLength(
+      2
+    );
   });
 
   it('multipleResults_fullOrder_implicitExists', () => {
@@ -262,9 +268,13 @@ describe('Sort Tests', () => {
       .where(regexMatch(field('name'), constant('.*')))
       .sort(field('age').descending(), field('name').ascending());
 
-    expect(
-      runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
-    ).to.have.ordered.members([doc3, doc1, doc2, doc4, doc5]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc3,
+      doc1,
+      doc2,
+      doc4,
+      doc5
+    ]);
   });
 
   it('multipleResults_fullOrder_partialExplicitExists', () => {
@@ -280,9 +290,13 @@ describe('Sort Tests', () => {
       .where(exists(field('name')))
       .sort(field('age').descending(), field('name').ascending());
 
-    expect(
-      runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
-    ).to.have.ordered.members([doc3, doc1, doc2, doc4, doc5]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc3,
+      doc1,
+      doc2,
+      doc4,
+      doc5
+    ]);
   });
 
   it('multipleResults_fullOrder_partialExplicitNotExists', () => {
@@ -298,9 +312,10 @@ describe('Sort Tests', () => {
       .where(not(exists(field('name'))))
       .sort(field('age').descending(), field('name').descending());
 
-    expect(
-      runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
-    ).to.have.ordered.members([doc3, doc2]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc3,
+      doc2
+    ]);
   });
 
   it('multipleResults_fullOrder_partialExplicitNotExists_sortOnNonExistFieldFirst', () => {
@@ -316,9 +331,10 @@ describe('Sort Tests', () => {
       .where(not(exists(field('name'))))
       .sort(field('name').descending(), field('age').descending());
 
-    expect(
-      runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
-    ).to.have.ordered.members([doc3, doc2]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc3,
+      doc2
+    ]);
   });
 
   it('multipleResults_fullOrder_partialImplicitExists', () => {
@@ -334,9 +350,13 @@ describe('Sort Tests', () => {
       .where(regexMatch(field('name'), constant('.*')))
       .sort(field('age').descending(), field('name').ascending());
 
-    expect(
-      runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
-    ).to.have.ordered.members([doc3, doc1, doc2, doc4, doc5]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc3,
+      doc1,
+      doc2,
+      doc4,
+      doc5
+    ]);
   });
 
   it('missingField_allFields', () => {
@@ -352,9 +372,9 @@ describe('Sort Tests', () => {
       .sort(field('not_age').descending());
 
     // Any order is acceptable.
-    expect(
-      runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
-    ).to.have.deep.members([doc1, doc2, doc3, doc4, doc5]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual(
+      expect.arrayContaining([doc1, doc2, doc3, doc4, doc5])
+    );
   });
 
   it('missingField_withExist_empty', () => {
@@ -370,7 +390,9 @@ describe('Sort Tests', () => {
       .where(exists(field('not_age')))
       .sort(field('not_age').descending());
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).to.be.empty;
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toHaveLength(
+      0
+    );
   });
 
   it('missingField_partialFields', () => {
@@ -386,9 +408,9 @@ describe('Sort Tests', () => {
       .sort(field('age').ascending());
 
     // Any order is acceptable.
-    expect(
-      runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
-    ).to.have.deep.members([doc5, doc1, doc3, doc2, doc4]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual(
+      expect.arrayContaining([doc5, doc1, doc3, doc2, doc4])
+    );
   });
 
   it('missingField_partialFields_withExist', () => {
@@ -404,9 +426,11 @@ describe('Sort Tests', () => {
       .where(exists(field('age')))
       .sort(field('age').ascending());
 
-    expect(
-      runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
-    ).to.have.ordered.members([doc5, doc1, doc3]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc5,
+      doc1,
+      doc3
+    ]);
   });
 
   it('missingField_partialFields_withNotExist', () => {
@@ -422,9 +446,10 @@ describe('Sort Tests', () => {
       .where(not(exists(field('age'))))
       .sort(field('age').ascending());
 
-    expect(
-      runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
-    ).to.have.ordered.members([doc2, doc4]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc2,
+      doc4
+    ]);
   });
 
   it('limit_afterSort', () => {
@@ -440,9 +465,10 @@ describe('Sort Tests', () => {
       .sort(field('age').ascending())
       .limit(2);
 
-    expect(
-      runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
-    ).to.have.ordered.members([doc4, doc5]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc4,
+      doc5
+    ]);
   });
 
   it('limit_afterSort_withExist', () => {
@@ -459,9 +485,10 @@ describe('Sort Tests', () => {
       .sort(field('age').ascending())
       .limit(2);
 
-    expect(
-      runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
-    ).to.have.ordered.members([doc5, doc2]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc5,
+      doc2
+    ]);
   });
 
   it('limit_afterSort_withNotExist', () => {
@@ -478,9 +505,10 @@ describe('Sort Tests', () => {
       .sort(field('age').ascending())
       .limit(2);
 
-    expect(
-      runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
-    ).to.have.ordered.members([doc4, doc5]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc4,
+      doc5
+    ]);
   });
 
   it('limit_zero_afterSort', () => {
@@ -496,7 +524,9 @@ describe('Sort Tests', () => {
       .sort(field('age').ascending())
       .limit(0);
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).to.be.empty;
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toHaveLength(
+      0
+    );
   });
 
   it('limit_beforeSort', () => {
@@ -512,9 +542,9 @@ describe('Sort Tests', () => {
       .limit(1)
       .sort(field('age').ascending());
 
-    expect(
-      runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
-    ).to.have.lengthOf(1);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toHaveLength(
+      1
+    );
   });
 
   it('limit_beforeSort_withExist', () => {
@@ -531,9 +561,9 @@ describe('Sort Tests', () => {
       .limit(1)
       .sort(field('age').ascending());
 
-    expect(
-      runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
-    ).to.have.lengthOf(1);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toHaveLength(
+      1
+    );
   });
 
   it('limit_beforeSort_withNotExist', () => {
@@ -550,9 +580,9 @@ describe('Sort Tests', () => {
       .limit(1)
       .sort(field('age').ascending());
 
-    expect(
-      runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
-    ).to.have.lengthOf(1);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toHaveLength(
+      1
+    );
   });
 
   it('limit_beforeNotExistFilter', () => {
@@ -572,7 +602,9 @@ describe('Sort Tests', () => {
     // The right sematics would accept [], [doc4], [doc5], [doc4, doc5] [doc5, doc4].
     // We only test the first possibility here because of the implied order limit
     // is applied for offline evaluation.
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).to.be.empty;
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toHaveLength(
+      0
+    );
   });
 
   it('limit_zero_beforeSort', () => {
@@ -588,7 +620,9 @@ describe('Sort Tests', () => {
       .limit(0)
       .sort(field('age').ascending());
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).to.be.empty;
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toHaveLength(
+      0
+    );
   });
 
   it('sort_expression', () => {
@@ -603,9 +637,13 @@ describe('Sort Tests', () => {
       .collectionGroup('users')
       .sort(add(field('age'), constant(10)).descending());
 
-    expect(
-      runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
-    ).to.have.ordered.members([doc3, doc4, doc2, doc5, doc1]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc3,
+      doc4,
+      doc2,
+      doc5,
+      doc1
+    ]);
   });
 
   it('sort_expression_withExist', () => {
@@ -621,9 +659,12 @@ describe('Sort Tests', () => {
       .where(exists(field('age')))
       .sort(add(field('age'), constant(10)).descending());
 
-    expect(
-      runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
-    ).to.have.ordered.members([doc3, doc2, doc5, doc1]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc3,
+      doc2,
+      doc5,
+      doc1
+    ]);
   });
 
   it('sort_expression_withNotExist', () => {
@@ -639,9 +680,10 @@ describe('Sort Tests', () => {
       .where(not(exists(field('age'))))
       .sort(add(field('age'), constant(10)).descending());
 
-    expect(
-      runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
-    ).to.have.ordered.members([doc4, doc5]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc4,
+      doc5
+    ]);
   });
 
   it('sortOnPathAndOtherField_onDifferentStages', () => {
@@ -656,7 +698,7 @@ describe('Sort Tests', () => {
       .sort(field(DOCUMENT_KEY_NAME).ascending())
       .sort(field('age').ascending());
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.have.ordered.members([
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([
       doc2,
       doc1,
       doc3
@@ -675,7 +717,7 @@ describe('Sort Tests', () => {
       .sort(field('age').ascending())
       .sort(field(DOCUMENT_KEY_NAME).ascending());
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.have.ordered.members([
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([
       doc1,
       doc2,
       doc3
@@ -694,7 +736,7 @@ describe('Sort Tests', () => {
       .sort(field(DOCUMENT_KEY_NAME).ascending())
       .sort(field('age').ascending());
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.have.ordered.members([
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([
       doc2,
       doc1,
       doc3
@@ -713,7 +755,7 @@ describe('Sort Tests', () => {
       .sort(field('age').ascending())
       .sort(field(DOCUMENT_KEY_NAME).ascending());
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.have.ordered.members([
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([
       doc1,
       doc2,
       doc3

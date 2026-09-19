@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import { DatabaseId } from '../../../src/core/database_info';
 import { encodeResourcePath } from '../../../src/local/encoded_resource_path';
@@ -112,10 +110,10 @@ describe('Local Serializer', () => {
       mutations: [setMutationWrite, transformMutationWrite]
     };
     const mutationBatch = fromDbMutationBatch(localSerializer, dbMutationBatch);
-    expect(mutationBatch.mutations).to.have.lengthOf(1);
-    expect(mutationBatch.mutations[0] instanceof SetMutation).to.be.true;
+    expect(mutationBatch.mutations).toHaveLength(1);
+    expect(mutationBatch.mutations[0] instanceof SetMutation).toBe(true);
     const serialized = toMutation(s, mutationBatch.mutations[0]);
-    expect(serialized).to.deep.equal({
+    expect(serialized).toEqual({
       ...setMutationWrite,
       ...updateTransforms
     });
@@ -129,10 +127,10 @@ describe('Local Serializer', () => {
       mutations: [patchMutationWrite, transformMutationWrite]
     };
     const mutationBatch = fromDbMutationBatch(localSerializer, dbMutationBatch);
-    expect(mutationBatch.mutations).to.have.lengthOf(1);
-    expect(mutationBatch.mutations[0] instanceof PatchMutation).to.be.true;
+    expect(mutationBatch.mutations).toHaveLength(1);
+    expect(mutationBatch.mutations[0] instanceof PatchMutation).toBe(true);
     const serialized = toMutation(s, mutationBatch.mutations[0]);
-    expect(serialized).to.deep.equal({
+    expect(serialized).toEqual({
       ...patchMutationWrite,
       ...updateTransforms
     });
@@ -145,9 +143,7 @@ describe('Local Serializer', () => {
       localWriteTimeMs: 1000,
       mutations: [transformMutationWrite, transformMutationWrite]
     };
-    expect(() =>
-      fromDbMutationBatch(localSerializer, dbMutationBatch)
-    ).to.throw(
+    expect(() => fromDbMutationBatch(localSerializer, dbMutationBatch)).toThrow(
       'TransformMutation should be preceded by a patch or set mutation'
     );
   });
@@ -159,9 +155,7 @@ describe('Local Serializer', () => {
       localWriteTimeMs: 1000,
       mutations: [deleteMutationWrite, transformMutationWrite]
     };
-    expect(() =>
-      fromDbMutationBatch(localSerializer, dbMutationBatch)
-    ).to.throw(
+    expect(() => fromDbMutationBatch(localSerializer, dbMutationBatch)).toThrow(
       'TransformMutation should be preceded by a patch or set mutation'
     );
   });
@@ -194,10 +188,10 @@ describe('Local Serializer', () => {
       patchMutationWrite
     ];
     const mutationBatch = fromDbMutationBatch(localSerializer, dbMutationBatch);
-    expect(mutationBatch.mutations).to.have.lengthOf(5);
+    expect(mutationBatch.mutations).toHaveLength(5);
     mutationBatch.mutations.forEach((mutation, index) => {
       const serialized = toMutation(s, mutationBatch.mutations[index]);
-      expect(serialized).to.deep.equal(expected[index]);
+      expect(serialized).toEqual(expected[index]);
     });
   });
 
@@ -206,7 +200,7 @@ describe('Local Serializer', () => {
     const overlay = new Overlay(2, m);
 
     const serialized = toDbDocumentOverlay(localSerializer, userId, overlay);
-    expect(serialized).to.deep.equal({
+    expect(serialized).toEqual({
       userId,
       collectionPath: encodeResourcePath(
         ResourcePath.fromString('coll1/doc1/coll2')
@@ -218,10 +212,8 @@ describe('Local Serializer', () => {
     });
 
     const roundTripped = fromDbDocumentOverlay(localSerializer, serialized);
-    expect(roundTripped.largestBatchId).to.equal(overlay.largestBatchId);
-    expect(mutationEquals(roundTripped.mutation, overlay.mutation)).to.equal(
-      true
-    );
+    expect(roundTripped.largestBatchId).toBe(overlay.largestBatchId);
+    expect(mutationEquals(roundTripped.mutation, overlay.mutation)).toBe(true);
   });
 
   it('serializes FieldIndex', () => {
@@ -233,7 +225,7 @@ describe('Local Serializer', () => {
       ]
     });
     const dbIndex = toDbIndexConfiguration(index);
-    expect(dbIndex).to.deep.equal({
+    expect(dbIndex).toEqual({
       collectionGroup: 'foo',
       fields: [
         ['a', 0],
@@ -243,11 +235,11 @@ describe('Local Serializer', () => {
       indexId: -1
     });
 
-    expect(fromDbIndexConfiguration(dbIndex, null).indexId).to.equal(-1);
-    expect(fromDbIndexConfiguration(dbIndex, null).collectionGroup).to.equal(
+    expect(fromDbIndexConfiguration(dbIndex, null).indexId).toBe(-1);
+    expect(fromDbIndexConfiguration(dbIndex, null).collectionGroup).toBe(
       index.collectionGroup
     );
-    expect(fromDbIndexConfiguration(dbIndex, null).fields).to.deep.equal(
+    expect(fromDbIndexConfiguration(dbIndex, null).fields).toEqual(
       index.fields
     );
   });
@@ -261,7 +253,7 @@ describe('Local Serializer', () => {
       /* sequenceNumber= */ 2,
       expected
     );
-    expect(dbIndexState).to.deep.equal({
+    expect(dbIndexState).toEqual({
       documentKey: 'coll\u0001\u0001doc\u0001\u0001',
       indexId: 1,
       largestBatchId: 42,
@@ -280,6 +272,6 @@ describe('Local Serializer', () => {
     };
     const actual = fromDbIndexConfiguration(dbIndex, dbIndexState).indexState
       .offset;
-    expect(indexOffsetComparator(actual, expected)).to.equal(0);
+    expect(indexOffsetComparator(actual, expected)).toBe(0);
   });
 });

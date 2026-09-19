@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import { primitiveComparator } from '../../../src/util/misc';
 import { forEach } from '../../../src/util/obj';
@@ -64,37 +62,37 @@ describe('SortedMap Tests', () => {
     let expected = from;
     while (iterator.hasNext()) {
       const n = iterator.getNext();
-      expect(n.key).to.equal(expected);
-      expect(n.value).to.equal(expected);
+      expect(n.key).toBe(expected);
+      expect(n.value).toBe(expected);
       expected = countUp ? expected + 1 : expected - 1;
     }
-    expect(expected).to.equal(countUp ? to + 1 : to - 1);
+    expect(expected).toBe(countUp ? to + 1 : to - 1);
   }
 
   it('Create node', () => {
     const map = new SortedMap(primitiveComparator).insert('key', 'value');
-    expect(map.root.left.isEmpty()).to.equal(true);
-    expect(map.root.right.isEmpty()).to.equal(true);
+    expect(map.root.left.isEmpty()).toBe(true);
+    expect(map.root.right.isEmpty()).toBe(true);
   });
 
   it('You can search a map for a specific key', () => {
     const map = new SortedMap(primitiveComparator).insert(1, 1).insert(2, 2);
-    expect(map.get(1)).to.equal(1);
-    expect(map.get(2)).to.equal(2);
-    expect(map.get(3)).to.equal(null);
+    expect(map.get(1)).toBe(1);
+    expect(map.get(2)).toBe(2);
+    expect(map.get(3)).toBe(null);
   });
 
   it('You can insert a new key/value pair into the tree', () => {
     const map = new SortedMap(primitiveComparator).insert(1, 1).insert(2, 2);
-    expect(map.root.key).to.equal(2);
-    expect(map.root.left.key).to.equal(1);
+    expect(map.root.key).toBe(2);
+    expect(map.root.left.key).toBe(1);
   });
 
   it('You can remove a key/value pair from the map', () => {
     const map = new SortedMap(primitiveComparator).insert(1, 1).insert(2, 2);
     const newMap = map.remove(1);
-    expect(newMap.get(2)).to.equal(2);
-    expect(newMap.get(1)).to.equal(null);
+    expect(newMap.get(2)).toBe(2);
+    expect(newMap.get(1)).toBe(null);
   });
 
   it('More removals', () => {
@@ -115,11 +113,11 @@ describe('SortedMap Tests', () => {
     const m1 = map.remove(7);
     const m2 = m1.remove(3);
     const m3 = m2.remove(1);
-    expect(m3.size).to.equal(9);
-    expect(m3.get(1)).to.equal(null);
-    expect(m3.get(3)).to.equal(null);
-    expect(m3.get(7)).to.equal(null);
-    expect(m3.get(20)).to.equal(20);
+    expect(m3.size).toBe(9);
+    expect(m3.get(1)).toBe(null);
+    expect(m3.get(3)).toBe(null);
+    expect(m3.get(7)).toBe(null);
+    expect(m3.get(20)).toBe(20);
   });
 
   it('Removal bug', () => {
@@ -129,8 +127,8 @@ describe('SortedMap Tests', () => {
       .insert(3, 3);
 
     const m1 = map.remove(2);
-    expect(m1.get(1)).to.equal(1);
-    expect(m1.get(3)).to.equal(3);
+    expect(m1.get(1)).toBe(1);
+    expect(m1.get(3)).toBe(3);
   });
 
   it('Test increasing', () => {
@@ -140,11 +138,11 @@ describe('SortedMap Tests', () => {
     for (item = 2; item < total; item++) {
       map = map.insert(item, item);
     }
-    expect(map.root.checkMaxDepth()).to.equal(true);
+    expect(map.root.checkMaxDepth()).toBe(true);
     for (item = 2; item < total; item++) {
       map = map.remove(item);
     }
-    expect(map.root.checkMaxDepth()).to.equal(true);
+    expect(map.root.checkMaxDepth()).toBe(true);
   });
 
   it('The structure should be valid after insertion (1)', () => {
@@ -153,9 +151,9 @@ describe('SortedMap Tests', () => {
       .insert(2, 2)
       .insert(3, 3);
 
-    expect(map.root.key).to.equal(2);
-    expect(map.root.left.key).to.equal(1);
-    expect(map.root.right.key).to.equal(3);
+    expect(map.root.key).toBe(2);
+    expect(map.root.left.key).toBe(1);
+    expect(map.root.right.key).toBe(3);
   });
 
   it('The structure should be valid after insertion (2)', () => {
@@ -173,8 +171,8 @@ describe('SortedMap Tests', () => {
       .insert(11, 11)
       .insert(12, 12);
 
-    expect(map.size).to.equal(12);
-    expect(map.root.checkMaxDepth()).to.equal(true);
+    expect(map.size).toBe(12);
+    expect(map.root.checkMaxDepth()).toBe(true);
   });
 
   it('Rotate left leaves the tree in a valid state', () => {
@@ -193,8 +191,8 @@ describe('SortedMap Tests', () => {
     );
 
     const node2 = node['rotateLeft']();
-    expect(node2.size).to.equal(5);
-    expect(node2.checkMaxDepth()).to.equal(true);
+    expect(node2.size).toBe(5);
+    expect(node2.checkMaxDepth()).toBe(true);
   });
 
   it('Rotate right leaves the tree in a valid state', () => {
@@ -213,12 +211,12 @@ describe('SortedMap Tests', () => {
     );
 
     const node2 = node['rotateRight']();
-    expect(node2.size).to.equal(5);
-    expect(node2.key).to.equal(4);
-    expect(node2.left.key).to.equal(2);
-    expect(node2.right.key).to.equal(7);
-    expect(node2.right.left.key).to.equal(5);
-    expect(node2.right.right.key).to.equal(8);
+    expect(node2.size).toBe(5);
+    expect(node2.key).toBe(4);
+    expect(node2.left.key).toBe(2);
+    expect(node2.right.key).toBe(7);
+    expect(node2.right.left.key).toBe(5);
+    expect(node2.right.right.key).toBe(8);
   });
 
   it('The structure should be valid after insertion (3)', () => {
@@ -230,43 +228,43 @@ describe('SortedMap Tests', () => {
       .insert(7, 7)
       .insert(9, 9);
 
-    expect(map.size).to.equal(6);
-    expect(map.root.checkMaxDepth()).to.equal(true);
+    expect(map.size).toBe(6);
+    expect(map.root.checkMaxDepth()).toBe(true);
 
     const m2 = map.insert(20, 20).insert(18, 18).insert(2, 2);
 
-    expect(m2.size).to.equal(9);
-    expect(m2.root.checkMaxDepth()).to.equal(true);
+    expect(m2.size).toBe(9);
+    expect(m2.root.checkMaxDepth()).toBe(true);
 
     const m3 = m2.insert(71, 71).insert(42, 42).insert(88, 88);
 
-    expect(m3.size).to.equal(12);
-    expect(m3.root.checkMaxDepth()).to.equal(true);
+    expect(m3.size).toBe(12);
+    expect(m3.root.checkMaxDepth()).toBe(true);
   });
 
   it('you can overwrite a value', () => {
     const map = new SortedMap(primitiveComparator).insert(10, 10).insert(10, 8);
-    expect(map.get(10)).to.equal(8);
+    expect(map.get(10)).toBe(8);
   });
 
   it('removing the last element returns an empty map', () => {
     const map = new SortedMap(primitiveComparator).insert(10, 10).remove(10);
-    expect(map.isEmpty()).to.equal(true);
+    expect(map.isEmpty()).toBe(true);
   });
 
   it('empty .get()', () => {
     const empty = new SortedMap(primitiveComparator);
-    expect(empty.get('something')).to.equal(null);
+    expect(empty.get('something')).toBe(null);
   });
 
   it('empty .size', () => {
     const empty = new SortedMap(primitiveComparator);
-    expect(empty.size).to.equal(0);
+    expect(empty.size).toBe(0);
   });
 
   it('empty .remove()', () => {
     const empty = new SortedMap(primitiveComparator);
-    expect(empty.remove('something').size).to.equal(0);
+    expect(empty.remove('something').size).toBe(0);
   });
 
   it('.reverseTraversal() works.', () => {
@@ -278,11 +276,11 @@ describe('SortedMap Tests', () => {
       .insert(4, 4);
     let next = 5;
     map.reverseTraversal(key => {
-      expect(key).to.equal(next);
+      expect(key).toBe(next);
       next--;
       return false;
     });
-    expect(next).to.equal(0);
+    expect(next).toBe(0);
   });
 
   it('insertion and removal of 100 items in random order.', () => {
@@ -301,25 +299,25 @@ describe('SortedMap Tests', () => {
 
     for (let i = 0; i < N; i++) {
       map = map.insert(toInsert[i], toInsert[i]);
-      expect(map.root.checkMaxDepth()).to.equal(true);
+      expect(map.root.checkMaxDepth()).toBe(true);
     }
-    expect(map.size).to.equal(N);
+    expect(map.size).toBe(N);
 
     // Ensure order is correct.
     let next = 0;
     map.inorderTraversal((key, value) => {
-      expect(key).to.equal(next);
-      expect(value).to.equal(next);
+      expect(key).toBe(next);
+      expect(value).toBe(next);
       next++;
       return false;
     });
-    expect(next).to.equal(N);
+    expect(next).toBe(N);
 
     for (let i = 0; i < N; i++) {
-      expect(map.root.checkMaxDepth()).to.equal(true);
+      expect(map.root.checkMaxDepth()).toBe(true);
       map = map.remove(toRemove[i]);
     }
-    expect(map.size).to.equal(0);
+    expect(map.size).toBe(0);
   });
 
   // A little perf test for convenient benchmarking
@@ -350,12 +348,12 @@ describe('SortedMap Tests', () => {
     ): void => {
       let next = 0;
       map.inorderTraversal((key: number, value: number) => {
-        expect(key).to.equal(next);
-        expect(value).to.equal(next);
+        expect(key).toBe(next);
+        expect(value).toBe(next);
         next++;
         return false;
       });
-      expect(next).to.equal(max);
+      expect(next).toBe(max);
     };
 
     for (let N = 10; N <= 100000; N *= 10) {
@@ -400,9 +398,9 @@ describe('SortedMap Tests', () => {
       forEach(tree, k => keys.push(Number(k)));
 
       keys.sort();
-      expect(keys.length).to.equal(max);
+      expect(keys.length).toBe(max);
       for (let i = 0; i < max; i++) {
-        expect(tree[i]).to.equal(i);
+        expect(tree[i]).toBe(i);
       }
     };
 
@@ -440,8 +438,8 @@ describe('SortedMap Tests', () => {
   it('SortedMapIterator empty test.', () => {
     const map = new SortedMap(primitiveComparator);
     const iterator = map.getIterator();
-    expect(iterator.hasNext()).to.equal(false);
-    expect(() => iterator.getNext()).to.throw();
+    expect(iterator.hasNext()).toBe(false);
+    expect(() => iterator.getNext()).toThrow();
   });
 
   it('forward iterator without start key', () => {
@@ -456,8 +454,8 @@ describe('SortedMap Tests', () => {
 
   it('forward iterator with start key larger than max key', () => {
     const iterator = getMapOfNumbersZeroToNine().getIteratorFrom(50);
-    expect(iterator.hasNext()).to.equal(false);
-    expect(() => iterator.getNext()).to.throw();
+    expect(iterator.hasNext()).toBe(false);
+    expect(() => iterator.getNext()).toThrow();
   });
 
   it('forward iterator with start key smaller than min key', () => {
@@ -477,8 +475,8 @@ describe('SortedMap Tests', () => {
 
   it('reverse iterator with start key smaller than min key', () => {
     const iterator = getMapOfNumbersZeroToNine().getReverseIteratorFrom(-50);
-    expect(iterator.hasNext()).to.equal(false);
-    expect(() => iterator.getNext()).to.throw();
+    expect(iterator.hasNext()).toBe(false);
+    expect(() => iterator.getNext()).toThrow();
   });
 
   it('reverse iterator with start key larger than max key', () => {
@@ -495,19 +493,19 @@ describe('SortedMap Tests', () => {
       .insert(7, 7)
       .insert(9, 9);
 
-    expect(map.indexOf(0)).to.equal(-1);
-    expect(map.indexOf(1)).to.equal(0);
-    expect(map.indexOf(2)).to.equal(-1);
-    expect(map.indexOf(3)).to.equal(1);
-    expect(map.indexOf(4)).to.equal(2);
-    expect(map.indexOf(5)).to.equal(-1);
-    expect(map.indexOf(6)).to.equal(-1);
-    expect(map.indexOf(7)).to.equal(3);
-    expect(map.indexOf(8)).to.equal(-1);
-    expect(map.indexOf(9)).to.equal(4);
-    expect(map.indexOf(50)).to.equal(5);
+    expect(map.indexOf(0)).toBe(-1);
+    expect(map.indexOf(1)).toBe(0);
+    expect(map.indexOf(2)).toBe(-1);
+    expect(map.indexOf(3)).toBe(1);
+    expect(map.indexOf(4)).toBe(2);
+    expect(map.indexOf(5)).toBe(-1);
+    expect(map.indexOf(6)).toBe(-1);
+    expect(map.indexOf(7)).toBe(3);
+    expect(map.indexOf(8)).toBe(-1);
+    expect(map.indexOf(9)).toBe(4);
+    expect(map.indexOf(50)).toBe(5);
 
     const emptyMap = new SortedMap(primitiveComparator);
-    expect(emptyMap.indexOf(1)).to.equal(-1);
+    expect(emptyMap.indexOf(1)).toBe(-1);
   });
 });

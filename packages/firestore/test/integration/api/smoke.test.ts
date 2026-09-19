@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import { EventsAccumulator } from '../util/events_accumulator';
 import {
@@ -59,7 +57,7 @@ apiDescribe('Smoke Test', persistence => {
       return setDoc(ref, data)
         .then(() => getDoc(ref))
         .then(doc => {
-          expect(doc.data()).to.deep.equal(data);
+          expect(doc.data()).toEqual(data);
         });
     });
   });
@@ -73,10 +71,10 @@ apiDescribe('Smoke Test', persistence => {
           .then(() => getDoc(ref1))
           .then(doc => {
             const recv = doc.data()!;
-            expect(recv['message']).to.deep.equal(data.message);
+            expect(recv['message']).toEqual(data.message);
             const user = recv['user'];
-            expect(user).to.be.an.instanceof(DocumentReference);
-            expect(user.id).to.deep.equal(ref2.id);
+            expect(user).toBeInstanceOf(DocumentReference);
+            expect(user.id).toEqual(ref2.id);
           });
       });
     });
@@ -97,8 +95,8 @@ apiDescribe('Smoke Test', persistence => {
         return accum
           .awaitEvent()
           .then(docSnap => {
-            expect(docSnap.exists()).to.equal(true);
-            expect(docSnap.data()).to.deep.equal(data);
+            expect(docSnap.exists()).toBe(true);
+            expect(docSnap.data()).toEqual(data);
           })
           .then(() => unlisten());
       });
@@ -112,9 +110,9 @@ apiDescribe('Smoke Test', persistence => {
       return accum
         .awaitEvent()
         .then(querySnap => {
-          expect(querySnap.empty).to.equal(true);
-          expect(querySnap.size).to.equal(0);
-          expect(querySnap.docs.length).to.equal(0);
+          expect(querySnap.empty).toBe(true);
+          expect(querySnap.size).toBe(0);
+          expect(querySnap.docs.length).toBe(0);
         })
         .then(() => unlisten());
     });
@@ -131,9 +129,9 @@ apiDescribe('Smoke Test', persistence => {
     };
     return withTestCollection(persistence, testDocs, ref => {
       return getDocs(ref).then(result => {
-        expect(result.empty).to.equal(false);
-        expect(result.size).to.equal(3);
-        expect(toDataArray(result)).to.deep.equal([
+        expect(result.empty).toBe(false);
+        expect(result.size).toBe(3);
+        expect(toDataArray(result)).toEqual([
           testDocs[1],
           testDocs[2],
           testDocs[3]
@@ -159,7 +157,7 @@ apiDescribe('Smoke Test', persistence => {
         orderBy('sort', 'desc')
       );
       return getDocs(filteredQuery).then(result => {
-        expect(toDataArray(result)).to.deep.equal([
+        expect(toDataArray(result)).toEqual([
           testDocs[2],
           testDocs[3],
           testDocs[1]

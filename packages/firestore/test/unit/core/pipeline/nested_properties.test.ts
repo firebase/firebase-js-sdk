@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2025 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import {
   Field,
@@ -56,7 +54,7 @@ describe('Nested Properties', () => {
       .collection('/users')
       .where(field('a.b.c.d.e.f.g.h.i.j.k').equal(constant(42)));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([doc1]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([doc1]);
   });
 
   it('where_inequality_deeplyNested', () => {
@@ -82,10 +80,7 @@ describe('Nested Properties', () => {
       .where(field('a.b.c.d.e.f.g.h.i.j.k').greaterThanOrEqual(constant(0)))
       .sort(field(DOCUMENT_KEY_NAME).ascending());
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([
-      doc1,
-      doc3
-    ]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([doc1, doc3]);
   });
 
   it('where_equality', () => {
@@ -105,9 +100,7 @@ describe('Nested Properties', () => {
       .collection('/users')
       .where(field('address.street').equal(constant('76')));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).to.deep.equal([
-      doc2
-    ]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).toEqual([doc2]);
   });
 
   it('multipleFilters', () => {
@@ -128,9 +121,7 @@ describe('Nested Properties', () => {
       .where(field('address.city').equal(constant('San Francisco')))
       .where(field('address.zip').greaterThan(constant(90000)));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).to.deep.equal([
-      doc1
-    ]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).toEqual([doc1]);
   });
 
   it('multipleFilters_redundant', () => {
@@ -155,9 +146,7 @@ describe('Nested Properties', () => {
       )
       .where(field('address.zip').greaterThan(constant(90000)));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).to.deep.equal([
-      doc1
-    ]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).toEqual([doc1]);
   });
 
   it('multipleFilters_withCompositeIndex', async () => {
@@ -181,9 +170,7 @@ describe('Nested Properties', () => {
       .where(field('address.city').equal(constant('San Francisco')))
       .where(field('address.zip').greaterThan(constant(90000)));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).to.deep.equal([
-      doc1
-    ]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).toEqual([doc1]);
   });
 
   // it('multipleFilters_redundant_withCompositeIndex', async () => {
@@ -240,7 +227,7 @@ describe('Nested Properties', () => {
       .pipeline()
       .collection('/users')
       .where(field('address.zip').greaterThan(constant(90000)));
-    expect(runPipeline(pipeline1, [doc1, doc2, doc3, doc4])).to.deep.equal([
+    expect(runPipeline(pipeline1, [doc1, doc2, doc3, doc4])).toEqual([
       doc1,
       doc3
     ]);
@@ -249,21 +236,19 @@ describe('Nested Properties', () => {
       .pipeline()
       .collection('/users')
       .where(field('address.zip').lessThan(constant(90000)));
-    expect(runPipeline(pipeline2, [doc1, doc2, doc3, doc4])).to.deep.equal([
-      doc2
-    ]);
+    expect(runPipeline(pipeline2, [doc1, doc2, doc3, doc4])).toEqual([doc2]);
 
     const pipeline3 = db
       .pipeline()
       .collection('/users')
       .where(field('address.zip').lessThan(constant(0)));
-    expect(runPipeline(pipeline3, [doc1, doc2, doc3, doc4])).to.be.empty;
+    expect(runPipeline(pipeline3, [doc1, doc2, doc3, doc4])).toHaveLength(0);
 
     const pipeline4 = db
       .pipeline()
       .collection('/users')
       .where(field('address.zip').notEqual(constant(10011)));
-    expect(runPipeline(pipeline4, [doc1, doc2, doc3, doc4])).to.deep.equal([
+    expect(runPipeline(pipeline4, [doc1, doc2, doc3, doc4])).toEqual([
       doc1,
       doc3
     ]);
@@ -286,9 +271,7 @@ describe('Nested Properties', () => {
       .collection('/users')
       .where(exists(field('address.street')));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).to.deep.equal([
-      doc2
-    ]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).toEqual([doc2]);
   });
 
   it('where_notExists', () => {
@@ -308,7 +291,7 @@ describe('Nested Properties', () => {
       .collection('/users')
       .where(not(exists(field('address.street'))));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).to.deep.equal([
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).toEqual([
       doc1,
       doc3,
       doc4
@@ -336,7 +319,7 @@ describe('Nested Properties', () => {
       .collection('/users')
       .where(field('address.street').equal(null));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([doc1]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([doc1]);
   });
 
   it('where_isNotNull', () => {
@@ -360,7 +343,7 @@ describe('Nested Properties', () => {
       .collection('/users')
       .where(not(field('address.street').equal(null)));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([doc2]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([doc2]);
   });
 
   it('sort_withExists', () => {
@@ -386,9 +369,10 @@ describe('Nested Properties', () => {
       .where(exists(field('address.street')))
       .sort(field('address.street').ascending());
 
-    expect(
-      runPipeline(pipeline, [doc1, doc2, doc3, doc4])
-    ).to.have.ordered.members([doc1, doc2]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).toEqual([
+      doc1,
+      doc2
+    ]);
   });
 
   it('sort_withoutExists', () => {
@@ -414,9 +398,9 @@ describe('Nested Properties', () => {
       .sort(field('address.street').ascending());
 
     const results = runPipeline(pipeline, [doc1, doc2, doc3, doc4]);
-    expect(results).to.have.lengthOf(4);
-    expect(results[2]).to.deep.equal(doc1);
-    expect(results[3]).to.deep.equal(doc2);
+    expect(results).toHaveLength(4);
+    expect(results[2]).toEqual(doc1);
+    expect(results[3]).toEqual(doc2);
   });
 
   it('quotedNestedProperty_filterNested', () => {
@@ -429,7 +413,7 @@ describe('Nested Properties', () => {
       .collection('/users')
       .where(field('address.city').equal(constant('San Francisco')));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([doc2]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([doc2]);
   });
 
   it('quotedNestedProperty_filterQuotedNested', () => {
@@ -448,6 +432,6 @@ describe('Nested Properties', () => {
         )
       );
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([doc1]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([doc1]);
   });
 });

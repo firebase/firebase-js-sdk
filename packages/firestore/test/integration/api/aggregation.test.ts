@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2022 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import { it } from '../../util/mocha_extensions';
 import {
@@ -52,7 +50,7 @@ apiDescribe('Count queries', persistence => {
     };
     return withTestCollection(persistence, testDocs, async coll => {
       const snapshot = await getCountFromServer(coll);
-      expect(snapshot.data().count).to.equal(2);
+      expect(snapshot.data().count).toBe(2);
     });
   });
 
@@ -67,7 +65,7 @@ apiDescribe('Count queries', persistence => {
             await addDoc(subColl1, { foo: 'bar' });
             await addDoc(subColl1, { foo: 'baz' });
             const snapshot1 = await getCountFromServer(subColl1);
-            expect(snapshot1.data().count).to.equal(2);
+            expect(snapshot1.data().count).toBe(2);
           });
         }
       );
@@ -93,7 +91,7 @@ apiDescribe('Count queries', persistence => {
         where('author', '==', 'authorA')
       ).withConverter(throwingConverter);
       const snapshot = await getCountFromServer(query_);
-      expect(snapshot.data().count).to.equal(1);
+      expect(snapshot.data().count).toBe(1);
     });
   });
 
@@ -115,14 +113,14 @@ apiDescribe('Count queries', persistence => {
       const snapshot = await getCountFromServer(
         collectionGroup(db, collectionGroupId)
       );
-      expect(snapshot.data().count).to.equal(2);
+      expect(snapshot.data().count).toBe(2);
     });
   });
 
   it('getCountFromServer fails if firestore is terminated', () => {
     return withEmptyTestCollection(persistence, async (coll, firestore) => {
       await terminate(firestore);
-      expect(() => getCountFromServer(coll)).to.throw(
+      expect(() => getCountFromServer(coll)).toThrow(
         'The client has already been terminated.'
       );
     });
@@ -140,7 +138,7 @@ apiDescribe('Count queries', persistence => {
   it.skip('getCountFromServer fails if user is offline', () => {
     return withEmptyTestCollection(persistence, async (coll, firestore) => {
       await disableNetwork(firestore);
-      await expect(getCountFromServer(coll)).to.be.eventually.rejectedWith(
+      await expect(getCountFromServer(coll)).rejects.toThrow(
         'Failed to get aggregate result because the client is offline'
       );
     });
@@ -163,13 +161,11 @@ apiDescribe('Count queries', persistence => {
         // once cl/582465034 is rolled out to production.
         // @ts-ignore internal API usage
         if (coll.firestore._databaseId.isDefaultDatabase) {
-          await expect(
-            getCountFromServer(query_)
-          ).to.be.eventually.rejectedWith(
+          await expect(getCountFromServer(query_)).rejects.toThrow(
             /index.*https:\/\/console\.firebase\.google\.com/
           );
         } else {
-          await expect(getCountFromServer(query_)).to.be.eventually.rejected;
+          await expect(getCountFromServer(query_)).rejects.toThrow();
         }
       });
     }
@@ -186,7 +182,7 @@ apiDescribe('Aggregation queries', persistence => {
       const snapshot = await getAggregateFromServer(coll, {
         count: count()
       });
-      expect(snapshot.data().count).to.equal(2);
+      expect(snapshot.data().count).toBe(2);
     });
   });
 
@@ -200,8 +196,8 @@ apiDescribe('Aggregation queries', persistence => {
         foo: count(),
         'with.dots': count()
       });
-      expect(snapshot.data().foo).to.equal(2);
-      expect(snapshot.data()['with.dots']).to.equal(2);
+      expect(snapshot.data().foo).toBe(2);
+      expect(snapshot.data()['with.dots']).toBe(2);
     });
   });
 
@@ -215,7 +211,7 @@ apiDescribe('Aggregation queries', persistence => {
         'with-un/su+pp[or]ted': count()
       });
 
-      expect(snapshot.data()['with-un/su+pp[or]ted']).to.equal(2);
+      expect(snapshot.data()['with-un/su+pp[or]ted']).toBe(2);
     });
   });
 
@@ -229,7 +225,7 @@ apiDescribe('Aggregation queries', persistence => {
         '`with-un/su+pp[or]ted`': count()
       });
 
-      expect(snapshot.data()['`with-un/su+pp[or]ted`']).to.equal(2);
+      expect(snapshot.data()['`with-un/su+pp[or]ted`']).toBe(2);
     });
   });
 
@@ -243,7 +239,7 @@ apiDescribe('Aggregation queries', persistence => {
         'with\\backslash\\es': count()
       });
 
-      expect(snapshot.data()['with\\backslash\\es']).to.equal(2);
+      expect(snapshot.data()['with\\backslash\\es']).toBe(2);
     });
   });
 
@@ -266,8 +262,8 @@ apiDescribe('Aggregation queries', persistence => {
         [longerAlias]: count()
       });
 
-      expect(snapshot.data()[longAlias]).to.equal(2);
-      expect(snapshot.data()[longerAlias]).to.equal(2);
+      expect(snapshot.data()[longAlias]).toBe(2);
+      expect(snapshot.data()[longerAlias]).toBe(2);
     });
   });
 
@@ -281,8 +277,8 @@ apiDescribe('Aggregation queries', persistence => {
         count: count(),
         foo: count()
       });
-      expect(snapshot.data().foo).to.equal(2);
-      expect(snapshot.data().count).to.equal(2);
+      expect(snapshot.data().foo).toBe(2);
+      expect(snapshot.data().count).toBe(2);
     });
   });
 
@@ -305,7 +301,7 @@ apiDescribe('Aggregation queries', persistence => {
         where('author', '==', 'authorA')
       ).withConverter(throwingConverter);
       const snapshot = await getAggregateFromServer(query_, { count: count() });
-      expect(snapshot.data().count).to.equal(1);
+      expect(snapshot.data().count).toBe(1);
     });
   });
 
@@ -328,14 +324,14 @@ apiDescribe('Aggregation queries', persistence => {
         collectionGroup(db, collectionGroupId),
         { count: count() }
       );
-      expect(snapshot.data().count).to.equal(2);
+      expect(snapshot.data().count).toBe(2);
     });
   });
 
   it('getAggregateFromServer fails if firestore is terminated', () => {
     return withEmptyTestCollection(persistence, async (coll, firestore) => {
       await terminate(firestore);
-      expect(() => getAggregateFromServer(coll, { count: count() })).to.throw(
+      expect(() => getAggregateFromServer(coll, { count: count() })).toThrow(
         'The client has already been terminated.'
       );
     });
@@ -353,7 +349,7 @@ apiDescribe('Aggregation queries', persistence => {
   it.skip('getAggregateFromServer fails if user is offline', () => {
     return withEmptyTestCollection(persistence, async (coll, firestore) => {
       await disableNetwork(firestore);
-      await expect(getCountFromServer(coll)).to.be.eventually.rejectedWith(
+      await expect(getCountFromServer(coll)).rejects.toThrow(
         'Failed to get aggregate result because the client is offline'
       );
     });
@@ -380,15 +376,13 @@ apiDescribe('Aggregation queries', persistence => {
             getAggregateFromServer(query_, {
               count: count()
             })
-          ).to.be.eventually.rejectedWith(
-            /index.*https:\/\/console\.firebase\.google\.com/
-          );
+          ).rejects.toThrow(/index.*https:\/\/console\.firebase\.google\.com/);
         } else {
           await expect(
             getAggregateFromServer(query_, {
               count: count()
             })
-          ).to.be.eventually.rejected;
+          ).rejects.toThrow();
         }
       });
     }
@@ -408,7 +402,7 @@ apiDescribe('Aggregation queries - sum / average', persistence => {
           totalPages: sum('pages')
         }
       );
-      expect(snapshot.data().totalPages).to.equal(150);
+      expect(snapshot.data().totalPages).toBe(150);
     });
   });
 
@@ -421,7 +415,7 @@ apiDescribe('Aggregation queries - sum / average', persistence => {
       const snapshot = await getAggregateFromServer(coll, {
         averagePages: average('pages')
       });
-      expect(snapshot.data().averagePages).to.equal(75);
+      expect(snapshot.data().averagePages).toBe(75);
     });
   });
 
@@ -436,9 +430,9 @@ apiDescribe('Aggregation queries - sum / average', persistence => {
         averagePages: average('pages'),
         count: count()
       });
-      expect(snapshot.data().totalPages).to.equal(150);
-      expect(snapshot.data().averagePages).to.equal(75);
-      expect(snapshot.data().count).to.equal(2);
+      expect(snapshot.data().totalPages).toBe(150);
+      expect(snapshot.data().averagePages).toBe(75);
+      expect(snapshot.data().count).toBe(2);
     });
   });
 
@@ -454,10 +448,10 @@ apiDescribe('Aggregation queries - sum / average', persistence => {
         totalPagesX: sum('pages'),
         averagePagesY: average('pages')
       });
-      expect(snapshot.data().totalPages).to.equal(150);
-      expect(snapshot.data().averagePages).to.equal(75);
-      expect(snapshot.data().totalPagesX).to.equal(150);
-      expect(snapshot.data().averagePagesY).to.equal(75);
+      expect(snapshot.data().totalPages).toBe(150);
+      expect(snapshot.data().averagePages).toBe(75);
+      expect(snapshot.data().totalPagesX).toBe(150);
+      expect(snapshot.data().averagePagesY).toBe(75);
     });
   });
 
@@ -474,11 +468,11 @@ apiDescribe('Aggregation queries - sum / average', persistence => {
         totalPagesX: sum('pages'),
         averagePagesY: average('pages')
       });
-      expect(snapshot.data().totalPages).to.equal(150);
-      expect(snapshot.data().averagePages).to.equal(75);
-      expect(snapshot.data().count).to.equal(2);
-      expect(snapshot.data().totalPagesX).to.equal(150);
-      expect(snapshot.data().averagePagesY).to.equal(75);
+      expect(snapshot.data().totalPages).toBe(150);
+      expect(snapshot.data().averagePages).toBe(75);
+      expect(snapshot.data().count).toBe(2);
+      expect(snapshot.data().totalPagesX).toBe(150);
+      expect(snapshot.data().averagePagesY).toBe(75);
     });
   });
 
@@ -499,9 +493,7 @@ apiDescribe('Aggregation queries - sum / average', persistence => {
           countZ: count()
         });
 
-        await expect(promise).to.eventually.be.rejectedWith(
-          /maximum number of aggregations/
-        );
+        await expect(promise).rejects.toThrow(/maximum number of aggregations/);
       });
     }
   );
@@ -545,7 +537,7 @@ apiDescribe('Aggregation queries - sum / average', persistence => {
 
       // @ts-expect-error
       const totalPages = snapshot.data().totalPages;
-      expect(totalPages).to.equal(undefined);
+      expect(totalPages).toBe(undefined);
     });
   });
 
@@ -589,9 +581,9 @@ apiDescribe('Aggregation queries - sum / average', persistence => {
           countOfDocs: count()
         }
       );
-      expect(snapshot.data().totalRating).to.equal(8);
-      expect(snapshot.data().averageRating).to.equal(4);
-      expect(snapshot.data().countOfDocs).to.equal(2);
+      expect(snapshot.data().totalRating).toBe(8);
+      expect(snapshot.data().averageRating).toBe(4);
+      expect(snapshot.data().countOfDocs).toBe(2);
     });
   });
 
@@ -614,9 +606,9 @@ apiDescribe('Aggregation queries - sum / average', persistence => {
         averagePages: average('metadata.pages'),
         count: count()
       });
-      expect(snapshot.data().totalPages).to.equal(150);
-      expect(snapshot.data().averagePages).to.equal(75);
-      expect(snapshot.data().count).to.equal(2);
+      expect(snapshot.data().totalPages).toBe(150);
+      expect(snapshot.data().averagePages).toBe(75);
+      expect(snapshot.data().count).toBe(2);
     });
   });
 
@@ -648,7 +640,7 @@ apiDescribe('Aggregation queries - sum / average', persistence => {
       const snapshot = await getAggregateFromServer(coll, {
         totalRating: sum('rating')
       });
-      expect(snapshot.data().totalRating).to.equal(12.5);
+      expect(snapshot.data().totalRating).toBe(12.5);
     });
   });
 
@@ -680,7 +672,7 @@ apiDescribe('Aggregation queries - sum / average', persistence => {
       const snapshot = await getAggregateFromServer(coll, {
         totalRating: sum('rating')
       });
-      expect(snapshot.data().totalRating).to.equal(13);
+      expect(snapshot.data().totalRating).toBe(13);
     });
   });
 
@@ -710,7 +702,7 @@ apiDescribe('Aggregation queries - sum / average', persistence => {
       const snapshot = await getAggregateFromServer(coll, {
         totalRating: sum('rating')
       });
-      expect(snapshot.data().totalRating).to.equal(maxLong + maxLong);
+      expect(snapshot.data().totalRating).toBe(maxLong + maxLong);
     });
   });
 
@@ -742,9 +734,7 @@ apiDescribe('Aggregation queries - sum / average', persistence => {
       const snapshot = await getAggregateFromServer(coll, {
         totalRating: sum('rating')
       });
-      expect(snapshot.data().totalRating).to.equal(
-        Number.MAX_SAFE_INTEGER - 100
-      );
+      expect(snapshot.data().totalRating).toBe(Number.MAX_SAFE_INTEGER - 100);
     });
   });
 
@@ -783,7 +773,7 @@ apiDescribe('Aggregation queries - sum / average', persistence => {
       const snapshot = await getAggregateFromServer(coll, {
         totalRating: sum('rating')
       });
-      expect(snapshot.data().totalRating).to.equal(-10101);
+      expect(snapshot.data().totalRating).toBe(-10101);
     });
   });
 
@@ -808,7 +798,7 @@ apiDescribe('Aggregation queries - sum / average', persistence => {
       const snapshot = await getAggregateFromServer(coll, {
         totalRating: sum('rating')
       });
-      expect(snapshot.data().totalRating).to.equal(Number.POSITIVE_INFINITY);
+      expect(snapshot.data().totalRating).toBe(Number.POSITIVE_INFINITY);
     });
   });
 
@@ -833,7 +823,7 @@ apiDescribe('Aggregation queries - sum / average', persistence => {
       const snapshot = await getAggregateFromServer(coll, {
         totalRating: sum('rating')
       });
-      expect(snapshot.data().totalRating).to.equal(Number.POSITIVE_INFINITY);
+      expect(snapshot.data().totalRating).toBe(Number.POSITIVE_INFINITY);
     });
   });
 
@@ -858,7 +848,7 @@ apiDescribe('Aggregation queries - sum / average', persistence => {
       const snapshot = await getAggregateFromServer(coll, {
         totalRating: sum('rating')
       });
-      expect(snapshot.data().totalRating).to.equal(Number.NEGATIVE_INFINITY);
+      expect(snapshot.data().totalRating).toBe(Number.NEGATIVE_INFINITY);
     });
   });
 
@@ -898,11 +888,9 @@ apiDescribe('Aggregation queries - sum / average', persistence => {
       const snapshot = await getAggregateFromServer(coll, {
         totalRating: sum('rating')
       });
-      expect(snapshot.data().totalRating).to.oneOf([
-        Number.POSITIVE_INFINITY,
-        Number.NEGATIVE_INFINITY,
-        0
-      ]);
+      expect([Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY, 0]).toContain(
+        snapshot.data().totalRating
+      );
     });
   });
 
@@ -941,7 +929,7 @@ apiDescribe('Aggregation queries - sum / average', persistence => {
       const snapshot = await getAggregateFromServer(coll, {
         totalRating: sum('rating')
       });
-      expect(snapshot.data().totalRating).to.be.NaN;
+      expect(snapshot.data().totalRating).toBeNaN();
     });
   });
 
@@ -985,7 +973,7 @@ apiDescribe('Aggregation queries - sum / average', persistence => {
             totalPages: sum('pages')
           }
         );
-        expect(snapshot.data().totalPages).to.equal(0);
+        expect(snapshot.data().totalPages).toBe(0);
       });
     }
   );
@@ -1026,8 +1014,8 @@ apiDescribe('Aggregation queries - sum / average', persistence => {
         totalRating: sum('rating'),
         countOfDocs: count()
       });
-      expect(snapshot.data().totalRating).to.equal(10);
-      expect(snapshot.data().countOfDocs).to.equal(4);
+      expect(snapshot.data().totalRating).toBe(10);
+      expect(snapshot.data().countOfDocs).toBe(4);
     });
   });
 
@@ -1045,7 +1033,7 @@ apiDescribe('Aggregation queries - sum / average', persistence => {
       const snapshot = await getAggregateFromServer(coll, {
         totalRating: sum('rating')
       });
-      expect(snapshot.data().totalRating).to.equal(Number.MIN_VALUE);
+      expect(snapshot.data().totalRating).toBe(Number.MIN_VALUE);
     });
   });
 
@@ -1077,7 +1065,7 @@ apiDescribe('Aggregation queries - sum / average', persistence => {
       const snapshot = await getAggregateFromServer(coll, {
         averageRating: average('rating')
       });
-      expect(snapshot.data().averageRating).to.equal(5);
+      expect(snapshot.data().averageRating).toBe(5);
     });
   });
 
@@ -1102,7 +1090,7 @@ apiDescribe('Aggregation queries - sum / average', persistence => {
       const snapshot = await getAggregateFromServer(coll, {
         averageRating: average('rating')
       });
-      expect(snapshot.data().averageRating).to.equal(10);
+      expect(snapshot.data().averageRating).toBe(10);
     });
   });
 
@@ -1134,7 +1122,7 @@ apiDescribe('Aggregation queries - sum / average', persistence => {
       const snapshot = await getAggregateFromServer(coll, {
         averageRating: average('rating')
       });
-      expect(snapshot.data().averageRating).to.equal(10);
+      expect(snapshot.data().averageRating).toBe(10);
     });
   });
 
@@ -1166,7 +1154,7 @@ apiDescribe('Aggregation queries - sum / average', persistence => {
       const snapshot = await getAggregateFromServer(coll, {
         averageRating: average('rating')
       });
-      expect(snapshot.data().averageRating).to.equal(4.5);
+      expect(snapshot.data().averageRating).toBe(4.5);
     });
   });
 
@@ -1198,7 +1186,9 @@ apiDescribe('Aggregation queries - sum / average', persistence => {
       const snapshot = await getAggregateFromServer(coll, {
         averageRating: average('rating')
       });
-      expect(snapshot.data().averageRating).to.be.approximately(9.2, 0.0000001);
+      expect(
+        Math.abs(snapshot.data().averageRating! - 9.2)
+      ).toBeLessThanOrEqual(0.0000001);
     });
   });
 
@@ -1223,7 +1213,7 @@ apiDescribe('Aggregation queries - sum / average', persistence => {
       const snapshot = await getAggregateFromServer(coll, {
         averageRating: average('rating')
       });
-      expect(snapshot.data().averageRating).to.equal(9.5);
+      expect(snapshot.data().averageRating).toBe(9.5);
     });
   });
 
@@ -1248,7 +1238,7 @@ apiDescribe('Aggregation queries - sum / average', persistence => {
       const snapshot = await getAggregateFromServer(coll, {
         averageRating: average('rating')
       });
-      expect(snapshot.data().averageRating).to.equal(0);
+      expect(snapshot.data().averageRating).toBe(0);
     });
   });
 
@@ -1266,7 +1256,7 @@ apiDescribe('Aggregation queries - sum / average', persistence => {
       const snapshot = await getAggregateFromServer(coll, {
         averageRating: average('rating')
       });
-      expect(snapshot.data().averageRating).to.equal(Number.MIN_VALUE);
+      expect(snapshot.data().averageRating).toBe(Number.MIN_VALUE);
     });
   });
 
@@ -1291,7 +1281,7 @@ apiDescribe('Aggregation queries - sum / average', persistence => {
       const snapshot = await getAggregateFromServer(coll, {
         averageRating: average('rating')
       });
-      expect(snapshot.data().averageRating).to.equal(Number.POSITIVE_INFINITY);
+      expect(snapshot.data().averageRating).toBe(Number.POSITIVE_INFINITY);
     });
   });
 
@@ -1330,7 +1320,7 @@ apiDescribe('Aggregation queries - sum / average', persistence => {
       const snapshot = await getAggregateFromServer(coll, {
         averageRating: average('rating')
       });
-      expect(snapshot.data().averageRating).to.be.NaN;
+      expect(snapshot.data().averageRating).toBeNaN();
     });
   });
 
@@ -1372,7 +1362,7 @@ apiDescribe('Aggregation queries - sum / average', persistence => {
           averagePages: average('pages')
         }
       );
-      expect(snapshot.data().averagePages).to.be.null;
+      expect(snapshot.data().averagePages).toBeNull();
     });
   });
 
@@ -1412,8 +1402,8 @@ apiDescribe('Aggregation queries - sum / average', persistence => {
         averageRating: average('rating'),
         countOfDocs: count()
       });
-      expect(snapshot.data().averageRating).to.equal(5);
-      expect(snapshot.data().countOfDocs).to.equal(4);
+      expect(snapshot.data().averageRating).toBe(5);
+      expect(snapshot.data().countOfDocs).toBe(4);
     });
   });
 });

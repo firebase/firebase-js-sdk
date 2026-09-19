@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2025 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import {
   constant,
@@ -32,15 +30,17 @@ const db = newTestFirestore();
 
 describe('collection group stage', () => {
   it('returns no result from empty db', () => {
-    expect(runPipeline(db.pipeline().collectionGroup('users'), [])).to.be.empty;
+    expect(
+      runPipeline(db.pipeline().collectionGroup('users'), [])
+    ).toHaveLength(0);
   });
 
   it('returns single document', () => {
     const doc1 = doc('users/bob', 1000, { score: 90, rank: 1 });
 
-    expect(
-      runPipeline(db.pipeline().collectionGroup('users'), [doc1])
-    ).to.deep.equal([doc1]);
+    expect(runPipeline(db.pipeline().collectionGroup('users'), [doc1])).toEqual(
+      [doc1]
+    );
   });
 
   it('returns multiple documents', () => {
@@ -50,7 +50,7 @@ describe('collection group stage', () => {
 
     expect(
       runPipeline(db.pipeline().collectionGroup('users'), [doc1, doc2, doc3])
-    ).to.deep.equal([doc2, doc1, doc3]);
+    ).toEqual([doc2, doc1, doc3]);
   });
 
   it('skips other collection ids', () => {
@@ -70,7 +70,7 @@ describe('collection group stage', () => {
         doc5,
         doc6
       ])
-    ).to.deep.equal([doc3, doc1, doc5]);
+    ).toEqual([doc3, doc1, doc5]);
   });
 
   it('different parents', () => {
@@ -96,7 +96,7 @@ describe('collection group stage', () => {
         db.pipeline().collectionGroup('games').sort(field('order').ascending()),
         [doc1, doc2, doc3, doc4, doc5, doc6, doc7]
       )
-    ).to.deep.equal([doc1, doc2, doc3, doc4, doc5, doc6]);
+    ).toEqual([doc1, doc2, doc3, doc4, doc5, doc6]);
   });
 
   it('different parents_stableOrdering_onPath', () => {
@@ -115,7 +115,7 @@ describe('collection group stage', () => {
 
     expect(
       runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5, doc6, doc7])
-    ).to.deep.equal([doc2, doc6, doc1, doc3, doc5, doc4]);
+    ).toEqual([doc2, doc6, doc1, doc3, doc5, doc4]);
   });
 
   it('different parents_stableOrdering_onKey', () => {
@@ -134,7 +134,7 @@ describe('collection group stage', () => {
 
     expect(
       runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5, doc6, doc7])
-    ).to.deep.equal([doc2, doc6, doc1, doc3, doc5, doc4]);
+    ).toEqual([doc2, doc6, doc1, doc3, doc5, doc4]);
   });
 
   // TODO(pipeline): Uncomment when we implement collection id
@@ -201,7 +201,7 @@ describe('collection group stage', () => {
       .collectionGroup('users')
       .where(field('score').equalAny([constant(90), constant(97)]));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).to.deep.equal([
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).toEqual([
       doc1,
       doc3,
       doc4
@@ -218,10 +218,7 @@ describe('collection group stage', () => {
       .collectionGroup('users')
       .where(field('score').greaterThan(constant(80)));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([
-      doc1,
-      doc3
-    ]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([doc1, doc3]);
   });
 
   it('where_notEqualOnValues', () => {
@@ -234,10 +231,7 @@ describe('collection group stage', () => {
       .collectionGroup('users')
       .where(field('score').notEqual(constant(50)));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([
-      doc1,
-      doc3
-    ]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([doc1, doc3]);
   });
 
   it('where_arrayContainsValues', () => {
@@ -259,10 +253,7 @@ describe('collection group stage', () => {
       .collectionGroup('users')
       .where(arrayContains(field('rounds'), constant('round3')) as BooleanExpr);
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([
-      doc1,
-      doc3
-    ]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([doc1, doc3]);
   });
 
   it('sort_onValues', () => {
@@ -275,7 +266,7 @@ describe('collection group stage', () => {
       .collectionGroup('users')
       .sort(field('score').descending());
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.have.ordered.members([
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([
       doc3,
       doc1,
       doc2
@@ -292,7 +283,7 @@ describe('collection group stage', () => {
       .collectionGroup('users')
       .sort(field('score').descending());
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.have.ordered.members([
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([
       doc1,
       doc2,
       doc3
@@ -309,7 +300,7 @@ describe('collection group stage', () => {
       .collectionGroup('users')
       .sort(field(DOCUMENT_KEY_NAME).ascending());
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.have.ordered.members([
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([
       doc2,
       doc1,
       doc3
@@ -327,9 +318,6 @@ describe('collection group stage', () => {
       .sort(field(DOCUMENT_KEY_NAME).ascending())
       .limit(2);
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.have.ordered.members([
-      doc2,
-      doc1
-    ]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([doc2, doc1]);
   });
 });

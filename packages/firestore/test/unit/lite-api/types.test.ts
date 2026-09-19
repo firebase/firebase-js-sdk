@@ -1,12 +1,12 @@
 /**
  * @license
- * Copyright 2023 Google LLC
+ * Copyright 2026 Google LLC
  *
- * Licensed under the Apache License, Version 2.0x00 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0x00
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { expect } from 'chai';
 
 import {
   DocumentData,
@@ -117,7 +116,7 @@ describe('UpdateData - v9', () => {
       undefinedProperty: 'string'
     };
 
-    expect(true).to.be.true;
+    expect(true).toBe(true);
   });
 
   it('Supports properties with custom types', () => {
@@ -157,7 +156,7 @@ describe('UpdateData - v9', () => {
       }
     };
 
-    expect(true).to.be.true;
+    expect(true).toBe(true);
   });
 
   describe('given properties with dots', () => {
@@ -175,7 +174,7 @@ describe('UpdateData - v9', () => {
         'property.with.dots': 1
       };
 
-      expect(true).to.be.true;
+      expect(true).toBe(true);
     });
 
     it('does not allow matching a sub-string|path', () => {
@@ -184,7 +183,7 @@ describe('UpdateData - v9', () => {
         'property.with': true
       };
 
-      expect(true).to.be.true;
+      expect(true).toBe(true);
     });
   });
 
@@ -227,7 +226,7 @@ describe('UpdateData - v9', () => {
         }
       };
 
-      expect(true).to.be.true;
+      expect(true).toBe(true);
     });
 
     it('errors for unexpected value types at each layer', () => {
@@ -254,7 +253,7 @@ describe('UpdateData - v9', () => {
         }
       };
 
-      expect(true).to.be.true;
+      expect(true).toBe(true);
     });
 
     it('does not allow properties that were not on the original type', () => {
@@ -271,7 +270,7 @@ describe('UpdateData - v9', () => {
         }
       };
 
-      expect(true).to.be.true;
+      expect(true).toBe(true);
     });
 
     it('preserves value types for dot notation', () => {
@@ -349,7 +348,7 @@ describe('UpdateData - v9', () => {
         }
       };
 
-      expect(true).to.be.true;
+      expect(true).toBe(true);
     });
   });
 
@@ -378,7 +377,7 @@ describe('UpdateData - v9', () => {
         }
       };
 
-      expect(true).to.be.true;
+      expect(true).toBe(true);
     });
 
     it('errors for unexpected value types at each layer', () => {
@@ -397,7 +396,7 @@ describe('UpdateData - v9', () => {
         }
       };
 
-      expect(true).to.be.true;
+      expect(true).toBe(true);
     });
 
     it('does not allow properties that were not on the original type', () => {
@@ -415,7 +414,7 @@ describe('UpdateData - v9', () => {
         }
       };
 
-      expect(true).to.be.true;
+      expect(true).toBe(true);
     });
 
     it('preserves value types for dot notation', () => {
@@ -441,7 +440,7 @@ describe('UpdateData - v9', () => {
         }
       };
 
-      expect(true).to.be.true;
+      expect(true).toBe(true);
     });
   });
 
@@ -480,7 +479,7 @@ describe('UpdateData - v9', () => {
           }
         };
 
-        expect(true).to.be.true;
+        expect(true).toBe(true);
       });
 
       it('allows dot notation for nested index types', () => {
@@ -511,7 +510,7 @@ describe('UpdateData - v9', () => {
           'indexed.bar.unknown': 'string value is not rejected'
         };
 
-        expect(true).to.be.true;
+        expect(true).toBe(true);
       });
 
       it('allows dot notation for nested index types that are 2 layers deep', () => {
@@ -534,7 +533,7 @@ describe('UpdateData - v9', () => {
           'layer.indexed.bar.unknownProperty': 'This just allows anything'
         };
 
-        expect(true).to.be.true;
+        expect(true).toBe(true);
       });
     });
   });
@@ -563,8 +562,8 @@ describe('FirestoreTypeConverter', () => {
       await updateDoc(newDocRef, { a: 'newFoo', b: 43 });
       const snapshot = await getDoc(newDocRef);
       const data: MyModelType = snapshot.data()!;
-      expect(data.stringProperty).to.equal('newFoo');
-      expect(data.numberProperty).to.equal(43);
+      expect(data.stringProperty).toBe('newFoo');
+      expect(data.numberProperty).toBe(43);
     }
   });
 
@@ -590,8 +589,8 @@ describe('FirestoreTypeConverter', () => {
       await updateDoc(newDocRef, { a: 'newFoo', b: 43 });
       const snapshot = await getDoc(newDocRef);
       const data: MyModelType = snapshot.data()!;
-      expect(data.stringProperty).to.equal('newFoo');
-      expect(data.numberProperty).to.equal(43);
+      expect(data.stringProperty).toBe('newFoo');
+      expect(data.numberProperty).toBe(43);
     }
   });
 
@@ -633,8 +632,8 @@ describe('FirestoreTypeConverter', () => {
       await updateDoc(newDocRef, { a: 'newFoo', b: 43 });
       const snapshot = await getDoc(newDocRef);
       const data: MyModelType = snapshot.data()!;
-      expect(data.stringProperty).to.equal('newFoo');
-      expect(data.numberProperty).to.equal(43);
+      expect(data.stringProperty).toBe('newFoo');
+      expect(data.numberProperty).toBe(43);
     }
   });
 
@@ -660,8 +659,8 @@ describe('FirestoreTypeConverter', () => {
       await updateDoc(newDocRef, { a: 'newFoo', b: 43 });
       const snapshot = await getDoc(newDocRef);
       const data: MyModelType = snapshot.data()!;
-      expect(data.stringProperty).to.equal('newFoo');
-      expect(data.numberProperty).to.equal(43);
+      expect(data.stringProperty).toBe('newFoo');
+      expect(data.numberProperty).toBe(43);
     }
   });
 
@@ -691,8 +690,8 @@ describe('FirestoreTypeConverter', () => {
       await updateDoc(newDocRef, { a: 'newFoo', b: 43 });
       const snapshot = await getDoc(newDocRef);
       const data: MyModelType = snapshot.data()!;
-      expect(data.stringProperty).to.equal('newFoo');
-      expect(data.numberProperty).to.equal(43);
+      expect(data.stringProperty).toBe('newFoo');
+      expect(data.numberProperty).toBe(43);
     }
   });
 

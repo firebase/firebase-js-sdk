@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-
 import { primitiveComparator } from '../../../src/util/misc';
 import { diffSortedSets, SortedSet } from '../../../src/util/sorted_set';
 import { expectSetToEqual } from '../../util/helpers';
@@ -29,13 +27,13 @@ describe('SortedSet', () => {
 
     expectSetToEqual(set, [-1, 0, 2, 4]);
 
-    expect(set.first()).to.equal(-1);
-    expect(set.last()).to.equal(4);
+    expect(set.first()).toBe(-1);
+    expect(set.last()).toBe(4);
 
-    expect(set.has(4)).to.equal(true);
-    expect(set.has(2)).to.equal(true);
-    expect(set.has(-1)).to.equal(true);
-    expect(set.has(0)).to.equal(true);
+    expect(set.has(4)).toBe(true);
+    expect(set.has(2)).toBe(true);
+    expect(set.has(-1)).toBe(true);
+    expect(set.has(0)).toBe(true);
   });
 
   it('adds and deletes elements', () => {
@@ -77,7 +75,7 @@ describe('SortedSet', () => {
 
     const arr: number[] = [];
     set.forEachInRange([2, 10], elem => arr.push(elem));
-    expect(arr).to.deep.equal([2, 5]);
+    expect(arr).toEqual([2, 5]);
 
     // Few cases that iterate over nothing.
     set.forEachInRange([2, 0], elem => expect.fail());
@@ -103,7 +101,7 @@ describe('SortedSet', () => {
         return true;
       }
     }, start);
-    expect(arr).to.deep.equal([2, 5]);
+    expect(arr).toEqual([2, 5]);
 
     arr = [];
     set.forEachWhile(elem => {
@@ -114,7 +112,7 @@ describe('SortedSet', () => {
         return true;
       }
     });
-    expect(arr).to.deep.equal([0, 2, 5]);
+    expect(arr).toEqual([0, 2, 5]);
 
     set.forEachWhile(elem => {
       expect.fail();
@@ -126,10 +124,10 @@ describe('SortedSet', () => {
     const empty = new SortedSet<number>(primitiveComparator);
     const set = empty.add(0).add(2).add(5).add(10).add(12);
 
-    expect(set.firstAfterOrEqual(2)).to.equal(2);
-    expect(set.firstAfterOrEqual(3)).to.equal(5);
-    expect(set.firstAfterOrEqual(13)).to.equal(null);
-    expect(empty.firstAfterOrEqual(1)).to.equal(null);
+    expect(set.firstAfterOrEqual(2)).toBe(2);
+    expect(set.firstAfterOrEqual(3)).toBe(5);
+    expect(set.firstAfterOrEqual(13)).toBe(null);
+    expect(empty.firstAfterOrEqual(1)).toBe(null);
   });
 
   it('can unionWith another set.', () => {
@@ -137,7 +135,7 @@ describe('SortedSet', () => {
     const set = empty.add(0).add(1).add(2);
     const set2 = empty.add(2).add(3).add(4);
     const expected = empty.add(0).add(1).add(2).add(3).add(4);
-    expect(set.unionWith(set2)).to.deep.equal(expected);
+    expect(set.unionWith(set2)).toEqual(expected);
   });
 
   it('returns indexes of elements', () => {
@@ -148,42 +146,42 @@ describe('SortedSet', () => {
       .add(2)
       .add(0);
 
-    expect(set.indexOf(-1)).to.equal(0);
-    expect(set.indexOf(0)).to.equal(1);
-    expect(set.indexOf(1)).to.equal(2);
-    expect(set.indexOf(2)).to.equal(3);
-    expect(set.indexOf(3)).to.equal(-1);
-    expect(set.indexOf(4)).to.equal(-1);
-    expect(set.indexOf(5)).to.equal(4);
+    expect(set.indexOf(-1)).toBe(0);
+    expect(set.indexOf(0)).toBe(1);
+    expect(set.indexOf(1)).toBe(2);
+    expect(set.indexOf(2)).toBe(3);
+    expect(set.indexOf(3)).toBe(-1);
+    expect(set.indexOf(4)).toBe(-1);
+    expect(set.indexOf(5)).toBe(4);
   });
 
   it('diff sorted sets with missing element', () => {
     const { added, removed } = computeDiffs(['a', 'b', 'c'], ['a', 'b']);
-    expect(added).to.have.members([]);
-    expect(removed).to.have.members(['c']);
+    expect(added).toEqual(expect.arrayContaining([]));
+    expect(removed).toEqual(expect.arrayContaining(['c']));
   });
 
   it('diff sorted sets with added element', () => {
     const { added, removed } = computeDiffs(['a', 'b'], ['a', 'b', 'c']);
-    expect(added).to.have.members(['c']);
-    expect(removed).to.have.members([]);
+    expect(added).toEqual(expect.arrayContaining(['c']));
+    expect(removed).toEqual(expect.arrayContaining([]));
   });
 
   it('diff sorted sets with empty sets', () => {
     {
       const { added, removed } = computeDiffs(['a'], []);
-      expect(added).to.have.members([]);
-      expect(removed).to.have.members(['a']);
+      expect(added).toEqual(expect.arrayContaining([]));
+      expect(removed).toEqual(expect.arrayContaining(['a']));
     }
     {
       const { added, removed } = computeDiffs([], ['a']);
-      expect(added).to.have.members(['a']);
-      expect(removed).to.have.members([]);
+      expect(added).toEqual(expect.arrayContaining(['a']));
+      expect(removed).toEqual(expect.arrayContaining([]));
     }
     {
       const { added, removed } = computeDiffs([], []);
-      expect(added).to.have.members([]);
-      expect(removed).to.have.members([]);
+      expect(added).toEqual(expect.arrayContaining([]));
+      expect(removed).toEqual(expect.arrayContaining([]));
     }
   });
 

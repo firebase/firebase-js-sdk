@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2025 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import {
   and as apiAnd,
@@ -51,7 +49,7 @@ describe('Inequality Queries', () => {
       .collection('/users')
       .where(greaterThan(field('score'), constant(90)));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([doc3]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([doc3]);
   });
 
   it('greaterThanOrEqual', () => {
@@ -64,10 +62,7 @@ describe('Inequality Queries', () => {
       .collection('/users')
       .where(greaterThanOrEqual(field('score'), constant(90)));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([
-      doc1,
-      doc3
-    ]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([doc1, doc3]);
   });
 
   it('lessThan', () => {
@@ -80,7 +75,7 @@ describe('Inequality Queries', () => {
       .collection('/users')
       .where(lessThan(field('score'), constant(90)));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([doc2]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([doc2]);
   });
 
   it('lessThanOrEqual', () => {
@@ -93,10 +88,7 @@ describe('Inequality Queries', () => {
       .collection('/users')
       .where(lessThanOrEqual(field('score'), constant(90)));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([
-      doc2,
-      doc1
-    ]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([doc2, doc1]);
   });
 
   it('notEqual', () => {
@@ -109,10 +101,7 @@ describe('Inequality Queries', () => {
       .collection('/users')
       .where(notEqual(field('score'), constant(90)));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([
-      doc2,
-      doc3
-    ]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([doc2, doc3]);
   });
 
   it('notEqual_returnsMixedTypes', () => {
@@ -132,7 +121,7 @@ describe('Inequality Queries', () => {
 
     expect(
       runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5, doc6, doc7, doc8])
-    ).to.deep.equal([doc2, doc3, doc4, doc5, doc6, doc7, doc8]);
+    ).toEqual([doc2, doc3, doc4, doc5, doc6, doc7, doc8]);
   });
 
   it('comparisonHasImplicitBound', () => {
@@ -152,7 +141,7 @@ describe('Inequality Queries', () => {
 
     expect(
       runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5, doc6, doc7, doc8])
-    ).to.deep.equal([doc2]);
+    ).toEqual([doc2]);
   });
 
   it('not_comparison_returnsMixedType', () => {
@@ -172,7 +161,7 @@ describe('Inequality Queries', () => {
 
     expect(
       runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5, doc6, doc7, doc8])
-    ).to.deep.equal([doc1, doc3, doc4, doc5, doc6, doc7, doc8]);
+    ).toEqual([doc1, doc3, doc4, doc5, doc6, doc7, doc8]);
   });
 
   it('inequality_withEquality_onDifferentField', () => {
@@ -190,7 +179,7 @@ describe('Inequality Queries', () => {
         )
       );
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([doc1]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([doc1]);
   });
 
   it('inequality_withEquality_onSameField', () => {
@@ -208,7 +197,7 @@ describe('Inequality Queries', () => {
         )
       );
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([doc1]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([doc1]);
   });
 
   it('withSort_onSameField', () => {
@@ -222,10 +211,7 @@ describe('Inequality Queries', () => {
       .where(greaterThanOrEqual(field('score'), constant(90)))
       .sort(field('score').ascending());
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.have.ordered.members([
-      doc1,
-      doc3
-    ]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([doc1, doc3]);
   });
 
   it('withSort_onDifferentFields', () => {
@@ -239,10 +225,7 @@ describe('Inequality Queries', () => {
       .where(greaterThanOrEqual(field('score'), constant(90)))
       .sort(field('rank').ascending());
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.have.ordered.members([
-      doc3,
-      doc1
-    ]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([doc3, doc1]);
   });
 
   it('withOr_onSingleField', () => {
@@ -260,10 +243,7 @@ describe('Inequality Queries', () => {
         )
       );
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([
-      doc2,
-      doc3
-    ]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([doc2, doc3]);
   });
 
   it('withOr_onDifferentFields', () => {
@@ -281,10 +261,7 @@ describe('Inequality Queries', () => {
         )
       );
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([
-      doc1,
-      doc3
-    ]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([doc1, doc3]);
   });
 
   it('withEqAny_onSingleField', () => {
@@ -302,7 +279,7 @@ describe('Inequality Queries', () => {
         )
       );
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([doc3]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([doc3]);
   });
 
   it('withEqAny_onDifferentFields', () => {
@@ -319,7 +296,7 @@ describe('Inequality Queries', () => {
           equalAny(field('score'), [constant(50), constant(80), constant(97)])
         )
       );
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([doc3]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([doc3]);
   });
 
   it('withNotEqAny_onSingleField', () => {
@@ -338,9 +315,7 @@ describe('Inequality Queries', () => {
         )
       );
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).to.deep.equal([
-      doc4
-    ]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).toEqual([doc4]);
   });
 
   it('withNotEqAny_returnsMixedTypes', () => {
@@ -379,7 +354,7 @@ describe('Inequality Queries', () => {
         doc9,
         doc10
       ])
-    ).to.deep.equal([doc3, doc4, doc5, doc6, doc7, doc8, doc9, doc10]);
+    ).toEqual([doc3, doc4, doc5, doc6, doc7, doc8, doc9, doc10]);
   });
 
   it('withNotEqAny_onDifferentFields', () => {
@@ -397,7 +372,7 @@ describe('Inequality Queries', () => {
         )
       );
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([doc3]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([doc3]);
   });
 
   it('sortByEquality', () => {
@@ -417,9 +392,10 @@ describe('Inequality Queries', () => {
       )
       .sort(field('rank').ascending(), field('score').ascending());
 
-    expect(
-      runPipeline(pipeline, [doc1, doc2, doc3, doc4])
-    ).to.have.ordered.members([doc1, doc4]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).toEqual([
+      doc1,
+      doc4
+    ]);
   });
 
   it('withEqAny_sortByEquality', () => {
@@ -439,9 +415,10 @@ describe('Inequality Queries', () => {
       )
       .sort(field('rank').ascending(), field('score').ascending());
 
-    expect(
-      runPipeline(pipeline, [doc1, doc2, doc3, doc4])
-    ).to.have.ordered.members([doc4, doc1]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).toEqual([
+      doc4,
+      doc1
+    ]);
   });
 
   it('withArray', () => {
@@ -468,7 +445,7 @@ describe('Inequality Queries', () => {
         )
       );
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([doc1]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([doc1]);
   });
 
   it('withArrayContainsAny', () => {
@@ -495,7 +472,7 @@ describe('Inequality Queries', () => {
         )
       );
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([doc1]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([doc1]);
   });
 
   it('withSortAndLimit', () => {
@@ -511,9 +488,10 @@ describe('Inequality Queries', () => {
       .sort(field('rank').ascending())
       .limit(2);
 
-    expect(
-      runPipeline(pipeline, [doc1, doc2, doc3, doc4])
-    ).to.have.ordered.members([doc3, doc4]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).toEqual([
+      doc3,
+      doc4
+    ]);
   });
 
   it('multipleInequalities_onSingleField', () => {
@@ -531,7 +509,7 @@ describe('Inequality Queries', () => {
         )
       );
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([doc3]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([doc3]);
   });
 
   it('multipleInequalities_onDifferentFields_singleMatch', () => {
@@ -549,7 +527,7 @@ describe('Inequality Queries', () => {
         )
       );
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([doc3]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([doc3]);
   });
 
   it('multipleInequalities_onDifferentFields_multipleMatch', () => {
@@ -567,10 +545,7 @@ describe('Inequality Queries', () => {
         )
       );
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([
-      doc1,
-      doc3
-    ]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([doc1, doc3]);
   });
 
   it('multipleInequalities_onDifferentFields_allMatch', () => {
@@ -588,7 +563,7 @@ describe('Inequality Queries', () => {
         )
       );
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([
       doc2,
       doc1,
       doc3
@@ -610,7 +585,7 @@ describe('Inequality Queries', () => {
         )
       );
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.be.empty;
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toHaveLength(0);
   });
 
   it('multipleInequalities_withBoundedRanges', () => {
@@ -631,9 +606,7 @@ describe('Inequality Queries', () => {
         )
       );
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).to.deep.equal([
-      doc1
-    ]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).toEqual([doc1]);
   });
 
   it('multipleInequalities_withSingleSortAsc', () => {
@@ -652,10 +625,7 @@ describe('Inequality Queries', () => {
       )
       .sort(field('rank').ascending());
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.have.ordered.members([
-      doc3,
-      doc1
-    ]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([doc3, doc1]);
   });
 
   it('multipleInequalities_withSingleSortDesc', () => {
@@ -674,10 +644,7 @@ describe('Inequality Queries', () => {
       )
       .sort(field('rank').descending());
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.have.ordered.members([
-      doc1,
-      doc3
-    ]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([doc1, doc3]);
   });
 
   it('multipleInequalities_withMultipleSortAsc', () => {
@@ -696,10 +663,7 @@ describe('Inequality Queries', () => {
       )
       .sort(field('rank').ascending(), field('score').ascending());
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.have.ordered.members([
-      doc3,
-      doc1
-    ]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([doc3, doc1]);
   });
 
   it('multipleInequalities_withMultipleSortDesc', () => {
@@ -718,10 +682,7 @@ describe('Inequality Queries', () => {
       )
       .sort(field('rank').descending(), field('score').descending());
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.have.ordered.members([
-      doc1,
-      doc3
-    ]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([doc1, doc3]);
   });
 
   it('multipleInequalities_withMultipleSortDesc_onReverseIndex', () => {
@@ -740,9 +701,6 @@ describe('Inequality Queries', () => {
       )
       .sort(field('score').descending(), field('rank').descending());
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.have.ordered.members([
-      doc3,
-      doc1
-    ]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([doc3, doc1]);
   });
 });

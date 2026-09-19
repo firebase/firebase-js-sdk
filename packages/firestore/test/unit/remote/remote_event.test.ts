@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { RemoteTargetId, TargetId } from '../../../src/core/types';
@@ -78,23 +76,22 @@ function expectTargetChangeEquals(
   actual: TargetChange,
   expected: TargetChange
 ): void {
-  expect(actual.current).to.equal(expected.current, 'TargetChange.current');
-  expect(actual.resumeToken).to.deep.equal(
-    expected.resumeToken,
-    'TargetChange.resumeToken'
+  expect(actual.current, 'TargetChange.current').toBe(expected.current);
+  expect(actual.resumeToken, 'TargetChange.resumeToken').toEqual(
+    expected.resumeToken
   );
-  expect(actual.addedDocuments.isEqual(expected.addedDocuments)).to.equal(
-    true,
+  expect(
+    actual.addedDocuments.isEqual(expected.addedDocuments),
     'TargetChange.addedDocuments'
-  );
-  expect(actual.modifiedDocuments.isEqual(expected.modifiedDocuments)).to.equal(
-    true,
+  ).toBe(true);
+  expect(
+    actual.modifiedDocuments.isEqual(expected.modifiedDocuments),
     'TargetChange.modifiedDocuments'
-  );
-  expect(actual.removedDocuments.isEqual(expected.removedDocuments)).to.equal(
-    true,
+  ).toBe(true);
+  expect(
+    actual.removedDocuments.isEqual(expected.removedDocuments),
     'TargetChange.removedDocuments'
-  );
+  ).toBe(true);
 }
 
 describe('RemoteEvent', () => {
@@ -187,11 +184,11 @@ describe('RemoteEvent', () => {
     });
 
     expectEqual(event.snapshotVersion, version(3));
-    expect(event.documentUpdates.size).to.equal(2);
+    expect(event.documentUpdates.size).toBe(2);
     expectEqual(event.documentUpdates.get(existingDoc.key), existingDoc);
     expectEqual(event.documentUpdates.get(newDoc.key), newDoc);
 
-    expect(event.targetChanges.size).to.equal(6);
+    expect(event.targetChanges.size).toBe(6);
 
     const mapping1 = updateMapping(version(3), [newDoc], [existingDoc], []);
     expectTargetChangeEquals(event.targetChanges.get(1)!, mapping1);
@@ -236,10 +233,10 @@ describe('RemoteEvent', () => {
     expectEqual(event.snapshotVersion, version(3));
     // Doc1 is ignored because the target was not active at the time, but for
     // doc2 the target is active.
-    expect(event.documentUpdates.size).to.equal(1);
+    expect(event.documentUpdates.size).toBe(1);
     expectEqual(event.documentUpdates.get(doc2.key), doc2);
     // Target 1 is ignored because it was removed
-    expect(event.targetChanges.size).to.equal(1);
+    expect(event.targetChanges.size).toBe(1);
   });
 
   it('will ignore events for removed targets', () => {
@@ -259,9 +256,9 @@ describe('RemoteEvent', () => {
 
     expectEqual(event.snapshotVersion, version(3));
     // Doc 1 is ignored because it was not apart of an active target.
-    expect(event.documentUpdates.size).to.equal(0);
+    expect(event.documentUpdates.size).toBe(0);
     // Target 1 is ignored because it was removed
-    expect(event.targetChanges.size).to.equal(0);
+    expect(event.targetChanges.size).toBe(0);
   });
 
   it('will keep reset mapping even with updates', () => {
@@ -291,12 +288,12 @@ describe('RemoteEvent', () => {
     });
 
     expectEqual(event.snapshotVersion, version(3));
-    expect(event.documentUpdates.size).to.equal(3);
+    expect(event.documentUpdates.size).toBe(3);
     expectEqual(event.documentUpdates.get(doc1.key), doc1);
     expectEqual(event.documentUpdates.get(doc2.key), doc2);
     expectEqual(event.documentUpdates.get(doc3.key), doc3);
 
-    expect(event.targetChanges.size).to.equal(1);
+    expect(event.targetChanges.size).toBe(1);
 
     // Only doc3 is part of the new mapping.
     const expected = updateMapping(version(3), [doc3], [], [doc1]);
@@ -317,8 +314,8 @@ describe('RemoteEvent', () => {
     });
 
     expectEqual(event.snapshotVersion, version(3));
-    expect(event.documentUpdates.size).to.equal(0);
-    expect(event.targetChanges.size).to.equal(1);
+    expect(event.documentUpdates.size).toBe(0);
+    expect(event.targetChanges.size).toBe(1);
 
     // Reset mapping is empty.
     const expected = updateMapping(version(3), [], [], []);
@@ -343,10 +340,10 @@ describe('RemoteEvent', () => {
     });
 
     expectEqual(event.snapshotVersion, version(3));
-    expect(event.documentUpdates.size).to.equal(1);
+    expect(event.documentUpdates.size).toBe(1);
     expectEqual(event.documentUpdates.get(doc1b.key), doc1b);
 
-    expect(event.targetChanges.size).to.equal(2);
+    expect(event.targetChanges.size).toBe(2);
 
     const mapping1 = updateMapping(version(3), [], [], [doc1b]);
     expectTargetChangeEquals(event.targetChanges.get(1)!, mapping1);
@@ -367,8 +364,8 @@ describe('RemoteEvent', () => {
     });
 
     expectEqual(event.snapshotVersion, version(3));
-    expect(event.documentUpdates.size).to.equal(0);
-    expect(event.targetChanges.size).to.equal(1);
+    expect(event.documentUpdates.size).toBe(0);
+    expect(event.targetChanges.size).toBe(1);
 
     const mapping = updateMapping(version(3), [], [], [], true);
     expectTargetChangeEquals(event.targetChanges.get(1)!, mapping);
@@ -401,13 +398,13 @@ describe('RemoteEvent', () => {
     });
 
     expectEqual(event.snapshotVersion, version(3));
-    expect(event.documentUpdates.size).to.equal(2);
+    expect(event.documentUpdates.size).toBe(2);
     expectEqual(event.documentUpdates.get(doc1.key), doc1);
     expectEqual(event.documentUpdates.get(doc2.key), doc2);
 
     // target 1 and 3 are affected (1 because of re-add), target 2 is not
     // because of remove.
-    expect(event.targetChanges.size).to.equal(2);
+    expect(event.targetChanges.size).toBe(2);
 
     // doc1 was before the remove, so it does not show up in the mapping.
     // Current was before the remove.
@@ -432,8 +429,8 @@ describe('RemoteEvent', () => {
     });
 
     expectEqual(event.snapshotVersion, version(3));
-    expect(event.documentUpdates.size).to.equal(0);
-    expect(event.targetChanges.size).to.equal(1);
+    expect(event.documentUpdates.size).toBe(0);
+    expect(event.targetChanges.size).toBe(1);
     const expected = updateMapping(version(3), [], [], [], false);
     expectTargetChangeEquals(event.targetChanges.get(1)!, expected);
   });
@@ -457,8 +454,8 @@ describe('RemoteEvent', () => {
     });
 
     let event = aggregator.createRemoteEvent(version(3));
-    expect(event.documentUpdates.size).to.equal(2);
-    expect(event.targetChanges.size).to.equal(2);
+    expect(event.documentUpdates.size).toBe(2);
+    expect(event.targetChanges.size).toBe(2);
 
     // The existence filter mismatch will remove the document from target 1,
     // but not synthesize a document delete.
@@ -467,12 +464,12 @@ describe('RemoteEvent', () => {
     );
 
     event = aggregator.createRemoteEvent(version(3));
-    expect(event.documentUpdates.size).to.equal(0);
-    expect(event.targetMismatches.size).to.equal(1);
-    expect(event.targetMismatches.get(1)).to.equal(
+    expect(event.documentUpdates.size).toBe(0);
+    expect(event.targetMismatches.size).toBe(1);
+    expect(event.targetMismatches.get(1)).toBe(
       TargetPurpose.ExistenceFilterMismatch
     );
-    expect(event.targetChanges.size).to.equal(1);
+    expect(event.targetChanges.size).toBe(1);
 
     const expected = updateMapping(
       SnapshotVersion.min(),
@@ -510,12 +507,12 @@ describe('RemoteEvent', () => {
     );
 
     const event = aggregator.createRemoteEvent(version(3));
-    expect(event.documentUpdates.size).to.equal(1);
-    expect(event.targetMismatches.size).to.equal(1);
-    expect(event.targetMismatches.get(1)).to.equal(
+    expect(event.documentUpdates.size).toBe(1);
+    expect(event.targetMismatches.size).toBe(1);
+    expect(event.targetMismatches.get(1)).toBe(
       TargetPurpose.ExistenceFilterMismatch
     );
-    expect(event.targetChanges.get(1)!.current).to.be.false;
+    expect(event.targetChanges.get(1)!.current).toBe(false);
   });
 
   it('handles document update', () => {
@@ -539,7 +536,7 @@ describe('RemoteEvent', () => {
 
     let event = aggregator.createRemoteEvent(version(3));
     expectEqual(event.snapshotVersion, version(3));
-    expect(event.documentUpdates.size).to.equal(2);
+    expect(event.documentUpdates.size).toBe(2);
     expectEqual(event.documentUpdates.get(doc1.key), doc1);
     expectEqual(event.documentUpdates.get(doc2.key), doc2);
 
@@ -550,7 +547,7 @@ describe('RemoteEvent', () => {
     event = aggregator.createRemoteEvent(version(3));
 
     expectEqual(event.snapshotVersion, version(3));
-    expect(event.documentUpdates.size).to.equal(3);
+    expect(event.documentUpdates.size).toBe(3);
     // Doc 1 is replaced
     const olddoc = event.documentUpdates.get(doc1.key);
     expectEqual(olddoc, deletedDoc1);
@@ -558,7 +555,7 @@ describe('RemoteEvent', () => {
     expectEqual(event.documentUpdates.get(doc3.key), doc3);
 
     // Target is unchanged
-    expect(event.targetChanges.size).to.equal(1);
+    expect(event.targetChanges.size).toBe(1);
 
     const mapping1 = updateMapping(
       version(3),
@@ -587,14 +584,14 @@ describe('RemoteEvent', () => {
     });
 
     let event = aggregator.createRemoteEvent(version(2));
-    expect(event.documentUpdates.size).to.equal(2);
-    expect(event.targetChanges.size).to.equal(2);
+    expect(event.documentUpdates.size).toBe(2);
+    expect(event.targetChanges.size).toBe(2);
 
     aggregator.addDocumentToTarget(2, updatedDoc2);
     event = aggregator.createRemoteEvent(version(2));
 
-    expect(event.documentUpdates.size).to.equal(1);
-    expect(event.targetChanges.size).to.equal(1);
+    expect(event.documentUpdates.size).toBe(1);
+    expect(event.targetChanges.size).toBe(1);
 
     const mapping1 = updateMapping(version(3), [], [updatedDoc2], []);
     expectTargetChangeEquals(event.targetChanges.get(2)!, mapping1);
@@ -619,7 +616,7 @@ describe('RemoteEvent', () => {
       event.snapshotVersion.toMicroseconds()
     );
     expectEqual(event.documentUpdates.get(limboKey), expected);
-    expect(event.resolvedLimboDocuments.has(limboKey)).to.be.true;
+    expect(event.resolvedLimboDocuments.has(limboKey)).toBe(true);
   });
 
   it("doesn't synthesize deletes in the wrong state", () => {
@@ -636,8 +633,8 @@ describe('RemoteEvent', () => {
       changes: [wrongState]
     });
 
-    expect(event.documentUpdates.get(limboKey)).to.not.exist;
-    expect(event.resolvedLimboDocuments.has(limboKey)).to.be.false;
+    expect(event.documentUpdates.get(limboKey)).toBeFalsy();
+    expect(event.resolvedLimboDocuments.has(limboKey)).toBe(false);
   });
 
   it('separates document updates', () => {
@@ -668,10 +665,10 @@ describe('RemoteEvent', () => {
     });
 
     const updateChange = event.targetChanges.get(updateTargetId)!;
-    expect(updateChange.addedDocuments.has(newDoc.key)).to.be.true;
-    expect(updateChange.addedDocuments.has(existingDoc.key)).to.be.false;
-    expect(updateChange.modifiedDocuments.has(newDoc.key)).to.be.false;
-    expect(updateChange.modifiedDocuments.has(existingDoc.key)).to.be.true;
+    expect(updateChange.addedDocuments.has(newDoc.key)).toBe(true);
+    expect(updateChange.addedDocuments.has(existingDoc.key)).toBe(false);
+    expect(updateChange.modifiedDocuments.has(newDoc.key)).toBe(false);
+    expect(updateChange.modifiedDocuments.has(existingDoc.key)).toBe(true);
   });
 
   it('tracks limbo documents', () => {
@@ -699,10 +696,10 @@ describe('RemoteEvent', () => {
     });
 
     // Doc1 is in both limbo and non-limbo targets, therefore not tracked as limbo
-    expect(event.resolvedLimboDocuments.has(doc1.key)).to.be.false;
+    expect(event.resolvedLimboDocuments.has(doc1.key)).toBe(false);
     // Doc2 is only in the limbo target, so is tracked as a limbo document
-    expect(event.resolvedLimboDocuments.has(doc2.key)).to.be.true;
+    expect(event.resolvedLimboDocuments.has(doc2.key)).toBe(true);
     // Doc3 is only in the non-limbo target, therefore not tracked as limbo
-    expect(event.resolvedLimboDocuments.has(doc3.key)).to.be.false;
+    expect(event.resolvedLimboDocuments.has(doc3.key)).toBe(false);
   });
 });

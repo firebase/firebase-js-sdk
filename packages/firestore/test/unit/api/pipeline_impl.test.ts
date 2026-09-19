@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2025 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,7 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-import * as sinon from 'sinon';
+import type { MockInstance } from 'vitest';
 
 import { Timestamp } from '../../../src';
 import { Firestore } from '../../../src/api/database';
@@ -39,14 +38,14 @@ const EXECUTE_PIPELINE_REQUEST = 3;
 function fakePipelineResponse(
   firestore: Firestore,
   response?: ProtoExecutePipelineResponse[]
-): sinon.SinonSpy {
+): MockInstance {
   response = response ?? [
     {
       executionTime: Timestamp.now().toDate().toISOString(),
       results: []
     }
   ];
-  const fake = sinon.fake.resolves(response);
+  const fake = vi.fn().mockResolvedValue(response);
 
   firestore._componentsProvider = {
     _offline: {
@@ -86,10 +85,10 @@ describe('execute(Pipeline|PipelineOptions)', () => {
       firestore.pipeline().collection('foo')
     );
 
-    expect(pipelineSnapshot.results.length).to.equal(0);
-    expect(spy.calledOnce);
+    expect(pipelineSnapshot.results.length).toBe(0);
+    expect(spy).toHaveBeenCalledTimes(1);
 
-    expect(pipelineSnapshot.executionTime.toJSON()).to.deep.equal(
+    expect(pipelineSnapshot.executionTime.toJSON()).toEqual(
       executeTime.toJSON()
     );
   });
@@ -121,7 +120,7 @@ describe('execute(Pipeline|PipelineOptions)', () => {
         }
       }
     };
-    expect(spy.args[FIRST_CALL][EXECUTE_PIPELINE_REQUEST]).to.deep.equal(
+    expect(spy.mock.calls[FIRST_CALL][EXECUTE_PIPELINE_REQUEST]).toEqual(
       executePipelineRequest
     );
   });
@@ -158,7 +157,7 @@ describe('execute(Pipeline|PipelineOptions)', () => {
         }
       }
     };
-    expect(spy.args[FIRST_CALL][EXECUTE_PIPELINE_REQUEST]).to.deep.equal(
+    expect(spy.mock.calls[FIRST_CALL][EXECUTE_PIPELINE_REQUEST]).toEqual(
       executePipelineRequest
     );
   });
@@ -197,7 +196,7 @@ describe('execute(Pipeline|PipelineOptions)', () => {
         }
       }
     };
-    expect(spy.args[FIRST_CALL][EXECUTE_PIPELINE_REQUEST]).to.deep.equal(
+    expect(spy.mock.calls[FIRST_CALL][EXECUTE_PIPELINE_REQUEST]).toEqual(
       executePipelineRequest
     );
   });
@@ -302,7 +301,7 @@ describe('stage serialization', () => {
           }
         }
       };
-      expect(spy.args[FIRST_CALL][EXECUTE_PIPELINE_REQUEST]).to.deep.equal(
+      expect(spy.mock.calls[FIRST_CALL][EXECUTE_PIPELINE_REQUEST]).toEqual(
         executePipelineRequest
       );
     });

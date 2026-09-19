@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2025 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import {
   and,
@@ -50,79 +48,73 @@ import {
 describe('Logical Functions', () => {
   describe('and', () => {
     it('false_false_isFalse', () => {
-      expect(evaluateToValue(and(falseExpr, falseExpr))).to.deep.equal(
-        FALSE_VALUE
-      );
+      expect(evaluateToValue(and(falseExpr, falseExpr))).toEqual(FALSE_VALUE);
     });
 
     it('false_error_isFalse', () => {
-      expect(
-        evaluateToValue(and(falseExpr, errorFilterCondition()))
-      ).to.deep.equal(FALSE_VALUE);
-    });
-
-    it('false_true_isFalse', () => {
-      expect(evaluateToValue(and(falseExpr, trueExpr))).to.deep.equal(
+      expect(evaluateToValue(and(falseExpr, errorFilterCondition()))).toEqual(
         FALSE_VALUE
       );
     });
 
+    it('false_true_isFalse', () => {
+      expect(evaluateToValue(and(falseExpr, trueExpr))).toEqual(FALSE_VALUE);
+    });
+
     it('error_false_isFalse', () => {
-      expect(
-        evaluateToValue(and(errorFilterCondition(), falseExpr))
-      ).to.deep.equal(FALSE_VALUE);
+      expect(evaluateToValue(and(errorFilterCondition(), falseExpr))).toEqual(
+        FALSE_VALUE
+      );
     });
 
     it('error_error_isError', () => {
       expect(
         evaluateToValue(and(errorFilterCondition(), errorFilterCondition()))
-      ).to.be.undefined;
+      ).toBeUndefined();
     });
 
     it('error_true_isError', () => {
-      expect(evaluateToValue(and(errorFilterCondition(), trueExpr))).to.be
-        .undefined;
+      expect(
+        evaluateToValue(and(errorFilterCondition(), trueExpr))
+      ).toBeUndefined();
     });
 
     it('true_false_isFalse', () => {
-      expect(evaluateToValue(and(trueExpr, falseExpr))).to.deep.equal(
-        FALSE_VALUE
-      );
+      expect(evaluateToValue(and(trueExpr, falseExpr))).toEqual(FALSE_VALUE);
     });
 
     it('true_error_isError', () => {
-      expect(evaluateToValue(and(trueExpr, errorFilterCondition()))).to.be
-        .undefined;
+      expect(
+        evaluateToValue(and(trueExpr, errorFilterCondition()))
+      ).toBeUndefined();
     });
 
     it('true_true_isTrue', () => {
-      expect(evaluateToValue(and(trueExpr, trueExpr))).to.deep.equal(
-        TRUE_VALUE
-      );
+      expect(evaluateToValue(and(trueExpr, trueExpr))).toEqual(TRUE_VALUE);
     });
 
     it('false_false_false_isFalse', () => {
-      expect(
-        evaluateToValue(and(falseExpr, falseExpr, falseExpr))
-      ).to.deep.equal(FALSE_VALUE);
+      expect(evaluateToValue(and(falseExpr, falseExpr, falseExpr))).toEqual(
+        FALSE_VALUE
+      );
     });
 
     it('false_false_error_isFalse', () => {
       expect(
         evaluateToValue(and(falseExpr, falseExpr, errorFilterCondition()))
-      ).to.deep.equal(FALSE_VALUE);
+      ).toEqual(FALSE_VALUE);
     });
 
     it('false_false_true_isFalse', () => {
-      expect(
-        evaluateToValue(and(falseExpr, falseExpr, trueExpr))
-      ).to.deep.equal(FALSE_VALUE);
+      expect(evaluateToValue(and(falseExpr, falseExpr, trueExpr))).toEqual(
+        FALSE_VALUE
+      );
     });
 
     it('false_error_false_isFalse', () => {
       expect(
         evaluateToValue(and(falseExpr, errorFilterCondition(), falseExpr))
-      ).to.deep.equal(FALSE_VALUE);
+      ).toEqual(FALSE_VALUE);
     });
 
     it('false_error_error_isFalse', () => {
@@ -130,29 +122,29 @@ describe('Logical Functions', () => {
         evaluateToValue(
           and(falseExpr, errorFilterCondition(), errorFilterCondition())
         )
-      ).to.deep.equal(FALSE_VALUE);
+      ).toEqual(FALSE_VALUE);
     });
 
     it('false_error_true_isFalse', () => {
       expect(
         evaluateToValue(and(falseExpr, errorFilterCondition(), trueExpr))
-      ).to.deep.equal(FALSE_VALUE);
+      ).toEqual(FALSE_VALUE);
     });
 
     it('false_true_false_isFalse', () => {
-      expect(
-        evaluateToValue(and(falseExpr, trueExpr, falseExpr))
-      ).to.deep.equal(FALSE_VALUE);
+      expect(evaluateToValue(and(falseExpr, trueExpr, falseExpr))).toEqual(
+        FALSE_VALUE
+      );
     });
 
     it('false_true_error_isFalse', () => {
       expect(
         evaluateToValue(and(falseExpr, trueExpr, errorFilterCondition()))
-      ).to.deep.equal(FALSE_VALUE);
+      ).toEqual(FALSE_VALUE);
     });
 
     it('false_true_true_isFalse', () => {
-      expect(evaluateToValue(and(falseExpr, trueExpr, trueExpr))).to.deep.equal(
+      expect(evaluateToValue(and(falseExpr, trueExpr, trueExpr))).toEqual(
         FALSE_VALUE
       );
     });
@@ -160,7 +152,7 @@ describe('Logical Functions', () => {
     it('error_false_false_isFalse', () => {
       expect(
         evaluateToValue(and(errorFilterCondition(), falseExpr, falseExpr))
-      ).to.deep.equal(FALSE_VALUE);
+      ).toEqual(FALSE_VALUE);
     });
 
     it('error_false_error_isFalse', () => {
@@ -168,13 +160,13 @@ describe('Logical Functions', () => {
         evaluateToValue(
           and(errorFilterCondition(), falseExpr, errorFilterCondition())
         )
-      ).to.deep.equal(FALSE_VALUE);
+      ).toEqual(FALSE_VALUE);
     });
 
     it('error_false_true_isFalse', () => {
       expect(
         evaluateToValue(and(errorFilterCondition(), falseExpr, trueExpr))
-      ).to.deep.equal(FALSE_VALUE);
+      ).toEqual(FALSE_VALUE);
     });
 
     it('error_error_false_isFalse', () => {
@@ -182,7 +174,7 @@ describe('Logical Functions', () => {
         evaluateToValue(
           and(errorFilterCondition(), errorFilterCondition(), falseExpr)
         )
-      ).to.deep.equal(FALSE_VALUE);
+      ).toEqual(FALSE_VALUE);
     });
 
     it('error_error_error_isError', () => {
@@ -194,7 +186,7 @@ describe('Logical Functions', () => {
             errorFilterCondition()
           )
         )
-      ).to.be.undefined;
+      ).toBeUndefined();
     });
 
     it('error_error_true_isError', () => {
@@ -202,13 +194,13 @@ describe('Logical Functions', () => {
         evaluateToValue(
           and(errorFilterCondition(), errorFilterCondition(), trueExpr)
         )
-      ).to.be.undefined;
+      ).toBeUndefined();
     });
 
     it('error_true_false_isFalse', () => {
       expect(
         evaluateToValue(and(errorFilterCondition(), trueExpr, falseExpr))
-      ).to.deep.equal(FALSE_VALUE);
+      ).toEqual(FALSE_VALUE);
     });
 
     it('error_true_error_isError', () => {
@@ -216,28 +208,29 @@ describe('Logical Functions', () => {
         evaluateToValue(
           and(errorFilterCondition(), trueExpr, errorFilterCondition())
         )
-      ).to.be.undefined;
+      ).toBeUndefined();
     });
 
     it('error_true_true_isError', () => {
-      expect(evaluateToValue(and(errorFilterCondition(), trueExpr, trueExpr)))
-        .to.be.undefined;
+      expect(
+        evaluateToValue(and(errorFilterCondition(), trueExpr, trueExpr))
+      ).toBeUndefined();
     });
 
     it('true_false_false_isFalse', () => {
-      expect(
-        evaluateToValue(and(trueExpr, falseExpr, falseExpr))
-      ).to.deep.equal(FALSE_VALUE);
+      expect(evaluateToValue(and(trueExpr, falseExpr, falseExpr))).toEqual(
+        FALSE_VALUE
+      );
     });
 
     it('true_false_error_isFalse', () => {
       expect(
         evaluateToValue(and(trueExpr, falseExpr, errorFilterCondition()))
-      ).to.deep.equal(FALSE_VALUE);
+      ).toEqual(FALSE_VALUE);
     });
 
     it('true_false_true_isFalse', () => {
-      expect(evaluateToValue(and(trueExpr, falseExpr, trueExpr))).to.deep.equal(
+      expect(evaluateToValue(and(trueExpr, falseExpr, trueExpr))).toEqual(
         FALSE_VALUE
       );
     });
@@ -245,7 +238,7 @@ describe('Logical Functions', () => {
     it('true_error_false_isFalse', () => {
       expect(
         evaluateToValue(and(trueExpr, errorFilterCondition(), falseExpr))
-      ).to.deep.equal(FALSE_VALUE);
+      ).toEqual(FALSE_VALUE);
     });
 
     it('true_error_error_isError', () => {
@@ -253,27 +246,29 @@ describe('Logical Functions', () => {
         evaluateToValue(
           and(trueExpr, errorFilterCondition(), errorFilterCondition())
         )
-      ).to.be.undefined;
+      ).toBeUndefined();
     });
 
     it('true_error_true_isError', () => {
-      expect(evaluateToValue(and(trueExpr, errorFilterCondition(), trueExpr)))
-        .to.be.undefined;
+      expect(
+        evaluateToValue(and(trueExpr, errorFilterCondition(), trueExpr))
+      ).toBeUndefined();
     });
 
     it('true_true_false_isFalse', () => {
-      expect(evaluateToValue(and(trueExpr, trueExpr, falseExpr))).to.deep.equal(
+      expect(evaluateToValue(and(trueExpr, trueExpr, falseExpr))).toEqual(
         FALSE_VALUE
       );
     });
 
     it('true_true_error_isError', () => {
-      expect(evaluateToValue(and(trueExpr, trueExpr, errorFilterCondition())))
-        .to.be.undefined;
+      expect(
+        evaluateToValue(and(trueExpr, trueExpr, errorFilterCondition()))
+      ).toBeUndefined();
     });
 
     it('true_true_true_isTrue', () => {
-      expect(evaluateToValue(and(trueExpr, trueExpr, trueExpr))).to.deep.equal(
+      expect(evaluateToValue(and(trueExpr, trueExpr, trueExpr))).toEqual(
         TRUE_VALUE
       );
     });
@@ -281,11 +276,11 @@ describe('Logical Functions', () => {
     it('nested_and', () => {
       const child = and(trueExpr, falseExpr);
       const f = and(child, trueExpr);
-      expect(evaluateToValue(f)).to.deep.equal(FALSE_VALUE);
+      expect(evaluateToValue(f)).toEqual(FALSE_VALUE);
     });
 
     it('multipleArguments', () => {
-      expect(evaluateToValue(and(trueExpr, trueExpr, trueExpr))).to.deep.equal(
+      expect(evaluateToValue(and(trueExpr, trueExpr, trueExpr))).toEqual(
         TRUE_VALUE
       );
     });
@@ -294,21 +289,21 @@ describe('Logical Functions', () => {
   describe('cond', () => {
     it('trueCondition_returnsTrueCase', () => {
       const func = cond(trueExpr, constant('true case'), errorExpr());
-      expect(evaluateToValue(func)).to.deep.equal({
+      expect(evaluateToValue(func)).toEqual({
         stringValue: 'true case'
       });
     });
 
     it('falseCondition_returnsFalseCase', () => {
       const func = cond(falseExpr, errorExpr(), constant('false case'));
-      expect(evaluateToValue(func)).to.deep.equal({
+      expect(evaluateToValue(func)).toEqual({
         stringValue: 'false case'
       });
     });
 
     it('errorCondition_returnsFalseCase', () => {
       const func = cond(errorFilterCondition(), errorExpr(), constant('false'));
-      expect(evaluateToValue(func)).to.be.undefined;
+      expect(evaluateToValue(func)).toBeUndefined();
     });
   }); // end describe('cond')
 
@@ -318,7 +313,7 @@ describe('Logical Functions', () => {
         evaluateToValue(
           constant('hello').equalAny([constant('hello'), constant('world')])
         )
-      ).to.deep.equal(TRUE_VALUE);
+      ).toEqual(TRUE_VALUE);
     });
 
     it('valueNotFoundInArray', () => {
@@ -330,7 +325,7 @@ describe('Logical Functions', () => {
             constant(true)
           ])
         )
-      ).to.deep.equal(FALSE_VALUE);
+      ).toEqual(FALSE_VALUE);
     });
 
     it('notEqAnyFunction_valueNotFoundInArray', () => {
@@ -340,7 +335,7 @@ describe('Logical Functions', () => {
         constant(true)
       ]);
       const f = not(child);
-      expect(evaluateToValue(f)).to.deep.equal(TRUE_VALUE);
+      expect(evaluateToValue(f)).toEqual(TRUE_VALUE);
     });
 
     it('equivalentNumerics', () => {
@@ -352,7 +347,7 @@ describe('Logical Functions', () => {
             constant(true)
           ])
         )
-      ).to.deep.equal(TRUE_VALUE);
+      ).toEqual(TRUE_VALUE);
       expect(
         evaluateToValue(
           constant(42.0).equalAny([
@@ -361,7 +356,7 @@ describe('Logical Functions', () => {
             constant(true)
           ])
         )
-      ).to.deep.equal(TRUE_VALUE);
+      ).toEqual(TRUE_VALUE);
     });
 
     it('bothInputTypeIsArray', () => {
@@ -373,18 +368,17 @@ describe('Logical Functions', () => {
             constantArray([7, 8, 9])
           ])
         )
-      ).to.deep.equal(TRUE_VALUE);
+      ).toEqual(TRUE_VALUE);
     });
 
     it('array_notFound_returnsError', () => {
-      expect(evaluateToValue(constant('matang').equalAny([field('not-exist')])))
-        .to.be.undefined;
+      expect(
+        evaluateToValue(constant('matang').equalAny([field('not-exist')]))
+      ).toBeUndefined();
     });
 
     it('array_isEmpty_returnsFalse', () => {
-      expect(evaluateToValue(constant(42).equalAny([]))).to.deep.equal(
-        FALSE_VALUE
-      );
+      expect(evaluateToValue(constant(42).equalAny([]))).toEqual(FALSE_VALUE);
     });
 
     it('search_reference_notFound_returnsError', () => {
@@ -396,7 +390,7 @@ describe('Logical Functions', () => {
             constant(true)
           ])
         )
-      ).to.be.undefined;
+      ).toBeUndefined();
     });
 
     it('search_isNull', () => {
@@ -409,11 +403,11 @@ describe('Logical Functions', () => {
             constant(true)
           ])
         )
-      ).to.deep.equal(INTERNAL_MIN_VALUE);
+      ).toEqual(INTERNAL_MIN_VALUE);
     });
 
     it('search_isNull_emptyValuesArray_returnsFalse', () => {
-      expect(evaluateToValue(constant(null).equalAny([]))).to.deep.equal(
+      expect(evaluateToValue(constant(null).equalAny([]))).toEqual(
         INTERNAL_MIN_VALUE
       );
     });
@@ -423,11 +417,11 @@ describe('Logical Functions', () => {
         evaluateToValue(
           constant(NaN).equalAny([constant(NaN), constant(42), constant(3.14)])
         )
-      ).to.deep.equal(FALSE_VALUE);
+      ).toEqual(FALSE_VALUE);
     });
 
     it('search_isEmpty_array_isEmpty', () => {
-      expect(evaluateToValue(constantArray([]).equalAny([]))).to.deep.equal(
+      expect(evaluateToValue(constantArray([]).equalAny([]))).toEqual(
         FALSE_VALUE
       );
     });
@@ -435,7 +429,7 @@ describe('Logical Functions', () => {
     it('search_isEmpty_array_containsEmptyArray_returnsTrue', () => {
       expect(
         evaluateToValue(constantArray([]).equalAny([constantArray([])]))
-      ).to.deep.equal(TRUE_VALUE);
+      ).toEqual(TRUE_VALUE);
     });
 
     it('search_isMap', () => {
@@ -448,44 +442,38 @@ describe('Logical Functions', () => {
             constantMap({ foo: 42 })
           ])
         )
-      ).to.deep.equal(TRUE_VALUE);
+      ).toEqual(TRUE_VALUE);
     });
   }); // end describe('eqAny')
 
   describe('isNaN', () => {
     it('nan_returnsFalse', () => {
-      expect(
-        evaluateToValue(equal(constant(NaN), constant(NaN)))
-      ).to.deep.equal(FALSE_VALUE);
-      expect(
-        evaluateToValue(equal(field('nanValue'), constant(NaN)))
-      ).to.deep.equal(FALSE_VALUE);
-    });
-
-    it('notNan_returnsFalse', () => {
-      expect(
-        evaluateToValue(equal(constant(42.0), constant(NaN)))
-      ).to.deep.equal(FALSE_VALUE);
-      expect(evaluateToValue(equal(constant(42), NaN))).to.deep.equal(
+      expect(evaluateToValue(equal(constant(NaN), constant(NaN)))).toEqual(
+        FALSE_VALUE
+      );
+      expect(evaluateToValue(equal(field('nanValue'), constant(NaN)))).toEqual(
         FALSE_VALUE
       );
     });
 
+    it('notNan_returnsFalse', () => {
+      expect(evaluateToValue(equal(constant(42.0), constant(NaN)))).toEqual(
+        FALSE_VALUE
+      );
+      expect(evaluateToValue(equal(constant(42), NaN))).toEqual(FALSE_VALUE);
+    });
+
     it('isNotNan', () => {
-      expect(
-        evaluateToValue(notEqual(constant(42.0), constant(NaN)))
-      ).to.deep.equal(TRUE_VALUE);
-      expect(evaluateToValue(notEqual(constant(42), NaN))).to.deep.equal(
+      expect(evaluateToValue(notEqual(constant(42.0), constant(NaN)))).toEqual(
         TRUE_VALUE
       );
+      expect(evaluateToValue(notEqual(constant(42), NaN))).toEqual(TRUE_VALUE);
     });
 
     it('otherNanRepresentations_returnsFalse', () => {
       const v1 = NaN; // In JS, any operation with NaN results in NaN
-      expect(Number.isNaN(v1)).to.be.true;
-      expect(evaluateToValue(equal(constant(v1), NaN))).to.deep.equal(
-        FALSE_VALUE
-      );
+      expect(Number.isNaN(v1)).toBe(true);
+      expect(evaluateToValue(equal(constant(v1), NaN))).toEqual(FALSE_VALUE);
 
       expect(
         evaluateToValue(
@@ -497,20 +485,18 @@ describe('Logical Functions', () => {
             constant(NaN)
           )
         )
-      ).to.deep.equal(FALSE_VALUE);
+      ).toEqual(FALSE_VALUE);
 
       expect(
         evaluateToValue(equal(add(constant(NaN), constant(1)), constant(NaN)))
-      ).to.deep.equal(FALSE_VALUE);
+      ).toEqual(FALSE_VALUE);
     });
 
     it('nonNumeric_returnsError', () => {
-      expect(
-        evaluateToValue(equal(constant(true), constant(NaN)))
-      ).to.deep.equal(FALSE_VALUE);
-      expect(evaluateToValue(equal(constant('abc'), NaN))).to.deep.equal(
+      expect(evaluateToValue(equal(constant(true), constant(NaN)))).toEqual(
         FALSE_VALUE
       );
+      expect(evaluateToValue(equal(constant('abc'), NaN))).toEqual(FALSE_VALUE);
     });
   }); // end describe('isNaN')
 
@@ -678,89 +664,83 @@ describe('Logical Functions', () => {
 
   describe('not', () => {
     it('true_to_false', () => {
-      expect(evaluateToValue(not(constant(1).equal(1)))).to.deep.equal(
-        FALSE_VALUE
-      );
+      expect(evaluateToValue(not(constant(1).equal(1)))).toEqual(FALSE_VALUE);
     });
 
     it('false_to_true', () => {
-      expect(evaluateToValue(not(constant(1).notEqual(1)))).to.deep.equal(
-        TRUE_VALUE
-      );
+      expect(evaluateToValue(not(constant(1).notEqual(1)))).toEqual(TRUE_VALUE);
     });
   }); // end describe('not')
 
   describe('or', () => {
     it('false_false_isFalse', () => {
-      expect(evaluateToValue(or(falseExpr, falseExpr))).to.deep.equal(
-        FALSE_VALUE
-      );
+      expect(evaluateToValue(or(falseExpr, falseExpr))).toEqual(FALSE_VALUE);
     });
 
     it('false_error_isError', () => {
-      expect(evaluateToValue(or(falseExpr, errorFilterCondition()))).to.be
-        .undefined;
+      expect(
+        evaluateToValue(or(falseExpr, errorFilterCondition()))
+      ).toBeUndefined();
     });
 
     it('false_true_isTrue', () => {
-      expect(evaluateToValue(or(falseExpr, trueExpr))).to.deep.equal(
-        TRUE_VALUE
-      );
+      expect(evaluateToValue(or(falseExpr, trueExpr))).toEqual(TRUE_VALUE);
     });
 
     it('error_false_isError', () => {
-      expect(evaluateToValue(or(errorFilterCondition(), falseExpr))).to.be
-        .undefined;
+      expect(
+        evaluateToValue(or(errorFilterCondition(), falseExpr))
+      ).toBeUndefined();
     });
 
     it('error_error_isError', () => {
       expect(
         evaluateToValue(or(errorFilterCondition(), errorFilterCondition()))
-      ).to.be.undefined;
+      ).toBeUndefined();
     });
 
     it('error_true_isTrue', () => {
-      expect(
-        evaluateToValue(or(errorFilterCondition(), trueExpr))
-      ).to.deep.equal(TRUE_VALUE);
-    });
-
-    it('true_false_isTrue', () => {
-      expect(evaluateToValue(or(trueExpr, falseExpr))).to.deep.equal(
+      expect(evaluateToValue(or(errorFilterCondition(), trueExpr))).toEqual(
         TRUE_VALUE
       );
     });
 
+    it('true_false_isTrue', () => {
+      expect(evaluateToValue(or(trueExpr, falseExpr))).toEqual(TRUE_VALUE);
+    });
+
     it('true_error_isTrue', () => {
-      expect(
-        evaluateToValue(or(trueExpr, errorFilterCondition()))
-      ).to.deep.equal(TRUE_VALUE);
+      expect(evaluateToValue(or(trueExpr, errorFilterCondition()))).toEqual(
+        TRUE_VALUE
+      );
     });
 
     it('true_true_isTrue', () => {
-      expect(evaluateToValue(or(trueExpr, trueExpr))).to.deep.equal(TRUE_VALUE);
+      expect(evaluateToValue(or(trueExpr, trueExpr))).toEqual(TRUE_VALUE);
     });
 
     it('false_false_false_isFalse', () => {
-      expect(
-        evaluateToValue(or(falseExpr, falseExpr, falseExpr))
-      ).to.deep.equal(FALSE_VALUE);
+      expect(evaluateToValue(or(falseExpr, falseExpr, falseExpr))).toEqual(
+        FALSE_VALUE
+      );
     });
 
     it('false_false_error_isError', () => {
-      expect(evaluateToValue(or(falseExpr, falseExpr, errorFilterCondition())))
-        .to.be.undefined;
+      expect(
+        evaluateToValue(or(falseExpr, falseExpr, errorFilterCondition()))
+      ).toBeUndefined();
     });
 
     it('false_false_true_isTrue', () => {
-      expect(evaluateToValue(or(falseExpr, falseExpr, trueExpr))).to.deep.equal(
+      expect(evaluateToValue(or(falseExpr, falseExpr, trueExpr))).toEqual(
         TRUE_VALUE
       );
     });
 
     it('false_error_false_isError', () => {
-      expect(evaluateToValue(or(falseExpr, errorFilterCondition(), falseExpr)))
-        .to.be.undefined;
+      expect(
+        evaluateToValue(or(falseExpr, errorFilterCondition(), falseExpr))
+      ).toBeUndefined();
     });
 
     it('false_error_error_isError', () => {
@@ -768,17 +748,17 @@ describe('Logical Functions', () => {
         evaluateToValue(
           or(falseExpr, errorFilterCondition(), errorFilterCondition())
         )
-      ).to.be.undefined;
+      ).toBeUndefined();
     });
 
     it('false_error_true_isTrue', () => {
       expect(
         evaluateToValue(or(falseExpr, errorFilterCondition(), trueExpr))
-      ).to.deep.equal(TRUE_VALUE);
+      ).toEqual(TRUE_VALUE);
     });
 
     it('false_true_false_isTrue', () => {
-      expect(evaluateToValue(or(falseExpr, trueExpr, falseExpr))).to.deep.equal(
+      expect(evaluateToValue(or(falseExpr, trueExpr, falseExpr))).toEqual(
         TRUE_VALUE
       );
     });
@@ -786,18 +766,19 @@ describe('Logical Functions', () => {
     it('false_true_error_isTrue', () => {
       expect(
         evaluateToValue(or(falseExpr, trueExpr, errorFilterCondition()))
-      ).to.deep.equal(TRUE_VALUE);
+      ).toEqual(TRUE_VALUE);
     });
 
     it('false_true_true_isTrue', () => {
-      expect(evaluateToValue(or(falseExpr, trueExpr, trueExpr))).to.deep.equal(
+      expect(evaluateToValue(or(falseExpr, trueExpr, trueExpr))).toEqual(
         TRUE_VALUE
       );
     });
 
     it('error_false_false_isError', () => {
-      expect(evaluateToValue(or(errorFilterCondition(), falseExpr, falseExpr)))
-        .to.be.undefined;
+      expect(
+        evaluateToValue(or(errorFilterCondition(), falseExpr, falseExpr))
+      ).toBeUndefined();
     });
 
     it('error_false_error_isError', () => {
@@ -805,13 +786,13 @@ describe('Logical Functions', () => {
         evaluateToValue(
           or(errorFilterCondition(), falseExpr, errorFilterCondition())
         )
-      ).to.be.undefined;
+      ).toBeUndefined();
     });
 
     it('error_false_true_isTrue', () => {
       expect(
         evaluateToValue(or(errorFilterCondition(), falseExpr, trueExpr))
-      ).to.deep.equal(TRUE_VALUE);
+      ).toEqual(TRUE_VALUE);
     });
 
     it('error_error_false_isError', () => {
@@ -819,7 +800,7 @@ describe('Logical Functions', () => {
         evaluateToValue(
           or(errorFilterCondition(), errorFilterCondition(), falseExpr)
         )
-      ).to.be.undefined;
+      ).toBeUndefined();
     });
 
     it('error_error_error_isError', () => {
@@ -831,7 +812,7 @@ describe('Logical Functions', () => {
             errorFilterCondition()
           )
         )
-      ).to.be.undefined;
+      ).toBeUndefined();
     });
 
     it('error_error_true_isTrue', () => {
@@ -839,13 +820,13 @@ describe('Logical Functions', () => {
         evaluateToValue(
           or(errorFilterCondition(), errorFilterCondition(), trueExpr)
         )
-      ).to.deep.equal(TRUE_VALUE);
+      ).toEqual(TRUE_VALUE);
     });
 
     it('error_true_false_isTrue', () => {
       expect(
         evaluateToValue(or(errorFilterCondition(), trueExpr, falseExpr))
-      ).to.deep.equal(TRUE_VALUE);
+      ).toEqual(TRUE_VALUE);
     });
 
     it('error_true_error_isTrue', () => {
@@ -853,17 +834,17 @@ describe('Logical Functions', () => {
         evaluateToValue(
           or(errorFilterCondition(), trueExpr, errorFilterCondition())
         )
-      ).to.deep.equal(TRUE_VALUE);
+      ).toEqual(TRUE_VALUE);
     });
 
     it('error_true_true_isTrue', () => {
       expect(
         evaluateToValue(or(errorFilterCondition(), trueExpr, trueExpr))
-      ).to.deep.equal(TRUE_VALUE);
+      ).toEqual(TRUE_VALUE);
     });
 
     it('true_false_false_isTrue', () => {
-      expect(evaluateToValue(or(trueExpr, falseExpr, falseExpr))).to.deep.equal(
+      expect(evaluateToValue(or(trueExpr, falseExpr, falseExpr))).toEqual(
         TRUE_VALUE
       );
     });
@@ -871,11 +852,11 @@ describe('Logical Functions', () => {
     it('true_false_error_isTrue', () => {
       expect(
         evaluateToValue(or(trueExpr, falseExpr, errorFilterCondition()))
-      ).to.deep.equal(TRUE_VALUE);
+      ).toEqual(TRUE_VALUE);
     });
 
     it('true_false_true_isTrue', () => {
-      expect(evaluateToValue(or(trueExpr, falseExpr, trueExpr))).to.deep.equal(
+      expect(evaluateToValue(or(trueExpr, falseExpr, trueExpr))).toEqual(
         TRUE_VALUE
       );
     });
@@ -883,7 +864,7 @@ describe('Logical Functions', () => {
     it('true_error_false_isTrue', () => {
       expect(
         evaluateToValue(or(trueExpr, errorFilterCondition(), falseExpr))
-      ).to.deep.equal(TRUE_VALUE);
+      ).toEqual(TRUE_VALUE);
     });
 
     it('true_error_error_isTrue', () => {
@@ -891,17 +872,17 @@ describe('Logical Functions', () => {
         evaluateToValue(
           or(trueExpr, errorFilterCondition(), errorFilterCondition())
         )
-      ).to.deep.equal(TRUE_VALUE);
+      ).toEqual(TRUE_VALUE);
     });
 
     it('true_error_true_isTrue', () => {
       expect(
         evaluateToValue(or(trueExpr, errorFilterCondition(), trueExpr))
-      ).to.deep.equal(TRUE_VALUE);
+      ).toEqual(TRUE_VALUE);
     });
 
     it('true_true_false_isTrue', () => {
-      expect(evaluateToValue(or(trueExpr, trueExpr, falseExpr))).to.deep.equal(
+      expect(evaluateToValue(or(trueExpr, trueExpr, falseExpr))).toEqual(
         TRUE_VALUE
       );
     });
@@ -909,11 +890,11 @@ describe('Logical Functions', () => {
     it('true_true_error_isTrue', () => {
       expect(
         evaluateToValue(or(trueExpr, trueExpr, errorFilterCondition()))
-      ).to.deep.equal(TRUE_VALUE);
+      ).toEqual(TRUE_VALUE);
     });
 
     it('true_true_true_isTrue', () => {
-      expect(evaluateToValue(or(trueExpr, trueExpr, trueExpr))).to.deep.equal(
+      expect(evaluateToValue(or(trueExpr, trueExpr, trueExpr))).toEqual(
         TRUE_VALUE
       );
     });
@@ -921,11 +902,11 @@ describe('Logical Functions', () => {
     it('nested_or', () => {
       const child = or(trueExpr, falseExpr);
       const f = or(child, falseExpr);
-      expect(evaluateToValue(f)).to.deep.equal(TRUE_VALUE);
+      expect(evaluateToValue(f)).toEqual(TRUE_VALUE);
     });
 
     it('multipleArguments', () => {
-      expect(evaluateToValue(or(trueExpr, falseExpr, trueExpr))).to.deep.equal(
+      expect(evaluateToValue(or(trueExpr, falseExpr, trueExpr))).toEqual(
         TRUE_VALUE
       );
     });
@@ -933,75 +914,73 @@ describe('Logical Functions', () => {
 
   describe('xor', () => {
     it('false_false_isFalse', () => {
-      expect(evaluateToValue(xor(falseExpr, falseExpr))).to.deep.equal(
-        FALSE_VALUE
-      );
+      expect(evaluateToValue(xor(falseExpr, falseExpr))).toEqual(FALSE_VALUE);
     });
 
     it('false_error_isError', () => {
-      expect(evaluateToValue(xor(falseExpr, errorFilterCondition()))).to.be
-        .undefined;
+      expect(
+        evaluateToValue(xor(falseExpr, errorFilterCondition()))
+      ).toBeUndefined();
     });
 
     it('false_true_isTrue', () => {
-      expect(evaluateToValue(xor(falseExpr, trueExpr))).to.deep.equal(
-        TRUE_VALUE
-      );
+      expect(evaluateToValue(xor(falseExpr, trueExpr))).toEqual(TRUE_VALUE);
     });
 
     it('error_false_isError', () => {
-      expect(evaluateToValue(xor(errorFilterCondition(), falseExpr))).to.be
-        .undefined;
+      expect(
+        evaluateToValue(xor(errorFilterCondition(), falseExpr))
+      ).toBeUndefined();
     });
 
     it('error_error_isError', () => {
       expect(
         evaluateToValue(xor(errorFilterCondition(), errorFilterCondition()))
-      ).to.be.undefined;
+      ).toBeUndefined();
     });
 
     it('error_true_isError', () => {
-      expect(evaluateToValue(xor(errorFilterCondition(), trueExpr))).to.be
-        .undefined;
+      expect(
+        evaluateToValue(xor(errorFilterCondition(), trueExpr))
+      ).toBeUndefined();
     });
 
     it('true_false_isTrue', () => {
-      expect(evaluateToValue(xor(trueExpr, falseExpr))).to.deep.equal(
-        TRUE_VALUE
-      );
+      expect(evaluateToValue(xor(trueExpr, falseExpr))).toEqual(TRUE_VALUE);
     });
 
     it('true_error_isError', () => {
-      expect(evaluateToValue(xor(trueExpr, errorFilterCondition()))).to.be
-        .undefined;
+      expect(
+        evaluateToValue(xor(trueExpr, errorFilterCondition()))
+      ).toBeUndefined();
     });
 
     it('true_true_isFalse', () => {
-      expect(evaluateToValue(xor(trueExpr, trueExpr))).to.deep.equal(
+      expect(evaluateToValue(xor(trueExpr, trueExpr))).toEqual(FALSE_VALUE);
+    });
+
+    it('false_false_false_isFalse', () => {
+      expect(evaluateToValue(xor(falseExpr, falseExpr, falseExpr))).toEqual(
         FALSE_VALUE
       );
     });
 
-    it('false_false_false_isFalse', () => {
-      expect(
-        evaluateToValue(xor(falseExpr, falseExpr, falseExpr))
-      ).to.deep.equal(FALSE_VALUE);
-    });
-
     it('false_false_error_isError', () => {
-      expect(evaluateToValue(xor(falseExpr, falseExpr, errorFilterCondition())))
-        .to.be.undefined;
+      expect(
+        evaluateToValue(xor(falseExpr, falseExpr, errorFilterCondition()))
+      ).toBeUndefined();
     });
 
     it('false_false_true_isTrue', () => {
-      expect(
-        evaluateToValue(xor(falseExpr, falseExpr, trueExpr))
-      ).to.deep.equal(TRUE_VALUE);
+      expect(evaluateToValue(xor(falseExpr, falseExpr, trueExpr))).toEqual(
+        TRUE_VALUE
+      );
     });
 
     it('false_error_false_isError', () => {
-      expect(evaluateToValue(xor(falseExpr, errorFilterCondition(), falseExpr)))
-        .to.be.undefined;
+      expect(
+        evaluateToValue(xor(falseExpr, errorFilterCondition(), falseExpr))
+      ).toBeUndefined();
     });
 
     it('false_error_error_isError', () => {
@@ -1009,34 +988,37 @@ describe('Logical Functions', () => {
         evaluateToValue(
           xor(falseExpr, errorFilterCondition(), errorFilterCondition())
         )
-      ).to.be.undefined;
+      ).toBeUndefined();
     });
 
     it('false_error_true_isError', () => {
-      expect(evaluateToValue(xor(falseExpr, errorFilterCondition(), trueExpr)))
-        .to.be.undefined;
+      expect(
+        evaluateToValue(xor(falseExpr, errorFilterCondition(), trueExpr))
+      ).toBeUndefined();
     });
 
     it('false_true_false_isTrue', () => {
-      expect(
-        evaluateToValue(xor(falseExpr, trueExpr, falseExpr))
-      ).to.deep.equal(TRUE_VALUE);
+      expect(evaluateToValue(xor(falseExpr, trueExpr, falseExpr))).toEqual(
+        TRUE_VALUE
+      );
     });
 
     it('false_true_error_isError', () => {
-      expect(evaluateToValue(xor(falseExpr, trueExpr, errorFilterCondition())))
-        .to.be.undefined;
+      expect(
+        evaluateToValue(xor(falseExpr, trueExpr, errorFilterCondition()))
+      ).toBeUndefined();
     });
 
     it('false_true_true_isFalse', () => {
-      expect(evaluateToValue(xor(falseExpr, trueExpr, trueExpr))).to.deep.equal(
+      expect(evaluateToValue(xor(falseExpr, trueExpr, trueExpr))).toEqual(
         FALSE_VALUE
       );
     });
 
     it('error_false_false_isError', () => {
-      expect(evaluateToValue(xor(errorFilterCondition(), falseExpr, falseExpr)))
-        .to.be.undefined;
+      expect(
+        evaluateToValue(xor(errorFilterCondition(), falseExpr, falseExpr))
+      ).toBeUndefined();
     });
 
     it('error_false_error_isError', () => {
@@ -1044,12 +1026,13 @@ describe('Logical Functions', () => {
         evaluateToValue(
           xor(errorFilterCondition(), falseExpr, errorFilterCondition())
         )
-      ).to.be.undefined;
+      ).toBeUndefined();
     });
 
     it('error_false_true_isError', () => {
-      expect(evaluateToValue(xor(errorFilterCondition(), falseExpr, trueExpr)))
-        .to.be.undefined;
+      expect(
+        evaluateToValue(xor(errorFilterCondition(), falseExpr, trueExpr))
+      ).toBeUndefined();
     });
 
     it('error_error_false_isError', () => {
@@ -1057,7 +1040,7 @@ describe('Logical Functions', () => {
         evaluateToValue(
           xor(errorFilterCondition(), errorFilterCondition(), falseExpr)
         )
-      ).to.be.undefined;
+      ).toBeUndefined();
     });
 
     it('error_error_error_isError', () => {
@@ -1069,7 +1052,7 @@ describe('Logical Functions', () => {
             errorFilterCondition()
           )
         )
-      ).to.be.undefined;
+      ).toBeUndefined();
     });
 
     it('error_error_true_isError', () => {
@@ -1077,12 +1060,13 @@ describe('Logical Functions', () => {
         evaluateToValue(
           xor(errorFilterCondition(), errorFilterCondition(), trueExpr)
         )
-      ).to.be.undefined;
+      ).toBeUndefined();
     });
 
     it('error_true_false_isError', () => {
-      expect(evaluateToValue(xor(errorFilterCondition(), trueExpr, falseExpr)))
-        .to.be.undefined;
+      expect(
+        evaluateToValue(xor(errorFilterCondition(), trueExpr, falseExpr))
+      ).toBeUndefined();
     });
 
     it('error_true_error_isError', () => {
@@ -1090,34 +1074,37 @@ describe('Logical Functions', () => {
         evaluateToValue(
           xor(errorFilterCondition(), trueExpr, errorFilterCondition())
         )
-      ).to.be.undefined;
+      ).toBeUndefined();
     });
 
     it('error_true_true_isError', () => {
-      expect(evaluateToValue(xor(errorFilterCondition(), trueExpr, trueExpr)))
-        .to.be.undefined;
+      expect(
+        evaluateToValue(xor(errorFilterCondition(), trueExpr, trueExpr))
+      ).toBeUndefined();
     });
 
     it('true_false_false_isTrue', () => {
-      expect(
-        evaluateToValue(xor(trueExpr, falseExpr, falseExpr))
-      ).to.deep.equal(TRUE_VALUE);
+      expect(evaluateToValue(xor(trueExpr, falseExpr, falseExpr))).toEqual(
+        TRUE_VALUE
+      );
     });
 
     it('true_false_error_isError', () => {
-      expect(evaluateToValue(xor(trueExpr, falseExpr, errorFilterCondition())))
-        .to.be.undefined;
+      expect(
+        evaluateToValue(xor(trueExpr, falseExpr, errorFilterCondition()))
+      ).toBeUndefined();
     });
 
     it('true_false_true_isFalse', () => {
-      expect(evaluateToValue(xor(trueExpr, falseExpr, trueExpr))).to.deep.equal(
+      expect(evaluateToValue(xor(trueExpr, falseExpr, trueExpr))).toEqual(
         FALSE_VALUE
       );
     });
 
     it('true_error_false_isError', () => {
-      expect(evaluateToValue(xor(trueExpr, errorFilterCondition(), falseExpr)))
-        .to.be.undefined;
+      expect(
+        evaluateToValue(xor(trueExpr, errorFilterCondition(), falseExpr))
+      ).toBeUndefined();
     });
 
     it('true_error_error_isError', () => {
@@ -1125,27 +1112,29 @@ describe('Logical Functions', () => {
         evaluateToValue(
           xor(trueExpr, errorFilterCondition(), errorFilterCondition())
         )
-      ).to.be.undefined;
+      ).toBeUndefined();
     });
 
     it('true_error_true_isError', () => {
-      expect(evaluateToValue(xor(trueExpr, errorFilterCondition(), trueExpr)))
-        .to.be.undefined;
+      expect(
+        evaluateToValue(xor(trueExpr, errorFilterCondition(), trueExpr))
+      ).toBeUndefined();
     });
 
     it('true_true_false_isFalse', () => {
-      expect(evaluateToValue(xor(trueExpr, trueExpr, falseExpr))).to.deep.equal(
+      expect(evaluateToValue(xor(trueExpr, trueExpr, falseExpr))).toEqual(
         FALSE_VALUE
       );
     });
 
     it('true_true_error_isError', () => {
-      expect(evaluateToValue(xor(trueExpr, trueExpr, errorFilterCondition())))
-        .to.be.undefined;
+      expect(
+        evaluateToValue(xor(trueExpr, trueExpr, errorFilterCondition()))
+      ).toBeUndefined();
     });
 
     it('true_true_true_isTrue', () => {
-      expect(evaluateToValue(xor(trueExpr, trueExpr, trueExpr))).to.deep.equal(
+      expect(evaluateToValue(xor(trueExpr, trueExpr, trueExpr))).toEqual(
         TRUE_VALUE
       );
     });
@@ -1153,11 +1142,11 @@ describe('Logical Functions', () => {
     it('nested_xor', () => {
       const child = xor(trueExpr, falseExpr);
       const f = xor(child, trueExpr);
-      expect(evaluateToValue(f)).to.deep.equal(FALSE_VALUE);
+      expect(evaluateToValue(f)).toEqual(FALSE_VALUE);
     });
 
     it('multipleArguments', () => {
-      expect(evaluateToValue(xor(trueExpr, falseExpr, trueExpr))).to.deep.equal(
+      expect(evaluateToValue(xor(trueExpr, falseExpr, trueExpr))).toEqual(
         FALSE_VALUE
       );
     });

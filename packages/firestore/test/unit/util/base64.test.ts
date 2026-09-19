@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-
 import * as rn from '../../../src/platform/rn/base64';
 
 const BASE64_ENCODED = 'GRBoQgKB9LW1';
@@ -28,7 +26,7 @@ describe('atob', () => {
     'decodes with native support',
     () => {
       const decoded = atob(BASE64_ENCODED);
-      expect(decoded).to.equal(BASE64_DECODED);
+      expect(decoded).toBe(BASE64_DECODED);
     }
   );
 
@@ -36,17 +34,17 @@ describe('atob', () => {
   (typeof atob !== 'undefined' ? it : it.skip)(
     'roundtrips with native support',
     () => {
-      expect(atob(btoa(BASE64_ENCODED))).to.equal(BASE64_ENCODED);
+      expect(atob(btoa(BASE64_ENCODED))).toBe(BASE64_ENCODED);
     }
   );
 
   it('decodes with polyfill', () => {
     const decoded = rn.decodeBase64(BASE64_ENCODED);
-    expect(decoded).to.equal(BASE64_DECODED);
+    expect(decoded).toBe(BASE64_DECODED);
   });
 
   it('roundtrips with polyfill', () => {
-    expect(rn.encodeBase64(rn.decodeBase64(BASE64_ENCODED))).to.equal(
+    expect(rn.encodeBase64(rn.decodeBase64(BASE64_ENCODED))).toBe(
       BASE64_ENCODED
     );
   });
@@ -58,7 +56,7 @@ describe('btoa', () => {
     'encodes with native support',
     () => {
       const encoded = btoa(BASE64_DECODED);
-      expect(encoded).to.equal(BASE64_ENCODED);
+      expect(encoded).toBe(BASE64_ENCODED);
     }
   );
 
@@ -66,17 +64,17 @@ describe('btoa', () => {
   (typeof btoa !== 'undefined' ? it : it.skip)(
     'roundtrips with native support',
     () => {
-      expect(atob(btoa(BASE64_DECODED))).to.equal(BASE64_DECODED);
+      expect(atob(btoa(BASE64_DECODED))).toBe(BASE64_DECODED);
     }
   );
 
   it('encodes with polyfill', () => {
     const encoded = rn.encodeBase64(BASE64_DECODED);
-    expect(encoded).to.equal(BASE64_ENCODED);
+    expect(encoded).toBe(BASE64_ENCODED);
   });
 
   it('roundtrips with polyfill', () => {
-    expect(rn.decodeBase64(rn.encodeBase64(BASE64_DECODED))).to.equal(
+    expect(rn.decodeBase64(rn.encodeBase64(BASE64_DECODED))).toBe(
       BASE64_DECODED
     );
   });

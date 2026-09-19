@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import { Query } from '../../../src/api/reference';
 import { QuerySnapshot } from '../../../src/api/snapshot';
@@ -70,7 +68,7 @@ describe('DocumentChange:', () => {
       }
     }
 
-    expect(actual).to.deep.equal(expected);
+    expect(actual).toEqual(expected);
   }
 
   it('positions are correct for additions', () => {

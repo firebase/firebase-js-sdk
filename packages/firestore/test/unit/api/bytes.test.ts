@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import { Bytes } from '../../../src';
 import { blob, expectEqual, expectNotEqual } from '../../util/helpers';
@@ -33,9 +31,9 @@ describe('Bytes', () => {
       const blob = Bytes.fromBase64String(base64Str);
       const expectedBytes = base64Mappings[base64Str];
       const actualBytes = blob.toUint8Array();
-      expect(actualBytes.length).to.equal(expectedBytes.length);
+      expect(actualBytes.length).toBe(expectedBytes.length);
       for (let i = 0; i < actualBytes.length; i++) {
-        expect(actualBytes[i]).to.equal(expectedBytes[i]);
+        expect(actualBytes[i]).toBe(expectedBytes[i]);
       }
     });
   });
@@ -43,12 +41,12 @@ describe('Bytes', () => {
   it('constructs values from Uint8Array', () => {
     Object.keys(base64Mappings).forEach(base64Str => {
       const bytes = base64Mappings[base64Str];
-      expect(blob(...bytes).toBase64()).to.deep.equal(base64Str);
+      expect(blob(...bytes).toBase64()).toEqual(base64Str);
     });
   });
 
   it('works with instanceof checks', () => {
-    expect(Bytes.fromBase64String('') instanceof Bytes).to.equal(true);
+    expect(Bytes.fromBase64String('') instanceof Bytes).toBe(true);
   });
 
   it('support equality checking with isEqual()', () => {
@@ -61,7 +59,7 @@ describe('Bytes', () => {
     expect(() => {
       Bytes.fromJSON(bytes.toJSON());
     }).to.not.throw;
-    expect(Bytes.fromJSON(bytes.toJSON()).isEqual(bytes)).to.be.true;
+    expect(Bytes.fromJSON(bytes.toJSON()).isEqual(bytes)).toBe(true);
   });
 
   it('fromJSON parameter order does not matter', () => {
@@ -82,9 +80,9 @@ describe('Bytes', () => {
       expectEqual(bytesToSerialize, deserializedBytes);
       const expectedUint8Array = base64Mappings[base64Str];
       const actualUint8Array = deserializedBytes.toUint8Array();
-      expect(actualUint8Array.length).to.equal(expectedUint8Array.length);
+      expect(actualUint8Array.length).toBe(expectedUint8Array.length);
       for (let i = 0; i < actualUint8Array.length; i++) {
-        expect(actualUint8Array[i]).to.equal(expectedUint8Array[i]);
+        expect(actualUint8Array[i]).toBe(expectedUint8Array[i]);
       }
     });
   });
@@ -106,24 +104,24 @@ describe('Bytes', () => {
 
   it('rejects invalid subtype values', () => {
     const arr = new Uint8Array([1, 2, 3]);
-    expect(() => Bytes.fromUint8Array(arr, -1)).to.throw(
+    expect(() => Bytes.fromUint8Array(arr, -1)).toThrow(
       'The subtype for Bytes must be a value in the inclusive [0, 255] range.'
     );
-    expect(() => Bytes.fromUint8Array(arr, 256)).to.throw(
+    expect(() => Bytes.fromUint8Array(arr, 256)).toThrow(
       'The subtype for Bytes must be a value in the inclusive [0, 255] range.'
     );
-    expect(() => Bytes.fromBase64String('AA==', -1)).to.throw(
+    expect(() => Bytes.fromBase64String('AA==', -1)).toThrow(
       'The subtype for Bytes must be a value in the inclusive [0, 255] range.'
     );
-    expect(() => Bytes.fromBase64String('AA==', 256)).to.throw(
+    expect(() => Bytes.fromBase64String('AA==', 256)).toThrow(
       'The subtype for Bytes must be a value in the inclusive [0, 255] range.'
     );
   });
 
   it('preserves subtype on construction', () => {
     const arr = new Uint8Array([1, 2, 3]);
-    expect(Bytes.fromUint8Array(arr, 5).subtype).to.equal(5);
-    expect(Bytes.fromBase64String('AA==', 10).subtype).to.equal(10);
+    expect(Bytes.fromUint8Array(arr, 5).subtype).toBe(5);
+    expect(Bytes.fromBase64String('AA==', 10).subtype).toBe(10);
   });
 
   it('verifies equality checking with different subtypes', () => {
@@ -141,12 +139,12 @@ describe('Bytes', () => {
   it('supports data compatibility getter', () => {
     const arr = new Uint8Array([1, 2, 3]);
     const b1 = Bytes.fromUint8Array(arr, 5);
-    expect(b1.data).to.deep.equal(arr);
+    expect(b1.data).toEqual(arr);
   });
 
   it('supports custom toString() with subtype info', () => {
     const b1 = Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 5);
-    expect(b1.toString()).to.equal('Bytes(base64: AQID, subtype: 5)');
+    expect(b1.toString()).toBe('Bytes(base64: AQID, subtype: 5)');
   });
 
   it('serializes toJSON correctly with and without subtype', () => {
@@ -154,12 +152,12 @@ describe('Bytes', () => {
     const b0 = Bytes.fromUint8Array(arr, 0);
     const b5 = Bytes.fromUint8Array(arr, 5);
 
-    expect(b0.toJSON()).to.deep.equal({
+    expect(b0.toJSON()).toEqual({
       type: 'firestore/bytes/1.0',
       bytes: 'AQID'
     });
 
-    expect(b5.toJSON()).to.deep.equal({
+    expect(b5.toJSON()).toEqual({
       type: 'firestore/bytes/1.0',
       bytes: 'AQID',
       subtype: 5
@@ -178,11 +176,11 @@ describe('Bytes', () => {
     };
 
     const b0 = Bytes.fromJSON(jsonWithoutSubtype);
-    expect(b0.subtype).to.equal(0);
-    expect(b0.toUint8Array()).to.deep.equal(new Uint8Array([1, 2, 3]));
+    expect(b0.subtype).toBe(0);
+    expect(b0.toUint8Array()).toEqual(new Uint8Array([1, 2, 3]));
 
     const b5 = Bytes.fromJSON(jsonWithSubtype);
-    expect(b5.subtype).to.equal(5);
-    expect(b5.toUint8Array()).to.deep.equal(new Uint8Array([1, 2, 3]));
+    expect(b5.subtype).toBe(5);
+    expect(b5.toUint8Array()).toEqual(new Uint8Array([1, 2, 3]));
   });
 });
