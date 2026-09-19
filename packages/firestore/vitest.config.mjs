@@ -15,12 +15,22 @@
  * limitations under the License.
  */
 
+import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import ts from 'typescript';
 import createBaseConfig from '../../config/vitest.base.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+if (process.env.CI) {
+  const coverageDir = path.resolve(__dirname, 'coverage');
+  fs.mkdirSync(coverageDir, { recursive: true });
+  const lcovPath = path.resolve(coverageDir, 'lcov.info');
+  if (!fs.existsSync(lcovPath)) {
+    fs.writeFileSync(lcovPath, '');
+  }
+}
 
 function stripTypeExportsPlugin() {
   let program;
