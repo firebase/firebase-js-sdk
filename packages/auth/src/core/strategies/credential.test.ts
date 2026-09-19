@@ -145,6 +145,61 @@ describe('core/strategies/credential', () => {
       expect(error.customData.operationType).to.eq(OperationType.SIGN_IN);
       expect(error.customData._serverResponse).to.eql(serverResponse);
     });
+
+    it('should NOT wrap MFA_REQUIRED without mfaPendingCredential into MultiFactorError', async () => {
+      // Federated provider links (e.g. linkWithPopup with Microsoft) can
+      // return MFA_REQUIRED while confirming the link succeeded — the
+      // response carries federatedId/providerId but no mfaPendingCredential.
+      // Wrapping that into MultiFactorError produces an unresolvable error
+      // (getMultiFactorResolver throws auth/argument-error).
+      // See https://github.com/firebase/firebase-js-sdk/issues/9467
+      const serverResponse = {
+        localId: 'uid',
+        federatedId: 'http://microsoft.com/abcdef',
+        providerId: 'microsoft.com',
+        email: 'user@example.com',
+        emailVerified: true
+      };
+      stub(authCredential, '_getIdTokenResponse').returns(
+        Promise.reject(
+          _createError(auth, AuthErrorCode.MFA_REQUIRED, {
+            _serverResponse: serverResponse
+          })
+        )
+      );
+      const error = await expect(
+        signInWithCredential(auth, authCredential)
+      ).to.be.rejectedWith(FirebaseError);
+      expect(error).not.to.be.instanceOf(MultiFactorError);
+      expect(error.code).to.eq('auth/multi-factor-auth-required');
+    });
+
+    it('should NOT wrap MFA_REQUIRED without mfaPendingCredential when linking', async () => {
+      // Same scenario through linkWithCredential — the user-facing flow from
+      // issue #9467: the link succeeds server-side, but the SDK surfaced an
+      // unresolvable MultiFactorError instead of the raw MFA_REQUIRED.
+      const serverResponse = {
+        localId: 'uid',
+        federatedId: 'http://microsoft.com/abcdef',
+        providerId: 'microsoft.com',
+        email: 'user@example.com',
+        emailVerified: true
+      };
+      stub(authCredential, '_getIdTokenResponse').returns(
+        Promise.reject(
+          _createError(auth, AuthErrorCode.MFA_REQUIRED, {
+            _serverResponse: serverResponse
+          })
+        )
+      );
+      const error = await expect(
+        linkWithCredential(user, authCredential)
+      ).to.be.rejectedWith(FirebaseError);
+      expect(error).not.to.be.instanceOf(MultiFactorError);
+      expect(error.code).to.eq('auth/multi-factor-auth-required');
+      expect((error as FirebaseError & { customData?: object }).customData
+        ?._serverResponse).to.eql(serverResponse);
+    });
   });
 
   describe('reauthenticateWithCredential', () => {

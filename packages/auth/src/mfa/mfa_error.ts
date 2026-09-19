@@ -75,12 +75,25 @@ export function _processCredentialSavingMfaContextIfNecessary(
 
   return idTokenProvider.catch(error => {
     if (error.code === `auth/${AuthErrorCode.MFA_REQUIRED}`) {
-      throw MultiFactorError._fromErrorAndOperation(
-        auth,
-        error,
-        operationType,
-        user
-      );
+      const serverResponse = error.customData?._serverResponse as
+        | IdTokenMfaResponse
+        | undefined;
+      // Only surface a MultiFactorError when the server response is actually
+      // resolvable (i.e. it carries the pending credential needed by
+      // getMultiFactorResolver). Federated provider links can fail with
+      // MFA_REQUIRED while still confirming the link succeeded — those
+      // responses carry federatedId/providerId but no mfaPendingCredential,
+      // and wrapping them produces an unresolvable MultiFactorError
+      // (getMultiFactorResolver throws auth/argument-error).
+      // See https://github.com/firebase/firebase-js-sdk/issues/9467
+      if (serverResponse?.mfaPendingCredential) {
+        throw MultiFactorError._fromErrorAndOperation(
+          auth,
+          error,
+          operationType,
+          user
+        );
+      }
     }
 
     throw error;
