@@ -338,9 +338,8 @@ export class LiveSession {
               message as { serverContent: Omit<LiveServerContent, 'type'> }
             ).serverContent;
             if (serverContent.modelTurn?.parts) {
-              for (const part of serverContent.modelTurn.parts) {
-                assignPartType(part);
-              }
+              serverContent.modelTurn.parts =
+                serverContent.modelTurn.parts.map(assignPartType);
             }
             yield {
               type: 'serverContent',

@@ -22,8 +22,14 @@ import {
   GenerateContentCandidate,
   GenerateContentResponse,
   AIErrorCode,
+  CodeExecutionResultPart,
+  ExecutableCodePart,
+  FileDataPart,
+  FunctionCallPart,
+  FunctionResponsePart,
   InlineDataPart,
   Part,
+  TextPart,
   UnknownPart,
   InferenceSource
 } from '../types';
@@ -66,29 +72,22 @@ function hasValidCandidates(response: GenerateContentResponse): boolean {
  * @internal
  */
 export function assignPartType(part: Part | UnknownPart): Part {
-  if (part.type) {
+  if ('type' in part && part.type) {
     return part as Part;
-  }
-  if ('text' in part && part.text !== undefined) {
-    (part as { type?: string }).type = 'text';
-  } else if ('inlineData' in part && part.inlineData !== undefined) {
-    (part as { type?: string }).type = 'inlineData';
-  } else if ('functionCall' in part && part.functionCall !== undefined) {
-    (part as { type?: string }).type = 'functionCall';
-  } else if (
-    'functionResponse' in part &&
-    part.functionResponse !== undefined
-  ) {
-    (part as { type?: string }).type = 'functionResponse';
-  } else if ('fileData' in part && part.fileData !== undefined) {
-    (part as { type?: string }).type = 'fileData';
-  } else if ('executableCode' in part && part.executableCode !== undefined) {
-    (part as { type?: string }).type = 'executableCode';
-  } else if (
-    'codeExecutionResult' in part &&
-    part.codeExecutionResult !== undefined
-  ) {
-    (part as { type?: string }).type = 'codeExecutionResult';
+  } else if (part.text !== undefined) {
+    return { ...part, type: 'text' } as TextPart;
+  } else if (part.inlineData !== undefined) {
+    return { ...part, type: 'inlineData' } as InlineDataPart;
+  } else if (part.functionCall !== undefined) {
+    return { ...part, type: 'functionCall' } as FunctionCallPart;
+  } else if (part.functionResponse !== undefined) {
+    return { ...part, type: 'functionResponse' } as FunctionResponsePart;
+  } else if (part.fileData !== undefined) {
+    return { ...part, type: 'fileData' } as FileDataPart;
+  } else if (part.executableCode !== undefined) {
+    return { ...part, type: 'executableCode' } as ExecutableCodePart;
+  } else if (part.codeExecutionResult !== undefined) {
+    return { ...part, type: 'codeExecutionResult' } as CodeExecutionResultPart;
   }
   return part as Part;
 }
@@ -114,9 +113,7 @@ export function createEnhancedContentResponse(
   if (response.candidates) {
     for (const candidate of response.candidates) {
       if (candidate.content?.parts) {
-        for (const part of candidate.content.parts) {
-          assignPartType(part);
-        }
+        candidate.content.parts = candidate.content.parts.map(assignPartType);
       }
     }
   }
@@ -211,9 +208,9 @@ export function getText(
   const textStrings = [];
   if (response.candidates?.[0].content?.parts) {
     for (const part of response.candidates?.[0].content?.parts) {
-      assignPartType(part);
-      if (part.type === 'text' && partFilter(part)) {
-        textStrings.push(part.text);
+      const typedPart = assignPartType(part);
+      if (typedPart.type === 'text' && partFilter(typedPart)) {
+        textStrings.push(typedPart.text);
       }
     }
   }
@@ -236,9 +233,9 @@ export function getFunctionCalls(
   const functionCalls: FunctionCall[] = [];
   if (response.candidates?.[0].content?.parts) {
     for (const part of response.candidates?.[0].content?.parts) {
-      assignPartType(part);
-      if (part.type === 'functionCall') {
-        functionCalls.push(part.functionCall);
+      const typedPart = assignPartType(part);
+      if (typedPart.type === 'functionCall') {
+        functionCalls.push(typedPart.functionCall);
       }
     }
   }
@@ -261,9 +258,9 @@ export function getInlineDataParts(
 
   if (response.candidates?.[0].content?.parts) {
     for (const part of response.candidates?.[0].content?.parts) {
-      assignPartType(part);
-      if (part.type === 'inlineData') {
-        data.push(part);
+      const typedPart = assignPartType(part);
+      if (typedPart.type === 'inlineData') {
+        data.push(typedPart);
       }
     }
   }

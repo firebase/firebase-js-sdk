@@ -47,7 +47,6 @@ export type Part =
  * @public
  */
 export interface UnknownPart {
-  type?: string;
   text?: string;
   inlineData?: GenerativeContentBlob;
   functionCall?: FunctionCall;
