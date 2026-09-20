@@ -25,16 +25,43 @@ export function setEncoder(encoder: HmacImpl): void {
 export function setDecoder(decoder: DecodeHmacImpl): void {
   decoderImpl = decoder;
 }
-function sortKeysForObj(o: Record<string, unknown>): Record<string, unknown> {
-  return Object.keys(o)
+function isPlainObject(value: object): boolean {
+  const proto = Object.getPrototypeOf(value);
+  return proto === Object.prototype || proto === null;
+}
+
+/**
+ * Recursively sorts the keys of every plain object in `value` so that objects
+ * which only differ in property order encode to the same string.
+ *
+ * Arrays keep their order, and non-plain objects (Date, Timestamp, class
+ * instances) are returned as-is rather than rebuilt into `{}` - these feed
+ * cache keys, so collapsing them would make distinct values look identical.
+ *
+ * The streaming transport canonicalizes request keys the same way; the two
+ * have to agree or the query layer and the transport disagree on whether two
+ * subscriptions are the same.
+ */
+export function sortKeysDeep(value: unknown): unknown {
+  if (value === null || typeof value !== 'object') {
+    return value;
+  }
+  if (Array.isArray(value)) {
+    return value.map(sortKeysDeep);
+  }
+  if (!isPlainObject(value)) {
+    return value;
+  }
+  const source = value as Record<string, unknown>;
+  return Object.keys(source)
     .sort()
     .reduce(
       (accumulator, currentKey) => {
-        accumulator[currentKey] = o[currentKey];
+        accumulator[currentKey] = sortKeysDeep(source[currentKey]);
         return accumulator;
       },
       {} as Record<string, unknown>
     );
 }
-setEncoder((o: Record<string, unknown>) => JSON.stringify(sortKeysForObj(o)));
-setDecoder(s => sortKeysForObj(JSON.parse(s)));
+setEncoder((o: Record<string, unknown>) => JSON.stringify(sortKeysDeep(o)));
+setDecoder(s => sortKeysDeep(JSON.parse(s)) as Record<string, unknown>);
