@@ -299,6 +299,39 @@ describe('ChatSession', () => {
       });
       const historyAgain = await chatSession.getHistory();
       expect(historyAgain.length).to.equal(2);
+
+      // Modifying part properties on returned history does not affect internal history
+      (history[0].parts[0] as TextPart).text = 'mutated user';
+      const historyThird = await chatSession.getHistory();
+      expect((historyThird[0].parts[0] as TextPart).text).to.equal(
+        'untagged user'
+      );
+    });
+    it('initial history is defensively copied and isolated from external mutations', async () => {
+      const initialHistory: Content[] = [
+        {
+          role: 'user',
+          parts: [{ type: 'text', text: 'original text' }]
+        }
+      ];
+      const chatSession = new ChatSession(
+        fakeApiSettings,
+        'a-model',
+        undefined,
+        {
+          history: initialHistory
+        }
+      );
+      // Mutating initialHistory externally
+      initialHistory.push({
+        role: 'model',
+        parts: [{ type: 'text', text: 'added outside' }]
+      });
+      (initialHistory[0].parts[0] as TextPart).text = 'modified outside';
+
+      const history = await chatSession.getHistory();
+      expect(history.length).to.equal(1);
+      expect((history[0].parts[0] as TextPart).text).to.equal('original text');
     });
   });
   describe('sendMessageStream()', () => {

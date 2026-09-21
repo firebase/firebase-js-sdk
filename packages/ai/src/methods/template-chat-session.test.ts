@@ -173,6 +173,37 @@ describe('TemplateChatSession', () => {
         (templateGenerateContentStub.args[1][2] as any).history[2].parts[0].text
       ).to.equal('hello 2');
     });
+
+    it('defensively copies initial history and getHistory', async () => {
+      const initialHistory: Content[] = [
+        {
+          role: 'user',
+          parts: [{ type: 'text', text: 'initial prompt' }]
+        }
+      ];
+      const chatSession = new TemplateChatSessionImpl(fakeApiSettings, {
+        templateId: TEMPLATE_ID,
+        history: initialHistory
+      });
+
+      // Modifying initialHistory externally
+      initialHistory.push({
+        role: 'model',
+        parts: [{ type: 'text', text: 'outside turn' }]
+      });
+      (initialHistory[0].parts[0] as TextPart).text = 'mutated prompt';
+
+      const history = await chatSession.getHistory();
+      expect(history.length).to.equal(1);
+      expect((history[0].parts[0] as TextPart).text).to.equal('initial prompt');
+
+      // Modifying returned history
+      (history[0].parts[0] as TextPart).text = 'mutated return';
+      const historyAgain = await chatSession.getHistory();
+      expect((historyAgain[0].parts[0] as TextPart).text).to.equal(
+        'initial prompt'
+      );
+    });
   });
 
   describe('Automatic function calling', () => {

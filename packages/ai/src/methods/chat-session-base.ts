@@ -41,6 +41,7 @@ import {
 import { ApiSettings } from '../types/internal';
 import { logger } from '../logger';
 import { AIError } from '../errors';
+import { deepCopy } from '@firebase/util';
 
 /**
  * Used to break the internal promise chain when an error is already handled
@@ -91,7 +92,7 @@ export abstract class ChatSessionBase<
    */
   async getHistory(): Promise<Content[]> {
     await this._sendPromise;
-    return this._history.map(content => ({
+    return deepCopy(this._history).map(content => ({
       ...content,
       parts: content.parts ? content.parts.map(assignPartType) : []
     }));
