@@ -689,6 +689,7 @@ describe('UpdateData - v9', () => {
 
       let _: UpdateData<DocumentWithMap>;
 
+      // Allows full or partial object assignments to nested map entries
       _ = {
         items: {
           itemA: {
@@ -698,6 +699,7 @@ describe('UpdateData - v9', () => {
         }
       };
 
+      // Prevents assigning primitive values directly to nested map entries
       _ = {
         items: {
           // @ts-expect-error Unsupported type
@@ -719,11 +721,13 @@ describe('UpdateData - v9', () => {
         }
       };
 
+      // Allows dot notation for nested field paths
       _ = {
         'items.itemA.title': 'item 1',
         'items.itemA.count': 10
       };
 
+      // Enforces property types on dot notation paths
       _ = {
         // @ts-expect-error Unsupported type
         'items.itemA.title': false

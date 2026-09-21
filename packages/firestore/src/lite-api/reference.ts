@@ -82,9 +82,21 @@ export type WithFieldValue<T> =
  * (e.g. 'foo' or 'foo.baz') mapped to values. Fields that contain dots
  * reference nested fields within the document. FieldValues can be passed in
  * as property values.
+ *
+ * @typeParam T - The document model type.
  */
 export type UpdateData<
   T,
+  // `IsNested` is an internal recursion flag.
+  // When evaluating nested properties of a document, direct entries of an index
+  // signature (e.g. `items: Record<string, Item>`) must strictly match
+  // `UpdateData<T[K]> | FieldValue` to ensure only `Item` objects are written to
+  // map fields, preventing primitive values (like 42) from corrupting the database.
+  //
+  // At the root level (`IsNested = false`), if `T` itself has an index signature
+  // (`string extends K`), `ChildTypes` is allowed because TypeScript's type system
+  // cannot distinguish between a single-segment key and a dotted sub-path matching
+  // a string index signature.
   IsNested extends boolean = false
 > = T extends Primitive
   ? T
