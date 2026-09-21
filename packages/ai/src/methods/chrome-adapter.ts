@@ -18,6 +18,7 @@
 import { getGlobal } from '@firebase/util';
 import { AIError } from '../errors';
 import { logger } from '../logger';
+import { assignPartType } from '../requests/response-helpers';
 import {
   CountTokensRequest,
   GenerateContentRequest,
@@ -229,7 +230,11 @@ export class ChromeAdapterImpl implements ChromeAdapter {
     }
 
     for (const content of request.contents) {
-      if (content.parts.some(part => part.type === 'functionResponse')) {
+      if (
+        content.parts.some(
+          part => assignPartType(part).type === 'functionResponse'
+        )
+      ) {
         logger.debug(
           `Content with a function response part rejected for on-device inference.`
         );
@@ -238,14 +243,15 @@ export class ChromeAdapterImpl implements ChromeAdapter {
 
       // Returns false if request contains an image with an unsupported mime type.
       for (const part of content.parts) {
+        const typedPart = assignPartType(part);
         if (
-          part.type === 'inlineData' &&
+          typedPart.type === 'inlineData' &&
           ChromeAdapterImpl.SUPPORTED_MIME_TYPES.indexOf(
-            part.inlineData.mimeType
+            typedPart.inlineData.mimeType
           ) === -1
         ) {
           logger.debug(
-            `Unsupported mime type "${part.inlineData.mimeType}" rejected for on-device inference.`
+            `Unsupported mime type "${typedPart.inlineData.mimeType}" rejected for on-device inference.`
           );
           return false;
         }
@@ -329,14 +335,15 @@ export class ChromeAdapterImpl implements ChromeAdapter {
   private static async toLanguageModelMessageContent(
     part: Part
   ): Promise<LanguageModelMessageContent> {
-    if (part.type === 'text') {
+    const typedPart = assignPartType(part);
+    if (typedPart.type === 'text') {
       return {
         type: 'text',
-        value: part.text
+        value: typedPart.text
       };
-    } else if (part.type === 'inlineData') {
+    } else if (typedPart.type === 'inlineData') {
       const formattedImageContent = await fetch(
-        `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`
+        `data:${typedPart.inlineData.mimeType};base64,${typedPart.inlineData.data}`
       );
       const imageBlob = await formattedImageContent.blob();
       const imageBitmap = await createImageBitmap(imageBlob);
