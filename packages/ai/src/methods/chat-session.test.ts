@@ -73,7 +73,7 @@ describe('ChatSession', () => {
     );
     expect(chatSession.params?.systemInstruction).to.deep.equal({
       role: 'system',
-      parts: [{ type: 'text', text: 'be friendly' }]
+      parts: [{ text: 'be friendly' }]
     });
   });
   it('leaves systemInstruction unchanged if it is already a Content object', () => {
@@ -137,7 +137,7 @@ describe('ChatSession', () => {
       expect(generateContentStub.args[0][2].contents).to.deep.equal([
         { role: 'user', parts: [{ type: 'text', text: 'user turn 1' }] },
         { role: 'model', parts: [{ type: 'text', text: 'model turn 1' }] },
-        { role: 'user', parts: [{ type: 'text', text: 'user turn 2' }] }
+        { role: 'user', parts: [{ text: 'user turn 2' }] }
       ]);
     });
     it('generateContent errors should be catchable', async () => {
@@ -307,7 +307,7 @@ describe('ChatSession', () => {
       expect(generateContentStreamStub.args[0][2].contents).to.deep.equal([
         { role: 'user', parts: [{ type: 'text', text: 'user turn 1' }] },
         { role: 'model', parts: [{ type: 'text', text: 'model turn 1' }] },
-        { role: 'user', parts: [{ type: 'text', text: 'user turn 2' }] }
+        { role: 'user', parts: [{ text: 'user turn 2' }] }
       ]);
       await clock.runAllAsync();
       clock.restore();

@@ -47,6 +47,8 @@ import { mapGenerateContentRequest } from '../googleai-mappers';
 import { GoogleAIBackend, AgentPlatformBackend } from '../backend';
 import { fakeChromeAdapter } from '../../test-utils/get-fake-firebase-services';
 
+import { cleanGenerateContentRequestForWire } from '../requests/request-helpers';
+
 use(sinonChai);
 use(chaiAsPromised);
 
@@ -79,6 +81,9 @@ const fakeRequestParams: GenerateContentRequest = {
     }
   ]
 };
+
+const fakeWireRequestParams =
+  cleanGenerateContentRequestForWire(fakeRequestParams);
 
 const fakeGoogleAIRequestParams: GenerateContentRequest = {
   contents: [{ parts: [{ type: 'text', text: 'hello' }], role: 'user' }],
@@ -119,7 +124,7 @@ describe('generateContent()', () => {
         stream: false,
         singleRequestOptions: undefined
       },
-      JSON.stringify(fakeRequestParams)
+      JSON.stringify(fakeWireRequestParams)
     );
   });
   it('long response', async () => {
@@ -145,7 +150,7 @@ describe('generateContent()', () => {
         stream: false,
         singleRequestOptions: undefined
       },
-      JSON.stringify(fakeRequestParams)
+      JSON.stringify(fakeWireRequestParams)
     );
   });
   it('long response with token details', async () => {
@@ -183,7 +188,7 @@ describe('generateContent()', () => {
         stream: false,
         singleRequestOptions: undefined
       },
-      JSON.stringify(fakeRequestParams)
+      JSON.stringify(fakeWireRequestParams)
     );
   });
   it('citations', async () => {
@@ -213,7 +218,7 @@ describe('generateContent()', () => {
         stream: false,
         singleRequestOptions: undefined
       },
-      JSON.stringify(fakeRequestParams)
+      JSON.stringify(fakeWireRequestParams)
     );
   });
   it('google search grounding', async () => {
@@ -263,7 +268,7 @@ describe('generateContent()', () => {
         stream: false,
         singleRequestOptions: undefined
       },
-      JSON.stringify(fakeRequestParams)
+      JSON.stringify(fakeWireRequestParams)
     );
 
     it('url context', async () => {
@@ -374,7 +379,7 @@ describe('generateContent()', () => {
         stream: false,
         singleRequestOptions: undefined
       },
-      JSON.stringify(fakeRequestParams)
+      JSON.stringify(fakeWireRequestParams)
     );
   });
   it('codeExecution', async () => {
@@ -426,7 +431,7 @@ describe('generateContent()', () => {
         stream: false,
         singleRequestOptions: undefined
       },
-      JSON.stringify(fakeRequestParams)
+      JSON.stringify(fakeWireRequestParams)
     );
   });
   it('finishReason safety', async () => {
@@ -451,7 +456,7 @@ describe('generateContent()', () => {
         stream: false,
         singleRequestOptions: undefined
       },
-      JSON.stringify(fakeRequestParams)
+      JSON.stringify(fakeWireRequestParams)
     );
   });
   it('empty content', async () => {
@@ -476,7 +481,7 @@ describe('generateContent()', () => {
         stream: false,
         singleRequestOptions: undefined
       },
-      JSON.stringify(fakeRequestParams)
+      JSON.stringify(fakeWireRequestParams)
     );
   });
   it('empty part', async () => {
@@ -517,7 +522,7 @@ describe('generateContent()', () => {
         stream: false,
         singleRequestOptions: undefined
       },
-      JSON.stringify(fakeRequestParams)
+      JSON.stringify(fakeWireRequestParams)
     );
   });
   it('image rejected (400)', async () => {
@@ -612,7 +617,16 @@ describe('generateContent()', () => {
           stream: false,
           singleRequestOptions: match.any
         },
-        JSON.stringify(mapGenerateContentRequest(fakeGoogleAIRequestParams))
+        JSON.stringify(
+          mapGenerateContentRequest(
+            cleanGenerateContentRequestForWire(fakeGoogleAIRequestParams)
+          )
+        )
+      );
+      // Ensure developer's original request was not mutated
+      expect(fakeGoogleAIRequestParams.contents[0].parts[0]).to.have.property(
+        'type',
+        'text'
       );
     });
   });

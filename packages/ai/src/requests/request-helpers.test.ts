@@ -17,8 +17,24 @@
 
 import { expect, use } from 'chai';
 import sinonChai from 'sinon-chai';
-import { Content } from '../types';
-import { formatGenerateContentInput } from './request-helpers';
+import {
+  Content,
+  CountTokensRequest,
+  FunctionResponse,
+  GenerateContentRequest,
+  Part
+} from '../types';
+import { TemplateRequestInternal } from '../public-types';
+import {
+  cleanContentForWire,
+  cleanCountTokensRequestForWire,
+  cleanFunctionResponseForWire,
+  cleanGenerateContentRequestForWire,
+  cleanSystemInstructionForWire,
+  cleanTemplateRequestForWire,
+  formatGenerateContentInput,
+  stripPartType
+} from './request-helpers';
 
 use(sinonChai);
 
@@ -30,7 +46,7 @@ describe('request formatting methods', () => {
         contents: [
           {
             role: 'user',
-            parts: [{ type: 'text', text: 'some text content' }]
+            parts: [{ text: 'some text content' }]
           }
         ]
       });
@@ -41,10 +57,7 @@ describe('request formatting methods', () => {
         contents: [
           {
             role: 'user',
-            parts: [
-              { type: 'text', text: 'txt1' },
-              { type: 'text', text: 'txt2' }
-            ]
+            parts: [{ text: 'txt1' }, { text: 'txt2' }]
           }
         ]
       });
@@ -66,7 +79,7 @@ describe('request formatting methods', () => {
         ]
       });
     });
-    it('normalizes untagged parts into a request at runtime', () => {
+    it('passes through untagged parts in an array at runtime', () => {
       const result = formatGenerateContentInput([
         { text: 'txt1' } as any,
         { text: 'txtB' } as any
@@ -75,15 +88,12 @@ describe('request formatting methods', () => {
         contents: [
           {
             role: 'user',
-            parts: [
-              { type: 'text', text: 'txt1' },
-              { type: 'text', text: 'txtB' }
-            ]
+            parts: [{ text: 'txt1' }, { text: 'txtB' }]
           }
         ]
       });
     });
-    it('normalizes untagged parts inside contents property', () => {
+    it('passes through untagged parts inside contents property', () => {
       const result = formatGenerateContentInput({
         contents: [
           {
@@ -93,7 +103,6 @@ describe('request formatting methods', () => {
         ]
       });
       expect(result.contents[0].parts[0]).to.deep.equal({
-        type: 'text',
         text: 'untagged'
       });
     });
@@ -106,10 +115,7 @@ describe('request formatting methods', () => {
         contents: [
           {
             role: 'user',
-            parts: [
-              { type: 'text', text: 'txtA' },
-              { type: 'text', text: 'txtB' }
-            ]
+            parts: [{ text: 'txtA' }, { type: 'text', text: 'txtB' }]
           }
         ]
       });
@@ -153,7 +159,7 @@ describe('request formatting methods', () => {
         ],
         systemInstruction: {
           role: 'system',
-          parts: [{ type: 'text', text: 'be excited' }]
+          parts: [{ text: 'be excited' }]
         }
       });
     });
@@ -381,7 +387,7 @@ describe('request formatting methods', () => {
           {
             role: 'user',
             parts: [
-              { type: 'text', text: 'What is this?' },
+              { text: 'What is this?' },
               {
                 type: 'fileData',
                 fileData: {
@@ -393,6 +399,245 @@ describe('request formatting methods', () => {
           }
         ]
       });
+    });
+  });
+
+  describe('stripPartType', () => {
+    it('strips type from TextPart without mutating original', () => {
+      const original: Part = { type: 'text', text: 'hello' };
+      const stripped = stripPartType(original);
+      expect(stripped).to.deep.equal({ text: 'hello' });
+      expect(stripped).to.not.have.property('type');
+      expect(original).to.have.property('type', 'text');
+    });
+
+    it('strips type from InlineDataPart without mutating original', () => {
+      const original: Part = {
+        type: 'inlineData',
+        inlineData: { mimeType: 'image/png', data: 'abc' }
+      };
+      const stripped = stripPartType(original);
+      expect(stripped).to.deep.equal({
+        inlineData: { mimeType: 'image/png', data: 'abc' }
+      });
+      expect(stripped).to.not.have.property('type');
+      expect(original).to.have.property('type', 'inlineData');
+    });
+
+    it('strips type from FunctionCallPart without mutating original', () => {
+      const original: Part = {
+        type: 'functionCall',
+        functionCall: { name: 'getWeather', args: { city: 'SF' } }
+      };
+      const stripped = stripPartType(original);
+      expect(stripped).to.deep.equal({
+        functionCall: { name: 'getWeather', args: { city: 'SF' } }
+      });
+      expect(stripped).to.not.have.property('type');
+      expect(original).to.have.property('type', 'functionCall');
+    });
+
+    it('strips type from FunctionResponsePart and nested parts 3 levels deep', () => {
+      const original: Part = {
+        type: 'functionResponse',
+        functionResponse: {
+          name: 'lookup',
+          response: { ok: true },
+          parts: [{ type: 'text', text: 'nested text' }]
+        }
+      };
+      const stripped = stripPartType(original);
+      expect(stripped).to.deep.equal({
+        functionResponse: {
+          name: 'lookup',
+          response: { ok: true },
+          parts: [{ text: 'nested text' }]
+        }
+      });
+      expect(stripped).to.not.have.property('type');
+      expect(
+        (stripped as { functionResponse: FunctionResponse }).functionResponse
+          .parts![0]
+      ).to.not.have.property('type');
+      // Verify immutability
+      expect(original).to.have.property('type', 'functionResponse');
+      expect(
+        (original as { functionResponse: FunctionResponse }).functionResponse
+          .parts![0]
+      ).to.have.property('type', 'text');
+    });
+
+    it('handles already untagged parts', () => {
+      const untagged = { text: 'untagged text' } as any;
+      const stripped = stripPartType(untagged);
+      expect(stripped).to.deep.equal({ text: 'untagged text' });
+    });
+  });
+
+  describe('cleanContentForWire', () => {
+    it('strips type from all parts in a Content object without mutating original', () => {
+      const original: Content = {
+        role: 'user',
+        parts: [
+          { type: 'text', text: 'first' },
+          {
+            type: 'inlineData',
+            inlineData: { mimeType: 'image/jpeg', data: '123' }
+          }
+        ]
+      };
+      const cleaned = cleanContentForWire(original);
+      expect(cleaned).to.deep.equal({
+        role: 'user',
+        parts: [
+          { text: 'first' },
+          { inlineData: { mimeType: 'image/jpeg', data: '123' } }
+        ]
+      });
+      expect(original.parts[0]).to.have.property('type', 'text');
+      expect(original.parts[1]).to.have.property('type', 'inlineData');
+    });
+
+    it('returns content unchanged if parts is undefined', () => {
+      const content = { role: 'user' } as Content;
+      expect(cleanContentForWire(content)).to.equal(content);
+    });
+  });
+
+  describe('cleanSystemInstructionForWire', () => {
+    it('returns string unchanged', () => {
+      expect(cleanSystemInstructionForWire('system string')).to.equal(
+        'system string'
+      );
+    });
+
+    it('returns undefined if undefined', () => {
+      expect(cleanSystemInstructionForWire(undefined)).to.be.undefined;
+    });
+
+    it('strips type from single Part systemInstruction', () => {
+      const part: Part = { type: 'text', text: 'system text' };
+      const cleaned = cleanSystemInstructionForWire(part);
+      expect(cleaned).to.deep.equal({ text: 'system text' });
+      expect(part).to.have.property('type', 'text');
+    });
+
+    it('strips type from Content systemInstruction', () => {
+      const content: Content = {
+        role: 'system',
+        parts: [{ type: 'text', text: 'system content' }]
+      };
+      const cleaned = cleanSystemInstructionForWire(content);
+      expect(cleaned).to.deep.equal({
+        role: 'system',
+        parts: [{ text: 'system content' }]
+      });
+      expect(content.parts[0]).to.have.property('type', 'text');
+    });
+  });
+
+  describe('cleanGenerateContentRequestForWire', () => {
+    it('strips type from contents and systemInstruction without mutating original', () => {
+      const request: GenerateContentRequest = {
+        contents: [
+          {
+            role: 'user',
+            parts: [{ type: 'text', text: 'hello' }]
+          }
+        ],
+        systemInstruction: {
+          role: 'system',
+          parts: [{ type: 'text', text: 'be helpful' }]
+        },
+        generationConfig: { temperature: 0.7 }
+      };
+      const cleaned = cleanGenerateContentRequestForWire(request);
+      expect(cleaned).to.deep.equal({
+        contents: [
+          {
+            role: 'user',
+            parts: [{ text: 'hello' }]
+          }
+        ],
+        systemInstruction: {
+          role: 'system',
+          parts: [{ text: 'be helpful' }]
+        },
+        generationConfig: { temperature: 0.7 }
+      });
+      expect(request.contents[0].parts[0]).to.have.property('type', 'text');
+      expect((request.systemInstruction as Content).parts[0]).to.have.property(
+        'type',
+        'text'
+      );
+    });
+  });
+
+  describe('cleanCountTokensRequestForWire', () => {
+    it('strips type from contents and systemInstruction without mutating original', () => {
+      const request: CountTokensRequest = {
+        contents: [
+          {
+            role: 'user',
+            parts: [{ type: 'text', text: 'count this' }]
+          }
+        ],
+        systemInstruction: 'simple system instruction'
+      };
+      const cleaned = cleanCountTokensRequestForWire(request);
+      expect(cleaned).to.deep.equal({
+        contents: [
+          {
+            role: 'user',
+            parts: [{ text: 'count this' }]
+          }
+        ],
+        systemInstruction: 'simple system instruction'
+      });
+      expect(request.contents[0].parts[0]).to.have.property('type', 'text');
+    });
+  });
+
+  describe('cleanTemplateRequestForWire', () => {
+    it('strips type from history parts without mutating original', () => {
+      const originalHistory: Content[] = [
+        {
+          role: 'user',
+          parts: [{ type: 'text', text: 'template history' }]
+        }
+      ];
+      const request: TemplateRequestInternal = {
+        history: originalHistory
+      };
+      const cleaned = cleanTemplateRequestForWire(request);
+      expect(cleaned.history).to.deep.equal([
+        {
+          role: 'user',
+          parts: [{ text: 'template history' }]
+        }
+      ]);
+      expect(originalHistory[0].parts[0]).to.have.property('type', 'text');
+    });
+  });
+
+  describe('cleanFunctionResponseForWire', () => {
+    it('strips type from nested parts in FunctionResponse', () => {
+      const fnResponse: FunctionResponse = {
+        name: 'testFn',
+        response: { result: 123 },
+        parts: [{ type: 'text', text: 'part in fn response' }]
+      };
+      const cleaned = cleanFunctionResponseForWire(fnResponse);
+      expect(cleaned.parts).to.deep.equal([{ text: 'part in fn response' }]);
+      expect(fnResponse.parts![0]).to.have.property('type', 'text');
+    });
+
+    it('returns original if no parts present', () => {
+      const fnResponse: FunctionResponse = {
+        name: 'testFn',
+        response: { result: 123 }
+      };
+      expect(cleanFunctionResponseForWire(fnResponse)).to.equal(fnResponse);
     });
   });
 });
