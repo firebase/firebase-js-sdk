@@ -323,8 +323,8 @@ export class AudioConversationRunner {
 
         const audioPart = serverContent.modelTurn?.parts.find(
           part =>
-            part.type === 'inlineData' &&
-            part.inlineData.mimeType.startsWith('audio/')
+            part?.type === 'inlineData' &&
+            part.inlineData?.mimeType?.startsWith('audio/')
         );
         if (audioPart && audioPart.type === 'inlineData') {
           const audioData = Uint8Array.from(

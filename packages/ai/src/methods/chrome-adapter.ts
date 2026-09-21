@@ -240,6 +240,7 @@ export class ChromeAdapterImpl implements ChromeAdapter {
       for (const part of content.parts) {
         if (
           'inlineData' in part &&
+          part.inlineData &&
           ChromeAdapterImpl.SUPPORTED_MIME_TYPES.indexOf(
             part.inlineData.mimeType
           ) === -1
