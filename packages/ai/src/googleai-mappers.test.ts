@@ -351,6 +351,26 @@ describe('Google AI Mappers', () => {
         .with.property('code', AIErrorCode.UNSUPPORTED);
     });
 
+    it('should throw if untagged videoMetadata is present in raw wire response parts', () => {
+      const candidates: GoogleAIGenerateContentCandidate[] = [
+        {
+          index: 0,
+          content: {
+            role: 'model',
+            parts: [
+              {
+                inlineData: { mimeType: 'video/mp4', data: 'base64==' },
+                videoMetadata: { startOffset: '0s', endOffset: '5s' }
+              } as any
+            ]
+          }
+        }
+      ];
+      expect(() => mapGenerateContentCandidates(candidates))
+        .to.throw(AIError, /Part.videoMetadata is not supported/i)
+        .with.property('code', AIErrorCode.UNSUPPORTED);
+    });
+
     it('should handle candidates without citation or safety ratings', () => {
       const candidates: GoogleAIGenerateContentCandidate[] = [
         {

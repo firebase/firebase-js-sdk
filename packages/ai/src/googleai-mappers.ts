@@ -176,7 +176,7 @@ export function mapGenerateContentCandidates(
       // for inference on a small portion of the video.
       if (
         candidate.content?.parts?.some(
-          part => part.type === 'inlineData' && part.videoMetadata
+          part => 'videoMetadata' in part && part.videoMetadata
         )
       ) {
         throw new AIError(
