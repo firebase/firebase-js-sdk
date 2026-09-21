@@ -333,6 +333,56 @@ describe('ChatSession', () => {
       expect(history.length).to.equal(1);
       expect((history[0].parts[0] as TextPart).text).to.equal('original text');
     });
+    it('defensively copies input parts passed to sendMessage', async () => {
+      stub(generateContentMethods, 'generateContent').resolves({
+        response: {
+          candidates: [
+            {
+              index: 0,
+              content: {
+                role: 'model',
+                parts: [{ type: 'text', text: 'model reply' }]
+              }
+            }
+          ]
+        }
+      } as any);
+      const inputPart: TextPart = { type: 'text', text: 'original input' };
+      const chatSession = new ChatSession(fakeApiSettings, 'a-model');
+      await chatSession.sendMessage([inputPart]);
+
+      // External mutation of the inputPart object
+      inputPart.text = 'mutated input';
+
+      const history = await chatSession.getHistory();
+      expect((history[0].parts[0] as TextPart).text).to.equal('original input');
+    });
+    it('defensively isolates internal history from mutations on the returned response', async () => {
+      stub(generateContentMethods, 'generateContent').resolves({
+        response: {
+          candidates: [
+            {
+              index: 0,
+              content: {
+                role: 'model',
+                parts: [{ type: 'text', text: 'original model reply' }]
+              }
+            }
+          ]
+        }
+      } as any);
+      const chatSession = new ChatSession(fakeApiSettings, 'a-model');
+      const result = await chatSession.sendMessage('test message');
+
+      // Caller mutates the returned result.response candidate parts
+      (result.response.candidates![0].content.parts[0] as TextPart).text =
+        'mutated response';
+
+      const history = await chatSession.getHistory();
+      expect((history[1].parts[0] as TextPart).text).to.equal(
+        'original model reply'
+      );
+    });
   });
   describe('sendMessageStream()', () => {
     it('sends the correct params to generateContentStream()', async () => {

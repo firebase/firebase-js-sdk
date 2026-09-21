@@ -191,7 +191,7 @@ export abstract class ChatSessionBase<
               // Response seems to come back without a role set.
               role: result.response.candidates?.[0].content.role || 'model'
             };
-            tempHistory.push(responseContent);
+            tempHistory.push(deepCopy(responseContent));
           } else {
             const blockErrorMessage = formatBlockErrorMessage(result.response);
             if (blockErrorMessage) {
@@ -324,7 +324,7 @@ export abstract class ChatSessionBase<
           if (!responseContent.role) {
             responseContent.role = 'model';
           }
-          this._history.push(responseContent);
+          this._history.push(deepCopy(responseContent));
         } else {
           const blockErrorMessage = formatBlockErrorMessage(response);
           if (blockErrorMessage) {

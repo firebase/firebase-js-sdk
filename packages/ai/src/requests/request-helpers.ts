@@ -27,6 +27,7 @@ import {
 import { TemplateRequestInternal } from '../public-types';
 import { AIError } from '../errors';
 import { assignPartType } from './response-helpers';
+import { deepCopy } from '@firebase/util';
 
 export function formatSystemInstruction(
   input?: string | Part | Content
@@ -44,10 +45,12 @@ export function formatSystemInstruction(
     ('text' in (input as object) &&
       typeof (input as { text?: unknown }).text === 'string')
   ) {
-    const part = assignPartType(input as Part);
+    const part = deepCopy(assignPartType(input as Part));
     return { role: 'system', parts: [part] };
   } else if ((input as Content).parts) {
-    const parts = (input as Content).parts.map(p => assignPartType(p));
+    const parts = (input as Content).parts.map(p =>
+      deepCopy(assignPartType(p))
+    );
     if (!(input as Content).role) {
       return { role: 'system', parts };
     } else {
@@ -67,7 +70,7 @@ export function formatNewContent(
       if (typeof partOrString === 'string') {
         newParts.push({ type: 'text', text: partOrString });
       } else {
-        newParts.push(assignPartType(partOrString));
+        newParts.push(deepCopy(assignPartType(partOrString)));
       }
     }
   }
