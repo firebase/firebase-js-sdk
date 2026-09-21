@@ -249,21 +249,7 @@ export interface CodeExecutionResultPart {
     // (undocumented)
     codeExecutionResult?: CodeExecutionResult;
     // (undocumented)
-    executableCode?: never;
-    // (undocumented)
-    fileData: never;
-    // (undocumented)
-    functionCall?: never;
-    // (undocumented)
-    functionResponse?: never;
-    // (undocumented)
-    inlineData?: never;
-    // (undocumented)
-    text?: never;
-    // (undocumented)
-    thought?: never;
-    // @internal (undocumented)
-    thoughtSignature?: never;
+    type: 'codeExecutionResult';
 }
 
 // @public
@@ -349,23 +335,9 @@ export interface ExecutableCode {
 // @public
 export interface ExecutableCodePart {
     // (undocumented)
-    codeExecutionResult?: never;
-    // (undocumented)
     executableCode?: ExecutableCode;
     // (undocumented)
-    fileData: never;
-    // (undocumented)
-    functionCall?: never;
-    // (undocumented)
-    functionResponse?: never;
-    // (undocumented)
-    inlineData?: never;
-    // (undocumented)
-    text?: never;
-    // (undocumented)
-    thought?: never;
-    // @internal (undocumented)
-    thoughtSignature?: never;
+    type: 'executableCode';
 }
 
 // @public
@@ -379,23 +351,11 @@ export interface FileData {
 // @public
 export interface FileDataPart {
     // (undocumented)
-    codeExecutionResult?: never;
-    // (undocumented)
-    executableCode?: never;
-    // (undocumented)
     fileData: FileData;
     // (undocumented)
-    functionCall?: never;
-    // (undocumented)
-    functionResponse?: never;
-    // (undocumented)
-    inlineData?: never;
-    // (undocumented)
-    text?: never;
-    // (undocumented)
     thought?: boolean;
-    // @internal (undocumented)
-    thoughtSignature?: never;
+    // (undocumented)
+    type: 'fileData';
 }
 
 // @public
@@ -454,21 +414,11 @@ export type FunctionCallingMode = (typeof FunctionCallingMode)[keyof typeof Func
 // @public
 export interface FunctionCallPart {
     // (undocumented)
-    codeExecutionResult?: never;
-    // (undocumented)
-    executableCode?: never;
-    // (undocumented)
     functionCall: FunctionCall;
     // (undocumented)
-    functionResponse?: never;
-    // (undocumented)
-    inlineData?: never;
-    // (undocumented)
-    text?: never;
-    // (undocumented)
     thought?: boolean;
-    // @internal (undocumented)
-    thoughtSignature?: never;
+    // (undocumented)
+    type: 'functionCall';
 }
 
 // @public
@@ -498,21 +448,11 @@ export interface FunctionResponse {
 // @public
 export interface FunctionResponsePart {
     // (undocumented)
-    codeExecutionResult?: never;
-    // (undocumented)
-    executableCode?: never;
-    // (undocumented)
-    functionCall?: never;
-    // (undocumented)
     functionResponse: FunctionResponse;
     // (undocumented)
-    inlineData?: never;
-    // (undocumented)
-    text?: never;
-    // (undocumented)
     thought?: boolean;
-    // @internal (undocumented)
-    thoughtSignature?: never;
+    // (undocumented)
+    type: 'functionResponse';
 }
 
 // @public
@@ -882,21 +822,11 @@ export type InferenceSource = (typeof InferenceSource)[keyof typeof InferenceSou
 // @public
 export interface InlineDataPart {
     // (undocumented)
-    codeExecutionResult?: never;
-    // (undocumented)
-    executableCode?: never;
-    // (undocumented)
-    functionCall?: never;
-    // (undocumented)
-    functionResponse?: never;
-    // (undocumented)
     inlineData: GenerativeContentBlob;
     // (undocumented)
-    text?: never;
-    // (undocumented)
     thought?: boolean;
-    // @internal (undocumented)
-    thoughtSignature?: never;
+    // (undocumented)
+    type: 'inlineData';
     videoMetadata?: VideoMetadata;
 }
 
@@ -1541,21 +1471,13 @@ export interface TemplateToolConfig {
 // @public
 export interface TextPart {
     // (undocumented)
-    codeExecutionResult?: never;
-    // (undocumented)
-    executableCode?: never;
-    // (undocumented)
-    functionCall?: never;
-    // (undocumented)
-    functionResponse?: never;
-    // (undocumented)
-    inlineData?: never;
-    // (undocumented)
     text: string;
     // (undocumented)
     thought?: boolean;
     // @internal (undocumented)
     thoughtSignature?: string;
+    // (undocumented)
+    type: 'text';
 }
 
 // @public
@@ -1594,6 +1516,29 @@ export interface Transcription {
 
 // @public
 export type TypedSchema = IntegerSchema | NumberSchema | StringSchema | BooleanSchema | ObjectSchema | ArraySchema | AnyOfSchema;
+
+// @public
+export interface UnknownPart {
+    // (undocumented)
+    codeExecutionResult?: CodeExecutionResult;
+    // (undocumented)
+    executableCode?: ExecutableCode;
+    // (undocumented)
+    fileData?: FileData;
+    // (undocumented)
+    functionCall?: FunctionCall;
+    // (undocumented)
+    functionResponse?: FunctionResponse;
+    // (undocumented)
+    inlineData?: GenerativeContentBlob;
+    // (undocumented)
+    text?: string;
+    // (undocumented)
+    thought?: boolean;
+    // @internal (undocumented)
+    thoughtSignature?: string;
+    videoMetadata?: VideoMetadata;
+}
 
 // @public
 export interface URLContext {

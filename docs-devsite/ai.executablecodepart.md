@@ -22,22 +22,8 @@ export interface ExecutableCodePart
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [codeExecutionResult](./ai.executablecodepart.md#executablecodepartcodeexecutionresult) | never |  |
 |  [executableCode](./ai.executablecodepart.md#executablecodepartexecutablecode) | [ExecutableCode](./ai.executablecode.md#executablecode_interface) |  |
-|  [fileData](./ai.executablecodepart.md#executablecodepartfiledata) | never |  |
-|  [functionCall](./ai.executablecodepart.md#executablecodepartfunctioncall) | never |  |
-|  [functionResponse](./ai.executablecodepart.md#executablecodepartfunctionresponse) | never |  |
-|  [inlineData](./ai.executablecodepart.md#executablecodepartinlinedata) | never |  |
-|  [text](./ai.executablecodepart.md#executablecodeparttext) | never |  |
-|  [thought](./ai.executablecodepart.md#executablecodepartthought) | never |  |
-
-## ExecutableCodePart.codeExecutionResult
-
-<b>Signature:</b>
-
-```typescript
-codeExecutionResult?: never;
-```
+|  [type](./ai.executablecodepart.md#executablecodeparttype) | 'executableCode' |  |
 
 ## ExecutableCodePart.executableCode
 
@@ -47,50 +33,10 @@ codeExecutionResult?: never;
 executableCode?: ExecutableCode;
 ```
 
-## ExecutableCodePart.fileData
+## ExecutableCodePart.type
 
 <b>Signature:</b>
 
 ```typescript
-fileData: never;
-```
-
-## ExecutableCodePart.functionCall
-
-<b>Signature:</b>
-
-```typescript
-functionCall?: never;
-```
-
-## ExecutableCodePart.functionResponse
-
-<b>Signature:</b>
-
-```typescript
-functionResponse?: never;
-```
-
-## ExecutableCodePart.inlineData
-
-<b>Signature:</b>
-
-```typescript
-inlineData?: never;
-```
-
-## ExecutableCodePart.text
-
-<b>Signature:</b>
-
-```typescript
-text?: never;
-```
-
-## ExecutableCodePart.thought
-
-<b>Signature:</b>
-
-```typescript
-thought?: never;
+type: 'executableCode';
 ```

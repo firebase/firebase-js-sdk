@@ -240,6 +240,8 @@ toc:
     path: /docs/reference/js/ai.toolconfig.md
   - title: Transcription
     path: /docs/reference/js/ai.transcription.md
+  - title: UnknownPart
+    path: /docs/reference/js/ai.unknownpart.md
   - title: URLContext
     path: /docs/reference/js/ai.urlcontext.md
   - title: URLContextMetadata

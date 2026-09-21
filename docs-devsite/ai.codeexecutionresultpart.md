@@ -23,13 +23,7 @@ export interface CodeExecutionResultPart
 |  Property | Type | Description |
 |  --- | --- | --- |
 |  [codeExecutionResult](./ai.codeexecutionresultpart.md#codeexecutionresultpartcodeexecutionresult) | [CodeExecutionResult](./ai.codeexecutionresult.md#codeexecutionresult_interface) |  |
-|  [executableCode](./ai.codeexecutionresultpart.md#codeexecutionresultpartexecutablecode) | never |  |
-|  [fileData](./ai.codeexecutionresultpart.md#codeexecutionresultpartfiledata) | never |  |
-|  [functionCall](./ai.codeexecutionresultpart.md#codeexecutionresultpartfunctioncall) | never |  |
-|  [functionResponse](./ai.codeexecutionresultpart.md#codeexecutionresultpartfunctionresponse) | never |  |
-|  [inlineData](./ai.codeexecutionresultpart.md#codeexecutionresultpartinlinedata) | never |  |
-|  [text](./ai.codeexecutionresultpart.md#codeexecutionresultparttext) | never |  |
-|  [thought](./ai.codeexecutionresultpart.md#codeexecutionresultpartthought) | never |  |
+|  [type](./ai.codeexecutionresultpart.md#codeexecutionresultparttype) | 'codeExecutionResult' |  |
 
 ## CodeExecutionResultPart.codeExecutionResult
 
@@ -39,58 +33,10 @@ export interface CodeExecutionResultPart
 codeExecutionResult?: CodeExecutionResult;
 ```
 
-## CodeExecutionResultPart.executableCode
+## CodeExecutionResultPart.type
 
 <b>Signature:</b>
 
 ```typescript
-executableCode?: never;
-```
-
-## CodeExecutionResultPart.fileData
-
-<b>Signature:</b>
-
-```typescript
-fileData: never;
-```
-
-## CodeExecutionResultPart.functionCall
-
-<b>Signature:</b>
-
-```typescript
-functionCall?: never;
-```
-
-## CodeExecutionResultPart.functionResponse
-
-<b>Signature:</b>
-
-```typescript
-functionResponse?: never;
-```
-
-## CodeExecutionResultPart.inlineData
-
-<b>Signature:</b>
-
-```typescript
-inlineData?: never;
-```
-
-## CodeExecutionResultPart.text
-
-<b>Signature:</b>
-
-```typescript
-text?: never;
-```
-
-## CodeExecutionResultPart.thought
-
-<b>Signature:</b>
-
-```typescript
-thought?: never;
+type: 'codeExecutionResult';
 ```
