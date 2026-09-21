@@ -268,6 +268,38 @@ describe('ChatSession', () => {
       ).to.equal('hello 2');
       expect(generateContentStub.args[1][2].contents.length).to.equal(3);
     });
+    it('getHistory() returns properly typed parts and a defensive copy', async () => {
+      const chatSession = new ChatSession(
+        fakeApiSettings,
+        'a-model',
+        undefined,
+        {
+          history: [
+            {
+              role: 'user',
+              parts: [{ text: 'untagged user' } as unknown as TextPart]
+            },
+            {
+              role: 'model',
+              parts: [{ text: 'untagged model' } as unknown as TextPart]
+            }
+          ]
+        }
+      );
+      const history = await chatSession.getHistory();
+      expect(history[0].parts[0].type).to.equal('text');
+      expect((history[0].parts[0] as TextPart).text).to.equal('untagged user');
+      expect(history[1].parts[0].type).to.equal('text');
+      expect((history[1].parts[0] as TextPart).text).to.equal('untagged model');
+
+      // Modifying the returned array does not affect internal history
+      history.push({
+        role: 'user',
+        parts: [{ type: 'text', text: 'external' }]
+      });
+      const historyAgain = await chatSession.getHistory();
+      expect(historyAgain.length).to.equal(2);
+    });
   });
   describe('sendMessageStream()', () => {
     it('sends the correct params to generateContentStream()', async () => {

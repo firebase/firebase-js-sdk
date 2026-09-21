@@ -34,6 +34,7 @@ import {
 } from '../types';
 import { formatNewContent } from '../requests/request-helpers';
 import {
+  assignPartType,
   formatBlockErrorMessage,
   getFunctionCalls
 } from '../requests/response-helpers';
@@ -90,7 +91,10 @@ export abstract class ChatSessionBase<
    */
   async getHistory(): Promise<Content[]> {
     await this._sendPromise;
-    return this._history;
+    return this._history.map(content => ({
+      ...content,
+      parts: content.parts ? content.parts.map(assignPartType) : []
+    }));
   }
 
   /**
