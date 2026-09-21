@@ -678,6 +678,60 @@ describe('UpdateData - v9', () => {
       expect(true).to.be.true;
     });
 
+    it('errors for unexpected value types for indexed properties', () => {
+      type Item = {
+        title: string;
+        count: number;
+      };
+      type DocumentWithMap = {
+        items: Record<string, Item>;
+      };
+
+      let _: UpdateData<DocumentWithMap>;
+
+      _ = {
+        items: {
+          itemA: {
+            title: 'item 1',
+            count: 10
+          }
+        }
+      };
+
+      _ = {
+        items: {
+          // @ts-expect-error Unsupported type
+          itemA: 42
+        }
+      };
+
+      _ = {
+        items: {
+          // @ts-expect-error Unsupported type
+          itemA: 'string'
+        }
+      };
+
+      _ = {
+        items: {
+          // @ts-expect-error Unsupported type
+          itemA: false
+        }
+      };
+
+      _ = {
+        'items.itemA.title': 'item 1',
+        'items.itemA.count': 10
+      };
+
+      _ = {
+        // @ts-expect-error Unsupported type
+        'items.itemA.title': false
+      };
+
+      expect(true).to.be.true;
+    });
+
     it('supports object with nested index for T', () => {
       let _: UpdateData<
         Record<

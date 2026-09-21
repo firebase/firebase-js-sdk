@@ -83,16 +83,18 @@ export type WithFieldValue<T> =
  * reference nested fields within the document. FieldValues can be passed in
  * as property values.
  */
-export type UpdateData<T> = T extends Primitive
+export type UpdateData<
+  T,
+  IsNested extends boolean = false
+> = T extends Primitive
   ? T
   : T extends {}
     ? {
-        // If `string extends K`, this is an index signature like
-        // `{[key: string]: { foo: bool }}`. In the generated UpdateData
-        // indexed properties can match their type or any child types.
-        [K in keyof T]?: string extends K
-          ? PartialWithFieldValue<ChildTypes<T[K]>> | FieldValue
-          : UpdateData<T[K]> | FieldValue;
+        [K in keyof T]?: IsNested extends true
+          ? UpdateData<T[K], true> | FieldValue
+          : string extends K
+            ? PartialWithFieldValue<ChildTypes<T[K]>> | FieldValue
+            : UpdateData<T[K], true> | FieldValue;
       } & NestedUpdateFields<T>
     : Partial<T>;
 /**
