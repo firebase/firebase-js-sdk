@@ -26,6 +26,7 @@ import {
 } from '../types';
 import { TemplateRequestInternal } from '../public-types';
 import { AIError } from '../errors';
+import { assignPartType } from './response-helpers';
 
 export function formatSystemInstruction(
   input?: string | Part | Content
@@ -36,19 +37,21 @@ export function formatSystemInstruction(
   } else if (typeof input === 'string') {
     return {
       role: 'system',
-      parts: [{ text: input }]
+      parts: [{ type: 'text', text: input }]
     } as Content;
   } else if (
     (input as Part).type === 'text' ||
     ('text' in (input as object) &&
       typeof (input as { text?: unknown }).text === 'string')
   ) {
-    return { role: 'system', parts: [input as Part] };
+    const part = assignPartType(input as Part);
+    return { role: 'system', parts: [part] };
   } else if ((input as Content).parts) {
+    const parts = (input as Content).parts.map(p => assignPartType(p));
     if (!(input as Content).role) {
-      return { role: 'system', parts: (input as Content).parts };
+      return { role: 'system', parts };
     } else {
-      return input as Content;
+      return { ...(input as Content), parts };
     }
   }
 }
@@ -58,13 +61,13 @@ export function formatNewContent(
 ): Content {
   let newParts: Part[] = [];
   if (typeof request === 'string') {
-    newParts = [{ text: request } as unknown as Part];
+    newParts = [{ type: 'text', text: request }];
   } else {
     for (const partOrString of request) {
       if (typeof partOrString === 'string') {
-        newParts.push({ text: partOrString } as unknown as Part);
+        newParts.push({ type: 'text', text: partOrString });
       } else {
-        newParts.push(partOrString);
+        newParts.push(assignPartType(partOrString));
       }
     }
   }
@@ -116,7 +119,14 @@ export function formatGenerateContentInput(
 ): GenerateContentRequest {
   let formattedRequest: GenerateContentRequest;
   if ((params as GenerateContentRequest).contents) {
-    formattedRequest = params as GenerateContentRequest;
+    const request = params as GenerateContentRequest;
+    formattedRequest = {
+      ...request,
+      contents: request.contents.map(content => ({
+        ...content,
+        parts: content.parts ? content.parts.map(assignPartType) : []
+      }))
+    };
   } else {
     // Array or string
     const content = formatNewContent(params as string | Array<string | Part>);

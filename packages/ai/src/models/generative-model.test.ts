@@ -137,6 +137,7 @@ describe('GenerativeModel', () => {
       {},
       fakeChromeAdapter
     );
+    expect(genModel.systemInstruction?.parts[0].type).to.equal('text');
     expect((genModel.systemInstruction?.parts[0] as TextPart).text).to.equal(
       'be friendly'
     );

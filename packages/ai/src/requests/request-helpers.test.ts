@@ -46,7 +46,7 @@ describe('request formatting methods', () => {
         contents: [
           {
             role: 'user',
-            parts: [{ text: 'some text content' }]
+            parts: [{ type: 'text', text: 'some text content' }]
           }
         ]
       });
@@ -57,7 +57,10 @@ describe('request formatting methods', () => {
         contents: [
           {
             role: 'user',
-            parts: [{ text: 'txt1' }, { text: 'txt2' }]
+            parts: [
+              { type: 'text', text: 'txt1' },
+              { type: 'text', text: 'txt2' }
+            ]
           }
         ]
       });
@@ -79,7 +82,7 @@ describe('request formatting methods', () => {
         ]
       });
     });
-    it('passes through untagged parts in an array at runtime', () => {
+    it('normalizes untagged parts in an array at runtime', () => {
       const result = formatGenerateContentInput([
         { text: 'txt1' } as any,
         { text: 'txtB' } as any
@@ -88,12 +91,15 @@ describe('request formatting methods', () => {
         contents: [
           {
             role: 'user',
-            parts: [{ text: 'txt1' }, { text: 'txtB' }]
+            parts: [
+              { type: 'text', text: 'txt1' },
+              { type: 'text', text: 'txtB' }
+            ]
           }
         ]
       });
     });
-    it('passes through untagged parts inside contents property', () => {
+    it('normalizes untagged parts inside contents property', () => {
       const result = formatGenerateContentInput({
         contents: [
           {
@@ -103,6 +109,7 @@ describe('request formatting methods', () => {
         ]
       });
       expect(result.contents[0].parts[0]).to.deep.equal({
+        type: 'text',
         text: 'untagged'
       });
     });
@@ -115,7 +122,10 @@ describe('request formatting methods', () => {
         contents: [
           {
             role: 'user',
-            parts: [{ text: 'txtA' }, { type: 'text', text: 'txtB' }]
+            parts: [
+              { type: 'text', text: 'txtA' },
+              { type: 'text', text: 'txtB' }
+            ]
           }
         ]
       });
@@ -159,7 +169,7 @@ describe('request formatting methods', () => {
         ],
         systemInstruction: {
           role: 'system',
-          parts: [{ text: 'be excited' }]
+          parts: [{ type: 'text', text: 'be excited' }]
         }
       });
     });
@@ -387,7 +397,7 @@ describe('request formatting methods', () => {
           {
             role: 'user',
             parts: [
-              { text: 'What is this?' },
+              { type: 'text', text: 'What is this?' },
               {
                 type: 'fileData',
                 fileData: {
