@@ -45,7 +45,15 @@ function projectConfigRequirePlugin() {
 }
 
 const config = createBaseConfig(import.meta.url);
-config.test.dangerouslyIgnoreUnhandledErrors = true;
+config.test.onUnhandledError = error => {
+  if (
+    error?.message?.includes(
+      'Invalid bundle format: Reached the end of bundle when a length string is expected.'
+    )
+  ) {
+    return false;
+  }
+};
 
 config.test.projects = config.test.projects
   .filter(project => project.test?.name === 'browser')
@@ -69,7 +77,6 @@ config.test.projects = config.test.projects
       testTimeout: 20000,
       hookTimeout: 20000,
       retry: process.env.CI ? 3 : 0,
-      dangerouslyIgnoreUnhandledErrors: true,
       browser: {
         ...project.test.browser,
         screenshotFailures: false

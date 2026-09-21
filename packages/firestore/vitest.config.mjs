@@ -110,7 +110,15 @@ function platformBase64Plugin(isBrowser) {
 }
 
 const config = createBaseConfig(import.meta.url);
-config.test.dangerouslyIgnoreUnhandledErrors = true;
+config.test.onUnhandledError = error => {
+  if (
+    error?.message?.includes(
+      'Invalid bundle format: Reached the end of bundle when a length string is expected.'
+    )
+  ) {
+    return false;
+  }
+};
 
 const isLite = (process.env.TEST_PLATFORM || '').endsWith('_lite');
 const hasTargetBackend = Boolean(
@@ -196,7 +204,6 @@ config.test.projects = config.test.projects.map(project => {
       testTimeout: 20000,
       hookTimeout: 20000,
       retry: process.env.CI ? 3 : 0,
-      dangerouslyIgnoreUnhandledErrors: true,
       ...(isBrowser
         ? {
             browser: {
