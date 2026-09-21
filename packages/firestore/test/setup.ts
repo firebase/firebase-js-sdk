@@ -31,9 +31,6 @@ if (typeof globalThis.Buffer === 'undefined') {
 
 registerFirestoreLite();
 registerFirestore();
-if ((process.env.TEST_PLATFORM || '').endsWith('_lite')) {
-  registerFirestoreLite();
-}
 
 afterEach(() => {
   vi.useRealTimers();

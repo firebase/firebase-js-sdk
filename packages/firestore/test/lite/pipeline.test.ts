@@ -4419,9 +4419,10 @@ describe.skipClassic('Firestore Pipelines', () => {
           .limit(1)
           .select(field('rating').exp().as('expRating'))
       );
-      expect(
-        Math.abs(snapshot.results[0].get('expRating') - 109.94717245212352)
-      ).toBeLessThanOrEqual(0.00001);
+      expect(snapshot.results[0].get('expRating')).toBeCloseTo(
+        109.94717245212352,
+        5
+      );
     });
 
     it('can compute e to the power of a numeric value with the top-level function', async () => {
@@ -4433,9 +4434,10 @@ describe.skipClassic('Firestore Pipelines', () => {
           .limit(1)
           .select(exp('rating').as('expRating'))
       );
-      expect(
-        Math.abs(snapshot.results[0].get('expRating') - 109.94717245212351)
-      ).toBeLessThanOrEqual(0.000001);
+      expect(snapshot.results[0].get('expRating')).toBeCloseTo(
+        109.94717245212351,
+        6
+      );
     });
 
     it('can compute the power of a numeric value', async () => {
@@ -4447,9 +4449,7 @@ describe.skipClassic('Firestore Pipelines', () => {
           .limit(1)
           .select(field('rating').pow(2).as('powerRating'))
       );
-      expect(
-        Math.abs(snapshot.results[0].get('powerRating') - 17.64)
-      ).toBeLessThanOrEqual(0.0001);
+      expect(snapshot.results[0].get('powerRating')).toBeCloseTo(17.64, 4);
     });
 
     it('can compute the power of a numeric value with the top-level function', async () => {
@@ -4461,9 +4461,7 @@ describe.skipClassic('Firestore Pipelines', () => {
           .limit(1)
           .select(pow('rating', 2).as('powerRating'))
       );
-      expect(
-        Math.abs(snapshot.results[0].get('powerRating') - 17.64)
-      ).toBeLessThanOrEqual(0.0001);
+      expect(snapshot.results[0].get('powerRating')).toBeCloseTo(17.64, 4);
     });
 
     it('testRand', async () => {

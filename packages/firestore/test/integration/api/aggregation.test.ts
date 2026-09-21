@@ -1186,9 +1186,7 @@ apiDescribe('Aggregation queries - sum / average', persistence => {
       const snapshot = await getAggregateFromServer(coll, {
         averageRating: average('rating')
       });
-      expect(
-        Math.abs(snapshot.data().averageRating! - 9.2)
-      ).toBeLessThanOrEqual(0.0000001);
+      expect(snapshot.data().averageRating).toBeCloseTo(9.2, 7);
     });
   });
 
