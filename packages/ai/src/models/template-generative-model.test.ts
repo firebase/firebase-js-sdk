@@ -69,15 +69,21 @@ describe('TemplateGenerativeModel', () => {
       ).resolves({} as any);
       const model = new TemplateGenerativeModel(fakeAI);
 
-      await model.generateContent({
-        templateId: TEMPLATE_ID,
-        templateVariables: TEMPLATE_VARS
-      });
+      await model.generateContent(
+        {
+          templateId: TEMPLATE_ID,
+          templateVariables: TEMPLATE_VARS
+        },
+        {
+          timeout: 5000
+        }
+      );
 
       expect(templateGenerateContentStub).to.have.been.calledOnceWith(
         model._apiSettings,
         TEMPLATE_ID,
-        { inputs: TEMPLATE_VARS }
+        { inputs: TEMPLATE_VARS },
+        { timeout: 5000 }
       );
     });
 
