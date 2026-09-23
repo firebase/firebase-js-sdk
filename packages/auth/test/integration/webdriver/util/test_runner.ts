@@ -57,11 +57,12 @@ export function browserDescribe(
 setTimeout(() => {
   for (const browser of BROWSERS) {
     describe(`Testing in browser "${browser}"`, () => {
-      beforeAll(async () => {
+      before(async function () {
+        this.timeout(20000); // Starting browsers can be slow.
         await DRIVER.start(browser);
-      }, 20000);
+      });
 
-      afterAll(async () => {
+      after(async () => {
         await DRIVER.stop();
       });
 
@@ -74,7 +75,8 @@ setTimeout(() => {
       });
 
       for (const { title, generator } of SUITES) {
-        describe(title, () => {
+        describe(title, function () {
+          this.timeout(20000);
           generator(DRIVER, browser);
         });
       }

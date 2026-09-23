@@ -17,6 +17,8 @@
 
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { UserCredential } from '@firebase/auth';
+import { expect, use } from 'chai';
+import chaiAsPromised from 'chai-as-promised';
 import { createAnonAccount } from '../../helpers/integration/emulator_rest_helpers';
 import { API_KEY } from '../../helpers/integration/settings';
 import { START_FUNCTION } from './util/auth_driver';
@@ -28,6 +30,9 @@ import {
 } from './util/functions';
 import { JsLoadCondition } from './util/js_load_condition';
 import { browserDescribe } from './util/test_runner';
+
+use(chaiAsPromised);
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 async function testPersistedUser() {
   const account = await createAnonAccount();
@@ -48,29 +53,29 @@ async function testPersistedUser() {
 
 browserDescribe('WebDriver persistence test', (driver, browser) => {
   const fullPersistenceKey = `firebase:authUser:${API_KEY}:[DEFAULT]`;
-  describe('default persistence hierarchy (indexedDB > localStorage)', () => {
+  context('default persistence hierarchy (indexedDB > localStorage)', () => {
     it('stores user in indexedDB by default', async () => {
       const cred: UserCredential = await driver.call(
         AnonFunction.SIGN_IN_ANONYMOUSLY
       );
       const uid = cred.user.uid;
 
-      expect(await driver.getUserSnapshot()).toEqual(cred.user);
-      expect(await driver.call(PersistenceFunction.LOCAL_STORAGE_SNAP)).toEqual(
+      expect(await driver.getUserSnapshot()).to.eql(cred.user);
+      expect(await driver.call(PersistenceFunction.LOCAL_STORAGE_SNAP)).to.eql(
         {}
       );
       expect(
         await driver.call(PersistenceFunction.SESSION_STORAGE_SNAP)
-      ).toEqual({});
+      ).to.eql({});
 
       const snap = await driver.call(PersistenceFunction.INDEXED_DB_SNAP);
-      expect(snap).toHaveProperty(fullPersistenceKey).that.contains({ uid });
+      expect(snap).to.have.property(fullPersistenceKey).that.contains({ uid });
 
       // Persistence should survive a refresh:
       await driver.webDriver.navigate().refresh();
       await driver.injectConfigAndInitAuth();
       await driver.waitForAuthInit();
-      expect(await driver.getUserSnapshot()).toContain({ uid });
+      expect(await driver.getUserSnapshot()).to.contain({ uid });
     });
 
     it('should work fine if indexedDB is available while localStorage is not', async () => {
@@ -85,22 +90,22 @@ browserDescribe('WebDriver persistence test', (driver, browser) => {
       );
       const uid = cred.user.uid;
 
-      expect(await driver.getUserSnapshot()).toEqual(cred.user);
-      expect(await driver.call(PersistenceFunction.LOCAL_STORAGE_SNAP)).toEqual(
+      expect(await driver.getUserSnapshot()).to.eql(cred.user);
+      expect(await driver.call(PersistenceFunction.LOCAL_STORAGE_SNAP)).to.eql(
         {}
       );
       expect(
         await driver.call(PersistenceFunction.SESSION_STORAGE_SNAP)
-      ).toEqual({});
+      ).to.eql({});
 
       const snap = await driver.call(PersistenceFunction.INDEXED_DB_SNAP);
-      expect(snap).toHaveProperty(fullPersistenceKey).that.contains({ uid });
+      expect(snap).to.have.property(fullPersistenceKey).that.contains({ uid });
 
       // Persistence should survive a refresh:
       await driver.webDriver.navigate().refresh();
       await driver.injectConfigAndInitAuth();
       await driver.waitForAuthInit();
-      expect(await driver.getUserSnapshot()).toContain({ uid });
+      expect(await driver.getUserSnapshot()).to.contain({ uid });
     });
 
     it('stores user in localStorage if indexedDB is not available', async () => {
@@ -115,19 +120,19 @@ browserDescribe('WebDriver persistence test', (driver, browser) => {
       );
       const uid = cred.user.uid;
 
-      expect(await driver.getUserSnapshot()).toEqual(cred.user);
+      expect(await driver.getUserSnapshot()).to.eql(cred.user);
       expect(
         await driver.call(PersistenceFunction.SESSION_STORAGE_SNAP)
-      ).toEqual({});
+      ).to.eql({});
 
       const snap = await driver.call(PersistenceFunction.LOCAL_STORAGE_SNAP);
-      expect(snap).toHaveProperty(fullPersistenceKey).that.contains({ uid });
+      expect(snap).to.have.property(fullPersistenceKey).that.contains({ uid });
 
       // Persistence should survive a refresh:
       await driver.webDriver.navigate().refresh();
       await driver.injectConfigAndInitAuth();
       await driver.waitForAuthInit();
-      expect(await driver.getUserSnapshot()).toContain({ uid });
+      expect(await driver.getUserSnapshot()).to.contain({ uid });
     });
 
     it('fall back to in-memory if neither indexedDB or browser storage is present', async () => {
@@ -142,22 +147,20 @@ browserDescribe('WebDriver persistence test', (driver, browser) => {
         AnonFunction.SIGN_IN_ANONYMOUSLY
       );
 
-      expect(await driver.getUserSnapshot()).toEqual(cred.user);
+      expect(await driver.getUserSnapshot()).to.eql(cred.user);
       expect(
         await driver.call(PersistenceFunction.SESSION_STORAGE_SNAP)
-      ).toEqual({});
-      expect(await driver.call(PersistenceFunction.LOCAL_STORAGE_SNAP)).toEqual(
+      ).to.eql({});
+      expect(await driver.call(PersistenceFunction.LOCAL_STORAGE_SNAP)).to.eql(
         {}
       );
-      expect(await driver.call(PersistenceFunction.INDEXED_DB_SNAP)).toEqual(
-        {}
-      );
+      expect(await driver.call(PersistenceFunction.INDEXED_DB_SNAP)).to.eql({});
 
       // User will be gone (a.k.a. logged out) after refresh.
       await driver.webDriver.navigate().refresh();
       await driver.injectConfigAndInitAuth();
       await driver.waitForAuthInit();
-      expect(await driver.getUserSnapshot()).toBe(null);
+      expect(await driver.getUserSnapshot()).to.equal(null);
     });
 
     it('migrate stored user from localStorage if indexedDB is available', async () => {
@@ -171,14 +174,14 @@ browserDescribe('WebDriver persistence test', (driver, browser) => {
 
       // User from localStorage should be picked up.
       const user = await driver.getUserSnapshot();
-      expect(user.uid).toEqual(persistedUser.uid);
+      expect(user.uid).eql(persistedUser.uid);
 
       // User should be migrated to indexedDB, and the key in localStorage should be deleted.
       const snap = await driver.call(PersistenceFunction.INDEXED_DB_SNAP);
       expect(snap)
-        .toHaveProperty(fullPersistenceKey)
+        .to.have.property(fullPersistenceKey)
         .that.contains({ uid: persistedUser.uid });
-      expect(await driver.call(PersistenceFunction.LOCAL_STORAGE_SNAP)).toEqual(
+      expect(await driver.call(PersistenceFunction.LOCAL_STORAGE_SNAP)).to.eql(
         {}
       );
     });
@@ -197,14 +200,12 @@ browserDescribe('WebDriver persistence test', (driver, browser) => {
 
       // User from indexedDB should be picked up.
       const user = await driver.getUserSnapshot();
-      expect(user.uid).toEqual(uid);
+      expect(user.uid).eql(uid);
 
       // User should be migrated to localStorage, and the key in indexedDB should be deleted.
       const snap = await driver.call(PersistenceFunction.LOCAL_STORAGE_SNAP);
-      expect(snap).toHaveProperty(fullPersistenceKey).that.contains({ uid });
-      expect(await driver.call(PersistenceFunction.INDEXED_DB_SNAP)).toEqual(
-        {}
-      );
+      expect(snap).to.have.property(fullPersistenceKey).that.contains({ uid });
+      expect(await driver.call(PersistenceFunction.INDEXED_DB_SNAP)).to.eql({});
     });
 
     it('use in-memory and clear all persistences if indexedDB and localStorage are both broken', async () => {
@@ -224,22 +225,20 @@ browserDescribe('WebDriver persistence test', (driver, browser) => {
       expect(user.uid).to.be.a('string');
 
       // Both storage should be cleared.
-      expect(await driver.call(PersistenceFunction.LOCAL_STORAGE_SNAP)).toEqual(
+      expect(await driver.call(PersistenceFunction.LOCAL_STORAGE_SNAP)).to.eql(
         {}
       );
-      expect(await driver.call(PersistenceFunction.INDEXED_DB_SNAP)).toEqual(
-        {}
-      );
+      expect(await driver.call(PersistenceFunction.INDEXED_DB_SNAP)).to.eql({});
 
       // User will be gone (a.k.a. logged out) after refresh.
       await driver.webDriver.navigate().refresh();
       await driver.injectConfigAndInitAuth();
       await driver.waitForAuthInit();
-      expect(await driver.getUserSnapshot()).toBe(null);
+      expect(await driver.getUserSnapshot()).to.equal(null);
     });
   });
 
-  describe('setPersistence(...)', () => {
+  context('setPersistence(...)', () => {
     it('clears storage when switching to in-memory', async () => {
       await driver.call(AnonFunction.SIGN_IN_ANONYMOUSLY);
       const user = await driver.getUserSnapshot();
@@ -247,19 +246,17 @@ browserDescribe('WebDriver persistence test', (driver, browser) => {
       await driver.call(PersistenceFunction.SET_PERSISTENCE_MEMORY);
 
       const snapshotAfter = await driver.getUserSnapshot();
-      expect(snapshotAfter.uid).toEqual(user.uid);
-      expect(await driver.call(PersistenceFunction.LOCAL_STORAGE_SNAP)).toEqual(
+      expect(snapshotAfter.uid).to.eql(user.uid);
+      expect(await driver.call(PersistenceFunction.LOCAL_STORAGE_SNAP)).to.eql(
         {}
       );
-      expect(await driver.call(PersistenceFunction.INDEXED_DB_SNAP)).toEqual(
-        {}
-      );
+      expect(await driver.call(PersistenceFunction.INDEXED_DB_SNAP)).to.eql({});
 
       // User will be gone (a.k.a. logged out) after refresh.
       await driver.webDriver.navigate().refresh();
       await driver.injectConfigAndInitAuth();
       await driver.waitForAuthInit();
-      expect(await driver.getUserSnapshot()).toBe(null);
+      expect(await driver.getUserSnapshot()).to.equal(null);
     });
 
     it('migrates user when switching to session', async () => {
@@ -269,33 +266,31 @@ browserDescribe('WebDriver persistence test', (driver, browser) => {
       await driver.call(PersistenceFunction.SET_PERSISTENCE_SESSION);
 
       const snapshotAfter = await driver.getUserSnapshot();
-      expect(snapshotAfter.uid).toEqual(user.uid);
-      expect(await driver.call(PersistenceFunction.INDEXED_DB_SNAP)).toEqual(
-        {}
-      );
+      expect(snapshotAfter.uid).to.eql(user.uid);
+      expect(await driver.call(PersistenceFunction.INDEXED_DB_SNAP)).to.eql({});
       let snap = await driver.call(PersistenceFunction.SESSION_STORAGE_SNAP);
       expect(snap)
-        .toHaveProperty(fullPersistenceKey)
+        .to.have.property(fullPersistenceKey)
         .that.contains({ uid: user.uid });
 
       // User will be in session storage after refresh
       await driver.webDriver.navigate().refresh();
       await driver.injectConfigAndInitAuth();
       await driver.waitForAuthInit();
-      expect(await driver.getUserSnapshot()).toEqual(snapshotAfter);
+      expect(await driver.getUserSnapshot()).to.eql(snapshotAfter);
       snap = await driver.call(PersistenceFunction.SESSION_STORAGE_SNAP);
       expect(snap)
-        .toHaveProperty(fullPersistenceKey)
+        .to.have.property(fullPersistenceKey)
         .that.contains({ uid: user.uid });
     });
 
-    it('migrates user when switching from indexedDB to localStorage', async () => {
+    it('migrates user when switching from indexedDB to localStorage', async function () {
       // This test only works in the modular SDK: the compat package does not
       // make the distinction between indexedDB and local storage (both are just
       // 'local').
       if (driver.isCompatLayer()) {
         console.warn('Skipping indexedDB to local migration in compat test');
-        return;
+        this.skip();
       }
 
       await driver.call(AnonFunction.SIGN_IN_ANONYMOUSLY);
@@ -303,20 +298,18 @@ browserDescribe('WebDriver persistence test', (driver, browser) => {
 
       await driver.call(PersistenceFunction.SET_PERSISTENCE_LOCAL_STORAGE);
 
-      expect((await driver.getUserSnapshot()).uid).toEqual(user.uid);
-      expect(await driver.call(PersistenceFunction.INDEXED_DB_SNAP)).toEqual(
-        {}
-      );
+      expect((await driver.getUserSnapshot()).uid).to.eql(user.uid);
+      expect(await driver.call(PersistenceFunction.INDEXED_DB_SNAP)).to.eql({});
       const snap = await driver.call(PersistenceFunction.LOCAL_STORAGE_SNAP);
       expect(snap)
-        .toHaveProperty(fullPersistenceKey)
+        .to.have.property(fullPersistenceKey)
         .that.contains({ uid: user.uid });
 
       await driver.webDriver.navigate().refresh();
       await driver.injectConfigAndInitAuth();
       await driver.waitForAuthInit();
       // User should be picked up from localStorage after refresh.
-      expect((await driver.getUserSnapshot()).uid).toEqual(user.uid);
+      expect((await driver.getUserSnapshot()).uid).to.eql(user.uid);
     });
 
     it('migrates user when switching from in-memory to indexedDB', async () => {
@@ -326,21 +319,21 @@ browserDescribe('WebDriver persistence test', (driver, browser) => {
 
       await driver.call(PersistenceFunction.SET_PERSISTENCE_INDEXED_DB);
 
-      expect((await driver.getUserSnapshot()).uid).toEqual(user.uid);
+      expect((await driver.getUserSnapshot()).uid).to.eql(user.uid);
       const snap = await driver.call(PersistenceFunction.INDEXED_DB_SNAP);
       expect(snap)
-        .toHaveProperty(fullPersistenceKey)
+        .to.have.property(fullPersistenceKey)
         .that.contains({ uid: user.uid });
 
       await driver.webDriver.navigate().refresh();
       await driver.injectConfigAndInitAuth();
       await driver.waitForAuthInit();
       // User should be picked up from indexedDB after refresh.
-      expect((await driver.getUserSnapshot()).uid).toEqual(user.uid);
+      expect((await driver.getUserSnapshot()).uid).to.eql(user.uid);
     });
   });
 
-  describe('persistence compatibility with legacy SDK', () => {
+  context('persistence compatibility with legacy SDK', () => {
     it('stays logged in when switching to legacy SDK and then back', async () => {
       const cred: UserCredential = await driver.call(
         AnonFunction.SIGN_IN_ANONYMOUSLY
@@ -351,13 +344,13 @@ browserDescribe('WebDriver persistence test', (driver, browser) => {
       await driver.injectConfigAndInitLegacySDK();
       await driver.waitForLegacyAuthInit();
       const user = await driver.call(CoreFunction.LEGACY_USER_SNAPSHOT);
-      expect(user).toContain({ uid });
+      expect(user).to.include({ uid });
 
       await driver.webDriver.navigate().refresh();
       await driver.injectConfigAndInitAuth();
       await driver.waitForAuthInit();
       // User should be picked up from indexedDB after refresh.
-      expect((await driver.getUserSnapshot()).uid).toEqual(uid);
+      expect((await driver.getUserSnapshot()).uid).to.eql(uid);
     });
 
     it('stays logged in when switching from legacy SDK and then back', async () => {
@@ -375,7 +368,7 @@ browserDescribe('WebDriver persistence test', (driver, browser) => {
       await driver.injectConfigAndInitAuth();
       await driver.waitForAuthInit();
       // User should be picked up from indexedDB after refresh.
-      expect((await driver.getUserSnapshot()).uid).toEqual(uid);
+      expect((await driver.getUserSnapshot()).uid).to.eql(uid);
       const persisted2 = await driver.call(PersistenceFunction.INDEXED_DB_SNAP);
 
       await driver.webDriver.navigate().refresh();
@@ -386,9 +379,9 @@ browserDescribe('WebDriver persistence test', (driver, browser) => {
         expect(
           persisted2,
           'user is not recognized by legacy SDK, possibly due to fields being different'
-        ).toEqual(persisted1);
+        ).to.eql(persisted1);
       } else {
-        expect(user).toContain({ uid }); // and again in legacy SDK
+        expect(user).to.include({ uid }); // and again in legacy SDK
       }
     });
 
@@ -418,7 +411,7 @@ browserDescribe('WebDriver persistence test', (driver, browser) => {
       await driver.injectConfigAndInitAuth();
       await driver.waitForAuthInit();
       // User should be picked up from localStorage after refresh.
-      expect((await driver.getUserSnapshot()).uid).toEqual(uid);
+      expect((await driver.getUserSnapshot()).uid).to.eql(uid);
       const persisted2 = await driver.call(
         PersistenceFunction.LOCAL_STORAGE_SNAP
       );
@@ -431,14 +424,14 @@ browserDescribe('WebDriver persistence test', (driver, browser) => {
         expect(
           persisted2,
           'user is not recognized by legacy SDK, possibly due to fields being different'
-        ).toEqual(persisted1);
+        ).to.eql(persisted1);
       } else {
-        expect(user).toContain({ uid }); // and again in legacy SDK
+        expect(user).to.include({ uid }); // and again in legacy SDK
       }
     });
   });
 
-  describe('persistence sync across windows and tabs', () => {
+  context('persistence sync across windows and tabs', () => {
     it('sync current user across windows with indexedDB', async () => {
       const cred: UserCredential = await driver.call(
         AnonFunction.SIGN_IN_ANONYMOUSLY
@@ -450,17 +443,17 @@ browserDescribe('WebDriver persistence test', (driver, browser) => {
       await driver.injectConfigAndInitAuth();
       await driver.waitForAuthInit();
       const userInPopup = await driver.getUserSnapshot();
-      expect(userInPopup).not.toBeNull();
-      expect(userInPopup.uid).toBe(uid);
+      expect(userInPopup).not.to.be.null;
+      expect(userInPopup.uid).to.equal(uid);
 
       await driver.call(CoreFunction.SIGN_OUT);
-      expect(await driver.getUserSnapshot()).toBeNull();
+      expect(await driver.getUserSnapshot()).to.be.null;
       await driver.selectMainWindow({ noWait: true });
       await driver.webDriver.wait(
         async () => (await driver.getUserSnapshot()) === null,
         5000
       );
-      expect(await driver.getUserSnapshot()).toBeNull();
+      expect(await driver.getUserSnapshot()).to.be.null;
 
       const cred2: UserCredential = await driver.call(
         AnonFunction.SIGN_IN_ANONYMOUSLY
@@ -472,14 +465,14 @@ browserDescribe('WebDriver persistence test', (driver, browser) => {
         async () => (await driver.getUserSnapshot())?.uid === uid2,
         5000
       );
-      expect(await driver.getUserSnapshot()).toContain({ uid: uid2 });
+      expect(await driver.getUserSnapshot()).to.contain({ uid: uid2 });
     });
 
-    it('middleware does not block tab sync', async () => {
+    it('middleware does not block tab sync', async function () {
       if (driver.isCompatLayer()) {
         // Compat layer is skipped because it doesn't support middleware
         console.warn('Skipping middleware tabs in compat test');
-        return;
+        this.skip();
       }
 
       // Blocking middleware in main page
@@ -488,9 +481,9 @@ browserDescribe('WebDriver persistence test', (driver, browser) => {
       // Check that it blocks basic sign in
       await expect(
         driver.call(AnonFunction.SIGN_IN_ANONYMOUSLY)
-      ).rejects.toThrow('auth/login-blocked');
+      ).to.be.rejectedWith('auth/login-blocked');
       const userInPopup = await driver.getUserSnapshot();
-      expect(userInPopup).toBeNull();
+      expect(userInPopup).to.be.null;
 
       // Now sign in in new page
       await driver.webDriver.executeScript('window.open(".");');
@@ -508,7 +501,7 @@ browserDescribe('WebDriver persistence test', (driver, browser) => {
         async () => (await driver.getUserSnapshot())?.uid === cred.user.uid,
         5000
       );
-      expect((await driver.getUserSnapshot()).uid).toBe(cred.user.uid);
+      expect((await driver.getUserSnapshot()).uid).to.eq(cred.user.uid);
     });
 
     it('sync current user across windows with localStorage', async () => {
@@ -529,14 +522,14 @@ browserDescribe('WebDriver persistence test', (driver, browser) => {
       await driver.injectConfigAndInitAuth();
       await driver.waitForAuthInit();
       const userInPopup = await driver.getUserSnapshot();
-      expect(userInPopup).not.toBeNull();
-      expect(userInPopup.uid).toBe(uid);
+      expect(userInPopup).not.to.be.null;
+      expect(userInPopup.uid).to.equal(uid);
 
       await driver.call(CoreFunction.SIGN_OUT);
-      expect(await driver.getUserSnapshot()).toBeNull();
+      expect(await driver.getUserSnapshot()).to.be.null;
       await driver.selectMainWindow({ noWait: true });
       await driver.pause(500);
-      expect(await driver.getUserSnapshot()).toBeNull();
+      expect(await driver.getUserSnapshot()).to.be.null;
 
       const cred2: UserCredential = await driver.call(
         AnonFunction.SIGN_IN_ANONYMOUSLY
@@ -545,7 +538,7 @@ browserDescribe('WebDriver persistence test', (driver, browser) => {
 
       await driver.selectPopupWindow();
       await driver.pause(500);
-      expect(await driver.getUserSnapshot()).toContain({ uid: uid2 });
+      expect(await driver.getUserSnapshot()).to.contain({ uid: uid2 });
     });
   });
 });

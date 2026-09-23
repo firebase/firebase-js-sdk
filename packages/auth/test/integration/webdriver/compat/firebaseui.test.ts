@@ -18,6 +18,7 @@
 import { CoreFunction, UiFunction } from '../util/functions';
 import { until } from 'selenium-webdriver';
 import { User } from '@firebase/auth-types';
+import { expect } from 'chai';
 import { browserDescribe } from '../util/test_runner';
 import { UiPage } from '../util/ui_page';
 import { IdPPage } from '../util/idp_page';
@@ -46,7 +47,7 @@ browserDescribe('WebDriver integration with FirebaseUI', driver => {
     await page.clickGuestSignIn();
     await waitForLoggedInPage();
     const snap = (await driver.getUserSnapshot()) as unknown as User;
-    expect(snap.isAnonymous).toBe(true);
+    expect(snap.isAnonymous).to.be.true;
     expect(snap.uid).to.be.a('string');
   });
 
@@ -70,12 +71,12 @@ browserDescribe('WebDriver integration with FirebaseUI', driver => {
     await startUi();
     await waitForLoggedInPage();
     const snap = (await driver.getUserSnapshot()) as unknown as User;
-    expect(snap.isAnonymous).toBe(false);
-    expect(snap.displayName).toBe('Bob Test');
-    expect(snap.email).toBe('bob@bob.test');
-    expect(snap.photoURL).toBe('http://bob.test/bob.png');
+    expect(snap.isAnonymous).to.be.false;
+    expect(snap.displayName).to.eq('Bob Test');
+    expect(snap.email).to.eq('bob@bob.test');
+    expect(snap.photoURL).to.eq('http://bob.test/bob.png');
     expect(snap.uid).to.be.a('string');
-    expect(snap.providerData[0]!.providerId).toBe('google.com');
+    expect(snap.providerData[0]!.providerId).to.eq('google.com');
   });
 
   it('allows google popup sign in', async () => {
@@ -97,12 +98,12 @@ browserDescribe('WebDriver integration with FirebaseUI', driver => {
     await driver.selectMainWindow();
     await waitForLoggedInPage();
     const snap = (await driver.getUserSnapshot()) as unknown as User;
-    expect(snap.isAnonymous).toBe(false);
-    expect(snap.displayName).toBe('Bob Test');
-    expect(snap.email).toBe('bob@bob.test');
-    expect(snap.photoURL).toBe('http://bob.test/bob.png');
+    expect(snap.isAnonymous).to.be.false;
+    expect(snap.displayName).to.eq('Bob Test');
+    expect(snap.email).to.eq('bob@bob.test');
+    expect(snap.photoURL).to.eq('http://bob.test/bob.png');
     expect(snap.uid).to.be.a('string');
-    expect(snap.providerData[0]!.providerId).toBe('google.com');
+    expect(snap.providerData[0]!.providerId).to.eq('google.com');
   });
 
   it('allows phone sign in', async () => {
@@ -135,8 +136,8 @@ browserDescribe('WebDriver integration with FirebaseUI', driver => {
 
     await waitForLoggedInPage();
     const snap = (await driver.getUserSnapshot()) as unknown as User;
-    expect(snap.isAnonymous).toBe(false);
-    expect(snap.phoneNumber).toBe(`+1${phoneNumber}`);
+    expect(snap.isAnonymous).to.be.false;
+    expect(snap.phoneNumber).to.eq(`+1${phoneNumber}`);
     expect(snap.uid).to.be.a('string');
   });
 
@@ -152,9 +153,9 @@ browserDescribe('WebDriver integration with FirebaseUI', driver => {
 
     await waitForLoggedInPage();
     const snap = (await driver.getUserSnapshot()) as unknown as User;
-    expect(snap.isAnonymous).toBe(false);
-    expect(snap.displayName).toBe('Foo Test');
-    expect(snap.email).toBe('foo@foo.test');
+    expect(snap.isAnonymous).to.be.false;
+    expect(snap.displayName).to.eq('Foo Test');
+    expect(snap.email).to.eq('foo@foo.test');
 
     // Sign up was successful; now try signing in.
     await driver.goToTestPage();
@@ -170,6 +171,6 @@ browserDescribe('WebDriver integration with FirebaseUI', driver => {
     await page.clickSubmit();
 
     await waitForLoggedInPage();
-    expect((await driver.getUserSnapshot()).uid).toBe(snap.uid);
+    expect((await driver.getUserSnapshot()).uid).to.eq(snap.uid);
   });
 });

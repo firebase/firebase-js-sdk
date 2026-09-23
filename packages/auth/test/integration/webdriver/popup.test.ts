@@ -22,7 +22,9 @@ import {
   User,
   OAuthCredential
 } from '@firebase/auth';
+import { expect, use } from 'chai';
 import { IdPPage } from './util/idp_page';
+import chaiAsPromised from 'chai-as-promised';
 import { browserDescribe } from './util/test_runner';
 import {
   AnonFunction,
@@ -31,6 +33,9 @@ import {
   MiddlewareFunction,
   PopupFunction
 } from './util/functions';
+
+use(chaiAsPromised);
+
 browserDescribe('Popup IdP tests', driver => {
   it('allows users to sign in', async () => {
     await driver.callNoWait(PopupFunction.IDP_POPUP);
@@ -51,18 +56,18 @@ browserDescribe('Popup IdP tests', driver => {
       PopupFunction.POPUP_RESULT
     );
     const currentUser = await driver.getUserSnapshot();
-    expect(currentUser.email).toBe('bob@bob.test');
-    expect(currentUser.displayName).toBe('Bob Test');
-    expect(currentUser.photoURL).toBe('http://bob.test/bob.png');
+    expect(currentUser.email).to.eq('bob@bob.test');
+    expect(currentUser.displayName).to.eq('Bob Test');
+    expect(currentUser.photoURL).to.eq('http://bob.test/bob.png');
 
-    expect(result.operationType).toBe(OperationType.SIGN_IN);
-    expect(result.user).toEqual(currentUser);
+    expect(result.operationType).to.eq(OperationType.SIGN_IN);
+    expect(result.user).to.eql(currentUser);
   });
 
-  it('is blocked by auth middleware', async () => {
+  it('is blocked by auth middleware', async function () {
     if (driver.isCompatLayer()) {
       // Compat layer doesn't support middleware yet
-      return;
+      this.skip();
     }
 
     await driver.call(MiddlewareFunction.ATTACH_BLOCKING_MIDDLEWARE);
@@ -80,11 +85,11 @@ browserDescribe('Popup IdP tests', driver => {
     await widget.clickSignIn();
 
     await driver.selectMainWindow();
-    await expect(driver.call(PopupFunction.POPUP_RESULT)).rejects.toThrow(
+    await expect(driver.call(PopupFunction.POPUP_RESULT)).to.be.rejectedWith(
       'auth/login-blocked'
     );
     const currentUser = await driver.getUserSnapshot();
-    expect(currentUser).toBeNull();
+    expect(currentUser).to.be.null;
   });
 
   it('can link with another account account', async () => {
@@ -106,8 +111,8 @@ browserDescribe('Popup IdP tests', driver => {
     // Back on main page; check for the current user matching the anonymous
     // account as well as the new IdP account
     const user: User = await driver.getUserSnapshot();
-    expect(user.uid).toBe(anonUser.uid);
-    expect(user.email).toBe('bob@bob.test');
+    expect(user.uid).to.eq(anonUser.uid);
+    expect(user.email).to.eq('bob@bob.test');
   });
 
   it('can be converted to a credential', async () => {
@@ -128,15 +133,15 @@ browserDescribe('Popup IdP tests', driver => {
     );
     expect(cred.accessToken).to.be.a('string');
     expect(cred.idToken).to.be.a('string');
-    expect(cred.signInMethod).toBe('google.com');
+    expect(cred.signInMethod).to.eq('google.com');
 
     // We've now generated that credential. Sign out and sign back in using it
     await driver.call(CoreFunction.SIGN_OUT);
     const { user: second }: UserCredential = await driver.call(
       PopupFunction.SIGN_IN_WITH_POPUP_CREDENTIAL
     );
-    expect(second.uid).toBe(first.uid);
-    expect(second.providerData).toEqual(first.providerData);
+    expect(second.uid).to.eq(first.uid);
+    expect(second.providerData).to.eql(first.providerData);
   });
 
   it('handles account exists different credential errors', async () => {
@@ -151,14 +156,14 @@ browserDescribe('Popup IdP tests', driver => {
 
     await driver.selectMainWindow();
     const original = await driver.getUserSnapshot();
-    expect(original.emailVerified).toBe(true);
+    expect(original.emailVerified).to.be.true;
 
     // Try to sign in with an unverified Facebook account
     // TODO: Convert this to the widget once unverified accounts work
     // Come back and verify error / prepare for link
     await expect(
       driver.call(PopupFunction.TRY_TO_SIGN_IN_UNVERIFIED, 'bob@bob.test')
-    ).resolves.toHaveProperty(
+    ).to.be.rejected.and.eventually.have.property(
       'code',
       'auth/account-exists-with-different-credential'
     );
@@ -168,7 +173,7 @@ browserDescribe('Popup IdP tests', driver => {
 
     // Check the user for both providers
     const user = await driver.getUserSnapshot();
-    expect(user.uid).toBe(original.uid);
+    expect(user.uid).to.eq(original.uid);
     expect(user.providerData.map(d => d.providerId)).to.have.members([
       'google.com',
       'facebook.com'
@@ -190,7 +195,7 @@ browserDescribe('Popup IdP tests', driver => {
     // On return to main window, check that the signed in user is different
     await driver.selectMainWindow();
     const curUser = await driver.getUserSnapshot();
-    expect(curUser.uid).not.toBe(anonUser.uid);
+    expect(curUser.uid).not.to.eq(anonUser.uid);
   });
 
   it('linking with anonymous user upgrades account', async () => {
@@ -208,8 +213,8 @@ browserDescribe('Popup IdP tests', driver => {
     // On return to main window, check that the signed in user is upgraded
     await driver.selectMainWindow();
     const curUser = await driver.getUserSnapshot();
-    expect(curUser.uid).toBe(anonUser.uid);
-    expect(curUser.isAnonymous).toBe(false);
+    expect(curUser.uid).to.eq(anonUser.uid);
+    expect(curUser.isAnonymous).to.be.false;
   });
 
   it('is possible to link with different email', async () => {
@@ -230,9 +235,9 @@ browserDescribe('Popup IdP tests', driver => {
     // Check the linked account
     await driver.selectMainWindow();
     const curUser = await driver.getUserSnapshot();
-    expect(curUser.uid).toBe(emailUser.uid);
-    expect(curUser.emailVerified).toBe(false);
-    expect(curUser.providerData.length).toBe(2);
+    expect(curUser.uid).to.eq(emailUser.uid);
+    expect(curUser.emailVerified).to.be.false;
+    expect(curUser.providerData.length).to.eq(2);
   });
 
   it('is possible to link with the same email', async () => {
@@ -253,12 +258,12 @@ browserDescribe('Popup IdP tests', driver => {
     // Check the linked account
     await driver.selectMainWindow();
     const curUser = await driver.getUserSnapshot();
-    expect(curUser.uid).toBe(emailUser.uid);
-    expect(curUser.emailVerified).toBe(true);
-    expect(curUser.providerData.length).toBe(2);
+    expect(curUser.uid).to.eq(emailUser.uid);
+    expect(curUser.emailVerified).to.be.true;
+    expect(curUser.providerData.length).to.eq(2);
   });
 
-  describe('with existing user', () => {
+  context('with existing user', () => {
     let user1: User;
     let user2: User;
 
@@ -290,8 +295,8 @@ browserDescribe('Popup IdP tests', driver => {
       // Double check the new sign in matches the old
       await driver.selectMainWindow();
       const user = await driver.getUserSnapshot();
-      expect(user.uid).toBe(user1.uid);
-      expect(user.email).toBe(user1.email);
+      expect(user.uid).to.eq(user1.uid);
+      expect(user.email).to.eq(user1.email);
     });
 
     it('reauthenticate works for the correct user', async () => {
@@ -306,8 +311,8 @@ browserDescribe('Popup IdP tests', driver => {
       // Double check the new sign in matches the old
       await driver.selectMainWindow();
       let user = await driver.getUserSnapshot();
-      expect(user.uid).toBe(user1.uid);
-      expect(user.email).toBe(user1.email);
+      expect(user.uid).to.eq(user1.uid);
+      expect(user.email).to.eq(user1.email);
 
       // Reauthenticate specifically
       await driver.callNoWait(PopupFunction.IDP_REAUTH_POPUP);
@@ -317,8 +322,8 @@ browserDescribe('Popup IdP tests', driver => {
 
       await driver.selectMainWindow();
       user = await driver.getUserSnapshot();
-      expect(user.uid).toBe(user1.uid);
-      expect(user.email).toBe(user1.email);
+      expect(user.uid).to.eq(user1.uid);
+      expect(user.email).to.eq(user1.email);
     });
 
     it('reauthenticate throws for wrong user', async () => {
@@ -340,7 +345,10 @@ browserDescribe('Popup IdP tests', driver => {
       await driver.selectMainWindow();
       await expect(
         driver.call(PopupFunction.POPUP_RESULT)
-      ).resolves.toHaveProperty('code', 'auth/user-mismatch');
+      ).to.be.rejected.and.eventually.have.property(
+        'code',
+        'auth/user-mismatch'
+      );
     });
 
     it('handles aborted sign ins', async () => {
@@ -353,8 +361,11 @@ browserDescribe('Popup IdP tests', driver => {
       await driver.closePopup();
       await expect(
         driver.call(PopupFunction.POPUP_RESULT)
-      ).resolves.toHaveProperty('code', 'auth/popup-closed-by-user');
-      expect(await driver.getUserSnapshot()).toBeNull();
+      ).to.be.rejected.and.eventually.have.property(
+        'code',
+        'auth/popup-closed-by-user'
+      );
+      expect(await driver.getUserSnapshot()).to.be.null;
 
       // Now do sign in
       await driver.callNoWait(PopupFunction.IDP_POPUP);
@@ -366,8 +377,8 @@ browserDescribe('Popup IdP tests', driver => {
       // Ensure the user was signed in...
       await driver.selectMainWindow();
       let user = await driver.getUserSnapshot();
-      expect(user.uid).toBe(user1.uid);
-      expect(user.email).toBe(user1.email);
+      expect(user.uid).to.eq(user1.uid);
+      expect(user.email).to.eq(user1.email);
 
       // Now open another sign in, but return
       await driver.callNoWait(PopupFunction.IDP_REAUTH_POPUP);
@@ -376,12 +387,15 @@ browserDescribe('Popup IdP tests', driver => {
       await driver.closePopup();
       await expect(
         driver.call(PopupFunction.POPUP_RESULT)
-      ).resolves.toHaveProperty('code', 'auth/popup-closed-by-user');
+      ).to.be.rejected.and.eventually.have.property(
+        'code',
+        'auth/popup-closed-by-user'
+      );
 
       // Make sure state remained
       user = await driver.getUserSnapshot();
-      expect(user.uid).toBe(user1.uid);
-      expect(user.email).toBe(user1.email);
+      expect(user.uid).to.eq(user1.uid);
+      expect(user.email).to.eq(user1.email);
     }).timeout(25_000); // Test takes a while due to the closed-by-user errors. Each closed-by-user
     // takes 8s to timeout, and we have 2 instances.
   });
