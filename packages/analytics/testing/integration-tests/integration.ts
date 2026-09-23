@@ -18,8 +18,6 @@
 import { initializeApp, deleteApp, FirebaseApp } from '@firebase/app';
 import '@firebase/installations';
 import { getAnalytics, initializeAnalytics, logEvent } from '../../src/index';
-import '../setup';
-import { expect, vi } from 'vitest';
 import config from '../../../../config/project.json';
 
 const RETRY_INTERVAL = 1000;
@@ -47,7 +45,12 @@ async function checkForEventCalls(retryCount = 0): Promise<PerformanceEntry[]> {
 describe('FirebaseAnalytics Integration Smoke Tests', () => {
   let app: FirebaseApp;
   describe('Using getAnalytics()', () => {
-    afterEach(() => deleteApp(app));
+    afterEach(async () => {
+      if (app) {
+        await deleteApp(app);
+        app = undefined as any;
+      }
+    });
     it('logEvent() sends correct network request.', async () => {
       app = initializeApp(config);
       logEvent(getAnalytics(app), 'login', { method: 'phone' });
@@ -57,9 +60,13 @@ describe('FirebaseAnalytics Integration Smoke Tests', () => {
     });
     it("Warns if measurement ID doesn't match.", () => {
       return new Promise<void>(resolve => {
-        vi.spyOn(console, 'warn').mockImplementation((_tag, message) => {
-          expect(message).toContain('does not match');
-          resolve();
+        vi.spyOn(console, 'warn').mockImplementation((...args: unknown[]) => {
+          const hasMatch = args.some(
+            arg => typeof arg === 'string' && arg.includes('does not match')
+          );
+          if (hasMatch) {
+            resolve();
+          }
         });
         app = initializeApp({
           ...config,
@@ -70,9 +77,10 @@ describe('FirebaseAnalytics Integration Smoke Tests', () => {
     });
   });
   describe('Using initializeAnalytics()', () => {
-    afterEach(() => {
+    afterEach(async () => {
       if (app) {
-        return deleteApp(app);
+        await deleteApp(app);
+        app = undefined as any;
       }
     });
     it('logEvent() sends correct network request.', async () => {

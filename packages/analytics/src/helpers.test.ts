@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { expect, vi, MockInstance } from 'vitest';
+import type { MockInstance } from 'vitest';
 import { DataLayer, Gtag, DynamicConfig } from './types';
 import {
   getOrCreateDataLayer,
