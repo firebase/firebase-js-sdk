@@ -23,6 +23,11 @@ const config = createBaseConfig(import.meta.url);
 // All unit tests run in the browser project (Playwright Chromium).
 // Disable file parallelism because tests share the same IndexedDB database name and key.
 config.test.fileParallelism = false;
+config.test.onUnhandledError = error => {
+  if (error?.message?.includes('app-offline')) {
+    return false;
+  }
+};
 config.test.projects = config.test.projects.filter(
   project => project.test?.name === 'browser'
 );

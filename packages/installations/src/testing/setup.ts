@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { vi, afterEach } from 'vitest';
 import { clear } from '../helpers/idb-manager';
 
 // Suppress app-offline rejections emitted by Chromium during async IndexedDB
