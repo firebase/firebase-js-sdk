@@ -1194,23 +1194,23 @@ describe('core/auth/auth_impl', () => {
     });
 
     it('resolves the promise in a delayed user log in process', async () => {
-      setTimeout(async () => {
-        await auth._updateCurrentUser(user);
-      }, 5000);
+      vi.useFakeTimers();
+      try {
+        setTimeout(async () => {
+          await auth._updateCurrentUser(user);
+        }, 5000);
 
-      const promiseVar = auth.authStateReady();
-      expect(auth.currentUser).toBe(null);
-      expect(authStateChangedSpy).toHaveBeenCalledTimes(1);
+        const promiseVar = auth.authStateReady();
+        expect(auth.currentUser).toBe(null);
+        expect(authStateChangedSpy).toHaveBeenCalledTimes(1);
 
-      await setTimeout(() => {
-        promiseVar
-          .then(async () => {
-            await expect(auth.currentUser).toBe(user);
-          })
-          .catch(error => {
-            throw new Error(error);
-          });
-      }, 10000);
+        await vi.advanceTimersByTimeAsync(5000);
+        await promiseVar;
+        expect(auth.currentUser).toBe(user);
+        await auth._updateCurrentUser(null);
+      } finally {
+        vi.useRealTimers();
+      }
     });
   });
 

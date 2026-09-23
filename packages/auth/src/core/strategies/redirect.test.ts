@@ -213,7 +213,7 @@ describe('core/strategies/redirect', () => {
     expect(resolverInstance._initialize).not.toHaveBeenCalled();
   });
 
-  (typeof window === 'undefined' ? describe.skip : describe)(
+  describe.runIf(typeof window !== 'undefined')(
     '_getAndClearPendingRedirectStatus',
     () => {
       it('returns false if the key is not set', async () => {

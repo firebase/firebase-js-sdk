@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { FirebaseError } from '@firebase/util';
-
 import { endpointUrl, mockEndpoint } from '../../../test/helpers/api/helper';
 import { testAuth, TestAuth, testUser } from '../../../test/helpers/mock_auth';
 import * as fetch from '../../../test/helpers/mock_fetch';

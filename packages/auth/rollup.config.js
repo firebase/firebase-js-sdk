@@ -50,7 +50,9 @@ const buildPlugins = [
   strip({ functions: ['debugAssert.*'] }),
   typescriptPlugin({
     typescript,
-    tsconfigOverride: { exclude: [...tsconfig.exclude, '**/*.test.ts'] }
+    tsconfigOverride: {
+      exclude: [...tsconfig.exclude, '**/*.test.ts', 'test/**']
+    }
   })
 ];
 
@@ -211,7 +213,7 @@ const webWorkerBuild = {
     }),
     typescriptPlugin({
       typescript,
-      exclude: [...tsconfig.exclude, '**/*.test.*'],
+      exclude: [...tsconfig.exclude, '**/*.test.*', 'test/**'],
       compilerOptions: {
         lib: [
           // Remove dom after we figure out why navigator stuff doesn't exist

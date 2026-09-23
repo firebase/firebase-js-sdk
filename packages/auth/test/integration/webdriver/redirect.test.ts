@@ -74,7 +74,7 @@ browserDescribe('WebDriver redirect IdP test', driver => {
   });
 
   // Redirect works with middleware for now
-  it('is blocked by middleware', async function () {
+  it('is blocked by middleware', async () => {
     if (driver.isCompatLayer()) {
       console.warn('Skipping middleware tests in compat');
       return;

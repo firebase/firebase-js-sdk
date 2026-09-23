@@ -24,7 +24,7 @@ import {
 } from '../../helpers/integration/helpers';
 import { getEmulatorUrl } from '../../helpers/integration/settings';
 import { PasswordPolicyCustomStrengthOptions } from '../../../src/model/password_policy';
-(getEmulatorUrl() ? describe.skip : describe)(
+describe.runIf(!getEmulatorUrl())(
   'Integration test: password validation',
   () => {
     let auth: Auth;

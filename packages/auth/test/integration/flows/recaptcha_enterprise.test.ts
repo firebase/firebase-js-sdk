@@ -58,7 +58,7 @@ const NONFICTIONAL_PHONE = {
 // you must enable reCAPTCHA Enterprise in Cloud Console and set enforcement state for PHONE_PROVIDER
 // to ENFORCE.
 // The CI project has reCAPTCHA bot-score and toll fraud protection enabled.
-(getEmulatorUrl() ? describe.skip : describe)(
+describe.runIf(!getEmulatorUrl())(
   'Integration test: phone auth with reCAPTCHA Enterprise ENFORCE mode',
   () => {
     beforeEach(() => {
@@ -94,6 +94,7 @@ const NONFICTIONAL_PHONE = {
       expect(user.phoneNumber).toBe(FICTIONAL_PHONE.phoneNumber);
     });
 
+    // eslint-disable-next-line no-restricted-properties
     it.skip('throws error if recaptcha token is invalid', async () => {
       // Test is ignored for now as it fails with auth/too-many-requests.
       // TODO: Increase quota or remove this test

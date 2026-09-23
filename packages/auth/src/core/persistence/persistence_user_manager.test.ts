@@ -18,12 +18,7 @@
 import { testAuth, testUser, TestAuth } from '../../../test/helpers/mock_auth';
 import { UserImpl } from '../user/user_impl';
 import { _getInstance } from '../util/instantiator';
-import {
-  PersistenceInternal,
-  PersistenceType,
-  PersistenceValue,
-  StorageEventListener
-} from './';
+import { PersistenceInternal, PersistenceType, PersistenceValue } from './';
 import { inMemoryPersistence } from './in_memory';
 import { KeyName, PersistenceUserManager } from './persistence_user_manager';
 

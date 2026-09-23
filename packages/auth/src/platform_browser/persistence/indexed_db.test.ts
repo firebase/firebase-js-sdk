@@ -362,7 +362,10 @@ describe('platform_browser/persistence/indexed_db', () => {
       it('should send a key changed event when a key is set', async () => {
         return new Promise(async resolve => {
           await persistence._workerInitializationPromise;
-          const handler = (_origin: string, data: KeyChangedRequest) => {
+          const handler = (
+            _origin: string,
+            data: KeyChangedRequest
+          ): { keyProcessed: boolean } => {
             expect(data.key).toBe('foo');
             receiver._unsubscribe(_EventType.KEY_CHANGED, handler);
             resolve();
@@ -377,7 +380,10 @@ describe('platform_browser/persistence/indexed_db', () => {
 
       it('should send a key changed event when a key is removed', async () => {
         return new Promise(async resolve => {
-          const handler = async (_origin: string, data: KeyChangedRequest) => {
+          const handler = async (
+            _origin: string,
+            data: KeyChangedRequest
+          ): Promise<{ keyProcessed: boolean }> => {
             expect(data.key).toBe('foo');
             const persistedValue = await persistence
               ._get('foo')

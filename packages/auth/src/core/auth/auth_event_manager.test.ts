@@ -23,7 +23,6 @@ import {
   AuthEventError,
   AuthEventType
 } from '../../model/popup_redirect';
-import { FirebaseError } from '@firebase/util';
 import { AuthErrorCode } from '../errors';
 import { AuthEventManager } from './auth_event_manager';
 describe('core/auth/auth_event_manager', () => {

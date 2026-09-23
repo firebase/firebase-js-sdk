@@ -59,7 +59,7 @@ browserDescribe('Popup IdP tests', driver => {
     expect(result.user).toEqual(currentUser);
   });
 
-  it('is blocked by auth middleware', async function () {
+  it('is blocked by auth middleware', async () => {
     if (driver.isCompatLayer()) {
       // Compat layer doesn't support middleware yet
       return;

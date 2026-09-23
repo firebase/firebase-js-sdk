@@ -29,7 +29,7 @@ import {
 import { getEmulatorUrl } from '../../helpers/integration/settings';
 import { FirebaseError } from '@firebase/util';
 // Assumes mobileLinksConfig.domain is set as "HOSTING_DOMAIN" in the test GCP-project.
-(getEmulatorUrl() ? describe.skip : describe)(
+describe.runIf(!getEmulatorUrl())(
   'Integration test: hosting link validation',
   () => {
     let auth: Auth;
