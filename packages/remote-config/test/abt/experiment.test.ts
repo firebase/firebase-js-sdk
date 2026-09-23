@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import '../setup';
-import { expect, vi } from 'vitest';
 import { Experiment } from '../../src/abt/experiment';
 import { FirebaseExperimentDescription } from '../../src/public_types';
 import { Storage } from '../../src/storage/storage';

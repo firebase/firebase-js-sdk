@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import '../setup';
-import { expect, vi } from 'vitest';
 import { Storage } from '../../src/storage/storage';
 import { StorageCache } from '../../src/storage/storage_cache';
 

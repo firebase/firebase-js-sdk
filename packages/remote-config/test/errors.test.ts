@@ -15,9 +15,7 @@
  * limitations under the License.
  */
 
-import { expect } from 'vitest';
 import { hasErrorCode, ERROR_FACTORY, ErrorCode } from '../src/errors';
-import './setup';
 
 describe('hasErrorCode', () => {
   it('defaults false', () => {

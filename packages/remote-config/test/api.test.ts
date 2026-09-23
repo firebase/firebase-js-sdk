@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { expect, vi, MockInstance } from 'vitest';
+import type { MockInstance } from 'vitest';
 import {
   ConfigUpdateObserver,
   ensureInitialized,
@@ -25,7 +25,6 @@ import {
   getString,
   onConfigUpdate
 } from '../src';
-import '../test/setup';
 import {
   deleteApp,
   FirebaseApp,
@@ -105,20 +104,18 @@ describe('Remote Config API', () => {
   });
 
   function setFetchResponse(response: FetchResponse = { status: 200 }): void {
-    fetchStub.mockResolvedValue(
-      Promise.resolve({
-        ok: response.status === 200,
-        status: response.status,
-        headers: new Headers({ ETag: response.eTag || '' }),
-        json: () =>
-          Promise.resolve({
-            entries: response.config,
-            state: 'OK',
-            templateVersion: response.templateVersion,
-            experimentDescriptions: response.experiments
-          })
-      } as Response)
-    );
+    fetchStub.mockResolvedValue({
+      ok: response.status === 200,
+      status: response.status,
+      headers: new Headers({ ETag: response.eTag || '' }),
+      json: () =>
+        Promise.resolve({
+          entries: response.config,
+          state: 'OK',
+          templateVersion: response.templateVersion,
+          experimentDescriptions: response.experiments
+        })
+    } as Response);
   }
 
   it('allows multiple initializations if options are same', () => {
@@ -181,13 +178,9 @@ describe('Remote Config API', () => {
     const updateActiveExperimentsStub = vi
       .spyOn(Experiment.prototype, 'updateActiveExperiments')
       .mockResolvedValue(undefined);
-    try {
-      await fetchAndActivate(rc);
-      await ensureInitialized(rc);
-      expect(updateActiveExperimentsStub).toHaveBeenCalledWith([]);
-    } finally {
-      updateActiveExperimentsStub.mockRestore();
-    }
+    await fetchAndActivate(rc);
+    await ensureInitialized(rc);
+    expect(updateActiveExperimentsStub).toHaveBeenCalledWith([]);
   });
 
   describe('onConfigUpdate', () => {

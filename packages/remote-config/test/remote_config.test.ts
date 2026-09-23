@@ -21,13 +21,12 @@ import {
   RemoteConfig as RemoteConfigType,
   LogLevel as RemoteConfigLogLevel
 } from '../src/public_types';
-import { expect, vi, MockInstance } from 'vitest';
+import type { MockInstance } from 'vitest';
 import { StorageCache } from '../src/storage/storage_cache';
 import { Storage } from '../src/storage/storage';
 import { RemoteConfig } from '../src/remote_config';
 import { RemoteConfigFetchClient } from '../src/client/remote_config_fetch_client';
 import { Value } from '../src/value';
-import './setup';
 import { ERROR_FACTORY, ErrorCode } from '../src/errors';
 import { Logger, LogLevel as FirebaseLogLevel } from '@firebase/logger';
 import {

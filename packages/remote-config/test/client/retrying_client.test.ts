@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { expect, vi } from 'vitest';
 import { Storage, ThrottleMetadata } from '../../src/storage/storage';
 import { FetchResponse } from '../../src';
 import {
@@ -28,7 +27,6 @@ import {
   RetryingClient
 } from '../../src/client/retrying_client';
 import { ErrorCode, ERROR_FACTORY } from '../../src/errors';
-import '../setup';
 
 const DEFAULT_REQUEST: FetchRequest = {
   cacheMaxAgeMillis: 1,

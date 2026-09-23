@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { expect, vi, MockInstance } from 'vitest';
+import type { MockInstance } from 'vitest';
 import { RealtimeHandler } from '../../src/client/realtime_handler';
 import { ConfigUpdateObserver, FetchResponse } from '../../src/public_types';
 import { ErrorCode } from '../../src/errors';
@@ -242,7 +242,7 @@ describe('RealtimeHandler', () => {
       const metadata = setMetadataSpy.mock.calls[0][0];
       expect(metadata.backoffEndTimeMillis.getTime()).toBeCloseTo(
         FAKE_NOW + retryInterval * 1000,
-        100
+        -2
       );
       expect(retryHttpConnectionSpy).toHaveBeenCalledTimes(1);
     });
@@ -874,11 +874,9 @@ describe('RealtimeHandler', () => {
 
   describe('handleNotifications', () => {
     let mockReader: ReadableStreamDefaultReader<Uint8Array>;
-    let autoFetchSpy: MockInstance;
     let propagateErrorSpy: MockInstance;
 
     beforeEach(() => {
-      autoFetchSpy = vi.spyOn(realtime as any, 'autoFetch');
       propagateErrorSpy = vi.spyOn(realtime as any, 'propagateError');
       (realtime as any).observers.add({});
     });

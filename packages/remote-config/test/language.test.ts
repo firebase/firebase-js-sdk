@@ -15,9 +15,7 @@
  * limitations under the License.
  */
 
-import { expect } from 'vitest';
 import { getUserLanguage } from '../src/language';
-import './setup';
 
 // Adapts getUserLanguage tests from packages/auth/test/utils_test.js for TypeScript.
 describe('getUserLanguage', () => {

@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import '../setup';
-import { expect, vi } from 'vitest';
 import { FetchResponse } from '../../src';
 import {
   RemoteConfigFetchClient,

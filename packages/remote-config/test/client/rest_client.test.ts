@@ -15,8 +15,7 @@
  * limitations under the License.
  */
 
-import '../setup';
-import { expect, vi, MockInstance } from 'vitest';
+import type { MockInstance } from 'vitest';
 import { RestClient } from '../../src/client/rest_client';
 import { FirebaseInstallations } from '@firebase/installations-types';
 import { ERROR_FACTORY, ErrorCode } from '../../src/errors';

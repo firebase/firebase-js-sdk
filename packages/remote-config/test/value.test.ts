@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import './setup';
-import { expect } from 'vitest';
 import { Value } from '../src/value';
 
 describe('Value', () => {
