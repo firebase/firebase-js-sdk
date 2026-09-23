@@ -68,9 +68,11 @@ function copyTests() {
          */
         /\s+from '\.(\.\/util)?\/firebase_export';/,
         ` from '${resolve(__dirname, './firebase_export')}';
-        
-if (typeof (globalThis as any).process === 'undefined') {
-  (globalThis as any).process = { env: { INCLUDE_FIRESTORE_PERSISTENCE: '${isPersistenceEnabled()}' } };
+
+if (typeof process === 'undefined') {
+  Object.assign(globalThis, {
+    process: { env: { INCLUDE_FIRESTORE_PERSISTENCE: '${isPersistenceEnabled()}' } }
+  });
 } else {
   process.env.INCLUDE_FIRESTORE_PERSISTENCE = '${isPersistenceEnabled()}';
 }

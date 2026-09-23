@@ -65,6 +65,10 @@ function apiPipelineDescribeInternal(
     pipelineModes.push('query-to-pipeline');
   }
 
+  // When `getRunEnterpriseTests()` is false, `pipelineModes` is empty and the
+  // loops below register 0 suites. Unlike Mocha, Vitest fails any `.test.ts`
+  // file that registers 0 suites ("No test suite found in file"), so we
+  // register a skipped suite here to mark the file as intentionally skipped.
   if (pipelineModes.length === 0) {
     // eslint-disable-next-line no-restricted-properties
     describe.skip(message, () => {});
