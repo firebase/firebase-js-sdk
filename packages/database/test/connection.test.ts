@@ -44,32 +44,34 @@ describe('Connection', () => {
   // fails about 20% of the time (open - it never fails).  In the failing
   // case a long-poll is opened first.
   it.skip('disconnect old session on new connection', () => {
-    const info = repoInfoForConnectionTest();
-    new Connection(
-      '1',
-      info,
-      'fake-app-id',
-      'fake-app-check-token',
-      'fake-auth-token',
-      message => {},
-      (timestamp, sessionId) => {
-        new Connection(
-          '2',
-          info,
-          'fake-app-id',
-          'fake-app-check-token',
-          'fake-auth-token',
-          message => {},
-          (timestamp, sessionId) => {},
-          () => {},
-          reason => {},
-          sessionId
-        );
-      },
-      () => {
-        done(); // first connection was disconnected
-      },
-      reason => {}
-    );
+    return new Promise<void>(resolve => {
+      const info = repoInfoForConnectionTest();
+      new Connection(
+        '1',
+        info,
+        'fake-app-id',
+        'fake-app-check-token',
+        'fake-auth-token',
+        message => {},
+        (timestamp, sessionId) => {
+          new Connection(
+            '2',
+            info,
+            'fake-app-id',
+            'fake-app-check-token',
+            'fake-auth-token',
+            message => {},
+            (timestamp, sessionId) => {},
+            () => {},
+            reason => {},
+            sessionId
+          );
+        },
+        () => {
+          resolve(); // first connection was disconnected
+        },
+        reason => {}
+      );
+    });
   });
 });

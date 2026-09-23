@@ -16,7 +16,6 @@
  */
 
 import { setTimeoutNonBlocking } from '../src/core/util/util';
-import { vi } from 'vitest';
 
 describe('Deno tests', () => {
   let oldSetTimeout;

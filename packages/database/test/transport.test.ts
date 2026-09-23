@@ -17,11 +17,12 @@
 
 import { Logger } from '@firebase/logger';
 import { CONSTANTS } from '@firebase/util';
+import type { MockInstance } from 'vitest';
+
 import { forceLongPolling, forceWebSockets } from '../src';
 import { BrowserPollConnection } from '../src/realtime/BrowserPollConnection';
 import { TransportManager } from '../src/realtime/TransportManager';
 import { WebSocketConnection } from '../src/realtime/WebSocketConnection';
-import { vi, MockInstance } from 'vitest';
 
 const transportInitError =
   'Transport has already been initialized. Please call this function before calling ref or setting up a listener';

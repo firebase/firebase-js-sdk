@@ -19,6 +19,7 @@ import assert from 'assert';
 
 import { FirebaseApp, initializeApp } from '@firebase/app';
 import _ from 'lodash';
+
 import {
   ReferenceImpl,
   DataSnapshot,
