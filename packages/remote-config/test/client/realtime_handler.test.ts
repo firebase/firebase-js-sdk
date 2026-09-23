@@ -112,13 +112,10 @@ describe('RealtimeHandler', () => {
       getLastFetchStatus: vi.fn().mockReturnValue('success'),
       getCustomSignals: vi.fn().mockReturnValue(undefined)
     } as any;
-    mockStorageCache.getLastFetchStatus.mockReturnValue('success');
-    mockStorageCache.getCustomSignals.mockReturnValue(undefined);
 
     mockCachingClient = {
       fetch: vi.fn().mockResolvedValue(DUMMY_FETCH_RESPONSE)
     } as any;
-    mockCachingClient.fetch.mockResolvedValue(DUMMY_FETCH_RESPONSE);
 
     visibilityMonitorOnStub = vi.fn();
     vi.spyOn(VisibilityMonitor, 'getInstance').mockReturnValue({
@@ -474,10 +471,7 @@ describe('RealtimeHandler', () => {
     });
 
     it('should retry with autoFetch if fetched version is not up-to-date', async () => {
-      autoFetchSpy.mockRestore();
-      const autoFetchStub = vi
-        .spyOn(realtime as any, 'autoFetch')
-        .mockResolvedValue(undefined);
+      autoFetchSpy.mockResolvedValue(undefined);
 
       mockCachingClient.fetch.mockResolvedValue({
         config: { k: 'v' },
@@ -490,7 +484,7 @@ describe('RealtimeHandler', () => {
       await (realtime as any).fetchLatestConfig(MAXIMUM_FETCH_ATTEMPTS, 2);
 
       expect(mockCachingClient.fetch).toHaveBeenCalledTimes(1);
-      expect(autoFetchStub).toHaveBeenCalledWith(MAXIMUM_FETCH_ATTEMPTS - 1, 2);
+      expect(autoFetchSpy).toHaveBeenCalledWith(MAXIMUM_FETCH_ATTEMPTS - 1, 2);
     });
 
     it('should not notify if no keys have changed', async () => {
@@ -912,8 +906,6 @@ describe('RealtimeHandler', () => {
     });
 
     it('should break if event listeners become empty during handling', async () => {
-      autoFetchSpy.mockRestore();
-
       mockReader = createStreamingMockReader([
         '{"latestTemplateVersionNumber": 10}'
       ]);

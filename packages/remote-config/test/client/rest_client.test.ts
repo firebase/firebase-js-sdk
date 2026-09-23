@@ -85,21 +85,19 @@ describe('RestClient', () => {
         ]
       };
 
-      fetchStub.mockResolvedValue(
-        Promise.resolve({
-          ok: true,
-          status: expectedResponse.status,
-          headers: new Headers({ ETag: expectedResponse.eTag }),
-          json: () =>
-            Promise.resolve({
-              entries: expectedResponse.entries,
-              state: expectedResponse.state,
-              templateVersion: expectedResponse.templateVersion,
-              experimentDescriptions: expectedResponse.experimentDescriptions,
-              rolloutMetadata: expectedResponse.rolloutMetadata
-            })
-        } as Response)
-      );
+      fetchStub.mockResolvedValue({
+        ok: true,
+        status: expectedResponse.status,
+        headers: new Headers({ ETag: expectedResponse.eTag }),
+        json: () =>
+          Promise.resolve({
+            entries: expectedResponse.entries,
+            state: expectedResponse.state,
+            templateVersion: expectedResponse.templateVersion,
+            experimentDescriptions: expectedResponse.experimentDescriptions,
+            rolloutMetadata: expectedResponse.rolloutMetadata
+          })
+      } as Response);
 
       const response = await client.fetch(DEFAULT_REQUEST);
 
@@ -183,12 +181,10 @@ describe('RestClient', () => {
     });
 
     it('handles 304 status code and empty body', async () => {
-      fetchStub.mockResolvedValue(
-        Promise.resolve({
-          status: 304,
-          headers: new Headers({ ETag: 'response-etag' })
-        } as Response)
-      );
+      fetchStub.mockResolvedValue({
+        status: 304,
+        headers: new Headers({ ETag: 'response-etag' })
+      } as Response);
 
       const response = await client.fetch(
         Object.assign({}, DEFAULT_REQUEST, {
@@ -214,13 +210,11 @@ describe('RestClient', () => {
     });
 
     it('normalizes INSTANCE_STATE_UNSPECIFIED state to server error', async () => {
-      fetchStub.mockResolvedValue(
-        Promise.resolve({
-          status: 200,
-          headers: new Headers({ ETag: 'etag' }),
-          json: async () => ({ state: 'INSTANCE_STATE_UNSPECIFIED' })
-        } as Response)
-      );
+      fetchStub.mockResolvedValue({
+        status: 200,
+        headers: new Headers({ ETag: 'etag' }),
+        json: async () => ({ state: 'INSTANCE_STATE_UNSPECIFIED' })
+      } as Response);
 
       const fetchPromise = client.fetch(DEFAULT_REQUEST);
 
@@ -236,13 +230,11 @@ describe('RestClient', () => {
     });
 
     it('normalizes NO_CHANGE state to 304 status', async () => {
-      fetchStub.mockResolvedValue(
-        Promise.resolve({
-          status: 200,
-          headers: new Headers({ ETag: 'etag' }),
-          json: async () => ({ state: 'NO_CHANGE' })
-        } as Response)
-      );
+      fetchStub.mockResolvedValue({
+        status: 200,
+        headers: new Headers({ ETag: 'etag' }),
+        json: async () => ({ state: 'NO_CHANGE' })
+      } as Response);
 
       const response = await client.fetch(DEFAULT_REQUEST);
 
@@ -258,13 +250,11 @@ describe('RestClient', () => {
 
     it('normalizes empty change states', async () => {
       for (const state of ['NO_TEMPLATE', 'EMPTY_CONFIG']) {
-        fetchStub.mockResolvedValue(
-          Promise.resolve({
-            status: 200,
-            headers: new Headers({ ETag: 'etag' }),
-            json: async () => ({ state })
-          } as Response)
-        );
+        fetchStub.mockResolvedValue({
+          status: 200,
+          headers: new Headers({ ETag: 'etag' }),
+          json: async () => ({ state })
+        } as Response);
 
         await expect(client.fetch(DEFAULT_REQUEST)).resolves.toEqual({
           status: 200,
@@ -280,12 +270,10 @@ describe('RestClient', () => {
     it('throws error on HTTP error status', async () => {
       // Error codes from logs plus an arbitrary unexpected code (300)
       for (const status of [300, 400, 403, 404, 415, 429, 500, 503, 504]) {
-        fetchStub.mockResolvedValue(
-          Promise.resolve({
-            status,
-            headers: new Headers()
-          } as Response)
-        );
+        fetchStub.mockResolvedValue({
+          status,
+          headers: new Headers()
+        } as Response);
 
         const fetchPromise = client.fetch(DEFAULT_REQUEST);
 
