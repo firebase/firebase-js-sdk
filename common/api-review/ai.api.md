@@ -1517,8 +1517,10 @@ export interface Transcription {
 // @public
 export type TypedSchema = IntegerSchema | NumberSchema | StringSchema | BooleanSchema | ObjectSchema | ArraySchema | AnyOfSchema;
 
+// Warning: (ae-internal-missing-underscore) The name "UnknownPart" should be prefixed with an underscore because the declaration is marked as @internal
+//
 // @internal
-export interface _UnknownPart {
+export interface UnknownPart {
     // (undocumented)
     codeExecutionResult?: CodeExecutionResult;
     // (undocumented)

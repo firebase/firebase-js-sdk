@@ -30,7 +30,7 @@ import {
   InlineDataPart,
   Part,
   TextPart,
-  _UnknownPart,
+  UnknownPart,
   InferenceSource
 } from '../types';
 import { AIError } from '../errors';
@@ -67,11 +67,11 @@ function hasValidCandidates(response: GenerateContentResponse): boolean {
 }
 
 /**
- * Ensures a `Part` or `_UnknownPart` object has its `type` discriminator populated.
+ * Ensures a `Part` or `UnknownPart` object has its `type` discriminator populated.
  *
  * @internal
  */
-export function assignPartType(part: Part | _UnknownPart): Part {
+export function assignPartType(part: Part | UnknownPart): Part {
   if ('type' in part && part.type) {
     return part as Part;
   } else if (part.text !== undefined) {

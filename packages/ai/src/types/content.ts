@@ -46,8 +46,7 @@ export type Part =
  *
  * @internal
  */
-// eslint-disable-next-line @typescript-eslint/naming-convention
-export interface _UnknownPart {
+export interface UnknownPart {
   text?: string;
   inlineData?: GenerativeContentBlob;
   functionCall?: FunctionCall;

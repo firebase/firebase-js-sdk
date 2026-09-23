@@ -31,7 +31,7 @@ import {
   InlineDataPart,
   FunctionCallPart,
   Part,
-  _UnknownPart
+  UnknownPart
 } from '../types';
 
 use(sinonChai);
@@ -357,54 +357,54 @@ describe('response-helpers methods', () => {
   });
   describe('assignPartType', () => {
     it('correctly assigns "text" type to an untagged text part', () => {
-      const part: _UnknownPart = { text: 'hello' };
+      const part: UnknownPart = { text: 'hello' };
       const result = assignPartType(part);
       expect(result.type).to.equal('text');
       expect(result).to.deep.equal({ type: 'text', text: 'hello' });
     });
     it('correctly assigns "text" type to an empty text part', () => {
-      const part: _UnknownPart = { text: '' };
+      const part: UnknownPart = { text: '' };
       const result = assignPartType(part);
       expect(result.type).to.equal('text');
       expect((result as any).text).to.equal('');
     });
     it('correctly assigns "inlineData" type', () => {
-      const part: _UnknownPart = {
+      const part: UnknownPart = {
         inlineData: { mimeType: 'image/png', data: 'abc' }
       };
       const result = assignPartType(part);
       expect(result.type).to.equal('inlineData');
     });
     it('correctly assigns "functionCall" type', () => {
-      const part: _UnknownPart = {
+      const part: UnknownPart = {
         functionCall: { name: 'foo', args: {} }
       };
       const result = assignPartType(part);
       expect(result.type).to.equal('functionCall');
     });
     it('correctly assigns "functionResponse" type', () => {
-      const part: _UnknownPart = {
+      const part: UnknownPart = {
         functionResponse: { name: 'foo', response: {} }
       };
       const result = assignPartType(part);
       expect(result.type).to.equal('functionResponse');
     });
     it('correctly assigns "fileData" type', () => {
-      const part: _UnknownPart = {
+      const part: UnknownPart = {
         fileData: { mimeType: 'application/pdf', fileUri: 'gs://bucket/file' }
       };
       const result = assignPartType(part);
       expect(result.type).to.equal('fileData');
     });
     it('correctly assigns "executableCode" type', () => {
-      const part: _UnknownPart = {
+      const part: UnknownPart = {
         executableCode: { code: 'print(1)' }
       };
       const result = assignPartType(part);
       expect(result.type).to.equal('executableCode');
     });
     it('correctly assigns "codeExecutionResult" type', () => {
-      const part: _UnknownPart = {
+      const part: UnknownPart = {
         codeExecutionResult: { output: '1' }
       };
       const result = assignPartType(part);
@@ -417,12 +417,12 @@ describe('response-helpers methods', () => {
       expect(result.type).to.equal('text');
     });
     it('returns empty or unrecognized object as-is without crashing', () => {
-      const emptyPart = {} as _UnknownPart;
+      const emptyPart = {} as UnknownPart;
       const resultEmpty = assignPartType(emptyPart);
       expect(resultEmpty).to.equal(emptyPart);
       expect(resultEmpty.type).to.be.undefined;
 
-      const unknownPart = { invalidKey: 'val' } as unknown as _UnknownPart;
+      const unknownPart = { invalidKey: 'val' } as unknown as UnknownPart;
       const resultUnknown = assignPartType(unknownPart);
       expect(resultUnknown).to.equal(unknownPart);
       expect(resultUnknown.type).to.be.undefined;
