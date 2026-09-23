@@ -32,7 +32,7 @@
     "build:deps": "lerna run build --scope @firebase/storage --include-dependencies",
     "dev": "rollup -c -w",
     "test": "run-p --npm-path npm lint test:all",
-    "test:all": "vitest run",
+    "test:all": "run-s --npm-path npm test:node test:browser",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all",
     "test:browser": "vitest run --project=browser",
     "test:node": "vitest run --project=node",

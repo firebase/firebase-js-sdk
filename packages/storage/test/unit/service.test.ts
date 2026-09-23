@@ -226,7 +226,7 @@ GOOG4-RSA-SHA256`
         function newSend(connection: TestingConnection, url: string): void {
           // Expect emulator host to be in url of storage operations requests,
           // in this case getDownloadURL.
-          expect(url).toMatch(/^http:\/\/test\.host\.org:1234.+/);
+          expect(url).toMatch(/^http:\/\/localhost:1234.+/);
           connection.abort();
           injectTestConnection(null);
           resolve();
@@ -238,8 +238,8 @@ GOOG4-RSA-SHA256`
           testShared.fakeAuthProvider,
           testShared.fakeAppCheckTokenProvider
         );
-        connectStorageEmulator(service, 'test.host.org', 1234);
-        expect(service.host).toBe('test.host.org:1234');
+        connectStorageEmulator(service, 'localhost', 1234);
+        expect(service.host).toBe('localhost:1234');
         expect(service._protocol).toBe('http');
         void getDownloadURL(ref(service, 'test.png')).catch(() => {});
       }));
@@ -278,7 +278,7 @@ GOOG4-RSA-SHA256`
         ): void {
           // Expect emulator host to be in url of storage operations requests,
           // in this case getDownloadURL.
-          expect(url).toMatch(/^http:\/\/test\.host\.org:1234.+/);
+          expect(url).toMatch(/^http:\/\/localhost:1234.+/);
           expect(headers?.['Authorization']).toEqual(
             `Firebase ${mockUserToken}`
           );
@@ -292,10 +292,10 @@ GOOG4-RSA-SHA256`
           testShared.fakeAuthProvider,
           testShared.fakeAppCheckTokenProvider
         );
-        connectStorageEmulator(service, 'test.host.org', 1234, {
+        connectStorageEmulator(service, 'localhost', 1234, {
           mockUserToken
         });
-        expect(service.host).toBe('test.host.org:1234');
+        expect(service.host).toBe('localhost:1234');
         expect(service._protocol).toBe('http');
         expect(service._overrideAuthToken).toBe(mockUserToken);
         void getDownloadURL(ref(service, 'test.png')).catch(() => {});
@@ -312,7 +312,7 @@ GOOG4-RSA-SHA256`
         ): void {
           // Expect emulator host to be in url of storage operations requests,
           // in this case getDownloadURL.
-          expect(url).toMatch(/^http:\/\/test\.host\.org:1234.+/);
+          expect(url).toMatch(/^http:\/\/localhost:1234.+/);
           expect(headers?.['Authorization']).toEqual(`Firebase ${token}`);
           connection.abort();
           injectTestConnection(null);
@@ -324,10 +324,10 @@ GOOG4-RSA-SHA256`
           testShared.fakeAuthProvider,
           testShared.fakeAppCheckTokenProvider
         );
-        connectStorageEmulator(service, 'test.host.org', 1234, {
+        connectStorageEmulator(service, 'localhost', 1234, {
           mockUserToken: { sub: 'alice' }
         });
-        expect(service.host).toBe('test.host.org:1234');
+        expect(service.host).toBe('localhost:1234');
         expect(service._protocol).toBe('http');
         token = service._overrideAuthToken;
         // Token should be an unsigned JWT with header { "alg": "none", "type": "JWT" } (base64url):

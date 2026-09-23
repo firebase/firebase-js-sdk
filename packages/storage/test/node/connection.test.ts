@@ -17,7 +17,6 @@
 
 import { ErrorCode } from '../../src/implementation/connection';
 import { FetchBytesConnection } from '../../src/platform/node/connection';
-import { vi } from 'vitest';
 
 describe('Connections', () => {
   it('FetchConnection.send() should not reject on network errors', async () => {

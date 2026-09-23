@@ -24,12 +24,15 @@ describe('String browser tests', () => {
     const originalAToB = globalThis.atob;
     // @ts-ignore
     globalThis.atob = undefined;
-    const str = 'CpYlM1-XsGxTd1n6izHMU_yY3Bw=';
+    try {
+      const str = 'CpYlM1-XsGxTd1n6izHMU_yY3Bw=';
 
-    const error = assertThrows(() => {
-      dataFromString(StringFormat.BASE64URL, str);
-    }, 'storage/unsupported-environment');
-    expect(error.message).toBe(missingPolyFill('base-64').message);
-    globalThis.atob = originalAToB;
+      const error = assertThrows(() => {
+        dataFromString(StringFormat.BASE64URL, str);
+      }, 'storage/unsupported-environment');
+      expect(error.message).toBe(missingPolyFill('base-64').message);
+    } finally {
+      globalThis.atob = originalAToB;
+    }
   });
 });

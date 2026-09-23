@@ -23,7 +23,6 @@ import * as testShared from '../unit/testshared';
 import { createApp, createStorage } from '../integration/testshared';
 import { getBlob, ref, uploadBytes } from '../../src';
 import * as types from '../../src/public-types';
-import { vi } from 'vitest';
 import * as type from '../../src/implementation/type';
 
 vi.mock('../../src/implementation/type', { spy: true });
