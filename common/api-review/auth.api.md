@@ -4,14 +4,14 @@
 
 ```ts
 
-import type { CompleteFn } from '@firebase/util';
+import { CompleteFn } from '@firebase/util';
 import { ErrorFactory } from '@firebase/util';
-import type { ErrorFn } from '@firebase/util';
+import { ErrorFn } from '@firebase/util';
 import { FirebaseApp } from '@firebase/app';
 import { FirebaseError } from '@firebase/util';
 import { NextFn } from '@firebase/util';
-import type { Observer } from '@firebase/util';
-import type { Unsubscribe } from '@firebase/util';
+import { Observer } from '@firebase/util';
+import { Unsubscribe } from '@firebase/util';
 
 // @public
 export interface ActionCodeInfo {
