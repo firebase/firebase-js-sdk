@@ -24,7 +24,6 @@ import {
   getTemplateGenerativeModel,
   TemplateGenerativeModel
 } from './api';
-import { expect, vi } from 'vitest';
 import { AI } from './public-types';
 import { GenerativeModel } from './models/generative-model';
 import { GoogleAIBackend, AgentPlatformBackend } from './backend';

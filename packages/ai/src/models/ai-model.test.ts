@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { expect } from 'vitest';
 import { AI } from '../public-types';
 import { AIModel } from './ai-model';
 import { fakeAI } from '../../test-utils/get-fake-firebase-services';

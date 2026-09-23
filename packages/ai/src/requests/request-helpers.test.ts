@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { expect } from 'vitest';
 import { Content } from '../types';
 import { formatGenerateContentInput } from './request-helpers';
 

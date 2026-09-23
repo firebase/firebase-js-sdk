@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { expect, vi, Mock } from 'vitest';
+import type { Mock } from 'vitest';
 
 import * as mockGenerateContent from './generate-content';
 

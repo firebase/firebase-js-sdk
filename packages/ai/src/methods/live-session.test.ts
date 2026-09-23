@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { expect, vi } from 'vitest';
 import {
   FunctionResponse,
   LiveResponseType,

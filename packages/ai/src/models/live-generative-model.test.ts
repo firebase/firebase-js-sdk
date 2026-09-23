@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { expect, vi } from 'vitest';
 import { AI } from '../public-types';
 import { LiveSession } from '../methods/live-session';
 import { WebSocketHandler } from '../websocket';

@@ -17,7 +17,6 @@
 import { AgentPlatformBackend } from './backend';
 import { DEFAULT_LOCATION } from './constants';
 import { AIService } from './service';
-import { expect } from 'vitest';
 
 const fakeApp = {
   name: 'DEFAULT',

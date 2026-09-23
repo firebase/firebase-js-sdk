@@ -15,10 +15,8 @@
  * limitations under the License.
  */
 
-import { afterEach, vi } from 'vitest';
-
-afterEach(async () => {
+afterEach(() => {
+  vi.useRealTimers();
   vi.resetAllMocks();
   vi.restoreAllMocks();
-  vi.useRealTimers();
 });

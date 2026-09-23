@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { expect, vi } from 'vitest';
 import { AI, AIErrorCode } from '../public-types';
 import { AIError } from '../errors';
 import { AgentPlatformBackend } from '../backend';

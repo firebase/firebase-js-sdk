@@ -36,7 +36,7 @@
     "update-responses": "../../scripts/update_vertexai_responses.sh",
     "testsetup": "yarn update-responses && yarn ts-node ./test-utils/convert-mocks.ts",
     "test": "run-p --npm-path npm lint type-check test:all",
-    "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all",
+    "test:ci": "yarn testsetup && node ../../scripts/run_tests_in_ci.js -s test",
     "test:skip-clone": "yarn ts-node ./test-utils/convert-mocks.ts && vitest run",
     "test:browser": "yarn testsetup && vitest run --project=browser",
     "test:node": "vitest run --project=node",

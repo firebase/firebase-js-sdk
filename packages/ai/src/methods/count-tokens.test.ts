@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { expect, vi, MockInstance } from 'vitest';
+import type { MockInstance } from 'vitest';
 import { getMockResponse } from '../../test-utils/mock-response';
 
 import * as mockRequest from '../requests/request';

@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { expect, vi, MockInstance } from 'vitest';
+import type { MockInstance } from 'vitest';
 import { GenerativeModel, validateGenerationConfig } from './generative-model';
 import {
   FunctionCallingMode,

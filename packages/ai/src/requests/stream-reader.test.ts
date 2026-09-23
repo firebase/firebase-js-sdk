@@ -20,7 +20,6 @@ import {
   getResponseStream,
   processStream
 } from './stream-reader';
-import { expect, vi } from 'vitest';
 import {
   getChunkedStream,
   getMockResponseStreaming

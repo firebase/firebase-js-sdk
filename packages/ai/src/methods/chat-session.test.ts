@@ -15,10 +15,11 @@
  * limitations under the License.
  */
 
-import { expect, vi, type Mock } from 'vitest';
+import type { Mock } from 'vitest';
 
 import * as mockGenerateContent from './generate-content';
 
+// This inserts mockGenerateContent as a spy layer on methods coming from ./generate-content.ts
 vi.mock('./generate-content', { spy: true });
 
 import {

@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { expect } from 'vitest';
 import {
   AgentPlatformBackend,
   GoogleAIBackend,

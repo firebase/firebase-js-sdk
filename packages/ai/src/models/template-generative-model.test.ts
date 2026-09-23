@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { expect, vi } from 'vitest';
 import { TemplateToolConfig, RetrievalConfig, LatLng } from '../public-types';
 import { TemplateGenerativeModel } from './template-generative-model';
 import { fakeAI } from '../../test-utils/get-fake-firebase-services';

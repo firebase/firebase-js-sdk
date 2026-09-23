@@ -17,7 +17,6 @@
 
 import { getGlobal } from '@firebase/util';
 import { AIError } from '../errors';
-import { expect, vi } from 'vitest';
 import {
   chromeAdapterFactory,
   ChromeAdapterImpl,

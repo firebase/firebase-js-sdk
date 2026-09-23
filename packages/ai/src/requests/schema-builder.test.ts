@@ -16,7 +16,6 @@
  */
 
 import { AIError } from '../errors';
-import { expect } from 'vitest';
 import {
   AnyOfSchema,
   NumberSchema,

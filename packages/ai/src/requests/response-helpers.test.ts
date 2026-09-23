@@ -16,7 +16,6 @@
  */
 
 import { addHelpers, formatBlockErrorMessage } from './response-helpers';
-import { expect, vi } from 'vitest';
 import {
   BlockReason,
   Content,
