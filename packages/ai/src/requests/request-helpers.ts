@@ -21,7 +21,7 @@ import {
   FunctionResponse,
   GenerateContentRequest,
   Part,
-  UnknownPart,
+  _UnknownPart,
   AIErrorCode
 } from '../types';
 import { TemplateRequestInternal } from '../public-types';
@@ -166,8 +166,8 @@ export function cleanFunctionResponseForWire(
  *
  * @internal
  */
-export function stripPartType(part: Part | UnknownPart): UnknownPart {
-  let wirePart: UnknownPart;
+export function stripPartType(part: Part | _UnknownPart): _UnknownPart {
+  let wirePart: _UnknownPart;
   if ('type' in part) {
     const { type: _type, ...rest } = part;
     wirePart = rest;

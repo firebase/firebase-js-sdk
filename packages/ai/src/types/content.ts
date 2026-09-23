@@ -44,9 +44,10 @@ export type Part =
  * Content part interface representing a raw, untagged part before being tagged with a `type`,
  * such as a part received from the model wire API or provided by a caller.
  *
- * @public
+ * @internal
  */
-export interface UnknownPart {
+// eslint-disable-next-line @typescript-eslint/naming-convention
+export interface _UnknownPart {
   text?: string;
   inlineData?: GenerativeContentBlob;
   functionCall?: FunctionCall;
@@ -147,7 +148,7 @@ export interface FileDataPart {
  */
 export interface ExecutableCodePart {
   type: 'executableCode';
-  executableCode?: ExecutableCode;
+  executableCode: ExecutableCode;
 }
 
 /**
@@ -157,7 +158,7 @@ export interface ExecutableCodePart {
  */
 export interface CodeExecutionResultPart {
   type: 'codeExecutionResult';
-  codeExecutionResult?: CodeExecutionResult;
+  codeExecutionResult: CodeExecutionResult;
 }
 
 /**
