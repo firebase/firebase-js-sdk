@@ -549,6 +549,207 @@ describe('stage serialization', () => {
         name: { stringValue: 'Alice' }
       });
     });
+
+    it('serializes default upsert stage without arguments', async () => {
+      const firestore = newTestFirestore();
+      const spy = fakePipelineResponse(firestore);
+
+      await execute(firestore.pipeline().collection('foo').upsert());
+
+      const req = spy.args[0][
+        EXECUTE_PIPELINE_REQUEST
+      ] as ProtoExecutePipelineRequest;
+      const upsertStage = req.structuredPipeline?.pipeline?.stages?.[1];
+      expect(upsertStage?.name).to.equal('upsert');
+      expect(upsertStage?.options).to.be.undefined;
+      expect(upsertStage?.args).to.have.lengthOf(1);
+      expect(upsertStage?.args?.[0]).to.deep.equal({
+        mapValue: {
+          fields: {}
+        }
+      });
+    });
+
+    it('serializes upsert stage with options only', async () => {
+      const firestore = newTestFirestore();
+      const spy = fakePipelineResponse(firestore);
+
+      await execute(
+        firestore
+          .pipeline()
+          .collection('foo')
+          .upsert({ collection: 'users', documentIdExpression: field('id') })
+      );
+
+      const req = spy.args[0][
+        EXECUTE_PIPELINE_REQUEST
+      ] as ProtoExecutePipelineRequest;
+      const upsertStage = req.structuredPipeline?.pipeline?.stages?.[1];
+      expect(upsertStage?.name).to.equal('upsert');
+      expect(upsertStage?.options).to.deep.equal({
+        collection: { referenceValue: '/users' },
+        'document_id': { fieldReferenceValue: 'id' }
+      });
+      expect(upsertStage?.args).to.have.lengthOf(1);
+      expect(upsertStage?.args?.[0]).to.deep.equal({
+        mapValue: {
+          fields: {}
+        }
+      });
+    });
+
+    it('serializes upsert stage with single variadic expression', async () => {
+      const firestore = newTestFirestore();
+      const spy = fakePipelineResponse(firestore);
+
+      await execute(
+        firestore
+          .pipeline()
+          .collection('foo')
+          .upsert(constant(true).as('active'))
+      );
+
+      const req = spy.args[0][
+        EXECUTE_PIPELINE_REQUEST
+      ] as ProtoExecutePipelineRequest;
+      const upsertStage = req.structuredPipeline?.pipeline?.stages?.[1];
+      expect(upsertStage?.name).to.equal('upsert');
+      expect(upsertStage?.options).to.be.undefined;
+      expect(upsertStage?.args?.[0]?.mapValue?.fields).to.deep.equal({
+        active: { booleanValue: true }
+      });
+    });
+
+    it('serializes upsert stage with multiple variadic expressions', async () => {
+      const firestore = newTestFirestore();
+      const spy = fakePipelineResponse(firestore);
+
+      await execute(
+        firestore
+          .pipeline()
+          .collection('foo')
+          .upsert(constant(true).as('active'), constant(42).as('count'))
+      );
+
+      const req = spy.args[0][
+        EXECUTE_PIPELINE_REQUEST
+      ] as ProtoExecutePipelineRequest;
+      const upsertStage = req.structuredPipeline?.pipeline?.stages?.[1];
+      expect(upsertStage?.name).to.equal('upsert');
+      expect(upsertStage?.options).to.be.undefined;
+      expect(upsertStage?.args?.[0]?.mapValue?.fields).to.deep.equal({
+        active: { booleanValue: true },
+        count: { integerValue: '42' }
+      });
+    });
+
+    it('serializes upsert stage with array of expressions without options', async () => {
+      const firestore = newTestFirestore();
+      const spy = fakePipelineResponse(firestore);
+
+      await execute(
+        firestore
+          .pipeline()
+          .collection('foo')
+          .upsert([constant(true).as('active')])
+      );
+
+      const req = spy.args[0][
+        EXECUTE_PIPELINE_REQUEST
+      ] as ProtoExecutePipelineRequest;
+      const upsertStage = req.structuredPipeline?.pipeline?.stages?.[1];
+      expect(upsertStage?.name).to.equal('upsert');
+      expect(upsertStage?.options).to.be.undefined;
+      expect(upsertStage?.args?.[0]?.mapValue?.fields).to.deep.equal({
+        active: { booleanValue: true }
+      });
+    });
+  });
+
+  describe('update stage', () => {
+    /* eslint-disable camelcase */
+    it('serializes default update stage without transforms', async () => {
+      const firestore = newTestFirestore();
+      const spy = fakePipelineResponse(firestore);
+
+      await execute(firestore.pipeline().collection('foo').update());
+
+      const req = spy.args[0][
+        EXECUTE_PIPELINE_REQUEST
+      ] as ProtoExecutePipelineRequest;
+      const updateStage = req.structuredPipeline?.pipeline?.stages?.[1];
+      expect(updateStage?.name).to.equal('update');
+      expect(updateStage?.args).to.have.lengthOf(1);
+      expect(updateStage?.args?.[0]).to.deep.equal({
+        mapValue: {
+          fields: {}
+        }
+      });
+    });
+
+    it('serializes update stage with vararg transform expression', async () => {
+      const firestore = newTestFirestore();
+      const spy = fakePipelineResponse(firestore);
+
+      await execute(
+        firestore
+          .pipeline()
+          .collection('foo')
+          .update(constant(true).as('is_top_scorer'))
+      );
+
+      const req = spy.args[0][
+        EXECUTE_PIPELINE_REQUEST
+      ] as ProtoExecutePipelineRequest;
+      const updateStage = req.structuredPipeline?.pipeline?.stages?.[1];
+      expect(updateStage?.name).to.equal('update');
+      expect(updateStage?.args?.[0]?.mapValue?.fields).to.deep.equal({
+        is_top_scorer: { booleanValue: true }
+      });
+    });
+
+    it('serializes update stage with multiple vararg transform expressions', async () => {
+      const firestore = newTestFirestore();
+      const spy = fakePipelineResponse(firestore);
+
+      await execute(
+        firestore
+          .pipeline()
+          .collection('foo')
+          .update(constant(true).as('is_top_scorer'), constant(42).as('count'))
+      );
+
+      const req = spy.args[0][
+        EXECUTE_PIPELINE_REQUEST
+      ] as ProtoExecutePipelineRequest;
+      const updateStage = req.structuredPipeline?.pipeline?.stages?.[1];
+      expect(updateStage?.name).to.equal('update');
+      expect(updateStage?.args?.[0]?.mapValue?.fields).to.deep.equal({
+        is_top_scorer: { booleanValue: true },
+        count: { integerValue: '42' }
+      });
+    });
+
+    it('serializes update stage with array of transform expressions', async () => {
+      const firestore = newTestFirestore();
+      const spy = fakePipelineResponse(firestore);
+
+      await execute(
+        firestore
+          .pipeline()
+          .collection('foo')
+          .update([constant(true).as('is_top_scorer')])
+      );
+
+      const req = spy.args[0][
+        EXECUTE_PIPELINE_REQUEST
+      ] as ProtoExecutePipelineRequest;
+      const updateStage = req.structuredPipeline?.pipeline?.stages?.[1];
+      expect(updateStage?.name).to.equal('update');
+      expect(updateStage?.args?.[0]?.mapValue?.fields).to.deep.equal({
+        is_top_scorer: { booleanValue: true }
+      });
+    });
   });
 
   describe('literals stage', () => {

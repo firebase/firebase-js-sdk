@@ -2428,6 +2428,38 @@ apiDescribe.skipClassic('Pipelines', persistence => {
         expect(docSnap.get('rating')).to.equal(5.2);
       });
 
+      it('can update with single variadic expression', async () => {
+        const res = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .where(equal(field('__name__').documentId(), 'book1'))
+            .update(constant('UpdatedVariadic').as('status'))
+        );
+        expectResults(res, { documents_modified: 1 });
+
+        const docSnap = await getDoc(doc(randomCol, 'book1'));
+        expect(docSnap.get('status')).to.equal('UpdatedVariadic');
+      });
+
+      it('can update with multiple variadic expressions', async () => {
+        const res = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .where(equal(field('__name__').documentId(), 'book1'))
+            .update(
+              constant('UpdatedMulti').as('status'),
+              constant(99).as('newField')
+            )
+        );
+        expectResults(res, { documents_modified: 1 });
+
+        const docSnap = await getDoc(doc(randomCol, 'book1'));
+        expect(docSnap.get('status')).to.equal('UpdatedMulti');
+        expect(docSnap.get('newField')).to.equal(99);
+      });
+
       it('can update non existing document modifies zero documents', async () => {
         const nonExistingId = 'nonExistingId_123';
         const res = await execute(
@@ -2475,7 +2507,8 @@ apiDescribe.skipClassic('Pipelines', persistence => {
             .pipeline()
             .collection(randomCol.path)
             .where(equal(field('__name__').documentId(), 'book1'))
-            .insert(),
+            .removeFields('__name__')
+            .insert({ collection: randomCol }),
           atomic: true
         });
         expectResults(res, { documents_modified: 1 });
@@ -2578,11 +2611,18 @@ apiDescribe.skipClassic('Pipelines', persistence => {
         const res = await execute({
           pipeline: firestore
             .pipeline()
-            .documents([doc(randomCol, nonExistingId)])
-            .upsert([
-              constant('Sci-Fi').as('genre'),
-              constant('New Book Title').as('title')
-            ]),
+            .collection(randomCol.path)
+            .where(equal(field('__name__').documentId(), 'book1'))
+            .upsert(
+              [
+                constant('Sci-Fi').as('genre'),
+                constant('New Book Title').as('title')
+              ],
+              {
+                collection: randomCol,
+                documentIdExpression: constant(nonExistingId)
+              }
+            ),
           atomic: true
         });
         expectResults(res, { documents_modified: 1 });
@@ -2610,6 +2650,52 @@ apiDescribe.skipClassic('Pipelines', persistence => {
         const docSnap = await getDoc(doc(randomCol, 'book1'));
         expect(docSnap.get('genre')).to.equal('Comedy Sci-Fi');
         expect(docSnap.get('rating')).to.equal(4.7);
+      });
+
+      it('can upsert with variadic expressions', async () => {
+        const res = await execute({
+          pipeline: firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .where(equal(field('__name__').documentId(), 'book1'))
+            .upsert(
+              constant('Comedy Sci-Fi').as('genre'),
+              add(field('rating'), constant(0.5)).as('rating')
+            ),
+          atomic: true
+        });
+        expectResults(res, { documents_modified: 1 });
+
+        const docSnap = await getDoc(doc(randomCol, 'book1'));
+        expect(docSnap.get('genre')).to.equal('Comedy Sci-Fi');
+        expect(docSnap.get('rating')).to.equal(4.7);
+      });
+
+      it('can upsert with options only', async () => {
+        const targetColName = randomCol.id + '_target_upsert_options_only';
+        const targetColRef = collection(firestore, targetColName);
+
+        const res = await execute({
+          pipeline: firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .where(equal(field('__name__').documentId(), 'book1'))
+            .addFields(constant('opt_only_id').as('targetId'))
+            .upsert({
+              collection: targetColRef,
+              documentIdExpression: 'targetId'
+            }),
+          atomic: true
+        });
+        expectResults(res, { documents_modified: 1 });
+
+        const docSnap = await getDoc(doc(targetColRef, 'opt_only_id'));
+        expect(docSnap.exists()).to.be.true;
+
+        await execute({
+          pipeline: firestore.pipeline().collection(targetColRef.path).delete(),
+          atomic: true
+        });
       });
 
       it('can upsert with custom target collection and specific document ID field', async () => {
@@ -2681,38 +2767,75 @@ apiDescribe.skipClassic('Pipelines', persistence => {
       });
 
       it('can execute pipeline with literals stage source', async () => {
+        const emptyCol = collection(firestore, randomCol.id + '_empty');
         const res = await execute(
           firestore
             .pipeline()
             .literals({ name: 'Alice', age: 30 }, { name: 'Bob', age: 25 })
+            .union(firestore.pipeline().collection(emptyCol.path))
         );
         expect(res.results.length).to.equal(2);
-        expect(res.results[0].data).to.deep.equal({ name: 'Alice', age: 30 });
-        expect(res.results[1].data).to.deep.equal({ name: 'Bob', age: 25 });
+        expect(res.results[0].data()).to.deep.equal({ name: 'Alice', age: 30 });
+        expect(res.results[1].data()).to.deep.equal({ name: 'Bob', age: 25 });
       });
 
       it('can execute literals stage containing expressions', async () => {
+        const emptyCol = collection(firestore, randomCol.id + '_empty');
         const res = await execute(
-          firestore.pipeline().literals({
-            base: 10,
-            doubled: multiply(constant(10), constant(2))
-          })
+          firestore
+            .pipeline()
+            .literals({
+              base: 10,
+              doubled: multiply(constant(10), constant(2))
+            })
+            .union(firestore.pipeline().collection(emptyCol.path))
         );
         expect(res.results.length).to.equal(1);
-        expect(res.results[0].data).to.deep.equal({ base: 10, doubled: 20 });
+        expect(res.results[0].data()).to.deep.equal({ base: 10, doubled: 20 });
       });
 
-      it('can perform non-transactional insert from literals source', async () => {
+      it('can perform insert from literals source (atomic: true) and validates non-transactional restrictions', async () => {
         const targetColRef = collection(
           firestore,
           randomCol.id + '_lit_insert'
         );
-        const res = await execute(
-          firestore
+        const emptyCol = collection(firestore, randomCol.id + '_empty');
+
+        // 1. Raw literals without atomic: rejected by Firebase Security Rules
+        await expect(
+          execute(
+            firestore
+              .pipeline()
+              .literals({ name: 'Literal Inserted', age: 42 })
+              .insert({ collection: targetColRef })
+          )
+        ).to.be.rejectedWith(/PERMISSION_DENIED/);
+
+        // 2. Unioned literals without atomic: rejected by StageValidator (not pure literals)
+        let caughtErr: Error | undefined;
+        try {
+          await execute(
+            firestore
+              .pipeline()
+              .literals({ name: 'Literal Inserted', age: 42 })
+              .union(firestore.pipeline().collection(emptyCol.path))
+              .insert({ collection: targetColRef })
+          );
+        } catch (e) {
+          caughtErr = e as Error;
+        }
+        expect(caughtErr).to.exist;
+        expect(caughtErr?.message).to.match(/non-transactional/i);
+
+        // 3. Unioned literals with atomic: true: successfully executed
+        const res = await execute({
+          pipeline: firestore
             .pipeline()
             .literals({ name: 'Literal Inserted', age: 42 })
-            .insert({ collection: targetColRef })
-        );
+            .union(firestore.pipeline().collection(emptyCol.path))
+            .insert({ collection: targetColRef }),
+          atomic: true
+        });
         expectResults(res, { documents_modified: 1 });
       });
 

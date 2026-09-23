@@ -29,6 +29,16 @@ export interface ApiClientObjectMap<T> {
 export declare type Timestamp =
   string | { seconds?: string | number; nanos?: number };
 
+export declare type ConcurrencyMode =
+  'CONCURRENCY_MODE_UNSPECIFIED' | 'OPTIMISTIC' | 'PESSIMISTIC';
+export interface IConcurrencyModeEnum {
+  CONCURRENCY_MODE_UNSPECIFIED: ConcurrencyMode;
+  OPTIMISTIC: ConcurrencyMode;
+  PESSIMISTIC: ConcurrencyMode;
+  values(): ConcurrencyMode[];
+}
+export declare const ConcurrencyModeEnum: IConcurrencyModeEnum;
+
 export declare type CompositeFilterOp = 'OPERATOR_UNSPECIFIED' | 'AND' | 'OR';
 export interface ICompositeFilterOpEnum {
   OPERATOR_UNSPECIFIED: CompositeFilterOp;
@@ -354,6 +364,7 @@ export declare namespace firestoreV1ApiClientInterfaces {
   }
   interface ReadWrite {
     retryTransaction?: string;
+    concurrencyMode?: ConcurrencyMode;
   }
   interface RollbackRequest {
     transaction?: string;

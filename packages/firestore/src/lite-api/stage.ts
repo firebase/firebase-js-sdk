@@ -1131,8 +1131,11 @@ export class Upsert extends Stage {
   ) {
     const { collection, documentIdExpression, ...rest } = options;
     super(rest);
+    const optionsFields = options.additionalFields ?? options.transforms;
     const resolvedFields =
-      options.additionalFields ?? options.transforms ?? additionalFields;
+      optionsFields && additionalFields && additionalFields.length > 0
+        ? [...additionalFields, ...optionsFields]
+        : (optionsFields ?? additionalFields ?? []);
     this.additionalFields = selectablesToMap(resolvedFields);
     if (collection) {
       this.collectionPath =
