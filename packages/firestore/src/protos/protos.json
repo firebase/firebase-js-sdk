@@ -3068,11 +3068,22 @@
                     }
                   },
                   "nested": {
+                    "ConcurrencyMode": {
+                      "values": {
+                        "CONCURRENCY_MODE_UNSPECIFIED": 0,
+                        "OPTIMISTIC": 1,
+                        "PESSIMISTIC": 2
+                      }
+                    },
                     "ReadWrite": {
                       "fields": {
                         "retryTransaction": {
                           "type": "bytes",
                           "id": 1
+                        },
+                        "concurrencyMode": {
+                          "type": "ConcurrencyMode",
+                          "id": 2
                         }
                       }
                     },

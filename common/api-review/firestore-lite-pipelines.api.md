@@ -2138,13 +2138,25 @@ export class Pipeline {
     // @beta
     update(): Pipeline;
     // @beta
+    update(
+    transformedField: AliasedExpression,
+    ...additionalFields: AliasedExpression[]
+    ): Pipeline;
+    // @beta
     update(transformedFields: AliasedExpression[]): Pipeline;
     // @beta
-    upsert(additionalFields: AliasedExpression[]): Pipeline;
+    upsert(): Pipeline;
+    // @beta
+    upsert(options: UpsertStageOptions): Pipeline;
+    // @beta
+    upsert(
+    additionalField: AliasedExpression,
+    ...additionalFields: AliasedExpression[]
+    ): Pipeline;
     // @beta
     upsert(
     additionalFields: AliasedExpression[],
-    options: UpsertStageOptions
+    options?: UpsertStageOptions
     ): Pipeline;
     where(condition: BooleanExpression): Pipeline;
     where(options: WhereStageOptions): Pipeline;

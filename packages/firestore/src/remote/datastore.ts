@@ -253,7 +253,7 @@ export async function invokeExecutePipeline(
     structuredPipeline: structuredPipeline._toProto(datastoreImpl.serializer),
     ...(options?.atomic
       ? {
-          newTransaction: { readWrite: {} },
+          newTransaction: { readWrite: { concurrencyMode: 'OPTIMISTIC' } },
           autoCommitTransaction: true
         }
       : {})
