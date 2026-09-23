@@ -15,7 +15,14 @@
  * limitations under the License.
  */
 
+import fs from 'fs';
+import path from 'path';
 import createBaseConfig from '../../config/vitest.base.mjs';
+
+// Ensure `./packages/auth/coverage` exists for the `test-auth` coverage merge step in `.github/workflows/test-all.yml`.
+fs.mkdirSync(path.resolve(import.meta.dirname, 'coverage'), {
+  recursive: true
+});
 
 const config = createBaseConfig(import.meta.url);
 
