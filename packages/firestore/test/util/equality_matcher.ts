@@ -55,11 +55,7 @@ function customDeepEqual(
       return customMatcher.equalsFn(left, right);
     }
   }
-  // Vitest's `expect.addEqualityTesters` invokes `customDeepEqual` during both
-  // `toEqual()` and spy argument checks (`toHaveBeenCalledWith()`). When the
-  // expected value is a Vitest asymmetric matcher (e.g. `expect.anything()`,
-  // `expect.objectContaining()`), delegate to its `asymmetricMatch()` method
-  // before running Firestore's `.isEqual()` or `Object.keys()` checks.
+  // Delegate to asymmetric matchers (e.g. `expect.anything()`, `expect.objectContaining()`).
   if (
     typeof right === 'object' &&
     right !== null &&
@@ -112,10 +108,6 @@ function customDeepEqual(
   if (typeof left !== typeof right) {
     return false;
   } // needed for structurally different objects
-  // Also check `Object(right) !== right` because `typeof null === 'object'`;
-  // if `left` is a plain object (without `isEqual`) and `right` is `null`,
-  // `typeof left !== typeof right` is false and `Object.keys(right)` below
-  // would otherwise throw `TypeError: Cannot convert undefined or null to object`.
   if (Object(left) !== left || Object(right) !== right) {
     return false;
   } // primitive values
