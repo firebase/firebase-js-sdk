@@ -60,6 +60,8 @@ toc:
     path: /docs/reference/js/ai.date_2.md
   - title: EnhancedGenerateContentResponse
     path: /docs/reference/js/ai.enhancedgeneratecontentresponse.md
+  - title: EnterpriseBackend
+    path: /docs/reference/js/ai.enterprisebackend.md
   - title: ErrorDetails
     path: /docs/reference/js/ai.errordetails.md
   - title: ExecutableCode

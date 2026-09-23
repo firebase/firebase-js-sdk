@@ -97,7 +97,8 @@ describe('Count Tokens', () => {
           expect(response.totalTokens).to.equal(7);
           expect(response.promptTokensDetails![0].tokenCount).to.equal(7);
         } else if (
-          testConfig.ai.backend.backendType === BackendType.AGENT_PLATFORM
+          testConfig.ai.backend.backendType === BackendType.AGENT_PLATFORM ||
+          testConfig.ai.backend.backendType === BackendType.ENTERPRISE
         ) {
           expect(response.totalTokens).to.equal(6);
           expect(response.promptTokensDetails![0].tokenCount).to.equal(6);
@@ -138,11 +139,12 @@ describe('Count Tokens', () => {
             tokenCount: expectedImageTokens
           });
         } else if (
-          testConfig.ai.backend.backendType === BackendType.AGENT_PLATFORM
+          testConfig.ai.backend.backendType === BackendType.AGENT_PLATFORM ||
+          testConfig.ai.backend.backendType === BackendType.ENTERPRISE
         ) {
           expect(response.totalTokens).to.equal(expectedImageTokens);
           expect(response.promptTokensDetails!.length).to.equal(1);
-          // Note: No text tokens are present for Agent Platform with image-only input.
+          // Note: No text tokens are present for Gemini Enterprise with image-only input.
           expect(response.promptTokensDetails![0]).to.deep.equal({
             modality: Modality.IMAGE,
             tokenCount: expectedImageTokens
@@ -186,11 +188,12 @@ describe('Count Tokens', () => {
             tokenCount: 5
           });
         } else if (
-          testConfig.ai.backend.backendType === BackendType.AGENT_PLATFORM
+          testConfig.ai.backend.backendType === BackendType.AGENT_PLATFORM ||
+          testConfig.ai.backend.backendType === BackendType.ENTERPRISE
         ) {
           expect(response.totalTokens).to.be.undefined;
-          expect(response.promptTokensDetails!.length).to.equal(1); // Note: Text modality details absent for Agent Platform with audio-only input.
-          expect(audioDetails).to.deep.equal({ modality: Modality.AUDIO }); // Note: Audio tokenCount is undefined for Agent Platform with audio-only input.
+          expect(response.promptTokensDetails!.length).to.equal(1); // Note: Text modality details absent for Gemini Enterprise with audio-only input.
+          expect(audioDetails).to.deep.equal({ modality: Modality.AUDIO }); // Note: Audio tokenCount is undefined for Gemini Enterprise with audio-only input.
         }
       });
 
@@ -248,7 +251,8 @@ describe('Count Tokens', () => {
             tokenCount: 5
           });
         } else if (
-          testConfig.ai.backend.backendType === BackendType.AGENT_PLATFORM
+          testConfig.ai.backend.backendType === BackendType.AGENT_PLATFORM ||
+          testConfig.ai.backend.backendType === BackendType.ENTERPRISE
         ) {
           expect(response.totalTokens).to.equal(expectedImageTokenCount + 3);
           expect(textDetails).to.deep.equal({

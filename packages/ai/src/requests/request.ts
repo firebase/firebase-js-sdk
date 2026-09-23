@@ -18,7 +18,7 @@
 import { SingleRequestOptions, AIErrorCode, ErrorDetails } from '../types';
 import { AIError } from '../errors';
 import { ApiSettings } from '../types/internal';
-import { AgentPlatformBackend } from '../backend';
+import { EnterpriseBackend } from '../backend';
 import {
   DEFAULT_DOMAIN,
   DEFAULT_FETCH_TIMEOUT_MS,
@@ -126,7 +126,7 @@ export class WebSocketUrl {
   }
 
   private get pathname(): string {
-    if (this.apiSettings.backend instanceof AgentPlatformBackend) {
+    if (this.apiSettings.backend instanceof EnterpriseBackend) {
       return `ws/google.firebase.vertexai.v1beta.LlmBidiService/BidiGenerateContent/locations/${this.apiSettings.backend.location}`;
     } else {
       return 'ws/google.firebase.vertexai.v1beta.GenerativeService/BidiGenerateContent';

@@ -17,7 +17,7 @@
 
 import { initializeApp } from '@firebase/app';
 import {
-  AgentPlatformBackend,
+  EnterpriseBackend,
   AI,
   Backend,
   BackendType,
@@ -45,7 +45,7 @@ function formatConfigAsString(config: { ai: AI; model: string }): string {
 
 const backends: readonly Backend[] = [
   new GoogleAIBackend(),
-  new AgentPlatformBackend()
+  new EnterpriseBackend()
 ];
 
 /**
@@ -53,12 +53,13 @@ const backends: readonly Backend[] = [
  */
 const liveBackends: readonly Backend[] = [
   new GoogleAIBackend(),
-  new AgentPlatformBackend('us-central1')
+  new EnterpriseBackend('us-central1')
 ];
 
 const backendNames: Map<BackendType, string> = new Map([
   [BackendType.GOOGLE_AI, 'Google AI'],
-  [BackendType.AGENT_PLATFORM, 'Agent Platform']
+  [BackendType.AGENT_PLATFORM, 'Agent Platform'],
+  [BackendType.ENTERPRISE, 'Enterprise']
 ]);
 
 const modelNames: readonly string[] = [
@@ -70,7 +71,7 @@ const modelNames: readonly string[] = [
 // Used for testing non-AI behavior (e.g. Network requests). Configured to minimize cost.
 export const cheapestModel = 'gemini-3.1-flash-lite';
 export const defaultAIInstance = getAI(app, {
-  backend: new AgentPlatformBackend()
+  backend: new EnterpriseBackend()
 });
 export const defaultGenerativeModel = getGenerativeModel(defaultAIInstance, {
   model: cheapestModel,
@@ -82,7 +83,8 @@ export const defaultGenerativeModel = getGenerativeModel(defaultAIInstance, {
 // The Live API requires a different set of models, and they're different for each backend.
 const liveModelNames: Map<BackendType, string[]> = new Map([
   [BackendType.GOOGLE_AI, ['gemini-3.1-flash-live-preview']],
-  [BackendType.AGENT_PLATFORM, ['gemini-3.1-flash-live-preview']]
+  [BackendType.AGENT_PLATFORM, ['gemini-3.1-flash-live-preview']],
+  [BackendType.ENTERPRISE, ['gemini-3.1-flash-live-preview']]
 ]);
 
 /**

@@ -16,7 +16,11 @@
  */
 
 import { expect } from 'chai';
-import { AgentPlatformBackend, GoogleAIBackend } from './backend';
+import {
+  AgentPlatformBackend,
+  EnterpriseBackend,
+  GoogleAIBackend
+} from './backend';
 import { BackendType } from './public-types';
 import { DEFAULT_API_VERSION, DEFAULT_LOCATION } from './constants';
 
@@ -68,6 +72,40 @@ describe('Backend', () => {
     });
     it('getTemplatePath', () => {
       const backend = new AgentPlatformBackend();
+      expect(backend._getTemplatePath('my-project', 'template-id')).to.equal(
+        `/${DEFAULT_API_VERSION}/projects/my-project/locations/${backend.location}/templates/template-id`
+      );
+    });
+  });
+  describe('EnterpriseBackend', () => {
+    it('set backendType to ENTERPRISE', () => {
+      const backend = new EnterpriseBackend();
+      expect(backend.backendType).to.equal(BackendType.ENTERPRISE);
+      expect(backend.location).to.equal(DEFAULT_LOCATION);
+    });
+    it('sets custom location', () => {
+      const backend = new EnterpriseBackend('test-location');
+      expect(backend.backendType).to.equal(BackendType.ENTERPRISE);
+      expect(backend.location).to.equal('test-location');
+    });
+    it('uses default location if location is empty string', () => {
+      const backend = new EnterpriseBackend('');
+      expect(backend.backendType).to.equal(BackendType.ENTERPRISE);
+      expect(backend.location).to.equal(DEFAULT_LOCATION);
+    });
+    it('uses default location if location is null', () => {
+      const backend = new EnterpriseBackend(null as any);
+      expect(backend.backendType).to.equal(BackendType.ENTERPRISE);
+      expect(backend.location).to.equal(DEFAULT_LOCATION);
+    });
+    it('getModelPath', () => {
+      const backend = new EnterpriseBackend();
+      expect(backend._getModelPath('my-project', 'model-name')).to.equal(
+        `/${DEFAULT_API_VERSION}/projects/my-project/locations/${backend.location}/model-name`
+      );
+    });
+    it('getTemplatePath', () => {
+      const backend = new EnterpriseBackend();
       expect(backend._getTemplatePath('my-project', 'template-id')).to.equal(
         `/${DEFAULT_API_VERSION}/projects/my-project/locations/${backend.location}/templates/template-id`
       );

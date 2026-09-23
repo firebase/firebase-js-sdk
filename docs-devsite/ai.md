@@ -29,15 +29,16 @@ The Firebase AI Web SDK.
 
 |  Class | Description |
 |  --- | --- |
-|  [AgentPlatformBackend](./ai.agentplatformbackend.md#agentplatformbackend_class) | Configuration class for the Agent Platform Gemini API.<!-- -->Use this with [AIOptions](./ai.aioptions.md#aioptions_interface) when initializing the AI service via [getAI()](./ai.md#getai_a94a413) to specify the Agent Platform Gemini API as the backend. |
+|  [AgentPlatformBackend](./ai.agentplatformbackend.md#agentplatformbackend_class) | Configuration class for the Gemini Enterprise API (formerly known as the Vertex AI Gemini API).<!-- -->Use this with [AIOptions](./ai.aioptions.md#aioptions_interface) when initializing the AI service via [getAI()](./ai.md#getai_a94a413) to specify the Gemini Enterprise API as the backend. |
 |  [AIError](./ai.aierror.md#aierror_class) | Error class for the Firebase AI SDK. |
 |  [AIModel](./ai.aimodel.md#aimodel_class) | Base class for Firebase AI model APIs.<!-- -->Instances of this class are associated with a specific Firebase AI [Backend](./ai.backend.md#backend_class) and provide methods for interacting with the configured generative model. |
 |  [AnyOfSchema](./ai.anyofschema.md#anyofschema_class) | Schema class representing a value that can conform to any of the provided sub-schemas. This is useful when a field can accept multiple distinct types or structures. |
 |  [ArraySchema](./ai.arrayschema.md#arrayschema_class) | Schema class for "array" types. The <code>items</code> param should refer to the type of item that can be a member of the array. |
-|  [Backend](./ai.backend.md#backend_class) | Abstract base class representing the configuration for an AI service backend. This class should not be instantiated directly. Use its subclasses; [GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class) for the Gemini Developer API (via [Google AI](https://ai.google/)<!-- -->) and [AgentPlatformBackend](./ai.agentplatformbackend.md#agentplatformbackend_class) for the Agent Platform Gemini API. |
+|  [Backend](./ai.backend.md#backend_class) | Abstract base class representing the configuration for an AI service backend. This class should not be instantiated directly. Use its subclasses; [GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class) for the Gemini Developer API (via [Google AI](https://ai.google/)<!-- -->) and [EnterpriseBackend](./ai.enterprisebackend.md#enterprisebackend_class) for the Gemini Enterprise API. |
 |  [BooleanSchema](./ai.booleanschema.md#booleanschema_class) | Schema class for "boolean" types. |
 |  [ChatSession](./ai.chatsession.md#chatsession_class) | ChatSession class that enables sending chat messages and stores history of sent and received messages so far. |
 |  [ChatSessionBase](./ai.chatsessionbase.md#chatsessionbase_class) | Base class for various <code>ChatSession</code> classes that enables sending chat messages and stores history of sent and received messages so far. |
+|  [EnterpriseBackend](./ai.enterprisebackend.md#enterprisebackend_class) | Configuration class for the Gemini Enterprise API (formerly known as the Vertex AI Gemini API).<!-- -->Use this with [AIOptions](./ai.aioptions.md#aioptions_interface) when initializing the AI service via [getAI()](./ai.md#getai_a94a413) to specify the Gemini Enterprise API as the backend. |
 |  [GenerativeModel](./ai.generativemodel.md#generativemodel_class) | Class for generative model APIs. |
 |  [GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class) | Configuration class for the Gemini Developer API.<!-- -->Use this with [AIOptions](./ai.aioptions.md#aioptions_interface) when initializing the AI service via [getAI()](./ai.md#getai_a94a413) to specify the Gemini Developer API as the backend. |
 |  [IntegerSchema](./ai.integerschema.md#integerschema_class) | Schema class for "integer" types. |
@@ -45,7 +46,7 @@ The Firebase AI Web SDK.
 |  [LiveSession](./ai.livesession.md#livesession_class) | <b><i>(Public Preview)</i></b> Represents an active, real-time, bidirectional conversation with the model.<!-- -->This class should only be instantiated by calling [LiveGenerativeModel.connect()](./ai.livegenerativemodel.md#livegenerativemodelconnect)<!-- -->. |
 |  [NumberSchema](./ai.numberschema.md#numberschema_class) | Schema class for "number" types. |
 |  [ObjectSchema](./ai.objectschema.md#objectschema_class) | Schema class for "object" types. The <code>properties</code> param must be a map of <code>Schema</code> objects. |
-|  [Schema](./ai.schema.md#schema_class) | Parent class encompassing all Schema types, with static methods that allow building specific Schema types. This class can be converted with <code>JSON.stringify()</code> into a JSON string accepted by Agent Platform Gemini API and Gemini Developer API REST endpoints. (This string conversion is automatically done when calling SDK methods.) |
+|  [Schema](./ai.schema.md#schema_class) | Parent class encompassing all Schema types, with static methods that allow building specific Schema types. This class can be converted with <code>JSON.stringify()</code> into a JSON string accepted by Gemini Enterprise API and Gemini Developer API REST endpoints. (This string conversion is automatically done when calling SDK methods.) |
 |  [StringSchema](./ai.stringschema.md#stringschema_class) | Schema class for "string" types. Can be used with or without enum values. |
 |  [TemplateGenerativeModel](./ai.templategenerativemodel.md#templategenerativemodel_class) | <b><i>(Public Preview)</i></b> [GenerativeModel](./ai.generativemodel.md#generativemodel_class) APIs that execute on a server-side template.<!-- -->This class should only be instantiated with [getTemplateGenerativeModel()](./ai.md#gettemplategenerativemodel_9476bbc)<!-- -->. |
 
@@ -54,7 +55,7 @@ The Firebase AI Web SDK.
 |  Interface | Description |
 |  --- | --- |
 |  [AI](./ai.ai.md#ai_interface) | An instance of the Firebase AI SDK.<!-- -->Do not create this instance directly. Instead, use [getAI()](./ai.md#getai_a94a413)<!-- -->. |
-|  [AIOptions](./ai.aioptions.md#aioptions_interface) | Options for initializing the AI service using [getAI()](./ai.md#getai_a94a413)<!-- -->. This allows specifying which backend to use (Gemini Developer API or Agent Platform Gemini API) and configuring its specific options (like location for Agent Platform). |
+|  [AIOptions](./ai.aioptions.md#aioptions_interface) | Options for initializing the AI service using [getAI()](./ai.md#getai_a94a413)<!-- -->. This allows specifying which backend to use (Gemini Developer API or Gemini Enterprise API) and configuring its specific options (like location for Gemini Enterprise). |
 |  [AudioConversationController](./ai.audioconversationcontroller.md#audioconversationcontroller_interface) | <b><i>(Public Preview)</i></b> A controller for managing an active audio conversation. |
 |  [AudioTranscriptionConfig](./ai.audiotranscriptionconfig.md#audiotranscriptionconfig_interface) | <b><i>(Public Preview)</i></b> The audio transcription configuration. |
 |  [BaseParams](./ai.baseparams.md#baseparams_interface) | Base parameters for a number of methods. |
@@ -93,11 +94,11 @@ The Firebase AI Web SDK.
 |  [GenerativeContentBlob](./ai.generativecontentblob.md#generativecontentblob_interface) | Interface for sending an image. |
 |  [GoogleMaps](./ai.googlemaps.md#googlemaps_interface) | Specifies the Google Maps configuration. |
 |  [GoogleMapsGroundingChunk](./ai.googlemapsgroundingchunk.md#googlemapsgroundingchunk_interface) | A grounding chunk from Google Maps.<!-- -->Important: If using Grounding with Google Maps, you are required to comply with the [Service Specific Terms](https://cloud.google.com/terms/service-terms) for "Grounding with Google Maps". |
-|  [GoogleMapsTool](./ai.googlemapstool.md#googlemapstool_interface) | A tool that allows a Gemini model to connect to Google Maps to access and incorporate location-based information into its responses.<!-- -->Important: If using Grounding with Google Maps, you are required to comply with the "Grounding with Google Maps" usage requirements for your chosen API provider: [Gemini Developer API](https://ai.google.dev/gemini-api/terms#grounding-with-google-maps) or Agent Platform Gemini API (see [Service Terms](https://cloud.google.com/terms/service-terms) section within the Service Specific Terms). |
+|  [GoogleMapsTool](./ai.googlemapstool.md#googlemapstool_interface) | A tool that allows a Gemini model to connect to Google Maps to access and incorporate location-based information into its responses.<!-- -->Important: If using Grounding with Google Maps, you are required to comply with the "Grounding with Google Maps" usage requirements for your chosen API provider: [Gemini Developer API](https://ai.google.dev/gemini-api/terms#grounding-with-google-maps) or Gemini Enterprise API (see [Service Terms](https://cloud.google.com/terms/service-terms) section within the Service Specific Terms). |
 |  [GoogleSearch](./ai.googlesearch.md#googlesearch_interface) | Specifies the Google Search configuration. |
-|  [GoogleSearchTool](./ai.googlesearchtool.md#googlesearchtool_interface) | A tool that allows a Gemini model to connect to Google Search to access and incorporate up-to-date information from the web into its responses.<!-- -->Important: If using Grounding with Google Search, you are required to comply with the "Grounding with Google Search" usage requirements for your chosen API provider: [Gemini Developer API](https://ai.google.dev/gemini-api/terms#grounding-with-google-search) or Agent Platform Gemini API (see [Service Terms](https://cloud.google.com/terms/service-terms) section within the Service Specific Terms). |
+|  [GoogleSearchTool](./ai.googlesearchtool.md#googlesearchtool_interface) | A tool that allows a Gemini model to connect to Google Search to access and incorporate up-to-date information from the web into its responses.<!-- -->Important: If using Grounding with Google Search, you are required to comply with the "Grounding with Google Search" usage requirements for your chosen API provider: [Gemini Developer API](https://ai.google.dev/gemini-api/terms#grounding-with-google-search) or Gemini Enterprise API (see [Service Terms](https://cloud.google.com/terms/service-terms) section within the Service Specific Terms). |
 |  [GroundingChunk](./ai.groundingchunk.md#groundingchunk_interface) | Represents a chunk of retrieved data that supports a claim in the model's response. This is part of the grounding information provided when grounding is enabled. |
-|  [GroundingMetadata](./ai.groundingmetadata.md#groundingmetadata_interface) | Metadata returned when grounding is enabled.<!-- -->Currently, only Grounding with Google Search and Grounding with Google Maps are supported (see [GoogleSearchTool](./ai.googlesearchtool.md#googlesearchtool_interface) and [GoogleMapsTool](./ai.googlemapstool.md#googlemapstool_interface)<!-- -->, respectively).<!-- -->Important: If using Grounding with Google Search, you are required to comply with the "Grounding with Google Search" usage requirements for your chosen API provider: [Gemini Developer API](https://ai.google.dev/gemini-api/terms#grounding-with-google-search) or Agent Platform Gemini API (see [Service Terms](https://cloud.google.com/terms/service-terms) section within the Service Specific Terms).<!-- -->Important: If using Grounding with Google Maps, you are required to comply with the "Grounding with Google Maps" usage requirements for your chosen API provider: [Gemini Developer API](https://ai.google.dev/gemini-api/terms#grounding-with-google-maps) or Agent Platform Gemini API (see [Service Terms](https://cloud.google.com/terms/service-terms) section within the Service Specific Terms). |
+|  [GroundingMetadata](./ai.groundingmetadata.md#groundingmetadata_interface) | Metadata returned when grounding is enabled.<!-- -->Currently, only Grounding with Google Search and Grounding with Google Maps are supported (see [GoogleSearchTool](./ai.googlesearchtool.md#googlesearchtool_interface) and [GoogleMapsTool](./ai.googlemapstool.md#googlemapstool_interface)<!-- -->, respectively).<!-- -->Important: If using Grounding with Google Search, you are required to comply with the "Grounding with Google Search" usage requirements for your chosen API provider: [Gemini Developer API](https://ai.google.dev/gemini-api/terms#grounding-with-google-search) or Gemini Enterprise API (see [Service Terms](https://cloud.google.com/terms/service-terms) section within the Service Specific Terms).<!-- -->Important: If using Grounding with Google Maps, you are required to comply with the "Grounding with Google Maps" usage requirements for your chosen API provider: [Gemini Developer API](https://ai.google.dev/gemini-api/terms#grounding-with-google-maps) or Gemini Enterprise API (see [Service Terms](https://cloud.google.com/terms/service-terms) section within the Service Specific Terms). |
 |  [GroundingSupport](./ai.groundingsupport.md#groundingsupport_interface) | Provides information about how a specific segment of the model's response is supported by the retrieved grounding chunks. |
 |  [HybridParams](./ai.hybridparams.md#hybridparams_interface) | Configures hybrid inference. |
 |  [ImageConfig](./ai.imageconfig.md#imageconfig_interface) | Configuration options for generating images with Gemini models. |
@@ -167,7 +168,7 @@ The Firebase AI Web SDK.
 |  Variable | Description |
 |  --- | --- |
 |  [AIErrorCode](./ai.md#aierrorcode) | Standardized error codes that [AIError](./ai.aierror.md#aierror_class) can have. |
-|  [BackendType](./ai.md#backendtype) | An enum-like object containing constants that represent the supported backends for the Firebase AI SDK. This determines which backend service (Gemini Developer API or Agent Platform Gemini API) the SDK will communicate with.<!-- -->These values are assigned to the <code>backendType</code> property within the specific backend configuration objects ([GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class) or [AgentPlatformBackend](./ai.agentplatformbackend.md#agentplatformbackend_class)<!-- -->) to identify which service to target. |
+|  [BackendType](./ai.md#backendtype) | An enum-like object containing constants that represent the supported backends for the Firebase AI SDK. This determines which backend service (Gemini Developer API or Gemini Enterprise API) the SDK will communicate with.<!-- -->These values are assigned to the <code>backendType</code> property within the specific backend configuration objects ([GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class) or [EnterpriseBackend](./ai.enterprisebackend.md#enterprisebackend_class)<!-- -->) to identify which service to target. |
 |  [BlockReason](./ai.md#blockreason) | Reason that a prompt was blocked. |
 |  [FinishReason](./ai.md#finishreason) | Reason that a candidate finished. |
 |  [FunctionCallingMode](./ai.md#functioncallingmode) |  |
@@ -195,7 +196,7 @@ The Firebase AI Web SDK.
 |  Type Alias | Description |
 |  --- | --- |
 |  [AIErrorCode](./ai.md#aierrorcode) | Standardized error codes that [AIError](./ai.aierror.md#aierror_class) can have. |
-|  [BackendType](./ai.md#backendtype) | Type alias representing valid backend types. It should be either <code>'AGENT_PLATFORM'</code> or <code>'GOOGLE_AI'</code>. |
+|  [BackendType](./ai.md#backendtype) | Type alias representing valid backend types. It should be either <code>'ENTERPRISE'</code> or <code>'GOOGLE_AI'</code> (<code>'AGENT_PLATFORM'</code> is deprecated). |
 |  [BlockReason](./ai.md#blockreason) | Reason that a prompt was blocked. |
 |  [FinishReason](./ai.md#finishreason) | Reason that a candidate finished. |
 |  [FunctionCallingMode](./ai.md#functioncallingmode) |  |
@@ -272,8 +273,8 @@ const ai = getAI(app, { backend: new GoogleAIBackend() });
 
 
 ```javascript
-// Get an AI instance configured to use the Agent Platform Gemini API.
-const ai = getAI(app, { backend: new AgentPlatformBackend() });
+// Get an AI instance configured to use the Gemini Enterprise API.
+const ai = getAI(app, { backend: new EnterpriseBackend() });
 
 ```
 
@@ -452,14 +453,15 @@ AIErrorCode: {
 
 ## BackendType
 
-An enum-like object containing constants that represent the supported backends for the Firebase AI SDK. This determines which backend service (Gemini Developer API or Agent Platform Gemini API) the SDK will communicate with.
+An enum-like object containing constants that represent the supported backends for the Firebase AI SDK. This determines which backend service (Gemini Developer API or Gemini Enterprise API) the SDK will communicate with.
 
-These values are assigned to the `backendType` property within the specific backend configuration objects ([GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class) or [AgentPlatformBackend](./ai.agentplatformbackend.md#agentplatformbackend_class)<!-- -->) to identify which service to target.
+These values are assigned to the `backendType` property within the specific backend configuration objects ([GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class) or [EnterpriseBackend](./ai.enterprisebackend.md#enterprisebackend_class)<!-- -->) to identify which service to target.
 
 <b>Signature:</b>
 
 ```typescript
 BackendType: {
+    readonly ENTERPRISE: "ENTERPRISE";
     readonly AGENT_PLATFORM: "AGENT_PLATFORM";
     readonly GOOGLE_AI: "GOOGLE_AI";
 }
@@ -821,7 +823,7 @@ export type AIErrorCode = (typeof AIErrorCode)[keyof typeof AIErrorCode];
 
 ## BackendType
 
-Type alias representing valid backend types. It should be either `'AGENT_PLATFORM'` or `'GOOGLE_AI'`<!-- -->.
+Type alias representing valid backend types. It should be either `'ENTERPRISE'` or `'GOOGLE_AI'` (`'AGENT_PLATFORM'` is deprecated).
 
 <b>Signature:</b>
 

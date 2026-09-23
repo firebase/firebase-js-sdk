@@ -47,7 +47,12 @@ export {
   TemplateGenerativeModel,
   AIError
 };
-export { Backend, GoogleAIBackend, AgentPlatformBackend } from './backend';
+export {
+  Backend,
+  GoogleAIBackend,
+  AgentPlatformBackend,
+  EnterpriseBackend
+} from './backend';
 export {
   startAudioConversation,
   AudioConversationController,
@@ -78,8 +83,8 @@ declare module '@firebase/component' {
  *
  * @example
  * ```javascript
- * // Get an AI instance configured to use the Agent Platform Gemini API.
- * const ai = getAI(app, { backend: new AgentPlatformBackend() });
+ * // Get an AI instance configured to use the Gemini Enterprise API.
+ * const ai = getAI(app, { backend: new EnterpriseBackend() });
  * ```
  *
  * @param app - The {@link @firebase/app#FirebaseApp} to use.

@@ -27,7 +27,7 @@ import {
 /**
  * Parent class encompassing all Schema types, with static methods that
  * allow building specific Schema types. This class can be converted with
- * `JSON.stringify()` into a JSON string accepted by Agent Platform Gemini
+ * `JSON.stringify()` into a JSON string accepted by Gemini Enterprise
  * API and Gemini Developer API REST endpoints.
  * (This string conversion is automatically done when calling SDK methods.)
  * @public

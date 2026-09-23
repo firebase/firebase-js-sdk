@@ -39,13 +39,13 @@ import {
 } from '../types';
 import { AIError } from '../errors';
 import { ApiSettings } from '../types/internal';
-import { AgentPlatformBackend } from '../backend';
+import { EnterpriseBackend } from '../backend';
 
 const fakeApiSettings: ApiSettings = {
   apiKey: 'key',
   project: 'my-project',
   appId: 'my-appid',
-  backend: new AgentPlatformBackend()
+  backend: new EnterpriseBackend()
 };
 
 use(sinonChai);

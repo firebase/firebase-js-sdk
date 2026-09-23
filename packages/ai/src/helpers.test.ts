@@ -19,10 +19,26 @@ import { AI_TYPE, DEFAULT_LOCATION } from './constants';
 import { encodeInstanceIdentifier, decodeInstanceIdentifier } from './helpers';
 import { AIError } from './errors';
 import { AIErrorCode } from './types';
-import { GoogleAIBackend, AgentPlatformBackend } from './backend';
+import {
+  GoogleAIBackend,
+  AgentPlatformBackend,
+  EnterpriseBackend
+} from './backend';
 
 describe('Identifier Encoding/Decoding', () => {
   describe('encodeInstanceIdentifier', () => {
+    it('should encode Enterprise identifier with a specific location', () => {
+      const backend = new EnterpriseBackend('us-east1');
+      const expected = `${AI_TYPE}/enterprise/us-east1`;
+      expect(encodeInstanceIdentifier(backend)).to.equal(expected);
+    });
+
+    it('should encode Enterprise identifier using default location if location is empty string', () => {
+      const backend = new EnterpriseBackend('');
+      const expected = `${AI_TYPE}/enterprise/${DEFAULT_LOCATION}`;
+      expect(encodeInstanceIdentifier(backend)).to.equal(expected);
+    });
+
     it('should encode Agent Platform identifier with a specific location', () => {
       const backend = new AgentPlatformBackend('us-east1');
       const expected = `${AI_TYPE}/agentplatform/us-east1`;
@@ -57,6 +73,29 @@ describe('Identifier Encoding/Decoding', () => {
   });
 
   describe('decodeInstanceIdentifier', () => {
+    it('should decode Enterprise identifier with location', () => {
+      const encoded = `${AI_TYPE}/enterprise/europe-west1`;
+      const backend = new EnterpriseBackend('europe-west1');
+      expect(decodeInstanceIdentifier(encoded)).to.deep.equal(backend);
+    });
+
+    it('should throw an error if Enterprise identifier string without explicit location part', () => {
+      const encoded = `${AI_TYPE}/enterprise`;
+      expect(() => decodeInstanceIdentifier(encoded)).to.throw(AIError);
+
+      try {
+        decodeInstanceIdentifier(encoded);
+        expect.fail('Expected decodeInstanceIdentifier to throw');
+      } catch (e) {
+        expect(e).to.be.instanceOf(AIError);
+        const error = e as AIError;
+        expect(error.message).to.contain(
+          `Invalid instance identifier, unknown location`
+        );
+        expect(error.code).to.equal(AIErrorCode.ERROR);
+      }
+    });
+
     it('should decode Agent Platform identifier with location', () => {
       const encoded = `${AI_TYPE}/agentplatform/europe-west1`;
       const backend = new AgentPlatformBackend('europe-west1');

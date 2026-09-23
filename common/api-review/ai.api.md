@@ -9,14 +9,10 @@ import { FirebaseApp } from '@firebase/app';
 import { FirebaseAuthTokenData } from '@firebase/auth-interop-types';
 import { FirebaseError } from '@firebase/util';
 
-// @public
-export class AgentPlatformBackend extends Backend {
-    constructor(location?: string);
-    // @internal (undocumented)
-    _getModelPath(project: string, model: string): string;
-    // @internal (undocumented)
-    _getTemplatePath(project: string, templateId: string): string;
-    readonly location: string;
+// @public @deprecated
+export class AgentPlatformBackend extends EnterpriseBackend {
+    // (undocumented)
+    readonly backendType: BackendType;
 }
 
 // @public
@@ -116,6 +112,7 @@ export abstract class Backend {
 
 // @public
 export const BackendType: {
+    readonly ENTERPRISE: "ENTERPRISE";
     readonly AGENT_PLATFORM: "AGENT_PLATFORM";
     readonly GOOGLE_AI: "GOOGLE_AI";
 };
@@ -323,6 +320,16 @@ export interface EnhancedGenerateContentResponse extends GenerateContentResponse
     inlineDataParts: () => InlineDataPart[] | undefined;
     text: () => string;
     thoughtSummary: () => string | undefined;
+}
+
+// @public
+export class EnterpriseBackend extends Backend {
+    constructor(location?: string);
+    // @internal (undocumented)
+    _getModelPath(project: string, model: string): string;
+    // @internal (undocumented)
+    _getTemplatePath(project: string, templateId: string): string;
+    readonly location: string;
 }
 
 // @public

@@ -26,7 +26,7 @@ import { FirebaseAppCheckInternal } from '@firebase/app-check-interop-types';
 import { AI_TYPE } from '../src/constants';
 import { factory as factoryNode } from '../src/factory-node';
 import { ChromeAdapter, InferenceMode } from '../src/types';
-import { AgentPlatformBackend, AI } from '../src';
+import { EnterpriseBackend, AI } from '../src';
 
 const fakeConfig = {
   projectId: 'projectId',
@@ -94,5 +94,5 @@ export const fakeAI: AI = {
       appId: 'my-appid'
     }
   },
-  backend: new AgentPlatformBackend('global')
+  backend: new EnterpriseBackend('global')
 };

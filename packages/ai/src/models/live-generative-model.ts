@@ -17,7 +17,7 @@
 
 import { AIModel } from './ai-model';
 import { LiveSession } from '../methods/live-session';
-import { AgentPlatformBackend } from '../backend';
+import { EnterpriseBackend } from '../backend';
 import {
   AI,
   Content,
@@ -78,7 +78,7 @@ export class LiveGenerativeModel extends AIModel {
     sessionResumption?: SessionResumptionConfig
   ): Promise<LiveSession> {
     let fullModelPath: string;
-    if (this._apiSettings.backend instanceof AgentPlatformBackend) {
+    if (this._apiSettings.backend instanceof EnterpriseBackend) {
       fullModelPath = `projects/${this._apiSettings.project}/locations/${this._apiSettings.backend.location}/${this.model}`;
     } else {
       fullModelPath = `projects/${this._apiSettings.project}/${this.model}`;
