@@ -30,7 +30,7 @@ export interface ExecutableCodePart
 <b>Signature:</b>
 
 ```typescript
-executableCode?: ExecutableCode;
+executableCode: ExecutableCode;
 ```
 
 ## ExecutableCodePart.type

@@ -30,7 +30,7 @@ export interface CodeExecutionResultPart
 <b>Signature:</b>
 
 ```typescript
-codeExecutionResult?: CodeExecutionResult;
+codeExecutionResult: CodeExecutionResult;
 ```
 
 ## CodeExecutionResultPart.type

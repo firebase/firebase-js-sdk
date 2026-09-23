@@ -247,7 +247,7 @@ export interface CodeExecutionResult {
 // @public
 export interface CodeExecutionResultPart {
     // (undocumented)
-    codeExecutionResult?: CodeExecutionResult;
+    codeExecutionResult: CodeExecutionResult;
     // (undocumented)
     type: 'codeExecutionResult';
 }
@@ -335,7 +335,7 @@ export interface ExecutableCode {
 // @public
 export interface ExecutableCodePart {
     // (undocumented)
-    executableCode?: ExecutableCode;
+    executableCode: ExecutableCode;
     // (undocumented)
     type: 'executableCode';
 }
@@ -1517,8 +1517,8 @@ export interface Transcription {
 // @public
 export type TypedSchema = IntegerSchema | NumberSchema | StringSchema | BooleanSchema | ObjectSchema | ArraySchema | AnyOfSchema;
 
-// @public
-export interface UnknownPart {
+// @internal
+export interface _UnknownPart {
     // (undocumented)
     codeExecutionResult?: CodeExecutionResult;
     // (undocumented)
@@ -1535,7 +1535,7 @@ export interface UnknownPart {
     text?: string;
     // (undocumented)
     thought?: boolean;
-    // @internal (undocumented)
+    // (undocumented)
     thoughtSignature?: string;
     videoMetadata?: VideoMetadata;
 }
