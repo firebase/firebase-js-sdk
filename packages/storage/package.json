@@ -34,6 +34,8 @@
     "test": "run-p --npm-path npm lint test:all",
     "test:all": "run-s --npm-path npm test:node test:browser",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all",
+    "test:browser:unit": "vitest run --project=browser test/unit",
+    "test:browser:integration": "vitest run --project=browser test/integration test/browser",
     "test:browser": "vitest run --project=browser",
     "test:node": "vitest run --project=node",
     "trusted-type-check": "tsec -p tsconfig.json --noEmit",
