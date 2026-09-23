@@ -31,7 +31,7 @@ import {
   LCPAttribution,
   LCPMetricWithAttribution
 } from 'web-vitals/attribution';
-import { vi, MockInstance } from 'vitest';
+import type { MockInstance } from 'vitest';
 
 vi.mock('./iid_service', { spy: true });
 

@@ -24,7 +24,6 @@ import { FirebaseApp } from '@firebase/app';
 import '../../test/setup';
 import { FirebaseInstallations } from '@firebase/installations-types';
 import { PerformanceController } from '../controllers/perf';
-import { vi } from 'vitest';
 
 describe('Firebase Performance > initialization_service', () => {
   const IID = 'fid';

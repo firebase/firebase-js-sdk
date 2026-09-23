@@ -23,7 +23,6 @@ import { FirebaseApp } from '@firebase/app';
 import { PerformanceController } from '../controllers/perf';
 import { FirebaseInstallations } from '@firebase/installations-types';
 import '../../test/setup';
-import { vi } from 'vitest';
 
 vi.mock('../services/perf_logger', { spy: true });
 

@@ -20,7 +20,6 @@ import { ERROR_FACTORY, ErrorCode } from './utils/errors';
 import '../test/setup';
 import { deleteApp, FirebaseApp, initializeApp } from '@firebase/app';
 import { PerformanceController } from './controllers/perf';
-import { vi } from 'vitest';
 
 const fakeFirebaseConfig = {
   apiKey: 'api-key',

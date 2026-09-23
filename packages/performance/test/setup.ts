@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { vi } from 'vitest';
 afterEach(() => {
   vi.resetAllMocks();
   vi.restoreAllMocks();

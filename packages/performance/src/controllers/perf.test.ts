@@ -23,7 +23,6 @@ import { consoleLogger } from '../utils/console_logger';
 import { FirebaseApp } from '@firebase/app';
 import { _FirebaseInstallationsInternal } from '@firebase/installations';
 import '../../test/setup';
-import { vi } from 'vitest';
 
 vi.mock('../services/initialization_service', { spy: true });
 

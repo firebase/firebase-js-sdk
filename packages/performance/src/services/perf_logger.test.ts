@@ -29,7 +29,7 @@ import '../../test/setup';
 import { mergeStrings } from '../utils/string_merger';
 import { FirebaseInstallations } from '@firebase/installations-types';
 import { PerformanceController } from '../controllers/perf';
-import { vi, MockInstance } from 'vitest';
+import type { MockInstance } from 'vitest';
 
 vi.mock('./iid_service', { spy: true });
 vi.mock('./transport_service', { spy: true });

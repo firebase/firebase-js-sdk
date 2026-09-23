@@ -23,7 +23,6 @@ import {
 } from './iid_service';
 import '../../test/setup';
 import { _FirebaseInstallationsInternal } from '@firebase/installations';
-import { vi } from 'vitest';
 
 describe('Firebase Performance > iid_service', () => {
   const IID = 'fid';

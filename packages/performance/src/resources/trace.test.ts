@@ -23,7 +23,6 @@ import { FirebaseApp } from '@firebase/app';
 import { FirebaseInstallations } from '@firebase/installations-types';
 
 import '../../test/setup';
-import { vi } from 'vitest';
 
 import { consoleLogger } from '../utils/console_logger';
 

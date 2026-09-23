@@ -22,7 +22,7 @@ import {
   flushQueuedEvents
 } from './transport_service';
 import { SettingsService } from './settings_service';
-import { vi, MockInstance } from 'vitest';
+import type { MockInstance } from 'vitest';
 
 /* eslint-disable no-restricted-properties */
 describe('Firebase Performance > transport_service', () => {

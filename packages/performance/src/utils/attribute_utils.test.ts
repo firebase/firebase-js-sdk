@@ -27,7 +27,6 @@ import {
 } from './attributes_utils';
 
 import '../../test/setup';
-import { vi } from 'vitest';
 
 describe('Firebase Performance > attribute_utils', () => {
   describe('#getServiceWorkerStatus', () => {

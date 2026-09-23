@@ -24,7 +24,7 @@ import { FirebaseApp } from '@firebase/app';
 import '../../test/setup';
 import { FirebaseInstallations } from '@firebase/installations-types';
 import { PerformanceController } from '../controllers/perf';
-import { vi, MockInstance } from 'vitest';
+import type { MockInstance } from 'vitest';
 import { consoleLogger } from '../utils/console_logger';
 
 vi.mock('./iid_service', { spy: true });
