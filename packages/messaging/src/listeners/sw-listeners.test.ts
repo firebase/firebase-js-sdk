@@ -15,9 +15,6 @@
  * limitations under the License.
  */
 
-import '../testing/setup';
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-
 import {
   CONSOLE_CAMPAIGN_ANALYTICS_ENABLED,
   CONSOLE_CAMPAIGN_ID,

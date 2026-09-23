@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import '../testing/setup';
-
 import {
   ApiRequestBody,
   FID_REGISTRATION_FETCH_BASE_BACKOFF_MS,
@@ -33,15 +31,7 @@ import { ENDPOINT } from '../util/constants';
 import { FirebaseInternalDependencies } from '../interfaces/internal-dependencies';
 import { TokenDetails } from '../interfaces/registration-details';
 import { compareHeaders } from '../testing/compare-headers';
-import {
-  describe,
-  beforeEach,
-  afterEach,
-  it,
-  expect,
-  vi,
-  type MockInstance
-} from 'vitest';
+import type { MockInstance } from 'vitest';
 import { getFakeFirebaseDependencies } from '../testing/fakes/firebase-dependencies';
 import { getFakeTokenDetails } from '../testing/fakes/token-details';
 import { version as fcmSdkVersion } from '../../package.json';

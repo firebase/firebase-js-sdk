@@ -15,9 +15,6 @@
  * limitations under the License.
  */
 
-import '../testing/setup';
-
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { unregister } from '../api/unregister';
 import {
   dbGet,

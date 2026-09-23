@@ -15,4 +15,15 @@
  * limitations under the License.
  */
 
-import '../src/testing/setup';
+import { deleteDB } from 'idb';
+
+afterEach(async () => {
+  vi.useRealTimers();
+  vi.resetAllMocks();
+  vi.restoreAllMocks();
+  // Use deleteDB directly rather than importing dbDelete from idb-manager so
+  // setupFiles does not evaluate and cache idb-manager before test files run
+  // vi.mock('../internals/idb-manager', { spy: true }).
+  await deleteDB('firebase-messaging-database');
+  await deleteDB('fcm_token_details_db');
+});

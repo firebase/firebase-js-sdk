@@ -15,9 +15,6 @@
  * limitations under the License.
  */
 
-import '../testing/setup';
-
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { deleteToken } from './deleteToken';
 import { getToken } from './getToken';
 import { register } from './register';

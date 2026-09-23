@@ -15,9 +15,6 @@
  * limitations under the License.
  */
 
-import '../testing/setup';
-
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   refreshFidRegistrationIfStored,
   subscribeFidChangeRegistration
@@ -146,7 +143,7 @@ describe('subscribeFidChangeRegistration', () => {
       .mockImplementation(
         (_installations: any, cb: installationsApi.IdChangeCallbackFn) => {
           fidChangeCallback = cb;
-          return unsubscribeStub;
+          return unsubscribeStub as installationsApi.IdChangeUnsubscribeFn;
         }
       );
 

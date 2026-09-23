@@ -16,15 +16,7 @@
  */
 
 import * as LogModule from './logToFirelog';
-import {
-  describe,
-  beforeEach,
-  afterEach,
-  it,
-  expect,
-  vi,
-  type MockInstance
-} from 'vitest';
+import type { MockInstance } from 'vitest';
 import {
   getFakeLogEvent,
   getSuccessResponse

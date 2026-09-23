@@ -15,9 +15,6 @@
  * limitations under the License.
  */
 
-import '../testing/setup';
-
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { MessagingService } from '../messaging-service';
 import {
   getFakeAnalyticsProvider,
