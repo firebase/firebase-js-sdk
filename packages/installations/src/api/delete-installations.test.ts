@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { describe, beforeEach, it, expect, vi } from 'vitest';
 import * as deleteInstallationRequestModule from '../functions/delete-installation-request';
 
 vi.mock('../functions/delete-installation-request', { spy: true });
@@ -42,8 +41,9 @@ describe('deleteInstallation', () => {
   beforeEach(() => {
     installations = getFakeInstallations();
 
-    vi.mocked(
-      deleteInstallationRequestModule.deleteInstallationRequest
+    vi.spyOn(
+      deleteInstallationRequestModule,
+      'deleteInstallationRequest'
     ).mockImplementation(
       () => sleep(100) // Request would take some time
     );

@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { describe, beforeEach, afterEach, it, expect, vi } from 'vitest';
 import * as createInstallationRequestModule from '../functions/create-installation-request';
 import * as generateFidModule from './generate-fid';
 
@@ -51,8 +50,9 @@ describe('getInstallationEntry', () => {
     fakeInstallations = getFakeInstallations();
     appConfig = fakeInstallations.appConfig;
 
-    vi.mocked(
-      createInstallationRequestModule.createInstallationRequest
+    vi.spyOn(
+      createInstallationRequestModule,
+      'createInstallationRequest'
     ).mockImplementation(
       async (_, installationEntry): Promise<RegisteredInstallationEntry> => {
         await sleep(500); // Request would take some time
@@ -122,8 +122,9 @@ describe('getInstallationEntry', () => {
   });
 
   it('saves the InstallationEntry in the database when registration fails', async () => {
-    vi.mocked(
-      createInstallationRequestModule.createInstallationRequest
+    vi.spyOn(
+      createInstallationRequestModule,
+      'createInstallationRequest'
     ).mockImplementation(async () => {
       await sleep(500); // Request would take some time
       throw ERROR_FACTORY.create(ErrorCode.REQUEST_FAILED, {
@@ -152,8 +153,9 @@ describe('getInstallationEntry', () => {
   });
 
   it('removes the InstallationEntry from the database when registration fails with 409', async () => {
-    vi.mocked(
-      createInstallationRequestModule.createInstallationRequest
+    vi.spyOn(
+      createInstallationRequestModule,
+      'createInstallationRequest'
     ).mockImplementation(async () => {
       await sleep(500); // Request would take some time
       throw ERROR_FACTORY.create(ErrorCode.REQUEST_FAILED, {
@@ -190,7 +192,7 @@ describe('getInstallationEntry', () => {
 
   describe('when there is no InstallationEntry in database', () => {
     beforeEach(() => {
-      vi.mocked(generateFidModule.generateFid).mockReturnValue(FID);
+      vi.spyOn(generateFidModule, 'generateFid').mockReturnValue(FID);
     });
 
     it('returns a new pending InstallationEntry and triggers createInstallation', async () => {
@@ -277,7 +279,7 @@ describe('getInstallationEntry', () => {
       });
 
       // FID generation fails.
-      vi.mocked(generateFidModule.generateFid).mockReturnValue(
+      vi.spyOn(generateFidModule, 'generateFid').mockReturnValue(
         generateFidModule.INVALID_FID
       );
 

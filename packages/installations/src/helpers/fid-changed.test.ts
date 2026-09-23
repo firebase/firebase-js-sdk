@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { expect, vi, describe, it, beforeEach } from 'vitest';
 import '../testing/setup';
 import { AppConfig } from '../interfaces/installation-impl';
 import {

@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { describe, beforeEach, it, expect, vi } from 'vitest';
 import * as getInstallationEntryModule from '../helpers/get-installation-entry';
 import * as refreshAuthTokenModule from '../helpers/refresh-auth-token';
 
@@ -41,8 +40,9 @@ describe('getId', () => {
   });
 
   it('returns the FID in InstallationEntry returned by getInstallationEntry', async () => {
-    vi.mocked(
-      getInstallationEntryModule.getInstallationEntry
+    vi.spyOn(
+      getInstallationEntryModule,
+      'getInstallationEntry'
     ).mockResolvedValue({
       installationEntry: {
         fid: FID,
@@ -59,8 +59,9 @@ describe('getId', () => {
   });
 
   it('calls refreshAuthToken if the installation is registered', async () => {
-    vi.mocked(
-      getInstallationEntryModule.getInstallationEntry
+    vi.spyOn(
+      getInstallationEntryModule,
+      'getInstallationEntry'
     ).mockResolvedValue({
       installationEntry: {
         fid: FID,
@@ -72,7 +73,7 @@ describe('getId', () => {
       }
     });
 
-    vi.mocked(refreshAuthTokenModule.refreshAuthToken).mockResolvedValue({
+    vi.spyOn(refreshAuthTokenModule, 'refreshAuthToken').mockResolvedValue({
       token: 'authToken',
       expiresIn: 123456,
       requestStatus: RequestStatus.COMPLETED,

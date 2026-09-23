@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { describe, beforeEach, it, expect, vi } from 'vitest';
 import * as fidChangedModule from './fid-changed';
 
 vi.mock('./fid-changed', { spy: true });
@@ -42,7 +41,7 @@ describe('idb manager', () => {
   let appConfig: AppConfig;
 
   beforeEach(() => {
-    vi.mocked(fidChangedModule.fidChanged).mockClear();
+    vi.spyOn(fidChangedModule, 'fidChanged').mockClear();
     appConfig = { ...getFakeAppConfig(), appName: 'appName1' };
   });
 
@@ -88,7 +87,7 @@ describe('idb manager', () => {
 
     it('calls fidChanged when the FID changes', async () => {
       await set(appConfig, VALUE_A);
-      vi.mocked(fidChangedModule.fidChanged).mockClear();
+      vi.spyOn(fidChangedModule, 'fidChanged').mockClear();
 
       await set(appConfig, VALUE_B);
 
@@ -101,7 +100,7 @@ describe('idb manager', () => {
 
     it('does not call fidChanged when the FID is the same', async () => {
       await set(appConfig, VALUE_A);
-      vi.mocked(fidChangedModule.fidChanged).mockClear();
+      vi.spyOn(fidChangedModule, 'fidChanged').mockClear();
 
       await set(appConfig, /* Same value */ VALUE_A);
 
@@ -176,7 +175,7 @@ describe('idb manager', () => {
 
     it('calls fidChanged when the FID changes', async () => {
       await set(appConfig, VALUE_A);
-      vi.mocked(fidChangedModule.fidChanged).mockClear();
+      vi.spyOn(fidChangedModule, 'fidChanged').mockClear();
 
       await update(appConfig, () => VALUE_B);
 
@@ -189,7 +188,7 @@ describe('idb manager', () => {
 
     it('does not call fidChanged when the FID is the same', async () => {
       await set(appConfig, VALUE_A);
-      vi.mocked(fidChangedModule.fidChanged).mockClear();
+      vi.spyOn(fidChangedModule, 'fidChanged').mockClear();
 
       await update(appConfig, () => /* Same value */ VALUE_A);
 

@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { describe, beforeEach, it, expect, vi } from 'vitest';
 import * as createInstallationRequestModule from '../functions/create-installation-request';
 import * as generateAuthTokenRequestModule from '../functions/generate-auth-token-request';
 
@@ -181,8 +180,9 @@ describe('getToken', () => {
   beforeEach(() => {
     installations = getFakeInstallations();
 
-    vi.mocked(
-      createInstallationRequestModule.createInstallationRequest
+    vi.spyOn(
+      createInstallationRequestModule,
+      'createInstallationRequest'
     ).mockImplementation(async (_, installationEntry) => {
       await sleep(100); // Request would take some time
       const result: RegisteredInstallationEntry = {
@@ -199,8 +199,9 @@ describe('getToken', () => {
       return result;
     });
 
-    vi.mocked(
-      generateAuthTokenRequestModule.generateAuthTokenRequest
+    vi.spyOn(
+      generateAuthTokenRequestModule,
+      'generateAuthTokenRequest'
     ).mockImplementation(async () => {
       await sleep(100); // Request would take some time
       const result: CompletedAuthToken = {
@@ -323,8 +324,9 @@ describe('getToken', () => {
 
     describe('and the server returns an error', () => {
       it('removes the FID from the DB if the server returns a 401 response', async () => {
-        vi.mocked(
-          generateAuthTokenRequestModule.generateAuthTokenRequest
+        vi.spyOn(
+          generateAuthTokenRequestModule,
+          'generateAuthTokenRequest'
         ).mockImplementation(async () => {
           throw ERROR_FACTORY.create(ErrorCode.REQUEST_FAILED, {
             requestName: 'Generate Auth Token',
@@ -339,8 +341,9 @@ describe('getToken', () => {
       });
 
       it('removes the FID from the DB if the server returns a 404 response', async () => {
-        vi.mocked(
-          generateAuthTokenRequestModule.generateAuthTokenRequest
+        vi.spyOn(
+          generateAuthTokenRequestModule,
+          'generateAuthTokenRequest'
         ).mockImplementation(async () => {
           throw ERROR_FACTORY.create(ErrorCode.REQUEST_FAILED, {
             requestName: 'Generate Auth Token',
@@ -355,8 +358,9 @@ describe('getToken', () => {
       });
 
       it('does not remove the FID from the DB if the server returns any other response', async () => {
-        vi.mocked(
-          generateAuthTokenRequestModule.generateAuthTokenRequest
+        vi.spyOn(
+          generateAuthTokenRequestModule,
+          'generateAuthTokenRequest'
         ).mockImplementation(async () => {
           throw ERROR_FACTORY.create(ErrorCode.REQUEST_FAILED, {
             requestName: 'Generate Auth Token',

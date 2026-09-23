@@ -16,7 +16,7 @@
  */
 
 import { FirebaseError } from '@firebase/util';
-import { expect, vi, MockInstance, describe, it, beforeEach } from 'vitest';
+import type { MockInstance } from 'vitest';
 import { GenerateAuthTokenResponse } from '../interfaces/api-response';
 import {
   CompletedAuthToken,

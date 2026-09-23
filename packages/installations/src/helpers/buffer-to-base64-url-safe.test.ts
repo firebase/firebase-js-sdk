@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { expect, describe, it } from 'vitest';
 import '../testing/setup';
 import { bufferToBase64UrlSafe } from './buffer-to-base64-url-safe';
 

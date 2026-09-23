@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { expect, vi, Mock, describe, it, beforeEach } from 'vitest';
+import type { Mock } from 'vitest';
 import '../testing/setup';
 import { retryIfServerError } from './common';
 

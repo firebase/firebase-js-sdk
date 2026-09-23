@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { describe, beforeEach, it, expect, vi } from 'vitest';
 import * as FidChangedModule from '../helpers/fid-changed';
 
 vi.mock('../helpers/fid-changed', { spy: true });

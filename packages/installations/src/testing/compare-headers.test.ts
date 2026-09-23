@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { expect, describe, it } from 'vitest';
 import '../testing/setup';
 import { compareHeaders } from './compare-headers';
 

@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { describe, it, expect, vi } from 'vitest';
 import '../testing/setup';
 import { generateFid, VALID_FID_PATTERN } from './generate-fid';
 
@@ -113,7 +112,7 @@ describe('generateFid', () => {
         expect(occurrence).toBeLessThan(expectedOccurrence * 1.1);
       });
     }
-  }, 30000);
+  });
 
   it('returns an empty string if FID generation fails', () => {
     vi.spyOn(crypto, 'getRandomValues').mockImplementation(() => {

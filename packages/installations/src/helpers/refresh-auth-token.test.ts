@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { describe, beforeEach, it, expect, vi, MockInstance } from 'vitest';
+import type { MockInstance } from 'vitest';
 import * as generateAuthTokenRequestModule from '../functions/generate-auth-token-request';
 
 vi.mock('../functions/generate-auth-token-request', { spy: true });
