@@ -17,7 +17,6 @@
 
 import { getFakeApp } from '../test/util';
 import { logger } from './logger';
-import { expect, vi } from 'vitest';
 import * as indexeddb from './indexeddb';
 import * as util from '@firebase/util';
 import { writeTokenToStorage, readTokenFromStorage } from './storage';

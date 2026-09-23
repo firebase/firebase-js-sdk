@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { expect, vi } from 'vitest';
 import { clearState, getDebugState } from './state';
 import * as storage from './storage';
 import * as indexeddb from './indexeddb';

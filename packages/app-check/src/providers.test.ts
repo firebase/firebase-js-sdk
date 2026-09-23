@@ -16,7 +16,6 @@
  */
 
 import { getFakeGreCAPTCHA, getFullApp } from '../test/util';
-import { expect, vi } from 'vitest';
 import { FirebaseError } from '@firebase/util';
 import { AppCheckError } from './errors';
 import {

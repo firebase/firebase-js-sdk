@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { expect, vi, MockInstance } from 'vitest';
+import type { MockInstance } from 'vitest';
 import { deleteApp, FirebaseApp } from '@firebase/app';
 import {
   FAKE_SITE_KEY,

@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { expect, vi } from 'vitest';
 import { Deferred } from '@firebase/util';
 import { Refresher } from './proactive-refresh';
 

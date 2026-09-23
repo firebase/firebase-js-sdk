@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { expect, vi } from 'vitest';
 import { deleteApp, FirebaseApp } from '@firebase/app';
 import {
   getFullApp,
@@ -25,22 +24,7 @@ import {
   FAKE_SITE_KEY
 } from '../test/util';
 import { Deferred } from '@firebase/util';
-
-const { mockGetRecaptcha } = vi.hoisted(() => ({
-  mockGetRecaptcha: vi.fn()
-}));
-
-vi.mock('./util', async importOriginal => {
-  const actual = await importOriginal<typeof import('./util')>();
-  return {
-    ...actual,
-    getRecaptcha: (isEnterprise?: boolean) =>
-      mockGetRecaptcha.getMockImplementation()
-        ? mockGetRecaptcha(isEnterprise)
-        : actual.getRecaptcha(isEnterprise)
-  };
-});
-
+import * as utils from './util';
 import {
   initializeV3,
   initializeEnterprise,
@@ -56,11 +40,12 @@ import {
 import { initializeAppCheck } from './api';
 import { ReCaptchaEnterpriseProvider, ReCaptchaV3Provider } from './providers';
 
+vi.mock('./util', { spy: true });
+
 describe('recaptcha', () => {
   let app: FirebaseApp;
 
   beforeEach(() => {
-    mockGetRecaptcha.mockReset();
     app = getFullApp();
     setInitialState(app, { ...DEFAULT_STATE });
   });
@@ -84,12 +69,11 @@ describe('recaptcha', () => {
     it('loads reCAPTCHA script if it was not loaded already', async () => {
       const fakeRecaptcha = getFakeGreCAPTCHA();
       let count = 0;
-      mockGetRecaptcha.mockImplementation(() => {
+      vi.spyOn(utils, 'getRecaptcha').mockImplementation(() => {
         count++;
         if (count === 1) {
           return undefined;
         }
-
         return fakeRecaptcha;
       });
 
@@ -131,7 +115,7 @@ describe('recaptcha', () => {
     it('loads reCAPTCHA script if it was not loaded already', async () => {
       const fakeRecaptcha = getFakeGreCAPTCHA();
       let count = 0;
-      mockGetRecaptcha.mockImplementation(() => {
+      vi.spyOn(utils, 'getRecaptcha').mockImplementation(() => {
         count++;
         if (count === 1) {
           return undefined;
