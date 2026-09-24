@@ -21,7 +21,7 @@ import { repoInfoForConnectionTest } from './helpers/util';
 
 describe('Connection', () => {
   it('return the session id', () => {
-    return new Promise<void>(resolve => {
+    return new Promise<void>((resolve, reject) => {
       new Connection(
         '1',
         repoInfoForConnectionTest(),
@@ -30,12 +30,18 @@ describe('Connection', () => {
         'fake-auth-token',
         message => {},
         (timestamp, sessionId) => {
-          expect(sessionId).not.toBeNull();
-          expect(sessionId).not.toBe('');
-          resolve();
+          try {
+            expect(sessionId).not.toBeNull();
+            expect(sessionId).not.toBe('');
+            resolve();
+          } catch (err) {
+            reject(err);
+          }
         },
         () => {},
-        reason => {}
+        reason => {
+          reject(new Error('Connection failed: ' + reason));
+        }
       );
     });
   });

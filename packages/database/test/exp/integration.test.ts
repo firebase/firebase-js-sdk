@@ -418,11 +418,11 @@ describe('Database@exp Tests', () => {
         resolvedData = new Error('rejected');
       }
     );
-    await waitFor(2000);
+    await waitFor(100);
     expect(resolvedData).toBe(null);
     goOnline(db);
-    await waitFor(2000);
-    expect(resolvedData.val()).toEqual(initial);
+    const resolvedSnapshot = await pendingGet;
+    expect(resolvedSnapshot.val()).toEqual(initial);
   });
 
   it('resolves get to serverCache when the database is offline', async () => {
