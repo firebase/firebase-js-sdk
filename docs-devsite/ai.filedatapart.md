@@ -22,30 +22,9 @@ export interface FileDataPart
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [codeExecutionResult](./ai.filedatapart.md#filedatapartcodeexecutionresult) | never |  |
-|  [executableCode](./ai.filedatapart.md#filedatapartexecutablecode) | never |  |
 |  [fileData](./ai.filedatapart.md#filedatapartfiledata) | [FileData](./ai.filedata.md#filedata_interface) |  |
-|  [functionCall](./ai.filedatapart.md#filedatapartfunctioncall) | never |  |
-|  [functionResponse](./ai.filedatapart.md#filedatapartfunctionresponse) | never |  |
-|  [inlineData](./ai.filedatapart.md#filedatapartinlinedata) | never |  |
-|  [text](./ai.filedatapart.md#filedataparttext) | never |  |
 |  [thought](./ai.filedatapart.md#filedatapartthought) | boolean |  |
-
-## FileDataPart.codeExecutionResult
-
-<b>Signature:</b>
-
-```typescript
-codeExecutionResult?: never;
-```
-
-## FileDataPart.executableCode
-
-<b>Signature:</b>
-
-```typescript
-executableCode?: never;
-```
+|  [type](./ai.filedatapart.md#filedataparttype) | 'fileData' |  |
 
 ## FileDataPart.fileData
 
@@ -55,42 +34,18 @@ executableCode?: never;
 fileData: FileData;
 ```
 
-## FileDataPart.functionCall
-
-<b>Signature:</b>
-
-```typescript
-functionCall?: never;
-```
-
-## FileDataPart.functionResponse
-
-<b>Signature:</b>
-
-```typescript
-functionResponse?: never;
-```
-
-## FileDataPart.inlineData
-
-<b>Signature:</b>
-
-```typescript
-inlineData?: never;
-```
-
-## FileDataPart.text
-
-<b>Signature:</b>
-
-```typescript
-text?: never;
-```
-
 ## FileDataPart.thought
 
 <b>Signature:</b>
 
 ```typescript
 thought?: boolean;
+```
+
+## FileDataPart.type
+
+<b>Signature:</b>
+
+```typescript
+type: 'fileData';
 ```

@@ -28,6 +28,7 @@ import { Task } from '../requests/request';
 import { mapCountTokensRequest } from '../googleai-mappers';
 import { GoogleAIBackend, AgentPlatformBackend } from '../backend';
 import { fakeChromeAdapter } from '../../test-utils/get-fake-firebase-services';
+import { cleanCountTokensRequestForWire } from '../requests/request-helpers';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -49,7 +50,7 @@ const fakeGoogleAIApiSettings: ApiSettings = {
 };
 
 const fakeRequestParams: CountTokensRequest = {
-  contents: [{ parts: [{ text: 'hello' }], role: 'user' }]
+  contents: [{ parts: [{ type: 'text', text: 'hello' }], role: 'user' }]
 };
 
 describe('countTokens()', () => {
@@ -193,7 +194,17 @@ describe('countTokens()', () => {
           stream: false,
           singleRequestOptions: undefined
         },
-        JSON.stringify(mapCountTokensRequest(fakeRequestParams, 'model'))
+        JSON.stringify(
+          mapCountTokensRequest(
+            cleanCountTokensRequestForWire(fakeRequestParams),
+            'model'
+          )
+        )
+      );
+      // Ensure developer's original request was not mutated
+      expect(fakeRequestParams.contents[0].parts[0]).to.have.property(
+        'type',
+        'text'
       );
     });
   });

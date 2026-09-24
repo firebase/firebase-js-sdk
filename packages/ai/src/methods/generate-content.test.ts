@@ -47,6 +47,8 @@ import { mapGenerateContentRequest } from '../googleai-mappers';
 import { GoogleAIBackend, AgentPlatformBackend } from '../backend';
 import { fakeChromeAdapter } from '../../test-utils/get-fake-firebase-services';
 
+import { cleanGenerateContentRequestForWire } from '../requests/request-helpers';
+
 use(sinonChai);
 use(chaiAsPromised);
 
@@ -67,7 +69,7 @@ const fakeGoogleAIApiSettings: ApiSettings = {
 };
 
 const fakeRequestParams: GenerateContentRequest = {
-  contents: [{ parts: [{ text: 'hello' }], role: 'user' }],
+  contents: [{ parts: [{ type: 'text', text: 'hello' }], role: 'user' }],
   generationConfig: {
     topK: 16
   },
@@ -80,8 +82,11 @@ const fakeRequestParams: GenerateContentRequest = {
   ]
 };
 
+const fakeWireRequestParams =
+  cleanGenerateContentRequestForWire(fakeRequestParams);
+
 const fakeGoogleAIRequestParams: GenerateContentRequest = {
-  contents: [{ parts: [{ text: 'hello' }], role: 'user' }],
+  contents: [{ parts: [{ type: 'text', text: 'hello' }], role: 'user' }],
   generationConfig: {
     topK: 16
   },
@@ -119,7 +124,7 @@ describe('generateContent()', () => {
         stream: false,
         singleRequestOptions: undefined
       },
-      JSON.stringify(fakeRequestParams)
+      JSON.stringify(fakeWireRequestParams)
     );
   });
   it('long response', async () => {
@@ -145,7 +150,7 @@ describe('generateContent()', () => {
         stream: false,
         singleRequestOptions: undefined
       },
-      JSON.stringify(fakeRequestParams)
+      JSON.stringify(fakeWireRequestParams)
     );
   });
   it('long response with token details', async () => {
@@ -183,7 +188,7 @@ describe('generateContent()', () => {
         stream: false,
         singleRequestOptions: undefined
       },
-      JSON.stringify(fakeRequestParams)
+      JSON.stringify(fakeWireRequestParams)
     );
   });
   it('citations', async () => {
@@ -213,7 +218,7 @@ describe('generateContent()', () => {
         stream: false,
         singleRequestOptions: undefined
       },
-      JSON.stringify(fakeRequestParams)
+      JSON.stringify(fakeWireRequestParams)
     );
   });
   it('google search grounding', async () => {
@@ -263,7 +268,7 @@ describe('generateContent()', () => {
         stream: false,
         singleRequestOptions: undefined
       },
-      JSON.stringify(fakeRequestParams)
+      JSON.stringify(fakeWireRequestParams)
     );
 
     it('url context', async () => {
@@ -374,7 +379,7 @@ describe('generateContent()', () => {
         stream: false,
         singleRequestOptions: undefined
       },
-      JSON.stringify(fakeRequestParams)
+      JSON.stringify(fakeWireRequestParams)
     );
   });
   it('codeExecution', async () => {
@@ -390,10 +395,18 @@ describe('generateContent()', () => {
     );
     const parts = result.response.candidates?.[0].content.parts;
     expect(
-      parts?.some(part => part.codeExecutionResult?.outcome === Outcome.OK)
+      parts?.some(
+        part =>
+          part.type === 'codeExecutionResult' &&
+          part.codeExecutionResult?.outcome === Outcome.OK
+      )
     ).to.be.true;
     expect(
-      parts?.some(part => part.executableCode?.language === Language.PYTHON)
+      parts?.some(
+        part =>
+          part.type === 'executableCode' &&
+          part.executableCode?.language === Language.PYTHON
+      )
     ).to.be.true;
   });
   it('blocked prompt', async () => {
@@ -418,7 +431,7 @@ describe('generateContent()', () => {
         stream: false,
         singleRequestOptions: undefined
       },
-      JSON.stringify(fakeRequestParams)
+      JSON.stringify(fakeWireRequestParams)
     );
   });
   it('finishReason safety', async () => {
@@ -443,7 +456,7 @@ describe('generateContent()', () => {
         stream: false,
         singleRequestOptions: undefined
       },
-      JSON.stringify(fakeRequestParams)
+      JSON.stringify(fakeWireRequestParams)
     );
   });
   it('empty content', async () => {
@@ -468,7 +481,7 @@ describe('generateContent()', () => {
         stream: false,
         singleRequestOptions: undefined
       },
-      JSON.stringify(fakeRequestParams)
+      JSON.stringify(fakeWireRequestParams)
     );
   });
   it('empty part', async () => {
@@ -509,7 +522,7 @@ describe('generateContent()', () => {
         stream: false,
         singleRequestOptions: undefined
       },
-      JSON.stringify(fakeRequestParams)
+      JSON.stringify(fakeWireRequestParams)
     );
   });
   it('image rejected (400)', async () => {
@@ -563,7 +576,7 @@ describe('generateContent()', () => {
       makeRequestStub.resolves(mockResponse as Response);
 
       const requestParamsWithMethod: GenerateContentRequest = {
-        contents: [{ parts: [{ text: 'hello' }], role: 'user' }],
+        contents: [{ parts: [{ type: 'text', text: 'hello' }], role: 'user' }],
         safetySettings: [
           {
             category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
@@ -604,7 +617,16 @@ describe('generateContent()', () => {
           stream: false,
           singleRequestOptions: match.any
         },
-        JSON.stringify(mapGenerateContentRequest(fakeGoogleAIRequestParams))
+        JSON.stringify(
+          mapGenerateContentRequest(
+            cleanGenerateContentRequestForWire(fakeGoogleAIRequestParams)
+          )
+        )
+      );
+      // Ensure developer's original request was not mutated
+      expect(fakeGoogleAIRequestParams.contents[0].parts[0]).to.have.property(
+        'type',
+        'text'
       );
     });
   });

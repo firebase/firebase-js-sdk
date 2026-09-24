@@ -104,6 +104,32 @@ describe('LiveSession', () => {
     mockHandler.send.resetHistory();
   });
 
+  describe('constructor / setupMessage', () => {
+    it('should clean systemInstruction for wire in setupMessage', async () => {
+      const handler = new MockWebSocketHandler();
+      const setupSession = new LiveSession(
+        {
+          setup: {
+            model: 'my-model',
+            systemInstruction: {
+              role: 'system',
+              parts: [{ type: 'text', text: 'live system instruction' }] as any
+            }
+          }
+        },
+        fakeApiSettings,
+        {},
+        handler
+      );
+      handler.simulateServerMessage({ setupComplete: true });
+      await setupSession.connectionPromise;
+      const setupCall = JSON.parse(handler.send.getCall(0).args[0]);
+      expect(setupCall.setup.systemInstruction.parts).to.deep.equal([
+        { text: 'live system instruction' }
+      ]);
+    });
+  });
+
   describe('send()', () => {
     it('should format and send a valid text message', async () => {
       await session.send('Hello there');
@@ -119,13 +145,22 @@ describe('LiveSession', () => {
 
     it('should format and send a message with an array of Parts', async () => {
       const parts = [
-        { text: 'Part 1' },
-        { inlineData: { mimeType: 'image/png', data: 'base64==' } }
+        { type: 'text' as const, text: 'Part 1' },
+        {
+          type: 'inlineData' as const,
+          inlineData: { mimeType: 'image/png', data: 'base64==' }
+        }
       ];
       await session.send(parts);
       expect(mockHandler.send).to.have.been.calledOnce;
       const sentData = JSON.parse(mockHandler.send.getCall(0).args[0]);
-      expect(sentData.clientContent.turns[0].parts).to.deep.equal(parts);
+      expect(sentData.clientContent.turns[0].parts).to.deep.equal([
+        { text: 'Part 1' },
+        { inlineData: { mimeType: 'image/png', data: 'base64==' } }
+      ]);
+      // Verify caller array was not mutated
+      expect(parts[0]).to.have.property('type', 'text');
+      expect(parts[1]).to.have.property('type', 'inlineData');
     });
   });
 
@@ -236,6 +271,25 @@ describe('LiveSession', () => {
         }
       });
     });
+
+    it('should strip type from parts in function responses on the wire', async () => {
+      const functionResponses: FunctionResponse[] = [
+        {
+          id: 'function-call-1',
+          name: 'function-name',
+          response: { result: 'foo' },
+          parts: [{ type: 'text', text: 'detailed response' }] as any
+        }
+      ];
+      await session.sendFunctionResponses(functionResponses);
+      expect(mockHandler.send).to.have.been.calledOnce;
+      const sentData = JSON.parse(mockHandler.send.getCall(0).args[0]);
+      expect(sentData.toolResponse.functionResponses[0].parts).to.deep.equal([
+        { text: 'detailed response' }
+      ]);
+      // Ensure caller's original part was not mutated
+      expect(functionResponses[0].parts![0]).to.have.property('type', 'text');
+    });
   });
 
   describe('resumeSession()', () => {
@@ -305,7 +359,7 @@ describe('LiveSession', () => {
       expect(responses).to.have.lengthOf(6);
       expect(responses[0]).to.deep.equal({
         type: LiveResponseType.SERVER_CONTENT,
-        modelTurn: { parts: [{ text: 'response 1' }] }
+        modelTurn: { parts: [{ type: 'text', text: 'response 1' }] }
       } as LiveServerContent);
       expect(responses[1]).to.deep.equal({
         type: LiveResponseType.TOOL_CALL,

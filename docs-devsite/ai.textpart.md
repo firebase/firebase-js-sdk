@@ -22,53 +22,9 @@ export interface TextPart
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [codeExecutionResult](./ai.textpart.md#textpartcodeexecutionresult) | never |  |
-|  [executableCode](./ai.textpart.md#textpartexecutablecode) | never |  |
-|  [functionCall](./ai.textpart.md#textpartfunctioncall) | never |  |
-|  [functionResponse](./ai.textpart.md#textpartfunctionresponse) | never |  |
-|  [inlineData](./ai.textpart.md#textpartinlinedata) | never |  |
 |  [text](./ai.textpart.md#textparttext) | string |  |
 |  [thought](./ai.textpart.md#textpartthought) | boolean |  |
-
-## TextPart.codeExecutionResult
-
-<b>Signature:</b>
-
-```typescript
-codeExecutionResult?: never;
-```
-
-## TextPart.executableCode
-
-<b>Signature:</b>
-
-```typescript
-executableCode?: never;
-```
-
-## TextPart.functionCall
-
-<b>Signature:</b>
-
-```typescript
-functionCall?: never;
-```
-
-## TextPart.functionResponse
-
-<b>Signature:</b>
-
-```typescript
-functionResponse?: never;
-```
-
-## TextPart.inlineData
-
-<b>Signature:</b>
-
-```typescript
-inlineData?: never;
-```
+|  [type](./ai.textpart.md#textparttype) | 'text' |  |
 
 ## TextPart.text
 
@@ -84,4 +40,12 @@ text: string;
 
 ```typescript
 thought?: boolean;
+```
+
+## TextPart.type
+
+<b>Signature:</b>
+
+```typescript
+type: 'text';
 ```
