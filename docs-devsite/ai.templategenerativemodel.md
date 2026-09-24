@@ -39,8 +39,8 @@ export declare class TemplateGenerativeModel
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [generateContent(request, singleRequestOptions)](./ai.templategenerativemodel.md#templategenerativemodelgeneratecontent) |  | <b><i>(Public Preview)</i></b> Generates new content by calling into a server prompt template and returns an object containing a single [GenerateContentResponse](./ai.generatecontentresponse.md#generatecontentresponse_interface)<!-- -->. |
-|  [generateContentStream(request, singleRequestOptions)](./ai.templategenerativemodel.md#templategenerativemodelgeneratecontentstream) |  | <b><i>(Public Preview)</i></b> Generates new content as a stream by calling into a server prompt template and returns an object containing an iterable stream that iterates over all chunks in the streaming response as well as a promise that returns the final aggregated response. |
+|  [generateContent(request, singleRequestOptions)](./ai.templategenerativemodel.md#templategenerativemodelgeneratecontent) |  | <b><i>(Public Preview)</i></b> Generates new content using a server prompt template and returns an object containing a single [GenerateContentResponse](./ai.generatecontentresponse.md#generatecontentresponse_interface)<!-- -->. |
+|  [generateContentStream(request, singleRequestOptions)](./ai.templategenerativemodel.md#templategenerativemodelgeneratecontentstream) |  | <b><i>(Public Preview)</i></b> Generates new content as a stream using a server prompt template and returns an object containing an iterable stream that iterates over all chunks in the streaming response as well as a promise that returns the final aggregated response. |
 |  [startChat(params)](./ai.templategenerativemodel.md#templategenerativemodelstartchat) |  | <b><i>(Public Preview)</i></b> Starts a [TemplateChatSession](./ai.templatechatsession.md#templatechatsession_interface) that will use this server prompt template to respond to messages. |
 
 ## TemplateGenerativeModel.(constructor)
@@ -81,7 +81,7 @@ requestOptions?: RequestOptions;
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Generates new content by calling into a server prompt template and returns an object containing a single [GenerateContentResponse](./ai.generatecontentresponse.md#generatecontentresponse_interface)<!-- -->.
+Generates new content using a server prompt template and returns an object containing a single [GenerateContentResponse](./ai.generatecontentresponse.md#generatecontentresponse_interface)<!-- -->.
 
 <b>Signature:</b>
 
@@ -93,7 +93,7 @@ generateContent(request: TemplateRequest, singleRequestOptions?: SingleRequestOp
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  request | [TemplateRequest](./ai.templaterequest.md#templaterequest_interface) | The request parameters for calling into the server prompt template. |
+|  request | [TemplateRequest](./ai.templaterequest.md#templaterequest_interface) | The request parameters for using a server prompt template. |
 |  singleRequestOptions | [SingleRequestOptions](./ai.singlerequestoptions.md#singlerequestoptions_interface) | Optional. Options to use for this request. |
 
 <b>Returns:</b>
@@ -105,7 +105,7 @@ Promise&lt;[GenerateContentResult](./ai.generatecontentresult.md#generatecontent
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Generates new content as a stream by calling into a server prompt template and returns an object containing an iterable stream that iterates over all chunks in the streaming response as well as a promise that returns the final aggregated response.
+Generates new content as a stream using a server prompt template and returns an object containing an iterable stream that iterates over all chunks in the streaming response as well as a promise that returns the final aggregated response.
 
 <b>Signature:</b>
 
@@ -117,7 +117,7 @@ generateContentStream(request: TemplateRequest, singleRequestOptions?: SingleReq
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  request | [TemplateRequest](./ai.templaterequest.md#templaterequest_interface) | The request parameters for calling into the server prompt template. |
+|  request | [TemplateRequest](./ai.templaterequest.md#templaterequest_interface) | The request parameters for using a server prompt template. |
 |  singleRequestOptions | [SingleRequestOptions](./ai.singlerequestoptions.md#singlerequestoptions_interface) | Optional. Options to use for this request. |
 
 <b>Returns:</b>

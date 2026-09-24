@@ -59,10 +59,10 @@ export class TemplateGenerativeModel {
   }
 
   /**
-   * Generates new content by calling into a server prompt template and returns
+   * Generates new content using a server prompt template and returns
    * an object containing a single {@link GenerateContentResponse}.
    *
-   * @param request - The request parameters for calling into the server prompt template.
+   * @param request - The request parameters for using a server prompt template.
    * @param singleRequestOptions - Optional. Options to use for this request.
    *
    * @beta
@@ -88,12 +88,12 @@ export class TemplateGenerativeModel {
   }
 
   /**
-   * Generates new content as a stream by calling into a server prompt template
+   * Generates new content as a stream using a server prompt template
    * and returns an object containing an iterable stream that iterates over all
    * chunks in the streaming response as well as a promise that returns the final
    * aggregated response.
    *
-   * @param request - The request parameters for calling into the server prompt template.
+   * @param request - The request parameters for using a server prompt template.
    * @param singleRequestOptions - Optional. Options to use for this request.
    *
    * @beta
