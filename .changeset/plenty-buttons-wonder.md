@@ -3,4 +3,6 @@
 'firebase': minor
 ---
 
-Export a ChatSession interface instead of the ChatSession class and clean up AI Logic doc comments.
+Exported a ChatSession interface instead of the ChatSession class.
+
+Cleaned up AI Logic doc comments.
