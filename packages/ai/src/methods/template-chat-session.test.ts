@@ -188,6 +188,7 @@ describe('TemplateChatSession', () => {
       ];
       const chatSession = new TemplateChatSessionImpl(fakeApiSettings, {
         templateId: TEMPLATE_ID,
+        templateVariables: TEMPLATE_VARS,
         history: initialHistory
       });
 
