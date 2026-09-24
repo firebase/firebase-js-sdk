@@ -19,7 +19,7 @@ const repl = require('repl');
 const firebase = require('../packages/firebase');
 
 function clearTerminal() {
-  return process.stdout.write('\033c');
+  return process.stdout.write('\x1bc');
 }
 
 function giveContext() {
