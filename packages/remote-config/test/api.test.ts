@@ -144,7 +144,7 @@ describe('Remote Config API', () => {
     setFetchResponse();
     await fetchAndActivate(rc);
     await ensureInitialized(rc);
-    expect(fetchStub).toHaveBeenCalledWith(
+    expect(fetchStub).toHaveBeenCalledExactlyOnceWith(
       'https://firebaseremoteconfig.googleapis.com/v1/projects/project-id/namespaces/firebase:fetch?key=api-key',
       expect.any(Object)
     );
@@ -154,7 +154,7 @@ describe('Remote Config API', () => {
     const rc = getRemoteConfig(app, { templateId: 'altTemplate' });
     setFetchResponse();
     await fetchAndActivate(rc);
-    expect(fetchStub).toHaveBeenCalledWith(
+    expect(fetchStub).toHaveBeenCalledExactlyOnceWith(
       'https://firebaseremoteconfig.googleapis.com/v1/projects/project-id/namespaces/altTemplate:fetch?key=api-key',
       expect.any(Object)
     );

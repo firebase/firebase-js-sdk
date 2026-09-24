@@ -532,7 +532,9 @@ describe('RemoteConfig', () => {
         .mockResolvedValue({ status: 200 } as FetchResponse);
       storageCache.setLastFetchStatus = vi.fn();
       storageCache.getCustomSignals = vi.fn();
-      timeoutStub = vi.spyOn(window, 'setTimeout');
+      timeoutStub = vi
+        .spyOn(window, 'setTimeout')
+        .mockImplementation(() => 0 as any);
     });
 
     it('defines a default timeout', async () => {
@@ -570,7 +572,7 @@ describe('RemoteConfig', () => {
 
       const fetchPromise = fetchConfig(rc);
 
-      await expect(fetchPromise).rejects.toThrow(error);
+      await expect(fetchPromise).rejects.toBe(error);
       expect(storageCache.setLastFetchStatus).toHaveBeenCalledWith('throttle');
     });
 
@@ -585,7 +587,7 @@ describe('RemoteConfig', () => {
 
       const fetchPromise = fetchConfig(rc);
 
-      await expect(fetchPromise).rejects.toThrow(error);
+      await expect(fetchPromise).rejects.toBe(error);
       expect(storageCache.setLastFetchStatus).toHaveBeenCalledWith('failure');
     });
 

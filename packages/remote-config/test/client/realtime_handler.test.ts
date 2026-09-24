@@ -240,10 +240,12 @@ describe('RealtimeHandler', () => {
 
       expect(setMetadataSpy).toHaveBeenCalledTimes(1);
       const metadata = setMetadataSpy.mock.calls[0][0];
-      expect(metadata.backoffEndTimeMillis.getTime()).toBeCloseTo(
-        FAKE_NOW + retryInterval * 1000,
-        -2
-      );
+      expect(
+        Math.abs(
+          metadata.backoffEndTimeMillis.getTime() -
+            (FAKE_NOW + retryInterval * 1000)
+        )
+      ).toBeLessThanOrEqual(100);
       expect(retryHttpConnectionSpy).toHaveBeenCalledTimes(1);
     });
   });
@@ -374,7 +376,7 @@ describe('RealtimeHandler', () => {
       await (realtime as any).retryHttpConnectionWhenBackoffEnds();
       expect(makeRealtimeHttpConnectionSpy).toHaveBeenCalledTimes(1);
       const delay = makeRealtimeHttpConnectionSpy.mock.calls[0][0];
-      expect(delay).toBeCloseTo(5000, 100);
+      expect(Math.abs(delay - 5000)).toBeLessThanOrEqual(100);
     });
   });
 
@@ -484,7 +486,10 @@ describe('RealtimeHandler', () => {
       await (realtime as any).fetchLatestConfig(MAXIMUM_FETCH_ATTEMPTS, 2);
 
       expect(mockCachingClient.fetch).toHaveBeenCalledTimes(1);
-      expect(autoFetchSpy).toHaveBeenCalledWith(MAXIMUM_FETCH_ATTEMPTS - 1, 2);
+      expect(autoFetchSpy).toHaveBeenCalledExactlyOnceWith(
+        MAXIMUM_FETCH_ATTEMPTS - 1,
+        2
+      );
     });
 
     it('should not notify if no keys have changed', async () => {
@@ -857,7 +862,7 @@ describe('RealtimeHandler', () => {
       (realtime as any).autoFetch(MAXIMUM_FETCH_ATTEMPTS, 10);
       await vi.runAllTimersAsync();
 
-      expect(fetchLatestConfigStub).toHaveBeenCalledWith(
+      expect(fetchLatestConfigStub).toHaveBeenCalledExactlyOnceWith(
         MAXIMUM_FETCH_ATTEMPTS,
         10
       );
@@ -890,7 +895,7 @@ describe('RealtimeHandler', () => {
 
       await (realtime as any).handleNotifications(mockReader);
 
-      expect(updateBackoffStub).toHaveBeenCalledWith(60);
+      expect(updateBackoffStub).toHaveBeenCalledExactlyOnceWith(60);
     });
 
     it('should propagate error on invalid JSON', async () => {

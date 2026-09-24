@@ -16,6 +16,7 @@
  */
 
 import type { MockInstance } from 'vitest';
+import { FirebaseError } from '@firebase/util';
 import { RestClient } from '../../src/client/rest_client';
 import { FirebaseInstallations } from '@firebase/installations-types';
 import { ERROR_FACTORY, ErrorCode } from '../../src/errors';
@@ -150,6 +151,7 @@ describe('RestClient', () => {
         originalErrorMessage: (originalError as Error)?.message
       });
 
+      await expect(fetchPromise).rejects.toBeInstanceOf(FirebaseError);
       await expect(fetchPromise).rejects.toThrow(firebaseError.message);
       await expect(fetchPromise).rejects.toHaveProperty(
         'customData.originalErrorMessage',
@@ -172,6 +174,7 @@ describe('RestClient', () => {
         originalErrorMessage: 'Unexpected end of input'
       });
 
+      await expect(fetchPromise).rejects.toBeInstanceOf(FirebaseError);
       await expect(fetchPromise).rejects.toThrow(firebaseError.message);
       await expect(fetchPromise).rejects.toHaveProperty(
         'customData.originalErrorMessage',
@@ -221,6 +224,7 @@ describe('RestClient', () => {
         httpStatus: 500
       });
 
+      await expect(fetchPromise).rejects.toBeInstanceOf(FirebaseError);
       await expect(fetchPromise).rejects.toThrow(error.message);
       await expect(fetchPromise).rejects.toHaveProperty(
         'customData.httpStatus',
@@ -280,6 +284,7 @@ describe('RestClient', () => {
           httpStatus: status
         });
 
+        await expect(fetchPromise).rejects.toBeInstanceOf(FirebaseError);
         await expect(fetchPromise).rejects.toThrow(error.message);
         await expect(fetchPromise).rejects.toHaveProperty(
           'customData.httpStatus',

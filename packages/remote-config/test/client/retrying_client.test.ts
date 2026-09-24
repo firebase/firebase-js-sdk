@@ -118,7 +118,7 @@ describe('RetryingClient', () => {
 
       const fetchPromise = retryingClient.fetch(DEFAULT_REQUEST);
 
-      await expect(fetchPromise).rejects.toThrow(expectedError);
+      await expect(fetchPromise).rejects.toBe(expectedError);
     });
 
     it('retries on retriable errors', async () => {
