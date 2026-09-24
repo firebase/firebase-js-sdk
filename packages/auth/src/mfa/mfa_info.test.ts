@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,18 +15,12 @@
  * limitations under the License.
  */
 
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-
 import { FactorId } from '../model/public_types';
 import { FirebaseError } from '@firebase/util';
 
 import { testAuth, TestAuth } from '../../test/helpers/mock_auth';
 import { PhoneMfaEnrollment } from '../api/account_management/mfa';
 import { MultiFactorInfoImpl } from './mfa_info';
-
-use(chaiAsPromised);
-
 describe('core/mfa/mfa_info/MultiFactorInfo for Phone MFA', () => {
   let auth: TestAuth;
 
@@ -35,7 +29,7 @@ describe('core/mfa/mfa_info/MultiFactorInfo for Phone MFA', () => {
   });
 
   describe('_fromServerResponse', () => {
-    context('phone enrollment', () => {
+    describe('phone enrollment', () => {
       const date = Date.now();
       const enrollmentInfo = {
         mfaEnrollmentId: 'uid',
@@ -49,14 +43,14 @@ describe('core/mfa/mfa_info/MultiFactorInfo for Phone MFA', () => {
           auth,
           enrollmentInfo
         );
-        expect(mfaInfo.factorId).to.eq(FactorId.PHONE);
-        expect(mfaInfo.uid).to.eq('uid');
-        expect(mfaInfo.enrollmentTime).to.eq(new Date(date).toUTCString());
-        expect(mfaInfo.displayName).to.eq('display-name');
+        expect(mfaInfo.factorId).toBe(FactorId.PHONE);
+        expect(mfaInfo.uid).toBe('uid');
+        expect(mfaInfo.enrollmentTime).toBe(new Date(date).toUTCString());
+        expect(mfaInfo.displayName).toBe('display-name');
       });
     });
 
-    context('Invalid enrollment', () => {
+    describe('Invalid enrollment', () => {
       const enrollmentInfo = {
         mfaEnrollmentId: 'uid',
         enrolledAt: Date.now(),
@@ -69,7 +63,7 @@ describe('core/mfa/mfa_info/MultiFactorInfo for Phone MFA', () => {
             auth,
             enrollmentInfo as PhoneMfaEnrollment
           )
-        ).to.throw(FirebaseError, 'auth/internal-error');
+        ).toThrow(FirebaseError, 'auth/internal-error');
       });
     });
   });
@@ -83,7 +77,7 @@ describe('core/mfa/mfa_info/MultiFactorInfo for TOTP MFA', () => {
   });
 
   describe('_fromServerResponse', () => {
-    context('TOTP enrollment', () => {
+    describe('TOTP enrollment', () => {
       const date = Date.now();
       const enrollmentInfo = {
         mfaEnrollmentId: 'uid',
@@ -97,14 +91,14 @@ describe('core/mfa/mfa_info/MultiFactorInfo for TOTP MFA', () => {
           auth,
           enrollmentInfo
         );
-        expect(mfaInfo.factorId).to.eq(FactorId.TOTP);
-        expect(mfaInfo.uid).to.eq('uid');
-        expect(mfaInfo.enrollmentTime).to.eq(new Date(date).toUTCString());
-        expect(mfaInfo.displayName).to.eq('display-name');
+        expect(mfaInfo.factorId).toBe(FactorId.TOTP);
+        expect(mfaInfo.uid).toBe('uid');
+        expect(mfaInfo.enrollmentTime).toBe(new Date(date).toUTCString());
+        expect(mfaInfo.displayName).toBe('display-name');
       });
     });
 
-    context('Invalid enrollment, no totp or phone info found', () => {
+    describe('Invalid enrollment, no totp or phone info found', () => {
       const enrollmentInfo = {
         mfaEnrollmentId: 'uid',
         enrolledAt: Date.now(),
@@ -114,7 +108,7 @@ describe('core/mfa/mfa_info/MultiFactorInfo for TOTP MFA', () => {
       it('should throw an error', () => {
         expect(() =>
           MultiFactorInfoImpl._fromServerResponse(auth, enrollmentInfo)
-        ).to.throw(FirebaseError, 'auth/internal-error');
+        ).toThrow(FirebaseError, 'auth/internal-error');
       });
     });
   });

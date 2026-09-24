@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,6 @@
  * limitations under the License.
  */
 
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-
 import { FirebaseError } from '@firebase/util';
 
 import { Endpoint, HttpHeader } from '../';
@@ -26,9 +23,6 @@ import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 import * as mockFetch from '../../../test/helpers/mock_fetch';
 import { ServerError } from '../errors';
 import { createAuthUri } from './create_auth_uri';
-
-use(chaiAsPromised);
-
 describe('api/authentication/createAuthUri', () => {
   const request = {
     identifier: 'my-id',
@@ -51,13 +45,16 @@ describe('api/authentication/createAuthUri', () => {
 
     auth.tenantId = 'tenant-id';
     const response = await createAuthUri(auth, request);
-    expect(response.signinMethods).to.include('email');
-    expect(mock.calls[0].request).to.eql({ ...request, tenantId: 'tenant-id' });
-    expect(mock.calls[0].method).to.eq('POST');
-    expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
+    expect(response.signinMethods).toContain('email');
+    expect(mock.calls[0].request).toEqual({
+      ...request,
+      tenantId: 'tenant-id'
+    });
+    expect(mock.calls[0].method).toBe('POST');
+    expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).toBe(
       'application/json'
     );
-    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).to.eq(
+    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).toBe(
       'testSDK/0.0.0'
     );
   });
@@ -79,10 +76,10 @@ describe('api/authentication/createAuthUri', () => {
       400
     );
 
-    await expect(createAuthUri(auth, request)).to.be.rejectedWith(
+    await expect(createAuthUri(auth, request)).rejects.toThrow(
       FirebaseError,
       'Firebase: The specified provider ID is invalid. (auth/invalid-provider-id).'
     );
-    expect(mock.calls[0].request).to.eql(request);
+    expect(mock.calls[0].request).toEqual(request);
   });
 });

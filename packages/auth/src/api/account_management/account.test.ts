@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,6 @@
  * limitations under the License.
  */
 
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-
 import { ProviderId } from '../../model/enums';
 import { FirebaseError } from '@firebase/util';
 
@@ -27,9 +24,6 @@ import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 import * as mockFetch from '../../../test/helpers/mock_fetch';
 import { ServerError } from '../errors';
 import { deleteAccount, deleteLinkedAccounts, getAccountInfo } from './account';
-
-use(chaiAsPromised);
-
 describe('api/account_management/deleteAccount', () => {
   const request = {
     idToken: 'id-token'
@@ -48,12 +42,12 @@ describe('api/account_management/deleteAccount', () => {
     const mock = mockEndpoint(Endpoint.DELETE_ACCOUNT, {});
 
     await deleteAccount(auth, request);
-    expect(mock.calls[0].request).to.eql(request);
-    expect(mock.calls[0].method).to.eq('POST');
-    expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
+    expect(mock.calls[0].request).toEqual(request);
+    expect(mock.calls[0].method).toBe('POST');
+    expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).toBe(
       'application/json'
     );
-    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).to.eq(
+    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).toBe(
       'testSDK/0.0.0'
     );
   });
@@ -75,11 +69,11 @@ describe('api/account_management/deleteAccount', () => {
       400
     );
 
-    await expect(deleteAccount(auth, request)).to.be.rejectedWith(
+    await expect(deleteAccount(auth, request)).rejects.toThrow(
       FirebaseError,
       "Firebase: This user's credential isn't valid for this project. This can happen if the user's token has been tampered with, or if the user isn't for the project associated with this API key. (auth/invalid-user-token)."
     );
-    expect(mock.calls[0].request).to.eql(request);
+    expect(mock.calls[0].request).toEqual(request);
   });
 });
 
@@ -109,14 +103,14 @@ describe('api/account_management/deleteLinkedAccounts', () => {
     });
 
     const response = await deleteLinkedAccounts(auth, request);
-    expect(response.providerUserInfo[0].providerId).to.eq('google.com');
-    expect(response.providerUserInfo[0].email).to.eq('test@foo.com');
-    expect(mock.calls[0].request).to.eql(request);
-    expect(mock.calls[0].method).to.eq('POST');
-    expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
+    expect(response.providerUserInfo[0].providerId).toBe('google.com');
+    expect(response.providerUserInfo[0].email).toBe('test@foo.com');
+    expect(mock.calls[0].request).toEqual(request);
+    expect(mock.calls[0].method).toBe('POST');
+    expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).toBe(
       'application/json'
     );
-    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).to.eq(
+    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).toBe(
       'testSDK/0.0.0'
     );
   });
@@ -138,11 +132,11 @@ describe('api/account_management/deleteLinkedAccounts', () => {
       400
     );
 
-    await expect(deleteLinkedAccounts(auth, request)).to.be.rejectedWith(
+    await expect(deleteLinkedAccounts(auth, request)).rejects.toThrow(
       FirebaseError,
       'Firebase: The specified provider ID is invalid. (auth/invalid-provider-id).'
     );
-    expect(mock.calls[0].request).to.eql(request);
+    expect(mock.calls[0].request).toEqual(request);
   });
 });
 
@@ -171,14 +165,14 @@ describe('api/account_management/getAccountInfo', () => {
     });
 
     const response = await getAccountInfo(auth, request);
-    expect(response.users[0].displayName).to.eq('my-name');
-    expect(response.users[0].email).to.eq('test@foo.com');
-    expect(mock.calls[0].request).to.eql(request);
-    expect(mock.calls[0].method).to.eq('POST');
-    expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
+    expect(response.users[0].displayName).toBe('my-name');
+    expect(response.users[0].email).toBe('test@foo.com');
+    expect(mock.calls[0].request).toEqual(request);
+    expect(mock.calls[0].method).toBe('POST');
+    expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).toBe(
       'application/json'
     );
-    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).to.eq(
+    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).toBe(
       'testSDK/0.0.0'
     );
   });
@@ -200,10 +194,10 @@ describe('api/account_management/getAccountInfo', () => {
       400
     );
 
-    await expect(getAccountInfo(auth, request)).to.be.rejectedWith(
+    await expect(getAccountInfo(auth, request)).rejects.toThrow(
       FirebaseError,
       "Firebase: This user's credential isn't valid for this project. This can happen if the user's token has been tampered with, or if the user isn't for the project associated with this API key. (auth/invalid-user-token)."
     );
-    expect(mock.calls[0].request).to.eql(request);
+    expect(mock.calls[0].request).toEqual(request);
   });
 });

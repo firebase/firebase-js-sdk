@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2021 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,6 @@
  * limitations under the License.
  */
 
-import chaiAsPromised from 'chai-as-promised';
-import sinonChai from 'sinon-chai';
-import * as sinon from 'sinon';
-import { expect, use } from 'chai';
 import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 import * as fbUtils from '@firebase/util';
 import {
@@ -39,15 +35,10 @@ import {
 import { FirebaseError } from '@firebase/util';
 import { InAppBrowserRef, _cordovaWindow } from '../plugins';
 import * as projectConfig from '../../api/project_config/get_project_config';
-
 const ANDROID_UA = 'UserAgent/5.0 (Linux; Android 0.0.0)';
 const IOS_UA = 'UserAgent/5.0 (iPhone; CPU iPhone 0.0.0)';
 const IOS_8_UA = 'UserAgent/5.0 (iPhone OS 8_2)';
 const DESKTOP_UA = 'UserAgent/5.0 (Linux; Ubuntu 0.0.0)';
-
-use(chaiAsPromised);
-use(sinonChai);
-
 const win = _cordovaWindow();
 
 describe('platform_cordova/popup_redirect/utils', () => {
@@ -59,7 +50,7 @@ describe('platform_cordova/popup_redirect/utils', () => {
   });
 
   afterEach(() => {
-    sinon.restore();
+    vi.restoreAllMocks();
     // Clean up the window object from attachExpectedPlugins()
     removeProp(win, 'cordova');
     removeProp(win, 'BuildInfo');
@@ -67,7 +58,7 @@ describe('platform_cordova/popup_redirect/utils', () => {
   });
 
   function setUA(ua: string): void {
-    sinon.stub(fbUtils, 'getUA').returns(ua);
+    vi.spyOn(fbUtils, 'getUA').mockReturnValue(ua);
   }
 
   describe('_checkCordovaConfiguration', () => {
@@ -79,7 +70,7 @@ describe('platform_cordova/popup_redirect/utils', () => {
     it('rejects if universal links is missing', () => {
       removeProp(win, 'universalLinks');
       expect(() => _checkCordovaConfiguration(auth))
-        .to.throw(fbUtils.FirebaseError, 'auth/invalid-cordova-configuration')
+        .toThrow(fbUtils.FirebaseError, 'auth/invalid-cordova-configuration')
         .that.has.deep.property('customData', {
           appName: 'test-app',
           missingPlugin: 'cordova-universal-links-plugin-fix'
@@ -89,7 +80,7 @@ describe('platform_cordova/popup_redirect/utils', () => {
     it('rejects if build info is missing', () => {
       removeProp(win.BuildInfo, 'packageName');
       expect(() => _checkCordovaConfiguration(auth))
-        .to.throw(fbUtils.FirebaseError, 'auth/invalid-cordova-configuration')
+        .toThrow(fbUtils.FirebaseError, 'auth/invalid-cordova-configuration')
         .that.has.deep.property('customData', {
           appName: 'test-app',
           missingPlugin: 'cordova-plugin-buildInfo'
@@ -99,7 +90,7 @@ describe('platform_cordova/popup_redirect/utils', () => {
     it('rejects if browsertab openUrl is missing', () => {
       removeProp(win.cordova.plugins.browsertab, 'openUrl');
       expect(() => _checkCordovaConfiguration(auth))
-        .to.throw(fbUtils.FirebaseError, 'auth/invalid-cordova-configuration')
+        .toThrow(fbUtils.FirebaseError, 'auth/invalid-cordova-configuration')
         .that.has.deep.property('customData', {
           appName: 'test-app',
           missingPlugin: 'cordova-plugin-browsertab'
@@ -109,7 +100,7 @@ describe('platform_cordova/popup_redirect/utils', () => {
     it('rejects if InAppBrowser is missing', () => {
       removeProp(win.cordova.InAppBrowser, 'open');
       expect(() => _checkCordovaConfiguration(auth))
-        .to.throw(fbUtils.FirebaseError, 'auth/invalid-cordova-configuration')
+        .toThrow(fbUtils.FirebaseError, 'auth/invalid-cordova-configuration')
         .that.has.deep.property('customData', {
           appName: 'test-app',
           missingPlugin: 'cordova-plugin-inappbrowser'
@@ -135,9 +126,9 @@ describe('platform_cordova/popup_redirect/utils', () => {
       const hashedSessionId = getParams(
         await _generateHandlerUrl(auth, event, provider)
       ).get('sessionId');
-      expect(hashedSessionId).not.to.eq(event.sessionId);
+      expect(hashedSessionId).not.toBe(event.sessionId);
       // SHA-256 hash as a hex string is 64 chars
-      expect(hashedSessionId).to.have.length(64);
+      expect(hashedSessionId).toHaveLength(64);
     });
 
     it('sets the ibi and not apn for iOS devices', async () => {
@@ -145,8 +136,8 @@ describe('platform_cordova/popup_redirect/utils', () => {
       const params = getParams(
         await _generateHandlerUrl(auth, event, provider)
       );
-      expect(params.get('ibi')).to.eq('com.example.name.package');
-      expect(params.has('apn')).to.be.false;
+      expect(params.get('ibi')).toBe('com.example.name.package');
+      expect(params.has('apn')).toBe(false);
     });
 
     it('sets the apn and not ibi for Android devices', async () => {
@@ -154,15 +145,13 @@ describe('platform_cordova/popup_redirect/utils', () => {
       const params = getParams(
         await _generateHandlerUrl(auth, event, provider)
       );
-      expect(params.get('apn')).to.eq('com.example.name.package');
-      expect(params.has('ibi')).to.be.false;
+      expect(params.get('apn')).toBe('com.example.name.package');
+      expect(params.has('ibi')).toBe(false);
     });
 
     it('throws an error for any other user agent', async () => {
       setUA(DESKTOP_UA);
-      await expect(
-        _generateHandlerUrl(auth, event, provider)
-      ).to.be.rejectedWith(
+      await expect(_generateHandlerUrl(auth, event, provider)).rejects.toThrow(
         fbUtils.FirebaseError,
         'auth/operation-not-supported-in-this-environment'
       );
@@ -174,7 +163,7 @@ describe('platform_cordova/popup_redirect/utils', () => {
       const params = getParams(
         await _generateHandlerUrl(auth, event, provider)
       );
-      expect(params.has('appDisplayName')).to.be.false;
+      expect(params.has('appDisplayName')).toBe(false);
     });
 
     it('attaches the relevant display name', async () => {
@@ -183,16 +172,18 @@ describe('platform_cordova/popup_redirect/utils', () => {
       const params = getParams(
         await _generateHandlerUrl(auth, event, provider)
       );
-      expect(params.get('appDisplayName')).to.eq('This is my app');
+      expect(params.get('appDisplayName')).toBe('This is my app');
     });
   });
 
   describe('_validateOrigin', () => {
     beforeEach(() => {
-      sinon.stub(win.BuildInfo, 'packageName').value('com.example.myapp');
+      vi.spyOn(win.BuildInfo, 'packageName', 'get').mockReturnValue(
+        'com.example.myapp'
+      );
       sinon
         .stub(projectConfig, '_getProjectConfig')
-        .returns(
+        .mockReturnValue(
           Promise.resolve({ /* does not matter here */ authorizedDomains: [] })
         );
     });
@@ -200,7 +191,7 @@ describe('platform_cordova/popup_redirect/utils', () => {
     it('sets the correct fields for android', async () => {
       setUA(ANDROID_UA);
       await _validateOrigin(auth);
-      expect(projectConfig._getProjectConfig).to.have.been.calledWith(auth, {
+      expect(projectConfig._getProjectConfig).toHaveBeenCalledWith(auth, {
         androidPackageName: 'com.example.myapp'
       });
     });
@@ -208,7 +199,7 @@ describe('platform_cordova/popup_redirect/utils', () => {
     it('sets the correct fields for ios', async () => {
       setUA(IOS_UA);
       await _validateOrigin(auth);
-      expect(projectConfig._getProjectConfig).to.have.been.calledWith(auth, {
+      expect(projectConfig._getProjectConfig).toHaveBeenCalledWith(auth, {
         iosBundleId: 'com.example.myapp'
       });
     });
@@ -220,26 +211,26 @@ describe('platform_cordova/popup_redirect/utils', () => {
       isBrowsertabAvailable = false;
       sinon
         .stub(win.cordova.plugins.browsertab, 'isAvailable')
-        .callsFake(cb => cb(isBrowsertabAvailable));
-      sinon.stub(win.cordova.plugins.browsertab, 'openUrl');
-      sinon.stub(win.cordova.InAppBrowser, 'open');
+        .mockImplementation(cb => cb(isBrowsertabAvailable));
+      vi.spyOn(win.cordova.plugins.browsertab, 'openUrl');
+      vi.spyOn(win.cordova.InAppBrowser, 'open');
     });
 
     it('uses browserTab if that is available', async () => {
       isBrowsertabAvailable = true;
       await _performRedirect('https://localhost/__/auth/handler');
-      expect(win.cordova.plugins.browsertab.openUrl).to.have.been.calledWith(
+      expect(win.cordova.plugins.browsertab.openUrl).toHaveBeenCalledWith(
         'https://localhost/__/auth/handler'
       );
-      expect(win.cordova.InAppBrowser.open).not.to.have.been.called;
+      expect(win.cordova.InAppBrowser.open).not.toHaveBeenCalled();
     });
 
     it('falls back to InAppBrowser if need be', async () => {
       isBrowsertabAvailable = false;
       setUA(ANDROID_UA);
       await _performRedirect('https://localhost/__/auth/handler');
-      expect(win.cordova.plugins.browsertab.openUrl).not.to.have.been.called;
-      expect(win.cordova.InAppBrowser.open).to.have.been.calledWith(
+      expect(win.cordova.plugins.browsertab.openUrl).not.toHaveBeenCalled();
+      expect(win.cordova.InAppBrowser.open).toHaveBeenCalledWith(
         'https://localhost/__/auth/handler',
         '_system',
         'location=yes'
@@ -250,8 +241,8 @@ describe('platform_cordova/popup_redirect/utils', () => {
       isBrowsertabAvailable = false;
       setUA(IOS_8_UA);
       await _performRedirect('https://localhost/__/auth/handler');
-      expect(win.cordova.plugins.browsertab.openUrl).not.to.have.been.called;
-      expect(win.cordova.InAppBrowser.open).to.have.been.calledWith(
+      expect(win.cordova.plugins.browsertab.openUrl).not.toHaveBeenCalled();
+      expect(win.cordova.InAppBrowser.open).toHaveBeenCalledWith(
         'https://localhost/__/auth/handler',
         '_blank',
         'location=yes'
@@ -269,12 +260,12 @@ describe('platform_cordova/popup_redirect/utils', () => {
       eventManager = new CordovaAuthEventManager(auth);
     });
 
-    context('when no auth event is seen', () => {
+    describe('when no auth event is seen', () => {
       it('rejects when cancel timer trips on resume', async () => {
         const promise = _waitForAppResume(auth, eventManager, null);
         document.dispatchEvent(new CustomEvent('resume'));
         tripCancelTimer();
-        await expect(promise).to.be.rejectedWith(
+        await expect(promise).rejects.toThrow(
           FirebaseError,
           'auth/redirect-cancelled-by-user'
         );
@@ -283,10 +274,10 @@ describe('platform_cordova/popup_redirect/utils', () => {
       it('rejects when timer trips after visibility change', async () => {
         setUA(ANDROID_UA);
         const promise = _waitForAppResume(auth, eventManager, null);
-        sinon.stub(document, 'visibilityState').value('visible');
+        vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('visible');
         document.dispatchEvent(new CustomEvent('visibilitychange'));
         tripCancelTimer();
-        await expect(promise).to.be.rejectedWith(
+        await expect(promise).rejects.toThrow(
           FirebaseError,
           'auth/redirect-cancelled-by-user'
         );
@@ -300,41 +291,41 @@ describe('platform_cordova/popup_redirect/utils', () => {
         document.dispatchEvent(new CustomEvent('resume'));
         document.dispatchEvent(new CustomEvent('resume'));
         tripCancelTimer();
-        await expect(promise).to.be.rejectedWith(
+        await expect(promise).rejects.toThrow(
           FirebaseError,
           'auth/redirect-cancelled-by-user'
         );
-        expect(win.setTimeout).to.have.been.calledOnce;
+        expect(win.setTimeout).toHaveBeenCalledTimes(1);
       });
 
       it('cleans up listeners and cancels timer', async () => {
-        sinon.stub(document, 'removeEventListener').callThrough();
-        sinon.stub(eventManager, 'removePassiveListener');
-        sinon.stub(win, 'clearTimeout');
+        vi.spyOn(document, 'removeEventListener');
+        vi.spyOn(eventManager, 'removePassiveListener');
+        vi.spyOn(win, 'clearTimeout');
         const promise = _waitForAppResume(auth, eventManager, null);
         document.dispatchEvent(new CustomEvent('resume'));
         tripCancelTimer();
-        await expect(promise).to.be.rejectedWith(
+        await expect(promise).rejects.toThrow(
           FirebaseError,
           'auth/redirect-cancelled-by-user'
         );
 
-        expect(document.removeEventListener).to.have.been.calledWith(
+        expect(document.removeEventListener).toHaveBeenCalledWith(
           'resume',
           sinon.match.func
         );
-        expect(document.removeEventListener).to.have.been.calledWith(
+        expect(document.removeEventListener).toHaveBeenCalledWith(
           'visibilitychange',
           sinon.match.func
         );
-        expect(eventManager.removePassiveListener).to.have.been.calledWith(
+        expect(eventManager.removePassiveListener).toHaveBeenCalledWith(
           sinon.match.func
         );
-        expect(win.clearTimeout).to.have.been.calledWith(CANCEL_TIMER_ID);
+        expect(win.clearTimeout).toHaveBeenCalledWith(CANCEL_TIMER_ID);
       });
     });
 
-    context('when auth event is seen', () => {
+    describe('when auth event is seen', () => {
       function sendEvent(): void {
         eventManager.onEvent(
           _generateNewEvent(auth, AuthEventType.LINK_VIA_REDIRECT)
@@ -350,46 +341,46 @@ describe('platform_cordova/popup_redirect/utils', () => {
       it('resolves the promise', async () => {
         const promise = _waitForAppResume(auth, eventManager, null);
         sendEvent();
-        await expect(promise).to.be.fulfilled;
+        await expect(promise).resolves.toBeDefined();
       });
 
       it('closes the browser tab', async () => {
-        sinon.stub(cordova.plugins.browsertab, 'close');
+        vi.spyOn(cordova.plugins.browsertab, 'close');
         const promise = _waitForAppResume(auth, eventManager, null);
         sendEvent();
         await promise;
-        expect(cordova.plugins.browsertab.close).to.have.been.called;
+        expect(cordova.plugins.browsertab.close).toHaveBeenCalled();
       });
 
       it('calls close on inAppBrowserRef', async () => {
-        const iabRef: InAppBrowserRef = { close: sinon.stub() };
+        const iabRef: InAppBrowserRef = { close: vi.fn() };
         const promise = _waitForAppResume(auth, eventManager, iabRef);
         sendEvent();
         await promise;
-        expect(iabRef.close).to.have.been.called;
+        expect(iabRef.close).toHaveBeenCalled();
       });
 
       it('cleans up listeners and cancels timer', async () => {
-        sinon.stub(document, 'removeEventListener').callThrough();
-        sinon.stub(eventManager, 'removePassiveListener');
-        sinon.stub(win, 'clearTimeout');
+        vi.spyOn(document, 'removeEventListener');
+        vi.spyOn(eventManager, 'removePassiveListener');
+        vi.spyOn(win, 'clearTimeout');
         const promise = _waitForAppResume(auth, eventManager, null);
         document.dispatchEvent(new CustomEvent('resume'));
         sendEvent();
         await promise;
 
-        expect(document.removeEventListener).to.have.been.calledWith(
+        expect(document.removeEventListener).toHaveBeenCalledWith(
           'resume',
           sinon.match.func
         );
-        expect(document.removeEventListener).to.have.been.calledWith(
+        expect(document.removeEventListener).toHaveBeenCalledWith(
           'visibilitychange',
           sinon.match.func
         );
-        expect(eventManager.removePassiveListener).to.have.been.calledWith(
+        expect(eventManager.removePassiveListener).toHaveBeenCalledWith(
           sinon.match.func
         );
-        expect(win.clearTimeout).to.have.been.calledWith(CANCEL_TIMER_ID);
+        expect(win.clearTimeout).toHaveBeenCalledWith(CANCEL_TIMER_ID);
       });
     });
   });

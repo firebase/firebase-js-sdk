@@ -29,9 +29,7 @@ import {
   UserCredential
 } from '../../model/public_types';
 import { isNode } from '@firebase/util';
-
-import { expect } from 'chai';
-import { inMemoryPersistence } from '../../../internal';
+import { inMemoryPersistence } from '../persistence/in_memory';
 
 import { AuthInternal } from '../../model/auth';
 import {
@@ -132,8 +130,8 @@ describe('core/auth/initialize', () => {
   const fakePopupRedirectResolver: PopupRedirectResolver =
     FakePopupRedirectResolver;
 
-  before(() => {
-    registerAuth(ClientPlatform.BROWSER);
+  beforeAll(() => {
+    registerAuth(isNode() ? ClientPlatform.NODE : ClientPlatform.BROWSER);
   });
 
   beforeEach(() => {
@@ -153,7 +151,7 @@ describe('core/auth/initialize', () => {
       const auth = initializeAuth(fakeApp) as AuthInternal;
       await auth._initializationPromise;
 
-      expect(auth.name).to.eq(fakeApp.name);
+      expect(auth.name).toBe(fakeApp.name);
       const expectedClientPlatform = isNode()
         ? ClientPlatform.NODE
         : ClientPlatform.BROWSER;
@@ -161,7 +159,7 @@ describe('core/auth/initialize', () => {
         expectedClientPlatform
       );
 
-      expect(auth.config).to.eql({
+      expect(auth.config).toEqual({
         apiHost: 'identitytoolkit.googleapis.com',
         apiKey: 'fake-key',
         apiScheme: 'https',
@@ -170,7 +168,7 @@ describe('core/auth/initialize', () => {
         sdkClientVersion: expectedSdkClientVersion,
         tokenApiHost: 'securetoken.googleapis.com'
       });
-      expect(auth._getPersistenceType()).to.eq('NONE');
+      expect(auth._getPersistenceType()).toBe('NONE');
     });
 
     it('should set persistence', async () => {
@@ -179,7 +177,7 @@ describe('core/auth/initialize', () => {
       }) as AuthInternal;
       await auth._initializationPromise;
 
-      expect(auth._getPersistenceType()).to.eq('SESSION');
+      expect(auth._getPersistenceType()).toBe('SESSION');
     });
 
     it('should set persistence with fallback', async () => {
@@ -188,7 +186,7 @@ describe('core/auth/initialize', () => {
       }) as AuthInternal;
       await auth._initializationPromise;
 
-      expect(auth._getPersistenceType()).to.eq('SESSION');
+      expect(auth._getPersistenceType()).toBe('SESSION');
     });
 
     it('should set resolver', async () => {
@@ -197,7 +195,7 @@ describe('core/auth/initialize', () => {
       }) as AuthInternal;
       await auth._initializationPromise;
 
-      expect(auth._popupRedirectResolver).to.be.instanceof(
+      expect(auth._popupRedirectResolver).toBeInstanceOf(
         FakePopupRedirectResolver
       );
     });
@@ -209,12 +207,12 @@ describe('core/auth/initialize', () => {
       await (auth as unknown as _FirebaseService)._delete();
       await auth._initializationPromise;
 
-      expect(auth._isInitialized).to.be.false;
+      expect(auth._isInitialized).toBe(false);
     });
 
     it('should not throw if called again with same (no) params', () => {
       const auth = initializeAuth(fakeApp);
-      expect(initializeAuth(fakeApp)).to.equal(auth);
+      expect(initializeAuth(fakeApp)).toBe(auth);
     });
 
     it('should not throw if called again with same params', () => {
@@ -229,7 +227,7 @@ describe('core/auth/initialize', () => {
           persistence: fakeSessionPersistence,
           popupRedirectResolver: fakePopupRedirectResolver
         })
-      ).to.equal(auth);
+      ).toBe(auth);
     });
 
     it('should throw if called again with different params (popupRedirectResolver)', () => {
@@ -240,7 +238,7 @@ describe('core/auth/initialize', () => {
         initializeAuth(fakeApp, {
           popupRedirectResolver: undefined
         })
-      ).to.throw();
+      ).toThrow();
     });
 
     it('should throw if called again with different params (errorMap)', () => {
@@ -251,7 +249,7 @@ describe('core/auth/initialize', () => {
         initializeAuth(fakeApp, {
           errorMap: debugErrorMap
         })
-      ).to.throw();
+      ).toThrow();
     });
 
     it('should throw if called again with different params (persistence)', () => {
@@ -262,7 +260,7 @@ describe('core/auth/initialize', () => {
         initializeAuth(fakeApp, {
           persistence: [fakeSessionPersistence, inMemoryPersistence]
         })
-      ).to.throw();
+      ).toThrow();
     });
   });
 });

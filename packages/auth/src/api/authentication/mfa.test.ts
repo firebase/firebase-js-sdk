@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,6 @@
  * limitations under the License.
  */
 
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-
 import { FirebaseError } from '@firebase/util';
 
 import {
@@ -31,9 +28,6 @@ import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 import * as mockFetch from '../../../test/helpers/mock_fetch';
 import { ServerError } from '../errors';
 import { finalizeSignInPhoneMfa, startSignInPhoneMfa } from './mfa';
-
-use(chaiAsPromised);
-
 describe('api/authentication/startSignInPhoneMfa', () => {
   const request = {
     mfaPendingCredential: 'my-creds',
@@ -63,13 +57,13 @@ describe('api/authentication/startSignInPhoneMfa', () => {
     });
 
     const response = await startSignInPhoneMfa(auth, request);
-    expect(response.phoneResponseInfo.sessionInfo).to.eq('session-info');
-    expect(mock.calls[0].request).to.eql(request);
-    expect(mock.calls[0].method).to.eq('POST');
-    expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
+    expect(response.phoneResponseInfo.sessionInfo).toBe('session-info');
+    expect(mock.calls[0].request).toEqual(request);
+    expect(mock.calls[0].method).toBe('POST');
+    expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).toBe(
       'application/json'
     );
-    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).to.eq(
+    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).toBe(
       'testSDK/0.0.0'
     );
   });
@@ -91,11 +85,11 @@ describe('api/authentication/startSignInPhoneMfa', () => {
       400
     );
 
-    await expect(startSignInPhoneMfa(auth, request)).to.be.rejectedWith(
+    await expect(startSignInPhoneMfa(auth, request)).rejects.toThrow(
       FirebaseError,
       'Firebase: The supplied auth credential is incorrect, malformed or has expired. (auth/invalid-credential).'
     );
-    expect(mock.calls[0].request).to.eql(request);
+    expect(mock.calls[0].request).toEqual(request);
   });
 });
 
@@ -126,14 +120,14 @@ describe('api/authentication/finalizeSignInPhoneMfa', () => {
     });
 
     const response = await finalizeSignInPhoneMfa(auth, request);
-    expect(response.idToken).to.eq('id-token');
-    expect(response.refreshToken).to.eq('refresh-token');
-    expect(mock.calls[0].request).to.eql(request);
-    expect(mock.calls[0].method).to.eq('POST');
-    expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
+    expect(response.idToken).toBe('id-token');
+    expect(response.refreshToken).toBe('refresh-token');
+    expect(mock.calls[0].request).toEqual(request);
+    expect(mock.calls[0].method).toBe('POST');
+    expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).toBe(
       'application/json'
     );
-    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).to.eq(
+    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).toBe(
       'testSDK/0.0.0'
     );
   });
@@ -155,10 +149,10 @@ describe('api/authentication/finalizeSignInPhoneMfa', () => {
       400
     );
 
-    await expect(finalizeSignInPhoneMfa(auth, request)).to.be.rejectedWith(
+    await expect(finalizeSignInPhoneMfa(auth, request)).rejects.toThrow(
       FirebaseError,
       'Firebase: The SMS verification code used to create the phone auth credential is invalid. Please resend the verification code sms and be sure to use the verification code provided by the user. (auth/invalid-verification-code).'
     );
-    expect(mock.calls[0].request).to.eql(request);
+    expect(mock.calls[0].request).toEqual(request);
   });
 });

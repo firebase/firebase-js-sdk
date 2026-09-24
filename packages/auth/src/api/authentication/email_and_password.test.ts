@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
 
 import { ActionCodeOperation } from '../../model/public_types';
 import { FirebaseError } from '@firebase/util';
@@ -42,9 +39,6 @@ import {
   VerifyAndChangeEmailRequest,
   VerifyEmailRequest
 } from './email_and_password';
-
-use(chaiAsPromised);
-
 describe('api/authentication/signInWithPassword', () => {
   const request = {
     returnSecureToken: true,
@@ -72,14 +66,17 @@ describe('api/authentication/signInWithPassword', () => {
 
     auth.tenantId = 'tenant-id';
     const response = await signInWithPassword(auth, request);
-    expect(response.displayName).to.eq('my-name');
-    expect(response.email).to.eq('test@foo.com');
-    expect(mock.calls[0].request).to.eql({ ...request, tenantId: 'tenant-id' });
-    expect(mock.calls[0].method).to.eq('POST');
-    expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
+    expect(response.displayName).toBe('my-name');
+    expect(response.email).toBe('test@foo.com');
+    expect(mock.calls[0].request).toEqual({
+      ...request,
+      tenantId: 'tenant-id'
+    });
+    expect(mock.calls[0].method).toBe('POST');
+    expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).toBe(
       'application/json'
     );
-    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).to.eq(
+    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).toBe(
       'testSDK/0.0.0'
     );
   });
@@ -101,11 +98,11 @@ describe('api/authentication/signInWithPassword', () => {
       400
     );
 
-    await expect(signInWithPassword(auth, request)).to.be.rejectedWith(
+    await expect(signInWithPassword(auth, request)).rejects.toThrow(
       FirebaseError,
       'Firebase: The password is invalid or the user does not have a password. (auth/wrong-password).'
     );
-    expect(mock.calls[0].request).to.eql(request);
+    expect(mock.calls[0].request).toEqual(request);
   });
 
   it('should handle errors for missing password', async () => {
@@ -126,11 +123,11 @@ describe('api/authentication/signInWithPassword', () => {
       400
     );
 
-    await expect(signInWithPassword(auth, request)).to.be.rejectedWith(
+    await expect(signInWithPassword(auth, request)).rejects.toThrow(
       FirebaseError,
       'Firebase: A non-empty password must be provided (auth/missing-password).'
     );
-    expect(mock.calls[0].request).to.eql(request);
+    expect(mock.calls[0].request).toEqual(request);
   });
 });
 
@@ -156,13 +153,16 @@ describe('api/authentication/sendEmailVerification', () => {
 
     auth.tenantId = 'tenant-id';
     const response = await sendEmailVerification(auth, request);
-    expect(response.email).to.eq('test@foo.com');
-    expect(mock.calls[0].request).to.eql({ ...request, tenantId: 'tenant-id' });
-    expect(mock.calls[0].method).to.eq('POST');
-    expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
+    expect(response.email).toBe('test@foo.com');
+    expect(mock.calls[0].request).toEqual({
+      ...request,
+      tenantId: 'tenant-id'
+    });
+    expect(mock.calls[0].method).toBe('POST');
+    expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).toBe(
       'application/json'
     );
-    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).to.eq(
+    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).toBe(
       'testSDK/0.0.0'
     );
   });
@@ -184,11 +184,11 @@ describe('api/authentication/sendEmailVerification', () => {
       400
     );
 
-    await expect(sendEmailVerification(auth, request)).to.be.rejectedWith(
+    await expect(sendEmailVerification(auth, request)).rejects.toThrow(
       FirebaseError,
       'Firebase: The email address is badly formatted. (auth/invalid-email).'
     );
-    expect(mock.calls[0].request).to.eql(request);
+    expect(mock.calls[0].request).toEqual(request);
   });
 });
 
@@ -217,13 +217,16 @@ describe('api/authentication/sendPasswordResetEmail', () => {
 
     auth.tenantId = 'tenant-id';
     const response = await sendPasswordResetEmail(auth, request);
-    expect(response.email).to.eq('test@foo.com');
-    expect(mock.calls[0].request).to.eql({ ...request, tenantId: 'tenant-id' });
-    expect(mock.calls[0].method).to.eq('POST');
-    expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
+    expect(response.email).toBe('test@foo.com');
+    expect(mock.calls[0].request).toEqual({
+      ...request,
+      tenantId: 'tenant-id'
+    });
+    expect(mock.calls[0].method).toBe('POST');
+    expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).toBe(
       'application/json'
     );
-    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).to.eq(
+    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).toBe(
       'testSDK/0.0.0'
     );
   });
@@ -245,11 +248,11 @@ describe('api/authentication/sendPasswordResetEmail', () => {
       400
     );
 
-    await expect(sendPasswordResetEmail(auth, request)).to.be.rejectedWith(
+    await expect(sendPasswordResetEmail(auth, request)).rejects.toThrow(
       FirebaseError,
       'Firebase: The email address is badly formatted. (auth/invalid-email).'
     );
-    expect(mock.calls[0].request).to.eql(request);
+    expect(mock.calls[0].request).toEqual(request);
   });
 });
 
@@ -278,13 +281,16 @@ describe('api/authentication/sendSignInLinkToEmail', () => {
 
     auth.tenantId = 'tenant-id';
     const response = await sendSignInLinkToEmail(auth, request);
-    expect(response.email).to.eq('test@foo.com');
-    expect(mock.calls[0].request).to.eql({ ...request, tenantId: 'tenant-id' });
-    expect(mock.calls[0].method).to.eq('POST');
-    expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
+    expect(response.email).toBe('test@foo.com');
+    expect(mock.calls[0].request).toEqual({
+      ...request,
+      tenantId: 'tenant-id'
+    });
+    expect(mock.calls[0].method).toBe('POST');
+    expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).toBe(
       'application/json'
     );
-    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).to.eq(
+    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).toBe(
       'testSDK/0.0.0'
     );
   });
@@ -306,11 +312,11 @@ describe('api/authentication/sendSignInLinkToEmail', () => {
       400
     );
 
-    await expect(sendSignInLinkToEmail(auth, request)).to.be.rejectedWith(
+    await expect(sendSignInLinkToEmail(auth, request)).rejects.toThrow(
       FirebaseError,
       'Firebase: The email address is badly formatted. (auth/invalid-email).'
     );
-    expect(mock.calls[0].request).to.eql(request);
+    expect(mock.calls[0].request).toEqual(request);
   });
 });
 
@@ -337,13 +343,16 @@ describe('api/authentication/verifyAndChangeEmail', () => {
 
     auth.tenantId = 'tenant-id';
     const response = await verifyAndChangeEmail(auth, request);
-    expect(response.email).to.eq('test@foo.com');
-    expect(mock.calls[0].request).to.eql({ ...request, tenantId: 'tenant-id' });
-    expect(mock.calls[0].method).to.eq('POST');
-    expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
+    expect(response.email).toBe('test@foo.com');
+    expect(mock.calls[0].request).toEqual({
+      ...request,
+      tenantId: 'tenant-id'
+    });
+    expect(mock.calls[0].method).toBe('POST');
+    expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).toBe(
       'application/json'
     );
-    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).to.eq(
+    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).toBe(
       'testSDK/0.0.0'
     );
   });
@@ -365,10 +374,10 @@ describe('api/authentication/verifyAndChangeEmail', () => {
       400
     );
 
-    await expect(verifyAndChangeEmail(auth, request)).to.be.rejectedWith(
+    await expect(verifyAndChangeEmail(auth, request)).rejects.toThrow(
       FirebaseError,
       'Firebase: The email address is badly formatted. (auth/invalid-email).'
     );
-    expect(mock.calls[0].request).to.eql(request);
+    expect(mock.calls[0].request).toEqual(request);
   });
 });

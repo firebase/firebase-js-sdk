@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-import * as sinon from 'sinon';
-import sinonChai from 'sinon-chai';
 
 import { OperationType, ProviderId } from '../../model/enums';
 import { FirebaseError } from '@firebase/util';
@@ -59,10 +54,7 @@ import {
   injectRecaptchaV2Token
 } from './phone';
 import { mockLoadJS } from '../../../test/helpers/mock_loadjs';
-
-use(chaiAsPromised);
-use(sinonChai);
-
+import { MockInstance } from 'vitest';
 const RECAPTCHA_V2_TOKEN = 'v2-token';
 const RECAPTCHA_ENTERPRISE_TOKEN = 'enterprise-token';
 
@@ -94,6 +86,8 @@ const recaptchaConfigResponseOff = {
   ]
 };
 
+vi.mock('../load_js', { spy: true });
+
 function mockRecaptchaEnterpriseEnablement(
   enablementState: EnforcementState
 ): fetch.Route | undefined {
@@ -112,9 +106,9 @@ function mockRecaptchaEnterpriseEnablement(
 
   const recaptcha = new MockGreCAPTCHATopLevel();
   window.grecaptcha = recaptcha;
-  sinon
-    .stub(recaptcha.enterprise, 'execute')
-    .returns(Promise.resolve(RECAPTCHA_ENTERPRISE_TOKEN));
+  vi.spyOn(recaptcha.enterprise, 'execute').mockResolvedValue(
+    RECAPTCHA_ENTERPRISE_TOKEN
+  );
 
   return mockEndpointWithParams(
     Endpoint.GET_RECAPTCHA_CONFIG,
@@ -141,15 +135,14 @@ describe('platform_browser/strategies/phone', () => {
     });
 
     v2Verifier = new RecaptchaVerifier(auth, document.createElement('div'), {});
-    sinon
-      .stub(v2Verifier, 'verify')
-      .returns(Promise.resolve(RECAPTCHA_V2_TOKEN));
+    vi.spyOn(v2Verifier, 'verify').mockResolvedValue(RECAPTCHA_V2_TOKEN);
     mockRecaptchaEnterpriseEnablement(EnforcementState.OFF);
   });
 
   afterEach(() => {
     fetch.tearDown();
-    sinon.restore();
+    delete window.grecaptcha;
+    vi.restoreAllMocks();
   });
 
   describe('signInWithPhoneNumber', () => {
@@ -159,7 +152,7 @@ describe('platform_browser/strategies/phone', () => {
       }
       await signInWithPhoneNumber(auth, '+15105550000', v2Verifier);
 
-      expect(sendCodeEndpoint.calls[0].request).to.eql({
+      expect(sendCodeEndpoint.calls[0].request).toEqual({
         recaptchaToken: RECAPTCHA_V2_TOKEN,
         phoneNumber: '+15105550000',
         captchaResponse: FAKE_TOKEN,
@@ -173,11 +166,11 @@ describe('platform_browser/strategies/phone', () => {
         return;
       }
       mockRecaptchaEnterpriseEnablement(EnforcementState.ENFORCE);
-      sinon.stub(jsHelpers, '_loadJS').callsFake(mockLoadJS);
+      vi.spyOn(jsHelpers, '_loadJS').mockImplementation(mockLoadJS);
 
       await signInWithPhoneNumber(auth, '+15105550000', v2Verifier);
 
-      expect(sendCodeEndpoint.calls[0].request).to.eql({
+      expect(sendCodeEndpoint.calls[0].request).toEqual({
         phoneNumber: '+15105550000',
         captchaResponse: RECAPTCHA_ENTERPRISE_TOKEN,
         clientType: RecaptchaClientType.WEB,
@@ -190,10 +183,10 @@ describe('platform_browser/strategies/phone', () => {
         return;
       }
       mockRecaptchaEnterpriseEnablement(EnforcementState.ENFORCE);
-      sinon.stub(jsHelpers, '_loadJS').callsFake(mockLoadJS);
+      vi.spyOn(jsHelpers, '_loadJS').mockImplementation(mockLoadJS);
       await signInWithPhoneNumber(auth, '+15105550000');
 
-      expect(sendCodeEndpoint.calls[0].request).to.eql({
+      expect(sendCodeEndpoint.calls[0].request).toEqual({
         phoneNumber: '+15105550000',
         captchaResponse: RECAPTCHA_ENTERPRISE_TOKEN,
         clientType: RecaptchaClientType.WEB,
@@ -207,18 +200,19 @@ describe('platform_browser/strategies/phone', () => {
       }
       mockRecaptchaEnterpriseEnablement(EnforcementState.OFF);
 
-      await expect(
-        signInWithPhoneNumber(auth, '+15105550000')
-      ).to.be.rejectedWith(FirebaseError, 'auth/argument-error');
+      await expect(signInWithPhoneNumber(auth, '+15105550000')).rejects.toThrow(
+        FirebaseError,
+        'auth/argument-error'
+      );
     });
 
-    context('ConfirmationResult', () => {
+    describe('ConfirmationResult', () => {
       it('result contains verification id baked in', async () => {
         if (typeof window === 'undefined') {
           return;
         }
         const result = await signInWithPhoneNumber(auth, 'number', v2Verifier);
-        expect(result.verificationId).to.eq('session-info');
+        expect(result.verificationId).toBe('session-info');
       });
 
       it('calling #confirm finishes the sign in flow', async () => {
@@ -245,9 +239,9 @@ describe('platform_browser/strategies/phone', () => {
 
         const result = await signInWithPhoneNumber(auth, 'number', v2Verifier);
         const userCred = await result.confirm('6789');
-        expect(userCred.user.uid).to.eq('uid');
-        expect(userCred.operationType).to.eq(OperationType.SIGN_IN);
-        expect(signInEndpoint.calls[0].request).to.eql({
+        expect(userCred.user.uid).toBe('uid');
+        expect(userCred.operationType).toBe(OperationType.SIGN_IN);
+        expect(signInEndpoint.calls[0].request).toEqual({
           sessionInfo: 'session-info',
           code: '6789'
         });
@@ -282,7 +276,7 @@ describe('platform_browser/strategies/phone', () => {
 
       await expect(
         linkWithPhoneNumber(user, 'number', v2Verifier)
-      ).to.be.rejectedWith(
+      ).rejects.toThrow(
         FirebaseError,
         'Firebase: User can only be linked to one identity for the given provider. (auth/provider-already-linked).'
       );
@@ -294,7 +288,7 @@ describe('platform_browser/strategies/phone', () => {
       }
       await linkWithPhoneNumber(user, '+15105550000', v2Verifier);
 
-      expect(sendCodeEndpoint.calls[0].request).to.eql({
+      expect(sendCodeEndpoint.calls[0].request).toEqual({
         recaptchaToken: RECAPTCHA_V2_TOKEN,
         phoneNumber: '+15105550000',
         captchaResponse: FAKE_TOKEN,
@@ -310,7 +304,7 @@ describe('platform_browser/strategies/phone', () => {
       mockRecaptchaEnterpriseEnablement(EnforcementState.ENFORCE);
       await linkWithPhoneNumber(user, '+15105550000', v2Verifier);
 
-      expect(sendCodeEndpoint.calls[0].request).to.eql({
+      expect(sendCodeEndpoint.calls[0].request).toEqual({
         phoneNumber: '+15105550000',
         captchaResponse: RECAPTCHA_ENTERPRISE_TOKEN,
         clientType: RecaptchaClientType.WEB,
@@ -318,13 +312,13 @@ describe('platform_browser/strategies/phone', () => {
       });
     });
 
-    context('ConfirmationResult', () => {
+    describe('ConfirmationResult', () => {
       it('result contains verification id baked in', async () => {
         if (typeof window === 'undefined') {
           return;
         }
         const result = await linkWithPhoneNumber(user, 'number', v2Verifier);
-        expect(result.verificationId).to.eq('session-info');
+        expect(result.verificationId).toBe('session-info');
       });
 
       it('calling #confirm finishes the sign in flow', async () => {
@@ -353,9 +347,9 @@ describe('platform_browser/strategies/phone', () => {
 
         const result = await linkWithPhoneNumber(user, 'number', v2Verifier);
         const userCred = await result.confirm('6789');
-        expect(userCred.user.uid).to.eq('uid');
-        expect(userCred.operationType).to.eq(OperationType.LINK);
-        expect(signInEndpoint.calls[0].request).to.eql({
+        expect(userCred.user.uid).toBe('uid');
+        expect(userCred.operationType).toBe(OperationType.LINK);
+        expect(signInEndpoint.calls[0].request).toEqual({
           sessionInfo: 'session-info',
           code: '6789',
           idToken: initialIdToken
@@ -381,7 +375,7 @@ describe('platform_browser/strategies/phone', () => {
       }
       await reauthenticateWithPhoneNumber(user, '+15105550000', v2Verifier);
 
-      expect(sendCodeEndpoint.calls[0].request).to.eql({
+      expect(sendCodeEndpoint.calls[0].request).toEqual({
         recaptchaToken: RECAPTCHA_V2_TOKEN,
         phoneNumber: '+15105550000',
         captchaResponse: FAKE_TOKEN,
@@ -397,7 +391,7 @@ describe('platform_browser/strategies/phone', () => {
       mockRecaptchaEnterpriseEnablement(EnforcementState.ENFORCE);
       await reauthenticateWithPhoneNumber(user, '+15105550000', v2Verifier);
 
-      expect(sendCodeEndpoint.calls[0].request).to.eql({
+      expect(sendCodeEndpoint.calls[0].request).toEqual({
         phoneNumber: '+15105550000',
         captchaResponse: RECAPTCHA_ENTERPRISE_TOKEN,
         clientType: RecaptchaClientType.WEB,
@@ -405,7 +399,7 @@ describe('platform_browser/strategies/phone', () => {
       });
     });
 
-    context('ConfirmationResult', () => {
+    describe('ConfirmationResult', () => {
       it('result contains verification id baked in', async () => {
         if (typeof window === 'undefined') {
           return;
@@ -415,7 +409,7 @@ describe('platform_browser/strategies/phone', () => {
           'number',
           v2Verifier
         );
-        expect(result.verificationId).to.eq('session-info');
+        expect(result.verificationId).toBe('session-info');
       });
 
       it('calling #confirm finishes the sign in flow', async () => {
@@ -446,9 +440,9 @@ describe('platform_browser/strategies/phone', () => {
           v2Verifier
         );
         const userCred = await result.confirm('6789');
-        expect(userCred.user.uid).to.eq('uid');
-        expect(userCred.operationType).to.eq(OperationType.REAUTHENTICATE);
-        expect(signInEndpoint.calls[0].request).to.eql({
+        expect(userCred.user.uid).toBe('uid');
+        expect(userCred.operationType).toBe(OperationType.REAUTHENTICATE);
+        expect(signInEndpoint.calls[0].request).toEqual({
           sessionInfo: 'session-info',
           code: '6789',
           operation: 'REAUTH'
@@ -475,7 +469,7 @@ describe('platform_browser/strategies/phone', () => {
           'number',
           v2Verifier
         );
-        await expect(result.confirm('code')).to.be.rejectedWith(
+        await expect(result.confirm('code')).rejects.toThrow(
           FirebaseError,
           'Firebase: The supplied credentials do not correspond to the previously signed in user. (auth/user-mismatch)'
         );
@@ -489,8 +483,8 @@ describe('platform_browser/strategies/phone', () => {
         return;
       }
       const sessionInfo = await _verifyPhoneNumber(auth, 'number', v2Verifier);
-      expect(sessionInfo).to.eq('session-info');
-      expect(sendCodeEndpoint.calls[0].request).to.eql({
+      expect(sessionInfo).toBe('session-info');
+      expect(sendCodeEndpoint.calls[0].request).toEqual({
         recaptchaToken: RECAPTCHA_V2_TOKEN,
         phoneNumber: 'number',
         captchaResponse: FAKE_TOKEN,
@@ -510,8 +504,8 @@ describe('platform_browser/strategies/phone', () => {
         },
         v2Verifier
       );
-      expect(sessionInfo).to.eq('session-info');
-      expect(sendCodeEndpoint.calls[0].request).to.eql({
+      expect(sessionInfo).toBe('session-info');
+      expect(sendCodeEndpoint.calls[0].request).toEqual({
         recaptchaToken: RECAPTCHA_V2_TOKEN,
         phoneNumber: 'number',
         captchaResponse: FAKE_TOKEN,
@@ -526,8 +520,8 @@ describe('platform_browser/strategies/phone', () => {
       }
       mockRecaptchaEnterpriseEnablement(EnforcementState.AUDIT);
       const sessionInfo = await _verifyPhoneNumber(auth, 'number', v2Verifier);
-      expect(sessionInfo).to.eq('session-info');
-      expect(sendCodeEndpoint.calls[0].request).to.eql({
+      expect(sessionInfo).toBe('session-info');
+      expect(sendCodeEndpoint.calls[0].request).toEqual({
         phoneNumber: 'number',
         captchaResponse: RECAPTCHA_ENTERPRISE_TOKEN,
         clientType: RecaptchaClientType.WEB,
@@ -541,8 +535,8 @@ describe('platform_browser/strategies/phone', () => {
       }
       mockRecaptchaEnterpriseEnablement(EnforcementState.ENFORCE);
       const sessionInfo = await _verifyPhoneNumber(auth, 'number');
-      expect(sessionInfo).to.eq('session-info');
-      expect(sendCodeEndpoint.calls[0].request).to.eql({
+      expect(sessionInfo).toBe('session-info');
+      expect(sendCodeEndpoint.calls[0].request).toEqual({
         phoneNumber: 'number',
         captchaResponse: RECAPTCHA_ENTERPRISE_TOKEN,
         clientType: RecaptchaClientType.WEB,
@@ -556,7 +550,7 @@ describe('platform_browser/strategies/phone', () => {
       }
       mockRecaptchaEnterpriseEnablement(EnforcementState.OFF);
 
-      await expect(_verifyPhoneNumber(auth, 'number')).to.be.rejectedWith(
+      await expect(_verifyPhoneNumber(auth, 'number')).rejects.toThrow(
         FirebaseError,
         'auth/argument-error'
       );
@@ -579,19 +573,19 @@ describe('platform_browser/strategies/phone', () => {
       );
       await expect(
         _verifyPhoneNumber(auth, 'number', v2Verifier)
-      ).to.be.rejectedWith(
+      ).rejects.toThrow(
         'Firebase: The reCAPTCHA token is missing when sending request to the backend. (auth/missing-recaptcha-token).'
       );
-      expect(failureMock.calls.length).to.eq(2);
+      expect(failureMock.calls.length).toBe(2);
       // First call should have a recaptcha enterprise token
-      expect(failureMock.calls[0].request).to.eql({
+      expect(failureMock.calls[0].request).toEqual({
         phoneNumber: 'number',
         captchaResponse: RECAPTCHA_ENTERPRISE_TOKEN,
         clientType: RecaptchaClientType.WEB,
         recaptchaVersion: RecaptchaVersion.ENTERPRISE
       });
       // Second call should have a recaptcha v2 token
-      expect(failureMock.calls[1].request).to.eql({
+      expect(failureMock.calls[1].request).toEqual({
         recaptchaToken: RECAPTCHA_V2_TOKEN,
         phoneNumber: 'number',
         captchaResponse: FAKE_TOKEN,
@@ -617,19 +611,19 @@ describe('platform_browser/strategies/phone', () => {
       );
       await expect(
         _verifyPhoneNumber(auth, 'number', v2Verifier)
-      ).to.be.rejectedWith(
+      ).rejects.toThrow(
         'Firebase: The phone verification request contains an invalid application verifier. The reCAPTCHA token response is either invalid or expired. (auth/invalid-app-credential).'
       );
-      expect(failureMock.calls.length).to.eq(2);
+      expect(failureMock.calls.length).toBe(2);
       // First call should have a recaptcha enterprise token
-      expect(failureMock.calls[0].request).to.eql({
+      expect(failureMock.calls[0].request).toEqual({
         phoneNumber: 'number',
         captchaResponse: RECAPTCHA_ENTERPRISE_TOKEN,
         clientType: RecaptchaClientType.WEB,
         recaptchaVersion: RecaptchaVersion.ENTERPRISE
       });
       // Second call should have a recaptcha v2 token
-      expect(failureMock.calls[1].request).to.eql({
+      expect(failureMock.calls[1].request).toEqual({
         recaptchaToken: RECAPTCHA_V2_TOKEN,
         phoneNumber: 'number',
         captchaResponse: FAKE_TOKEN,
@@ -655,21 +649,21 @@ describe('platform_browser/strategies/phone', () => {
       );
       await expect(
         _verifyPhoneNumber(auth, 'number', v2Verifier)
-      ).to.be.rejectedWith(
+      ).rejects.toThrow(
         'Firebase: The reCAPTCHA token is invalid when sending request to the backend. (auth/invalid-recaptcha-token).'
       );
       // First call should have a recaptcha enterprise token
-      expect(failureMock.calls[0].request).to.eql({
+      expect(failureMock.calls[0].request).toEqual({
         phoneNumber: 'number',
         captchaResponse: RECAPTCHA_ENTERPRISE_TOKEN,
         clientType: RecaptchaClientType.WEB,
         recaptchaVersion: RecaptchaVersion.ENTERPRISE
       });
       // No fallback to recaptcha v2 flow
-      expect(failureMock.calls.length).to.eq(1);
+      expect(failureMock.calls.length).toBe(1);
     });
 
-    context('MFA', () => {
+    describe('MFA', () => {
       let user: UserInternal;
       let mfaUser: MultiFactorUserImpl;
 
@@ -697,8 +691,8 @@ describe('platform_browser/strategies/phone', () => {
           { phoneNumber: 'number', session },
           v2Verifier
         );
-        expect(sessionInfo).to.eq('session-info');
-        expect(endpoint.calls[0].request).to.eql({
+        expect(sessionInfo).toBe('session-info');
+        expect(endpoint.calls[0].request).toEqual({
           idToken: session.credential,
           phoneEnrollmentInfo: {
             phoneNumber: 'number',
@@ -726,8 +720,8 @@ describe('platform_browser/strategies/phone', () => {
           { phoneNumber: 'number', session },
           v2Verifier
         );
-        expect(sessionInfo).to.eq('session-info');
-        expect(endpoint.calls[0].request).to.eql({
+        expect(sessionInfo).toBe('session-info');
+        expect(endpoint.calls[0].request).toEqual({
           idToken: session.credential,
           phoneEnrollmentInfo: {
             phoneNumber: 'number',
@@ -763,8 +757,8 @@ describe('platform_browser/strategies/phone', () => {
           },
           v2Verifier
         );
-        expect(sessionInfo).to.eq('session-info');
-        expect(endpoint.calls[0].request).to.eql({
+        expect(sessionInfo).toBe('session-info');
+        expect(endpoint.calls[0].request).toEqual({
           mfaPendingCredential: 'mfa-pending-credential',
           mfaEnrollmentId: 'mfa-enrollment-id',
           phoneSignInInfo: {
@@ -802,8 +796,8 @@ describe('platform_browser/strategies/phone', () => {
           },
           v2Verifier
         );
-        expect(sessionInfo).to.eq('session-info');
-        expect(endpoint.calls[0].request).to.eql({
+        expect(sessionInfo).toBe('session-info');
+        expect(endpoint.calls[0].request).toEqual({
           mfaPendingCredential: 'mfa-pending-credential',
           mfaEnrollmentId: 'mfa-enrollment-id',
           phoneSignInInfo: {
@@ -819,10 +813,10 @@ describe('platform_browser/strategies/phone', () => {
       if (typeof window === 'undefined') {
         return;
       }
-      (v2Verifier.verify as sinon.SinonStub).returns(Promise.resolve(123));
+      (v2Verifier.verify as MockInstance).mockReturnValue(Promise.resolve(123));
       await expect(
         _verifyPhoneNumber(auth, 'number', v2Verifier)
-      ).to.be.rejectedWith(FirebaseError, 'auth/argument-error');
+      ).rejects.toThrow(FirebaseError, 'auth/argument-error');
     });
 
     it('throws if the v2Verifier type is not recaptcha', async () => {
@@ -837,30 +831,31 @@ describe('platform_browser/strategies/phone', () => {
       mutVerifier.type = 'not-recaptcha-thats-for-sure';
       await expect(
         _verifyPhoneNumber(auth, 'number', mutVerifier)
-      ).to.be.rejectedWith(FirebaseError, 'auth/argument-error');
+      ).rejects.toThrow(FirebaseError, 'auth/argument-error');
     });
 
     it('resets the verifier after successful verification', async () => {
       if (typeof window === 'undefined') {
         return;
       }
-      sinon.spy(v2Verifier, '_reset');
-      expect(await _verifyPhoneNumber(auth, 'number', v2Verifier)).to.eq(
+      vi.spyOn(v2Verifier, '_reset');
+      expect(await _verifyPhoneNumber(auth, 'number', v2Verifier)).toBe(
         'session-info'
       );
-      expect(v2Verifier._reset).to.have.been.called;
+      expect(v2Verifier._reset).toHaveBeenCalled();
     });
 
     it('resets the verifier after a failed verification', async () => {
       if (typeof window === 'undefined') {
         return;
       }
-      sinon.spy(v2Verifier, '_reset');
-      (v2Verifier.verify as sinon.SinonStub).returns(Promise.resolve(123));
+      vi.spyOn(v2Verifier, '_reset');
+      (v2Verifier.verify as MockInstance).mockReturnValue(Promise.resolve(123));
 
-      await expect(_verifyPhoneNumber(auth, 'number', v2Verifier)).to.be
-        .rejected;
-      expect(v2Verifier._reset).to.have.been.called;
+      await expect(
+        _verifyPhoneNumber(auth, 'number', v2Verifier)
+      ).rejects.toThrow();
+      expect(v2Verifier._reset).toHaveBeenCalled();
     });
   });
 
@@ -890,7 +885,7 @@ describe('platform_browser/strategies/phone', () => {
 
     it('should link the phone number to the user', async () => {
       await updatePhoneNumber(user, credential);
-      expect(signInMock.calls[0].request).to.eql({
+      expect(signInMock.calls[0].request).toEqual({
         idToken: 'access-token',
         sessionInfo: 'session-info',
         code: 'code'
@@ -900,12 +895,12 @@ describe('platform_browser/strategies/phone', () => {
     it('should update the access token', async () => {
       await updatePhoneNumber(user, credential);
       const idToken = await user.getIdToken();
-      expect(idToken).to.eq(idToken);
+      expect(idToken).toBe(idToken);
     });
 
     it('should reload the user', async () => {
       await updatePhoneNumber(user, credential);
-      expect(reloadMock.calls.length).to.eq(1);
+      expect(reloadMock.calls.length).toBe(1);
     });
   });
 
@@ -931,7 +926,7 @@ describe('platform_browser/strategies/phone', () => {
         captchaResponse: RECAPTCHA_ENTERPRISE_TOKEN,
         recaptchaVersion: RecaptchaVersion.ENTERPRISE
       };
-      expect(requestWithV2Token).to.eql(expectedRequest);
+      expect(requestWithV2Token).toEqual(expectedRequest);
     });
 
     it('injects recaptcha v2 token into StartPhoneMfaEnrollment request', async () => {
@@ -961,7 +956,7 @@ describe('platform_browser/strategies/phone', () => {
           recaptchaVersion: RecaptchaVersion.ENTERPRISE
         }
       };
-      expect(requestWithRecaptcha).to.eql(expectedRequest);
+      expect(requestWithRecaptcha).toEqual(expectedRequest);
     });
 
     it('injects recaptcha enterprise fields into StartPhoneMfaSignInRequest request', async () => {
@@ -991,7 +986,7 @@ describe('platform_browser/strategies/phone', () => {
           recaptchaVersion: RecaptchaVersion.ENTERPRISE
         }
       };
-      expect(requestWithRecaptcha).to.eql(expectedRequest);
+      expect(requestWithRecaptcha).toEqual(expectedRequest);
     });
   });
 });
