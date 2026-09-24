@@ -77,9 +77,9 @@ export interface GenerateContentRequest extends BaseParams {
 }
 
 /**
- * Request parameters for calling into a server prompt template with
- * {@link TemplateGenerativeModel.generateContent} and
- * {@link TemplateGenerativeModel.generateContentStream}.
+ * Request parameters for using a server prompt template with
+ * {@link TemplateGenerativeModel.generateContent | `TemplateGenerativeModel.generateContent()`} and
+ * {@link TemplateGenerativeModel.generateContentStream | `TemplateGenerativeModel.generateContentStream()`}.
  *
  * @beta
  */
