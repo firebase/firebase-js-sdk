@@ -57,13 +57,9 @@ describe('Firebase Performance > trace', () => {
 
   beforeEach(() => {
     vi.spyOn(Api.prototype, 'mark');
+    vi.spyOn(perfLogger, 'logTrace').mockImplementation(() => {});
     vi.spyOn(consoleLogger, 'info').mockImplementation(() => {});
     trace = createTrace();
-  });
-
-  afterEach(() => {
-    vi.restoreAllMocks();
-    vi.clearAllMocks();
   });
 
   describe('#start', () => {

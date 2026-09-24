@@ -70,10 +70,6 @@ describe('Firebase Performance > attribute_utils', () => {
   });
 
   describe('#getVisibilityState', () => {
-    afterEach(() => {
-      vi.restoreAllMocks();
-    });
-
     it('returns visible when document is visible', () => {
       vi.spyOn(Api, 'getInstance').mockReturnValue({
         document: {
@@ -103,10 +99,6 @@ describe('Firebase Performance > attribute_utils', () => {
   });
 
   describe('#getEffectiveConnectionType', () => {
-    afterEach(() => {
-      vi.restoreAllMocks();
-    });
-
     it('returns EffectiveConnectionType.CONNECTION_SLOW_2G when slow-2g', () => {
       vi.spyOn(Api, 'getInstance').mockReturnValue({
         navigator: {

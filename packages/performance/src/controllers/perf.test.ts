@@ -48,6 +48,10 @@ describe('Firebase Performance Test', () => {
   describe('#constructor', () => {
     it('does not initialize performance if the required apis are not available', () => {
       vi.spyOn(Api.prototype, 'requiredApisAvailable').mockReturnValue(false);
+      vi.spyOn(
+        initializationService,
+        'getInitializationPromise'
+      ).mockImplementation(() => Promise.resolve());
       vi.spyOn(consoleLogger, 'info').mockImplementation(() => {});
       const performanceController = new PerformanceController(
         fakeFirebaseApp,

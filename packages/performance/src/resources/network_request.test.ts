@@ -43,6 +43,7 @@ describe('Firebase Performance > network_request', () => {
     vi.spyOn(Api.prototype, 'getTimeOrigin').mockReturnValue(
       1528521843799.5032
     );
+    vi.spyOn(perfLogger, 'logNetworkRequest').mockImplementation(() => {});
   });
 
   describe('#createNetworkRequestEntry', () => {

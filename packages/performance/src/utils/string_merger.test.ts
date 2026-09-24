@@ -21,8 +21,8 @@ import '../../test/setup';
 describe('Firebase Performance > string_merger', () => {
   describe('#mergeStrings', () => {
     it('Throws exception when string length has | diff | > 1', () => {
+      expect(() => mergeStrings('', '123')).toThrow(FirebaseError);
       expect(() => mergeStrings('', '123')).toThrow(
-        FirebaseError,
         'performance/invalid String merger input'
       );
     });
@@ -36,8 +36,8 @@ describe('Firebase Performance > string_merger', () => {
     });
 
     it('returns merge result string when input length diff == 1', () => {
+      expect(() => mergeStrings('1234', 'abcde')).toThrow(FirebaseError);
       expect(() => mergeStrings('1234', 'abcde')).toThrow(
-        FirebaseError,
         'performance/invalid String merger input'
       );
     });

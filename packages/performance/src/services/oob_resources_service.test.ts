@@ -129,7 +129,7 @@ describe('Firebase Performance > oob_resources_service', () => {
 
   beforeEach(() => {
     resetForUnitTests();
-    getIidStub = vi.mocked(iidService.getIid);
+    getIidStub = vi.spyOn(iidService, 'getIid').mockReturnValue(undefined);
     eventListenerSpy = vi.spyOn(mockWindow.document, 'addEventListener');
 
     vi.useFakeTimers();
@@ -153,9 +153,6 @@ describe('Firebase Performance > oob_resources_service', () => {
   });
 
   afterEach(() => {
-    vi.useRealTimers();
-    vi.restoreAllMocks();
-    vi.clearAllMocks();
     const api = Api.getInstance();
     //@ts-ignore Assignment to read-only property.
     api.onFirstInputDelay = undefined;
