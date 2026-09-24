@@ -55,11 +55,13 @@ export enum Availability {
  */
 export interface LanguageModelCreateCoreOptions {
   /**
-   * @deprecated
+   * @deprecated - Sampling parameters are deprecated. It is recommended
+   * to omit these parameters and let the model manage sampling automatically.
    */
   topK?: number;
   /**
-   * @deprecated
+   * @deprecated - Sampling parameters are deprecated. It is recommended
+   * to omit these parameters and let the model manage sampling automatically.
    */
   temperature?: number;
   /**
