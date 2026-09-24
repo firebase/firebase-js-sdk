@@ -15,12 +15,8 @@
  * limitations under the License.
  */
 
-import { use } from 'chai';
-import sinonChai from 'sinon-chai';
-import chaiAsPromised from 'chai-as-promised';
-
-// Normalizes Sinon assertions to Chai syntax.
-use(sinonChai);
-
-// Adds Promise-friendly syntax to Chai.
-use(chaiAsPromised);
+afterEach(() => {
+  vi.useRealTimers();
+  vi.resetAllMocks();
+  vi.restoreAllMocks();
+});
