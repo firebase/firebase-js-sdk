@@ -21,7 +21,7 @@ import {
   ReCaptchaEnterpriseProvider,
   ReCaptchaV3Provider
 } from './providers';
-export { Unsubscribe, PartialObserver } from '@firebase/util';
+export type { Unsubscribe, PartialObserver } from '@firebase/util';
 
 /**
  * The Firebase App Check service interface.

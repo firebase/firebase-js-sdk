@@ -15,9 +15,7 @@
  * limitations under the License.
  */
 
-import '../test/setup';
-import { expect } from 'chai';
-import { stub, SinonStub, useFakeTimers } from 'sinon';
+import type { MockInstance } from 'vitest';
 import { FirebaseApp } from '@firebase/app';
 import { getFakeApp, getFakeHeartbeatServiceProvider } from '../test/util';
 import {
@@ -31,15 +29,10 @@ import { BASE_ENDPOINT } from './constants';
 
 describe('client', () => {
   let app: FirebaseApp;
-  let fetchStub: SinonStub<
-    [RequestInfo | URL, RequestInit?],
-    Promise<Response>
-  >;
+  let fetchStub: MockInstance;
   beforeEach(() => {
     app = getFakeApp();
-    fetchStub = stub(window, 'fetch').returns(
-      Promise.resolve(new Response('{}'))
-    );
+    fetchStub = vi.spyOn(window, 'fetch').mockResolvedValue(new Response('{}'));
   });
 
   it('creates exchange recaptcha token request correctly', () => {
@@ -49,7 +42,7 @@ describe('client', () => {
     );
     const { projectId, appId, apiKey } = app.options;
 
-    expect(request).to.deep.equal({
+    expect(request).toEqual({
       url: `${BASE_ENDPOINT}/projects/${projectId}/apps/${appId}:exchangeRecaptchaV3Token?key=${apiKey}`,
       body: {
         // eslint-disable-next-line camelcase
@@ -65,7 +58,7 @@ describe('client', () => {
     );
     const { projectId, appId, apiKey } = app.options;
 
-    expect(request).to.deep.equal({
+    expect(request).toEqual({
       url: `${BASE_ENDPOINT}/projects/${projectId}/apps/${appId}:exchangeRecaptchaEnterpriseToken?key=${apiKey}`,
       body: {
         // eslint-disable-next-line camelcase
@@ -76,16 +69,14 @@ describe('client', () => {
 
   it('returns a AppCheck token', async () => {
     // To get a consistent expireTime/issuedAtTime.
-    const clock = useFakeTimers();
-    fetchStub.returns(
-      Promise.resolve({
-        status: 200,
-        json: async () => ({
-          token: 'fake-appcheck-token',
-          ttl: '3.600s'
-        })
-      } as Response)
-    );
+    vi.useFakeTimers({ now: 0 });
+    fetchStub.mockResolvedValue({
+      status: 200,
+      json: async () => ({
+        token: 'fake-appcheck-token',
+        ttl: '3.600s'
+      })
+    } as Response);
 
     const response = await exchangeToken(
       getExchangeRecaptchaV3TokenRequest(app, 'fake-custom-token'),
@@ -93,20 +84,19 @@ describe('client', () => {
     );
 
     expect(
-      (fetchStub.args[0][1]?.['headers'] as any)['X-Firebase-Client']
-    ).to.equal('a/1.2.3 fire-app-check/2.3.4');
+      (fetchStub.mock.calls[0][1]?.['headers'] as any)['X-Firebase-Client']
+    ).toBe('a/1.2.3 fire-app-check/2.3.4');
 
-    expect(response).to.deep.equal({
+    expect(response).toEqual({
       token: 'fake-appcheck-token',
       expireTimeMillis: 3600,
       issuedAtTimeMillis: 0
     });
-    clock.restore();
   });
 
   it('throws when there is a network error', async () => {
     const originalError = new TypeError('Network request failed');
-    fetchStub.returns(Promise.reject(originalError));
+    fetchStub.mockRejectedValue(originalError);
     const firebaseError = ERROR_FACTORY.create(
       AppCheckError.FETCH_NETWORK_ERROR,
       {
@@ -120,21 +110,18 @@ describe('client', () => {
         getFakeHeartbeatServiceProvider()
       );
     } catch (e) {
-      expect(e).instanceOf(FirebaseError);
-      expect(e).has.property('message', firebaseError.message);
-      expect(e).has.nested.property(
-        'customData.originalErrorMessage',
+      expect(e).toBeInstanceOf(FirebaseError);
+      expect((e as FirebaseError).message).toBe(firebaseError.message);
+      expect((e as any).customData?.originalErrorMessage).toBe(
         'Network request failed'
       );
     }
   });
 
   it('throws when response status is not 200', async () => {
-    fetchStub.returns(
-      Promise.resolve({
-        status: 500
-      } as Response)
-    );
+    fetchStub.mockResolvedValue({
+      status: 500
+    } as Response);
 
     const firebaseError = ERROR_FACTORY.create(
       AppCheckError.FETCH_STATUS_ERROR,
@@ -149,20 +136,18 @@ describe('client', () => {
         getFakeHeartbeatServiceProvider()
       );
     } catch (e) {
-      expect(e).instanceOf(FirebaseError);
-      expect(e).has.property('message', firebaseError.message);
-      expect(e).has.nested.property('customData.httpStatus', 500);
+      expect(e).toBeInstanceOf(FirebaseError);
+      expect((e as FirebaseError).message).toBe(firebaseError.message);
+      expect((e as any).customData?.httpStatus).toBe(500);
     }
   });
 
   it('throws if the response body is not json', async () => {
     const originalError = new SyntaxError('invalid JSON string');
-    fetchStub.returns(
-      Promise.resolve({
-        status: 200,
-        json: () => Promise.reject(originalError)
-      } as Response)
-    );
+    fetchStub.mockResolvedValue({
+      status: 200,
+      json: () => Promise.reject(originalError)
+    } as Response);
 
     const firebaseError = ERROR_FACTORY.create(
       AppCheckError.FETCH_PARSE_ERROR,
@@ -177,26 +162,23 @@ describe('client', () => {
         getFakeHeartbeatServiceProvider()
       );
     } catch (e) {
-      expect(e).instanceOf(FirebaseError);
-      expect(e).has.property('message', firebaseError.message);
-      expect(e).has.nested.property(
-        'customData.originalErrorMessage',
+      expect(e).toBeInstanceOf(FirebaseError);
+      expect((e as FirebaseError).message).toBe(firebaseError.message);
+      expect((e as any).customData?.originalErrorMessage).toBe(
         (originalError as Error)?.message
       );
     }
   });
 
   it('throws if timeToLive field is not a number', async () => {
-    fetchStub.returns(
-      Promise.resolve({
-        status: 200,
-        json: () =>
-          Promise.resolve({
-            token: 'fake-appcheck-token',
-            ttl: 'NAN'
-          })
-      } as Response)
-    );
+    fetchStub.mockResolvedValue({
+      status: 200,
+      json: () =>
+        Promise.resolve({
+          token: 'fake-appcheck-token',
+          ttl: 'NAN'
+        })
+    } as Response);
 
     const firebaseError = ERROR_FACTORY.create(
       AppCheckError.FETCH_PARSE_ERROR,
@@ -211,10 +193,9 @@ describe('client', () => {
         getFakeHeartbeatServiceProvider()
       );
     } catch (e) {
-      expect(e).instanceOf(FirebaseError);
-      expect(e).has.property('message', firebaseError.message);
-      expect(e).has.nested.property(
-        'customData.originalErrorMessage',
+      expect(e).toBeInstanceOf(FirebaseError);
+      expect((e as FirebaseError).message).toBe(firebaseError.message);
+      expect((e as any).customData?.originalErrorMessage).toBe(
         `ttl field (timeToLive) is not in standard Protobuf Duration format: NAN`
       );
     }

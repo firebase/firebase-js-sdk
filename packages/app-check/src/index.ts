@@ -37,7 +37,7 @@ import { _AppCheckInternalComponentName } from './types';
 import { name, version } from '../package.json';
 
 // Used by other Firebase packages.
-export { _AppCheckInternalComponentName };
+export type { _AppCheckInternalComponentName };
 
 export * from './api';
 export * from './public-types';

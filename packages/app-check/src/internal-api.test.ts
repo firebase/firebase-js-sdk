@@ -15,9 +15,7 @@
  * limitations under the License.
  */
 
-import '../test/setup';
-import { expect } from 'chai';
-import { SinonStub, spy, stub, useFakeTimers } from 'sinon';
+import type { MockInstance } from 'vitest';
 import { deleteApp, FirebaseApp } from '@firebase/app';
 import {
   FAKE_SITE_KEY,
@@ -35,10 +33,6 @@ import {
   defaultTokenErrorData,
   getLimitedUseToken
 } from './internal-api';
-import * as reCAPTCHA from './recaptcha';
-import * as client from './client';
-import * as storage from './storage';
-import * as util from './util';
 import { logger } from './logger';
 import {
   getStateReference,
@@ -52,6 +46,16 @@ import { ReCaptchaEnterpriseProvider, ReCaptchaV3Provider } from './providers';
 import { AppCheckService } from './factory';
 import { ListenerType } from './types';
 import { AppCheckError, ERROR_FACTORY } from './errors';
+
+import * as storage from './storage';
+import * as client from './client';
+import * as recaptcha from './recaptcha';
+import * as util from './util';
+
+vi.mock('./storage', { spy: true });
+vi.mock('./client', { spy: true });
+vi.mock('./recaptcha', { spy: true });
+vi.mock('./util', { spy: true });
 
 const fakeRecaptchaToken = 'fake-recaptcha-token';
 const fakeRecaptchaAppCheckToken = {
@@ -68,23 +72,28 @@ const fakeCachedAppCheckToken = {
 
 describe('internal api', () => {
   let app: FirebaseApp;
-  let storageReadStub: SinonStub;
-  let storageWriteStub: SinonStub;
+  let storageReadStub: MockInstance;
+  let storageWriteStub: MockInstance;
 
   function stubGetRecaptchaToken(
     token: string = fakeRecaptchaToken,
     isSuccess: boolean = true
-  ): SinonStub {
+  ): MockInstance {
     getStateReference(app).reCAPTCHAState!.succeeded = isSuccess;
 
-    return stub(reCAPTCHA, 'getToken').returns(Promise.resolve(token));
+    return vi.spyOn(recaptcha, 'getToken').mockResolvedValue(token);
   }
 
   beforeEach(() => {
+    vi.spyOn(console, 'log').mockImplementation(() => {});
     app = getFullApp();
-    storageReadStub = stub(storage, 'readTokenFromStorage').resolves(undefined);
-    storageWriteStub = stub(storage, 'writeTokenToStorage');
-    stub(util, 'getRecaptcha').returns(getFakeGreCAPTCHA());
+    storageReadStub = vi
+      .spyOn(storage, 'readTokenFromStorage')
+      .mockResolvedValue(undefined);
+    storageWriteStub = vi
+      .spyOn(storage, 'writeTokenToStorage')
+      .mockResolvedValue(undefined);
+    vi.spyOn(util, 'getRecaptcha').mockReturnValue(getFakeGreCAPTCHA());
   });
 
   afterEach(() => {
@@ -96,15 +105,15 @@ describe('internal api', () => {
   describe('getToken()', () => {
     it('uses customTokenProvider to get an AppCheck token', async () => {
       const customTokenProvider = getFakeCustomTokenProvider();
-      const customProviderSpy = spy(customTokenProvider, 'getToken');
+      const customProviderSpy = vi.spyOn(customTokenProvider, 'getToken');
 
       const appCheck = initializeAppCheck(app, {
         provider: customTokenProvider
       });
       const token = await getToken(appCheck as AppCheckService);
 
-      expect(customProviderSpy).to.be.called;
-      expect(token).to.deep.equal({
+      expect(customProviderSpy).toHaveBeenCalled();
+      expect(token).toEqual({
         token: 'fake-custom-app-check-token'
       });
     });
@@ -115,19 +124,18 @@ describe('internal api', () => {
       });
 
       const reCAPTCHASpy = stubGetRecaptchaToken();
-      const exchangeTokenStub: SinonStub = stub(
-        client,
-        'exchangeToken'
-      ).returns(Promise.resolve(fakeRecaptchaAppCheckToken));
+      const exchangeTokenStub = vi
+        .spyOn(client, 'exchangeToken')
+        .mockResolvedValue(fakeRecaptchaAppCheckToken);
 
       const token = await getToken(appCheck as AppCheckService);
 
-      expect(reCAPTCHASpy).to.be.called;
+      expect(reCAPTCHASpy).toHaveBeenCalled();
 
-      expect(exchangeTokenStub.args[0][0].body['recaptcha_v3_token']).to.equal(
-        fakeRecaptchaToken
-      );
-      expect(token).to.deep.equal({ token: fakeRecaptchaAppCheckToken.token });
+      expect(
+        exchangeTokenStub.mock.calls[0][0].body['recaptcha_v3_token']
+      ).toBe(fakeRecaptchaToken);
+      expect(token).toEqual({ token: fakeRecaptchaAppCheckToken.token });
     });
 
     it('uses reCAPTCHA (Enterprise) token to exchange for AppCheck token', async () => {
@@ -137,23 +145,22 @@ describe('internal api', () => {
 
       const reCAPTCHASpy = stubGetRecaptchaToken();
 
-      const exchangeTokenStub: SinonStub = stub(
-        client,
-        'exchangeToken'
-      ).returns(Promise.resolve(fakeRecaptchaAppCheckToken));
+      const exchangeTokenStub = vi
+        .spyOn(client, 'exchangeToken')
+        .mockResolvedValue(fakeRecaptchaAppCheckToken);
 
       const token = await getToken(appCheck as AppCheckService);
 
-      expect(reCAPTCHASpy).to.be.called;
+      expect(reCAPTCHASpy).toHaveBeenCalled();
 
       expect(
-        exchangeTokenStub.args[0][0].body['recaptcha_enterprise_token']
-      ).to.equal(fakeRecaptchaToken);
-      expect(token).to.deep.equal({ token: fakeRecaptchaAppCheckToken.token });
+        exchangeTokenStub.mock.calls[0][0].body['recaptcha_enterprise_token']
+      ).toBe(fakeRecaptchaToken);
+      expect(token).toEqual({ token: fakeRecaptchaAppCheckToken.token });
     });
 
     it('resolves with a dummy token and an error if failed to get a token', async () => {
-      const errorStub = stub(console, 'error');
+      const errorStub = vi.spyOn(console, 'error').mockImplementation(() => {});
       const appCheck = initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
       });
@@ -161,75 +168,72 @@ describe('internal api', () => {
       const reCAPTCHASpy = stubGetRecaptchaToken();
 
       const error = new Error('oops, something went wrong');
-      stub(client, 'exchangeToken').returns(Promise.reject(error));
+      vi.spyOn(client, 'exchangeToken').mockRejectedValue(error);
 
       const token = await getToken(appCheck as AppCheckService, false, true);
 
-      expect(reCAPTCHASpy).to.be.called;
-      expect(token).to.deep.equal({
+      expect(reCAPTCHASpy).toHaveBeenCalled();
+      expect(token).toEqual({
         token: formatDummyToken(defaultTokenErrorData),
         error
       });
-      expect(errorStub.args[0][1].message).to.include(
+      expect(errorStub.mock.calls[0][1].message).toContain(
         'oops, something went wrong'
       );
-      errorStub.restore();
     });
 
     it('resolves with a dummy token and an error if failed to get a token in debug mode', async () => {
-      const errorStub = stub(console, 'error');
+      const errorStub = vi.spyOn(console, 'error').mockImplementation(() => {});
       window.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
       const appCheck = initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
       });
 
       const error = new Error('oops, something went wrong');
-      stub(client, 'exchangeToken').returns(Promise.reject(error));
+      vi.spyOn(client, 'exchangeToken').mockRejectedValue(error);
 
       const token = await getToken(appCheck as AppCheckService, false, true);
 
-      expect(token).to.deep.equal({
+      expect(token).toEqual({
         token: formatDummyToken(defaultTokenErrorData),
         error
       });
-      expect(errorStub.args[0][1].message).to.include(
+      expect(errorStub.mock.calls[0][1].message).toContain(
         'oops, something went wrong'
       );
       delete window.FIREBASE_APPCHECK_DEBUG_TOKEN;
-      errorStub.restore();
     });
 
     it('resolves with a dummy token and an error if recaptcha failed', async () => {
-      const errorStub = stub(console, 'error');
+      const errorStub = vi.spyOn(console, 'error').mockImplementation(() => {});
       const appCheck = initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
       });
 
       const reCAPTCHASpy = stubGetRecaptchaToken('', false);
-      const exchangeTokenStub = stub(client, 'exchangeToken');
+      const exchangeTokenStub = vi.spyOn(client, 'exchangeToken');
 
       const token = await getToken(appCheck as AppCheckService, false, true);
 
-      expect(reCAPTCHASpy).to.be.called;
-      expect(exchangeTokenStub).to.not.be.called;
-      expect(token.token).to.equal(formatDummyToken(defaultTokenErrorData));
-      expect(errorStub.args[0][1].message).to.include(
+      expect(reCAPTCHASpy).toHaveBeenCalled();
+      expect(exchangeTokenStub).not.toHaveBeenCalled();
+      expect(token.token).toBe(formatDummyToken(defaultTokenErrorData));
+      expect(errorStub.mock.calls[0][1].message).toContain(
         AppCheckError.RECAPTCHA_ERROR
       );
-      errorStub.restore();
     });
 
     it('notifies listeners using cached token', async () => {
-      storageReadStub.resolves(fakeCachedAppCheckToken);
+      storageReadStub.mockResolvedValue(fakeCachedAppCheckToken);
       const appCheck = initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY),
         isTokenAutoRefreshEnabled: false
       });
 
-      const clock = useFakeTimers();
+      vi.useFakeTimers({ now: 0 });
 
-      const listener1 = spy();
-      const listener2 = spy();
+      const listener1 = vi.fn();
+      const listener2 = vi.fn();
       addTokenListener(
         appCheck as AppCheckService,
         ListenerType.INTERNAL,
@@ -243,16 +247,14 @@ describe('internal api', () => {
 
       await getToken(appCheck as AppCheckService);
 
-      clock.tick(1);
+      await vi.advanceTimersByTimeAsync(1);
 
-      expect(listener1).to.be.calledWith({
+      expect(listener1).toHaveBeenCalledWith({
         token: fakeCachedAppCheckToken.token
       });
-      expect(listener2).to.be.calledWith({
+      expect(listener2).toHaveBeenCalledWith({
         token: fakeCachedAppCheckToken.token
       });
-
-      clock.restore();
     });
 
     it('notifies listeners using new token', async () => {
@@ -262,12 +264,12 @@ describe('internal api', () => {
       });
 
       stubGetRecaptchaToken();
-      stub(client, 'exchangeToken').returns(
-        Promise.resolve(fakeRecaptchaAppCheckToken)
+      vi.spyOn(client, 'exchangeToken').mockResolvedValue(
+        fakeRecaptchaAppCheckToken
       );
 
-      const listener1 = spy();
-      const listener2 = spy();
+      const listener1 = vi.fn();
+      const listener2 = vi.fn();
       addTokenListener(
         appCheck as AppCheckService,
         ListenerType.INTERNAL,
@@ -281,10 +283,10 @@ describe('internal api', () => {
 
       await getToken(appCheck as AppCheckService);
 
-      expect(listener1).to.be.calledWith({
+      expect(listener1).toHaveBeenCalledWith({
         token: fakeRecaptchaAppCheckToken.token
       });
-      expect(listener2).to.be.calledWith({
+      expect(listener2).toHaveBeenCalledWith({
         token: fakeRecaptchaAppCheckToken.token
       });
     });
@@ -295,9 +297,11 @@ describe('internal api', () => {
         isTokenAutoRefreshEnabled: true
       });
       stubGetRecaptchaToken();
-      stub(client, 'exchangeToken').rejects('exchange error');
-      const listener1 = spy();
-      const errorFn1 = spy();
+      vi.spyOn(client, 'exchangeToken').mockRejectedValue(
+        new Error('exchange error')
+      );
+      const listener1 = vi.fn();
+      const errorFn1 = vi.fn();
 
       addTokenListener(
         appCheck as AppCheckService,
@@ -308,8 +312,8 @@ describe('internal api', () => {
 
       await getToken(appCheck as AppCheckService);
 
-      expect(errorFn1).to.be.calledOnce;
-      expect(errorFn1.args[0][0].name).to.include('exchange error');
+      expect(errorFn1).toHaveBeenCalledTimes(1);
+      expect(errorFn1.mock.calls[0][0].message).toContain('exchange error');
     });
 
     it('ignores listeners that throw', async () => {
@@ -318,11 +322,13 @@ describe('internal api', () => {
         isTokenAutoRefreshEnabled: true
       });
       stubGetRecaptchaToken();
-      stub(client, 'exchangeToken').returns(
-        Promise.resolve(fakeRecaptchaAppCheckToken)
+      vi.spyOn(client, 'exchangeToken').mockResolvedValue(
+        fakeRecaptchaAppCheckToken
       );
-      const listener1 = stub().throws(new Error());
-      const listener2 = spy();
+      const listener1 = vi.fn().mockImplementation(() => {
+        throw new Error();
+      });
+      const listener2 = vi.fn();
 
       addTokenListener(
         appCheck as AppCheckService,
@@ -337,32 +343,30 @@ describe('internal api', () => {
 
       await getToken(appCheck as AppCheckService);
 
-      expect(listener1).to.be.calledWith({
+      expect(listener1).toHaveBeenCalledWith({
         token: fakeRecaptchaAppCheckToken.token
       });
-      expect(listener2).to.be.calledWith({
+      expect(listener2).toHaveBeenCalledWith({
         token: fakeRecaptchaAppCheckToken.token
       });
     });
 
     it('loads persisted token to memory and returns it', async () => {
-      const clock = useFakeTimers();
+      vi.useFakeTimers({ now: 0 });
 
-      storageReadStub.resolves(fakeCachedAppCheckToken);
+      storageReadStub.mockResolvedValue(fakeCachedAppCheckToken);
       const appCheck = initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
       });
 
-      const clientStub = stub(client, 'exchangeToken');
+      const clientStub = vi.spyOn(client, 'exchangeToken');
 
-      expect(getStateReference(app).token).to.equal(undefined);
-      expect(await getToken(appCheck as AppCheckService)).to.deep.equal({
+      expect(getStateReference(app).token).toBe(undefined);
+      expect(await getToken(appCheck as AppCheckService)).toEqual({
         token: fakeCachedAppCheckToken.token
       });
-      expect(getStateReference(app).token).to.equal(fakeCachedAppCheckToken);
-      expect(clientStub).has.not.been.called;
-
-      clock.restore();
+      expect(getStateReference(app).token).toBe(fakeCachedAppCheckToken);
+      expect(clientStub).not.toHaveBeenCalled();
     });
 
     it('persists token to storage', async () => {
@@ -371,20 +375,20 @@ describe('internal api', () => {
       });
 
       stubGetRecaptchaToken();
-      stub(client, 'exchangeToken').returns(
-        Promise.resolve(fakeRecaptchaAppCheckToken)
+      vi.spyOn(client, 'exchangeToken').mockResolvedValue(
+        fakeRecaptchaAppCheckToken
       );
-      storageWriteStub.resetHistory();
+      storageWriteStub.mockClear();
       const result = await getToken(appCheck as AppCheckService);
-      expect(result).to.deep.equal({ token: fakeRecaptchaAppCheckToken.token });
-      expect(storageWriteStub).has.been.calledWith(
+      expect(result).toEqual({ token: fakeRecaptchaAppCheckToken.token });
+      expect(storageWriteStub).toHaveBeenCalledWith(
         app,
         fakeRecaptchaAppCheckToken
       );
     });
 
     it('returns the valid token in memory without making network request', async () => {
-      const clock = useFakeTimers();
+      vi.useFakeTimers({ now: 0 });
       const appCheck = initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
       });
@@ -393,13 +397,11 @@ describe('internal api', () => {
         token: fakeRecaptchaAppCheckToken
       });
 
-      const clientStub = stub(client, 'exchangeToken');
-      expect(await getToken(appCheck as AppCheckService)).to.deep.equal({
+      const clientStub = vi.spyOn(client, 'exchangeToken');
+      expect(await getToken(appCheck as AppCheckService)).toEqual({
         token: fakeRecaptchaAppCheckToken.token
       });
-      expect(clientStub).to.not.have.been.called;
-
-      clock.restore();
+      expect(clientStub).not.toHaveBeenCalled();
     });
 
     it('force to get new token when forceRefresh is true', async () => {
@@ -412,15 +414,13 @@ describe('internal api', () => {
       });
 
       stubGetRecaptchaToken();
-      stub(client, 'exchangeToken').returns(
-        Promise.resolve({
-          token: 'new-recaptcha-app-check-token',
-          expireTimeMillis: Date.now() + 60000,
-          issuedAtTimeMillis: 0
-        })
-      );
+      vi.spyOn(client, 'exchangeToken').mockResolvedValue({
+        token: 'new-recaptcha-app-check-token',
+        expireTimeMillis: Date.now() + 60000,
+        issuedAtTimeMillis: 0
+      });
 
-      expect(await getToken(appCheck as AppCheckService, true)).to.deep.equal({
+      expect(await getToken(appCheck as AppCheckService, true)).toEqual({
         token: 'new-recaptcha-app-check-token'
       });
     });
@@ -437,29 +437,25 @@ describe('internal api', () => {
       });
 
       stubGetRecaptchaToken();
-      stub(client, 'exchangeToken').returns(
-        Promise.resolve({
-          token: 'new-recaptcha-app-check-token',
-          expireTimeMillis: Date.now() + 60000,
-          issuedAtTimeMillis: 0
-        })
-      );
+      vi.spyOn(client, 'exchangeToken').mockResolvedValue({
+        token: 'new-recaptcha-app-check-token',
+        expireTimeMillis: Date.now() + 60000,
+        issuedAtTimeMillis: 0
+      });
 
       const getTokenPromise = getToken(appCheck as AppCheckService, true);
 
-      expect(getStateReference(app).exchangeTokenPromise).to.be.instanceOf(
+      expect(getStateReference(app).exchangeTokenPromise).toBeInstanceOf(
         Promise
       );
 
       await getTokenPromise;
 
-      expect(getStateReference(app).exchangeTokenPromise).to.be.equal(
-        undefined
-      );
+      expect(getStateReference(app).exchangeTokenPromise).toBe(undefined);
     });
 
     it('no dangling exchangeToken promise', async () => {
-      const clock = useFakeTimers();
+      vi.useFakeTimers({ now: 0 });
 
       const appCheck = initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
@@ -479,7 +475,7 @@ describe('internal api', () => {
 
       stubGetRecaptchaToken();
       let count = 0;
-      stub(client, 'exchangeToken').callsFake(
+      vi.spyOn(client, 'exchangeToken').mockImplementation(
         () =>
           new Promise(res =>
             setTimeout(
@@ -497,7 +493,7 @@ describe('internal api', () => {
       // start fetch token
       void getToken(appCheck as AppCheckService, true);
 
-      clock.tick(2000);
+      await vi.advanceTimersByTimeAsync(2000);
 
       // save expired `token-old` with copied state and wait fetch token
       void getToken(appCheck as AppCheckService);
@@ -506,14 +502,14 @@ describe('internal api', () => {
       void getToken(appCheck as AppCheckService);
 
       // stored copied state with `token-new-0`
-      await clock.runAllAsync();
+      await vi.advanceTimersByTimeAsync(1500);
 
       // fetch token with copied state
       const newToken = getToken(appCheck as AppCheckService, true);
 
-      await clock.runAllAsync();
+      await vi.advanceTimersByTimeAsync(3500);
 
-      expect(await newToken).to.deep.equal({
+      expect(await newToken).toEqual({
         token: 'recaptcha-app-check-token-new-1'
       });
     });
@@ -532,38 +528,34 @@ describe('internal api', () => {
       });
 
       stubGetRecaptchaToken();
-      stub(client, 'exchangeToken').returns(
-        Promise.resolve({
-          token: 'new-recaptcha-app-check-token',
-          expireTimeMillis: Date.now() + 60000,
-          issuedAtTimeMillis: 0
-        })
-      );
+      vi.spyOn(client, 'exchangeToken').mockResolvedValue({
+        token: 'new-recaptcha-app-check-token',
+        expireTimeMillis: Date.now() + 60000,
+        issuedAtTimeMillis: 0
+      });
 
-      expect(await getToken(appCheck as AppCheckService)).to.deep.equal({
+      expect(await getToken(appCheck as AppCheckService)).toEqual({
         token: 'new-recaptcha-app-check-token'
       });
     });
 
     it('returns the valid token in storage without making a network request', async () => {
-      const clock = useFakeTimers();
+      vi.useFakeTimers({ now: 0 });
 
-      storageReadStub.resolves(fakeCachedAppCheckToken);
+      storageReadStub.mockResolvedValue(fakeCachedAppCheckToken);
       const appCheck = initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
       });
 
-      const clientStub = stub(client, 'exchangeToken');
-      expect(await getToken(appCheck as AppCheckService)).to.deep.equal({
+      const clientStub = vi.spyOn(client, 'exchangeToken');
+      expect(await getToken(appCheck as AppCheckService)).toEqual({
         token: fakeCachedAppCheckToken.token
       });
-      expect(clientStub).to.not.have.been.called;
-
-      clock.restore();
+      expect(clientStub).not.toHaveBeenCalled();
     });
 
     it('deletes cached token if it is invalid and continues to exchange request', async () => {
-      storageReadStub.resolves({
+      storageReadStub.mockResolvedValue({
         token: 'something',
         expireTimeMillis: Date.now() - 1000,
         issuedAtTimeMillis: 0
@@ -579,21 +571,21 @@ describe('internal api', () => {
       };
 
       stubGetRecaptchaToken();
-      stub(client, 'exchangeToken').returns(Promise.resolve(freshToken));
+      vi.spyOn(client, 'exchangeToken').mockResolvedValue(freshToken);
 
-      expect(await getToken(appCheck as AppCheckService)).to.deep.equal({
+      expect(await getToken(appCheck as AppCheckService)).toEqual({
         token: 'new-recaptcha-app-check-token'
       });
 
       // When it wiped the invalid token.
-      expect(storageWriteStub).has.been.calledWith(app, undefined);
+      expect(storageWriteStub).toHaveBeenCalledWith(app, undefined);
 
       // When it wrote the new token fetched from the exchange endpoint.
-      expect(storageWriteStub).has.been.calledWith(app, freshToken);
+      expect(storageWriteStub).toHaveBeenCalledWith(app, freshToken);
     });
 
     it('returns the actual token and an internalError if a token is valid but the request fails', async () => {
-      stub(logger, 'error');
+      vi.spyOn(logger, 'error').mockImplementation(() => {});
       const appCheck = initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
       });
@@ -603,18 +595,17 @@ describe('internal api', () => {
       });
 
       stubGetRecaptchaToken();
-      stub(client, 'exchangeToken').returns(Promise.reject(new Error('blah')));
+      vi.spyOn(client, 'exchangeToken').mockRejectedValue(new Error('blah'));
 
       const tokenResult = await getToken(appCheck as AppCheckService, true);
-      expect(tokenResult.internalError?.message).to.equal('blah');
-      expect(tokenResult.token).to.equal('fake-recaptcha-app-check-token');
+      expect(tokenResult.internalError?.message).toBe('blah');
+      expect(tokenResult.token).toBe('fake-recaptcha-app-check-token');
     });
 
     it('exchanges debug token if in debug mode and there is no cached token', async () => {
-      const exchangeTokenStub: SinonStub = stub(
-        client,
-        'exchangeToken'
-      ).returns(Promise.resolve(fakeRecaptchaAppCheckToken));
+      const exchangeTokenStub = vi
+        .spyOn(client, 'exchangeToken')
+        .mockResolvedValue(fakeRecaptchaAppCheckToken);
       const debugState = getDebugState();
       debugState.enabled = true;
       debugState.token = new Deferred();
@@ -624,17 +615,16 @@ describe('internal api', () => {
       });
 
       const token = await getToken(appCheck as AppCheckService);
-      expect(exchangeTokenStub.args[0][0].body['debug_token']).to.equal(
+      expect(exchangeTokenStub.mock.calls[0][0].body['debug_token']).toBe(
         'my-debug-token'
       );
-      expect(token).to.deep.equal({ token: fakeRecaptchaAppCheckToken.token });
+      expect(token).toEqual({ token: fakeRecaptchaAppCheckToken.token });
     });
 
     it('exchanges debug token only once if debug mode with no cached token', async () => {
-      const exchangeTokenStub: SinonStub = stub(
-        client,
-        'exchangeToken'
-      ).returns(Promise.resolve(fakeRecaptchaAppCheckToken));
+      const exchangeTokenStub = vi
+        .spyOn(client, 'exchangeToken')
+        .mockResolvedValue(fakeRecaptchaAppCheckToken);
       const debugState = getDebugState();
       debugState.enabled = true;
       debugState.token = new Deferred();
@@ -647,12 +637,12 @@ describe('internal api', () => {
         getToken(appCheckService),
         getToken(appCheckService)
       ]);
-      expect(exchangeTokenStub.args[0][0].body['debug_token']).to.equal(
+      expect(exchangeTokenStub.mock.calls[0][0].body['debug_token']).toBe(
         'my-debug-token'
       );
-      expect(token1).to.deep.equal({ token: fakeRecaptchaAppCheckToken.token });
-      expect(token2).to.deep.equal({ token: fakeRecaptchaAppCheckToken.token });
-      expect(exchangeTokenStub).to.be.calledOnce;
+      expect(token1).toEqual({ token: fakeRecaptchaAppCheckToken.token });
+      expect(token2).toEqual({ token: fakeRecaptchaAppCheckToken.token });
+      expect(exchangeTokenStub).toHaveBeenCalledTimes(1);
     });
 
     it('throttles for a period less than 1d on 503', async () => {
@@ -661,13 +651,11 @@ describe('internal api', () => {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
       });
       stubGetRecaptchaToken();
-      const warnStub = stub(logger, 'warn');
-      stub(client, 'exchangeToken').returns(
-        Promise.reject(
-          ERROR_FACTORY.create(AppCheckError.FETCH_STATUS_ERROR, {
-            httpStatus: 503
-          })
-        )
+      const warnStub = vi.spyOn(logger, 'warn').mockImplementation(() => {});
+      vi.spyOn(client, 'exchangeToken').mockRejectedValue(
+        ERROR_FACTORY.create(AppCheckError.FETCH_STATUS_ERROR, {
+          httpStatus: 503
+        })
       );
 
       const token = await getToken(appCheck as AppCheckService);
@@ -677,10 +665,10 @@ describe('internal api', () => {
       // correct throttle time. This also tests the time formatter.
       // Check both the error itself and that it makes it through to
       // console.warn
-      expect(token.error?.message).to.include('503');
-      expect(token.error?.message).to.include('00m');
-      expect(token.error?.message).to.not.include('1d');
-      expect(warnStub.args[0][0]).to.include('503');
+      expect(token.error?.message).toContain('503');
+      expect(token.error?.message).toContain('00m');
+      expect(token.error?.message).not.toContain('1d');
+      expect(warnStub.mock.calls[0][0]).toContain('503');
     });
 
     it('throttles 1d on 403', async () => {
@@ -688,13 +676,11 @@ describe('internal api', () => {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
       });
       stubGetRecaptchaToken();
-      const warnStub = stub(logger, 'warn');
-      stub(client, 'exchangeToken').returns(
-        Promise.reject(
-          ERROR_FACTORY.create(AppCheckError.FETCH_STATUS_ERROR, {
-            httpStatus: 403
-          })
-        )
+      const warnStub = vi.spyOn(logger, 'warn').mockImplementation(() => {});
+      vi.spyOn(client, 'exchangeToken').mockRejectedValue(
+        ERROR_FACTORY.create(AppCheckError.FETCH_STATUS_ERROR, {
+          httpStatus: 403
+        })
       );
 
       const token = await getToken(appCheck as AppCheckService);
@@ -704,39 +690,39 @@ describe('internal api', () => {
       // correct throttle time. This also tests the time formatter.
       // Check both the error itself and that it makes it through to
       // console.warn
-      expect(token.error?.message).to.include('403');
-      expect(token.error?.message).to.include('1d');
-      expect(warnStub.args[0][0]).to.include('403');
+      expect(token.error?.message).toContain('403');
+      expect(token.error?.message).toContain('1d');
+      expect(warnStub.mock.calls[0][0]).toContain('403');
     });
   });
 
   describe('getLimitedUseToken()', () => {
     it('uses customTokenProvider to get an AppCheck token', async () => {
       const customTokenProvider = getFakeCustomTokenProvider();
-      const customProviderSpy = spy(customTokenProvider, 'getToken');
+      const customProviderSpy = vi.spyOn(customTokenProvider, 'getToken');
 
       const appCheck = initializeAppCheck(app, {
         provider: customTokenProvider
       });
       const token = await getLimitedUseToken(appCheck as AppCheckService);
 
-      expect(customProviderSpy).to.be.calledWith(true);
-      expect(token).to.deep.equal({
+      expect(customProviderSpy).toHaveBeenCalledWith(true);
+      expect(token).toEqual({
         token: 'fake-custom-app-check-token'
       });
     });
 
     it('does not interact with state', async () => {
       const customTokenProvider = getFakeCustomTokenProvider();
-      spy(customTokenProvider, 'getToken');
+      vi.spyOn(customTokenProvider, 'getToken');
 
       const appCheck = initializeAppCheck(app, {
         provider: customTokenProvider
       });
       await getLimitedUseToken(appCheck as AppCheckService);
 
-      expect(getStateReference(app).token).to.be.undefined;
-      expect(getStateReference(app).isTokenAutoRefreshEnabled).to.be.false;
+      expect(getStateReference(app).token).toBeUndefined();
+      expect(getStateReference(app).isTokenAutoRefreshEnabled).toBe(false);
     });
 
     it('uses reCAPTCHA (V3) token to exchange for AppCheck token', async () => {
@@ -745,22 +731,21 @@ describe('internal api', () => {
       });
 
       const reCAPTCHASpy = stubGetRecaptchaToken();
-      const exchangeTokenStub: SinonStub = stub(
-        client,
-        'exchangeToken'
-      ).returns(Promise.resolve(fakeRecaptchaAppCheckToken));
+      const exchangeTokenStub = vi
+        .spyOn(client, 'exchangeToken')
+        .mockResolvedValue(fakeRecaptchaAppCheckToken);
 
       const token = await getLimitedUseToken(appCheck as AppCheckService);
 
-      expect(reCAPTCHASpy).to.be.called;
+      expect(reCAPTCHASpy).toHaveBeenCalled();
 
-      expect(exchangeTokenStub.args[0][0].body['recaptcha_v3_token']).to.equal(
-        fakeRecaptchaToken
-      );
+      expect(
+        exchangeTokenStub.mock.calls[0][0].body['recaptcha_v3_token']
+      ).toBe(fakeRecaptchaToken);
 
-      expect(exchangeTokenStub.args[0][0].body['limited_use']).to.equal(true);
+      expect(exchangeTokenStub.mock.calls[0][0].body['limited_use']).toBe(true);
 
-      expect(token).to.deep.equal({ token: fakeRecaptchaAppCheckToken.token });
+      expect(token).toEqual({ token: fakeRecaptchaAppCheckToken.token });
     });
 
     it('uses reCAPTCHA (Enterprise) token to exchange for AppCheck token', async () => {
@@ -769,28 +754,26 @@ describe('internal api', () => {
       });
 
       const reCAPTCHASpy = stubGetRecaptchaToken();
-      const exchangeTokenStub: SinonStub = stub(
-        client,
-        'exchangeToken'
-      ).returns(Promise.resolve(fakeRecaptchaAppCheckToken));
+      const exchangeTokenStub = vi
+        .spyOn(client, 'exchangeToken')
+        .mockResolvedValue(fakeRecaptchaAppCheckToken);
 
       const token = await getLimitedUseToken(appCheck as AppCheckService);
 
-      expect(reCAPTCHASpy).to.be.called;
+      expect(reCAPTCHASpy).toHaveBeenCalled();
 
       expect(
-        exchangeTokenStub.args[0][0].body['recaptcha_enterprise_token']
-      ).to.equal(fakeRecaptchaToken);
+        exchangeTokenStub.mock.calls[0][0].body['recaptcha_enterprise_token']
+      ).toBe(fakeRecaptchaToken);
 
-      expect(exchangeTokenStub.args[0][0].body['limited_use']).to.equal(true);
-      expect(token).to.deep.equal({ token: fakeRecaptchaAppCheckToken.token });
+      expect(exchangeTokenStub.mock.calls[0][0].body['limited_use']).toBe(true);
+      expect(token).toEqual({ token: fakeRecaptchaAppCheckToken.token });
     });
 
     it('exchanges debug token if in debug mode', async () => {
-      const exchangeTokenStub: SinonStub = stub(
-        client,
-        'exchangeToken'
-      ).returns(Promise.resolve(fakeRecaptchaAppCheckToken));
+      const exchangeTokenStub = vi
+        .spyOn(client, 'exchangeToken')
+        .mockResolvedValue(fakeRecaptchaAppCheckToken);
       const debugState = getDebugState();
       debugState.enabled = true;
       debugState.token = new Deferred();
@@ -800,11 +783,11 @@ describe('internal api', () => {
       });
 
       const token = await getLimitedUseToken(appCheck as AppCheckService);
-      expect(exchangeTokenStub.args[0][0].body['debug_token']).to.equal(
+      expect(exchangeTokenStub.mock.calls[0][0].body['debug_token']).toBe(
         'my-debug-token'
       );
-      expect(exchangeTokenStub.args[0][0].body['limited_use']).to.equal(true);
-      expect(token).to.deep.equal({ token: fakeRecaptchaAppCheckToken.token });
+      expect(exchangeTokenStub.mock.calls[0][0].body['limited_use']).toBe(true);
+      expect(token).toEqual({ token: fakeRecaptchaAppCheckToken.token });
     });
   });
 
@@ -814,7 +797,7 @@ describe('internal api', () => {
     });
 
     it('adds token listeners', async () => {
-      const clock = useFakeTimers();
+      vi.useFakeTimers({ now: 0 });
       const listener = (): void => {};
       setInitialState(app, {
         ...getStateReference(app),
@@ -827,9 +810,9 @@ describe('internal api', () => {
         listener
       );
 
-      expect(getStateReference(app).tokenObservers[0].next).to.equal(listener);
+      expect(getStateReference(app).tokenObservers[0].next).toBe(listener);
       // resolve initTokenRefresher dangling promise
-      await clock.tickAsync(1000);
+      await vi.advanceTimersByTimeAsync(1000);
     });
 
     it('starts proactively refreshing token after adding the first listener', async () => {
@@ -839,8 +822,8 @@ describe('internal api', () => {
         isTokenAutoRefreshEnabled: true,
         cachedTokenPromise: Promise.resolve(undefined)
       });
-      expect(getStateReference(app).tokenObservers.length).to.equal(0);
-      expect(getStateReference(app).tokenRefresher).to.equal(undefined);
+      expect(getStateReference(app).tokenObservers.length).toBe(0);
+      expect(getStateReference(app).tokenRefresher).toBe(undefined);
 
       addTokenListener(
         { app } as AppCheckService,
@@ -848,20 +831,21 @@ describe('internal api', () => {
         listener
       );
 
-      expect(getStateReference(app).tokenRefresher?.isRunning()).to.be
-        .undefined;
+      expect(
+        getStateReference(app).tokenRefresher?.isRunning()
+      ).toBeUndefined();
 
       // addTokenListener() waits for the result of cachedTokenPromise
       // before starting the refresher
       await getStateReference(app).cachedTokenPromise;
 
-      expect(getStateReference(app).tokenRefresher?.isRunning()).to.be.true;
+      expect(getStateReference(app).tokenRefresher?.isRunning()).toBe(true);
     });
 
     it('notifies the listener with the valid token in memory immediately', async () => {
-      const clock = useFakeTimers();
+      vi.useFakeTimers({ now: 0 });
 
-      const listener = stub();
+      const listener = vi.fn();
 
       setInitialState(app, {
         ...getStateReference(app),
@@ -878,15 +862,15 @@ describe('internal api', () => {
         ListenerType.INTERNAL,
         listener
       );
-      await clock.runAllAsync();
-      expect(listener).to.be.calledWith({
+      await Promise.resolve();
+      await Promise.resolve();
+      expect(listener).toHaveBeenCalledWith({
         token: 'fake-memory-app-check-token'
       });
-      clock.restore();
     });
 
-    it('notifies the listener with the valid token in storage', done => {
-      storageReadStub.resolves({
+    it('notifies the listener with the valid token in storage', async () => {
+      storageReadStub.mockResolvedValue({
         token: `fake-cached-app-check-token`,
         expireTimeMillis: Date.now() + 60000,
         issuedAtTimeMillis: 0
@@ -896,22 +880,22 @@ describe('internal api', () => {
         isTokenAutoRefreshEnabled: true
       });
 
-      const fakeListener: AppCheckTokenListener = token => {
-        expect(token).to.deep.equal({
-          token: `fake-cached-app-check-token`
-        });
-        done();
-      };
+      const fakeListener = vi.fn();
 
       addTokenListener(
         appCheck as AppCheckService,
         ListenerType.INTERNAL,
         fakeListener
       );
+
+      await getStateReference(app).cachedTokenPromise;
+      expect(fakeListener).toHaveBeenCalledWith({
+        token: `fake-cached-app-check-token`
+      });
     });
 
     it('does not make rapid requests within proactive refresh window', async () => {
-      const clock = useFakeTimers();
+      vi.useFakeTimers({ now: 0 });
       const appCheck = initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY),
         isTokenAutoRefreshEnabled: true
@@ -926,15 +910,13 @@ describe('internal api', () => {
         }
       });
 
-      const fakeListener: AppCheckTokenListener = stub();
+      const fakeListener: AppCheckTokenListener = vi.fn();
 
-      const fakeExchange = stub(client, 'exchangeToken').returns(
-        Promise.resolve({
-          token: 'new-recaptcha-app-check-token',
-          expireTimeMillis: 10 * 60 * 1000,
-          issuedAtTimeMillis: 0
-        })
-      );
+      const fakeExchange = vi.spyOn(client, 'exchangeToken').mockResolvedValue({
+        token: 'new-recaptcha-app-check-token',
+        expireTimeMillis: 10 * 60 * 1000,
+        issuedAtTimeMillis: 0
+      });
 
       stubGetRecaptchaToken();
 
@@ -944,20 +926,19 @@ describe('internal api', () => {
         fakeListener
       );
       // Tick 10s, make sure nothing is called repeatedly in that time.
-      await clock.tickAsync(10000);
-      expect(fakeListener).to.be.calledWith({
+      await vi.advanceTimersByTimeAsync(10000);
+      expect(fakeListener).toHaveBeenCalledWith({
         token: 'fake-cached-app-check-token'
       });
-      expect(fakeListener).to.be.calledWith({
+      expect(fakeListener).toHaveBeenCalledWith({
         token: 'new-recaptcha-app-check-token'
       });
-      expect(fakeExchange).to.be.calledOnce;
-      clock.restore();
+      expect(fakeExchange).toHaveBeenCalledTimes(1);
     });
 
     it('proactive refresh window test - exchange request fails - wait 10s', async () => {
-      stub(logger, 'error');
-      const clock = useFakeTimers();
+      vi.spyOn(logger, 'error').mockImplementation(() => {});
+      vi.useFakeTimers({ now: 0 });
       const appCheck = initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY),
         isTokenAutoRefreshEnabled: true
@@ -974,11 +955,11 @@ describe('internal api', () => {
 
       stubGetRecaptchaToken();
 
-      const fakeListener: AppCheckTokenListener = stub();
+      const fakeListener: AppCheckTokenListener = vi.fn();
 
-      const fakeExchange = stub(client, 'exchangeToken').returns(
-        Promise.reject(new Error('fetch failed or something'))
-      );
+      const fakeExchange = vi
+        .spyOn(client, 'exchangeToken')
+        .mockRejectedValue(new Error('fetch failed or something'));
 
       addTokenListener(
         appCheck as AppCheckService,
@@ -986,19 +967,18 @@ describe('internal api', () => {
         fakeListener
       );
       // Tick 10s, make sure nothing is called repeatedly in that time.
-      await clock.tickAsync(10000);
-      expect(fakeListener).to.be.calledWith({
+      await vi.advanceTimersByTimeAsync(10000);
+      expect(fakeListener).toHaveBeenCalledWith({
         token: 'fake-cached-app-check-token'
       });
       // once on init and once invoked directly in this test
-      expect(fakeListener).to.be.calledTwice;
-      expect(fakeExchange).to.be.calledOnce;
-      clock.restore();
+      expect(fakeListener).toHaveBeenCalledTimes(2);
+      expect(fakeExchange).toHaveBeenCalledTimes(1);
     });
 
     it('proactive refresh window test - exchange request fails - wait 40s', async () => {
-      stub(logger, 'error');
-      const clock = useFakeTimers();
+      vi.spyOn(logger, 'error').mockImplementation(() => {});
+      vi.useFakeTimers({ now: 0 });
       const appCheck = initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY),
         isTokenAutoRefreshEnabled: true
@@ -1015,11 +995,11 @@ describe('internal api', () => {
 
       stubGetRecaptchaToken();
 
-      const fakeListener: AppCheckTokenListener = stub();
+      const fakeListener: AppCheckTokenListener = vi.fn();
 
-      const fakeExchange = stub(client, 'exchangeToken').returns(
-        Promise.reject(new Error('fetch failed or something'))
-      );
+      const fakeExchange = vi
+        .spyOn(client, 'exchangeToken')
+        .mockRejectedValue(new Error('fetch failed or something'));
 
       addTokenListener(
         appCheck as AppCheckService,
@@ -1028,16 +1008,15 @@ describe('internal api', () => {
       );
       // Tick 40s, expect one initial exchange request and one retry.
       // (First backoff is 30s).
-      await clock.tickAsync(40000);
-      expect(fakeListener).to.be.calledTwice;
-      expect(fakeExchange).to.be.calledTwice;
-      clock.restore();
+      await vi.advanceTimersByTimeAsync(40000);
+      expect(fakeListener).toHaveBeenCalledTimes(2);
+      expect(fakeExchange).toHaveBeenCalledTimes(2);
     });
 
     it('expired token - exchange request fails - wait 10s', async () => {
-      stub(logger, 'error');
-      const clock = useFakeTimers();
-      clock.tick(1);
+      vi.spyOn(logger, 'error').mockImplementation(() => {});
+      vi.useFakeTimers({ now: 0 });
+      await vi.advanceTimersByTimeAsync(1);
       const appCheck = initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY),
         isTokenAutoRefreshEnabled: true
@@ -1054,13 +1033,13 @@ describe('internal api', () => {
         }
       });
 
-      const fakeListener = stub();
-      const errorHandler = stub();
+      const fakeListener = vi.fn();
+      const errorHandler = vi.fn();
       const fakeNetworkError = new Error('fetch failed or something');
 
-      const fakeExchange = stub(client, 'exchangeToken').returns(
-        Promise.reject(fakeNetworkError)
-      );
+      const fakeExchange = vi
+        .spyOn(client, 'exchangeToken')
+        .mockRejectedValue(fakeNetworkError);
 
       addTokenListener(
         appCheck as AppCheckService,
@@ -1069,17 +1048,16 @@ describe('internal api', () => {
         errorHandler
       );
       // Tick 10s, make sure nothing is called repeatedly in that time.
-      await clock.tickAsync(10000);
-      expect(fakeListener).not.to.be.called;
-      expect(fakeExchange).to.be.calledOnce;
-      expect(errorHandler).to.be.calledWith(fakeNetworkError);
-      clock.restore();
+      await vi.advanceTimersByTimeAsync(10000);
+      expect(fakeListener).not.toHaveBeenCalled();
+      expect(fakeExchange).toHaveBeenCalledTimes(1);
+      expect(errorHandler).toHaveBeenCalledWith(fakeNetworkError);
     });
 
     it('expired token - exchange request fails - wait 40s', async () => {
-      stub(logger, 'error');
-      const clock = useFakeTimers();
-      clock.tick(1);
+      vi.spyOn(logger, 'error').mockImplementation(() => {});
+      vi.useFakeTimers({ now: 0 });
+      await vi.advanceTimersByTimeAsync(1);
       const appCheck = initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY),
         isTokenAutoRefreshEnabled: true
@@ -1096,13 +1074,13 @@ describe('internal api', () => {
         }
       });
 
-      const fakeListener = stub();
-      const errorHandler = stub();
+      const fakeListener = vi.fn();
+      const errorHandler = vi.fn();
       const fakeNetworkError = new Error('fetch failed or something');
 
-      const fakeExchange = stub(client, 'exchangeToken').returns(
-        Promise.reject(fakeNetworkError)
-      );
+      const fakeExchange = vi
+        .spyOn(client, 'exchangeToken')
+        .mockRejectedValue(fakeNetworkError);
 
       addTokenListener(
         appCheck as AppCheckService,
@@ -1112,11 +1090,10 @@ describe('internal api', () => {
       );
       // Tick 40s, expect one initial exchange request and one retry.
       // (First backoff is 30s).
-      await clock.tickAsync(40000);
-      expect(fakeListener).not.to.be.called;
-      expect(fakeExchange).to.be.calledTwice;
-      expect(errorHandler).to.be.calledTwice;
-      clock.restore();
+      await vi.advanceTimersByTimeAsync(40000);
+      expect(fakeListener).not.toHaveBeenCalled();
+      expect(fakeExchange).toHaveBeenCalledTimes(2);
+      expect(errorHandler).toHaveBeenCalledTimes(2);
     });
   });
 
@@ -1132,10 +1109,10 @@ describe('internal api', () => {
         ListenerType.INTERNAL,
         listener
       );
-      expect(getStateReference(app).tokenObservers.length).to.equal(1);
+      expect(getStateReference(app).tokenObservers.length).toBe(1);
 
       removeTokenListener(app, listener);
-      expect(getStateReference(app).tokenObservers.length).to.equal(0);
+      expect(getStateReference(app).tokenObservers.length).toBe(0);
     });
 
     it('should stop proactively refreshing token after deleting the last listener', async () => {
@@ -1159,12 +1136,12 @@ describe('internal api', () => {
       // before starting the refresher
       await getStateReference(app).cachedTokenPromise;
 
-      expect(getStateReference(app).tokenObservers.length).to.equal(1);
-      expect(getStateReference(app).tokenRefresher?.isRunning()).to.be.true;
+      expect(getStateReference(app).tokenObservers.length).toBe(1);
+      expect(getStateReference(app).tokenRefresher?.isRunning()).toBe(true);
 
       removeTokenListener(app, listener);
-      expect(getStateReference(app).tokenObservers.length).to.equal(0);
-      expect(getStateReference(app).tokenRefresher?.isRunning()).to.be.false;
+      expect(getStateReference(app).tokenObservers.length).toBe(0);
+      expect(getStateReference(app).tokenRefresher?.isRunning()).toBe(false);
     });
   });
 });
