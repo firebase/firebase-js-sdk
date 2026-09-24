@@ -95,7 +95,7 @@ export interface TemplateRequest {
   /**
    * Optional tool configuration for this request. Only retrieval/grounding
    * configs are supported for server prompt templates with unary and streaming
-   * generateContent.
+   * `generateContent`.
    */
   toolConfig?: TemplateToolConfig;
 }

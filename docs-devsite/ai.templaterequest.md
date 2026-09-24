@@ -27,7 +27,7 @@ export interface TemplateRequest
 |  --- | --- | --- |
 |  [templateId](./ai.templaterequest.md#templaterequesttemplateid) | string | <b><i>(Public Preview)</i></b> The ID of the server prompt template to use. |
 |  [templateVariables](./ai.templaterequest.md#templaterequesttemplatevariables) | Record&lt;string, unknown&gt; | <b><i>(Public Preview)</i></b> A key-value map of variables to populate the template with. |
-|  [toolConfig](./ai.templaterequest.md#templaterequesttoolconfig) | [TemplateToolConfig](./ai.templatetoolconfig.md#templatetoolconfig_interface) | <b><i>(Public Preview)</i></b> Optional tool configuration for this request. Only retrieval/grounding configs are supported for server prompt templates with unary and streaming generateContent. |
+|  [toolConfig](./ai.templaterequest.md#templaterequesttoolconfig) | [TemplateToolConfig](./ai.templatetoolconfig.md#templatetoolconfig_interface) | <b><i>(Public Preview)</i></b> Optional tool configuration for this request. Only retrieval/grounding configs are supported for server prompt templates with unary and streaming <code>generateContent</code>. |
 
 ## TemplateRequest.templateId
 
@@ -60,7 +60,7 @@ templateVariables: Record<string, unknown>;
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Optional tool configuration for this request. Only retrieval/grounding configs are supported for server prompt templates with unary and streaming generateContent.
+Optional tool configuration for this request. Only retrieval/grounding configs are supported for server prompt templates with unary and streaming `generateContent`<!-- -->.
 
 <b>Signature:</b>
 
