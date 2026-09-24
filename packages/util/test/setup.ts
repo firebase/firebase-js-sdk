@@ -15,7 +15,8 @@
  * limitations under the License.
  */
 
-import { use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
+import { vi } from 'vitest';
 
-use(chaiAsPromised);
+afterEach(() => {
+  vi.restoreAllMocks();
+});

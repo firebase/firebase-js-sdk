@@ -33,7 +33,12 @@ import {
   LanguageModelMessage
 } from '../types/language-model';
 import { match, stub } from 'sinon';
-import { GenerateContentRequest, AIErrorCode, InferenceMode } from '../types';
+import {
+  GenerateContentRequest,
+  AIErrorCode,
+  InferenceMode,
+  TextPart
+} from '../types';
 import { Schema } from '../api';
 
 use(sinonChai);
@@ -76,7 +81,7 @@ describe('ChromeAdapter', () => {
         contents: [
           {
             role: 'user',
-            parts: [{ text: 'hi' }]
+            parts: [{ type: 'text', text: 'hi' }]
           }
         ]
       });
@@ -104,7 +109,7 @@ describe('ChromeAdapter', () => {
         contents: [
           {
             role: 'user',
-            parts: [{ text: 'hi' }]
+            parts: [{ type: 'text', text: 'hi' }]
           }
         ]
       });
@@ -134,7 +139,7 @@ describe('ChromeAdapter', () => {
         contents: [
           {
             role: 'user',
-            parts: [{ text: 'hi' }]
+            parts: [{ type: 'text', text: 'hi' }]
           }
         ]
       });
@@ -168,7 +173,7 @@ describe('ChromeAdapter', () => {
         contents: [
           {
             role: 'user',
-            parts: [{ text: 'hi' }]
+            parts: [{ type: 'text', text: 'hi' }]
           }
         ]
       });
@@ -267,6 +272,7 @@ describe('ChromeAdapter', () => {
               role: 'user',
               parts: [
                 {
+                  type: 'functionResponse',
                   functionResponse: {
                     name: 'greet',
                     response: { name: 'user' }
@@ -277,6 +283,81 @@ describe('ChromeAdapter', () => {
           ]
         })
       ).to.be.false;
+    });
+    it('returns false if request content has an untagged functionResponse part', async () => {
+      const adapter = new ChromeAdapterImpl(
+        {
+          availability: async () => Availability.AVAILABLE
+        } as LanguageModel,
+        InferenceMode.PREFER_ON_DEVICE
+      );
+      expect(
+        await adapter.isAvailable({
+          contents: [
+            {
+              role: 'user',
+              parts: [
+                {
+                  functionResponse: {
+                    name: 'greet',
+                    response: { name: 'user' }
+                  }
+                } as unknown as TextPart
+              ]
+            }
+          ]
+        })
+      ).to.be.false;
+    });
+    it('returns false if request has an untagged image with unsupported mime type', async () => {
+      const adapter = new ChromeAdapterImpl(
+        {
+          availability: async () => Availability.AVAILABLE
+        } as LanguageModel,
+        InferenceMode.PREFER_ON_DEVICE
+      );
+      expect(
+        await adapter.isAvailable({
+          contents: [
+            {
+              role: 'user',
+              parts: [
+                {
+                  inlineData: {
+                    mimeType: 'image/gif',
+                    data: ''
+                  }
+                } as unknown as TextPart
+              ]
+            }
+          ]
+        })
+      ).to.be.false;
+    });
+    it('returns true if request has an untagged image with supported mime type', async () => {
+      const adapter = new ChromeAdapterImpl(
+        {
+          availability: async () => Availability.AVAILABLE
+        } as LanguageModel,
+        InferenceMode.PREFER_ON_DEVICE
+      );
+      expect(
+        await adapter.isAvailable({
+          contents: [
+            {
+              role: 'user',
+              parts: [
+                {
+                  inlineData: {
+                    mimeType: 'image/jpeg',
+                    data: ''
+                  }
+                } as unknown as TextPart
+              ]
+            }
+          ]
+        })
+      ).to.be.true;
     });
     it('returns true if request has image with supported mime type', async () => {
       const adapter = new ChromeAdapterImpl(
@@ -293,6 +374,7 @@ describe('ChromeAdapter', () => {
                 role: 'user',
                 parts: [
                   {
+                    type: 'inlineData',
                     inlineData: {
                       mimeType,
                       data: ''
@@ -319,8 +401,11 @@ describe('ChromeAdapter', () => {
             {
               role: 'user',
               parts: [
-                { text: 'describe this image' },
-                { inlineData: { mimeType: 'image/jpeg', data: 'asd' } }
+                { type: 'text', text: 'describe this image' },
+                {
+                  type: 'inlineData',
+                  inlineData: { mimeType: 'image/jpeg', data: 'asd' }
+                }
               ]
             }
           ]
@@ -343,7 +428,7 @@ describe('ChromeAdapter', () => {
       );
       expect(
         await adapter.isAvailable({
-          contents: [{ role: 'user', parts: [{ text: 'hi' }] }]
+          contents: [{ role: 'user', parts: [{ type: 'text', text: 'hi' }] }]
         })
       ).to.be.false;
     });
@@ -358,7 +443,7 @@ describe('ChromeAdapter', () => {
       );
       expect(
         await adapter.isAvailable({
-          contents: [{ role: 'user', parts: [{ text: 'hi' }] }]
+          contents: [{ role: 'user', parts: [{ type: 'text', text: 'hi' }] }]
         })
       ).to.be.false;
     });
@@ -474,7 +559,9 @@ describe('ChromeAdapter', () => {
         { createOptions }
       );
       const request = {
-        contents: [{ role: 'user', parts: [{ text: 'anything' }] }]
+        contents: [
+          { role: 'user', parts: [{ type: 'text', text: 'anything' }] }
+        ]
       } as GenerateContentRequest;
       const response = await adapter.generateContent(request);
       // Asserts initialization params are proxied.
@@ -486,12 +573,55 @@ describe('ChromeAdapter', () => {
           content: [
             {
               type: 'text',
-              value: request.contents[0].parts[0].text
+              value: (request.contents[0].parts[0] as TextPart).text
             }
           ]
         }
       ]);
       // Asserts expected output.
+      expect(await response.json()).to.deep.equal({
+        candidates: [
+          {
+            content: {
+              parts: [{ text: promptOutput }]
+            }
+          }
+        ]
+      });
+    });
+    it('generates content from plain-string prompt / untagged text part', async () => {
+      const languageModelProvider = {
+        create: () => Promise.resolve({})
+      } as LanguageModel;
+      const languageModel = {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        prompt: (p: LanguageModelMessage[]) => Promise.resolve('')
+      } as LanguageModel;
+      stub(languageModelProvider, 'create').resolves(languageModel);
+      const promptOutput = 'hi';
+      const promptStub = stub(languageModel, 'prompt').resolves(promptOutput);
+      const adapter = new ChromeAdapterImpl(
+        languageModelProvider,
+        InferenceMode.PREFER_ON_DEVICE
+      );
+      // Untagged part produced by formatGenerateContentInput('anything')
+      const request = {
+        contents: [
+          { role: 'user', parts: [{ text: 'anything' } as unknown as TextPart] }
+        ]
+      } as GenerateContentRequest;
+      const response = await adapter.generateContent(request);
+      expect(promptStub).to.have.been.calledOnceWith([
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'text',
+              value: 'anything'
+            }
+          ]
+        }
+      ]);
       expect(await response.json()).to.deep.equal({
         candidates: [
           {
@@ -529,8 +659,9 @@ describe('ChromeAdapter', () => {
           {
             role: 'user',
             parts: [
-              { text: 'anything' },
+              { type: 'text', text: 'anything' },
               {
+                type: 'inlineData',
                 inlineData: {
                   data: sampleBase64EncodedImage,
                   mimeType: 'image/jpeg'
@@ -550,7 +681,7 @@ describe('ChromeAdapter', () => {
           content: [
             {
               type: 'text',
-              value: request.contents[0].parts[0].text
+              value: (request.contents[0].parts[0] as TextPart).text
             },
             {
               type: 'image',
@@ -591,7 +722,9 @@ describe('ChromeAdapter', () => {
         { promptOptions }
       );
       const request = {
-        contents: [{ role: 'user', parts: [{ text: 'anything' }] }]
+        contents: [
+          { role: 'user', parts: [{ type: 'text', text: 'anything' }] }
+        ]
       } as GenerateContentRequest;
       await adapter.generateContent(request);
       expect(promptStub).to.have.been.calledOnceWith(
@@ -601,7 +734,7 @@ describe('ChromeAdapter', () => {
             content: [
               {
                 type: 'text',
-                value: request.contents[0].parts[0].text
+                value: (request.contents[0].parts[0] as TextPart).text
               }
             ]
           }
@@ -623,7 +756,7 @@ describe('ChromeAdapter', () => {
         InferenceMode.PREFER_ON_DEVICE
       );
       const request = {
-        contents: [{ role: 'model', parts: [{ text: 'unused' }] }]
+        contents: [{ role: 'model', parts: [{ type: 'text', text: 'unused' }] }]
       } as GenerateContentRequest;
       await adapter.generateContent(request);
       expect(promptStub).to.have.been.calledOnceWith([
@@ -633,7 +766,7 @@ describe('ChromeAdapter', () => {
           content: [
             {
               type: 'text',
-              value: request.contents[0].parts[0].text
+              value: (request.contents[0].parts[0] as TextPart).text
             }
           ]
         }
@@ -704,7 +837,9 @@ describe('ChromeAdapter', () => {
         { createOptions }
       );
       const request = {
-        contents: [{ role: 'user', parts: [{ text: 'anything' }] }]
+        contents: [
+          { role: 'user', parts: [{ type: 'text', text: 'anything' }] }
+        ]
       } as GenerateContentRequest;
       const response = await adapter.generateContentStream(request);
       expect(createStub).to.have.been.calledOnceWith(createOptions);
@@ -714,7 +849,50 @@ describe('ChromeAdapter', () => {
           content: [
             {
               type: 'text',
-              value: request.contents[0].parts[0].text
+              value: (request.contents[0].parts[0] as TextPart).text
+            }
+          ]
+        }
+      ]);
+      const actual = await toStringArray(response.body!);
+      expect(actual).to.deep.equal([
+        `data: {"candidates":[{"content":{"role":"model","parts":[{"text":["${part}"]}]}}]}\n\n`
+      ]);
+    });
+    it('generates content stream from plain-string prompt / untagged text part', async () => {
+      const languageModelProvider = {
+        create: () => Promise.resolve({})
+      } as LanguageModel;
+      const languageModel = {
+        promptStreaming: _i => new ReadableStream()
+      } as LanguageModel;
+      stub(languageModelProvider, 'create').resolves(languageModel);
+      const part = 'hi';
+      const promptStub = stub(languageModel, 'promptStreaming').returns(
+        new ReadableStream({
+          start(controller) {
+            controller.enqueue([part]);
+            controller.close();
+          }
+        })
+      );
+      const adapter = new ChromeAdapterImpl(
+        languageModelProvider,
+        InferenceMode.PREFER_ON_DEVICE
+      );
+      const request = {
+        contents: [
+          { role: 'user', parts: [{ text: 'anything' } as unknown as TextPart] }
+        ]
+      } as GenerateContentRequest;
+      const response = await adapter.generateContentStream(request);
+      expect(promptStub).to.have.been.calledOnceWith([
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'text',
+              value: 'anything'
             }
           ]
         }
@@ -756,8 +934,9 @@ describe('ChromeAdapter', () => {
           {
             role: 'user',
             parts: [
-              { text: 'anything' },
+              { type: 'text', text: 'anything' },
               {
+                type: 'inlineData',
                 inlineData: {
                   data: sampleBase64EncodedImage,
                   mimeType: 'image/jpeg'
@@ -775,7 +954,7 @@ describe('ChromeAdapter', () => {
           content: [
             {
               type: 'text',
-              value: request.contents[0].parts[0].text
+              value: (request.contents[0].parts[0] as TextPart).text
             },
             {
               type: 'image',
@@ -811,7 +990,9 @@ describe('ChromeAdapter', () => {
         { promptOptions }
       );
       const request = {
-        contents: [{ role: 'user', parts: [{ text: 'anything' }] }]
+        contents: [
+          { role: 'user', parts: [{ type: 'text', text: 'anything' }] }
+        ]
       } as GenerateContentRequest;
       await adapter.generateContentStream(request);
       expect(promptStub).to.have.been.calledOnceWith(
@@ -821,7 +1002,7 @@ describe('ChromeAdapter', () => {
             content: [
               {
                 type: 'text',
-                value: request.contents[0].parts[0].text
+                value: (request.contents[0].parts[0] as TextPart).text
               }
             ]
           }
@@ -845,7 +1026,7 @@ describe('ChromeAdapter', () => {
         InferenceMode.PREFER_ON_DEVICE
       );
       const request = {
-        contents: [{ role: 'model', parts: [{ text: 'unused' }] }]
+        contents: [{ role: 'model', parts: [{ type: 'text', text: 'unused' }] }]
       } as GenerateContentRequest;
       await adapter.generateContentStream(request);
       expect(promptStub).to.have.been.calledOnceWith([
@@ -855,7 +1036,7 @@ describe('ChromeAdapter', () => {
           content: [
             {
               type: 'text',
-              value: request.contents[0].parts[0].text
+              value: (request.contents[0].parts[0] as TextPart).text
             }
           ]
         }

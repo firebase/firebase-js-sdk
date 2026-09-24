@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
+import { expect } from 'vitest';
 import { isNode } from '../src/environment';
 import { getGlobal } from '../src/global';
 import { FirebaseDefaults } from '../src/defaults';

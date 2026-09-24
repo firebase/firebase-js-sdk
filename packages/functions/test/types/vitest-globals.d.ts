@@ -15,8 +15,4 @@
  * limitations under the License.
  */
 
-import { vi } from 'vitest';
-
-afterEach(() => {
-  vi.restoreAllMocks();
-});
+import 'vitest/globals';

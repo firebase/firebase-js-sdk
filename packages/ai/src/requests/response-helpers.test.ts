@@ -15,7 +15,11 @@
  * limitations under the License.
  */
 
-import { addHelpers, formatBlockErrorMessage } from './response-helpers';
+import {
+  addHelpers,
+  assignPartType,
+  formatBlockErrorMessage
+} from './response-helpers';
 import { expect, use } from 'chai';
 import { restore } from 'sinon';
 import sinonChai from 'sinon-chai';
@@ -24,7 +28,10 @@ import {
   Content,
   FinishReason,
   GenerateContentResponse,
-  InlineDataPart
+  InlineDataPart,
+  FunctionCallPart,
+  Part,
+  UnknownPart
 } from '../types';
 
 use(sinonChai);
@@ -35,7 +42,10 @@ const fakeResponseText: GenerateContentResponse = {
       index: 0,
       content: {
         role: 'model',
-        parts: [{ text: 'Some text' }, { text: ' and some more text' }]
+        parts: [
+          { type: 'text', text: 'Some text' },
+          { type: 'text', text: ' and some more text' }
+        ]
       }
     }
   ]
@@ -48,15 +58,16 @@ const fakeResponseThoughts: GenerateContentResponse = {
       content: {
         role: 'model',
         parts: [
-          { text: 'Some text' },
-          { text: 'and some thoughts', thought: true }
+          { type: 'text', text: 'Some text' },
+          { type: 'text', text: 'and some thoughts', thought: true }
         ]
       }
     }
   ]
 };
 
-const functionCallPart1 = {
+const functionCallPart1: FunctionCallPart = {
+  type: 'functionCall',
   functionCall: {
     name: 'find_theaters',
     args: {
@@ -66,7 +77,8 @@ const functionCallPart1 = {
   }
 };
 
-const functionCallPart2 = {
+const functionCallPart2: FunctionCallPart = {
+  type: 'functionCall',
   functionCall: {
     name: 'find_times',
     args: {
@@ -107,7 +119,7 @@ const fakeResponseMixed1: GenerateContentResponse = {
       index: 0,
       content: {
         role: 'model',
-        parts: [{ text: 'some text' }, functionCallPart2]
+        parts: [{ type: 'text', text: 'some text' }, functionCallPart2]
       }
     }
   ]
@@ -119,7 +131,7 @@ const fakeResponseMixed2: GenerateContentResponse = {
       index: 0,
       content: {
         role: 'model',
-        parts: [functionCallPart1, { text: 'some text' }]
+        parts: [functionCallPart1, { type: 'text', text: 'some text' }]
       }
     }
   ]
@@ -132,9 +144,9 @@ const fakeResponseMixed3: GenerateContentResponse = {
       content: {
         role: 'model',
         parts: [
-          { text: 'some text' },
+          { type: 'text', text: 'some text' },
           functionCallPart1,
-          { text: ' and more text' }
+          { type: 'text', text: ' and more text' }
         ]
       }
     }
@@ -142,6 +154,7 @@ const fakeResponseMixed3: GenerateContentResponse = {
 };
 
 const inlineDataPart1: InlineDataPart = {
+  type: 'inlineData',
   inlineData: {
     mimeType: 'image/png',
     data: 'base64encoded...'
@@ -149,6 +162,7 @@ const inlineDataPart1: InlineDataPart = {
 };
 
 const inlineDataPart2: InlineDataPart = {
+  type: 'inlineData',
   inlineData: {
     mimeType: 'image/jpeg',
     data: 'anotherbase64...'
@@ -173,7 +187,7 @@ const fakeResponseTextAndInlineData: GenerateContentResponse = {
       index: 0,
       content: {
         role: 'model',
-        parts: [{ text: 'Describe this:' }, inlineDataPart1]
+        parts: [{ type: 'text', text: 'Describe this:' }, inlineDataPart1]
       }
     }
   ]
@@ -339,6 +353,79 @@ describe('response-helpers methods', () => {
       expect(message).to.include(
         'Candidate was blocked due to SAFETY: unsafe candidate'
       );
+    });
+  });
+  describe('assignPartType', () => {
+    it('correctly assigns "text" type to an untagged text part', () => {
+      const part: UnknownPart = { text: 'hello' };
+      const result = assignPartType(part);
+      expect(result.type).to.equal('text');
+      expect(result).to.deep.equal({ type: 'text', text: 'hello' });
+    });
+    it('correctly assigns "text" type to an empty text part', () => {
+      const part: UnknownPart = { text: '' };
+      const result = assignPartType(part);
+      expect(result.type).to.equal('text');
+      expect((result as any).text).to.equal('');
+    });
+    it('correctly assigns "inlineData" type', () => {
+      const part: UnknownPart = {
+        inlineData: { mimeType: 'image/png', data: 'abc' }
+      };
+      const result = assignPartType(part);
+      expect(result.type).to.equal('inlineData');
+    });
+    it('correctly assigns "functionCall" type', () => {
+      const part: UnknownPart = {
+        functionCall: { name: 'foo', args: {} }
+      };
+      const result = assignPartType(part);
+      expect(result.type).to.equal('functionCall');
+    });
+    it('correctly assigns "functionResponse" type', () => {
+      const part: UnknownPart = {
+        functionResponse: { name: 'foo', response: {} }
+      };
+      const result = assignPartType(part);
+      expect(result.type).to.equal('functionResponse');
+    });
+    it('correctly assigns "fileData" type', () => {
+      const part: UnknownPart = {
+        fileData: { mimeType: 'application/pdf', fileUri: 'gs://bucket/file' }
+      };
+      const result = assignPartType(part);
+      expect(result.type).to.equal('fileData');
+    });
+    it('correctly assigns "executableCode" type', () => {
+      const part: UnknownPart = {
+        executableCode: { code: 'print(1)' }
+      };
+      const result = assignPartType(part);
+      expect(result.type).to.equal('executableCode');
+    });
+    it('correctly assigns "codeExecutionResult" type', () => {
+      const part: UnknownPart = {
+        codeExecutionResult: { output: '1' }
+      };
+      const result = assignPartType(part);
+      expect(result.type).to.equal('codeExecutionResult');
+    });
+    it('is idempotent and leaves already-tagged Part untouched', () => {
+      const part: Part = { type: 'text', text: 'hello' };
+      const result = assignPartType(part);
+      expect(result).to.equal(part);
+      expect(result.type).to.equal('text');
+    });
+    it('returns empty or unrecognized object as-is without crashing', () => {
+      const emptyPart = {} as UnknownPart;
+      const resultEmpty = assignPartType(emptyPart);
+      expect(resultEmpty).to.equal(emptyPart);
+      expect(resultEmpty.type).to.be.undefined;
+
+      const unknownPart = { invalidKey: 'val' } as unknown as UnknownPart;
+      const resultUnknown = assignPartType(unknownPart);
+      expect(resultUnknown).to.equal(unknownPart);
+      expect(resultUnknown.type).to.be.undefined;
     });
   });
 });

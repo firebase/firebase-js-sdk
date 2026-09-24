@@ -28,15 +28,16 @@
     "dev": "rollup -c -w",
     "test": "run-p --npm-path npm lint test:all",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all",
-    "test:all": "run-p --npm-path npm test:browser test:node",
-    "test:browser": "karma start",
-    "test:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha src/**/*.test.ts --config ../../config/mocharc.node.js",
+    "test:all": "vitest run",
+    "test:browser": "vitest run --project=browser",
+    "test:node": "vitest run --project=node",
     "trusted-type-check": "tsec -p tsconfig.json --noEmit",
     "api-report": "api-extractor run --local --verbose",
     "doc": "api-documenter markdown --input temp --output docs",
     "build:doc": "yarn build && yarn doc",
     "typings:public": "node ../../scripts/build/use_typings.js ./dist/app-public.d.ts",
-    "typings:internal": "node ../../scripts/build/use_typings.js ./dist/app.d.ts"
+    "typings:internal": "node ../../scripts/build/use_typings.js ./dist/app.d.ts",
+    "test:browser:debug": "vitest --project=browser --browser.headless=false"
   },
   "dependencies": {
     "@firebase/util": "1.15.3",
@@ -63,12 +64,6 @@
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
   "typings": "./dist/app/src/index.d.ts",
-  "nyc": {
-    "extension": [
-      ".ts"
-    ],
-    "reportDir": "./coverage/node"
-  },
   "engines": {
     "node": ">=20.0.0"
   }
