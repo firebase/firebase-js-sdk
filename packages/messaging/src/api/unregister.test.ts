@@ -15,10 +15,6 @@
  * limitations under the License.
  */
 
-import '../testing/setup';
-
-import { expect } from 'chai';
-import { stub } from 'sinon';
 import { MessagingService } from '../messaging-service';
 import {
   getFakeAnalyticsProvider,
@@ -26,13 +22,30 @@ import {
   getFakeInstallations
 } from '../testing/fakes/firebase-dependencies';
 import { unregister } from './unregister';
-import * as idbManager from '../internals/idb-manager';
+
+import * as idbManagerModule from '../internals/idb-manager';
 import * as requestsModule from '../internals/requests';
+
+vi.mock('../internals/idb-manager', { spy: true });
+vi.mock('../internals/requests', { spy: true });
+
+const mockDbGetFidRegistration = vi.mocked(
+  idbManagerModule.dbGetFidRegistration
+);
+const mockDbRemoveFidRegistration = vi.mocked(
+  idbManagerModule.dbRemoveFidRegistration
+);
+const mockDbRemove = vi.mocked(idbManagerModule.dbRemove);
+const mockRequestDeleteRegistration = vi.mocked(
+  requestsModule.requestDeleteRegistration
+);
+const mockRequestDeleteToken = vi.mocked(requestsModule.requestDeleteToken);
 
 describe('unregister', () => {
   let messaging: MessagingService;
 
   beforeEach(() => {
+    vi.clearAllMocks();
     messaging = new MessagingService(
       getFakeApp(),
       getFakeInstallations(),
@@ -42,129 +55,117 @@ describe('unregister', () => {
 
   it('deletes the stored FID registration and notifies onUnregisteredHandler', async () => {
     const fid = 'FID_STORED';
-    const onUnregisteredSpy = stub();
+    const onUnregisteredSpy = vi.fn();
     messaging.onUnregisteredHandler = onUnregisteredSpy;
 
-    const dbGetStub = stub(idbManager, 'dbGetFidRegistration').resolves({
+    mockDbGetFidRegistration.mockResolvedValue({
       fid,
       lastRegisterTime: Date.now()
     });
-    const dbRemoveStub = stub(idbManager, 'dbRemoveFidRegistration').resolves();
-    const deleteRegStub = stub(
-      requestsModule,
-      'requestDeleteRegistration'
-    ).resolves();
-    const getIdStub = stub(
-      messaging.firebaseDependencies.installations,
-      'getId'
-    ).resolves('FID_SHOULD_NOT_BE_USED');
+    mockDbRemoveFidRegistration.mockResolvedValue(undefined);
+    mockRequestDeleteRegistration.mockResolvedValue(undefined);
+    const getIdSpy = vi
+      .spyOn(messaging.firebaseDependencies.installations, 'getId')
+      .mockResolvedValue('FID_SHOULD_NOT_BE_USED');
 
     await unregister(messaging);
 
-    expect(dbGetStub).to.have.been.calledOnce;
-    expect(deleteRegStub).to.have.been.calledOnceWith(
+    expect(mockDbGetFidRegistration).toHaveBeenCalledTimes(1);
+    expect(mockRequestDeleteRegistration).toHaveBeenCalledTimes(1);
+    expect(mockRequestDeleteRegistration).toHaveBeenCalledWith(
       messaging.firebaseDependencies,
       fid
     );
-    expect(dbRemoveStub).to.have.been.calledOnce;
-    expect(getIdStub).to.not.have.been.called;
-    expect(onUnregisteredSpy).to.have.been.calledOnceWith(fid);
+    expect(mockDbRemoveFidRegistration).toHaveBeenCalledTimes(1);
+    expect(getIdSpy).not.toHaveBeenCalled();
+    expect(onUnregisteredSpy).toHaveBeenCalledTimes(1);
+    expect(onUnregisteredSpy).toHaveBeenCalledWith(fid);
   });
 
   it('falls back to installations.getId() when no stored FID registration exists', async () => {
     const fid = 'FID_FROM_INSTALLATIONS';
-    messaging.onUnregisteredHandler = stub();
+    messaging.onUnregisteredHandler = vi.fn() as any;
 
-    const dbGetStub = stub(idbManager, 'dbGetFidRegistration').resolves(
-      undefined
-    );
-    const dbRemoveStub = stub(idbManager, 'dbRemoveFidRegistration').resolves();
-    const deleteRegStub = stub(
-      requestsModule,
-      'requestDeleteRegistration'
-    ).resolves();
-    const getIdStub = stub(
-      messaging.firebaseDependencies.installations,
-      'getId'
-    ).resolves(fid);
+    mockDbGetFidRegistration.mockResolvedValue(undefined);
+    mockDbRemoveFidRegistration.mockResolvedValue(undefined);
+    mockRequestDeleteRegistration.mockResolvedValue(undefined);
+    const getIdSpy = vi
+      .spyOn(messaging.firebaseDependencies.installations, 'getId')
+      .mockResolvedValue(fid);
 
     await unregister(messaging);
 
-    expect(dbGetStub).to.have.been.calledOnce;
-    expect(getIdStub).to.have.been.calledOnce;
-    expect(deleteRegStub).to.have.been.calledOnceWith(
+    expect(mockDbGetFidRegistration).toHaveBeenCalledTimes(1);
+    expect(getIdSpy).toHaveBeenCalledTimes(1);
+    expect(mockRequestDeleteRegistration).toHaveBeenCalledTimes(1);
+    expect(mockRequestDeleteRegistration).toHaveBeenCalledWith(
       messaging.firebaseDependencies,
       fid
     );
-    expect(dbRemoveStub).to.have.been.calledOnce;
+    expect(mockDbRemoveFidRegistration).toHaveBeenCalledTimes(1);
   });
 
   it('does not throw if onUnregisteredHandler is not set', async () => {
     const fid = 'FID';
     messaging.onUnregisteredHandler = null;
 
-    stub(idbManager, 'dbGetFidRegistration').resolves({
+    mockDbGetFidRegistration.mockResolvedValue({
       fid,
       lastRegisterTime: Date.now()
     });
-    stub(idbManager, 'dbRemoveFidRegistration').resolves();
-    stub(requestsModule, 'requestDeleteRegistration').resolves();
+    mockDbRemoveFidRegistration.mockResolvedValue(undefined);
+    mockRequestDeleteRegistration.mockResolvedValue(undefined);
 
     await unregister(messaging);
   });
 
   it('cleans up legacy FCM token stored via getToken() without touching legacy delete token request', async () => {
     const fid = 'FID_STORED';
-    const onUnregisteredSpy = stub();
+    const onUnregisteredSpy = vi.fn();
     messaging.onUnregisteredHandler = onUnregisteredSpy;
 
-    stub(idbManager, 'dbGetFidRegistration').resolves({
+    mockDbGetFidRegistration.mockResolvedValue({
       fid,
       lastRegisterTime: Date.now()
     });
-    stub(idbManager, 'dbRemoveFidRegistration').resolves();
-    const deleteRegStub = stub(
-      requestsModule,
-      'requestDeleteRegistration'
-    ).resolves();
+    mockDbRemoveFidRegistration.mockResolvedValue(undefined);
+    mockRequestDeleteRegistration.mockResolvedValue(undefined);
 
     // Guard rails: unregister() should clean up legacy token DB, but must not call legacy
     // requestDeleteToken(). The DB cleanup is best-effort.
-    const legacyDbRemoveStub = stub(idbManager, 'dbRemove').resolves();
-    const legacyDeleteTokenReqStub = stub(
-      requestsModule,
-      'requestDeleteToken'
-    ).throws(new Error('unexpected requestDeleteToken()'));
+    mockDbRemove.mockResolvedValue(undefined);
+    mockRequestDeleteToken.mockImplementation(() => {
+      throw new Error('unexpected requestDeleteToken()');
+    });
 
     await unregister(messaging);
 
-    expect(deleteRegStub).to.have.been.calledOnceWith(
+    expect(mockRequestDeleteRegistration).toHaveBeenCalledTimes(1);
+    expect(mockRequestDeleteRegistration).toHaveBeenCalledWith(
       messaging.firebaseDependencies,
       fid
     );
-    expect(onUnregisteredSpy).to.have.been.calledOnceWith(fid);
-    expect(legacyDbRemoveStub).to.have.been.calledOnceWith(
-      messaging.firebaseDependencies
-    );
-    expect(legacyDeleteTokenReqStub).to.not.have.been.called;
+    expect(onUnregisteredSpy).toHaveBeenCalledTimes(1);
+    expect(onUnregisteredSpy).toHaveBeenCalledWith(fid);
+    expect(mockDbRemove).toHaveBeenCalledTimes(1);
+    expect(mockDbRemove).toHaveBeenCalledWith(messaging.firebaseDependencies);
+    expect(mockRequestDeleteToken).not.toHaveBeenCalled();
   });
 
   it('does not notify onUnregisteredHandler when delete registration fails', async () => {
     const fid = 'FID';
-    const onUnregisteredSpy = stub();
+    const onUnregisteredSpy = vi.fn();
     messaging.onUnregisteredHandler = onUnregisteredSpy;
 
-    stub(idbManager, 'dbGetFidRegistration').resolves({
+    mockDbGetFidRegistration.mockResolvedValue({
       fid,
       lastRegisterTime: Date.now()
     });
-    const dbRemoveStub = stub(idbManager, 'dbRemoveFidRegistration').resolves();
-    stub(requestsModule, 'requestDeleteRegistration').rejects(
-      new Error('boom')
-    );
+    mockDbRemoveFidRegistration.mockResolvedValue(undefined);
+    mockRequestDeleteRegistration.mockRejectedValue(new Error('boom'));
 
-    await expect(unregister(messaging)).to.be.rejectedWith('boom');
-    expect(onUnregisteredSpy).to.not.have.been.called;
-    expect(dbRemoveStub).to.not.have.been.called;
+    await expect(unregister(messaging)).rejects.toThrow('boom');
+    expect(onUnregisteredSpy).not.toHaveBeenCalled();
+    expect(mockDbRemoveFidRegistration).not.toHaveBeenCalled();
   });
 });
