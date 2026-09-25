@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import { describe } from '../../util/mocha_extensions';
@@ -73,28 +71,28 @@ apiDescribe('Firestore', persistence => {
 
     await setDoc(docRef, data);
     let docSnapshot = await getDoc(docRef);
-    expect(docSnapshot.data()).to.deep.equal(expectedData);
+    expect(docSnapshot.data()).toEqual(expectedData);
 
     await updateDoc(docRef, data);
     docSnapshot = await getDoc(docRef);
-    expect(docSnapshot.data()).to.deep.equal(expectedData);
+    expect(docSnapshot.data()).toEqual(expectedData);
 
     // Validate that the transaction API returns the same types
     await runTransaction(db, async transaction => {
       docSnapshot = await transaction.get(docRef);
-      expect(docSnapshot.data()).to.deep.equal(expectedData);
+      expect(docSnapshot.data()).toEqual(expectedData);
     });
 
     if (validateSnapshots) {
       let querySnapshot = await getDocs(collRef);
       docSnapshot = querySnapshot.docs[0];
-      expect(docSnapshot.data()).to.deep.equal(expectedData);
+      expect(docSnapshot.data()).toEqual(expectedData);
 
       const eventsAccumulator = new EventsAccumulator<QuerySnapshot>();
       const unlisten = onSnapshot(collRef, eventsAccumulator.storeEvent);
       querySnapshot = await eventsAccumulator.awaitEvent();
       docSnapshot = querySnapshot.docs[0];
-      expect(docSnapshot.data()).to.deep.equal(expectedData);
+      expect(docSnapshot.data()).toEqual(expectedData);
 
       unlisten();
     }
@@ -136,14 +134,14 @@ apiDescribe('Firestore', persistence => {
       });
 
       const latLong = docSnapshot.data()!['geopoint1'];
-      expect(latLong instanceof GeoPoint).to.equal(true);
-      expect(latLong.latitude).to.equal(1.23);
-      expect(latLong.longitude).to.equal(4.56);
+      expect(latLong instanceof GeoPoint).toBe(true);
+      expect(latLong.latitude).toBe(1.23);
+      expect(latLong.longitude).toBe(4.56);
 
       const zeroLatLong = docSnapshot.data()!['geopoint2'];
-      expect(zeroLatLong instanceof GeoPoint).to.equal(true);
-      expect(zeroLatLong.latitude).to.equal(0);
-      expect(zeroLatLong.longitude).to.equal(0);
+      expect(zeroLatLong instanceof GeoPoint).toBe(true);
+      expect(zeroLatLong.latitude).toBe(0);
+      expect(zeroLatLong.longitude).toBe(0);
     });
   });
 
@@ -159,7 +157,7 @@ apiDescribe('Firestore', persistence => {
       // Comment this change back in once this is complete (note that this
       // check passes in the legacy API).
       // expect(blob instanceof Blob).to.equal(true);
-      expect(blob.toUint8Array()).to.deep.equal(new Uint8Array([0, 1, 255]));
+      expect(blob.toUint8Array()).toEqual(new Uint8Array([0, 1, 255]));
     });
   });
 
@@ -333,7 +331,7 @@ apiDescribe('Firestore', persistence => {
         } catch (err) {
           errorMessage = (err as FirestoreError)?.message;
         }
-        expect(errorMessage).to.contains(
+        expect(errorMessage).toContain(
           "The field '__int__' value (2,147,483,648) is too large to be converted to a 32-bit integer."
         );
 
@@ -342,7 +340,7 @@ apiDescribe('Firestore', persistence => {
         } catch (err) {
           errorMessage = (err as FirestoreError)?.message;
         }
-        expect(errorMessage).to.contains(
+        expect(errorMessage).toContain(
           "The field '__int__' value (-2,147,483,650) is too large to be converted to a 32-bit integer."
         );
       });
@@ -357,21 +355,21 @@ apiDescribe('Firestore', persistence => {
         } catch (err) {
           errorMessage = (err as FirestoreError)?.message;
         }
-        expect(errorMessage).to.contains('Invalid number');
+        expect(errorMessage).toContain('Invalid number');
 
         try {
           await setDoc(docRef, { key: new Decimal128Value('1 23. 4') });
         } catch (err) {
           errorMessage = (err as FirestoreError)?.message;
         }
-        expect(errorMessage).to.contains('Invalid number 1 23. 4');
+        expect(errorMessage).toContain('Invalid number 1 23. 4');
 
         try {
           await setDoc(docRef, { key: new Decimal128Value('abc') });
         } catch (err) {
           errorMessage = (err as FirestoreError)?.message;
         }
-        expect(errorMessage).to.contains('Invalid number abc');
+        expect(errorMessage).toContain('Invalid number abc');
       });
     });
 
@@ -385,7 +383,7 @@ apiDescribe('Firestore', persistence => {
         } catch (err) {
           errorMessage = (err as FirestoreError)?.message;
         }
-        expect(errorMessage).to.contains(
+        expect(errorMessage).toContain(
           "BsonTimestamp 'seconds' must be in the range of a 32-bit unsigned integer (0-4294967295)."
         );
 
@@ -395,31 +393,31 @@ apiDescribe('Firestore', persistence => {
         } catch (err) {
           errorMessage = (err as FirestoreError)?.message;
         }
-        expect(errorMessage).to.contains(
+        expect(errorMessage).toContain(
           "BsonTimestamp 'seconds' must be in the range of a 32-bit unsigned integer (0-4294967295)."
         );
 
-        expect(() => new BsonTimestamp(NaN, 2)).to.throw(
+        expect(() => new BsonTimestamp(NaN, 2)).toThrow(
           "BsonTimestamp 'seconds' must be in the range of a 32-bit unsigned integer (0-4294967295)."
         );
 
-        expect(() => new BsonTimestamp(1.5, 2)).to.throw(
+        expect(() => new BsonTimestamp(1.5, 2)).toThrow(
           "BsonTimestamp 'seconds' must be in the range of a 32-bit unsigned integer (0-4294967295)."
         );
 
-        expect(() => new BsonTimestamp(2, NaN)).to.throw(
+        expect(() => new BsonTimestamp(2, NaN)).toThrow(
           "BsonTimestamp 'increment' must be in the range of a 32-bit unsigned integer (0-4294967295)."
         );
 
-        expect(() => new BsonTimestamp(2, 1.5)).to.throw(
+        expect(() => new BsonTimestamp(2, 1.5)).toThrow(
           "BsonTimestamp 'increment' must be in the range of a 32-bit unsigned integer (0-4294967295)."
         );
 
-        expect(() => new BsonTimestamp(2, -1)).to.throw(
+        expect(() => new BsonTimestamp(2, -1)).toThrow(
           "BsonTimestamp 'increment' must be in the range of a 32-bit unsigned integer (0-4294967295)."
         );
 
-        expect(() => new BsonTimestamp(2, 4294967296)).to.throw(
+        expect(() => new BsonTimestamp(2, 4294967296)).toThrow(
           "BsonTimestamp 'increment' must be in the range of a 32-bit unsigned integer (0-4294967295)."
         );
       });
@@ -434,7 +432,7 @@ apiDescribe('Firestore', persistence => {
         } catch (err) {
           errorMessage = (err as FirestoreError)?.message;
         }
-        expect(errorMessage).to.contains(
+        expect(errorMessage).toContain(
           "Invalid regex option 'a'. Supported options are 'i', 'm', 's', 'u', and 'x'."
         );
       });
@@ -451,7 +449,7 @@ apiDescribe('Firestore', persistence => {
         } catch (err) {
           errorMessage = (err as FirestoreError)?.message;
         }
-        expect(errorMessage).to.contains(
+        expect(errorMessage).toContain(
           'Object ID hex string has incorrect length.'
         );
       });
@@ -468,7 +466,7 @@ apiDescribe('Firestore', persistence => {
         } catch (err) {
           errorMessage = (err as FirestoreError)?.message;
         }
-        expect(errorMessage).to.contains(
+        expect(errorMessage).toContain(
           'The subtype for Bytes must be a value in the inclusive [0, 255] range.'
         );
       });
@@ -514,9 +512,9 @@ apiDescribe('Firestore', persistence => {
             testDocs[snapshot.docs[i].id as keyof typeof testDocs].key;
           if (actualDoc instanceof DocumentReference) {
             // deep.equal doesn't work with DocumentReference
-            expect(refEqual(actualDoc, docRef)).to.be.true;
+            expect(refEqual(actualDoc, docRef)).toBe(true);
           } else {
-            expect(actualDoc).to.deep.equal(expectedDoc);
+            expect(actualDoc).toEqual(expectedDoc);
           }
         }
       });

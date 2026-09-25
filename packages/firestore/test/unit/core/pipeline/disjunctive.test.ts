@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2025 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import {
   and as apiAnd,
@@ -63,9 +61,13 @@ describe('Disjunctive Queries', () => {
         ])
       );
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).to.deep.equal(
-      [doc1, doc2, doc3, doc4, doc5]
-    );
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc1,
+      doc2,
+      doc3,
+      doc4,
+      doc5
+    ]);
   });
 
   it('multipleEqAny', () => {
@@ -91,9 +93,11 @@ describe('Disjunctive Queries', () => {
         )
       );
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).to.deep.equal(
-      [doc2, doc4, doc5]
-    );
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc2,
+      doc4,
+      doc5
+    ]);
   });
 
   it('eqAny_multipleStages', () => {
@@ -117,9 +121,11 @@ describe('Disjunctive Queries', () => {
       )
       .where(equalAny(field('age'), [constant(10), constant(25)]));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).to.deep.equal(
-      [doc2, doc4, doc5]
-    );
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc2,
+      doc4,
+      doc5
+    ]);
   });
 
   it('multipleEqAnys_withOr', () => {
@@ -139,9 +145,12 @@ describe('Disjunctive Queries', () => {
         )
       );
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).to.deep.equal(
-      [doc1, doc2, doc4, doc5]
-    );
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc1,
+      doc2,
+      doc4,
+      doc5
+    ]);
   });
 
   it('eqAny_onCollectionGroup', () => {
@@ -166,9 +175,10 @@ describe('Disjunctive Queries', () => {
         ])
       );
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).to.deep.equal(
-      [doc4, doc1]
-    );
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc4,
+      doc1
+    ]);
   });
 
   it('eqAny_withSortOnDifferentField', () => {
@@ -191,9 +201,9 @@ describe('Disjunctive Queries', () => {
       )
       .sort(field('age').ascending());
 
-    expect(
-      runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
-    ).to.have.members([doc4, doc5, doc2, doc1]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual(
+      expect.arrayContaining([doc4, doc5, doc2, doc1])
+    );
   });
 
   it('eqAny_withSortOnEqAnyField', () => {
@@ -216,9 +226,12 @@ describe('Disjunctive Queries', () => {
       )
       .sort(field('name').ascending());
 
-    expect(
-      runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
-    ).to.have.ordered.members([doc1, doc2, doc4, doc5]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc1,
+      doc2,
+      doc4,
+      doc5
+    ]);
   });
 
   it('eqAny_withAdditionalEquality_differentFields', () => {
@@ -245,9 +258,10 @@ describe('Disjunctive Queries', () => {
       )
       .sort(field('name').ascending());
 
-    expect(
-      runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
-    ).to.have.ordered.members([doc4, doc5]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc4,
+      doc5
+    ]);
   });
 
   it('eqAny_withAdditionalEquality_sameField', () => {
@@ -271,9 +285,9 @@ describe('Disjunctive Queries', () => {
         )
       );
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).to.deep.equal(
-      [doc5]
-    );
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc5
+    ]);
   });
 
   it('eqAny_withAdditionalEquality_sameField_emptyResult', () => {
@@ -291,7 +305,7 @@ describe('Disjunctive Queries', () => {
         )
       );
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.be.empty;
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toHaveLength(0);
   });
 
   it('eqAny_withInequalities_exclusiveRange', () => {
@@ -317,9 +331,10 @@ describe('Disjunctive Queries', () => {
         )
       );
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).to.deep.equal(
-      [doc1, doc2]
-    );
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc1,
+      doc2
+    ]);
   });
 
   it('eqAny_withInequalities_inclusiveRange', () => {
@@ -345,9 +360,12 @@ describe('Disjunctive Queries', () => {
         )
       );
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).to.deep.equal(
-      [doc1, doc2, doc3, doc4]
-    );
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc1,
+      doc2,
+      doc3,
+      doc4
+    ]);
   });
 
   it('eqAny_withInequalitiesAndSort', () => {
@@ -374,9 +392,10 @@ describe('Disjunctive Queries', () => {
       )
       .sort(field('age').ascending());
 
-    expect(
-      runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
-    ).to.have.ordered.members([doc2, doc1]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc2,
+      doc1
+    ]);
   });
 
   it('eqAny_withNotEqual', () => {
@@ -401,9 +420,11 @@ describe('Disjunctive Queries', () => {
         )
       );
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).to.deep.equal(
-      [doc1, doc2, doc4]
-    );
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc1,
+      doc2,
+      doc4
+    ]);
   });
 
   it('eqAny_sortOnEqAnyField', () => {
@@ -426,9 +447,12 @@ describe('Disjunctive Queries', () => {
       )
       .sort(field('name').ascending());
 
-    expect(
-      runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
-    ).to.have.ordered.members([doc1, doc2, doc3, doc4]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc1,
+      doc2,
+      doc3,
+      doc4
+    ]);
   });
 
   it('eqAny_singleValue_sortOnInField_ambiguousOrder', () => {
@@ -442,10 +466,7 @@ describe('Disjunctive Queries', () => {
       .where(equalAny(field('age'), [constant(10)]))
       .sort(field('age').ascending());
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.have.ordered.members([
-      doc2,
-      doc3
-    ]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([doc2, doc3]);
   });
 
   it('eqAny_withExtraEquality_sortOnEqAnyField', () => {
@@ -472,9 +493,10 @@ describe('Disjunctive Queries', () => {
       )
       .sort(field('name').ascending());
 
-    expect(
-      runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
-    ).to.have.ordered.members([doc4, doc5]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc4,
+      doc5
+    ]);
   });
 
   it('eqAny_withExtraEquality_sortOnEquality', () => {
@@ -501,9 +523,10 @@ describe('Disjunctive Queries', () => {
       )
       .sort(field('age').ascending());
 
-    expect(
-      runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
-    ).to.have.ordered.members([doc4, doc5]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc4,
+      doc5
+    ]);
   });
 
   it('eqAny_withInequality_onSameField', () => {
@@ -523,9 +546,10 @@ describe('Disjunctive Queries', () => {
         )
       );
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).to.deep.equal(
-      [doc2, doc3]
-    );
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc2,
+      doc3
+    ]);
   });
 
   it('eqAny_withDifferentInequality_sortOnEqAnyField', () => {
@@ -551,9 +575,11 @@ describe('Disjunctive Queries', () => {
       )
       .sort(field('age').ascending());
 
-    expect(
-      runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
-    ).to.have.ordered.members([doc2, doc1, doc3]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc2,
+      doc1,
+      doc3
+    ]);
   });
 
   it('eqAny_containsNull', () => {
@@ -566,7 +592,7 @@ describe('Disjunctive Queries', () => {
       .collection('/users')
       .where(equalAny(field('name'), [constant(null), constant('alice')]));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([doc1]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([doc1]);
   });
 
   it('arrayContains_null', () => {
@@ -582,7 +608,7 @@ describe('Disjunctive Queries', () => {
         arrayContains(field('field'), constant(null)) as BooleanExpression
       );
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).to.deep.equal([]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).toEqual([]);
   });
 
   it('arrayContainsAny_null', () => {
@@ -598,7 +624,7 @@ describe('Disjunctive Queries', () => {
         arrayContainsAny(field('field'), [constant(null), constant('foo')])
       );
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).to.deep.equal([
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).toEqual([
       doc1,
       doc2,
       doc3
@@ -615,7 +641,7 @@ describe('Disjunctive Queries', () => {
       .collection('/users')
       .where(equalAny(field('age'), [constant(null)]));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([]);
   });
 
   it('basicArrayContainsAny', () => {
@@ -630,9 +656,12 @@ describe('Disjunctive Queries', () => {
       .collection('/users')
       .where(arrayContainsAny(field('groups'), [constant(1), constant(5)]));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).to.deep.equal(
-      [doc1, doc2, doc4, doc5]
-    );
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc1,
+      doc2,
+      doc4,
+      doc5
+    ]);
   });
 
   it('multipleArrayContainsAny', () => {
@@ -672,9 +701,10 @@ describe('Disjunctive Queries', () => {
         )
       );
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).to.deep.equal(
-      [doc1, doc4]
-    );
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc1,
+      doc4
+    ]);
   });
 
   it('arrayContainsAny_withInequality', () => {
@@ -694,9 +724,11 @@ describe('Disjunctive Queries', () => {
         )
       );
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).to.deep.equal(
-      [doc1, doc2, doc4]
-    );
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc1,
+      doc2,
+      doc4
+    ]);
   });
 
   it('arrayContainsAny_withIn', () => {
@@ -716,9 +748,10 @@ describe('Disjunctive Queries', () => {
         )
       );
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).to.deep.equal(
-      [doc1, doc2]
-    );
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc1,
+      doc2
+    ]);
   });
 
   it('basicOr', () => {
@@ -737,7 +770,7 @@ describe('Disjunctive Queries', () => {
         )
       );
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).to.deep.equal([
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).toEqual([
       doc2,
       doc4
     ]);
@@ -761,7 +794,7 @@ describe('Disjunctive Queries', () => {
         )
       );
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).to.deep.equal([
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).toEqual([
       doc2,
       doc3,
       doc4
@@ -790,9 +823,7 @@ describe('Disjunctive Queries', () => {
         )
       );
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).to.deep.equal([
-      doc4
-    ]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).toEqual([doc4]);
   });
 
   it('or_twoConjunctions', () => {
@@ -817,7 +848,7 @@ describe('Disjunctive Queries', () => {
         )
       );
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).to.deep.equal([
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).toEqual([
       doc2,
       doc4
     ]);
@@ -842,7 +873,7 @@ describe('Disjunctive Queries', () => {
         )
       );
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).to.deep.equal([
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).toEqual([
       doc2,
       doc4
     ]);
@@ -870,9 +901,7 @@ describe('Disjunctive Queries', () => {
         )
       );
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).to.deep.equal([
-      doc4
-    ]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).toEqual([doc4]);
   });
 
   it('orOfTwoOrs', () => {
@@ -897,7 +926,7 @@ describe('Disjunctive Queries', () => {
         )
       );
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).to.deep.equal([
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).toEqual([
       doc2,
       doc3,
       doc4
@@ -923,9 +952,7 @@ describe('Disjunctive Queries', () => {
         )
       );
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).to.deep.equal([
-      doc2
-    ]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).toEqual([doc2]);
   });
 
   it('or_withSort', () => {
@@ -945,9 +972,12 @@ describe('Disjunctive Queries', () => {
       )
       .sort(field('age').ascending());
 
-    expect(
-      runPipeline(pipeline, [doc1, doc2, doc3, doc4])
-    ).to.have.ordered.members([doc4, doc2, doc1, doc3]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).toEqual([
+      doc4,
+      doc2,
+      doc1,
+      doc3
+    ]);
   });
 
   it('or_withInequalityAndSort_sameField', () => {
@@ -967,9 +997,11 @@ describe('Disjunctive Queries', () => {
       )
       .sort(field('age').ascending());
 
-    expect(
-      runPipeline(pipeline, [doc1, doc2, doc3, doc4])
-    ).to.have.ordered.members([doc4, doc1, doc3]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).toEqual([
+      doc4,
+      doc1,
+      doc3
+    ]);
   });
 
   it('or_withInequalityAndSort_differentFields', () => {
@@ -989,9 +1021,11 @@ describe('Disjunctive Queries', () => {
       )
       .sort(field('name').ascending());
 
-    expect(
-      runPipeline(pipeline, [doc1, doc2, doc3, doc4])
-    ).to.have.ordered.members([doc1, doc3, doc4]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).toEqual([
+      doc1,
+      doc3,
+      doc4
+    ]);
   });
 
   it('or_withInequalityAndSort_multipleFields', () => {
@@ -1028,9 +1062,12 @@ describe('Disjunctive Queries', () => {
         field('name').ascending()
       );
 
-    expect(
-      runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
-    ).to.have.ordered.members([doc4, doc2, doc1, doc5]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc4,
+      doc2,
+      doc1,
+      doc5
+    ]);
   });
 
   it('or_withSortOnPartialMissingField', () => {
@@ -1050,12 +1087,9 @@ describe('Disjunctive Queries', () => {
       )
       .sort(field('age').ascending());
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).to.have.members([
-      doc3,
-      doc4,
-      doc2,
-      doc1
-    ]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).toEqual(
+      expect.arrayContaining([doc3, doc4, doc2, doc1])
+    );
   });
 
   it('or_withLimit', () => {
@@ -1076,9 +1110,10 @@ describe('Disjunctive Queries', () => {
       .sort(field('age').ascending())
       .limit(2);
 
-    expect(
-      runPipeline(pipeline, [doc1, doc2, doc3, doc4])
-    ).to.have.ordered.members([doc4, doc2]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).toEqual([
+      doc4,
+      doc2
+    ]);
   });
 
   // TODO(pipeline): uncomment when we have isNot implemented
@@ -1095,9 +1130,9 @@ describe('Disjunctive Queries', () => {
       .collection('/users')
       .where(or(equal(field('a'), constant(1)), field('a').equal(null)));
 
-    expect(
-      runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5, doc6])
-    ).to.deep.equal([doc1, doc2, doc3, doc4]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5, doc6])).toEqual(
+      [doc1, doc2, doc3, doc4]
+    );
   });
 
   it('or_isNullAndEqOnDifferentField', () => {
@@ -1113,9 +1148,9 @@ describe('Disjunctive Queries', () => {
       .collection('/users')
       .where(or(equal(field('b'), constant(1)), equal(field('a'), null)));
 
-    expect(
-      runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5, doc6])
-    ).to.deep.equal([doc3, doc4]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5, doc6])).toEqual(
+      [doc3, doc4]
+    );
   });
 
   it('or_isNotNullAndEqOnSameField', () => {
@@ -1133,9 +1168,9 @@ describe('Disjunctive Queries', () => {
         or(greaterThan(field('a'), constant(1)), not(equal(field('a'), null)))
       );
 
-    expect(
-      runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5, doc6])
-    ).to.deep.equal([doc1, doc2, doc3, doc5]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5, doc6])).toEqual(
+      [doc1, doc2, doc3, doc5]
+    );
   });
 
   it('or_isNotNullAndEqOnDifferentField', () => {
@@ -1151,9 +1186,9 @@ describe('Disjunctive Queries', () => {
       .collection('/users')
       .where(or(equal(field('b'), constant(1)), not(equal(field('a'), null))));
 
-    expect(
-      runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5, doc6])
-    ).to.deep.equal([doc1, doc2, doc3, doc5]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5, doc6])).toEqual(
+      [doc1, doc2, doc3, doc5]
+    );
   });
 
   it('or_isNullAndIsNaNOnSameField', () => {
@@ -1166,7 +1201,7 @@ describe('Disjunctive Queries', () => {
       .collection('/users')
       .where(or(equal(field('a'), null), equal(field('a'), NaN)));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([doc1]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([doc1]);
   });
 
   it('or_isNullAndIsNaNOnDifferentField', () => {
@@ -1182,9 +1217,9 @@ describe('Disjunctive Queries', () => {
       .collection('/users')
       .where(or(equal(field('a'), null), equal(field('b'), NaN)));
 
-    expect(
-      runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5, doc6])
-    ).to.deep.equal([doc1]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5, doc6])).toEqual(
+      [doc1]
+    );
   });
 
   it('basicNotEqAny', () => {
@@ -1199,9 +1234,11 @@ describe('Disjunctive Queries', () => {
       .collection('/users')
       .where(notEqualAny(field('name'), [constant('alice'), constant('bob')]));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).to.deep.equal(
-      [doc3, doc4, doc5]
-    );
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc3,
+      doc4,
+      doc5
+    ]);
   });
 
   it('multipleNotEqAnys', () => {
@@ -1221,9 +1258,9 @@ describe('Disjunctive Queries', () => {
         )
       );
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).to.deep.equal(
-      [doc3]
-    );
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc3
+    ]);
   });
 
   it('multipileNotEqAnys_withOr', () => {
@@ -1243,9 +1280,12 @@ describe('Disjunctive Queries', () => {
         )
       );
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).to.deep.equal(
-      [doc1, doc3, doc4, doc5]
-    );
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc1,
+      doc3,
+      doc4,
+      doc5
+    ]);
   });
 
   it('notEqAny_onCollectionGroup', () => {
@@ -1269,9 +1309,9 @@ describe('Disjunctive Queries', () => {
         ])
       );
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).to.deep.equal(
-      [doc3]
-    );
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc3
+    ]);
   });
 
   it('notEqAny_withSort', () => {
@@ -1287,9 +1327,11 @@ describe('Disjunctive Queries', () => {
       .where(notEqualAny(field('name'), [constant('alice'), constant('diane')]))
       .sort(field('age').ascending());
 
-    expect(
-      runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
-    ).to.have.ordered.members([doc5, doc2, doc3]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc5,
+      doc2,
+      doc3
+    ]);
   });
 
   it('notEqAny_withAdditionalEquality_differentFields', () => {
@@ -1309,9 +1351,10 @@ describe('Disjunctive Queries', () => {
         )
       );
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).to.deep.equal(
-      [doc4, doc5]
-    );
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc4,
+      doc5
+    ]);
   });
 
   it('notEqAny_withAdditionalEquality_sameField', () => {
@@ -1331,9 +1374,9 @@ describe('Disjunctive Queries', () => {
         )
       );
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).to.deep.equal(
-      [doc5]
-    );
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc5
+    ]);
   });
 
   it('notEqAny_withInequalities_exclusiveRange', () => {
@@ -1354,9 +1397,9 @@ describe('Disjunctive Queries', () => {
         )
       );
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).to.deep.equal(
-      [doc2]
-    );
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc2
+    ]);
   });
 
   it('notEqAny_withInequalities_inclusiveRange', () => {
@@ -1381,9 +1424,10 @@ describe('Disjunctive Queries', () => {
         )
       );
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).to.deep.equal(
-      [doc3, doc4]
-    );
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc3,
+      doc4
+    ]);
   });
 
   it('notEqAny_withInequalitiesAndSort', () => {
@@ -1405,9 +1449,10 @@ describe('Disjunctive Queries', () => {
       )
       .sort(field('age').ascending());
 
-    expect(
-      runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
-    ).to.have.ordered.members([doc2, doc3]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc2,
+      doc3
+    ]);
   });
 
   it('notEqAny_withNotEqual', () => {
@@ -1427,9 +1472,10 @@ describe('Disjunctive Queries', () => {
         )
       );
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).to.deep.equal(
-      [doc4, doc5]
-    );
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc4,
+      doc5
+    ]);
   });
 
   it('notEqAny_sortOnNotEqAnyField', () => {
@@ -1445,9 +1491,11 @@ describe('Disjunctive Queries', () => {
       .where(notEqualAny(field('name'), [constant('alice'), constant('bob')]))
       .sort(field('name').ascending());
 
-    expect(
-      runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
-    ).to.have.ordered.members([doc3, doc4, doc5]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc3,
+      doc4,
+      doc5
+    ]);
   });
 
   it('notEqAny_singleValue_sortOnNotEqAnyField_ambiguousOrder', () => {
@@ -1461,10 +1509,9 @@ describe('Disjunctive Queries', () => {
       .where(notEqualAny(field('age'), [constant(100)]))
       .sort(field('age').ascending());
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.have.members([
-      doc2,
-      doc3
-    ]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual(
+      expect.arrayContaining([doc2, doc3])
+    );
   });
 
   it('notEqAny_withExtraEquality_sortOnNotEqAnyField', () => {
@@ -1485,9 +1532,10 @@ describe('Disjunctive Queries', () => {
       )
       .sort(field('name').ascending());
 
-    expect(
-      runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
-    ).to.have.ordered.members([doc4, doc5]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc4,
+      doc5
+    ]);
   });
 
   it('notEqAny_withExtraEquality_sortOnEquality', () => {
@@ -1508,9 +1556,9 @@ describe('Disjunctive Queries', () => {
       )
       .sort(field('age').ascending());
 
-    expect(
-      runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
-    ).to.have.members([doc4, doc5]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual(
+      expect.arrayContaining([doc4, doc5])
+    );
   });
 
   it('notEqAny_withInequality_onSameField', () => {
@@ -1531,9 +1579,10 @@ describe('Disjunctive Queries', () => {
       )
       .sort(field('age').ascending());
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).to.deep.equal(
-      [doc2, doc1]
-    );
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc2,
+      doc1
+    ]);
   });
 
   it('notEqAny_withDifferentInequality_sortOnInField', () => {
@@ -1554,9 +1603,10 @@ describe('Disjunctive Queries', () => {
       )
       .sort(field('age').ascending());
 
-    expect(
-      runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
-    ).to.have.ordered.members([doc2, doc3]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc2,
+      doc3
+    ]);
   });
 
   it('noLimitOnNumOfDisjunctions', () => {
@@ -1598,9 +1648,13 @@ describe('Disjunctive Queries', () => {
         )
       );
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).to.deep.equal(
-      [doc1, doc2, doc3, doc4, doc5]
-    );
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc1,
+      doc2,
+      doc3,
+      doc4,
+      doc5
+    ]);
   });
 
   it('eqAny_duplicateValues', () => {
@@ -1620,10 +1674,7 @@ describe('Disjunctive Queries', () => {
         ])
       );
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([
-      doc2,
-      doc3
-    ]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([doc2, doc3]);
   });
 
   it('notEqAny_duplicateValues', () => {
@@ -1642,10 +1693,7 @@ describe('Disjunctive Queries', () => {
         ])
       );
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([
-      doc1,
-      doc3
-    ]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([doc1, doc3]);
   });
 
   it('arrayContainsAny_duplicateValues', () => {
@@ -1665,7 +1713,7 @@ describe('Disjunctive Queries', () => {
         ])
       );
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([doc1]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([doc1]);
   });
 
   it('arrayContainsAll_duplicateValues', () => {
@@ -1685,6 +1733,6 @@ describe('Disjunctive Queries', () => {
         ])
       );
 
-    expect(runPipeline(pipeline, [doc1, doc2])).to.deep.equal([doc1, doc2]);
+    expect(runPipeline(pipeline, [doc1, doc2])).toEqual([doc1, doc2]);
   });
 });

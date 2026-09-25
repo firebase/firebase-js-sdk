@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-
 import { ObjectValue } from '../../../src/model/object_value';
 import { field, wrap, wrapObject } from '../../util/helpers';
 
@@ -24,21 +22,21 @@ describe('MutableObjectValue', () => {
   it('supports empty objectValues', () => {
     const objectValue = ObjectValue.empty();
 
-    expect(objectValue.isEqual(ObjectValue.empty())).to.be.true;
+    expect(objectValue.isEqual(ObjectValue.empty())).toBe(true);
   });
 
   it('sets single field', () => {
     const objectValue = ObjectValue.empty();
     objectValue.set(field('foo'), wrap('foo'));
 
-    expect(objectValue.isEqual(wrapObject({ 'foo': 'foo' }))).to.be.true;
+    expect(objectValue.isEqual(wrapObject({ 'foo': 'foo' }))).toBe(true);
   });
 
   it('sets empty object', () => {
     const objectValue = ObjectValue.empty();
     objectValue.set(field('foo'), wrap({}));
 
-    expect(objectValue.isEqual(wrapObject({ 'foo': {} }))).to.be.true;
+    expect(objectValue.isEqual(wrapObject({ 'foo': {} }))).toBe(true);
   });
 
   it('sets multiple fields', () => {
@@ -46,8 +44,9 @@ describe('MutableObjectValue', () => {
     objectValue.set(field('foo'), wrap('foo'));
     objectValue.set(field('bar'), wrap('bar'));
 
-    expect(objectValue.isEqual(wrapObject({ 'foo': 'foo', 'bar': 'bar' }))).to
-      .be.true;
+    expect(
+      objectValue.isEqual(wrapObject({ 'foo': 'foo', 'bar': 'bar' }))
+    ).toBe(true);
   });
 
   it('sets nested fields', () => {
@@ -59,7 +58,7 @@ describe('MutableObjectValue', () => {
       objectValue.isEqual(
         wrapObject({ 'a': { 'b': 'foo' }, 'c': { 'd': { 'e': 'bar' } } })
       )
-    ).to.be.true;
+    ).toBe(true);
   });
 
   it('sets two fields in nested object', () => {
@@ -67,8 +66,9 @@ describe('MutableObjectValue', () => {
     objectValue.set(field('a.b'), wrap('foo'));
     objectValue.set(field('a.c'), wrap('bar'));
 
-    expect(objectValue.isEqual(wrapObject({ 'a': { 'b': 'foo', 'c': 'bar' } })))
-      .to.be.true;
+    expect(
+      objectValue.isEqual(wrapObject({ 'a': { 'b': 'foo', 'c': 'bar' } }))
+    ).toBe(true);
   });
 
   it('sets field in nested object', () => {
@@ -76,8 +76,9 @@ describe('MutableObjectValue', () => {
     objectValue.set(field('a'), wrap({ b: 'foo' }));
     objectValue.set(field('a.c'), wrap('bar'));
 
-    expect(objectValue.isEqual(wrapObject({ 'a': { 'b': 'foo', 'c': 'bar' } })))
-      .to.be.true;
+    expect(
+      objectValue.isEqual(wrapObject({ 'a': { 'b': 'foo', 'c': 'bar' } }))
+    ).toBe(true);
   });
 
   it('sets deeply nested field in nested object', () => {
@@ -90,7 +91,7 @@ describe('MutableObjectValue', () => {
           'a': { 'b': { 'c': { 'd': { 'e': { 'f': 'foo' } } } } }
         })
       )
-    ).to.be.true;
+    ).toBe(true);
   });
 
   it('sets nested field multiple times', () => {
@@ -98,7 +99,7 @@ describe('MutableObjectValue', () => {
     objectValue.set(field('a.c'), wrap('foo'));
     objectValue.set(field('a'), wrap({ b: 'foo' }));
 
-    expect(objectValue.isEqual(wrapObject({ 'a': { 'b': 'foo' } }))).to.be.true;
+    expect(objectValue.isEqual(wrapObject({ 'a': { 'b': 'foo' } }))).toBe(true);
   });
 
   it('sets and deletes field', () => {
@@ -106,7 +107,7 @@ describe('MutableObjectValue', () => {
     objectValue.set(field('foo'), wrap('foo'));
     objectValue.delete(field('foo'));
 
-    expect(objectValue.isEqual(ObjectValue.empty())).to.be.true;
+    expect(objectValue.isEqual(ObjectValue.empty())).toBe(true);
   });
 
   it('sets and deletes nested field', () => {
@@ -122,20 +123,20 @@ describe('MutableObjectValue', () => {
       objectValue.isEqual(
         wrapObject({ 'a': { 'b': { 'd': 'foo' } }, 'f': { g: 'foo' } })
       )
-    ).to.be.true;
+    ).toBe(true);
   });
 
   it('sets single field in existing object', () => {
     const objectValue = wrapObject({ a: 'foo' });
     objectValue.set(field('b'), wrap('foo'));
 
-    expect(objectValue.isEqual(wrapObject({ a: 'foo', b: 'foo' }))).to.be.true;
+    expect(objectValue.isEqual(wrapObject({ a: 'foo', b: 'foo' }))).toBe(true);
   });
 
   it('overwrites field', () => {
     const objectValue = wrapObject({ a: 'foo' });
     objectValue.set(field('a'), wrap('bar'));
-    expect(objectValue.isEqual(wrapObject({ a: 'bar' }))).to.be.true;
+    expect(objectValue.isEqual(wrapObject({ a: 'bar' }))).toBe(true);
   });
 
   it('overwrites nested field', () => {
@@ -147,23 +148,25 @@ describe('MutableObjectValue', () => {
 
     expect(
       objectValue.isEqual(wrapObject({ a: { b: 'bar', c: { 'd': 'bar' } } }))
-    ).to.be.true;
+    ).toBe(true);
   });
 
   it('overwrites deeply nested field', () => {
     const objectValue = wrapObject({ a: { b: 'foo' } });
     objectValue.set(field('a.b.c'), wrap('bar'));
 
-    expect(objectValue.isEqual(wrapObject({ a: { b: { c: 'bar' } } }))).to.be
-      .true;
+    expect(objectValue.isEqual(wrapObject({ a: { b: { c: 'bar' } } }))).toBe(
+      true
+    );
   });
 
   it('merges existing object', () => {
     const objectValue = wrapObject({ a: { b: 'foo' } });
     objectValue.set(field('a.c'), wrap('foo'));
 
-    expect(objectValue.isEqual(wrapObject({ a: { b: 'foo', c: 'foo' } }))).to.be
-      .true;
+    expect(objectValue.isEqual(wrapObject({ a: { b: 'foo', c: 'foo' } }))).toBe(
+      true
+    );
   });
 
   it('overwrites nested object', () => {
@@ -172,7 +175,7 @@ describe('MutableObjectValue', () => {
     });
     objectValue.set(field('a.b'), wrap('bar'));
 
-    expect(objectValue.isEqual(wrapObject({ a: { b: 'bar' } }))).to.be.true;
+    expect(objectValue.isEqual(wrapObject({ a: { b: 'bar' } }))).toBe(true);
   });
 
   it('replaces nested object', () => {
@@ -180,14 +183,14 @@ describe('MutableObjectValue', () => {
     const objectValue = wrapObject({ a: { b: 'foo' } });
     objectValue.set(field('a'), singleValueObject);
 
-    expect(objectValue.isEqual(wrapObject({ a: { c: 'bar' } }))).to.be.true;
+    expect(objectValue.isEqual(wrapObject({ a: { c: 'bar' } }))).toBe(true);
   });
 
   it('deletes single field', () => {
     const objectValue = wrapObject({ a: 'foo', b: 'foo' });
     objectValue.delete(field('a'));
 
-    expect(objectValue.isEqual(wrapObject({ b: 'foo' }))).to.be.true;
+    expect(objectValue.isEqual(wrapObject({ b: 'foo' }))).toBe(true);
   });
 
   it('deletes nested object', () => {
@@ -196,20 +199,20 @@ describe('MutableObjectValue', () => {
     });
     objectValue.delete(field('a.b'));
 
-    expect(objectValue.isEqual(wrapObject({ a: { f: 'foo' } }))).to.be.true;
+    expect(objectValue.isEqual(wrapObject({ a: { f: 'foo' } }))).toBe(true);
   });
 
   it('deletes non-existing field', () => {
     const objectValue = wrapObject({ a: 'foo' });
     objectValue.delete(field('b'));
 
-    expect(objectValue.isEqual(wrapObject({ a: 'foo' }))).to.be.true;
+    expect(objectValue.isEqual(wrapObject({ a: 'foo' }))).toBe(true);
   });
 
   it('deletes non-existing nested field', () => {
     const objectValue = wrapObject({ a: { b: 'foo' } });
     objectValue.delete(field('a.b.c'));
 
-    expect(objectValue.isEqual(wrapObject({ a: { b: 'foo' } }))).to.be.true;
+    expect(objectValue.isEqual(wrapObject({ a: { b: 'foo' } }))).toBe(true);
   });
 });

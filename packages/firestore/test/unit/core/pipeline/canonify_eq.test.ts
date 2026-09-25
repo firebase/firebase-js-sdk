@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2025 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-
 import { field } from '../../../../lite/pipelines/pipelines';
 import { doc as docRef } from '../../../../src';
 import { newTestFirestore } from '../../../util/api_helpers';
@@ -27,7 +25,7 @@ describe('Pipeline Canonify', () => {
   it('works as expected for simple where clause', () => {
     const p = db.pipeline().collection('test').where(field(`foo`).equal(42));
 
-    expect(canonifyPipeline(p)).to.equal(
+    expect(canonifyPipeline(p)).toBe(
       'collection(/test)|where(fn(equal,[fld(foo),cst(42)]))|sort(fld(__name__)ascending)'
     );
   });
@@ -40,7 +38,7 @@ describe('Pipeline Canonify', () => {
       .limit(10)
       .sort(field('bar').descending());
 
-    expect(canonifyPipeline(p)).to.equal(
+    expect(canonifyPipeline(p)).toBe(
       'collection(/test)|where(fn(equal,[fld(foo),cst(42)]))|sort(fld(__name__)ascending)|limit(10)|sort(fld(bar)descending,fld(__name__)ascending)'
     );
   });
@@ -48,7 +46,7 @@ describe('Pipeline Canonify', () => {
   it('works as expected for CollectionGroupSource stage', () => {
     const p = db.pipeline().collectionGroup('cities');
 
-    expect(canonifyPipeline(p)).to.equal(
+    expect(canonifyPipeline(p)).toBe(
       'collection_group(cities)|sort(fld(__name__)ascending)'
     );
   });
@@ -56,9 +54,7 @@ describe('Pipeline Canonify', () => {
   it('works as expected for DatabaseSource stage', () => {
     const p = db.pipeline().database(); // Assuming you have a `database()` method on your `db` object
 
-    expect(canonifyPipeline(p)).to.equal(
-      'database()|sort(fld(__name__)ascending)'
-    );
+    expect(canonifyPipeline(p)).toBe('database()|sort(fld(__name__)ascending)');
   });
 
   it('works as expected for DocumentsSource stage', () => {
@@ -66,7 +62,7 @@ describe('Pipeline Canonify', () => {
       .pipeline()
       .documents([docRef(db, 'cities/SF'), docRef(db, 'cities/LA')]);
 
-    expect(canonifyPipeline(p)).to.equal(
+    expect(canonifyPipeline(p)).toBe(
       'documents(/cities/LA,/cities/SF)|sort(fld(__name__)ascending)'
     );
   });
@@ -77,7 +73,7 @@ describe('Pipeline Canonify', () => {
       .collection('foo')
       .where(field('bar').equalAny(['a', 'b']));
 
-    expect(canonifyPipeline(p)).to.equal(
+    expect(canonifyPipeline(p)).toBe(
       'collection(/foo)|where(fn(equal_any,[fld(bar),list([cst("a"),cst("b")])]))|sort(fld(__name__)ascending)'
     );
   });
@@ -88,21 +84,21 @@ describe('pipelineEq', () => {
     const p1 = db.pipeline().collection('test').where(field(`foo`).equal(42));
     const p2 = db.pipeline().collection('test').where(field(`foo`).equal(42));
 
-    expect(pipelineEq(p1, p2)).to.be.true;
+    expect(pipelineEq(p1, p2)).toBe(true);
   });
 
   it('returns false for pipelines with different stages', () => {
     const p1 = db.pipeline().collection('test').where(field(`foo`).equal(42));
     const p2 = db.pipeline().collection('test').limit(10);
 
-    expect(pipelineEq(p1, p2)).to.be.false;
+    expect(pipelineEq(p1, p2)).toBe(false);
   });
 
   it('returns false for pipelines with different parameters within a stage', () => {
     const p1 = db.pipeline().collection('test').where(field(`foo`).equal(42));
     const p2 = db.pipeline().collection('test').where(field(`bar`).equal(42));
 
-    expect(pipelineEq(p1, p2)).to.be.false;
+    expect(pipelineEq(p1, p2)).toBe(false);
   });
 
   it('returns false for pipelines with different order of stages', () => {
@@ -117,6 +113,6 @@ describe('pipelineEq', () => {
       .limit(10)
       .where(field(`foo`).equal(42));
 
-    expect(pipelineEq(p1, p2)).to.be.false;
+    expect(pipelineEq(p1, p2)).toBe(false);
   });
 });

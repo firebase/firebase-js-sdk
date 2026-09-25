@@ -19,7 +19,6 @@ import {
   WebChannelOptions,
   WebChannelTransport
 } from '@firebase/webchannel-wrapper';
-import { expect } from 'chai';
 
 import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
 import { WebChannelConnection } from '../../../src/platform/browser/webchannel_connection';
@@ -57,14 +56,12 @@ describe('WebChannelConnection', () => {
   it('Passes the API Key from DatabaseInfo to makeHeaders for openStream', async () => {
     const connection = new TestWebChannelConnection(testDatabaseInfo);
 
-    expect(() => connection.openStream('mockRpc', null, null)).to.throw(
+    expect(() => connection.openStream('mockRpc', null, null)).toThrow(
       'Not implemented for test'
     );
 
     const headers = connection.transport.lastOptions
       ?.initMessageHeaders as unknown as { [key: string]: string };
-    expect(headers['x-goog-api-key']).to.deep.equal(
-      'wc-connection-test-api-key'
-    );
+    expect(headers['x-goog-api-key']).toEqual('wc-connection-test-api-key');
   });
 });

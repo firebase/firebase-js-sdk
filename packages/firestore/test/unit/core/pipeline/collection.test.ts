@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2025 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import {
   constant,
@@ -32,7 +30,7 @@ const db = newTestFirestore();
 
 describe('collection stage', () => {
   it('emptyDatabase_returnsNoResults', () => {
-    expect(runPipeline(db.pipeline().collection('/users'), [])).to.be.empty;
+    expect(runPipeline(db.pipeline().collection('/users'), [])).toHaveLength(0);
   });
 
   it('emptyCollection_otherCollectionIds_returnsNoResults', () => {
@@ -41,7 +39,7 @@ describe('collection stage', () => {
 
     expect(
       runPipeline(db.pipeline().collection('/users/bob/games'), [doc1, doc2])
-    ).to.be.empty;
+    ).toHaveLength(0);
   });
 
   it('emptyCollection_otherParents_returnsNoResults', () => {
@@ -50,7 +48,7 @@ describe('collection stage', () => {
 
     expect(
       runPipeline(db.pipeline().collection('/users/bob/games'), [doc1, doc2])
-    ).to.be.empty;
+    ).toHaveLength(0);
   });
 
   it('singleton_atRoot_returnsSingleDocument', () => {
@@ -58,7 +56,7 @@ describe('collection stage', () => {
     const doc2 = doc('users/bob', 1000, { score: 90, rank: 1 });
     expect(
       runPipeline(db.pipeline().collection('/users'), [doc1, doc2])
-    ).to.deep.equal([doc2]);
+    ).toEqual([doc2]);
   });
 
   it('singleton_nestedCollection_returnsSingleDocument', () => {
@@ -72,7 +70,7 @@ describe('collection stage', () => {
         doc2,
         doc3
       ])
-    ).to.deep.equal([doc2]);
+    ).toEqual([doc2]);
   });
 
   it('multipleDocuments_atRoot_returnsDocuments', () => {
@@ -83,7 +81,7 @@ describe('collection stage', () => {
 
     expect(
       runPipeline(db.pipeline().collection('/users'), [doc1, doc2, doc3, doc4])
-    ).to.deep.equal([doc2, doc1, doc3]);
+    ).toEqual([doc2, doc1, doc3]);
   });
 
   it('multipleDocuments_nestedCollection_returnsDocuments', () => {
@@ -94,7 +92,7 @@ describe('collection stage', () => {
 
     expect(
       runPipeline(db.pipeline().collection('/users'), [doc1, doc2, doc3, doc4])
-    ).to.deep.equal([doc2, doc1, doc3]);
+    ).toEqual([doc2, doc1, doc3]);
   });
 
   it('subcollection_notReturned', () => {
@@ -108,7 +106,7 @@ describe('collection stage', () => {
 
     expect(
       runPipeline(db.pipeline().collection('/users'), [doc1, doc2, doc3])
-    ).to.deep.equal([doc1]);
+    ).toEqual([doc1]);
   });
 
   it('skipsOtherCollectionIds', () => {
@@ -128,7 +126,7 @@ describe('collection stage', () => {
         doc5,
         doc6
       ])
-    ).to.deep.equal([doc3, doc1, doc5]);
+    ).toEqual([doc3, doc1, doc5]);
   });
 
   it('skipsOtherParents', () => {
@@ -148,7 +146,7 @@ describe('collection stage', () => {
         doc5,
         doc6
       ])
-    ).to.deep.equal([doc1, doc3, doc5]);
+    ).toEqual([doc1, doc3, doc5]);
   });
 
   it('where_onValues', () => {
@@ -162,7 +160,7 @@ describe('collection stage', () => {
       .collection('/users')
       .where(field('score').equalAny([constant(90), constant(97)]));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).to.deep.equal([
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).toEqual([
       doc1,
       doc3,
       doc4
@@ -232,7 +230,7 @@ describe('collection stage', () => {
       .collection('/users')
       .where(field('score').equalAny([constant(90), constant(97)]));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).to.deep.equal([
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).toEqual([
       doc1,
       doc3,
       doc4
@@ -249,10 +247,7 @@ describe('collection stage', () => {
       .collection('/users')
       .where(field('score').greaterThan(constant(80)));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([
-      doc1,
-      doc3
-    ]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([doc1, doc3]);
   });
 
   it('where_notEqualOnValues', () => {
@@ -265,10 +260,7 @@ describe('collection stage', () => {
       .collection('/users')
       .where(field('score').notEqual(constant(50)));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([
-      doc1,
-      doc3
-    ]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([doc1, doc3]);
   });
 
   it('where_arrayContainsValues', () => {
@@ -290,10 +282,7 @@ describe('collection stage', () => {
       .collection('/users')
       .where(arrayContains(field('rounds'), constant('round3')) as BooleanExpr);
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([
-      doc1,
-      doc3
-    ]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([doc1, doc3]);
   });
 
   it('sort_onValues', () => {
@@ -306,7 +295,7 @@ describe('collection stage', () => {
       .collection('/users')
       .sort(field('score').descending());
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.have.ordered.members([
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([
       doc3,
       doc1,
       doc2
@@ -323,7 +312,7 @@ describe('collection stage', () => {
       .collection('/users')
       .sort(field(DOCUMENT_KEY_NAME).ascending());
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.have.ordered.members([
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([
       doc2,
       doc1,
       doc3
@@ -341,10 +330,7 @@ describe('collection stage', () => {
       .sort(field(DOCUMENT_KEY_NAME).ascending())
       .limit(2);
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.have.ordered.members([
-      doc2,
-      doc1
-    ]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([doc2, doc1]);
   });
 
   it('sort_onKey_ascending', () => {
@@ -359,9 +345,11 @@ describe('collection stage', () => {
       .collection('/users/bob/games')
       .sort(field(DOCUMENT_KEY_NAME).ascending());
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).to.deep.equal(
-      [doc1, doc2, doc3]
-    );
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc1,
+      doc2,
+      doc3
+    ]);
   });
 
   it('sort_onKey_descending', () => {
@@ -376,8 +364,10 @@ describe('collection stage', () => {
       .collection('/users/bob/games')
       .sort(field(DOCUMENT_KEY_NAME).descending());
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).to.deep.equal(
-      [doc3, doc2, doc1]
-    );
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc3,
+      doc2,
+      doc1
+    ]);
   });
 });

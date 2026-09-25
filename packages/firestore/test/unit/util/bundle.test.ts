@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
 
 import { toByteStreamReader } from '../../../src/platform/byte_stream_reader';
 import { newTextEncoder } from '../../../src/platform/text_serializer';
@@ -44,9 +42,6 @@ import {
   doc1,
   doc2
 } from './bundle_data';
-
-use(chaiAsPromised);
-
 const encoder = newTextEncoder();
 
 /**
@@ -70,20 +65,20 @@ describe('byteStreamReaderFromString()', () => {
     const r = byteStreamReaderFromString('0123456789', 4);
 
     let result = await r.read();
-    expect(result.value).to.deep.equal(encoder.encode('0123'));
-    expect(result.done).to.be.false;
+    expect(result.value).toEqual(encoder.encode('0123'));
+    expect(result.done).toBe(false);
 
     result = await r.read();
-    expect(result.value).to.deep.equal(encoder.encode('4567'));
-    expect(result.done).to.be.false;
+    expect(result.value).toEqual(encoder.encode('4567'));
+    expect(result.done).toBe(false);
 
     result = await r.read();
-    expect(result.value).to.deep.equal(encoder.encode('89'));
-    expect(result.done).to.be.false;
+    expect(result.value).toEqual(encoder.encode('89'));
+    expect(result.done).toBe(false);
 
     result = await r.read();
-    expect(result.value).to.be.undefined;
-    expect(result.done).to.be.true;
+    expect(result.value).toBeUndefined();
+    expect(result.done).toBe(true);
   });
 });
 
@@ -124,10 +119,8 @@ function genericBundleReadingTests(bytesPerRead: number): void {
     payload: unknown,
     payloadString: string
   ): void {
-    expect(element.payload).to.deep.equal(payload);
-    expect(element.byteLength).to.equal(
-      encoder.encode(payloadString).byteLength
-    );
+    expect(element.payload).toEqual(payload);
+    expect(element.byteLength).toBe(encoder.encode(payloadString).byteLength);
   }
 
   async function generateBundleAndParse(
@@ -138,9 +131,9 @@ function genericBundleReadingTests(bytesPerRead: number): void {
     const bundle = bundleFromString(bundleString);
 
     if (!validMeta) {
-      await expect(await bundle.getMetadata()).should.be.rejected;
+      await expect(await bundle.getMetadata()).rejects.toThrow();
     } else {
-      expect(await bundle.getMetadata()).to.deep.equal(meta.metadata);
+      expect(await bundle.getMetadata()).toEqual(meta.metadata);
     }
 
     await getAllElements(bundle);
@@ -155,10 +148,10 @@ function genericBundleReadingTests(bytesPerRead: number): void {
         doc1String
     );
 
-    expect(await bundle.getMetadata()).to.deep.equal(meta.metadata);
+    expect(await bundle.getMetadata()).toEqual(meta.metadata);
 
     const actual = await getAllElements(bundle);
-    expect(actual.length).to.equal(4);
+    expect(actual.length).toBe(4);
     verifySizedElement(actual[0], limitQuery, limitQueryString);
     verifySizedElement(actual[1], limitToLastQuery, limitToLastQueryString);
     verifySizedElement(actual[2], doc1Meta, doc1MetaString);
@@ -178,7 +171,7 @@ function genericBundleReadingTests(bytesPerRead: number): void {
       );
 
       const actual = await getAllElements(bundle);
-      expect(actual.length).to.equal(5);
+      expect(actual.length).toBe(5);
       verifySizedElement(actual[0], doc1Meta, doc1MetaString);
       verifySizedElement(actual[1], doc1, doc1String);
       verifySizedElement(actual[2], limitQuery, limitQueryString);
@@ -186,7 +179,7 @@ function genericBundleReadingTests(bytesPerRead: number): void {
       verifySizedElement(actual[4], doc2, doc2String);
 
       // Reading metadata after other elements should also work.
-      expect(await bundle.getMetadata()).to.deep.equal(meta.metadata);
+      expect(await bundle.getMetadata()).toEqual(meta.metadata);
     }
   );
 
@@ -195,10 +188,10 @@ function genericBundleReadingTests(bytesPerRead: number): void {
     async () => {
       const bundle = bundleFromString(metaString + doc1MetaString + doc1String);
 
-      expect(await bundle.getMetadata()).to.deep.equal(meta.metadata);
+      expect(await bundle.getMetadata()).toEqual(meta.metadata);
 
       const actual = await getAllElements(bundle);
-      expect(actual.length).to.equal(2);
+      expect(actual.length).toBe(2);
       verifySizedElement(actual[0], doc1Meta, doc1MetaString);
       verifySizedElement(actual[1], doc1, doc1String);
     }
@@ -209,10 +202,10 @@ function genericBundleReadingTests(bytesPerRead: number): void {
       metaString + noDocMetaString + doc1MetaString + doc1String
     );
 
-    expect(await bundle.getMetadata()).to.deep.equal(meta.metadata);
+    expect(await bundle.getMetadata()).toEqual(meta.metadata);
 
     const actual = await getAllElements(bundle);
-    expect(actual.length).to.equal(3);
+    expect(actual.length).toBe(3);
     verifySizedElement(actual[0], noDocMeta, noDocMetaString);
     verifySizedElement(actual[1], doc1Meta, doc1MetaString);
     verifySizedElement(actual[2], doc1, doc1String);
@@ -223,10 +216,10 @@ function genericBundleReadingTests(bytesPerRead: number): void {
     async () => {
       const bundle = bundleFromString(metaString);
 
-      expect(await bundle.getMetadata()).to.deep.equal(meta.metadata);
+      expect(await bundle.getMetadata()).toEqual(meta.metadata);
 
       const actual = await getAllElements(bundle);
-      expect(actual.length).to.equal(0);
+      expect(actual.length).toBe(0);
     }
   );
 
@@ -235,7 +228,7 @@ function genericBundleReadingTests(bytesPerRead: number): void {
     async () => {
       await expect(
         generateBundleAndParse('metadata: "no length prefix"', bytesPerRead)
-      ).to.be.rejectedWith(
+      ).rejects.toThrow(
         'Reached the end of bundle when a length string is expected.'
       );
 
@@ -248,12 +241,10 @@ function genericBundleReadingTests(bytesPerRead: number): void {
         '{metadata: "no length prefix"}',
         bytesPerRead
       );
-      await expect(noLengthPrefixPromise).to.be.rejectedWith(
+      await expect(noLengthPrefixPromise).rejects.toThrow(
         /(\b|^)unexpected ((end of)|(eof))(\b|$)/gi
       );
-      await expect(noLengthPrefixPromise).to.be.rejectedWith(
-        /(\b|^)JSON(\b|$)/g
-      );
+      await expect(noLengthPrefixPromise).rejects.toThrow(/(\b|^)JSON(\b|$)/g);
 
       await expect(
         generateBundleAndParse(
@@ -261,18 +252,18 @@ function genericBundleReadingTests(bytesPerRead: number): void {
           bytesPerRead,
           true
         )
-      ).to.be.rejectedWith(
+      ).rejects.toThrow(
         'Reached the end of bundle when a length string is expected.'
       );
 
       await expect(
         generateBundleAndParse('1' + metaString, bytesPerRead)
-      ).to.be.rejectedWith('Reached the end of bundle when more is expected.');
+      ).rejects.toThrow('Reached the end of bundle when more is expected.');
 
       // First element is not BundleMetadata.
       await expect(
         generateBundleAndParse(doc1MetaString + doc1String, bytesPerRead)
-      ).to.be.rejectedWith('The first element of the bundle is not a metadata');
+      ).rejects.toThrow('The first element of the bundle is not a metadata');
     }
   );
 }

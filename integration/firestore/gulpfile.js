@@ -48,6 +48,7 @@ function copyTests() {
         testBase + '/integration/util/composite_index_test_helper.ts',
         testBase + '/integration/util/events_accumulator.ts',
         testBase + '/integration/util/helpers.ts',
+        testBase + '/integration/util/pipeline_helpers.ts',
         testBase + '/integration/util/settings.ts',
         testBase + '/integration/util/testing_hooks_util.ts',
         testBase + '/util/equality_matcher.ts',
@@ -67,9 +68,11 @@ function copyTests() {
          */
         /\s+from '\.(\.\/util)?\/firebase_export';/,
         ` from '${resolve(__dirname, './firebase_export')}';
-        
+
 if (typeof process === 'undefined') {
-  process = { env: { INCLUDE_FIRESTORE_PERSISTENCE: '${isPersistenceEnabled()}' } } as any;
+  Object.assign(globalThis, {
+    process: { env: { INCLUDE_FIRESTORE_PERSISTENCE: '${isPersistenceEnabled()}' } }
+  });
 } else {
   process.env.INCLUDE_FIRESTORE_PERSISTENCE = '${isPersistenceEnabled()}';
 }
@@ -116,4 +119,4 @@ function compileWebpack() {
     .pipe(gulp.dest('dist'));
 }
 
-gulp.task('compile-tests', gulp.series(clean, copyTests, compileWebpack));
+gulp.task('compile-tests', gulp.series(clean, copyTests));

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2025 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import {
   like,
@@ -42,7 +40,7 @@ describe('Where Stage', () => {
           .where(field('age').greaterThanOrEqual(constant(10))),
         []
       )
-    ).to.be.empty;
+    ).toHaveLength(0);
   });
 
   it('duplicateConditions', () => {
@@ -62,9 +60,11 @@ describe('Where Stage', () => {
         )
       );
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).to.deep.equal(
-      [doc1, doc2, doc3]
-    );
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc1,
+      doc2,
+      doc3
+    ]);
   });
 
   it('logicalEquivalentCondition_equal', () => {
@@ -84,8 +84,8 @@ describe('Where Stage', () => {
     const result1 = runPipeline(pipeline1, [doc1, doc2, doc3]);
     const result2 = runPipeline(pipeline2, [doc1, doc2, doc3]);
 
-    expect(result1).to.deep.equal([doc2]);
-    expect(result1).to.deep.equal(result2);
+    expect(result1).toEqual([doc2]);
+    expect(result1).toEqual(result2);
   });
 
   it('logicalEquivalentCondition_and', () => {
@@ -115,8 +115,8 @@ describe('Where Stage', () => {
     const result1 = runPipeline(pipeline1, [doc1, doc2, doc3]);
     const result2 = runPipeline(pipeline2, [doc1, doc2, doc3]);
 
-    expect(result1).to.deep.equal([doc2]);
-    expect(result1).to.deep.equal(result2);
+    expect(result1).toEqual([doc2]);
+    expect(result1).toEqual(result2);
   });
 
   it('logicalEquivalentCondition_or', () => {
@@ -146,8 +146,8 @@ describe('Where Stage', () => {
     const result1 = runPipeline(pipeline1, [doc1, doc2, doc3]);
     const result2 = runPipeline(pipeline2, [doc1, doc2, doc3]);
 
-    expect(result1).to.deep.equal([doc3]);
-    expect(result1).to.deep.equal(result2);
+    expect(result1).toEqual([doc3]);
+    expect(result1).toEqual(result2);
   });
 
   it('logicalEquivalentCondition_in', () => {
@@ -177,8 +177,8 @@ describe('Where Stage', () => {
     const result1 = runPipeline(pipeline1, [doc1, doc2, doc3]);
     const result2 = runPipeline(pipeline2, [doc1, doc2, doc3]);
 
-    expect(result1).to.deep.equal([doc1]);
-    expect(result1).to.deep.equal(result2);
+    expect(result1).toEqual([doc1]);
+    expect(result1).toEqual(result2);
   });
 
   it('repeatedStages', () => {
@@ -194,9 +194,11 @@ describe('Where Stage', () => {
       .where(field('age').greaterThanOrEqual(constant(10)))
       .where(field('age').greaterThanOrEqual(constant(20)));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).to.deep.equal(
-      [doc1, doc2, doc3]
-    );
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc1,
+      doc2,
+      doc3
+    ]);
   });
 
   it('composite_equalities', () => {
@@ -212,9 +214,9 @@ describe('Where Stage', () => {
       .where(field('age').equal(constant(75)))
       .where(field('height').equal(constant(55)));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).to.deep.equal(
-      [doc3]
-    );
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc3
+    ]);
   });
 
   it('composite_inequalities', () => {
@@ -230,9 +232,10 @@ describe('Where Stage', () => {
       .where(field('age').greaterThan(constant(50)))
       .where(field('height').lessThan(constant(75)));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).to.deep.equal(
-      [doc1, doc3]
-    );
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc1,
+      doc3
+    ]);
   });
 
   it('composite_nonSeekable', () => {
@@ -248,9 +251,10 @@ describe('Where Stage', () => {
       .where(like(field('first'), constant('%a%')))
       .where(like(field('last'), constant('%er')));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).to.deep.equal(
-      [doc3, doc4]
-    );
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc3,
+      doc4
+    ]);
   });
 
   it('composite_mixed', () => {
@@ -292,9 +296,10 @@ describe('Where Stage', () => {
       .where(field('height').greaterThan(constant(45)))
       .where(like(field('last'), constant('%er')));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).to.deep.equal(
-      [doc3, doc4]
-    );
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc3,
+      doc4
+    ]);
   });
 
   it('exists', () => {
@@ -309,9 +314,11 @@ describe('Where Stage', () => {
       .database()
       .where(exists(field('name')));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).to.deep.equal(
-      [doc1, doc2, doc3]
-    );
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc1,
+      doc2,
+      doc3
+    ]);
   });
 
   it('not_exists', () => {
@@ -326,9 +333,10 @@ describe('Where Stage', () => {
       .database()
       .where(not(exists(field('name'))));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).to.deep.equal(
-      [doc4, doc5]
-    );
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc4,
+      doc5
+    ]);
   });
 
   it('not_not_exists', () => {
@@ -343,9 +351,11 @@ describe('Where Stage', () => {
       .database()
       .where(not(not(exists(field('name')))));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).to.deep.equal(
-      [doc1, doc2, doc3]
-    );
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc1,
+      doc2,
+      doc3
+    ]);
   });
 
   it('exists_and_exists', () => {
@@ -360,9 +370,10 @@ describe('Where Stage', () => {
       .database()
       .where(and(exists(field('name')), exists(field('age'))));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).to.deep.equal(
-      [doc1, doc2]
-    );
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc1,
+      doc2
+    ]);
   });
 
   it('exists_or_exists', () => {
@@ -377,9 +388,12 @@ describe('Where Stage', () => {
       .database()
       .where(or(exists(field('name')), exists(field('age'))));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).to.deep.equal(
-      [doc1, doc2, doc3, doc4]
-    );
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc1,
+      doc2,
+      doc3,
+      doc4
+    ]);
   });
 
   it('not_exists_and_exists', () => {
@@ -394,9 +408,11 @@ describe('Where Stage', () => {
       .database()
       .where(not(and(exists(field('name')), exists(field('age')))));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).to.deep.equal(
-      [doc3, doc4, doc5]
-    );
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc3,
+      doc4,
+      doc5
+    ]);
   });
 
   it('not_exists_or_exists', () => {
@@ -411,9 +427,9 @@ describe('Where Stage', () => {
       .database()
       .where(not(or(exists(field('name')), exists(field('age')))));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).to.deep.equal(
-      [doc5]
-    );
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc5
+    ]);
   });
 
   it('not_exists_xor_exists', () => {
@@ -428,9 +444,11 @@ describe('Where Stage', () => {
       .database()
       .where(not(xor(exists(field('name')), exists(field('age')))));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).to.deep.equal(
-      [doc1, doc2, doc5]
-    );
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc1,
+      doc2,
+      doc5
+    ]);
   });
 
   it('and_notExists_notExists', () => {
@@ -445,9 +463,9 @@ describe('Where Stage', () => {
       .database()
       .where(and(not(exists(field('name'))), not(exists(field('age')))));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).to.deep.equal(
-      [doc5]
-    );
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc5
+    ]);
   });
 
   it('or_notExists_notExists', () => {
@@ -462,9 +480,11 @@ describe('Where Stage', () => {
       .database()
       .where(or(not(exists(field('name'))), not(exists(field('age')))));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).to.deep.equal(
-      [doc3, doc4, doc5]
-    );
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc3,
+      doc4,
+      doc5
+    ]);
   });
 
   it('xor_notExists_notExists', () => {
@@ -479,9 +499,10 @@ describe('Where Stage', () => {
       .database()
       .where(xor(not(exists(field('name'))), not(exists(field('age')))));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).to.deep.equal(
-      [doc3, doc4]
-    );
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc3,
+      doc4
+    ]);
   });
 
   it('and_notExists_exists', () => {
@@ -496,9 +517,9 @@ describe('Where Stage', () => {
       .database()
       .where(and(not(exists(field('name'))), exists(field('age'))));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).to.deep.equal(
-      [doc4]
-    );
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc4
+    ]);
   });
 
   it('or_notExists_exists', () => {
@@ -513,9 +534,12 @@ describe('Where Stage', () => {
       .database()
       .where(or(not(exists(field('name'))), exists(field('age'))));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).to.deep.equal(
-      [doc1, doc2, doc4, doc5]
-    );
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc1,
+      doc2,
+      doc4,
+      doc5
+    ]);
   });
 
   it('xor_notExists_exists', () => {
@@ -530,9 +554,11 @@ describe('Where Stage', () => {
       .database()
       .where(xor(not(exists(field('name'))), exists(field('age'))));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).to.deep.equal(
-      [doc1, doc2, doc5]
-    );
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc1,
+      doc2,
+      doc5
+    ]);
   });
 
   // Skipping because pipeline construction fails before running it, due to type
@@ -562,26 +588,26 @@ describe('Where Stage', () => {
       .pipeline()
       .database()
       .where(and(equalityArgument1, equalityArgument2));
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([doc2]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([doc2]);
 
     pipeline = db
       .pipeline()
       .database()
       .where(and(equalityArgument2, equalityArgument1));
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([doc2]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([doc2]);
 
     pipeline = db
       .pipeline()
       .database()
       .where(equalityArgument1)
       .where(equalityArgument2);
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([doc2]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([doc2]);
 
     pipeline = db
       .pipeline()
       .database()
       .where(equalityArgument2)
       .where(equalityArgument1);
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([doc2]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([doc2]);
   });
 });

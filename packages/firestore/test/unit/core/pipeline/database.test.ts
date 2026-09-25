@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2025 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-
 import { constant, field } from '../../../../lite/pipelines/pipelines';
 import { doc as docRef } from '../../../../src';
 import { DOCUMENT_KEY_NAME } from '../../../../src/model/path';
@@ -28,7 +26,7 @@ const db = newTestFirestore();
 
 describe('database stage', () => {
   it('emptyDatabase_returnsEmptyResults', () => {
-    expect(runPipeline(db.pipeline().database(), [])).to.be.empty;
+    expect(runPipeline(db.pipeline().database(), [])).toHaveLength(0);
   });
 
   it('returnsAllDocuments', () => {
@@ -36,9 +34,11 @@ describe('database stage', () => {
     const doc2 = doc('users/alice', 1000, { score: 50, rank: 3 });
     const doc3 = doc('users/charlie', 1000, { score: 97, rank: 2 });
 
-    expect(
-      runPipeline(db.pipeline().database(), [doc1, doc2, doc3])
-    ).to.deep.equal([doc2, doc1, doc3]);
+    expect(runPipeline(db.pipeline().database(), [doc1, doc2, doc3])).toEqual([
+      doc2,
+      doc1,
+      doc3
+    ]);
   });
 
   it('returnsMultipleCollections', () => {
@@ -46,9 +46,11 @@ describe('database stage', () => {
     const doc2 = doc('b/doc1', 1000, { score: 50, rank: 3 });
     const doc3 = doc('c/doc1', 1000, { score: 97, rank: 2 });
 
-    expect(
-      runPipeline(db.pipeline().database(), [doc1, doc2, doc3])
-    ).to.deep.equal([doc1, doc2, doc3]);
+    expect(runPipeline(db.pipeline().database(), [doc1, doc2, doc3])).toEqual([
+      doc1,
+      doc2,
+      doc3
+    ]);
   });
 
   it('where_onKey', () => {
@@ -61,6 +63,6 @@ describe('database stage', () => {
       .database()
       .where(field(DOCUMENT_KEY_NAME).equal(constant(docRef(db, 'b/2'))));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([doc2]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([doc2]);
   });
 });

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import { it } from '../../util/mocha_extensions';
@@ -68,7 +66,7 @@ apiDescribe('Queries', persistence => {
             // Run a query to populate the local cache with the 100 documents
             // and a resume token.
             const snapshot1 = await getDocs(coll);
-            expect(snapshot1.size, 'snapshot1.size').to.equal(100);
+            expect(snapshot1.size, 'snapshot1.size').toBe(100);
             const createdDocuments = snapshot1.docs.map(
               snapshot => snapshot.ref
             );
@@ -108,7 +106,7 @@ apiDescribe('Queries', persistence => {
               .filter(documentRef => !deletedDocumentIds.has(documentRef.id))
               .map(documentRef => documentRef.id)
               .sort();
-            expect(actualDocumentIds, 'snapshot2.docs').to.deep.equal(
+            expect(actualDocumentIds, 'snapshot2.docs').toEqual(
               expectedDocumentIds
             );
 
@@ -117,11 +115,11 @@ apiDescribe('Queries', persistence => {
             expect(
               existenceFilterMismatches,
               'existenceFilterMismatches'
-            ).to.have.length(1);
+            ).toHaveLength(1);
             const { localCacheCount, existenceFilterCount, bloomFilter } =
               existenceFilterMismatches[0];
-            expect(localCacheCount, 'localCacheCount').to.equal(100);
-            expect(existenceFilterCount, 'existenceFilterCount').to.equal(50);
+            expect(localCacheCount, 'localCacheCount').toBe(100);
+            expect(existenceFilterCount, 'existenceFilterCount').toBe(50);
 
             // Verify that Watch sent a valid bloom filter.
             if (!bloomFilter) {
@@ -132,15 +130,18 @@ apiDescribe('Queries', persistence => {
               throw new Error('should never get here');
             }
 
-            expect(bloomFilter.hashCount, 'bloomFilter.hashCount').to.be.above(
-              0
-            );
+            expect(
+              bloomFilter.hashCount,
+              'bloomFilter.hashCount'
+            ).toBeGreaterThan(0);
             expect(
               bloomFilter.bitmapLength,
               'bloomFilter.bitmapLength'
-            ).to.be.above(0);
-            expect(bloomFilter.padding, 'bloomFilterPadding').to.be.above(0);
-            expect(bloomFilter.padding, 'bloomFilterPadding').to.be.below(8);
+            ).toBeGreaterThan(0);
+            expect(bloomFilter.padding, 'bloomFilterPadding').toBeGreaterThan(
+              0
+            );
+            expect(bloomFilter.padding, 'bloomFilterPadding').toBeLessThan(8);
 
             // Verify that the bloom filter was successfully used to avert a
             // full requery. If a false positive occurred then retry the entire
@@ -156,12 +157,13 @@ apiDescribe('Queries', persistence => {
             expect(
               bloomFilter.applied,
               `bloomFilter.applied with attemptNumber=${attemptNumber}`
-            ).to.be.true;
+            ).toBe(true);
           }
         );
       });
-    }
-  ).timeout('90s');
+    },
+    90_000
+  );
 
   // TODO(b/291365820): Stop skipping this test when running against the
   // Firestore emulator once the emulator is improved to include a bloom filter
@@ -192,7 +194,7 @@ apiDescribe('Queries', persistence => {
           const snapshot1 = await getDocs(
             query(coll, where('removed', '==', false))
           );
-          expect(snapshot1.size, 'snapshot1.size').to.equal(20);
+          expect(snapshot1.size, 'snapshot1.size').toBe(20);
           const createdDocuments = snapshot1.docs.map(snapshot => snapshot.ref);
 
           // Out of the 20 existing documents, leave 5 docs untouched, delete 5 docs,
@@ -211,7 +213,7 @@ apiDescribe('Queries', persistence => {
               batch.delete(documentToDelete);
               deletedDocumentIds.add(documentToDelete.id);
             }
-            expect(deletedDocumentIds.size).to.equal(5);
+            expect(deletedDocumentIds.size).toBe(5);
 
             // Update 5 documents to no longer match the query.
             for (let i = 1; i < createdDocuments.length; i += 4) {
@@ -221,7 +223,7 @@ apiDescribe('Queries', persistence => {
               });
               removedDocumentIds.add(documentToModify.id);
             }
-            expect(removedDocumentIds.size).to.equal(5);
+            expect(removedDocumentIds.size).toBe(5);
 
             // Update 5 documents, but ensure they still match the query.
             for (let i = 2; i < createdDocuments.length; i += 4) {
@@ -231,7 +233,7 @@ apiDescribe('Queries', persistence => {
               });
               updatedDocumentIds.add(documentToModify.id);
             }
-            expect(updatedDocumentIds.size).to.equal(5);
+            expect(updatedDocumentIds.size).toBe(5);
 
             for (let i = 0; i < 15; i += 1) {
               const documentToAdd = doc(
@@ -255,7 +257,7 @@ apiDescribe('Queries', persistence => {
             ].forEach(set => {
               set.forEach(documentId => mergedSet.add(documentId));
             });
-            expect(mergedSet.size).to.equal(30);
+            expect(mergedSet.size).toBe(30);
 
             await batch.commit();
           });
@@ -287,21 +289,21 @@ apiDescribe('Queries', persistence => {
             .concat(addedDocumentIds)
             .sort();
 
-          expect(actualDocumentIds, 'snapshot2.docs').to.deep.equal(
+          expect(actualDocumentIds, 'snapshot2.docs').toEqual(
             expectedDocumentIds
           );
-          expect(actualDocumentIds.length).to.equal(25);
+          expect(actualDocumentIds.length).toBe(25);
 
           // Verify that Watch sent an existence filter with the correct
           // counts when the query was resumed.
           expect(
             existenceFilterMismatches,
             'existenceFilterMismatches'
-          ).to.have.length(1);
+          ).toHaveLength(1);
           const { localCacheCount, existenceFilterCount, bloomFilter } =
             existenceFilterMismatches[0];
-          expect(localCacheCount, 'localCacheCount').to.equal(35);
-          expect(existenceFilterCount, 'existenceFilterCount').to.equal(25);
+          expect(localCacheCount, 'localCacheCount').toBe(35);
+          expect(existenceFilterCount, 'existenceFilterCount').toBe(25);
 
           // Verify that Watch sent a valid bloom filter.
           if (!bloomFilter) {
@@ -326,11 +328,12 @@ apiDescribe('Queries', persistence => {
           expect(
             bloomFilter.applied,
             `bloomFilter.applied with attemptNumber=${attemptNumber}`
-          ).to.be.true;
+          ).toBe(true);
         });
       });
-    }
-  ).timeout('90s');
+    },
+    90_000
+  );
 
   // TODO(b/291365820): Stop skipping this test when running against the
   // Firestore emulator once the emulator is improved to include a bloom filter
@@ -368,9 +371,9 @@ apiDescribe('Queries', persistence => {
       ];
 
       // Verify assumptions about the equivalence of strings in `testDocIds`.
-      expect(testDocIds[1].normalize()).equals(testDocIds[2].normalize());
-      expect(testDocIds[3].normalize()).equals(testDocIds[4].normalize());
-      expect(testDocIds[5]).equals('Smiley_\uD83D\uDE00');
+      expect(testDocIds[1].normalize()).toBe(testDocIds[2].normalize());
+      expect(testDocIds[3].normalize()).toBe(testDocIds[4].normalize());
+      expect(testDocIds[5]).toBe('Smiley_\uD83D\uDE00');
 
       // Create the mapping from document ID to document data for the document
       // IDs specified in `testDocIds`.
@@ -394,8 +397,8 @@ apiDescribe('Queries', persistence => {
         const snapshot1DocumentIds = snapshot1.docs.map(
           documentSnapshot => documentSnapshot.id
         );
-        expect(snapshot1DocumentIds, 'snapshot1DocumentIds').to.have.members(
-          testDocIds
+        expect(snapshot1DocumentIds).toEqual(
+          expect.arrayContaining(testDocIds)
         );
 
         // Delete one of the documents so that the next call to getDocs() will
@@ -422,29 +425,30 @@ apiDescribe('Queries', persistence => {
         const testDocIdsMinusDeletedDocId = testDocIds.filter(
           documentId => documentId !== documentToDelete.id
         );
-        expect(snapshot2DocumentIds, 'snapshot2DocumentIds').to.have.members(
-          testDocIdsMinusDeletedDocId
+        expect(snapshot2DocumentIds).toEqual(
+          expect.arrayContaining(testDocIdsMinusDeletedDocId)
         );
 
         // Verify that Watch sent an existence filter with the correct counts.
         expect(
           existenceFilterMismatches,
           'existenceFilterMismatches'
-        ).to.have.length(1);
+        ).toHaveLength(1);
         const existenceFilterMismatch = existenceFilterMismatches[0];
-        expect(
-          existenceFilterMismatch.localCacheCount,
-          'localCacheCount'
-        ).to.equal(testDocIds.length);
+        expect(existenceFilterMismatch.localCacheCount, 'localCacheCount').toBe(
+          testDocIds.length
+        );
         expect(
           existenceFilterMismatch.existenceFilterCount,
           'existenceFilterCount'
-        ).to.equal(testDocIds.length - 1);
+        ).toBe(testDocIds.length - 1);
 
         // Verify that we got a bloom filter from Watch.
         const bloomFilter = existenceFilterMismatch.bloomFilter!;
-        expect(bloomFilter?.mightContain, 'bloomFilter.mightContain').to.not.be
-          .undefined;
+        expect(
+          bloomFilter?.mightContain,
+          'bloomFilter.mightContain'
+        ).toBeDefined();
 
         // The bloom filter application should statistically be successful
         // almost every time; the _only_ time when it would _not_ be successful
@@ -452,7 +456,7 @@ apiDescribe('Queries', persistence => {
         // in the bloom filter. So verify that the bloom filter application is
         // successful, unless there was a false positive.
         const isFalsePositive = bloomFilter.mightContain(documentToDelete);
-        expect(bloomFilter.applied, 'bloomFilter.applied').to.equal(
+        expect(bloomFilter.applied, 'bloomFilter.applied').toBe(
           !isFalsePositive
         );
 
@@ -462,9 +466,10 @@ apiDescribe('Queries', persistence => {
           expect(
             bloomFilter.mightContain(testDoc),
             `bloomFilter.mightContain('${testDoc.path}')`
-          ).to.be.true;
+          ).toBe(true);
         }
       });
-    }
-  ).timeout('90s');
+    },
+    90_000
+  );
 });

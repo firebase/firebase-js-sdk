@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-
 import { NodeCallback, nodePromise } from '../../../src/util/node_api';
 
 describe('nodePromise', () => {
@@ -24,7 +22,7 @@ describe('nodePromise', () => {
     return nodePromise((callback: NodeCallback<string>) => {
       callback(null, 'success');
     }).then((value: string) => {
-      expect(value).to.equal('success');
+      expect(value).toBe('success');
     });
   });
 
@@ -38,7 +36,7 @@ describe('nodePromise', () => {
         expect.fail('should not have returned a value, got: ' + value);
       })
       .catch((err: unknown) => {
-        expect(err).to.equal(expected);
+        expect(err).toBe(expected);
       });
   });
 });

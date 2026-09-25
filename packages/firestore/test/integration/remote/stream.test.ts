@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import {
   EmptyAuthCredentialsProvider,
@@ -89,7 +87,7 @@ class StreamStatusListener implements WatchStreamListener, WriteStreamListener {
     }
 
     return promise.then(actualCallback => {
-      expect(actualCallback).to.equal(expectedCallback);
+      expect(actualCallback).toBe(expectedCallback);
     });
   }
 
@@ -97,7 +95,7 @@ class StreamStatusListener implements WatchStreamListener, WriteStreamListener {
    * Verifies that we did not encounter any unexpected callbacks.
    */
   verifyNoPendingCallbacks(): void {
-    expect(this.pendingCallbacks).to.be.empty;
+    expect(this.pendingCallbacks).toHaveLength(0);
   }
 
   onHandshakeComplete(): Promise<void> {
@@ -200,7 +198,7 @@ describe('Write Stream', () => {
       await streamListener.awaitCallback('open');
 
       // Writing before the handshake should throw
-      expect(() => writeStream.writeMutations(SINGLE_MUTATION)).to.throw(
+      expect(() => writeStream.writeMutations(SINGLE_MUTATION)).toThrow(
         'Handshake must be complete before writing mutations'
       );
       writeStream.writeHandshake();
@@ -227,15 +225,16 @@ describe('Write Stream', () => {
         })
         .then(() => {
           writeStream.markIdle();
-          expect(queue.containsDelayedOperation(TimerId.WriteStreamIdle)).to.be
-            .true;
+          expect(queue.containsDelayedOperation(TimerId.WriteStreamIdle)).toBe(
+            true
+          );
           return Promise.all([
             queue.runAllDelayedOperationsUntil(TimerId.WriteStreamIdle),
             streamListener.awaitCallback('close')
           ]);
         })
         .then(() => {
-          expect(writeStream.isOpen()).to.be.false;
+          expect(writeStream.isOpen()).toBe(false);
         });
     });
   });
@@ -249,13 +248,14 @@ describe('Write Stream', () => {
 
       // Mark the stream idle, but immediately cancel the idle timer by issuing another write.
       writeStream.markIdle();
-      expect(queue.containsDelayedOperation(TimerId.WriteStreamIdle)).to.be
-        .true;
+      expect(queue.containsDelayedOperation(TimerId.WriteStreamIdle)).toBe(
+        true
+      );
       writeStream.writeMutations(SINGLE_MUTATION);
       await streamListener.awaitCallback('mutationResult');
 
       await queue.runAllDelayedOperationsUntil(TimerId.All);
-      expect(writeStream.isOpen()).to.be.true;
+      expect(writeStream.isOpen()).toBe(true);
     });
   });
 
@@ -284,7 +284,7 @@ describe('Write Stream', () => {
 
       writeStream.start();
       await streamListener.awaitCallback('open');
-      expect(credentials.observedStates).to.deep.equal([
+      expect(credentials.observedStates).toEqual([
         'getToken',
         'invalidateToken',
         'getToken',
@@ -308,7 +308,7 @@ it('token is not invalidated once the stream is healthy', () => {
       new FirestoreError(Code.UNAUTHENTICATED, '')
     );
     await streamListener.awaitCallback('close');
-    expect(credentials.observedStates).to.deep.equal(['getToken']);
+    expect(credentials.observedStates).toEqual(['getToken']);
   }, credentials);
 });
 

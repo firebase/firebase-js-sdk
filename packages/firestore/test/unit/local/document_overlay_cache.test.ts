@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2022 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { expect } from 'chai';
 
 import { User } from '../../../src/auth/user';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
@@ -51,20 +50,18 @@ describe('MemoryDocumentOverlayCache', () => {
   genericDocumentOverlayCacheTests();
 });
 
-describe('IndexedDbDocumentOverlayCache', () => {
-  if (!IndexedDbPersistence.isAvailable()) {
-    console.warn('No IndexedDB. Skipping IndexedDbMutationQueue tests.');
-    return;
-  }
-
-  beforeEach(() => {
-    return persistenceHelpers.testIndexedDbPersistence().then(p => {
-      persistence = p;
+describe.skipIf(!IndexedDbPersistence.isAvailable())(
+  'IndexedDbDocumentOverlayCache',
+  () => {
+    beforeEach(() => {
+      return persistenceHelpers.testIndexedDbPersistence().then(p => {
+        persistence = p;
+      });
     });
-  });
 
-  genericDocumentOverlayCacheTests();
-});
+    genericDocumentOverlayCacheTests();
+  }
+);
 
 /**
  * Defines the set of tests to run against both document overlay cache
@@ -111,9 +108,9 @@ function genericDocumentOverlayCacheTests(): void {
     m1: Mutation | null,
     m2: Mutation | null
   ): void {
-    expect(m1 === null).to.equal(m2 === null);
+    expect(m1 === null).toBe(m2 === null);
     if (m1 !== null && m2 !== null) {
-      expect(mutationEquals(m1!, m2!)).to.equal(true);
+      expect(mutationEquals(m1!, m2!)).toBe(true);
     }
   }
 
@@ -125,11 +122,11 @@ function genericDocumentOverlayCacheTests(): void {
     overlays.forEach(overlayKey => (overlayKeys = overlayKeys.add(overlayKey)));
     let expectedKeys = documentKeySet();
     keys.forEach(value => (expectedKeys = expectedKeys.add(key(value))));
-    expect(overlayKeys.isEqual(expectedKeys)).to.deep.equal(true);
+    expect(overlayKeys.isEqual(expectedKeys)).toEqual(true);
   }
 
   it('returns null when overlay is not found', async () => {
-    expect(await overlayCache.getOverlay(key('coll/doc1'))).to.equal(null);
+    expect(await overlayCache.getOverlay(key('coll/doc1'))).toBe(null);
   });
 
   it('can read saved overlay', async () => {
@@ -175,14 +172,14 @@ function genericDocumentOverlayCacheTests(): void {
       documentKeySet(key('coll/doc1')),
       2
     );
-    expect(await overlayCache.getOverlay(key('coll/doc1'))).to.equal(null);
+    expect(await overlayCache.getOverlay(key('coll/doc1'))).toBe(null);
 
     // Repeat
     await overlayCache.removeOverlaysForBatchId(
       documentKeySet(key('coll/doc1')),
       2
     );
-    expect(await overlayCache.getOverlay(key('coll/doc1'))).to.equal(null);
+    expect(await overlayCache.getOverlay(key('coll/doc1'))).toBe(null);
   });
 
   it('can delete overlays', async () => {
@@ -205,31 +202,31 @@ function genericDocumentOverlayCacheTests(): void {
       key('coll2/doc2/coll3/doc2')
     );
     await overlayCache.removeOverlaysForBatchId(set1, 2);
-    expect(await overlayCache.getOverlay(key('coll1/doc1'))).to.equal(null);
-    expect(await overlayCache.getOverlay(key('coll1/doc2'))).to.equal(null);
-    expect(
-      await overlayCache.getOverlay(key('coll2/doc1/coll3/doc1'))
-    ).to.equal(null);
-    expect(
-      await overlayCache.getOverlay(key('coll2/doc2/coll3/doc2'))
-    ).to.equal(null);
-    expect(await overlayCache.getOverlay(key('coll1/doc3'))).to.not.equal(null);
-    expect(await overlayCache.getOverlay(key('coll1/doc4'))).to.not.equal(null);
+    expect(await overlayCache.getOverlay(key('coll1/doc1'))).toBe(null);
+    expect(await overlayCache.getOverlay(key('coll1/doc2'))).toBe(null);
+    expect(await overlayCache.getOverlay(key('coll2/doc1/coll3/doc1'))).toBe(
+      null
+    );
+    expect(await overlayCache.getOverlay(key('coll2/doc2/coll3/doc2'))).toBe(
+      null
+    );
+    expect(await overlayCache.getOverlay(key('coll1/doc3'))).not.toBe(null);
+    expect(await overlayCache.getOverlay(key('coll1/doc4'))).not.toBe(null);
 
     // Remove documents with batch id 3.
     await overlayCache.removeOverlaysForBatchId(
       documentKeySet(key('coll1/doc3')),
       3
     );
-    expect(await overlayCache.getOverlay(key('coll1/doc3'))).to.equal(null);
-    expect(await overlayCache.getOverlay(key('coll1/doc4'))).to.not.equal(null);
+    expect(await overlayCache.getOverlay(key('coll1/doc3'))).toBe(null);
+    expect(await overlayCache.getOverlay(key('coll1/doc4'))).not.toBe(null);
 
     // Remove documents with batch id 4.
     await overlayCache.removeOverlaysForBatchId(
       documentKeySet(key('coll1/doc4')),
       4
     );
-    expect(await overlayCache.getOverlay(key('coll1/doc4'))).to.equal(null);
+    expect(await overlayCache.getOverlay(key('coll1/doc4'))).toBe(null);
   });
 
   it('can get all overlays for collection', async () => {
@@ -325,17 +322,17 @@ function genericDocumentOverlayCacheTests(): void {
       documentKeySet(key('coll/doc')),
       2
     );
-    expect(await overlayCache.getOverlay(key('coll/doc'))).to.equal(null);
+    expect(await overlayCache.getOverlay(key('coll/doc'))).toBe(null);
   });
 
   it('skips non-existing overlay in batch lookup', async () => {
     const result = await overlayCache.getOverlays([key('coll/doc1')]);
-    expect(result.isEmpty()).to.equal(true);
+    expect(result.isEmpty()).toBe(true);
   });
 
   it('supports empty batch in batch lookup', async () => {
     const result = await overlayCache.getOverlays([]);
-    expect(result.isEmpty()).to.equal(true);
+    expect(result.isEmpty()).toBe(true);
   });
 
   it('can read saved overlays in batches', async () => {

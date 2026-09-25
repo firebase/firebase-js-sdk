@@ -15,9 +15,6 @@
  * limitations under the License.
  */
 
-import { assert, expect, use } from 'chai';
-import chaiExclude from 'chai-exclude';
-
 import { LoadBundleTask } from '../../../src/api/bundle';
 import {
   EmptyAppCheckTokenProvider,
@@ -196,8 +193,6 @@ import {
   QueryEvent,
   SharedWriteTracker
 } from './spec_test_components';
-
-use(chaiExclude);
 
 const ARBITRARY_SEQUENCE_NUMBER = 2;
 
@@ -572,7 +567,7 @@ abstract class TestRunner {
     }
 
     if (targetFailed) {
-      expect(this.persistence.injectFailures).contains('Allocate target');
+      expect(this.persistence.injectFailures).toContain('Allocate target');
     } else {
       // Skip the backoff that may have been triggered by a previous call to
       // `watchStreamCloses()`.
@@ -802,7 +797,7 @@ abstract class TestRunner {
           expect(
             this.connection.activeTargets[remoteTargetId],
             'Removing a non-active target'
-          ).to.exist;
+          ).toBeDefined();
         }
         delete this.connection.activeTargets[remoteTargetId];
       });
@@ -931,11 +926,9 @@ abstract class TestRunner {
     // write.
     return this.connection.waitForWriteRequest().then(request => {
       const writes = request.writes!;
-      expect(writes.length).to.equal(mutations.length);
+      expect(writes.length).toBe(mutations.length);
       for (let i = 0; i < writes.length; ++i) {
-        expect(writes[i]).to.deep.equal(
-          toMutation(this.serializer, mutations[i])
-        );
+        expect(writes[i]).toEqual(toMutation(this.serializer, mutations[i]));
       }
     });
   }
@@ -1083,10 +1076,10 @@ abstract class TestRunner {
     expectedEvents: SnapshotEvent[]
   ): void {
     if (expectedEvents) {
-      expect(this.eventList.length).to.equal(
-        expectedEvents.length,
+      expect(
+        this.eventList.length,
         'Number of expected and actual events mismatch'
-      );
+      ).toBe(expectedEvents.length);
       const actualEventsSorted: QueryEvent[] = this.eventList.sort((a, b) =>
         primitiveComparator(
           canonifyQueryOrPipeline(a.query),
@@ -1135,10 +1128,10 @@ abstract class TestRunner {
         this.validateWatchExpectation(expected, actual);
       }
     } else {
-      expect(this.eventList.length).to.equal(
-        0,
+      expect(
+        this.eventList.length,
         'Unexpected events: ' + JSON.stringify(this.eventList, null, 2)
-      );
+      ).toBe(0);
     }
   }
 
@@ -1147,7 +1140,7 @@ abstract class TestRunner {
   ): Promise<void> {
     if (expectedState) {
       if ('numOutstandingWrites' in expectedState) {
-        expect(outstandingWrites(this.remoteStore)).to.equal(
+        expect(outstandingWrites(this.remoteStore)).toBe(
           expectedState.numOutstandingWrites
         );
       }
@@ -1157,15 +1150,15 @@ abstract class TestRunner {
           'numActiveClients() requires IndexedDbPersistence'
         );
         const activeClients = await this.persistence.getActiveClients();
-        expect(activeClients.length).to.equal(expectedState.numActiveClients);
+        expect(activeClients.length).toBe(expectedState.numActiveClients);
       }
       if ('writeStreamRequestCount' in expectedState) {
-        expect(this.connection.writeStreamRequestCount).to.equal(
+        expect(this.connection.writeStreamRequestCount).toBe(
           expectedState.writeStreamRequestCount
         );
       }
       if ('watchStreamRequestCount' in expectedState) {
-        expect(this.connection.watchStreamRequestCount).to.equal(
+        expect(this.connection.watchStreamRequestCount).toBe(
           expectedState.watchStreamRequestCount
         );
       }
@@ -1183,13 +1176,12 @@ abstract class TestRunner {
         });
       }
       if ('isPrimary' in expectedState) {
-        expect(this.isPrimaryClient).to.eq(
-          expectedState.isPrimary!,
-          'isPrimary'
+        expect(this.isPrimaryClient, 'isPrimary').toBe(
+          expectedState.isPrimary!
         );
       }
       if ('isShutdown' in expectedState) {
-        expect(this.started).to.equal(!expectedState.isShutdown);
+        expect(this.started).toBe(!expectedState.isShutdown);
       }
       if ('indexes' in expectedState) {
         const fieldIndexes: FieldIndex[] =
@@ -1200,28 +1192,26 @@ abstract class TestRunner {
               this.localStore.indexManager.getFieldIndexes(transaction)
           );
 
-        assert.deepEqualExcluding(
-          fieldIndexes,
-          expectedState.indexes!,
-          'indexId'
+        expect(fieldIndexes.map(({ indexId: _, ...rest }) => rest)).toEqual(
+          expectedState.indexes!.map(({ indexId: _, ...rest }) => rest)
         );
       }
     }
 
     if (expectedState && expectedState.userCallbacks) {
-      expect(this.acknowledgedDocs).to.have.members(
-        expectedState.userCallbacks.acknowledgedDocs
+      expect(this.acknowledgedDocs).toEqual(
+        expect.arrayContaining(expectedState.userCallbacks.acknowledgedDocs)
       );
-      expect(this.rejectedDocs).to.have.members(
-        expectedState.userCallbacks.rejectedDocs
+      expect(this.rejectedDocs).toEqual(
+        expect.arrayContaining(expectedState.userCallbacks.rejectedDocs)
       );
     } else {
-      expect(this.acknowledgedDocs).to.be.empty;
-      expect(this.rejectedDocs).to.be.empty;
+      expect(this.acknowledgedDocs).toHaveLength(0);
+      expect(this.rejectedDocs).toHaveLength(0);
     }
 
     if (this.numClients === 1) {
-      expect(this.isPrimaryClient).to.eq(true, 'isPrimary');
+      expect(this.isPrimaryClient, 'isPrimary').toBe(true);
     }
 
     // Clients don't reset their limbo docs on shutdown, so any validation will
@@ -1240,19 +1230,18 @@ abstract class TestRunner {
   private validateWaitForPendingWritesEvents(
     expectedCount: number | undefined
   ): void {
-    expect(this.waitForPendingWritesEvents).to.eq(
-      expectedCount || 0,
+    expect(
+      this.waitForPendingWritesEvents,
       'for waitForPendingWritesEvents'
-    );
+    ).toBe(expectedCount || 0);
     this.waitForPendingWritesEvents = 0;
   }
 
   private validateSnapshotsInSyncEvents(
     expectedCount: number | undefined
   ): void {
-    expect(this.snapshotsInSyncEvents).to.eq(
-      expectedCount || 0,
-      'for snapshotsInSyncEvents'
+    expect(this.snapshotsInSyncEvents, 'for snapshotsInSyncEvents').toBe(
+      expectedCount || 0
     );
     this.snapshotsInSyncEvents = 0;
   }
@@ -1268,27 +1257,27 @@ abstract class TestRunner {
         const targetIds = new Array(this.expectedActiveTargets.keys()).map(
           n => '' + n
         );
-        expect(this.expectedActiveTargets.has(targetId)).to.equal(
-          true,
+        expect(
+          this.expectedActiveTargets.has(targetId),
           `Found limbo doc ${key.toString()}, but its target ID ${targetId} ` +
             `was not in the set of expected active target IDs ` +
             `(${targetIds.join(', ')})`
-        );
+        ).toBe(true);
       });
     }
 
     for (const expectedLimboDoc of this.expectedActiveLimboDocs) {
-      expect(actualLimboDocs.get(expectedLimboDoc)).to.not.equal(
-        null,
+      expect(
+        actualLimboDocs.get(expectedLimboDoc),
         'Expected doc to be in limbo, but was not: ' +
           expectedLimboDoc.toString()
-      );
+      ).not.toBe(null);
       actualLimboDocs = actualLimboDocs.remove(expectedLimboDoc);
     }
-    expect(actualLimboDocs.size).to.equal(
-      0,
+    expect(
+      actualLimboDocs.size,
       'Unexpected active docs in limbo: ' + actualLimboDocs.toString()
-    );
+    ).toBe(0);
   }
 
   private validateEnqueuedLimboDocs(): void {
@@ -1298,15 +1287,19 @@ abstract class TestRunner {
     const expectedLimboDocs = Array.from(this.expectedEnqueuedLimboDocs, key =>
       key.path.canonicalString()
     );
-    expect(actualLimboDocs).to.have.members(
+    expect(
+      actualLimboDocs,
+      'The set of enqueued limbo documents is incorrect'
+    ).toEqual(expect.arrayContaining(expectedLimboDocs));
+    expect(
       expectedLimboDocs,
       'The set of enqueued limbo documents is incorrect'
-    );
+    ).toEqual(expect.arrayContaining(actualLimboDocs));
   }
 
   private async validateActiveTargets(): Promise<void> {
     if (!this.isPrimaryClient || !this.networkEnabled) {
-      expect(this.connection.activeTargets).to.be.empty;
+      expect(this.connection.activeTargets).toEqual({});
       return;
     }
 
@@ -1324,10 +1317,10 @@ abstract class TestRunner {
     const actualTargets = { ...this.connection.activeTargets };
     this.expectedActiveTargets.forEach((expected, sdkTargetId) => {
       const remoteTargetId = this.getRemoteTargetId(sdkTargetId);
-      expect(actualTargets[remoteTargetId]).to.not.equal(
-        undefined,
+      expect(
+        actualTargets[remoteTargetId],
         'Expected active target not found: ' + JSON.stringify(expected)
-      );
+      ).not.toBe(undefined);
       const { target: actualTarget, labels: actualLabels } =
         actualTargets[remoteTargetId];
 
@@ -1354,7 +1347,7 @@ abstract class TestRunner {
 
       const expectedLabels =
         toListenRequestLabels(this.serializer, targetData) ?? undefined;
-      expect(actualLabels).to.deep.equal(expectedLabels);
+      expect(actualLabels).toEqual(expectedLabels);
 
       let expectedTarget: api.Target;
       if (
@@ -1379,8 +1372,9 @@ abstract class TestRunner {
         );
 
         if (targetIsPipelineTarget(targetData.target)) {
-          expect(queryOrPipelineEqual(actualPipeline, targetData.target)).to.be
-            .true;
+          expect(queryOrPipelineEqual(actualPipeline, targetData.target)).toBe(
+            true
+          );
         } else {
           const expectedQuery = new QueryImpl(
             targetData.target.path,
@@ -1397,34 +1391,33 @@ abstract class TestRunner {
               toPipelineStages(expectedQuery, newTestFirestore())
             )
           );
-          expect(queryOrPipelineEqual(actualPipeline, expectedPipeline)).to.be
-            .true;
+          expect(queryOrPipelineEqual(actualPipeline, expectedPipeline)).toBe(
+            true
+          );
         }
       } else {
         expectedTarget = toTarget(this.serializer, targetData);
-        expect(actualTarget.query).to.deep.equal(expectedTarget.query);
+        expect(actualTarget.query).toEqual(expectedTarget.query);
       }
 
-      expect(actualTarget.targetId).to.equal(expectedTarget.targetId);
-      expect(actualTarget.readTime).to.equal(expectedTarget.readTime);
-      expect(actualTarget.resumeToken).to.equal(
-        expectedTarget.resumeToken,
+      expect(actualTarget.targetId).toBe(expectedTarget.targetId);
+      expect(actualTarget.readTime).toBe(expectedTarget.readTime);
+      expect(
+        actualTarget.resumeToken,
         `ResumeToken does not match - expected:
          ${stringFromBase64String(
            expectedTarget.resumeToken
          )}, actual: ${stringFromBase64String(actualTarget.resumeToken)}`
-      );
+      ).toBe(expectedTarget.resumeToken);
       if (expected.expectedCount !== undefined) {
-        expect(actualTarget.expectedCount).to.equal(
-          expectedTarget.expectedCount
-        );
+        expect(actualTarget.expectedCount).toBe(expectedTarget.expectedCount);
       }
       delete actualTargets[remoteTargetId];
     });
-    expect(objectSize(actualTargets)).to.equal(
-      0,
+    expect(
+      objectSize(actualTargets),
       'Unexpected active targets: ' + JSON.stringify(actualTargets)
-    );
+    ).toBe(0);
   }
 
   private specToTarget(spec: SpecQuery | CorePipeline): TargetOrPipeline {
@@ -1450,7 +1443,7 @@ abstract class TestRunner {
         )
       );
     } else {
-      expect(parseQuery(expected.query)).to.deep.equal(actual.query);
+      expect(parseQuery(expected.query)).toEqual(actual.query);
     }
 
     if (expected.errorCode) {
@@ -1488,16 +1481,18 @@ abstract class TestRunner {
       const expectedChangesSorted = Array.from(expectedChanges).sort((a, b) =>
         primitiveComparator(a.doc, b.doc)
       );
-      expect(actualChangesSorted).to.deep.equal(expectedChangesSorted);
+      expect(actualChangesSorted).toEqual(expectedChangesSorted);
 
-      expect(actual.view!.hasPendingWrites).to.equal(
-        expected.hasPendingWrites,
-        'hasPendingWrites'
+      expect(actual.view!.hasPendingWrites, 'hasPendingWrites').toBe(
+        expected.hasPendingWrites
       );
-      expect(actual.view!.fromCache).to.equal(expected.fromCache, 'fromCache');
+      expect(actual.view!.fromCache, 'fromCache').toBe(expected.fromCache);
 
       if (actual && !expected) {
-        expect(expected, 'Got an actual event without expecting one').to.be.ok;
+        expect(
+          expected,
+          'Got an actual event without expecting one'
+        ).toBeTruthy();
       }
     }
   }

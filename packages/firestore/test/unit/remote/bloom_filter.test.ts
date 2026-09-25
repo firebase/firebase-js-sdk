@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2022 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { expect } from 'chai';
 
 import { normalizeByteString } from '../../../src/model/normalize';
 import { BloomFilter } from '../../../src/remote/bloom_filter';
@@ -24,14 +23,14 @@ import * as TEST_DATA from './bloom_filter_golden_test_data';
 describe('BloomFilter', () => {
   it('can instantiate an empty bloom filter', () => {
     const bloomFilter = new BloomFilter(new Uint8Array(0), 0, 0);
-    expect(bloomFilter.bitCount).to.equal(0);
+    expect(bloomFilter.bitCount).toBe(0);
   });
 
   it('should throw error if empty bloom filter inputs are invalid', () => {
-    expect(() => new BloomFilter(new Uint8Array(0), 1, 0)).to.throw(
+    expect(() => new BloomFilter(new Uint8Array(0), 1, 0)).toThrow(
       'Invalid padding when bitmap length is 0: 1'
     );
-    expect(() => new BloomFilter(new Uint8Array(0), 0, -1)).to.throw(
+    expect(() => new BloomFilter(new Uint8Array(0), 0, -1)).toThrow(
       'Invalid hash count: -1'
     );
   });
@@ -46,33 +45,33 @@ describe('BloomFilter', () => {
     const bloomFilter6 = new BloomFilter(new Uint8Array(1), 6, 1);
     const bloomFilter7 = new BloomFilter(new Uint8Array(1), 7, 1);
 
-    expect(bloomFilter0.bitCount).to.equal(8);
-    expect(bloomFilter1.bitCount).to.equal(7);
-    expect(bloomFilter2.bitCount).to.equal(6);
-    expect(bloomFilter3.bitCount).to.equal(5);
-    expect(bloomFilter4.bitCount).to.equal(4);
-    expect(bloomFilter5.bitCount).to.equal(3);
-    expect(bloomFilter6.bitCount).to.equal(2);
-    expect(bloomFilter7.bitCount).to.equal(1);
+    expect(bloomFilter0.bitCount).toBe(8);
+    expect(bloomFilter1.bitCount).toBe(7);
+    expect(bloomFilter2.bitCount).toBe(6);
+    expect(bloomFilter3.bitCount).toBe(5);
+    expect(bloomFilter4.bitCount).toBe(4);
+    expect(bloomFilter5.bitCount).toBe(3);
+    expect(bloomFilter6.bitCount).toBe(2);
+    expect(bloomFilter7.bitCount).toBe(1);
   });
 
   it('should throw error if padding is invalid', () => {
-    expect(() => new BloomFilter(new Uint8Array(1), -1, 1)).to.throw(
+    expect(() => new BloomFilter(new Uint8Array(1), -1, 1)).toThrow(
       'Invalid padding: -1'
     );
-    expect(() => new BloomFilter(new Uint8Array(1), 8, 1)).to.throw(
+    expect(() => new BloomFilter(new Uint8Array(1), 8, 1)).toThrow(
       'Invalid padding: 8'
     );
   });
 
   it('should throw error if hash count is negative', () => {
-    expect(() => new BloomFilter(new Uint8Array(1), 1, -1)).to.throw(
+    expect(() => new BloomFilter(new Uint8Array(1), 1, -1)).toThrow(
       'Invalid hash count: -1'
     );
   });
 
   it('should throw error if hash count is 0 for non empty bloom filter', () => {
-    expect(() => new BloomFilter(new Uint8Array(1), 1, 0)).to.throw(
+    expect(() => new BloomFilter(new Uint8Array(1), 1, 0)).toThrow(
       'Invalid hash count: 0'
     );
   });
@@ -80,21 +79,21 @@ describe('BloomFilter', () => {
   it('should be able to process non standard characters', () => {
     // A non-empty BloomFilter object with 1 insertion : "ÀÒ∑"
     const bloomFilter = new BloomFilter(new Uint8Array([237, 5]), 5, 8);
-    expect(bloomFilter.mightContain('ÀÒ∑')).to.be.true;
-    expect(bloomFilter.mightContain('Ò∑À')).to.be.false;
+    expect(bloomFilter.mightContain('ÀÒ∑')).toBe(true);
+    expect(bloomFilter.mightContain('Ò∑À')).toBe(false);
   });
 
   it('mightContain in empty bloom filter should always return false', () => {
     const bloomFilter = new BloomFilter(new Uint8Array(0), 0, 0);
-    expect(bloomFilter.mightContain('')).to.be.false;
-    expect(bloomFilter.mightContain('abc')).to.be.false;
+    expect(bloomFilter.mightContain('')).toBe(false);
+    expect(bloomFilter.mightContain('abc')).toBe(false);
   });
 
   it('mightContain on empty string might return false positive result', () => {
     const bloomFilter1 = new BloomFilter(new Uint8Array([1]), 1, 1);
     const bloomFilter2 = new BloomFilter(new Uint8Array([255]), 0, 16);
-    expect(bloomFilter1.mightContain('')).to.be.false;
-    expect(bloomFilter2.mightContain('')).to.be.true;
+    expect(bloomFilter1.mightContain('')).toBe(false);
+    expect(bloomFilter2.mightContain('')).toBe(true);
   });
 
   /**
@@ -140,7 +139,7 @@ describe('BloomFilter', () => {
       for (let i = 0; i < membershipTestResults.length; i++) {
         const expectedMembershipResult = membershipTestResults[i] === '1';
         const mightContain = bloomFilter.mightContain(documentPrefix + i);
-        expect(mightContain).to.equal(expectedMembershipResult);
+        expect(mightContain).toBe(expectedMembershipResult);
       }
     }
 
@@ -210,26 +209,20 @@ describe('BloomFilter', () => {
       );
     });
     // eslint-disable-next-line no-restricted-properties
-    it.skip(
-      'mightContain result for 50000 documents with 0.01 false positive rate',
-      () => {
-        testBloomFilterAgainstExpectedResult(
-          TEST_DATA.count50000Rate01TestData,
-          TEST_DATA.count50000Rate01TestResult
-        );
-        // Extend the default timeout to 10000ms
-      }
-    ).timeout(10_000);
+    it.skip('mightContain result for 50000 documents with 0.01 false positive rate', () => {
+      testBloomFilterAgainstExpectedResult(
+        TEST_DATA.count50000Rate01TestData,
+        TEST_DATA.count50000Rate01TestResult
+      );
+      // Extend the default timeout to 10000ms
+    }, 10_000);
     // eslint-disable-next-line no-restricted-properties
-    it.skip(
-      'mightContain result for 50000 documents with 0.0001 false positive rate',
-      () => {
-        testBloomFilterAgainstExpectedResult(
-          TEST_DATA.count50000Rate0001TestData,
-          TEST_DATA.count50000Rate0001TestResult
-        );
-        // Extend the default timeout to 10000ms
-      }
-    ).timeout(10_000);
+    it.skip('mightContain result for 50000 documents with 0.0001 false positive rate', () => {
+      testBloomFilterAgainstExpectedResult(
+        TEST_DATA.count50000Rate0001TestData,
+        TEST_DATA.count50000Rate0001TestResult
+      );
+      // Extend the default timeout to 10000ms
+    }, 10_000);
   });
 });

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,22 +15,26 @@
  * limitations under the License.
  */
 
-const karma = require('karma');
-const path = require('path');
-const karmaBase = require('../../config/karma.base');
+import { Buffer } from 'buffer';
+import { afterEach, vi } from 'vitest';
 
-const files = ['./dist/test-harness.js'];
+if (typeof globalThis.Buffer === 'undefined') {
+  (globalThis as unknown as { Buffer: typeof Buffer }).Buffer = Buffer;
+}
+if (
+  typeof (globalThis as unknown as { process?: unknown }).process ===
+  'undefined'
+) {
+  (
+    globalThis as unknown as { process: { env: Record<string, string> } }
+  ).process = {
+    env: {}
+  };
+}
 
-module.exports = function (config) {
-  const karmaConfig = Object.assign({}, karmaBase, {
-    // files to load into karma
-    files: files,
-    // frameworks to use
-    // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
-    frameworks: ['mocha']
-  });
+// eslint-disable-next-line import/first
+import './temp/test/util/mocha_extensions';
 
-  config.set(karmaConfig);
-};
-
-module.exports.files = files;
+afterEach(() => {
+  vi.restoreAllMocks();
+});

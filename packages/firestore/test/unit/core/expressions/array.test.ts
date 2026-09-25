@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2025 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import { VectorValue } from '../../../../src';
 import { EvaluateResult } from '../../../../src/core/expressions';
@@ -53,7 +51,7 @@ describe('Array Expressions', () => {
             [constant('1'), constant(42), constant(true)]
           )
         )
-      ).to.deep.equal(TRUE_VALUE);
+      ).toEqual(TRUE_VALUE);
     });
 
     it('doesNotContainAll', () => {
@@ -64,7 +62,7 @@ describe('Array Expressions', () => {
             constant(99)
           ])
         )
-      ).to.deep.equal(FALSE_VALUE);
+      ).toEqual(FALSE_VALUE);
     });
 
     it('equivalentNumerics', () => {
@@ -75,7 +73,7 @@ describe('Array Expressions', () => {
             [constant(42.0), constant(true)]
           )
         )
-      ).to.deep.equal(TRUE_VALUE);
+      ).toEqual(TRUE_VALUE);
     });
 
     it('arrayToSearch_isEmpty', () => {
@@ -83,13 +81,13 @@ describe('Array Expressions', () => {
         evaluateToValue(
           arrayContainsAll(constantArray(), [constant(42.0), constant(true)])
         )
-      ).to.deep.equal(FALSE_VALUE);
+      ).toEqual(FALSE_VALUE);
     });
 
     it('searchValue_isEmpty', () => {
       expect(
         evaluateToValue(arrayContainsAll(constantArray(42.0, true), []))
-      ).to.deep.equal(TRUE_VALUE);
+      ).toEqual(TRUE_VALUE);
     });
 
     it('searchValue_isNaN', () => {
@@ -97,7 +95,7 @@ describe('Array Expressions', () => {
         evaluateToValue(
           arrayContainsAll(constantArray(NaN, 42.0), [constant(NaN)])
         )
-      ).to.deep.equal(FALSE_VALUE);
+      ).toEqual(FALSE_VALUE);
     });
 
     it('searchValue_hasDuplicates', () => {
@@ -109,13 +107,13 @@ describe('Array Expressions', () => {
             constant(true)
           ])
         )
-      ).to.deep.equal(TRUE_VALUE);
+      ).toEqual(TRUE_VALUE);
     });
 
     it('arrayToSearch_isEmpty_searchValue_isEmpty', () => {
-      expect(
-        evaluateToValue(arrayContainsAll(constantArray(), []))
-      ).to.deep.equal(TRUE_VALUE);
+      expect(evaluateToValue(arrayContainsAll(constantArray(), []))).toEqual(
+        TRUE_VALUE
+      );
     });
 
     it('largeNumberOfElements', () => {
@@ -127,7 +125,7 @@ describe('Array Expressions', () => {
             elements.map(e => constant(e))
           )
         )
-      ).to.deep.equal(TRUE_VALUE);
+      ).toEqual(TRUE_VALUE);
     });
   });
 
@@ -138,7 +136,7 @@ describe('Array Expressions', () => {
     it('valueFoundInArray', () => {
       expect(
         evaluateToValue(arrayContainsAny(ARRAY_TO_SEARCH, SEARCH_VALUES))
-      ).to.deep.equal(TRUE_VALUE);
+      ).toEqual(TRUE_VALUE);
     });
 
     it('equivalentNumerics', () => {
@@ -146,7 +144,7 @@ describe('Array Expressions', () => {
         evaluateToValue(
           arrayContainsAny(ARRAY_TO_SEARCH, [constant(42.0), constant(2)])
         )
-      ).to.deep.equal(TRUE_VALUE);
+      ).toEqual(TRUE_VALUE);
     });
 
     it('valuesNotFoundInArray', () => {
@@ -154,7 +152,7 @@ describe('Array Expressions', () => {
         evaluateToValue(
           arrayContainsAny(ARRAY_TO_SEARCH, [constant(99), constant('false')])
         )
-      ).to.deep.equal(FALSE_VALUE);
+      ).toEqual(FALSE_VALUE);
     });
 
     // TODO(pipeline): Nested arrays are not supported in documents. We need to
@@ -177,13 +175,13 @@ describe('Array Expressions', () => {
             constant(null)
           ])
         )
-      ).to.deep.equal(EvaluateResult.newValue(TRUE_VALUE));
+      ).toEqual(EvaluateResult.newValue(TRUE_VALUE));
     });
 
     it('array_isNotArrayType_returnsError', () => {
       expect(
         evaluateToValue(arrayContainsAny(constant('matang'), SEARCH_VALUES))
-      ).to.be.undefined;
+      ).toBeUndefined();
     });
 
     it('search_isNotArrayType_returnsError', () => {
@@ -191,19 +189,19 @@ describe('Array Expressions', () => {
         evaluateToValue(
           arrayContainsAny(constant('values'), [constant('values')])
         )
-      ).to.be.undefined;
+      ).toBeUndefined();
     });
 
     it('array_notFound_returnsError', () => {
       expect(
         evaluateToValue(arrayContainsAny(field('not-exist'), SEARCH_VALUES))
-      ).to.be.undefined;
+      ).toBeUndefined();
     });
 
     it('searchNotFound_returnsError', () => {
       expect(
         evaluateToValue(arrayContainsAny(ARRAY_TO_SEARCH, [field('not-exist')]))
-      ).to.be.undefined;
+      ).toBeUndefined();
     });
   }); // end describe('arrayContainsAny')
 
@@ -215,25 +213,25 @@ describe('Array Expressions', () => {
         evaluateToValue(
           arrayContains(constantArray('hello', 'world'), constant('hello'))
         )
-      ).to.deep.equal(TRUE_VALUE);
+      ).toEqual(TRUE_VALUE);
     });
 
     it('valueNotFoundInArray', () => {
       expect(
         evaluateToValue(arrayContains(ARRAY_TO_SEARCH, constant(4)))
-      ).to.deep.equal(FALSE_VALUE);
+      ).toEqual(FALSE_VALUE);
     });
 
     it('notArrayContainsFunction_valueNotFoundInArray', () => {
       const child = arrayContains(ARRAY_TO_SEARCH, constant(4));
       const f = not(child as BooleanExpression);
-      expect(evaluateToValue(f)).to.deep.equal(TRUE_VALUE);
+      expect(evaluateToValue(f)).toEqual(TRUE_VALUE);
     });
 
     it('equivalentNumerics', () => {
       expect(
         evaluateToValue(arrayContains(ARRAY_TO_SEARCH, constant(42.0)))
-      ).to.deep.equal(TRUE_VALUE);
+      ).toEqual(TRUE_VALUE);
     });
 
     // TODO(pipeline): Nested arrays are not supported in documents. We need to
@@ -254,13 +252,13 @@ describe('Array Expressions', () => {
         evaluateToValue(
           arrayContains(constantArray(null, 1, 'matang', true), constant(null))
         )
-      ).to.deep.equal(INTERNAL_MIN_VALUE);
+      ).toEqual(INTERNAL_MIN_VALUE);
     });
 
     it('searchValue_isNull_emptyValuesArray_returnsNull', () => {
       expect(
         evaluateToValue(arrayContains(constantArray(), constant(null)))
-      ).to.deep.equal(INTERNAL_MIN_VALUE);
+      ).toEqual(INTERNAL_MIN_VALUE);
     });
 
     it('searchValue_isMap', () => {
@@ -271,37 +269,37 @@ describe('Array Expressions', () => {
             constantMap({ foo: 42 })
           )
         )
-      ).to.deep.equal(TRUE_VALUE);
+      ).toEqual(TRUE_VALUE);
     });
 
     it('searchValue_isNaN', () => {
       expect(
         evaluateToValue(arrayContains(constantArray(NaN, 'foo'), constant(NaN)))
-      ).to.deep.equal(FALSE_VALUE);
+      ).toEqual(FALSE_VALUE);
     });
 
     it('arrayToSearch_isNotArrayType_returnsError', () => {
       expect(
         evaluateToValue(arrayContains(constant('matang'), constant('values')))
-      ).to.be.undefined;
+      ).toBeUndefined();
     });
 
     it('arrayToSearch_notFound_returnsError', () => {
       expect(
         evaluateToValue(arrayContains(field('not-exist'), constant('matang')))
-      ).to.be.undefined;
+      ).toBeUndefined();
     });
 
     it('arrayToSearch_isEmpty_returnsFalse', () => {
       expect(
         evaluateToValue(arrayContains(constantArray(), constant('matang')))
-      ).to.deep.equal(FALSE_VALUE);
+      ).toEqual(FALSE_VALUE);
     });
 
     it('searchValue_reference_notFound_returnsError', () => {
       expect(
         evaluateToValue(arrayContains(ARRAY_TO_SEARCH, field('not-exist')))
-      ).to.be.undefined;
+      ).toBeUndefined();
     });
   }); // end describe('arrayContains')
 
@@ -333,9 +331,10 @@ describe('Array Expressions', () => {
     it('notArrayType_returnsError', () => {
       expect(
         evaluateToValue(arrayLength(constant(new VectorValue([0.0, 1.0]))))
-      ).to.be.undefined; // Assuming double[] is not considered an array
-      expect(evaluateToValue(arrayLength(constant('notAnArray')))).to.be
-        .undefined;
+      ).toBeUndefined(); // Assuming double[] is not considered an array
+      expect(
+        evaluateToValue(arrayLength(constant('notAnArray')))
+      ).toBeUndefined();
     });
   }); // end describe('arrayLength')
 });

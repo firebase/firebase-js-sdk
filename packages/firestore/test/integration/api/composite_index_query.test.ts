@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2023 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import { it } from '../../util/mocha_extensions';
 import { CompositeIndexTestHelper } from '../util/composite_index_test_helper';
@@ -191,9 +189,9 @@ apiDescribe('Composite Index Queries', persistence => {
             avg: average('a')
           }
         );
-        expect(snapshot.data().count).to.equal(2);
-        expect(snapshot.data().sum).to.equal(4);
-        expect(snapshot.data().avg).to.equal(2);
+        expect(snapshot.data().count).toBe(2);
+        expect(snapshot.data().sum).toBe(4);
+        expect(snapshot.data().avg).toBe(2);
       });
     });
 
@@ -217,10 +215,10 @@ apiDescribe('Composite Index Queries', persistence => {
               count: count()
             }
           );
-          expect(snapshot.data().totalPages).to.equal(300);
-          expect(snapshot.data().averagePages).to.equal(100);
-          expect(snapshot.data().averageYear).to.equal(2007);
-          expect(snapshot.data().count).to.equal(3);
+          expect(snapshot.data().totalPages).toBe(300);
+          expect(snapshot.data().averagePages).toBe(100);
+          expect(snapshot.data().averageYear).toBe(2007);
+          expect(snapshot.data().count).toBe(3);
         });
       }
     );
@@ -263,9 +261,9 @@ apiDescribe('Composite Index Queries', persistence => {
           totalPages: sum('pages'),
           averageYear: average('year')
         });
-        expect(snapshot.data().totalRating).to.be.NaN;
-        expect(snapshot.data().totalPages).to.equal(300);
-        expect(snapshot.data().averageYear).to.equal(2000);
+        expect(snapshot.data().totalRating).toBeNaN();
+        expect(snapshot.data().totalPages).toBe(300);
+        expect(snapshot.data().averageYear).toBe(2000);
       });
     });
 
@@ -317,11 +315,11 @@ apiDescribe('Composite Index Queries', persistence => {
               countOfDocs: count()
             }
           );
-          expect(snapshot.data().totalRating).to.equal(0);
-          expect(snapshot.data().averageRating).to.be.null;
-          expect(snapshot.data().totalPages).to.equal(200);
-          expect(snapshot.data().averagePages).to.equal(100);
-          expect(snapshot.data().countOfDocs).to.equal(2);
+          expect(snapshot.data().totalRating).toBe(0);
+          expect(snapshot.data().averageRating).toBeNull();
+          expect(snapshot.data().totalPages).toBe(200);
+          expect(snapshot.data().averagePages).toBe(100);
+          expect(snapshot.data().countOfDocs).toBe(2);
         });
       }
     );
@@ -748,7 +746,7 @@ apiDescribe('Composite Index Queries', persistence => {
           )
         );
 
-        expect(snapshot1.data().count).to.equal(4);
+        expect(snapshot1.data().count).toBe(4);
 
         const snapshot2 = await getAggregateFromServer(
           testHelper.query(
@@ -763,9 +761,9 @@ apiDescribe('Composite Index Queries', persistence => {
             avg: average('v')
           }
         );
-        expect(snapshot2.data().count).to.equal(3);
-        expect(snapshot2.data().sum).to.equal(6);
-        expect(snapshot2.data().avg).to.equal(1);
+        expect(snapshot2.data().count).toBe(3);
+        expect(snapshot2.data().sum).toBe(6);
+        expect(snapshot2.data().avg).toBe(1);
       });
     });
 
@@ -848,13 +846,13 @@ apiDescribe('Composite Index Queries', persistence => {
           );
           //populate the cache.
           const snapshot1 = await testHelper.getDocs(query_);
-          expect(snapshot1.size).to.equal(2);
+          expect(snapshot1.size).toBe(2);
 
           await disableNetwork(db);
 
           const snapshot2 = await testHelper.getDocs(query_);
-          expect(snapshot2.metadata.fromCache).to.be.true;
-          expect(snapshot2.metadata.hasPendingWrites).to.be.false;
+          expect(snapshot2.metadata.fromCache).toBe(true);
+          expect(snapshot2.metadata.hasPendingWrites).toBe(false);
           // Implicitly ordered by: 'key' asc, 'sort' asc, __name__ asc
           testHelper.assertSnapshotResultIdsMatch(snapshot2, ['doc4', 'doc3']);
         }
@@ -955,9 +953,7 @@ apiDescribe('Composite Index Queries', persistence => {
           orderBy(documentId())
         );
 
-        await expect(
-          testHelper.getDocs(queryForRejection)
-        ).to.be.eventually.rejectedWith(
+        await expect(testHelper.getDocs(queryForRejection)).rejects.toThrow(
           /order by clause cannot contain more fields after the key/i
         );
       });
@@ -974,9 +970,7 @@ apiDescribe('Composite Index Queries', persistence => {
             where('key', '!=', 42),
             where(documentId(), '==', 'doc1')
           );
-          await expect(
-            testHelper.getDocs(query_)
-          ).to.be.eventually.rejectedWith(
+          await expect(testHelper.getDocs(query_)).rejects.toThrow(
             'Equality on key is not allowed if there are other inequality fields and key does not appear in inequalities.'
           );
         });

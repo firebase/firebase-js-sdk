@@ -16,7 +16,6 @@
  */
 
 import { isIndexedDBAvailable } from '@firebase/util';
-import { expect } from 'chai';
 
 import {
   serverTimestamp,
@@ -191,18 +190,18 @@ class AsyncLocalStoreTester {
       'readonly',
       transaction => this.localStore.indexManager.getFieldIndexes(transaction)
     );
-    expect(fieldIndexes).to.have.deep.members(indexes);
+    expect(fieldIndexes).toEqual(expect.arrayContaining(indexes));
   }
 
   assertRemoteDocumentsRead(byKey: number, byCollection: number): void {
-    expect(this.queryEngine.documentsReadByCollection).to.equal(
-      byCollection,
+    expect(
+      this.queryEngine.documentsReadByCollection,
       'Remote documents read (by collection)'
-    );
-    expect(this.queryEngine.documentsReadByKey).to.equal(
-      byKey,
+    ).toBe(byCollection);
+    expect(
+      this.queryEngine.documentsReadByKey,
       'Remote documents read (by key)'
-    );
+    ).toBe(byKey);
   }
 
   assertOverlaysRead(
@@ -210,25 +209,23 @@ class AsyncLocalStoreTester {
     byCollection: number,
     overlayTypes?: { [k: string]: MutationType }
   ): void {
-    expect(this.queryEngine.overlaysReadByCollection).to.equal(
-      byCollection,
+    expect(
+      this.queryEngine.overlaysReadByCollection,
       'Overlays read (by collection)'
-    );
-    expect(this.queryEngine.overlaysReadByKey).to.equal(
-      byKey,
-      'Overlays read (by key)'
+    ).toBe(byCollection);
+    expect(this.queryEngine.overlaysReadByKey, 'Overlays read (by key)').toBe(
+      byKey
     );
     if (overlayTypes) {
-      expect(this.queryEngine.overlayTypes).to.deep.equal(
-        overlayTypes,
-        'Overlay types read'
+      expect(this.queryEngine.overlayTypes, 'Overlay types read').toEqual(
+        overlayTypes
       );
     }
   }
 
   assertQueryReturned(query: Query, ...keys: string[]): void {
-    expect(this.lastChanges).to.exist;
-    expect(this.lastChanges?.size === keys.length).to.be.true;
+    expect(this.lastChanges).toBeDefined();
+    expect(this.lastChanges?.size === keys.length).toBe(true);
 
     // lastChanges is a DocumentMap sorted by document keys. Re-sort the documents by the query comparator.
     let returnedDocs = new SortedSet<Document>(newQueryComparator(query));
@@ -238,7 +235,7 @@ class AsyncLocalStoreTester {
 
     let i = 0;
     returnedDocs.forEach(doc => {
-      expect(keys[i++]).to.equal(doc.key.path.toString());
+      expect(keys[i++]).toBe(doc.key.path.toString());
     });
   }
 
@@ -249,1665 +246,1731 @@ class AsyncLocalStoreTester {
   }
 }
 
-describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
-  if (!isIndexedDBAvailable()) {
-    return;
-  }
+describe.skipIf(!isIndexedDBAvailable())(
+  'LocalStore w/ IndexedDB Persistence (Non generic)',
+  () => {
+    let persistence: Persistence;
+    let test: AsyncLocalStoreTester;
 
-  let persistence: Persistence;
-  let test: AsyncLocalStoreTester;
-
-  beforeEach(async () => {
-    const queryEngine = new CountingQueryEngine();
-    persistence = await persistenceHelpers.testIndexedDbPersistence();
-    const localStore = newLocalStore(
-      persistence,
-      queryEngine,
-      User.UNAUTHENTICATED,
-      JSON_SERIALIZER
-    );
-    test = new AsyncLocalStoreTester(
-      localStore,
-      persistence,
-      queryEngine,
-      false
-    );
-  });
-
-  afterEach(async () => {
-    await persistence?.shutdown();
-    await persistenceHelpers.clearTestPersistence();
-  });
-
-  it('Adds Indexes', async () => {
-    const indexA = fieldIndex('coll', {
-      id: 1,
-      fields: [['a', IndexKind.ASCENDING]]
-    });
-    const indexB = fieldIndex('coll', {
-      id: 2,
-      fields: [['b', IndexKind.DESCENDING]]
-    });
-    const indexC = fieldIndex('coll', {
-      id: 3,
-      fields: [
-        ['c1', IndexKind.DESCENDING],
-        ['c2', IndexKind.CONTAINS]
-      ]
-    });
-    await test.configureAndAssertFieldsIndexes(indexA, indexB, indexC);
-  });
-
-  it('Removes Indexes', async () => {
-    const indexA = fieldIndex('coll', {
-      id: 1,
-      fields: [['a', IndexKind.ASCENDING]]
-    });
-    const indexB = fieldIndex('coll', {
-      id: 2,
-      fields: [['b', IndexKind.DESCENDING]]
-    });
-    await test.configureAndAssertFieldsIndexes(indexA, indexB);
-    await test.configureAndAssertFieldsIndexes(indexA);
-  });
-
-  it('Does Not Reset Index When Same Index Is Added', async () => {
-    const indexA = fieldIndex('coll', {
-      id: 1,
-      fields: [['a', IndexKind.ASCENDING]]
-    });
-    const updatedIndexA = fieldIndex('coll', {
-      id: 1,
-      fields: [['a', IndexKind.ASCENDING]],
-      offset: new IndexOffset(version(10), DocumentKey.fromPath('coll/a'), -1),
-      sequenceNumber: 1
+    beforeEach(async () => {
+      const queryEngine = new CountingQueryEngine();
+      persistence = await persistenceHelpers.testIndexedDbPersistence();
+      const localStore = newLocalStore(
+        persistence,
+        queryEngine,
+        User.UNAUTHENTICATED,
+        JSON_SERIALIZER
+      );
+      test = new AsyncLocalStoreTester(
+        localStore,
+        persistence,
+        queryEngine,
+        false
+      );
     });
 
-    await test.configureAndAssertFieldsIndexes(indexA);
-
-    const targetId = await test.allocateQuery(
-      query('coll', filter('a', '==', 1))
-    );
-    await test.applyRemoteEvent(
-      docUpdateRemoteEvent(doc('coll/a', 10, { a: 1 }), [
-        targetId
-      ] as RemoteTargetId[])
-    );
-
-    await test.backfillIndexes();
-    await test.assertFieldsIndexes(updatedIndexA);
-
-    // Re-add the same index. We do not reset the index to its initial state.
-    await test.configureFieldsIndexes(indexA);
-    await test.assertFieldsIndexes(updatedIndexA);
-  });
-
-  it('Deleted Document Removes Index', async () => {
-    const index = fieldIndex('coll', {
-      id: 1,
-      fields: [['matches', IndexKind.ASCENDING]]
-    });
-    await test.configureFieldsIndexes(index);
-
-    const queryMatches = query('coll', filter('matches', '==', true));
-    const targetId = await test.allocateQuery(queryMatches);
-    await test.applyRemoteEvent(
-      docAddedRemoteEvent(doc('coll/a', 10, { matches: true }), [targetId])
-    );
-
-    // Add the document to the index
-    await test.backfillIndexes();
-
-    await test.executeQuery(queryMatches);
-    test.assertRemoteDocumentsRead(1, 0);
-    test.assertQueryReturned(queryMatches, 'coll/a');
-
-    await test.applyRemoteEvent(
-      docUpdateRemoteEvent(deletedDoc('coll/a', 0), [
-        targetId
-      ] as RemoteTargetId[])
-    );
-
-    // No backfill needed for deleted document.
-    await test.executeQuery(queryMatches);
-    test.assertRemoteDocumentsRead(0, 0);
-    test.assertQueryReturned(queryMatches);
-  });
-
-  it('Uses Indexes', async () => {
-    const index = fieldIndex('coll', {
-      id: 1,
-      fields: [['matches', IndexKind.ASCENDING]]
-    });
-    await test.configureFieldsIndexes(index);
-
-    const queryMatches = query('coll', filter('matches', '==', true));
-    const targetId = await test.allocateQuery(queryMatches);
-    await test.applyRemoteEvent(
-      docAddedRemoteEvent(doc('coll/a', 10, { matches: true }), [targetId])
-    );
-
-    await test.backfillIndexes();
-
-    await test.executeQuery(queryMatches);
-    test.assertRemoteDocumentsRead(1, 0);
-    test.assertQueryReturned(queryMatches, 'coll/a');
-  });
-
-  it('Uses Partially Indexed Remote Documents When Available', async () => {
-    const index = fieldIndex('coll', {
-      id: 1,
-      fields: [['matches', IndexKind.ASCENDING]]
-    });
-    await test.configureFieldsIndexes(index);
-
-    const queryMatches = query('coll', filter('matches', '==', true));
-    const targetId = await test.allocateQuery(queryMatches);
-
-    await test.applyRemoteEvent(
-      docAddedRemoteEvent(doc('coll/a', 10, { matches: true }), [targetId])
-    );
-    await test.backfillIndexes();
-
-    await test.applyRemoteEvent(
-      docAddedRemoteEvent(doc('coll/b', 20, { matches: true }), [targetId])
-    );
-
-    await test.executeQuery(queryMatches);
-    test.assertRemoteDocumentsRead(1, 1);
-    test.assertQueryReturned(queryMatches, 'coll/a', 'coll/b');
-  });
-
-  it('Uses Partially Indexed Overlays When Available', async () => {
-    const index = fieldIndex('coll', {
-      id: 1,
-      fields: [['matches', IndexKind.ASCENDING]]
-    });
-    await test.configureFieldsIndexes(index);
-
-    await test.writeMutations(setMutation('coll/a', { matches: true }));
-    await test.backfillIndexes();
-
-    await test.writeMutations(setMutation('coll/b', { matches: true }));
-
-    const queryMatches = query('coll', filter('matches', '==', true));
-    await test.executeQuery(queryMatches);
-    test.assertOverlaysRead(1, 1, {
-      [key('coll/a').toString()]: MutationType.Set,
-      [key('coll/b').toString()]: MutationType.Set
-    });
-    test.assertQueryReturned(queryMatches, 'coll/a', 'coll/b');
-  });
-
-  it('Does Not Use Limit When Index Is Outdated', async () => {
-    const index = fieldIndex('coll', {
-      id: 1,
-      fields: [['count', IndexKind.ASCENDING]]
-    });
-    await test.configureFieldsIndexes(index);
-
-    const queryCount = queryWithLimit(
-      query('coll', orderBy('count')),
-      2,
-      LimitType.First
-    );
-    const targetId = await test.allocateQuery(queryCount);
-
-    await test.applyRemoteEvent(
-      docAddedRemoteEvent(
-        [
-          doc('coll/a', 10, { count: 1 }),
-          doc('coll/b', 10, { count: 2 }),
-          doc('coll/c', 10, { count: 3 })
-        ],
-        [targetId]
-      )
-    );
-
-    await test.backfillIndexes();
-
-    await test.writeMutations(deleteMutation('coll/b'));
-
-    // The query engine first reads the documents by key and then re-runs the query without limit.
-    await test.executeQuery(queryCount);
-    test.assertRemoteDocumentsRead(5, 0);
-    test.assertOverlaysRead(5, 1, {
-      [key('coll/b').toString()]: MutationType.Delete
-    });
-    test.assertQueryReturned(queryCount, 'coll/a', 'coll/c');
-  });
-
-  it('Uses Index For Limit Query When Index Is Updated', async () => {
-    const index = fieldIndex('coll', {
-      id: 1,
-      fields: [['count', IndexKind.ASCENDING]]
-    });
-    await test.configureFieldsIndexes(index);
-
-    const queryCount = queryWithLimit(
-      query('coll', orderBy('count')),
-      2,
-      LimitType.First
-    );
-    const targetId = await test.allocateQuery(queryCount);
-
-    await test.applyRemoteEvent(
-      docAddedRemoteEvent(
-        [
-          doc('coll/a', 10, { count: 1 }),
-          doc('coll/b', 10, { count: 2 }),
-          doc('coll/c', 10, { count: 3 })
-        ],
-        [targetId]
-      )
-    );
-    await test.writeMutations(deleteMutation('coll/b'));
-    await test.backfillIndexes();
-
-    await test.executeQuery(queryCount);
-    test.assertRemoteDocumentsRead(2, 0);
-    test.assertOverlaysRead(2, 0, {});
-    test.assertQueryReturned(queryCount, 'coll/a', 'coll/c');
-  });
-
-  it('Indexes Server Timestamps', async () => {
-    const index = fieldIndex('coll', {
-      id: 1,
-      fields: [['time', IndexKind.ASCENDING]]
-    });
-    await test.configureFieldsIndexes(index);
-
-    await test.writeMutations(
-      setMutation('coll/a', { time: serverTimestamp() })
-    );
-    await test.backfillIndexes();
-
-    const queryTime = query('coll', orderBy('time', 'asc'));
-    await test.executeQuery(queryTime);
-    test.assertOverlaysRead(1, 0, {
-      [key('coll/a').toString()]: MutationType.Set
-    });
-    test.assertQueryReturned(queryTime, 'coll/a');
-  });
-
-  it('can auto-create indexes', async () => {
-    const query_ = query('coll', filter('matches', '==', true));
-    const targetId = await test.allocateQuery(query_);
-    test.configureIndexAutoCreation({
-      isEnabled: true,
-      indexAutoCreationMinCollectionSize: 0,
-      relativeIndexReadCostPerDocument: 2
+    afterEach(async () => {
+      await persistence?.shutdown();
+      await persistenceHelpers.clearTestPersistence();
     });
 
-    await test.applyRemoteEvents(
-      docAddedRemoteEvent(doc('coll/a', 10, { matches: true }), [targetId]),
-      docAddedRemoteEvent(doc('coll/b', 10, { matches: false }), [targetId]),
-      docAddedRemoteEvent(doc('coll/c', 10, { matches: false }), [targetId]),
-      docAddedRemoteEvent(doc('coll/d', 10, { matches: false }), [targetId]),
-      docAddedRemoteEvent(doc('coll/e', 10, { matches: true }), [targetId])
-    );
-
-    // First time query runs without indexes.
-    // Based on current heuristic, collection document counts (5) >
-    // 2 * resultSize (2).
-    // Full matched index should be created.
-    await test.executeQuery(query_);
-    test.assertRemoteDocumentsRead(0, 2);
-    test.assertQueryReturned(query_, 'coll/a', 'coll/e');
-
-    await test.backfillIndexes();
-
-    await test.applyRemoteEvent(
-      docAddedRemoteEvent(doc('coll/f', 20, { matches: true }), [targetId])
-    );
-
-    await test.executeQuery(query_);
-    test.assertRemoteDocumentsRead(2, 1);
-    test.assertQueryReturned(query_, 'coll/a', 'coll/e', 'coll/f');
-  });
-
-  it('can auto-create indexes works with or query', async () => {
-    const query_ = query(
-      'coll',
-      orFilter(filter('a', '==', 3), filter('b', '==', true))
-    );
-    const targetId = await test.allocateQuery(query_);
-    test.configureIndexAutoCreation({
-      isEnabled: true,
-      indexAutoCreationMinCollectionSize: 0,
-      relativeIndexReadCostPerDocument: 2
+    it('Adds Indexes', async () => {
+      const indexA = fieldIndex('coll', {
+        id: 1,
+        fields: [['a', IndexKind.ASCENDING]]
+      });
+      const indexB = fieldIndex('coll', {
+        id: 2,
+        fields: [['b', IndexKind.DESCENDING]]
+      });
+      const indexC = fieldIndex('coll', {
+        id: 3,
+        fields: [
+          ['c1', IndexKind.DESCENDING],
+          ['c2', IndexKind.CONTAINS]
+        ]
+      });
+      await test.configureAndAssertFieldsIndexes(indexA, indexB, indexC);
     });
 
-    await test.applyRemoteEvents(
-      docAddedRemoteEvent(doc('coll/a', 10, { b: true }), [targetId]),
-      docAddedRemoteEvent(doc('coll/b', 10, { b: false }), [targetId]),
-      docAddedRemoteEvent(doc('coll/c', 10, { a: 5, b: false }), [targetId]),
-      docAddedRemoteEvent(doc('coll/d', 10, { a: true }), [targetId]),
-      docAddedRemoteEvent(doc('coll/e', 10, { a: 3, b: true }), [targetId])
-    );
-
-    // First time query runs without indexes.
-    // Based on current heuristic, collection document counts (5) >
-    // 2 * resultSize (2).
-    // Full matched index should be created.
-    await test.executeQuery(query_);
-    test.assertRemoteDocumentsRead(0, 2);
-    test.assertQueryReturned(query_, 'coll/a', 'coll/e');
-
-    await test.backfillIndexes();
-
-    await test.applyRemoteEvent(
-      docAddedRemoteEvent(doc('coll/f', 20, { a: 3, b: false }), [targetId])
-    );
-
-    await test.executeQuery(query_);
-    test.assertRemoteDocumentsRead(2, 1);
-    test.assertQueryReturned(query_, 'coll/a', 'coll/e', 'coll/f');
-  });
-
-  it('does not auto-create indexes for small collections', async () => {
-    const query_ = query(
-      'coll',
-      filter('foo', '==', 9),
-      filter('count', '>=', 3)
-    );
-    const targetId = await test.allocateQuery(query_);
-    test.configureIndexAutoCreation({
-      isEnabled: true,
-      relativeIndexReadCostPerDocument: 2
+    it('Removes Indexes', async () => {
+      const indexA = fieldIndex('coll', {
+        id: 1,
+        fields: [['a', IndexKind.ASCENDING]]
+      });
+      const indexB = fieldIndex('coll', {
+        id: 2,
+        fields: [['b', IndexKind.DESCENDING]]
+      });
+      await test.configureAndAssertFieldsIndexes(indexA, indexB);
+      await test.configureAndAssertFieldsIndexes(indexA);
     });
 
-    await test.applyRemoteEvents(
-      docAddedRemoteEvent(doc('coll/a', 10, { foo: 9, count: 5 }), [targetId]),
-      docAddedRemoteEvent(doc('coll/b', 10, { foo: 8, count: 6 }), [targetId]),
-      docAddedRemoteEvent(doc('coll/c', 10, { foo: 9, count: 0 }), [targetId]),
-      docAddedRemoteEvent(doc('coll/d', 10, { count: 4 }), [targetId]),
-      docAddedRemoteEvent(doc('coll/e', 10, { foo: 9, count: 3 }), [targetId])
-    );
+    it('Does Not Reset Index When Same Index Is Added', async () => {
+      const indexA = fieldIndex('coll', {
+        id: 1,
+        fields: [['a', IndexKind.ASCENDING]]
+      });
+      const updatedIndexA = fieldIndex('coll', {
+        id: 1,
+        fields: [['a', IndexKind.ASCENDING]],
+        offset: new IndexOffset(
+          version(10),
+          DocumentKey.fromPath('coll/a'),
+          -1
+        ),
+        sequenceNumber: 1
+      });
 
-    // SDK will not create indexes since collection size is too small.
-    await test.executeQuery(query_);
-    test.assertRemoteDocumentsRead(0, 2);
-    test.assertQueryReturned(query_, 'coll/e', 'coll/a');
+      await test.configureAndAssertFieldsIndexes(indexA);
 
-    await test.backfillIndexes();
+      const targetId = await test.allocateQuery(
+        query('coll', filter('a', '==', 1))
+      );
+      await test.applyRemoteEvent(
+        docUpdateRemoteEvent(doc('coll/a', 10, { a: 1 }), [
+          targetId
+        ] as RemoteTargetId[])
+      );
 
-    await test.applyRemoteEvent(
-      docAddedRemoteEvent(doc('coll/f', 20, { foo: 9, count: 4 }), [targetId])
-    );
+      await test.backfillIndexes();
+      await test.assertFieldsIndexes(updatedIndexA);
 
-    await test.executeQuery(query_);
-    test.assertRemoteDocumentsRead(0, 3);
-    test.assertQueryReturned(query_, 'coll/e', 'coll/f', 'coll/a');
-  });
-
-  it('does not auto create indexes when index lookup is expensive', async () => {
-    const query_ = query('coll', filter('array', 'array-contains-any', [0, 7]));
-    const targetId = await test.allocateQuery(query_);
-    test.configureIndexAutoCreation({
-      isEnabled: true,
-      indexAutoCreationMinCollectionSize: 0,
-      relativeIndexReadCostPerDocument: 5
+      // Re-add the same index. We do not reset the index to its initial state.
+      await test.configureFieldsIndexes(indexA);
+      await test.assertFieldsIndexes(updatedIndexA);
     });
 
-    await test.applyRemoteEvents(
-      docAddedRemoteEvent(doc('coll/a', 10, { array: [2, 7] }), [targetId]),
-      docAddedRemoteEvent(doc('coll/b', 10, { array: [] }), [targetId]),
-      docAddedRemoteEvent(doc('coll/c', 10, { array: [3] }), [targetId]),
-      docAddedRemoteEvent(doc('coll/d', 10, { array: [2, 10, 20] }), [
-        targetId
-      ]),
-      docAddedRemoteEvent(doc('coll/e', 10, { array: [2, 0, 8] }), [targetId])
-    );
-
-    // SDK will not create indexes since relative read cost is too large.
-    await test.executeQuery(query_);
-    test.assertRemoteDocumentsRead(0, 2);
-    test.assertQueryReturned(query_, 'coll/a', 'coll/e');
-
-    await test.backfillIndexes();
-
-    await test.applyRemoteEvent(
-      docAddedRemoteEvent(doc('coll/f', 20, { array: [0] }), [targetId])
-    );
-
-    await test.executeQuery(query_);
-    test.assertRemoteDocumentsRead(0, 3);
-    test.assertQueryReturned(query_, 'coll/a', 'coll/e', 'coll/f');
-  });
-
-  it('index auto creation works when backfiller runs halfway', async () => {
-    const query_ = query(
-      'coll',
-      filter('matches', '==', 'foo'),
-      filter('count', '>', 10)
-    );
-    const targetId = await test.allocateQuery(query_);
-    test.configureIndexAutoCreation({
-      isEnabled: true,
-      indexAutoCreationMinCollectionSize: 0,
-      relativeIndexReadCostPerDocument: 2
-    });
-
-    await test.applyRemoteEvents(
-      docAddedRemoteEvent(doc('coll/a', 10, { matches: 'foo', count: 11 }), [
-        targetId
-      ]),
-      docAddedRemoteEvent(doc('coll/b', 10, { matches: 'foo', count: 9 }), [
-        targetId
-      ]),
-      docAddedRemoteEvent(doc('coll/c', 10, { matches: 'foo' }), [targetId]),
-      docAddedRemoteEvent(doc('coll/d', 10, { matches: 7, count: 11 }), [
-        targetId
-      ]),
-      docAddedRemoteEvent(doc('coll/e', 10, { matches: 'foo', count: 21 }), [
-        targetId
-      ])
-    );
-
-    // First time query runs without indexes.
-    // Based on current heuristic, collection document counts (5) >
-    // 2 * resultSize (2).
-    // Full matched index should be created.
-    await test.executeQuery(query_);
-    test.assertRemoteDocumentsRead(0, 2);
-    test.assertQueryReturned(query_, 'coll/a', 'coll/e');
-
-    await test.backfillIndexes({ maxDocumentsToProcess: 2 });
-
-    await test.applyRemoteEvent(
-      docAddedRemoteEvent(doc('coll/f', 20, { matches: 'foo', count: 15 }), [
-        targetId
-      ])
-    );
-
-    await test.executeQuery(query_);
-    test.assertRemoteDocumentsRead(1, 2);
-    test.assertQueryReturned(query_, 'coll/a', 'coll/f', 'coll/e');
-  });
-
-  it('index created by index auto creation exists after turn off auto creation', async () => {
-    const query_ = query('coll', filter('value', 'not-in', [3]));
-    const targetId = await test.allocateQuery(query_);
-    test.configureIndexAutoCreation({
-      isEnabled: true,
-      indexAutoCreationMinCollectionSize: 0,
-      relativeIndexReadCostPerDocument: 2
-    });
-
-    await test.applyRemoteEvents(
-      docAddedRemoteEvent(doc('coll/a', 10, { value: 5 }), [targetId]),
-      docAddedRemoteEvent(doc('coll/b', 10, { value: 3 }), [targetId]),
-      docAddedRemoteEvent(doc('coll/c', 10, { value: 3 }), [targetId]),
-      docAddedRemoteEvent(doc('coll/d', 10, { value: 3 }), [targetId]),
-      docAddedRemoteEvent(doc('coll/e', 10, { value: 2 }), [targetId])
-    );
-
-    // First time query runs without indexes.
-    // Based on current heuristic, collection document counts (5) >
-    // 2 * resultSize (2).
-    // Full matched index should be created.
-    await test.executeQuery(query_);
-    test.assertRemoteDocumentsRead(0, 2);
-    test.assertQueryReturned(query_, 'coll/e', 'coll/a');
-
-    test.configureIndexAutoCreation({ isEnabled: false });
-    await test.backfillIndexes();
-
-    await test.applyRemoteEvent(
-      docAddedRemoteEvent(doc('coll/f', 20, { value: 7 }), [targetId])
-    );
-
-    await test.executeQuery(query_);
-    test.assertRemoteDocumentsRead(2, 1);
-    test.assertQueryReturned(query_, 'coll/e', 'coll/a', 'coll/f');
-  });
-
-  it('disable index auto creation works', async () => {
-    const query1 = query('coll', filter('value', 'in', [0, 1]));
-    const query2 = query('foo', filter('value', '!=', Number.NaN));
-
-    const targetId1 = await test.allocateQuery(query1);
-    test.configureIndexAutoCreation({
-      isEnabled: true,
-      indexAutoCreationMinCollectionSize: 0,
-      relativeIndexReadCostPerDocument: 2
-    });
-
-    await test.applyRemoteEvents(
-      docAddedRemoteEvent(doc('coll/a', 10, { value: 1 }), [targetId1]),
-      docAddedRemoteEvent(doc('coll/b', 10, { value: 8 }), [targetId1]),
-      docAddedRemoteEvent(doc('coll/c', 10, { value: 'string' }), [targetId1]),
-      docAddedRemoteEvent(doc('coll/d', 10, { value: false }), [targetId1]),
-      docAddedRemoteEvent(doc('coll/e', 10, { value: 0 }), [targetId1])
-    );
-
-    // First time query runs without indexes.
-    // Based on current heuristic, collection document counts (5) >
-    // 2 * resultSize (2).
-    // Full matched index should be created.
-    await test.executeQuery(query1);
-    test.assertRemoteDocumentsRead(0, 2);
-    test.assertQueryReturned(query1, 'coll/a', 'coll/e');
-
-    test.configureIndexAutoCreation({ isEnabled: false });
-    await test.backfillIndexes();
-    await test.executeQuery(query1);
-    test.assertRemoteDocumentsRead(2, 0);
-    test.assertQueryReturned(query1, 'coll/a', 'coll/e');
-
-    const targetId2 = await test.allocateQuery(query2);
-    await test.applyRemoteEvents(
-      docAddedRemoteEvent(doc('foo/a', 10, { value: 5 }), [targetId2]),
-      docAddedRemoteEvent(doc('foo/b', 10, { value: Number.NaN }), [targetId2]),
-      docAddedRemoteEvent(doc('foo/c', 10, { value: Number.NaN }), [targetId2]),
-      docAddedRemoteEvent(doc('foo/d', 10, { value: Number.NaN }), [targetId2]),
-      docAddedRemoteEvent(doc('foo/e', 10, { value: 'string' }), [targetId2])
-    );
-
-    await test.executeQuery(query2);
-    test.assertRemoteDocumentsRead(0, 2);
-    test.assertQueryReturned(query2, 'foo/a', 'foo/e');
-
-    await test.backfillIndexes();
-
-    // Run the query in second time, test index won't be created
-    await test.executeQuery(query2);
-    test.assertRemoteDocumentsRead(0, 2);
-    test.assertQueryReturned(query2, 'foo/a', 'foo/e');
-  });
-
-  it('index auto creation works with mutation', async () => {
-    const query_ = query(
-      'coll',
-      filter('value', 'array-contains-any', [8, 1, 'string'])
-    );
-
-    const targetId = await test.allocateQuery(query_);
-    test.configureIndexAutoCreation({
-      isEnabled: true,
-      indexAutoCreationMinCollectionSize: 0,
-      relativeIndexReadCostPerDocument: 2
-    });
-
-    await test.applyRemoteEvents(
-      docAddedRemoteEvent(doc('coll/a', 10, { value: [8, 1, 'string'] }), [
-        targetId
-      ]),
-      docAddedRemoteEvent(doc('coll/b', 10, { value: [] }), [targetId]),
-      docAddedRemoteEvent(doc('coll/c', 10, { value: [3] }), [targetId]),
-      docAddedRemoteEvent(doc('coll/d', 10, { value: [0, 5] }), [targetId]),
-      docAddedRemoteEvent(doc('coll/e', 10, { value: ['string'] }), [targetId])
-    );
-
-    await test.executeQuery(query_);
-    test.assertRemoteDocumentsRead(0, 2);
-    test.assertQueryReturned(query_, 'coll/a', 'coll/e');
-
-    await test.writeMutations(deleteMutation('coll/e'));
-    await test.backfillIndexes();
-    await test.writeMutations(setMutation('coll/f', { value: [1] }));
-
-    await test.executeQuery(query_);
-    test.assertRemoteDocumentsRead(1, 0);
-    test.assertOverlaysRead(1, 1);
-    test.assertQueryReturned(query_, 'coll/a', 'coll/f');
-  });
-
-  it('delete all indexes works with index auto creation', async () => {
-    const query_ = query('coll', filter('value', '==', 'match'));
-
-    const targetId = await test.allocateQuery(query_);
-    test.configureIndexAutoCreation({
-      isEnabled: true,
-      indexAutoCreationMinCollectionSize: 0,
-      relativeIndexReadCostPerDocument: 2
-    });
-
-    await test.applyRemoteEvents(
-      docAddedRemoteEvent(doc('coll/a', 10, { value: 'match' }), [targetId]),
-      docAddedRemoteEvent(doc('coll/b', 10, { value: Number.NaN }), [targetId]),
-      docAddedRemoteEvent(doc('coll/c', 10, { value: null }), [targetId]),
-      docAddedRemoteEvent(doc('coll/d', 10, { value: 'mismatch' }), [targetId]),
-      docAddedRemoteEvent(doc('coll/e', 10, { value: 'match' }), [targetId])
-    );
-
-    // First time query is running without indexes.
-    // Based on current heuristic, collection document counts (5) >
-    // 2 * resultSize (2).
-    // Full matched index should be created.
-    await test.executeQuery(query_);
-    test.assertRemoteDocumentsRead(0, 2);
-    test.assertQueryReturned(query_, 'coll/a', 'coll/e');
-
-    await test.backfillIndexes();
-    await test.executeQuery(query_);
-    test.assertRemoteDocumentsRead(2, 0);
-    test.assertQueryReturned(query_, 'coll/a', 'coll/e');
-
-    await test.deleteAllFieldIndexes();
-    await test.executeQuery(query_);
-    test.assertRemoteDocumentsRead(0, 2);
-    test.assertQueryReturned(query_, 'coll/a', 'coll/e');
-
-    // Field index is created again.
-    await test.backfillIndexes();
-
-    await test.executeQuery(query_);
-    test.assertRemoteDocumentsRead(2, 0);
-    test.assertQueryReturned(query_, 'coll/a', 'coll/e');
-  });
-
-  it('delete all indexes works with manual added indexes', async () => {
-    const query_ = query('coll', filter('matches', '==', true));
-
-    await test.configureFieldsIndexes(
-      fieldIndex('coll', {
+    it('Deleted Document Removes Index', async () => {
+      const index = fieldIndex('coll', {
+        id: 1,
         fields: [['matches', IndexKind.ASCENDING]]
-      })
-    );
+      });
+      await test.configureFieldsIndexes(index);
 
-    const targetId = await test.allocateQuery(query_);
-    await test.applyRemoteEvent(
-      docAddedRemoteEvent(doc('coll/a', 10, { matches: true }), [targetId])
-    );
-    await test.backfillIndexes();
+      const queryMatches = query('coll', filter('matches', '==', true));
+      const targetId = await test.allocateQuery(queryMatches);
+      await test.applyRemoteEvent(
+        docAddedRemoteEvent(doc('coll/a', 10, { matches: true }), [targetId])
+      );
 
-    await test.executeQuery(query_);
-    test.assertRemoteDocumentsRead(1, 0);
-    test.assertQueryReturned(query_, 'coll/a');
+      // Add the document to the index
+      await test.backfillIndexes();
 
-    await test.deleteAllFieldIndexes();
+      await test.executeQuery(queryMatches);
+      test.assertRemoteDocumentsRead(1, 0);
+      test.assertQueryReturned(queryMatches, 'coll/a');
 
-    await test.executeQuery(query_);
-    test.assertRemoteDocumentsRead(0, 1);
-    test.assertQueryReturned(query_, 'coll/a');
-  });
+      await test.applyRemoteEvent(
+        docUpdateRemoteEvent(deletedDoc('coll/a', 0), [
+          targetId
+        ] as RemoteTargetId[])
+      );
 
-  it('index auto creation does not work with multiple inequality', async () => {
-    const query_ = query(
-      'coll',
-      filter('field1', '<', 5),
-      filter('field2', '<', 5)
-    );
-
-    const targetId = await test.allocateQuery(query_);
-    test.configureIndexAutoCreation({
-      isEnabled: true,
-      indexAutoCreationMinCollectionSize: 0,
-      relativeIndexReadCostPerDocument: 2
+      // No backfill needed for deleted document.
+      await test.executeQuery(queryMatches);
+      test.assertRemoteDocumentsRead(0, 0);
+      test.assertQueryReturned(queryMatches);
     });
 
-    await test.applyRemoteEvents(
-      docAddedRemoteEvent(doc('coll/a', 10, { field1: 1, field2: 2 }), [
-        targetId
-      ]),
-      docAddedRemoteEvent(doc('coll/b', 10, { field1: 8, field2: 2 }), [
-        targetId
-      ]),
-      docAddedRemoteEvent(doc('coll/c', 10, { field1: 'string', field2: 2 }), [
-        targetId
-      ]),
-      docAddedRemoteEvent(doc('coll/d', 10, { field1: 1 }), [targetId]),
-      docAddedRemoteEvent(doc('coll/e', 10, { field1: 4, field2: 4 }), [
-        targetId
-      ])
-    );
-
-    // First time query runs without indexes.
-    // Based on current heuristic, collection document counts (5) >
-    // 2 * resultSize (2).
-    // Full matched index will not be created since FieldIndex does not
-    // support multiple inequality.
-    await test.executeQuery(query_);
-    test.assertRemoteDocumentsRead(0, 2);
-    test.assertQueryReturned(query_, 'coll/a', 'coll/e');
-
-    await test.backfillIndexes();
-    await test.executeQuery(query_);
-    test.assertRemoteDocumentsRead(0, 2);
-    test.assertQueryReturned(query_, 'coll/a', 'coll/e');
-  });
-
-  describe('BSON type indexing', () => {
-    it('Indexes BSON ObjectId fields', async () => {
+    it('Uses Indexes', async () => {
       const index = fieldIndex('coll', {
         id: 1,
-        fields: [['key', IndexKind.ASCENDING]]
+        fields: [['matches', IndexKind.ASCENDING]]
+      });
+      await test.configureFieldsIndexes(index);
+
+      const queryMatches = query('coll', filter('matches', '==', true));
+      const targetId = await test.allocateQuery(queryMatches);
+      await test.applyRemoteEvent(
+        docAddedRemoteEvent(doc('coll/a', 10, { matches: true }), [targetId])
+      );
+
+      await test.backfillIndexes();
+
+      await test.executeQuery(queryMatches);
+      test.assertRemoteDocumentsRead(1, 0);
+      test.assertQueryReturned(queryMatches, 'coll/a');
+    });
+
+    it('Uses Partially Indexed Remote Documents When Available', async () => {
+      const index = fieldIndex('coll', {
+        id: 1,
+        fields: [['matches', IndexKind.ASCENDING]]
+      });
+      await test.configureFieldsIndexes(index);
+
+      const queryMatches = query('coll', filter('matches', '==', true));
+      const targetId = await test.allocateQuery(queryMatches);
+
+      await test.applyRemoteEvent(
+        docAddedRemoteEvent(doc('coll/a', 10, { matches: true }), [targetId])
+      );
+      await test.backfillIndexes();
+
+      await test.applyRemoteEvent(
+        docAddedRemoteEvent(doc('coll/b', 20, { matches: true }), [targetId])
+      );
+
+      await test.executeQuery(queryMatches);
+      test.assertRemoteDocumentsRead(1, 1);
+      test.assertQueryReturned(queryMatches, 'coll/a', 'coll/b');
+    });
+
+    it('Uses Partially Indexed Overlays When Available', async () => {
+      const index = fieldIndex('coll', {
+        id: 1,
+        fields: [['matches', IndexKind.ASCENDING]]
+      });
+      await test.configureFieldsIndexes(index);
+
+      await test.writeMutations(setMutation('coll/a', { matches: true }));
+      await test.backfillIndexes();
+
+      await test.writeMutations(setMutation('coll/b', { matches: true }));
+
+      const queryMatches = query('coll', filter('matches', '==', true));
+      await test.executeQuery(queryMatches);
+      test.assertOverlaysRead(1, 1, {
+        [key('coll/a').toString()]: MutationType.Set,
+        [key('coll/b').toString()]: MutationType.Set
+      });
+      test.assertQueryReturned(queryMatches, 'coll/a', 'coll/b');
+    });
+
+    it('Does Not Use Limit When Index Is Outdated', async () => {
+      const index = fieldIndex('coll', {
+        id: 1,
+        fields: [['count', IndexKind.ASCENDING]]
+      });
+      await test.configureFieldsIndexes(index);
+
+      const queryCount = queryWithLimit(
+        query('coll', orderBy('count')),
+        2,
+        LimitType.First
+      );
+      const targetId = await test.allocateQuery(queryCount);
+
+      await test.applyRemoteEvent(
+        docAddedRemoteEvent(
+          [
+            doc('coll/a', 10, { count: 1 }),
+            doc('coll/b', 10, { count: 2 }),
+            doc('coll/c', 10, { count: 3 })
+          ],
+          [targetId]
+        )
+      );
+
+      await test.backfillIndexes();
+
+      await test.writeMutations(deleteMutation('coll/b'));
+
+      // The query engine first reads the documents by key and then re-runs the query without limit.
+      await test.executeQuery(queryCount);
+      test.assertRemoteDocumentsRead(5, 0);
+      test.assertOverlaysRead(5, 1, {
+        [key('coll/b').toString()]: MutationType.Delete
+      });
+      test.assertQueryReturned(queryCount, 'coll/a', 'coll/c');
+    });
+
+    it('Uses Index For Limit Query When Index Is Updated', async () => {
+      const index = fieldIndex('coll', {
+        id: 1,
+        fields: [['count', IndexKind.ASCENDING]]
+      });
+      await test.configureFieldsIndexes(index);
+
+      const queryCount = queryWithLimit(
+        query('coll', orderBy('count')),
+        2,
+        LimitType.First
+      );
+      const targetId = await test.allocateQuery(queryCount);
+
+      await test.applyRemoteEvent(
+        docAddedRemoteEvent(
+          [
+            doc('coll/a', 10, { count: 1 }),
+            doc('coll/b', 10, { count: 2 }),
+            doc('coll/c', 10, { count: 3 })
+          ],
+          [targetId]
+        )
+      );
+      await test.writeMutations(deleteMutation('coll/b'));
+      await test.backfillIndexes();
+
+      await test.executeQuery(queryCount);
+      test.assertRemoteDocumentsRead(2, 0);
+      test.assertOverlaysRead(2, 0, {});
+      test.assertQueryReturned(queryCount, 'coll/a', 'coll/c');
+    });
+
+    it('Indexes Server Timestamps', async () => {
+      const index = fieldIndex('coll', {
+        id: 1,
+        fields: [['time', IndexKind.ASCENDING]]
       });
       await test.configureFieldsIndexes(index);
 
       await test.writeMutations(
-        setMutation('coll/a', {
-          key: new BsonObjectId('507f191e810c19729de860ea')
-        }),
-        setMutation('coll/b', {
-          key: new BsonObjectId('507f191e810c19729de860eb')
-        }),
-        setMutation('coll/c', {
-          key: new BsonObjectId('507f191e810c19729de860ec')
+        setMutation('coll/a', { time: serverTimestamp() })
+      );
+      await test.backfillIndexes();
+
+      const queryTime = query('coll', orderBy('time', 'asc'));
+      await test.executeQuery(queryTime);
+      test.assertOverlaysRead(1, 0, {
+        [key('coll/a').toString()]: MutationType.Set
+      });
+      test.assertQueryReturned(queryTime, 'coll/a');
+    });
+
+    it('can auto-create indexes', async () => {
+      const query_ = query('coll', filter('matches', '==', true));
+      const targetId = await test.allocateQuery(query_);
+      test.configureIndexAutoCreation({
+        isEnabled: true,
+        indexAutoCreationMinCollectionSize: 0,
+        relativeIndexReadCostPerDocument: 2
+      });
+
+      await test.applyRemoteEvents(
+        docAddedRemoteEvent(doc('coll/a', 10, { matches: true }), [targetId]),
+        docAddedRemoteEvent(doc('coll/b', 10, { matches: false }), [targetId]),
+        docAddedRemoteEvent(doc('coll/c', 10, { matches: false }), [targetId]),
+        docAddedRemoteEvent(doc('coll/d', 10, { matches: false }), [targetId]),
+        docAddedRemoteEvent(doc('coll/e', 10, { matches: true }), [targetId])
+      );
+
+      // First time query runs without indexes.
+      // Based on current heuristic, collection document counts (5) >
+      // 2 * resultSize (2).
+      // Full matched index should be created.
+      await test.executeQuery(query_);
+      test.assertRemoteDocumentsRead(0, 2);
+      test.assertQueryReturned(query_, 'coll/a', 'coll/e');
+
+      await test.backfillIndexes();
+
+      await test.applyRemoteEvent(
+        docAddedRemoteEvent(doc('coll/f', 20, { matches: true }), [targetId])
+      );
+
+      await test.executeQuery(query_);
+      test.assertRemoteDocumentsRead(2, 1);
+      test.assertQueryReturned(query_, 'coll/a', 'coll/e', 'coll/f');
+    });
+
+    it('can auto-create indexes works with or query', async () => {
+      const query_ = query(
+        'coll',
+        orFilter(filter('a', '==', 3), filter('b', '==', true))
+      );
+      const targetId = await test.allocateQuery(query_);
+      test.configureIndexAutoCreation({
+        isEnabled: true,
+        indexAutoCreationMinCollectionSize: 0,
+        relativeIndexReadCostPerDocument: 2
+      });
+
+      await test.applyRemoteEvents(
+        docAddedRemoteEvent(doc('coll/a', 10, { b: true }), [targetId]),
+        docAddedRemoteEvent(doc('coll/b', 10, { b: false }), [targetId]),
+        docAddedRemoteEvent(doc('coll/c', 10, { a: 5, b: false }), [targetId]),
+        docAddedRemoteEvent(doc('coll/d', 10, { a: true }), [targetId]),
+        docAddedRemoteEvent(doc('coll/e', 10, { a: 3, b: true }), [targetId])
+      );
+
+      // First time query runs without indexes.
+      // Based on current heuristic, collection document counts (5) >
+      // 2 * resultSize (2).
+      // Full matched index should be created.
+      await test.executeQuery(query_);
+      test.assertRemoteDocumentsRead(0, 2);
+      test.assertQueryReturned(query_, 'coll/a', 'coll/e');
+
+      await test.backfillIndexes();
+
+      await test.applyRemoteEvent(
+        docAddedRemoteEvent(doc('coll/f', 20, { a: 3, b: false }), [targetId])
+      );
+
+      await test.executeQuery(query_);
+      test.assertRemoteDocumentsRead(2, 1);
+      test.assertQueryReturned(query_, 'coll/a', 'coll/e', 'coll/f');
+    });
+
+    it('does not auto-create indexes for small collections', async () => {
+      const query_ = query(
+        'coll',
+        filter('foo', '==', 9),
+        filter('count', '>=', 3)
+      );
+      const targetId = await test.allocateQuery(query_);
+      test.configureIndexAutoCreation({
+        isEnabled: true,
+        relativeIndexReadCostPerDocument: 2
+      });
+
+      await test.applyRemoteEvents(
+        docAddedRemoteEvent(doc('coll/a', 10, { foo: 9, count: 5 }), [
+          targetId
+        ]),
+        docAddedRemoteEvent(doc('coll/b', 10, { foo: 8, count: 6 }), [
+          targetId
+        ]),
+        docAddedRemoteEvent(doc('coll/c', 10, { foo: 9, count: 0 }), [
+          targetId
+        ]),
+        docAddedRemoteEvent(doc('coll/d', 10, { count: 4 }), [targetId]),
+        docAddedRemoteEvent(doc('coll/e', 10, { foo: 9, count: 3 }), [targetId])
+      );
+
+      // SDK will not create indexes since collection size is too small.
+      await test.executeQuery(query_);
+      test.assertRemoteDocumentsRead(0, 2);
+      test.assertQueryReturned(query_, 'coll/e', 'coll/a');
+
+      await test.backfillIndexes();
+
+      await test.applyRemoteEvent(
+        docAddedRemoteEvent(doc('coll/f', 20, { foo: 9, count: 4 }), [targetId])
+      );
+
+      await test.executeQuery(query_);
+      test.assertRemoteDocumentsRead(0, 3);
+      test.assertQueryReturned(query_, 'coll/e', 'coll/f', 'coll/a');
+    });
+
+    it('does not auto create indexes when index lookup is expensive', async () => {
+      const query_ = query(
+        'coll',
+        filter('array', 'array-contains-any', [0, 7])
+      );
+      const targetId = await test.allocateQuery(query_);
+      test.configureIndexAutoCreation({
+        isEnabled: true,
+        indexAutoCreationMinCollectionSize: 0,
+        relativeIndexReadCostPerDocument: 5
+      });
+
+      await test.applyRemoteEvents(
+        docAddedRemoteEvent(doc('coll/a', 10, { array: [2, 7] }), [targetId]),
+        docAddedRemoteEvent(doc('coll/b', 10, { array: [] }), [targetId]),
+        docAddedRemoteEvent(doc('coll/c', 10, { array: [3] }), [targetId]),
+        docAddedRemoteEvent(doc('coll/d', 10, { array: [2, 10, 20] }), [
+          targetId
+        ]),
+        docAddedRemoteEvent(doc('coll/e', 10, { array: [2, 0, 8] }), [targetId])
+      );
+
+      // SDK will not create indexes since relative read cost is too large.
+      await test.executeQuery(query_);
+      test.assertRemoteDocumentsRead(0, 2);
+      test.assertQueryReturned(query_, 'coll/a', 'coll/e');
+
+      await test.backfillIndexes();
+
+      await test.applyRemoteEvent(
+        docAddedRemoteEvent(doc('coll/f', 20, { array: [0] }), [targetId])
+      );
+
+      await test.executeQuery(query_);
+      test.assertRemoteDocumentsRead(0, 3);
+      test.assertQueryReturned(query_, 'coll/a', 'coll/e', 'coll/f');
+    });
+
+    it('index auto creation works when backfiller runs halfway', async () => {
+      const query_ = query(
+        'coll',
+        filter('matches', '==', 'foo'),
+        filter('count', '>', 10)
+      );
+      const targetId = await test.allocateQuery(query_);
+      test.configureIndexAutoCreation({
+        isEnabled: true,
+        indexAutoCreationMinCollectionSize: 0,
+        relativeIndexReadCostPerDocument: 2
+      });
+
+      await test.applyRemoteEvents(
+        docAddedRemoteEvent(doc('coll/a', 10, { matches: 'foo', count: 11 }), [
+          targetId
+        ]),
+        docAddedRemoteEvent(doc('coll/b', 10, { matches: 'foo', count: 9 }), [
+          targetId
+        ]),
+        docAddedRemoteEvent(doc('coll/c', 10, { matches: 'foo' }), [targetId]),
+        docAddedRemoteEvent(doc('coll/d', 10, { matches: 7, count: 11 }), [
+          targetId
+        ]),
+        docAddedRemoteEvent(doc('coll/e', 10, { matches: 'foo', count: 21 }), [
+          targetId
+        ])
+      );
+
+      // First time query runs without indexes.
+      // Based on current heuristic, collection document counts (5) >
+      // 2 * resultSize (2).
+      // Full matched index should be created.
+      await test.executeQuery(query_);
+      test.assertRemoteDocumentsRead(0, 2);
+      test.assertQueryReturned(query_, 'coll/a', 'coll/e');
+
+      await test.backfillIndexes({ maxDocumentsToProcess: 2 });
+
+      await test.applyRemoteEvent(
+        docAddedRemoteEvent(doc('coll/f', 20, { matches: 'foo', count: 15 }), [
+          targetId
+        ])
+      );
+
+      await test.executeQuery(query_);
+      test.assertRemoteDocumentsRead(1, 2);
+      test.assertQueryReturned(query_, 'coll/a', 'coll/f', 'coll/e');
+    });
+
+    it('index created by index auto creation exists after turn off auto creation', async () => {
+      const query_ = query('coll', filter('value', 'not-in', [3]));
+      const targetId = await test.allocateQuery(query_);
+      test.configureIndexAutoCreation({
+        isEnabled: true,
+        indexAutoCreationMinCollectionSize: 0,
+        relativeIndexReadCostPerDocument: 2
+      });
+
+      await test.applyRemoteEvents(
+        docAddedRemoteEvent(doc('coll/a', 10, { value: 5 }), [targetId]),
+        docAddedRemoteEvent(doc('coll/b', 10, { value: 3 }), [targetId]),
+        docAddedRemoteEvent(doc('coll/c', 10, { value: 3 }), [targetId]),
+        docAddedRemoteEvent(doc('coll/d', 10, { value: 3 }), [targetId]),
+        docAddedRemoteEvent(doc('coll/e', 10, { value: 2 }), [targetId])
+      );
+
+      // First time query runs without indexes.
+      // Based on current heuristic, collection document counts (5) >
+      // 2 * resultSize (2).
+      // Full matched index should be created.
+      await test.executeQuery(query_);
+      test.assertRemoteDocumentsRead(0, 2);
+      test.assertQueryReturned(query_, 'coll/e', 'coll/a');
+
+      test.configureIndexAutoCreation({ isEnabled: false });
+      await test.backfillIndexes();
+
+      await test.applyRemoteEvent(
+        docAddedRemoteEvent(doc('coll/f', 20, { value: 7 }), [targetId])
+      );
+
+      await test.executeQuery(query_);
+      test.assertRemoteDocumentsRead(2, 1);
+      test.assertQueryReturned(query_, 'coll/e', 'coll/a', 'coll/f');
+    });
+
+    it('disable index auto creation works', async () => {
+      const query1 = query('coll', filter('value', 'in', [0, 1]));
+      const query2 = query('foo', filter('value', '!=', Number.NaN));
+
+      const targetId1 = await test.allocateQuery(query1);
+      test.configureIndexAutoCreation({
+        isEnabled: true,
+        indexAutoCreationMinCollectionSize: 0,
+        relativeIndexReadCostPerDocument: 2
+      });
+
+      await test.applyRemoteEvents(
+        docAddedRemoteEvent(doc('coll/a', 10, { value: 1 }), [targetId1]),
+        docAddedRemoteEvent(doc('coll/b', 10, { value: 8 }), [targetId1]),
+        docAddedRemoteEvent(doc('coll/c', 10, { value: 'string' }), [
+          targetId1
+        ]),
+        docAddedRemoteEvent(doc('coll/d', 10, { value: false }), [targetId1]),
+        docAddedRemoteEvent(doc('coll/e', 10, { value: 0 }), [targetId1])
+      );
+
+      // First time query runs without indexes.
+      // Based on current heuristic, collection document counts (5) >
+      // 2 * resultSize (2).
+      // Full matched index should be created.
+      await test.executeQuery(query1);
+      test.assertRemoteDocumentsRead(0, 2);
+      test.assertQueryReturned(query1, 'coll/a', 'coll/e');
+
+      test.configureIndexAutoCreation({ isEnabled: false });
+      await test.backfillIndexes();
+      await test.executeQuery(query1);
+      test.assertRemoteDocumentsRead(2, 0);
+      test.assertQueryReturned(query1, 'coll/a', 'coll/e');
+
+      const targetId2 = await test.allocateQuery(query2);
+      await test.applyRemoteEvents(
+        docAddedRemoteEvent(doc('foo/a', 10, { value: 5 }), [targetId2]),
+        docAddedRemoteEvent(doc('foo/b', 10, { value: Number.NaN }), [
+          targetId2
+        ]),
+        docAddedRemoteEvent(doc('foo/c', 10, { value: Number.NaN }), [
+          targetId2
+        ]),
+        docAddedRemoteEvent(doc('foo/d', 10, { value: Number.NaN }), [
+          targetId2
+        ]),
+        docAddedRemoteEvent(doc('foo/e', 10, { value: 'string' }), [targetId2])
+      );
+
+      await test.executeQuery(query2);
+      test.assertRemoteDocumentsRead(0, 2);
+      test.assertQueryReturned(query2, 'foo/a', 'foo/e');
+
+      await test.backfillIndexes();
+
+      // Run the query in second time, test index won't be created
+      await test.executeQuery(query2);
+      test.assertRemoteDocumentsRead(0, 2);
+      test.assertQueryReturned(query2, 'foo/a', 'foo/e');
+    });
+
+    it('index auto creation works with mutation', async () => {
+      const query_ = query(
+        'coll',
+        filter('value', 'array-contains-any', [8, 1, 'string'])
+      );
+
+      const targetId = await test.allocateQuery(query_);
+      test.configureIndexAutoCreation({
+        isEnabled: true,
+        indexAutoCreationMinCollectionSize: 0,
+        relativeIndexReadCostPerDocument: 2
+      });
+
+      await test.applyRemoteEvents(
+        docAddedRemoteEvent(doc('coll/a', 10, { value: [8, 1, 'string'] }), [
+          targetId
+        ]),
+        docAddedRemoteEvent(doc('coll/b', 10, { value: [] }), [targetId]),
+        docAddedRemoteEvent(doc('coll/c', 10, { value: [3] }), [targetId]),
+        docAddedRemoteEvent(doc('coll/d', 10, { value: [0, 5] }), [targetId]),
+        docAddedRemoteEvent(doc('coll/e', 10, { value: ['string'] }), [
+          targetId
+        ])
+      );
+
+      await test.executeQuery(query_);
+      test.assertRemoteDocumentsRead(0, 2);
+      test.assertQueryReturned(query_, 'coll/a', 'coll/e');
+
+      await test.writeMutations(deleteMutation('coll/e'));
+      await test.backfillIndexes();
+      await test.writeMutations(setMutation('coll/f', { value: [1] }));
+
+      await test.executeQuery(query_);
+      test.assertRemoteDocumentsRead(1, 0);
+      test.assertOverlaysRead(1, 1);
+      test.assertQueryReturned(query_, 'coll/a', 'coll/f');
+    });
+
+    it('delete all indexes works with index auto creation', async () => {
+      const query_ = query('coll', filter('value', '==', 'match'));
+
+      const targetId = await test.allocateQuery(query_);
+      test.configureIndexAutoCreation({
+        isEnabled: true,
+        indexAutoCreationMinCollectionSize: 0,
+        relativeIndexReadCostPerDocument: 2
+      });
+
+      await test.applyRemoteEvents(
+        docAddedRemoteEvent(doc('coll/a', 10, { value: 'match' }), [targetId]),
+        docAddedRemoteEvent(doc('coll/b', 10, { value: Number.NaN }), [
+          targetId
+        ]),
+        docAddedRemoteEvent(doc('coll/c', 10, { value: null }), [targetId]),
+        docAddedRemoteEvent(doc('coll/d', 10, { value: 'mismatch' }), [
+          targetId
+        ]),
+        docAddedRemoteEvent(doc('coll/e', 10, { value: 'match' }), [targetId])
+      );
+
+      // First time query is running without indexes.
+      // Based on current heuristic, collection document counts (5) >
+      // 2 * resultSize (2).
+      // Full matched index should be created.
+      await test.executeQuery(query_);
+      test.assertRemoteDocumentsRead(0, 2);
+      test.assertQueryReturned(query_, 'coll/a', 'coll/e');
+
+      await test.backfillIndexes();
+      await test.executeQuery(query_);
+      test.assertRemoteDocumentsRead(2, 0);
+      test.assertQueryReturned(query_, 'coll/a', 'coll/e');
+
+      await test.deleteAllFieldIndexes();
+      await test.executeQuery(query_);
+      test.assertRemoteDocumentsRead(0, 2);
+      test.assertQueryReturned(query_, 'coll/a', 'coll/e');
+
+      // Field index is created again.
+      await test.backfillIndexes();
+
+      await test.executeQuery(query_);
+      test.assertRemoteDocumentsRead(2, 0);
+      test.assertQueryReturned(query_, 'coll/a', 'coll/e');
+    });
+
+    it('delete all indexes works with manual added indexes', async () => {
+      const query_ = query('coll', filter('matches', '==', true));
+
+      await test.configureFieldsIndexes(
+        fieldIndex('coll', {
+          fields: [['matches', IndexKind.ASCENDING]]
         })
       );
+
+      const targetId = await test.allocateQuery(query_);
+      await test.applyRemoteEvent(
+        docAddedRemoteEvent(doc('coll/a', 10, { matches: true }), [targetId])
+      );
       await test.backfillIndexes();
 
-      let query_ = query('coll', orderBy('key', 'asc'));
       await test.executeQuery(query_);
-      test.assertOverlaysRead(3, 0, {
-        [key('coll/a').toString()]: MutationType.Set,
-        [key('coll/b').toString()]: MutationType.Set,
-        [key('coll/c').toString()]: MutationType.Set
-      });
-      test.assertQueryReturned(query_, 'coll/a', 'coll/b', 'coll/c');
-
-      query_ = query(
-        'coll',
-        filter('key', '==', new BsonObjectId('507f191e810c19729de860ea'))
-      );
-      await test.executeQuery(query_);
-      test.assertOverlaysRead(1, 0, {
-        [key('coll/a').toString()]: MutationType.Set
-      });
+      test.assertRemoteDocumentsRead(1, 0);
       test.assertQueryReturned(query_, 'coll/a');
 
-      query_ = query(
-        'coll',
-        filter('key', '!=', new BsonObjectId('507f191e810c19729de860ea'))
-      );
+      await test.deleteAllFieldIndexes();
+
       await test.executeQuery(query_);
-      test.assertOverlaysRead(2, 0, {
-        [key('coll/b').toString()]: MutationType.Set,
-        [key('coll/c').toString()]: MutationType.Set
-      });
-      test.assertQueryReturned(query_, 'coll/b', 'coll/c');
-
-      query_ = query(
-        'coll',
-        filter('key', '>=', new BsonObjectId('507f191e810c19729de860eb'))
-      );
-      await test.executeQuery(query_);
-      test.assertOverlaysRead(2, 0, {
-        [key('coll/b').toString()]: MutationType.Set,
-        [key('coll/c').toString()]: MutationType.Set
-      });
-      test.assertQueryReturned(query_, 'coll/b', 'coll/c');
-
-      query_ = query(
-        'coll',
-        filter('key', '<', new BsonObjectId('507f191e810c19729de860ea'))
-      );
-      await test.executeQuery(query_);
-      test.assertOverlaysRead(0, 0);
-      test.assertQueryReturned(query_);
-
-      query_ = query(
-        'coll',
-        filter('key', 'in', [
-          new BsonObjectId('507f191e810c19729de860ea'),
-          new BsonObjectId('507f191e810c19729de860eb')
-        ])
-      );
-      await test.executeQuery(query_);
-      test.assertOverlaysRead(2, 0, {
-        [key('coll/a').toString()]: MutationType.Set,
-        [key('coll/b').toString()]: MutationType.Set
-      });
-      test.assertQueryReturned(query_, 'coll/a', 'coll/b');
-
-      query_ = query(
-        'coll',
-        filter('key', 'not-in', [
-          new BsonObjectId('507f191e810c19729de860ea'),
-          new BsonObjectId('507f191e810c19729de860eb')
-        ])
-      );
-      await test.executeQuery(query_);
-      test.assertOverlaysRead(1, 0, {
-        [key('coll/c').toString()]: MutationType.Set
-      });
-      test.assertQueryReturned(query_, 'coll/c');
-    });
-
-    it('Indexes BSON Timestamp fields', async () => {
-      const index = fieldIndex('coll', {
-        id: 1,
-        fields: [['key', IndexKind.ASCENDING]]
-      });
-      await test.configureFieldsIndexes(index);
-      await test.writeMutations(
-        setMutation('coll/a', { key: new BsonTimestamp(1000, 1000) }),
-        setMutation('coll/b', { key: new BsonTimestamp(1001, 1000) }),
-        setMutation('coll/c', { key: new BsonTimestamp(1000, 1001) })
-      );
-      await test.backfillIndexes();
-
-      let query_ = query('coll', orderBy('key', 'asc'));
-      await test.executeQuery(query_);
-      test.assertOverlaysRead(3, 0, {
-        [key('coll/a').toString()]: MutationType.Set,
-        [key('coll/b').toString()]: MutationType.Set,
-        [key('coll/c').toString()]: MutationType.Set
-      });
-      test.assertQueryReturned(query_, 'coll/a', 'coll/c', 'coll/b');
-
-      query_ = query(
-        'coll',
-        filter('key', '==', new BsonTimestamp(1000, 1000))
-      );
-      await test.executeQuery(query_);
-      test.assertOverlaysRead(1, 0, {
-        [key('coll/a').toString()]: MutationType.Set
-      });
-      test.assertQueryReturned(query_, 'coll/a');
-
-      query_ = query(
-        'coll',
-        filter('key', '!=', new BsonTimestamp(1000, 1000))
-      );
-      await test.executeQuery(query_);
-      test.assertOverlaysRead(2, 0, {
-        [key('coll/b').toString()]: MutationType.Set,
-        [key('coll/c').toString()]: MutationType.Set
-      });
-      test.assertQueryReturned(query_, 'coll/c', 'coll/b');
-
-      query_ = query(
-        'coll',
-        filter('key', '>=', new BsonTimestamp(1000, 1001))
-      );
-      await test.executeQuery(query_);
-      test.assertOverlaysRead(2, 0, {
-        [key('coll/b').toString()]: MutationType.Set,
-        [key('coll/c').toString()]: MutationType.Set
-      });
-      test.assertQueryReturned(query_, 'coll/c', 'coll/b');
-
-      query_ = query('coll', filter('key', '<', new BsonTimestamp(1000, 1000)));
-      await test.executeQuery(query_);
-      test.assertOverlaysRead(0, 0);
-      test.assertQueryReturned(query_);
-
-      query_ = query(
-        'coll',
-        filter('key', 'in', [
-          new BsonTimestamp(1000, 1000),
-          new BsonTimestamp(1001, 1000)
-        ])
-      );
-      await test.executeQuery(query_);
-      test.assertOverlaysRead(2, 0, {
-        [key('coll/a').toString()]: MutationType.Set,
-        [key('coll/b').toString()]: MutationType.Set
-      });
-      test.assertQueryReturned(query_, 'coll/a', 'coll/b');
-
-      query_ = query(
-        'coll',
-        filter('key', 'not-in', [
-          new BsonTimestamp(1000, 1000),
-          new BsonTimestamp(1001, 1000)
-        ])
-      );
-      await test.executeQuery(query_);
-      test.assertOverlaysRead(1, 0, {
-        [key('coll/c').toString()]: MutationType.Set
-      });
-      test.assertQueryReturned(query_, 'coll/c');
-    });
-
-    it('Indexes BSON Binary Data fields', async () => {
-      const index = fieldIndex('coll', {
-        id: 1,
-        fields: [['key', IndexKind.ASCENDING]]
-      });
-      await test.configureFieldsIndexes(index);
-      await test.writeMutations(
-        setMutation('coll/a', {
-          key: Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1)
-        }),
-        setMutation('coll/b', {
-          key: Bytes.fromUint8Array(new Uint8Array([1, 2]), 1)
-        }),
-        setMutation('coll/c', {
-          key: Bytes.fromUint8Array(new Uint8Array([1, 2, 4]), 1)
-        }),
-        setMutation('coll/d', {
-          key: Bytes.fromUint8Array(new Uint8Array([1, 2]), 2)
-        })
-      );
-      await test.backfillIndexes();
-
-      let query_ = query('coll', orderBy('key', 'asc'));
-      await test.executeQuery(query_);
-      test.assertOverlaysRead(4, 0, {
-        [key('coll/a').toString()]: MutationType.Set,
-        [key('coll/b').toString()]: MutationType.Set,
-        [key('coll/c').toString()]: MutationType.Set,
-        [key('coll/d').toString()]: MutationType.Set
-      });
-      test.assertQueryReturned(query_, 'coll/b', 'coll/a', 'coll/c', 'coll/d');
-
-      query_ = query(
-        'coll',
-        filter('key', '==', Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1))
-      );
-      await test.executeQuery(query_);
-      test.assertOverlaysRead(1, 0, {
-        [key('coll/a').toString()]: MutationType.Set
-      });
-      test.assertQueryReturned(query_, 'coll/a');
-
-      query_ = query(
-        'coll',
-        filter('key', '!=', Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1))
-      );
-      await test.executeQuery(query_);
-      test.assertOverlaysRead(3, 0, {
-        [key('coll/b').toString()]: MutationType.Set,
-        [key('coll/c').toString()]: MutationType.Set,
-        [key('coll/d').toString()]: MutationType.Set
-      });
-      test.assertQueryReturned(query_, 'coll/b', 'coll/c', 'coll/d');
-
-      query_ = query(
-        'coll',
-        filter('key', '>=', Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1))
-      );
-      await test.executeQuery(query_);
-      test.assertOverlaysRead(3, 0, {
-        [key('coll/a').toString()]: MutationType.Set,
-        [key('coll/c').toString()]: MutationType.Set,
-        [key('coll/d').toString()]: MutationType.Set
-      });
-      test.assertQueryReturned(query_, 'coll/a', 'coll/c', 'coll/d');
-
-      query_ = query(
-        'coll',
-        filter('key', '<', Bytes.fromUint8Array(new Uint8Array([1, 2]), 1))
-      );
-      await test.executeQuery(query_);
-      test.assertOverlaysRead(0, 0);
-      test.assertQueryReturned(query_);
-
-      query_ = query(
-        'coll',
-        filter('key', 'in', [
-          Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1),
-          Bytes.fromUint8Array(new Uint8Array([1, 2]), 1)
-        ])
-      );
-      await test.executeQuery(query_);
-      test.assertOverlaysRead(2, 0, {
-        [key('coll/a').toString()]: MutationType.Set,
-        [key('coll/b').toString()]: MutationType.Set
-      });
-      // Note that `in` does not add implicit ordering, so the result is ordered by keys
-      test.assertQueryReturned(query_, 'coll/a', 'coll/b');
-
-      query_ = query(
-        'coll',
-        filter('key', 'not-in', [
-          Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1),
-          Bytes.fromUint8Array(new Uint8Array([1, 2]), 1)
-        ])
-      );
-      await test.executeQuery(query_);
-      test.assertOverlaysRead(2, 0, {
-        [key('coll/c').toString()]: MutationType.Set,
-        [key('coll/d').toString()]: MutationType.Set
-      });
-      test.assertQueryReturned(query_, 'coll/c', 'coll/d');
-    });
-
-    it('Indexes BSON Int32 fields', async () => {
-      const index = fieldIndex('coll', {
-        id: 1,
-        fields: [['key', IndexKind.ASCENDING]]
-      });
-      await test.configureFieldsIndexes(index);
-      await test.writeMutations(
-        setMutation('coll/a', { key: new Int32Value(-1) }),
-        setMutation('coll/b', { key: new Int32Value(0) }),
-        setMutation('coll/c', { key: new Int32Value(1) })
-      );
-      await test.backfillIndexes();
-
-      let query_ = query('coll', orderBy('key', 'asc'));
-      await test.executeQuery(query_);
-      test.assertOverlaysRead(3, 0, {
-        [key('coll/a').toString()]: MutationType.Set,
-        [key('coll/b').toString()]: MutationType.Set,
-        [key('coll/c').toString()]: MutationType.Set
-      });
-      test.assertQueryReturned(query_, 'coll/a', 'coll/b', 'coll/c');
-
-      query_ = query('coll', filter('key', '==', new Int32Value(0)));
-      await test.executeQuery(query_);
-      test.assertOverlaysRead(1, 0, {
-        [key('coll/b').toString()]: MutationType.Set
-      });
-      test.assertQueryReturned(query_, 'coll/b');
-
-      query_ = query('coll', filter('key', '!=', new Int32Value(0)));
-      await test.executeQuery(query_);
-      test.assertOverlaysRead(2, 0, {
-        [key('coll/a').toString()]: MutationType.Set,
-        [key('coll/c').toString()]: MutationType.Set
-      });
-      test.assertQueryReturned(query_, 'coll/a', 'coll/c');
-
-      query_ = query('coll', filter('key', '>=', new Int32Value(0)));
-      await test.executeQuery(query_);
-      test.assertOverlaysRead(2, 0, {
-        [key('coll/b').toString()]: MutationType.Set,
-        [key('coll/c').toString()]: MutationType.Set
-      });
-      test.assertQueryReturned(query_, 'coll/b', 'coll/c');
-
-      query_ = query('coll', filter('key', '<', new Int32Value(-1)));
-      await test.executeQuery(query_);
-      test.assertOverlaysRead(0, 0);
-      test.assertQueryReturned(query_);
-
-      query_ = query(
-        'coll',
-        filter('key', 'in', [new Int32Value(0), new Int32Value(1)])
-      );
-      await test.executeQuery(query_);
-      test.assertOverlaysRead(2, 0, {
-        [key('coll/b').toString()]: MutationType.Set,
-        [key('coll/c').toString()]: MutationType.Set
-      });
-      test.assertQueryReturned(query_, 'coll/b', 'coll/c');
-
-      query_ = query(
-        'coll',
-        filter('key', 'not-in', [new Int32Value(0), new Int32Value(1)])
-      );
-      await test.executeQuery(query_);
-      test.assertOverlaysRead(1, 0, {
-        [key('coll/a').toString()]: MutationType.Set
-      });
+      test.assertRemoteDocumentsRead(0, 1);
       test.assertQueryReturned(query_, 'coll/a');
     });
 
-    it('Indexes BSON Decimal128 fields', async () => {
-      const index = fieldIndex('coll', {
-        id: 1,
-        fields: [['key', IndexKind.ASCENDING]]
-      });
-      await test.configureFieldsIndexes(index);
-      await test.writeMutations(
-        setMutation('coll/a', { key: new Decimal128Value('-1.2e3') }),
-        setMutation('coll/b', { key: new Decimal128Value('0') }),
-        setMutation('coll/c', { key: new Decimal128Value('1.2e3') })
-      );
-      await test.backfillIndexes();
-
-      let query_ = query('coll', orderBy('key', 'asc'));
-      await test.executeQuery(query_);
-      test.assertOverlaysRead(3, 0, {
-        [key('coll/a').toString()]: MutationType.Set,
-        [key('coll/b').toString()]: MutationType.Set,
-        [key('coll/c').toString()]: MutationType.Set
-      });
-      test.assertQueryReturned(query_, 'coll/a', 'coll/b', 'coll/c');
-
-      query_ = query('coll', filter('key', '==', new Decimal128Value('-1200')));
-      await test.executeQuery(query_);
-      test.assertOverlaysRead(1, 0, {
-        [key('coll/a').toString()]: MutationType.Set
-      });
-      test.assertQueryReturned(query_, 'coll/a');
-
-      query_ = query('coll', filter('key', '!=', new Decimal128Value('0.0')));
-      await test.executeQuery(query_);
-      test.assertOverlaysRead(2, 0, {
-        [key('coll/a').toString()]: MutationType.Set,
-        [key('coll/c').toString()]: MutationType.Set
-      });
-      test.assertQueryReturned(query_, 'coll/a', 'coll/c');
-
-      query_ = query('coll', filter('key', '>=', new Decimal128Value('-0')));
-      await test.executeQuery(query_);
-      test.assertOverlaysRead(2, 0, {
-        [key('coll/b').toString()]: MutationType.Set,
-        [key('coll/c').toString()]: MutationType.Set
-      });
-      test.assertQueryReturned(query_, 'coll/b', 'coll/c');
-
-      // This will fail if the negative 0s are not converted to positive 0 in `writeIndexValueAux`
-      // function
-      query_ = query('coll', filter('key', '<=', new Decimal128Value('-0.0')));
-      await test.executeQuery(query_);
-      test.assertOverlaysRead(2, 0, {
-        [key('coll/a').toString()]: MutationType.Set,
-        [key('coll/b').toString()]: MutationType.Set
-      });
-      test.assertQueryReturned(query_, 'coll/a', 'coll/b');
-
-      query_ = query('coll', filter('key', '>', new Decimal128Value('1.2e3')));
-      await test.executeQuery(query_);
-      test.assertOverlaysRead(0, 0);
-      test.assertQueryReturned(query_);
-
-      query_ = query('coll', filter('key', '<', new Decimal128Value('-1.2e3')));
-      await test.executeQuery(query_);
-      test.assertOverlaysRead(0, 0);
-      test.assertQueryReturned(query_);
-
-      query_ = query(
+    it('index auto creation does not work with multiple inequality', async () => {
+      const query_ = query(
         'coll',
-        filter('key', 'in', [
-          new Decimal128Value('-1.2e3'),
-          new Decimal128Value('0')
+        filter('field1', '<', 5),
+        filter('field2', '<', 5)
+      );
+
+      const targetId = await test.allocateQuery(query_);
+      test.configureIndexAutoCreation({
+        isEnabled: true,
+        indexAutoCreationMinCollectionSize: 0,
+        relativeIndexReadCostPerDocument: 2
+      });
+
+      await test.applyRemoteEvents(
+        docAddedRemoteEvent(doc('coll/a', 10, { field1: 1, field2: 2 }), [
+          targetId
+        ]),
+        docAddedRemoteEvent(doc('coll/b', 10, { field1: 8, field2: 2 }), [
+          targetId
+        ]),
+        docAddedRemoteEvent(
+          doc('coll/c', 10, { field1: 'string', field2: 2 }),
+          [targetId]
+        ),
+        docAddedRemoteEvent(doc('coll/d', 10, { field1: 1 }), [targetId]),
+        docAddedRemoteEvent(doc('coll/e', 10, { field1: 4, field2: 4 }), [
+          targetId
         ])
       );
-      await test.executeQuery(query_);
-      test.assertOverlaysRead(2, 0, {
-        [key('coll/a').toString()]: MutationType.Set,
-        [key('coll/b').toString()]: MutationType.Set
-      });
-      test.assertQueryReturned(query_, 'coll/a', 'coll/b');
 
-      query_ = query(
-        'coll',
-        filter('key', 'not-in', [
-          new Decimal128Value('-1200'),
-          new Decimal128Value('0.0')
-        ])
-      );
+      // First time query runs without indexes.
+      // Based on current heuristic, collection document counts (5) >
+      // 2 * resultSize (2).
+      // Full matched index will not be created since FieldIndex does not
+      // support multiple inequality.
       await test.executeQuery(query_);
-      test.assertOverlaysRead(1, 0, {
-        [key('coll/c').toString()]: MutationType.Set
-      });
-      test.assertQueryReturned(query_, 'coll/c');
-    });
+      test.assertRemoteDocumentsRead(0, 2);
+      test.assertQueryReturned(query_, 'coll/a', 'coll/e');
 
-    it('Indexes BSON Decimal128 fields with precision loss', async () => {
-      const index = fieldIndex('coll', {
-        id: 1,
-        fields: [['key', IndexKind.ASCENDING]]
-      });
-      await test.configureFieldsIndexes(index);
-      await test.writeMutations(
-        setMutation('coll/a', {
-          key: new Decimal128Value('-0.1234567890123456789')
-        }), // will be rounded to -0.12345678901234568
-        setMutation('coll/b', { key: new Decimal128Value('0') }),
-        setMutation('coll/c', {
-          key: new Decimal128Value('0.1234567890123456789')
-        }) // will be rounded to 0.12345678901234568
-      );
       await test.backfillIndexes();
-
-      let query_ = query('coll', orderBy('key', 'asc'));
       await test.executeQuery(query_);
-      test.assertOverlaysRead(3, 0, {
-        [key('coll/a').toString()]: MutationType.Set,
-        [key('coll/b').toString()]: MutationType.Set,
-        [key('coll/c').toString()]: MutationType.Set
-      });
-      test.assertQueryReturned(query_, 'coll/a', 'coll/b', 'coll/c');
-
-      query_ = query(
-        'coll',
-        filter('key', '==', new Decimal128Value('0.1234567890123456789'))
-      );
-      await test.executeQuery(query_);
-      test.assertOverlaysRead(1, 0, {
-        [key('coll/c').toString()]: MutationType.Set
-      });
-      test.assertQueryReturned(query_, 'coll/c');
-
-      // Mismatch behavior caused by rounding error. Firestore fetches the doc3 from IndexedDb as
-      // doc3 rounds to the same number, but, it is not presented on the final query result.
-      query_ = query(
-        'coll',
-        filter('key', '==', new Decimal128Value('0.12345678901234568'))
-      );
-      await test.executeQuery(query_);
-      test.assertOverlaysRead(1, 0, {
-        [key('coll/c').toString()]: MutationType.Set
-      });
-      test.assertQueryReturned(query_);
-
-      // Operations that doesn't go up to 17 decimal digits of precision wouldn't be affected by
-      // this rounding errors.
-      query_ = query('coll', filter('key', '!=', new Decimal128Value('0.0')));
-      await test.executeQuery(query_);
-      test.assertOverlaysRead(2, 0, {
-        [key('coll/a').toString()]: MutationType.Set,
-        [key('coll/c').toString()]: MutationType.Set
-      });
-      test.assertQueryReturned(query_, 'coll/a', 'coll/c');
-
-      query_ = query(
-        'coll',
-        filter('key', '>=', new Decimal128Value('1.23e-1'))
-      );
-      await test.executeQuery(query_);
-      test.assertOverlaysRead(1, 0, {
-        [key('coll/c').toString()]: MutationType.Set
-      });
-      test.assertQueryReturned(query_, 'coll/c');
-
-      query_ = query(
-        'coll',
-        filter('key', '<=', new Decimal128Value('-1.23e-1'))
-      );
-      await test.executeQuery(query_);
-      test.assertOverlaysRead(1, 0, {
-        [key('coll/a').toString()]: MutationType.Set
-      });
-      test.assertQueryReturned(query_, 'coll/a');
-
-      query_ = query('coll', filter('key', '>', new Decimal128Value('1.2e3')));
-      await test.executeQuery(query_);
-      test.assertOverlaysRead(0, 0);
-      test.assertQueryReturned(query_);
-
-      query_ = query('coll', filter('key', '<', new Decimal128Value('-1.2e3')));
-      await test.executeQuery(query_);
-      test.assertOverlaysRead(0, 0);
-      test.assertQueryReturned(query_);
+      test.assertRemoteDocumentsRead(0, 2);
+      test.assertQueryReturned(query_, 'coll/a', 'coll/e');
     });
 
-    it('Indexes BSON Regex fields', async () => {
-      const index = fieldIndex('coll', {
-        id: 1,
-        fields: [['key', IndexKind.ASCENDING]]
-      });
-      await test.configureFieldsIndexes(index);
-      await test.writeMutations(
-        setMutation('coll/a', { key: new RegexValue('a', 'i') }),
-        setMutation('coll/b', { key: new RegexValue('a', 'm') }),
-        setMutation('coll/c', { key: new RegexValue('b', 'i') })
-      );
-      await test.backfillIndexes();
+    describe('BSON type indexing', () => {
+      it('Indexes BSON ObjectId fields', async () => {
+        const index = fieldIndex('coll', {
+          id: 1,
+          fields: [['key', IndexKind.ASCENDING]]
+        });
+        await test.configureFieldsIndexes(index);
 
-      let query_ = query('coll', orderBy('key', 'asc'));
-      await test.executeQuery(query_);
-      test.assertOverlaysRead(3, 0, {
-        [key('coll/a').toString()]: MutationType.Set,
-        [key('coll/b').toString()]: MutationType.Set,
-        [key('coll/c').toString()]: MutationType.Set
-      });
-      test.assertQueryReturned(query_, 'coll/a', 'coll/b', 'coll/c');
+        await test.writeMutations(
+          setMutation('coll/a', {
+            key: new BsonObjectId('507f191e810c19729de860ea')
+          }),
+          setMutation('coll/b', {
+            key: new BsonObjectId('507f191e810c19729de860eb')
+          }),
+          setMutation('coll/c', {
+            key: new BsonObjectId('507f191e810c19729de860ec')
+          })
+        );
+        await test.backfillIndexes();
 
-      query_ = query('coll', filter('key', '==', new RegexValue('a', 'i')));
-      await test.executeQuery(query_);
-      test.assertOverlaysRead(1, 0, {
-        [key('coll/a').toString()]: MutationType.Set
-      });
-      test.assertQueryReturned(query_, 'coll/a');
+        let query_ = query('coll', orderBy('key', 'asc'));
+        await test.executeQuery(query_);
+        test.assertOverlaysRead(3, 0, {
+          [key('coll/a').toString()]: MutationType.Set,
+          [key('coll/b').toString()]: MutationType.Set,
+          [key('coll/c').toString()]: MutationType.Set
+        });
+        test.assertQueryReturned(query_, 'coll/a', 'coll/b', 'coll/c');
 
-      query_ = query('coll', filter('key', '!=', new RegexValue('a', 'i')));
-      await test.executeQuery(query_);
-      test.assertOverlaysRead(2, 0, {
-        [key('coll/b').toString()]: MutationType.Set,
-        [key('coll/c').toString()]: MutationType.Set
-      });
-      test.assertQueryReturned(query_, 'coll/b', 'coll/c');
+        query_ = query(
+          'coll',
+          filter('key', '==', new BsonObjectId('507f191e810c19729de860ea'))
+        );
+        await test.executeQuery(query_);
+        test.assertOverlaysRead(1, 0, {
+          [key('coll/a').toString()]: MutationType.Set
+        });
+        test.assertQueryReturned(query_, 'coll/a');
 
-      query_ = query('coll', filter('key', '>=', new RegexValue('a', 'm')));
-      await test.executeQuery(query_);
-      test.assertOverlaysRead(2, 0, {
-        [key('coll/b').toString()]: MutationType.Set,
-        [key('coll/c').toString()]: MutationType.Set
-      });
-      test.assertQueryReturned(query_, 'coll/b', 'coll/c');
+        query_ = query(
+          'coll',
+          filter('key', '!=', new BsonObjectId('507f191e810c19729de860ea'))
+        );
+        await test.executeQuery(query_);
+        test.assertOverlaysRead(2, 0, {
+          [key('coll/b').toString()]: MutationType.Set,
+          [key('coll/c').toString()]: MutationType.Set
+        });
+        test.assertQueryReturned(query_, 'coll/b', 'coll/c');
 
-      query_ = query('coll', filter('key', '<', new RegexValue('a', 'i')));
-      await test.executeQuery(query_);
-      test.assertOverlaysRead(0, 0);
-      test.assertQueryReturned(query_);
+        query_ = query(
+          'coll',
+          filter('key', '>=', new BsonObjectId('507f191e810c19729de860eb'))
+        );
+        await test.executeQuery(query_);
+        test.assertOverlaysRead(2, 0, {
+          [key('coll/b').toString()]: MutationType.Set,
+          [key('coll/c').toString()]: MutationType.Set
+        });
+        test.assertQueryReturned(query_, 'coll/b', 'coll/c');
 
-      query_ = query(
-        'coll',
-        filter('key', 'in', [
-          new RegexValue('a', 'i'),
-          new RegexValue('a', 'm')
-        ])
-      );
-      await test.executeQuery(query_);
-      test.assertOverlaysRead(2, 0, {
-        [key('coll/a').toString()]: MutationType.Set,
-        [key('coll/b').toString()]: MutationType.Set
-      });
-      test.assertQueryReturned(query_, 'coll/a', 'coll/b');
+        query_ = query(
+          'coll',
+          filter('key', '<', new BsonObjectId('507f191e810c19729de860ea'))
+        );
+        await test.executeQuery(query_);
+        test.assertOverlaysRead(0, 0);
+        test.assertQueryReturned(query_);
 
-      query_ = query(
-        'coll',
-        filter('key', 'not-in', [
-          new RegexValue('a', 'i'),
-          new RegexValue('a', 'm')
-        ])
-      );
-      await test.executeQuery(query_);
-      test.assertOverlaysRead(1, 0, {
-        [key('coll/c').toString()]: MutationType.Set
+        query_ = query(
+          'coll',
+          filter('key', 'in', [
+            new BsonObjectId('507f191e810c19729de860ea'),
+            new BsonObjectId('507f191e810c19729de860eb')
+          ])
+        );
+        await test.executeQuery(query_);
+        test.assertOverlaysRead(2, 0, {
+          [key('coll/a').toString()]: MutationType.Set,
+          [key('coll/b').toString()]: MutationType.Set
+        });
+        test.assertQueryReturned(query_, 'coll/a', 'coll/b');
+
+        query_ = query(
+          'coll',
+          filter('key', 'not-in', [
+            new BsonObjectId('507f191e810c19729de860ea'),
+            new BsonObjectId('507f191e810c19729de860eb')
+          ])
+        );
+        await test.executeQuery(query_);
+        test.assertOverlaysRead(1, 0, {
+          [key('coll/c').toString()]: MutationType.Set
+        });
+        test.assertQueryReturned(query_, 'coll/c');
       });
-      test.assertQueryReturned(query_, 'coll/c');
+
+      it('Indexes BSON Timestamp fields', async () => {
+        const index = fieldIndex('coll', {
+          id: 1,
+          fields: [['key', IndexKind.ASCENDING]]
+        });
+        await test.configureFieldsIndexes(index);
+        await test.writeMutations(
+          setMutation('coll/a', { key: new BsonTimestamp(1000, 1000) }),
+          setMutation('coll/b', { key: new BsonTimestamp(1001, 1000) }),
+          setMutation('coll/c', { key: new BsonTimestamp(1000, 1001) })
+        );
+        await test.backfillIndexes();
+
+        let query_ = query('coll', orderBy('key', 'asc'));
+        await test.executeQuery(query_);
+        test.assertOverlaysRead(3, 0, {
+          [key('coll/a').toString()]: MutationType.Set,
+          [key('coll/b').toString()]: MutationType.Set,
+          [key('coll/c').toString()]: MutationType.Set
+        });
+        test.assertQueryReturned(query_, 'coll/a', 'coll/c', 'coll/b');
+
+        query_ = query(
+          'coll',
+          filter('key', '==', new BsonTimestamp(1000, 1000))
+        );
+        await test.executeQuery(query_);
+        test.assertOverlaysRead(1, 0, {
+          [key('coll/a').toString()]: MutationType.Set
+        });
+        test.assertQueryReturned(query_, 'coll/a');
+
+        query_ = query(
+          'coll',
+          filter('key', '!=', new BsonTimestamp(1000, 1000))
+        );
+        await test.executeQuery(query_);
+        test.assertOverlaysRead(2, 0, {
+          [key('coll/b').toString()]: MutationType.Set,
+          [key('coll/c').toString()]: MutationType.Set
+        });
+        test.assertQueryReturned(query_, 'coll/c', 'coll/b');
+
+        query_ = query(
+          'coll',
+          filter('key', '>=', new BsonTimestamp(1000, 1001))
+        );
+        await test.executeQuery(query_);
+        test.assertOverlaysRead(2, 0, {
+          [key('coll/b').toString()]: MutationType.Set,
+          [key('coll/c').toString()]: MutationType.Set
+        });
+        test.assertQueryReturned(query_, 'coll/c', 'coll/b');
+
+        query_ = query(
+          'coll',
+          filter('key', '<', new BsonTimestamp(1000, 1000))
+        );
+        await test.executeQuery(query_);
+        test.assertOverlaysRead(0, 0);
+        test.assertQueryReturned(query_);
+
+        query_ = query(
+          'coll',
+          filter('key', 'in', [
+            new BsonTimestamp(1000, 1000),
+            new BsonTimestamp(1001, 1000)
+          ])
+        );
+        await test.executeQuery(query_);
+        test.assertOverlaysRead(2, 0, {
+          [key('coll/a').toString()]: MutationType.Set,
+          [key('coll/b').toString()]: MutationType.Set
+        });
+        test.assertQueryReturned(query_, 'coll/a', 'coll/b');
+
+        query_ = query(
+          'coll',
+          filter('key', 'not-in', [
+            new BsonTimestamp(1000, 1000),
+            new BsonTimestamp(1001, 1000)
+          ])
+        );
+        await test.executeQuery(query_);
+        test.assertOverlaysRead(1, 0, {
+          [key('coll/c').toString()]: MutationType.Set
+        });
+        test.assertQueryReturned(query_, 'coll/c');
+      });
+
+      it('Indexes BSON Binary Data fields', async () => {
+        const index = fieldIndex('coll', {
+          id: 1,
+          fields: [['key', IndexKind.ASCENDING]]
+        });
+        await test.configureFieldsIndexes(index);
+        await test.writeMutations(
+          setMutation('coll/a', {
+            key: Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1)
+          }),
+          setMutation('coll/b', {
+            key: Bytes.fromUint8Array(new Uint8Array([1, 2]), 1)
+          }),
+          setMutation('coll/c', {
+            key: Bytes.fromUint8Array(new Uint8Array([1, 2, 4]), 1)
+          }),
+          setMutation('coll/d', {
+            key: Bytes.fromUint8Array(new Uint8Array([1, 2]), 2)
+          })
+        );
+        await test.backfillIndexes();
+
+        let query_ = query('coll', orderBy('key', 'asc'));
+        await test.executeQuery(query_);
+        test.assertOverlaysRead(4, 0, {
+          [key('coll/a').toString()]: MutationType.Set,
+          [key('coll/b').toString()]: MutationType.Set,
+          [key('coll/c').toString()]: MutationType.Set,
+          [key('coll/d').toString()]: MutationType.Set
+        });
+        test.assertQueryReturned(
+          query_,
+          'coll/b',
+          'coll/a',
+          'coll/c',
+          'coll/d'
+        );
+
+        query_ = query(
+          'coll',
+          filter(
+            'key',
+            '==',
+            Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1)
+          )
+        );
+        await test.executeQuery(query_);
+        test.assertOverlaysRead(1, 0, {
+          [key('coll/a').toString()]: MutationType.Set
+        });
+        test.assertQueryReturned(query_, 'coll/a');
+
+        query_ = query(
+          'coll',
+          filter(
+            'key',
+            '!=',
+            Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1)
+          )
+        );
+        await test.executeQuery(query_);
+        test.assertOverlaysRead(3, 0, {
+          [key('coll/b').toString()]: MutationType.Set,
+          [key('coll/c').toString()]: MutationType.Set,
+          [key('coll/d').toString()]: MutationType.Set
+        });
+        test.assertQueryReturned(query_, 'coll/b', 'coll/c', 'coll/d');
+
+        query_ = query(
+          'coll',
+          filter(
+            'key',
+            '>=',
+            Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1)
+          )
+        );
+        await test.executeQuery(query_);
+        test.assertOverlaysRead(3, 0, {
+          [key('coll/a').toString()]: MutationType.Set,
+          [key('coll/c').toString()]: MutationType.Set,
+          [key('coll/d').toString()]: MutationType.Set
+        });
+        test.assertQueryReturned(query_, 'coll/a', 'coll/c', 'coll/d');
+
+        query_ = query(
+          'coll',
+          filter('key', '<', Bytes.fromUint8Array(new Uint8Array([1, 2]), 1))
+        );
+        await test.executeQuery(query_);
+        test.assertOverlaysRead(0, 0);
+        test.assertQueryReturned(query_);
+
+        query_ = query(
+          'coll',
+          filter('key', 'in', [
+            Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1),
+            Bytes.fromUint8Array(new Uint8Array([1, 2]), 1)
+          ])
+        );
+        await test.executeQuery(query_);
+        test.assertOverlaysRead(2, 0, {
+          [key('coll/a').toString()]: MutationType.Set,
+          [key('coll/b').toString()]: MutationType.Set
+        });
+        // Note that `in` does not add implicit ordering, so the result is ordered by keys
+        test.assertQueryReturned(query_, 'coll/a', 'coll/b');
+
+        query_ = query(
+          'coll',
+          filter('key', 'not-in', [
+            Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1),
+            Bytes.fromUint8Array(new Uint8Array([1, 2]), 1)
+          ])
+        );
+        await test.executeQuery(query_);
+        test.assertOverlaysRead(2, 0, {
+          [key('coll/c').toString()]: MutationType.Set,
+          [key('coll/d').toString()]: MutationType.Set
+        });
+        test.assertQueryReturned(query_, 'coll/c', 'coll/d');
+      });
+
+      it('Indexes BSON Int32 fields', async () => {
+        const index = fieldIndex('coll', {
+          id: 1,
+          fields: [['key', IndexKind.ASCENDING]]
+        });
+        await test.configureFieldsIndexes(index);
+        await test.writeMutations(
+          setMutation('coll/a', { key: new Int32Value(-1) }),
+          setMutation('coll/b', { key: new Int32Value(0) }),
+          setMutation('coll/c', { key: new Int32Value(1) })
+        );
+        await test.backfillIndexes();
+
+        let query_ = query('coll', orderBy('key', 'asc'));
+        await test.executeQuery(query_);
+        test.assertOverlaysRead(3, 0, {
+          [key('coll/a').toString()]: MutationType.Set,
+          [key('coll/b').toString()]: MutationType.Set,
+          [key('coll/c').toString()]: MutationType.Set
+        });
+        test.assertQueryReturned(query_, 'coll/a', 'coll/b', 'coll/c');
+
+        query_ = query('coll', filter('key', '==', new Int32Value(0)));
+        await test.executeQuery(query_);
+        test.assertOverlaysRead(1, 0, {
+          [key('coll/b').toString()]: MutationType.Set
+        });
+        test.assertQueryReturned(query_, 'coll/b');
+
+        query_ = query('coll', filter('key', '!=', new Int32Value(0)));
+        await test.executeQuery(query_);
+        test.assertOverlaysRead(2, 0, {
+          [key('coll/a').toString()]: MutationType.Set,
+          [key('coll/c').toString()]: MutationType.Set
+        });
+        test.assertQueryReturned(query_, 'coll/a', 'coll/c');
+
+        query_ = query('coll', filter('key', '>=', new Int32Value(0)));
+        await test.executeQuery(query_);
+        test.assertOverlaysRead(2, 0, {
+          [key('coll/b').toString()]: MutationType.Set,
+          [key('coll/c').toString()]: MutationType.Set
+        });
+        test.assertQueryReturned(query_, 'coll/b', 'coll/c');
+
+        query_ = query('coll', filter('key', '<', new Int32Value(-1)));
+        await test.executeQuery(query_);
+        test.assertOverlaysRead(0, 0);
+        test.assertQueryReturned(query_);
+
+        query_ = query(
+          'coll',
+          filter('key', 'in', [new Int32Value(0), new Int32Value(1)])
+        );
+        await test.executeQuery(query_);
+        test.assertOverlaysRead(2, 0, {
+          [key('coll/b').toString()]: MutationType.Set,
+          [key('coll/c').toString()]: MutationType.Set
+        });
+        test.assertQueryReturned(query_, 'coll/b', 'coll/c');
+
+        query_ = query(
+          'coll',
+          filter('key', 'not-in', [new Int32Value(0), new Int32Value(1)])
+        );
+        await test.executeQuery(query_);
+        test.assertOverlaysRead(1, 0, {
+          [key('coll/a').toString()]: MutationType.Set
+        });
+        test.assertQueryReturned(query_, 'coll/a');
+      });
+
+      it('Indexes BSON Decimal128 fields', async () => {
+        const index = fieldIndex('coll', {
+          id: 1,
+          fields: [['key', IndexKind.ASCENDING]]
+        });
+        await test.configureFieldsIndexes(index);
+        await test.writeMutations(
+          setMutation('coll/a', { key: new Decimal128Value('-1.2e3') }),
+          setMutation('coll/b', { key: new Decimal128Value('0') }),
+          setMutation('coll/c', { key: new Decimal128Value('1.2e3') })
+        );
+        await test.backfillIndexes();
+
+        let query_ = query('coll', orderBy('key', 'asc'));
+        await test.executeQuery(query_);
+        test.assertOverlaysRead(3, 0, {
+          [key('coll/a').toString()]: MutationType.Set,
+          [key('coll/b').toString()]: MutationType.Set,
+          [key('coll/c').toString()]: MutationType.Set
+        });
+        test.assertQueryReturned(query_, 'coll/a', 'coll/b', 'coll/c');
+
+        query_ = query(
+          'coll',
+          filter('key', '==', new Decimal128Value('-1200'))
+        );
+        await test.executeQuery(query_);
+        test.assertOverlaysRead(1, 0, {
+          [key('coll/a').toString()]: MutationType.Set
+        });
+        test.assertQueryReturned(query_, 'coll/a');
+
+        query_ = query('coll', filter('key', '!=', new Decimal128Value('0.0')));
+        await test.executeQuery(query_);
+        test.assertOverlaysRead(2, 0, {
+          [key('coll/a').toString()]: MutationType.Set,
+          [key('coll/c').toString()]: MutationType.Set
+        });
+        test.assertQueryReturned(query_, 'coll/a', 'coll/c');
+
+        query_ = query('coll', filter('key', '>=', new Decimal128Value('-0')));
+        await test.executeQuery(query_);
+        test.assertOverlaysRead(2, 0, {
+          [key('coll/b').toString()]: MutationType.Set,
+          [key('coll/c').toString()]: MutationType.Set
+        });
+        test.assertQueryReturned(query_, 'coll/b', 'coll/c');
+
+        // This will fail if the negative 0s are not converted to positive 0 in `writeIndexValueAux`
+        // function
+        query_ = query(
+          'coll',
+          filter('key', '<=', new Decimal128Value('-0.0'))
+        );
+        await test.executeQuery(query_);
+        test.assertOverlaysRead(2, 0, {
+          [key('coll/a').toString()]: MutationType.Set,
+          [key('coll/b').toString()]: MutationType.Set
+        });
+        test.assertQueryReturned(query_, 'coll/a', 'coll/b');
+
+        query_ = query(
+          'coll',
+          filter('key', '>', new Decimal128Value('1.2e3'))
+        );
+        await test.executeQuery(query_);
+        test.assertOverlaysRead(0, 0);
+        test.assertQueryReturned(query_);
+
+        query_ = query(
+          'coll',
+          filter('key', '<', new Decimal128Value('-1.2e3'))
+        );
+        await test.executeQuery(query_);
+        test.assertOverlaysRead(0, 0);
+        test.assertQueryReturned(query_);
+
+        query_ = query(
+          'coll',
+          filter('key', 'in', [
+            new Decimal128Value('-1.2e3'),
+            new Decimal128Value('0')
+          ])
+        );
+        await test.executeQuery(query_);
+        test.assertOverlaysRead(2, 0, {
+          [key('coll/a').toString()]: MutationType.Set,
+          [key('coll/b').toString()]: MutationType.Set
+        });
+        test.assertQueryReturned(query_, 'coll/a', 'coll/b');
+
+        query_ = query(
+          'coll',
+          filter('key', 'not-in', [
+            new Decimal128Value('-1200'),
+            new Decimal128Value('0.0')
+          ])
+        );
+        await test.executeQuery(query_);
+        test.assertOverlaysRead(1, 0, {
+          [key('coll/c').toString()]: MutationType.Set
+        });
+        test.assertQueryReturned(query_, 'coll/c');
+      });
+
+      it('Indexes BSON Decimal128 fields with precision loss', async () => {
+        const index = fieldIndex('coll', {
+          id: 1,
+          fields: [['key', IndexKind.ASCENDING]]
+        });
+        await test.configureFieldsIndexes(index);
+        await test.writeMutations(
+          setMutation('coll/a', {
+            key: new Decimal128Value('-0.1234567890123456789')
+          }), // will be rounded to -0.12345678901234568
+          setMutation('coll/b', { key: new Decimal128Value('0') }),
+          setMutation('coll/c', {
+            key: new Decimal128Value('0.1234567890123456789')
+          }) // will be rounded to 0.12345678901234568
+        );
+        await test.backfillIndexes();
+
+        let query_ = query('coll', orderBy('key', 'asc'));
+        await test.executeQuery(query_);
+        test.assertOverlaysRead(3, 0, {
+          [key('coll/a').toString()]: MutationType.Set,
+          [key('coll/b').toString()]: MutationType.Set,
+          [key('coll/c').toString()]: MutationType.Set
+        });
+        test.assertQueryReturned(query_, 'coll/a', 'coll/b', 'coll/c');
+
+        query_ = query(
+          'coll',
+          filter('key', '==', new Decimal128Value('0.1234567890123456789'))
+        );
+        await test.executeQuery(query_);
+        test.assertOverlaysRead(1, 0, {
+          [key('coll/c').toString()]: MutationType.Set
+        });
+        test.assertQueryReturned(query_, 'coll/c');
+
+        // Mismatch behavior caused by rounding error. Firestore fetches the doc3 from IndexedDb as
+        // doc3 rounds to the same number, but, it is not presented on the final query result.
+        query_ = query(
+          'coll',
+          filter('key', '==', new Decimal128Value('0.12345678901234568'))
+        );
+        await test.executeQuery(query_);
+        test.assertOverlaysRead(1, 0, {
+          [key('coll/c').toString()]: MutationType.Set
+        });
+        test.assertQueryReturned(query_);
+
+        // Operations that doesn't go up to 17 decimal digits of precision wouldn't be affected by
+        // this rounding errors.
+        query_ = query('coll', filter('key', '!=', new Decimal128Value('0.0')));
+        await test.executeQuery(query_);
+        test.assertOverlaysRead(2, 0, {
+          [key('coll/a').toString()]: MutationType.Set,
+          [key('coll/c').toString()]: MutationType.Set
+        });
+        test.assertQueryReturned(query_, 'coll/a', 'coll/c');
+
+        query_ = query(
+          'coll',
+          filter('key', '>=', new Decimal128Value('1.23e-1'))
+        );
+        await test.executeQuery(query_);
+        test.assertOverlaysRead(1, 0, {
+          [key('coll/c').toString()]: MutationType.Set
+        });
+        test.assertQueryReturned(query_, 'coll/c');
+
+        query_ = query(
+          'coll',
+          filter('key', '<=', new Decimal128Value('-1.23e-1'))
+        );
+        await test.executeQuery(query_);
+        test.assertOverlaysRead(1, 0, {
+          [key('coll/a').toString()]: MutationType.Set
+        });
+        test.assertQueryReturned(query_, 'coll/a');
+
+        query_ = query(
+          'coll',
+          filter('key', '>', new Decimal128Value('1.2e3'))
+        );
+        await test.executeQuery(query_);
+        test.assertOverlaysRead(0, 0);
+        test.assertQueryReturned(query_);
+
+        query_ = query(
+          'coll',
+          filter('key', '<', new Decimal128Value('-1.2e3'))
+        );
+        await test.executeQuery(query_);
+        test.assertOverlaysRead(0, 0);
+        test.assertQueryReturned(query_);
+      });
+
+      it('Indexes BSON Regex fields', async () => {
+        const index = fieldIndex('coll', {
+          id: 1,
+          fields: [['key', IndexKind.ASCENDING]]
+        });
+        await test.configureFieldsIndexes(index);
+        await test.writeMutations(
+          setMutation('coll/a', { key: new RegexValue('a', 'i') }),
+          setMutation('coll/b', { key: new RegexValue('a', 'm') }),
+          setMutation('coll/c', { key: new RegexValue('b', 'i') })
+        );
+        await test.backfillIndexes();
+
+        let query_ = query('coll', orderBy('key', 'asc'));
+        await test.executeQuery(query_);
+        test.assertOverlaysRead(3, 0, {
+          [key('coll/a').toString()]: MutationType.Set,
+          [key('coll/b').toString()]: MutationType.Set,
+          [key('coll/c').toString()]: MutationType.Set
+        });
+        test.assertQueryReturned(query_, 'coll/a', 'coll/b', 'coll/c');
+
+        query_ = query('coll', filter('key', '==', new RegexValue('a', 'i')));
+        await test.executeQuery(query_);
+        test.assertOverlaysRead(1, 0, {
+          [key('coll/a').toString()]: MutationType.Set
+        });
+        test.assertQueryReturned(query_, 'coll/a');
+
+        query_ = query('coll', filter('key', '!=', new RegexValue('a', 'i')));
+        await test.executeQuery(query_);
+        test.assertOverlaysRead(2, 0, {
+          [key('coll/b').toString()]: MutationType.Set,
+          [key('coll/c').toString()]: MutationType.Set
+        });
+        test.assertQueryReturned(query_, 'coll/b', 'coll/c');
+
+        query_ = query('coll', filter('key', '>=', new RegexValue('a', 'm')));
+        await test.executeQuery(query_);
+        test.assertOverlaysRead(2, 0, {
+          [key('coll/b').toString()]: MutationType.Set,
+          [key('coll/c').toString()]: MutationType.Set
+        });
+        test.assertQueryReturned(query_, 'coll/b', 'coll/c');
+
+        query_ = query('coll', filter('key', '<', new RegexValue('a', 'i')));
+        await test.executeQuery(query_);
+        test.assertOverlaysRead(0, 0);
+        test.assertQueryReturned(query_);
+
+        query_ = query(
+          'coll',
+          filter('key', 'in', [
+            new RegexValue('a', 'i'),
+            new RegexValue('a', 'm')
+          ])
+        );
+        await test.executeQuery(query_);
+        test.assertOverlaysRead(2, 0, {
+          [key('coll/a').toString()]: MutationType.Set,
+          [key('coll/b').toString()]: MutationType.Set
+        });
+        test.assertQueryReturned(query_, 'coll/a', 'coll/b');
+
+        query_ = query(
+          'coll',
+          filter('key', 'not-in', [
+            new RegexValue('a', 'i'),
+            new RegexValue('a', 'm')
+          ])
+        );
+        await test.executeQuery(query_);
+        test.assertOverlaysRead(1, 0, {
+          [key('coll/c').toString()]: MutationType.Set
+        });
+        test.assertQueryReturned(query_, 'coll/c');
+      });
+
+      it('Indexes BSON minKey fields', async () => {
+        const index = fieldIndex('coll', {
+          id: 1,
+          fields: [['key', IndexKind.ASCENDING]]
+        });
+        await test.configureFieldsIndexes(index);
+        await test.writeMutations(
+          setMutation('coll/a', { key: MinKey.instance() }),
+          setMutation('coll/b', { key: MinKey.instance() }),
+          setMutation('coll/c', { key: null }),
+          setMutation('coll/d', { key: 1 }),
+          setMutation('coll/e', { key: MaxKey.instance() })
+        );
+        await test.backfillIndexes();
+
+        let query_ = query('coll', orderBy('key', 'asc'));
+        await test.executeQuery(query_);
+        test.assertOverlaysRead(5, 0, {
+          [key('coll/a').toString()]: MutationType.Set,
+          [key('coll/b').toString()]: MutationType.Set,
+          [key('coll/c').toString()]: MutationType.Set,
+          [key('coll/d').toString()]: MutationType.Set,
+          [key('coll/e').toString()]: MutationType.Set
+        });
+        test.assertQueryReturned(
+          query_,
+          'coll/c',
+          'coll/a',
+          'coll/b',
+          'coll/d',
+          'coll/e'
+        );
+
+        query_ = query('coll', filter('key', '==', MinKey.instance()));
+        await test.executeQuery(query_);
+        test.assertOverlaysRead(2, 0, {
+          [key('coll/a').toString()]: MutationType.Set,
+          [key('coll/b').toString()]: MutationType.Set
+        });
+        test.assertQueryReturned(query_, 'coll/a', 'coll/b');
+
+        query_ = query('coll', filter('key', '!=', MinKey.instance()));
+        await test.executeQuery(query_);
+        test.assertOverlaysRead(2, 0, {
+          [key('coll/d').toString()]: MutationType.Set,
+          [key('coll/e').toString()]: MutationType.Set
+        });
+        test.assertQueryReturned(query_, 'coll/d', 'coll/e');
+
+        query_ = query('coll', filter('key', '>=', MinKey.instance()));
+        await test.executeQuery(query_);
+        test.assertOverlaysRead(2, 0, {
+          [key('coll/a').toString()]: MutationType.Set,
+          [key('coll/b').toString()]: MutationType.Set
+        });
+        test.assertQueryReturned(query_, 'coll/a', 'coll/b');
+
+        query_ = query('coll', filter('key', '<', MinKey.instance()));
+        await test.executeQuery(query_);
+        test.assertOverlaysRead(0, 0, {});
+        test.assertQueryReturned(query_);
+
+        query_ = query('coll', filter('key', 'in', [MinKey.instance()]));
+        await test.executeQuery(query_);
+        test.assertOverlaysRead(2, 0, {
+          [key('coll/a').toString()]: MutationType.Set,
+          [key('coll/b').toString()]: MutationType.Set
+        });
+        test.assertQueryReturned(query_, 'coll/a', 'coll/b');
+
+        query_ = query('coll', filter('key', 'not-in', [MinKey.instance()]));
+        await test.executeQuery(query_);
+        test.assertOverlaysRead(2, 0, {
+          [key('coll/d').toString()]: MutationType.Set,
+          [key('coll/e').toString()]: MutationType.Set
+        });
+        test.assertQueryReturned(query_, 'coll/d', 'coll/e');
+      });
+
+      it('Indexes BSON maxKey fields', async () => {
+        const index = fieldIndex('coll', {
+          id: 1,
+          fields: [['key', IndexKind.ASCENDING]]
+        });
+        await test.configureFieldsIndexes(index);
+        await test.writeMutations(
+          setMutation('coll/a', { key: MaxKey.instance() }),
+          setMutation('coll/b', { key: MaxKey.instance() }),
+          setMutation('coll/c', { key: null }),
+          setMutation('coll/d', { key: 1 }),
+          setMutation('coll/e', { key: MinKey.instance() })
+        );
+        await test.backfillIndexes();
+
+        let query_ = query('coll', orderBy('key', 'asc'));
+        await test.executeQuery(query_);
+        test.assertOverlaysRead(5, 0, {
+          [key('coll/a').toString()]: MutationType.Set,
+          [key('coll/b').toString()]: MutationType.Set,
+          [key('coll/c').toString()]: MutationType.Set,
+          [key('coll/d').toString()]: MutationType.Set,
+          [key('coll/e').toString()]: MutationType.Set
+        });
+        test.assertQueryReturned(
+          query_,
+          'coll/c',
+          'coll/e',
+          'coll/d',
+          'coll/a',
+          'coll/b'
+        );
+
+        query_ = query('coll', filter('key', '==', MaxKey.instance()));
+        await test.executeQuery(query_);
+        test.assertOverlaysRead(2, 0, {
+          [key('coll/a').toString()]: MutationType.Set,
+          [key('coll/b').toString()]: MutationType.Set
+        });
+        test.assertQueryReturned(query_, 'coll/a', 'coll/b');
+
+        query_ = query('coll', filter('key', '!=', MaxKey.instance()));
+        await test.executeQuery(query_);
+        test.assertOverlaysRead(2, 0, {
+          [key('coll/d').toString()]: MutationType.Set,
+          [key('coll/e').toString()]: MutationType.Set
+        });
+        test.assertQueryReturned(query_, 'coll/e', 'coll/d');
+
+        query_ = query('coll', filter('key', '<=', MaxKey.instance()));
+        await test.executeQuery(query_);
+        test.assertOverlaysRead(2, 0, {
+          [key('coll/a').toString()]: MutationType.Set,
+          [key('coll/b').toString()]: MutationType.Set
+        });
+        test.assertQueryReturned(query_, 'coll/a', 'coll/b');
+
+        query_ = query('coll', filter('key', '>', MaxKey.instance()));
+        await test.executeQuery(query_);
+        test.assertOverlaysRead(0, 0, {});
+        test.assertQueryReturned(query_);
+
+        query_ = query('coll', filter('key', '<', MaxKey.instance()));
+        await test.executeQuery(query_);
+        test.assertOverlaysRead(0, 0, {});
+        test.assertQueryReturned(query_);
+
+        query_ = query('coll', filter('key', 'in', [MaxKey.instance()]));
+        await test.executeQuery(query_);
+        test.assertOverlaysRead(2, 0, {
+          [key('coll/a').toString()]: MutationType.Set,
+          [key('coll/b').toString()]: MutationType.Set
+        });
+        test.assertQueryReturned(query_, 'coll/a', 'coll/b');
+
+        query_ = query('coll', filter('key', 'not-in', [MaxKey.instance()]));
+        await test.executeQuery(query_);
+        test.assertOverlaysRead(2, 0, {
+          [key('coll/d').toString()]: MutationType.Set,
+          [key('coll/e').toString()]: MutationType.Set
+        });
+        test.assertQueryReturned(query_, 'coll/e', 'coll/d');
+      });
+
+      it('Indexes multiple BSON types together', async () => {
+        const index = fieldIndex('coll', {
+          id: 1,
+          fields: [['key', IndexKind.DESCENDING]]
+        });
+        await test.configureFieldsIndexes(index);
+
+        await test.writeMutations(
+          setMutation('coll/a', { key: MinKey.instance() }),
+          setMutation('coll/b', { key: new Int32Value(2) }),
+          setMutation('coll/c', { key: new Int32Value(-1) }),
+          setMutation('coll/d', { key: new Decimal128Value('1.2e3') }),
+          setMutation('coll/e', { key: new Decimal128Value('-0') }),
+          setMutation('coll/f', { key: new BsonTimestamp(1000, 1001) }),
+          setMutation('coll/g', { key: new BsonTimestamp(1000, 1000) }),
+          setMutation('coll/h', {
+            key: Bytes.fromUint8Array(new Uint8Array([1, 2, 4]), 1)
+          }),
+          setMutation('coll/i', {
+            key: Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1)
+          }),
+          setMutation('coll/j', {
+            key: new BsonObjectId('507f191e810c19729de860eb')
+          }),
+          setMutation('coll/k', {
+            key: new BsonObjectId('507f191e810c19729de860ea')
+          }),
+          setMutation('coll/l', { key: new RegexValue('^bar', 'm') }),
+          setMutation('coll/m', { key: new RegexValue('^bar', 'i') }),
+          setMutation('coll/n', { key: MaxKey.instance() })
+        );
+        await test.backfillIndexes();
+
+        const query_ = query('coll', orderBy('key', 'desc'));
+        await test.executeQuery(query_);
+        test.assertOverlaysRead(14, 0, {
+          [key('coll/a').toString()]: MutationType.Set,
+          [key('coll/b').toString()]: MutationType.Set,
+          [key('coll/c').toString()]: MutationType.Set,
+          [key('coll/d').toString()]: MutationType.Set,
+          [key('coll/e').toString()]: MutationType.Set,
+          [key('coll/f').toString()]: MutationType.Set,
+          [key('coll/g').toString()]: MutationType.Set,
+          [key('coll/h').toString()]: MutationType.Set,
+          [key('coll/i').toString()]: MutationType.Set,
+          [key('coll/j').toString()]: MutationType.Set,
+          [key('coll/k').toString()]: MutationType.Set,
+          [key('coll/l').toString()]: MutationType.Set,
+          [key('coll/m').toString()]: MutationType.Set,
+          [key('coll/n').toString()]: MutationType.Set
+        });
+        test.assertQueryReturned(
+          query_,
+          'coll/n', // maxKey
+          'coll/l', // regex m
+          'coll/m', // regex i
+          'coll/j', // objectId eb
+          'coll/k', // objectId ea
+          'coll/h', // binary [1,2,4]
+          'coll/i', // binary [1,2,3]
+          'coll/f', // timestamp 1000,1001
+          'coll/g', // timestamp 1000,1000
+          'coll/d', // Number decimal128 1200
+          'coll/b', // Number int32 2
+          'coll/e', // Number decimal128 -0.0
+          'coll/c', // Number int32 -1
+          'coll/a' // minKey
+        );
+      });
+
+      it('Indexes all types together', async () => {
+        const index = fieldIndex('coll', {
+          id: 1,
+          fields: [['key', IndexKind.ASCENDING]]
+        });
+        await test.configureFieldsIndexes(index);
+
+        await test.writeMutations(
+          setMutation('coll/a', { key: null }),
+          setMutation('coll/b', { key: MinKey.instance() }),
+          setMutation('coll/c', { key: true }),
+          setMutation('coll/d', { key: NaN }),
+          setMutation('coll/e', { key: new Int32Value(1) }),
+          setMutation('coll/f', { key: 2.0 }),
+          setMutation('coll/g', { key: 3 }),
+          setMutation('coll/h', { key: new Decimal128Value('1.2e3') }),
+          setMutation('coll/i', { key: new Timestamp(100, 123456000) }),
+          setMutation('coll/j', { key: new BsonTimestamp(1, 2) }),
+          setMutation('coll/k', { key: 'string' }),
+          setMutation('coll/l', { key: blob(1, 2, 3) }),
+          setMutation('coll/m', {
+            key: Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1)
+          }),
+          setMutation('coll/n', { key: ref('foo/bar') }),
+          setMutation('coll/o', {
+            key: new BsonObjectId('507f191e810c19729de860ea')
+          }),
+          setMutation('coll/p', { key: new GeoPoint(1, 2) }),
+          setMutation('coll/q', { key: new RegexValue('^bar', 'm') }),
+          setMutation('coll/r', { key: [2, 'foo'] }),
+          setMutation('coll/s', { key: vector([1, 2, 3]) }),
+          setMutation('coll/t', { key: { bar: 1, foo: 2 } }),
+          setMutation('coll/u', { key: MaxKey.instance() })
+        );
+        await test.backfillIndexes();
+
+        const query_ = query('coll', orderBy('key', 'asc'));
+        await test.executeQuery(query_);
+        test.assertOverlaysRead(21, 0, {
+          [key('coll/a').toString()]: MutationType.Set,
+          [key('coll/b').toString()]: MutationType.Set,
+          [key('coll/c').toString()]: MutationType.Set,
+          [key('coll/d').toString()]: MutationType.Set,
+          [key('coll/e').toString()]: MutationType.Set,
+          [key('coll/f').toString()]: MutationType.Set,
+          [key('coll/g').toString()]: MutationType.Set,
+          [key('coll/h').toString()]: MutationType.Set,
+          [key('coll/i').toString()]: MutationType.Set,
+          [key('coll/j').toString()]: MutationType.Set,
+          [key('coll/k').toString()]: MutationType.Set,
+          [key('coll/l').toString()]: MutationType.Set,
+          [key('coll/m').toString()]: MutationType.Set,
+          [key('coll/n').toString()]: MutationType.Set,
+          [key('coll/o').toString()]: MutationType.Set,
+          [key('coll/p').toString()]: MutationType.Set,
+          [key('coll/q').toString()]: MutationType.Set,
+          [key('coll/r').toString()]: MutationType.Set,
+          [key('coll/s').toString()]: MutationType.Set,
+          [key('coll/t').toString()]: MutationType.Set,
+          [key('coll/u').toString()]: MutationType.Set
+        });
+        test.assertQueryReturned(
+          query_,
+          'coll/a',
+          'coll/b',
+          'coll/c',
+          'coll/d',
+          'coll/e',
+          'coll/f',
+          'coll/g',
+          'coll/h',
+          'coll/i',
+          'coll/j',
+          'coll/k',
+          'coll/l',
+          'coll/m',
+          'coll/n',
+          'coll/o',
+          'coll/p',
+          'coll/q',
+          'coll/r',
+          'coll/s',
+          'coll/t',
+          'coll/u'
+        );
+      });
     });
-
-    it('Indexes BSON minKey fields', async () => {
-      const index = fieldIndex('coll', {
-        id: 1,
-        fields: [['key', IndexKind.ASCENDING]]
-      });
-      await test.configureFieldsIndexes(index);
-      await test.writeMutations(
-        setMutation('coll/a', { key: MinKey.instance() }),
-        setMutation('coll/b', { key: MinKey.instance() }),
-        setMutation('coll/c', { key: null }),
-        setMutation('coll/d', { key: 1 }),
-        setMutation('coll/e', { key: MaxKey.instance() })
-      );
-      await test.backfillIndexes();
-
-      let query_ = query('coll', orderBy('key', 'asc'));
-      await test.executeQuery(query_);
-      test.assertOverlaysRead(5, 0, {
-        [key('coll/a').toString()]: MutationType.Set,
-        [key('coll/b').toString()]: MutationType.Set,
-        [key('coll/c').toString()]: MutationType.Set,
-        [key('coll/d').toString()]: MutationType.Set,
-        [key('coll/e').toString()]: MutationType.Set
-      });
-      test.assertQueryReturned(
-        query_,
-        'coll/c',
-        'coll/a',
-        'coll/b',
-        'coll/d',
-        'coll/e'
-      );
-
-      query_ = query('coll', filter('key', '==', MinKey.instance()));
-      await test.executeQuery(query_);
-      test.assertOverlaysRead(2, 0, {
-        [key('coll/a').toString()]: MutationType.Set,
-        [key('coll/b').toString()]: MutationType.Set
-      });
-      test.assertQueryReturned(query_, 'coll/a', 'coll/b');
-
-      query_ = query('coll', filter('key', '!=', MinKey.instance()));
-      await test.executeQuery(query_);
-      test.assertOverlaysRead(2, 0, {
-        [key('coll/d').toString()]: MutationType.Set,
-        [key('coll/e').toString()]: MutationType.Set
-      });
-      test.assertQueryReturned(query_, 'coll/d', 'coll/e');
-
-      query_ = query('coll', filter('key', '>=', MinKey.instance()));
-      await test.executeQuery(query_);
-      test.assertOverlaysRead(2, 0, {
-        [key('coll/a').toString()]: MutationType.Set,
-        [key('coll/b').toString()]: MutationType.Set
-      });
-      test.assertQueryReturned(query_, 'coll/a', 'coll/b');
-
-      query_ = query('coll', filter('key', '<', MinKey.instance()));
-      await test.executeQuery(query_);
-      test.assertOverlaysRead(0, 0, {});
-      test.assertQueryReturned(query_);
-
-      query_ = query('coll', filter('key', 'in', [MinKey.instance()]));
-      await test.executeQuery(query_);
-      test.assertOverlaysRead(2, 0, {
-        [key('coll/a').toString()]: MutationType.Set,
-        [key('coll/b').toString()]: MutationType.Set
-      });
-      test.assertQueryReturned(query_, 'coll/a', 'coll/b');
-
-      query_ = query('coll', filter('key', 'not-in', [MinKey.instance()]));
-      await test.executeQuery(query_);
-      test.assertOverlaysRead(2, 0, {
-        [key('coll/d').toString()]: MutationType.Set,
-        [key('coll/e').toString()]: MutationType.Set
-      });
-      test.assertQueryReturned(query_, 'coll/d', 'coll/e');
-    });
-
-    it('Indexes BSON maxKey fields', async () => {
-      const index = fieldIndex('coll', {
-        id: 1,
-        fields: [['key', IndexKind.ASCENDING]]
-      });
-      await test.configureFieldsIndexes(index);
-      await test.writeMutations(
-        setMutation('coll/a', { key: MaxKey.instance() }),
-        setMutation('coll/b', { key: MaxKey.instance() }),
-        setMutation('coll/c', { key: null }),
-        setMutation('coll/d', { key: 1 }),
-        setMutation('coll/e', { key: MinKey.instance() })
-      );
-      await test.backfillIndexes();
-
-      let query_ = query('coll', orderBy('key', 'asc'));
-      await test.executeQuery(query_);
-      test.assertOverlaysRead(5, 0, {
-        [key('coll/a').toString()]: MutationType.Set,
-        [key('coll/b').toString()]: MutationType.Set,
-        [key('coll/c').toString()]: MutationType.Set,
-        [key('coll/d').toString()]: MutationType.Set,
-        [key('coll/e').toString()]: MutationType.Set
-      });
-      test.assertQueryReturned(
-        query_,
-        'coll/c',
-        'coll/e',
-        'coll/d',
-        'coll/a',
-        'coll/b'
-      );
-
-      query_ = query('coll', filter('key', '==', MaxKey.instance()));
-      await test.executeQuery(query_);
-      test.assertOverlaysRead(2, 0, {
-        [key('coll/a').toString()]: MutationType.Set,
-        [key('coll/b').toString()]: MutationType.Set
-      });
-      test.assertQueryReturned(query_, 'coll/a', 'coll/b');
-
-      query_ = query('coll', filter('key', '!=', MaxKey.instance()));
-      await test.executeQuery(query_);
-      test.assertOverlaysRead(2, 0, {
-        [key('coll/d').toString()]: MutationType.Set,
-        [key('coll/e').toString()]: MutationType.Set
-      });
-      test.assertQueryReturned(query_, 'coll/e', 'coll/d');
-
-      query_ = query('coll', filter('key', '<=', MaxKey.instance()));
-      await test.executeQuery(query_);
-      test.assertOverlaysRead(2, 0, {
-        [key('coll/a').toString()]: MutationType.Set,
-        [key('coll/b').toString()]: MutationType.Set
-      });
-      test.assertQueryReturned(query_, 'coll/a', 'coll/b');
-
-      query_ = query('coll', filter('key', '>', MaxKey.instance()));
-      await test.executeQuery(query_);
-      test.assertOverlaysRead(0, 0, {});
-      test.assertQueryReturned(query_);
-
-      query_ = query('coll', filter('key', '<', MaxKey.instance()));
-      await test.executeQuery(query_);
-      test.assertOverlaysRead(0, 0, {});
-      test.assertQueryReturned(query_);
-
-      query_ = query('coll', filter('key', 'in', [MaxKey.instance()]));
-      await test.executeQuery(query_);
-      test.assertOverlaysRead(2, 0, {
-        [key('coll/a').toString()]: MutationType.Set,
-        [key('coll/b').toString()]: MutationType.Set
-      });
-      test.assertQueryReturned(query_, 'coll/a', 'coll/b');
-
-      query_ = query('coll', filter('key', 'not-in', [MaxKey.instance()]));
-      await test.executeQuery(query_);
-      test.assertOverlaysRead(2, 0, {
-        [key('coll/d').toString()]: MutationType.Set,
-        [key('coll/e').toString()]: MutationType.Set
-      });
-      test.assertQueryReturned(query_, 'coll/e', 'coll/d');
-    });
-
-    it('Indexes multiple BSON types together', async () => {
-      const index = fieldIndex('coll', {
-        id: 1,
-        fields: [['key', IndexKind.DESCENDING]]
-      });
-      await test.configureFieldsIndexes(index);
-
-      await test.writeMutations(
-        setMutation('coll/a', { key: MinKey.instance() }),
-        setMutation('coll/b', { key: new Int32Value(2) }),
-        setMutation('coll/c', { key: new Int32Value(-1) }),
-        setMutation('coll/d', { key: new Decimal128Value('1.2e3') }),
-        setMutation('coll/e', { key: new Decimal128Value('-0') }),
-        setMutation('coll/f', { key: new BsonTimestamp(1000, 1001) }),
-        setMutation('coll/g', { key: new BsonTimestamp(1000, 1000) }),
-        setMutation('coll/h', {
-          key: Bytes.fromUint8Array(new Uint8Array([1, 2, 4]), 1)
-        }),
-        setMutation('coll/i', {
-          key: Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1)
-        }),
-        setMutation('coll/j', {
-          key: new BsonObjectId('507f191e810c19729de860eb')
-        }),
-        setMutation('coll/k', {
-          key: new BsonObjectId('507f191e810c19729de860ea')
-        }),
-        setMutation('coll/l', { key: new RegexValue('^bar', 'm') }),
-        setMutation('coll/m', { key: new RegexValue('^bar', 'i') }),
-        setMutation('coll/n', { key: MaxKey.instance() })
-      );
-      await test.backfillIndexes();
-
-      const query_ = query('coll', orderBy('key', 'desc'));
-      await test.executeQuery(query_);
-      test.assertOverlaysRead(14, 0, {
-        [key('coll/a').toString()]: MutationType.Set,
-        [key('coll/b').toString()]: MutationType.Set,
-        [key('coll/c').toString()]: MutationType.Set,
-        [key('coll/d').toString()]: MutationType.Set,
-        [key('coll/e').toString()]: MutationType.Set,
-        [key('coll/f').toString()]: MutationType.Set,
-        [key('coll/g').toString()]: MutationType.Set,
-        [key('coll/h').toString()]: MutationType.Set,
-        [key('coll/i').toString()]: MutationType.Set,
-        [key('coll/j').toString()]: MutationType.Set,
-        [key('coll/k').toString()]: MutationType.Set,
-        [key('coll/l').toString()]: MutationType.Set,
-        [key('coll/m').toString()]: MutationType.Set,
-        [key('coll/n').toString()]: MutationType.Set
-      });
-      test.assertQueryReturned(
-        query_,
-        'coll/n', // maxKey
-        'coll/l', // regex m
-        'coll/m', // regex i
-        'coll/j', // objectId eb
-        'coll/k', // objectId ea
-        'coll/h', // binary [1,2,4]
-        'coll/i', // binary [1,2,3]
-        'coll/f', // timestamp 1000,1001
-        'coll/g', // timestamp 1000,1000
-        'coll/d', // Number decimal128 1200
-        'coll/b', // Number int32 2
-        'coll/e', // Number decimal128 -0.0
-        'coll/c', // Number int32 -1
-        'coll/a' // minKey
-      );
-    });
-
-    it('Indexes all types together', async () => {
-      const index = fieldIndex('coll', {
-        id: 1,
-        fields: [['key', IndexKind.ASCENDING]]
-      });
-      await test.configureFieldsIndexes(index);
-
-      await test.writeMutations(
-        setMutation('coll/a', { key: null }),
-        setMutation('coll/b', { key: MinKey.instance() }),
-        setMutation('coll/c', { key: true }),
-        setMutation('coll/d', { key: NaN }),
-        setMutation('coll/e', { key: new Int32Value(1) }),
-        setMutation('coll/f', { key: 2.0 }),
-        setMutation('coll/g', { key: 3 }),
-        setMutation('coll/h', { key: new Decimal128Value('1.2e3') }),
-        setMutation('coll/i', { key: new Timestamp(100, 123456000) }),
-        setMutation('coll/j', { key: new BsonTimestamp(1, 2) }),
-        setMutation('coll/k', { key: 'string' }),
-        setMutation('coll/l', { key: blob(1, 2, 3) }),
-        setMutation('coll/m', {
-          key: Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1)
-        }),
-        setMutation('coll/n', { key: ref('foo/bar') }),
-        setMutation('coll/o', {
-          key: new BsonObjectId('507f191e810c19729de860ea')
-        }),
-        setMutation('coll/p', { key: new GeoPoint(1, 2) }),
-        setMutation('coll/q', { key: new RegexValue('^bar', 'm') }),
-        setMutation('coll/r', { key: [2, 'foo'] }),
-        setMutation('coll/s', { key: vector([1, 2, 3]) }),
-        setMutation('coll/t', { key: { bar: 1, foo: 2 } }),
-        setMutation('coll/u', { key: MaxKey.instance() })
-      );
-      await test.backfillIndexes();
-
-      const query_ = query('coll', orderBy('key', 'asc'));
-      await test.executeQuery(query_);
-      test.assertOverlaysRead(21, 0, {
-        [key('coll/a').toString()]: MutationType.Set,
-        [key('coll/b').toString()]: MutationType.Set,
-        [key('coll/c').toString()]: MutationType.Set,
-        [key('coll/d').toString()]: MutationType.Set,
-        [key('coll/e').toString()]: MutationType.Set,
-        [key('coll/f').toString()]: MutationType.Set,
-        [key('coll/g').toString()]: MutationType.Set,
-        [key('coll/h').toString()]: MutationType.Set,
-        [key('coll/i').toString()]: MutationType.Set,
-        [key('coll/j').toString()]: MutationType.Set,
-        [key('coll/k').toString()]: MutationType.Set,
-        [key('coll/l').toString()]: MutationType.Set,
-        [key('coll/m').toString()]: MutationType.Set,
-        [key('coll/n').toString()]: MutationType.Set,
-        [key('coll/o').toString()]: MutationType.Set,
-        [key('coll/p').toString()]: MutationType.Set,
-        [key('coll/q').toString()]: MutationType.Set,
-        [key('coll/r').toString()]: MutationType.Set,
-        [key('coll/s').toString()]: MutationType.Set,
-        [key('coll/t').toString()]: MutationType.Set,
-        [key('coll/u').toString()]: MutationType.Set
-      });
-      test.assertQueryReturned(
-        query_,
-        'coll/a',
-        'coll/b',
-        'coll/c',
-        'coll/d',
-        'coll/e',
-        'coll/f',
-        'coll/g',
-        'coll/h',
-        'coll/i',
-        'coll/j',
-        'coll/k',
-        'coll/l',
-        'coll/m',
-        'coll/n',
-        'coll/o',
-        'coll/p',
-        'coll/q',
-        'coll/r',
-        'coll/s',
-        'coll/t',
-        'coll/u'
-      );
-    });
-  });
-});
+  }
+);

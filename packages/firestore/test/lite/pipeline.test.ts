@@ -19,8 +19,6 @@
 
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { FirebaseError } from '@firebase/util';
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
 
 import { Bytes } from '../../src/lite-api/bytes';
 import {
@@ -205,9 +203,6 @@ import {
   documentMatches,
   score
 } from './pipeline_export';
-
-use(chaiAsPromised);
-
 const timestampDeltaMS = 10000;
 
 let beginDocCreation: number = 0;
@@ -240,15 +235,15 @@ function expectResults(
 ): void {
   const docs = snapshot.results;
 
-  expect(docs.length).to.equal(data.length);
+  expect(docs.length).toBe(data.length);
 
   if (data.length > 0) {
     if (typeof data[0] === 'string') {
       const actualIds = docs.map(doc => doc.id);
-      expect(actualIds).to.deep.equal(data);
+      expect(actualIds).toEqual(data);
     } else {
       docs.forEach(r => {
-        expect(r.data()).to.deep.equal(data.shift());
+        expect(r.data()).toEqual(data.shift());
       });
     }
   }
@@ -401,7 +396,7 @@ describe.skipClassic('Firestore Pipelines', () => {
       const snapshot = await execute(
         firestore.pipeline().collection(randomCol.path).limit(0)
       );
-      expect(snapshot.results.length).to.equal(0);
+      expect(snapshot.results.length).toBe(0);
     });
 
     it('full snapshot as expected', async () => {
@@ -410,7 +405,7 @@ describe.skipClassic('Firestore Pipelines', () => {
         .collection(randomCol.path)
         .sort(ascending('__name__'));
       const snapshot = await execute(ppl);
-      expect(snapshot.results.length).to.equal(10);
+      expect(snapshot.results.length).toBe(10);
       expectResults(
         snapshot,
         'book1',
@@ -434,10 +429,11 @@ describe.skipClassic('Firestore Pipelines', () => {
         .limit(1);
       const snapshot1 = await execute(ppl);
       const snapshot2 = await execute(ppl);
-      expect(snapshot1.results.length).to.equal(1);
-      expect(snapshot2.results.length).to.equal(1);
-      expect(pipelineResultEqual(snapshot1.results[0], snapshot2.results[0])).to
-        .be.true;
+      expect(snapshot1.results.length).toBe(1);
+      expect(snapshot2.results.length).toBe(1);
+      expect(
+        pipelineResultEqual(snapshot1.results[0], snapshot2.results[0])
+      ).toBe(true);
     });
 
     it('returns execution time', async () => {
@@ -447,10 +443,9 @@ describe.skipClassic('Firestore Pipelines', () => {
       const snapshot = await execute(pipeline);
       const end = new Date().valueOf();
 
-      expect(snapshot.executionTime.toDate().valueOf()).to.approximately(
-        (start + end) / 2,
-        timestampDeltaMS
-      );
+      expect(
+        Math.abs(snapshot.executionTime.toDate().valueOf() - (start + end) / 2)
+      ).toBeLessThanOrEqual(timestampDeltaMS);
     });
 
     it('returns execution time for an empty query', async () => {
@@ -460,32 +455,35 @@ describe.skipClassic('Firestore Pipelines', () => {
       const snapshot = await execute(pipeline);
       const end = new Date().valueOf();
 
-      expect(snapshot.results.length).to.equal(0);
+      expect(snapshot.results.length).toBe(0);
 
-      expect(snapshot.executionTime.toDate().valueOf()).to.approximately(
-        (start + end) / 2,
-        timestampDeltaMS
-      );
+      expect(
+        Math.abs(snapshot.executionTime.toDate().valueOf() - (start + end) / 2)
+      ).toBeLessThanOrEqual(timestampDeltaMS);
     });
 
     it('returns create and update time for each document', async () => {
       const pipeline = firestore.pipeline().collection(randomCol.path);
 
       let snapshot = await execute(pipeline);
-      expect(snapshot.results.length).to.equal(10);
+      expect(snapshot.results.length).toBe(10);
       snapshot.results.forEach(doc => {
-        expect(doc.createTime).to.not.be.null;
-        expect(doc.updateTime).to.not.be.null;
+        expect(doc.createTime).not.toBeNull();
+        expect(doc.updateTime).not.toBeNull();
 
-        expect(doc.createTime!.toDate().valueOf()).to.approximately(
-          (beginDocCreation + endDocCreation) / 2,
-          timestampDeltaMS
-        );
-        expect(doc.updateTime!.toDate().valueOf()).to.approximately(
-          (beginDocCreation + endDocCreation) / 2,
-          timestampDeltaMS
-        );
-        expect(doc.createTime?.valueOf()).to.equal(doc.updateTime?.valueOf());
+        expect(
+          Math.abs(
+            doc.createTime!.toDate().valueOf() -
+              (beginDocCreation + endDocCreation) / 2
+          )
+        ).toBeLessThanOrEqual(timestampDeltaMS);
+        expect(
+          Math.abs(
+            doc.updateTime!.toDate().valueOf() -
+              (beginDocCreation + endDocCreation) / 2
+          )
+        ).toBeLessThanOrEqual(timestampDeltaMS);
+        expect(doc.createTime?.valueOf()).toBe(doc.updateTime?.valueOf());
       });
 
       const wb = writeBatch(firestore);
@@ -495,11 +493,11 @@ describe.skipClassic('Firestore Pipelines', () => {
       await wb.commit();
 
       snapshot = await execute(pipeline);
-      expect(snapshot.results.length).to.equal(10);
+      expect(snapshot.results.length).toBe(10);
       snapshot.results.forEach(doc => {
-        expect(doc.createTime).to.not.be.null;
-        expect(doc.updateTime).to.not.be.null;
-        expect(doc.createTime!.toDate().valueOf()).to.be.lessThan(
+        expect(doc.createTime).not.toBeNull();
+        expect(doc.updateTime).not.toBeNull();
+        expect(doc.createTime!.toDate().valueOf()).toBeLessThan(
           doc.updateTime!.toDate().valueOf()
         );
       });
@@ -515,12 +513,11 @@ describe.skipClassic('Firestore Pipelines', () => {
       const snapshot = await execute(pipeline);
       const end = new Date().valueOf();
 
-      expect(snapshot.results.length).to.equal(1);
+      expect(snapshot.results.length).toBe(1);
 
-      expect(snapshot.executionTime.toDate().valueOf()).to.approximately(
-        (start + end) / 2,
-        timestampDeltaMS
-      );
+      expect(
+        Math.abs(snapshot.executionTime.toDate().valueOf() - (start + end) / 2)
+      ).toBeLessThanOrEqual(timestampDeltaMS);
     });
 
     it('returns undefined create and update time for each result in an aggregate query', async () => {
@@ -534,11 +531,11 @@ describe.skipClassic('Firestore Pipelines', () => {
 
       const snapshot = await execute(pipeline);
 
-      expect(snapshot.results.length).to.equal(8);
+      expect(snapshot.results.length).toBe(8);
 
       snapshot.results.forEach(doc => {
-        expect(doc.updateTime).to.be.undefined;
-        expect(doc.createTime).to.be.undefined;
+        expect(doc.updateTime).toBeUndefined();
+        expect(doc.createTime).toBeUndefined();
       });
     });
   });
@@ -548,7 +545,7 @@ describe.skipClassic('Firestore Pipelines', () => {
       const snapshot = await execute(
         firestore.pipeline().collection(randomCol)
       );
-      expect(snapshot.results.length).to.equal(10);
+      expect(snapshot.results.length).toBe(10);
     });
 
     it('supports list of documents as source', async () => {
@@ -563,7 +560,7 @@ describe.skipClassic('Firestore Pipelines', () => {
             doc(randomCol, 'book3').path
           ])
       );
-      expect(snapshot.results.length).to.equal(3);
+      expect(snapshot.results.length).toBe(3);
     });
 
     it('reject CollectionReference for another DB', async () => {
@@ -571,7 +568,7 @@ describe.skipClassic('Firestore Pipelines', () => {
 
       expect(() => {
         firestore.pipeline().collection(collection(db2, 'foo'));
-      }).to.throw(/Invalid CollectionReference/);
+      }).toThrow(/Invalid CollectionReference/);
 
       await terminate(db2);
     });
@@ -581,7 +578,7 @@ describe.skipClassic('Firestore Pipelines', () => {
 
       expect(() => {
         firestore.pipeline().documents([doc(db2, 'foo/bar')]);
-      }).to.throw(/Invalid DocumentReference/);
+      }).toThrow(/Invalid DocumentReference/);
 
       await terminate(db2);
     });
@@ -624,7 +621,7 @@ describe.skipClassic('Firestore Pipelines', () => {
           .sort(ascending('order'))
       );
       expectResults(snapshot, doc1.id, doc2.id);
-    }).timeout(30_000); // Database-wide pipelines can be slow to execute.
+    }, 30_000); // Database-wide pipelines can be slow to execute.
 
     it('can create pipeline from a query', async () => {
       const snapshot = await execute(
@@ -763,13 +760,13 @@ describe.skipClassic('Firestore Pipelines', () => {
               }).as('foo')
             )
         );
-        expect(true, 'should throw').to.be.false;
+        expect(true, 'should throw').toBe(false);
       } catch (e: unknown) {
-        expect(e instanceof FirebaseError).to.be.true;
+        expect(e instanceof FirebaseError).toBe(true);
         const err = e as FirebaseError;
-        expect(err['code']).to.equal('invalid-argument');
-        expect(typeof err['message']).to.equal('string');
-        expect(err['message']).to.equal(
+        expect(err['code']).toBe('invalid-argument');
+        expect(typeof err['message']).toBe('string');
+        expect(err['message']).toBe(
           'Function map() called with invalid data. Unsupported field value: undefined'
         );
       }
@@ -784,13 +781,13 @@ describe.skipClassic('Firestore Pipelines', () => {
             .limit(1)
             .select(array([1, undefined]).as('foo'))
         );
-        expect(true, 'should throw').to.be.false;
+        expect(true, 'should throw').toBe(false);
       } catch (e: unknown) {
-        expect(e instanceof FirebaseError).to.be.true;
+        expect(e instanceof FirebaseError).toBe(true);
         const err = e as FirebaseError;
-        expect(err['code']).to.equal('invalid-argument');
-        expect(typeof err['message']).to.equal('string');
-        expect(err['message']).to.equal(
+        expect(err['code']).toBe('invalid-argument');
+        expect(typeof err['message']).toBe('string');
+        expect(err['message']).toBe(
           'Function array() called with invalid data. Unsupported field value: undefined'
         );
       }
@@ -856,7 +853,7 @@ describe.skipClassic('Firestore Pipelines', () => {
           )
       );
 
-      expect(snapshot.results.length).to.equal(1);
+      expect(snapshot.results.length).toBe(1);
 
       expectResults(snapshot, {
         title: 'The Lord of the Rings',
@@ -986,7 +983,7 @@ describe.skipClassic('Firestore Pipelines', () => {
                 groups: ['genre']
               })
           )
-        ).to.be.rejected;
+        ).rejects.toThrow();
       });
 
       it('returns group and accumulate results', async () => {
@@ -1073,7 +1070,7 @@ describe.skipClassic('Firestore Pipelines', () => {
         );
         const data = snapshot.results[0].data();
         data['allDistinctRatings'].sort((a: number, b: number) => a - b);
-        expect(data).to.deep.equal({
+        expect(data).toEqual({
           allDistinctRatings: [4.0, 4.1, 4.2, 4.3, 4.5, 4.6, 4.7]
         });
       });
@@ -1861,7 +1858,7 @@ describe.skipClassic('Firestore Pipelines', () => {
         const snapshot = await execute(
           firestore.pipeline().collection(randomCol.path).sample(3)
         );
-        expect(snapshot.results.length).to.equal(3);
+        expect(snapshot.results.length).toBe(3);
       });
 
       it('run pipeline with sample limit of {documents: 3}', async () => {
@@ -1871,7 +1868,7 @@ describe.skipClassic('Firestore Pipelines', () => {
             .collection(randomCol.path)
             .sample({ documents: 3 })
         );
-        expect(snapshot.results.length).to.equal(3);
+        expect(snapshot.results.length).toBe(3);
       });
 
       it('run pipeline with sample limit of {percentage: 0.6}', async () => {
@@ -1888,7 +1885,7 @@ describe.skipClassic('Firestore Pipelines', () => {
           avgSize += snapshot.results.length;
         }
         avgSize /= numIterations;
-        expect(avgSize).to.be.closeTo(6, 1);
+        expect(Math.abs(avgSize - 6)).toBeLessThanOrEqual(1);
       });
     });
 
@@ -2357,13 +2354,13 @@ describe.skipClassic('Firestore Pipelines', () => {
 
         expect.fail('expected pipeline.execute() to throw');
       } catch (e: unknown) {
-        expect(e instanceof FirebaseError).to.be.true;
+        expect(e instanceof FirebaseError).toBe(true);
         const err = e as FirebaseError;
         // Backend returns the code as `failed-precondition` when using the REST transport
-        expect(err['code']).to.equal('failed-precondition');
-        expect(typeof err['message']).to.equal('string');
+        expect(err['code']).toBe('failed-precondition');
+        expect(typeof err['message']).toBe('string');
 
-        expect(err['message']).to.match(
+        expect(err['message']).toMatch(
           /Request failed with error: Expected fields to be MAP_VALUE, but was FIELD_REFERENCE_VALUE./
         );
       }
@@ -2527,7 +2524,7 @@ describe.skipClassic('Firestore Pipelines', () => {
           .select(arrayLength('tags').as('tagsCount'))
           .where(equal('tagsCount', 3))
       );
-      expect(snapshot.results.length).to.equal(10);
+      expect(snapshot.results.length).toBe(10);
     });
 
     it('testStrConcat', async () => {
@@ -2648,7 +2645,7 @@ describe.skipClassic('Firestore Pipelines', () => {
           .collection(randomCol.path)
           .where(regexContains('title', '(?i)(the|of)'))
       );
-      expect(snapshot.results.length).to.equal(5);
+      expect(snapshot.results.length).toBe(5);
     });
 
     it('testRegexFind', async () => {
@@ -2694,7 +2691,7 @@ describe.skipClassic('Firestore Pipelines', () => {
           .collection(randomCol.path)
           .where(regexMatch('title', '.*(?i)(the|of).*'))
       );
-      expect(snapshot.results.length).to.equal(5);
+      expect(snapshot.results.length).toBe(5);
     });
 
     it('testArithmeticOperations', async () => {
@@ -3054,10 +3051,10 @@ describe.skipClassic('Firestore Pipelines', () => {
       );
 
       const res = snapshot.results[0].data();
-      expect(res.existingKeys).to.have.members(['foo']);
-      expect(res.keys).to.have.members(['a', 'b']);
-      expect(res.empty_keys).to.deep.equal([]);
-      expect(res.nested_keys).to.have.members(['a']);
+      expect(res.existingKeys).toEqual(expect.arrayContaining(['foo']));
+      expect(res.keys).toEqual(expect.arrayContaining(['a', 'b']));
+      expect(res.empty_keys).toEqual([]);
+      expect(res.nested_keys).toEqual(expect.arrayContaining(['a']));
     });
 
     it('test mapValues', async () => {
@@ -3075,10 +3072,12 @@ describe.skipClassic('Firestore Pipelines', () => {
           )
       );
       const res = snapshot.results[0].data();
-      expect(res.existingValues).to.have.members([1]);
-      expect(res.values).to.have.members([1, 2]);
-      expect(res.empty_values).to.deep.equal([]);
-      expect(res.nested_values).to.deep.include.members([{ nested: true }]);
+      expect(res.existingValues).toEqual(expect.arrayContaining([1]));
+      expect(res.values).toEqual(expect.arrayContaining([1, 2]));
+      expect(res.empty_values).toEqual([]);
+      expect(res.nested_values).toEqual(
+        expect.arrayContaining([{ nested: true }])
+      );
     });
 
     it('test mapEntries', async () => {
@@ -3096,15 +3095,19 @@ describe.skipClassic('Firestore Pipelines', () => {
           )
       );
       const res = snapshot.results[0].data();
-      expect(res.existingEntries).to.deep.include.members([{ k: 'foo', v: 1 }]);
-      expect(res.entries).to.deep.include.members([
-        { k: 'a', v: 1 },
-        { k: 'b', v: 2 }
-      ]);
-      expect(res.empty_entries).to.deep.equal([]);
-      expect(res.nested_entries).to.deep.include.members([
-        { k: 'a', v: { nested: true } }
-      ]);
+      expect(res.existingEntries).toEqual(
+        expect.arrayContaining([{ k: 'foo', v: 1 }])
+      );
+      expect(res.entries).toEqual(
+        expect.arrayContaining([
+          { k: 'a', v: 1 },
+          { k: 'b', v: 2 }
+        ])
+      );
+      expect(res.empty_entries).toEqual([]);
+      expect(res.nested_entries).toEqual(
+        expect.arrayContaining([{ k: 'a', v: { nested: true } }])
+      );
     });
 
     describe('rawFunction', () => {
@@ -3217,7 +3220,7 @@ describe.skipClassic('Firestore Pipelines', () => {
           .limit(1)
           .select(array([1, 2, 3, 4]).as('metadata'))
       );
-      expect(snapshot.results.length).to.equal(1);
+      expect(snapshot.results.length).toBe(1);
       expectResults(snapshot, {
         metadata: [1, 2, 3, 4]
       });
@@ -3234,7 +3237,7 @@ describe.skipClassic('Firestore Pipelines', () => {
             array([1, 2, field('genre'), multiply('rating', 10)]).as('metadata')
           )
       );
-      expect(snapshot.results.length).to.equal(1);
+      expect(snapshot.results.length).toBe(1);
       expectResults(snapshot, {
         metadata: [1, 2, 'Fantasy', 47]
       });
@@ -3482,7 +3485,7 @@ describe.skipClassic('Firestore Pipelines', () => {
             .where(equal('title', 'The Lord of the Rings'))
             .select(arraySlice('tags', 1, -1).as('negativeLengthSlice'))
         )
-      ).to.be.rejectedWith(/length must be non-negative/);
+      ).rejects.toThrow(/length must be non-negative/);
     });
 
     it('supports arrayFirstN', async () => {
@@ -4006,7 +4009,7 @@ describe.skipClassic('Firestore Pipelines', () => {
           )
       );
 
-      expect(snapshot.results.length).to.equal(1);
+      expect(snapshot.results.length).toBe(1);
       expectResults(snapshot, {
         metadata: {
           foo: 'bar'
@@ -4029,7 +4032,7 @@ describe.skipClassic('Firestore Pipelines', () => {
           )
       );
 
-      expect(snapshot.results.length).to.equal(1);
+      expect(snapshot.results.length).toBe(1);
       expectResults(snapshot, {
         metadata: {
           genre: 'Fantasy',
@@ -4165,7 +4168,7 @@ describe.skipClassic('Firestore Pipelines', () => {
         minus10micros: new Timestamp(1741380234, 999990000),
         minus10millis: new Timestamp(1741380234, 990000000)
       });
-    }).timeout(10000);
+    }, 10000);
 
     it('supports timestamp truncation', async () => {
       const snapshot = await execute(
@@ -4196,7 +4199,7 @@ describe.skipClassic('Firestore Pipelines', () => {
         truncSecond: new Timestamp(1741437296, 0),
         truncIsoweek: new Timestamp(1740960000, 0)
       });
-    }).timeout(10000);
+    }, 10000);
 
     it('supports timestamp truncation with timezone', async () => {
       const snapshot = await execute(
@@ -4219,7 +4222,7 @@ describe.skipClassic('Firestore Pipelines', () => {
       expectResults(snapshot, {
         truncDayLa: new Timestamp(1741420800, 0)
       });
-    }).timeout(10000);
+    }, 10000);
 
     it('supports timestamp difference', async () => {
       const snapshot = await execute(
@@ -4249,7 +4252,7 @@ describe.skipClassic('Firestore Pipelines', () => {
         diffSecond: 9296,
         diffHourNeg: -2
       });
-    }).timeout(10000);
+    }, 10000);
 
     it('supports timestamp extraction', async () => {
       const snapshot = await execute(
@@ -4286,7 +4289,7 @@ describe.skipClassic('Firestore Pipelines', () => {
         dayOfYear: 67,
         hourLa: 4
       });
-    }).timeout(10000);
+    }, 10000);
 
     it('supports byteLength', async () => {
       const snapshot = await execute(
@@ -4416,9 +4419,9 @@ describe.skipClassic('Firestore Pipelines', () => {
           .limit(1)
           .select(field('rating').exp().as('expRating'))
       );
-      expect(snapshot.results[0].get('expRating')).to.be.approximately(
+      expect(snapshot.results[0].get('expRating')).toBeCloseTo(
         109.94717245212352,
-        0.00001
+        5
       );
     });
 
@@ -4431,9 +4434,9 @@ describe.skipClassic('Firestore Pipelines', () => {
           .limit(1)
           .select(exp('rating').as('expRating'))
       );
-      expect(snapshot.results[0].get('expRating')).to.be.approximately(
+      expect(snapshot.results[0].get('expRating')).toBeCloseTo(
         109.94717245212351,
-        0.000001
+        6
       );
     });
 
@@ -4446,10 +4449,7 @@ describe.skipClassic('Firestore Pipelines', () => {
           .limit(1)
           .select(field('rating').pow(2).as('powerRating'))
       );
-      expect(snapshot.results[0].get('powerRating')).to.be.approximately(
-        17.64,
-        0.0001
-      );
+      expect(snapshot.results[0].get('powerRating')).toBeCloseTo(17.64, 4);
     });
 
     it('can compute the power of a numeric value with the top-level function', async () => {
@@ -4461,10 +4461,7 @@ describe.skipClassic('Firestore Pipelines', () => {
           .limit(1)
           .select(pow('rating', 2).as('powerRating'))
       );
-      expect(snapshot.results[0].get('powerRating')).to.be.approximately(
-        17.64,
-        0.0001
-      );
+      expect(snapshot.results[0].get('powerRating')).toBeCloseTo(17.64, 4);
     });
 
     it('testRand', async () => {
@@ -4475,11 +4472,11 @@ describe.skipClassic('Firestore Pipelines', () => {
           .select(rand().as('randomNumber'))
           .limit(1)
       );
-      expect(snapshot.results.length).to.equal(1);
+      expect(snapshot.results.length).toBe(1);
       const randomNumber = snapshot.results[0].data()['randomNumber'] as number;
-      expect(randomNumber).to.be.a('number');
-      expect(randomNumber).to.be.gte(0);
-      expect(randomNumber).to.be.lt(1);
+      expect(typeof randomNumber).toBe('number');
+      expect(randomNumber).toBeGreaterThanOrEqual(0);
+      expect(randomNumber).toBeLessThan(1);
     });
 
     it('can round a numeric value', async () => {
@@ -4753,7 +4750,7 @@ describe.skipClassic('Firestore Pipelines', () => {
           .limit(1)
           .select(field('rating').ln().as('lnRating'))
       );
-      expect(snapshot.results[0]!.data().lnRating).to.be.closeTo(1.435, 0.001);
+      expect(snapshot.results[0]!.data().lnRating).toBeCloseTo(1.435, 3);
     });
 
     it('can compute the natural logarithm of a numeric value with the top-level function', async () => {
@@ -4765,7 +4762,7 @@ describe.skipClassic('Firestore Pipelines', () => {
           .limit(1)
           .select(ln('rating').as('lnRating'))
       );
-      expect(snapshot.results[0]!.data().lnRating).to.be.closeTo(1.435, 0.001);
+      expect(snapshot.results[0]!.data().lnRating).toBeCloseTo(1.435, 3);
     });
 
     it('can compute the natural logarithm of a numeric value with the top-level function', async () => {
@@ -5398,10 +5395,7 @@ describe.skipClassic('Firestore Pipelines', () => {
           .limit(1)
           .select(field('rating').log10().as('log10Rating'))
       );
-      expect(snapshot.results[0]!.data().log10Rating).to.be.closeTo(
-        0.672,
-        0.001
-      );
+      expect(snapshot.results[0]!.data().log10Rating).toBeCloseTo(0.672, 3);
     });
 
     it('can compute the base-10 logarithm of a numeric value with the top-level function', async () => {
@@ -5413,10 +5407,7 @@ describe.skipClassic('Firestore Pipelines', () => {
           .limit(1)
           .select(log10('rating').as('log10Rating'))
       );
-      expect(snapshot.results[0]!.data().log10Rating).to.be.closeTo(
-        0.672,
-        0.001
-      );
+      expect(snapshot.results[0]!.data().log10Rating).toBeCloseTo(0.672, 3);
     });
 
     it('can concat fields', async () => {
@@ -5447,10 +5438,10 @@ describe.skipClassic('Firestore Pipelines', () => {
           .select('now')
       );
       const now = snapshot.results[0].get('now') as Timestamp;
-      expect(now).instanceof(Timestamp);
+      expect(now).toBeInstanceOf(Timestamp);
       expect(
         now.toDate().getUTCSeconds() - new Date().getUTCSeconds()
-      ).lessThan(5000);
+      ).toBeLessThan(5000);
     });
 
     it('supports ifAbsent', async () => {
@@ -5717,7 +5708,7 @@ describe.skipClassic('Firestore Pipelines', () => {
                 ).as('result')
               )
           )
-        ).to.be.rejectedWith(/all switch cases evaluate to false/);
+        ).rejects.toThrow(/all switch cases evaluate to false/);
       });
     });
 
@@ -5894,8 +5885,8 @@ describe.skipClassic('Firestore Pipelines', () => {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (snapshot as any)._pipeline.stages[0].optionsProto.force_index
             .stringValue
-        ).equal('primary');
-        expect(snapshot.results.length).to.equal(10);
+        ).toBe('primary');
+        expect(snapshot.results.length).toBe(10);
       });
 
       it('CollectionGroup Stage', async () => {
@@ -5909,8 +5900,8 @@ describe.skipClassic('Firestore Pipelines', () => {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (snapshot as any)._pipeline.stages[0].optionsProto.force_index
             .stringValue
-        ).equal('primary');
-        expect(snapshot.results.length).to.equal(10);
+        ).toBe('primary');
+        expect(snapshot.results.length).toBe(10);
       });
     });
   });
@@ -6252,7 +6243,7 @@ describe.skipClassic('Firestore Pipelines', () => {
               .define(field('title').as('bookTitle'))
               .addFields(reviewsSub.toScalarExpression().as('reviewData'))
           )
-        ).to.be.rejectedWith(/Subpipeline returned multiple results/);
+        ).rejects.toThrow(/Subpipeline returned multiple results/);
       });
     });
 
@@ -6322,7 +6313,7 @@ describe.skipClassic('Firestore Pipelines', () => {
               .select('price')
           );
 
-          expect(results.results).to.be.empty;
+          expect(results.results).toHaveLength(0);
 
           const doc2Ref = doc(firestore, `${collName}/doc2`);
           await setDoc(doc2Ref, { price: 50 });
@@ -6462,10 +6453,10 @@ describe.skipClassic('Firestore Pipelines', () => {
         );
         expect.fail('Should have thrown an error');
       } catch (e: unknown) {
-        expect(e).to.be.an.instanceOf(FirebaseError);
+        expect(e).toBeInstanceOf(FirebaseError);
         const err = e as FirestoreError;
-        expect(err.code).to.equal(Code.FAILED_PRECONDITION);
-        expect(err.message).to.match(/unknown variable/i);
+        expect(err.code).toBe(Code.FAILED_PRECONDITION);
+        expect(err.message).toMatch(/unknown variable/i);
       }
     });
 
@@ -6647,7 +6638,7 @@ describe.skipClassic('Firestore Pipelines', () => {
           }
 
           const results = await execute(currentSubquery);
-          expect(results.results.length).to.be.greaterThan(0);
+          expect(results.results.length).toBeGreaterThan(0);
         }
       );
     });
@@ -6710,7 +6701,7 @@ describe.skipClassic('Firestore Pipelines', () => {
     it('direct execution of subcollection pipeline', async () => {
       const sub = subcollection('reviews');
 
-      await expect(execute(sub)).to.be.rejectedWith(
+      await expect(execute(sub)).rejects.toThrow(
         /This pipeline was created without a database/
       );
     });
@@ -6823,7 +6814,7 @@ describe.skipClassic('Firestore Pipelines', () => {
   let withTestDbsPromise: Promise<unknown> | undefined;
 
   // Search tests will use restaurant docs
-  before(async () => {
+  beforeAll(async () => {
     // TODO(search) - Migrate this over to IndexTestHelper when search supports the equal filter.
     // Note: using a static collection of documents for every search test has an inherent risk
     // of flakiness. Search requires an index on the collection, which is the reason we use a pre-defined
@@ -6844,7 +6835,7 @@ describe.skipClassic('Firestore Pipelines', () => {
     await setupDeferred.promise;
   });
 
-  after(async () => {
+  afterAll(async () => {
     testSuiteDeferred?.resolve();
     await withTestDbsPromise;
   });
@@ -7041,9 +7032,9 @@ describe.skipClassic('Firestore Pipelines', () => {
             .select('name', 'searchScore');
 
           const snapshot = await execute(ppl);
-          expect(snapshot.results.length).to.equal(1);
-          expect(snapshot.results[0].get('name')).to.equal('The Golden Waffle');
-          expect(snapshot.results[0].get('searchScore')).to.be.greaterThan(0);
+          expect(snapshot.results.length).toBe(1);
+          expect(snapshot.results[0].get('name')).toBe('The Golden Waffle');
+          expect(snapshot.results[0].get('searchScore')).toBeGreaterThan(0);
         });
 
         // TODO(search) enable with backend support
