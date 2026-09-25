@@ -437,7 +437,7 @@ export const doubleToIEEE754String = function (v: number): string {
   // Return the data as a hex string. --MJL
   let hexByteString = '';
   for (i = 0; i < 64; i += 8) {
-    let hexByte = parseInt(str.substr(i, 8), 2).toString(16);
+    let hexByte = parseInt(str.slice(i, i + 8), 2).toString(16);
     if (hexByte.length === 1) {
       hexByte = '0' + hexByte;
     }
