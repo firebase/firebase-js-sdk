@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-
 import {
   endAt,
   endBefore,
@@ -31,14 +29,7 @@ import {
   startAt
 } from '../src';
 
-import { createTestApp } from './exp/integration.test';
-
 describe('Query Constraints', () => {
-  let defaultApp;
-
-  beforeEach(() => {
-    defaultApp = createTestApp();
-  });
   it('query constraint types are exposed', () => {
     const queryConstraintTypes = [
       { qc: endAt(0), name: 'endAt' },
@@ -54,7 +45,7 @@ describe('Query Constraints', () => {
       { qc: equalTo(''), name: 'equalTo' }
     ];
     queryConstraintTypes.forEach(({ qc, name }) => {
-      expect(qc.type).to.equal(name);
+      expect(qc.type).toBe(name);
     });
   });
 });

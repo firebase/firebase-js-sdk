@@ -18,10 +18,7 @@
 import assert from 'assert';
 
 import { FirebaseApp, initializeApp } from '@firebase/app';
-import { expect } from 'chai';
-import * as chai from 'chai';
 import _ from 'lodash';
-import sinonChai from 'sinon-chai';
 
 import {
   ReferenceImpl,
@@ -64,8 +61,6 @@ import {
   QueryContext
 } from '../../src/core/view/EventRegistration';
 import { getDatabase } from '../../src/index';
-
-chai.use(sinonChai);
 
 function objectMap(object, mapFn) {
   const newObj = {};
@@ -206,15 +201,15 @@ export class SyncPointTestParser {
     this.listenProvider_ = new SyncPointListenProvider();
     this.syncTree_ = new SyncTree(this.listenProvider_);
     const eventEquals = function (expectedEvent, actualChange) {
-      expect(actualChange.eventType).to.equal(expectedEvent.type);
+      expect(actualChange.eventType).toBe(expectedEvent.type);
       if (actualChange.eventType !== 'value') {
         const childName = actualChange.snapshot.key;
-        expect(childName).to.equal(expectedEvent.name);
-        expect(actualChange.prevName).to.equal(expectedEvent.prevName);
+        expect(childName).toBe(expectedEvent.name);
+        expect(actualChange.prevName).toBe(expectedEvent.prevName);
       }
       const actualHash = actualChange.snapshot._node.hash();
       const expectedHash = nodeFromJSON(expectedEvent.data).hash();
-      expect(actualHash).to.eql(expectedHash);
+      expect(actualHash).toEqual(expectedHash);
     };
 
     const eventExactMatch = function (expected, actual) {
@@ -250,7 +245,7 @@ export class SyncPointTestParser {
       if (expected.length !== actual.length) {
         throw new Error('Mismatched lengths');
       }
-      expect(expected.length).to.equal(actual.length);
+      expect(expected.length).toBe(actual.length);
 
       let currentExpected = expected;
       let currentActual = actual;
@@ -542,7 +537,7 @@ export class SyncPointTestParser {
         eventSetMatch(spec.events, events);
       } else if (spec.type === 'suppressWarning') {
         // suppresses Jasmine's "Spec has no expectations" warning so that "expect no errors" tests run green.
-        expect(true).to.eq(true);
+        expect(true).toBe(true);
       } else {
         throw new Error('Unknown step: ' + spec.type);
       }
