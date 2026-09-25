@@ -19,7 +19,7 @@ import { AI, AIErrorCode } from '../public-types';
 import sinonChai from 'sinon-chai';
 import { stub } from 'sinon';
 import { AIError } from '../errors';
-import { AgentPlatformBackend } from '../backend';
+import { EnterpriseBackend } from '../backend';
 import { AIService } from '../service';
 import { initApiSettings } from './utils';
 import { fakeAI } from '../../test-utils/get-fake-firebase-services';
@@ -80,8 +80,7 @@ describe('initApiSettings', () => {
           projectId: 'my-project'
         }
       },
-      backend: new AgentPlatformBackend('global'),
-      location: 'global'
+      backend: new EnterpriseBackend('global')
     };
     try {
       initApiSettings(fakeAI);
@@ -98,8 +97,7 @@ describe('initApiSettings', () => {
           apiKey: 'key'
         }
       },
-      backend: new AgentPlatformBackend('global'),
-      location: 'global'
+      backend: new EnterpriseBackend('global')
     };
     try {
       initApiSettings(fakeAI);
@@ -117,8 +115,7 @@ describe('initApiSettings', () => {
           projectId: 'my-project'
         }
       },
-      backend: new AgentPlatformBackend('global'),
-      location: 'global'
+      backend: new EnterpriseBackend('global')
     };
     try {
       initApiSettings(fakeAI);

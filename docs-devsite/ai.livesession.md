@@ -43,8 +43,6 @@ export declare class LiveSession
 |  [send(request, turnComplete)](./ai.livesession.md#livesessionsend) |  | <b><i>(Public Preview)</i></b> Sends content to the server. |
 |  [sendAudioRealtime(blob)](./ai.livesession.md#livesessionsendaudiorealtime) |  | <b><i>(Public Preview)</i></b> Sends audio data to the server in realtime. |
 |  [sendFunctionResponses(functionResponses)](./ai.livesession.md#livesessionsendfunctionresponses) |  | <b><i>(Public Preview)</i></b> Sends function responses to the server. |
-|  [sendMediaChunks(mediaChunks)](./ai.livesession.md#livesessionsendmediachunks) |  | <b><i>(Public Preview)</i></b> Sends realtime input to the server. |
-|  [sendMediaStream(mediaChunkStream)](./ai.livesession.md#livesessionsendmediastream) |  | <b><i>(Public Preview)</i></b> |
 |  [sendTextRealtime(text)](./ai.livesession.md#livesessionsendtextrealtime) |  | <b><i>(Public Preview)</i></b> Sends text to the server in realtime. |
 |  [sendVideoRealtime(blob)](./ai.livesession.md#livesessionsendvideorealtime) |  | <b><i>(Public Preview)</i></b> Sends video data to the server in realtime. |
 
@@ -239,70 +237,6 @@ sendFunctionResponses(functionResponses: FunctionResponse[]): Promise<void>;
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  functionResponses | [FunctionResponse](./ai.functionresponse.md#functionresponse_interface)<!-- -->\[\] | The function responses to send. |
-
-<b>Returns:</b>
-
-Promise&lt;void&gt;
-
-#### Exceptions
-
-If this session has been closed.
-
-## LiveSession.sendMediaChunks()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-> Warning: This API is now obsolete.
-> 
-> Use `sendTextRealtime()`<!-- -->, `sendAudioRealtime()`<!-- -->, and `sendVideoRealtime()` instead.
-> 
-
-Sends realtime input to the server.
-
-<b>Signature:</b>
-
-```typescript
-sendMediaChunks(mediaChunks: GenerativeContentBlob[]): Promise<void>;
-```
-
-#### Parameters
-
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  mediaChunks | [GenerativeContentBlob](./ai.generativecontentblob.md#generativecontentblob_interface)<!-- -->\[\] | The media chunks to send. |
-
-<b>Returns:</b>
-
-Promise&lt;void&gt;
-
-#### Exceptions
-
-If this session has been closed.
-
-## LiveSession.sendMediaStream()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-> Warning: This API is now obsolete.
-> 
-> Use `sendTextRealtime()`<!-- -->, `sendAudioRealtime()`<!-- -->, and `sendVideoRealtime()` instead.
-> 
-> Sends a stream of [GenerativeContentBlob](./ai.generativecontentblob.md#generativecontentblob_interface)<!-- -->.
-> 
-
-<b>Signature:</b>
-
-```typescript
-sendMediaStream(mediaChunkStream: ReadableStream<GenerativeContentBlob>): Promise<void>;
-```
-
-#### Parameters
-
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  mediaChunkStream | ReadableStream&lt;[GenerativeContentBlob](./ai.generativecontentblob.md#generativecontentblob_interface)<!-- -->&gt; | The stream of [GenerativeContentBlob](./ai.generativecontentblob.md#generativecontentblob_interface) to send. |
 
 <b>Returns:</b>
 

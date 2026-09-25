@@ -26,7 +26,7 @@ import { CountTokensRequest, InferenceMode } from '../types';
 import { ApiSettings } from '../types/internal';
 import { Task } from '../requests/request';
 import { mapCountTokensRequest } from '../googleai-mappers';
-import { GoogleAIBackend, AgentPlatformBackend } from '../backend';
+import { GoogleAIBackend, EnterpriseBackend } from '../backend';
 import { fakeChromeAdapter } from '../../test-utils/get-fake-firebase-services';
 import { cleanCountTokensRequestForWire } from '../requests/request-helpers';
 
@@ -37,15 +37,13 @@ const fakeApiSettings: ApiSettings = {
   apiKey: 'key',
   project: 'my-project',
   appId: 'my-appid',
-  location: 'global',
-  backend: new AgentPlatformBackend()
+  backend: new EnterpriseBackend()
 };
 
 const fakeGoogleAIApiSettings: ApiSettings = {
   apiKey: 'key',
   project: 'my-project',
   appId: 'my-appid',
-  location: '',
   backend: new GoogleAIBackend()
 };
 
@@ -100,7 +98,6 @@ describe('countTokens()', () => {
       fakeChromeAdapter
     );
     expect(result.totalTokens).to.equal(1837);
-    expect(result.totalBillableCharacters).to.equal(117);
     expect(result.promptTokensDetails?.[0].modality).to.equal('IMAGE');
     expect(result.promptTokensDetails?.[0].tokenCount).to.equal(1806);
     expect(makeRequestStub).to.be.calledWith(
@@ -131,7 +128,6 @@ describe('countTokens()', () => {
       fakeChromeAdapter
     );
     expect(result.totalTokens).to.equal(258);
-    expect(result).to.not.have.property('totalBillableCharacters');
     expect(makeRequestStub).to.be.calledWith(
       {
         model: 'model',

@@ -28,7 +28,7 @@ import {
 } from '../types';
 import { TemplateChatSessionImpl } from './template-chat-session';
 import { ApiSettings } from '../types/internal';
-import { AgentPlatformBackend } from '../backend';
+import { EnterpriseBackend } from '../backend';
 import { logger } from '../logger';
 import { Schema } from '../api';
 
@@ -39,8 +39,7 @@ const fakeApiSettings: ApiSettings = {
   apiKey: 'key',
   project: 'my-project',
   appId: 'my-appid',
-  location: 'global',
-  backend: new AgentPlatformBackend('global')
+  backend: new EnterpriseBackend('global')
 };
 
 const TEMPLATE_ID = 'my-template';

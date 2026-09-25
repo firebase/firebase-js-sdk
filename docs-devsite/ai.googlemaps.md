@@ -17,24 +17,3 @@ Specifies the Google Maps configuration.
 ```typescript
 export interface GoogleMaps 
 ```
-
-## Properties
-
-|  Property | Type | Description |
-|  --- | --- | --- |
-|  [enableWidget](./ai.googlemaps.md#googlemapsenablewidget) | boolean |  |
-
-## GoogleMaps.enableWidget
-
-> Warning: This API is now obsolete.
-> 
-> The `enableWidget` feature has been deprecated by the Grounding for Google Maps service.
-> 
-> If true, include the widget context token in the response.
-> 
-
-<b>Signature:</b>
-
-```typescript
-enableWidget?: boolean;
-```

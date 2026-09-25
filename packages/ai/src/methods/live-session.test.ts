@@ -41,7 +41,6 @@ const fakeApiSettings = {
   apiKey: 'MY_KEY',
   project: 'my-project',
   appId: 'id',
-  location: 'here',
   backend: new GoogleAIBackend()
 };
 
@@ -197,50 +196,6 @@ describe('LiveSession', () => {
       expect(sentData).to.deep.equal({
         realtimeInput: { video: blob }
       });
-    });
-  });
-
-  describe('sendMediaChunks()', () => {
-    it('should send a correctly formatted realtimeInput message', async () => {
-      const chunks = [{ data: 'base64', mimeType: 'audio/webm' }];
-      await session.sendMediaChunks(chunks);
-      expect(mockHandler.send).to.have.been.calledOnce;
-      const sentData = JSON.parse(mockHandler.send.getCall(0).args[0]);
-      expect(sentData).to.deep.equal({
-        realtimeInput: { mediaChunks: chunks }
-      });
-    });
-  });
-
-  describe('sendMediaStream()', () => {
-    it('should send multiple chunks from a stream', async () => {
-      const stream = new ReadableStream({
-        start(controller) {
-          controller.enqueue({ data: 'chunk1', mimeType: 'audio/webm' });
-          controller.enqueue({ data: 'chunk2', mimeType: 'audio/webm' });
-          controller.close();
-        }
-      });
-
-      await session.sendMediaStream(stream);
-
-      expect(mockHandler.send).to.have.been.calledTwice;
-      const firstCall = JSON.parse(mockHandler.send.getCall(0).args[0]);
-      const secondCall = JSON.parse(mockHandler.send.getCall(1).args[0]);
-      expect(firstCall.realtimeInput.mediaChunks[0].data).to.equal('chunk1');
-      expect(secondCall.realtimeInput.mediaChunks[0].data).to.equal('chunk2');
-    });
-
-    it('should re-throw an AIError if the stream reader throws', async () => {
-      const errorStream = new ReadableStream({
-        pull(controller) {
-          controller.error(new Error('Stream failed!'));
-        }
-      });
-      await expect(session.sendMediaStream(errorStream)).to.be.rejectedWith(
-        AIError,
-        /Stream failed!/
-      );
     });
   });
 
@@ -520,10 +475,6 @@ describe('LiveSession', () => {
     it('methods should throw after session is closed', async () => {
       await session.close();
       await expect(session.send('test')).to.be.rejectedWith(AIError, /closed/);
-      await expect(session.sendMediaChunks([])).to.be.rejectedWith(
-        AIError,
-        /closed/
-      );
       const generator = session.receive();
       await expect(generator.next()).to.be.rejectedWith(AIError, /closed/);
     });

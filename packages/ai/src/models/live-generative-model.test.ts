@@ -73,8 +73,7 @@ const fakeAI: AI = {
       appId: 'my-appid'
     }
   },
-  backend: new GoogleAIBackend(),
-  location: 'us-central1'
+  backend: new GoogleAIBackend()
 };
 
 describe('LiveGenerativeModel', () => {

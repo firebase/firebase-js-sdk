@@ -10,51 +10,32 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # AgentPlatformBackend class
-Configuration class for the Agent Platform Gemini API.
+> Warning: This API is now obsolete.
+> 
+> - Use [EnterpriseBackend](./ai.enterprisebackend.md#enterprisebackend_class) instead.
+> 
 
-Use this with [AIOptions](./ai.aioptions.md#aioptions_interface) when initializing the AI service via [getAI()](./ai.md#getai_a94a413) to specify the Agent Platform Gemini API as the backend.
+Configuration class for the Gemini Enterprise API (formerly known as the Vertex AI Gemini API).
+
+Use this with [AIOptions](./ai.aioptions.md#aioptions_interface) when initializing the AI service via [getAI()](./ai.md#getai_a94a413) to specify the Gemini Enterprise API as the backend.
 
 <b>Signature:</b>
 
 ```typescript
-export declare class AgentPlatformBackend extends Backend 
+export declare class AgentPlatformBackend extends EnterpriseBackend 
 ```
-<b>Extends:</b> [Backend](./ai.backend.md#backend_class)
-
-## Constructors
-
-|  Constructor | Modifiers | Description |
-|  --- | --- | --- |
-|  [(constructor)(location)](./ai.agentplatformbackend.md#agentplatformbackendconstructor) |  | Creates a configuration object for the Agent Platform backend. |
+<b>Extends:</b> [EnterpriseBackend](./ai.enterprisebackend.md#enterprisebackend_class)
 
 ## Properties
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [location](./ai.agentplatformbackend.md#agentplatformbackendlocation) |  | string | The region identifier. See [Agent Platform locations](https://firebase.google.com/docs/ai-logic/locations?api=vertex#available-locations) for a list of supported locations. |
+|  [backendType](./ai.agentplatformbackend.md#agentplatformbackendbackendtype) |  | [BackendType](./ai.md#backendtype) |  |
 
-## AgentPlatformBackend.(constructor)
-
-Creates a configuration object for the Agent Platform backend.
+## AgentPlatformBackend.backendType
 
 <b>Signature:</b>
 
 ```typescript
-constructor(location?: string);
-```
-
-#### Parameters
-
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  location | string | The region identifier, defaulting to <code>global</code>; see [Agent Platform locations](https://firebase.google.com/docs/ai-logic/locations?api=vertex#available-locations) for a list of supported locations. |
-
-## AgentPlatformBackend.location
-
-The region identifier. See [Agent Platform locations](https://firebase.google.com/docs/ai-logic/locations?api=vertex#available-locations) for a list of supported locations.
-
-<b>Signature:</b>
-
-```typescript
-readonly location: string;
+readonly backendType: BackendType;
 ```

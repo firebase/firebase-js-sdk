@@ -90,8 +90,8 @@ import {
   getGenerativeModel,
   getAI,
   AI,
-  AgentPlatformBackend,
-  VertexAIBackend
+  EnterpriseBackend,
+  AgentPlatformBackend
 } from 'firebase/ai';
 import { getDataConnect, DataConnect } from 'firebase/data-connect';
 // @ts-ignore
@@ -316,11 +316,11 @@ describe('MODULAR', () => {
 
   describe('AI', () => {
     let ai: AI;
-    it('getAI with AgentPlatformBackend()', () => {
-      ai = getAI(app, { backend: new AgentPlatformBackend() });
+    it('getAI with EnterpriseBackend()', () => {
+      ai = getAI(app, { backend: new EnterpriseBackend() });
     });
-    it('getAI with VertexAIBackend()', () => {
-      expect(getAI(app, { backend: new VertexAIBackend() })).toBeDefined();
+    it('getAI with AgentPlatformBackend()', () => {
+      expect(getAI(app, { backend: new AgentPlatformBackend() })).toBeDefined();
     });
     it('getGenerativeModel()', async () => {
       const model = getGenerativeModel(ai, { model: 'gemini-3.5-flash' });

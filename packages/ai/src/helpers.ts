@@ -21,8 +21,8 @@ import { AIErrorCode } from './types';
 import {
   AgentPlatformBackend,
   Backend,
-  GoogleAIBackend,
-  VertexAIBackend
+  EnterpriseBackend,
+  GoogleAIBackend
 } from './backend';
 
 /**
@@ -34,10 +34,10 @@ import {
 export function encodeInstanceIdentifier(backend: Backend): string {
   if (backend instanceof GoogleAIBackend) {
     return `${AI_TYPE}/googleai`;
-  } else if (backend instanceof VertexAIBackend) {
-    return `${AI_TYPE}/vertexai/${backend.location}`;
   } else if (backend instanceof AgentPlatformBackend) {
     return `${AI_TYPE}/agentplatform/${backend.location}`;
+  } else if (backend instanceof EnterpriseBackend) {
+    return `${AI_TYPE}/enterprise/${backend.location}`;
   } else {
     throw new AIError(
       AIErrorCode.ERROR,
@@ -61,16 +61,16 @@ export function decodeInstanceIdentifier(instanceIdentifier: string): Backend {
   }
   const backendType = identifierParts[1];
   switch (backendType) {
-    case 'vertexai':
-      const vertexLocation: string | undefined = identifierParts[2];
-      if (!vertexLocation) {
+    case 'agentplatform':
+      const agentPlatformLocation: string | undefined = identifierParts[2];
+      if (!agentPlatformLocation) {
         throw new AIError(
           AIErrorCode.ERROR,
           `Invalid instance identifier, unknown location '${instanceIdentifier}'`
         );
       }
-      return new VertexAIBackend(vertexLocation);
-    case 'agentplatform':
+      return new AgentPlatformBackend(agentPlatformLocation);
+    case 'enterprise':
       const location: string | undefined = identifierParts[2];
       if (!location) {
         throw new AIError(
@@ -78,7 +78,7 @@ export function decodeInstanceIdentifier(instanceIdentifier: string): Backend {
           `Invalid instance identifier, unknown location '${instanceIdentifier}'`
         );
       }
-      return new AgentPlatformBackend(location);
+      return new EnterpriseBackend(location);
     case 'googleai':
       return new GoogleAIBackend();
     default:

@@ -33,7 +33,7 @@ import { DEFAULT_API_VERSION } from '../constants';
 import { AIErrorCode, InferenceMode } from '../types';
 import { AIError } from '../errors';
 import { getMockResponse } from '../../test-utils/mock-response';
-import { AgentPlatformBackend } from '../backend';
+import { EnterpriseBackend } from '../backend';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -42,8 +42,7 @@ const fakeApiSettings: ApiSettings = {
   apiKey: 'key',
   project: 'my-project',
   appId: 'my-appid',
-  location: 'global',
-  backend: new AgentPlatformBackend()
+  backend: new EnterpriseBackend()
 };
 
 describe('request methods', () => {
@@ -127,8 +126,7 @@ describe('request methods', () => {
       apiKey: 'key',
       project: 'myproject',
       appId: 'my-appid',
-      location: 'moon',
-      backend: new AgentPlatformBackend(),
+      backend: new EnterpriseBackend(),
       getAuthToken: () => Promise.resolve({ accessToken: 'authtoken' }),
       getAppCheckToken: () => Promise.resolve({ token: 'appchecktoken' })
     };
@@ -170,8 +168,7 @@ describe('request methods', () => {
         apiKey: 'key',
         project: 'myproject',
         appId: 'my-appid',
-        location: 'moon',
-        backend: new AgentPlatformBackend(),
+        backend: new EnterpriseBackend(),
         automaticDataCollectionEnabled: true,
         getAuthToken: () => Promise.resolve({ accessToken: 'authtoken' }),
         getAppCheckToken: () => Promise.resolve({ token: 'appchecktoken' })
@@ -195,8 +192,7 @@ describe('request methods', () => {
         apiKey: 'key',
         project: 'myproject',
         appId: 'my-appid',
-        location: 'moon',
-        backend: new AgentPlatformBackend(),
+        backend: new EnterpriseBackend(),
         automaticDataCollectionEnabled: false,
         getAuthToken: () => Promise.resolve({ accessToken: 'authtoken' }),
         getAppCheckToken: () => Promise.resolve({ token: 'appchecktoken' })
@@ -223,8 +219,7 @@ describe('request methods', () => {
           apiKey: 'key',
           project: 'myproject',
           appId: 'my-appid',
-          location: 'moon',
-          backend: new AgentPlatformBackend()
+          backend: new EnterpriseBackend()
         },
         stream: true,
         singleRequestOptions: undefined
@@ -239,7 +234,6 @@ describe('request methods', () => {
         apiSettings: {
           apiKey: 'key',
           project: 'myproject',
-          location: 'moon',
           //@ts-ignore
           getAppCheckToken: () => Promise.resolve()
         },
@@ -257,8 +251,7 @@ describe('request methods', () => {
           apiKey: 'key',
           project: 'myproject',
           appId: 'my-appid',
-          location: 'moon',
-          backend: new AgentPlatformBackend(),
+          backend: new EnterpriseBackend(),
           getAppCheckToken: () =>
             Promise.resolve({ token: 'dummytoken', error: Error('oops') })
         },
@@ -285,8 +278,7 @@ describe('request methods', () => {
           apiKey: 'key',
           project: 'myproject',
           appId: 'my-appid',
-          location: 'moon',
-          backend: new AgentPlatformBackend()
+          backend: new EnterpriseBackend()
         },
         stream: true,
         singleRequestOptions: undefined
@@ -301,7 +293,6 @@ describe('request methods', () => {
         apiSettings: {
           apiKey: 'key',
           project: 'myproject',
-          location: 'moon',
           //@ts-ignore
           getAppCheckToken: () => Promise.resolve()
         },
