@@ -18,19 +18,7 @@
 import { initializeApp, deleteApp, FirebaseApp } from '@firebase/app';
 import '@firebase/installations';
 import { getAnalytics, initializeAnalytics, logEvent } from '../../src/index';
-import '../setup';
-import { expect } from 'chai';
-import { stub } from 'sinon';
-
-let config: Record<string, string>;
-try {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  config = require('../../../../config/project.json');
-} catch (e) {
-  throw new Error(
-    "Couldn't find config/project.json, make sure you ran test:setup."
-  );
-}
+import config from '../../../../config/project.json';
 
 const RETRY_INTERVAL = 1000;
 const TIMEOUT_MILLIS = 20000;
@@ -57,33 +45,50 @@ async function checkForEventCalls(retryCount = 0): Promise<PerformanceEntry[]> {
 describe('FirebaseAnalytics Integration Smoke Tests', () => {
   let app: FirebaseApp;
   describe('Using getAnalytics()', () => {
-    afterEach(() => deleteApp(app));
+    afterEach(async () => {
+      if (app) {
+        await deleteApp(app);
+        app = undefined as any;
+      }
+    });
     it('logEvent() sends correct network request.', async () => {
       app = initializeApp(config);
       logEvent(getAnalytics(app), 'login', { method: 'phone' });
       const eventCalls = await checkForEventCalls();
-      expect(eventCalls.length).to.equal(1);
-      expect(eventCalls[0].name).to.include('method=phone');
+      expect(eventCalls.length).toBe(1);
+      expect(eventCalls[0].name).toContain('method=phone');
     });
-    it("Warns if measurement ID doesn't match.", done => {
-      const warnStub = stub(console, 'warn').callsFake(() => {
-        expect(warnStub.args[0][1]).to.include('does not match');
-        done();
+    it("Warns if measurement ID doesn't match.", () => {
+      return new Promise<void>(resolve => {
+        vi.spyOn(console, 'warn').mockImplementation((...args: unknown[]) => {
+          const hasMatch = args.some(
+            arg => typeof arg === 'string' && arg.includes('does not match')
+          );
+          if (hasMatch) {
+            resolve();
+          }
+        });
+        app = initializeApp({
+          ...config,
+          measurementId: 'wrong-id'
+        });
+        getAnalytics(app);
       });
-      app = initializeApp({
-        ...config,
-        measurementId: 'wrong-id'
-      });
-      getAnalytics(app);
     });
   });
   describe('Using initializeAnalytics()', () => {
+    afterEach(async () => {
+      if (app) {
+        await deleteApp(app);
+        app = undefined as any;
+      }
+    });
     it('logEvent() sends correct network request.', async () => {
       app = initializeApp(config);
       logEvent(initializeAnalytics(app), 'login', { method: 'email' });
       const eventCalls = await checkForEventCalls();
-      expect(eventCalls.length).to.equal(1);
-      expect(eventCalls[0].name).to.include('method=email');
+      expect(eventCalls.length).toBe(1);
+      expect(eventCalls[0].name).toContain('method=email');
     });
   });
 });
