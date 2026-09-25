@@ -53,7 +53,11 @@ export {
   UnionStageOptions,
   UnnestStageOptions,
   SortStageOptions,
-  SearchStageOptions
+  SearchStageOptions,
+  AddWindowFieldsStageOptions,
+  WindowSpec,
+  DocumentWindowFrame,
+  RangeWindowFrame
   // TODO(search) export with backend support
   // QueryEnhancement
 } from './lite-api/stage_options';
@@ -211,8 +215,13 @@ export {
   Ordering,
   BooleanExpression,
   AggregateFunction,
+  WindowFunction,
   ExpressionType,
   AliasedAggregate,
+  AliasedWindowFunction,
+  rank,
+  denseRank,
+  rowNumber,
   Selectable,
   TimeGranularity,
   TimePart,

@@ -193,7 +193,10 @@ import {
   coalesce,
   ifNull,
   score,
-  documentMatches
+  documentMatches,
+  rank,
+  denseRank,
+  rowNumber
 } from '../util/pipeline_export';
 import {
   getRunEnterpriseTests,
@@ -7531,4 +7534,1532 @@ apiDescribe.skipClassic('Pipelines', persistence => {
   //     );
   //   });
   // });
+});
+
+/**
+ * Test data for the window function suites below.
+ *
+ * The sales are deliberately constructed so that:
+ * - `product` and `region` give overlapping, non-nested partitions,
+ * - `salesPrice` has ties (30 and 60 both appear twice), which exercises
+ *   `range` framing and ranking peers, and
+ * - `date` is strictly increasing and has an 11 day gap before the final sale,
+ *   which exercises time based `range` framing.
+ */
+const windowTestDocs: { [id: string]: DocumentData } = {
+  sale1: {
+    product: 'phone',
+    region: 'east',
+    salesPrice: 12,
+    quantity: 1,
+    date: Timestamp.fromDate(new Date('2026-07-01T12:00:00Z'))
+  },
+  sale2: {
+    product: 'phone',
+    region: 'west',
+    salesPrice: 30,
+    quantity: 2,
+    date: Timestamp.fromDate(new Date('2026-07-02T12:00:00Z'))
+  },
+  sale3: {
+    product: 'tablet',
+    region: 'east',
+    salesPrice: 30,
+    quantity: 3,
+    date: Timestamp.fromDate(new Date('2026-07-02T18:00:00Z'))
+  },
+  sale4: {
+    product: 'tablet',
+    region: 'west',
+    salesPrice: 60,
+    quantity: 4,
+    date: Timestamp.fromDate(new Date('2026-07-04T12:00:00Z'))
+  },
+  sale5: {
+    product: 'tablet',
+    region: 'east',
+    salesPrice: 60,
+    quantity: 5,
+    date: Timestamp.fromDate(new Date('2026-07-15T12:00:00Z'))
+  }
+};
+
+apiDescribe.skipClassic('Pipeline window functions (count)', persistence => {
+  addEqualityMatcher();
+
+  let firestore: Firestore;
+  let productSales: CollectionReference;
+
+  let testDeferred: Deferred<void>;
+  let withTestCollectionPromise: Promise<unknown>;
+
+  before(async () => {
+    const setupDeferred = new Deferred<void>();
+    testDeferred = new Deferred<void>();
+    withTestCollectionPromise = withTestCollection(
+      persistence,
+      windowTestDocs,
+      async (col, db) => {
+        productSales = col;
+        firestore = db;
+        setupDeferred.resolve();
+        return testDeferred.promise;
+      }
+    );
+    await setupDeferred.promise;
+  });
+
+  after(async () => {
+    testDeferred?.resolve();
+    await withTestCollectionPromise;
+  });
+
+  describe('partitioning', () => {
+    it('treats an empty window spec as a single global window', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(productSales)
+          .addWindowFields({}, count('quantity').as('windowCount'))
+          .sort(ascending('date'))
+          .select('product', 'windowCount')
+      );
+
+      expectResults(
+        snapshot,
+        { product: 'phone', windowCount: 5 },
+        { product: 'phone', windowCount: 5 },
+        { product: 'tablet', windowCount: 5 },
+        { product: 'tablet', windowCount: 5 },
+        { product: 'tablet', windowCount: 5 }
+      );
+    });
+
+    it('partitions by a single field name', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(productSales)
+          .addWindowFields(
+            { partition: ['product'] },
+            count('quantity').as('windowCount')
+          )
+          .sort(ascending('date'))
+          .select('product', 'windowCount')
+      );
+
+      expectResults(
+        snapshot,
+        { product: 'phone', windowCount: 2 },
+        { product: 'phone', windowCount: 2 },
+        { product: 'tablet', windowCount: 3 },
+        { product: 'tablet', windowCount: 3 },
+        { product: 'tablet', windowCount: 3 }
+      );
+    });
+
+    it('partitions by multiple fields', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(productSales)
+          .addWindowFields(
+            { partition: ['product', 'region'] },
+            count('quantity').as('windowCount')
+          )
+          .sort(ascending('date'))
+          .select('product', 'region', 'windowCount')
+      );
+
+      expectResults(
+        snapshot,
+        { product: 'phone', region: 'east', windowCount: 1 },
+        { product: 'phone', region: 'west', windowCount: 1 },
+        { product: 'tablet', region: 'east', windowCount: 2 },
+        { product: 'tablet', region: 'west', windowCount: 1 },
+        { product: 'tablet', region: 'east', windowCount: 2 }
+      );
+    });
+
+    it('partitions by an expression', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(productSales)
+          .addWindowFields(
+            { partition: [toUpper('region')] },
+            count('quantity').as('windowCount')
+          )
+          .sort(ascending('date'))
+          .select('region', 'windowCount')
+      );
+
+      expectResults(
+        snapshot,
+        { region: 'east', windowCount: 3 },
+        { region: 'west', windowCount: 2 },
+        { region: 'east', windowCount: 3 },
+        { region: 'west', windowCount: 2 },
+        { region: 'east', windowCount: 3 }
+      );
+    });
+  });
+
+  describe('sorting and default framing', () => {
+    it('computes a running count with the default (sorted) frame', async () => {
+      // The implicit default frame is a `range` frame, so the sort key must be
+      // numeric. `quantity` is 1..5 in the same order as `date`, and has no
+      // ties, so the running count is unambiguous.
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(productSales)
+          .addWindowFields(
+            { sort: ascending('quantity') },
+            count('quantity').as('runningCount')
+          )
+          .sort(ascending('date'))
+          .select('product', 'runningCount')
+      );
+
+      expectResults(
+        snapshot,
+        { product: 'phone', runningCount: 1 },
+        { product: 'phone', runningCount: 2 },
+        { product: 'tablet', runningCount: 3 },
+        { product: 'tablet', runningCount: 4 },
+        { product: 'tablet', runningCount: 5 }
+      );
+    });
+
+    it('computes a running count within each partition', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(productSales)
+          .addWindowFields(
+            { partition: ['product'], sort: ascending('quantity') },
+            count('quantity').as('runningCount')
+          )
+          .sort(ascending('date'))
+          .select('product', 'runningCount')
+      );
+
+      expectResults(
+        snapshot,
+        { product: 'phone', runningCount: 1 },
+        { product: 'phone', runningCount: 2 },
+        { product: 'tablet', runningCount: 1 },
+        { product: 'tablet', runningCount: 2 },
+        { product: 'tablet', runningCount: 3 }
+      );
+    });
+
+    it('honors a descending sort', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(productSales)
+          .addWindowFields(
+            {
+              sort: descending('date'),
+              documents: { preceding: 'unbounded', following: 'current' }
+            },
+            count('quantity').as('runningCount')
+          )
+          .sort(ascending('date'))
+          .select('product', 'runningCount')
+      );
+
+      expectResults(
+        snapshot,
+        { product: 'phone', runningCount: 5 },
+        { product: 'phone', runningCount: 4 },
+        { product: 'tablet', runningCount: 3 },
+        { product: 'tablet', runningCount: 2 },
+        { product: 'tablet', runningCount: 1 }
+      );
+    });
+
+    it('honors multiple sort orderings', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(productSales)
+          .addWindowFields(
+            {
+              sort: [ascending('product'), ascending('date')],
+              documents: { preceding: 'unbounded', following: 'current' }
+            },
+            count('quantity').as('runningCount')
+          )
+          .sort(ascending('date'))
+          .select('product', 'runningCount')
+      );
+
+      expectResults(
+        snapshot,
+        { product: 'phone', runningCount: 1 },
+        { product: 'phone', runningCount: 2 },
+        { product: 'tablet', runningCount: 3 },
+        { product: 'tablet', runningCount: 4 },
+        { product: 'tablet', runningCount: 5 }
+      );
+    });
+  });
+
+  describe('documents framing', () => {
+    it("supports 'unbounded' preceding to 'current' following", async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(productSales)
+          .addWindowFields(
+            {
+              sort: ascending('date'),
+              documents: { preceding: 'unbounded', following: 'current' }
+            },
+            count('quantity').as('windowCount')
+          )
+          .sort(ascending('date'))
+          .select('product', 'windowCount')
+      );
+
+      expectResults(
+        snapshot,
+        { product: 'phone', windowCount: 1 },
+        { product: 'phone', windowCount: 2 },
+        { product: 'tablet', windowCount: 3 },
+        { product: 'tablet', windowCount: 4 },
+        { product: 'tablet', windowCount: 5 }
+      );
+    });
+
+    it("supports 'unbounded' preceding to 'unbounded' following", async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(productSales)
+          .addWindowFields(
+            {
+              partition: ['product'],
+              sort: ascending('date'),
+              documents: { preceding: 'unbounded', following: 'unbounded' }
+            },
+            count('quantity').as('windowCount')
+          )
+          .sort(ascending('date'))
+          .select('product', 'windowCount')
+      );
+
+      expectResults(
+        snapshot,
+        { product: 'phone', windowCount: 2 },
+        { product: 'phone', windowCount: 2 },
+        { product: 'tablet', windowCount: 3 },
+        { product: 'tablet', windowCount: 3 },
+        { product: 'tablet', windowCount: 3 }
+      );
+    });
+
+    it("supports 'current' preceding to 'current' following", async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(productSales)
+          .addWindowFields(
+            {
+              sort: ascending('date'),
+              documents: { preceding: 'current', following: 'current' }
+            },
+            count('quantity').as('windowCount')
+          )
+          .sort(ascending('date'))
+          .select('product', 'windowCount')
+      );
+
+      expectResults(
+        snapshot,
+        { product: 'phone', windowCount: 1 },
+        { product: 'phone', windowCount: 1 },
+        { product: 'tablet', windowCount: 1 },
+        { product: 'tablet', windowCount: 1 },
+        { product: 'tablet', windowCount: 1 }
+      );
+    });
+  });
+
+  describe('range framing', () => {
+    // In a `range` frame the `'current'` sentinel resolves to the current
+    // document only. A numeric `0` offset is what widens the frame to every
+    // document with an equal sort value (the SQL "peer group").
+    it("counts only the current document with 'current' to 'current'", async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(productSales)
+          .addWindowFields(
+            {
+              partition: ['product'],
+              sort: ascending('salesPrice'),
+              range: { preceding: 'current', following: 'current' }
+            },
+            count('quantity').as('samePriceCount')
+          )
+          .sort(ascending('date'))
+          .select('product', 'salesPrice', 'samePriceCount')
+      );
+
+      expectResults(
+        snapshot,
+        { product: 'phone', salesPrice: 12, samePriceCount: 1 },
+        { product: 'phone', salesPrice: 30, samePriceCount: 1 },
+        { product: 'tablet', salesPrice: 30, samePriceCount: 1 },
+        { product: 'tablet', salesPrice: 60, samePriceCount: 1 },
+        { product: 'tablet', salesPrice: 60, samePriceCount: 1 }
+      );
+    });
+
+    it('counts tied peers with a zero offset on both bounds', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(productSales)
+          .addWindowFields(
+            {
+              partition: ['product'],
+              sort: ascending('salesPrice'),
+              range: { preceding: 0, following: 0 }
+            },
+            count('quantity').as('samePriceCount')
+          )
+          .sort(ascending('date'))
+          .select('product', 'salesPrice', 'samePriceCount')
+      );
+
+      expectResults(
+        snapshot,
+        { product: 'phone', salesPrice: 12, samePriceCount: 1 },
+        { product: 'phone', salesPrice: 30, samePriceCount: 1 },
+        { product: 'tablet', salesPrice: 30, samePriceCount: 1 },
+        { product: 'tablet', salesPrice: 60, samePriceCount: 2 },
+        { product: 'tablet', salesPrice: 60, samePriceCount: 2 }
+      );
+    });
+
+    it("includes tied peers with 'unbounded' preceding to a zero offset", async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(productSales)
+          .addWindowFields(
+            {
+              sort: ascending('salesPrice'),
+              range: { preceding: 'unbounded', following: 0 }
+            },
+            count('quantity').as('cumulativeCount')
+          )
+          .sort(ascending('date'))
+          .select('salesPrice', 'cumulativeCount')
+      );
+
+      expectResults(
+        snapshot,
+        { salesPrice: 12, cumulativeCount: 1 },
+        { salesPrice: 30, cumulativeCount: 3 },
+        { salesPrice: 30, cumulativeCount: 3 },
+        { salesPrice: 60, cumulativeCount: 5 },
+        { salesPrice: 60, cumulativeCount: 5 }
+      );
+    });
+
+    it("supports 'unbounded' to 'unbounded'", async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(productSales)
+          .addWindowFields(
+            {
+              partition: ['product'],
+              sort: ascending('salesPrice'),
+              range: { preceding: 'unbounded', following: 'unbounded' }
+            },
+            count('quantity').as('windowCount')
+          )
+          .sort(ascending('date'))
+          .select('product', 'windowCount')
+      );
+
+      expectResults(
+        snapshot,
+        { product: 'phone', windowCount: 2 },
+        { product: 'phone', windowCount: 2 },
+        { product: 'tablet', windowCount: 3 },
+        { product: 'tablet', windowCount: 3 },
+        { product: 'tablet', windowCount: 3 }
+      );
+    });
+
+    it('supports a time unit on a date sorted range frame', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(productSales)
+          .addWindowFields(
+            {
+              sort: ascending('date'),
+              range: {
+                preceding: 'unbounded',
+                following: 'current',
+                unit: 'day'
+              }
+            },
+            count('quantity').as('cumulativeCount')
+          )
+          .sort(ascending('date'))
+          .select('product', 'cumulativeCount')
+      );
+
+      expectResults(
+        snapshot,
+        { product: 'phone', cumulativeCount: 1 },
+        { product: 'phone', cumulativeCount: 2 },
+        { product: 'tablet', cumulativeCount: 3 },
+        { product: 'tablet', cumulativeCount: 4 },
+        { product: 'tablet', cumulativeCount: 5 }
+      );
+    });
+  });
+
+  describe('accumulator level framing', () => {
+    it('evaluates each accumulator over its own frame', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(productSales)
+          .addWindowFields(
+            { partition: ['product'], sort: ascending('date') },
+            count('quantity')
+              .over({
+                documents: { preceding: 'unbounded', following: 'current' }
+              })
+              .as('runningCount'),
+            count('quantity')
+              .over({
+                documents: { preceding: 'unbounded', following: 'unbounded' }
+              })
+              .as('partitionCount')
+          )
+          .sort(ascending('date'))
+          .select('product', 'runningCount', 'partitionCount')
+      );
+
+      expectResults(
+        snapshot,
+        { product: 'phone', runningCount: 1, partitionCount: 2 },
+        { product: 'phone', runningCount: 2, partitionCount: 2 },
+        { product: 'tablet', runningCount: 1, partitionCount: 3 },
+        { product: 'tablet', runningCount: 2, partitionCount: 3 },
+        { product: 'tablet', runningCount: 3, partitionCount: 3 }
+      );
+    });
+
+    it('supports a range frame in over()', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(productSales)
+          .addWindowFields(
+            { partition: ['product'], sort: ascending('salesPrice') },
+            count('quantity')
+              .over({ range: { preceding: 0, following: 0 } })
+              .as('samePriceCount')
+          )
+          .sort(ascending('date'))
+          .select('product', 'salesPrice', 'samePriceCount')
+      );
+
+      expectResults(
+        snapshot,
+        { product: 'phone', salesPrice: 12, samePriceCount: 1 },
+        { product: 'phone', salesPrice: 30, samePriceCount: 1 },
+        { product: 'tablet', salesPrice: 30, samePriceCount: 1 },
+        { product: 'tablet', salesPrice: 60, samePriceCount: 2 },
+        { product: 'tablet', salesPrice: 60, samePriceCount: 2 }
+      );
+    });
+  });
+
+  describe('output fields and composition', () => {
+    it('supports multiple output fields in a single stage', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(productSales)
+          .addWindowFields(
+            { partition: ['product'] },
+            count('quantity').as('productCount'),
+            count('quantity').as('productCountCopy')
+          )
+          .sort(ascending('date'))
+          .select('product', 'productCount', 'productCountCopy')
+      );
+
+      expectResults(
+        snapshot,
+        { product: 'phone', productCount: 2, productCountCopy: 2 },
+        { product: 'phone', productCount: 2, productCountCopy: 2 },
+        { product: 'tablet', productCount: 3, productCountCopy: 3 },
+        { product: 'tablet', productCount: 3, productCountCopy: 3 },
+        { product: 'tablet', productCount: 3, productCountCopy: 3 }
+      );
+    });
+
+    it('supports nested output field paths', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(productSales)
+          .addWindowFields(
+            { partition: ['product'] },
+            count('quantity').as('stats.productCount')
+          )
+          .sort(ascending('date'))
+          .select('product', 'stats')
+      );
+
+      expectResults(
+        snapshot,
+        { product: 'phone', stats: { productCount: 2 } },
+        { product: 'phone', stats: { productCount: 2 } },
+        { product: 'tablet', stats: { productCount: 3 } },
+        { product: 'tablet', stats: { productCount: 3 } },
+        { product: 'tablet', stats: { productCount: 3 } }
+      );
+    });
+
+    it('supports chaining multiple addWindowFields stages', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(productSales)
+          .addWindowFields(
+            { partition: ['product'] },
+            count('quantity').as('productCount')
+          )
+          .addWindowFields(
+            { partition: ['region'] },
+            count('quantity').as('regionCount')
+          )
+          .sort(ascending('date'))
+          .select('product', 'region', 'productCount', 'regionCount')
+      );
+
+      expectResults(
+        snapshot,
+        {
+          product: 'phone',
+          region: 'east',
+          productCount: 2,
+          regionCount: 3
+        },
+        {
+          product: 'phone',
+          region: 'west',
+          productCount: 2,
+          regionCount: 2
+        },
+        {
+          product: 'tablet',
+          region: 'east',
+          productCount: 3,
+          regionCount: 3
+        },
+        {
+          product: 'tablet',
+          region: 'west',
+          productCount: 3,
+          regionCount: 2
+        },
+        {
+          product: 'tablet',
+          region: 'east',
+          productCount: 3,
+          regionCount: 3
+        }
+      );
+    });
+
+    it('supports filtering on a window field in a later stage', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(productSales)
+          .addWindowFields(
+            { partition: ['product'] },
+            count('quantity').as('productCount')
+          )
+          .where(field('productCount').greaterThan(2))
+          .sort(ascending('date'))
+          .select('product', 'productCount')
+      );
+
+      expectResults(
+        snapshot,
+        { product: 'tablet', productCount: 3 },
+        { product: 'tablet', productCount: 3 },
+        { product: 'tablet', productCount: 3 }
+      );
+    });
+
+    it('supports sorting on a window field in a later stage', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(productSales)
+          .addWindowFields(
+            { partition: ['product'] },
+            count('quantity').as('productCount')
+          )
+          .sort(ascending('productCount'), ascending('date'))
+          .select('product', 'productCount')
+      );
+
+      expectResults(
+        snapshot,
+        { product: 'phone', productCount: 2 },
+        { product: 'phone', productCount: 2 },
+        { product: 'tablet', productCount: 3 },
+        { product: 'tablet', productCount: 3 },
+        { product: 'tablet', productCount: 3 }
+      );
+    });
+  });
+
+  describe('options overload', () => {
+    it('supports the options object signature', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(productSales.path)
+          .addWindowFields({
+            window: {
+              partition: ['product'],
+              sort: ascending('date'),
+              documents: { preceding: 'unbounded', following: 'current' }
+            },
+            fields: [
+              count('quantity').as('runningCount'),
+              count('salesPrice').as('runningPriceCount')
+            ]
+          })
+          .sort(ascending('date'))
+          .select('product', 'runningCount', 'runningPriceCount')
+      );
+
+      expectResults(
+        snapshot,
+        { product: 'phone', runningCount: 1, runningPriceCount: 1 },
+        { product: 'phone', runningCount: 2, runningPriceCount: 2 },
+        { product: 'tablet', runningCount: 1, runningPriceCount: 1 },
+        { product: 'tablet', runningCount: 2, runningPriceCount: 2 },
+        { product: 'tablet', runningCount: 3, runningPriceCount: 3 }
+      );
+    });
+  });
+
+  describe('error handling', () => {
+    it('rejects a range frame without a sort', async () => {
+      await expect(
+        execute(
+          firestore
+            .pipeline()
+            .collection(productSales)
+            .addWindowFields(
+              { range: { preceding: 'unbounded', following: 'current' } },
+              count('quantity').as('windowCount')
+            )
+        )
+      ).to.be.rejectedWith(FirebaseError, /range/i);
+    });
+
+    it('rejects mixing stage level and accumulator level framing', async () => {
+      await expect(
+        execute(
+          firestore
+            .pipeline()
+            .collection(productSales)
+            .addWindowFields(
+              {
+                sort: ascending('date'),
+                documents: { preceding: 'unbounded', following: 'current' }
+              },
+              count('quantity')
+                .over({
+                  documents: { preceding: 'unbounded', following: 'unbounded' }
+                })
+                .as('windowCount')
+            )
+        )
+      ).to.be.rejectedWith(FirebaseError);
+    });
+
+    it('rejects partially specified accumulator level framing', async () => {
+      await expect(
+        execute(
+          firestore
+            .pipeline()
+            .collection(productSales)
+            .addWindowFields(
+              { sort: ascending('date') },
+              count('quantity')
+                .over({
+                  documents: { preceding: 'unbounded', following: 'current' }
+                })
+                .as('framed'),
+              count('quantity').as('unframed')
+            )
+        )
+      ).to.be.rejectedWith(FirebaseError);
+    });
+
+    // The following combinations are deliberately not validated client side.
+    // These tests assert that the backend does reject them, so that removing
+    // the SDK checks does not silently let a malformed pipeline through.
+    it("rejects specifying both 'documents' and 'range'", async () => {
+      await expect(
+        execute(
+          firestore
+            .pipeline()
+            .collection(productSales)
+            .addWindowFields(
+              {
+                sort: ascending('salesPrice'),
+                documents: { preceding: 'unbounded', following: 'current' },
+                range: { preceding: 'unbounded', following: 'current' }
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              } as any,
+              count('quantity').as('windowCount')
+            )
+        )
+      ).to.be.rejectedWith(FirebaseError, /documents.*range|range.*documents/i);
+    });
+
+    it('rejects an unrecognized frame bound', async () => {
+      await expect(
+        execute(
+          firestore
+            .pipeline()
+            .collection(productSales)
+            .addWindowFields(
+              {
+                sort: ascending('quantity'),
+                documents: {
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  preceding: 'infinite' as any,
+                  following: 'current'
+                }
+              },
+              count('quantity').as('windowCount')
+            )
+        )
+      ).to.be.rejectedWith(FirebaseError);
+    });
+
+    it('rejects a partition supplied to an accumulator level over()', async () => {
+      await expect(
+        execute(
+          firestore
+            .pipeline()
+            .collection(productSales)
+            .addWindowFields(
+              { sort: ascending('quantity') },
+              count('quantity')
+                .over({
+                  partition: ['product'],
+                  documents: { preceding: 'unbounded', following: 'current' }
+                })
+                .as('windowCount')
+            )
+        )
+      ).to.be.rejectedWith(FirebaseError, /unexpected field/i);
+    });
+
+    it("rejects a 'unit' on a documents frame", async () => {
+      await expect(
+        execute(
+          firestore
+            .pipeline()
+            .collection(productSales)
+            .addWindowFields(
+              {
+                sort: ascending('date'),
+                documents: {
+                  preceding: 'unbounded',
+                  following: 'current',
+                  unit: 'day'
+                }
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              } as any,
+              count('quantity').as('windowCount')
+            )
+        )
+      ).to.be.rejectedWith(FirebaseError);
+    });
+  });
+});
+
+// TODO(b/…): Un-skip this suite once cl/977837857 (physical execution of the
+// non-count window aggregators, plus the `preceding` offset sign fix) has been
+// submitted and rolled out to Nightly. Until then these pipelines fail with
+// `UnsupportedOperationException: Unsupported window aggregator: <KIND>`.
+// Flip `WINDOW_AGGREGATORS_SUPPORTED` to `true` to run them.
+const WINDOW_AGGREGATORS_SUPPORTED = false;
+
+(WINDOW_AGGREGATORS_SUPPORTED ? apiDescribe.skipClassic : apiDescribe.skip)(
+  'Pipeline window functions (aggregators)',
+  persistence => {
+    addEqualityMatcher();
+
+    let firestore: Firestore;
+    let productSales: CollectionReference;
+
+    let testDeferred: Deferred<void>;
+    let withTestCollectionPromise: Promise<unknown>;
+
+    before(async () => {
+      const setupDeferred = new Deferred<void>();
+      testDeferred = new Deferred<void>();
+      withTestCollectionPromise = withTestCollection(
+        persistence,
+        windowTestDocs,
+        async (col, db) => {
+          productSales = col;
+          firestore = db;
+          setupDeferred.resolve();
+          return testDeferred.promise;
+        }
+      );
+      await setupDeferred.promise;
+    });
+
+    after(async () => {
+      testDeferred?.resolve();
+      await withTestCollectionPromise;
+    });
+
+    describe('numeric aggregators over a partition', () => {
+      it('computes sum, average, minimum and maximum', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(productSales)
+            .addWindowFields(
+              { partition: ['product'] },
+              sum('salesPrice').as('total'),
+              average('salesPrice').as('averagePrice'),
+              minimum('salesPrice').as('minimumPrice'),
+              maximum('salesPrice').as('maximumPrice')
+            )
+            .sort(ascending('date'))
+            .select(
+              'product',
+              'total',
+              'averagePrice',
+              'minimumPrice',
+              'maximumPrice'
+            )
+        );
+
+        expectResults(
+          snapshot,
+          {
+            product: 'phone',
+            total: 42,
+            averagePrice: 21,
+            minimumPrice: 12,
+            maximumPrice: 30
+          },
+          {
+            product: 'phone',
+            total: 42,
+            averagePrice: 21,
+            minimumPrice: 12,
+            maximumPrice: 30
+          },
+          {
+            product: 'tablet',
+            total: 150,
+            averagePrice: 50,
+            minimumPrice: 30,
+            maximumPrice: 60
+          },
+          {
+            product: 'tablet',
+            total: 150,
+            averagePrice: 50,
+            minimumPrice: 30,
+            maximumPrice: 60
+          },
+          {
+            product: 'tablet',
+            total: 150,
+            averagePrice: 50,
+            minimumPrice: 30,
+            maximumPrice: 60
+          }
+        );
+      });
+
+      it('computes countIf and countDistinct', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(productSales)
+            .addWindowFields(
+              { partition: ['product'] },
+              countIf(field('salesPrice').greaterThan(20)).as('expensiveCount'),
+              countDistinct('salesPrice').as('distinctPriceCount')
+            )
+            .sort(ascending('date'))
+            .select('product', 'expensiveCount', 'distinctPriceCount')
+        );
+
+        expectResults(
+          snapshot,
+          { product: 'phone', expensiveCount: 1, distinctPriceCount: 2 },
+          { product: 'phone', expensiveCount: 1, distinctPriceCount: 2 },
+          { product: 'tablet', expensiveCount: 3, distinctPriceCount: 2 },
+          { product: 'tablet', expensiveCount: 3, distinctPriceCount: 2 },
+          { product: 'tablet', expensiveCount: 3, distinctPriceCount: 2 }
+        );
+      });
+
+      it('aggregates over a computed expression', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(productSales)
+            .addWindowFields(
+              { partition: ['product'] },
+              sum(multiply(field('salesPrice'), field('quantity'))).as(
+                'totalRevenue'
+              )
+            )
+            .sort(ascending('date'))
+            .select('product', 'totalRevenue')
+        );
+
+        expectResults(
+          snapshot,
+          { product: 'phone', totalRevenue: 72 },
+          { product: 'phone', totalRevenue: 72 },
+          { product: 'tablet', totalRevenue: 630 },
+          { product: 'tablet', totalRevenue: 630 },
+          { product: 'tablet', totalRevenue: 630 }
+        );
+      });
+    });
+
+    describe('ordered aggregators', () => {
+      it('computes first and last over the whole partition', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(productSales)
+            .addWindowFields(
+              {
+                partition: ['product'],
+                sort: ascending('date'),
+                documents: { preceding: 'unbounded', following: 'unbounded' }
+              },
+              first('salesPrice').as('firstPrice'),
+              last('salesPrice').as('lastPrice')
+            )
+            .sort(ascending('date'))
+            .select('product', 'firstPrice', 'lastPrice')
+        );
+
+        expectResults(
+          snapshot,
+          { product: 'phone', firstPrice: 12, lastPrice: 30 },
+          { product: 'phone', firstPrice: 12, lastPrice: 30 },
+          { product: 'tablet', firstPrice: 30, lastPrice: 60 },
+          { product: 'tablet', firstPrice: 30, lastPrice: 60 },
+          { product: 'tablet', firstPrice: 30, lastPrice: 60 }
+        );
+      });
+
+      it('computes arrayAgg and arrayAggDistinct', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(productSales)
+            .addWindowFields(
+              {
+                partition: ['product'],
+                sort: ascending('date'),
+                documents: { preceding: 'unbounded', following: 'unbounded' }
+              },
+              arrayAgg('salesPrice').as('allPrices'),
+              arrayAggDistinct('salesPrice').as('distinctPrices')
+            )
+            .sort(ascending('date'))
+            .select('product', 'allPrices', 'distinctPrices')
+        );
+
+        expectResults(
+          snapshot,
+          {
+            product: 'phone',
+            allPrices: [12, 30],
+            distinctPrices: [12, 30]
+          },
+          {
+            product: 'phone',
+            allPrices: [12, 30],
+            distinctPrices: [12, 30]
+          },
+          {
+            product: 'tablet',
+            allPrices: [30, 60, 60],
+            distinctPrices: [30, 60]
+          },
+          {
+            product: 'tablet',
+            allPrices: [30, 60, 60],
+            distinctPrices: [30, 60]
+          },
+          {
+            product: 'tablet',
+            allPrices: [30, 60, 60],
+            distinctPrices: [30, 60]
+          }
+        );
+      });
+
+      it('computes a running total', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(productSales)
+            .addWindowFields(
+              {
+                sort: ascending('date'),
+                documents: { preceding: 'unbounded', following: 'current' }
+              },
+              sum('salesPrice').as('runningTotal')
+            )
+            .sort(ascending('date'))
+            .select('product', 'runningTotal')
+        );
+
+        expectResults(
+          snapshot,
+          { product: 'phone', runningTotal: 12 },
+          { product: 'phone', runningTotal: 42 },
+          { product: 'tablet', runningTotal: 72 },
+          { product: 'tablet', runningTotal: 132 },
+          { product: 'tablet', runningTotal: 192 }
+        );
+      });
+    });
+
+    describe('numeric documents offsets', () => {
+      it('computes a centered moving average', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(productSales)
+            .addWindowFields(
+              {
+                sort: ascending('date'),
+                documents: { preceding: 1, following: 1 }
+              },
+              average('salesPrice').as('movingAverage'),
+              countAll().as('windowCount')
+            )
+            .sort(ascending('date'))
+            .select('product', 'movingAverage', 'windowCount')
+        );
+
+        expectResults(
+          snapshot,
+          { product: 'phone', movingAverage: 21, windowCount: 2 },
+          { product: 'phone', movingAverage: 24, windowCount: 3 },
+          { product: 'tablet', movingAverage: 40, windowCount: 3 },
+          { product: 'tablet', movingAverage: 50, windowCount: 3 },
+          { product: 'tablet', movingAverage: 60, windowCount: 2 }
+        );
+      });
+
+      it('computes a trailing sum', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(productSales)
+            .addWindowFields(
+              {
+                sort: ascending('date'),
+                documents: { preceding: 2, following: 0 }
+              },
+              sum('salesPrice').as('trailingTotal')
+            )
+            .sort(ascending('date'))
+            .select('product', 'trailingTotal')
+        );
+
+        expectResults(
+          snapshot,
+          { product: 'phone', trailingTotal: 12 },
+          { product: 'phone', trailingTotal: 42 },
+          { product: 'tablet', trailingTotal: 72 },
+          { product: 'tablet', trailingTotal: 120 },
+          { product: 'tablet', trailingTotal: 150 }
+        );
+      });
+
+      it('computes a look ahead average with a negative preceding bound', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(productSales)
+            .addWindowFields(
+              {
+                // Equivalent to "documents between 1 following and 2
+                // following": the window is [index - preceding, index +
+                // following].
+                sort: ascending('date'),
+                documents: { preceding: -1, following: 2 }
+              },
+              average('salesPrice').as('lookAheadAverage'),
+              countAll().as('windowCount')
+            )
+            .sort(ascending('date'))
+            .select('product', 'lookAheadAverage', 'windowCount')
+        );
+
+        expectResults(
+          snapshot,
+          { product: 'phone', lookAheadAverage: 30, windowCount: 2 },
+          { product: 'phone', lookAheadAverage: 45, windowCount: 2 },
+          { product: 'tablet', lookAheadAverage: 60, windowCount: 2 },
+          { product: 'tablet', lookAheadAverage: 60, windowCount: 1 },
+          { product: 'tablet', lookAheadAverage: null, windowCount: 0 }
+        );
+      });
+    });
+
+    describe('numeric and time range offsets', () => {
+      it('computes a value based range window', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(productSales)
+            .addWindowFields(
+              {
+                sort: ascending('salesPrice'),
+                range: { preceding: 20, following: 0 }
+              },
+              sum('salesPrice').as('nearbyTotal')
+            )
+            .sort(ascending('date'))
+            .select('salesPrice', 'nearbyTotal')
+        );
+
+        expectResults(
+          snapshot,
+          { salesPrice: 12, nearbyTotal: 12 },
+          { salesPrice: 30, nearbyTotal: 72 },
+          { salesPrice: 30, nearbyTotal: 72 },
+          { salesPrice: 60, nearbyTotal: 120 },
+          { salesPrice: 60, nearbyTotal: 120 }
+        );
+      });
+
+      it('computes a trailing 3 day total', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(productSales)
+            .addWindowFields(
+              {
+                sort: ascending('date'),
+                range: { preceding: 3, following: 'current', unit: 'day' }
+              },
+              sum('salesPrice').as('threeDayTotal')
+            )
+            .sort(ascending('date'))
+            .select('product', 'threeDayTotal')
+        );
+
+        expectResults(
+          snapshot,
+          { product: 'phone', threeDayTotal: 12 },
+          { product: 'phone', threeDayTotal: 42 },
+          { product: 'tablet', threeDayTotal: 72 },
+          { product: 'tablet', threeDayTotal: 132 },
+          { product: 'tablet', threeDayTotal: 60 }
+        );
+      });
+
+      it('computes a cumulative total with an unbounded date range', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(productSales)
+            .addWindowFields(
+              {
+                sort: ascending('date'),
+                range: {
+                  preceding: 'unbounded',
+                  following: 'current',
+                  unit: 'day'
+                }
+              },
+              sum('salesPrice').as('cumulativeTotal')
+            )
+            .sort(ascending('date'))
+            .select('product', 'cumulativeTotal')
+        );
+
+        expectResults(
+          snapshot,
+          { product: 'phone', cumulativeTotal: 12 },
+          { product: 'phone', cumulativeTotal: 42 },
+          { product: 'tablet', cumulativeTotal: 72 },
+          { product: 'tablet', cumulativeTotal: 132 },
+          { product: 'tablet', cumulativeTotal: 192 }
+        );
+      });
+    });
+
+    describe('accumulator level framing', () => {
+      it('evaluates each aggregate over a different frame', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(productSales)
+            .addWindowFields(
+              { sort: ascending('date') },
+              sum('salesPrice')
+                .over({
+                  documents: { preceding: 'unbounded', following: 'current' }
+                })
+                .as('runningTotal'),
+              average('salesPrice')
+                .over({ documents: { preceding: 1, following: 1 } })
+                .as('movingAverage')
+            )
+            .sort(ascending('date'))
+            .select('product', 'runningTotal', 'movingAverage')
+        );
+
+        expectResults(
+          snapshot,
+          { product: 'phone', runningTotal: 12, movingAverage: 21 },
+          { product: 'phone', runningTotal: 42, movingAverage: 24 },
+          { product: 'tablet', runningTotal: 72, movingAverage: 40 },
+          { product: 'tablet', runningTotal: 132, movingAverage: 50 },
+          { product: 'tablet', runningTotal: 192, movingAverage: 60 }
+        );
+      });
+    });
+
+    // `countAll()` serializes to a zero argument `count` function, which the
+    // backend maps to `FunctionKind.COUNT_ALL`. `WindowFunctionConverter` only
+    // handles `COUNT` today, so this currently fails with
+    // `UnsupportedOperationException: Unsupported window aggregator: COUNT_ALL`.
+    describe('countAll', () => {
+      it('counts every document in the window', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(productSales)
+            .addWindowFields(
+              { partition: ['product'] },
+              countAll().as('windowCount')
+            )
+            .sort(ascending('date'))
+            .select('product', 'windowCount')
+        );
+
+        expectResults(
+          snapshot,
+          { product: 'phone', windowCount: 2 },
+          { product: 'phone', windowCount: 2 },
+          { product: 'tablet', windowCount: 3 },
+          { product: 'tablet', windowCount: 3 },
+          { product: 'tablet', windowCount: 3 }
+        );
+      });
+    });
+
+    // Numeric `documents` offsets depend on the `toAlgebraBound()` sign fix in
+    // cl/977837857. Before that CL every numeric `documents` bound (including
+    // `0`) fails with an INTERNAL error, so these live in the gated suite even
+    // though they only use `count()`.
+    describe('documents framing with numeric offsets', () => {
+      it('supports zero preceding and zero following', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(productSales)
+            .addWindowFields(
+              {
+                sort: ascending('date'),
+                documents: { preceding: 0, following: 0 }
+              },
+              count('quantity').as('windowCount')
+            )
+            .sort(ascending('date'))
+            .select('product', 'windowCount')
+        );
+
+        expectResults(
+          snapshot,
+          { product: 'phone', windowCount: 1 },
+          { product: 'phone', windowCount: 1 },
+          { product: 'tablet', windowCount: 1 },
+          { product: 'tablet', windowCount: 1 },
+          { product: 'tablet', windowCount: 1 }
+        );
+      });
+
+      it("supports zero preceding to 'unbounded' following", async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(productSales)
+            .addWindowFields(
+              {
+                sort: ascending('date'),
+                documents: { preceding: 0, following: 'unbounded' }
+              },
+              count('quantity').as('windowCount')
+            )
+            .sort(ascending('date'))
+            .select('product', 'windowCount')
+        );
+
+        expectResults(
+          snapshot,
+          { product: 'phone', windowCount: 5 },
+          { product: 'phone', windowCount: 4 },
+          { product: 'tablet', windowCount: 3 },
+          { product: 'tablet', windowCount: 2 },
+          { product: 'tablet', windowCount: 1 }
+        );
+      });
+
+      it('supports a symmetric moving window', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(productSales)
+            .addWindowFields(
+              {
+                sort: ascending('date'),
+                documents: { preceding: 1, following: 1 }
+              },
+              count('quantity').as('windowCount')
+            )
+            .sort(ascending('date'))
+            .select('product', 'windowCount')
+        );
+
+        expectResults(
+          snapshot,
+          { product: 'phone', windowCount: 2 },
+          { product: 'phone', windowCount: 3 },
+          { product: 'tablet', windowCount: 3 },
+          { product: 'tablet', windowCount: 3 },
+          { product: 'tablet', windowCount: 2 }
+        );
+      });
+    });
+  }
+);
+
+// TODO(b/…): Un-skip once the backend CL that adds `rank()`, `denseRank()` and
+// `rowNumber()` support lands (it follows cl/977837857).
+apiDescribe.skip('Pipeline window functions (ranking)', persistence => {
+  addEqualityMatcher();
+
+  let firestore: Firestore;
+  let productSales: CollectionReference;
+
+  let testDeferred: Deferred<void>;
+  let withTestCollectionPromise: Promise<unknown>;
+
+  before(async () => {
+    const setupDeferred = new Deferred<void>();
+    testDeferred = new Deferred<void>();
+    withTestCollectionPromise = withTestCollection(
+      persistence,
+      windowTestDocs,
+      async (col, db) => {
+        productSales = col;
+        firestore = db;
+        setupDeferred.resolve();
+        return testDeferred.promise;
+      }
+    );
+    await setupDeferred.promise;
+  });
+
+  after(async () => {
+    testDeferred?.resolve();
+    await withTestCollectionPromise;
+  });
+
+  it('computes rank, denseRank and rowNumber', async () => {
+    const snapshot = await execute(
+      firestore
+        .pipeline()
+        .collection(productSales)
+        .addWindowFields(
+          { sort: [ascending('salesPrice'), ascending('date')] },
+          rank().as('priceRank'),
+          denseRank().as('priceDenseRank'),
+          rowNumber().as('priceRowNumber')
+        )
+        .sort(ascending('date'))
+        .select('salesPrice', 'priceRank', 'priceDenseRank', 'priceRowNumber')
+    );
+
+    expectResults(
+      snapshot,
+      {
+        salesPrice: 12,
+        priceRank: 1,
+        priceDenseRank: 1,
+        priceRowNumber: 1
+      },
+      {
+        salesPrice: 30,
+        priceRank: 2,
+        priceDenseRank: 2,
+        priceRowNumber: 2
+      },
+      {
+        salesPrice: 30,
+        priceRank: 2,
+        priceDenseRank: 2,
+        priceRowNumber: 3
+      },
+      {
+        salesPrice: 60,
+        priceRank: 4,
+        priceDenseRank: 3,
+        priceRowNumber: 4
+      },
+      {
+        salesPrice: 60,
+        priceRank: 4,
+        priceDenseRank: 3,
+        priceRowNumber: 5
+      }
+    );
+  });
 });
