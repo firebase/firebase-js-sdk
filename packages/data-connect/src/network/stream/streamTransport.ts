@@ -28,6 +28,7 @@ import {
 import { AuthTokenProvider } from '../../core/FirebaseAuthProvider';
 import { SDK_VERSION } from '../../core/version';
 import { logError, logDebug } from '../../logger';
+import { sortKeysDeep } from '../../util/encoder';
 import {
   AbstractDataConnectTransport,
   CallerSdkType,
@@ -694,26 +695,8 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
    * Helper to generate a consistent string key for the request tracking maps.
    */
   private getMapKey(operationName: string, variables?: unknown): string {
-    const sortedVariables = this.sortObjectKeys(variables);
+    const sortedVariables = sortKeysDeep(variables);
     return JSON.stringify({ operationName, variables: sortedVariables });
-  }
-
-  /**
-   * Recursively sorts the keys of an object.
-   */
-  private sortObjectKeys(obj: unknown): unknown {
-    if (obj === null || typeof obj !== 'object' || Array.isArray(obj)) {
-      return obj;
-    }
-    const sortedObj: Record<string, unknown> = {};
-    Object.keys(obj as Record<string, unknown>)
-      .sort()
-      .forEach(key => {
-        sortedObj[key] = this.sortObjectKeys(
-          (obj as Record<string, unknown>)[key]
-        );
-      });
-    return sortedObj;
   }
 
   /**

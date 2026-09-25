@@ -193,6 +193,44 @@ describe('Streaming & Query Layer Integration', () => {
       );
     });
 
+    it('should treat variable property order as insignificant', async () => {
+      const varsA = { movieId: 'm1', language: 'en' };
+      const varsB = { language: 'en', movieId: 'm1' };
+      const onNextSpyA = sinon.spy();
+      const onNextSpyB = sinon.spy();
+
+      const unsubA = subscribe(
+        queryRef<TestData, typeof varsA>(dc, queryName, varsA),
+        onNextSpyA
+      );
+      const unsubB = subscribe(
+        queryRef<TestData, typeof varsB>(dc, queryName, varsB),
+        onNextSpyB
+      );
+
+      // Same query, same values, so the transport should only ever see one
+      // request. A second invokeSubscribe is dropped by the transport and the
+      // second subscriber would never hear anything again.
+      expect(stubStreamTransport.invokeSubscribe).to.have.been.calledOnce;
+
+      const observer = stubStreamTransport.invokeSubscribe.firstCall
+        .args[0] as unknown as SubscribeObserver<TestData>;
+      await observer.onData({ data: testData, errors: [], extensions: {} });
+
+      expect(onNextSpyA).to.have.been.calledOnce;
+      expect(onNextSpyB).to.have.been.calledOnce;
+
+      unsubB();
+      // B going away must not tear down the subscription A is still using.
+      expect(stubStreamTransport.invokeUnsubscribe).to.not.have.been.called;
+
+      unsubA();
+      expect(stubStreamTransport.invokeUnsubscribe).to.have.been.calledOnceWith(
+        queryName,
+        varsA
+      );
+    });
+
     it('executeQuery should use stream when stream is active', async () => {
       const q = queryRef<TestData, TestVariables>(dc, queryName, testVariables);
 
