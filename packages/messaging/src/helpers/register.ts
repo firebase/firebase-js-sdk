@@ -76,7 +76,7 @@ const WindowMessagingInternalFactory: InstanceFactory<'messaging-internal'> = (
 };
 
 declare const self: ServiceWorkerGlobalScope;
-const SwMessagingFactory: InstanceFactory<'messaging'> = (
+export const SwMessagingFactory: InstanceFactory<'messaging'> = (
   container: ComponentContainer
 ) => {
   const messaging = new MessagingService(
@@ -84,6 +84,11 @@ const SwMessagingFactory: InstanceFactory<'messaging'> = (
     container.getProvider('installations-internal').getImmediate(),
     container.getProvider('analytics-internal')
   );
+
+  // The token operations (e.g. in the pushsubscriptionchange handler)
+  // dereference swRegistration, which is otherwise never assigned in the
+  // service worker context.
+  messaging.swRegistration = self.registration;
 
   self.addEventListener('push', e => {
     e.waitUntil(onPush(e, messaging as MessagingService));
