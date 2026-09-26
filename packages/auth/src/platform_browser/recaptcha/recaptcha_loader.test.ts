@@ -149,6 +149,18 @@ describe('platform_browser/recaptcha/recaptcha_loader', () => {
           'auth/argument-error'
         );
       });
+
+      it('accepts long browser language tags', async () => {
+        const promise = loader.load(auth, 'en-GB-oxendict');
+        expect(jsHelpers._loadJS).to.have.been.calledWithMatch(
+          /hl=en-GB-oxendict/
+        );
+        jsLoader.reject();
+        await expect(promise).to.be.rejectedWith(
+          FirebaseError,
+          'auth/internal-error'
+        );
+      });
     });
   });
 });
