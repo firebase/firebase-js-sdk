@@ -26,14 +26,14 @@ import {
   SingleRequestOptions,
   StartTemplateChatParams,
   TemplateChatSession,
-  TemplateToolConfig
+  TemplateRequest
 } from '../public-types';
 import { ApiSettings } from '../types/internal';
 import { initApiSettings } from './utils';
 import { TemplateChatSessionImpl } from '../methods/template-chat-session';
 
 /**
- * {@link GenerativeModel} APIs that execute on a server-side template.
+ * {@link GenerativeModel} APIs that execute on a server prompt template.
  *
  * This class should only be instantiated with {@link getTemplateGenerativeModel}.
  *
@@ -59,29 +59,26 @@ export class TemplateGenerativeModel {
   }
 
   /**
-   * Makes a single non-streaming call to the model and returns an object
-   * containing a single {@link GenerateContentResponse}.
+   * Generates new content using a server prompt template and returns
+   * an object containing a single {@link GenerateContentResponse}.
    *
-   * @param templateId - The ID of the server-side template to execute.
-   * @param templateVariables - A key-value map of variables to populate the
-   * template with.
+   * @param request - The request parameters for using a server prompt template.
    * @param singleRequestOptions - Optional. Options to use for this request.
-   * @param templateToolConfig - Optional. Configuration for tools to use with this request.
    *
    * @beta
    */
   async generateContent(
-    templateId: string,
-    templateVariables: Record<string, unknown>,
-    singleRequestOptions?: SingleRequestOptions,
-    templateToolConfig?: TemplateToolConfig
+    request: TemplateRequest,
+    singleRequestOptions?: SingleRequestOptions
   ): Promise<GenerateContentResult> {
     return templateGenerateContent(
       this._apiSettings,
-      templateId,
+      request.templateId,
       {
-        inputs: templateVariables,
-        ...(templateToolConfig && { toolConfig: templateToolConfig })
+        inputs: request.templateVariables,
+        ...(request.toolConfig !== undefined && {
+          toolConfig: request.toolConfig
+        })
       },
       {
         ...this.requestOptions,
@@ -91,31 +88,28 @@ export class TemplateGenerativeModel {
   }
 
   /**
-   * Makes a single streaming call to the model and returns an object
-   * containing an iterable stream that iterates over all chunks in the
-   * streaming response as well as a promise that returns the final aggregated
-   * response.
+   * Generates new content as a stream using a server prompt template
+   * and returns an object containing an iterable stream that iterates over all
+   * chunks in the streaming response as well as a promise that returns the final
+   * aggregated response.
    *
-   * @param templateId - The ID of the server-side template to execute.
-   * @param templateVariables - A key-value map of variables to populate the
-   * template with.
-   * @param singleRequestOptions - Optional.Options to use for this request.
-   * @param templateToolConfig - Optional. Configuration for tools to use with this request.
+   * @param request - The request parameters for using a server prompt template.
+   * @param singleRequestOptions - Optional. Options to use for this request.
    *
    * @beta
    */
   async generateContentStream(
-    templateId: string,
-    templateVariables: Record<string, unknown>,
-    singleRequestOptions?: SingleRequestOptions,
-    templateToolConfig?: TemplateToolConfig
+    request: TemplateRequest,
+    singleRequestOptions?: SingleRequestOptions
   ): Promise<GenerateContentStreamResult> {
     return templateGenerateContentStream(
       this._apiSettings,
-      templateId,
+      request.templateId,
       {
-        inputs: templateVariables,
-        ...(templateToolConfig && { toolConfig: templateToolConfig })
+        inputs: request.templateVariables,
+        ...(request.toolConfig !== undefined && {
+          toolConfig: request.toolConfig
+        })
       },
       {
         ...this.requestOptions,
@@ -125,7 +119,7 @@ export class TemplateGenerativeModel {
   }
 
   /**
-   * Starts a {@link TemplateChatSession} that will use this template to
+   * Starts a {@link TemplateChatSession} that will use this server prompt template to
    * respond to messages.
    *
    * @param params - Configurations for the chat, including the template

@@ -44,6 +44,7 @@ const fakeApiSettings: ApiSettings = {
 };
 
 const TEMPLATE_ID = 'my-template';
+const TEMPLATE_VARS = { a: 1 };
 
 function getGreeting({
   username
@@ -68,6 +69,7 @@ describe('TemplateChatSession', () => {
       () => {
         const chatSession = new TemplateChatSessionImpl(fakeApiSettings, {
           templateId: TEMPLATE_ID,
+          templateVariables: TEMPLATE_VARS,
           tools: [
             {
               functionDeclarations: [
@@ -98,7 +100,8 @@ describe('TemplateChatSession', () => {
     );
     it('should not include any properties not provided in params', () => {
       const chatSession = new TemplateChatSessionImpl(fakeApiSettings, {
-        templateId: TEMPLATE_ID
+        templateId: TEMPLATE_ID,
+        templateVariables: TEMPLATE_VARS
       });
       const formattedRequest = chatSession._formatRequest(
         { role: 'user', parts: [] },
@@ -106,7 +109,7 @@ describe('TemplateChatSession', () => {
       );
       expect(formattedRequest.tools).to.not.exist;
       expect(formattedRequest.toolConfig).to.not.exist;
-      expect(formattedRequest.templateVariables).to.not.exist;
+      expect(formattedRequest.inputs).to.deep.equal(TEMPLATE_VARS);
       expect(formattedRequest.history).to.exist;
     });
   });
@@ -118,7 +121,8 @@ describe('TemplateChatSession', () => {
         'templateGenerateContent'
       ).rejects(new Error('templateGenerateContent failed'));
       const chatSession = new TemplateChatSessionImpl(fakeApiSettings, {
-        templateId: TEMPLATE_ID
+        templateId: TEMPLATE_ID,
+        templateVariables: TEMPLATE_VARS
       });
       await expect(chatSession.sendMessage('hello')).to.be.rejected;
       expect(templateGenerateContentStub).to.be.calledWith(
@@ -149,7 +153,8 @@ describe('TemplateChatSession', () => {
         response: fakeResponse
       });
       const chatSession = new TemplateChatSessionImpl(fakeApiSettings, {
-        templateId: TEMPLATE_ID
+        templateId: TEMPLATE_ID,
+        templateVariables: TEMPLATE_VARS
       });
       const result = await chatSession.sendMessage('hello');
       // @ts-ignore
@@ -183,6 +188,7 @@ describe('TemplateChatSession', () => {
       ];
       const chatSession = new TemplateChatSessionImpl(fakeApiSettings, {
         templateId: TEMPLATE_ID,
+        templateVariables: TEMPLATE_VARS,
         history: initialHistory
       });
 
@@ -295,6 +301,7 @@ describe('TemplateChatSession', () => {
         });
         const chatSession = new TemplateChatSessionImpl(fakeApiSettings, {
           templateId: TEMPLATE_ID,
+          templateVariables: TEMPLATE_VARS,
           tools: [
             {
               functionDeclarations: [
@@ -357,6 +364,7 @@ describe('TemplateChatSession', () => {
         });
         const chatSession = new TemplateChatSessionImpl(fakeApiSettings, {
           templateId: TEMPLATE_ID,
+          templateVariables: TEMPLATE_VARS,
           tools: [
             {
               functionDeclarations: [
@@ -425,6 +433,7 @@ describe('TemplateChatSession', () => {
           fakeApiSettings,
           {
             templateId: TEMPLATE_ID,
+            templateVariables: TEMPLATE_VARS,
             tools: [
               {
                 functionDeclarations: [
@@ -480,6 +489,7 @@ describe('TemplateChatSession', () => {
         });
         const chatSession = new TemplateChatSessionImpl(fakeApiSettings, {
           templateId: TEMPLATE_ID,
+          templateVariables: TEMPLATE_VARS,
           tools: [
             {
               functionDeclarations: [
