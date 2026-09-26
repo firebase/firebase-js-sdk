@@ -240,6 +240,12 @@ export function aggregateResponses(
     promptFeedback: lastResponse?.promptFeedback
   };
   for (const response of responses) {
+    if (response.usageMetadata) {
+      aggregatedResponse.usageMetadata = {
+        ...aggregatedResponse.usageMetadata,
+        ...response.usageMetadata
+      };
+    }
     if (response.candidates) {
       for (const candidate of response.candidates) {
         // Use 0 if index is undefined (protobuf default value omission).

@@ -538,7 +538,8 @@ describe('Generate Content', function () {
         const response = await result.response;
         const trimmedText = response.text().trim();
         expect(trimmedText).to.equal('Mountain View');
-        expect(response.usageMetadata).to.be.undefined; // Note: This is incorrect behavior.
+        expect(response.usageMetadata).to.not.be.undefined;
+        expect(response.usageMetadata?.totalTokenCount).to.be.greaterThan(0);
       });
     });
   });

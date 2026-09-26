@@ -101,6 +101,7 @@ describe('processStream', () => {
     ).to.equal('Cheyenne');
     const aggregatedResponse = await result.response;
     expect(aggregatedResponse.text()).to.include('Cheyenne');
+    expect(aggregatedResponse.usageMetadata?.totalTokenCount).to.equal(10);
     expect(aggregatedResponse.inferenceSource).to.equal(
       InferenceSource.IN_CLOUD
     );
@@ -121,6 +122,7 @@ describe('processStream', () => {
     }
     const aggregatedResponse = await result.response;
     expect(aggregatedResponse.text()).to.include('Cheyenne');
+    expect(aggregatedResponse.usageMetadata?.totalTokenCount).to.equal(10);
     expect(aggregatedResponse.inferenceSource).to.equal(
       InferenceSource.ON_DEVICE
     );
@@ -474,6 +476,11 @@ describe('aggregateResponses', () => {
               }
             }
           ],
+          usageMetadata: {
+            promptTokenCount: 10,
+            candidatesTokenCount: 20,
+            totalTokenCount: 30
+          },
           promptFeedback: {
             blockReason: BlockReason.OTHER,
             safetyRatings: [
@@ -530,6 +537,41 @@ describe('aggregateResponses', () => {
       expect(
         response.candidates?.[0].citationMetadata?.citations[1].startIndex
       ).to.equal(150);
+    });
+
+    it("takes the last response's usageMetadata", () => {
+      expect(response.usageMetadata).to.deep.equal({
+        promptTokenCount: 10,
+        candidatesTokenCount: 20,
+        totalTokenCount: 30
+      });
+    });
+
+    it('aggregates usageMetadata across multiple chunks', () => {
+      const responses: GenerateContentResponse[] = [
+        {
+          candidates: [],
+          usageMetadata: {
+            promptTokenCount: 10,
+            candidatesTokenCount: 0,
+            totalTokenCount: 10
+          }
+        },
+        {
+          candidates: [],
+          usageMetadata: {
+            promptTokenCount: 10,
+            candidatesTokenCount: 25,
+            totalTokenCount: 35
+          }
+        }
+      ];
+      const aggregated = aggregateResponses(responses);
+      expect(aggregated.usageMetadata).to.deep.equal({
+        promptTokenCount: 10,
+        candidatesTokenCount: 25,
+        totalTokenCount: 35
+      });
     });
   });
 
