@@ -264,7 +264,6 @@ export class IndexedDbPersistence implements Persistence {
    */
   start(): Promise<void> {
     debugAssert(!this.started, 'IndexedDbPersistence double-started!');
-    debugAssert(this.window !== null, "Expected 'window' to be defined");
 
     // NOTE: This is expected to fail sometimes (in the case of another tab
     // already having the persistence lock), so it's the first thing we should
@@ -1029,11 +1028,16 @@ export class IndexedDbPersistence implements Persistence {
    * cleanup logic in `shutdown()`.
    */
   private isClientZombied(clientId: ClientId): boolean {
+    if (this.webStorage === null) {
+      // Without WebStorage (e.g. Node.js) there are no zombie markers, so no
+      // client can be identified as zombied. Stale clients are still aged out
+      // via their lease/metadata timestamps.
+      return false;
+    }
     try {
       const isZombied =
-        this.webStorage?.getItem(
-          this.zombiedClientLocalStorageKey(clientId)
-        ) !== null;
+        this.webStorage.getItem(this.zombiedClientLocalStorageKey(clientId)) !==
+        null;
       logDebug(
         LOG_TAG,
         `Client '${clientId}' ${
