@@ -1798,17 +1798,17 @@ function revokeAppleTokenAndDeleteUser() {
  * @return {string} The query parameter requested.
  */
 function getParameterByName(name) {
-  const url = window.location.href;
-  name = name.replace(/[\[\]]/g, '\\$&');
-  const regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)');
-  const results = regex.exec(url);
-  if (!results) {
+  try {
+    const url = new URL(window.location.href);
+    let value = url.searchParams.get(name);
+    if (value === null && url.hash.includes('?')) {
+      const hashParams = new URLSearchParams(url.hash.split('?')[1]);
+      value = hashParams.get(name);
+    }
+    return value;
+  } catch (e) {
     return null;
   }
-  if (!results[2]) {
-    return '';
-  }
-  return decodeURIComponent(results[2].replace(/\+/g, ' '));
 }
 
 /**

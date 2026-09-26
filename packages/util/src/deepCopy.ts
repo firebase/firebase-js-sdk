@@ -78,5 +78,5 @@ export function deepExtend(target: unknown, source: unknown): unknown {
 }
 
 function isValidKey(key: string): boolean {
-  return key !== '__proto__';
+  return key !== '__proto__' && key !== 'constructor' && key !== 'prototype';
 }

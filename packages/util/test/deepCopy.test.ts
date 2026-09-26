@@ -111,4 +111,15 @@ describe('deepExtend', () => {
     expect(a.__proto__).to.equal(Object.prototype);
     expect(a.polluted).to.be.undefined;
   });
+
+  it('does not extend property constructor or prototype', () => {
+    const src = JSON.parse(
+      '{ "constructor": { "prototype": { "polluted": "yes" } } }'
+    );
+    const a: Record<string, unknown> = {};
+    deepExtend(a, src);
+
+    expect(({} as Record<string, unknown>).polluted).to.be.undefined;
+    expect(a.polluted).to.be.undefined;
+  });
 });

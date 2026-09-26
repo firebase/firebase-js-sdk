@@ -42,7 +42,14 @@ export function populatePath(
 ): void {
   let curObj: Record<string | number, unknown> = toUpdate;
   for (const slice of path) {
-    if (typeof curObj[slice] !== 'object') {
+    if (
+      slice === '__proto__' ||
+      slice === 'constructor' ||
+      slice === 'prototype'
+    ) {
+      return;
+    }
+    if (typeof curObj[slice] !== 'object' || curObj[slice] === null) {
       curObj[slice] = {};
     }
     curObj = curObj[slice] as Record<string, unknown>;
