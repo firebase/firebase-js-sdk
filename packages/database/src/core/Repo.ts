@@ -391,6 +391,7 @@ function repoOnDataUpdate(
       data as { [k: string]: unknown },
       (raw: unknown) => nodeFromJSON(raw)
     );
+    // Ends up changing serverCache of the orderByChild query
     events = syncTreeApplyServerMerge(
       repo.serverSyncTree_,
       path,
