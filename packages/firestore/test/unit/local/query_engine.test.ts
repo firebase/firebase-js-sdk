@@ -31,7 +31,9 @@ import {
   queryToTarget,
   queryWithAddedFilter,
   queryWithAddedOrderBy,
-  queryWithLimit
+  queryWithEndAt,
+  queryWithLimit,
+  queryWithStartAt
 } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { View } from '../../../src/core/view';
@@ -52,6 +54,7 @@ import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
 import { TargetCache } from '../../../src/local/target_cache';
 import {
   documentKeySet,
+  DocumentKeySet,
   DocumentMap,
   documentMap,
   newMutationMap
@@ -70,6 +73,7 @@ import { debugAssert } from '../../../src/util/assert';
 import { newTestFirestore } from '../../util/api_helpers';
 import {
   andFilter,
+  bound,
   deleteMutation,
   doc,
   fieldIndex,
@@ -79,6 +83,7 @@ import {
   orFilter,
   patchMutation,
   query,
+  ref,
   setMutation,
   version
 } from '../../util/helpers';
@@ -105,6 +110,17 @@ const db = newTestFirestore();
  */
 class TestLocalDocumentsView extends LocalDocumentsView {
   expectFullCollectionScan: boolean | undefined;
+  documentsReadByKey = 0;
+
+  getDocuments(
+    transaction: PersistenceTransaction,
+    keys: DocumentKeySet
+  ): PersistencePromise<DocumentMap> {
+    return super.getDocuments(transaction, keys).next(documents => {
+      this.documentsReadByKey += documents.size;
+      return documents;
+    });
+  }
 
   getDocumentsMatchingQuery(
     transaction: PersistenceTransaction,
@@ -332,6 +348,330 @@ function genericQueryEngineTest(
       await persistenceHelpers.clearTestPersistence();
     }
   });
+
+  if (!options.convertToPipeline) {
+    describe('document cursor pagination', () => {
+      const cases: Array<{
+        direction: 'asc' | 'desc';
+        start: boolean;
+        limit: LimitType;
+        expected: number[];
+        fieldOnly?: boolean;
+        strictFilter?: '>' | '<';
+        inclusive?: boolean;
+        uniqueValue?: boolean;
+      }> = [
+        {
+          direction: 'asc',
+          start: true,
+          limit: LimitType.First,
+          expected: [4, 5]
+        },
+        {
+          direction: 'asc',
+          start: true,
+          limit: LimitType.Last,
+          expected: [5, 6]
+        },
+        {
+          direction: 'asc',
+          start: false,
+          limit: LimitType.First,
+          expected: [0, 1]
+        },
+        {
+          direction: 'asc',
+          start: false,
+          limit: LimitType.Last,
+          expected: [1, 2]
+        },
+        {
+          direction: 'desc',
+          start: true,
+          limit: LimitType.First,
+          expected: [2, 1]
+        },
+        {
+          direction: 'desc',
+          start: true,
+          limit: LimitType.Last,
+          expected: [1, 0]
+        },
+        {
+          direction: 'desc',
+          start: false,
+          limit: LimitType.First,
+          expected: [6, 5]
+        },
+        {
+          direction: 'desc',
+          start: false,
+          limit: LimitType.Last,
+          expected: [5, 4]
+        },
+        {
+          direction: 'asc',
+          start: true,
+          limit: LimitType.First,
+          expected: [6],
+          fieldOnly: true
+        },
+        {
+          direction: 'asc',
+          start: false,
+          limit: LimitType.First,
+          expected: [0],
+          fieldOnly: true
+        },
+        {
+          direction: 'asc',
+          start: true,
+          limit: LimitType.First,
+          expected: [6],
+          strictFilter: '>'
+        },
+        {
+          direction: 'asc',
+          start: false,
+          limit: LimitType.First,
+          expected: [0],
+          strictFilter: '<'
+        },
+        {
+          direction: 'asc',
+          start: true,
+          limit: LimitType.First,
+          expected: [3, 4],
+          inclusive: true
+        },
+        {
+          direction: 'asc',
+          start: false,
+          limit: LimitType.Last,
+          expected: [2, 3],
+          inclusive: true
+        },
+        {
+          direction: 'desc',
+          start: true,
+          limit: LimitType.First,
+          expected: [3, 2],
+          inclusive: true
+        },
+        {
+          direction: 'desc',
+          start: false,
+          limit: LimitType.Last,
+          expected: [4, 3],
+          inclusive: true
+        },
+        {
+          direction: 'asc',
+          start: true,
+          limit: LimitType.First,
+          expected: [4, 5],
+          uniqueValue: true
+        }
+      ];
+
+      for (const testCase of cases) {
+        const control = testCase.fieldOnly
+          ? ' with field-only cursor'
+          : testCase.strictFilter
+            ? ' with stricter filter'
+            : testCase.uniqueValue
+              ? ' with unique cursor value'
+              : '';
+        const cursorType = testCase.start
+          ? testCase.inclusive
+            ? 'startAt'
+            : 'startAfter'
+          : testCase.inclusive
+            ? 'endAt'
+            : 'endBefore';
+        it(`${testCase.direction} ${cursorType} limit ${testCase.limit}${control}`, async () => {
+          const values = testCase.uniqueValue
+            ? [0, 1, 1.5, 2, 3, 4, 5]
+            : [1, 2, 2, 2, 2, 2, 3];
+          const docs = values.map((value, i) =>
+            doc(`coll/a${i}`, 1, { group: 'a', value })
+          );
+          await addDocument(...docs);
+
+          if (options.configureCsi) {
+            for (const kind of [IndexKind.ASCENDING, IndexKind.DESCENDING]) {
+              await indexManager.addFieldIndex(
+                fieldIndex('coll', {
+                  fields: [
+                    ['group', IndexKind.ASCENDING],
+                    ['value', kind]
+                  ]
+                })
+              );
+            }
+            await indexManager.updateIndexEntries(documentMap(...docs));
+            await indexManager.updateCollectionGroup(
+              'coll',
+              newIndexOffsetFromDocument(docs[docs.length - 1])
+            );
+          }
+
+          let baseQuery = queryWithLimit(
+            query(
+              'coll',
+              filter('group', '==', 'a'),
+              orderBy('value', testCase.direction)
+            ),
+            2,
+            testCase.limit
+          );
+          if (testCase.strictFilter) {
+            baseQuery = queryWithAddedFilter(
+              baseQuery,
+              filter('value', testCase.strictFilter, 2)
+            );
+          }
+          const cursor = bound(
+            testCase.fieldOnly ? [2] : [2, ref('coll/a3')],
+            testCase.inclusive ?? false
+          );
+          const cursorQuery = testCase.start
+            ? queryWithStartAt(baseQuery, cursor)
+            : queryWithEndAt(baseQuery, cursor);
+          const expectQuery = options.configureCsi
+            ? expectOptimizedCollectionQuery
+            : expectFullCollectionQuery;
+          const result = await expectQuery(() =>
+            runQuery(cursorQuery, MISSING_LAST_LIMBO_FREE_SNAPSHOT)
+          );
+          const actualKeys: string[] = [];
+          result.forEach(document => actualKeys.push(document.key.toString()));
+          expect(actualKeys).to.deep.equal(
+            testCase.expected.map(i => docs[i].key.toString())
+          );
+          if (options.configureCsi) {
+            expect(localDocuments.documentsReadByKey).to.equal(
+              testCase.expected.length
+            );
+          }
+        });
+      }
+
+      async function prepareIndex(
+        docs: MutableDocument[],
+        fields: Array<[string, IndexKind]>
+      ): Promise<void> {
+        await addDocument(...docs);
+        if (options.configureCsi) {
+          await indexManager.addFieldIndex(fieldIndex('coll', { fields }));
+          await indexManager.updateIndexEntries(documentMap(...docs));
+          await indexManager.updateCollectionGroup(
+            'coll',
+            newIndexOffsetFromDocument(docs[docs.length - 1])
+          );
+        }
+      }
+
+      const expectQuery = options.configureCsi
+        ? expectOptimizedCollectionQuery
+        : expectFullCollectionQuery;
+
+      it('filters a cursor suffix missing from a partial index', async () => {
+        const docs = [
+          doc('coll/a0', 1, { value: 2, other: 9 }),
+          doc('coll/a1', 1, { value: 2, other: 11 }),
+          doc('coll/a2', 1, { value: 2, other: 10 }),
+          doc('coll/a3', 1, { value: 3, other: 0 })
+        ];
+        await prepareIndex(docs, [['value', IndexKind.ASCENDING]]);
+        const q = queryWithStartAt(
+          queryWithLimit(
+            query('coll', orderBy('value'), orderBy('other')),
+            2,
+            LimitType.First
+          ),
+          bound([2, 10, ref('coll/a2')], false)
+        );
+        const result = await expectQuery(() =>
+          runQuery(q, MISSING_LAST_LIMBO_FREE_SNAPSHOT)
+        );
+        verifyResult(result, [docs[1], docs[3]]);
+      });
+
+      it('keeps the reverse index when removing a partial index limit', async () => {
+        const docs = [1, 2, 2, 2, 2, 3].map((value, i) =>
+          doc(`coll/a${i}`, 1, { value })
+        );
+        // Only the reversed target can use this index. Its key direction does
+        // not match the explicit key ordering, so the cursor needs filtering.
+        await prepareIndex(docs, [['value', IndexKind.DESCENDING]]);
+        const q = queryWithStartAt(
+          queryWithLimit(
+            query('coll', orderBy('value'), orderBy('__name__', 'desc')),
+            2,
+            LimitType.Last
+          ),
+          bound([2, ref('coll/a3')], false)
+        );
+        const result = await expectQuery(() =>
+          runQuery(q, MISSING_LAST_LIMBO_FREE_SNAPSHOT)
+        );
+        verifyResult(result, [docs[1], docs[5]]);
+      });
+
+      it('keeps the reverse index when refilling after a local deletion', async () => {
+        const docs = [1, 2, 2, 3].map((value, i) =>
+          doc(`coll/a${i}`, 1, { value })
+        );
+        await prepareIndex(docs, [['value', IndexKind.DESCENDING]]);
+        await addMutation(deleteMutation('coll/a2'));
+        const q = queryWithEndAt(
+          queryWithLimit(query('coll', orderBy('value')), 2, LimitType.Last),
+          bound([3, ref('coll/a3')], false)
+        );
+        const result = await expectQuery(() =>
+          runQuery(q, MISSING_LAST_LIMBO_FREE_SNAPSHOT)
+        );
+        verifyResult(result, [docs[0], docs[1]]);
+        if (options.configureCsi) {
+          // Two candidates initially, then three on the necessary refill.
+          expect(localDocuments.documentsReadByKey).to.equal(5);
+        }
+      });
+
+      for (const operator of ['==', 'in'] as const) {
+        it(`filters a cursor outside an ordered ${operator} prefix`, async () => {
+          const docs = [
+            doc('coll/a0', 1, { group: 'a', value: 0 }),
+            doc('coll/a1', 1, { group: 'b', value: 0 }),
+            doc('coll/a2', 1, { group: 'b', value: 0 })
+          ];
+          await prepareIndex(docs, [
+            ['value', IndexKind.ASCENDING],
+            ['group', IndexKind.ASCENDING]
+          ]);
+          const q = queryWithStartAt(
+            queryWithLimit(
+              query(
+                'coll',
+                filter('group', operator, operator === 'in' ? ['a', 'b'] : 'b'),
+                filter('value', '==', 0),
+                orderBy('group'),
+                orderBy('value')
+              ),
+              1,
+              LimitType.First
+            ),
+            bound(['a', 100, ref('coll/a0')], false)
+          );
+          const result = await expectQuery(() =>
+            runQuery(q, MISSING_LAST_LIMBO_FREE_SNAPSHOT)
+          );
+          verifyResult(result, [docs[1]]);
+        });
+      }
+    });
+  }
 
   // Tests in this section do not support client side indexing
   if (!options.configureCsi) {
