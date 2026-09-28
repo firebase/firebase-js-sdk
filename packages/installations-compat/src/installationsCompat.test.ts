@@ -15,68 +15,64 @@
  * limitations under the License.
  */
 
-import './testing/setup';
 import { getFakeApp, getFakeInstallations } from './testing/util';
 import { InstallationsCompat } from './installationsCompat';
 import * as modularApi from '@firebase/installations';
-import { expect } from 'chai';
-import { stub } from 'sinon';
+
+vi.mock('@firebase/installations', { spy: true });
 
 describe('Installations Compat', () => {
   let installationsCompat!: InstallationsCompat;
   const installations = getFakeInstallations();
-  before(() => {
+  beforeAll(() => {
     installationsCompat = new InstallationsCompat(getFakeApp(), installations);
   });
 
   it('getId calls modular getId()', async () => {
     const fakeFid = 'fake-fid';
-    const modularGetIdStub = stub(modularApi, 'getId').callsFake(() =>
-      Promise.resolve(fakeFid)
-    );
+    const modularGetIdStub = vi
+      .spyOn(modularApi, 'getId')
+      .mockImplementation(() => Promise.resolve(fakeFid));
 
     const res = await installationsCompat.getId();
 
-    expect(res).to.equal(fakeFid);
-    expect(modularGetIdStub).to.have.been.calledWithExactly(installations);
+    expect(res).toBe(fakeFid);
+    expect(modularGetIdStub).toHaveBeenCalledWith(installations);
   });
 
   it('getToken calls modular getToken()', async () => {
     const fakeToken = 'fake-token';
-    const modularGetTokenStub = stub(modularApi, 'getToken').callsFake(() =>
-      Promise.resolve(fakeToken)
-    );
+    const modularGetTokenStub = vi
+      .spyOn(modularApi, 'getToken')
+      .mockImplementation(() => Promise.resolve(fakeToken));
 
     const res = await installationsCompat.getToken();
 
-    expect(res).to.equal(fakeToken);
-    expect(modularGetTokenStub).to.have.been.calledWithExactly(
-      installations,
-      undefined
-    );
+    expect(res).toBe(fakeToken);
+    expect(modularGetTokenStub).toHaveBeenCalledWith(installations, undefined);
   });
 
   it('delete calls modular deleteInstallations()', async () => {
-    const modularDeleteStub = stub(modularApi, 'deleteInstallations').callsFake(
-      () => Promise.resolve()
-    );
+    const modularDeleteStub = vi
+      .spyOn(modularApi, 'deleteInstallations')
+      .mockImplementation(() => Promise.resolve());
 
     await installationsCompat.delete();
 
-    expect(modularDeleteStub).to.have.been.calledWithExactly(installations);
+    expect(modularDeleteStub).toHaveBeenCalledWith(installations);
   });
 
   it('onIdChange calls modular onIdChange()', () => {
-    const fakeIdChangeCallbackFn = stub();
-    const fakeIdChangeUnsubscribeFn = stub();
-    const modularOnIdChangeStub = stub(modularApi, 'onIdChange').callsFake(
-      () => fakeIdChangeUnsubscribeFn
-    );
+    const fakeIdChangeCallbackFn = vi.fn();
+    const fakeIdChangeUnsubscribeFn = vi.fn();
+    const modularOnIdChangeStub = vi
+      .spyOn(modularApi, 'onIdChange')
+      .mockImplementation(() => fakeIdChangeUnsubscribeFn);
 
     const res = installationsCompat.onIdChange(fakeIdChangeCallbackFn);
 
-    expect(res).to.equal(fakeIdChangeUnsubscribeFn);
-    expect(modularOnIdChangeStub).to.have.been.calledWith(
+    expect(res).toBe(fakeIdChangeUnsubscribeFn);
+    expect(modularOnIdChangeStub).toHaveBeenCalledWith(
       installations,
       fakeIdChangeCallbackFn
     );
