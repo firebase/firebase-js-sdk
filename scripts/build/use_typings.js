@@ -32,6 +32,15 @@ if (!TYPINGS_PATH) {
 }
 const packageJson = require(packageJsonPath);
 packageJson.typings = TYPINGS_PATH;
+if (
+  packageJson.exports &&
+  packageJson.exports['.'] &&
+  packageJson.exports['.'].types
+) {
+  packageJson.exports['.'].types = TYPINGS_PATH.startsWith('./')
+    ? TYPINGS_PATH
+    : `./${TYPINGS_PATH}`;
+}
 
 console.log(
   `Pointing the typings field in ${packageJson.name} to ${TYPINGS_PATH}`

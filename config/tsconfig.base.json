@@ -11,7 +11,7 @@
       "esnext.WeakRef",
     ],
     "module": "ES2015",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "sourceMap": true,

@@ -2,7 +2,8 @@
   "extends": "../../config/tsconfig.base.json",
   "compileOnSave": false,
   "compilerOptions": {
-    "outDir": "dist"
+    "outDir": "dist",
+    "rootDir": "../.."
   },
   "include": ["typings.ts"],
   "exclude": [

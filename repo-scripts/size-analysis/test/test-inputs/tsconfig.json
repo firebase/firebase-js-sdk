@@ -3,7 +3,7 @@
       "outDir": "dist",
       "importHelpers": true,
       "module": "es6",
-      "moduleResolution": "node",
+      "moduleResolution": "bundler",
       "resolveJsonModule": true,
       "target": "es6",
       "declaration": true

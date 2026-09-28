@@ -36,11 +36,6 @@
     "tslib": "^2.1.0"
   },
   "license": "Apache-2.0",
-  "devDependencies": {
-    "rollup": "4.62.2",
-    "rollup-plugin-typescript2": "0.37.0",
-    "typescript": "5.5.4"
-  },
   "repository": {
     "directory": "packages/component",
     "type": "git",

@@ -3,8 +3,7 @@
   "compilerOptions": {
     "outDir": "dist",
     "noUnusedLocals": true,
-    "lib": ["dom", "es2020"],
-    "downlevelIteration": true
+    "lib": ["dom", "es2020"]
   },
   "exclude": ["dist/**/*"]
 }

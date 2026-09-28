@@ -5,14 +5,13 @@
       "ESNext"
     ],
     "module": "CommonJS",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "target": "es2020",
     "typeRoots": [
       "../node_modules/@types"
     ],
-    "allowJs": true,
-    "downlevelIteration": true
+    "allowJs": true
   }
 }

@@ -18,8 +18,5 @@
   },
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
-  },
-  "devDependencies": {
-    "typescript": "5.5.4"
   }
 }

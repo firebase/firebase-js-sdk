@@ -9,7 +9,7 @@
       "node"
     ],
     "module": "CommonJS",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "target": "es2020"
