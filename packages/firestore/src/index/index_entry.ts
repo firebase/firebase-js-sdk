@@ -134,7 +134,7 @@ export function encodeKeySafeBytes(array: Uint8Array): KeySafeBytes {
   if (isSafariOrWebkit()) {
     return encodeUint8ArrayToSortableString(array);
   }
-  return array;
+  return array as Uint8Array<ArrayBuffer>;
 }
 
 /**

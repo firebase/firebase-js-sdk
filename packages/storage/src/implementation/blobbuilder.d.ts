@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 declare class IBlobBuilder {
-  append(x: string | Blob | ArrayBuffer): void;
+  append(x: string | Blob | ArrayBuffer | Uint8Array): void;
   getBlob(): Blob;
 }
 

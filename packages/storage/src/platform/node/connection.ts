@@ -203,7 +203,7 @@ function newFetch(
   const fetchArgs: RequestInit = {
     method,
     headers: headers || {},
-    body: body as NodeJS.ArrayBufferView | string
+    body: body as BodyInit
   };
   if (isCloudWorkstation(url) && isUsingEmulator) {
     fetchArgs.credentials = 'include';

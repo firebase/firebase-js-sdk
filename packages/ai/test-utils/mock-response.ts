@@ -30,11 +30,11 @@ const mockSetMaps: Record<BackendName, Record<string, string>> = {
 export function getChunkedStream(
   input: string,
   chunkLength = 20
-): ReadableStream<Uint8Array> {
+): ReadableStream<Uint8Array<ArrayBuffer>> {
   const encoder = new TextEncoder();
   let currentChunkStart = 0;
 
-  const stream = new ReadableStream<Uint8Array>({
+  const stream = new ReadableStream<Uint8Array<ArrayBuffer>>({
     start(controller) {
       while (currentChunkStart < input.length) {
         const substring = input.slice(

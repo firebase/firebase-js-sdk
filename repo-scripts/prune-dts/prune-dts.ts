@@ -15,12 +15,12 @@
  * limitations under the License.
  */
 
-import * as yargs from 'yargs';
+import yargs from 'yargs';
 import { pruneDts, removeUnusedImports } from './src/index';
 
 export { pruneDts };
 
-const argv = yargs
+const argv = yargs(process.argv.slice(2))
   .options({
     input: {
       type: 'string',

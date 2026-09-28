@@ -21,7 +21,7 @@ export function arrayToBase64(array: Uint8Array | ArrayBuffer): string {
   return base64String.replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
 }
 
-export function base64ToArray(base64String: string): Uint8Array {
+export function base64ToArray(base64String: string): Uint8Array<ArrayBuffer> {
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
   const base64 = (base64String + padding)
     .replace(/\-/g, '+')

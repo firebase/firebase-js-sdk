@@ -155,7 +155,7 @@ apiDescribe('Bundles', (persistence: boolean) => {
       let completeCalled = false;
       const progressEvents: firestore.LoadBundleTaskProgress[] = [];
       const task: firestore.LoadBundleTask = db.loadBundle(
-        encoder.encode(bundleString(db))
+        encoder.encode(bundleString(db)) as unknown as ArrayBuffer
       );
       task.onProgress(
         progress => {
@@ -192,7 +192,7 @@ apiDescribe('Bundles', (persistence: boolean) => {
 
       const progress = await db.loadBundle(
         // Testing passing in non-string bundles.
-        encoder.encode(bundleString(db))
+        encoder.encode(bundleString(db)) as unknown as ArrayBuffer
       );
 
       verifySuccessProgress(progress);

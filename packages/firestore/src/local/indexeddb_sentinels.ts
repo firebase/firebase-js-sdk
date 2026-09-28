@@ -312,7 +312,7 @@ export const DbIndexStateSequenceNumberIndexPath = ['uid', 'sequenceNumber'];
  * Safari/WebKit, or the value is a Uint8Array,
  * which is key safe in other browsers.
  */
-export type KeySafeBytes = Uint8Array | string;
+export type KeySafeBytes = Uint8Array<ArrayBuffer> | string;
 
 /**
  * The key for each index entry consists of the index id and its user id,
