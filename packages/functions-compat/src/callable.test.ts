@@ -14,13 +14,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { expect } from 'chai';
+
 import { FunctionsError, FunctionsErrorCode } from '@firebase/functions';
 import { createTestService } from '../test/utils';
 import firebase, { FirebaseApp } from '@firebase/app-compat';
-
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-export const TEST_PROJECT = require('../../../config/project.json');
+import TEST_PROJECT from '../../../config/project.json';
 
 // Chai doesn't handle Error comparisons in a useful way.
 // https://github.com/chaijs/chai/issues/608
@@ -36,18 +34,16 @@ async function expectError(
     await promise;
   } catch (e) {
     failed = true;
-    expect((e as FunctionsError).code).to.equal(code);
+    expect((e as FunctionsError).code).toBe(code);
     if (httpStatus != null) {
-      expect((e as FunctionsError).message).to.equal(
-        `${message} [${httpStatus}]`
-      );
+      expect((e as FunctionsError).message).toBe(`${message} [${httpStatus}]`);
     } else {
-      expect((e as FunctionsError).message).to.equal(message);
+      expect((e as FunctionsError).message).toBe(message);
     }
-    expect((e as FunctionsError).details).to.deep.equal(details);
+    expect((e as FunctionsError).details).toEqual(details);
   }
   if (!failed) {
-    expect(false, 'Promise should have failed.').to.be.true;
+    expect(false, 'Promise should have failed.').toBe(true);
   }
 }
 
@@ -55,8 +51,8 @@ describe('Firebase Functions > Call', () => {
   let app: FirebaseApp;
   const region = 'us-central1';
 
-  before(() => {
-    const useEmulator = !!process.env.HOST;
+  beforeAll(() => {
+    const useEmulator = typeof process !== 'undefined' && !!process.env?.HOST;
     const projectId = useEmulator
       ? 'functions-integration-test'
       : TEST_PROJECT.projectId;
@@ -65,7 +61,7 @@ describe('Firebase Functions > Call', () => {
     app = firebase.initializeApp({ projectId, messagingSenderId });
   });
 
-  after(async () => {
+  afterAll(async () => {
     await app.delete();
   });
 
@@ -83,7 +79,7 @@ describe('Firebase Functions > Call', () => {
     const func = functions.httpsCallable('dataTestv2');
     const result = await func(data);
 
-    expect(result.data).to.deep.equal({
+    expect(result.data).toEqual({
       message: 'stub response',
       code: 42,
       long: 420
@@ -94,18 +90,18 @@ describe('Firebase Functions > Call', () => {
     const functions = createTestService(app, region);
     const func = functions.httpsCallable('scalarTestv2');
     const result = await func(17);
-    expect(result.data).to.equal(76);
+    expect(result.data).toBe(76);
   });
 
   it('null', async () => {
     const functions = createTestService(app, region);
     const func = functions.httpsCallable('nullTestv2');
     let result = await func(null);
-    expect(result.data).to.be.null;
+    expect(result.data).toBeNull();
 
     // Test with void arguments version.
     result = await func();
-    expect(result.data).to.be.null;
+    expect(result.data).toBeNull();
   });
 
   it('missing result', async () => {
