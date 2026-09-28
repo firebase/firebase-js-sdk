@@ -169,7 +169,7 @@ apiDescribe('Bundles', persistence => {
       const progressEvents: LoadBundleTaskProgress[] = [];
       const task: LoadBundleTask = loadBundle(
         db,
-        encoder.encode(bundleString(db))
+        encoder.encode(bundleString(db)) as unknown as ArrayBuffer
       );
       task.onProgress(
         progress => {
@@ -207,7 +207,7 @@ apiDescribe('Bundles', persistence => {
       const progress = await loadBundle(
         db,
         // Testing passing in non-string bundles.
-        encoder.encode(bundleString(db))
+        encoder.encode(bundleString(db)) as unknown as ArrayBuffer
       );
 
       verifySuccessProgress(progress);

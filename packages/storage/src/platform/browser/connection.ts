@@ -83,7 +83,7 @@ abstract class XhrConnection<
       }
     }
     if (body !== undefined) {
-      this.xhr_.send(body);
+      this.xhr_.send(body as XMLHttpRequestBodyInit);
     } else {
       this.xhr_.send();
     }

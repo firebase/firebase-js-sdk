@@ -54,8 +54,8 @@ export interface V4TokenDetails {
   vapidKey: Uint8Array;
   fcmSenderId: string;
   endpoint: string;
-  auth: ArrayBufferLike;
-  p256dh: ArrayBufferLike;
+  auth: ArrayBuffer;
+  p256dh: ArrayBuffer;
   createTime: number;
 }
 

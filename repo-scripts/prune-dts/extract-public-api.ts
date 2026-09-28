@@ -23,7 +23,7 @@ import * as tmp from 'tmp';
 
 import { format, resolveConfig } from 'prettier';
 
-import * as yargs from 'yargs';
+import yargs from 'yargs';
 
 import { addBlankLines, pruneDts, removeUnusedImports } from './src/index';
 
@@ -199,7 +199,7 @@ export async function generateApi(
   console.log(`API report for ${packageName} written to ${reportFolder}`);
 }
 
-const argv = yargs
+const argv = yargs(process.argv.slice(2))
   .options({
     package: {
       type: 'string',

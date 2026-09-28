@@ -15,12 +15,12 @@
  * limitations under the License.
  */
 
-import * as yargs from 'yargs';
+import yargs from 'yargs';
 import { run as runBundleAnalysis } from './bundle-analysis';
 import { analyzePackageSize } from './package-analysis';
 
 // eslint-disable-next-line no-unused-expressions
-yargs
+yargs(process.argv.slice(2))
   .command(
     '$0',
     'Analyze the size of individual exports from packages',

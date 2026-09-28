@@ -343,7 +343,7 @@ describe('Firebase Storage > Requests', () => {
     const requestInfo = getBytes(storageService, locationNormal);
     const bytes = requestInfo.handler(
       fakeXhrIo({}),
-      new Uint8Array([1, 128, 255])
+      new Uint8Array([1, 128, 255]).buffer
     ) as ArrayBuffer; // Narrow type to ArrayBuffer
     expect(new Uint8Array(bytes)).toEqual(new Uint8Array([1, 128, 255]));
   });

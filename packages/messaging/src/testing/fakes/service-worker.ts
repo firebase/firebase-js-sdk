@@ -158,7 +158,7 @@ export class FakePushSubscription implements PushSubscription {
 
   getKey(name: PushEncryptionKeyName) {
     const encoder = new TextEncoder();
-    return encoder.encode(name === 'auth' ? this.auth : this.p256);
+    return encoder.encode(name === 'auth' ? this.auth : this.p256).buffer;
   }
 
   async unsubscribe() {

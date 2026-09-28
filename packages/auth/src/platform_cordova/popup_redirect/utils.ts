@@ -287,7 +287,7 @@ async function computeSha256(sessionId: string): Promise<string> {
   return arr.map(num => num.toString(16).padStart(2, '0')).join('');
 }
 
-function stringToArrayBuffer(str: string): Uint8Array {
+function stringToArrayBuffer(str: string): Uint8Array<ArrayBuffer> {
   // This function is only meant to deal with an ASCII charset and makes
   // certain simplifying assumptions.
   debugAssert(

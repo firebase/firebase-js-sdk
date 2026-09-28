@@ -38,7 +38,9 @@ function getBlobBuilder(): typeof IBlobBuilder | undefined {
  * @param args The values that will make up the resulting blob.
  * @return The blob.
  */
-export function getBlob(...args: Array<string | Blob | ArrayBuffer>): Blob {
+export function getBlob(
+  ...args: Array<string | Blob | ArrayBuffer | Uint8Array>
+): Blob {
   const BlobBuilder = getBlobBuilder();
   if (BlobBuilder !== undefined) {
     const bb = new BlobBuilder();
@@ -48,7 +50,7 @@ export function getBlob(...args: Array<string | Blob | ArrayBuffer>): Blob {
     return bb.getBlob();
   } else {
     if (isNativeBlobDefined()) {
-      return new Blob(args);
+      return new Blob(args as BlobPart[]);
     } else {
       throw new StorageError(
         StorageErrorCode.UNSUPPORTED_ENVIRONMENT,

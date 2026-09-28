@@ -26,7 +26,7 @@ import * as rn from './rn/text_serializer';
  */
 export function newTextEncoder(): TextEncoder {
   if (isNode()) {
-    return node.newTextEncoder();
+    return node.newTextEncoder() as TextEncoder;
   } else if (isReactNative()) {
     return rn.newTextEncoder();
   } else {

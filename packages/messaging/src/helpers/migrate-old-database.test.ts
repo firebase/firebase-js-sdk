@@ -108,8 +108,8 @@ describe('migrateOldDb', () => {
         vapidKey: base64ToArray('dmFwaWQta2V5LXZhbHVl'),
         fcmSenderId: '1234567890',
         fcmPushSet: '7654321',
-        auth: base64ToArray('YXV0aC12YWx1ZQ'),
-        p256dh: base64ToArray('cDI1Ni12YWx1ZQ'),
+        auth: base64ToArray('YXV0aC12YWx1ZQ').buffer,
+        p256dh: base64ToArray('cDI1Ni12YWx1ZQ').buffer,
         endpoint: 'https://example.org'
       };
 
@@ -145,8 +145,8 @@ describe('migrateOldDb', () => {
         swScope: '/scope-value',
         vapidKey: base64ToArray('dmFwaWQta2V5LXZhbHVl'),
         fcmSenderId: '1234567890',
-        auth: base64ToArray('YXV0aC12YWx1ZQ'),
-        p256dh: base64ToArray('cDI1Ni12YWx1ZQ'),
+        auth: base64ToArray('YXV0aC12YWx1ZQ').buffer,
+        p256dh: base64ToArray('cDI1Ni12YWx1ZQ').buffer,
         endpoint: 'https://example.org'
       };
 

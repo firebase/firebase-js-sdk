@@ -848,7 +848,7 @@ function createBundleReader(
   data: ReadableStream<Uint8Array> | ArrayBuffer | string,
   serializer: JsonProtoSerializer
 ): BundleReader {
-  let content: ReadableStream<Uint8Array> | ArrayBuffer;
+  let content: ReadableStream<Uint8Array> | ArrayBuffer | Uint8Array;
   if (typeof data === 'string') {
     content = newTextEncoder().encode(data);
   } else {
