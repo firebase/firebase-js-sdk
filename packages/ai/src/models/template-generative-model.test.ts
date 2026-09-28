@@ -15,71 +15,70 @@
  * limitations under the License.
  */
 
-import { use, expect } from 'chai';
-import sinonChai from 'sinon-chai';
-import { restore, stub } from 'sinon';
 import { TemplateToolConfig, RetrievalConfig, LatLng } from '../public-types';
 import { TemplateGenerativeModel } from './template-generative-model';
-import * as generateContentMethods from '../methods/generate-content';
 import { fakeAI } from '../../test-utils/get-fake-firebase-services';
 
-use(sinonChai);
+import * as mockGenerateContent from '../methods/generate-content';
+
+vi.mock('../methods/generate-content', { spy: true });
 
 const TEMPLATE_ID = 'my-template';
 const TEMPLATE_VARS = { a: 1, b: '2' };
 
 describe('TemplateGenerativeModel', () => {
   afterEach(() => {
-    restore();
+    vi.restoreAllMocks();
   });
 
   describe('constructor', () => {
     it('should initialize _apiSettings correctly', () => {
       const model = new TemplateGenerativeModel(fakeAI);
-      expect(model._apiSettings.apiKey).to.equal('key');
-      expect(model._apiSettings.project).to.equal('my-project');
-      expect(model._apiSettings.appId).to.equal('my-appid');
+      expect(model._apiSettings.apiKey).toBe('key');
+      expect(model._apiSettings.project).toBe('my-project');
+      expect(model._apiSettings.appId).toBe('my-appid');
     });
   });
 
   describe('generateContent', () => {
     it('should call templateGenerateContent with correct parameters no options', async () => {
-      const templateGenerateContentStub = stub(
-        generateContentMethods,
-        'templateGenerateContent'
-      ).resolves({} as any);
+      const templateGenerateContentStub = vi
+        .spyOn(mockGenerateContent, 'templateGenerateContent')
+        .mockResolvedValue({} as any);
       const model = new TemplateGenerativeModel(fakeAI);
 
       await model.generateContent(TEMPLATE_ID, TEMPLATE_VARS);
 
-      expect(templateGenerateContentStub).to.have.been.calledOnceWith(
+      expect(templateGenerateContentStub).toHaveBeenCalledTimes(1);
+      expect(templateGenerateContentStub).toHaveBeenCalledWith(
         model._apiSettings,
         TEMPLATE_ID,
-        { inputs: TEMPLATE_VARS }
+        { inputs: TEMPLATE_VARS },
+        {}
       );
     });
 
     it('should call templateGenerateContent with correct parameters w/ request options', async () => {
-      const templateGenerateContentStub = stub(
-        generateContentMethods,
-        'templateGenerateContent'
-      ).resolves({} as any);
+      const templateGenerateContentStub = vi
+        .spyOn(mockGenerateContent, 'templateGenerateContent')
+        .mockResolvedValue({} as any);
       const model = new TemplateGenerativeModel(fakeAI);
 
       await model.generateContent(TEMPLATE_ID, TEMPLATE_VARS);
 
-      expect(templateGenerateContentStub).to.have.been.calledOnceWith(
+      expect(templateGenerateContentStub).toHaveBeenCalledTimes(1);
+      expect(templateGenerateContentStub).toHaveBeenCalledWith(
         model._apiSettings,
         TEMPLATE_ID,
-        { inputs: TEMPLATE_VARS }
+        { inputs: TEMPLATE_VARS },
+        {}
       );
     });
 
     it('should call templateGenerateContent with correct parameters w/ tool config', async () => {
-      const templateGenerateContentStub = stub(
-        generateContentMethods,
-        'templateGenerateContent'
-      ).resolves({} as any);
+      const templateGenerateContentStub = vi
+        .spyOn(mockGenerateContent, 'templateGenerateContent')
+        .mockResolvedValue({} as any);
       const model = new TemplateGenerativeModel(fakeAI);
       const latLng: LatLng = {
         latitude: 50.0,
@@ -95,18 +94,19 @@ describe('TemplateGenerativeModel', () => {
         templateToolConfig
       );
 
-      expect(templateGenerateContentStub).to.have.been.calledOnceWith(
+      expect(templateGenerateContentStub).toHaveBeenCalledTimes(1);
+      expect(templateGenerateContentStub).toHaveBeenCalledWith(
         model._apiSettings,
         TEMPLATE_ID,
-        { inputs: TEMPLATE_VARS, toolConfig: templateToolConfig }
+        { inputs: TEMPLATE_VARS, toolConfig: templateToolConfig },
+        {}
       );
     });
 
     it('should call templateGenerateContent with correct parameters w/ both optional params', async () => {
-      const templateGenerateContentStub = stub(
-        generateContentMethods,
-        'templateGenerateContent'
-      ).resolves({} as any);
+      const templateGenerateContentStub = vi
+        .spyOn(mockGenerateContent, 'templateGenerateContent')
+        .mockResolvedValue({} as any);
       const model = new TemplateGenerativeModel(fakeAI);
       const latLng: LatLng = {
         latitude: 50.0,
@@ -122,7 +122,8 @@ describe('TemplateGenerativeModel', () => {
         templateToolConfig
       );
 
-      expect(templateGenerateContentStub).to.have.been.calledOnceWith(
+      expect(templateGenerateContentStub).toHaveBeenCalledTimes(1);
+      expect(templateGenerateContentStub).toHaveBeenCalledWith(
         model._apiSettings,
         TEMPLATE_ID,
         { inputs: TEMPLATE_VARS, toolConfig: templateToolConfig },
@@ -131,10 +132,9 @@ describe('TemplateGenerativeModel', () => {
     });
 
     it('singleRequestOptions overrides requestOptions', async () => {
-      const templateGenerateContentStub = stub(
-        generateContentMethods,
-        'templateGenerateContent'
-      ).resolves({} as any);
+      const templateGenerateContentStub = vi
+        .spyOn(mockGenerateContent, 'templateGenerateContent')
+        .mockResolvedValue({} as any);
       const model = new TemplateGenerativeModel(fakeAI, { timeout: 1000 });
       const singleRequestOptions = { timeout: 2000 };
 
@@ -144,7 +144,8 @@ describe('TemplateGenerativeModel', () => {
         singleRequestOptions
       );
 
-      expect(templateGenerateContentStub).to.have.been.calledOnceWith(
+      expect(templateGenerateContentStub).toHaveBeenCalledTimes(1);
+      expect(templateGenerateContentStub).toHaveBeenCalledWith(
         model._apiSettings,
         TEMPLATE_ID,
         { inputs: TEMPLATE_VARS },
@@ -153,10 +154,9 @@ describe('TemplateGenerativeModel', () => {
     });
 
     it('singleRequestOptions is merged with requestOptions', async () => {
-      const templateGenerateContentStub = stub(
-        generateContentMethods,
-        'templateGenerateContent'
-      ).resolves({} as any);
+      const templateGenerateContentStub = vi
+        .spyOn(mockGenerateContent, 'templateGenerateContent')
+        .mockResolvedValue({} as any);
       const abortController = new AbortController();
       const model = new TemplateGenerativeModel(fakeAI, { timeout: 1000 });
       const singleRequestOptions = { signal: abortController.signal };
@@ -167,7 +167,8 @@ describe('TemplateGenerativeModel', () => {
         singleRequestOptions
       );
 
-      expect(templateGenerateContentStub).to.have.been.calledOnceWith(
+      expect(templateGenerateContentStub).toHaveBeenCalledTimes(1);
+      expect(templateGenerateContentStub).toHaveBeenCalledWith(
         model._apiSettings,
         TEMPLATE_ID,
         { inputs: TEMPLATE_VARS },
@@ -178,15 +179,15 @@ describe('TemplateGenerativeModel', () => {
 
   describe('generateContentStream', () => {
     it('should call templateGenerateContentStream with correct parameters', async () => {
-      const templateGenerateContentStreamStub = stub(
-        generateContentMethods,
-        'templateGenerateContentStream'
-      ).resolves({} as any);
+      const templateGenerateContentStreamStub = vi
+        .spyOn(mockGenerateContent, 'templateGenerateContentStream')
+        .mockResolvedValue({} as any);
       const model = new TemplateGenerativeModel(fakeAI, { timeout: 5000 });
 
       await model.generateContentStream(TEMPLATE_ID, TEMPLATE_VARS);
 
-      expect(templateGenerateContentStreamStub).to.have.been.calledOnceWith(
+      expect(templateGenerateContentStreamStub).toHaveBeenCalledTimes(1);
+      expect(templateGenerateContentStreamStub).toHaveBeenCalledWith(
         model._apiSettings,
         TEMPLATE_ID,
         { inputs: TEMPLATE_VARS },
@@ -195,16 +196,16 @@ describe('TemplateGenerativeModel', () => {
     });
 
     it('should call templateGenerateContentStream with correct parameters w/ request options', async () => {
-      const templateGenerateContentStreamStub = stub(
-        generateContentMethods,
-        'templateGenerateContentStream'
-      ).resolves({} as any);
+      const templateGenerateContentStreamStub = vi
+        .spyOn(mockGenerateContent, 'templateGenerateContentStream')
+        .mockResolvedValue({} as any);
       const model = new TemplateGenerativeModel(fakeAI);
       await model.generateContentStream(TEMPLATE_ID, TEMPLATE_VARS, {
         timeout: 5000
       });
 
-      expect(templateGenerateContentStreamStub).to.have.been.calledOnceWith(
+      expect(templateGenerateContentStreamStub).toHaveBeenCalledTimes(1);
+      expect(templateGenerateContentStreamStub).toHaveBeenCalledWith(
         model._apiSettings,
         TEMPLATE_ID,
         { inputs: TEMPLATE_VARS },
@@ -213,10 +214,9 @@ describe('TemplateGenerativeModel', () => {
     });
 
     it('should call templateGenerateContentStream with correct parameters w/ tool config', async () => {
-      const templateGenerateContentStreamStub = stub(
-        generateContentMethods,
-        'templateGenerateContentStream'
-      ).resolves({} as any);
+      const templateGenerateContentStreamStub = vi
+        .spyOn(mockGenerateContent, 'templateGenerateContentStream')
+        .mockResolvedValue({} as any);
       const latLng: LatLng = {
         latitude: 50.0,
         longitude: 50.0
@@ -231,18 +231,19 @@ describe('TemplateGenerativeModel', () => {
         templateToolConfig
       );
 
-      expect(templateGenerateContentStreamStub).to.have.been.calledOnceWith(
+      expect(templateGenerateContentStreamStub).toHaveBeenCalledTimes(1);
+      expect(templateGenerateContentStreamStub).toHaveBeenCalledWith(
         model._apiSettings,
         TEMPLATE_ID,
-        { inputs: TEMPLATE_VARS, toolConfig: templateToolConfig }
+        { inputs: TEMPLATE_VARS, toolConfig: templateToolConfig },
+        {}
       );
     });
 
     it('should call templateGenerateContent with correct parameters w/ both optional params', async () => {
-      const templateGenerateContentStreamStub = stub(
-        generateContentMethods,
-        'templateGenerateContentStream'
-      ).resolves({} as any);
+      const templateGenerateContentStreamStub = vi
+        .spyOn(mockGenerateContent, 'templateGenerateContentStream')
+        .mockResolvedValue({} as any);
       const latLng: LatLng = {
         latitude: 50.0,
         longitude: 50.0
@@ -257,7 +258,8 @@ describe('TemplateGenerativeModel', () => {
         templateToolConfig
       );
 
-      expect(templateGenerateContentStreamStub).to.have.been.calledOnceWith(
+      expect(templateGenerateContentStreamStub).toHaveBeenCalledTimes(1);
+      expect(templateGenerateContentStreamStub).toHaveBeenCalledWith(
         model._apiSettings,
         TEMPLATE_ID,
         { inputs: TEMPLATE_VARS, toolConfig: templateToolConfig },
@@ -266,10 +268,9 @@ describe('TemplateGenerativeModel', () => {
     });
 
     it('singleRequestOptions overrides requestOptions', async () => {
-      const templateGenerateContentStreamStub = stub(
-        generateContentMethods,
-        'templateGenerateContentStream'
-      ).resolves({} as any);
+      const templateGenerateContentStreamStub = vi
+        .spyOn(mockGenerateContent, 'templateGenerateContentStream')
+        .mockResolvedValue({} as any);
       const model = new TemplateGenerativeModel(fakeAI, { timeout: 1000 });
       const singleRequestOptions = { timeout: 2000 };
 
@@ -279,7 +280,8 @@ describe('TemplateGenerativeModel', () => {
         singleRequestOptions
       );
 
-      expect(templateGenerateContentStreamStub).to.have.been.calledOnceWith(
+      expect(templateGenerateContentStreamStub).toHaveBeenCalledTimes(1);
+      expect(templateGenerateContentStreamStub).toHaveBeenCalledWith(
         model._apiSettings,
         TEMPLATE_ID,
         { inputs: TEMPLATE_VARS },
@@ -288,10 +290,9 @@ describe('TemplateGenerativeModel', () => {
     });
 
     it('singleRequestOptions is merged with requestOptions', async () => {
-      const templateGenerateContentStreamStub = stub(
-        generateContentMethods,
-        'templateGenerateContentStream'
-      ).resolves({} as any);
+      const templateGenerateContentStreamStub = vi
+        .spyOn(mockGenerateContent, 'templateGenerateContentStream')
+        .mockResolvedValue({} as any);
       const abortController = new AbortController();
       const model = new TemplateGenerativeModel(fakeAI, { timeout: 1000 });
       const singleRequestOptions = { signal: abortController.signal };
@@ -302,7 +303,8 @@ describe('TemplateGenerativeModel', () => {
         singleRequestOptions
       );
 
-      expect(templateGenerateContentStreamStub).to.have.been.calledOnceWith(
+      expect(templateGenerateContentStreamStub).toHaveBeenCalledTimes(1);
+      expect(templateGenerateContentStreamStub).toHaveBeenCalledWith(
         model._apiSettings,
         TEMPLATE_ID,
         { inputs: TEMPLATE_VARS },
@@ -329,13 +331,11 @@ describe('TemplateGenerativeModel', () => {
         }
       });
 
-      expect(chat.params.templateId).to.equal(TEMPLATE_ID);
-      expect(chat.params.templateVariables).to.deep.equal(TEMPLATE_VARS);
-      expect(chat.params.tools?.length).to.equal(1);
-      expect(chat.params.toolConfig?.functionCallingConfig?.mode).to.equal(
-        'ANY'
-      );
-      expect(chat.requestOptions?.timeout).to.equal(1000);
+      expect(chat.params.templateId).toBe(TEMPLATE_ID);
+      expect(chat.params.templateVariables).toEqual(TEMPLATE_VARS);
+      expect(chat.params.tools?.length).toBe(1);
+      expect(chat.params.toolConfig?.functionCallingConfig?.mode).toBe('ANY');
+      expect(chat.requestOptions?.timeout).toBe(1000);
     });
   });
 });

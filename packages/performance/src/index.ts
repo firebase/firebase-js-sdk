@@ -22,7 +22,7 @@
  * limitations under the License.
  */
 
-import {
+import type {
   FirebasePerformance,
   PerformanceSettings,
   PerformanceTrace
@@ -143,4 +143,4 @@ function registerPerformance(): void {
 
 registerPerformance();
 
-export { FirebasePerformance, PerformanceSettings, PerformanceTrace };
+export type { FirebasePerformance, PerformanceSettings, PerformanceTrace };

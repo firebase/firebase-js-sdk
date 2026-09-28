@@ -15,11 +15,21 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
+import {
+  expect,
+  vi,
+  MockInstance,
+  it,
+  describe,
+  beforeAll,
+  beforeEach,
+  afterAll
+} from 'vitest';
 import '../test/setup';
 import {
   countBytes,
   HeartbeatServiceImpl,
+  HeartbeatStorageImpl,
   extractHeartbeatsForHeader,
   getEarliestHeartbeatIdx,
   MAX_NUM_STORED_HEARTBEATS
@@ -32,8 +42,6 @@ import {
 import { PlatformLoggerService, SingleDateHeartbeat } from './types';
 import { FirebaseApp } from './public-types';
 import * as firebaseUtil from '@firebase/util';
-import { SinonFakeTimers, SinonStub, stub, useFakeTimers } from 'sinon';
-import * as indexedDb from './indexeddb';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
@@ -65,10 +73,9 @@ function generateDates(count: number): string[] {
 describe('HeartbeatServiceImpl', () => {
   describe('If IndexedDB has no entries', () => {
     let heartbeatService: HeartbeatServiceImpl;
-    let clock: SinonFakeTimers;
     let userAgentString = USER_AGENT_STRING_1;
-    let writeStub: SinonStub;
-    before(() => {
+    let writeStub: MockInstance;
+    beforeAll(() => {
       const container = new ComponentContainer('heartbeatTestContainer');
       container.addComponent(
         new Component(
@@ -91,8 +98,10 @@ describe('HeartbeatServiceImpl', () => {
       heartbeatService = new HeartbeatServiceImpl(container);
     });
     beforeEach(() => {
-      clock = useFakeTimers();
-      writeStub = stub(heartbeatService._storage, 'overwrite');
+      vi.useFakeTimers({ now: 0 });
+      writeStub = vi
+        .spyOn(heartbeatService._storage, 'overwrite')
+        .mockResolvedValue(undefined);
     });
     /**
      * NOTE: The clock is being reset between each test because of the global
@@ -104,7 +113,7 @@ describe('HeartbeatServiceImpl', () => {
       const heartbeat1 = heartbeatService._heartbeatsCache?.heartbeats[0];
       expect(heartbeat1?.agent).to.equal(USER_AGENT_STRING_1);
       expect(heartbeat1?.date).to.equal('1970-01-01');
-      expect(writeStub).to.be.calledWith({ heartbeats: [heartbeat1] });
+      expect(writeStub).toHaveBeenCalledWith({ heartbeats: [heartbeat1] });
     });
     it(`triggerHeartbeat() doesn't store another heartbeat on the same day`, async () => {
       expect(heartbeatService._heartbeatsCache?.heartbeats.length).to.equal(1);
@@ -113,7 +122,7 @@ describe('HeartbeatServiceImpl', () => {
     });
     it(`triggerHeartbeat() does store another heartbeat on a different day`, async () => {
       expect(heartbeatService._heartbeatsCache?.heartbeats.length).to.equal(1);
-      clock.tick(24 * 60 * 60 * 1000);
+      vi.advanceTimersByTime(24 * 60 * 60 * 1000);
       await heartbeatService.triggerHeartbeat();
       expect(heartbeatService._heartbeatsCache?.heartbeats.length).to.equal(2);
       expect(heartbeatService._heartbeatsCache?.heartbeats[1].date).to.equal(
@@ -123,7 +132,7 @@ describe('HeartbeatServiceImpl', () => {
     it(`triggerHeartbeat() stores another entry for a different user agent`, async () => {
       userAgentString = USER_AGENT_STRING_2;
       expect(heartbeatService._heartbeatsCache?.heartbeats.length).to.equal(2);
-      clock.tick(2 * 24 * 60 * 60 * 1000);
+      vi.advanceTimersByTime(2 * 24 * 60 * 60 * 1000);
       await heartbeatService.triggerHeartbeat();
       expect(heartbeatService._heartbeatsCache?.heartbeats.length).to.equal(3);
       expect(heartbeatService._heartbeatsCache?.heartbeats[2].date).to.equal(
@@ -155,26 +164,25 @@ describe('HeartbeatServiceImpl', () => {
       }
       //@ts-expect-error Ensure you can't .push() to this
       heartbeatService._heartbeatsCache.heartbeats = 50;
-      const warnStub = stub(console, 'warn');
+      const warnStub = vi.spyOn(console, 'warn').mockImplementation(() => {});
       await heartbeatService.triggerHeartbeat();
-      expect(warnStub).to.be.called;
-      expect(warnStub.args[0][1].message).to.include('heartbeats');
-      warnStub.restore();
+      expect(warnStub).toHaveBeenCalled();
+      expect(warnStub.mock.calls[0][1].message).to.include('heartbeats');
+      warnStub.mockRestore();
     });
     it(`getHeartbeatsHeader() doesn't throw even if code errors`, async () => {
       //@ts-expect-error Ensure you can't .push() to this
       heartbeatService._heartbeatsCache.heartbeats = 50;
-      const warnStub = stub(console, 'warn');
+      const warnStub = vi.spyOn(console, 'warn').mockImplementation(() => {});
       await heartbeatService.getHeartbeatsHeader();
-      expect(warnStub).to.be.called;
-      expect(warnStub.args[0][1].message).to.include('heartbeats');
-      warnStub.restore();
+      expect(warnStub).toHaveBeenCalled();
+      expect(warnStub.mock.calls[0][1].message).to.include('heartbeats');
+      warnStub.mockRestore();
     });
   });
   describe('If IndexedDB has entries', () => {
     let heartbeatService: HeartbeatServiceImpl;
-    let clock: SinonFakeTimers;
-    let writeStub: SinonStub;
+    let writeStub: MockInstance;
     let userAgentString = USER_AGENT_STRING_1;
     const mockIndexedDBHeartbeats = [
       {
@@ -186,7 +194,7 @@ describe('HeartbeatServiceImpl', () => {
         date: '1969-12-31'
       }
     ];
-    before(() => {
+    beforeAll(() => {
       const container = new ComponentContainer('heartbeatTestContainer');
       container.addComponent(
         new Component(
@@ -206,14 +214,21 @@ describe('HeartbeatServiceImpl', () => {
           ComponentType.VERSION
         )
       );
-      stub(indexedDb, 'readHeartbeatsFromIndexedDB').resolves({
-        heartbeats: [...mockIndexedDBHeartbeats]
-      });
+      if (firebaseUtil.isIndexedDBAvailable()) {
+        vi.spyOn(HeartbeatStorageImpl.prototype, 'read').mockResolvedValue({
+          heartbeats: [...mockIndexedDBHeartbeats]
+        });
+      }
       heartbeatService = new HeartbeatServiceImpl(container);
     });
+    afterAll(() => {
+      vi.restoreAllMocks();
+    });
     beforeEach(() => {
-      clock = useFakeTimers();
-      writeStub = stub(heartbeatService._storage, 'overwrite');
+      vi.useFakeTimers({ now: 0 });
+      writeStub = vi
+        .spyOn(heartbeatService._storage, 'overwrite')
+        .mockResolvedValue(undefined);
     });
     /**
      * NOTE: The clock is being reset between each test because of the global
@@ -241,17 +256,17 @@ describe('HeartbeatServiceImpl', () => {
     });
     it(`triggerHeartbeat() writes new heartbeats and retains old ones`, async () => {
       userAgentString = USER_AGENT_STRING_2;
-      clock.tick(3 * 24 * 60 * 60 * 1000);
+      vi.advanceTimersByTime(3 * 24 * 60 * 60 * 1000);
       await heartbeatService.triggerHeartbeat();
       if (firebaseUtil.isIndexedDBAvailable()) {
-        expect(writeStub).to.be.calledWith({
+        expect(writeStub).toHaveBeenCalledWith({
           heartbeats: [
             ...mockIndexedDBHeartbeats,
             { agent: USER_AGENT_STRING_2, date: '1970-01-04' }
           ]
         });
       } else {
-        expect(writeStub).to.be.calledWith({
+        expect(writeStub).toHaveBeenCalledWith({
           heartbeats: [{ agent: USER_AGENT_STRING_2, date: '1970-01-04' }]
         });
       }
@@ -269,7 +284,7 @@ describe('HeartbeatServiceImpl', () => {
       expect(heartbeatHeaders).to.include('1970-01-04');
       expect(heartbeatHeaders).to.include(`"version":2`);
       expect(heartbeatService._heartbeatsCache?.heartbeats).to.be.empty;
-      expect(writeStub).to.be.calledWith({
+      expect(writeStub).toHaveBeenCalledWith({
         lastSentHeartbeatDate: '1970-01-01',
         heartbeats: []
       });
@@ -282,7 +297,7 @@ describe('HeartbeatServiceImpl', () => {
         heartbeatService._heartbeatsCache?.heartbeats.length!;
       for (let i = numHeartbeats; i <= MAX_NUM_STORED_HEARTBEATS; i++) {
         await heartbeatService.triggerHeartbeat();
-        clock.tick(24 * 60 * 60 * 1000);
+        vi.advanceTimersByTime(24 * 60 * 60 * 1000);
       }
 
       expect(heartbeatService._heartbeatsCache?.heartbeats.length).to.equal(
@@ -304,7 +319,7 @@ describe('HeartbeatServiceImpl', () => {
     it('triggerHeartbeat() never causes the heartbeat count to exceed the max', async () => {
       for (let i = 0; i <= 50; i++) {
         await heartbeatService.triggerHeartbeat();
-        clock.tick(24 * 60 * 60 * 1000);
+        vi.advanceTimersByTime(24 * 60 * 60 * 1000);
         expect(
           heartbeatService._heartbeatsCache?.heartbeats.length
         ).to.be.lessThanOrEqual(MAX_NUM_STORED_HEARTBEATS);
@@ -314,7 +329,7 @@ describe('HeartbeatServiceImpl', () => {
 
   describe('If IndexedDB records that a header was sent today', () => {
     let heartbeatService: HeartbeatServiceImpl;
-    let writeStub: SinonStub;
+    let writeStub: MockInstance;
     const userAgentString = USER_AGENT_STRING_1;
     const mockIndexedDBHeartbeats = [
       {
@@ -326,7 +341,7 @@ describe('HeartbeatServiceImpl', () => {
         date: '1969-12-31'
       }
     ];
-    before(() => {
+    beforeAll(() => {
       const container = new ComponentContainer('heartbeatTestContainer');
       container.addComponent(
         new Component(
@@ -346,15 +361,22 @@ describe('HeartbeatServiceImpl', () => {
           ComponentType.VERSION
         )
       );
-      stub(indexedDb, 'readHeartbeatsFromIndexedDB').resolves({
-        lastSentHeartbeatDate: '1970-01-01',
-        heartbeats: [...mockIndexedDBHeartbeats]
-      });
+      if (firebaseUtil.isIndexedDBAvailable()) {
+        vi.spyOn(HeartbeatStorageImpl.prototype, 'read').mockResolvedValue({
+          lastSentHeartbeatDate: '1970-01-01',
+          heartbeats: [...mockIndexedDBHeartbeats]
+        });
+      }
       heartbeatService = new HeartbeatServiceImpl(container);
     });
+    afterAll(() => {
+      vi.restoreAllMocks();
+    });
     beforeEach(() => {
-      useFakeTimers();
-      writeStub = stub(heartbeatService._storage, 'overwrite');
+      vi.useFakeTimers({ now: 0 });
+      writeStub = vi
+        .spyOn(heartbeatService._storage, 'overwrite')
+        .mockResolvedValue(undefined);
     });
     it(`new heartbeat service reads from indexedDB cache`, async () => {
       const promiseResult = await heartbeatService._heartbeatsCachePromise;
@@ -378,15 +400,16 @@ describe('HeartbeatServiceImpl', () => {
         });
       }
     });
-    it(`triggerHeartbeat() will skip storing new data`, async () => {
-      await heartbeatService.triggerHeartbeat();
-      expect(writeStub).to.not.be.called;
-      if (firebaseUtil.isIndexedDBAvailable()) {
+    it.skipIf(!firebaseUtil.isIndexedDBAvailable())(
+      `triggerHeartbeat() will skip storing new data`,
+      async () => {
+        await heartbeatService.triggerHeartbeat();
+        expect(writeStub).not.toHaveBeenCalled();
         expect(heartbeatService._heartbeatsCache?.heartbeats).to.deep.equal(
           mockIndexedDBHeartbeats
         );
       }
-    });
+    );
   });
 
   describe('countBytes()', () => {

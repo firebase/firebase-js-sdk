@@ -22,37 +22,9 @@ export interface FunctionResponsePart
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [codeExecutionResult](./ai.functionresponsepart.md#functionresponsepartcodeexecutionresult) | never |  |
-|  [executableCode](./ai.functionresponsepart.md#functionresponsepartexecutablecode) | never |  |
-|  [functionCall](./ai.functionresponsepart.md#functionresponsepartfunctioncall) | never |  |
 |  [functionResponse](./ai.functionresponsepart.md#functionresponsepartfunctionresponse) | [FunctionResponse](./ai.functionresponse.md#functionresponse_interface) |  |
-|  [inlineData](./ai.functionresponsepart.md#functionresponsepartinlinedata) | never |  |
-|  [text](./ai.functionresponsepart.md#functionresponseparttext) | never |  |
 |  [thought](./ai.functionresponsepart.md#functionresponsepartthought) | boolean |  |
-
-## FunctionResponsePart.codeExecutionResult
-
-<b>Signature:</b>
-
-```typescript
-codeExecutionResult?: never;
-```
-
-## FunctionResponsePart.executableCode
-
-<b>Signature:</b>
-
-```typescript
-executableCode?: never;
-```
-
-## FunctionResponsePart.functionCall
-
-<b>Signature:</b>
-
-```typescript
-functionCall?: never;
-```
+|  [type](./ai.functionresponsepart.md#functionresponseparttype) | 'functionResponse' |  |
 
 ## FunctionResponsePart.functionResponse
 
@@ -62,26 +34,18 @@ functionCall?: never;
 functionResponse: FunctionResponse;
 ```
 
-## FunctionResponsePart.inlineData
-
-<b>Signature:</b>
-
-```typescript
-inlineData?: never;
-```
-
-## FunctionResponsePart.text
-
-<b>Signature:</b>
-
-```typescript
-text?: never;
-```
-
 ## FunctionResponsePart.thought
 
 <b>Signature:</b>
 
 ```typescript
 thought?: boolean;
+```
+
+## FunctionResponsePart.type
+
+<b>Signature:</b>
+
+```typescript
+type: 'functionResponse';
 ```

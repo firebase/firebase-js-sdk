@@ -17,9 +17,6 @@
 
 import { getGlobal } from '@firebase/util';
 import { AIError } from '../errors';
-import { expect, use } from 'chai';
-import sinonChai from 'sinon-chai';
-import chaiAsPromised from 'chai-as-promised';
 import {
   chromeAdapterFactory,
   ChromeAdapterImpl,
@@ -32,12 +29,13 @@ import {
   LanguageModelCreateOptions,
   LanguageModelMessage
 } from '../types/language-model';
-import { match, stub } from 'sinon';
-import { GenerateContentRequest, AIErrorCode, InferenceMode } from '../types';
+import {
+  GenerateContentRequest,
+  AIErrorCode,
+  InferenceMode,
+  TextPart
+} from '../types';
 import { Schema } from '../api';
-
-use(sinonChai);
-use(chaiAsPromised);
 
 /**
  * Converts the ReadableStream from response.body to an array of strings.
@@ -64,10 +62,9 @@ describe('ChromeAdapter', () => {
       const languageModelProvider = {
         availability: () => Promise.resolve(Availability.AVAILABLE)
       } as LanguageModel;
-      const availabilityStub = stub(
-        languageModelProvider,
-        'availability'
-      ).resolves(Availability.AVAILABLE);
+      const availabilityStub = vi
+        .spyOn(languageModelProvider, 'availability')
+        .mockResolvedValue(Availability.AVAILABLE);
       const adapter = new ChromeAdapterImpl(
         languageModelProvider,
         InferenceMode.PREFER_ON_DEVICE
@@ -76,11 +73,11 @@ describe('ChromeAdapter', () => {
         contents: [
           {
             role: 'user',
-            parts: [{ text: 'hi' }]
+            parts: [{ type: 'text', text: 'hi' }]
           }
         ]
       });
-      expect(availabilityStub).to.have.been.calledWith({
+      expect(availabilityStub).toHaveBeenCalledWith({
         expectedInputs: defaultExpectedInputs,
         expectedOutputs: defaultExpectedOutputs
       });
@@ -89,10 +86,9 @@ describe('ChromeAdapter', () => {
       const languageModelProvider = {
         availability: () => Promise.resolve(Availability.AVAILABLE)
       } as LanguageModel;
-      const availabilityStub = stub(
-        languageModelProvider,
-        'availability'
-      ).resolves(Availability.AVAILABLE);
+      const availabilityStub = vi
+        .spyOn(languageModelProvider, 'availability')
+        .mockResolvedValue(Availability.AVAILABLE);
       const adapter = new ChromeAdapterImpl(
         languageModelProvider,
         InferenceMode.PREFER_ON_DEVICE,
@@ -104,11 +100,11 @@ describe('ChromeAdapter', () => {
         contents: [
           {
             role: 'user',
-            parts: [{ text: 'hi' }]
+            parts: [{ type: 'text', text: 'hi' }]
           }
         ]
       });
-      expect(availabilityStub).to.have.been.calledWith({
+      expect(availabilityStub).toHaveBeenCalledWith({
         expectedInputs: defaultExpectedInputs,
         expectedOutputs: defaultExpectedOutputs
       });
@@ -117,10 +113,9 @@ describe('ChromeAdapter', () => {
       const languageModelProvider = {
         availability: () => Promise.resolve(Availability.AVAILABLE)
       } as LanguageModel;
-      const availabilityStub = stub(
-        languageModelProvider,
-        'availability'
-      ).resolves(Availability.AVAILABLE);
+      const availabilityStub = vi
+        .spyOn(languageModelProvider, 'availability')
+        .mockResolvedValue(Availability.AVAILABLE);
       const adapter = new ChromeAdapterImpl(
         languageModelProvider,
         InferenceMode.PREFER_ON_DEVICE,
@@ -134,11 +129,11 @@ describe('ChromeAdapter', () => {
         contents: [
           {
             role: 'user',
-            parts: [{ text: 'hi' }]
+            parts: [{ type: 'text', text: 'hi' }]
           }
         ]
       });
-      expect(availabilityStub).to.have.been.calledWith({
+      expect(availabilityStub).toHaveBeenCalledWith({
         topK: 22,
         expectedInputs: defaultExpectedInputs,
         expectedOutputs: defaultExpectedOutputs
@@ -148,10 +143,9 @@ describe('ChromeAdapter', () => {
       const languageModelProvider = {
         availability: () => Promise.resolve(Availability.AVAILABLE)
       } as LanguageModel;
-      const availabilityStub = stub(
-        languageModelProvider,
-        'availability'
-      ).resolves(Availability.AVAILABLE);
+      const availabilityStub = vi
+        .spyOn(languageModelProvider, 'availability')
+        .mockResolvedValue(Availability.AVAILABLE);
       const createOptions = {
         // Explicitly sets expected inputs.
         expectedInputs: [{ type: 'text', languages: ['en'] }],
@@ -168,11 +162,11 @@ describe('ChromeAdapter', () => {
         contents: [
           {
             role: 'user',
-            parts: [{ text: 'hi' }]
+            parts: [{ type: 'text', text: 'hi' }]
           }
         ]
       });
-      expect(availabilityStub).to.have.been.calledWith(createOptions);
+      expect(availabilityStub).toHaveBeenCalledWith(createOptions);
     });
   });
   describe('isAvailable', () => {
@@ -185,7 +179,7 @@ describe('ChromeAdapter', () => {
         await adapter.isAvailable({
           contents: []
         })
-      ).to.be.false;
+      ).toBe(false);
     });
     it('returns true if mode is only on device and is available', async () => {
       const adapter = new ChromeAdapterImpl(
@@ -198,7 +192,7 @@ describe('ChromeAdapter', () => {
         await adapter.isAvailable({
           contents: []
         })
-      ).to.be.true;
+      ).toBe(true);
     });
     it('throws if mode is only on device and is unavailable', async () => {
       const adapter = new ChromeAdapterImpl(
@@ -211,7 +205,7 @@ describe('ChromeAdapter', () => {
         adapter.isAvailable({
           contents: []
         })
-      ).to.be.rejected;
+      ).rejects.toThrow();
     });
     it('returns true after waiting for download if mode is only on device', async () => {
       const adapter = new ChromeAdapterImpl(
@@ -226,7 +220,7 @@ describe('ChromeAdapter', () => {
         await adapter.isAvailable({
           contents: []
         })
-      ).to.be.true;
+      ).toBe(true);
     });
     it('returns false if LanguageModel API is undefined', async () => {
       const adapter = new ChromeAdapterImpl(
@@ -238,7 +232,7 @@ describe('ChromeAdapter', () => {
         await adapter.isAvailable({
           contents: []
         })
-      ).to.be.false;
+      ).toBe(false);
     });
     it('returns false if request contents empty', async () => {
       const adapter = new ChromeAdapterImpl(
@@ -251,9 +245,35 @@ describe('ChromeAdapter', () => {
         await adapter.isAvailable({
           contents: []
         })
-      ).to.be.false;
+      ).toBe(false);
     });
     it('returns false if request content has a functionResponse part', async () => {
+      const adapter = new ChromeAdapterImpl(
+        {
+          availability: async () => Availability.AVAILABLE
+        } as LanguageModel,
+        InferenceMode.PREFER_ON_DEVICE
+      );
+      expect(
+        await adapter.isAvailable({
+          contents: [
+            {
+              role: 'user',
+              parts: [
+                {
+                  type: 'functionResponse',
+                  functionResponse: {
+                    name: 'greet',
+                    response: { name: 'user' }
+                  }
+                }
+              ]
+            }
+          ]
+        })
+      ).toBe(false);
+    });
+    it('returns false if request content has an untagged functionResponse part', async () => {
       const adapter = new ChromeAdapterImpl(
         {
           availability: async () => Availability.AVAILABLE
@@ -271,12 +291,62 @@ describe('ChromeAdapter', () => {
                     name: 'greet',
                     response: { name: 'user' }
                   }
-                }
+                } as unknown as TextPart
               ]
             }
           ]
         })
       ).to.be.false;
+    });
+    it('returns false if request has an untagged image with unsupported mime type', async () => {
+      const adapter = new ChromeAdapterImpl(
+        {
+          availability: async () => Availability.AVAILABLE
+        } as LanguageModel,
+        InferenceMode.PREFER_ON_DEVICE
+      );
+      expect(
+        await adapter.isAvailable({
+          contents: [
+            {
+              role: 'user',
+              parts: [
+                {
+                  inlineData: {
+                    mimeType: 'image/gif',
+                    data: ''
+                  }
+                } as unknown as TextPart
+              ]
+            }
+          ]
+        })
+      ).to.be.false;
+    });
+    it('returns true if request has an untagged image with supported mime type', async () => {
+      const adapter = new ChromeAdapterImpl(
+        {
+          availability: async () => Availability.AVAILABLE
+        } as LanguageModel,
+        InferenceMode.PREFER_ON_DEVICE
+      );
+      expect(
+        await adapter.isAvailable({
+          contents: [
+            {
+              role: 'user',
+              parts: [
+                {
+                  inlineData: {
+                    mimeType: 'image/jpeg',
+                    data: ''
+                  }
+                } as unknown as TextPart
+              ]
+            }
+          ]
+        })
+      ).to.be.true;
     });
     it('returns true if request has image with supported mime type', async () => {
       const adapter = new ChromeAdapterImpl(
@@ -293,6 +363,7 @@ describe('ChromeAdapter', () => {
                 role: 'user',
                 parts: [
                   {
+                    type: 'inlineData',
                     inlineData: {
                       mimeType,
                       data: ''
@@ -302,7 +373,7 @@ describe('ChromeAdapter', () => {
               }
             ]
           })
-        ).to.be.true;
+        ).toBe(true);
       }
     });
     it('returns true if model is readily available', async () => {
@@ -319,20 +390,25 @@ describe('ChromeAdapter', () => {
             {
               role: 'user',
               parts: [
-                { text: 'describe this image' },
-                { inlineData: { mimeType: 'image/jpeg', data: 'asd' } }
+                { type: 'text', text: 'describe this image' },
+                {
+                  type: 'inlineData',
+                  inlineData: { mimeType: 'image/jpeg', data: 'asd' }
+                }
               ]
             }
           ]
         })
-      ).to.be.true;
+      ).toBe(true);
     });
     it('returns false if model is downloadable but not downloaded', async () => {
       const languageModelProvider = {
         availability: () => Promise.resolve(Availability.DOWNLOADABLE),
         create: () => Promise.resolve({})
       } as LanguageModel;
-      stub(languageModelProvider, 'create').resolves({} as LanguageModel);
+      vi.spyOn(languageModelProvider, 'create').mockResolvedValue(
+        {} as LanguageModel
+      );
       const createOptions = {
         expectedInputs: [{ type: 'image' }]
       } as LanguageModelCreateOptions;
@@ -343,9 +419,9 @@ describe('ChromeAdapter', () => {
       );
       expect(
         await adapter.isAvailable({
-          contents: [{ role: 'user', parts: [{ text: 'hi' }] }]
+          contents: [{ role: 'user', parts: [{ type: 'text', text: 'hi' }] }]
         })
-      ).to.be.false;
+      ).toBe(false);
     });
     it('returns false when model is never available', async () => {
       const languageModelProvider = {
@@ -358,39 +434,39 @@ describe('ChromeAdapter', () => {
       );
       expect(
         await adapter.isAvailable({
-          contents: [{ role: 'user', parts: [{ text: 'hi' }] }]
+          contents: [{ role: 'user', parts: [{ type: 'text', text: 'hi' }] }]
         })
-      ).to.be.false;
+      ).toBe(false);
     });
   });
   describe('downloadIfAvailable', () => {
     it('calls create() with listener if downloadable', async () => {
-      const progressCallback = stub();
-      const mockCreate = stub().resolves();
+      const progressCallback = vi.fn();
+      const mockCreate = vi.fn().mockResolvedValue(undefined);
       const adapter = new ChromeAdapterImpl(
         {
-          availability: stub().resolves(Availability.DOWNLOADABLE),
+          availability: vi.fn().mockResolvedValue(Availability.DOWNLOADABLE),
           create: mockCreate
         } as unknown as LanguageModel,
         InferenceMode.PREFER_ON_DEVICE
       );
       await adapter.downloadIfAvailable(progressCallback);
       await adapter.downloadPromise;
-      expect(mockCreate.getCall(0).args[0].monitor).to.exist;
+      expect((mockCreate.mock.calls[0][0] as any).monitor).toBeDefined();
     });
     it('calls create() with listener if downloading', async () => {
-      const progressCallback = stub();
-      const mockCreate = stub().resolves();
+      const progressCallback = vi.fn();
+      const mockCreate = vi.fn().mockResolvedValue(undefined);
       const adapter = new ChromeAdapterImpl(
         {
-          availability: stub().resolves(Availability.DOWNLOADING),
+          availability: vi.fn().mockResolvedValue(Availability.DOWNLOADING),
           create: mockCreate
         } as unknown as LanguageModel,
         InferenceMode.PREFER_ON_DEVICE
       );
       await adapter.downloadIfAvailable(progressCallback);
       await adapter.downloadPromise;
-      expect(mockCreate.getCall(0).args[0].monitor).to.exist;
+      expect((mockCreate.mock.calls[0][0] as any).monitor).toBeDefined();
     });
     it('avoids redundant downloads', async () => {
       const languageModelProvider = {
@@ -400,16 +476,16 @@ describe('ChromeAdapter', () => {
       const downloadPromise = new Promise<LanguageModel>(() => {
         /* never resolves */
       });
-      const createStub = stub(languageModelProvider, 'create').returns(
-        downloadPromise
-      );
+      const createStub = vi
+        .spyOn(languageModelProvider, 'create')
+        .mockReturnValue(downloadPromise);
       const adapter = new ChromeAdapterImpl(
         languageModelProvider,
         InferenceMode.PREFER_ON_DEVICE
       );
       await adapter.downloadIfAvailable();
       await adapter.downloadIfAvailable();
-      expect(createStub).to.have.been.calledOnce;
+      expect(createStub).toHaveBeenCalledTimes(1);
     });
     it('clears state when download completes', async () => {
       const languageModelProvider = {
@@ -420,9 +496,9 @@ describe('ChromeAdapter', () => {
       const downloadPromise = new Promise<LanguageModel>(resolveCallback => {
         resolveDownload = resolveCallback;
       });
-      const createStub = stub(languageModelProvider, 'create').returns(
-        downloadPromise
-      );
+      const createStub = vi
+        .spyOn(languageModelProvider, 'create')
+        .mockReturnValue(downloadPromise);
       const adapter = new ChromeAdapterImpl(
         languageModelProvider,
         InferenceMode.PREFER_ON_DEVICE
@@ -430,7 +506,7 @@ describe('ChromeAdapter', () => {
       await adapter.downloadIfAvailable();
       resolveDownload!();
       await adapter.downloadIfAvailable();
-      expect(createStub).to.have.been.calledTwice;
+      expect(createStub).toHaveBeenCalledTimes(2);
     });
   });
   describe('generateContent', () => {
@@ -444,12 +520,12 @@ describe('ChromeAdapter', () => {
         adapter.generateContent({
           contents: []
         })
-      )
-        .to.eventually.be.rejectedWith(
-          AIError,
+      ).rejects.toMatchObject({
+        message: expect.stringContaining(
           'Chrome AI requested for unsupported browser version.'
-        )
-        .and.have.property('code', AIErrorCode.UNSUPPORTED);
+        ),
+        code: AIErrorCode.UNSUPPORTED
+      });
     });
     it('generates content', async () => {
       const languageModelProvider = {
@@ -459,11 +535,13 @@ describe('ChromeAdapter', () => {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         prompt: (p: LanguageModelMessage[]) => Promise.resolve('')
       } as LanguageModel;
-      const createStub = stub(languageModelProvider, 'create').resolves(
-        languageModel
-      );
+      const createStub = vi
+        .spyOn(languageModelProvider, 'create')
+        .mockResolvedValue(languageModel);
       const promptOutput = 'hi';
-      const promptStub = stub(languageModel, 'prompt').resolves(promptOutput);
+      const promptStub = vi
+        .spyOn(languageModel, 'prompt')
+        .mockResolvedValue(promptOutput);
       const createOptions = {
         systemPrompt: 'be yourself',
         expectedInputs: [{ type: 'image' }]
@@ -474,25 +552,83 @@ describe('ChromeAdapter', () => {
         { createOptions }
       );
       const request = {
-        contents: [{ role: 'user', parts: [{ text: 'anything' }] }]
+        contents: [
+          { role: 'user', parts: [{ type: 'text', text: 'anything' }] }
+        ]
       } as GenerateContentRequest;
       const response = await adapter.generateContent(request);
       // Asserts initialization params are proxied.
-      expect(createStub).to.have.been.calledOnceWith(createOptions);
+      expect(createStub).toHaveBeenCalledTimes(1);
+      expect(createStub).toHaveBeenCalledWith(createOptions);
       // Asserts Vertex input type is mapped to Chrome type.
-      expect(promptStub).to.have.been.calledOnceWith([
-        {
-          role: request.contents[0].role,
-          content: [
-            {
-              type: 'text',
-              value: request.contents[0].parts[0].text
-            }
-          ]
-        }
-      ]);
+      expect(promptStub).toHaveBeenCalledTimes(1);
+      expect(promptStub).toHaveBeenCalledWith(
+        [
+          {
+            role: request.contents[0].role,
+            content: [
+              {
+                type: 'text',
+                value: (request.contents[0].parts[0] as TextPart).text
+              }
+            ]
+          }
+        ],
+        undefined
+      );
       // Asserts expected output.
-      expect(await response.json()).to.deep.equal({
+      expect(await response.json()).toEqual({
+        candidates: [
+          {
+            content: {
+              parts: [{ text: promptOutput }]
+            }
+          }
+        ]
+      });
+    });
+    it('generates content from plain-string prompt / untagged text part', async () => {
+      const languageModelProvider = {
+        create: () => Promise.resolve({})
+      } as LanguageModel;
+      const languageModel = {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        prompt: (p: LanguageModelMessage[]) => Promise.resolve('')
+      } as LanguageModel;
+      vi.spyOn(languageModelProvider, 'create').mockResolvedValue(
+        languageModel
+      );
+      const promptOutput = 'hi';
+      const promptStub = vi
+        .spyOn(languageModel, 'prompt')
+        .mockResolvedValue(promptOutput);
+      const adapter = new ChromeAdapterImpl(
+        languageModelProvider,
+        InferenceMode.PREFER_ON_DEVICE
+      );
+      // Untagged part produced by formatGenerateContentInput('anything')
+      const request = {
+        contents: [
+          { role: 'user', parts: [{ text: 'anything' } as unknown as TextPart] }
+        ]
+      } as GenerateContentRequest;
+      const response = await adapter.generateContent(request);
+      expect(promptStub).toHaveBeenCalledTimes(1);
+      expect(promptStub).toHaveBeenCalledWith(
+        [
+          {
+            role: 'user',
+            content: [
+              {
+                type: 'text',
+                value: 'anything'
+              }
+            ]
+          }
+        ],
+        undefined
+      );
+      expect(await response.json()).toEqual({
         candidates: [
           {
             content: {
@@ -510,11 +646,13 @@ describe('ChromeAdapter', () => {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         prompt: (p: LanguageModelMessage[]) => Promise.resolve('')
       } as LanguageModel;
-      const createStub = stub(languageModelProvider, 'create').resolves(
-        languageModel
-      );
+      const createStub = vi
+        .spyOn(languageModelProvider, 'create')
+        .mockResolvedValue(languageModel);
       const promptOutput = 'hi';
-      const promptStub = stub(languageModel, 'prompt').resolves(promptOutput);
+      const promptStub = vi
+        .spyOn(languageModel, 'prompt')
+        .mockResolvedValue(promptOutput);
       const createOptions = {
         systemPrompt: 'be yourself',
         expectedInputs: [{ type: 'image' }]
@@ -529,8 +667,9 @@ describe('ChromeAdapter', () => {
           {
             role: 'user',
             parts: [
-              { text: 'anything' },
+              { type: 'text', text: 'anything' },
               {
+                type: 'inlineData',
                 inlineData: {
                   data: sampleBase64EncodedImage,
                   mimeType: 'image/jpeg'
@@ -542,25 +681,30 @@ describe('ChromeAdapter', () => {
       } as GenerateContentRequest;
       const response = await adapter.generateContent(request);
       // Asserts initialization params are proxied.
-      expect(createStub).to.have.been.calledOnceWith(createOptions);
+      expect(createStub).toHaveBeenCalledTimes(1);
+      expect(createStub).toHaveBeenCalledWith(createOptions);
       // Asserts Vertex input type is mapped to Chrome type.
-      expect(promptStub).to.have.been.calledOnceWith([
-        {
-          role: request.contents[0].role,
-          content: [
-            {
-              type: 'text',
-              value: request.contents[0].parts[0].text
-            },
-            {
-              type: 'image',
-              value: match.instanceOf(ImageBitmap)
-            }
-          ]
-        }
-      ]);
+      expect(promptStub).toHaveBeenCalledTimes(1);
+      expect(promptStub).toHaveBeenCalledWith(
+        [
+          {
+            role: request.contents[0].role,
+            content: [
+              {
+                type: 'text',
+                value: (request.contents[0].parts[0] as TextPart).text
+              },
+              {
+                type: 'image',
+                value: expect.any(ImageBitmap)
+              }
+            ]
+          }
+        ],
+        undefined
+      );
       // Asserts expected output.
-      expect(await response.json()).to.deep.equal({
+      expect(await response.json()).toEqual({
         candidates: [
           {
             content: {
@@ -579,7 +723,9 @@ describe('ChromeAdapter', () => {
         create: () => Promise.resolve(languageModel)
       } as LanguageModel;
       const promptOutput = '{}';
-      const promptStub = stub(languageModel, 'prompt').resolves(promptOutput);
+      const promptStub = vi
+        .spyOn(languageModel, 'prompt')
+        .mockResolvedValue(promptOutput);
       const promptOptions = {
         responseConstraint: Schema.object({
           properties: {}
@@ -591,17 +737,20 @@ describe('ChromeAdapter', () => {
         { promptOptions }
       );
       const request = {
-        contents: [{ role: 'user', parts: [{ text: 'anything' }] }]
+        contents: [
+          { role: 'user', parts: [{ type: 'text', text: 'anything' }] }
+        ]
       } as GenerateContentRequest;
       await adapter.generateContent(request);
-      expect(promptStub).to.have.been.calledOnceWith(
+      expect(promptStub).toHaveBeenCalledTimes(1);
+      expect(promptStub).toHaveBeenCalledWith(
         [
           {
             role: request.contents[0].role,
             content: [
               {
                 type: 'text',
-                value: request.contents[0].parts[0].text
+                value: (request.contents[0].parts[0] as TextPart).text
               }
             ]
           }
@@ -614,7 +763,9 @@ describe('ChromeAdapter', () => {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         prompt: (p: LanguageModelMessage[]) => Promise.resolve('unused')
       } as LanguageModel;
-      const promptStub = stub(languageModel, 'prompt').resolves('unused');
+      const promptStub = vi
+        .spyOn(languageModel, 'prompt')
+        .mockResolvedValue('unused');
       const languageModelProvider = {
         create: () => Promise.resolve(languageModel)
       } as LanguageModel;
@@ -623,21 +774,25 @@ describe('ChromeAdapter', () => {
         InferenceMode.PREFER_ON_DEVICE
       );
       const request = {
-        contents: [{ role: 'model', parts: [{ text: 'unused' }] }]
+        contents: [{ role: 'model', parts: [{ type: 'text', text: 'unused' }] }]
       } as GenerateContentRequest;
       await adapter.generateContent(request);
-      expect(promptStub).to.have.been.calledOnceWith([
-        {
-          // Asserts Vertex's "model" role normalized to Chrome's "assistant" role.
-          role: 'assistant',
-          content: [
-            {
-              type: 'text',
-              value: request.contents[0].parts[0].text
-            }
-          ]
-        }
-      ]);
+      expect(promptStub).toHaveBeenCalledTimes(1);
+      expect(promptStub).toHaveBeenCalledWith(
+        [
+          {
+            // Asserts Vertex's "model" role normalized to Chrome's "assistant" role.
+            role: 'assistant',
+            content: [
+              {
+                type: 'text',
+                value: (request.contents[0].parts[0] as TextPart).text
+              }
+            ]
+          }
+        ],
+        undefined
+      );
     });
   });
   describe('countTokens', () => {
@@ -650,9 +805,9 @@ describe('ChromeAdapter', () => {
       const languageModel = {
         measureInputUsage: _i => Promise.resolve(123)
       } as LanguageModel;
-      const createStub = stub(languageModelProvider, 'create').resolves(
-        languageModel
-      );
+      const createStub = vi
+        .spyOn(languageModelProvider, 'create')
+        .mockResolvedValue(languageModel);
 
       const adapter = new ChromeAdapterImpl(
         languageModelProvider,
@@ -667,12 +822,12 @@ describe('ChromeAdapter', () => {
         await adapter.countTokens(countTokenRequest);
       } catch (e) {
         // the call to countToken should be rejected with Error
-        expect((e as AIError).code).to.equal(AIErrorCode.REQUEST_ERROR);
-        expect((e as AIError).message).includes('not yet available');
+        expect((e as AIError).code).toBe(AIErrorCode.REQUEST_ERROR);
+        expect((e as AIError).message).toContain('not yet available');
       }
 
       // Asserts that no language model was initialized
-      expect(createStub).not.called;
+      expect(createStub).not.toHaveBeenCalled();
     });
   });
   describe('generateContentStream', () => {
@@ -683,18 +838,20 @@ describe('ChromeAdapter', () => {
       const languageModel = {
         promptStreaming: _i => new ReadableStream()
       } as LanguageModel;
-      const createStub = stub(languageModelProvider, 'create').resolves(
-        languageModel
-      );
+      const createStub = vi
+        .spyOn(languageModelProvider, 'create')
+        .mockResolvedValue(languageModel);
       const part = 'hi';
-      const promptStub = stub(languageModel, 'promptStreaming').returns(
-        new ReadableStream({
-          start(controller) {
-            controller.enqueue([part]);
-            controller.close();
-          }
-        })
-      );
+      const promptStub = vi
+        .spyOn(languageModel, 'promptStreaming')
+        .mockReturnValue(
+          new ReadableStream({
+            start(controller) {
+              controller.enqueue([part]);
+              controller.close();
+            }
+          })
+        );
       const createOptions = {
         expectedInputs: [{ type: 'image' }]
       } as LanguageModelCreateOptions;
@@ -704,23 +861,81 @@ describe('ChromeAdapter', () => {
         { createOptions }
       );
       const request = {
-        contents: [{ role: 'user', parts: [{ text: 'anything' }] }]
+        contents: [
+          { role: 'user', parts: [{ type: 'text', text: 'anything' }] }
+        ]
       } as GenerateContentRequest;
       const response = await adapter.generateContentStream(request);
-      expect(createStub).to.have.been.calledOnceWith(createOptions);
-      expect(promptStub).to.have.been.calledOnceWith([
-        {
-          role: request.contents[0].role,
-          content: [
-            {
-              type: 'text',
-              value: request.contents[0].parts[0].text
-            }
-          ]
-        }
-      ]);
+      expect(createStub).toHaveBeenCalledTimes(1);
+      expect(createStub).toHaveBeenCalledWith(createOptions);
+      expect(promptStub).toHaveBeenCalledTimes(1);
+      expect(promptStub).toHaveBeenCalledWith(
+        [
+          {
+            role: request.contents[0].role,
+            content: [
+              {
+                type: 'text',
+                value: (request.contents[0].parts[0] as TextPart).text
+              }
+            ]
+          }
+        ],
+        undefined
+      );
       const actual = await toStringArray(response.body!);
-      expect(actual).to.deep.equal([
+      expect(actual).toEqual([
+        `data: {"candidates":[{"content":{"role":"model","parts":[{"text":["${part}"]}]}}]}\n\n`
+      ]);
+    });
+    it('generates content stream from plain-string prompt / untagged text part', async () => {
+      const languageModelProvider = {
+        create: () => Promise.resolve({})
+      } as LanguageModel;
+      const languageModel = {
+        promptStreaming: _i => new ReadableStream()
+      } as LanguageModel;
+      vi.spyOn(languageModelProvider, 'create').mockResolvedValue(
+        languageModel
+      );
+      const part = 'hi';
+      const promptStub = vi
+        .spyOn(languageModel, 'promptStreaming')
+        .mockReturnValue(
+          new ReadableStream({
+            start(controller) {
+              controller.enqueue([part]);
+              controller.close();
+            }
+          })
+        );
+      const adapter = new ChromeAdapterImpl(
+        languageModelProvider,
+        InferenceMode.PREFER_ON_DEVICE
+      );
+      const request = {
+        contents: [
+          { role: 'user', parts: [{ text: 'anything' } as unknown as TextPart] }
+        ]
+      } as GenerateContentRequest;
+      const response = await adapter.generateContentStream(request);
+      expect(promptStub).toHaveBeenCalledTimes(1);
+      expect(promptStub).toHaveBeenCalledWith(
+        [
+          {
+            role: 'user',
+            content: [
+              {
+                type: 'text',
+                value: 'anything'
+              }
+            ]
+          }
+        ],
+        undefined
+      );
+      const actual = await toStringArray(response.body!);
+      expect(actual).toEqual([
         `data: {"candidates":[{"content":{"role":"model","parts":[{"text":["${part}"]}]}}]}\n\n`
       ]);
     });
@@ -731,18 +946,20 @@ describe('ChromeAdapter', () => {
       const languageModel = {
         promptStreaming: _i => new ReadableStream()
       } as LanguageModel;
-      const createStub = stub(languageModelProvider, 'create').resolves(
-        languageModel
-      );
+      const createStub = vi
+        .spyOn(languageModelProvider, 'create')
+        .mockResolvedValue(languageModel);
       const part = 'hi';
-      const promptStub = stub(languageModel, 'promptStreaming').returns(
-        new ReadableStream({
-          start(controller) {
-            controller.enqueue([part]);
-            controller.close();
-          }
-        })
-      );
+      const promptStub = vi
+        .spyOn(languageModel, 'promptStreaming')
+        .mockReturnValue(
+          new ReadableStream({
+            start(controller) {
+              controller.enqueue([part]);
+              controller.close();
+            }
+          })
+        );
       const createOptions = {
         expectedInputs: [{ type: 'image' }]
       } as LanguageModelCreateOptions;
@@ -756,8 +973,9 @@ describe('ChromeAdapter', () => {
           {
             role: 'user',
             parts: [
-              { text: 'anything' },
+              { type: 'text', text: 'anything' },
               {
+                type: 'inlineData',
                 inlineData: {
                   data: sampleBase64EncodedImage,
                   mimeType: 'image/jpeg'
@@ -768,24 +986,29 @@ describe('ChromeAdapter', () => {
         ]
       } as GenerateContentRequest;
       const response = await adapter.generateContentStream(request);
-      expect(createStub).to.have.been.calledOnceWith(createOptions);
-      expect(promptStub).to.have.been.calledOnceWith([
-        {
-          role: request.contents[0].role,
-          content: [
-            {
-              type: 'text',
-              value: request.contents[0].parts[0].text
-            },
-            {
-              type: 'image',
-              value: match.instanceOf(ImageBitmap)
-            }
-          ]
-        }
-      ]);
+      expect(createStub).toHaveBeenCalledTimes(1);
+      expect(createStub).toHaveBeenCalledWith(createOptions);
+      expect(promptStub).toHaveBeenCalledTimes(1);
+      expect(promptStub).toHaveBeenCalledWith(
+        [
+          {
+            role: request.contents[0].role,
+            content: [
+              {
+                type: 'text',
+                value: (request.contents[0].parts[0] as TextPart).text
+              },
+              {
+                type: 'image',
+                value: expect.any(ImageBitmap)
+              }
+            ]
+          }
+        ],
+        undefined
+      );
       const actual = await toStringArray(response.body!);
-      expect(actual).to.deep.equal([
+      expect(actual).toEqual([
         `data: {"candidates":[{"content":{"role":"model","parts":[{"text":["${part}"]}]}}]}\n\n`
       ]);
     });
@@ -797,9 +1020,9 @@ describe('ChromeAdapter', () => {
       const languageModelProvider = {
         create: () => Promise.resolve(languageModel)
       } as LanguageModel;
-      const promptStub = stub(languageModel, 'promptStreaming').returns(
-        new ReadableStream()
-      );
+      const promptStub = vi
+        .spyOn(languageModel, 'promptStreaming')
+        .mockReturnValue(new ReadableStream());
       const promptOptions = {
         responseConstraint: Schema.object({
           properties: {}
@@ -811,17 +1034,20 @@ describe('ChromeAdapter', () => {
         { promptOptions }
       );
       const request = {
-        contents: [{ role: 'user', parts: [{ text: 'anything' }] }]
+        contents: [
+          { role: 'user', parts: [{ type: 'text', text: 'anything' }] }
+        ]
       } as GenerateContentRequest;
       await adapter.generateContentStream(request);
-      expect(promptStub).to.have.been.calledOnceWith(
+      expect(promptStub).toHaveBeenCalledTimes(1);
+      expect(promptStub).toHaveBeenCalledWith(
         [
           {
             role: request.contents[0].role,
             content: [
               {
                 type: 'text',
-                value: request.contents[0].parts[0].text
+                value: (request.contents[0].parts[0] as TextPart).text
               }
             ]
           }
@@ -834,9 +1060,9 @@ describe('ChromeAdapter', () => {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         promptStreaming: p => new ReadableStream()
       } as LanguageModel;
-      const promptStub = stub(languageModel, 'promptStreaming').returns(
-        new ReadableStream()
-      );
+      const promptStub = vi
+        .spyOn(languageModel, 'promptStreaming')
+        .mockReturnValue(new ReadableStream());
       const languageModelProvider = {
         create: () => Promise.resolve(languageModel)
       } as LanguageModel;
@@ -845,21 +1071,25 @@ describe('ChromeAdapter', () => {
         InferenceMode.PREFER_ON_DEVICE
       );
       const request = {
-        contents: [{ role: 'model', parts: [{ text: 'unused' }] }]
+        contents: [{ role: 'model', parts: [{ type: 'text', text: 'unused' }] }]
       } as GenerateContentRequest;
       await adapter.generateContentStream(request);
-      expect(promptStub).to.have.been.calledOnceWith([
-        {
-          // Asserts Vertex's "model" role normalized to Chrome's "assistant" role.
-          role: 'assistant',
-          content: [
-            {
-              type: 'text',
-              value: request.contents[0].parts[0].text
-            }
-          ]
-        }
-      ]);
+      expect(promptStub).toHaveBeenCalledTimes(1);
+      expect(promptStub).toHaveBeenCalledWith(
+        [
+          {
+            // Asserts Vertex's "model" role normalized to Chrome's "assistant" role.
+            role: 'assistant',
+            content: [
+              {
+                type: 'text',
+                value: (request.contents[0].parts[0] as TextPart).text
+              }
+            ]
+          }
+        ],
+        undefined
+      );
     });
   });
 });
@@ -872,9 +1102,9 @@ describe('chromeAdapterFactory', () => {
       { LanguageModel: fakeLanguageModel } as unknown as Window,
       { createOptions: {} }
     );
-    expect(adapter?.languageModelProvider).to.equal(fakeLanguageModel);
-    expect(adapter?.mode).to.equal(InferenceMode.PREFER_ON_DEVICE);
-    expect(adapter?.onDeviceParams.createOptions).to.exist;
+    expect(adapter?.languageModelProvider).toBe(fakeLanguageModel);
+    expect(adapter?.mode).toBe(InferenceMode.PREFER_ON_DEVICE);
+    expect(adapter?.onDeviceParams.createOptions).toBeDefined();
   });
 
   it('creates a ChromeAdapterImpl when LanguageModel is defined on the global object', () => {
@@ -887,7 +1117,7 @@ describe('chromeAdapterFactory', () => {
         InferenceMode.PREFER_ON_DEVICE,
         undefined
       );
-      expect(adapter?.languageModelProvider).to.equal(fakeLanguageModel);
+      expect(adapter?.languageModelProvider).toBe(fakeLanguageModel);
     } finally {
       globalObj.LanguageModel = originalLM;
     }

@@ -1044,6 +1044,9 @@ describe('RealtimeHandler', () => {
       ).not.toHaveBeenCalled();
 
       expect(retryHttpConnectionWhenBackoffEndsSpy).not.toHaveBeenCalled();
+
+      // A retryable status must never surface an error to listeners while hidden.
+      expect(propagateErrorSpy).not.toHaveBeenCalled();
     });
 
     it('should propagate CONFIG_UPDATE_STREAM_ERROR if connection fails non-retryably', async () => {
@@ -1069,7 +1072,95 @@ describe('RealtimeHandler', () => {
 
       await (realtime as any).prepareAndBeginRealtimeHttpStream();
 
-      expect(propagateErrorSpy).toHaveBeenCalledTimes(1);
+      expect(propagateErrorSpy).not.toHaveBeenCalled();
+    });
+
+    it('should not propagate error when a pending fetch is aborted by backgrounding', async () => {
+      // Regression test for #9426: hiding the tab while the initial fetch is still
+      // pending rejects with an AbortError, leaving responseCode undefined. That used
+      // to surface "Unable to connect to the server. HTTP status code: undefined".
+      const abortError = new DOMException(
+        'The user aborted a request.',
+        'AbortError'
+      );
+      createRealtimeConnectionSpy.mockRejectedValue(abortError);
+      (realtime as any).observers.add({});
+      (realtime as any).isInBackground = true;
+
+      await (realtime as any).prepareAndBeginRealtimeHttpStream();
+
+      expect(propagateErrorSpy).not.toHaveBeenCalled();
+      expect(
+        updateBackoffMetadataWithLastFailedStreamConnectionTimeSpy
+      ).not.toHaveBeenCalled();
+      expect(retryHttpConnectionWhenBackoffEndsSpy).not.toHaveBeenCalled();
+    });
+
+    it('should reconnect without penalty if the app returns to the foreground during teardown', async () => {
+      // Closing the connection is asynchronous, so the app can return to the
+      // foreground before it completes. The close must still be attributed to
+      // backgrounding, and the reconnect that was skipped while this connection was
+      // still active has to be made here. A non-retryable status is used because
+      // that is the path that surfaces an error to listeners.
+      createRealtimeConnectionSpy.mockResolvedValue(
+        new Response(null, { status: 400 })
+      );
+      (realtime as any).observers.add({});
+      (realtime as any).isInBackground = true;
+      closeRealtimeHttpConnectionSpy.mockImplementation(async () => {
+        (realtime as any).isInBackground = false;
+      });
+
+      await (realtime as any).prepareAndBeginRealtimeHttpStream();
+
+      expect(propagateErrorSpy).not.toHaveBeenCalled();
+      expect(
+        updateBackoffMetadataWithLastFailedStreamConnectionTimeSpy
+      ).not.toHaveBeenCalled();
+      expect(retryHttpConnectionWhenBackoffEndsSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('should restore the retry budget when reconnecting after a background close', async () => {
+      // A clean close does not throw, so the catch block never resets the retry
+      // count. Reconnecting on an exhausted budget would make
+      // makeRealtimeHttpConnection surface a stream error, which is the
+      // false positive this suppression exists to prevent.
+      createRealtimeConnectionSpy.mockResolvedValue(
+        new Response(null, { status: 400 })
+      );
+      (realtime as any).observers.add({});
+      (realtime as any).httpRetriesRemaining = 0;
+      (realtime as any).isInBackground = true;
+      closeRealtimeHttpConnectionSpy.mockImplementation(async () => {
+        (realtime as any).isInBackground = false;
+      });
+
+      await (realtime as any).prepareAndBeginRealtimeHttpStream();
+
+      expect((realtime as any).httpRetriesRemaining).toBe(ORIGINAL_RETRIES);
+      expect(propagateErrorSpy).not.toHaveBeenCalled();
+      expect(retryHttpConnectionWhenBackoffEndsSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not record a backoff penalty if the app moves to the background during teardown', async () => {
+      // The connection genuinely failed in the foreground, but the app is hidden by
+      // the time the teardown completes. A retry cannot run while hidden, so
+      // recording the failure would persist a backoff penalty to storage for an
+      // attempt that never happens.
+      createRealtimeConnectionSpy.mockRejectedValue(new Error('network down'));
+      (realtime as any).observers.add({});
+      (realtime as any).isInBackground = false;
+      closeRealtimeHttpConnectionSpy.mockImplementation(async () => {
+        (realtime as any).isInBackground = true;
+      });
+
+      await (realtime as any).prepareAndBeginRealtimeHttpStream();
+
+      expect(
+        updateBackoffMetadataWithLastFailedStreamConnectionTimeSpy
+      ).not.toHaveBeenCalled();
+      expect(propagateErrorSpy).not.toHaveBeenCalled();
+      expect(retryHttpConnectionWhenBackoffEndsSpy).not.toHaveBeenCalled();
     });
 
     it('should propagate CONFIG_UPDATE_STREAM_ERROR if retries are exhausted', async () => {
