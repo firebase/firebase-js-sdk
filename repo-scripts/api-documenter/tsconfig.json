@@ -2,7 +2,7 @@
   "extends": "../../config/tsconfig.base.json",
   "compilerOptions": {
     "outDir": "dist",
-    "downlevelIteration": true,
+    "rootDir": "./src",
     "module": "CommonJS",
     "target": "ES6",
     "esModuleInterop": true,

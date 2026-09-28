@@ -8,7 +8,7 @@
   "browser": "dist/index.esm.js",
   "exports": {
     ".": {
-      "types": "./dist/storage-public.d.ts",
+      "types": "./dist/src/index.d.ts",
       "node": {
         "import": "./dist/node-esm/index.node.esm.js",
         "default": "./dist/index.node.cjs.js"
@@ -55,12 +55,7 @@
   },
   "devDependencies": {
     "@firebase/app": "0.16.5",
-    "@firebase/auth": "1.13.9",
-    "rollup": "4.62.2",
-    "@rollup/plugin-alias": "5.1.1",
-    "@rollup/plugin-json": "6.1.0",
-    "rollup-plugin-typescript2": "0.37.0",
-    "typescript": "5.5.4"
+    "@firebase/auth": "1.13.9"
   },
   "repository": {
     "directory": "packages/storage",

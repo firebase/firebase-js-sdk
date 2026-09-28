@@ -28,10 +28,6 @@
     "tslib": "^2.1.0",
     "js-yaml": "5.4.1"
   },
-  "devDependencies": {
-    "@types/js-yaml": "4.0.9",
-    "gulp": "5.0.1"
-  },
   "engines": {
     "node": ">=24.12.0"
   },

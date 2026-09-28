@@ -23,11 +23,7 @@
     "@firebase/app-compat": "0.x"
   },
   "devDependencies": {
-    "@firebase/app-compat": "0.5.21",
-    "rollup": "4.62.2",
-    "@rollup/plugin-json": "6.1.0",
-    "rollup-plugin-typescript2": "0.37.0",
-    "typescript": "5.5.4"
+    "@firebase/app-compat": "0.5.21"
   },
   "repository": {
     "directory": "packages/analytics-compat",
@@ -59,5 +55,6 @@
     "@firebase/analytics-types": "0.8.5",
     "@firebase/util": "1.15.3",
     "tslib": "^2.1.0"
-  }
+  },
+  "nyc": {}
 }

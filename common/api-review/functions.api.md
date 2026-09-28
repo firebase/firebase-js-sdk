@@ -21,8 +21,9 @@ export interface Functions {
 export class FunctionsError extends FirebaseError {
     constructor(
     code: FunctionsErrorCodeCore, message?: string,
-    details?: unknown, url?: string);
-    readonly details?: unknown;
+    details?: unknown | undefined,
+    url?: string);
+    readonly details?: unknown | undefined;
 }
 
 // @public
@@ -72,6 +73,5 @@ export interface HttpsCallableStreamResult<ResponseData = unknown, StreamData = 
     // (undocumented)
     readonly stream: AsyncIterable<StreamData>;
 }
-
 
 ```

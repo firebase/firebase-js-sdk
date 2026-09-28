@@ -51,7 +51,7 @@ import { name as packageName } from '../../../packages/firebase/package.json';
  */
 export const DEFAULT_ENTRY_NAME = '[DEFAULT]';
 
-export const PLATFORM_LOG_STRING = {
+export const PLATFORM_LOG_STRING: Record<string, string> = {
   [appName]: 'fire-core',
   [appCompatName]: 'fire-core-compat',
   [analyticsName]: 'fire-analytics',
@@ -81,4 +81,4 @@ export const PLATFORM_LOG_STRING = {
   [aiName]: 'fire-vertex',
   'fire-js': 'fire-js', // Platform identifier for JS SDK.
   [packageName]: 'fire-js-all'
-} as const;
+};

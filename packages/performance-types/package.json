@@ -11,9 +11,6 @@
   "files": [
     "index.d.ts"
   ],
-  "devDependencies": {
-    "typescript": "5.5.4"
-  },
   "repository": {
     "directory": "packages/performance-types",
     "type": "git",

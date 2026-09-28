@@ -9,7 +9,7 @@
   "lite": "dist/index.lite.js",
   "exports": {
     ".": {
-      "types": "./dist/app-compat-public.d.ts",
+      "types": "./dist/src/index.d.ts",
       "require": "./dist/index.cjs.js",
       "lite": "./dist/index.lite.js",
       "default": "./dist/esm/index.esm.js"
@@ -42,13 +42,6 @@
     "@firebase/logger": "0.5.2",
     "@firebase/component": "0.7.5",
     "tslib": "^2.1.0"
-  },
-  "devDependencies": {
-    "rollup": "4.62.2",
-    "@rollup/plugin-json": "6.1.0",
-    "rollup-plugin-replace": "2.2.0",
-    "rollup-plugin-typescript2": "0.37.0",
-    "typescript": "5.5.4"
   },
   "repository": {
     "directory": "packages/app-compat",

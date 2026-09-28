@@ -1,9 +1,10 @@
 {
   "compilerOptions": {
     "outDir": "dist",
+    "rootDir": "../..",
     "importHelpers": true,
     "module": "commonjs",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "target": "es2020",
     "esModuleInterop": true,

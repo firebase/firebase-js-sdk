@@ -7,7 +7,7 @@
   "browser": "dist/esm/index.esm.js",
   "exports": {
     ".": {
-      "types": "./dist/installations-public.d.ts",
+      "types": "./dist/src/index.d.ts",
       "require": "./dist/index.cjs.js",
       "default": "./dist/esm/index.esm.js"
     },
@@ -50,14 +50,7 @@
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
   "devDependencies": {
-    "@firebase/app": "0.16.5",
-    "rollup": "4.62.2",
-    "@rollup/plugin-commonjs": "21.1.0",
-    "@rollup/plugin-json": "6.1.0",
-    "@rollup/plugin-node-resolve": "16.0.0",
-    "rollup-plugin-typescript2": "0.37.0",
-    "rollup-plugin-uglify": "6.0.4",
-    "typescript": "5.5.4"
+    "@firebase/app": "0.16.5"
   },
   "peerDependencies": {
     "@firebase/app": "0.x"

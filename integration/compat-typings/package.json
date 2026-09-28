@@ -9,9 +9,6 @@
   "dependencies": {
     "firebase": "*"
   },
-  "devDependencies": {
-    "typescript": "5.5.4"
-  },
   "engines": {
     "node": ">=24.12.0"
   }

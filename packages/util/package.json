@@ -8,7 +8,7 @@
   "module": "dist/index.esm.js",
   "exports": {
     ".": {
-      "types": "./dist/util-public.d.ts",
+      "types": "./dist/index.d.ts",
       "node": {
         "import": "./dist/node-esm/index.node.esm.js",
         "require": "./dist/index.node.cjs.js"
@@ -47,12 +47,6 @@
   "dependencies": {
     "tslib": "^2.1.0"
   },
-  "devDependencies": {
-    "@rollup/plugin-replace": "6.0.2",
-    "rollup": "4.62.2",
-    "rollup-plugin-typescript2": "0.37.0",
-    "typescript": "5.5.4"
-  },
   "repository": {
     "directory": "packages/util",
     "type": "git",
@@ -70,5 +64,8 @@
   },
   "engines": {
     "node": ">=24.12.0"
+  },
+  "devDependencies": {
+    "@rollup/plugin-replace": "6.0.2"
   }
 }
