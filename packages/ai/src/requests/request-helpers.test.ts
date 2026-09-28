@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { expect, use } from 'chai';
-import sinonChai from 'sinon-chai';
 import {
   Content,
   CountTokensRequest,
@@ -35,8 +33,6 @@ import {
   formatGenerateContentInput,
   stripPartType
 } from './request-helpers';
-
-use(sinonChai);
 
 describe('request formatting methods', () => {
   describe('formatGenerateContentInput', () => {
