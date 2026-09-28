@@ -16,7 +16,7 @@
  */
 
 afterEach(() => {
+  vi.useRealTimers();
   vi.resetAllMocks();
   vi.restoreAllMocks();
-  vi.useRealTimers();
 });

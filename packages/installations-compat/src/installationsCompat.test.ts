@@ -32,7 +32,7 @@ describe('Installations Compat', () => {
     const fakeFid = 'fake-fid';
     const modularGetIdStub = vi
       .spyOn(modularApi, 'getId')
-      .mockImplementation(() => Promise.resolve(fakeFid));
+      .mockResolvedValue(fakeFid);
 
     const res = await installationsCompat.getId();
 
@@ -44,7 +44,7 @@ describe('Installations Compat', () => {
     const fakeToken = 'fake-token';
     const modularGetTokenStub = vi
       .spyOn(modularApi, 'getToken')
-      .mockImplementation(() => Promise.resolve(fakeToken));
+      .mockResolvedValue(fakeToken);
 
     const res = await installationsCompat.getToken();
 
@@ -55,7 +55,7 @@ describe('Installations Compat', () => {
   it('delete calls modular deleteInstallations()', async () => {
     const modularDeleteStub = vi
       .spyOn(modularApi, 'deleteInstallations')
-      .mockImplementation(() => Promise.resolve());
+      .mockResolvedValue();
 
     await installationsCompat.delete();
 
@@ -67,7 +67,7 @@ describe('Installations Compat', () => {
     const fakeIdChangeUnsubscribeFn = vi.fn();
     const modularOnIdChangeStub = vi
       .spyOn(modularApi, 'onIdChange')
-      .mockImplementation(() => fakeIdChangeUnsubscribeFn);
+      .mockReturnValue(fakeIdChangeUnsubscribeFn);
 
     const res = installationsCompat.onIdChange(fakeIdChangeCallbackFn);
 
