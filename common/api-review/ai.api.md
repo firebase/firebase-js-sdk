@@ -150,55 +150,16 @@ export class BooleanSchema extends Schema {
 }
 
 // @public
-export class ChatSession extends ChatSessionBase<StartChatParams, GenerateContentRequest, FunctionDeclarationsTool> {
-    constructor(apiSettings: ApiSettings, model: string, chromeAdapter?: ChromeAdapter | undefined, params?: StartChatParams | undefined, requestOptions?: RequestOptions | undefined);
-    // @internal
-    _callGenerateContent(formattedRequest: GenerateContentRequest, singleRequestOptions?: RequestOptions): Promise<GenerateContentResult>;
-    // @internal
-    _callGenerateContentStream(formattedRequest: GenerateContentRequest, singleRequestOptions?: RequestOptions): Promise<GenerateContentStreamResult>;
-    // @internal
-    _formatRequest(incomingContent: Content, tempHistory: Content[]): GenerateContentRequest;
+export interface ChatSession {
+    getHistory(): Promise<Content[]>;
     // (undocumented)
     model: string;
     // (undocumented)
-    params?: StartChatParams | undefined;
+    params?: StartChatParams;
     // (undocumented)
-    requestOptions?: RequestOptions | undefined;
+    requestOptions?: RequestOptions;
     sendMessage(request: string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentResult>;
     sendMessageStream(request: string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentStreamResult>;
-}
-
-// Warning: (ae-incompatible-release-tags) The symbol "ChatSessionBase" is marked as @public, but its signature references "StartTemplateChatParams" which is marked as @beta
-// Warning: (ae-incompatible-release-tags) The symbol "ChatSessionBase" is marked as @public, but its signature references "TemplateFunctionDeclarationsTool" which is marked as @beta
-//
-// @public
-export abstract class ChatSessionBase<ParamsType extends StartChatParams | StartTemplateChatParams, RequestType, FunctionDeclarationsToolType extends FunctionDeclarationsTool | TemplateFunctionDeclarationsTool> {
-    constructor(apiSettings: ApiSettings, params?: ParamsType | undefined, requestOptions?: RequestOptions | undefined);
-    // (undocumented)
-    protected _apiSettings: ApiSettings;
-    // @internal
-    _callFunctionsAsNeeded(functionCalls: FunctionCall[]): Promise<FunctionResponsePart[]>;
-    // @internal
-    abstract _callGenerateContent(formattedRequest: RequestType, singleRequestOptions?: RequestOptions): Promise<GenerateContentResult>;
-    // @internal
-    abstract _callGenerateContentStream(formattedRequest: RequestType, singleRequestOptions?: RequestOptions): Promise<GenerateContentStreamResult>;
-    // @internal
-    abstract _formatRequest(incomingContent: Content, tempHistory: Content[]): RequestType;
-    // @internal
-    _getCallableFunctionCalls(response?: GenerateContentResponse): FunctionCall[] | undefined;
-    getHistory(): Promise<Content[]>;
-    // (undocumented)
-    protected _history: Content[];
-    // (undocumented)
-    params?: ParamsType | undefined;
-    // (undocumented)
-    requestOptions?: RequestOptions | undefined;
-    // @internal
-    _sendMessage(request: string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentResult>;
-    // @internal
-    _sendMessageStream(request: string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentStreamResult>;
-    // @internal
-    protected _sendPromise: Promise<void>;
 }
 
 // @public
@@ -241,23 +202,9 @@ export interface CodeExecutionResult {
 // @public
 export interface CodeExecutionResultPart {
     // (undocumented)
-    codeExecutionResult?: CodeExecutionResult;
+    codeExecutionResult: CodeExecutionResult;
     // (undocumented)
-    executableCode?: never;
-    // (undocumented)
-    fileData: never;
-    // (undocumented)
-    functionCall?: never;
-    // (undocumented)
-    functionResponse?: never;
-    // (undocumented)
-    inlineData?: never;
-    // (undocumented)
-    text?: never;
-    // (undocumented)
-    thought?: never;
-    // @internal (undocumented)
-    thoughtSignature?: never;
+    type: 'codeExecutionResult';
 }
 
 // @public
@@ -351,23 +298,9 @@ export interface ExecutableCode {
 // @public
 export interface ExecutableCodePart {
     // (undocumented)
-    codeExecutionResult?: never;
+    executableCode: ExecutableCode;
     // (undocumented)
-    executableCode?: ExecutableCode;
-    // (undocumented)
-    fileData: never;
-    // (undocumented)
-    functionCall?: never;
-    // (undocumented)
-    functionResponse?: never;
-    // (undocumented)
-    inlineData?: never;
-    // (undocumented)
-    text?: never;
-    // (undocumented)
-    thought?: never;
-    // @internal (undocumented)
-    thoughtSignature?: never;
+    type: 'executableCode';
 }
 
 // @public
@@ -381,23 +314,11 @@ export interface FileData {
 // @public
 export interface FileDataPart {
     // (undocumented)
-    codeExecutionResult?: never;
-    // (undocumented)
-    executableCode?: never;
-    // (undocumented)
     fileData: FileData;
     // (undocumented)
-    functionCall?: never;
-    // (undocumented)
-    functionResponse?: never;
-    // (undocumented)
-    inlineData?: never;
-    // (undocumented)
-    text?: never;
-    // (undocumented)
     thought?: boolean;
-    // @internal (undocumented)
-    thoughtSignature?: never;
+    // (undocumented)
+    type: 'fileData';
 }
 
 // @public
@@ -456,21 +377,11 @@ export type FunctionCallingMode = (typeof FunctionCallingMode)[keyof typeof Func
 // @public
 export interface FunctionCallPart {
     // (undocumented)
-    codeExecutionResult?: never;
-    // (undocumented)
-    executableCode?: never;
-    // (undocumented)
     functionCall: FunctionCall;
     // (undocumented)
-    functionResponse?: never;
-    // (undocumented)
-    inlineData?: never;
-    // (undocumented)
-    text?: never;
-    // (undocumented)
     thought?: boolean;
-    // @internal (undocumented)
-    thoughtSignature?: never;
+    // (undocumented)
+    type: 'functionCall';
 }
 
 // @public
@@ -500,21 +411,11 @@ export interface FunctionResponse {
 // @public
 export interface FunctionResponsePart {
     // (undocumented)
-    codeExecutionResult?: never;
-    // (undocumented)
-    executableCode?: never;
-    // (undocumented)
-    functionCall?: never;
-    // (undocumented)
     functionResponse: FunctionResponse;
     // (undocumented)
-    inlineData?: never;
-    // (undocumented)
-    text?: never;
-    // (undocumented)
     thought?: boolean;
-    // @internal (undocumented)
-    thoughtSignature?: never;
+    // (undocumented)
+    type: 'functionResponse';
 }
 
 // @public
@@ -880,21 +781,11 @@ export type InferenceSource = (typeof InferenceSource)[keyof typeof InferenceSou
 // @public
 export interface InlineDataPart {
     // (undocumented)
-    codeExecutionResult?: never;
-    // (undocumented)
-    executableCode?: never;
-    // (undocumented)
-    functionCall?: never;
-    // (undocumented)
-    functionResponse?: never;
-    // (undocumented)
     inlineData: GenerativeContentBlob;
     // (undocumented)
-    text?: never;
-    // (undocumented)
     thought?: boolean;
-    // @internal (undocumented)
-    thoughtSignature?: never;
+    // (undocumented)
+    type: 'inlineData';
     videoMetadata?: VideoMetadata;
 }
 
@@ -1431,8 +1322,7 @@ export interface StartChatParams extends BaseParams {
 // @beta
 export interface StartTemplateChatParams extends Omit<StartChatParams, 'tools'> {
     templateId: string;
-    templateVariables?: Record<string, unknown>;
-    // (undocumented)
+    templateVariables: Record<string, unknown>;
     tools?: TemplateTool[];
 }
 
@@ -1505,10 +1395,17 @@ export class TemplateGenerativeModel {
     constructor(ai: AI, requestOptions?: RequestOptions);
     // @internal (undocumented)
     _apiSettings: ApiSettings;
-    generateContent(templateId: string, templateVariables: Record<string, unknown>, singleRequestOptions?: SingleRequestOptions, templateToolConfig?: TemplateToolConfig): Promise<GenerateContentResult>;
-    generateContentStream(templateId: string, templateVariables: Record<string, unknown>, singleRequestOptions?: SingleRequestOptions, templateToolConfig?: TemplateToolConfig): Promise<GenerateContentStreamResult>;
+    generateContent(request: TemplateRequest, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentResult>;
+    generateContentStream(request: TemplateRequest, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentStreamResult>;
     requestOptions?: RequestOptions;
     startChat(params: StartTemplateChatParams): TemplateChatSession;
+}
+
+// @beta
+export interface TemplateRequest {
+    templateId: string;
+    templateVariables: Record<string, unknown>;
+    toolConfig?: TemplateToolConfig;
 }
 
 // Warning: (ae-internal-missing-underscore) The name "TemplateRequestInternal" should be prefixed with an underscore because the declaration is marked as @internal
@@ -1531,21 +1428,13 @@ export interface TemplateToolConfig {
 // @public
 export interface TextPart {
     // (undocumented)
-    codeExecutionResult?: never;
-    // (undocumented)
-    executableCode?: never;
-    // (undocumented)
-    functionCall?: never;
-    // (undocumented)
-    functionResponse?: never;
-    // (undocumented)
-    inlineData?: never;
-    // (undocumented)
     text: string;
     // (undocumented)
     thought?: boolean;
     // @internal (undocumented)
     thoughtSignature?: string;
+    // (undocumented)
+    type: 'text';
 }
 
 // @public
@@ -1584,6 +1473,31 @@ export interface Transcription {
 
 // @public
 export type TypedSchema = IntegerSchema | NumberSchema | StringSchema | BooleanSchema | ObjectSchema | ArraySchema | AnyOfSchema;
+
+// Warning: (ae-internal-missing-underscore) The name "UnknownPart" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
+export interface UnknownPart {
+    // (undocumented)
+    codeExecutionResult?: CodeExecutionResult;
+    // (undocumented)
+    executableCode?: ExecutableCode;
+    // (undocumented)
+    fileData?: FileData;
+    // (undocumented)
+    functionCall?: FunctionCall;
+    // (undocumented)
+    functionResponse?: FunctionResponse;
+    // (undocumented)
+    inlineData?: GenerativeContentBlob;
+    // (undocumented)
+    text?: string;
+    // (undocumented)
+    thought?: boolean;
+    // (undocumented)
+    thoughtSignature?: string;
+    videoMetadata?: VideoMetadata;
+}
 
 // @public
 export interface URLContext {

@@ -75,6 +75,7 @@ describe('Count Tokens', () => {
           role: 'system',
           parts: [
             {
+              type: 'text',
               text: 'You are a friendly and helpful assistant.'
             }
           ]
@@ -110,6 +111,7 @@ describe('Count Tokens', () => {
           model: testConfig.model
         });
         const imagePart: Part = {
+          type: 'inlineData',
           inlineData: {
             mimeType: IMAGE_MIME_TYPE,
             data: TINY_IMG_BASE64
@@ -160,6 +162,7 @@ describe('Count Tokens', () => {
           model: testConfig.model
         });
         const audioPart: InlineDataPart = {
+          type: 'inlineData',
           inlineData: {
             mimeType: AUDIO_MIME_TYPE,
             data: TINY_MP3_BASE64
@@ -201,11 +204,13 @@ describe('Count Tokens', () => {
         const model = getGenerativeModel(testConfig.ai, {
           model: testConfig.model
         });
-        const textPart: Part = { text: 'Describe these:' };
+        const textPart: Part = { type: 'text', text: 'Describe these:' };
         const imagePart: Part = {
+          type: 'inlineData',
           inlineData: { mimeType: IMAGE_MIME_TYPE, data: TINY_IMG_BASE64 }
         };
         const audioPart: Part = {
+          type: 'inlineData',
           inlineData: { mimeType: AUDIO_MIME_TYPE, data: TINY_MP3_BASE64 }
         };
 
@@ -272,6 +277,7 @@ describe('Count Tokens', () => {
           model: testConfig.model
         });
         const filePart: FileDataPart = {
+          type: 'fileData',
           fileData: {
             mimeType: IMAGE_MIME_TYPE,
             fileUri: `gs://${FIREBASE_CONFIG.storageBucket}/images/tree.png`

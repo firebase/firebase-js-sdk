@@ -69,12 +69,12 @@ async function nextTurnData(
         const parts = chunk.modelTurn?.parts;
         if (parts) {
           parts.forEach(part => {
-            if (part.text) {
+            if (part.type === 'text') {
               if (part.thought) {
                 hasThinking = true;
               }
               text += part.text;
-            } else if (part.inlineData) {
+            } else if (part.type === 'inlineData') {
               if (part.inlineData.mimeType.startsWith('audio')) {
                 hasAudioData = true;
               }

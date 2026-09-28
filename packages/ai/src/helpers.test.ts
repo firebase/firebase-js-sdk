@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { expect } from 'chai';
 import { AI_TYPE, DEFAULT_LOCATION } from './constants';
 import { encodeInstanceIdentifier, decodeInstanceIdentifier } from './helpers';
 import { AIError } from './errors';
