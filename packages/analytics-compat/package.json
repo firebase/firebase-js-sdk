@@ -44,10 +44,11 @@
     "build:deps": "lerna run build --scope @firebase/analytics-compat --include-dependencies",
     "build:release": "yarn build && yarn add-compat-overloads",
     "dev": "rollup -c -w",
-    "test": "run-p --npm-path npm lint test:browser",
-    "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:browser",
-    "test:browser": "karma start",
-    "test:browser:debug": "karma start --browsers=Chrome --auto-watch",
+    "test": "run-p --npm-path npm lint test:all",
+    "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all",
+    "test:all": "vitest run",
+    "test:browser": "vitest run",
+    "test:browser:debug": "vitest --browser.headless=false",
     "trusted-type-check": "tsec -p tsconfig.json --noEmit",
     "add-compat-overloads": "ts-node-script ../../scripts/build/create-overloads.ts -i ../analytics/dist/analytics-public.d.ts -o dist/src/index.d.ts -a -r Analytics:FirebaseAnalytics -r FirebaseApp:FirebaseAppCompat --moduleToEnhance @firebase/analytics"
   },
@@ -58,11 +59,5 @@
     "@firebase/analytics-types": "0.8.5",
     "@firebase/util": "1.15.3",
     "tslib": "^2.1.0"
-  },
-  "nyc": {
-    "extension": [
-      ".ts"
-    ],
-    "reportDir": "./coverage/node"
   }
 }
