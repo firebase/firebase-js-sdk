@@ -50,9 +50,6 @@ export class TemplateGenerativeModel {
    */
   requestOptions?: RequestOptions;
 
-  /**
-   * @hideconstructor
-   */
   constructor(ai: AI, requestOptions?: RequestOptions) {
     this.requestOptions = requestOptions || {};
     this._apiSettings = initApiSettings(ai);

@@ -36,8 +36,6 @@ The Firebase AI Web SDK.
 |  [ArraySchema](./ai.arrayschema.md#arrayschema_class) | Schema class for "array" types. The <code>items</code> param should refer to the type of item that can be a member of the array. |
 |  [Backend](./ai.backend.md#backend_class) | Abstract base class representing the configuration for an AI service backend. This class should not be instantiated directly. Use its subclasses; [GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class) for the Gemini Developer API (via [Google AI](https://ai.google/)<!-- -->) and [AgentPlatformBackend](./ai.agentplatformbackend.md#agentplatformbackend_class) for the Agent Platform Gemini API. |
 |  [BooleanSchema](./ai.booleanschema.md#booleanschema_class) | Schema class for "boolean" types. |
-|  [ChatSession](./ai.chatsession.md#chatsession_class) | ChatSession class that enables sending chat messages and stores history of sent and received messages so far. |
-|  [ChatSessionBase](./ai.chatsessionbase.md#chatsessionbase_class) | Base class for various <code>ChatSession</code> classes that enables sending chat messages and stores history of sent and received messages so far. |
 |  [GenerativeModel](./ai.generativemodel.md#generativemodel_class) | Class for generative model APIs. |
 |  [GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class) | Configuration class for the Gemini Developer API.<!-- -->Use this with [AIOptions](./ai.aioptions.md#aioptions_interface) when initializing the AI service via [getAI()](./ai.md#getai_a94a413) to specify the Gemini Developer API as the backend. |
 |  [IntegerSchema](./ai.integerschema.md#integerschema_class) | Schema class for "integer" types. |
@@ -60,6 +58,7 @@ The Firebase AI Web SDK.
 |  [AudioTranscriptionConfig](./ai.audiotranscriptionconfig.md#audiotranscriptionconfig_interface) | <b><i>(Public Preview)</i></b> The audio transcription configuration. |
 |  [BaseParams](./ai.baseparams.md#baseparams_interface) | Base parameters for a number of methods. |
 |  [BaseSpeechConfig](./ai.basespeechconfig.md#basespeechconfig_interface) | <b><i>(Public Preview)</i></b> Base configuration for speech synthesis. |
+|  [ChatSession](./ai.chatsession.md#chatsession_interface) | Interface representing a <code>ChatSession</code> class that enables sending chat messages and stores a history of sent and received messages so far. |
 |  [ChromeAdapter](./ai.chromeadapter.md#chromeadapter_interface) | Defines an inference "backend" that uses Chrome's on-device model, and encapsulates logic for detecting when on-device inference is possible.<!-- -->These methods should not be called directly by the user. |
 |  [Citation](./ai.citation.md#citation_interface) | A single citation. |
 |  [CitationMetadata](./ai.citationmetadata.md#citationmetadata_interface) | Citation metadata that may be found on a [GenerateContentCandidate](./ai.generatecontentcandidate.md#generatecontentcandidate_interface)<!-- -->. |
