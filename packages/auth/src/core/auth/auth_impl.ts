@@ -64,6 +64,7 @@ import {
 import { _reloadWithoutSaving } from '../user/reload';
 import {
   _assert,
+  _errorWithCustomMessage,
   _serverAppCurrentUserOperationNotSupportedError
 } from '../util/assert';
 import { _getInstance } from '../util/instantiator';
@@ -815,10 +816,21 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     this.currentUser = user;
 
     if (this.persistenceManager) {
-      if (user) {
-        await this.persistenceManager.setCurrentUser(user);
-      } else {
-        await this.persistenceManager.removeCurrentUser();
+      try {
+        if (user) {
+          await this.persistenceManager.setCurrentUser(user);
+        } else {
+          await this.persistenceManager.removeCurrentUser();
+        }
+      } catch (e) {
+        const originalMessage = (e as Error)?.message || String(e);
+        const error = _errorWithCustomMessage(
+          this,
+          AuthErrorCode.INTERNAL_ERROR,
+          `An internal AuthError has occurred: ${originalMessage}`
+        );
+        error.customData = { originalError: e };
+        throw error;
       }
     }
   }

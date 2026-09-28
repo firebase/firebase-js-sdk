@@ -83,6 +83,14 @@ jobs:
         env:
           APP_CHECK_DEBUG_TOKEN: ${{ secrets.APP_CHECK_DEBUG_TOKEN }}
         run: xvfb-run yarn test:compat
+      - name: Authenticate to Google Cloud (Release Tracker)
+        if: always()
+        id: release-tracker-auth
+        uses: google-github-actions/auth@fc2174804b84f912b1f6d334e9463f484f1c552d
+        with:
+          credentials_json: ${{ secrets.RELEASE_TRACKER_SA_KEY }}
+          token_format: 'id_token'
+          id_token_audience: ${{ secrets.RELEASE_TRACKER_URL }}
       - name: Tests succeeded
         if: success()
         run: node scripts/ci/notify-test-result.js success
@@ -91,6 +99,7 @@ jobs:
         env:
           WEBHOOK_URL: ${{ secrets.JSCORE_CHAT_WEBHOOK_URL }}
           RELEASE_TRACKER_URL: ${{ secrets.RELEASE_TRACKER_URL }}
+          RELEASE_TRACKER_ID_TOKEN: ${{ steps.release-tracker-auth.outputs.id_token }}
           VERSION_OR_TAG: ${{ github.event.client_payload.versionOrTag }}
         # run in root
         working-directory: '.'
@@ -100,6 +109,7 @@ jobs:
         env:
           WEBHOOK_URL: ${{ secrets.JSCORE_CHAT_WEBHOOK_URL }}
           RELEASE_TRACKER_URL: ${{ secrets.RELEASE_TRACKER_URL }}
+          RELEASE_TRACKER_ID_TOKEN: ${{ steps.release-tracker-auth.outputs.id_token }}
           VERSION_OR_TAG: ${{ github.event.client_payload.versionOrTag }}
         # run in root
         working-directory: '.'

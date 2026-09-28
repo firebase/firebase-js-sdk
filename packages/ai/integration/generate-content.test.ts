@@ -75,6 +75,7 @@ describe('Generate Content', function () {
         role: 'system',
         parts: [
           {
+            type: 'text',
             text: 'You are a friendly and helpful assistant.'
           }
         ]
@@ -486,16 +487,34 @@ describe('Generate Content', function () {
         const result = await model.generateContent(prompt);
         const parts = result.response.candidates?.[0].content.parts;
         expect(
-          parts?.some(part => part.executableCode?.language === Language.PYTHON)
+          parts?.some(
+            part =>
+              part.type === 'executableCode' &&
+              part.executableCode?.language === Language.PYTHON
+          )
         ).to.be.true;
         expect(
-          parts?.some(part => part.codeExecutionResult?.outcome === Outcome.OK)
+          parts?.some(
+            part =>
+              part.type === 'codeExecutionResult' &&
+              part.codeExecutionResult?.outcome === Outcome.OK
+          )
         ).to.be.true;
         // Expect these to be truthy (!= null)
-        expect(parts?.some(part => part.executableCode?.code != null)).to.be
-          .true;
-        expect(parts?.some(part => part.codeExecutionResult?.output != null)).to
-          .be.true;
+        expect(
+          parts?.some(
+            part =>
+              part.type === 'executableCode' &&
+              part.executableCode?.code != null
+          )
+        ).to.be.true;
+        expect(
+          parts?.some(
+            part =>
+              part.type === 'codeExecutionResult' &&
+              part.codeExecutionResult?.output != null
+          )
+        ).to.be.true;
       });
 
       it('generateContentStream: text input, text output', async () => {

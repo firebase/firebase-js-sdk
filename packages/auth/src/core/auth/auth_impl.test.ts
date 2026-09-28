@@ -148,6 +148,41 @@ describe('core/auth/auth_impl', () => {
         '(auth/tenant-id-mismatch)'
       );
     });
+
+    it('wraps persistence setCurrentUser failure into FirebaseError (auth/internal-error)', async () => {
+      const user = testUser(auth, 'uid');
+      const originalError = new Error('Database is closing');
+      persistenceStub._set.rejects(originalError);
+
+      let caughtError: any;
+      try {
+        await auth._updateCurrentUser(user);
+      } catch (e) {
+        caughtError = e;
+      }
+
+      expect(caughtError).to.be.instanceOf(FirebaseError);
+      expect(caughtError.code).to.eq('auth/internal-error');
+      expect(caughtError.message).to.include('Database is closing');
+      expect(caughtError.customData?.originalError).to.eq(originalError);
+    });
+
+    it('wraps persistence removeCurrentUser failure into FirebaseError (auth/internal-error)', async () => {
+      const originalError = new Error('IndexedDB access denied');
+      persistenceStub._remove.rejects(originalError);
+
+      let caughtError: any;
+      try {
+        await auth._updateCurrentUser(null);
+      } catch (e) {
+        caughtError = e;
+      }
+
+      expect(caughtError).to.be.instanceOf(FirebaseError);
+      expect(caughtError.code).to.eq('auth/internal-error');
+      expect(caughtError.message).to.include('IndexedDB access denied');
+      expect(caughtError.customData?.originalError).to.eq(originalError);
+    });
   });
 
   describe('#signOut', () => {

@@ -15,7 +15,8 @@
  * limitations under the License.
  */
 
-import { UpdateData } from './reference';
+import { FieldValue } from './field_value';
+import { PartialWithFieldValue, UpdateData } from './reference';
 
 /**
  * These types primarily exist to support the `UpdateData`,
@@ -34,7 +35,13 @@ export type Primitive = string | number | boolean | undefined | null;
 export type NestedUpdateFields<T extends Record<string, unknown>> =
   UnionToIntersection<
     {
-      [K in keyof T & string]: ChildUpdateFields<K, T[K]>;
+      // If `string extends K`, this is an index signature like
+      // `{[key: string]: { foo: bool }}`. We map these properties to
+      // `never`, which prevents prefixing a nested key with `[string]`.
+      // We don't want to generate a field like `[string].foo: bool`.
+      [K in keyof T & string]: string extends K
+        ? never
+        : ChildUpdateFields<K, T[K]>;
     }[keyof T & string] // Also include the generated prefix-string keys.
   >;
 
@@ -58,6 +65,18 @@ export type ChildUpdateFields<K extends string, V> =
       never;
 
 /**
+ * For the given type, return a union type of T
+ * and the types of all child properties of T.
+ */
+export type ChildTypes<T> =
+  T extends Record<string, unknown>
+    ? | {
+          [K in keyof T & string]: ChildTypes<T[K]>;
+        }[keyof T & string]
+      | T
+    : T;
+
+/**
  * Returns a new map where every key is prefixed with the outer key appended
  * to a dot.
  */
@@ -68,19 +87,14 @@ export type AddPrefixToKeys<
   // Remap K => Prefix.K. See https://www.typescriptlang.org/docs/handbook/2/mapped-types.html#key-remapping-via-as
 
   // `string extends K : ...` is used to detect index signatures
-  // like `{[key: string]: bool}`. We map these properties to type `any`
-  // because a field path like `foo.[string]` will match `foo.bar` or a
-  // sub-path `foo.bar.baz`. Because it matches a sub-path, we have to
-  // make this type `any` to allow for any types of the sub-path property.
-  // This is a significant downside to using index signatures in types for `T`
-  // for `UpdateData<T>`.
-
+  // like `{[key: string]: bool}`. Because a field path like `foo.[string]`
+  // will match `foo.bar` or a sub-path `foo.bar.baz`, we map these properties
+  // to `PartialWithFieldValue<ChildTypes<T[K]>> | FieldValue` to allow for any
+  // types of the sub-path property.
   {
-    /* eslint-disable @typescript-eslint/no-explicit-any */
     [K in keyof T & string as `${Prefix}.${K}`]+?: string extends K
-      ? any
+      ? PartialWithFieldValue<ChildTypes<T[K]>> | FieldValue
       : T[K];
-    /* eslint-enable @typescript-eslint/no-explicit-any */
   };
 
 /**

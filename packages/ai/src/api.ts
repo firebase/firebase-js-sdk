@@ -52,8 +52,8 @@ export {
 } from './backend';
 export {
   startAudioConversation,
-  AudioConversationController,
-  StartAudioConversationOptions
+  type AudioConversationController,
+  type StartAudioConversationOptions
 } from './methods/live-session-helpers';
 
 declare module '@firebase/component' {
@@ -205,7 +205,7 @@ export function getLiveGenerativeModel(
 }
 
 /**
- * Returns a {@link TemplateGenerativeModel} class for executing server-side
+ * Returns a {@link TemplateGenerativeModel} class for executing server prompt
  * templates.
  *
  * @param ai - An {@link AI} instance.

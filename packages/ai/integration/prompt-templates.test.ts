@@ -31,12 +31,12 @@ describe('Prompt templates', function () {
       describe('Generative Model', () => {
         it('successfully generates content', async () => {
           const model = getTemplateGenerativeModel(testConfig.ai);
-          const { response } = await model.generateContent(
-            `sassy-greeting-${templateBackendSuffix(
+          const { response } = await model.generateContent({
+            templateId: `sassy-greeting-${templateBackendSuffix(
               testConfig.ai.backend.backendType
             )}`,
-            { name: 'John' }
-          );
+            templateVariables: { name: 'John' }
+          });
           expect(response.text()).to.contain('John'); // Template asks to address directly by name
         });
       });
