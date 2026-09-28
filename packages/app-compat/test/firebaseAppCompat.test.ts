@@ -160,7 +160,7 @@ function executeFirebaseTests(): void {
 
       (app as _FirebaseApp)._removeServiceInstance('test');
 
-      expect(service, (firebase as any).test());
+      expect(service).not.toBe((firebase as any).test());
     });
 
     it(`creates a new instance of a service after removing the existing instance - for service that supports multiple instances`, () => {
@@ -365,14 +365,14 @@ function firebaseAppTests(
 
     it('duplicate DEFAULT initialize with different options is an error.', () => {
       firebase.initializeApp({ apiKey: 'key1' });
-      expect(() => firebase.initializeApp({ apiKey: 'key2' })).throws(
+      expect(() => firebase.initializeApp({ apiKey: 'key2' })).toThrow(
         /\[DEFAULT\].*exists/i
       );
     });
 
     it('duplicate named App initialize with different options is an error.', () => {
       firebase.initializeApp({ apiKey: 'key1', appId: 'id' }, 'abc');
-      expect(() => firebase.initializeApp({ apiKey: 'key1' }, 'abc')).throws(
+      expect(() => firebase.initializeApp({ apiKey: 'key1' }, 'abc')).toThrow(
         /'abc'.*exists/i
       );
     });
@@ -387,7 +387,7 @@ function firebaseAppTests(
           { apiKey: 'key1' },
           { automaticDataCollectionEnabled: false }
         )
-      ).throws(/\[DEFAULT\].*exists/i);
+      ).toThrow(/\[DEFAULT\].*exists/i);
     });
 
     it('duplicate named App initialize with different config is an error.', () => {
@@ -400,7 +400,7 @@ function firebaseAppTests(
           { apiKey: 'key1' },
           { name: 'abc', automaticDataCollectionEnabled: false }
         )
-      ).throws(/'abc'.*exists/i);
+      ).toThrow(/'abc'.*exists/i);
     });
 
     it('automaticDataCollectionEnabled is `true` by default', () => {
@@ -433,7 +433,7 @@ function firebaseAppTests(
     it('Error to use app after it is deleted.', async () => {
       const app = firebase.initializeApp({});
       await app.delete();
-      expect(() => console.log(app.name)).throws(/already.*deleted/);
+      expect(() => console.log(app.name)).toThrow(/already.*deleted/);
     });
 
     it('OK to create same-name app after it is deleted.', async () => {
@@ -441,9 +441,9 @@ function firebaseAppTests(
       await app.delete();
 
       const app2 = firebase.initializeApp({}, 'app-name');
-      expect(app).not.toBe(app2, 'Expect new instance.');
+      expect(app, 'Expect new instance.').not.toBe(app2);
       // But original app id still orphaned.
-      expect(() => console.log(app.name)).throws(/already.*deleted/);
+      expect(() => console.log(app.name)).toThrow(/already.*deleted/);
     });
 
     it('OK to use Object.prototype member names as app name.', () => {
@@ -454,14 +454,14 @@ function firebaseAppTests(
     });
 
     it('Error to get uninitialized app using Object.prototype member name.', () => {
-      expect(() => firebase.app('toString')).throws(/'toString'.*created/i);
+      expect(() => firebase.app('toString')).toThrow(/'toString'.*created/i);
     });
 
     describe('Check for bad app names', () => {
       const tests = ['', 123, false];
       for (const data of tests) {
         it("where name == '" + data + "'", () => {
-          expect(() => firebase.initializeApp({}, data as string)).throws(
+          expect(() => firebase.initializeApp({}, data as string)).toThrow(
             /Illegal app name/i
           );
         });
@@ -474,7 +474,7 @@ function firebaseAppTests(
         it("where name == '" + name + "'", () => {
           expect(() =>
             firebase.initializeApp({}, { name: name as string })
-          ).throws(/Illegal app name/i);
+          ).toThrow(/Illegal app name/i);
         });
       }
     });
