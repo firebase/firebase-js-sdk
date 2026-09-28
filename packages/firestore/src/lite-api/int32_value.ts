@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,21 +15,21 @@
  * limitations under the License.
  */
 
-const karmaBase = require('../../config/karma.base');
-const webpackBase = require('../../config/webpack.test');
+/**
+ * Represents a 32-bit integer type in Firestore documents.
+ *
+ * @class Int32Value
+ */
+export class Int32Value {
+  constructor(readonly value: number) {}
 
-const files = [`src/**/*.test.ts`];
-
-module.exports = function (config) {
-  const karmaConfig = Object.assign({}, karmaBase, {
-    // files to load into karma
-    files,
-    // frameworks to use
-    // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
-    frameworks: ['mocha']
-  });
-
-  config.set(karmaConfig);
-};
-
-module.exports.files = files;
+  /**
+   * Returns true if this `Int32Value` is equal to the provided one.
+   *
+   * @param other - The `Int32Value` to compare against.
+   * @return 'true' if this `Int32Value` is equal to the provided one.
+   */
+  isEqual(other: Int32Value): boolean {
+    return this.value === other.value;
+  }
+}

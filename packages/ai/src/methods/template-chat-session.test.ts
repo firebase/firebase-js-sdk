@@ -21,7 +21,12 @@ import * as mockGenerateContent from './generate-content';
 
 vi.mock('./generate-content', { spy: true });
 
-import { Content, TemplateFunctionDeclaration } from '../types';
+import {
+  Content,
+  FunctionCallPart,
+  TemplateFunctionDeclaration,
+  TextPart
+} from '../types';
 import { TemplateChatSessionImpl } from './template-chat-session';
 import { ApiSettings } from '../types/internal';
 import { AgentPlatformBackend } from '../backend';
@@ -122,7 +127,7 @@ describe('TemplateChatSession', () => {
           history: [
             {
               role: 'user',
-              parts: [{ text: 'hello' }]
+              parts: [{ type: 'text', text: 'hello' }]
             }
           ]
         },
@@ -133,7 +138,7 @@ describe('TemplateChatSession', () => {
     it('adds message and response to history', async () => {
       const fakeContent: Content = {
         role: 'model',
-        parts: [{ text: 'hi' }]
+        parts: [{ type: 'text', text: 'hi' }]
       };
       const fakeResponse = {
         candidates: [
@@ -159,7 +164,7 @@ describe('TemplateChatSession', () => {
       // Test: stores history correctly?
       const history = await chatSession.getHistory();
       expect(history[0].role).toBe('user');
-      expect(history[0].parts[0].text).toBe('hello');
+      expect((history[0].parts[0] as TextPart).text).toBe('hello');
       expect(history[1]).toEqual(fakeResponse.candidates[0].content);
 
       // Test: sends history correctly?
@@ -175,6 +180,37 @@ describe('TemplateChatSession', () => {
         (templateGenerateContentStub.mock.calls[1][2] as any).history[2]
           .parts[0].text
       ).toBe('hello 2');
+    });
+
+    it('defensively copies initial history and getHistory', async () => {
+      const initialHistory: Content[] = [
+        {
+          role: 'user',
+          parts: [{ type: 'text', text: 'initial prompt' }]
+        }
+      ];
+      const chatSession = new TemplateChatSessionImpl(fakeApiSettings, {
+        templateId: TEMPLATE_ID,
+        history: initialHistory
+      });
+
+      // Modifying initialHistory externally
+      initialHistory.push({
+        role: 'model',
+        parts: [{ type: 'text', text: 'outside turn' }]
+      });
+      (initialHistory[0].parts[0] as TextPart).text = 'mutated prompt';
+
+      const history = await chatSession.getHistory();
+      expect(history.length).to.equal(1);
+      expect((history[0].parts[0] as TextPart).text).to.equal('initial prompt');
+
+      // Modifying returned history
+      (history[0].parts[0] as TextPart).text = 'mutated return';
+      const historyAgain = await chatSession.getHistory();
+      expect((historyAgain[0].parts[0] as TextPart).text).to.equal(
+        'initial prompt'
+      );
     });
   });
 
@@ -220,15 +256,17 @@ describe('TemplateChatSession', () => {
         }
       })
     });
-    const functionCallPartGreeting = {
+    const functionCallPartGreeting: FunctionCallPart = {
+      type: 'functionCall',
       functionCall: {
         name: 'getGreeting',
         args: { username: 'Bob' }
       }
     };
-    const functionCallPartFarewell = {
+    const functionCallPartFarewell: FunctionCallPart = {
+      type: 'functionCall',
       functionCall: {
-        id: 789,
+        id: 789 as any,
         name: 'getFarewell',
         args: { username: 'Bob' }
       }
@@ -273,9 +311,9 @@ describe('TemplateChatSession', () => {
           ]
         });
         const result = await chatSession.sendMessage('My name is Bob');
-        expect(result.response.candidates?.[0].content.parts[0].text).toContain(
-          'final response'
-        );
+        expect(
+          (result.response.candidates?.[0].content.parts[0] as TextPart).text
+        ).toContain('final response');
         expect(templateGenerateContentStub).toHaveBeenCalledTimes(2);
 
         const functionResponseHistory = (
@@ -335,9 +373,9 @@ describe('TemplateChatSession', () => {
           ]
         });
         const result = await chatSession.sendMessage('My name is Bob');
-        expect(result.response.candidates?.[0].content.parts[0].text).toContain(
-          'final response'
-        );
+        expect(
+          (result.response.candidates?.[0].content.parts[0] as TextPart).text
+        ).toContain('final response');
         expect(templateGenerateContentStub).toHaveBeenCalledTimes(2);
 
         const functionResponseHistory = (
@@ -406,7 +444,8 @@ describe('TemplateChatSession', () => {
         );
         const result = await chatSession.sendMessage('My name is Bob');
         expect(
-          result.response.candidates?.[0].content.parts[0].functionCall?.name
+          (result.response.candidates?.[0].content.parts[0] as FunctionCallPart)
+            .functionCall?.name
         ).toBe('getGreeting');
         expect(templateGenerateContentStub).toHaveBeenCalledTimes(1);
         expect(warnStub).toHaveBeenCalledWith(

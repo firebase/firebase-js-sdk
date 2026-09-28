@@ -24,8 +24,11 @@ vi.mock('./generate-content', { spy: true });
 
 import {
   Content,
+  FunctionCallPart,
   FunctionDeclaration,
-  GenerateContentStreamResult
+  FunctionResponsePart,
+  GenerateContentStreamResult,
+  TextPart
 } from '../types';
 import { ChatSession } from './chat-session';
 import { ApiSettings } from '../types/internal';
@@ -69,13 +72,13 @@ describe('ChatSession', () => {
     );
     expect(chatSession.params?.systemInstruction).to.deep.equal({
       role: 'system',
-      parts: [{ text: 'be friendly' }]
+      parts: [{ type: 'text', text: 'be friendly' }]
     });
   });
   it('leaves systemInstruction unchanged if it is already a Content object', () => {
     const systemInstruction: Content = {
       role: 'system',
-      parts: [{ text: 'be friendly' }]
+      parts: [{ type: 'text', text: 'be friendly' }]
     };
     const chatSession = new ChatSession(
       fakeApiSettings,
@@ -108,11 +111,11 @@ describe('ChatSession', () => {
         {
           systemInstruction: {
             role: 'system',
-            parts: [{ text: 'system instruction text' }]
+            parts: [{ type: 'text', text: 'system instruction text' }]
           },
           history: [
-            { role: 'user', parts: [{ text: 'user turn 1' }] },
-            { role: 'model', parts: [{ text: 'model turn 1' }] }
+            { role: 'user', parts: [{ type: 'text', text: 'user turn 1' }] },
+            { role: 'model', parts: [{ type: 'text', text: 'model turn 1' }] }
           ]
         }
       );
@@ -124,16 +127,16 @@ describe('ChatSession', () => {
         expect.objectContaining({
           systemInstruction: {
             role: 'system',
-            parts: [{ text: 'system instruction text' }]
+            parts: [{ type: 'text', text: 'system instruction text' }]
           }
         }),
         expect.anything(),
         expect.anything()
       );
       expect(generateContentStub.mock.calls[0][2].contents).to.deep.equal([
-        { role: 'user', parts: [{ text: 'user turn 1' }] },
-        { role: 'model', parts: [{ text: 'model turn 1' }] },
-        { role: 'user', parts: [{ text: 'user turn 2' }] }
+        { role: 'user', parts: [{ type: 'text', text: 'user turn 1' }] },
+        { role: 'model', parts: [{ type: 'text', text: 'model turn 1' }] },
+        { role: 'user', parts: [{ type: 'text', text: 'user turn 2' }] }
       ]);
     });
     it('generateContent errors should be catchable', async () => {
@@ -220,8 +223,9 @@ describe('ChatSession', () => {
       const fakeContent: Content = {
         role: 'model',
         parts: [
-          { text: 'hi' },
+          { type: 'text', text: 'hi' },
           {
+            type: 'text',
             text: 'thought about hi',
             thoughtSignature: 'thought signature'
           }
@@ -248,20 +252,137 @@ describe('ChatSession', () => {
       // Test: stores history correctly?
       const history = await chatSession.getHistory();
       expect(history[0].role).to.equal('user');
-      expect(history[0].parts[0].text).to.equal('hello');
+      expect((history[0].parts[0] as TextPart).text).to.equal('hello');
       expect(history[1]).to.deep.equal(fakeResponse.candidates[0].content);
       // Test: sends history correctly?
       await chatSession.sendMessage('hello 2');
       expect(
-        generateContentStub.mock.calls[1][2].contents[0].parts[0].text
+        (generateContentStub.mock.calls[1][2].contents[0].parts[0] as TextPart)
+          .text
       ).to.equal('hello');
       expect(generateContentStub.mock.calls[1][2].contents[1]).to.deep.equal(
         fakeResponse.candidates[0].content
       );
       expect(
-        generateContentStub.mock.calls[1][2].contents[2].parts[0].text
+        (generateContentStub.mock.calls[1][2].contents[2].parts[0] as TextPart)
+          .text
       ).to.equal('hello 2');
       expect(generateContentStub.mock.calls[1][2].contents.length).to.equal(3);
+    });
+    it('getHistory() returns properly typed parts and a defensive copy', async () => {
+      const chatSession = new ChatSession(
+        fakeApiSettings,
+        'a-model',
+        undefined,
+        {
+          history: [
+            {
+              role: 'user',
+              parts: [{ text: 'untagged user' } as unknown as TextPart]
+            },
+            {
+              role: 'model',
+              parts: [{ text: 'untagged model' } as unknown as TextPart]
+            }
+          ]
+        }
+      );
+      const history = await chatSession.getHistory();
+      expect(history[0].parts[0].type).to.equal('text');
+      expect((history[0].parts[0] as TextPart).text).to.equal('untagged user');
+      expect(history[1].parts[0].type).to.equal('text');
+      expect((history[1].parts[0] as TextPart).text).to.equal('untagged model');
+
+      // Modifying the returned array does not affect internal history
+      history.push({
+        role: 'user',
+        parts: [{ type: 'text', text: 'external' }]
+      });
+      const historyAgain = await chatSession.getHistory();
+      expect(historyAgain.length).to.equal(2);
+
+      // Modifying part properties on returned history does not affect internal history
+      (history[0].parts[0] as TextPart).text = 'mutated user';
+      const historyThird = await chatSession.getHistory();
+      expect((historyThird[0].parts[0] as TextPart).text).to.equal(
+        'untagged user'
+      );
+    });
+    it('initial history is defensively copied and isolated from external mutations', async () => {
+      const initialHistory: Content[] = [
+        {
+          role: 'user',
+          parts: [{ type: 'text', text: 'original text' }]
+        }
+      ];
+      const chatSession = new ChatSession(
+        fakeApiSettings,
+        'a-model',
+        undefined,
+        {
+          history: initialHistory
+        }
+      );
+      // Mutating initialHistory externally
+      initialHistory.push({
+        role: 'model',
+        parts: [{ type: 'text', text: 'added outside' }]
+      });
+      (initialHistory[0].parts[0] as TextPart).text = 'modified outside';
+
+      const history = await chatSession.getHistory();
+      expect(history.length).to.equal(1);
+      expect((history[0].parts[0] as TextPart).text).to.equal('original text');
+    });
+    it('defensively copies input parts passed to sendMessage', async () => {
+      vi.spyOn(mockGenerateContent, 'generateContent').mockResolvedValue({
+        response: {
+          candidates: [
+            {
+              index: 0,
+              content: {
+                role: 'model',
+                parts: [{ type: 'text', text: 'model reply' }]
+              }
+            }
+          ]
+        }
+      } as any);
+      const inputPart: TextPart = { type: 'text', text: 'original input' };
+      const chatSession = new ChatSession(fakeApiSettings, 'a-model');
+      await chatSession.sendMessage([inputPart]);
+
+      // External mutation of the inputPart object
+      inputPart.text = 'mutated input';
+
+      const history = await chatSession.getHistory();
+      expect((history[0].parts[0] as TextPart).text).to.equal('original input');
+    });
+    it('defensively isolates internal history from mutations on the returned response', async () => {
+      vi.spyOn(mockGenerateContent, 'generateContent').mockResolvedValue({
+        response: {
+          candidates: [
+            {
+              index: 0,
+              content: {
+                role: 'model',
+                parts: [{ type: 'text', text: 'original model reply' }]
+              }
+            }
+          ]
+        }
+      } as any);
+      const chatSession = new ChatSession(fakeApiSettings, 'a-model');
+      const result = await chatSession.sendMessage('test message');
+
+      // Caller mutates the returned result.response candidate parts
+      (result.response.candidates![0].content.parts[0] as TextPart).text =
+        'mutated response';
+
+      const history = await chatSession.getHistory();
+      expect((history[1].parts[0] as TextPart).text).to.equal(
+        'original model reply'
+      );
     });
   });
   describe('sendMessageStream()', () => {
@@ -277,11 +398,11 @@ describe('ChatSession', () => {
         {
           systemInstruction: {
             role: 'system',
-            parts: [{ text: 'system instruction text' }]
+            parts: [{ type: 'text', text: 'system instruction text' }]
           },
           history: [
-            { role: 'user', parts: [{ text: 'user turn 1' }] },
-            { role: 'model', parts: [{ text: 'model turn 1' }] }
+            { role: 'user', parts: [{ type: 'text', text: 'user turn 1' }] },
+            { role: 'model', parts: [{ type: 'text', text: 'model turn 1' }] }
           ]
         }
       );
@@ -295,7 +416,7 @@ describe('ChatSession', () => {
         expect.objectContaining({
           systemInstruction: {
             role: 'system',
-            parts: [{ text: 'system instruction text' }]
+            parts: [{ type: 'text', text: 'system instruction text' }]
           }
         }),
         expect.anything(),
@@ -303,9 +424,9 @@ describe('ChatSession', () => {
       );
       expect(generateContentStreamStub.mock.calls[0][2].contents).to.deep.equal(
         [
-          { role: 'user', parts: [{ text: 'user turn 1' }] },
-          { role: 'model', parts: [{ text: 'model turn 1' }] },
-          { role: 'user', parts: [{ text: 'user turn 2' }] }
+          { role: 'user', parts: [{ type: 'text', text: 'user turn 1' }] },
+          { role: 'model', parts: [{ type: 'text', text: 'model turn 1' }] },
+          { role: 'user', parts: [{ type: 'text', text: 'user turn 2' }] }
         ]
       );
       await vi.runAllTimersAsync();
@@ -572,14 +693,16 @@ describe('ChatSession', () => {
         }
       })
     });
-    const functionCallPartGreeting = {
+    const functionCallPartGreeting: FunctionCallPart = {
+      type: 'functionCall',
       functionCall: {
-        id: 123,
+        id: 123 as any,
         name: 'getGreeting',
         args: { username: 'Bob' }
       }
     };
-    const functionCallPartFarewell = {
+    const functionCallPartFarewell: FunctionCallPart = {
+      type: 'functionCall',
       functionCall: {
         name: 'getFarewell',
         args: { username: 'Bob' }
@@ -593,7 +716,7 @@ describe('ChatSession', () => {
           // @ts-ignore
           .mockImplementation(async (apiSettings, model, params) => {
             const parts = params.contents[params.contents.length - 1].parts;
-            if (parts[0].text?.includes('Bob')) {
+            if ((parts[0] as TextPart).text?.includes('Bob')) {
               return {
                 response: {
                   candidates: [
@@ -607,7 +730,7 @@ describe('ChatSession', () => {
                   ]
                 }
               };
-            } else if (parts[0].functionResponse) {
+            } else if (parts[0].type === 'functionResponse') {
               return {
                 response: finalResponse
               };
@@ -629,7 +752,7 @@ describe('ChatSession', () => {
         );
         const result = await chatSession.sendMessage('My name is Bob');
         expect(
-          result.response.candidates?.[0].content.parts[0].text
+          (result.response.candidates?.[0].content.parts[0] as TextPart).text
         ).to.include('final response');
         expect(generateContentStub).toHaveBeenCalledTimes(2);
         const functionResponseContents =
@@ -639,8 +762,10 @@ describe('ChatSession', () => {
             .length
         ).to.equal(1);
         expect(
-          functionResponseContents[functionResponseContents.length - 1].parts[0]
-            .functionResponse
+          (
+            functionResponseContents[functionResponseContents.length - 1]
+              .parts[0] as FunctionResponsePart
+          ).functionResponse
         ).to.deep.equal({
           id: 123,
           name: 'getGreeting',
@@ -656,7 +781,7 @@ describe('ChatSession', () => {
           // @ts-ignore
           .mockImplementation(async (apiSettings, model, params) => {
             const parts = params.contents[params.contents.length - 1].parts;
-            if (parts[0].text?.includes('Bob')) {
+            if ((parts[0] as TextPart).text?.includes('Bob')) {
               return {
                 response: {
                   candidates: [
@@ -673,7 +798,7 @@ describe('ChatSession', () => {
                   ]
                 }
               };
-            } else if (parts[0].functionResponse) {
+            } else if (parts[0].type === 'functionResponse') {
               return {
                 response: finalResponse
               };
@@ -696,7 +821,7 @@ describe('ChatSession', () => {
         );
         const result = await chatSession.sendMessage('My name is Bob');
         expect(
-          result.response.candidates?.[0].content.parts[0].text
+          (result.response.candidates?.[0].content.parts[0] as TextPart).text
         ).to.include('final response');
         expect(generateContentStub).toHaveBeenCalledTimes(2);
         const functionResponseContents =
@@ -706,16 +831,20 @@ describe('ChatSession', () => {
             .length
         ).to.equal(2);
         expect(
-          functionResponseContents[functionResponseContents.length - 1].parts[0]
-            .functionResponse
+          (
+            functionResponseContents[functionResponseContents.length - 1]
+              .parts[0] as FunctionResponsePart
+          ).functionResponse
         ).to.deep.equal({
           id: 123,
           name: 'getGreeting',
           response: { greeting: 'Hi, Bob' }
         });
         expect(
-          functionResponseContents[functionResponseContents.length - 1].parts[1]
-            .functionResponse
+          (
+            functionResponseContents[functionResponseContents.length - 1]
+              .parts[1] as FunctionResponsePart
+          ).functionResponse
         ).to.deep.equal({
           name: 'getFarewell',
           response: { farewell: 'Bye, Bob' }
@@ -731,7 +860,7 @@ describe('ChatSession', () => {
           // @ts-ignore
           .mockImplementation(async (apiSettings, model, params) => {
             const parts = params.contents[params.contents.length - 1].parts;
-            if (parts[0].text?.includes('Bob')) {
+            if ((parts[0] as TextPart).text?.includes('Bob')) {
               return {
                 response: {
                   candidates: [
@@ -745,7 +874,7 @@ describe('ChatSession', () => {
                   ]
                 }
               };
-            } else if (parts[0].functionResponse) {
+            } else if (parts[0].type === 'functionResponse') {
               return {
                 response: finalResponse
               };
@@ -770,7 +899,8 @@ describe('ChatSession', () => {
         );
         const result = await chatSession.sendMessage('My name is Bob');
         expect(
-          result.response.candidates?.[0].content.parts[0].functionCall?.name
+          (result.response.candidates?.[0].content.parts[0] as FunctionCallPart)
+            .functionCall?.name
         ).to.equal('getGreeting');
         expect(generateContentStub).toHaveBeenCalledTimes(1);
         expect(warnStub).toHaveBeenCalledWith(
@@ -787,7 +917,7 @@ describe('ChatSession', () => {
           // @ts-ignore
           .mockImplementation(async (apiSettings, model, params) => {
             const parts = params.contents[params.contents.length - 1].parts;
-            if (parts[0].text?.includes('Bob')) {
+            if ((parts[0] as TextPart).text?.includes('Bob')) {
               return {
                 firstValue: {
                   candidates: [
@@ -801,7 +931,7 @@ describe('ChatSession', () => {
                   ]
                 }
               };
-            } else if (parts[0].functionResponse) {
+            } else if (parts[0].type === 'functionResponse') {
               return {
                 firstValue: finalResponse,
                 response: finalResponse
@@ -833,8 +963,10 @@ describe('ChatSession', () => {
             .length
         ).to.equal(1);
         expect(
-          functionResponseContents[functionResponseContents.length - 1].parts[0]
-            .functionResponse
+          (
+            functionResponseContents[functionResponseContents.length - 1]
+              .parts[0] as FunctionResponsePart
+          ).functionResponse
         ).to.deep.equal({
           id: 123,
           name: 'getGreeting',
@@ -850,7 +982,7 @@ describe('ChatSession', () => {
           // @ts-ignore
           .mockImplementation(async (apiSettings, model, params) => {
             const parts = params.contents[params.contents.length - 1].parts;
-            if (parts[0].text?.includes('Bob')) {
+            if ((parts[0] as TextPart).text?.includes('Bob')) {
               return {
                 firstValue: {
                   candidates: [
@@ -867,7 +999,7 @@ describe('ChatSession', () => {
                   ]
                 }
               };
-            } else if (parts[0].functionResponse) {
+            } else if (parts[0].type === 'functionResponse') {
               return {
                 firstValue: finalResponse,
                 response: finalResponse
@@ -899,16 +1031,20 @@ describe('ChatSession', () => {
             .length
         ).to.equal(2);
         expect(
-          functionResponseContents[functionResponseContents.length - 1].parts[0]
-            .functionResponse
+          (
+            functionResponseContents[functionResponseContents.length - 1]
+              .parts[0] as FunctionResponsePart
+          ).functionResponse
         ).to.deep.equal({
           id: 123,
           name: 'getGreeting',
           response: { greeting: 'Hi, Bob' }
         });
         expect(
-          functionResponseContents[functionResponseContents.length - 1].parts[1]
-            .functionResponse
+          (
+            functionResponseContents[functionResponseContents.length - 1]
+              .parts[1] as FunctionResponsePart
+          ).functionResponse
         ).to.deep.equal({
           name: 'getFarewell',
           response: { farewell: 'Bye, Bob' }
@@ -935,12 +1071,12 @@ describe('ChatSession', () => {
           // @ts-ignore
           .mockImplementation(async (apiSettings, model, params) => {
             const parts = params.contents[params.contents.length - 1].parts;
-            if (parts[0].text?.includes('Bob')) {
+            if ((parts[0] as TextPart).text?.includes('Bob')) {
               return {
                 firstValue: functionCallResponse,
                 response: functionCallResponse
               };
-            } else if (parts[0].functionResponse) {
+            } else if (parts[0].type === 'functionResponse') {
               return {
                 firstValue: finalResponse,
                 response: finalResponse
@@ -968,7 +1104,8 @@ describe('ChatSession', () => {
         // No sense testing the stream fully, it's just stubbed data.
         const response = await result.response;
         expect(
-          response.candidates?.[0].content.parts[0].functionCall?.name
+          (response.candidates?.[0].content.parts[0] as FunctionCallPart)
+            .functionCall?.name
         ).to.equal('getGreeting');
         expect(generateContentStreamStub).toHaveBeenCalledTimes(1);
         expect(warnStub).toHaveBeenCalledWith(
@@ -1023,7 +1160,12 @@ describe('ChatSession', () => {
             index: 1,
             content: {
               role: 'model',
-              parts: [{ functionCall: { name: 'myFunction1', args: {} } }]
+              parts: [
+                {
+                  type: 'functionCall',
+                  functionCall: { name: 'myFunction1', args: {} }
+                }
+              ]
             }
           }
         ]
@@ -1036,8 +1178,14 @@ describe('ChatSession', () => {
             content: {
               role: 'model',
               parts: [
-                { functionCall: { name: 'myFunction1', args: {} } },
-                { functionCall: { name: 'myFunction2', args: {} } }
+                {
+                  type: 'functionCall',
+                  functionCall: { name: 'myFunction1', args: {} }
+                },
+                {
+                  type: 'functionCall',
+                  functionCall: { name: 'myFunction2', args: {} }
+                }
               ]
             }
           }
@@ -1088,7 +1236,12 @@ describe('ChatSession', () => {
             index: 1,
             content: {
               role: 'model',
-              parts: [{ functionCall: { name: 'myFunction1', args: {} } }]
+              parts: [
+                {
+                  type: 'functionCall',
+                  functionCall: { name: 'myFunction1', args: {} }
+                }
+              ]
             }
           }
         ]
@@ -1101,8 +1254,14 @@ describe('ChatSession', () => {
             content: {
               role: 'model',
               parts: [
-                { functionCall: { name: 'myFunction1', args: {} } },
-                { functionCall: { name: 'myFunction2', args: {} } }
+                {
+                  type: 'functionCall',
+                  functionCall: { name: 'myFunction1', args: {} }
+                },
+                {
+                  type: 'functionCall',
+                  functionCall: { name: 'myFunction2', args: {} }
+                }
               ]
             }
           }

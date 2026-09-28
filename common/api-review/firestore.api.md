@@ -20,7 +20,9 @@ export type AddPrefixToKeys<
 Prefix extends string,
 T extends Record<string, unknown>
 > = {
-    [K in keyof T & string as `${Prefix}.${K}`]+?: string extends K ? any : T[K];
+    [K in keyof T & string as `${Prefix}.${K}`]+?: string extends K
+    ? PartialWithFieldValue<ChildTypes<T[K]>> | FieldValue
+    : T[K];
 };
 
 // @public
@@ -95,11 +97,32 @@ field: string | FieldPath
 ): AggregateField<number | null>;
 
 // @public
+export class BsonObjectId {
+    constructor(value: string);
+    isEqual(other: BsonObjectId): boolean;
+    // (undocumented)
+    readonly value: string;
+}
+
+// @public
+export class BsonTimestamp {
+    constructor(seconds: number, increment: number);
+    // (undocumented)
+    readonly increment: number;
+    isEqual(other: BsonTimestamp): boolean;
+    // (undocumented)
+    readonly seconds: number;
+}
+
+// @public
 export class Bytes {
-    static fromBase64String(base64: string): Bytes;
+    get data(): Uint8Array;
+    static fromBase64String(base64: string, subtype?: number): Bytes;
     static fromJSON(json: object): Bytes;
-    static fromUint8Array(array: Uint8Array): Bytes;
+    static fromUint8Array(array: Uint8Array, subtype?: number): Bytes;
     isEqual(other: Bytes): boolean;
+    // (undocumented)
+    readonly subtype: number;
     toBase64(): string;
     toJSON(): object;
     toString(): string;
@@ -108,6 +131,15 @@ export class Bytes {
 
 // @public
 export const CACHE_SIZE_UNLIMITED = -1;
+
+// @public
+export type ChildTypes<T> = T extends Record<string, unknown>
+?
+| {
+    [K in keyof T & string]: ChildTypes<T[K]>;
+}[keyof T & string]
+| T
+: T;
 
 // @public
 export type ChildUpdateFields<K extends string, V> = V extends Record<
@@ -187,6 +219,15 @@ options?: {
 
 // @public
 export function count(): AggregateField<number>;
+
+// @public
+export class Decimal128Value {
+    constructor(value: string);
+    isEqual(other: Decimal128Value): boolean;
+    // (undocumented)
+    readonly stringValue: string;
+    toJSON(): object;
+}
 
 // @public
 export function deleteAllPersistentCacheIndexes(
@@ -578,6 +619,14 @@ databaseId?: string
 ): Firestore;
 
 // @public
+export class Int32Value {
+    constructor(value: number);
+    isEqual(other: Int32Value): boolean;
+    // (undocumented)
+    readonly value: number;
+}
+
+// @public
 export function limit(limit: number): QueryLimitConstraint;
 
 // @public
@@ -623,6 +672,13 @@ export { LogLevel }
 
 // @public
 export function maximum(n: number): FieldValue;
+
+// @public
+export class MaxKey {
+    // (undocumented)
+    static instance(): MaxKey;
+    readonly type = 'MaxKey';
+}
 
 // @public
 export interface MemoryCacheSettings {
@@ -673,6 +729,13 @@ export function memoryLruGarbageCollector(settings?: {
 export function minimum(n: number): FieldValue;
 
 // @public
+export class MinKey {
+    // (undocumented)
+    static instance(): MinKey;
+    readonly type = 'MinKey';
+}
+
+// @public
 export function namedQuery(
 firestore: Firestore,
 name: string
@@ -682,7 +745,9 @@ name: string
 export type NestedUpdateFields<T extends Record<string, unknown>> =
 UnionToIntersection<
     {
-    [K in keyof T & string]: ChildUpdateFields<K, T[K]>;
+    [K in keyof T & string]: string extends K
+    ? never
+    : ChildUpdateFields<K, T[K]>;
 }[keyof T & string]
 >;
 
@@ -1176,6 +1241,16 @@ right:
 ): boolean;
 
 // @public
+export class RegexValue {
+    constructor(pattern: string, options: string);
+    isEqual(other: RegexValue): boolean;
+    // (undocumented)
+    readonly options: string;
+    // (undocumented)
+    readonly pattern: string;
+}
+
+// @public
 export function runTransaction<T>(
 firestore: Firestore,
 updateFunction: (transaction: Transaction) => Promise<T>,
@@ -1290,25 +1365,25 @@ export class Timestamp {
     constructor(
     seconds: number,
     nanoseconds: number
-  );
-  static fromDate(date: Date): Timestamp;
-  static fromInstant(instant: Temporal.Instant): Timestamp;
-  static fromJSON(json: object): Timestamp;
-  static fromMillis(milliseconds: number): Timestamp;
-  isEqual(other: Timestamp): boolean;
-  readonly nanoseconds: number;
-  static now(): Timestamp;
-  readonly seconds: number;
-  toDate(): Date;
-  toInstant(): Temporal.Instant;
-  toJSON(): {
-    seconds: number;
-    nanoseconds: number;
-    type: string;
-  };
-  toMillis(): number;
-  toString(): string;
-  valueOf(): string;
+    );
+    static fromDate(date: Date): Timestamp;
+    static fromInstant(instant: Temporal.Instant): Timestamp;
+    static fromJSON(json: object): Timestamp;
+    static fromMillis(milliseconds: number): Timestamp;
+    isEqual(other: Timestamp): boolean;
+    readonly nanoseconds: number;
+    static now(): Timestamp;
+    readonly seconds: number;
+    toDate(): Date;
+    toInstant(): Temporal.Instant;
+    toJSON(): {
+        seconds: number;
+        nanoseconds: number;
+        type: string;
+    };
+    toMillis(): number;
+    toString(): string;
+    valueOf(): string;
 }
 
 // @public
@@ -1362,7 +1437,9 @@ export type UpdateData<T> = T extends Primitive
 ? T
 : T extends {}
 ? {
-    [K in keyof T]?: UpdateData<T[K]> | FieldValue;
+    [K in keyof T]?: string extends K
+    ? PartialWithFieldValue<ChildTypes<T[K]>> | FieldValue
+    : UpdateData<T[K]> | FieldValue;
 } & NestedUpdateFields<T>
 : Partial<T>;
 

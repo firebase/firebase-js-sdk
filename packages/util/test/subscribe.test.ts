@@ -15,19 +15,18 @@
  * limitations under the License.
  */
 
-import { assert } from 'chai';
-import * as sinon from 'sinon';
+import { assert, vi, expect, MockInstance } from 'vitest';
 import { async, createSubscribe, Observer, Subscribe } from '../src/subscribe';
 
 describe('createSubscribe', () => {
-  let spy: any;
+  let spy: MockInstance;
   beforeEach(() => {
     // Listen to console.error calls.
-    spy = sinon.spy(console, 'error');
+    spy = vi.spyOn(console, 'error');
   });
 
   afterEach(() => {
-    spy.restore();
+    spy.mockRestore();
   });
 
   it('Creation', done => {
@@ -58,7 +57,7 @@ describe('createSubscribe', () => {
       },
       complete() {
         // By this point, the error should have been logged.
-        assert.ok(spy.calledWith(uncatchableError));
+        expect(spy).toHaveBeenCalledWith(uncatchableError);
         done();
       }
     });

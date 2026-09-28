@@ -149,8 +149,11 @@ Cloud Firestore
 |  --- | --- |
 |  [AggregateField](./firestore.aggregatefield.md#aggregatefield_class) | Represents an aggregation that can be performed by Firestore. |
 |  [AggregateQuerySnapshot](./firestore.aggregatequerysnapshot.md#aggregatequerysnapshot_class) | The results of executing an aggregation query. |
+|  [BsonObjectId](./firestore.bsonobjectid.md#bsonobjectid_class) | Represents a BSON ObjectId type in Firestore documents. BsonObjectId |
+|  [BsonTimestamp](./firestore.bsontimestamp.md#bsontimestamp_class) | Represents a BSON Timestamp type in Firestore documents. BsonTimestamp |
 |  [Bytes](./firestore.bytes.md#bytes_class) | An immutable object representing an array of bytes. |
 |  [CollectionReference](./firestore.collectionreference.md#collectionreference_class) | A <code>CollectionReference</code> object can be used for adding documents, getting document references, and querying for documents (using [query()](./firestore.md#query_9f7b0f4)<!-- -->). |
+|  [Decimal128Value](./firestore.decimal128value.md#decimal128value_class) | Represents a 128-bit decimal type in Firestore documents. Decimal128Value |
 |  [DocumentReference](./firestore.documentreference.md#documentreference_class) | A <code>DocumentReference</code> refers to a document location in a Firestore database and can be used to write, read, or listen to the location. The document at the referenced location may or may not exist. |
 |  [DocumentSnapshot](./firestore.documentsnapshot.md#documentsnapshot_class) | A <code>DocumentSnapshot</code> contains data read from a document in your Firestore database. The data can be extracted with <code>.data()</code> or <code>.get(&lt;field&gt;)</code> to get a specific field.<!-- -->For a <code>DocumentSnapshot</code> that points to a non-existing document, any data access will return 'undefined'. You can use the <code>exists()</code> method to explicitly verify a document's existence. |
 |  [FieldPath](./firestore.fieldpath.md#fieldpath_class) | A <code>FieldPath</code> refers to a field in a document. The path may consist of a single field name (referring to a top-level field in the document), or a list of field names (referring to a nested field in the document).<!-- -->Create a <code>FieldPath</code> by providing field names. If more than one field name is provided, the path will point to a nested field in a document. |
@@ -158,7 +161,10 @@ Cloud Firestore
 |  [Firestore](./firestore.firestore.md#firestore_class) | The Cloud Firestore service interface.<!-- -->Do not call this constructor directly. Instead, use [getFirestore()](./firestore.md#getfirestore)<!-- -->. |
 |  [FirestoreError](./firestore.firestoreerror.md#firestoreerror_class) | An error returned by a Firestore operation. |
 |  [GeoPoint](./firestore.geopoint.md#geopoint_class) | An immutable object representing a geographic location in Firestore. The location is represented as latitude/longitude pair.<!-- -->Latitude values are in the range of \[-90, 90\]. Longitude values are in the range of \[-180, 180\]. |
+|  [Int32Value](./firestore.int32value.md#int32value_class) | Represents a 32-bit integer type in Firestore documents. Int32Value |
 |  [LoadBundleTask](./firestore.loadbundletask.md#loadbundletask_class) | Represents the task of loading a Firestore bundle. It provides progress of bundle loading, as well as task completion and error events.<!-- -->The API is compatible with <code>Promise&lt;LoadBundleTaskProgress&gt;</code>. |
+|  [MaxKey](./firestore.maxkey.md#maxkey_class) | Represent a "Max Key" type in Firestore documents. MaxKey |
+|  [MinKey](./firestore.minkey.md#minkey_class) | Represent a "Min Key" type in Firestore documents. MinKey |
 |  [PersistentCacheIndexManager](./firestore.persistentcacheindexmanager.md#persistentcacheindexmanager_class) | A <code>PersistentCacheIndexManager</code> for configuring persistent cache indexes used for local query execution.<!-- -->To use, call <code>getPersistentCacheIndexManager()</code> to get an instance. |
 |  [Query](./firestore.query.md#query_class) | A <code>Query</code> refers to a query which you can read or listen to. You can also construct refined <code>Query</code> objects by adding filters and ordering. |
 |  [QueryCompositeFilterConstraint](./firestore.querycompositefilterconstraint.md#querycompositefilterconstraint_class) | A <code>QueryCompositeFilterConstraint</code> is used to narrow the set of documents returned by a Firestore query by performing the logical OR or AND of multiple [QueryFieldFilterConstraint](./firestore.queryfieldfilterconstraint.md#queryfieldfilterconstraint_class)<!-- -->s or [QueryCompositeFilterConstraint](./firestore.querycompositefilterconstraint.md#querycompositefilterconstraint_class)<!-- -->s. <code>QueryCompositeFilterConstraint</code>s are created by invoking [or()](./firestore.md#or_e72c712) or [and()](./firestore.md#and_e72c712) and can then be passed to [query()](./firestore.md#query_9f7b0f4) to create a new query instance that also contains the <code>QueryCompositeFilterConstraint</code>. |
@@ -170,6 +176,7 @@ Cloud Firestore
 |  [QueryOrderByConstraint](./firestore.queryorderbyconstraint.md#queryorderbyconstraint_class) | A <code>QueryOrderByConstraint</code> is used to sort the set of documents returned by a Firestore query. <code>QueryOrderByConstraint</code>s are created by invoking [orderBy()](./firestore.md#orderby_006d61f) and can then be passed to [query()](./firestore.md#query_9f7b0f4) to create a new query instance that also contains this <code>QueryOrderByConstraint</code>.<!-- -->Note: Documents that do not contain the orderBy field will not be present in the query result. |
 |  [QuerySnapshot](./firestore.querysnapshot.md#querysnapshot_class) | A <code>QuerySnapshot</code> contains zero or more <code>DocumentSnapshot</code> objects representing the results of a query. The documents can be accessed as an array via the <code>docs</code> property or enumerated using the <code>forEach</code> method. The number of documents can be determined via the <code>empty</code> and <code>size</code> properties. |
 |  [QueryStartAtConstraint](./firestore.querystartatconstraint.md#querystartatconstraint_class) | A <code>QueryStartAtConstraint</code> is used to exclude documents from the start of a result set returned by a Firestore query. <code>QueryStartAtConstraint</code>s are created by invoking [startAt()](./firestore.md#startat_9a4477f) or [startAfter()](./firestore.md#startafter_9a4477f) and can then be passed to [query()](./firestore.md#query_9f7b0f4) to create a new query instance that also contains this <code>QueryStartAtConstraint</code>. |
+|  [RegexValue](./firestore.regexvalue.md#regexvalue_class) | Represents a regular expression type in Firestore documents. RegexValue |
 |  [SnapshotMetadata](./firestore.snapshotmetadata.md#snapshotmetadata_class) | Metadata about a snapshot, describing the state of the snapshot. |
 |  [Timestamp](./firestore.timestamp.md#timestamp_class) | A <code>Timestamp</code> represents a point in time independent of any time zone or calendar, represented as seconds and fractions of seconds at nanosecond resolution in UTC Epoch time.<!-- -->It is encoded using the Proleptic Gregorian Calendar which extends the Gregorian calendar backwards to year one. It is encoded assuming all minutes are 60 seconds long, i.e. leap seconds are "smeared" so that no leap second table is needed for interpretation. Range is from 0001-01-01T00:00:00Z to 9999-12-31T23:59:59.999999999Z.<!-- -->For examples and further specifications, refer to the [Timestamp definition](https://github.com/google/protobuf/blob/master/src/google/protobuf/timestamp.proto)<!-- -->. |
 |  [Transaction](./firestore.transaction.md#transaction_class) | A reference to a transaction.<!-- -->The <code>Transaction</code> object passed to a transaction's <code>updateFunction</code> provides the methods to read and write data within the transaction context. See [runTransaction()](./firestore.md#runtransaction_6f03ec4)<!-- -->. |
@@ -219,6 +226,7 @@ Cloud Firestore
 |  [AggregateFieldType](./firestore.md#aggregatefieldtype) | The union of all <code>AggregateField</code> types that are supported by Firestore. |
 |  [AggregateSpecData](./firestore.md#aggregatespecdata) | A type whose keys are taken from an <code>AggregateSpec</code>, and whose values are the result of the aggregation performed by the corresponding <code>AggregateField</code> from the input <code>AggregateSpec</code>. |
 |  [AggregateType](./firestore.md#aggregatetype) | Union type representing the aggregate type to be performed. |
+|  [ChildTypes](./firestore.md#childtypes) | For the given type, return a union type of T and the types of all child properties of T. |
 |  [ChildUpdateFields](./firestore.md#childupdatefields) | Helper for calculating the nested fields for a given type T1. This is needed to distribute union types such as <code>undefined &#124; {...}</code> (happens for optional props) or <code>{a: A} &#124; {b: B}</code>.<!-- -->In this use case, <code>V</code> is used to distribute the union types of <code>T[K]</code> on <code>Record</code>, since <code>T[K]</code> is evaluated as an expression and not distributed.<!-- -->See https://www.typescriptlang.org/docs/handbook/advanced-types.html\#distributive-conditional-types |
 |  [DocumentChangeType](./firestore.md#documentchangetype) | The type of <code>DocumentChange</code> may be 'added', 'removed', or 'modified'. |
 |  [FirestoreErrorCode](./firestore.md#firestoreerrorcode) | The set of Firestore status codes. The codes are the same at the ones exposed by gRPC here: https://github.com/grpc/grpc/blob/master/doc/statuscodes.md<!-- -->Possible values: - 'cancelled': The operation was cancelled (typically by the caller). - 'unknown': Unknown error or an error from a different error domain. - 'invalid-argument': Client specified an invalid argument. Note that this differs from 'failed-precondition'. 'invalid-argument' indicates arguments that are problematic regardless of the state of the system (e.g. an invalid field name). - 'deadline-exceeded': Deadline expired before operation could complete. For operations that change the state of the system, this error may be returned even if the operation has completed successfully. For example, a successful response from a server could have been delayed long enough for the deadline to expire. - 'not-found': Some requested document was not found. - 'already-exists': Some document that we attempted to create already exists. - 'permission-denied': The caller does not have permission to execute the specified operation. - 'resource-exhausted': Some resource has been exhausted, perhaps a per-user quota, or perhaps the entire file system is out of space. - 'failed-precondition': Operation was rejected because the system is not in a state required for the operation's execution. - 'aborted': The operation was aborted, typically due to a concurrency issue like transaction aborts, etc. - 'out-of-range': Operation was attempted past the valid range. - 'unimplemented': Operation is not implemented or not supported/enabled. - 'internal': Internal errors. Means some invariants expected by underlying system has been broken. If you see one of these errors, something is very broken. - 'unavailable': The service is currently unavailable. This is most likely a transient condition and may be corrected by retrying with a backoff. - 'data-loss': Unrecoverable data loss or corruption. - 'unauthenticated': The request does not have valid authentication credentials for the operation. |
@@ -3303,7 +3311,9 @@ export declare type AddPrefixToKeys<
   Prefix extends string,
   T extends Record<string, unknown>
 > = {
-  [K in keyof T & string as `${Prefix}.${K}`]+?: string extends K ? any : T[K];
+  [K in keyof T & string as `${Prefix}.${K}`]+?: string extends K
+    ? PartialWithFieldValue<ChildTypes<T[K]>> | FieldValue
+    : T[K];
 };
 ```
 
@@ -3340,6 +3350,22 @@ Union type representing the aggregate type to be performed.
 
 ```typescript
 export declare type AggregateType = 'count' | 'avg' | 'sum';
+```
+
+## ChildTypes
+
+For the given type, return a union type of T and the types of all child properties of T.
+
+<b>Signature:</b>
+
+```typescript
+export declare type ChildTypes<T> = T extends Record<string, unknown>
+  ?
+      | {
+          [K in keyof T & string]: ChildTypes<T[K]>;
+        }[keyof T & string]
+      | T
+  : T;
 ```
 
 ## ChildUpdateFields
@@ -3445,7 +3471,9 @@ For each field (e.g. 'bar'), find all nested keys (e.g. {<!-- -->'bar.baz': T1, 
 export declare type NestedUpdateFields<T extends Record<string, unknown>> =
   UnionToIntersection<
     {
-      [K in keyof T & string]: ChildUpdateFields<K, T[K]>;
+      [K in keyof T & string]: string extends K
+        ? never
+        : ChildUpdateFields<K, T[K]>;
     }[keyof T & string]
   >;
 ```
@@ -3599,7 +3627,9 @@ export declare type UpdateData<T> = T extends Primitive
   ? T
   : T extends {}
   ? {
-      [K in keyof T]?: UpdateData<T[K]> | FieldValue;
+      [K in keyof T]?: string extends K
+        ? PartialWithFieldValue<ChildTypes<T[K]>> | FieldValue
+        : UpdateData<T[K]> | FieldValue;
     } & NestedUpdateFields<T>
   : Partial<T>;
 ```

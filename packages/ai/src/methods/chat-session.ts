@@ -32,6 +32,7 @@ import { ChromeAdapter } from '../types/chrome-adapter';
 import { ChatSessionBase } from './chat-session-base';
 import { validateChatHistory } from './chat-session-helpers';
 import { formatSystemInstruction } from '../requests/request-helpers';
+import { deepCopy } from '@firebase/util';
 
 /**
  * ChatSession class that enables sending chat messages and stores
@@ -54,7 +55,7 @@ export class ChatSession extends ChatSessionBase<
     super(apiSettings, params, requestOptions);
     if (params?.history) {
       validateChatHistory(params.history);
-      this._history = params.history;
+      this._history = deepCopy(params.history);
     }
     if (this.params?.systemInstruction != null) {
       this.params = {

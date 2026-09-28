@@ -1,5 +1,26 @@
 # firebase
 
+## 12.19.0
+
+### Minor Changes
+
+- [`6b17ef5`](https://github.com/firebase/firebase-js-sdk/commit/6b17ef50b4db73557e834535656e586d32a2f86a) [#10319](https://github.com/firebase/firebase-js-sdk/pull/10319) - Fixed the issue where the SDK hardcodes invalid 'function' role, causing 400 errors during function calling on gemini-3.6-flash
+
+### Patch Changes
+
+- Updated dependencies [[`8676365`](https://github.com/firebase/firebase-js-sdk/commit/8676365bdb4113785b48e5bea5b8a55dfadb3233), [`8316986`](https://github.com/firebase/firebase-js-sdk/commit/831698647c842d4c6f96f6cb73efa694e0425f3a), [`b74b53c`](https://github.com/firebase/firebase-js-sdk/commit/b74b53c02de39cff0a7091faa5eeb059952bb31b), [`0e8554b`](https://github.com/firebase/firebase-js-sdk/commit/0e8554b78acbb2d44d0bbecebc8c66439cf54476), [`50213a1`](https://github.com/firebase/firebase-js-sdk/commit/50213a1cdba8e3b0f029197ec20f47c1110060a6), [`6b17ef5`](https://github.com/firebase/firebase-js-sdk/commit/6b17ef50b4db73557e834535656e586d32a2f86a), [`392bce0`](https://github.com/firebase/firebase-js-sdk/commit/392bce079f376149736311f0017d5863e58c8dff), [`6f86596`](https://github.com/firebase/firebase-js-sdk/commit/6f865964baf5b4bd23b077fecec1028434a7387e)]:
+  - @firebase/auth@1.13.6
+  - @firebase/app@0.16.2
+  - @firebase/firestore@4.17.2
+  - @firebase/analytics@0.10.25
+  - @firebase/messaging@0.13.3
+  - @firebase/ai@2.16.0
+  - @firebase/auth-compat@0.6.11
+  - @firebase/app-compat@0.5.18
+  - @firebase/firestore-compat@0.4.14
+  - @firebase/analytics-compat@0.2.31
+  - @firebase/messaging-compat@0.2.30
+
 ## 12.18.0
 
 ### Minor Changes

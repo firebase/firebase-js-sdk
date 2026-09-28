@@ -720,33 +720,52 @@ export class RealtimeHandler {
         );
       }
     } finally {
+      // Capture the visibility state before closing the connection. Closing is
+      // asynchronous, so the app may return to the foreground before it completes,
+      // and an expected background close would then be misread as a failure.
+      const wasInBackground = this.isInBackground;
+
       // Close HTTP connection and associated streams.
       await this.closeRealtimeHttpConnection();
       this.setIsHttpConnectionRunning(false);
 
-      // Update backoff metadata if the connection failed in the foreground.
-      const connectionFailed =
-        !this.isInBackground &&
-        (responseCode === undefined ||
-          this.isStatusCodeRetryable(responseCode));
+      // Nothing to do while the app is hidden. A retry cannot run, and recording a
+      // backoff penalty would persist a failure that never happened.
+      if (!this.isInBackground) {
+        if (wasInBackground) {
+          // The connection was closed because the app moved to the background, and
+          // the app returned to the foreground before the teardown finished. The
+          // reconnect attempted at that point was skipped because this connection
+          // was still active, so it has to be made here. Backgrounding is not a
+          // failure, so restore the retry budget rather than spending it, which
+          // also keeps an exhausted budget from surfacing a stream error.
+          this.resetRetryCount();
+          await this.retryHttpConnectionWhenBackoffEnds();
+        } else {
+          // Update backoff metadata if the connection failed in the foreground.
+          const connectionFailed =
+            responseCode === undefined ||
+            this.isStatusCodeRetryable(responseCode);
 
-      if (connectionFailed) {
-        await this.updateBackoffMetadataWithLastFailedStreamConnectionTime(
-          new Date()
-        );
-      }
-      // If responseCode is null then no connection was made to server and the SDK should still retry.
-      if (connectionFailed || response?.ok) {
-        await this.retryHttpConnectionWhenBackoffEnds();
-      } else {
-        const errorMessage = `Unable to connect to the server. HTTP status code: ${responseCode}`;
-        const firebaseError = ERROR_FACTORY.create(
-          ErrorCode.CONFIG_UPDATE_STREAM_ERROR,
-          {
-            originalErrorMessage: errorMessage
+          if (connectionFailed) {
+            await this.updateBackoffMetadataWithLastFailedStreamConnectionTime(
+              new Date()
+            );
           }
-        );
-        this.propagateError(firebaseError);
+          // If responseCode is null then no connection was made to server and the SDK should still retry.
+          if (connectionFailed || response?.ok) {
+            await this.retryHttpConnectionWhenBackoffEnds();
+          } else {
+            const errorMessage = `Unable to connect to the server. HTTP status code: ${responseCode}`;
+            const firebaseError = ERROR_FACTORY.create(
+              ErrorCode.CONFIG_UPDATE_STREAM_ERROR,
+              {
+                originalErrorMessage: errorMessage
+              }
+            );
+            this.propagateError(firebaseError);
+          }
+        }
       }
     }
   }

@@ -23,7 +23,8 @@ import {
   ChromeAdapter,
   ThinkingLevel,
   ImageConfigAspectRatio,
-  ImageConfigImageSize
+  ImageConfigImageSize,
+  TextPart
 } from '../public-types';
 import * as request from '../requests/request';
 import {
@@ -84,7 +85,10 @@ describe('GenerativeModel', () => {
         toolConfig: {
           functionCallingConfig: { mode: FunctionCallingMode.NONE }
         },
-        systemInstruction: { role: 'system', parts: [{ text: 'be friendly' }] }
+        systemInstruction: {
+          role: 'system',
+          parts: [{ type: 'text', text: 'be friendly' }]
+        }
       },
       {},
       fakeChromeAdapter
@@ -93,7 +97,9 @@ describe('GenerativeModel', () => {
     expect(genModel.toolConfig?.functionCallingConfig?.mode).to.equal(
       FunctionCallingMode.NONE
     );
-    expect(genModel.systemInstruction?.parts[0].text).to.equal('be friendly');
+    expect((genModel.systemInstruction?.parts[0] as TextPart).text).to.equal(
+      'be friendly'
+    );
     const mockResponse = getMockResponse(
       'vertexAI',
       'unary-success-basic-reply-short.json'
@@ -132,7 +138,10 @@ describe('GenerativeModel', () => {
       {},
       fakeChromeAdapter
     );
-    expect(genModel.systemInstruction?.parts[0].text).to.equal('be friendly');
+    expect(genModel.systemInstruction?.parts[0].type).to.equal('text');
+    expect((genModel.systemInstruction?.parts[0] as TextPart).text).to.equal(
+      'be friendly'
+    );
     const mockResponse = getMockResponse(
       'vertexAI',
       'unary-success-basic-reply-short.json'
@@ -173,7 +182,10 @@ describe('GenerativeModel', () => {
         toolConfig: {
           functionCallingConfig: { mode: FunctionCallingMode.NONE }
         },
-        systemInstruction: { role: 'system', parts: [{ text: 'be friendly' }] }
+        systemInstruction: {
+          role: 'system',
+          parts: [{ type: 'text', text: 'be friendly' }]
+        }
       },
       {},
       fakeChromeAdapter
@@ -182,7 +194,9 @@ describe('GenerativeModel', () => {
     expect(genModel.toolConfig?.functionCallingConfig?.mode).to.equal(
       FunctionCallingMode.NONE
     );
-    expect(genModel.systemInstruction?.parts[0].text).to.equal('be friendly');
+    expect((genModel.systemInstruction?.parts[0] as TextPart).text).to.equal(
+      'be friendly'
+    );
     const mockResponse = getMockResponse(
       'vertexAI',
       'unary-success-basic-reply-short.json'
@@ -191,7 +205,7 @@ describe('GenerativeModel', () => {
       .spyOn(mockRequest, 'makeRequest')
       .mockResolvedValue(mockResponse as Response);
     await genModel.generateContent({
-      contents: [{ role: 'user', parts: [{ text: 'hello' }] }],
+      contents: [{ role: 'user', parts: [{ type: 'text', text: 'hello' }] }],
       tools: [
         {
           functionDeclarations: [
@@ -202,7 +216,10 @@ describe('GenerativeModel', () => {
         { codeExecution: {} }
       ],
       toolConfig: { functionCallingConfig: { mode: FunctionCallingMode.AUTO } },
-      systemInstruction: { role: 'system', parts: [{ text: 'be formal' }] }
+      systemInstruction: {
+        role: 'system',
+        parts: [{ type: 'text', text: 'be formal' }]
+      }
     });
     expect(makeRequestStub).toHaveBeenCalledWith(
       {
@@ -438,7 +455,10 @@ describe('GenerativeModel', () => {
         toolConfig: {
           functionCallingConfig: { mode: FunctionCallingMode.NONE }
         },
-        systemInstruction: { role: 'system', parts: [{ text: 'be friendly' }] },
+        systemInstruction: {
+          role: 'system',
+          parts: [{ type: 'text', text: 'be friendly' }]
+        },
         generationConfig: {
           topK: 1
         }
@@ -450,7 +470,9 @@ describe('GenerativeModel', () => {
     expect(genModel.toolConfig?.functionCallingConfig?.mode).to.equal(
       FunctionCallingMode.NONE
     );
-    expect(genModel.systemInstruction?.parts[0].text).to.equal('be friendly');
+    expect((genModel.systemInstruction?.parts[0] as TextPart).text).to.equal(
+      'be friendly'
+    );
     const mockResponse = getMockResponse(
       'vertexAI',
       'unary-success-basic-reply-short.json'
@@ -490,7 +512,9 @@ describe('GenerativeModel', () => {
       {},
       fakeChromeAdapter
     );
-    expect(genModel.systemInstruction?.parts[0].text).to.equal('be friendly');
+    expect((genModel.systemInstruction?.parts[0] as TextPart).text).to.equal(
+      'be friendly'
+    );
     const mockResponse = getMockResponse(
       'vertexAI',
       'unary-success-basic-reply-short.json'
@@ -526,7 +550,10 @@ describe('GenerativeModel', () => {
         toolConfig: {
           functionCallingConfig: { mode: FunctionCallingMode.NONE }
         },
-        systemInstruction: { role: 'system', parts: [{ text: 'be friendly' }] },
+        systemInstruction: {
+          role: 'system',
+          parts: [{ type: 'text', text: 'be friendly' }]
+        },
         generationConfig: {
           responseMimeType: 'image/jpeg'
         }
@@ -538,7 +565,9 @@ describe('GenerativeModel', () => {
     expect(genModel.toolConfig?.functionCallingConfig?.mode).to.equal(
       FunctionCallingMode.NONE
     );
-    expect(genModel.systemInstruction?.parts[0].text).to.equal('be friendly');
+    expect((genModel.systemInstruction?.parts[0] as TextPart).text).to.equal(
+      'be friendly'
+    );
     const mockResponse = getMockResponse(
       'vertexAI',
       'unary-success-basic-reply-short.json'
@@ -571,7 +600,9 @@ describe('GenerativeModel', () => {
       model: 'my-model',
       systemInstruction: 'be friendly'
     });
-    expect(genModel.systemInstruction?.parts[0].text).to.equal('be friendly');
+    expect((genModel.systemInstruction?.parts[0] as TextPart).text).to.equal(
+      'be friendly'
+    );
     const mockResponse = getMockResponse(
       'vertexAI',
       'unary-success-basic-reply-short.json'
@@ -603,7 +634,10 @@ describe('GenerativeModel', () => {
       toolConfig: {
         functionCallingConfig: { mode: FunctionCallingMode.NONE }
       },
-      systemInstruction: { role: 'system', parts: [{ text: 'be friendly' }] },
+      systemInstruction: {
+        role: 'system',
+        parts: [{ type: 'text', text: 'be friendly' }]
+      },
       generationConfig: {
         responseMimeType: 'image/jpeg'
       }
@@ -612,7 +646,9 @@ describe('GenerativeModel', () => {
     expect(genModel.toolConfig?.functionCallingConfig?.mode).to.equal(
       FunctionCallingMode.NONE
     );
-    expect(genModel.systemInstruction?.parts[0].text).to.equal('be friendly');
+    expect((genModel.systemInstruction?.parts[0] as TextPart).text).to.equal(
+      'be friendly'
+    );
     const mockResponse = getMockResponse(
       'vertexAI',
       'unary-success-basic-reply-short.json'
@@ -632,7 +668,10 @@ describe('GenerativeModel', () => {
         toolConfig: {
           functionCallingConfig: { mode: FunctionCallingMode.AUTO }
         },
-        systemInstruction: { role: 'system', parts: [{ text: 'be formal' }] },
+        systemInstruction: {
+          role: 'system',
+          parts: [{ type: 'text', text: 'be formal' }]
+        },
         generationConfig: {
           responseMimeType: 'image/png'
         }

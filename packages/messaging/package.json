@@ -1,6 +1,6 @@
 {
   "name": "@firebase/messaging",
-  "version": "0.13.2",
+  "version": "0.13.3",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
@@ -59,7 +59,7 @@
     "tslib": "^2.1.0"
   },
   "devDependencies": {
-    "@firebase/app": "0.16.1",
+    "@firebase/app": "0.16.2",
     "rollup": "4.62.2",
     "rollup-plugin-typescript2": "0.37.0",
     "@rollup/plugin-json": "6.1.0",

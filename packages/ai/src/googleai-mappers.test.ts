@@ -36,7 +36,8 @@ import {
   SafetyRating,
   AIErrorCode,
   FinishReason,
-  PromptFeedback
+  PromptFeedback,
+  TextPart
 } from './types';
 import {
   GoogleAIGenerateContentResponse,
@@ -49,7 +50,9 @@ import { getMockResponse } from '../test-utils/mock-response';
 
 const fakeModel = 'models/gemini-pro';
 
-const fakeContents: Content[] = [{ role: 'user', parts: [{ text: 'hello' }] }];
+const fakeContents: Content[] = [
+  { role: 'user', parts: [{ type: 'text', text: 'hello' }] }
+];
 
 describe('Google AI Mappers', () => {
   let loggerWarnStub: MockInstance;
@@ -133,9 +136,9 @@ describe('Google AI Mappers', () => {
       const mappedResponse = mapGenerateContentResponse(googleAIMockResponse);
 
       expect(mappedResponse.candidates).toBeDefined();
-      expect(mappedResponse.candidates?.[0].content.parts[0].text).to.contain(
-        'quantum mechanics'
-      );
+      expect(
+        (mappedResponse.candidates?.[0].content.parts[0] as TextPart).text
+      ).to.contain('quantum mechanics');
 
       // Mapped citations
       expect(
@@ -212,7 +215,10 @@ describe('Google AI Mappers', () => {
     it('should map a Vertex AI CountTokensRequest to Google AI format', () => {
       const vertexRequest: CountTokensRequest = {
         contents: fakeContents,
-        systemInstruction: { role: 'system', parts: [{ text: 'Be nice' }] },
+        systemInstruction: {
+          role: 'system',
+          parts: [{ type: 'text', text: 'Be nice' }]
+        },
         tools: [
           { functionDeclarations: [{ name: 'foo', description: 'bar' }] }
         ],
@@ -236,7 +242,10 @@ describe('Google AI Mappers', () => {
     it('should map a minimal Vertex AI CountTokensRequest', () => {
       const vertexRequest: CountTokensRequest = {
         contents: fakeContents,
-        systemInstruction: { role: 'system', parts: [{ text: 'Be nice' }] },
+        systemInstruction: {
+          role: 'system',
+          parts: [{ type: 'text', text: 'Be nice' }]
+        },
         generationConfig: { temperature: 0.8 }
       };
 
@@ -244,7 +253,10 @@ describe('Google AI Mappers', () => {
         generateContentRequest: {
           model: fakeModel,
           contents: vertexRequest.contents,
-          systemInstruction: { role: 'system', parts: [{ text: 'Be nice' }] },
+          systemInstruction: {
+            role: 'system',
+            parts: [{ type: 'text', text: 'Be nice' }]
+          },
           generationConfig: { temperature: 0.8 }
         }
       };
@@ -259,7 +271,10 @@ describe('Google AI Mappers', () => {
       const candidates: GoogleAIGenerateContentCandidate[] = [
         {
           index: 0,
-          content: { role: 'model', parts: [{ text: 'Cited text' }] },
+          content: {
+            role: 'model',
+            parts: [{ type: 'text', text: 'Cited text' }]
+          },
           citationMetadata: {
             citationSources: [
               { startIndex: 0, endIndex: 5, uri: 'uri1', license: 'MIT' },
@@ -282,7 +297,10 @@ describe('Google AI Mappers', () => {
       const candidates: GoogleAIGenerateContentCandidate[] = [
         {
           index: 0,
-          content: { role: 'model', parts: [{ text: 'Maybe unsafe' }] },
+          content: {
+            role: 'model',
+            parts: [{ type: 'text', text: 'Maybe unsafe' }]
+          },
           safetyRatings: [
             {
               category: HarmCategory.HARM_CATEGORY_HARASSMENT,
@@ -317,9 +335,30 @@ describe('Google AI Mappers', () => {
             role: 'model',
             parts: [
               {
+                type: 'inlineData',
                 inlineData: { mimeType: 'video/mp4', data: 'base64==' },
                 videoMetadata: { startOffset: '0s', endOffset: '5s' } // Unsupported
-              }
+              } as any
+            ]
+          }
+        }
+      ];
+      expect(() => mapGenerateContentCandidates(candidates))
+        .to.throw(AIError, /Part.videoMetadata is not supported/i)
+        .with.property('code', AIErrorCode.UNSUPPORTED);
+    });
+
+    it('should throw if untagged videoMetadata is present in raw wire response parts', () => {
+      const candidates: GoogleAIGenerateContentCandidate[] = [
+        {
+          index: 0,
+          content: {
+            role: 'model',
+            parts: [
+              {
+                inlineData: { mimeType: 'video/mp4', data: 'base64==' },
+                videoMetadata: { startOffset: '0s', endOffset: '5s' }
+              } as any
             ]
           }
         }
@@ -333,14 +372,19 @@ describe('Google AI Mappers', () => {
       const candidates: GoogleAIGenerateContentCandidate[] = [
         {
           index: 0,
-          content: { role: 'model', parts: [{ text: 'Simple text' }] },
+          content: {
+            role: 'model',
+            parts: [{ type: 'text', text: 'Simple text' }]
+          },
           finishReason: FinishReason.STOP
         }
       ];
       const mapped = mapGenerateContentCandidates(candidates);
       expect(mapped[0].citationMetadata).to.be.undefined;
       expect(mapped[0].safetyRatings).to.be.undefined;
-      expect(mapped[0].content.parts[0].text).to.equal('Simple text');
+      expect((mapped[0].content.parts[0] as TextPart).text).to.equal(
+        'Simple text'
+      );
       expect(loggerWarnStub).not.toHaveBeenCalled();
     });
 

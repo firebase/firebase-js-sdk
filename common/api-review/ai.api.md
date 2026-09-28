@@ -69,7 +69,7 @@ export abstract class AIModel {
     readonly model: string;
     // @internal
     static normalizeModelName(modelName: string, backendType: BackendType): string;
-    }
+}
 
 // @public
 export interface AIOptions {
@@ -247,23 +247,9 @@ export interface CodeExecutionResult {
 // @public
 export interface CodeExecutionResultPart {
     // (undocumented)
-    codeExecutionResult?: CodeExecutionResult;
+    codeExecutionResult: CodeExecutionResult;
     // (undocumented)
-    executableCode?: never;
-    // (undocumented)
-    fileData: never;
-    // (undocumented)
-    functionCall?: never;
-    // (undocumented)
-    functionResponse?: never;
-    // (undocumented)
-    inlineData?: never;
-    // (undocumented)
-    text?: never;
-    // (undocumented)
-    thought?: never;
-    // @internal (undocumented)
-    thoughtSignature?: never;
+    type: 'codeExecutionResult';
 }
 
 // @public
@@ -319,7 +305,6 @@ interface Date_2 {
     // (undocumented)
     year: number;
 }
-
 export { Date_2 as Date }
 
 // @public
@@ -350,23 +335,9 @@ export interface ExecutableCode {
 // @public
 export interface ExecutableCodePart {
     // (undocumented)
-    codeExecutionResult?: never;
+    executableCode: ExecutableCode;
     // (undocumented)
-    executableCode?: ExecutableCode;
-    // (undocumented)
-    fileData: never;
-    // (undocumented)
-    functionCall?: never;
-    // (undocumented)
-    functionResponse?: never;
-    // (undocumented)
-    inlineData?: never;
-    // (undocumented)
-    text?: never;
-    // (undocumented)
-    thought?: never;
-    // @internal (undocumented)
-    thoughtSignature?: never;
+    type: 'executableCode';
 }
 
 // @public
@@ -380,23 +351,11 @@ export interface FileData {
 // @public
 export interface FileDataPart {
     // (undocumented)
-    codeExecutionResult?: never;
-    // (undocumented)
-    executableCode?: never;
-    // (undocumented)
     fileData: FileData;
     // (undocumented)
-    functionCall?: never;
-    // (undocumented)
-    functionResponse?: never;
-    // (undocumented)
-    inlineData?: never;
-    // (undocumented)
-    text?: never;
-    // (undocumented)
     thought?: boolean;
-    // @internal (undocumented)
-    thoughtSignature?: never;
+    // (undocumented)
+    type: 'fileData';
 }
 
 // @public
@@ -455,21 +414,11 @@ export type FunctionCallingMode = (typeof FunctionCallingMode)[keyof typeof Func
 // @public
 export interface FunctionCallPart {
     // (undocumented)
-    codeExecutionResult?: never;
-    // (undocumented)
-    executableCode?: never;
-    // (undocumented)
     functionCall: FunctionCall;
     // (undocumented)
-    functionResponse?: never;
-    // (undocumented)
-    inlineData?: never;
-    // (undocumented)
-    text?: never;
-    // (undocumented)
     thought?: boolean;
-    // @internal (undocumented)
-    thoughtSignature?: never;
+    // (undocumented)
+    type: 'functionCall';
 }
 
 // @public
@@ -499,21 +448,11 @@ export interface FunctionResponse {
 // @public
 export interface FunctionResponsePart {
     // (undocumented)
-    codeExecutionResult?: never;
-    // (undocumented)
-    executableCode?: never;
-    // (undocumented)
-    functionCall?: never;
-    // (undocumented)
     functionResponse: FunctionResponse;
     // (undocumented)
-    inlineData?: never;
-    // (undocumented)
-    text?: never;
-    // (undocumented)
     thought?: boolean;
-    // @internal (undocumented)
-    thoughtSignature?: never;
+    // (undocumented)
+    type: 'functionResponse';
 }
 
 // @public
@@ -574,14 +513,14 @@ export interface GenerateContentStreamResult {
 
 // @public
 export interface GenerationConfig {
-    // (undocumented)
+    // @deprecated (undocumented)
     candidateCount?: number;
-    // (undocumented)
+    // @deprecated (undocumented)
     frequencyPenalty?: number;
     imageConfig?: ImageConfig;
     // (undocumented)
     maxOutputTokens?: number;
-    // (undocumented)
+    // @deprecated (undocumented)
     presencePenalty?: number;
     responseJsonSchema?: {
         [key: string]: unknown;
@@ -594,12 +533,12 @@ export interface GenerationConfig {
     speechConfig?: SpeechConfig;
     // (undocumented)
     stopSequences?: string[];
-    // (undocumented)
+    // @deprecated (undocumented)
     temperature?: number;
     thinkingConfig?: ThinkingConfig;
-    // (undocumented)
+    // @deprecated (undocumented)
     topK?: number;
-    // (undocumented)
+    // @deprecated (undocumented)
     topP?: number;
 }
 
@@ -883,21 +822,11 @@ export type InferenceSource = (typeof InferenceSource)[keyof typeof InferenceSou
 // @public
 export interface InlineDataPart {
     // (undocumented)
-    codeExecutionResult?: never;
-    // (undocumented)
-    executableCode?: never;
-    // (undocumented)
-    functionCall?: never;
-    // (undocumented)
-    functionResponse?: never;
-    // (undocumented)
     inlineData: GenerativeContentBlob;
     // (undocumented)
-    text?: never;
-    // (undocumented)
     thought?: boolean;
-    // @internal (undocumented)
-    thoughtSignature?: never;
+    // (undocumented)
+    type: 'inlineData';
     videoMetadata?: VideoMetadata;
 }
 
@@ -994,15 +923,20 @@ export interface LatLng {
 // @beta
 export interface LiveGenerationConfig {
     contextWindowCompression?: ContextWindowCompressionConfig;
+    // @deprecated
     frequencyPenalty?: number;
     inputAudioTranscription?: AudioTranscriptionConfig;
     maxOutputTokens?: number;
     outputAudioTranscription?: AudioTranscriptionConfig;
+    // @deprecated
     presencePenalty?: number;
     responseModalities?: ResponseModality[];
     speechConfig?: SpeechConfig;
+    // @deprecated
     temperature?: number;
+    // @deprecated
     topK?: number;
+    // @deprecated
     topP?: number;
 }
 
@@ -1022,7 +956,7 @@ export class LiveGenerativeModel extends AIModel {
     toolConfig?: ToolConfig;
     // (undocumented)
     tools?: Tool[];
-    }
+}
 
 // @beta
 export interface LiveModelParams {
@@ -1103,7 +1037,7 @@ export class LiveSession {
     sendMediaStream(mediaChunkStream: ReadableStream<GenerativeContentBlob>): Promise<void>;
     sendTextRealtime(text: string): Promise<void>;
     sendVideoRealtime(blob: GenerativeContentBlob): Promise<void>;
-    }
+}
 
 // @beta
 export interface LiveSessionResumptionUpdate {
@@ -1537,21 +1471,13 @@ export interface TemplateToolConfig {
 // @public
 export interface TextPart {
     // (undocumented)
-    codeExecutionResult?: never;
-    // (undocumented)
-    executableCode?: never;
-    // (undocumented)
-    functionCall?: never;
-    // (undocumented)
-    functionResponse?: never;
-    // (undocumented)
-    inlineData?: never;
-    // (undocumented)
     text: string;
     // (undocumented)
     thought?: boolean;
     // @internal (undocumented)
     thoughtSignature?: string;
+    // (undocumented)
+    type: 'text';
 }
 
 // @public
@@ -1590,6 +1516,31 @@ export interface Transcription {
 
 // @public
 export type TypedSchema = IntegerSchema | NumberSchema | StringSchema | BooleanSchema | ObjectSchema | ArraySchema | AnyOfSchema;
+
+// Warning: (ae-internal-missing-underscore) The name "UnknownPart" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
+export interface UnknownPart {
+    // (undocumented)
+    codeExecutionResult?: CodeExecutionResult;
+    // (undocumented)
+    executableCode?: ExecutableCode;
+    // (undocumented)
+    fileData?: FileData;
+    // (undocumented)
+    functionCall?: FunctionCall;
+    // (undocumented)
+    functionResponse?: FunctionResponse;
+    // (undocumented)
+    inlineData?: GenerativeContentBlob;
+    // (undocumented)
+    text?: string;
+    // (undocumented)
+    thought?: boolean;
+    // (undocumented)
+    thoughtSignature?: string;
+    videoMetadata?: VideoMetadata;
+}
 
 // @public
 export interface URLContext {
@@ -1677,6 +1628,5 @@ export interface WebGroundingChunk {
     title?: string;
     uri?: string;
 }
-
 
 ```

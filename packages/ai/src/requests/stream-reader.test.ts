@@ -32,7 +32,8 @@ import {
   HarmProbability,
   SafetyRating,
   AIErrorCode,
-  InferenceSource
+  InferenceSource,
+  TextPart
 } from '../types';
 import { AIError } from '../errors';
 import { ApiSettings } from '../types/internal';
@@ -90,9 +91,9 @@ describe('processStream', () => {
       expect(response.text()).to.not.be.empty;
       expect(response.inferenceSource).to.equal(InferenceSource.IN_CLOUD);
     }
-    expect(result.firstValue?.candidates?.[0].content.parts[0].text).to.equal(
-      'Cheyenne'
-    );
+    expect(
+      (result.firstValue?.candidates?.[0].content.parts[0] as TextPart).text
+    ).to.equal('Cheyenne');
     const aggregatedResponse = await result.response;
     expect(aggregatedResponse.text()).to.include('Cheyenne');
     expect(aggregatedResponse.inferenceSource).to.equal(
@@ -128,9 +129,9 @@ describe('processStream', () => {
       fakeResponse as Response,
       fakeApiSettings
     );
-    expect(result.firstValue?.candidates?.[0].content.parts[0].text).to.equal(
-      'Okay'
-    );
+    expect(
+      (result.firstValue?.candidates?.[0].content.parts[0] as TextPart).text
+    ).to.equal('Okay');
     for await (const response of result.stream) {
       expect(response.text()).to.not.be.empty;
     }
@@ -288,9 +289,9 @@ describe('processStream', () => {
     );
     const aggregatedResponse = await result.response;
     expect(aggregatedResponse.text).to.throw('RECITATION');
-    expect(aggregatedResponse.candidates?.[0].content.parts[0].text).to.include(
-      'Copyrighted text goes here'
-    );
+    expect(
+      (aggregatedResponse.candidates?.[0].content.parts[0] as TextPart).text
+    ).to.include('Copyrighted text goes here');
     for await (const response of result.stream) {
       if (response.candidates?.[0].finishReason !== FinishReason.RECITATION) {
         expect(response.text()).to.not.be.empty;
@@ -374,7 +375,7 @@ describe('aggregateResponses', () => {
               index: 0,
               content: {
                 role: 'user',
-                parts: [{ text: 'hello.' }]
+                parts: [{ type: 'text', text: 'hello.' }]
               },
               finishReason: FinishReason.STOP,
               finishMessage: 'something',
@@ -402,7 +403,7 @@ describe('aggregateResponses', () => {
               index: 0,
               content: {
                 role: 'user',
-                parts: [{ text: 'angry stuff' }]
+                parts: [{ type: 'text', text: 'angry stuff' }]
               },
               finishReason: FinishReason.STOP,
               finishMessage: 'something',
@@ -440,7 +441,7 @@ describe('aggregateResponses', () => {
               index: 0,
               content: {
                 role: 'user',
-                parts: [{ text: '...more stuff' }]
+                parts: [{ type: 'text', text: '...more stuff' }]
               },
               finishReason: FinishReason.MAX_TOKENS,
               finishMessage: 'too many tokens',
@@ -485,7 +486,7 @@ describe('aggregateResponses', () => {
     it('aggregates text across responses', () => {
       expect(response.candidates?.length).to.equal(1);
       expect(
-        response.candidates?.[0].content.parts.map(({ text }) => text)
+        response.candidates?.[0].content.parts.map(p => (p as TextPart).text)
       ).to.deep.equal(['hello.', 'angry stuff', '...more stuff']);
     });
 
