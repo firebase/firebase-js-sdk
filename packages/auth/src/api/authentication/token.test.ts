@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,6 @@
  * limitations under the License.
  */
 
-import * as sinon from 'sinon';
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-
 import { FirebaseError, getUA, querystringDecode } from '@firebase/util';
 
 import { Endpoint, HttpHeader } from '../';
@@ -29,9 +25,6 @@ import { ServerError } from '../errors';
 import { TokenType, requestStsToken, revokeToken } from './token';
 import { SDK_VERSION } from '@firebase/app';
 import { _getBrowserName } from '../../core/util/browser';
-
-use(chaiAsPromised);
-
 describe('requestStsToken', () => {
   let auth: TestAuth;
   let endpoint: string;
@@ -45,7 +38,7 @@ describe('requestStsToken', () => {
 
   afterEach(() => {
     fetch.tearDown();
-    sinon.restore();
+    vi.restoreAllMocks();
   });
 
   it('should POST to the correct endpoint', async () => {
@@ -56,19 +49,19 @@ describe('requestStsToken', () => {
     });
 
     const response = await requestStsToken(auth, 'old-refresh-token');
-    expect(response.accessToken).to.eq('new-access-token');
-    expect(response.expiresIn).to.eq('3600');
-    expect(response.refreshToken).to.eq('new-refresh-token');
+    expect(response.accessToken).toBe('new-access-token');
+    expect(response.expiresIn).toBe('3600');
+    expect(response.refreshToken).toBe('new-refresh-token');
     const request = querystringDecode(`?${mock.calls[0].request}`);
-    expect(request).to.eql({
+    expect(request).toEqual({
       'grant_type': 'refresh_token',
       'refresh_token': 'old-refresh-token'
     });
-    expect(mock.calls[0].method).to.eq('POST');
-    expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
+    expect(mock.calls[0].method).toBe('POST');
+    expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).toBe(
       'application/x-www-form-urlencoded'
     );
-    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).to.eq(
+    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).toBe(
       'testSDK/0.0.0'
     );
   });
@@ -82,15 +75,14 @@ describe('requestStsToken', () => {
 
     auth._logFramework('Mythical');
     await requestStsToken(auth, 'old-refresh-token');
-    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).to.eq(
+    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).toBe(
       `${_getBrowserName(getUA())}/JsCore/${SDK_VERSION}/Mythical`
     );
 
     // If a new framework is logged, the client version header should change as well.
     auth._logFramework('Magical');
     await requestStsToken(auth, 'old-refresh-token');
-    expect(mock.calls[1].headers!.get(HttpHeader.X_CLIENT_VERSION)).to.eq(
-      // frameworks should be sorted alphabetically
+    expect(mock.calls[1].headers!.get(HttpHeader.X_CLIENT_VERSION)).toBe(
       `${_getBrowserName(getUA())}/JsCore/${SDK_VERSION}/Magical,Mythical`
     );
   });
@@ -110,13 +102,13 @@ describe('requestStsToken', () => {
       protocol: 'https'
     };
     await requestStsToken(auth, 'some-refresh-token');
-    expect(mock.calls[0].fullRequest?.credentials).to.eq('include');
+    expect(mock.calls[0].fullRequest?.credentials).toBe('include');
 
     auth.emulatorConfig = null;
   });
 
   it('should include whatever headers come from auth impl', async () => {
-    sinon.stub(auth, '_getAdditionalHeaders').returns(
+    vi.spyOn(auth, '_getAdditionalHeaders').mockReturnValue(
       Promise.resolve({
         'look-at-me-im-a-header': 'header-value',
         'anotherheader': 'header-value-2'
@@ -130,10 +122,10 @@ describe('requestStsToken', () => {
     });
     await requestStsToken(auth, 'old-refresh-token');
 
-    expect(mock.calls[0].headers.get('look-at-me-im-a-header')).to.eq(
+    expect(mock.calls[0].headers.get('look-at-me-im-a-header')).toBe(
       'header-value'
     );
-    expect(mock.calls[0].headers.get('anotherheader')).to.eq('header-value-2');
+    expect(mock.calls[0].headers.get('anotherheader')).toBe('header-value-2');
   });
 
   it('should handle errors', async () => {
@@ -153,12 +145,12 @@ describe('requestStsToken', () => {
       400
     );
 
-    await expect(requestStsToken(auth, 'old-token')).to.be.rejectedWith(
+    await expect(requestStsToken(auth, 'old-token')).rejects.toThrow(
       FirebaseError,
       "Firebase: The user's credential is no longer valid. The user must sign in again. (auth/user-token-expired)"
     );
     const request = querystringDecode(`?${mock.calls[0].request}`);
-    expect(request).to.eql({
+    expect(request).toEqual({
       'grant_type': 'refresh_token',
       'refresh_token': 'old-token'
     });
@@ -190,12 +182,15 @@ describe('api/authentication/revokeToken', () => {
     auth.tenantId = 'tenant-id';
     await revokeToken(auth, request);
     // Currently, backend returns an empty response.
-    expect(mock.calls[0].request).to.eql({ ...request, tenantId: 'tenant-id' });
-    expect(mock.calls[0].method).to.eq('POST');
-    expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
+    expect(mock.calls[0].request).toEqual({
+      ...request,
+      tenantId: 'tenant-id'
+    });
+    expect(mock.calls[0].method).toBe('POST');
+    expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).toBe(
       'application/json'
     );
-    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).to.eq(
+    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).toBe(
       'testSDK/0.0.0'
     );
   });
@@ -217,10 +212,10 @@ describe('api/authentication/revokeToken', () => {
       400
     );
 
-    await expect(revokeToken(auth, request)).to.be.rejectedWith(
+    await expect(revokeToken(auth, request)).rejects.toThrow(
       FirebaseError,
       'Firebase: The supplied auth credential is incorrect, malformed or has expired. (auth/invalid-credential).'
     );
-    expect(mock.calls[0].request).to.eql(request);
+    expect(mock.calls[0].request).toEqual(request);
   });
 });

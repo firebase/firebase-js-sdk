@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,10 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-
 import { _getInstance } from './instantiator';
 
 describe('core/util/instantiator', () => {
-  context('_getInstance', () => {
+  describe('_getInstance', () => {
     // All tests define their own classes since the Class object is used in the
     // global map.
 
@@ -34,7 +32,7 @@ describe('core/util/instantiator', () => {
       }
 
       _getInstance(Persistence);
-      expect(classInstantiated).to.be.true;
+      expect(classInstantiated).toBe(true);
     });
 
     it('instantiates a class only once', () => {
@@ -50,7 +48,7 @@ describe('core/util/instantiator', () => {
       _getInstance(Persistence);
       _getInstance(Persistence);
 
-      expect(instantiationCount).to.eq(1);
+      expect(instantiationCount).toBe(1);
     });
 
     it('caches correctly', () => {
@@ -63,8 +61,8 @@ describe('core/util/instantiator', () => {
 
       const a = _getInstance(PersistenceA);
       const b = _getInstance(PersistenceB);
-      expect(_getInstance(PersistenceA)).to.eq(a);
-      expect(_getInstance(PersistenceB)).to.eq(b);
+      expect(_getInstance(PersistenceA)).toBe(a);
+      expect(_getInstance(PersistenceB)).toBe(b);
     });
 
     it('instantiates any class', () => {
@@ -73,8 +71,8 @@ describe('core/util/instantiator', () => {
       const a = _getInstance(Test);
       const b = _getInstance(Test);
 
-      expect(a).to.be.instanceOf(Test);
-      expect(a).to.eq(b);
+      expect(a).toBeInstanceOf(Test);
+      expect(a).toBe(b);
     });
   });
 });

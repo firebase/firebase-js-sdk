@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,6 @@
  * limitations under the License.
  */
 
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-import * as sinon from 'sinon';
-import sinonChai from 'sinon-chai';
-
 import { FirebaseError } from '@firebase/util';
 
 import { mockEndpoint } from '../../../test/helpers/api/helper';
@@ -31,11 +26,6 @@ import { APIUserInfo } from '../../api/account_management/account';
 import { IdTokenResponse, IdTokenResponseKind } from '../../model/id_token';
 import { StsTokenManager } from './token_manager';
 import { UserImpl } from './user_impl';
-
-use(sinonChai);
-use(chaiAsPromised);
-use(sinonChai);
-
 describe('core/user/user_impl', () => {
   let auth: TestAuth;
   let stsTokenManager: StsTokenManager;
@@ -47,15 +37,15 @@ describe('core/user/user_impl', () => {
   });
 
   afterEach(() => {
-    sinon.restore();
+    vi.restoreAllMocks();
     fetch.tearDown();
   });
 
   describe('.constructor', () => {
     it('attaches required fields', () => {
       const user = new UserImpl({ uid: 'uid', auth, stsTokenManager });
-      expect(user.auth).to.eq(auth);
-      expect(user.uid).to.eq('uid');
+      expect(user.auth).toBe(auth);
+      expect(user.uid).toBe('uid');
     });
 
     it('attaches optional fields if provided', () => {
@@ -70,20 +60,20 @@ describe('core/user/user_impl', () => {
         photoURL: 'photoURL'
       });
 
-      expect(user.displayName).to.eq('displayName');
-      expect(user.email).to.eq('email');
-      expect(user.phoneNumber).to.eq('phoneNumber');
-      expect(user.photoURL).to.eq('photoURL');
-      expect(user.emailVerified).to.be.true;
+      expect(user.displayName).toBe('displayName');
+      expect(user.email).toBe('email');
+      expect(user.phoneNumber).toBe('phoneNumber');
+      expect(user.photoURL).toBe('photoURL');
+      expect(user.emailVerified).toBe(true);
     });
 
     it('sets optional fields to null if not provided', () => {
       const user = new UserImpl({ uid: 'uid', auth, stsTokenManager });
-      expect(user.displayName).to.eq(null);
-      expect(user.email).to.eq(null);
-      expect(user.phoneNumber).to.eq(null);
-      expect(user.photoURL).to.eq(null);
-      expect(user.emailVerified).to.be.false;
+      expect(user.displayName).toBe(null);
+      expect(user.email).toBe(null);
+      expect(user.phoneNumber).toBe(null);
+      expect(user.photoURL).toBe(null);
+      expect(user.emailVerified).toBe(false);
     });
   });
 
@@ -97,8 +87,8 @@ describe('core/user/user_impl', () => {
 
       const user = new UserImpl({ uid: 'uid', auth, stsTokenManager });
       const token = await user.getIdToken();
-      expect(token).to.eq('id-token-string');
-      expect(user.refreshToken).to.eq('refresh-token-string');
+      expect(token).toBe('id-token-string');
+      expect(user.refreshToken).toBe('refresh-token-string');
     });
   });
 
@@ -121,7 +111,7 @@ describe('core/user/user_impl', () => {
 
       const user = new UserImpl({ uid: 'uid', auth, stsTokenManager });
       const tokenResult = await user.getIdTokenResult();
-      expect(tokenResult).to.eql({
+      expect(tokenResult).toEqual({
         issuedAtTime: new Date('May 1, 2020').toUTCString(),
         authTime: new Date('May 2, 2020').toUTCString(),
         expirationTime: new Date('May 3, 2020').toUTCString(),
@@ -142,14 +132,14 @@ describe('core/user/user_impl', () => {
       } as IdTokenResponse);
       const user = new UserImpl({ uid: 'uid', auth, stsTokenManager });
       const endpoint = mockEndpoint(Endpoint.DELETE_ACCOUNT, {});
-      const signOut = sinon.stub(auth, 'signOut');
+      const signOut = vi.spyOn(auth, 'signOut');
 
       await user.delete();
-      expect(endpoint.calls[0].request).to.eql({
+      expect(endpoint.calls[0].request).toEqual({
         idToken: 'id-token'
       });
-      expect(signOut).to.have.been.called;
-      expect(stsTokenManager.refreshToken).to.be.null;
+      expect(signOut).toHaveBeenCalled();
+      expect(stsTokenManager.refreshToken).toBeNull();
     });
   });
 
@@ -158,7 +148,7 @@ describe('core/user/user_impl', () => {
       'Firebase: An internal AuthError has occurred. (auth/internal-error).';
 
     it('throws an error if uid is not present', () => {
-      expect(() => UserImpl._fromJSON(auth, { name: 'foo' })).to.throw(
+      expect(() => UserImpl._fromJSON(auth, { name: 'foo' })).toThrow(
         FirebaseError,
         errorString
       );
@@ -167,7 +157,7 @@ describe('core/user/user_impl', () => {
     it('throws if a key is not undefined or string', () => {
       expect(() =>
         UserImpl._fromJSON(auth, { uid: 'foo', displayName: 3 })
-      ).to.throw(FirebaseError, errorString);
+      ).toThrow(FirebaseError, errorString);
     });
 
     it('fills out a user object properly', () => {
@@ -187,11 +177,11 @@ describe('core/user/user_impl', () => {
       };
 
       const user = UserImpl._fromJSON(auth, params);
-      expect(user.uid).to.eq(params.uid);
-      expect(user.displayName).to.eq(params.displayName);
-      expect(user.email).to.eq(params.email);
-      expect(user.phoneNumber).to.eq(params.phoneNumber);
-      expect(user.photoURL).to.eq(params.photoURL);
+      expect(user.uid).toBe(params.uid);
+      expect(user.displayName).toBe(params.displayName);
+      expect(user.email).toBe(params.email);
+      expect(user.phoneNumber).toBe(params.phoneNumber);
+      expect(user.photoURL).toBe(params.photoURL);
     });
   });
 
@@ -224,25 +214,25 @@ describe('core/user/user_impl', () => {
 
     it('should initialize a user', async () => {
       const user = await UserImpl._fromIdTokenResponse(auth, idTokenResponse);
-      expect(user.uid).to.eq(idTokenResponse.localId);
-      expect(await user.getIdToken()).to.eq('my-id-token');
-      expect(user.refreshToken).to.eq('my-refresh-token');
+      expect(user.uid).toBe(idTokenResponse.localId);
+      expect(await user.getIdToken()).toBe('my-id-token');
+      expect(user.refreshToken).toBe('my-refresh-token');
     });
 
     it('should pull additional user info on the user', async () => {
       const user = await UserImpl._fromIdTokenResponse(auth, idTokenResponse);
-      expect(user.displayName).to.eq('display-name');
-      expect(user.phoneNumber).to.eq('phone-number');
+      expect(user.displayName).toBe('display-name');
+      expect(user.phoneNumber).toBe('phone-number');
     });
 
     it('should not trigger additional callbacks', async () => {
-      const cb = sinon.spy();
+      const cb = vi.fn();
       auth.onAuthStateChanged(cb);
       await auth._updateCurrentUser(null);
-      cb.resetHistory();
+      cb.mockClear();
 
       await UserImpl._fromIdTokenResponse(auth, idTokenResponse);
-      expect(cb).not.to.have.been.called;
+      expect(cb).not.toHaveBeenCalled();
     });
   });
 
@@ -281,12 +271,12 @@ describe('core/user/user_impl', () => {
 
       const newAuth = await testAuth();
       const copy = user._clone(newAuth);
-      expect(copy).not.to.eq(user);
-      expect(copy.stsTokenManager).not.to.eq(user.stsTokenManager);
-      expect(copy.toJSON()).to.eql(user.toJSON());
-      expect(copy.auth).to.eq(newAuth);
-      expect(copy.tenantId).to.eq('tenant-id');
-      expect(copy.providerData).to.eql([
+      expect(copy).not.toBe(user);
+      expect(copy.stsTokenManager).not.toBe(user.stsTokenManager);
+      expect(copy.toJSON()).toEqual(user.toJSON());
+      expect(copy.auth).toBe(newAuth);
+      expect(copy.tenantId).toBe('tenant-id');
+      expect(copy.providerData).toEqual([
         {
           providerId: 'password',
           displayName: null,
@@ -296,7 +286,7 @@ describe('core/user/user_impl', () => {
           uid: 'i-am-uid'
         }
       ]);
-      expect(copy.metadata.toJSON()).to.eql(user.metadata.toJSON());
+      expect(copy.metadata.toJSON()).toEqual(user.metadata.toJSON());
     });
   });
 });

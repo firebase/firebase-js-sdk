@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import * as sinon from 'sinon';
-import sinonChai from 'sinon-chai';
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
 
 import { OperationType } from '../../model/enums';
 
@@ -36,8 +31,9 @@ import * as credential from '../../core/strategies/credential';
 import * as idpTasks from './idp';
 import { UserCredentialImpl } from '../user/user_credential_impl';
 
-use(chaiAsPromised);
-use(sinonChai);
+vi.mock('../../core/user/reauthenticate', { spy: true });
+vi.mock('../../core/user/link_unlink', { spy: true });
+vi.mock('../../core/strategies/credential', { spy: true });
 
 describe('core/strategies/idb', () => {
   let auth: TestAuth;
@@ -45,6 +41,7 @@ describe('core/strategies/idb', () => {
   let signInEndpoint: fetch.Route;
 
   beforeEach(async () => {
+    vi.clearAllMocks();
     auth = await testAuth();
     user = testUser(auth, 'uid', 'email', true);
 
@@ -62,7 +59,7 @@ describe('core/strategies/idb', () => {
 
   afterEach(() => {
     fetch.tearDown();
-    sinon.restore();
+    vi.restoreAllMocks();
   });
 
   describe('signIn', () => {
@@ -76,7 +73,7 @@ describe('core/strategies/idb', () => {
         postBody: 'post-body'
       });
 
-      expect(signInEndpoint.calls[0].request).to.eql({
+      expect(signInEndpoint.calls[0].request).toEqual({
         requestUri: 'request-uri',
         sessionId: 'session-id',
         postBody: 'post-body',
@@ -97,14 +94,14 @@ describe('core/strategies/idb', () => {
         postBody: 'post-body'
       });
 
-      expect(userCred.operationType).to.eq(OperationType.SIGN_IN);
-      expect(userCred.user.uid).to.eq('uid');
+      expect(userCred.operationType).toBe(OperationType.SIGN_IN);
+      expect(userCred.user.uid).toBe('uid');
     });
 
     it('passes through the bypassAuthState flag', async () => {
-      const stub = sinon
-        .stub(credential, '_signInWithCredential')
-        .returns(Promise.resolve({} as unknown as UserCredentialImpl));
+      const stub = vi
+        .spyOn(credential, '_signInWithCredential')
+        .mockReturnValue(Promise.resolve({} as unknown as UserCredentialImpl));
       await idpTasks._signIn({
         auth,
         user,
@@ -115,7 +112,7 @@ describe('core/strategies/idb', () => {
         postBody: 'post-body',
         bypassAuthState: true
       });
-      expect(stub.getCall(0).lastArg).to.be.true;
+      expect(stub.mock.calls[0][stub.mock.calls[0].length - 1]).toBe(true);
     });
   });
 
@@ -131,7 +128,7 @@ describe('core/strategies/idb', () => {
         postBody: 'post-body'
       });
 
-      expect(signInEndpoint.calls[0].request).to.eql({
+      expect(signInEndpoint.calls[0].request).toEqual({
         requestUri: 'request-uri',
         sessionId: 'session-id',
         postBody: 'post-body',
@@ -153,14 +150,14 @@ describe('core/strategies/idb', () => {
         postBody: 'post-body'
       });
 
-      expect(userCred.operationType).to.eq(OperationType.REAUTHENTICATE);
-      expect(userCred.user.uid).to.eq('uid');
+      expect(userCred.operationType).toBe(OperationType.REAUTHENTICATE);
+      expect(userCred.user.uid).toBe('uid');
     });
 
     it('passes through the bypassAuthState flag', async () => {
-      const stub = sinon
-        .stub(reauthenticate, '_reauthenticate')
-        .returns(Promise.resolve({} as unknown as UserCredentialImpl));
+      const stub = vi
+        .spyOn(reauthenticate, '_reauthenticate')
+        .mockReturnValue(Promise.resolve({} as unknown as UserCredentialImpl));
       await idpTasks._reauth({
         auth,
         user,
@@ -171,7 +168,7 @@ describe('core/strategies/idb', () => {
         postBody: 'post-body',
         bypassAuthState: true
       });
-      expect(stub.getCall(0).lastArg).to.be.true;
+      expect(stub.mock.calls[0][stub.mock.calls[0].length - 1]).toBe(true);
     });
   });
 
@@ -188,7 +185,7 @@ describe('core/strategies/idb', () => {
         postBody: 'post-body'
       });
 
-      expect(signInEndpoint.calls[0].request).to.eql({
+      expect(signInEndpoint.calls[0].request).toEqual({
         requestUri: 'request-uri',
         sessionId: 'session-id',
         postBody: 'post-body',
@@ -211,14 +208,14 @@ describe('core/strategies/idb', () => {
         postBody: 'post-body'
       });
 
-      expect(userCred.operationType).to.eq(OperationType.LINK);
-      expect(userCred.user.uid).to.eq('uid');
+      expect(userCred.operationType).toBe(OperationType.LINK);
+      expect(userCred.user.uid).toBe('uid');
     });
 
     it('passes through the bypassAuthState flag', async () => {
-      const stub = sinon
-        .stub(linkUnlink, '_link')
-        .returns(Promise.resolve({} as unknown as UserCredentialImpl));
+      const stub = vi
+        .spyOn(linkUnlink, '_link')
+        .mockReturnValue(Promise.resolve({} as unknown as UserCredentialImpl));
       await idpTasks._link({
         auth,
         user,
@@ -229,7 +226,7 @@ describe('core/strategies/idb', () => {
         postBody: 'post-body',
         bypassAuthState: true
       });
-      expect(stub.getCall(0).lastArg).to.be.true;
+      expect(stub.mock.calls[0][stub.mock.calls[0].length - 1]).toBe(true);
     });
   });
 });

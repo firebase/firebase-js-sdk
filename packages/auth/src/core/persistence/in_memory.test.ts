@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-
 import { testUser, testAuth } from '../../../test/helpers/mock_auth';
 import { _getInstance } from '../util/instantiator';
 import { PersistenceInternal, PersistenceType } from './';
@@ -28,12 +26,12 @@ describe('core/persistence/in_memory', () => {
   it('should work with persistence type', async () => {
     const key = 'my-super-special-persistence-type';
     const value = PersistenceType.LOCAL;
-    expect(await persistence._get(key)).to.be.null;
+    expect(await persistence._get(key)).toBeNull();
     await persistence._set(key, value);
-    expect(await persistence._get(key)).to.be.eq(value);
-    expect(await persistence._get('other-key')).to.be.null;
+    expect(await persistence._get(key)).toBe(value);
+    expect(await persistence._get('other-key')).toBeNull();
     await persistence._remove(key);
-    expect(await persistence._get(key)).to.be.null;
+    expect(await persistence._get(key)).toBeNull();
   });
 
   it('should work with user', async () => {
@@ -41,15 +39,15 @@ describe('core/persistence/in_memory', () => {
     const auth = await testAuth();
     const value = testUser(auth, 'uid');
 
-    expect(await persistence._get(key)).to.be.null;
+    expect(await persistence._get(key)).toBeNull();
     await persistence._set(key, value.toJSON());
-    expect(await persistence._get(key)).to.eql(value.toJSON());
-    expect(await persistence._get('other-key')).to.be.null;
+    expect(await persistence._get(key)).toEqual(value.toJSON());
+    expect(await persistence._get('other-key')).toBeNull();
     await persistence._remove(key);
-    expect(await persistence._get(key)).to.be.null;
+    expect(await persistence._get(key)).toBeNull();
   });
 
   it('isAvailable returns true', async () => {
-    expect(await persistence._isAvailable()).to.be.true;
+    expect(await persistence._isAvailable()).toBe(true);
   });
 });

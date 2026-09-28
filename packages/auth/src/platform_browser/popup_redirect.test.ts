@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-import * as sinon from 'sinon';
-import sinonChai from 'sinon-chai';
 
 import { SDK_VERSION } from '@firebase/app';
 import { Config } from '../model/public_types';
@@ -46,16 +41,17 @@ import {
 import * as authWindow from './auth_window';
 import * as gapiLoader from './iframe/gapi';
 import { browserPopupRedirectResolver } from './popup_redirect';
+import { MockInstance } from 'vitest';
 
-use(chaiAsPromised);
-use(sinonChai);
-
+vi.mock('../core/util/validate_origin', { spy: true });
+vi.mock('./iframe/gapi', { spy: true });
+vi.mock('./auth_window', { spy: true });
 describe('platform_browser/popup_redirect', () => {
   let resolver: PopupRedirectResolverInternal;
   let auth: TestAuth;
   let onIframeMessage: (event: GapiAuthEvent) => Promise<void>;
-  let iframeSendStub: sinon.SinonStub;
-  let loadGapiStub: sinon.SinonStub;
+  let iframeSendStub: MockInstance;
+  let loadGapiStub: MockInstance;
 
   beforeEach(async () => {
     auth = await testAuth();
@@ -63,20 +59,22 @@ describe('platform_browser/popup_redirect', () => {
       browserPopupRedirectResolver as SingletonInstantiator<PopupRedirectResolverInternal>
     )();
 
-    sinon.stub(validateOrigin, '_validateOrigin').returns(Promise.resolve());
-    iframeSendStub = sinon.stub();
-    loadGapiStub = sinon.stub(gapiLoader, '_loadGapi');
+    vi.spyOn(validateOrigin, '_validateOrigin').mockReturnValue(
+      Promise.resolve()
+    );
+    iframeSendStub = vi.fn();
+    loadGapiStub = vi.spyOn(gapiLoader, '_loadGapi');
     setGapiStub();
 
-    sinon.stub(authWindow._window(), 'gapi').value({
+    (authWindow._window() as any).gapi = {
       iframes: {
         CROSS_ORIGIN_IFRAMES_FILTER: 'cross-origin-iframes-filter'
       }
-    });
+    };
   });
 
   function setGapiStub(): void {
-    loadGapiStub.returns(
+    loadGapiStub.mockReturnValue(
       Promise.resolve({
         open: () =>
           Promise.resolve({
@@ -91,16 +89,18 @@ describe('platform_browser/popup_redirect', () => {
   }
 
   afterEach(() => {
+    delete (authWindow._window() as any).gapi;
     sinon.restore();
+    vi.restoreAllMocks();
   });
 
-  context('#_openPopup', () => {
+  describe('#_openPopup', () => {
     let popupUrl: string | URL | undefined;
     let provider: OAuthProvider;
     const event = AuthEventType.LINK_VIA_POPUP;
 
     beforeEach(async () => {
-      sinon.stub(window, 'open').callsFake(url => {
+      vi.spyOn(window, 'open').mockImplementation(url => {
         popupUrl = url;
         return {} as Window;
       });
@@ -114,73 +114,72 @@ describe('platform_browser/popup_redirect', () => {
       provider.setCustomParameters({ foo: 'bar' });
 
       await resolver._openPopup(auth, provider, event);
-      expect(popupUrl).to.include(
-        `https://${TEST_AUTH_DOMAIN}/__/auth/handler`
-      );
-      expect(popupUrl).to.include(`apiKey=${TEST_KEY}`);
-      expect(popupUrl).to.include('appName=test-app');
-      expect(popupUrl).to.include(`authType=${AuthEventType.LINK_VIA_POPUP}`);
-      expect(popupUrl).to.include(`v=${SDK_VERSION}`);
-      expect(popupUrl).to.include('scopes=some-scope-a%2Csome-scope-b');
-      expect(popupUrl).to.include(
+      expect(popupUrl).toContain(`https://${TEST_AUTH_DOMAIN}/__/auth/handler`);
+      expect(popupUrl).toContain(`apiKey=${TEST_KEY}`);
+      expect(popupUrl).toContain('appName=test-app');
+      expect(popupUrl).toContain(`authType=${AuthEventType.LINK_VIA_POPUP}`);
+      expect(popupUrl).toContain(`v=${SDK_VERSION}`);
+      expect(popupUrl).toContain('scopes=some-scope-a%2Csome-scope-b');
+      expect(popupUrl).toContain(
         'customParameters=%7B%22foo%22%3A%22bar%22%7D'
       );
     });
 
     it('includes the App Check token in the url fragment if present', async () => {
       await resolver._initialize(auth);
-      sinon
-        .stub(FAKE_APP_CHECK_CONTROLLER, 'getToken')
-        .returns(Promise.resolve({ token: 'fake-token' }));
+      vi.spyOn(FAKE_APP_CHECK_CONTROLLER, 'getToken').mockReturnValue(
+        Promise.resolve({ token: 'fake-token' })
+      );
 
       await resolver._openPopup(auth, provider, event);
 
       const matches = (popupUrl as string).match(/.*?#(.*)/);
-      expect(matches).not.to.be.null;
+      expect(matches).not.toBeNull();
       const fragment = matches![1];
-      expect(fragment).to.include('fac=fake-token');
+      expect(fragment).toContain('fac=fake-token');
     });
 
     it('does not add the App Check token in the url fragment if none returned', async () => {
       await resolver._initialize(auth);
       // Redundant, already set in mock_auth.ts but adding here for clarity
-      sinon
-        .stub(FAKE_APP_CHECK_CONTROLLER, 'getToken')
-        .returns(Promise.resolve({ token: '' }));
+      vi.spyOn(FAKE_APP_CHECK_CONTROLLER, 'getToken').mockReturnValue(
+        Promise.resolve({ token: '' })
+      );
 
       await resolver._openPopup(auth, provider, event);
 
       const matches = (popupUrl as string).match(/.*?#(.*)/);
       // The '#' character will not be included when the url fragment is not attached,
       // so the url will not match the pattern
-      expect(matches).to.be.null;
+      expect(matches).toBeNull();
     });
 
     it('does not add the App Check token in the url fragment if controller unavailable', async () => {
       await resolver._initialize(auth);
-      sinon
-        .stub(FAKE_APP_CHECK_CONTROLLER, 'getToken')
-        .returns(undefined as any);
+      vi.spyOn(FAKE_APP_CHECK_CONTROLLER, 'getToken').mockReturnValue(
+        undefined as any
+      );
 
       await resolver._openPopup(auth, provider, event);
 
       const matches = (popupUrl as string).match(/.*?#(.*)/);
       // The '#' character will not be included when the url fragment is not attached,
       // so the url will not match the pattern
-      expect(matches).to.be.null;
+      expect(matches).toBeNull();
     });
 
     it('throws an error if apiKey is unspecified', async () => {
       delete (auth.config as Partial<Config>).apiKey;
       await resolver._initialize(auth);
 
-      await expect(
-        resolver._openPopup(auth, provider, event)
-      ).to.be.rejectedWith(FirebaseError, 'auth/invalid-api-key');
+      await expect(resolver._openPopup(auth, provider, event)).rejects.toThrow(
+        FirebaseError,
+        'auth/invalid-api-key'
+      );
     });
   });
 
-  context('#_openRedirect', () => {
+  describe('#_openRedirect', () => {
     let newWindowLocation: string;
     let provider: OAuthProvider;
     const event = AuthEventType.LINK_VIA_POPUP;
@@ -188,7 +187,7 @@ describe('platform_browser/popup_redirect', () => {
     beforeEach(async () => {
       provider = new OAuthProvider(ProviderId.GOOGLE);
       await resolver._initialize(auth);
-      sinon.stub(authWindow, '_setWindowLocation').callsFake(url => {
+      vi.spyOn(authWindow, '_setWindowLocation').mockImplementation(url => {
         newWindowLocation = url;
       });
     });
@@ -207,27 +206,25 @@ describe('platform_browser/popup_redirect', () => {
         setTimeout(resolve, 100);
       });
 
-      expect(newWindowLocation).to.include(
+      expect(newWindowLocation).toContain(
         `https://${TEST_AUTH_DOMAIN}/__/auth/handler`
       );
-      expect(newWindowLocation).to.include(`apiKey=${TEST_KEY}`);
-      expect(newWindowLocation).to.include('appName=test-app');
-      expect(newWindowLocation).to.include(
+      expect(newWindowLocation).toContain(`apiKey=${TEST_KEY}`);
+      expect(newWindowLocation).toContain('appName=test-app');
+      expect(newWindowLocation).toContain(
         `authType=${AuthEventType.LINK_VIA_POPUP}`
       );
-      expect(newWindowLocation).to.include(`v=${SDK_VERSION}`);
-      expect(newWindowLocation).to.include(
-        'scopes=some-scope-a%2Csome-scope-b'
-      );
-      expect(newWindowLocation).to.include(
+      expect(newWindowLocation).toContain(`v=${SDK_VERSION}`);
+      expect(newWindowLocation).toContain('scopes=some-scope-a%2Csome-scope-b');
+      expect(newWindowLocation).toContain(
         'customParameters=%7B%22foo%22%3A%22bar%22%7D'
       );
     });
 
     it('includes the App Check token in the url fragment if present', async () => {
-      sinon
-        .stub(FAKE_APP_CHECK_CONTROLLER, 'getToken')
-        .returns(Promise.resolve({ token: 'fake-token' }));
+      vi.spyOn(FAKE_APP_CHECK_CONTROLLER, 'getToken').mockReturnValue(
+        Promise.resolve({ token: 'fake-token' })
+      );
 
       // This promise will never resolve on purpose
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
@@ -239,16 +236,16 @@ describe('platform_browser/popup_redirect', () => {
       });
 
       const matches = newWindowLocation.match(/.*?#(.*)/);
-      expect(matches).not.to.be.null;
+      expect(matches).not.toBeNull();
       const fragment = matches![1];
-      expect(fragment).to.include('fac=fake-token');
+      expect(fragment).toContain('fac=fake-token');
     });
 
     it('does not add the App Check token in the url fragment if none returned', async () => {
       // Redundant, already set in mock_auth.ts but adding here for clarity
-      sinon
-        .stub(FAKE_APP_CHECK_CONTROLLER, 'getToken')
-        .returns(Promise.resolve({ token: '' }));
+      vi.spyOn(FAKE_APP_CHECK_CONTROLLER, 'getToken').mockReturnValue(
+        Promise.resolve({ token: '' })
+      );
 
       // This promise will never resolve on purpose
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
@@ -262,13 +259,13 @@ describe('platform_browser/popup_redirect', () => {
       const matches = newWindowLocation.match(/.*?#(.*)/);
       // The '#' character will not be included when the url fragment is not attached,
       // so the url will not match the pattern
-      expect(matches).to.be.null;
+      expect(matches).toBeNull();
     });
 
     it('does not add the App Check token in the url fragment if controller unavailable', async () => {
-      sinon
-        .stub(FAKE_APP_CHECK_CONTROLLER, 'getToken')
-        .returns(undefined as any);
+      vi.spyOn(FAKE_APP_CHECK_CONTROLLER, 'getToken').mockReturnValue(
+        undefined as any
+      );
 
       // This promise will never resolve on purpose
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
@@ -282,7 +279,7 @@ describe('platform_browser/popup_redirect', () => {
       const matches = newWindowLocation.match(/.*?#(.*)/);
       // The '#' character will not be included when the url fragment is not attached,
       // so the url will not match the pattern
-      expect(matches).to.be.null;
+      expect(matches).toBeNull();
     });
 
     it('throws an error if authDomain is unspecified', async () => {
@@ -290,7 +287,7 @@ describe('platform_browser/popup_redirect', () => {
 
       await expect(
         resolver._openRedirect(auth, provider, event)
-      ).to.be.rejectedWith(FirebaseError, 'auth/auth-domain-config-required');
+      ).rejects.toThrow(FirebaseError, 'auth/auth-domain-config-required');
     });
 
     it('throws an error if apiKey is unspecified', async () => {
@@ -298,103 +295,103 @@ describe('platform_browser/popup_redirect', () => {
 
       await expect(
         resolver._openRedirect(auth, provider, event)
-      ).to.be.rejectedWith(FirebaseError, 'auth/invalid-api-key');
+      ).rejects.toThrow(FirebaseError, 'auth/invalid-api-key');
     });
 
     it('rejects immediately if origin validation fails', async () => {
-      (validateOrigin._validateOrigin as sinon.SinonStub).returns(
+      (validateOrigin._validateOrigin as MockInstance).mockReturnValue(
         Promise.reject(new Error('invalid-origin'))
       );
       await expect(
         resolver._openRedirect(auth, provider, event)
-      ).to.be.rejectedWith(Error, 'invalid-origin');
+      ).rejects.toThrow(Error, 'invalid-origin');
     });
   });
 
-  context('#_originValidation', () => {
+  describe('#_originValidation', () => {
     it('validates the origin', async () => {
       await resolver._initialize(auth);
 
       await resolver._originValidation(auth);
-      expect(validateOrigin._validateOrigin).to.have.been.calledWith(auth);
+      expect(validateOrigin._validateOrigin).toHaveBeenCalledWith(auth);
     });
 
     it('rejects if origin validation fails', async () => {
       await resolver._initialize(auth);
-      (validateOrigin._validateOrigin as sinon.SinonStub).returns(
+      (validateOrigin._validateOrigin as MockInstance).mockReturnValue(
         Promise.reject(new Error('invalid-origin'))
       );
 
-      await expect(resolver._originValidation(auth)).to.be.rejectedWith(
+      await expect(resolver._originValidation(auth)).rejects.toThrow(
         Error,
         'invalid-origin'
       );
     });
   });
 
-  context('#_initialize', () => {
+  describe('#_initialize', () => {
     it('returns different manager for a different auth', async () => {
       const manager = await resolver._initialize(auth);
-      expect(await resolver._initialize(auth)).to.eq(manager);
+      expect(await resolver._initialize(auth)).toBe(manager);
 
       const secondAuth = await testAuth();
       secondAuth.config.authDomain = 'something-else';
       const secondManager = await resolver._initialize(secondAuth);
-      expect(secondManager).not.to.eq(manager);
-      expect(await resolver._initialize(secondAuth)).to.eq(secondManager);
+      expect(secondManager).not.toBe(manager);
+      expect(await resolver._initialize(secondAuth)).toBe(secondManager);
     });
 
     it('initialization promise is cached as well for diff auths', async () => {
       const promise = resolver._initialize(auth);
-      expect(resolver._initialize(auth)).to.eq(promise);
+      expect(resolver._initialize(auth)).toBe(promise);
 
       const secondAuth = await testAuth();
       secondAuth.config.authDomain = 'something-else';
       const secondPromise = resolver._initialize(secondAuth);
-      expect(secondPromise).not.to.eq(promise);
-      expect(resolver._initialize(secondAuth)).to.eq(secondPromise);
+      expect(secondPromise).not.toBe(promise);
+      expect(resolver._initialize(secondAuth)).toBe(secondPromise);
     });
 
     it('clears the cache if the initialize fails', async () => {
       const error = new Error();
-      loadGapiStub.rejects(error);
-      await expect(resolver._initialize(auth)).to.be.rejectedWith(error);
+      loadGapiStub.mockRejectedValue(error);
+      await expect(resolver._initialize(auth)).rejects.toThrow(error);
       setGapiStub(); // Reset the gapi load stub
-      await expect(resolver._initialize(auth)).not.to.be.rejected;
+      await expect(resolver._initialize(auth)).resolves.toBeDefined();
     });
 
     it('iframe event goes through to the manager', async () => {
       const manager = (await resolver._initialize(auth)) as AuthEventManager;
-      sinon.stub(manager, 'onEvent').returns(true);
+      vi.spyOn(manager, 'onEvent').mockReturnValue(true);
       const response = await onIframeMessage({
         type: 'authEvent',
         authEvent: { type: AuthEventType.LINK_VIA_POPUP } as AuthEvent
       });
 
-      expect(manager.onEvent).to.have.been.calledWith({
+      expect(manager.onEvent).toHaveBeenCalledWith({
         type: AuthEventType.LINK_VIA_POPUP
       });
-      expect(response).to.eql({
+      expect(response).toEqual({
         status: 'ACK'
       });
     });
 
     it('errors with invalid event if null event', async () => {
       const manager = (await resolver._initialize(auth)) as AuthEventManager;
-      sinon.stub(manager, 'onEvent').returns(true);
+      vi.spyOn(manager, 'onEvent').mockReturnValue(true);
 
       expect(() =>
         onIframeMessage({
           type: 'authEvent',
           authEvent: null as unknown as AuthEvent
         })
-      ).to.throw(FirebaseError, 'auth/invalid-auth-event');
+      ).toThrow(FirebaseError, 'auth/invalid-auth-event');
     });
 
     it('errors with invalid event if everything is null', async () => {
       const manager = (await resolver._initialize(auth)) as AuthEventManager;
-      sinon.stub(manager, 'onEvent').returns(true);
-      expect(() => onIframeMessage(null as unknown as GapiAuthEvent)).to.throw(
+      vi.spyOn(manager, 'onEvent').mockReturnValue(true);
+      expect(() => onIframeMessage(null as unknown as GapiAuthEvent)).toThrow(
         FirebaseError,
         'auth/invalid-auth-event'
       );
@@ -402,28 +399,28 @@ describe('platform_browser/popup_redirect', () => {
 
     it('returns error to the iframe if the event was not handled', async () => {
       const manager = (await resolver._initialize(auth)) as AuthEventManager;
-      sinon.stub(manager, 'onEvent').returns(false);
+      vi.spyOn(manager, 'onEvent').mockReturnValue(false);
       const response = await onIframeMessage({
         type: 'authEvent',
         authEvent: { type: AuthEventType.LINK_VIA_POPUP } as AuthEvent
       });
 
-      expect(manager.onEvent).to.have.been.calledWith({
+      expect(manager.onEvent).toHaveBeenCalledWith({
         type: AuthEventType.LINK_VIA_POPUP
       });
-      expect(response).to.eql({
+      expect(response).toEqual({
         status: 'ERROR'
       });
     });
   });
 
-  context('#_isIframeWebStorageSupported', () => {
+  describe('#_isIframeWebStorageSupported', () => {
     beforeEach(async () => {
       await resolver._initialize(auth);
     });
 
     function setIframeResponse(value: unknown): void {
-      iframeSendStub.callsFake(
+      iframeSendStub.mockImplementation(
         (
           _message: string,
           _event: unknown,
@@ -436,28 +433,32 @@ describe('platform_browser/popup_redirect', () => {
 
     it('calls the iframe send method with the correct parameters', () => {
       resolver._isIframeWebStorageSupported(auth, () => {});
-      expect(iframeSendStub).to.have.been.calledOnce;
-      const args = iframeSendStub.getCalls()[0].args;
-      expect(args[0]).to.eq('webStorageSupport');
-      expect(args[1]).to.eql({
+      expect(iframeSendStub).toHaveBeenCalledTimes(1);
+      const args = iframeSendStub.mock.calls[0];
+      expect(args[0]).toBe('webStorageSupport');
+      expect(args[1]).toEqual({
         type: 'webStorageSupport'
       });
-      expect(args[3]).to.eq('cross-origin-iframes-filter');
+      expect(args[3]).toBe('cross-origin-iframes-filter');
     });
 
-    it('passes through true value from the response to the callback', done => {
+    it('passes through true value from the response to the callback', () => {
       setIframeResponse([{ webStorageSupport: true }]);
-      resolver._isIframeWebStorageSupported(auth, supported => {
-        expect(supported).to.be.true;
-        done();
+      return new Promise<void>(resolve => {
+        resolver._isIframeWebStorageSupported(auth, supported => {
+          expect(supported).toBe(true);
+          resolve();
+        });
       });
     });
 
-    it('passes through false value from the response to callback', done => {
+    it('passes through false value from the response to callback', () => {
       setIframeResponse([{ webStorageSupport: false }]);
-      resolver._isIframeWebStorageSupported(auth, supported => {
-        expect(supported).to.be.false;
-        done();
+      return new Promise<void>(resolve => {
+        resolver._isIframeWebStorageSupported(auth, supported => {
+          expect(supported).toBe(false);
+          resolve();
+        });
       });
     });
 
@@ -465,7 +466,7 @@ describe('platform_browser/popup_redirect', () => {
       setIframeResponse({});
       expect(() =>
         resolver._isIframeWebStorageSupported(auth, () => {})
-      ).to.throw(FirebaseError, 'auth/internal-error');
+      ).toThrow(FirebaseError, 'auth/internal-error');
     });
   });
 });

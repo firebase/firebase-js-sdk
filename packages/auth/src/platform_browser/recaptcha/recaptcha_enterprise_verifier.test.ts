@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2022 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-import * as sinon from 'sinon';
-import sinonChai from 'sinon-chai';
 
 import {
   Endpoint,
@@ -46,9 +41,9 @@ import { RecaptchaConfig } from './recaptcha';
 import { AuthErrorCode } from '../../core/errors';
 import { _createError } from '../../core/util/assert';
 import { mockLoadJS } from '../../../test/helpers/mock_loadjs';
+import { MockInstance } from 'vitest';
 
-use(chaiAsPromised);
-use(sinonChai);
+vi.mock('../load_js', { spy: true });
 
 describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
   let auth: TestAuth;
@@ -114,26 +109,27 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
     mockFetch.setUp();
     verifier = new RecaptchaEnterpriseVerifier(auth);
     recaptcha = new MockGreCAPTCHATopLevel();
-    sinon.stub(jsHelpers, '_loadJS').callsFake(mockLoadJS);
+    vi.spyOn(jsHelpers, '_loadJS').mockImplementation(mockLoadJS);
     window.grecaptcha = recaptcha;
   });
 
   afterEach(() => {
     mockFetch.tearDown();
-    sinon.restore();
+    delete (window as any).grecaptcha;
+    vi.restoreAllMocks();
   });
 
-  context('#verify', () => {
+  describe('#verify', () => {
     it('returns if response is available', async () => {
       mockEndpointWithParams(
         Endpoint.GET_RECAPTCHA_CONFIG,
         getRecaptchaConfigRequest,
         recaptchaConfigResponseEnforce
       );
-      sinon
-        .stub(recaptcha.enterprise, 'execute')
-        .returns(Promise.resolve('recaptcha-response'));
-      expect(await verifier.verify()).to.eq('recaptcha-response');
+      vi.spyOn(recaptcha.enterprise, 'execute').mockResolvedValue(
+        'recaptcha-response'
+      );
+      expect(await verifier.verify()).toBe('recaptcha-response');
     });
 
     it('reject if error is thrown when retrieve site key', async () => {
@@ -148,10 +144,10 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
         },
         400
       );
-      sinon
-        .stub(recaptcha.enterprise, 'execute')
-        .returns(Promise.resolve('recaptcha-response'));
-      await expect(verifier.verify()).to.be.rejectedWith(
+      vi.spyOn(recaptcha.enterprise, 'execute').mockResolvedValue(
+        'recaptcha-response'
+      );
+      await expect(verifier.verify()).rejects.toThrow(
         Error,
         'auth/missing-client-type'
       );
@@ -163,39 +159,40 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
         getRecaptchaConfigRequest,
         recaptchaConfigResponseEnforce
       );
-      sinon
-        .stub(recaptcha.enterprise, 'execute')
-        .returns(Promise.reject(Error('retrieve-recaptcha-token-error')));
-      expect(await verifier.verify()).to.eq(FAKE_TOKEN);
+      vi.spyOn(recaptcha.enterprise, 'execute').mockRejectedValue(
+        new Error('retrieve-recaptcha-token-error')
+      );
+      expect(await verifier.verify()).toBe(FAKE_TOKEN);
     });
   });
 
-  context('#handleRecaptchaFlow', () => {
+  describe('#handleRecaptchaFlow', () => {
     let mockAuthInstance: AuthInternal;
     let mockRequest: any;
-    let mockActionMethod: sinon.SinonStub;
+    let mockActionMethod: MockInstance;
 
     beforeEach(async () => {
       mockAuthInstance = await testAuth();
       mockRequest = { foo: 'bar' };
-      mockActionMethod = sinon.stub();
-      sinon
-        .stub(RecaptchaEnterpriseVerifier.prototype, 'verify')
-        .resolves('recaptcha-response');
+      mockActionMethod = vi.fn();
+      vi.spyOn(
+        RecaptchaEnterpriseVerifier.prototype,
+        'verify'
+      ).mockResolvedValue('recaptcha-response');
     });
 
     afterEach(() => {
-      sinon.restore();
+      vi.restoreAllMocks();
     });
 
     it('EMAIL_PASSWORD_PROVIDER - should call actionMethod with request if recaptcha enterprise is enabled', async () => {
       if (typeof window === 'undefined') {
         return;
       }
-      sinon
-        .stub(mockAuthInstance, '_getRecaptchaConfig')
-        .returns(recaptchaConfigEnforce);
-      mockActionMethod = sinon.stub().resolves('testResponse');
+      vi.spyOn(mockAuthInstance, '_getRecaptchaConfig').mockReturnValue(
+        recaptchaConfigEnforce
+      );
+      mockActionMethod = vi.fn().mockResolvedValue('testResponse');
       const response = await handleRecaptchaFlow(
         mockAuthInstance,
         mockRequest,
@@ -203,8 +200,8 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
         mockActionMethod,
         RecaptchaAuthProvider.EMAIL_PASSWORD_PROVIDER
       );
-      expect(mockActionMethod).to.have.been.calledOnce;
-      expect(response).to.equal('testResponse');
+      expect(mockActionMethod).toHaveBeenCalledTimes(1);
+      expect(response).toBe('testResponse');
     });
 
     // "Errors like "MISSING_RECAPTCHA_TOKEN" will be handled irrespective of the enablement status of EMAIL_PASSWORD_PROVIDER, but this test verifies the more likely scenario where EMAIL_PASSWORD_PROVIDER is disabled"
@@ -212,11 +209,11 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
       if (typeof window === 'undefined') {
         return;
       }
-      sinon
-        .stub(mockAuthInstance, '_getRecaptchaConfig')
-        .returns(recaptchaConfigOff);
+      vi.spyOn(mockAuthInstance, '_getRecaptchaConfig').mockReturnValue(
+        recaptchaConfigOff
+      );
       let callCount = 0;
-      mockActionMethod = sinon.stub().callsFake(() => {
+      mockActionMethod = vi.fn().mockImplementation(() => {
         callCount++;
         if (callCount === 1) {
           return Promise.reject(
@@ -233,19 +230,19 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
         mockActionMethod,
         RecaptchaAuthProvider.EMAIL_PASSWORD_PROVIDER
       );
-      expect(mockActionMethod).to.have.been.calledTwice;
-      expect(response).to.equal('testResponse');
+      expect(mockActionMethod).toHaveBeenCalledTimes(2);
+      expect(response).toBe('testResponse');
     });
 
     it('EMAIL_PASSWORD_PROVIDER - should handle non MISSING_RECAPTCHA_TOKEN error when recaptcha enterprise is disabled', async () => {
       if (typeof window === 'undefined') {
         return;
       }
-      sinon
-        .stub(mockAuthInstance, '_getRecaptchaConfig')
-        .returns(recaptchaConfigOff);
+      vi.spyOn(mockAuthInstance, '_getRecaptchaConfig').mockReturnValue(
+        recaptchaConfigOff
+      );
       let callCount = 0;
-      mockActionMethod = sinon.stub().callsFake(() => {
+      mockActionMethod = vi.fn().mockImplementation(() => {
         callCount++;
         if (callCount === 1) {
           return Promise.reject(
@@ -263,20 +260,20 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
         mockActionMethod,
         RecaptchaAuthProvider.EMAIL_PASSWORD_PROVIDER
       );
-      await expect(response).to.be.rejectedWith(
+      await expect(response).rejects.toThrow(
         AuthErrorCode.RECAPTCHA_NOT_ENABLED
       );
-      expect(mockActionMethod).to.have.been.calledOnce;
+      expect(mockActionMethod).toHaveBeenCalledTimes(1);
     });
 
     it('PHONE_PROVIDER - should call actionMethod with request if recaptcha enterprise is enabled', async () => {
       if (typeof window === 'undefined') {
         return;
       }
-      sinon
-        .stub(mockAuthInstance, '_getRecaptchaConfig')
-        .returns(recaptchaConfigEnforce);
-      mockActionMethod = sinon.stub().resolves('testResponse');
+      vi.spyOn(mockAuthInstance, '_getRecaptchaConfig').mockReturnValue(
+        recaptchaConfigEnforce
+      );
+      mockActionMethod = vi.fn().mockResolvedValue('testResponse');
       const response = await handleRecaptchaFlow(
         mockAuthInstance,
         mockRequest,
@@ -284,19 +281,19 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
         mockActionMethod,
         RecaptchaAuthProvider.PHONE_PROVIDER
       );
-      expect(mockActionMethod).to.have.been.calledOnce;
-      expect(response).to.equal('testResponse');
+      expect(mockActionMethod).toHaveBeenCalledTimes(1);
+      expect(response).toBe('testResponse');
     });
 
     it('PHONE_PROVIDER - should handle MISSING_RECAPTCHA_TOKEN error when the enforcement state is audit', async () => {
       if (typeof window === 'undefined') {
         return;
       }
-      sinon
-        .stub(mockAuthInstance, '_getRecaptchaConfig')
-        .returns(recaptchaConfigAudit);
+      vi.spyOn(mockAuthInstance, '_getRecaptchaConfig').mockReturnValue(
+        recaptchaConfigAudit
+      );
       let callCount = 0;
-      mockActionMethod = sinon.stub().callsFake(() => {
+      mockActionMethod = vi.fn().mockImplementation(() => {
         callCount++;
         if (callCount === 1) {
           return Promise.reject(
@@ -313,19 +310,19 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
         mockActionMethod,
         RecaptchaAuthProvider.PHONE_PROVIDER
       );
-      expect(mockActionMethod).to.have.been.calledTwice;
-      expect(response).to.equal('testResponse');
+      expect(mockActionMethod).toHaveBeenCalledTimes(2);
+      expect(response).toBe('testResponse');
     });
 
     it('PHONE_PROVIDER - should handle INVALID_APP_CREDENTIAL error when the enforcement state is audit', async () => {
       if (typeof window === 'undefined') {
         return;
       }
-      sinon
-        .stub(mockAuthInstance, '_getRecaptchaConfig')
-        .returns(recaptchaConfigAudit);
+      vi.spyOn(mockAuthInstance, '_getRecaptchaConfig').mockReturnValue(
+        recaptchaConfigAudit
+      );
       let callCount = 0;
-      mockActionMethod = sinon.stub().callsFake(() => {
+      mockActionMethod = vi.fn().mockImplementation(() => {
         callCount++;
         if (callCount === 1) {
           return Promise.reject(
@@ -342,19 +339,19 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
         mockActionMethod,
         RecaptchaAuthProvider.PHONE_PROVIDER
       );
-      expect(mockActionMethod).to.have.been.calledTwice;
-      expect(response).to.equal('testResponse');
+      expect(mockActionMethod).toHaveBeenCalledTimes(2);
+      expect(response).toBe('testResponse');
     });
 
     it('PHONE_PROVIDER - should handle non MISSING_RECAPTCHA_TOKEN and non INVALID_APP_CREDENTIAL error', async () => {
       if (typeof window === 'undefined') {
         return;
       }
-      sinon
-        .stub(mockAuthInstance, '_getRecaptchaConfig')
-        .returns(recaptchaConfigAudit);
+      vi.spyOn(mockAuthInstance, '_getRecaptchaConfig').mockReturnValue(
+        recaptchaConfigAudit
+      );
       let callCount = 0;
-      mockActionMethod = sinon.stub().callsFake(() => {
+      mockActionMethod = vi.fn().mockImplementation(() => {
         callCount++;
         if (callCount === 1) {
           return Promise.reject(
@@ -372,23 +369,23 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
         mockActionMethod,
         RecaptchaAuthProvider.PHONE_PROVIDER
       );
-      await expect(response).to.be.rejectedWith(
+      await expect(response).rejects.toThrow(
         AuthErrorCode.INVALID_RECAPTCHA_TOKEN
       );
-      expect(mockActionMethod).to.have.been.calledOnce;
+      expect(mockActionMethod).toHaveBeenCalledTimes(1);
     });
   });
 
-  context('#injectRecaptchaFields', () => {
+  describe('#injectRecaptchaFields', () => {
     it('injects recaptcha enterprise fields into SignInWithPassword request', async () => {
       mockEndpointWithParams(
         Endpoint.GET_RECAPTCHA_CONFIG,
         getRecaptchaConfigRequest,
         recaptchaConfigResponseEnforce
       );
-      sinon
-        .stub(recaptcha.enterprise, 'execute')
-        .returns(Promise.resolve('recaptcha-response'));
+      vi.spyOn(recaptcha.enterprise, 'execute').mockResolvedValue(
+        'recaptcha-response'
+      );
 
       const request = {
         returnSecureToken: true,
@@ -411,7 +408,7 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
         recaptchaVersion: RecaptchaVersion.ENTERPRISE
       };
 
-      expect(requestWithRecaptcha).to.eql(expectedRequest);
+      expect(requestWithRecaptcha).toEqual(expectedRequest);
     });
 
     it('injects recaptcha enterprise fields when captchaResp is true', async () => {
@@ -420,9 +417,9 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
         getRecaptchaConfigRequest,
         recaptchaConfigResponseEnforce
       );
-      sinon
-        .stub(recaptcha.enterprise, 'execute')
-        .returns(Promise.resolve('recaptcha-response'));
+      vi.spyOn(recaptcha.enterprise, 'execute').mockResolvedValue(
+        'recaptcha-response'
+      );
 
       const request = {
         requestType: 'requestType',
@@ -443,7 +440,7 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
         recaptchaVersion: RecaptchaVersion.ENTERPRISE
       };
 
-      expect(requestWithRecaptcha).to.eql(expectedRequest);
+      expect(requestWithRecaptcha).toEqual(expectedRequest);
     });
 
     it('injects recaptcha enterprise fields into StartPhoneMfaEnrollment request', async () => {
@@ -452,9 +449,9 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
         getRecaptchaConfigRequest,
         recaptchaConfigResponseEnforce
       );
-      sinon
-        .stub(recaptcha.enterprise, 'execute')
-        .returns(Promise.resolve('recaptcha-response'));
+      vi.spyOn(recaptcha.enterprise, 'execute').mockResolvedValue(
+        'recaptcha-response'
+      );
 
       const request = {
         idToken: 'idToken',
@@ -481,7 +478,7 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
         }
       };
 
-      expect(requestWithRecaptcha).to.eql(expectedRequest);
+      expect(requestWithRecaptcha).toEqual(expectedRequest);
     });
 
     it('injects recaptcha enterprise fields into StartPhoneMfaSignInRequest request', async () => {
@@ -490,9 +487,9 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
         getRecaptchaConfigRequest,
         recaptchaConfigResponseEnforce
       );
-      sinon
-        .stub(recaptcha.enterprise, 'execute')
-        .returns(Promise.resolve('recaptcha-response'));
+      vi.spyOn(recaptcha.enterprise, 'execute').mockResolvedValue(
+        'recaptcha-response'
+      );
 
       const request = {
         mfaPendingCredential: 'mfaPendingCredential',
@@ -519,7 +516,7 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
         }
       };
 
-      expect(requestWithRecaptcha).to.eql(expectedRequest);
+      expect(requestWithRecaptcha).toEqual(expectedRequest);
     });
   });
 });

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC.
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,6 @@
  * limitations under the License.
  */
 
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-import * as sinon from 'sinon';
-import sinonChai from 'sinon-chai';
-
 import { SDK_VERSION } from '@firebase/app';
 import { FirebaseError } from '@firebase/util';
 
@@ -33,10 +28,9 @@ import { stubSingleTimeout } from '../../../test/helpers/timeout_stub';
 import { _window } from '../auth_window';
 import * as gapiLoader from './gapi';
 import { _openIframe } from './iframe';
+import { MockInstance } from 'vitest';
 
-use(sinonChai);
-use(chaiAsPromised);
-
+vi.mock('./gapi', { spy: true });
 type IframesCallback = (iframesLib: unknown) => Promise<unknown>;
 
 describe('platform_browser/iframe/iframe', () => {
@@ -52,33 +46,33 @@ describe('platform_browser/iframe/iframe', () => {
     } as unknown as typeof gapi;
     auth = await testAuth();
 
-    sinon.stub(gapiLoader, '_loadGapi').returns(
+    vi.spyOn(gapiLoader, '_loadGapi').mockReturnValue(
       Promise.resolve({
-        open: sinon
-          .stub()
-          .callsFake(
-            (settings: Record<string, unknown>, cb: IframesCallback) => {
-              iframeSettings = settings;
-              libraryLoadedCallback = cb;
-            }
-          )
+        open: vi.fn(
+          (settings: Record<string, unknown>, cb: IframesCallback) => {
+            iframeSettings = settings;
+            libraryLoadedCallback = cb;
+          }
+        )
       }) as unknown as Promise<gapi.iframes.Context>
     );
   });
 
   afterEach(() => {
+    delete (_window() as any).gapi;
     sinon.restore();
+    vi.restoreAllMocks();
   });
 
   it('sets all the correct settings', async () => {
     await _openIframe(auth);
 
-    expect(iframeSettings.where).to.eql(document.body);
-    expect(iframeSettings.url).to.eq(
+    expect(iframeSettings.where).toEqual(document.body);
+    expect(iframeSettings.url).toBe(
       `https://${TEST_AUTH_DOMAIN}/__/auth/iframe?apiKey=${TEST_KEY}&appName=test-app&v=${SDK_VERSION}`
     );
-    expect(iframeSettings.messageHandlersFilter).to.eq('cross-origin-filter');
-    expect(iframeSettings.attributes).to.eql({
+    expect(iframeSettings.messageHandlersFilter).toBe('cross-origin-filter');
+    expect(iframeSettings.attributes).toEqual({
       style: {
         position: 'absolute',
         top: '-100px',
@@ -88,13 +82,13 @@ describe('platform_browser/iframe/iframe', () => {
       'aria-hidden': 'true',
       tabindex: '-1'
     });
-    expect(iframeSettings.dontclear).to.be.true;
+    expect(iframeSettings.dontclear).toBe(true);
   });
 
   it('sets a single framework if logged', async () => {
     auth._logFramework('Magical');
     await _openIframe(auth);
-    expect(iframeSettings.url).to.eq(
+    expect(iframeSettings.url).toBe(
       `https://${TEST_AUTH_DOMAIN}/__/auth/iframe?apiKey=${TEST_KEY}&appName=test-app&v=${SDK_VERSION}&fw=Magical`
     );
   });
@@ -104,37 +98,36 @@ describe('platform_browser/iframe/iframe', () => {
     auth._logFramework('Magical');
     auth._logFramework('Magical'); // Duplicate, should be ignored
     await _openIframe(auth);
-    expect(iframeSettings.url).to.eq(
-      // fw should be a comma-separated list sorted alphabetically:
+    expect(iframeSettings.url).toBe(
       `https://${TEST_AUTH_DOMAIN}/__/auth/iframe?apiKey=${TEST_KEY}&appName=test-app&v=${SDK_VERSION}&fw=Magical%2CMythical`
     );
   });
 
-  context('on load callback', () => {
-    let iframe: sinon.SinonStubbedInstance<gapi.iframes.Iframe>;
-    let clearTimeoutStub: sinon.SinonStub;
+  describe('on load callback', () => {
+    let iframe: { restyle: MockInstance; ping: MockInstance };
+    let clearTimeoutStub: MockInstance;
 
     beforeEach(() => {
-      iframe = sinon.stub({
-        restyle: () => {},
-        ping: () => {}
-      } as unknown as gapi.iframes.Iframe);
-      clearTimeoutStub = sinon.stub(_window(), 'clearTimeout');
+      iframe = {
+        restyle: vi.fn(),
+        ping: vi.fn()
+      };
+      clearTimeoutStub = vi.spyOn(_window(), 'clearTimeout');
     });
 
     it('restyles the iframe to prevent hideOnLeave', async () => {
       stubSingleTimeout();
-      iframe.ping.returns(Promise.resolve([iframe]));
+      iframe.ping.mockReturnValue(Promise.resolve([iframe]));
       await libraryLoadedCallback(iframe);
-      expect(iframe.restyle).to.have.been.calledWith({
+      expect(iframe.restyle).toHaveBeenCalledWith({
         setHideOnLeave: false
       });
     });
 
     it('rejects if the iframe ping promise rejects', async () => {
       stubSingleTimeout();
-      iframe.ping.returns(Promise.reject('no'));
-      await expect(libraryLoadedCallback(iframe)).to.be.rejectedWith(
+      iframe.ping.mockReturnValue(Promise.reject('no'));
+      await expect(libraryLoadedCallback(iframe)).rejects.toThrow(
         FirebaseError,
         'auth/network-request-failed'
       );
@@ -142,9 +135,9 @@ describe('platform_browser/iframe/iframe', () => {
 
     it('clears the rejection timeout on success', async () => {
       stubSingleTimeout(123);
-      iframe.ping.returns(Promise.resolve([iframe]));
+      iframe.ping.mockReturnValue(Promise.resolve([iframe]));
       await libraryLoadedCallback(iframe);
-      expect(clearTimeoutStub).to.have.been.calledWith(123);
+      expect(clearTimeoutStub).toHaveBeenCalledWith(123);
     });
   });
 });

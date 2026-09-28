@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC.
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,6 @@
  * limitations under the License.
  */
 
-import { expect, use } from 'chai';
-import * as sinon from 'sinon';
-import sinonChai from 'sinon-chai';
 import { testAuth } from '../../../test/helpers/mock_auth';
 
 import {
@@ -26,26 +23,23 @@ import {
   AuthEventError,
   AuthEventType
 } from '../../model/popup_redirect';
-import { FirebaseError } from '@firebase/util';
 import { AuthErrorCode } from '../errors';
 import { AuthEventManager } from './auth_event_manager';
-
-use(sinonChai);
-
 describe('core/auth/auth_event_manager', () => {
   let manager: AuthEventManager;
 
   function makeConsumer(
     filter: AuthEventType | AuthEventType[]
-  ): sinon.SinonStubbedInstance<AuthEventConsumer> {
-    const stub = sinon.stub({
+  ): AuthEventConsumer & {
+    onAuthEvent: any;
+    onError: any;
+  } {
+    return {
       filter: Array.isArray(filter) ? filter : [filter],
-      onAuthEvent: (_event: AuthEvent) => {},
-      onError: (_error: FirebaseError) => {},
+      onAuthEvent: vi.fn(),
+      onError: vi.fn(),
       eventId: null
-    });
-
-    return stub;
+    };
   }
 
   function makeEvent(type: AuthEventType, eventId = 'event'): AuthEvent {
@@ -68,8 +62,8 @@ describe('core/auth/auth_event_manager', () => {
     manager.registerConsumer(b);
     manager.onEvent(evt);
 
-    expect(a.onAuthEvent).to.have.been.calledWith(evt);
-    expect(b.onAuthEvent).to.have.been.calledWith(evt);
+    expect(a.onAuthEvent).toHaveBeenCalledWith(evt);
+    expect(b.onAuthEvent).toHaveBeenCalledWith(evt);
   });
 
   it('can unregister listeners', () => {
@@ -82,15 +76,15 @@ describe('core/auth/auth_event_manager', () => {
     manager.unregisterConsumer(a);
     manager.onEvent(evt);
 
-    expect(a.onAuthEvent).not.to.have.been.calledWith(evt);
-    expect(b.onAuthEvent).to.have.been.calledWith(evt);
+    expect(a.onAuthEvent).not.toHaveBeenCalledWith(evt);
+    expect(b.onAuthEvent).toHaveBeenCalledWith(evt);
   });
 
   it('does not call the consumer if filter does not match', () => {
     const consumer = makeConsumer(AuthEventType.REAUTH_VIA_POPUP);
     manager.registerConsumer(consumer);
     manager.onEvent(makeEvent(AuthEventType.REAUTH_VIA_REDIRECT));
-    expect(consumer.onAuthEvent).not.to.have.been.called;
+    expect(consumer.onAuthEvent).not.toHaveBeenCalled();
   });
 
   it('does not call through if eventId does not match', () => {
@@ -99,7 +93,7 @@ describe('core/auth/auth_event_manager', () => {
     manager.registerConsumer(consumer);
 
     manager.onEvent(makeEvent(AuthEventType.REAUTH_VIA_POPUP, 'event-id'));
-    expect(consumer.onAuthEvent).not.to.have.been.called;
+    expect(consumer.onAuthEvent).not.toHaveBeenCalled();
   });
 
   it('does call through if eventId is null', () => {
@@ -108,7 +102,7 @@ describe('core/auth/auth_event_manager', () => {
     manager.registerConsumer(consumer);
 
     manager.onEvent(makeEvent(AuthEventType.REAUTH_VIA_POPUP, 'event-id'));
-    expect(consumer.onAuthEvent).to.have.been.called;
+    expect(consumer.onAuthEvent).toHaveBeenCalled();
   });
 
   it('converts errors into FirebaseError if the type matches', () => {
@@ -122,8 +116,8 @@ describe('core/auth/auth_event_manager', () => {
     };
 
     manager.onEvent(event);
-    const error = consumer.onError.getCall(0).args[0];
-    expect(error.code).to.eq(`auth/${AuthErrorCode.INVALID_APP_CREDENTIAL}`);
+    const error = consumer.onError.mock.calls[0][0];
+    expect(error.code).toBe(`auth/${AuthErrorCode.INVALID_APP_CREDENTIAL}`);
   });
 
   it('converts random errors into FirebaseError with internal error', () => {
@@ -136,11 +130,11 @@ describe('core/auth/auth_event_manager', () => {
     } as AuthEventError;
 
     manager.onEvent(event);
-    const error = consumer.onError.getCall(0).args[0];
-    expect(error.code).to.eq(`auth/${AuthErrorCode.INTERNAL_ERROR}`);
+    const error = consumer.onError.mock.calls[0][0];
+    expect(error.code).toBe(`auth/${AuthErrorCode.INTERNAL_ERROR}`);
   });
 
-  context('redirect consumers', () => {
+  describe('redirect consumers', () => {
     let consumer: AuthEventConsumer;
 
     beforeEach(() => {
@@ -154,56 +148,54 @@ describe('core/auth/auth_event_manager', () => {
 
     it('redirect events are queued until the future', () => {
       const event = makeEvent(AuthEventType.REAUTH_VIA_REDIRECT);
-      expect(manager.onEvent(event)).to.be.true;
+      expect(manager.onEvent(event)).toBe(true);
 
       manager.registerConsumer(consumer);
-      expect(consumer.onAuthEvent).to.have.been.calledWith(event);
+      expect(consumer.onAuthEvent).toHaveBeenCalledWith(event);
     });
 
     it('queued redirects only work for the first new consumer', () => {
       const event = makeEvent(AuthEventType.REAUTH_VIA_REDIRECT);
-      expect(manager.onEvent(event)).to.be.true;
+      expect(manager.onEvent(event)).toBe(true);
 
       manager.registerConsumer(consumer);
-      expect(consumer.onAuthEvent).to.have.been.calledWith(event);
+      expect(consumer.onAuthEvent).toHaveBeenCalledWith(event);
 
       const consumerB = makeConsumer(AuthEventType.REAUTH_VIA_REDIRECT);
       manager.registerConsumer(consumerB);
-      expect(consumerB.onAuthEvent).not.to.have.been.called;
+      expect(consumerB.onAuthEvent).not.toHaveBeenCalled();
     });
 
     it('does not queue a redirect event if it was handled immediately', () => {
       const event = makeEvent(AuthEventType.REAUTH_VIA_REDIRECT);
       manager.registerConsumer(consumer);
 
-      expect(manager.onEvent(event)).to.be.true;
-      expect(consumer.onAuthEvent).to.have.been.calledWith(event);
+      expect(manager.onEvent(event)).toBe(true);
+      expect(consumer.onAuthEvent).toHaveBeenCalledWith(event);
 
       const consumerB = makeConsumer(AuthEventType.REAUTH_VIA_REDIRECT);
       manager.registerConsumer(consumerB);
-      expect(consumerB.onAuthEvent).not.to.have.been.called;
+      expect(consumerB.onAuthEvent).not.toHaveBeenCalled();
     });
 
     it('queues unknown events', () => {
       const event = makeEvent(AuthEventType.UNKNOWN);
       event.error = { code: 'auth/no-auth-event' } as AuthEventError;
-      expect(manager.onEvent(event)).to.be.true;
+      expect(manager.onEvent(event)).toBe(true);
 
       manager.registerConsumer(consumer);
-      expect(consumer.onAuthEvent).to.have.been.calledWith(event);
+      expect(consumer.onAuthEvent).toHaveBeenCalledWith(event);
     });
   });
 
-  context('caching', () => {
-    let clock: sinon.SinonFakeTimers;
-
+  describe('caching', () => {
     beforeEach(() => {
-      clock = sinon.useFakeTimers();
+      vi.useFakeTimers();
     });
 
     afterEach(() => {
-      clock.restore();
-      sinon.restore();
+      vi.useRealTimers();
+      vi.restoreAllMocks();
     });
 
     it('only runs the event once for the consumer', () => {
@@ -214,7 +206,7 @@ describe('core/auth/auth_event_manager', () => {
       manager.onEvent(evt);
       manager.onEvent(evt);
 
-      expect(consumer.onAuthEvent).to.have.been.calledOnce;
+      expect(consumer.onAuthEvent).toHaveBeenCalledTimes(1);
     });
 
     it('clears the cache after ten minutes', () => {
@@ -223,10 +215,10 @@ describe('core/auth/auth_event_manager', () => {
       const evt = makeEvent(AuthEventType.LINK_VIA_POPUP);
       manager.registerConsumer(consumer);
       manager.onEvent(evt);
-      clock.tick(11 * 60 * 1000);
+      vi.advanceTimersByTime(11 * 60 * 1000);
       manager.onEvent(evt);
 
-      expect(consumer.onAuthEvent).to.have.been.calledTwice;
+      expect(consumer.onAuthEvent).toHaveBeenCalledTimes(2);
     });
 
     it('also caches stored redirects', () => {
@@ -240,7 +232,7 @@ describe('core/auth/auth_event_manager', () => {
       manager.onEvent(event);
       manager.registerConsumer(consumer);
       manager.onEvent(event);
-      expect(consumer.onAuthEvent).to.have.been.calledOnce;
+      expect(consumer.onAuthEvent).toHaveBeenCalledTimes(1);
     });
   });
 });

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
 
 import { ProviderId } from '../../model/enums';
 import { FirebaseError } from '@firebase/util';
@@ -37,9 +34,6 @@ import {
   signInWithPhoneNumber,
   verifyPhoneNumberForExisting
 } from './sms';
-
-use(chaiAsPromised);
-
 describe('api/authentication/sendPhoneVerificationCode', () => {
   const request = {
     phoneNumber: '123456789',
@@ -65,13 +59,16 @@ describe('api/authentication/sendPhoneVerificationCode', () => {
 
     auth.tenantId = 'tenant-id';
     const response = await sendPhoneVerificationCode(auth, request);
-    expect(response.sessionInfo).to.eq('my-session');
-    expect(mock.calls[0].request).to.eql({ ...request, tenantId: 'tenant-id' });
-    expect(mock.calls[0].method).to.eq('POST');
-    expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
+    expect(response.sessionInfo).toBe('my-session');
+    expect(mock.calls[0].request).toEqual({
+      ...request,
+      tenantId: 'tenant-id'
+    });
+    expect(mock.calls[0].method).toBe('POST');
+    expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).toBe(
       'application/json'
     );
-    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).to.eq(
+    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).toBe(
       'testSDK/0.0.0'
     );
   });
@@ -93,11 +90,11 @@ describe('api/authentication/sendPhoneVerificationCode', () => {
       400
     );
 
-    await expect(sendPhoneVerificationCode(auth, request)).to.be.rejectedWith(
+    await expect(sendPhoneVerificationCode(auth, request)).rejects.toThrow(
       FirebaseError,
       'Firebase: The format of the phone number provided is incorrect. Please enter the phone number in a format that can be parsed into E.164 format. E.164 phone numbers are written in the format [+][country code][subscriber number including area code]. (auth/invalid-phone-number).'
     );
-    expect(mock.calls[0].request).to.eql(request);
+    expect(mock.calls[0].request).toEqual(request);
   });
 });
 
@@ -129,16 +126,19 @@ describe('api/authentication/signInWithPhoneNumber', () => {
 
     auth.tenantId = 'tenant-id';
     const response = await signInWithPhoneNumber(auth, request);
-    expect(response.providerId).to.eq(ProviderId.PHONE);
-    expect(response.idToken).to.eq('id-token');
-    expect(response.expiresIn).to.eq('1000');
-    expect(response.localId).to.eq('1234');
-    expect(mock.calls[0].request).to.eql({ ...request, tenantId: 'tenant-id' });
-    expect(mock.calls[0].method).to.eq('POST');
-    expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
+    expect(response.providerId).toBe(ProviderId.PHONE);
+    expect(response.idToken).toBe('id-token');
+    expect(response.expiresIn).toBe('1000');
+    expect(response.localId).toBe('1234');
+    expect(mock.calls[0].request).toEqual({
+      ...request,
+      tenantId: 'tenant-id'
+    });
+    expect(mock.calls[0].method).toBe('POST');
+    expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).toBe(
       'application/json'
     );
-    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).to.eq(
+    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).toBe(
       'testSDK/0.0.0'
     );
   });
@@ -160,11 +160,11 @@ describe('api/authentication/signInWithPhoneNumber', () => {
       400
     );
 
-    await expect(signInWithPhoneNumber(auth, request)).to.be.rejectedWith(
+    await expect(signInWithPhoneNumber(auth, request)).rejects.toThrow(
       FirebaseError,
       'Firebase: The SMS verification code used to create the phone auth credential is invalid. Please resend the verification code sms and be sure to use the verification code provided by the user. (auth/invalid-verification-code).'
     );
-    expect(mock.calls[0].request).to.eql(request);
+    expect(mock.calls[0].request).toEqual(request);
   });
 });
 
@@ -197,16 +197,19 @@ describe('api/authentication/linkWithPhoneNumber', () => {
 
     auth.tenantId = 'tenant-id';
     const response = await linkWithPhoneNumber(auth, request);
-    expect(response.providerId).to.eq(ProviderId.PHONE);
-    expect(response.idToken).to.eq('id-token');
-    expect(response.expiresIn).to.eq('1000');
-    expect(response.localId).to.eq('1234');
-    expect(mock.calls[0].request).to.eql({ ...request, tenantId: 'tenant-id' });
-    expect(mock.calls[0].method).to.eq('POST');
-    expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
+    expect(response.providerId).toBe(ProviderId.PHONE);
+    expect(response.idToken).toBe('id-token');
+    expect(response.expiresIn).toBe('1000');
+    expect(response.localId).toBe('1234');
+    expect(mock.calls[0].request).toEqual({
+      ...request,
+      tenantId: 'tenant-id'
+    });
+    expect(mock.calls[0].method).toBe('POST');
+    expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).toBe(
       'application/json'
     );
-    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).to.eq(
+    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).toBe(
       'testSDK/0.0.0'
     );
   });
@@ -228,11 +231,11 @@ describe('api/authentication/linkWithPhoneNumber', () => {
       400
     );
 
-    await expect(linkWithPhoneNumber(auth, request)).to.be.rejectedWith(
+    await expect(linkWithPhoneNumber(auth, request)).rejects.toThrow(
       FirebaseError,
       'Firebase: The SMS verification code used to create the phone auth credential is invalid. Please resend the verification code sms and be sure to use the verification code provided by the user. (auth/invalid-verification-code).'
     );
-    expect(mock.calls[0].request).to.eql(request);
+    expect(mock.calls[0].request).toEqual(request);
   });
 });
 
@@ -264,20 +267,20 @@ describe('api/authentication/verifyPhoneNumberForExisting', () => {
 
     auth.tenantId = 'tenant-id';
     const response = await verifyPhoneNumberForExisting(auth, request);
-    expect(response.providerId).to.eq(ProviderId.PHONE);
-    expect(response.idToken).to.eq('id-token');
-    expect(response.expiresIn).to.eq('1000');
-    expect(response.localId).to.eq('1234');
-    expect(mock.calls[0].request).to.eql({
+    expect(response.providerId).toBe(ProviderId.PHONE);
+    expect(response.idToken).toBe('id-token');
+    expect(response.expiresIn).toBe('1000');
+    expect(response.localId).toBe('1234');
+    expect(mock.calls[0].request).toEqual({
       ...request,
       operation: 'REAUTH',
       tenantId: 'tenant-id'
     });
-    expect(mock.calls[0].method).to.eq('POST');
-    expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
+    expect(mock.calls[0].method).toBe('POST');
+    expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).toBe(
       'application/json'
     );
-    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).to.eq(
+    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).toBe(
       'testSDK/0.0.0'
     );
   });
@@ -299,13 +302,11 @@ describe('api/authentication/verifyPhoneNumberForExisting', () => {
       400
     );
 
-    await expect(
-      verifyPhoneNumberForExisting(auth, request)
-    ).to.be.rejectedWith(
+    await expect(verifyPhoneNumberForExisting(auth, request)).rejects.toThrow(
       FirebaseError,
       'Firebase: There is no user record corresponding to this identifier. The user may have been deleted. (auth/user-not-found).'
     );
-    expect(mock.calls[0].request).to.eql({
+    expect(mock.calls[0].request).toEqual({
       ...request,
       operation: 'REAUTH'
     });

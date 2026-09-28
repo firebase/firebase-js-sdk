@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import { OperationType } from '../../model/enums';
 
@@ -42,19 +40,19 @@ describe('core/providers/saml', () => {
       operationType: OperationType.SIGN_IN
     });
     const cred = SAMLAuthProvider.credentialFromResult(userCred)!;
-    expect(cred.providerId).to.eq('saml.provider');
-    expect(cred.signInMethod).to.eq('saml.provider');
+    expect(cred.providerId).toBe('saml.provider');
+    expect(cred.signInMethod).toBe('saml.provider');
   });
 
   it('generates SAML provider', () => {
     const provider = new SAMLAuthProvider('saml.provider');
-    expect(provider.providerId).to.eq('saml.provider');
+    expect(provider.providerId).toBe('saml.provider');
   });
 
   it('returns error for invalid SAML provdier', () => {
     expect(() => {
       new SAMLAuthProvider('provider');
-    }).throw(/auth\/argument-error/);
+    }).toThrow(/auth\/argument-error/);
   });
 
   it('credentialFromResult returns null if provider ID not specified', async () => {
@@ -68,7 +66,7 @@ describe('core/providers/saml', () => {
       },
       operationType: OperationType.SIGN_IN
     });
-    expect(SAMLAuthProvider.credentialFromResult(userCred)).to.be.null;
+    expect(SAMLAuthProvider.credentialFromResult(userCred)).toBeNull();
   });
 
   it('credentialFromError creates the cred from a tagged error', () => {
@@ -82,8 +80,8 @@ describe('core/providers/saml', () => {
     };
 
     const cred = SAMLAuthProvider.credentialFromError(error)!;
-    expect(cred.providerId).to.eq('saml.provider');
-    expect(cred.signInMethod).to.eq('saml.provider');
+    expect(cred.providerId).toBe('saml.provider');
+    expect(cred.signInMethod).toBe('saml.provider');
   });
 
   it('credentialFromJSON returns SAML credential from valid object', () => {
@@ -94,9 +92,9 @@ describe('core/providers/saml', () => {
     };
 
     const credential = SAMLAuthProvider.credentialFromJSON(json);
-    expect(credential.providerId).to.eq('saml.provider');
-    expect(credential.signInMethod).to.eq('saml.provider');
-    expect((credential as any).pendingToken).to.eq('fake-pending-token');
+    expect(credential.providerId).toBe('saml.provider');
+    expect(credential.signInMethod).toBe('saml.provider');
+    expect((credential as any).pendingToken).toBe('fake-pending-token');
   });
 
   it('returns null when _tokenResponse is missing (undefined)', () => {
@@ -106,7 +104,7 @@ describe('core/providers/saml', () => {
 
     error.customData = {}; // _tokenResponse missing
     const credential = SAMLAuthProvider.credentialFromError(error);
-    expect(credential).to.be.null;
+    expect(credential).toBeNull();
   });
 
   it('returns null when _tokenResponse is missing oauthAccessToken key', () => {
@@ -122,7 +120,7 @@ describe('core/providers/saml', () => {
     };
 
     const cred = SAMLAuthProvider.credentialFromError(error);
-    expect(cred).to.be.null;
+    expect(cred).toBeNull();
   });
 
   it('returns null if _create throws internally', () => {
@@ -144,7 +142,7 @@ describe('core/providers/saml', () => {
     };
 
     const cred = SAMLAuthProvider.credentialFromError(error);
-    expect(cred).to.be.null;
+    expect(cred).toBeNull();
 
     (SAMLAuthCredential as any)._create = originalCreate;
   });
@@ -157,6 +155,6 @@ describe('core/providers/saml', () => {
     delete (error as any).customData;
 
     const credential = SAMLAuthProvider.credentialFromError(error);
-    expect(credential).to.be.null;
+    expect(credential).toBeNull();
   });
 });

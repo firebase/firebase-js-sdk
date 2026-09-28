@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,6 @@
  * limitations under the License.
  */
 
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-
 import { FirebaseError } from '@firebase/util';
 
 import { Endpoint, HttpHeader } from '../';
@@ -26,9 +23,6 @@ import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 import * as mockFetch from '../../../test/helpers/mock_fetch';
 import { ServerError } from '../errors';
 import { _getProjectConfig } from './get_project_config';
-
-use(chaiAsPromised);
-
 describe('api/project_config/getProjectConfig', () => {
   let auth: TestAuth;
 
@@ -45,9 +39,9 @@ describe('api/project_config/getProjectConfig', () => {
     });
 
     const response = await _getProjectConfig(auth);
-    expect(response.authorizedDomains).to.eql(['google.com']);
-    expect(mock.calls[0].method).to.eq('GET');
-    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).to.eq(
+    expect(response.authorizedDomains).toEqual(['google.com']);
+    expect(mock.calls[0].method).toBe('GET');
+    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).toBe(
       'testSDK/0.0.0'
     );
   });
@@ -69,7 +63,7 @@ describe('api/project_config/getProjectConfig', () => {
       400
     );
 
-    await expect(_getProjectConfig(auth)).to.be.rejectedWith(
+    await expect(_getProjectConfig(auth)).rejects.toThrow(
       FirebaseError,
       'Firebase: The specified provider ID is invalid. (auth/invalid-provider-id).'
     );

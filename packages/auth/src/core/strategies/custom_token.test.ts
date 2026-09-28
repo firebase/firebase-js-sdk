@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,6 @@
  * limitations under the License.
  */
 
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-
 import { OperationType } from '../../model/enums';
 
 import { mockEndpoint } from '../../../test/helpers/api/helper';
@@ -28,9 +25,6 @@ import { APIUserInfo } from '../../api/account_management/account';
 import { IdTokenResponse, IdTokenResponseKind } from '../../model/id_token';
 import { UserCredentialInternal } from '../../model/user';
 import { signInWithCustomToken } from './custom_token';
-
-use(chaiAsPromised);
-
 describe('core/strategies/signInWithCustomToken', () => {
   const serverUser: APIUserInfo = {
     localId: 'local-id',
@@ -73,15 +67,15 @@ describe('core/strategies/signInWithCustomToken', () => {
         auth,
         'look-at-me-im-a-jwt'
       )) as UserCredentialInternal;
-    expect(_tokenResponse).to.eql(idTokenResponse);
-    expect(user.uid).to.eq('local-id');
-    expect(user.displayName).to.eq('display-name');
-    expect(operationType).to.eq(OperationType.SIGN_IN);
+    expect(_tokenResponse).toEqual(idTokenResponse);
+    expect(user.uid).toBe('local-id');
+    expect(user.displayName).toBe('display-name');
+    expect(operationType).toBe(OperationType.SIGN_IN);
   });
 
   it('should send with a valid request', async () => {
     await signInWithCustomToken(auth, 'j.w.t');
-    expect(signInRoute.calls[0].request).to.eql({
+    expect(signInRoute.calls[0].request).toEqual({
       token: 'j.w.t',
       returnSecureToken: true
     });
@@ -89,7 +83,7 @@ describe('core/strategies/signInWithCustomToken', () => {
 
   it('should update the current user', async () => {
     const { user } = await signInWithCustomToken(auth, 'oh.no');
-    expect(auth.currentUser).to.eq(user);
+    expect(auth.currentUser).toBe(user);
   });
 
   it('wraps persistence failure into FirebaseError (auth/internal-error) after network token exchange', async () => {
@@ -104,13 +98,13 @@ describe('core/strategies/signInWithCustomToken', () => {
       caughtError = e;
     }
 
-    expect(caughtError).to.be.ok;
-    expect(caughtError.code).to.eq('auth/internal-error');
-    expect(caughtError.message).to.include('Database is closing/hidden');
-    expect(caughtError.customData?.originalError).to.eq(persistenceError);
+    expect(caughtError).toBeTruthy();
+    expect(caughtError.code).toBe('auth/internal-error');
+    expect(caughtError.message).toContain('Database is closing/hidden');
+    expect(caughtError.customData?.originalError).toBe(persistenceError);
     // Note: The network request already consumed the token
-    expect(signInRoute.calls.length).to.eq(1);
-    expect(signInRoute.calls[0].request).to.eql({
+    expect(signInRoute.calls.length).toBe(1);
+    expect(signInRoute.calls[0].request).toEqual({
       token: 'single-use-token',
       returnSecureToken: true
     });

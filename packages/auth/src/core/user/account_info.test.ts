@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,6 @@
  * limitations under the License.
  */
 
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-import * as sinon from 'sinon';
-import sinonChai from 'sinon-chai';
-
 import { UserInfo } from '../../model/public_types';
 import { ProviderId } from '../../model/enums';
 
@@ -29,10 +24,7 @@ import * as fetch from '../../../test/helpers/mock_fetch';
 import { Endpoint } from '../../api';
 import { UserInternal } from '../../model/user';
 import { updateEmail, updatePassword, updateProfile } from './account_info';
-
-use(chaiAsPromised);
-use(sinonChai);
-
+import { MockInstance } from 'vitest';
 const PASSWORD_PROVIDER: UserInfo = {
   providerId: ProviderId.PASSWORD,
   uid: 'uid',
@@ -53,7 +45,7 @@ describe('core/user/profile', () => {
   });
 
   afterEach(() => {
-    sinon.restore();
+    vi.restoreAllMocks();
     fetch.tearDown();
   });
 
@@ -61,7 +53,7 @@ describe('core/user/profile', () => {
     it('returns immediately if profile object is empty', async () => {
       const ep = mockEndpoint(Endpoint.SET_ACCOUNT_INFO, {});
       await updateProfile(user, {});
-      expect(ep.calls).to.be.empty;
+      expect(ep.calls).toHaveLength(0);
     });
 
     it('calls the setAccountInfo endpoint', async () => {
@@ -71,7 +63,7 @@ describe('core/user/profile', () => {
         displayName: 'displayname',
         photoURL: 'photo'
       });
-      expect(ep.calls[0].request).to.eql({
+      expect(ep.calls[0].request).toEqual({
         idToken: 'access-token',
         displayName: 'displayname',
         photoUrl: 'photo',
@@ -89,8 +81,8 @@ describe('core/user/profile', () => {
         displayName: 'displayname',
         photoURL: 'photo'
       });
-      expect(user.displayName).to.eq('response-name');
-      expect(user.photoURL).to.eq('response-photo');
+      expect(user.displayName).toBe('response-name');
+      expect(user.photoURL).toBe('response-photo');
     });
 
     it('sets the fields on the password provider', async () => {
@@ -105,8 +97,8 @@ describe('core/user/profile', () => {
         photoURL: 'photo'
       });
       const provider = user.providerData[0];
-      expect(provider.displayName).to.eq('response-name');
-      expect(provider.photoURL).to.eq('response-photo');
+      expect(provider.displayName).toBe('response-name');
+      expect(provider.photoURL).toBe('response-photo');
     });
   });
 
@@ -118,13 +110,13 @@ describe('core/user/profile', () => {
       });
 
       await updateEmail(user, 'hello@test.com');
-      expect(set.calls[0].request).to.eql({
+      expect(set.calls[0].request).toEqual({
         idToken: 'access-token',
         email: 'hello@test.com',
         returnSecureToken: true
       });
 
-      expect(user.uid).to.eq('new-uid-to-prove-refresh-got-called');
+      expect(user.uid).toBe('new-uid-to-prove-refresh-got-called');
     });
   });
 
@@ -136,27 +128,27 @@ describe('core/user/profile', () => {
       });
 
       await updatePassword(user, 'pass');
-      expect(set.calls[0].request).to.eql({
+      expect(set.calls[0].request).toEqual({
         idToken: 'access-token',
         password: 'pass',
         returnSecureToken: true
       });
 
-      expect(user.uid).to.eq('new-uid-to-prove-refresh-got-called');
+      expect(user.uid).toBe('new-uid-to-prove-refresh-got-called');
     });
   });
 
   describe('notifications', () => {
-    let idTokenChange: sinon.SinonStub;
+    let idTokenChange: MockInstance;
 
     beforeEach(async () => {
-      idTokenChange = sinon.stub();
+      idTokenChange = vi.fn();
       auth.onIdTokenChanged(idTokenChange);
 
       // Flush token change promises which are floating
       await auth._updateCurrentUser(user);
       auth._isInitialized = true;
-      idTokenChange.resetHistory();
+      idTokenChange.mockClear();
     });
 
     describe('#updateProfile', () => {
@@ -168,8 +160,8 @@ describe('core/user/profile', () => {
         });
 
         await updateProfile(user, { displayName: 'd' });
-        expect(idTokenChange).to.have.been.called;
-        expect(auth.persistenceLayer.lastObjectSet).to.eql(user.toJSON());
+        expect(idTokenChange).toHaveBeenCalled();
+        expect(auth.persistenceLayer.lastObjectSet).toEqual(user.toJSON());
       });
 
       it('does NOT trigger a token update if unnecessary', async () => {
@@ -180,8 +172,8 @@ describe('core/user/profile', () => {
         });
 
         await updateProfile(user, { displayName: 'd' });
-        expect(idTokenChange).not.to.have.been.called;
-        expect(auth.persistenceLayer.lastObjectSet).to.eql(user.toJSON());
+        expect(idTokenChange).not.toHaveBeenCalled();
+        expect(auth.persistenceLayer.lastObjectSet).toEqual(user.toJSON());
       });
     });
 
@@ -200,8 +192,8 @@ describe('core/user/profile', () => {
         });
 
         await updatePassword(user, 'email@test.com');
-        expect(idTokenChange).to.have.been.called;
-        expect(auth.persistenceLayer.lastObjectSet).to.eql(user.toJSON());
+        expect(idTokenChange).toHaveBeenCalled();
+        expect(auth.persistenceLayer.lastObjectSet).toEqual(user.toJSON());
       });
 
       it('does NOT trigger a token update if unnecessary', async () => {
@@ -212,8 +204,8 @@ describe('core/user/profile', () => {
         });
 
         await updateEmail(user, 'email@test.com');
-        expect(idTokenChange).not.to.have.been.called;
-        expect(auth.persistenceLayer.lastObjectSet).to.eql(user.toJSON());
+        expect(idTokenChange).not.toHaveBeenCalled();
+        expect(auth.persistenceLayer.lastObjectSet).toEqual(user.toJSON());
       });
     });
 
@@ -232,8 +224,8 @@ describe('core/user/profile', () => {
         });
 
         await updatePassword(user, 'pass');
-        expect(idTokenChange).to.have.been.called;
-        expect(auth.persistenceLayer.lastObjectSet).to.eql(user.toJSON());
+        expect(idTokenChange).toHaveBeenCalled();
+        expect(auth.persistenceLayer.lastObjectSet).toEqual(user.toJSON());
       });
 
       it('does NOT trigger a token update if unnecessary', async () => {
@@ -244,8 +236,8 @@ describe('core/user/profile', () => {
         });
 
         await updatePassword(user, 'pass');
-        expect(idTokenChange).not.to.have.been.called;
-        expect(auth.persistenceLayer.lastObjectSet).to.eql(user.toJSON());
+        expect(idTokenChange).not.toHaveBeenCalled();
+        expect(auth.persistenceLayer.lastObjectSet).toEqual(user.toJSON());
       });
     });
   });

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-import * as sinon from 'sinon';
-import sinonChai from 'sinon-chai';
 
 import { FirebaseApp } from '@firebase/app';
 import {
@@ -52,9 +47,9 @@ import { UserCredentialImpl } from '../core/user/user_credential_impl';
 import { UserInternal } from '../model/user';
 import { _createError } from '../core/util/assert';
 import { makeMockPopupRedirectResolver } from '../../test/helpers/mock_popup_redirect_resolver';
+import { MockInstance } from 'vitest';
 
-use(sinonChai);
-use(chaiAsPromised);
+vi.mock('../core/user/reload', { spy: true });
 
 const FAKE_APP: FirebaseApp = {
   name: 'test-app',
@@ -67,10 +62,8 @@ const FAKE_APP: FirebaseApp = {
 
 describe('core/auth/auth_impl', () => {
   let auth: AuthInternal;
-  let persistenceStub: sinon.SinonStubbedInstance<PersistenceInternal>;
 
   beforeEach(async () => {
-    persistenceStub = sinon.stub(_getInstance(inMemoryPersistence));
     const authImpl = new AuthImpl(
       FAKE_APP,
       FAKE_HEARTBEAT_CONTROLLER_PROVIDER,
@@ -89,23 +82,28 @@ describe('core/auth/auth_impl', () => {
     auth = authImpl;
   });
 
-  afterEach(sinon.restore);
+  afterEach(() => {
+    sinon.restore();
+    vi.restoreAllMocks();
+  });
 
   describe('#setPersistence', () => {
     it('swaps underlying persistence', async () => {
+      const persistenceStub =
+        _getInstance<PersistenceInternal>(inMemoryPersistence);
+      const getSpy = vi
+        .spyOn(persistenceStub, '_get')
+        .mockReturnValue(Promise.resolve(testUser(auth, 'test').toJSON()));
+      const removeSpy = vi.spyOn(persistenceStub, '_remove');
       const newPersistence = browserLocalPersistence;
-      const newStub = sinon.stub(
-        _getInstance<PersistenceInternal>(newPersistence)
-      );
-      persistenceStub._get.returns(
-        Promise.resolve(testUser(auth, 'test').toJSON())
-      );
+      const newStub = _getInstance<PersistenceInternal>(newPersistence);
+      const setSpy = vi.spyOn(newStub, '_set');
 
       await auth.setPersistence(newPersistence);
-      expect(persistenceStub._get).to.have.been.called;
-      expect(persistenceStub._remove).to.have.been.called;
-      expect(newStub._set).to.have.been.calledWith(
-        sinon.match.any,
+      expect(getSpy).toHaveBeenCalled();
+      expect(removeSpy).toHaveBeenCalled();
+      expect(setSpy).toHaveBeenCalledWith(
+        expect.anything(),
         testUser(auth, 'test').toJSON()
       );
     });
@@ -113,28 +111,32 @@ describe('core/auth/auth_impl', () => {
 });
 
 describe('core/auth/initializeAuth', () => {
-  afterEach(sinon.restore);
+  afterEach(() => {
+    sinon.restore();
+    vi.restoreAllMocks();
+  });
 
   describe('persistence manager creation', () => {
-    let createManagerStub: sinon.SinonSpy;
-    let reloadStub: sinon.SinonStub;
+    let createManagerStub: MockInstance;
+    let reloadStub: MockInstance;
     let oldAuth: AuthInternal;
-    let completeRedirectFnStub: sinon.SinonStub;
+    let completeRedirectFnStub: MockInstance;
 
     beforeEach(async () => {
+      vi.clearAllMocks();
       oldAuth = await testAuth();
-      createManagerStub = sinon.spy(PersistenceUserManager, 'create');
-      reloadStub = sinon
-        .stub(reload, '_reloadWithoutSaving')
-        .returns(Promise.resolve());
-      completeRedirectFnStub = sinon
-        .stub(
+      createManagerStub = vi.spyOn(PersistenceUserManager, 'create');
+      reloadStub = vi
+        .spyOn(reload, '_reloadWithoutSaving')
+        .mockReturnValue(Promise.resolve());
+      completeRedirectFnStub = vi
+        .spyOn(
           _getInstance<PopupRedirectResolverInternal>(
             browserPopupRedirectResolver
           ),
           '_completeRedirectFn'
         )
-        .returns(Promise.resolve(null));
+        .mockReturnValue(Promise.resolve(null));
     });
 
     async function initAndWait(
@@ -176,17 +178,18 @@ describe('core/auth/initializeAuth', () => {
 
     it('converts single persistence to array', async () => {
       const auth = await initAndWait(inMemoryPersistence);
-      expect(createManagerStub).to.have.been.calledWith(auth, [
+      expect(createManagerStub).toHaveBeenCalledWith(auth, [
         _getInstance(inMemoryPersistence)
       ]);
     });
 
     it('pulls the user from storage', async () => {
-      sinon
-        .stub(_getInstance<PersistenceInternal>(inMemoryPersistence), '_get')
-        .returns(Promise.resolve(testUser(oldAuth, 'uid').toJSON()));
+      vi.spyOn(
+        _getInstance<PersistenceInternal>(inMemoryPersistence),
+        '_get'
+      ).mockReturnValue(Promise.resolve(testUser(oldAuth, 'uid').toJSON()));
       const auth = await initAndWait(inMemoryPersistence);
-      expect(auth.currentUser!.uid).to.eq('uid');
+      expect(auth.currentUser!.uid).toBe('uid');
     });
 
     it('calls create with the persistence in order', async () => {
@@ -194,7 +197,7 @@ describe('core/auth/initializeAuth', () => {
         inMemoryPersistence,
         browserLocalPersistence
       ]);
-      expect(createManagerStub).to.have.been.calledWith(auth, [
+      expect(createManagerStub).toHaveBeenCalledWith(auth, [
         _getInstance(inMemoryPersistence),
         _getInstance(browserLocalPersistence)
       ]);
@@ -203,17 +206,16 @@ describe('core/auth/initializeAuth', () => {
     it('does not reload redirect users', async () => {
       const user = testUser(oldAuth, 'uid');
       user._redirectEventId = 'event-id';
-      sinon
-        .stub(_getInstance<PersistenceInternal>(inMemoryPersistence), '_get')
-        .returns(Promise.resolve(user.toJSON()));
-      sinon
-        .stub(
-          _getInstance<PersistenceInternal>(browserSessionPersistence),
-          '_get'
-        )
-        .returns(Promise.resolve(user.toJSON()));
+      vi.spyOn(
+        _getInstance<PersistenceInternal>(inMemoryPersistence),
+        '_get'
+      ).mockReturnValue(Promise.resolve(user.toJSON()));
+      vi.spyOn(
+        _getInstance<PersistenceInternal>(browserSessionPersistence),
+        '_get'
+      ).mockReturnValue(Promise.resolve(user.toJSON()));
       await initAndWait(inMemoryPersistence);
-      expect(reload._reloadWithoutSaving).not.to.have.been.called;
+      expect(reload._reloadWithoutSaving).not.toHaveBeenCalled();
     });
 
     it('does not early-initialize the resolver if _shouldInitProactively is false', async () => {
@@ -221,10 +223,14 @@ describe('core/auth/initializeAuth', () => {
       const resolverInternal: PopupRedirectResolverInternal = _getInstance(
         popupRedirectResolver
       );
-      sinon.stub(resolverInternal, '_shouldInitProactively').value(false);
-      sinon.spy(resolverInternal, '_initialize');
+      vi.spyOn(
+        resolverInternal,
+        '_shouldInitProactively',
+        'get'
+      ).mockReturnValue(false);
+      vi.spyOn(resolverInternal, '_initialize');
       await initAndWait(inMemoryPersistence, popupRedirectResolver);
-      expect(resolverInternal._initialize).not.to.have.been.called;
+      expect(resolverInternal._initialize).not.toHaveBeenCalled();
     });
 
     it('early-initializes the resolver if _shouldInitProactively is true', async () => {
@@ -232,10 +238,14 @@ describe('core/auth/initializeAuth', () => {
       const resolverInternal: PopupRedirectResolverInternal = _getInstance(
         popupRedirectResolver
       );
-      sinon.stub(resolverInternal, '_shouldInitProactively').value(true);
-      sinon.spy(resolverInternal, '_initialize');
+      vi.spyOn(
+        resolverInternal,
+        '_shouldInitProactively',
+        'get'
+      ).mockReturnValue(true);
+      vi.spyOn(resolverInternal, '_initialize');
       await initAndWait(inMemoryPersistence, popupRedirectResolver);
-      expect(resolverInternal._initialize).to.have.been.called;
+      expect(resolverInternal._initialize).toHaveBeenCalled();
     });
 
     it('does not halt init if resolver fails', async () => {
@@ -243,72 +253,76 @@ describe('core/auth/initializeAuth', () => {
       const resolverInternal: PopupRedirectResolverInternal = _getInstance(
         popupRedirectResolver
       );
-      sinon.stub(resolverInternal, '_shouldInitProactively').value(true);
-      sinon.stub(resolverInternal, '_initialize').rejects(new Error());
-      await expect(initAndWait(inMemoryPersistence, popupRedirectResolver)).not
-        .to.be.rejected;
+      vi.spyOn(
+        resolverInternal,
+        '_shouldInitProactively',
+        'get'
+      ).mockReturnValue(true);
+      vi.spyOn(resolverInternal, '_initialize').mockRejectedValue(new Error());
+      await expect(
+        initAndWait(inMemoryPersistence, popupRedirectResolver)
+      ).resolves.toBeDefined();
     });
 
     it('reloads non-redirect users', async () => {
-      sinon
-        .stub(_getInstance<PersistenceInternal>(inMemoryPersistence), '_get')
-        .returns(Promise.resolve(testUser(oldAuth, 'uid').toJSON()));
-      sinon
-        .stub(
-          _getInstance<PersistenceInternal>(browserSessionPersistence),
-          '_get'
-        )
-        .returns(Promise.resolve(null));
+      vi.spyOn(
+        _getInstance<PersistenceInternal>(inMemoryPersistence),
+        '_get'
+      ).mockReturnValue(Promise.resolve(testUser(oldAuth, 'uid').toJSON()));
+      vi.spyOn(
+        _getInstance<PersistenceInternal>(browserSessionPersistence),
+        '_get'
+      ).mockReturnValue(Promise.resolve(null));
 
       await initAndWait(inMemoryPersistence);
-      expect(reload._reloadWithoutSaving).to.have.been.called;
+      expect(reload._reloadWithoutSaving).toHaveBeenCalled();
     });
 
     it('Does not reload if the event ids match', async () => {
       const user = testUser(oldAuth, 'uid');
       user._redirectEventId = 'event-id';
 
-      sinon
-        .stub(_getInstance<PersistenceInternal>(inMemoryPersistence), '_get')
-        .returns(Promise.resolve(user.toJSON()));
-      sinon
-        .stub(
-          _getInstance<PersistenceInternal>(browserSessionPersistence),
-          '_get'
-        )
-        .returns(Promise.resolve(user.toJSON()));
+      vi.spyOn(
+        _getInstance<PersistenceInternal>(inMemoryPersistence),
+        '_get'
+      ).mockReturnValue(Promise.resolve(user.toJSON()));
+      vi.spyOn(
+        _getInstance<PersistenceInternal>(browserSessionPersistence),
+        '_get'
+      ).mockReturnValue(Promise.resolve(user.toJSON()));
 
       await initAndWait(inMemoryPersistence, browserPopupRedirectResolver);
-      expect(reload._reloadWithoutSaving).not.to.have.been.called;
+      expect(reload._reloadWithoutSaving).not.toHaveBeenCalled();
     });
 
     it('Reloads if the event ids do not match', async () => {
       const user = testUser(oldAuth, 'uid');
       user._redirectEventId = 'event-id';
 
-      sinon
-        .stub(_getInstance<PersistenceInternal>(inMemoryPersistence), '_get')
-        .returns(Promise.resolve(user.toJSON()));
+      vi.spyOn(
+        _getInstance<PersistenceInternal>(inMemoryPersistence),
+        '_get'
+      ).mockReturnValue(Promise.resolve(user.toJSON()));
 
       user._redirectEventId = 'some-other-id';
-      sinon
-        .stub(
-          _getInstance<PersistenceInternal>(browserSessionPersistence),
-          '_get'
-        )
-        .returns(Promise.resolve(user.toJSON()));
+      vi.spyOn(
+        _getInstance<PersistenceInternal>(browserSessionPersistence),
+        '_get'
+      ).mockReturnValue(Promise.resolve(user.toJSON()));
 
       await initAndWait(inMemoryPersistence, browserPopupRedirectResolver);
-      expect(reload._reloadWithoutSaving).to.have.been.called;
+      expect(reload._reloadWithoutSaving).toHaveBeenCalled();
     });
 
     it('Nulls out the current user if reload fails', async () => {
-      const stub = sinon.stub(
-        _getInstance<PersistenceInternal>(inMemoryPersistence)
+      const stub = _getInstance<PersistenceInternal>(inMemoryPersistence);
+      vi.spyOn(stub, '_get').mockReturnValue(
+        Promise.resolve(testUser(oldAuth, 'uid').toJSON())
       );
-      stub._get.returns(Promise.resolve(testUser(oldAuth, 'uid').toJSON()));
-      stub._remove.returns(Promise.resolve());
-      reloadStub.returns(
+      const removeSpy = vi
+        .spyOn(stub, '_remove')
+        .mockReturnValue(Promise.resolve());
+      reloadStub.mockReturnValue(
         Promise.reject(
           _createError(AuthErrorCode.TOKEN_EXPIRED, {
             appName: 'app'
@@ -317,16 +331,18 @@ describe('core/auth/initializeAuth', () => {
       );
 
       await initAndWait(inMemoryPersistence);
-      expect(stub._remove).to.have.been.called;
+      expect(removeSpy).toHaveBeenCalled();
     });
 
     it('Keeps current user if reload fails with network error', async () => {
-      const stub = sinon.stub(
-        _getInstance<PersistenceInternal>(inMemoryPersistence)
+      const stub = _getInstance<PersistenceInternal>(inMemoryPersistence);
+      vi.spyOn(stub, '_get').mockReturnValue(
+        Promise.resolve(testUser(oldAuth, 'uid').toJSON())
       );
-      stub._get.returns(Promise.resolve(testUser(oldAuth, 'uid').toJSON()));
-      stub._remove.returns(Promise.resolve());
-      reloadStub.returns(
+      const removeSpy = vi
+        .spyOn(stub, '_remove')
+        .mockReturnValue(Promise.resolve());
+      reloadStub.mockReturnValue(
         Promise.reject(
           _createError(AuthErrorCode.NETWORK_REQUEST_FAILED, {
             appName: 'app'
@@ -335,13 +351,13 @@ describe('core/auth/initializeAuth', () => {
       );
 
       await initAndWait(inMemoryPersistence);
-      expect(stub._remove).not.to.have.been.called;
+      expect(removeSpy).not.toHaveBeenCalled();
     });
 
     it('sets auth name and config', async () => {
       const auth = await initAndWait(inMemoryPersistence);
-      expect(auth.name).to.eq(FAKE_APP.name);
-      expect(auth.config).to.eql({
+      expect(auth.name).toBe(FAKE_APP.name);
+      expect(auth.config).toEqual({
         apiKey: FAKE_APP.options.apiKey,
         authDomain: FAKE_APP.options.authDomain,
         apiHost: DefaultConfig.API_HOST,
@@ -353,10 +369,10 @@ describe('core/auth/initializeAuth', () => {
     });
 
     it('initialization sets the callback UID correctly', async () => {
-      const stub = sinon.stub(
-        _getInstance<PersistenceInternal>(inMemoryPersistence)
+      const stub = _getInstance<PersistenceInternal>(inMemoryPersistence);
+      vi.spyOn(stub, '_get').mockReturnValue(
+        Promise.resolve(testUser(oldAuth, 'uid').toJSON())
       );
-      stub._get.returns(Promise.resolve(testUser(oldAuth, 'uid').toJSON()));
       let authStateChangeCalls = 0;
 
       const auth = (await initAndWait(inMemoryPersistence)) as AuthInternal;
@@ -368,17 +384,19 @@ describe('core/auth/initializeAuth', () => {
       await new Promise(resolve => {
         setTimeout(resolve, 200);
       });
-      expect(authStateChangeCalls).to.eq(1);
+      expect(authStateChangeCalls).toBe(1);
     });
 
-    context('#tryRedirectSignIn', () => {
+    describe('#tryRedirectSignIn', () => {
       it('returns null and clears the redirect user in case of error', async () => {
-        const stub = sinon.stub(
-          _getInstance<PersistenceInternal>(browserSessionPersistence)
+        const stub = _getInstance<PersistenceInternal>(
+          browserSessionPersistence
         );
-        stub._isAvailable.returns(Promise.resolve(true));
-        stub._remove.returns(Promise.resolve());
-        completeRedirectFnStub.returns(Promise.reject(new Error('no')));
+        vi.spyOn(stub, '_isAvailable').mockReturnValue(Promise.resolve(true));
+        const removeSpy = vi
+          .spyOn(stub, '_remove')
+          .mockReturnValue(Promise.resolve());
+        completeRedirectFnStub.mockReturnValue(Promise.reject(new Error('no')));
 
         // Manually initialize auth to make sure no error is thrown,
         // since the _initializeAuthInstance function floats
@@ -401,10 +419,10 @@ describe('core/auth/initializeAuth', () => {
             [_getInstance(inMemoryPersistence)],
             browserPopupRedirectResolver
           )
-        ).to.not.be.rejected;
+        ).resolves.toBeUndefined();
 
         await initAndWait([inMemoryPersistence], browserPopupRedirectResolver);
-        expect(stub._remove).to.have.been.called;
+        expect(removeSpy).toHaveBeenCalled();
       });
 
       it('does not run redirect sign in attempt if authDomain not set', async () => {
@@ -413,12 +431,12 @@ describe('core/auth/initializeAuth', () => {
           browserPopupRedirectResolver,
           ''
         );
-        expect(completeRedirectFnStub).not.to.have.been.called;
+        expect(completeRedirectFnStub).not.toHaveBeenCalled();
       });
 
       it('signs in the redirect user if found', async () => {
         let user: UserInternal | null = null;
-        completeRedirectFnStub.callsFake((auth: AuthInternal) => {
+        completeRedirectFnStub.mockImplementation((auth: AuthInternal) => {
           user = testUser(auth, 'uid', 'redirectUser@test.com');
           return Promise.resolve(
             new UserCredentialImpl({
@@ -433,17 +451,17 @@ describe('core/auth/initializeAuth', () => {
           [inMemoryPersistence],
           browserPopupRedirectResolver
         );
-        expect(user).not.to.be.null;
-        expect(auth.currentUser).to.eq(user);
+        expect(user).not.toBeNull();
+        expect(auth.currentUser).toBe(user);
       });
 
       it('does not halt old user load if middleware throws', async () => {
-        const stub = sinon.stub(
-          _getInstance<PersistenceInternal>(inMemoryPersistence)
-        );
+        const stub = _getInstance<PersistenceInternal>(inMemoryPersistence);
         const oldUser = testUser(oldAuth, 'old-uid');
-        stub._get.returns(Promise.resolve(oldUser.toJSON()));
-        const overrideSpy = sinon.spy(
+        vi.spyOn(stub, '_get').mockReturnValue(
+          Promise.resolve(oldUser.toJSON())
+        );
+        const overrideSpy = vi.spyOn(
           _getInstance<PopupRedirectResolverInternal>(
             browserPopupRedirectResolver
           ),
@@ -456,18 +474,18 @@ describe('core/auth/initializeAuth', () => {
           /* blockMiddleware */ true
         );
 
-        expect(auth.currentUser!.uid).to.eq(oldUser.uid);
-        expect(reload._reloadWithoutSaving).to.have.been.called;
-        expect(overrideSpy).not.to.have.been.called;
+        expect(auth.currentUser!.uid).toBe(oldUser.uid);
+        expect(reload._reloadWithoutSaving).toHaveBeenCalled();
+        expect(overrideSpy).not.toHaveBeenCalled();
       });
 
       it('Reloads and uses old user if middleware throws', async () => {
-        const stub = sinon.stub(
-          _getInstance<PersistenceInternal>(inMemoryPersistence)
-        );
+        const stub = _getInstance<PersistenceInternal>(inMemoryPersistence);
         const oldUser = testUser(oldAuth, 'old-uid');
-        stub._get.returns(Promise.resolve(oldUser.toJSON()));
-        const overrideSpy = sinon.spy(
+        vi.spyOn(stub, '_get').mockReturnValue(
+          Promise.resolve(oldUser.toJSON())
+        );
+        const overrideSpy = vi.spyOn(
           _getInstance<PopupRedirectResolverInternal>(
             browserPopupRedirectResolver
           ),
@@ -475,7 +493,7 @@ describe('core/auth/initializeAuth', () => {
         );
 
         let user: UserInternal | null = null;
-        completeRedirectFnStub.callsFake((auth: AuthInternal) => {
+        completeRedirectFnStub.mockImplementation((auth: AuthInternal) => {
           user = testUser(auth, 'uid', 'redirectUser@test.com');
           return Promise.resolve(
             new UserCredentialImpl({
@@ -492,18 +510,16 @@ describe('core/auth/initializeAuth', () => {
           FAKE_APP.options.authDomain,
           /* blockMiddleware */ true
         );
-        expect(user).not.to.be.null;
-        expect(auth.currentUser!.uid).to.eq(oldUser.uid);
-        expect(reload._reloadWithoutSaving).to.have.been.called;
-        expect(overrideSpy).to.have.been.called;
+        expect(user).not.toBeNull();
+        expect(auth.currentUser!.uid).toBe(oldUser.uid);
+        expect(reload._reloadWithoutSaving).toHaveBeenCalled();
+        expect(overrideSpy).toHaveBeenCalled();
       });
 
       it('Nulls current user if redirect blocked by middleware', async () => {
-        const stub = sinon.stub(
-          _getInstance<PersistenceInternal>(inMemoryPersistence)
-        );
-        stub._get.returns(Promise.resolve(null));
-        completeRedirectFnStub.callsFake((auth: AuthInternal) => {
+        const stub = _getInstance<PersistenceInternal>(inMemoryPersistence);
+        vi.spyOn(stub, '_get').mockReturnValue(Promise.resolve(null));
+        completeRedirectFnStub.mockImplementation((auth: AuthInternal) => {
           const user = testUser(auth, 'uid', 'redirectUser@test.com');
           return Promise.resolve(
             new UserCredentialImpl({
@@ -520,9 +536,9 @@ describe('core/auth/initializeAuth', () => {
           FAKE_APP.options.authDomain,
           /* blockMiddleware */ true
         );
-        expect(completeRedirectFnStub).to.have.been.called;
-        expect(auth.currentUser).to.be.null;
-        expect(reload._reloadWithoutSaving).not.to.have.been.called;
+        expect(completeRedirectFnStub).toHaveBeenCalled();
+        expect(auth.currentUser).toBeNull();
+        expect(reload._reloadWithoutSaving).not.toHaveBeenCalled();
       });
     });
   });

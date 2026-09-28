@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-import * as sinon from 'sinon';
 
 import { FirebaseError } from '@firebase/util';
 
@@ -42,28 +38,28 @@ import { ApplicationVerifierInternal } from '../../model/application_verifier';
 import * as jsHelpers from '../load_js';
 import { mockLoadJS } from '../../../test/helpers/mock_loadjs';
 
-use(chaiAsPromised);
+vi.mock('../load_js', { spy: true });
 
 describe('platform_browser/providers/phone', () => {
   let auth: TestAuth;
   let v2Verifier: ApplicationVerifierInternal;
 
   beforeEach(async () => {
+    vi.clearAllMocks();
     fetch.setUp();
     auth = await testAuth();
     auth.settings.appVerificationDisabledForTesting = false;
     v2Verifier = new RecaptchaVerifier(auth, document.createElement('div'), {});
-    sinon
-      .stub(v2Verifier, 'verify')
-      .returns(Promise.resolve('verification-code'));
+    vi.spyOn(v2Verifier, 'verify').mockResolvedValue('verification-code');
   });
 
   afterEach(() => {
     fetch.tearDown();
-    sinon.restore();
+    delete (window as any).grecaptcha;
+    vi.restoreAllMocks();
   });
 
-  context('#verifyPhoneNumber', () => {
+  describe('#verifyPhoneNumber', () => {
     it('calls verify on the appVerifier and then calls the server when recaptcha enterprise is disabled', async () => {
       const recaptchaConfigResponseOff = {
         // no recaptcha key if no rCE provider is enabled
@@ -79,11 +75,11 @@ describe('platform_browser/providers/phone', () => {
         return;
       }
 
-      sinon.stub(jsHelpers, '_loadJS').callsFake(mockLoadJS);
+      vi.spyOn(jsHelpers, '_loadJS').mockImplementation(mockLoadJS);
       window.grecaptcha = recaptcha;
-      sinon
-        .stub(recaptcha.enterprise, 'execute')
-        .returns(Promise.resolve('enterprise-token'));
+      vi.spyOn(recaptcha.enterprise, 'execute').mockResolvedValue(
+        'enterprise-token'
+      );
 
       mockEndpointWithParams(
         Endpoint.GET_RECAPTCHA_CONFIG,
@@ -103,8 +99,8 @@ describe('platform_browser/providers/phone', () => {
         '+15105550000',
         v2Verifier
       );
-      expect(result).to.eq('verification-id');
-      expect(route.calls[0].request).to.eql({
+      expect(result).toBe('verification-id');
+      expect(route.calls[0].request).toEqual({
         phoneNumber: '+15105550000',
         recaptchaToken: 'verification-code',
         captchaResponse: FAKE_TOKEN,
@@ -128,9 +124,9 @@ describe('platform_browser/providers/phone', () => {
         return;
       }
       window.grecaptcha = recaptcha;
-      sinon
-        .stub(recaptcha.enterprise, 'execute')
-        .returns(Promise.resolve('enterprise-token'));
+      vi.spyOn(recaptcha.enterprise, 'execute').mockResolvedValue(
+        'enterprise-token'
+      );
 
       mockEndpointWithParams(
         Endpoint.GET_RECAPTCHA_CONFIG,
@@ -142,9 +138,10 @@ describe('platform_browser/providers/phone', () => {
       );
 
       const provider = new PhoneAuthProvider(auth);
-      await expect(
-        provider.verifyPhoneNumber('+15105550000')
-      ).to.be.rejectedWith(FirebaseError, 'auth/argument-error');
+      await expect(provider.verifyPhoneNumber('+15105550000')).rejects.toThrow(
+        FirebaseError,
+        'auth/argument-error'
+      );
     });
 
     it('calls the server without appVerifier when recaptcha enterprise is enabled', async () => {
@@ -161,11 +158,11 @@ describe('platform_browser/providers/phone', () => {
       if (typeof window === 'undefined') {
         return;
       }
-      sinon.stub(jsHelpers, '_loadJS').callsFake(mockLoadJS);
+      vi.spyOn(jsHelpers, '_loadJS').mockImplementation(mockLoadJS);
       window.grecaptcha = recaptcha;
-      sinon
-        .stub(recaptcha.enterprise, 'execute')
-        .returns(Promise.resolve('enterprise-token'));
+      vi.spyOn(recaptcha.enterprise, 'execute').mockResolvedValue(
+        'enterprise-token'
+      );
 
       mockEndpointWithParams(
         Endpoint.GET_RECAPTCHA_CONFIG,
@@ -182,8 +179,8 @@ describe('platform_browser/providers/phone', () => {
 
       const provider = new PhoneAuthProvider(auth);
       const result = await provider.verifyPhoneNumber('+15105550000');
-      expect(result).to.eq('verification-id');
-      expect(route.calls[0].request).to.eql({
+      expect(result).toBe('verification-id');
+      expect(route.calls[0].request).toEqual({
         phoneNumber: '+15105550000',
         captchaResponse: 'enterprise-token',
         clientType: RecaptchaClientType.WEB,
@@ -205,11 +202,11 @@ describe('platform_browser/providers/phone', () => {
       if (typeof window === 'undefined') {
         return;
       }
-      sinon.stub(jsHelpers, '_loadJS').callsFake(mockLoadJS);
+      vi.spyOn(jsHelpers, '_loadJS').mockImplementation(mockLoadJS);
       window.grecaptcha = recaptcha;
-      sinon
-        .stub(recaptcha.enterprise, 'execute')
-        .returns(Promise.resolve('enterprise-token'));
+      vi.spyOn(recaptcha.enterprise, 'execute').mockResolvedValue(
+        'enterprise-token'
+      );
 
       mockEndpointWithParams(
         Endpoint.GET_RECAPTCHA_CONFIG,
@@ -229,8 +226,8 @@ describe('platform_browser/providers/phone', () => {
         '+15105550000',
         v2Verifier
       );
-      expect(result).to.eq('verification-id');
-      expect(route.calls[0].request).to.eql({
+      expect(result).toBe('verification-id');
+      expect(route.calls[0].request).toEqual({
         phoneNumber: '+15105550000',
         captchaResponse: 'enterprise-token',
         clientType: RecaptchaClientType.WEB,
@@ -239,15 +236,15 @@ describe('platform_browser/providers/phone', () => {
     });
   });
 
-  context('.credential', () => {
+  describe('.credential', () => {
     it('creates a phone auth credential', () => {
       const credential = PhoneAuthProvider.credential('id', 'code');
 
       // Allows us to inspect the object
       const blob = credential.toJSON() as Record<string, string>;
 
-      expect(blob.verificationId).to.eq('id');
-      expect(blob.verificationCode).to.eq('code');
+      expect(blob.verificationId).toBe('id');
+      expect(blob.verificationCode).toBe('code');
     });
   });
 });

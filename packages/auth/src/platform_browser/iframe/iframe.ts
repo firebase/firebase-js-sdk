@@ -17,7 +17,7 @@
 
 import { SDK_VERSION } from '@firebase/app';
 import { querystring } from '@firebase/util';
-import { DefaultConfig } from '../../../internal';
+import { DefaultConfig } from '../../core/auth/auth_impl';
 
 import { AuthErrorCode } from '../../core/errors';
 import { _assert, _createError } from '../../core/util/assert';

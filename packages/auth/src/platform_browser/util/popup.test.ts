@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC.
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,113 +15,111 @@
  * limitations under the License.
  */
 
-import { expect, use } from 'chai';
-import * as sinon from 'sinon';
-import sinonChai from 'sinon-chai';
-
 import { FirebaseError } from '@firebase/util';
 import * as utils from '@firebase/util';
 
 import { _open, AuthPopup } from './popup';
 import { AuthInternal } from '../../model/auth';
 import { testAuth } from '../../../test/helpers/mock_auth';
+import { MockInstance } from 'vitest';
 
-use(sinonChai);
+vi.mock('@firebase/util', { spy: true });
 
 describe('platform_browser/util/popup', () => {
-  let windowOpenStub: sinon.SinonStub;
+  let windowOpenStub: MockInstance;
   let auth: AuthInternal;
-  let popupStub: sinon.SinonStubbedInstance<Window>;
+  let popupStub: { focus: MockInstance; close: MockInstance } & Window;
 
   function setUA(ua: string): void {
-    sinon.stub(utils, 'getUA').returns(ua);
+    vi.spyOn(utils, 'getUA').mockReturnValue(ua);
   }
 
   function windowTarget(): string {
-    return windowOpenStub.firstCall.args[1];
+    return windowOpenStub.mock.calls[0][1];
   }
 
   function windowURL(): string {
-    return windowOpenStub.firstCall.args[0];
+    return windowOpenStub.mock.calls[0][0];
   }
 
   function windowOptions(): string {
-    return windowOpenStub.firstCall.args[2];
+    return windowOpenStub.mock.calls[0][2];
   }
 
   beforeEach(async () => {
-    windowOpenStub = sinon.stub(window, 'open');
-    popupStub = sinon.stub({
-      focus: () => {},
-      close: () => {}
-    } as unknown as Window);
-    windowOpenStub.returns(popupStub);
+    windowOpenStub = vi.spyOn(window, 'open');
+    popupStub = {
+      focus: vi.fn(),
+      close: vi.fn()
+    } as unknown as { focus: MockInstance; close: MockInstance } & Window;
+    windowOpenStub.mockReturnValue(popupStub);
     auth = await testAuth();
   });
 
   afterEach(() => {
     sinon.restore();
+    vi.restoreAllMocks();
   });
 
   it('sets target to name param if not chrome UA', () => {
     setUA('notchrome');
     _open(auth, 'url', 'name');
-    expect(windowTarget()).to.eq('name');
+    expect(windowTarget()).toBe('name');
   });
 
   it('sets target to _blank if on chrome IOS', () => {
     setUA('crios/');
     _open(auth, 'url', 'name');
-    expect(windowTarget()).to.eq('_blank');
+    expect(windowTarget()).toBe('_blank');
   });
 
   it('sets the firefox url to a default if not provided', () => {
     setUA('firefox/');
     _open(auth);
-    expect(windowURL()).to.eq('http://localhost');
+    expect(windowURL()).toBe('http://localhost');
   });
 
   it('sets the firefox url to the value provided', () => {
     setUA('firefox/');
     _open(auth, 'url');
-    expect(windowURL()).to.eq('url');
+    expect(windowURL()).toBe('url');
   });
 
   it('sets non-firefox url to empty if not provided', () => {
     setUA('not-ff/');
     _open(auth);
-    expect(windowURL()).to.eq('');
+    expect(windowURL()).toBe('');
   });
 
   it('sets non-firefox url to url if not provided', () => {
     setUA('not-ff/');
     _open(auth, 'url');
-    expect(windowURL()).to.eq('url');
+    expect(windowURL()).toBe('url');
   });
 
   it('sets scrollbars to yes in popup', () => {
     setUA('firefox/');
     _open(auth);
-    expect(windowOptions()).to.include('scrollbars=yes');
+    expect(windowOptions()).toContain('scrollbars=yes');
   });
 
   it('centers the popup in the screen', () => {
-    sinon.stub(window.screen, 'availHeight').value(1000);
-    sinon.stub(window.screen, 'availWidth').value(1000);
+    vi.spyOn(window.screen, 'availHeight', 'get').mockReturnValue(1000);
+    vi.spyOn(window.screen, 'availWidth', 'get').mockReturnValue(1000);
     _open(auth);
-    expect(windowOptions()).to.include('top=200');
-    expect(windowOptions()).to.include('left=250');
+    expect(windowOptions()).toContain('top=200');
+    expect(windowOptions()).toContain('left=250');
   });
 
   it('errors if the popup is blocked', () => {
     setUA('');
-    windowOpenStub.returns(undefined);
-    expect(() => _open(auth)).to.throw(FirebaseError, 'auth/popup-blocked');
+    windowOpenStub.mockReturnValue(undefined);
+    expect(() => _open(auth)).toThrow(FirebaseError, 'auth/popup-blocked');
   });
 
   it('builds the proper options string', () => {
-    sinon.stub(window.screen, 'availHeight').value(1000);
-    sinon.stub(window.screen, 'availWidth').value(2000);
+    vi.spyOn(window.screen, 'availHeight', 'get').mockReturnValue(1000);
+    vi.spyOn(window.screen, 'availWidth', 'get').mockReturnValue(2000);
 
     setUA('');
     _open(auth);
@@ -134,7 +132,7 @@ describe('platform_browser/util/popup', () => {
         return accum;
       }, {});
 
-    expect(options).to.eql({
+    expect(options).toEqual({
       location: 'yes',
       resizable: 'yes',
       statusbar: 'yes',
@@ -152,16 +150,18 @@ describe('platform_browser/util/popup', () => {
   it('calls focus on the new popup', () => {
     setUA('');
     _open(auth);
-    expect(popupStub.focus).to.have.been.called;
+    expect(popupStub.focus).toHaveBeenCalled();
   });
 
   it('does not fail if window.focus errors', () => {
-    popupStub.focus.throws(new Error('lol no'));
+    popupStub.focus.mockImplementation(() => {
+      throw new Error('lol no');
+    });
     setUA('');
-    expect(() => _open(auth)).not.to.throw(Error);
+    expect(() => _open(auth)).not.toThrow(Error);
   });
 
-  context('resulting popup object', () => {
+  describe('resulting popup object', () => {
     let authPopup: AuthPopup;
     beforeEach(() => {
       setUA('');
@@ -169,17 +169,19 @@ describe('platform_browser/util/popup', () => {
     });
 
     it('has a window object', () => {
-      expect(authPopup.window).to.eq(popupStub);
+      expect(authPopup.window).toBe(popupStub);
     });
 
     it('calls through to the popup close', () => {
       authPopup.close();
-      expect(popupStub.close).to.have.been.called;
+      expect(popupStub.close).toHaveBeenCalled();
     });
 
     it('close() does not error if underlying call errors', () => {
-      popupStub.close.throws(new Error('not this time'));
-      expect(() => authPopup.close()).not.to.throw(Error);
+      popupStub.close.mockImplementation(() => {
+        throw new Error('not this time');
+      });
+      expect(() => authPopup.close()).not.toThrow(Error);
     });
   });
 });

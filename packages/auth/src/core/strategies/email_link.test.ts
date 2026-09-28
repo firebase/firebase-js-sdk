@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-import sinonChai from 'sinon-chai';
-import * as sinon from 'sinon';
 
 import { ActionCodeOperation } from '../../model/public_types';
 import { OperationType } from '../../model/enums';
@@ -49,8 +44,7 @@ import * as jsHelpers from '../../platform_browser/load_js';
 import { _initializeRecaptchaConfig } from '../../platform_browser/recaptcha/recaptcha_enterprise_verifier';
 import { mockLoadJS } from '../../../test/helpers/mock_loadjs';
 
-use(chaiAsPromised);
-use(sinonChai);
+vi.mock('../../platform_browser/load_js', { spy: true });
 
 describe('core/strategies/sendSignInLinkToEmail', () => {
   const email = 'foo@bar.com';
@@ -73,7 +67,7 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
       handleCodeInApp: true,
       url: 'continue-url'
     });
-    expect(mock.calls[0].request).to.eql({
+    expect(mock.calls[0].request).toEqual({
       requestType: ActionCodeOperation.EMAIL_SIGNIN,
       email,
       canHandleCodeInApp: true,
@@ -88,7 +82,7 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
         handleCodeInApp: false,
         url: 'continue-url'
       })
-    ).to.be.rejectedWith(FirebaseError, 'auth/argument-error).');
+    ).rejects.toThrow(FirebaseError, 'auth/argument-error).');
   });
 
   it('should surface errors', async () => {
@@ -107,14 +101,14 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
         handleCodeInApp: true,
         url: 'continue-url'
       })
-    ).to.be.rejectedWith(
+    ).rejects.toThrow(
       FirebaseError,
       'Firebase: The email address is badly formatted. (auth/invalid-email).'
     );
-    expect(mock.calls.length).to.eq(1);
+    expect(mock.calls.length).toBe(1);
   });
 
-  context('on iOS', () => {
+  describe('on iOS', () => {
     it('should pass action code parameters', async () => {
       const mock = mockEndpoint(Endpoint.SEND_OOB_CODE, {
         email
@@ -129,7 +123,7 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
         linkDomain: 'hosting-link-domain'
       });
 
-      expect(mock.calls[0].request).to.eql({
+      expect(mock.calls[0].request).toEqual({
         requestType: ActionCodeOperation.EMAIL_SIGNIN,
         email,
         continueUrl: 'my-url',
@@ -142,7 +136,7 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
     });
   });
 
-  context('on Android', () => {
+  describe('on Android', () => {
     it('should pass action code parameters', async () => {
       const mock = mockEndpoint(Endpoint.SEND_OOB_CODE, {
         email
@@ -158,7 +152,7 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
         dynamicLinkDomain: 'fdl-domain',
         linkDomain: 'hosting-link-domain'
       });
-      expect(mock.calls[0].request).to.eql({
+      expect(mock.calls[0].request).toEqual({
         requestType: ActionCodeOperation.EMAIL_SIGNIN,
         email,
         continueUrl: 'my-url',
@@ -173,7 +167,7 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
     });
   });
 
-  context('#recaptcha', () => {
+  describe('#recaptcha', () => {
     const recaptchaConfigResponseEnforce = {
       recaptchaKey: 'foo/bar/to/site-key',
       recaptchaEnforcementState: [
@@ -195,7 +189,7 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
       if (typeof window === 'undefined') {
         return;
       }
-      sinon.stub(jsHelpers, '_loadJS').callsFake(mockLoadJS);
+      vi.spyOn(jsHelpers, '_loadJS').mockImplementation(mockLoadJS);
       window.grecaptcha = recaptcha;
       sinon
         .stub(recaptcha.enterprise, 'execute')
@@ -203,7 +197,11 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
     });
 
     afterEach(() => {
+      if (typeof window !== 'undefined') {
+        delete (window as any).grecaptcha;
+      }
       sinon.restore();
+      vi.restoreAllMocks();
     });
 
     it('calls send sign in link to email with recaptcha enabled', async () => {
@@ -227,7 +225,7 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
         handleCodeInApp: true,
         url: 'continue-url'
       });
-      expect(apiMock.calls[0].request).to.eql({
+      expect(apiMock.calls[0].request).toEqual({
         requestType: ActionCodeOperation.EMAIL_SIGNIN,
         email,
         canHandleCodeInApp: true,
@@ -256,7 +254,7 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
         handleCodeInApp: true,
         url: 'continue-url'
       });
-      expect(apiMock.calls[0].request).to.eql({
+      expect(apiMock.calls[0].request).toEqual({
         requestType: ActionCodeOperation.EMAIL_SIGNIN,
         email,
         canHandleCodeInApp: true,
@@ -272,13 +270,14 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
       }
       window.grecaptcha = recaptcha;
       const stub = sinon.stub(recaptcha.enterprise, 'execute');
+      stub.returns(Promise.resolve('recaptcha-response'));
 
       // // First verification should fail with 'wrong-site-key'
       stub
         .withArgs('wrong-site-key', {
           action: RecaptchaActionName.GET_OOB_CODE
         })
-        .rejects();
+        .returns(Promise.reject(new Error('wrong-site-key')));
       // Second verification should succeed with site key refreshed
       stub
         .withArgs('site-key', { action: 'verify' })
@@ -304,7 +303,7 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
           handleCodeInApp: true,
           url: 'continue-url'
         })
-      ).to.not.be.rejected;
+      ).resolves.not.toThrow();
     });
 
     it('calls fallback to recaptcha flow when receiving MISSING_RECAPTCHA_TOKEN error', async () => {
@@ -348,6 +347,7 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
       const recaptcha = new MockGreCAPTCHATopLevel();
       window.grecaptcha = recaptcha;
       const stub = sinon.stub(recaptcha.enterprise, 'execute');
+      stub.returns(Promise.resolve('recaptcha-response'));
       stub
         .withArgs('site-key', {
           action: RecaptchaActionName.GET_OOB_CODE
@@ -369,7 +369,7 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
         handleCodeInApp: true,
         url: 'continue-url'
       });
-      expect(response).to.eq(undefined);
+      expect(response).toBe(undefined);
     });
   });
 });
@@ -381,33 +381,33 @@ describe('core/strategies/isSignInWithEmailLink', () => {
     auth = await testAuth();
   });
 
-  context('simple links', () => {
+  describe('simple links', () => {
     it('should recognize sign in links', () => {
       const link =
         'https://www.example.com/action?mode=signIn&oobCode=oobCode&apiKey=API_KEY';
-      expect(isSignInWithEmailLink(auth, link)).to.be.true;
+      expect(isSignInWithEmailLink(auth, link)).toBe(true);
     });
 
     it('should not recognize other email links', () => {
       const link =
         'https://www.example.com/action?mode=verifyEmail&oobCode=oobCode&apiKey=API_KEY';
-      expect(isSignInWithEmailLink(auth, link)).to.be.false;
+      expect(isSignInWithEmailLink(auth, link)).toBe(false);
     });
 
     it('should not recognize invalid links', () => {
       const link = 'https://www.example.com/action?mode=signIn';
-      expect(isSignInWithEmailLink(auth, link)).to.be.false;
+      expect(isSignInWithEmailLink(auth, link)).toBe(false);
     });
   });
 
-  context('deep links', () => {
+  describe('deep links', () => {
     it('should recognize valid links', () => {
       const deepLink =
         'https://www.example.com/action?mode=signIn&oobCode=oobCode&apiKey=API_KEY';
       const link = `https://example.app.goo.gl/?link=${encodeURIComponent(
         deepLink
       )}`;
-      expect(isSignInWithEmailLink(auth, link)).to.be.true;
+      expect(isSignInWithEmailLink(auth, link)).toBe(true);
     });
 
     it('should recognize valid links with deep_link_id', () => {
@@ -416,7 +416,7 @@ describe('core/strategies/isSignInWithEmailLink', () => {
       const link = `somexampleiosurl://google/link?deep_link_id=${encodeURIComponent(
         deepLink
       )}`;
-      expect(isSignInWithEmailLink(auth, link)).to.be.true;
+      expect(isSignInWithEmailLink(auth, link)).toBe(true);
     });
 
     it('should reject other email links', () => {
@@ -425,7 +425,7 @@ describe('core/strategies/isSignInWithEmailLink', () => {
       const link = `https://example.app.goo.gl/?link=${encodeURIComponent(
         deepLink
       )}`;
-      expect(isSignInWithEmailLink(auth, link)).to.be.false;
+      expect(isSignInWithEmailLink(auth, link)).toBe(false);
     });
 
     it('should reject invalid links', () => {
@@ -433,7 +433,7 @@ describe('core/strategies/isSignInWithEmailLink', () => {
       const link = `https://example.app.goo.gl/?link=${encodeURIComponent(
         deepLink
       )}`;
-      expect(isSignInWithEmailLink(auth, link)).to.be.false;
+      expect(isSignInWithEmailLink(auth, link)).toBe(false);
     });
   });
 });
@@ -472,18 +472,18 @@ describe('core/strategies/email_and_password/signInWithEmailLink', () => {
       'some-email',
       actionLink
     )) as UserCredentialInternal;
-    expect(_tokenResponse).to.eql({
+    expect(_tokenResponse).toEqual({
       idToken: 'id-token',
       refreshToken: 'refresh-token',
       expiresIn: '1234',
       localId: serverUser.localId!
     });
-    expect(operationType).to.eq(OperationType.SIGN_IN);
-    expect(user.uid).to.eq(serverUser.localId);
-    expect(user.isAnonymous).to.be.false;
+    expect(operationType).toBe(OperationType.SIGN_IN);
+    expect(user.uid).toBe(serverUser.localId);
+    expect(user.isAnonymous).toBe(false);
   });
 
-  context('mismatched tenant ID', () => {
+  describe('mismatched tenant ID', () => {
     it('should throw an error', async () => {
       const continueUrl = 'https://www.example.com/path/to/file?a=1&b=2#c=3';
       const actionLink =
@@ -494,7 +494,7 @@ describe('core/strategies/email_and_password/signInWithEmailLink', () => {
         '&languageCode=en&tenantId=OTHER_TENANT_ID&state=bla';
       await expect(
         signInWithEmailLink(auth, 'some-email', actionLink)
-      ).to.be.rejectedWith(FirebaseError, 'auth/tenant-id-mismatch');
+      ).rejects.toThrow(FirebaseError, 'auth/tenant-id-mismatch');
     });
   });
 });

@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-import { isMobileCordova, isReactNative } from '@firebase/util';
-import { _isOnline } from './navigator';
+import * as util from '@firebase/util';
+import * as navigator from './navigator';
 import { debugAssert } from './assert';
 
 export const enum DelayMin {
@@ -41,11 +41,11 @@ export class Delay {
       longDelay > shortDelay,
       'Short delay should be less than long delay!'
     );
-    this.isMobile = isMobileCordova() || isReactNative();
+    this.isMobile = util.isMobileCordova() || util.isReactNative();
   }
 
   get(): number {
-    if (!_isOnline()) {
+    if (!navigator._isOnline()) {
       // Pick the shorter timeout.
       return Math.min(DelayMin.OFFLINE, this.shortDelay);
     }
