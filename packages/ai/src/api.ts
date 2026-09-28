@@ -35,7 +35,7 @@ import { GoogleAIBackend } from './backend';
 import { TemplateGenerativeModel } from './models/template-generative-model';
 import { logger } from './logger';
 
-export { TemplateChatSession } from './public-types';
+export type { TemplateChatSession } from './public-types';
 export { ChatSession } from './methods/chat-session';
 export { ChatSessionBase } from './methods/chat-session-base';
 export { LiveSession } from './methods/live-session';
@@ -55,8 +55,8 @@ export {
 } from './backend';
 export {
   startAudioConversation,
-  AudioConversationController,
-  StartAudioConversationOptions
+  type AudioConversationController,
+  type StartAudioConversationOptions
 } from './methods/live-session-helpers';
 
 declare module '@firebase/component' {
