@@ -133,7 +133,7 @@ describe('TemplateChatSession', () => {
               role: 'user',
               parts: [{ type: 'text', text: 'hello' }]
             }
-                ],
+          ],
           inputs: TEMPLATE_VARS
         },
         {}
