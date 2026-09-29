@@ -87,7 +87,7 @@ describe('RealtimeHandler', () => {
 
     mockStorage = {
       getRealtimeBackoffMetadata: vi.fn().mockResolvedValue(undefined),
-      setRealtimeBackoffMetadata: vi.fn().mockResolvedValue(),
+      setRealtimeBackoffMetadata: vi.fn().mockResolvedValue(undefined),
       getActiveConfigEtag: vi.fn().mockResolvedValue('etag-1'),
       getActiveConfigTemplateVersion: vi.fn().mockResolvedValue(1),
       getActiveConfig: vi.fn().mockResolvedValue({}),
@@ -513,7 +513,7 @@ describe('RealtimeHandler', () => {
       await (realtime as any).fetchLatestConfig(MAXIMUM_FETCH_ATTEMPTS, 2);
 
       expect(propagateErrorSpy).toHaveBeenCalledTimes(1);
-      const error = propagateErrorSpy.mock.calls[0][0];
+      const error = propagateErrorSpy.mock.calls[0][0] as any;
       expect(error.code).toContain(ErrorCode.CONFIG_UPDATE_NOT_FETCHED);
     });
 

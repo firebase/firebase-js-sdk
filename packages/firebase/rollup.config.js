@@ -37,8 +37,6 @@ const typescriptPlugin = rollupTypescriptPlugin({
 
 const typescriptPluginCDN = rollupTypescriptPlugin({
   typescript,
-  allowJs: true,
-  include: ['*.ts', '**/*.ts', '*.js', '**/*.js'],
   tsconfigOverride: {
     compilerOptions: {
       declaration: false

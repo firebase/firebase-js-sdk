@@ -9,7 +9,9 @@
     "esModuleInterop": true,
     "declaration": true,
     "strict": true,
-    "sourceMap": true
+    "skipLibCheck": true,
+    "sourceMap": true,
+    "types": ["node", "mocha"]
   },
-  "exclude": ["dist/**/*"]
+  "exclude": ["dist/**/*", "tests/**/*.d.ts"]
 }

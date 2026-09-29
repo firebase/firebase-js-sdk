@@ -21,7 +21,7 @@ import {
   RemoteConfig as RemoteConfigType,
   LogLevel as RemoteConfigLogLevel
 } from '../src/public_types';
-import type { MockInstance } from 'vitest';
+import type { Mock, MockInstance } from 'vitest';
 import { StorageCache } from '../src/storage/storage_cache';
 import { Storage } from '../src/storage/storage';
 import { RemoteConfig } from '../src/remote_config';
@@ -75,7 +75,7 @@ describe('RemoteConfig', () => {
   let rc: RemoteConfigType;
   let analyticsProvider: Provider<FirebaseAnalyticsInternalName>;
 
-  let getActiveConfigStub: MockInstance;
+  let getActiveConfigStub: Mock;
   let loggerLogLevelSpy: MockInstance;
 
   beforeEach(() => {
@@ -398,12 +398,12 @@ describe('RemoteConfig', () => {
     ];
 
     let updateActiveExperimentsStub: MockInstance;
-    let getLastSuccessfulFetchResponseStub: MockInstance;
-    let getActiveConfigEtagStub: MockInstance;
-    let getActiveConfigTemplateVersionStub: MockInstance;
-    let setActiveConfigEtagStub: MockInstance;
-    let setActiveConfigStub: MockInstance;
-    let setActiveConfigTemplateVersionStub: MockInstance;
+    let getLastSuccessfulFetchResponseStub: Mock;
+    let getActiveConfigEtagStub: Mock;
+    let getActiveConfigTemplateVersionStub: Mock;
+    let setActiveConfigEtagStub: Mock;
+    let setActiveConfigStub: Mock;
+    let setActiveConfigTemplateVersionStub: Mock;
 
     beforeEach(() => {
       updateActiveExperimentsStub = vi

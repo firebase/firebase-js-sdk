@@ -2,6 +2,7 @@
   "extends": "../../config/tsconfig.base.json",
   "compilerOptions": {
     "noImplicitAny": false,
+    "noUncheckedSideEffectImports": false,
     "types": ["node", "trusted-types", "../../node_modules/vitest/globals"]
   },
   "exclude": ["vitest.config.mjs"]
