@@ -121,7 +121,7 @@ jobs:
       with:
         credentials_json: ${{ secrets.RELEASE_TRACKER_SA_KEY }}
         token_format: 'id_token'
-        id_token_audience: ${{ secrets.RELEASE_TRACKER_URL }}
+        id_token_audience: ${{ secrets.RELEASE_TRACKER_URL }}/logProduction
     - name: Log to release tracker
       # Sends release information to cloud functions endpoint of release tracker.
       run: |

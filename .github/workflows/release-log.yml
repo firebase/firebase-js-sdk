@@ -44,7 +44,7 @@ jobs:
         with:
           credentials_json: ${{ secrets.RELEASE_TRACKER_SA_KEY }}
           token_format: 'id_token'
-          id_token_audience: ${{ secrets.RELEASE_TRACKER_URL }}
+          id_token_audience: ${{ secrets.RELEASE_TRACKER_URL }}/logChangesetPR
 
       - name: Get PR number and send to tracker.
         run: node scripts/ci/log-changesets.js

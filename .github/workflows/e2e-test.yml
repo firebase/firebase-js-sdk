@@ -90,7 +90,7 @@ jobs:
         with:
           credentials_json: ${{ secrets.RELEASE_TRACKER_SA_KEY }}
           token_format: 'id_token'
-          id_token_audience: ${{ secrets.RELEASE_TRACKER_URL }}
+          id_token_audience: ${{ secrets.RELEASE_TRACKER_URL }}/logE2EResult
       - name: Tests succeeded
         if: success()
         run: node scripts/ci/notify-test-result.js success
