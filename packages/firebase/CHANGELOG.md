@@ -1,5 +1,45 @@
 # firebase
 
+## 13.0.0
+
+### Major Changes
+
+- [`42ce99c`](https://github.com/firebase/firebase-js-sdk/commit/42ce99c05df4835054bfc2535afa040a3705247e) [#10380](https://github.com/firebase/firebase-js-sdk/pull/10380) - Refactored `TemplateGenerativeModel.generateContent` and `TemplateGenerativeModel.generateContentStream` to accept a unified `TemplateRequest` object (`{ templateId, templateVariables, toolConfig? }`) as the first parameter.
+  Made `templateVariables` required in both `TemplateRequest` and `StartTemplateChatParams`.
+
+- [`f83cc32`](https://github.com/firebase/firebase-js-sdk/commit/f83cc32a2ea4c12a3bba9ed8de2e2129ca139cb3) [#10392](https://github.com/firebase/firebase-js-sdk/pull/10392) - Removed APIs that were previously deprecated.
+
+  Removed the deprecated `VertexAIBackend` in favor of `EnterpriseBackend` to reflect the renaming of the Vertex AI Gemini API to Gemini Enterprise API.
+
+  Deprecated `AgentPlatformBackend` in favor of `EnterpriseBackend` to reflect the renaming of the Agent Platform Gemini API to the Gemini Enterprise API.
+
+  Updated default hybrid-in-cloud model to `gemini-3.5-flash-lite`.
+
+- [`b70fa6f`](https://github.com/firebase/firebase-js-sdk/commit/b70fa6f0134b6d8fad62d724ee2c4d6845b382a5) [#10398](https://github.com/firebase/firebase-js-sdk/pull/10398) - Refactored `Part` into a discriminated union with explicit `type` properties, introduced `UnknownPart` for raw wire and user-provided inputs, stripped `type` discriminators on wire egress, and ensured defensive deep copying for chat history.
+
+### Minor Changes
+
+- [`87adc59`](https://github.com/firebase/firebase-js-sdk/commit/87adc59cae9f3892ae3c475395ad4707510f665e) [#10362](https://github.com/firebase/firebase-js-sdk/pull/10362) - Deprecated `candidateCount`, `temperature`, `topP`, `topK`, `presencePenalty`, and `frequencyPenalty` in both `GenerationConfig` and `LiveGenerationConfig`. These parameters are unsupported in Gemini 3.x and later models.
+
+- [`565da23`](https://github.com/firebase/firebase-js-sdk/commit/565da231ab250b7dfbf8cc99bc62e1b893e3ba9d) [#10334](https://github.com/firebase/firebase-js-sdk/pull/10334) - Exported a `ChatSession` interface instead of the `ChatSession` class.
+
+  Cleaned up AI Logic doc comments.
+
+- [`46ae308`](https://github.com/firebase/firebase-js-sdk/commit/46ae3088ba061c8bb929e7c377237bf0e16bc155) [#10337](https://github.com/firebase/firebase-js-sdk/pull/10337) - Added support for BSON types.
+
+### Patch Changes
+
+- [`a034f68`](https://github.com/firebase/firebase-js-sdk/commit/a034f682b6044f238138453d351c0fe89c07e5fb) [#10384](https://github.com/firebase/firebase-js-sdk/pull/10384) (fixes [#9426](https://github.com/firebase/firebase-js-sdk/issues/9426)) - Suppress false-positive `CONFIG_UPDATE_STREAM_ERROR` events emitted by `onConfigUpdated` when the application enters the background, stop recording a connection backoff penalty for these expected closes, and reconnect if the application returns to the foreground before the connection finishes closing.
+
+- Updated dependencies [[`87adc59`](https://github.com/firebase/firebase-js-sdk/commit/87adc59cae9f3892ae3c475395ad4707510f665e), [`42ce99c`](https://github.com/firebase/firebase-js-sdk/commit/42ce99c05df4835054bfc2535afa040a3705247e), [`f83cc32`](https://github.com/firebase/firebase-js-sdk/commit/f83cc32a2ea4c12a3bba9ed8de2e2129ca139cb3), [`5ab2fc6`](https://github.com/firebase/firebase-js-sdk/commit/5ab2fc6f889be5226f44d2e50c7eb20144f69338), [`a034f68`](https://github.com/firebase/firebase-js-sdk/commit/a034f682b6044f238138453d351c0fe89c07e5fb), [`565da23`](https://github.com/firebase/firebase-js-sdk/commit/565da231ab250b7dfbf8cc99bc62e1b893e3ba9d), [`b70fa6f`](https://github.com/firebase/firebase-js-sdk/commit/b70fa6f0134b6d8fad62d724ee2c4d6845b382a5), [`46ae308`](https://github.com/firebase/firebase-js-sdk/commit/46ae3088ba061c8bb929e7c377237bf0e16bc155), [`142b409`](https://github.com/firebase/firebase-js-sdk/commit/142b40983a0d7e23cf14f3bac78b445b33152c46), [`ac44c69`](https://github.com/firebase/firebase-js-sdk/commit/ac44c691708a1a3cd3a16ef3435d50b53fe3ab34)]:
+  - @firebase/app@0.16.3
+  - @firebase/ai@3.0.0
+  - @firebase/firestore@4.18.0
+  - @firebase/remote-config@0.9.3
+  - @firebase/app-compat@0.5.19
+  - @firebase/firestore-compat@0.4.15
+  - @firebase/remote-config-compat@0.2.30
+
 ## 12.19.0
 
 ### Minor Changes

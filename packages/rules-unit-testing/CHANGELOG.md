@@ -1,5 +1,12 @@
 # @firebase/rules-unit-testing
 
+## 6.0.0
+
+### Patch Changes
+
+- Updated dependencies [[`87adc59`](https://github.com/firebase/firebase-js-sdk/commit/87adc59cae9f3892ae3c475395ad4707510f665e), [`42ce99c`](https://github.com/firebase/firebase-js-sdk/commit/42ce99c05df4835054bfc2535afa040a3705247e), [`f83cc32`](https://github.com/firebase/firebase-js-sdk/commit/f83cc32a2ea4c12a3bba9ed8de2e2129ca139cb3), [`a034f68`](https://github.com/firebase/firebase-js-sdk/commit/a034f682b6044f238138453d351c0fe89c07e5fb), [`565da23`](https://github.com/firebase/firebase-js-sdk/commit/565da231ab250b7dfbf8cc99bc62e1b893e3ba9d), [`b70fa6f`](https://github.com/firebase/firebase-js-sdk/commit/b70fa6f0134b6d8fad62d724ee2c4d6845b382a5), [`46ae308`](https://github.com/firebase/firebase-js-sdk/commit/46ae3088ba061c8bb929e7c377237bf0e16bc155)]:
+  - firebase@13.0.0
+
 ## 5.0.2
 
 ### Patch Changes
