@@ -9,22 +9,16 @@ import { FirebaseApp } from '@firebase/app';
 import { FirebaseAuthTokenData } from '@firebase/auth-interop-types';
 import { FirebaseError } from '@firebase/util';
 
-// @public
-export class AgentPlatformBackend extends Backend {
-    constructor(location?: string);
-    // @internal (undocumented)
-    _getModelPath(project: string, model: string): string;
-    // @internal (undocumented)
-    _getTemplatePath(project: string, templateId: string): string;
-    readonly location: string;
+// @public @deprecated
+export class AgentPlatformBackend extends EnterpriseBackend {
+    // (undocumented)
+    readonly backendType: BackendType;
 }
 
 // @public
 export interface AI {
     app: FirebaseApp;
     backend: Backend;
-    // @deprecated (undocumented)
-    location: string;
     options?: AIOptions;
 }
 
@@ -118,8 +112,8 @@ export abstract class Backend {
 
 // @public
 export const BackendType: {
+    readonly ENTERPRISE: "ENTERPRISE";
     readonly AGENT_PLATFORM: "AGENT_PLATFORM";
-    readonly VERTEX_AI: "VERTEX_AI";
     readonly GOOGLE_AI: "GOOGLE_AI";
 };
 
@@ -244,8 +238,6 @@ export interface CountTokensRequest {
 // @public
 export interface CountTokensResponse {
     promptTokensDetails?: ModalityTokenCount[];
-    // @deprecated (undocumented)
-    totalBillableCharacters?: number;
     totalTokens: number;
 }
 
@@ -275,6 +267,16 @@ export interface EnhancedGenerateContentResponse extends GenerateContentResponse
     inlineDataParts: () => InlineDataPart[] | undefined;
     text: () => string;
     thoughtSummary: () => string | undefined;
+}
+
+// @public
+export class EnterpriseBackend extends Backend {
+    constructor(location?: string);
+    // @internal (undocumented)
+    _getModelPath(project: string, model: string): string;
+    // @internal (undocumented)
+    _getTemplatePath(project: string, templateId: string): string;
+    readonly location: string;
 }
 
 // @public
@@ -611,8 +613,6 @@ export interface GoogleAIGenerateContentResponse {
 
 // @public
 export interface GoogleMaps {
-    // @deprecated (undocumented)
-    enableWidget?: boolean;
 }
 
 // @public
@@ -648,8 +648,6 @@ export interface GroundingMetadata {
     googleMapsWidgetContextToken?: string;
     groundingChunks?: GroundingChunk[];
     groundingSupports?: GroundingSupport[];
-    // @deprecated (undocumented)
-    retrievalQueries?: string[];
     searchEntryPoint?: SearchEntrypoint;
     webSearchQueries?: string[];
 }
@@ -810,10 +808,6 @@ export interface LanguageModelCreateCoreOptions {
     expectedInputs?: LanguageModelExpected[];
     expectedOutputs?: LanguageModelExpected[];
     monitor?: (monitor: LanguageModelDownloadMonitor) => void;
-    // @deprecated (undocumented)
-    temperature?: number;
-    // @deprecated (undocumented)
-    topK?: number;
 }
 
 // @public
@@ -992,10 +986,6 @@ export class LiveSession {
     send(request: string | Array<string | Part>, turnComplete?: boolean): Promise<void>;
     sendAudioRealtime(blob: GenerativeContentBlob): Promise<void>;
     sendFunctionResponses(functionResponses: FunctionResponse[]): Promise<void>;
-    // @deprecated
-    sendMediaChunks(mediaChunks: GenerativeContentBlob[]): Promise<void>;
-    // @deprecated (undocumented)
-    sendMediaStream(mediaChunkStream: ReadableStream<GenerativeContentBlob>): Promise<void>;
     sendTextRealtime(text: string): Promise<void>;
     sendVideoRealtime(blob: GenerativeContentBlob): Promise<void>;
 }
@@ -1558,16 +1548,6 @@ export interface UsageMetadata {
     toolUsePromptTokensDetails?: ModalityTokenCount[];
     // (undocumented)
     totalTokenCount: number;
-}
-
-// @public @deprecated
-export class VertexAIBackend extends Backend {
-    constructor(location?: string);
-    // @internal (undocumented)
-    _getModelPath(project: string, model: string): string;
-    // @internal (undocumented)
-    _getTemplatePath(project: string, templateId: string): string;
-    readonly location: string;
 }
 
 // @public

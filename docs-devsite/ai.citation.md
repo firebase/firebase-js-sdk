@@ -24,9 +24,9 @@ export interface Citation
 |  --- | --- | --- |
 |  [endIndex](./ai.citation.md#citationendindex) | number |  |
 |  [license](./ai.citation.md#citationlicense) | string |  |
-|  [publicationDate](./ai.citation.md#citationpublicationdate) | [Date](./ai.date_2.md#date_2_interface) | The publication date of the cited source, if available.<!-- -->This property is only supported in the Agent Platform Gemini API ([AgentPlatformBackend](./ai.agentplatformbackend.md#agentplatformbackend_class)<!-- -->). |
+|  [publicationDate](./ai.citation.md#citationpublicationdate) | [Date](./ai.date_2.md#date_2_interface) | The publication date of the cited source, if available.<!-- -->This property is only supported in the Gemini Enterprise API ([EnterpriseBackend](./ai.enterprisebackend.md#enterprisebackend_class)<!-- -->). |
 |  [startIndex](./ai.citation.md#citationstartindex) | number |  |
-|  [title](./ai.citation.md#citationtitle) | string | The title of the cited source, if available.<!-- -->This property is only supported in the Agent Platform Gemini API ([AgentPlatformBackend](./ai.agentplatformbackend.md#agentplatformbackend_class)<!-- -->). |
+|  [title](./ai.citation.md#citationtitle) | string | The title of the cited source, if available.<!-- -->This property is only supported in the Gemini Enterprise API ([EnterpriseBackend](./ai.enterprisebackend.md#enterprisebackend_class)<!-- -->). |
 |  [uri](./ai.citation.md#citationuri) | string |  |
 
 ## Citation.endIndex
@@ -49,7 +49,7 @@ license?: string;
 
 The publication date of the cited source, if available.
 
-This property is only supported in the Agent Platform Gemini API ([AgentPlatformBackend](./ai.agentplatformbackend.md#agentplatformbackend_class)<!-- -->).
+This property is only supported in the Gemini Enterprise API ([EnterpriseBackend](./ai.enterprisebackend.md#enterprisebackend_class)<!-- -->).
 
 <b>Signature:</b>
 
@@ -69,7 +69,7 @@ startIndex?: number;
 
 The title of the cited source, if available.
 
-This property is only supported in the Agent Platform Gemini API ([AgentPlatformBackend](./ai.agentplatformbackend.md#agentplatformbackend_class)<!-- -->).
+This property is only supported in the Gemini Enterprise API ([EnterpriseBackend](./ai.enterprisebackend.md#enterprisebackend_class)<!-- -->).
 
 <b>Signature:</b>
 
