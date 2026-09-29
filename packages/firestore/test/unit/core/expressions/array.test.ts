@@ -32,7 +32,7 @@ import {
 } from '../../../../src/lite-api/expressions';
 import {
   FALSE_VALUE,
-  MIN_VALUE,
+  INTERNAL_MIN_VALUE,
   TRUE_VALUE
 } from '../../../../src/model/values';
 import { constantArray, constantMap } from '../../../util/pipelines';
@@ -254,13 +254,13 @@ describe('Array Expressions', () => {
         evaluateToValue(
           arrayContains(constantArray(null, 1, 'matang', true), constant(null))
         )
-      ).to.deep.equal(MIN_VALUE);
+      ).to.deep.equal(INTERNAL_MIN_VALUE);
     });
 
     it('searchValue_isNull_emptyValuesArray_returnsNull', () => {
       expect(
         evaluateToValue(arrayContains(constantArray(), constant(null)))
-      ).to.deep.equal(MIN_VALUE);
+      ).to.deep.equal(INTERNAL_MIN_VALUE);
     });
 
     it('searchValue_isMap', () => {

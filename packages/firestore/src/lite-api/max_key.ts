@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2025 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,21 +15,22 @@
  * limitations under the License.
  */
 
-const karmaBase = require('../../config/karma.base');
-const webpackBase = require('../../config/webpack.test');
+/**
+ * Represent a "Max Key" type in Firestore documents.
+ *
+ * @class MaxKey
+ */
+export class MaxKey {
+  private static MAX_KEY_VALUE_INSTANCE: MaxKey | null = null;
+  /** A type string to uniquely identify instances of this class. */
+  readonly type = 'MaxKey';
 
-const files = [`src/**/*.test.ts`];
+  private constructor() {}
 
-module.exports = function (config) {
-  const karmaConfig = Object.assign({}, karmaBase, {
-    // files to load into karma
-    files,
-    // frameworks to use
-    // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
-    frameworks: ['mocha']
-  });
-
-  config.set(karmaConfig);
-};
-
-module.exports.files = files;
+  static instance(): MaxKey {
+    if (!MaxKey.MAX_KEY_VALUE_INSTANCE) {
+      MaxKey.MAX_KEY_VALUE_INSTANCE = new MaxKey();
+    }
+    return MaxKey.MAX_KEY_VALUE_INSTANCE;
+  }
+}

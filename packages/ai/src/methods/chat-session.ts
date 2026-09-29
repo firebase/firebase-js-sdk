@@ -32,18 +32,23 @@ import { ChromeAdapter } from '../types/chrome-adapter';
 import { ChatSessionBase } from './chat-session-base';
 import { validateChatHistory } from './chat-session-helpers';
 import { formatSystemInstruction } from '../requests/request-helpers';
+import { ChatSession } from '../public-types';
+import { deepCopy } from '@firebase/util';
 
 /**
  * ChatSession class that enables sending chat messages and stores
  * history of sent and received messages so far.
  *
- * @public
+ * @internal
  */
-export class ChatSession extends ChatSessionBase<
-  StartChatParams,
-  GenerateContentRequest,
-  FunctionDeclarationsTool
-> {
+export class ChatSessionImpl
+  extends ChatSessionBase<
+    StartChatParams,
+    GenerateContentRequest,
+    FunctionDeclarationsTool
+  >
+  implements ChatSession
+{
   constructor(
     apiSettings: ApiSettings,
     public model: string,
@@ -54,7 +59,7 @@ export class ChatSession extends ChatSessionBase<
     super(apiSettings, params, requestOptions);
     if (params?.history) {
       validateChatHistory(params.history);
-      this._history = params.history;
+      this._history = deepCopy(params.history);
     }
     if (this.params?.systemInstruction != null) {
       this.params = {

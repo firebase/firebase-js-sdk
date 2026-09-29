@@ -55,14 +55,6 @@ export enum Availability {
  */
 export interface LanguageModelCreateCoreOptions {
   /**
-   * @deprecated
-   */
-  topK?: number;
-  /**
-   * @deprecated
-   */
-  temperature?: number;
-  /**
    * Defaults to image input and English text input
    * if not overriden.
    */

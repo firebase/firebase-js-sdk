@@ -239,6 +239,7 @@ export class ChromeAdapterImpl implements ChromeAdapter {
       // Returns false if request contains an image with an unsupported mime type.
       for (const part of content.parts) {
         if (
+          'inlineData' in part &&
           part.inlineData &&
           ChromeAdapterImpl.SUPPORTED_MIME_TYPES.indexOf(
             part.inlineData.mimeType
@@ -329,12 +330,12 @@ export class ChromeAdapterImpl implements ChromeAdapter {
   private static async toLanguageModelMessageContent(
     part: Part
   ): Promise<LanguageModelMessageContent> {
-    if (part.text) {
+    if ('text' in part && typeof part.text === 'string') {
       return {
         type: 'text',
         value: part.text
       };
-    } else if (part.inlineData) {
+    } else if ('inlineData' in part && part.inlineData) {
       const formattedImageContent = await fetch(
         `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`
       );

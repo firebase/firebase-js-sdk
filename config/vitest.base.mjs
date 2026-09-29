@@ -44,9 +44,6 @@ export function createBaseConfig(importMetaUrl, customConfig = {}) {
   const setupFiles = fs.existsSync(setupFile) ? [setupFile] : [];
 
   const base = defineConfig({
-    optimizeDeps: {
-      include: ['chai', 'chai-as-promised', 'sinon', 'sinon-chai']
-    },
     test: {
       globals: true,
       reporters: process.env.GITHUB_ACTIONS ? ['default', 'github-actions'] : ['default'],

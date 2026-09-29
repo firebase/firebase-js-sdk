@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import '../setup';
-import { expect } from 'chai';
 import {
   ThrottleMetadata,
   openDatabase,
@@ -54,7 +52,7 @@ describe('Storage', () => {
     // This is defensive, but the cost of accidentally changing the key composition is high.
     expect(
       indexedDbTestCase.getStorage().createCompositeKey('throttle_metadata')
-    ).to.eq('appId,appName,namespace,throttle_metadata');
+    ).toBe('appId,appName,namespace,throttle_metadata');
   });
 
   for (const { name, getStorage } of [indexedDbTestCase, inMemoryStorage]) {
@@ -72,7 +70,7 @@ describe('Storage', () => {
 
         const actualStatus = await storage.getLastFetchStatus();
 
-        expect(actualStatus).to.deep.eq(expectedStatus);
+        expect(actualStatus).toEqual(expectedStatus);
       });
 
       it('sets and gets last fetch success timestamp', async () => {
@@ -85,7 +83,7 @@ describe('Storage', () => {
         const actualMetadata =
           await storage.getLastSuccessfulFetchTimestampMillis();
 
-        expect(actualMetadata).to.deep.eq(lastSuccessfulFetchTimestampMillis);
+        expect(actualMetadata).toEqual(lastSuccessfulFetchTimestampMillis);
       });
 
       it('sets and gets last successful fetch response', async () => {
@@ -97,7 +95,7 @@ describe('Storage', () => {
 
         const actualConfig = await storage.getLastSuccessfulFetchResponse();
 
-        expect(actualConfig).to.deep.eq(lastSuccessfulFetchResponse);
+        expect(actualConfig).toEqual(lastSuccessfulFetchResponse);
       });
 
       it('sets and gets active config', async () => {
@@ -107,7 +105,7 @@ describe('Storage', () => {
 
         const storedConfig = await storage.getActiveConfig();
 
-        expect(storedConfig).to.deep.eq(expectedConfig);
+        expect(storedConfig).toEqual(expectedConfig);
       });
 
       it('sets and gets active config etag', async () => {
@@ -117,7 +115,7 @@ describe('Storage', () => {
 
         const storedConfigEtag = await storage.getActiveConfigEtag();
 
-        expect(storedConfigEtag).to.deep.eq(expectedEtag);
+        expect(storedConfigEtag).toEqual(expectedEtag);
       });
 
       it('sets, gets and deletes throttle metadata', async () => {
@@ -129,13 +127,13 @@ describe('Storage', () => {
 
         let actualMetadata = await storage.getThrottleMetadata();
 
-        expect(actualMetadata).to.deep.eq(expectedMetadata);
+        expect(actualMetadata).toEqual(expectedMetadata);
 
         await storage.deleteThrottleMetadata();
 
         actualMetadata = await storage.getThrottleMetadata();
 
-        expect(actualMetadata).to.be.undefined;
+        expect(actualMetadata).toBeUndefined();
       });
 
       it('sets and gets custom signals', async () => {
@@ -150,7 +148,7 @@ describe('Storage', () => {
 
         const storedCustomSignals = await storage.getCustomSignals();
 
-        expect(storedCustomSignals).to.deep.eq(customSignalsInStorage);
+        expect(storedCustomSignals).toEqual(customSignalsInStorage);
       });
 
       it('upserts custom signals when key is present in storage', async () => {
@@ -163,7 +161,7 @@ describe('Storage', () => {
 
         const storedCustomSignals = await storage.getCustomSignals();
 
-        expect(storedCustomSignals).to.deep.eq(updatedSignals);
+        expect(storedCustomSignals).toEqual(updatedSignals);
       });
 
       it('deletes custom signal when value supplied is null', async () => {
@@ -176,7 +174,7 @@ describe('Storage', () => {
 
         const storedCustomSignals = await storage.getCustomSignals();
 
-        expect(storedCustomSignals).to.deep.eq(updatedSignals);
+        expect(storedCustomSignals).toEqual(updatedSignals);
       });
 
       it('throws an error when supplied with excess custom signals', async () => {
@@ -185,9 +183,7 @@ describe('Storage', () => {
           customSignals[`key${i}`] = `value${i}`;
         }
 
-        await expect(
-          storage.setCustomSignals(customSignals)
-        ).to.eventually.be.rejectedWith(
+        await expect(storage.setCustomSignals(customSignals)).rejects.toThrow(
           'Remote Config: Setting more than 100 custom signals is not supported.'
         );
       });
