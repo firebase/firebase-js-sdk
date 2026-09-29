@@ -25,12 +25,17 @@ import { FirebaseApp, deleteApp, initializeApp } from '@firebase/app';
 import * as crashlytics from '../api';
 import {
   Component,
+  ErrorHandler,
   Injector,
   provideZoneChangeDetection,
   runInInjectionContext
 } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { FirebaseErrorHandler, getSafeRoutePath } from '.';
+import {
+  FirebaseErrorHandler,
+  getSafeRoutePath,
+  provideCrashlytics
+} from '.';
 import { Crashlytics } from '../public-types';
 import { Router, RouterModule } from '@angular/router';
 import {
@@ -111,6 +116,94 @@ describe('FirebaseErrorHandler', () => {
     errorHandler.handleError(testError);
     expect(getCrashlyticsStub).to.have.been.called;
     expect(recordErrorStub).to.have.been.calledWith(fakeCrashlytics, testError);
+  });
+});
+
+describe('provideCrashlytics', () => {
+  let app: FirebaseApp;
+  let fakeCrashlytics: Crashlytics;
+  let attributesStore: AttributesStore;
+  let recordErrorStub: sinon.SinonStub;
+  let getCrashlyticsStub: sinon.SinonStub;
+
+  beforeEach(() => {
+    app = initializeApp({ projectId: 'p', appId: 'fakeapp' });
+    attributesStore = new AttributesStore(app.options);
+    fakeCrashlytics = {
+      attributesStore
+    } as unknown as Crashlytics;
+
+    recordErrorStub = stub(crashlytics, 'recordError');
+    getCrashlyticsStub = stub(crashlytics, 'getCrashlytics').returns(
+      fakeCrashlytics
+    );
+  });
+
+  afterEach(async () => {
+    restore();
+    await deleteApp(app);
+  });
+
+  it('should eagerly initialize FirebaseErrorHandler and register routePath provider', async () => {
+    const setRoutePathProviderSpy = sinon.spy(
+      attributesStore,
+      'setRoutePathProvider'
+    );
+
+    TestBed.configureTestingModule({
+      imports: [
+        RouterModule.forRoot([
+          { path: 'static-route', component: MockComponent },
+          { path: 'dynamic/:id/route', component: MockComponent }
+        ])
+      ],
+      providers: [provideZoneChangeDetection(), provideCrashlytics(() => app)]
+    });
+
+    const router = TestBed.inject(Router);
+    expect(getCrashlyticsStub).to.have.been.calledWith(app, undefined);
+    expect(setRoutePathProviderSpy).to.have.been.calledWith(sinon.match.func);
+
+    await router.navigate(['/static-route']);
+    const provider = setRoutePathProviderSpy.firstCall.args[0];
+    expect(provider).to.not.be.undefined;
+    expect(provider!()).to.equal('/static-route');
+  });
+
+  it('should register FirebaseErrorHandler as the Angular ErrorHandler', () => {
+    TestBed.configureTestingModule({
+      imports: [
+        RouterModule.forRoot([
+          { path: 'static-route', component: MockComponent }
+        ])
+      ],
+      providers: [provideZoneChangeDetection(), provideCrashlytics(() => app)]
+    });
+
+    const errorHandler = TestBed.inject(ErrorHandler);
+    expect(errorHandler).to.be.instanceOf(FirebaseErrorHandler);
+
+    const testError = new Error('Uncaught Angular error');
+    errorHandler.handleError(testError);
+    expect(recordErrorStub).to.have.been.calledWith(fakeCrashlytics, testError);
+  });
+
+  it('should forward CrashlyticsOptions to getCrashlytics', () => {
+    const options = { appVersion: '1.2.3' };
+    TestBed.configureTestingModule({
+      imports: [
+        RouterModule.forRoot([
+          { path: 'static-route', component: MockComponent }
+        ])
+      ],
+      providers: [
+        provideZoneChangeDetection(),
+        provideCrashlytics(() => app, options)
+      ]
+    });
+
+    TestBed.inject(ErrorHandler);
+    expect(getCrashlyticsStub).to.have.been.calledWith(app, options);
   });
 });
 
