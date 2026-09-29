@@ -326,7 +326,7 @@ export function getDatabase(
 ): Database {
   const db = _getProvider(app, 'database').getImmediate({
     identifier: url
-  }) as Database;
+  }) as unknown as Database;
   if (!db._instanceStarted) {
     const emulator = getDefaultEmulatorHostnameAndPort('database');
     if (emulator) {

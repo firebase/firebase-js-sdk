@@ -16,7 +16,7 @@
       "default": "./dist/esm/index.esm.js"
     },
     "./sw": {
-      "types": "./dist/sw/index-public.d.ts",
+      "types": "./dist/src/index.sw.d.ts",
       "require": "./dist/index.sw.cjs",
       "default": "./dist/esm/index.sw.esm.js"
     },
@@ -44,7 +44,7 @@
     "api-report:sw": "api-extractor run -c sw/api-extractor.sw.json --local --verbose",
     "type-check": "tsc --noEmit",
     "trusted-type-check": "tsec -p tsconfig.json --noEmit",
-    "typings:public": "node ../../scripts/build/use_typings.js ./dist/index-public.d.ts"
+    "typings:public": "node ../../scripts/build/use_typings.js ./dist/index-public.d.ts && node ../../scripts/build/use_typings.js ./dist/sw/index-public.d.ts --subpath=./sw"
   },
   "license": "Apache-2.0",
   "peerDependencies": {

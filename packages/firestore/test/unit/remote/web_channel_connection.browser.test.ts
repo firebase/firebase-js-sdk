@@ -18,7 +18,7 @@
 import {
   WebChannelOptions,
   WebChannelTransport
-} from '@firebase/webchannel-wrapper';
+} from '@firebase/webchannel-wrapper/webchannel-blob';
 
 import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
 import { WebChannelConnection } from '../../../src/platform/browser/webchannel_connection';
