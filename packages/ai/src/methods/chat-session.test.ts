@@ -30,9 +30,9 @@ import {
   GenerateContentStreamResult,
   TextPart
 } from '../types';
-import { ChatSession } from './chat-session';
+import { ChatSessionImpl } from './chat-session';
 import { ApiSettings } from '../types/internal';
-import { AgentPlatformBackend } from '../backend';
+import { EnterpriseBackend } from '../backend';
 import { fakeChromeAdapter } from '../../test-utils/get-fake-firebase-services';
 import { logger } from '../logger';
 import { Schema } from '../api';
@@ -41,8 +41,7 @@ const fakeApiSettings: ApiSettings = {
   apiKey: 'key',
   project: 'my-project',
   appId: 'my-appid',
-  location: 'global',
-  backend: new AgentPlatformBackend()
+  backend: new EnterpriseBackend()
 };
 
 function getGreeting({
@@ -62,7 +61,7 @@ describe('ChatSession', () => {
     vi.restoreAllMocks();
   });
   it('formats systemInstruction if it is provided as a string', () => {
-    const chatSession = new ChatSession(
+    const chatSession = new ChatSessionImpl(
       fakeApiSettings,
       'a-model',
       fakeChromeAdapter,
@@ -80,7 +79,7 @@ describe('ChatSession', () => {
       role: 'system',
       parts: [{ type: 'text', text: 'be friendly' }]
     };
-    const chatSession = new ChatSession(
+    const chatSession = new ChatSessionImpl(
       fakeApiSettings,
       'a-model',
       fakeChromeAdapter,
@@ -91,7 +90,7 @@ describe('ChatSession', () => {
     );
   });
   it('leaves systemInstruction as undefined if not provided', () => {
-    const chatSession = new ChatSession(
+    const chatSession = new ChatSessionImpl(
       fakeApiSettings,
       'a-model',
       fakeChromeAdapter,
@@ -104,7 +103,7 @@ describe('ChatSession', () => {
       const generateContentStub = vi
         .spyOn(mockGenerateContent, 'generateContent')
         .mockResolvedValue(undefined as any);
-      const chatSession = new ChatSession(
+      const chatSession = new ChatSessionImpl(
         fakeApiSettings,
         'a-model',
         fakeChromeAdapter,
@@ -143,7 +142,7 @@ describe('ChatSession', () => {
       const generateContentStub = vi
         .spyOn(mockGenerateContent, 'generateContent')
         .mockRejectedValue('generateContent failed');
-      const chatSession = new ChatSession(
+      const chatSession = new ChatSessionImpl(
         fakeApiSettings,
         'a-model',
         fakeChromeAdapter
@@ -167,7 +166,7 @@ describe('ChatSession', () => {
       const singleRequestOptions = {
         timeout: 2000
       };
-      const chatSession = new ChatSession(
+      const chatSession = new ChatSessionImpl(
         fakeApiSettings,
         'a-model',
         undefined,
@@ -198,7 +197,7 @@ describe('ChatSession', () => {
       const singleRequestOptions = {
         signal: abortController.signal
       };
-      const chatSession = new ChatSession(
+      const chatSession = new ChatSessionImpl(
         fakeApiSettings,
         'a-model',
         undefined,
@@ -245,7 +244,7 @@ describe('ChatSession', () => {
           // @ts-ignore
           response: fakeResponse
         });
-      const chatSession = new ChatSession(fakeApiSettings, 'a-model');
+      const chatSession = new ChatSessionImpl(fakeApiSettings, 'a-model');
       const result = await chatSession.sendMessage('hello');
       // @ts-ignore
       expect(result.response).to.equal(fakeResponse);
@@ -270,7 +269,7 @@ describe('ChatSession', () => {
       expect(generateContentStub.mock.calls[1][2].contents.length).to.equal(3);
     });
     it('getHistory() returns properly typed parts and a defensive copy', async () => {
-      const chatSession = new ChatSession(
+      const chatSession = new ChatSessionImpl(
         fakeApiSettings,
         'a-model',
         undefined,
@@ -315,7 +314,7 @@ describe('ChatSession', () => {
           parts: [{ type: 'text', text: 'original text' }]
         }
       ];
-      const chatSession = new ChatSession(
+      const chatSession = new ChatSessionImpl(
         fakeApiSettings,
         'a-model',
         undefined,
@@ -349,7 +348,7 @@ describe('ChatSession', () => {
         }
       } as any);
       const inputPart: TextPart = { type: 'text', text: 'original input' };
-      const chatSession = new ChatSession(fakeApiSettings, 'a-model');
+      const chatSession = new ChatSessionImpl(fakeApiSettings, 'a-model');
       await chatSession.sendMessage([inputPart]);
 
       // External mutation of the inputPart object
@@ -372,7 +371,7 @@ describe('ChatSession', () => {
           ]
         }
       } as any);
-      const chatSession = new ChatSession(fakeApiSettings, 'a-model');
+      const chatSession = new ChatSessionImpl(fakeApiSettings, 'a-model');
       const result = await chatSession.sendMessage('test message');
 
       // Caller mutates the returned result.response candidate parts
@@ -391,7 +390,7 @@ describe('ChatSession', () => {
       const generateContentStreamStub = vi
         .spyOn(mockGenerateContent, 'generateContentStream')
         .mockResolvedValue(undefined as any);
-      const chatSession = new ChatSession(
+      const chatSession = new ChatSessionImpl(
         fakeApiSettings,
         'a-model',
         fakeChromeAdapter,
@@ -440,7 +439,7 @@ describe('ChatSession', () => {
       const generateContentStreamStub = vi
         .spyOn(mockGenerateContent, 'generateContentStream')
         .mockRejectedValue(new Error('generateContentStream failed'));
-      const chatSession = new ChatSession(
+      const chatSession = new ChatSessionImpl(
         fakeApiSettings,
         'a-model',
         fakeChromeAdapter
@@ -466,7 +465,7 @@ describe('ChatSession', () => {
       const generateContentStreamStub = vi
         .spyOn(mockGenerateContent, 'generateContentStream')
         .mockResolvedValue({} as unknown as GenerateContentStreamResult);
-      const chatSession = new ChatSession(
+      const chatSession = new ChatSessionImpl(
         fakeApiSettings,
         'a-model',
         fakeChromeAdapter
@@ -496,7 +495,7 @@ describe('ChatSession', () => {
         response: Promise.reject(error)
       } as unknown as GenerateContentStreamResult);
 
-      const chatSession = new ChatSession(fakeApiSettings, 'a-model');
+      const chatSession = new ChatSessionImpl(fakeApiSettings, 'a-model');
       const initialHistoryLength = (await chatSession.getHistory()).length;
 
       // Immediate call resolves with the stream object
@@ -529,7 +528,7 @@ describe('ChatSession', () => {
         response: Promise.resolve(malformedResponse)
       } as unknown as GenerateContentStreamResult);
 
-      const chatSession = new ChatSession(fakeApiSettings, 'a-model');
+      const chatSession = new ChatSessionImpl(fakeApiSettings, 'a-model');
       const initialHistoryLength = (await chatSession.getHistory()).length;
 
       const result = await chatSession.sendMessageStream('hello');
@@ -557,7 +556,7 @@ describe('ChatSession', () => {
       vi.spyOn(mockGenerateContent, 'generateContentStream').mockRejectedValue(
         new Error('foo')
       );
-      const chatSession = new ChatSession(
+      const chatSession = new ChatSessionImpl(
         fakeApiSettings,
         'a-model',
         fakeChromeAdapter
@@ -578,7 +577,7 @@ describe('ChatSession', () => {
       vi.spyOn(mockGenerateContent, 'generateContentStream').mockResolvedValue({
         response: new Promise((_, reject) => reject(new Error()))
       } as unknown as GenerateContentStreamResult);
-      const chatSession = new ChatSession(
+      const chatSession = new ChatSessionImpl(
         fakeApiSettings,
         'a-model',
         fakeChromeAdapter
@@ -596,7 +595,7 @@ describe('ChatSession', () => {
       const singleRequestOptions = {
         timeout: 2000
       };
-      const chatSession = new ChatSession(
+      const chatSession = new ChatSessionImpl(
         fakeApiSettings,
         'a-model',
         undefined,
@@ -627,7 +626,7 @@ describe('ChatSession', () => {
       const singleRequestOptions = {
         signal: abortController.signal
       };
-      const chatSession = new ChatSession(
+      const chatSession = new ChatSessionImpl(
         fakeApiSettings,
         'a-model',
         undefined,
@@ -736,7 +735,7 @@ describe('ChatSession', () => {
               };
             }
           });
-        const chatSession = new ChatSession(
+        const chatSession = new ChatSessionImpl(
           fakeApiSettings,
           'a-model',
           undefined,
@@ -804,7 +803,7 @@ describe('ChatSession', () => {
               };
             }
           });
-        const chatSession = new ChatSession(
+        const chatSession = new ChatSessionImpl(
           fakeApiSettings,
           'a-model',
           undefined,
@@ -880,7 +879,7 @@ describe('ChatSession', () => {
               };
             }
           });
-        const chatSession = new ChatSession(
+        const chatSession = new ChatSessionImpl(
           fakeApiSettings,
           'a-model',
           undefined,
@@ -938,7 +937,7 @@ describe('ChatSession', () => {
               };
             }
           });
-        const chatSession = new ChatSession(
+        const chatSession = new ChatSessionImpl(
           fakeApiSettings,
           'a-model',
           undefined,
@@ -1006,7 +1005,7 @@ describe('ChatSession', () => {
               };
             }
           });
-        const chatSession = new ChatSession(
+        const chatSession = new ChatSessionImpl(
           fakeApiSettings,
           'a-model',
           undefined,
@@ -1083,7 +1082,7 @@ describe('ChatSession', () => {
               };
             }
           });
-        const chatSession = new ChatSession(
+        const chatSession = new ChatSessionImpl(
           fakeApiSettings,
           'a-model',
           undefined,
@@ -1117,7 +1116,7 @@ describe('ChatSession', () => {
   });
   describe('_getCallableFunctionCalls()', () => {
     it('returns all functions if they have references', async () => {
-      const chatSession = new ChatSession(
+      const chatSession = new ChatSessionImpl(
         fakeApiSettings,
         'a-model',
         fakeChromeAdapter,
@@ -1194,7 +1193,7 @@ describe('ChatSession', () => {
       expect(query2?.length).to.equal(2);
     });
     it('returns undefined if any called function does not have a reference', async () => {
-      const chatSession = new ChatSession(
+      const chatSession = new ChatSessionImpl(
         fakeApiSettings,
         'a-model',
         fakeChromeAdapter,
@@ -1273,7 +1272,7 @@ describe('ChatSession', () => {
   describe('_callFunctionsAsNeeded()', () => {
     it('calls functions and formats responses', async () => {
       const myFunction1 = vi.fn(() => ({ replyParam: 'hi' }));
-      const chatSession = new ChatSession(
+      const chatSession = new ChatSessionImpl(
         fakeApiSettings,
         'a-model',
         fakeChromeAdapter,
@@ -1310,7 +1309,7 @@ describe('ChatSession', () => {
     it('calls functions and formats responses (2 functions)', async () => {
       const myFunction1 = vi.fn(() => ({ replyParam: 'hi' }));
       const myFunction2 = vi.fn(() => ({ replyParam: 'yo' }));
-      const chatSession = new ChatSession(
+      const chatSession = new ChatSessionImpl(
         fakeApiSettings,
         'a-model',
         fakeChromeAdapter,
@@ -1365,7 +1364,7 @@ describe('ChatSession', () => {
     it('calls functions and formats responses (one function async)', async () => {
       const myFunction1 = vi.fn(() => ({ replyParam: 'hi' }));
       const myFunction2 = vi.fn(() => Promise.resolve({ replyParam: 'yo' }));
-      const chatSession = new ChatSession(
+      const chatSession = new ChatSessionImpl(
         fakeApiSettings,
         'a-model',
         fakeChromeAdapter,

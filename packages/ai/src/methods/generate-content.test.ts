@@ -44,7 +44,7 @@ import {
 import { ApiSettings } from '../types/internal';
 import { Task } from '../requests/request';
 import { mapGenerateContentRequest } from '../googleai-mappers';
-import { GoogleAIBackend, AgentPlatformBackend } from '../backend';
+import { GoogleAIBackend, EnterpriseBackend } from '../backend';
 import { fakeChromeAdapter } from '../../test-utils/get-fake-firebase-services';
 
 import { cleanGenerateContentRequestForWire } from '../requests/request-helpers';
@@ -52,15 +52,13 @@ const fakeApiSettings: ApiSettings = {
   apiKey: 'key',
   project: 'my-project',
   appId: 'my-appid',
-  location: 'global',
-  backend: new AgentPlatformBackend()
+  backend: new EnterpriseBackend()
 };
 
 const fakeGoogleAIApiSettings: ApiSettings = {
   apiKey: 'key',
   project: 'my-project',
   appId: 'my-appid',
-  location: 'global',
   backend: new GoogleAIBackend()
 };
 

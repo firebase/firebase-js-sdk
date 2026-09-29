@@ -29,7 +29,7 @@ import {
 } from '../types';
 import { TemplateChatSessionImpl } from './template-chat-session';
 import { ApiSettings } from '../types/internal';
-import { AgentPlatformBackend } from '../backend';
+import { EnterpriseBackend } from '../backend';
 import { logger } from '../logger';
 import { Schema } from '../api';
 
@@ -37,11 +37,11 @@ const fakeApiSettings: ApiSettings = {
   apiKey: 'key',
   project: 'my-project',
   appId: 'my-appid',
-  location: 'global',
-  backend: new AgentPlatformBackend('global')
+  backend: new EnterpriseBackend('global')
 };
 
 const TEMPLATE_ID = 'my-template';
+const TEMPLATE_VARS = { a: 1 };
 
 function getGreeting({
   username
@@ -66,6 +66,7 @@ describe('TemplateChatSession', () => {
       () => {
         const chatSession = new TemplateChatSessionImpl(fakeApiSettings, {
           templateId: TEMPLATE_ID,
+          templateVariables: TEMPLATE_VARS,
           tools: [
             {
               functionDeclarations: [
@@ -98,16 +99,17 @@ describe('TemplateChatSession', () => {
     );
     it('should not include any properties not provided in params', () => {
       const chatSession = new TemplateChatSessionImpl(fakeApiSettings, {
-        templateId: TEMPLATE_ID
+        templateId: TEMPLATE_ID,
+        templateVariables: TEMPLATE_VARS
       });
       const formattedRequest = chatSession._formatRequest(
         { role: 'user', parts: [] },
         []
       );
-      expect(formattedRequest.tools).toBeUndefined();
-      expect(formattedRequest.toolConfig).toBeUndefined();
-      expect(formattedRequest.templateVariables).toBeUndefined();
-      expect(formattedRequest.history).toBeDefined();
+      expect(formattedRequest.tools).to.not.exist;
+      expect(formattedRequest.toolConfig).to.not.exist;
+      expect(formattedRequest.inputs).to.deep.equal(TEMPLATE_VARS);
+      expect(formattedRequest.history).to.exist;
     });
   });
 
@@ -117,7 +119,8 @@ describe('TemplateChatSession', () => {
         .spyOn(mockGenerateContent, 'templateGenerateContent')
         .mockRejectedValue(new Error('templateGenerateContent failed'));
       const chatSession = new TemplateChatSessionImpl(fakeApiSettings, {
-        templateId: TEMPLATE_ID
+        templateId: TEMPLATE_ID,
+        templateVariables: TEMPLATE_VARS
       });
       await expect(chatSession.sendMessage('hello')).rejects.toThrow();
       expect(templateGenerateContentStub).toHaveBeenCalledWith(
@@ -129,7 +132,8 @@ describe('TemplateChatSession', () => {
               role: 'user',
               parts: [{ type: 'text', text: 'hello' }]
             }
-          ]
+          ],
+          inputs: TEMPLATE_VARS
         },
         {}
       );
@@ -155,7 +159,8 @@ describe('TemplateChatSession', () => {
           response: fakeResponse
         });
       const chatSession = new TemplateChatSessionImpl(fakeApiSettings, {
-        templateId: TEMPLATE_ID
+        templateId: TEMPLATE_ID,
+        templateVariables: TEMPLATE_VARS
       });
       const result = await chatSession.sendMessage('hello');
       // @ts-ignore
@@ -191,6 +196,7 @@ describe('TemplateChatSession', () => {
       ];
       const chatSession = new TemplateChatSessionImpl(fakeApiSettings, {
         templateId: TEMPLATE_ID,
+        templateVariables: TEMPLATE_VARS,
         history: initialHistory
       });
 
@@ -302,6 +308,7 @@ describe('TemplateChatSession', () => {
           });
         const chatSession = new TemplateChatSessionImpl(fakeApiSettings, {
           templateId: TEMPLATE_ID,
+          templateVariables: TEMPLATE_VARS,
           tools: [
             {
               functionDeclarations: [
@@ -363,6 +370,7 @@ describe('TemplateChatSession', () => {
           });
         const chatSession = new TemplateChatSessionImpl(fakeApiSettings, {
           templateId: TEMPLATE_ID,
+          templateVariables: TEMPLATE_VARS,
           tools: [
             {
               functionDeclarations: [
@@ -430,6 +438,7 @@ describe('TemplateChatSession', () => {
           fakeApiSettings,
           {
             templateId: TEMPLATE_ID,
+            templateVariables: TEMPLATE_VARS,
             tools: [
               {
                 functionDeclarations: [
@@ -486,6 +495,7 @@ describe('TemplateChatSession', () => {
           });
         const chatSession = new TemplateChatSessionImpl(fakeApiSettings, {
           templateId: TEMPLATE_ID,
+          templateVariables: TEMPLATE_VARS,
           tools: [
             {
               functionDeclarations: [

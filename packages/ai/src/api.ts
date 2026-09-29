@@ -35,9 +35,6 @@ import { GoogleAIBackend } from './backend';
 import { TemplateGenerativeModel } from './models/template-generative-model';
 import { logger } from './logger';
 
-export type { TemplateChatSession } from './public-types';
-export { ChatSession } from './methods/chat-session';
-export { ChatSessionBase } from './methods/chat-session-base';
 export { LiveSession } from './methods/live-session';
 export * from './requests/schema-builder';
 export {
@@ -49,9 +46,9 @@ export {
 };
 export {
   Backend,
-  VertexAIBackend,
   GoogleAIBackend,
-  AgentPlatformBackend
+  AgentPlatformBackend,
+  EnterpriseBackend
 } from './backend';
 export {
   startAudioConversation,
@@ -83,8 +80,8 @@ declare module '@firebase/component' {
  *
  * @example
  * ```javascript
- * // Get an AI instance configured to use the Agent Platform Gemini API.
- * const ai = getAI(app, { backend: new AgentPlatformBackend() });
+ * // Get an AI instance configured to use the Gemini Enterprise API.
+ * const ai = getAI(app, { backend: new EnterpriseBackend() });
  * ```
  *
  * @param app - The {@link @firebase/app#FirebaseApp} to use.
@@ -185,7 +182,7 @@ export function getGenerativeModel(
 /**
  * Returns a {@link LiveGenerativeModel} class for real-time, bidirectional communication.
  *
- * The Live API is only supported in modern browser windows and Node >= 22.
+ * The Live API is only supported in modern browser windows and Node \>= 22.
  *
  * @param ai - An {@link AI} instance.
  * @param modelParams - Parameters to use when setting up a {@link LiveSession}.
@@ -208,7 +205,7 @@ export function getLiveGenerativeModel(
 }
 
 /**
- * Returns a {@link TemplateGenerativeModel} class for executing server-side
+ * Returns a {@link TemplateGenerativeModel} class for executing server prompt
  * templates.
  *
  * @param ai - An {@link AI} instance.

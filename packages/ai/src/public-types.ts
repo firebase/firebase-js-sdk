@@ -24,6 +24,7 @@ import {
   Part,
   RequestOptions,
   SingleRequestOptions,
+  StartChatParams,
   StartTemplateChatParams
 } from './types';
 
@@ -44,48 +45,41 @@ export interface AI {
   /**
    * A {@link Backend} instance that specifies the configuration for the target backend,
    * either the Gemini Developer API (using {@link GoogleAIBackend}) or the
-   * Agent Platform Gemini API (using {@link AgentPlatformBackend}).
+   * Gemini Enterprise API (using {@link EnterpriseBackend}).
    */
   backend: Backend;
   /**
    * Options applied to this {@link AI} instance.
    */
   options?: AIOptions;
-  /**
-   * @deprecated use `AI.backend.location` instead.
-   *
-   * The location configured for this AI service instance, relevant for
-   * Agent Platform Gemini API backends.
-   */
-  location: string;
 }
 
 /**
  * An enum-like object containing constants that represent the supported backends
  * for the Firebase AI SDK.
- * This determines which backend service (Gemini Developer API or Agent Platform Gemini API)
+ * This determines which backend service (Gemini Developer API or Gemini Enterprise API)
  * the SDK will communicate with.
  *
  * These values are assigned to the `backendType` property within the specific backend
- * configuration objects ({@link GoogleAIBackend} or {@link AgentPlatformBackend}) to identify
+ * configuration objects ({@link GoogleAIBackend} or {@link EnterpriseBackend}) to identify
  * which service to target.
  *
  * @public
  */
 export const BackendType = {
   /**
-   * Identifies the backend service for the Agent Platform Gemini API provided through Google Cloud.
-   * Use this constant when creating a {@link AgentPlatformBackend} configuration.
+   * Identifies the backend service for the Gemini Enterprise API provided through Google Cloud.
+   * Use this constant when creating a {@link EnterpriseBackend} configuration.
    */
-  AGENT_PLATFORM: 'AGENT_PLATFORM',
+  ENTERPRISE: 'ENTERPRISE',
 
   /**
-   * Identifies the backend service for the Agent Platform Gemini API
-   * (formerly known as Vertex AI Gemini API) provided through Google Cloud.
-   * Use this constant when creating a {@link VertexAIBackend} configuration.
-   * @deprecated - Use {@link AgentPlatformBackend} instead.
+   * Identifies the backend service for the Gemini Enterprise API
+   * (formerly known as the Vertex AI Gemini API) provided through Google Cloud.
+   * Use this constant when creating a {@link AgentPlatformBackend} configuration.
+   * @deprecated - Use {@link EnterpriseBackend} instead.
    */
-  VERTEX_AI: 'VERTEX_AI',
+  AGENT_PLATFORM: 'AGENT_PLATFORM',
 
   /**
    * Identifies the backend service for the Gemini Developer API ({@link https://ai.google/ | Google AI}).
@@ -96,7 +90,7 @@ export const BackendType = {
 
 /**
  * Type alias representing valid backend types.
- * It should be either `'AGENT_PLATFORM'` or `'GOOGLE_AI'` (`'VERTEX_AI'` is deprecated).
+ * It should be either `'ENTERPRISE'` or `'GOOGLE_AI'` (`'AGENT_PLATFORM'` is deprecated).
  *
  * @public
  */
@@ -104,8 +98,8 @@ export type BackendType = (typeof BackendType)[keyof typeof BackendType];
 
 /**
  * Options for initializing the AI service using {@link getAI | getAI()}.
- * This allows specifying which backend to use (Gemini Developer API or Agent Platform Gemini API)
- * and configuring its specific options (like location for Agent Platform).
+ * This allows specifying which backend to use (Gemini Developer API or Gemini Enterprise API)
+ * and configuring its specific options (like location for Gemini Enterprise).
  *
  * @public
  */
@@ -122,9 +116,47 @@ export interface AIOptions {
 }
 
 /**
- * Interface representing a `ChatSession` class for use with server
- * prompt templates that enables sending chat messages and stores
- * history of sent and received messages so far.
+ * Interface representing a `ChatSession` class that enables sending
+ * chat messages and stores a history of sent and received messages so far.
+ *
+ * @public
+ */
+export interface ChatSession {
+  model: string;
+  params?: StartChatParams;
+  requestOptions?: RequestOptions;
+
+  /**
+   * Sends a chat message and receives a non-streaming
+   * {@link GenerateContentResult}
+   */
+  sendMessage(
+    request: string | Array<string | Part>,
+    singleRequestOptions?: SingleRequestOptions
+  ): Promise<GenerateContentResult>;
+
+  /**
+   * Sends a chat message and receives the response as a
+   * {@link GenerateContentStreamResult} containing an iterable stream
+   * and a response promise.
+   */
+  sendMessageStream(
+    request: string | Array<string | Part>,
+    singleRequestOptions?: SingleRequestOptions
+  ): Promise<GenerateContentStreamResult>;
+
+  /**
+   * Gets the chat history so far. Blocked prompts are not added to history.
+   * Neither blocked candidates nor the prompts that generated them are added
+   * to history.
+   */
+  getHistory(): Promise<Content[]>;
+}
+
+/**
+ * Interface representing a chat session for use with server prompt
+ * templates that enables sending chat messages and maintains conversation
+ * history.
  *
  * @beta
  */

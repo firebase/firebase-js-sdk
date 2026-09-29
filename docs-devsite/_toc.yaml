@@ -32,8 +32,6 @@ toc:
     path: /docs/reference/js/ai.booleanschema.md
   - title: ChatSession
     path: /docs/reference/js/ai.chatsession.md
-  - title: ChatSessionBase
-    path: /docs/reference/js/ai.chatsessionbase.md
   - title: ChromeAdapter
     path: /docs/reference/js/ai.chromeadapter.md
   - title: Citation
@@ -60,6 +58,8 @@ toc:
     path: /docs/reference/js/ai.date_2.md
   - title: EnhancedGenerateContentResponse
     path: /docs/reference/js/ai.enhancedgeneratecontentresponse.md
+  - title: EnterpriseBackend
+    path: /docs/reference/js/ai.enterprisebackend.md
   - title: ErrorDetails
     path: /docs/reference/js/ai.errordetails.md
   - title: ExecutableCode
@@ -230,6 +230,8 @@ toc:
     path: /docs/reference/js/ai.templatefunctiondeclarationstool.md
   - title: TemplateGenerativeModel
     path: /docs/reference/js/ai.templategenerativemodel.md
+  - title: TemplateRequest
+    path: /docs/reference/js/ai.templaterequest.md
   - title: TemplateToolConfig
     path: /docs/reference/js/ai.templatetoolconfig.md
   - title: TextPart
@@ -250,8 +252,6 @@ toc:
     path: /docs/reference/js/ai.urlmetadata.md
   - title: UsageMetadata
     path: /docs/reference/js/ai.usagemetadata.md
-  - title: VertexAIBackend
-    path: /docs/reference/js/ai.vertexaibackend.md
   - title: VideoMetadata
     path: /docs/reference/js/ai.videometadata.md
   - title: VoiceConfig

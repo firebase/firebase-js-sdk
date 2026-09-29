@@ -113,6 +113,7 @@ describe('ChromeAdapter', () => {
       const languageModelProvider = {
         availability: () => Promise.resolve(Availability.AVAILABLE)
       } as LanguageModel;
+      const fakeMonitor = (): void => {};
       const availabilityStub = vi
         .spyOn(languageModelProvider, 'availability')
         .mockResolvedValue(Availability.AVAILABLE);
@@ -121,7 +122,7 @@ describe('ChromeAdapter', () => {
         InferenceMode.PREFER_ON_DEVICE,
         {
           createOptions: {
-            topK: 22
+            monitor: fakeMonitor
           }
         }
       );
@@ -134,7 +135,7 @@ describe('ChromeAdapter', () => {
         ]
       });
       expect(availabilityStub).toHaveBeenCalledWith({
-        topK: 22,
+        monitor: fakeMonitor,
         expectedInputs: defaultExpectedInputs,
         expectedOutputs: defaultExpectedOutputs
       });
