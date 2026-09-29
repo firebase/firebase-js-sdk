@@ -157,31 +157,31 @@ describe('SortedSet', () => {
 
   it('diff sorted sets with missing element', () => {
     const { added, removed } = computeDiffs(['a', 'b', 'c'], ['a', 'b']);
-    expect(added).toEqual(expect.arrayContaining([]));
-    expect(removed).toEqual(expect.arrayContaining(['c']));
+    expect(added).toEqual([]);
+    expect(removed).toEqual(['c']);
   });
 
   it('diff sorted sets with added element', () => {
     const { added, removed } = computeDiffs(['a', 'b'], ['a', 'b', 'c']);
-    expect(added).toEqual(expect.arrayContaining(['c']));
-    expect(removed).toEqual(expect.arrayContaining([]));
+    expect(added).toEqual(['c']);
+    expect(removed).toEqual([]);
   });
 
   it('diff sorted sets with empty sets', () => {
     {
       const { added, removed } = computeDiffs(['a'], []);
-      expect(added).toEqual(expect.arrayContaining([]));
-      expect(removed).toEqual(expect.arrayContaining(['a']));
+      expect(added).toEqual([]);
+      expect(removed).toEqual(['a']);
     }
     {
       const { added, removed } = computeDiffs([], ['a']);
-      expect(added).toEqual(expect.arrayContaining(['a']));
-      expect(removed).toEqual(expect.arrayContaining([]));
+      expect(added).toEqual(['a']);
+      expect(removed).toEqual([]);
     }
     {
       const { added, removed } = computeDiffs([], []);
-      expect(added).toEqual(expect.arrayContaining([]));
-      expect(removed).toEqual(expect.arrayContaining([]));
+      expect(added).toEqual([]);
+      expect(removed).toEqual([]);
     }
   });
 

@@ -16,8 +16,6 @@
  */
 
 import { AIError } from '../errors';
-import { expect, use } from 'chai';
-import sinonChai from 'sinon-chai';
 import {
   AnyOfSchema,
   NumberSchema,
@@ -25,8 +23,6 @@ import {
   StringSchema
 } from './schema-builder';
 import { AIErrorCode, SchemaType } from '../types';
-
-use(sinonChai);
 
 describe('Schema builder', () => {
   it('builds integer schema', () => {

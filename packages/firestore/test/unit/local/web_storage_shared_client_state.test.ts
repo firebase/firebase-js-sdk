@@ -244,10 +244,12 @@ describe('WebStorageSharedClientState', () => {
     expect(Object.keys(actual)).toEqual(
       expect.arrayContaining(['activeTargetIds', 'updateTimeMs'])
     );
+    expect(Object.keys(actual)).toHaveLength(2);
     expect(Array.isArray(actual.activeTargetIds)).toBe(true);
     expect(actual.activeTargetIds).toEqual(
       expect.arrayContaining(activeTargetIds)
     );
+    expect(actual.activeTargetIds).toHaveLength(activeTargetIds.length);
   }
 
   describe('persists mutation batches', () => {
@@ -273,6 +275,7 @@ describe('WebStorageSharedClientState', () => {
       expect(Object.keys(actual)).toEqual(
         expect.arrayContaining(expectedMembers)
       );
+      expect(Object.keys(actual)).toHaveLength(expectedMembers.length);
     }
 
     function assertNoBatchState(batchId: BatchId): void {
@@ -326,6 +329,7 @@ describe('WebStorageSharedClientState', () => {
         expect(Object.keys(actual)).toEqual(
           expect.arrayContaining(expectedMembers)
         );
+        expect(Object.keys(actual)).toHaveLength(expectedMembers.length);
       }
     }
 
@@ -417,6 +421,7 @@ describe('WebStorageSharedClientState', () => {
       expect(actualTargets.toArray()).toEqual(
         expect.arrayContaining(expectedTargets)
       );
+      expect(actualTargets.toArray()).toHaveLength(expectedTargets.length);
       expect(actualOnlineState).toBe(expectedOnlineState);
     }
 
@@ -855,6 +860,7 @@ describe('WebStorageSharedClientState', () => {
       expect(bundleValue).not.toBeNull();
       const actual = JSON.parse(bundleValue!) as string[];
       expect(actual).toEqual(expect.arrayContaining(collectionGroups));
+      expect(actual).toHaveLength(collectionGroups.length);
     }
 
     it('writes out collection groups', () => {

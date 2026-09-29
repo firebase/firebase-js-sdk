@@ -65,6 +65,6 @@
   },
   "typings": "./dist/app/src/index.d.ts",
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=24.12.0"
   }
 }

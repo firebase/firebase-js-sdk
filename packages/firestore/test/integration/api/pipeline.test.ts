@@ -3067,9 +3067,12 @@ apiDescribe.skipClassic('Pipelines', persistence => {
 
       const res = snapshot.results[0].data();
       expect(res.existingKeys).toEqual(expect.arrayContaining(['foo']));
+      expect(res.existingKeys).toHaveLength(1);
       expect(res.keys).toEqual(expect.arrayContaining(['a', 'b']));
+      expect(res.keys).toHaveLength(2);
       expect(res.empty_keys).toEqual([]);
       expect(res.nested_keys).toEqual(expect.arrayContaining(['a']));
+      expect(res.nested_keys).toHaveLength(1);
     });
 
     it('test mapValues', async () => {
@@ -3088,7 +3091,9 @@ apiDescribe.skipClassic('Pipelines', persistence => {
       );
       const res = snapshot.results[0].data();
       expect(res.existingValues).toEqual(expect.arrayContaining([1]));
+      expect(res.existingValues).toHaveLength(1);
       expect(res.values).toEqual(expect.arrayContaining([1, 2]));
+      expect(res.values).toHaveLength(2);
       expect(res.empty_values).toEqual([]);
       expect(res.nested_values).toEqual(
         expect.arrayContaining([{ nested: true }])

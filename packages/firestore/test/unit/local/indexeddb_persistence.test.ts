@@ -289,6 +289,7 @@ describe.skipIf(!IndexedDbPersistence.isAvailable())(
         expect(version).toBe(1);
         // Version 1 adds all of the stores so far.
         expect(objectStores).toEqual(expect.arrayContaining(V1_STORES));
+        expect(objectStores).toHaveLength(V1_STORES.length);
       });
     });
 
@@ -349,6 +350,7 @@ describe.skipIf(!IndexedDbPersistence.isAvailable())(
         return withDb(3, (db, version, objectStores) => {
           expect(version).toBe(3);
           expect(objectStores).toEqual(expect.arrayContaining(V3_STORES));
+          expect(objectStores).toHaveLength(V3_STORES.length);
 
           return db.runTransaction(
             expect.getState().currentTestName ?? 'test',
@@ -434,6 +436,7 @@ describe.skipIf(!IndexedDbPersistence.isAvailable())(
         withDb(4, (db, version, objectStores) => {
           expect(version).toBe(4);
           expect(objectStores).toEqual(expect.arrayContaining(V4_STORES));
+          expect(objectStores).toHaveLength(V4_STORES.length);
           return db.runTransaction(
             expect.getState().currentTestName ?? 'test',
             'readwrite',
@@ -1011,6 +1014,7 @@ describe.skipIf(!IndexedDbPersistence.isAvailable())(
                     'projects/test-project/databases/(default)/documents/coll2/doc2'
                   ])
                 );
+                expect(keys).toHaveLength(4);
               })
               .next(() => addDocs(txn, newDocPaths, /* version= */ 2))
               .next(() => {
@@ -1029,6 +1033,7 @@ describe.skipIf(!IndexedDbPersistence.isAvailable())(
                       'projects/test-project/databases/(default)/documents/coll2/doc4'
                     ])
                   );
+                  expect(keys).toHaveLength(2);
                 });
               });
           }
@@ -1066,6 +1071,7 @@ describe.skipIf(!IndexedDbPersistence.isAvailable())(
                       'projects/test-project/databases/(default)/documents/coll/doc4'
                     ])
                   );
+                  expect(keys).toHaveLength(2);
                 });
               })
             );
@@ -1079,6 +1085,7 @@ describe.skipIf(!IndexedDbPersistence.isAvailable())(
       await withDb(12, async (db, version, objectStores) => {
         expect(version).toBe(12);
         expect(objectStores).toEqual(expect.arrayContaining(V12_STORES));
+        expect(objectStores).toHaveLength(V12_STORES.length);
       });
     });
 
@@ -1087,6 +1094,7 @@ describe.skipIf(!IndexedDbPersistence.isAvailable())(
       await withDb(13, async (db, version, objectStores) => {
         expect(version).toBe(13);
         expect(objectStores).toEqual(expect.arrayContaining(V13_STORES));
+        expect(objectStores).toHaveLength(V13_STORES.length);
       });
     });
 
@@ -1250,6 +1258,7 @@ describe.skipIf(!IndexedDbPersistence.isAvailable())(
       await withDb(14, async (db, version, objectStores) => {
         expect(version).toBe(14);
         expect(objectStores).toEqual(expect.arrayContaining(V14_STORES));
+        expect(objectStores).toHaveLength(V14_STORES.length);
       });
     });
 
@@ -1258,6 +1267,7 @@ describe.skipIf(!IndexedDbPersistence.isAvailable())(
       await withDb(15, async (db, version, objectStores) => {
         expect(version).toBe(15);
         expect(objectStores).toEqual(expect.arrayContaining(V15_STORES));
+        expect(objectStores).toHaveLength(V15_STORES.length);
       });
     });
 
@@ -1266,6 +1276,7 @@ describe.skipIf(!IndexedDbPersistence.isAvailable())(
       await withDb(16, async (db, version, objectStores) => {
         expect(version).toBe(16);
         expect(objectStores).toEqual(expect.arrayContaining(V16_STORES));
+        expect(objectStores).toHaveLength(V16_STORES.length);
       });
     });
 
@@ -1274,6 +1285,7 @@ describe.skipIf(!IndexedDbPersistence.isAvailable())(
       await withDb(17, async (db, version, objectStores) => {
         expect(version).toBe(17);
         expect(objectStores).toEqual(expect.arrayContaining(V17_STORES));
+        expect(objectStores).toHaveLength(V17_STORES.length);
       });
     });
 

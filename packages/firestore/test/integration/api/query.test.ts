@@ -2068,7 +2068,7 @@ apiDescribe('Hanging query issue - #7652', persistence => {
 
         expect(qSnap.size).toBe(collectionDefinition.pageSize);
       });
-    });
+    }, 60_000);
   }
 });
 

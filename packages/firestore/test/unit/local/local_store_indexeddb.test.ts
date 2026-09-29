@@ -191,6 +191,7 @@ class AsyncLocalStoreTester {
       transaction => this.localStore.indexManager.getFieldIndexes(transaction)
     );
     expect(fieldIndexes).toEqual(expect.arrayContaining(indexes));
+    expect(fieldIndexes).toHaveLength(indexes.length);
   }
 
   assertRemoteDocumentsRead(byKey: number, byCollection: number): void {

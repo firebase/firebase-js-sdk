@@ -33,6 +33,7 @@ if (process.env.CI) {
 }
 
 function stripTypeExportsPlugin() {
+  // TODO: Use ts.transpileModule per file, for speed
   let program;
   return {
     name: 'strip-type-exports',
@@ -170,7 +171,9 @@ config.test.projects = config.test.projects.map(project => {
               TEST_PLATFORM: process.env.TEST_PLATFORM,
               USE_MOCK_PERSISTENCE: process.env.USE_MOCK_PERSISTENCE,
               FIRESTORE_RUN_LARGE_DOC_TESTS:
-                process.env.FIRESTORE_RUN_LARGE_DOC_TESTS
+                process.env.FIRESTORE_RUN_LARGE_DOC_TESTS,
+              INCLUDE_FIRESTORE_PERSISTENCE:
+                process.env.INCLUDE_FIRESTORE_PERSISTENCE
             })
           }
         : {})

@@ -2831,7 +2831,7 @@ describe.skipIf(!IndexedDbPersistence.isAvailable())(
       expect(actualResults, 'Expected successful query').not.toBe(null);
       const actualKeys: string[] = [];
       actualResults!.forEach(v => actualKeys.push(v.path.toString()));
-      expect(actualKeys).toEqual(expect.arrayContaining(keys));
+      expect(actualKeys).toEqual(keys);
     }
   }
 );

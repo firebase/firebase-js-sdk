@@ -1202,8 +1202,14 @@ abstract class TestRunner {
       expect(this.acknowledgedDocs).toEqual(
         expect.arrayContaining(expectedState.userCallbacks.acknowledgedDocs)
       );
+      expect(this.acknowledgedDocs).toHaveLength(
+        expectedState.userCallbacks.acknowledgedDocs.length
+      );
       expect(this.rejectedDocs).toEqual(
         expect.arrayContaining(expectedState.userCallbacks.rejectedDocs)
+      );
+      expect(this.rejectedDocs).toHaveLength(
+        expectedState.userCallbacks.rejectedDocs.length
       );
     } else {
       expect(this.acknowledgedDocs).toHaveLength(0);

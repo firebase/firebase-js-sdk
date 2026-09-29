@@ -2498,6 +2498,7 @@ function getChanges(
             expect(snapshot1DocumentIds).toEqual(
               expect.arrayContaining(testDocIds)
             );
+            expect(snapshot1DocumentIds).toHaveLength(testDocIds.length);
 
             // Delete one of the documents so that the next call to getDocs() will
             // experience an existence filter mismatch. Use a different Firestore
@@ -2528,6 +2529,9 @@ function getChanges(
             );
             expect(snapshot2DocumentIds).toEqual(
               expect.arrayContaining(testDocIdsMinusDeletedDocId)
+            );
+            expect(snapshot2DocumentIds).toHaveLength(
+              testDocIdsMinusDeletedDocId.length
             );
 
             // Verify that Watch sent an existence filter with the correct counts.
@@ -2733,7 +2737,7 @@ apiDescribe('Hanging query issue - #7652', persistence => {
 
         expect(qSnap.size).toBe(collectionDefinition.pageSize);
       });
-    });
+    }, 60_000);
   }
 });
 

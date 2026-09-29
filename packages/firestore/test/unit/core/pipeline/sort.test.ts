@@ -144,9 +144,11 @@ describe('Sort Tests', () => {
       .collection('/users')
       .sort(field('age').descending());
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual(
+    const results = runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5]);
+    expect(results).toEqual(
       expect.arrayContaining([doc3, doc1, doc2, doc4, doc5])
     );
+    expect(results).toHaveLength(5);
   });
 
   it('multipleResults_ambiguousOrder_explicitExists', () => {
@@ -162,9 +164,11 @@ describe('Sort Tests', () => {
       .where(exists(field('age')))
       .sort(field('age').descending());
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual(
+    const results = runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5]);
+    expect(results).toEqual(
       expect.arrayContaining([doc3, doc1, doc2, doc4, doc5])
     );
+    expect(results).toHaveLength(5);
   });
 
   it('multipleResults_ambiguousOrder_implicitExists', () => {
@@ -180,9 +184,11 @@ describe('Sort Tests', () => {
       .where(field('age').greaterThan(constant(0)))
       .sort(field('age').descending());
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual(
+    const results = runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5]);
+    expect(results).toEqual(
       expect.arrayContaining([doc3, doc1, doc2, doc4, doc5])
     );
+    expect(results).toHaveLength(5);
   });
 
   it('multipleResults_fullOrder', () => {
@@ -372,9 +378,11 @@ describe('Sort Tests', () => {
       .sort(field('not_age').descending());
 
     // Any order is acceptable.
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual(
+    const results = runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5]);
+    expect(results).toEqual(
       expect.arrayContaining([doc1, doc2, doc3, doc4, doc5])
     );
+    expect(results).toHaveLength(5);
   });
 
   it('missingField_withExist_empty', () => {
@@ -408,9 +416,11 @@ describe('Sort Tests', () => {
       .sort(field('age').ascending());
 
     // Any order is acceptable.
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual(
+    const results = runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5]);
+    expect(results).toEqual(
       expect.arrayContaining([doc5, doc1, doc3, doc2, doc4])
     );
+    expect(results).toHaveLength(5);
   });
 
   it('missingField_partialFields_withExist', () => {

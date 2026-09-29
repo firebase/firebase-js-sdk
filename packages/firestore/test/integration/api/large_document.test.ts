@@ -53,6 +53,8 @@ const runLargeDocTests =
   'Large Documents',
   persistence => {
     let seedColName: string;
+    // Tests are very slow because large doc reads have very high latency.
+    const TEST_TIMEOUT_MS = 120_000;
 
     beforeAll(async () => {
       seedColName = `large_doc_tests_js_${Date.now()}`;
@@ -72,7 +74,7 @@ const runLargeDocTests =
           });
         }
       });
-    });
+    }, 180_000); // Tests are very slow because large doc reads have very high latency.
 
     afterAll(async () => {
       if (!seedColName) {
@@ -91,176 +93,214 @@ const runLargeDocTests =
       });
     });
 
-    it('can read and cache a 15.9MB Unicode document', () => {
-      return withTestDb(persistence, async db => {
-        const docRef = doc(collection(db, seedColName), 'doc_15_9MB_unicode');
-        try {
-          const serverSnapshot = await getDocFromServer(docRef);
-          expect(serverSnapshot.exists()).toBe(true);
+    it(
+      'can read and cache a 15.9MB Unicode document',
+      () => {
+        return withTestDb(persistence, async db => {
+          const docRef = doc(collection(db, seedColName), 'doc_15_9MB_unicode');
+          try {
+            const serverSnapshot = await getDocFromServer(docRef);
+            expect(serverSnapshot.exists()).toBe(true);
 
-          await disableNetwork(db);
+            await disableNetwork(db);
 
-          const cacheSnapshot = await getDocFromCache(docRef);
-          expect(cacheSnapshot.exists()).toBe(true);
+            const cacheSnapshot = await getDocFromCache(docRef);
+            expect(cacheSnapshot.exists()).toBe(true);
 
-          expect(serverSnapshot.data()).toEqual(cacheSnapshot.data());
-        } finally {
-          await enableNetwork(db);
-        }
-      });
-    });
-
-    it('cache integrity with multiple large documents', () => {
-      return withTestDb(persistence, async db => {
-        const colRef = collection(db, seedColName);
-        const docA = doc(colRef, 'doc_a');
-        const docB = doc(colRef, 'doc_b');
-
-        try {
-          await getDocFromServer(docA);
-          await getDocFromServer(docB);
-
-          await disableNetwork(db);
-
-          const cacheSnapshotA = await getDocFromCache(docA);
-          const cacheSnapshotB = await getDocFromCache(docB);
-
-          expect(cacheSnapshotA.exists()).toBe(true);
-          expect(cacheSnapshotB.exists()).toBe(true);
-
-          expect(cacheSnapshotA.data()!.chunk).toBeDefined();
-          expect(cacheSnapshotB.data()!.chunk).toBeDefined();
-        } finally {
-          await enableNetwork(db);
-        }
-      });
-    });
-
-    it('can run watch snapshot listener on a large document', () => {
-      return withTestDb(persistence, async db => {
-        const docRef = doc(collection(db, seedColName), 'doc_15_9MB_unicode');
-        let updateReceived = false;
-
-        const deferred = new Promise<void>((resolve, reject) => {
-          const unsubscribe = onSnapshot(
-            docRef,
-            snapshot => {
-              if (snapshot.exists() && snapshot.data()!['differentialField']) {
-                updateReceived = true;
-                unsubscribe();
-                resolve();
-              }
-            },
-            error => {
-              unsubscribe();
-              reject(error);
-            }
-          );
+            expect(serverSnapshot.data()).toEqual(cacheSnapshot.data());
+          } finally {
+            await enableNetwork(db);
+          }
         });
+      },
+      TEST_TIMEOUT_MS
+    );
 
-        await updateDoc(docRef, { differentialField: 'updated_value' });
-        await deferred;
-        expect(updateReceived).toBe(true);
-      });
-    });
+    it(
+      'cache integrity with multiple large documents',
+      () => {
+        return withTestDb(persistence, async db => {
+          const colRef = collection(db, seedColName);
+          const docA = doc(colRef, 'doc_a');
+          const docB = doc(colRef, 'doc_b');
 
-    it('can run transaction read-modify-write on a large document', () => {
-      return withTestDb(persistence, async db => {
-        const docRef = doc(collection(db, seedColName), 'doc_15_9MB_unicode');
-        await runTransaction(db, async transaction => {
-          const snapshot = await transaction.get(docRef);
-          expect(snapshot.exists()).toBe(true);
-          transaction.update(docRef, {
-            // eslint-disable-next-line camelcase
-            transaction_timestamp: serverTimestamp()
+          try {
+            await getDocFromServer(docA);
+            await getDocFromServer(docB);
+
+            await disableNetwork(db);
+
+            const cacheSnapshotA = await getDocFromCache(docA);
+            const cacheSnapshotB = await getDocFromCache(docB);
+
+            expect(cacheSnapshotA.exists()).toBe(true);
+            expect(cacheSnapshotB.exists()).toBe(true);
+
+            expect(cacheSnapshotA.data()!.chunk).toBeDefined();
+            expect(cacheSnapshotB.data()!.chunk).toBeDefined();
+          } finally {
+            await enableNetwork(db);
+          }
+        });
+      },
+      TEST_TIMEOUT_MS
+    );
+
+    it(
+      'can run watch snapshot listener on a large document',
+      () => {
+        return withTestDb(persistence, async db => {
+          const docRef = doc(collection(db, seedColName), 'doc_15_9MB_unicode');
+          let updateReceived = false;
+
+          const deferred = new Promise<void>((resolve, reject) => {
+            const unsubscribe = onSnapshot(
+              docRef,
+              snapshot => {
+                if (
+                  snapshot.exists() &&
+                  snapshot.data()!['differentialField']
+                ) {
+                  updateReceived = true;
+                  unsubscribe();
+                  resolve();
+                }
+              },
+              error => {
+                unsubscribe();
+                reject(error);
+              }
+            );
+          });
+
+          await updateDoc(docRef, { differentialField: 'updated_value' });
+          await deferred;
+          expect(updateReceived).toBe(true);
+        });
+      },
+      TEST_TIMEOUT_MS
+    );
+
+    it(
+      'can run transaction read-modify-write on a large document',
+      () => {
+        return withTestDb(persistence, async db => {
+          const docRef = doc(collection(db, seedColName), 'doc_15_9MB_unicode');
+          await runTransaction(db, async transaction => {
+            const snapshot = await transaction.get(docRef);
+            expect(snapshot.exists()).toBe(true);
+            transaction.update(docRef, {
+              // eslint-disable-next-line camelcase
+              transaction_timestamp: serverTimestamp()
+            });
           });
         });
-      });
-    });
+      },
+      TEST_TIMEOUT_MS
+    );
 
-    it('can query large documents', () => {
-      return withTestDb(persistence, async db => {
-        const colRef = collection(db, seedColName);
-        const q = query(colRef, where(documentId(), 'in', ['doc_a', 'doc_b']));
-
-        try {
-          const serverSnapshot = await getDocsFromServer(q);
-          expect(serverSnapshot.size).toBe(2);
-
-          await disableNetwork(db);
-
-          const cacheSnapshot = await getDocsFromCache(q);
-          expect(cacheSnapshot.size).toBe(2);
-
-          expect(serverSnapshot.docs[0].data()).toEqual(
-            cacheSnapshot.docs[0].data()
+    it(
+      'can query large documents',
+      () => {
+        return withTestDb(persistence, async db => {
+          const colRef = collection(db, seedColName);
+          const q = query(
+            colRef,
+            where(documentId(), 'in', ['doc_a', 'doc_b'])
           );
-        } finally {
-          await enableNetwork(db);
-        }
-      });
-    });
 
-    it('query large documents forces local scan', () => {
-      return withTestDb(persistence, async db => {
-        const colRef = collection(db, seedColName);
-        const docA = doc(colRef, 'doc_a');
-        const docB = doc(colRef, 'doc_b');
-
-        try {
-          await getDocFromServer(docA);
-          await getDocFromServer(docB);
-
-          await disableNetwork(db);
-
-          const q = query(colRef, orderBy(documentId()), limit(2));
-          const cacheSnapshot = await getDocsFromCache(q);
-          expect(cacheSnapshot.size).toBe(2);
-          expect(cacheSnapshot.docs[0].data()!.chunk).toBeDefined();
-        } finally {
-          await enableNetwork(db);
-        }
-      });
-    });
-
-    it('gracefully rejects oversized payloads', () => {
-      return withTestDb(persistence, async db => {
-        const docRef = doc(collection(db, seedColName), 'temp_oversized_doc');
-        const targetBytes = 16 * 1024 * 1024 + 102400;
-        const largePayload = 'a'.repeat(targetBytes);
-
-        try {
-          await setDoc(docRef, { chunk: largePayload });
-          throw new Error(
-            'Setting a document exceeding the 16MB limit should fail.'
-          );
-        } catch (error: unknown) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          expect((error as any).code).toBe('invalid-argument');
-        }
-      });
-    });
-
-    it('can write a 15.9MB document', () => {
-      return withTestDb(persistence, async db => {
-        const tempDocId = 'temp_valid_large_doc_' + Date.now();
-        const docRef = doc(collection(db, seedColName), tempDocId);
-        const targetBytes = Math.floor(15.9 * 1024 * 1024);
-        const largePayload = 'a'.repeat(targetBytes);
-
-        try {
-          await setDoc(docRef, { chunk: largePayload });
-          const snapshot = await getDocFromServer(docRef);
-          expect(snapshot.exists()).toBe(true);
-          expect(snapshot.data()!.chunk.length).toBe(targetBytes);
-        } finally {
           try {
-            await deleteDoc(docRef);
-          } catch (e) {
-            // Suppress cleanup exceptions
+            const serverSnapshot = await getDocsFromServer(q);
+            expect(serverSnapshot.size).toBe(2);
+
+            await disableNetwork(db);
+
+            const cacheSnapshot = await getDocsFromCache(q);
+            expect(cacheSnapshot.size).toBe(2);
+
+            expect(serverSnapshot.docs[0].data()).toEqual(
+              cacheSnapshot.docs[0].data()
+            );
+          } finally {
+            await enableNetwork(db);
           }
-        }
-      });
-    });
+        });
+      },
+      TEST_TIMEOUT_MS
+    );
+
+    it(
+      'query large documents forces local scan',
+      () => {
+        return withTestDb(persistence, async db => {
+          const colRef = collection(db, seedColName);
+          const docA = doc(colRef, 'doc_a');
+          const docB = doc(colRef, 'doc_b');
+
+          try {
+            await getDocFromServer(docA);
+            await getDocFromServer(docB);
+
+            await disableNetwork(db);
+
+            const q = query(colRef, orderBy(documentId()), limit(2));
+            const cacheSnapshot = await getDocsFromCache(q);
+            expect(cacheSnapshot.size).toBe(2);
+            expect(cacheSnapshot.docs[0].data()!.chunk).toBeDefined();
+          } finally {
+            await enableNetwork(db);
+          }
+        });
+      },
+      TEST_TIMEOUT_MS
+    );
+
+    it(
+      'gracefully rejects oversized payloads',
+      () => {
+        return withTestDb(persistence, async db => {
+          const docRef = doc(collection(db, seedColName), 'temp_oversized_doc');
+          const targetBytes = 16 * 1024 * 1024 + 102400;
+          const largePayload = 'a'.repeat(targetBytes);
+
+          try {
+            await setDoc(docRef, { chunk: largePayload });
+            throw new Error(
+              'Setting a document exceeding the 16MB limit should fail.'
+            );
+          } catch (error: unknown) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            expect((error as any).code).toBe('invalid-argument');
+          }
+        });
+      },
+      TEST_TIMEOUT_MS
+    );
+
+    it(
+      'can write a 15.9MB document',
+      () => {
+        return withTestDb(persistence, async db => {
+          const tempDocId = 'temp_valid_large_doc_' + Date.now();
+          const docRef = doc(collection(db, seedColName), tempDocId);
+          const targetBytes = Math.floor(15.9 * 1024 * 1024);
+          const largePayload = 'a'.repeat(targetBytes);
+
+          try {
+            await setDoc(docRef, { chunk: largePayload });
+            const snapshot = await getDocFromServer(docRef);
+            expect(snapshot.exists()).toBe(true);
+            expect(snapshot.data()!.chunk.length).toBe(targetBytes);
+          } finally {
+            try {
+              await deleteDoc(docRef);
+            } catch (e) {
+              // Suppress cleanup exceptions
+            }
+          }
+        });
+      },
+      TEST_TIMEOUT_MS
+    );
   }
 );

@@ -400,6 +400,7 @@ apiDescribe('Queries', persistence => {
         expect(snapshot1DocumentIds).toEqual(
           expect.arrayContaining(testDocIds)
         );
+        expect(snapshot1DocumentIds).toHaveLength(testDocIds.length);
 
         // Delete one of the documents so that the next call to getDocs() will
         // experience an existence filter mismatch. Use a different Firestore
@@ -427,6 +428,9 @@ apiDescribe('Queries', persistence => {
         );
         expect(snapshot2DocumentIds).toEqual(
           expect.arrayContaining(testDocIdsMinusDeletedDocId)
+        );
+        expect(snapshot2DocumentIds).toHaveLength(
+          testDocIdsMinusDeletedDocId.length
         );
 
         // Verify that Watch sent an existence filter with the correct counts.
