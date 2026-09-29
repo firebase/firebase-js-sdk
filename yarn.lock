@@ -1608,16 +1608,6 @@
     "@grpc/proto-loader" "^0.8.0"
     "@js-sdsl/ordered-map" "^4.4.2"
 
-"@grpc/proto-loader@^0.7.8":
-  version "0.7.13"
-  resolved "https://registry.npmjs.org/@grpc/proto-loader/-/proto-loader-0.7.13.tgz#f6a44b2b7c9f7b609f5748c6eac2d420e37670cf"
-  integrity sha512-AiXO/bfe9bmxBjxxtYxFAXGZvMaN5s8kO+jBHAJCON8rJoB5YS/D6X7ZNc6XQkuHNmyl4CYaMI1fJ/Gn27RGGw==
-  dependencies:
-    lodash.camelcase "^4.3.0"
-    long "^5.0.0"
-    protobufjs "^7.2.5"
-    yargs "^17.7.2"
-
 "@grpc/proto-loader@^0.8.0":
   version "0.8.1"
   resolved "https://registry.npmjs.org/@grpc/proto-loader/-/proto-loader-0.8.1.tgz#5a6b290ccbfb1ae2f6775afb74e9898bd8c5d4e8"
@@ -13678,7 +13668,7 @@ protobufjs@7.6.6:
     "@types/node" ">=13.7.0"
     long "^5.3.2"
 
-protobufjs@^7.2.5, protobufjs@^7.4.0, protobufjs@^7.5.4, protobufjs@^7.5.5:
+protobufjs@^7.4.0, protobufjs@^7.5.4, protobufjs@^7.5.5:
   version "7.6.5"
   resolved "https://registry.npmjs.org/protobufjs/-/protobufjs-7.6.5.tgz#7b9250cdaf4a06139a9f0fe468a40d7d4febca71"
   integrity sha512-/FPD0nUc9jH6rfFjji9IBqOz4pcSE3CsT1m7Ep6Mdb0LxSUMj8hgl6GomOvZzpNpAqqGaXA0P3VSrZLFzIhQrw==
