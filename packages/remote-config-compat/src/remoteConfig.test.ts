@@ -15,17 +15,16 @@
  * limitations under the License.
  */
 
-import '../test/setup';
-import { expect } from 'chai';
-import { stub } from 'sinon';
 import { RemoteConfigCompatImpl } from './remoteConfig';
 import { getFakeApp, getFakeModularRemoteConfig } from '../test/util';
 import * as modularApi from '@firebase/remote-config';
 
+vi.mock('@firebase/remote-config', { spy: true });
+
 describe('Remote Config Compat', () => {
   let remoteConfig!: RemoteConfigCompatImpl;
   const fakeModularRemoteConfig = getFakeModularRemoteConfig();
-  before(() => {
+  beforeEach(() => {
     remoteConfig = new RemoteConfigCompatImpl(
       getFakeApp(),
       fakeModularRemoteConfig
@@ -33,100 +32,94 @@ describe('Remote Config Compat', () => {
   });
 
   it('activate() calls modular activate()', async () => {
-    const modularActivateStub = stub(modularApi, 'activate').callsFake(() =>
-      Promise.resolve(true)
-    );
+    const modularActivateSpy = vi
+      .spyOn(modularApi, 'activate')
+      .mockResolvedValue(true);
     const res = await remoteConfig.activate();
 
-    expect(res).to.equal(res);
-    expect(modularActivateStub).to.have.been.calledWithExactly(
-      fakeModularRemoteConfig
-    );
+    expect(res).toBe(true);
+    expect(modularActivateSpy).toHaveBeenCalledWith(fakeModularRemoteConfig);
   });
 
   it('ensureInitialized() calls modular ensureInitialized()', async () => {
-    const modularEnsureInitializedStub = stub(
-      modularApi,
-      'ensureInitialized'
-    ).callsFake(() => Promise.resolve());
+    const modularEnsureInitializedSpy = vi
+      .spyOn(modularApi, 'ensureInitialized')
+      .mockResolvedValue();
     await remoteConfig.ensureInitialized();
 
-    expect(modularEnsureInitializedStub).to.have.been.calledWithExactly(
+    expect(modularEnsureInitializedSpy).toHaveBeenCalledWith(
       fakeModularRemoteConfig
     );
   });
 
   it('fetch() calls modular fetchConfig()', async () => {
-    const modularFetchStub = stub(modularApi, 'fetchConfig').callsFake(() =>
-      Promise.resolve()
-    );
+    const modularFetchSpy = vi
+      .spyOn(modularApi, 'fetchConfig')
+      .mockResolvedValue();
     await remoteConfig.fetch();
 
-    expect(modularFetchStub).to.have.been.calledWithExactly(
-      fakeModularRemoteConfig
-    );
+    expect(modularFetchSpy).toHaveBeenCalledWith(fakeModularRemoteConfig);
   });
 
   it('fetchAndActivate() calls modular fetchAndActivate()', async () => {
-    const modularFetchAndActivateStub = stub(
-      modularApi,
-      'fetchAndActivate'
-    ).callsFake(() => Promise.resolve(true));
+    const modularFetchAndActivateSpy = vi
+      .spyOn(modularApi, 'fetchAndActivate')
+      .mockResolvedValue(true);
     const res = await remoteConfig.fetchAndActivate();
 
-    expect(res).to.equal(true);
-    expect(modularFetchAndActivateStub).to.have.been.calledWithExactly(
+    expect(res).toBe(true);
+    expect(modularFetchAndActivateSpy).toHaveBeenCalledWith(
       fakeModularRemoteConfig
     );
   });
 
   it('getAll() calls modular getAll()', () => {
     const allValues = {};
-    const modularGetAllStub = stub(modularApi, 'getAll').callsFake(
-      () => allValues
-    );
+    const modularGetAllSpy = vi
+      .spyOn(modularApi, 'getAll')
+      .mockReturnValue(allValues);
 
     const res = remoteConfig.getAll();
 
-    expect(res).to.equal(allValues);
-    expect(modularGetAllStub).to.have.been.calledWithExactly(
-      fakeModularRemoteConfig
-    );
+    expect(res).toBe(allValues);
+    expect(modularGetAllSpy).toHaveBeenCalledWith(fakeModularRemoteConfig);
   });
 
   it('getBoolean() calls modular getBoolean()', () => {
-    const modularGetBoolean = stub(modularApi, 'getBoolean').callsFake(
-      () => false
-    );
+    const modularGetBooleanSpy = vi
+      .spyOn(modularApi, 'getBoolean')
+      .mockReturnValue(false);
 
     const res = remoteConfig.getBoolean('myKey');
 
-    expect(res).to.equal(false);
-    expect(modularGetBoolean).to.have.been.calledWithExactly(
+    expect(res).toBe(false);
+    expect(modularGetBooleanSpy).toHaveBeenCalledWith(
       fakeModularRemoteConfig,
       'myKey'
     );
   });
 
   it('getNumber() calls modular getNumber()', () => {
-    const modularGetNumber = stub(modularApi, 'getNumber').callsFake(() => 123);
+    const modularGetNumberSpy = vi
+      .spyOn(modularApi, 'getNumber')
+      .mockReturnValue(123);
     const res = remoteConfig.getNumber('myNumKey');
 
-    expect(res).to.equal(123);
-    expect(modularGetNumber).to.have.been.calledWithExactly(
+    expect(res).toBe(123);
+    expect(modularGetNumberSpy).toHaveBeenCalledWith(
       fakeModularRemoteConfig,
       'myNumKey'
     );
   });
 
   it('getString() calls modular getString()', () => {
-    const modularGetString = stub(modularApi, 'getString').callsFake(
-      () => 'abc'
-    );
+    const modularGetStringSpy = vi
+      .spyOn(modularApi, 'getString')
+      .mockReturnValue('abc');
     const res = remoteConfig.getString('myStrKey');
 
-    expect(res).to.equal('abc');
-    expect(modularGetString).to.have.been.calledWithExactly(
+    expect(res).toBe('abc');
+    expect(modularGetStringSpy).toHaveBeenCalledWith(
       fakeModularRemoteConfig,
       'myStrKey'
     );
@@ -134,25 +127,25 @@ describe('Remote Config Compat', () => {
 
   it('getValue() calls modular getValue()', () => {
     const fakeValue = {} as modularApi.Value;
-    const modularGetValue = stub(modularApi, 'getValue').callsFake(
-      () => fakeValue
-    );
+    const modularGetValueSpy = vi
+      .spyOn(modularApi, 'getValue')
+      .mockReturnValue(fakeValue);
     const res = remoteConfig.getValue('myValKey');
 
-    expect(res).to.equal(fakeValue);
-    expect(modularGetValue).to.have.been.calledWithExactly(
+    expect(res).toBe(fakeValue);
+    expect(modularGetValueSpy).toHaveBeenCalledWith(
       fakeModularRemoteConfig,
       'myValKey'
     );
   });
 
   it('setLogLevel() calls modular setLogLevel()', () => {
-    const modularSetLogLevel = stub(modularApi, 'setLogLevel').callsFake(
-      () => {}
-    );
+    const modularSetLogLevelSpy = vi
+      .spyOn(modularApi, 'setLogLevel')
+      .mockReturnValue();
     remoteConfig.setLogLevel('debug');
 
-    expect(modularSetLogLevel).to.have.been.calledWithExactly(
+    expect(modularSetLogLevelSpy).toHaveBeenCalledWith(
       fakeModularRemoteConfig,
       'debug'
     );
