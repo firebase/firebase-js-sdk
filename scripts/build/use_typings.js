@@ -26,24 +26,27 @@ const packageJsonPath = path.resolve(process.cwd(), './package.json');
 
 // point typings field to supplied path in package.json
 const TYPINGS_PATH = argv._[0];
+const EXPORTS_SUBPATH = argv.subpath || '.';
 
 if (!TYPINGS_PATH) {
   throw Error('Please supply a file path');
 }
 const packageJson = require(packageJsonPath);
-packageJson.typings = TYPINGS_PATH;
+if (EXPORTS_SUBPATH === '.') {
+  packageJson.typings = TYPINGS_PATH;
+}
 if (
   packageJson.exports &&
-  packageJson.exports['.'] &&
-  packageJson.exports['.'].types
+  packageJson.exports[EXPORTS_SUBPATH] &&
+  packageJson.exports[EXPORTS_SUBPATH].types
 ) {
-  packageJson.exports['.'].types = TYPINGS_PATH.startsWith('./')
+  packageJson.exports[EXPORTS_SUBPATH].types = TYPINGS_PATH.startsWith('./')
     ? TYPINGS_PATH
     : `./${TYPINGS_PATH}`;
 }
 
 console.log(
-  `Pointing the typings field in ${packageJson.name} to ${TYPINGS_PATH}`
+  `Pointing the ${EXPORTS_SUBPATH} typings field in ${packageJson.name} to ${TYPINGS_PATH}`
 );
 
 writeFileSync(packageJsonPath, `${JSON.stringify(packageJson, null, 2)}\n`, {

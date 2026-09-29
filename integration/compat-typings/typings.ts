@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import firebase from 'firebase/compat';
+import firebase from 'firebase/compat/app';
 import { FirebaseAuth, User } from '@firebase/auth-types';
 import { FirebaseAnalytics } from '@firebase/analytics-types';
 import { FirebaseApp } from '@firebase/app-compat';
