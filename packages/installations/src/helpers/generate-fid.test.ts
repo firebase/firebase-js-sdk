@@ -54,7 +54,7 @@ const EXPECTED_FIDS = [
 describe('generateFid', () => {
   it('deterministically generates FIDs based on crypto.getRandomValues', () => {
     let randomValueIndex = 0;
-    vi.spyOn(crypto, 'getRandomValues').mockImplementation((array: any) => {
+    vi.spyOn(crypto, 'getRandomValues').mockImplementation(array => {
       if (!(array instanceof Uint8Array)) {
         throw new Error('what');
       }

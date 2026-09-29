@@ -1041,9 +1041,10 @@ function pumpEnqueuedLimboResolutions(syncEngineImpl: SyncEngineImpl): void {
     syncEngineImpl.activeLimboTargetsByKey.size <
       syncEngineImpl.maxConcurrentLimboResolutions
   ) {
+    // Guaranteed to be non-empty because `enqueuedLimboResolutions.size > 0` is checked in the loop condition.
     const keyString = syncEngineImpl.enqueuedLimboResolutions
       .values()
-      .next().value;
+      .next().value!;
     syncEngineImpl.enqueuedLimboResolutions.delete(keyString);
     const key = new DocumentKey(ResourcePath.fromString(keyString));
     const limboTargetId = syncEngineImpl.limboTargetIdGenerator.next();
