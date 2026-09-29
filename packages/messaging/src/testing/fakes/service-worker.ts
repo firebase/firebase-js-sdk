@@ -109,6 +109,7 @@ export class FakeServiceWorkerRegistration implements ServiceWorkerRegistration 
   scope = '/scope-value';
 
   // Unused in FCM Web SDK, no need to mock these.
+  cookies = null as unknown as CookieStoreManager;
   navigationPreload = null as unknown as NavigationPreloadManager;
   updateViaCache = null as unknown as ServiceWorkerUpdateViaCache;
 
@@ -118,7 +119,9 @@ export class FakeServiceWorkerRegistration implements ServiceWorkerRegistration 
 
   async showNotification() {}
 
-  async update() {}
+  async update() {
+    return this;
+  }
 
   async unregister() {
     return true;
