@@ -20,10 +20,12 @@ import '../../test/setup';
 
 describe('Firebase Performance > api_service', () => {
   const PAGE_URL = 'http://www.test.com/abcd?a=2';
-  const PERFORMANCE_ENTRY: PerformanceEntry = {
+  const PERFORMANCE_ENTRY: PerformancePaintTiming = {
     duration: 0,
     entryType: 'paint',
     name: 'first-contentful-paint',
+    paintTime: 0,
+    presentationTime: null,
     startTime: 149.01000005193055,
     toJSON: () => {}
   };
@@ -48,7 +50,10 @@ describe('Firebase Performance > api_service', () => {
       PERFORMANCE_ENTRY
     ]);
     // This is to make sure the test page is not changed by changing the href of location object.
-    mockWindow.location = { ...self.location, href: PAGE_URL };
+    mockWindow.location = {
+      ...self.location,
+      href: PAGE_URL
+    } as unknown as Location & string;
 
     setupApi(mockWindow);
     api = Api.getInstance();

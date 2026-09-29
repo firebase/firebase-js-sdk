@@ -64,6 +64,7 @@ describe('Firebase Performance > oob_resources_service', () => {
     requestStart: 5.034999921917915,
     responseEnd: 9.305000072345138,
     responseStart: 8.940000087022781,
+    responseStatus: 200,
     secureConnectionStart: 0,
     serverTiming: [],
     startTime: 0,
