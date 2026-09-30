@@ -20,7 +20,7 @@ export declare namespace Instrumentation
 
 |  Type Alias | Description |
 |  --- | --- |
-|  [onRequestError](./crashlytics_.instrumentation.md#instrumentationonrequesterror) |  |
+|  [onRequestError](./crashlytics.instrumentation.md#instrumentationonrequesterror) |  |
 
 ## Instrumentation.onRequestError
 

@@ -433,12 +433,12 @@ toc:
   - title: UserMetadata
     path: /docs/reference/js/auth.usermetadata.md
 - title: crashlytics
-  path: /docs/reference/js/crashlytics_.md
+  path: /docs/reference/js/crashlytics.md
   section:
   - title: Crashlytics
-    path: /docs/reference/js/crashlytics_.crashlytics.md
+    path: /docs/reference/js/crashlytics.crashlytics.md
   - title: CrashlyticsOptions
-    path: /docs/reference/js/crashlytics_.crashlyticsoptions.md
+    path: /docs/reference/js/crashlytics.crashlyticsoptions.md
 - title: crashlytics/angular
   path: /docs/reference/js/crashlytics_angular.md
   section:

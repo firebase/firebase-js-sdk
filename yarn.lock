@@ -1562,49 +1562,6 @@
   resolved "https://registry.npmjs.org/@eslint/js/-/js-8.57.1.tgz#de633db3ec2ef6a3c89e2f19038063e8a122e2c2"
   integrity sha512-d9zaMRSTIKDLhctzH12MtXvJKSSUhaHcjV+2Z+GK+EEY7XKpP5yR4x+N3TAcHTcu963nIr+TMcCb4DBCYX1z6Q==
 
-"@firebase/app@0.16.0":
-  version "0.16.0"
-  resolved "https://registry.npmjs.org/@firebase/app/-/app-0.16.0.tgz#9521de87efb74eed879f201be1abc8df92364b37"
-  integrity sha512-G+ZGEyVP8YTb3ay6A+XpcYgFH3sTESHcnHU/EyTktodqhz2BHkLq+QEP7IVwjiMX0cxYwpVKip0/wC0KZcn9vQ==
-  dependencies:
-    "@firebase/component" "0.7.4"
-    "@firebase/logger" "0.5.1"
-    "@firebase/util" "1.15.2"
-    idb "7.1.1"
-    tslib "^2.1.0"
-
-"@firebase/component@0.7.4":
-  version "0.7.4"
-  resolved "https://registry.npmjs.org/@firebase/component/-/component-0.7.4.tgz#1c7942806ba03334e5ef432e088a07efad787cf3"
-  integrity sha512-tLpOaaCol9ugUIYp2R3CbWPPA8Ajg/papX/XHEy8U52b/QXH3BbX8tTJX9aShDCjp+9sMAxMLD94i7lresdugQ==
-  dependencies:
-    "@firebase/util" "1.15.2"
-    tslib "^2.1.0"
-
-"@firebase/installations@0.6.23":
-  version "0.6.23"
-  resolved "https://registry.npmjs.org/@firebase/installations/-/installations-0.6.23.tgz#687c03a51e8d30936d7673f879c388e8ac3593c8"
-  integrity sha512-MBkbcQfd+3qHjW+slsH4s7jH5qTdGlYpwqmxEZ7QcIpgDxu1SKyU0f+mCZhCt1BCacLNiOWF5L0R06N0LtlfMg==
-  dependencies:
-    "@firebase/component" "0.7.4"
-    "@firebase/util" "1.15.2"
-    idb "7.1.1"
-    tslib "^2.1.0"
-
-"@firebase/logger@0.5.1":
-  version "0.5.1"
-  resolved "https://registry.npmjs.org/@firebase/logger/-/logger-0.5.1.tgz#da1eb266b3fa8d1375617cb64c36c9a5cb63d8e1"
-  integrity sha512-vZKLsqE1ABOy8OjQiE7cUTFn4gvaqlk88yp8N94Pk/sDpq61YqZGqmVFZTvOyflTwuYFcWirBdYGoJgbDaXKYQ==
-  dependencies:
-    tslib "^2.1.0"
-
-"@firebase/util@1.15.2":
-  version "1.15.2"
-  resolved "https://registry.npmjs.org/@firebase/util/-/util-1.15.2.tgz#0650ace6fa8b98c772910e9fe50e20e61f4093f4"
-  integrity sha512-974pWIZVLDMc5GW5YAsj8y0XxULxIy/sPUy7tsxmWbF93KRIyh9xpuHlh0zDL+shUcf5nHDjFOg9YLiQ763eiA==
-  dependencies:
-    tslib "^2.1.0"
-
 "@gar/promise-retry@^1.0.0", "@gar/promise-retry@^1.0.2":
   version "1.0.3"
   resolved "https://registry.npmjs.org/@gar/promise-retry/-/promise-retry-1.0.3.tgz#65e726428e794bc4453948e0a41e6de4215ce8b0"
@@ -15039,13 +14996,6 @@ rollup-pluginutils@^2.6.0:
   integrity sha512-EEp9NhnUkwY8aif6bxgovPHMoMoNr2FulJziTndpt5H9RdwC47GSGuII9XxpSdzVGM0GWrNPHV6ie1LTNJPaLQ==
   dependencies:
     estree-walker "^0.6.1"
-
-rollup@2.79.2:
-  version "2.79.2"
-  resolved "https://registry.npmjs.org/rollup/-/rollup-2.79.2.tgz#f150e4a5db4b121a21a747d762f701e5e9f49090"
-  integrity sha512-fS6iqSPZDs3dr/y7Od6y5nha8dW1YnbgtsyotCVvoFGKbERG++CVRFv1meyGDE1SNItQA8BrnCw7ScdAhRJ3XQ==
-  optionalDependencies:
-    fsevents "~2.3.2"
 
 rollup@4.62.2:
   version "4.62.2"

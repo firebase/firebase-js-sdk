@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # CrashlyticsOptions interface
-Options for initializing the Crashlytics service using [getCrashlytics()](./crashlytics_.md#getcrashlytics_a9d22a1)<!-- -->.
+Options for initializing the Crashlytics service using [getCrashlytics()](./crashlytics.md#getcrashlytics_a9d22a1)<!-- -->.
 
 <b>Signature:</b>
 
@@ -22,11 +22,11 @@ export interface CrashlyticsOptions
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [appVersion](./crashlytics_.crashlyticsoptions.md#crashlyticsoptionsappversion) | string | The version of the application. This should be a unique string that identifies the snapshot of code to be deployed, such as "1.0.2". If not specified, other default locations will be checked for an identifier. Setting a value here takes precedence over any other values. |
-|  [customAttributes](./crashlytics_.crashlyticsoptions.md#crashlyticsoptionscustomattributes) | AnyValueMap | Base set of custom attributes to send with automatic error collection. Key-value pairs defined here will be sent with all error logs. If custom attributes are also specified in <code>recordError()</code>, those values will take precedence over the base set defined here. |
-|  [endpointUrl](./crashlytics_.crashlyticsoptions.md#crashlyticsoptionsendpointurl) | string | The URL for the endpoint to which Crashlytics data should be sent, in the OpenTelemetry format. By default, data will be sent to Firebase. |
-|  [region](./crashlytics_.crashlyticsoptions.md#crashlyticsoptionsregion) | string | The Google Cloud region where the Crashlytics data should be sent.<!-- -->By default, data will be sent to the "global" region.<!-- -->Refer to https://cloud.google.com/logging/docs/regions for the list of available regions. |
-|  [registerGlobalLoggerProvider](./crashlytics_.crashlyticsoptions.md#crashlyticsoptionsregistergloballoggerprovider) | boolean | Whether to register the underlying OpenTelemetry LoggerProvider globally with the OpenTelemetry API (<code>logs.setGlobalLoggerProvider()</code>).<!-- -->When enabled, other OpenTelemetry instrumentations (such as Core Web Vitals, Console, or Fetch) and custom application loggers can automatically route logs through Firebase Crashlytics.<!-- -->Defaults to <code>false</code>. |
+|  [appVersion](./crashlytics.crashlyticsoptions.md#crashlyticsoptionsappversion) | string | The version of the application. This should be a unique string that identifies the snapshot of code to be deployed, such as "1.0.2". If not specified, other default locations will be checked for an identifier. Setting a value here takes precedence over any other values. |
+|  [customAttributes](./crashlytics.crashlyticsoptions.md#crashlyticsoptionscustomattributes) | AnyValueMap | Base set of custom attributes to send with automatic error collection. Key-value pairs defined here will be sent with all error logs. If custom attributes are also specified in <code>recordError()</code>, those values will take precedence over the base set defined here. |
+|  [endpointUrl](./crashlytics.crashlyticsoptions.md#crashlyticsoptionsendpointurl) | string | The URL for the endpoint to which Crashlytics data should be sent, in the OpenTelemetry format. By default, data will be sent to Firebase. |
+|  [region](./crashlytics.crashlyticsoptions.md#crashlyticsoptionsregion) | string | The Google Cloud region where the Crashlytics data should be sent.<!-- -->By default, data will be sent to the "global" region.<!-- -->Refer to https://cloud.google.com/logging/docs/regions for the list of available regions. |
+|  [registerGlobalLoggerProvider](./crashlytics.crashlyticsoptions.md#crashlyticsoptionsregistergloballoggerprovider) | boolean | Whether to register the underlying OpenTelemetry LoggerProvider globally with the OpenTelemetry API (<code>logs.setGlobalLoggerProvider()</code>).<!-- -->When enabled, other OpenTelemetry instrumentations (such as Core Web Vitals, Console, or Fetch) and custom application loggers can automatically route logs through Firebase Crashlytics.<!-- -->Defaults to <code>false</code>. |
 
 ## CrashlyticsOptions.appVersion
 
