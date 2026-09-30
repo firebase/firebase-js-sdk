@@ -381,9 +381,11 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     try {
       await _reloadWithoutSaving(user);
     } catch (e) {
+      const code = (e as FirebaseError)?.code;
       if (
-        (e as FirebaseError)?.code !==
-        `auth/${AuthErrorCode.NETWORK_REQUEST_FAILED}`
+        code !== `auth/${AuthErrorCode.NETWORK_REQUEST_FAILED}` &&
+        code !== `auth/${AuthErrorCode.TOO_MANY_ATTEMPTS_TRY_LATER}` &&
+        !code?.startsWith(`auth/${AuthErrorCode.QUOTA_EXCEEDED}`)
       ) {
         // Something's wrong with the user's token. Log them out and remove
         // them from storage
