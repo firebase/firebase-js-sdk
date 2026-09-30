@@ -59,9 +59,7 @@ describe('Dynamic Config Fetch Functions', () => {
     });
     it('throws error on failed response', async () => {
       stubFetch(500, {
-        error: {
-          /* no message */
-        }
+        error: {/* no message */}
       });
       const app = getFakeApp(fakeAppParams);
       await expect(
@@ -93,9 +91,7 @@ describe('Dynamic Config Fetch Functions', () => {
     });
     it('throws error on non-retriable failed response', async () => {
       stubFetch(404, {
-        error: {
-          /* no message */
-        }
+        error: {/* no message */}
       });
       const app = getFakeApp(fakeAppParams);
       await expect(fetchDynamicConfigWithRetry(app)).to.be.rejectedWith(
@@ -104,9 +100,7 @@ describe('Dynamic Config Fetch Functions', () => {
     });
     it('warns on non-retriable failed response if local measurementId available', async () => {
       stubFetch(404, {
-        error: {
-          /* no message */
-        }
+        error: {/* no message */}
       });
       const consoleStub = stub(console, 'warn');
       const app = getFakeApp({

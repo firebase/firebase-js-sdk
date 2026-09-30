@@ -22,7 +22,6 @@ import { AI_TYPE, DEFAULT_HYBRID_IN_CLOUD_MODEL } from './constants';
 import { AIService } from './service';
 import { AI, AIOptions } from './public-types';
 import {
-  ImagenModelParams,
   HybridParams,
   ModelParams,
   RequestOptions,
@@ -30,43 +29,31 @@ import {
   LiveModelParams
 } from './types';
 import { AIError } from './errors';
-import {
-  AIModel,
-  GenerativeModel,
-  LiveGenerativeModel,
-  ImagenModel
-} from './models';
+import { AIModel, GenerativeModel, LiveGenerativeModel } from './models';
 import { encodeInstanceIdentifier } from './helpers';
 import { GoogleAIBackend } from './backend';
 import { TemplateGenerativeModel } from './models/template-generative-model';
-import { TemplateImagenModel } from './models/template-imagen-model';
 import { logger } from './logger';
 
-export { TemplateChatSession } from './public-types';
-export { ChatSession } from './methods/chat-session';
-export { ChatSessionBase } from './methods/chat-session-base';
 export { LiveSession } from './methods/live-session';
 export * from './requests/schema-builder';
-export { ImagenImageFormat } from './requests/imagen-image-format';
 export {
   AIModel,
   GenerativeModel,
   LiveGenerativeModel,
-  ImagenModel,
   TemplateGenerativeModel,
-  TemplateImagenModel,
   AIError
 };
 export {
   Backend,
-  VertexAIBackend,
   GoogleAIBackend,
-  AgentPlatformBackend
+  AgentPlatformBackend,
+  EnterpriseBackend
 } from './backend';
 export {
   startAudioConversation,
-  AudioConversationController,
-  StartAudioConversationOptions
+  type AudioConversationController,
+  type StartAudioConversationOptions
 } from './methods/live-session-helpers';
 
 declare module '@firebase/component' {
@@ -93,8 +80,8 @@ declare module '@firebase/component' {
  *
  * @example
  * ```javascript
- * // Get an AI instance configured to use the Agent Platform Gemini API.
- * const ai = getAI(app, { backend: new AgentPlatformBackend() });
+ * // Get an AI instance configured to use the Gemini Enterprise API.
+ * const ai = getAI(app, { backend: new EnterpriseBackend() });
  * ```
  *
  * @param app - The {@link @firebase/app#FirebaseApp} to use.
@@ -193,42 +180,9 @@ export function getGenerativeModel(
 }
 
 /**
- * Returns an {@link ImagenModel} class with methods for using Imagen.
- *
- * Only Imagen 3 models (named `imagen-3.0-*`) are supported.
- *
- * @deprecated All Imagen models are deprecated and will shut down as
- * early as June 2026. As a replacement, you can
- * {@link https://firebase.google.com/docs/ai-logic/imagen-models-migration |
- * migrate your apps to use Gemini Image models (the "Nano Banana" models)}.
- *
- * @param ai - An {@link AI} instance.
- * @param modelParams - Parameters to use when making Imagen requests.
- * @param requestOptions - Additional options to use when making requests.
- *
- * @throws If the `apiKey` or `projectId` fields are missing in your
- * Firebase config.
- *
- * @public
- */
-export function getImagenModel(
-  ai: AI,
-  modelParams: ImagenModelParams,
-  requestOptions?: RequestOptions
-): ImagenModel {
-  if (!modelParams.model) {
-    throw new AIError(
-      AIErrorCode.NO_MODEL,
-      `Must provide a model name. Example: getImagenModel({ model: 'my-model-name' })`
-    );
-  }
-  return new ImagenModel(ai, modelParams, requestOptions);
-}
-
-/**
  * Returns a {@link LiveGenerativeModel} class for real-time, bidirectional communication.
  *
- * The Live API is only supported in modern browser windows and Node >= 22.
+ * The Live API is only supported in modern browser windows and Node \>= 22.
  *
  * @param ai - An {@link AI} instance.
  * @param modelParams - Parameters to use when setting up a {@link LiveSession}.
@@ -251,7 +205,7 @@ export function getLiveGenerativeModel(
 }
 
 /**
- * Returns a {@link TemplateGenerativeModel} class for executing server-side
+ * Returns a {@link TemplateGenerativeModel} class for executing server prompt
  * templates.
  *
  * @param ai - An {@link AI} instance.
@@ -264,23 +218,4 @@ export function getTemplateGenerativeModel(
   requestOptions?: RequestOptions
 ): TemplateGenerativeModel {
   return new TemplateGenerativeModel(ai, requestOptions);
-}
-
-/**
- * Returns a {@link TemplateImagenModel} class for executing server-side
- * Imagen templates.
- *
- * @deprecated All Imagen models are deprecated and will shut down as
- * early as June 2026. As a replacement, you can
- * {@link https://firebase.google.com/docs/ai-logic/imagen-models-migration |
- * migrate your apps to use Gemini Image models (the "Nano Banana" models)}.
- *
- * @param ai - An {@link AI} instance.
- * @param requestOptions - Additional options to use when making requests.
- */
-export function getTemplateImagenModel(
-  ai: AI,
-  requestOptions?: RequestOptions
-): TemplateImagenModel {
-  return new TemplateImagenModel(ai, requestOptions);
 }

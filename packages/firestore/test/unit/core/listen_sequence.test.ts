@@ -40,8 +40,7 @@ describe('ListenSequence', () => {
   it('bumps the next value based on notifications from the syncer', () => {
     const syncParams = {
       sequenceNumberHandler: null as
-        | ((sequenceNumber: ListenSequenceNumber) => void)
-        | null,
+        ((sequenceNumber: ListenSequenceNumber) => void) | null,
       writeSequenceNumber: (sequenceNumber: ListenSequenceNumber): void => {}
     };
     const listenSequence = new ListenSequence(0, syncParams);

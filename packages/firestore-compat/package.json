@@ -1,6 +1,6 @@
 {
   "name": "@firebase/firestore-compat",
-  "version": "0.4.12",
+  "version": "0.4.14",
   "description": "The Cloud Firestore component of the Firebase JS SDK.",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.node.cjs.js",
@@ -38,7 +38,7 @@
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all",
     "test:all": "run-p --npm-path npm test:browser test:node",
     "test:browser": "karma start",
-    "test:node": "mocha --require babel-register.js --require src/index.node.ts --timeout 5000 'test/*.test.ts'",
+    "test:node": "NODE_OPTIONS='--no-strip-types' mocha --require babel-register.js --require src/index.node.ts --timeout 5000 'test/*.test.ts'",
     "trusted-type-check": "tsec -p tsconfig.json --noEmit",
     "add-compat-overloads": "ts-node-script ../../scripts/build/create-overloads.ts -i ../firestore/dist/index.d.ts -o dist/src/index.d.ts -a -r Firestore:types.FirebaseFirestore -r CollectionReference:types.CollectionReference -r DocumentReference:types.DocumentReference -r Query:types.Query -r FirebaseApp:FirebaseAppCompat --moduleToEnhance @firebase/firestore"
   },
@@ -47,21 +47,19 @@
     "@firebase/app-compat": "0.x"
   },
   "dependencies": {
-    "@firebase/component": "0.7.4",
-    "@firebase/firestore": "4.17.0",
-    "@firebase/util": "1.15.2",
-    "@firebase/firestore-types": "3.0.4",
+    "@firebase/component": "0.7.5",
+    "@firebase/firestore": "4.17.2",
+    "@firebase/util": "1.15.3",
+    "@firebase/firestore-types": "3.0.5",
     "tslib": "^2.1.0"
   },
   "devDependencies": {
-    "@firebase/app-compat": "0.5.16",
-    "@types/eslint": "7.29.0",
+    "@firebase/app-compat": "0.5.18",
     "rollup": "4.62.2",
     "rollup-plugin-sourcemaps": "0.6.3",
     "@rollup/plugin-terser": "0.4.4",
     "rollup-plugin-typescript2": "0.37.0",
     "@rollup/plugin-node-resolve": "16.0.0",
-    "ts-node": "10.9.2",
     "typescript": "5.5.4"
   },
   "license": "Apache-2.0",
@@ -75,6 +73,6 @@
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=24.12.0"
   }
 }

@@ -21,16 +21,20 @@ import {
   FunctionCall,
   GenerateContentCandidate,
   GenerateContentResponse,
-  ImagenGCSImage,
-  ImagenInlineImage,
   AIErrorCode,
+  CodeExecutionResultPart,
+  ExecutableCodePart,
+  FileDataPart,
+  FunctionCallPart,
+  FunctionResponsePart,
   InlineDataPart,
   Part,
+  TextPart,
+  UnknownPart,
   InferenceSource
 } from '../types';
 import { AIError } from '../errors';
 import { logger } from '../logger';
-import { ImagenResponseInternal } from '../types/internal';
 
 /**
  * Check that at least one candidate exists and does not have a bad
@@ -63,6 +67,32 @@ function hasValidCandidates(response: GenerateContentResponse): boolean {
 }
 
 /**
+ * Ensures a `Part` or `UnknownPart` object has its `type` discriminator populated.
+ *
+ * @internal
+ */
+export function assignPartType(part: Part | UnknownPart): Part {
+  if ('type' in part && part.type) {
+    return part as Part;
+  } else if (part.text !== undefined) {
+    return { ...part, type: 'text' } as TextPart;
+  } else if (part.inlineData !== undefined) {
+    return { ...part, type: 'inlineData' } as InlineDataPart;
+  } else if (part.functionCall !== undefined) {
+    return { ...part, type: 'functionCall' } as FunctionCallPart;
+  } else if (part.functionResponse !== undefined) {
+    return { ...part, type: 'functionResponse' } as FunctionResponsePart;
+  } else if (part.fileData !== undefined) {
+    return { ...part, type: 'fileData' } as FileDataPart;
+  } else if (part.executableCode !== undefined) {
+    return { ...part, type: 'executableCode' } as ExecutableCodePart;
+  } else if (part.codeExecutionResult !== undefined) {
+    return { ...part, type: 'codeExecutionResult' } as CodeExecutionResultPart;
+  }
+  return part as Part;
+}
+
+/**
  * Creates an EnhancedGenerateContentResponse object that has helper functions and
  * other modifications that improve usability.
  */
@@ -71,13 +101,21 @@ export function createEnhancedContentResponse(
   inferenceSource: InferenceSource = InferenceSource.IN_CLOUD
 ): EnhancedGenerateContentResponse {
   /**
-   * The AgentPlatform backend omits default values.
+   * The Enterprise backend omits default values.
    * This causes the `index` property to be omitted from the first candidate in the
    * response, since it has index 0, and 0 is a default value.
    * See: https://github.com/firebase/firebase-js-sdk/issues/8566
    */
   if (response.candidates && !response.candidates[0].hasOwnProperty('index')) {
     response.candidates[0].index = 0;
+  }
+
+  if (response.candidates) {
+    for (const candidate of response.candidates) {
+      if (candidate.content?.parts) {
+        candidate.content.parts = candidate.content.parts.map(assignPartType);
+      }
+    }
   }
 
   const responseWithHelpers = addHelpers(response);
@@ -94,7 +132,7 @@ export function addHelpers(
 ): EnhancedGenerateContentResponse {
   (response as EnhancedGenerateContentResponse).text = () => {
     if (hasValidCandidates(response)) {
-      return getText(response, part => !part.thought);
+      return getText(response, part => !('thought' in part && part.thought));
     } else if (response.promptFeedback) {
       throw new AIError(
         AIErrorCode.RESPONSE_ERROR,
@@ -108,7 +146,10 @@ export function addHelpers(
   };
   (response as EnhancedGenerateContentResponse).thoughtSummary = () => {
     if (hasValidCandidates(response)) {
-      const result = getText(response, part => !!part.thought);
+      const result = getText(
+        response,
+        part => !!('thought' in part && part.thought)
+      );
       return result === '' ? undefined : result;
     } else if (response.promptFeedback) {
       throw new AIError(
@@ -167,8 +208,9 @@ export function getText(
   const textStrings = [];
   if (response.candidates?.[0].content?.parts) {
     for (const part of response.candidates?.[0].content?.parts) {
-      if (part.text && partFilter(part)) {
-        textStrings.push(part.text);
+      const typedPart = assignPartType(part);
+      if (typedPart.type === 'text' && partFilter(typedPart)) {
+        textStrings.push(typedPart.text);
       }
     }
   }
@@ -191,8 +233,9 @@ export function getFunctionCalls(
   const functionCalls: FunctionCall[] = [];
   if (response.candidates?.[0].content?.parts) {
     for (const part of response.candidates?.[0].content?.parts) {
-      if (part.functionCall) {
-        functionCalls.push(part.functionCall);
+      const typedPart = assignPartType(part);
+      if (typedPart.type === 'functionCall') {
+        functionCalls.push(typedPart.functionCall);
       }
     }
   }
@@ -215,8 +258,9 @@ export function getInlineDataParts(
 
   if (response.candidates?.[0].content?.parts) {
     for (const part of response.candidates?.[0].content?.parts) {
-      if (part.inlineData) {
-        data.push(part);
+      const typedPart = assignPartType(part);
+      if (typedPart.type === 'inlineData') {
+        data.push(typedPart);
       }
     }
   }
@@ -279,55 +323,4 @@ export function formatBlockErrorMessage(
     }
   }
   return message;
-}
-
-/**
- * Convert a generic successful fetch response body to an Imagen response object
- * that can be returned to the user. This converts the REST APIs response format to our
- * APIs representation of a response.
- *
- * @internal
- */
-export async function handlePredictResponse<
-  T extends ImagenInlineImage | ImagenGCSImage
->(response: Response): Promise<{ images: T[]; filteredReason?: string }> {
-  const responseJson: ImagenResponseInternal = await response.json();
-
-  const images: T[] = [];
-  let filteredReason: string | undefined = undefined;
-
-  // The backend should always send a non-empty array of predictions if the response was successful.
-  if (!responseJson.predictions || responseJson.predictions?.length === 0) {
-    throw new AIError(
-      AIErrorCode.RESPONSE_ERROR,
-      'No predictions or filtered reason received from Vertex AI. Please report this issue with the full error details at https://github.com/firebase/firebase-js-sdk/issues.'
-    );
-  }
-
-  for (const prediction of responseJson.predictions) {
-    if (prediction.raiFilteredReason) {
-      filteredReason = prediction.raiFilteredReason;
-    } else if (prediction.mimeType && prediction.bytesBase64Encoded) {
-      images.push({
-        mimeType: prediction.mimeType,
-        bytesBase64Encoded: prediction.bytesBase64Encoded
-      } as T);
-    } else if (prediction.mimeType && prediction.gcsUri) {
-      images.push({
-        mimeType: prediction.mimeType,
-        gcsURI: prediction.gcsUri
-      } as T);
-    } else if (prediction.safetyAttributes) {
-      // Ignore safetyAttributes "prediction" to avoid throwing an error below.
-    } else {
-      throw new AIError(
-        AIErrorCode.RESPONSE_ERROR,
-        `Unexpected element in 'predictions' array in response: '${JSON.stringify(
-          prediction
-        )}'`
-      );
-    }
-  }
-
-  return { images, filteredReason };
 }

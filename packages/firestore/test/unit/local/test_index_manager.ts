@@ -80,10 +80,13 @@ export class TestIndexManager {
   }
 
   getFieldIndexes(collectionGroup?: string): Promise<FieldIndex[]> {
-    return this.persistence.runTransaction('getFieldIndexes', 'readonly', txn =>
-      collectionGroup
-        ? this.indexManager.getFieldIndexes(txn, collectionGroup)
-        : this.indexManager.getFieldIndexes(txn)
+    return this.persistence.runTransaction(
+      'getFieldIndexes',
+      'readonly',
+      txn =>
+        collectionGroup
+          ? this.indexManager.getFieldIndexes(txn, collectionGroup)
+          : this.indexManager.getFieldIndexes(txn)
     );
   }
 

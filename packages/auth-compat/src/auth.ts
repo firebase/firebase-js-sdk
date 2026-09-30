@@ -44,7 +44,10 @@ export class Auth
   static Persistence = Persistence;
   readonly _delegate: exp.AuthImpl;
 
-  constructor(readonly app: FirebaseApp, provider: Provider<'auth'>) {
+  constructor(
+    readonly app: FirebaseApp,
+    provider: Provider<'auth'>
+  ) {
     if (provider.isInitialized()) {
       this._delegate = provider.getImmediate() as exp.AuthImpl;
       this.linkUnderlyingAuth();

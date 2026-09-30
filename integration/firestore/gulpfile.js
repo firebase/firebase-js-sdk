@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-const del = require('del');
+const { rm } = require('fs/promises');
 const gulp = require('gulp');
 const replace = require('gulp-replace');
 const { resolve } = require('path');
@@ -23,8 +23,11 @@ const webpackStream = require('webpack-stream');
 const webpack = require('webpack');
 const filter = require('gulp-filter');
 
-function clean() {
-  return del(['temp/**/*', 'dist/**/*']);
+async function clean() {
+  await Promise.all([
+    rm(resolve(__dirname, 'temp'), { recursive: true, force: true }),
+    rm(resolve(__dirname, 'dist'), { recursive: true, force: true })
+  ]);
 }
 
 function isPersistenceEnabled() {

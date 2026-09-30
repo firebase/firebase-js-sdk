@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
+import { expect } from 'vitest';
 import { getModularInstance } from '../src/compat';
 
 describe('getModularInstance()', () => {

@@ -700,9 +700,8 @@ function genericIndexBackfillerTests(
   }
 
   async function getFieldIndex(collectionGroup: string): Promise<FieldIndex> {
-    const fieldIndexes = await testIndexManager.getFieldIndexes(
-      collectionGroup
-    );
+    const fieldIndexes =
+      await testIndexManager.getFieldIndexes(collectionGroup);
     expect(fieldIndexes).length(1);
     return fieldIndexes[0];
   }

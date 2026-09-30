@@ -73,12 +73,8 @@ function stubIdbOpen(): void {
 describe('FirebaseAnalytics instance tests', () => {
   describe('Initialization', () => {
     beforeEach(() => {
-      clock = useFakeTimers();
       resetGlobalVars();
       fakeInstallations = getFakeInstallations();
-    });
-    afterEach(() => {
-      clock.restore();
     });
 
     it('Throws if no appId in config', () => {
@@ -131,8 +127,8 @@ describe('FirebaseAnalytics instance tests', () => {
     let app: FirebaseApp = {} as FirebaseApp;
     let fidDeferred: Deferred<void>;
     const gtagStub: SinonStub = stub();
-    before(async () => {
-      clock = useFakeTimers();
+    beforeEach(async () => {
+      clock = useFakeTimers({ toFake: ['Date', 'setTimeout', 'clearTimeout'] });
       resetGlobalVars();
       app = getFakeApp(fakeAppParams);
       fidDeferred = new Deferred<void>();
@@ -147,13 +143,13 @@ describe('FirebaseAnalytics instance tests', () => {
       // Successfully resolves fake IDB open request.
       fakeRequest.onsuccess();
     });
-    after(() => {
+    afterEach(() => {
       delete window['gtag'];
       delete window['dataLayer'];
       removeGtagScripts();
       fetchStub.restore();
-      clock.restore();
       idbOpenStub.restore();
+      clock.restore();
     });
     it('Contains reference to parent app', () => {
       expect(analyticsInstance.app).to.equal(app);
@@ -192,7 +188,7 @@ describe('FirebaseAnalytics instance tests', () => {
     let warnStub: SinonStub;
     let cookieStub: SinonStub;
     beforeEach(() => {
-      clock = useFakeTimers();
+      clock = useFakeTimers({ toFake: ['Date', 'setTimeout', 'clearTimeout'] });
       resetGlobalVars();
       app = getFakeApp(fakeAppParams);
       fidDeferred = new Deferred<void>();
@@ -210,10 +206,10 @@ describe('FirebaseAnalytics instance tests', () => {
       delete window['dataLayer'];
       removeGtagScripts();
       fetchStub.restore();
-      clock.restore();
       warnStub.restore();
       idbOpenStub.restore();
       gtagStub.resetHistory();
+      clock.restore();
     });
     it('Warns on initialization if cookies not available', async () => {
       cookieStub = stub(navigator, 'cookieEnabled').value(false);
@@ -238,23 +234,28 @@ describe('FirebaseAnalytics instance tests', () => {
       window.chrome = undefined;
     });
     it('Warns on logEvent if indexedDB API not available', async () => {
+      idbOpenStub.restore();
       const idbStub = stub(window, 'indexedDB').value(undefined);
-      analyticsInstance = analyticsFactory(app, fakeInstallations);
-      logEvent(analyticsInstance, 'add_payment_info', {
-        currency: 'USD'
-      });
-      // Clear promise chain started by logEvent.
-      await clock.runAllAsync();
-      // gtag config call omits FID
-      expect(gtagStub).to.be.calledWith('config', 'abcd-efgh', {
-        update: true,
-        origin: 'firebase'
-      });
-      expect(warnStub.args[0][1]).to.include(
-        AnalyticsError.INDEXEDDB_UNAVAILABLE
-      );
-      expect(warnStub.args[0][1]).to.include('IndexedDB is not available');
-      idbStub.restore();
+      try {
+        analyticsInstance = analyticsFactory(app, fakeInstallations);
+        logEvent(analyticsInstance, 'add_payment_info', {
+          currency: 'USD'
+        });
+        // Clear promise chain started by logEvent.
+        await clock.runAllAsync();
+        // gtag config call omits FID
+        expect(gtagStub).to.be.calledWith('config', 'abcd-efgh', {
+          update: true,
+          origin: 'firebase'
+        });
+        expect(warnStub.args[0][1]).to.include(
+          AnalyticsError.INDEXEDDB_UNAVAILABLE
+        );
+        expect(warnStub.args[0][1]).to.include('IndexedDB is not available');
+      } finally {
+        idbStub.restore();
+        stubIdbOpen();
+      }
     });
     it('Warns on logEvent if indexedDB.open() not allowed', async () => {
       idbOpenStub.restore();
@@ -281,8 +282,8 @@ describe('FirebaseAnalytics instance tests', () => {
     let app: FirebaseApp = {} as FirebaseApp;
     let fidDeferred: Deferred<void>;
     const gtagStub: SinonStub = stub();
-    before(() => {
-      clock = useFakeTimers();
+    beforeEach(() => {
+      clock = useFakeTimers({ toFake: ['Date', 'setTimeout', 'clearTimeout'] });
       resetGlobalVars();
       app = getFakeApp(fakeAppParams);
       fidDeferred = new Deferred<void>();
@@ -301,13 +302,13 @@ describe('FirebaseAnalytics instance tests', () => {
       // Successfully resolves fake IDB open request.
       fakeRequest.onsuccess();
     });
-    after(() => {
+    afterEach(() => {
       delete window[customGtagName];
       delete window[customDataLayerName];
       removeGtagScripts();
       fetchStub.restore();
-      clock.restore();
       idbOpenStub.restore();
+      clock.restore();
     });
     it('Calls gtag correctly on logEvent (instance)', async () => {
       logEvent(analyticsInstance, 'add_payment_info', {

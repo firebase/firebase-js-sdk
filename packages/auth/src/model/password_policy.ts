@@ -79,8 +79,7 @@ export interface PasswordPolicyCustomStrengthOptions {
  *
  * @internal
  */
-export interface PasswordValidationStatusInternal
-  extends PasswordValidationStatus {
+export interface PasswordValidationStatusInternal extends PasswordValidationStatus {
   /**
    * Whether the password meets all requirements.
    */

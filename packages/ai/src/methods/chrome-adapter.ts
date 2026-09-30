@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { getGlobal } from '@firebase/util';
 import { AIError } from '../errors';
 import { logger } from '../logger';
 import {
@@ -228,14 +229,17 @@ export class ChromeAdapterImpl implements ChromeAdapter {
     }
 
     for (const content of request.contents) {
-      if (content.role === 'function') {
-        logger.debug(`"Function" role rejected for on-device inference.`);
+      if (content.parts.some(part => 'functionResponse' in part)) {
+        logger.debug(
+          `Content with a function response part rejected for on-device inference.`
+        );
         return false;
       }
 
       // Returns false if request contains an image with an unsupported mime type.
       for (const part of content.parts) {
         if (
+          'inlineData' in part &&
           part.inlineData &&
           ChromeAdapterImpl.SUPPORTED_MIME_TYPES.indexOf(
             part.inlineData.mimeType
@@ -326,12 +330,12 @@ export class ChromeAdapterImpl implements ChromeAdapter {
   private static async toLanguageModelMessageContent(
     part: Part
   ): Promise<LanguageModelMessageContent> {
-    if (part.text) {
+    if ('text' in part && typeof part.text === 'string') {
       return {
         type: 'text',
         value: part.text
       };
-    } else if (part.inlineData) {
+    } else if ('inlineData' in part && part.inlineData) {
       const formattedImageContent = await fetch(
         `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`
       );
@@ -445,12 +449,11 @@ export function chromeAdapterFactory(
   window?: Window,
   params?: OnDeviceParams
 ): ChromeAdapterImpl | undefined {
+  const globalObj = window || getGlobal();
+  const languageModel = (globalObj as Record<string, unknown>).LanguageModel as
+    LanguageModel | undefined;
   // Do not initialize a ChromeAdapter if we are not in hybrid mode.
-  if (typeof window !== 'undefined' && mode) {
-    return new ChromeAdapterImpl(
-      (window as Window).LanguageModel as LanguageModel,
-      mode,
-      params
-    );
+  if (languageModel && mode) {
+    return new ChromeAdapterImpl(languageModel, mode, params);
   }
 }
