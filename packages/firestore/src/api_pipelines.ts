@@ -220,8 +220,6 @@ export {
   AliasedAggregate,
   AliasedWindowFunction,
   rank,
-  denseRank,
-  rowNumber,
   Selectable,
   TimeGranularity,
   TimePart,

@@ -194,9 +194,7 @@ import {
   ifNull,
   score,
   documentMatches,
-  rank,
-  denseRank,
-  rowNumber
+  rank
 } from '../util/pipeline_export';
 import {
   getRunEnterpriseTests,
@@ -7707,9 +7705,10 @@ apiDescribe.skipClassic('Pipeline window functions (count)', persistence => {
 
   describe('sorting and default framing', () => {
     it('computes a running count with the default (sorted) frame', async () => {
-      // The implicit default frame is a `range` frame, so the sort key must be
-      // numeric. `quantity` is 1..5 in the same order as `date`, and has no
-      // ties, so the running count is unambiguous.
+      // The implicit default frame when `sort` is specified is a `range` frame
+      // from `'unbounded'` preceding to `'current'` following (peer-inclusive).
+      // `quantity` is 1..5 in the same order as `date` and has no ties, so the
+      // running count is 1..5.
       const snapshot = await execute(
         firestore
           .pipeline()
@@ -7887,13 +7886,40 @@ apiDescribe.skipClassic('Pipeline window functions (count)', persistence => {
         { product: 'tablet', windowCount: 1 }
       );
     });
+
+    it("excludes tied peers with 'unbounded' preceding to 'current' following", async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(productSales)
+          .addWindowFields(
+            {
+              sort: ascending('salesPrice'),
+              documents: { preceding: 'unbounded', following: 'current' }
+            },
+            count('quantity').as('runningCount')
+          )
+          .sort(ascending('runningCount'))
+          .select('salesPrice', 'runningCount')
+      );
+
+      expectResults(
+        snapshot,
+        { salesPrice: 12, runningCount: 1 },
+        { salesPrice: 30, runningCount: 2 },
+        { salesPrice: 30, runningCount: 3 },
+        { salesPrice: 60, runningCount: 4 },
+        { salesPrice: 60, runningCount: 5 }
+      );
+    });
   });
 
   describe('range framing', () => {
-    // In a `range` frame the `'current'` sentinel resolves to the current
-    // document only. A numeric `0` offset is what widens the frame to every
-    // document with an equal sort value (the SQL "peer group").
-    it("counts only the current document with 'current' to 'current'", async () => {
+    // In a `range` frame the `'current'` sentinel is peer-inclusive (like SQL
+    // `CURRENT ROW` in RANGE mode), equivalent to a numeric `0` offset: it
+    // includes every document whose sort value(s) tie with the current
+    // document.
+    it("counts tied peers with 'current' to 'current'", async () => {
       const snapshot = await execute(
         firestore
           .pipeline()
@@ -7915,8 +7941,8 @@ apiDescribe.skipClassic('Pipeline window functions (count)', persistence => {
         { product: 'phone', salesPrice: 12, samePriceCount: 1 },
         { product: 'phone', salesPrice: 30, samePriceCount: 1 },
         { product: 'tablet', salesPrice: 30, samePriceCount: 1 },
-        { product: 'tablet', salesPrice: 60, samePriceCount: 1 },
-        { product: 'tablet', salesPrice: 60, samePriceCount: 1 }
+        { product: 'tablet', salesPrice: 60, samePriceCount: 2 },
+        { product: 'tablet', salesPrice: 60, samePriceCount: 2 }
       );
     });
 
@@ -7947,6 +7973,32 @@ apiDescribe.skipClassic('Pipeline window functions (count)', persistence => {
       );
     });
 
+    it("includes tied peers with 'unbounded' preceding to 'current' following", async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(productSales)
+          .addWindowFields(
+            {
+              sort: ascending('salesPrice'),
+              range: { preceding: 'unbounded', following: 'current' }
+            },
+            count('quantity').as('cumulativeCount')
+          )
+          .sort(ascending('date'))
+          .select('salesPrice', 'cumulativeCount')
+      );
+
+      expectResults(
+        snapshot,
+        { salesPrice: 12, cumulativeCount: 1 },
+        { salesPrice: 30, cumulativeCount: 3 },
+        { salesPrice: 30, cumulativeCount: 3 },
+        { salesPrice: 60, cumulativeCount: 5 },
+        { salesPrice: 60, cumulativeCount: 5 }
+      );
+    });
+
     it("includes tied peers with 'unbounded' preceding to a zero offset", async () => {
       const snapshot = await execute(
         firestore
@@ -7970,6 +8022,58 @@ apiDescribe.skipClassic('Pipeline window functions (count)', persistence => {
         { salesPrice: 30, cumulativeCount: 3 },
         { salesPrice: 60, cumulativeCount: 5 },
         { salesPrice: 60, cumulativeCount: 5 }
+      );
+    });
+
+    it("supports a string sort key when bounds are 'unbounded' and 'current'", async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(productSales)
+          .addWindowFields(
+            {
+              sort: ascending('product'),
+              range: { preceding: 'unbounded', following: 'current' }
+            },
+            count('quantity').as('cumulativeCount')
+          )
+          .sort(ascending('date'))
+          .select('product', 'cumulativeCount')
+      );
+
+      expectResults(
+        snapshot,
+        { product: 'phone', cumulativeCount: 2 },
+        { product: 'phone', cumulativeCount: 2 },
+        { product: 'tablet', cumulativeCount: 5 },
+        { product: 'tablet', cumulativeCount: 5 },
+        { product: 'tablet', cumulativeCount: 5 }
+      );
+    });
+
+    it("supports multiple sort orderings when bounds are 'unbounded' and 'current'", async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(productSales)
+          .addWindowFields(
+            {
+              sort: [ascending('product'), ascending('region')],
+              range: { preceding: 'unbounded', following: 'current' }
+            },
+            count('quantity').as('cumulativeCount')
+          )
+          .sort(ascending('date'))
+          .select('product', 'region', 'cumulativeCount')
+      );
+
+      expectResults(
+        snapshot,
+        { product: 'phone', region: 'east', cumulativeCount: 1 },
+        { product: 'phone', region: 'west', cumulativeCount: 2 },
+        { product: 'tablet', region: 'east', cumulativeCount: 4 },
+        { product: 'tablet', region: 'west', cumulativeCount: 5 },
+        { product: 'tablet', region: 'east', cumulativeCount: 4 }
       );
     });
 
@@ -8378,7 +8482,8 @@ apiDescribe.skipClassic('Pipeline window functions (count)', persistence => {
                 .over({
                   partition: ['product'],
                   documents: { preceding: 'unbounded', following: 'current' }
-                })
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                } as any)
                 .as('windowCount')
             )
         )
@@ -8409,14 +8514,7 @@ apiDescribe.skipClassic('Pipeline window functions (count)', persistence => {
   });
 });
 
-// TODO(b/…): Un-skip this suite once cl/977837857 (physical execution of the
-// non-count window aggregators, plus the `preceding` offset sign fix) has been
-// submitted and rolled out to Nightly. Until then these pipelines fail with
-// `UnsupportedOperationException: Unsupported window aggregator: <KIND>`.
-// Flip `WINDOW_AGGREGATORS_SUPPORTED` to `true` to run them.
-const WINDOW_AGGREGATORS_SUPPORTED = false;
-
-(WINDOW_AGGREGATORS_SUPPORTED ? apiDescribe.skipClassic : apiDescribe.skip)(
+apiDescribe.skipClassic(
   'Pipeline window functions (aggregators)',
   persistence => {
     addEqualityMatcher();
@@ -8511,27 +8609,51 @@ const WINDOW_AGGREGATORS_SUPPORTED = false;
         );
       });
 
-      it('computes countIf and countDistinct', async () => {
+      // Un-skip once the backend supports countIf and countDistinct in addWindowFields.
+      it.skip('computes countIf', async () => {
         const snapshot = await execute(
           firestore
             .pipeline()
             .collection(productSales)
             .addWindowFields(
               { partition: ['product'] },
-              countIf(field('salesPrice').greaterThan(20)).as('expensiveCount'),
-              countDistinct('salesPrice').as('distinctPriceCount')
+              countIf(field('salesPrice').greaterThan(20)).as('expensiveCount')
             )
             .sort(ascending('date'))
-            .select('product', 'expensiveCount', 'distinctPriceCount')
+            .select('product', 'expensiveCount')
         );
 
         expectResults(
           snapshot,
-          { product: 'phone', expensiveCount: 1, distinctPriceCount: 2 },
-          { product: 'phone', expensiveCount: 1, distinctPriceCount: 2 },
-          { product: 'tablet', expensiveCount: 3, distinctPriceCount: 2 },
-          { product: 'tablet', expensiveCount: 3, distinctPriceCount: 2 },
-          { product: 'tablet', expensiveCount: 3, distinctPriceCount: 2 }
+          { product: 'phone', expensiveCount: 1 },
+          { product: 'phone', expensiveCount: 1 },
+          { product: 'tablet', expensiveCount: 3 },
+          { product: 'tablet', expensiveCount: 3 },
+          { product: 'tablet', expensiveCount: 3 }
+        );
+      });
+
+      // Un-skip once the backend supports countIf and countDistinct in addWindowFields.
+      it.skip('computes countDistinct', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(productSales)
+            .addWindowFields(
+              { partition: ['product'] },
+              countDistinct('salesPrice').as('distinctPriceCount')
+            )
+            .sort(ascending('date'))
+            .select('product', 'distinctPriceCount')
+        );
+
+        expectResults(
+          snapshot,
+          { product: 'phone', distinctPriceCount: 2 },
+          { product: 'phone', distinctPriceCount: 2 },
+          { product: 'tablet', distinctPriceCount: 2 },
+          { product: 'tablet', distinctPriceCount: 2 },
+          { product: 'tablet', distinctPriceCount: 2 }
         );
       });
 
@@ -8623,17 +8745,17 @@ const WINDOW_AGGREGATORS_SUPPORTED = false;
           {
             product: 'tablet',
             allPrices: [30, 60, 60],
-            distinctPrices: [30, 60]
+            distinctPrices: [60, 30]
           },
           {
             product: 'tablet',
             allPrices: [30, 60, 60],
-            distinctPrices: [30, 60]
+            distinctPrices: [60, 30]
           },
           {
             product: 'tablet',
             allPrices: [30, 60, 60],
-            distinctPrices: [30, 60]
+            distinctPrices: [60, 30]
           }
         );
       });
@@ -8777,6 +8899,32 @@ const WINDOW_AGGREGATORS_SUPPORTED = false;
         );
       });
 
+      it('computes a value based range window with fractional offsets', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(productSales)
+            .addWindowFields(
+              {
+                sort: ascending('salesPrice'),
+                range: { preceding: 17.5, following: 0.5 }
+              },
+              sum('salesPrice').as('nearbyTotal')
+            )
+            .sort(ascending('date'))
+            .select('salesPrice', 'nearbyTotal')
+        );
+
+        expectResults(
+          snapshot,
+          { salesPrice: 12, nearbyTotal: 12 },
+          { salesPrice: 30, nearbyTotal: 60 },
+          { salesPrice: 30, nearbyTotal: 60 },
+          { salesPrice: 60, nearbyTotal: 120 },
+          { salesPrice: 60, nearbyTotal: 120 }
+        );
+      });
+
       it('computes a trailing 3 day total', async () => {
         const snapshot = await execute(
           firestore
@@ -8866,10 +9014,6 @@ const WINDOW_AGGREGATORS_SUPPORTED = false;
       });
     });
 
-    // `countAll()` serializes to a zero argument `count` function, which the
-    // backend maps to `FunctionKind.COUNT_ALL`. `WindowFunctionConverter` only
-    // handles `COUNT` today, so this currently fails with
-    // `UnsupportedOperationException: Unsupported window aggregator: COUNT_ALL`.
     describe('countAll', () => {
       it('counts every document in the window', async () => {
         const snapshot = await execute(
@@ -8895,10 +9039,6 @@ const WINDOW_AGGREGATORS_SUPPORTED = false;
       });
     });
 
-    // Numeric `documents` offsets depend on the `toAlgebraBound()` sign fix in
-    // cl/977837857. Before that CL every numeric `documents` bound (including
-    // `0`) fails with an INTERNAL error, so these live in the gated suite even
-    // though they only use `count()`.
     describe('documents framing with numeric offsets', () => {
       it('supports zero preceding and zero following', async () => {
         const snapshot = await execute(
@@ -8981,8 +9121,7 @@ const WINDOW_AGGREGATORS_SUPPORTED = false;
   }
 );
 
-// TODO(b/…): Un-skip once the backend CL that adds `rank()`, `denseRank()` and
-// `rowNumber()` support lands (it follows cl/977837857).
+// Un-skip once the backend supports `rank()`.
 apiDescribe.skip('Pipeline window functions (ranking)', persistence => {
   addEqualityMatcher();
 
@@ -9013,52 +9152,40 @@ apiDescribe.skip('Pipeline window functions (ranking)', persistence => {
     await withTestCollectionPromise;
   });
 
-  it('computes rank, denseRank and rowNumber', async () => {
+  it('computes rank', async () => {
     const snapshot = await execute(
       firestore
         .pipeline()
         .collection(productSales)
         .addWindowFields(
           { sort: [ascending('salesPrice'), ascending('date')] },
-          rank().as('priceRank'),
-          denseRank().as('priceDenseRank'),
-          rowNumber().as('priceRowNumber')
+          rank().as('priceRank')
         )
         .sort(ascending('date'))
-        .select('salesPrice', 'priceRank', 'priceDenseRank', 'priceRowNumber')
+        .select('salesPrice', 'priceRank')
     );
 
     expectResults(
       snapshot,
       {
         salesPrice: 12,
-        priceRank: 1,
-        priceDenseRank: 1,
-        priceRowNumber: 1
+        priceRank: 1
       },
       {
         salesPrice: 30,
-        priceRank: 2,
-        priceDenseRank: 2,
-        priceRowNumber: 2
+        priceRank: 2
       },
       {
         salesPrice: 30,
-        priceRank: 2,
-        priceDenseRank: 2,
-        priceRowNumber: 3
+        priceRank: 2
       },
       {
         salesPrice: 60,
-        priceRank: 4,
-        priceDenseRank: 3,
-        priceRowNumber: 4
+        priceRank: 4
       },
       {
         salesPrice: 60,
-        priceRank: 4,
-        priceDenseRank: 3,
-        priceRowNumber: 5
+        priceRank: 4
       }
     );
   });

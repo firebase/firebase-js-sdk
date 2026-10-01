@@ -27,7 +27,6 @@ import {
   countAll,
   countDistinct,
   countIf,
-  denseRank,
   descending,
   field,
   first,
@@ -35,7 +34,6 @@ import {
   maximum,
   minimum,
   rank,
-  rowNumber,
   sum,
   toLower
 } from '../../../lite/pipelines/pipelines';
@@ -600,21 +598,17 @@ describe('addWindowFields() serialization', () => {
       );
     });
 
-    it('serializes the ranking window functions', () => {
+    it('serializes the rank window function', () => {
       expect(
         fieldsArg(
           basePipeline().addWindowFields(
             { sort: descending('salesPrice') },
-            rank().as('rank'),
-            denseRank().as('denseRank'),
-            rowNumber().as('rowNumber')
+            rank().as('rank')
           )
         )
       ).to.deep.equal(
         map({
-          rank: fn('rank'),
-          denseRank: fn('dense_rank'),
-          rowNumber: fn('row_number')
+          rank: fn('rank')
         })
       );
     });
@@ -719,17 +713,6 @@ describe('addWindowFields() serialization', () => {
       );
     });
 
-    it('does not wrap in over() when no frame is provided', () => {
-      expect(
-        fieldsArg(
-          basePipeline().addWindowFields(
-            { sort: ascending('date') },
-            sum('salesPrice').over().as('total')
-          )
-        )
-      ).to.deep.equal(map({ total: fn('sum', fieldRef('salesPrice')) }));
-    });
-
     it('supports over() on a ranking window function', () => {
       expect(
         fieldsArg(
@@ -771,7 +754,8 @@ describe('addWindowFields() serialization', () => {
             .over({
               partition: ['product'],
               documents: { preceding: 1, following: 1 }
-            })
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            } as any)
             .as('total')
         )
       );
@@ -798,7 +782,8 @@ describe('addWindowFields() serialization', () => {
             .over({
               sort: ascending('date'),
               documents: { preceding: 1, following: 1 }
-            })
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            } as any)
             .as('total')
         )
       );

@@ -267,7 +267,19 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    * Adds window function results to the output documents of the pipeline.
    *
    * Window functions evaluate expressions over a subset of documents (a "window frame") relative to the
-   * current document. This is similar to SQL window functions or MongoDB's `$setWindowFields` stage.
+   * current document:
+   * - In a `documents` frame, bounds are positional document counts relative to the current document's
+   *   position (`'current'` refers strictly to the current document's position; ties are not included).
+   *   Specifying `sort` is optional.
+   * - In a `range` frame, bounds are value or time offsets relative to the current document's sort
+   *   value(s) (`'current'` is peer-inclusive and includes all documents tied with the current document's
+   *   sort value(s), equivalent to an offset of `0`). One or more `sort` expressions are required:
+   *   range frames with numeric or time-unit offsets require a single numeric or timestamp `sort`
+   *   expression, whereas range frames bounded only by `'current'` and `'unbounded'` support multiple
+   *   `sort` expressions and non-numeric sort values (such as strings or booleans).
+   * - When neither `documents` nor `range` is specified, an unsorted window defaults to
+   *   `documents` from `'unbounded'` preceding to `'unbounded'` following, and a sorted window defaults
+   *   to `range` from `'unbounded'` preceding to `'current'` following (peer-inclusive).
    *
    * @example
    * ```typescript
@@ -290,7 +302,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    *     average(field('amount')).as('movingAverageAmount')
    *   );
    *
-   * // 3. Document-based running total using default boundaries (unbounded preceding to current row).
+   * // 3. Document-based running total (unbounded preceding to current document's position; ties are not included).
    * // Note: Offsets are physical document counts, so no time unit is required or used even when sorting on 'date'.
    * firestore.pipeline().collection("sales")
    *   .addWindowFields(
@@ -301,7 +313,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    *     sum(field('amount')).as('runningTotal')
    *   );
    *
-   * // 4. Range-based running average using default boundaries (unbounded preceding to current value)
+   * // 4. Range-based running average (unbounded preceding to current sort value, including all tied peers)
    * firestore.pipeline().collection("products")
    *   .addWindowFields(
    *     {

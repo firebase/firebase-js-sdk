@@ -137,13 +137,18 @@ export type AddFieldsStageOptions = StageOptions & {
   fields: Selectable[];
 };
 
+/**
+ * Defines a document-count based window frame relative to the position of the current document in the group.
+ *
+ * Specifying `sort` on the enclosing {@link @firebase/firestore/pipelines#WindowSpec} is optional for `documents` window frames; if no `sort` expressions are specified, documents are processed in incoming stream (fetch) order.
+ */
 export interface DocumentWindowFrame {
   /**
    * The lower bound (inclusive) of the window frame, relative to the current document's position.
    *
    * Can be:
    * - A number specifying the number of documents preceding the current document.
-   * - `'current'` to represent the current document itself.
+   * - `'current'` to represent the current document's position only (documents tied on sort values are not included).
    * - `'unbounded'` to include all documents from the first document in the group.
    */
   preceding: number | 'current' | 'unbounded' | Expression;
@@ -153,29 +158,35 @@ export interface DocumentWindowFrame {
    *
    * Can be:
    * - A number specifying the number of documents following the current document.
-   * - `'current'` to represent the current document itself.
+   * - `'current'` to represent the current document's position only (documents tied on sort values are not included).
    * - `'unbounded'` to include all documents to the last document in the group.
    */
   following: number | 'current' | 'unbounded' | Expression;
 }
 
+/**
+ * Defines a range-value based window frame relative to the sort value(s) of the current document.
+ *
+ * One or more `sort` expressions must be specified on the enclosing {@link @firebase/firestore/pipelines#WindowSpec} when using a `range` window frame.
+ * Range frames with numeric or time-unit offsets require a single numeric or timestamp `sort` expression, whereas frames bounded only by `'current'` and `'unbounded'` support multiple `sort` expressions and non-numeric sort values (such as strings or booleans).
+ */
 export interface RangeWindowFrame {
   /**
-   * The lower bound (inclusive) of the window frame, relative to the sort value of the current document.
+   * The lower bound (inclusive) of the window frame, relative to the sort value(s) of the current document.
    *
    * Can be:
    * - A number specifying the value-based offset from the current document's sort value.
-   * - `'current'` to represent only documents with the same sort value as the current document.
+   * - `'current'` to include all documents tied with the current document's sort value(s) (peer-inclusive, equivalent to an offset of `0`).
    * - `'unbounded'` to include all documents from the start of the group.
    */
   preceding: number | 'current' | 'unbounded' | Expression;
 
   /**
-   * The upper bound (inclusive) of the window frame, relative to the sort value of the current document.
+   * The upper bound (inclusive) of the window frame, relative to the sort value(s) of the current document.
    *
    * Can be:
    * - A number specifying the value-based offset from the current document's sort value.
-   * - `'current'` to represent only documents with the same sort value as the current document.
+   * - `'current'` to include all documents tied with the current document's sort value(s) (peer-inclusive, equivalent to an offset of `0`).
    * - `'unbounded'` to include all documents to the end of the group.
    */
   following: number | 'current' | 'unbounded' | Expression;
@@ -191,14 +202,6 @@ export interface RangeWindowFrame {
     | 'hour'
     | 'day'
     | 'week'
-    | 'week(monday)'
-    | 'week(tuesday)'
-    | 'week(wednesday)'
-    | 'week(thursday)'
-    | 'week(friday)'
-    | 'week(saturday)'
-    | 'week(sunday)'
-    | 'isoweek'
     | 'month'
     | 'quarter'
     | 'year'
@@ -210,7 +213,7 @@ export interface RangeWindowFrame {
  *
  * Default frame behavior:
  * - If `sort` is not specified, the default frame is `documents` from `'unbounded'` preceding to `'unbounded'` following (the entire partition/group).
- * - If `sort` is specified, the default frame is `range` from `'unbounded'` preceding to `'current'` row value.
+ * - If `sort` is specified, the default frame is `range` from `'unbounded'` preceding to `'current'` following (which includes all documents tied with the current document's sort value(s)).
  */
 export type WindowSpec = {
   /**
@@ -221,7 +224,10 @@ export type WindowSpec = {
   /**
    * The sort order of the documents in each group.
    *
-   * Setting a value for `sort` changes the default window frame behavior.
+   * For `documents` window frames, `sort` is optional; if no `sort` expressions are specified, documents are processed in incoming stream (fetch) order.
+   * For `range` window frames, one or more `sort` expressions are required. Range frames with numeric or time-unit offsets require a single numeric or timestamp `sort` expression, whereas range frames bounded only by `'current'` and `'unbounded'` support multiple `sort` expressions and non-numeric sort values (such as strings or booleans).
+   *
+   * Setting a value for `sort` changes the default window frame behavior when neither `documents` nor `range` is specified.
    * See {@link @firebase/firestore/pipelines#WindowSpec} for default frame specifications.
    *
    * See {@link @firebase/firestore/pipelines#Ordering}.
@@ -229,14 +235,18 @@ export type WindowSpec = {
   sort?: Ordering | Ordering[];
 } & OneOf<{
   /**
-   * Defines a document-count based window frame relative to the position of the current document in the sorted group.
+   * Defines a document-count based window frame relative to the position of the current document in the group.
+   *
+   * Specifying `sort` is optional for `documents` window frames; if no `sort` expressions are specified, documents are processed in incoming stream (fetch) order.
    *
    * See {@link @firebase/firestore/pipelines#WindowSpec} for default frame specifications if `documents` or `range` is not set.
    */
   documents?: DocumentWindowFrame;
 
   /**
-   * Defines a range-value based window frame relative to the sort value of the current document.
+   * Defines a range-value based window frame relative to the sort value(s) of the current document.
+   *
+   * One or more `sort` expressions are required when specifying a `range` window frame. Range frames with numeric or time-unit offsets require a single numeric or timestamp `sort` expression, whereas frames bounded only by `'current'` and `'unbounded'` support multiple `sort` expressions and non-numeric sort values (such as strings or booleans).
    *
    * See {@link @firebase/firestore/pipelines#WindowSpec} for default frame specifications if `documents` or `range` is not set.
    */

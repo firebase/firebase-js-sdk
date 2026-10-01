@@ -147,7 +147,6 @@ export function isAddWindowFieldsStageOptions(
   );
 }
 
-
 /**
  * Converts a value to an Expression, Returning either a Constant, MapFunction,
  * ArrayFunction, or the input itself (if it's already an expression).

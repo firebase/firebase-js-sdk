@@ -44,7 +44,12 @@ export class AggregateFunction {
     // (undocumented)
     exprType: ExpressionType;
     /* Excluded from this release type: _methodName */
-    over(window?: WindowSpec): WindowFunction;
+    over(
+    frame: OneOf<{
+        documents: DocumentWindowFrame;
+        range: RangeWindowFrame;
+    }>
+    ): WindowFunction;
     /* Excluded from this release type: _toProto */
     /* Excluded from this release type: _readUserData */
 }
@@ -658,9 +663,6 @@ export type DefineStageOptions = StageOptions & {
 };
 
 // @public
-export function denseRank(): WindowFunction;
-
-// @public
 export function descending(expr: Expression): Ordering;
 
 // @public
@@ -715,7 +717,7 @@ export type DocumentsStageOptions = StageOptions & {
     docs: Array<string | DocumentReference>;
 };
 
-// @public (undocumented)
+// @public
 export interface DocumentWindowFrame {
     following: number | 'current' | 'unbounded' | Expression;
     preceding: number | 'current' | 'unbounded' | Expression;
@@ -2233,7 +2235,7 @@ export function pow(base: string, exponent: number): FunctionExpression;
 // @public
 export function rand(): FunctionExpression;
 
-// @public (undocumented)
+// @public
 export interface RangeWindowFrame {
     following: number | 'current' | 'unbounded' | Expression;
     preceding: number | 'current' | 'unbounded' | Expression;
@@ -2245,14 +2247,6 @@ export interface RangeWindowFrame {
     | 'hour'
     | 'day'
     | 'week'
-    | 'week(monday)'
-    | 'week(tuesday)'
-    | 'week(wednesday)'
-    | 'week(thursday)'
-    | 'week(friday)'
-    | 'week(saturday)'
-    | 'week(sunday)'
-    | 'isoweek'
     | 'month'
     | 'quarter'
     | 'year'
@@ -2393,9 +2387,6 @@ export function round(
 expression: Expression,
 decimalPlaces: number | Expression
 ): FunctionExpression;
-
-// @public
-export function rowNumber(): WindowFunction;
 
 // @public
 export function rtrim(
@@ -2982,13 +2973,15 @@ export type WhereStageOptions = StageOptions & {
 // @public
 export class WindowFunction {
     constructor(name: string, params?: Expression[]);
-    /* Excluded from this release type: _methodName */
     as(name: string): AliasedWindowFunction;
-    /* Excluded from this release type: _methodName */
     // (undocumented)
     exprType: ExpressionType;
-    /* Excluded from this release type: _methodName */
-    over(window?: WindowSpec): WindowFunction;
+    over(
+    frame: OneOf<{
+        documents: DocumentWindowFrame;
+        range: RangeWindowFrame;
+    }>
+    ): WindowFunction;
     /* Excluded from this release type: _toProto */
     /* Excluded from this release type: _readUserData */
 }

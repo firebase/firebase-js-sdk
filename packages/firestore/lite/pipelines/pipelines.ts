@@ -254,8 +254,6 @@ export {
   WindowFunction,
   AliasedWindowFunction,
   rank,
-  denseRank,
-  rowNumber,
   TimeGranularity,
   TimePart,
   TimeUnit

@@ -38,7 +38,7 @@ import { hardAssert } from '../util/assert';
 import { FirestoreError } from '../util/error';
 import { isPlainObject } from '../util/input_validation';
 import { isFirestoreValue } from '../util/proto';
-import { isString } from '../util/types';
+import { isString, OneOf } from '../util/types';
 
 import { Bytes } from './bytes';
 import { documentId as documentIdFieldPath, FieldPath } from './field_path';
@@ -3652,35 +3652,53 @@ export class AggregateFunction implements ProtoValueSerializable, UserData {
    * over the window frame defined by the enclosing
    * {@link @firebase/firestore/pipelines#Pipeline.(addWindowFields:1)} stage.
    *
-   * Today the backend only accepts a frame (`documents` or `range`) here, and
+   * The backend only accepts a frame (`documents` or `range`) here, and
    * rejects `partition` and `sort`, which must be specified on the enclosing
    * `addWindowFields()` stage.
+   *
+   * - In a `documents` frame, bounds are document offsets relative to the
+   *   current document's position (`'current'` refers strictly to the current
+   *   document's position; tied documents are not included).
+   * - In a `range` frame, bounds are value or time offsets relative to the
+   *   current document's sort value(s) (`'current'` is peer-inclusive and
+   *   includes all documents tied with the current document's sort value(s),
+   *   equivalent to an offset of `0`). Range frames with numeric or time-unit
+   *   offsets require a single numeric or timestamp `sort` ordering on the
+   *   enclosing stage, whereas range frames bounded only by `'current'` and
+   *   `'unbounded'` support multiple `sort` orderings and non-numeric sort
+   *   values.
    *
    * @example
    * ```typescript
    * firestore.pipeline().collection("sales")
    *   .addWindowFields(
    *     { sort: ascending('date') },
-   *     // Uses the stage's default frame.
-   *     sum('amount').as('runningTotal'),
-   *     // Overrides the stage frame with a 3 document moving window.
+   *     // Cumulative sum up to the current date (including tied peers).
+   *     sum('amount')
+   *       .over({ range: { preceding: 'unbounded', following: 'current' } })
+   *       .as('runningTotal'),
+   *     // 3-document moving window centered on the current document.
    *     average('amount')
    *       .over({ documents: { preceding: 1, following: 1 } })
    *       .as('movingAverage')
    *   );
    * ```
    *
-   * @param window - A {@link @firebase/firestore/pipelines#WindowSpec} containing the
-   *     `documents` or `range` frame to evaluate this aggregate over. If omitted, the
-   *     enclosing stage's frame is used.
+   * @param frame - The `documents` or `range` window frame to evaluate this
+   *     aggregate over.
    * @returns A new {@link @firebase/firestore/pipelines#WindowFunction}.
    */
-  over(window?: WindowSpec): WindowFunction {
-    return WindowFunction._create(
+  over(
+    frame: OneOf<{
+      documents: DocumentWindowFrame;
+      range: RangeWindowFrame;
+    }>
+  ): WindowFunction {
+    return new WindowFunction(
       this.name,
       this.params,
-      'over',
-      window === undefined ? undefined : new WindowSpecInternal(window)
+      new WindowSpecInternal(frame),
+      'over'
     );
   }
 
@@ -12187,9 +12205,7 @@ export class WindowSpecInternal implements ProtoValueSerializable, UserData {
 
   constructor(window: WindowSpec) {
     const sort = window.sort;
-    this.partition = (window.partition ?? []).map(value =>
-      isString(value) ? field(value) : value
-    );
+    this.partition = (window.partition ?? []).map(fieldOrExpression);
     this.sort = sort === undefined ? [] : Array.isArray(sort) ? sort : [sort];
     this.documents = window.documents;
     this.range = window.range;
@@ -12331,56 +12347,67 @@ export class WindowSpecInternal implements ProtoValueSerializable, UserData {
 export class WindowFunction implements ProtoValueSerializable, UserData {
   exprType: ExpressionType = 'WindowFunction';
 
+  constructor(name: string, params?: Expression[]);
   /**
    * @internal
    */
-  _methodName?: string;
-
-  /**
-   * The accumulator level window this function is evaluated over. When
-   * `undefined`, the window of the enclosing stage is used.
-   */
-  private window?: WindowSpecInternal;
-
-  constructor(private name: string, private params: Expression[] = []) {}
-
-  /**
-   * @internal
-   * @private
-   */
-  static _create(
+  constructor(
     name: string,
-    params: Expression[],
-    methodName: string,
-    window?: WindowSpecInternal
-  ): WindowFunction {
-    const wf = new WindowFunction(name, params);
-    wf._methodName = methodName;
-    wf.window = window;
-
-    return wf;
-  }
+    params?: Expression[],
+    window?: WindowSpecInternal,
+    _methodName?: string
+  );
+  constructor(
+    private name: string,
+    private params: Expression[] = [],
+    /**
+     * The accumulator level window this function is evaluated over. When
+     * `undefined`, the window of the enclosing stage is used.
+     * @internal
+     */
+    private window?: WindowSpecInternal,
+    /**
+     * @internal
+     */
+    readonly _methodName?: string
+  ) {}
 
   /**
    * Evaluates this window function over a specific window frame, rather than
    * over the window frame defined by the enclosing
    * {@link @firebase/firestore/pipelines#Pipeline.(addWindowFields:1)} stage.
    *
-   * Today the backend only accepts a frame (`documents` or `range`) here, and
+   * The backend only accepts a frame (`documents` or `range`) here, and
    * rejects `partition` and `sort`, which must be specified on the enclosing
    * `addWindowFields()` stage.
    *
-   * @param window - A {@link @firebase/firestore/pipelines#WindowSpec} containing
-   *     the `documents` or `range` frame to evaluate this function over. If
-   *     omitted, the enclosing stage's frame is used.
+   * - In a `documents` frame, bounds are document offsets relative to the
+   *   current document's position (`'current'` refers strictly to the current
+   *   document's position; tied documents are not included).
+   * - In a `range` frame, bounds are value or time offsets relative to the
+   *   current document's sort value(s) (`'current'` is peer-inclusive and
+   *   includes all documents tied with the current document's sort value(s),
+   *   equivalent to an offset of `0`). Range frames with numeric or time-unit
+   *   offsets require a single numeric or timestamp `sort` ordering on the
+   *   enclosing stage, whereas range frames bounded only by `'current'` and
+   *   `'unbounded'` support multiple `sort` orderings and non-numeric sort
+   *   values.
+   *
+   * @param frame - The `documents` or `range` window frame to evaluate this
+   *     function over.
    * @returns A new {@link @firebase/firestore/pipelines#WindowFunction}.
    */
-  over(window?: WindowSpec): WindowFunction {
-    return WindowFunction._create(
+  over(
+    frame: OneOf<{
+      documents: DocumentWindowFrame;
+      range: RangeWindowFrame;
+    }>
+  ): WindowFunction {
+    return new WindowFunction(
       this.name,
       this.params,
-      this._methodName ?? 'over',
-      window === undefined ? undefined : new WindowSpecInternal(window)
+      new WindowSpecInternal(frame),
+      this._methodName ?? 'over'
     );
   }
 
@@ -12474,46 +12501,5 @@ export class AliasedWindowFunction implements UserData {
  * @returns A new {@link @firebase/firestore/pipelines#WindowFunction}.
  */
 export function rank(): WindowFunction {
-  return WindowFunction._create('rank', [], 'rank');
-}
-
-/**
- * Creates a window function that computes the rank of the current document
- * within its window frame, without gaps in the ranking sequence. Documents that
- * compare equal in the window sort order receive the same rank, and the next
- * rank is always incremented by one.
- *
- * @example
- * ```typescript
- * firestore.pipeline().collection("employees")
- *   .addWindowFields(
- *     { partition: ['department'], sort: descending('salary') },
- *     denseRank().as('salaryRank')
- *   );
- * ```
- *
- * @returns A new {@link @firebase/firestore/pipelines#WindowFunction}.
- */
-export function denseRank(): WindowFunction {
-  return WindowFunction._create('dense_rank', [], 'denseRank');
-}
-
-/**
- * Creates a window function that computes the sequential position of the
- * current document within its window frame, starting at 1. Documents that
- * compare equal in the window sort order receive distinct row numbers.
- *
- * @example
- * ```typescript
- * firestore.pipeline().collection("employees")
- *   .addWindowFields(
- *     { partition: ['department'], sort: descending('salary') },
- *     rowNumber().as('salaryRowNumber')
- *   );
- * ```
- *
- * @returns A new {@link @firebase/firestore/pipelines#WindowFunction}.
- */
-export function rowNumber(): WindowFunction {
-  return WindowFunction._create('row_number', [], 'rowNumber');
+  return new WindowFunction('rank', [], undefined, 'rank');
 }
