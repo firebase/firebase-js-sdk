@@ -19,9 +19,6 @@ const { rm } = require('fs/promises');
 const gulp = require('gulp');
 const replace = require('gulp-replace');
 const { resolve } = require('path');
-const webpackStream = require('webpack-stream');
-const webpack = require('webpack');
-const filter = require('gulp-filter');
 
 async function clean() {
   await Promise.all([
@@ -99,24 +96,6 @@ if (typeof process === 'undefined') {
       )
     )
     .pipe(gulp.dest('temp'));
-}
-
-function compileWebpack() {
-  const config = require('../../config/webpack.test');
-  return gulp
-    .src('./temp/test/integration/**/*.ts')
-    .pipe(
-      webpackStream(
-        Object.assign({}, config, {
-          output: {
-            filename: 'test-harness.js'
-          }
-        }),
-        webpack
-      )
-    )
-    .pipe(filter(['**', '!**/*.d.ts']))
-    .pipe(gulp.dest('dist'));
 }
 
 gulp.task('compile-tests', gulp.series(clean, copyTests));

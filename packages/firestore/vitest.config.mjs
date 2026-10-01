@@ -23,6 +23,12 @@ import createBaseConfig from '../../config/vitest.base.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+// The `test-firestore` job in `.github/workflows/test-all.yml` runs
+// `find ./packages/firestore/coverage -type f -name "lcov.info"`, which fails
+// if the `coverage` directory does not exist. Create an empty placeholder in CI
+// until Vitest coverage is configured.
+// TODO: Re-enable test coverage reporting across all migrated packages as a
+// follow-up task after the main unit test migration is complete.
 if (process.env.CI) {
   const coverageDir = path.resolve(__dirname, 'coverage');
   fs.mkdirSync(coverageDir, { recursive: true });
