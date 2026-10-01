@@ -36,14 +36,21 @@ describe('Firebase Analytics > Service', () => {
 
   beforeEach(() => {
     vi.spyOn(console, 'warn').mockImplementation(() => {});
-    logEventStub = vi.spyOn(analyticsExp, 'logEvent');
-    setUserIdStub = vi.spyOn(analyticsExp, 'setUserId');
-    setCurrentScreenStub = vi.spyOn(analyticsExp, 'setCurrentScreen');
-    setUserPropertiesStub = vi.spyOn(analyticsExp, 'setUserProperties');
-    setAnalyticsCollectionEnabledStub = vi.spyOn(
-      analyticsExp,
-      'setAnalyticsCollectionEnabled'
-    );
+    logEventStub = vi
+      .spyOn(analyticsExp, 'logEvent')
+      .mockImplementation(() => {});
+    setUserIdStub = vi
+      .spyOn(analyticsExp, 'setUserId')
+      .mockImplementation(() => {});
+    setCurrentScreenStub = vi
+      .spyOn(analyticsExp, 'setCurrentScreen')
+      .mockImplementation(() => {});
+    setUserPropertiesStub = vi
+      .spyOn(analyticsExp, 'setUserProperties')
+      .mockImplementation(() => {});
+    setAnalyticsCollectionEnabledStub = vi
+      .spyOn(analyticsExp, 'setAnalyticsCollectionEnabled')
+      .mockImplementation(() => {});
     app = firebase.initializeApp({
       apiKey: '456_LETTERS_AND_1234NUMBERS',
       appId: '123lettersand:numbers',
