@@ -11,11 +11,11 @@ https://github.com/firebase/firebase-js-sdk
 
 # @firebase/crashlytics/angular
 
-## Classes
+## Functions
 
-|  Class | Description |
+|  Function | Description |
 |  --- | --- |
-|  [FirebaseErrorHandler](./crashlytics_angular.firebaseerrorhandler.md#firebaseerrorhandler_class) | A custom ErrorHandler that captures uncaught errors and sends them to Firebase Crashlytics.<!-- -->This should be provided in your application's root module. |
+|  [provideCrashlytics(getAppFn, options)](./crashlytics_angular.md#providecrashlytics_e50c31b) | Registers Firebase Crashlytics error handling and route tracking providers for an Angular application. |
 
 ## Interfaces
 
@@ -23,4 +23,69 @@ https://github.com/firebase/firebase-js-sdk
 |  --- | --- |
 |  [Crashlytics](./crashlytics_angular.crashlytics.md#crashlytics_interface) | An instance of the Firebase Crashlytics SDK.<!-- -->Do not create this instance directly. Instead, use [getCrashlytics()](./crashlytics_.md#getcrashlytics_a9d22a1)<!-- -->. |
 |  [CrashlyticsOptions](./crashlytics_angular.crashlyticsoptions.md#crashlyticsoptions_interface) | Options for initializing the Crashlytics service using [getCrashlytics()](./crashlytics_.md#getcrashlytics_a9d22a1)<!-- -->. |
+
+## function(getAppFn, ...)
+
+### provideCrashlytics(getAppFn, options) {:#providecrashlytics_e50c31b}
+
+Registers Firebase Crashlytics error handling and route tracking providers for an Angular application.
+
+<b>Signature:</b>
+
+```typescript
+export declare function provideCrashlytics(getAppFn: () => FirebaseApp, options?: CrashlyticsOptions): EnvironmentProviders;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  getAppFn | () =&gt; [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | A factory function that returns the [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) instance to use. |
+|  options | [CrashlyticsOptions](./crashlytics_.crashlyticsoptions.md#crashlyticsoptions_interface) | Optional. [CrashlyticsOptions](./crashlytics_.crashlyticsoptions.md#crashlyticsoptions_interface) that configure the Crashlytics instance. |
+
+<b>Returns:</b>
+
+EnvironmentProviders
+
+An  instance to include in `ApplicationConfig.providers`<!-- -->.
+
+### Example 1
+
+Basic usage:
+
+```typescript
+import { ApplicationConfig } from '@angular/core';
+import { provideRouter } from '@angular/router';
+import { provideCrashlytics } from '@firebase/crashlytics/angular';
+import { app } from '../lib/firebase';
+import { routes } from './app.routes';
+
+export const appConfig: ApplicationConfig = {
+  providers: [
+    provideRouter(routes),
+    provideCrashlytics(() => app)
+  ]
+};
+
+```
+
+### Example 2
+
+Providing telemetry options:
+
+```typescript
+import { ApplicationConfig } from '@angular/core';
+import { provideRouter } from '@angular/router';
+import { provideCrashlytics } from '@firebase/crashlytics/angular';
+import { app } from '../lib/firebase';
+import { routes } from './app.routes';
+
+export const appConfig: ApplicationConfig = {
+  providers: [
+    provideRouter(routes),
+    provideCrashlytics(() => app, { appVersion: '1.2.3' })
+  ]
+};
+
+```
 

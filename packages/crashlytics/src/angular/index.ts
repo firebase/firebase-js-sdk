@@ -16,7 +16,13 @@
  */
 
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { ErrorHandler, inject } from '@angular/core';
+import {
+  EnvironmentProviders,
+  ErrorHandler,
+  inject,
+  makeEnvironmentProviders,
+  provideEnvironmentInitializer
+} from '@angular/core';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { ActivatedRouteSnapshot, Router } from '@angular/router';
 import { registerCrashlytics } from '../register';
@@ -56,47 +62,7 @@ export function getSafeRoutePath(router: Router): string {
 /**
  * A custom ErrorHandler that captures uncaught errors and sends them to Firebase Crashlytics.
  *
- * This should be provided in your application's root module.
- *
- * @example
- * Basic usage:
- * ```typescript
- * import { ApplicationConfig, ErrorHandler } from '@angular/core';
- * import { FirebaseErrorHandler } from 'firebase/crashlytics-angular';
- *
- * export const appConfig: ApplicationConfig = {
- *   providers: [
- *     {
- *       provide: ErrorHandler,
- *       useFactory: () => new FirebaseErrorHandler(firebaseApp)
- *     }
- *   ],
- *   // ...
- * };
- * ```
- *
- * @example
- * Providing telemetry options:
- * ```typescript
- * import { ApplicationConfig, ErrorHandler } from '@angular/core';
- * import { FirebaseErrorHandler } from 'firebase/crashlytics-angular';
- *
- * export const appConfig: ApplicationConfig = {
- *   providers: [
- *     {
- *       provide: ErrorHandler,
- *       useFactory: () => new FirebaseErrorHandler(firebaseApp, { appVersion: '1.2.3' })
- *     }
- *   ],
- *   // ...
- * };
- * ```
- *
- * @param firebaseApp - The {@link @firebase/app#FirebaseApp} instance to use.
- * @param crashlyticsOptions - Optional. {@link CrashlyticsOptions} that configure the Crashlytics instance.
- * To provide these options, you must use a `useFactory` provider as shown in the example above.
- *
- * @public
+ * @internal
  */
 export class FirebaseErrorHandler implements ErrorHandler {
   private readonly router = inject(Router);
@@ -112,4 +78,62 @@ export class FirebaseErrorHandler implements ErrorHandler {
   handleError(error: unknown): void {
     recordError(this.crashlytics, error);
   }
+}
+
+/**
+ * Registers Firebase Crashlytics error handling and route tracking providers for an Angular application.
+ *
+ * @example
+ * Basic usage:
+ * ```typescript
+ * import { ApplicationConfig } from '@angular/core';
+ * import { provideRouter } from '@angular/router';
+ * import { provideCrashlytics } from '@firebase/crashlytics/angular';
+ * import { app } from '../lib/firebase';
+ * import { routes } from './app.routes';
+ *
+ * export const appConfig: ApplicationConfig = {
+ *   providers: [
+ *     provideRouter(routes),
+ *     provideCrashlytics(() => app)
+ *   ]
+ * };
+ * ```
+ *
+ * @example
+ * Providing telemetry options:
+ * ```typescript
+ * import { ApplicationConfig } from '@angular/core';
+ * import { provideRouter } from '@angular/router';
+ * import { provideCrashlytics } from '@firebase/crashlytics/angular';
+ * import { app } from '../lib/firebase';
+ * import { routes } from './app.routes';
+ *
+ * export const appConfig: ApplicationConfig = {
+ *   providers: [
+ *     provideRouter(routes),
+ *     provideCrashlytics(() => app, { appVersion: '1.2.3' })
+ *   ]
+ * };
+ * ```
+ *
+ * @param getAppFn - A factory function that returns the {@link @firebase/app#FirebaseApp} instance to use.
+ * @param options - Optional. {@link CrashlyticsOptions} that configure the Crashlytics instance.
+ * @returns An {@link @angular/core#EnvironmentProviders} instance to include in `ApplicationConfig.providers`.
+ *
+ * @public
+ */
+export function provideCrashlytics(
+  getAppFn: () => FirebaseApp,
+  options?: CrashlyticsOptions
+): EnvironmentProviders {
+  return makeEnvironmentProviders([
+    {
+      provide: ErrorHandler,
+      useFactory: () => new FirebaseErrorHandler(getAppFn(), options)
+    },
+    provideEnvironmentInitializer(() => {
+      inject(ErrorHandler);
+    })
+  ]);
 }
