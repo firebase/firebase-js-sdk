@@ -48,7 +48,10 @@ import { TargetData } from './target_data';
 export class IndexedDbLruDelegateImpl implements IndexedDbLruDelegate {
   readonly garbageCollector: LruGarbageCollector;
 
-  constructor(private readonly db: Persistence, params: LruParams) {
+  constructor(
+    private readonly db: Persistence,
+    params: LruParams
+  ) {
     this.garbageCollector = newLruGarbageCollector(this, params);
   }
 

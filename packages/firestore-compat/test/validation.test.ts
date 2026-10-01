@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as firestore from '@firebase/firestore-types';
+import type * as firestore from '@firebase/firestore-types';
 import { expect } from 'chai';
 
 import * as firebaseExport from './util/firebase_export';

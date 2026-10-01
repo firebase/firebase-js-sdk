@@ -25,12 +25,7 @@ import { Code, FirestoreError } from './error';
  * @internal
  */
 export type JsonTypeDesc =
-  | 'object'
-  | 'string'
-  | 'number'
-  | 'boolean'
-  | 'null'
-  | 'undefined';
+  'object' | 'string' | 'number' | 'boolean' | 'null' | 'undefined';
 
 /**
  * An association of JsonTypeDesc values to their native types.
@@ -40,16 +35,16 @@ export type JsonTypeDesc =
 export type TSType<T extends JsonTypeDesc> = T extends 'object'
   ? object
   : T extends 'string'
-  ? string
-  : T extends 'number'
-  ? number
-  : T extends 'boolean'
-  ? boolean
-  : T extends 'null'
-  ? null
-  : T extends 'undefined'
-  ? undefined
-  : never;
+    ? string
+    : T extends 'number'
+      ? number
+      : T extends 'boolean'
+        ? boolean
+        : T extends 'null'
+          ? null
+          : T extends 'undefined'
+            ? undefined
+            : never;
 
 /**
  * The representation of a JSON object property name and its type value.
@@ -59,6 +54,7 @@ export type TSType<T extends JsonTypeDesc> = T extends 'object'
 export interface Property<T extends JsonTypeDesc> {
   value?: TSType<T>;
   typeString: JsonTypeDesc;
+  optional?: boolean;
 }
 
 /**
@@ -120,7 +116,11 @@ export function validateJSON<S extends JsonSchema>(
       const typeString = schema[key].typeString;
       const value: { value: unknown } | undefined =
         'value' in schema[key] ? { value: schema[key].value } : undefined;
+      const optional = schema[key].optional;
       if (!(key in json)) {
+        if (optional) {
+          continue;
+        }
         error = `JSON missing required field: '${key}'`;
         break;
       }

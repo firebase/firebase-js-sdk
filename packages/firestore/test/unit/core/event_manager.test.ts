@@ -440,8 +440,11 @@ describe('QueryListener', () => {
     const view = new View(query1, documentKeySet());
     const snap1 = applyDocChanges(view, doc1, doc2).snapshot!;
     const snap2 = applyDocChanges(view, doc1Committed, doc2Modified).snapshot!;
-    const snap3 = applyDocChanges(view, doc1Acknowledged, doc2Acknowledged)
-      .snapshot!;
+    const snap3 = applyDocChanges(
+      view,
+      doc1Acknowledged,
+      doc2Acknowledged
+    ).snapshot!;
 
     listener.onViewSnapshot(snap1);
     listener.onViewSnapshot(snap2);
@@ -478,8 +481,11 @@ describe('QueryListener', () => {
     const changes2 = view.computeDocChanges(documentUpdates(doc2));
     const snap2 = view.applyChanges(changes2, true).snapshot!;
     const changes3 = view.computeDocChanges(documentUpdates());
-    const snap3 = view.applyChanges(changes3, true, ackTarget(doc1, doc2))
-      .snapshot!;
+    const snap3 = view.applyChanges(
+      changes3,
+      true,
+      ackTarget(doc1, doc2)
+    ).snapshot!;
 
     listener.applyOnlineStateChange(OnlineState.Online); // no event
     listener.onViewSnapshot(snap1); // no event

@@ -125,8 +125,7 @@ export class MarkdownEmitter {
       case DocNodeKind.HtmlStartTag:
       case DocNodeKind.HtmlEndTag: {
         const docHtmlTag: DocHtmlStartTag | DocHtmlEndTag = docNode as
-          | DocHtmlStartTag
-          | DocHtmlEndTag;
+          DocHtmlStartTag | DocHtmlEndTag;
         // write the HTML element verbatim into the output
         writer.write(docHtmlTag.emitAsHtml());
         break;

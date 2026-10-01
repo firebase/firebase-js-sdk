@@ -99,7 +99,10 @@ Ensures the data at this location is set to the specified value and priority whe
 <b>Signature:</b>
 
 ```typescript
-setWithPriority(value: unknown, priority: number | string | null): Promise<void>;
+setWithPriority(
+    value: unknown,
+    priority: number | string | null
+  ): Promise<void>;
 ```
 
 #### Parameters

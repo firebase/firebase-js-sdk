@@ -144,7 +144,10 @@ export interface Node {
 }
 
 export class NamedNode {
-  constructor(public name: string, public node: Node) {}
+  constructor(
+    public name: string,
+    public node: Node
+  ) {}
 
   static Wrap(name: string, node: Node) {
     return new NamedNode(name, node);

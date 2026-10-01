@@ -15,20 +15,24 @@
  * limitations under the License.
  */
 
-import { expect, use } from 'chai';
-import sinonChai from 'sinon-chai';
 import {
   Content,
-  ImagenAspectRatio,
-  ImagenPersonFilterLevel,
-  ImagenSafetyFilterLevel
+  CountTokensRequest,
+  FunctionResponse,
+  GenerateContentRequest,
+  Part
 } from '../types';
+import { TemplateRequestInternal } from '../public-types';
 import {
-  createPredictRequestBody,
-  formatGenerateContentInput
+  cleanContentForWire,
+  cleanCountTokensRequestForWire,
+  cleanFunctionResponseForWire,
+  cleanGenerateContentRequestForWire,
+  cleanSystemInstructionForWire,
+  cleanTemplateRequestForWire,
+  formatGenerateContentInput,
+  stripPartType
 } from './request-helpers';
-
-use(sinonChai);
 
 describe('request formatting methods', () => {
   describe('formatGenerateContentInput', () => {
@@ -38,7 +42,7 @@ describe('request formatting methods', () => {
         contents: [
           {
             role: 'user',
-            parts: [{ text: 'some text content' }]
+            parts: [{ type: 'text', text: 'some text content' }]
           }
         ]
       });
@@ -49,32 +53,75 @@ describe('request formatting methods', () => {
         contents: [
           {
             role: 'user',
-            parts: [{ text: 'txt1' }, { text: 'txt2' }]
+            parts: [
+              { type: 'text', text: 'txt1' },
+              { type: 'text', text: 'txt2' }
+            ]
           }
         ]
       });
     });
     it('formats an array of Parts into a request', () => {
       const result = formatGenerateContentInput([
-        { text: 'txt1' },
-        { text: 'txtB' }
+        { type: 'text', text: 'txt1' },
+        { type: 'text', text: 'txtB' }
       ]);
       expect(result).to.deep.equal({
         contents: [
           {
             role: 'user',
-            parts: [{ text: 'txt1' }, { text: 'txtB' }]
+            parts: [
+              { type: 'text', text: 'txt1' },
+              { type: 'text', text: 'txtB' }
+            ]
           }
         ]
       });
     });
-    it('formats a mixed array into a request', () => {
-      const result = formatGenerateContentInput(['txtA', { text: 'txtB' }]);
+    it('normalizes untagged parts in an array at runtime', () => {
+      const result = formatGenerateContentInput([
+        { text: 'txt1' } as any,
+        { text: 'txtB' } as any
+      ]);
       expect(result).to.deep.equal({
         contents: [
           {
             role: 'user',
-            parts: [{ text: 'txtA' }, { text: 'txtB' }]
+            parts: [
+              { type: 'text', text: 'txt1' },
+              { type: 'text', text: 'txtB' }
+            ]
+          }
+        ]
+      });
+    });
+    it('normalizes untagged parts inside contents property', () => {
+      const result = formatGenerateContentInput({
+        contents: [
+          {
+            role: 'user',
+            parts: [{ text: 'untagged' } as any]
+          }
+        ]
+      });
+      expect(result.contents[0].parts[0]).to.deep.equal({
+        type: 'text',
+        text: 'untagged'
+      });
+    });
+    it('formats a mixed array into a request', () => {
+      const result = formatGenerateContentInput([
+        'txtA',
+        { type: 'text', text: 'txtB' }
+      ]);
+      expect(result).to.deep.equal({
+        contents: [
+          {
+            role: 'user',
+            parts: [
+              { type: 'text', text: 'txtA' },
+              { type: 'text', text: 'txtB' }
+            ]
           }
         ]
       });
@@ -84,7 +131,7 @@ describe('request formatting methods', () => {
         contents: [
           {
             role: 'user',
-            parts: [{ text: 'txtA' }]
+            parts: [{ type: 'text', text: 'txtA' }]
           }
         ],
         generationConfig: { topK: 100 }
@@ -93,7 +140,7 @@ describe('request formatting methods', () => {
         contents: [
           {
             role: 'user',
-            parts: [{ text: 'txtA' }]
+            parts: [{ type: 'text', text: 'txtA' }]
           }
         ],
         generationConfig: { topK: 100 }
@@ -104,7 +151,7 @@ describe('request formatting methods', () => {
         contents: [
           {
             role: 'user',
-            parts: [{ text: 'txtA' }]
+            parts: [{ type: 'text', text: 'txtA' }]
           }
         ],
         systemInstruction: 'be excited'
@@ -113,10 +160,13 @@ describe('request formatting methods', () => {
         contents: [
           {
             role: 'user',
-            parts: [{ text: 'txtA' }]
+            parts: [{ type: 'text', text: 'txtA' }]
           }
         ],
-        systemInstruction: { role: 'system', parts: [{ text: 'be excited' }] }
+        systemInstruction: {
+          role: 'system',
+          parts: [{ type: 'text', text: 'be excited' }]
+        }
       });
     });
     it('formats systemInstructions if provided as Part', () => {
@@ -124,19 +174,22 @@ describe('request formatting methods', () => {
         contents: [
           {
             role: 'user',
-            parts: [{ text: 'txtA' }]
+            parts: [{ type: 'text', text: 'txtA' }]
           }
         ],
-        systemInstruction: { text: 'be excited' }
+        systemInstruction: { type: 'text', text: 'be excited' }
       });
       expect(result).to.deep.equal({
         contents: [
           {
             role: 'user',
-            parts: [{ text: 'txtA' }]
+            parts: [{ type: 'text', text: 'txtA' }]
           }
         ],
-        systemInstruction: { role: 'system', parts: [{ text: 'be excited' }] }
+        systemInstruction: {
+          role: 'system',
+          parts: [{ type: 'text', text: 'be excited' }]
+        }
       });
     });
     it('formats systemInstructions if provided as Content (no role)', () => {
@@ -144,19 +197,24 @@ describe('request formatting methods', () => {
         contents: [
           {
             role: 'user',
-            parts: [{ text: 'txtA' }]
+            parts: [{ type: 'text', text: 'txtA' }]
           }
         ],
-        systemInstruction: { parts: [{ text: 'be excited' }] } as Content
+        systemInstruction: {
+          parts: [{ type: 'text', text: 'be excited' }]
+        } as Content
       });
       expect(result).to.deep.equal({
         contents: [
           {
             role: 'user',
-            parts: [{ text: 'txtA' }]
+            parts: [{ type: 'text', text: 'txtA' }]
           }
         ],
-        systemInstruction: { role: 'system', parts: [{ text: 'be excited' }] }
+        systemInstruction: {
+          role: 'system',
+          parts: [{ type: 'text', text: 'be excited' }]
+        }
       });
     });
     it('passes thru systemInstructions if provided as Content', () => {
@@ -164,19 +222,25 @@ describe('request formatting methods', () => {
         contents: [
           {
             role: 'user',
-            parts: [{ text: 'txtA' }]
+            parts: [{ type: 'text', text: 'txtA' }]
           }
         ],
-        systemInstruction: { role: 'system', parts: [{ text: 'be excited' }] }
+        systemInstruction: {
+          role: 'system',
+          parts: [{ type: 'text', text: 'be excited' }]
+        }
       });
       expect(result).to.deep.equal({
         contents: [
           {
             role: 'user',
-            parts: [{ text: 'txtA' }]
+            parts: [{ type: 'text', text: 'txtA' }]
           }
         ],
-        systemInstruction: { role: 'system', parts: [{ text: 'be excited' }] }
+        systemInstruction: {
+          role: 'system',
+          parts: [{ type: 'text', text: 'be excited' }]
+        }
       });
     });
     it('preserves SpeechConfig for single-speaker setups', () => {
@@ -184,7 +248,7 @@ describe('request formatting methods', () => {
         contents: [
           {
             role: 'user',
-            parts: [{ text: 'Hello' }]
+            parts: [{ type: 'text', text: 'Hello' }]
           }
         ],
         generationConfig: {
@@ -213,7 +277,7 @@ describe('request formatting methods', () => {
         contents: [
           {
             role: 'user',
-            parts: [{ text: 'Write a dialogue.' }]
+            parts: [{ type: 'text', text: 'Write a dialogue.' }]
           }
         ],
         generationConfig: {
@@ -256,7 +320,7 @@ describe('request formatting methods', () => {
     });
     it('preserves SpeechConfig alongside other GenerationConfig parameters', () => {
       const req = formatGenerateContentInput({
-        contents: [{ role: 'user', parts: [{ text: 'Hello' }] }],
+        contents: [{ role: 'user', parts: [{ type: 'text', text: 'Hello' }] }],
         generationConfig: {
           temperature: 0.7,
           maxOutputTokens: 100,
@@ -284,7 +348,7 @@ describe('request formatting methods', () => {
         contents: [
           {
             role: 'user',
-            parts: [{ text: 'Hola' }]
+            parts: [{ type: 'text', text: 'Hola' }]
           }
         ],
         generationConfig: {
@@ -303,7 +367,7 @@ describe('request formatting methods', () => {
         contents: [
           {
             role: 'user',
-            parts: [{ text: 'Hello' }]
+            parts: [{ type: 'text', text: 'Hello' }]
           }
         ],
         generationConfig: {
@@ -317,6 +381,7 @@ describe('request formatting methods', () => {
       const result = formatGenerateContentInput([
         'What is this?',
         {
+          type: 'fileData',
           fileData: {
             mimeType: 'image/jpeg',
             fileUri: 'gs://sample.appspot.com/image.jpeg'
@@ -328,8 +393,9 @@ describe('request formatting methods', () => {
           {
             role: 'user',
             parts: [
-              { text: 'What is this?' },
+              { type: 'text', text: 'What is this?' },
               {
+                type: 'fileData',
                 fileData: {
                   mimeType: 'image/jpeg',
                   fileUri: 'gs://sample.appspot.com/image.jpeg'
@@ -341,70 +407,243 @@ describe('request formatting methods', () => {
       });
     });
   });
-  describe('createPredictRequestBody', () => {
-    it('creates body with default request parameters', () => {
-      const prompt = 'A photorealistic image of a toy boat at sea.';
-      const body = createPredictRequestBody(prompt, {});
-      expect(body.instances[0].prompt).to.equal(prompt);
-      expect(body.parameters.sampleCount).to.equal(1);
-      expect(body.parameters.includeRaiReason).to.be.true;
-      expect(body.parameters.includeSafetyAttributes).to.be.true;
 
-      // Parameters without default values should be undefined
-      expect(body.parameters.storageUri).to.be.undefined;
-      expect(body.parameters.storageUri).to.be.undefined;
-      expect(body.parameters.outputOptions).to.be.undefined;
-      expect(body.parameters.negativePrompt).to.be.undefined;
-      expect(body.parameters.aspectRatio).to.be.undefined;
-      expect(body.parameters.addWatermark).to.be.undefined;
-      expect(body.parameters.safetyFilterLevel).to.be.undefined;
-      expect(body.parameters.personGeneration).to.be.undefined;
-    });
-  });
-  it('creates body with non-default request paramaters', () => {
-    const prompt = 'A photorealistic image of a toy boat at sea.';
-    const imageFormat = { mimeType: 'image/jpeg', compressionQuality: 75 };
-    const safetySettings = {
-      safetyFilterLevel: ImagenSafetyFilterLevel.BLOCK_LOW_AND_ABOVE,
-      personFilterLevel: ImagenPersonFilterLevel.ALLOW_ADULT
-    };
-    const addWatermark = true;
-    const numberOfImages = 4;
-    const negativePrompt = 'do not hallucinate';
-    const aspectRatio = ImagenAspectRatio.LANDSCAPE_16x9;
-    const body = createPredictRequestBody(prompt, {
-      numberOfImages,
-      imageFormat,
-      addWatermark,
-      negativePrompt,
-      aspectRatio,
-      ...safetySettings
-    });
-    expect(body.instances[0].prompt).to.equal(prompt);
-    expect(body.parameters).deep.equal({
-      sampleCount: numberOfImages,
-      outputOptions: {
-        mimeType: imageFormat.mimeType,
-        compressionQuality: imageFormat.compressionQuality
-      },
-      addWatermark,
-      negativePrompt,
-      safetyFilterLevel: safetySettings.safetyFilterLevel,
-      personGeneration: safetySettings.personFilterLevel,
-      aspectRatio,
-      includeRaiReason: true,
-      includeSafetyAttributes: true,
-      storageUri: undefined
-    });
-  });
-  it('creates body with GCS URI', () => {
-    const prompt = 'A photorealistic image of a toy boat at sea.';
-    const gcsURI = 'gcs-uri';
-    const body = createPredictRequestBody(prompt, {
-      gcsURI
+  describe('stripPartType', () => {
+    it('strips type from TextPart without mutating original', () => {
+      const original: Part = { type: 'text', text: 'hello' };
+      const stripped = stripPartType(original);
+      expect(stripped).to.deep.equal({ text: 'hello' });
+      expect(stripped).to.not.have.property('type');
+      expect(original).to.have.property('type', 'text');
     });
 
-    expect(body.instances[0].prompt).to.equal(prompt);
-    expect(body.parameters.storageUri).to.equal(gcsURI);
+    it('strips type from InlineDataPart without mutating original', () => {
+      const original: Part = {
+        type: 'inlineData',
+        inlineData: { mimeType: 'image/png', data: 'abc' }
+      };
+      const stripped = stripPartType(original);
+      expect(stripped).to.deep.equal({
+        inlineData: { mimeType: 'image/png', data: 'abc' }
+      });
+      expect(stripped).to.not.have.property('type');
+      expect(original).to.have.property('type', 'inlineData');
+    });
+
+    it('strips type from FunctionCallPart without mutating original', () => {
+      const original: Part = {
+        type: 'functionCall',
+        functionCall: { name: 'getWeather', args: { city: 'SF' } }
+      };
+      const stripped = stripPartType(original);
+      expect(stripped).to.deep.equal({
+        functionCall: { name: 'getWeather', args: { city: 'SF' } }
+      });
+      expect(stripped).to.not.have.property('type');
+      expect(original).to.have.property('type', 'functionCall');
+    });
+
+    it('strips type from FunctionResponsePart and nested parts 3 levels deep', () => {
+      const original: Part = {
+        type: 'functionResponse',
+        functionResponse: {
+          name: 'lookup',
+          response: { ok: true },
+          parts: [{ type: 'text', text: 'nested text' }]
+        }
+      };
+      const stripped = stripPartType(original);
+      expect(stripped).to.deep.equal({
+        functionResponse: {
+          name: 'lookup',
+          response: { ok: true },
+          parts: [{ text: 'nested text' }]
+        }
+      });
+      expect(stripped).to.not.have.property('type');
+      expect(
+        (stripped as { functionResponse: FunctionResponse }).functionResponse
+          .parts![0]
+      ).to.not.have.property('type');
+      // Verify immutability
+      expect(original).to.have.property('type', 'functionResponse');
+      expect(
+        (original as { functionResponse: FunctionResponse }).functionResponse
+          .parts![0]
+      ).to.have.property('type', 'text');
+    });
+
+    it('handles already untagged parts', () => {
+      const untagged = { text: 'untagged text' } as any;
+      const stripped = stripPartType(untagged);
+      expect(stripped).to.deep.equal({ text: 'untagged text' });
+    });
+  });
+
+  describe('cleanContentForWire', () => {
+    it('strips type from all parts in a Content object without mutating original', () => {
+      const original: Content = {
+        role: 'user',
+        parts: [
+          { type: 'text', text: 'first' },
+          {
+            type: 'inlineData',
+            inlineData: { mimeType: 'image/jpeg', data: '123' }
+          }
+        ]
+      };
+      const cleaned = cleanContentForWire(original);
+      expect(cleaned).to.deep.equal({
+        role: 'user',
+        parts: [
+          { text: 'first' },
+          { inlineData: { mimeType: 'image/jpeg', data: '123' } }
+        ]
+      });
+      expect(original.parts[0]).to.have.property('type', 'text');
+      expect(original.parts[1]).to.have.property('type', 'inlineData');
+    });
+
+    it('returns content unchanged if parts is undefined', () => {
+      const content = { role: 'user' } as Content;
+      expect(cleanContentForWire(content)).to.equal(content);
+    });
+  });
+
+  describe('cleanSystemInstructionForWire', () => {
+    it('returns string unchanged', () => {
+      expect(cleanSystemInstructionForWire('system string')).to.equal(
+        'system string'
+      );
+    });
+
+    it('returns undefined if undefined', () => {
+      expect(cleanSystemInstructionForWire(undefined)).to.be.undefined;
+    });
+
+    it('strips type from single Part systemInstruction', () => {
+      const part: Part = { type: 'text', text: 'system text' };
+      const cleaned = cleanSystemInstructionForWire(part);
+      expect(cleaned).to.deep.equal({ text: 'system text' });
+      expect(part).to.have.property('type', 'text');
+    });
+
+    it('strips type from Content systemInstruction', () => {
+      const content: Content = {
+        role: 'system',
+        parts: [{ type: 'text', text: 'system content' }]
+      };
+      const cleaned = cleanSystemInstructionForWire(content);
+      expect(cleaned).to.deep.equal({
+        role: 'system',
+        parts: [{ text: 'system content' }]
+      });
+      expect(content.parts[0]).to.have.property('type', 'text');
+    });
+  });
+
+  describe('cleanGenerateContentRequestForWire', () => {
+    it('strips type from contents and systemInstruction without mutating original', () => {
+      const request: GenerateContentRequest = {
+        contents: [
+          {
+            role: 'user',
+            parts: [{ type: 'text', text: 'hello' }]
+          }
+        ],
+        systemInstruction: {
+          role: 'system',
+          parts: [{ type: 'text', text: 'be helpful' }]
+        },
+        generationConfig: { temperature: 0.7 }
+      };
+      const cleaned = cleanGenerateContentRequestForWire(request);
+      expect(cleaned).to.deep.equal({
+        contents: [
+          {
+            role: 'user',
+            parts: [{ text: 'hello' }]
+          }
+        ],
+        systemInstruction: {
+          role: 'system',
+          parts: [{ text: 'be helpful' }]
+        },
+        generationConfig: { temperature: 0.7 }
+      });
+      expect(request.contents[0].parts[0]).to.have.property('type', 'text');
+      expect((request.systemInstruction as Content).parts[0]).to.have.property(
+        'type',
+        'text'
+      );
+    });
+  });
+
+  describe('cleanCountTokensRequestForWire', () => {
+    it('strips type from contents and systemInstruction without mutating original', () => {
+      const request: CountTokensRequest = {
+        contents: [
+          {
+            role: 'user',
+            parts: [{ type: 'text', text: 'count this' }]
+          }
+        ],
+        systemInstruction: 'simple system instruction'
+      };
+      const cleaned = cleanCountTokensRequestForWire(request);
+      expect(cleaned).to.deep.equal({
+        contents: [
+          {
+            role: 'user',
+            parts: [{ text: 'count this' }]
+          }
+        ],
+        systemInstruction: 'simple system instruction'
+      });
+      expect(request.contents[0].parts[0]).to.have.property('type', 'text');
+    });
+  });
+
+  describe('cleanTemplateRequestForWire', () => {
+    it('strips type from history parts without mutating original', () => {
+      const originalHistory: Content[] = [
+        {
+          role: 'user',
+          parts: [{ type: 'text', text: 'template history' }]
+        }
+      ];
+      const request: TemplateRequestInternal = {
+        history: originalHistory
+      };
+      const cleaned = cleanTemplateRequestForWire(request);
+      expect(cleaned.history).to.deep.equal([
+        {
+          role: 'user',
+          parts: [{ text: 'template history' }]
+        }
+      ]);
+      expect(originalHistory[0].parts[0]).to.have.property('type', 'text');
+    });
+  });
+
+  describe('cleanFunctionResponseForWire', () => {
+    it('strips type from nested parts in FunctionResponse', () => {
+      const fnResponse: FunctionResponse = {
+        name: 'testFn',
+        response: { result: 123 },
+        parts: [{ type: 'text', text: 'part in fn response' }]
+      };
+      const cleaned = cleanFunctionResponseForWire(fnResponse);
+      expect(cleaned.parts).to.deep.equal([{ text: 'part in fn response' }]);
+      expect(fnResponse.parts![0]).to.have.property('type', 'text');
+    });
+
+    it('returns original if no parts present', () => {
+      const fnResponse: FunctionResponse = {
+        name: 'testFn',
+        response: { result: 123 }
+      };
+      expect(cleanFunctionResponseForWire(fnResponse)).to.equal(fnResponse);
+    });
   });
 });

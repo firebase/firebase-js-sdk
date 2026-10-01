@@ -136,7 +136,10 @@ export class IndexedDbIndexManager implements IndexManager {
     (l, r) => targetEquals(l, r)
   );
 
-  constructor(user: User, private readonly databaseId: DatabaseId) {
+  constructor(
+    user: User,
+    private readonly databaseId: DatabaseId
+  ) {
     this.uid = user.uid || '';
   }
 

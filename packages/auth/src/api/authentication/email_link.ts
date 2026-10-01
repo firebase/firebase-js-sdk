@@ -50,8 +50,7 @@ export async function signInWithEmailLink(
   );
 }
 
-export interface SignInWithEmailLinkForLinkingRequest
-  extends SignInWithEmailLinkRequest {
+export interface SignInWithEmailLinkForLinkingRequest extends SignInWithEmailLinkRequest {
   idToken: string;
 }
 

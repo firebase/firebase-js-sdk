@@ -95,8 +95,7 @@ export interface FinalizePhoneMfaEnrollmentRequest {
   tenantId?: string;
 }
 
-export interface FinalizePhoneMfaEnrollmentResponse
-  extends FinalizeMfaResponse {}
+export interface FinalizePhoneMfaEnrollmentResponse extends FinalizeMfaResponse {}
 
 export function finalizeEnrollPhoneMfa(
   auth: AuthInternal,
@@ -155,8 +154,7 @@ export interface FinalizeTotpMfaEnrollmentRequest {
   tenantId?: string;
 }
 
-export interface FinalizeTotpMfaEnrollmentResponse
-  extends FinalizeMfaResponse {}
+export interface FinalizeTotpMfaEnrollmentResponse extends FinalizeMfaResponse {}
 
 export function finalizeEnrollTotpMfa(
   auth: AuthInternal,

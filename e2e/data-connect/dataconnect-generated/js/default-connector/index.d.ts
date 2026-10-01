@@ -57,15 +57,14 @@ export interface Movie_Key {
 
 interface CreateMovieRef {
   /* Allow users to create refs without passing in DataConnect */
-  (vars: CreateMovieVariables): MutationRef<
-    CreateMovieData,
-    CreateMovieVariables
-  >;
+  (
+    vars: CreateMovieVariables
+  ): MutationRef<CreateMovieData, CreateMovieVariables>;
   /* Allow users to pass in custom DataConnect instances */
-  (dc: DataConnect, vars: CreateMovieVariables): MutationRef<
-    CreateMovieData,
-    CreateMovieVariables
-  >;
+  (
+    dc: DataConnect,
+    vars: CreateMovieVariables
+  ): MutationRef<CreateMovieData, CreateMovieVariables>;
   operationName: string;
 }
 export const createMovieRef: CreateMovieRef;

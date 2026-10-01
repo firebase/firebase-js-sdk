@@ -36,6 +36,7 @@ import {
 import { ApiSettings } from '../types/internal';
 import { ChatSessionBase } from './chat-session-base';
 import { TemplateChatSession } from '../public-types';
+import { deepCopy } from '@firebase/util';
 
 /**
  * `ChatSession` class for use with server prompt templates that
@@ -60,7 +61,7 @@ export class TemplateChatSessionImpl
     super(apiSettings, params, requestOptions);
     if (params.history) {
       validateChatHistory(params.history);
-      this._history = params.history;
+      this._history = deepCopy(params.history);
     }
   }
 

@@ -25,7 +25,7 @@ export interface SingleRequestOptions extends RequestOptions
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [signal](./ai.singlerequestoptions.md#singlerequestoptionssignal) | AbortSignal | An <code>AbortSignal</code> instance that allows cancelling ongoing requests (like <code>generateContent</code> or <code>generateImages</code>).<!-- -->If provided, calling <code>abort()</code> on the corresponding <code>AbortController</code> will attempt to cancel the underlying HTTP request. An <code>AbortError</code> will be thrown if cancellation is successful.<!-- -->Note that this will not cancel the request in the backend, so any applicable billing charges will still be applied despite cancellation. |
+|  [signal](./ai.singlerequestoptions.md#singlerequestoptionssignal) | AbortSignal | An <code>AbortSignal</code> instance that allows cancelling ongoing requests (like <code>generateContent</code> or <code>generateImages</code>). |
 
 ## SingleRequestOptions.signal
 
@@ -34,6 +34,8 @@ An `AbortSignal` instance that allows cancelling ongoing requests (like `generat
 If provided, calling `abort()` on the corresponding `AbortController` will attempt to cancel the underlying HTTP request. An `AbortError` will be thrown if cancellation is successful.
 
 Note that this will not cancel the request in the backend, so any applicable billing charges will still be applied despite cancellation.
+
+Also see [AbortSignal](https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal) documentation.
 
 <b>Signature:</b>
 

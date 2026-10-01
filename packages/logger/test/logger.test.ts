@@ -15,16 +15,14 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-import { spy as Spy, SinonSpy } from 'sinon';
+import { expect, vi, MockInstance } from 'vitest';
 import { Logger, LogLevel } from '../src/logger';
 import { setLogLevel } from '../index';
-
 describe('@firebase/logger', () => {
   const message = 'Hello there!';
   let client: Logger;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let spies: { [key: string]: SinonSpy<any[], void> };
+  let spies: { [key: string]: MockInstance };
   /**
    * Before each test, instantiate a new instance of Logger and establish spies
    * on all of the console methods so we can assert against them as needed
@@ -33,18 +31,18 @@ describe('@firebase/logger', () => {
     client = new Logger('@firebase/test-logger');
 
     spies = {
-      logSpy: Spy(console, 'log'),
-      infoSpy: Spy(console, 'info'),
-      warnSpy: Spy(console, 'warn'),
-      errorSpy: Spy(console, 'error')
+      logSpy: vi.spyOn(console, 'log').mockImplementation(() => {}),
+      infoSpy: vi.spyOn(console, 'info').mockImplementation(() => {}),
+      warnSpy: vi.spyOn(console, 'warn').mockImplementation(() => {}),
+      errorSpy: vi.spyOn(console, 'error').mockImplementation(() => {})
     };
   });
 
   afterEach(() => {
-    spies.logSpy.restore();
-    spies.infoSpy.restore();
-    spies.warnSpy.restore();
-    spies.errorSpy.restore();
+    spies.logSpy.mockRestore();
+    spies.infoSpy.mockRestore();
+    spies.warnSpy.mockRestore();
+    spies.errorSpy.mockRestore();
   });
 
   function testLog(message: string, channel: string, shouldLog: boolean): void {
@@ -60,7 +58,7 @@ describe('@firebase/logger', () => {
       // @ts-ignore It's not worth making a dedicated enum for a test.
       client[channel](message);
       expect(
-        spies[`${channel}Spy`]!.called,
+        spies[`${channel}Spy`]!.mock.calls.length > 0,
         `Expected ${channel} to ${shouldLog ? '' : 'not'} log`
       ).to.be[shouldLog ? 'true' : 'false'];
     });

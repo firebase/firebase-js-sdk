@@ -115,8 +115,7 @@ export class PluginLoader {
             initialization._context = createContext();
 
             let markdownDocumenterFeature:
-              | MarkdownDocumenterFeature
-              | undefined = undefined;
+              MarkdownDocumenterFeature | undefined = undefined;
             try {
               markdownDocumenterFeature = new featureDefinition.subclass(
                 initialization

@@ -20,11 +20,18 @@ import { expect } from 'chai';
 import {
   arrayRemove,
   arrayUnion,
+  BsonObjectId,
+  BsonTimestamp,
   Bytes,
+  Decimal128Value,
   DocumentReference,
   GeoPoint,
   increment,
+  Int32Value,
+  MaxKey,
+  MinKey,
   refEqual,
+  RegexValue,
   serverTimestamp,
   Timestamp
 } from '../../../src';
@@ -563,6 +570,58 @@ export function serializerTest(
           value: original,
           valueType: 'mapValue',
           jsonValue: expectedJson.mapValue
+        });
+      });
+
+      it('converts BSON types in mapValue', () => {
+        const examples = [
+          new BsonObjectId('foo'),
+          new BsonTimestamp(1, 2),
+          MinKey.instance(),
+          MaxKey.instance(),
+          new RegexValue('a', 'b'),
+          new Int32Value(1),
+          new Decimal128Value('1.2e3')
+        ];
+
+        for (const example of examples) {
+          expect(userDataWriter.convertValue(wrap(example))).to.deep.equal(
+            example
+          );
+
+          verifyFieldValueRoundTrip({
+            value: example,
+            valueType: 'mapValue',
+            jsonValue: wrap(example).mapValue
+          });
+        }
+
+        // Bytes with subtype will be serialized differently Proto3Json VS. regular Protobuf format
+        const bsonBinary = Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1);
+        const expectedJson: api.Value = {
+          mapValue: {
+            fields: {
+              '__binary__': {
+                'bytesValue': 'AQECAw=='
+              }
+            }
+          }
+        };
+
+        const expectedProtoJson: api.Value = {
+          mapValue: {
+            fields: {
+              '__binary__': {
+                'bytesValue': new Uint8Array([1, 1, 2, 3])
+              }
+            }
+          }
+        };
+        verifyFieldValueRoundTrip({
+          value: bsonBinary,
+          valueType: 'mapValue',
+          jsonValue: expectedJson.mapValue,
+          protoJsValue: expectedProtoJson.mapValue
         });
       });
     });

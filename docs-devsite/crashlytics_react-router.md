@@ -15,27 +15,27 @@ https://github.com/firebase/firebase-js-sdk
 
 |  Function | Description |
 |  --- | --- |
-|  [CrashlyticsRoutes({ firebaseApp, crashlyticsOptions, children, ...props })](./crashlytics_react-router.md#crashlyticsroutes_707e4a5) | A wrapper around  that automatically captures errors in route components.<!-- -->This component acts as a replacement for <code>Routes</code> from <code>react-router-dom</code>. It wraps the routes in an error boundary that captures errors thrown during rendering and reports them to Crashlytics. The error boundary is reset on navigation (path changes). |
+|  [CrashlyticsRoutes({ firebaseApp, crashlyticsOptions, children, ...props }, input)](./crashlytics_react-router.md#crashlyticsroutes_db8200c) | A wrapper around Routes that automatically captures errors in route components.<!-- -->This component acts as a replacement for <code>Routes</code> from <code>react-router-dom</code>. It wraps the routes in an error boundary that captures errors thrown during rendering and reports them to Crashlytics. The error boundary is reset on navigation (path changes). |
 
 ## Interfaces
 
 |  Interface | Description |
 |  --- | --- |
-|  [Crashlytics](./crashlytics_react-router.crashlytics.md#crashlytics_interface) | An instance of the Firebase Crashlytics SDK.<!-- -->Do not create this instance directly. Instead, use [getCrashlytics()](./crashlytics_.md#getcrashlytics_a9d22a1)<!-- -->. |
-|  [CrashlyticsOptions](./crashlytics_react-router.crashlyticsoptions.md#crashlyticsoptions_interface) | Options for initializing the Crashlytics service using [getCrashlytics()](./crashlytics_.md#getcrashlytics_a9d22a1)<!-- -->. |
+|  [Crashlytics](./crashlytics_react-router.crashlytics.md#crashlytics_interface) | An instance of the Firebase Crashlytics SDK.<!-- -->Do not create this instance directly. Instead, use [getCrashlytics()](./crashlytics.md#getcrashlytics_a9d22a1)<!-- -->. |
+|  [CrashlyticsOptions](./crashlytics_react-router.crashlyticsoptions.md#crashlyticsoptions_interface) | Options for initializing the Crashlytics service using [getCrashlytics()](./crashlytics.md#getcrashlytics_a9d22a1)<!-- -->. |
 
 ## function({ firebaseApp, crashlyticsOptions, children, ...props }, ...)
 
-### CrashlyticsRoutes({ firebaseApp, crashlyticsOptions, children, ...props }) {:#crashlyticsroutes_707e4a5}
+### CrashlyticsRoutes({ firebaseApp, crashlyticsOptions, children, ...props }, input) {:#crashlyticsroutes_db8200c}
 
-A wrapper around  that automatically captures errors in route components.
+A wrapper around Routes that automatically captures errors in route components.
 
 This component acts as a replacement for `Routes` from `react-router-dom`<!-- -->. It wraps the routes in an error boundary that captures errors thrown during rendering and reports them to Crashlytics. The error boundary is reset on navigation (path changes).
 
 <b>Signature:</b>
 
 ```typescript
-export declare function CrashlyticsRoutes({ firebaseApp, crashlyticsOptions, children, ...props }: RoutesProps & {
+export declare function CrashlyticsRoutes(input: RoutesProps & {
     firebaseApp: FirebaseApp;
     crashlyticsOptions?: CrashlyticsOptions;
 }): React.ReactElement | null;
@@ -45,7 +45,8 @@ export declare function CrashlyticsRoutes({ firebaseApp, crashlyticsOptions, chi
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  { firebaseApp, crashlyticsOptions, children, ...props } | RoutesProps &amp; { firebaseApp: [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->; crashlyticsOptions?: [CrashlyticsOptions](./crashlytics_.crashlyticsoptions.md#crashlyticsoptions_interface)<!-- -->; } |  |
+|  { firebaseApp, crashlyticsOptions, children, ...props } | (not declared) |  |
+|  input | RoutesProps &amp; { firebaseApp: [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->; crashlyticsOptions?: [CrashlyticsOptions](./crashlytics_react-router.crashlyticsoptions.md#crashlyticsoptions_interface)<!-- -->; } |  |
 
 <b>Returns:</b>
 

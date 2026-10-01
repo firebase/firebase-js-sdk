@@ -9,12 +9,166 @@ overwritten. Changes should be made in the source code at
 https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
-# crashlytics package
+# @firebase/crashlytics
 
-|  Entry Point | Description |
+## Functions
+
+|  Function | Description |
 |  --- | --- |
-|  [/](./crashlytics_.md#@firebase/crashlytics) |  |
-|  [/angular](./crashlytics_angular.md#@firebase/crashlytics/angular) |  |
-|  [/react](./crashlytics_react.md#@firebase/crashlytics/react) |  |
-|  [/react-router](./crashlytics_react-router.md#@firebase/crashlytics/react-router) |  |
+|  <b>function(app, ...)</b> |
+|  [getCrashlytics(app, options)](./crashlytics.md#getcrashlytics_a9d22a1) | Returns the default [Crashlytics](./crashlytics.crashlytics.md#crashlytics_interface) instance that is associated with the provided [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. If no instance exists, initializes a new instance with the default settings. |
+|  <b>function(crashlytics, ...)</b> |
+|  [flush(crashlytics)](./crashlytics.md#flush_16fdf66) | Flushes all enqueued Crashlytics data immediately, instead of waiting for default batching. |
+|  [getOtelLoggerProvider(crashlytics)](./crashlytics.md#getotelloggerprovider_16fdf66) | Retrieves the OpenTelemetry LoggerProvider instance used by Crashlytics. |
+|  [recordError(crashlytics, error, attributes)](./crashlytics.md#recorderror_6824e74) | Enqueues an error to be uploaded to the Firebase Crashlytics API. |
+|  <b>function(crashlyticsOptions, ...)</b> |
+|  [nextOnRequestError(crashlyticsOptions)](./crashlytics.md#nextonrequesterror_3caf5de) | Automatically report uncaught errors from server routes to Firebase Crashlytics. |
+
+## Interfaces
+
+|  Interface | Description |
+|  --- | --- |
+|  [Crashlytics](./crashlytics.crashlytics.md#crashlytics_interface) | An instance of the Firebase Crashlytics SDK.<!-- -->Do not create this instance directly. Instead, use [getCrashlytics()](./crashlytics.md#getcrashlytics_a9d22a1)<!-- -->. |
+|  [CrashlyticsOptions](./crashlytics.crashlyticsoptions.md#crashlyticsoptions_interface) | Options for initializing the Crashlytics service using [getCrashlytics()](./crashlytics.md#getcrashlytics_a9d22a1)<!-- -->. |
+
+## Namespaces
+
+|  Namespace | Description |
+|  --- | --- |
+|  [Instrumentation](./crashlytics.instrumentation.md#instrumentation_namespace) |  |
+
+## function(app, ...)
+
+### getCrashlytics(app, options) {:#getcrashlytics_a9d22a1}
+
+Returns the default [Crashlytics](./crashlytics.crashlytics.md#crashlytics_interface) instance that is associated with the provided [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. If no instance exists, initializes a new instance with the default settings.
+
+<b>Signature:</b>
+
+```typescript
+export declare function getCrashlytics(app?: FirebaseApp, options?: CrashlyticsOptions): Crashlytics;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  app | [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | The [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) to use. |
+|  options | [CrashlyticsOptions](./crashlytics.crashlyticsoptions.md#crashlyticsoptions_interface) | [CrashlyticsOptions](./crashlytics.crashlyticsoptions.md#crashlyticsoptions_interface) that configure the Crashlytics instance. |
+
+<b>Returns:</b>
+
+[Crashlytics](./crashlytics.crashlytics.md#crashlytics_interface)
+
+The default [Crashlytics](./crashlytics.crashlytics.md#crashlytics_interface) instance for the given [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->.
+
+### Example
+
+
+```javascript
+const crashlytics = getCrashlytics(app);
+
+```
+
+## function(crashlytics, ...)
+
+### flush(crashlytics) {:#flush_16fdf66}
+
+Flushes all enqueued Crashlytics data immediately, instead of waiting for default batching.
+
+<b>Signature:</b>
+
+```typescript
+export declare function flush(crashlytics: Crashlytics): Promise<void>;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  crashlytics | [Crashlytics](./crashlytics.crashlytics.md#crashlytics_interface) | The [Crashlytics](./crashlytics.crashlytics.md#crashlytics_interface) instance. |
+
+<b>Returns:</b>
+
+Promise&lt;void&gt;
+
+a promise which is resolved when all flushes are complete
+
+### getOtelLoggerProvider(crashlytics) {:#getotelloggerprovider_16fdf66}
+
+Retrieves the OpenTelemetry LoggerProvider instance used by Crashlytics.
+
+<b>Signature:</b>
+
+```typescript
+export declare function getOtelLoggerProvider(crashlytics: Crashlytics): LoggerProvider;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  crashlytics | [Crashlytics](./crashlytics.crashlytics.md#crashlytics_interface) | The [Crashlytics](./crashlytics.crashlytics.md#crashlytics_interface) instance. |
+
+<b>Returns:</b>
+
+LoggerProvider
+
+The underlying OpenTelemetry LoggerProvider.
+
+### recordError(crashlytics, error, attributes) {:#recorderror_6824e74}
+
+Enqueues an error to be uploaded to the Firebase Crashlytics API.
+
+<b>Signature:</b>
+
+```typescript
+export declare function recordError(crashlytics: Crashlytics, error: unknown, attributes?: AnyValueMap): void;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  crashlytics | [Crashlytics](./crashlytics.crashlytics.md#crashlytics_interface) | The [Crashlytics](./crashlytics.crashlytics.md#crashlytics_interface) instance. |
+|  error | unknown | The caught exception, typically an Error object |
+|  attributes | AnyValueMap | Optional, arbitrary attributes to attach to the error log |
+
+<b>Returns:</b>
+
+void
+
+## function(crashlyticsOptions, ...)
+
+### nextOnRequestError(crashlyticsOptions) {:#nextonrequesterror_3caf5de}
+
+Automatically report uncaught errors from server routes to Firebase Crashlytics.
+
+<b>Signature:</b>
+
+```typescript
+export declare function nextOnRequestError(crashlyticsOptions?: CrashlyticsOptions): Instrumentation.onRequestError;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  crashlyticsOptions | [CrashlyticsOptions](./crashlytics.crashlyticsoptions.md#crashlyticsoptions_interface) | [CrashlyticsOptions](./crashlytics.crashlyticsoptions.md#crashlyticsoptions_interface) that configure the Crashlytics instance. |
+
+<b>Returns:</b>
+
+[Instrumentation.onRequestError](./crashlytics.instrumentation.md#instrumentationonrequesterror)
+
+A request error handler for use in Next.js' instrumentation file
+
+### Example
+
+
+```javascript
+// In instrumentation.ts (https://nextjs.org/docs/app/guides/instrumentation):
+import { nextOnRequestError } from 'firebase/crashlytics'
+export const onRequestError = nextOnRequestError();
+
+```
 

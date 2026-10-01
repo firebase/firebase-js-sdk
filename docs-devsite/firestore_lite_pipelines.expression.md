@@ -331,7 +331,10 @@ Creates an expression that concatenates an array expression with one or more oth
 <b>Signature:</b>
 
 ```typescript
-arrayConcat(secondArray: Expression | unknown[], ...otherArrays: Array<Expression | unknown[]>): FunctionExpression;
+arrayConcat(
+    secondArray: Expression | unknown[],
+    ...otherArrays: Array<Expression | unknown[]>
+  ): FunctionExpression;
 ```
 
 #### Parameters
@@ -1231,7 +1234,10 @@ Returns a subset of the array.
 <b>Signature:</b>
 
 ```typescript
-arraySlice(offset: number | Expression, length?: number | Expression): FunctionExpression;
+arraySlice(
+    offset: number | Expression,
+    length?: number | Expression
+  ): FunctionExpression;
 ```
 
 #### Parameters
@@ -1290,7 +1296,10 @@ Creates an expression that applies a provided transformation to each element in 
 <b>Signature:</b>
 
 ```typescript
-arrayTransform(elementAlias: string, transform: Expression): FunctionExpression;
+arrayTransform(
+    elementAlias: string,
+    transform: Expression
+  ): FunctionExpression;
 ```
 
 #### Parameters
@@ -1322,7 +1331,11 @@ Creates an expression that applies a provided transformation to each element in 
 <b>Signature:</b>
 
 ```typescript
-arrayTransformWithIndex(elementAlias: string, indexAlias: string, transform: Expression): FunctionExpression;
+arrayTransformWithIndex(
+    elementAlias: string,
+    indexAlias: string,
+    transform: Expression
+  ): FunctionExpression;
 ```
 
 #### Parameters
@@ -1525,7 +1538,10 @@ Creates an expression that returns the first non-null, non-absent argument, with
 <b>Signature:</b>
 
 ```typescript
-coalesce(replacement: Expression | unknown, ...others: Array<Expression | unknown>): FunctionExpression;
+coalesce(
+    replacement: Expression | unknown,
+    ...others: Array<Expression | unknown>
+  ): FunctionExpression;
 ```
 
 #### Parameters
@@ -1582,7 +1598,10 @@ Creates an expression that concatenates expression results together.
 <b>Signature:</b>
 
 ```typescript
-concat(second: Expression | unknown, ...others: Array<Expression | unknown>): FunctionExpression;
+concat(
+    second: Expression | unknown,
+    ...others: Array<Expression | unknown>
+  ): FunctionExpression;
 ```
 
 #### Parameters
@@ -1652,7 +1671,7 @@ cosineDistance(vector: VectorValue | number[]): FunctionExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  vector | [VectorValue](./firestore_lite.vectorvalue.md#vectorvalue_class) \| number\[\] | The other vector (as a VectorValue) to compare against. |
+|  vector | [VectorValue](./firestore.vectorvalue.md#vectorvalue_class) \| number\[\] | The other vector (as a VectorValue) to compare against. |
 
 <b>Returns:</b>
 
@@ -1873,7 +1892,7 @@ dotProduct(vector: VectorValue | number[]): FunctionExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  vector | [VectorValue](./firestore_lite.vectorvalue.md#vectorvalue_class) \| number\[\] | The other vector (as an array of numbers) to calculate with. |
+|  vector | [VectorValue](./firestore.vectorvalue.md#vectorvalue_class) \| number\[\] | The other vector (as an array of numbers) to calculate with. |
 
 <b>Returns:</b>
 
@@ -2121,7 +2140,7 @@ euclideanDistance(vector: VectorValue | number[]): FunctionExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  vector | [VectorValue](./firestore_lite.vectorvalue.md#vectorvalue_class) \| number\[\] | The other vector (as a VectorValue) to compare against. |
+|  vector | [VectorValue](./firestore.vectorvalue.md#vectorvalue_class) \| number\[\] | The other vector (as a VectorValue) to compare against. |
 
 <b>Returns:</b>
 
@@ -3018,7 +3037,10 @@ Creates an expression that returns the larger value between this expression and 
 <b>Signature:</b>
 
 ```typescript
-logicalMaximum(second: Expression | unknown, ...others: Array<Expression | unknown>): FunctionExpression;
+logicalMaximum(
+    second: Expression | unknown,
+    ...others: Array<Expression | unknown>
+  ): FunctionExpression;
 ```
 
 #### Parameters
@@ -3050,7 +3072,10 @@ Creates an expression that returns the smaller value between this expression and
 <b>Signature:</b>
 
 ```typescript
-logicalMinimum(second: Expression | unknown, ...others: Array<Expression | unknown>): FunctionExpression;
+logicalMinimum(
+    second: Expression | unknown,
+    ...others: Array<Expression | unknown>
+  ): FunctionExpression;
 ```
 
 #### Parameters
@@ -3089,7 +3114,7 @@ ltrim(valueToTrim?: string | Expression | Bytes): FunctionExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  valueToTrim | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore_lite.bytes.md#bytes_class) | Optional. A string or byte array containing the characters/bytes to trim. If not specified, whitespace will be trimmed. |
+|  valueToTrim | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore.bytes.md#bytes_class) | Optional. A string or byte array containing the characters/bytes to trim. If not specified, whitespace will be trimmed. |
 
 <b>Returns:</b>
 
@@ -3197,7 +3222,10 @@ Creates an expression that merges multiple map values.
 <b>Signature:</b>
 
 ```typescript
-mapMerge(secondMap: Record<string, unknown> | Expression, ...otherMaps: Array<Record<string, unknown> | Expression>): FunctionExpression;
+mapMerge(
+    secondMap: Record<string, unknown> | Expression,
+    ...otherMaps: Array<Record<string, unknown> | Expression>
+  ): FunctionExpression;
 ```
 
 #### Parameters
@@ -3295,7 +3323,11 @@ Note that `mapSet` only performs shallow updates to the map. Setting a value to 
 <b>Signature:</b>
 
 ```typescript
-mapSet(key: string | Expression, value: unknown, ...moreKeyValues: unknown[]): FunctionExpression;
+mapSet(
+    key: string | Expression,
+    value: unknown,
+    ...moreKeyValues: unknown[]
+  ): FunctionExpression;
 ```
 
 #### Parameters
@@ -4078,7 +4110,7 @@ rtrim(valueToTrim?: string | Expression | Bytes): FunctionExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  valueToTrim | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore_lite.bytes.md#bytes_class) | Optional. A string or byte array containing the characters/bytes to trim. If not specified, whitespace will be trimmed. |
+|  valueToTrim | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore.bytes.md#bytes_class) | Optional. A string or byte array containing the characters/bytes to trim. If not specified, whitespace will be trimmed. |
 
 <b>Returns:</b>
 
@@ -4253,7 +4285,10 @@ Creates an expression that concatenates string expressions together.
 <b>Signature:</b>
 
 ```typescript
-stringConcat(secondString: Expression | string, ...otherStrings: Array<Expression | string>): FunctionExpression;
+stringConcat(
+    secondString: Expression | string,
+    ...otherStrings: Array<Expression | string>
+  ): FunctionExpression;
 ```
 
 #### Parameters
@@ -4354,7 +4389,7 @@ stringIndexOf(search: string | Expression | Bytes): FunctionExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  search | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore_lite.bytes.md#bytes_class) | The substring or byte sequence to search for. |
+|  search | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore.bytes.md#bytes_class) | The substring or byte sequence to search for. |
 
 <b>Returns:</b>
 
@@ -4409,15 +4444,18 @@ Creates an expression that replaces all occurrences of a substring or byte seque
 <b>Signature:</b>
 
 ```typescript
-stringReplaceAll(find: string | Expression | Bytes, replacement: string | Expression | Bytes): FunctionExpression;
+stringReplaceAll(
+    find: string | Expression | Bytes,
+    replacement: string | Expression | Bytes
+  ): FunctionExpression;
 ```
 
 #### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  find | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore_lite.bytes.md#bytes_class) | The substring or byte sequence to search for. |
-|  replacement | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore_lite.bytes.md#bytes_class) | The replacement string or byte sequence. |
+|  find | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore.bytes.md#bytes_class) | The substring or byte sequence to search for. |
+|  replacement | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore.bytes.md#bytes_class) | The replacement string or byte sequence. |
 
 <b>Returns:</b>
 
@@ -4441,15 +4479,18 @@ Creates an expression that replaces the first occurrence of a substring or byte 
 <b>Signature:</b>
 
 ```typescript
-stringReplaceOne(find: string | Expression | Bytes, replacement: string | Expression | Bytes): FunctionExpression;
+stringReplaceOne(
+    find: string | Expression | Bytes,
+    replacement: string | Expression | Bytes
+  ): FunctionExpression;
 ```
 
 #### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  find | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore_lite.bytes.md#bytes_class) | The substring or byte sequence to search for. |
-|  replacement | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore_lite.bytes.md#bytes_class) | The replacement string or byte sequence. |
+|  find | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore.bytes.md#bytes_class) | The substring or byte sequence to search for. |
+|  replacement | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore.bytes.md#bytes_class) | The replacement string or byte sequence. |
 
 <b>Returns:</b>
 
@@ -4753,7 +4794,10 @@ Creates an expression that extracts a specified part from this timestamp express
 <b>Signature:</b>
 
 ```typescript
-timestampExtract(part: TimePart, timezone?: string | Expression): FunctionExpression;
+timestampExtract(
+    part: TimePart,
+    timezone?: string | Expression
+  ): FunctionExpression;
 ```
 
 #### Parameters
@@ -4785,7 +4829,10 @@ Creates an expression that extracts a specified part from this timestamp express
 <b>Signature:</b>
 
 ```typescript
-timestampExtract(part: Expression, timezone?: string | Expression): FunctionExpression;
+timestampExtract(
+    part: Expression,
+    timezone?: string | Expression
+  ): FunctionExpression;
 ```
 
 #### Parameters
@@ -4953,7 +5000,10 @@ Creates an expression that truncates a timestamp to a specified granularity.
 <b>Signature:</b>
 
 ```typescript
-timestampTruncate(granularity: TimeGranularity, timezone?: string | Expression): FunctionExpression;
+timestampTruncate(
+    granularity: TimeGranularity,
+    timezone?: string | Expression
+  ): FunctionExpression;
 ```
 
 #### Parameters
@@ -4985,7 +5035,10 @@ Creates an expression that truncates a timestamp to a specified granularity.
 <b>Signature:</b>
 
 ```typescript
-timestampTruncate(granularity: Expression, timezone?: string | Expression): FunctionExpression;
+timestampTruncate(
+    granularity: Expression,
+    timezone?: string | Expression
+  ): FunctionExpression;
 ```
 
 #### Parameters
@@ -5072,7 +5125,7 @@ trim(valueToTrim?: string | Expression | Bytes): FunctionExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  valueToTrim | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore_lite.bytes.md#bytes_class) | Optional This parameter is treated as a set of characters or bytes that will be trimmed from the input. If not specified, then whitespace will be trimmed. |
+|  valueToTrim | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore.bytes.md#bytes_class) | Optional This parameter is treated as a set of characters or bytes that will be trimmed from the input. If not specified, then whitespace will be trimmed. |
 
 <b>Returns:</b>
 
