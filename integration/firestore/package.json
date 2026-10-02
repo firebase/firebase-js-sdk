@@ -7,12 +7,13 @@
     "typings:public": "lerna run typings:public --scope=\"@firebase/app\" --scope=\"@firebase/firestore\"",
     "build:persistence": "yarn typings:public && INCLUDE_FIRESTORE_PERSISTENCE=true gulp compile-tests",
     "build:memory": "yarn typings:public && INCLUDE_FIRESTORE_PERSISTENCE=false gulp compile-tests",
-    "karma:singlerun": "karma start",
+    "karma:singlerun": "vitest run --project=browser",
     "prettier": "prettier --cache --write '*.js' '*.ts'",
-    "test:persistence": " yarn build:persistence; karma start",
-    "test:persistence:debug": "yarn build:persistence; karma start --auto-watch --browsers Chrome",
-    "test:memory": "yarn build:memory; karma start",
-    "test:memory:debug": "yarn build:memory; karma start --auto-watch --browsers Chrome"
+    "test": "yarn test:persistence && yarn test:memory",
+    "test:persistence": "yarn build:persistence && vitest run --project=browser",
+    "test:persistence:debug": "yarn build:persistence && vitest --project=browser --browser.headless=false",
+    "test:memory": "yarn build:memory && vitest run --project=browser",
+    "test:memory:debug": "yarn build:memory && vitest --project=browser --browser.headless=false"
   },
   "dependencies": {
     "@firebase/app": "0.16.2",

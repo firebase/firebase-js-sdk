@@ -205,8 +205,6 @@ jobs:
     needs: build
     if: ${{ needs.build.outputs.changed == 'true'}}
     steps:
-      - name: install Firefox stable
-        run: npx @puppeteer/browsers install firefox@stable
       - name: Download build archive
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # ratchet:actions/download-artifact@v8
         with:
@@ -218,7 +216,9 @@ jobs:
         with:
           node-version: 24.19.0
       - name: Test setup and yarn install
-        run: cp config/ci.config.json config/project.json
+        run: |
+          cp config/ci.config.json config/project.json
+          npx playwright install firefox
       - name: Run tests
         run: cd packages/firestore && xvfb-run yarn run ${{ matrix.test-name }}
         env:
@@ -275,6 +275,7 @@ jobs:
       - name: Test setup
         run: |
           cp config/ci.config.json config/project.json
+          yarn --check-files
           npx playwright install webkit
       - name: Run tests
         run: cd packages/firestore && yarn run ${{ matrix.test-name }}

@@ -191,25 +191,25 @@ export function specTest(
         const mode = usePersistence ? '(Persistence)' : '(Memory)';
         const queryMode = convertToPipeline ? '(Pipeline)' : '(Query)';
         const fullName = `${mode} ${queryMode} ${name}`;
-        const queuedTest = runner(fullName, async () => {
-          const spec = builder();
-          const start = Date.now();
-          await spec.runAsTest(
-            fullName,
-            tags,
-            usePersistence,
-            convertToPipeline
-          );
-          const end = Date.now();
-          if (tags.indexOf(BENCHMARK_TAG) >= 0) {
-            // eslint-disable-next-line no-console
-            console.log(`Runtime: ${end - start} ms.`);
-          }
-        });
-
-        if (timeout !== undefined) {
-          queuedTest.timeout(timeout);
-        }
+        runner(
+          fullName,
+          async () => {
+            const spec = builder();
+            const start = Date.now();
+            await spec.runAsTest(
+              fullName,
+              tags,
+              usePersistence,
+              convertToPipeline
+            );
+            const end = Date.now();
+            if (tags.indexOf(BENCHMARK_TAG) >= 0) {
+              // eslint-disable-next-line no-console
+              console.log(`Runtime: ${end - start} ms.`);
+            }
+          },
+          timeout
+        );
       }
     }
   } else {

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2023 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import {
   deleteAllPersistentCacheIndexes,
@@ -44,9 +42,9 @@ apiDescribe('PersistentCacheIndexManager', persistence => {
       withTestDb(persistence, async db => {
         const indexManager = getPersistentCacheIndexManager(db);
         if (persistence.storage === 'indexeddb') {
-          expect(indexManager).to.be.instanceof(PersistentCacheIndexManager);
+          expect(indexManager).toBeInstanceOf(PersistentCacheIndexManager);
         } else {
-          expect(indexManager).to.be.null;
+          expect(indexManager).toBeNull();
         }
       }));
 
@@ -54,13 +52,13 @@ apiDescribe('PersistentCacheIndexManager', persistence => {
       withTestDb(persistence, async db => {
         const indexManager1 = getPersistentCacheIndexManager(db);
         const indexManager2 = getPersistentCacheIndexManager(db);
-        expect(indexManager1).to.equal(indexManager2);
+        expect(indexManager1).toBe(indexManager2);
       }));
 
     it('should fail if invoked after terminate()', () =>
       withTestDb(persistence, async db => {
         terminate(db).catch(e => expect.fail(`terminate() failed: ${e}`));
-        expect(() => getPersistentCacheIndexManager(db)).to.throw(
+        expect(() => getPersistentCacheIndexManager(db)).toThrow(
           'The client has already been terminated.'
         );
       }));
@@ -80,7 +78,7 @@ apiDescribe('PersistentCacheIndexManager', persistence => {
         withTestDb(persistence, async db2 => {
           const indexManager1 = getPersistentCacheIndexManager(db1);
           const indexManager2 = getPersistentCacheIndexManager(db2);
-          expect(indexManager1).to.not.equal(indexManager2);
+          expect(indexManager1).not.toBe(indexManager2);
         })
       )
   );
@@ -124,7 +122,7 @@ apiDescribe('PersistentCacheIndexManager', persistence => {
         terminate(db).catch(e => expect.fail(`terminate() failed: ${e}`));
         expect(() =>
           enablePersistentCacheIndexAutoCreation(indexManager)
-        ).to.throw('The client has already been terminated.');
+        ).toThrow('The client has already been terminated.');
       }));
 
     it('disabling after terminate() should throw', () =>
@@ -133,7 +131,7 @@ apiDescribe('PersistentCacheIndexManager', persistence => {
         terminate(db).catch(e => expect.fail(`terminate() failed: ${e}`));
         expect(() =>
           disablePersistentCacheIndexAutoCreation(indexManager)
-        ).to.throw('The client has already been terminated.');
+        ).toThrow('The client has already been terminated.');
       }));
 
     it('query returns correct results when index is auto-created', () => {
@@ -152,14 +150,14 @@ apiDescribe('PersistentCacheIndexManager', persistence => {
         // this should cause an index to be auto-created.
         const query_ = query(coll, where('match', '==', true));
         const snapshot1 = await getDocsFromCache(query_);
-        expect(snapshot1.size).to.equal(1);
+        expect(snapshot1.size).toBe(1);
 
         // Run the query that matches only one of the documents again, which
         // should _still_ return the one and only document that matches. Since
         // the public API surface does not reveal whether an index was used,
         // there isn't anything else that can be verified.
         const snapshot2 = await getDocsFromCache(query_);
-        expect(snapshot2.size).to.equal(1);
+        expect(snapshot2.size).toBe(1);
       });
     });
   });
@@ -190,7 +188,7 @@ apiDescribe('PersistentCacheIndexManager', persistence => {
       withTestDb(persistence, async db => {
         const indexManager = getPersistentCacheIndexManager(db)!;
         terminate(db).catch(e => expect.fail(`terminate() failed: ${e}`));
-        expect(() => deleteAllPersistentCacheIndexes(indexManager)).to.throw(
+        expect(() => deleteAllPersistentCacheIndexes(indexManager)).toThrow(
           'The client has already been terminated.'
         );
       }));
@@ -211,7 +209,7 @@ apiDescribe('PersistentCacheIndexManager', persistence => {
         // this should cause an index to be auto-created.
         const query_ = query(coll, where('match', '==', true));
         const snapshot1 = await getDocsFromCache(query_);
-        expect(snapshot1.size).to.equal(1);
+        expect(snapshot1.size).toBe(1);
 
         // Delete the index
         deleteAllPersistentCacheIndexes(indexManager);
@@ -221,7 +219,7 @@ apiDescribe('PersistentCacheIndexManager', persistence => {
         // the public API surface does not reveal whether an index was used,
         // there isn't anything else that can be verified.
         const snapshot2 = await getDocsFromCache(query_);
-        expect(snapshot2.size).to.equal(1);
+        expect(snapshot2.size).toBe(1);
       });
     });
   });
