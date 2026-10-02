@@ -23,6 +23,7 @@ import resolveModule from '@rollup/plugin-node-resolve';
 
 import pkg from './package.json' with { type: 'json' };
 import standalonePkg from './standalone/package.json' with { type: 'json' };
+import tsconfig from './tsconfig.json' with { type: 'json' };
 import { emitModulePackageFile } from '../../scripts/build/rollup_emit_module_package_file.js';
 
 const depsAndPeerDeps = Object.keys({
@@ -41,7 +42,10 @@ function onWarn(warning, defaultWarn) {
 const buildPlugins = [
   typescriptPlugin({
     typescript,
-    abortOnError: false
+    abortOnError: false,
+    tsconfigOverride: {
+      exclude: [...tsconfig.exclude, '**/*.test.ts']
+    }
   }),
   json({ preferConst: true })
 ];
