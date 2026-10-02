@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,6 @@
  * limitations under the License.
  */
 
-import { use } from 'chai';
-import { restore } from 'sinon';
-import sinonChai from 'sinon-chai';
+import createBaseConfig from '../../config/vitest.base.mjs';
 
-use(sinonChai);
-
-afterEach(async () => {
-  restore();
-});
+export default createBaseConfig(import.meta.url);
