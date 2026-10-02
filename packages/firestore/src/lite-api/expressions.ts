@@ -3658,15 +3658,29 @@ export class AggregateFunction implements ProtoValueSerializable, UserData {
    *
    * - In a `documents` frame, bounds are document offsets relative to the
    *   current document's position (`'current'` refers strictly to the current
-   *   document's position; tied documents are not included).
+   *   document's position; tied documents are not included). For `preceding`,
+   *   a positive integer (e.g. `2`) includes up to that many documents before
+   *   the current document, and a negative integer (e.g. `-1`) indicates a
+   *   boundary following the current document, enabling frames that start after
+   *   the current document. For `following`, a positive integer (e.g. `2`)
+   *   includes up to that many documents after the current document, and a
+   *   negative integer (e.g. `-1`) indicates a boundary preceding the current
+   *   document, enabling frames that end before the current document (e.g.
+   *   excluding the current document).
    * - In a `range` frame, bounds are value or time offsets relative to the
    *   current document's sort value(s) (`'current'` is peer-inclusive and
    *   includes all documents tied with the current document's sort value(s),
-   *   equivalent to an offset of `0`). Range frames with numeric or time-unit
-   *   offsets require a single numeric or timestamp `sort` ordering on the
-   *   enclosing stage, whereas range frames bounded only by `'current'` and
-   *   `'unbounded'` support multiple `sort` orderings and non-numeric sort
-   *   values.
+   *   equivalent to an offset of `0`). For `preceding`, a positive offset
+   *   subtracts from the current document's sort value (looking into the past),
+   *   and a negative offset adds to the current document's sort value (shifting
+   *   the lower boundary past the current document). For `following`, a
+   *   positive offset adds to the current document's sort value (looking into
+   *   the future), and a negative offset subtracts from the current document's
+   *   sort value (shifting the upper boundary before the current document).
+   *   Range frames with numeric or time-unit offsets require a single numeric
+   *   or timestamp `sort` ordering on the enclosing stage, whereas range frames
+   *   bounded only by `'current'` and `'unbounded'` support multiple `sort`
+   *   orderings and non-numeric sort values.
    *
    * @example
    * ```typescript
@@ -12383,15 +12397,29 @@ export class WindowFunction implements ProtoValueSerializable, UserData {
    *
    * - In a `documents` frame, bounds are document offsets relative to the
    *   current document's position (`'current'` refers strictly to the current
-   *   document's position; tied documents are not included).
+   *   document's position; tied documents are not included). For `preceding`,
+   *   a positive integer (e.g. `2`) includes up to that many documents before
+   *   the current document, and a negative integer (e.g. `-1`) indicates a
+   *   boundary following the current document, enabling frames that start after
+   *   the current document. For `following`, a positive integer (e.g. `2`)
+   *   includes up to that many documents after the current document, and a
+   *   negative integer (e.g. `-1`) indicates a boundary preceding the current
+   *   document, enabling frames that end before the current document (e.g.
+   *   excluding the current document).
    * - In a `range` frame, bounds are value or time offsets relative to the
    *   current document's sort value(s) (`'current'` is peer-inclusive and
    *   includes all documents tied with the current document's sort value(s),
-   *   equivalent to an offset of `0`). Range frames with numeric or time-unit
-   *   offsets require a single numeric or timestamp `sort` ordering on the
-   *   enclosing stage, whereas range frames bounded only by `'current'` and
-   *   `'unbounded'` support multiple `sort` orderings and non-numeric sort
-   *   values.
+   *   equivalent to an offset of `0`). For `preceding`, a positive offset
+   *   subtracts from the current document's sort value (looking into the past),
+   *   and a negative offset adds to the current document's sort value (shifting
+   *   the lower boundary past the current document). For `following`, a
+   *   positive offset adds to the current document's sort value (looking into
+   *   the future), and a negative offset subtracts from the current document's
+   *   sort value (shifting the upper boundary before the current document).
+   *   Range frames with numeric or time-unit offsets require a single numeric
+   *   or timestamp `sort` ordering on the enclosing stage, whereas range frames
+   *   bounded only by `'current'` and `'unbounded'` support multiple `sort`
+   *   orderings and non-numeric sort values.
    *
    * @param frame - The `documents` or `range` window frame to evaluate this
    *     function over.

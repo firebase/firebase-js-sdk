@@ -270,13 +270,23 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    * current document:
    * - In a `documents` frame, bounds are positional document counts relative to the current document's
    *   position (`'current'` refers strictly to the current document's position; ties are not included).
-   *   Specifying `sort` is optional.
+   *   For `preceding`, a positive integer (e.g. `2`) includes up to that many documents before the
+   *   current document, and a negative integer (e.g. `-1`) indicates a boundary following the current
+   *   document, enabling frames that start after the current document. For `following`, a positive
+   *   integer (e.g. `2`) includes up to that many documents after the current document, and a negative
+   *   integer (e.g. `-1`) indicates a boundary preceding the current document, enabling frames that end
+   *   before the current document (e.g. excluding the current document). Specifying `sort` is optional.
    * - In a `range` frame, bounds are value or time offsets relative to the current document's sort
    *   value(s) (`'current'` is peer-inclusive and includes all documents tied with the current document's
-   *   sort value(s), equivalent to an offset of `0`). One or more `sort` expressions are required:
-   *   range frames with numeric or time-unit offsets require a single numeric or timestamp `sort`
-   *   expression, whereas range frames bounded only by `'current'` and `'unbounded'` support multiple
-   *   `sort` expressions and non-numeric sort values (such as strings or booleans).
+   *   sort value(s), equivalent to an offset of `0`). For `preceding`, a positive offset subtracts from
+   *   the current document's sort value (looking into the past), and a negative offset adds to the
+   *   current document's sort value (shifting the lower boundary past the current document). For
+   *   `following`, a positive offset adds to the current document's sort value (looking into the future),
+   *   and a negative offset subtracts from the current document's sort value (shifting the upper boundary
+   *   before the current document). One or more `sort` expressions are required: range frames with
+   *   numeric or time-unit offsets require a single numeric or timestamp `sort` expression, whereas range
+   *   frames bounded only by `'current'` and `'unbounded'` support multiple `sort` expressions and
+   *   non-numeric sort values (such as strings or booleans).
    * - When neither `documents` nor `range` is specified, an unsorted window defaults to
    *   `documents` from `'unbounded'` preceding to `'unbounded'` following, and a sorted window defaults
    *   to `range` from `'unbounded'` preceding to `'current'` following (peer-inclusive).

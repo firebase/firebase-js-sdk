@@ -8870,6 +8870,94 @@ apiDescribe.skipClassic(
           { product: 'tablet', lookAheadAverage: null, windowCount: 0 }
         );
       });
+
+      it('computes a look behind average with a negative following bound', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(productSales)
+            .addWindowFields(
+              {
+                // Equivalent to "documents between 2 preceding and 1
+                // preceding": the window is [index - preceding, index +
+                // following].
+                sort: ascending('date'),
+                documents: { preceding: 2, following: -1 }
+              },
+              average('salesPrice').as('lookBehindAverage'),
+              countAll().as('windowCount')
+            )
+            .sort(ascending('date'))
+            .select('product', 'lookBehindAverage', 'windowCount')
+        );
+
+        expectResults(
+          snapshot,
+          { product: 'phone', lookBehindAverage: null, windowCount: 0 },
+          { product: 'phone', lookBehindAverage: 12, windowCount: 1 },
+          { product: 'tablet', lookBehindAverage: 21, windowCount: 2 },
+          { product: 'tablet', lookBehindAverage: 30, windowCount: 2 },
+          { product: 'tablet', lookBehindAverage: 45, windowCount: 2 }
+        );
+      });
+
+      it('computes a range look behind average with a negative following bound', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(productSales)
+            .addWindowFields(
+              {
+                // Equivalent to a range frame of [value - Infinity, value - 1],
+                // including only documents with a strictly lower salesPrice.
+                sort: ascending('salesPrice'),
+                range: { preceding: 'unbounded', following: -1 }
+              },
+              average('salesPrice').as('lookBehindAverage'),
+              countAll().as('windowCount')
+            )
+            .sort(ascending('date'))
+            .select('product', 'lookBehindAverage', 'windowCount')
+        );
+
+        expectResults(
+          snapshot,
+          { product: 'phone', lookBehindAverage: null, windowCount: 0 },
+          { product: 'phone', lookBehindAverage: 12, windowCount: 1 },
+          { product: 'tablet', lookBehindAverage: 12, windowCount: 1 },
+          { product: 'tablet', lookBehindAverage: 24, windowCount: 3 },
+          { product: 'tablet', lookBehindAverage: 24, windowCount: 3 }
+        );
+      });
+
+      it('computes a range look ahead average with a negative preceding bound', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(productSales)
+            .addWindowFields(
+              {
+                // Equivalent to a range frame of [value + 1, value + Infinity],
+                // including only documents with a strictly higher salesPrice.
+                sort: ascending('salesPrice'),
+                range: { preceding: -1, following: 'unbounded' }
+              },
+              average('salesPrice').as('lookAheadAverage'),
+              countAll().as('windowCount')
+            )
+            .sort(ascending('date'))
+            .select('product', 'lookAheadAverage', 'windowCount')
+        );
+
+        expectResults(
+          snapshot,
+          { product: 'phone', lookAheadAverage: 45, windowCount: 4 },
+          { product: 'phone', lookAheadAverage: 60, windowCount: 2 },
+          { product: 'tablet', lookAheadAverage: 60, windowCount: 2 },
+          { product: 'tablet', lookAheadAverage: null, windowCount: 0 },
+          { product: 'tablet', lookAheadAverage: null, windowCount: 0 }
+        );
+      });
     });
 
     describe('numeric and time range offsets', () => {
