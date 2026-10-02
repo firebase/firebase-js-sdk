@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,19 +15,13 @@
  * limitations under the License.
  */
 
-import chaiAsPromised from 'chai-as-promised';
-import sinonChai from 'sinon-chai';
+import createBaseConfig from '../../config/vitest.base.mjs';
 
-import { dbDelete } from '../internals/idb-manager';
-import { deleteDB } from 'idb';
-import { restore } from 'sinon';
-import { use } from 'chai';
+const config = createBaseConfig(import.meta.url);
 
-use(chaiAsPromised);
-use(sinonChai);
+// Browser-only SDK: filter test projects to browser runner
+config.test.projects = config.test.projects.filter(
+  project => project.test?.name === 'browser'
+);
 
-afterEach(async () => {
-  restore();
-  await dbDelete();
-  await deleteDB('fcm_token_details_db');
-});
+export default config;
