@@ -8610,6 +8610,7 @@ apiDescribe.skipClassic(
       });
 
       // Un-skip once the backend supports countIf and countDistinct in addWindowFields.
+      // eslint-disable-next-line no-restricted-properties
       it.skip('computes countIf', async () => {
         const snapshot = await execute(
           firestore
@@ -8634,6 +8635,7 @@ apiDescribe.skipClassic(
       });
 
       // Un-skip once the backend supports countIf and countDistinct in addWindowFields.
+      // eslint-disable-next-line no-restricted-properties
       it.skip('computes countDistinct', async () => {
         const snapshot = await execute(
           firestore
