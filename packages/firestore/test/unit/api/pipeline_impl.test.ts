@@ -349,7 +349,9 @@ describe('stage serialization', () => {
         EXECUTE_PIPELINE_REQUEST
       ] as ProtoExecutePipelineRequest;
       expect(req.autoCommitTransaction).to.be.true;
-      expect(req.newTransaction).to.deep.equal({ readWrite: {} });
+      expect(req.newTransaction).to.deep.equal({
+        readWrite: { concurrencyMode: 'OPTIMISTIC' }
+      });
     });
   });
 
