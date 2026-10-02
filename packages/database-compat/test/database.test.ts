@@ -16,7 +16,6 @@
  */
 
 import firebase from '@firebase/app-compat';
-import { expect } from 'chai';
 
 import { DATABASE_ADDRESS, createTestApp } from './helpers/util';
 import '../src/index';
@@ -34,70 +33,66 @@ describe('Database Tests', () => {
 
   it('Can get database.', () => {
     const db = (firebase as any).database();
-    expect(db).to.not.be.undefined;
-    expect(db).not.to.be.null;
+    expect(db).toBeDefined();
+    expect(db).not.toBeNull();
   });
 
   it('Can get database with custom URL', () => {
     const db = defaultApp.database('http://foo.bar.com');
-    expect(db).to.be.ok;
+    expect(db).toBeTruthy();
     // The URL is assumed to be secure if no port is specified.
-    expect(db.ref().toString()).to.equal('https://foo.bar.com/');
+    expect(db.ref().toString()).toBe('https://foo.bar.com/');
   });
 
   it('Can get database with custom URL and port', () => {
     const db = defaultApp.database('http://foo.bar.com:80');
-    expect(db).to.be.ok;
-    expect(db.ref().toString()).to.equal('http://foo.bar.com:80/');
+    expect(db).toBeTruthy();
+    expect(db.ref().toString()).toBe('http://foo.bar.com:80/');
   });
 
   it('Can get database with https URL', () => {
     const db = defaultApp.database('https://foo.bar.com');
-    expect(db).to.be.ok;
-    expect(db.ref().toString()).to.equal('https://foo.bar.com/');
+    expect(db).toBeTruthy();
+    expect(db.ref().toString()).toBe('https://foo.bar.com/');
   });
 
   it('Can get database with multi-region URL', () => {
     const db = defaultApp.database('http://foo.euw1.firebasedatabase.app');
-    expect(db).to.be.ok;
-    expect(db._delegate._repo.repoInfo_.namespace).to.equal('foo');
-    expect(db.ref().toString()).to.equal(
-      'https://foo.euw1.firebasedatabase.app/'
-    );
+    expect(db).toBeTruthy();
+    expect(db._delegate._repo.repoInfo_.namespace).toBe('foo');
+    expect(db.ref().toString()).toBe('https://foo.euw1.firebasedatabase.app/');
   });
 
   it('Can get database with upper case URL', () => {
     const db = defaultApp.database('http://fOO.EUW1.firebaseDATABASE.app');
-    expect(db).to.be.ok;
-    expect(db._delegate._repo.repoInfo_.namespace).to.equal('foo');
-    expect(db.ref().toString()).to.equal(
-      'https://foo.euw1.firebasedatabase.app/'
-    );
+    expect(db).toBeTruthy();
+    expect(db._delegate._repo.repoInfo_.namespace).toBe('foo');
+    expect(db.ref().toString()).toBe('https://foo.euw1.firebasedatabase.app/');
   });
 
   it('Can get database with localhost URL', () => {
     const db = defaultApp.database('http://localhost');
-    expect(db).to.be.ok;
-    expect(db.ref().toString()).to.equal('https://localhost/');
+    expect(db).toBeTruthy();
+    expect(db.ref().toString()).toBe('https://localhost/');
   });
 
   it('Can get database with localhost URL and port', () => {
     const db = defaultApp.database('http://localhost:80');
-    expect(db).to.be.ok;
-    expect(db.ref().toString()).to.equal('http://localhost:80/');
+    expect(db).toBeTruthy();
+    expect(db.ref().toString()).toBe('http://localhost:80/');
   });
 
   it('Can get database with a upper case localhost URL', () => {
     const db = defaultApp.database('http://LOCALHOST');
-    expect(db).to.be.ok;
-    expect(db.ref().toString()).to.equal('https://localhost/');
+    expect(db).toBeTruthy();
+    expect(db.ref().toString()).toBe('https://localhost/');
   });
 
   it('Can get database with a upper case localhost URL and ns', () => {
     const db = defaultApp.database('http://LOCALHOST?ns=foo');
-    expect(db).to.be.ok;
-    expect(db._delegate._repo.repoInfo_.namespace).to.equal('foo');
-    expect(db.ref().toString()).to.equal('https://localhost/');
+    expect(db).toBeTruthy();
+    expect(db._delegate._repo.repoInfo_.namespace).toBe('foo');
+    expect(db.ref().toString()).toBe('https://localhost/');
   });
 
   it('Can infer database URL from project Id', async () => {
@@ -106,9 +101,9 @@ describe('Database Tests', () => {
       'project-id-app'
     );
     const db = app.database();
-    expect(db).to.be.ok;
+    expect(db).toBeTruthy();
     // The URL is assumed to be secure if no port is specified.
-    expect(db.ref().toString()).to.equal(
+    expect(db.ref().toString()).toBe(
       'https://abc123-default-rtdb.firebaseio.com/'
     );
     await app.delete();
@@ -116,42 +111,42 @@ describe('Database Tests', () => {
 
   it('Can read ns query param', () => {
     const db = defaultApp.database('http://localhost:80/?ns=foo&unused=true');
-    expect(db).to.be.ok;
-    expect(db._delegate._repo.repoInfo_.namespace).to.equal('foo');
-    expect(db.ref().toString()).to.equal('http://localhost:80/');
+    expect(db).toBeTruthy();
+    expect(db._delegate._repo.repoInfo_.namespace).toBe('foo');
+    expect(db.ref().toString()).toBe('http://localhost:80/');
   });
 
   it('Reads ns query param even when subdomain is set', () => {
     const db = defaultApp.database('http://bar.firebaseio.com?ns=foo');
-    expect(db).to.be.ok;
-    expect(db._delegate._repo.repoInfo_.namespace).to.equal('foo');
-    expect(db.ref().toString()).to.equal('https://bar.firebaseio.com/');
+    expect(db).toBeTruthy();
+    expect(db._delegate._repo.repoInfo_.namespace).toBe('foo');
+    expect(db.ref().toString()).toBe('https://bar.firebaseio.com/');
   });
 
   it('Interprets FIREBASE_DATABASE_EMULATOR_HOST var correctly', () => {
     process.env['FIREBASE_DATABASE_EMULATOR_HOST'] = 'localhost:9000';
     const db = defaultApp.database('https://bar.firebaseio.com');
-    expect(db).to.be.ok;
-    expect(db._delegate._repo.repoInfo_.namespace).to.equal('bar');
-    expect(db._delegate._repo.repoInfo_.host).to.equal('localhost:9000');
+    expect(db).toBeTruthy();
+    expect(db._delegate._repo.repoInfo_.namespace).toBe('bar');
+    expect(db._delegate._repo.repoInfo_.host).toBe('localhost:9000');
     delete process.env['FIREBASE_DATABASE_EMULATOR_HOST'];
   });
 
   it('Different instances for different URLs', () => {
     const db1 = defaultApp.database('http://foo1.bar.com');
     const db2 = defaultApp.database('http://foo2.bar.com');
-    expect(db1.ref().toString()).to.equal('https://foo1.bar.com/');
-    expect(db2.ref().toString()).to.equal('https://foo2.bar.com/');
+    expect(db1.ref().toString()).toBe('https://foo1.bar.com/');
+    expect(db2.ref().toString()).toBe('https://foo2.bar.com/');
   });
 
   it('Different instances for different URLs (with FIREBASE_DATABASE_EMULATOR_HOST)', () => {
     process.env['FIREBASE_DATABASE_EMULATOR_HOST'] = 'localhost:9000';
     const db1 = defaultApp.database('http://foo1.bar.com');
     const db2 = defaultApp.database('http://foo2.bar.com');
-    expect(db1._delegate._repo.repoInfo_.toURLString()).to.equal(
+    expect(db1._delegate._repo.repoInfo_.toURLString()).toBe(
       'http://localhost:9000/?ns=foo1'
     );
-    expect(db2._delegate._repo.repoInfo_.toURLString()).to.equal(
+    expect(db2._delegate._repo.repoInfo_.toURLString()).toBe(
       'http://localhost:9000/?ns=foo2'
     );
     delete process.env['FIREBASE_DATABASE_EMULATOR_HOST'];
@@ -161,7 +156,7 @@ describe('Database Tests', () => {
     defaultApp.database('http://foo.bar.com');
     expect(() => {
       defaultApp.database('http://foo.bar.com/');
-    }).to.throw(/Database initialized multiple times/i);
+    }).toThrow(/Database initialized multiple times/i);
   });
 
   it('Cannot use same URL twice (with FIREBASE_DATABASE_EMULATOR_HOST)', () => {
@@ -169,34 +164,34 @@ describe('Database Tests', () => {
     defaultApp.database('http://foo.bar.com');
     expect(() => {
       defaultApp.database('http://foo.bar.com/');
-    }).to.throw(/Database initialized multiple times/i);
+    }).toThrow(/Database initialized multiple times/i);
     delete process.env['FIREBASE_DATABASE_EMULATOR_HOST'];
   });
 
   it('Databases with legacy domain', () => {
     expect(() => {
       defaultApp.database('http://foo.firebase.com/');
-    }).to.throw(/is no longer supported/i);
+    }).toThrow(/is no longer supported/i);
   });
 
   it('Databases with invalid custom URLs', () => {
     expect(() => {
       defaultApp.database('not-a-url');
-    }).to.throw(/Cannot parse Firebase url/i);
+    }).toThrow(/Cannot parse Firebase url/i);
     expect(() => {
       defaultApp.database('http://foo.com');
-    }).to.throw(/Cannot parse Firebase url/i);
+    }).toThrow(/Cannot parse Firebase url/i);
     expect(() => {
       defaultApp.database('http://fblocal.com');
-    }).to.throw(/Cannot parse Firebase url/i);
+    }).toThrow(/Cannot parse Firebase url/i);
     expect(() => {
       defaultApp.database('http://x.fblocal.com:9000/paths/are/bad');
-    }).to.throw(/Database URL must point to the root of a Firebase Database/i);
+    }).toThrow(/Database URL must point to the root of a Firebase Database/i);
   });
 
   it('Can get app', () => {
     const db = (firebase as any).database();
-    expect(db.app).to.not.be.undefined;
+    expect(db.app).toBeDefined();
     expect((db.app as any) instanceof firebase.app.App);
   });
 
@@ -205,8 +200,8 @@ describe('Database Tests', () => {
 
     const ref = db.ref();
 
-    expect(ref instanceof (firebase as any).database.Reference).to.be.true;
-    expect(ref.key).to.be.null;
+    expect(ref instanceof (firebase as any).database.Reference).toBe(true);
+    expect(ref.key).toBeNull();
   });
 
   it('Can get child ref', () => {
@@ -214,8 +209,8 @@ describe('Database Tests', () => {
 
     const ref = db.ref('child');
 
-    expect(ref instanceof (firebase as any).database.Reference).to.be.true;
-    expect(ref.key).to.equal('child');
+    expect(ref instanceof (firebase as any).database.Reference).toBe(true);
+    expect(ref.key).toBe('child');
   });
 
   it('Can get deep child ref', () => {
@@ -223,8 +218,8 @@ describe('Database Tests', () => {
 
     const ref = db.ref('child/grand-child');
 
-    expect(ref instanceof (firebase as any).database.Reference).to.be.true;
-    expect(ref.key).to.equal('grand-child');
+    expect(ref instanceof (firebase as any).database.Reference).toBe(true);
+    expect(ref.key).toBe('grand-child');
   });
 
   it('Can get ref from ref', () => {
@@ -234,15 +229,15 @@ describe('Database Tests', () => {
     const ref1 = db1.ref('child');
     const ref2 = db2.ref(ref1);
 
-    expect(ref1.key).to.equal('child');
-    expect(ref2.key).to.equal('child');
+    expect(ref1.key).toBe('child');
+    expect(ref2.key).toBe('child');
   });
 
   it('ref() validates arguments', () => {
     const db = (firebase as any).database();
     expect(() => {
       const ref = (db as any).ref('path', 'extra');
-    }).to.throw(/Expects no more than 1/);
+    }).toThrow(/Expects no more than 1/);
   });
 
   it('ref() validates project', () => {
@@ -253,13 +248,13 @@ describe('Database Tests', () => {
 
     expect(() => {
       db2.ref(ref1);
-    }).to.throw(/does not match.*database/i);
+    }).toThrow(/does not match.*database/i);
   });
 
   it('Can get refFromURL()', () => {
     const db = (firebase as any).database();
     const ref = db.refFromURL(DATABASE_ADDRESS + '/path/to/data');
-    expect(ref.key).to.equal('data');
+    expect(ref.key).toBe('data');
   });
 
   it('refFromURL() validates domain', () => {
@@ -268,7 +263,7 @@ describe('Database Tests', () => {
       .database('https://thisisreal.firebaseio.com');
     expect(() =>
       db.refFromURL('https://thisisnotreal.firebaseio.com/path/to/data')
-    ).to.throw(/does not match.*database/i);
+    ).toThrow(/does not match.*database/i);
   });
 
   it('refFromURL() validates argument', () => {
@@ -276,31 +271,34 @@ describe('Database Tests', () => {
     const db = (firebase as any).database();
     expect(() => {
       const ref = (db as any).refFromURL();
-    }).to.throw(/Expects at least 1/);
+    }).toThrow(/Expects at least 1/);
   });
 
   it('can call useEmulator before use', () => {
     const db = firebase.database();
     db.useEmulator('localhost', 1234);
     // Cast as any as _delegate isn't a public property
-    expect((db as any)._delegate._repo.repoInfo_.isUsingEmulator).to.be.true;
-    expect(db.ref().toString()).to.equal('http://localhost:1234/');
+    expect((db as any)._delegate._repo.repoInfo_.isUsingEmulator).toBe(true);
+    expect(db.ref().toString()).toBe('http://localhost:1234/');
   });
 
   it('initializes usingEmulator to false before use', () => {
     const db = firebase.database();
-    expect((db as any)._delegate._repo.repoInfo_.isUsingEmulator).to.be.false;
+    expect((db as any)._delegate._repo.repoInfo_.isUsingEmulator).toBe(false);
   });
 
   it('uses ssl when useEmulator is called with ssl specified', () => {
+    vi.spyOn(globalThis, 'fetch').mockImplementation(() =>
+      Promise.resolve(new Response())
+    );
     const db = firebase.database();
     const cloudWorkstation = 'abc.cloudworkstations.dev';
     db.useEmulator(cloudWorkstation, 80);
-    expect((db as any)._delegate._repo.repoInfo_.isUsingEmulator).to.be.true;
-    expect((db as any)._delegate._repo.repoInfo_.host).to.equal(
+    expect((db as any)._delegate._repo.repoInfo_.isUsingEmulator).toBe(true);
+    expect((db as any)._delegate._repo.repoInfo_.host).toBe(
       `${cloudWorkstation}:80`
     );
-    expect((db as any)._delegate._repo.repoInfo_.secure).to.be.true;
+    expect((db as any)._delegate._repo.repoInfo_.secure).toBe(true);
   });
 
   it('cannot call useEmulator after use', () => {
@@ -312,7 +310,7 @@ describe('Database Tests', () => {
 
     expect(() => {
       db.useEmulator('localhost', 1234);
-    }).to.throw(
+    }).toThrow(
       'FIREBASE FATAL ERROR: connectDatabaseEmulator() cannot initialize or alter the emulator configuration after the database instance has started.'
     );
   });
@@ -322,6 +320,6 @@ describe('Database Tests', () => {
     db.useEmulator('localhost', 1234);
 
     const ref = db.refFromURL(DATABASE_ADDRESS + '/path/to/data');
-    expect(ref.toString()).to.equal(`http://localhost:1234/path/to/data`);
+    expect(ref.toString()).toBe(`http://localhost:1234/path/to/data`);
   });
 });
