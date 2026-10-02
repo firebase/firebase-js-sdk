@@ -18,8 +18,10 @@
 import {
   LoggerProvider,
   ReadableLogRecord,
-  LogRecordExporter
+  LogRecordExporter,
+  LogRecordProcessor
 } from '@opentelemetry/sdk-logs';
+import { logs } from '@opentelemetry/api-logs';
 import { registerInstrumentations } from '@opentelemetry/instrumentation';
 import { NavigationTimingInstrumentation } from '@opentelemetry/browser-instrumentation/experimental/navigation-timing';
 import { UserActionInstrumentation } from '@opentelemetry/browser-instrumentation/experimental/user-action';
@@ -35,7 +37,7 @@ import {
 import { FetchTransport } from '../fetch-transport';
 import { DynamicHeaderProvider } from '../types';
 import { FirebaseApp } from '@firebase/app';
-import { ExportResult } from '@opentelemetry/core';
+import { ExportResult, ExportResultCode } from '@opentelemetry/core';
 import { CrashlyticsOptions } from '../public-types';
 import {
   DEFAULT_TELEMETRY_ENDPOINT,
@@ -44,6 +46,8 @@ import {
 import { AttributesStore } from '../attributes-store';
 import { OnErrorLogRecordProcessor } from './on-error-log-record-processor';
 import { TelemetryStore } from '../telemetry-store';
+import { FirebaseAttributesProcessor } from './attributes-processor';
+import { isTelemetryUrl } from '../helpers';
 
 let unregisterInstrumentations: (() => void) | undefined;
 
@@ -64,23 +68,27 @@ export interface LoggerProviderResult {
  */
 export function createLoggerProvider(
   app: FirebaseApp,
-  crashlyticsOptions: CrashlyticsOptions,
+  crashlyticsOptions: CrashlyticsOptions = {},
   attributesStore: AttributesStore,
   telemetryStore: TelemetryStore,
   dynamicHeaderProviders: DynamicHeaderProvider[] = []
 ): LoggerProviderResult {
   let endpointUrl =
     crashlyticsOptions.endpointUrl || DEFAULT_TELEMETRY_ENDPOINT;
-
-  const resource = resourceFromAttributes({
-    [ATTR_SERVICE_NAME]: 'firebase_telemetry_service'
-  });
   if (endpointUrl.endsWith('/')) {
     endpointUrl = endpointUrl.slice(0, -1);
   }
+
   const { projectId, appId, apiKey } = app.options;
   const region = crashlyticsOptions.region || DEFAULT_TELEMETRY_REGION;
   const otlpEndpoint = `${endpointUrl}/v1/projects/${projectId}/apps/${appId}/locations/${region}/logs`;
+
+  const resource = resourceFromAttributes({
+    [ATTR_SERVICE_NAME]: 'firebase_telemetry_service',
+    'firebase.project_id': projectId || '',
+    'firebase.app_id': appId || ''
+  });
+
   const logExporter = new OTLPLogExporter(
     {
       url: otlpEndpoint,
@@ -98,29 +106,20 @@ export function createLoggerProvider(
     telemetryStore
   );
 
-  // TODO: Remove this custom processor and use applyCustomLogRecordData in the instrumentation config once
-  // @opentelemetry/browser-instrumentation supports it across all standard/experimental packages.
-  const customAttributesProcessor = {
-    onEmit: (logRecord: ReadableLogRecord) => {
-      Object.assign(logRecord.attributes, attributesStore.getLogAttributes());
-    },
-    forceFlush: () => Promise.resolve(),
-    shutdown: () => Promise.resolve()
-  };
+  const processors: LogRecordProcessor[] = [
+    new FirebaseAttributesProcessor(attributesStore, projectId),
+    onErrorLogRecordProcessor
+  ];
 
   const loggerProvider = new LoggerProvider({
     resource,
-    processors: [customAttributesProcessor, onErrorLogRecordProcessor],
+    processors,
     logRecordLimits: {}
   });
 
-  // TODO: Enable once @opentelemetry/browser-instrumentation supports applyCustomLogRecordData across its packages
-  // const applyCustomLogRecordData = (logRecord: LogRecord): void => {
-  //   logRecord.attributes = {
-  //     ...logRecord.attributes,
-  //     ...attributesStore.getLogAttributes()
-  //   };
-  // };
+  if (crashlyticsOptions.registerGlobalLoggerProvider) {
+    logs.setGlobalLoggerProvider(loggerProvider);
+  }
 
   if (typeof window !== 'undefined') {
     /*
@@ -164,6 +163,8 @@ class OTLPLogExporter
   extends OTLPExporterBase<ReadableLogRecord[]>
   implements LogRecordExporter
 {
+  private endpointUrl?: string;
+
   constructor(
     config: OTLPExporterConfigBase = {},
     dynamicHeaderProviders: DynamicHeaderProvider[] = [],
@@ -188,21 +189,35 @@ class OTLPLogExporter
         })
       )
     );
+    this.endpointUrl = config.url;
   }
 
   override async export(
-    logs: ReadableLogRecord[],
+    logsToExport: ReadableLogRecord[],
     resultCallback: (result: ExportResult) => void
   ): Promise<void> {
+    const filteredLogs = logsToExport.filter(log => {
+      const url =
+        log.attributes?.['url.full'] ||
+        log.attributes?.['http.url'] ||
+        log.attributes?.['resource.url'];
+      return !isTelemetryUrl(url, this.endpointUrl);
+    });
+
+    if (filteredLogs.length === 0) {
+      resultCallback({ code: ExportResultCode.SUCCESS });
+      return;
+    }
+
     const installationIdAttribute =
       await this.attributesStore.getInstallationIdAttribute();
 
     if (installationIdAttribute) {
-      logs.forEach(log => {
+      filteredLogs.forEach(log => {
         Object.assign(log.attributes, installationIdAttribute);
       });
     }
-    super.export(logs, resultCallback);
+    super.export(filteredLogs, resultCallback);
   }
 
   async shutdown(): Promise<void> {

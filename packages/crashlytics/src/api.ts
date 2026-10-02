@@ -20,7 +20,11 @@ import { CrashlyticsInternal, ErrorWithSymbol } from './types';
 import { ALREADY_LOGGED_FLAG, CRASHLYTICS_TYPE } from './constants';
 import { Crashlytics, CrashlyticsOptions } from './public-types';
 import { Provider } from '@firebase/component';
-import { AnyValueMap, SeverityNumber } from '@opentelemetry/api-logs';
+import {
+  AnyValueMap,
+  SeverityNumber,
+  LoggerProvider
+} from '@opentelemetry/api-logs';
 import { CrashlyticsService } from './service';
 import { deepEqual } from '@firebase/util';
 import { SPAN_ATTR_KEY } from './attributes-store';
@@ -101,20 +105,13 @@ export function recordError(
   // Cast to CrashlyticsInternal to access internal loggerProvider, tracingProvider, and processors
   const {
     loggerProvider,
-    attributesStore,
     telemetryStore,
     onErrorSpanProcessor,
     onErrorLogRecordProcessor
   } = crashlytics as CrashlyticsInternal;
 
   const logger = loggerProvider.getLogger('error-logger');
-  const customAttributes: AnyValueMap = attributesStore.getLogAttributes();
-
-  // Merge in any additional attributes. Explicitly provided attributes take precedence over
-  // automatically added attributes.
-  if (attributes) {
-    Object.assign(customAttributes, attributes);
-  }
+  const customAttributes: AnyValueMap = attributes ? { ...attributes } : {};
 
   if (error instanceof Error) {
     logger.emit({
@@ -150,6 +147,19 @@ export function recordError(
   }
 
   telemetryStore.clear();
+}
+
+/**
+ * Retrieves the OpenTelemetry LoggerProvider instance used by Crashlytics.
+ *
+ * @public
+ * @param crashlytics - The {@link Crashlytics} instance.
+ * @returns The underlying OpenTelemetry LoggerProvider.
+ */
+export function getOtelLoggerProvider(
+  crashlytics: Crashlytics
+): LoggerProvider {
+  return (crashlytics as CrashlyticsInternal).loggerProvider;
 }
 
 /**
