@@ -87,7 +87,8 @@ export function syncPointApplyOperation(
   syncPoint: SyncPoint,
   operation: Operation,
   writesCache: WriteTreeRef,
-  optCompleteServerCache: Node | null
+  optCompleteServerCache: Node | null,
+  filter = false
 ): Event[] {
   const queryId = operation.source.queryId;
   if (queryId !== null) {
@@ -97,14 +98,21 @@ export function syncPointApplyOperation(
       view,
       operation,
       writesCache,
-      optCompleteServerCache
+      optCompleteServerCache,
+      filter
     );
   } else {
     let events: Event[] = [];
 
     for (const view of syncPoint.views.values()) {
       events = events.concat(
-        viewApplyOperation(view, operation, writesCache, optCompleteServerCache)
+        viewApplyOperation(
+          view,
+          operation,
+          writesCache,
+          optCompleteServerCache,
+          filter
+        )
       );
     }
 
@@ -274,6 +282,8 @@ export function syncPointGetCompleteServerCache(
 ): Node | null {
   let serverCache: Node | null = null;
   for (const view of syncPoint.views.values()) {
+    // s/viewGetCompleteServerCache/viewGetDefaultServerCache
+    // This basically checks if the query is default and if so, returns the serverCache at that view.
     serverCache = serverCache || viewGetCompleteServerCache(view, path);
   }
   return serverCache;
