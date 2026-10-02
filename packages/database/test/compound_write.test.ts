@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-
 import {
   CompoundWrite,
   compoundWriteAddWrite,
@@ -45,20 +43,20 @@ describe('CompoundWrite Tests', () => {
 
   function assertNodeGetsCorrectPriority(compoundWrite, node, priority) {
     if (node.isEmpty()) {
-      expect(compoundWriteApply(compoundWrite, node)).to.equal(EMPTY_NODE);
+      expect(compoundWriteApply(compoundWrite, node)).toBe(EMPTY_NODE);
     } else {
-      expect(compoundWriteApply(compoundWrite, node)).to.deep.equal(
+      expect(compoundWriteApply(compoundWrite, node)).toEqual(
         node.updatePriority(priority)
       );
     }
   }
 
   function assertNodesEqual(expected, actual) {
-    expect(actual.equals(expected)).to.be.true;
+    expect(actual.equals(expected)).toBe(true);
   }
 
   it('Empty merge is empty', () => {
-    expect(compoundWriteIsEmpty(CompoundWrite.empty())).to.be.true;
+    expect(compoundWriteIsEmpty(CompoundWrite.empty())).toBe(true);
   });
 
   it('CompoundWrite with priority update is not empty.', () => {
@@ -70,7 +68,7 @@ describe('CompoundWrite Tests', () => {
           PRIO_NODE
         )
       )
-    ).to.be.false;
+    ).toBe(false);
   });
 
   it('CompoundWrite with update is not empty.', () => {
@@ -82,7 +80,7 @@ describe('CompoundWrite Tests', () => {
           LEAF_NODE
         )
       )
-    ).to.be.false;
+    ).toBe(false);
   });
 
   it('CompoundWrite with root update is not empty.', () => {
@@ -90,7 +88,7 @@ describe('CompoundWrite Tests', () => {
       compoundWriteIsEmpty(
         compoundWriteAddWrite(CompoundWrite.empty(), newEmptyPath(), LEAF_NODE)
       )
-    ).to.be.false;
+    ).toBe(false);
   });
 
   it('CompoundWrite with empty root update is not empty.', () => {
@@ -98,7 +96,7 @@ describe('CompoundWrite Tests', () => {
       compoundWriteIsEmpty(
         compoundWriteAddWrite(CompoundWrite.empty(), newEmptyPath(), EMPTY_NODE)
       )
-    ).to.be.false;
+    ).toBe(false);
   });
 
   it('CompoundWrite with root priority update, child write is not empty.', () => {
@@ -111,7 +109,7 @@ describe('CompoundWrite Tests', () => {
       compoundWriteIsEmpty(
         compoundWriteChildCompoundWrite(compoundWrite, new Path('.priority'))
       )
-    ).to.be.false;
+    ).toBe(false);
   });
 
   it('Applies leaf overwrite', () => {
@@ -121,7 +119,7 @@ describe('CompoundWrite Tests', () => {
       newEmptyPath(),
       LEAF_NODE
     );
-    expect(compoundWriteApply(compoundWrite, EMPTY_NODE)).to.equal(LEAF_NODE);
+    expect(compoundWriteApply(compoundWrite, EMPTY_NODE)).toBe(LEAF_NODE);
   });
 
   it('Applies children overwrite', () => {
@@ -132,7 +130,7 @@ describe('CompoundWrite Tests', () => {
       newEmptyPath(),
       childNode
     );
-    expect(compoundWriteApply(compoundWrite, EMPTY_NODE)).to.equal(childNode);
+    expect(compoundWriteApply(compoundWrite, EMPTY_NODE)).toBe(childNode);
   });
 
   it('Adds child node', () => {
@@ -151,9 +149,7 @@ describe('CompoundWrite Tests', () => {
     const path = new Path('deep/deep/node');
     const expected = EMPTY_NODE.updateChild(path, LEAF_NODE);
     compoundWrite = compoundWriteAddWrite(compoundWrite, path, LEAF_NODE);
-    expect(compoundWriteApply(compoundWrite, EMPTY_NODE)).to.deep.equal(
-      expected
-    );
+    expect(compoundWriteApply(compoundWrite, EMPTY_NODE)).toEqual(expected);
   });
 
   it('shallow update removes deep update', () => {
@@ -266,9 +262,9 @@ describe('CompoundWrite Tests', () => {
       newEmptyPath(),
       update
     );
-    expect(
-      compoundWriteChildCompoundWrite(compoundWrite, newEmptyPath())
-    ).to.equal(compoundWrite);
+    expect(compoundWriteChildCompoundWrite(compoundWrite, newEmptyPath())).toBe(
+      compoundWrite
+    );
   });
 
   it('root update removes root priority', () => {
@@ -376,7 +372,7 @@ describe('CompoundWrite Tests', () => {
       new Path('child-1'),
       LEAF_NODE
     );
-    expect(compoundWriteGetCompleteChildren(compoundWrite)).to.deep.equal([
+    expect(compoundWriteGetCompleteChildren(compoundWrite)).toEqual([
       new NamedNode('child-1', LEAF_NODE)
     ]);
   });
@@ -388,7 +384,7 @@ describe('CompoundWrite Tests', () => {
       new Path('child-1'),
       EMPTY_NODE
     );
-    expect(compoundWriteGetCompleteChildren(compoundWrite)).to.deep.equal([
+    expect(compoundWriteGetCompleteChildren(compoundWrite)).toEqual([
       new NamedNode('child-1', EMPTY_NODE)
     ]);
   });
@@ -400,7 +396,7 @@ describe('CompoundWrite Tests', () => {
       new Path('child-1/deep/path'),
       LEAF_NODE
     );
-    expect(compoundWriteGetCompleteChildren(compoundWrite)).to.deep.equal([]);
+    expect(compoundWriteGetCompleteChildren(compoundWrite)).toEqual([]);
   });
 
   it('complete children return all complete children but no incomplete', () => {
@@ -429,7 +425,7 @@ describe('CompoundWrite Tests', () => {
     for (let i = 0; i < completeChildren.length; i++) {
       actual[completeChildren[i].name] = completeChildren[i].node;
     }
-    expect(actual).to.deep.equal(expected);
+    expect(actual).toEqual(expected);
   });
 
   it('complete children return all children for root set', () => {
@@ -450,12 +446,13 @@ describe('CompoundWrite Tests', () => {
     for (let i = 0; i < completeChildren.length; i++) {
       actual[completeChildren[i].name] = completeChildren[i].node;
     }
-    expect(actual).to.deep.equal(expected);
+    expect(actual).toEqual(expected);
   });
 
   it('empty merge has no shadowing write', () => {
-    expect(compoundWriteHasCompleteWrite(CompoundWrite.empty(), newEmptyPath()))
-      .to.be.false;
+    expect(
+      compoundWriteHasCompleteWrite(CompoundWrite.empty(), newEmptyPath())
+    ).toBe(false);
   });
 
   it('compound write with empty root has shadowing write', () => {
@@ -464,10 +461,12 @@ describe('CompoundWrite Tests', () => {
       newEmptyPath(),
       EMPTY_NODE
     );
-    expect(compoundWriteHasCompleteWrite(compoundWrite, newEmptyPath())).to.be
-      .true;
-    expect(compoundWriteHasCompleteWrite(compoundWrite, new Path('child'))).to
-      .be.true;
+    expect(compoundWriteHasCompleteWrite(compoundWrite, newEmptyPath())).toBe(
+      true
+    );
+    expect(
+      compoundWriteHasCompleteWrite(compoundWrite, new Path('child'))
+    ).toBe(true);
   });
 
   it('compound write with  root has shadowing write', () => {
@@ -476,10 +475,12 @@ describe('CompoundWrite Tests', () => {
       newEmptyPath(),
       LEAF_NODE
     );
-    expect(compoundWriteHasCompleteWrite(compoundWrite, newEmptyPath())).to.be
-      .true;
-    expect(compoundWriteHasCompleteWrite(compoundWrite, new Path('child'))).to
-      .be.true;
+    expect(compoundWriteHasCompleteWrite(compoundWrite, newEmptyPath())).toBe(
+      true
+    );
+    expect(
+      compoundWriteHasCompleteWrite(compoundWrite, new Path('child'))
+    ).toBe(true);
   });
 
   it('compound write with deep update has shadowing write', () => {
@@ -488,13 +489,15 @@ describe('CompoundWrite Tests', () => {
       new Path('deep/update'),
       LEAF_NODE
     );
-    expect(compoundWriteHasCompleteWrite(compoundWrite, newEmptyPath())).to.be
-      .false;
-    expect(compoundWriteHasCompleteWrite(compoundWrite, new Path('deep'))).to.be
-      .false;
+    expect(compoundWriteHasCompleteWrite(compoundWrite, newEmptyPath())).toBe(
+      false
+    );
+    expect(compoundWriteHasCompleteWrite(compoundWrite, new Path('deep'))).toBe(
+      false
+    );
     expect(
       compoundWriteHasCompleteWrite(compoundWrite, new Path('deep/update'))
-    ).to.be.true;
+    ).toBe(true);
   });
 
   it('compound write with priority update has shadowing write', () => {
@@ -503,10 +506,12 @@ describe('CompoundWrite Tests', () => {
       new Path('.priority'),
       PRIO_NODE
     );
-    expect(compoundWriteHasCompleteWrite(compoundWrite, newEmptyPath())).to.be
-      .false;
-    expect(compoundWriteHasCompleteWrite(compoundWrite, new Path('.priority')))
-      .to.be.true;
+    expect(compoundWriteHasCompleteWrite(compoundWrite, newEmptyPath())).toBe(
+      false
+    );
+    expect(
+      compoundWriteHasCompleteWrite(compoundWrite, new Path('.priority'))
+    ).toBe(true);
   });
 
   it('updates can be removed', () => {
@@ -717,7 +722,7 @@ describe('CompoundWrite Tests', () => {
     let compoundWrite = CompoundWrite.empty();
     const path = new Path('child-1');
     compoundWrite = compoundWriteAddWrite(compoundWrite, path, LEAF_NODE);
-    expect(compoundWriteApply(compoundWrite, CHILDREN_NODE)).to.deep.equal(
+    expect(compoundWriteApply(compoundWrite, CHILDREN_NODE)).toEqual(
       CHILDREN_NODE.updateImmediateChild(pathGetFront(path), LEAF_NODE)
     );
   });
@@ -726,7 +731,7 @@ describe('CompoundWrite Tests', () => {
     let compoundWrite = CompoundWrite.empty();
     const path = new Path('child-1/foo');
     compoundWrite = compoundWriteAddWrite(compoundWrite, path, LEAF_NODE);
-    expect(compoundWriteApply(compoundWrite, CHILDREN_NODE)).to.deep.equal(
+    expect(compoundWriteApply(compoundWrite, CHILDREN_NODE)).toEqual(
       CHILDREN_NODE.updateChild(path, LEAF_NODE)
     );
   });
