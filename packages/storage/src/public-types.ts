@@ -410,10 +410,10 @@ export interface UploadTask {
    * @param onFulfilled - The fulfillment callback. Promise chaining works as normal.
    * @param onRejected - The rejection callback.
    */
-  then(
-    onFulfilled?: ((snapshot: UploadTaskSnapshot) => unknown) | null,
+  then<T = unknown>(
+    onFulfilled?: ((snapshot: UploadTaskSnapshot) => T) | null,
     onRejected?: ((error: StorageError) => unknown) | null
-  ): Promise<unknown>;
+  ): Promise<Awaited<T>>;
 }
 
 /**
