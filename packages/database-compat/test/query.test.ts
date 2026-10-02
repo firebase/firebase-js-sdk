@@ -3203,15 +3203,13 @@ describe('Query Tests', () => {
                 // 2. An in-view child has its value changed (c)
                 // 3. An in-view child is changed and bumped out-of-view (d)
                 // We expect to get null values for b and d, along with the new children and updated value for c
-                writer
-                  .child('foo')
-                  .update({
-                    b: null,
-                    c: 'a',
-                    cc: 'new',
-                    cd: 'new2',
-                    d: 'gone'
-                  });
+                writer.child('foo').update({
+                  b: null,
+                  c: 'a',
+                  cc: 'new',
+                  cd: 'new2',
+                  d: 'gone'
+                });
               } else {
                 done();
                 expect(val).toEqual({
