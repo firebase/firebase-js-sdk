@@ -26,6 +26,7 @@ export interface CrashlyticsOptions
 |  [customAttributes](./crashlytics_angular.crashlyticsoptions.md#crashlyticsoptionscustomattributes) | AnyValueMap | Base set of custom attributes to send with automatic error collection. Key-value pairs defined here will be sent with all error logs. If custom attributes are also specified in <code>recordError()</code>, those values will take precedence over the base set defined here. |
 |  [endpointUrl](./crashlytics_angular.crashlyticsoptions.md#crashlyticsoptionsendpointurl) | string | The URL for the endpoint to which Crashlytics data should be sent, in the OpenTelemetry format. By default, data will be sent to Firebase. |
 |  [region](./crashlytics_angular.crashlyticsoptions.md#crashlyticsoptionsregion) | string | The Google Cloud region where the Crashlytics data should be sent.<!-- -->By default, data will be sent to the "global" region.<!-- -->Refer to https://cloud.google.com/logging/docs/regions for the list of available regions. |
+|  [registerGlobalLoggerProvider](./crashlytics_angular.crashlyticsoptions.md#crashlyticsoptionsregistergloballoggerprovider) | boolean | Whether to register the underlying OpenTelemetry LoggerProvider globally with the OpenTelemetry API (<code>logs.setGlobalLoggerProvider()</code>).<!-- -->When enabled, other OpenTelemetry instrumentations (such as Core Web Vitals, Console, or Fetch) and custom application loggers can automatically route logs through Firebase Crashlytics.<!-- -->Defaults to <code>false</code>. |
 
 ## CrashlyticsOptions.appVersion
 
@@ -69,4 +70,18 @@ Refer to https://cloud.google.com/logging/docs/regions for the list of available
 
 ```typescript
 region?: string;
+```
+
+## CrashlyticsOptions.registerGlobalLoggerProvider
+
+Whether to register the underlying OpenTelemetry LoggerProvider globally with the OpenTelemetry API (`logs.setGlobalLoggerProvider()`<!-- -->).
+
+When enabled, other OpenTelemetry instrumentations (such as Core Web Vitals, Console, or Fetch) and custom application loggers can automatically route logs through Firebase Crashlytics.
+
+Defaults to `false`<!-- -->.
+
+<b>Signature:</b>
+
+```typescript
+registerGlobalLoggerProvider?: boolean;
 ```

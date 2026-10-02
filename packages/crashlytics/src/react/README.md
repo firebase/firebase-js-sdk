@@ -30,7 +30,7 @@ export default function App() {
 ```
 
 > [!NOTE]
-> If you have existing error boundary components in your application and would like to capture those errors in Crashlytics as well, make sure to follow the steps in [Programmatic Error Capturing](#programmatic-error-capturing) to add a call to `recordError`.
+> If you have existing error boundary components in your application and would like to capture those errors in Crashlytics as well, make sure to follow the steps in [Programmatic Error Capturing](../../docs/ADVANCED_USAGE.md#programmatic-error-capturing) to add a call to `recordError`.
 
 ---
 

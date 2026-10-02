@@ -16,7 +16,7 @@
  */
 
 import { expect } from 'chai';
-import { LoggerProvider } from '@opentelemetry/sdk-logs';
+import { LoggerProvider, SdkLogRecord } from '@opentelemetry/sdk-logs';
 import { Logger, LogRecord } from '@opentelemetry/api-logs';
 import { trace, TracerProvider } from '@opentelemetry/api';
 import sinon from 'sinon';
@@ -25,7 +25,8 @@ import {
   registerListeners,
   startNewSession,
   logVisibilityEvent,
-  generateUuid
+  generateUuid,
+  isTelemetryUrl
 } from './helpers';
 import { AUTO_CONSTANTS } from './auto-constants';
 import { CrashlyticsService } from './service';
@@ -36,6 +37,7 @@ import {
   SESSION_STORAGE_SESSION_ID_KEY
 } from './attributes-store';
 import { TelemetryStore } from './telemetry-store';
+import { FirebaseAttributesProcessor } from './logging/attributes-processor';
 
 describe('helpers', () => {
   let originalSessionStorage: Storage | undefined;
@@ -48,6 +50,11 @@ describe('helpers', () => {
     getLogger: (): Logger => {
       return {
         emit: (logRecord: LogRecord) => {
+          const processor = new FirebaseAttributesProcessor(
+            fakeAttributesStore,
+            'my-project'
+          );
+          processor.onEmit(logRecord as unknown as SdkLogRecord);
           emittedLogs.push(logRecord);
         },
         enabled: () => true
@@ -331,6 +338,49 @@ describe('helpers', () => {
       expect(emittedLogs).to.have.lengthOf(1);
       const log = emittedLogs[0];
       expect(log.body).to.equal('Foreground lifecycle event');
+    });
+  });
+
+  describe('isTelemetryUrl', () => {
+    it('should identify default firebasetelemetry endpoint URLs', () => {
+      expect(
+        isTelemetryUrl(
+          'https://firebasetelemetry.googleapis.com/v1/projects/p/apps/a/locations/l/logs'
+        )
+      ).to.be.true;
+    });
+
+    it('should identify custom endpoint URLs when provided', () => {
+      expect(
+        isTelemetryUrl(
+          'https://custom-proxy.internal.net/v1/projects/p/apps/a/locations/l/logs',
+          'https://custom-proxy.internal.net'
+        )
+      ).to.be.true;
+    });
+
+    it('should return false for unrelated URLs (e.g. Auth, Firestore, APIs)', () => {
+      expect(
+        isTelemetryUrl('https://identitytoolkit.googleapis.com/v1/accounts')
+      ).to.be.false;
+      expect(
+        isTelemetryUrl(
+          'https://firestore.googleapis.com/v1/projects/p/databases'
+        )
+      ).to.be.false;
+      expect(isTelemetryUrl('https://api.example.com/data')).to.be.false;
+      expect(
+        isTelemetryUrl(
+          'https://example.com/search?query=firebasetelemetry.googleapis.com'
+        )
+      ).to.be.false;
+    });
+
+    it('should handle undefined or non-string inputs safely', () => {
+      expect(isTelemetryUrl(undefined)).to.be.false;
+      expect(isTelemetryUrl(null)).to.be.false;
+      expect(isTelemetryUrl(12345)).to.be.false;
+      expect(isTelemetryUrl('')).to.be.false;
     });
   });
 });

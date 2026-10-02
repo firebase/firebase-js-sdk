@@ -17,6 +17,7 @@
 
 import {
   BatchLogRecordProcessor,
+  BatchLogRecordProcessorBrowserOptions,
   LogRecordExporter,
   SdkLogRecord
 } from '@opentelemetry/sdk-logs';
@@ -30,7 +31,10 @@ export class OnErrorLogRecordProcessor extends BatchLogRecordProcessor {
   private _store: TelemetryStore;
 
   constructor(exporter: LogRecordExporter, store: TelemetryStore) {
-    super({ exporter });
+    super({
+      exporter,
+      disableAutoFlushOnDocumentHide: true
+    } as BatchLogRecordProcessorBrowserOptions);
     this._store = store;
   }
 
