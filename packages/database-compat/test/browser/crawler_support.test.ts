@@ -73,30 +73,31 @@ describe('Crawler Support', () => {
     });
   }
 
-  it('set() is a no-op', () =>
-    new Promise<void>((resolve, reject) => {
-      const done = (err?: any) => (err ? reject(err) : resolve());
+  it('set() is a no-op', async () => {
+    let leafVal: any;
+    normalRef.child('leaf').on('value', s => {
+      leafVal = s.val();
+    });
 
-      normalRef.child('leaf').on('value', s => {
-        expect(s.val()).toBe(42);
-      });
-
-      restRef.child('leaf').set('hello');
+    try {
+      // set() is a no-op on ReadonlyRestClient and its returned promise
+      // never settles; do not await it.
+      void restRef.child('leaf').set('hello');
 
       // We need to wait long enough to be sure that our 'hello' didn't actually get set, but there's
       // no good way to do that.  So we just do a couple round-trips via the REST client and assume
       // that's good enough.
-      restRef.child('obj').once('value', s => {
-        expect(s.val()).toEqual(initialData.obj);
+      const s1 = await restRef.child('obj').once('value');
+      expect(s1.val()).toEqual(initialData.obj);
 
-        restRef.child('obj').once('value', s => {
-          expect(s.val()).toEqual(initialData.obj);
+      const s2 = await restRef.child('obj').once('value');
+      expect(s2.val()).toEqual(initialData.obj);
 
-          normalRef.child('leaf').off();
-          done();
-        });
-      });
-    }));
+      expect(leafVal).toBe(42);
+    } finally {
+      normalRef.child('leaf').off();
+    }
+  });
 
   it('set() is a no-op (Promise)', () => {
     // This test mostly exists to make sure restRef really is using ReadonlyRestClient

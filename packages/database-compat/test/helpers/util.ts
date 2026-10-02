@@ -28,7 +28,6 @@ import { Path } from '../../../database/src/core/util/Path';
 import { Query, Reference } from '../../src/api/Reference';
 export { TEST_PROJECT };
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
 const EMULATOR_PORT =
   typeof process !== 'undefined' ? process.env?.RTDB_EMULATOR_PORT : undefined;
 const EMULATOR_NAMESPACE =
