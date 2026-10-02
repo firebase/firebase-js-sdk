@@ -2809,7 +2809,9 @@ apiDescribe.skipClassic('Pipelines', persistence => {
               .literals({ name: 'Literal Inserted', age: 42 })
               .insert({ collection: targetColRef })
           )
-        ).to.be.rejectedWith(/PERMISSION_DENIED/);
+        ).to.be.rejectedWith(
+          /PERMISSION_DENIED|Missing or insufficient permissions/i
+        );
 
         // 2. Unioned literals without atomic: rejected by StageValidator (not pure literals)
         let caughtErr: Error | undefined;
