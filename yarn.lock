@@ -9012,9 +9012,9 @@ homedir-polyfill@^1.0.1:
     parse-passwd "^1.0.0"
 
 hono@^4.11.4:
-  version "4.13.5"
-  resolved "https://registry.npmjs.org/hono/-/hono-4.13.5.tgz#3df9463c4668a0321c39515309f5891e388e9709"
-  integrity sha512-O6+/eCYRkzzzy0rPWwKLiGBR1nFuUPZynnwjxN1MBA62NNqbT0wQEzQyK2gSO5yDIDB336sXQleAhOHrzlYyKw==
+  version "4.13.12"
+  resolved "https://registry.npmjs.org/hono/-/hono-4.13.12.tgz#457b70c1c04d915ff555ad71e6da1eadd1e16b3e"
+  integrity sha512-6E2QDAc9Ick9Sq77ZrGS/dk2WUYni91aufTw6LJKpV7w8kW5/GxVUc650FOADOmlwg3K+f7Pun6XlV+pYmW6gw==
 
 hosted-git-info@^2.1.4:
   version "2.8.9"
