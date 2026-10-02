@@ -22,10 +22,10 @@ export declare interface PipelineExecuteOptions
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [atomic](./firestore_pipelines.pipelineexecuteoptions.md#pipelineexecuteoptionsatomic) | boolean | Indicates that the pipeline will be executed atomically in a single RPC transaction on the server. |
-|  [indexMode](./firestore_pipelines.pipelineexecuteoptions.md#pipelineexecuteoptionsindexmode) | 'recommended' | Specify the index mode. |
-|  [pipeline](./firestore_pipelines.pipelineexecuteoptions.md#pipelineexecuteoptionspipeline) | [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class) | Pipeline to be evaluated. |
-|  [rawOptions](./firestore_pipelines.pipelineexecuteoptions.md#pipelineexecuteoptionsrawoptions) | { \[name: string\]: unknown; } | An escape hatch to set options not known at SDK build time. These values will be passed directly to the Firestore backend and not used by the SDK.<!-- -->The option name will be used as provided. And must match the name format used by the backend (hint: use a snake\_case\_name).<!-- -->Custom option values can be any type supported by Firestore (for example: string, boolean, number, map, …). Value types not known to the SDK will be rejected.<!-- -->Values specified in rawOptions will take precedence over any options with the same name set by the SDK. |
+|  [atomic](./firestore_lite_pipelines.pipelineexecuteoptions.md#pipelineexecuteoptionsatomic) | boolean | Indicates that the pipeline will be executed atomically in a single RPC transaction on the server. |
+|  [indexMode](./firestore_lite_pipelines.pipelineexecuteoptions.md#pipelineexecuteoptionsindexmode) | 'recommended' | Specify the index mode. |
+|  [pipeline](./firestore_lite_pipelines.pipelineexecuteoptions.md#pipelineexecuteoptionspipeline) | [Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class) | Pipeline to be evaluated. |
+|  [rawOptions](./firestore_lite_pipelines.pipelineexecuteoptions.md#pipelineexecuteoptionsrawoptions) | { \[name: string\]: unknown; } | An escape hatch to set options not known at SDK build time. These values will be passed directly to the Firestore backend and not used by the SDK.<!-- -->The option name will be used as provided. And must match the name format used by the backend (hint: use a snake\_case\_name).<!-- -->Custom option values can be any type supported by Firestore (for example: string, boolean, number, map, …). Value types not known to the SDK will be rejected.<!-- -->Values specified in rawOptions will take precedence over any options with the same name set by the SDK. |
 
 ## PipelineExecuteOptions.atomic
 
