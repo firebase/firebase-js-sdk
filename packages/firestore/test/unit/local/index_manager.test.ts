@@ -601,6 +601,183 @@ describe('IndexedDbIndexManager', async () => {
     await verifyResults(q, 'coll/val1');
   });
 
+  describe('document cursor ranges', () => {
+    it('preserves compound ordering after reordered equality segments', async () => {
+      await indexManager.addFieldIndex(
+        fieldIndex('coll', {
+          fields: [
+            ['group2', IndexKind.DESCENDING],
+            ['group1', IndexKind.ASCENDING],
+            ['value', IndexKind.ASCENDING],
+            ['other', IndexKind.DESCENDING]
+          ]
+        })
+      );
+      const docs = [
+        [2, 20],
+        [2, 10],
+        [2, 10],
+        [2, 10],
+        [2, 0],
+        [3, 0]
+      ];
+      await addDocs(
+        ...docs.map(([value, other], i) =>
+          doc(`coll/a${i}`, 1, { group1: 'a', group2: 'b', value, other })
+        )
+      );
+      const q = query(
+        'coll',
+        filter('group1', '==', 'a'),
+        filter('group2', '==', 'b'),
+        orderBy('value'),
+        orderBy('other', 'desc')
+      );
+      const cursor = bound([2, 10, ref('coll/a2')], false);
+      await verifyResults(
+        queryWithLimit(queryWithStartAt(q, cursor), 2, LimitType.First),
+        'coll/a1',
+        'coll/a4'
+      );
+      await verifyResults(queryWithEndAt(q, cursor), 'coll/a0', 'coll/a3');
+    });
+
+    for (const direction of ['asc', 'desc'] as const) {
+      it(`intersects ${direction} document cursors with not-in ranges`, async () => {
+        await indexManager.addFieldIndex(
+          fieldIndex('coll', {
+            fields: [
+              [
+                'value',
+                direction === 'asc' ? IndexKind.ASCENDING : IndexKind.DESCENDING
+              ]
+            ]
+          })
+        );
+        await addDocs(
+          ...[1, 2, 2, 2, 3, 4].map((value, i) =>
+            doc(`coll/a${i}`, 1, { value })
+          )
+        );
+        const q = query(
+          'coll',
+          filter('value', 'not-in', [3]),
+          orderBy('value', direction)
+        );
+        await verifyResults(
+          queryWithStartAt(q, bound([2, ref('coll/a2')], false)),
+          ...(direction === 'asc'
+            ? ['coll/a3', 'coll/a5']
+            : ['coll/a1', 'coll/a0'])
+        );
+        await verifyResults(
+          queryWithStartAt(q, bound([3, ref('coll/a4')], false)),
+          ...(direction === 'asc'
+            ? ['coll/a5']
+            : ['coll/a3', 'coll/a2', 'coll/a1', 'coll/a0'])
+        );
+      });
+    }
+
+    for (const operator of ['array-contains', 'array-contains-any'] as const) {
+      it(`preserves ${operator} values in document cursor ranges`, async () => {
+        await indexManager.addFieldIndex(
+          fieldIndex('coll', {
+            fields: [
+              ['tags', IndexKind.CONTAINS],
+              ['value', IndexKind.ASCENDING]
+            ]
+          })
+        );
+        await addDocs(
+          doc('coll/a1', 1, { tags: ['red'], value: 2 }),
+          doc('coll/a2', 1, { tags: ['red', 'blue'], value: 2 }),
+          doc('coll/a3', 1, { tags: ['blue'], value: 2 }),
+          doc('coll/a4', 1, { tags: ['red', 'blue'], value: 2 })
+        );
+        const q = queryWithStartAt(
+          query(
+            'coll',
+            filter(
+              'tags',
+              operator,
+              operator === 'array-contains' ? 'red' : ['red', 'blue']
+            ),
+            orderBy('value')
+          ),
+          bound([2, ref('coll/a2')], false)
+        );
+        const result = await indexManager.getDocumentsMatchingTarget(
+          queryToTarget(q)
+        );
+        expect(result!.map(key => key.toString())).to.have.members(
+          operator === 'array-contains' ? ['coll/a4'] : ['coll/a3', 'coll/a4']
+        );
+      });
+    }
+
+    for (const startInclusive of [false, true]) {
+      for (const endInclusive of [false, true]) {
+        it(`intersects equal cursor endpoints (${startInclusive}, ${endInclusive})`, async () => {
+          await setUpSingleValueFilter();
+          const q = queryWithEndAt(
+            queryWithStartAt(
+              query('coll', orderBy('count')),
+              bound([2, ref('coll/val2')], startInclusive)
+            ),
+            bound([2, ref('coll/val2')], endInclusive)
+          );
+          await verifyResults(
+            q,
+            ...(startInclusive && endInclusive ? ['coll/val2'] : [])
+          );
+        });
+      }
+    }
+
+    it('returns no candidates for reversed document cursor endpoints', async () => {
+      await setUpSingleValueFilter();
+      const q = queryWithEndAt(
+        queryWithStartAt(
+          query('coll', orderBy('count')),
+          bound([3, ref('coll/val3')], true)
+        ),
+        bound([1, ref('coll/val1')], true)
+      );
+      await verifyResults(q);
+    });
+
+    it('does not limit candidates before filtering an unsupported cursor', async () => {
+      await indexManager.addFieldIndex(
+        fieldIndex('coll', {
+          fields: [['value', IndexKind.ASCENDING]]
+        })
+      );
+      await addDocs(
+        ...[1, 2, 2, 2, 3].map((value, i) => doc(`coll/a${i}`, 1, { value }))
+      );
+      const q = queryWithStartAt(
+        queryWithLimit(
+          query('coll', orderBy('value'), orderBy('__name__', 'desc')),
+          1,
+          LimitType.First
+        ),
+        bound([2, ref('coll/a2')], false)
+      );
+      expect(await indexManager.getIndexType(queryToTarget(q))).to.equal(
+        IndexType.PARTIAL
+      );
+      await verifyResults(
+        q,
+        'coll/a0',
+        'coll/a1',
+        'coll/a2',
+        'coll/a3',
+        'coll/a4'
+      );
+    });
+  });
+
   it('applies range with bound filter', async () => {
     await setUpSingleValueFilter();
     const startAt = queryWithEndAt(
