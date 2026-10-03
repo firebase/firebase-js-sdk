@@ -1,6 +1,7 @@
 {
   "name": "@firebase/firestore-lite-pipelines",
   "description": "Pipelines for the lite Firestore SDK",
+  "license": "Apache-2.0",
   "main": "../../dist/lite/pipelines.node.cjs.js",
   "main-esm": "../../dist/lite/pipelines.node.mjs",
   "module": "../../dist/lite/pipelines.browser.esm.js",
