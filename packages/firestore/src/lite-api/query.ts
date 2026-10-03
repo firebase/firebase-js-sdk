@@ -239,7 +239,7 @@ export class QueryFieldFilterConstraint extends QueryConstraint {
 
 /**
  * Filter conditions in a {@link where} clause are specified using the
- * strings '&lt;', '&lt;=', '==', '!=', '&gt;=', '&gt;', 'array-contains', 'in',
+ * strings `<`, `<=`, `==`, `!=`, `>=`, `>`, `array-contains`, `in`,
  * 'array-contains-any', and 'not-in'.
  */
 export type WhereFilterOp =
@@ -260,8 +260,8 @@ export type WhereFilterOp =
  * relation constraint provided.
  *
  * @param fieldPath - The path to compare
- * @param opStr - The operation string (e.g "&lt;", "&lt;=", "==", "&lt;",
- *   "&lt;=", "!=").
+ * @param opStr - The operation string (e.g `"<"`, `"<="`, `"=="`, `">"`,
+ *   `">="`, `"!="`).
  * @param value - The value for comparison
  * @returns The created {@link QueryFieldFilterConstraint}.
  */
