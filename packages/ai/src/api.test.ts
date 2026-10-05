@@ -26,7 +26,7 @@ import {
 } from './api';
 import { AI } from './public-types';
 import { GenerativeModel } from './models/generative-model';
-import { GoogleAIBackend, EnterpriseBackend } from './backend';
+import { GoogleAIBackend, AgentPlatformBackend } from './backend';
 import { fakeAI, getFullApp } from '../test-utils/get-fake-firebase-services';
 import { AI_TYPE } from './constants';
 import { logger } from './logger';
@@ -44,25 +44,25 @@ describe('Top level API', () => {
     });
     it('works with options: backend specified, limited use token', () => {
       const ai = getAI(getFullApp(), {
-        backend: new EnterpriseBackend('global'),
+        backend: new AgentPlatformBackend('global'),
         useLimitedUseAppCheckTokens: true
       });
-      expect(ai.backend).to.be.instanceOf(EnterpriseBackend);
+      expect(ai.backend).to.be.instanceOf(AgentPlatformBackend);
       expect(ai.options?.useLimitedUseAppCheckTokens).to.be.true;
     });
     it('works with options: appCheck option is falsy', () => {
       const ai = getAI(getFullApp(), {
-        backend: new EnterpriseBackend('global'),
+        backend: new AgentPlatformBackend('global'),
         useLimitedUseAppCheckTokens: undefined
       });
-      expect(ai.backend).to.be.instanceOf(EnterpriseBackend);
+      expect(ai.backend).to.be.instanceOf(AgentPlatformBackend);
       expect(ai.options?.useLimitedUseAppCheckTokens).to.be.false;
     });
     it('works with options: backend specified only', () => {
       const ai = getAI(getFullApp(), {
-        backend: new EnterpriseBackend('global')
+        backend: new AgentPlatformBackend('global')
       });
-      expect(ai.backend).to.be.instanceOf(EnterpriseBackend);
+      expect(ai.backend).to.be.instanceOf(AgentPlatformBackend);
       expect(ai.options?.useLimitedUseAppCheckTokens).to.be.false;
     });
   });
