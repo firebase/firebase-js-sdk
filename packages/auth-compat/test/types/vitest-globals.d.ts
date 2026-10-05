@@ -16,3 +16,7 @@
  */
 
 import 'vitest/globals';
+
+declare global {
+  const context: typeof describe;
+}
