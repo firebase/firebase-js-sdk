@@ -606,7 +606,6 @@ describe('Firebase Storage > Upload Task', () => {
       bytesTransferred: 1048576,
       totalBytes: blobSize
     });
-    vi.useRealTimers();
   });
   it('properly times out if large blobs returns a 503 when uploading', async () => {
     vi.useFakeTimers();
@@ -630,7 +629,6 @@ describe('Firebase Storage > Upload Task', () => {
       bytesTransferred: 0,
       totalBytes: blobSize
     });
-    vi.useRealTimers();
   });
 
   /**
@@ -761,6 +759,5 @@ describe('Firebase Storage > Upload Task', () => {
       bytesTransferred: 0,
       totalBytes: blobSize
     });
-    vi.useRealTimers();
   });
 });

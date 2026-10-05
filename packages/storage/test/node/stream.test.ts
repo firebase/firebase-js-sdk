@@ -58,7 +58,7 @@ describe('Firebase Storage > getStream', () => {
   });
 
   it('can get stream', async () => {
-    const reference = ref(storage, 'public/exp-bytes');
+    const reference = ref(storage, 'public/node/exp-stream');
     await uploadBytes(reference, new Uint8Array([0, 1, 3, 128, 255]));
     const stream = getStream(reference);
     const data = await readData(stream);
@@ -66,7 +66,7 @@ describe('Firebase Storage > getStream', () => {
   });
 
   it('can get first n bytes of stream', async () => {
-    const reference = ref(storage, 'public/exp-bytes');
+    const reference = ref(storage, 'public/node/exp-stream');
     await uploadBytes(reference, new Uint8Array([0, 1, 3]));
     const stream = getStream(reference, 2);
     const data = await readData(stream);

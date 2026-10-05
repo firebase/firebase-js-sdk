@@ -79,7 +79,7 @@ describe('Firebase Storage > Blob', () => {
   });
 
   it('can get blob', async () => {
-    const reference = ref(storage, 'public/exp-bytes');
+    const reference = ref(storage, 'public/browser/exp-blob');
     await uploadBytes(reference, new Uint8Array([0, 1, 3, 128, 255]));
     const blob = await getBlob(reference);
     const bytes = await blob.arrayBuffer();
@@ -87,7 +87,7 @@ describe('Firebase Storage > Blob', () => {
   });
 
   it('can get the first n-bytes of a blob', async () => {
-    const reference = ref(storage, 'public/exp-bytes');
+    const reference = ref(storage, 'public/browser/exp-blob');
     await uploadBytes(reference, new Uint8Array([0, 1, 5]));
     const blob = await getBlob(reference, 2);
     const bytes = await blob.arrayBuffer();

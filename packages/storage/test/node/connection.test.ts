@@ -22,13 +22,9 @@ describe('Connections', () => {
   it('FetchConnection.send() should not reject on network errors', async () => {
     const connection = new FetchBytesConnection();
 
-    const fetchStub = vi
-      .spyOn(globalThis, 'fetch')
-      .mockRejectedValue(new Error('network error'));
+    vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('network error'));
     await connection.send('testurl', 'GET', false);
     expect(connection.getErrorCode()).toBe(ErrorCode.NETWORK_ERROR);
-
-    fetchStub.mockRestore();
   });
   it('FetchConnection.send() should send credentials on cloud workstations', async () => {
     const connection = new FetchBytesConnection();
@@ -48,6 +44,5 @@ describe('Connections', () => {
         credentials: 'include'
       })
     );
-    fetchStub.mockRestore();
   });
 });

@@ -51,9 +51,15 @@ export {
   createStorage
 };
 
-describe('FirebaseStorage Exp', () => {
+describe('FirebaseStorage Exp', { timeout: 20000, retry: 2 }, () => {
   let app: FirebaseApp;
   let storage: types.FirebaseStorage;
+  let projectPrefix: string;
+
+  // eslint-disable-next-line no-empty-pattern
+  beforeAll(({}, suite) => {
+    projectPrefix = suite.file.projectName?.split(' ')[0] ?? 'default'; // 'node' or 'browser'
+  });
 
   beforeEach(async () => {
     app = await createApp();
@@ -65,39 +71,44 @@ describe('FirebaseStorage Exp', () => {
   });
 
   it('can upload bytes', async () => {
-    const reference = ref(storage, 'public/exp-bytes');
+    const reference = ref(storage, `public/${projectPrefix}/exp-bytes`);
     const snap = await uploadBytes(reference, new Uint8Array([0, 1, 3]));
     expect(snap.metadata.timeCreated).toBeDefined();
   });
 
   it('can get bytes', async () => {
-    const reference = ref(storage, 'public/exp-bytes');
+    const reference = ref(storage, `public/${projectPrefix}/exp-bytes`);
     await uploadBytes(reference, new Uint8Array([0, 1, 3, 128, 255]));
     const bytes = await getBytes(reference);
     expect(new Uint8Array(bytes)).toEqual(new Uint8Array([0, 1, 3, 128, 255]));
   });
 
   it('can get first n bytes', async () => {
-    const reference = ref(storage, 'public/exp-bytes');
+    const reference = ref(storage, `public/${projectPrefix}/exp-bytes`);
     await uploadBytes(reference, new Uint8Array([0, 1, 3]));
     const bytes = await getBytes(reference, 2);
     expect(new Uint8Array(bytes)).toEqual(new Uint8Array([0, 1]));
   });
 
   it('getBytes() throws for missing file', async () => {
-    const reference = ref(storage, 'public/exp-bytes-missing');
+    const reference = ref(storage, `public/${projectPrefix}/exp-bytes-missing`);
     try {
       await getBytes(reference);
       expect.fail();
     } catch (e) {
       expect((e as Error)?.message).toMatch(
-        /Object 'public\/exp-bytes-missing' does not exist/
+        new RegExp(
+          `Object 'public/${projectPrefix}/exp-bytes-missing' does not exist`
+        )
       );
     }
   });
 
   it('can upload bytes (resumable)', async () => {
-    const reference = ref(storage, 'public/exp-bytesresumable');
+    const reference = ref(
+      storage,
+      `public/${projectPrefix}/exp-bytesresumable`
+    );
     const snap = await uploadBytesResumable(
       reference,
       new Uint8Array([0, 1, 3])
@@ -106,7 +117,7 @@ describe('FirebaseStorage Exp', () => {
   });
 
   it('can upload string', async () => {
-    const reference = ref(storage, 'public/exp-string');
+    const reference = ref(storage, `public/${projectPrefix}/exp-string`);
     const snap = await uploadString(reference, 'foo');
     expect(snap.metadata.timeCreated).toBeDefined();
   });
@@ -124,33 +135,38 @@ describe('FirebaseStorage Exp', () => {
   });
 
   it('can delete object ', async () => {
-    const reference = ref(storage, 'public/exp-delete');
+    const reference = ref(storage, `public/${projectPrefix}/exp-delete`);
     await uploadString(reference, 'foo');
     await getDownloadURL(reference);
     await deleteObject(reference);
     await expect(getDownloadURL(reference)).rejects.toThrow(
-      /Object 'public\/exp-delete' does not exist/
+      new RegExp(`Object 'public/${projectPrefix}/exp-delete' does not exist`)
     );
   });
 
   it('can get download URL', async () => {
-    const reference = ref(storage, 'public/exp-downloadurl');
+    const reference = ref(storage, `public/${projectPrefix}/exp-downloadurl`);
     await uploadBytes(reference, new Uint8Array([0, 1, 3]));
     const url = await getDownloadURL(reference);
     expect(url).toMatch(
-      /https:\/\/firebasestorage\.googleapis\.com\/v0\/b\/.*\/o\/public%2Fexp-downloadurl/
+      new RegExp(
+        `https://firebasestorage\\.googleapis\\.com/v0/b/.*/o/public%2F${projectPrefix}%2Fexp-downloadurl`
+      )
     );
   });
 
   it('can get metadata', async () => {
-    const reference = ref(storage, 'public/exp-getmetadata');
+    const reference = ref(storage, `public/${projectPrefix}/exp-getmetadata`);
     await uploadBytes(reference, new Uint8Array([0, 1, 3]));
     const metadata = await getMetadata(reference);
     expect(metadata.name).toBe('exp-getmetadata');
   });
 
   it('can update metadata', async () => {
-    const reference = ref(storage, 'public/exp-updatemetadata');
+    const reference = ref(
+      storage,
+      `public/${projectPrefix}/exp-updatemetadata`
+    );
     await uploadBytes(reference, new Uint8Array([0, 1, 3]));
     const metadata = await updateMetadata(reference, {
       customMetadata: { foo: 'bar' }
@@ -159,19 +175,21 @@ describe('FirebaseStorage Exp', () => {
   });
 
   it('can list files', async () => {
-    const referenceA = ref(storage, 'public/exp-list/a');
-    const referenceB = ref(storage, 'public/exp-list/b');
-    const referenceCD = ref(storage, 'public/exp-list/c/d');
+    const referenceA = ref(storage, `public/${projectPrefix}/exp-list/a`);
+    const referenceB = ref(storage, `public/${projectPrefix}/exp-list/b`);
+    const referenceCD = ref(storage, `public/${projectPrefix}/exp-list/c/d`);
     await uploadString(referenceA, '');
     await uploadString(referenceB, '');
     await uploadString(referenceCD, '');
-    const listResult = await listAll(ref(storage, 'public/exp-list'));
+    const listResult = await listAll(
+      ref(storage, `public/${projectPrefix}/exp-list`)
+    );
     expect(listResult.items.map(v => v.name).sort()).toEqual(['a', 'b']);
     expect(listResult.prefixes.map(v => v.name)).toEqual(['c']);
   });
 
   it('can pause uploads without an error', async () => {
-    const referenceA = ref(storage, 'public/exp-upload/a');
+    const referenceA = ref(storage, `public/${projectPrefix}/exp-upload/a`);
     const bytesToUpload = new ArrayBuffer(1024 * 1024);
     const task = uploadBytesResumable(referenceA, bytesToUpload);
     const failureDeferred = new Deferred();
@@ -196,5 +214,5 @@ describe('FirebaseStorage Exp', () => {
     await task;
     const bytes = await getBytes(referenceA);
     expect(bytes).toEqual(bytesToUpload);
-  }, 10_000);
+  });
 });

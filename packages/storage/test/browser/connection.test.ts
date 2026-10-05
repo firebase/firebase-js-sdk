@@ -20,20 +20,18 @@ import { XhrBytesConnection } from '../../src/platform/browser/connection';
 
 describe('Connections', () => {
   it('XhrConnection.send() should not reject on network errors', async () => {
-    const openStub = vi.spyOn(XMLHttpRequest.prototype, 'open');
-    const sendStub = vi.spyOn(XMLHttpRequest.prototype, 'send');
+    vi.spyOn(XMLHttpRequest.prototype, 'open').mockImplementation(() => {});
+    vi.spyOn(XMLHttpRequest.prototype, 'send').mockImplementation(() => {});
     const connection = new XhrBytesConnection();
     const sendPromise = connection.send('testurl', 'GET', false);
     // simulate a network error
     (connection as any).xhr_.dispatchEvent(new Event('error'));
     await sendPromise;
     expect(connection.getErrorCode()).toBe(ErrorCode.NETWORK_ERROR);
-    openStub.mockRestore();
-    sendStub.mockRestore();
   });
   it('XhrConnection.send() should send credentials when using cloud workstation', async () => {
-    const openStub = vi.spyOn(XMLHttpRequest.prototype, 'open');
-    const sendStub = vi.spyOn(XMLHttpRequest.prototype, 'send');
+    vi.spyOn(XMLHttpRequest.prototype, 'open').mockImplementation(() => {});
+    vi.spyOn(XMLHttpRequest.prototype, 'send').mockImplementation(() => {});
     const connection = new XhrBytesConnection();
     const sendPromise = connection.send(
       'https://abc.cloudworkstations.dev/test',
@@ -44,7 +42,5 @@ describe('Connections', () => {
     (connection as any).xhr_.dispatchEvent(new Event('error'));
     await sendPromise;
     expect((connection as any).xhr_.withCredentials).toBe(true);
-    openStub.mockRestore();
-    sendStub.mockRestore();
   });
 });

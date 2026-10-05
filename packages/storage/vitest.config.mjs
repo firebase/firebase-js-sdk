@@ -29,7 +29,6 @@ function generateAliasConfig(platform) {
 const config = createBaseConfig(import.meta.url);
 
 for (const project of config.test.projects) {
-  project.test.exclude = [...(project.test.exclude || []), 'test/integration/**'];
   project.resolve = {
     alias: generateAliasConfig(project.test.name)
   };
