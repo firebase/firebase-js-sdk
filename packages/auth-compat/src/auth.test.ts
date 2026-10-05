@@ -66,7 +66,6 @@ describe('auth compat', () => {
       });
 
       afterEach(() => {
-        vi.restoreAllMocks();
         sessionStorage.clear();
       });
 

@@ -45,10 +45,6 @@ describe.skipIf(typeof window === 'undefined')(
       );
     });
 
-    afterEach(() => {
-      vi.restoreAllMocks();
-    });
-
     describe('initialization and resolver selection', () => {
       let browserResolver: exp.PopupRedirectResolverInternal;
       let cordovaResolver: exp.PopupRedirectResolverInternal;
