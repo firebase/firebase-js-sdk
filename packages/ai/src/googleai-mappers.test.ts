@@ -212,7 +212,7 @@ describe('Google AI Mappers', () => {
   });
 
   describe('mapCountTokensRequest', () => {
-    it('should map an Agent Platform AI CountTokensRequest to Google AI format', () => {
+    it('should map an Agent Platform CountTokensRequest to Google AI format', () => {
       const agentPlatformRequest: CountTokensRequest = {
         contents: fakeContents,
         systemInstruction: {
@@ -235,11 +235,14 @@ describe('Google AI Mappers', () => {
         }
       };
 
-      const mappedRequest = mapCountTokensRequest(agentPlatformRequest, fakeModel);
+      const mappedRequest = mapCountTokensRequest(
+        agentPlatformRequest,
+        fakeModel
+      );
       expect(mappedRequest).to.deep.equal(expectedGoogleAIRequest);
     });
 
-    it('should map a minimal AgentPlatform AI CountTokensRequest', () => {
+    it('should map a minimal Agent Platform CountTokensRequest', () => {
       const agentPlatformRequest: CountTokensRequest = {
         contents: fakeContents,
         systemInstruction: {
@@ -261,7 +264,10 @@ describe('Google AI Mappers', () => {
         }
       };
 
-      const mappedRequest = mapCountTokensRequest(agentPlatformRequest, fakeModel);
+      const mappedRequest = mapCountTokensRequest(
+        agentPlatformRequest,
+        fakeModel
+      );
       expect(mappedRequest).to.deep.equal(expectedGoogleAIRequest);
     });
   });
