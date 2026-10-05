@@ -195,7 +195,7 @@ The Firebase AI Web SDK.
 |  Type Alias | Description |
 |  --- | --- |
 |  [AIErrorCode](./ai.md#aierrorcode) | Standardized error codes that [AIError](./ai.aierror.md#aierror_class) can have. |
-|  [BackendType](./ai.md#backendtype) | Type alias representing valid backend types. It should be either <code>'AGENT_PLATFORM'</code> or <code>'GOOGLE_AI'</code> (<code>'VERTEX_AI'</code> is deprecated). |
+|  [BackendType](./ai.md#backendtype) | Type alias representing valid backend types. It should be either <code>'AGENT_PLATFORM'</code> or <code>'GOOGLE_AI'</code>. |
 |  [BlockReason](./ai.md#blockreason) | Reason that a prompt was blocked. |
 |  [FinishReason](./ai.md#finishreason) | Reason that a candidate finished. |
 |  [FunctionCallingMode](./ai.md#functioncallingmode) |  |
@@ -821,7 +821,7 @@ export type AIErrorCode = (typeof AIErrorCode)[keyof typeof AIErrorCode];
 
 ## BackendType
 
-Type alias representing valid backend types. It should be either `'AGENT_PLATFORM'` or `'GOOGLE_AI'` (`'VERTEX_AI'` is deprecated).
+Type alias representing valid backend types. It should be either `'AGENT_PLATFORM'` or `'GOOGLE_AI'`<!-- -->.
 
 <b>Signature:</b>
 

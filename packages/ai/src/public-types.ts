@@ -82,7 +82,7 @@ export const BackendType = {
 
 /**
  * Type alias representing valid backend types.
- * It should be either `'AGENT_PLATFORM'` or `'GOOGLE_AI'` (`'VERTEX_AI'` is deprecated).
+ * It should be either `'AGENT_PLATFORM'` or `'GOOGLE_AI'`.
  *
  * @public
  */
