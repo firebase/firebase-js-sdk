@@ -19,7 +19,6 @@ import * as sinon from 'sinon';
 import firebase from '@firebase/app-compat';
 /* eslint-disable-next-line import/no-extraneous-dependencies */
 import '@firebase/auth-compat';
-import { Provider } from '@firebase/component';
 import '../..';
 
 import * as exp from '@firebase/auth/internal';
@@ -29,19 +28,7 @@ import {
 } from '../../../auth/test/helpers/integration/settings';
 import { resetEmulator } from '../../../auth/test/helpers/integration/emulator_rest_helpers';
 
-// Heartbeat is fully tested in core auth impl
-export const FAKE_HEARTBEAT_CONTROLLER_PROVIDER = {
-  getImmediate(): undefined {
-    return undefined;
-  }
-} as unknown as Provider<'heartbeat'>;
-
-// App Check is fully tested in core auth impl
-export const FAKE_APP_CHECK_CONTROLLER_PROVIDER = {
-  getImmediate(): undefined {
-    return undefined;
-  }
-} as unknown as Provider<'app-check-internal'>;
+export * from './fake_providers';
 
 export function initializeTestInstance(): void {
   firebase.initializeApp(getAppConfig());

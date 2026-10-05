@@ -18,18 +18,15 @@
 import { FirebaseApp } from '@firebase/app-compat';
 import * as exp from '@firebase/auth/internal';
 import { Provider } from '@firebase/component';
-import { expect, use } from 'chai';
-import * as sinon from 'sinon';
-import sinonChai from 'sinon-chai';
 import { Auth } from './auth';
 import { CompatPopupRedirectResolver } from './popup_redirect';
 import * as platform from './platform';
+
+vi.mock('./platform', { spy: true });
 import {
   FAKE_APP_CHECK_CONTROLLER_PROVIDER,
   FAKE_HEARTBEAT_CONTROLLER_PROVIDER
-} from '../test/helpers/helpers';
-
-use(sinonChai);
+} from '../test/helpers/fake_providers';
 
 function delay(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -38,45 +35,56 @@ function delay(ms: number): Promise<void> {
 // For the most part, the auth methods just call straight through. Some parts
 // of the auth compat layer are more complicated: these tests cover those
 describe('auth compat', () => {
-  context('redirect persistence key storage', () => {
-    let underlyingAuth: exp.AuthImpl;
-    let app: FirebaseApp;
-    let providerStub: sinon.SinonStubbedInstance<Provider<'auth'>>;
+  describe.skipIf(typeof self === 'undefined')(
+    'redirect persistence key storage',
+    () => {
+      let underlyingAuth: exp.AuthImpl;
+      let app: FirebaseApp;
+      let providerStub: Provider<'auth'>;
 
-    beforeEach(() => {
-      app = { options: { apiKey: 'api-key' } } as FirebaseApp;
-      underlyingAuth = new exp.AuthImpl(
-        app,
-        FAKE_HEARTBEAT_CONTROLLER_PROVIDER,
-        FAKE_APP_CHECK_CONTROLLER_PROVIDER,
-        {
-          apiKey: 'api-key'
-        } as exp.ConfigInternal
-      );
-      sinon.stub(underlyingAuth, '_initializeWithPersistence');
+      beforeEach(() => {
+        app = { options: { apiKey: 'api-key' } } as FirebaseApp;
+        underlyingAuth = new exp.AuthImpl(
+          app,
+          FAKE_HEARTBEAT_CONTROLLER_PROVIDER,
+          FAKE_APP_CHECK_CONTROLLER_PROVIDER,
+          {
+            apiKey: 'api-key'
+          } as exp.ConfigInternal
+        );
+        vi.spyOn(
+          underlyingAuth,
+          '_initializeWithPersistence'
+        ).mockImplementation(() => Promise.resolve() as any);
 
-      providerStub = sinon.createStubInstance(Provider);
-    });
+        providerStub = {
+          isInitialized: vi.fn(),
+          initialize: vi.fn(),
+          getImmediate: vi.fn(),
+          get: vi.fn()
+        } as unknown as Provider<'auth'>;
+      });
 
-    afterEach(() => {
-      sinon.restore();
-    });
+      afterEach(() => {
+        vi.restoreAllMocks();
+        sessionStorage.clear();
+      });
 
-    it('saves the persistence into session storage if available', async () => {
-      if (typeof self !== 'undefined') {
+      it('saves the persistence into session storage if available', async () => {
         underlyingAuth._initializationPromise = Promise.resolve();
-        sinon.stub(underlyingAuth, '_getPersistenceType').returns('TEST');
-        sinon
-          .stub(underlyingAuth, '_initializationPromise')
-          .value(Promise.resolve());
-        sinon.stub(
+        vi.spyOn(underlyingAuth, '_getPersistenceType').mockReturnValue('TEST');
+        Object.defineProperty(underlyingAuth, '_initializationPromise', {
+          value: Promise.resolve(),
+          configurable: true
+        });
+        vi.spyOn(
           exp._getInstance<exp.PopupRedirectResolverInternal>(
             CompatPopupRedirectResolver
           ),
           '_openRedirect'
-        );
-        providerStub.isInitialized.returns(true);
-        providerStub.getImmediate.returns(underlyingAuth);
+        ).mockImplementation(async () => {});
+        (providerStub.isInitialized as any).mockReturnValue(true);
+        (providerStub.getImmediate as any).mockReturnValue(underlyingAuth);
         const authCompat = new Auth(
           app,
           providerStub as unknown as Provider<'auth'>
@@ -85,30 +93,29 @@ describe('auth compat', () => {
         await authCompat.signInWithRedirect(new exp.GoogleAuthProvider());
         expect(
           sessionStorage.getItem('firebase:persistence:api-key:undefined')
-        ).to.eq('TEST');
-      }
-    });
+        ).toBe('TEST');
+      });
 
-    it('does not save persistence if property throws DOMException', async () => {
-      if (typeof self !== 'undefined') {
-        sinon.stub(platform, '_getSelfWindow').returns({
+      it('does not save persistence if property throws DOMException', async () => {
+        vi.mocked(platform._getSelfWindow).mockReturnValue({
           get sessionStorage(): Storage {
             throw new DOMException('Nope!');
           }
         } as unknown as Window);
-        const setItemSpy = sinon.spy(sessionStorage, 'setItem');
-        sinon.stub(underlyingAuth, '_getPersistenceType').returns('TEST');
-        sinon
-          .stub(underlyingAuth, '_initializationPromise')
-          .value(Promise.resolve());
-        sinon.stub(
+        const setItemSpy = vi.spyOn(sessionStorage, 'setItem');
+        vi.spyOn(underlyingAuth, '_getPersistenceType').mockReturnValue('TEST');
+        Object.defineProperty(underlyingAuth, '_initializationPromise', {
+          value: Promise.resolve(),
+          configurable: true
+        });
+        vi.spyOn(
           exp._getInstance<exp.PopupRedirectResolverInternal>(
             CompatPopupRedirectResolver
           ),
           '_openRedirect'
-        );
-        providerStub.isInitialized.returns(true);
-        providerStub.getImmediate.returns(underlyingAuth);
+        ).mockImplementation(async () => {});
+        (providerStub.isInitialized as any).mockReturnValue(true);
+        (providerStub.getImmediate as any).mockReturnValue(underlyingAuth);
         const authCompat = new Auth(
           app,
           providerStub as unknown as Provider<'auth'>
@@ -116,24 +123,22 @@ describe('auth compat', () => {
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         await authCompat.signInWithRedirect(new exp.GoogleAuthProvider());
         await delay(50);
-        expect(setItemSpy).not.to.have.been.calledWith(
+        expect(setItemSpy).not.toHaveBeenCalledWith(
           'firebase:persistence:api-key:undefined',
           'TEST'
         );
-      }
-    });
+      });
 
-    it('pulls the persistence and sets as the main persistence if set', () => {
-      if (typeof self !== 'undefined') {
+      it('pulls the persistence and sets as the main persistence if set', () => {
         sessionStorage.setItem(
           'firebase:persistence:api-key:undefined',
           'none'
         );
-        providerStub.isInitialized.returns(false);
-        providerStub.initialize.returns(underlyingAuth);
+        (providerStub.isInitialized as any).mockReturnValue(false);
+        (providerStub.initialize as any).mockReturnValue(underlyingAuth);
         new Auth(app, providerStub as unknown as Provider<'auth'>);
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        expect(providerStub.initialize).to.have.been.calledWith({
+        expect(providerStub.initialize).toHaveBeenCalledWith({
           options: {
             popupRedirectResolver: CompatPopupRedirectResolver,
             persistence: [
@@ -144,12 +149,10 @@ describe('auth compat', () => {
             ]
           }
         });
-      }
-    });
+      });
 
-    it('does not die if sessionStorage errors', async () => {
-      if (typeof self !== 'undefined') {
-        sinon.stub(platform, '_getSelfWindow').returns({
+      it('does not die if sessionStorage errors', async () => {
+        vi.mocked(platform._getSelfWindow).mockReturnValue({
           get sessionStorage(): Storage {
             throw new DOMException('Nope!');
           }
@@ -158,12 +161,12 @@ describe('auth compat', () => {
           'firebase:persistence:api-key:undefined',
           'none'
         );
-        providerStub.isInitialized.returns(false);
-        providerStub.initialize.returns(underlyingAuth);
+        (providerStub.isInitialized as any).mockReturnValue(false);
+        (providerStub.initialize as any).mockReturnValue(underlyingAuth);
         new Auth(app, providerStub as unknown as Provider<'auth'>);
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         await delay(50);
-        expect(providerStub.initialize).to.have.been.calledWith({
+        expect(providerStub.initialize).toHaveBeenCalledWith({
           options: {
             popupRedirectResolver: CompatPopupRedirectResolver,
             persistence: [
@@ -174,7 +177,7 @@ describe('auth compat', () => {
             ]
           }
         });
-      }
-    });
-  });
+      });
+    }
+  );
 });
