@@ -71,7 +71,6 @@ describe('auth compat', () => {
       });
 
       it('saves the persistence into session storage if available', async () => {
-        underlyingAuth._initializationPromise = Promise.resolve();
         vi.spyOn(underlyingAuth, '_getPersistenceType').mockReturnValue('TEST');
         Object.defineProperty(underlyingAuth, '_initializationPromise', {
           value: Promise.resolve(),

@@ -141,7 +141,10 @@ function authInternalPlugin() {
   return {
     name: 'auth-internal-const-enums',
     transform(code, id) {
-      if (id.includes('auth') && id.includes('internal')) {
+      if (
+        /[/\\](?:@firebase[/\\]auth|packages[/\\]auth)[/\\]/.test(id) &&
+        /[/\\]internal(?:\/|\.|$|[/\\])/.test(id)
+      ) {
         return {
           code: code + `\nexport const AuthErrorCode = ${JSON.stringify(AuthErrorCode)};\nexport const AuthEventType = ${JSON.stringify(AuthEventType)};\n`,
           map: null
