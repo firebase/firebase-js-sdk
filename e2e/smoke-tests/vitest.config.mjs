@@ -15,9 +15,14 @@
  * limitations under the License.
  */
 
-const { execSync } = require('child_process');
-const fs = require('fs');
-const path = require('path');
+import { defineConfig } from 'vitest/config';
+import { playwright } from '@vitest/browser-playwright';
+import { execSync } from 'child_process';
+import fs from 'fs';
+import path from 'path';
+import { createRequire } from 'module';
+
+const require = createRequire(import.meta.url);
 
 function isChromiumInstalled() {
   try {
@@ -58,29 +63,31 @@ function isChromiumInstalled() {
   }
 }
 
-function ensurePlaywright() {
-  if (!isChromiumInstalled()) {
-    console.log(
-      '[ensure_playwright] Playwright Chromium / Headless Shell not found. Installing...'
-    );
-    try {
-      execSync('npx playwright install chromium chromium-headless-shell', {
-        stdio: 'inherit'
-      });
-    } catch (err) {
-      console.error(
-        '[ensure_playwright] Failed to install Playwright Chromium:',
-        err
-      );
-      process.exit(1);
-    }
-  }
+if (!isChromiumInstalled()) {
+  console.log(
+    '[smoke-tests] Playwright Chromium / Headless Shell not found. Installing...'
+  );
+  execSync('npx playwright install chromium chromium-headless-shell', {
+    stdio: 'inherit'
+  });
 }
 
-// Ensure binary exists on execution
-ensurePlaywright();
-
-module.exports = {
-  isChromiumInstalled,
-  ensurePlaywright
-};
+export default defineConfig({
+  test: {
+    globals: true,
+    fileParallelism: false,
+    testTimeout: 20000,
+    hookTimeout: 20000,
+    setupFiles: ['./tests/setup.ts'],
+    provide: {
+      APP_CHECK_DEBUG_TOKEN: process.env.APP_CHECK_DEBUG_TOKEN
+    },
+    browser: {
+      enabled: true,
+      provider: playwright(),
+      instances: [{ browser: 'chromium' }],
+      headless: true,
+      screenshotFailures: false
+    }
+  }
+});
