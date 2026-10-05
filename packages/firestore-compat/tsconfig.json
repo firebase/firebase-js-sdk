@@ -2,7 +2,13 @@
   "extends": "../../config/tsconfig.base.json",
   "compilerOptions": {
     "outDir": "dist",
-    "types": ["node", "trusted-types", "../../node_modules/vitest/globals"]
+    "types": [
+      "node",
+      "trusted-types"
+    ]
   },
-  "exclude": ["dist/**/*", "vitest.config.mjs"]
+  "exclude": [
+    "dist/**/*",
+    "vitest.config.mjs"
+  ]
 }

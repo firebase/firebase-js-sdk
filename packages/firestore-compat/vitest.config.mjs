@@ -28,6 +28,11 @@ config.test.projects = config.test.projects.map(project => {
       ...(isBrowser
         ? {
             'process.env': JSON.stringify({
+              ...(project.define?.['process.env']
+                ? typeof project.define['process.env'] === 'string'
+                  ? JSON.parse(project.define['process.env'])
+                  : project.define['process.env']
+                : {}),
               FIRESTORE_TARGET_BACKEND: process.env.FIRESTORE_TARGET_BACKEND,
               FIRESTORE_EMULATOR_PORT: process.env.FIRESTORE_EMULATOR_PORT,
               FIRESTORE_EMULATOR_PROJECT_ID:
