@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2025 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-
 import { EvaluateResult } from '../../../../src/core/expressions';
 import { field } from '../../../../src/lite-api/expressions';
 import { TRUE_VALUE } from '../../../../src/model/values';
@@ -25,13 +23,13 @@ import { evaluateToResult, evaluateToValue } from './utils';
 
 describe('Field expression', () => {
   it('can get field', () => {
-    expect(evaluateToValue(field('exists'), { exists: true })).to.deep.equal(
+    expect(evaluateToValue(field('exists'), { exists: true })).toEqual(
       TRUE_VALUE
     );
   });
 
   it('error if not found', () => {
-    expect(evaluateToResult(field('not-exists'))).to.deep.equal(
+    expect(evaluateToResult(field('not-exists'))).toEqual(
       EvaluateResult.newUnset()
     );
   });

@@ -354,6 +354,72 @@ describe('core/auth/initializeAuth', () => {
       expect(removeSpy).not.toHaveBeenCalled();
     });
 
+    it('Keeps current user if reload fails with quota exceeded error', async () => {
+      const stub = _getInstance<PersistenceInternal>(inMemoryPersistence);
+      vi.spyOn(stub, '_get').mockReturnValue(
+        Promise.resolve(testUser(oldAuth, 'uid').toJSON())
+      );
+      const removeSpy = vi
+        .spyOn(stub, '_remove')
+        .mockReturnValue(Promise.resolve());
+      reloadStub.mockReturnValue(
+        Promise.reject(
+          _createError(AuthErrorCode.QUOTA_EXCEEDED, {
+            appName: 'app'
+          })
+        )
+      );
+
+      const auth = await initAndWait(inMemoryPersistence);
+      expect(removeSpy).not.toHaveBeenCalled();
+      expect(auth.currentUser?.uid).toBe('uid');
+    });
+
+    it('Keeps current user if reload fails with HTTP 429 quota exceeded error', async () => {
+      const stub = _getInstance<PersistenceInternal>(inMemoryPersistence);
+      vi.spyOn(stub, '_get').mockReturnValue(
+        Promise.resolve(testUser(oldAuth, 'uid').toJSON())
+      );
+      const removeSpy = vi
+        .spyOn(stub, '_remove')
+        .mockReturnValue(Promise.resolve());
+      reloadStub.mockReturnValue(
+        Promise.reject(
+          _createError(
+            "quota-exceeded-for-quota-metric-'queries'-and-limit-'queries-per-minute-per-user'" as unknown as AuthErrorCode,
+            {
+              appName: 'app'
+            }
+          )
+        )
+      );
+
+      const auth = await initAndWait(inMemoryPersistence);
+      expect(removeSpy).not.toHaveBeenCalled();
+      expect(auth.currentUser?.uid).toBe('uid');
+    });
+
+    it('Keeps current user if reload fails with too many requests error', async () => {
+      const stub = _getInstance<PersistenceInternal>(inMemoryPersistence);
+      vi.spyOn(stub, '_get').mockReturnValue(
+        Promise.resolve(testUser(oldAuth, 'uid').toJSON())
+      );
+      const removeSpy = vi
+        .spyOn(stub, '_remove')
+        .mockReturnValue(Promise.resolve());
+      reloadStub.mockReturnValue(
+        Promise.reject(
+          _createError(AuthErrorCode.TOO_MANY_ATTEMPTS_TRY_LATER, {
+            appName: 'app'
+          })
+        )
+      );
+
+      const auth = await initAndWait(inMemoryPersistence);
+      expect(removeSpy).not.toHaveBeenCalled();
+      expect(auth.currentUser?.uid).toBe('uid');
+    });
+
     it('sets auth name and config', async () => {
       const auth = await initAndWait(inMemoryPersistence);
       expect(auth.name).toBe(FAKE_APP.name);

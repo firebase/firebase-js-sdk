@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2025 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import { constant, field } from '../../../../lite/pipelines/pipelines';
 import { newTestFirestore } from '../../../util/api_helpers';
@@ -37,7 +35,7 @@ describe('Unicode Tests', () => {
       .collection('/🐵')
       .sort(field('Ł').ascending());
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.have.ordered.members([
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([
       doc1,
       doc2,
       doc3
@@ -63,10 +61,7 @@ describe('Unicode Tests', () => {
       )
       .sort(field('str').ascending());
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.have.ordered.members([
-      doc2,
-      doc1
-    ]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([doc2, doc1]);
   });
 
   it('unicodeSurrogatesInArray', () => {
@@ -76,7 +71,7 @@ describe('Unicode Tests', () => {
 
     const pipeline = db.pipeline().database().sort(field('foo').ascending());
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.have.ordered.members([
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([
       doc3,
       doc2,
       doc1
@@ -90,7 +85,7 @@ describe('Unicode Tests', () => {
 
     const pipeline = db.pipeline().database().sort(field('map').ascending());
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.have.ordered.members([
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([
       doc1,
       doc3,
       doc2
@@ -104,7 +99,7 @@ describe('Unicode Tests', () => {
 
     const pipeline = db.pipeline().database().sort(field('map').ascending());
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.have.ordered.members([
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([
       doc1,
       doc3,
       doc2
