@@ -314,13 +314,13 @@ describe('SwController', () => {
       expect(fetchStub).toHaveBeenCalledTimes(1);
       const [url, init] = fetchStub.mock.calls[0];
       expect(url).toEqual(FIRELOG_ENDPOINT.concat('&key=', FCM_TRANSPORT_KEY));
-      expect(init).to.deep.include({ method: 'POST' });
+      expect(init).toEqual(expect.objectContaining({ method: 'POST' }));
       const body = JSON.parse((init as RequestInit).body as string) as {
         log_source: string;
         log_event: unknown[];
       };
       expect(body.log_source).toEqual(FCM_LOG_SOURCE.toString());
-      expect(body.log_event).to.have.length(1);
+      expect(body.log_event).toHaveLength(1);
     });
 
     it('does not POST to Firelog from onPush when BigQuery export is disabled', async () => {
