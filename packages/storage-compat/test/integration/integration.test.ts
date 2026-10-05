@@ -45,18 +45,24 @@ export async function withTestInstance(
 }
 
 describe('FirebaseStorage Compat', { timeout: 20000, retry: 2 }, () => {
-  const testRunId = Math.random().toString(36).substring(7);
+  let projectPrefix: string;
+  beforeAll(({ task }: any, suite: any) => {
+    const s = suite ?? task;
+    projectPrefix =
+      s?.file?.projectName?.split(' ')[0] ??
+      (typeof window !== 'undefined' ? 'browser' : 'node');
+  });
 
   it('can upload bytes', () => {
     return withTestInstance(async storage => {
-      const ref = storage.ref(`public/${testRunId}/bytes`);
+      const ref = storage.ref(`public/${projectPrefix}/bytes`);
       await ref.put(new Uint8Array([0, 1, 3]));
     });
   });
 
   it('can upload string', () => {
     return withTestInstance(async storage => {
-      const ref = storage.ref(`public/${testRunId}/string`);
+      const ref = storage.ref(`public/${projectPrefix}/string`);
       await ref.putString('foo');
     });
   });
@@ -78,7 +84,7 @@ describe('FirebaseStorage Compat', { timeout: 20000, retry: 2 }, () => {
 
   it('can delete object', () => {
     return withTestInstance(async storage => {
-      const ref = storage.ref(`public/${testRunId}/delete`);
+      const ref = storage.ref(`public/${projectPrefix}/delete`);
       await ref.putString('foo');
 
       // getDownloadURL() succeeds for an existing object
@@ -91,7 +97,7 @@ describe('FirebaseStorage Compat', { timeout: 20000, retry: 2 }, () => {
         expect.fail();
       } catch (e) {
         expect((e as Error).message).toMatch(
-          new RegExp(`Object 'public/${testRunId}/delete' does not exist`)
+          new RegExp(`Object 'public/${projectPrefix}/delete' does not exist`)
         );
       }
     });
@@ -99,12 +105,12 @@ describe('FirebaseStorage Compat', { timeout: 20000, retry: 2 }, () => {
 
   it('can get download URL', () => {
     return withTestInstance(async storage => {
-      const ref = storage.ref(`public/${testRunId}/downloadurl`);
+      const ref = storage.ref(`public/${projectPrefix}/downloadurl`);
       await ref.put(new Uint8Array([0, 1, 3]));
       const url = await ref.getDownloadURL();
       expect(url).toMatch(
         new RegExp(
-          `https://firebasestorage\\.googleapis\\.com/v0/b/.*/o/public%2F${testRunId}%2Fdownloadurl`
+          `https://firebasestorage\\.googleapis\\.com/v0/b/.*/o/public%2F${projectPrefix}%2Fdownloadurl`
         )
       );
     });
@@ -112,7 +118,7 @@ describe('FirebaseStorage Compat', { timeout: 20000, retry: 2 }, () => {
 
   it('can get metadata', () => {
     return withTestInstance(async storage => {
-      const ref = storage.ref(`public/${testRunId}/getmetadata`);
+      const ref = storage.ref(`public/${projectPrefix}/getmetadata`);
       await ref.put(new Uint8Array([0, 1, 3]));
       const metadata = await ref.getMetadata();
       expect(metadata.name).toBe('getmetadata');
@@ -121,7 +127,7 @@ describe('FirebaseStorage Compat', { timeout: 20000, retry: 2 }, () => {
 
   it('can update metadata', () => {
     return withTestInstance(async storage => {
-      const ref = storage.ref(`public/${testRunId}/updatemetadata`);
+      const ref = storage.ref(`public/${projectPrefix}/updatemetadata`);
       await ref.put(new Uint8Array([0, 1, 3]));
       const metadata = await ref.updateMetadata({
         customMetadata: { foo: 'bar' }
@@ -132,11 +138,11 @@ describe('FirebaseStorage Compat', { timeout: 20000, retry: 2 }, () => {
 
   it('can list files', () => {
     return withTestInstance(async storage => {
-      await storage.ref(`public/${testRunId}/list/a`).putString('');
-      await storage.ref(`public/${testRunId}/list/b`).putString('');
-      await storage.ref(`public/${testRunId}/list/c/d`).putString('');
+      await storage.ref(`public/${projectPrefix}/list/a`).putString('');
+      await storage.ref(`public/${projectPrefix}/list/b`).putString('');
+      await storage.ref(`public/${projectPrefix}/list/c/d`).putString('');
       const listResult = await storage
-        .ref(`public/${testRunId}/list`)
+        .ref(`public/${projectPrefix}/list`)
         .listAll();
       expect(listResult.items.map(v => v.name).sort()).toEqual(['a', 'b']);
       expect(listResult.prefixes.map(v => v.name)).toEqual(['c']);
