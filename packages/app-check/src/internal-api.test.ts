@@ -211,7 +211,9 @@ describe('internal api', () => {
       });
 
       const reCAPTCHASpy = stubGetRecaptchaToken('', false);
-      const exchangeTokenStub = vi.spyOn(client, 'exchangeToken');
+      const exchangeTokenStub = vi
+        .spyOn(client, 'exchangeToken')
+        .mockImplementation(vi.fn());
 
       const token = await getToken(appCheck as AppCheckService, false, true);
 
@@ -359,7 +361,9 @@ describe('internal api', () => {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
       });
 
-      const clientStub = vi.spyOn(client, 'exchangeToken');
+      const clientStub = vi
+        .spyOn(client, 'exchangeToken')
+        .mockImplementation(vi.fn());
 
       expect(getStateReference(app).token).toBe(undefined);
       expect(await getToken(appCheck as AppCheckService)).toEqual({
@@ -397,7 +401,9 @@ describe('internal api', () => {
         token: fakeRecaptchaAppCheckToken
       });
 
-      const clientStub = vi.spyOn(client, 'exchangeToken');
+      const clientStub = vi
+        .spyOn(client, 'exchangeToken')
+        .mockImplementation(vi.fn());
       expect(await getToken(appCheck as AppCheckService)).toEqual({
         token: fakeRecaptchaAppCheckToken.token
       });
@@ -547,7 +553,9 @@ describe('internal api', () => {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
       });
 
-      const clientStub = vi.spyOn(client, 'exchangeToken');
+      const clientStub = vi
+        .spyOn(client, 'exchangeToken')
+        .mockImplementation(vi.fn());
       expect(await getToken(appCheck as AppCheckService)).toEqual({
         token: fakeCachedAppCheckToken.token
       });
@@ -816,6 +824,7 @@ describe('internal api', () => {
     });
 
     it('starts proactively refreshing token after adding the first listener', async () => {
+      vi.useFakeTimers({ now: 0 });
       const listener = (): void => {};
       setInitialState(app, {
         ...getStateReference(app),
@@ -862,14 +871,14 @@ describe('internal api', () => {
         ListenerType.INTERNAL,
         listener
       );
-      await Promise.resolve();
-      await Promise.resolve();
+      await vi.runAllTimersAsync();
       expect(listener).toHaveBeenCalledWith({
         token: 'fake-memory-app-check-token'
       });
     });
 
     it('notifies the listener with the valid token in storage', async () => {
+      vi.useFakeTimers({ now: 0 });
       storageReadStub.mockResolvedValue({
         token: `fake-cached-app-check-token`,
         expireTimeMillis: Date.now() + 60000,
