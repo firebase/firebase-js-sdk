@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import { User } from '../../../src/auth/user';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
@@ -91,175 +89,197 @@ describe('LRU MemoryRemoteDocumentCache', () => {
   lruRemoteDocumentCacheTests(() => cache);
 });
 
-describe('IndexedDbRemoteDocumentCache', () => {
-  if (!IndexedDbPersistence.isAvailable()) {
-    console.warn('No IndexedDB. Skipping IndexedDbRemoteDocumentCache tests.');
-    return;
-  }
-
-  let cache: TestRemoteDocumentCache;
-  let persistence: IndexedDbPersistence;
-  beforeEach(async () => {
-    persistence = await persistenceHelpers.testIndexedDbPersistence({
-      synchronizeTabs: true
+describe.skipIf(!IndexedDbPersistence.isAvailable())(
+  'IndexedDbRemoteDocumentCache',
+  () => {
+    let cache: TestRemoteDocumentCache;
+    let persistence: IndexedDbPersistence;
+    beforeEach(async () => {
+      persistence = await persistenceHelpers.testIndexedDbPersistence({
+        synchronizeTabs: true
+      });
+      cache = new TestRemoteDocumentCache(persistence);
+      cache.setIndexManager(persistence.getIndexManager(User.UNAUTHENTICATED));
     });
-    cache = new TestRemoteDocumentCache(persistence);
-    cache.setIndexManager(persistence.getIndexManager(User.UNAUTHENTICATED));
-  });
 
-  afterEach(async () => {
-    await persistence.shutdown();
-    await persistenceHelpers.clearTestPersistence();
-  });
+    afterEach(async () => {
+      await persistence.shutdown();
+      await persistenceHelpers.clearTestPersistence();
+    });
 
-  it('can get next documents from collection group', async () => {
-    await cache.addEntries([
-      doc('a/1', 1, DOC_DATA),
-      doc('a/2', 2, DOC_DATA),
-      doc('b/1', 3, DOC_DATA)
-    ]);
+    it('can get next documents from collection group', async () => {
+      await cache.addEntries([
+        doc('a/1', 1, DOC_DATA),
+        doc('a/2', 2, DOC_DATA),
+        doc('b/1', 3, DOC_DATA)
+      ]);
 
-    const results = await cache.getAllFromCollectionGroup(
-      'a',
-      IndexOffset.min(),
-      Number.MAX_SAFE_INTEGER
-    );
-    assertMatches([doc('a/1', 1, DOC_DATA), doc('a/2', 2, DOC_DATA)], results);
-  });
+      const results = await cache.getAllFromCollectionGroup(
+        'a',
+        IndexOffset.min(),
+        Number.MAX_SAFE_INTEGER
+      );
+      assertMatches(
+        [doc('a/1', 1, DOC_DATA), doc('a/2', 2, DOC_DATA)],
+        results
+      );
+    });
 
-  it('can get next documents from collection group with limit', async () => {
-    await cache.addEntries([
-      doc('a/1', 1, DOC_DATA),
-      doc('b/2/a/2', 2, DOC_DATA),
-      doc('a/3', 3, DOC_DATA)
-    ]);
+    it('can get next documents from collection group with limit', async () => {
+      await cache.addEntries([
+        doc('a/1', 1, DOC_DATA),
+        doc('b/2/a/2', 2, DOC_DATA),
+        doc('a/3', 3, DOC_DATA)
+      ]);
 
-    const results = await cache.getAllFromCollectionGroup(
-      'a',
-      IndexOffset.min(),
-      2
-    );
-    assertMatches(
-      [doc('a/1', 1, DOC_DATA), doc('b/2/a/2', 2, DOC_DATA)],
-      results
-    );
-  });
+      const results = await cache.getAllFromCollectionGroup(
+        'a',
+        IndexOffset.min(),
+        2
+      );
+      assertMatches(
+        [doc('a/1', 1, DOC_DATA), doc('b/2/a/2', 2, DOC_DATA)],
+        results
+      );
+    });
 
-  it('can get next documents from collection group with read time offset', async () => {
-    await cache.addEntries([
-      doc('a/1', 1, DOC_DATA),
-      doc('a/2', 2, DOC_DATA),
-      doc('a/3', 3, DOC_DATA)
-    ]);
+    it('can get next documents from collection group with read time offset', async () => {
+      await cache.addEntries([
+        doc('a/1', 1, DOC_DATA),
+        doc('a/2', 2, DOC_DATA),
+        doc('a/3', 3, DOC_DATA)
+      ]);
 
-    const results = await cache.getAllFromCollectionGroup(
-      'a',
-      newIndexOffsetSuccessorFromReadTime(version(1), INITIAL_LARGEST_BATCH_ID),
-      2
-    );
-    assertMatches([doc('a/2', 2, DOC_DATA), doc('a/3', 3, DOC_DATA)], results);
-  });
+      const results = await cache.getAllFromCollectionGroup(
+        'a',
+        newIndexOffsetSuccessorFromReadTime(
+          version(1),
+          INITIAL_LARGEST_BATCH_ID
+        ),
+        2
+      );
+      assertMatches(
+        [doc('a/2', 2, DOC_DATA), doc('a/3', 3, DOC_DATA)],
+        results
+      );
+    });
 
-  it('can get next documents from collection group with document key offset', async () => {
-    await cache.addEntries([
-      doc('a/1', 1, DOC_DATA),
-      doc('a/2', 1, DOC_DATA),
-      doc('a/3', 1, DOC_DATA)
-    ]);
+    it('can get next documents from collection group with document key offset', async () => {
+      await cache.addEntries([
+        doc('a/1', 1, DOC_DATA),
+        doc('a/2', 1, DOC_DATA),
+        doc('a/3', 1, DOC_DATA)
+      ]);
 
-    const results = await cache.getAllFromCollectionGroup(
-      'a',
-      newIndexOffsetFromDocument(doc('a/1', 1, DOC_DATA)),
-      Number.MAX_SAFE_INTEGER
-    );
-    assertMatches([doc('a/2', 1, DOC_DATA), doc('a/3', 1, DOC_DATA)], results);
-  });
+      const results = await cache.getAllFromCollectionGroup(
+        'a',
+        newIndexOffsetFromDocument(doc('a/1', 1, DOC_DATA)),
+        Number.MAX_SAFE_INTEGER
+      );
+      assertMatches(
+        [doc('a/2', 1, DOC_DATA), doc('a/3', 1, DOC_DATA)],
+        results
+      );
+    });
 
-  it('can get next documents from non-existing collection group', async () => {
-    const results = await cache.getAllFromCollectionGroup(
-      'a',
-      IndexOffset.min(),
-      Number.MAX_SAFE_INTEGER
-    );
-    assertMatches([], results);
-  });
+    it('can get next documents from non-existing collection group', async () => {
+      const results = await cache.getAllFromCollectionGroup(
+        'a',
+        IndexOffset.min(),
+        Number.MAX_SAFE_INTEGER
+      );
+      assertMatches([], results);
+    });
 
-  it('can get next documents from collection group', async () => {
-    await cache.addEntries([
-      doc('a/1', 1, DOC_DATA),
-      doc('a/2', 2, DOC_DATA),
-      doc('b/1', 3, DOC_DATA)
-    ]);
+    it('can get next documents from collection group', async () => {
+      await cache.addEntries([
+        doc('a/1', 1, DOC_DATA),
+        doc('a/2', 2, DOC_DATA),
+        doc('b/1', 3, DOC_DATA)
+      ]);
 
-    const results = await cache.getAllFromCollectionGroup(
-      'a',
-      IndexOffset.min(),
-      Number.MAX_SAFE_INTEGER
-    );
-    assertMatches([doc('a/1', 1, DOC_DATA), doc('a/2', 2, DOC_DATA)], results);
-  });
+      const results = await cache.getAllFromCollectionGroup(
+        'a',
+        IndexOffset.min(),
+        Number.MAX_SAFE_INTEGER
+      );
+      assertMatches(
+        [doc('a/1', 1, DOC_DATA), doc('a/2', 2, DOC_DATA)],
+        results
+      );
+    });
 
-  it('can get next documents from collection group with limit', async () => {
-    await cache.addEntries([
-      doc('a/1', 1, DOC_DATA),
-      doc('b/2/a/2', 2, DOC_DATA),
-      doc('a/3', 3, DOC_DATA)
-    ]);
+    it('can get next documents from collection group with limit', async () => {
+      await cache.addEntries([
+        doc('a/1', 1, DOC_DATA),
+        doc('b/2/a/2', 2, DOC_DATA),
+        doc('a/3', 3, DOC_DATA)
+      ]);
 
-    const results = await cache.getAllFromCollectionGroup(
-      'a',
-      IndexOffset.min(),
-      2
-    );
-    assertMatches(
-      [doc('a/1', 1, DOC_DATA), doc('b/2/a/2', 2, DOC_DATA)],
-      results
-    );
-  });
+      const results = await cache.getAllFromCollectionGroup(
+        'a',
+        IndexOffset.min(),
+        2
+      );
+      assertMatches(
+        [doc('a/1', 1, DOC_DATA), doc('b/2/a/2', 2, DOC_DATA)],
+        results
+      );
+    });
 
-  it('can get next documents from collection group with read time offset', async () => {
-    await cache.addEntries([
-      doc('a/1', 1, DOC_DATA),
-      doc('a/2', 2, DOC_DATA),
-      doc('a/3', 3, DOC_DATA)
-    ]);
+    it('can get next documents from collection group with read time offset', async () => {
+      await cache.addEntries([
+        doc('a/1', 1, DOC_DATA),
+        doc('a/2', 2, DOC_DATA),
+        doc('a/3', 3, DOC_DATA)
+      ]);
 
-    const results = await cache.getAllFromCollectionGroup(
-      'a',
-      newIndexOffsetSuccessorFromReadTime(version(1), INITIAL_LARGEST_BATCH_ID),
-      2
-    );
-    assertMatches([doc('a/2', 2, DOC_DATA), doc('a/3', 3, DOC_DATA)], results);
-  });
+      const results = await cache.getAllFromCollectionGroup(
+        'a',
+        newIndexOffsetSuccessorFromReadTime(
+          version(1),
+          INITIAL_LARGEST_BATCH_ID
+        ),
+        2
+      );
+      assertMatches(
+        [doc('a/2', 2, DOC_DATA), doc('a/3', 3, DOC_DATA)],
+        results
+      );
+    });
 
-  it('can get next documents from collection group with document key offset', async () => {
-    await cache.addEntries([
-      doc('a/1', 1, DOC_DATA),
-      doc('a/2', 1, DOC_DATA),
-      doc('a/3', 1, DOC_DATA)
-    ]);
+    it('can get next documents from collection group with document key offset', async () => {
+      await cache.addEntries([
+        doc('a/1', 1, DOC_DATA),
+        doc('a/2', 1, DOC_DATA),
+        doc('a/3', 1, DOC_DATA)
+      ]);
 
-    const results = await cache.getAllFromCollectionGroup(
-      'a',
-      newIndexOffsetFromDocument(doc('a/1', 1, DOC_DATA)),
-      Number.MAX_SAFE_INTEGER
-    );
-    assertMatches([doc('a/2', 1, DOC_DATA), doc('a/3', 1, DOC_DATA)], results);
-  });
+      const results = await cache.getAllFromCollectionGroup(
+        'a',
+        newIndexOffsetFromDocument(doc('a/1', 1, DOC_DATA)),
+        Number.MAX_SAFE_INTEGER
+      );
+      assertMatches(
+        [doc('a/2', 1, DOC_DATA), doc('a/3', 1, DOC_DATA)],
+        results
+      );
+    });
 
-  it('can get next documents from non-existing collection group', async () => {
-    const results = await cache.getAllFromCollectionGroup(
-      'a',
-      IndexOffset.min(),
-      Number.MAX_SAFE_INTEGER
-    );
-    assertMatches([], results);
-  });
+    it('can get next documents from non-existing collection group', async () => {
+      const results = await cache.getAllFromCollectionGroup(
+        'a',
+        IndexOffset.min(),
+        Number.MAX_SAFE_INTEGER
+      );
+      assertMatches([], results);
+    });
 
-  genericRemoteDocumentCacheTests(async () => cache);
+    genericRemoteDocumentCacheTests(async () => cache);
 
-  lruRemoteDocumentCacheTests(async () => cache);
-});
+    lruRemoteDocumentCacheTests(async () => cache);
+  }
+);
 
 function eagerRemoteDocumentCacheTests(
   cachePromise: () => Promise<TestRemoteDocumentCache>
@@ -272,28 +292,28 @@ function eagerRemoteDocumentCacheTests(
 
   it("doesn't keep track of size", async () => {
     const initialSize = await cache.getSize();
-    expect(initialSize).to.equal(0);
+    expect(initialSize).toBe(0);
 
     const doc1 = doc('docs/foo', 1, { foo: false, bar: 4 });
     const doc2 = doc('docs/bar', 2, { bar: 'yes', baz: 'also yes' });
 
     await cache.addEntry(doc1);
     const doc1Size = await cache.getSize();
-    expect(doc1Size).to.equal(0);
+    expect(doc1Size).toBe(0);
 
     await cache.addEntry(doc2);
     const totalSize = await cache.getSize();
-    expect(totalSize).to.equal(0);
+    expect(totalSize).toBe(0);
 
     await cache.removeEntry(doc2.key);
 
     const currentSize = await cache.getSize();
-    expect(currentSize).to.equal(0);
+    expect(currentSize).toBe(0);
 
     await cache.removeEntry(doc1.key);
 
     const finalSize = await cache.getSize();
-    expect(finalSize).to.equal(0);
+    expect(finalSize).toBe(0);
   });
 }
 
@@ -308,7 +328,7 @@ function lruRemoteDocumentCacheTests(
 
   it('keeps track of size', async () => {
     const initialSize = await cache.getSize();
-    expect(initialSize).to.equal(0);
+    expect(initialSize).toBe(0);
 
     const doc1 = doc('docs/foo', 1, { foo: false, bar: 4 });
     const doc2 = doc('docs/bar', 2, { bar: 'yes', baz: 'also yes' });
@@ -317,21 +337,21 @@ function lruRemoteDocumentCacheTests(
 
     await cache.addEntry(doc1);
     const doc1Size = await cache.getSize();
-    expect(doc1Size).to.be.greaterThan(0);
+    expect(doc1Size).toBeGreaterThan(0);
 
     await cache.addEntry(doc2);
     const totalSize = await cache.getSize();
-    expect(totalSize).to.be.greaterThan(doc1Size);
+    expect(totalSize).toBeGreaterThan(doc1Size);
 
     await cache.removeEntry(doc2.key);
 
     const currentSize = await cache.getSize();
-    expect(currentSize).to.equal(doc1Size);
+    expect(currentSize).toBe(doc1Size);
 
     await cache.removeEntry(doc1.key);
 
     const finalSize = await cache.getSize();
-    expect(finalSize).to.equal(0);
+    expect(finalSize).toBe(0);
   });
 }
 
@@ -361,7 +381,7 @@ function genericRemoteDocumentCacheTests(
 
   it('returns an invalid document for documents not in cache', () => {
     return cache.getEntry(key(DOC_PATH)).then(doc => {
-      expect(doc.isValidDocument()).to.be.false;
+      expect(doc.isValidDocument()).toBe(false);
     });
   });
 
@@ -408,7 +428,7 @@ function genericRemoteDocumentCacheTests(
       .addEntries(docs)
       .then(() => cache.getEntries(documentKeySet(...keys.map(k => key(k)))))
       .then(read => {
-        expect(read.size).to.equal(keys.length);
+        expect(read.size).toBe(keys.length);
       });
   });
 
@@ -421,7 +441,7 @@ function genericRemoteDocumentCacheTests(
       .addEntries(keys.map(k => doc(k, VERSION, DOC_DATA)))
       .then(() => cache.getEntries(documentKeySet(...keys.map(k => key(k)))))
       .then(read => {
-        expect(read.size).to.equal(keys.length);
+        expect(read.size).toBe(keys.length);
       });
   });
 
@@ -439,7 +459,7 @@ function genericRemoteDocumentCacheTests(
       .then(read => {
         expectEqual(read.get(key1), docs[0]);
         expectEqual(read.get(key2), docs[1]);
-        expect(read.get(missingKey)?.isValidDocument()).to.be.false;
+        expect(read.get(missingKey)?.isValidDocument()).toBe(false);
       });
   });
 
@@ -453,7 +473,7 @@ function genericRemoteDocumentCacheTests(
         return cache.getEntry(key(DOC_PATH));
       })
       .then(read => {
-        expect(read.isValidDocument()).to.be.false;
+        expect(read.isValidDocument()).toBe(false);
       });
   });
 
@@ -570,7 +590,7 @@ function genericRemoteDocumentCacheTests(
     // This test verifies that the MemoryMutationCache returns copies of all
     // data to ensure that the documents in the cache cannot be modified.
     function verifyOldValue(d: Document): void {
-      expect(d.data.field(field('state'))).to.deep.equal(wrap('old'));
+      expect(d.data.field(field('state'))).toEqual(wrap('old'));
     }
 
     let document = doc('coll/doc', 1, { state: 'old' });
@@ -609,7 +629,7 @@ function genericRemoteDocumentCacheTests(
 }
 
 function assertMatches(expected: MutableDocument[], actual: DocumentMap): void {
-  expect(actual.size).to.equal(expected.length);
+  expect(actual.size).toBe(expected.length);
   actual.forEach((actualKey, actualDoc) => {
     const found = expected.find(expectedDoc => {
       if (actualKey.isEqual(expectedDoc.key)) {
@@ -619,6 +639,6 @@ function assertMatches(expected: MutableDocument[], actual: DocumentMap): void {
       return false;
     });
 
-    expect(found).to.exist;
+    expect(found).toBeDefined();
   });
 }
