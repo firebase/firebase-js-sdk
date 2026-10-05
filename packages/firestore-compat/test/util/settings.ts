@@ -1,3 +1,5 @@
+import PROJECT_CONFIG from '../../../../config/project.json';
+
 /**
  * @license
  * Copyright 2022 Google LLC
@@ -29,9 +31,6 @@ enum TargetBackend {
   NIGHTLY = 'nightly',
   PROD = 'prod'
 }
-
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const PROJECT_CONFIG = require('../../../../config/project.json');
 
 const TARGET_BACKEND: TargetBackend = getTargetBackend();
 
