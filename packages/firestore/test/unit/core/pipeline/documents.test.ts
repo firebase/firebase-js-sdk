@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2025 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-
 import { field } from '../../../../lite/pipelines/pipelines';
 import { doc as docRef } from '../../../../src';
 import { DOCUMENT_KEY_NAME } from '../../../../src/model/path';
@@ -28,7 +26,7 @@ const db = newTestFirestore();
 
 describe('documents stage', () => {
   it('emptyRequest_isRejected', () => {
-    expect(() => runPipeline(db.pipeline().documents([]), [])).to.throw();
+    expect(() => runPipeline(db.pipeline().documents([]), [])).toThrow();
   });
 
   it('duplicateKeys_isRejected', () => {
@@ -43,26 +41,27 @@ describe('documents stage', () => {
           ]),
         []
       )
-    ).to.throw();
+    ).toThrow();
   });
 
   it('emptyDatabase_returnsNoResults', () => {
-    expect(runPipeline(db.pipeline().documents([docRef(db, '/users/a')]), []))
-      .to.be.empty;
+    expect(
+      runPipeline(db.pipeline().documents([docRef(db, '/users/a')]), [])
+    ).toHaveLength(0);
   });
 
   it('singleDocument_returnsDocument', () => {
     const doc1 = doc('users/bob', 1000, { score: 90, rank: 1 });
     expect(
       runPipeline(db.pipeline().documents([docRef(db, '/users/bob')]), [doc1])
-    ).to.deep.equal([doc1]);
+    ).toEqual([doc1]);
   });
 
   it('singleMissingDocument_returnsNoResults', () => {
     const doc1 = doc('users/bob', 1000, { score: 90, rank: 1 });
     expect(
       runPipeline(db.pipeline().documents([docRef(db, '/users/alice')]), [doc1])
-    ).to.be.empty;
+    ).toHaveLength(0);
   });
 
   it('multipleDocuments_returnsDocuments', () => {
@@ -81,12 +80,10 @@ describe('documents stage', () => {
           ]),
         [doc1, doc2, doc3]
       )
-    ).to.deep.equal([doc2, doc1, doc3]);
+    ).toEqual([doc2, doc1, doc3]);
   });
 
-  it('hugeDocumentCount_returnsDocuments', function () {
-    this.timeout(10000); // Increase timeout for this test case to 10 seconds
-
+  it('hugeDocumentCount_returnsDocuments', () => {
     const size = 5000;
     const keys = [];
     const docs = [];
@@ -100,8 +97,8 @@ describe('documents stage', () => {
         db.pipeline().documents(keys).sort(field('v').ascending()),
         docs
       )
-    ).to.deep.equal(docs);
-  });
+    ).toEqual(docs);
+  }, 10000);
 
   it('partiallyMissingDocuments_returnsDocuments', () => {
     const doc1 = doc('users/bob', 1000, { score: 90, rank: 1 });
@@ -119,7 +116,7 @@ describe('documents stage', () => {
           ]),
         [doc1, doc2, doc3]
       )
-    ).to.deep.equal([doc1, doc3]);
+    ).toEqual([doc1, doc3]);
   });
 
   it('multipleCollections_returnsDocuments', () => {
@@ -139,7 +136,7 @@ describe('documents stage', () => {
           .sort(field(DOCUMENT_KEY_NAME).ascending()),
         [doc1, doc2, doc3]
       )
-    ).to.deep.equal([doc3, doc2, doc1]);
+    ).toEqual([doc3, doc2, doc1]);
   });
 
   it('sort_onPath_ascending', () => {
@@ -156,7 +153,7 @@ describe('documents stage', () => {
       ])
       .sort(field(DOCUMENT_KEY_NAME).ascending());
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.have.ordered.members([
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([
       doc2,
       doc1,
       doc3
@@ -177,7 +174,7 @@ describe('documents stage', () => {
       ])
       .sort(field(DOCUMENT_KEY_NAME).descending());
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.have.ordered.members([
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([
       doc3,
       doc1,
       doc2
@@ -198,7 +195,7 @@ describe('documents stage', () => {
       ])
       .sort(field(DOCUMENT_KEY_NAME).ascending());
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.have.ordered.members([
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([
       doc2,
       doc1,
       doc3
@@ -219,7 +216,7 @@ describe('documents stage', () => {
       ])
       .sort(field(DOCUMENT_KEY_NAME).descending());
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.have.ordered.members([
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([
       doc3,
       doc1,
       doc2
@@ -241,9 +238,6 @@ describe('documents stage', () => {
       .sort(field(DOCUMENT_KEY_NAME).ascending())
       .limit(2);
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.have.ordered.members([
-      doc2,
-      doc1
-    ]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([doc2, doc1]);
   });
 });
