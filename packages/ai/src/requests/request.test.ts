@@ -256,7 +256,7 @@ describe('request methods', () => {
       const headers = await getHeaders(fakeUrl);
       expect(headers.get('X-Firebase-AppCheck')).toBe('dummytoken');
       expect(warnStub).toHaveBeenCalledWith(
-        expect.stringMatching(/vertexai/),
+        expect.stringMatching(/ai/),
         expect.stringMatching(/App Check.*oops/)
       );
       warnStub.mockRestore();
