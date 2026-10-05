@@ -33,7 +33,7 @@ const buildPlugins = [
   typescriptPlugin({
     typescript,
     tsconfigOverride: {
-      exclude: [...tsconfig.exclude, '**/*.test.ts', 'testing/**']
+      exclude: [...tsconfig.exclude, '**/*.test.ts', 'test/**']
     }
   }),
   json({ preferConst: true })

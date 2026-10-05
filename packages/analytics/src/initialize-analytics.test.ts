@@ -20,13 +20,13 @@ import { _initializeAnalytics } from './initialize-analytics';
 import {
   getFakeApp,
   getFakeInstallations
-} from '../testing/get-fake-firebase-services';
+} from '../test/get-fake-firebase-services';
 import { GtagCommand } from './constants';
 import { DynamicConfig } from './types';
 import { FirebaseApp } from '@firebase/app';
 import { Deferred } from '@firebase/util';
 import { _FirebaseInstallationsInternal } from '@firebase/installations';
-import { removeGtagScripts } from '../testing/gtag-script-util';
+import { removeGtagScripts } from '../test/gtag-script-util';
 import { setDefaultEventParameters } from './api';
 import {
   defaultConsentSettingsForInit,

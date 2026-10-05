@@ -20,11 +20,11 @@ import { settings } from './index';
 import {
   getFakeApp,
   getFakeInstallations
-} from '../testing/get-fake-firebase-services';
+} from '../test/get-fake-firebase-services';
 import { FirebaseApp } from '@firebase/app';
 import { GtagCommand } from './constants';
 import { findGtagScriptOnPage } from './helpers';
-import { removeGtagScripts } from '../testing/gtag-script-util';
+import { removeGtagScripts } from '../test/gtag-script-util';
 import { Deferred } from '@firebase/util';
 import { AnalyticsError } from './errors';
 import { logEvent } from './api';
@@ -90,7 +90,6 @@ describe('FirebaseAnalytics instance tests', () => {
       // Since this is a warning and doesn't block the rest of initialization
       // all the async stuff needs to be stubbed and cleaned up.
       const warnStub = vi.spyOn(console, 'warn').mockImplementation(() => {});
-      const docStub = vi.spyOn(document, 'createElement');
       stubFetch(200, { measurementId: fakeMeasurementId });
       const app = getFakeApp({
         appId: fakeAppParams.appId,
@@ -105,10 +104,6 @@ describe('FirebaseAnalytics instance tests', () => {
       expect(warnStub.mock.calls[0][1]).toContain(
         `Falling back to the measurement ID ${fakeMeasurementId}`
       );
-      warnStub.mockRestore();
-      docStub.mockRestore();
-      fetchStub.mockRestore();
-      idbOpenStub.mockRestore();
       delete window['gtag'];
       delete window['dataLayer'];
       removeGtagScripts();
@@ -146,9 +141,6 @@ describe('FirebaseAnalytics instance tests', () => {
       delete window['gtag'];
       delete window['dataLayer'];
       removeGtagScripts();
-      fetchStub.mockRestore();
-      idbOpenStub.mockRestore();
-      vi.useRealTimers();
     });
     it('Contains reference to parent app', () => {
       expect(analyticsInstance.app).toBe(app);
@@ -203,7 +195,6 @@ describe('FirebaseAnalytics instance tests', () => {
       delete window['gtag'];
       delete window['dataLayer'];
       removeGtagScripts();
-      gtagStub.mockClear();
     });
     it('Warns on initialization if cookies not available', async () => {
       vi.spyOn(navigator, 'cookieEnabled', 'get').mockReturnValue(false);
@@ -231,34 +222,25 @@ describe('FirebaseAnalytics instance tests', () => {
       window.chrome = undefined;
     });
     it('Warns on logEvent if indexedDB API not available', async () => {
-      idbOpenStub.mockRestore();
-      const idbStub = vi
-        .spyOn(window, 'indexedDB', 'get')
-        .mockReturnValue(undefined as any);
-      try {
-        analyticsInstance = analyticsFactory(app, fakeInstallations);
-        logEvent(analyticsInstance, 'add_payment_info', {
-          currency: 'USD'
-        });
-        // Clear promise chain started by logEvent.
-        await vi.runAllTimersAsync();
-        // gtag config call omits FID
-        expect(gtagStub).toHaveBeenCalledWith('config', 'abcd-efgh', {
-          update: true,
-          origin: 'firebase'
-        });
-        expect(warnStub).toHaveBeenCalled();
-        const warningMessage1 = warnStub.mock.calls[0][1];
-        expect(warningMessage1).toContain(AnalyticsError.INDEXEDDB_UNAVAILABLE);
-        expect(warningMessage1).toContain('IndexedDB is not available');
-      } finally {
-        idbStub.mockRestore();
-        stubIdbOpen();
-      }
+      vi.spyOn(window, 'indexedDB', 'get').mockReturnValue(undefined as any);
+      analyticsInstance = analyticsFactory(app, fakeInstallations);
+      logEvent(analyticsInstance, 'add_payment_info', {
+        currency: 'USD'
+      });
+      // Clear promise chain started by logEvent.
+      await vi.runAllTimersAsync();
+      // gtag config call omits FID
+      expect(gtagStub).toHaveBeenCalledWith('config', 'abcd-efgh', {
+        update: true,
+        origin: 'firebase'
+      });
+      expect(warnStub).toHaveBeenCalled();
+      const warningMessage1 = warnStub.mock.calls[0][1];
+      expect(warningMessage1).toContain(AnalyticsError.INDEXEDDB_UNAVAILABLE);
+      expect(warningMessage1).toContain('IndexedDB is not available');
     });
     it('Warns on logEvent if indexedDB.open() not allowed', async () => {
-      idbOpenStub.mockRestore();
-      idbOpenStub = vi.spyOn(indexedDB, 'open').mockImplementation(() => {
+      idbOpenStub.mockImplementation(() => {
         throw new Error('idb open error test');
       });
       analyticsInstance = analyticsFactory(app, fakeInstallations);

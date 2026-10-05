@@ -23,7 +23,7 @@ import {
   LONG_RETRY_FACTOR
 } from './get-config';
 import { DYNAMIC_CONFIG_URL } from './constants';
-import { getFakeApp } from '../testing/get-fake-firebase-services';
+import { getFakeApp } from '../test/get-fake-firebase-services';
 import { DynamicConfig, MinimalDynamicConfig } from './types';
 import { AnalyticsError } from './errors';
 
@@ -43,9 +43,6 @@ function stubFetch(status: number, body: { [key: string]: any }): void {
 }
 
 describe('Dynamic Config Fetch Functions', () => {
-  afterEach(() => {
-    vi.restoreAllMocks();
-  });
   describe('fetchDynamicConfig() - no retry', () => {
     it('successfully request and receives dynamic config JSON data', async () => {
       stubFetch(200, successObject);

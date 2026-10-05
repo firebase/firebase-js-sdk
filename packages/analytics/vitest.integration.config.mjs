@@ -27,7 +27,7 @@ if (config.test?.projects) {
       test: {
         ...project.test,
         name: 'integration',
-        include: ['testing/integration-tests/integration.ts']
+        include: ['test/integration-tests/integration.ts']
       }
     }));
 }

@@ -15,11 +15,7 @@
  * limitations under the License.
  */
 
-import {
-  getFakeApp,
-  getFakeInstallations,
-  getFullApp
-} from '../testing/get-fake-firebase-services';
+import { getFullApp } from '../test/get-fake-firebase-services';
 import {
   getAnalytics,
   initializeAnalytics,
@@ -30,13 +26,7 @@ import { FirebaseApp, deleteApp } from '@firebase/app';
 import { AnalyticsError } from './errors';
 const fakeAppParams = { appId: 'abcdefgh12345:23405', apiKey: 'AAbbCCdd12345' };
 
-import * as initAnalytics from './initialize-analytics';
-import * as helpers from './helpers';
-import { factory, resetGlobalVars } from './factory';
-
-vi.mock('./initialize-analytics', { spy: true });
-vi.mock('./helpers', { spy: true });
-
+import { _setWrappedGtagFunction, resetGlobalVars } from './factory';
 import {
   defaultConsentSettingsForInit,
   defaultEventParametersForInit
@@ -47,26 +37,8 @@ describe('FirebaseAnalytics API tests', () => {
   let app: FirebaseApp;
   const wrappedGtag = vi.fn();
 
-  function setMockWrappedGtag(fn: typeof wrappedGtag | undefined): void {
-    resetGlobalVars();
-    vi.spyOn(helpers, 'wrapOrCreateGtag').mockReturnValue({
-      wrappedGtag: fn as any,
-      gtagCore: vi.fn()
-    });
-    factory(getFakeApp(fakeAppParams), getFakeInstallations());
-    resetGlobalVars();
-  }
-
-  beforeEach(() => {
-    vi.spyOn(initAnalytics, '_initializeAnalytics').mockResolvedValue(
-      'FAKE_MEASUREMENT_ID'
-    );
-    setMockWrappedGtag(undefined);
-  });
-
   afterEach(async () => {
     resetGlobalVars();
-    wrappedGtag.mockReset();
     if (app) {
       await deleteApp(app);
       app = undefined as any;
@@ -129,9 +101,7 @@ describe('FirebaseAnalytics API tests', () => {
       'github_user': 'dwyfrequency',
       'company': 'google'
     };
-    setMockWrappedGtag(undefined);
-    app = getFullApp(fakeAppParams);
-    getAnalytics(app);
+    _setWrappedGtagFunction(undefined);
     setDefaultEventParameters(eventParametersForInit);
     expect(defaultEventParametersForInit).toEqual(eventParametersForInit);
   });
@@ -140,9 +110,7 @@ describe('FirebaseAnalytics API tests', () => {
       'github_user': 'dwyfrequency',
       'company': 'google'
     };
-    setMockWrappedGtag(wrappedGtag);
-    app = getFullApp(fakeAppParams);
-    getAnalytics(app);
+    _setWrappedGtagFunction(wrappedGtag);
     setDefaultEventParameters(eventParametersForInit);
     expect(wrappedGtag).toHaveBeenCalledWith('set', eventParametersForInit);
   });
@@ -151,9 +119,7 @@ describe('FirebaseAnalytics API tests', () => {
       'analytics_storage': 'granted',
       'functionality_storage': 'denied'
     };
-    setMockWrappedGtag(undefined);
-    app = getFullApp(fakeAppParams);
-    getAnalytics(app);
+    _setWrappedGtagFunction(undefined);
     setConsent(consentParametersForInit);
     expect(defaultConsentSettingsForInit).toEqual(consentParametersForInit);
   });
@@ -162,9 +128,7 @@ describe('FirebaseAnalytics API tests', () => {
       'analytics_storage': 'granted',
       'functionality_storage': 'denied'
     };
-    setMockWrappedGtag(wrappedGtag);
-    app = getFullApp(fakeAppParams);
-    getAnalytics(app);
+    _setWrappedGtagFunction(wrappedGtag);
     setConsent(consentParametersForInit);
     expect(wrappedGtag).toHaveBeenCalledWith(
       'consent',

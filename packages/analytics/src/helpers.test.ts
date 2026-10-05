@@ -29,7 +29,7 @@ import {
 import { GtagCommand, GTAG_URL } from './constants';
 import { Deferred } from '@firebase/util';
 import { ConsentSettings } from './public-types';
-import { removeGtagScripts } from '../testing/gtag-script-util';
+import { removeGtagScripts } from '../test/gtag-script-util';
 import { logger } from './logger';
 import { AnalyticsError, ERROR_FACTORY } from './errors';
 
@@ -66,7 +66,6 @@ describe('Trusted Types policies and functions', () => {
 
       afterEach(() => {
         removeGtagScripts();
-        ttStub.mockRestore();
       });
 
       it('Verify trustedTypes is called if the API is available', () => {
@@ -468,10 +467,6 @@ describe('Gtag wrapping functions', () => {
 
     beforeEach(() => {
       window['gtag'] = existingGtagStub;
-    });
-
-    afterEach(() => {
-      existingGtagStub.mockReset();
     });
 
     it('new window.gtag function waits for all initialization promises before sending group events', async () => {

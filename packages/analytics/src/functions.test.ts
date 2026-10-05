@@ -39,10 +39,6 @@ const fakeInitializationPromise = Promise.resolve(fakeMeasurementId);
 describe('FirebaseAnalytics methods', () => {
   const gtagStub: MockInstance = vi.fn();
 
-  afterEach(() => {
-    gtagStub.mockReset();
-  });
-
   it('logEvent() calls gtag function correctly', async () => {
     await logEvent(gtagStub, fakeInitializationPromise, 'add_to_cart', {
       currency: 'USD'
