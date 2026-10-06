@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2025 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-
 import { VectorValue } from '../../../src';
 
 describe('VectorValue', () => {
@@ -25,7 +23,7 @@ describe('VectorValue', () => {
     const vectorValue = new VectorValue(num);
     const json = vectorValue.toJSON();
     const parsedVectorValue = VectorValue.fromJSON(json);
-    expect(vectorValue.isEqual(parsedVectorValue)).to.be.true;
+    expect(vectorValue.isEqual(parsedVectorValue)).toBe(true);
   });
 
   it('fromJSON parameter order does not matter', () => {
@@ -34,12 +32,14 @@ describe('VectorValue', () => {
     const control = new VectorValue(vectorValues);
 
     expect(() => {
-      expect(VectorValue.fromJSON({ vectorValues, type }).isEqual(control)).to
-        .be.true;
+      expect(
+        VectorValue.fromJSON({ vectorValues, type }).isEqual(control)
+      ).toBe(true);
     }).to.not.throw;
     expect(() => {
-      expect(VectorValue.fromJSON({ type, vectorValues }).isEqual(control)).to
-        .be.true;
+      expect(
+        VectorValue.fromJSON({ type, vectorValues }).isEqual(control)
+      ).toBe(true);
     }).to.not.throw;
   });
 

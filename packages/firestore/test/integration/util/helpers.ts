@@ -17,8 +17,6 @@
  */
 
 import { isIndexedDBAvailable } from '@firebase/util';
-import { expect } from 'chai';
-
 import { describe } from '../../util/mocha_extensions';
 import { EventsAccumulator } from './events_accumulator';
 // Added import
@@ -635,14 +633,10 @@ export async function checkOnlineAndOfflineResultsMatch(
   // 4- This performs the query against the cache using remote keys.
   const docsFromCacheUsingRemoteKeys = await getDocsFromCache(query);
 
-  expect(toIds(docsFromServer)).to.deep.equal(
-    toIds(docsFromCacheFullCollectionScan)
-  );
-  expect(toIds(docsFromServer)).to.deep.equal(
-    toIds(docsFromCacheUsingRemoteKeys)
-  );
+  expect(toIds(docsFromServer)).toEqual(toIds(docsFromCacheFullCollectionScan));
+  expect(toIds(docsFromServer)).toEqual(toIds(docsFromCacheUsingRemoteKeys));
   if (expectedDocs.length !== 0) {
-    expect(expectedDocs).to.deep.equal(toIds(docsFromServer));
+    expect(expectedDocs).toEqual(toIds(docsFromServer));
   }
 }
 
@@ -684,9 +678,9 @@ export async function assertSDKQueryResultsConsistentWithBackend(
     unsubscribe();
   }
 
-  expect(watchSnapshots[0].metadata.fromCache).to.be.true;
+  expect(watchSnapshots[0].metadata.fromCache).toBe(true);
   verifySnapshot(watchSnapshots[0], allData, expectedDocIds);
-  expect(watchSnapshots[1].metadata.fromCache).to.be.false;
+  expect(watchSnapshots[1].metadata.fromCache).toBe(false);
   verifySnapshot(watchSnapshots[1], allData, expectedDocIds);
 }
 
@@ -705,18 +699,18 @@ function verifySnapshot(
   expect(
     expectedDocIds.length === snapshotDocIds.length,
     `Did not get the same document size. Expected doc size: ${expectedDocIds.length}, Actual doc size: ${snapshotDocIds.length} `
-  ).to.be.true;
+  ).toBe(true);
 
   expect(
     expectedDocIds.every((id, index) => id === snapshotDocIds[index]),
     `Did not get the expected document IDs. Expected doc IDs: ${expectedDocIds}, Actual doc IDs: ${snapshotDocIds} `
-  ).to.be.true;
+  ).toBe(true);
 
   const actualDocs = toDataMap(snapshot);
   for (const docId of expectedDocIds) {
     const expectedDoc = allData[docId];
     const actualDoc = actualDocs[docId];
-    expect(expectedDoc).to.deep.equal(actualDoc);
+    expect(expectedDoc).toEqual(actualDoc);
   }
 }
 

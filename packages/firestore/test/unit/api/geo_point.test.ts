@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-
 import { GeoPoint } from '../../../src/api/geo_point';
 import {
   expectCorrectComparisons,
@@ -29,9 +27,9 @@ describe('GeoPoint', () => {
     geoPoint: GeoPoint,
     value: [number, number]
   ): void {
-    expect(geoPoint.latitude).to.equal(value[0]);
-    expect(geoPoint.longitude).to.equal(value[1]);
-    expect(geoPoint.isEqual(new GeoPoint(value[0], value[1]))).to.equal(true);
+    expect(geoPoint.latitude).toBe(value[0]);
+    expect(geoPoint.longitude).toBe(value[1]);
+    expect(geoPoint.isEqual(new GeoPoint(value[0], value[1]))).toBe(true);
   }
 
   it('constructs values', () => {
@@ -54,7 +52,7 @@ describe('GeoPoint', () => {
     for (const latLong of invalidLats) {
       const reason =
         'Latitude must be a number between -90 and 90, but was: ' + latLong[0];
-      expect(() => new GeoPoint(latLong[0], latLong[1])).to.throw(reason);
+      expect(() => new GeoPoint(latLong[0], latLong[1])).toThrow(reason);
     }
 
     const invalidLongs: Array<[number, number]> = [
@@ -68,7 +66,7 @@ describe('GeoPoint', () => {
       const reason =
         'Longitude must be a number between -180 and 180, but was: ' +
         latLong[1];
-      expect(() => new GeoPoint(latLong[0], latLong[1])).to.throw(reason);
+      expect(() => new GeoPoint(latLong[0], latLong[1])).toThrow(reason);
     }
   });
 
@@ -103,17 +101,17 @@ describe('GeoPoint', () => {
   });
 
   it('serializes to JSON', () => {
-    expect(new GeoPoint(1, 2).toJSON()).to.deep.equal({
+    expect(new GeoPoint(1, 2).toJSON()).toEqual({
       latitude: 1,
       longitude: 2,
       'type': GeoPoint._jsonSchemaVersion
     });
-    expect(new GeoPoint(0, 0).toJSON()).to.deep.equal({
+    expect(new GeoPoint(0, 0).toJSON()).toEqual({
       latitude: 0,
       longitude: 0,
       'type': GeoPoint._jsonSchemaVersion
     });
-    expect(new GeoPoint(90, 180).toJSON()).to.deep.equal({
+    expect(new GeoPoint(90, 180).toJSON()).toEqual({
       latitude: 90,
       longitude: 180,
       'type': GeoPoint._jsonSchemaVersion
@@ -129,15 +127,15 @@ describe('GeoPoint', () => {
   it('fromJSON reconstructs seconds and nanoseconds', () => {
     const geoPoint = new GeoPoint(1, 2);
     const deserializedGeoPoint = GeoPoint.fromJSON(geoPoint.toJSON());
-    expect(deserializedGeoPoint).to.exist;
-    expect(geoPoint.latitude).to.equal(deserializedGeoPoint.latitude);
-    expect(geoPoint.longitude).to.equal(deserializedGeoPoint.longitude);
+    expect(deserializedGeoPoint).toBeDefined();
+    expect(geoPoint.latitude).toBe(deserializedGeoPoint.latitude);
+    expect(geoPoint.longitude).toBe(deserializedGeoPoint.longitude);
   });
 
   it('toJSON -> fromJSON timestamp comparison', () => {
     const geoPoint = new GeoPoint(1, 2);
     const deserializedGeoPoint = GeoPoint.fromJSON(geoPoint.toJSON());
-    expect(deserializedGeoPoint.isEqual(geoPoint)).to.be.true;
+    expect(deserializedGeoPoint.isEqual(geoPoint)).toBe(true);
   });
 
   it('fromJSON parameter order does not matter', () => {
@@ -146,20 +144,24 @@ describe('GeoPoint', () => {
     const longitude = 180;
     const control = new GeoPoint(90, 180);
     expect(() => {
-      expect(GeoPoint.fromJSON({ latitude, longitude, type }).isEqual(control))
-        .to.be.true;
+      expect(
+        GeoPoint.fromJSON({ latitude, longitude, type }).isEqual(control)
+      ).toBe(true);
     }).to.not.throw;
     expect(() => {
-      expect(GeoPoint.fromJSON({ longitude, type, latitude }).isEqual(control))
-        .to.be.true;
+      expect(
+        GeoPoint.fromJSON({ longitude, type, latitude }).isEqual(control)
+      ).toBe(true);
     }).to.not.throw;
     expect(() => {
-      expect(GeoPoint.fromJSON({ type, latitude, longitude }).isEqual(control))
-        .to.be.true;
+      expect(
+        GeoPoint.fromJSON({ type, latitude, longitude }).isEqual(control)
+      ).toBe(true);
     }).to.not.throw;
     expect(() => {
-      expect(GeoPoint.fromJSON({ latitude, type, longitude }).isEqual(control))
-        .to.be.true;
+      expect(
+        GeoPoint.fromJSON({ latitude, type, longitude }).isEqual(control)
+      ).toBe(true);
     }).to.not.throw;
   });
 

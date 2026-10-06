@@ -37,13 +37,13 @@ import {
 } from '../types';
 import { AIError } from '../errors';
 import { ApiSettings } from '../types/internal';
-import { EnterpriseBackend } from '../backend';
+import { AgentPlatformBackend } from '../backend';
 
 const fakeApiSettings: ApiSettings = {
   apiKey: 'key',
   project: 'my-project',
   appId: 'my-appid',
-  backend: new EnterpriseBackend()
+  backend: new AgentPlatformBackend()
 };
 
 describe('getResponseStream', () => {

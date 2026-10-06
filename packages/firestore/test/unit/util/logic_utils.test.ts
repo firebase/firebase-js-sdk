@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2022 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import {
   CompositeFilter,
@@ -64,19 +62,19 @@ describe('LogicUtils', () => {
 
   it('implements field filter associativity', () => {
     const f = filter('foo', '==', 'bar');
-    expect(f).to.equal(applyAssociation(f));
+    expect(f).toBe(applyAssociation(f));
   });
 
   it('implements composite filter associativity', () => {
     // AND(AND(X)) --> X
     const compositeFilter1 = andFilter(andFilter(A));
     const actualResult1 = applyAssociation(compositeFilter1);
-    expect(filterEquals(A, actualResult1)).to.be.true;
+    expect(filterEquals(A, actualResult1)).toBe(true);
 
     // OR(OR(X)) --> X
     const compositeFilter2 = orFilter(orFilter(A));
     const actualResult2 = applyAssociation(compositeFilter2);
-    expect(filterEquals(A, actualResult2)).to.be.true;
+    expect(filterEquals(A, actualResult2)).toBe(true);
 
     // (A | (B) | ((C) | (D | E)) | (F | (G & (H & I))) --> A | B | C | D | E | F | (G & H & I)
     const complexFilter = orFilter(
@@ -87,12 +85,12 @@ describe('LogicUtils', () => {
     );
     const expectedResult = orFilter(A, B, C, D, E, F, andFilter(G, H, I));
     const actualResult3 = applyAssociation(complexFilter);
-    expect(filterEquals(expectedResult, actualResult3)).to.be.true;
+    expect(filterEquals(expectedResult, actualResult3)).toBe(true);
   });
 
   it('implements field filter distribution over field filter', () => {
-    expect(filterEquals(applyDistribution(A, B), andFilter(A, B))).to.be.true;
-    expect(filterEquals(applyDistribution(B, A), andFilter(B, A))).to.be.true;
+    expect(filterEquals(applyDistribution(A, B), andFilter(A, B))).toBe(true);
+    expect(filterEquals(applyDistribution(B, A), andFilter(B, A))).toBe(true);
   });
 
   it('implements field filter distribution over and filter', () => {
@@ -101,7 +99,7 @@ describe('LogicUtils', () => {
         applyDistribution(andFilter(A, B, C), D),
         andFilter(A, B, C, D)
       )
-    ).to.be.true;
+    ).toBe(true);
   });
 
   it('implements field filter distribution over or filter', () => {
@@ -112,10 +110,12 @@ describe('LogicUtils', () => {
       andFilter(A, C),
       andFilter(A, D)
     );
-    expect(filterEquals(applyDistribution(A, orFilter(B, C, D)), expected)).to
-      .be.true;
-    expect(filterEquals(applyDistribution(orFilter(B, C, D), A), expected)).to
-      .be.true;
+    expect(
+      filterEquals(applyDistribution(A, orFilter(B, C, D)), expected)
+    ).toBe(true);
+    expect(
+      filterEquals(applyDistribution(orFilter(B, C, D), A), expected)
+    ).toBe(true);
   });
 
   it('implements in expansion for field filters', () => {
@@ -130,20 +130,20 @@ describe('LogicUtils', () => {
     const input9: FieldFilter = filter('a', 'array-contains-any', [1, 2]);
     const input10: FieldFilter = filter('a', 'not-in', [1, 2]);
 
-    expect(computeInExpansion(input1)).to.deep.equal(
+    expect(computeInExpansion(input1)).toEqual(
       orFilter(filter('a', '==', 1), filter('a', '==', 2), filter('a', '==', 3))
     );
 
     // Other operators should remain the same
-    expect(computeInExpansion(input2)).to.deep.equal(input2);
-    expect(computeInExpansion(input3)).to.deep.equal(input3);
-    expect(computeInExpansion(input4)).to.deep.equal(input4);
-    expect(computeInExpansion(input5)).to.deep.equal(input5);
-    expect(computeInExpansion(input6)).to.deep.equal(input6);
-    expect(computeInExpansion(input7)).to.deep.equal(input7);
-    expect(computeInExpansion(input8)).to.deep.equal(input8);
-    expect(computeInExpansion(input9)).to.deep.equal(input9);
-    expect(computeInExpansion(input10)).to.deep.equal(input10);
+    expect(computeInExpansion(input2)).toEqual(input2);
+    expect(computeInExpansion(input3)).toEqual(input3);
+    expect(computeInExpansion(input4)).toEqual(input4);
+    expect(computeInExpansion(input5)).toEqual(input5);
+    expect(computeInExpansion(input6)).toEqual(input6);
+    expect(computeInExpansion(input7)).toEqual(input7);
+    expect(computeInExpansion(input8)).toEqual(input8);
+    expect(computeInExpansion(input9)).toEqual(input9);
+    expect(computeInExpansion(input10)).toEqual(input10);
   });
 
   it('implements in expansion for composite filters', () => {
@@ -152,7 +152,7 @@ describe('LogicUtils', () => {
       filter('b', 'in', [2, 3, 4])
     );
 
-    expect(computeInExpansion(cf1)).to.deep.equal(
+    expect(computeInExpansion(cf1)).toEqual(
       andFilter(
         filter('a', '==', 1),
         orFilter(
@@ -168,7 +168,7 @@ describe('LogicUtils', () => {
       filter('b', 'in', [2, 3, 4])
     );
 
-    expect(computeInExpansion(cf2)).to.deep.equal(
+    expect(computeInExpansion(cf2)).toEqual(
       orFilter(
         filter('a', '==', 1),
         orFilter(
@@ -184,7 +184,7 @@ describe('LogicUtils', () => {
       orFilter(filter('b', '==', 2), filter('c', 'in', [2, 3, 4]))
     );
 
-    expect(computeInExpansion(cf3)).to.deep.equal(
+    expect(computeInExpansion(cf3)).toEqual(
       andFilter(
         filter('a', '==', 1),
         orFilter(
@@ -203,7 +203,7 @@ describe('LogicUtils', () => {
       andFilter(filter('b', '==', 2), filter('c', 'in', [2, 3, 4]))
     );
 
-    expect(computeInExpansion(cf4)).to.deep.equal(
+    expect(computeInExpansion(cf4)).toEqual(
       orFilter(
         filter('a', '==', 1),
         andFilter(
@@ -226,10 +226,12 @@ describe('LogicUtils', () => {
       andFilter(A, C),
       andFilter(A, D)
     );
-    expect(filterEquals(applyDistribution(A, orFilter(B, C, D)), expected)).to
-      .be.true;
-    expect(filterEquals(applyDistribution(orFilter(B, C, D), A), expected)).to
-      .be.true;
+    expect(
+      filterEquals(applyDistribution(A, orFilter(B, C, D)), expected)
+    ).toBe(true);
+    expect(
+      filterEquals(applyDistribution(orFilter(B, C, D), A), expected)
+    ).toBe(true);
   });
 
   // The following four tests cover:
@@ -246,7 +248,7 @@ describe('LogicUtils', () => {
         applyDistribution(andFilter(A, B), andFilter(C, D)),
         expectedResult
       )
-    ).to.be.true;
+    ).toBe(true);
   });
 
   it('implements and filter distribution with or filter', () => {
@@ -257,7 +259,7 @@ describe('LogicUtils', () => {
         applyDistribution(andFilter(A, B), orFilter(C, D)),
         expectedResult
       )
-    ).to.be.true;
+    ).toBe(true);
   });
 
   it('implements or filter distribution with and filter', () => {
@@ -268,7 +270,7 @@ describe('LogicUtils', () => {
         applyDistribution(orFilter(A, B), andFilter(C, D)),
         expectedResult
       )
-    ).to.be.true;
+    ).toBe(true);
   });
 
   it('implements or filter distribution with or filter', () => {
@@ -284,30 +286,30 @@ describe('LogicUtils', () => {
         applyDistribution(orFilter(A, B), orFilter(C, D)),
         expectedResult
       )
-    ).to.be.true;
+    ).toBe(true);
   });
 
   it('implements field filter compute DNF', () => {
-    expect(computeDistributedNormalForm(A)).to.deep.equal(A);
-    expect(getDnfTerms(andFilter(A))).to.deep.equal([A]);
-    expect(getDnfTerms(orFilter(A))).to.deep.equal([A]);
+    expect(computeDistributedNormalForm(A)).toEqual(A);
+    expect(getDnfTerms(andFilter(A))).toEqual([A]);
+    expect(getDnfTerms(orFilter(A))).toEqual([A]);
   });
 
   it('implements compute dnf flat AND filter', () => {
     const compositeFilter = andFilter(A, B, C);
-    expect(computeDistributedNormalForm(compositeFilter)).to.deep.equal(
+    expect(computeDistributedNormalForm(compositeFilter)).toEqual(
       compositeFilter
     );
-    expect(getDnfTerms(compositeFilter)).to.deep.equal([compositeFilter]);
+    expect(getDnfTerms(compositeFilter)).toEqual([compositeFilter]);
   });
 
   it('implements compute dnf flat OR filter', () => {
     const compositeFilter = orFilter(A, B, C);
-    expect(computeDistributedNormalForm(compositeFilter)).to.deep.equal(
+    expect(computeDistributedNormalForm(compositeFilter)).toEqual(
       compositeFilter
     );
     const expectedDnfTerms = [A, B, C];
-    expect(getDnfTerms(compositeFilter)).to.deep.equal(expectedDnfTerms);
+    expect(getDnfTerms(compositeFilter)).toEqual(expectedDnfTerms);
   });
 
   it('compute DNF1', () => {
@@ -316,28 +318,28 @@ describe('LogicUtils', () => {
     const expectedDnfTerms = [andFilter(A, B), andFilter(A, C)];
     const expectedResult = orFilter(...expectedDnfTerms);
     const actualResult = computeDistributedNormalForm(compositeFilter);
-    expect(actualResult).to.deep.equal(expectedResult);
-    expect(getDnfTerms(compositeFilter)).to.deep.equal(expectedDnfTerms);
+    expect(actualResult).toEqual(expectedResult);
+    expect(getDnfTerms(compositeFilter)).toEqual(expectedDnfTerms);
   });
 
   it('compute DNF2', () => {
     // ((A)) & (B & C) --> A & B & C
     const compositeFilter = andFilter(andFilter(andFilter(A)), andFilter(B, C));
     const expectedResult = andFilter(A, B, C);
-    expect(computeDistributedNormalForm(compositeFilter)).to.deep.equal(
+    expect(computeDistributedNormalForm(compositeFilter)).toEqual(
       expectedResult
     );
-    expect(getDnfTerms(compositeFilter)).to.deep.equal([expectedResult]);
+    expect(getDnfTerms(compositeFilter)).toEqual([expectedResult]);
   });
 
   it('compute DNF3', () => {
     // A | (B & C)
     const compositeFilter = orFilter(A, andFilter(B, C));
-    expect(computeDistributedNormalForm(compositeFilter)).to.deep.equal(
+    expect(computeDistributedNormalForm(compositeFilter)).toEqual(
       compositeFilter
     );
     const expectedDnfTerms = [A, andFilter(B, C)];
-    expect(getDnfTerms(compositeFilter)).to.deep.equal(expectedDnfTerms);
+    expect(getDnfTerms(compositeFilter)).toEqual(expectedDnfTerms);
   });
 
   it('compute DNF4', () => {
@@ -349,10 +351,10 @@ describe('LogicUtils', () => {
     );
     const expectedDnfTerms = [A, andFilter(B, C), D, E, F, andFilter(G, H)];
     const expectedResult = orFilter(...expectedDnfTerms);
-    expect(computeDistributedNormalForm(compositeFilter)).to.deep.equal(
+    expect(computeDistributedNormalForm(compositeFilter)).toEqual(
       expectedResult
     );
-    expect(getDnfTerms(compositeFilter)).to.deep.equal(expectedDnfTerms);
+    expect(getDnfTerms(compositeFilter)).toEqual(expectedDnfTerms);
   });
 
   it('compute DNF5', () => {
@@ -375,10 +377,10 @@ describe('LogicUtils', () => {
       andFilter(D, F, G, H, A, C)
     ];
     const expectedResult = orFilter(...expectedDnfTerms);
-    expect(computeDistributedNormalForm(compositeFilter)).to.deep.equal(
+    expect(computeDistributedNormalForm(compositeFilter)).toEqual(
       expectedResult
     );
-    expect(getDnfTerms(compositeFilter)).to.deep.equal(expectedDnfTerms);
+    expect(getDnfTerms(compositeFilter)).toEqual(expectedDnfTerms);
   });
 
   it('compute DNF6', () => {
@@ -395,10 +397,10 @@ describe('LogicUtils', () => {
       andFilter(E, F, C, A)
     ];
     const expectedResult = orFilter(...expectedDnfTerms);
-    expect(computeDistributedNormalForm(compositeFilter)).to.deep.equal(
+    expect(computeDistributedNormalForm(compositeFilter)).toEqual(
       expectedResult
     );
-    expect(getDnfTerms(compositeFilter)).to.deep.equal(expectedDnfTerms);
+    expect(getDnfTerms(compositeFilter)).toEqual(expectedDnfTerms);
   });
 
   it('compute DNF7', () => {
@@ -419,10 +421,10 @@ describe('LogicUtils', () => {
       andFilter(F, H)
     ];
     const expectedResult = orFilter(...expectedDnfTerms);
-    expect(computeDistributedNormalForm(compositeFilter)).to.deep.equal(
+    expect(computeDistributedNormalForm(compositeFilter)).toEqual(
       expectedResult
     );
-    expect(getDnfTerms(compositeFilter)).to.deep.equal(expectedDnfTerms);
+    expect(getDnfTerms(compositeFilter)).toEqual(expectedDnfTerms);
   });
 
   it('compute DNF8', () => {
@@ -439,9 +441,9 @@ describe('LogicUtils', () => {
       andFilter(G, H, C, D)
     ];
     const expectedResult = orFilter(...expectedDnfTerms);
-    expect(computeDistributedNormalForm(compositeFilter)).to.deep.equal(
+    expect(computeDistributedNormalForm(compositeFilter)).toEqual(
       expectedResult
     );
-    expect(getDnfTerms(compositeFilter)).to.deep.equal(expectedDnfTerms);
+    expect(getDnfTerms(compositeFilter)).toEqual(expectedDnfTerms);
   });
 });

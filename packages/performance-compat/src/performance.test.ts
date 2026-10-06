@@ -15,9 +15,6 @@
  * limitations under the License.
  */
 
-import '../test/setup';
-import { expect } from 'chai';
-import { stub } from 'sinon';
 import {
   getFakeApp,
   getFakeModularPerformance,
@@ -25,6 +22,8 @@ import {
 } from '../test/util';
 import * as perfModularApi from '@firebase/performance';
 import { PerformanceCompatImpl } from './performance';
+
+vi.mock('@firebase/performance', { spy: true });
 
 describe('Performance Compat', () => {
   let performanceCompat!: PerformanceCompatImpl;
@@ -42,23 +41,23 @@ describe('Performance Compat', () => {
     // Default value of the flag is true.
     performanceCompat.instrumentationEnabled = false;
 
-    expect(fakeModularPerformance.instrumentationEnabled).to.be.false;
+    expect(fakeModularPerformance.instrumentationEnabled).toBe(false);
   });
 
   it('sets data collection flag on the modular package', () => {
     // Default value of the flag is true.
     performanceCompat.dataCollectionEnabled = false;
 
-    expect(fakeModularPerformance.dataCollectionEnabled).to.be.false;
+    expect(fakeModularPerformance.dataCollectionEnabled).toBe(false);
   });
 
   it('calls modular trace api when trace is called on compat api', () => {
-    const modularTraceStub = stub(perfModularApi, 'trace').callsFake(() =>
-      getFakeModularPerformanceTrace()
-    );
+    const modularTraceSpy = vi
+      .spyOn(perfModularApi, 'trace')
+      .mockReturnValue(getFakeModularPerformanceTrace());
     performanceCompat.trace('test');
 
-    expect(modularTraceStub).to.have.been.calledWithExactly(
+    expect(modularTraceSpy).toHaveBeenCalledWith(
       fakeModularPerformance,
       'test'
     );
