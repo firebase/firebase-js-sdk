@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,21 @@
  * limitations under the License.
  */
 
-afterEach(() => {
-  vi.useRealTimers();
-  vi.resetAllMocks();
-  vi.restoreAllMocks();
-});
+import createBaseConfig from '../../config/vitest.base.mjs';
+
+const config = createBaseConfig(import.meta.url);
+
+if (config.test?.projects) {
+  config.test.projects = config.test.projects
+    .filter(project => project.test?.name === 'browser')
+    .map(project => ({
+      ...project,
+      test: {
+        ...project.test,
+        name: 'integration',
+        include: ['test/integration-tests/integration.ts']
+      }
+    }));
+}
+
+export default config;

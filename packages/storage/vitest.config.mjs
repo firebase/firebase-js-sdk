@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,18 +15,23 @@
  * limitations under the License.
  */
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const karmaBase = require('../../config/karma.base');
+import createBaseConfig from '../../config/vitest.base.mjs';
 
-const files = [`**/*.test.ts`];
+function generateAliasConfig(platform) {
+  return [
+    {
+      find: /^(.*)\/platform\/([^.\/]*)(\.ts)?$/,
+      replacement: `$1/platform/${platform}/$2.ts`
+    }
+  ];
+}
 
-module.exports = function (config) {
-  config.set({
-    ...karmaBase,
-    files,
-    preprocessors: { '**/*.ts': ['webpack', 'sourcemap'] },
-    frameworks: ['mocha']
-  });
-};
+const config = createBaseConfig(import.meta.url);
 
-module.exports.files = files;
+for (const project of config.test.projects) {
+  project.resolve = {
+    alias: generateAliasConfig(project.test.name)
+  };
+}
+
+export default config;
