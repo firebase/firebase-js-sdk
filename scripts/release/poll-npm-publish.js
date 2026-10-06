@@ -58,7 +58,9 @@ async function pollNpmPublish() {
         `Version mismatch: expected ${version}, got ${latestPublishedVersion}`
       );
     } catch (e) {
-      console.log(`Didn't find firebase@${version} in the npm registry. (Reason: ${e.message || e})`);
+      console.log(
+        `Didn't find firebase@${version} in the npm registry. (Reason: ${e.message || e})`
+      );
       if (i < MAX_ATTEMPTS - 1) {
         console.log(`Trying again in ${RETRY_DELAY_SECONDS} seconds.`);
         await new Promise(resolve =>
