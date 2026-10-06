@@ -459,9 +459,9 @@ https://github.com/firebase/firebase-js-sdk
 |  [DocumentsStageOptions](./firestore_pipelines.md#documentsstageoptions) | Options defining how a DocumentsStage is evaluated. See [PipelineSource.documents()](./firestore_lite_pipelines.pipelinesource.md#pipelinesourcedocuments)<!-- -->. |
 |  [ExpressionType](./firestore_pipelines.md#expressiontype) | An enumeration of the different types of expressions. |
 |  [FindNearestStageOptions](./firestore_pipelines.md#findneareststageoptions) | Options defining how a FindNearestStage is evaluated. See [Pipeline.findNearest()](./firestore_lite_pipelines.pipeline.md#pipelinefindnearest)<!-- -->. |
-|  [InsertStageOptions](./firestore_pipelines.md#insertstageoptions) | <b><i>(Public Preview)</i></b> Options defining how an InsertStage is evaluated. |
+|  [InsertStageOptions](./firestore_pipelines.md#insertstageoptions) | Options defining how an InsertStage is evaluated. |
 |  [LimitStageOptions](./firestore_pipelines.md#limitstageoptions) | Options defining how a LimitStage is evaluated. See [Pipeline.limit()](./firestore_lite_pipelines.pipeline.md#pipelinelimit)<!-- -->. |
-|  [LiteralsStageOptions](./firestore_pipelines.md#literalsstageoptions) | <b><i>(Public Preview)</i></b> Options defining how a LiteralsSource stage is evaluated. |
+|  [LiteralsStageOptions](./firestore_pipelines.md#literalsstageoptions) | Options defining how a LiteralsSource stage is evaluated. |
 |  [OffsetStageOptions](./firestore_pipelines.md#offsetstageoptions) | Options defining how an OffsetStage is evaluated. See [Pipeline.offset()](./firestore_lite_pipelines.pipeline.md#pipelineoffset)<!-- -->. |
 |  [OneOf](./firestore_pipelines.md#oneof) | Utility type to create an type that only allows one property of the Type param T to be set. |
 |  [RemoveFieldsStageOptions](./firestore_pipelines.md#removefieldsstageoptions) | Options defining how a RemoveFieldsStage is evaluated. See [Pipeline.removeFields()](./firestore_lite_pipelines.pipeline.md#pipelineremovefields)<!-- -->. |
@@ -477,7 +477,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [TimeUnit](./firestore_pipelines.md#timeunit) | Specify time units for expressions. |
 |  [UnionStageOptions](./firestore_pipelines.md#unionstageoptions) | Options defining how a UnionStage is evaluated. See [Pipeline.union()](./firestore_lite_pipelines.pipeline.md#pipelineunion)<!-- -->. |
 |  [UnnestStageOptions](./firestore_pipelines.md#unneststageoptions) | Represents the specific options available for configuring an <code>UnnestStage</code> within a pipeline. |
-|  [UpsertStageOptions](./firestore_pipelines.md#upsertstageoptions) | <b><i>(Public Preview)</i></b> Options defining how an UpsertStage is evaluated. |
+|  [UpsertStageOptions](./firestore_pipelines.md#upsertstageoptions) | Options defining how an UpsertStage is evaluated. |
 |  [WhereStageOptions](./firestore_pipelines.md#wherestageoptions) | Options defining how a WhereStage is evaluated. See [Pipeline.where()](./firestore_lite_pipelines.pipeline.md#pipelinewhere)<!-- -->. |
 
 ## function()
@@ -13029,9 +13029,6 @@ export declare type FindNearestStageOptions = StageOptions & {
 
 ## InsertStageOptions
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Options defining how an InsertStage is evaluated.
 
 <b>Signature:</b>
@@ -13056,9 +13053,6 @@ export declare type LimitStageOptions = StageOptions & {
 ```
 
 ## LiteralsStageOptions
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Options defining how a LiteralsSource stage is evaluated.
 
@@ -13294,9 +13288,6 @@ export declare type UnnestStageOptions = StageOptions & {
 ```
 
 ## UpsertStageOptions
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Options defining how an UpsertStage is evaluated.
 

@@ -2806,7 +2806,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
               .literals({ name: 'Literal Inserted', age: 42 })
               .insert({ collection: targetColRef })
           )
-        ).to.be.rejectedWith(
+        ).rejects.toThrow(
           /PERMISSION_DENIED|Missing or insufficient permissions/i
         );
 
@@ -2853,9 +2853,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
                 documentIdExpression: 'id'
               })
           )
-        ).to.be.rejectedWith(
-          /The non-transactional DML operation was rejected/
-        );
+        ).rejects.toThrow(/The non-transactional DML operation was rejected/);
       });
     });
   });

@@ -357,7 +357,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [field(path)](./firestore_lite_pipelines.md#field_34ee07d) | Creates a [Field](./firestore_pipelines.field.md#field_class) instance representing the field at the given path. |
 |  [subcollection(path)](./firestore_lite_pipelines.md#subcollection_fe1f8e4) | Creates a new Pipeline targeted at a subcollection relative to the current document context. This creates a pipeline without a database instance, suitable for embedding as a subquery. If executed directly, this pipeline will fail. |
 |  <b>function(pipeline, ...)</b> |
-|  [execute(pipeline)](./firestore_lite_pipelines.md#execute_01df620) | Executes this pipeline and returns a Promise to represent the asynchronous operation. |
+|  [execute(pipeline)](./firestore_lite_pipelines.md#execute_01df620) | Executes this pipeline and returns a Promise to represent the asynchronous operation.<!-- -->The returned Promise can be used to track the progress of the pipeline execution and retrieve the results (or handle any errors) asynchronously.<!-- -->The pipeline results are returned as a [PipelineSnapshot](./firestore_pipelines.pipelinesnapshot.md#pipelinesnapshot_class) that contains a list of [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) objects. Each [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) typically represents a single key/value map that has passed through all the stages of the pipeline, however this might differ depending on the stages involved in the pipeline. For example:<ul> <li>If there are no stages or only transformation stages, each [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) represents a single document.</li> <li>If there is an aggregation, only a single [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) is returned, representing the aggregated results over the entire dataset .</li> <li>If there is an aggregation stage with grouping, each [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) represents a distinct group and its associated aggregated values.</li> </ul> |
 |  <b>function(rquery, ...)</b> |
 |  [documentMatches(rquery)](./firestore_lite_pipelines.md#documentmatches_d7a12c2) | <b><i>(Public Preview)</i></b> Perform a full-text search on all indexed search fields in the document. |
 |  <b>function(stringExpression, ...)</b> |
@@ -458,9 +458,9 @@ https://github.com/firebase/firebase-js-sdk
 |  [DocumentsStageOptions](./firestore_lite_pipelines.md#documentsstageoptions) | Options defining how a DocumentsStage is evaluated. See [PipelineSource.documents()](./firestore_pipelines.pipelinesource.md#pipelinesourcedocuments)<!-- -->. |
 |  [ExpressionType](./firestore_lite_pipelines.md#expressiontype) | An enumeration of the different types of expressions. |
 |  [FindNearestStageOptions](./firestore_lite_pipelines.md#findneareststageoptions) | Options defining how a FindNearestStage is evaluated. See [Pipeline.findNearest()](./firestore_pipelines.pipeline.md#pipelinefindnearest)<!-- -->. |
-|  [InsertStageOptions](./firestore_lite_pipelines.md#insertstageoptions) | <b><i>(Public Preview)</i></b> Options defining how an InsertStage is evaluated. |
+|  [InsertStageOptions](./firestore_lite_pipelines.md#insertstageoptions) | Options defining how an InsertStage is evaluated. |
 |  [LimitStageOptions](./firestore_lite_pipelines.md#limitstageoptions) | Options defining how a LimitStage is evaluated. See [Pipeline.limit()](./firestore_pipelines.pipeline.md#pipelinelimit)<!-- -->. |
-|  [LiteralsStageOptions](./firestore_lite_pipelines.md#literalsstageoptions) | <b><i>(Public Preview)</i></b> Options defining how a LiteralsSource stage is evaluated. |
+|  [LiteralsStageOptions](./firestore_lite_pipelines.md#literalsstageoptions) | Options defining how a LiteralsSource stage is evaluated. |
 |  [OffsetStageOptions](./firestore_lite_pipelines.md#offsetstageoptions) | Options defining how an OffsetStage is evaluated. See [Pipeline.offset()](./firestore_pipelines.pipeline.md#pipelineoffset)<!-- -->. |
 |  [OneOf](./firestore_lite_pipelines.md#oneof) | Utility type to create an type that only allows one property of the Type param T to be set. |
 |  [RemoveFieldsStageOptions](./firestore_lite_pipelines.md#removefieldsstageoptions) | Options defining how a RemoveFieldsStage is evaluated. See [Pipeline.removeFields()](./firestore_pipelines.pipeline.md#pipelineremovefields)<!-- -->. |
@@ -476,7 +476,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [TimeUnit](./firestore_lite_pipelines.md#timeunit) | Specify time units for expressions. |
 |  [UnionStageOptions](./firestore_lite_pipelines.md#unionstageoptions) | Options defining how a UnionStage is evaluated. See [Pipeline.union()](./firestore_pipelines.pipeline.md#pipelineunion)<!-- -->. |
 |  [UnnestStageOptions](./firestore_lite_pipelines.md#unneststageoptions) | Represents the specific options available for configuring an <code>UnnestStage</code> within a pipeline. |
-|  [UpsertStageOptions](./firestore_lite_pipelines.md#upsertstageoptions) | <b><i>(Public Preview)</i></b> Options defining how an UpsertStage is evaluated. |
+|  [UpsertStageOptions](./firestore_lite_pipelines.md#upsertstageoptions) | Options defining how an UpsertStage is evaluated. |
 |  [WhereStageOptions](./firestore_lite_pipelines.md#wherestageoptions) | Options defining how a WhereStage is evaluated. See [Pipeline.where()](./firestore_pipelines.pipeline.md#pipelinewhere)<!-- -->. |
 
 ## function()
@@ -11024,6 +11024,12 @@ export declare function subcollection(path: string): Pipeline;
 
 Executes this pipeline and returns a Promise to represent the asynchronous operation.
 
+The returned Promise can be used to track the progress of the pipeline execution and retrieve the results (or handle any errors) asynchronously.
+
+The pipeline results are returned as a [PipelineSnapshot](./firestore_pipelines.pipelinesnapshot.md#pipelinesnapshot_class) that contains a list of [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) objects. Each [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) typically represents a single key/value map that has passed through all the stages of the pipeline, however this might differ depending on the stages involved in the pipeline. For example:
+
+<ul> <li>If there are no stages or only transformation stages, each [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) represents a single document.</li> <li>If there is an aggregation, only a single [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) is returned, representing the aggregated results over the entire dataset .</li> <li>If there is an aggregation stage with grouping, each [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) represents a distinct group and its associated aggregated values.</li> </ul>
+
 <b>Signature:</b>
 
 ```typescript
@@ -11041,6 +11047,18 @@ export declare function execute(pipeline: Pipeline): Promise<PipelineSnapshot>;
 Promise&lt;[PipelineSnapshot](./firestore_lite_pipelines.pipelinesnapshot.md#pipelinesnapshot_class)<!-- -->&gt;
 
 A Promise representing the asynchronous pipeline execution.
+
+### Example
+
+
+```typescript
+const snapshot: PipelineSnapshot = await execute(firestore.pipeline().collection("books")
+    .where(gt(field("rating"), 4.5))
+    .select("title", "author", "rating"));
+
+const results: PipelineResults = snapshot.results;
+
+```
 
 ## function(rquery, ...)
 
@@ -12968,9 +12986,6 @@ export declare type FindNearestStageOptions = StageOptions & {
 
 ## InsertStageOptions
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Options defining how an InsertStage is evaluated.
 
 <b>Signature:</b>
@@ -12995,9 +13010,6 @@ export declare type LimitStageOptions = StageOptions & {
 ```
 
 ## LiteralsStageOptions
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Options defining how a LiteralsSource stage is evaluated.
 
@@ -13233,9 +13245,6 @@ export declare type UnnestStageOptions = StageOptions & {
 ```
 
 ## UpsertStageOptions
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Options defining how an UpsertStage is evaluated.
 

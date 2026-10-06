@@ -434,7 +434,6 @@ export type SortStageOptions = StageOptions & {
 
 /**
  * Options defining how an InsertStage is evaluated.
- * @beta
  */
 export type InsertStageOptions = StageOptions & {
   /**
@@ -449,7 +448,6 @@ export type InsertStageOptions = StageOptions & {
 
 /**
  * Options defining how an UpsertStage is evaluated.
- * @beta
  */
 export type UpsertStageOptions = StageOptions & {
   /**
@@ -472,7 +470,6 @@ export type UpsertStageOptions = StageOptions & {
 
 /**
  * Options defining how a LiteralsSource stage is evaluated.
- * @beta
  */
 export type LiteralsStageOptions = StageOptions & {
   /**

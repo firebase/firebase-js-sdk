@@ -982,9 +982,6 @@ export class RawStage extends Stage {
   }
 }
 
-/**
- * @beta
- */
 export class Delete extends Stage {
   get _name(): string {
     return 'delete';
@@ -1009,9 +1006,6 @@ export class Delete extends Stage {
   }
 }
 
-/**
- * @beta
- */
 export class Update extends Stage {
   get _name(): string {
     return 'update';
@@ -1052,9 +1046,6 @@ export class Update extends Stage {
   }
 }
 
-/**
- * @beta
- */
 export class Insert extends Stage {
   get _name(): string {
     return 'insert';
@@ -1110,9 +1101,6 @@ export class Insert extends Stage {
   }
 }
 
-/**
- * @beta
- */
 export class Upsert extends Stage {
   get _name(): string {
     return 'upsert';

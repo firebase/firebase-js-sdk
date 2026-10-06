@@ -1604,7 +1604,7 @@ ifFieldName: string,
 elseValue: unknown
 ): FunctionExpression;
 
-// @beta
+// @public
 export type InsertStageOptions = StageOptions & {
     collection?: string | CollectionReference;
     documentIdExpression?: string | Expression;
@@ -1745,7 +1745,7 @@ export type LimitStageOptions = StageOptions & {
     limit: number;
 };
 
-// @beta
+// @public
 export type LiteralsStageOptions = StageOptions & {
     documents?: Array<Record<string, unknown>>;
 };
@@ -2083,7 +2083,6 @@ export class Pipeline {
     ...additionalExpressions: AliasedExpression[]
     ): Pipeline;
     define(options: DefineStageOptions): Pipeline;
-    // @beta
     delete(): Pipeline;
     distinct(
     group: string | Selectable,
@@ -2091,9 +2090,7 @@ export class Pipeline {
     ): Pipeline;
     distinct(options: DistinctStageOptions): Pipeline;
     findNearest(options: FindNearestStageOptions): Pipeline;
-    // @beta
     insert(): Pipeline;
-    // @beta
     insert(options: InsertStageOptions): Pipeline;
     limit(limit: number): Pipeline;
     limit(options: LimitStageOptions): Pipeline;
@@ -2131,25 +2128,18 @@ export class Pipeline {
     union(options: UnionStageOptions): Pipeline;
     unnest(selectable: Selectable, indexField?: string): Pipeline;
     unnest(options: UnnestStageOptions): Pipeline;
-    // @beta
     update(): Pipeline;
-    // @beta
     update(
     transformedField: AliasedExpression,
     ...additionalFields: AliasedExpression[]
     ): Pipeline;
-    // @beta
     update(transformedFields: AliasedExpression[]): Pipeline;
-    // @beta
     upsert(): Pipeline;
-    // @beta
     upsert(options: UpsertStageOptions): Pipeline;
-    // @beta
     upsert(
     additionalField: AliasedExpression,
     ...additionalFields: AliasedExpression[]
     ): Pipeline;
-    // @beta
     upsert(
     additionalFields: AliasedExpression[],
     options?: UpsertStageOptions
@@ -2214,7 +2204,6 @@ export class PipelineSource<PipelineType> {
     document: Record<string, unknown>,
     ...additionalDocuments: Array<Record<string, unknown>>
     ): PipelineType;
-    // Warning: (ae-incompatible-release-tags) The symbol "literals" is marked as @public, but its signature references "LiteralsStageOptions" which is marked as @beta
     literals(options: LiteralsStageOptions): PipelineType;
 }
 
@@ -2940,7 +2929,7 @@ export type UnnestStageOptions = StageOptions & {
     indexField?: string;
 };
 
-// @beta
+// @public
 export type UpsertStageOptions = StageOptions & {
     collection?: string | CollectionReference;
     documentIdExpression?: string | Expression;

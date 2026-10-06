@@ -315,7 +315,7 @@ describe('stage serialization', () => {
         pipeline: firestore.pipeline().collection('foo')
       });
 
-      const reqDefault = spy.args[0][
+      const reqDefault = spy.mock.calls[FIRST_CALL][
         EXECUTE_PIPELINE_REQUEST
       ] as ProtoExecutePipelineRequest;
       expect(reqDefault.newTransaction).to.be.undefined;
@@ -329,7 +329,7 @@ describe('stage serialization', () => {
         atomic: false
       });
 
-      const reqFalse = spy2.args[0][
+      const reqFalse = spy2.mock.calls[FIRST_CALL][
         EXECUTE_PIPELINE_REQUEST
       ] as ProtoExecutePipelineRequest;
       expect(reqFalse.newTransaction).to.be.undefined;
@@ -345,7 +345,7 @@ describe('stage serialization', () => {
         atomic: true
       });
 
-      const req = spy.args[0][
+      const req = spy.mock.calls[FIRST_CALL][
         EXECUTE_PIPELINE_REQUEST
       ] as ProtoExecutePipelineRequest;
       expect(req.autoCommitTransaction).to.be.true;
@@ -362,7 +362,7 @@ describe('stage serialization', () => {
 
       await execute(firestore.pipeline().collection('foo').insert());
 
-      const req = spy.args[0][
+      const req = spy.mock.calls[FIRST_CALL][
         EXECUTE_PIPELINE_REQUEST
       ] as ProtoExecutePipelineRequest;
       const insertStage = req.structuredPipeline?.pipeline?.stages?.[1];
@@ -384,7 +384,7 @@ describe('stage serialization', () => {
         })
       );
 
-      const req = spy.args[0][
+      const req = spy.mock.calls[FIRST_CALL][
         EXECUTE_PIPELINE_REQUEST
       ] as ProtoExecutePipelineRequest;
       const insertStage = req.structuredPipeline?.pipeline?.stages?.[1];
@@ -413,7 +413,7 @@ describe('stage serialization', () => {
           })
       );
 
-      const req = spy.args[0][
+      const req = spy.mock.calls[FIRST_CALL][
         EXECUTE_PIPELINE_REQUEST
       ] as ProtoExecutePipelineRequest;
       const insertStage = req.structuredPipeline?.pipeline?.stages?.[1];
@@ -437,7 +437,7 @@ describe('stage serialization', () => {
             documentIdExpression: field('otherId')
           })
       );
-      const req2 = spy2.args[0][
+      const req2 = spy2.mock.calls[FIRST_CALL][
         EXECUTE_PIPELINE_REQUEST
       ] as ProtoExecutePipelineRequest;
       const insertStage2 = req2.structuredPipeline?.pipeline?.stages?.[1];
@@ -460,7 +460,7 @@ describe('stage serialization', () => {
           })
       );
 
-      const req = spy.args[0][
+      const req = spy.mock.calls[FIRST_CALL][
         EXECUTE_PIPELINE_REQUEST
       ] as ProtoExecutePipelineRequest;
       const upsertStage = req.structuredPipeline?.pipeline?.stages?.[1];
@@ -493,7 +493,7 @@ describe('stage serialization', () => {
           .upsert([constant('Bob').as('name'), field('score').as('finalScore')])
       );
 
-      const req = spy.args[0][
+      const req = spy.mock.calls[FIRST_CALL][
         EXECUTE_PIPELINE_REQUEST
       ] as ProtoExecutePipelineRequest;
       const upsertStage = req.structuredPipeline?.pipeline?.stages?.[1];
@@ -519,7 +519,7 @@ describe('stage serialization', () => {
           })
       );
 
-      const req = spy.args[0][
+      const req = spy.mock.calls[FIRST_CALL][
         EXECUTE_PIPELINE_REQUEST
       ] as ProtoExecutePipelineRequest;
       const upsertStage = req.structuredPipeline?.pipeline?.stages?.[1];
@@ -542,7 +542,7 @@ describe('stage serialization', () => {
           })
       );
 
-      const req = spy.args[0][
+      const req = spy.mock.calls[FIRST_CALL][
         EXECUTE_PIPELINE_REQUEST
       ] as ProtoExecutePipelineRequest;
       const upsertStage = req.structuredPipeline?.pipeline?.stages?.[1];
@@ -557,7 +557,7 @@ describe('stage serialization', () => {
 
       await execute(firestore.pipeline().collection('foo').upsert());
 
-      const req = spy.args[0][
+      const req = spy.mock.calls[FIRST_CALL][
         EXECUTE_PIPELINE_REQUEST
       ] as ProtoExecutePipelineRequest;
       const upsertStage = req.structuredPipeline?.pipeline?.stages?.[1];
@@ -582,7 +582,7 @@ describe('stage serialization', () => {
           .upsert({ collection: 'users', documentIdExpression: field('id') })
       );
 
-      const req = spy.args[0][
+      const req = spy.mock.calls[FIRST_CALL][
         EXECUTE_PIPELINE_REQUEST
       ] as ProtoExecutePipelineRequest;
       const upsertStage = req.structuredPipeline?.pipeline?.stages?.[1];
@@ -610,7 +610,7 @@ describe('stage serialization', () => {
           .upsert(constant(true).as('active'))
       );
 
-      const req = spy.args[0][
+      const req = spy.mock.calls[FIRST_CALL][
         EXECUTE_PIPELINE_REQUEST
       ] as ProtoExecutePipelineRequest;
       const upsertStage = req.structuredPipeline?.pipeline?.stages?.[1];
@@ -632,7 +632,7 @@ describe('stage serialization', () => {
           .upsert(constant(true).as('active'), constant(42).as('count'))
       );
 
-      const req = spy.args[0][
+      const req = spy.mock.calls[FIRST_CALL][
         EXECUTE_PIPELINE_REQUEST
       ] as ProtoExecutePipelineRequest;
       const upsertStage = req.structuredPipeline?.pipeline?.stages?.[1];
@@ -655,7 +655,7 @@ describe('stage serialization', () => {
           .upsert([constant(true).as('active')])
       );
 
-      const req = spy.args[0][
+      const req = spy.mock.calls[FIRST_CALL][
         EXECUTE_PIPELINE_REQUEST
       ] as ProtoExecutePipelineRequest;
       const upsertStage = req.structuredPipeline?.pipeline?.stages?.[1];
@@ -675,7 +675,7 @@ describe('stage serialization', () => {
 
       await execute(firestore.pipeline().collection('foo').update());
 
-      const req = spy.args[0][
+      const req = spy.mock.calls[FIRST_CALL][
         EXECUTE_PIPELINE_REQUEST
       ] as ProtoExecutePipelineRequest;
       const updateStage = req.structuredPipeline?.pipeline?.stages?.[1];
@@ -699,7 +699,7 @@ describe('stage serialization', () => {
           .update(constant(true).as('is_top_scorer'))
       );
 
-      const req = spy.args[0][
+      const req = spy.mock.calls[FIRST_CALL][
         EXECUTE_PIPELINE_REQUEST
       ] as ProtoExecutePipelineRequest;
       const updateStage = req.structuredPipeline?.pipeline?.stages?.[1];
@@ -720,7 +720,7 @@ describe('stage serialization', () => {
           .update(constant(true).as('is_top_scorer'), constant(42).as('count'))
       );
 
-      const req = spy.args[0][
+      const req = spy.mock.calls[FIRST_CALL][
         EXECUTE_PIPELINE_REQUEST
       ] as ProtoExecutePipelineRequest;
       const updateStage = req.structuredPipeline?.pipeline?.stages?.[1];
@@ -742,7 +742,7 @@ describe('stage serialization', () => {
           .update([constant(true).as('is_top_scorer')])
       );
 
-      const req = spy.args[0][
+      const req = spy.mock.calls[FIRST_CALL][
         EXECUTE_PIPELINE_REQUEST
       ] as ProtoExecutePipelineRequest;
       const updateStage = req.structuredPipeline?.pipeline?.stages?.[1];
@@ -764,7 +764,7 @@ describe('stage serialization', () => {
           .literals({ name: 'Alice', age: 30 }, { name: 'Bob', age: 25 })
       );
 
-      const req = spy.args[0][
+      const req = spy.mock.calls[FIRST_CALL][
         EXECUTE_PIPELINE_REQUEST
       ] as ProtoExecutePipelineRequest;
       const literalsStage = req.structuredPipeline?.pipeline?.stages?.[0];
@@ -802,7 +802,7 @@ describe('stage serialization', () => {
         })
       );
 
-      const req = spy.args[0][
+      const req = spy.mock.calls[FIRST_CALL][
         EXECUTE_PIPELINE_REQUEST
       ] as ProtoExecutePipelineRequest;
       const literalsStage = req.structuredPipeline?.pipeline?.stages?.[0];
@@ -833,7 +833,7 @@ describe('stage serialization', () => {
         })
       );
 
-      const req = spy.args[0][
+      const req = spy.mock.calls[FIRST_CALL][
         EXECUTE_PIPELINE_REQUEST
       ] as ProtoExecutePipelineRequest;
       const literalsStage = req.structuredPipeline?.pipeline?.stages?.[0];

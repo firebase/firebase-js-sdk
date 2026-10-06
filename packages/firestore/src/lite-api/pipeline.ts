@@ -1579,7 +1579,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
   }
 
   /**
-   * @beta
    * Performs a delete operation on documents from previous stages.
    *
    * @example
@@ -1597,14 +1596,12 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
   }
 
   /**
-   * @beta
    * Performs an update operation using documents from previous stages.
    *
    * @returns A new {@link @firebase/firestore/pipelines#Pipeline} object with this stage appended to the stage list.
    */
   update(): Pipeline;
   /**
-   * @beta
    * Performs an update operation using documents from previous stages.
    *
    * @param transformedField - The first transformation to apply.
@@ -1616,7 +1613,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
     ...additionalFields: AliasedExpression[]
   ): Pipeline;
   /**
-   * @beta
    * Performs an update operation using documents from previous stages.
    *
    * @param transformedFields - The list of transformations to apply.
@@ -1639,14 +1635,12 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
   }
 
   /**
-   * @beta
    * Performs an insert operation using documents from previous stages.
    *
    * @returns A new {@link @firebase/firestore/pipelines#Pipeline} object with this stage appended to the stage list.
    */
   insert(): Pipeline;
   /**
-   * @beta
    * Performs an insert operation with options.
    *
    * @param options - Options defining the collection and document ID.
@@ -1658,14 +1652,12 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
   }
 
   /**
-   * @beta
    * Performs an upsert operation using documents from previous stages.
    *
    * @returns A new {@link @firebase/firestore/pipelines#Pipeline} object with this stage appended to the stage list.
    */
   upsert(): Pipeline;
   /**
-   * @beta
    * Performs an upsert operation with options.
    *
    * @param options - Options defining the target collection and document ID.
@@ -1673,7 +1665,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    */
   upsert(options: UpsertStageOptions): Pipeline;
   /**
-   * @beta
    * Performs an upsert operation using documents from previous stages.
    *
    * @param additionalField - The first additional field to apply.
@@ -1685,7 +1676,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
     ...additionalFields: AliasedExpression[]
   ): Pipeline;
   /**
-   * @beta
    * Performs an upsert operation using documents from previous stages.
    *
    * @param additionalFields - The list of additional fields to apply.
