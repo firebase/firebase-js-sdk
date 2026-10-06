@@ -46,11 +46,10 @@ export async function withTestInstance(
 
 describe('FirebaseStorage Compat', { timeout: 20000, retry: 2 }, () => {
   let projectPrefix: string;
-  beforeAll(({ task }: any, suite: any) => {
-    const s = suite ?? task;
-    projectPrefix =
-      s?.file?.projectName?.split(' ')[0] ??
-      (typeof window !== 'undefined' ? 'browser' : 'node');
+
+  // eslint-disable-next-line no-empty-pattern
+  beforeAll(({}, suite) => {
+    projectPrefix = suite.file.projectName?.split(' ')[0] ?? 'default'; // 'node' or 'browser'
   });
 
   it('can upload bytes', () => {
