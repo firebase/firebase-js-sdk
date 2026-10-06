@@ -33,6 +33,7 @@ async function pollNpmPublish() {
       exec(`npm view firebase@${version} version`, (error, stdout) => {
         if (error) {
           reject(error);
+          return;
         }
         const version = stdout.trim();
         if (!version.match(/^\d+(\.[-\d\w]+)+$/)) {
@@ -41,22 +42,29 @@ async function pollNpmPublish() {
               `npm view did not return a valid tag. Received: ${version}`
             )
           );
+          return;
         }
         resolve(version);
       });
     });
   for (let i = 0; i < MAX_ATTEMPTS; i++) {
-    const latestPublishedVersion = await getNpmPublishedVersion();
-    if (latestPublishedVersion === process.env.VERSION) {
-      console.log(`Found firebase@${version} in the npm registry.`);
-      return;
-    }
-    console.log(`Didn't find firebase@${version} in the npm registry.`);
-    if (i < MAX_ATTEMPTS - 1) {
-      console.log(`Trying again in ${RETRY_DELAY_SECONDS} seconds.`);
-      await new Promise(resolve =>
-        setTimeout(resolve, RETRY_DELAY_SECONDS * 1000)
+    try {
+      const latestPublishedVersion = await getNpmPublishedVersion();
+      if (latestPublishedVersion === process.env.VERSION) {
+        console.log(`Found firebase@${version} in the npm registry.`);
+        return;
+      }
+      throw new Error(
+        `Version mismatch: expected ${version}, got ${latestPublishedVersion}`
       );
+    } catch (e) {
+      console.log(`Didn't find firebase@${version} in the npm registry.`);
+      if (i < MAX_ATTEMPTS - 1) {
+        console.log(`Trying again in ${RETRY_DELAY_SECONDS} seconds.`);
+        await new Promise(resolve =>
+          setTimeout(resolve, RETRY_DELAY_SECONDS * 1000)
+        );
+      }
     }
   }
   console.log(
