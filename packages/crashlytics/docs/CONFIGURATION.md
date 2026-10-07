@@ -67,7 +67,7 @@ CONFIG_NAME="projects/${PROJECT_ID}/locations/${LOCATION}/configs/${CONFIG_ID}"
 
 #### 2. Set the Sampling Rate
 
-To adjust the sampling rate, use the standard `PATCH` method to update the `sampling_rate` field. You must specify `updateMask=sampling_rate` in the query parameters. The sampling rate is a `double` value from `0.0` to `1.0` representing a percentage (e.g., `0.25` for 25%).
+To adjust the sampling rate, use the standard `PATCH` method to update the `sampling_rate` field. You must specify `updateMask=sampling_rate` in the query parameters. The sampling rate is a `double` value from `0.0` to `1.0` representing the proportion of sessions to sample (e.g., `0.25` for 25%).
 
 *Note: You must have an “Owner” role on the Cloud project or equivalent permission to do this.*
 
