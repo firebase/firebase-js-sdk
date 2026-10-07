@@ -153,8 +153,9 @@ describe('Integration test: Auth FirebaseServerApp tests', () => {
         /*forceRefresh=*/ false
       );
       expect(idToken).not.toBeNull();
-      await expect(serverAppAuth.currentUser.getIdToken(/*forceRefresh=*/ true))
-        .to.be.rejected;
+      await expect(
+        serverAppAuth.currentUser.getIdToken(/*forceRefresh=*/ true)
+      ).rejects.toThrow();
     }
 
     await deleteApp(serverApp);

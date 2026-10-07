@@ -35,6 +35,10 @@ import {
 import { FirebaseError } from '@firebase/util';
 import { InAppBrowserRef, _cordovaWindow } from '../plugins';
 import * as projectConfig from '../../api/project_config/get_project_config';
+
+vi.mock('@firebase/util', { spy: true });
+vi.mock('../../api/project_config/get_project_config', { spy: true });
+
 const ANDROID_UA = 'UserAgent/5.0 (Linux; Android 0.0.0)';
 const IOS_UA = 'UserAgent/5.0 (iPhone; CPU iPhone 0.0.0)';
 const IOS_8_UA = 'UserAgent/5.0 (iPhone OS 8_2)';
@@ -64,13 +68,13 @@ describe('platform_cordova/popup_redirect/utils', () => {
   describe('_checkCordovaConfiguration', () => {
     // TODO: Rest of the tests go here
     it('does not reject if all plugins installed', () => {
-      expect(() => _checkCordovaConfiguration(auth)).not.to.throw;
+      expect(() => _checkCordovaConfiguration(auth)).not.toThrow();
     });
 
     it('rejects if universal links is missing', () => {
       removeProp(win, 'universalLinks');
       expect(() => _checkCordovaConfiguration(auth))
-        .toThrow(fbUtils.FirebaseError, 'auth/invalid-cordova-configuration')
+        .to.throw(fbUtils.FirebaseError, 'auth/invalid-cordova-configuration')
         .that.has.deep.property('customData', {
           appName: 'test-app',
           missingPlugin: 'cordova-universal-links-plugin-fix'
@@ -80,7 +84,7 @@ describe('platform_cordova/popup_redirect/utils', () => {
     it('rejects if build info is missing', () => {
       removeProp(win.BuildInfo, 'packageName');
       expect(() => _checkCordovaConfiguration(auth))
-        .toThrow(fbUtils.FirebaseError, 'auth/invalid-cordova-configuration')
+        .to.throw(fbUtils.FirebaseError, 'auth/invalid-cordova-configuration')
         .that.has.deep.property('customData', {
           appName: 'test-app',
           missingPlugin: 'cordova-plugin-buildInfo'
@@ -90,7 +94,7 @@ describe('platform_cordova/popup_redirect/utils', () => {
     it('rejects if browsertab openUrl is missing', () => {
       removeProp(win.cordova.plugins.browsertab, 'openUrl');
       expect(() => _checkCordovaConfiguration(auth))
-        .toThrow(fbUtils.FirebaseError, 'auth/invalid-cordova-configuration')
+        .to.throw(fbUtils.FirebaseError, 'auth/invalid-cordova-configuration')
         .that.has.deep.property('customData', {
           appName: 'test-app',
           missingPlugin: 'cordova-plugin-browsertab'
@@ -100,7 +104,7 @@ describe('platform_cordova/popup_redirect/utils', () => {
     it('rejects if InAppBrowser is missing', () => {
       removeProp(win.cordova.InAppBrowser, 'open');
       expect(() => _checkCordovaConfiguration(auth))
-        .toThrow(fbUtils.FirebaseError, 'auth/invalid-cordova-configuration')
+        .to.throw(fbUtils.FirebaseError, 'auth/invalid-cordova-configuration')
         .that.has.deep.property('customData', {
           appName: 'test-app',
           missingPlugin: 'cordova-plugin-inappbrowser'
@@ -181,11 +185,9 @@ describe('platform_cordova/popup_redirect/utils', () => {
       vi.spyOn(win.BuildInfo, 'packageName', 'get').mockReturnValue(
         'com.example.myapp'
       );
-      sinon
-        .stub(projectConfig, '_getProjectConfig')
-        .mockReturnValue(
-          Promise.resolve({ /* does not matter here */ authorizedDomains: [] })
-        );
+      vi.spyOn(projectConfig, '_getProjectConfig').mockReturnValue(
+        Promise.resolve({ /* does not matter here */ authorizedDomains: [] })
+      );
     });
 
     it('sets the correct fields for android', async () => {
@@ -209,9 +211,10 @@ describe('platform_cordova/popup_redirect/utils', () => {
     let isBrowsertabAvailable: boolean;
     beforeEach(() => {
       isBrowsertabAvailable = false;
-      sinon
-        .stub(win.cordova.plugins.browsertab, 'isAvailable')
-        .mockImplementation(cb => cb(isBrowsertabAvailable));
+      vi.spyOn(
+        win.cordova.plugins.browsertab,
+        'isAvailable'
+      ).mockImplementation(cb => cb(isBrowsertabAvailable));
       vi.spyOn(win.cordova.plugins.browsertab, 'openUrl');
       vi.spyOn(win.cordova.InAppBrowser, 'open');
     });
@@ -312,14 +315,16 @@ describe('platform_cordova/popup_redirect/utils', () => {
 
         expect(document.removeEventListener).toHaveBeenCalledWith(
           'resume',
-          sinon.match.func
+          expect.any(Function),
+          false
         );
         expect(document.removeEventListener).toHaveBeenCalledWith(
           'visibilitychange',
-          sinon.match.func
+          expect.any(Function),
+          false
         );
         expect(eventManager.removePassiveListener).toHaveBeenCalledWith(
-          sinon.match.func
+          expect.any(Function)
         );
         expect(win.clearTimeout).toHaveBeenCalledWith(CANCEL_TIMER_ID);
       });
@@ -341,7 +346,7 @@ describe('platform_cordova/popup_redirect/utils', () => {
       it('resolves the promise', async () => {
         const promise = _waitForAppResume(auth, eventManager, null);
         sendEvent();
-        await expect(promise).resolves.toBeDefined();
+        await expect(promise).resolves.toBeUndefined();
       });
 
       it('closes the browser tab', async () => {
@@ -371,14 +376,16 @@ describe('platform_cordova/popup_redirect/utils', () => {
 
         expect(document.removeEventListener).toHaveBeenCalledWith(
           'resume',
-          sinon.match.func
+          expect.any(Function),
+          false
         );
         expect(document.removeEventListener).toHaveBeenCalledWith(
           'visibilitychange',
-          sinon.match.func
+          expect.any(Function),
+          false
         );
         expect(eventManager.removePassiveListener).toHaveBeenCalledWith(
-          sinon.match.func
+          expect.any(Function)
         );
         expect(win.clearTimeout).toHaveBeenCalledWith(CANCEL_TIMER_ID);
       });

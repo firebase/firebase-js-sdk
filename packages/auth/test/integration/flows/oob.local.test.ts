@@ -52,7 +52,6 @@ import {
   randomEmail
 } from '../../helpers/integration/helpers';
 import { generateMiddlewareTests } from './middleware_test_generator';
-declare const xit: typeof it;
 
 const BASE_SETTINGS: ActionCodeSettings = {
   url: 'http://localhost/action_code_return',
@@ -327,7 +326,8 @@ describe('Integration test: oob codes', () => {
 
   // Test is ignored for now as the emulator does not currently support the
   // verify-and-change-email operation.
-  xit('verifyBeforeUpdateEmail waits until flow completes', async () => {
+  // eslint-disable-next-line no-restricted-properties
+  it.skip('verifyBeforeUpdateEmail waits until flow completes', async () => {
     const updatedEmail = randomEmail();
 
     // Create an initial user with the basic email

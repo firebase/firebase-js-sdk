@@ -19,32 +19,94 @@ import fs from 'fs';
 import path from 'path';
 import createBaseConfig from '../../config/vitest.base.mjs';
 
-// Ensure `./packages/auth/coverage` exists for the `test-auth` coverage merge step in `.github/workflows/test-all.yml`.
-fs.mkdirSync(path.resolve(import.meta.dirname, 'coverage'), {
-  recursive: true
-});
+// Ensure `./packages/auth/coverage/lcov.info` exists for the `test-auth` coverage merge step in `.github/workflows/test-all.yml`.
+const coverageDir = path.resolve(import.meta.dirname, 'coverage');
+fs.mkdirSync(coverageDir, { recursive: true });
+const lcovPath = path.resolve(coverageDir, 'lcov.info');
+if (!fs.existsSync(lcovPath)) {
+  fs.writeFileSync(lcovPath, '');
+}
 
 const config = createBaseConfig(import.meta.url);
 
 config.test.teardownTimeout = 1000;
 
+const hasIntegrationArg = process.argv.some(arg =>
+  arg.includes('test/integration')
+);
+
+function projectConfigPlugin() {
+  return {
+    name: 'auth-project-config',
+    enforce: 'pre',
+    transform(code, id) {
+      const cleanId = id.split('?')[0];
+      if (
+        cleanId.endsWith('.ts') &&
+        code.includes("require('../../../../../config/project.json')")
+      ) {
+        return {
+          code: code.replace(
+            /const (\w+) = require\('\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/config\/project\.json'\);/g,
+            "import $1 from '../../../../../config/project.json';"
+          ),
+          map: null
+        };
+      }
+      return null;
+    }
+  };
+}
+
 for (const project of config.test.projects) {
+  const exclude = [
+    ...(project.test.exclude || []),
+    '**/platform_react_native/**'
+  ];
+  if (!hasIntegrationArg) {
+    exclude.push('test/integration/**');
+  } else {
+    exclude.push('test/integration/webdriver/**');
+    if (!process.env.FIREBASE_AUTH_EMULATOR_HOST) {
+      exclude.push('**/*.local.test.ts');
+    }
+    project.test.fileParallelism = false;
+    project.test.testTimeout = 20000;
+  }
+
   if (project.test.name === 'node') {
-    project.test.exclude = [
-      ...(project.test.exclude || []),
-      '**/platform_browser/**',
-      '**/platform_react_native/**',
-      '**/platform_cordova/**',
-      'test/integration/**'
-    ];
+    exclude.push('**/platform_browser/**', '**/platform_cordova/**');
+    project.test.exclude = exclude;
   } else if (project.test.name === 'browser') {
-    project.test.exclude = [
-      ...(project.test.exclude || []),
-      '**/platform_cordova/**',
-      '**/platform_react_native/**',
-      'test/integration/**'
-    ];
+    project.test.exclude = exclude;
+    project.test.browser = {
+      ...project.test.browser,
+      instances: [
+        {
+          browser:
+            process.env.BROWSERS === 'WebkitHeadless'
+              ? 'webkit'
+              : process.env.BROWSERS === 'Firefox'
+                ? 'firefox'
+                : 'chromium'
+        }
+      ],
+      screenshotFailures: false
+    };
+    project.define = {
+      ...(project.define || {}),
+      'process.env': JSON.stringify({
+        FIREBASE_AUTH_EMULATOR_HOST: process.env.FIREBASE_AUTH_EMULATOR_HOST,
+        GCLOUD_PROJECT: process.env.GCLOUD_PROJECT
+      })
+    };
+    project.optimizeDeps = {
+      ...(project.optimizeDeps || {}),
+      include: [...(project.optimizeDeps?.include || []), 'totp-generator']
+    };
+    project.plugins = [...(project.plugins || []), projectConfigPlugin()];
   }
 }
 
 export default config;
+

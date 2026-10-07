@@ -34,6 +34,11 @@ import {
   TimerTripFn
 } from '../../../test/helpers/timeout_stub';
 import { _cordovaWindow } from '../plugins';
+import { MockInstance } from 'vitest';
+
+vi.mock('./utils', { spy: true });
+vi.mock('./events', { spy: true });
+
 const win = _cordovaWindow();
 
 describe('platform_cordova/popup_redirect/popup_redirect', () => {
@@ -44,8 +49,20 @@ describe('platform_cordova/popup_redirect/popup_redirect', () => {
   let auth: TestAuth;
   let resolver: PopupRedirectResolverInternal;
   let provider: AuthProvider;
-  let utilsStubs: sinon.SinonStubbedInstance<typeof utils>;
-  let eventsStubs: sinon.SinonStubbedInstance<Partial<typeof events>>;
+  let utilsStubs: {
+    _checkCordovaConfiguration: MockInstance;
+    _generateHandlerUrl: MockInstance;
+    _performRedirect: MockInstance;
+    _waitForAppResume: MockInstance;
+    _validateOrigin: MockInstance;
+  };
+  let eventsStubs: {
+    _generateNewEvent: MockInstance;
+    _savePartialEvent: MockInstance;
+    _getAndRemoveEvent: MockInstance;
+    _eventFromPartialAndUrl: MockInstance;
+    _getDeepLinkFromCallback: MockInstance;
+  };
   let universalLinksCb:
     ((eventData: Record<string, string> | null) => unknown) | null;
   let tripNoEventTimer: TimerTripFn;
@@ -56,7 +73,15 @@ describe('platform_cordova/popup_redirect/popup_redirect', () => {
       cordovaPopupRedirectResolver as SingletonInstantiator<PopupRedirectResolverInternal>
     )();
     provider = new GoogleAuthProvider();
-    utilsStubs = vi.fn(utils);
+    utilsStubs = {
+      _checkCordovaConfiguration: vi
+        .spyOn(utils, '_checkCordovaConfiguration')
+        .mockImplementation(() => {}),
+      _generateHandlerUrl: vi.spyOn(utils, '_generateHandlerUrl'),
+      _performRedirect: vi.spyOn(utils, '_performRedirect'),
+      _waitForAppResume: vi.spyOn(utils, '_waitForAppResume'),
+      _validateOrigin: vi.spyOn(utils, '_validateOrigin')
+    };
     eventsStubs = {
       _generateNewEvent: vi.spyOn(events, '_generateNewEvent'),
       _savePartialEvent: vi.spyOn(events, '_savePartialEvent'),
