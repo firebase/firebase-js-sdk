@@ -17,7 +17,21 @@
 
 import createBaseConfig from '../../config/vitest.base.mjs';
 
+const hasIntegrationArg = process.argv.some(arg => arg.includes('integration'));
+
 const config = createBaseConfig(import.meta.url);
+
+for (const project of config.test.projects) {
+  if (hasIntegrationArg) {
+    project.test.include = ['integration/**/*.test.ts'];
+  } else {
+    project.test.exclude.push('integration/**');
+  }
+  if (project.test?.name === 'browser' && project.test?.browser) {
+    project.test.browser.screenshotFailures = false;
+  }
+}
+
 config.test.projects
   .find(project => project.test?.name === 'node')
   ?.test?.exclude?.push('**/*-browser.test.ts');
