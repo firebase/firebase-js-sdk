@@ -1,6 +1,6 @@
 {
   "name": "@firebase/app-check-compat",
-  "version": "0.4.6",
+  "version": "0.4.7",
   "description": "A compat App Check package for new firebase packages",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
@@ -24,9 +24,11 @@
     "build:release": "yarn build && yarn add-compat-overloads",
     "build:deps": "lerna run build --scope @firebase/app-check-compat --include-dependencies",
     "dev": "rollup -c -w",
-    "test": "run-p --npm-path npm lint test:browser",
-    "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:browser",
-    "test:browser": "karma start --nocache",
+    "test": "run-p --npm-path npm lint test:all",
+    "test:all": "vitest run",
+    "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all",
+    "test:browser": "vitest run",
+    "test:browser:debug": "vitest --browser.headless=false",
     "trusted-type-check": "tsec -p tsconfig.json --noEmit",
     "add-compat-overloads": "ts-node-script ../../scripts/build/create-overloads.ts -i ../app-check/dist/app-check-public.d.ts -o dist/src/index.d.ts -a -r AppCheck:FirebaseAppCheck -r FirebaseApp:FirebaseAppCompat --moduleToEnhance @firebase/app-check"
   },
@@ -35,16 +37,16 @@
     "@firebase/app-compat": "0.x"
   },
   "dependencies": {
-    "@firebase/app-check": "0.13.0",
-    "@firebase/app-check-types": "0.5.4",
-    "@firebase/logger": "0.5.1",
-    "@firebase/util": "1.15.2",
-    "@firebase/component": "0.7.4",
+    "@firebase/app-check": "0.13.1",
+    "@firebase/app-check-types": "0.5.5",
+    "@firebase/logger": "0.5.2",
+    "@firebase/util": "1.15.3",
+    "@firebase/component": "0.7.5",
     "tslib": "^2.1.0"
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@firebase/app-compat": "0.5.16",
+    "@firebase/app-compat": "0.5.18",
     "rollup": "4.62.2",
     "@rollup/plugin-commonjs": "21.1.0",
     "@rollup/plugin-json": "6.1.0",
@@ -61,13 +63,7 @@
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
   "typings": "dist/src/index.d.ts",
-  "nyc": {
-    "extension": [
-      ".ts"
-    ],
-    "reportDir": "./coverage/node"
-  },
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=24.12.0"
   }
 }

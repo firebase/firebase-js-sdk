@@ -23,8 +23,6 @@ export class AgentPlatformBackend extends Backend {
 export interface AI {
     app: FirebaseApp;
     backend: Backend;
-    // @deprecated (undocumented)
-    location: string;
     options?: AIOptions;
 }
 
@@ -69,7 +67,7 @@ export abstract class AIModel {
     readonly model: string;
     // @internal
     static normalizeModelName(modelName: string, backendType: BackendType): string;
-    }
+}
 
 // @public
 export interface AIOptions {
@@ -119,7 +117,6 @@ export abstract class Backend {
 // @public
 export const BackendType: {
     readonly AGENT_PLATFORM: "AGENT_PLATFORM";
-    readonly VERTEX_AI: "VERTEX_AI";
     readonly GOOGLE_AI: "GOOGLE_AI";
 };
 
@@ -156,55 +153,16 @@ export class BooleanSchema extends Schema {
 }
 
 // @public
-export class ChatSession extends ChatSessionBase<StartChatParams, GenerateContentRequest, FunctionDeclarationsTool> {
-    constructor(apiSettings: ApiSettings, model: string, chromeAdapter?: ChromeAdapter | undefined, params?: StartChatParams | undefined, requestOptions?: RequestOptions | undefined);
-    // @internal
-    _callGenerateContent(formattedRequest: GenerateContentRequest, singleRequestOptions?: RequestOptions): Promise<GenerateContentResult>;
-    // @internal
-    _callGenerateContentStream(formattedRequest: GenerateContentRequest, singleRequestOptions?: RequestOptions): Promise<GenerateContentStreamResult>;
-    // @internal
-    _formatRequest(incomingContent: Content, tempHistory: Content[]): GenerateContentRequest;
+export interface ChatSession {
+    getHistory(): Promise<Content[]>;
     // (undocumented)
     model: string;
     // (undocumented)
-    params?: StartChatParams | undefined;
+    params?: StartChatParams;
     // (undocumented)
-    requestOptions?: RequestOptions | undefined;
+    requestOptions?: RequestOptions;
     sendMessage(request: string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentResult>;
     sendMessageStream(request: string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentStreamResult>;
-}
-
-// Warning: (ae-incompatible-release-tags) The symbol "ChatSessionBase" is marked as @public, but its signature references "StartTemplateChatParams" which is marked as @beta
-// Warning: (ae-incompatible-release-tags) The symbol "ChatSessionBase" is marked as @public, but its signature references "TemplateFunctionDeclarationsTool" which is marked as @beta
-//
-// @public
-export abstract class ChatSessionBase<ParamsType extends StartChatParams | StartTemplateChatParams, RequestType, FunctionDeclarationsToolType extends FunctionDeclarationsTool | TemplateFunctionDeclarationsTool> {
-    constructor(apiSettings: ApiSettings, params?: ParamsType | undefined, requestOptions?: RequestOptions | undefined);
-    // (undocumented)
-    protected _apiSettings: ApiSettings;
-    // @internal
-    _callFunctionsAsNeeded(functionCalls: FunctionCall[]): Promise<FunctionResponsePart[]>;
-    // @internal
-    abstract _callGenerateContent(formattedRequest: RequestType, singleRequestOptions?: RequestOptions): Promise<GenerateContentResult>;
-    // @internal
-    abstract _callGenerateContentStream(formattedRequest: RequestType, singleRequestOptions?: RequestOptions): Promise<GenerateContentStreamResult>;
-    // @internal
-    abstract _formatRequest(incomingContent: Content, tempHistory: Content[]): RequestType;
-    // @internal
-    _getCallableFunctionCalls(response?: GenerateContentResponse): FunctionCall[] | undefined;
-    getHistory(): Promise<Content[]>;
-    // (undocumented)
-    protected _history: Content[];
-    // (undocumented)
-    params?: ParamsType | undefined;
-    // (undocumented)
-    requestOptions?: RequestOptions | undefined;
-    // @internal
-    _sendMessage(request: string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentResult>;
-    // @internal
-    _sendMessageStream(request: string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentStreamResult>;
-    // @internal
-    protected _sendPromise: Promise<void>;
 }
 
 // @public
@@ -247,23 +205,9 @@ export interface CodeExecutionResult {
 // @public
 export interface CodeExecutionResultPart {
     // (undocumented)
-    codeExecutionResult?: CodeExecutionResult;
+    codeExecutionResult: CodeExecutionResult;
     // (undocumented)
-    executableCode?: never;
-    // (undocumented)
-    fileData: never;
-    // (undocumented)
-    functionCall?: never;
-    // (undocumented)
-    functionResponse?: never;
-    // (undocumented)
-    inlineData?: never;
-    // (undocumented)
-    text?: never;
-    // (undocumented)
-    thought?: never;
-    // @internal (undocumented)
-    thoughtSignature?: never;
+    type: 'codeExecutionResult';
 }
 
 // @public
@@ -297,8 +241,6 @@ export interface CountTokensRequest {
 // @public
 export interface CountTokensResponse {
     promptTokensDetails?: ModalityTokenCount[];
-    // @deprecated (undocumented)
-    totalBillableCharacters?: number;
     totalTokens: number;
 }
 
@@ -319,7 +261,6 @@ interface Date_2 {
     // (undocumented)
     year: number;
 }
-
 export { Date_2 as Date }
 
 // @public
@@ -350,23 +291,9 @@ export interface ExecutableCode {
 // @public
 export interface ExecutableCodePart {
     // (undocumented)
-    codeExecutionResult?: never;
+    executableCode: ExecutableCode;
     // (undocumented)
-    executableCode?: ExecutableCode;
-    // (undocumented)
-    fileData: never;
-    // (undocumented)
-    functionCall?: never;
-    // (undocumented)
-    functionResponse?: never;
-    // (undocumented)
-    inlineData?: never;
-    // (undocumented)
-    text?: never;
-    // (undocumented)
-    thought?: never;
-    // @internal (undocumented)
-    thoughtSignature?: never;
+    type: 'executableCode';
 }
 
 // @public
@@ -380,23 +307,11 @@ export interface FileData {
 // @public
 export interface FileDataPart {
     // (undocumented)
-    codeExecutionResult?: never;
-    // (undocumented)
-    executableCode?: never;
-    // (undocumented)
     fileData: FileData;
     // (undocumented)
-    functionCall?: never;
-    // (undocumented)
-    functionResponse?: never;
-    // (undocumented)
-    inlineData?: never;
-    // (undocumented)
-    text?: never;
-    // (undocumented)
     thought?: boolean;
-    // @internal (undocumented)
-    thoughtSignature?: never;
+    // (undocumented)
+    type: 'fileData';
 }
 
 // @public
@@ -455,21 +370,11 @@ export type FunctionCallingMode = (typeof FunctionCallingMode)[keyof typeof Func
 // @public
 export interface FunctionCallPart {
     // (undocumented)
-    codeExecutionResult?: never;
-    // (undocumented)
-    executableCode?: never;
-    // (undocumented)
     functionCall: FunctionCall;
     // (undocumented)
-    functionResponse?: never;
-    // (undocumented)
-    inlineData?: never;
-    // (undocumented)
-    text?: never;
-    // (undocumented)
     thought?: boolean;
-    // @internal (undocumented)
-    thoughtSignature?: never;
+    // (undocumented)
+    type: 'functionCall';
 }
 
 // @public
@@ -499,21 +404,11 @@ export interface FunctionResponse {
 // @public
 export interface FunctionResponsePart {
     // (undocumented)
-    codeExecutionResult?: never;
-    // (undocumented)
-    executableCode?: never;
-    // (undocumented)
-    functionCall?: never;
-    // (undocumented)
     functionResponse: FunctionResponse;
     // (undocumented)
-    inlineData?: never;
-    // (undocumented)
-    text?: never;
-    // (undocumented)
     thought?: boolean;
-    // @internal (undocumented)
-    thoughtSignature?: never;
+    // (undocumented)
+    type: 'functionResponse';
 }
 
 // @public
@@ -574,14 +469,14 @@ export interface GenerateContentStreamResult {
 
 // @public
 export interface GenerationConfig {
-    // (undocumented)
+    // @deprecated (undocumented)
     candidateCount?: number;
-    // (undocumented)
+    // @deprecated (undocumented)
     frequencyPenalty?: number;
     imageConfig?: ImageConfig;
     // (undocumented)
     maxOutputTokens?: number;
-    // (undocumented)
+    // @deprecated (undocumented)
     presencePenalty?: number;
     responseJsonSchema?: {
         [key: string]: unknown;
@@ -594,12 +489,12 @@ export interface GenerationConfig {
     speechConfig?: SpeechConfig;
     // (undocumented)
     stopSequences?: string[];
-    // (undocumented)
+    // @deprecated (undocumented)
     temperature?: number;
     thinkingConfig?: ThinkingConfig;
-    // (undocumented)
+    // @deprecated (undocumented)
     topK?: number;
-    // (undocumented)
+    // @deprecated (undocumented)
     topP?: number;
 }
 
@@ -638,17 +533,11 @@ export function getAI(app?: FirebaseApp, options?: AIOptions): AI;
 // @public
 export function getGenerativeModel(ai: AI, modelParams: ModelParams | HybridParams, requestOptions?: RequestOptions): GenerativeModel;
 
-// @public @deprecated
-export function getImagenModel(ai: AI, modelParams: ImagenModelParams, requestOptions?: RequestOptions): ImagenModel;
-
 // @beta
 export function getLiveGenerativeModel(ai: AI, modelParams: LiveModelParams): LiveGenerativeModel;
 
 // @beta
 export function getTemplateGenerativeModel(ai: AI, requestOptions?: RequestOptions): TemplateGenerativeModel;
-
-// @public @deprecated
-export function getTemplateImagenModel(ai: AI, requestOptions?: RequestOptions): TemplateImagenModel;
 
 // @public
 export class GoogleAIBackend extends Backend {
@@ -717,8 +606,6 @@ export interface GoogleAIGenerateContentResponse {
 
 // @public
 export interface GoogleMaps {
-    // @deprecated (undocumented)
-    enableWidget?: boolean;
 }
 
 // @public
@@ -754,8 +641,6 @@ export interface GroundingMetadata {
     googleMapsWidgetContextToken?: string;
     groundingChunks?: GroundingChunk[];
     groundingSupports?: GroundingSupport[];
-    // @deprecated (undocumented)
-    retrievalQueries?: string[];
     searchEntryPoint?: SearchEntrypoint;
     webSearchQueries?: string[];
 }
@@ -866,99 +751,6 @@ export const ImageConfigImageSize: {
 // @public
 export type ImageConfigImageSize = (typeof ImageConfigImageSize)[keyof typeof ImageConfigImageSize];
 
-// @public @deprecated
-export const ImagenAspectRatio: {
-    readonly SQUARE: "1:1";
-    readonly LANDSCAPE_3x4: "3:4";
-    readonly PORTRAIT_4x3: "4:3";
-    readonly LANDSCAPE_16x9: "16:9";
-    readonly PORTRAIT_9x16: "9:16";
-};
-
-// @public @deprecated
-export type ImagenAspectRatio = (typeof ImagenAspectRatio)[keyof typeof ImagenAspectRatio];
-
-// @public @deprecated
-export interface ImagenGCSImage {
-    gcsURI: string;
-    mimeType: string;
-}
-
-// @public @deprecated
-export interface ImagenGenerationConfig {
-    addWatermark?: boolean;
-    aspectRatio?: ImagenAspectRatio;
-    imageFormat?: ImagenImageFormat;
-    negativePrompt?: string;
-    numberOfImages?: number;
-}
-
-// @public @deprecated
-export interface ImagenGenerationResponse<T extends ImagenInlineImage | ImagenGCSImage> {
-    filteredReason?: string;
-    images: T[];
-}
-
-// @public @deprecated
-export class ImagenImageFormat {
-    compressionQuality?: number;
-    static jpeg(compressionQuality?: number): ImagenImageFormat;
-    mimeType: string;
-    static png(): ImagenImageFormat;
-}
-
-// @public @deprecated
-export interface ImagenInlineImage {
-    bytesBase64Encoded: string;
-    mimeType: string;
-}
-
-// @public @deprecated
-export class ImagenModel extends AIModel {
-    constructor(ai: AI, modelParams: ImagenModelParams, requestOptions?: RequestOptions | undefined);
-    generateImages(prompt: string, singleRequestOptions?: SingleRequestOptions): Promise<ImagenGenerationResponse<ImagenInlineImage>>;
-    // @internal
-    generateImagesGCS(prompt: string, gcsURI: string, singleRequestOptions?: SingleRequestOptions): Promise<ImagenGenerationResponse<ImagenGCSImage>>;
-    generationConfig?: ImagenGenerationConfig;
-    // (undocumented)
-    requestOptions?: RequestOptions | undefined;
-    safetySettings?: ImagenSafetySettings;
-}
-
-// @public @deprecated
-export interface ImagenModelParams {
-    generationConfig?: ImagenGenerationConfig;
-    model: string;
-    safetySettings?: ImagenSafetySettings;
-}
-
-// @public @deprecated
-export const ImagenPersonFilterLevel: {
-    readonly BLOCK_ALL: "dont_allow";
-    readonly ALLOW_ADULT: "allow_adult";
-    readonly ALLOW_ALL: "allow_all";
-};
-
-// @public @deprecated
-export type ImagenPersonFilterLevel = (typeof ImagenPersonFilterLevel)[keyof typeof ImagenPersonFilterLevel];
-
-// @public @deprecated
-export const ImagenSafetyFilterLevel: {
-    readonly BLOCK_LOW_AND_ABOVE: "block_low_and_above";
-    readonly BLOCK_MEDIUM_AND_ABOVE: "block_medium_and_above";
-    readonly BLOCK_ONLY_HIGH: "block_only_high";
-    readonly BLOCK_NONE: "block_none";
-};
-
-// @public @deprecated
-export type ImagenSafetyFilterLevel = (typeof ImagenSafetyFilterLevel)[keyof typeof ImagenSafetyFilterLevel];
-
-// @public @deprecated
-export interface ImagenSafetySettings {
-    personFilterLevel?: ImagenPersonFilterLevel;
-    safetyFilterLevel?: ImagenSafetyFilterLevel;
-}
-
 // @public
 export const InferenceMode: {
     readonly PREFER_ON_DEVICE: "prefer_on_device";
@@ -982,21 +774,11 @@ export type InferenceSource = (typeof InferenceSource)[keyof typeof InferenceSou
 // @public
 export interface InlineDataPart {
     // (undocumented)
-    codeExecutionResult?: never;
-    // (undocumented)
-    executableCode?: never;
-    // (undocumented)
-    functionCall?: never;
-    // (undocumented)
-    functionResponse?: never;
-    // (undocumented)
     inlineData: GenerativeContentBlob;
     // (undocumented)
-    text?: never;
-    // (undocumented)
     thought?: boolean;
-    // @internal (undocumented)
-    thoughtSignature?: never;
+    // (undocumented)
+    type: 'inlineData';
     videoMetadata?: VideoMetadata;
 }
 
@@ -1019,10 +801,6 @@ export interface LanguageModelCreateCoreOptions {
     expectedInputs?: LanguageModelExpected[];
     expectedOutputs?: LanguageModelExpected[];
     monitor?: (monitor: LanguageModelDownloadMonitor) => void;
-    // @deprecated (undocumented)
-    temperature?: number;
-    // @deprecated (undocumented)
-    topK?: number;
 }
 
 // @public
@@ -1093,15 +871,20 @@ export interface LatLng {
 // @beta
 export interface LiveGenerationConfig {
     contextWindowCompression?: ContextWindowCompressionConfig;
+    // @deprecated
     frequencyPenalty?: number;
     inputAudioTranscription?: AudioTranscriptionConfig;
     maxOutputTokens?: number;
     outputAudioTranscription?: AudioTranscriptionConfig;
+    // @deprecated
     presencePenalty?: number;
     responseModalities?: ResponseModality[];
     speechConfig?: SpeechConfig;
+    // @deprecated
     temperature?: number;
+    // @deprecated
     topK?: number;
+    // @deprecated
     topP?: number;
 }
 
@@ -1121,7 +904,7 @@ export class LiveGenerativeModel extends AIModel {
     toolConfig?: ToolConfig;
     // (undocumented)
     tools?: Tool[];
-    }
+}
 
 // @beta
 export interface LiveModelParams {
@@ -1196,13 +979,9 @@ export class LiveSession {
     send(request: string | Array<string | Part>, turnComplete?: boolean): Promise<void>;
     sendAudioRealtime(blob: GenerativeContentBlob): Promise<void>;
     sendFunctionResponses(functionResponses: FunctionResponse[]): Promise<void>;
-    // @deprecated
-    sendMediaChunks(mediaChunks: GenerativeContentBlob[]): Promise<void>;
-    // @deprecated (undocumented)
-    sendMediaStream(mediaChunkStream: ReadableStream<GenerativeContentBlob>): Promise<void>;
     sendTextRealtime(text: string): Promise<void>;
     sendVideoRealtime(blob: GenerativeContentBlob): Promise<void>;
-    }
+}
 
 // @beta
 export interface LiveSessionResumptionUpdate {
@@ -1536,8 +1315,7 @@ export interface StartChatParams extends BaseParams {
 // @beta
 export interface StartTemplateChatParams extends Omit<StartChatParams, 'tools'> {
     templateId: string;
-    templateVariables?: Record<string, unknown>;
-    // (undocumented)
+    templateVariables: Record<string, unknown>;
     tools?: TemplateTool[];
 }
 
@@ -1610,20 +1388,17 @@ export class TemplateGenerativeModel {
     constructor(ai: AI, requestOptions?: RequestOptions);
     // @internal (undocumented)
     _apiSettings: ApiSettings;
-    generateContent(templateId: string, templateVariables: Record<string, unknown>, singleRequestOptions?: SingleRequestOptions, templateToolConfig?: TemplateToolConfig): Promise<GenerateContentResult>;
-    generateContentStream(templateId: string, templateVariables: Record<string, unknown>, singleRequestOptions?: SingleRequestOptions, templateToolConfig?: TemplateToolConfig): Promise<GenerateContentStreamResult>;
+    generateContent(request: TemplateRequest, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentResult>;
+    generateContentStream(request: TemplateRequest, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentStreamResult>;
     requestOptions?: RequestOptions;
     startChat(params: StartTemplateChatParams): TemplateChatSession;
 }
 
-// @public @deprecated
-export class TemplateImagenModel {
-    constructor(ai: AI, requestOptions?: RequestOptions);
-    // @internal (undocumented)
-    _apiSettings: ApiSettings;
-    // @beta
-    generateImages(templateId: string, templateVariables: object, singleRequestOptions?: SingleRequestOptions): Promise<ImagenGenerationResponse<ImagenInlineImage>>;
-    requestOptions?: RequestOptions;
+// @beta
+export interface TemplateRequest {
+    templateId: string;
+    templateVariables: Record<string, unknown>;
+    toolConfig?: TemplateToolConfig;
 }
 
 // Warning: (ae-internal-missing-underscore) The name "TemplateRequestInternal" should be prefixed with an underscore because the declaration is marked as @internal
@@ -1646,21 +1421,13 @@ export interface TemplateToolConfig {
 // @public
 export interface TextPart {
     // (undocumented)
-    codeExecutionResult?: never;
-    // (undocumented)
-    executableCode?: never;
-    // (undocumented)
-    functionCall?: never;
-    // (undocumented)
-    functionResponse?: never;
-    // (undocumented)
-    inlineData?: never;
-    // (undocumented)
     text: string;
     // (undocumented)
     thought?: boolean;
     // @internal (undocumented)
     thoughtSignature?: string;
+    // (undocumented)
+    type: 'text';
 }
 
 // @public
@@ -1699,6 +1466,31 @@ export interface Transcription {
 
 // @public
 export type TypedSchema = IntegerSchema | NumberSchema | StringSchema | BooleanSchema | ObjectSchema | ArraySchema | AnyOfSchema;
+
+// Warning: (ae-internal-missing-underscore) The name "UnknownPart" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
+export interface UnknownPart {
+    // (undocumented)
+    codeExecutionResult?: CodeExecutionResult;
+    // (undocumented)
+    executableCode?: ExecutableCode;
+    // (undocumented)
+    fileData?: FileData;
+    // (undocumented)
+    functionCall?: FunctionCall;
+    // (undocumented)
+    functionResponse?: FunctionResponse;
+    // (undocumented)
+    inlineData?: GenerativeContentBlob;
+    // (undocumented)
+    text?: string;
+    // (undocumented)
+    thought?: boolean;
+    // (undocumented)
+    thoughtSignature?: string;
+    videoMetadata?: VideoMetadata;
+}
 
 // @public
 export interface URLContext {
@@ -1751,16 +1543,6 @@ export interface UsageMetadata {
     totalTokenCount: number;
 }
 
-// @public @deprecated
-export class VertexAIBackend extends Backend {
-    constructor(location?: string);
-    // @internal (undocumented)
-    _getModelPath(project: string, model: string): string;
-    // @internal (undocumented)
-    _getTemplatePath(project: string, templateId: string): string;
-    readonly location: string;
-}
-
 // @public
 export interface VideoMetadata {
     endOffset: string;
@@ -1786,6 +1568,5 @@ export interface WebGroundingChunk {
     title?: string;
     uri?: string;
 }
-
 
 ```

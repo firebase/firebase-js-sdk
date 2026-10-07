@@ -28,7 +28,13 @@ import {
   Part,
   SessionResumptionConfig
 } from '../public-types';
-import { formatNewContent } from '../requests/request-helpers';
+import {
+  cleanContentForWire,
+  cleanFunctionResponseForWire,
+  cleanSystemInstructionForWire,
+  formatNewContent
+} from '../requests/request-helpers';
+import { assignPartType } from '../requests/response-helpers';
 import { AIError } from '../errors';
 import { WebSocketHandler, WebSocketHandlerImpl } from '../websocket';
 import { logger } from '../logger';
@@ -102,9 +108,17 @@ export class LiveSession {
     try {
       // Begin listening for server messages, and begin the handshake by sending the 'setupMessage'
       this._serverMessages = this._webSocketHandler.listen();
-      const setupMessage = { ...this._setupMessage };
+      const setupMessage: _LiveClientSetup = {
+        ...this._setupMessage,
+        setup: { ...this._setupMessage.setup }
+      };
       if (sessionResumption) {
         setupMessage.setup.sessionResumption = sessionResumption;
+      }
+      if (setupMessage.setup.systemInstruction) {
+        setupMessage.setup.systemInstruction = cleanSystemInstructionForWire(
+          setupMessage.setup.systemInstruction
+        );
       }
       this._webSocketHandler.send(JSON.stringify(setupMessage));
 
@@ -178,7 +192,7 @@ export class LiveSession {
 
     const message: _LiveClientContent = {
       clientContent: {
-        turns: [newContent],
+        turns: [cleanContentForWire(newContent)],
         turnComplete
       }
     };
@@ -301,7 +315,7 @@ export class LiveSession {
 
     const message: _LiveClientToolResponse = {
       toolResponse: {
-        functionResponses
+        functionResponses: functionResponses.map(cleanFunctionResponseForWire)
       }
     };
     this._webSocketHandler.send(JSON.stringify(message));
@@ -333,10 +347,16 @@ export class LiveSession {
       for await (const message of this._serverMessages) {
         if (message && typeof message === 'object') {
           if (LiveResponseType.SERVER_CONTENT in message) {
+            const serverContent = (
+              message as { serverContent: Omit<LiveServerContent, 'type'> }
+            ).serverContent;
+            if (serverContent?.modelTurn?.parts) {
+              serverContent.modelTurn.parts =
+                serverContent.modelTurn.parts.map(assignPartType);
+            }
             yield {
               type: 'serverContent',
-              ...(message as { serverContent: Omit<LiveServerContent, 'type'> })
-                .serverContent
+              ...serverContent
             } as LiveServerContent;
           } else if (LiveResponseType.TOOL_CALL in message) {
             yield {
@@ -406,75 +426,6 @@ export class LiveSession {
     if (!this.isClosed) {
       this.isClosed = true;
       await this._webSocketHandler.close(1000, 'Client closed session.');
-    }
-  }
-
-  /**
-   * Sends realtime input to the server.
-   *
-   * @deprecated Use `sendTextRealtime()`, `sendAudioRealtime()`, and `sendVideoRealtime()` instead.
-   *
-   * @param mediaChunks - The media chunks to send.
-   * @throws If this session has been closed.
-   *
-   * @beta
-   */
-  async sendMediaChunks(mediaChunks: GenerativeContentBlob[]): Promise<void> {
-    if (this.isClosed) {
-      throw new AIError(
-        AIErrorCode.REQUEST_ERROR,
-        'This LiveSession has been closed and cannot be used.'
-      );
-    }
-
-    // The backend does not support sending more than one mediaChunk in one message.
-    // Work around this limitation by sending mediaChunks in separate messages.
-    mediaChunks.forEach(mediaChunk => {
-      const message: _LiveClientRealtimeInput = {
-        realtimeInput: { mediaChunks: [mediaChunk] }
-      };
-      this._webSocketHandler.send(JSON.stringify(message));
-    });
-  }
-
-  /**
-   * @deprecated Use `sendTextRealtime()`, `sendAudioRealtime()`, and `sendVideoRealtime()` instead.
-   *
-   * Sends a stream of {@link GenerativeContentBlob}.
-   *
-   * @param mediaChunkStream - The stream of {@link GenerativeContentBlob} to send.
-   * @throws If this session has been closed.
-   *
-   * @beta
-   */
-  async sendMediaStream(
-    mediaChunkStream: ReadableStream<GenerativeContentBlob>
-  ): Promise<void> {
-    if (this.isClosed) {
-      throw new AIError(
-        AIErrorCode.REQUEST_ERROR,
-        'This LiveSession has been closed and cannot be used.'
-      );
-    }
-
-    const reader = mediaChunkStream.getReader();
-    while (true) {
-      try {
-        const { done, value } = await reader.read();
-
-        if (done) {
-          break;
-        } else if (!value) {
-          throw new Error('Missing chunk in reader, but reader is not done.');
-        }
-
-        await this.sendMediaChunks([value]);
-      } catch (e) {
-        // Re-throw any errors that occur during stream consumption or sending.
-        const message =
-          e instanceof Error ? e.message : 'Error processing media stream.';
-        throw new AIError(AIErrorCode.REQUEST_ERROR, message);
-      }
     }
   }
 }

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2021 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
 
 import {
   EmptyAppCheckTokenProvider,
@@ -34,9 +31,6 @@ import {
 } from '../../../src/remote/datastore';
 import { JsonProtoSerializer } from '../../../src/remote/serializer';
 import { Code, FirestoreError } from '../../../src/util/error';
-
-use(chaiAsPromised);
-
 // TODO(b/185584343): Improve the coverage of these tests.
 // At the time of writing, the tests only cover the error handling in
 // `invokeRPC()` and `invokeStreamingRPC()`.
@@ -119,7 +113,7 @@ describe('Datastore', () => {
       new MockConnection(),
       serializer
     );
-    expect(datastore).to.be.an.instanceof(Datastore);
+    expect(datastore).toBeInstanceOf(Datastore);
   });
 
   it('DatastoreImpl.invokeRPC() fails if terminated', async () => {
@@ -130,12 +124,13 @@ describe('Datastore', () => {
       serializer
     );
     datastore.terminate();
-    await expect(invokeDatastoreImplInvokeRpc(datastore))
-      .to.eventually.be.rejectedWith(/terminated/)
-      .and.include({
-        'name': 'FirebaseError',
-        'code': Code.FAILED_PRECONDITION
-      });
+    await expect(invokeDatastoreImplInvokeRpc(datastore)).rejects.toMatchObject(
+      {
+        message: expect.stringMatching(/terminated/),
+        name: 'FirebaseError',
+        code: Code.FAILED_PRECONDITION
+      }
+    );
   });
 
   it('Connection.terminate() invoked if Datastore terminated', async () => {
@@ -147,7 +142,7 @@ describe('Datastore', () => {
       serializer
     );
     datastore.terminate();
-    await expect(connection.terminateInvoked).to.equal(true);
+    await expect(connection.terminateInvoked).toBe(true);
   });
 
   it('DatastoreImpl.invokeRPC() rethrows a FirestoreError', async () => {
@@ -162,14 +157,15 @@ describe('Datastore', () => {
       connection,
       serializer
     );
-    await expect(invokeDatastoreImplInvokeRpc(datastore))
-      .to.eventually.be.rejectedWith('zzyzx')
-      .and.include({
-        'name': 'FirebaseError',
-        'code': Code.ABORTED
-      });
-    expect(authCredentials.invalidateTokenInvoked).to.be.false;
-    expect(appCheckCredentials.invalidateTokenInvoked).to.be.false;
+    await expect(invokeDatastoreImplInvokeRpc(datastore)).rejects.toMatchObject(
+      {
+        message: expect.stringContaining('zzyzx'),
+        name: 'FirebaseError',
+        code: Code.ABORTED
+      }
+    );
+    expect(authCredentials.invalidateTokenInvoked).toBe(false);
+    expect(appCheckCredentials.invalidateTokenInvoked).toBe(false);
   });
 
   it('DatastoreImpl.invokeRPC() wraps unknown exceptions in a FirestoreError', async () => {
@@ -183,14 +179,15 @@ describe('Datastore', () => {
       connection,
       serializer
     );
-    await expect(invokeDatastoreImplInvokeRpc(datastore))
-      .to.eventually.be.rejectedWith('zzyzx')
-      .and.include({
-        'name': 'FirebaseError',
-        'code': Code.UNKNOWN
-      });
-    expect(authCredentials.invalidateTokenInvoked).to.be.false;
-    expect(appCheckCredentials.invalidateTokenInvoked).to.be.false;
+    await expect(invokeDatastoreImplInvokeRpc(datastore)).rejects.toMatchObject(
+      {
+        message: expect.stringContaining('zzyzx'),
+        name: 'FirebaseError',
+        code: Code.UNKNOWN
+      }
+    );
+    expect(authCredentials.invalidateTokenInvoked).toBe(false);
+    expect(appCheckCredentials.invalidateTokenInvoked).toBe(false);
   });
 
   it('DatastoreImpl.invokeRPC() invalidates the token if unauthenticated', async () => {
@@ -205,14 +202,15 @@ describe('Datastore', () => {
       connection,
       serializer
     );
-    await expect(invokeDatastoreImplInvokeRpc(datastore))
-      .to.eventually.be.rejectedWith('zzyzx')
-      .and.include({
-        'name': 'FirebaseError',
-        'code': Code.UNAUTHENTICATED
-      });
-    expect(authCredentials.invalidateTokenInvoked).to.be.true;
-    expect(appCheckCredentials.invalidateTokenInvoked).to.be.true;
+    await expect(invokeDatastoreImplInvokeRpc(datastore)).rejects.toMatchObject(
+      {
+        message: expect.stringContaining('zzyzx'),
+        name: 'FirebaseError',
+        code: Code.UNAUTHENTICATED
+      }
+    );
+    expect(authCredentials.invalidateTokenInvoked).toBe(true);
+    expect(appCheckCredentials.invalidateTokenInvoked).toBe(true);
   });
 
   it('DatastoreImpl.invokeStreamingRPC() fails if terminated', async () => {
@@ -223,12 +221,13 @@ describe('Datastore', () => {
       serializer
     );
     datastore.terminate();
-    await expect(invokeDatastoreImplInvokeStreamingRPC(datastore))
-      .to.eventually.be.rejectedWith(/terminated/)
-      .and.include({
-        'name': 'FirebaseError',
-        'code': Code.FAILED_PRECONDITION
-      });
+    await expect(
+      invokeDatastoreImplInvokeStreamingRPC(datastore)
+    ).rejects.toMatchObject({
+      message: expect.stringMatching(/terminated/),
+      name: 'FirebaseError',
+      code: Code.FAILED_PRECONDITION
+    });
   });
 
   it('DatastoreImpl.invokeStreamingRPC() rethrows a FirestoreError', async () => {
@@ -243,14 +242,15 @@ describe('Datastore', () => {
       connection,
       serializer
     );
-    await expect(invokeDatastoreImplInvokeStreamingRPC(datastore))
-      .to.eventually.be.rejectedWith('zzyzx')
-      .and.include({
-        'name': 'FirebaseError',
-        'code': Code.ABORTED
-      });
-    expect(authCredentials.invalidateTokenInvoked).to.be.false;
-    expect(appCheckCredentials.invalidateTokenInvoked).to.be.false;
+    await expect(
+      invokeDatastoreImplInvokeStreamingRPC(datastore)
+    ).rejects.toMatchObject({
+      message: expect.stringContaining('zzyzx'),
+      name: 'FirebaseError',
+      code: Code.ABORTED
+    });
+    expect(authCredentials.invalidateTokenInvoked).toBe(false);
+    expect(appCheckCredentials.invalidateTokenInvoked).toBe(false);
   });
 
   it('DatastoreImpl.invokeStreamingRPC() wraps unknown exceptions in a FirestoreError', async () => {
@@ -264,14 +264,15 @@ describe('Datastore', () => {
       connection,
       serializer
     );
-    await expect(invokeDatastoreImplInvokeStreamingRPC(datastore))
-      .to.eventually.be.rejectedWith('zzyzx')
-      .and.include({
-        'name': 'FirebaseError',
-        'code': Code.UNKNOWN
-      });
-    expect(authCredentials.invalidateTokenInvoked).to.be.false;
-    expect(appCheckCredentials.invalidateTokenInvoked).to.be.false;
+    await expect(
+      invokeDatastoreImplInvokeStreamingRPC(datastore)
+    ).rejects.toMatchObject({
+      message: expect.stringContaining('zzyzx'),
+      name: 'FirebaseError',
+      code: Code.UNKNOWN
+    });
+    expect(authCredentials.invalidateTokenInvoked).toBe(false);
+    expect(appCheckCredentials.invalidateTokenInvoked).toBe(false);
   });
 
   it('DatastoreImpl.invokeStreamingRPC() invalidates the token if unauthenticated', async () => {
@@ -286,13 +287,14 @@ describe('Datastore', () => {
       connection,
       serializer
     );
-    await expect(invokeDatastoreImplInvokeStreamingRPC(datastore))
-      .to.eventually.be.rejectedWith('zzyzx')
-      .and.include({
-        'name': 'FirebaseError',
-        'code': Code.UNAUTHENTICATED
-      });
-    expect(authCredentials.invalidateTokenInvoked).to.be.true;
-    expect(appCheckCredentials.invalidateTokenInvoked).to.be.true;
+    await expect(
+      invokeDatastoreImplInvokeStreamingRPC(datastore)
+    ).rejects.toMatchObject({
+      message: expect.stringContaining('zzyzx'),
+      name: 'FirebaseError',
+      code: Code.UNAUTHENTICATED
+    });
+    expect(authCredentials.invalidateTokenInvoked).toBe(true);
+    expect(appCheckCredentials.invalidateTokenInvoked).toBe(true);
   });
 });

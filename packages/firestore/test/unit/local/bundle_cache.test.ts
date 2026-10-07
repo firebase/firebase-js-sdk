@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import { Timestamp } from '../../../src/api/timestamp';
 import { NamedQuery } from '../../../src/core/bundle';
@@ -52,26 +50,24 @@ describe('MemoryBundleCache', () => {
   genericBundleCacheTests(() => cache);
 });
 
-describe('IndexedDbBundleCache', () => {
-  if (!IndexedDbPersistence.isAvailable()) {
-    console.warn('No IndexedDB. Skipping IndexedDbBundleCache tests.');
-    return;
+describe.skipIf(!IndexedDbPersistence.isAvailable())(
+  'IndexedDbBundleCache',
+  () => {
+    let cache: TestBundleCache;
+    let persistence: IndexedDbPersistence;
+    beforeEach(async () => {
+      persistence = await testIndexedDbPersistence();
+      cache = new TestBundleCache(persistence);
+    });
+
+    afterEach(async () => {
+      await persistence.shutdown();
+      await clearTestPersistence();
+    });
+
+    genericBundleCacheTests(() => cache);
   }
-
-  let cache: TestBundleCache;
-  let persistence: IndexedDbPersistence;
-  beforeEach(async () => {
-    persistence = await testIndexedDbPersistence();
-    cache = new TestBundleCache(persistence);
-  });
-
-  afterEach(async () => {
-    await persistence.shutdown();
-    await clearTestPersistence();
-  });
-
-  genericBundleCacheTests(() => cache);
-});
+);
 
 /**
  * Defines the set of tests to run against both bundle cache implementations.
@@ -90,19 +86,19 @@ function genericBundleCacheTests(cacheFn: () => TestBundleCache): void {
     expectedReadSeconds: number,
     expectedReadNanos: number
   ): void {
-    expect(actual.name).to.equal(expectedName);
-    expect(queryEquals(actual.query, expectedQuery)).to.be.true;
+    expect(actual.name).toBe(expectedName);
+    expect(queryEquals(actual.query, expectedQuery)).toBe(true);
     expect(
       actual.readTime.isEqual(
         SnapshotVersion.fromTimestamp(
           new Timestamp(expectedReadSeconds, expectedReadNanos)
         )
       )
-    ).to.be.true;
+    ).toBe(true);
   }
 
   it('returns undefined when bundle id is not found', async () => {
-    expect(await cache.getBundleMetadata('bundle-1')).to.be.undefined;
+    expect(await cache.getBundleMetadata('bundle-1')).toBeUndefined();
   });
 
   it('returns saved bundle', async () => {
@@ -111,7 +107,7 @@ function genericBundleCacheTests(cacheFn: () => TestBundleCache): void {
       version: 1,
       createTime: { seconds: 1, nanos: 9999 }
     });
-    expect(await cache.getBundleMetadata('bundle-1')).to.deep.equal({
+    expect(await cache.getBundleMetadata('bundle-1')).toEqual({
       id: 'bundle-1',
       version: 1,
       createTime: SnapshotVersion.fromTimestamp(new Timestamp(1, 9999))
@@ -123,7 +119,7 @@ function genericBundleCacheTests(cacheFn: () => TestBundleCache): void {
       version: 2,
       createTime: { seconds: 2, nanos: 1111 }
     });
-    expect(await cache.getBundleMetadata('bundle-1')).to.deep.equal({
+    expect(await cache.getBundleMetadata('bundle-1')).toEqual({
       id: 'bundle-1',
       version: 2,
       createTime: SnapshotVersion.fromTimestamp(new Timestamp(2, 1111))
@@ -131,7 +127,7 @@ function genericBundleCacheTests(cacheFn: () => TestBundleCache): void {
   });
 
   it('returns undefined when query name is not found', async () => {
-    expect(await cache.getNamedQuery('query-1')).to.be.undefined;
+    expect(await cache.getNamedQuery('query-1')).toBeUndefined();
   });
 
   it('returns saved collection queries', async () => {

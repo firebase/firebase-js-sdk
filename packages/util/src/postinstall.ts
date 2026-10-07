@@ -19,5 +19,4 @@ import type { FirebaseDefaults } from './defaults';
 
 // This value is retrieved and hardcoded by the NPM postinstall script
 export const getDefaultsFromPostinstall: () =>
-  | FirebaseDefaults
-  | undefined = () => undefined;
+  FirebaseDefaults | undefined = () => undefined;

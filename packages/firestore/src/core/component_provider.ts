@@ -113,9 +113,7 @@ export interface OfflineComponentProvider {
  * Provides all components needed for Firestore with in-memory persistence.
  * Uses EagerGC garbage collection.
  */
-export class MemoryOfflineComponentProvider
-  implements OfflineComponentProvider
-{
+export class MemoryOfflineComponentProvider implements OfflineComponentProvider {
   kind: Kind = 'memory';
 
   static readonly provider: OfflineComponentProviderFactory = {

@@ -30,7 +30,10 @@ import {
 export class InstallationsCompat
   implements FirebaseInstallationsCompat, _FirebaseService
 {
-  constructor(public app: FirebaseApp, readonly _delegate: Installations) {}
+  constructor(
+    public app: FirebaseApp,
+    readonly _delegate: Installations
+  ) {}
 
   getId(): Promise<string> {
     return getId(this._delegate);

@@ -19,81 +19,267 @@ import * as os from 'os';
 import * as fs from 'fs';
 import * as path from 'path';
 import { format, resolveConfig } from 'prettier';
-import { expect } from 'chai';
 import { describe, it } from 'mocha';
-import { pruneDts } from './prune-dts';
+import { addBlankLines, pruneDts, removeUnusedImports } from './src/index';
 
 const testCasesDir = path.resolve(__dirname, 'tests');
 const tmpDir = os.tmpdir();
 
 const testDataFilter = /(.*).input.d.ts/;
-const testCaseFilterRe = /.*/;
 
-async function runScript(inputFile: string): Promise<string> {
-  const outputFile = path.resolve(tmpDir, 'output.d.ts');
-  pruneDts(inputFile, outputFile);
+async function runScript(
+  inputFile: string,
+  otherExportFiles: string[] = []
+): Promise<string> {
+  const outputFile = path.resolve(tmpDir, `output-${path.basename(inputFile)}`);
+  pruneDts(inputFile, outputFile, otherExportFiles);
   return outputFile;
 }
 
 interface TestCase {
   name: string;
-  inputFileName: string;
-  outputFileName: string;
+  baseName: string;
+  absoluteInputFile: string;
+  absoluteOutputFile: string;
 }
 
-function getTestCases(): TestCase[] {
-  if (
-    !fs.existsSync(testCasesDir) ||
-    !fs.lstatSync(testCasesDir).isDirectory()
-  ) {
-    throw new Error(`${testCasesDir} folder does not exist`);
+interface UnitSuite {
+  suiteName: string;
+  cases: TestCase[];
+}
+
+function discoverUnitSuites(): UnitSuite[] {
+  const unitDir = path.resolve(testCasesDir, 'unit');
+  if (!fs.existsSync(unitDir)) {
+    return [];
   }
 
+  const suites: UnitSuite[] = [];
+  const entries = fs.readdirSync(unitDir, { withFileTypes: true });
+
+  for (const entry of entries) {
+    if (entry.isDirectory()) {
+      const subDir = path.join(unitDir, entry.name);
+      const cases = fs
+        .readdirSync(subDir)
+        .filter(fileName => testDataFilter.test(fileName))
+        .map(fileName => {
+          const testCaseName = fileName.match(testDataFilter)![1];
+          return {
+            name: testCaseName.replace(/-/g, ' '),
+            baseName: testCaseName,
+            absoluteInputFile: path.join(subDir, `${testCaseName}.input.d.ts`),
+            absoluteOutputFile: path.join(subDir, `${testCaseName}.output.d.ts`)
+          };
+        });
+      if (cases.length > 0) {
+        suites.push({ suiteName: entry.name, cases });
+      }
+    }
+  }
+  return suites.sort((a, b) => a.suiteName.localeCompare(b.suiteName));
+}
+
+function discoverPackageCases(): TestCase[] {
+  const packagesDir = path.resolve(testCasesDir, 'packages');
+  if (!fs.existsSync(packagesDir)) {
+    return [];
+  }
   return fs
-    .readdirSync(testCasesDir)
-    .filter((fileName: string) => testDataFilter.test(fileName))
-    .filter((fileName: string) => testCaseFilterRe.test(fileName))
-    .map((fileName: string) => {
+    .readdirSync(packagesDir)
+    .filter(fileName => testDataFilter.test(fileName))
+    .map(fileName => {
       const testCaseName = fileName.match(testDataFilter)![1];
-
-      const inputFileName = `${testCaseName}.input.d.ts`;
-      const outputFileName = `${testCaseName}.output.d.ts`;
-
-      const name = testCaseName.replace(/-/g, ' ');
-      return { name, inputFileName, outputFileName };
+      return {
+        name: testCaseName.replace(/-/g, ' '),
+        baseName: testCaseName,
+        absoluteInputFile: path.join(packagesDir, `${testCaseName}.input.d.ts`),
+        absoluteOutputFile: path.join(
+          packagesDir,
+          `${testCaseName}.output.d.ts`
+        )
+      };
     });
 }
 
+/**
+ * Controls suite filtering (`unit`, `production`, `packages`, or `all`).
+ */
+const testMode = process.env.TEST_MODE || 'all';
+
+const useColor = process.stdout.isTTY && !process.env.NO_COLOR;
+const RESET = useColor ? '\x1b[0m' : '';
+const RED = useColor ? '\x1b[31m' : '';
+const GREEN = useColor ? '\x1b[32m' : '';
+const CYAN = useColor ? '\x1b[36m' : '';
+const DIM = useColor ? '\x1b[90m' : '';
+
+/**
+ * Asserts string equality between actual and expected .d.ts outputs.
+ *
+ * On failure:
+ * 1. Writes actual output to /tmp/prune-dts-failures/<test-name>.actual.d.ts for direct inspection.
+ * 2. Outputs the exact git diff --no-index command to easily inspect line differences.
+ */
+function assertAndReport(
+  actual: string,
+  expected: string,
+  testName: string,
+  expectedPath: string
+): void {
+  if (actual === expected) {
+    return;
+  }
+
+  const failDir = path.resolve('/tmp', 'prune-dts-failures');
+  fs.mkdirSync(failDir, { recursive: true });
+  const actualPath = path.join(
+    failDir,
+    `${testName.replace(/\s+/g, '-')}.actual.d.ts`
+  );
+  fs.writeFileSync(actualPath, actual, 'utf-8');
+
+  const actualLines = actual.split('\n');
+  const expectedLines = expected.split('\n');
+  let diffLine = 1;
+  const maxLines = Math.max(actualLines.length, expectedLines.length);
+  for (let i = 0; i < maxLines; i++) {
+    if (actualLines[i] !== expectedLines[i]) {
+      diffLine = i + 1;
+      break;
+    }
+  }
+
+  const startIdx = Math.max(0, diffLine - 3);
+  const endIdx = Math.min(maxLines, diffLine + 3);
+  const previewLines: string[] = [];
+  for (let i = startIdx; i < endIdx; i++) {
+    const exp = expectedLines[i];
+    const act = actualLines[i];
+    if (exp === act && exp !== undefined) {
+      previewLines.push(`${DIM}    ${exp}${RESET}`);
+    } else {
+      if (exp !== undefined) {
+        previewLines.push(`${RED}-   ${exp}${RESET}`);
+      }
+      if (act !== undefined) {
+        previewLines.push(`${GREEN}+   ${act}${RESET}`);
+      }
+    }
+  }
+
+  const relativeExpected = path.relative(process.cwd(), expectedPath);
+  const errorMessage = [
+    `${RESET}\nMismatch at line ${diffLine} (${relativeExpected}:${diffLine} vs ${actualPath}:${diffLine})`,
+    ...previewLines,
+    `\n${CYAN}Inspect: git diff --no-index ${relativeExpected} ${actualPath}${RESET}`
+  ].join('\n');
+
+  const error = new Error(errorMessage);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (error as any).showDiff = false;
+  error.stack = '';
+  throw error;
+}
+
 describe('Prune DTS', () => {
-  for (const testCase of getTestCases()) {
-    it(testCase.name, async () => {
-      const absoluteInputFile = path.resolve(
-        testCasesDir,
-        testCase.inputFileName
-      );
-      const absoluteOutputFile = path.resolve(
-        testCasesDir,
-        testCase.outputFileName
-      );
+  const unitSuites = discoverUnitSuites();
+  const productionCases = discoverPackageCases();
 
-      const tmpFile = await runScript(absoluteInputFile);
-      const prettierConfig = await resolveConfig(absoluteInputFile);
+  if (testMode === 'all' || testMode === 'unit') {
+    describe('Unit Rules', () => {
+      for (const suite of unitSuites) {
+        describe(suite.suiteName, () => {
+          for (const testCase of suite.cases) {
+            it(testCase.name, async () => {
+              const { absoluteInputFile, absoluteOutputFile } = testCase;
 
-      const expectedDtsUnformatted = fs.readFileSync(
-        absoluteOutputFile,
-        'utf-8'
-      );
-      const expectedDts = format(expectedDtsUnformatted, {
-        filepath: absoluteOutputFile,
-        ...prettierConfig
-      });
-      const actualDtsUnformatted = fs.readFileSync(tmpFile, 'utf-8');
-      const actualDts = format(actualDtsUnformatted, {
-        filepath: tmpFile,
-        ...prettierConfig
-      });
+              const companionFile = path.join(
+                path.dirname(absoluteInputFile),
+                'companion.d.ts'
+              );
+              const otherExports = fs.existsSync(companionFile)
+                ? [companionFile]
+                : [];
+              const tmpFile = await runScript(absoluteInputFile, otherExports);
+              const prettierConfig = await resolveConfig(absoluteInputFile);
 
-      expect(actualDts).to.equal(expectedDts);
+              const expectedDtsUnformatted = fs.readFileSync(
+                absoluteOutputFile,
+                'utf-8'
+              );
+              const expectedDts = await format(expectedDtsUnformatted, {
+                filepath: absoluteOutputFile,
+                ...prettierConfig
+              });
+              const actualDtsUnformatted = fs.readFileSync(tmpFile, 'utf-8');
+              const actualDts = await format(actualDtsUnformatted, {
+                filepath: tmpFile,
+                ...prettierConfig
+              });
+
+              assertAndReport(
+                actualDts,
+                expectedDts,
+                testCase.name,
+                absoluteOutputFile
+              );
+            });
+          }
+        });
+      }
+    });
+  }
+
+  if (
+    testMode === 'all' ||
+    testMode === 'production' ||
+    testMode === 'packages'
+  ) {
+    describe('Package Regressions', () => {
+      const packagesDir = path.resolve(testCasesDir, 'packages');
+      for (const testCase of productionCases) {
+        it(`Package: ${testCase.name}`, async function () {
+          this.timeout(60000);
+          const otherExports =
+            testCase.baseName === 'firestore-pipelines'
+              ? [path.resolve(packagesDir, 'firestore.input.d.ts')]
+              : [];
+
+          const tmpFile = await runScript(
+            testCase.absoluteInputFile,
+            otherExports
+          );
+
+          await addBlankLines(tmpFile);
+          await removeUnusedImports(tmpFile);
+
+          const expectedUnformatted = fs.readFileSync(
+            testCase.absoluteOutputFile,
+            'utf-8'
+          );
+          const actualUnformatted = fs.readFileSync(tmpFile, 'utf-8');
+
+          const prettierConfig = await resolveConfig(
+            testCase.absoluteInputFile
+          );
+          const expected = await format(expectedUnformatted, {
+            filepath: testCase.absoluteOutputFile,
+            ...prettierConfig
+          });
+          const actual = await format(actualUnformatted, {
+            filepath: tmpFile,
+            ...prettierConfig
+          });
+
+          assertAndReport(
+            actual,
+            expected,
+            testCase.name,
+            testCase.absoluteOutputFile
+          );
+        });
+      }
     });
   }
 });

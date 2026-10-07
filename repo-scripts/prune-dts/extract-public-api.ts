@@ -18,11 +18,14 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
-import { Extractor, ExtractorConfig } from 'api-extractor-me';
+import { Extractor, ExtractorConfig } from '@microsoft/api-extractor';
 import * as tmp from 'tmp';
 
-import { addBlankLines, pruneDts, removeUnusedImports } from './prune-dts';
+import { format, resolveConfig } from 'prettier';
+
 import * as yargs from 'yargs';
+
+import { addBlankLines, pruneDts, removeUnusedImports } from './src/index';
 
 /* eslint-disable no-console */
 
@@ -65,6 +68,7 @@ function writePackageJson(packageName: string): void {
 
 function loadApiExtractorConfig(
   packageName: string,
+  packageRoot: string,
   typescriptDtsPath: string,
   rollupDtsPath: string,
   untrimmedRollupDtsPath: string,
@@ -89,6 +93,14 @@ function loadApiExtractorConfig(
     'tsdocMetadata': {
       'enabled': false
     },
+    'docModel': {
+      'enabled': dtsRollupEnabled,
+      'apiJsonFilePath': path.resolve(
+        packageRoot,
+        'temp',
+        `${packageName}.api.json`
+      )
+    },
     'apiReport': {
       'enabled': apiReportEnabled,
       reportFileName: `${packageName}.api.md`,
@@ -103,7 +115,10 @@ function loadApiExtractorConfig(
           'logLevel': 'none'
         },
         'ae-forgotten-export': {
-          'logLevel': apiReportEnabled ? 'error' : 'none',
+          'logLevel':
+            apiReportEnabled && !excludeForgottenExportWarning
+              ? 'error'
+              : 'none',
           'addToApiReportFile': !excludeForgottenExportWarning
         }
       },
@@ -153,6 +168,7 @@ export async function generateApi(
 
   let extractorConfig = loadApiExtractorConfig(
     packageName,
+    packageRoot,
     typescriptDtsPath,
     rollupDtsPath,
     untrimmedRollupDtsPath,
@@ -171,9 +187,18 @@ export async function generateApi(
   console.log('Added blank lines after imports');
   await removeUnusedImports(publicDtsPath);
   console.log('Removed unused imports');
+  const prettierConfig = await resolveConfig(publicDtsPath);
+  const unformatted = fs.readFileSync(publicDtsPath, 'utf-8');
+  const formatted = await format(unformatted, {
+    filepath: publicDtsPath,
+    ...prettierConfig
+  });
+  fs.writeFileSync(publicDtsPath, formatted, 'utf-8');
+  console.log('Formatted public DTS with Prettier');
 
   extractorConfig = loadApiExtractorConfig(
     packageName,
+    packageRoot,
     publicDtsPath,
     rollupDtsPath,
     untrimmedRollupDtsPath,

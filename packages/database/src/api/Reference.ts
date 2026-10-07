@@ -118,7 +118,8 @@ export interface DatabaseReference extends Query {
  * as the write to the backend completes.
  */
 export interface ThenableReference
-  extends DatabaseReference,
+  extends
+    DatabaseReference,
     Pick<Promise<DatabaseReference>, 'then' | 'catch'> {
   key: string;
   parent: DatabaseReference;

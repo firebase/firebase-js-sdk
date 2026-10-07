@@ -91,4 +91,28 @@ describe('core/strategies/signInWithCustomToken', () => {
     const { user } = await signInWithCustomToken(auth, 'oh.no');
     expect(auth.currentUser).to.eq(user);
   });
+
+  it('wraps persistence failure into FirebaseError (auth/internal-error) after network token exchange', async () => {
+    const persistenceError = new Error('Database is closing/hidden');
+    (auth as any).persistenceManager.setCurrentUser = () =>
+      Promise.reject(persistenceError);
+
+    let caughtError: any;
+    try {
+      await signInWithCustomToken(auth, 'single-use-token');
+    } catch (e) {
+      caughtError = e;
+    }
+
+    expect(caughtError).to.be.ok;
+    expect(caughtError.code).to.eq('auth/internal-error');
+    expect(caughtError.message).to.include('Database is closing/hidden');
+    expect(caughtError.customData?.originalError).to.eq(persistenceError);
+    // Note: The network request already consumed the token
+    expect(signInRoute.calls.length).to.eq(1);
+    expect(signInRoute.calls[0].request).to.eql({
+      token: 'single-use-token',
+      returnSecureToken: true
+    });
+  });
 });

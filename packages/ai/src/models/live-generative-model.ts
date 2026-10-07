@@ -17,9 +17,9 @@
 
 import { AIModel } from './ai-model';
 import { LiveSession } from '../methods/live-session';
+import { AgentPlatformBackend } from '../backend';
 import {
   AI,
-  BackendType,
   Content,
   LiveGenerationConfig,
   LiveModelParams,
@@ -78,10 +78,10 @@ export class LiveGenerativeModel extends AIModel {
     sessionResumption?: SessionResumptionConfig
   ): Promise<LiveSession> {
     let fullModelPath: string;
-    if (this._apiSettings.backend.backendType === BackendType.GOOGLE_AI) {
-      fullModelPath = `projects/${this._apiSettings.project}/${this.model}`;
+    if (this._apiSettings.backend instanceof AgentPlatformBackend) {
+      fullModelPath = `projects/${this._apiSettings.project}/locations/${this._apiSettings.backend.location}/${this.model}`;
     } else {
-      fullModelPath = `projects/${this._apiSettings.project}/locations/${this._apiSettings.location}/${this.model}`;
+      fullModelPath = `projects/${this._apiSettings.project}/${this.model}`;
     }
 
     // inputAudioTranscription and outputAudioTranscription are on the generation config in the public API,

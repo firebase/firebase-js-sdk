@@ -4,5 +4,6 @@
     "outDir": "dist",
     "strict": true
   },
+  "include": ["src", "test"],
   "exclude": ["dist/**/*"]
 }

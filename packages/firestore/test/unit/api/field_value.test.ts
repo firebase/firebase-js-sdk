@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import {
   arrayRemove,
@@ -47,14 +45,14 @@ describe('FieldValue', () => {
   });
 
   it('support instanceof checks', () => {
-    expect(deleteField()).to.be.an.instanceOf(FieldValue);
-    expect(serverTimestamp()).to.be.an.instanceOf(FieldValue);
-    expect(arrayRemove(1)).to.be.an.instanceOf(FieldValue);
-    expect(arrayUnion('a')).to.be.an.instanceOf(FieldValue);
-    expect(arrayRemove('a')).to.be.an.instanceOf(FieldValue);
-    expect(increment(1)).to.be.an.instanceOf(FieldValue);
-    expect(minimum(1)).to.be.an.instanceOf(FieldValue);
-    expect(maximum(1)).to.be.an.instanceOf(FieldValue);
+    expect(deleteField()).toBeInstanceOf(FieldValue);
+    expect(serverTimestamp()).toBeInstanceOf(FieldValue);
+    expect(arrayRemove(1)).toBeInstanceOf(FieldValue);
+    expect(arrayUnion('a')).toBeInstanceOf(FieldValue);
+    expect(arrayRemove('a')).toBeInstanceOf(FieldValue);
+    expect(increment(1)).toBeInstanceOf(FieldValue);
+    expect(minimum(1)).toBeInstanceOf(FieldValue);
+    expect(maximum(1)).toBeInstanceOf(FieldValue);
   });
 
   it('JSON.stringify() does not throw', () => {

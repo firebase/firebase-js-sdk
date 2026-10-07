@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
+import { expect } from 'vitest';
 
 import { Bytes, DocumentReference, Timestamp } from '../../src';
 import { Bound } from '../../src/core/bound';
@@ -596,7 +596,10 @@ export function castTargetIds<T extends TargetId | RemoteTargetId>(
 }
 
 export class TestBundledDocuments {
-  constructor(public documents: BundledDocuments, public bundleName: string) {}
+  constructor(
+    public documents: BundledDocuments,
+    public bundleName: string
+  ) {}
 }
 
 export function bundledDocuments(
@@ -932,15 +935,15 @@ export function expectEqual(left: any, right: any, message?: string): void {
       JSON.stringify(right) + ' does not support isEqual (right) ' + message
     );
   }
-  expect(left.isEqual(right)).to.equal(true, message);
-  expect(right.isEqual(left)).to.equal(true, message);
+  expect(left.isEqual(right), message).toBe(true);
+  expect(right.isEqual(left), message).toBe(true);
 }
 
 // Use any, so we can dynamically call .isEqual().
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function expectNotEqual(left: any, right: any, message?: string): void {
-  expect(left.isEqual(right)).to.equal(false, message || '');
-  expect(right.isEqual(left)).to.equal(false, message || '');
+  expect(left.isEqual(right), message || '').toBe(false);
+  expect(right.isEqual(left), message || '').toBe(false);
 }
 
 export function expectEqualArrays(
@@ -949,9 +952,8 @@ export function expectEqualArrays(
   message?: string
 ): void {
   message = message ? ' ' + message : '';
-  expect(left.length).to.deep.equal(
-    right.length,
-    'different array lengths' + message
+  expect(left.length, 'different array lengths' + message).toEqual(
+    right.length
   );
   for (let i = 0; i < left.length; i++) {
     expectEqual(left[i], right[i], 'for index ' + i + message);
@@ -978,10 +980,7 @@ export function expectCorrectComparisons<T extends unknown>(
         ', ' +
         j +
         ')';
-      expect(comp(array[i], array[j])).to.equal(
-        primitiveComparator(i, j),
-        desc
-      );
+      expect(comp(array[i], array[j]), desc).toBe(primitiveComparator(i, j));
     }
   }
 }
@@ -999,8 +998,8 @@ export function expectCorrectComparisonGroups<T extends unknown>(
     for (const left of groups[i]) {
       for (let j = 0; j < groups.length; j++) {
         for (const right of groups[j]) {
-          expect(comp(left, right)).to.equal(
-            primitiveComparator(i, j),
+          expect(
+            comp(left, right),
             'comparing ' +
               JSON.stringify(left) +
               ' to ' +
@@ -1010,10 +1009,10 @@ export function expectCorrectComparisonGroups<T extends unknown>(
               ', ' +
               j +
               ')'
-          );
+          ).toBe(primitiveComparator(i, j));
 
-          expect(comp(right, left)).to.equal(
-            primitiveComparator(j, i),
+          expect(
+            comp(right, left),
             'comparing ' +
               JSON.stringify(right) +
               ' to ' +
@@ -1023,7 +1022,7 @@ export function expectCorrectComparisonGroups<T extends unknown>(
               ', ' +
               i +
               ')'
-          );
+          ).toBe(primitiveComparator(j, i));
         }
       }
     }
@@ -1032,10 +1031,10 @@ export function expectCorrectComparisonGroups<T extends unknown>(
 
 /** Compares SortedSet to an array */
 export function expectSetToEqual<T>(set: SortedSet<T>, arr: T[]): void {
-  expect(set.size).to.equal(arr.length);
+  expect(set.size).toBe(arr.length);
   const results: T[] = [];
   set.forEach(elem => results.push(elem));
-  expect(results).to.deep.equal(arr);
+  expect(results).toEqual(arr);
 }
 
 /**
@@ -1060,8 +1059,8 @@ export function expectEqualitySets<T>(
         // same outer index <=> equality should be true
         const expectedComparison = i === j;
         for (const otherElem of elems[j]) {
-          expect(equalityFn(elem, otherElem)).to.equal(
-            expectedComparison,
+          expect(
+            equalityFn(elem, otherElem),
             'Expected (' +
               (stringifyFn ? stringifyFn(elem) : elem) +
               ').isEqual(' +
@@ -1069,7 +1068,7 @@ export function expectEqualitySets<T>(
               ').to.equal(' +
               expectedComparison +
               ')'
-          );
+          ).toBe(expectedComparison);
         }
       }
     }
@@ -1080,8 +1079,8 @@ export function validateFirestoreError(
   expectedCode: Code,
   actualError: Error
 ): void {
-  expect(actualError.name).to.equal('FirebaseError');
-  expect((actualError as FirestoreError).code).to.equal(expectedCode);
+  expect(actualError.name).toBe('FirebaseError');
+  expect((actualError as FirestoreError).code).toBe(expectedCode);
 }
 
 export function forEachNumber<V>(

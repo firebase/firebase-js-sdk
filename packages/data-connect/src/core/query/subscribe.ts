@@ -65,8 +65,7 @@ export interface DataConnectSubscription<Data, Variables> {
  */
 export function subscribe<Data, Variables>(
   queryRefOrSerializedResult:
-    | QueryRef<Data, Variables>
-    | SerializedRef<Data, Variables>,
+    QueryRef<Data, Variables> | SerializedRef<Data, Variables>,
   observer: SubscriptionOptions<Data, Variables>
 ): QueryUnsubscribe;
 /**
@@ -79,8 +78,7 @@ export function subscribe<Data, Variables>(
  */
 export function subscribe<Data, Variables>(
   queryRefOrSerializedResult:
-    | QueryRef<Data, Variables>
-    | SerializedRef<Data, Variables>,
+    QueryRef<Data, Variables> | SerializedRef<Data, Variables>,
   onNext: OnResultSubscription<Data, Variables>,
   onError?: OnErrorSubscription,
   onComplete?: OnCompleteSubscription
@@ -95,8 +93,7 @@ export function subscribe<Data, Variables>(
  */
 export function subscribe<Data, Variables>(
   queryRefOrSerializedResult:
-    | QueryRef<Data, Variables>
-    | SerializedRef<Data, Variables>,
+    QueryRef<Data, Variables> | SerializedRef<Data, Variables>,
   observerOrOnNext:
     | SubscriptionOptions<Data, Variables>
     | OnResultSubscription<Data, Variables>,

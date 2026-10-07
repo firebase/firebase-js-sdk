@@ -1,5 +1,23 @@
 # @firebase/messaging
 
+## 0.13.3
+
+### Patch Changes
+
+- [`50213a1`](https://github.com/firebase/firebase-js-sdk/commit/50213a1cdba8e3b0f029197ec20f47c1110060a6) [#10233](https://github.com/firebase/firebase-js-sdk/pull/10233) - Update api-extractor and documentation pipeline. Includes some fixes to documentation comments and links.
+
+## 0.13.2
+
+### Patch Changes
+
+- [`589b24b`](https://github.com/firebase/firebase-js-sdk/commit/589b24bd9b30ba6b07a76da1eb5c3d1eadc5a9d2) [#10293](https://github.com/firebase/firebase-js-sdk/pull/10293) - Updated many top-level `devDependencies`.
+
+- Updated dependencies [[`589b24b`](https://github.com/firebase/firebase-js-sdk/commit/589b24bd9b30ba6b07a76da1eb5c3d1eadc5a9d2)]:
+  - @firebase/component@0.7.5
+  - @firebase/installations@0.6.24
+  - @firebase/messaging-interop-types@0.2.6
+  - @firebase/util@1.15.3
+
 ## 0.13.1
 
 ### Patch Changes

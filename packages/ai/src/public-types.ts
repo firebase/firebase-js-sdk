@@ -24,6 +24,7 @@ import {
   Part,
   RequestOptions,
   SingleRequestOptions,
+  StartChatParams,
   StartTemplateChatParams
 } from './types';
 
@@ -51,13 +52,6 @@ export interface AI {
    * Options applied to this {@link AI} instance.
    */
   options?: AIOptions;
-  /**
-   * @deprecated use `AI.backend.location` instead.
-   *
-   * The location configured for this AI service instance, relevant for
-   * Agent Platform Gemini API backends.
-   */
-  location: string;
 }
 
 /**
@@ -80,14 +74,6 @@ export const BackendType = {
   AGENT_PLATFORM: 'AGENT_PLATFORM',
 
   /**
-   * Identifies the backend service for the Agent Platform Gemini API
-   * (formerly known as Vertex AI Gemini API) provided through Google Cloud.
-   * Use this constant when creating a {@link VertexAIBackend} configuration.
-   * @deprecated - Use {@link AgentPlatformBackend} instead.
-   */
-  VERTEX_AI: 'VERTEX_AI',
-
-  /**
    * Identifies the backend service for the Gemini Developer API ({@link https://ai.google/ | Google AI}).
    * Use this constant when creating a {@link GoogleAIBackend} configuration.
    */
@@ -96,7 +82,7 @@ export const BackendType = {
 
 /**
  * Type alias representing valid backend types.
- * It should be either `'AGENT_PLATFORM'` or `'GOOGLE_AI'` (`'VERTEX_AI'` is deprecated).
+ * It should be either `'AGENT_PLATFORM'` or `'GOOGLE_AI'`.
  *
  * @public
  */
@@ -122,9 +108,47 @@ export interface AIOptions {
 }
 
 /**
- * Interface representing a `ChatSession` class for use with server
- * prompt templates that enables sending chat messages and stores
- * history of sent and received messages so far.
+ * Interface representing a `ChatSession` class that enables sending
+ * chat messages and stores a history of sent and received messages so far.
+ *
+ * @public
+ */
+export interface ChatSession {
+  model: string;
+  params?: StartChatParams;
+  requestOptions?: RequestOptions;
+
+  /**
+   * Sends a chat message and receives a non-streaming
+   * {@link GenerateContentResult}
+   */
+  sendMessage(
+    request: string | Array<string | Part>,
+    singleRequestOptions?: SingleRequestOptions
+  ): Promise<GenerateContentResult>;
+
+  /**
+   * Sends a chat message and receives the response as a
+   * {@link GenerateContentStreamResult} containing an iterable stream
+   * and a response promise.
+   */
+  sendMessageStream(
+    request: string | Array<string | Part>,
+    singleRequestOptions?: SingleRequestOptions
+  ): Promise<GenerateContentStreamResult>;
+
+  /**
+   * Gets the chat history so far. Blocked prompts are not added to history.
+   * Neither blocked candidates nor the prompts that generated them are added
+   * to history.
+   */
+  getHistory(): Promise<Content[]>;
+}
+
+/**
+ * Interface representing a chat session for use with server prompt
+ * templates that enables sending chat messages and maintains conversation
+ * history.
  *
  * @beta
  */

@@ -63,7 +63,9 @@ export function writeTokenToStorage(
   return Promise.resolve();
 }
 
-export async function readOrCreateDebugTokenFromStorage(): Promise<string> {
+export async function readOrCreateDebugTokenFromStorage(
+  app?: FirebaseApp
+): Promise<string> {
   /**
    * Theoretically race condition can happen if we read, then write in 2 separate transactions.
    * But it won't happen here, because this function will be called exactly once.
@@ -79,6 +81,32 @@ export async function readOrCreateDebugTokenFromStorage(): Promise<string> {
     // create a new debug token
     // This function is only available in secure contexts. See https://developer.mozilla.org/en-US/docs/Web/Security/Secure_Contexts
     const newToken = crypto.randomUUID();
+
+    let message =
+      `To use this token for app debugging, register it with your project.\n\n` +
+      `Firebase App Check debug token: ${newToken}\n\n`;
+
+    const appId = app?.options.appId;
+    const projectId = app?.options.projectId;
+    if (projectId && appId) {
+      message +=
+        `You can do so in the Firebase Console:\n` +
+        `https://console.firebase.google.com/project/${projectId}/appcheck/apps?selectedAppId=${appId}\n\n` +
+        `Or using the Firebase CLI:\n` +
+        `firebase appcheck:debugtokens:create ${newToken} --project ${projectId} --app ${appId}\n\n`;
+    } else {
+      message += `You will need to add it to your app's App Check settings in the Firebase Console for it to work.\n\n`;
+    }
+
+    message +=
+      `Note: To keep your project secure, please revoke and delete this token using the\n` +
+      `Firebase Console or the CLI (\`firebase appcheck:debugtokens:delete\`) when you finish debugging.\n\n` +
+      `Warning: This debug token is a secret and should not be shared or uploaded to source code.\n\n` +
+      `Debug Token Guide: https://firebase.google.com/docs/app-check/web/debug-provider\n` +
+      `Firebase CLI install instructions: https://firebase.google.com/docs/cli\n`;
+
+    console.log(message);
+
     // We don't need to block on writing to indexeddb
     // In case persistence failed, a new debug token will be generated every time the page is refreshed.
     // It renders the debug token useless because you have to manually register(whitelist) the new token in the firebase console again and again.

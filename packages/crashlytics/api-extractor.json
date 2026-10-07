@@ -1,22 +1,7 @@
 {
   "extends": "../../config/api-extractor.json",
   "mainEntryPointFilePath": "<projectFolder>/dist/index.d.ts",
-  "additionalEntryPoints": [
-    {
-      "modulePath": "angular",
-      "filePath": "<projectFolder>/dist/angular/index.d.ts"
-    },
-    {
-      "modulePath": "react",
-      "filePath": "<projectFolder>/dist/react/index.d.ts"
-    },
-    {
-      "modulePath": "react-router",
-      "filePath": "<projectFolder>/dist/react-router/index.d.ts"
-    }
-  ],
   "dtsRollup": {
-    // rollup is not supported when multiple entry points are present.
     // npm script api-report:* is used to generate dts rollup.
     "enabled": false
   },
