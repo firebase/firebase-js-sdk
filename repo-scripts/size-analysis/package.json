@@ -40,7 +40,7 @@
     "yargs": "17.7.2"
   },
   "devDependencies": {
-    "@firebase/app": "0.16.2",
+    "@firebase/app": "0.16.3",
     "@firebase/logger": "0.5.2",
     "@types/webpack": "5.28.5"
   },
@@ -59,6 +59,6 @@
     "reportDir": "./coverage/node"
   },
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=24.12.0"
   }
 }

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2025 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import { ParseContext } from '../../../src/api/parse_context';
 import { OptionsUtil } from '../../../src/core/options_util';
@@ -45,7 +43,7 @@ describe('OptionsUtil', () => {
       fooBar: 'recommended'
     });
 
-    expect(proto).deep.equal({
+    expect(proto).toEqual({
       'foo_bar': {
         stringValue: 'recommended'
       }
@@ -56,7 +54,7 @@ describe('OptionsUtil', () => {
     const optionsUtil = new OptionsUtil({});
     const proto = optionsUtil.getOptionsProto(context!, {}, { baz: 'foo' });
 
-    expect(proto).to.deep.equal({
+    expect(proto).toEqual({
       baz: {
         stringValue: 'foo'
       }
@@ -71,7 +69,7 @@ describe('OptionsUtil', () => {
       { 'foo.bar': 'baz' }
     );
 
-    expect(proto).to.deep.equal({
+    expect(proto).toEqual({
       foo: {
         mapValue: {
           fields: {
@@ -98,7 +96,7 @@ describe('OptionsUtil', () => {
       }
     );
 
-    expect(proto).to.deep.equal({
+    expect(proto).toEqual({
       'index_mode': {
         stringValue: 'baz'
       }
@@ -130,7 +128,7 @@ describe('OptionsUtil', () => {
       }
     );
 
-    expect(proto).to.deep.equal({
+    expect(proto).toEqual({
       foo: {
         mapValue: {
           fields: {
@@ -175,7 +173,7 @@ describe('OptionsUtil', () => {
       }
     );
 
-    expect(proto).to.deep.equal({
+    expect(proto).toEqual({
       foo: {
         mapValue: {
           fields: {
@@ -206,7 +204,7 @@ describe('OptionsUtil', () => {
       }
     );
 
-    expect(proto).to.deep.equal({
+    expect(proto).toEqual({
       foo: {
         mapValue: {
           fields: {

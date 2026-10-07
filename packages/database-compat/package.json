@@ -69,7 +69,7 @@
     }
   },
   "devDependencies": {
-    "@firebase/app-compat": "0.5.18",
+    "@firebase/app-compat": "0.5.19",
     "typescript": "5.5.4"
   },
   "repository": {
@@ -81,6 +81,6 @@
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=24.12.0"
   }
 }

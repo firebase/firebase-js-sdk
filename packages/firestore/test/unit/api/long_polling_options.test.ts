@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2023 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-
 import {
   ExperimentalLongPollingOptions,
   longPollingOptionsEqual,
@@ -25,19 +23,19 @@ import {
 
 describe('long_polling_options', () => {
   it('longPollingOptionsEqual() should return true for empty objects', () => {
-    expect(longPollingOptionsEqual({}, {})).to.be.true;
+    expect(longPollingOptionsEqual({}, {})).toBe(true);
   });
 
   it('longPollingOptionsEqual() should return true if both objects have the same timeoutSeconds', () => {
     const options1: ExperimentalLongPollingOptions = { timeoutSeconds: 123 };
     const options2: ExperimentalLongPollingOptions = { timeoutSeconds: 123 };
-    expect(longPollingOptionsEqual(options1, options2)).to.be.true;
+    expect(longPollingOptionsEqual(options1, options2)).toBe(true);
   });
 
   it('longPollingOptionsEqual() should return false if the objects have different timeoutSeconds', () => {
     const options1: ExperimentalLongPollingOptions = { timeoutSeconds: 123 };
     const options2: ExperimentalLongPollingOptions = { timeoutSeconds: 321 };
-    expect(longPollingOptionsEqual(options1, options2)).to.be.false;
+    expect(longPollingOptionsEqual(options1, options2)).toBe(false);
   });
 
   it('longPollingOptionsEqual() should ignore properties not defined in ExperimentalLongPollingOptions', () => {
@@ -49,15 +47,15 @@ describe('long_polling_options', () => {
       timeoutSeconds: 123,
       someOtherProperty: 24
     } as ExperimentalLongPollingOptions;
-    expect(longPollingOptionsEqual(options1, options2)).to.be.true;
+    expect(longPollingOptionsEqual(options1, options2)).toBe(true);
   });
 
   it('cloneLongPollingOptions() with an empty object should return an empty object', () => {
-    expect(cloneLongPollingOptions({})).to.deep.equal({});
+    expect(cloneLongPollingOptions({})).toEqual({});
   });
 
   it('cloneLongPollingOptions() should copy timeoutSeconds', () => {
-    expect(cloneLongPollingOptions({ timeoutSeconds: 1234 })).to.deep.equal({
+    expect(cloneLongPollingOptions({ timeoutSeconds: 1234 })).toEqual({
       timeoutSeconds: 1234
     });
   });
@@ -67,7 +65,7 @@ describe('long_polling_options', () => {
       timeoutSeconds: 1234,
       someOtherProperty: 42
     } as ExperimentalLongPollingOptions;
-    expect(cloneLongPollingOptions(options)).to.deep.equal({
+    expect(cloneLongPollingOptions(options)).toEqual({
       timeoutSeconds: 1234
     });
   });

@@ -16,8 +16,6 @@
  */
 
 import { Metadata } from '@grpc/grpc-js';
-import { expect } from 'chai';
-import * as sinon from 'sinon';
 
 import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
 import { ResourcePath } from '../../../src/model/path';
@@ -76,9 +74,9 @@ describe('GrpcConnection', () => {
       null,
       null
     );
-    expect(
-      connection.mockStub.lastMetadata?.get('x-goog-api-key')
-    ).to.deep.equal(['grpc-connection-test-api-key']);
+    expect(connection.mockStub.lastMetadata?.get('x-goog-api-key')).toEqual([
+      'grpc-connection-test-api-key'
+    ]);
   });
 
   it('Passes custom headers from DatabaseInfo to the grpc stub', async () => {
@@ -95,15 +93,15 @@ describe('GrpcConnection', () => {
     );
     expect(
       connection.mockStub.lastMetadata?.get('x-goog-firestore-api-requester')
-    ).to.deep.equal(['console']);
-    expect(
-      connection.mockStub.lastMetadata?.get('x-custom-header')
-    ).to.deep.equal(['val']);
+    ).toEqual(['console']);
+    expect(connection.mockStub.lastMetadata?.get('x-custom-header')).toEqual([
+      'val'
+    ]);
   });
 
   describe('stub options', () => {
     it('sets default flow control window size to 256kb if not specified', () => {
-      const spyConstructor = sinon.spy();
+      const spyConstructor = vi.fn();
       const mockProtos = {
         google: {
           firestore: {
@@ -133,9 +131,9 @@ describe('GrpcConnection', () => {
       // Trigger stub creation
       conn['ensureActiveStub']();
 
-      expect(spyConstructor.calledOnce).to.be.true;
-      const options = spyConstructor.firstCall.args[2];
-      expect(options).to.deep.equal({
+      expect(spyConstructor).toHaveBeenCalledTimes(1);
+      const options = spyConstructor.mock.calls[0][2];
+      expect(options).toEqual({
         'grpc-node.flow_control_window': 256 * 1024,
         'grpc.max_receive_message_length': 17 * 1024 * 1024,
         'grpc.max_send_message_length': 17 * 1024 * 1024
@@ -143,7 +141,7 @@ describe('GrpcConnection', () => {
     });
 
     it('passes custom flow control window size if specified', () => {
-      const spyConstructor = sinon.spy();
+      const spyConstructor = vi.fn();
       const mockProtos = {
         google: {
           firestore: {
@@ -175,9 +173,9 @@ describe('GrpcConnection', () => {
       // Trigger stub creation
       conn['ensureActiveStub']();
 
-      expect(spyConstructor.calledOnce).to.be.true;
-      const options = spyConstructor.firstCall.args[2];
-      expect(options).to.deep.equal({
+      expect(spyConstructor).toHaveBeenCalledTimes(1);
+      const options = spyConstructor.mock.calls[0][2];
+      expect(options).toEqual({
         'grpc-node.flow_control_window': 512 * 1024,
         'grpc.max_receive_message_length': 17 * 1024 * 1024,
         'grpc.max_send_message_length': 17 * 1024 * 1024

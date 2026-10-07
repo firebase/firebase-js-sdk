@@ -22,11 +22,8 @@ import { MemoryEagerPersistenceMode, withTestDoc } from './util/helpers';
 
 const PRIMING_TIMEOUT_MS = 45000;
 
-before(
-  'Prime backend by waiting for a write to show up in the watch stream',
-  function (): Promise<void> {
-    this.timeout(PRIMING_TIMEOUT_MS);
-
+describe('Prime Backend', () => {
+  beforeAll((): Promise<void> => {
     return withTestDoc(new MemoryEagerPersistenceMode(), async (doc, db) => {
       // const accumulator = new EventsAccumulator<DocumentSnapshot>();
       // const unsubscribe = onSnapshot(doc, accumulator.storeEvent);
@@ -45,5 +42,7 @@ before(
       //
       // unsubscribe();
     });
-  }
-);
+  }, PRIMING_TIMEOUT_MS);
+
+  it('primes backend', () => {});
+});

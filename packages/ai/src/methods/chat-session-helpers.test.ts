@@ -16,7 +16,6 @@
  */
 
 import { validateChatHistory } from './chat-session-helpers';
-import { expect } from 'chai';
 import { Content } from '../types';
 import { FirebaseError } from '@firebase/util';
 
@@ -28,7 +27,7 @@ describe('chat-session-helpers', () => {
       errorShouldInclude?: string;
     }> = [
       {
-        history: [{ role: 'user', parts: [{ text: 'hi' }] }],
+        history: [{ role: 'user', parts: [{ type: 'text', text: 'hi' }] }],
         isValid: true
       },
       {
@@ -36,8 +35,11 @@ describe('chat-session-helpers', () => {
           {
             role: 'user',
             parts: [
-              { text: 'hi' },
-              { inlineData: { mimeType: 'image/jpeg', data: 'base64==' } }
+              { type: 'text', text: 'hi' },
+              {
+                type: 'inlineData',
+                inlineData: { mimeType: 'image/jpeg', data: 'base64==' }
+              }
             ]
           }
         ],
@@ -45,32 +47,49 @@ describe('chat-session-helpers', () => {
       },
       {
         history: [
-          { role: 'user', parts: [{ text: 'hi' }] },
-          { role: 'model', parts: [{ text: 'hi' }, { text: 'hi' }] }
-        ],
-        isValid: true
-      },
-      {
-        history: [
-          { role: 'user', parts: [{ text: 'hi' }] },
+          { role: 'user', parts: [{ type: 'text', text: 'hi' }] },
           {
             role: 'model',
-            parts: [{ functionCall: { name: 'greet', args: { name: 'user' } } }]
+            parts: [
+              { type: 'text', text: 'hi' },
+              { type: 'text', text: 'hi' }
+            ]
           }
         ],
         isValid: true
       },
       {
         history: [
-          { role: 'user', parts: [{ text: 'hi' }] },
+          { role: 'user', parts: [{ type: 'text', text: 'hi' }] },
           {
             role: 'model',
-            parts: [{ functionCall: { name: 'greet', args: { name: 'user' } } }]
+            parts: [
+              {
+                type: 'functionCall',
+                functionCall: { name: 'greet', args: { name: 'user' } }
+              }
+            ]
+          }
+        ],
+        isValid: true
+      },
+      {
+        history: [
+          { role: 'user', parts: [{ type: 'text', text: 'hi' }] },
+          {
+            role: 'model',
+            parts: [
+              {
+                type: 'functionCall',
+                functionCall: { name: 'greet', args: { name: 'user' } }
+              }
+            ]
           },
           {
             role: 'function',
             parts: [
               {
+                type: 'functionResponse',
                 functionResponse: { name: 'greet', response: { name: 'user' } }
               }
             ]
@@ -80,22 +99,28 @@ describe('chat-session-helpers', () => {
       },
       {
         history: [
-          { role: 'user', parts: [{ text: 'hi' }] },
+          { role: 'user', parts: [{ type: 'text', text: 'hi' }] },
           {
             role: 'model',
-            parts: [{ functionCall: { name: 'greet', args: { name: 'user' } } }]
+            parts: [
+              {
+                type: 'functionCall',
+                functionCall: { name: 'greet', args: { name: 'user' } }
+              }
+            ]
           },
           {
             role: 'function',
             parts: [
               {
+                type: 'functionResponse',
                 functionResponse: { name: 'greet', response: { name: 'user' } }
               }
             ]
           },
           {
             role: 'model',
-            parts: [{ text: 'hi name' }]
+            parts: [{ type: 'text', text: 'hi name' }]
           }
         ],
         isValid: true
@@ -118,7 +143,7 @@ describe('chat-session-helpers', () => {
         isValid: false
       },
       {
-        history: [{ role: 'model', parts: [{ text: 'hi' }] }],
+        history: [{ role: 'model', parts: [{ type: 'text', text: 'hi' }] }],
         errorShouldInclude: `model`,
         isValid: false
       },
@@ -128,6 +153,7 @@ describe('chat-session-helpers', () => {
             role: 'function',
             parts: [
               {
+                type: 'functionResponse',
                 functionResponse: { name: 'greet', response: { name: 'user' } }
               }
             ]
@@ -138,29 +164,30 @@ describe('chat-session-helpers', () => {
       },
       {
         history: [
-          { role: 'user', parts: [{ text: 'hi' }] },
-          { role: 'user', parts: [{ text: 'hi' }] }
+          { role: 'user', parts: [{ type: 'text', text: 'hi' }] },
+          { role: 'user', parts: [{ type: 'text', text: 'hi' }] }
         ],
         errorShouldInclude: `can't follow 'user'`,
         isValid: false
       },
       {
         history: [
-          { role: 'user', parts: [{ text: 'hi' }] },
-          { role: 'model', parts: [{ text: 'hi' }] },
-          { role: 'model', parts: [{ text: 'hi' }] }
+          { role: 'user', parts: [{ type: 'text', text: 'hi' }] },
+          { role: 'model', parts: [{ type: 'text', text: 'hi' }] },
+          { role: 'model', parts: [{ type: 'text', text: 'hi' }] }
         ],
         errorShouldInclude: `can't follow 'model'`,
         isValid: false
       },
       {
         history: [
-          { role: 'user', parts: [{ text: 'hi' }] },
+          { role: 'user', parts: [{ type: 'text', text: 'hi' }] },
           {
             role: 'model',
             parts: [
-              { text: 'hi' },
+              { type: 'text', text: 'hi' },
               {
+                type: 'text',
                 text: 'thought about hi',
                 thought: true,
                 thoughtSignature: 'thought signature'
@@ -174,13 +201,21 @@ describe('chat-session-helpers', () => {
         history: [
           {
             role: 'user',
-            parts: [{ text: 'hi', thought: true, thoughtSignature: 'sig' }]
+            parts: [
+              {
+                type: 'text',
+                text: 'hi',
+                thought: true,
+                thoughtSignature: 'sig'
+              }
+            ]
           },
           {
             role: 'model',
             parts: [
-              { text: 'hi' },
+              { type: 'text', text: 'hi' },
               {
+                type: 'text',
                 text: 'thought about hi',
                 thought: true,
                 thoughtSignature: 'thought signature'

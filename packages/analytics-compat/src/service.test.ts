@@ -14,14 +14,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { expect, use } from 'chai';
+
 import { AnalyticsService } from './service';
 import firebase, { FirebaseApp } from '@firebase/app-compat';
 import * as analyticsExp from '@firebase/analytics';
-import { stub, match, SinonStub } from 'sinon';
-import sinonChai from 'sinon-chai';
 
-use(sinonChai);
+vi.mock('@firebase/analytics', { spy: true });
 
 function createTestService(app: FirebaseApp): AnalyticsService {
   return new AnalyticsService(app, analyticsExp.getAnalytics(app));
@@ -30,24 +28,29 @@ function createTestService(app: FirebaseApp): AnalyticsService {
 describe('Firebase Analytics > Service', () => {
   let app: FirebaseApp;
   let service: AnalyticsService;
-  let logEventStub: SinonStub = stub();
-  let setUserIdStub: SinonStub = stub();
-  let setCurrentScreenStub: SinonStub = stub();
-  let setUserPropertiesStub: SinonStub = stub();
-  let setAnalyticsCollectionEnabledStub: SinonStub = stub();
-
-  before(() => {
-    logEventStub = stub(analyticsExp, 'logEvent');
-    setUserIdStub = stub(analyticsExp, 'setUserId');
-    setCurrentScreenStub = stub(analyticsExp, 'setCurrentScreen');
-    setUserPropertiesStub = stub(analyticsExp, 'setUserProperties');
-    setAnalyticsCollectionEnabledStub = stub(
-      analyticsExp,
-      'setAnalyticsCollectionEnabled'
-    );
-  });
+  let logEventStub = vi.fn();
+  let setUserIdStub = vi.fn();
+  let setCurrentScreenStub = vi.fn();
+  let setUserPropertiesStub = vi.fn();
+  let setAnalyticsCollectionEnabledStub = vi.fn();
 
   beforeEach(() => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    logEventStub = vi
+      .spyOn(analyticsExp, 'logEvent')
+      .mockImplementation(() => {});
+    setUserIdStub = vi
+      .spyOn(analyticsExp, 'setUserId')
+      .mockImplementation(() => {});
+    setCurrentScreenStub = vi
+      .spyOn(analyticsExp, 'setCurrentScreen')
+      .mockImplementation(() => {});
+    setUserPropertiesStub = vi
+      .spyOn(analyticsExp, 'setUserProperties')
+      .mockImplementation(() => {});
+    setAnalyticsCollectionEnabledStub = vi
+      .spyOn(analyticsExp, 'setAnalyticsCollectionEnabled')
+      .mockImplementation(() => {});
     app = firebase.initializeApp({
       apiKey: '456_LETTERS_AND_1234NUMBERS',
       appId: '123lettersand:numbers',
@@ -60,78 +63,99 @@ describe('Firebase Analytics > Service', () => {
     await app.delete();
   });
 
-  after(() => {
-    logEventStub.restore();
-    setUserIdStub.restore();
-  });
-
   it('logEvent() calls modular logEvent() with only event name', () => {
     service = createTestService(app);
     service.logEvent('begin_checkout');
-    expect(logEventStub).to.be.calledWith(match.any, 'begin_checkout');
-    logEventStub.resetHistory();
+    expect(logEventStub).toHaveBeenCalledWith(
+      expect.anything(),
+      'begin_checkout',
+      undefined,
+      undefined
+    );
+    logEventStub.mockClear();
   });
 
   it('logEvent() calls modular logEvent() with 2 args', () => {
     service = createTestService(app);
     service.logEvent('begin_checkout', { 'currency': 'USD' });
-    expect(logEventStub).to.be.calledWith(match.any, 'begin_checkout', {
-      'currency': 'USD'
-    });
-    logEventStub.resetHistory();
+    expect(logEventStub).toHaveBeenCalledWith(
+      expect.anything(),
+      'begin_checkout',
+      {
+        'currency': 'USD'
+      },
+      undefined
+    );
+    logEventStub.mockClear();
   });
 
   it('logEvent() calls modular logEvent() with all args', () => {
     service = createTestService(app);
     service.logEvent('begin_checkout', { 'currency': 'USD' }, { global: true });
-    expect(logEventStub).to.be.calledWith(
-      match.any,
+    expect(logEventStub).toHaveBeenCalledWith(
+      expect.anything(),
       'begin_checkout',
       { 'currency': 'USD' },
       { global: true }
     );
-    logEventStub.resetHistory();
+    logEventStub.mockClear();
   });
 
   it('setUserId() calls modular setUserId()', () => {
     service = createTestService(app);
     service.setUserId('user123');
-    expect(setUserIdStub).to.be.calledWith(match.any, 'user123');
-    setUserIdStub.resetHistory();
+    expect(setUserIdStub).toHaveBeenCalledWith(
+      expect.anything(),
+      'user123',
+      undefined
+    );
+    setUserIdStub.mockClear();
   });
 
   it('setUserId() calls modular setUserId() with options if provided', () => {
     service = createTestService(app);
     service.setUserId('user123', { global: true });
-    expect(setUserIdStub).to.be.calledWith(match.any, 'user123', {
+    expect(setUserIdStub).toHaveBeenCalledWith(expect.anything(), 'user123', {
       global: true
     });
-    setUserIdStub.resetHistory();
+    setUserIdStub.mockClear();
   });
 
   it('setCurrentScreen() (deprecated) calls modular setCurrentScreen() (deprecated)', () => {
     service = createTestService(app);
     service.setCurrentScreen('some_screen');
-    expect(setCurrentScreenStub).to.be.calledWith(match.any, 'some_screen');
-    setCurrentScreenStub.resetHistory();
+    expect(setCurrentScreenStub).toHaveBeenCalledWith(
+      expect.anything(),
+      'some_screen',
+      undefined
+    );
+    setCurrentScreenStub.mockClear();
   });
 
   it('setCurrentScreen() (deprecated) calls modular setCurrentScreen() (deprecated) with options if provided', () => {
     service = createTestService(app);
     service.setCurrentScreen('some_screen', { global: true });
-    expect(setCurrentScreenStub).to.be.calledWith(match.any, 'some_screen', {
-      global: true
-    });
-    setCurrentScreenStub.resetHistory();
+    expect(setCurrentScreenStub).toHaveBeenCalledWith(
+      expect.anything(),
+      'some_screen',
+      {
+        global: true
+      }
+    );
+    setCurrentScreenStub.mockClear();
   });
 
   it('setUserProperties() calls modular setUserProperties()', () => {
     service = createTestService(app);
     service.setUserProperties({ 'my_custom_property': 'abc' });
-    expect(setUserPropertiesStub).to.be.calledWith(match.any, {
-      'my_custom_property': 'abc'
-    });
-    setUserPropertiesStub.resetHistory();
+    expect(setUserPropertiesStub).toHaveBeenCalledWith(
+      expect.anything(),
+      {
+        'my_custom_property': 'abc'
+      },
+      undefined
+    );
+    setUserPropertiesStub.mockClear();
   });
 
   it('setUserProperties() calls modular setUserProperties() with options if provided', () => {
@@ -140,23 +164,23 @@ describe('Firebase Analytics > Service', () => {
       { 'my_custom_property': 'abc' },
       { global: true }
     );
-    expect(setUserPropertiesStub).to.be.calledWith(
-      match.any,
+    expect(setUserPropertiesStub).toHaveBeenCalledWith(
+      expect.anything(),
       { 'my_custom_property': 'abc' },
       {
         global: true
       }
     );
-    setCurrentScreenStub.resetHistory();
+    setUserPropertiesStub.mockClear();
   });
 
   it('setAnalyticsCollectionEnabled() calls modular setAnalyticsCollectionEnabled()', () => {
     service = createTestService(app);
     service.setAnalyticsCollectionEnabled(false);
-    expect(setAnalyticsCollectionEnabledStub).to.be.calledWith(
-      match.any,
+    expect(setAnalyticsCollectionEnabledStub).toHaveBeenCalledWith(
+      expect.anything(),
       false
     );
-    setAnalyticsCollectionEnabledStub.resetHistory();
+    setAnalyticsCollectionEnabledStub.mockClear();
   });
 });

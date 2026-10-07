@@ -21,7 +21,9 @@ const path = require('path');
 
 function isChromiumInstalled() {
   try {
-    const { chromium } = require('playwright');
+    const { chromium } = require(
+      require.resolve('playwright', { paths: [process.cwd(), __dirname] })
+    );
     const execPath = chromium.executablePath();
     if (!fs.existsSync(execPath)) return false;
 
@@ -48,7 +50,7 @@ function isChromiumInstalled() {
     const headlessShellPath = path.join(
       msPlaywrightRoot,
       `chromium_headless_shell-${revision}`,
-      `chromium_headless_shell-${platformSuffix}`,
+      `chrome-${platformSuffix}`,
       exeName
     );
 

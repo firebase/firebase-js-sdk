@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2025 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import { newTestFirestore } from '../../../util/api_helpers';
 import { doc } from '../../../util/helpers';
@@ -32,7 +30,7 @@ describe('Limit Queries', () => {
 
     const pipeline = db.pipeline().collection('/k').limit(0);
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).to.be.empty;
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).toHaveLength(0);
   });
 
   it('limit_zero_duplicated', () => {
@@ -43,7 +41,7 @@ describe('Limit Queries', () => {
 
     const pipeline = db.pipeline().collection('/k').limit(0).limit(0).limit(0);
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).to.be.empty;
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).toHaveLength(0);
   });
 
   it('limit_one', () => {
@@ -54,7 +52,7 @@ describe('Limit Queries', () => {
 
     const pipeline = db.pipeline().collection('/k').limit(1);
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).to.have.lengthOf(1);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).toHaveLength(1);
   });
 
   it('limit_one_duplicated', () => {
@@ -65,7 +63,7 @@ describe('Limit Queries', () => {
 
     const pipeline = db.pipeline().collection('/k').limit(1).limit(1).limit(1);
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).to.have.lengthOf(1);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).toHaveLength(1);
   });
 
   it('limit_two', () => {
@@ -76,7 +74,7 @@ describe('Limit Queries', () => {
 
     const pipeline = db.pipeline().collection('/k').limit(2);
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).to.have.lengthOf(2);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).toHaveLength(2);
   });
 
   it('limit_two_duplicated', () => {
@@ -87,7 +85,7 @@ describe('Limit Queries', () => {
 
     const pipeline = db.pipeline().collection('/k').limit(2).limit(2).limit(2);
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).to.have.lengthOf(2);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).toHaveLength(2);
   });
 
   it('limit_three', () => {
@@ -98,7 +96,7 @@ describe('Limit Queries', () => {
 
     const pipeline = db.pipeline().collection('/k').limit(3);
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).to.have.lengthOf(3);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).toHaveLength(3);
   });
 
   it('limit_three_duplicated', () => {
@@ -109,7 +107,7 @@ describe('Limit Queries', () => {
 
     const pipeline = db.pipeline().collection('/k').limit(3).limit(3).limit(3);
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).to.have.lengthOf(3);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).toHaveLength(3);
   });
 
   it('limit_four', () => {
@@ -120,7 +118,7 @@ describe('Limit Queries', () => {
 
     const pipeline = db.pipeline().collection('/k').limit(4);
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).to.have.lengthOf(4);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).toHaveLength(4);
   });
 
   it('limit_four_duplicated', () => {
@@ -131,7 +129,7 @@ describe('Limit Queries', () => {
 
     const pipeline = db.pipeline().collection('/k').limit(4).limit(4).limit(4);
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).to.have.lengthOf(4);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).toHaveLength(4);
   });
 
   it('limit_five', () => {
@@ -142,7 +140,7 @@ describe('Limit Queries', () => {
 
     const pipeline = db.pipeline().collection('/k').limit(5);
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).to.have.lengthOf(4);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).toHaveLength(4);
   });
 
   it('limit_five_duplicated', () => {
@@ -153,7 +151,7 @@ describe('Limit Queries', () => {
 
     const pipeline = db.pipeline().collection('/k').limit(5).limit(5).limit(5);
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).to.have.lengthOf(4);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).toHaveLength(4);
   });
 
   it('limit_max', () => {
@@ -167,7 +165,7 @@ describe('Limit Queries', () => {
       .collection('/k')
       .limit(Number.MAX_SAFE_INTEGER);
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).to.have.lengthOf(4);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).toHaveLength(4);
   });
 
   it('limit_max_duplicated', () => {
@@ -183,6 +181,6 @@ describe('Limit Queries', () => {
       .limit(Number.MAX_SAFE_INTEGER)
       .limit(Number.MAX_SAFE_INTEGER);
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).to.have.lengthOf(4);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).toHaveLength(4);
   });
 });
