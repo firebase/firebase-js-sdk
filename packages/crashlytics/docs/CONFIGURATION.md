@@ -195,7 +195,7 @@ You can enable or manage email alerts either during initial project onboarding o
 
 #### Anytime in Project Alert Settings
 
-1. From the [Firebase Console Crashlytics dashboard](https://console.firebase.google.com/u/0/project/_/crashlytics), click the **Manage alerts** (bell) icon in the top-right corner, or navigate directly to **Project settings > Alerts** (`https://console.firebase.google.com/project/_/settings/alerts`).
+1. From the [Firebase Console Crashlytics dashboard](https://console.firebase.google.com/u/0/project/_/crashlytics), click the **Manage alerts** button in the top-right corner, or navigate directly to **Project settings > Alerts** (`https://console.firebase.google.com/project/_/settings/alerts`).
 2. Locate the **Crashlytics** card and select your **Web app** from the **Select an app** dropdown.
 3. For **New issues** and **Regressions**, open the **Select channels** dropdown and check **E-mail** (under **Personal settings**). Alerts will be sent to the email address associated with your signed-in Firebase Console account.
 
