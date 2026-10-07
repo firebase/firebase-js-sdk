@@ -164,17 +164,131 @@ curl -X POST \
 
 ## Alerting
 
-### Set up alerts in Error Reporting
+Crashlytics for Web supports **email alerts** to notify you when issues occur in your web app:
 
-If you want to be notified when a new or regressed error group appears, similar to your existing Crashlytics alerts, you can add alerts in Google Cloud Error Reporting. Crashlytics uses Cloud Error Reporting under the hood, making it simple to set up alerts.
+- **New issues**: Triggered when a new error group is detected in your app.
+- **Regressed issues**: Triggered when a previously closed issue reoccurs.
 
-1. Start by navigating to **Configure alerts in Cloud Error Reporting** in the top right corner of the Crashlytics console.
-2. This opens Google Cloud Error Reporting in a new page. In the top right corner, click **Configure Notifications**.
-3. From here, you can turn on alerts for any notification channel: mobile device, slack, webhook, and email.
+Under the hood, Crashlytics uses **Google Cloud Monitoring** to provision app-scoped alert policies and attach your email address as a notification channel. Alert emails include Firebase branding, app and version metadata, the error type and message, and a direct link to investigate the issue in the Firebase Console.
 
-### Advanced Alerting with Log-based Metrics
+> [!NOTE]
+> - **Permissions**: Configuring alerts requires **Owner** or **Editor** permissions on your Firebase/Google Cloud project.
+> - **Language & Sender**: Alert emails are sent from `alerting-noreply@google.com` and are localized based on your Google Account language preference at the time the alert policy is created.
+> - **Avoiding Duplicate Alerts**: If you previously enabled native notifications directly in **Google Cloud Error Reporting** during earlier testing, disable those native Error Reporting notifications to avoid receiving duplicate emails.
 
-If you would like to configure advanced alerts, check out Cloud Alerting where you can create log-based metrics to alert on errors from a specific page, label, or custom metric.
+---
+
+### Option 1: Set Up Email Alerts in the Firebase Console (UI)
+
+You can enable or manage email alerts either during initial project onboarding or at any time afterward in your Firebase project settings.
+
+#### During Project Onboarding
+
+1. Open the [Firebase Console Crashlytics dashboard](https://console.firebase.google.com/u/0/project/_/crashlytics) and start the Crashlytics web onboarding flow.
+2. In the **Set Up Alerts (Optional)** step, select the email alerts you want to receive at your signed-in email address (**New issues** and **Regressed issues** are selected by default).
+3. Click **Continue** to automatically create the Cloud Monitoring alert policies and subscribe your email address.
+
+#### Anytime in Project Alert Settings
+
+1. From the [Firebase Console Crashlytics dashboard](https://console.firebase.google.com/u/0/project/_/crashlytics), click the **Manage alerts** (bell) icon in the top-right corner, or navigate directly to **Project settings > Alerts** (`https://console.firebase.google.com/project/_/settings/alerts`).
+2. Locate the **Crashlytics** card and select your **Web app** from the **Select an app** dropdown.
+3. For **New issues** and **Regressions**, open the **Select channels** dropdown and check **E-mail** (under **Personal settings**). Alerts will be sent to the email address associated with your signed-in Firebase Console account.
+
+> [!TIP]
+> You can temporarily mute or unmute all personal email notifications across the project using the **Receive email and in-console alerts for this project** toggle at the top of the **Alerts** page. Re-enabling this toggle automatically restores your previous web alert subscriptions.
+
+---
+
+### Option 2: Set Up Email Alerts via the Firebase CLI
+
+When onboarding your web app with the Firebase CLI, enable the `crashlyticsWebAlerts` experiment alongside `crashlyticsWeb` to configure email alerts directly from your terminal:
+
+```bash
+firebase experiments:enable crashlyticsWeb
+firebase experiments:enable crashlyticsWebAlerts
+firebase crashlytics:onboard:web <YOUR_FIREBASE_APP_ID> --project <YOUR_FIREBASE_PROJECT_ID>
+```
+
+During the interactive onboarding flow, you will be prompted to choose which email alerts to enable for your authenticated account (**New issues** and **Regressed issues** are selected by default):
+
+```text
+? Which email alerts would you like to enable? (Optional)
+ ◉ New issues (Notify when a new issue is detected)
+ ◉ Regressed issues (Notify when a closed issue reoccurs)
+```
+
+The CLI automatically generates the Cloud Monitoring alert policies for your web app, creates (or reuses) a Firebase-labeled email notification channel for your logged-in email address, and attaches it to the selected alert policies.
+
+---
+
+### Option 3: Set Up Email Alerts via `gcloud` CLI & REST API
+
+If you are configuring alerts non-interactively (for example, in a script or via an AI coding agent) or outside of the interactive onboarding flow, you can provision the Crashlytics alert policies and attach a Cloud Monitoring email notification channel using `gcloud` and `curl`.
+
+#### 1. Configure Environment Variables
+
+```bash
+PROJECT_ID="your-firebase-project-id"
+APP_ID="your-firebase-web-app-id" # e.g., 1:1234567890:web:abcdef1234567890
+USER_EMAIL=$(gcloud config get-value account)
+TOKEN=$(gcloud auth print-access-token)
+```
+
+#### 2. Generate the Crashlytics Alert Policies
+
+Call the Crashlytics `projects.apps.generateAlertPolicy` endpoint for `ALERT_TYPE_NEW_ISSUE` and/or `ALERT_TYPE_REGRESSED_ISSUE`. This idempotently creates (or returns the existing) Cloud Monitoring alert policy for your web app:
+
+```bash
+# Generate (or retrieve) the "New Issues" AlertPolicy
+NEW_ISSUE_POLICY_NAME=$(curl -s -X POST \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"alertType": "ALERT_TYPE_NEW_ISSUE"}' \
+  "https://firebasecrashlytics.googleapis.com/v1alpha/projects/${PROJECT_ID}/apps/${APP_ID}:generateAlertPolicy" \
+  | jq -r '.name')
+
+# Generate (or retrieve) the "Regressed Issues" AlertPolicy
+REGRESSED_ISSUE_POLICY_NAME=$(curl -s -X POST \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"alertType": "ALERT_TYPE_REGRESSED_ISSUE"}' \
+  "https://firebasecrashlytics.googleapis.com/v1alpha/projects/${PROJECT_ID}/apps/${APP_ID}:generateAlertPolicy" \
+  | jq -r '.name')
+```
+
+#### 3. Create an Email Notification Channel in Cloud Monitoring
+
+Create a Cloud Monitoring email notification channel with the `is_firebase_channel=true` user label so that the Firebase Console recognizes and syncs your subscription state:
+
+```bash
+CHANNEL_NAME=$(gcloud beta monitoring channels create \
+  --project="${PROJECT_ID}" \
+  --display-name="${USER_EMAIL} - for Firebase alerts" \
+  --type=email \
+  --channel-labels="email_address=${USER_EMAIL}" \
+  --user-labels="is_firebase_channel=true" \
+  --format="value(name)")
+```
+
+#### 4. Attach the Notification Channel to the Alert Policies
+
+Subscribe your email channel to the generated alert policies using `gcloud alpha monitoring policies update`:
+
+```bash
+gcloud alpha monitoring policies update "${NEW_ISSUE_POLICY_NAME}" \
+  --project="${PROJECT_ID}" \
+  --add-notification-channels="${CHANNEL_NAME}"
+
+gcloud alpha monitoring policies update "${REGRESSED_ISSUE_POLICY_NAME}" \
+  --project="${PROJECT_ID}" \
+  --add-notification-channels="${CHANNEL_NAME}"
+```
+
+---
+
+### Advanced Alerting in Google Cloud Monitoring
+
+Because Crashlytics for Web alerts are built on Google Cloud Monitoring and Cloud Logging, you can also configure custom log-based metrics or attach additional project-level notification channels (such as Slack, PagerDuty, webhooks, or Pub/Sub) directly in **Google Cloud Console > Monitoring > Alerting**.
 
 ---
 
