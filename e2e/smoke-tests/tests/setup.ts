@@ -15,12 +15,17 @@
  * limitations under the License.
  */
 
-module.exports = (path, options) => {
-  if (/firebase/.test(path)) {
-    return options.defaultResolver(path, {
-      ...options,
-      conditions: ['browser', 'require']
-    });
-  }
-  return options.defaultResolver(path, options);
-};
+import { inject } from 'vitest';
+
+declare global {
+  // eslint-disable-next-line no-var
+  var FIREBASE_APPCHECK_DEBUG_TOKEN: boolean | string | undefined;
+}
+
+self.FIREBASE_APPCHECK_DEBUG_TOKEN = inject('APP_CHECK_DEBUG_TOKEN');
+
+afterEach(() => {
+  vi.useRealTimers();
+  vi.resetAllMocks();
+  vi.restoreAllMocks();
+});
