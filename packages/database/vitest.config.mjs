@@ -17,4 +17,20 @@
 
 import createBaseConfig from '../../config/vitest.base.mjs';
 
-export default createBaseConfig(import.meta.url);
+const config = createBaseConfig(import.meta.url);
+
+for (const project of config.test.projects) {
+  if (project.test.name === 'browser') {
+    project.define = {
+      ...(project.define || {}),
+      'process.env.RTDB_EMULATOR_PORT': JSON.stringify(
+        process.env.RTDB_EMULATOR_PORT
+      ),
+      'process.env.RTDB_EMULATOR_NAMESPACE': JSON.stringify(
+        process.env.RTDB_EMULATOR_NAMESPACE
+      )
+    };
+  }
+}
+
+export default config;
