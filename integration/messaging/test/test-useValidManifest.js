@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-const expect = require('chai').expect;
 const testServer = require('./utils/test-server');
 const retrieveToken = require('./utils/retrieveToken');
 const seleniumAssistant = require('selenium-assistant');
@@ -24,29 +23,28 @@ const createPermittedWebDriver = require('./utils/createPermittedWebDriver');
 const TEST_DOMAIN = 'valid-manifest';
 const TEST_SUITE_TIMEOUT_MS = 70000;
 
-// Getting and deleting token is the entry step of using FM SDK. Let it run first and fail quickly.
-require('./test-token-delete');
+describe(
+  `Firebase Messaging Integration Tests > Use 'use valid manifest`,
+  { timeout: TEST_SUITE_TIMEOUT_MS },
+  () => {
+    let globalWebDriver;
 
-describe(`Firebase Messaging Integration Tests > Use 'use valid manifest`, function () {
-  this.timeout(TEST_SUITE_TIMEOUT_MS);
+    beforeAll(async () => {
+      await testServer.start();
+    });
 
-  let globalWebDriver;
+    afterAll(async () => {
+      await testServer.stop();
+      await seleniumAssistant.killWebDriver(globalWebDriver);
+    });
 
-  before(async function () {
-    await testServer.start();
-  });
+    it(`should allow valid manifest`, async () => {
+      globalWebDriver = createPermittedWebDriver('chrome');
+      await globalWebDriver.get(`${testServer.serverAddress}/${TEST_DOMAIN}/`);
 
-  after(async function () {
-    await testServer.stop();
-    await seleniumAssistant.killWebDriver(globalWebDriver);
-  });
-
-  it(`should allow valid manifest`, async function () {
-    globalWebDriver = createPermittedWebDriver('chrome');
-    await globalWebDriver.get(`${testServer.serverAddress}/${TEST_DOMAIN}/`);
-
-    // If we have a token, then we know the default SW + Manifest worked.
-    const token = await retrieveToken(globalWebDriver);
-    expect(token).to.exist;
-  });
-});
+      // If we have a token, then we know the default SW + Manifest worked.
+      const token = await retrieveToken(globalWebDriver);
+      expect(token).toBeDefined();
+    });
+  }
+);

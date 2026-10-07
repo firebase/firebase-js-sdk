@@ -20,18 +20,11 @@ const express = require('express');
 const PORT_NUMBER = 3000;
 
 const FIREBASE_HEAD = express.static(
-  path.join(
-    /* firebase-js-sdk/integration/messaging */ process.env.PWD,
-    '../..',
-    '/packages/firebase'
-  )
+  path.resolve(__dirname, '../../../packages/firebase')
 );
 
 const INTEGRATION_TEST_ASSETS = express.static(
-  path.join(
-    /* firebase-js-sdk/integration/messaging */ process.env.PWD,
-    'test/static'
-  )
+  path.resolve(__dirname, '../static')
 );
 
 class MessagingTestServer {
