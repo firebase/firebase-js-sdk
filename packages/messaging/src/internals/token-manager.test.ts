@@ -39,7 +39,7 @@ import { FakeServiceWorkerRegistration } from '../testing/fakes/service-worker';
 import { MessagingService } from '../messaging-service';
 import { Stub } from '../testing/sinon-types';
 import { TokenDetails } from '../interfaces/registration-details';
-// import { arrayToBase64 } from '../helpers/array-base64-translator';
+import { base64ToArray } from '../helpers/array-base64-translator';
 import { expect } from 'chai';
 import { getFakeTokenDetails } from '../testing/fakes/token-details';
 
@@ -115,6 +115,36 @@ describe('Token Manager', () => {
 
       const tokenFromDb = await dbGet(messaging.firebaseDependencies);
       expect(tokenFromDb).to.deep.equal(tokenDetails);
+    });
+
+    it('re-subscribes and requests a new token when the VAPID key changes', async () => {
+      const newVapidKey =
+        'BFsgEwl8eIQ30RpOPT7-o2x_ojOaPcSoJUBx-vWKT7xYvUTdq3j11Dm9hctS75bJ9LKx2KJW2j8Q0wZnuUS8yVQ';
+      await getTokenInternal(messaging);
+      const pushManager = messaging.swRegistration!.pushManager;
+      const unsubscribeSpy = spy(
+        (await pushManager.getSubscription())!,
+        'unsubscribe'
+      );
+      const subscribeSpy = spy(pushManager, 'subscribe');
+
+      messaging.vapidKey = newVapidKey;
+      const token = await getTokenInternal(messaging);
+
+      expect(token).to.equal('token-value');
+      expect(unsubscribeSpy).to.have.been.calledOnce;
+      expect(subscribeSpy).to.have.been.calledOnce;
+      expect(
+        subscribeSpy.firstCall.args[0]?.applicationServerKey
+      ).to.deep.equal(base64ToArray(newVapidKey));
+      expect(requestDeleteTokenStub).to.have.been.calledOnceWith(
+        messaging.firebaseDependencies,
+        'token-value'
+      );
+      expect(requestGetTokenStub).to.have.been.calledTwice;
+      expect(requestGetTokenStub.secondCall.args[1].vapidKey).to.equal(
+        newVapidKey
+      );
     });
 
     it('gets a fresh token after unregister clears the stored token details', async () => {
