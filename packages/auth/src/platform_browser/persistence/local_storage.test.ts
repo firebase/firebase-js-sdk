@@ -210,23 +210,21 @@ describe('platform_browser/persistence/local_storage', () => {
     });
 
     describe('with polling (mobile browsers)', () => {
-      let clock: sinon.SinonFakeTimers;
-
       beforeEach(() => {
-        clock = sinon.useFakeTimers();
+        vi.useFakeTimers();
         (persistence as any)['fallbackToPolling'] = true;
         persistence._addListener(key, callback);
       });
 
       afterEach(() => {
         persistence._removeListener(key, callback);
-        clock.restore();
+        vi.useRealTimers();
       });
 
       it('should catch persistence changes', async () => {
         localStorage.setItem(key, JSON.stringify(newValue));
 
-        clock.tick(_POLLING_INTERVAL_MS + 1);
+        vi.advanceTimersByTime(_POLLING_INTERVAL_MS + 1);
 
         expect(callback).toHaveBeenCalledWith(newValue);
       });
@@ -234,7 +232,7 @@ describe('platform_browser/persistence/local_storage', () => {
       it('should not trigger twice if event still occurs after poll', async () => {
         localStorage.setItem(key, JSON.stringify(newValue));
 
-        clock.tick(_POLLING_INTERVAL_MS + 1);
+        vi.advanceTimersByTime(_POLLING_INTERVAL_MS + 1);
         window.dispatchEvent(
           new StorageEvent('storage', {
             key,
@@ -256,7 +254,7 @@ describe('platform_browser/persistence/local_storage', () => {
             newValue: JSON.stringify(newValue)
           })
         );
-        clock.tick(_POLLING_INTERVAL_MS + 1);
+        vi.advanceTimersByTime(_POLLING_INTERVAL_MS + 1);
 
         expect(callback).toHaveBeenCalledExactlyOnceWith(newValue);
       });

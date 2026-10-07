@@ -50,7 +50,6 @@ describe('core/auth/emulator', () => {
 
   afterEach(() => {
     fetch.tearDown();
-    sinon.restore();
     vi.restoreAllMocks();
 
     // The DOM persists through tests; remove the banner if it is attached

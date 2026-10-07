@@ -21,13 +21,11 @@ import { AuthErrorCode } from '../errors';
 import { _createError } from '../util/assert';
 import { Duration, ProactiveRefresh } from './proactive_refresh';
 import { MockInstance } from 'vitest';
-import sinon from 'sinon';
 
 describe('core/user/proactive_refresh', () => {
   let user: UserInternal;
   let proactiveRefresh: ProactiveRefresh;
   let getTokenStub: MockInstance;
-  let clock: sinon.SinonFakeTimers;
 
   // Sets the expiration time in accordance with the offset in proactive refresh
   // This translates to the interval between updates
@@ -35,14 +33,19 @@ describe('core/user/proactive_refresh', () => {
     user.stsTokenManager.expirationTime = Duration.OFFSET + offset;
   }
 
-  // clock.nextAsync() returns the number of milliseconds since the unix epoch.
-  // We have set "now" to be the epoch. This function is like clock.nextAsync
-  // except that it returns the amount of time *for that one timeout* rather
-  // than the time since the epoch
+  // Advances to the next timer and returns the current fake timestamp
+  async function nextTimer(): Promise<number> {
+    vi.advanceTimersToNextTimer();
+    await Promise.resolve();
+    await Promise.resolve();
+    return Date.now();
+  }
+
+  // Advances to the next timer and returns the amount of time *for that one
+  // timeout* rather than the time since the epoch
   async function nextAsync(): Promise<number> {
     const now = Date.now();
-    const timeoutTime = (await clock.nextAsync()) - now;
-    return timeoutTime;
+    return (await nextTimer()) - now;
   }
 
   beforeEach(async () => {
@@ -54,34 +57,34 @@ describe('core/user/proactive_refresh', () => {
       .spyOn(user, 'getIdToken')
       .mockReturnValue(Promise.resolve('foo'));
 
-    clock = sinon.useFakeTimers({
+    vi.useFakeTimers({
       now: 0,
       shouldAdvanceTime: false
     });
   });
 
   afterEach(() => {
-    clock.restore();
+    vi.useRealTimers();
     vi.restoreAllMocks();
   });
 
   it('calls getToken at regular intervals', async () => {
     setExpirationTime(1000);
     proactiveRefresh._start();
-    expect(await clock.nextAsync()).toBe(1000);
-    expect(await clock.nextAsync()).toBe(1000);
-    expect(await clock.nextAsync()).toBe(1000);
+    expect(await nextTimer()).toBe(1000);
+    expect(await nextTimer()).toBe(1000);
+    expect(await nextTimer()).toBe(1000);
     expect(getTokenStub.mock.calls.length).toBe(3);
   });
 
   it('stops getting token when _stop is called', async () => {
     setExpirationTime(1000);
     proactiveRefresh._start();
-    await clock.nextAsync();
+    await nextTimer();
     proactiveRefresh._stop();
-    await clock.nextAsync();
-    await clock.nextAsync();
-    await clock.nextAsync();
+    await nextTimer();
+    await nextTimer();
+    await nextTimer();
     expect(getTokenStub.mock.calls.length).toBe(1);
   });
 
@@ -89,9 +92,9 @@ describe('core/user/proactive_refresh', () => {
     setExpirationTime(1000);
     getTokenStub.mockImplementation(() => Promise.reject(new Error('no')));
     proactiveRefresh._start();
-    await clock.nextAsync();
-    await clock.nextAsync();
-    await clock.nextAsync();
+    await nextTimer();
+    await nextTimer();
+    await nextTimer();
     expect(getTokenStub.mock.calls.length).toBe(1);
   });
 

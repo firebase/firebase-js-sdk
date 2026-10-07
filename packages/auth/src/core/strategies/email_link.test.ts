@@ -191,16 +191,15 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
       }
       vi.spyOn(jsHelpers, '_loadJS').mockImplementation(mockLoadJS);
       window.grecaptcha = recaptcha;
-      sinon
-        .stub(recaptcha.enterprise, 'execute')
-        .returns(Promise.resolve('recaptcha-response'));
+      vi.spyOn(recaptcha.enterprise, 'execute').mockResolvedValue(
+        'recaptcha-response'
+      );
     });
 
     afterEach(() => {
       if (typeof window !== 'undefined') {
         delete (window as any).grecaptcha;
       }
-      sinon.restore();
       vi.restoreAllMocks();
     });
 
@@ -269,19 +268,19 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
         return;
       }
       window.grecaptcha = recaptcha;
-      const stub = sinon.stub(recaptcha.enterprise, 'execute');
-      stub.returns(Promise.resolve('recaptcha-response'));
-
-      // // First verification should fail with 'wrong-site-key'
-      stub
-        .withArgs('wrong-site-key', {
-          action: RecaptchaActionName.GET_OOB_CODE
-        })
-        .returns(Promise.reject(new Error('wrong-site-key')));
-      // Second verification should succeed with site key refreshed
-      stub
-        .withArgs('site-key', { action: 'verify' })
-        .returns(Promise.resolve('recaptcha-response'));
+      vi.spyOn(recaptcha.enterprise, 'execute').mockImplementation(
+        async (siteKey, options) => {
+          // First verification should fail with 'wrong-site-key'
+          if (
+            siteKey === 'wrong-site-key' &&
+            options?.action === RecaptchaActionName.GET_OOB_CODE
+          ) {
+            throw new Error('wrong-site-key');
+          }
+          // Second verification should succeed with site key refreshed
+          return 'recaptcha-response';
+        }
+      );
 
       mockEndpointWithParams(
         Endpoint.GET_RECAPTCHA_CONFIG,
@@ -346,13 +345,9 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
       // Manually set window.recaptcha
       const recaptcha = new MockGreCAPTCHATopLevel();
       window.grecaptcha = recaptcha;
-      const stub = sinon.stub(recaptcha.enterprise, 'execute');
-      stub.returns(Promise.resolve('recaptcha-response'));
-      stub
-        .withArgs('site-key', {
-          action: RecaptchaActionName.GET_OOB_CODE
-        })
-        .returns(Promise.resolve('recaptcha-response'));
+      vi.spyOn(recaptcha.enterprise, 'execute').mockResolvedValue(
+        'recaptcha-response'
+      );
 
       mockEndpointWithParams(
         Endpoint.GET_RECAPTCHA_CONFIG,

@@ -62,13 +62,11 @@ describe('platform_browser/persistence/indexed_db', () => {
 
   afterEach(() => {
     (persistence as any).stopPolling();
-    sinon.restore();
     vi.restoreAllMocks();
   });
 
-  async function waitUntilPoll(clock: sinon.SinonFakeTimers): Promise<void> {
-    clock.tick(_POLLING_INTERVAL_MS + 1);
-    clock.restore();
+  async function waitUntilPoll(): Promise<void> {
+    vi.advanceTimersByTime(_POLLING_INTERVAL_MS + 1);
     // Wait a little for the poll operation to complete
     await new Promise(resolve => setTimeout(resolve, 100));
   }
@@ -148,7 +146,6 @@ describe('platform_browser/persistence/indexed_db', () => {
   });
 
   describe('#addEventListener', () => {
-    let clock: sinon.SinonFakeTimers;
     const key = 'my-key';
     const newValue = 'new-value';
     let callback: MockInstance;
@@ -163,7 +160,7 @@ describe('platform_browser/persistence/indexed_db', () => {
     });
 
     beforeEach(async () => {
-      clock = sinon.useFakeTimers();
+      vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
       callback = vi.fn();
       persistence._addListener(key, callback);
     });
@@ -171,11 +168,11 @@ describe('platform_browser/persistence/indexed_db', () => {
     afterEach(async () => {
       persistence._removeListener(key, callback);
       await _clearDatabase(db);
-      clock.restore();
+      vi.useRealTimers();
     });
 
     it('should not trigger a listener when there are no changes', async () => {
-      await waitUntilPoll(clock);
+      await waitUntilPoll();
       expect(callback).not.toHaveBeenCalled();
     });
 
@@ -183,19 +180,19 @@ describe('platform_browser/persistence/indexed_db', () => {
       await persistence._get(key); // Ensure cache is populated before change
       await _putObject(db, key, newValue);
 
-      await waitUntilPoll(clock);
+      await waitUntilPoll();
 
       expect(callback).toHaveBeenCalledWith(newValue);
     });
 
     it('should trigger the listener when the key is removed', async () => {
       await _putObject(db, key, newValue);
-      await waitUntilPoll(clock);
+      await waitUntilPoll();
       callback.mockClear();
 
       await _deleteObject(db, key);
 
-      await waitUntilPoll(clock);
+      await waitUntilPoll();
 
       expect(callback).toHaveBeenCalledExactlyOnceWith(null);
     });
@@ -204,7 +201,7 @@ describe('platform_browser/persistence/indexed_db', () => {
       await persistence._get(key); // Ensure cache is populated
       await _putObject(db, 'other-key', newValue);
 
-      await waitUntilPoll(clock);
+      await waitUntilPoll();
 
       expect(callback).not.toHaveBeenCalled();
     });
@@ -214,7 +211,7 @@ describe('platform_browser/persistence/indexed_db', () => {
       await _putObject(db, key, newValue);
       (persistence as any)['pendingWrites'] = 1;
 
-      await waitUntilPoll(clock);
+      await waitUntilPoll();
 
       expect(callback).not.toHaveBeenCalled();
       (persistence as any)['pendingWrites'] = 0;
@@ -236,7 +233,7 @@ describe('platform_browser/persistence/indexed_db', () => {
         await persistence._get(key); // Ensure cache is populated
         await _putObject(db, key, newValue);
 
-        await waitUntilPoll(clock);
+        await waitUntilPoll();
 
         expect(callback).toHaveBeenCalledWith(newValue);
         expect(otherCallback).toHaveBeenCalledWith(newValue);
@@ -433,7 +430,6 @@ describe('platform_browser/persistence/indexed_db', () => {
   });
 
   describe('page lifecycle events', () => {
-    let clock: sinon.SinonFakeTimers;
     const key = 'my-key';
     const value = 'my-value';
     let callback: MockInstance;
@@ -448,7 +444,7 @@ describe('platform_browser/persistence/indexed_db', () => {
     });
 
     beforeEach(async () => {
-      clock = sinon.useFakeTimers();
+      vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
       callback = vi.fn();
       // Ensure we start fresh
       (persistence as any).isClosing = false;
@@ -458,7 +454,7 @@ describe('platform_browser/persistence/indexed_db', () => {
     afterEach(() => {
       persistence._removeListener(key, callback);
       (persistence as any).stopPolling();
-      clock.restore();
+      vi.useRealTimers();
       vi.restoreAllMocks();
     });
 
@@ -492,7 +488,7 @@ describe('platform_browser/persistence/indexed_db', () => {
 
       // Ensure polling doesn't run even if clock ticks
       callback.mockClear();
-      clock.tick(_POLLING_INTERVAL_MS + 1);
+      vi.advanceTimersByTime(_POLLING_INTERVAL_MS + 1);
       expect(callback).not.toHaveBeenCalled();
 
       // Trigger pageshow
@@ -502,7 +498,7 @@ describe('platform_browser/persistence/indexed_db', () => {
 
       // Modify DB in background, ensure polling picks it up after pageshow
       await _putObject(db, key, 'new-value');
-      await waitUntilPoll(clock);
+      await waitUntilPoll();
       expect(callback).toHaveBeenCalledWith('new-value');
     });
 

@@ -34,6 +34,9 @@ config.test.teardownTimeout = 1000;
 const hasIntegrationArg = process.argv.some(arg =>
   arg.includes('test/integration')
 );
+const hasWebdriverArg = process.argv.some(arg =>
+  arg.includes('test/integration/webdriver')
+);
 
 function projectConfigPlugin() {
   return {
@@ -66,7 +69,11 @@ for (const project of config.test.projects) {
   if (!hasIntegrationArg) {
     exclude.push('test/integration/**');
   } else {
-    exclude.push('test/integration/webdriver/**');
+    if (!hasWebdriverArg) {
+      exclude.push('test/integration/webdriver/**');
+    } else if (!process.env.COMPAT_LAYER) {
+      exclude.push('test/integration/webdriver/compat/**');
+    }
     if (!process.env.FIREBASE_AUTH_EMULATOR_HOST) {
       exclude.push('**/*.local.test.ts');
     }

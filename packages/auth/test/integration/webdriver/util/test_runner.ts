@@ -17,71 +17,37 @@
 
 import { AuthDriver } from './auth_driver';
 
-/*
- * The most expensive operation in these tests is setting up / tearing down the
- * driver. In order to avoid that cost, all of the tests are collected and
- * bundled into single suites for each browser. To do this, we create a new
- * describe function that is used to generate the new suites.
- *
- * This test is started with the --delay flag, which allows us to control when
- * test execution starts. Collection of the tests is synchronous, but we need
- * a way to ensure that run() is called after they're all added. To accomplish
- * this, we put the final construction of the suites (and the subsequent run()
- * call) after a delay of 1ms.
- */
-
-interface TempSuite {
-  generator: (driver: AuthDriver, browser: string) => void;
-  title: string;
-}
-
 /** The browsers that these tests will run in */
 const BROWSERS = ['chrome' /* 'firefox' */]; // TODO(b/198792664): Investigate Firefox timeout issues
-
-/** One single AuthDriver instance to control everything */
-const DRIVER = new AuthDriver();
-const SUITES: TempSuite[] = [];
 
 /** Main entry point for all WebDriver tests */
 export function browserDescribe(
   title: string,
   generator: (driver: AuthDriver, browser: string) => void
 ): void {
-  SUITES.push({
-    title,
-    generator
-  });
-}
-
-// Construct the final suites after a delay of 1ms, then kick off tests
-setTimeout(() => {
   for (const browser of BROWSERS) {
     describe(`Testing in browser "${browser}"`, () => {
-      before(async function () {
-        this.timeout(20000); // Starting browsers can be slow.
-        await DRIVER.start(browser);
-      });
+      const driver = new AuthDriver();
 
-      after(async () => {
-        await DRIVER.stop();
+      beforeAll(async () => {
+        await driver.start(browser);
+      }, 20000);
+
+      afterAll(async () => {
+        await driver.stop();
       });
 
       // It's assumed that the tests will start with a clean slate (i.e.
       // no storage).
       beforeEach(async () => {
-        await DRIVER.closeExtraWindows();
-        await DRIVER.reset();
-        await DRIVER.injectConfigAndInitAuth();
+        await driver.closeExtraWindows();
+        await driver.reset();
+        await driver.injectConfigAndInitAuth();
       });
 
-      for (const { title, generator } of SUITES) {
-        describe(title, function () {
-          this.timeout(20000);
-          generator(DRIVER, browser);
-        });
-      }
+      describe(title, { timeout: 20000 }, () => {
+        generator(driver, browser);
+      });
     });
   }
-
-  run();
-}, 1);
+}

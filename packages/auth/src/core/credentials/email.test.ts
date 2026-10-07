@@ -70,9 +70,9 @@ function mockRecaptchaEnterpriseEnablement(
     return;
   }
   window.grecaptcha = recaptcha;
-  sinon
-    .stub(recaptcha.enterprise, 'execute')
-    .returns(Promise.resolve(FAKE_RECAPTCHA_TOKEN));
+  vi.spyOn(recaptcha.enterprise, 'execute').mockReturnValue(
+    Promise.resolve(FAKE_RECAPTCHA_TOKEN)
+  );
   return mockEndpointWithParams(
     Endpoint.GET_RECAPTCHA_CONFIG,
     {
@@ -106,12 +106,14 @@ function mockRecaptchaEnterpriseTokenSuccess(action: string): void {
   vi.spyOn(jsHelpers, '_loadJS').mockImplementation(mockLoadJS);
   const recaptcha = new MockGreCAPTCHATopLevel();
   window.grecaptcha = recaptcha;
-  const stub = sinon.stub(recaptcha.enterprise, 'execute');
-  stub
-    .withArgs('site-key', {
-      action
-    })
-    .returns(Promise.resolve(FAKE_RECAPTCHA_TOKEN));
+  vi.spyOn(recaptcha.enterprise, 'execute').mockImplementation(
+    async (siteKey, options) => {
+      if (siteKey === 'site-key' && options?.action === action) {
+        return FAKE_RECAPTCHA_TOKEN;
+      }
+      return '';
+    }
+  );
 
   mockEndpointWithParams(
     Endpoint.GET_RECAPTCHA_CONFIG,

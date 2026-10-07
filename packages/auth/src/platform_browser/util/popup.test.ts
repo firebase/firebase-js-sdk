@@ -57,7 +57,6 @@ describe('platform_browser/util/popup', () => {
   });
 
   afterEach(() => {
-    sinon.restore();
     vi.restoreAllMocks();
   });
 

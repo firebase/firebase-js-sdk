@@ -108,7 +108,7 @@
     "test:node:unit": "vitest run --project=node",
     "test:node:integration": "vitest run --project=node test/integration/flows/email.test.ts test/integration/flows/anonymous.test.ts test/integration/flows/firebaseserverapp.test.ts",
     "test:node:integration:local": "vitest run --project=node test/integration/flows/email.test.ts test/integration/flows/anonymous.test.ts test/integration/flows/firebaseserverapp.test.ts test/integration/flows/custom.local.test.ts test/integration/flows/idp.local.test.ts test/integration/flows/oob.local.test.ts",
-    "test:webdriver": "rollup -c test/integration/webdriver/static/rollup.config.js && NODE_OPTIONS='--no-strip-types' ts-node -O '{\"module\": \"commonjs\", \"target\": \"es6\"}' scripts/run_node_tests.ts --webdriver",
+    "test:webdriver": "rollup -c test/integration/webdriver/static/rollup.config.js && vitest run --project=node test/integration/webdriver",
     "trusted-type-check": "tsec -p tsconfig.json --noEmit",
     "api-report": "api-extractor run --local --verbose --config ./api-extractor.json && api-extractor run --local --verbose --config ./web-extension/api-extractor.json && api-extractor run --local --verbose --config ./cordova/api-extractor.json",
     "doc": "api-documenter markdown --input temp --output docs",

@@ -60,7 +60,6 @@ describe('platform_browser/iframe/iframe', () => {
 
   afterEach(() => {
     delete (_window() as any).gapi;
-    sinon.restore();
     vi.restoreAllMocks();
   });
 

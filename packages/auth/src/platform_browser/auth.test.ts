@@ -83,7 +83,6 @@ describe('core/auth/auth_impl', () => {
   });
 
   afterEach(() => {
-    sinon.restore();
     vi.restoreAllMocks();
   });
 
@@ -112,7 +111,6 @@ describe('core/auth/auth_impl', () => {
 
 describe('core/auth/initializeAuth', () => {
   afterEach(() => {
-    sinon.restore();
     vi.restoreAllMocks();
   });
 

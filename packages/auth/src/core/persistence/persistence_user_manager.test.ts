@@ -246,7 +246,7 @@ describe('core/persistence/persistence_user_manager', () => {
   });
 
   describe('manager methods', () => {
-    let persistenceStub: sinon.SinonStubbedInstance<PersistenceInternal>;
+    let persistenceStub: ReturnType<typeof makePersistence>['stub'];
     let manager: PersistenceUserManager;
 
     beforeEach(async () => {

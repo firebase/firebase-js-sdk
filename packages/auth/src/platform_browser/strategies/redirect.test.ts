@@ -76,7 +76,6 @@ describe('platform_browser/strategies/redirect', () => {
   });
 
   afterEach(() => {
-    sinon.restore();
     vi.restoreAllMocks();
     _clearRedirectOutcomes();
     _clearInstanceMap();

@@ -26,12 +26,7 @@ import {
 } from '../../../test/helpers/api/helper';
 import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 import * as mockFetch from '../../../test/helpers/mock_fetch';
-import {
-  Endpoint,
-  RecaptchaClientType,
-  RecaptchaVersion,
-  RecaptchaActionName
-} from '../../api';
+import { Endpoint, RecaptchaClientType, RecaptchaVersion } from '../../api';
 import { APIUserInfo } from '../../api/account_management/account';
 import { ServerError } from '../../api/errors';
 import { UserCredentialInternal } from '../../model/user';
@@ -205,7 +200,6 @@ describe('core/strategies/sendPasswordResetEmail', () => {
       if (typeof window !== 'undefined') {
         delete (window as any).grecaptcha;
       }
-      sinon.restore();
       vi.restoreAllMocks();
     });
 
@@ -302,13 +296,9 @@ describe('core/strategies/sendPasswordResetEmail', () => {
       // Manually set window.recaptcha
       const recaptcha = new MockGreCAPTCHATopLevel();
       window.grecaptcha = recaptcha;
-      const stub = sinon.stub(recaptcha.enterprise, 'execute');
-      stub.returns(Promise.resolve('recaptcha-response'));
-      stub
-        .withArgs('site-key', {
-          action: RecaptchaActionName.GET_OOB_CODE
-        })
-        .returns(Promise.resolve('recaptcha-response'));
+      vi.spyOn(recaptcha.enterprise, 'execute').mockResolvedValue(
+        'recaptcha-response'
+      );
 
       mockEndpointWithParams(
         Endpoint.GET_RECAPTCHA_CONFIG,
@@ -622,7 +612,6 @@ describe('core/strategies/email_and_password/createUserWithEmailAndPassword', ()
       if (typeof window !== 'undefined') {
         delete (window as any).grecaptcha;
       }
-      sinon.restore();
       vi.restoreAllMocks();
     });
 
@@ -732,13 +721,9 @@ describe('core/strategies/email_and_password/createUserWithEmailAndPassword', ()
       vi.spyOn(jsHelpers, '_loadJS').mockImplementation(mockLoadJS);
       const recaptcha = new MockGreCAPTCHATopLevel();
       window.grecaptcha = recaptcha;
-      const stub = sinon.stub(recaptcha.enterprise, 'execute');
-      stub.returns(Promise.resolve('recaptcha-response'));
-      stub
-        .withArgs('site-key', {
-          action: RecaptchaActionName.SIGN_UP_PASSWORD
-        })
-        .returns(Promise.resolve('recaptcha-response'));
+      vi.spyOn(recaptcha.enterprise, 'execute').mockResolvedValue(
+        'recaptcha-response'
+      );
 
       mockEndpointWithParams(
         Endpoint.GET_RECAPTCHA_CONFIG,
@@ -899,18 +884,9 @@ describe('password policy cache is updated in auth flows upon error', () => {
     vi.spyOn(jsHelpers, '_loadJS').mockImplementation(mockLoadJS);
     const recaptcha = new MockGreCAPTCHATopLevel();
     window.grecaptcha = recaptcha;
-    const stub = sinon.stub(recaptcha.enterprise, 'execute');
-    stub.returns(Promise.resolve(TEST_RECAPTCHA_RESPONSE));
-    stub
-      .withArgs(TEST_SITE_KEY, {
-        action: RecaptchaActionName.SIGN_UP_PASSWORD
-      })
-      .returns(Promise.resolve(TEST_RECAPTCHA_RESPONSE));
-    stub
-      .withArgs(TEST_SITE_KEY, {
-        action: RecaptchaActionName.SIGN_IN_WITH_PASSWORD
-      })
-      .returns(Promise.resolve(TEST_RECAPTCHA_RESPONSE));
+    vi.spyOn(recaptcha.enterprise, 'execute').mockResolvedValue(
+      TEST_RECAPTCHA_RESPONSE
+    );
   }
 
   beforeEach(async () => {
@@ -960,7 +936,6 @@ describe('password policy cache is updated in auth flows upon error', () => {
       delete (window as any).grecaptcha;
     }
     mockFetch.tearDown();
-    sinon.restore();
     vi.restoreAllMocks();
   });
 

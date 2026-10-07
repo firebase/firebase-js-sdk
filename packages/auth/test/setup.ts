@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
-import * as sinon from 'sinon';
+import { afterEach, vi } from 'vitest';
 
-(globalThis as any).sinon = sinon;
+afterEach(() => {
+  vi.restoreAllMocks();
+});

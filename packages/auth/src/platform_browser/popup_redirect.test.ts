@@ -90,7 +90,6 @@ describe('platform_browser/popup_redirect', () => {
 
   afterEach(() => {
     delete (authWindow._window() as any).gapi;
-    sinon.restore();
     vi.restoreAllMocks();
   });
 
