@@ -31,7 +31,7 @@ export interface WebSocketHandler {
   /**
    * Establishes a connection to the given URL.
    *
-   * @param url The WebSocket URL (e.g., wss://...).
+   * @param url - The WebSocket URL (e.g., wss://...).
    * @returns A promise that resolves on successful connection or rejects on failure.
    */
   connect(url: string): Promise<void>;
@@ -39,7 +39,7 @@ export interface WebSocketHandler {
   /**
    * Sends data over the WebSocket.
    *
-   * @param data The string or binary data to send.
+   * @param data - The string or binary data to send.
    */
   send(data: string | ArrayBuffer): void;
 

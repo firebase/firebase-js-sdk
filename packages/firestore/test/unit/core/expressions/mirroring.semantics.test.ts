@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2025 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import { EvaluateResult } from '../../../../src/core/expressions';
 import {
@@ -123,7 +121,7 @@ describe('Unary Function Input Mirroring', () => {
           expect(
             actualResult,
             `${funcName}(${testCase.description}) should evaluate to ERROR (undefined)`
-          ).to.be.undefined;
+          ).toBeUndefined();
         } else {
           expectEqualToConstant(
             actualResult,
@@ -296,7 +294,7 @@ describe('Binary Function Input Mirroring', () => {
           expect(
             actualResult,
             `${funcName}(${testCase.description}) should evaluate to ERROR (undefined)`
-          ).to.deep.equal(EvaluateResult.newError());
+          ).toEqual(EvaluateResult.newError());
         } else if (testCase.expected === NULL_INPUT) {
           if (testCase.description === 'NULL, NULL -> NULL') {
             if (
@@ -307,7 +305,7 @@ describe('Binary Function Input Mirroring', () => {
               expect(
                 actualResult,
                 `${funcName}(${testCase.description}) should evaluate to TRUE`
-              ).to.deep.equal(EvaluateResult.newValue({ booleanValue: true }));
+              ).toEqual(EvaluateResult.newValue({ booleanValue: true }));
             } else if (
               funcName === 'greater_than' ||
               funcName === 'less_than' ||
@@ -316,18 +314,18 @@ describe('Binary Function Input Mirroring', () => {
               expect(
                 actualResult,
                 `${funcName}(${testCase.description}) should evaluate to FALSE`
-              ).to.deep.equal(EvaluateResult.newValue({ booleanValue: false }));
+              ).toEqual(EvaluateResult.newValue({ booleanValue: false }));
             } else {
               expect(
                 actualResult,
                 `${funcName}(${testCase.description}) should evaluate to NULL`
-              ).to.deep.equal(EvaluateResult.newNull());
+              ).toEqual(EvaluateResult.newNull());
             }
           } else {
             expect(
               actualResult,
               `${funcName}(${testCase.description}) should evaluate to NULL`
-            ).to.deep.equal(EvaluateResult.newNull());
+            ).toEqual(EvaluateResult.newNull());
           }
         } else {
           // This case shouldn't be hit by current test definitions
@@ -336,7 +334,7 @@ describe('Binary Function Input Mirroring', () => {
             `${funcName}(${
               testCase.description
             }) should evaluate to ${JSON.stringify(testCase.expected)}`
-          ).to.deep.equal(testCase.expected);
+          ).toEqual(testCase.expected);
         }
       });
     });

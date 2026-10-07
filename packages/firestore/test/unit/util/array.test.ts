@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { assert } from 'chai';
-
 import { diffArrays } from '../../../src/util/array';
 
 describe('diffArrays', () => {
@@ -58,7 +56,7 @@ describe('diffArrays', () => {
         result.delete(v);
       }
     );
-    assert.equal(result.size, after.length);
+    expect(result.size).toBe(after.length);
     for (const v of after) {
       assert.include(result, v);
     }

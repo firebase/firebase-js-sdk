@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2022 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import { Bound } from '../../../src/core/bound';
 import {
@@ -177,7 +175,7 @@ describe('Target Bounds', () => {
     const index = fieldIndex('c', { fields: [['foo', IndexKind.CONTAINS]] });
 
     const arrayValues = targetGetArrayValues(target, index);
-    expect(arrayValues).to.deep.equal([wrap('bar')]);
+    expect(arrayValues).toEqual([wrap('bar')]);
 
     const lowerBound = targetGetLowerBound(target, index);
     verifyBound(lowerBound, true);
@@ -193,7 +191,7 @@ describe('Target Bounds', () => {
     const index = fieldIndex('c', { fields: [['foo', IndexKind.CONTAINS]] });
 
     const arrayValues = targetGetArrayValues(target, index);
-    expect(arrayValues).to.deep.equal(wrap(['bar', 'baz']).arrayValue!.values);
+    expect(arrayValues).toEqual(wrap(['bar', 'baz']).arrayValue!.values);
 
     const lowerBound = targetGetLowerBound(target, index);
     verifyBound(lowerBound, true);
@@ -207,12 +205,12 @@ describe('Target Bounds', () => {
     const index = fieldIndex('c', { fields: [['foo', IndexKind.ASCENDING]] });
 
     const lowerBound = targetGetLowerBound(target, index);
-    expect(lowerBound?.position[0]).to.equal(INTERNAL_MIN_VALUE);
-    expect(lowerBound?.inclusive).to.be.true;
+    expect(lowerBound?.position[0]).toBe(INTERNAL_MIN_VALUE);
+    expect(lowerBound?.inclusive).toBe(true);
 
     const upperBound = targetGetUpperBound(target, index);
-    expect(upperBound?.position[0]).to.equal(INTERNAL_MAX_VALUE);
-    expect(upperBound?.inclusive).to.be.true;
+    expect(upperBound?.position[0]).toBe(INTERNAL_MAX_VALUE);
+    expect(upperBound?.inclusive).toBe(true);
   });
 
   it('orderBy query with filter', () => {
@@ -241,8 +239,8 @@ describe('Target Bounds', () => {
     verifyBound(lowerBound, true, 'bar');
 
     const upperBound = targetGetUpperBound(target, index);
-    expect(upperBound?.position[0]).to.equal(INTERNAL_MAX_VALUE);
-    expect(upperBound?.inclusive).to.be.true;
+    expect(upperBound?.position[0]).toBe(INTERNAL_MAX_VALUE);
+    expect(upperBound?.inclusive).toBe(true);
   });
 
   it('startAt query with filter', () => {
@@ -337,8 +335,8 @@ describe('Target Bounds', () => {
     const index = fieldIndex('c', { fields: [['foo', IndexKind.ASCENDING]] });
 
     const lowerBound = targetGetLowerBound(target, index);
-    expect(lowerBound?.position[0]).to.equal(INTERNAL_MIN_VALUE);
-    expect(lowerBound?.inclusive).to.be.true;
+    expect(lowerBound?.position[0]).toBe(INTERNAL_MIN_VALUE);
+    expect(lowerBound?.inclusive).toBe(true);
 
     const upperBound = targetGetUpperBound(target, index);
     verifyBound(upperBound, true, 'bar');
@@ -444,10 +442,10 @@ describe('Target Bounds', () => {
     inclusive: boolean,
     ...values: unknown[]
   ): void {
-    expect(bound).to.not.be.null;
-    expect(bound!.inclusive).to.equal(inclusive, 'inclusive');
+    expect(bound).not.toBeNull();
+    expect(bound!.inclusive, 'inclusive').toBe(inclusive);
     const position = bound!.position;
-    expect(position.length).to.equal(values.length, 'size');
+    expect(position.length, 'size').toBe(values.length);
     for (let i = 0; i < values.length; ++i) {
       const expectedValue = wrap(values[i]);
       expect(

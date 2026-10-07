@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import { ascending, field } from '../../../lite/pipelines/pipelines';
 import { Timestamp } from '../../../src';
@@ -131,10 +129,10 @@ class TestLocalDocumentsView extends LocalDocumentsView {
     const skipsDocumentsBeforeSnapshot =
       indexOffsetComparator(IndexOffset.min(), offset) !== 0;
 
-    expect(skipsDocumentsBeforeSnapshot).to.eq(
-      !this.expectFullCollectionScan,
+    expect(
+      skipsDocumentsBeforeSnapshot,
       'Observed query execution mode did not match expectation'
-    );
+    ).toBe(!this.expectFullCollectionScan);
 
     return super.getDocumentsMatchingQuery(transaction, query, offset, context);
   }
@@ -546,11 +544,11 @@ function genericQueryEngineTest(
           );
           const actualKeys: string[] = [];
           result.forEach(document => actualKeys.push(document.key.toString()));
-          expect(actualKeys).to.deep.equal(
+          expect(actualKeys).toEqual(
             testCase.expected.map(i => docs[i].key.toString())
           );
           if (options.configureCsi) {
-            expect(localDocuments.documentsReadByKey).to.equal(
+            expect(localDocuments.documentsReadByKey).toBe(
               testCase.expected.length
             );
           }
@@ -635,7 +633,7 @@ function genericQueryEngineTest(
         verifyResult(result, [docs[0], docs[1]]);
         if (options.configureCsi) {
           // Two candidates initially, then three on the necessary refill.
-          expect(localDocuments.documentsReadByKey).to.equal(5);
+          expect(localDocuments.documentsReadByKey).toBe(5);
         }
       });
 
@@ -1380,7 +1378,7 @@ function genericQueryEngineTest(
           displayNameForIndexType(preQueryExecutionIndexType) +
           ', but expected ' +
           displayNameForIndexType(IndexType.NONE)
-      ).to.equal(IndexType.NONE);
+      ).toBe(IndexType.NONE);
 
       const result = await expectFullCollectionQuery(() =>
         runQuery(q, SnapshotVersion.min())
@@ -1395,7 +1393,7 @@ function genericQueryEngineTest(
           displayNameForIndexType(postQueryExecutionIndexType) +
           ', but expected ' +
           displayNameForIndexType(config.expectedPostQueryExecutionIndexType)
-      ).to.equal(config.expectedPostQueryExecutionIndexType);
+      ).toBe(config.expectedPostQueryExecutionIndexType);
     };
 
     it('creates indexes when indexAutoCreationEnabled=true', () =>
@@ -2030,14 +2028,13 @@ function genericQueryEngineTest(
 
 function verifyResult(actualDocs: DocumentSet, expectedDocs: Document[]): void {
   for (const doc of expectedDocs) {
-    expect(actualDocs.has(doc.key)).to.equal(
-      true,
+    expect(
+      actualDocs.has(doc.key),
       `Expected result to contain document for ${doc.key.toString()}`
-    );
+    ).toBe(true);
   }
 
-  expect(actualDocs.size).to.equal(
-    expectedDocs.length,
-    'Result count does not match'
+  expect(actualDocs.size, 'Result count does not match').toBe(
+    expectedDocs.length
   );
 }

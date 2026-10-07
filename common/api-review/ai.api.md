@@ -23,8 +23,6 @@ export class AgentPlatformBackend extends Backend {
 export interface AI {
     app: FirebaseApp;
     backend: Backend;
-    // @deprecated (undocumented)
-    location: string;
     options?: AIOptions;
 }
 
@@ -119,7 +117,6 @@ export abstract class Backend {
 // @public
 export const BackendType: {
     readonly AGENT_PLATFORM: "AGENT_PLATFORM";
-    readonly VERTEX_AI: "VERTEX_AI";
     readonly GOOGLE_AI: "GOOGLE_AI";
 };
 
@@ -156,55 +153,16 @@ export class BooleanSchema extends Schema {
 }
 
 // @public
-export class ChatSession extends ChatSessionBase<StartChatParams, GenerateContentRequest, FunctionDeclarationsTool> {
-    constructor(apiSettings: ApiSettings, model: string, chromeAdapter?: ChromeAdapter | undefined, params?: StartChatParams | undefined, requestOptions?: RequestOptions | undefined);
-    // @internal
-    _callGenerateContent(formattedRequest: GenerateContentRequest, singleRequestOptions?: RequestOptions): Promise<GenerateContentResult>;
-    // @internal
-    _callGenerateContentStream(formattedRequest: GenerateContentRequest, singleRequestOptions?: RequestOptions): Promise<GenerateContentStreamResult>;
-    // @internal
-    _formatRequest(incomingContent: Content, tempHistory: Content[]): GenerateContentRequest;
+export interface ChatSession {
+    getHistory(): Promise<Content[]>;
     // (undocumented)
     model: string;
     // (undocumented)
-    params?: StartChatParams | undefined;
+    params?: StartChatParams;
     // (undocumented)
-    requestOptions?: RequestOptions | undefined;
+    requestOptions?: RequestOptions;
     sendMessage(request: string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentResult>;
     sendMessageStream(request: string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentStreamResult>;
-}
-
-// Warning: (ae-incompatible-release-tags) The symbol "ChatSessionBase" is marked as @public, but its signature references "StartTemplateChatParams" which is marked as @beta
-// Warning: (ae-incompatible-release-tags) The symbol "ChatSessionBase" is marked as @public, but its signature references "TemplateFunctionDeclarationsTool" which is marked as @beta
-//
-// @public
-export abstract class ChatSessionBase<ParamsType extends StartChatParams | StartTemplateChatParams, RequestType, FunctionDeclarationsToolType extends FunctionDeclarationsTool | TemplateFunctionDeclarationsTool> {
-    constructor(apiSettings: ApiSettings, params?: ParamsType | undefined, requestOptions?: RequestOptions | undefined);
-    // (undocumented)
-    protected _apiSettings: ApiSettings;
-    // @internal
-    _callFunctionsAsNeeded(functionCalls: FunctionCall[]): Promise<FunctionResponsePart[]>;
-    // @internal
-    abstract _callGenerateContent(formattedRequest: RequestType, singleRequestOptions?: RequestOptions): Promise<GenerateContentResult>;
-    // @internal
-    abstract _callGenerateContentStream(formattedRequest: RequestType, singleRequestOptions?: RequestOptions): Promise<GenerateContentStreamResult>;
-    // @internal
-    abstract _formatRequest(incomingContent: Content, tempHistory: Content[]): RequestType;
-    // @internal
-    _getCallableFunctionCalls(response?: GenerateContentResponse): FunctionCall[] | undefined;
-    getHistory(): Promise<Content[]>;
-    // (undocumented)
-    protected _history: Content[];
-    // (undocumented)
-    params?: ParamsType | undefined;
-    // (undocumented)
-    requestOptions?: RequestOptions | undefined;
-    // @internal
-    _sendMessage(request: string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentResult>;
-    // @internal
-    _sendMessageStream(request: string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentStreamResult>;
-    // @internal
-    protected _sendPromise: Promise<void>;
 }
 
 // @public
@@ -283,8 +241,6 @@ export interface CountTokensRequest {
 // @public
 export interface CountTokensResponse {
     promptTokensDetails?: ModalityTokenCount[];
-    // @deprecated (undocumented)
-    totalBillableCharacters?: number;
     totalTokens: number;
 }
 
@@ -650,8 +606,6 @@ export interface GoogleAIGenerateContentResponse {
 
 // @public
 export interface GoogleMaps {
-    // @deprecated (undocumented)
-    enableWidget?: boolean;
 }
 
 // @public
@@ -687,8 +641,6 @@ export interface GroundingMetadata {
     googleMapsWidgetContextToken?: string;
     groundingChunks?: GroundingChunk[];
     groundingSupports?: GroundingSupport[];
-    // @deprecated (undocumented)
-    retrievalQueries?: string[];
     searchEntryPoint?: SearchEntrypoint;
     webSearchQueries?: string[];
 }
@@ -849,10 +801,6 @@ export interface LanguageModelCreateCoreOptions {
     expectedInputs?: LanguageModelExpected[];
     expectedOutputs?: LanguageModelExpected[];
     monitor?: (monitor: LanguageModelDownloadMonitor) => void;
-    // @deprecated (undocumented)
-    temperature?: number;
-    // @deprecated (undocumented)
-    topK?: number;
 }
 
 // @public
@@ -1031,10 +979,6 @@ export class LiveSession {
     send(request: string | Array<string | Part>, turnComplete?: boolean): Promise<void>;
     sendAudioRealtime(blob: GenerativeContentBlob): Promise<void>;
     sendFunctionResponses(functionResponses: FunctionResponse[]): Promise<void>;
-    // @deprecated
-    sendMediaChunks(mediaChunks: GenerativeContentBlob[]): Promise<void>;
-    // @deprecated (undocumented)
-    sendMediaStream(mediaChunkStream: ReadableStream<GenerativeContentBlob>): Promise<void>;
     sendTextRealtime(text: string): Promise<void>;
     sendVideoRealtime(blob: GenerativeContentBlob): Promise<void>;
 }
@@ -1371,8 +1315,7 @@ export interface StartChatParams extends BaseParams {
 // @beta
 export interface StartTemplateChatParams extends Omit<StartChatParams, 'tools'> {
     templateId: string;
-    templateVariables?: Record<string, unknown>;
-    // (undocumented)
+    templateVariables: Record<string, unknown>;
     tools?: TemplateTool[];
 }
 
@@ -1445,10 +1388,17 @@ export class TemplateGenerativeModel {
     constructor(ai: AI, requestOptions?: RequestOptions);
     // @internal (undocumented)
     _apiSettings: ApiSettings;
-    generateContent(templateId: string, templateVariables: Record<string, unknown>, singleRequestOptions?: SingleRequestOptions, templateToolConfig?: TemplateToolConfig): Promise<GenerateContentResult>;
-    generateContentStream(templateId: string, templateVariables: Record<string, unknown>, singleRequestOptions?: SingleRequestOptions, templateToolConfig?: TemplateToolConfig): Promise<GenerateContentStreamResult>;
+    generateContent(request: TemplateRequest, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentResult>;
+    generateContentStream(request: TemplateRequest, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentStreamResult>;
     requestOptions?: RequestOptions;
     startChat(params: StartTemplateChatParams): TemplateChatSession;
+}
+
+// @beta
+export interface TemplateRequest {
+    templateId: string;
+    templateVariables: Record<string, unknown>;
+    toolConfig?: TemplateToolConfig;
 }
 
 // Warning: (ae-internal-missing-underscore) The name "TemplateRequestInternal" should be prefixed with an underscore because the declaration is marked as @internal
@@ -1591,16 +1541,6 @@ export interface UsageMetadata {
     toolUsePromptTokensDetails?: ModalityTokenCount[];
     // (undocumented)
     totalTokenCount: number;
-}
-
-// @public @deprecated
-export class VertexAIBackend extends Backend {
-    constructor(location?: string);
-    // @internal (undocumented)
-    _getModelPath(project: string, model: string): string;
-    // @internal (undocumented)
-    _getTemplatePath(project: string, templateId: string): string;
-    readonly location: string;
 }
 
 // @public

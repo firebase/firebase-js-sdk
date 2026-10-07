@@ -20,9 +20,6 @@ import {
   getResponseStream,
   processStream
 } from './stream-reader';
-import { expect, use } from 'chai';
-import { restore } from 'sinon';
-import sinonChai from 'sinon-chai';
 import {
   getChunkedStream,
   getMockResponseStreaming
@@ -46,15 +43,12 @@ const fakeApiSettings: ApiSettings = {
   apiKey: 'key',
   project: 'my-project',
   appId: 'my-appid',
-  location: 'global',
   backend: new AgentPlatformBackend()
 };
 
-use(sinonChai);
-
 describe('getResponseStream', () => {
   afterEach(() => {
-    restore();
+    vi.restoreAllMocks();
   });
   it('two lines', async () => {
     const src = [{ text: 'A' }, { text: 'B' }];
@@ -81,7 +75,7 @@ describe('getResponseStream', () => {
 
 describe('processStream', () => {
   afterEach(() => {
-    restore();
+    vi.restoreAllMocks();
   });
   it('streaming response - short', async () => {
     const fakeResponse = getMockResponseStreaming(
@@ -367,12 +361,12 @@ describe('aggregateResponses', () => {
       }
     ];
     const response = aggregateResponses(responsesToAggregate);
-    expect(response.candidates).to.not.exist;
+    expect(response.candidates).toBeUndefined();
     expect(response.promptFeedback?.blockReason).to.equal(BlockReason.SAFETY);
   });
   describe('multiple responses, has candidates', () => {
     let response: GenerateContentResponse;
-    before(() => {
+    beforeAll(() => {
       const responsesToAggregate: GenerateContentResponse[] = [
         {
           candidates: [

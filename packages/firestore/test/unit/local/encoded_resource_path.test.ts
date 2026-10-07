@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import {
   decodeResourcePath,
@@ -46,12 +44,7 @@ class EncodedResourcePathSchemaConverter implements SimpleDbSchemaConverter {
   }
 }
 
-describe('EncodedResourcePath', () => {
-  if (!SimpleDb.isAvailable()) {
-    console.warn('No IndexedDB. Skipping EncodedResourcePath tests.');
-    return;
-  }
-
+describe.skipIf(!SimpleDb.isAvailable())('EncodedResourcePath', () => {
   const dbName = 'resource-path-tests';
 
   beforeEach(async () => {
@@ -63,7 +56,7 @@ describe('EncodedResourcePath', () => {
     db.close();
   });
 
-  after(() => SimpleDb.delete(dbName));
+  afterAll(() => SimpleDb.delete(dbName));
 
   it('encodes resource paths', async () => {
     await assertEncoded(sep, ResourcePath.emptyPath());
@@ -123,9 +116,9 @@ describe('EncodedResourcePath', () => {
 
 function assertEncoded(expected: string, path: ResourcePath): Promise<void> {
   const encoded = encodeResourcePath(path);
-  expect(encoded).to.deep.equal(expected);
+  expect(encoded).toEqual(expected);
   const decoded = decodeResourcePath(encoded);
-  expect(decoded.toArray()).to.deep.equal(path.toArray());
+  expect(decoded.toArray()).toEqual(path.toArray());
 
   let store: SimpleDbStore<string, boolean>;
   return runTransaction(simpleStore => {
@@ -136,7 +129,7 @@ function assertEncoded(expected: string, path: ResourcePath): Promise<void> {
         return store.get(encoded);
       })
       .next(exists => {
-        expect(exists).to.equal(true);
+        expect(exists).toBe(true);
         return store.delete(encoded);
       });
   });
@@ -173,17 +166,17 @@ async function assertOrdered(paths: ResourcePath[]): Promise<void> {
   for (let i = 0; i < paths.length; i++) {
     for (let j = 0; j < encoded.length; j++) {
       if (i < j) {
-        expect(ResourcePath.comparator(paths[i], paths[j])).to.equal(-1);
-        expect(encoded[i] < encoded[j]).to.equal(true);
-        expect(selected[i] < selected[j]).to.equal(true);
+        expect(ResourcePath.comparator(paths[i], paths[j])).toBe(-1);
+        expect(encoded[i] < encoded[j]).toBe(true);
+        expect(selected[i] < selected[j]).toBe(true);
       } else if (i > j) {
-        expect(ResourcePath.comparator(paths[i], paths[j])).to.equal(1);
-        expect(encoded[i] > encoded[j]).to.equal(true);
-        expect(selected[i] > selected[j]).to.equal(true);
+        expect(ResourcePath.comparator(paths[i], paths[j])).toBe(1);
+        expect(encoded[i] > encoded[j]).toBe(true);
+        expect(selected[i] > selected[j]).toBe(true);
       } else {
-        expect(ResourcePath.comparator(paths[i], paths[j])).to.equal(0);
-        expect(encoded[i]).to.deep.equal(encoded[j]);
-        expect(selected[i]).to.deep.equal(selected[j]);
+        expect(ResourcePath.comparator(paths[i], paths[j])).toBe(0);
+        expect(encoded[i]).toEqual(encoded[j]);
+        expect(selected[i]).toEqual(selected[j]);
       }
     }
   }

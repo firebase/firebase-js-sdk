@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,9 @@
  * limitations under the License.
  */
 
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 
 /* eslint-disable no-restricted-globals */
-
-use(chaiAsPromised);
-
 describe('PersistencePromise', () => {
   function async<R>(value: R): PersistencePromise<R> {
     return new PersistencePromise<R>((resolve, reject) => {
@@ -46,7 +40,7 @@ describe('PersistencePromise', () => {
       .next(x => x + 1)
       .next(x => sync(x + 1))
       .next(x => {
-        expect(x).to.equal(5);
+        expect(x).toBe(5);
       })
       .toPromise();
   });
@@ -58,7 +52,7 @@ describe('PersistencePromise', () => {
       .next(x => x + 1)
       .next(x => async(x + 1))
       .next(x => {
-        expect(x).to.equal(5);
+        expect(x).toBe(5);
       })
       .toPromise();
   });
@@ -70,7 +64,7 @@ describe('PersistencePromise', () => {
       })
       .catch(x => x)
       .next(x => {
-        expect(x).to.equal(error);
+        expect(x).toBe(error);
       })
       .toPromise();
   });
@@ -82,7 +76,7 @@ describe('PersistencePromise', () => {
       })
       .catch(x => x)
       .next(x => {
-        expect(x).to.equal(error);
+        expect(x).toBe(error);
       })
       .toPromise();
   });
@@ -95,8 +89,8 @@ describe('PersistencePromise', () => {
         catchClause = x;
       })
       .next(x => {
-        expect(x).to.equal(2);
-        expect(catchClause).to.be.undefined;
+        expect(x).toBe(2);
+        expect(catchClause).toBeUndefined();
       })
       .toPromise();
   });
@@ -109,8 +103,8 @@ describe('PersistencePromise', () => {
         catchClause = x;
       })
       .next(x => {
-        expect(x).to.equal(2);
-        expect(catchClause).to.be.undefined;
+        expect(x).toBe(2);
+        expect(catchClause).toBeUndefined();
       })
       .toPromise();
   });
@@ -127,7 +121,7 @@ describe('PersistencePromise', () => {
         return 1;
       })
       .next(x => {
-        expect(x).to.equal(1);
+        expect(x).toBe(1);
       })
       .toPromise();
   });
@@ -144,7 +138,7 @@ describe('PersistencePromise', () => {
         return 1;
       })
       .next(x => {
-        expect(x).to.equal(1);
+        expect(x).toBe(1);
       })
       .toPromise();
   });
@@ -173,7 +167,7 @@ describe('PersistencePromise', () => {
     }
     return PersistencePromise.waitFor(updates)
       .next(() => {
-        expect(counter).to.equal(5);
+        expect(counter).toBe(5);
       })
       .toPromise();
   });
@@ -191,7 +185,7 @@ describe('PersistencePromise', () => {
     }
     return PersistencePromise.waitFor(updates)
       .next(() => {
-        expect(counter).to.equal(5);
+        expect(counter).toBe(5);
       })
       .toPromise();
   });
@@ -215,8 +209,8 @@ describe('PersistencePromise', () => {
         expect.fail('Promise should fail');
       })
       .catch(error => {
-        expect(counter).to.equal(1);
-        expect(error).to.equal(error);
+        expect(counter).toBe(1);
+        expect(error).toBe(error);
       })
       .toPromise();
   });
@@ -229,7 +223,7 @@ describe('PersistencePromise', () => {
 
     const p = PersistencePromise.waitFor([resolved, rejected]).toPromise();
 
-    return expect(p).to.be.eventually.rejectedWith('rejected');
+    return expect(p).rejects.toThrow('rejected');
   });
 
   it('propagates error for forEach()', () => {
@@ -241,6 +235,6 @@ describe('PersistencePromise', () => {
       }
     }).toPromise();
 
-    return expect(p).to.be.eventually.rejectedWith('rejected');
+    return expect(p).rejects.toThrow('rejected');
   });
 });
