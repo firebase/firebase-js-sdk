@@ -16,8 +16,6 @@
  */
 
 import { isSafari } from '@firebase/util';
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
 
 import { IndexedDbTransactionError } from '../../../src/local/simple_db';
 import { fail } from '../../../src/util/assert';
@@ -33,9 +31,6 @@ import {
   LogLevelString
 } from '../../../src/util/log';
 import { Deferred, Rejecter, Resolver } from '../../../src/util/promise';
-
-use(chaiAsPromised);
-
 describe('AsyncQueue', () => {
   // We reuse these TimerIds for generic testing.
   const timerId1 = TimerId.ListenStreamConnectionBackoff;
@@ -75,13 +70,13 @@ describe('AsyncQueue', () => {
 
     return Promise.all([op1, op2, op3])
       .then(() => {
-        expect(results[0]).to.deep.equal('Hello world!');
-        expect(results[1]).to.deep.equal('Bye bye.');
-        expect(results[2]).to.deep.equal('Welcome back.');
+        expect(results[0]).toEqual('Hello world!');
+        expect(results[1]).toEqual('Bye bye.');
+        expect(results[2]).toEqual('Welcome back.');
         return op4.promise;
       })
       .then(() => {
-        expect(results[3]).to.deep.equal('Bye for good.');
+        expect(results[3]).toEqual('Bye for good.');
       });
   });
 
@@ -106,11 +101,11 @@ describe('AsyncQueue', () => {
           expect.fail('expected op1 to fail');
         },
         (err: unknown) => {
-          expect(err).to.equal(expected);
+          expect(err).toBe(expected);
         }
       )
       .then(() => {
-        expect(queue.failure).to.equal(expected);
+        expect(queue.failure).toBe(expected);
       });
 
     // Schedule a second failing operation (before the first one has actually
@@ -127,8 +122,8 @@ describe('AsyncQueue', () => {
         },
         (err: unknown) => {
           // should be the original failure still.
-          expect(err).to.equal(expected);
-          expect(queue.failure).to.equal(expected);
+          expect(err).toBe(expected);
+          expect(queue.failure).toBe(expected);
         }
       );
 
@@ -139,7 +134,7 @@ describe('AsyncQueue', () => {
         Promise.reject('dummyOp should not be run');
       expect(() => {
         queue.enqueueAndForget(dummyOp);
-      }).to.throw(/already failed.*Simulated Error/);
+      }).toThrow(/already failed.*Simulated Error/);
 
       // Finally, restore log level.
       setLogLevel(oldLogLevel as unknown as LogLevelString);
@@ -160,7 +155,7 @@ describe('AsyncQueue', () => {
     queue.enqueueAndForget(() => doStep(2));
 
     await last;
-    expect(completedSteps).to.deep.equal([1, 2, 3, 4]);
+    expect(completedSteps).toEqual([1, 2, 3, 4]);
   });
 
   it('Can cancel delayed operations', async () => {
@@ -173,9 +168,9 @@ describe('AsyncQueue', () => {
       doStep(2)
     );
 
-    expect(queue.containsDelayedOperation(timerId1)).to.be.true;
+    expect(queue.containsDelayedOperation(timerId1)).toBe(true);
     delayedPromise.cancel();
-    expect(queue.containsDelayedOperation(timerId1)).to.be.false;
+    expect(queue.containsDelayedOperation(timerId1)).toBe(false);
 
     await delayedPromise.then(
       () => expect.fail('resolved promise', 'rejected promise'),
@@ -183,7 +178,7 @@ describe('AsyncQueue', () => {
     );
 
     await queue.runAllDelayedOperationsUntil(TimerId.All);
-    expect(completedSteps).to.deep.equal([1]);
+    expect(completedSteps).toEqual([1]);
   });
 
   it('Can run all delayed operations early', async () => {
@@ -199,7 +194,7 @@ describe('AsyncQueue', () => {
     queue.enqueueAndForget(() => doStep(2));
 
     await queue.runAllDelayedOperationsUntil(TimerId.All);
-    expect(completedSteps).to.deep.equal([1, 2, 3, 4]);
+    expect(completedSteps).toEqual([1, 2, 3, 4]);
   });
 
   it('Can run some delayed operations early', async () => {
@@ -217,7 +212,7 @@ describe('AsyncQueue', () => {
     queue.enqueueAndForget(() => doStep(2));
 
     await queue.runAllDelayedOperationsUntil(timerId3);
-    expect(completedSteps).to.deep.equal([1, 2, 3, 4]);
+    expect(completedSteps).toEqual([1, 2, 3, 4]);
   });
 
   it('Retries retryable operations', async () => {
@@ -236,11 +231,17 @@ describe('AsyncQueue', () => {
       }
     });
     await queue.runAllDelayedOperationsUntil(TimerId.AsyncQueueRetry);
-    expect(completedSteps).to.deep.equal([1, 1]);
+    expect(completedSteps).toEqual([1, 1]);
   });
 
   it("Doesn't retry internal exceptions", async () => {
     const queue = newAsyncQueue();
+    const origEnqueue = queue.enqueue.bind(queue);
+    vi.spyOn(queue, 'enqueue').mockImplementation(op => {
+      const p = origEnqueue(op);
+      p.catch(() => {});
+      return p;
+    });
     // We use a deferred Promise as retryable operations are scheduled only
     // when Promise chains are resolved, which can happen after the
     // `queue.enqueue()` call below.
@@ -250,9 +251,9 @@ describe('AsyncQueue', () => {
       throw fail(0x1576, 'Simulated test failure');
     });
     await deferred.promise;
-    await expect(
-      queue.enqueue(() => Promise.resolve())
-    ).to.eventually.be.rejectedWith('Simulated test failure');
+    await expect(queue.enqueue(() => Promise.resolve())).rejects.toThrow(
+      'Simulated test failure'
+    );
   });
 
   it('Schedules first retryable attempt with no delay', async () => {
@@ -264,11 +265,11 @@ describe('AsyncQueue', () => {
     queue.enqueueRetryable(async () => {
       doStep(1);
     });
-    expect(queue.containsDelayedOperation(TimerId.AsyncQueueRetry)).to.be.false;
+    expect(queue.containsDelayedOperation(TimerId.AsyncQueueRetry)).toBe(false);
     // Use `drain()` instead of runDelayedOperationsEarly since the
     // operation was scheduled directly on the queue.
     await queue.drain();
-    expect(completedSteps).to.deep.equal([1]);
+    expect(completedSteps).toEqual([1]);
   });
 
   it('Retries retryable operations with backoff', async () => {
@@ -289,11 +290,11 @@ describe('AsyncQueue', () => {
 
     // Verify that only one attempt has been made
     await queue.drain();
-    expect(completedSteps).to.deep.equal([1]);
+    expect(completedSteps).toEqual([1]);
 
     // Fast forward all operations
     await queue.runAllDelayedOperationsUntil(TimerId.AsyncQueueRetry);
-    expect(completedSteps).to.deep.equal([1, 1]);
+    expect(completedSteps).toEqual([1, 1]);
   });
 
   it('Retries retryable operations in order', async () => {
@@ -320,7 +321,7 @@ describe('AsyncQueue', () => {
     });
 
     await blockingPromise.promise;
-    expect(completedSteps).to.deep.equal([1, 1, 2]);
+    expect(completedSteps).toEqual([1, 1, 2]);
   });
 
   it('Does not delay retryable operations that succeed', async () => {
@@ -340,7 +341,7 @@ describe('AsyncQueue', () => {
       doStep(3);
     });
 
-    expect(completedSteps).to.deep.equal([1, 2, 3]);
+    expect(completedSteps).toEqual([1, 2, 3]);
   });
 
   it('Catches up when retryable operation fails', async () => {
@@ -380,7 +381,7 @@ describe('AsyncQueue', () => {
     });
 
     await blockingPromise.promise;
-    expect(completedSteps).to.deep.equal([1, 2, 1, 3, 4, 5]);
+    expect(completedSteps).toEqual([1, 2, 1, 3, 4, 5]);
   });
 
   it('Can drain (non-delayed) operations', async () => {
@@ -394,7 +395,7 @@ describe('AsyncQueue', () => {
     queue.enqueueAndForget(() => doStep(2));
 
     await queue.drain();
-    expect(completedSteps).to.deep.equal([1, 2]);
+    expect(completedSteps).toEqual([1, 2]);
   });
 
   it('Schedules operations with respect to shut down', async () => {
@@ -415,7 +416,7 @@ describe('AsyncQueue', () => {
     queue.enqueueAndForgetEvenWhileRestricted(() => doStep(4));
 
     await queue.drain();
-    expect(completedSteps).to.deep.equal([1, 2, 4]);
+    expect(completedSteps).toEqual([1, 2, 4]);
   });
 
   it('Does not run existing operations if opted out', async () => {
@@ -431,7 +432,7 @@ describe('AsyncQueue', () => {
     queue.enterRestrictedMode(/* purgeExistingTasks =*/ true);
 
     await queue.drain();
-    expect(completedSteps).to.deep.equal([2]);
+    expect(completedSteps).toEqual([2]);
   });
 });
 

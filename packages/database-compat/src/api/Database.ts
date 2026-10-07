@@ -50,7 +50,10 @@ export class Database implements FirebaseService, Compat<ModularDatabase> {
   /**
    * The constructor should not be called by users of our public API.
    */
-  constructor(readonly _delegate: ModularDatabase, readonly app: FirebaseApp) {}
+  constructor(
+    readonly _delegate: ModularDatabase,
+    readonly app: FirebaseApp
+  ) {}
 
   INTERNAL = {
     delete: () => this._delegate._delete(),

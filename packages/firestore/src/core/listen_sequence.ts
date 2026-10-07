@@ -27,8 +27,7 @@ export interface SequenceNumberSyncer {
   // Setting this property allows the syncer to notify when a sequence number has been used, and
   // and lets the ListenSequence adjust its internal previous value accordingly.
   sequenceNumberHandler:
-    | ((sequenceNumber: ListenSequenceNumber) => void)
-    | null;
+    ((sequenceNumber: ListenSequenceNumber) => void) | null;
 }
 
 /**

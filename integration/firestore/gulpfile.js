@@ -15,16 +15,16 @@
  * limitations under the License.
  */
 
-const del = require('del');
+const { rm } = require('fs/promises');
 const gulp = require('gulp');
 const replace = require('gulp-replace');
 const { resolve } = require('path');
-const webpackStream = require('webpack-stream');
-const webpack = require('webpack');
-const filter = require('gulp-filter');
 
-function clean() {
-  return del(['temp/**/*', 'dist/**/*']);
+async function clean() {
+  await Promise.all([
+    rm(resolve(__dirname, 'temp'), { recursive: true, force: true }),
+    rm(resolve(__dirname, 'dist'), { recursive: true, force: true })
+  ]);
 }
 
 function isPersistenceEnabled() {
@@ -45,6 +45,7 @@ function copyTests() {
         testBase + '/integration/util/composite_index_test_helper.ts',
         testBase + '/integration/util/events_accumulator.ts',
         testBase + '/integration/util/helpers.ts',
+        testBase + '/integration/util/pipeline_helpers.ts',
         testBase + '/integration/util/settings.ts',
         testBase + '/integration/util/testing_hooks_util.ts',
         testBase + '/util/equality_matcher.ts',
@@ -64,9 +65,11 @@ function copyTests() {
          */
         /\s+from '\.(\.\/util)?\/firebase_export';/,
         ` from '${resolve(__dirname, './firebase_export')}';
-        
+
 if (typeof process === 'undefined') {
-  process = { env: { INCLUDE_FIRESTORE_PERSISTENCE: '${isPersistenceEnabled()}' } } as any;
+  Object.assign(globalThis, {
+    process: { env: { INCLUDE_FIRESTORE_PERSISTENCE: '${isPersistenceEnabled()}' } }
+  });
 } else {
   process.env.INCLUDE_FIRESTORE_PERSISTENCE = '${isPersistenceEnabled()}';
 }
@@ -95,22 +98,4 @@ if (typeof process === 'undefined') {
     .pipe(gulp.dest('temp'));
 }
 
-function compileWebpack() {
-  const config = require('../../config/webpack.test');
-  return gulp
-    .src('./temp/test/integration/**/*.ts')
-    .pipe(
-      webpackStream(
-        Object.assign({}, config, {
-          output: {
-            filename: 'test-harness.js'
-          }
-        }),
-        webpack
-      )
-    )
-    .pipe(filter(['**', '!**/*.d.ts']))
-    .pipe(gulp.dest('dist'));
-}
-
-gulp.task('compile-tests', gulp.series(clean, copyTests, compileWebpack));
+gulp.task('compile-tests', gulp.series(clean, copyTests));

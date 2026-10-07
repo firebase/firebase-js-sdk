@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2025 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import {
   equal,
@@ -66,7 +64,7 @@ describe('Null Semantics', () => {
 
     expect(
       runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5, doc6, doc7])
-    ).to.deep.equal([doc1]);
+    ).toEqual([doc1]);
   });
 
   it('where_isNotNull', () => {
@@ -85,7 +83,7 @@ describe('Null Semantics', () => {
 
     expect(
       runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5, doc6, doc7])
-    ).to.deep.equal([doc2, doc3, doc4, doc5, doc6]);
+    ).toEqual([doc2, doc3, doc4, doc5, doc6]);
   });
 
   it('where_isNullAndIsNotNull_empty', () => {
@@ -99,7 +97,7 @@ describe('Null Semantics', () => {
       .database()
       .where(and(field('score').equal(null), not(equal(field('score'), null))));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).to.be.empty;
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).toHaveLength(0);
   });
 
   it('where_eq_constantAsNull', () => {
@@ -113,9 +111,7 @@ describe('Null Semantics', () => {
       .database()
       .where(equal(field('score'), constant(null)));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).to.deep.equal([
-      doc1
-    ]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).toEqual([doc1]);
   });
 
   it('where_eq_fieldAsNull', () => {
@@ -130,9 +126,9 @@ describe('Null Semantics', () => {
       .database()
       .where(equal(field('score'), field('rank')));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).to.deep.equal(
-      [doc1]
-    );
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc1
+    ]);
   });
 
   it('where_eq_segmentField', () => {
@@ -148,9 +144,9 @@ describe('Null Semantics', () => {
       .database()
       .where(equal(field('score.bonus'), constant(null)));
 
-    expect(
-      runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5, doc6])
-    ).to.deep.equal([doc1]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5, doc6])).toEqual(
+      [doc1]
+    );
   });
 
   it('where_eq_singleFieldAndSegmentField', () => {
@@ -177,9 +173,9 @@ describe('Null Semantics', () => {
         )
       );
 
-    expect(
-      runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5, doc6])
-    ).to.deep.equal([doc1]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5, doc6])).toEqual(
+      [doc1]
+    );
   });
 
   it('where_eq_null_inArray', () => {
@@ -192,7 +188,7 @@ describe('Null Semantics', () => {
       .database()
       .where(equal(field('foo'), constantArray(null)));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([doc1]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([doc1]);
   });
 
   it('where_eq_null_other_inArray', () => {
@@ -206,7 +202,7 @@ describe('Null Semantics', () => {
       .database()
       .where(equal(field('foo'), constantArray(1, null))); // Note: 1L becomes 1
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).to.deep.equal([
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).toEqual([
       doc2,
       doc3
     ]);
@@ -222,7 +218,7 @@ describe('Null Semantics', () => {
       .database()
       .where(equal(field('foo'), constantArray(null, NaN)));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.be.empty;
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toHaveLength(0);
   });
 
   it('where_eq_null_inMap', () => {
@@ -235,7 +231,7 @@ describe('Null Semantics', () => {
       .database()
       .where(equal(field('foo'), constantMap({ a: null })));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([doc1]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([doc1]);
   });
 
   it('where_eq_null_other_inMap', () => {
@@ -249,7 +245,7 @@ describe('Null Semantics', () => {
       .database()
       .where(equal(field('foo'), constantMap({ a: 1.0, b: null })));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).to.deep.equal([
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).toEqual([
       doc2,
       doc3
     ]);
@@ -265,7 +261,7 @@ describe('Null Semantics', () => {
       .database()
       .where(equal(field('foo'), constantMap({ a: null, b: NaN })));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.be.empty;
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toHaveLength(0);
   });
 
   it('where_eq_map_withNullArray', () => {
@@ -284,7 +280,7 @@ describe('Null Semantics', () => {
 
     expect(
       runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5, doc6, doc7])
-    ).to.deep.equal([doc1]);
+    ).toEqual([doc1]);
   });
 
   it('where_eq_map_withNullOtherArray', () => {
@@ -304,7 +300,7 @@ describe('Null Semantics', () => {
 
     expect(
       runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5, doc6, doc7, doc8])
-    ).to.deep.equal([doc2, doc3]);
+    ).toEqual([doc2, doc3]);
   });
 
   it('where_eq_map_withNullNanArray', () => {
@@ -321,8 +317,9 @@ describe('Null Semantics', () => {
       .database()
       .where(equal(field('foo'), constantMap({ a: [null, NaN] })));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5, doc6, doc7])).to
-      .be.empty;
+    expect(
+      runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5, doc6, doc7])
+    ).toHaveLength(0);
   });
 
   it('where_compositeCondition_withNull', () => {
@@ -339,7 +336,7 @@ describe('Null Semantics', () => {
         )
       );
 
-    expect(runPipeline(pipeline, [doc1, doc2])).to.deep.equal([doc1]);
+    expect(runPipeline(pipeline, [doc1, doc2])).toEqual([doc1]);
   });
 
   it('where_eqAny_nullOnly', () => {
@@ -352,7 +349,7 @@ describe('Null Semantics', () => {
       .database()
       .where(equalAny(field('score'), [constant(null)]));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.be.empty;
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toHaveLength(0);
   });
 
   // TODO(pipeline): Support constructing nested array constants
@@ -382,9 +379,9 @@ describe('Null Semantics', () => {
       .collection('/users')
       .where(equalAny(field('score'), [constant(null), constant(100)]));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).to.deep.equal(
-      [doc4]
-    );
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc4
+    ]);
   });
 
   it('where_arrayContains_null', () => {
@@ -417,7 +414,7 @@ describe('Null Semantics', () => {
         doc8,
         doc9
       ])
-    ).to.be.empty;
+    ).toHaveLength(0);
   });
 
   it('where_arrayContainsAny_onlyNull', () => {
@@ -448,7 +445,7 @@ describe('Null Semantics', () => {
         doc8,
         doc9
       ])
-    ).to.deep.equal([doc3, doc4, doc5]);
+    ).toEqual([doc3, doc4, doc5]);
   });
 
   it('where_arrayContainsAny_partialNull', () => {
@@ -481,7 +478,7 @@ describe('Null Semantics', () => {
         doc8,
         doc9
       ])
-    ).to.deep.equal([doc3, doc4, doc5, doc6]);
+    ).toEqual([doc3, doc4, doc5, doc6]);
   });
 
   it('where_arrayContainsAll_onlyNull', () => {
@@ -512,7 +509,7 @@ describe('Null Semantics', () => {
         doc8,
         doc9
       ])
-    ).to.deep.equal([doc3, doc4, doc5]); // Assuming arrayContainsAll would be empty
+    ).toEqual([doc3, doc4, doc5]); // Assuming arrayContainsAll would be empty
   });
 
   it('where_arrayContainsAll_partialNull', () => {
@@ -543,7 +540,7 @@ describe('Null Semantics', () => {
         doc8,
         doc9
       ])
-    ).to.deep.equal([doc4]);
+    ).toEqual([doc4]);
   });
 
   it('where_neq_constantAsNull', () => {
@@ -557,7 +554,7 @@ describe('Null Semantics', () => {
       .database()
       .where(notEqual(field('score'), constant(null)));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).to.deep.equal([
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).toEqual([
       doc2,
       doc3
     ]);
@@ -575,9 +572,10 @@ describe('Null Semantics', () => {
       .database()
       .where(notEqual(field('score'), field('rank')));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).to.deep.equal(
-      [doc2, doc3]
-    );
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc2,
+      doc3
+    ]);
   });
 
   it('where_neq_null_inArray', () => {
@@ -590,10 +588,7 @@ describe('Null Semantics', () => {
       .database()
       .where(notEqual(field('foo'), constantArray(null)));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([
-      doc2,
-      doc3
-    ]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([doc2, doc3]);
   });
 
   it('where_neq_null_other_inArray', () => {
@@ -607,7 +602,7 @@ describe('Null Semantics', () => {
       .database()
       .where(notEqual(field('foo'), constantArray(1, null))); // Note: 1L becomes 1
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).to.deep.equal([
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).toEqual([
       doc1,
       doc4
     ]);
@@ -623,7 +618,7 @@ describe('Null Semantics', () => {
       .database()
       .where(notEqual(field('foo'), constantArray(null, NaN)));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([
       doc1,
       doc2,
       doc3
@@ -640,10 +635,7 @@ describe('Null Semantics', () => {
       .database()
       .where(notEqual(field('foo'), constantMap({ a: null })));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([
-      doc2,
-      doc3
-    ]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([doc2, doc3]);
   });
 
   it('where_neq_null_other_inMap', () => {
@@ -657,7 +649,7 @@ describe('Null Semantics', () => {
       .database()
       .where(notEqual(field('foo'), constantMap({ a: 1.0, b: null })));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).to.deep.equal([
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).toEqual([
       doc1,
       doc4
     ]);
@@ -673,7 +665,7 @@ describe('Null Semantics', () => {
       .database()
       .where(notEqual(field('foo'), constantMap({ a: null, b: NaN })));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([
       doc1,
       doc2,
       doc3
@@ -689,7 +681,7 @@ describe('Null Semantics', () => {
       .database()
       .where(notEqualAny(field('score'), [constant(null)]));
 
-    expect(runPipeline(pipeline, [doc1, doc2])).to.deep.equal([doc2]);
+    expect(runPipeline(pipeline, [doc1, doc2])).toEqual([doc2]);
   });
 
   it('where_gt', () => {
@@ -704,7 +696,9 @@ describe('Null Semantics', () => {
       .database()
       .where(greaterThan(field('score'), constant(null)));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).to.be.empty;
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toHaveLength(
+      0
+    );
   });
 
   it('where_gte', () => {
@@ -719,9 +713,9 @@ describe('Null Semantics', () => {
       .database()
       .where(greaterThanOrEqual(field('score'), constant(null)));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).to.deep.equal(
-      [doc1]
-    );
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc1
+    ]);
   });
 
   it('where_lt', () => {
@@ -736,7 +730,9 @@ describe('Null Semantics', () => {
       .database()
       .where(lessThan(field('score'), constant(null)));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).to.be.empty;
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toHaveLength(
+      0
+    );
   });
 
   it('where_lte', () => {
@@ -751,9 +747,9 @@ describe('Null Semantics', () => {
       .database()
       .where(lessThanOrEqual(field('score'), constant(null)));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).to.deep.equal(
-      [doc1]
-    );
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc1
+    ]);
   });
 
   it('where_and', () => {
@@ -772,9 +768,7 @@ describe('Null Semantics', () => {
         )
       );
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).to.deep.equal([
-      doc4
-    ]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).toEqual([doc4]);
   });
 
   it('where_isNull_and', () => {
@@ -802,7 +796,7 @@ describe('Null Semantics', () => {
 
     expect(
       runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5, doc6, doc7, doc8])
-    ).to.deep.equal([doc1, doc3, doc6]);
+    ).toEqual([doc1, doc3, doc6]);
   });
 
   it('where_isError_and', () => {
@@ -822,7 +816,7 @@ describe('Null Semantics', () => {
 
     expect(
       runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5, doc6, doc7, doc8])
-    ).to.deep.equal([doc2, doc5, doc8]);
+    ).toEqual([doc2, doc5, doc8]);
   });
 
   it('where_or', () => {
@@ -835,7 +829,7 @@ describe('Null Semantics', () => {
       .database()
       .where(or(field('a'), field('b')));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([doc1]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([doc1]);
   });
 
   it('where_isNull_or', () => {
@@ -855,7 +849,7 @@ describe('Null Semantics', () => {
 
     expect(
       runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5, doc6, doc7, doc8])
-    ).to.deep.equal([doc1, doc4, doc7]);
+    ).toEqual([doc1, doc4, doc7]);
   });
 
   it('where_isError_or', () => {
@@ -875,7 +869,7 @@ describe('Null Semantics', () => {
 
     expect(
       runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5, doc6, doc7, doc8])
-    ).to.deep.equal([doc2, doc5, doc8]);
+    ).toEqual([doc2, doc5, doc8]);
   });
 
   it('where_xor', () => {
@@ -889,9 +883,7 @@ describe('Null Semantics', () => {
       .database()
       .where(xor(field('a'), field('b')));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).to.deep.equal([
-      doc4
-    ]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).toEqual([doc4]);
   });
 
   it('where_isNull_xor', () => {
@@ -911,7 +903,7 @@ describe('Null Semantics', () => {
 
     expect(
       runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5, doc6, doc7, doc8])
-    ).to.deep.equal([doc1, doc3, doc4, doc6, doc7]);
+    ).toEqual([doc1, doc3, doc4, doc6, doc7]);
   });
 
   it('where_isError_xor', () => {
@@ -931,7 +923,7 @@ describe('Null Semantics', () => {
 
     expect(
       runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5, doc6, doc7, doc8])
-    ).to.deep.equal([doc2, doc5, doc8]);
+    ).toEqual([doc2, doc5, doc8]);
   });
 
   it('where_not', () => {
@@ -944,10 +936,7 @@ describe('Null Semantics', () => {
       .database()
       .where(not(equal(field('a'), true)));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([
-      doc2,
-      doc3
-    ]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([doc2, doc3]);
   });
 
   it('where_isNull_not', () => {
@@ -960,7 +949,7 @@ describe('Null Semantics', () => {
       .database()
       .where(not(field('a').equal(true)).equal(null));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.be.empty;
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toHaveLength(0);
   });
 
   it('where_isError_not', () => {
@@ -973,7 +962,7 @@ describe('Null Semantics', () => {
       .database()
       .where(isError(not(field('a').equal(true))));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([]);
   });
 
   // ===================================================================
@@ -1004,17 +993,7 @@ describe('Null Semantics', () => {
         doc7,
         doc8
       ])
-    ).to.have.ordered.members([
-      doc0,
-      doc1,
-      doc2,
-      doc3,
-      doc4,
-      doc5,
-      doc6,
-      doc7,
-      doc8
-    ]);
+    ).toEqual([doc0, doc1, doc2, doc3, doc4, doc5, doc6, doc7, doc8]);
   });
 
   it('sort_null_inArray_descending', () => {
@@ -1042,17 +1021,7 @@ describe('Null Semantics', () => {
         doc7,
         doc8
       ])
-    ).to.have.ordered.members([
-      doc8,
-      doc7,
-      doc6,
-      doc5,
-      doc4,
-      doc3,
-      doc2,
-      doc1,
-      doc0
-    ]);
+    ).toEqual([doc8, doc7, doc6, doc5, doc4, doc3, doc2, doc1, doc0]);
   });
 
   it('sort_null_inMap_ascending', () => {
@@ -1080,17 +1049,7 @@ describe('Null Semantics', () => {
         doc7,
         doc8
       ])
-    ).to.have.ordered.members([
-      doc0,
-      doc1,
-      doc2,
-      doc3,
-      doc4,
-      doc5,
-      doc6,
-      doc7,
-      doc8
-    ]);
+    ).toEqual([doc0, doc1, doc2, doc3, doc4, doc5, doc6, doc7, doc8]);
   });
 
   it('sort_null_inMap_descending', () => {
@@ -1118,16 +1077,6 @@ describe('Null Semantics', () => {
         doc7,
         doc8
       ])
-    ).to.have.ordered.members([
-      doc8,
-      doc7,
-      doc6,
-      doc5,
-      doc4,
-      doc3,
-      doc2,
-      doc1,
-      doc0
-    ]);
+    ).toEqual([doc8, doc7, doc6, doc5, doc4, doc3, doc2, doc1, doc0]);
   });
 });

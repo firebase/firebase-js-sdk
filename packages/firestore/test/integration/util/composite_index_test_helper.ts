@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2023 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { expect } from 'chai';
 
 import {
   query as internalQuery,
@@ -132,7 +131,8 @@ export class CompositeIndexTestHelper {
     return {
       ...doc,
       [this.TEST_ID_FIELD]: this.testId,
-      [this.TTL_FIELD]: new Timestamp( // Expire test data after 24 hours
+      [this.TTL_FIELD]: new Timestamp(
+        // Expire test data after 24 hours
         Timestamp.now().seconds + 24 * 60 * 60,
         Timestamp.now().nanoseconds
       )
@@ -181,7 +181,7 @@ export class CompositeIndexTestHelper {
     snapshot: QuerySnapshot,
     expectedIds: string[]
   ): void {
-    expect(toIds(snapshot)).to.deep.equal(this.toHashedIds(expectedIds));
+    expect(toIds(snapshot)).toEqual(this.toHashedIds(expectedIds));
   }
 
   // Adds a filter on test id for a query.

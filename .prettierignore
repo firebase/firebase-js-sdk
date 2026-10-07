@@ -2,3 +2,4 @@
 packages/firebase/firebase*
 packages/firestore/scripts
 dist
+repo-scripts/prune-dts/tests

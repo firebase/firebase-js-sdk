@@ -17,7 +17,6 @@
 import { AgentPlatformBackend } from './backend';
 import { DEFAULT_LOCATION } from './constants';
 import { AIService } from './service';
-import { expect } from 'chai';
 
 const fakeApp = {
   name: 'DEFAULT',
@@ -32,7 +31,9 @@ describe('AIService', () => {
   // TODO (dlarocque): move some of these tests to helpers.test.ts
   it('uses default location if not specified', () => {
     const ai = new AIService(fakeApp, new AgentPlatformBackend());
-    expect(ai.location).to.equal(DEFAULT_LOCATION);
+    expect((ai.backend as AgentPlatformBackend).location).to.equal(
+      DEFAULT_LOCATION
+    );
   });
   it('uses custom location if specified', () => {
     const ai = new AIService(
@@ -41,6 +42,6 @@ describe('AIService', () => {
       /* authProvider */ undefined,
       /* appCheckProvider */ undefined
     );
-    expect(ai.location).to.equal('somewhere');
+    expect((ai.backend as AgentPlatformBackend).location).to.equal('somewhere');
   });
 });

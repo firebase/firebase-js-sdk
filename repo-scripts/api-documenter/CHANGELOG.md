@@ -1,4 +1,10 @@
 # @firebase/api-documenter
+
+## 0.6.0
+### Minor Changes
+
+- Upgrade `@microsoft/api-extractor-model` to 7.x, `@microsoft/tsdoc` to 0.16.x, and `@rushstack` libraries. Add `--map-filenames` command-line option to customize package and entrypoint filename mappings for documentation and TOC generation.
+
 ## 0.4.0
 ### Minor Changes
 

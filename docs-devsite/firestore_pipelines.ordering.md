@@ -40,7 +40,11 @@ Constructs a new instance of the `Ordering` class
 <b>Signature:</b>
 
 ```typescript
-constructor(expr: Expression, direction: 'ascending' | 'descending', _methodName: string | undefined);
+constructor(
+    expr: Expression,
+    direction: 'ascending' | 'descending',
+    _methodName: string | undefined
+  );
 ```
 
 #### Parameters

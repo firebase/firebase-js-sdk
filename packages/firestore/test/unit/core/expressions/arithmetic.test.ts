@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2025 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import { EvaluateResult } from '../../../../src/core/expressions';
 import {
@@ -60,13 +58,13 @@ describe('Arithmetic Expressions', () => {
     });
 
     it('basic_add_nonNumerics', () => {
-      expect(evaluateToResult(add(constant(1), constant('1')))).to.deep.equal(
+      expect(evaluateToResult(add(constant(1), constant('1')))).toEqual(
         EvaluateResult.newError()
       );
-      expect(evaluateToResult(add(constant('1'), constant(1.0)))).to.deep.equal(
+      expect(evaluateToResult(add(constant('1'), constant(1.0)))).toEqual(
         EvaluateResult.newError()
       );
-      expect(evaluateToResult(add(constant('1'), constant('1')))).to.deep.equal(
+      expect(evaluateToResult(add(constant('1'), constant('1')))).toEqual(
         EvaluateResult.newError()
       );
     });
@@ -119,13 +117,13 @@ describe('Arithmetic Expressions', () => {
     it('longAddition_overflow', () => {
       expect(
         evaluateToValue(add(constantInt('9223372036854775807'), constant(1)))
-      ).to.be.undefined;
+      ).toBeUndefined();
       expect(
         evaluateToValue(add(constantInt('-9223372036854775808'), constant(-1)))
-      ).to.be.undefined;
+      ).toBeUndefined();
       expect(
         evaluateToValue(add(constant(1), constantInt('9223372036854775807')))
-      ).to.be.undefined;
+      ).toBeUndefined();
     });
 
     it('nan_number_returnNaN', () => {
@@ -172,8 +170,9 @@ describe('Arithmetic Expressions', () => {
     });
 
     it('nan_notNumberType_returnError', () => {
-      expect(evaluateToValue(add(constant(NaN), constant('hello world')))).to.be
-        .undefined;
+      expect(
+        evaluateToValue(add(constant(NaN), constant('hello world')))
+      ).toBeUndefined();
     });
 
     it('multiArgument', () => {
@@ -215,12 +214,15 @@ describe('Arithmetic Expressions', () => {
     });
 
     it('basic_subtract_nonNumerics', () => {
-      expect(evaluateToValue(subtract(constant(1), constant('1')))).to.be
-        .undefined;
-      expect(evaluateToValue(subtract(constant('1'), constant(1.0)))).to.be
-        .undefined;
-      expect(evaluateToValue(subtract(constant('1'), constant('1')))).to.be
-        .undefined;
+      expect(
+        evaluateToValue(subtract(constant(1), constant('1')))
+      ).toBeUndefined();
+      expect(
+        evaluateToValue(subtract(constant('1'), constant(1.0)))
+      ).toBeUndefined();
+      expect(
+        evaluateToValue(subtract(constant('1'), constant('1')))
+      ).toBeUndefined();
     });
 
     // TODO(pipeline): Overflow behavior is different in Javascript than backend.
@@ -259,12 +261,12 @@ describe('Arithmetic Expressions', () => {
         evaluateToValue(
           subtract(constantInt('-9223372036854775808'), constant(1))
         )
-      ).to.be.undefined;
+      ).toBeUndefined();
       expect(
         evaluateToValue(
           subtract(constantInt('-9223372036854775807'), constant(2))
         )
-      ).to.be.undefined;
+      ).toBeUndefined();
     });
 
     it('nan_number_returnNaN', () => {
@@ -319,8 +321,9 @@ describe('Arithmetic Expressions', () => {
     });
 
     it('nan_notNumberType_returnError', () => {
-      expect(evaluateToValue(subtract(constant(NaN), constant('hello world'))))
-        .to.be.undefined;
+      expect(
+        evaluateToValue(subtract(constant(NaN), constant('hello world')))
+      ).toBeUndefined();
     });
 
     it('positiveInfinity', () => {
@@ -409,12 +412,15 @@ describe('Arithmetic Expressions', () => {
     });
 
     it('basic_multiply_nonNumerics', () => {
-      expect(evaluateToValue(multiply(constant(1), constant('1')))).to.be
-        .undefined;
-      expect(evaluateToValue(multiply(constant('1'), constant(1.0)))).to.be
-        .undefined;
-      expect(evaluateToValue(multiply(constant('1'), constant('1')))).to.be
-        .undefined;
+      expect(
+        evaluateToValue(multiply(constant(1), constant('1')))
+      ).toBeUndefined();
+      expect(
+        evaluateToValue(multiply(constant('1'), constant(1.0)))
+      ).toBeUndefined();
+      expect(
+        evaluateToValue(multiply(constant('1'), constant('1')))
+      ).toBeUndefined();
     });
 
     it('doubleLongMultiplication_overflow', () => {
@@ -454,22 +460,22 @@ describe('Arithmetic Expressions', () => {
         evaluateToValue(
           multiply(constantInt('9223372036854775807'), constant(10))
         )
-      ).to.be.undefined;
+      ).toBeUndefined();
       expect(
         evaluateToValue(
           multiply(constantInt('-9223372036854775808'), constant(10))
         )
-      ).to.be.undefined;
+      ).toBeUndefined();
       expect(
         evaluateToValue(
           multiply(constant(-10), constantInt('9223372036854775807'))
         )
-      ).to.be.undefined;
+      ).toBeUndefined();
       expect(
         evaluateToValue(
           multiply(constant(-10), constantInt('-9223372036854775808'))
         )
-      ).to.be.undefined;
+      ).toBeUndefined();
     });
 
     it('nan_number_returnNaN', () => {
@@ -524,8 +530,9 @@ describe('Arithmetic Expressions', () => {
     });
 
     it('nan_notNumberType_returnError', () => {
-      expect(evaluateToValue(multiply(constant(NaN), constant('hello world'))))
-        .to.be.undefined;
+      expect(
+        evaluateToValue(multiply(constant(NaN), constant('hello world')))
+      ).toBeUndefined();
     });
 
     it('positiveInfinity', () => {
@@ -632,12 +639,15 @@ describe('Arithmetic Expressions', () => {
     });
 
     it('basic_divide_nonNumerics', () => {
-      expect(evaluateToValue(divide(constant(1), constant('1')))).to.be
-        .undefined;
-      expect(evaluateToValue(divide(constant('1'), constant(1.0)))).to.be
-        .undefined;
-      expect(evaluateToValue(divide(constant('1'), constant('1')))).to.be
-        .undefined;
+      expect(
+        evaluateToValue(divide(constant(1), constant('1')))
+      ).toBeUndefined();
+      expect(
+        evaluateToValue(divide(constant('1'), constant(1.0)))
+      ).toBeUndefined();
+      expect(
+        evaluateToValue(divide(constant('1'), constant('1')))
+      ).toBeUndefined();
     });
 
     it('long_division', () => {
@@ -698,7 +708,7 @@ describe('Arithmetic Expressions', () => {
     });
 
     it('divideByZero', () => {
-      expect(evaluateToValue(divide(constant(1), constant(0)))).to.be.undefined; // Or your error handling
+      expect(evaluateToValue(divide(constant(1), constant(0)))).toBeUndefined(); // Or your error handling
       expectEqualToConstant(
         evaluateToValue(divide(constant(1.1), constant(0.0))),
         constant(Number.POSITIVE_INFINITY),
@@ -816,8 +826,9 @@ describe('Arithmetic Expressions', () => {
     });
 
     it('nan_notNumberType_returnError', () => {
-      expect(evaluateToValue(divide(constant(NaN), constant('hello world')))).to
-        .be.undefined;
+      expect(
+        evaluateToValue(divide(constant(NaN), constant('hello world')))
+      ).toBeUndefined();
     });
 
     it('positiveInfinity', () => {
@@ -881,12 +892,13 @@ describe('Arithmetic Expressions', () => {
 
   describe('mod', () => {
     it('divisorZero_throwsError', () => {
-      expect(evaluateToValue(mod(constant(42), constant(0)))).to.be.undefined;
-      expect(evaluateToValue(mod(constant(42), constant(-0)))).to.be.undefined;
+      expect(evaluateToValue(mod(constant(42), constant(0)))).toBeUndefined();
+      expect(evaluateToValue(mod(constant(42), constant(-0)))).toBeUndefined();
 
-      expect(evaluateToValue(mod(constant(42), constant(0.0)))).to.be.undefined;
-      expect(evaluateToValue(mod(constant(42), constant(-0.0)))).to.be
-        .undefined;
+      expect(evaluateToValue(mod(constant(42), constant(0.0)))).toBeUndefined();
+      expect(
+        evaluateToValue(mod(constant(42), constant(-0.0)))
+      ).toBeUndefined();
     });
 
     it('dividendZero_returnsZero', () => {
@@ -948,25 +960,25 @@ describe('Arithmetic Expressions', () => {
     it('double_positive_positive', () => {
       expect(
         evaluateToValue(mod(constant(10.5), constant(3.0)))?.doubleValue
-      ).to.be.closeTo(1.5, 1e-6);
+      ).toBeCloseTo(1.5, 6);
     });
 
     it('double_negative_negative', () => {
       expect(
         evaluateToValue(mod(constant(-7.3), constant(-1.8)))?.doubleValue
-      ).to.be.closeTo(-0.1, 1e-6);
+      ).toBeCloseTo(-0.1, 6);
     });
 
     it('double_positive_negative', () => {
       expect(
         evaluateToValue(mod(constant(9.8), constant(-2.5)))?.doubleValue
-      ).to.be.closeTo(2.3, 1e-6);
+      ).toBeCloseTo(2.3, 6);
     });
 
     it('double_negative_positive', () => {
       expect(
         evaluateToValue(mod(constant(-7.5), constant(2.3)))?.doubleValue
-      ).to.be.closeTo(-0.6, 1e-6);
+      ).toBeCloseTo(-0.6, 6);
     });
 
     it('long_perfectlyDivisible', () => {
@@ -1016,10 +1028,11 @@ describe('Arithmetic Expressions', () => {
     });
 
     it('nonNumerics_returnError', () => {
-      expect(evaluateToValue(mod(constant(10), constant('1')))).to.be.undefined;
-      expect(evaluateToValue(mod(constant('1'), constant(10)))).to.be.undefined;
-      expect(evaluateToValue(mod(constant('1'), constant('1')))).to.be
-        .undefined;
+      expect(evaluateToValue(mod(constant(10), constant('1')))).toBeUndefined();
+      expect(evaluateToValue(mod(constant('1'), constant(10)))).toBeUndefined();
+      expect(
+        evaluateToValue(mod(constant('1'), constant('1')))
+      ).toBeUndefined();
     });
 
     it('nan_number_returnNaN', () => {
@@ -1066,8 +1079,9 @@ describe('Arithmetic Expressions', () => {
     });
 
     it('nan_notNumberType_returnError', () => {
-      expect(evaluateToValue(mod(constant(NaN), constant('hello world')))).to.be
-        .undefined;
+      expect(
+        evaluateToValue(mod(constant(NaN), constant('hello world')))
+      ).toBeUndefined();
     });
 
     it('number_posInfinity_returnSelf', () => {

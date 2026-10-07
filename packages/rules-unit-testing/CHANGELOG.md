@@ -1,5 +1,11 @@
 # @firebase/rules-unit-testing
 
+## 5.0.2
+
+### Patch Changes
+
+- [`589b24b`](https://github.com/firebase/firebase-js-sdk/commit/589b24bd9b30ba6b07a76da1eb5c3d1eadc5a9d2) [#10293](https://github.com/firebase/firebase-js-sdk/pull/10293) - Updated many top-level `devDependencies`.
+
 ## 5.0.1
 
 ### Patch Changes

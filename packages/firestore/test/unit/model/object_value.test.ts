@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,16 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-
+import {
+  Bytes,
+  BsonObjectId,
+  BsonTimestamp,
+  RegexValue,
+  Int32Value,
+  MaxKey,
+  MinKey,
+  Decimal128Value
+} from '../../../src';
 import { vector } from '../../../src/lite-api/field_value_impl';
 import { extractFieldMask, ObjectValue } from '../../../src/model/object_value';
 import { TypeOrder } from '../../../src/model/type_order';
@@ -27,46 +35,115 @@ describe('ObjectValue', () => {
   it('can extract fields', () => {
     const objValue = wrapObject({
       foo: { a: 1, b: true, c: 'string' },
-      embedding: vector([1])
+      embedding: vector([1]),
+      bson: {
+        objectId: new BsonObjectId('foo'),
+        binary: Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1),
+        timestamp: new BsonTimestamp(1, 2),
+        min: MinKey.instance(),
+        max: MaxKey.instance(),
+        regex: new RegexValue('a', 'b'),
+        int32: new Int32Value(1),
+        decimal128: new Decimal128Value('1.2e3')
+      }
     });
 
-    expect(typeOrder(objValue.field(field('foo'))!)).to.equal(
+    expect(typeOrder(objValue.field(field('foo'))!)).toBe(
       TypeOrder.ObjectValue
     );
-    expect(typeOrder(objValue.field(field('foo.a'))!)).to.equal(
+    expect(typeOrder(objValue.field(field('foo.a'))!)).toBe(
       TypeOrder.NumberValue
     );
-    expect(typeOrder(objValue.field(field('foo.b'))!)).to.equal(
+    expect(typeOrder(objValue.field(field('foo.b'))!)).toBe(
       TypeOrder.BooleanValue
     );
-    expect(typeOrder(objValue.field(field('foo.c'))!)).to.equal(
+    expect(typeOrder(objValue.field(field('foo.c'))!)).toBe(
       TypeOrder.StringValue
     );
-    expect(typeOrder(objValue.field(field('embedding'))!)).to.equal(
+    expect(typeOrder(objValue.field(field('embedding'))!)).toBe(
       TypeOrder.VectorValue
     );
+    expect(typeOrder(objValue.field(field('bson.objectId'))!)).toBe(
+      TypeOrder.BsonObjectIdValue
+    );
+    expect(typeOrder(objValue.field(field('bson.binary'))!)).toBe(
+      TypeOrder.BlobValue
+    );
+    expect(typeOrder(objValue.field(field('bson.timestamp'))!)).toBe(
+      TypeOrder.BsonTimestampValue
+    );
+    expect(typeOrder(objValue.field(field('bson.min'))!)).toBe(
+      TypeOrder.MinKeyValue
+    );
+    expect(typeOrder(objValue.field(field('bson.max'))!)).toBe(
+      TypeOrder.MaxKeyValue
+    );
+    expect(typeOrder(objValue.field(field('bson.regex'))!)).toBe(
+      TypeOrder.RegexValue
+    );
+    expect(typeOrder(objValue.field(field('bson.int32'))!)).toBe(
+      TypeOrder.NumberValue
+    );
+    expect(typeOrder(objValue.field(field('bson.decimal128'))!)).toBe(
+      TypeOrder.NumberValue
+    );
 
-    expect(objValue.field(field('foo.a.b'))).to.be.null;
-    expect(objValue.field(field('bar'))).to.be.null;
-    expect(objValue.field(field('bar.a'))).to.be.null;
+    expect(objValue.field(field('foo.a.b'))).toBeNull();
+    expect(objValue.field(field('bar'))).toBeNull();
+    expect(objValue.field(field('bar.a'))).toBeNull();
 
-    expect(objValue.field(field('foo'))!).to.deep.equal(
+    expect(objValue.field(field('foo'))!).toEqual(
       wrap({
         a: 1,
         b: true,
         c: 'string'
       })
     );
-    expect(objValue.field(field('foo.a'))).to.deep.equal(wrap(1));
-    expect(objValue.field(field('foo.b'))).to.deep.equal(wrap(true));
-    expect(objValue.field(field('foo.c'))).to.deep.equal(wrap('string'));
+    expect(objValue.field(field('foo.a'))).toEqual(wrap(1));
+    expect(objValue.field(field('foo.b'))).toEqual(wrap(true));
+    expect(objValue.field(field('foo.c'))).toEqual(wrap('string'));
+
+    expect(objValue.field(field('bson'))!).toEqual(
+      wrap({
+        objectId: new BsonObjectId('foo'),
+        binary: Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1),
+        timestamp: new BsonTimestamp(1, 2),
+        min: MinKey.instance(),
+        max: MaxKey.instance(),
+        regex: new RegexValue('a', 'b'),
+        int32: new Int32Value(1),
+        decimal128: new Decimal128Value('1.2e3')
+      })
+    );
+    expect(objValue.field(field('bson.objectId'))!).toEqual(
+      wrap(new BsonObjectId('foo'))
+    );
+    expect(objValue.field(field('bson.binary'))!).toEqual(
+      wrap(Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1))
+    );
+    expect(objValue.field(field('bson.timestamp'))!).toEqual(
+      wrap(new BsonTimestamp(1, 2))
+    );
+    expect(objValue.field(field('bson.min'))!).toEqual(wrap(MinKey.instance()));
+    expect(objValue.field(field('bson.max'))!).toEqual(wrap(MaxKey.instance()));
+    expect(objValue.field(field('bson.regex'))!).toEqual(
+      wrap(new RegexValue('a', 'b'))
+    );
+    expect(objValue.field(field('bson.int32'))!).toEqual(
+      wrap(new Int32Value(1))
+    );
+    expect(objValue.field(field('bson.decimal128'))!).toEqual(
+      wrap(new Decimal128Value('1.2e3'))
+    );
   });
 
   it('can overwrite existing fields', () => {
     const objValue = wrapObject({ foo: 'foo-value' });
     objValue.set(field('foo'), wrap('new-foo-value'));
 
-    assertObjectEquals(objValue, { foo: 'new-foo-value' });
+    assertObjectEquals(objValue, {
+      foo: 'new-foo-value'
+    });
   });
 
   it('can add new fields', () => {
@@ -163,11 +240,81 @@ describe('ObjectValue', () => {
     assertObjectEquals(objValue, {});
   });
 
+  it('can handle bson types in ObjectValue', () => {
+    const objValue = ObjectValue.empty();
+    // Add new fields
+    objValue.set(field('objectId'), wrap(new BsonObjectId('foo-value')));
+    objValue.set(
+      field('binary'),
+      wrap(Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1))
+    );
+    objValue.set(field('timestamp'), wrap(new BsonTimestamp(1, 2)));
+    objValue.set(field('regex'), wrap(new RegexValue('a', 'b')));
+    objValue.set(field('int32'), wrap(new Int32Value(1)));
+    objValue.set(field('decimal128'), wrap(new Decimal128Value('1.2e3')));
+    objValue.set(field('min'), wrap(MinKey.instance()));
+    objValue.set(field('max'), wrap(MaxKey.instance()));
+
+    assertObjectEquals(objValue, {
+      objectId: new BsonObjectId('foo-value'),
+      binary: Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1),
+      timestamp: new BsonTimestamp(1, 2),
+      regex: new RegexValue('a', 'b'),
+      int32: new Int32Value(1),
+      decimal128: new Decimal128Value('1.2e3'),
+      min: MinKey.instance(),
+      max: MaxKey.instance()
+    });
+
+    // Overwrite existing fields
+    objValue.set(field('objectId'), wrap(new BsonObjectId('new-foo-value')));
+
+    // Create nested objects
+    objValue.set(
+      field('foo.binary'),
+      wrap(Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 2))
+    );
+    objValue.set(field('foo.timestamp'), wrap(new BsonTimestamp(1, 2)));
+
+    // Delete fields
+    objValue.delete(field('binary'));
+
+    // overwrite nested objects
+    objValue.set(field('foo.timestamp'), wrap(new BsonTimestamp(2, 1)));
+
+    // Overwrite primitive values to create objects
+    objValue.set(field('min'), wrap(null));
+
+    assertObjectEquals(objValue, {
+      objectId: new BsonObjectId('new-foo-value'),
+      timestamp: new BsonTimestamp(1, 2),
+      regex: new RegexValue('a', 'b'),
+      int32: new Int32Value(1),
+      decimal128: new Decimal128Value('1.2e3'),
+      min: null,
+      max: MaxKey.instance(),
+      foo: {
+        binary: Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 2),
+        timestamp: new BsonTimestamp(2, 1)
+      }
+    });
+  });
+
   it('provides field mask', () => {
     const objValue = wrapObject({
       a: 'b',
       map: { a: 1, b: true, c: 'string', nested: { d: 'e' } },
-      emptymap: {}
+      emptymap: {},
+      bar: {
+        objectId: new BsonObjectId('foo'),
+        binary: Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1),
+        timestamp: new BsonTimestamp(1, 2),
+        min: MinKey.instance(),
+        max: MaxKey.instance(),
+        regex: new RegexValue('a', 'b'),
+        int32: new Int32Value(1),
+        decimal128: new Decimal128Value('1.2e3')
+      }
     });
     const expectedMask = mask(
       'a',
@@ -175,16 +322,24 @@ describe('ObjectValue', () => {
       'map.b',
       'map.c',
       'map.nested.d',
-      'emptymap'
+      'emptymap',
+      'bar.objectId',
+      'bar.binary',
+      'bar.timestamp',
+      'bar.min',
+      'bar.max',
+      'bar.regex',
+      'bar.int32',
+      'bar.decimal128'
     );
     const actualMask = extractFieldMask(objValue.value.mapValue);
-    expect(actualMask.isEqual(expectedMask)).to.be.true;
+    expect(actualMask.isEqual(expectedMask)).toBe(true);
   });
 
   function assertObjectEquals(
     objValue: ObjectValue,
     data: { [k: string]: unknown }
   ): void {
-    expect(objValue.isEqual(wrapObject(data)));
+    expect(objValue.isEqual(wrapObject(data))).toBe(true);
   }
 });

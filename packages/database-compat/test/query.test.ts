@@ -4525,11 +4525,11 @@ describe('Query Tests', () => {
     data['a'] = true;
     ref.set(data, () => {
       ref.endBefore(null, '' + INTEGER_32_MAX).once('value', s => {
-        expect(s.val()).to.deep.equal(integerData),
+        (expect(s.val()).to.deep.equal(integerData),
           ref.startAfter(null, '' + INTEGER_32_MAX).once('value', s => {
             expect(s.val()).to.deep.equal({ 'a': true });
             done();
-          });
+          }));
       });
     });
   });

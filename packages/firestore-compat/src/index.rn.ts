@@ -17,7 +17,7 @@
 
 // eslint-disable-next-line import/no-extraneous-dependencies
 import firebase from '@firebase/app-compat';
-import { FirebaseNamespace } from '@firebase/app-types';
+import type { FirebaseNamespace } from '@firebase/app-types';
 
 import { name, version } from '../package.json';
 

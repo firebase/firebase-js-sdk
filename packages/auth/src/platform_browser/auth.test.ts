@@ -338,6 +338,66 @@ describe('core/auth/initializeAuth', () => {
       expect(stub._remove).not.to.have.been.called;
     });
 
+    it('Keeps current user if reload fails with quota exceeded error', async () => {
+      const stub = sinon.stub(
+        _getInstance<PersistenceInternal>(inMemoryPersistence)
+      );
+      stub._get.returns(Promise.resolve(testUser(oldAuth, 'uid').toJSON()));
+      stub._remove.returns(Promise.resolve());
+      reloadStub.returns(
+        Promise.reject(
+          _createError(AuthErrorCode.QUOTA_EXCEEDED, {
+            appName: 'app'
+          })
+        )
+      );
+
+      const auth = await initAndWait(inMemoryPersistence);
+      expect(stub._remove).not.to.have.been.called;
+      expect(auth.currentUser?.uid).to.eq('uid');
+    });
+
+    it('Keeps current user if reload fails with HTTP 429 quota exceeded error', async () => {
+      const stub = sinon.stub(
+        _getInstance<PersistenceInternal>(inMemoryPersistence)
+      );
+      stub._get.returns(Promise.resolve(testUser(oldAuth, 'uid').toJSON()));
+      stub._remove.returns(Promise.resolve());
+      reloadStub.returns(
+        Promise.reject(
+          _createError(
+            "quota-exceeded-for-quota-metric-'queries'-and-limit-'queries-per-minute-per-user'" as unknown as AuthErrorCode,
+            {
+              appName: 'app'
+            }
+          )
+        )
+      );
+
+      const auth = await initAndWait(inMemoryPersistence);
+      expect(stub._remove).not.to.have.been.called;
+      expect(auth.currentUser?.uid).to.eq('uid');
+    });
+
+    it('Keeps current user if reload fails with too many requests error', async () => {
+      const stub = sinon.stub(
+        _getInstance<PersistenceInternal>(inMemoryPersistence)
+      );
+      stub._get.returns(Promise.resolve(testUser(oldAuth, 'uid').toJSON()));
+      stub._remove.returns(Promise.resolve());
+      reloadStub.returns(
+        Promise.reject(
+          _createError(AuthErrorCode.TOO_MANY_ATTEMPTS_TRY_LATER, {
+            appName: 'app'
+          })
+        )
+      );
+
+      const auth = await initAndWait(inMemoryPersistence);
+      expect(stub._remove).not.to.have.been.called;
+      expect(auth.currentUser?.uid).to.eq('uid');
+    });
+
     it('sets auth name and config', async () => {
       const auth = await initAndWait(inMemoryPersistence);
       expect(auth.name).to.eq(FAKE_APP.name);

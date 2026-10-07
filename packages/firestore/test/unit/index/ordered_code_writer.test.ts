@@ -1,12 +1,12 @@
 /**
  * @license
- * Copyright 2021 Google LLC
+ * Copyright 2026 Google LLC
  *
- * Licensed under the Apache License, Version 2.0x00 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0x00
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { expect } from 'chai';
 
 import {
   numberOfLeadingZerosInByte,
@@ -138,7 +137,7 @@ describe('Ordered Code Writer', () => {
           break;
         }
       }
-      expect(numberOfLeadingZerosInByte(i)).to.equal(zeros, `for number ${i}`);
+      expect(numberOfLeadingZerosInByte(i), `for number ${i}`).toBe(zeros);
     }
   });
 
@@ -169,11 +168,11 @@ describe('Ordered Code Writer', () => {
   it('encodes infinity', () => {
     const writer = new OrderedCodeWriter();
     writer.writeInfinityAscending();
-    expect(writer.encodedBytes()).to.deep.equal(fromHex('ffff'));
+    expect(writer.encodedBytes()).toEqual(fromHex('ffff'));
 
     writer.reset();
     writer.writeInfinityDescending();
-    expect(writer.encodedBytes()).to.deep.equal(fromHex('0000'));
+    expect(writer.encodedBytes()).toEqual(fromHex('0000'));
   });
 
   it('seeds bytes', () => {
@@ -181,19 +180,17 @@ describe('Ordered Code Writer', () => {
     writer.seed(fromHex('01'));
     writer.writeInfinityAscending();
     writer.seed(fromHex('02'));
-    expect(writer.encodedBytes()).to.deep.equal(fromHex('01ffff02'));
+    expect(writer.encodedBytes()).toEqual(fromHex('01ffff02'));
   });
 
   function verifyEncoding(testCases: Array<ValueTestCase<unknown>>): void {
     for (let i = 0; i < testCases.length; ++i) {
       const bytes = getBytes(testCases[i].val);
-      expect(bytes.asc).to.deep.equal(
-        fromHex(testCases[i].ascString),
-        'Ascending for ' + testCases[i].val
+      expect(bytes.asc, 'Ascending for ' + testCases[i].val).toEqual(
+        fromHex(testCases[i].ascString)
       );
-      expect(bytes.desc).to.deep.equal(
-        fromHex(testCases[i].descString),
-        'Descending for ' + testCases[i].val
+      expect(bytes.desc, 'Descending for ' + testCases[i].val).toEqual(
+        fromHex(testCases[i].descString)
       );
     }
   }
@@ -205,14 +202,14 @@ describe('Ordered Code Writer', () => {
         const leftBytes = getBytes(left);
         const right = testCases[j].val;
         const rightBytes = getBytes(right);
-        expect(compare(leftBytes.asc, rightBytes.asc)).to.equal(
-          i === j ? 0 : -1,
+        expect(
+          compare(leftBytes.asc, rightBytes.asc),
           `Ascending order: ${left} vs ${right}`
-        );
-        expect(compare(leftBytes.desc, rightBytes.desc)).to.equal(
-          i === j ? 0 : 1,
+        ).toBe(i === j ? 0 : -1);
+        expect(
+          compare(leftBytes.desc, rightBytes.desc),
           `Descending order: ${left} vs ${right}`
-        );
+        ).toBe(i === j ? 0 : 1);
       }
     }
   }

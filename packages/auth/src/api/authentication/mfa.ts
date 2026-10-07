@@ -134,6 +134,4 @@ export function finalizeSignInTotpMfa(
  * @internal
  */
 export type PhoneOrOauthTokenResponse =
-  | SignInWithPhoneNumberResponse
-  | SignInWithIdpResponse
-  | IdTokenResponse;
+  SignInWithPhoneNumberResponse | SignInWithIdpResponse | IdTokenResponse;

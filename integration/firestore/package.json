@@ -7,19 +7,19 @@
     "typings:public": "lerna run typings:public --scope=\"@firebase/app\" --scope=\"@firebase/firestore\"",
     "build:persistence": "yarn typings:public && INCLUDE_FIRESTORE_PERSISTENCE=true gulp compile-tests",
     "build:memory": "yarn typings:public && INCLUDE_FIRESTORE_PERSISTENCE=false gulp compile-tests",
-    "karma:singlerun": "karma start",
+    "karma:singlerun": "vitest run --project=browser",
     "prettier": "prettier --cache --write '*.js' '*.ts'",
-    "test:persistence": " yarn build:persistence; karma start",
-    "test:persistence:debug": "yarn build:persistence; karma start --auto-watch --browsers Chrome",
-    "test:memory": "yarn build:memory; karma start",
-    "test:memory:debug": "yarn build:memory; karma start --auto-watch --browsers Chrome"
+    "test": "yarn test:persistence && yarn test:memory",
+    "test:persistence": "yarn build:persistence && vitest run --project=browser",
+    "test:persistence:debug": "yarn build:persistence && vitest --project=browser --browser.headless=false",
+    "test:memory": "yarn build:memory && vitest run --project=browser",
+    "test:memory:debug": "yarn build:memory && vitest --project=browser --browser.headless=false"
   },
   "dependencies": {
-    "@firebase/app": "0.16.0",
-    "@firebase/firestore": "4.17.0"
+    "@firebase/app": "0.16.2",
+    "@firebase/firestore": "4.17.2"
   },
   "devDependencies": {
-    "@types/mocha": "9.1.1",
     "gulp": "5.0.1",
     "gulp-filter": "7.0.0",
     "gulp-replace": "1.1.4",
@@ -27,6 +27,6 @@
     "webpack-stream": "7.0.0"
   },
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=24.12.0"
   }
 }
