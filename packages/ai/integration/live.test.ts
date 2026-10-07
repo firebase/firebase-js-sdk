@@ -321,9 +321,9 @@ describe('Live', function () {
               switch (chunk.type) {
                 case 'serverContent':
                   if (chunk.turnComplete) {
-                    // Vertex AI only:
+                    // Agent Platform only:
                     // For some unknown reason, the model's first turn will not be a toolCall, but 
-                    // will instead be an executableCode part in Google AI, and a groundingMetadata in Vertex AI.
+                    // will instead be an executableCode part in Google AI, and a groundingMetadata in Agent Platform.
                     // Let's skip this unexpected first message, waiting until the second turn to resolve with the text. This will definitely break if/when
                     // that bug is fixed.
                     if (turnNum === 0) {

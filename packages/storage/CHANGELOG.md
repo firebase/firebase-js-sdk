@@ -1,5 +1,11 @@
 #Unreleased
 
+## 0.14.6
+
+### Patch Changes
+
+- [`9b3d815`](https://github.com/firebase/firebase-js-sdk/commit/9b3d815198bea1de3d3befb5fc8577611b145357) [#10388](https://github.com/firebase/firebase-js-sdk/pull/10388) - Migrate test suite to Vitest, catch unhandled emulator ping, and update type-only re-exports.
+
 ## 0.14.5
 
 ### Patch Changes

@@ -15,26 +15,25 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
 import { isRetryStatusCode } from '../../src/implementation/utils';
 
 describe('Storage Utils', () => {
   it('does not deem 400 as a retry status code', () => {
     const isRetry = isRetryStatusCode(400, []);
-    expect(isRetry).to.be.false;
+    expect(isRetry).toBe(false);
   });
   it('deems extra retry codes as retryable ', () => {
     let isRetry = isRetryStatusCode(408, []);
-    expect(isRetry).to.be.true;
+    expect(isRetry).toBe(true);
     isRetry = isRetryStatusCode(429, []);
-    expect(isRetry).to.be.true;
+    expect(isRetry).toBe(true);
   });
   it('deems error codes beyond 500 as retryable', () => {
     const isRetry = isRetryStatusCode(503, []);
-    expect(isRetry).to.be.true;
+    expect(isRetry).toBe(true);
   });
   it('deems additional error codes as retryable', () => {
     const isRetry = isRetryStatusCode(400, [400]);
-    expect(isRetry).to.be.true;
+    expect(isRetry).toBe(true);
   });
 });
