@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-import * as sinon from 'sinon';
 import {
   discoverEmulators,
   EMULATOR_HOST_ENV_VARS,
@@ -29,7 +27,7 @@ describe('discoverEmulators()', () => {
   it('finds all running emulators', async () => {
     const emulators = await discoverEmulators(getEmulatorHostAndPort('hub')!);
 
-    expect(emulators).to.deep.equal({
+    expect(emulators).toEqual({
       database: {
         host: '127.0.0.1',
         port: 9002
@@ -50,7 +48,7 @@ describe('discoverEmulators()', () => {
   });
 
   it('connect to IPv6 addresses correctly', async () => {
-    const fetch = sinon.fake(async () => {
+    const fetch = vi.fn(async () => {
       return {
         ok: true,
         async json() {
@@ -63,19 +61,21 @@ describe('discoverEmulators()', () => {
       fetch as any
     );
 
-    expect(fetch).to.be.calledOnceWith(new URL('http://[::1]:1111/emulators')); // bracketed
-    expect(emulators).to.deep.equal({});
+    expect(fetch).toHaveBeenCalledExactlyOnceWith(
+      new URL('http://[::1]:1111/emulators')
+    ); // bracketed
+    expect(emulators).toEqual({});
   });
 
   it('throws error if emulator hub is unreachable', async () => {
     // Connect to port:0. Should always fail (although error codes may differ among OSes).
     await expect(
       discoverEmulators({ host: '127.0.0.1', port: 0 })
-    ).to.be.rejectedWith(/EADDRNOTAVAIL|ECONNREFUSED|fetch failed/);
+    ).rejects.toThrow(/EADDRNOTAVAIL|ECONNREFUSED|fetch failed/);
   });
 
   it('throws if response status is not 2xx', async () => {
-    const fetch = sinon.fake(async () => {
+    const fetch = vi.fn(async () => {
       return {
         ok: false,
         status: 666,
@@ -87,12 +87,12 @@ describe('discoverEmulators()', () => {
 
     await expect(
       discoverEmulators({ host: '127.0.0.1', port: 4444 }, fetch as any)
-    ).to.be.rejectedWith(/HTTP Error 666/);
+    ).rejects.toThrow(/HTTP Error 666/);
   });
 });
 
 describe('getEmulatorHostAndPort()', () => {
-  context('without env vars', () => {
+  describe('without env vars', () => {
     beforeEach(() => {
       stashEnvVars();
     });
@@ -103,7 +103,7 @@ describe('getEmulatorHostAndPort()', () => {
     it('returns undefined if config option is not set', async () => {
       const result = getEmulatorHostAndPort('hub');
 
-      expect(result).to.be.undefined;
+      expect(result).toBeUndefined();
     });
 
     it('returns undefined if config option does not contain host/port', async () => {
@@ -111,7 +111,7 @@ describe('getEmulatorHostAndPort()', () => {
         rules: '/* security rules only, no host/port */'
       });
 
-      expect(result).to.be.undefined;
+      expect(result).toBeUndefined();
     });
 
     it('removes brackets from IPv6 hosts', async () => {
@@ -120,7 +120,7 @@ describe('getEmulatorHostAndPort()', () => {
         port: 1111
       });
 
-      expect(result?.host).to.equal('::1');
+      expect(result?.host).toBe('::1');
     });
 
     it('throws if only host is present', async () => {
@@ -128,7 +128,7 @@ describe('getEmulatorHostAndPort()', () => {
         getEmulatorHostAndPort('hub', {
           host: '[::1]'
         } as HostAndPort)
-      ).to.throw(/hub.port=undefined/);
+      ).toThrow(/hub.port=undefined/);
     });
 
     it('throws if only port is present', async () => {
@@ -136,7 +136,7 @@ describe('getEmulatorHostAndPort()', () => {
         getEmulatorHostAndPort('database', {
           port: 1234
         } as HostAndPort)
-      ).to.throw(/Invalid configuration database.host=undefined/);
+      ).toThrow(/Invalid configuration database.host=undefined/);
     });
 
     it('connect to 127.0.0.1 if host is wildcard 0.0.0.0', async () => {
@@ -146,14 +146,14 @@ describe('getEmulatorHostAndPort()', () => {
       });
 
       // Do not connect to 0.0.0.0 which is invalid and won't work on some OSes.
-      expect(result?.host).to.equal('127.0.0.1');
+      expect(result?.host).toBe('127.0.0.1');
     });
 
     it('connect to [::1] if host is wildcard [::]', async () => {
       const result = getEmulatorHostAndPort('hub', { host: '::1', port: 1111 });
 
       // Do not connect to :: which is invalid and won't work on some OSes.
-      expect(result?.host).to.equal('::1');
+      expect(result?.host).toBe('::1');
     });
 
     it('uses discovered host/port if both config and env var are unset', async () => {
@@ -161,8 +161,8 @@ describe('getEmulatorHostAndPort()', () => {
         hub: { host: '::1', port: 3333 }
       });
 
-      expect(result?.host).to.equal('::1');
-      expect(result?.port).to.equal(3333);
+      expect(result?.host).toBe('::1');
+      expect(result?.port).toBe(3333);
     });
 
     it('returns undefined if none of config, env var, discovered contains emulator', async () => {
@@ -170,7 +170,7 @@ describe('getEmulatorHostAndPort()', () => {
         hub: { host: '::1', port: 3333 } /* only hub, no database */
       });
 
-      expect(result).to.be.undefined;
+      expect(result).toBeUndefined();
     });
 
     it('uses hub host as fallback if discovered host is wildcard 0.0.0.0/[::]', async () => {
@@ -181,8 +181,8 @@ describe('getEmulatorHostAndPort()', () => {
 
       // If we can reach hub via 10.0.0.1 but database has host 0.0.0.0, it is very likely that
       // database is also running on 10.0.0.1 and listening on all IPv4 addresses.
-      expect(result?.host).to.equal('10.0.0.1');
-      expect(result?.port).to.equal(1111);
+      expect(result?.host).toBe('10.0.0.1');
+      expect(result?.port).toBe(1111);
 
       const result2 = getEmulatorHostAndPort('database', undefined, {
         database: { host: '::', port: 2222 },
@@ -191,8 +191,8 @@ describe('getEmulatorHostAndPort()', () => {
 
       // The situation is less ideal when database listens on all IPv6 addresses, but we'll still
       // try the same host as hub, hoping that the OS running database forwards v6 to v4.
-      expect(result2?.host).to.equal('10.0.0.1');
-      expect(result2?.port).to.equal(2222);
+      expect(result2?.host).toBe('10.0.0.1');
+      expect(result2?.port).toBe(2222);
     });
 
     it('uses hub host as fallback if config host is wildcard 0.0.0.0/[::]', async () => {
@@ -211,8 +211,8 @@ describe('getEmulatorHostAndPort()', () => {
         discovered
       );
 
-      expect(result?.host).to.equal('10.0.0.1');
-      expect(result?.port).to.equal(1111);
+      expect(result?.host).toBe('10.0.0.1');
+      expect(result?.port).toBe(1111);
 
       const result2 = getEmulatorHostAndPort(
         'database',
@@ -223,12 +223,12 @@ describe('getEmulatorHostAndPort()', () => {
         discovered
       );
 
-      expect(result2?.host).to.equal('10.0.0.1');
-      expect(result2?.port).to.equal(2222);
+      expect(result2?.host).toBe('10.0.0.1');
+      expect(result2?.port).toBe(2222);
     });
   });
 
-  context('with env vars', () => {
+  describe('with env vars', () => {
     beforeEach(() => {
       stashEnvVars();
     });
@@ -240,13 +240,13 @@ describe('getEmulatorHostAndPort()', () => {
       process.env[EMULATOR_HOST_ENV_VARS.hub] = '127.0.0.1:3445';
       const result = getEmulatorHostAndPort('hub');
 
-      expect(result?.host).to.equal('127.0.0.1');
-      expect(result?.port).to.equal(3445);
+      expect(result?.host).toBe('127.0.0.1');
+      expect(result?.port).toBe(3445);
     });
 
     it('throws if port is not a number', async () => {
       process.env[EMULATOR_HOST_ENV_VARS.hub] = '127.0.0.1:hhh';
-      expect(() => getEmulatorHostAndPort('hub')).to.throw(
+      expect(() => getEmulatorHostAndPort('hub')).toThrow(
         /Invalid format in environment variable FIREBASE_EMULATOR_HUB/
       );
     });
@@ -255,24 +255,24 @@ describe('getEmulatorHostAndPort()', () => {
       process.env[EMULATOR_HOST_ENV_VARS.hub] = '[::1]:3445';
       const result = getEmulatorHostAndPort('hub');
 
-      expect(result?.host).to.equal('::1');
-      expect(result?.port).to.equal(3445);
+      expect(result?.host).toBe('::1');
+      expect(result?.port).toBe(3445);
     });
 
     it('parses env var with IPv6 host but no port correctly', async () => {
       process.env[EMULATOR_HOST_ENV_VARS.hub] = '[::1]';
       const result = getEmulatorHostAndPort('hub');
 
-      expect(result?.host).to.equal('::1');
-      expect(result?.port).to.equal(80); // default port
+      expect(result?.host).toBe('::1');
+      expect(result?.port).toBe(80); // default port
     });
 
     it('parses env var with host but no port correctly', async () => {
       process.env[EMULATOR_HOST_ENV_VARS.hub] = 'myhub.example.com';
       const result = getEmulatorHostAndPort('hub');
 
-      expect(result?.host).to.equal('myhub.example.com');
-      expect(result?.port).to.equal(80); // default port
+      expect(result?.host).toBe('myhub.example.com');
+      expect(result?.port).toBe(80); // default port
     });
 
     it('connect to 127.0.0.1 if host is wildcard 0.0.0.0', async () => {
@@ -280,7 +280,7 @@ describe('getEmulatorHostAndPort()', () => {
       const result = getEmulatorHostAndPort('hub');
 
       // Do not connect to 0.0.0.0 which is invalid and won't work on some OSes.
-      expect(result?.host).to.equal('127.0.0.1');
+      expect(result?.host).toBe('127.0.0.1');
     });
 
     it('connect to [::1] if host is wildcard [::]', async () => {
@@ -288,7 +288,7 @@ describe('getEmulatorHostAndPort()', () => {
       const result = getEmulatorHostAndPort('hub');
 
       // Do not connect to :: which is invalid and won't work on some OSes.
-      expect(result?.host).to.equal('::1');
+      expect(result?.host).toBe('::1');
     });
 
     it('prefers config value over env var', async () => {
@@ -298,8 +298,8 @@ describe('getEmulatorHostAndPort()', () => {
         port: 1234
       });
 
-      expect(result?.host).to.equal('localhost');
-      expect(result?.port).to.equal(1234);
+      expect(result?.host).toBe('localhost');
+      expect(result?.port).toBe(1234);
     });
 
     it('takes host and port from env var if config has no host/port', async () => {
@@ -308,8 +308,8 @@ describe('getEmulatorHostAndPort()', () => {
         rules: '/* security rules only, no host/port */'
       });
 
-      expect(result?.host).to.equal('127.0.0.1');
-      expect(result?.port).to.equal(3445);
+      expect(result?.host).toBe('127.0.0.1');
+      expect(result?.port).toBe(3445);
     });
 
     it('uses hub host as fallback if host from env var is wildcard 0.0.0.0/[::]', async () => {
@@ -320,8 +320,8 @@ describe('getEmulatorHostAndPort()', () => {
 
       // If we can reach hub via 10.0.0.1 but database has host 0.0.0.0, it is very likely that
       // database is also running on 10.0.0.1 and listening on all IPv4 addresses.
-      expect(result?.host).to.equal('10.0.0.1');
-      expect(result?.port).to.equal(1111);
+      expect(result?.host).toBe('10.0.0.1');
+      expect(result?.port).toBe(1111);
 
       process.env[EMULATOR_HOST_ENV_VARS.database] = '[::]:2222';
       const result2 = getEmulatorHostAndPort('database', undefined, {
@@ -330,8 +330,8 @@ describe('getEmulatorHostAndPort()', () => {
 
       // The situation is less ideal when database listens on all IPv6 addresses, but we'll still
       // try the same host as hub, hoping that the OS running database forwards v6 to v4.
-      expect(result2?.host).to.equal('10.0.0.1');
-      expect(result2?.port).to.equal(2222);
+      expect(result2?.host).toBe('10.0.0.1');
+      expect(result2?.port).toBe(2222);
     });
   });
 });
