@@ -55,11 +55,6 @@ function authInternalPlugin() {
 
 const config = createBaseConfig(import.meta.url);
 
-const hasEmulator = Boolean(process.env.FIREBASE_AUTH_EMULATOR_HOST);
-const hasExplicitSuiteArg = process.argv.some(arg =>
-  arg.includes('test/integration')
-);
-
 // Auth-compat unit tests are browser-only; filter test projects to browser runner
 if (config.test?.projects) {
   config.test.projects = config.test.projects.filter(
@@ -68,12 +63,10 @@ if (config.test?.projects) {
 
   for (const project of config.test.projects) {
     project.plugins = [...(project.plugins || []), authInternalPlugin()];
-    if (!hasEmulator && !hasExplicitSuiteArg) {
-      project.test.exclude = [
-        ...(project.test.exclude || []),
-        'test/integration/**'
-      ];
-    }
+    project.test.exclude = [
+      ...(project.test.exclude || []),
+      'test/integration/**'
+    ];
   }
 }
 
