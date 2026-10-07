@@ -26,7 +26,7 @@
     "babel-loader": "10.1.1",
     "playwright": "1.55.1",
     "typescript": "5.5.4",
-    "vitest": "4.1.10",
+    "vitest": "4.1.11",
     "webpack": "5.109.2",
     "webpack-cli": "7.2.2",
     "webpack-dev-server": "6.0.0"
