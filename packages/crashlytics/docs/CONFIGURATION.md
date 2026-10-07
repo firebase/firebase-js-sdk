@@ -222,8 +222,6 @@ During the interactive onboarding flow, you will be prompted to choose which ema
  ◉ Regressed issues (Notify when a closed issue reoccurs)
 ```
 
-The CLI automatically generates the Cloud Monitoring alert policies for your web app, creates (or reuses) a Firebase-labeled email notification channel for your logged-in email address, and attaches it to the selected alert policies.
-
 ---
 
 ### Option 3: Set up email alerts via `gcloud` CLI & REST API
