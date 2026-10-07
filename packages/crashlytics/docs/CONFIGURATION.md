@@ -172,7 +172,12 @@ Crashlytics for Web supports **email alerts** to notify you when issues occur in
 Under the hood, Crashlytics uses **Google Cloud Monitoring** to provision app-scoped alert policies and attach your email address as a notification channel. Alert emails include Firebase branding, app and version metadata, the error type and message, and a direct link to investigate the issue in the Firebase Console.
 
 > [!NOTE]
-> - **Permissions**: Configuring alerts requires **Owner** or **Editor** permissions on your Firebase/Google Cloud project.
+> - **Permissions**:
+>   - Basic Google Cloud project **`Owner` (`roles/owner`)** or **`Editor` (`roles/editor`)** roles include all required permissions out of the box.
+>   - **Firebase-scoped roles alone** (such as `Firebase Admin` (`roles/firebase.admin`), `Firebase Editor` (`roles/firebase.editor`), `Firebase Quality Admin` (`roles/firebase.qualityAdmin`), or `Firebase Crashlytics Admin` (`roles/firebasecrashlytics.admin`)) grant `firebasecrashlytics.config.update`, **but do not include the required Cloud Monitoring permissions**.
+>   - If you use predefined or custom roles instead of project `Owner`/`Editor`, ensure your account has **both**:
+>     1. **Crashlytics configuration access**: `roles/firebasecrashlytics.admin`, `roles/firebase.qualityAdmin`, `roles/firebase.editor`, or `roles/firebase.admin` (`firebasecrashlytics.config.get` and `firebasecrashlytics.config.update`).
+>     2. **Cloud Monitoring alert & notification channel access**: `Monitoring Editor` (`roles/monitoring.editor`), or both `Monitoring AlertPolicy Editor` (`roles/monitoring.alertPolicyEditor`) and `Monitoring NotificationChannel Editor` (`roles/monitoring.notificationChannelEditor`) (`monitoring.alertPolicies.get`, `monitoring.alertPolicies.list`, `monitoring.alertPolicies.create`, `monitoring.alertPolicies.update`, `monitoring.notificationChannels.get`, `monitoring.notificationChannels.list`, `monitoring.notificationChannels.create`, and `monitoring.notificationChannels.update`).
 > - **Language & Sender**: Alert emails are sent from `alerting-noreply@google.com` and are localized based on your Google Account language preference at the time the alert policy is created.
 > - **Avoiding Duplicate Alerts**: If you previously enabled native notifications directly in **Google Cloud Error Reporting** during earlier testing, disable those native Error Reporting notifications to avoid receiving duplicate emails.
 
