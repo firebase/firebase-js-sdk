@@ -208,7 +208,10 @@ export async function register(
 }
 
 /**
- * Unregisters the app instance from FCM by deleting its FID-based registration.
+ * Unregisters the app instance from FCM: deletes its FID-based registration, clears local
+ * metadata and, when the service worker registration is known to this {@link Messaging} instance
+ * (for example, after {@link register} was called on it), unsubscribes the browser push
+ * subscription.
  * On success, triggers {@link onUnregistered} (if registered) with the unregistered FID.
  *
  * @param messaging - The {@link Messaging} instance.
