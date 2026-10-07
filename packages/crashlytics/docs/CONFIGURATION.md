@@ -183,17 +183,17 @@ Under the hood, Crashlytics uses **Google Cloud Monitoring** to provision app-sc
 
 ---
 
-### Option 1: Set Up Email Alerts in the Firebase Console (UI)
+### Option 1: Set up email alerts in the Firebase Console (UI)
 
 You can enable or manage email alerts either during initial project onboarding or at any time afterward in your Firebase project settings.
 
-#### During Project Onboarding
+#### During project onboarding
 
 1. Open the [Firebase Console Crashlytics dashboard](https://console.firebase.google.com/u/0/project/_/crashlytics) and start the Crashlytics web onboarding flow.
 2. In the **Set Up Alerts (Optional)** step, select the email alerts you want to receive at your signed-in email address (**New issues** and **Regressed issues** are selected by default).
 3. Click **Continue** to automatically create the Cloud Monitoring alert policies and subscribe your email address.
 
-#### Anytime in Project Alert Settings
+#### Anytime in project alert settings
 
 1. From the [Firebase Console Crashlytics dashboard](https://console.firebase.google.com/u/0/project/_/crashlytics), click the **Manage alerts** button in the top-right corner, or navigate directly to **Project settings > Alerts** (`https://console.firebase.google.com/project/_/settings/alerts`).
 2. Locate the **Crashlytics** card and select your web app from the **Select an app** dropdown.
@@ -204,7 +204,7 @@ You can enable or manage email alerts either during initial project onboarding o
 
 ---
 
-### Option 2: Set Up Email Alerts via the Firebase CLI
+### Option 2: Set up email alerts via the Firebase CLI
 
 When onboarding your web app with the Firebase CLI, enable the `crashlyticsWebAlerts` experiment alongside `crashlyticsWeb` to configure email alerts directly from your terminal:
 
@@ -226,11 +226,11 @@ The CLI automatically generates the Cloud Monitoring alert policies for your web
 
 ---
 
-### Option 3: Set Up Email Alerts via `gcloud` CLI & REST API
+### Option 3: Set up email alerts via `gcloud` CLI & REST API
 
 If you are configuring alerts non-interactively (for example, in a script or via an AI coding agent) or outside of the interactive onboarding flow, you can provision the Crashlytics alert policies and attach a Cloud Monitoring email notification channel using `gcloud` and `curl`.
 
-#### 1. Configure Environment Variables
+#### 1. Configure environment variables
 
 ```bash
 PROJECT_ID="your-firebase-project-id"
@@ -239,7 +239,7 @@ USER_EMAIL=$(gcloud config get-value account)
 TOKEN=$(gcloud auth print-access-token)
 ```
 
-#### 2. Generate the Crashlytics Alert Policies
+#### 2. Generate the Crashlytics alert policies
 
 Call the Crashlytics `projects.apps.generateAlertPolicy` endpoint for `ALERT_TYPE_NEW_ISSUE` and/or `ALERT_TYPE_REGRESSED_ISSUE`. This idempotently creates (or returns the existing) Cloud Monitoring alert policy for your web app:
 
@@ -261,7 +261,7 @@ REGRESSED_ISSUE_POLICY_NAME=$(curl -s -X POST \
   | jq -r '.name')
 ```
 
-#### 3. Create an Email Notification Channel in Cloud Monitoring
+#### 3. Create an email notification channel in Cloud Monitoring
 
 Create a Cloud Monitoring email notification channel with the `is_firebase_channel=true` user label so that the Firebase Console recognizes and syncs your subscription state:
 
@@ -275,7 +275,7 @@ CHANNEL_NAME=$(gcloud beta monitoring channels create \
   --format="value(name)")
 ```
 
-#### 4. Attach the Notification Channel to the Alert Policies
+#### 4. Attach the notification channel to the alert policies
 
 Subscribe your email channel to the generated alert policies using `gcloud alpha monitoring policies update`:
 
@@ -291,7 +291,7 @@ gcloud alpha monitoring policies update "${REGRESSED_ISSUE_POLICY_NAME}" \
 
 ---
 
-### Advanced Alerting in Google Cloud Monitoring
+### Advanced alerting in Google Cloud Monitoring
 
 Because Crashlytics for Web alerts are built on Google Cloud Monitoring and Cloud Logging, you can also configure custom log-based metrics or attach additional project-level notification channels (such as Slack, PagerDuty, webhooks, or Pub/Sub) directly in **Google Cloud Console > Monitoring > Alerting**.
 
