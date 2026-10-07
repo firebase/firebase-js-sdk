@@ -6,11 +6,33 @@ This guide details configuration options for Firebase Crashlytics, including ses
 
 ## Sampling
 
-You may decide to sample a proportion of your sessions to control volume and costs. This can be accomplished with the Firebase Telemetry Admin API or by creating an Exclusion Filter in Cloud Logging.
+If your app receives a large volume of traffic, we recommend taking advantage of the sampling rate configuration to control telemetry volume and Cloud Logging costs. The sampling rate indicates the proportion of user sessions for which telemetry data is collected.
 
-### Option 1: Set Sample rate in the Firebase Telemetry Admin API
+You can configure the sampling rate for your web app to a value from **0% to 100%** (`0.0` to `1.0`), where **100%** means Crashlytics collects telemetry from all user sessions. The default is **100%**. Collecting fewer sessions reduces your Cloud Logging ingestion costs and client network usage, though it also reduces the number of individual error occurrences you can inspect.
 
-You can use the Firebase Telemetry Admin REST API (`firebasetelemetryadmin.googleapis.com/v1alpha`) to manage telemetry collection settings for your Firebase applications.
+> [!NOTE]
+> Regardless of your sampling rate, the charts and issue counts shown in the Crashlytics dashboard in the Firebase Console are automatically extrapolated from the recorded session sampling rates so that they always reflect the true estimated volume of traffic.
+
+### How Session Sampling Works
+
+- **Per-session consistency**: Sampling decisions are made per session on the client device using a deterministic hash of the session ID and app ID. A session is either collected completely or discarded completely on the device before network transmission.
+- **Rate update propagation**:
+  - **Lowering the sampling rate** is enforced on the server **immediately** to stop unwanted ingestion costs right away, and propagates to active client devices within **15 minutes**.
+  - **Raising the sampling rate** takes up to **15 minutes** to propagate to client devices and applies only to newly created sessions.
+
+---
+
+### Option 1: Configure Sampling in the Firebase Console (Recommended)
+
+1. Open the [Firebase Console Crashlytics dashboard](https://console.firebase.google.com/u/0/project/_/crashlytics) and select your web app.
+2. Click **Configure sampling** in the top action bar.
+3. In the **Configure sampling for your app** dialog, use the slider or enter a value from **0% to 100%** to set the percentage of events and sessions collected from clients. Changes take effect automatically.
+
+---
+
+### Option 2: Set Sampling Rate in the Firebase Telemetry Admin API
+
+You can use the Firebase Telemetry Admin REST API (`firebasetelemetryadmin.googleapis.com/v1alpha`) to programmatically manage telemetry collection settings for your Firebase applications.
 
 #### API Setup & Variables
 
@@ -19,13 +41,13 @@ You can configure the following variables in your terminal to run the `curl` com
 ```bash
 PROJECT_ID="your-gcp-project-id"
 LOCATION="global"
-APP_ID="your-firebase-app-id" # e.g., 1:1234567890:android:abcdef1234567890
+APP_ID="your-firebase-app-id" # e.g., 1:1234567890:web:abcdef1234567890
 TOKEN=$(gcloud auth application-default print-access-token)
 ```
 
 #### 1. Find your Config ID
 
-Telemetry settings are managed via a Config resource. To find the specific Config ID for your app, list the configs in your project and filter by your `APP_ID`.
+Telemetry settings are managed via a `Config` resource. To find the specific Config ID for your app, list the configs in your project and filter by your `APP_ID`.
 
 The `curl -G` and `--data-urlencode` flags ensure the AIP-160 filter string is correctly URL-encoded.
 
@@ -45,7 +67,7 @@ CONFIG_NAME="projects/${PROJECT_ID}/locations/${LOCATION}/configs/${CONFIG_ID}"
 
 #### 2. Set the Sampling Rate
 
-To adjust the sampling rate, use the standard `PATCH` method to update the `sampling_rate` field. You must specify `updateMask=sampling_rate` in the query parameters. The sampling rate is a double value representing a percentage (e.g., `0.25` for 25%).
+To adjust the sampling rate, use the standard `PATCH` method to update the `sampling_rate` field. You must specify `updateMask=sampling_rate` in the query parameters. The sampling rate is a `double` value from `0.0` to `1.0` representing a percentage (e.g., `0.25` for 25%).
 
 *Note: You must have an “Owner” role on the Cloud project or equivalent permission to do this.*
 
@@ -63,13 +85,16 @@ curl -X PATCH \
 
 ---
 
-### Option 2: Create an Exclusion Filter in Cloud Logging
+### Option 3: Create an Exclusion Filter in Cloud Logging
+
+> [!IMPORTANT]
+> Unlike configuring the Crashlytics sampling rate (Options 1 and 2 above), Cloud Logging exclusion filters drop logs **after** they are sent over the network by client devices and **will not** be extrapolated in the Crashlytics dashboard metrics. Use exclusion filters primarily when you want to filter out specific log patterns or severities at ingestion time.
 
 #### Step 1: Navigate to the Logs Router
 
 1. Open the Google Cloud Console.
 2. Go to **Logging > Log Router**.
-3. Locate the **_Default** sink (this is the default bucket where your application logs are stored and billed).
+3. Locate the **_Default** sink (or your `firebase-telemetry` sink where your application logs are stored and billed).
 4. Click the three vertical dots (**Actions**) on that row and select **Edit sink**.
 
 #### Step 2: Create an LQL Exclusion Filter
@@ -81,7 +106,7 @@ curl -X PATCH \
 
 #### Step 3: Write Your LQL Filter Expression to Sample a Percentage of Logs
 
-You can use the built-in console settings to drop a specific **Exclusion Percentage** (e.g., drop 50% of error logs to maintain visibility while slashing costs in half).
+You can use the built-in console settings to drop a specific **Exclusion Percentage** (e.g., drop 50% of error logs to maintain visibility while cutting storage costs in half).
 
 ```javascript
 // Exclude (drop) 50% of ERROR logs
@@ -96,6 +121,16 @@ severity=(ERROR) AND sample(insert_id, 0.5)
 
 > [!TIP]
 > Always test your LQL query in the **Logs Explorer** first to make sure it matches the exact logs you want to throw away before adding it to your live exclusion filter!
+
+---
+
+### Force 100% Sampling for Debugging (Overrides)
+
+When reproducing or investigating a specific issue during local development or QA testing, you can override the app's configured sampling rate and force **100% telemetry collection** for the current browser session by setting the `FIREBASE_TELEMETRY_DEBUG` flag in code or in the browser developer console:
+
+```javascript
+self.FIREBASE_TELEMETRY_DEBUG = true;
+```
 
 ---
 
