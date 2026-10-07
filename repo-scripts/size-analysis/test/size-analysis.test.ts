@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import {
   MemberList,
@@ -42,7 +42,7 @@ import { resolve } from 'path';
 describe('extractExports', () => {
   let testModuleDtsFile: string;
   let extractedDeclarations: MemberList;
-  before(() => {
+  beforeAll(() => {
     const start = Date.now();
     testModuleDtsFile = getTestModuleDtsFilePath();
     extractedDeclarations = extractExports(testModuleDtsFile);
@@ -50,153 +50,178 @@ describe('extractExports', () => {
   });
   // export {tar as tarr, tar1 as tarr1} from '..'
   it('test export rename', () => {
-    expect(extractedDeclarations.functions).to.include.members([
-      'tarr',
-      'tarr1'
-    ]);
+    expect(extractedDeclarations.functions).toEqual(
+      expect.arrayContaining(['tarr', 'tarr1'])
+    );
   });
   // function foo() { }
   // export { foo as foo2 };
   it('test declare then export', () => {
-    expect(extractedDeclarations.functions).to.include.members(['foo2']);
-    expect(extractedDeclarations.classes).to.include.members(['Foo1']);
+    expect(extractedDeclarations.functions).toEqual(
+      expect.arrayContaining(['foo2'])
+    );
+    expect(extractedDeclarations.classes).toEqual(
+      expect.arrayContaining(['Foo1'])
+    );
   });
 
   it('test basic variable extractions', () => {
-    expect(extractedDeclarations.variables).to.include.members([
-      'basicVarDeclarationExport',
-      'basicVarStatementExport',
-      'reExportVarStatementExport'
-    ]);
+    expect(extractedDeclarations.variables).toEqual(
+      expect.arrayContaining([
+        'basicVarDeclarationExport',
+        'basicVarStatementExport',
+        'reExportVarStatementExport'
+      ])
+    );
   });
   it('test re-exported variable extractions from same module - named re-exports', () => {
-    expect(extractedDeclarations.variables).to.include.members([
-      'basicVarDeclarationExportFar',
-      'basicVarStatementExportFar',
-      'reExportVarStatementExportFar'
-    ]);
+    expect(extractedDeclarations.variables).toEqual(
+      expect.arrayContaining([
+        'basicVarDeclarationExportFar',
+        'basicVarStatementExportFar',
+        'reExportVarStatementExportFar'
+      ])
+    );
   });
   it('test re-exported variable extractions from same module - * re-exports', () => {
-    expect(extractedDeclarations.variables).to.include.members([
-      'basicVarDeclarationExportBar',
-      'basicVarStatementExportBar',
-      'reExportVarStatementExportBar'
-    ]);
+    expect(extractedDeclarations.variables).toEqual(
+      expect.arrayContaining([
+        'basicVarDeclarationExportBar',
+        'basicVarStatementExportBar',
+        'reExportVarStatementExportBar'
+      ])
+    );
   });
 
   it('test basic function extractions', () => {
-    expect(extractedDeclarations.functions).to.include.members([
-      'basicFuncExportNoDependencies',
-      'basicFuncExportVarDependencies',
-      'basicFuncExportFuncDependencies',
-      'basicFuncExportEnumDependencies',
-      'basicFuncExternalDependencies'
-    ]);
+    expect(extractedDeclarations.functions).toEqual(
+      expect.arrayContaining([
+        'basicFuncExportNoDependencies',
+        'basicFuncExportVarDependencies',
+        'basicFuncExportFuncDependencies',
+        'basicFuncExportEnumDependencies',
+        'basicFuncExternalDependencies'
+      ])
+    );
   });
   it('test basic function de-duplication ', () => {
-    expect(extractedDeclarations.functions).include.members([
-      'basicUniqueFunc'
-    ]);
+    expect(extractedDeclarations.functions).toEqual(
+      expect.arrayContaining(['basicUniqueFunc'])
+    );
 
     expect(
       extractedDeclarations.functions.filter(
         each => each.localeCompare('basicUniqueFunc') === 0
       ).length
-    ).to.equal(1);
+    ).toBe(1);
   });
 
   it('test re-exported function extractions from same module - named re-exports', () => {
-    expect(extractedDeclarations.functions).to.include.members([
-      'basicFuncExportNoDependenciesFar',
-      'basicFuncExportVarDependenciesFar',
-      'basicFuncExportFuncDependenciesFar',
-      'basicFuncExportEnumDependenciesFar',
-      'basicFuncExternalDependenciesFar'
-    ]);
+    expect(extractedDeclarations.functions).toEqual(
+      expect.arrayContaining([
+        'basicFuncExportNoDependenciesFar',
+        'basicFuncExportVarDependenciesFar',
+        'basicFuncExportFuncDependenciesFar',
+        'basicFuncExportEnumDependenciesFar',
+        'basicFuncExternalDependenciesFar'
+      ])
+    );
   });
 
   it('test re-exported function extractions from same module - * re-exports', () => {
-    expect(extractedDeclarations.functions).to.include.members([
-      'basicFuncExportNoDependenciesBar',
-      'basicFuncExportVarDependenciesBar',
-      'basicFuncExportFuncDependenciesBar',
-      'basicFuncExportEnumDependenciesBar',
-      'basicFuncExternalDependenciesBar'
-    ]);
+    expect(extractedDeclarations.functions).toEqual(
+      expect.arrayContaining([
+        'basicFuncExportNoDependenciesBar',
+        'basicFuncExportVarDependenciesBar',
+        'basicFuncExportFuncDependenciesBar',
+        'basicFuncExportEnumDependenciesBar',
+        'basicFuncExternalDependenciesBar'
+      ])
+    );
   });
 
   it('test re-exported function de-duplication from same module ', () => {
-    expect(extractedDeclarations.functions).include.members([
-      'basicUniqueFuncFar'
-    ]);
+    expect(extractedDeclarations.functions).toEqual(
+      expect.arrayContaining(['basicUniqueFuncFar'])
+    );
 
     expect(
       extractedDeclarations.functions.filter(
         each => each.localeCompare('basicUniqueFuncFar') === 0
       ).length
-    ).to.equal(1);
+    ).toBe(1);
   });
 
   it('test basic class extractions', () => {
-    expect(extractedDeclarations.classes).to.include.members([
-      'BasicClassExport'
-    ]);
+    expect(extractedDeclarations.classes).toEqual(
+      expect.arrayContaining(['BasicClassExport'])
+    );
   });
 
   it('test re-exported class extractions from same module - named re-exports', () => {
-    expect(extractedDeclarations.classes).to.include.members([
-      'BasicClassExportFar'
-    ]);
+    expect(extractedDeclarations.classes).toEqual(
+      expect.arrayContaining(['BasicClassExportFar'])
+    );
   });
   it('test re-exported class extractions from same module - * re-exports', () => {
-    expect(extractedDeclarations.classes).to.include.members([
-      'BasicClassExportBar'
-    ]);
+    expect(extractedDeclarations.classes).toEqual(
+      expect.arrayContaining(['BasicClassExportBar'])
+    );
   });
 
   it('test basic enum extractions', () => {
-    expect(extractedDeclarations.enums).to.include.members(['BasicEnumExport']);
+    expect(extractedDeclarations.enums).toEqual(
+      expect.arrayContaining(['BasicEnumExport'])
+    );
   });
 
   it('test re-exported enum extractions from same module - named re-exports', () => {
-    expect(extractedDeclarations.enums).to.include.members([
-      'BasicEnumExportFar'
-    ]);
+    expect(extractedDeclarations.enums).toEqual(
+      expect.arrayContaining(['BasicEnumExportFar'])
+    );
   });
   it('test re-exported enum extractions from same module - * re-exports', () => {
-    expect(extractedDeclarations.enums).to.include.members([
-      'BasicEnumExportBar'
-    ]);
+    expect(extractedDeclarations.enums).toEqual(
+      expect.arrayContaining(['BasicEnumExportBar'])
+    );
   });
   // import {LogLevel as LogLevel1} from '@firebase/logger';
   // export {LogLevel1 as LogLevel2};
   it('test renamed import then renamed export', () => {
-    expect(extractedDeclarations.enums).to.include.members(['LogLevel2']);
+    expect(extractedDeclarations.enums).toEqual(
+      expect.arrayContaining(['LogLevel2'])
+    );
   });
 
   //import { Logger } from "@firebase/logger";
   // export { Logger as Logger1 };
   it('test import then renamed export', () => {
-    expect(extractedDeclarations.classes).to.include.members(['Logger1']);
+    expect(extractedDeclarations.classes).toEqual(
+      expect.arrayContaining(['Logger1'])
+    );
   });
 
   //import { setLogLevel } from "@firebase/logger";
   // export { setLogLevel };
   it('test import then export', () => {
-    expect(extractedDeclarations.functions).to.include.members(['setLogLevel']);
+    expect(extractedDeclarations.functions).toEqual(
+      expect.arrayContaining(['setLogLevel'])
+    );
   });
 
   // import * as fs from 'fs'
   // export { fs as fs1 };
   it('test namespace export', () => {
-    expect(extractedDeclarations.unknown).to.include.members(['fs1']);
+    expect(extractedDeclarations.unknown).toEqual(
+      expect.arrayContaining(['fs1'])
+    );
   });
 });
 
 describe('extractAllTopLevelSymbols', () => {
   let subsetExportsBundleFile: string;
   let extractedDeclarations: MemberList;
-  before(() => {
+  beforeAll(() => {
     const start = Date.now();
     subsetExportsBundleFile = getSubsetExportsBundleFilePath();
     extractedDeclarations = extractAllTopLevelSymbols(subsetExportsBundleFile);
@@ -208,7 +233,9 @@ describe('extractAllTopLevelSymbols', () => {
   it('test variable extractions', () => {
     const variablesArray = ['aVar'];
     variablesArray.sort();
-    expect(extractedDeclarations.variables).to.include.members(variablesArray);
+    expect(extractedDeclarations.variables).toEqual(
+      expect.arrayContaining(variablesArray)
+    );
   });
 
   it('test functions extractions', () => {
@@ -222,7 +249,10 @@ describe('extractAllTopLevelSymbols', () => {
       'basicFuncExportFuncDependenciesBar'
     ];
     functionsArray.sort();
-    expect(extractedDeclarations.functions).to.have.members(functionsArray);
+    expect(extractedDeclarations.functions).toEqual(
+      expect.arrayContaining(functionsArray)
+    );
+    expect(extractedDeclarations.functions).toHaveLength(functionsArray.length);
   });
 
   it('test enums extractions', () => {
@@ -232,13 +262,18 @@ describe('extractAllTopLevelSymbols', () => {
       'BasicEnumExportFar'
     ];
     enumsArray.sort();
-    expect(extractedDeclarations.variables).to.include.members(enumsArray);
+    expect(extractedDeclarations.variables).toEqual(
+      expect.arrayContaining(enumsArray)
+    );
   });
 
   it('test classes extractions', () => {
     const classesArray = ['BasicClassExport'];
     classesArray.sort();
-    expect(extractedDeclarations.classes).to.have.members(classesArray);
+    expect(extractedDeclarations.classes).toEqual(
+      expect.arrayContaining(classesArray)
+    );
+    expect(extractedDeclarations.classes).toHaveLength(classesArray.length);
   });
 });
 
@@ -253,25 +288,25 @@ describe('test dedup helper function', () => {
     };
     memberList = dedup(memberList);
 
-    expect(memberList.functions).to.have.length(3);
-    expect(memberList.classes).to.have.length(3);
-    expect(memberList.variables).to.have.length(3);
-    expect(memberList.enums).to.have.length(4);
+    expect(memberList.functions).toHaveLength(3);
+    expect(memberList.classes).toHaveLength(3);
+    expect(memberList.variables).toHaveLength(3);
+    expect(memberList.enums).toHaveLength(4);
     expect(
       memberList.functions.filter(each => each.localeCompare('aFunc') === 0)
         .length
-    ).to.equal(1);
+    ).toBe(1);
     expect(
       memberList.classes.filter(each => each.localeCompare('aClass') === 0)
         .length
-    ).to.equal(1);
+    ).toBe(1);
     expect(
       memberList.variables.filter(each => each.localeCompare('aVar') === 0)
         .length
-    ).to.equal(1);
+    ).toBe(1);
     expect(
       memberList.enums.filter(each => each.localeCompare('aEnum') === 0).length
-    ).to.equal(1);
+    ).toBe(1);
   });
 
   it('test dedup with empty entries', () => {
@@ -283,15 +318,15 @@ describe('test dedup helper function', () => {
       unknown: []
     };
     memberList = dedup(memberList);
-    expect(memberList.functions).to.have.length(0);
-    expect(memberList.classes).to.have.length(0);
-    expect(memberList.enums).to.have.length(0);
-    expect(memberList.variables).to.have.length(3);
+    expect(memberList.functions).toHaveLength(0);
+    expect(memberList.classes).toHaveLength(0);
+    expect(memberList.enums).toHaveLength(0);
+    expect(memberList.variables).toHaveLength(3);
 
     expect(
       memberList.variables.filter(each => each.localeCompare('aVar') === 0)
         .length
-    ).to.equal(1);
+    ).toBe(1);
   });
 });
 
@@ -307,17 +342,17 @@ describe('test replaceAll helper function', () => {
     const original: string = 'aFunc';
     const replaceTo: string = 'replacedFunc';
     replaceAll(memberList, original, replaceTo);
-    expect(memberList.functions).to.not.include.members([original]);
-    expect(memberList.functions).to.include.members([replaceTo]);
-    expect(memberList.functions).to.have.length(4);
+    expect(memberList.functions).not.toContain(original);
+    expect(memberList.functions).toEqual(expect.arrayContaining([replaceTo]));
+    expect(memberList.functions).toHaveLength(4);
     expect(
       memberList.functions.filter(each => each.localeCompare(original) === 0)
         .length
-    ).to.equal(0);
+    ).toBe(0);
     expect(
       memberList.functions.filter(each => each.localeCompare(replaceTo) === 0)
         .length
-    ).to.equal(2);
+    ).toBe(2);
   });
 
   it('test replaceAll with single occurrence of an element', () => {
@@ -331,17 +366,17 @@ describe('test replaceAll helper function', () => {
     const replaceTo: string = 'replacedClass';
     const original: string = 'bClass';
     replaceAll(memberList, original, replaceTo);
-    expect(memberList.classes).to.not.include.members([original]);
-    expect(memberList.classes).to.include.members([replaceTo]);
-    expect(memberList.classes).to.have.length(4);
+    expect(memberList.classes).not.toContain(original);
+    expect(memberList.classes).toEqual(expect.arrayContaining([replaceTo]));
+    expect(memberList.classes).toHaveLength(4);
     expect(
       memberList.classes.filter(each => each.localeCompare(original) === 0)
         .length
-    ).to.equal(0);
+    ).toBe(0);
     expect(
       memberList.classes.filter(each => each.localeCompare(replaceTo) === 0)
         .length
-    ).to.equal(1);
+    ).toBe(1);
   });
 
   it('test replaceAll with zero occurrence of an element', () => {
@@ -355,15 +390,16 @@ describe('test replaceAll helper function', () => {
     const replaceTo: string = 'replacedEnum';
     const original: string = 'eEnum';
     replaceAll(memberList, original, replaceTo);
-    expect(memberList.enums).to.not.include.members([original, replaceTo]);
-    expect(memberList.enums).to.have.length(4);
+    expect(memberList.enums).not.toContain(original);
+    expect(memberList.enums).not.toContain(replaceTo);
+    expect(memberList.enums).toHaveLength(4);
     expect(
       memberList.enums.filter(each => each.localeCompare(original) === 0).length
-    ).to.equal(0);
+    ).toBe(0);
     expect(
       memberList.enums.filter(each => each.localeCompare(replaceTo) === 0)
         .length
-    ).to.equal(0);
+    ).toBe(0);
   });
 });
 
@@ -389,30 +425,34 @@ describe('test mapSymbolToType helper function', () => {
 
     memberList = mapSymbolToType(map, memberList);
 
-    expect(memberList.functions).to.have.members(['aFunc', 'bFunc', 'cFunc']);
-    expect(memberList.functions).to.not.include.members(['aVar']);
-    expect(memberList.classes).to.have.members(['aClass', 'bClass', 'cClass']);
-    expect(memberList.variables).to.not.include.members(['aClass', 'aEnum']);
-    expect(memberList.variables).to.have.members(['aVar', 'bVar', 'cVar']);
-    expect(memberList.enums).to.have.members([
-      'aEnum',
-      'bEnum',
-      'cEnum',
-      'dEnum'
-    ]);
-    expect(memberList.enums).to.not.include.members(['aFunc']);
+    expect(memberList.functions).toEqual(
+      expect.arrayContaining(['aFunc', 'bFunc', 'cFunc'])
+    );
+    expect(memberList.functions).not.toContain('aVar');
+    expect(memberList.classes).toEqual(
+      expect.arrayContaining(['aClass', 'bClass', 'cClass'])
+    );
+    expect(memberList.variables).not.toContain('aClass');
+    expect(memberList.variables).not.toContain('aEnum');
+    expect(memberList.variables).toEqual(
+      expect.arrayContaining(['aVar', 'bVar', 'cVar'])
+    );
+    expect(memberList.enums).toEqual(
+      expect.arrayContaining(['aEnum', 'bEnum', 'cEnum', 'dEnum'])
+    );
+    expect(memberList.enums).not.toContain('aFunc');
 
-    expect(memberList.functions).to.have.length(3);
-    expect(memberList.classes).to.have.length(3);
-    expect(memberList.variables).to.have.length(3);
-    expect(memberList.enums).to.have.length(4);
+    expect(memberList.functions).toHaveLength(3);
+    expect(memberList.classes).toHaveLength(3);
+    expect(memberList.variables).toHaveLength(3);
+    expect(memberList.enums).toHaveLength(4);
   });
 });
 
 describe('test writeReportToFile helper function', () => {
   let fileContent: Report;
 
-  before(() => {
+  beforeAll(() => {
     fileContent = {
       name: 'name',
       symbols: []
@@ -421,17 +461,17 @@ describe('test writeReportToFile helper function', () => {
   it('should throw error when given path exists and points to directory', () => {
     const aDir = resolve('./a-dir/a-sub-dir');
     fs.mkdirSync(aDir, { recursive: true });
-    expect(() => writeReportToFile(fileContent, aDir)).to.throw(
+    expect(() => writeReportToFile(fileContent, aDir)).toThrow(
       ErrorCode.OUTPUT_FILE_REQUIRED
     );
   });
 
   it('should not throw error when given path does not pre-exist', () => {
     const aPathToFile = resolve('./a-dir/a-sub-dir/a-file');
-    expect(() => writeReportToFile(fileContent, aPathToFile)).to.not.throw();
+    expect(() => writeReportToFile(fileContent, aPathToFile)).not.toThrow();
     fs.unlinkSync(aPathToFile);
   });
-  after(() => {
+  afterAll(() => {
     fs.rmdirSync('a-dir/a-sub-dir');
     fs.rmdirSync('a-dir', { recursive: true });
   });
@@ -440,7 +480,7 @@ describe('test writeReportToFile helper function', () => {
 describe('test writeReportToDirectory helper function', () => {
   let fileContent: Report;
 
-  before(() => {
+  beforeAll(() => {
     fileContent = {
       name: 'name',
       symbols: []
@@ -454,7 +494,7 @@ describe('test writeReportToDirectory helper function', () => {
     fs.writeFileSync(aPathToFile, JSON.stringify(fileContent));
     expect(() =>
       writeReportToDirectory(fileContent, aFile, aPathToFile)
-    ).to.throw(ErrorCode.OUTPUT_DIRECTORY_REQUIRED);
+    ).toThrow(ErrorCode.OUTPUT_DIRECTORY_REQUIRED);
   });
 
   it('should not throw error when given path does not pre-exist', () => {
@@ -462,9 +502,9 @@ describe('test writeReportToDirectory helper function', () => {
     const aFile = `a-file`;
     expect(() =>
       writeReportToDirectory(fileContent, aFile, aDir)
-    ).to.not.throw();
+    ).not.toThrow();
   });
-  after(() => {
+  afterAll(() => {
     fs.unlinkSync(`${resolve('./a-dir/a-sub-dir')}/a-file`);
     fs.rmdirSync('a-dir/a-sub-dir');
     fs.rmdirSync('a-dir', { recursive: true });
@@ -477,13 +517,17 @@ describe('test extractExternalDependencies helper function', () => {
     const externals: { [key: string]: string[] } =
       extractExternalDependencies(assortedImports);
 
-    expect(externals['./bar']).to.have.members([
-      'basicFuncExternalDependenciesBar',
-      'basicFuncExportEnumDependenciesBar',
-      'BasicClassExportBar' // extract original name if renamed
-    ]);
-    expect(externals['@firebase/logger']).to.be.undefined;
-    expect(externals['fs']).to.have.members(['*']); // namespace export
+    expect(externals['./bar']).toEqual(
+      expect.arrayContaining([
+        'basicFuncExternalDependenciesBar',
+        'basicFuncExportEnumDependenciesBar',
+        'BasicClassExportBar' // extract original name if renamed
+      ])
+    );
+    expect(externals['./bar']).toHaveLength(3);
+    expect(externals['@firebase/logger']).toBeUndefined();
+    expect(externals['fs']).toEqual(expect.arrayContaining(['*'])); // namespace export
+    expect(externals['fs']).toHaveLength(1);
     // expect(externals['@firebase/app']).to.have.members(['default export']); // default export
   });
 });
