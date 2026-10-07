@@ -72,10 +72,11 @@ Crashlytics for web leverages Google Cloud Logging, Error Reporting, and Storage
 
 ### Option 2: Using Firebase CLI
 
-If you prefer configuring your project via the terminal or using an AI coding agent, run the onboarding commands to enable the experiment and onboard:
+If you prefer configuring your project via the terminal or using an AI coding agent, run the onboarding commands to enable the experiments and onboard:
 
 ```bash
 firebase experiments:enable crashlyticsWeb
+firebase experiments:enable crashlyticsWebAlerts
 firebase crashlytics:onboard:web <YOUR_FIREBASE_APP_ID> --project <YOUR_FIREBASE_PROJECT_ID>
 ```
 
@@ -86,7 +87,7 @@ firebase crashlytics:onboard:web <YOUR_FIREBASE_APP_ID> --project <YOUR_FIREBASE
 >   firebase login
 >   firebase use <YOUR_FIREBASE_PROJECT_ID>
 >   ```
-> **Automated Setup**: This command automatically enables the required Telemetry APIs (`firebasetelemetry.googleapis.com` and `firebasetelemetryadmin.googleapis.com`), provisions the `firebase-telemetry` Cloud Logging bucket and routing sink, and configures telemetry settings for your web app.
+> **Automated Setup**: This command automatically enables the required Telemetry APIs (`firebasetelemetry.googleapis.com` and `firebasetelemetryadmin.googleapis.com`), provisions the `firebase-telemetry` Cloud Logging bucket and routing sink, configures telemetry settings for your web app, and optionally sets up email alerts for new and regressed issues.
 
 ---
 
@@ -264,7 +265,7 @@ For advanced usage options and project configuration details, consult the follow
   - 🧹 **[Force Flushing](docs/ADVANCED_USAGE.md#force-flushing-telemetry-records-flush)**: Upload queued error telemetry immediately before unload.
   - 💡 **[Best Practices & Gotchas](docs/ADVANCED_USAGE.md#best-practices--gotchas)**: Guidelines on import paths and framework best practices.
 - ⚙️ **[Configuration Guide](docs/CONFIGURATION.md)**:
-  - 🔔 **[Alerting](docs/CONFIGURATION.md#alerting)**: Configure alerts in Error Reporting and advanced log-based metrics.
+  - 🔔 **[Alerting](docs/CONFIGURATION.md#alerting)**: Configure email alerts for new and regressed issues via the Firebase Console or CLI, or set up advanced Cloud Monitoring alerts.
   - 🎚️ **[Sampling](docs/CONFIGURATION.md#sampling)**: Control telemetry volume and costs using the Admin API or Cloud Logging exclusion filters.
   - ⚙️ **[Enable/Disable Telemetry Collection](docs/CONFIGURATION.md#enabledisable-telemetry-collection)**: Programmatically turn telemetry collection on or off.
   - 📋 **[Log Schema](docs/CONFIGURATION.md#log-schema)**: Full reference for telemetry log fields and payload structures.
