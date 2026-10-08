@@ -76,6 +76,7 @@ export {
   AddFieldsStageOptions,
   RemoveFieldsStageOptions,
   DefineStageOptions,
+  DeleteStageOptions,
   SelectStageOptions,
   WhereStageOptions,
   OffsetStageOptions,
@@ -89,6 +90,7 @@ export {
   SampleStageOptions,
   UnionStageOptions,
   UnnestStageOptions,
+  UpdateStageOptions,
   UpsertStageOptions,
   SortStageOptions,
   SearchStageOptions

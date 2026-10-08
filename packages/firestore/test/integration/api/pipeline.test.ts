@@ -2610,16 +2610,14 @@ apiDescribe.skipClassic('Pipelines', persistence => {
             .pipeline()
             .collection(randomCol.path)
             .where(equal(field('__name__').documentId(), 'book1'))
-            .upsert(
-              [
+            .upsert({
+              additionalFields: [
                 constant('Sci-Fi').as('genre'),
                 constant('New Book Title').as('title')
               ],
-              {
-                collection: randomCol,
-                documentIdExpression: constant(nonExistingId)
-              }
-            ),
+              collection: randomCol,
+              documentIdExpression: constant(nonExistingId)
+            }),
           atomic: true
         });
         expectResults(res, { documents_modified: 1 });
@@ -2636,10 +2634,12 @@ apiDescribe.skipClassic('Pipelines', persistence => {
             .pipeline()
             .collection(randomCol.path)
             .where(equal(field('__name__').documentId(), 'book1'))
-            .upsert([
-              constant('Comedy Sci-Fi').as('genre'),
-              add(field('rating'), constant(0.5)).as('rating')
-            ]),
+            .upsert({
+              additionalFields: [
+                constant('Comedy Sci-Fi').as('genre'),
+                add(field('rating'), constant(0.5)).as('rating')
+              ]
+            }),
           atomic: true
         });
         expectResults(res, { documents_modified: 1 });
@@ -2705,16 +2705,14 @@ apiDescribe.skipClassic('Pipelines', persistence => {
             .collection(randomCol.path)
             .where(equal(field('__name__').documentId(), 'book1'))
             .addFields(constant('upserted_fixed_id').as('targetId'))
-            .upsert(
-              [
+            .upsert({
+              additionalFields: [
                 constant('Upserted Genre').as('genre'),
                 constant('Upserted Title').as('title')
               ],
-              {
-                collection: targetColRef,
-                documentIdExpression: 'targetId'
-              }
-            ),
+              collection: targetColRef,
+              documentIdExpression: 'targetId'
+            }),
           atomic: true
         });
         expectResults(res, { documents_modified: 1 });
@@ -2740,7 +2738,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
             .collection(randomCol.path)
             .where(equal(field('__name__').documentId(), 'book1'))
             .addFields(constant('upserted_opt_id').as('targetId'))
-            .upsert([], {
+            .upsert({
               collection: targetColRef,
               documentIdExpression: 'targetId',
               additionalFields: [
@@ -2768,7 +2766,10 @@ apiDescribe.skipClassic('Pipelines', persistence => {
         const res = await execute(
           firestore
             .pipeline()
-            .literals({ name: 'Alice', age: 30 }, { name: 'Bob', age: 25 })
+            .literals([
+              { name: 'Alice', age: 30 },
+              { name: 'Bob', age: 25 }
+            ])
             .union(firestore.pipeline().collection(emptyCol.path))
         );
         expect(res.results.length).to.equal(2);
@@ -2781,14 +2782,60 @@ apiDescribe.skipClassic('Pipelines', persistence => {
         const res = await execute(
           firestore
             .pipeline()
-            .literals({
-              base: 10,
-              doubled: multiply(constant(10), constant(2))
-            })
+            .literals([
+              {
+                base: 10,
+                doubled: multiply(constant(10), constant(2))
+              }
+            ])
             .union(firestore.pipeline().collection(emptyCol.path))
         );
         expect(res.results.length).to.equal(1);
         expect(res.results[0].data()).to.deep.equal({ base: 10, doubled: 20 });
+      });
+
+      it('can execute literals stage with nested expressions', async () => {
+        const emptyCol = collection(firestore, randomCol.id + '_empty');
+        const res = await execute(
+          firestore
+            .pipeline()
+            .literals([
+              {
+                nested: { sum: add(constant(1), constant(2)), label: 'x' },
+                arr: [1, add(constant(3), constant(4))],
+                deep: { a: { b: [{ c: add(constant(5), constant(6)) }] } }
+              }
+            ])
+            .union(firestore.pipeline().collection(emptyCol.path))
+        );
+        expect(res.results.length).to.equal(1);
+        expect(res.results[0].data()).to.deep.equal({
+          nested: { sum: 3, label: 'x' },
+          arr: [1, 7],
+          deep: { a: { b: [{ c: 11 }] } }
+        });
+      });
+
+      it('can execute literals stage with nested constant values', async () => {
+        const emptyCol = collection(firestore, randomCol.id + '_empty');
+        const res = await execute(
+          firestore
+            .pipeline()
+            .literals([
+              {
+                emptyMap: {},
+                emptyArr: [],
+                nested: { a: 1, b: [true, null, 'str'], c: { d: 2.5 } }
+              }
+            ])
+            .union(firestore.pipeline().collection(emptyCol.path))
+        );
+        expect(res.results.length).to.equal(1);
+        expect(res.results[0].data()).to.deep.equal({
+          emptyMap: {},
+          emptyArr: [],
+          nested: { a: 1, b: [true, null, 'str'], c: { d: 2.5 } }
+        });
       });
 
       it('can perform insert from literals source (atomic: true) and validates non-transactional restrictions', async () => {
@@ -2803,7 +2850,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           execute(
             firestore
               .pipeline()
-              .literals({ name: 'Literal Inserted', age: 42 })
+              .literals([{ name: 'Literal Inserted', age: 42 }])
               .insert({ collection: targetColRef })
           )
         ).rejects.toThrow(
@@ -2816,7 +2863,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           await execute(
             firestore
               .pipeline()
-              .literals({ name: 'Literal Inserted', age: 42 })
+              .literals([{ name: 'Literal Inserted', age: 42 }])
               .union(firestore.pipeline().collection(emptyCol.path))
               .insert({ collection: targetColRef })
           );
@@ -2830,7 +2877,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
         const res = await execute({
           pipeline: firestore
             .pipeline()
-            .literals({ name: 'Literal Inserted', age: 42 })
+            .literals([{ name: 'Literal Inserted', age: 42 }])
             .union(firestore.pipeline().collection(emptyCol.path))
             .insert({ collection: targetColRef }),
           atomic: true
@@ -2847,8 +2894,9 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           execute(
             firestore
               .pipeline()
-              .literals({ id: 'doc1', title: 'Literal Upserted' })
-              .upsert([constant('Literal Upserted').as('title')], {
+              .literals([{ id: 'doc1', title: 'Literal Upserted' }])
+              .upsert({
+                additionalFields: [constant('Literal Upserted').as('title')],
                 collection: targetColRef,
                 documentIdExpression: 'id'
               })

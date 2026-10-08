@@ -636,6 +636,9 @@ export type DefineStageOptions = StageOptions & {
 };
 
 // @public
+export type DeleteStageOptions = StageOptions;
+
+// @public
 export function descending(expr: Expression): Ordering;
 
 // @public
@@ -1747,7 +1750,7 @@ export type LimitStageOptions = StageOptions & {
 
 // @public
 export type LiteralsStageOptions = StageOptions & {
-    documents?: Array<Record<string, unknown>>;
+    documents: Array<Record<string, unknown>>;
 };
 
 // @public
@@ -2088,6 +2091,7 @@ export class Pipeline {
     ): Pipeline;
     define(options: DefineStageOptions): Pipeline;
     delete(): Pipeline;
+    delete(options: DeleteStageOptions): Pipeline;
     distinct(
     group: string | Selectable,
     ...additionalGroups: Array<string | Selectable>
@@ -2138,16 +2142,13 @@ export class Pipeline {
     ...additionalFields: AliasedExpression[]
     ): Pipeline;
     update(transformedFields: AliasedExpression[]): Pipeline;
+    update(options: UpdateStageOptions): Pipeline;
     upsert(): Pipeline;
-    upsert(options: UpsertStageOptions): Pipeline;
     upsert(
     additionalField: AliasedExpression,
     ...additionalFields: AliasedExpression[]
     ): Pipeline;
-    upsert(
-    additionalFields: AliasedExpression[],
-    options?: UpsertStageOptions
-    ): Pipeline;
+    upsert(options: UpsertStageOptions): Pipeline;
     where(condition: BooleanExpression): Pipeline;
     where(options: WhereStageOptions): Pipeline;
     /* Excluded from this release type: _toProto */
@@ -2200,10 +2201,7 @@ export class PipelineSource<PipelineType> {
     database(options: DatabaseStageOptions): PipelineType;
     documents(docs: Array<string | DocumentReference>): PipelineType;
     documents(options: DocumentsStageOptions): PipelineType;
-    literals(
-    document: Record<string, unknown>,
-    ...additionalDocuments: Array<Record<string, unknown>>
-    ): PipelineType;
+    literals(documents: Array<Record<string, unknown>>): PipelineType;
     literals(options: LiteralsStageOptions): PipelineType;
 }
 
@@ -2930,11 +2928,15 @@ export type UnnestStageOptions = StageOptions & {
 };
 
 // @public
+export type UpdateStageOptions = StageOptions & {
+    transformedFields?: AliasedExpression[];
+};
+
+// @public
 export type UpsertStageOptions = StageOptions & {
     collection?: string | CollectionReference;
     documentIdExpression?: string | Expression;
     additionalFields?: AliasedExpression[];
-    transforms?: AliasedExpression[];
 };
 
 // @public

@@ -21,6 +21,7 @@ import {
   Stage as ProtoStage
 } from '../protos/firestore_proto_api';
 import { JsonProtoSerializer, ProtoSerializable } from '../remote/serializer';
+import { Code, FirestoreError } from '../util/error';
 import { isPlainObject } from '../util/input_validation';
 import {
   aliasedAggregateToMap,
@@ -84,6 +85,7 @@ import {
   AddFieldsStageOptions,
   AggregateStageOptions,
   DefineStageOptions,
+  DeleteStageOptions,
   DistinctStageOptions,
   FindNearestStageOptions,
   InsertStageOptions,
@@ -98,6 +100,7 @@ import {
   StageOptions,
   UnionStageOptions,
   UnnestStageOptions,
+  UpdateStageOptions,
   UpsertStageOptions,
   WhereStageOptions
 } from './stage_options';
@@ -1591,8 +1594,16 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    *
    * @returns A new {@link @firebase/firestore/pipelines#Pipeline} object with this stage appended to the stage list.
    */
-  delete(): Pipeline {
-    return this._addStage(new Delete());
+  delete(): Pipeline;
+  /**
+   * Performs a delete operation on documents from previous stages with options.
+   *
+   * @param options - Options defining how this `DeleteStage` is evaluated.
+   * @returns A new {@link @firebase/firestore/pipelines#Pipeline} object with this stage appended to the stage list.
+   */
+  delete(options: DeleteStageOptions): Pipeline;
+  delete(options: DeleteStageOptions = {}): Pipeline {
+    return this._addStage(new Delete(options));
   }
 
   /**
@@ -1619,19 +1630,37 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    * @returns A new {@link @firebase/firestore/pipelines#Pipeline} object with this stage appended to the stage list.
    */
   update(transformedFields: AliasedExpression[]): Pipeline;
+  /**
+   * Performs an update operation with options.
+   *
+   * @param options - Options defining the transformations and how this `UpdateStage` is evaluated.
+   * @returns A new {@link @firebase/firestore/pipelines#Pipeline} object with this stage appended to the stage list.
+   */
+  update(options: UpdateStageOptions): Pipeline;
   update(
-    transformedFields?: AliasedExpression | AliasedExpression[],
+    transformedFieldsOrOptions?:
+      AliasedExpression | AliasedExpression[] | UpdateStageOptions,
     ...additionalFields: AliasedExpression[]
   ): Pipeline {
     let fields: AliasedExpression[] | undefined;
-    if (Array.isArray(transformedFields)) {
-      fields = transformedFields;
-    } else if (transformedFields !== undefined) {
-      fields = [transformedFields, ...additionalFields];
+    let options: UpdateStageOptions = {};
+
+    if (Array.isArray(transformedFieldsOrOptions)) {
+      fields = transformedFieldsOrOptions;
+    } else if (isAliasedExpr(transformedFieldsOrOptions)) {
+      fields = [transformedFieldsOrOptions, ...additionalFields];
+    } else if (isPlainObject(transformedFieldsOrOptions)) {
+      ({ transformedFields: fields, ...options } = transformedFieldsOrOptions);
+    } else if (transformedFieldsOrOptions !== undefined) {
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        'Invalid argument provided to Pipeline.update()'
+      );
     }
+
     const mapped =
       fields && fields.length > 0 ? selectablesToMap(fields) : undefined;
-    return this._addStage(new Update(mapped));
+    return this._addStage(new Update(mapped, options));
   }
 
   /**
@@ -1658,13 +1687,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    */
   upsert(): Pipeline;
   /**
-   * Performs an upsert operation with options.
-   *
-   * @param options - Options defining the target collection and document ID.
-   * @returns A new {@link @firebase/firestore/pipelines#Pipeline} object with this stage appended to the stage list.
-   */
-  upsert(options: UpsertStageOptions): Pipeline;
-  /**
    * Performs an upsert operation using documents from previous stages.
    *
    * @param additionalField - The first additional field to apply.
@@ -1676,49 +1698,32 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
     ...additionalFields: AliasedExpression[]
   ): Pipeline;
   /**
-   * Performs an upsert operation using documents from previous stages.
+   * Performs an upsert operation with options.
    *
-   * @param additionalFields - The list of additional fields to apply.
-   * @param options - Options defining the target collection and document ID.
+   * @param options - Options defining the target collection, document ID, and additional fields.
    * @returns A new {@link @firebase/firestore/pipelines#Pipeline} object with this stage appended to the stage list.
    */
+  upsert(options: UpsertStageOptions): Pipeline;
   upsert(
-    additionalFields: AliasedExpression[],
-    options?: UpsertStageOptions
-  ): Pipeline;
-  upsert(
-    fieldsOrOptions?:
-      AliasedExpression | AliasedExpression[] | UpsertStageOptions,
-    ...additionalFieldsOrOptions: unknown[]
+    fieldOrOptions?: AliasedExpression | UpsertStageOptions,
+    ...additionalFields: AliasedExpression[]
   ): Pipeline {
-    let fields: AliasedExpression[] = [];
     let options: UpsertStageOptions = {};
 
-    if (Array.isArray(fieldsOrOptions)) {
-      fields = fieldsOrOptions;
-      if (
-        additionalFieldsOrOptions.length > 0 &&
-        typeof additionalFieldsOrOptions[0] === 'object' &&
-        additionalFieldsOrOptions[0] !== null
-      ) {
-        options = additionalFieldsOrOptions[0] as UpsertStageOptions;
-      }
-    } else if (
-      isAliasedExpr(fieldsOrOptions) ||
-      (typeof fieldsOrOptions === 'object' &&
-        fieldsOrOptions !== null &&
-        'exprType' in fieldsOrOptions &&
-        (fieldsOrOptions as AliasedExpression).exprType === 'AliasedExpression')
-    ) {
-      fields = [
-        fieldsOrOptions as AliasedExpression,
-        ...(additionalFieldsOrOptions as AliasedExpression[])
-      ];
-    } else if (fieldsOrOptions !== undefined) {
-      options = fieldsOrOptions as UpsertStageOptions;
+    if (isAliasedExpr(fieldOrOptions)) {
+      options = {
+        additionalFields: [fieldOrOptions, ...additionalFields]
+      };
+    } else if (isPlainObject(fieldOrOptions)) {
+      options = fieldOrOptions;
+    } else if (fieldOrOptions !== undefined) {
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        'Invalid argument provided to Pipeline.upsert()'
+      );
     }
 
-    return this._addStage(new Upsert(fields, options));
+    return this._addStage(new Upsert(options));
   }
 
   /**

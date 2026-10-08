@@ -27,8 +27,18 @@ export interface PipelineExecuteOptions {
   pipeline: Pipeline;
 
   /**
-   * Indicates that the pipeline will be executed atomically in a single RPC
-   * transaction on the server.
+   * Controls whether the pipeline executes atomically in a single server-side
+   * transaction.
+   *
+   * - When `true`, all reads and DML writes (`insert`, `update`, `upsert`,
+   *   `delete`) in the pipeline are executed atomically inside a single
+   *   server-managed transaction: either all writes commit together or none
+   *   are applied.
+   * - When `false`, the pipeline executes non-atomically (`ATOMICITY_NONE`).
+   *   Wait/lock overhead is avoided, and if execution fails partway through,
+   *   writes from earlier documents in the pipeline may remain committed.
+   * - When omitted (`undefined`), the Firestore backend applies its default
+   *   atomicity mode for the pipeline (`ATOMICITY_UNSPECIFIED`).
    */
   atomic?: boolean;
 

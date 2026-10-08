@@ -454,13 +454,14 @@ https://github.com/firebase/firebase-js-sdk
 |  [CollectionStageOptions](./firestore_lite_pipelines.md#collectionstageoptions) | Options defining how a CollectionStage is evaluated. See [PipelineSource.collection()](./firestore_pipelines.pipelinesource.md#pipelinesourcecollection)<!-- -->. |
 |  [DatabaseStageOptions](./firestore_lite_pipelines.md#databasestageoptions) | Options defining how a DatabaseStage is evaluated. See [PipelineSource.database()](./firestore_pipelines.pipelinesource.md#pipelinesourcedatabase)<!-- -->. |
 |  [DefineStageOptions](./firestore_lite_pipelines.md#definestageoptions) | Options defining how a DefineStage is evaluated. See [Pipeline.define()](./firestore_pipelines.pipeline.md#pipelinedefine)<!-- -->. |
+|  [DeleteStageOptions](./firestore_lite_pipelines.md#deletestageoptions) | Options for defining a <code>delete</code> stage in a [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class)<!-- -->. |
 |  [DistinctStageOptions](./firestore_lite_pipelines.md#distinctstageoptions) | Options defining how a DistinctStage is evaluated. See [Pipeline.distinct()](./firestore_pipelines.pipeline.md#pipelinedistinct)<!-- -->. |
 |  [DocumentsStageOptions](./firestore_lite_pipelines.md#documentsstageoptions) | Options defining how a DocumentsStage is evaluated. See [PipelineSource.documents()](./firestore_pipelines.pipelinesource.md#pipelinesourcedocuments)<!-- -->. |
 |  [ExpressionType](./firestore_lite_pipelines.md#expressiontype) | An enumeration of the different types of expressions. |
 |  [FindNearestStageOptions](./firestore_lite_pipelines.md#findneareststageoptions) | Options defining how a FindNearestStage is evaluated. See [Pipeline.findNearest()](./firestore_pipelines.pipeline.md#pipelinefindnearest)<!-- -->. |
-|  [InsertStageOptions](./firestore_lite_pipelines.md#insertstageoptions) | Options defining how an InsertStage is evaluated. |
+|  [InsertStageOptions](./firestore_lite_pipelines.md#insertstageoptions) | Options for defining an <code>insert</code> stage in a [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class)<!-- -->.<!-- -->The target document path for each inserted document is determined by the combination of <code>collection</code> and <code>documentIdExpression</code>: - \*\*Neither set:\*\* Inserts into the input document's parent collection using its <code>__name__</code> key. To avoid colliding with the existing source document, remove <code>__name__</code> first (e.g. via <code>.removeFields('__name__')</code>) so that a new document ID is auto-generated in the same collection. - \*\*<code>collection</code> only:\*\* Inserts into <code>collection</code>. If the input document still has a <code>__name__</code> field, its document ID is reused (provided its parent collection matches <code>collection</code>); otherwise a new document ID is auto-generated (e.g. when inputs come from [PipelineSource.literals()](./firestore_pipelines.pipelinesource.md#pipelinesourceliterals) or after <code>.removeFields('__name__')</code>). - \*\*<code>documentIdExpression</code> only:\*\* Inserts into the input document's parent collection using the evaluated document ID (requires input documents to have a <code>__name__</code> field; not valid with [PipelineSource.literals()](./firestore_pipelines.pipelinesource.md#pipelinesourceliterals) unless <code>collection</code> is also set). - \*\*Both <code>collection</code> and <code>documentIdExpression</code> set:\*\* Inserts into <code>collection</code> using the evaluated document ID (works with any pipeline input, including [PipelineSource.literals()](./firestore_pipelines.pipelinesource.md#pipelinesourceliterals)<!-- -->).<!-- -->The <code>__name__</code> field is stripped from the written document data in all cases. |
 |  [LimitStageOptions](./firestore_lite_pipelines.md#limitstageoptions) | Options defining how a LimitStage is evaluated. See [Pipeline.limit()](./firestore_pipelines.pipeline.md#pipelinelimit)<!-- -->. |
-|  [LiteralsStageOptions](./firestore_lite_pipelines.md#literalsstageoptions) | Options defining how a LiteralsSource stage is evaluated. |
+|  [LiteralsStageOptions](./firestore_lite_pipelines.md#literalsstageoptions) | Options for defining a <code>literals</code> stage on a [PipelineSource](./firestore_pipelines.pipelinesource.md#pipelinesource_class)<!-- -->. |
 |  [OffsetStageOptions](./firestore_lite_pipelines.md#offsetstageoptions) | Options defining how an OffsetStage is evaluated. See [Pipeline.offset()](./firestore_pipelines.pipeline.md#pipelineoffset)<!-- -->. |
 |  [OneOf](./firestore_lite_pipelines.md#oneof) | Utility type to create an type that only allows one property of the Type param T to be set. |
 |  [RemoveFieldsStageOptions](./firestore_lite_pipelines.md#removefieldsstageoptions) | Options defining how a RemoveFieldsStage is evaluated. See [Pipeline.removeFields()](./firestore_pipelines.pipeline.md#pipelineremovefields)<!-- -->. |
@@ -476,7 +477,8 @@ https://github.com/firebase/firebase-js-sdk
 |  [TimeUnit](./firestore_lite_pipelines.md#timeunit) | Specify time units for expressions. |
 |  [UnionStageOptions](./firestore_lite_pipelines.md#unionstageoptions) | Options defining how a UnionStage is evaluated. See [Pipeline.union()](./firestore_pipelines.pipeline.md#pipelineunion)<!-- -->. |
 |  [UnnestStageOptions](./firestore_lite_pipelines.md#unneststageoptions) | Represents the specific options available for configuring an <code>UnnestStage</code> within a pipeline. |
-|  [UpsertStageOptions](./firestore_lite_pipelines.md#upsertstageoptions) | Options defining how an UpsertStage is evaluated. |
+|  [UpdateStageOptions](./firestore_lite_pipelines.md#updatestageoptions) | Options for defining an <code>update</code> stage in a [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class)<!-- -->. |
+|  [UpsertStageOptions](./firestore_lite_pipelines.md#upsertstageoptions) | Options for defining an <code>upsert</code> stage in a [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class)<!-- -->.<!-- -->The target document path for each upserted document is determined by the combination of <code>collection</code> and <code>documentIdExpression</code>: - \*\*Neither set:\*\* Upserts each input document in place at its existing <code>__name__</code> path. If <code>__name__</code> was removed (e.g. via <code>.removeFields('__name__')</code>), a new document ID is auto-generated in the source document's parent collection. - \*\*<code>collection</code> only:\*\* Upserts into <code>collection</code>. If the input document still has a <code>__name__</code> field, its document ID is reused (provided its parent collection matches <code>collection</code>); otherwise a new document ID is auto-generated (e.g. when inputs come from [PipelineSource.literals()](./firestore_pipelines.pipelinesource.md#pipelinesourceliterals) or after <code>.removeFields('__name__')</code>). - \*\*<code>documentIdExpression</code> only:\*\* Upserts into the input document's parent collection using the evaluated document ID (requires input documents to have a <code>__name__</code> field; not valid with [PipelineSource.literals()](./firestore_pipelines.pipelinesource.md#pipelinesourceliterals) unless <code>collection</code> is also set). - \*\*Both <code>collection</code> and <code>documentIdExpression</code> set:\*\* Upserts into <code>collection</code> using the evaluated document ID (works with any pipeline input, including [PipelineSource.literals()](./firestore_pipelines.pipelinesource.md#pipelinesourceliterals)<!-- -->).<!-- -->The <code>__name__</code> field is stripped from the written document data in all cases. |
 |  [WhereStageOptions](./firestore_lite_pipelines.md#wherestageoptions) | Options defining how a WhereStage is evaluated. See [Pipeline.where()](./firestore_pipelines.pipeline.md#pipelinewhere)<!-- -->. |
 
 ## function()
@@ -12926,6 +12928,16 @@ export declare type DefineStageOptions = StageOptions & {
 };
 ```
 
+## DeleteStageOptions
+
+Options for defining a `delete` stage in a [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class)<!-- -->.
+
+<b>Signature:</b>
+
+```typescript
+export declare type DeleteStageOptions = StageOptions;
+```
+
 ## DistinctStageOptions
 
 Options defining how a DistinctStage is evaluated. See [Pipeline.distinct()](./firestore_pipelines.pipeline.md#pipelinedistinct)<!-- -->.
@@ -12986,7 +12998,11 @@ export declare type FindNearestStageOptions = StageOptions & {
 
 ## InsertStageOptions
 
-Options defining how an InsertStage is evaluated.
+Options for defining an `insert` stage in a [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class)<!-- -->.
+
+The target document path for each inserted document is determined by the combination of `collection` and `documentIdExpression`<!-- -->: - \*\*Neither set:\*\* Inserts into the input document's parent collection using its `__name__` key. To avoid colliding with the existing source document, remove `__name__` first (e.g. via `.removeFields('__name__')`<!-- -->) so that a new document ID is auto-generated in the same collection. - \*\*`collection` only:\*\* Inserts into `collection`<!-- -->. If the input document still has a `__name__` field, its document ID is reused (provided its parent collection matches `collection`<!-- -->); otherwise a new document ID is auto-generated (e.g. when inputs come from [PipelineSource.literals()](./firestore_pipelines.pipelinesource.md#pipelinesourceliterals) or after `.removeFields('__name__')`<!-- -->). - \*\*`documentIdExpression` only:\*\* Inserts into the input document's parent collection using the evaluated document ID (requires input documents to have a `__name__` field; not valid with [PipelineSource.literals()](./firestore_pipelines.pipelinesource.md#pipelinesourceliterals) unless `collection` is also set). - \*\*Both `collection` and `documentIdExpression` set:\*\* Inserts into `collection` using the evaluated document ID (works with any pipeline input, including [PipelineSource.literals()](./firestore_pipelines.pipelinesource.md#pipelinesourceliterals)<!-- -->).
+
+The `__name__` field is stripped from the written document data in all cases.
 
 <b>Signature:</b>
 
@@ -13011,13 +13027,13 @@ export declare type LimitStageOptions = StageOptions & {
 
 ## LiteralsStageOptions
 
-Options defining how a LiteralsSource stage is evaluated.
+Options for defining a `literals` stage on a [PipelineSource](./firestore_pipelines.pipelinesource.md#pipelinesource_class)<!-- -->.
 
 <b>Signature:</b>
 
 ```typescript
 export declare type LiteralsStageOptions = StageOptions & {
-  documents?: Array<Record<string, unknown>>;
+  documents: Array<Record<string, unknown>>;
 };
 ```
 
@@ -13244,9 +13260,25 @@ export declare type UnnestStageOptions = StageOptions & {
 };
 ```
 
+## UpdateStageOptions
+
+Options for defining an `update` stage in a [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class)<!-- -->.
+
+<b>Signature:</b>
+
+```typescript
+export declare type UpdateStageOptions = StageOptions & {
+  transformedFields?: AliasedExpression[];
+};
+```
+
 ## UpsertStageOptions
 
-Options defining how an UpsertStage is evaluated.
+Options for defining an `upsert` stage in a [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class)<!-- -->.
+
+The target document path for each upserted document is determined by the combination of `collection` and `documentIdExpression`<!-- -->: - \*\*Neither set:\*\* Upserts each input document in place at its existing `__name__` path. If `__name__` was removed (e.g. via `.removeFields('__name__')`<!-- -->), a new document ID is auto-generated in the source document's parent collection. - \*\*`collection` only:\*\* Upserts into `collection`<!-- -->. If the input document still has a `__name__` field, its document ID is reused (provided its parent collection matches `collection`<!-- -->); otherwise a new document ID is auto-generated (e.g. when inputs come from [PipelineSource.literals()](./firestore_pipelines.pipelinesource.md#pipelinesourceliterals) or after `.removeFields('__name__')`<!-- -->). - \*\*`documentIdExpression` only:\*\* Upserts into the input document's parent collection using the evaluated document ID (requires input documents to have a `__name__` field; not valid with [PipelineSource.literals()](./firestore_pipelines.pipelinesource.md#pipelinesourceliterals) unless `collection` is also set). - \*\*Both `collection` and `documentIdExpression` set:\*\* Upserts into `collection` using the evaluated document ID (works with any pipeline input, including [PipelineSource.literals()](./firestore_pipelines.pipelinesource.md#pipelinesourceliterals)<!-- -->).
+
+The `__name__` field is stripped from the written document data in all cases.
 
 <b>Signature:</b>
 
@@ -13255,7 +13287,6 @@ export declare type UpsertStageOptions = StageOptions & {
   collection?: string | CollectionReference;
   documentIdExpression?: string | Expression;
   additionalFields?: AliasedExpression[];
-  transforms?: AliasedExpression[];
 };
 ```
 

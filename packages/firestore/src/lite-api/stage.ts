@@ -38,21 +38,22 @@ import { selectablesToMap } from '../util/pipeline_util';
 
 import {
   AggregateFunction,
-  AliasedExpression,
   BooleanExpression,
   _constant,
   Expression,
   Field,
   field,
+  FunctionExpression,
   isExpr,
   Ordering
 } from './expressions';
 import { Pipeline } from './pipeline';
 import {
+  DeleteStageOptions,
   InsertStageOptions,
-  LiteralsStageOptions,
   QueryEnhancement,
   StageOptions,
+  UpdateStageOptions,
   UpsertStageOptions
 } from './stage_options';
 import { isUserData, UserData } from './user_data_reader';
@@ -453,19 +454,28 @@ export class LiteralsSource extends Stage {
     return new OptionsUtil({});
   }
 
-  private parseContext?: ParseContext;
+  private encodedDocuments?: Array<Map<string, Expression>>;
 
   constructor(
     readonly documents: Array<Record<string, unknown>>,
-    options: LiteralsStageOptions = {}
+    options: StageOptions = {}
   ) {
     super(options);
+    for (const doc of documents) {
+      if (!isPlainObject(doc)) {
+        throw new FirestoreError(
+          Code.INVALID_ARGUMENT,
+          'Function literals() requires each document to be a plain object.'
+        );
+      }
+    }
   }
 
   _readUserData(context: ParseContext): void {
     super._readUserData(context);
-    this.parseContext = context;
-    readUserDataInLiteralMaps(this.documents, context);
+    this.encodedDocuments = this.documents.map(doc =>
+      encodeLiteralDocument(doc, context)
+    );
   }
 
   /**
@@ -473,9 +483,8 @@ export class LiteralsSource extends Stage {
    * @private
    */
   _toProto(serializer: JsonProtoSerializer): ProtoStage {
-    const ctx = this.parseContext;
-    const args = this.documents.map(doc =>
-      encodeLiteralMap(doc, serializer, ctx)
+    const args = (this.encodedDocuments ?? []).map(doc =>
+      toMapValue(serializer, doc)
     );
     return {
       ...super._toProto(serializer),
@@ -484,45 +493,54 @@ export class LiteralsSource extends Stage {
   }
 }
 
-function readUserDataInLiteralMaps(val: unknown, context: ParseContext): void {
-  if (isExpr(val)) {
-    (val as Expression)._readUserData(context);
-  } else if (Array.isArray(val)) {
-    val.forEach(item => readUserDataInLiteralMaps(item, context));
-  } else if (isPlainObject(val)) {
-    for (const k of Object.keys(val as Record<string, unknown>)) {
-      readUserDataInLiteralMaps((val as Record<string, unknown>)[k], context);
+function encodeLiteralDocument(
+  doc: Record<string, unknown>,
+  context: ParseContext
+): Map<string, Expression> {
+  const fields = new Map<string, Expression>();
+  for (const key of Object.keys(doc)) {
+    const fieldContext = context.childContextForField(key);
+    const val = doc[key];
+    if (val === undefined && fieldContext.ignoreUndefinedProperties) {
+      continue;
     }
+    fields.set(key, encodeLiteralValue(val, fieldContext));
   }
+  return fields;
 }
 
-function encodeLiteralMap(
-  map: Record<string, unknown>,
-  serializer: JsonProtoSerializer,
-  context?: ParseContext
-): ProtoValue {
-  const fields: ApiClientObjectMap<ProtoValue> = {};
-  for (const key of Object.keys(map)) {
-    const val = map[key];
-    if (isExpr(val)) {
-      fields[key] = (val as Expression)._toProto(serializer);
-    } else if (isPlainObject(val)) {
-      fields[key] = encodeLiteralMap(
-        val as Record<string, unknown>,
-        serializer,
-        context
-      );
-    } else {
-      const expr = _constant(val, 'literals');
-      if (context) {
-        expr._readUserData(context);
+function encodeLiteralValue(val: unknown, context: ParseContext): Expression {
+  if (isExpr(val)) {
+    val._readUserData(context);
+    return val;
+  } else if (isPlainObject(val)) {
+    const params: Expression[] = [];
+    const obj = val as Record<string, unknown>;
+    for (const key of Object.keys(obj)) {
+      const nestedContext = context.childContextForField(key);
+      const nestedVal = obj[key];
+      if (nestedVal === undefined && nestedContext.ignoreUndefinedProperties) {
+        continue;
       }
-      fields[key] = expr._toProto(serializer);
+      const keyExpr = _constant(key, 'literals');
+      keyExpr._readUserData(nestedContext);
+      const valExpr = encodeLiteralValue(nestedVal, nestedContext);
+      params.push(keyExpr, valExpr);
     }
+    return new FunctionExpression('map', params);
+  } else if (Array.isArray(val)) {
+    const params: Expression[] = val.map(item => {
+      if (item === undefined) {
+        throw context.createError('Unsupported field value: undefined');
+      }
+      return encodeLiteralValue(item, context);
+    });
+    return new FunctionExpression('array', params);
+  } else {
+    const expr = _constant(val, 'literals');
+    expr._readUserData(context);
+    return expr;
   }
-  return {
-    mapValue: { fields }
-  };
 }
 
 export class Where extends Stage {
@@ -990,7 +1008,7 @@ export class Delete extends Stage {
     return new OptionsUtil({});
   }
 
-  constructor(options: StageOptions = {}) {
+  constructor(options: DeleteStageOptions = {}) {
     super(options);
   }
 
@@ -1016,9 +1034,10 @@ export class Update extends Stage {
 
   constructor(
     private transformedFields?: Map<string, Expression>,
-    options: StageOptions = {}
+    options: UpdateStageOptions = {}
   ) {
-    super(options);
+    const { transformedFields: _, ...rest } = options;
+    super(rest);
   }
 
   /**
@@ -1077,13 +1096,16 @@ export class Insert extends Stage {
 
   _toProto(serializer: JsonProtoSerializer): ProtoStage {
     const proto = super._toProto(serializer);
-    const options = proto.options ? { ...proto.options } : {};
+    const options: ApiClientObjectMap<ProtoValue> = {};
 
     if (this.collectionPath) {
       options['collection'] = { referenceValue: this.collectionPath };
     }
     if (this.documentIdExpr) {
       options['document_id'] = this.documentIdExpr._toProto(serializer);
+    }
+    if (proto.options) {
+      Object.assign(options, proto.options);
     }
 
     return {
@@ -1113,18 +1135,11 @@ export class Upsert extends Stage {
   private readonly documentIdExpr?: Expression;
   private readonly additionalFields: Map<string, Expression>;
 
-  constructor(
-    additionalFields: AliasedExpression[] = [],
-    options: UpsertStageOptions = {}
-  ) {
-    const { collection, documentIdExpression, ...rest } = options;
+  constructor(options: UpsertStageOptions = {}) {
+    const { collection, documentIdExpression, additionalFields, ...rest } =
+      options;
     super(rest);
-    const optionsFields = options.additionalFields ?? options.transforms;
-    const resolvedFields =
-      optionsFields && additionalFields && additionalFields.length > 0
-        ? [...additionalFields, ...optionsFields]
-        : (optionsFields ?? additionalFields ?? []);
-    this.additionalFields = selectablesToMap(resolvedFields);
+    this.additionalFields = selectablesToMap(additionalFields ?? []);
     if (collection) {
       this.collectionPath =
         typeof collection === 'string' ? collection : collection.path;
@@ -1142,13 +1157,16 @@ export class Upsert extends Stage {
 
   _toProto(serializer: JsonProtoSerializer): ProtoStage {
     const proto = super._toProto(serializer);
-    const options = proto.options ? { ...proto.options } : {};
+    const options: ApiClientObjectMap<ProtoValue> = {};
 
     if (this.collectionPath) {
       options['collection'] = { referenceValue: this.collectionPath };
     }
     if (this.documentIdExpr) {
       options['document_id'] = this.documentIdExpr._toProto(serializer);
+    }
+    if (proto.options) {
+      Object.assign(options, proto.options);
     }
 
     const args = [toMapValue(serializer, this.additionalFields)];

@@ -33,8 +33,8 @@ export declare class PipelineSource<PipelineType>
 |  [database(options)](./firestore_lite_pipelines.pipelinesource.md#pipelinesourcedatabase) |  | Returns all documents from the entire database. |
 |  [documents(docs)](./firestore_lite_pipelines.pipelinesource.md#pipelinesourcedocuments) |  | Set the pipeline's source to the documents specified by the given paths and DocumentReferences. |
 |  [documents(options)](./firestore_lite_pipelines.pipelinesource.md#pipelinesourcedocuments) |  | Set the pipeline's source to the documents specified by the given paths and DocumentReferences. |
-|  [literals(document, additionalDocuments)](./firestore_lite_pipelines.pipelinesource.md#pipelinesourceliterals) |  | Set the pipeline's source to in-memory literal document objects. |
-|  [literals(options)](./firestore_lite_pipelines.pipelinesource.md#pipelinesourceliterals) |  | Set the pipeline's source to in-memory literal document objects with options. |
+|  [literals(documents)](./firestore_lite_pipelines.pipelinesource.md#pipelinesourceliterals) |  | Set the pipeline's source to the documents specified by the given array of literal objects.<!-- -->Each object in the array represents a document where keys are field names and values are constants or [Expression](./firestore_pipelines.expression.md#expression_class) instances. |
+|  [literals(options)](./firestore_lite_pipelines.pipelinesource.md#pipelinesourceliterals) |  | Set the pipeline's source to the documents specified by the given [LiteralsStageOptions](./firestore_pipelines.md#literalsstageoptions)<!-- -->. |
 
 ## PipelineSource.collection()
 
@@ -223,31 +223,40 @@ PipelineType
 
 ## PipelineSource.literals()
 
-Set the pipeline's source to in-memory literal document objects.
+Set the pipeline's source to the documents specified by the given array of literal objects.
+
+Each object in the array represents a document where keys are field names and values are constants or [Expression](./firestore_pipelines.expression.md#expression_class) instances.
 
 <b>Signature:</b>
 
 ```typescript
-literals(
-    document: Record<string, unknown>,
-    ...additionalDocuments: Array<Record<string, unknown>>
-  ): PipelineType;
+literals(documents: Array<Record<string, unknown>>): PipelineType;
 ```
 
 #### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  document | Record&lt;string, unknown&gt; | A document object (key-value map). |
-|  additionalDocuments | Array&lt;Record&lt;string, unknown&gt;&gt; | Optional additional document objects. |
+|  documents | Array&lt;Record&lt;string, unknown&gt;&gt; | An array of literal document objects. |
 
 <b>Returns:</b>
 
 PipelineType
 
+### Example
+
+
+```typescript
+firestore.pipeline().literals([
+  { name: 'Alice', score: 50 },
+  { name: 'Bob', score: add(constant(30), constant(40)) }
+]);
+
+```
+
 ## PipelineSource.literals()
 
-Set the pipeline's source to in-memory literal document objects with options.
+Set the pipeline's source to the documents specified by the given [LiteralsStageOptions](./firestore_pipelines.md#literalsstageoptions)<!-- -->.
 
 <b>Signature:</b>
 
@@ -259,7 +268,7 @@ literals(options: LiteralsStageOptions): PipelineType;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  options | [LiteralsStageOptions](./firestore_lite_pipelines.md#literalsstageoptions) | Options containing the documents array. |
+|  options | [LiteralsStageOptions](./firestore_lite_pipelines.md#literalsstageoptions) | Options defining how this <code>LiteralsStage</code> is evaluated. |
 
 <b>Returns:</b>
 
