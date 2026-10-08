@@ -50,7 +50,6 @@ describe(
 
     afterAll(async () => {
       await testServer.stop();
-      await seleniumAssistant.killWebDriver(globalWebDriver);
     });
 
     // TODO: enable testing for firefox
@@ -65,6 +64,10 @@ describe(
             globalWebDriver = createPermittedWebDriver(
               /* browser= */ assistantBrowser.getId()
             );
+          });
+
+          afterAll(async () => {
+            await seleniumAssistant.killWebDriver(globalWebDriver);
           });
 
           it(
