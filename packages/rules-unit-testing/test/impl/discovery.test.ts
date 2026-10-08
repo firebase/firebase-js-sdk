@@ -61,9 +61,8 @@ describe('discoverEmulators()', () => {
       fetch as any
     );
 
-    expect(fetch).toHaveBeenCalledExactlyOnceWith(
-      new URL('http://[::1]:1111/emulators')
-    ); // bracketed
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(fetch).toHaveBeenCalledWith(new URL('http://[::1]:1111/emulators')); // bracketed
     expect(emulators).toEqual({});
   });
 
