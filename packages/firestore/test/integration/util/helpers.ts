@@ -180,10 +180,7 @@ export function isPersistenceAvailable(): boolean {
  * persistence both disabled and enabled (if the browser is supported).
  */
 function apiDescribeInternal(
-  describeFn:
-    | Mocha.PendingSuiteFunction
-    | Mocha.SuiteFunction
-    | Mocha.ExclusiveSuiteFunction,
+  describeFn: typeof describe | typeof describe.skip | typeof describe.only,
   message: string,
   testSuite: (persistence: PersistenceMode) => void
 ): void {
@@ -716,8 +713,7 @@ function verifySnapshot(
 
 export function itIf(
   condition: boolean | 'only'
-):
-  Mocha.TestFunction | Mocha.PendingTestFunction | Mocha.ExclusiveTestFunction {
+): typeof it | typeof it.skip | typeof it.only {
   // eslint-disable-next-line no-restricted-properties
   return condition === 'only' ? it.only : condition ? it : it.skip;
 }

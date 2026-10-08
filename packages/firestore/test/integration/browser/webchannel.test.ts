@@ -27,8 +27,8 @@ import { DEFAULT_PROJECT_ID, USE_EMULATOR } from '../util/settings';
 const describeFn =
   typeof window === 'object' && typeof window.navigator === 'object'
     ? describe
-    : // eslint-disable-next-line no-restricted-globals,
-      xdescribe;
+    : // eslint-disable-next-line no-restricted-properties
+      describe.skip;
 
 describeFn('WebChannel', () => {
   // Test does not run on Emulator because emulator does not impose restriction
