@@ -16,17 +16,11 @@
  */
 
 import firebase from '@firebase/app-compat';
-import { FirebaseError } from '@firebase/util';
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
 import {
   cleanUpTestInstance,
   initializeTestInstance,
   randomEmail
 } from '../../helpers/helpers';
-
-use(chaiAsPromised);
-
 // These tests handle OAuth sign in, but they're totally headless (they don't
 // use the popup/redirect flows).
 
@@ -54,21 +48,21 @@ describe('Integration test: headless IdP', () => {
       .signInWithCredential(
         firebase.auth.GoogleAuthProvider.credential(oauthIdToken)
       );
-    expect(firebase.auth().currentUser).to.eq(cred.user);
-    expect(cred.operationType).to.eq('signIn');
+    expect(firebase.auth().currentUser).toBe(cred.user);
+    expect(cred.operationType).toBe('signIn');
 
     // Make sure the user is setup correctly
     const user = cred.user!;
-    expect(user.isAnonymous).to.be.false;
-    expect(user.emailVerified).to.be.true;
-    expect(user.providerData.length).to.eq(1);
-    expect(user.providerData[0]!.providerId).to.eq('google.com');
-    expect(user.providerData[0]!.email).to.eq(email);
+    expect(user.isAnonymous).toBe(false);
+    expect(user.emailVerified).toBe(true);
+    expect(user.providerData.length).toBe(1);
+    expect(user.providerData[0]!.providerId).toBe('google.com');
+    expect(user.providerData[0]!.email).toBe(email);
 
     // Make sure the additional user info is good
     const additionalUserInfo = cred.additionalUserInfo!;
-    expect(additionalUserInfo.isNewUser).to.be.true;
-    expect(additionalUserInfo.providerId).to.eq('google.com');
+    expect(additionalUserInfo.isNewUser).toBe(true);
+    expect(additionalUserInfo.providerId).toBe('google.com');
   });
 
   it('allows the user to update profile', async () => {
@@ -82,15 +76,15 @@ describe('Integration test: headless IdP', () => {
     });
 
     // Check everything first
-    expect(user!.displayName).to.eq('David Copperfield');
-    expect(user!.photoURL).to.eq('http://photo.test/david.png');
+    expect(user!.displayName).toBe('David Copperfield');
+    expect(user!.photoURL).toBe('http://photo.test/david.png');
 
     await firebase.auth().signOut();
 
     // Sign in again and double check; look at current user this time
     await firebase.auth().signInWithCredential(credential);
-    expect(firebase.auth().currentUser!.displayName).to.eq('David Copperfield');
-    expect(firebase.auth().currentUser!.photoURL).to.eq(
+    expect(firebase.auth().currentUser!.displayName).toBe('David Copperfield');
+    expect(firebase.auth().currentUser!.photoURL).toBe(
       'http://photo.test/david.png'
     );
   });
@@ -100,21 +94,21 @@ describe('Integration test: headless IdP', () => {
       firebase.auth.FacebookAuthProvider.credential(oauthIdToken);
     const { user } = await firebase.auth().signInWithCredential(credential);
 
-    expect(user!.email).to.eq(email);
-    expect(user!.emailVerified).to.be.true;
+    expect(user!.email).toBe(email);
+    expect(user!.emailVerified).toBe(true);
 
     const newEmail = randomEmail();
     await user!.updateEmail(newEmail);
 
     // Check everything first
-    expect(user!.email).to.eq(newEmail);
-    expect(user!.emailVerified).to.be.false;
+    expect(user!.email).toBe(newEmail);
+    expect(user!.emailVerified).toBe(false);
 
     await firebase.auth().signOut();
 
     // Sign in again
     await firebase.auth().signInWithCredential(credential);
-    expect(firebase.auth().currentUser!.email).to.eq(newEmail);
+    expect(firebase.auth().currentUser!.email).toBe(newEmail);
   });
 
   it('allows the user to set a password', async () => {
@@ -122,34 +116,33 @@ describe('Integration test: headless IdP', () => {
       firebase.auth.GoogleAuthProvider.credential(oauthIdToken);
     const { user } = await firebase.auth().signInWithCredential(credential);
 
-    expect(user!.providerData.length).to.eq(1);
-    expect(user!.providerData[0]!.providerId).to.eq('google.com');
+    expect(user!.providerData.length).toBe(1);
+    expect(user!.providerData[0]!.providerId).toBe('google.com');
 
     // Set the password and check provider data
     await user!.updatePassword('password');
-    expect(user!.providerData.length).to.eq(2);
-    expect(user!.providerData.map(p => p!.providerId)).to.contain.members([
-      'google.com',
-      'password'
-    ]);
+    expect(user!.providerData.length).toBe(2);
+    expect(user!.providerData.map(p => p!.providerId)).toEqual(
+      expect.arrayContaining(['google.com', 'password'])
+    );
 
     // Sign out and sign in again
     await firebase.auth().signOut();
     await firebase.auth().signInWithEmailAndPassword(email, 'password');
-    expect(firebase.auth().currentUser!.providerData.length).to.eq(2);
+    expect(firebase.auth().currentUser!.providerData.length).toBe(2);
     expect(
       firebase.auth().currentUser!.providerData.map(p => p!.providerId)
-    ).to.contain.members(['google.com', 'password']);
+    ).toEqual(expect.arrayContaining(['google.com', 'password']));
 
     // Update email, then sign out/sign in again
     const newEmail = randomEmail();
     await firebase.auth().currentUser!.updateEmail(newEmail);
     await firebase.auth().signOut();
     await firebase.auth().signInWithEmailAndPassword(newEmail, 'password');
-    expect(firebase.auth().currentUser!.providerData.length).to.eq(2);
+    expect(firebase.auth().currentUser!.providerData.length).toBe(2);
     expect(
       firebase.auth().currentUser!.providerData.map(p => p!.providerId)
-    ).to.contain.members(['google.com', 'password']);
+    ).toEqual(expect.arrayContaining(['google.com', 'password']));
   });
 
   it('can link with multiple idps', async () => {
@@ -176,23 +169,23 @@ describe('Integration test: headless IdP', () => {
       .auth()
       .signInWithCredential(facebookCredential);
     await user!.linkWithCredential(googleCredential);
-    expect(user!.email).to.eq(facebookEmail);
-    expect(user!.emailVerified).to.be.false;
-    expect(user!.providerData.length).to.eq(2);
+    expect(user!.email).toBe(facebookEmail);
+    expect(user!.emailVerified).toBe(false);
+    expect(user!.providerData.length).toBe(2);
     expect(
       user!.providerData.find(p => p!.providerId === 'google.com')!.email
-    ).to.eq(googleEmail);
+    ).toBe(googleEmail);
     expect(
       user!.providerData.find(p => p!.providerId === 'facebook.com')!.email
-    ).to.eq(facebookEmail);
+    ).toBe(facebookEmail);
 
     // Unlink Google and check everything again
     await user!.unlink('google.com');
-    expect(user!.email).to.eq(facebookEmail);
-    expect(user!.emailVerified).to.be.false;
-    expect(user!.providerData.length).to.eq(1);
-    expect(user!.providerData[0]!.email).to.eq(facebookEmail);
-    expect(user!.providerData[0]!.providerId).to.eq('facebook.com');
+    expect(user!.email).toBe(facebookEmail);
+    expect(user!.emailVerified).toBe(false);
+    expect(user!.providerData.length).toBe(1);
+    expect(user!.providerData[0]!.email).toBe(facebookEmail);
+    expect(user!.providerData[0]!.providerId).toBe('facebook.com');
   });
 
   it('IdP account takes over unverified email', async () => {
@@ -203,24 +196,24 @@ describe('Integration test: headless IdP', () => {
       .createUserWithEmailAndPassword(email, 'password');
 
     // Check early state
-    expect(emailUser!.emailVerified).to.be.false;
+    expect(emailUser!.emailVerified).toBe(false);
 
     // Sign in with the credential and expect auto-linking
     const { user: googleUser } = await firebase
       .auth()
       .signInWithCredential(credential);
-    expect(googleUser!.uid).to.eq(emailUser!.uid);
-    expect(googleUser!.emailVerified).to.be.true;
-    expect(firebase.auth().currentUser).to.eq(googleUser);
-    expect(googleUser!.providerData.length).to.eq(1);
-    expect(firebase.auth().currentUser!.providerData[0]!.providerId).to.eq(
+    expect(googleUser!.uid).toBe(emailUser!.uid);
+    expect(googleUser!.emailVerified).toBe(true);
+    expect(firebase.auth().currentUser).toBe(googleUser);
+    expect(googleUser!.providerData.length).toBe(1);
+    expect(firebase.auth().currentUser!.providerData[0]!.providerId).toBe(
       'google.com'
     );
 
     // Signing in with password no longer works
     await expect(
       firebase.auth().signInWithEmailAndPassword(email, 'password')
-    ).to.be.rejectedWith(FirebaseError, 'auth/wrong-password');
+    ).rejects.toThrow('auth/wrong-password');
   });
 
   it('IdP accounts automatically link with verified emails', async () => {
@@ -244,8 +237,8 @@ describe('Integration test: headless IdP', () => {
     const { user: initialUser } = await firebase
       .auth()
       .signInWithCredential(googleCredential);
-    expect(initialUser!.providerData.length).to.eq(1);
-    expect(initialUser!.providerData[0]!.providerId).to.eq('google.com');
+    expect(initialUser!.providerData.length).toBe(1);
+    expect(initialUser!.providerData[0]!.providerId).toBe('google.com');
 
     await firebase.auth().signOut();
 
@@ -253,12 +246,11 @@ describe('Integration test: headless IdP', () => {
     const { user: githubUser } = await firebase
       .auth()
       .signInWithCredential(githubCredential);
-    expect(githubUser!.uid).to.eq(initialUser!.uid);
-    expect(githubUser!.providerData.length).to.eq(2);
-    expect(githubUser!.providerData.map(p => p!.providerId)).to.have.members([
-      'google.com',
-      'github.com'
-    ]);
+    expect(githubUser!.uid).toBe(initialUser!.uid);
+    expect(githubUser!.providerData.length).toBe(2);
+    expect(githubUser!.providerData.map(p => p!.providerId)).toEqual(
+      expect.arrayContaining(['google.com', 'github.com'])
+    );
 
     await firebase.auth().signOut();
 
@@ -266,11 +258,10 @@ describe('Integration test: headless IdP', () => {
     const { user: googleUser } = await firebase
       .auth()
       .signInWithCredential(googleCredential);
-    expect(googleUser!.uid).to.eq(initialUser!.uid);
-    expect(googleUser!.providerData.length).to.eq(2);
-    expect(googleUser!.providerData.map(p => p!.providerId)).to.have.members([
-      'google.com',
-      'github.com'
-    ]);
+    expect(googleUser!.uid).toBe(initialUser!.uid);
+    expect(googleUser!.providerData.length).toBe(2);
+    expect(googleUser!.providerData.map(p => p!.providerId)).toEqual(
+      expect.arrayContaining(['google.com', 'github.com'])
+    );
   });
 });
