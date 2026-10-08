@@ -15,11 +15,6 @@
  * limitations under the License.
  */
 
-import chai, { AssertionError } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-chai.use(chaiAsPromised);
-const expect = chai.expect;
-
 import {
   BackendType,
   Content,
@@ -42,8 +37,8 @@ import {
 import { TIMEOUT_EXPIRED_MESSAGE } from '../src/requests/request';
 import { isNode } from '@firebase/util';
 
-describe('Generate Content', function () {
-  this.timeout(90_000); // gemini 3.x requests using grounding and URL context can take up to 90s.
+// gemini 3.x requests using grounding and URL context can take up to 90s.
+describe('Generate Content', { timeout: 90_000 }, () => {
   testConfigs.forEach(testConfig => {
     describe(`${testConfig.toString()}`, () => {
       const commonGenerationConfig: GenerationConfig = {
@@ -95,20 +90,20 @@ describe('Generate Content', function () {
         const response = result.response;
 
         const trimmedText = response.text().trim();
-        expect(trimmedText).to.equal('Mountain View');
+        expect(trimmedText).toBe('Mountain View');
 
-        expect(response.usageMetadata).to.not.be.null;
-        expect(response.usageMetadata!.promptTokenCount).to.not.equal(0);
-        expect(response.usageMetadata!.candidatesTokenCount).to.not.equal(0);
-        expect(response.usageMetadata!.totalTokenCount).to.be.greaterThan(0);
-        expect(response.usageMetadata!.promptTokensDetails).to.not.be.null;
-        expect(response.usageMetadata!.promptTokensDetails!.length).to.equal(1);
-        expect(
-          response.usageMetadata!.promptTokensDetails![0].modality
-        ).to.equal(Modality.TEXT);
+        expect(response.usageMetadata).not.toBeNull();
+        expect(response.usageMetadata!.promptTokenCount).not.toBe(0);
+        expect(response.usageMetadata!.candidatesTokenCount).not.toBe(0);
+        expect(response.usageMetadata!.totalTokenCount).toBeGreaterThan(0);
+        expect(response.usageMetadata!.promptTokensDetails).not.toBeNull();
+        expect(response.usageMetadata!.promptTokensDetails!.length).toBe(1);
+        expect(response.usageMetadata!.promptTokensDetails![0].modality).toBe(
+          Modality.TEXT
+        );
         expect(
           response.usageMetadata!.promptTokensDetails![0].tokenCount
-        ).to.be.greaterThan(0);
+        ).toBeGreaterThan(0);
       });
 
       it('generateContent: google search grounding', async () => {
@@ -125,31 +120,31 @@ describe('Generate Content', function () {
         const response = result.response;
         const trimmedText = response.text().trim();
         const groundingMetadata = response.candidates?.[0].groundingMetadata;
-        expect(trimmedText).to.contain('299,792,458');
-        expect(groundingMetadata).to.exist;
-        expect(groundingMetadata!.searchEntryPoint?.renderedContent).to.contain(
+        expect(trimmedText).toContain('299,792,458');
+        expect(groundingMetadata).toBeDefined();
+        expect(groundingMetadata!.searchEntryPoint?.renderedContent).toContain(
           'div'
         );
         expect(
-          groundingMetadata!.groundingChunks
-        ).to.have.length.greaterThanOrEqual(1);
+          groundingMetadata!.groundingChunks?.length
+        ).toBeGreaterThanOrEqual(1);
         groundingMetadata!.groundingChunks!.forEach(groundingChunk => {
-          expect(groundingChunk.web).to.exist;
-          expect(groundingChunk.web!.uri).to.exist;
+          expect(groundingChunk.web).toBeDefined();
+          expect(groundingChunk.web!.uri).toBeDefined();
         });
         expect(
-          groundingMetadata?.groundingSupports
-        ).to.have.length.greaterThanOrEqual(1);
+          groundingMetadata?.groundingSupports?.length
+        ).toBeGreaterThanOrEqual(1);
         groundingMetadata!.groundingSupports!.forEach(groundingSupport => {
           expect(
-            groundingSupport.groundingChunkIndices
-          ).to.have.length.greaterThanOrEqual(1);
-          expect(groundingSupport.segment).to.exist;
-          expect(groundingSupport.segment?.endIndex).to.exist;
-          expect(groundingSupport.segment?.text).to.exist;
+            groundingSupport.groundingChunkIndices?.length
+          ).toBeGreaterThanOrEqual(1);
+          expect(groundingSupport.segment).toBeDefined();
+          expect(groundingSupport.segment?.endIndex).toBeDefined();
+          expect(groundingSupport.segment?.text).toBeDefined();
           // Since partIndex and startIndex are commonly 0, they may be omitted from responses.
         });
-        expect(groundingMetadata!.googleMapsWidgetContextToken).to.not.exist;
+        expect(groundingMetadata!.googleMapsWidgetContextToken).toBeUndefined();
       });
 
       it('generateContent: google maps grounding prompt location', async () => {
@@ -165,28 +160,28 @@ describe('Generate Content', function () {
         );
         const response = result.response;
         const groundingMetadata = response.candidates?.[0].groundingMetadata;
-        expect(groundingMetadata).to.exist;
+        expect(groundingMetadata).toBeDefined();
         expect(
-          groundingMetadata!.groundingChunks
-        ).to.have.length.greaterThanOrEqual(1);
+          groundingMetadata!.groundingChunks?.length
+        ).toBeGreaterThanOrEqual(1);
         groundingMetadata!.groundingChunks!.forEach(groundingChunk => {
-          expect(groundingChunk.maps).to.exist;
-          expect(groundingChunk.maps!.uri).to.exist;
-          expect(groundingChunk.maps!.title).to.exist;
-          expect(groundingChunk.maps!.placeId).to.exist;
+          expect(groundingChunk.maps).toBeDefined();
+          expect(groundingChunk.maps!.uri).toBeDefined();
+          expect(groundingChunk.maps!.title).toBeDefined();
+          expect(groundingChunk.maps!.placeId).toBeDefined();
         });
         expect(
-          groundingMetadata?.groundingSupports
-        ).to.have.length.greaterThanOrEqual(1);
+          groundingMetadata?.groundingSupports?.length
+        ).toBeGreaterThanOrEqual(1);
         groundingMetadata!.groundingSupports!.forEach(groundingSupport => {
           expect(
-            groundingSupport.groundingChunkIndices
-          ).to.have.length.greaterThanOrEqual(1);
-          expect(groundingSupport.segment).to.exist;
-          expect(groundingSupport.segment?.endIndex).to.exist;
-          expect(groundingSupport.segment?.text).to.exist;
+            groundingSupport.groundingChunkIndices?.length
+          ).toBeGreaterThanOrEqual(1);
+          expect(groundingSupport.segment).toBeDefined();
+          expect(groundingSupport.segment?.endIndex).toBeDefined();
+          expect(groundingSupport.segment?.text).toBeDefined();
         });
-        expect(groundingMetadata!.googleMapsWidgetContextToken).to.not.exist;
+        expect(groundingMetadata!.googleMapsWidgetContextToken).toBeUndefined();
       });
 
       it('generateContent: google maps grounding with RetrievalConfig', async () => {
@@ -210,28 +205,28 @@ describe('Generate Content', function () {
         );
         const response = result.response;
         const groundingMetadata = response.candidates?.[0].groundingMetadata;
-        expect(groundingMetadata).to.exist;
+        expect(groundingMetadata).toBeDefined();
         expect(
-          groundingMetadata!.groundingChunks
-        ).to.have.length.greaterThanOrEqual(1);
+          groundingMetadata!.groundingChunks?.length
+        ).toBeGreaterThanOrEqual(1);
         groundingMetadata!.groundingChunks!.forEach(groundingChunk => {
-          expect(groundingChunk.maps).to.exist;
-          expect(groundingChunk.maps!.uri).to.exist;
-          expect(groundingChunk.maps!.title).to.exist;
-          expect(groundingChunk.maps!.placeId).to.exist;
+          expect(groundingChunk.maps).toBeDefined();
+          expect(groundingChunk.maps!.uri).toBeDefined();
+          expect(groundingChunk.maps!.title).toBeDefined();
+          expect(groundingChunk.maps!.placeId).toBeDefined();
         });
         expect(
-          groundingMetadata?.groundingSupports
-        ).to.have.length.greaterThanOrEqual(1);
+          groundingMetadata?.groundingSupports?.length
+        ).toBeGreaterThanOrEqual(1);
         groundingMetadata!.groundingSupports!.forEach(groundingSupport => {
           expect(
-            groundingSupport.groundingChunkIndices
-          ).to.have.length.greaterThanOrEqual(1);
-          expect(groundingSupport.segment).to.exist;
-          expect(groundingSupport.segment?.endIndex).to.exist;
-          expect(groundingSupport.segment?.text).to.exist;
+            groundingSupport.groundingChunkIndices?.length
+          ).toBeGreaterThanOrEqual(1);
+          expect(groundingSupport.segment).toBeDefined();
+          expect(groundingSupport.segment?.endIndex).toBeDefined();
+          expect(groundingSupport.segment?.text).toBeDefined();
         });
-        expect(groundingMetadata!.googleMapsWidgetContextToken).to.not.exist;
+        expect(groundingMetadata!.googleMapsWidgetContextToken).toBeUndefined();
       });
 
       describe('URL Context', () => {
@@ -249,22 +244,22 @@ describe('Generate Content', function () {
           const response = result.response;
           const urlContextMetadata =
             response.candidates?.[0].urlContextMetadata;
-          expect(urlContextMetadata?.urlMetadata).to.exist;
-          expect(
-            urlContextMetadata?.urlMetadata.length
-          ).to.be.greaterThanOrEqual(1);
-          expect(urlContextMetadata?.urlMetadata[0].retrievedUrl).to.exist;
-          expect(urlContextMetadata?.urlMetadata[0].retrievedUrl).to.equal(
+          expect(urlContextMetadata?.urlMetadata).toBeDefined();
+          expect(urlContextMetadata?.urlMetadata.length).toBeGreaterThanOrEqual(
+            1
+          );
+          expect(urlContextMetadata?.urlMetadata[0].retrievedUrl).toBeDefined();
+          expect(urlContextMetadata?.urlMetadata[0].retrievedUrl).toBe(
             'https://berkshirehathaway.com'
           );
-          expect(
-            urlContextMetadata?.urlMetadata[0].urlRetrievalStatus
-          ).to.equal(URLRetrievalStatus.URL_RETRIEVAL_STATUS_SUCCESS);
+          expect(urlContextMetadata?.urlMetadata[0].urlRetrievalStatus).toBe(
+            URLRetrievalStatus.URL_RETRIEVAL_STATUS_SUCCESS
+          );
 
           const usageMetadata = response.usageMetadata;
-          expect(usageMetadata).to.exist;
-          expect(usageMetadata?.toolUsePromptTokenCount).to.exist;
-          expect(usageMetadata?.toolUsePromptTokenCount).to.be.greaterThan(0);
+          expect(usageMetadata).toBeDefined();
+          expect(usageMetadata?.toolUsePromptTokenCount).toBeDefined();
+          expect(usageMetadata?.toolUsePromptTokenCount).toBeGreaterThan(0);
         });
 
         it('generateContent: url context and google search grounding', async () => {
@@ -283,31 +278,31 @@ describe('Generate Content', function () {
           const urlContextMetadata =
             response.candidates?.[0].urlContextMetadata;
           const groundingMetadata = response.candidates?.[0].groundingMetadata;
-          expect(trimmedText.length).to.be.greaterThan(0);
-          expect(urlContextMetadata?.urlMetadata).to.exist;
-          expect(
-            urlContextMetadata?.urlMetadata.length
-          ).to.be.greaterThanOrEqual(1);
-          expect(urlContextMetadata?.urlMetadata[0].retrievedUrl).to.exist;
-          expect(urlContextMetadata?.urlMetadata[0].retrievedUrl).to.equal(
+          expect(trimmedText.length).toBeGreaterThan(0);
+          expect(urlContextMetadata?.urlMetadata).toBeDefined();
+          expect(urlContextMetadata?.urlMetadata.length).toBeGreaterThanOrEqual(
+            1
+          );
+          expect(urlContextMetadata?.urlMetadata[0].retrievedUrl).toBeDefined();
+          expect(urlContextMetadata?.urlMetadata[0].retrievedUrl).toBe(
             'https://info.cern.ch/hypertext/WWW/TheProject.html'
           );
-          expect(
-            urlContextMetadata?.urlMetadata[0].urlRetrievalStatus
-          ).to.equal(URLRetrievalStatus.URL_RETRIEVAL_STATUS_SUCCESS);
-          expect(groundingMetadata).to.exist;
-          expect(groundingMetadata?.groundingChunks).to.exist;
+          expect(urlContextMetadata?.urlMetadata[0].urlRetrievalStatus).toBe(
+            URLRetrievalStatus.URL_RETRIEVAL_STATUS_SUCCESS
+          );
+          expect(groundingMetadata).toBeDefined();
+          expect(groundingMetadata?.groundingChunks).toBeDefined();
           expect(
             groundingMetadata?.groundingChunks!.length
-          ).to.be.greaterThanOrEqual(1);
+          ).toBeGreaterThanOrEqual(1);
           expect(
             groundingMetadata?.groundingSupports!.length
-          ).to.be.greaterThanOrEqual(1);
+          ).toBeGreaterThanOrEqual(1);
 
           const usageMetadata = response.usageMetadata;
-          expect(usageMetadata).to.exist;
-          expect(usageMetadata?.toolUsePromptTokenCount).to.exist;
-          expect(usageMetadata?.toolUsePromptTokenCount).to.be.greaterThan(0);
+          expect(usageMetadata).toBeDefined();
+          expect(usageMetadata?.toolUsePromptTokenCount).toBeDefined();
+          expect(usageMetadata?.toolUsePromptTokenCount).toBeGreaterThan(0);
         });
 
         it('generateContent: url context and google search grounding without URLs in prompt', async () => {
@@ -326,26 +321,28 @@ describe('Generate Content', function () {
             response.candidates?.[0].urlContextMetadata;
           const groundingMetadata = response.candidates?.[0].groundingMetadata;
           if (testConfig.ai.backend.backendType === BackendType.GOOGLE_AI) {
-            expect(urlContextMetadata?.urlMetadata).to.exist;
+            expect(urlContextMetadata?.urlMetadata).toBeDefined();
             expect(
               urlContextMetadata?.urlMetadata.length
-            ).to.be.greaterThanOrEqual(1);
-            expect(urlContextMetadata?.urlMetadata[0].retrievedUrl).to.exist;
+            ).toBeGreaterThanOrEqual(1);
             expect(
-              urlContextMetadata?.urlMetadata[0].urlRetrievalStatus
-            ).to.equal(URLRetrievalStatus.URL_RETRIEVAL_STATUS_SUCCESS);
-            expect(groundingMetadata).to.exist;
-            expect(groundingMetadata?.groundingChunks).to.exist;
+              urlContextMetadata?.urlMetadata[0].retrievedUrl
+            ).toBeDefined();
+            expect(urlContextMetadata?.urlMetadata[0].urlRetrievalStatus).toBe(
+              URLRetrievalStatus.URL_RETRIEVAL_STATUS_SUCCESS
+            );
+            expect(groundingMetadata).toBeDefined();
+            expect(groundingMetadata?.groundingChunks).toBeDefined();
 
             const usageMetadata = response.usageMetadata;
-            expect(usageMetadata).to.exist;
-            expect(usageMetadata?.toolUsePromptTokenCount).to.exist;
-            expect(usageMetadata?.toolUsePromptTokenCount).to.be.greaterThan(0);
+            expect(usageMetadata).toBeDefined();
+            expect(usageMetadata?.toolUsePromptTokenCount).toBeDefined();
+            expect(usageMetadata?.toolUsePromptTokenCount).toBeGreaterThan(0);
           } else {
             // URL Context does not integrate with Google Search Grounding in Vertex AI
-            expect(urlContextMetadata?.urlMetadata).to.not.exist;
-            expect(groundingMetadata).to.exist;
-            expect(groundingMetadata?.groundingChunks).to.exist;
+            expect(urlContextMetadata?.urlMetadata).toBeUndefined();
+            expect(groundingMetadata).toBeDefined();
+            expect(groundingMetadata?.groundingChunks).toBeDefined();
           }
         });
       });
@@ -368,14 +365,14 @@ describe('Generate Content', function () {
               part.type === 'executableCode' &&
               part.executableCode?.language === Language.PYTHON
           )
-        ).to.be.true;
+        ).toBe(true);
         expect(
           parts?.some(
             part =>
               part.type === 'codeExecutionResult' &&
               part.codeExecutionResult?.outcome === Outcome.OK
           )
-        ).to.be.true;
+        ).toBe(true);
         // Expect these to be truthy (!= null)
         expect(
           parts?.some(
@@ -383,14 +380,14 @@ describe('Generate Content', function () {
               part.type === 'executableCode' &&
               part.executableCode?.code != null
           )
-        ).to.be.true;
+        ).toBe(true);
         expect(
           parts?.some(
             part =>
               part.type === 'codeExecutionResult' &&
               part.codeExecutionResult?.output != null
           )
-        ).to.be.true;
+        ).toBe(true);
       });
 
       it('generateContentStream: text input, text output', async () => {
@@ -409,12 +406,12 @@ describe('Generate Content', function () {
         for await (const chunk of result.stream) {
           streamText += chunk.text();
         }
-        expect(streamText.trim()).to.equal('Mountain View');
+        expect(streamText.trim()).toBe('Mountain View');
 
         const response = await result.response;
         const trimmedText = response.text().trim();
-        expect(trimmedText).to.equal('Mountain View');
-        expect(response.usageMetadata).to.be.undefined; // Note: This is incorrect behavior.
+        expect(trimmedText).toBe('Mountain View');
+        expect(response.usageMetadata).toBeUndefined(); // Note: This is incorrect behavior.
       });
     });
   });
@@ -427,14 +424,20 @@ describe('Generate Content', function () {
       it('timeout cancels request', async () => {
         await expect(
           defaultGenerativeModel.generateContent('hello', { timeout: 100 })
-        ).to.be.rejectedWith(DOMException, TIMEOUT_EXPIRED_MESSAGE);
+        ).rejects.toSatisfy((err: unknown) => {
+          expect(err).toBeInstanceOf(DOMException);
+          expect((err as DOMException).message).toContain(
+            TIMEOUT_EXPIRED_MESSAGE
+          );
+          return true;
+        });
       });
 
       it('long timeout does not cancel request', async () => {
         const result = await defaultGenerativeModel.generateContent('hello', {
           timeout: 50_000
         });
-        expect(result.response.text().length).to.be.greaterThan(0);
+        expect(result.response.text().length).toBeGreaterThan(0);
       });
 
       it('abort signal with no reason causes request to throw AbortError', async () => {
@@ -444,9 +447,12 @@ describe('Generate Content', function () {
           { signal: abortController.signal }
         );
         abortController.abort();
-        await expect(responsePromise)
-          .to.be.rejectedWith(DOMException, defaultAbortReason)
-          .and.eventually.have.property('name', 'AbortError');
+        await expect(responsePromise).rejects.toSatisfy((err: unknown) => {
+          expect(err).toBeInstanceOf(DOMException);
+          expect((err as DOMException).message).toContain(defaultAbortReason);
+          expect((err as DOMException).name).toBe('AbortError');
+          return true;
+        });
       });
 
       it('abort signal with string reason causes request to throw reason string', async () => {
@@ -457,7 +463,7 @@ describe('Generate Content', function () {
         );
         const reason = 'Cancelled';
         abortController.abort(reason);
-        await expect(responsePromise).to.be.rejectedWith(reason);
+        await expect(responsePromise).rejects.toThrow(reason);
       });
 
       it('abort signal with error reason causes request to throw reason error', async () => {
@@ -470,9 +476,12 @@ describe('Generate Content', function () {
         // `fetch()` will reject with the exact object we passed to `abort()`. Since we throw a generic
         // Error, we cannot differentiate between this error and other generic fetch errors, which
         // we wrap in an AIError.
-        await expect(responsePromise)
-          .to.be.rejectedWith(Error, 'Cancelled')
-          .and.eventually.have.property('name', 'FirebaseError');
+        await expect(responsePromise).rejects.toSatisfy((err: unknown) => {
+          expect(err).toBeInstanceOf(Error);
+          expect((err as Error).message).toContain('Cancelled');
+          expect((err as Error).name).toBe('FirebaseError');
+          return true;
+        });
       });
     });
 
@@ -480,7 +489,13 @@ describe('Generate Content', function () {
       it('timeout cancels initial request', async () => {
         await expect(
           defaultGenerativeModel.generateContent('hello', { timeout: 50 })
-        ).to.be.rejectedWith(DOMException, TIMEOUT_EXPIRED_MESSAGE);
+        ).rejects.toSatisfy((err: unknown) => {
+          expect(err).toBeInstanceOf(DOMException);
+          expect((err as DOMException).message).toContain(
+            TIMEOUT_EXPIRED_MESSAGE
+          );
+          return true;
+        });
       });
 
       it('timeout does not cancel request once streaming has begun', async () => {
@@ -499,10 +514,10 @@ describe('Generate Content', function () {
         // We should be able to get through the entire stream without an error being thrown
         // from the async generator.
         for await (const chunk of stream) {
-          expect(chunk.text().length).to.be.greaterThan(0);
+          expect(chunk.text().length).toBeGreaterThan(0);
         }
 
-        expect((await response).text().length).to.be.greaterThan(0);
+        expect((await response).text().length).toBeGreaterThan(0);
       });
 
       it('abort signal without reason should cancel stream with default abort reason', async () => {
@@ -519,23 +534,25 @@ describe('Generate Content', function () {
         // As soon as the initial request resolves and the stream starts, abort the stream.
         abortController.abort();
 
-        try {
+        const consumeStream = async (): Promise<void> => {
           for await (const _ of stream) {
             expect.fail('Expected stream to throw an error');
           }
-          expect.fail('Expected stream to throw an error');
-        } catch (err) {
-          if ((err as Error) instanceof AssertionError) {
-            throw err;
-          }
-          expect(err).to.be.instanceof(DOMException);
-          expect((err as Error).name).to.equal('AbortError');
-          expect((err as Error).message).to.equal(defaultAbortReason);
-        }
+        };
 
-        await expect(response)
-          .to.be.rejectedWith(DOMException, defaultAbortReason)
-          .and.to.eventually.have.property('name', 'AbortError');
+        await expect(consumeStream()).rejects.toSatisfy((err: unknown) => {
+          expect(err).toBeInstanceOf(DOMException);
+          expect((err as Error).name).toBe('AbortError');
+          expect((err as Error).message).toBe(defaultAbortReason);
+          return true;
+        });
+
+        await expect(response).rejects.toSatisfy((err: unknown) => {
+          expect(err).toBeInstanceOf(DOMException);
+          expect((err as DOMException).message).toContain(defaultAbortReason);
+          expect((err as DOMException).name).toBe('AbortError');
+          return true;
+        });
       });
 
       it('abort signal with reason string should cancel stream with string abort reason', async () => {
@@ -552,19 +569,15 @@ describe('Generate Content', function () {
         // As soon as the initial request resolves and the stream starts, abort the stream.
         abortController.abort('Cancelled');
 
-        try {
+        const consumeStream = async (): Promise<void> => {
           for await (const _ of stream) {
             expect.fail('Expected stream to throw an error');
           }
-          expect.fail('Expected stream to throw an error');
-        } catch (err) {
-          if ((err as Error) instanceof AssertionError) {
-            throw err;
-          }
-          expect(err).to.equal('Cancelled');
-        }
+        };
 
-        await expect(response).to.be.rejectedWith('Cancelled');
+        await expect(consumeStream()).rejects.toBe('Cancelled');
+
+        await expect(response).rejects.toThrow('Cancelled');
       });
     });
   });
