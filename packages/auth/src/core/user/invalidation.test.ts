@@ -21,7 +21,7 @@ import { testAuth, testUser } from '../../../test/helpers/mock_auth';
 import { AuthInternal } from '../../model/auth';
 import { UserInternal } from '../../model/user';
 import { AuthErrorCode } from '../errors';
-import { _logoutIfInvalidated } from './invalidation';
+import { _isUserInvalidated, _logoutIfInvalidated } from './invalidation';
 import { _createError } from '../util/assert';
 describe('core/user/invalidation', () => {
   let user: UserInternal;
@@ -88,6 +88,27 @@ describe('core/user/invalidation', () => {
         _logoutIfInvalidated(user, Promise.reject(error))
       ).rejects.toThrow(error);
       expect(auth.currentUser).toBe(user2);
+    });
+  });
+
+  describe('_isUserInvalidated', () => {
+    it('returns true for user_disabled and token_expired', () => {
+      expect(_isUserInvalidated(makeError(AuthErrorCode.USER_DISABLED))).toBe(
+        true
+      );
+      expect(_isUserInvalidated(makeError(AuthErrorCode.TOKEN_EXPIRED))).toBe(
+        true
+      );
+    });
+
+    it('returns false for transient and non-FirebaseError errors', () => {
+      expect(
+        _isUserInvalidated(makeError(AuthErrorCode.NETWORK_REQUEST_FAILED))
+      ).toBe(false);
+      expect(
+        _isUserInvalidated(makeError('unavailable' as unknown as AuthErrorCode))
+      ).toBe(false);
+      expect(_isUserInvalidated(new Error('generic error'))).toBe(false);
     });
   });
 });

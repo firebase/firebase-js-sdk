@@ -332,6 +332,27 @@ describe('core/auth/initializeAuth', () => {
       expect(removeSpy).toHaveBeenCalled();
     });
 
+    it('Nulls out the current user if reload fails with user disabled error', async () => {
+      const stub = _getInstance<PersistenceInternal>(inMemoryPersistence);
+      vi.spyOn(stub, '_get').mockReturnValue(
+        Promise.resolve(testUser(oldAuth, 'uid').toJSON())
+      );
+      const removeSpy = vi
+        .spyOn(stub, '_remove')
+        .mockReturnValue(Promise.resolve());
+      reloadStub.mockReturnValue(
+        Promise.reject(
+          _createError(AuthErrorCode.USER_DISABLED, {
+            appName: 'app'
+          })
+        )
+      );
+
+      const auth = await initAndWait(inMemoryPersistence);
+      expect(removeSpy).toHaveBeenCalled();
+      expect(auth.currentUser).toBeNull();
+    });
+
     it('Keeps current user if reload fails with network error', async () => {
       const stub = _getInstance<PersistenceInternal>(inMemoryPersistence);
       vi.spyOn(stub, '_get').mockReturnValue(
@@ -408,6 +429,27 @@ describe('core/auth/initializeAuth', () => {
       reloadStub.mockReturnValue(
         Promise.reject(
           _createError(AuthErrorCode.TOO_MANY_ATTEMPTS_TRY_LATER, {
+            appName: 'app'
+          })
+        )
+      );
+
+      const auth = await initAndWait(inMemoryPersistence);
+      expect(removeSpy).not.toHaveBeenCalled();
+      expect(auth.currentUser?.uid).toBe('uid');
+    });
+
+    it('Keeps current user if reload fails with HTTP 503 unavailable error', async () => {
+      const stub = _getInstance<PersistenceInternal>(inMemoryPersistence);
+      vi.spyOn(stub, '_get').mockReturnValue(
+        Promise.resolve(testUser(oldAuth, 'uid').toJSON())
+      );
+      const removeSpy = vi
+        .spyOn(stub, '_remove')
+        .mockReturnValue(Promise.resolve());
+      reloadStub.mockReturnValue(
+        Promise.reject(
+          _createError('unavailable' as unknown as AuthErrorCode, {
             appName: 'app'
           })
         )
