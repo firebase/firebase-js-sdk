@@ -44,7 +44,7 @@ export async function withTestInstance(
   return fn(storage);
 }
 
-describe('FirebaseStorage Compat', { timeout: 20000, retry: 2 }, () => {
+describe('FirebaseStorage Compat', () => {
   let projectPrefix: string;
 
   // eslint-disable-next-line no-empty-pattern
