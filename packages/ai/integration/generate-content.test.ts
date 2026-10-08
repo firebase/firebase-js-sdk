@@ -534,18 +534,18 @@ describe('Generate Content', { timeout: 90_000 }, () => {
         // As soon as the initial request resolves and the stream starts, abort the stream.
         abortController.abort();
 
-        let didThrow = false;
-        try {
+        const consumeStream = async (): Promise<void> => {
           for await (const _ of stream) {
             expect.fail('Expected stream to throw an error');
           }
-        } catch (err) {
-          didThrow = true;
+        };
+
+        await expect(consumeStream()).rejects.toSatisfy((err: unknown) => {
           expect(err).toBeInstanceOf(DOMException);
           expect((err as Error).name).toBe('AbortError');
           expect((err as Error).message).toBe(defaultAbortReason);
-        }
-        expect(didThrow).toBe(true);
+          return true;
+        });
 
         await expect(response).rejects.toSatisfy((err: unknown) => {
           expect(err).toBeInstanceOf(DOMException);
@@ -569,16 +569,13 @@ describe('Generate Content', { timeout: 90_000 }, () => {
         // As soon as the initial request resolves and the stream starts, abort the stream.
         abortController.abort('Cancelled');
 
-        let didThrow = false;
-        try {
+        const consumeStream = async (): Promise<void> => {
           for await (const _ of stream) {
             expect.fail('Expected stream to throw an error');
           }
-        } catch (err) {
-          didThrow = true;
-          expect(err).toBe('Cancelled');
-        }
-        expect(didThrow).toBe(true);
+        };
+
+        await expect(consumeStream()).rejects.toBe('Cancelled');
 
         await expect(response).rejects.toThrow('Cancelled');
       });

@@ -22,12 +22,14 @@ const hasIntegrationArg = process.argv.some(arg => arg.includes('integration'));
 const config = createBaseConfig(import.meta.url);
 
 for (const project of config.test.projects) {
+  project.test = project.test || {};
   if (hasIntegrationArg) {
     project.test.include = ['integration/**/*.test.ts'];
   } else {
+    project.test.exclude = project.test.exclude || [];
     project.test.exclude.push('integration/**');
   }
-  if (project.test?.name === 'browser' && project.test?.browser) {
+  if (project.test.name === 'browser' && project.test.browser) {
     project.test.browser.screenshotFailures = false;
   }
 }
