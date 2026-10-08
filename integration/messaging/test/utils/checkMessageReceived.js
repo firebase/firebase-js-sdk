@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const expect = require('chai').expect;
-
 const TEST_PROJECT_SENDER_ID = '750970317741';
 const DEFAULT_COLLAPSE_KEY_VALUE = 'do_not_collapse';
 const FIELD_FROM = 'from';
@@ -30,24 +28,22 @@ module.exports = (
   expectedNotificationPayload,
   expectedDataPayload
 ) => {
-  expect(receivedMessages).to.exist;
+  expect(receivedMessages).toBeDefined();
 
   const message = receivedMessages[0];
 
-  expect(message[FIELD_FROM]).to.equal(TEST_PROJECT_SENDER_ID);
+  expect(message[FIELD_FROM]).toBe(TEST_PROJECT_SENDER_ID);
   const collapseKey = !!message[FIELD_COLLAPSE_KEY_LEGACY]
     ? message[FIELD_COLLAPSE_KEY_LEGACY]
     : message[FIELD_COLLAPSE_KEY];
-  expect(collapseKey).to.equal(DEFAULT_COLLAPSE_KEY_VALUE);
+  expect(collapseKey).toBe(DEFAULT_COLLAPSE_KEY_VALUE);
 
   if (expectedNotificationPayload) {
-    expect(message[FIELD_NOTIFICATION]).to.deep.equal(
-      getTestNotificationPayload()
-    );
+    expect(message[FIELD_NOTIFICATION]).toEqual(getTestNotificationPayload());
   }
 
   if (expectedDataPayload) {
-    expect(message[FIELD_DATA]).to.deep.equal(getTestDataPayload());
+    expect(message[FIELD_DATA]).toEqual(getTestDataPayload());
   }
 };
 
