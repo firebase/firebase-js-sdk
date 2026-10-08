@@ -34,7 +34,7 @@ const buildPlugins = [
       compilerOptions: {
         target: 'es2020'
       },
-      exclude: [...tsconfig.exclude, '**/*.test.ts']
+      exclude: [...(tsconfig.exclude || []), 'test/**']
     }
   }),
   json({ preferConst: true })
