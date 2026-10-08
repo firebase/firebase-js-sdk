@@ -36,9 +36,11 @@ describe('Auth compat interop', () => {
     expect(compatAuth.currentUser).toBe(null);
     expect(modularAuth.currentUser).toBe(null);
     const userCred = await compatAuth.signInAnonymously();
-    expect(userCred.user?.uid).toBe(modularAuth.currentUser?.uid);
-    expect(await userCred.user?.getIdToken()).toBe(
-      await modularAuth.currentUser?.getIdToken()
+    expect(userCred.user).not.toBeNull();
+    expect(modularAuth.currentUser).not.toBeNull();
+    expect(userCred.user!.uid).toBe(modularAuth.currentUser!.uid);
+    expect(await userCred.user!.getIdToken()).toBe(
+      await modularAuth.currentUser!.getIdToken()
     );
 
     await signOut(modularAuth);
