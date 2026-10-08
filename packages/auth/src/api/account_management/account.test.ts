@@ -69,10 +69,11 @@ describe('api/account_management/deleteAccount', () => {
       400
     );
 
-    await expect(deleteAccount(auth, request)).rejects.toThrow(
-      FirebaseError,
+    const promise = deleteAccount(auth, request);
+    await expect(promise).rejects.toThrow(
       "Firebase: This user's credential isn't valid for this project. This can happen if the user's token has been tampered with, or if the user isn't for the project associated with this API key. (auth/invalid-user-token)."
     );
+    await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     expect(mock.calls[0].request).toEqual(request);
   });
 });
@@ -132,10 +133,11 @@ describe('api/account_management/deleteLinkedAccounts', () => {
       400
     );
 
-    await expect(deleteLinkedAccounts(auth, request)).rejects.toThrow(
-      FirebaseError,
+    const promise = deleteLinkedAccounts(auth, request);
+    await expect(promise).rejects.toThrow(
       'Firebase: The specified provider ID is invalid. (auth/invalid-provider-id).'
     );
+    await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     expect(mock.calls[0].request).toEqual(request);
   });
 });
@@ -194,10 +196,11 @@ describe('api/account_management/getAccountInfo', () => {
       400
     );
 
-    await expect(getAccountInfo(auth, request)).rejects.toThrow(
-      FirebaseError,
+    const promise = getAccountInfo(auth, request);
+    await expect(promise).rejects.toThrow(
       "Firebase: This user's credential isn't valid for this project. This can happen if the user's token has been tampered with, or if the user isn't for the project associated with this API key. (auth/invalid-user-token)."
     );
+    await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     expect(mock.calls[0].request).toEqual(request);
   });
 });

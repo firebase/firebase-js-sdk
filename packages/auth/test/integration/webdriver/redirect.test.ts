@@ -40,7 +40,7 @@ browserDescribe('WebDriver redirect IdP test', driver => {
     // Stop and re-initialize the webdrive instance to prevent flakiness.
     await driver.stop();
     await driver.start('chrome');
-  }, 25000); // Starting browsers can be slow.
+  }, 60000); // Starting browsers can be slow.
 
   it('allows users to sign in', async () => {
     await driver.callNoWait(RedirectFunction.IDP_REDIRECT);

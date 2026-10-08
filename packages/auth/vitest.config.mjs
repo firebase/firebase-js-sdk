@@ -86,20 +86,9 @@ for (const project of config.test.projects) {
     project.test.exclude = exclude;
   } else if (project.test.name === 'browser') {
     project.test.exclude = exclude;
-    project.test.browser = {
-      ...project.test.browser,
-      instances: [
-        {
-          browser:
-            process.env.BROWSERS === 'WebkitHeadless'
-              ? 'webkit'
-              : process.env.BROWSERS === 'Firefox'
-                ? 'firefox'
-                : 'chromium'
-        }
-      ],
-      screenshotFailures: false
-    };
+    if (project.test.browser) {
+      project.test.browser.screenshotFailures = false;
+    }
     project.define = {
       ...(project.define || {}),
       'process.env': JSON.stringify({
@@ -116,4 +105,3 @@ for (const project of config.test.projects) {
 }
 
 export default config;
-

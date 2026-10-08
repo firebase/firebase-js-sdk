@@ -104,20 +104,22 @@ describe('core/auth/firebase_internal', () => {
     });
 
     describe('addAuthTokenListener', () => {
-      it('gets called with the token, starts proactive refresh', done => {
-        // The listener always fires first time. Ignore that one
-        let firstCall = true;
-        authInternal.addAuthTokenListener(token => {
-          if (firstCall) {
-            firstCall = false;
-            // eslint-disable-next-line @typescript-eslint/no-floating-promises
-            user.getIdToken(true);
-            return;
-          }
+      it('gets called with the token, starts proactive refresh', () => {
+        return new Promise<void>(resolve => {
+          // The listener always fires first time. Ignore that one
+          let firstCall = true;
+          authInternal.addAuthTokenListener(token => {
+            if (firstCall) {
+              firstCall = false;
+              // eslint-disable-next-line @typescript-eslint/no-floating-promises
+              user.getIdToken(true);
+              return;
+            }
 
-          expect(token).toBe('access-token');
-          expect(isProactiveRefresh).toBe(true);
-          done();
+            expect(token).toBe('access-token');
+            expect(isProactiveRefresh).toBe(true);
+            resolve();
+          });
         });
       });
 

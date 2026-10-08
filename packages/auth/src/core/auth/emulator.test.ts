@@ -34,7 +34,7 @@ describe('core/auth/emulator', () => {
   let utilStub: MockInstance;
 
   beforeEach(async () => {
-    utilStub = vi.spyOn(Util, 'pingServer');
+    utilStub = vi.spyOn(Util, 'pingServer').mockResolvedValue(true);
     auth = await testAuth();
     user = testUser(_castAuth(auth), 'uid', 'email', true);
     fetch.setUp();
@@ -165,7 +165,7 @@ describe('core/auth/emulator', () => {
     });
 
     it('logs out a warning to the console', () => {
-      vi.spyOn(console, 'info');
+      vi.spyOn(console, 'info').mockImplementation(() => {});
       connectAuthEmulator(auth, 'http://127.0.0.1:2020');
       expect(console.info).toHaveBeenCalledWith(
         'WARNING: You are using the Auth Emulator,' +
@@ -175,7 +175,7 @@ describe('core/auth/emulator', () => {
     });
 
     it('skips console info and has no banner if warnings disabled', () => {
-      vi.spyOn(console, 'info');
+      vi.spyOn(console, 'info').mockImplementation(() => {});
       connectAuthEmulator(auth, 'http://127.0.0.1:2020', {
         disableWarnings: true
       });

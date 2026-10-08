@@ -132,7 +132,7 @@ describe('core/user/user_impl', () => {
       } as IdTokenResponse);
       const user = new UserImpl({ uid: 'uid', auth, stsTokenManager });
       const endpoint = mockEndpoint(Endpoint.DELETE_ACCOUNT, {});
-      const signOut = vi.spyOn(auth, 'signOut');
+      const signOut = vi.spyOn(auth, 'signOut').mockResolvedValue();
 
       await user.delete();
       expect(endpoint.calls[0].request).toEqual({
@@ -149,7 +149,9 @@ describe('core/user/user_impl', () => {
 
     it('throws an error if uid is not present', () => {
       expect(() => UserImpl._fromJSON(auth, { name: 'foo' })).toThrow(
-        FirebaseError,
+        FirebaseError
+      );
+      expect(() => UserImpl._fromJSON(auth, { name: 'foo' })).toThrow(
         errorString
       );
     });
@@ -157,7 +159,10 @@ describe('core/user/user_impl', () => {
     it('throws if a key is not undefined or string', () => {
       expect(() =>
         UserImpl._fromJSON(auth, { uid: 'foo', displayName: 3 })
-      ).toThrow(FirebaseError, errorString);
+      ).toThrow(FirebaseError);
+      expect(() =>
+        UserImpl._fromJSON(auth, { uid: 'foo', displayName: 3 })
+      ).toThrow(errorString);
     });
 
     it('fills out a user object properly', () => {

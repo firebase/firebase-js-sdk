@@ -152,16 +152,16 @@ describe('core/persistence/persistence_user_manager', () => {
       a.stub._get.mockImplementation(async () => persistedUserInA);
 
       const out = await PersistenceUserManager.create(auth, search);
-      expect(a.stub._set).toHaveBeenCalledWith(
+      expect(a.stub._set).toHaveBeenCalledExactlyOnceWith(
         'firebase:authUser:test-api-key:test-app',
         user.toJSON()
       );
       expect(b.stub._set).not.toHaveBeenCalled();
       expect(c.stub._set).not.toHaveBeenCalled();
-      expect(b.stub._remove).toHaveBeenCalledWith(
+      expect(b.stub._remove).toHaveBeenCalledExactlyOnceWith(
         'firebase:authUser:test-api-key:test-app'
       );
-      expect(c.stub._remove).toHaveBeenCalledWith(
+      expect(c.stub._remove).toHaveBeenCalledExactlyOnceWith(
         'firebase:authUser:test-api-key:test-app'
       );
 
@@ -189,16 +189,16 @@ describe('core/persistence/persistence_user_manager', () => {
       b.stub._get.mockImplementation(async () => persistedUserInB);
 
       const out = await PersistenceUserManager.create(auth, search);
-      expect(b.stub._set).toHaveBeenCalledWith(
+      expect(b.stub._set).toHaveBeenCalledExactlyOnceWith(
         'firebase:authUser:test-api-key:test-app',
         user.toJSON()
       );
       expect(a.stub._set).not.toHaveBeenCalled();
       expect(c.stub._set).not.toHaveBeenCalled();
-      expect(a.stub._remove).toHaveBeenCalledWith(
+      expect(a.stub._remove).toHaveBeenCalledExactlyOnceWith(
         'firebase:authUser:test-api-key:test-app'
       );
-      expect(c.stub._remove).toHaveBeenCalledWith(
+      expect(c.stub._remove).toHaveBeenCalledExactlyOnceWith(
         'firebase:authUser:test-api-key:test-app'
       );
 

@@ -31,11 +31,11 @@ export function browserDescribe(
 
       beforeAll(async () => {
         await driver.start(browser);
-      }, 20000);
+      }, 100000);
 
       afterAll(async () => {
         await driver.stop();
-      });
+      }, 100000);
 
       // It's assumed that the tests will start with a clean slate (i.e.
       // no storage).
@@ -43,9 +43,9 @@ export function browserDescribe(
         await driver.closeExtraWindows();
         await driver.reset();
         await driver.injectConfigAndInitAuth();
-      });
+      }, 30000);
 
-      describe(title, { timeout: 20000 }, () => {
+      describe(title, { timeout: 60000 }, () => {
         generator(driver, browser);
       });
     });
