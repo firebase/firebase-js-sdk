@@ -15,7 +15,17 @@
  * limitations under the License.
  */
 
+import path from 'path';
+import { fileURLToPath } from 'url';
 import createBaseConfig from '../../config/vitest.base.mjs';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+const targetBackendArg =
+  process.argv.find(arg => arg.startsWith('--targetBackend='))?.split('=')[1] ||
+  (process.argv.includes('--local')
+    ? 'emulator'
+    : process.env.FIRESTORE_TARGET_BACKEND);
 
 const config = createBaseConfig(import.meta.url);
 
@@ -33,7 +43,7 @@ config.test.projects = config.test.projects.map(project => {
                   ? JSON.parse(project.define['process.env'])
                   : project.define['process.env']
                 : {}),
-              FIRESTORE_TARGET_BACKEND: process.env.FIRESTORE_TARGET_BACKEND,
+              FIRESTORE_TARGET_BACKEND: targetBackendArg,
               FIRESTORE_EMULATOR_PORT: process.env.FIRESTORE_EMULATOR_PORT,
               FIRESTORE_EMULATOR_PROJECT_ID:
                 process.env.FIRESTORE_EMULATOR_PROJECT_ID,
@@ -54,6 +64,14 @@ config.test.projects = config.test.projects.map(project => {
     },
     test: {
       ...project.test,
+      setupFiles: [
+        path.resolve(
+          __dirname,
+          isBrowser ? 'test/setup.browser.ts' : 'test/setup.node.ts'
+        )
+      ],
+      fileParallelism: false,
+      isolate: true,
       testTimeout: 20000,
       hookTimeout: 20000,
       retry: process.env.CI ? 3 : 0,

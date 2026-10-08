@@ -15,11 +15,12 @@
  * limitations under the License.
  */
 
-import '../src/index';
+import '../src/index.node';
 
 import { afterEach, vi } from 'vitest';
 
 afterEach(() => {
   vi.useRealTimers();
   vi.restoreAllMocks();
+  vi.resetAllMocks();
 });

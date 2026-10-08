@@ -1,5 +1,3 @@
-import PROJECT_CONFIG from '../../../../config/project.json';
-
 /**
  * @license
  * Copyright 2022 Google LLC
@@ -17,14 +15,12 @@ import PROJECT_CONFIG from '../../../../config/project.json';
  * limitations under the License.
  */
 
+import PROJECT_CONFIG from '../../../../config/project.json';
+
 /**
  * NOTE: These helpers are used by api/ tests and therefore may not have any
  * dependencies on src/ files.
  */
-// __karma__ is an untyped global
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-declare const __karma__: any;
-
 enum TargetBackend {
   EMULATOR = 'emulator',
   QA = 'qa',
@@ -60,10 +56,6 @@ function parseTargetBackend(targetBackend: string): TargetBackend {
 }
 
 function getTargetBackend(): TargetBackend {
-  const karma = typeof __karma__ !== 'undefined' ? __karma__ : undefined;
-  if (karma && karma.config.targetBackend) {
-    return parseTargetBackend(karma.config.targetBackend);
-  }
   if (process.env.FIRESTORE_TARGET_BACKEND) {
     return parseTargetBackend(process.env.FIRESTORE_TARGET_BACKEND);
   }

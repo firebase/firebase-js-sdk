@@ -102,8 +102,7 @@ class TestClass {
 }
 
 apiDescribe('Validation:', (persistence: boolean) => {
-  // eslint-disable-next-line no-restricted-properties
-  (persistence ? describe.skip : describe)('FirestoreSettings', () => {
+  describe.skipIf(persistence)('FirestoreSettings', () => {
     // Enabling persistence counts as a use of the firestore instance, meaning
     // that it will be impossible to verify that a set of settings don't throw,
     // and additionally that some exceptions happen for specific reasons, rather
