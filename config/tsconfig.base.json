@@ -19,7 +19,7 @@
     "typeRoots": [
       "../node_modules/@types"
     ],
-    "types": ["mocha", "node", "trusted-types"],
+    "types": ["node", "trusted-types"],
     "plugins": [
       {
         "name": "tsec",
