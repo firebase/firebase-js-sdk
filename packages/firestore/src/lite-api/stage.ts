@@ -39,7 +39,9 @@ import {
   Expression,
   Field,
   field,
-  Ordering
+  Ordering,
+  WindowFunction,
+  WindowSpecInternal
 } from './expressions';
 import { Pipeline } from './pipeline';
 import { QueryEnhancement, StageOptions } from './stage_options';
@@ -105,6 +107,55 @@ export class AddFields extends Stage {
 
   _readUserData(context: ParseContext): void {
     super._readUserData(context);
+    readUserDataHelper(this.fields, context);
+  }
+}
+
+/**
+ * Implementation of the `add_window_fields` stage.
+ *
+ * Serializes to a stage with exactly two arguments:
+ * 1. The `window_spec` map, containing the optional `partition` array, the
+ *    optional `sort` array, and at most one of the `documents` or `range`
+ *    frame maps.
+ * 2. The `fields` map, mapping each output field name to either a bare
+ *    aggregate function value (stage level or default framing), or an
+ *    `over(aggregate, frame)` function value (accumulator level framing).
+ */
+export class AddWindowFields extends Stage {
+  get _name(): string {
+    return 'add_window_fields';
+  }
+
+  get _optionsUtil(): OptionsUtil {
+    return new OptionsUtil({});
+  }
+
+  constructor(
+    public readonly window: WindowSpecInternal,
+    public readonly fields: Map<string, AggregateFunction | WindowFunction>,
+    options: StageOptions
+  ) {
+    super(options);
+  }
+
+  /**
+   * @internal
+   * @private
+   */
+  _toProto(serializer: JsonProtoSerializer): ProtoStage {
+    return {
+      ...super._toProto(serializer),
+      args: [
+        this.window._toProto(serializer),
+        toMapValue(serializer, this.fields)
+      ]
+    };
+  }
+
+  _readUserData(context: ParseContext): void {
+    super._readUserData(context);
+    this.window._readUserData(context);
     readUserDataHelper(this.fields, context);
   }
 }

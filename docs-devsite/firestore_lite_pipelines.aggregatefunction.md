@@ -35,6 +35,7 @@ export declare class AggregateFunction
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
 |  [as(name)](./firestore_lite_pipelines.aggregatefunction.md#aggregatefunctionas) |  | Assigns an alias to this AggregateFunction. The alias specifies the name that the aggregated value will have in the output document. |
+|  [over(frame)](./firestore_lite_pipelines.aggregatefunction.md#aggregatefunctionover) |  | Evaluates this aggregate function over a specific window frame, rather than over the window frame defined by the enclosing [Pipeline.addWindowFields()](./firestore_pipelines.pipeline.md#pipelineaddwindowfields) stage.<!-- -->The backend only accepts a frame (<code>documents</code> or <code>range</code>) here, and rejects <code>partition</code> and <code>sort</code>, which must be specified on the enclosing <code>addWindowFields()</code> stage.<!-- -->- In a <code>documents</code> frame, bounds are document offsets relative to the current document's position (<code>'current'</code> refers strictly to the current document's position; tied documents are not included). For <code>preceding</code>, a positive integer (e.g. <code>2</code>) includes up to that many documents before the current document, and a negative integer (e.g. <code>-1</code>) indicates a boundary following the current document, enabling frames that start after the current document. For <code>following</code>, a positive integer (e.g. <code>2</code>) includes up to that many documents after the current document, and a negative integer (e.g. <code>-1</code>) indicates a boundary preceding the current document, enabling frames that end before the current document (e.g. excluding the current document). - In a <code>range</code> frame, bounds are value or time offsets relative to the current document's sort value(s) (<code>'current'</code> is peer-inclusive and includes all documents tied with the current document's sort value(s), equivalent to an offset of <code>0</code>). For <code>preceding</code>, a positive offset subtracts from the current document's sort value (looking into the past), and a negative offset adds to the current document's sort value (shifting the lower boundary past the current document). For <code>following</code>, a positive offset adds to the current document's sort value (looking into the future), and a negative offset subtracts from the current document's sort value (shifting the upper boundary before the current document). Range frames with numeric or time-unit offsets require a single numeric or timestamp <code>sort</code> ordering on the enclosing stage, whereas range frames bounded only by <code>'current'</code> and <code>'unbounded'</code> support multiple <code>sort</code> orderings and non-numeric sort values. |
 
 ## AggregateFunction.(constructor)
 
@@ -90,6 +91,56 @@ A new [AliasedAggregate](./firestore_pipelines.aliasedaggregate.md#aliasedaggreg
 // Calculate the average price of all items and assign it the alias "averagePrice".
 firestore.pipeline().collection("items")
   .aggregate(field("price").average().as("averagePrice"));
+
+```
+
+## AggregateFunction.over()
+
+Evaluates this aggregate function over a specific window frame, rather than over the window frame defined by the enclosing [Pipeline.addWindowFields()](./firestore_pipelines.pipeline.md#pipelineaddwindowfields) stage.
+
+The backend only accepts a frame (`documents` or `range`<!-- -->) here, and rejects `partition` and `sort`<!-- -->, which must be specified on the enclosing `addWindowFields()` stage.
+
+- In a `documents` frame, bounds are document offsets relative to the current document's position (`'current'` refers strictly to the current document's position; tied documents are not included). For `preceding`<!-- -->, a positive integer (e.g. `2`<!-- -->) includes up to that many documents before the current document, and a negative integer (e.g. `-1`<!-- -->) indicates a boundary following the current document, enabling frames that start after the current document. For `following`<!-- -->, a positive integer (e.g. `2`<!-- -->) includes up to that many documents after the current document, and a negative integer (e.g. `-1`<!-- -->) indicates a boundary preceding the current document, enabling frames that end before the current document (e.g. excluding the current document). - In a `range` frame, bounds are value or time offsets relative to the current document's sort value(s) (`'current'` is peer-inclusive and includes all documents tied with the current document's sort value(s), equivalent to an offset of `0`<!-- -->). For `preceding`<!-- -->, a positive offset subtracts from the current document's sort value (looking into the past), and a negative offset adds to the current document's sort value (shifting the lower boundary past the current document). For `following`<!-- -->, a positive offset adds to the current document's sort value (looking into the future), and a negative offset subtracts from the current document's sort value (shifting the upper boundary before the current document). Range frames with numeric or time-unit offsets require a single numeric or timestamp `sort` ordering on the enclosing stage, whereas range frames bounded only by `'current'` and `'unbounded'` support multiple `sort` orderings and non-numeric sort values.
+
+<b>Signature:</b>
+
+```typescript
+over(
+    frame: OneOf<{
+      documents: DocumentWindowFrame;
+      range: RangeWindowFrame;
+    }>
+  ): WindowFunction;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  frame | [OneOf](./firestore_lite_pipelines.md#oneof)<!-- -->&lt;{ documents: [DocumentWindowFrame](./firestore_lite_pipelines.documentwindowframe.md#documentwindowframe_interface)<!-- -->; range: [RangeWindowFrame](./firestore_lite_pipelines.rangewindowframe.md#rangewindowframe_interface)<!-- -->; }&gt; | The <code>documents</code> or <code>range</code> window frame to evaluate this aggregate over. |
+
+<b>Returns:</b>
+
+[WindowFunction](./firestore_lite_pipelines.windowfunction.md#windowfunction_class)
+
+A new [WindowFunction](./firestore_pipelines.windowfunction.md#windowfunction_class)<!-- -->.
+
+### Example
+
+
+```typescript
+firestore.pipeline().collection("sales")
+  .addWindowFields(
+    { sort: ascending('date') },
+    // Cumulative sum up to the current date (including tied peers).
+    sum('amount')
+      .over({ range: { preceding: 'unbounded', following: 'current' } })
+      .as('runningTotal'),
+    // 3-document moving window centered on the current document.
+    average('amount')
+      .over({ documents: { preceding: 1, following: 1 } })
+      .as('movingAverage')
+  );
 
 ```
 

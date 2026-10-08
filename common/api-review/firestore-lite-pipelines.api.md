@@ -30,6 +30,12 @@ export type AddFieldsStageOptions = StageOptions & {
 };
 
 // @public
+export type AddWindowFieldsStageOptions = StageOptions & {
+    window: WindowSpec;
+    fields: Array<AliasedAggregate | AliasedWindowFunction>;
+};
+
+// @public
 export class AggregateFunction {
     constructor(name: string, params: Expression[]);
     /* Excluded from this release type: _methodName */
@@ -37,6 +43,13 @@ export class AggregateFunction {
     /* Excluded from this release type: _methodName */
     // (undocumented)
     exprType: ExpressionType;
+    /* Excluded from this release type: _methodName */
+    over(
+    frame: OneOf<{
+        documents: DocumentWindowFrame;
+        range: RangeWindowFrame;
+    }>
+    ): WindowFunction;
     /* Excluded from this release type: _toProto */
     /* Excluded from this release type: _readUserData */
 }
@@ -72,6 +85,20 @@ export class AliasedExpression implements Selectable {
     exprType: ExpressionType;
     // (undocumented)
     selectable: true;
+    /* Excluded from this release type: _readUserData */
+}
+
+// @public
+export class AliasedWindowFunction {
+    constructor(
+    windowFunction: WindowFunction,
+    alias: string,
+    _methodName: string | undefined
+    );
+    // (undocumented)
+    readonly alias: string;
+    // (undocumented)
+    readonly windowFunction: WindowFunction;
     /* Excluded from this release type: _readUserData */
 }
 
@@ -689,6 +716,12 @@ rquery: string | Expression
 export type DocumentsStageOptions = StageOptions & {
     docs: Array<string | DocumentReference>;
 };
+
+// @public
+export interface DocumentWindowFrame {
+    following: number | 'current' | 'unbounded' | Expression;
+    preceding: number | 'current' | 'unbounded' | Expression;
+}
 
 // @public
 export function dotProduct(
@@ -1412,6 +1445,7 @@ export type ExpressionType =
 | 'Constant'
 | 'Function'
 | 'AggregateFunction'
+| 'WindowFunction'
 | 'ListOfExpressions'
 | 'AliasedExpression'
 | 'Variable'
@@ -2061,6 +2095,12 @@ export class Pipeline {
     /* Excluded from this release type: __constructor */
     addFields(field: Selectable, ...additionalFields: Selectable[]): Pipeline;
     addFields(options: AddFieldsStageOptions): Pipeline;
+    addWindowFields(
+    window: WindowSpec,
+    field: AliasedAggregate | AliasedWindowFunction,
+    ...additionalFields: Array<AliasedAggregate | AliasedWindowFunction>
+    ): Pipeline;
+    addWindowFields(options: AddWindowFieldsStageOptions): Pipeline;
     aggregate(
     accumulator: AliasedAggregate,
     ...additionalAccumulators: AliasedAggregate[]
@@ -2180,6 +2220,27 @@ export function pow(base: string, exponent: number): FunctionExpression;
 
 // @public
 export function rand(): FunctionExpression;
+
+// @public
+export interface RangeWindowFrame {
+    following: number | 'current' | 'unbounded' | Expression;
+    preceding: number | 'current' | 'unbounded' | Expression;
+    unit?:
+    | 'microsecond'
+    | 'millisecond'
+    | 'second'
+    | 'minute'
+    | 'hour'
+    | 'day'
+    | 'week'
+    | 'month'
+    | 'quarter'
+    | 'year'
+    | Expression;
+}
+
+// @public
+export function rank(): WindowFunction;
 
 // @public
 export function regexContains(
@@ -2894,6 +2955,31 @@ export function vectorLength(fieldName: string): FunctionExpression;
 export type WhereStageOptions = StageOptions & {
     condition: BooleanExpression;
 };
+
+// @public
+export class WindowFunction {
+    constructor(name: string, params?: Expression[]);
+    as(name: string): AliasedWindowFunction;
+    // (undocumented)
+    exprType: ExpressionType;
+    over(
+    frame: OneOf<{
+        documents: DocumentWindowFrame;
+        range: RangeWindowFrame;
+    }>
+    ): WindowFunction;
+    /* Excluded from this release type: _toProto */
+    /* Excluded from this release type: _readUserData */
+}
+
+// @public
+export type WindowSpec = {
+    partition?: Array<string | Expression>;
+    sort?: Ordering | Ordering[];
+} & OneOf<{
+    documents?: DocumentWindowFrame;
+    range?: RangeWindowFrame;
+}>;
 
 // @public
 export function xor(

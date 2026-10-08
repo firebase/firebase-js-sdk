@@ -662,8 +662,12 @@ toc:
     path: /docs/reference/js/firestore_lite_pipelines.aliasedaggregate.md
   - title: AliasedExpression
     path: /docs/reference/js/firestore_lite_pipelines.aliasedexpression.md
+  - title: AliasedWindowFunction
+    path: /docs/reference/js/firestore_lite_pipelines.aliasedwindowfunction.md
   - title: BooleanExpression
     path: /docs/reference/js/firestore_lite_pipelines.booleanexpression.md
+  - title: DocumentWindowFrame
+    path: /docs/reference/js/firestore_lite_pipelines.documentwindowframe.md
   - title: Expression
     path: /docs/reference/js/firestore_lite_pipelines.expression.md
   - title: Field
@@ -680,8 +684,12 @@ toc:
     path: /docs/reference/js/firestore_lite_pipelines.pipelinesnapshot.md
   - title: PipelineSource
     path: /docs/reference/js/firestore_lite_pipelines.pipelinesource.md
+  - title: RangeWindowFrame
+    path: /docs/reference/js/firestore_lite_pipelines.rangewindowframe.md
   - title: Selectable
     path: /docs/reference/js/firestore_lite_pipelines.selectable.md
+  - title: WindowFunction
+    path: /docs/reference/js/firestore_lite_pipelines.windowfunction.md
 - title: firestore/pipelines
   path: /docs/reference/js/firestore_pipelines.md
   section:
@@ -691,8 +699,12 @@ toc:
     path: /docs/reference/js/firestore_pipelines.aliasedaggregate.md
   - title: AliasedExpression
     path: /docs/reference/js/firestore_pipelines.aliasedexpression.md
+  - title: AliasedWindowFunction
+    path: /docs/reference/js/firestore_pipelines.aliasedwindowfunction.md
   - title: BooleanExpression
     path: /docs/reference/js/firestore_pipelines.booleanexpression.md
+  - title: DocumentWindowFrame
+    path: /docs/reference/js/firestore_pipelines.documentwindowframe.md
   - title: Expression
     path: /docs/reference/js/firestore_pipelines.expression.md
   - title: Field
@@ -711,8 +723,12 @@ toc:
     path: /docs/reference/js/firestore_pipelines.pipelinesnapshot.md
   - title: PipelineSource
     path: /docs/reference/js/firestore_pipelines.pipelinesource.md
+  - title: RangeWindowFrame
+    path: /docs/reference/js/firestore_pipelines.rangewindowframe.md
   - title: Selectable
     path: /docs/reference/js/firestore_pipelines.selectable.md
+  - title: WindowFunction
+    path: /docs/reference/js/firestore_pipelines.windowfunction.md
 - title: functions
   path: /docs/reference/js/functions.md
   section:
