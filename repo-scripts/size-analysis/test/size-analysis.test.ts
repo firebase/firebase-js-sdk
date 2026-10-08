@@ -249,10 +249,7 @@ describe('extractAllTopLevelSymbols', () => {
       'basicFuncExportFuncDependenciesBar'
     ];
     functionsArray.sort();
-    expect(extractedDeclarations.functions).toEqual(
-      expect.arrayContaining(functionsArray)
-    );
-    expect(extractedDeclarations.functions).toHaveLength(functionsArray.length);
+    expect([...extractedDeclarations.functions].sort()).toEqual(functionsArray);
   });
 
   it('test enums extractions', () => {
@@ -269,11 +266,7 @@ describe('extractAllTopLevelSymbols', () => {
 
   it('test classes extractions', () => {
     const classesArray = ['BasicClassExport'];
-    classesArray.sort();
-    expect(extractedDeclarations.classes).toEqual(
-      expect.arrayContaining(classesArray)
-    );
-    expect(extractedDeclarations.classes).toHaveLength(classesArray.length);
+    expect(extractedDeclarations.classes).toEqual(classesArray);
   });
 });
 
@@ -517,17 +510,15 @@ describe('test extractExternalDependencies helper function', () => {
     const externals: { [key: string]: string[] } =
       extractExternalDependencies(assortedImports);
 
-    expect(externals['./bar']).toEqual(
-      expect.arrayContaining([
+    expect([...externals['./bar']].sort()).toEqual(
+      [
         'basicFuncExternalDependenciesBar',
         'basicFuncExportEnumDependenciesBar',
         'BasicClassExportBar' // extract original name if renamed
-      ])
+      ].sort()
     );
-    expect(externals['./bar']).toHaveLength(3);
     expect(externals['@firebase/logger']).toBeUndefined();
-    expect(externals['fs']).toEqual(expect.arrayContaining(['*'])); // namespace export
-    expect(externals['fs']).toHaveLength(1);
+    expect(externals['fs']).toEqual(['*']); // namespace export
     // expect(externals['@firebase/app']).to.have.members(['default export']); // default export
   });
 });
