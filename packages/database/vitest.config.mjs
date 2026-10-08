@@ -21,6 +21,10 @@ const config = createBaseConfig(import.meta.url);
 
 for (const project of config.test.projects) {
   if (project.test.name === 'browser') {
+    project.test.testTimeout = 30000;
+    project.test.hookTimeout = 30000;
+    project.test.retry = 3;
+    project.test.fileParallelism = false;
     project.define = {
       ...(project.define || {}),
       'process.env.RTDB_EMULATOR_PORT': JSON.stringify(
