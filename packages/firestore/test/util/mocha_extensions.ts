@@ -22,11 +22,18 @@ import {
   getRunEnterpriseTests
 } from '../integration/util/settings';
 
-type ExtendedWithSkipHelpers<T> = T & {
-  skipEmulator: ExtendedWithSkipHelpers<T>;
-  skipEnterprise: ExtendedWithSkipHelpers<T>;
-  skipClassic: ExtendedWithSkipHelpers<T>;
-  skip: ExtendedWithSkipHelpers<T>;
+type SkipChain<S> = S & {
+  skipEmulator: SkipChain<S>;
+  skipEnterprise: SkipChain<S>;
+  skipClassic: SkipChain<S>;
+  skip: SkipChain<S>;
+};
+
+type ExtendedWithSkipHelpers<T, S> = T & {
+  skipEmulator: SkipChain<S>;
+  skipEnterprise: SkipChain<S>;
+  skipClassic: SkipChain<S>;
+  skip: SkipChain<S>;
 };
 
 function getSkip(target: { skip?: unknown }): unknown {
@@ -96,6 +103,9 @@ export function mixinSkipImplementations(obj: unknown): void {
 [it, it.skip, describe, describe.skip].forEach(mixinSkipImplementations);
 
 // Export modified it and describe.
-const extendedIt = it as ExtendedWithSkipHelpers<typeof it>;
-const extendedDescribe = describe as ExtendedWithSkipHelpers<typeof describe>;
+const extendedIt = it as ExtendedWithSkipHelpers<typeof it, typeof it.skip>;
+const extendedDescribe = describe as ExtendedWithSkipHelpers<
+  typeof describe,
+  typeof describe.skip
+>;
 export { extendedIt as it, extendedDescribe as describe };
