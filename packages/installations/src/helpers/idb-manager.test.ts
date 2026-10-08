@@ -195,4 +195,45 @@ describe('idb manager', () => {
       expect(fidChangedModule.fidChanged).not.toHaveBeenCalled();
     });
   });
+
+  describe('closed connection', () => {
+    async function closeCurrentConnection(): Promise<void> {
+      const transactionSpy = vi.spyOn(IDBDatabase.prototype, 'transaction');
+      await get(appConfig);
+      const connection = transactionSpy.mock.contexts[0] as IDBDatabase;
+      transactionSpy.mockRestore();
+      connection.close();
+    }
+
+    it('reopens the database after its connection is closed', async () => {
+      await set(appConfig, VALUE_A);
+      await closeCurrentConnection();
+
+      await set(appConfig, VALUE_B);
+
+      expect(await get(appConfig)).toEqual(VALUE_B);
+    });
+
+    it('reopens the database after it failed to open', async () => {
+      const newerDbName = 'installations-test-newer-version';
+      (
+        await new Promise<IDBDatabase>(resolve => {
+          const request = indexedDB.open(newerDbName, 2);
+          request.onsuccess = () => resolve(request.result);
+        })
+      ).close();
+      const open = indexedDB.open.bind(indexedDB);
+      vi.spyOn(indexedDB, 'open').mockImplementationOnce(() =>
+        open(newerDbName, 1)
+      );
+      await closeCurrentConnection();
+
+      await expect(get(appConfig)).rejects.toThrow();
+      await set(appConfig, VALUE_A);
+
+      expect(await get(appConfig)).toEqual(VALUE_A);
+      vi.mocked(indexedDB.open).mockRestore();
+      indexedDB.deleteDatabase(newerDbName);
+    });
+  });
 });
