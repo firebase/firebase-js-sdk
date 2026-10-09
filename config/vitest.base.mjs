@@ -63,6 +63,18 @@ export function createBaseConfig(importMetaUrl, customConfig = {}) {
           }
         },
         {
+          plugins: [
+            {
+              name: 'disable-vite-etag-cache',
+              configureServer(server) {
+                server.middlewares.use((req, res, next) => {
+                  delete req.headers['if-none-match'];
+                  res.setHeader('Cache-Control', 'no-store');
+                  next();
+                });
+              }
+            }
+          ],
           server: {
             headers: {
               'Cache-Control': 'no-store'
@@ -74,7 +86,11 @@ export function createBaseConfig(importMetaUrl, customConfig = {}) {
             maxWorkers: maxForks,
             browser: {
               enabled: true,
-              provider: playwright(),
+              provider: playwright({
+                launchOptions: {
+                  args: ['--disk-cache-size=1', '--media-cache-size=1']
+                }
+              }),
               instances: [
                 { browser: 'chromium' }
               ],

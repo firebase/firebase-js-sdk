@@ -93,6 +93,9 @@ describe('internal api', () => {
     storageWriteStub = vi
       .spyOn(storage, 'writeTokenToStorage')
       .mockResolvedValue(undefined);
+    vi.spyOn(storage, 'readOrCreateDebugTokenFromStorage').mockResolvedValue(
+      'my-debug-token'
+    );
     vi.spyOn(util, 'getRecaptcha').mockReturnValue(getFakeGreCAPTCHA());
   });
 

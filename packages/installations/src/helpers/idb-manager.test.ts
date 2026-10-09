@@ -17,7 +17,11 @@
 
 import * as fidChangedModule from './fid-changed';
 
-vi.mock('./fid-changed', { spy: true });
+vi.mock('./fid-changed', () => ({
+  addCallback: vi.fn(),
+  removeCallback: vi.fn(),
+  fidChanged: vi.fn()
+}));
 
 import { AppConfig } from '../interfaces/installation-impl';
 import {
