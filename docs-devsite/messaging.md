@@ -25,7 +25,7 @@ The Firebase Cloud Messaging Web SDK. This SDK does not work in a Node.js enviro
 |  [onRegistered(messaging, nextOrObserver)](./messaging.md#onregistered_f8a466e) | Subscribes to an event that the app instance is registered with FCM via Firebase Installation ID (FID). Use the FID passed to the callback to upload it to your application server. When you receive an FID after calling [register()](./messaging.md#register_795bb8a)<!-- -->, instruct your backend to remove any legacy token for this instance. |
 |  [onUnregistered(messaging, nextOrObserver)](./messaging.md#onunregistered_f8a466e) | Subscribes to an event that the app instance is unregistered from FCM (FID no longer active). Use this to notify your backend to remove this FID to prevent 404 errors on send. |
 |  [register(messaging, options)](./messaging.md#register_795bb8a) | Registers the app instance with FCM using its Firebase Installation ID (FID). The FID is delivered via the [onRegistered()](./messaging.md#onregistered_f8a466e) callback, not as a return value. Call this to establish an FID-based identity; once [onRegistered()](./messaging.md#onregistered_f8a466e) provides an FID, instruct your backend to remove any legacy token previously associated with this instance. The backend send API supports FID as a target. |
-|  [unregister(messaging)](./messaging.md#unregister_3fae4b1) | Unregisters the app instance from FCM by deleting its FID-based registration. On success, triggers [onUnregistered()](./messaging.md#onunregistered_f8a466e) (if registered) with the unregistered FID. |
+|  [unregister(messaging)](./messaging.md#unregister_3fae4b1) | Unregisters the app instance from FCM: deletes its FID-based registration, clears local metadata and, when the service worker registration is known to this [Messaging](./messaging.messaging.md#messaging_interface) instance (for example, after [register()](./messaging.md#register_795bb8a) was called on it), unsubscribes the browser push subscription. On success, triggers [onUnregistered()](./messaging.md#onunregistered_f8a466e) (if registered) with the unregistered FID. |
 |  <b>function()</b> |
 |  [isSupported()](./messaging.md#issupported) | Checks if all required APIs exist in the browser. |
 
@@ -219,7 +219,7 @@ Promise that resolves when registration has been initiated; FID is delivered via
 
 ### unregister(messaging) {:#unregister_3fae4b1}
 
-Unregisters the app instance from FCM by deleting its FID-based registration. On success, triggers [onUnregistered()](./messaging.md#onunregistered_f8a466e) (if registered) with the unregistered FID.
+Unregisters the app instance from FCM: deletes its FID-based registration, clears local metadata and, when the service worker registration is known to this [Messaging](./messaging.messaging.md#messaging_interface) instance (for example, after [register()](./messaging.md#register_795bb8a) was called on it), unsubscribes the browser push subscription. On success, triggers [onUnregistered()](./messaging.md#onunregistered_f8a466e) (if registered) with the unregistered FID.
 
 <b>Signature:</b>
 
