@@ -17,6 +17,7 @@
 
 import createBaseConfig from '../../config/vitest.base.mjs';
 import { AuthErrorCodes } from '@firebase/auth';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 
 const projectJsonPath = fileURLToPath(
@@ -45,10 +46,13 @@ function authInternalPlugin() {
     transform(code, id) {
       const cleanId = id.split('?')[0];
       if (cleanId.endsWith('.ts') && code.includes('config/project.json')) {
+        const replacement = fs.existsSync(projectJsonPath)
+          ? `import $1 from ${JSON.stringify(projectJsonPath)};`
+          : `const $1 = {};`;
         return {
           code: code.replace(
             /const (\w+) = require\([^)]*config\/project\.json[^)]*\);/g,
-            `import $1 from ${JSON.stringify(projectJsonPath)};`
+            replacement
           ),
           map: null
         };
