@@ -19,8 +19,8 @@ https://github.com/firebase/firebase-js-sdk
 |  [getCrashlytics(app, options)](./crashlytics.md#getcrashlytics_a9d22a1) | Returns the default [Crashlytics](./crashlytics.crashlytics.md#crashlytics_interface) instance that is associated with the provided [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. If no instance exists, initializes a new instance with the default settings. |
 |  <b>function(crashlytics, ...)</b> |
 |  [flush(crashlytics)](./crashlytics.md#flush_16fdf66) | Flushes all enqueued Crashlytics data immediately, instead of waiting for default batching. |
-|  [getOtelLoggerProvider(crashlytics)](./crashlytics.md#getotelloggerprovider_16fdf66) | Retrieves the OpenTelemetry LoggerProvider instance used by Crashlytics. |
-|  [recordError(crashlytics, error, attributes)](./crashlytics.md#recorderror_6824e74) | Enqueues an error to be uploaded to the Firebase Crashlytics API. |
+|  [log(crashlytics, message, attributes)](./crashlytics.md#log_a58b551) | Queues a log message to be uploaded to the Firebase Crashlytics API. |
+|  [recordError(crashlytics, error, attributes)](./crashlytics.md#recorderror_6824e74) | Queues an error to be uploaded to the Firebase Crashlytics API. |
 |  <b>function(crashlyticsOptions, ...)</b> |
 |  [nextOnRequestError(crashlyticsOptions)](./crashlytics.md#nextonrequesterror_3caf5de) | Automatically report uncaught errors from server routes to Firebase Crashlytics. |
 
@@ -94,14 +94,14 @@ Promise&lt;void&gt;
 
 a promise which is resolved when all flushes are complete
 
-### getOtelLoggerProvider(crashlytics) {:#getotelloggerprovider_16fdf66}
+### log(crashlytics, message, attributes) {:#log_a58b551}
 
-Retrieves the OpenTelemetry LoggerProvider instance used by Crashlytics.
+Queues a log message to be uploaded to the Firebase Crashlytics API.
 
 <b>Signature:</b>
 
 ```typescript
-export declare function getOtelLoggerProvider(crashlytics: Crashlytics): LoggerProvider;
+export declare function log(crashlytics: Crashlytics, message: string, attributes?: AnyValueMap): void;
 ```
 
 #### Parameters
@@ -109,16 +109,16 @@ export declare function getOtelLoggerProvider(crashlytics: Crashlytics): LoggerP
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  crashlytics | [Crashlytics](./crashlytics.crashlytics.md#crashlytics_interface) | The [Crashlytics](./crashlytics.crashlytics.md#crashlytics_interface) instance. |
+|  message | string | The message to log. |
+|  attributes | AnyValueMap | Optional, arbitrary attributes to attach to the log. |
 
 <b>Returns:</b>
 
-LoggerProvider
-
-The underlying OpenTelemetry LoggerProvider.
+void
 
 ### recordError(crashlytics, error, attributes) {:#recorderror_6824e74}
 
-Enqueues an error to be uploaded to the Firebase Crashlytics API.
+Queues an error to be uploaded to the Firebase Crashlytics API.
 
 <b>Signature:</b>
 
