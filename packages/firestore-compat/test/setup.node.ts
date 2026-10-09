@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2022 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,12 @@
  * limitations under the License.
  */
 
-const path = require('path');
-const register = require('@babel/register');
-(register.default || register)({
-  extensions: ['.js', '.ts'],
-  configFile: path.resolve(__dirname, 'babel.config.json')
+import '../src/index.node';
+
+import { afterEach, vi } from 'vitest';
+
+afterEach(() => {
+  vi.useRealTimers();
+  vi.restoreAllMocks();
+  vi.resetAllMocks();
 });

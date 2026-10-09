@@ -16,7 +16,6 @@
  */
 
 import type { Timestamp as TimestampInstance } from '@firebase/firestore-types';
-import { expect } from 'chai';
 
 import * as firebaseExport from './util/firebase_export';
 import {
@@ -46,12 +45,12 @@ apiDescribe('Cursors', (persistence: boolean) => {
         .limit(2)
         .get()
         .then(docs => {
-          expect(toDataArray(docs)).to.deep.equal([{ v: 'a' }, { v: 'b' }]);
+          expect(toDataArray(docs)).toEqual([{ v: 'a' }, { v: 'b' }]);
           const lastDoc = docs.docs[docs.docs.length - 1];
           return coll.limit(3).startAfter(lastDoc).get();
         })
         .then(docs => {
-          expect(toDataArray(docs)).to.deep.equal([
+          expect(toDataArray(docs)).toEqual([
             { v: 'c' },
             { v: 'd' },
             { v: 'e' }
@@ -60,12 +59,12 @@ apiDescribe('Cursors', (persistence: boolean) => {
           return coll.limit(1).startAfter(lastDoc).get();
         })
         .then(docs => {
-          expect(toDataArray(docs)).to.deep.equal([{ v: 'f' }]);
+          expect(toDataArray(docs)).toEqual([{ v: 'f' }]);
           const lastDoc = docs.docs[docs.docs.length - 1];
           return coll.limit(3).startAfter(lastDoc).get();
         })
         .then(docs => {
-          expect(toDataArray(docs)).to.deep.equal([]);
+          expect(toDataArray(docs)).toEqual([]);
         });
     });
   });
@@ -85,12 +84,12 @@ apiDescribe('Cursors', (persistence: boolean) => {
         .doc('c')
         .get()
         .then(doc => {
-          expect(doc.data()).to.deep.equal({ k: 'c', sort: 2 });
+          expect(doc.data()).toEqual({ k: 'c', sort: 2 });
           return query
             .startAt(doc)
             .get()
             .then(docs => {
-              expect(toDataArray(docs)).to.deep.equal([
+              expect(toDataArray(docs)).toEqual([
                 { k: 'c', sort: 2 },
                 { k: 'd', sort: 2 }
               ]);
@@ -98,7 +97,7 @@ apiDescribe('Cursors', (persistence: boolean) => {
             });
         })
         .then(docs => {
-          expect(toDataArray(docs)).to.deep.equal([
+          expect(toDataArray(docs)).toEqual([
             { k: 'e', sort: 0 },
             { k: 'a', sort: 1 },
             { k: 'b', sort: 2 }
@@ -122,7 +121,7 @@ apiDescribe('Cursors', (persistence: boolean) => {
         .startAt(2)
         .get()
         .then(docs => {
-          expect(toDataArray(docs)).to.deep.equal([
+          expect(toDataArray(docs)).toEqual([
             { k: 'b', sort: 2 },
             { k: 'c', sort: 2 },
             { k: 'd', sort: 2 }
@@ -130,7 +129,7 @@ apiDescribe('Cursors', (persistence: boolean) => {
           return query.endBefore(2).get();
         })
         .then(docs => {
-          expect(toDataArray(docs)).to.deep.equal([
+          expect(toDataArray(docs)).toEqual([
             { k: 'e', sort: 0 },
             { k: 'a', sort: 1 }
           ]);
@@ -168,7 +167,7 @@ apiDescribe('Cursors', (persistence: boolean) => {
             .get();
         })
         .then(docs => {
-          expect(toDataArray(docs)).to.deep.equal([{ k: 'b' }, { k: 'c' }]);
+          expect(toDataArray(docs)).toEqual([{ k: 'b' }, { k: 'c' }]);
         });
     });
   });
@@ -190,7 +189,7 @@ apiDescribe('Cursors', (persistence: boolean) => {
           .endAt(db.collection('2').doc('b'))
           .get()
           .then(docs => {
-            expect(toDataArray(docs).map(v => v['k'])).to.deep.equal([
+            expect(toDataArray(docs).map(v => v['k'])).toEqual([
               '1b',
               '2a',
               '2b'
@@ -218,7 +217,7 @@ apiDescribe('Cursors', (persistence: boolean) => {
         .startAt(2)
         .get()
         .then(docs => {
-          expect(toDataArray(docs)).to.deep.equal([
+          expect(toDataArray(docs)).toEqual([
             { k: 'c', sort: 2 },
             { k: 'b', sort: 2 },
             { k: 'a', sort: 1 },
@@ -227,7 +226,7 @@ apiDescribe('Cursors', (persistence: boolean) => {
           return query.endBefore(2).get();
         })
         .then(docs => {
-          expect(toDataArray(docs)).to.deep.equal([{ k: 'd', sort: 3 }]);
+          expect(toDataArray(docs)).toEqual([{ k: 'd', sort: 3 }]);
         });
     });
   });
@@ -254,7 +253,7 @@ apiDescribe('Cursors', (persistence: boolean) => {
         .endAt(makeTimestamp(100, 5))
         .get()
         .then(docs => {
-          expect(toIds(docs)).to.deep.equal(['c', 'f', 'b', 'e']);
+          expect(toIds(docs)).toEqual(['c', 'f', 'b', 'e']);
         });
     });
   });
@@ -273,7 +272,7 @@ apiDescribe('Cursors', (persistence: boolean) => {
         .where('timestamp', '<', makeTimestamp(100, 8))
         .get()
         .then(docs => {
-          expect(toIds(docs)).to.deep.equal(['d', 'e', 'a']);
+          expect(toIds(docs)).toEqual(['d', 'e', 'a']);
         });
     });
   });
@@ -291,21 +290,21 @@ apiDescribe('Cursors', (persistence: boolean) => {
         .where('timestamp', '==', nanos)
         .get()
         .then(docs => {
-          expect(toIds(docs)).to.deep.equal(['a']);
+          expect(toIds(docs)).toEqual(['a']);
           return coll.where('timestamp', '==', micros).get();
         })
         .then(docs => {
           // Because Timestamp should have been truncated to microseconds, the
           // microsecond timestamp should be considered equal to the
           // nanosecond one.
-          expect(toIds(docs)).to.deep.equal(['a']);
+          expect(toIds(docs)).toEqual(['a']);
           return coll.where('timestamp', '==', millis).get();
         })
         .then(docs => {
           // The truncation is just to the microseconds, however, so the
           // millisecond timestamp should be treated as different and thus the
           // query should return no results.
-          expect(toIds(docs)).to.be.empty;
+          expect(toIds(docs)).toHaveLength(0);
         });
     });
   });

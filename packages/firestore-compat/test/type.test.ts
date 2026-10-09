@@ -16,7 +16,6 @@
  */
 
 import type * as firestore from '@firebase/firestore-types';
-import { expect } from 'chai';
 
 import { addEqualityMatcher } from './util/equality_matcher';
 import { EventsAccumulator } from './util/events_accumulator';
@@ -43,29 +42,29 @@ apiDescribe('Firestore', (persistence: boolean) => {
 
     await doc.set(data);
     let docSnapshot = await doc.get();
-    expect(docSnapshot.data()).to.deep.equal(expectedData);
+    expect(docSnapshot.data()).toEqual(expectedData);
 
     await doc.update(data);
     docSnapshot = await doc.get();
-    expect(docSnapshot.data()).to.deep.equal(expectedData);
+    expect(docSnapshot.data()).toEqual(expectedData);
 
     // Validate that the transaction API returns the same types
     await db.runTransaction(async transaction => {
       docSnapshot = await transaction.get(doc);
-      expect(docSnapshot.data()).to.deep.equal(expectedData);
+      expect(docSnapshot.data()).toEqual(expectedData);
     });
 
     if (validateSnapshots) {
       let querySnapshot = await collection.get();
       docSnapshot = querySnapshot.docs[0];
-      expect(docSnapshot.data()).to.deep.equal(expectedData);
+      expect(docSnapshot.data()).toEqual(expectedData);
 
       const eventsAccumulator =
         new EventsAccumulator<firestore.QuerySnapshot>();
       const unlisten = collection.onSnapshot(eventsAccumulator.storeEvent);
       querySnapshot = await eventsAccumulator.awaitEvent();
       docSnapshot = querySnapshot.docs[0];
-      expect(docSnapshot.data()).to.deep.equal(expectedData);
+      expect(docSnapshot.data()).toEqual(expectedData);
 
       unlisten();
     }
@@ -107,14 +106,14 @@ apiDescribe('Firestore', (persistence: boolean) => {
       });
 
       const latLong = docSnapshot.data()!['geopoint1'];
-      expect(latLong instanceof GeoPoint).to.equal(true);
-      expect(latLong.latitude).to.equal(1.23);
-      expect(latLong.longitude).to.equal(4.56);
+      expect(latLong instanceof GeoPoint).toBe(true);
+      expect(latLong.latitude).toBe(1.23);
+      expect(latLong.longitude).toBe(4.56);
 
       const zeroLatLong = docSnapshot.data()!['geopoint2'];
-      expect(zeroLatLong instanceof GeoPoint).to.equal(true);
-      expect(zeroLatLong.latitude).to.equal(0);
-      expect(zeroLatLong.longitude).to.equal(0);
+      expect(zeroLatLong instanceof GeoPoint).toBe(true);
+      expect(zeroLatLong.latitude).toBe(0);
+      expect(zeroLatLong.longitude).toBe(0);
     });
   });
 
@@ -130,7 +129,7 @@ apiDescribe('Firestore', (persistence: boolean) => {
       // Comment this change back in once this is complete (note that this
       // check passes in the legacy API).
       // expect(blob instanceof Blob).to.equal(true);
-      expect(blob.toUint8Array()).to.deep.equal(new Uint8Array([0, 1, 255]));
+      expect(blob.toUint8Array()).toEqual(new Uint8Array([0, 1, 255]));
     });
   });
 
