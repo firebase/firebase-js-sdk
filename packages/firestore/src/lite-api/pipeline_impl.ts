@@ -49,7 +49,7 @@ declare module './database' {
 }
 
 /**
- * Executes this pipeline and returns a Promise to represent the asynchronous operation.
+ * Executes a pipeline and returns a Promise to represent the asynchronous operation.
  *
  * The returned Promise can be used to track the progress of the pipeline execution
  * and retrieve the results (or handle any errors) asynchronously.
@@ -64,7 +64,7 @@ declare module './database' {
  *   <li>If there are no stages or only transformation stages, each {@link @firebase/firestore/pipelines#PipelineResult}
  *       represents a single document.</li>
  *   <li>If there is an aggregation, only a single {@link @firebase/firestore/pipelines#PipelineResult} is returned,
- *       representing the aggregated results over the entire dataset .</li>
+ *       representing the aggregated results over the entire dataset.</li>
  *   <li>If there is an aggregation stage with grouping, each {@link @firebase/firestore/pipelines#PipelineResult} represents a
  *       distinct group and its associated aggregated values.</li>
  * </ul>
@@ -72,10 +72,10 @@ declare module './database' {
  * @example
  * ```typescript
  * const snapshot: PipelineSnapshot = await execute(firestore.pipeline().collection("books")
- *     .where(gt(field("rating"), 4.5))
+ *     .where(greaterThan(field("rating"), 4.5))
  *     .select("title", "author", "rating"));
  *
- * const results: PipelineResults = snapshot.results;
+ * const results: PipelineResult[] = snapshot.results;
  * ```
  *
  * @param pipeline - The pipeline to execute.
@@ -83,9 +83,36 @@ declare module './database' {
  */
 export function execute(pipeline: Pipeline): Promise<PipelineSnapshot>;
 /**
- * Executes a pipeline with options and returns a Promise to represent the asynchronous operation.
+ * Executes a pipeline and returns a Promise to represent the asynchronous operation.
  *
- * @param options - Specifies the pipeline to execute and options.
+ * The returned Promise can be used to track the progress of the pipeline execution
+ * and retrieve the results (or handle any errors) asynchronously.
+ *
+ * The pipeline results are returned as a {@link @firebase/firestore/pipelines#PipelineSnapshot} that contains
+ * a list of {@link @firebase/firestore/pipelines#PipelineResult} objects. Each {@link @firebase/firestore/pipelines#PipelineResult} typically
+ * represents a single key/value map that has passed through all the
+ * stages of the pipeline, however this might differ depending on the stages involved in the
+ * pipeline. For example:
+ *
+ * <ul>
+ *   <li>If there are no stages or only transformation stages, each {@link @firebase/firestore/pipelines#PipelineResult}
+ *       represents a single document.</li>
+ *   <li>If there is an aggregation, only a single {@link @firebase/firestore/pipelines#PipelineResult} is returned,
+ *       representing the aggregated results over the entire dataset.</li>
+ *   <li>If there is an aggregation stage with grouping, each {@link @firebase/firestore/pipelines#PipelineResult} represents a
+ *       distinct group and its associated aggregated values.</li>
+ * </ul>
+ *
+ * @example
+ * ```typescript
+ * const snapshot: PipelineSnapshot = await execute(firestore.pipeline().collection("books")
+ *     .where(greaterThan(field("rating"), 4.5))
+ *     .select("title", "author", "rating"));
+ *
+ * const results: PipelineResult[] = snapshot.results;
+ * ```
+ *
+ * @param options - Specifies the pipeline to execute and other options for execute.
  * @returns A Promise representing the asynchronous pipeline execution.
  */
 export function execute(

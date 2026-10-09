@@ -454,31 +454,24 @@ export type UpdateStageOptions = StageOptions & {
  *
  * The target document path for each inserted document is determined by the
  * combination of `collection` and `documentIdExpression`:
- * - **Neither set:** Inserts into the input document's parent collection using
- *   its `__name__` key. To avoid colliding with the existing source document,
- *   remove `__name__` first (e.g. via `.removeFields('__name__')`) so that a
- *   new document ID is auto-generated in the same collection.
+ * - **Neither set:** Inserts each document using its existing `__name__` key.
+ *   If the document does not have a `__name__` key (for example, when inputs
+ *   come from {@link @firebase/firestore/pipelines#PipelineSource.(literals:1)}, which do not have a `__name__`
+ *   key, or after `.removeFields('__name__')`), a new document ID is
+ *   auto-generated.
  * - **`collection` only:** Inserts into `collection`. If the input document
- *   still has a `__name__` field, its document ID is reused (provided its
- *   parent collection matches `collection`); otherwise a new document ID is
- *   auto-generated (e.g. when inputs come from {@link @firebase/firestore/pipelines#PipelineSource.(literals:1)} or
- *   after `.removeFields('__name__')`).
+ *   has a `__name__` field, its document ID is reused; otherwise a new
+ *   document ID is auto-generated (for example, when inputs come from
+ *   {@link @firebase/firestore/pipelines#PipelineSource.(literals:1)} or after `.removeFields('__name__')`).
  * - **`documentIdExpression` only:** Inserts into the input document's parent
- *   collection using the evaluated document ID (requires input documents to
- *   have a `__name__` field; not valid with {@link @firebase/firestore/pipelines#PipelineSource.(literals:1)} unless
- *   `collection` is also set).
+ *   collection using the evaluated document ID.
  * - **Both `collection` and `documentIdExpression` set:** Inserts into
- *   `collection` using the evaluated document ID (works with any pipeline
- *   input, including {@link @firebase/firestore/pipelines#PipelineSource.(literals:1)}).
- *
- * The `__name__` field is stripped from the written document data in all cases.
+ *   `collection` using the evaluated document ID.
  */
 export type InsertStageOptions = StageOptions & {
   /**
    * The target collection path or {@link @firebase/firestore#CollectionReference} to insert
-   * documents into. Required when input documents do not have an existing
-   * `__name__` field (such as documents from {@link @firebase/firestore/pipelines#PipelineSource.(literals:1)}), or
-   * when inserting into a different collection than the source documents.
+   * documents into. If omitted, the input document's parent collection is used.
    */
   collection?: string | CollectionReference;
   /**
@@ -495,8 +488,9 @@ export type InsertStageOptions = StageOptions & {
    * - The evaluated result must be a non-empty string containing a bare
    *   document ID (without `/` path separators).
    * - When omitted, the document ID is taken from the input document's
-   *   `__name__` field if present, or auto-generated when `collection` is
-   *   specified and `__name__` is absent.
+   *   `__name__` field if present; otherwise a new document ID is
+   *   auto-generated (for example, when inputs come from
+   *   {@link @firebase/firestore/pipelines#PipelineSource.(literals:1)} or after `.removeFields('__name__')`).
    */
   documentIdExpression?: string | Expression;
 };
@@ -507,30 +501,23 @@ export type InsertStageOptions = StageOptions & {
  * The target document path for each upserted document is determined by the
  * combination of `collection` and `documentIdExpression`:
  * - **Neither set:** Upserts each input document in place at its existing
- *   `__name__` path. If `__name__` was removed (e.g. via
- *   `.removeFields('__name__')`), a new document ID is auto-generated in the
- *   source document's parent collection.
+ *   `__name__` path. If the document does not have a `__name__` key (for
+ *   example, when inputs come from
+ *   {@link @firebase/firestore/pipelines#PipelineSource.(literals:1)} or after `.removeFields('__name__')`), a
+ *   new document ID is auto-generated.
  * - **`collection` only:** Upserts into `collection`. If the input document
- *   still has a `__name__` field, its document ID is reused (provided its
- *   parent collection matches `collection`); otherwise a new document ID is
- *   auto-generated (e.g. when inputs come from {@link @firebase/firestore/pipelines#PipelineSource.(literals:1)} or
- *   after `.removeFields('__name__')`).
+ *   has a `__name__` field, its document ID is reused; otherwise a new
+ *   document ID is auto-generated (for example, when inputs come from
+ *   {@link @firebase/firestore/pipelines#PipelineSource.(literals:1)} or after `.removeFields('__name__')`).
  * - **`documentIdExpression` only:** Upserts into the input document's parent
- *   collection using the evaluated document ID (requires input documents to
- *   have a `__name__` field; not valid with {@link @firebase/firestore/pipelines#PipelineSource.(literals:1)} unless
- *   `collection` is also set).
+ *   collection using the evaluated document ID.
  * - **Both `collection` and `documentIdExpression` set:** Upserts into
- *   `collection` using the evaluated document ID (works with any pipeline
- *   input, including {@link @firebase/firestore/pipelines#PipelineSource.(literals:1)}).
- *
- * The `__name__` field is stripped from the written document data in all cases.
+ *   `collection` using the evaluated document ID.
  */
 export type UpsertStageOptions = StageOptions & {
   /**
    * The target collection path or {@link @firebase/firestore#CollectionReference} to upsert
-   * documents into. Required when input documents do not have an existing
-   * `__name__` field (such as documents from {@link @firebase/firestore/pipelines#PipelineSource.(literals:1)}), or
-   * when upserting into a different collection than the source documents.
+   * documents into. If omitted, the input document's parent collection is used.
    */
   collection?: string | CollectionReference;
   /**
@@ -547,8 +534,9 @@ export type UpsertStageOptions = StageOptions & {
    * - The evaluated result must be a non-empty string containing a bare
    *   document ID (without `/` path separators).
    * - When omitted, the document ID is taken from the input document's
-   *   `__name__` field if present, or auto-generated when `collection` is
-   *   specified and `__name__` is absent.
+   *   `__name__` field if present; otherwise a new document ID is
+   *   auto-generated (for example, when inputs come from
+   *   {@link @firebase/firestore/pipelines#PipelineSource.(literals:1)} or after `.removeFields('__name__')`).
    */
   documentIdExpression?: string | Expression;
   /**

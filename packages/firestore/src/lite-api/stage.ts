@@ -34,7 +34,7 @@ import {
 import { hardAssert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { isPlainObject } from '../util/input_validation';
-import { selectablesToMap } from '../util/pipeline_util';
+import { fieldOrExpression, selectablesToMap } from '../util/pipeline_util';
 
 import {
   AggregateFunction,
@@ -48,6 +48,7 @@ import {
   Ordering
 } from './expressions';
 import { Pipeline } from './pipeline';
+import { CollectionReference } from './reference';
 import {
   DeleteStageOptions,
   InsertStageOptions,
@@ -281,9 +282,7 @@ export class CollectionSource extends Stage {
     super(options);
 
     // prepend slash to collection string
-    this.formattedCollectionPath = collection.startsWith('/')
-      ? collection
-      : '/' + collection;
+    this.formattedCollectionPath = normalizeCollectionPath(collection);
   }
 
   /**
@@ -1080,17 +1079,10 @@ export class Insert extends Stage {
     const { collection, documentIdExpression, ...rest } = options;
     super(rest);
     if (collection) {
-      this.collectionPath =
-        typeof collection === 'string' ? collection : collection.path;
-      if (!this.collectionPath.startsWith('/')) {
-        this.collectionPath = '/' + this.collectionPath;
-      }
+      this.collectionPath = normalizeCollectionPath(collection);
     }
     if (documentIdExpression) {
-      this.documentIdExpr =
-        typeof documentIdExpression === 'string'
-          ? field(documentIdExpression)
-          : documentIdExpression;
+      this.documentIdExpr = fieldOrExpression(documentIdExpression);
     }
   }
 
@@ -1141,17 +1133,10 @@ export class Upsert extends Stage {
     super(rest);
     this.additionalFields = selectablesToMap(additionalFields ?? []);
     if (collection) {
-      this.collectionPath =
-        typeof collection === 'string' ? collection : collection.path;
-      if (!this.collectionPath.startsWith('/')) {
-        this.collectionPath = '/' + this.collectionPath;
-      }
+      this.collectionPath = normalizeCollectionPath(collection);
     }
     if (documentIdExpression) {
-      this.documentIdExpr =
-        typeof documentIdExpression === 'string'
-          ? field(documentIdExpression)
-          : documentIdExpression;
+      this.documentIdExpr = fieldOrExpression(documentIdExpression);
     }
   }
 
@@ -1185,6 +1170,13 @@ export class Upsert extends Stage {
       readUserDataHelper(this.documentIdExpr, context);
     }
   }
+}
+
+function normalizeCollectionPath(
+  collection: string | CollectionReference
+): string {
+  const path = typeof collection === 'string' ? collection : collection.path;
+  return path.startsWith('/') ? path : '/' + path;
 }
 
 /**

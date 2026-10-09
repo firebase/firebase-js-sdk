@@ -21,7 +21,6 @@ import {
   Stage as ProtoStage
 } from '../protos/firestore_proto_api';
 import { JsonProtoSerializer, ProtoSerializable } from '../remote/serializer';
-import { Code, FirestoreError } from '../util/error';
 import { isPlainObject } from '../util/input_validation';
 import {
   aliasedAggregateToMap,
@@ -1639,13 +1638,8 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
 
     if (isAliasedExpr(transformedFieldOrOptions)) {
       fields = [transformedFieldOrOptions, ...additionalFields];
-    } else if (isPlainObject(transformedFieldOrOptions)) {
+    } else if (transformedFieldOrOptions) {
       ({ transformedFields: fields, ...options } = transformedFieldOrOptions);
-    } else if (transformedFieldOrOptions !== undefined) {
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        'Invalid argument provided to Pipeline.update()'
-      );
     }
 
     const mapped =
@@ -1704,13 +1698,8 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
       options = {
         additionalFields: [fieldOrOptions, ...additionalFields]
       };
-    } else if (isPlainObject(fieldOrOptions)) {
+    } else if (fieldOrOptions) {
       options = fieldOrOptions;
-    } else if (fieldOrOptions !== undefined) {
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        'Invalid argument provided to Pipeline.upsert()'
-      );
     }
 
     return this._addStage(new Upsert(options));

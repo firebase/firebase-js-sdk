@@ -2379,8 +2379,8 @@ apiDescribe.skipClassic('Pipelines', persistence => {
         const ppl = firestore
           .pipeline()
           .collection(randomCol.path)
-          .where(equal(field('__name__').documentId(), 'book3'))
-          .addFields(field('__name__').documentId().as('id'))
+          .where(field(documentIdFieldPath()).equal(doc(randomCol, 'book3')))
+          .addFields(field(documentIdFieldPath()).documentId().as('id'))
           .update(constant('baz').as('foo'));
 
         const res = await execute(ppl);
@@ -2398,7 +2398,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
             .collection(randomCol.path)
             .where(equal(field('genre'), 'Science Fiction'))
             .removeFields('awards')
-            .update({ transformedFields: [constant('Updated').as('status')] })
+            .update(constant('Updated').as('status'))
         );
         expectResults(res, { documents_modified: 2 });
 
@@ -2416,7 +2416,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           firestore
             .pipeline()
             .collection(randomCol.path)
-            .where(equal(field('__name__').documentId(), 'book1'))
+            .where(field(documentIdFieldPath()).equal(doc(randomCol, 'book1')))
             .update(add(field('rating'), constant(1.0)).as('rating'))
         );
         expectResults(res, { documents_modified: 1 });
@@ -2430,7 +2430,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           firestore
             .pipeline()
             .collection(randomCol.path)
-            .where(equal(field('__name__').documentId(), 'book1'))
+            .where(field(documentIdFieldPath()).equal(doc(randomCol, 'book1')))
             .update(constant('UpdatedVariadic').as('status'))
         );
         expectResults(res, { documents_modified: 1 });
@@ -2444,7 +2444,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           firestore
             .pipeline()
             .collection(randomCol.path)
-            .where(equal(field('__name__').documentId(), 'book1'))
+            .where(field(documentIdFieldPath()).equal(doc(randomCol, 'book1')))
             .update(
               constant('UpdatedMulti').as('status'),
               constant(99).as('newField')
@@ -2473,7 +2473,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           pipeline: firestore
             .pipeline()
             .collection(randomCol.path)
-            .where(equal(field('__name__').documentId(), 'book1'))
+            .where(field(documentIdFieldPath()).equal(doc(randomCol, 'book1')))
             .update(constant('AtomicUpdate').as('status')),
           atomic: true
         });
@@ -2488,7 +2488,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           pipeline: firestore
             .pipeline()
             .collection(randomCol.path)
-            .where(equal(field('__name__').documentId(), 'book2'))
+            .where(field(documentIdFieldPath()).equal(doc(randomCol, 'book2')))
             .delete(),
           atomic: false
         });
@@ -2503,7 +2503,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           pipeline: firestore
             .pipeline()
             .collection(randomCol.path)
-            .where(equal(field('__name__').documentId(), 'book1'))
+            .where(field(documentIdFieldPath()).equal(doc(randomCol, 'book1')))
             .removeFields('__name__')
             .insert({ collection: randomCol }),
           atomic: true
@@ -2524,7 +2524,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           pipeline: firestore
             .pipeline()
             .collection(randomCol.path)
-            .where(equal(field('__name__').documentId(), 'book1'))
+            .where(field(documentIdFieldPath()).equal(doc(randomCol, 'book1')))
             .insert({ collection: targetColRef }),
           atomic: true
         });
@@ -2552,7 +2552,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           pipeline: firestore
             .pipeline()
             .collection(randomCol.path)
-            .where(equal(field('__name__').documentId(), 'book1'))
+            .where(field(documentIdFieldPath()).equal(doc(randomCol, 'book1')))
             .addFields(constant('my_custom_id_123').as('customIdField'))
             .insert({
               collection: targetColRef,
@@ -2582,7 +2582,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           pipeline: firestore
             .pipeline()
             .collection(randomCol.path)
-            .where(equal(field('__name__').documentId(), 'book1'))
+            .where(field(documentIdFieldPath()).equal(doc(randomCol, 'book1')))
             .insert({
               collection: targetColRef,
               documentIdExpression: field('genre')
@@ -2609,7 +2609,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           pipeline: firestore
             .pipeline()
             .collection(randomCol.path)
-            .where(equal(field('__name__').documentId(), 'book1'))
+            .where(field(documentIdFieldPath()).equal(doc(randomCol, 'book1')))
             .upsert({
               additionalFields: [
                 constant('Sci-Fi').as('genre'),
@@ -2633,7 +2633,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           pipeline: firestore
             .pipeline()
             .collection(randomCol.path)
-            .where(equal(field('__name__').documentId(), 'book1'))
+            .where(field(documentIdFieldPath()).equal(doc(randomCol, 'book1')))
             .upsert({
               additionalFields: [
                 constant('Comedy Sci-Fi').as('genre'),
@@ -2654,7 +2654,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           pipeline: firestore
             .pipeline()
             .collection(randomCol.path)
-            .where(equal(field('__name__').documentId(), 'book1'))
+            .where(field(documentIdFieldPath()).equal(doc(randomCol, 'book1')))
             .upsert(
               constant('Comedy Sci-Fi').as('genre'),
               add(field('rating'), constant(0.5)).as('rating')
@@ -2676,7 +2676,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           pipeline: firestore
             .pipeline()
             .collection(randomCol.path)
-            .where(equal(field('__name__').documentId(), 'book1'))
+            .where(field(documentIdFieldPath()).equal(doc(randomCol, 'book1')))
             .addFields(constant('opt_only_id').as('targetId'))
             .upsert({
               collection: targetColRef,
@@ -2703,7 +2703,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           pipeline: firestore
             .pipeline()
             .collection(randomCol.path)
-            .where(equal(field('__name__').documentId(), 'book1'))
+            .where(field(documentIdFieldPath()).equal(doc(randomCol, 'book1')))
             .addFields(constant('upserted_fixed_id').as('targetId'))
             .upsert({
               additionalFields: [
@@ -2736,7 +2736,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           pipeline: firestore
             .pipeline()
             .collection(randomCol.path)
-            .where(equal(field('__name__').documentId(), 'book1'))
+            .where(field(documentIdFieldPath()).equal(doc(randomCol, 'book1')))
             .addFields(constant('upserted_opt_id').as('targetId'))
             .upsert({
               collection: targetColRef,

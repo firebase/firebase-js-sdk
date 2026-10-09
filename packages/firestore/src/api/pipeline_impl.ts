@@ -70,7 +70,7 @@ declare module './database' {
  *   <li>If there are no stages or only transformation stages, each {@link @firebase/firestore/pipelines#PipelineResult}
  *       represents a single document.</li>
  *   <li>If there is an aggregation, only a single {@link @firebase/firestore/pipelines#PipelineResult} is returned,
- *       representing the aggregated results over the entire dataset .</li>
+ *       representing the aggregated results over the entire dataset.</li>
  *   <li>If there is an aggregation stage with grouping, each {@link @firebase/firestore/pipelines#PipelineResult} represents a
  *       distinct group and its associated aggregated values.</li>
  * </ul>
@@ -104,7 +104,7 @@ export function execute(pipeline: LitePipeline): Promise<PipelineSnapshot>;
  *   <li>If there are no stages or only transformation stages, each {@link @firebase/firestore/pipelines#PipelineResult}
  *       represents a single document.</li>
  *   <li>If there is an aggregation, only a single {@link @firebase/firestore/pipelines#PipelineResult} is returned,
- *       representing the aggregated results over the entire dataset .</li>
+ *       representing the aggregated results over the entire dataset.</li>
  *   <li>If there is an aggregation stage with grouping, each {@link @firebase/firestore/pipelines#PipelineResult} represents a
  *       distinct group and its associated aggregated values.</li>
  * </ul>
