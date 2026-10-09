@@ -99,6 +99,7 @@ describe('internal api', () => {
   afterEach(() => {
     clearState();
     removegreCAPTCHAScriptsOnPage();
+    self.FIREBASE_APPCHECK_DEBUG_TOKEN = undefined;
     return deleteApp(app);
   });
   // TODO: test error conditions

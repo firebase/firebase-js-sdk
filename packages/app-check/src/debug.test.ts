@@ -57,6 +57,9 @@ describe('debug mode', () => {
   });
 
   it('saves the generated debug token to indexedDB', async () => {
+    vi.spyOn(indexeddb, 'readDebugTokenFromIndexedDB').mockResolvedValue(
+      undefined
+    );
     const saveDebugTokenStub = vi
       .spyOn(indexeddb, 'writeDebugTokenToIndexedDB')
       .mockResolvedValue(undefined);
