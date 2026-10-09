@@ -297,8 +297,9 @@ export class QueryEngine {
           // (e.g. if the index doesn't include all the target's filters), or
           // may return the correct set of documents in the wrong order (e.g. if
           // the index doesn't include a segment for one of the orderBys).
-          // Therefore, a limit should not be applied in such cases.
-          query = queryWithLimit(query, null, LimitType.First);
+          // Therefore, a limit should not be applied in such cases. Keep the
+          // limit type to preserve the target ordering and its matching index.
+          query = queryWithLimit(query, null, query.limitType);
           target = queryToTarget(query);
         }
 
@@ -337,7 +338,7 @@ export class QueryEngine {
                       // incorporated.
                       return this.performQueryUsingIndex(
                         transaction,
-                        queryWithLimit(query, null, LimitType.First)
+                        queryWithLimit(query, null, query.limitType)
                       );
                     }
 
