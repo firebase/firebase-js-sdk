@@ -49,7 +49,5 @@ export function makeUrl(hostAndPort: HostAndPort | string, path: string): URL {
       hostAndPort = `${host}:${port}`;
     }
   }
-  const url = new URL(`http://${hostAndPort}/`);
-  url.pathname = path;
-  return url;
+  return new URL(`http://${hostAndPort}/${path}`);
 }
