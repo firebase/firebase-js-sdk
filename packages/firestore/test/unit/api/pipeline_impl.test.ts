@@ -17,7 +17,13 @@
 
 import type { MockInstance } from 'vitest';
 
-import { Timestamp } from '../../../src';
+import {
+  arrayUnion,
+  deleteField,
+  increment,
+  serverTimestamp,
+  Timestamp
+} from '../../../src';
 import { Firestore } from '../../../src/api/database';
 import { execute } from '../../../src/api/pipeline_impl';
 import {
@@ -28,8 +34,8 @@ import {
   ExecutePipelineRequest as ProtoExecutePipelineRequest,
   ExecutePipelineResponse as ProtoExecutePipelineResponse
 } from '../../../src/protos/firestore_proto_api';
-import { constant, field } from '../../lite/pipeline_export';
-import { newTestFirestore } from '../../util/api_helpers';
+import { add, constant, field, multiply } from '../../lite/pipeline_export';
+import { collectionReference, newTestFirestore } from '../../util/api_helpers';
 import { describe } from '../../util/mocha_extensions';
 
 const FIRST_CALL = 0;
@@ -303,6 +309,817 @@ describe('stage serialization', () => {
       };
       expect(spy.mock.calls[FIRST_CALL][EXECUTE_PIPELINE_REQUEST]).toEqual(
         executePipelineRequest
+      );
+    });
+
+    it('defaults to atomic=false when atomic option is omitted or false', async () => {
+      const firestore = newTestFirestore();
+      const spy = fakePipelineResponse(firestore);
+
+      // Execute without atomic option
+      await execute({
+        pipeline: firestore.pipeline().collection('foo')
+      });
+
+      const reqDefault = spy.mock.calls[FIRST_CALL][
+        EXECUTE_PIPELINE_REQUEST
+      ] as ProtoExecutePipelineRequest;
+      expect(reqDefault.newTransaction).to.be.undefined;
+      expect(reqDefault.autoCommitTransaction).to.be.undefined;
+
+      // Execute with atomic: false
+      const firestore2 = newTestFirestore();
+      const spy2 = fakePipelineResponse(firestore2);
+      await execute({
+        pipeline: firestore2.pipeline().collection('foo'),
+        atomic: false
+      });
+
+      const reqFalse = spy2.mock.calls[FIRST_CALL][
+        EXECUTE_PIPELINE_REQUEST
+      ] as ProtoExecutePipelineRequest;
+      expect(reqFalse.newTransaction).to.be.undefined;
+      expect(reqFalse.autoCommitTransaction).to.be.undefined;
+    });
+
+    it('serializes autoCommitTransaction on ProtoExecutePipelineRequest when atomic is true', async () => {
+      const firestore = newTestFirestore();
+      const spy = fakePipelineResponse(firestore);
+
+      await execute({
+        pipeline: firestore.pipeline().collection('foo'),
+        atomic: true
+      });
+
+      const req = spy.mock.calls[FIRST_CALL][
+        EXECUTE_PIPELINE_REQUEST
+      ] as ProtoExecutePipelineRequest;
+      expect(req.autoCommitTransaction).to.be.true;
+      expect(req.newTransaction).to.deep.equal({
+        readWrite: { concurrencyMode: 'OPTIMISTIC' }
+      });
+    });
+  });
+
+  describe('insert and upsert stages', () => {
+    it('serializes default insert stage', async () => {
+      const firestore = newTestFirestore();
+      const spy = fakePipelineResponse(firestore);
+
+      await execute(firestore.pipeline().collection('foo').insert());
+
+      const req = spy.mock.calls[FIRST_CALL][
+        EXECUTE_PIPELINE_REQUEST
+      ] as ProtoExecutePipelineRequest;
+      const insertStage = req.structuredPipeline?.pipeline?.stages?.[1];
+      expect(insertStage).to.deep.equal({
+        name: 'insert',
+        options: undefined,
+        args: []
+      });
+    });
+
+    it('serializes insert stage with collection path and document ID field', async () => {
+      const firestore = newTestFirestore();
+      const spy = fakePipelineResponse(firestore);
+
+      await execute(
+        firestore.pipeline().collection('foo').insert({
+          collection: 'customers',
+          documentIdExpression: 'idField'
+        })
+      );
+
+      const req = spy.mock.calls[FIRST_CALL][
+        EXECUTE_PIPELINE_REQUEST
+      ] as ProtoExecutePipelineRequest;
+      const insertStage = req.structuredPipeline?.pipeline?.stages?.[1];
+      expect(insertStage).to.deep.equal({
+        name: 'insert',
+        options: {
+          collection: { referenceValue: '/customers' },
+          'document_id': { fieldReferenceValue: 'idField' }
+        },
+        args: []
+      });
+    });
+
+    it('serializes insert stage with CollectionReference and document ID expressions', async () => {
+      const firestore = newTestFirestore();
+      const spy = fakePipelineResponse(firestore);
+      const targetColRef = collectionReference('customers/c1/orders');
+
+      await execute(
+        firestore
+          .pipeline()
+          .collection('foo')
+          .insert({
+            collection: targetColRef,
+            documentIdExpression: constant('fixedId')
+          })
+      );
+
+      const req = spy.mock.calls[FIRST_CALL][
+        EXECUTE_PIPELINE_REQUEST
+      ] as ProtoExecutePipelineRequest;
+      const insertStage = req.structuredPipeline?.pipeline?.stages?.[1];
+      expect(insertStage).to.deep.equal({
+        name: 'insert',
+        options: {
+          collection: { referenceValue: '/customers/c1/orders' },
+          'document_id': { stringValue: 'fixedId' }
+        },
+        args: []
+      });
+
+      // Verify with field expression on a separate firestore instance
+      const firestore2 = newTestFirestore();
+      const spy2 = fakePipelineResponse(firestore2);
+      await execute(
+        firestore2
+          .pipeline()
+          .collection('foo')
+          .insert({
+            documentIdExpression: field('otherId')
+          })
+      );
+      const req2 = spy2.mock.calls[FIRST_CALL][
+        EXECUTE_PIPELINE_REQUEST
+      ] as ProtoExecutePipelineRequest;
+      const insertStage2 = req2.structuredPipeline?.pipeline?.stages?.[1];
+      expect(insertStage2?.options?.['document_id']).to.deep.equal({
+        fieldReferenceValue: 'otherId'
+      });
+    });
+
+    it('serializes insert stage with rawOptions', async () => {
+      const firestore = newTestFirestore();
+      const spy = fakePipelineResponse(firestore);
+
+      await execute(
+        firestore
+          .pipeline()
+          .collection('foo')
+          .insert({
+            collection: 'customers',
+            rawOptions: { 'custom_opt': 'val' }
+          })
+      );
+
+      const req = spy.mock.calls[FIRST_CALL][
+        EXECUTE_PIPELINE_REQUEST
+      ] as ProtoExecutePipelineRequest;
+      const insertStage = req.structuredPipeline?.pipeline?.stages?.[1];
+      expect(insertStage).to.deep.equal({
+        name: 'insert',
+        options: {
+          collection: { referenceValue: '/customers' },
+          'custom_opt': { stringValue: 'val' }
+        },
+        args: []
+      });
+    });
+
+    it('serializes upsert stage with additionalFields and options', async () => {
+      const firestore = newTestFirestore();
+      const spy = fakePipelineResponse(firestore);
+
+      await execute(
+        firestore
+          .pipeline()
+          .collection('foo')
+          .upsert({
+            additionalFields: [constant('Alice').as('name')],
+            collection: 'customers',
+            documentIdExpression: 'idField'
+          })
+      );
+
+      const req = spy.mock.calls[FIRST_CALL][
+        EXECUTE_PIPELINE_REQUEST
+      ] as ProtoExecutePipelineRequest;
+      const upsertStage = req.structuredPipeline?.pipeline?.stages?.[1];
+      expect(upsertStage).to.deep.equal({
+        name: 'upsert',
+        options: {
+          collection: { referenceValue: '/customers' },
+          'document_id': { fieldReferenceValue: 'idField' }
+        },
+        args: [
+          {
+            mapValue: {
+              fields: {
+                name: { stringValue: 'Alice' }
+              }
+            }
+          }
+        ]
+      });
+    });
+
+    it('serializes upsert stage with multiple additional fields in options', async () => {
+      const firestore = newTestFirestore();
+      const spy = fakePipelineResponse(firestore);
+
+      await execute(
+        firestore
+          .pipeline()
+          .collection('foo')
+          .upsert({
+            additionalFields: [
+              constant('Bob').as('name'),
+              field('score').as('finalScore')
+            ]
+          })
+      );
+
+      const req = spy.mock.calls[FIRST_CALL][
+        EXECUTE_PIPELINE_REQUEST
+      ] as ProtoExecutePipelineRequest;
+      const upsertStage = req.structuredPipeline?.pipeline?.stages?.[1];
+      expect(upsertStage?.name).to.equal('upsert');
+      expect(upsertStage?.options).to.be.undefined;
+      expect(upsertStage?.args?.[0]?.mapValue?.fields).to.deep.equal({
+        name: { stringValue: 'Bob' },
+        finalScore: { fieldReferenceValue: 'score' }
+      });
+    });
+
+    it('serializes upsert stage with rawOptions', async () => {
+      const firestore = newTestFirestore();
+      const spy = fakePipelineResponse(firestore);
+
+      await execute(
+        firestore
+          .pipeline()
+          .collection('foo')
+          .upsert({
+            additionalFields: [constant(true).as('active')],
+            rawOptions: { 'custom_opt': 'val' }
+          })
+      );
+
+      const req = spy.mock.calls[FIRST_CALL][
+        EXECUTE_PIPELINE_REQUEST
+      ] as ProtoExecutePipelineRequest;
+      const upsertStage = req.structuredPipeline?.pipeline?.stages?.[1];
+      expect(upsertStage?.name).to.equal('upsert');
+      expect(upsertStage?.options).to.deep.equal({
+        'custom_opt': { stringValue: 'val' }
+      });
+      expect(upsertStage?.args?.[0]?.mapValue?.fields).to.deep.equal({
+        active: { booleanValue: true }
+      });
+    });
+
+    it('serializes default upsert stage without arguments', async () => {
+      const firestore = newTestFirestore();
+      const spy = fakePipelineResponse(firestore);
+
+      await execute(firestore.pipeline().collection('foo').upsert());
+
+      const req = spy.mock.calls[FIRST_CALL][
+        EXECUTE_PIPELINE_REQUEST
+      ] as ProtoExecutePipelineRequest;
+      const upsertStage = req.structuredPipeline?.pipeline?.stages?.[1];
+      expect(upsertStage?.name).to.equal('upsert');
+      expect(upsertStage?.options).to.be.undefined;
+      expect(upsertStage?.args).to.have.lengthOf(1);
+      expect(upsertStage?.args?.[0]).to.deep.equal({
+        mapValue: {
+          fields: {}
+        }
+      });
+    });
+
+    it('serializes upsert stage with options only', async () => {
+      const firestore = newTestFirestore();
+      const spy = fakePipelineResponse(firestore);
+
+      await execute(
+        firestore
+          .pipeline()
+          .collection('foo')
+          .upsert({ collection: 'users', documentIdExpression: field('id') })
+      );
+
+      const req = spy.mock.calls[FIRST_CALL][
+        EXECUTE_PIPELINE_REQUEST
+      ] as ProtoExecutePipelineRequest;
+      const upsertStage = req.structuredPipeline?.pipeline?.stages?.[1];
+      expect(upsertStage?.name).to.equal('upsert');
+      expect(upsertStage?.options).to.deep.equal({
+        collection: { referenceValue: '/users' },
+        'document_id': { fieldReferenceValue: 'id' }
+      });
+      expect(upsertStage?.args).to.have.lengthOf(1);
+      expect(upsertStage?.args?.[0]).to.deep.equal({
+        mapValue: {
+          fields: {}
+        }
+      });
+    });
+
+    it('serializes upsert stage with single variadic expression', async () => {
+      const firestore = newTestFirestore();
+      const spy = fakePipelineResponse(firestore);
+
+      await execute(
+        firestore
+          .pipeline()
+          .collection('foo')
+          .upsert(constant(true).as('active'))
+      );
+
+      const req = spy.mock.calls[FIRST_CALL][
+        EXECUTE_PIPELINE_REQUEST
+      ] as ProtoExecutePipelineRequest;
+      const upsertStage = req.structuredPipeline?.pipeline?.stages?.[1];
+      expect(upsertStage?.name).to.equal('upsert');
+      expect(upsertStage?.options).to.be.undefined;
+      expect(upsertStage?.args?.[0]?.mapValue?.fields).to.deep.equal({
+        active: { booleanValue: true }
+      });
+    });
+
+    it('serializes upsert stage with multiple variadic expressions', async () => {
+      const firestore = newTestFirestore();
+      const spy = fakePipelineResponse(firestore);
+
+      await execute(
+        firestore
+          .pipeline()
+          .collection('foo')
+          .upsert(constant(true).as('active'), constant(42).as('count'))
+      );
+
+      const req = spy.mock.calls[FIRST_CALL][
+        EXECUTE_PIPELINE_REQUEST
+      ] as ProtoExecutePipelineRequest;
+      const upsertStage = req.structuredPipeline?.pipeline?.stages?.[1];
+      expect(upsertStage?.name).to.equal('upsert');
+      expect(upsertStage?.options).to.be.undefined;
+      expect(upsertStage?.args?.[0]?.mapValue?.fields).to.deep.equal({
+        active: { booleanValue: true },
+        count: { integerValue: '42' }
+      });
+    });
+  });
+
+  describe('delete stage', () => {
+    it('serializes default delete stage', async () => {
+      const firestore = newTestFirestore();
+      const spy = fakePipelineResponse(firestore);
+
+      await execute(firestore.pipeline().collection('foo').delete());
+
+      const req = spy.mock.calls[FIRST_CALL][
+        EXECUTE_PIPELINE_REQUEST
+      ] as ProtoExecutePipelineRequest;
+      const deleteStage = req.structuredPipeline?.pipeline?.stages?.[1];
+      expect(deleteStage).to.deep.equal({
+        name: 'delete',
+        options: {},
+        args: []
+      });
+    });
+
+    it('serializes delete stage with rawOptions', async () => {
+      const firestore = newTestFirestore();
+      const spy = fakePipelineResponse(firestore);
+
+      await execute(
+        firestore
+          .pipeline()
+          .collection('foo')
+          .delete({ rawOptions: { 'custom_opt': 'val' } })
+      );
+
+      const req = spy.mock.calls[FIRST_CALL][
+        EXECUTE_PIPELINE_REQUEST
+      ] as ProtoExecutePipelineRequest;
+      const deleteStage = req.structuredPipeline?.pipeline?.stages?.[1];
+      expect(deleteStage).to.deep.equal({
+        name: 'delete',
+        options: {
+          'custom_opt': { stringValue: 'val' }
+        },
+        args: []
+      });
+    });
+  });
+
+  describe('update stage', () => {
+    /* eslint-disable camelcase */
+    it('serializes default update stage without transforms', async () => {
+      const firestore = newTestFirestore();
+      const spy = fakePipelineResponse(firestore);
+
+      await execute(firestore.pipeline().collection('foo').update());
+
+      const req = spy.mock.calls[FIRST_CALL][
+        EXECUTE_PIPELINE_REQUEST
+      ] as ProtoExecutePipelineRequest;
+      const updateStage = req.structuredPipeline?.pipeline?.stages?.[1];
+      expect(updateStage?.name).to.equal('update');
+      expect(updateStage?.args).to.have.lengthOf(1);
+      expect(updateStage?.args?.[0]).to.deep.equal({
+        mapValue: {
+          fields: {}
+        }
+      });
+    });
+
+    it('serializes update stage with vararg transform expression', async () => {
+      const firestore = newTestFirestore();
+      const spy = fakePipelineResponse(firestore);
+
+      await execute(
+        firestore
+          .pipeline()
+          .collection('foo')
+          .update(constant(true).as('is_top_scorer'))
+      );
+
+      const req = spy.mock.calls[FIRST_CALL][
+        EXECUTE_PIPELINE_REQUEST
+      ] as ProtoExecutePipelineRequest;
+      const updateStage = req.structuredPipeline?.pipeline?.stages?.[1];
+      expect(updateStage?.name).to.equal('update');
+      expect(updateStage?.args?.[0]?.mapValue?.fields).to.deep.equal({
+        is_top_scorer: { booleanValue: true }
+      });
+    });
+
+    it('serializes update stage with multiple vararg transform expressions', async () => {
+      const firestore = newTestFirestore();
+      const spy = fakePipelineResponse(firestore);
+
+      await execute(
+        firestore
+          .pipeline()
+          .collection('foo')
+          .update(constant(true).as('is_top_scorer'), constant(42).as('count'))
+      );
+
+      const req = spy.mock.calls[FIRST_CALL][
+        EXECUTE_PIPELINE_REQUEST
+      ] as ProtoExecutePipelineRequest;
+      const updateStage = req.structuredPipeline?.pipeline?.stages?.[1];
+      expect(updateStage?.name).to.equal('update');
+      expect(updateStage?.args?.[0]?.mapValue?.fields).to.deep.equal({
+        is_top_scorer: { booleanValue: true },
+        count: { integerValue: '42' }
+      });
+    });
+
+    it('serializes update stage with UpdateStageOptions', async () => {
+      const firestore = newTestFirestore();
+      const spy = fakePipelineResponse(firestore);
+
+      await execute(
+        firestore
+          .pipeline()
+          .collection('foo')
+          .update({
+            transformedFields: [constant(true).as('is_top_scorer')],
+            rawOptions: { custom_opt: 'val' }
+          })
+      );
+
+      const req = spy.mock.calls[FIRST_CALL][
+        EXECUTE_PIPELINE_REQUEST
+      ] as ProtoExecutePipelineRequest;
+      const updateStage = req.structuredPipeline?.pipeline?.stages?.[1];
+      expect(updateStage?.name).to.equal('update');
+      expect(updateStage?.options).to.deep.equal({
+        custom_opt: { stringValue: 'val' }
+      });
+      expect(updateStage?.args?.[0]?.mapValue?.fields).to.deep.equal({
+        is_top_scorer: { booleanValue: true }
+      });
+    });
+  });
+
+  describe('literals stage', () => {
+    it('serializes literals stage with array overload', async () => {
+      const firestore = newTestFirestore();
+      const spy = fakePipelineResponse(firestore);
+
+      await execute(
+        firestore.pipeline().literals([
+          { name: 'Alice', age: 30 },
+          { name: 'Bob', age: 25 }
+        ])
+      );
+
+      const req = spy.mock.calls[FIRST_CALL][
+        EXECUTE_PIPELINE_REQUEST
+      ] as ProtoExecutePipelineRequest;
+      const literalsStage = req.structuredPipeline?.pipeline?.stages?.[0];
+      expect(literalsStage).to.deep.equal({
+        name: 'literals',
+        options: {},
+        args: [
+          {
+            mapValue: {
+              fields: {
+                name: { stringValue: 'Alice' },
+                age: { integerValue: '30' }
+              }
+            }
+          },
+          {
+            mapValue: {
+              fields: {
+                name: { stringValue: 'Bob' },
+                age: { integerValue: '25' }
+              }
+            }
+          }
+        ]
+      });
+    });
+
+    it('serializes literals stage when a document has a documents array field', async () => {
+      const firestore = newTestFirestore();
+      const spy = fakePipelineResponse(firestore);
+
+      await execute(
+        firestore
+          .pipeline()
+          .literals([{ documents: ['a', 'b'], title: 'Folder' }])
+      );
+
+      const req = spy.mock.calls[FIRST_CALL][
+        EXECUTE_PIPELINE_REQUEST
+      ] as ProtoExecutePipelineRequest;
+      const literalsStage = req.structuredPipeline?.pipeline?.stages?.[0];
+      expect(literalsStage).to.deep.equal({
+        name: 'literals',
+        options: {},
+        args: [
+          {
+            mapValue: {
+              fields: {
+                documents: {
+                  functionValue: {
+                    name: 'array',
+                    args: [{ stringValue: 'a' }, { stringValue: 'b' }]
+                  }
+                },
+                title: { stringValue: 'Folder' }
+              }
+            }
+          }
+        ]
+      });
+    });
+
+    it('serializes literals stage with options overload and rawOptions', async () => {
+      const firestore = newTestFirestore();
+      const spy = fakePipelineResponse(firestore);
+
+      await execute(
+        firestore.pipeline().literals({
+          documents: [{ item: 'apple', count: 10 }],
+          rawOptions: { custom_opt: 'val' }
+        })
+      );
+
+      const req = spy.mock.calls[FIRST_CALL][
+        EXECUTE_PIPELINE_REQUEST
+      ] as ProtoExecutePipelineRequest;
+      const literalsStage = req.structuredPipeline?.pipeline?.stages?.[0];
+      expect(literalsStage).to.deep.equal({
+        name: 'literals',
+        options: {
+          custom_opt: { stringValue: 'val' }
+        },
+        args: [
+          {
+            mapValue: {
+              fields: {
+                item: { stringValue: 'apple' },
+                count: { integerValue: '10' }
+              }
+            }
+          }
+        ]
+      });
+    });
+
+    it('serializes literals stage with expressions in top-level, nested maps, and arrays', async () => {
+      const firestore = newTestFirestore();
+      const spy = fakePipelineResponse(firestore);
+
+      await execute(
+        firestore.pipeline().literals([
+          {
+            base: 10,
+            calc: multiply(constant(10), constant(2)),
+            nested: {
+              val: constant('hello'),
+              sum: add(constant(1), constant(2))
+            },
+            arr: [1, add(constant(3), constant(4))]
+          }
+        ])
+      );
+
+      const req = spy.mock.calls[FIRST_CALL][
+        EXECUTE_PIPELINE_REQUEST
+      ] as ProtoExecutePipelineRequest;
+      const literalsStage = req.structuredPipeline?.pipeline?.stages?.[0];
+      expect(literalsStage?.name).to.equal('literals');
+      expect(literalsStage?.args).to.deep.equal([
+        {
+          mapValue: {
+            fields: {
+              base: { integerValue: '10' },
+              calc: {
+                functionValue: {
+                  name: 'multiply',
+                  args: [{ integerValue: '10' }, { integerValue: '2' }]
+                }
+              },
+              nested: {
+                functionValue: {
+                  name: 'map',
+                  args: [
+                    { stringValue: 'val' },
+                    { stringValue: 'hello' },
+                    { stringValue: 'sum' },
+                    {
+                      functionValue: {
+                        name: 'add',
+                        args: [{ integerValue: '1' }, { integerValue: '2' }]
+                      }
+                    }
+                  ]
+                }
+              },
+              arr: {
+                functionValue: {
+                  name: 'array',
+                  args: [
+                    { integerValue: '1' },
+                    {
+                      functionValue: {
+                        name: 'add',
+                        args: [{ integerValue: '3' }, { integerValue: '4' }]
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ]);
+    });
+
+    it('omits undefined literal fields when ignoreUndefinedProperties is set', async () => {
+      const firestore = newTestFirestore();
+      firestore._setSettings({ ignoreUndefinedProperties: true });
+      const spy = fakePipelineResponse(firestore);
+
+      await execute(
+        firestore
+          .pipeline()
+          .literals([{ a: 1, b: undefined, nested: { c: undefined, d: 2 } }])
+      );
+
+      const req = spy.mock.calls[FIRST_CALL][
+        EXECUTE_PIPELINE_REQUEST
+      ] as ProtoExecutePipelineRequest;
+      const literalsStage = req.structuredPipeline?.pipeline?.stages?.[0];
+      expect(literalsStage?.args).to.deep.equal([
+        {
+          mapValue: {
+            fields: {
+              a: { integerValue: '1' },
+              nested: {
+                functionValue: {
+                  name: 'map',
+                  args: [{ stringValue: 'd' }, { integerValue: '2' }]
+                }
+              }
+            }
+          }
+        }
+      ]);
+    });
+
+    describe('rejects FieldValue sentinels in literals()', () => {
+      const cases: Array<{
+        name: string;
+        doc: Record<string, unknown>;
+        expected: string;
+      }> = [
+        {
+          name: 'top-level serverTimestamp()',
+          doc: { a: 1, ts: serverTimestamp() },
+          expected:
+            'Function literals() called with invalid data. serverTimestamp() can only be used with update() and set() (found in field ts)'
+        },
+        {
+          name: 'increment()',
+          doc: { n: increment(1) },
+          expected:
+            'Function literals() called with invalid data. increment() can only be used with update() and set() (found in field n)'
+        },
+        {
+          name: 'arrayUnion()',
+          doc: { arr: arrayUnion('x') },
+          expected:
+            'Function literals() called with invalid data. arrayUnion() can only be used with update() and set() (found in field arr)'
+        },
+        {
+          name: 'deleteField()',
+          doc: { gone: deleteField() },
+          expected:
+            'Function literals() called with invalid data. deleteField() can only be used with update() and set() (found in field gone)'
+        },
+        {
+          name: 'nested in a map',
+          doc: { a: { b: serverTimestamp() } },
+          expected:
+            'Function literals() called with invalid data. serverTimestamp() can only be used with update() and set() (found in field a.b)'
+        },
+        {
+          name: 'inside an array',
+          doc: { arr: [1, serverTimestamp()] },
+          expected:
+            'Function literals() called with invalid data. serverTimestamp() can only be used with update() and set() (found in field arr)'
+        }
+      ];
+
+      cases.forEach(({ name, doc, expected }) => {
+        it(name, () => {
+          const firestore = newTestFirestore();
+          expect(() => {
+            firestore.pipeline().literals([doc]);
+          }).to.throw(expected);
+        });
+      });
+    });
+
+    describe('rejects undefined in literals() by default', () => {
+      const cases: Array<{
+        name: string;
+        doc: Record<string, unknown>;
+        expected: string;
+      }> = [
+        {
+          name: 'top-level undefined',
+          doc: { a: 1, b: undefined },
+          expected:
+            'Function literals() called with invalid data. Unsupported field value: undefined (found in field b)'
+        },
+        {
+          name: 'nested undefined',
+          doc: { a: { b: undefined } },
+          expected:
+            'Function literals() called with invalid data. Unsupported field value: undefined (found in field a.b)'
+        },
+        {
+          name: 'undefined inside an array',
+          doc: { arr: [1, undefined] },
+          expected:
+            'Function literals() called with invalid data. Unsupported field value: undefined (found in field arr)'
+        }
+      ];
+
+      cases.forEach(({ name, doc, expected }) => {
+        it(name, () => {
+          const firestore = newTestFirestore();
+          expect(() => {
+            firestore.pipeline().literals([doc]);
+          }).to.throw(expected);
+        });
+      });
+    });
+
+    it('rejects non-array or invalid options object in literals()', () => {
+      const firestore = newTestFirestore();
+      expect(() => {
+        // @ts-expect-error Testing invalid runtime input
+        firestore.pipeline().literals({ name: 'Alice' });
+      }).to.throw(
+        'Function literals() requires an array of document objects or a LiteralsStageOptions object with a documents array.'
+      );
+    });
+
+    it('rejects non-plain-object elements in literals() documents array', () => {
+      const firestore = newTestFirestore();
+      class CustomDoc {}
+      expect(() => {
+        firestore
+          .pipeline()
+          .literals([new CustomDoc() as unknown as Record<string, unknown>]);
+      }).to.throw(
+        'Function literals() requires each document to be a plain object.'
       );
     });
   });

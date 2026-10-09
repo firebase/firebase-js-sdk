@@ -41,6 +41,7 @@ export {
   AddFieldsStageOptions,
   RemoveFieldsStageOptions,
   DefineStageOptions,
+  DeleteStageOptions,
   SelectStageOptions,
   WhereStageOptions,
   OffsetStageOptions,
@@ -48,10 +49,14 @@ export {
   DistinctStageOptions,
   AggregateStageOptions,
   FindNearestStageOptions,
+  InsertStageOptions,
+  LiteralsStageOptions,
   ReplaceWithStageOptions,
   SampleStageOptions,
   UnionStageOptions,
   UnnestStageOptions,
+  UpdateStageOptions,
+  UpsertStageOptions,
   SortStageOptions,
   SearchStageOptions
   // TODO(search) export with backend support
