@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2021 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,20 +15,20 @@
  * limitations under the License.
  */
 
-import { getModularInstance } from '@firebase/util';
-import { getRemoteConfig } from '@firebase/remote-config';
-import firebase from '@firebase/app-compat';
-import '@firebase/remote-config-compat';
+import createBaseConfig from '../../config/vitest.base.mjs';
 
-import { TEST_PROJECT_CONFIG } from './util';
+const config = createBaseConfig(import.meta.url);
 
-firebase.initializeApp(TEST_PROJECT_CONFIG);
+if (config.test?.projects) {
+  config.test.projects = config.test.projects
+    .filter(project => project.test?.name === 'browser')
+    .map(project => ({
+      ...project,
+      test: {
+        ...project.test,
+        include: ['*.test.ts']
+      }
+    }));
+}
 
-const compatRC = firebase.remoteConfig();
-const modularRC = getRemoteConfig();
-
-describe('RC compat interop', () => {
-  it('RC compat instance references modular RC instance', () => {
-    expect(getModularInstance(compatRC)).toBe(modularRC);
-  });
-});
+export default config;

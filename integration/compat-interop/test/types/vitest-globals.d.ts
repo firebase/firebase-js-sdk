@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2021 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,20 +15,4 @@
  * limitations under the License.
  */
 
-import { getModularInstance } from '@firebase/util';
-import { getRemoteConfig } from '@firebase/remote-config';
-import firebase from '@firebase/app-compat';
-import '@firebase/remote-config-compat';
-
-import { TEST_PROJECT_CONFIG } from './util';
-
-firebase.initializeApp(TEST_PROJECT_CONFIG);
-
-const compatRC = firebase.remoteConfig();
-const modularRC = getRemoteConfig();
-
-describe('RC compat interop', () => {
-  it('RC compat instance references modular RC instance', () => {
-    expect(getModularInstance(compatRC)).toBe(modularRC);
-  });
-});
+import 'vitest/globals';
