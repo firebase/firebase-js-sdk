@@ -293,7 +293,7 @@ export class PersistentConnection extends ServerActions {
       const status = message[/*status*/ 's'] as string;
 
       // print warnings in any case...
-      PersistentConnection.warnOnListenWarnings_(payload, query);
+      const warned = PersistentConnection.warnOnListenWarnings_(payload, query);
 
       const currentListenSpec =
         this.listens.get(pathString) &&
@@ -307,6 +307,9 @@ export class PersistentConnection extends ServerActions {
         }
 
         if (listenSpec.onComplete) {
+          // @ts-ignore
+          payload.filter =
+            !warned && !listenSpec.query._queryParams.loadsAllData();
           listenSpec.onComplete(status, payload);
         }
       }
@@ -314,20 +317,24 @@ export class PersistentConnection extends ServerActions {
   }
 
   private static warnOnListenWarnings_(payload: unknown, query: QueryContext) {
-    if (payload && typeof payload === 'object' && contains(payload, 'w')) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const warnings = safeGet(payload as any, 'w');
-      if (Array.isArray(warnings) && ~warnings.indexOf('no_index')) {
-        const indexSpec =
-          '".indexOn": "' + query._queryParams.getIndex().toString() + '"';
-        const indexPath = query._path.toString();
-        warn(
-          `Using an unspecified index. Your data will be downloaded and ` +
-            `filtered on the client. Consider adding ${indexSpec} at ` +
-            `${indexPath} to your security rules for better performance.`
-        );
+    if (payload && typeof payload === 'object') {
+      if (contains(payload, 'w')) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const warnings = safeGet(payload as any, 'w');
+        if (Array.isArray(warnings) && ~warnings.indexOf('no_index')) {
+          const indexSpec =
+            '".indexOn": "' + query._queryParams.getIndex().toString() + '"';
+          const indexPath = query._path.toString();
+          warn(
+            `Using an unspecified index. Your data will be downloaded and ` +
+              `filtered on the client. Consider adding ${indexSpec} at ` +
+              `${indexPath} to your security rules for better performance.`
+          );
+          return true;
+        }
       }
     }
+    return false;
   }
 
   refreshAuthToken(token: string) {
