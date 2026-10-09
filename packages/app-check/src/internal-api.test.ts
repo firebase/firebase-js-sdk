@@ -185,6 +185,9 @@ describe('internal api', () => {
 
     it('resolves with a dummy token and an error if failed to get a token in debug mode', async () => {
       const errorStub = vi.spyOn(console, 'error').mockImplementation(() => {});
+      vi.spyOn(storage, 'readOrCreateDebugTokenFromStorage').mockResolvedValue(
+        'my-debug-token'
+      );
       window.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
       const appCheck = initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
