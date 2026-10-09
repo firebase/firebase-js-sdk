@@ -23,11 +23,8 @@ import '@firebase/auth-compat';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import * as storage from '@firebase/storage-types';
 
-import { expect } from 'chai';
 import '../../src/index';
-
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const PROJECT_CONFIG = require('../../../../config/project.json');
+import PROJECT_CONFIG from '../../../../config/project.json';
 
 export const PROJECT_ID = PROJECT_CONFIG.projectId;
 export const STORAGE_BUCKET = PROJECT_CONFIG.storageBucket;
@@ -48,16 +45,23 @@ export async function withTestInstance(
 }
 
 describe('FirebaseStorage Compat', () => {
+  let projectPrefix: string;
+
+  // eslint-disable-next-line no-empty-pattern
+  beforeAll(({}, suite) => {
+    projectPrefix = suite.file.projectName?.split(' ')[0] ?? 'default'; // 'node' or 'browser'
+  });
+
   it('can upload bytes', () => {
     return withTestInstance(async storage => {
-      const ref = storage.ref('public/bytes');
+      const ref = storage.ref(`public/${projectPrefix}/bytes`);
       await ref.put(new Uint8Array([0, 1, 3]));
     });
   });
 
   it('can upload string', () => {
     return withTestInstance(async storage => {
-      const ref = storage.ref('public/string');
+      const ref = storage.ref(`public/${projectPrefix}/string`);
       await ref.putString('foo');
     });
   });
@@ -70,10 +74,8 @@ describe('FirebaseStorage Compat', () => {
         ref.putString('foo');
         expect.fail();
       } catch (e) {
-        expect((e as Error).message).to.satisfy((v: string) =>
-          v.match(
-            /The operation 'putString' cannot be performed on a root reference/
-          )
+        expect((e as Error).message).toMatch(
+          /The operation 'putString' cannot be performed on a root reference/
         );
       }
     });
@@ -81,7 +83,7 @@ describe('FirebaseStorage Compat', () => {
 
   it('can delete object', () => {
     return withTestInstance(async storage => {
-      const ref = storage.ref('public/delete');
+      const ref = storage.ref(`public/${projectPrefix}/delete`);
       await ref.putString('foo');
 
       // getDownloadURL() succeeds for an existing object
@@ -93,8 +95,8 @@ describe('FirebaseStorage Compat', () => {
         await ref.getDownloadURL();
         expect.fail();
       } catch (e) {
-        expect((e as Error).message).to.satisfy((v: string) =>
-          v.match(/Object 'public\/delete' does not exist/)
+        expect((e as Error).message).toMatch(
+          new RegExp(`Object 'public/${projectPrefix}/delete' does not exist`)
         );
       }
     });
@@ -102,12 +104,12 @@ describe('FirebaseStorage Compat', () => {
 
   it('can get download URL', () => {
     return withTestInstance(async storage => {
-      const ref = storage.ref('public/downloadurl');
+      const ref = storage.ref(`public/${projectPrefix}/downloadurl`);
       await ref.put(new Uint8Array([0, 1, 3]));
       const url = await ref.getDownloadURL();
-      expect(url).to.satisfy((v: string) =>
-        v.match(
-          /https:\/\/firebasestorage\.googleapis\.com\/v0\/b\/.*\/o\/public%2Fdownloadurl/
+      expect(url).toMatch(
+        new RegExp(
+          `https://firebasestorage\\.googleapis\\.com/v0/b/.*/o/public%2F${projectPrefix}%2Fdownloadurl`
         )
       );
     });
@@ -115,32 +117,34 @@ describe('FirebaseStorage Compat', () => {
 
   it('can get metadata', () => {
     return withTestInstance(async storage => {
-      const ref = storage.ref('public/getmetadata');
+      const ref = storage.ref(`public/${projectPrefix}/getmetadata`);
       await ref.put(new Uint8Array([0, 1, 3]));
       const metadata = await ref.getMetadata();
-      expect(metadata.name).to.equal('getmetadata');
+      expect(metadata.name).toBe('getmetadata');
     });
   });
 
   it('can update metadata', () => {
     return withTestInstance(async storage => {
-      const ref = storage.ref('public/updatemetadata');
+      const ref = storage.ref(`public/${projectPrefix}/updatemetadata`);
       await ref.put(new Uint8Array([0, 1, 3]));
       const metadata = await ref.updateMetadata({
         customMetadata: { foo: 'bar' }
       });
-      expect(metadata.customMetadata).to.deep.equal({ foo: 'bar' });
+      expect(metadata.customMetadata).toEqual({ foo: 'bar' });
     });
   });
 
   it('can list files', () => {
     return withTestInstance(async storage => {
-      await storage.ref('public/list/a').putString('');
-      await storage.ref('public/list/b').putString('');
-      await storage.ref('public/list/c/d').putString('');
-      const listResult = await storage.ref('public/list').listAll();
-      expect(listResult.items.map(v => v.name)).to.have.members(['a', 'b']);
-      expect(listResult.prefixes.map(v => v.name)).to.have.members(['c']);
+      await storage.ref(`public/${projectPrefix}/list/a`).putString('');
+      await storage.ref(`public/${projectPrefix}/list/b`).putString('');
+      await storage.ref(`public/${projectPrefix}/list/c/d`).putString('');
+      const listResult = await storage
+        .ref(`public/${projectPrefix}/list`)
+        .listAll();
+      expect(listResult.items.map(v => v.name).sort()).toEqual(['a', 'b']);
+      expect(listResult.prefixes.map(v => v.name)).toEqual(['c']);
     });
   });
 });
