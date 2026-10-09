@@ -1624,13 +1624,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
     ...additionalFields: AliasedExpression[]
   ): Pipeline;
   /**
-   * Performs an update operation using documents from previous stages.
-   *
-   * @param transformedFields - The list of transformations to apply.
-   * @returns A new {@link @firebase/firestore/pipelines#Pipeline} object with this stage appended to the stage list.
-   */
-  update(transformedFields: AliasedExpression[]): Pipeline;
-  /**
    * Performs an update operation with options.
    *
    * @param options - Options defining the transformations and how this `UpdateStage` is evaluated.
@@ -1638,20 +1631,17 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    */
   update(options: UpdateStageOptions): Pipeline;
   update(
-    transformedFieldsOrOptions?:
-      AliasedExpression | AliasedExpression[] | UpdateStageOptions,
+    transformedFieldOrOptions?: AliasedExpression | UpdateStageOptions,
     ...additionalFields: AliasedExpression[]
   ): Pipeline {
     let fields: AliasedExpression[] | undefined;
     let options: UpdateStageOptions = {};
 
-    if (Array.isArray(transformedFieldsOrOptions)) {
-      fields = transformedFieldsOrOptions;
-    } else if (isAliasedExpr(transformedFieldsOrOptions)) {
-      fields = [transformedFieldsOrOptions, ...additionalFields];
-    } else if (isPlainObject(transformedFieldsOrOptions)) {
-      ({ transformedFields: fields, ...options } = transformedFieldsOrOptions);
-    } else if (transformedFieldsOrOptions !== undefined) {
+    if (isAliasedExpr(transformedFieldOrOptions)) {
+      fields = [transformedFieldOrOptions, ...additionalFields];
+    } else if (isPlainObject(transformedFieldOrOptions)) {
+      ({ transformedFields: fields, ...options } = transformedFieldOrOptions);
+    } else if (transformedFieldOrOptions !== undefined) {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
         'Invalid argument provided to Pipeline.update()'

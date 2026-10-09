@@ -2141,7 +2141,6 @@ export class Pipeline {
     transformedField: AliasedExpression,
     ...additionalFields: AliasedExpression[]
     ): Pipeline;
-    update(transformedFields: AliasedExpression[]): Pipeline;
     update(options: UpdateStageOptions): Pipeline;
     upsert(): Pipeline;
     upsert(

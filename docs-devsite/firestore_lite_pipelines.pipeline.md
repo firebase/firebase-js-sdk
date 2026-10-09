@@ -66,7 +66,6 @@ export declare class Pipeline
 |  [unnest(options)](./firestore_lite_pipelines.pipeline.md#pipelineunnest) |  | Produces a document for each element in an input array.<!-- -->For each previous stage document, this stage will emit zero or more augmented documents. The input array specified by the <code>selectable</code> parameter, will emit an augmented document for each input array element. The input array element will augment the previous stage document by setting the <code>alias</code> field with the array element value.<!-- -->When <code>selectable</code> evaluates to a non-array value (ex: number, null, absent), then the stage becomes a no-op for the current input document, returning it as is with the <code>alias</code> field absent.<!-- -->No documents are emitted when <code>selectable</code> evaluates to an empty array. |
 |  [update()](./firestore_lite_pipelines.pipeline.md#pipelineupdate) |  | Performs an update operation using documents from previous stages. |
 |  [update(transformedField, additionalFields)](./firestore_lite_pipelines.pipeline.md#pipelineupdate) |  | Performs an update operation using documents from previous stages. |
-|  [update(transformedFields)](./firestore_lite_pipelines.pipeline.md#pipelineupdate) |  | Performs an update operation using documents from previous stages. |
 |  [update(options)](./firestore_lite_pipelines.pipeline.md#pipelineupdate) |  | Performs an update operation with options. |
 |  [upsert()](./firestore_lite_pipelines.pipeline.md#pipelineupsert) |  | Performs an upsert operation using documents from previous stages. |
 |  [upsert(additionalField, additionalFields)](./firestore_lite_pipelines.pipeline.md#pipelineupsert) |  | Performs an upsert operation using documents from previous stages. |
@@ -1582,28 +1581,6 @@ update(
 |  --- | --- | --- |
 |  transformedField | [AliasedExpression](./firestore_lite_pipelines.aliasedexpression.md#aliasedexpression_class) | The first transformation to apply. |
 |  additionalFields | [AliasedExpression](./firestore_lite_pipelines.aliasedexpression.md#aliasedexpression_class)<!-- -->\[\] | Additional transformations to apply. |
-
-<b>Returns:</b>
-
-[Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class)
-
-A new [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class) object with this stage appended to the stage list.
-
-## Pipeline.update()
-
-Performs an update operation using documents from previous stages.
-
-<b>Signature:</b>
-
-```typescript
-update(transformedFields: AliasedExpression[]): Pipeline;
-```
-
-#### Parameters
-
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  transformedFields | [AliasedExpression](./firestore_lite_pipelines.aliasedexpression.md#aliasedexpression_class)<!-- -->\[\] | The list of transformations to apply. |
 
 <b>Returns:</b>
 

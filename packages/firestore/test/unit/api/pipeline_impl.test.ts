@@ -773,27 +773,6 @@ describe('stage serialization', () => {
       });
     });
 
-    it('serializes update stage with array of transform expressions', async () => {
-      const firestore = newTestFirestore();
-      const spy = fakePipelineResponse(firestore);
-
-      await execute(
-        firestore
-          .pipeline()
-          .collection('foo')
-          .update([constant(true).as('is_top_scorer')])
-      );
-
-      const req = spy.mock.calls[FIRST_CALL][
-        EXECUTE_PIPELINE_REQUEST
-      ] as ProtoExecutePipelineRequest;
-      const updateStage = req.structuredPipeline?.pipeline?.stages?.[1];
-      expect(updateStage?.name).to.equal('update');
-      expect(updateStage?.args?.[0]?.mapValue?.fields).to.deep.equal({
-        is_top_scorer: { booleanValue: true }
-      });
-    });
-
     it('serializes update stage with UpdateStageOptions', async () => {
       const firestore = newTestFirestore();
       const spy = fakePipelineResponse(firestore);

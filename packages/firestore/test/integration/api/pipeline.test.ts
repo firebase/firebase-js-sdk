@@ -2381,7 +2381,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           .collection(randomCol.path)
           .where(equal(field('__name__').documentId(), 'book3'))
           .addFields(field('__name__').documentId().as('id'))
-          .update([constant('baz').as('foo')]);
+          .update(constant('baz').as('foo'));
 
         const res = await execute(ppl);
         expectResults(res, { documents_modified: 1 });
@@ -2398,7 +2398,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
             .collection(randomCol.path)
             .where(equal(field('genre'), 'Science Fiction'))
             .removeFields('awards')
-            .update([constant('Updated').as('status')])
+            .update({ transformedFields: [constant('Updated').as('status')] })
         );
         expectResults(res, { documents_modified: 2 });
 
@@ -2417,7 +2417,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
             .pipeline()
             .collection(randomCol.path)
             .where(equal(field('__name__').documentId(), 'book1'))
-            .update([add(field('rating'), constant(1.0)).as('rating')])
+            .update(add(field('rating'), constant(1.0)).as('rating'))
         );
         expectResults(res, { documents_modified: 1 });
 
@@ -2463,7 +2463,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           firestore
             .pipeline()
             .documents([doc(randomCol, nonExistingId)])
-            .update([constant('Updated').as('status')])
+            .update(constant('Updated').as('status'))
         );
         expectResults(res, { documents_modified: 0 });
       });
@@ -2474,7 +2474,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
             .pipeline()
             .collection(randomCol.path)
             .where(equal(field('__name__').documentId(), 'book1'))
-            .update([constant('AtomicUpdate').as('status')]),
+            .update(constant('AtomicUpdate').as('status')),
           atomic: true
         });
         expectResults(res, { documents_modified: 1 });
