@@ -54,7 +54,7 @@ export function createBaseConfig(importMetaUrl, customConfig = {}) {
             globals: true,
             environment: 'node',
             pool: 'forks',
-            forks: { maxForks },
+            maxWorkers: maxForks,
             isolate: true,
             passWithNoTests: false,
             include: ['test/**/*.test.ts', 'src/**/*.test.ts'],
@@ -63,9 +63,15 @@ export function createBaseConfig(importMetaUrl, customConfig = {}) {
           }
         },
         {
+          server: {
+            headers: {
+              'Cache-Control': 'no-store'
+            }
+          },
           test: {
             name: 'browser',
             globals: true,
+            maxWorkers: maxForks,
             browser: {
               enabled: true,
               provider: playwright(),

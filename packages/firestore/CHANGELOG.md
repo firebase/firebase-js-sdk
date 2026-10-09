@@ -1,5 +1,17 @@
 # @firebase/firestore
 
+## 4.18.0
+
+### Minor Changes
+
+- [`46ae308`](https://github.com/firebase/firebase-js-sdk/commit/46ae3088ba061c8bb929e7c377237bf0e16bc155) [#10337](https://github.com/firebase/firebase-js-sdk/pull/10337) - Added support for BSON types.
+
+### Patch Changes
+
+- [`5ab2fc6`](https://github.com/firebase/firebase-js-sdk/commit/5ab2fc6f889be5226f44d2e50c7eb20144f69338) [#7887](https://github.com/firebase/firebase-js-sdk/pull/7887) - UpdateData<T> allows indexed types or Record<X, T> for T.
+
+- [`142b409`](https://github.com/firebase/firebase-js-sdk/commit/142b40983a0d7e23cf14f3bac78b445b33152c46) [#10367](https://github.com/firebase/firebase-js-sdk/pull/10367) - Include `Temporal` namespace declaration in `global_index.d.ts`.
+
 ## 4.17.2
 
 ### Patch Changes

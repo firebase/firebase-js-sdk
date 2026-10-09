@@ -212,8 +212,8 @@ describe('Google AI Mappers', () => {
   });
 
   describe('mapCountTokensRequest', () => {
-    it('should map a Vertex AI CountTokensRequest to Google AI format', () => {
-      const vertexRequest: CountTokensRequest = {
+    it('should map an Agent Platform CountTokensRequest to Google AI format', () => {
+      const agentPlatformRequest: CountTokensRequest = {
         contents: fakeContents,
         systemInstruction: {
           role: 'system',
@@ -228,19 +228,22 @@ describe('Google AI Mappers', () => {
       const expectedGoogleAIRequest: GoogleAICountTokensRequest = {
         generateContentRequest: {
           model: fakeModel,
-          contents: vertexRequest.contents,
-          systemInstruction: vertexRequest.systemInstruction,
-          tools: vertexRequest.tools,
-          generationConfig: vertexRequest.generationConfig
+          contents: agentPlatformRequest.contents,
+          systemInstruction: agentPlatformRequest.systemInstruction,
+          tools: agentPlatformRequest.tools,
+          generationConfig: agentPlatformRequest.generationConfig
         }
       };
 
-      const mappedRequest = mapCountTokensRequest(vertexRequest, fakeModel);
+      const mappedRequest = mapCountTokensRequest(
+        agentPlatformRequest,
+        fakeModel
+      );
       expect(mappedRequest).to.deep.equal(expectedGoogleAIRequest);
     });
 
-    it('should map a minimal Vertex AI CountTokensRequest', () => {
-      const vertexRequest: CountTokensRequest = {
+    it('should map a minimal Agent Platform CountTokensRequest', () => {
+      const agentPlatformRequest: CountTokensRequest = {
         contents: fakeContents,
         systemInstruction: {
           role: 'system',
@@ -252,7 +255,7 @@ describe('Google AI Mappers', () => {
       const expectedGoogleAIRequest: GoogleAICountTokensRequest = {
         generateContentRequest: {
           model: fakeModel,
-          contents: vertexRequest.contents,
+          contents: agentPlatformRequest.contents,
           systemInstruction: {
             role: 'system',
             parts: [{ type: 'text', text: 'Be nice' }]
@@ -261,7 +264,10 @@ describe('Google AI Mappers', () => {
         }
       };
 
-      const mappedRequest = mapCountTokensRequest(vertexRequest, fakeModel);
+      const mappedRequest = mapCountTokensRequest(
+        agentPlatformRequest,
+        fakeModel
+      );
       expect(mappedRequest).to.deep.equal(expectedGoogleAIRequest);
     });
   });

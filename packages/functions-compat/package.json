@@ -30,7 +30,7 @@
     "@firebase/app-compat": "0.x"
   },
   "devDependencies": {
-    "@firebase/app-compat": "0.5.18",
+    "@firebase/app-compat": "0.5.19",
     "rollup": "4.62.2",
     "@rollup/plugin-json": "6.1.0",
     "rollup-plugin-typescript2": "0.37.0",
@@ -53,10 +53,10 @@
     "dev": "rollup -c -w",
     "test": "run-p --npm-path npm lint test:all",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all",
-    "test:all": "run-p --npm-path npm test:browser test:node",
-    "test:browser": "karma start",
-    "test:browser:debug": "karma start --browsers=Chrome --auto-watch",
-    "test:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'src/{,!(browser)/**/}*.test.ts' --config ../../config/mocharc.node.js",
+    "test:all": "vitest run",
+    "test:browser": "vitest run --project=browser",
+    "test:browser:debug": "vitest --project=browser --browser.headless=false",
+    "test:node": "vitest run --project=node",
     "test:emulator": "env FIREBASE_FUNCTIONS_HOST=http://localhost FIREBASE_FUNCTIONS_PORT=5005 run-p --npm-path npm test:node",
     "trusted-type-check": "tsec -p tsconfig.json --noEmit",
     "add-compat-overloads": "ts-node-script ../../scripts/build/create-overloads.ts -i ../functions/dist/functions-public.d.ts -o dist/src/index.d.ts -a -r Functions:types.FirebaseFunctions -r FirebaseApp:FirebaseAppCompat --moduleToEnhance @firebase/functions"
@@ -68,12 +68,6 @@
     "@firebase/functions-types": "0.6.5",
     "@firebase/util": "1.15.3",
     "tslib": "^2.1.0"
-  },
-  "nyc": {
-    "extension": [
-      ".ts"
-    ],
-    "reportDir": "./coverage/node"
   },
   "engines": {
     "node": ">=24.12.0"
