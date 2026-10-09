@@ -16,20 +16,14 @@
  */
 
 import { FirebaseError } from '@firebase/util';
-import { expect, use } from 'chai';
 import firebase from '@firebase/app-compat';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import '@firebase/auth-compat';
-
-import chaiAsPromised from 'chai-as-promised';
 import {
   cleanUpTestInstance,
   initializeTestInstance,
   randomEmail
 } from '../../helpers/helpers';
-
-use(chaiAsPromised);
-
 describe('Integration test: custom auth', () => {
   let customToken: string;
   let uid: string;
@@ -51,18 +45,18 @@ describe('Integration test: custom auth', () => {
 
   it('signs in with custom token', async () => {
     const cred = await firebase.auth().signInWithCustomToken(customToken);
-    expect(firebase.auth().currentUser).to.eq(cred.user);
-    expect(cred.operationType).to.eq('signIn');
+    expect(firebase.auth().currentUser).toBe(cred.user);
+    expect(cred.operationType).toBe('signIn');
 
     const { user } = cred;
-    expect(user!.isAnonymous).to.be.false;
-    expect(user!.uid).to.eq(uid);
-    expect((await user!.getIdTokenResult(false)).claims.customClaim).to.eq(
+    expect(user!.isAnonymous).toBe(false);
+    expect(user!.uid).toBe(uid);
+    expect((await user!.getIdTokenResult(false)).claims.customClaim).toBe(
       'some-claim'
     );
-    expect(user!.providerId).to.eq('firebase');
-    expect(cred.additionalUserInfo!.providerId).to.be.null;
-    expect(cred.additionalUserInfo!.isNewUser).to.be.true;
+    expect(user!.providerId).toBe('firebase');
+    expect(cred.additionalUserInfo!.providerId).toBeNull();
+    expect(cred.additionalUserInfo!.isNewUser).toBe(true);
   });
 
   it('uid will overwrite existing user, joining accounts', async () => {
@@ -73,26 +67,26 @@ describe('Integration test: custom auth', () => {
       })
     );
 
-    expect(firebase.auth().currentUser).to.eq(customCred.user);
-    expect(customCred.user!.uid).to.eq(anonUser!.uid);
-    expect(customCred.user!.isAnonymous).to.be.false;
+    expect(firebase.auth().currentUser).toBe(customCred.user);
+    expect(customCred.user!.uid).toBe(anonUser!.uid);
+    expect(customCred.user!.isAnonymous).toBe(false);
   });
 
   it('allows the user to delete the account', async () => {
     let { user } = await firebase.auth().signInWithCustomToken(customToken);
     await user!.updateProfile({ displayName: 'Display Name' });
-    expect(user!.displayName).to.eq('Display Name');
+    expect(user!.displayName).toBe('Display Name');
 
     await user!.delete();
-    await expect(user!.reload()).to.be.rejectedWith(
+    await expect(user!.reload()).rejects.toThrow(
       FirebaseError,
       'auth/user-token-expired'
     );
-    expect(firebase.auth().currentUser).to.be.null;
+    expect(firebase.auth().currentUser).toBeNull();
 
     ({ user } = await firebase.auth().signInWithCustomToken(customToken));
     // New user in the system: the display name should be missing
-    expect(user!.displayName).to.be.null;
+    expect(user!.displayName).toBeNull();
   });
 
   it('sign in can be called twice successively', async () => {
@@ -102,7 +96,7 @@ describe('Integration test: custom auth', () => {
     const { user: userB } = await firebase
       .auth()
       .signInWithCustomToken(customToken);
-    expect(userA!.uid).to.eq(userB!.uid);
+    expect(userA!.uid).toBe(userB!.uid);
   });
 
   it('allows user to update profile', async () => {
@@ -111,21 +105,21 @@ describe('Integration test: custom auth', () => {
       displayName: 'Display Name',
       photoURL: 'photo-url'
     });
-    expect(user!.displayName).to.eq('Display Name');
-    expect(user!.photoURL).to.eq('photo-url');
+    expect(user!.displayName).toBe('Display Name');
+    expect(user!.photoURL).toBe('photo-url');
 
     await firebase.auth().signOut();
 
     user = (await firebase.auth().signInWithCustomToken(customToken)).user!;
-    expect(user.displayName).to.eq('Display Name');
-    expect(user.photoURL).to.eq('photo-url');
+    expect(user.displayName).toBe('Display Name');
+    expect(user.photoURL).toBe('photo-url');
   });
 
   it('token can be refreshed', async () => {
     const { user } = await firebase.auth().signInWithCustomToken(customToken);
     const origToken = await user!.getIdToken();
     await new Promise(resolve => setTimeout(resolve, 1000));
-    expect(await user!.getIdToken(true)).not.to.eq(origToken);
+    expect(await user!.getIdToken(true)).not.toBe(origToken);
   });
 
   it('signing in will not override anonymous user', async () => {
@@ -133,11 +127,11 @@ describe('Integration test: custom auth', () => {
     const { user: customUser } = await firebase
       .auth()
       .signInWithCustomToken(customToken);
-    expect(firebase.auth().currentUser).to.eql(customUser);
-    expect(customUser!.uid).not.to.eql(anonUser!.uid);
+    expect(firebase.auth().currentUser).toEqual(customUser);
+    expect(customUser!.uid).not.toEqual(anonUser!.uid);
   });
 
-  context('email/password interaction', () => {
+  describe('email/password interaction', () => {
     let email: string;
     let customToken: string;
 
@@ -153,15 +147,15 @@ describe('Integration test: custom auth', () => {
       const emailCred = await firebase
         .auth()
         .createUserWithEmailAndPassword(email, 'password');
-      expect(emailCred.user!.uid).not.to.eql(customCred.user!.uid);
+      expect(emailCred.user!.uid).not.toEqual(customCred.user!.uid);
 
       await firebase.auth().signOut();
       customCred = await firebase.auth().signInWithCustomToken(customToken);
       const emailSignIn = await firebase
         .auth()
         .signInWithEmailAndPassword(email, 'password');
-      expect(emailCred.user!.uid).to.eql(emailSignIn.user!.uid);
-      expect(emailSignIn.user!.uid).not.to.eql(customCred.user!.uid);
+      expect(emailCred.user!.uid).toEqual(emailSignIn.user!.uid);
+      expect(emailSignIn.user!.uid).not.toEqual(customCred.user!.uid);
     });
 
     it('account can have email / password attached', async () => {
@@ -176,7 +170,7 @@ describe('Integration test: custom auth', () => {
       const { user: emailPassUser } = await firebase
         .auth()
         .signInWithEmailAndPassword(email, 'password');
-      expect(emailPassUser!.uid).to.eq(customUser!.uid);
+      expect(emailPassUser!.uid).toBe(customUser!.uid);
     });
 
     it('account can be linked using email and password', async () => {
@@ -193,7 +187,7 @@ describe('Integration test: custom auth', () => {
       const { user: emailPassUser } = await firebase
         .auth()
         .signInWithEmailAndPassword(email, 'password');
-      expect(emailPassUser!.uid).to.eq(customUser!.uid);
+      expect(emailPassUser!.uid).toBe(customUser!.uid);
     });
 
     it('account cannot be linked with existing email/password', async () => {
@@ -205,7 +199,7 @@ describe('Integration test: custom auth', () => {
         email,
         'password'
       );
-      await expect(customUser!.linkWithCredential(cred)).to.be.rejectedWith(
+      await expect(customUser!.linkWithCredential(cred)).rejects.toThrow(
         FirebaseError,
         'auth/email-already-in-use'
       );

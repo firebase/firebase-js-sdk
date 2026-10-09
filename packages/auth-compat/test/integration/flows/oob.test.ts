@@ -15,9 +15,6 @@
  * limitations under the License.
  */
 
-import { FirebaseError } from '@firebase/util';
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
 import firebase from '@firebase/app-compat';
 import {
   getOobCodes,
@@ -29,10 +26,6 @@ import {
   randomEmail
 } from '../../helpers/helpers';
 import { ActionCodeSettings } from '@firebase/auth-types';
-
-use(chaiAsPromised);
-
-declare const xit: typeof it;
 
 const BASE_SETTINGS: ActionCodeSettings = {
   url: 'http://localhost/action_code_return',
@@ -56,7 +49,7 @@ describe('Integration test: oob codes', () => {
     return codes.reverse().find(({ email }) => email === toEmail)!;
   }
 
-  context('flows beginning with sendSignInLinkToEmail', () => {
+  describe('flows beginning with sendSignInLinkToEmail', () => {
     let oobSession: OobCodeSession;
 
     beforeEach(async () => {
@@ -77,12 +70,12 @@ describe('Integration test: oob codes', () => {
         .auth()
         .signInWithEmailLink(email, oobSession.oobLink);
 
-      expect(operationType).to.eq('signIn');
-      expect(user).to.eq(firebase.auth().currentUser);
-      expect(user!.uid).to.be.a('string');
-      expect(user!.email).to.eq(email);
-      expect(user!.emailVerified).to.be.true;
-      expect(user!.isAnonymous).to.be.false;
+      expect(operationType).toBe('signIn');
+      expect(user).toBe(firebase.auth().currentUser);
+      expect(typeof user!.uid).toBe('string');
+      expect(user!.email).toBe(email);
+      expect(user!.emailVerified).toBe(true);
+      expect(user!.isAnonymous).toBe(false);
     });
 
     it('sign in works with an email credential', async () => {
@@ -94,12 +87,12 @@ describe('Integration test: oob codes', () => {
         .auth()
         .signInWithCredential(cred);
 
-      expect(operationType).to.eq('signIn');
-      expect(user).to.eq(firebase.auth().currentUser);
-      expect(user!.uid).to.be.a('string');
-      expect(user!.email).to.eq(email);
-      expect(user!.emailVerified).to.be.true;
-      expect(user!.isAnonymous).to.be.false;
+      expect(operationType).toBe('signIn');
+      expect(user).toBe(firebase.auth().currentUser);
+      expect(typeof user!.uid).toBe('string');
+      expect(user!.email).toBe(email);
+      expect(user!.emailVerified).toBe(true);
+      expect(user!.isAnonymous).toBe(false);
     });
 
     it('reauthenticate works with email credential', async () => {
@@ -119,9 +112,9 @@ describe('Integration test: oob codes', () => {
       const { user: newUser, operationType } =
         await oldUser!.reauthenticateWithCredential(cred);
 
-      expect(newUser!.uid).to.eq(oldUser!.uid);
-      expect(operationType).to.eq('reauthenticate');
-      expect(firebase.auth().currentUser).to.eq(newUser);
+      expect(newUser!.uid).toBe(oldUser!.uid);
+      expect(operationType).toBe('reauthenticate');
+      expect(firebase.auth().currentUser).toBe(newUser);
     });
 
     it('reauthenticate throws with different email', async () => {
@@ -139,10 +132,10 @@ describe('Integration test: oob codes', () => {
         newEmail,
         reauthSession.oobLink
       );
-      await expect(
-        oldUser!.reauthenticateWithCredential(cred)
-      ).to.be.rejectedWith(FirebaseError, 'auth/user-mismatch');
-      expect(firebase.auth().currentUser).to.eq(oldUser);
+      await expect(oldUser!.reauthenticateWithCredential(cred)).rejects.toThrow(
+        'auth/user-mismatch'
+      );
+      expect(firebase.auth().currentUser).toBe(oldUser);
     });
 
     it('reauthenticate throws if user is deleted', async () => {
@@ -160,10 +153,10 @@ describe('Integration test: oob codes', () => {
         email,
         reauthSession.oobLink
       );
-      await expect(
-        oldUser!.reauthenticateWithCredential(cred)
-      ).to.be.rejectedWith(FirebaseError, 'auth/user-mismatch');
-      expect(firebase.auth().currentUser).to.be.null;
+      await expect(oldUser!.reauthenticateWithCredential(cred)).rejects.toThrow(
+        'auth/user-mismatch'
+      );
+      expect(firebase.auth().currentUser).toBeNull();
     });
 
     it('other accounts can be linked', async () => {
@@ -173,16 +166,16 @@ describe('Integration test: oob codes', () => {
       );
       const { user: original } = await firebase.auth().signInAnonymously();
 
-      expect(original!.isAnonymous).to.be.true;
+      expect(original!.isAnonymous).toBe(true);
       const { user: linked, operationType } =
         await original!.linkWithCredential(cred);
 
-      expect(operationType).to.eq('link');
-      expect(linked!.uid).to.eq(original!.uid);
-      expect(linked!.isAnonymous).to.be.false;
-      expect(firebase.auth().currentUser).to.eq(linked);
-      expect(linked!.email).to.eq(email);
-      expect(linked!.emailVerified).to.be.true;
+      expect(operationType).toBe('link');
+      expect(linked!.uid).toBe(original!.uid);
+      expect(linked!.isAnonymous).toBe(false);
+      expect(firebase.auth().currentUser).toBe(linked);
+      expect(linked!.email).toBe(email);
+      expect(linked!.emailVerified).toBe(true);
     });
 
     it('can be linked to a custom token', async () => {
@@ -198,10 +191,10 @@ describe('Integration test: oob codes', () => {
       );
       const { user: linked } = await original!.linkWithCredential(cred);
 
-      expect(linked!.uid).to.eq(original!.uid);
-      expect(firebase.auth().currentUser).to.eq(linked);
-      expect(linked!.email).to.eq(email);
-      expect(linked!.emailVerified).to.be.true;
+      expect(linked!.uid).toBe(original!.uid);
+      expect(firebase.auth().currentUser).toBe(linked);
+      expect(linked!.email).toBe(email);
+      expect(linked!.emailVerified).toBe(true);
     });
 
     it('cannot link if original account is deleted', async () => {
@@ -211,10 +204,9 @@ describe('Integration test: oob codes', () => {
       );
       const { user } = await firebase.auth().signInAnonymously();
 
-      expect(user!.isAnonymous).to.be.true;
+      expect(user!.isAnonymous).toBe(true);
       await user!.delete();
-      await expect(user!.linkWithCredential(cred)).to.be.rejectedWith(
-        FirebaseError,
+      await expect(user!.linkWithCredential(cred)).rejects.toThrow(
         'auth/user-token-expired'
       );
     });
@@ -224,14 +216,14 @@ describe('Integration test: oob codes', () => {
       await firebase.auth().signInWithEmailLink(email, link);
       await expect(
         firebase.auth().signInWithEmailLink(email, link)
-      ).to.be.rejectedWith(FirebaseError, 'auth/invalid-action-code');
+      ).rejects.toThrow('auth/invalid-action-code');
     });
 
     it('fetchSignInMethodsForEmail returns the correct values', async () => {
       const { user } = await firebase
         .auth()
         .signInWithEmailLink(email, oobSession.oobLink);
-      expect(await firebase.auth().fetchSignInMethodsForEmail(email)).to.eql([
+      expect(await firebase.auth().fetchSignInMethodsForEmail(email)).toEqual([
         'emailLink'
       ]);
 
@@ -239,16 +231,16 @@ describe('Integration test: oob codes', () => {
       const updatedMethods = await firebase
         .auth()
         .fetchSignInMethodsForEmail(email);
-      expect(updatedMethods).to.have.length(2);
-      expect(updatedMethods).to.include('emailLink');
-      expect(updatedMethods).to.include('password');
+      expect(updatedMethods).toHaveLength(2);
+      expect(updatedMethods).toContain('emailLink');
+      expect(updatedMethods).toContain('password');
     });
 
     it('throws an error if the wrong code is provided', async () => {
       const otherSession = await sendEmailLink(randomEmail());
       await expect(
         firebase.auth().signInWithEmailLink(email, otherSession.oobLink)
-      ).to.be.rejectedWith(FirebaseError, 'auth/invalid-email');
+      ).rejects.toThrow('auth/invalid-email');
     });
   });
 
@@ -257,8 +249,8 @@ describe('Integration test: oob codes', () => {
     const { user } = await firebase
       .auth()
       .createUserWithEmailAndPassword(email, 'password');
-    expect(user!.emailVerified).to.be.false;
-    expect(await firebase.auth().fetchSignInMethodsForEmail(email)).to.eql([
+    expect(user!.emailVerified).toBe(false);
+    expect(await firebase.auth().fetchSignInMethodsForEmail(email)).toEqual([
       'password'
     ]);
     await user!.sendEmailVerification();
@@ -266,7 +258,7 @@ describe('Integration test: oob codes', () => {
     // Apply the email verification code
     await firebase.auth().applyActionCode((await code(email)).oobCode);
     await user!.reload();
-    expect(user!.emailVerified).to.be.true;
+    expect(user!.emailVerified).toBe(true);
   });
 
   it('can be used to initiate password reset', async () => {
@@ -279,27 +271,28 @@ describe('Integration test: oob codes', () => {
     // Send and confirm the password reset
     await firebase.auth().sendPasswordResetEmail(email);
     const oobCode = (await code(email)).oobCode;
-    expect(await firebase.auth().verifyPasswordResetCode(oobCode)).to.eq(email);
+    expect(await firebase.auth().verifyPasswordResetCode(oobCode)).toBe(email);
     await firebase.auth().confirmPasswordReset(oobCode, 'new-password');
 
     // Make sure the new password works and the old one doesn't
     const { user } = await firebase
       .auth()
       .signInWithEmailAndPassword(email, 'new-password');
-    expect(user!.uid).to.eq(original!.uid);
-    expect(user!.emailVerified).to.be.true;
-    expect(await firebase.auth().fetchSignInMethodsForEmail(email)).to.eql([
+    expect(user!.uid).toBe(original!.uid);
+    expect(user!.emailVerified).toBe(true);
+    expect(await firebase.auth().fetchSignInMethodsForEmail(email)).toEqual([
       'password'
     ]);
 
     await expect(
       firebase.auth().signInWithEmailAndPassword(email, 'password')
-    ).to.be.rejectedWith(FirebaseError, 'auth/wrong-password');
+    ).rejects.toThrow('auth/wrong-password');
   });
 
   // Test is ignored for now as the emulator does not currently support the
   // verify-and-change-email operation.
-  xit('verifyBeforeUpdateEmail waits until flow completes', async () => {
+  // eslint-disable-next-line no-restricted-properties
+  it.skip('verifyBeforeUpdateEmail waits until flow completes', async () => {
     const updatedEmail = randomEmail();
 
     // Create an initial user with the basic email
@@ -308,22 +301,22 @@ describe('Integration test: oob codes', () => {
       .auth()
       .signInWithEmailLink(email, (await code(email)).oobLink);
     await user!.verifyBeforeUpdateEmail(updatedEmail, BASE_SETTINGS);
-    expect(user!.email).to.eq(email);
+    expect(user!.email).toBe(email);
 
     // Finish the update email flow
     await firebase.auth().applyActionCode((await code(updatedEmail)).oobCode);
     await user!.reload();
-    expect(user!.emailVerified).to.be.true;
-    expect(user!.email).to.eq(updatedEmail);
-    expect(firebase.auth().currentUser).to.eq(user);
+    expect(user!.emailVerified).toBe(true);
+    expect(user!.email).toBe(updatedEmail);
+    expect(firebase.auth().currentUser).toBe(user);
 
     // Old email doesn't work but new one does
     await expect(
       firebase.auth().signInWithEmailAndPassword(email, 'password')
-    ).to.be.rejectedWith(FirebaseError, 'auth/alskdjf');
+    ).rejects.toThrow('auth/alskdjf');
     const { user: newSignIn } = await firebase
       .auth()
       .signInWithEmailAndPassword(updatedEmail, 'password');
-    expect(newSignIn!.uid).to.eq(user!.uid);
+    expect(newSignIn!.uid).toBe(user!.uid);
   });
 });
