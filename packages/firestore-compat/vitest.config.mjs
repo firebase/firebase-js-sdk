@@ -27,6 +27,10 @@ const targetBackendArg =
     ? 'emulator'
     : process.env.FIRESTORE_TARGET_BACKEND);
 
+if (targetBackendArg) {
+  process.env.FIRESTORE_TARGET_BACKEND = targetBackendArg;
+}
+
 const config = createBaseConfig(import.meta.url);
 
 config.test.projects = config.test.projects.map(project => {
