@@ -15,11 +15,6 @@
  * limitations under the License.
  */
 
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-import * as sinon from 'sinon';
-import sinonChai from 'sinon-chai';
-
 import { UserInfo } from '../../model/public_types';
 import { ProviderId } from '../../model/enums';
 
@@ -34,9 +29,6 @@ import {
 import { _reloadWithoutSaving, reload } from './reload';
 import { UserMetadata } from './user_metadata';
 import { UserInternal } from '../../model/user';
-
-use(chaiAsPromised);
-use(sinonChai);
 
 const BASIC_USER_INFO: UserInfo = {
   providerId: ProviderId.FIREBASE,
@@ -85,14 +77,14 @@ describe('core/user/reload', () => {
 
     const user = testUser(auth, 'abc', '', true);
     await _reloadWithoutSaving(user);
-    expect(user.uid).to.eq('local-id');
-    expect(user.displayName).to.eq('display-name');
-    expect(user.photoURL).to.eq('photo-url');
-    expect(user.email).to.eq('email');
-    expect(user.emailVerified).to.be.true;
-    expect(user.phoneNumber).to.eq('phone-number');
-    expect(user.tenantId).to.eq('tenant-id');
-    expect((user.metadata as UserMetadata).toJSON()).to.eql({
+    expect(user.uid).toBe('local-id');
+    expect(user.displayName).toBe('display-name');
+    expect(user.photoURL).toBe('photo-url');
+    expect(user.email).toBe('email');
+    expect(user.emailVerified).toBe(true);
+    expect(user.phoneNumber).toBe('phone-number');
+    expect(user.tenantId).toBe('tenant-id');
+    expect((user.metadata as UserMetadata).toJSON()).toEqual({
       createdAt: 123,
       lastLoginAt: 456
     });
@@ -111,7 +103,7 @@ describe('core/user/reload', () => {
       ]
     });
     await _reloadWithoutSaving(user);
-    expect(user.providerData).to.eql([
+    expect(user.providerData).toEqual([
       { ...BASIC_USER_INFO },
       { ...BASIC_USER_INFO, providerId: ProviderId.FACEBOOK }
     ]);
@@ -143,7 +135,7 @@ describe('core/user/reload', () => {
       ]
     });
     await _reloadWithoutSaving(user);
-    expect(user.providerData).to.eql([
+    expect(user.providerData).toEqual([
       { ...BASIC_USER_INFO },
       {
         ...BASIC_USER_INFO,
@@ -161,15 +153,15 @@ describe('core/user/reload', () => {
     const user = testUser(auth, 'user', '', true);
     user.auth.currentUser = user;
 
-    const cb = sinon.stub();
+    const cb = vi.fn();
     user.auth.onIdTokenChanged(cb);
 
     await reload(user);
-    expect(cb).to.have.been.calledWith(user);
-    expect(auth.persistenceLayer.lastObjectSet).to.eql(user.toJSON());
+    expect(cb).toHaveBeenCalledWith(user);
+    expect(auth.persistenceLayer.lastObjectSet).toEqual(user.toJSON());
   });
 
-  context('anonymous carryover', () => {
+  describe('anonymous carryover', () => {
     let user: UserInternal;
     beforeEach(() => {
       user = testUser(auth, 'abc', '', true);
@@ -198,25 +190,25 @@ describe('core/user/reload', () => {
     it('user stays not anonymous even if reload user is', async () => {
       setup(false, '', '', []); // After reload the user would count as anon
       await _reloadWithoutSaving(user);
-      expect(user.isAnonymous).to.be.false;
+      expect(user.isAnonymous).toBe(false);
     });
 
     it('user stays anonymous if reload user is anonymous', async () => {
       setup(true, '', '', []); // After reload the user would count as anon
       await _reloadWithoutSaving(user);
-      expect(user.isAnonymous).to.be.true;
+      expect(user.isAnonymous).toBe(true);
     });
 
     it('user becomes not anonymous if reload user is not', async () => {
       setup(true, '', '', [{ providerId: 'google' }]); // After reload the user would count as anon
       await _reloadWithoutSaving(user);
-      expect(user.isAnonymous).to.be.false;
+      expect(user.isAnonymous).toBe(false);
     });
 
     it('user becomes not anonymous if password hash set', async () => {
       setup(true, 'email', 'pass', [{ providerId: 'google' }]); // After reload the user would count as anon
       await _reloadWithoutSaving(user);
-      expect(user.isAnonymous).to.be.false;
+      expect(user.isAnonymous).toBe(false);
     });
   });
 });

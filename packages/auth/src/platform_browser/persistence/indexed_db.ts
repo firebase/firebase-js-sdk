@@ -137,13 +137,14 @@ export async function _putObject(
   return new DBPromise<void>(request).toPromise();
 }
 
-async function getObject(
+function getObject(
   db: IDBDatabase,
   key: string
 ): Promise<PersistedBlob | null> {
   const request = getObjectStore(db, false).get(key);
-  const data = await new DBPromise<DBObject | undefined>(request).toPromise();
-  return data === undefined ? null : data.value;
+  return new DBPromise<DBObject | undefined>(request)
+    .toPromise()
+    .then(data => (data === undefined ? null : data.value));
 }
 
 export function _deleteObject(db: IDBDatabase, key: string): Promise<void> {
@@ -488,7 +489,7 @@ class IndexedDBLocalPersistence implements InternalPersistence {
     if (!this.listeners[key]) {
       this.listeners[key] = new Set();
       // Populate the cache to avoid spuriously triggering on first poll.
-      void this._get(key); // This can happen in the background async and we can return immediately.
+      void this._get(key).catch(() => {}); // This can happen in the background async and we can return immediately.
     }
     this.listeners[key].add(listener);
   }

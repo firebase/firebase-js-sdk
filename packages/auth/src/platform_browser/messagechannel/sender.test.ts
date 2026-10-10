@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,6 @@
  * limitations under the License.
  */
 
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-import * as sinon from 'sinon';
-import sinonChai from 'sinon-chai';
 import {
   _EventType,
   _MessageError,
@@ -32,10 +28,6 @@ import {
 import { FakeServiceWorker } from '../../../test/helpers/fake_service_worker';
 import { stubTimeouts, TimerMap } from '../../../test/helpers/timeout_stub';
 import { Sender } from './sender';
-
-use(sinonChai);
-use(chaiAsPromised);
-
 const oldSetTimeout = setTimeout;
 
 describe('platform_browser/messagechannel/sender', () => {
@@ -48,11 +40,11 @@ describe('platform_browser/messagechannel/sender', () => {
       serviceWorker = new FakeServiceWorker() as unknown as ServiceWorker;
       sender = new Sender(serviceWorker);
       pendingTimeouts = stubTimeouts();
-      sinon.stub(window, 'clearTimeout');
+      vi.spyOn(window, 'clearTimeout');
     });
 
     afterEach(() => {
-      sinon.restore();
+      vi.restoreAllMocks();
     });
 
     it('should send an event and wait for a response', async () => {
@@ -100,7 +92,7 @@ describe('platform_browser/messagechannel/sender', () => {
           {},
           _TimeoutDuration.ACK
         )
-      ).to.be.rejectedWith(Error, _MessageError.UNSUPPORTED_EVENT);
+      ).rejects.toThrow(Error, _MessageError.UNSUPPORTED_EVENT);
     });
 
     it('should work with a long ACK', async () => {
@@ -113,7 +105,7 @@ describe('platform_browser/messagechannel/sender', () => {
       serviceWorker.addEventListener('message', (event: Event) => {
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         Promise.resolve().then(() => {
-          pendingTimeouts[_TimeoutDuration.ACK]();
+          pendingTimeouts[_TimeoutDuration.ACK]?.();
         });
         const messageEvent = event as MessageEvent<
           SenderMessageEvent<PingRequest>
@@ -160,7 +152,7 @@ describe('platform_browser/messagechannel/sender', () => {
           {},
           _TimeoutDuration.ACK
         )
-      ).to.be.rejectedWith(Error, _MessageError.TIMEOUT);
+      ).rejects.toThrow(Error, _MessageError.TIMEOUT);
     });
   });
 });

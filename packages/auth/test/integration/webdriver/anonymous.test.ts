@@ -17,7 +17,6 @@
 
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { OperationType, UserCredential } from '@firebase/auth';
-import { expect } from 'chai';
 import { AnonFunction } from './util/functions';
 import { browserDescribe } from './util/test_runner';
 
@@ -31,10 +30,10 @@ browserDescribe('WebDriver anonymous auth test', driver => {
     const cred: UserCredential = await driver.call(
       AnonFunction.SIGN_IN_ANONYMOUSLY
     );
-    expect(cred).not.to.be.null;
-    expect(cred.user.isAnonymous).to.be.true;
-    expect(cred.operationType).to.eq(OperationType.SIGN_IN);
-    expect(await driver.getUserSnapshot()).to.eql(cred.user);
+    expect(cred).not.toBeNull();
+    expect(cred.user.isAnonymous).toBe(true);
+    expect(cred.operationType).toBe(OperationType.SIGN_IN);
+    expect(await driver.getUserSnapshot()).toEqual(cred.user);
   });
 
   it('same user persists after refresh and sign in', async () => {
@@ -44,13 +43,13 @@ browserDescribe('WebDriver anonymous auth test', driver => {
     await driver.refresh();
 
     // First, is the user signed in from persistence?
-    expect(await driver.getUserSnapshot()).to.eql(before);
+    expect(await driver.getUserSnapshot()).toEqual(before);
 
     // Then, sign in again and check
     const { user: after }: UserCredential = await driver.call(
       AnonFunction.SIGN_IN_ANONYMOUSLY
     );
-    expect(after.uid).to.eq(before.uid);
+    expect(after.uid).toBe(before.uid);
   });
 
   it('user persists after refresh and sign in (no init wait)', async () => {
@@ -65,6 +64,6 @@ browserDescribe('WebDriver anonymous auth test', driver => {
     const { user: after }: UserCredential = await driver.call(
       AnonFunction.SIGN_IN_ANONYMOUSLY
     );
-    expect(after.uid).to.eq(before.uid);
+    expect(after.uid).toBe(before.uid);
   });
 });

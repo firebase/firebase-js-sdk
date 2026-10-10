@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC.
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,32 +15,28 @@
  * limitations under the License.
  */
 
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-import * as sinon from 'sinon';
-import sinonChai from 'sinon-chai';
-
 import { FirebaseError } from '@firebase/util';
 
 import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 import { _window } from '../auth_window';
 import * as js from '../load_js';
 import { _loadGapi, _resetLoader } from './gapi';
+import { MockInstance } from 'vitest';
 
-use(sinonChai);
-use(chaiAsPromised);
+vi.mock('../load_js', { spy: true });
 
 describe('platform_browser/iframe/gapi', () => {
   let library: typeof gapi;
   let auth: TestAuth;
-  let loadJsStub: sinon.SinonStub;
+  let loadJsStub: MockInstance;
   function onJsLoad(globalLoadFnName: string): void {
     _window().gapi = library as typeof gapi;
     _window()[globalLoadFnName]();
   }
 
   beforeEach(async () => {
-    loadJsStub = sinon.stub(js, '_loadJS').callsFake(url => {
+    vi.clearAllMocks();
+    loadJsStub = vi.spyOn(js, '_loadJS').mockImplementation(url => {
       onJsLoad(url.split('onload=')[1]);
       return Promise.resolve(new Event('load'));
     });
@@ -51,11 +47,9 @@ describe('platform_browser/iframe/gapi', () => {
   function makeGapi(result: unknown, timesout = false): typeof gapi {
     const callbackFn = timesout === false ? 'callback' : 'ontimeout';
     return {
-      load: sinon
-        .stub()
-        .callsFake((_name: string, params: Record<string, () => void>) =>
-          params[callbackFn]()
-        ),
+      load: vi.fn((_name: string, params: Record<string, () => void>) =>
+        params[callbackFn]()
+      ),
       iframes: {
         getContext: () => result as gapi.iframes.Context
       }
@@ -63,8 +57,9 @@ describe('platform_browser/iframe/gapi', () => {
   }
 
   afterEach(() => {
-    sinon.restore();
+    vi.restoreAllMocks();
     delete _window().gapi;
+    delete _window().___jsl;
     _resetLoader();
   });
 
@@ -72,8 +67,8 @@ describe('platform_browser/iframe/gapi', () => {
     const gapi = makeGapi('context!');
 
     library = gapi;
-    expect(await _loadGapi(auth)).to.eq('context!');
-    expect(gapi.load).to.have.been.called;
+    expect(await _loadGapi(auth)).toBe('context!');
+    expect(gapi.load).toHaveBeenCalled();
   });
 
   it('resets the gapi.load state', async () => {
@@ -92,27 +87,27 @@ describe('platform_browser/iframe/gapi', () => {
     await _loadGapi(auth);
 
     // Expect deep equality, but *not* pointer equality
-    expect(_window().___jsl!.H.something.r).to.eql(
+    expect(_window().___jsl!.H.something.r).toEqual(
       _window().___jsl!.H.something.L
     );
-    expect(_window().___jsl!.H.something.r).not.to.eq(
+    expect(_window().___jsl!.H.something.r).not.toBe(
       _window().___jsl!.H.something.L
     );
-    expect(_window().___jsl!.CP).to.eql([null, null, null, null]);
+    expect(_window().___jsl!.CP).toEqual([null, null, null, null]);
   });
 
   it('returns the cached object without reloading', async () => {
     library = makeGapi('test');
 
-    expect(await _loadGapi(auth)).to.eq('test');
-    expect(await _loadGapi(auth)).to.eq('test');
+    expect(await _loadGapi(auth)).toBe('test');
+    expect(await _loadGapi(auth)).toBe('test');
 
-    expect(js._loadJS).to.have.been.calledOnce;
+    expect(js._loadJS).toHaveBeenCalledTimes(1);
   });
 
   it('rejects with a network error if load fails', async () => {
     library = {} as typeof gapi;
-    await expect(_loadGapi(auth)).to.be.rejectedWith(
+    await expect(_loadGapi(auth)).rejects.toThrow(
       FirebaseError,
       'auth/network-request-failed'
     );
@@ -120,7 +115,7 @@ describe('platform_browser/iframe/gapi', () => {
 
   it('rejects with a network error if ontimeout called', async () => {
     library = makeGapi(undefined, /* timesout */ true);
-    await expect(_loadGapi(auth)).to.be.rejectedWith(
+    await expect(_loadGapi(auth)).rejects.toThrow(
       FirebaseError,
       'auth/network-request-failed'
     );
@@ -129,16 +124,21 @@ describe('platform_browser/iframe/gapi', () => {
   it('resets the load promise if the load errors', async () => {
     library = {} as typeof gapi;
     const firstAttempt = _loadGapi(auth);
-    await expect(firstAttempt).to.be.rejectedWith(
+    await expect(firstAttempt).rejects.toThrow(
       FirebaseError,
       'auth/network-request-failed'
     );
-    expect(_loadGapi(auth)).not.to.eq(firstAttempt);
+    const secondAttempt = _loadGapi(auth);
+    expect(secondAttempt).not.toBe(firstAttempt);
+    await expect(secondAttempt).rejects.toThrow(
+      FirebaseError,
+      'auth/network-request-failed'
+    );
   });
 
   it('rejects if gapi itself does not load', async () => {
     const error = new Error();
-    loadJsStub.rejects(error);
-    await expect(_loadGapi(auth)).to.be.rejectedWith(error);
+    loadJsStub.mockRejectedValue(error);
+    await expect(_loadGapi(auth)).rejects.toThrow(error);
   });
 });

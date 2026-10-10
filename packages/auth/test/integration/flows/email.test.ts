@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
 
 // eslint-disable-next-line import/no-extraneous-dependencies
 import {
@@ -39,9 +36,6 @@ import {
   randomEmail
 } from '../../helpers/integration/helpers';
 import { generateMiddlewareTests } from './middleware_test_generator';
-
-use(chaiAsPromised);
-
 describe('Integration test: email/password auth', () => {
   let auth: Auth;
   let email: string;
@@ -63,31 +57,31 @@ describe('Integration test: email/password auth', () => {
       email,
       password
     );
-    expect(auth.currentUser).to.eq(userCred.user);
-    expect(userCred.operationType).to.eq(OperationType.SIGN_IN);
+    expect(auth.currentUser).toBe(userCred.user);
+    expect(userCred.operationType).toBe(OperationType.SIGN_IN);
 
     const user = userCred.user;
-    expect(user.isAnonymous).to.be.false;
+    expect(user.isAnonymous).toBe(false);
     expect(user.uid).to.be.a('string');
-    expect(user.email).to.eq(email);
-    expect(user.emailVerified).to.be.false;
-    expect(user.providerData.length).to.eq(1);
-    expect(user.providerData[0].providerId).to.eq('password');
-    expect(user.providerData[0].email).to.eq(email);
+    expect(user.email).toBe(email);
+    expect(user.emailVerified).toBe(false);
+    expect(user.providerData.length).toBe(1);
+    expect(user.providerData[0].providerId).toBe('password');
+    expect(user.providerData[0].email).toBe(email);
 
     const additionalUserInfo = getAdditionalUserInfo(userCred)!;
-    expect(additionalUserInfo.isNewUser).to.be.true;
-    expect(additionalUserInfo.providerId).to.eq('password');
+    expect(additionalUserInfo.isNewUser).toBe(true);
+    expect(additionalUserInfo.providerId).toBe('password');
   });
 
   it('errors when createUser called twice', async () => {
     await createUserWithEmailAndPassword(auth, email, password);
     await expect(
       createUserWithEmailAndPassword(auth, email, password)
-    ).to.be.rejectedWith(FirebaseError, 'auth/email-already-in-use');
+    ).rejects.toThrow(FirebaseError, 'auth/email-already-in-use');
   });
 
-  context('with existing user', () => {
+  describe('with existing user', () => {
     let signUpCred: UserCredential;
 
     beforeEach(async () => {
@@ -101,25 +95,25 @@ describe('Integration test: email/password auth', () => {
         email,
         password
       );
-      expect(auth.currentUser).to.eq(signInCred.user);
+      expect(auth.currentUser).toBe(signInCred.user);
 
-      expect(signInCred.operationType).to.eq(OperationType.SIGN_IN);
-      expect(signInCred.user.uid).to.eq(signUpCred.user.uid);
+      expect(signInCred.operationType).toBe(OperationType.SIGN_IN);
+      expect(signInCred.user.uid).toBe(signUpCred.user.uid);
       const additionalUserInfo = getAdditionalUserInfo(signInCred)!;
-      expect(additionalUserInfo.isNewUser).to.be.false;
-      expect(additionalUserInfo.providerId).to.eq('password');
+      expect(additionalUserInfo.isNewUser).toBe(false);
+      expect(additionalUserInfo.providerId).toBe('password');
     });
 
     it('allows the user to sign in with signInWithCredential', async () => {
       const credential = EmailAuthProvider.credential(email, password);
       const signInCred = await signInWithCredential(auth, credential);
-      expect(auth.currentUser).to.eq(signInCred.user);
+      expect(auth.currentUser).toBe(signInCred.user);
 
-      expect(signInCred.operationType).to.eq(OperationType.SIGN_IN);
-      expect(signInCred.user.uid).to.eq(signUpCred.user.uid);
+      expect(signInCred.operationType).toBe(OperationType.SIGN_IN);
+      expect(signInCred.user.uid).toBe(signUpCred.user.uid);
       const additionalUserInfo = getAdditionalUserInfo(signInCred)!;
-      expect(additionalUserInfo.isNewUser).to.be.false;
-      expect(additionalUserInfo.providerId).to.eq('password');
+      expect(additionalUserInfo.isNewUser).toBe(false);
+      expect(additionalUserInfo.providerId).toBe('password');
     });
 
     it('allows the user to update profile', async () => {
@@ -128,29 +122,29 @@ describe('Integration test: email/password auth', () => {
         displayName: 'Display Name',
         photoURL: 'photo-url'
       });
-      expect(user.displayName).to.eq('Display Name');
-      expect(user.photoURL).to.eq('photo-url');
+      expect(user.displayName).toBe('Display Name');
+      expect(user.photoURL).toBe('photo-url');
 
       await auth.signOut();
 
       user = (await signInWithEmailAndPassword(auth, email, password)).user;
-      expect(user.displayName).to.eq('Display Name');
-      expect(user.photoURL).to.eq('photo-url');
+      expect(user.displayName).toBe('Display Name');
+      expect(user.photoURL).toBe('photo-url');
     });
 
     it('allows the user to delete the account', async () => {
       const { user } = await signInWithEmailAndPassword(auth, email, password);
       await user.delete();
 
-      await expect(reload(user)).to.be.rejectedWith(
+      await expect(reload(user)).rejects.toThrow(
         FirebaseError,
         'auth/user-token-expired'
       );
 
-      expect(auth.currentUser).to.be.null;
+      expect(auth.currentUser).toBeNull();
       await expect(
         signInWithEmailAndPassword(auth, email, password)
-      ).to.be.rejectedWith(FirebaseError, 'auth/user-not-found');
+      ).rejects.toThrow(FirebaseError, 'auth/user-not-found');
     });
 
     it('sign in can be called twice successively', async () => {
@@ -164,7 +158,7 @@ describe('Integration test: email/password auth', () => {
         email,
         password
       );
-      expect(userA.uid).to.eq(userB.uid);
+      expect(userA.uid).toBe(userB.uid);
     });
 
     generateMiddlewareTests(

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2023 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,6 @@
  * limitations under the License.
  */
 
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-
 import { Endpoint, HttpHeader } from '../';
 import { mockEndpoint } from '../../../test/helpers/api/helper';
 import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
@@ -25,9 +22,6 @@ import * as mockFetch from '../../../test/helpers/mock_fetch';
 import { _getPasswordPolicy } from './get_password_policy';
 import { ServerError } from '../errors';
 import { FirebaseError } from '@firebase/util';
-
-use(chaiAsPromised);
-
 describe('api/password_policy/getPasswordPolicy', () => {
   const TEST_MIN_PASSWORD_LENGTH = 6;
   const TEST_ALLOWED_NON_ALPHANUMERIC_CHARS = ['!'];
@@ -52,15 +46,15 @@ describe('api/password_policy/getPasswordPolicy', () => {
     });
 
     const response = await _getPasswordPolicy(auth);
-    expect(response.customStrengthOptions.minPasswordLength).to.eql(
+    expect(response.customStrengthOptions.minPasswordLength).toEqual(
       TEST_MIN_PASSWORD_LENGTH
     );
-    expect(response.allowedNonAlphanumericCharacters).to.eql(
+    expect(response.allowedNonAlphanumericCharacters).toEqual(
       TEST_ALLOWED_NON_ALPHANUMERIC_CHARS
     );
-    expect(response.schemaVersion).to.eql(TEST_SCHEMA_VERSION);
-    expect(mock.calls[0].method).to.eq('GET');
-    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).to.eq(
+    expect(response.schemaVersion).toEqual(TEST_SCHEMA_VERSION);
+    expect(mock.calls[0].method).toBe('GET');
+    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).toBe(
       'testSDK/0.0.0'
     );
   });
@@ -82,7 +76,7 @@ describe('api/password_policy/getPasswordPolicy', () => {
       400
     );
 
-    await expect(_getPasswordPolicy(auth)).to.be.rejectedWith(
+    await expect(_getPasswordPolicy(auth)).rejects.toThrow(
       FirebaseError,
       'Firebase: We have blocked all requests from this device due to unusual activity. Try again later. (auth/too-many-requests).'
     );

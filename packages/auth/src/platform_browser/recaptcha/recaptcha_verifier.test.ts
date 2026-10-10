@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,6 @@
  * limitations under the License.
  */
 
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-import * as sinon from 'sinon';
-import sinonChai from 'sinon-chai';
-
 import { FirebaseError } from '@firebase/util';
 
 import { mockEndpoint } from '../../../test/helpers/api/helper';
@@ -33,10 +28,6 @@ import { RecaptchaParameters } from '../../model/public_types';
 import { ReCaptchaLoader } from './recaptcha_loader';
 import { MockReCaptcha } from './recaptcha_mock';
 import { RecaptchaVerifier } from './recaptcha_verifier';
-
-use(chaiAsPromised);
-use(sinonChai);
-
 describe('platform_browser/recaptcha/recaptcha_verifier', () => {
   let auth: TestAuth;
   let container: HTMLElement;
@@ -60,70 +51,78 @@ describe('platform_browser/recaptcha/recaptcha_verifier', () => {
   });
 
   afterEach(() => {
-    sinon.restore();
+    vi.restoreAllMocks();
     fetch.tearDown();
   });
 
-  context('#render', () => {
+  describe('#render', () => {
     it('caches the promise if not completed and returns if called multiple times', () => {
       // This will force the loader to never return so the render promise never completes
-      sinon.stub(recaptchaLoader, 'load').returns(new Promise(() => {}));
+      vi.spyOn(recaptchaLoader, 'load').mockReturnValue(new Promise(() => {}));
       const renderPromise = verifier.render();
-      expect(verifier.render()).to.eq(renderPromise);
+      expect(verifier.render()).toBe(renderPromise);
     });
 
     it('appends an empty div to the container element', async () => {
-      expect(container.childElementCount).to.eq(0);
+      expect(container.childElementCount).toBe(0);
       await verifier.render();
-      expect(container.childElementCount).to.eq(1);
+      expect(container.childElementCount).toBe(1);
     });
 
     it('sets the site key on the parameters object', async () => {
       await verifier.render();
-      expect(parameters.sitekey).to.eq('recaptcha-key');
+      expect(parameters.sitekey).toBe('recaptcha-key');
     });
 
     it('sets loads the recaptcha per the app language code', async () => {
-      sinon.spy(recaptchaLoader, 'load');
+      vi.spyOn(recaptchaLoader, 'load');
       await verifier.render();
-      expect(recaptchaLoader.load).to.have.been.calledWith(auth, 'fr');
+      expect(recaptchaLoader.load).toHaveBeenCalledWith(auth, 'fr');
     });
 
     it('calls render on the underlying recaptcha widget', async () => {
       const widget = new MockReCaptcha(auth);
-      sinon.spy(widget, 'render');
-      sinon.stub(recaptchaLoader, 'load').returns(Promise.resolve(widget));
+      vi.spyOn(widget, 'render');
+      vi.spyOn(recaptchaLoader, 'load').mockReturnValue(
+        Promise.resolve(widget)
+      );
       await verifier.render();
-      expect(widget.render).to.have.been.calledWith(
+      expect(widget.render).toHaveBeenCalledWith(
         container.children[0],
         parameters
       );
     });
 
     it('in case of error, resets render promise', async () => {
-      sinon.stub(recaptchaLoader, 'load').returns(Promise.reject('nope'));
+      vi.spyOn(recaptchaLoader, 'load').mockImplementation(() =>
+        Promise.reject(new Error('nope'))
+      );
       const promise = verifier.render();
-      await expect(promise).to.be.rejectedWith('nope');
-      expect(verifier.render()).not.to.eq(promise);
+      await expect(promise).rejects.toThrow('nope');
+      const secondPromise = verifier.render();
+      expect(secondPromise).not.toBe(promise);
+      await expect(secondPromise).rejects.toThrow('nope');
     });
   });
 
-  context('#verify', () => {
+  describe('#verify', () => {
     let recaptcha: Recaptcha;
     beforeEach(() => {
       recaptcha = new MockReCaptcha(auth);
-      sinon.stub(recaptchaLoader, 'load').returns(Promise.resolve(recaptcha));
+      vi.spyOn(recaptchaLoader, 'load').mockReturnValue(
+        Promise.resolve(recaptcha)
+      );
     });
 
     it('returns immediately if response is available', async () => {
-      sinon.stub(recaptcha, 'getResponse').returns('recaptcha-response');
-      expect(await verifier.verify()).to.eq('recaptcha-response');
+      vi.spyOn(recaptcha, 'getResponse').mockReturnValue('recaptcha-response');
+      expect(await verifier.verify()).toBe('recaptcha-response');
     });
 
     it('resolves with the token in the callback', async () => {
-      sinon.stub(recaptcha, 'getResponse').returns('');
+      vi.spyOn(recaptcha, 'getResponse').mockReturnValue('');
       const promise = verifier.verify();
-      expect(typeof (await promise)).to.eq('string');
+      expect(typeof (await promise)).toBe('string');
     });
 
     it('calls existing callback if provided', async () => {
@@ -136,7 +135,7 @@ describe('platform_browser/recaptcha/recaptcha_verifier', () => {
 
       verifier = new RecaptchaVerifier(auth, container, parameters);
       const expected = await verifier.verify();
-      expect(token).to.eq(expected);
+      expect(token).toBe(expected);
     });
 
     it('calls existing global function if on the window', async () => {
@@ -151,46 +150,48 @@ describe('platform_browser/recaptcha/recaptcha_verifier', () => {
 
       verifier = new RecaptchaVerifier(auth, container, parameters);
       const expected = await verifier.verify();
-      expect(token).to.eq(expected);
+      expect(token).toBe(expected);
 
       delete _window().callbackOnWindowObject;
     });
   });
 
-  context('#reset', () => {
+  describe('#reset', () => {
     it('calls reset on the underlying widget', async () => {
       const recaptcha = new MockReCaptcha(auth);
-      sinon.stub(recaptchaLoader, 'load').returns(Promise.resolve(recaptcha));
-      sinon.spy(recaptcha, 'reset');
+      vi.spyOn(recaptchaLoader, 'load').mockReturnValue(
+        Promise.resolve(recaptcha)
+      );
+      vi.spyOn(recaptcha, 'reset');
       await verifier.render();
       verifier._reset();
-      expect(recaptcha.reset).to.have.been.called;
+      expect(recaptcha.reset).toHaveBeenCalled();
     });
   });
 
-  context('#clear', () => {
+  describe('#clear', () => {
     it('removes the child node from the container', async () => {
       await verifier.render();
-      expect(container.children.length).to.eq(1);
+      expect(container.children.length).toBe(1);
       verifier.clear();
-      expect(container.children.length).to.eq(0);
+      expect(container.children.length).toBe(0);
     });
 
     it('causes other methods of the verifier to throw if called subsequently', async () => {
       verifier.clear();
-      expect(() => verifier.clear()).to.throw(
+      expect(() => verifier.clear()).toThrow(
         FirebaseError,
         'Firebase: An internal AuthError has occurred. (auth/internal-error).'
       );
-      expect(() => verifier._reset()).to.throw(
+      expect(() => verifier._reset()).toThrow(
         FirebaseError,
         'Firebase: An internal AuthError has occurred. (auth/internal-error).'
       );
-      await expect(verifier.render()).to.be.rejectedWith(
+      await expect(verifier.render()).rejects.toThrow(
         FirebaseError,
         'Firebase: An internal AuthError has occurred. (auth/internal-error).'
       );
-      await expect(verifier.verify()).to.be.rejectedWith(
+      await expect(verifier.verify()).rejects.toThrow(
         FirebaseError,
         'Firebase: An internal AuthError has occurred. (auth/internal-error).'
       );

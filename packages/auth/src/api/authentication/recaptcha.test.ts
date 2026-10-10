@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
 
 import { FirebaseError } from '@firebase/util';
 
@@ -34,9 +31,6 @@ import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 import * as mockFetch from '../../../test/helpers/mock_fetch';
 import { ServerError } from '../errors';
 import { getRecaptchaParams, getRecaptchaConfig } from './recaptcha';
-
-use(chaiAsPromised);
-
 describe('api/authentication/getRecaptchaParams', () => {
   let auth: TestAuth;
 
@@ -53,13 +47,13 @@ describe('api/authentication/getRecaptchaParams', () => {
     });
 
     const response = await getRecaptchaParams(auth);
-    expect(response).to.eq('site-key');
-    expect(mock.calls[0].request).to.be.undefined;
-    expect(mock.calls[0].method).to.eq('GET');
-    expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
+    expect(response).toBe('site-key');
+    expect(mock.calls[0].request).toBeUndefined();
+    expect(mock.calls[0].method).toBe('GET');
+    expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).toBe(
       'application/json'
     );
-    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).to.eq(
+    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).toBe(
       'testSDK/0.0.0'
     );
   });
@@ -81,11 +75,11 @@ describe('api/authentication/getRecaptchaParams', () => {
       400
     );
 
-    await expect(getRecaptchaParams(auth)).to.be.rejectedWith(
+    await expect(getRecaptchaParams(auth)).rejects.toThrow(
       FirebaseError,
       'Firebase: We have blocked all requests from this device due to unusual activity. Try again later. (auth/too-many-requests).'
     );
-    expect(mock.calls[0].request).to.be.undefined;
+    expect(mock.calls[0].request).toBeUndefined();
   });
 });
 
@@ -114,12 +108,12 @@ describe('api/authentication/getRecaptchaConfig', () => {
     );
 
     const response = await getRecaptchaConfig(auth, request);
-    expect(response.recaptchaKey).to.eq('site-key');
-    expect(mock.calls[0].method).to.eq('GET');
-    expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
+    expect(response.recaptchaKey).toBe('site-key');
+    expect(mock.calls[0].method).toBe('GET');
+    expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).toBe(
       'application/json'
     );
-    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).to.eq(
+    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).toBe(
       'testSDK/0.0.0'
     );
   });
@@ -137,7 +131,7 @@ describe('api/authentication/getRecaptchaConfig', () => {
       400
     );
 
-    await expect(getRecaptchaConfig(auth, request)).to.be.rejectedWith(
+    await expect(getRecaptchaConfig(auth, request)).rejects.toThrow(
       FirebaseError,
       'auth/unauthorized-continue-uri'
     );

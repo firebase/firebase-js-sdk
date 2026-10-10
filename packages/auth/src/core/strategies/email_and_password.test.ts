@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,6 @@
  * limitations under the License.
  */
 
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-import sinonChai from 'sinon-chai';
-import * as sinon from 'sinon';
-
 import { ActionCodeOperation } from '../../model/public_types';
 import { OperationType } from '../../model/enums';
 import { FirebaseError } from '@firebase/util';
@@ -31,12 +26,7 @@ import {
 } from '../../../test/helpers/api/helper';
 import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 import * as mockFetch from '../../../test/helpers/mock_fetch';
-import {
-  Endpoint,
-  RecaptchaClientType,
-  RecaptchaVersion,
-  RecaptchaActionName
-} from '../../api';
+import { Endpoint, RecaptchaClientType, RecaptchaVersion } from '../../api';
 import { APIUserInfo } from '../../api/account_management/account';
 import { ServerError } from '../../api/errors';
 import { UserCredentialInternal } from '../../model/user';
@@ -53,9 +43,7 @@ import { MockGreCAPTCHATopLevel } from '../../platform_browser/recaptcha/recaptc
 import { _initializeRecaptchaConfig } from '../../platform_browser/recaptcha/recaptcha_enterprise_verifier';
 import { mockLoadJS } from '../../../test/helpers/mock_loadjs';
 
-use(chaiAsPromised);
-use(sinonChai);
-
+vi.mock('../../platform_browser/load_js', { spy: true });
 const TEST_ID_TOKEN = 'id-token';
 const TEST_REFRESH_TOKEN = 'refresh-token';
 const TEST_TOKEN_EXPIRY_TIME = '1234';
@@ -86,7 +74,7 @@ describe('core/strategies/sendPasswordResetEmail', () => {
       email
     });
     await sendPasswordResetEmail(auth, email);
-    expect(mock.calls[0].request).to.eql({
+    expect(mock.calls[0].request).toEqual({
       requestType: ActionCodeOperation.PASSWORD_RESET,
       email,
       clientType: 'CLIENT_TYPE_WEB'
@@ -104,14 +92,14 @@ describe('core/strategies/sendPasswordResetEmail', () => {
       },
       400
     );
-    await expect(sendPasswordResetEmail(auth, email)).to.be.rejectedWith(
+    await expect(sendPasswordResetEmail(auth, email)).rejects.toThrow(
       FirebaseError,
       'Firebase: The email address is badly formatted. (auth/invalid-email).'
     );
-    expect(mock.calls.length).to.eq(1);
+    expect(mock.calls.length).toBe(1);
   });
 
-  context('on iOS', () => {
+  describe('on iOS', () => {
     it('should pass action code parameters', async () => {
       const mock = mockEndpoint(Endpoint.SEND_OOB_CODE, {
         email
@@ -126,7 +114,7 @@ describe('core/strategies/sendPasswordResetEmail', () => {
         linkDomain: 'hosting-link-domain'
       });
 
-      expect(mock.calls[0].request).to.eql({
+      expect(mock.calls[0].request).toEqual({
         requestType: ActionCodeOperation.PASSWORD_RESET,
         email,
         continueUrl: 'my-url',
@@ -139,7 +127,7 @@ describe('core/strategies/sendPasswordResetEmail', () => {
     });
   });
 
-  context('on Android', () => {
+  describe('on Android', () => {
     it('should pass action code parameters', async () => {
       const mock = mockEndpoint(Endpoint.SEND_OOB_CODE, {
         email
@@ -155,7 +143,7 @@ describe('core/strategies/sendPasswordResetEmail', () => {
         dynamicLinkDomain: 'fdl-domain',
         linkDomain: 'hosting-link-domain'
       });
-      expect(mock.calls[0].request).to.eql({
+      expect(mock.calls[0].request).toEqual({
         requestType: ActionCodeOperation.PASSWORD_RESET,
         email,
         continueUrl: 'my-url',
@@ -170,7 +158,7 @@ describe('core/strategies/sendPasswordResetEmail', () => {
     });
   });
 
-  context('#recaptcha', () => {
+  describe('#recaptcha', () => {
     const recaptchaConfigResponseEnforce = {
       recaptchaKey: 'foo/bar/to/site-key',
       recaptchaEnforcementState: [
@@ -192,12 +180,12 @@ describe('core/strategies/sendPasswordResetEmail', () => {
       }
       // RecaptchaEnterpriseVerifier.verify() will always call _loadJS
       // the first time it is called, and it must be stubbed for tests.
-      sinon.stub(jsHelpers, '_loadJS').callsFake(mockLoadJS);
+      vi.spyOn(jsHelpers, '_loadJS').mockImplementation(mockLoadJS);
       const recaptcha = new MockGreCAPTCHATopLevel();
       window.grecaptcha = recaptcha;
-      sinon
-        .stub(recaptcha.enterprise, 'execute')
-        .returns(Promise.resolve('recaptcha-response'));
+      vi.spyOn(recaptcha.enterprise, 'execute').mockReturnValue(
+        Promise.resolve('recaptcha-response')
+      );
       mockEndpointWithParams(
         Endpoint.GET_RECAPTCHA_CONFIG,
         {
@@ -209,7 +197,10 @@ describe('core/strategies/sendPasswordResetEmail', () => {
     });
 
     afterEach(() => {
-      sinon.restore();
+      if (typeof window !== 'undefined') {
+        delete (window as any).grecaptcha;
+      }
+      vi.restoreAllMocks();
     });
 
     it('calls send password reset email with recaptcha enabled', async () => {
@@ -231,7 +222,7 @@ describe('core/strategies/sendPasswordResetEmail', () => {
       });
       await sendPasswordResetEmail(auth, email);
 
-      expect(apiMock.calls[0].request).to.eql({
+      expect(apiMock.calls[0].request).toEqual({
         requestType: ActionCodeOperation.PASSWORD_RESET,
         email,
         captchaResp: 'recaptcha-response',
@@ -258,7 +249,7 @@ describe('core/strategies/sendPasswordResetEmail', () => {
         email
       });
       await sendPasswordResetEmail(auth, email);
-      expect(apiMock.calls[0].request).to.eql({
+      expect(apiMock.calls[0].request).toEqual({
         requestType: ActionCodeOperation.PASSWORD_RESET,
         email,
         clientType: 'CLIENT_TYPE_WEB'
@@ -305,12 +296,9 @@ describe('core/strategies/sendPasswordResetEmail', () => {
       // Manually set window.recaptcha
       const recaptcha = new MockGreCAPTCHATopLevel();
       window.grecaptcha = recaptcha;
-      const stub = sinon.stub(recaptcha.enterprise, 'execute');
-      stub
-        .withArgs('site-key', {
-          action: RecaptchaActionName.GET_OOB_CODE
-        })
-        .returns(Promise.resolve('recaptcha-response'));
+      vi.spyOn(recaptcha.enterprise, 'execute').mockResolvedValue(
+        'recaptcha-response'
+      );
 
       mockEndpointWithParams(
         Endpoint.GET_RECAPTCHA_CONFIG,
@@ -324,7 +312,7 @@ describe('core/strategies/sendPasswordResetEmail', () => {
 
       mockEndpoint(Endpoint.SEND_OOB_CODE, { email });
       const response = await sendPasswordResetEmail(auth, email);
-      expect(response).to.eq(undefined);
+      expect(response).toBe(undefined);
     });
   });
 });
@@ -347,8 +335,8 @@ describe('core/strategies/confirmPasswordReset', () => {
       email: TEST_EMAIL
     });
     const response = await confirmPasswordReset(auth, oobCode, newPassword);
-    expect(response).to.be.undefined;
-    expect(mock.calls[0].request).to.eql({
+    expect(response).toBeUndefined();
+    expect(mock.calls[0].request).toEqual({
       oobCode,
       newPassword
     });
@@ -367,11 +355,11 @@ describe('core/strategies/confirmPasswordReset', () => {
     );
     await expect(
       confirmPasswordReset(auth, oobCode, newPassword)
-    ).to.be.rejectedWith(
+    ).rejects.toThrow(
       FirebaseError,
       'Firebase: The action code is invalid. This can happen if the code is malformed, expired, or has already been used. (auth/invalid-action-code).'
     );
-    expect(mock.calls.length).to.eq(1);
+    expect(mock.calls.length).toBe(1);
   });
 });
 
@@ -390,7 +378,7 @@ describe('core/strategies/applyActionCode', () => {
   it('should apply the oob code', async () => {
     const mock = mockEndpoint(Endpoint.SET_ACCOUNT_INFO, {});
     await applyActionCode(auth, oobCode);
-    expect(mock.calls[0].request).to.eql({
+    expect(mock.calls[0].request).toEqual({
       oobCode
     });
   });
@@ -406,11 +394,11 @@ describe('core/strategies/applyActionCode', () => {
       },
       400
     );
-    await expect(applyActionCode(auth, oobCode)).to.be.rejectedWith(
+    await expect(applyActionCode(auth, oobCode)).rejects.toThrow(
       FirebaseError,
       'Firebase: The action code is invalid. This can happen if the code is malformed, expired, or has already been used. (auth/invalid-action-code).'
     );
-    expect(mock.calls.length).to.eq(1);
+    expect(mock.calls.length).toBe(1);
   });
 });
 
@@ -434,7 +422,7 @@ describe('core/strategies/checkActionCode', () => {
       email: TEST_EMAIL
     });
     const response = await checkActionCode(auth, oobCode);
-    expect(response).to.eql({
+    expect(response).toEqual({
       data: {
         email,
         previousEmail: null,
@@ -442,7 +430,7 @@ describe('core/strategies/checkActionCode', () => {
       },
       operation: ActionCodeOperation.PASSWORD_RESET
     });
-    expect(mock.calls[0].request).to.eql({
+    expect(mock.calls[0].request).toEqual({
       oobCode
     });
   });
@@ -454,7 +442,7 @@ describe('core/strategies/checkActionCode', () => {
       newEmail
     });
     const response = await checkActionCode(auth, oobCode);
-    expect(response).to.eql({
+    expect(response).toEqual({
       data: {
         email,
         previousEmail: newEmail,
@@ -462,7 +450,7 @@ describe('core/strategies/checkActionCode', () => {
       },
       operation: ActionCodeOperation.PASSWORD_RESET
     });
-    expect(mock.calls[0].request).to.eql({
+    expect(mock.calls[0].request).toEqual({
       oobCode
     });
   });
@@ -471,11 +459,11 @@ describe('core/strategies/checkActionCode', () => {
     const mock = mockEndpoint(Endpoint.RESET_PASSWORD, {
       email
     });
-    await expect(checkActionCode(auth, oobCode)).to.be.rejectedWith(
+    await expect(checkActionCode(auth, oobCode)).rejects.toThrow(
       FirebaseError,
       'Firebase: An internal AuthError has occurred. (auth/internal-error).'
     );
-    expect(mock.calls.length).to.eq(1);
+    expect(mock.calls.length).toBe(1);
   });
 
   it('should surface errors', async () => {
@@ -489,11 +477,11 @@ describe('core/strategies/checkActionCode', () => {
       },
       400
     );
-    await expect(checkActionCode(auth, oobCode)).to.be.rejectedWith(
+    await expect(checkActionCode(auth, oobCode)).rejects.toThrow(
       FirebaseError,
       'Firebase: The action code is invalid. This can happen if the code is malformed, expired, or has already been used. (auth/invalid-action-code).'
     );
-    expect(mock.calls.length).to.eq(1);
+    expect(mock.calls.length).toBe(1);
   });
 });
 
@@ -517,8 +505,8 @@ describe('core/strategies/verifyPasswordResetCode', () => {
       previousEmail: null
     });
     const response = await verifyPasswordResetCode(auth, oobCode);
-    expect(response).to.eq(email);
-    expect(mock.calls[0].request).to.eql({
+    expect(response).toBe(email);
+    expect(mock.calls[0].request).toEqual({
       oobCode
     });
   });
@@ -527,11 +515,11 @@ describe('core/strategies/verifyPasswordResetCode', () => {
     const mock = mockEndpoint(Endpoint.RESET_PASSWORD, {
       email
     });
-    await expect(verifyPasswordResetCode(auth, oobCode)).to.be.rejectedWith(
+    await expect(verifyPasswordResetCode(auth, oobCode)).rejects.toThrow(
       FirebaseError,
       'Firebase: An internal AuthError has occurred. (auth/internal-error).'
     );
-    expect(mock.calls.length).to.eq(1);
+    expect(mock.calls.length).toBe(1);
   });
 
   it('should surface errors', async () => {
@@ -545,11 +533,11 @@ describe('core/strategies/verifyPasswordResetCode', () => {
       },
       400
     );
-    await expect(verifyPasswordResetCode(auth, oobCode)).to.be.rejectedWith(
+    await expect(verifyPasswordResetCode(auth, oobCode)).rejects.toThrow(
       FirebaseError,
       'Firebase: The action code is invalid. This can happen if the code is malformed, expired, or has already been used. (auth/invalid-action-code).'
     );
-    expect(mock.calls.length).to.eq(1);
+    expect(mock.calls.length).toBe(1);
   });
 });
 
@@ -579,18 +567,18 @@ describe('core/strategies/email_and_password/createUserWithEmailAndPassword', ()
         TEST_EMAIL,
         TEST_PASSWORD
       )) as UserCredentialInternal;
-    expect(_tokenResponse).to.eql({
+    expect(_tokenResponse).toEqual({
       idToken: TEST_ID_TOKEN,
       refreshToken: TEST_REFRESH_TOKEN,
       expiresIn: TEST_TOKEN_EXPIRY_TIME,
       localId: serverUser.localId!
     });
-    expect(operationType).to.eq(OperationType.SIGN_IN);
-    expect(user.uid).to.eq(serverUser.localId);
-    expect(user.isAnonymous).to.be.false;
+    expect(operationType).toBe(OperationType.SIGN_IN);
+    expect(user.uid).toBe(serverUser.localId);
+    expect(user.isAnonymous).toBe(false);
   });
 
-  context('#recaptcha', () => {
+  describe('#recaptcha', () => {
     const recaptchaConfigResponseEnforce = {
       recaptchaKey: 'foo/bar/to/site-key',
       recaptchaEnforcementState: [
@@ -607,9 +595,9 @@ describe('core/strategies/email_and_password/createUserWithEmailAndPassword', ()
         return;
       }
       window.grecaptcha = recaptcha;
-      sinon
-        .stub(recaptcha.enterprise, 'execute')
-        .returns(Promise.resolve('recaptcha-response'));
+      vi.spyOn(recaptcha.enterprise, 'execute').mockReturnValue(
+        Promise.resolve('recaptcha-response')
+      );
       mockEndpointWithParams(
         Endpoint.GET_RECAPTCHA_CONFIG,
         {
@@ -621,7 +609,10 @@ describe('core/strategies/email_and_password/createUserWithEmailAndPassword', ()
     });
 
     afterEach(() => {
-      sinon.restore();
+      if (typeof window !== 'undefined') {
+        delete (window as any).grecaptcha;
+      }
+      vi.restoreAllMocks();
     });
 
     it('calls create user with email password with recaptcha enabled', async () => {
@@ -644,15 +635,15 @@ describe('core/strategies/email_and_password/createUserWithEmailAndPassword', ()
           TEST_EMAIL,
           TEST_PASSWORD
         )) as UserCredentialInternal;
-      expect(_tokenResponse).to.eql({
+      expect(_tokenResponse).toEqual({
         idToken: TEST_ID_TOKEN,
         refreshToken: TEST_REFRESH_TOKEN,
         expiresIn: TEST_TOKEN_EXPIRY_TIME,
         localId: serverUser.localId!
       });
-      expect(operationType).to.eq(OperationType.SIGN_IN);
-      expect(user.uid).to.eq(serverUser.localId);
-      expect(user.isAnonymous).to.be.false;
+      expect(operationType).toBe(OperationType.SIGN_IN);
+      expect(user.uid).toBe(serverUser.localId);
+      expect(user.isAnonymous).toBe(false);
     });
 
     it('calls create user with email password with recaptcha disabled', async () => {
@@ -675,15 +666,15 @@ describe('core/strategies/email_and_password/createUserWithEmailAndPassword', ()
           TEST_EMAIL,
           TEST_PASSWORD
         )) as UserCredentialInternal;
-      expect(_tokenResponse).to.eql({
+      expect(_tokenResponse).toEqual({
         idToken: TEST_ID_TOKEN,
         refreshToken: TEST_REFRESH_TOKEN,
         expiresIn: TEST_TOKEN_EXPIRY_TIME,
         localId: serverUser.localId!
       });
-      expect(operationType).to.eq(OperationType.SIGN_IN);
-      expect(user.uid).to.eq(serverUser.localId);
-      expect(user.isAnonymous).to.be.false;
+      expect(operationType).toBe(OperationType.SIGN_IN);
+      expect(user.uid).toBe(serverUser.localId);
+      expect(user.isAnonymous).toBe(false);
     });
 
     it('calls fallback to recaptcha flow when receiving MISSING_RECAPTCHA_TOKEN error', async () => {
@@ -727,15 +718,12 @@ describe('core/strategies/email_and_password/createUserWithEmailAndPassword', ()
       );
 
       // Mock recaptcha js loading method and manually set window.recaptcha
-      sinon.stub(jsHelpers, '_loadJS').callsFake(mockLoadJS);
+      vi.spyOn(jsHelpers, '_loadJS').mockImplementation(mockLoadJS);
       const recaptcha = new MockGreCAPTCHATopLevel();
       window.grecaptcha = recaptcha;
-      const stub = sinon.stub(recaptcha.enterprise, 'execute');
-      stub
-        .withArgs('site-key', {
-          action: RecaptchaActionName.SIGN_UP_PASSWORD
-        })
-        .returns(Promise.resolve('recaptcha-response'));
+      vi.spyOn(recaptcha.enterprise, 'execute').mockResolvedValue(
+        'recaptcha-response'
+      );
 
       mockEndpointWithParams(
         Endpoint.GET_RECAPTCHA_CONFIG,
@@ -753,15 +741,15 @@ describe('core/strategies/email_and_password/createUserWithEmailAndPassword', ()
           TEST_EMAIL,
           TEST_PASSWORD
         )) as UserCredentialInternal;
-      expect(_tokenResponse).to.eql({
+      expect(_tokenResponse).toEqual({
         idToken: TEST_ID_TOKEN,
         refreshToken: TEST_REFRESH_TOKEN,
         expiresIn: TEST_TOKEN_EXPIRY_TIME,
         localId: serverUser.localId!
       });
-      expect(operationType).to.eq(OperationType.SIGN_IN);
-      expect(user.uid).to.eq(serverUser.localId);
-      expect(user.isAnonymous).to.be.false;
+      expect(operationType).toBe(OperationType.SIGN_IN);
+      expect(user.uid).toBe(serverUser.localId);
+      expect(user.isAnonymous).toBe(false);
     });
   });
 });
@@ -792,15 +780,15 @@ describe('core/strategies/email_and_password/signInWithEmailAndPassword', () => 
         TEST_EMAIL,
         TEST_PASSWORD
       )) as UserCredentialInternal;
-    expect(_tokenResponse).to.eql({
+    expect(_tokenResponse).toEqual({
       idToken: TEST_ID_TOKEN,
       refreshToken: TEST_REFRESH_TOKEN,
       expiresIn: TEST_TOKEN_EXPIRY_TIME,
       localId: serverUser.localId!
     });
-    expect(operationType).to.eq(OperationType.SIGN_IN);
-    expect(user.uid).to.eq(serverUser.localId);
-    expect(user.isAnonymous).to.be.false;
+    expect(operationType).toBe(OperationType.SIGN_IN);
+    expect(user.uid).toBe(serverUser.localId);
+    expect(user.isAnonymous).toBe(false);
   });
 });
 
@@ -893,20 +881,12 @@ describe('password policy cache is updated in auth flows upon error', () => {
     // Initialize the reCAPTCHA config so the auth flows use reCAPTCHA.
     await _initializeRecaptchaConfig(auth);
 
-    sinon.stub(jsHelpers, '_loadJS').callsFake(mockLoadJS);
+    vi.spyOn(jsHelpers, '_loadJS').mockImplementation(mockLoadJS);
     const recaptcha = new MockGreCAPTCHATopLevel();
     window.grecaptcha = recaptcha;
-    const stub = sinon.stub(recaptcha.enterprise, 'execute');
-    stub
-      .withArgs(TEST_SITE_KEY, {
-        action: RecaptchaActionName.SIGN_UP_PASSWORD
-      })
-      .returns(Promise.resolve(TEST_RECAPTCHA_RESPONSE));
-    stub
-      .withArgs(TEST_SITE_KEY, {
-        action: RecaptchaActionName.SIGN_IN_WITH_PASSWORD
-      })
-      .returns(Promise.resolve(TEST_RECAPTCHA_RESPONSE));
+    vi.spyOn(recaptcha.enterprise, 'execute').mockResolvedValue(
+      TEST_RECAPTCHA_RESPONSE
+    );
   }
 
   beforeEach(async () => {
@@ -946,17 +926,20 @@ describe('password policy cache is updated in auth flows upon error', () => {
     }
     const recaptcha = new MockGreCAPTCHATopLevel();
     window.grecaptcha = recaptcha;
-    sinon
-      .stub(recaptcha.enterprise, 'execute')
-      .returns(Promise.resolve(TEST_RECAPTCHA_RESPONSE));
+    vi.spyOn(recaptcha.enterprise, 'execute').mockReturnValue(
+      Promise.resolve(TEST_RECAPTCHA_RESPONSE)
+    );
   });
 
   afterEach(() => {
+    if (typeof window !== 'undefined') {
+      delete (window as any).grecaptcha;
+    }
     mockFetch.tearDown();
-    sinon.restore();
+    vi.restoreAllMocks();
   });
 
-  context('#createUserWithEmailAndPassword', () => {
+  describe('#createUserWithEmailAndPassword', () => {
     beforeEach(() => {
       mockEndpoint(Endpoint.SIGN_UP, {
         idToken: TEST_ID_TOKEN,
@@ -972,13 +955,13 @@ describe('password policy cache is updated in auth flows upon error', () => {
     it('does not update the cached password policy upon successful sign up when there is no existing policy cache', async () => {
       await expect(
         createUserWithEmailAndPassword(auth, TEST_EMAIL, TEST_PASSWORD)
-      ).to.be.fulfilled;
+      ).resolves.not.toThrow();
 
       // Wait to ensure the password policy is not fetched and recached.
       await waitForRecachePasswordPolicy();
 
-      expect(policyEndpointMock.calls.length).to.eq(0);
-      expect(auth._getPasswordPolicyInternal()).to.be.null;
+      expect(policyEndpointMock.calls.length).toBe(0);
+      expect(auth._getPasswordPolicyInternal()).toBeNull();
     });
 
     it('does not update the cached password policy upon successful sign up when there is an existing policy cache', async () => {
@@ -986,16 +969,16 @@ describe('password policy cache is updated in auth flows upon error', () => {
 
       await expect(
         createUserWithEmailAndPassword(auth, TEST_EMAIL, TEST_PASSWORD)
-      ).to.be.fulfilled;
+      ).resolves.not.toThrow();
 
       // Wait to ensure the password policy is not fetched and recached.
       await waitForRecachePasswordPolicy();
 
-      expect(policyEndpointMock.calls.length).to.eq(1);
-      expect(auth._getPasswordPolicyInternal()).to.eql(CACHED_PASSWORD_POLICY);
+      expect(policyEndpointMock.calls.length).toBe(1);
+      expect(auth._getPasswordPolicyInternal()).toEqual(CACHED_PASSWORD_POLICY);
     });
 
-    context('handles password validation errors', () => {
+    describe('handles password validation errors', () => {
       beforeEach(() => {
         mockEndpoint(
           Endpoint.SIGN_UP,
@@ -1011,8 +994,8 @@ describe('password policy cache is updated in auth flows upon error', () => {
 
       it('updates the cached password policy when password does not meet backend requirements for the project', async () => {
         await auth._updatePasswordPolicy();
-        expect(policyEndpointMock.calls.length).to.eq(1);
-        expect(auth._getPasswordPolicyInternal()).to.eql(
+        expect(policyEndpointMock.calls.length).toBe(1);
+        expect(auth._getPasswordPolicyInternal()).toEqual(
           CACHED_PASSWORD_POLICY
         );
 
@@ -1020,13 +1003,13 @@ describe('password policy cache is updated in auth flows upon error', () => {
         policyEndpointMock.response = PASSWORD_POLICY_RESPONSE_REQUIRE_NUMERIC;
         await expect(
           createUserWithEmailAndPassword(auth, TEST_EMAIL, TEST_PASSWORD)
-        ).to.be.rejectedWith(FirebaseError, PASSWORD_ERROR_MSG);
+        ).rejects.toThrow(FirebaseError, PASSWORD_ERROR_MSG);
 
         // Wait for the password policy to be fetched and recached.
         await waitForRecachePasswordPolicy();
 
-        expect(policyEndpointMock.calls.length).to.eq(2);
-        expect(auth._getPasswordPolicyInternal()).to.eql(
+        expect(policyEndpointMock.calls.length).toBe(2);
+        expect(auth._getPasswordPolicyInternal()).toEqual(
           CACHED_PASSWORD_POLICY_REQUIRE_NUMERIC
         );
       });
@@ -1034,8 +1017,8 @@ describe('password policy cache is updated in auth flows upon error', () => {
       it('updates the cached password policy when password does not meet backend requirements for the tenant', async () => {
         auth.tenantId = TEST_TENANT_ID;
         await auth._updatePasswordPolicy();
-        expect(policyEndpointMockWithTenant.calls.length).to.eq(1);
-        expect(auth._getPasswordPolicyInternal()).to.eql(
+        expect(policyEndpointMockWithTenant.calls.length).toBe(1);
+        expect(auth._getPasswordPolicyInternal()).toEqual(
           CACHED_PASSWORD_POLICY
         );
 
@@ -1044,49 +1027,49 @@ describe('password policy cache is updated in auth flows upon error', () => {
           PASSWORD_POLICY_RESPONSE_REQUIRE_NUMERIC;
         await expect(
           createUserWithEmailAndPassword(auth, TEST_EMAIL, TEST_PASSWORD)
-        ).to.be.rejectedWith(FirebaseError, PASSWORD_ERROR_MSG);
+        ).rejects.toThrow(FirebaseError, PASSWORD_ERROR_MSG);
 
         // Wait for the password policy to be fetched and recached.
         await waitForRecachePasswordPolicy();
 
-        expect(policyEndpointMockWithTenant.calls.length).to.eq(2);
-        expect(auth._getPasswordPolicyInternal()).to.eql(
+        expect(policyEndpointMockWithTenant.calls.length).toBe(2);
+        expect(auth._getPasswordPolicyInternal()).toEqual(
           CACHED_PASSWORD_POLICY_REQUIRE_NUMERIC
         );
       });
 
       it('does not update the cached password policy upon error if policy has not previously been fetched', async () => {
-        expect(auth._getPasswordPolicyInternal()).to.be.null;
+        expect(auth._getPasswordPolicyInternal()).toBeNull();
 
         await expect(
           createUserWithEmailAndPassword(auth, TEST_EMAIL, TEST_PASSWORD)
-        ).to.be.rejectedWith(FirebaseError, PASSWORD_ERROR_MSG);
+        ).rejects.toThrow(FirebaseError, PASSWORD_ERROR_MSG);
 
         // Wait for the password policy to be fetched and recached.
         await waitForRecachePasswordPolicy();
 
-        expect(policyEndpointMock.calls.length).to.eq(0);
-        expect(auth._getPasswordPolicyInternal()).to.be.null;
+        expect(policyEndpointMock.calls.length).toBe(0);
+        expect(auth._getPasswordPolicyInternal()).toBeNull();
       });
 
       it('does not update the cached password policy upon error if tenant changes and policy has not previously been fetched', async () => {
         auth.tenantId = TEST_TENANT_ID;
         await auth._updatePasswordPolicy();
-        expect(policyEndpointMockWithTenant.calls.length).to.eq(1);
-        expect(auth._getPasswordPolicyInternal()).to.eql(
+        expect(policyEndpointMockWithTenant.calls.length).toBe(1);
+        expect(auth._getPasswordPolicyInternal()).toEqual(
           CACHED_PASSWORD_POLICY
         );
 
         auth.tenantId = TEST_TENANT_ID_REQUIRE_NUMERIC;
         await expect(
           createUserWithEmailAndPassword(auth, TEST_EMAIL, TEST_PASSWORD)
-        ).to.be.rejectedWith(FirebaseError, PASSWORD_ERROR_MSG);
+        ).rejects.toThrow(FirebaseError, PASSWORD_ERROR_MSG);
 
         // Wait to ensure the password policy is not fetched and recached.
         await waitForRecachePasswordPolicy();
 
-        expect(policyEndpointMockWithOtherTenant.calls.length).to.eq(0);
-        expect(auth._getPasswordPolicyInternal()).to.be.undefined;
+        expect(policyEndpointMockWithOtherTenant.calls.length).toBe(0);
+        expect(auth._getPasswordPolicyInternal()).toBeUndefined();
       });
 
       it('updates the cached password policy even when a MISSING_RECAPTCHA_TOKEN error is handled first', async () => {
@@ -1095,8 +1078,8 @@ describe('password policy cache is updated in auth flows upon error', () => {
         }
 
         await auth._updatePasswordPolicy();
-        expect(policyEndpointMock.calls.length).to.eq(1);
-        expect(auth._getPasswordPolicyInternal()).to.eql(
+        expect(policyEndpointMock.calls.length).toBe(1);
+        expect(auth._getPasswordPolicyInternal()).toEqual(
           CACHED_PASSWORD_POLICY
         );
 
@@ -1120,20 +1103,20 @@ describe('password policy cache is updated in auth flows upon error', () => {
 
         await expect(
           createUserWithEmailAndPassword(auth, TEST_EMAIL, TEST_PASSWORD)
-        ).to.be.rejectedWith(FirebaseError, PASSWORD_ERROR_MSG);
+        ).rejects.toThrow(FirebaseError, PASSWORD_ERROR_MSG);
 
         // Wait for the password policy to be fetched and recached.
         await waitForRecachePasswordPolicy();
 
-        expect(policyEndpointMock.calls.length).to.eq(2);
-        expect(auth._getPasswordPolicyInternal()).to.eql(
+        expect(policyEndpointMock.calls.length).toBe(2);
+        expect(auth._getPasswordPolicyInternal()).toEqual(
           CACHED_PASSWORD_POLICY_REQUIRE_NUMERIC
         );
       });
     });
   });
 
-  context('#confirmPasswordReset', () => {
+  describe('#confirmPasswordReset', () => {
     const TEST_OOB_CODE = 'oob-code';
 
     beforeEach(() => {
@@ -1143,30 +1126,32 @@ describe('password policy cache is updated in auth flows upon error', () => {
     });
 
     it('does not update the cached password policy upon successful password reset when there is no existing policy cache', async () => {
-      await expect(confirmPasswordReset(auth, TEST_OOB_CODE, TEST_PASSWORD)).to
-        .be.fulfilled;
+      await expect(
+        confirmPasswordReset(auth, TEST_OOB_CODE, TEST_PASSWORD)
+      ).resolves.not.toThrow();
 
       // Wait to ensure the password policy is not fetched and recached.
       await waitForRecachePasswordPolicy();
 
-      expect(policyEndpointMock.calls.length).to.eq(0);
-      expect(auth._getPasswordPolicyInternal()).to.be.null;
+      expect(policyEndpointMock.calls.length).toBe(0);
+      expect(auth._getPasswordPolicyInternal()).toBeNull();
     });
 
     it('does not update the cached password policy upon successful password reset when there is an existing policy cache', async () => {
       await auth._updatePasswordPolicy();
 
-      await expect(confirmPasswordReset(auth, TEST_OOB_CODE, TEST_PASSWORD)).to
-        .be.fulfilled;
+      await expect(
+        confirmPasswordReset(auth, TEST_OOB_CODE, TEST_PASSWORD)
+      ).resolves.not.toThrow();
 
       // Wait to ensure the password policy is not fetched and recached.
       await waitForRecachePasswordPolicy();
 
-      expect(policyEndpointMock.calls.length).to.eq(1);
-      expect(auth._getPasswordPolicyInternal()).to.eql(CACHED_PASSWORD_POLICY);
+      expect(policyEndpointMock.calls.length).toBe(1);
+      expect(auth._getPasswordPolicyInternal()).toEqual(CACHED_PASSWORD_POLICY);
     });
 
-    context('handles password validation errors', () => {
+    describe('handles password validation errors', () => {
       beforeEach(() => {
         mockEndpoint(
           Endpoint.RESET_PASSWORD,
@@ -1182,8 +1167,8 @@ describe('password policy cache is updated in auth flows upon error', () => {
 
       it('updates the cached password policy when password does not meet backend requirements for the project', async () => {
         await auth._updatePasswordPolicy();
-        expect(policyEndpointMock.calls.length).to.eq(1);
-        expect(auth._getPasswordPolicyInternal()).to.eql(
+        expect(policyEndpointMock.calls.length).toBe(1);
+        expect(auth._getPasswordPolicyInternal()).toEqual(
           CACHED_PASSWORD_POLICY
         );
 
@@ -1191,13 +1176,13 @@ describe('password policy cache is updated in auth flows upon error', () => {
         policyEndpointMock.response = PASSWORD_POLICY_RESPONSE_REQUIRE_NUMERIC;
         await expect(
           confirmPasswordReset(auth, TEST_OOB_CODE, TEST_PASSWORD)
-        ).to.be.rejectedWith(FirebaseError, PASSWORD_ERROR_MSG);
+        ).rejects.toThrow(FirebaseError, PASSWORD_ERROR_MSG);
 
         // Wait for the password policy to be fetched and recached.
         await waitForRecachePasswordPolicy();
 
-        expect(policyEndpointMock.calls.length).to.eq(2);
-        expect(auth._getPasswordPolicyInternal()).to.eql(
+        expect(policyEndpointMock.calls.length).toBe(2);
+        expect(auth._getPasswordPolicyInternal()).toEqual(
           CACHED_PASSWORD_POLICY_REQUIRE_NUMERIC
         );
       });
@@ -1205,8 +1190,8 @@ describe('password policy cache is updated in auth flows upon error', () => {
       it('updates the cached password policy when password does not meet backend requirements for the tenant', async () => {
         auth.tenantId = TEST_TENANT_ID;
         await auth._updatePasswordPolicy();
-        expect(policyEndpointMockWithTenant.calls.length).to.eq(1);
-        expect(auth._getPasswordPolicyInternal()).to.eql(
+        expect(policyEndpointMockWithTenant.calls.length).toBe(1);
+        expect(auth._getPasswordPolicyInternal()).toEqual(
           CACHED_PASSWORD_POLICY
         );
 
@@ -1215,54 +1200,54 @@ describe('password policy cache is updated in auth flows upon error', () => {
           PASSWORD_POLICY_RESPONSE_REQUIRE_NUMERIC;
         await expect(
           confirmPasswordReset(auth, TEST_OOB_CODE, TEST_PASSWORD)
-        ).to.be.rejectedWith(FirebaseError, PASSWORD_ERROR_MSG);
+        ).rejects.toThrow(FirebaseError, PASSWORD_ERROR_MSG);
 
         // Wait for the password policy to be fetched and recached.
         await waitForRecachePasswordPolicy();
 
-        expect(policyEndpointMockWithTenant.calls.length).to.eq(2);
-        expect(auth._getPasswordPolicyInternal()).to.eql(
+        expect(policyEndpointMockWithTenant.calls.length).toBe(2);
+        expect(auth._getPasswordPolicyInternal()).toEqual(
           CACHED_PASSWORD_POLICY_REQUIRE_NUMERIC
         );
       });
 
       it('does not update the cached password policy upon error if policy has not previously been fetched', async () => {
-        expect(auth._getPasswordPolicyInternal()).to.be.null;
+        expect(auth._getPasswordPolicyInternal()).toBeNull();
 
         await expect(
           confirmPasswordReset(auth, TEST_OOB_CODE, TEST_PASSWORD)
-        ).to.be.rejectedWith(FirebaseError, PASSWORD_ERROR_MSG);
+        ).rejects.toThrow(FirebaseError, PASSWORD_ERROR_MSG);
 
         // Wait to ensure the password policy is not fetched and recached.
         await waitForRecachePasswordPolicy();
 
-        expect(policyEndpointMock.calls.length).to.eq(0);
-        expect(auth._getPasswordPolicyInternal()).to.be.null;
+        expect(policyEndpointMock.calls.length).toBe(0);
+        expect(auth._getPasswordPolicyInternal()).toBeNull();
       });
 
       it('does not update the cached password policy upon error if tenant changes and policy has not previously been fetched', async () => {
         auth.tenantId = TEST_TENANT_ID;
         await auth._updatePasswordPolicy();
-        expect(policyEndpointMockWithTenant.calls.length).to.eq(1);
-        expect(auth._getPasswordPolicyInternal()).to.eql(
+        expect(policyEndpointMockWithTenant.calls.length).toBe(1);
+        expect(auth._getPasswordPolicyInternal()).toEqual(
           CACHED_PASSWORD_POLICY
         );
 
         auth.tenantId = TEST_TENANT_ID_REQUIRE_NUMERIC;
         await expect(
           confirmPasswordReset(auth, TEST_OOB_CODE, TEST_PASSWORD)
-        ).to.be.rejectedWith(FirebaseError, PASSWORD_ERROR_MSG);
+        ).rejects.toThrow(FirebaseError, PASSWORD_ERROR_MSG);
 
         // Wait to ensure the password policy is not fetched and recached.
         await waitForRecachePasswordPolicy();
 
-        expect(policyEndpointMockWithOtherTenant.calls.length).to.eq(0);
-        expect(auth._getPasswordPolicyInternal()).to.be.undefined;
+        expect(policyEndpointMockWithOtherTenant.calls.length).toBe(0);
+        expect(auth._getPasswordPolicyInternal()).toBeUndefined();
       });
     });
   });
 
-  context('#signInWithEmailAndPassword', () => {
+  describe('#signInWithEmailAndPassword', () => {
     beforeEach(() => {
       mockEndpoint(Endpoint.SIGN_IN_WITH_PASSWORD, {
         idToken: TEST_ID_TOKEN,
@@ -1276,30 +1261,32 @@ describe('password policy cache is updated in auth flows upon error', () => {
     });
 
     it('does not update the cached password policy upon successful sign-in when there is no existing policy cache', async () => {
-      await expect(signInWithEmailAndPassword(auth, TEST_EMAIL, TEST_PASSWORD))
-        .to.be.fulfilled;
+      await expect(
+        signInWithEmailAndPassword(auth, TEST_EMAIL, TEST_PASSWORD)
+      ).resolves.not.toThrow();
 
       // Wait to ensure the password policy is not fetched and recached.
       await waitForRecachePasswordPolicy();
 
-      expect(policyEndpointMock.calls.length).to.eq(0);
-      expect(auth._getPasswordPolicyInternal()).to.be.null;
+      expect(policyEndpointMock.calls.length).toBe(0);
+      expect(auth._getPasswordPolicyInternal()).toBeNull();
     });
 
     it('does not update the cached password policy upon successful sign-in when there is an existing policy cache', async () => {
       await auth._updatePasswordPolicy();
 
-      await expect(signInWithEmailAndPassword(auth, TEST_EMAIL, TEST_PASSWORD))
-        .to.be.fulfilled;
+      await expect(
+        signInWithEmailAndPassword(auth, TEST_EMAIL, TEST_PASSWORD)
+      ).resolves.not.toThrow();
 
       // Wait to ensure the password policy is not fetched and recached.
       await waitForRecachePasswordPolicy();
 
-      expect(policyEndpointMock.calls.length).to.eq(1);
-      expect(auth._getPasswordPolicyInternal()).to.eql(CACHED_PASSWORD_POLICY);
+      expect(policyEndpointMock.calls.length).toBe(1);
+      expect(auth._getPasswordPolicyInternal()).toEqual(CACHED_PASSWORD_POLICY);
     });
 
-    context('handles password validation errors', () => {
+    describe('handles password validation errors', () => {
       beforeEach(() => {
         mockEndpoint(
           Endpoint.SIGN_IN_WITH_PASSWORD,
@@ -1315,8 +1302,8 @@ describe('password policy cache is updated in auth flows upon error', () => {
 
       it('updates the cached password policy when password does not meet backend requirements for the project', async () => {
         await auth._updatePasswordPolicy();
-        expect(policyEndpointMock.calls.length).to.eq(1);
-        expect(auth._getPasswordPolicyInternal()).to.eql(
+        expect(policyEndpointMock.calls.length).toBe(1);
+        expect(auth._getPasswordPolicyInternal()).toEqual(
           CACHED_PASSWORD_POLICY
         );
 
@@ -1324,13 +1311,13 @@ describe('password policy cache is updated in auth flows upon error', () => {
         policyEndpointMock.response = PASSWORD_POLICY_RESPONSE_REQUIRE_NUMERIC;
         await expect(
           signInWithEmailAndPassword(auth, TEST_EMAIL, TEST_PASSWORD)
-        ).to.be.rejectedWith(FirebaseError, PASSWORD_ERROR_MSG);
+        ).rejects.toThrow(FirebaseError, PASSWORD_ERROR_MSG);
 
         // Wait for the password policy to be fetched and recached.
         await waitForRecachePasswordPolicy();
 
-        expect(policyEndpointMock.calls.length).to.eq(2);
-        expect(auth._getPasswordPolicyInternal()).to.eql(
+        expect(policyEndpointMock.calls.length).toBe(2);
+        expect(auth._getPasswordPolicyInternal()).toEqual(
           CACHED_PASSWORD_POLICY_REQUIRE_NUMERIC
         );
       });
@@ -1338,8 +1325,8 @@ describe('password policy cache is updated in auth flows upon error', () => {
       it('updates the cached password policy when password does not meet backend requirements for the tenant', async () => {
         auth.tenantId = TEST_TENANT_ID;
         await auth._updatePasswordPolicy();
-        expect(policyEndpointMockWithTenant.calls.length).to.eq(1);
-        expect(auth._getPasswordPolicyInternal()).to.eql(
+        expect(policyEndpointMockWithTenant.calls.length).toBe(1);
+        expect(auth._getPasswordPolicyInternal()).toEqual(
           CACHED_PASSWORD_POLICY
         );
 
@@ -1348,49 +1335,49 @@ describe('password policy cache is updated in auth flows upon error', () => {
           PASSWORD_POLICY_RESPONSE_REQUIRE_NUMERIC;
         await expect(
           signInWithEmailAndPassword(auth, TEST_EMAIL, TEST_PASSWORD)
-        ).to.be.rejectedWith(FirebaseError, PASSWORD_ERROR_MSG);
+        ).rejects.toThrow(FirebaseError, PASSWORD_ERROR_MSG);
 
         // Wait for the password policy to be fetched and recached.
         await waitForRecachePasswordPolicy();
 
-        expect(policyEndpointMockWithTenant.calls.length).to.eq(2);
-        expect(auth._getPasswordPolicyInternal()).to.eql(
+        expect(policyEndpointMockWithTenant.calls.length).toBe(2);
+        expect(auth._getPasswordPolicyInternal()).toEqual(
           CACHED_PASSWORD_POLICY_REQUIRE_NUMERIC
         );
       });
 
       it('does not update the cached password policy upon error if policy has not previously been fetched', async () => {
-        expect(auth._getPasswordPolicyInternal()).to.be.null;
+        expect(auth._getPasswordPolicyInternal()).toBeNull();
 
         await expect(
           signInWithEmailAndPassword(auth, TEST_EMAIL, TEST_PASSWORD)
-        ).to.be.rejectedWith(FirebaseError, PASSWORD_ERROR_MSG);
+        ).rejects.toThrow(FirebaseError, PASSWORD_ERROR_MSG);
 
         // Wait to ensure the password policy is not fetched and recached.
         await waitForRecachePasswordPolicy();
 
-        expect(policyEndpointMock.calls.length).to.eq(0);
-        expect(auth._getPasswordPolicyInternal()).to.be.null;
+        expect(policyEndpointMock.calls.length).toBe(0);
+        expect(auth._getPasswordPolicyInternal()).toBeNull();
       });
 
       it('does not update the cached password policy upon error if tenant changes and policy has not previously been fetched', async () => {
         auth.tenantId = TEST_TENANT_ID;
         await auth._updatePasswordPolicy();
-        expect(policyEndpointMockWithTenant.calls.length).to.eq(1);
-        expect(auth._getPasswordPolicyInternal()).to.eql(
+        expect(policyEndpointMockWithTenant.calls.length).toBe(1);
+        expect(auth._getPasswordPolicyInternal()).toEqual(
           CACHED_PASSWORD_POLICY
         );
 
         auth.tenantId = TEST_TENANT_ID_REQUIRE_NUMERIC;
         await expect(
           signInWithEmailAndPassword(auth, TEST_EMAIL, TEST_PASSWORD)
-        ).to.be.rejectedWith(FirebaseError, PASSWORD_ERROR_MSG);
+        ).rejects.toThrow(FirebaseError, PASSWORD_ERROR_MSG);
 
         // Wait to ensure the password policy is not fetched and recached.
         await waitForRecachePasswordPolicy();
 
-        expect(policyEndpointMockWithOtherTenant.calls.length).to.eq(0);
-        expect(auth._getPasswordPolicyInternal()).to.be.undefined;
+        expect(policyEndpointMockWithOtherTenant.calls.length).toBe(0);
+        expect(auth._getPasswordPolicyInternal()).toBeUndefined();
       });
 
       it('updates the cached password policy even when a MISSING_RECAPTCHA_TOKEN error is handled first', async () => {
@@ -1399,8 +1386,8 @@ describe('password policy cache is updated in auth flows upon error', () => {
         }
 
         await auth._updatePasswordPolicy();
-        expect(policyEndpointMock.calls.length).to.eq(1);
-        expect(auth._getPasswordPolicyInternal()).to.eql(
+        expect(policyEndpointMock.calls.length).toBe(1);
+        expect(auth._getPasswordPolicyInternal()).toEqual(
           CACHED_PASSWORD_POLICY
         );
 
@@ -1425,13 +1412,13 @@ describe('password policy cache is updated in auth flows upon error', () => {
 
         await expect(
           signInWithEmailAndPassword(auth, TEST_EMAIL, TEST_PASSWORD)
-        ).to.be.rejectedWith(FirebaseError, PASSWORD_ERROR_MSG);
+        ).rejects.toThrow(FirebaseError, PASSWORD_ERROR_MSG);
 
         // Wait to ensure the password policy is fetched and recached.
         await waitForRecachePasswordPolicy();
 
-        expect(policyEndpointMock.calls.length).to.eq(2);
-        expect(auth._getPasswordPolicyInternal()).to.eql(
+        expect(policyEndpointMock.calls.length).toBe(2);
+        expect(auth._getPasswordPolicyInternal()).toEqual(
           CACHED_PASSWORD_POLICY_REQUIRE_NUMERIC
         );
       });

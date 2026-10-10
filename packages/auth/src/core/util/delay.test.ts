@@ -16,40 +16,44 @@
  */
 
 import * as util from '@firebase/util';
-import { expect } from 'chai';
-import { restore, stub } from 'sinon';
 import { Delay, DelayMin } from './delay';
 import * as navigator from './navigator';
+
+vi.mock('@firebase/util', { spy: true });
+vi.mock('./navigator', { spy: true });
 
 describe('core/util/delay', () => {
   const SHORT_DELAY = 30_000;
   const LONG_DELAY = 60_000;
 
-  afterEach(restore);
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
 
   it('should return the short delay in browser environments', () => {
     const delay = new Delay(SHORT_DELAY, LONG_DELAY);
-    expect(delay.get()).to.eq(SHORT_DELAY);
+    expect(delay.get()).toBe(SHORT_DELAY);
   });
 
   it('should return the long delay in Cordova environments', () => {
-    const mock = stub(util, 'isMobileCordova');
-    mock.callsFake(() => true);
+    vi.spyOn(util, 'isMobileCordova').mockReturnValue(true);
     const delay = new Delay(SHORT_DELAY, LONG_DELAY);
-    expect(delay.get()).to.eq(LONG_DELAY);
+    expect(delay.get()).toBe(LONG_DELAY);
   });
 
   it('should return the long delay in React Native environments', () => {
-    const mock = stub(util, 'isReactNative');
-    mock.callsFake(() => true);
+    vi.spyOn(util, 'isReactNative').mockReturnValue(true);
     const delay = new Delay(SHORT_DELAY, LONG_DELAY);
-    expect(delay.get()).to.eq(LONG_DELAY);
+    expect(delay.get()).toBe(LONG_DELAY);
   });
 
   it('should return quicker when offline', () => {
-    const mock = stub(navigator, '_isOnline');
-    mock.callsFake(() => false);
+    vi.spyOn(navigator, '_isOnline').mockReturnValue(false);
     const delay = new Delay(SHORT_DELAY, LONG_DELAY);
-    expect(delay.get()).to.eq(DelayMin.OFFLINE);
+    expect(delay.get()).toBe(DelayMin.OFFLINE);
   });
 });

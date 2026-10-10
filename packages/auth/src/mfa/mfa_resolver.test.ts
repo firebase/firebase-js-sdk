@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-import * as sinon from 'sinon';
 
 import { FactorId } from '../model/public_types';
 import { OperationType, ProviderId } from '../model/enums';
@@ -40,8 +36,6 @@ import {
 } from './mfa_resolver';
 import { _createError } from '../core/util/assert';
 import { makeJWT } from '../../test/helpers/jwt';
-use(chaiAsPromised);
-
 describe('core/mfa/mfa_resolver/MultiFactorResolver', () => {
   const finalIdToken = makeJWT({ 'exp': '3600', 'iat': '1200' });
   let auth: TestAuth;
@@ -68,7 +62,7 @@ describe('core/mfa/mfa_resolver/MultiFactorResolver', () => {
   });
 
   afterEach(() => {
-    sinon.restore();
+    vi.restoreAllMocks();
   });
 
   describe('MultiFactorResolver', () => {
@@ -122,7 +116,7 @@ describe('core/mfa/mfa_resolver/MultiFactorResolver', () => {
         });
       });
 
-      context('sign in', () => {
+      describe('sign in', () => {
         beforeEach(() => {
           error = MultiFactorError._fromErrorAndOperation(
             auth,
@@ -136,17 +130,20 @@ describe('core/mfa/mfa_resolver/MultiFactorResolver', () => {
           const userCredential = (await resolver.resolveSignIn(
             assertion
           )) as UserCredentialInternal;
-          expect(userCredential.user.uid).to.eq('local-id');
-          expect(await userCredential.user.getIdToken()).to.eq(finalIdToken);
+          expect(userCredential.user.uid).toBe('local-id');
+          expect(await userCredential.user.getIdToken()).toBe(finalIdToken);
           expect(
-            userCredential.user.stsTokenManager.expirationTime
-          ).to.be.closeTo(Date.now() + 2400 * 1000, 1000);
-          expect(userCredential._tokenResponse).to.eql({
+            Math.abs(
+              userCredential.user.stsTokenManager.expirationTime! -
+                (Date.now() + 2400 * 1000)
+            )
+          ).toBeLessThan(1000);
+          expect(userCredential._tokenResponse).toEqual({
             localId: 'local-id',
             idToken: finalIdToken,
             refreshToken: 'final-refresh-token'
           });
-          expect(mock.calls[0].request).to.eql({
+          expect(mock.calls[0].request).toEqual({
             tenantId: auth.tenantId,
             mfaPendingCredential: 'mfa-pending-credential',
             phoneVerificationInfo: {
@@ -157,7 +154,7 @@ describe('core/mfa/mfa_resolver/MultiFactorResolver', () => {
         });
       });
 
-      context('reauthentication', () => {
+      describe('reauthentication', () => {
         let user: UserInternal;
 
         beforeEach(() => {
@@ -175,17 +172,20 @@ describe('core/mfa/mfa_resolver/MultiFactorResolver', () => {
           const userCredential = (await resolver.resolveSignIn(
             assertion
           )) as UserCredentialInternal;
-          expect(userCredential.user).to.eq(user);
-          expect(await userCredential.user.getIdToken()).to.eq(finalIdToken);
+          expect(userCredential.user).toBe(user);
+          expect(await userCredential.user.getIdToken()).toBe(finalIdToken);
           expect(
-            userCredential.user.stsTokenManager.expirationTime
-          ).to.be.closeTo(Date.now() + 2400 * 1000, 1000);
-          expect(userCredential._tokenResponse).to.eql({
+            Math.abs(
+              userCredential.user.stsTokenManager.expirationTime! -
+                (Date.now() + 2400 * 1000)
+            )
+          ).toBeLessThan(1000);
+          expect(userCredential._tokenResponse).toEqual({
             localId: 'local-id',
             idToken: finalIdToken,
             refreshToken: 'final-refresh-token'
           });
-          expect(mock.calls[0].request).to.eql({
+          expect(mock.calls[0].request).toEqual({
             tenantId: auth.tenantId,
             mfaPendingCredential: 'mfa-pending-credential',
             phoneVerificationInfo: {
@@ -199,7 +199,7 @@ describe('core/mfa/mfa_resolver/MultiFactorResolver', () => {
   });
 
   describe('getMultiFactorResolver', () => {
-    context('sign in', () => {
+    describe('sign in', () => {
       beforeEach(() => {
         error = MultiFactorError._fromErrorAndOperation(
           auth,
@@ -209,11 +209,11 @@ describe('core/mfa/mfa_resolver/MultiFactorResolver', () => {
       });
       it('can be used to obtain a resolver', () => {
         const resolver = getMultiFactorResolver(auth, error);
-        expect(resolver.hints[0].factorId).to.eq(ProviderId.PHONE);
+        expect(resolver.hints[0].factorId).toBe(ProviderId.PHONE);
       });
     });
 
-    context('reauthentication', () => {
+    describe('reauthentication', () => {
       let user: UserInternal;
 
       beforeEach(() => {
@@ -228,7 +228,7 @@ describe('core/mfa/mfa_resolver/MultiFactorResolver', () => {
 
       it('can be used to obtain a resolver', () => {
         const resolver = getMultiFactorResolver(auth, error);
-        expect(resolver.hints[0].factorId).to.eq(FactorId.PHONE);
+        expect(resolver.hints[0].factorId).toBe(FactorId.PHONE);
       });
     });
   });

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import { ProviderId, SignInMethod } from '../../model/enums';
 
@@ -49,7 +47,7 @@ describe('core/credentials/oauth', () => {
     fetch.tearDown();
   });
 
-  context('_fromParams', () => {
+  describe('_fromParams', () => {
     it('sets the idToken and accessToken', () => {
       const cred = OAuthCredential._fromParams({
         ...BASE_PARAMS,
@@ -57,8 +55,8 @@ describe('core/credentials/oauth', () => {
         accessToken: 'access-token'
       });
 
-      expect(cred.idToken).to.eq('id-token');
-      expect(cred.accessToken).to.eq('access-token');
+      expect(cred.idToken).toBe('id-token');
+      expect(cred.accessToken).toBe('access-token');
     });
 
     it('sets the nonce only if pendingToken is missing', () => {
@@ -69,7 +67,7 @@ describe('core/credentials/oauth', () => {
         nonce: 'nonce'
       });
 
-      expect((cred.toJSON() as { nonce: string }).nonce).to.eq('nonce');
+      expect((cred.toJSON() as { nonce: string }).nonce).toBe('nonce');
     });
 
     it('ignores the nonce if pendingToken set', () => {
@@ -81,7 +79,7 @@ describe('core/credentials/oauth', () => {
         pendingToken: 'pending-token'
       });
 
-      expect((cred.toJSON() as { nonce?: string }).nonce).to.be.undefined;
+      expect((cred.toJSON() as { nonce?: string }).nonce).toBeUndefined();
     });
 
     it('handles oauth1 and oauth with token secret', () => {
@@ -91,12 +89,12 @@ describe('core/credentials/oauth', () => {
         oauthTokenSecret: 'oauth-token-secret'
       });
 
-      expect(cred.accessToken).to.eq('oauth-token');
-      expect(cred.secret).to.eq('oauth-token-secret');
+      expect(cred.accessToken).toBe('oauth-token');
+      expect(cred.secret).toBe('oauth-token-secret');
     });
   });
 
-  context('#toJSON', () => {
+  describe('#toJSON', () => {
     it('packs up everything', () => {
       const cred = OAuthCredential._fromParams({
         ...BASE_PARAMS,
@@ -105,7 +103,7 @@ describe('core/credentials/oauth', () => {
         pendingToken: 'pending-token'
       });
 
-      expect(cred.toJSON()).to.eql({
+      expect(cred.toJSON()).toEqual({
         ...BASE_PARAMS,
         idToken: 'id-token',
         accessToken: 'access-token',
@@ -116,7 +114,7 @@ describe('core/credentials/oauth', () => {
     });
   });
 
-  context('fromJSON', () => {
+  describe('fromJSON', () => {
     it('builds the new object correctly', () => {
       const cred = OAuthCredential.fromJSON({
         ...BASE_PARAMS,
@@ -125,15 +123,15 @@ describe('core/credentials/oauth', () => {
         pendingToken: 'pending-token'
       });
 
-      expect(cred).to.be.instanceOf(OAuthCredential);
-      expect(cred!.idToken).to.eq('id-token');
-      expect(cred!.accessToken).to.eq('access-token');
-      expect(cred!.providerId).to.eq(BASE_PARAMS.providerId);
-      expect(cred!.signInMethod).to.eq(BASE_PARAMS.signInMethod);
+      expect(cred).toBeInstanceOf(OAuthCredential);
+      expect(cred!.idToken).toBe('id-token');
+      expect(cred!.accessToken).toBe('access-token');
+      expect(cred!.providerId).toBe(BASE_PARAMS.providerId);
+      expect(cred!.signInMethod).toBe(BASE_PARAMS.signInMethod);
     });
   });
 
-  context('#makeRequest', () => {
+  describe('#makeRequest', () => {
     it('sets all the fields in a querystring if using nonce', async () => {
       await OAuthCredential._fromParams({
         ...BASE_PARAMS,
@@ -144,12 +142,12 @@ describe('core/credentials/oauth', () => {
 
       const { postBody, ...rest } = signInWithIdp.calls[0]
         .request as SignInWithIdpRequest;
-      expect(rest.requestUri).to.eq('http://localhost');
-      expect(rest.returnSecureToken).to.be.true;
-      expect(postBody).to.contain('id_token=id-token');
-      expect(postBody).to.contain('access_token=access-token');
-      expect(postBody).to.contain('nonce=nonce');
-      expect(postBody).to.contain('providerId=google.com');
+      expect(rest.requestUri).toBe('http://localhost');
+      expect(rest.returnSecureToken).toBe(true);
+      expect(postBody).toContain('id_token=id-token');
+      expect(postBody).toContain('access_token=access-token');
+      expect(postBody).toContain('nonce=nonce');
+      expect(postBody).toContain('providerId=google.com');
     });
 
     it('if pendingToken is present, post body is not set', async () => {
@@ -162,14 +160,14 @@ describe('core/credentials/oauth', () => {
       })._getIdTokenResponse(auth);
 
       const request = signInWithIdp.calls[0].request as SignInWithIdpRequest;
-      expect(request.requestUri).to.eq('http://localhost');
-      expect(request.returnSecureToken).to.be.true;
-      expect(request.pendingToken).to.eq('pending-token');
-      expect(request.postBody).to.be.undefined;
+      expect(request.requestUri).toBe('http://localhost');
+      expect(request.returnSecureToken).toBe(true);
+      expect(request.pendingToken).toBe('pending-token');
+      expect(request.postBody).toBeUndefined();
     });
   });
 
-  context('internal methods', () => {
+  describe('internal methods', () => {
     let cred: OAuthCredential;
 
     beforeEach(() => {
@@ -184,21 +182,21 @@ describe('core/credentials/oauth', () => {
       await cred._getIdTokenResponse(auth);
 
       const request = signInWithIdp.calls[0].request as SignInWithIdpRequest;
-      expect(typeof request.postBody).to.eq('string');
+      expect(typeof request.postBody).toBe('string');
     });
 
     it('_linkToIdToken sets the idToken field on the request', async () => {
       await cred._linkToIdToken(auth, 'new-id-token');
       const request = signInWithIdp.calls[0].request as SignInWithIdpRequest;
-      expect(typeof request.postBody).to.eq('string');
-      expect(request.idToken).to.eq('new-id-token');
+      expect(typeof request.postBody).toBe('string');
+      expect(request.idToken).toBe('new-id-token');
     });
 
     it('_getReauthenticationResolver sets autoCreate to false', async () => {
       await cred._getReauthenticationResolver(auth);
       const request = signInWithIdp.calls[0].request as SignInWithIdpRequest;
-      expect(typeof request.postBody).to.eq('string');
-      expect(request.autoCreate).to.be.false;
+      expect(typeof request.postBody).toBe('string');
+      expect(request.autoCreate).toBe(false);
     });
   });
 });

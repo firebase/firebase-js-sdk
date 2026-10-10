@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-import { stub } from 'sinon';
 
 import { OperationType, ProviderId, SignInMethod } from '../../model/enums';
 import { FirebaseError } from '@firebase/util';
@@ -37,9 +33,6 @@ import { AuthCredential } from '../credentials';
 import { AuthErrorCode } from '../errors';
 import { _reauthenticate } from './reauthenticate';
 import { _createError } from '../util/assert';
-
-use(chaiAsPromised);
-
 describe('core/user/reauthenticate', () => {
   let credential: AuthCredential;
   let user: UserInternal;
@@ -58,49 +51,49 @@ describe('core/user/reauthenticate', () => {
   });
 
   it('should error if the idToken is missing', async () => {
-    stub(credential, '_getReauthenticationResolver').returns(
+    vi.spyOn(credential, '_getReauthenticationResolver').mockReturnValue(
       Promise.resolve({
         ...TEST_ID_TOKEN_RESPONSE,
         idToken: undefined
       } as unknown as IdTokenResponse)
     );
 
-    await expect(_reauthenticate(user, credential)).to.be.rejectedWith(
+    await expect(_reauthenticate(user, credential)).rejects.toThrow(
       FirebaseError,
       'Firebase: An internal AuthError has occurred. (auth/internal-error).'
     );
   });
 
   it('should error if the token cannot be parsed', async () => {
-    stub(credential, '_getReauthenticationResolver').returns(
+    vi.spyOn(credential, '_getReauthenticationResolver').mockReturnValue(
       Promise.resolve({
         ...TEST_ID_TOKEN_RESPONSE,
         idToken: 'definitely-not-base-64'
       })
     );
 
-    await expect(_reauthenticate(user, credential)).to.be.rejectedWith(
+    await expect(_reauthenticate(user, credential)).rejects.toThrow(
       FirebaseError,
       'Firebase: An internal AuthError has occurred. (auth/internal-error).'
     );
   });
 
   it('should throw a user mismatch error if uid is different', async () => {
-    stub(credential, '_getReauthenticationResolver').returns(
+    vi.spyOn(credential, '_getReauthenticationResolver').mockReturnValue(
       Promise.resolve({
         ...TEST_ID_TOKEN_RESPONSE,
         idToken: makeJWT({ sub: 'not-the-uid' })
       })
     );
 
-    await expect(_reauthenticate(user, credential)).to.be.rejectedWith(
+    await expect(_reauthenticate(user, credential)).rejects.toThrow(
       FirebaseError,
       'Firebase: The supplied credentials do not correspond to the previously signed in user. (auth/user-mismatch).'
     );
   });
 
   it('should switch a user deleted error to a mismatch error', async () => {
-    stub(credential, '_getReauthenticationResolver').returns(
+    vi.spyOn(credential, '_getReauthenticationResolver').mockReturnValue(
       Promise.reject(
         _createError(AuthErrorCode.USER_DELETED, {
           appName: ''
@@ -108,14 +101,14 @@ describe('core/user/reauthenticate', () => {
       )
     );
 
-    await expect(_reauthenticate(user, credential)).to.be.rejectedWith(
+    await expect(_reauthenticate(user, credential)).rejects.toThrow(
       FirebaseError,
       'Firebase: The supplied credentials do not correspond to the previously signed in user. (auth/user-mismatch).'
     );
   });
 
   it('should not switch other errors to a mismatch error', async () => {
-    stub(credential, '_getReauthenticationResolver').returns(
+    vi.spyOn(credential, '_getReauthenticationResolver').mockReturnValue(
       Promise.reject(
         _createError(AuthErrorCode.NETWORK_REQUEST_FAILED, {
           appName: ''
@@ -123,7 +116,7 @@ describe('core/user/reauthenticate', () => {
       )
     );
 
-    await expect(_reauthenticate(user, credential)).to.be.rejectedWith(
+    await expect(_reauthenticate(user, credential)).rejects.toThrow(
       FirebaseError,
       'auth/network-request-failed'
     );
@@ -141,18 +134,23 @@ describe('core/user/reauthenticate', () => {
       ],
       mfaPendingCredential: 'mfa-pending-credential'
     };
-    stub(credential, '_getReauthenticationResolver').returns(
+    vi.spyOn(credential, '_getReauthenticationResolver').mockReturnValue(
       Promise.reject(
         _createError(user.auth, AuthErrorCode.MFA_REQUIRED, {
           _serverResponse: serverResponse
         })
       )
     );
-    const error = await expect(
-      _reauthenticate(user, credential)
-    ).to.be.rejectedWith(MultiFactorError);
-    expect(error.customData.operationType).to.eq(OperationType.REAUTHENTICATE);
-    expect(error.customData._serverResponse).to.eql(serverResponse);
+    let error: MultiFactorError | undefined;
+    try {
+      await _reauthenticate(user, credential);
+      expect.unreachable();
+    } catch (e) {
+      error = e as MultiFactorError;
+    }
+    expect(error).toBeInstanceOf(MultiFactorError);
+    expect(error.customData.operationType).toBe(OperationType.REAUTHENTICATE);
+    expect(error.customData._serverResponse).toEqual(serverResponse);
   });
 
   it('should return a valid user credential', async () => {
@@ -160,7 +158,7 @@ describe('core/user/reauthenticate', () => {
       ...TEST_ID_TOKEN_RESPONSE,
       idToken: makeJWT({ sub: 'uid' })
     };
-    stub(credential, '_getReauthenticationResolver').returns(
+    vi.spyOn(credential, '_getReauthenticationResolver').mockReturnValue(
       Promise.resolve(response)
     );
 
@@ -173,8 +171,8 @@ describe('core/user/reauthenticate', () => {
       credential
     )) as UserCredentialInternal;
 
-    expect(cred.operationType).to.eq(OperationType.REAUTHENTICATE);
-    expect(cred._tokenResponse).to.eq(response);
-    expect(cred.user).to.eq(user);
+    expect(cred.operationType).toBe(OperationType.REAUTHENTICATE);
+    expect(cred._tokenResponse).toBe(response);
+    expect(cred.user).toBe(user);
   });
 });

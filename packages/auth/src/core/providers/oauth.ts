@@ -24,7 +24,7 @@ import { OAuthCredential, OAuthCredentialParams } from '../credentials/oauth';
 import { UserCredentialInternal } from '../../model/user';
 import { FirebaseError } from '@firebase/util';
 import { TaggedWithTokenResponse } from '../../model/id_token';
-import { SignInWithIdpResponse } from '../../../internal';
+import { SignInWithIdpResponse } from '../../api/authentication/idp';
 import { FederatedAuthProvider } from './federated';
 
 /**
