@@ -357,6 +357,53 @@ describe('response-helpers methods', () => {
       expect(result.type).to.equal('text');
       expect(result).to.deep.equal({ type: 'text', text: 'hello' });
     });
+    it('correctly assigns "text" type and preserves speechMetadata on an untagged text part', () => {
+      const part: UnknownPart = {
+        text: 'Hello there!',
+        speechMetadata: {
+          speaker: 'Jane',
+          style: 'excited'
+        }
+      };
+      const result = assignPartType(part);
+      expect(result).to.deep.equal({
+        type: 'text',
+        text: 'Hello there!',
+        speechMetadata: {
+          speaker: 'Jane',
+          style: 'excited'
+        }
+      });
+    });
+    it('correctly assigns "text" type and preserves partial speechMetadata', () => {
+      const speakerOnlyPart: UnknownPart = {
+        text: "How's it going today Jane?",
+        speechMetadata: {
+          speaker: 'Joe'
+        }
+      };
+      expect(assignPartType(speakerOnlyPart)).to.deep.equal({
+        type: 'text',
+        text: "How's it going today Jane?",
+        speechMetadata: {
+          speaker: 'Joe'
+        }
+      });
+
+      const styleOnlyPart: UnknownPart = {
+        text: 'Have a wonderful day!',
+        speechMetadata: {
+          style: 'cheerful and friendly'
+        }
+      };
+      expect(assignPartType(styleOnlyPart)).to.deep.equal({
+        type: 'text',
+        text: 'Have a wonderful day!',
+        speechMetadata: {
+          style: 'cheerful and friendly'
+        }
+      });
+    });
     it('correctly assigns "text" type to an empty text part', () => {
       const part: UnknownPart = { text: '' };
       const result = assignPartType(part);
