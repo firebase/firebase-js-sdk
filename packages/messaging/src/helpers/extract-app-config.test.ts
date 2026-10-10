@@ -15,11 +15,8 @@
  * limitations under the License.
  */
 
-import '../testing/setup';
-
 import { AppConfig } from '../interfaces/app-config';
 import { FirebaseApp } from '@firebase/app';
-import { expect } from 'chai';
 import { extractAppConfig } from './extract-app-config';
 import { getFakeApp } from '../testing/fakes/firebase-dependencies';
 
@@ -33,47 +30,47 @@ describe('extractAppConfig', () => {
       appId: '1:777777777777:web:d93b5ca1475efe57',
       senderId: '1234567890'
     };
-    expect(extractAppConfig(firebaseApp)).to.deep.equal(expected);
+    expect(extractAppConfig(firebaseApp)).toEqual(expected);
   });
 
   it('throws if a necessary value is missing', () => {
-    expect(() =>
-      extractAppConfig(undefined as unknown as FirebaseApp)
-    ).to.throw('Missing App configuration value: "App Configuration Object"');
+    expect(() => extractAppConfig(undefined as unknown as FirebaseApp)).toThrow(
+      'Missing App configuration value: "App Configuration Object"'
+    );
 
     let firebaseApp = getFakeApp();
     delete firebaseApp.options;
-    expect(() => extractAppConfig(firebaseApp)).to.throw(
+    expect(() => extractAppConfig(firebaseApp)).toThrow(
       'Missing App configuration value: "App Configuration Object"'
     );
 
     firebaseApp = getFakeApp();
     delete firebaseApp.name;
-    expect(() => extractAppConfig(firebaseApp)).to.throw(
+    expect(() => extractAppConfig(firebaseApp)).toThrow(
       'Missing App configuration value: "App Name"'
     );
 
     firebaseApp = getFakeApp();
     delete firebaseApp.options.projectId;
-    expect(() => extractAppConfig(firebaseApp)).to.throw(
+    expect(() => extractAppConfig(firebaseApp)).toThrow(
       'Missing App configuration value: "projectId"'
     );
 
     firebaseApp = getFakeApp();
     delete firebaseApp.options.apiKey;
-    expect(() => extractAppConfig(firebaseApp)).to.throw(
+    expect(() => extractAppConfig(firebaseApp)).toThrow(
       'Missing App configuration value: "apiKey"'
     );
 
     firebaseApp = getFakeApp();
     delete firebaseApp.options.appId;
-    expect(() => extractAppConfig(firebaseApp)).to.throw(
+    expect(() => extractAppConfig(firebaseApp)).toThrow(
       'Missing App configuration value: "appId"'
     );
 
     firebaseApp = getFakeApp();
     delete firebaseApp.options.messagingSenderId;
-    expect(() => extractAppConfig(firebaseApp)).to.throw(
+    expect(() => extractAppConfig(firebaseApp)).toThrow(
       'Missing App configuration value: "messagingSenderId"'
     );
   });
