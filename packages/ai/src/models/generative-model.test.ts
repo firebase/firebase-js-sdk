@@ -349,6 +349,56 @@ describe('GenerativeModel', () => {
 
     vi.restoreAllMocks();
   });
+  it('passes TextPart with speechMetadata through to generateContent', async () => {
+    const genModel = new GenerativeModel(
+      fakeAI,
+      {
+        model: 'my-model'
+      },
+      {},
+      fakeChromeAdapter
+    );
+
+    const mockResponse = getMockResponse(
+      'vertexAI',
+      'unary-success-basic-reply-short.json'
+    );
+    const makeRequestStub = vi
+      .spyOn(mockRequest, 'makeRequest')
+      .mockResolvedValue(mockResponse as Response);
+
+    await genModel.generateContent([
+      {
+        type: 'text',
+        text: 'Hello there!',
+        speechMetadata: {
+          speaker: 'Jane',
+          style: 'excited'
+        }
+      }
+    ]);
+
+    expect(makeRequestStub).toHaveBeenCalledWith(
+      {
+        model: 'publishers/google/models/my-model',
+        task: request.Task.GENERATE_CONTENT,
+        apiSettings: expect.anything(),
+        stream: false,
+        singleRequestOptions: {}
+      },
+      expect.toSatisfy((value: string) => {
+        const parsed = JSON.parse(value);
+        return (
+          parsed.contents?.[0]?.parts?.[0]?.text === 'Hello there!' &&
+          parsed.contents?.[0]?.parts?.[0]?.speechMetadata?.speaker ===
+            'Jane' &&
+          parsed.contents?.[0]?.parts?.[0]?.speechMetadata?.style ===
+            'excited' &&
+          parsed.contents?.[0]?.parts?.[0]?.type === undefined
+        );
+      })
+    );
+  });
   it('passes base model params through to ChatSession when there are no startChatParams', async () => {
     const genModel = new GenerativeModel(
       fakeAI,

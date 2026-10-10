@@ -569,4 +569,58 @@ describe('aggregateResponses', () => {
       );
     }
   });
+
+  it('preserves speechMetadata on text parts when aggregating responses', () => {
+    const responsesToAggregate: GenerateContentResponse[] = [
+      {
+        candidates: [
+          {
+            index: 0,
+            content: {
+              role: 'model',
+              parts: [{ type: 'text', text: 'Regular text A' }]
+            }
+          }
+        ]
+      },
+      {
+        candidates: [
+          {
+            index: 0,
+            content: {
+              role: 'model',
+              parts: [
+                {
+                  type: 'text',
+                  text: 'Spoken turn',
+                  speechMetadata: { speaker: 'Joe', style: 'cheerful' }
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        candidates: [
+          {
+            index: 0,
+            content: {
+              role: 'model',
+              parts: [{ type: 'text', text: 'Regular text B' }]
+            }
+          }
+        ]
+      }
+    ];
+    const response = aggregateResponses(responsesToAggregate);
+    expect(response.candidates?.[0].content.parts).to.deep.equal([
+      { type: 'text', text: 'Regular text A' },
+      {
+        type: 'text',
+        text: 'Spoken turn',
+        speechMetadata: { speaker: 'Joe', style: 'cheerful' }
+      },
+      { type: 'text', text: 'Regular text B' }
+    ]);
+  });
 });
