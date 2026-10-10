@@ -23,14 +23,17 @@ import firebase from '@firebase/app-compat';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { Component, ComponentType } from '@firebase/component';
 
+import TEST_PROJECT from '../../../../config/project.json';
 import { Path } from '../../../database/src/core/util/Path';
 import { Query, Reference } from '../../src/api/Reference';
+export { TEST_PROJECT };
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-export const TEST_PROJECT = require('../../../../config/project.json');
-
-const EMULATOR_PORT = process.env.RTDB_EMULATOR_PORT;
-const EMULATOR_NAMESPACE = process.env.RTDB_EMULATOR_NAMESPACE;
+const EMULATOR_PORT =
+  typeof process !== 'undefined' ? process.env?.RTDB_EMULATOR_PORT : undefined;
+const EMULATOR_NAMESPACE =
+  typeof process !== 'undefined'
+    ? process.env?.RTDB_EMULATOR_NAMESPACE
+    : undefined;
 
 const USE_EMULATOR = !!EMULATOR_PORT;
 
