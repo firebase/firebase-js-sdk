@@ -17,10 +17,8 @@
 
 import { SubscriptionOptions } from '../interfaces/registration-details';
 import { MessagingService } from '../messaging-service';
-import {
-  base64ToArray,
-  arrayToBase64
-} from '../helpers/array-base64-translator';
+import { arrayToBase64 } from '../helpers/array-base64-translator';
+import { getPushSubscription } from './push-subscription';
 import { requestCreateRegistration } from './requests';
 import { ERROR_FACTORY, ErrorCode } from '../util/errors';
 
@@ -35,18 +33,20 @@ const FID_REGISTRATION_FID_MATCH_MAX_ATTEMPTS = 3;
  *   `projects/{projectId}/registrations/{fid}`); it must match `expectedFid` from
  *   Installations.getId(). On mismatch we refresh the auth token and retry, then fail with
  *   `fid-registration-failed`.
+ * - The push subscription and the registration use `vapidKey` (default: `messaging.vapidKey`).
  */
 export async function registerFcmRegistrationWithFid(
   messaging: MessagingService,
-  expectedFid: string
+  expectedFid: string,
+  vapidKey: string = messaging.vapidKey!
 ): Promise<void> {
   const pushSubscription = await getPushSubscription(
     messaging.swRegistration!,
-    messaging.vapidKey!
+    vapidKey
   );
 
   const subscriptionOptions: SubscriptionOptions = {
-    vapidKey: messaging.vapidKey!,
+    vapidKey,
     swScope: messaging.swRegistration!.scope,
     endpoint: pushSubscription.endpoint,
     auth: arrayToBase64(pushSubscription.getKey('auth')!),
@@ -79,23 +79,5 @@ export async function registerFcmRegistrationWithFid(
   throw ERROR_FACTORY.create(ErrorCode.FID_REGISTRATION_FAILED, {
     errorInfo:
       'CreateRegistration response FID does not match Firebase Installation ID'
-  });
-}
-
-async function getPushSubscription(
-  swRegistration: ServiceWorkerRegistration,
-  vapidKey: string
-): Promise<PushSubscription> {
-  const subscription = await swRegistration.pushManager.getSubscription();
-  if (subscription) {
-    return subscription;
-  }
-
-  // Chrome/Firefox require applicationServerKey to be of type Uint8Array.
-  return swRegistration.pushManager.subscribe({
-    userVisibleOnly: true,
-    // `PushManager.subscribe` expects a `BufferSource`; `base64ToArray` produces a typed array.
-    // Cast to satisfy the lib typing differences across TS DOM versions.
-    applicationServerKey: base64ToArray(vapidKey) as unknown as BufferSource
   });
 }

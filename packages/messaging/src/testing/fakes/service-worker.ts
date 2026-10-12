@@ -24,6 +24,7 @@ import {
 } from '../../util/sw-types';
 
 import { Writable } from 'ts-essentials';
+import { base64ToArray } from '../../helpers/array-base64-translator';
 
 // Add fake SW types.
 declare const self: Window & Writable<ServiceWorkerGlobalScope>;
@@ -139,22 +140,39 @@ class FakePushManager implements PushManager {
   }
 
   async getSubscription() {
+    // Like browsers, stop returning a subscription once it has been unsubscribed.
+    if (this.subscription?.unsubscribed) {
+      this.subscription = null;
+    }
     return this.subscription;
   }
 
-  async subscribe() {
-    if (!this.subscription) {
-      this.subscription = new FakePushSubscription();
+  async subscribe(options?: PushSubscriptionOptionsInit) {
+    if (!(await this.getSubscription())) {
+      this.subscription = new FakePushSubscription(
+        toArrayBuffer(options?.applicationServerKey)
+      );
     }
     return this.subscription!;
   }
 }
 
+/**
+ * Only has data properties (no function-valued own properties), so that instances can be
+ * structured-cloned, e.g. into IndexedDB.
+ */
 export class FakePushSubscription implements PushSubscription {
   endpoint = 'https://example.org';
   expirationTime = 1234567890;
   auth = 'auth-value'; // Encoded: 'YXV0aC12YWx1ZQ'
   p256 = 'p256-value'; // Encoded: 'cDI1Ni12YWx1ZQ'
+  options: PushSubscriptionOptions;
+  /** Set by unsubscribe(). FakePushManager no longer returns an unsubscribed subscription. */
+  unsubscribed = false;
+
+  constructor(applicationServerKey: ArrayBuffer | null = null) {
+    this.options = { applicationServerKey, userVisibleOnly: true };
+  }
 
   getKey(name: PushEncryptionKeyName) {
     const encoder = new TextEncoder();
@@ -162,12 +180,34 @@ export class FakePushSubscription implements PushSubscription {
   }
 
   async unsubscribe() {
+    this.unsubscribed = true;
     return true;
   }
 
   // Unused in FCM
   toJSON = null as unknown as () => PushSubscriptionJSON;
-  options = null as unknown as PushSubscriptionOptions;
+}
+
+/** Copies an `applicationServerKey` passed to `subscribe()`, like browsers do. */
+function toArrayBuffer(
+  key: BufferSource | string | null | undefined
+): ArrayBuffer | null {
+  if (key == null) {
+    return null;
+  }
+
+  let bytes: Uint8Array;
+  if (typeof key === 'string') {
+    bytes = base64ToArray(key);
+  } else if (ArrayBuffer.isView(key)) {
+    bytes = new Uint8Array(key.buffer, key.byteOffset, key.byteLength);
+  } else {
+    bytes = new Uint8Array(key);
+  }
+
+  const copy = new ArrayBuffer(bytes.byteLength);
+  new Uint8Array(copy).set(bytes);
+  return copy;
 }
 
 /**

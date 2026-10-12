@@ -19,10 +19,7 @@ import {
   SubscriptionOptions,
   TokenDetails
 } from '../interfaces/registration-details';
-import {
-  arrayToBase64,
-  base64ToArray
-} from '../helpers/array-base64-translator';
+import { arrayToBase64 } from '../helpers/array-base64-translator';
 import {
   dbGet,
   dbGetFidRegistration,
@@ -30,6 +27,7 @@ import {
   dbRemoveFidRegistration,
   dbSet
 } from './idb-manager';
+import { getPushSubscription } from './push-subscription';
 import {
   requestDeleteRegistration,
   requestDeleteToken,
@@ -192,26 +190,6 @@ async function getNewToken(
   };
   await dbSet(firebaseDependencies, tokenDetails);
   return tokenDetails.token;
-}
-
-/**
- * Gets a PushSubscription for the current user.
- */
-async function getPushSubscription(
-  swRegistration: ServiceWorkerRegistration,
-  vapidKey: string
-): Promise<PushSubscription> {
-  const subscription = await swRegistration.pushManager.getSubscription();
-  if (subscription) {
-    return subscription;
-  }
-
-  return swRegistration.pushManager.subscribe({
-    userVisibleOnly: true,
-    // Chrome <= 75 doesn't support base64-encoded VAPID key. For backward compatibility, VAPID key
-    // submitted to pushManager#subscribe must be of type Uint8Array.
-    applicationServerKey: base64ToArray(vapidKey)
-  });
 }
 
 /**
