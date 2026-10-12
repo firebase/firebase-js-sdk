@@ -27,7 +27,10 @@ import { requestDeleteRegistration } from '../internals/requests';
 /**
  * Unregisters the app instance from FCM by deleting its FID-based registration.
  *
- * On success, triggers the `onUnregistered` callback (if set) with the unregistered FID.
+ * After the registration is deleted, clears local metadata and, when the service worker
+ * registration is known to this instance, unsubscribes the browser push subscription
+ * (best-effort). On success, triggers the `onUnregistered` callback (if set) with the
+ * unregistered FID.
  *
  * @param messaging - The MessagingService instance.
  */
@@ -57,6 +60,27 @@ export async function unregister(messaging: MessagingService): Promise<void> {
     await dbRemove(messaging.firebaseDependencies);
   } catch {
     // Ignore.
+  }
+
+  // Also unsubscribe the browser push subscription, as deleteToken() does, so that the endpoint of
+  // the deleted registration can no longer receive pushes. This is only possible when the service
+  // worker registration is known to this instance. Best-effort, since the backend registration and
+  // local metadata are already gone. Done before notifying onUnregistered so that a handler which
+  // registers again starts from a clean state.
+  if (messaging.swRegistration) {
+    try {
+      const pushSubscription =
+        await messaging.swRegistration.pushManager.getSubscription();
+      if (pushSubscription) {
+        await pushSubscription.unsubscribe();
+      }
+    } catch (e) {
+      // Don't fail unregister(), but surface the failure since the endpoint may remain subscribed.
+      console.warn(
+        'unregister(): failed to unsubscribe the push subscription.',
+        e
+      );
+    }
   }
 
   const handler = messaging.onUnregisteredHandler;

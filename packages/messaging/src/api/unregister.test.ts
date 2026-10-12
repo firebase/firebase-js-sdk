@@ -18,13 +18,15 @@
 import '../testing/setup';
 
 import { expect } from 'chai';
-import { stub } from 'sinon';
+import { SinonStub, spy, stub } from 'sinon';
 import { MessagingService } from '../messaging-service';
 import {
   getFakeAnalyticsProvider,
   getFakeApp,
   getFakeInstallations
 } from '../testing/fakes/firebase-dependencies';
+import { FakeServiceWorkerRegistration } from '../testing/fakes/service-worker';
+import { Stub } from '../testing/sinon-types';
 import { unregister } from './unregister';
 import * as idbManager from '../internals/idb-manager';
 import * as requestsModule from '../internals/requests';
@@ -166,5 +168,77 @@ describe('unregister', () => {
     await expect(unregister(messaging)).to.be.rejectedWith('boom');
     expect(onUnregisteredSpy).to.not.have.been.called;
     expect(dbRemoveStub).to.not.have.been.called;
+  });
+
+  describe('push subscription', () => {
+    let swRegistration: FakeServiceWorkerRegistration;
+    let onUnregisteredSpy: SinonStub;
+    let deleteRegStub: Stub<
+      (typeof requestsModule)['requestDeleteRegistration']
+    >;
+    let dbRemoveFidRegStub: Stub<
+      (typeof idbManager)['dbRemoveFidRegistration']
+    >;
+    let dbRemoveStub: Stub<(typeof idbManager)['dbRemove']>;
+
+    beforeEach(() => {
+      swRegistration = new FakeServiceWorkerRegistration();
+      messaging.swRegistration = swRegistration;
+      onUnregisteredSpy = stub();
+      messaging.onUnregisteredHandler = onUnregisteredSpy;
+
+      stub(idbManager, 'dbGetFidRegistration').resolves({
+        fid: 'FID',
+        lastRegisterTime: Date.now()
+      });
+      dbRemoveFidRegStub = stub(
+        idbManager,
+        'dbRemoveFidRegistration'
+      ).resolves();
+      dbRemoveStub = stub(idbManager, 'dbRemove').resolves();
+      deleteRegStub = stub(
+        requestsModule,
+        'requestDeleteRegistration'
+      ).resolves();
+    });
+
+    it('unsubscribes the push subscription after deleting the registration', async () => {
+      const subscription = await swRegistration.pushManager.subscribe();
+      const unsubscribeSpy = spy(subscription, 'unsubscribe');
+
+      await unregister(messaging);
+
+      expect(unsubscribeSpy).to.have.been.calledOnce;
+      expect(unsubscribeSpy).to.have.been.calledAfter(deleteRegStub);
+      expect(unsubscribeSpy).to.have.been.calledAfter(dbRemoveFidRegStub);
+      expect(unsubscribeSpy).to.have.been.calledAfter(dbRemoveStub);
+      expect(unsubscribeSpy).to.have.been.calledBefore(onUnregisteredSpy);
+      expect(onUnregisteredSpy).to.have.been.calledOnceWith('FID');
+    });
+
+    it('does not unsubscribe the push subscription when deleting the registration fails', async () => {
+      const subscription = await swRegistration.pushManager.subscribe();
+      const unsubscribeSpy = spy(subscription, 'unsubscribe');
+      deleteRegStub.rejects(new Error('boom'));
+
+      await expect(unregister(messaging)).to.be.rejectedWith('boom');
+
+      expect(unsubscribeSpy).to.not.have.been.called;
+      expect(onUnregisteredSpy).to.not.have.been.called;
+    });
+
+    it('still resolves and notifies onUnregistered when unsubscribing fails', async () => {
+      const subscription = await swRegistration.pushManager.subscribe();
+      const error = new Error('unsubscribe failed');
+      const unsubscribeStub = stub(subscription, 'unsubscribe').rejects(error);
+      const consoleWarnStub = stub(console, 'warn');
+
+      await unregister(messaging);
+
+      expect(unsubscribeStub).to.have.been.calledOnce;
+      expect(consoleWarnStub).to.have.been.calledOnce;
+      expect(consoleWarnStub.firstCall.args).to.include(error);
+      expect(onUnregisteredSpy).to.have.been.calledOnceWith('FID');
+    });
   });
 });
