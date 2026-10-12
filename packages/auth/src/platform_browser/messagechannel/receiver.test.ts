@@ -81,7 +81,7 @@ describe('platform_browser/messagechannel/receiver', () => {
               expect(messageEvent.data.eventId).toBe('12345');
               expect(messageEvent.data.eventType).toBe(_EventType.PING);
               expect(messageEvent.data.status).toBe(_Status.DONE);
-              expect(messageEvent.data.response).to.have.deep.members([
+              expect(messageEvent.data.response).toEqual([
                 {
                   fulfilled: true,
                   value: response
@@ -134,7 +134,7 @@ describe('platform_browser/messagechannel/receiver', () => {
               expect(messageEvent.data.eventId).toBe('12345');
               expect(messageEvent.data.eventType).toBe(_EventType.PING);
               expect(messageEvent.data.status).toBe(_Status.DONE);
-              expect(messageEvent.data.response).to.have.deep.members([
+              expect(messageEvent.data.response).toEqual([
                 {
                   fulfilled: true,
                   value: response

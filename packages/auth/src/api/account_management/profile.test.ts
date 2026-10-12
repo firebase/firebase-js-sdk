@@ -75,10 +75,11 @@ describe('api/account_management/updateProfile', () => {
       400
     );
 
-    await expect(updateProfile(auth, request)).rejects.toThrow(
-      FirebaseError,
+    const promise = updateProfile(auth, request);
+    await expect(promise).rejects.toThrow(
       'Firebase: The email address is already in use by another account. (auth/email-already-in-use).'
     );
+    await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     expect(mock.calls[0].request).toEqual(request);
   });
 });

@@ -48,7 +48,8 @@ describe('platform_cordova/popup_redirect/events', () => {
 
     it('creates an event with a 20-char session id', () => {
       const event = _generateNewEvent(auth, AuthEventType.SIGN_IN_VIA_REDIRECT);
-      expect(event.sessionId).to.be.a('string').with.length(20);
+      expect(typeof event.sessionId).toBe('string');
+      expect(event.sessionId).toHaveLength(20);
     });
 
     it('sets the error field to be a "no auth event" error', () => {
@@ -56,9 +57,8 @@ describe('platform_cordova/popup_redirect/events', () => {
         auth,
         AuthEventType.REAUTH_VIA_REDIRECT
       );
-      expect(error)
-        .toBeInstanceOf(FirebaseError)
-        .with.property('code', 'auth/no-auth-event');
+      expect(error).toBeInstanceOf(FirebaseError);
+      expect(error).toHaveProperty('code', 'auth/no-auth-event');
     });
   });
 
@@ -131,9 +131,8 @@ describe('platform_cordova/popup_redirect/events', () => {
       });
       const { error, ...rest } = _eventFromPartialAndUrl(partialEvent, url)!;
 
-      expect(error)
-        .toBeInstanceOf(FirebaseError)
-        .with.property('code', 'auth/internal-error');
+      expect(error).toBeInstanceOf(FirebaseError);
+      expect(error).toHaveProperty('code', 'auth/internal-error');
       expect(rest).toEqual({
         type: AuthEventType.REAUTH_VIA_REDIRECT,
         eventId: 'id',

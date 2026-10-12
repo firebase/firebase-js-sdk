@@ -154,12 +154,11 @@ describe('core/strategies/credential', () => {
         })
       );
 
-      await expect(
-        reauthenticateWithCredential(user, authCredential)
-      ).rejects.toThrow(
-        FirebaseError,
+      const promise = reauthenticateWithCredential(user, authCredential);
+      await expect(promise).rejects.toThrow(
         'Firebase: The supplied credentials do not correspond to the previously signed in user. (auth/user-mismatch).'
       );
+      await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     });
 
     it('should return the expected user credential', async () => {
@@ -198,10 +197,11 @@ describe('core/strategies/credential', () => {
         ]
       };
 
-      await expect(linkWithCredential(user, authCredential)).rejects.toThrow(
-        FirebaseError,
+      const promise = linkWithCredential(user, authCredential);
+      await expect(promise).rejects.toThrow(
         'Firebase: User can only be linked to one identity for the given provider. (auth/provider-already-linked).'
       );
+      await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     });
 
     it('should return a valid user credential', async () => {

@@ -59,7 +59,10 @@ describe('core/providers/email', () => {
         const actionLink = 'https://www.example.com/finishSignIn?';
         expect(() =>
           EmailAuthProvider.credentialWithLink('some-email', actionLink)
-        ).toThrow(FirebaseError, 'Firebase: Error (auth/argument-error)');
+        ).toThrow(FirebaseError);
+        expect(() =>
+          EmailAuthProvider.credentialWithLink('some-email', actionLink)
+        ).toThrow('Firebase: Error (auth/argument-error)');
       });
     });
   });

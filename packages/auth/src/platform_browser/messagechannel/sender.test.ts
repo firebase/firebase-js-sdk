@@ -76,7 +76,7 @@ describe('platform_browser/messagechannel/sender', () => {
         {},
         _TimeoutDuration.ACK
       );
-      expect(result).to.have.deep.members(response);
+      expect(result).toEqual(response);
     });
 
     it('should timeout if it doesnt see an ACK', async () => {
@@ -86,13 +86,13 @@ describe('platform_browser/messagechannel/sender', () => {
           pendingTimeouts[_TimeoutDuration.ACK]();
         });
       });
-      await expect(
-        sender._send<_PingResponse, PingRequest>(
-          _EventType.PING,
-          {},
-          _TimeoutDuration.ACK
-        )
-      ).rejects.toThrow(Error, _MessageError.UNSUPPORTED_EVENT);
+      const promise = sender._send<_PingResponse, PingRequest>(
+        _EventType.PING,
+        {},
+        _TimeoutDuration.ACK
+      );
+      await expect(promise).rejects.toThrow(_MessageError.UNSUPPORTED_EVENT);
+      await expect(promise).rejects.toBeInstanceOf(Error);
     });
 
     it('should work with a long ACK', async () => {
@@ -128,7 +128,7 @@ describe('platform_browser/messagechannel/sender', () => {
         {},
         _TimeoutDuration.LONG_ACK
       );
-      expect(result).to.have.deep.members(response);
+      expect(result).toEqual(response);
     });
 
     it('it should timeout if it gets an ACK but not a DONE', async () => {
@@ -146,13 +146,13 @@ describe('platform_browser/messagechannel/sender', () => {
           response: null
         } as ReceiverMessageEvent<_PingResponse>);
       });
-      await expect(
-        sender._send<_PingResponse, PingRequest>(
-          _EventType.PING,
-          {},
-          _TimeoutDuration.ACK
-        )
-      ).rejects.toThrow(Error, _MessageError.TIMEOUT);
+      const promise = sender._send<_PingResponse, PingRequest>(
+        _EventType.PING,
+        {},
+        _TimeoutDuration.ACK
+      );
+      await expect(promise).rejects.toThrow(_MessageError.TIMEOUT);
+      await expect(promise).rejects.toBeInstanceOf(Error);
     });
   });
 });

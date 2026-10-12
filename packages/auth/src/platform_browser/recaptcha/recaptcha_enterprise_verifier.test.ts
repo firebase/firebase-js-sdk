@@ -147,10 +147,9 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
       vi.spyOn(recaptcha.enterprise, 'execute').mockResolvedValue(
         'recaptcha-response'
       );
-      await expect(verifier.verify()).rejects.toThrow(
-        Error,
-        'auth/missing-client-type'
-      );
+      const promise = verifier.verify();
+      await expect(promise).rejects.toThrow('auth/missing-client-type');
+      await expect(promise).rejects.toBeInstanceOf(Error);
     });
 
     it('return fake recaptcha token if error is thrown when retrieve recaptcha token', async () => {

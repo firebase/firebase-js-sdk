@@ -151,10 +151,11 @@ describe('core/user/token_manager', () => {
         accessToken: 'token',
         expirationTime: now + 100_000
       });
-      await expect(stsTokenManager.getToken(auth, true)).rejects.toThrow(
-        FirebaseError,
+      const promise = stsTokenManager.getToken(auth, true);
+      await expect(promise).rejects.toThrow(
         "Firebase: The user's credential is no longer valid. The user must sign in again. (auth/user-token-expired)"
       );
+      await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     });
 
     it('throws an error if the refresh token is missing and token is no longer valid', async () => {
@@ -162,10 +163,11 @@ describe('core/user/token_manager', () => {
         accessToken: 'old-access-token',
         expirationTime: now - 1
       });
-      await expect(stsTokenManager.getToken(auth)).rejects.toThrow(
-        FirebaseError,
+      const promise = stsTokenManager.getToken(auth);
+      await expect(promise).rejects.toThrow(
         "Firebase: The user's credential is no longer valid. The user must sign in again. (auth/user-token-expired)"
       );
+      await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     });
 
     it('throws an error if expired but refresh token is missing', async () => {
@@ -174,10 +176,11 @@ describe('core/user/token_manager', () => {
         expirationTime: now - 1
       });
 
-      await expect(stsTokenManager.getToken(auth)).rejects.toThrow(
-        FirebaseError,
+      const promise = stsTokenManager.getToken(auth);
+      await expect(promise).rejects.toThrow(
         "Firebase: The user's credential is no longer valid. The user must sign in again. (auth/user-token-expired)"
       );
+      await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     });
 
     it('returns access token if not expired, not refreshing', async () => {
@@ -216,7 +219,14 @@ describe('core/user/token_manager', () => {
           accessToken: 't',
           expirationTime: 3
         })
-      ).toThrow(FirebaseError, errorString);
+      ).toThrow(FirebaseError);
+      expect(() =>
+        StsTokenManager.fromJSON('app', {
+          refreshToken: 45,
+          accessToken: 't',
+          expirationTime: 3
+        })
+      ).toThrow(errorString);
     });
 
     it('throws if access token is not a string', () => {
@@ -226,7 +236,14 @@ describe('core/user/token_manager', () => {
           accessToken: 45,
           expirationTime: 3
         })
-      ).toThrow(FirebaseError, errorString);
+      ).toThrow(FirebaseError);
+      expect(() =>
+        StsTokenManager.fromJSON('app', {
+          refreshToken: 't',
+          accessToken: 45,
+          expirationTime: 3
+        })
+      ).toThrow(errorString);
     });
 
     it('throws if expiration time is not a number', () => {
@@ -236,7 +253,14 @@ describe('core/user/token_manager', () => {
           accessToken: 't',
           expirationTime: 'lol'
         })
-      ).toThrow(FirebaseError, errorString);
+      ).toThrow(FirebaseError);
+      expect(() =>
+        StsTokenManager.fromJSON('app', {
+          refreshToken: 't',
+          accessToken: 't',
+          expirationTime: 'lol'
+        })
+      ).toThrow(errorString);
     });
 
     it('builds an object correctly', () => {

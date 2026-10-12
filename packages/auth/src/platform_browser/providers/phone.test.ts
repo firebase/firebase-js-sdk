@@ -138,10 +138,9 @@ describe('platform_browser/providers/phone', () => {
       );
 
       const provider = new PhoneAuthProvider(auth);
-      await expect(provider.verifyPhoneNumber('+15105550000')).rejects.toThrow(
-        FirebaseError,
-        'auth/argument-error'
-      );
+      const promise = provider.verifyPhoneNumber('+15105550000');
+      await expect(promise).rejects.toThrow('auth/argument-error');
+      await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     });
 
     it('calls the server without appVerifier when recaptcha enterprise is enabled', async () => {

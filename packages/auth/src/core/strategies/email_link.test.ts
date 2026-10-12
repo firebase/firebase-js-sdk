@@ -77,12 +77,12 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
   });
 
   it('should require handleCodeInApp to be true', async () => {
-    await expect(
-      sendSignInLinkToEmail(auth, email, {
-        handleCodeInApp: false,
-        url: 'continue-url'
-      })
-    ).rejects.toThrow(FirebaseError, 'auth/argument-error).');
+    const promise = sendSignInLinkToEmail(auth, email, {
+      handleCodeInApp: false,
+      url: 'continue-url'
+    });
+    await expect(promise).rejects.toThrow('auth/argument-error).');
+    await expect(promise).rejects.toBeInstanceOf(FirebaseError);
   });
 
   it('should surface errors', async () => {
@@ -96,15 +96,14 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
       },
       400
     );
-    await expect(
-      sendSignInLinkToEmail(auth, email, {
-        handleCodeInApp: true,
-        url: 'continue-url'
-      })
-    ).rejects.toThrow(
-      FirebaseError,
+    const promise = sendSignInLinkToEmail(auth, email, {
+      handleCodeInApp: true,
+      url: 'continue-url'
+    });
+    await expect(promise).rejects.toThrow(
       'Firebase: The email address is badly formatted. (auth/invalid-email).'
     );
+    await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     expect(mock.calls.length).toBe(1);
   });
 
@@ -487,9 +486,9 @@ describe('core/strategies/email_and_password/signInWithEmailLink', () => {
         'continueUrl=' +
         encodeURIComponent(continueUrl) +
         '&languageCode=en&tenantId=OTHER_TENANT_ID&state=bla';
-      await expect(
-        signInWithEmailLink(auth, 'some-email', actionLink)
-      ).rejects.toThrow(FirebaseError, 'auth/tenant-id-mismatch');
+      const promise = signInWithEmailLink(auth, 'some-email', actionLink);
+      await expect(promise).rejects.toThrow('auth/tenant-id-mismatch');
+      await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     });
   });
 });

@@ -71,7 +71,7 @@ describe('Integration test: Auth FirebaseServerApp tests', () => {
     const user = userCred.user;
     expect(user).toBe(auth.currentUser);
     expect(user.isAnonymous).toBe(true);
-    expect(user.uid).to.be.a('string');
+    expect(typeof user.uid).toBe('string');
     expect(user.emailVerified).toBe(false);
     expect(user.providerData.length).toBe(0);
 
@@ -119,7 +119,7 @@ describe('Integration test: Auth FirebaseServerApp tests', () => {
     const user = userCred.user;
     expect(user).toBe(auth.currentUser);
     expect(user.isAnonymous).toBe(true);
-    expect(user.uid).to.be.a('string');
+    expect(typeof user.uid).toBe('string');
 
     const authIdToken = await user.getIdToken();
     const firebaseServerAppSettings = { authIdToken };
@@ -227,7 +227,7 @@ describe('Integration test: Auth FirebaseServerApp tests', () => {
 
     const user = userCred.user;
     expect(user).toBe(auth.currentUser);
-    expect(user.uid).to.be.a('string');
+    expect(typeof user.uid).toBe('string');
 
     const authIdToken = await user.getIdToken();
     const firebaseServerAppSettings = { authIdToken };
@@ -271,7 +271,7 @@ describe('Integration test: Auth FirebaseServerApp tests', () => {
 
     const user = userCred.user;
     expect(user).toBe(auth.currentUser);
-    expect(user.uid).to.be.a('string');
+    expect(typeof user.uid).toBe('string');
     expect(user.displayName).toBeNull();
 
     const authIdToken = await user.getIdToken();
@@ -329,7 +329,7 @@ describe('Integration test: Auth FirebaseServerApp tests', () => {
 
     const user = userCred.user;
     expect(user).toBe(auth.currentUser);
-    expect(user.uid).to.be.a('string');
+    expect(typeof user.uid).toBe('string');
     expect(user.displayName).toBeNull();
 
     const authIdToken = await user.getIdToken();
@@ -382,7 +382,7 @@ describe('Integration test: Auth FirebaseServerApp tests', () => {
 
     const user = userCred.user;
     expect(user).toBe(auth.currentUser);
-    expect(user.uid).to.be.a('string');
+    expect(typeof user.uid).toBe('string');
 
     const authIdToken = await user.getIdToken();
     const firebaseServerAppSettings = { authIdToken };
@@ -402,89 +402,99 @@ describe('Integration test: Auth FirebaseServerApp tests', () => {
     const password = 'password';
 
     // Auth tests:
-    await expect(
-      createUserWithEmailAndPassword(serverAppAuth, email, password)
-    ).rejects.toThrow(
-      FirebaseError,
+    const promise = createUserWithEmailAndPassword(
+      serverAppAuth,
+      email,
+      password
+    );
+    await expect(promise).rejects.toThrow(
       'operation-not-supported-in-this-environment'
     );
-    await expect(
-      signInWithRedirect(serverAppAuth, new GoogleAuthProvider())
-    ).rejects.toThrow(
-      FirebaseError,
+    await expect(promise).rejects.toBeInstanceOf(FirebaseError);
+    const promise2 = signInWithRedirect(
+      serverAppAuth,
+      new GoogleAuthProvider()
+    );
+    await expect(promise2).rejects.toThrow(
       'operation-not-supported-in-this-environment'
     );
-    await expect(getRedirectResult(serverAppAuth)).rejects.toThrow(
-      FirebaseError,
+    await expect(promise2).rejects.toBeInstanceOf(FirebaseError);
+    const promise3 = getRedirectResult(serverAppAuth);
+    await expect(promise3).rejects.toThrow(
       'operation-not-supported-in-this-environment'
     );
-    await expect(signInAnonymously(serverAppAuth)).rejects.toThrow(
-      FirebaseError,
+    await expect(promise3).rejects.toBeInstanceOf(FirebaseError);
+    const promise4 = signInAnonymously(serverAppAuth);
+    await expect(promise4).rejects.toThrow(
       'operation-not-supported-in-this-environment'
     );
+    await expect(promise4).rejects.toBeInstanceOf(FirebaseError);
 
     const credential = EmailAuthProvider.credential(email, password);
-    await expect(
-      signInWithCredential(serverAppAuth, credential)
-    ).rejects.toThrow(
-      FirebaseError,
+    const promise5 = signInWithCredential(serverAppAuth, credential);
+    await expect(promise5).rejects.toThrow(
       'operation-not-supported-in-this-environment'
     );
+    await expect(promise5).rejects.toBeInstanceOf(FirebaseError);
 
-    await expect(
-      signInWithCustomToken(serverAppAuth, 'custom token')
-    ).rejects.toThrow(
-      FirebaseError,
+    const promise6 = signInWithCustomToken(serverAppAuth, 'custom token');
+    await expect(promise6).rejects.toThrow(
       'operation-not-supported-in-this-environment'
     );
-    await expect(
-      signInWithEmailAndPassword(serverAppAuth, email, password)
-    ).rejects.toThrow(
-      FirebaseError,
+    await expect(promise6).rejects.toBeInstanceOf(FirebaseError);
+    const promise7 = signInWithEmailAndPassword(serverAppAuth, email, password);
+    await expect(promise7).rejects.toThrow(
       'operation-not-supported-in-this-environment'
     );
-    await expect(
-      signInWithEmailLink(serverAppAuth, email, 'email link')
-    ).rejects.toThrow(
-      FirebaseError,
+    await expect(promise7).rejects.toBeInstanceOf(FirebaseError);
+    const promise8 = signInWithEmailLink(serverAppAuth, email, 'email link');
+    await expect(promise8).rejects.toThrow(
       'operation-not-supported-in-this-environment'
     );
-    await expect(
-      updateCurrentUser(serverAppAuth, serverAppAuth.currentUser)
-    ).rejects.toThrow(
-      FirebaseError,
+    await expect(promise8).rejects.toBeInstanceOf(FirebaseError);
+    const promise9 = updateCurrentUser(
+      serverAppAuth,
+      serverAppAuth.currentUser
+    );
+    await expect(promise9).rejects.toThrow(
       'operation-not-supported-in-this-environment'
     );
-    await expect(
-      updateCurrentUser(serverAppAuth, serverAppAuth.currentUser)
-    ).rejects.toThrow(
-      FirebaseError,
+    await expect(promise9).rejects.toBeInstanceOf(FirebaseError);
+    const promise10 = updateCurrentUser(
+      serverAppAuth,
+      serverAppAuth.currentUser
+    );
+    await expect(promise10).rejects.toThrow(
       'operation-not-supported-in-this-environment'
     );
-    await expect(signOut(serverAppAuth)).rejects.toThrow(
-      FirebaseError,
+    await expect(promise10).rejects.toBeInstanceOf(FirebaseError);
+    const promise11 = signOut(serverAppAuth);
+    await expect(promise11).rejects.toThrow(
       'operation-not-supported-in-this-environment'
     );
+    await expect(promise11).rejects.toBeInstanceOf(FirebaseError);
 
     if (serverAppAuth.currentUser !== null) {
-      await expect(
-        reauthenticateWithCredential(serverAppAuth.currentUser, credential)
-      ).rejects.toThrow(
-        FirebaseError,
+      const promise12 = reauthenticateWithCredential(
+        serverAppAuth.currentUser,
+        credential
+      );
+      await expect(promise12).rejects.toThrow(
         'operation-not-supported-in-this-environment'
       );
+      await expect(promise12).rejects.toBeInstanceOf(FirebaseError);
 
-      await expect(serverAppAuth.currentUser.delete()).rejects.toThrow(
-        FirebaseError,
+      const promise13 = serverAppAuth.currentUser.delete();
+      await expect(promise13).rejects.toThrow(
         'operation-not-supported-in-this-environment'
       );
+      await expect(promise13).rejects.toBeInstanceOf(FirebaseError);
 
-      await expect(
-        updateEmail(serverAppAuth.currentUser, email)
-      ).rejects.toThrow(
-        FirebaseError,
+      const promise14 = updateEmail(serverAppAuth.currentUser, email);
+      await expect(promise14).rejects.toThrow(
         'operation-not-supported-in-this-environment'
       );
+      await expect(promise14).rejects.toBeInstanceOf(FirebaseError);
     }
 
     await deleteApp(serverApp);

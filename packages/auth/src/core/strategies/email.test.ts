@@ -83,10 +83,11 @@ describe('core/strategies/fetchSignInMethodsForEmail', () => {
       },
       400
     );
-    await expect(fetchSignInMethodsForEmail(auth, email)).rejects.toThrow(
-      FirebaseError,
+    const promise = fetchSignInMethodsForEmail(auth, email);
+    await expect(promise).rejects.toThrow(
       'Firebase: The email address is badly formatted. (auth/invalid-email).'
     );
+    await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     expect(mock.calls.length).toBe(1);
   });
 });

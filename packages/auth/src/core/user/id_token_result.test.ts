@@ -40,10 +40,11 @@ describe('core/user/id_token_result', () => {
 
   it('throws an internal error when the token is malformed', async () => {
     setup('not.valid');
-    await expect(getIdTokenResult(user)).rejects.toThrow(
-      FirebaseError,
+    const promise = getIdTokenResult(user);
+    await expect(promise).rejects.toThrow(
       'Firebase: An internal AuthError has occurred. (auth/internal-error).'
     );
+    await expect(promise).rejects.toBeInstanceOf(FirebaseError);
   });
 
   it('builds the result properly w/ timestamps', async () => {
@@ -100,10 +101,11 @@ describe('core/user/id_token_result', () => {
 
     const encodedStr = makeJWT(token);
     setup(encodedStr);
-    await expect(getIdTokenResult(user)).rejects.toThrow(
-      FirebaseError,
+    const promise = getIdTokenResult(user);
+    await expect(promise).rejects.toThrow(
       'Firebase: An internal AuthError has occurred. (auth/internal-error).'
     );
+    await expect(promise).rejects.toBeInstanceOf(FirebaseError);
   });
 
   it('errors if auth_time is missing', async () => {
@@ -114,10 +116,11 @@ describe('core/user/id_token_result', () => {
 
     const encodedStr = makeJWT(token);
     setup(encodedStr);
-    await expect(getIdTokenResult(user)).rejects.toThrow(
-      FirebaseError,
+    const promise = getIdTokenResult(user);
+    await expect(promise).rejects.toThrow(
       'Firebase: An internal AuthError has occurred. (auth/internal-error).'
     );
+    await expect(promise).rejects.toBeInstanceOf(FirebaseError);
   });
 
   it('errors if exp is missing', async () => {
@@ -128,10 +131,11 @@ describe('core/user/id_token_result', () => {
 
     const encodedStr = makeJWT(token);
     setup(encodedStr);
-    await expect(getIdTokenResult(user)).rejects.toThrow(
-      FirebaseError,
+    const promise = getIdTokenResult(user);
+    await expect(promise).rejects.toThrow(
       'Firebase: An internal AuthError has occurred. (auth/internal-error).'
     );
+    await expect(promise).rejects.toBeInstanceOf(FirebaseError);
   });
 
   it('Parses custom claims with multiple types', () => {

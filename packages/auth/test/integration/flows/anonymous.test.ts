@@ -47,7 +47,7 @@ describe('Integration test: anonymous auth', () => {
 
     const user = userCred.user;
     expect(user.isAnonymous).toBe(true);
-    expect(user.uid).to.be.a('string');
+    expect(typeof user.uid).toBe('string');
   });
 
   it('second sign in on the same device yields same user', async () => {
@@ -121,10 +121,9 @@ describe('Integration test: anonymous auth', () => {
       await createUserWithEmailAndPassword(auth, email, password);
       const { user: anonUser } = await signInAnonymously(auth);
       const cred = EmailAuthProvider.credential(email, password);
-      await expect(linkWithCredential(anonUser, cred)).rejects.toThrow(
-        FirebaseError,
-        'auth/email-already-in-use'
-      );
+      const promise = linkWithCredential(anonUser, cred);
+      await expect(promise).rejects.toThrow('auth/email-already-in-use');
+      await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     });
   });
 

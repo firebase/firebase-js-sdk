@@ -113,7 +113,8 @@ describe('platform_browser/util/popup', () => {
   it('errors if the popup is blocked', () => {
     setUA('');
     windowOpenStub.mockReturnValue(undefined);
-    expect(() => _open(auth)).toThrow(FirebaseError, 'auth/popup-blocked');
+    expect(() => _open(auth)).toThrow(FirebaseError);
+    expect(() => _open(auth)).toThrow('auth/popup-blocked');
   });
 
   it('builds the proper options string', () => {

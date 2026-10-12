@@ -125,10 +125,9 @@ describe('platform_browser/strategies/popup', () => {
         operationType: OperationType.SIGN_IN
       });
       idpStubs._signIn.mockReturnValue(Promise.resolve(cred));
-      await expect(signInWithPopup(auth, provider)).rejects.toThrow(
-        FirebaseError,
-        'auth/argument-error'
-      );
+      const promise2 = signInWithPopup(auth, provider);
+      await expect(promise2).rejects.toThrow('auth/argument-error');
+      await expect(promise2).rejects.toBeInstanceOf(FirebaseError);
     });
 
     it('ignores events for another event id', async () => {
@@ -173,10 +172,8 @@ describe('platform_browser/strategies/popup', () => {
           name: ''
         }
       });
-      await expect(promise).rejects.toThrow(
-        FirebaseError,
-        'auth/invalid-app-credential'
-      );
+      await expect(promise).rejects.toThrow('auth/invalid-app-credential');
+      await expect(promise).rejects.toBeInstanceOf(FirebaseError);
       expect(idpStubs._signIn).not.toHaveBeenCalled();
     });
 
@@ -214,18 +211,15 @@ describe('platform_browser/strategies/popup', () => {
       iframeEvent({
         type: AuthEventType.SIGN_IN_VIA_POPUP
       });
-      await expect(promise).rejects.toThrow(
-        FirebaseError,
-        'auth/popup-closed-by-user'
-      );
+      await expect(promise).rejects.toThrow('auth/popup-closed-by-user');
+      await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     });
 
     it('errors if webstorage support comes back negative', async () => {
       resolver = makeMockPopupRedirectResolver(eventManager, authPopup, false);
-      await expect(signInWithPopup(auth, provider, resolver)).rejects.toThrow(
-        FirebaseError,
-        'auth/web-storage-unsupported'
-      );
+      const promise2 = signInWithPopup(auth, provider, resolver);
+      await expect(promise2).rejects.toThrow('auth/web-storage-unsupported');
+      await expect(promise2).rejects.toBeInstanceOf(FirebaseError);
     });
 
     it('passes any errors from idp task', async () => {
@@ -238,10 +232,8 @@ describe('platform_browser/strategies/popup', () => {
         type: AuthEventType.SIGN_IN_VIA_POPUP
       });
 
-      await expect(promise).rejects.toThrow(
-        FirebaseError,
-        'auth/invalid-app-id'
-      );
+      await expect(promise).rejects.toThrow('auth/invalid-app-id');
+      await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     });
 
     it('cancels the task if called consecutively', async () => {
@@ -257,9 +249,9 @@ describe('platform_browser/strategies/popup', () => {
         type: AuthEventType.SIGN_IN_VIA_POPUP
       });
       await expect(firstPromise).rejects.toThrow(
-        FirebaseError,
         'auth/cancelled-popup-request'
       );
+      await expect(firstPromise).rejects.toBeInstanceOf(FirebaseError);
       expect(await secondPromise).toBe(cred);
     });
   });
@@ -306,10 +298,9 @@ describe('platform_browser/strategies/popup', () => {
         operationType: OperationType.LINK
       });
       idpStubs._link.mockReturnValue(Promise.resolve(cred));
-      await expect(linkWithPopup(user, provider)).rejects.toThrow(
-        FirebaseError,
-        'auth/argument-error'
-      );
+      const promise2 = linkWithPopup(user, provider);
+      await expect(promise2).rejects.toThrow('auth/argument-error');
+      await expect(promise2).rejects.toBeInstanceOf(FirebaseError);
     });
 
     it('ignores events for another event id', async () => {
@@ -354,10 +345,8 @@ describe('platform_browser/strategies/popup', () => {
           name: ''
         }
       });
-      await expect(promise).rejects.toThrow(
-        FirebaseError,
-        'auth/invalid-app-credential'
-      );
+      await expect(promise).rejects.toThrow('auth/invalid-app-credential');
+      await expect(promise).rejects.toBeInstanceOf(FirebaseError);
       expect(idpStubs._link).not.toHaveBeenCalled();
     });
 
@@ -395,18 +384,15 @@ describe('platform_browser/strategies/popup', () => {
       iframeEvent({
         type: AuthEventType.LINK_VIA_POPUP
       });
-      await expect(promise).rejects.toThrow(
-        FirebaseError,
-        'auth/popup-closed-by-user'
-      );
+      await expect(promise).rejects.toThrow('auth/popup-closed-by-user');
+      await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     });
 
     it('errors if webstorage support comes back negative', async () => {
       resolver = makeMockPopupRedirectResolver(eventManager, authPopup, false);
-      await expect(linkWithPopup(user, provider, resolver)).rejects.toThrow(
-        FirebaseError,
-        'auth/web-storage-unsupported'
-      );
+      const promise2 = linkWithPopup(user, provider, resolver);
+      await expect(promise2).rejects.toThrow('auth/web-storage-unsupported');
+      await expect(promise2).rejects.toBeInstanceOf(FirebaseError);
     });
 
     it('passes any errors from idp task', async () => {
@@ -419,10 +405,8 @@ describe('platform_browser/strategies/popup', () => {
         type: AuthEventType.LINK_VIA_POPUP
       });
 
-      await expect(promise).rejects.toThrow(
-        FirebaseError,
-        'auth/invalid-app-id'
-      );
+      await expect(promise).rejects.toThrow('auth/invalid-app-id');
+      await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     });
 
     it('cancels the task if called consecutively', async () => {
@@ -438,9 +422,9 @@ describe('platform_browser/strategies/popup', () => {
         type: AuthEventType.LINK_VIA_POPUP
       });
       await expect(firstPromise).rejects.toThrow(
-        FirebaseError,
         'auth/cancelled-popup-request'
       );
+      await expect(firstPromise).rejects.toBeInstanceOf(FirebaseError);
       expect(await secondPromise).toBe(cred);
     });
   });
@@ -487,10 +471,9 @@ describe('platform_browser/strategies/popup', () => {
         operationType: OperationType.REAUTHENTICATE
       });
       idpStubs._reauth.mockReturnValue(Promise.resolve(cred));
-      await expect(reauthenticateWithPopup(user, provider)).rejects.toThrow(
-        FirebaseError,
-        'auth/argument-error'
-      );
+      const promise2 = reauthenticateWithPopup(user, provider);
+      await expect(promise2).rejects.toThrow('auth/argument-error');
+      await expect(promise2).rejects.toBeInstanceOf(FirebaseError);
     });
 
     it('ignores events for another event id', async () => {
@@ -535,10 +518,8 @@ describe('platform_browser/strategies/popup', () => {
           name: ''
         }
       });
-      await expect(promise).rejects.toThrow(
-        FirebaseError,
-        'auth/invalid-app-credential'
-      );
+      await expect(promise).rejects.toThrow('auth/invalid-app-credential');
+      await expect(promise).rejects.toBeInstanceOf(FirebaseError);
       expect(idpStubs._reauth).not.toHaveBeenCalled();
     });
 
@@ -562,9 +543,9 @@ describe('platform_browser/strategies/popup', () => {
 
     it('errors if webstorage support comes back negative', async () => {
       resolver = makeMockPopupRedirectResolver(eventManager, authPopup, false);
-      await expect(
-        reauthenticateWithPopup(user, provider, resolver)
-      ).rejects.toThrow(FirebaseError, 'auth/web-storage-unsupported');
+      const promise2 = reauthenticateWithPopup(user, provider, resolver);
+      await expect(promise2).rejects.toThrow('auth/web-storage-unsupported');
+      await expect(promise2).rejects.toBeInstanceOf(FirebaseError);
     });
 
     it('does error if the poll timeout and event timeout trip', async () => {
@@ -583,10 +564,8 @@ describe('platform_browser/strategies/popup', () => {
       iframeEvent({
         type: AuthEventType.REAUTH_VIA_POPUP
       });
-      await expect(promise).rejects.toThrow(
-        FirebaseError,
-        'auth/popup-closed-by-user'
-      );
+      await expect(promise).rejects.toThrow('auth/popup-closed-by-user');
+      await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     });
 
     it('passes any errors from idp task', async () => {
@@ -599,10 +578,8 @@ describe('platform_browser/strategies/popup', () => {
         type: AuthEventType.REAUTH_VIA_POPUP
       });
 
-      await expect(promise).rejects.toThrow(
-        FirebaseError,
-        'auth/invalid-app-id'
-      );
+      await expect(promise).rejects.toThrow('auth/invalid-app-id');
+      await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     });
 
     it('cancels the task if called consecutively', async () => {
@@ -618,9 +595,9 @@ describe('platform_browser/strategies/popup', () => {
         type: AuthEventType.REAUTH_VIA_POPUP
       });
       await expect(firstPromise).rejects.toThrow(
-        FirebaseError,
         'auth/cancelled-popup-request'
       );
+      await expect(firstPromise).rejects.toBeInstanceOf(FirebaseError);
       expect(await secondPromise).toBe(cred);
     });
   });

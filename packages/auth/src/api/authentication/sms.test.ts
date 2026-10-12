@@ -90,10 +90,11 @@ describe('api/authentication/sendPhoneVerificationCode', () => {
       400
     );
 
-    await expect(sendPhoneVerificationCode(auth, request)).rejects.toThrow(
-      FirebaseError,
+    const promise = sendPhoneVerificationCode(auth, request);
+    await expect(promise).rejects.toThrow(
       'Firebase: The format of the phone number provided is incorrect. Please enter the phone number in a format that can be parsed into E.164 format. E.164 phone numbers are written in the format [+][country code][subscriber number including area code]. (auth/invalid-phone-number).'
     );
+    await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     expect(mock.calls[0].request).toEqual(request);
   });
 });
@@ -160,10 +161,11 @@ describe('api/authentication/signInWithPhoneNumber', () => {
       400
     );
 
-    await expect(signInWithPhoneNumber(auth, request)).rejects.toThrow(
-      FirebaseError,
+    const promise = signInWithPhoneNumber(auth, request);
+    await expect(promise).rejects.toThrow(
       'Firebase: The SMS verification code used to create the phone auth credential is invalid. Please resend the verification code sms and be sure to use the verification code provided by the user. (auth/invalid-verification-code).'
     );
+    await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     expect(mock.calls[0].request).toEqual(request);
   });
 });
@@ -231,10 +233,11 @@ describe('api/authentication/linkWithPhoneNumber', () => {
       400
     );
 
-    await expect(linkWithPhoneNumber(auth, request)).rejects.toThrow(
-      FirebaseError,
+    const promise = linkWithPhoneNumber(auth, request);
+    await expect(promise).rejects.toThrow(
       'Firebase: The SMS verification code used to create the phone auth credential is invalid. Please resend the verification code sms and be sure to use the verification code provided by the user. (auth/invalid-verification-code).'
     );
+    await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     expect(mock.calls[0].request).toEqual(request);
   });
 });
@@ -302,10 +305,11 @@ describe('api/authentication/verifyPhoneNumberForExisting', () => {
       400
     );
 
-    await expect(verifyPhoneNumberForExisting(auth, request)).rejects.toThrow(
-      FirebaseError,
+    const promise = verifyPhoneNumberForExisting(auth, request);
+    await expect(promise).rejects.toThrow(
       'Firebase: There is no user record corresponding to this identifier. The user may have been deleted. (auth/user-not-found).'
     );
+    await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     expect(mock.calls[0].request).toEqual({
       ...request,
       operation: 'REAUTH'

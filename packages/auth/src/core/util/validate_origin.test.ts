@@ -61,10 +61,9 @@ describe('core/util/validate_origin', () => {
   it('failure smoke test', async () => {
     currentUrl = 'https://google.com';
     authorizedDomains = ['youtube.com'];
-    await expect(_validateOrigin(auth)).rejects.toThrow(
-      FirebaseError,
-      'auth/unauthorized-domain'
-    );
+    const promise = _validateOrigin(auth);
+    await expect(promise).rejects.toThrow('auth/unauthorized-domain');
+    await expect(promise).rejects.toBeInstanceOf(FirebaseError);
   });
 
   it('works when one domain matches', async () => {
@@ -76,10 +75,9 @@ describe('core/util/validate_origin', () => {
   it('fails when all domains fail', async () => {
     currentUrl = 'https://google.com';
     authorizedDomains = ['youtube.com', 'firebase.com'];
-    await expect(_validateOrigin(auth)).rejects.toThrow(
-      FirebaseError,
-      'auth/unauthorized-domain'
-    );
+    const promise = _validateOrigin(auth);
+    await expect(promise).rejects.toThrow('auth/unauthorized-domain');
+    await expect(promise).rejects.toBeInstanceOf(FirebaseError);
   });
 
   it('works for chrome extensions', async () => {
@@ -97,10 +95,9 @@ describe('core/util/validate_origin', () => {
       'google.com',
       'chrome-extension://someOTHERreallylongcomplexstring'
     ];
-    await expect(_validateOrigin(auth)).rejects.toThrow(
-      FirebaseError,
-      'auth/unauthorized-domain'
-    );
+    const promise = _validateOrigin(auth);
+    await expect(promise).rejects.toThrow('auth/unauthorized-domain');
+    await expect(promise).rejects.toBeInstanceOf(FirebaseError);
   });
 
   it('works for subdomains', async () => {
@@ -124,9 +121,8 @@ describe('core/util/validate_origin', () => {
   it('fails with different IP addresses', async () => {
     currentUrl = 'http://192.168.0.100/a/b/c';
     authorizedDomains = ['192.168.0.1'];
-    await expect(_validateOrigin(auth)).rejects.toThrow(
-      FirebaseError,
-      'auth/unauthorized-domain'
-    );
+    const promise = _validateOrigin(auth);
+    await expect(promise).rejects.toThrow('auth/unauthorized-domain');
+    await expect(promise).rejects.toBeInstanceOf(FirebaseError);
   });
 });

@@ -90,7 +90,7 @@ describe.runIf(!getEmulatorUrl())(
 
       const user = userCred.user;
       expect(user.isAnonymous).toBe(false);
-      expect(user.uid).to.be.a('string');
+      expect(typeof user.uid).toBe('string');
       expect(user.phoneNumber).toBe(FICTIONAL_PHONE.phoneNumber);
     });
 

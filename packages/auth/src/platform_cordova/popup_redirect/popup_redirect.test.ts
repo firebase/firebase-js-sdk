@@ -161,9 +161,8 @@ describe('platform_cordova/popup_redirect/popup_redirect', () => {
         tripNoEventTimer();
         const { error, ...rest } = await promise;
 
-        expect(error)
-          .toBeInstanceOf(FirebaseError)
-          .with.property('code', 'auth/no-auth-event');
+        expect(error).toBeInstanceOf(FirebaseError);
+        expect(error).toHaveProperty('code', 'auth/no-auth-event');
         expect(rest).toEqual({
           type: AuthEventType.UNKNOWN,
           eventId: null,
@@ -188,9 +187,8 @@ describe('platform_cordova/popup_redirect/popup_redirect', () => {
         await universalLinksCb!({});
         const { error, ...rest } = await promise;
 
-        expect(error)
-          .toBeInstanceOf(FirebaseError)
-          .with.property('code', 'auth/no-auth-event');
+        expect(error).toBeInstanceOf(FirebaseError);
+        expect(error).toHaveProperty('code', 'auth/no-auth-event');
         expect(rest).toEqual({
           type: AuthEventType.UNKNOWN,
           eventId: null,
@@ -212,9 +210,8 @@ describe('platform_cordova/popup_redirect/popup_redirect', () => {
         await universalLinksCb!({ url: 'foo-bar' });
         const { error, ...rest } = await promise;
 
-        expect(error)
-          .toBeInstanceOf(FirebaseError)
-          .with.property('code', 'auth/no-auth-event');
+        expect(error).toBeInstanceOf(FirebaseError);
+        expect(error).toHaveProperty('code', 'auth/no-auth-event');
         expect(rest).toEqual({
           type: AuthEventType.UNKNOWN,
           eventId: null,
@@ -313,10 +310,10 @@ describe('platform_cordova/popup_redirect/popup_redirect', () => {
     it('throws an error', () => {
       expect(() =>
         resolver._openPopup(auth, provider, AuthEventType.LINK_VIA_POPUP)
-      ).toThrow(
-        FirebaseError,
-        'auth/operation-not-supported-in-this-environment'
-      );
+      ).toThrow(FirebaseError);
+      expect(() =>
+        resolver._openPopup(auth, provider, AuthEventType.LINK_VIA_POPUP)
+      ).toThrow('auth/operation-not-supported-in-this-environment');
     });
   });
 });

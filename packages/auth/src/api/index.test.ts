@@ -177,10 +177,8 @@ describe('api/_performApiRequest', () => {
         Endpoint.SIGN_UP,
         request
       );
-      await expect(promise).rejects.toThrow(
-        FirebaseError,
-        'auth/email-already-in-use'
-      );
+      await expect(promise).rejects.toThrow('auth/email-already-in-use');
+      await expect(promise).rejects.toBeInstanceOf(FirebaseError);
       expect(mock.calls[0].request).toEqual(request);
     });
 
@@ -234,10 +232,8 @@ describe('api/_performApiRequest', () => {
         Endpoint.SIGN_UP,
         request
       );
-      await expect(promise).rejects.toThrow(
-        FirebaseError,
-        'auth/invalid-phone-number'
-      );
+      await expect(promise).rejects.toThrow('auth/invalid-phone-number');
+      await expect(promise).rejects.toBeInstanceOf(FirebaseError);
       expect(mock.calls[0].request).toEqual(request);
     });
 
@@ -263,7 +259,8 @@ describe('api/_performApiRequest', () => {
         Endpoint.SIGN_UP,
         request
       );
-      await expect(promise).rejects.toThrow(FirebaseError, 'Text text text');
+      await expect(promise).rejects.toThrow('Text text text');
+      await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     });
 
     it('should handle unknown server errors', async () => {
@@ -288,10 +285,8 @@ describe('api/_performApiRequest', () => {
         Endpoint.SIGN_UP,
         request
       );
-      await expect(promise).rejects.toThrow(
-        FirebaseError,
-        'auth/awesome-error'
-      );
+      await expect(promise).rejects.toThrow('auth/awesome-error');
+      await expect(promise).rejects.toBeInstanceOf(FirebaseError);
       expect(mock.calls[0].request).toEqual(request);
     });
 
@@ -320,10 +315,8 @@ describe('api/_performApiRequest', () => {
           [ServerError.EXPIRED_OOB_CODE]: AuthErrorCode.ARGUMENT_ERROR
         }
       );
-      await expect(promise).rejects.toThrow(
-        FirebaseError,
-        'auth/argument-error'
-      );
+      await expect(promise).rejects.toThrow('auth/argument-error');
+      await expect(promise).rejects.toBeInstanceOf(FirebaseError);
       expect(mock.calls[0].request).toEqual(request);
     });
   });
@@ -583,11 +576,13 @@ describe('api/_performApiRequest', () => {
 
     it('does not attach the tenant ID at all if not specified', () => {
       auth.tenantId = null;
-      expect(_addTidIfNecessary<Record<string, string>>(auth, { foo: 'bar' }))
-        .toEqual({
-          foo: 'bar'
-        })
-        .and.not.have.property('tenantId');
+      const result = _addTidIfNecessary<Record<string, string>>(auth, {
+        foo: 'bar'
+      });
+      expect(result).toEqual({
+        foo: 'bar'
+      });
+      expect(result).not.toHaveProperty('tenantId');
     });
   });
 });

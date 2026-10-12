@@ -21,7 +21,7 @@ describe('platform_browser/messagechannel/promise', () => {
   describe('_allSettled', () => {
     it('should work with a single successful promise', async () => {
       const result = await _allSettled([Promise.resolve('foo')]);
-      expect(result).to.have.deep.members([
+      expect(result).toEqual([
         {
           fulfilled: true,
           value: 'foo'
@@ -31,7 +31,7 @@ describe('platform_browser/messagechannel/promise', () => {
 
     it('should work with a failed promise', async () => {
       const result = await _allSettled([Promise.reject('bar')]);
-      expect(result).to.have.deep.members([
+      expect(result).toEqual([
         {
           fulfilled: false,
           reason: 'bar'
@@ -44,7 +44,7 @@ describe('platform_browser/messagechannel/promise', () => {
         Promise.resolve('foo'),
         Promise.reject('bar')
       ]);
-      expect(result).to.have.deep.members([
+      expect(result).toEqual([
         {
           fulfilled: true,
           value: 'foo'

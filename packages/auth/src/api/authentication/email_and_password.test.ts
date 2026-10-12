@@ -98,10 +98,11 @@ describe('api/authentication/signInWithPassword', () => {
       400
     );
 
-    await expect(signInWithPassword(auth, request)).rejects.toThrow(
-      FirebaseError,
+    const promise = signInWithPassword(auth, request);
+    await expect(promise).rejects.toThrow(
       'Firebase: The password is invalid or the user does not have a password. (auth/wrong-password).'
     );
+    await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     expect(mock.calls[0].request).toEqual(request);
   });
 
@@ -123,10 +124,11 @@ describe('api/authentication/signInWithPassword', () => {
       400
     );
 
-    await expect(signInWithPassword(auth, request)).rejects.toThrow(
-      FirebaseError,
+    const promise = signInWithPassword(auth, request);
+    await expect(promise).rejects.toThrow(
       'Firebase: A non-empty password must be provided (auth/missing-password).'
     );
+    await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     expect(mock.calls[0].request).toEqual(request);
   });
 });
@@ -184,10 +186,11 @@ describe('api/authentication/sendEmailVerification', () => {
       400
     );
 
-    await expect(sendEmailVerification(auth, request)).rejects.toThrow(
-      FirebaseError,
+    const promise = sendEmailVerification(auth, request);
+    await expect(promise).rejects.toThrow(
       'Firebase: The email address is badly formatted. (auth/invalid-email).'
     );
+    await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     expect(mock.calls[0].request).toEqual(request);
   });
 });
@@ -248,10 +251,11 @@ describe('api/authentication/sendPasswordResetEmail', () => {
       400
     );
 
-    await expect(sendPasswordResetEmail(auth, request)).rejects.toThrow(
-      FirebaseError,
+    const promise = sendPasswordResetEmail(auth, request);
+    await expect(promise).rejects.toThrow(
       'Firebase: The email address is badly formatted. (auth/invalid-email).'
     );
+    await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     expect(mock.calls[0].request).toEqual(request);
   });
 });
@@ -312,10 +316,11 @@ describe('api/authentication/sendSignInLinkToEmail', () => {
       400
     );
 
-    await expect(sendSignInLinkToEmail(auth, request)).rejects.toThrow(
-      FirebaseError,
+    const promise = sendSignInLinkToEmail(auth, request);
+    await expect(promise).rejects.toThrow(
       'Firebase: The email address is badly formatted. (auth/invalid-email).'
     );
+    await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     expect(mock.calls[0].request).toEqual(request);
   });
 });
@@ -374,10 +379,11 @@ describe('api/authentication/verifyAndChangeEmail', () => {
       400
     );
 
-    await expect(verifyAndChangeEmail(auth, request)).rejects.toThrow(
-      FirebaseError,
+    const promise = verifyAndChangeEmail(auth, request);
+    await expect(promise).rejects.toThrow(
       'Firebase: The email address is badly formatted. (auth/invalid-email).'
     );
+    await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     expect(mock.calls[0].request).toEqual(request);
   });
 });

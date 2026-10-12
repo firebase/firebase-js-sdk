@@ -63,7 +63,13 @@ describe('core/mfa/mfa_info/MultiFactorInfo for Phone MFA', () => {
             auth,
             enrollmentInfo as PhoneMfaEnrollment
           )
-        ).toThrow(FirebaseError, 'auth/internal-error');
+        ).toThrow(FirebaseError);
+        expect(() =>
+          MultiFactorInfoImpl._fromServerResponse(
+            auth,
+            enrollmentInfo as PhoneMfaEnrollment
+          )
+        ).toThrow('auth/internal-error');
       });
     });
   });
@@ -108,7 +114,10 @@ describe('core/mfa/mfa_info/MultiFactorInfo for TOTP MFA', () => {
       it('should throw an error', () => {
         expect(() =>
           MultiFactorInfoImpl._fromServerResponse(auth, enrollmentInfo)
-        ).toThrow(FirebaseError, 'auth/internal-error');
+        ).toThrow(FirebaseError);
+        expect(() =>
+          MultiFactorInfoImpl._fromServerResponse(auth, enrollmentInfo)
+        ).toThrow('auth/internal-error');
       });
     });
   });

@@ -76,10 +76,11 @@ describe('api/authentication/createAuthUri', () => {
       400
     );
 
-    await expect(createAuthUri(auth, request)).rejects.toThrow(
-      FirebaseError,
+    const promise = createAuthUri(auth, request);
+    await expect(promise).rejects.toThrow(
       'Firebase: The specified provider ID is invalid. (auth/invalid-provider-id).'
     );
+    await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     expect(mock.calls[0].request).toEqual(request);
   });
 });

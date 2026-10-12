@@ -84,7 +84,9 @@ describe('Auth middleware', () => {
     middlewareQueue.pushCallback(secondCb);
 
     await middlewareQueue.runMiddleware(user);
-    expect(secondCb).to.have.been.calledAfter(firstCb);
+    expect(secondCb.mock.invocationCallOrder[0]).toBeGreaterThan(
+      firstCb.mock.invocationCallOrder[0]
+    );
   });
 
   it('subsequent middleware not run after rejection', async () => {

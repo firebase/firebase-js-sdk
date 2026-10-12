@@ -86,15 +86,14 @@ describe.runIf(!getEmulatorUrl())(
 
     it('sign in with invalid firebase hosting link throws exception', async () => {
       // Throws an exception while sening email link to user using invalid hosting link.
-      await expect(
-        sendSignInLinkToEmail(auth, email, {
-          ...BASE_SETTINGS,
-          linkDomain: INVALID_LINK_DOMAIN
-        })
-      ).rejects.toThrow(
-        FirebaseError,
+      const promise = sendSignInLinkToEmail(auth, email, {
+        ...BASE_SETTINGS,
+        linkDomain: INVALID_LINK_DOMAIN
+      });
+      await expect(promise).rejects.toThrow(
         new RegExp('.*' + INVALID_LINK_DOMAIN_ERROR + '.*')
       );
+      await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     });
   }
 );

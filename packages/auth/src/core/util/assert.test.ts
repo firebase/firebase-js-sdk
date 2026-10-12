@@ -32,14 +32,10 @@ describe('assertTypes', () => {
 
     it('works using a basic argument', () => {
       assertTypes(['foobar'], 'string');
-      expect(() => assertTypes([46], 'string')).toThrow(
-        FirebaseError,
-        'auth/argument-error'
-      );
-      expect(() => assertTypes([], 'string')).toThrow(
-        FirebaseError,
-        'auth/argument-error'
-      );
+      expect(() => assertTypes([46], 'string')).toThrow(FirebaseError);
+      expect(() => assertTypes([46], 'string')).toThrow('auth/argument-error');
+      expect(() => assertTypes([], 'string')).toThrow(FirebaseError);
+      expect(() => assertTypes([], 'string')).toThrow('auth/argument-error');
     });
 
     it('works using optional types with missing value', () => {
@@ -49,8 +45,8 @@ describe('assertTypes', () => {
 
     it('works using optional types with value set', () => {
       assertTypes(['foo'], opt('string'));
+      expect(() => assertTypes([46], opt('string'))).toThrow(FirebaseError);
       expect(() => assertTypes([46], opt('string'))).toThrow(
-        FirebaseError,
         'auth/argument-error'
       );
     });
@@ -71,18 +67,16 @@ describe('assertTypes', () => {
 
       test('foo');
       test('foo', 11);
-      expect(() => test('foo', 'bar')).toThrow(
-        FirebaseError,
-        'auth/argument-error'
-      );
+      expect(() => test('foo', 'bar')).toThrow(FirebaseError);
+      expect(() => test('foo', 'bar')).toThrow('auth/argument-error');
     });
 
     it('works with class types', () => {
       assertTypes([new Child()], Child);
       assertTypes([new Child()], Parent);
       assertTypes([new Parent()], opt(Parent));
+      expect(() => assertTypes([new Parent()], Child)).toThrow(FirebaseError);
       expect(() => assertTypes([new Parent()], Child)).toThrow(
-        FirebaseError,
         'auth/argument-error'
       );
     });
@@ -107,7 +101,18 @@ describe('assertTypes', () => {
             missing: opt('string')
           }
         )
-      ).toThrow(FirebaseError, 'auth/argument-error');
+      ).toThrow(FirebaseError);
+      expect(() =>
+        assertTypes(
+          [{ foo: 'bar', clazz: new Child(), test: null, missing: 46 }],
+          {
+            foo: 'string',
+            clazz: Parent,
+            test: 'null',
+            missing: opt('string')
+          }
+        )
+      ).toThrow('auth/argument-error');
     });
 
     it('works nested', () => {
@@ -133,7 +138,19 @@ describe('assertTypes', () => {
             }
           }
         )
-      ).toThrow(FirebaseError, 'auth/argument-error');
+      ).toThrow(FirebaseError);
+      expect(() =>
+        assertTypes(
+          [{ name: 'foo', metadata: { height: 11, extraInfo: null } }],
+          {
+            name: 'string',
+            metadata: {
+              height: opt('number'),
+              extraInfo: 'string'
+            }
+          }
+        )
+      ).toThrow('auth/argument-error');
     });
 
     it('works with triply nested', () => {
@@ -143,7 +160,12 @@ describe('assertTypes', () => {
         assertTypes([{ a: { b: { c: 'test' } } }], {
           a: { b: { c: 'number' } }
         })
-      ).toThrow(FirebaseError, 'auth/argument-error');
+      ).toThrow(FirebaseError);
+      expect(() =>
+        assertTypes([{ a: { b: { c: 'test' } } }], {
+          a: { b: { c: 'number' } }
+        })
+      ).toThrow('auth/argument-error');
     });
   });
 });
@@ -169,7 +191,11 @@ describe('_assertInstanceOf', () => {
     expect(() => {
       const foo = new WrongClass();
       _assertInstanceOf(auth, foo, makeClass());
-    }).toThrow(FirebaseError, 'auth/argument-error');
+    }).toThrow(FirebaseError);
+    expect(() => {
+      const foo = new WrongClass();
+      _assertInstanceOf(auth, foo, makeClass());
+    }).toThrow('auth/argument-error');
   });
 
   it('fails with the right class wrong instance with custom message', () => {
@@ -177,7 +203,12 @@ describe('_assertInstanceOf', () => {
       const a = makeClass();
       const b = makeClass();
       _assertInstanceOf(auth, new a(), b);
-    }).toThrow(FirebaseError, 'Type of Test does not match');
+    }).toThrow(FirebaseError);
+    expect(() => {
+      const a = makeClass();
+      const b = makeClass();
+      _assertInstanceOf(auth, new a(), b);
+    }).toThrow('Type of Test does not match');
   });
 
   it('passes if all is well', () => {

@@ -277,7 +277,7 @@ describe('platform_browser/persistence/indexed_db', () => {
           _TimeoutDuration.ACK
         );
 
-        expect(response).to.have.deep.members([
+        expect(response).toEqual([
           {
             fulfilled: true,
             value: [_EventType.KEY_CHANGED]
@@ -295,7 +295,7 @@ describe('platform_browser/persistence/indexed_db', () => {
           _TimeoutDuration.LONG_ACK
         );
 
-        expect(response).to.have.deep.members([
+        expect(response).toEqual([
           {
             fulfilled: true,
             value: {
@@ -316,7 +316,7 @@ describe('platform_browser/persistence/indexed_db', () => {
           _TimeoutDuration.LONG_ACK
         );
 
-        expect(response).to.have.deep.members([
+        expect(response).toEqual([
           {
             fulfilled: true,
             value: {

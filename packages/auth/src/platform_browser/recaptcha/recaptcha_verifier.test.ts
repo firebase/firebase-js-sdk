@@ -179,22 +179,24 @@ describe('platform_browser/recaptcha/recaptcha_verifier', () => {
 
     it('causes other methods of the verifier to throw if called subsequently', async () => {
       verifier.clear();
+      expect(() => verifier.clear()).toThrow(FirebaseError);
       expect(() => verifier.clear()).toThrow(
-        FirebaseError,
         'Firebase: An internal AuthError has occurred. (auth/internal-error).'
       );
+      expect(() => verifier._reset()).toThrow(FirebaseError);
       expect(() => verifier._reset()).toThrow(
-        FirebaseError,
         'Firebase: An internal AuthError has occurred. (auth/internal-error).'
       );
-      await expect(verifier.render()).rejects.toThrow(
-        FirebaseError,
+      const promise = verifier.render();
+      await expect(promise).rejects.toThrow(
         'Firebase: An internal AuthError has occurred. (auth/internal-error).'
       );
-      await expect(verifier.verify()).rejects.toThrow(
-        FirebaseError,
+      await expect(promise).rejects.toBeInstanceOf(FirebaseError);
+      const promise2 = verifier.verify();
+      await expect(promise2).rejects.toThrow(
         'Firebase: An internal AuthError has occurred. (auth/internal-error).'
       );
+      await expect(promise2).rejects.toBeInstanceOf(FirebaseError);
     });
   });
 });

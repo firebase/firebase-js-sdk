@@ -74,18 +74,18 @@ describe('platform_browser/recaptcha/recaptcha_loader', () => {
         const promise = loader.load(auth);
         triggerNetworkTimeout();
         await expect(promise).rejects.toThrow(
-          FirebaseError,
           'Firebase: A network AuthError (such as timeout, interrupted connection or unreachable host) has occurred. (auth/network-request-failed).'
         );
+        await expect(promise).rejects.toBeInstanceOf(FirebaseError);
       });
 
       it('rejects with an internal error if the loadJS call fails', async () => {
         const promise = loader.load(auth);
         jsLoader.reject();
         await expect(promise).rejects.toThrow(
-          FirebaseError,
           'Firebase: An internal AuthError has occurred. (auth/internal-error).'
         );
+        await expect(promise).rejects.toBeInstanceOf(FirebaseError);
       });
     });
 
@@ -106,9 +106,9 @@ describe('platform_browser/recaptcha/recaptcha_loader', () => {
         const promise = loader.load(auth);
         spoofJsLoad();
         await expect(promise).rejects.toThrow(
-          FirebaseError,
           'Firebase: An internal AuthError has occurred. (auth/internal-error).'
         );
+        await expect(promise).rejects.toBeInstanceOf(FirebaseError);
       });
 
       it('overwrites the render method', async () => {
@@ -137,7 +137,9 @@ describe('platform_browser/recaptcha/recaptcha_loader', () => {
 
       it('fails if the host language is invalid', async () => {
         expect(() => loader.load(auth, 'javascript:injection')).toThrow(
-          FirebaseError,
+          FirebaseError
+        );
+        expect(() => loader.load(auth, 'javascript:injection')).toThrow(
           'auth/argument-error'
         );
       });

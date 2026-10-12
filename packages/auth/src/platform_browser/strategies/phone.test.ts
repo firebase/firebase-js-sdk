@@ -200,10 +200,9 @@ describe('platform_browser/strategies/phone', () => {
       }
       mockRecaptchaEnterpriseEnablement(EnforcementState.OFF);
 
-      await expect(signInWithPhoneNumber(auth, '+15105550000')).rejects.toThrow(
-        FirebaseError,
-        'auth/argument-error'
-      );
+      const promise = signInWithPhoneNumber(auth, '+15105550000');
+      await expect(promise).rejects.toThrow('auth/argument-error');
+      await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     });
 
     describe('ConfirmationResult', () => {
@@ -274,12 +273,11 @@ describe('platform_browser/strategies/phone', () => {
         ]
       };
 
-      await expect(
-        linkWithPhoneNumber(user, 'number', v2Verifier)
-      ).rejects.toThrow(
-        FirebaseError,
+      const promise = linkWithPhoneNumber(user, 'number', v2Verifier);
+      await expect(promise).rejects.toThrow(
         'Firebase: User can only be linked to one identity for the given provider. (auth/provider-already-linked).'
       );
+      await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     });
 
     it('calls verify phone number when recaptcha enterprise is disabled', async () => {
@@ -469,10 +467,11 @@ describe('platform_browser/strategies/phone', () => {
           'number',
           v2Verifier
         );
-        await expect(result.confirm('code')).rejects.toThrow(
-          FirebaseError,
+        const promise = result.confirm('code');
+        await expect(promise).rejects.toThrow(
           'Firebase: The supplied credentials do not correspond to the previously signed in user. (auth/user-mismatch)'
         );
+        await expect(promise).rejects.toBeInstanceOf(FirebaseError);
       });
     });
   });
@@ -550,10 +549,9 @@ describe('platform_browser/strategies/phone', () => {
       }
       mockRecaptchaEnterpriseEnablement(EnforcementState.OFF);
 
-      await expect(_verifyPhoneNumber(auth, 'number')).rejects.toThrow(
-        FirebaseError,
-        'auth/argument-error'
-      );
+      const promise = _verifyPhoneNumber(auth, 'number');
+      await expect(promise).rejects.toThrow('auth/argument-error');
+      await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     });
 
     it('calls fallback to recaptcha v2 flow when receiving MISSING_RECAPTCHA_TOKEN error in recaptcha enterprise audit mode', async () => {
@@ -814,9 +812,9 @@ describe('platform_browser/strategies/phone', () => {
         return;
       }
       (v2Verifier.verify as MockInstance).mockReturnValue(Promise.resolve(123));
-      await expect(
-        _verifyPhoneNumber(auth, 'number', v2Verifier)
-      ).rejects.toThrow(FirebaseError, 'auth/argument-error');
+      const promise = _verifyPhoneNumber(auth, 'number', v2Verifier);
+      await expect(promise).rejects.toThrow('auth/argument-error');
+      await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     });
 
     it('throws if the v2Verifier type is not recaptcha', async () => {
@@ -829,9 +827,9 @@ describe('platform_browser/strategies/phone', () => {
         ]: ApplicationVerifierInternal[K];
       } = v2Verifier;
       mutVerifier.type = 'not-recaptcha-thats-for-sure';
-      await expect(
-        _verifyPhoneNumber(auth, 'number', mutVerifier)
-      ).rejects.toThrow(FirebaseError, 'auth/argument-error');
+      const promise = _verifyPhoneNumber(auth, 'number', mutVerifier);
+      await expect(promise).rejects.toThrow('auth/argument-error');
+      await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     });
 
     it('resets the verifier after successful verification', async () => {

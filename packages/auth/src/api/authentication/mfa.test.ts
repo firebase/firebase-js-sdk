@@ -85,10 +85,11 @@ describe('api/authentication/startSignInPhoneMfa', () => {
       400
     );
 
-    await expect(startSignInPhoneMfa(auth, request)).rejects.toThrow(
-      FirebaseError,
+    const promise = startSignInPhoneMfa(auth, request);
+    await expect(promise).rejects.toThrow(
       'Firebase: The supplied auth credential is incorrect, malformed or has expired. (auth/invalid-credential).'
     );
+    await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     expect(mock.calls[0].request).toEqual(request);
   });
 });
@@ -149,10 +150,11 @@ describe('api/authentication/finalizeSignInPhoneMfa', () => {
       400
     );
 
-    await expect(finalizeSignInPhoneMfa(auth, request)).rejects.toThrow(
-      FirebaseError,
+    const promise = finalizeSignInPhoneMfa(auth, request);
+    await expect(promise).rejects.toThrow(
       'Firebase: The SMS verification code used to create the phone auth credential is invalid. Please resend the verification code sms and be sure to use the verification code provided by the user. (auth/invalid-verification-code).'
     );
+    await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     expect(mock.calls[0].request).toEqual(request);
   });
 });

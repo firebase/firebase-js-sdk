@@ -73,42 +73,74 @@ describe('platform_cordova/popup_redirect/utils', () => {
 
     it('rejects if universal links is missing', () => {
       removeProp(win, 'universalLinks');
-      expect(() => _checkCordovaConfiguration(auth))
-        .to.throw(fbUtils.FirebaseError, 'auth/invalid-cordova-configuration')
-        .that.has.deep.property('customData', {
-          appName: 'test-app',
-          missingPlugin: 'cordova-universal-links-plugin-fix'
-        });
+      expect(() => _checkCordovaConfiguration(auth)).toThrow(
+        fbUtils.FirebaseError
+      );
+      expect(() => _checkCordovaConfiguration(auth)).toThrow(
+        expect.objectContaining({
+          message: expect.stringContaining(
+            'auth/invalid-cordova-configuration'
+          ),
+          customData: {
+            appName: 'test-app',
+            missingPlugin: 'cordova-universal-links-plugin-fix'
+          }
+        })
+      );
     });
 
     it('rejects if build info is missing', () => {
       removeProp(win.BuildInfo, 'packageName');
-      expect(() => _checkCordovaConfiguration(auth))
-        .to.throw(fbUtils.FirebaseError, 'auth/invalid-cordova-configuration')
-        .that.has.deep.property('customData', {
-          appName: 'test-app',
-          missingPlugin: 'cordova-plugin-buildInfo'
-        });
+      expect(() => _checkCordovaConfiguration(auth)).toThrow(
+        fbUtils.FirebaseError
+      );
+      expect(() => _checkCordovaConfiguration(auth)).toThrow(
+        expect.objectContaining({
+          message: expect.stringContaining(
+            'auth/invalid-cordova-configuration'
+          ),
+          customData: {
+            appName: 'test-app',
+            missingPlugin: 'cordova-plugin-buildInfo'
+          }
+        })
+      );
     });
 
     it('rejects if browsertab openUrl is missing', () => {
       removeProp(win.cordova.plugins.browsertab, 'openUrl');
-      expect(() => _checkCordovaConfiguration(auth))
-        .to.throw(fbUtils.FirebaseError, 'auth/invalid-cordova-configuration')
-        .that.has.deep.property('customData', {
-          appName: 'test-app',
-          missingPlugin: 'cordova-plugin-browsertab'
-        });
+      expect(() => _checkCordovaConfiguration(auth)).toThrow(
+        fbUtils.FirebaseError
+      );
+      expect(() => _checkCordovaConfiguration(auth)).toThrow(
+        expect.objectContaining({
+          message: expect.stringContaining(
+            'auth/invalid-cordova-configuration'
+          ),
+          customData: {
+            appName: 'test-app',
+            missingPlugin: 'cordova-plugin-browsertab'
+          }
+        })
+      );
     });
 
     it('rejects if InAppBrowser is missing', () => {
       removeProp(win.cordova.InAppBrowser, 'open');
-      expect(() => _checkCordovaConfiguration(auth))
-        .to.throw(fbUtils.FirebaseError, 'auth/invalid-cordova-configuration')
-        .that.has.deep.property('customData', {
-          appName: 'test-app',
-          missingPlugin: 'cordova-plugin-inappbrowser'
-        });
+      expect(() => _checkCordovaConfiguration(auth)).toThrow(
+        fbUtils.FirebaseError
+      );
+      expect(() => _checkCordovaConfiguration(auth)).toThrow(
+        expect.objectContaining({
+          message: expect.stringContaining(
+            'auth/invalid-cordova-configuration'
+          ),
+          customData: {
+            appName: 'test-app',
+            missingPlugin: 'cordova-plugin-inappbrowser'
+          }
+        })
+      );
     });
   });
 
@@ -155,10 +187,11 @@ describe('platform_cordova/popup_redirect/utils', () => {
 
     it('throws an error for any other user agent', async () => {
       setUA(DESKTOP_UA);
-      await expect(_generateHandlerUrl(auth, event, provider)).rejects.toThrow(
-        fbUtils.FirebaseError,
+      const promise = _generateHandlerUrl(auth, event, provider);
+      await expect(promise).rejects.toThrow(
         'auth/operation-not-supported-in-this-environment'
       );
+      await expect(promise).rejects.toBeInstanceOf(fbUtils.FirebaseError);
     });
 
     it('does not attach a display name if none is present', async () => {
@@ -269,9 +302,9 @@ describe('platform_cordova/popup_redirect/utils', () => {
         document.dispatchEvent(new CustomEvent('resume'));
         tripCancelTimer();
         await expect(promise).rejects.toThrow(
-          FirebaseError,
           'auth/redirect-cancelled-by-user'
         );
+        await expect(promise).rejects.toBeInstanceOf(FirebaseError);
       });
 
       it('rejects when timer trips after visibility change', async () => {
@@ -281,9 +314,9 @@ describe('platform_cordova/popup_redirect/utils', () => {
         document.dispatchEvent(new CustomEvent('visibilitychange'));
         tripCancelTimer();
         await expect(promise).rejects.toThrow(
-          FirebaseError,
           'auth/redirect-cancelled-by-user'
         );
+        await expect(promise).rejects.toBeInstanceOf(FirebaseError);
       });
 
       it('only sets reject timeout once', async () => {
@@ -295,9 +328,9 @@ describe('platform_cordova/popup_redirect/utils', () => {
         document.dispatchEvent(new CustomEvent('resume'));
         tripCancelTimer();
         await expect(promise).rejects.toThrow(
-          FirebaseError,
           'auth/redirect-cancelled-by-user'
         );
+        await expect(promise).rejects.toBeInstanceOf(FirebaseError);
         expect(win.setTimeout).toHaveBeenCalledTimes(1);
       });
 
@@ -309,9 +342,9 @@ describe('platform_cordova/popup_redirect/utils', () => {
         document.dispatchEvent(new CustomEvent('resume'));
         tripCancelTimer();
         await expect(promise).rejects.toThrow(
-          FirebaseError,
           'auth/redirect-cancelled-by-user'
         );
+        await expect(promise).rejects.toBeInstanceOf(FirebaseError);
 
         expect(document.removeEventListener).toHaveBeenCalledWith(
           'resume',

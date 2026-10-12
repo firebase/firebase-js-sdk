@@ -128,7 +128,9 @@ describe('platform_browser/recaptcha/recaptcha_mock', () => {
       it('errors if a bad container is passed in', () => {
         vi.spyOn(document, 'getElementById').mockReturnValue(null);
         expect(() => new MockWidget('foo', 'app-name', {})).toThrow(
-          FirebaseError,
+          FirebaseError
+        );
+        expect(() => new MockWidget('foo', 'app-name', {})).toThrow(
           'Firebase: Error (auth/argument-error).'
         );
       });

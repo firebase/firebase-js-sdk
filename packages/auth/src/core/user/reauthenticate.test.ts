@@ -58,10 +58,11 @@ describe('core/user/reauthenticate', () => {
       } as unknown as IdTokenResponse)
     );
 
-    await expect(_reauthenticate(user, credential)).rejects.toThrow(
-      FirebaseError,
+    const promise = _reauthenticate(user, credential);
+    await expect(promise).rejects.toThrow(
       'Firebase: An internal AuthError has occurred. (auth/internal-error).'
     );
+    await expect(promise).rejects.toBeInstanceOf(FirebaseError);
   });
 
   it('should error if the token cannot be parsed', async () => {
@@ -72,10 +73,11 @@ describe('core/user/reauthenticate', () => {
       })
     );
 
-    await expect(_reauthenticate(user, credential)).rejects.toThrow(
-      FirebaseError,
+    const promise = _reauthenticate(user, credential);
+    await expect(promise).rejects.toThrow(
       'Firebase: An internal AuthError has occurred. (auth/internal-error).'
     );
+    await expect(promise).rejects.toBeInstanceOf(FirebaseError);
   });
 
   it('should throw a user mismatch error if uid is different', async () => {
@@ -86,10 +88,11 @@ describe('core/user/reauthenticate', () => {
       })
     );
 
-    await expect(_reauthenticate(user, credential)).rejects.toThrow(
-      FirebaseError,
+    const promise = _reauthenticate(user, credential);
+    await expect(promise).rejects.toThrow(
       'Firebase: The supplied credentials do not correspond to the previously signed in user. (auth/user-mismatch).'
     );
+    await expect(promise).rejects.toBeInstanceOf(FirebaseError);
   });
 
   it('should switch a user deleted error to a mismatch error', async () => {
@@ -101,10 +104,11 @@ describe('core/user/reauthenticate', () => {
       )
     );
 
-    await expect(_reauthenticate(user, credential)).rejects.toThrow(
-      FirebaseError,
+    const promise = _reauthenticate(user, credential);
+    await expect(promise).rejects.toThrow(
       'Firebase: The supplied credentials do not correspond to the previously signed in user. (auth/user-mismatch).'
     );
+    await expect(promise).rejects.toBeInstanceOf(FirebaseError);
   });
 
   it('should not switch other errors to a mismatch error', async () => {
@@ -116,10 +120,9 @@ describe('core/user/reauthenticate', () => {
       )
     );
 
-    await expect(_reauthenticate(user, credential)).rejects.toThrow(
-      FirebaseError,
-      'auth/network-request-failed'
-    );
+    const promise = _reauthenticate(user, credential);
+    await expect(promise).rejects.toThrow('auth/network-request-failed');
+    await expect(promise).rejects.toBeInstanceOf(FirebaseError);
   });
 
   it('should wrap MFA errors with appropriate context', async () => {

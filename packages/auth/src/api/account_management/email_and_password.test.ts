@@ -81,10 +81,11 @@ describe('api/account_management/resetPassword', () => {
       400
     );
 
-    await expect(resetPassword(auth, request)).rejects.toThrow(
-      FirebaseError,
+    const promise = resetPassword(auth, request);
+    await expect(promise).rejects.toThrow(
       'Firebase: We have blocked all requests from this device due to unusual activity. Try again later. (auth/too-many-requests).'
     );
+    await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     expect(mock.calls[0].request).toEqual(request);
   });
 });
@@ -140,10 +141,11 @@ describe('api/account_management/linkEmailPassword', () => {
       400
     );
 
-    await expect(linkEmailPassword(auth, request)).rejects.toThrow(
-      FirebaseError,
+    const promise = linkEmailPassword(auth, request);
+    await expect(promise).rejects.toThrow(
       'Firebase: The email address is badly formatted. (auth/invalid-email).'
     );
+    await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     expect(mock.calls[0].request).toEqual(request);
   });
 });
@@ -199,10 +201,11 @@ describe('api/account_management/updateEmailPassword', () => {
       400
     );
 
-    await expect(updateEmailPassword(auth, request)).rejects.toThrow(
-      FirebaseError,
+    const promise = updateEmailPassword(auth, request);
+    await expect(promise).rejects.toThrow(
       'Firebase: The email address is badly formatted. (auth/invalid-email).'
     );
+    await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     expect(mock.calls[0].request).toEqual(request);
   });
 });
@@ -257,10 +260,11 @@ describe('api/account_management/applyActionCode', () => {
       400
     );
 
-    await expect(applyActionCode(auth, request)).rejects.toThrow(
-      FirebaseError,
+    const promise = applyActionCode(auth, request);
+    await expect(promise).rejects.toThrow(
       'Firebase: The action code is invalid. This can happen if the code is malformed, expired, or has already been used. (auth/invalid-action-code).'
     );
+    await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     expect(mock.calls[0].request).toEqual(request);
   });
 });

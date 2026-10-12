@@ -42,7 +42,17 @@ describe('core/strategies/action_code_settings', () => {
         url: '',
         dynamicLinkDomain: TEST_FDL_DOMAIN
       })
-    ).toThrow(FirebaseError, '(auth/invalid-continue-uri)');
+    ).toThrow(FirebaseError);
+    expect(() =>
+      _setActionCodeSettingsOnRequest(auth, request, {
+        handleCodeInApp: true,
+        iOS: {
+          bundleId: TEST_BUNDLE_ID
+        },
+        url: '',
+        dynamicLinkDomain: TEST_FDL_DOMAIN
+      })
+    ).toThrow('(auth/invalid-continue-uri)');
   });
 
   it('should allow undefined dynamic link URL', () => {
@@ -67,7 +77,17 @@ describe('core/strategies/action_code_settings', () => {
         url: TEST_URL,
         dynamicLinkDomain: ''
       })
-    ).toThrow(FirebaseError, '(auth/invalid-dynamic-link-domain)');
+    ).toThrow(FirebaseError);
+    expect(() =>
+      _setActionCodeSettingsOnRequest(auth, request, {
+        handleCodeInApp: true,
+        iOS: {
+          bundleId: TEST_BUNDLE_ID
+        },
+        url: TEST_URL,
+        dynamicLinkDomain: ''
+      })
+    ).toThrow('(auth/invalid-dynamic-link-domain)');
   });
 
   it('should require a non empty Hosting link URL', () => {
@@ -80,7 +100,17 @@ describe('core/strategies/action_code_settings', () => {
         url: TEST_URL,
         linkDomain: ''
       })
-    ).toThrow(FirebaseError, '(auth/invalid-hosting-link-domain)');
+    ).toThrow(FirebaseError);
+    expect(() =>
+      _setActionCodeSettingsOnRequest(auth, request, {
+        handleCodeInApp: true,
+        iOS: {
+          bundleId: TEST_BUNDLE_ID
+        },
+        url: TEST_URL,
+        linkDomain: ''
+      })
+    ).toThrow('(auth/invalid-hosting-link-domain)');
   });
 
   it('should require a non-empty bundle ID', () => {
@@ -93,7 +123,17 @@ describe('core/strategies/action_code_settings', () => {
         url: TEST_URL,
         dynamicLinkDomain: TEST_FDL_DOMAIN
       })
-    ).toThrow(FirebaseError, '(auth/missing-ios-bundle-id)');
+    ).toThrow(FirebaseError);
+    expect(() =>
+      _setActionCodeSettingsOnRequest(auth, request, {
+        handleCodeInApp: true,
+        iOS: {
+          bundleId: ''
+        },
+        url: TEST_URL,
+        dynamicLinkDomain: TEST_FDL_DOMAIN
+      })
+    ).toThrow('(auth/missing-ios-bundle-id)');
   });
 
   it('should require a non-empty package name', () => {
@@ -106,6 +146,16 @@ describe('core/strategies/action_code_settings', () => {
         url: TEST_URL,
         dynamicLinkDomain: TEST_FDL_DOMAIN
       })
-    ).toThrow(FirebaseError, '(auth/missing-android-pkg-name)');
+    ).toThrow(FirebaseError);
+    expect(() =>
+      _setActionCodeSettingsOnRequest(auth, request, {
+        handleCodeInApp: true,
+        android: {
+          packageName: ''
+        },
+        url: TEST_URL,
+        dynamicLinkDomain: TEST_FDL_DOMAIN
+      })
+    ).toThrow('(auth/missing-android-pkg-name)');
   });
 });

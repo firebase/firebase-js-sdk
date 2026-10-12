@@ -63,9 +63,10 @@ describe('api/project_config/getProjectConfig', () => {
       400
     );
 
-    await expect(_getProjectConfig(auth)).rejects.toThrow(
-      FirebaseError,
+    const promise = _getProjectConfig(auth);
+    await expect(promise).rejects.toThrow(
       'Firebase: The specified provider ID is invalid. (auth/invalid-provider-id).'
     );
+    await expect(promise).rejects.toBeInstanceOf(FirebaseError);
   });
 });

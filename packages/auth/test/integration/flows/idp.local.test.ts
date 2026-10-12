@@ -137,18 +137,17 @@ describe('Integration test: headless IdP', () => {
     // Set the password and check provider data
     await updatePassword(user, 'password');
     expect(user.providerData.length).toBe(2);
-    expect(user.providerData.map(p => p.providerId)).to.contain.members([
-      'google.com',
-      'password'
-    ]);
+    expect(user.providerData.map(p => p.providerId)).toEqual(
+      expect.arrayContaining(['google.com', 'password'])
+    );
 
     // Sign out and sign in again
     await auth.signOut();
     await signInWithEmailAndPassword(auth, email, 'password');
     expect(auth.currentUser!.providerData.length).toBe(2);
-    expect(
-      auth.currentUser!.providerData.map(p => p.providerId)
-    ).to.contain.members(['google.com', 'password']);
+    expect(auth.currentUser!.providerData.map(p => p.providerId)).toEqual(
+      expect.arrayContaining(['google.com', 'password'])
+    );
 
     // Update email, then sign out/sign in again
     const newEmail = randomEmail();
@@ -156,9 +155,9 @@ describe('Integration test: headless IdP', () => {
     await auth.signOut();
     await signInWithEmailAndPassword(auth, newEmail, 'password');
     expect(auth.currentUser!.providerData.length).toBe(2);
-    expect(
-      auth.currentUser!.providerData.map(p => p.providerId)
-    ).to.contain.members(['google.com', 'password']);
+    expect(auth.currentUser!.providerData.map(p => p.providerId)).toEqual(
+      expect.arrayContaining(['google.com', 'password'])
+    );
   });
 
   it('can link with multiple idps', async () => {
@@ -223,9 +222,9 @@ describe('Integration test: headless IdP', () => {
     expect(auth.currentUser!.providerData[0].providerId).toBe('google.com');
 
     // Signing in with password no longer works
-    await expect(
-      signInWithEmailAndPassword(auth, email, 'password')
-    ).rejects.toThrow(FirebaseError, 'auth/wrong-password');
+    const promise = signInWithEmailAndPassword(auth, email, 'password');
+    await expect(promise).rejects.toThrow('auth/wrong-password');
+    await expect(promise).rejects.toBeInstanceOf(FirebaseError);
   });
 
   it('IdP accounts automatically link with verified emails', async () => {
@@ -262,10 +261,9 @@ describe('Integration test: headless IdP', () => {
     );
     expect(githubUser.uid).toBe(initialUser.uid);
     expect(githubUser.providerData.length).toBe(2);
-    expect(githubUser.providerData.map(p => p.providerId)).to.have.members([
-      'google.com',
-      'github.com'
-    ]);
+    expect(githubUser.providerData.map(p => p.providerId)).toEqual(
+      expect.arrayContaining(['google.com', 'github.com'])
+    );
 
     await auth.signOut();
 
@@ -276,10 +274,9 @@ describe('Integration test: headless IdP', () => {
     );
     expect(googleUser.uid).toBe(initialUser.uid);
     expect(googleUser.providerData.length).toBe(2);
-    expect(googleUser.providerData.map(p => p.providerId)).to.have.members([
-      'google.com',
-      'github.com'
-    ]);
+    expect(googleUser.providerData.map(p => p.providerId)).toEqual(
+      expect.arrayContaining(['google.com', 'github.com'])
+    );
   });
 
   generateMiddlewareTests(

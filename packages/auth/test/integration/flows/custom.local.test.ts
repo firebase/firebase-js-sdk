@@ -95,10 +95,9 @@ describe('Integration test: custom auth', () => {
     expect(user.displayName).toBe('Display Name');
 
     await user.delete();
-    await expect(reload(user)).rejects.toThrow(
-      FirebaseError,
-      'auth/user-token-expired'
-    );
+    const promise = reload(user);
+    await expect(promise).rejects.toThrow('auth/user-token-expired');
+    await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     expect(auth.currentUser).toBeNull();
 
     ({ user } = await signInWithCustomToken(auth, customToken));
@@ -215,10 +214,9 @@ describe('Integration test: custom auth', () => {
         customToken
       );
       const cred = EmailAuthProvider.credential(email, 'password');
-      await expect(linkWithCredential(customUser, cred)).rejects.toThrow(
-        FirebaseError,
-        'auth/email-already-in-use'
-      );
+      const promise = linkWithCredential(customUser, cred);
+      await expect(promise).rejects.toThrow('auth/email-already-in-use');
+      await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     });
   });
 

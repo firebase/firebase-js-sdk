@@ -107,33 +107,27 @@ describe('platform_browser/iframe/gapi', () => {
 
   it('rejects with a network error if load fails', async () => {
     library = {} as typeof gapi;
-    await expect(_loadGapi(auth)).rejects.toThrow(
-      FirebaseError,
-      'auth/network-request-failed'
-    );
+    const promise2 = _loadGapi(auth);
+    await expect(promise2).rejects.toThrow('auth/network-request-failed');
+    await expect(promise2).rejects.toBeInstanceOf(FirebaseError);
   });
 
   it('rejects with a network error if ontimeout called', async () => {
     library = makeGapi(undefined, /* timesout */ true);
-    await expect(_loadGapi(auth)).rejects.toThrow(
-      FirebaseError,
-      'auth/network-request-failed'
-    );
+    const promise2 = _loadGapi(auth);
+    await expect(promise2).rejects.toThrow('auth/network-request-failed');
+    await expect(promise2).rejects.toBeInstanceOf(FirebaseError);
   });
 
   it('resets the load promise if the load errors', async () => {
     library = {} as typeof gapi;
     const firstAttempt = _loadGapi(auth);
-    await expect(firstAttempt).rejects.toThrow(
-      FirebaseError,
-      'auth/network-request-failed'
-    );
+    await expect(firstAttempt).rejects.toThrow('auth/network-request-failed');
+    await expect(firstAttempt).rejects.toBeInstanceOf(FirebaseError);
     const secondAttempt = _loadGapi(auth);
     expect(secondAttempt).not.toBe(firstAttempt);
-    await expect(secondAttempt).rejects.toThrow(
-      FirebaseError,
-      'auth/network-request-failed'
-    );
+    await expect(secondAttempt).rejects.toThrow('auth/network-request-failed');
+    await expect(secondAttempt).rejects.toBeInstanceOf(FirebaseError);
   });
 
   it('rejects if gapi itself does not load', async () => {

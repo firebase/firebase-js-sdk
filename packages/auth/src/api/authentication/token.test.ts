@@ -145,10 +145,11 @@ describe('requestStsToken', () => {
       400
     );
 
-    await expect(requestStsToken(auth, 'old-token')).rejects.toThrow(
-      FirebaseError,
+    const promise = requestStsToken(auth, 'old-token');
+    await expect(promise).rejects.toThrow(
       "Firebase: The user's credential is no longer valid. The user must sign in again. (auth/user-token-expired)"
     );
+    await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     const request = querystringDecode(`?${mock.calls[0].request}`);
     expect(request).toEqual({
       'grant_type': 'refresh_token',
@@ -212,10 +213,11 @@ describe('api/authentication/revokeToken', () => {
       400
     );
 
-    await expect(revokeToken(auth, request)).rejects.toThrow(
-      FirebaseError,
+    const promise = revokeToken(auth, request);
+    await expect(promise).rejects.toThrow(
       'Firebase: The supplied auth credential is incorrect, malformed or has expired. (auth/invalid-credential).'
     );
+    await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     expect(mock.calls[0].request).toEqual(request);
   });
 });

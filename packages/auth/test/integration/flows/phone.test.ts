@@ -110,7 +110,7 @@ describe('Integration test: phone auth', () => {
 
     const user = userCred.user;
     expect(user.isAnonymous).toBe(false);
-    expect(user.uid).to.be.a('string');
+    expect(typeof user.uid).toBe('string');
     expect(user.phoneNumber).toBe(PHONE_A.phoneNumber);
   });
 
@@ -252,10 +252,9 @@ describe('Integration test: phone auth', () => {
         PHONE_B.phoneNumber,
         verifier
       );
-      await expect(cr.confirm(await code(cr, PHONE_B.code))).rejects.toThrow(
-        FirebaseError,
-        'auth/user-mismatch'
-      );
+      const promise = cr.confirm(await code(cr, PHONE_B.code));
+      await expect(promise).rejects.toThrow('auth/user-mismatch');
+      await expect(promise).rejects.toBeInstanceOf(FirebaseError);
 
       // We need to manually delete PHONE_B number since a failed
       // reauthenticateWithPhoneNumber does not trigger a state change

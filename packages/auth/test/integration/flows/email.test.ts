@@ -62,7 +62,7 @@ describe('Integration test: email/password auth', () => {
 
     const user = userCred.user;
     expect(user.isAnonymous).toBe(false);
-    expect(user.uid).to.be.a('string');
+    expect(typeof user.uid).toBe('string');
     expect(user.email).toBe(email);
     expect(user.emailVerified).toBe(false);
     expect(user.providerData.length).toBe(1);
@@ -76,9 +76,9 @@ describe('Integration test: email/password auth', () => {
 
   it('errors when createUser called twice', async () => {
     await createUserWithEmailAndPassword(auth, email, password);
-    await expect(
-      createUserWithEmailAndPassword(auth, email, password)
-    ).rejects.toThrow(FirebaseError, 'auth/email-already-in-use');
+    const promise = createUserWithEmailAndPassword(auth, email, password);
+    await expect(promise).rejects.toThrow('auth/email-already-in-use');
+    await expect(promise).rejects.toBeInstanceOf(FirebaseError);
   });
 
   describe('with existing user', () => {
@@ -136,15 +136,14 @@ describe('Integration test: email/password auth', () => {
       const { user } = await signInWithEmailAndPassword(auth, email, password);
       await user.delete();
 
-      await expect(reload(user)).rejects.toThrow(
-        FirebaseError,
-        'auth/user-token-expired'
-      );
+      const promise = reload(user);
+      await expect(promise).rejects.toThrow('auth/user-token-expired');
+      await expect(promise).rejects.toBeInstanceOf(FirebaseError);
 
       expect(auth.currentUser).toBeNull();
-      await expect(
-        signInWithEmailAndPassword(auth, email, password)
-      ).rejects.toThrow(FirebaseError, 'auth/user-not-found');
+      const promise2 = signInWithEmailAndPassword(auth, email, password);
+      await expect(promise2).rejects.toThrow('auth/user-not-found');
+      await expect(promise2).rejects.toBeInstanceOf(FirebaseError);
     });
 
     it('sign in can be called twice successively', async () => {

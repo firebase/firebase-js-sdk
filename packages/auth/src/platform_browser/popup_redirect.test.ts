@@ -171,10 +171,9 @@ describe('platform_browser/popup_redirect', () => {
       delete (auth.config as Partial<Config>).apiKey;
       await resolver._initialize(auth);
 
-      await expect(resolver._openPopup(auth, provider, event)).rejects.toThrow(
-        FirebaseError,
-        'auth/invalid-api-key'
-      );
+      const promise = resolver._openPopup(auth, provider, event);
+      await expect(promise).rejects.toThrow('auth/invalid-api-key');
+      await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     });
   });
 
@@ -284,26 +283,26 @@ describe('platform_browser/popup_redirect', () => {
     it('throws an error if authDomain is unspecified', async () => {
       delete auth.config.authDomain;
 
-      await expect(
-        resolver._openRedirect(auth, provider, event)
-      ).rejects.toThrow(FirebaseError, 'auth/auth-domain-config-required');
+      const promise = resolver._openRedirect(auth, provider, event);
+      await expect(promise).rejects.toThrow('auth/auth-domain-config-required');
+      await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     });
 
     it('throws an error if apiKey is unspecified', async () => {
       delete (auth.config as Partial<Config>).apiKey;
 
-      await expect(
-        resolver._openRedirect(auth, provider, event)
-      ).rejects.toThrow(FirebaseError, 'auth/invalid-api-key');
+      const promise = resolver._openRedirect(auth, provider, event);
+      await expect(promise).rejects.toThrow('auth/invalid-api-key');
+      await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     });
 
     it('rejects immediately if origin validation fails', async () => {
       (validateOrigin._validateOrigin as MockInstance).mockReturnValue(
         Promise.reject(new Error('invalid-origin'))
       );
-      await expect(
-        resolver._openRedirect(auth, provider, event)
-      ).rejects.toThrow(Error, 'invalid-origin');
+      const promise = resolver._openRedirect(auth, provider, event);
+      await expect(promise).rejects.toThrow('invalid-origin');
+      await expect(promise).rejects.toBeInstanceOf(Error);
     });
   });
 
@@ -321,10 +320,9 @@ describe('platform_browser/popup_redirect', () => {
         Promise.reject(new Error('invalid-origin'))
       );
 
-      await expect(resolver._originValidation(auth)).rejects.toThrow(
-        Error,
-        'invalid-origin'
-      );
+      const promise2 = resolver._originValidation(auth);
+      await expect(promise2).rejects.toThrow('invalid-origin');
+      await expect(promise2).rejects.toBeInstanceOf(Error);
     });
   });
 
@@ -384,14 +382,22 @@ describe('platform_browser/popup_redirect', () => {
           type: 'authEvent',
           authEvent: null as unknown as AuthEvent
         })
-      ).toThrow(FirebaseError, 'auth/invalid-auth-event');
+      ).toThrow(FirebaseError);
+      expect(() =>
+        onIframeMessage({
+          type: 'authEvent',
+          authEvent: null as unknown as AuthEvent
+        })
+      ).toThrow('auth/invalid-auth-event');
     });
 
     it('errors with invalid event if everything is null', async () => {
       const manager = (await resolver._initialize(auth)) as AuthEventManager;
       vi.spyOn(manager, 'onEvent').mockReturnValue(true);
       expect(() => onIframeMessage(null as unknown as GapiAuthEvent)).toThrow(
-        FirebaseError,
+        FirebaseError
+      );
+      expect(() => onIframeMessage(null as unknown as GapiAuthEvent)).toThrow(
         'auth/invalid-auth-event'
       );
     });
@@ -465,7 +471,10 @@ describe('platform_browser/popup_redirect', () => {
       setIframeResponse({});
       expect(() =>
         resolver._isIframeWebStorageSupported(auth, () => {})
-      ).toThrow(FirebaseError, 'auth/internal-error');
+      ).toThrow(FirebaseError);
+      expect(() =>
+        resolver._isIframeWebStorageSupported(auth, () => {})
+      ).toThrow('auth/internal-error');
     });
   });
 });

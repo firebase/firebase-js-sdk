@@ -51,10 +51,11 @@ describe('core/user/link_unlink', () => {
         ]
       });
 
-      await expect(unlink(user, ProviderId.PHONE)).rejects.toThrow(
-        FirebaseError,
+      const promise = unlink(user, ProviderId.PHONE);
+      await expect(promise).rejects.toThrow(
         'Firebase: User was not linked to an account with the given provider. (auth/no-such-provider).'
       );
+      await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     });
 
     describe('with properly linked account', () => {
@@ -192,12 +193,11 @@ describe('core/user/link_unlink', () => {
         ]
       };
 
-      await expect(
-        _assertLinkedStatus(false, user, ProviderId.GOOGLE)
-      ).rejects.toThrow(
-        FirebaseError,
+      const promise = _assertLinkedStatus(false, user, ProviderId.GOOGLE);
+      await expect(promise).rejects.toThrow(
         'Firebase: User can only be linked to one identity for the given provider. (auth/provider-already-linked).'
       );
+      await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     });
 
     it('should not error if provider is not linked', async () => {
@@ -207,12 +207,11 @@ describe('core/user/link_unlink', () => {
     });
 
     it('should error if provider is not linked but it was expected to be', async () => {
-      await expect(
-        _assertLinkedStatus(true, user, ProviderId.GOOGLE)
-      ).rejects.toThrow(
-        FirebaseError,
+      const promise = _assertLinkedStatus(true, user, ProviderId.GOOGLE);
+      await expect(promise).rejects.toThrow(
         'Firebase: User was not linked to an account with the given provider. (auth/no-such-provider).'
       );
+      await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     });
 
     it('should not error if provider is linked and that is expected', async () => {

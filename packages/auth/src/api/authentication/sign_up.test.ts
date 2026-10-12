@@ -87,10 +87,11 @@ describe('api/authentication/signUp', () => {
       400
     );
 
-    await expect(signUp(auth, request)).rejects.toThrow(
-      FirebaseError,
+    const promise = signUp(auth, request);
+    await expect(promise).rejects.toThrow(
       'Firebase: The email address is already in use by another account. (auth/email-already-in-use).'
     );
+    await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     expect(mock.calls[0].request).toEqual(request);
   });
 });

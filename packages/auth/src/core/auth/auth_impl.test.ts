@@ -110,10 +110,9 @@ describe('core/auth/auth_impl', () => {
       const auth2 = await testAuth();
       Object.assign(auth2.config, { apiKey: 'not-the-right-auth' });
       const user = testUser(auth2, 'uid');
-      await expect(auth.updateCurrentUser(user)).rejects.toThrow(
-        FirebaseError,
-        'auth/invalid-user-token'
-      );
+      const promise = auth.updateCurrentUser(user);
+      await expect(promise).rejects.toThrow('auth/invalid-user-token');
+      await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     });
 
     it('orders async operations correctly', async () => {
@@ -146,10 +145,9 @@ describe('core/auth/auth_impl', () => {
     it('should throw an error if the user is from a different tenant', async () => {
       const user = testUser(auth, 'uid');
       user.tenantId = 'other-tenant-id';
-      await expect(auth._updateCurrentUser(user)).rejects.toThrow(
-        FirebaseError,
-        '(auth/tenant-id-mismatch)'
-      );
+      const promise = auth._updateCurrentUser(user);
+      await expect(promise).rejects.toThrow('(auth/tenant-id-mismatch)');
+      await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     });
 
     it('wraps persistence setCurrentUser failure into FirebaseError (auth/internal-error)', async () => {
@@ -1177,10 +1175,9 @@ describe('core/auth/auth_impl', () => {
       const auth2 = await testAuth();
       Object.assign(auth2.config, { apiKey: 'not-the-right-auth' });
       const user = testUser(auth2, 'uid');
-      await expect(auth.updateCurrentUser(user)).rejects.toThrow(
-        FirebaseError,
-        'auth/invalid-user-token'
-      );
+      const promise2 = auth.updateCurrentUser(user);
+      await expect(promise2).rejects.toThrow('auth/invalid-user-token');
+      await expect(promise2).rejects.toBeInstanceOf(FirebaseError);
 
       await promiseVar
         .then(() => {

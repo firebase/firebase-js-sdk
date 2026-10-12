@@ -110,10 +110,9 @@ describe('platform_browser/strategies/redirect', () => {
 
     it('errors if no resolver available', async () => {
       auth._popupRedirectResolver = null;
-      await expect(signInWithRedirect(auth, provider)).rejects.toThrow(
-        FirebaseError,
-        'auth/argument-error'
-      );
+      const promise2 = signInWithRedirect(auth, provider);
+      await expect(promise2).rejects.toThrow('auth/argument-error');
+      await expect(promise2).rejects.toBeInstanceOf(FirebaseError);
     });
 
     it('awaits on the auth initialization promise before opening redirect', async () => {
@@ -225,10 +224,9 @@ describe('platform_browser/strategies/redirect', () => {
 
     it('errors if no resolver available', async () => {
       auth._popupRedirectResolver = null;
-      await expect(linkWithRedirect(user, provider)).rejects.toThrow(
-        FirebaseError,
-        'auth/argument-error'
-      );
+      const promise = linkWithRedirect(user, provider);
+      await expect(promise).rejects.toThrow('auth/argument-error');
+      await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     });
 
     it('persists the redirect user and current user', async () => {
@@ -341,10 +339,9 @@ describe('platform_browser/strategies/redirect', () => {
 
     it('errors if no resolver available', async () => {
       auth._popupRedirectResolver = null;
-      await expect(reauthenticateWithRedirect(user, provider)).rejects.toThrow(
-        FirebaseError,
-        'auth/argument-error'
-      );
+      const promise = reauthenticateWithRedirect(user, provider);
+      await expect(promise).rejects.toThrow('auth/argument-error');
+      await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     });
 
     it('persists the redirect user and current user', async () => {

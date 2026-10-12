@@ -76,9 +76,10 @@ describe('api/password_policy/getPasswordPolicy', () => {
       400
     );
 
-    await expect(_getPasswordPolicy(auth)).rejects.toThrow(
-      FirebaseError,
+    const promise = _getPasswordPolicy(auth);
+    await expect(promise).rejects.toThrow(
       'Firebase: We have blocked all requests from this device due to unusual activity. Try again later. (auth/too-many-requests).'
     );
+    await expect(promise).rejects.toBeInstanceOf(FirebaseError);
   });
 });

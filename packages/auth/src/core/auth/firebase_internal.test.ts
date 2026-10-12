@@ -47,8 +47,8 @@ describe('core/auth/firebase_internal', () => {
       delete (auth as unknown as Record<string, unknown>)[
         '_initializationPromise'
       ];
+      expect(() => authInternal.getUid()).toThrow(FirebaseError);
       expect(() => authInternal.getUid()).toThrow(
-        FirebaseError,
         'auth/dependent-sdk-initialized-before-auth'
       );
     });
@@ -74,10 +74,11 @@ describe('core/auth/firebase_internal', () => {
       delete (auth as unknown as Record<string, unknown>)[
         '_initializationPromise'
       ];
-      await expect(authInternal.getToken()).rejects.toThrow(
-        FirebaseError,
+      const promise = authInternal.getToken();
+      await expect(promise).rejects.toThrow(
         'auth/dependent-sdk-initialized-before-auth'
       );
+      await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     });
   });
 
@@ -142,7 +143,9 @@ describe('core/auth/firebase_internal', () => {
           '_initializationPromise'
         ];
         expect(() => authInternal.addAuthTokenListener(() => {})).toThrow(
-          FirebaseError,
+          FirebaseError
+        );
+        expect(() => authInternal.addAuthTokenListener(() => {})).toThrow(
           'auth/dependent-sdk-initialized-before-auth'
         );
       });
@@ -205,7 +208,9 @@ describe('core/auth/firebase_internal', () => {
           '_initializationPromise'
         ];
         expect(() => authInternal.removeAuthTokenListener(() => {})).toThrow(
-          FirebaseError,
+          FirebaseError
+        );
+        expect(() => authInternal.removeAuthTokenListener(() => {})).toThrow(
           'auth/dependent-sdk-initialized-before-auth'
         );
       });

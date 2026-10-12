@@ -78,10 +78,11 @@ describe('api/authentication/signInWithIdp', () => {
       400
     );
 
-    await expect(signInWithIdp(auth, request)).rejects.toThrow(
-      FirebaseError,
+    const promise = signInWithIdp(auth, request);
+    await expect(promise).rejects.toThrow(
       'Firebase: The supplied auth credential is incorrect, malformed or has expired. (auth/invalid-credential).'
     );
+    await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     expect(mock.calls[0].request).toEqual(request);
   });
   it('should handle user disabled errors and propagate email info', async () => {

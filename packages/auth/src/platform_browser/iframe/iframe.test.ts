@@ -126,10 +126,9 @@ describe('platform_browser/iframe/iframe', () => {
     it('rejects if the iframe ping promise rejects', async () => {
       stubSingleTimeout();
       iframe.ping.mockReturnValue(Promise.reject('no'));
-      await expect(libraryLoadedCallback(iframe)).rejects.toThrow(
-        FirebaseError,
-        'auth/network-request-failed'
-      );
+      const promise2 = libraryLoadedCallback(iframe);
+      await expect(promise2).rejects.toThrow('auth/network-request-failed');
+      await expect(promise2).rejects.toBeInstanceOf(FirebaseError);
     });
 
     it('clears the rejection timeout on success', async () => {

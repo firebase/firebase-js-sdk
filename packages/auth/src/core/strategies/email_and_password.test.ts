@@ -92,10 +92,11 @@ describe('core/strategies/sendPasswordResetEmail', () => {
       },
       400
     );
-    await expect(sendPasswordResetEmail(auth, email)).rejects.toThrow(
-      FirebaseError,
+    const promise = sendPasswordResetEmail(auth, email);
+    await expect(promise).rejects.toThrow(
       'Firebase: The email address is badly formatted. (auth/invalid-email).'
     );
+    await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     expect(mock.calls.length).toBe(1);
   });
 
@@ -353,12 +354,11 @@ describe('core/strategies/confirmPasswordReset', () => {
       },
       400
     );
-    await expect(
-      confirmPasswordReset(auth, oobCode, newPassword)
-    ).rejects.toThrow(
-      FirebaseError,
+    const promise = confirmPasswordReset(auth, oobCode, newPassword);
+    await expect(promise).rejects.toThrow(
       'Firebase: The action code is invalid. This can happen if the code is malformed, expired, or has already been used. (auth/invalid-action-code).'
     );
+    await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     expect(mock.calls.length).toBe(1);
   });
 });
@@ -394,10 +394,11 @@ describe('core/strategies/applyActionCode', () => {
       },
       400
     );
-    await expect(applyActionCode(auth, oobCode)).rejects.toThrow(
-      FirebaseError,
+    const promise = applyActionCode(auth, oobCode);
+    await expect(promise).rejects.toThrow(
       'Firebase: The action code is invalid. This can happen if the code is malformed, expired, or has already been used. (auth/invalid-action-code).'
     );
+    await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     expect(mock.calls.length).toBe(1);
   });
 });
@@ -459,10 +460,11 @@ describe('core/strategies/checkActionCode', () => {
     const mock = mockEndpoint(Endpoint.RESET_PASSWORD, {
       email
     });
-    await expect(checkActionCode(auth, oobCode)).rejects.toThrow(
-      FirebaseError,
+    const promise = checkActionCode(auth, oobCode);
+    await expect(promise).rejects.toThrow(
       'Firebase: An internal AuthError has occurred. (auth/internal-error).'
     );
+    await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     expect(mock.calls.length).toBe(1);
   });
 
@@ -477,10 +479,11 @@ describe('core/strategies/checkActionCode', () => {
       },
       400
     );
-    await expect(checkActionCode(auth, oobCode)).rejects.toThrow(
-      FirebaseError,
+    const promise = checkActionCode(auth, oobCode);
+    await expect(promise).rejects.toThrow(
       'Firebase: The action code is invalid. This can happen if the code is malformed, expired, or has already been used. (auth/invalid-action-code).'
     );
+    await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     expect(mock.calls.length).toBe(1);
   });
 });
@@ -515,10 +518,11 @@ describe('core/strategies/verifyPasswordResetCode', () => {
     const mock = mockEndpoint(Endpoint.RESET_PASSWORD, {
       email
     });
-    await expect(verifyPasswordResetCode(auth, oobCode)).rejects.toThrow(
-      FirebaseError,
+    const promise = verifyPasswordResetCode(auth, oobCode);
+    await expect(promise).rejects.toThrow(
       'Firebase: An internal AuthError has occurred. (auth/internal-error).'
     );
+    await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     expect(mock.calls.length).toBe(1);
   });
 
@@ -533,10 +537,11 @@ describe('core/strategies/verifyPasswordResetCode', () => {
       },
       400
     );
-    await expect(verifyPasswordResetCode(auth, oobCode)).rejects.toThrow(
-      FirebaseError,
+    const promise = verifyPasswordResetCode(auth, oobCode);
+    await expect(promise).rejects.toThrow(
       'Firebase: The action code is invalid. This can happen if the code is malformed, expired, or has already been used. (auth/invalid-action-code).'
     );
+    await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     expect(mock.calls.length).toBe(1);
   });
 });
@@ -1001,9 +1006,13 @@ describe('password policy cache is updated in auth flows upon error', () => {
 
         // Password policy changed after previous fetch.
         policyEndpointMock.response = PASSWORD_POLICY_RESPONSE_REQUIRE_NUMERIC;
-        await expect(
-          createUserWithEmailAndPassword(auth, TEST_EMAIL, TEST_PASSWORD)
-        ).rejects.toThrow(FirebaseError, PASSWORD_ERROR_MSG);
+        const promise = createUserWithEmailAndPassword(
+          auth,
+          TEST_EMAIL,
+          TEST_PASSWORD
+        );
+        await expect(promise).rejects.toThrow(PASSWORD_ERROR_MSG);
+        await expect(promise).rejects.toBeInstanceOf(FirebaseError);
 
         // Wait for the password policy to be fetched and recached.
         await waitForRecachePasswordPolicy();
@@ -1025,9 +1034,13 @@ describe('password policy cache is updated in auth flows upon error', () => {
         // Password policy changed after previous fetch.
         policyEndpointMockWithTenant.response =
           PASSWORD_POLICY_RESPONSE_REQUIRE_NUMERIC;
-        await expect(
-          createUserWithEmailAndPassword(auth, TEST_EMAIL, TEST_PASSWORD)
-        ).rejects.toThrow(FirebaseError, PASSWORD_ERROR_MSG);
+        const promise = createUserWithEmailAndPassword(
+          auth,
+          TEST_EMAIL,
+          TEST_PASSWORD
+        );
+        await expect(promise).rejects.toThrow(PASSWORD_ERROR_MSG);
+        await expect(promise).rejects.toBeInstanceOf(FirebaseError);
 
         // Wait for the password policy to be fetched and recached.
         await waitForRecachePasswordPolicy();
@@ -1041,9 +1054,13 @@ describe('password policy cache is updated in auth flows upon error', () => {
       it('does not update the cached password policy upon error if policy has not previously been fetched', async () => {
         expect(auth._getPasswordPolicyInternal()).toBeNull();
 
-        await expect(
-          createUserWithEmailAndPassword(auth, TEST_EMAIL, TEST_PASSWORD)
-        ).rejects.toThrow(FirebaseError, PASSWORD_ERROR_MSG);
+        const promise = createUserWithEmailAndPassword(
+          auth,
+          TEST_EMAIL,
+          TEST_PASSWORD
+        );
+        await expect(promise).rejects.toThrow(PASSWORD_ERROR_MSG);
+        await expect(promise).rejects.toBeInstanceOf(FirebaseError);
 
         // Wait for the password policy to be fetched and recached.
         await waitForRecachePasswordPolicy();
@@ -1061,9 +1078,13 @@ describe('password policy cache is updated in auth flows upon error', () => {
         );
 
         auth.tenantId = TEST_TENANT_ID_REQUIRE_NUMERIC;
-        await expect(
-          createUserWithEmailAndPassword(auth, TEST_EMAIL, TEST_PASSWORD)
-        ).rejects.toThrow(FirebaseError, PASSWORD_ERROR_MSG);
+        const promise = createUserWithEmailAndPassword(
+          auth,
+          TEST_EMAIL,
+          TEST_PASSWORD
+        );
+        await expect(promise).rejects.toThrow(PASSWORD_ERROR_MSG);
+        await expect(promise).rejects.toBeInstanceOf(FirebaseError);
 
         // Wait to ensure the password policy is not fetched and recached.
         await waitForRecachePasswordPolicy();
@@ -1101,9 +1122,13 @@ describe('password policy cache is updated in auth flows upon error', () => {
         // Set up reCAPTCHA mock and configs.
         await setUpRecaptcha();
 
-        await expect(
-          createUserWithEmailAndPassword(auth, TEST_EMAIL, TEST_PASSWORD)
-        ).rejects.toThrow(FirebaseError, PASSWORD_ERROR_MSG);
+        const promise = createUserWithEmailAndPassword(
+          auth,
+          TEST_EMAIL,
+          TEST_PASSWORD
+        );
+        await expect(promise).rejects.toThrow(PASSWORD_ERROR_MSG);
+        await expect(promise).rejects.toBeInstanceOf(FirebaseError);
 
         // Wait for the password policy to be fetched and recached.
         await waitForRecachePasswordPolicy();
@@ -1174,9 +1199,13 @@ describe('password policy cache is updated in auth flows upon error', () => {
 
         // Password policy changed after previous fetch.
         policyEndpointMock.response = PASSWORD_POLICY_RESPONSE_REQUIRE_NUMERIC;
-        await expect(
-          confirmPasswordReset(auth, TEST_OOB_CODE, TEST_PASSWORD)
-        ).rejects.toThrow(FirebaseError, PASSWORD_ERROR_MSG);
+        const promise = confirmPasswordReset(
+          auth,
+          TEST_OOB_CODE,
+          TEST_PASSWORD
+        );
+        await expect(promise).rejects.toThrow(PASSWORD_ERROR_MSG);
+        await expect(promise).rejects.toBeInstanceOf(FirebaseError);
 
         // Wait for the password policy to be fetched and recached.
         await waitForRecachePasswordPolicy();
@@ -1198,9 +1227,13 @@ describe('password policy cache is updated in auth flows upon error', () => {
         // Password policy changed after previous fetch.
         policyEndpointMockWithTenant.response =
           PASSWORD_POLICY_RESPONSE_REQUIRE_NUMERIC;
-        await expect(
-          confirmPasswordReset(auth, TEST_OOB_CODE, TEST_PASSWORD)
-        ).rejects.toThrow(FirebaseError, PASSWORD_ERROR_MSG);
+        const promise = confirmPasswordReset(
+          auth,
+          TEST_OOB_CODE,
+          TEST_PASSWORD
+        );
+        await expect(promise).rejects.toThrow(PASSWORD_ERROR_MSG);
+        await expect(promise).rejects.toBeInstanceOf(FirebaseError);
 
         // Wait for the password policy to be fetched and recached.
         await waitForRecachePasswordPolicy();
@@ -1214,9 +1247,13 @@ describe('password policy cache is updated in auth flows upon error', () => {
       it('does not update the cached password policy upon error if policy has not previously been fetched', async () => {
         expect(auth._getPasswordPolicyInternal()).toBeNull();
 
-        await expect(
-          confirmPasswordReset(auth, TEST_OOB_CODE, TEST_PASSWORD)
-        ).rejects.toThrow(FirebaseError, PASSWORD_ERROR_MSG);
+        const promise = confirmPasswordReset(
+          auth,
+          TEST_OOB_CODE,
+          TEST_PASSWORD
+        );
+        await expect(promise).rejects.toThrow(PASSWORD_ERROR_MSG);
+        await expect(promise).rejects.toBeInstanceOf(FirebaseError);
 
         // Wait to ensure the password policy is not fetched and recached.
         await waitForRecachePasswordPolicy();
@@ -1234,9 +1271,13 @@ describe('password policy cache is updated in auth flows upon error', () => {
         );
 
         auth.tenantId = TEST_TENANT_ID_REQUIRE_NUMERIC;
-        await expect(
-          confirmPasswordReset(auth, TEST_OOB_CODE, TEST_PASSWORD)
-        ).rejects.toThrow(FirebaseError, PASSWORD_ERROR_MSG);
+        const promise = confirmPasswordReset(
+          auth,
+          TEST_OOB_CODE,
+          TEST_PASSWORD
+        );
+        await expect(promise).rejects.toThrow(PASSWORD_ERROR_MSG);
+        await expect(promise).rejects.toBeInstanceOf(FirebaseError);
 
         // Wait to ensure the password policy is not fetched and recached.
         await waitForRecachePasswordPolicy();
@@ -1309,9 +1350,13 @@ describe('password policy cache is updated in auth flows upon error', () => {
 
         // Password policy changed after previous fetch.
         policyEndpointMock.response = PASSWORD_POLICY_RESPONSE_REQUIRE_NUMERIC;
-        await expect(
-          signInWithEmailAndPassword(auth, TEST_EMAIL, TEST_PASSWORD)
-        ).rejects.toThrow(FirebaseError, PASSWORD_ERROR_MSG);
+        const promise = signInWithEmailAndPassword(
+          auth,
+          TEST_EMAIL,
+          TEST_PASSWORD
+        );
+        await expect(promise).rejects.toThrow(PASSWORD_ERROR_MSG);
+        await expect(promise).rejects.toBeInstanceOf(FirebaseError);
 
         // Wait for the password policy to be fetched and recached.
         await waitForRecachePasswordPolicy();
@@ -1333,9 +1378,13 @@ describe('password policy cache is updated in auth flows upon error', () => {
         // Password policy changed after previous fetch.
         policyEndpointMockWithTenant.response =
           PASSWORD_POLICY_RESPONSE_REQUIRE_NUMERIC;
-        await expect(
-          signInWithEmailAndPassword(auth, TEST_EMAIL, TEST_PASSWORD)
-        ).rejects.toThrow(FirebaseError, PASSWORD_ERROR_MSG);
+        const promise = signInWithEmailAndPassword(
+          auth,
+          TEST_EMAIL,
+          TEST_PASSWORD
+        );
+        await expect(promise).rejects.toThrow(PASSWORD_ERROR_MSG);
+        await expect(promise).rejects.toBeInstanceOf(FirebaseError);
 
         // Wait for the password policy to be fetched and recached.
         await waitForRecachePasswordPolicy();
@@ -1349,9 +1398,13 @@ describe('password policy cache is updated in auth flows upon error', () => {
       it('does not update the cached password policy upon error if policy has not previously been fetched', async () => {
         expect(auth._getPasswordPolicyInternal()).toBeNull();
 
-        await expect(
-          signInWithEmailAndPassword(auth, TEST_EMAIL, TEST_PASSWORD)
-        ).rejects.toThrow(FirebaseError, PASSWORD_ERROR_MSG);
+        const promise = signInWithEmailAndPassword(
+          auth,
+          TEST_EMAIL,
+          TEST_PASSWORD
+        );
+        await expect(promise).rejects.toThrow(PASSWORD_ERROR_MSG);
+        await expect(promise).rejects.toBeInstanceOf(FirebaseError);
 
         // Wait to ensure the password policy is not fetched and recached.
         await waitForRecachePasswordPolicy();
@@ -1369,9 +1422,13 @@ describe('password policy cache is updated in auth flows upon error', () => {
         );
 
         auth.tenantId = TEST_TENANT_ID_REQUIRE_NUMERIC;
-        await expect(
-          signInWithEmailAndPassword(auth, TEST_EMAIL, TEST_PASSWORD)
-        ).rejects.toThrow(FirebaseError, PASSWORD_ERROR_MSG);
+        const promise = signInWithEmailAndPassword(
+          auth,
+          TEST_EMAIL,
+          TEST_PASSWORD
+        );
+        await expect(promise).rejects.toThrow(PASSWORD_ERROR_MSG);
+        await expect(promise).rejects.toBeInstanceOf(FirebaseError);
 
         // Wait to ensure the password policy is not fetched and recached.
         await waitForRecachePasswordPolicy();
@@ -1410,9 +1467,13 @@ describe('password policy cache is updated in auth flows upon error', () => {
         // Set up reCAPTCHA mock and configs.
         await setUpRecaptcha();
 
-        await expect(
-          signInWithEmailAndPassword(auth, TEST_EMAIL, TEST_PASSWORD)
-        ).rejects.toThrow(FirebaseError, PASSWORD_ERROR_MSG);
+        const promise = signInWithEmailAndPassword(
+          auth,
+          TEST_EMAIL,
+          TEST_PASSWORD
+        );
+        await expect(promise).rejects.toThrow(PASSWORD_ERROR_MSG);
+        await expect(promise).rejects.toBeInstanceOf(FirebaseError);
 
         // Wait to ensure the password policy is fetched and recached.
         await waitForRecachePasswordPolicy();

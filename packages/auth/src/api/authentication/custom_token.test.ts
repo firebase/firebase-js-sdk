@@ -83,10 +83,11 @@ describe('api/authentication/signInWithCustomToken', () => {
       400
     );
 
-    await expect(signInWithCustomToken(auth, request)).rejects.toThrow(
-      FirebaseError,
+    const promise = signInWithCustomToken(auth, request);
+    await expect(promise).rejects.toThrow(
       'Firebase: The custom token format is incorrect. Please check the documentation. (auth/invalid-custom-token).'
     );
+    await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     expect(mock.calls[0].request).toEqual(request);
   });
 });

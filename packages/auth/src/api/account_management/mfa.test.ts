@@ -91,10 +91,9 @@ describe('api/account_management/startEnrollPhoneMfa', () => {
       400
     );
 
-    await expect(startEnrollPhoneMfa(auth, request)).rejects.toThrow(
-      FirebaseError,
-      'auth/invalid-user-token'
-    );
+    const promise = startEnrollPhoneMfa(auth, request);
+    await expect(promise).rejects.toThrow('auth/invalid-user-token');
+    await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     expect(mock.calls[0].request).toEqual(request);
   });
 });
@@ -155,10 +154,9 @@ describe('api/account_management/finalizeEnrollPhoneMfa', () => {
       400
     );
 
-    await expect(finalizeEnrollPhoneMfa(auth, request)).rejects.toThrow(
-      FirebaseError,
-      'auth/invalid-verification-id'
-    );
+    const promise = finalizeEnrollPhoneMfa(auth, request);
+    await expect(promise).rejects.toThrow('auth/invalid-verification-id');
+    await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     expect(mock.calls[0].request).toEqual(request);
   });
 });
@@ -225,10 +223,9 @@ describe('api/account_management/startEnrollTotpMfa', () => {
       400
     );
 
-    await expect(startEnrollTotpMfa(auth, request)).rejects.toThrow(
-      FirebaseError,
-      'auth/invalid-user-token'
-    );
+    const promise = startEnrollTotpMfa(auth, request);
+    await expect(promise).rejects.toThrow('auth/invalid-user-token');
+    await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     expect(mock.calls[0].request).toEqual(request);
   });
 });
@@ -288,10 +285,11 @@ describe('api/account_management/finalizeEnrollTotpMfa', () => {
       400
     );
 
-    await expect(finalizeEnrollTotpMfa(auth, request)).rejects.toThrow(
-      FirebaseError,
+    const promise = finalizeEnrollTotpMfa(auth, request);
+    await expect(promise).rejects.toThrow(
       'Firebase: The verification ID used to create the phone auth credential is invalid. (auth/invalid-verification-id).'
     );
+    await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     expect(mock.calls[0].request).toEqual(request);
   });
 });
@@ -347,10 +345,11 @@ describe('api/account_management/withdrawMfa', () => {
       400
     );
 
-    await expect(withdrawMfa(auth, request)).rejects.toThrow(
-      FirebaseError,
+    const promise = withdrawMfa(auth, request);
+    await expect(promise).rejects.toThrow(
       "Firebase: This user's credential isn't valid for this project. This can happen if the user's token has been tampered with, or if the user isn't for the project associated with this API key. (auth/invalid-user-token)."
     );
+    await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     expect(mock.calls[0].request).toEqual(request);
   });
 });

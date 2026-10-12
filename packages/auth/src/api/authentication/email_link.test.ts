@@ -82,10 +82,11 @@ describe('api/authentication/email_link', () => {
         400
       );
 
-      await expect(signInWithEmailLink(auth, request)).rejects.toThrow(
-        FirebaseError,
+      const promise = signInWithEmailLink(auth, request);
+      await expect(promise).rejects.toThrow(
         'Firebase: The email address is badly formatted. (auth/invalid-email).'
       );
+      await expect(promise).rejects.toBeInstanceOf(FirebaseError);
       expect(mock.calls[0].request).toEqual(request);
     });
   });
@@ -137,12 +138,11 @@ describe('api/authentication/email_link', () => {
         400
       );
 
-      await expect(
-        signInWithEmailLinkForLinking(auth, request)
-      ).rejects.toThrow(
-        FirebaseError,
+      const promise = signInWithEmailLinkForLinking(auth, request);
+      await expect(promise).rejects.toThrow(
         'Firebase: The email address is badly formatted. (auth/invalid-email).'
       );
+      await expect(promise).rejects.toBeInstanceOf(FirebaseError);
       expect(mock.calls[0].request).toEqual(request);
     });
   });

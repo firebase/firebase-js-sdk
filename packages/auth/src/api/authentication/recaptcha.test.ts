@@ -75,10 +75,11 @@ describe('api/authentication/getRecaptchaParams', () => {
       400
     );
 
-    await expect(getRecaptchaParams(auth)).rejects.toThrow(
-      FirebaseError,
+    const promise = getRecaptchaParams(auth);
+    await expect(promise).rejects.toThrow(
       'Firebase: We have blocked all requests from this device due to unusual activity. Try again later. (auth/too-many-requests).'
     );
+    await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     expect(mock.calls[0].request).toBeUndefined();
   });
 });
@@ -131,9 +132,8 @@ describe('api/authentication/getRecaptchaConfig', () => {
       400
     );
 
-    await expect(getRecaptchaConfig(auth, request)).rejects.toThrow(
-      FirebaseError,
-      'auth/unauthorized-continue-uri'
-    );
+    const promise = getRecaptchaConfig(auth, request);
+    await expect(promise).rejects.toThrow('auth/unauthorized-continue-uri');
+    await expect(promise).rejects.toBeInstanceOf(FirebaseError);
   });
 });

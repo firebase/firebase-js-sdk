@@ -62,10 +62,7 @@ function projectConfigPlugin() {
 }
 
 for (const project of config.test.projects) {
-  const exclude = [
-    ...(project.test.exclude || []),
-    '**/platform_react_native/**'
-  ];
+  const exclude = [...(project.test.exclude || [])];
   if (!hasIntegrationArg) {
     exclude.push('test/integration/**');
   } else {
@@ -82,7 +79,11 @@ for (const project of config.test.projects) {
   }
 
   if (project.test.name === 'node') {
-    exclude.push('**/platform_browser/**', '**/platform_cordova/**');
+    exclude.push(
+      '**/platform_browser/**',
+      '**/platform_cordova/**',
+      '**/platform_react_native/**'
+    );
     project.test.exclude = exclude;
   } else if (project.test.name === 'browser') {
     project.test.exclude = exclude;
