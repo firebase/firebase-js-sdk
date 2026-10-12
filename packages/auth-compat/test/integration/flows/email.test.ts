@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { FirebaseError } from '@firebase/util';
 import firebase from '@firebase/app-compat';
 import {
   cleanUpTestInstance,
@@ -57,7 +56,7 @@ describe('Integration test: email/password auth', () => {
     await firebase.auth().createUserWithEmailAndPassword(email, 'password');
     await expect(
       firebase.auth().createUserWithEmailAndPassword(email, 'password')
-    ).rejects.toThrow(FirebaseError, 'auth/email-already-in-use');
+    ).rejects.toThrow('auth/email-already-in-use');
   });
 
   describe('with existing user', () => {
@@ -124,15 +123,12 @@ describe('Integration test: email/password auth', () => {
         .signInWithEmailAndPassword(email, 'password');
       await user!.delete();
 
-      await expect(user!.reload()).rejects.toThrow(
-        FirebaseError,
-        'auth/user-token-expired'
-      );
+      await expect(user!.reload()).rejects.toThrow('auth/user-token-expired');
 
       expect(firebase.auth().currentUser).toBeNull();
       await expect(
         firebase.auth().signInWithEmailAndPassword(email, 'password')
-      ).rejects.toThrow(FirebaseError, 'auth/user-not-found');
+      ).rejects.toThrow('auth/user-not-found');
     });
 
     it('sign in can be called twice successively', async () => {

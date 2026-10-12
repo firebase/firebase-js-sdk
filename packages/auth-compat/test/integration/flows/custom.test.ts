@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { FirebaseError } from '@firebase/util';
 import firebase from '@firebase/app-compat';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import '@firebase/auth-compat';
@@ -78,10 +77,7 @@ describe('Integration test: custom auth', () => {
     expect(user!.displayName).toBe('Display Name');
 
     await user!.delete();
-    await expect(user!.reload()).rejects.toThrow(
-      FirebaseError,
-      'auth/user-token-expired'
-    );
+    await expect(user!.reload()).rejects.toThrow('auth/user-token-expired');
     expect(firebase.auth().currentUser).toBeNull();
 
     ({ user } = await firebase.auth().signInWithCustomToken(customToken));
@@ -200,7 +196,6 @@ describe('Integration test: custom auth', () => {
         'password'
       );
       await expect(customUser!.linkWithCredential(cred)).rejects.toThrow(
-        FirebaseError,
         'auth/email-already-in-use'
       );
     });

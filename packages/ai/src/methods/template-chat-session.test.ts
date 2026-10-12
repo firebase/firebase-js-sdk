@@ -116,7 +116,7 @@ describe('TemplateChatSession', () => {
   describe('sendMessage()', () => {
     it('generateContent errors should be catchable', async () => {
       const templateGenerateContentStub = vi
-        .mocked(mockGenerateContent.templateGenerateContent)
+        .spyOn(mockGenerateContent, 'templateGenerateContent')
         .mockRejectedValue(new Error('templateGenerateContent failed'));
       const chatSession = new TemplateChatSessionImpl(fakeApiSettings, {
         templateId: TEMPLATE_ID,
@@ -153,7 +153,7 @@ describe('TemplateChatSession', () => {
         ]
       };
       const templateGenerateContentStub = vi
-        .mocked(mockGenerateContent.templateGenerateContent)
+        .spyOn(mockGenerateContent, 'templateGenerateContent')
         .mockResolvedValue({
           // @ts-ignore
           response: fakeResponse
@@ -282,7 +282,7 @@ describe('TemplateChatSession', () => {
       it('calls one function automatically', async () => {
         const greetingSpy = vi.fn(getGreeting);
         const templateGenerateContentStub = vi
-          .mocked(mockGenerateContent.templateGenerateContent)
+          .spyOn(mockGenerateContent, 'templateGenerateContent')
           // @ts-ignore
           .mockImplementation(async (apiSettings, templateId, params: any) => {
             const parts = params.history[params.history.length - 1].parts;
@@ -341,7 +341,7 @@ describe('TemplateChatSession', () => {
         const greetingSpy = vi.fn(getGreeting);
         const farewellSpy = vi.fn(getFarewell);
         const templateGenerateContentStub = vi
-          .mocked(mockGenerateContent.templateGenerateContent)
+          .spyOn(mockGenerateContent, 'templateGenerateContent')
           // @ts-ignore
           .mockImplementation(async (apiSettings, templateId, params: any) => {
             const parts = params.history[params.history.length - 1].parts;
@@ -410,7 +410,7 @@ describe('TemplateChatSession', () => {
         const greetingSpy = vi.fn(getGreeting);
         const warnStub = vi.spyOn(logger, 'warn').mockImplementation(() => {});
         const templateGenerateContentStub = vi
-          .mocked(mockGenerateContent.templateGenerateContent)
+          .spyOn(mockGenerateContent, 'templateGenerateContent')
           // @ts-ignore
           .mockImplementation(async (apiSettings, templateId, params: any) => {
             const parts = params.history[params.history.length - 1].parts;
@@ -468,7 +468,7 @@ describe('TemplateChatSession', () => {
       it('calls one function automatically on stream', async () => {
         const greetingSpy = vi.fn(getGreeting);
         const templateGenerateContentStreamStub = vi
-          .mocked(mockGenerateContent.templateGenerateContentStream)
+          .spyOn(mockGenerateContent, 'templateGenerateContentStream')
           // @ts-ignore
           .mockImplementation(async (apiSettings, templateId, params: any) => {
             const parts = params.history[params.history.length - 1].parts;

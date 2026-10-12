@@ -16,7 +16,6 @@
  */
 
 import firebase from '@firebase/app-compat';
-import { FirebaseError } from '@firebase/util';
 import {
   cleanUpTestInstance,
   initializeTestInstance,
@@ -107,7 +106,6 @@ describe('Integration test: anonymous auth', () => {
         'password'
       );
       await expect(anonUser!.linkWithCredential(cred)).rejects.toThrow(
-        FirebaseError,
         'auth/email-already-in-use'
       );
     });

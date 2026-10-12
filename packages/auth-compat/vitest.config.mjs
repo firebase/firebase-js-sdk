@@ -17,6 +17,7 @@
 
 import createBaseConfig from '../../config/vitest.base.mjs';
 import { AuthErrorCodes } from '@firebase/auth';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 
 const projectJsonPath = fileURLToPath(
@@ -45,10 +46,13 @@ function authInternalPlugin() {
     transform(code, id) {
       const cleanId = id.split('?')[0];
       if (cleanId.endsWith('.ts') && code.includes('config/project.json')) {
+        const replacement = fs.existsSync(projectJsonPath)
+          ? `import $1 from ${JSON.stringify(projectJsonPath)};`
+          : `const $1 = {};`;
         return {
           code: code.replace(
             /const (\w+) = require\([^)]*config\/project\.json[^)]*\);/g,
-            `import $1 from ${JSON.stringify(projectJsonPath)};`
+            replacement
           ),
           map: null
         };
@@ -69,9 +73,6 @@ function authInternalPlugin() {
 }
 
 const config = createBaseConfig(import.meta.url);
-if (config.test) {
-  config.test.passWithNoTests = true;
-}
 
 const hasEmulator = Boolean(process.env.FIREBASE_AUTH_EMULATOR_HOST);
 const hasExplicitSuiteArg = process.argv.some(arg =>
@@ -112,7 +113,6 @@ if (config.test?.projects) {
       if (project.test.name === 'node') {
         // Unit tests in src/ are browser-only; only run integration tests in Node
         project.test.include = ['test/integration/flows/**/*.test.ts'];
-        project.test.passWithNoTests = true;
       }
 
       if (!hasEmulator && !hasExplicitSuiteArg) {
