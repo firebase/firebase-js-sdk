@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,19 +15,4 @@
  * limitations under the License.
  */
 
-import chaiAsPromised from 'chai-as-promised';
-import sinonChai from 'sinon-chai';
-
-import { dbDelete } from '../internals/idb-manager';
-import { deleteDB } from 'idb';
-import { restore } from 'sinon';
-import { use } from 'chai';
-
-use(chaiAsPromised);
-use(sinonChai);
-
-afterEach(async () => {
-  restore();
-  await dbDelete();
-  await deleteDB('fcm_token_details_db');
-});
+import 'vitest/globals';

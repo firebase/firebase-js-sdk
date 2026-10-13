@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +15,15 @@
  * limitations under the License.
  */
 
-import { SinonSpy, SinonStub } from 'sinon';
+import { deleteDB } from 'idb';
 
-// Helper types for Sinon stubs and spies.
-
-export type Stub<T extends (...args: any) => any> = SinonStub<
-  Parameters<T>,
-  ReturnType<T>
->;
-
-export type Spy<T extends (...args: any) => any> = SinonSpy<
-  Parameters<T>,
-  ReturnType<T>
->;
+afterEach(async () => {
+  vi.useRealTimers();
+  vi.resetAllMocks();
+  vi.restoreAllMocks();
+  // Use deleteDB directly rather than importing dbDelete from idb-manager so
+  // setupFiles does not evaluate and cache idb-manager before test files run
+  // vi.mock('../internals/idb-manager', { spy: true }).
+  await deleteDB('firebase-messaging-database');
+  await deleteDB('fcm_token_details_db');
+});
