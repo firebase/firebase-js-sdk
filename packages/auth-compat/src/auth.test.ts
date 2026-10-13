@@ -21,12 +21,12 @@ import { Provider } from '@firebase/component';
 import { Auth } from './auth';
 import { CompatPopupRedirectResolver } from './popup_redirect';
 import * as platform from './platform';
-
-vi.mock('./platform', { spy: true });
 import {
   FAKE_APP_CHECK_CONTROLLER_PROVIDER,
   FAKE_HEARTBEAT_CONTROLLER_PROVIDER
 } from '../test/helpers/fake_providers';
+
+vi.mock('./platform', { spy: true });
 
 function delay(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -50,9 +50,10 @@ describe('auth compat', () => {
           apiKey: 'api-key'
         } as exp.ConfigInternal
       );
-      vi.spyOn(underlyingAuth, '_initializeWithPersistence').mockResolvedValue(
-        undefined as any
-      );
+      vi.spyOn(
+        underlyingAuth,
+        '_initializeWithPersistence'
+      ).mockResolvedValue();
 
       providerStub = {
         isInitialized: vi.fn(),
@@ -77,13 +78,10 @@ describe('auth compat', () => {
           CompatPopupRedirectResolver
         ),
         '_openRedirect'
-      ).mockResolvedValue(undefined as any);
-      (providerStub.isInitialized as any).mockReturnValue(true);
-      (providerStub.getImmediate as any).mockReturnValue(underlyingAuth);
-      const authCompat = new Auth(
-        app,
-        providerStub as unknown as Provider<'auth'>
-      );
+      ).mockResolvedValue();
+      vi.mocked(providerStub.isInitialized).mockReturnValue(true);
+      vi.mocked(providerStub.getImmediate).mockReturnValue(underlyingAuth);
+      const authCompat = new Auth(app, providerStub);
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       await authCompat.signInWithRedirect(new exp.GoogleAuthProvider());
       expect(
@@ -108,13 +106,10 @@ describe('auth compat', () => {
           CompatPopupRedirectResolver
         ),
         '_openRedirect'
-      ).mockResolvedValue(undefined as any);
-      (providerStub.isInitialized as any).mockReturnValue(true);
-      (providerStub.getImmediate as any).mockReturnValue(underlyingAuth);
-      const authCompat = new Auth(
-        app,
-        providerStub as unknown as Provider<'auth'>
-      );
+      ).mockResolvedValue();
+      vi.mocked(providerStub.isInitialized).mockReturnValue(true);
+      vi.mocked(providerStub.getImmediate).mockReturnValue(underlyingAuth);
+      const authCompat = new Auth(app, providerStub);
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       await authCompat.signInWithRedirect(new exp.GoogleAuthProvider());
       await delay(50);
@@ -126,9 +121,9 @@ describe('auth compat', () => {
 
     it('pulls the persistence and sets as the main persistence if set', () => {
       sessionStorage.setItem('firebase:persistence:api-key:undefined', 'none');
-      (providerStub.isInitialized as any).mockReturnValue(false);
-      (providerStub.initialize as any).mockReturnValue(underlyingAuth);
-      new Auth(app, providerStub as unknown as Provider<'auth'>);
+      vi.mocked(providerStub.isInitialized).mockReturnValue(false);
+      vi.mocked(providerStub.initialize).mockReturnValue(underlyingAuth);
+      new Auth(app, providerStub);
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       expect(providerStub.initialize).toHaveBeenCalledWith({
         options: {
@@ -150,9 +145,9 @@ describe('auth compat', () => {
         }
       } as unknown as Window);
       sessionStorage.setItem('firebase:persistence:api-key:undefined', 'none');
-      (providerStub.isInitialized as any).mockReturnValue(false);
-      (providerStub.initialize as any).mockReturnValue(underlyingAuth);
-      new Auth(app, providerStub as unknown as Provider<'auth'>);
+      vi.mocked(providerStub.isInitialized).mockReturnValue(false);
+      vi.mocked(providerStub.initialize).mockReturnValue(underlyingAuth);
+      new Auth(app, providerStub);
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       await delay(50);
       expect(providerStub.initialize).toHaveBeenCalledWith({

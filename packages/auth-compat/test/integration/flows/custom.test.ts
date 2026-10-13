@@ -23,6 +23,7 @@ import {
   initializeTestInstance,
   randomEmail
 } from '../../helpers/helpers';
+
 describe('Integration test: custom auth', () => {
   let customToken: string;
   let uid: string;

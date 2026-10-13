@@ -17,14 +17,14 @@
 
 import * as exp from '@firebase/auth/internal';
 import * as platform from './platform';
-
-vi.mock('./platform', { spy: true });
 import { CompatPopupRedirectResolver } from './popup_redirect';
 import { FirebaseApp } from '@firebase/app-compat';
 import {
   FAKE_APP_CHECK_CONTROLLER_PROVIDER,
   FAKE_HEARTBEAT_CONTROLLER_PROVIDER
 } from '../test/helpers/fake_providers';
+
+vi.mock('./platform', { spy: true });
 
 describe('popup_redirect/CompatPopupRedirectResolver', () => {
   let compatResolver: CompatPopupRedirectResolver;
@@ -54,8 +54,12 @@ describe('popup_redirect/CompatPopupRedirectResolver', () => {
       cordovaResolver = exp._getInstance<exp.PopupRedirectResolverInternal>(
         exp.cordovaPopupRedirectResolver
       );
-      vi.spyOn(browserResolver, '_initialize').mockResolvedValue({} as any);
-      vi.spyOn(cordovaResolver, '_initialize').mockResolvedValue({} as any);
+      vi.spyOn(browserResolver, '_initialize').mockResolvedValue(
+        {} as exp.EventManager
+      );
+      vi.spyOn(cordovaResolver, '_initialize').mockResolvedValue(
+        {} as exp.EventManager
+      );
     });
 
     it('selects the Cordova resolver if in Cordova', async () => {
@@ -169,9 +173,9 @@ class FakeResolver implements exp.PopupRedirectResolverInternal {
   _redirectPersistence = exp.inMemoryPersistence;
   _shouldInitProactively = true;
 
-  _initialize = vi.fn().mockResolvedValue({} as any);
-  _openPopup = vi.fn().mockResolvedValue({} as any);
-  _openRedirect = vi.fn().mockResolvedValue({} as any);
+  _initialize = vi.fn().mockResolvedValue({});
+  _openPopup = vi.fn().mockResolvedValue({});
+  _openRedirect = vi.fn().mockResolvedValue(undefined);
   _isIframeWebStorageSupported = vi.fn();
-  _originValidation = vi.fn().mockResolvedValue(undefined as any);
+  _originValidation = vi.fn().mockResolvedValue(undefined);
 }

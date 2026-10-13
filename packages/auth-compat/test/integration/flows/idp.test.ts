@@ -21,6 +21,7 @@ import {
   initializeTestInstance,
   randomEmail
 } from '../../helpers/helpers';
+
 // These tests handle OAuth sign in, but they're totally headless (they don't
 // use the popup/redirect flows).
 
