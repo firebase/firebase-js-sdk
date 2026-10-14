@@ -17,7 +17,7 @@
 import { LogCallback, LogLevelString, LogOptions } from '@firebase/logger';
 import { _FirebaseApp } from './firebaseApp';
 
-export interface FirebaseOptions {
+export declare interface FirebaseOptions {
   apiKey?: string;
   authDomain?: string;
   databaseURL?: string;
