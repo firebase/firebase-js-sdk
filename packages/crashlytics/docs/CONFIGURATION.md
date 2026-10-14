@@ -171,13 +171,22 @@ Crashlytics for Web supports **email alerts** to notify you when issues occur in
 
 Under the hood, Crashlytics uses **Google Cloud Monitoring** to provision app-scoped alert policies and attach your email address as a notification channel. Alert emails include Firebase branding, app and version metadata, the error type and message, and a direct link to investigate the issue in the Firebase Console.
 
-> [!NOTE]
-> - **Permissions**:
+> - You need the following permissions to set up alerting:
 >   - Basic Google Cloud project **`Owner` (`roles/owner`)** or **`Editor` (`roles/editor`)** roles include all required permissions out of the box.
 >   - **Firebase-scoped roles alone** (such as `Firebase Admin` (`roles/firebase.admin`), `Firebase Editor` (`roles/firebase.editor`), `Firebase Quality Admin` (`roles/firebase.qualityAdmin`), or `Firebase Crashlytics Admin` (`roles/firebasecrashlytics.admin`)) grant `firebasecrashlytics.config.update`, **but do not include the required Cloud Monitoring permissions**.
 >   - If you use predefined or custom roles instead of project `Owner`/`Editor`, ensure your account has **both**:
->     1. **Crashlytics configuration access**: `roles/firebasecrashlytics.admin`, `roles/firebase.qualityAdmin`, `roles/firebase.editor`, or `roles/firebase.admin` (`firebasecrashlytics.config.get` and `firebasecrashlytics.config.update`).
->     2. **Cloud Monitoring alert & notification channel access**: `Monitoring Editor` (`roles/monitoring.editor`), or both `Monitoring AlertPolicy Editor` (`roles/monitoring.alertPolicyEditor`) and `Monitoring NotificationChannel Editor` (`roles/monitoring.notificationChannelEditor`) (`monitoring.alertPolicies.get`, `monitoring.alertPolicies.list`, `monitoring.alertPolicies.create`, `monitoring.alertPolicies.update`, `monitoring.notificationChannels.get`, `monitoring.notificationChannels.list`, `monitoring.notificationChannels.create`, and `monitoring.notificationChannels.update`).
+>     1. **Crashlytics configuration access**: `roles/firebasecrashlytics.admin`, `roles/firebase.qualityAdmin`, `roles/firebase.editor`, or `roles/firebase.admin`:
+>        - `firebasecrashlytics.config.get`
+>        - `firebasecrashlytics.config.update`
+>     2. **Cloud Monitoring alert & notification channel access**: `Monitoring Editor` (`roles/monitoring.editor`), or both `Monitoring AlertPolicy Editor` (`roles/monitoring.alertPolicyEditor`) and `Monitoring NotificationChannel Editor` (`roles/monitoring.notificationChannelEditor`):
+>        - `monitoring.alertPolicies.get`
+>        - `monitoring.alertPolicies.list`
+>        - `monitoring.alertPolicies.create`
+>        - `monitoring.alertPolicies.update`
+>        - `monitoring.notificationChannels.get`
+>        - `monitoring.notificationChannels.list`
+>        - `monitoring.notificationChannels.create`
+>        - `monitoring.notificationChannels.update`
 > - **Language & Sender**: Alert emails are sent from `alerting-noreply@google.com` and are localized based on your Google Account language preference at the time the alert policy is created. If you later change your account language, the alert language will not update automatically. To update it, disable and re-enable the alert.
 > - **Avoiding Duplicate Alerts**: If you previously enabled native notifications directly in **Google Cloud Error Reporting** during earlier testing, disable those native Error Reporting notifications to avoid receiving duplicate emails.
 
@@ -193,7 +202,7 @@ You can enable or manage email alerts either during initial project onboarding o
 2. In the **Set Up Alerts (Optional)** step, select the email alerts you want to receive at your signed-in email address (**New issues** and **Regressed issues** are selected by default).
 3. Click **Continue** to automatically create the Cloud Monitoring alert policies and subscribe your email address.
 
-#### Anytime in project alert settings
+#### Project alert settings
 
 1. From the [Firebase Console Crashlytics dashboard](https://console.firebase.google.com/u/0/project/_/crashlytics), click the **Manage alerts** button in the top-right corner, or navigate directly to **Project settings > Alerts** (`https://console.firebase.google.com/project/_/settings/alerts`).
 2. Locate the **Crashlytics** card and select your web app from the **Select an app** dropdown.
