@@ -88,7 +88,6 @@ export function createTracingProvider(
   const resource = resourceFromAttributes({
     ...(projectId
       ? {
-          [RESOURCE_ATTRIBUTE_KEYS.CLOUD_RESOURCE_ID]: `//firebasetelemetry.googleapis.com/projects/${projectId}/locations/${region}/`,
           [RESOURCE_ATTRIBUTE_KEYS.GCP_PROJECT_ID]: projectId
         }
       : {}),
