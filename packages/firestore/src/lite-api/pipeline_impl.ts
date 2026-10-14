@@ -112,7 +112,7 @@ export function execute(pipeline: Pipeline): Promise<PipelineSnapshot>;
  * const results: PipelineResult[] = snapshot.results;
  * ```
  *
- * @param options - Specifies the pipeline to execute and other options for execute.
+ * @param options - Specifies the pipeline to execute and other execution options.
  * @returns A Promise representing the asynchronous pipeline execution.
  */
 export function execute(
