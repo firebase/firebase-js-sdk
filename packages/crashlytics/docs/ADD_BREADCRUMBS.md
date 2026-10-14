@@ -24,7 +24,7 @@ Under the hood, network traces and session logs are stored in **Cloud Trace** an
 
 &nbsp;
 
-If you have not completed these steps, follow the [general onboarding instructions](https://github.com/firebase/firebase-js-sdk/blob/crashlytics2/packages/crashlytics/README.md) before continuing with Logs and Breadcrumbs setup.
+If you have not completed these steps, follow the [general onboarding instructions](../README.md) before continuing with Logs and Breadcrumbs setup.
 
 &nbsp;
 
@@ -59,7 +59,34 @@ npm install @firebase/app@eap-crashlytics @firebase/crashlytics@eap-crashlytics
 
 &nbsp;
 
-### Step 3: Verify Logs & Breadcrumbs appear
+### Step 3: Add Breadcrumbs to your initialization
+
+Breadcrumbs are off by default. To turn them on, set `enableTracing: true` in the `CrashlyticsOptions` you pass when initializing Crashlytics. Follow the guide for your framework:
+
+&nbsp;
+
+- 🔺 [Next.js Setup Guide](../src/next/_enable_breadcrumbs.md)
+- ⚛️ [**React Setup Guide**](../src/react/_enable_breadcrumbs.md)
+- 🅰️ [**Angular Setup Guide**](../src/angular/_enable_breadcrumbs.md)
+
+&nbsp;
+
+If you initialize Crashlytics directly without a framework integration, pass the option to `getCrashlytics()`:
+
+&nbsp;
+
+```diff
+import { getCrashlytics } from '@firebase/crashlytics';
+
+-const crashlytics = getCrashlytics(app);
++const crashlytics = getCrashlytics(app, { enableTracing: true });
+```
+
+&nbsp;
+
+**Note:** Crashlytics must be initialized with the same options everywhere in your app. Calling `getCrashlytics()` with different options for the same app throws an error.
+
+### Step 4: Verify Logs & Breadcrumbs appear
 
 1. Run your application locally or deploy your app.
 2. Perform a few user actions:
@@ -82,7 +109,7 @@ throw new Error('Testing Breadcrumbs');
    - 🌐 `http_request`: `POST /api/cart` (200 OK, 142ms)
    - 💥 `error`: Uncaught Error: Testing Breadcrumbs
 
-### (Optional) Step 4: Setup Navigation Tracking&nbsp;
+### (Optional) Step 5: Setup Navigation Tracking&nbsp;
 
 By default, you will get activities like network tracing, click tracking, and document load times automatically. To enable navigation tracking, you will need to add framework specific configuration.
 
@@ -98,7 +125,7 @@ Repeat Step 3\. You should now see navigation events like
 
 - 📍 `route_change`: `/products/:id` (Screen view)
 
-### (Optional) Step 5: Add custom logs
+### (Optional) Step 6: Add custom logs
 
 In addition to automatic breadcrumbs (clicks, route changes, network requests, and page visibility events), you can emit custom diagnostic logs and attach key-value attributes anywhere in your application.
 
