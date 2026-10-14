@@ -433,7 +433,7 @@ describe('AttributesStore', () => {
         { appVersion: '1.2.3' }
       );
       const attributes = attributesStore.getSpanAttributes();
-      expect(attributes[SPAN_ATTR_KEY.APP_VERSION]).to.equal('1.2.3');
+      expect(attributes[SPAN_ATTR_KEY.SESSION_VERSION]).to.equal('1.2.3');
     });
 
     it("should set app version attribute to 'unset' if configured app version not available", () => {
@@ -442,7 +442,7 @@ describe('AttributesStore', () => {
         {}
       );
       const attributes = attributesStore.getSpanAttributes();
-      expect(attributes[SPAN_ATTR_KEY.APP_VERSION]).to.equal('unset');
+      expect(attributes[SPAN_ATTR_KEY.SESSION_VERSION]).to.equal('unset');
     });
   });
 });

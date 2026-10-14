@@ -33,8 +33,7 @@ export const ALREADY_LOGGED_FLAG = Symbol('firebase_crashlytics_logged');
 
 /** Label keys for resource attributes in tracing provider */
 export const RESOURCE_ATTRIBUTE_KEYS = {
-  GCP_FIREBASE_DOMAIN: 'gcp.firebase.domain',
-  GCP_PROJECT_ID: 'gcp.project_id'
+  GCP_FIREBASE_DOMAIN: 'gcp.firebase.domain'
 };
 
 /**

@@ -86,11 +86,6 @@ export function createTracingProvider(
   const region = crashlyticsOptions.region || DEFAULT_TELEMETRY_REGION;
 
   const resource = resourceFromAttributes({
-    ...(projectId
-      ? {
-          [RESOURCE_ATTRIBUTE_KEYS.GCP_PROJECT_ID]: projectId
-        }
-      : {}),
     [RESOURCE_ATTRIBUTE_KEYS.GCP_FIREBASE_DOMAIN]: window.location.hostname
   });
 
