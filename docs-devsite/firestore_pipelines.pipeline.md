@@ -22,6 +22,8 @@ export declare class Pipeline
 |  --- | --- | --- |
 |  [addFields(field, additionalFields)](./firestore_pipelines.pipeline.md#pipelineaddfields) |  | Adds new fields to outputs from previous stages.<!-- -->This stage allows you to compute values on-the-fly based on existing data from previous stages or constants. You can use this to create new fields or overwrite existing ones (if there is name overlaps).<!-- -->The added fields are defined using [Selectable](./firestore_lite_pipelines.selectable.md#selectable_interface)<!-- -->s, which can be:<ul> <li>[Field](./firestore_lite_pipelines.field.md#field_class)<!-- -->: References an existing document field.</li> <li>[Expression](./firestore_lite_pipelines.expression.md#expression_class)<!-- -->: Either a literal value (see [constant()](./firestore_lite_pipelines.md#constant_27f5011)<!-- -->) or a computed value with an assigned alias using [Expression.as()](./firestore_lite_pipelines.expression.md#expressionas)<!-- -->.</li> </ul> |
 |  [addFields(options)](./firestore_pipelines.pipeline.md#pipelineaddfields) |  | Adds new fields to outputs from previous stages.<!-- -->This stage allows you to compute values on-the-fly based on existing data from previous stages or constants. You can use this to create new fields or overwrite existing ones (if there is name overlaps).<!-- -->The added fields are defined using [Selectable](./firestore_lite_pipelines.selectable.md#selectable_interface)<!-- -->s, which can be:<ul> <li>[Field](./firestore_lite_pipelines.field.md#field_class)<!-- -->: References an existing document field.</li> <li>[Expression](./firestore_lite_pipelines.expression.md#expression_class)<!-- -->: Either a literal value (see [constant()](./firestore_lite_pipelines.md#constant_27f5011)<!-- -->) or a computed value with an assigned alias using [Expression.as()](./firestore_lite_pipelines.expression.md#expressionas)<!-- -->.</li> </ul> |
+|  [addWindowFields(window, field, additionalFields)](./firestore_pipelines.pipeline.md#pipelineaddwindowfields) |  | Adds window function results to the output documents of the pipeline.<!-- -->Window functions evaluate expressions over a subset of documents (a "window frame") relative to the current document: - In a <code>documents</code> frame, bounds are positional document counts relative to the current document's position (<code>'current'</code> refers strictly to the current document's position; ties are not included). For <code>preceding</code>, a positive integer (e.g. <code>2</code>) includes up to that many documents before the current document, and a negative integer (e.g. <code>-1</code>) indicates a boundary following the current document, enabling frames that start after the current document. For <code>following</code>, a positive integer (e.g. <code>2</code>) includes up to that many documents after the current document, and a negative integer (e.g. <code>-1</code>) indicates a boundary preceding the current document, enabling frames that end before the current document (e.g. excluding the current document). Specifying <code>sort</code> is optional. - In a <code>range</code> frame, bounds are value or time offsets relative to the current document's sort value(s) (<code>'current'</code> is peer-inclusive and includes all documents tied with the current document's sort value(s), equivalent to an offset of <code>0</code>). For <code>preceding</code>, a positive offset subtracts from the current document's sort value (looking into the past), and a negative offset adds to the current document's sort value (shifting the lower boundary past the current document). For <code>following</code>, a positive offset adds to the current document's sort value (looking into the future), and a negative offset subtracts from the current document's sort value (shifting the upper boundary before the current document). One or more <code>sort</code> expressions are required: range frames with numeric or time-unit offsets require a single numeric or timestamp <code>sort</code> expression, whereas range frames bounded only by <code>'current'</code> and <code>'unbounded'</code> support multiple <code>sort</code> expressions and non-numeric sort values (such as strings or booleans). - When neither <code>documents</code> nor <code>range</code> is specified, an unsorted window defaults to <code>documents</code> from <code>'unbounded'</code> preceding to <code>'unbounded'</code> following, and a sorted window defaults to <code>range</code> from <code>'unbounded'</code> preceding to <code>'current'</code> following (peer-inclusive). |
+|  [addWindowFields(options)](./firestore_pipelines.pipeline.md#pipelineaddwindowfields) |  | Adds window function results to the output documents of the pipeline using options. |
 |  [aggregate(accumulator, additionalAccumulators)](./firestore_pipelines.pipeline.md#pipelineaggregate) |  | Performs aggregation operations on the documents from previous stages.<!-- -->This stage allows you to calculate aggregate values over a set of documents. You define the aggregations to perform using [AliasedAggregate](./firestore_lite_pipelines.aliasedaggregate.md#aliasedaggregate_class) expressions which are typically results of calling [Expression.as()](./firestore_lite_pipelines.expression.md#expressionas) on [AggregateFunction](./firestore_lite_pipelines.aggregatefunction.md#aggregatefunction_class) instances. |
 |  [aggregate(options)](./firestore_pipelines.pipeline.md#pipelineaggregate) |  | Performs optionally grouped aggregation operations on the documents from previous stages.<!-- -->This stage allows you to calculate aggregate values over a set of documents, optionally grouped by one or more fields or functions. You can specify:<ul> <li>Grouping Fields or Functions: One or more fields or functions to group the documents by. For each distinct combination of values in these fields, a separate group is created. If no grouping fields are provided, a single group containing all documents is used. Not specifying groups is the same as putting the entire inputs into one group.</li> <li>Accumulators: One or more accumulation operations to perform within each group. These are defined using [AliasedAggregate](./firestore_lite_pipelines.aliasedaggregate.md#aliasedaggregate_class) expressions, which are typically created by calling [Expression.as()](./firestore_lite_pipelines.expression.md#expressionas) on [AggregateFunction](./firestore_lite_pipelines.aggregatefunction.md#aggregatefunction_class) instances. Each aggregation calculates a value (e.g., sum, average, count) based on the documents within its group.</li> </ul> |
 |  [define(aliasedExpression, additionalExpressions)](./firestore_pipelines.pipeline.md#pipelinedefine) |  | Defines one or more variables in the pipeline's scope. <code>define</code> is used to bind a value to a variable for internal reuse within the pipeline body (accessed via the <code>variable()</code> function).<!-- -->This stage is useful for declaring reusable values or intermediate calculations that can be referenced multiple times in later parts of the pipeline, improving readability and maintainability.<!-- -->Each variable is defined using an [AliasedExpression](./firestore_lite_pipelines.aliasedexpression.md#aliasedexpression_class)<!-- -->, which pairs an expression with a name (alias). The expression can be a simple constant, a field reference, or a complex computation. |
@@ -133,6 +135,143 @@ firestore.pipeline().collection("books")
     field("rating").as("bookRating"), // Rename 'rating' to 'bookRating'
     add(field("quantity"), 5).as("totalCost")  // Calculate 'totalCost'
   );
+
+```
+
+## Pipeline.addWindowFields()
+
+Adds window function results to the output documents of the pipeline.
+
+Window functions evaluate expressions over a subset of documents (a "window frame") relative to the current document: - In a `documents` frame, bounds are positional document counts relative to the current document's position (`'current'` refers strictly to the current document's position; ties are not included). For `preceding`<!-- -->, a positive integer (e.g. `2`<!-- -->) includes up to that many documents before the current document, and a negative integer (e.g. `-1`<!-- -->) indicates a boundary following the current document, enabling frames that start after the current document. For `following`<!-- -->, a positive integer (e.g. `2`<!-- -->) includes up to that many documents after the current document, and a negative integer (e.g. `-1`<!-- -->) indicates a boundary preceding the current document, enabling frames that end before the current document (e.g. excluding the current document). Specifying `sort` is optional. - In a `range` frame, bounds are value or time offsets relative to the current document's sort value(s) (`'current'` is peer-inclusive and includes all documents tied with the current document's sort value(s), equivalent to an offset of `0`<!-- -->). For `preceding`<!-- -->, a positive offset subtracts from the current document's sort value (looking into the past), and a negative offset adds to the current document's sort value (shifting the lower boundary past the current document). For `following`<!-- -->, a positive offset adds to the current document's sort value (looking into the future), and a negative offset subtracts from the current document's sort value (shifting the upper boundary before the current document). One or more `sort` expressions are required: range frames with numeric or time-unit offsets require a single numeric or timestamp `sort` expression, whereas range frames bounded only by `'current'` and `'unbounded'` support multiple `sort` expressions and non-numeric sort values (such as strings or booleans). - When neither `documents` nor `range` is specified, an unsorted window defaults to `documents` from `'unbounded'` preceding to `'unbounded'` following, and a sorted window defaults to `range` from `'unbounded'` preceding to `'current'` following (peer-inclusive).
+
+<b>Signature:</b>
+
+```typescript
+addWindowFields(
+    window: WindowSpec,
+    field: AliasedAggregate | AliasedWindowFunction,
+    ...additionalFields: Array<AliasedAggregate | AliasedWindowFunction>
+  ): Pipeline;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  window | [WindowSpec](./firestore_pipelines.md#windowspec) | The specification defining how documents are partitioned, ordered, and bounded in the window frame. |
+|  field | [AliasedAggregate](./firestore_pipelines.aliasedaggregate.md#aliasedaggregate_class) \| [AliasedWindowFunction](./firestore_pipelines.aliasedwindowfunction.md#aliasedwindowfunction_class) | The first window field to add, specified as an [AliasedAggregate](./firestore_lite_pipelines.aliasedaggregate.md#aliasedaggregate_class)<!-- -->. |
+|  additionalFields | Array&lt;[AliasedAggregate](./firestore_pipelines.aliasedaggregate.md#aliasedaggregate_class) \| [AliasedWindowFunction](./firestore_pipelines.aliasedwindowfunction.md#aliasedwindowfunction_class)<!-- -->&gt; | Optional additional window fields to add to the documents. |
+
+<b>Returns:</b>
+
+[Pipeline](./firestore_pipelines.pipeline.md#pipeline_class)
+
+A new Pipeline object with this stage appended to the stage list.
+
+### Example
+
+
+```typescript
+// 1. Unsorted partition/group aggregation (evaluates over the entire group)
+firestore.pipeline().collection("employees")
+  .addWindowFields(
+    {
+      partition: ['department']
+    },
+    average(field('salary')).as('departmentAverageSalary')
+  );
+
+// 2. Document-based moving average with explicit boundaries
+firestore.pipeline().collection("sales")
+  .addWindowFields(
+    {
+      sort: ascending('date'),
+      documents: { preceding: 1, following: 1 }
+    },
+    average(field('amount')).as('movingAverageAmount')
+  );
+
+// 3. Document-based running total (unbounded preceding to current document's position; ties are not included).
+// Note: Offsets are physical document counts, so no time unit is required or used even when sorting on 'date'.
+firestore.pipeline().collection("sales")
+  .addWindowFields(
+    {
+      sort: ascending('date'),
+      documents: { preceding: 'unbounded', following: 'current' }
+    },
+    sum(field('amount')).as('runningTotal')
+  );
+
+// 4. Range-based running average (unbounded preceding to current sort value, including all tied peers)
+firestore.pipeline().collection("products")
+  .addWindowFields(
+    {
+      sort: ascending('price'),
+      range: { preceding: 'unbounded', following: 'current' }
+    },
+    average(field('rating')).as('cumulativeAvgRating')
+  );
+
+// 5. Range-based date/time window with a time unit (cumulative sales over the last 30 days)
+firestore.pipeline().collection("sales")
+  .addWindowFields(
+    {
+      sort: ascending('date'),
+      range: { preceding: 30, following: 'current', unit: 'day' }
+    },
+    sum(field('amount')).as('thirtyDayCumulativeSales')
+  );
+
+```
+
+## Pipeline.addWindowFields()
+
+Adds window function results to the output documents of the pipeline using options.
+
+<b>Signature:</b>
+
+```typescript
+addWindowFields(options: AddWindowFieldsStageOptions): Pipeline;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  options | [AddWindowFieldsStageOptions](./firestore_pipelines.md#addwindowfieldsstageoptions) | An object specifying the window frame configuration and the fields to add. |
+
+<b>Returns:</b>
+
+[Pipeline](./firestore_pipelines.pipeline.md#pipeline_class)
+
+A new Pipeline object with this stage appended to the stage list.
+
+### Example
+
+
+```typescript
+// 1. Unsorted partition/group aggregation using options
+firestore.pipeline().collection("employees")
+  .addWindowFields({
+    window: {
+      partition: ['department']
+    },
+    fields: [
+      average(field('salary')).as('departmentAverageSalary')
+    ]
+  });
+
+// 2. Document-based moving average using options
+firestore.pipeline().collection("sales")
+  .addWindowFields({
+    window: {
+      sort: ascending('date'),
+      documents: { preceding: 1, following: 1 }
+    },
+    fields: [
+      average(field('amount')).as('movingAverageAmount')
+    ]
+  });
 
 ```
 
