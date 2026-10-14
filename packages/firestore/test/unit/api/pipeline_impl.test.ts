@@ -1119,7 +1119,7 @@ describe('stage serialization', () => {
           .pipeline()
           .literals([new CustomDoc() as unknown as Record<string, unknown>]);
       }).to.throw(
-        'Function literals() requires each document to be a plain object.'
+        'The literals() function requires each document to be a plain object.'
       );
     });
   });

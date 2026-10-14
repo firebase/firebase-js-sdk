@@ -56,8 +56,8 @@ declare module './database' {
  *
  * The pipeline results are returned as a {@link @firebase/firestore/pipelines#PipelineSnapshot} that contains
  * a list of {@link @firebase/firestore/pipelines#PipelineResult} objects. Each {@link @firebase/firestore/pipelines#PipelineResult} typically
- * represents a single key/value map that has passed through all the
- * stages of the pipeline, however this might differ depending on the stages involved in the
+ * represents a single key-value map that has passed through all the
+ * stages of the pipeline; however, this might differ depending on the stages involved in the
  * pipeline. For example:
  *
  * <ul>

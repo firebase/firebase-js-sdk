@@ -1608,11 +1608,17 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
   /**
    * Performs an update operation using documents from previous stages.
    *
+   * Each input document is written to the path in its `__name__` field. See
+   * {@link @firebase/firestore/pipelines#UpdateStageOptions} for details.
+   *
    * @returns A new {@link @firebase/firestore/pipelines#Pipeline} object with this stage appended to the stage list.
    */
   update(): Pipeline;
   /**
    * Performs an update operation using documents from previous stages.
+   *
+   * Each input document is written to the path in its `__name__` field. See
+   * {@link @firebase/firestore/pipelines#UpdateStageOptions} for details.
    *
    * @param transformedField - The first transformation to apply.
    * @param additionalFields - Additional transformations to apply.
@@ -1650,11 +1656,19 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
   /**
    * Performs an insert operation using documents from previous stages.
    *
+   * Each input document is inserted at the path in its `__name__` field. The
+   * operation fails if a target document already exists. See
+   * {@link @firebase/firestore/pipelines#InsertStageOptions} for details.
+   *
    * @returns A new {@link @firebase/firestore/pipelines#Pipeline} object with this stage appended to the stage list.
    */
   insert(): Pipeline;
   /**
    * Performs an insert operation with options.
+   *
+   * The operation fails if a target document already exists. See
+   * {@link @firebase/firestore/pipelines#InsertStageOptions} for how the
+   * target path is determined.
    *
    * @param options - Options defining the collection and document ID.
    * @returns A new {@link @firebase/firestore/pipelines#Pipeline} object with this stage appended to the stage list.
@@ -1667,11 +1681,17 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
   /**
    * Performs an upsert operation using documents from previous stages.
    *
+   * Each input document is written to the path in its `__name__` field. See
+   * {@link @firebase/firestore/pipelines#UpsertStageOptions} for details.
+   *
    * @returns A new {@link @firebase/firestore/pipelines#Pipeline} object with this stage appended to the stage list.
    */
   upsert(): Pipeline;
   /**
    * Performs an upsert operation using documents from previous stages.
+   *
+   * Each input document is written to the path in its `__name__` field. See
+   * {@link @firebase/firestore/pipelines#UpsertStageOptions} for details.
    *
    * @param additionalField - The first additional field to apply.
    * @param additionalFields - Additional fields to apply.
@@ -1683,6 +1703,9 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
   ): Pipeline;
   /**
    * Performs an upsert operation with options.
+   *
+   * See {@link @firebase/firestore/pipelines#UpsertStageOptions} for how the
+   * target path is determined.
    *
    * @param options - Options defining the target collection, document ID, and additional fields.
    * @returns A new {@link @firebase/firestore/pipelines#Pipeline} object with this stage appended to the stage list.
