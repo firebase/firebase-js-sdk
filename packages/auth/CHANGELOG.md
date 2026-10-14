@@ -1,5 +1,11 @@
 # @firebase/auth
 
+## 1.13.7
+
+### Patch Changes
+
+- [`410d620`](https://github.com/firebase/firebase-js-sdk/commit/410d6208d7f9e150bc5918e72184701229838f8d) [#10418](https://github.com/firebase/firebase-js-sdk/pull/10418) (fixes [#10402](https://github.com/firebase/firebase-js-sdk/issues/10402)) - Preserve the persisted user during Auth initialization when the initial user reload fails due to a transient quota (`auth/quota-exceeded`) or rate-limit (`auth/too-many-requests`) error.
+
 ## 1.13.6
 
 ### Patch Changes

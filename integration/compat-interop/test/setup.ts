@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +15,8 @@
  * limitations under the License.
  */
 
-import { SinonSpy, SinonStub } from 'sinon';
-
-// Helper types for Sinon stubs and spies.
-
-export type Stub<T extends (...args: any) => any> = SinonStub<
-  Parameters<T>,
-  ReturnType<T>
->;
-
-export type Spy<T extends (...args: any) => any> = SinonSpy<
-  Parameters<T>,
-  ReturnType<T>
->;
+afterEach(() => {
+  vi.useRealTimers();
+  vi.resetAllMocks();
+  vi.restoreAllMocks();
+});

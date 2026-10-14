@@ -16,7 +16,6 @@
  */
 
 import { getModularInstance } from '@firebase/util';
-import { expect } from 'chai';
 import { getMessaging } from '@firebase/messaging';
 import firebase from '@firebase/app-compat';
 import '@firebase/messaging-compat';
@@ -30,6 +29,6 @@ const modularMessaging = getMessaging();
 
 describe('Messaging compat interop', () => {
   it('Messaging compat instance references modular Messaging instance', () => {
-    expect(getModularInstance(compatMessaging)).to.equal(modularMessaging);
+    expect(getModularInstance(compatMessaging)).toBe(modularMessaging);
   });
 });
