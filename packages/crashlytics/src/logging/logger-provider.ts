@@ -84,9 +84,7 @@ export function createLoggerProvider(
   const otlpEndpoint = `${endpointUrl}/v1/projects/${projectId}/apps/${appId}/locations/${region}/logs`;
 
   const resource = resourceFromAttributes({
-    [ATTR_SERVICE_NAME]: 'firebase_telemetry_service',
-    'firebase.project_id': projectId || '',
-    'firebase.app_id': appId || ''
+    [ATTR_SERVICE_NAME]: 'firebase_telemetry_service'
   });
 
   const logExporter = new OTLPLogExporter(

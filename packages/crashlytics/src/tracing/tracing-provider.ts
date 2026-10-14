@@ -46,9 +46,9 @@ import { OnErrorSpanProcessor } from './on-error-span-processor';
 import { JsonTraceSerializer } from '@opentelemetry/otlp-transformer';
 import { FetchTransport } from '../fetch-transport';
 import {
-  RESOURCE_ATTRIBUTE_KEYS,
   DEFAULT_TELEMETRY_ENDPOINT,
-  DEFAULT_TELEMETRY_REGION
+  DEFAULT_TELEMETRY_REGION,
+  GCP_FIREBASE_DOMAIN
 } from '../constants';
 import { CrashlyticsOptions } from '../public-types';
 
@@ -86,11 +86,7 @@ export function createTracingProvider(
   const region = crashlyticsOptions.region || DEFAULT_TELEMETRY_REGION;
 
   const resource = resourceFromAttributes({
-    [RESOURCE_ATTRIBUTE_KEYS.CLOUD_RESOURCE_ID]: `//firebasetelemetry.googleapis.com/projects/${projectId}/locations/${region}/`,
-    [RESOURCE_ATTRIBUTE_KEYS.GCP_FIREBASE_APP_ID]: appId,
-    [RESOURCE_ATTRIBUTE_KEYS.GCP_FIREBASE_DOMAIN]: window.location.hostname,
-    [RESOURCE_ATTRIBUTE_KEYS.SERVICE_NAMESPACE]: `//firebasetelemetry.googleapis.com/projects/${projectId}`,
-    [RESOURCE_ATTRIBUTE_KEYS.GCP_PROJECT_ID]: projectId
+    [GCP_FIREBASE_DOMAIN]: window.location.hostname
   });
 
   if (endpointUrl.endsWith('/')) {

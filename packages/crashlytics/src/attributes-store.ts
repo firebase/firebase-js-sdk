@@ -38,8 +38,8 @@ export const LOG_ATTR_KEY = {
 
 export const SPAN_ATTR_KEY = {
   GCP_RESOURCE_NAME: 'gcp.resource.name',
-  GCP_FIREBASE_SESSION_ID: 'gcp.firebase.session_id',
-  GCP_FIREBASE_APP_VERSION: 'gcp.firebase.app_version',
+  SESSION_ID: 'session.id',
+  SERVICE_VERSION: 'service.version',
   APP_SCREEN_ID: 'app.screen.id'
 };
 
@@ -173,10 +173,10 @@ export class AttributesStore {
     }
 
     if (this._appVersion) {
-      attributes[SPAN_ATTR_KEY.GCP_FIREBASE_APP_VERSION] = this._appVersion;
+      attributes[SPAN_ATTR_KEY.SERVICE_VERSION] = this._appVersion;
     }
     if (this._sessionId) {
-      attributes[SPAN_ATTR_KEY.GCP_FIREBASE_SESSION_ID] = this._sessionId;
+      attributes[SPAN_ATTR_KEY.SESSION_ID] = this._sessionId;
     }
 
     const path = this._routePathProvider?.();
