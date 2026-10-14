@@ -33,7 +33,10 @@ import {
 } from '../remote/serializer';
 import { hardAssert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
-import { isPlainObject } from '../util/input_validation';
+import {
+  isPlainObject,
+  validateNonEmptyArgument
+} from '../util/input_validation';
 import { fieldOrExpression, selectablesToMap } from '../util/pipeline_util';
 
 import {
@@ -1078,7 +1081,12 @@ export class Insert extends Stage {
   constructor(options: InsertStageOptions = {}) {
     const { collection, documentIdExpression, ...rest } = options;
     super(rest);
-    if (collection) {
+    if (collection !== undefined) {
+      validateNonEmptyArgument(
+        'insert',
+        'collection path',
+        typeof collection === 'string' ? collection : collection.path
+      );
       this.collectionPath = normalizeCollectionPath(collection);
     }
     if (documentIdExpression) {
@@ -1132,7 +1140,12 @@ export class Upsert extends Stage {
       options;
     super(rest);
     this.additionalFields = selectablesToMap(additionalFields ?? []);
-    if (collection) {
+    if (collection !== undefined) {
+      validateNonEmptyArgument(
+        'upsert',
+        'collection path',
+        typeof collection === 'string' ? collection : collection.path
+      );
       this.collectionPath = normalizeCollectionPath(collection);
     }
     if (documentIdExpression) {

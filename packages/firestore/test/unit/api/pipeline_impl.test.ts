@@ -664,6 +664,22 @@ describe('stage serialization', () => {
         count: { integerValue: '42' }
       });
     });
+
+    it('throws on empty collection path in insert and upsert stages', () => {
+      const firestore = newTestFirestore();
+
+      expect(() => {
+        firestore.pipeline().collection('foo').insert({ collection: '' });
+      }).to.throw(
+        'Function insert() cannot be called with an empty collection path.'
+      );
+
+      expect(() => {
+        firestore.pipeline().collection('foo').upsert({ collection: '' });
+      }).to.throw(
+        'Function upsert() cannot be called with an empty collection path.'
+      );
+    });
   });
 
   describe('delete stage', () => {
