@@ -27,18 +27,17 @@ export interface PipelineExecuteOptions {
   pipeline: Pipeline;
 
   /**
-   * Controls whether the pipeline executes atomically in a single server-side
-   * transaction.
+   * If `true`, the pipeline is executed in a new read-write transaction that
+   * is committed automatically when the pipeline completes, so all writes
+   * made by DML stages (`insert`, `upsert`, `update`, `delete`) succeed or
+   * fail together.
    *
-   * - When `true`, all reads and DML writes (`insert`, `update`, `upsert`,
-   *   `delete`) in the pipeline are executed atomically inside a single
-   *   server-managed transaction: either all writes commit together or none
-   *   are applied.
-   * - When `false`, the pipeline executes non-atomically (`ATOMICITY_NONE`).
-   *   Wait/lock overhead is avoided, and if execution fails partway through,
-   *   writes from earlier documents in the pipeline may remain committed.
-   * - When omitted (`undefined`), the Firestore backend applies its default
-   *   atomicity mode for the pipeline (`ATOMICITY_UNSPECIFIED`).
+   * If `false` or omitted, DML writes are applied per document without a
+   * transaction, and the pipeline may partially succeed. Some DML pipelines
+   * (e.g. an `upsert` from a `literals()` source) can only be executed
+   * atomically, and are otherwise rejected with "The non-transactional DML
+   * operation was rejected because it was impossible to guarantee
+   * document-level atomicity."
    */
   atomic?: boolean;
 

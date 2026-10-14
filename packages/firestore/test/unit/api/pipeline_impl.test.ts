@@ -1126,17 +1126,5 @@ describe('stage serialization', () => {
         'Function literals() requires an array of document objects or a LiteralsStageOptions object with a documents array.'
       );
     });
-
-    it('rejects non-plain-object elements in literals() documents array', () => {
-      const firestore = newTestFirestore();
-      class CustomDoc {}
-      expect(() => {
-        firestore
-          .pipeline()
-          .literals([new CustomDoc() as unknown as Record<string, unknown>]);
-      }).to.throw(
-        'The literals() function requires each document to be a plain object.'
-      );
-    });
   });
 });

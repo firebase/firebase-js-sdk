@@ -463,14 +463,6 @@ export class LiteralsSource extends Stage {
     options: StageOptions = {}
   ) {
     super(options);
-    for (const doc of documents) {
-      if (!isPlainObject(doc)) {
-        throw new FirestoreError(
-          Code.INVALID_ARGUMENT,
-          'The literals() function requires each document to be a plain object.'
-        );
-      }
-    }
   }
 
   _readUserData(context: ParseContext): void {
