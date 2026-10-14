@@ -24,7 +24,7 @@ If you have not completed these steps, follow the [general onboarding instructio
 
 ### Step 1: Enable Crashlytics Logs and Breadcrumbs
 
-Run the following commands using Firebase CLI v15.19.1+:
+Run the following command using Firebase CLI v15.19.1+:
 
 ```sh
 # 1. Enable the logs breadcrumbs experiment and APIs
