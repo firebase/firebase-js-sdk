@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import { EventsAccumulator } from '../util/events_accumulator';
 import {
@@ -75,39 +73,39 @@ apiDescribe('Server Timestamps', persistence => {
     return setDoc(docRef, initialData)
       .then(() => accumulator.awaitEvent())
       .then(initialDataSnap => {
-        expect(initialDataSnap.data()).to.deep.equal(initialData);
+        expect(initialDataSnap.data()).toEqual(initialData);
       });
   }
 
   /** Verifies a snapshot containing setData but with resolved server timestamps. */
   function verifyTimestampsAreResolved(snap: DocumentSnapshot): void {
-    expect(snap.exists()).to.equal(true);
+    expect(snap.exists()).toBe(true);
     const when = snap.get('when');
-    expect(when).to.be.an.instanceof(Timestamp);
+    expect(when).toBeInstanceOf(Timestamp);
     // Tolerate up to 60 seconds of clock skew between client and server
     // since web tests may run in a Windows VM with a sloppy clock.
     const delta = 60;
-    expect(Math.abs(when.toDate().getTime() - Date.now())).to.be.lessThan(
+    expect(Math.abs(when.toDate().getTime() - Date.now())).toBeLessThan(
       delta * 1000
     );
 
     // Validate the rest of the document.
-    expect(snap.data()).to.deep.equal(expectedDataWithTimestamp(when));
+    expect(snap.data()).toEqual(expectedDataWithTimestamp(when));
   }
 
   /** Verifies a snapshot containing setData but with null for the timestamps. */
   function verifyTimestampsAreNull(snap: DocumentSnapshot): void {
-    expect(snap.exists()).to.equal(true);
-    expect(snap.data()).to.deep.equal(expectedDataWithTimestamp(null));
+    expect(snap.exists()).toBe(true);
+    expect(snap.data()).toEqual(expectedDataWithTimestamp(null));
   }
 
   /** Verifies a snapshot containing setData but with local estimates for server timestamps. */
   function verifyTimestampsAreEstimates(snap: DocumentSnapshot): void {
-    expect(snap.exists()).to.equal(true);
+    expect(snap.exists()).toBe(true);
     const when = snap.get('when', { serverTimestamps: 'estimate' });
-    expect(when).to.be.an.instanceof(Timestamp);
+    expect(when).toBeInstanceOf(Timestamp);
     // Validate the rest of the document.
-    expect(snap.data({ serverTimestamps: 'estimate' })).to.deep.equal(
+    expect(snap.data({ serverTimestamps: 'estimate' })).toEqual(
       expectedDataWithTimestamp(when)
     );
   }
@@ -133,7 +131,7 @@ apiDescribe('Server Timestamps', persistence => {
       return accumulator
         .awaitEvent()
         .then(docSnap => {
-          expect(docSnap.exists()).to.equal(false);
+          expect(docSnap.exists()).toBe(false);
         })
         .then(() => test())
         .then(() => {
@@ -206,9 +204,7 @@ apiDescribe('Server Timestamps', persistence => {
         .then(() => accumulator.awaitLocalEvent())
         .then(snapshot => {
           // Verify that we can still obtain the number.
-          expect(snapshot.get('a', { serverTimestamps: 'previous' })).to.equal(
-            42
-          );
+          expect(snapshot.get('a', { serverTimestamps: 'previous' })).toBe(42);
         });
     });
   });
@@ -228,17 +224,17 @@ apiDescribe('Server Timestamps', persistence => {
         })
         .then(snapshots => {
           // Both snapshot use the initial value (42) as the previous value.
-          expect(
-            snapshots[0].get('a', { serverTimestamps: 'previous' })
-          ).to.equal(42);
-          expect(
-            snapshots[1].get('a', { serverTimestamps: 'previous' })
-          ).to.equal(42);
+          expect(snapshots[0].get('a', { serverTimestamps: 'previous' })).toBe(
+            42
+          );
+          expect(snapshots[1].get('a', { serverTimestamps: 'previous' })).toBe(
+            42
+          );
           return enableNetwork(firestore);
         })
         .then(() => accumulator.awaitRemoteEvent())
         .then(remoteSnapshot => {
-          expect(remoteSnapshot.get('a')).to.be.an.instanceof(Timestamp);
+          expect(remoteSnapshot.get('a')).toBeInstanceOf(Timestamp);
         });
     });
   });
@@ -256,18 +252,18 @@ apiDescribe('Server Timestamps', persistence => {
         })
         .then(snapshots => {
           // The first snapshot uses the initial value (42) as the previous value.
-          expect(
-            snapshots[0].get('a', { serverTimestamps: 'previous' })
-          ).to.equal(42);
+          expect(snapshots[0].get('a', { serverTimestamps: 'previous' })).toBe(
+            42
+          );
           // The third snapshot uses the intermediate value as the previous value.
-          expect(
-            snapshots[2].get('a', { serverTimestamps: 'previous' })
-          ).to.equal(1337);
+          expect(snapshots[2].get('a', { serverTimestamps: 'previous' })).toBe(
+            1337
+          );
           return enableNetwork(firestore);
         })
         .then(() => accumulator.awaitRemoteEvent())
         .then(remoteSnapshot => {
-          expect(remoteSnapshot.get('a')).to.be.an.instanceof(Timestamp);
+          expect(remoteSnapshot.get('a')).toBeInstanceOf(Timestamp);
         });
     });
   });
@@ -277,7 +273,7 @@ apiDescribe('Server Timestamps', persistence => {
       return updateDoc(docRef, updateData).then(
         () => Promise.reject('Should not have succeeded!'),
         (error: FirestoreError) => {
-          expect(error.code).to.equal('not-found');
+          expect(error.code).toBe('not-found');
         }
       );
     });
@@ -290,7 +286,7 @@ apiDescribe('Server Timestamps', persistence => {
       }).then(
         () => Promise.reject('Should not have succeeded!'),
         (error: FirestoreError) => {
-          expect(error.code).to.equal('not-found');
+          expect(error.code).toBe('not-found');
         }
       )
     );

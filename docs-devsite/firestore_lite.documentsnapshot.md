@@ -17,7 +17,10 @@ For a `DocumentSnapshot` that points to a non-existing document, any data access
 <b>Signature:</b>
 
 ```typescript
-export declare class DocumentSnapshot<AppModelType = DocumentData, DbModelType extends DocumentData = DocumentData> 
+export declare class DocumentSnapshot<
+  AppModelType = DocumentData,
+  DbModelType extends DocumentData = DocumentData
+> 
 ```
 
 ## Constructors

@@ -44,10 +44,13 @@ export async function getPhoneVerificationCodes(): Promise<
   const url = buildEmulatorUrlForPath('verificationCodes');
   const response: VerificationCodesResponse = await (await doFetch(url)).json();
 
-  return response.verificationCodes.reduce((accum, session) => {
-    accum[session.sessionInfo] = session;
-    return accum;
-  }, {} as Record<string, VerificationSession>);
+  return response.verificationCodes.reduce(
+    (accum, session) => {
+      accum[session.sessionInfo] = session;
+      return accum;
+    },
+    {} as Record<string, VerificationSession>
+  );
 }
 
 export async function getOobCodes(): Promise<OobCodeSession[]> {

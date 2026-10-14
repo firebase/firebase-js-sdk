@@ -33,17 +33,19 @@ async function submitPaymentForm() {
 
 ---
 
-## Custom Attributes
+## Custom Logs & Attributes
 
-Unlike native iOS and Android SDK architectures, the JavaScript Web SDK does **not** expose a standalone `log()` API (e.g. `crashlytics.log()`).
-
-- **Resolution**: Log user activities, session states, and diagnostic details directly as key-value custom attributes using the optional metadata parameter in `recordError()`:
+You can send custom diagnostic logs and attach arbitrary key-value attributes using `log()`:
 
 ```typescript
-// Custom metadata takes the place of typical logging streams
-recordError(crashlytics, error, {
-  breadcrumb: "User opened shopping cart",
-  lastAction: "Click Checkout Button"
+import { log, getCrashlytics } from '@firebase/crashlytics';
+import { getApp } from '@firebase/app';
+
+const crashlytics = getCrashlytics(getApp());
+
+log(crashlytics, 'User opened shopping cart', {
+  itemCount: 3,
+  couponApplied: true
 });
 ```
 

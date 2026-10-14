@@ -26,11 +26,11 @@ export declare abstract class AIModel
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [model](./ai.aimodel.md#aimodelmodel) |  | string | The fully qualified model resource name to use for generating images (for example, <code>publishers/google/models/imagen-3.0-generate-002</code>). |
+|  [model](./ai.aimodel.md#aimodelmodel) |  | string | The fully qualified model resource name (for example, <code>publishers/google/models/gemini-3.6-flash</code>). |
 
 ## AIModel.model
 
-The fully qualified model resource name to use for generating images (for example, `publishers/google/models/imagen-3.0-generate-002`<!-- -->).
+The fully qualified model resource name (for example, `publishers/google/models/gemini-3.6-flash`<!-- -->).
 
 <b>Signature:</b>
 

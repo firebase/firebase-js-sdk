@@ -29,6 +29,9 @@ const buildPlugins = [
   typescriptPlugin({
     typescript,
     tsconfigOverride: {
+      compilerOptions: {
+        preserveConstEnums: true
+      },
       exclude: [...tsconfig.exclude, '**/*.test.ts']
     }
   })

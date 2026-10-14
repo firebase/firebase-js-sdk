@@ -62,8 +62,7 @@ export interface ProviderCredentialsSettings {
 
 /** Settings for private credentials */
 export type CredentialsSettings =
-  | FirstPartyCredentialsSettings
-  | ProviderCredentialsSettings;
+  FirstPartyCredentialsSettings | ProviderCredentialsSettings;
 
 export type TokenType = 'OAuth' | 'FirstParty' | 'AppCheck';
 export interface Token {
@@ -85,7 +84,10 @@ export class OAuthToken implements Token {
   type = 'OAuth' as TokenType;
   headers = new Map();
 
-  constructor(value: string, public user: User) {
+  constructor(
+    value: string,
+    public user: User
+  ) {
     this.headers.set('Authorization', `Bearer ${value}`);
   }
 }
@@ -152,9 +154,7 @@ export class EmptyAuthCredentialsProvider implements CredentialsProvider<User> {
  * A CredentialsProvider that always returns a constant token. Used for
  * emulator token mocking.
  */
-export class EmulatorAuthCredentialsProvider
-  implements CredentialsProvider<User>
-{
+export class EmulatorAuthCredentialsProvider implements CredentialsProvider<User> {
   constructor(private token: Token) {}
 
   /**
@@ -231,9 +231,7 @@ export class LiteAuthCredentialsProvider implements CredentialsProvider<User> {
   shutdown(): void {}
 }
 
-export class FirebaseAuthCredentialsProvider
-  implements CredentialsProvider<User>
-{
+export class FirebaseAuthCredentialsProvider implements CredentialsProvider<User> {
   /**
    * The auth token listener registered with FirebaseApp, retained here so we
    * can unregister it.
@@ -449,9 +447,7 @@ export class FirstPartyToken implements Token {
  * to authenticate the user, using technique that is only available
  * to applications hosted by Google.
  */
-export class FirstPartyAuthCredentialsProvider
-  implements CredentialsProvider<User>
-{
+export class FirstPartyAuthCredentialsProvider implements CredentialsProvider<User> {
   constructor(
     private sessionIndex: string,
     private iamToken: string | null,
@@ -492,9 +488,7 @@ export class AppCheckToken implements Token {
   }
 }
 
-export class FirebaseAppCheckTokenProvider
-  implements CredentialsProvider<string>
-{
+export class FirebaseAppCheckTokenProvider implements CredentialsProvider<string> {
   /**
    * The AppCheck token listener registered with FirebaseApp, retained here so
    * we can unregister it.

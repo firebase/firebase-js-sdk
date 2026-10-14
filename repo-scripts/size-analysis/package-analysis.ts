@@ -100,9 +100,8 @@ export async function analyzePackageSize(
       writeFiles = true;
     }
 
-    const reports: Report[] = await generateReportForModules(
-      allModulesLocation
-    );
+    const reports: Report[] =
+      await generateReportForModules(allModulesLocation);
     if (writeFiles) {
       for (const report of reports) {
         writeReportToDirectory(

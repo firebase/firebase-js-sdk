@@ -84,11 +84,7 @@ export interface OnDisconnect {
 }
 
 type EventType =
-  | 'value'
-  | 'child_added'
-  | 'child_changed'
-  | 'child_moved'
-  | 'child_removed';
+  'value' | 'child_added' | 'child_changed' | 'child_moved' | 'child_removed';
 
 export interface Query {
   endBefore(value: number | string | boolean | null, key?: string): Query;
@@ -163,8 +159,7 @@ export interface TransactionResult {
 }
 
 export interface ThenableReference
-  extends Reference,
-    Pick<Promise<Reference>, 'then' | 'catch'> {
+  extends Reference, Pick<Promise<Reference>, 'then' | 'catch'> {
   key: string;
   parent: Reference;
 }

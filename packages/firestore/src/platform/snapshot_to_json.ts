@@ -22,9 +22,9 @@ import { Document } from '../model/document';
 
 // This file is only used under ts-node.
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const platform = require(`./${
-  process.env.TEST_PLATFORM ?? 'node'
-}/snapshot_to_json`);
+const platform = require(
+  `./${process.env.TEST_PLATFORM ?? 'node'}/snapshot_to_json`
+);
 
 /**
  * Constructs the bundle data for a DocumentSnapshot used in its toJSON serialization.

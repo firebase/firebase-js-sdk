@@ -15,18 +15,18 @@ https://github.com/firebase/firebase-js-sdk
 
 |  Function | Description |
 |  --- | --- |
-|  [FirebaseCrashlytics({ firebaseApp, crashlyticsOptions })](./crashlytics_react.md#firebasecrashlytics_c141224) | Registers event listeners for uncaught errors.<!-- -->This should be installed near the root of your application. Caught errors, including those implicitly caught by Error Boundaries, will not be captured by this component. |
+|  [FirebaseCrashlytics({ firebaseApp, crashlyticsOptions }, input)](./crashlytics_react.md#firebasecrashlytics_097ca29) | Registers event listeners for uncaught errors.<!-- -->This should be installed near the root of your application. Caught errors, including those implicitly caught by Error Boundaries, will not be captured by this component. |
 
 ## Interfaces
 
 |  Interface | Description |
 |  --- | --- |
-|  [Crashlytics](./crashlytics_react.crashlytics.md#crashlytics_interface) | An instance of the Firebase Crashlytics SDK.<!-- -->Do not create this instance directly. Instead, use [getCrashlytics()](./crashlytics_.md#getcrashlytics_a9d22a1)<!-- -->. |
-|  [CrashlyticsOptions](./crashlytics_react.crashlyticsoptions.md#crashlyticsoptions_interface) | Options for initializing the Crashlytics service using [getCrashlytics()](./crashlytics_.md#getcrashlytics_a9d22a1)<!-- -->. |
+|  [Crashlytics](./crashlytics_react.crashlytics.md#crashlytics_interface) | An instance of the Firebase Crashlytics SDK.<!-- -->Do not create this instance directly. Instead, use [getCrashlytics()](./crashlytics.md#getcrashlytics_a9d22a1)<!-- -->. |
+|  [CrashlyticsOptions](./crashlytics_react.crashlyticsoptions.md#crashlyticsoptions_interface) | Options for initializing the Crashlytics service using [getCrashlytics()](./crashlytics.md#getcrashlytics_a9d22a1)<!-- -->. |
 
 ## function({ firebaseApp, crashlyticsOptions }, ...)
 
-### FirebaseCrashlytics({ firebaseApp, crashlyticsOptions }) {:#firebasecrashlytics_c141224}
+### FirebaseCrashlytics({ firebaseApp, crashlyticsOptions }, input) {:#firebasecrashlytics_097ca29}
 
 Registers event listeners for uncaught errors.
 
@@ -35,7 +35,7 @@ This should be installed near the root of your application. Caught errors, inclu
 <b>Signature:</b>
 
 ```typescript
-export declare function FirebaseCrashlytics({ firebaseApp, crashlyticsOptions }: {
+export declare function FirebaseCrashlytics(input: {
     firebaseApp: FirebaseApp;
     crashlyticsOptions?: CrashlyticsOptions;
 }): null;
@@ -45,13 +45,14 @@ export declare function FirebaseCrashlytics({ firebaseApp, crashlyticsOptions }:
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  { firebaseApp, crashlyticsOptions } | { firebaseApp: [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->; crashlyticsOptions?: [CrashlyticsOptions](./crashlytics_.crashlyticsoptions.md#crashlyticsoptions_interface)<!-- -->; } |  |
+|  { firebaseApp, crashlyticsOptions } | (not declared) |  |
+|  input | { firebaseApp: [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->; crashlyticsOptions?: [CrashlyticsOptions](./crashlytics_react.crashlyticsoptions.md#crashlyticsoptions_interface)<!-- -->; } |  |
 
 <b>Returns:</b>
 
 null
 
-The default [Crashlytics](./crashlytics_.crashlytics.md#crashlytics_interface) instance for the given [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->.
+The default [Crashlytics](./crashlytics_react.crashlytics.md#crashlytics_interface) instance for the given [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->.
 
 ### Example
 

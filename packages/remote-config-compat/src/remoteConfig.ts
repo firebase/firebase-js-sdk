@@ -43,7 +43,10 @@ export { isSupported };
 export class RemoteConfigCompatImpl
   implements RemoteConfigCompat, _FirebaseService
 {
-  constructor(public app: FirebaseApp, readonly _delegate: RemoteConfig) {}
+  constructor(
+    public app: FirebaseApp,
+    readonly _delegate: RemoteConfig
+  ) {}
 
   get defaultConfig(): { [key: string]: string | number | boolean } {
     return this._delegate.defaultConfig;

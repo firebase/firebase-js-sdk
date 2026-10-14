@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # VectorValue class
-Represents a vector type in Firestore documents. Create an instance with <code>[vector()](./firestore_.md#vector_0dbdaf2)</code>.
+Represents a vector type in Firestore documents. Create an instance with <code>[vector()](./firestore_lite.md#vector_0dbdaf2)</code>.
 
 <b>Signature:</b>
 
@@ -22,14 +22,14 @@ export declare class VectorValue
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [fromJSON(json)](./firestore_lite.vectorvalue.md#vectorvaluefromjson) | <code>static</code> | Builds a <code>VectorValue</code> instance from a JSON object created by [VectorValue.toJSON()](./firestore_.vectorvalue.md#vectorvaluetojson)<!-- -->. |
+|  [fromJSON(json)](./firestore_lite.vectorvalue.md#vectorvaluefromjson) | <code>static</code> | Builds a <code>VectorValue</code> instance from a JSON object created by [VectorValue.toJSON()](./firestore_lite.vectorvalue.md#vectorvaluetojson)<!-- -->. |
 |  [isEqual(other)](./firestore_lite.vectorvalue.md#vectorvalueisequal) |  | Returns <code>true</code> if the two <code>VectorValue</code> values have the same raw number arrays, returns <code>false</code> otherwise. |
 |  [toArray()](./firestore_lite.vectorvalue.md#vectorvaluetoarray) |  | Returns a copy of the raw number array form of the vector. |
 |  [toJSON()](./firestore_lite.vectorvalue.md#vectorvaluetojson) |  | Returns a JSON-serializable representation of this <code>VectorValue</code> instance. |
 
 ## VectorValue.fromJSON()
 
-Builds a `VectorValue` instance from a JSON object created by [VectorValue.toJSON()](./firestore_.vectorvalue.md#vectorvaluetojson)<!-- -->.
+Builds a `VectorValue` instance from a JSON object created by [VectorValue.toJSON()](./firestore_lite.vectorvalue.md#vectorvaluetojson)<!-- -->.
 
 <b>Signature:</b>
 
@@ -47,7 +47,7 @@ static fromJSON(json: object): VectorValue;
 
 [VectorValue](./firestore_lite.vectorvalue.md#vectorvalue_class)
 
-an instance of [VectorValue](./firestore_.vectorvalue.md#vectorvalue_class) if the JSON object could be parsed. Throws a [FirestoreError](./firestore_.firestoreerror.md#firestoreerror_class) if an error occurs.
+an instance of [VectorValue](./firestore_lite.vectorvalue.md#vectorvalue_class) if the JSON object could be parsed. Throws a [FirestoreError](./firestore_lite.firestoreerror.md#firestoreerror_class) if an error occurs.
 
 ## VectorValue.isEqual()
 

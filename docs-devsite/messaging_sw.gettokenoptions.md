@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # GetTokenOptions interface
-Options for [getToken()](./messaging_.md#gettoken_b538f38)<!-- -->.
+Options for [getToken()](./app-check.md#gettoken_39fc1b3)<!-- -->.
 
 <b>Signature:</b>
 

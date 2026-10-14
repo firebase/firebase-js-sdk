@@ -51,7 +51,6 @@ export function initApiSettings(ai: AI): ApiSettings {
     project: ai.app.options.projectId,
     appId: ai.app.options.appId,
     automaticDataCollectionEnabled: ai.app.automaticDataCollectionEnabled,
-    location: ai.location,
     backend: ai.backend
   };
 

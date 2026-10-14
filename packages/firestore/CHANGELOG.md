@@ -1,5 +1,41 @@
 # @firebase/firestore
 
+## 4.18.0
+
+### Minor Changes
+
+- [`46ae308`](https://github.com/firebase/firebase-js-sdk/commit/46ae3088ba061c8bb929e7c377237bf0e16bc155) [#10337](https://github.com/firebase/firebase-js-sdk/pull/10337) - Added support for BSON types.
+
+### Patch Changes
+
+- [`5ab2fc6`](https://github.com/firebase/firebase-js-sdk/commit/5ab2fc6f889be5226f44d2e50c7eb20144f69338) [#7887](https://github.com/firebase/firebase-js-sdk/pull/7887) - UpdateData<T> allows indexed types or Record<X, T> for T.
+
+- [`142b409`](https://github.com/firebase/firebase-js-sdk/commit/142b40983a0d7e23cf14f3bac78b445b33152c46) [#10367](https://github.com/firebase/firebase-js-sdk/pull/10367) - Include `Temporal` namespace declaration in `global_index.d.ts`.
+
+## 4.17.2
+
+### Patch Changes
+
+- [`0e8554b`](https://github.com/firebase/firebase-js-sdk/commit/0e8554b78acbb2d44d0bbecebc8c66439cf54476) [#10301](https://github.com/firebase/firebase-js-sdk/pull/10301) - feat(firestore): support conversion and serialization for Temporal.Instant to Firestore's Timestamp
+
+- [`50213a1`](https://github.com/firebase/firebase-js-sdk/commit/50213a1cdba8e3b0f029197ec20f47c1110060a6) [#10233](https://github.com/firebase/firebase-js-sdk/pull/10233) - Update api-extractor and documentation pipeline. Includes some fixes to documentation comments and links.
+
+- [`392bce0`](https://github.com/firebase/firebase-js-sdk/commit/392bce079f376149736311f0017d5863e58c8dff) [#10340](https://github.com/firebase/firebase-js-sdk/pull/10340) - Fixes fetch connection error messages that were undefined.
+
+## 4.17.1
+
+### Patch Changes
+
+- [`589b24b`](https://github.com/firebase/firebase-js-sdk/commit/589b24bd9b30ba6b07a76da1eb5c3d1eadc5a9d2) [#10293](https://github.com/firebase/firebase-js-sdk/pull/10293) - Updated many top-level `devDependencies`.
+
+- [`2e22761`](https://github.com/firebase/firebase-js-sdk/commit/2e227618ed351ed4242781ee72b01c7fc0c81fa9) [#10250](https://github.com/firebase/firebase-js-sdk/pull/10250) - Fix the cross-database document reference log naming the referenced document rather than the document that contains the reference.
+
+- Updated dependencies [[`589b24b`](https://github.com/firebase/firebase-js-sdk/commit/589b24bd9b30ba6b07a76da1eb5c3d1eadc5a9d2)]:
+  - @firebase/component@0.7.5
+  - @firebase/logger@0.5.2
+  - @firebase/util@1.15.3
+  - @firebase/webchannel-wrapper@1.0.7
+
 ## 4.17.0
 
 ### Minor Changes

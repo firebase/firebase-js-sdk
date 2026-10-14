@@ -15,7 +15,9 @@ A `Promise` that can also act as a `DatabaseReference` when returned by [push()]
 <b>Signature:</b>
 
 ```typescript
-export declare interface ThenableReference extends DatabaseReference, Pick<Promise<DatabaseReference>, 'then' | 'catch'> 
+export declare interface ThenableReference
+  extends DatabaseReference,
+    Pick<Promise<DatabaseReference>, 'then' | 'catch'> 
 ```
 <b>Extends:</b> [DatabaseReference](./database.databasereference.md#databasereference_interface)<!-- -->, Pick&lt;Promise&lt;[DatabaseReference](./database.databasereference.md#databasereference_interface)<!-- -->&gt;, 'then' \| 'catch'&gt;
 

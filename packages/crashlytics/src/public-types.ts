@@ -63,7 +63,7 @@ export interface CrashlyticsOptions {
   /**
    * Base set of custom attributes to send with automatic error collection.
    * Key-value pairs defined here will be sent with all error logs.
-   * If custom attributes are also specified in `recordError()`, those values will
+   * If custom attributes are also specified in `recordError()` or `log()`, those values will
    * take precedence over the base set defined here.
    */
   customAttributes?: AnyValueMap;

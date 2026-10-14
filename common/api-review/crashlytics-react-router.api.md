@@ -5,7 +5,7 @@
 ```ts
 
 import { AnyValueMap } from '@opentelemetry/api-logs';
-import { default } from 'react';
+import { default as default_2 } from 'react';
 import { FirebaseApp } from '@firebase/app';
 import { RoutesProps } from 'react-router-dom';
 
@@ -24,11 +24,10 @@ export interface CrashlyticsOptions {
 }
 
 // @public
-export function CrashlyticsRoutes({ firebaseApp, crashlyticsOptions, children, ...props }: RoutesProps & {
+export function CrashlyticsRoutes(input: RoutesProps & {
     firebaseApp: FirebaseApp;
     crashlyticsOptions?: CrashlyticsOptions;
-}): default.ReactElement | null;
-
+}): default_2.ReactElement | null;
 
 // (No @packageDocumentation comment for this package)
 

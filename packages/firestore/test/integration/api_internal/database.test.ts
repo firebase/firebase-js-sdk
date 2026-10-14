@@ -16,8 +16,6 @@
  */
 
 import { deleteApp } from '@firebase/app';
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
 
 import { User } from '../../../src/auth/user';
 import { SimpleDb } from '../../../src/local/simple_db';
@@ -30,9 +28,6 @@ import {
 } from '../util/firebase_export';
 import { apiDescribe, withTestDoc } from '../util/helpers';
 import { withMockCredentialProviderTestDb } from '../util/internal_helpers';
-
-use(chaiAsPromised);
-
 apiDescribe('Database (with internal API)', persistence => {
   // eslint-disable-next-line no-restricted-properties
   (persistence.storage === 'indexeddb' ? it : it.skip)(
@@ -45,9 +40,9 @@ apiDescribe('Database (with internal API)', persistence => {
             return Promise.reject('Failed to delete the database.');
           };
           await deleteApp(firestore.app);
-          await expect(
-            clearIndexedDbPersistence(firestore)
-          ).to.eventually.be.rejectedWith('Failed to delete the database.');
+          await expect(clearIndexedDbPersistence(firestore)).rejects.toThrow(
+            'Failed to delete the database.'
+          );
         } finally {
           SimpleDb.delete = oldDelete;
         }
@@ -66,7 +61,7 @@ apiDescribe('Database (with internal API)', persistence => {
 
         mockCredentialsProvider.triggerUserChange(new User('user_1'));
 
-        await expect(awaitPendingWrite).to.be.eventually.rejectedWith(
+        await expect(awaitPendingWrite).rejects.toThrow(
           "'waitForPendingWrites' promise is rejected due to a user change."
         );
       }
@@ -80,7 +75,7 @@ apiDescribe('Database (with internal API)', persistence => {
       await deleteApp(app);
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      expect((docRef.firestore as any)._terminated).to.be.true;
+      expect((docRef.firestore as any)._terminated).toBe(true);
     });
   });
 });

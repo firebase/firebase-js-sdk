@@ -22,11 +22,10 @@ export interface CrashlyticsOptions {
 }
 
 // @public
-export function FirebaseCrashlytics({ firebaseApp, crashlyticsOptions }: {
+export function FirebaseCrashlytics(input: {
     firebaseApp: FirebaseApp;
     crashlyticsOptions?: CrashlyticsOptions;
 }): null;
-
 
 // (No @packageDocumentation comment for this package)
 

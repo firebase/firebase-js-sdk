@@ -14,16 +14,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import '../setup';
-import { expect } from 'chai';
+
 import '../../src/index';
 import firebase from '@firebase/app-compat';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { StorageServiceCompat } from '../../src/service';
 import { _FirebaseStorageImpl } from '@firebase/storage';
-
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const PROJECT_CONFIG = require('../../../../config/project.json');
+import PROJECT_CONFIG from '../../../../config/project.json';
 
 export const PROJECT_ID = PROJECT_CONFIG.projectId;
 export const STORAGE_BUCKET = PROJECT_CONFIG.storageBucket;
@@ -42,7 +39,7 @@ describe('Firebase Storage > API', () => {
     expect(
       ((storage as StorageServiceCompat)._delegate as _FirebaseStorageImpl)
         ._bucket?.bucket
-    ).to.equal(STORAGE_BUCKET);
+    ).toBe(STORAGE_BUCKET);
     await app.delete();
   });
   it('getStorage() with custom bucket url sets correct bucket', async () => {
@@ -56,7 +53,7 @@ describe('Firebase Storage > API', () => {
     expect(
       ((storage as StorageServiceCompat)._delegate as _FirebaseStorageImpl)
         ._bucket?.bucket
-    ).to.equal(STORAGE_BUCKET);
+    ).toBe(STORAGE_BUCKET);
     await app.delete();
   });
 });

@@ -1,0 +1,19 @@
+{
+  "extends": "../../../config/api-extractor.json",
+  // Point it to your entry point d.ts file.
+  "mainEntryPointFilePath": "<projectFolder>/dist/src/index.sw.d.ts",
+  "dtsRollup": {
+    "enabled": true,
+    "untrimmedFilePath": "<projectFolder>/dist/sw/internal.d.ts",
+    "betaTrimmedFilePath": "<projectFolder>/dist/sw/index-public.d.ts"
+  },
+  "docModel": {
+    "apiJsonFilePath": "<projectFolder>/temp/messaging-sw.api.json"
+  },
+  "apiReport": {
+    /**
+     * apiReport is handled by npm script api-report:rollup
+     */
+    "enabled": false
+  }
+}

@@ -25,8 +25,6 @@ export interface LanguageModelCreateCoreOptions
 |  [expectedInputs](./ai.languagemodelcreatecoreoptions.md#languagemodelcreatecoreoptionsexpectedinputs) | [LanguageModelExpected](./ai.languagemodelexpected.md#languagemodelexpected_interface)<!-- -->\[\] | Defaults to image input and English text input if not overriden. |
 |  [expectedOutputs](./ai.languagemodelcreatecoreoptions.md#languagemodelcreatecoreoptionsexpectedoutputs) | [LanguageModelExpected](./ai.languagemodelexpected.md#languagemodelexpected_interface)<!-- -->\[\] | Defaults to English text output if not overriden. |
 |  [monitor](./ai.languagemodelcreatecoreoptions.md#languagemodelcreatecoreoptionsmonitor) | (monitor: [LanguageModelDownloadMonitor](./ai.languagemodeldownloadmonitor.md#languagemodeldownloadmonitor_interface)<!-- -->) =&gt; void | The native download monitor provided by the Chrome API. This provides direct access to the monitor object and is only needed for advanced cases. For a simpler download monitoring interface, provide an <code>onDownloadProgress</code> callback to [GenerativeModel.initializeDeviceModel()](./ai.generativemodel.md#generativemodelinitializedevicemodel) instead. |
-|  [temperature](./ai.languagemodelcreatecoreoptions.md#languagemodelcreatecoreoptionstemperature) | number |  |
-|  [topK](./ai.languagemodelcreatecoreoptions.md#languagemodelcreatecoreoptionstopk) | number |  |
 
 ## LanguageModelCreateCoreOptions.expectedInputs
 
@@ -56,28 +54,4 @@ The native download monitor provided by the Chrome API. This provides direct acc
 
 ```typescript
 monitor?: (monitor: LanguageModelDownloadMonitor) => void;
-```
-
-## LanguageModelCreateCoreOptions.temperature
-
-> Warning: This API is now obsolete.
-> 
-> 
-
-<b>Signature:</b>
-
-```typescript
-temperature?: number;
-```
-
-## LanguageModelCreateCoreOptions.topK
-
-> Warning: This API is now obsolete.
-> 
-> 
-
-<b>Signature:</b>
-
-```typescript
-topK?: number;
 ```

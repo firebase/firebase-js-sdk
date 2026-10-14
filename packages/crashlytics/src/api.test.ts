@@ -37,12 +37,7 @@ import {
 } from '@firebase/app';
 import { Component, ComponentType } from '@firebase/component';
 import { FirebaseAppCheckInternal } from '@firebase/app-check-interop-types';
-import {
-  recordError,
-  flush,
-  getCrashlytics,
-  getOtelLoggerProvider
-} from './api';
+import { recordError, log, flush, getCrashlytics } from './api';
 import { CrashlyticsService } from './service';
 import { registerCrashlytics } from './register';
 import { _FirebaseInstallationsInternal } from '@firebase/installations';
@@ -528,10 +523,132 @@ describe('Top level API', () => {
     });
   });
 
+  describe('log()', () => {
+    it('should log a message with default metadata', () => {
+      log(fakeCrashlytics, 'This is a custom log message');
+
+      expect(emittedLogs.length).to.equal(1);
+      const logRecord = emittedLogs[0];
+      expect(logRecord.severityNumber).to.equal(SeverityNumber.INFO);
+      expect(logRecord.body).to.equal('This is a custom log message');
+      expect(logRecord.attributes).to.deep.equal({
+        [LOG_ATTR_KEY.APP_VERSION]: 'unset',
+        [LOG_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID
+      });
+    });
+
+    it('should propagate custom attributes', () => {
+      log(fakeCrashlytics, 'User action', {
+        strAttr: 'string attribute',
+        mapAttr: {
+          boolAttr: true,
+          numAttr: 2
+        },
+        arrAttr: [1, 2, 3]
+      });
+
+      expect(emittedLogs.length).to.equal(1);
+      const logRecord = emittedLogs[0];
+      expect(logRecord.severityNumber).to.equal(SeverityNumber.INFO);
+      expect(logRecord.body).to.equal('User action');
+      expect(logRecord.attributes).to.deep.equal({
+        [LOG_ATTR_KEY.APP_VERSION]: 'unset',
+        strAttr: 'string attribute',
+        mapAttr: {
+          boolAttr: true,
+          numAttr: 2
+        },
+        arrAttr: [1, 2, 3],
+        [LOG_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID
+      });
+    });
+
+    it('should propagate customAttributes from CrashlyticsOptions', () => {
+      fakeAttributesStore.updateOptions({
+        customAttributes: {
+          baseKey: 'baseValue',
+          commonKey: 'commonBaseValue'
+        }
+      });
+
+      log(fakeCrashlytics, 'Message with option attributes');
+
+      expect(emittedLogs.length).to.equal(1);
+      const logRecord = emittedLogs[0];
+      expect(logRecord.attributes).to.deep.equal({
+        [LOG_ATTR_KEY.APP_VERSION]: 'unset',
+        baseKey: 'baseValue',
+        commonKey: 'commonBaseValue',
+        [LOG_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID
+      });
+    });
+
+    it('log attributes should take precedence over customAttributes from CrashlyticsOptions', () => {
+      fakeAttributesStore.updateOptions({
+        customAttributes: {
+          baseKey: 'baseValue',
+          commonKey: 'commonBaseValue'
+        }
+      });
+
+      log(fakeCrashlytics, 'Message with overridden attributes', {
+        commonKey: 'commonOverrideValue',
+        newKey: 'newValue'
+      });
+
+      expect(emittedLogs.length).to.equal(1);
+      const logRecord = emittedLogs[0];
+      expect(logRecord.attributes).to.deep.equal({
+        [LOG_ATTR_KEY.APP_VERSION]: 'unset',
+        baseKey: 'baseValue',
+        commonKey: 'commonOverrideValue',
+        newKey: 'newValue',
+        [LOG_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID
+      });
+    });
+
+    it('should propagate trace context', async () => {
+      const provider = new WebTracerProvider({
+        spanProcessors: [new SimpleSpanProcessor(new InMemorySpanExporter())]
+      });
+      provider.register();
+
+      trace.getTracer('test-tracer').startActiveSpan('test-span', span => {
+        span.spanContext().traceId = 'my-trace';
+        span.spanContext().spanId = 'my-span';
+
+        log(fakeCrashlytics, 'Traced log message');
+        span.end();
+      });
+
+      await provider.shutdown();
+
+      expect(emittedLogs[0].attributes).to.deep.equal({
+        [LOG_ATTR_KEY.APP_VERSION]: 'unset',
+        'logging.googleapis.com/trace': `projects/${PROJECT_ID}/traces/my-trace`,
+        'logging.googleapis.com/spanId': 'my-span',
+        [LOG_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID
+      });
+    });
+
+    it('should retrieve route path attribute from attributesStore', () => {
+      fakeAttributesStore.setRoutePathProvider(() => '/my-route');
+
+      log(fakeCrashlytics, 'Route log message');
+
+      expect(emittedLogs.length).to.equal(1);
+      expect(emittedLogs[0].attributes).to.deep.equal({
+        [LOG_ATTR_KEY.APP_VERSION]: 'unset',
+        'route_path': '/my-route',
+        [LOG_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID
+      });
+    });
+  });
+
   describe('flush()', () => {
     it('should flush logs correctly', async () => {
       recordError(fakeCrashlytics, 'error1');
-      recordError(fakeCrashlytics, 'error2');
+      log(fakeCrashlytics, 'log1');
 
       expect(emittedLogs.length).to.equal(2);
 
@@ -542,23 +659,12 @@ describe('Top level API', () => {
   });
 
   describe('OpenTelemetry Integration', () => {
-    it('should expose getOtelLoggerProvider', () => {
-      const crashlytics = getCrashlytics(getFakeApp());
-      const provider = getOtelLoggerProvider(crashlytics);
-
-      expect(provider).to.be.an('object');
-      expect(typeof provider.getLogger).to.equal('function');
-      const logger = provider.getLogger('test-logger');
-      expect(typeof logger.emit).to.equal('function');
-    });
-
     it('should support registerGlobalLoggerProvider in options', () => {
       const crashlytics = getCrashlytics(getFakeApp(), {
         registerGlobalLoggerProvider: true
       });
 
-      const provider = getOtelLoggerProvider(crashlytics);
-      expect(provider).to.be.an('object');
+      expect(crashlytics).to.be.an('object');
       const globalLogger = logs.getLogger('global-app-logger');
       expect(typeof globalLogger.emit).to.equal('function');
     });

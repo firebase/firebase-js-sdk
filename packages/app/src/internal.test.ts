@@ -15,8 +15,7 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-import { stub } from 'sinon';
+import { expect, vi } from 'vitest';
 import '../test/setup';
 import { createTestComponent, TestService } from '../test/util';
 import { initializeApp, initializeServerApp, getApps, deleteApp } from './api';
@@ -63,12 +62,12 @@ describe('Internal API tests', () => {
     it('does NOT throw registering duplicate components', () => {
       const app = initializeApp({}) as FirebaseAppImpl;
       const testComp = createTestComponent('test');
-      const debugStub = stub(logger, 'debug');
+      const debugStub = vi.spyOn(logger, 'debug').mockImplementation(() => {});
 
       _addComponent(app, testComp);
 
       expect(() => _addComponent(app, testComp)).to.not.throw();
-      expect(debugStub).to.be.called;
+      expect(debugStub).toHaveBeenCalled();
       expect(app.container.getProvider('test').getComponent()).to.equal(
         testComp
       );
@@ -106,15 +105,15 @@ describe('Internal API tests', () => {
       const app1 = initializeApp({}) as FirebaseAppImpl;
       const app2 = initializeApp({}, 'app2') as FirebaseAppImpl;
 
-      const stub1 = stub(app1.container, 'addComponent').callThrough();
-      const stub2 = stub(app2.container, 'addComponent').callThrough();
+      const stub1 = vi.spyOn(app1.container, 'addComponent');
+      const stub2 = vi.spyOn(app2.container, 'addComponent');
 
       const testComp = createTestComponent('test');
       _registerComponent(testComp);
 
       expect(_components.get('test')).to.equal(testComp);
-      expect(stub1).to.have.been.calledWith(testComp);
-      expect(stub2).to.have.been.calledWith(testComp);
+      expect(stub1).toHaveBeenCalledWith(testComp);
+      expect(stub2).toHaveBeenCalledWith(testComp);
     });
 
     it('returns true if registration is successful', () => {

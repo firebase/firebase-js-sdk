@@ -15,16 +15,14 @@
  * limitations under the License.
  */
 
-import { AssertionError, expect } from 'chai';
-
 // Trick TS since it's set to target ES5.
 // TODO(dlarocque): Improve this since we no longer target ES5.
 declare class HeadersWithEntries extends Headers {
   entries?(): Iterable<[string, string]>;
 }
 
-// Chai doesn't check if Headers objects contain the same entries,
-// so we need to do that manually.
+// Headers objects do not expose enumerable properties for direct comparison,
+// so we need to compare their entries manually via Maps.
 export function compareHeaders(
   expectedHeaders: HeadersWithEntries,
   actualHeaders: HeadersWithEntries
@@ -33,10 +31,10 @@ export function compareHeaders(
     expectedHeaders.entries === undefined ||
     actualHeaders.entries === undefined
   ) {
-    throw new AssertionError('Headers object does not have entries method');
+    throw new Error('Headers object does not have entries method');
   }
 
   const expected = new Map(Array.from(expectedHeaders.entries()));
   const actual = new Map(Array.from(actualHeaders.entries()));
-  expect(actual).to.deep.equal(expected);
+  expect(actual).toEqual(expected);
 }

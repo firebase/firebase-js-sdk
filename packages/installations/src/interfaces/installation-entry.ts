@@ -59,9 +59,7 @@ export interface CompletedAuthToken {
 }
 
 export type AuthToken =
-  | NotStartedAuthToken
-  | InProgressAuthToken
-  | CompletedAuthToken;
+  NotStartedAuthToken | InProgressAuthToken | CompletedAuthToken;
 
 export interface UnregisteredInstallationEntry {
   /** Status of the Firebase Installation registration on the server. */

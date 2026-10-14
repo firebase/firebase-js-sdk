@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2024 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { Persistence } from '../../../src/local/persistence';
@@ -37,12 +35,7 @@ describe('MemoryGlobals', () => {
   genericGlobalsTests();
 });
 
-describe('IndexedDbGlobals', () => {
-  if (!IndexedDbPersistence.isAvailable()) {
-    console.warn('No IndexedDB. Skipping IndexedDbMutationQueue tests.');
-    return;
-  }
-
+describe.skipIf(!IndexedDbPersistence.isAvailable())('IndexedDbGlobals', () => {
   beforeEach(() => {
     return persistenceHelpers.testIndexedDbPersistence().then(p => {
       persistence = p;
@@ -73,12 +66,12 @@ function genericGlobalsTests(): void {
 
     await cache.setSessionToken(token);
     const result = await cache.getSessionToken();
-    expect(result.isEqual(token)).to.be.true;
+    expect(result.isEqual(token)).toBe(true);
   });
 
   it('returns empty session token that was previously saved', async () => {
     await cache.setSessionToken(ByteString.EMPTY_BYTE_STRING);
     const result = await cache.getSessionToken();
-    expect(result.isEqual(ByteString.EMPTY_BYTE_STRING)).to.be.true;
+    expect(result.isEqual(ByteString.EMPTY_BYTE_STRING)).toBe(true);
   });
 }

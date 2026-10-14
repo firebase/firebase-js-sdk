@@ -62,7 +62,10 @@ export class View {
   eventRegistrations_: EventRegistration[] = [];
   eventGenerator_: EventGenerator;
 
-  constructor(private query_: QueryContext, initialViewCache: ViewCache) {
+  constructor(
+    private query_: QueryContext,
+    initialViewCache: ViewCache
+  ) {
     const params = this.query_._queryParams;
 
     const indexFilter = new IndexedFilter(params.getIndex());

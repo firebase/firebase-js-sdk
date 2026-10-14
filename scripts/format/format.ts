@@ -18,7 +18,7 @@
 import { doPrettier } from './prettier';
 import { doLicense } from './license';
 import { resolve } from 'path';
-import simpleGit from 'simple-git';
+import { exec } from 'child-process-promise';
 import chalk from 'chalk';
 import glob from 'glob';
 import { join } from 'path';
@@ -27,7 +27,6 @@ import { hideBin } from 'yargs/helpers';
 
 // Computed Deps
 const root = resolve(__dirname, '../..');
-const git = simpleGit(root);
 
 const { path: targetPath, all: runOnAll } = yargs(hideBin(process.argv))
   .option('all', {
@@ -58,12 +57,11 @@ const format = async () => {
       } else {
         // Otherwise get all files changed since main.
         const baseSha = process.env.GITHUB_PULL_REQUEST_BASE_SHA || 'main';
-        const diff = await git.diff([
-          '--name-only',
-          '--diff-filter=d',
-          baseSha
-        ]);
-        changedFiles = diff.split('\n');
+        const { stdout: diff } = await exec(
+          `git diff --name-only --diff-filter=d ${baseSha}`,
+          { cwd: root }
+        );
+        changedFiles = diff.trim().split('\n').filter(Boolean);
 
         if (changedFiles.length === 0) {
           console.log(chalk`{green No files changed since ${baseSha}.}`);

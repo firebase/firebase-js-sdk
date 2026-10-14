@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import { EventsAccumulator } from '../util/events_accumulator';
 import {
@@ -57,14 +55,18 @@ apiDescribe('Numeric Transforms:', persistence => {
     await setDoc(docRef, initialData);
     await accumulator.awaitLocalEvent();
     const snapshot = await accumulator.awaitRemoteEvent();
-    expect(snapshot.data()).to.deep.equal(initialData);
+    expect(snapshot.data()).toEqual(initialData);
   }
 
   async function expectLocalAndRemoteValue(expectedSum: number): Promise<void> {
     const localSnap = await accumulator.awaitLocalEvent();
-    expect(localSnap.get('sum')).to.be.closeTo(expectedSum, DOUBLE_EPSILON);
+    expect(Math.abs(localSnap.get('sum') - expectedSum)).toBeLessThanOrEqual(
+      DOUBLE_EPSILON
+    );
     const remoteSnap = await accumulator.awaitRemoteEvent();
-    expect(remoteSnap.get('sum')).to.be.closeTo(expectedSum, DOUBLE_EPSILON);
+    expect(Math.abs(remoteSnap.get('sum') - expectedSum)).toBeLessThanOrEqual(
+      DOUBLE_EPSILON
+    );
   }
 
   /**
@@ -84,7 +86,7 @@ apiDescribe('Numeric Transforms:', persistence => {
 
       // wait for initial null snapshot to avoid potential races.
       const snapshot = await accumulator.awaitRemoteEvent();
-      expect(snapshot.exists()).to.be.false;
+      expect(snapshot.exists()).toBe(false);
       await test();
       unsubscribe();
     });
@@ -180,16 +182,24 @@ apiDescribe('Numeric Transforms:', persistence => {
       /* eslint-enable @typescript-eslint/no-floating-promises */
 
       let snap = await accumulator.awaitLocalEvent();
-      expect(snap.get('sum')).to.be.closeTo(0.1, DOUBLE_EPSILON);
+      expect(Math.abs(snap.get('sum') - 0.1)).toBeLessThanOrEqual(
+        DOUBLE_EPSILON
+      );
       snap = await accumulator.awaitLocalEvent();
-      expect(snap.get('sum')).to.be.closeTo(0.11, DOUBLE_EPSILON);
+      expect(Math.abs(snap.get('sum') - 0.11)).toBeLessThanOrEqual(
+        DOUBLE_EPSILON
+      );
       snap = await accumulator.awaitLocalEvent();
-      expect(snap.get('sum')).to.be.closeTo(0.111, DOUBLE_EPSILON);
+      expect(Math.abs(snap.get('sum') - 0.111)).toBeLessThanOrEqual(
+        DOUBLE_EPSILON
+      );
 
       await enableNetwork(db);
 
       snap = await accumulator.awaitRemoteEvent();
-      expect(snap.get('sum')).to.be.closeTo(0.111, DOUBLE_EPSILON);
+      expect(Math.abs(snap.get('sum') - 0.111)).toBeLessThanOrEqual(
+        DOUBLE_EPSILON
+      );
     });
   });
 
@@ -231,16 +241,16 @@ apiDescribe('Numeric Transforms:', persistence => {
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       setDoc(docRef, { val: serverTimestamp() });
       let snap = await accumulator.awaitLocalEvent();
-      expect(snap.get('val', { serverTimestamps: 'estimate' })).to.not.be.null;
+      expect(snap.get('val', { serverTimestamps: 'estimate' })).not.toBeNull();
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       setDoc(docRef, { val: increment(1) });
       snap = await accumulator.awaitLocalEvent();
-      expect(snap.get('val')).to.equal(1);
+      expect(snap.get('val')).toBe(1);
 
       await enableNetwork(db);
 
       snap = await accumulator.awaitRemoteEvent();
-      expect(snap.get('val')).to.equal(1);
+      expect(snap.get('val')).toBe(1);
     });
   });
   it('create document with minimum', async () => {
@@ -284,12 +294,12 @@ apiDescribe('Numeric Transforms:', persistence => {
       /* eslint-enable @typescript-eslint/no-floating-promises */
 
       let snap = await accumulator.awaitLocalEvent();
-      expect(snap.get('sum')).to.equal(1);
+      expect(snap.get('sum')).toBe(1);
 
       await enableNetwork(db);
 
       snap = await accumulator.awaitRemoteEvent();
-      expect(snap.get('sum')).to.equal(1);
+      expect(snap.get('sum')).toBe(1);
     });
   });
 
@@ -304,12 +314,12 @@ apiDescribe('Numeric Transforms:', persistence => {
       /* eslint-enable @typescript-eslint/no-floating-promises */
 
       let snap = await accumulator.awaitLocalEvent();
-      expect(snap.get('sum')).to.equal(2);
+      expect(snap.get('sum')).toBe(2);
 
       await enableNetwork(db);
 
       snap = await accumulator.awaitRemoteEvent();
-      expect(snap.get('sum')).to.equal(2);
+      expect(snap.get('sum')).toBe(2);
     });
   });
 
@@ -318,16 +328,16 @@ apiDescribe('Numeric Transforms:', persistence => {
       await writeInitialData({ sum: NaN });
       await updateDoc(docRef, 'sum', minimum(5));
       let snap = await accumulator.awaitLocalEvent();
-      expect(snap.get('sum')).to.be.NaN;
+      expect(snap.get('sum')).toBeNaN();
       snap = await accumulator.awaitRemoteEvent();
-      expect(snap.get('sum')).to.be.NaN;
+      expect(snap.get('sum')).toBeNaN();
 
       await writeInitialData({ sum: 5 });
       await updateDoc(docRef, 'sum', minimum(NaN));
       snap = await accumulator.awaitLocalEvent();
-      expect(snap.get('sum')).to.be.NaN;
+      expect(snap.get('sum')).toBeNaN();
       snap = await accumulator.awaitRemoteEvent();
-      expect(snap.get('sum')).to.be.NaN;
+      expect(snap.get('sum')).toBeNaN();
     });
   });
 
@@ -336,16 +346,16 @@ apiDescribe('Numeric Transforms:', persistence => {
       await writeInitialData({ sum: NaN });
       await updateDoc(docRef, 'sum', maximum(5));
       let snap = await accumulator.awaitLocalEvent();
-      expect(snap.get('sum')).to.be.NaN;
+      expect(snap.get('sum')).toBeNaN();
       snap = await accumulator.awaitRemoteEvent();
-      expect(snap.get('sum')).to.be.NaN;
+      expect(snap.get('sum')).toBeNaN();
 
       await writeInitialData({ sum: 5 });
       await updateDoc(docRef, 'sum', maximum(NaN));
       snap = await accumulator.awaitLocalEvent();
-      expect(snap.get('sum')).to.be.NaN;
+      expect(snap.get('sum')).toBeNaN();
       snap = await accumulator.awaitRemoteEvent();
-      expect(snap.get('sum')).to.be.NaN;
+      expect(snap.get('sum')).toBeNaN();
     });
   });
 });

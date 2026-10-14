@@ -10,9 +10,9 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # PipelineSource class
-Provides the entry point for defining the data source of a Firestore [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class)<!-- -->.
+Provides the entry point for defining the data source of a Firestore [Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class)<!-- -->.
 
-Use the methods of this class (e.g., [PipelineSource.collection()](./firestore_pipelines.pipelinesource.md#pipelinesourcecollection)<!-- -->, [PipelineSource.collectionGroup()](./firestore_pipelines.pipelinesource.md#pipelinesourcecollectiongroup)<!-- -->, [PipelineSource.database()](./firestore_pipelines.pipelinesource.md#pipelinesourcedatabase)<!-- -->, or [PipelineSource.documents()](./firestore_pipelines.pipelinesource.md#pipelinesourcedocuments)<!-- -->) to specify the initial data for your pipeline, such as a collection, a collection group, the entire database, or a set of specific documents.
+Use the methods of this class (e.g., [PipelineSource.collection()](./firestore_lite_pipelines.pipelinesource.md#pipelinesourcecollection)<!-- -->, [PipelineSource.collectionGroup()](./firestore_lite_pipelines.pipelinesource.md#pipelinesourcecollectiongroup)<!-- -->, [PipelineSource.database()](./firestore_lite_pipelines.pipelinesource.md#pipelinesourcedatabase)<!-- -->, or [PipelineSource.documents()](./firestore_lite_pipelines.pipelinesource.md#pipelinesourcedocuments)<!-- -->) to specify the initial data for your pipeline, such as a collection, a collection group, the entire database, or a set of specific documents.
 
 <b>Signature:</b>
 
@@ -41,14 +41,14 @@ Returns all documents from the entire collection. The collection can be nested.
 <b>Signature:</b>
 
 ```typescript
-collection(collection: string | Query): PipelineType;
+collection(collection: string | CollectionReference): PipelineType;
 ```
 
 #### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  collection | string \| [Query](./firestore_.query.md#query_class) | Name or reference to the collection that will be used as the Pipeline source. |
+|  collection | string \| [CollectionReference](./firestore.collectionreference.md#collectionreference_class) | Name or reference to the collection that will be used as the Pipeline source. |
 
 <b>Returns:</b>
 
@@ -128,7 +128,7 @@ createFrom(query: Query): PipelineType;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  query | [Query](./firestore_.query.md#query_class) | A Query to be converted into a Pipeline. |
+|  query | [Query](./firestore.query.md#query_class) | A Query to be converted into a Pipeline. |
 
 <b>Returns:</b>
 
@@ -185,7 +185,7 @@ documents(docs: Array<string | DocumentReference>): PipelineType;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  docs | Array&lt;string \| [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&gt; | An array of paths and DocumentReferences specifying the individual documents that will be the source of this pipeline. The converters for these DocumentReferences will be ignored and not have an effect on this pipeline. |
+|  docs | Array&lt;string \| [DocumentReference](./firestore.documentreference.md#documentreference_class)<!-- -->&gt; | An array of paths and DocumentReferences specifying the individual documents that will be the source of this pipeline. The converters for these DocumentReferences will be ignored and not have an effect on this pipeline. |
 
 <b>Returns:</b>
 

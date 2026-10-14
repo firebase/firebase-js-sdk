@@ -41,11 +41,7 @@ export interface Event {
  * "child_removed", or "child_moved."
  */
 export type EventType =
-  | 'value'
-  | 'child_added'
-  | 'child_changed'
-  | 'child_moved'
-  | 'child_removed';
+  'value' | 'child_added' | 'child_changed' | 'child_moved' | 'child_removed';
 
 /**
  * Encapsulates the data needed to raise an event
