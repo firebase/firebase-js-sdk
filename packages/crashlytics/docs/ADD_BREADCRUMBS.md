@@ -27,7 +27,7 @@ If you have not completed these steps, follow the [general onboarding instructio
 Run the following command using Firebase CLI v15.19.1+:
 
 ```sh
-# 1. Enable the logs breadcrumbs experiment and APIs
+# Enable the logs breadcrumbs experiment and APIs
 firebase experiments:enable crashlyticsWebTrace
 ```
 
