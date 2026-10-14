@@ -17,7 +17,11 @@
 
 import * as FidChangedModule from '../helpers/fid-changed';
 
-vi.mock('../helpers/fid-changed', { spy: true });
+vi.mock('../helpers/fid-changed', () => ({
+  addCallback: vi.fn(),
+  removeCallback: vi.fn(),
+  fidChanged: vi.fn()
+}));
 
 import '../testing/setup';
 import { onIdChange } from './on-id-change';
