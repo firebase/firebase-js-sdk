@@ -86,9 +86,13 @@ export function createTracingProvider(
   const region = crashlyticsOptions.region || DEFAULT_TELEMETRY_REGION;
 
   const resource = resourceFromAttributes({
-    [RESOURCE_ATTRIBUTE_KEYS.CLOUD_RESOURCE_ID]: `//firebasetelemetry.googleapis.com/projects/${projectId}/locations/${region}/`,
-    [RESOURCE_ATTRIBUTE_KEYS.GCP_FIREBASE_DOMAIN]: window.location.hostname,
-    [RESOURCE_ATTRIBUTE_KEYS.GCP_PROJECT_ID]: projectId
+    ...(projectId
+      ? {
+          [RESOURCE_ATTRIBUTE_KEYS.CLOUD_RESOURCE_ID]: `//firebasetelemetry.googleapis.com/projects/${projectId}/locations/${region}/`,
+          [RESOURCE_ATTRIBUTE_KEYS.GCP_PROJECT_ID]: projectId
+        }
+      : {}),
+    [RESOURCE_ATTRIBUTE_KEYS.GCP_FIREBASE_DOMAIN]: window.location.hostname
   });
 
   if (endpointUrl.endsWith('/')) {
