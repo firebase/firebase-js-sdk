@@ -85,8 +85,9 @@ export function registerListeners(crashlytics: Crashlytics): () => void {
   if (typeof window !== 'undefined' && typeof document !== 'undefined') {
     const onVisibilityChange = async (): Promise<void> => {
       if (
-        document.visibilityState === 'visible' ||
-        document.visibilityState === 'hidden'
+        (crashlytics as CrashlyticsInternal).options?.enableTracing &&
+        (document.visibilityState === 'visible' ||
+          document.visibilityState === 'hidden')
       ) {
         logVisibilityEvent(crashlytics, document.visibilityState);
       }

@@ -41,7 +41,7 @@ export function registerCrashlytics(): void {
     new Component(
       CRASHLYTICS_TYPE,
       (container, { options }: InstanceFactoryOptions) => {
-        const crashlyticsOptions = options as CrashlyticsOptions;
+        const crashlyticsOptions = (options as CrashlyticsOptions) || {};
 
         // getImmediate for FirebaseApp will always succeed
         const app = container.getProvider('app').getImmediate();
@@ -54,7 +54,9 @@ export function registerCrashlytics(): void {
           crashlyticsOptions,
           installationsProvider
         );
-        const telemetryStore = new TelemetryStore();
+        const telemetryStore = crashlyticsOptions.enableTracing
+          ? new TelemetryStore()
+          : undefined;
         const dynamicHeaderProviders = [new AppCheckProvider(appCheckProvider)];
         const { loggerProvider, onErrorLogRecordProcessor } =
           createLoggerProvider(
@@ -65,13 +67,16 @@ export function registerCrashlytics(): void {
             dynamicHeaderProviders
           );
 
-        const { tracingProvider, onErrorSpanProcessor } = createTracingProvider(
-          app,
-          crashlyticsOptions,
-          attributesStore,
-          telemetryStore,
-          dynamicHeaderProviders
-        );
+        const { tracingProvider, onErrorSpanProcessor } =
+          crashlyticsOptions.enableTracing && telemetryStore
+            ? createTracingProvider(
+                app,
+                crashlyticsOptions,
+                attributesStore,
+                telemetryStore,
+                dynamicHeaderProviders
+              )
+            : { tracingProvider: null, onErrorSpanProcessor: undefined };
 
         const crashlyticsService = new CrashlyticsService(
           app,
@@ -82,6 +87,10 @@ export function registerCrashlytics(): void {
           onErrorLogRecordProcessor,
           onErrorSpanProcessor
         );
+
+        if (options) {
+          crashlyticsService.options = crashlyticsOptions;
+        }
 
         // Immediately track this as a new client session (if one doesn't exist yet)
         if (!attributesStore.sessionId) {

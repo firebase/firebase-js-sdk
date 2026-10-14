@@ -18,6 +18,7 @@ export interface Crashlytics {
 export interface CrashlyticsOptions {
     appVersion?: string;
     customAttributes?: AnyValueMap;
+    enableTracing?: boolean;
     endpointUrl?: string;
     region?: string;
     registerGlobalLoggerProvider?: boolean;

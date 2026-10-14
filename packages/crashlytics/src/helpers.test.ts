@@ -275,7 +275,8 @@ describe('helpers', () => {
         registerListeners(fakeCrashlytics);
       });
     } else {
-      it('should emit a log and flush when the visibility changes to hidden', async () => {
+      it('should emit a log and flush when the visibility changes to hidden and enableTracing is true', async () => {
+        fakeCrashlytics.options = { enableTracing: true };
         registerListeners(fakeCrashlytics);
 
         expect(flushed).to.be.false;
@@ -292,7 +293,8 @@ describe('helpers', () => {
         expect(emittedLogs).to.have.lengthOf(1);
       });
 
-      it('should emit a log but not flush when the visibility changes to visible', async () => {
+      it('should emit a log but not flush when the visibility changes to visible and enableTracing is true', async () => {
+        fakeCrashlytics.options = { enableTracing: true };
         registerListeners(fakeCrashlytics);
 
         expect(flushed).to.be.false;
@@ -307,6 +309,19 @@ describe('helpers', () => {
 
         expect(flushed).to.be.false;
         expect(emittedLogs).to.have.lengthOf(1);
+      });
+
+      it('should not emit a visibility log when enableTracing is false or not set, but still flush on hidden', async () => {
+        registerListeners(fakeCrashlytics);
+
+        Object.defineProperty(document, 'visibilityState', {
+          value: 'hidden',
+          writable: true
+        });
+        await listeners['visibilitychange']();
+
+        expect(flushed).to.be.true;
+        expect(emittedLogs).to.have.lengthOf(0);
       });
 
       it('should flush logs when the pagehide event fires', async () => {

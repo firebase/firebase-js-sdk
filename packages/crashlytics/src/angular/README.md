@@ -66,9 +66,9 @@ export const appConfig: ApplicationConfig = {
 };
 ```
 
-### Step 3: Track Route Changes
+### Step 3: Track Route Changes & Enable Tracing
 
-To automatically track navigation changes, update the route path attribute, and log view boundary telemetry when navigating between routes, initialize `setupCrashlyticsRoutes` with `provideEnvironmentInitializer` in `src/app/app.config.ts`:
+To automatically track navigation changes, update the route path attribute, and log view boundary telemetry with tracing enabled when navigating between routes, initialize `setupCrashlyticsRoutes` with `provideEnvironmentInitializer` in `src/app/app.config.ts` and pass `{ enableTracing: true }`:
 
 ```typescript
 // src/app/app.config.ts
@@ -81,11 +81,16 @@ import {
 } from '@angular/core';
 import { provideRouter, Router } from '@angular/router';
 import {
+  CrashlyticsOptions,
   FirebaseErrorHandler,
   setupCrashlyticsRoutes
 } from '@firebase/crashlytics/angular';
 import { FIREBASE_APP, provideFirebaseApp } from './firebase.config';
 import { routes } from './app.routes';
+
+const crashlyticsOptions: CrashlyticsOptions = {
+  enableTracing: true
+};
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -98,7 +103,8 @@ export const appConfig: ApplicationConfig = {
     // Wire Angular runtime uncaught errors to Firebase Crashlytics
     {
       provide: ErrorHandler,
-      useFactory: (app: FirebaseApp) => new FirebaseErrorHandler(app),
+      useFactory: (app: FirebaseApp) =>
+        new FirebaseErrorHandler(app, crashlyticsOptions),
       deps: [FIREBASE_APP]
     },
     // Configure automatic route navigation tracking
@@ -106,7 +112,8 @@ export const appConfig: ApplicationConfig = {
       setupCrashlyticsRoutes({
         firebaseApp: inject(FIREBASE_APP),
         router: inject(Router),
-        destroyRef: inject(DestroyRef)
+        destroyRef: inject(DestroyRef),
+        crashlyticsOptions
       });
     })
   ]

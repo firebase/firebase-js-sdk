@@ -26,7 +26,10 @@ import Product from './pages/Product';
 export default function App() {
   return (
     <BrowserRouter>
-      <CrashlyticsRoutes firebaseApp={app}>
+      <CrashlyticsRoutes
+        firebaseApp={app}
+        crashlyticsOptions={{ enableTracing: true }}
+      >
         <Route path="/" element={<Home />} />
         <Route path="/profile/:userId" element={<Profile />} />
         <Route path="/product/:productId/details" element={<Product />} />

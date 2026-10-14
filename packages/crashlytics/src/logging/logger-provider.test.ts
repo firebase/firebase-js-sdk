@@ -46,15 +46,42 @@ describe('createLoggerProvider', () => {
     telemetryStore = new TelemetryStore();
   });
 
-  it('should initialize LoggerProvider with FirebaseAttributesProcessor and OnErrorLogRecordProcessor', () => {
-    const { loggerProvider: provider } = createLoggerProvider(
-      app,
-      {},
-      attributesStore,
-      telemetryStore,
-      []
-    );
+  it('should initialize LoggerProvider with FirebaseAttributesProcessor and BatchLogRecordProcessor by default when enableTracing is not set', () => {
+    const { loggerProvider: provider, onErrorLogRecordProcessor } =
+      createLoggerProvider(app, {}, attributesStore, telemetryStore, []);
     expect(provider).to.be.an.instanceOf(LoggerProvider);
+    expect(onErrorLogRecordProcessor).to.be.undefined;
+
+    const sharedState = (
+      provider as unknown as {
+        _sharedState: { registeredLogRecordProcessors: unknown[] };
+      }
+    )._sharedState;
+    expect(sharedState.registeredLogRecordProcessors).to.have.lengthOf(2);
+    expect(sharedState.registeredLogRecordProcessors[0]).to.be.an.instanceOf(
+      FirebaseAttributesProcessor
+    );
+    expect(
+      sharedState.registeredLogRecordProcessors[1]
+    ).to.not.be.an.instanceOf(OnErrorLogRecordProcessor);
+    expect(sharedState.registeredLogRecordProcessors[1]).to.be.an.instanceOf(
+      BatchLogRecordProcessor
+    );
+  });
+
+  it('should initialize LoggerProvider with FirebaseAttributesProcessor and OnErrorLogRecordProcessor when enableTracing is true', () => {
+    const { loggerProvider: provider, onErrorLogRecordProcessor } =
+      createLoggerProvider(
+        app,
+        { enableTracing: true },
+        attributesStore,
+        telemetryStore,
+        []
+      );
+    expect(provider).to.be.an.instanceOf(LoggerProvider);
+    expect(onErrorLogRecordProcessor).to.be.an.instanceOf(
+      OnErrorLogRecordProcessor
+    );
 
     const sharedState = (
       provider as unknown as {
@@ -74,7 +101,7 @@ describe('createLoggerProvider', () => {
   });
 
   describe('BatchLogRecordProcessor auto-flush on document hide', () => {
-    it('should pass disableAutoFlushOnDocumentHide: true to BatchLogRecordProcessor', () => {
+    it('should pass disableAutoFlushOnDocumentHide: true to OnErrorLogRecordProcessor when enableTracing is true', () => {
       if ('_onInit' in BatchLogRecordProcessor.prototype) {
         // Browser environment (Webpack ES module bundle where namespace exports are non-configurable)
         const onInitSpy = sinon.spy(
@@ -84,7 +111,13 @@ describe('createLoggerProvider', () => {
           '_onInit'
         );
         try {
-          createLoggerProvider(app, {}, attributesStore, telemetryStore, []);
+          createLoggerProvider(
+            app,
+            { enableTracing: true },
+            attributesStore,
+            telemetryStore,
+            []
+          );
           expect(onInitSpy.calledOnce).to.be.true;
           const args = onInitSpy.firstCall.args[0];
           expect(args).to.have.property('disableAutoFlushOnDocumentHide', true);
@@ -107,7 +140,13 @@ describe('createLoggerProvider', () => {
         BaseSpy.prototype = BatchLogRecordProcessor.prototype;
         Object.setPrototypeOf(OnErrorLogRecordProcessor, BaseSpy);
         try {
-          createLoggerProvider(app, {}, attributesStore, telemetryStore, []);
+          createLoggerProvider(
+            app,
+            { enableTracing: true },
+            attributesStore,
+            telemetryStore,
+            []
+          );
           expect(BaseSpy.calledOnce).to.be.true;
           const args = BaseSpy.firstCall.args[0];
           expect(args).to.have.property('disableAutoFlushOnDocumentHide', true);

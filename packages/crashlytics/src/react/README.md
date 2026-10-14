@@ -22,7 +22,10 @@ import { app } from './lib/firebase'; // Shared initialization script
 export default function App() {
   return (
     <>
-      <FirebaseCrashlytics firebaseApp={app} />
+      <FirebaseCrashlytics
+        firebaseApp={app}
+        crashlyticsOptions={{ enableTracing: true }}
+      />
       {/* Rest of your application components */}
     </>
   );

@@ -146,7 +146,9 @@ export function recordError(
     onErrorLogRecordProcessor.onErrorOccurred();
   }
 
-  telemetryStore.clear();
+  if (telemetryStore) {
+    telemetryStore.clear();
+  }
 }
 
 /**
@@ -222,8 +224,11 @@ export function logViewBoundary(
   urlTemplate: string,
   attributes?: AnyValueMap
 ): void {
-  const { loggerProvider, attributesStore } =
+  const { loggerProvider, attributesStore, options } =
     crashlytics as CrashlyticsInternal;
+  if (!options?.enableTracing) {
+    return;
+  }
   const logger = loggerProvider.getLogger('view-boundary-logger');
   const customAttributes: AnyValueMap = attributesStore.getLogAttributes();
 

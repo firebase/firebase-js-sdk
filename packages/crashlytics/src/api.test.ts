@@ -259,12 +259,37 @@ describe('Top level API', () => {
         'existing-session'
       );
     });
+
+    it('should not initialize tracing by default when enableTracing is not set', () => {
+      const crashlytics = getCrashlytics(getFakeApp()) as CrashlyticsInternal;
+
+      expect(crashlytics.tracingProvider).to.be.null;
+      expect(crashlytics.telemetryStore).to.be.undefined;
+      expect(crashlytics.onErrorLogRecordProcessor).to.be.undefined;
+      expect(crashlytics.onErrorSpanProcessor).to.be.undefined;
+    });
+
+    it('should initialize tracing when enableTracing is true', () => {
+      const crashlytics = getCrashlytics(getFakeApp(), {
+        enableTracing: true
+      }) as CrashlyticsInternal;
+
+      expect(crashlytics.tracingProvider).to.not.be.null;
+      expect(crashlytics.telemetryStore).to.be.instanceOf(TelemetryStore);
+      expect(crashlytics.onErrorLogRecordProcessor).to.be.instanceOf(
+        OnErrorLogRecordProcessor
+      );
+    });
   });
 
   describe('logViewBoundary()', () => {
-    it("should emit a log record with the severity number of SeverityNumber.INFO, the body of 'Navigation event', and the attribute of 'app.screen.id' as the path of navigation", () => {
+    it("should emit a log record with the severity number of SeverityNumber.INFO, the body of 'Navigation event', and the attribute of 'app.screen.id' as the path of navigation when enableTracing is true", () => {
       const urlTemplate = '/users/:id';
-      logViewBoundary(fakeCrashlytics, urlTemplate);
+      const crashlyticsWithTracing: CrashlyticsInternal = {
+        ...fakeCrashlytics,
+        options: { enableTracing: true }
+      };
+      logViewBoundary(crashlyticsWithTracing, urlTemplate);
 
       expect(emittedLogs.length).to.equal(1);
       const log = emittedLogs[0];
@@ -275,10 +300,18 @@ describe('Top level API', () => {
       );
     });
 
-    it('should emit a log record with additional attributes if available', () => {
+    it('should emit a log record with additional attributes if available when enableTracing is true', () => {
       const urlTemplate = '/users/:id';
       const additionalAttributes = { 'custom.attr': 'value' };
-      logViewBoundary(fakeCrashlytics, urlTemplate, additionalAttributes);
+      const crashlyticsWithTracing: CrashlyticsInternal = {
+        ...fakeCrashlytics,
+        options: { enableTracing: true }
+      };
+      logViewBoundary(
+        crashlyticsWithTracing,
+        urlTemplate,
+        additionalAttributes
+      );
 
       expect(emittedLogs.length).to.equal(1);
       const log = emittedLogs[0];
@@ -286,6 +319,18 @@ describe('Top level API', () => {
       expect(log.attributes![SPAN_ATTR_KEY.APP_SCREEN_ID]).to.equal(
         urlTemplate
       );
+    });
+
+    it('should not emit a log record when enableTracing is false or not set', () => {
+      const urlTemplate = '/users/:id';
+      const crashlyticsWithoutTracing: CrashlyticsInternal = {
+        ...fakeCrashlytics,
+        options: { enableTracing: false }
+      };
+      logViewBoundary(fakeCrashlytics, urlTemplate);
+      logViewBoundary(crashlyticsWithoutTracing, urlTemplate);
+
+      expect(emittedLogs.length).to.equal(0);
     });
   });
 
