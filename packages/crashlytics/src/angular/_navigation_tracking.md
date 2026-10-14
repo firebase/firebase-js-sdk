@@ -20,6 +20,7 @@ import {
   FirebaseErrorHandler,
 +  setupCrashlyticsRoutes // Add Crashlytics route setup
 } from '@firebase/crashlytics/angular';
+import { FirebaseApp } from '@firebase/app';
 import { FIREBASE_APP, provideFirebaseApp } from './firebase.config';
 import { routes } from './app.routes';
 
