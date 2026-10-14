@@ -384,15 +384,13 @@ describe('AttributesStore', () => {
       storage[SESSION_STORAGE_SESSION_ID_KEY] = MOCK_SESSION_ID;
       const attributesStore = new AttributesStore({ projectId: 'my-project' });
       const attributes = attributesStore.getSpanAttributes();
-      expect(attributes[SPAN_ATTR_KEY.GCP_FIREBASE_SESSION_ID]).to.equal(
-        MOCK_SESSION_ID
-      );
+      expect(attributes[SPAN_ATTR_KEY.SESSION_ID]).to.equal(MOCK_SESSION_ID);
     });
 
     it('should not add session id if not present in storage', () => {
       const attributesStore = new AttributesStore({ projectId: 'my-project' });
       const attributes = attributesStore.getSpanAttributes();
-      expect(attributes[SPAN_ATTR_KEY.GCP_FIREBASE_SESSION_ID]).to.be.undefined;
+      expect(attributes[SPAN_ATTR_KEY.SESSION_ID]).to.be.undefined;
     });
 
     it('should add region to resource name if present in options', () => {
@@ -435,9 +433,7 @@ describe('AttributesStore', () => {
         { appVersion: '1.2.3' }
       );
       const attributes = attributesStore.getSpanAttributes();
-      expect(attributes[SPAN_ATTR_KEY.GCP_FIREBASE_APP_VERSION]).to.equal(
-        '1.2.3'
-      );
+      expect(attributes[SPAN_ATTR_KEY.APP_VERSION]).to.equal('1.2.3');
     });
 
     it("should set app version attribute to 'unset' if configured app version not available", () => {
@@ -446,9 +442,7 @@ describe('AttributesStore', () => {
         {}
       );
       const attributes = attributesStore.getSpanAttributes();
-      expect(attributes[SPAN_ATTR_KEY.GCP_FIREBASE_APP_VERSION]).to.equal(
-        'unset'
-      );
+      expect(attributes[SPAN_ATTR_KEY.APP_VERSION]).to.equal('unset');
     });
   });
 });
