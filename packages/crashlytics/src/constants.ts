@@ -31,7 +31,7 @@ export const DEFAULT_TELEMETRY_REGION = 'global';
 /** Symbol for the internal flag indicating an error has already been logged. */
 export const ALREADY_LOGGED_FLAG = Symbol('firebase_crashlytics_logged');
 
-/** Label keys for resource attributes in tracing provider */
+/** Resource attribute key representing the web application domain in the tracing provider. */
 export const GCP_FIREBASE_DOMAIN = 'gcp.firebase.domain';
 
 /**
