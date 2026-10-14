@@ -49,7 +49,7 @@ declare module './database' {
 }
 
 /**
- * Executes a pipeline and returns a Promise to represent the asynchronous operation.
+ * Executes a pipeline and returns a Promise that represents the asynchronous operation.
  *
  * The returned Promise can be used to track the progress of the pipeline execution
  * and retrieve the results (or handle any errors) asynchronously.
@@ -83,15 +83,15 @@ declare module './database' {
  */
 export function execute(pipeline: Pipeline): Promise<PipelineSnapshot>;
 /**
- * Executes a pipeline and returns a Promise to represent the asynchronous operation.
+ * Executes a pipeline and returns a Promise that represents the asynchronous operation.
  *
  * The returned Promise can be used to track the progress of the pipeline execution
  * and retrieve the results (or handle any errors) asynchronously.
  *
  * The pipeline results are returned as a {@link @firebase/firestore/pipelines#PipelineSnapshot} that contains
  * a list of {@link @firebase/firestore/pipelines#PipelineResult} objects. Each {@link @firebase/firestore/pipelines#PipelineResult} typically
- * represents a single key/value map that has passed through all the
- * stages of the pipeline, however this might differ depending on the stages involved in the
+ * represents a single key-value map that has passed through all the
+ * stages of the pipeline; however, this might differ depending on the stages involved in the
  * pipeline. For example:
  *
  * <ul>

@@ -1625,7 +1625,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
   /**
    * Performs an update operation with options.
    *
-   * @param options - Options defining the transformations and how this `UpdateStage` is evaluated.
+   * @param options - Options defining how this `UpdateStage` is evaluated and specifying the fields to update or add to each document.
    * @returns A new {@link @firebase/firestore/pipelines#Pipeline} object with this stage appended to the stage list.
    */
   update(options: UpdateStageOptions): Pipeline;

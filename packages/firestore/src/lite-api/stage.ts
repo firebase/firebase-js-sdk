@@ -464,7 +464,7 @@ export class LiteralsSource extends Stage {
       if (!isPlainObject(doc)) {
         throw new FirestoreError(
           Code.INVALID_ARGUMENT,
-          'Function literals() requires each document to be a plain object.'
+          'The literals() function requires each document to be a plain object.'
         );
       }
     }
