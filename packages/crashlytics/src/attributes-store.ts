@@ -39,7 +39,7 @@ export const LOG_ATTR_KEY = {
 export const SPAN_ATTR_KEY = {
   GCP_RESOURCE_NAME: 'gcp.resource.name',
   SESSION_ID: 'session.id',
-  SESSION_VERSION: 'service.version',
+  SERVICE_VERSION: 'service.version',
   APP_SCREEN_ID: 'app.screen.id'
 };
 
@@ -173,7 +173,7 @@ export class AttributesStore {
     }
 
     if (this._appVersion) {
-      attributes[SPAN_ATTR_KEY.SESSION_VERSION] = this._appVersion;
+      attributes[SPAN_ATTR_KEY.SERVICE_VERSION] = this._appVersion;
     }
     if (this._sessionId) {
       attributes[SPAN_ATTR_KEY.SESSION_ID] = this._sessionId;
