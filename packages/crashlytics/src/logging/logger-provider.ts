@@ -68,8 +68,7 @@ export function createLoggerProvider(
 
   const resource = resourceFromAttributes({
     [ATTR_SERVICE_NAME]: 'firebase_telemetry_service',
-    'firebase.project_id': projectId || '',
-    'firebase.app_id': appId || ''
+    'gcp.project_id': projectId || '',
   });
 
   const logExporter = new OTLPLogExporter(
