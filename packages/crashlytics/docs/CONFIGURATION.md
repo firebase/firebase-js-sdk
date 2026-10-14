@@ -88,7 +88,7 @@ curl -X PATCH \
 ### Option 3: Create an Exclusion Filter in Cloud Logging
 
 > [!IMPORTANT]
-> Unlike configuring the Crashlytics sampling rate (Options 1 and 2 above), Cloud Logging exclusion filters drop logs **after** they are sent over the network by client devices and **will not** be extrapolated in the Crashlytics dashboard metrics. Use exclusion filters primarily when you want to filter out specific log patterns or severities at ingestion time.
+> Unlike configuring the Crashlytics sampling rate (Options 1 and 2 above), Cloud Logging exclusion filters drop logs **after** they are sent over the network by client devices and **won't** be projected in the Crashlytics dashboard metrics. Use exclusion filters primarily when you want to filter out specific log patterns or severities at ingestion time.
 
 #### Step 1: Navigate to the Logs Router
 
