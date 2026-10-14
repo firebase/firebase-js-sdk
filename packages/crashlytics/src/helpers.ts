@@ -85,7 +85,7 @@ export function registerListeners(crashlytics: Crashlytics): () => void {
   if (typeof window !== 'undefined' && typeof document !== 'undefined') {
     const onVisibilityChange = async (): Promise<void> => {
       if (
-        (crashlytics as CrashlyticsInternal).options?.enableTracing &&
+        (crashlytics as CrashlyticsInternal).options?.enableBreadcrumbs &&
         (document.visibilityState === 'visible' ||
           document.visibilityState === 'hidden')
       ) {

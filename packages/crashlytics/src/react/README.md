@@ -24,7 +24,7 @@ export default function App() {
     <>
       <FirebaseCrashlytics
         firebaseApp={app}
-        crashlyticsOptions={{ enableTracing: true }}
+        crashlyticsOptions={{ enableBreadcrumbs: true }}
       />
       {/* Rest of your application components */}
     </>

@@ -54,7 +54,7 @@ export function registerCrashlytics(): void {
           crashlyticsOptions,
           installationsProvider
         );
-        const telemetryStore = crashlyticsOptions.enableTracing
+        const telemetryStore = crashlyticsOptions.enableBreadcrumbs
           ? new TelemetryStore()
           : undefined;
         const dynamicHeaderProviders = [new AppCheckProvider(appCheckProvider)];
@@ -68,7 +68,7 @@ export function registerCrashlytics(): void {
           );
 
         const { tracingProvider, onErrorSpanProcessor } =
-          crashlyticsOptions.enableTracing && telemetryStore
+          crashlyticsOptions.enableBreadcrumbs && telemetryStore
             ? createTracingProvider(
                 app,
                 crashlyticsOptions,

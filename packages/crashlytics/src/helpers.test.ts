@@ -275,8 +275,8 @@ describe('helpers', () => {
         registerListeners(fakeCrashlytics);
       });
     } else {
-      it('should emit a log and flush when the visibility changes to hidden and enableTracing is true', async () => {
-        fakeCrashlytics.options = { enableTracing: true };
+      it('should emit a log and flush when the visibility changes to hidden and enableBreadcrumbs is true', async () => {
+        fakeCrashlytics.options = { enableBreadcrumbs: true };
         registerListeners(fakeCrashlytics);
 
         expect(flushed).to.be.false;
@@ -293,8 +293,8 @@ describe('helpers', () => {
         expect(emittedLogs).to.have.lengthOf(1);
       });
 
-      it('should emit a log but not flush when the visibility changes to visible and enableTracing is true', async () => {
-        fakeCrashlytics.options = { enableTracing: true };
+      it('should emit a log but not flush when the visibility changes to visible and enableBreadcrumbs is true', async () => {
+        fakeCrashlytics.options = { enableBreadcrumbs: true };
         registerListeners(fakeCrashlytics);
 
         expect(flushed).to.be.false;
@@ -311,7 +311,7 @@ describe('helpers', () => {
         expect(emittedLogs).to.have.lengthOf(1);
       });
 
-      it('should not emit a visibility log when enableTracing is false or not set, but still flush on hidden', async () => {
+      it('should not emit a visibility log when enableBreadcrumbs is false or not set, but still flush on hidden', async () => {
         registerListeners(fakeCrashlytics);
 
         Object.defineProperty(document, 'visibilityState', {

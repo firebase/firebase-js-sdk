@@ -260,7 +260,7 @@ describe('Top level API', () => {
       );
     });
 
-    it('should not initialize tracing by default when enableTracing is not set', () => {
+    it('should not initialize tracing by default when enableBreadcrumbs is not set', () => {
       const crashlytics = getCrashlytics(getFakeApp()) as CrashlyticsInternal;
 
       expect(crashlytics.tracingProvider).to.be.null;
@@ -269,9 +269,9 @@ describe('Top level API', () => {
       expect(crashlytics.onErrorSpanProcessor).to.be.undefined;
     });
 
-    it('should initialize tracing when enableTracing is true', () => {
+    it('should initialize tracing when enableBreadcrumbs is true', () => {
       const crashlytics = getCrashlytics(getFakeApp(), {
-        enableTracing: true
+        enableBreadcrumbs: true
       }) as CrashlyticsInternal;
 
       expect(crashlytics.tracingProvider).to.not.be.null;
@@ -283,11 +283,11 @@ describe('Top level API', () => {
   });
 
   describe('logViewBoundary()', () => {
-    it("should emit a log record with the severity number of SeverityNumber.INFO, the body of 'Navigation event', and the attribute of 'app.screen.id' as the path of navigation when enableTracing is true", () => {
+    it("should emit a log record with the severity number of SeverityNumber.INFO, the body of 'Navigation event', and the attribute of 'app.screen.id' as the path of navigation when enableBreadcrumbs is true", () => {
       const urlTemplate = '/users/:id';
       const crashlyticsWithTracing: CrashlyticsInternal = {
         ...fakeCrashlytics,
-        options: { enableTracing: true }
+        options: { enableBreadcrumbs: true }
       };
       logViewBoundary(crashlyticsWithTracing, urlTemplate);
 
@@ -300,12 +300,12 @@ describe('Top level API', () => {
       );
     });
 
-    it('should emit a log record with additional attributes if available when enableTracing is true', () => {
+    it('should emit a log record with additional attributes if available when enableBreadcrumbs is true', () => {
       const urlTemplate = '/users/:id';
       const additionalAttributes = { 'custom.attr': 'value' };
       const crashlyticsWithTracing: CrashlyticsInternal = {
         ...fakeCrashlytics,
-        options: { enableTracing: true }
+        options: { enableBreadcrumbs: true }
       };
       logViewBoundary(
         crashlyticsWithTracing,
@@ -321,11 +321,11 @@ describe('Top level API', () => {
       );
     });
 
-    it('should not emit a log record when enableTracing is false or not set', () => {
+    it('should not emit a log record when enableBreadcrumbs is false or not set', () => {
       const urlTemplate = '/users/:id';
       const crashlyticsWithoutTracing: CrashlyticsInternal = {
         ...fakeCrashlytics,
-        options: { enableTracing: false }
+        options: { enableBreadcrumbs: false }
       };
       logViewBoundary(fakeCrashlytics, urlTemplate);
       logViewBoundary(crashlyticsWithoutTracing, urlTemplate);

@@ -226,7 +226,7 @@ export function logViewBoundary(
 ): void {
   const { loggerProvider, attributesStore, options } =
     crashlytics as CrashlyticsInternal;
-  if (!options?.enableTracing) {
+  if (!options?.enableBreadcrumbs) {
     return;
   }
   const logger = loggerProvider.getLogger('view-boundary-logger');

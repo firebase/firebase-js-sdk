@@ -28,7 +28,7 @@ export default function App() {
     <BrowserRouter>
       <CrashlyticsRoutes
         firebaseApp={app}
-        crashlyticsOptions={{ enableTracing: true }}
+        crashlyticsOptions={{ enableBreadcrumbs: true }}
       >
         <Route path="/" element={<Home />} />
         <Route path="/profile/:userId" element={<Profile />} />

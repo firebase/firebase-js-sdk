@@ -42,7 +42,7 @@ export function registerCrashlytics(): void {
           app.options,
           crashlyticsOptions
         );
-        const telemetryStore = crashlyticsOptions.enableTracing
+        const telemetryStore = crashlyticsOptions.enableBreadcrumbs
           ? new TelemetryStore()
           : undefined;
         const { loggerProvider, onErrorLogRecordProcessor } =
@@ -53,7 +53,7 @@ export function registerCrashlytics(): void {
             telemetryStore
           );
         const { tracingProvider, onErrorSpanProcessor } =
-          crashlyticsOptions.enableTracing && telemetryStore
+          crashlyticsOptions.enableBreadcrumbs && telemetryStore
             ? createTracingProvider(
                 app,
                 crashlyticsOptions,

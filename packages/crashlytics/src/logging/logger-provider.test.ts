@@ -46,7 +46,7 @@ describe('createLoggerProvider', () => {
     telemetryStore = new TelemetryStore();
   });
 
-  it('should initialize LoggerProvider with FirebaseAttributesProcessor and BatchLogRecordProcessor by default when enableTracing is not set', () => {
+  it('should initialize LoggerProvider with FirebaseAttributesProcessor and BatchLogRecordProcessor by default when enableBreadcrumbs is not set', () => {
     const { loggerProvider: provider, onErrorLogRecordProcessor } =
       createLoggerProvider(app, {}, attributesStore, telemetryStore, []);
     expect(provider).to.be.an.instanceOf(LoggerProvider);
@@ -69,11 +69,11 @@ describe('createLoggerProvider', () => {
     );
   });
 
-  it('should initialize LoggerProvider with FirebaseAttributesProcessor and OnErrorLogRecordProcessor when enableTracing is true', () => {
+  it('should initialize LoggerProvider with FirebaseAttributesProcessor and OnErrorLogRecordProcessor when enableBreadcrumbs is true', () => {
     const { loggerProvider: provider, onErrorLogRecordProcessor } =
       createLoggerProvider(
         app,
-        { enableTracing: true },
+        { enableBreadcrumbs: true },
         attributesStore,
         telemetryStore,
         []
@@ -101,7 +101,7 @@ describe('createLoggerProvider', () => {
   });
 
   describe('BatchLogRecordProcessor auto-flush on document hide', () => {
-    it('should pass disableAutoFlushOnDocumentHide: true to OnErrorLogRecordProcessor when enableTracing is true', () => {
+    it('should pass disableAutoFlushOnDocumentHide: true to OnErrorLogRecordProcessor when enableBreadcrumbs is true', () => {
       if ('_onInit' in BatchLogRecordProcessor.prototype) {
         // Browser environment (Webpack ES module bundle where namespace exports are non-configurable)
         const onInitSpy = sinon.spy(
@@ -113,7 +113,7 @@ describe('createLoggerProvider', () => {
         try {
           createLoggerProvider(
             app,
-            { enableTracing: true },
+            { enableBreadcrumbs: true },
             attributesStore,
             telemetryStore,
             []
@@ -142,7 +142,7 @@ describe('createLoggerProvider', () => {
         try {
           createLoggerProvider(
             app,
-            { enableTracing: true },
+            { enableBreadcrumbs: true },
             attributesStore,
             telemetryStore,
             []

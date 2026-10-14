@@ -108,7 +108,7 @@ export function createLoggerProvider(
     new FirebaseAttributesProcessor(attributesStore, projectId)
   ];
 
-  if (crashlyticsOptions.enableTracing) {
+  if (crashlyticsOptions.enableBreadcrumbs) {
     onErrorLogRecordProcessor = new OnErrorLogRecordProcessor(
       logExporter,
       telemetryStore ?? new TelemetryStore()
@@ -133,7 +133,7 @@ export function createLoggerProvider(
     logs.setGlobalLoggerProvider(loggerProvider);
   }
 
-  if (crashlyticsOptions.enableTracing && typeof window !== 'undefined') {
+  if (crashlyticsOptions.enableBreadcrumbs && typeof window !== 'undefined') {
     /*
      * Initialize as disabled to prevent the instrumentation from auto-enabling during construction.
      * In SSR frameworks (like Next.js), the page is already loaded when this script executes, so

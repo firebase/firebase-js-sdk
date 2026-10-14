@@ -80,7 +80,7 @@ export interface CrashlyticsOptions {
   registerGlobalLoggerProvider?: boolean;
 
   /**
-   * Whether to enable Crashlytics tracing and breadcrumb telemetry collection.
+   * Whether to enable Crashlytics breadcrumb and trace telemetry collection.
    *
    * When enabled, Crashlytics collects OpenTelemetry spans (such as Fetch, XMLHttpRequest, and
    * Document Load) and breadcrumb logs (such as navigation events, Web Vitals, user actions,
@@ -88,5 +88,5 @@ export interface CrashlyticsOptions {
    *
    * Defaults to `false`.
    */
-  enableTracing?: boolean;
+  enableBreadcrumbs?: boolean;
 }
