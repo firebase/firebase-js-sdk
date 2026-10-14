@@ -2,11 +2,7 @@
 
 This guide covers the incremental steps to enable Session Breadcrumbs & Logs for Angular applications in the Firebase Crashlytics private preview.
 
-&nbsp;
-
 In `src/app/app.config.ts`, define a `CrashlyticsOptions` object with `enableTracing: true` and pass it to `FirebaseErrorHandler`:
-
-&nbsp;
 
 ```diff
 // src/app/app.config.ts
@@ -42,7 +38,5 @@ export const appConfig: ApplicationConfig = {
   ]
 };
 ```
-
-&nbsp;
 
 **Note:** Crashlytics must be initialized with the same options everywhere in your app. If you also set up [navigation tracking](./_navigation_tracking.md), pass the same `crashlyticsOptions` object to `setupCrashlyticsRoutes`.

@@ -2,13 +2,9 @@
 
 This guide covers the incremental steps to enable automatic route navigation tracking (screen views) for React Router (v6+) applications in the Firebase Crashlytics Session Breadcrumbs & Logs private preview.
 
-&nbsp;
-
 ### Step 1: Replace `<Routes>` with `<CrashlyticsRoutes>`
 
 In your routing configuration (typically `src/App.tsx`), import `<CrashlyticsRoutes>` from `@firebase/crashlytics/react-router` and use it in place of React Router's standard `<Routes>` component:
-
-&nbsp;
 
 ```diff
 // src/App.tsx
@@ -33,8 +29,4 @@ export default function App() {
 }
 ```
 
-&nbsp;
-
 **Note:** `<CrashlyticsRoutes>` is a drop-in replacement for `<Routes>`. It matches active routes against your route patterns so session breadcrumbs and crash reports display parameterized routes (e.g. `/profile/:userId`) instead of raw URLs containing PII.
-
-&nbsp;

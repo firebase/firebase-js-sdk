@@ -6,8 +6,6 @@ This guide covers the incremental steps to enable automatic route navigation tra
 
 In your existing client-side provider component (e.g., `src/components/CrashlyticsProvider.tsx`), import `<CrashlyticsRoutes>` from `@firebase/crashlytics/next-navigation` and mount it alongside `<FirebaseCrashlytics>`:
 
-&nbsp;
-
 ```diff
 // src/components/CrashlyticsProvider.tsx
 'use client';
@@ -32,8 +30,6 @@ export function CrashlyticsProvider({ children }: { children: React.ReactNode })
 
 Ensure your root layout (`src/app/layout.tsx`) wraps the application with `<CrashlyticsProvider>`:
 
-&nbsp;
-
 ```diff
 // src/app/layout.tsx
 import React from 'react';
@@ -55,7 +51,5 @@ export default function RootLayout({
   );
 }
 ```
-
-&nbsp;
 
 **Note:** `<CrashlyticsRoutes>` hooks into Next.js's navigation lifecycle to automatically mask dynamic route parameters, ensuring paths like `/users/12345/profile` are recorded as `/users/[id]/profile` in session breadcrumbs without capturing sensitive user identifiers.

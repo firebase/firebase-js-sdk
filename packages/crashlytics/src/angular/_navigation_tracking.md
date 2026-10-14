@@ -6,8 +6,6 @@ This guide covers the incremental steps to enable automatic route navigation tra
 
 In `src/app/app.config.ts`, import `setupCrashlyticsRoutes` from `@firebase/crashlytics/angular` and register it using `provideEnvironmentInitializer`:
 
-&nbsp;
-
 ```diff
 // src/app/app.config.ts
 import {
@@ -48,7 +46,5 @@ export const appConfig: ApplicationConfig = {
   ]
 };
 ```
-
-&nbsp;
 
 **Note:** `setupCrashlyticsRoutes` subscribes to Angular's `Router` navigation events, maps active route segments to parameterized path templates (e.g. `/users/:id`), and cleans up subscriptions automatically when the environment is destroyed (`DestroyRef`).
