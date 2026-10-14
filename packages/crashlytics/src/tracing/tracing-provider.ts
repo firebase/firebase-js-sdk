@@ -46,9 +46,9 @@ import { OnErrorSpanProcessor } from './on-error-span-processor';
 import { JsonTraceSerializer } from '@opentelemetry/otlp-transformer';
 import { FetchTransport } from '../fetch-transport';
 import {
-  RESOURCE_ATTRIBUTE_KEYS,
   DEFAULT_TELEMETRY_ENDPOINT,
-  DEFAULT_TELEMETRY_REGION
+  DEFAULT_TELEMETRY_REGION,
+  GCP_FIREBASE_DOMAIN
 } from '../constants';
 import { CrashlyticsOptions } from '../public-types';
 
@@ -86,7 +86,7 @@ export function createTracingProvider(
   const region = crashlyticsOptions.region || DEFAULT_TELEMETRY_REGION;
 
   const resource = resourceFromAttributes({
-    [RESOURCE_ATTRIBUTE_KEYS.GCP_FIREBASE_DOMAIN]: window.location.hostname
+    [GCP_FIREBASE_DOMAIN]: window.location.hostname
   });
 
   if (endpointUrl.endsWith('/')) {

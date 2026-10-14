@@ -32,9 +32,7 @@ export const DEFAULT_TELEMETRY_REGION = 'global';
 export const ALREADY_LOGGED_FLAG = Symbol('firebase_crashlytics_logged');
 
 /** Label keys for resource attributes in tracing provider */
-export const RESOURCE_ATTRIBUTE_KEYS = {
-  GCP_FIREBASE_DOMAIN: 'gcp.firebase.domain'
-};
+export const GCP_FIREBASE_DOMAIN = 'gcp.firebase.domain';
 
 /**
  * The namespace for Next.js request attributes that we write in telemetry log entries.
