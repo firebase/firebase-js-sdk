@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-
 import { EventAccumulatorFactory } from '../../database/test/helpers/EventAccumulator';
 import { Reference } from '../src/api/Reference';
 
@@ -60,9 +58,9 @@ describe('.orderBy tests', () => {
 
     ref.set(initial);
 
-    expect(addedOrder).to.deep.equal(expectedOrder);
-    expect(valueOrder).to.deep.equal(expectedOrder);
-    expect(addedPrevNames).to.deep.equal(expectedPrevNames);
+    expect(addedOrder).toEqual(expectedOrder);
+    expect(valueOrder).toEqual(expectedOrder);
+    expect(addedPrevNames).toEqual(expectedPrevNames);
   });
 
   it('Snapshots are iterated in order for value', () => {
@@ -98,9 +96,9 @@ describe('.orderBy tests', () => {
 
     ref.set(initial);
 
-    expect(addedOrder).to.deep.equal(expectedOrder);
-    expect(valueOrder).to.deep.equal(expectedOrder);
-    expect(addedPrevNames).to.deep.equal(expectedPrevNames);
+    expect(addedOrder).toEqual(expectedOrder);
+    expect(valueOrder).toEqual(expectedOrder);
+    expect(addedPrevNames).toEqual(expectedPrevNames);
   });
 
   it('Fires child_moved events', () => {
@@ -119,14 +117,14 @@ describe('.orderBy tests', () => {
     let moved = false;
     orderedRef.on('child_moved', (snap, prevName) => {
       moved = true;
-      expect(snap.key).to.equal('greg');
-      expect(prevName).to.equal('rob');
-      expect(snap.val()).to.deep.equal({ nuggets: 57 });
+      expect(snap.key).toBe('greg');
+      expect(prevName).toBe('rob');
+      expect(snap.val()).toEqual({ nuggets: 57 });
     });
 
     ref.set(initial);
     ref.child('greg/nuggets').set(57);
-    expect(moved).to.equal(true);
+    expect(moved).toBe(true);
   });
 
   it('Callback removal works', async () => {
@@ -158,21 +156,21 @@ describe('.orderBy tests', () => {
 
     ref.off('value', fooCb);
     ref.set(2);
-    expect(reads).to.equal(7);
+    expect(reads).toBe(7);
 
     // Should be a no-op, resulting in 3 more reads
     ref.orderByChild('foo').off('value', bazCb);
     ref.set(3);
-    expect(reads).to.equal(10);
+    expect(reads).toBe(10);
 
     ref.orderByChild('bar').off('value');
     ref.set(4);
-    expect(reads).to.equal(12);
+    expect(reads).toBe(12);
 
     // Now, remove everything
     ref.off();
     ref.set(5);
-    expect(reads).to.equal(12);
+    expect(reads).toBe(12);
   });
 
   it('child_added events are in the correct order', () => {
@@ -189,14 +187,14 @@ describe('.orderBy tests', () => {
     });
     ref.set(initial);
 
-    expect(added).to.deep.equal(['c', 'a']);
+    expect(added).toEqual(['c', 'a']);
 
     ref.update({
       b: { value: 4 },
       d: { value: 2 }
     });
 
-    expect(added).to.deep.equal(['c', 'a', 'd', 'b']);
+    expect(added).toEqual(['c', 'a', 'd', 'b']);
   });
 
   it('Can use key index', async () => {
@@ -219,7 +217,7 @@ describe('.orderBy tests', () => {
     snap.forEach(child => {
       keys.push(child.key);
     });
-    expect(keys).to.deep.equal(['c', 'd', 'e', 'f']);
+    expect(keys).toEqual(['c', 'd', 'e', 'f']);
 
     const ea = EventAccumulatorFactory.waitsForCount(5);
     keys = [];
@@ -235,86 +233,95 @@ describe('.orderBy tests', () => {
     await ea.promise;
 
     ref.orderByKey().off();
-    expect(keys).to.deep.equal(['b', 'c', 'd', 'e', 'f']);
+    expect(keys).toEqual(['b', 'c', 'd', 'e', 'f']);
   });
 
-  it('Queries work on leaf nodes', done => {
-    const ref = getRandomNode() as Reference;
+  it('Queries work on leaf nodes', () =>
+    new Promise<void>((resolve, reject) => {
+      const done = (err?: any) => (err ? reject(err) : resolve());
 
-    ref.set('leaf-node', () => {
-      ref
-        .orderByChild('foo')
-        .limitToLast(1)
-        .on('value', snap => {
-          expect(snap.val()).to.be.null;
+      const ref = getRandomNode() as Reference;
+
+      ref.set('leaf-node', () => {
+        ref
+          .orderByChild('foo')
+          .limitToLast(1)
+          .on('value', snap => {
+            expect(snap.val()).toBeNull();
+            done();
+          });
+      });
+    }));
+
+  it('Updates for unindexed queries work', () =>
+    new Promise<void>((resolve, reject) => {
+      const done = (err?: any) => (err ? reject(err) : resolve());
+
+      const refs = getRandomNode(2) as Reference[];
+      const reader = refs[0];
+      const writer = refs[1];
+
+      const value = {
+        one: { index: 1, value: 'one' },
+        two: { index: 2, value: 'two' },
+        three: { index: 3, value: 'three' }
+      };
+
+      let count = 0;
+
+      writer.set(value, () => {
+        reader
+          .orderByChild('index')
+          .limitToLast(2)
+          .on('value', snap => {
+            if (count === 0) {
+              expect(snap.val()).toEqual({
+                two: { index: 2, value: 'two' },
+                three: { index: 3, value: 'three' }
+              });
+              // update child which should trigger value event
+              writer.child('one/index').set(4);
+            } else if (count === 1) {
+              expect(snap.val()).toEqual({
+                three: { index: 3, value: 'three' },
+                one: { index: 4, value: 'one' }
+              });
+              done();
+            }
+            count++;
+          });
+      });
+    }));
+
+  it('Server respects KeyIndex', () =>
+    new Promise<void>((resolve, reject) => {
+      const done = (err?: any) => (err ? reject(err) : resolve());
+
+      const refs = getRandomNode(2) as Reference[];
+      const reader = refs[0];
+      const writer = refs[1];
+
+      const initial = {
+        a: 1,
+        b: 2,
+        c: 3
+      };
+
+      const expected = ['b', 'c'];
+
+      const actual = [];
+
+      const orderedRef = reader.orderByKey().startAt('b').limitToFirst(2);
+      writer.set(initial, () => {
+        orderedRef.on('value', snap => {
+          snap.forEach(childSnap => {
+            actual.push(childSnap.key);
+          });
+          expect(actual).toEqual(expected);
           done();
         });
-    });
-  });
-
-  it('Updates for unindexed queries work', done => {
-    const refs = getRandomNode(2) as Reference[];
-    const reader = refs[0];
-    const writer = refs[1];
-
-    const value = {
-      one: { index: 1, value: 'one' },
-      two: { index: 2, value: 'two' },
-      three: { index: 3, value: 'three' }
-    };
-
-    let count = 0;
-
-    writer.set(value, () => {
-      reader
-        .orderByChild('index')
-        .limitToLast(2)
-        .on('value', snap => {
-          if (count === 0) {
-            expect(snap.val()).to.deep.equal({
-              two: { index: 2, value: 'two' },
-              three: { index: 3, value: 'three' }
-            });
-            // update child which should trigger value event
-            writer.child('one/index').set(4);
-          } else if (count === 1) {
-            expect(snap.val()).to.deep.equal({
-              three: { index: 3, value: 'three' },
-              one: { index: 4, value: 'one' }
-            });
-            done();
-          }
-          count++;
-        });
-    });
-  });
-
-  it('Server respects KeyIndex', done => {
-    const refs = getRandomNode(2) as Reference[];
-    const reader = refs[0];
-    const writer = refs[1];
-
-    const initial = {
-      a: 1,
-      b: 2,
-      c: 3
-    };
-
-    const expected = ['b', 'c'];
-
-    const actual = [];
-
-    const orderedRef = reader.orderByKey().startAt('b').limitToFirst(2);
-    writer.set(initial, () => {
-      orderedRef.on('value', snap => {
-        snap.forEach(childSnap => {
-          actual.push(childSnap.key);
-        });
-        expect(actual).to.deep.equal(expected);
-        done();
       });
-    });
-  });
+    }));
 
   it('startAt/endAt works on value index', () => {
     const ref = getRandomNode() as Reference;
@@ -349,9 +356,9 @@ describe('.orderBy tests', () => {
 
     ref.set(initial);
 
-    expect(addedOrder).to.deep.equal(expectedOrder);
-    expect(valueOrder).to.deep.equal(expectedOrder);
-    expect(addedPrevNames).to.deep.equal(expectedPrevNames);
+    expect(addedOrder).toEqual(expectedOrder);
+    expect(valueOrder).toEqual(expectedOrder);
+    expect(addedPrevNames).toEqual(expectedPrevNames);
   });
 
   it('startAfter / endAt works on value index', () => {
@@ -387,9 +394,9 @@ describe('.orderBy tests', () => {
 
     ref.set(initial);
 
-    expect(addedOrder).to.deep.equal(expectedOrder);
-    expect(valueOrder).to.deep.equal(expectedOrder);
-    expect(addedPrevNames).to.deep.equal(expectedPrevNames);
+    expect(addedOrder).toEqual(expectedOrder);
+    expect(valueOrder).toEqual(expectedOrder);
+    expect(addedPrevNames).toEqual(expectedPrevNames);
   });
 
   it('startAt / endBefore works on value index', () => {
@@ -425,9 +432,9 @@ describe('.orderBy tests', () => {
 
     ref.set(initial);
 
-    expect(addedOrder).to.deep.equal(expectedOrder);
-    expect(valueOrder).to.deep.equal(expectedOrder);
-    expect(addedPrevNames).to.deep.equal(expectedPrevNames);
+    expect(addedOrder).toEqual(expectedOrder);
+    expect(valueOrder).toEqual(expectedOrder);
+    expect(addedPrevNames).toEqual(expectedPrevNames);
   });
 
   it('startAfter / endBefore works on value index', () => {
@@ -463,68 +470,74 @@ describe('.orderBy tests', () => {
 
     ref.set(initial);
 
-    expect(addedOrder).to.deep.equal(expectedOrder);
-    expect(valueOrder).to.deep.equal(expectedOrder);
-    expect(addedPrevNames).to.deep.equal(expectedPrevNames);
+    expect(addedOrder).toEqual(expectedOrder);
+    expect(valueOrder).toEqual(expectedOrder);
+    expect(addedPrevNames).toEqual(expectedPrevNames);
   });
 
-  it('Removing default listener removes non-default listener that loads all data', done => {
-    const ref = getRandomNode() as Reference;
+  it('Removing default listener removes non-default listener that loads all data', () =>
+    new Promise<void>((resolve, reject) => {
+      const done = (err?: any) => (err ? reject(err) : resolve());
 
-    const initial = { key: 'value' };
-    ref.set(initial, err => {
-      expect(err).to.be.null;
-      ref.orderByKey().on('value', () => {});
-      ref.on('value', () => {});
-      // Should remove both listener and should remove the listen sent to the server
-      ref.off();
+      const ref = getRandomNode() as Reference;
 
-      // This used to crash because a listener for ref.orderByKey() existed already
-      ref.orderByKey().once('value', snap => {
-        expect(snap.val()).to.deep.equal(initial);
+      const initial = { key: 'value' };
+      ref.set(initial, err => {
+        expect(err).toBeNull();
+        ref.orderByKey().on('value', () => {});
+        ref.on('value', () => {});
+        // Should remove both listener and should remove the listen sent to the server
+        ref.off();
+
+        // This used to crash because a listener for ref.orderByKey() existed already
+        ref.orderByKey().once('value', snap => {
+          expect(snap.val()).toEqual(initial);
+          done();
+        });
+      });
+    }));
+
+  it('Can define and use an deep index', () =>
+    new Promise<void>((resolve, reject) => {
+      const done = (err?: any) => (err ? reject(err) : resolve());
+
+      const ref = getRandomNode() as Reference;
+
+      const initial = {
+        alex: { deep: { nuggets: 60 } },
+        rob: { deep: { nuggets: 56 } },
+        vassili: { deep: { nuggets: 55.5 } },
+        tony: { deep: { nuggets: 52 } },
+        greg: { deep: { nuggets: 52 } }
+      };
+
+      const expectedOrder = ['greg', 'tony', 'vassili'];
+      const expectedPrevNames = [null, 'greg', 'tony'];
+
+      const valueOrder = [];
+      const addedOrder = [];
+      const addedPrevNames = [];
+
+      const orderedRef = ref.orderByChild('deep/nuggets').limitToFirst(3);
+
+      // come before value event
+      orderedRef.on('child_added', (snap, prevName) => {
+        addedOrder.push(snap.key);
+        addedPrevNames.push(prevName);
+      });
+
+      orderedRef.once('value', snap => {
+        snap.forEach(childSnap => {
+          valueOrder.push(childSnap.key);
+        });
+      });
+
+      ref.set(initial, err => {
+        expect(err).toBeNull();
+        expect(addedOrder).toEqual(expectedOrder);
+        expect(valueOrder).toEqual(expectedOrder);
+        expect(addedPrevNames).toEqual(expectedPrevNames);
         done();
       });
-    });
-  });
-
-  it('Can define and use an deep index', done => {
-    const ref = getRandomNode() as Reference;
-
-    const initial = {
-      alex: { deep: { nuggets: 60 } },
-      rob: { deep: { nuggets: 56 } },
-      vassili: { deep: { nuggets: 55.5 } },
-      tony: { deep: { nuggets: 52 } },
-      greg: { deep: { nuggets: 52 } }
-    };
-
-    const expectedOrder = ['greg', 'tony', 'vassili'];
-    const expectedPrevNames = [null, 'greg', 'tony'];
-
-    const valueOrder = [];
-    const addedOrder = [];
-    const addedPrevNames = [];
-
-    const orderedRef = ref.orderByChild('deep/nuggets').limitToFirst(3);
-
-    // come before value event
-    orderedRef.on('child_added', (snap, prevName) => {
-      addedOrder.push(snap.key);
-      addedPrevNames.push(prevName);
-    });
-
-    orderedRef.once('value', snap => {
-      snap.forEach(childSnap => {
-        valueOrder.push(childSnap.key);
-      });
-    });
-
-    ref.set(initial, err => {
-      expect(err).to.be.null;
-      expect(addedOrder).to.deep.equal(expectedOrder);
-      expect(valueOrder).to.deep.equal(expectedOrder);
-      expect(addedPrevNames).to.deep.equal(expectedPrevNames);
-      done();
-    });
-  });
+    }));
 });

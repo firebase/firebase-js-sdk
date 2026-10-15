@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-
 import { Database } from '../src/api/Database';
 import { Reference } from '../src/api/Reference';
 
@@ -28,7 +26,7 @@ describe('ServerValue tests', () => {
     const start = Date.now();
     const values: number[] = [];
     node.on('value', snap => {
-      expect(typeof snap.val()).to.equal('number');
+      expect(typeof snap.val()).toBe('number');
       values.push(snap.val() as number);
     });
     await node.set(Database.ServerValue.TIMESTAMP);
@@ -36,10 +34,10 @@ describe('ServerValue tests', () => {
 
     // By the time the write is acknowledged, we should have a local and
     // server version of the timestamp.
-    expect(values.length).to.equal(2);
+    expect(values.length).toBe(2);
     values.forEach(serverTime => {
       const delta = Math.abs(serverTime - start);
-      expect(delta).to.be.lessThan(1000);
+      expect(delta).toBeLessThan(1000);
     });
   });
 
@@ -94,7 +92,7 @@ describe('ServerValue tests', () => {
         expected.push(1);
 
         node.off('value');
-        expect(values).to.deep.equal(expected);
+        expect(values).toEqual(expected);
         node.database.goOnline();
       });
     }
@@ -114,7 +112,7 @@ describe('ServerValue tests', () => {
       'child/increment': Database.ServerValue.increment(1),
       'literal': 5
     });
-    expect(value).to.deep.equal({
+    expect(value).toEqual({
       'literal': 5,
       'child': {
         'increment': 1
@@ -124,7 +122,7 @@ describe('ServerValue tests', () => {
     await node.update({
       'child/increment': Database.ServerValue.increment(41)
     });
-    expect(value).to.deep.equal({
+    expect(value).toEqual({
       'literal': 5,
       'child': {
         'increment': 42
@@ -133,7 +131,7 @@ describe('ServerValue tests', () => {
 
     node.off('value');
 
-    expect(events).to.equal(2);
+    expect(events).toBe(2);
   });
 
   it('handles races', async () => {
@@ -147,6 +145,6 @@ describe('ServerValue tests', () => {
     await Promise.all(all);
 
     const snap = await node.once('value');
-    expect(snap.val()).to.equal(racers);
+    expect(snap.val()).toBe(racers);
   });
 });

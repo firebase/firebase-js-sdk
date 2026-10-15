@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-
 import { EventAccumulator } from '../../database/test/helpers/EventAccumulator';
 import { Reference } from '../src/api/Reference';
 
@@ -51,10 +49,10 @@ describe('Order Tests', () => {
 
     let expected = 0;
     snap.forEach(child => {
-      expect(child.val()).to.equal(expected);
+      expect(child.val()).toBe(expected);
       expected++;
     });
-    expect(expected).to.equal(10);
+    expect(expected).toBe(10);
   });
 
   it('Push a bunch of paths, then write; ensure order is correct.', async () => {
@@ -72,10 +70,10 @@ describe('Order Tests', () => {
 
     let expected = 0;
     snap.forEach(child => {
-      expect(child.val()).to.equal(expected);
+      expect(child.val()).toBe(expected);
       expected++;
     });
-    expect(expected).to.equal(20);
+    expect(expected).toBe(20);
   });
 
   it('Push a bunch of data, reconnect, read it back; ensure order is chronological.', async () => {
@@ -95,10 +93,10 @@ describe('Order Tests', () => {
 
     expected = 0;
     snap.forEach(child => {
-      expect(child.val()).to.equal(expected);
+      expect(child.val()).toBe(expected);
       expected++;
     });
-    expect(expected).to.equal(10);
+    expect(expected).toBe(10);
 
     // read it back
     let readSnap;
@@ -112,10 +110,10 @@ describe('Order Tests', () => {
 
     expected = 0;
     readSnap.forEach(child => {
-      expect(child.val()).to.equal(expected);
+      expect(child.val()).toBe(expected);
       expected++;
     });
-    expect(expected).to.equal(10);
+    expect(expected).toBe(10);
   });
 
   it('Push a bunch of data with explicit priority, reconnect, read it back; ensure order is correct.', async () => {
@@ -135,10 +133,10 @@ describe('Order Tests', () => {
     const snap = await node.once('value');
     expected = 9;
     snap.forEach(child => {
-      expect(child.val()).to.equal(expected);
+      expect(child.val()).toBe(expected);
       expected--;
     });
-    expect(expected).to.equal(-1);
+    expect(expected).toBe(-1);
 
     // local SETs are visible immediately, but the second node is in a separate repo, so it is considered remote.
     // We need confirmation that the server has gotten all the data before we can expect to receive it all
@@ -154,10 +152,10 @@ describe('Order Tests', () => {
 
     expected = 9;
     readSnap.forEach(child => {
-      expect(child.val()).to.equal(expected);
+      expect(child.val()).toBe(expected);
       expected--;
     });
-    expect(expected).to.equal(-1);
+    expect(expected).toBe(-1);
   });
 
   it('Push data with exponential priority and ensure order is correct.', async () => {
@@ -181,10 +179,10 @@ describe('Order Tests', () => {
     const snap = await node.once('value');
     expected = 9;
     snap.forEach(child => {
-      expect(child.val()).to.equal(expected);
+      expect(child.val()).toBe(expected);
       expected--;
     });
-    expect(expected).to.equal(-1);
+    expect(expected).toBe(-1);
 
     // read it back
     let readSnap;
@@ -198,10 +196,10 @@ describe('Order Tests', () => {
 
     expected = 9;
     readSnap.forEach(child => {
-      expect(child.val()).to.equal(expected);
+      expect(child.val()).toBe(expected);
       expected--;
     });
-    expect(expected).to.equal(-1);
+    expect(expected).toBe(-1);
   });
 
   it("Verify nodes without values aren't enumerated.", async () => {
@@ -213,10 +211,10 @@ describe('Order Tests', () => {
     const snap = await node.once('value');
     snap.forEach(child => {
       items++;
-      expect(child.key).to.equal('bar');
+      expect(child.key).toBe('bar');
     });
 
-    expect(items).to.equal(1);
+    expect(items).toBe(1);
   });
 
   it.skip('Receive child_moved event when priority changes.', async () => {
@@ -242,11 +240,11 @@ describe('Order Tests', () => {
     node.child('b').setWithPriority('second', 5);
     node.child('c').setWithPriority('third', 10);
 
-    expect(eventHelper.waiter()).to.equal(false);
+    expect(eventHelper.waiter()).toBe(false);
 
     node.child('a').setPriority(15);
 
-    expect(eventHelper.waiter()).to.equal(true);
+    expect(eventHelper.waiter()).toBe(true);
   });
 
   it.skip('Can reset priority to null.', async () => {
@@ -271,9 +269,9 @@ describe('Order Tests', () => {
     ]);
 
     node.child('b').setPriority(null);
-    expect(eventHelper.waiter()).to.equal(true);
+    expect(eventHelper.waiter()).toBe(true);
 
-    expect((await node.once('value')).child('b').getPriority()).to.equal(null);
+    expect((await node.once('value')).child('b').getPriority()).toBe(null);
   });
 
   it('Inserting a node under a leaf node preserves its priority.', () => {
@@ -286,7 +284,7 @@ describe('Order Tests', () => {
 
     node.setWithPriority('a', 10);
     node.child('deeper').set('deeper');
-    expect(snap.getPriority()).to.equal(10);
+    expect(snap.getPriority()).toBe(10);
   });
 
   it('Verify order of mixed numbers / strings / no priorities.', async () => {
@@ -350,7 +348,7 @@ describe('Order Tests', () => {
       output += n.key + ', ';
     });
 
-    expect(output).to.equal(expectedOutput);
+    expect(output).toBe(expectedOutput);
 
     let eventsFired = false;
     output = '';
@@ -358,7 +356,7 @@ describe('Order Tests', () => {
       snap.forEach(n => {
         output += n.key + ', ';
       });
-      expect(output).to.equal(expectedOutput);
+      expect(output).toBe(expectedOutput);
       eventsFired = true;
     });
   });
@@ -383,7 +381,7 @@ describe('Order Tests', () => {
       output += n.key + ', ';
     });
 
-    expect(output).to.equal(expectedOutput);
+    expect(output).toBe(expectedOutput);
   });
 
   it('Ensure prevName is correct on child_added event.', () => {
@@ -396,7 +394,7 @@ describe('Order Tests', () => {
 
     node.set({ a: 1, b: 2, c: 3 });
 
-    expect(added).to.equal('a null, b a, c b, ');
+    expect(added).toBe('a null, b a, c b, ');
   });
 
   it('Ensure prevName is correct when adding new nodes.', () => {
@@ -409,15 +407,15 @@ describe('Order Tests', () => {
 
     node.set({ b: 2, c: 3, d: 4 });
 
-    expect(added).to.equal('b null, c b, d c, ');
+    expect(added).toBe('b null, c b, d c, ');
 
     added = '';
     node.child('a').set(1);
-    expect(added).to.equal('a null, ');
+    expect(added).toBe('a null, ');
 
     added = '';
     node.child('e').set(5);
-    expect(added).to.equal('e d, ');
+    expect(added).toBe('e d, ');
   });
 
   it('Ensure prevName is correct when adding new nodes with JSON.', () => {
@@ -430,15 +428,15 @@ describe('Order Tests', () => {
 
     node.set({ b: 2, c: 3, d: 4 });
 
-    expect(added).to.equal('b null, c b, d c, ');
+    expect(added).toBe('b null, c b, d c, ');
 
     added = '';
     node.set({ a: 1, b: 2, c: 3, d: 4 });
-    expect(added).to.equal('a null, ');
+    expect(added).toBe('a null, ');
 
     added = '';
     node.set({ a: 1, b: 2, c: 3, d: 4, e: 5 });
-    expect(added).to.equal('e d, ');
+    expect(added).toBe('e d, ');
   });
 
   it('Ensure prevName is correct when moving nodes.', () => {
@@ -455,15 +453,15 @@ describe('Order Tests', () => {
     node.child('d').setWithPriority('d', 4);
 
     node.child('d').setPriority(0);
-    expect(moved).to.equal('d null, ');
+    expect(moved).toBe('d null, ');
 
     moved = '';
     node.child('a').setPriority(4);
-    expect(moved).to.equal('a c, ');
+    expect(moved).toBe('a c, ');
 
     moved = '';
     node.child('c').setPriority(0.5);
-    expect(moved).to.equal('c d, ');
+    expect(moved).toBe('c d, ');
   });
 
   it('Ensure prevName is correct when moving nodes by setting whole JSON.', () => {
@@ -487,7 +485,7 @@ describe('Order Tests', () => {
       b: { '.value': 'b', '.priority': 2 },
       c: { '.value': 'c', '.priority': 3 }
     });
-    expect(moved).to.equal('d null, ');
+    expect(moved).toBe('d null, ');
 
     moved = '';
     node.set({
@@ -496,7 +494,7 @@ describe('Order Tests', () => {
       c: { '.value': 'c', '.priority': 3 },
       a: { '.value': 'a', '.priority': 4 }
     });
-    expect(moved).to.equal('a c, ');
+    expect(moved).toBe('a c, ');
 
     moved = '';
     node.set({
@@ -505,7 +503,7 @@ describe('Order Tests', () => {
       b: { '.value': 'b', '.priority': 2 },
       a: { '.value': 'a', '.priority': 4 }
     });
-    expect(moved).to.equal('c d, ');
+    expect(moved).toBe('c d, ');
   });
 
   it('Case 595: Should not get child_moved event when deleting prioritized grandchild.', () => {
@@ -520,7 +518,7 @@ describe('Order Tests', () => {
     f.child('test/foo').remove();
     f.child('test/foo2').remove();
 
-    expect(moves).to.equal(0, 'Should *not* have received any move events.');
+    expect(moves, 'Should *not* have received any move events.').toBe(0);
   });
 
   it('Can set value with priority of 0.', () => {
@@ -533,7 +531,7 @@ describe('Order Tests', () => {
 
     f.setWithPriority('test', 0);
 
-    expect(snap.getPriority()).to.equal(0);
+    expect(snap.getPriority()).toBe(0);
   });
 
   it('Can set object with priority of 0.', () => {
@@ -546,7 +544,7 @@ describe('Order Tests', () => {
 
     f.setWithPriority({ x: 'test', y: 7 }, 0);
 
-    expect(snap.getPriority()).to.equal(0);
+    expect(snap.getPriority()).toBe(0);
   });
 
   it('Case 2003: Should get child_moved for any priority change, regardless of whether it affects ordering.', () => {
@@ -562,9 +560,9 @@ describe('Order Tests', () => {
       d: { '.value': 'd', '.priority': 3 }
     });
 
-    expect(moved).to.deep.equal([]);
+    expect(moved).toEqual([]);
     f.child('b').setWithPriority('b', 1.5);
-    expect(moved).to.deep.equal(['b']);
+    expect(moved).toEqual(['b']);
   });
 
   it('Case 2003: Should get child_moved for any priority change, regardless of whether it affects ordering (2).', () => {
@@ -580,13 +578,13 @@ describe('Order Tests', () => {
       d: { '.value': 'd', '.priority': 3 }
     });
 
-    expect(moved).to.deep.equal([]);
+    expect(moved).toEqual([]);
     f.set({
       a: { '.value': 'a', '.priority': 0 },
       b: { '.value': 'b', '.priority': 1.5 },
       c: { '.value': 'c', '.priority': 2 },
       d: { '.value': 'd', '.priority': 3 }
     });
-    expect(moved).to.deep.equal(['b']);
+    expect(moved).toEqual(['b']);
   });
 });
