@@ -10989,9 +10989,12 @@ A Promise representing the asynchronous pipeline execution.
 
 
 ```typescript
-const snapshot: PipelineSnapshot = await execute(firestore.pipeline().collection("books")
-    .where(greaterThan(field("rating"), 4.5))
-    .select("title", "author", "rating"));
+const snapshot: PipelineSnapshot = await execute({
+  pipeline: firestore.pipeline().collection("books")
+    .where(lessThan(field("rating"), 2))
+    .delete(),
+  atomic: true
+});
 
 const results: PipelineResult[] = snapshot.results;
 

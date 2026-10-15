@@ -19,6 +19,7 @@ import type { MockInstance } from 'vitest';
 
 import {
   arrayUnion,
+  collection,
   deleteField,
   increment,
   serverTimestamp,
@@ -35,7 +36,7 @@ import {
   ExecutePipelineResponse as ProtoExecutePipelineResponse
 } from '../../../src/protos/firestore_proto_api';
 import { add, constant, field, multiply } from '../../lite/pipeline_export';
-import { collectionReference, newTestFirestore } from '../../util/api_helpers';
+import { newTestFirestore } from '../../util/api_helpers';
 import { describe } from '../../util/mocha_extensions';
 
 const FIRST_CALL = 0;
@@ -407,7 +408,7 @@ describe('stage serialization', () => {
     it('serializes insert stage with CollectionReference and document ID expressions', async () => {
       const firestore = newTestFirestore();
       const spy = fakePipelineResponse(firestore);
-      const targetColRef = collectionReference('customers/c1/orders');
+      const targetColRef = collection(firestore, 'customers/c1/orders');
 
       await execute(
         firestore
@@ -679,6 +680,39 @@ describe('stage serialization', () => {
       }).to.throw(
         'Function upsert() cannot be called with an empty collection path.'
       );
+    });
+
+    it('throws on CollectionReference from a different database in insert and upsert stages', () => {
+      const firestore = newTestFirestore('project1');
+      const otherFirestore = newTestFirestore('project2');
+      const otherCollection = collection(otherFirestore, 'bar');
+
+      expect(() => {
+        firestore
+          .pipeline()
+          .collection('foo')
+          .insert({ collection: otherCollection });
+      }).to.throw(/Invalid CollectionReference/);
+
+      expect(() => {
+        firestore
+          .pipeline()
+          .collection('foo')
+          .upsert({ collection: otherCollection });
+      }).to.throw(/Invalid CollectionReference/);
+
+      // A CollectionReference from the same database is accepted.
+      const sameCollection = collection(firestore, 'bar');
+      expect(() => {
+        firestore
+          .pipeline()
+          .collection('foo')
+          .insert({ collection: sameCollection });
+        firestore
+          .pipeline()
+          .collection('foo')
+          .upsert({ collection: sameCollection });
+      }).not.to.throw();
     });
   });
 

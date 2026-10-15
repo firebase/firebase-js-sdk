@@ -21,6 +21,7 @@ import {
   Stage as ProtoStage
 } from '../protos/firestore_proto_api';
 import { JsonProtoSerializer, ProtoSerializable } from '../remote/serializer';
+import { Code, FirestoreError } from '../util/error';
 import { isPlainObject } from '../util/input_validation';
 import {
   aliasedAggregateToMap,
@@ -56,6 +57,7 @@ import {
   isAliasedExpr,
   documentMatches
 } from './expressions';
+import { CollectionReference, isCollectionReference } from './reference';
 import {
   AddFields,
   Aggregate,
@@ -1675,6 +1677,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    */
   insert(options: InsertStageOptions): Pipeline;
   insert(options: InsertStageOptions = {}): Pipeline {
+    this._validateCollectionReference(options.collection);
     return this._addStage(new Insert(options));
   }
 
@@ -1725,7 +1728,30 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
       options = fieldOrOptions;
     }
 
+    this._validateCollectionReference(options.collection);
     return this._addStage(new Upsert(options));
+  }
+
+  /**
+   * Validates that a user provided `CollectionReference` targets the same
+   * Firestore database as this pipeline.
+   */
+  private _validateCollectionReference(
+    collection: string | CollectionReference | undefined
+  ): void {
+    if (!this._db || !isCollectionReference(collection)) {
+      return;
+    }
+    const refDbId = collection.firestore._databaseId;
+    const pipelineDbId = this._db._databaseId;
+    if (!refDbId.isEqual(pipelineDbId)) {
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        `Invalid CollectionReference. ` +
+          `The project ID ("${refDbId.projectId}") or the database ("${refDbId.database}") does not match ` +
+          `the project ID ("${pipelineDbId.projectId}") and database ("${pipelineDbId.database}") of the target database of this Pipeline.`
+      );
+    }
   }
 
   /**
