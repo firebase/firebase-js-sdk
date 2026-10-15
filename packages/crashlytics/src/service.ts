@@ -18,13 +18,12 @@
 import { _FirebaseService, FirebaseApp } from '@firebase/app';
 import { Crashlytics, CrashlyticsOptions } from './public-types';
 import { LoggerProvider } from '@opentelemetry/sdk-logs';
-import { TracerProvider } from '@opentelemetry/api';
+import type { TracerProvider } from '@opentelemetry/api';
 import { AttributesStore } from './attributes-store';
-import { OnErrorLogRecordProcessor } from './logging/on-error-log-record-processor';
-import { OnErrorSpanProcessor } from './tracing/on-error-span-processor';
-import { unregisterLoggerInstrumentations } from './logging/logger-provider';
-import { unregisterTracingInstrumentations } from './tracing/tracing-provider';
-import { TelemetryStore } from './telemetry-store';
+import type { OnErrorLogRecordProcessor } from './logging/on-error-log-record-processor';
+import type { OnErrorSpanProcessor } from './tracing/on-error-span-processor';
+import type { TelemetryStore } from './telemetry-store';
+import { getBreadcrumbsFeature } from './helpers';
 
 export class CrashlyticsService implements Crashlytics, _FirebaseService {
   private _options?: CrashlyticsOptions;
@@ -48,8 +47,7 @@ export class CrashlyticsService implements Crashlytics, _FirebaseService {
     if (this._unsubscribeListeners) {
       this._unsubscribeListeners();
     }
-    unregisterLoggerInstrumentations();
-    unregisterTracingInstrumentations();
+    getBreadcrumbsFeature(this._options)?.unregisterInstrumentations();
 
     const promises: Array<Promise<void>> = [];
     if (

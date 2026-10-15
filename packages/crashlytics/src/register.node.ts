@@ -25,10 +25,9 @@ import { CRASHLYTICS_TYPE } from './constants';
 import { name, version } from '../package.json';
 import { CrashlyticsService } from './service';
 import { createLoggerProvider } from './logging/logger-provider';
-import { createTracingProvider } from './tracing/tracing-provider';
 import { CrashlyticsOptions } from './public-types';
 import { AttributesStore } from './attributes-store';
-import { TelemetryStore } from './telemetry-store';
+import { getBreadcrumbsFeature } from './helpers';
 
 export function registerCrashlytics(): void {
   _registerComponent(
@@ -42,9 +41,8 @@ export function registerCrashlytics(): void {
           app.options,
           crashlyticsOptions
         );
-        const telemetryStore = crashlyticsOptions.enableBreadcrumbs
-          ? new TelemetryStore()
-          : undefined;
+        const breadcrumbsFeature = getBreadcrumbsFeature(crashlyticsOptions);
+        const telemetryStore = breadcrumbsFeature?.createTelemetryStore();
         const { loggerProvider, onErrorLogRecordProcessor } =
           createLoggerProvider(
             app,
@@ -52,14 +50,15 @@ export function registerCrashlytics(): void {
             attributesStore,
             telemetryStore
           );
-        const { tracingProvider, onErrorSpanProcessor } = telemetryStore
-          ? createTracingProvider(
-              app,
-              crashlyticsOptions,
-              attributesStore,
-              telemetryStore
-            )
-          : { tracingProvider: null, onErrorSpanProcessor: undefined };
+        const { tracingProvider, onErrorSpanProcessor } =
+          breadcrumbsFeature && telemetryStore
+            ? breadcrumbsFeature.createTracingProvider(
+                app,
+                crashlyticsOptions,
+                attributesStore,
+                telemetryStore
+              )
+            : { tracingProvider: null, onErrorSpanProcessor: undefined };
 
         const crashlyticsService = new CrashlyticsService(
           app,

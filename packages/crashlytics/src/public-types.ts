@@ -33,6 +33,14 @@ export interface Crashlytics {
 }
 
 /**
+ * An opaque feature plugin object returned by Crashlytics feature factory functions
+ * such as {@link breadcrumbs}.
+ *
+ * @public
+ */
+export interface CrashlyticsFeature {}
+
+/**
  * Options for initializing the Crashlytics service using {@link getCrashlytics | getCrashlytics()}.
  *
  * @public
@@ -80,13 +88,21 @@ export interface CrashlyticsOptions {
   registerGlobalLoggerProvider?: boolean;
 
   /**
-   * Whether to enable Crashlytics breadcrumb and trace telemetry collection.
+   * Optional list of Crashlytics features (such as {@link breadcrumbs}) to enable.
    *
-   * When enabled, Crashlytics collects OpenTelemetry spans (such as Fetch, XMLHttpRequest, and
-   * Document Load) and breadcrumb logs (such as navigation events, Web Vitals, user actions,
-   * and visibility lifecycle events), buffering them in memory and exporting them when an error occurs.
+   * When {@link breadcrumbs} is included, Crashlytics collects OpenTelemetry spans (such as Fetch,
+   * XMLHttpRequest, and Document Load) and breadcrumb logs (such as navigation events, Web Vitals,
+   * user actions, and visibility lifecycle events), buffering them in memory and exporting them
+   * when an error occurs.
    *
-   * Defaults to `false`.
+   * @example
+   * ```ts
+   * import { getCrashlytics, breadcrumbs } from '@firebase/crashlytics';
+   *
+   * const crashlytics = getCrashlytics(app, {
+   *   features: [breadcrumbs()]
+   * });
+   * ```
    */
-  enableBreadcrumbs?: boolean;
+  features?: CrashlyticsFeature[];
 }

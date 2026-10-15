@@ -2,15 +2,16 @@
 
 This guide covers the incremental steps to enable Session Breadcrumbs & Logs for React applications in the Firebase Crashlytics private preview.
 
-In your root application component (typically `src/App.tsx`), define a `crashlyticsOptions` object with `enableBreadcrumbs: true` and pass it to `<FirebaseCrashlytics>`:
+In your root application component (typically `src/App.tsx`), define a `crashlyticsOptions` object with `features: [breadcrumbs()]` and pass it to `<FirebaseCrashlytics>`:
 
 ```diff
 // src/App.tsx
 import React from 'react';
++import { breadcrumbs } from '@firebase/crashlytics';
 import { FirebaseCrashlytics } from '@firebase/crashlytics/react';
 import { app } from './lib/firebase'; // Your existing Firebase App singleton
 
-+const crashlyticsOptions = { enableBreadcrumbs: true };
++const crashlyticsOptions = { features: [breadcrumbs()] };
 +
 export default function App() {
   return (

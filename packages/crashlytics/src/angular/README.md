@@ -68,7 +68,7 @@ export const appConfig: ApplicationConfig = {
 
 ### Step 3: Track Route Changes & Enable Breadcrumbs
 
-To automatically track navigation changes, update the route path attribute, and log view boundary telemetry with breadcrumbs enabled when navigating between routes, initialize `setupCrashlyticsRoutes` with `provideEnvironmentInitializer` in `src/app/app.config.ts` and pass `{ enableBreadcrumbs: true }`:
+To automatically track navigation changes, update the route path attribute, and log view boundary telemetry with breadcrumbs enabled when navigating between routes, initialize `setupCrashlyticsRoutes` with `provideEnvironmentInitializer` in `src/app/app.config.ts` and pass `{ features: [breadcrumbs()] }`:
 
 ```typescript
 // src/app/app.config.ts
@@ -80,6 +80,7 @@ import {
   provideEnvironmentInitializer
 } from '@angular/core';
 import { provideRouter, Router } from '@angular/router';
+import { breadcrumbs } from '@firebase/crashlytics';
 import {
   CrashlyticsOptions,
   FirebaseErrorHandler,
@@ -89,7 +90,7 @@ import { FIREBASE_APP, provideFirebaseApp } from './firebase.config';
 import { routes } from './app.routes';
 
 const crashlyticsOptions: CrashlyticsOptions = {
-  enableBreadcrumbs: true
+  features: [breadcrumbs()]
 };
 
 export const appConfig: ApplicationConfig = {

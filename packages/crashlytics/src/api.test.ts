@@ -61,6 +61,7 @@ import {
 import { TelemetryStore } from './telemetry-store';
 import { OnErrorLogRecordProcessor } from './logging/on-error-log-record-processor';
 import { FirebaseAttributesLogProcessor } from './logging/attributes-log-processor';
+import { breadcrumbs } from './breadcrumbs';
 
 const PROJECT_ID = 'my-project';
 const APP_ID = 'my-appid';
@@ -235,6 +236,24 @@ describe('Top level API', () => {
         getCrashlytics(app, {});
       }).to.throw('getCrashlytics() cannot be called with different options');
     });
+
+    it('works when called multiple times with fresh breadcrumbs() instances', () => {
+      const app = getFakeApp();
+      expect(
+        getCrashlytics(app, {
+          features: [breadcrumbs()]
+        })
+      ).to.equal(
+        getCrashlytics(app, {
+          features: [breadcrumbs()]
+        })
+      );
+      expect(() => {
+        getCrashlytics(app, {
+          features: []
+        });
+      }).to.throw('getCrashlytics() cannot be called with different options');
+    });
   });
 
   describe('registerCrashlytics()', () => {
@@ -260,7 +279,7 @@ describe('Top level API', () => {
       );
     });
 
-    it('should not initialize tracing by default when enableBreadcrumbs is not set', () => {
+    it('should not initialize tracing by default when breadcrumbs() is not passed in features', () => {
       const crashlytics = getCrashlytics(getFakeApp()) as CrashlyticsInternal;
 
       expect(crashlytics.tracingProvider).to.be.null;
@@ -269,9 +288,9 @@ describe('Top level API', () => {
       expect(crashlytics.onErrorSpanProcessor).to.be.undefined;
     });
 
-    it('should initialize tracing when enableBreadcrumbs is true', () => {
+    it('should initialize tracing when breadcrumbs() is passed in features', () => {
       const crashlytics = getCrashlytics(getFakeApp(), {
-        enableBreadcrumbs: true
+        features: [breadcrumbs()]
       }) as CrashlyticsInternal;
 
       expect(crashlytics.tracingProvider).to.not.be.null;
@@ -283,11 +302,11 @@ describe('Top level API', () => {
   });
 
   describe('logViewBoundary()', () => {
-    it("should emit a log record with the severity number of SeverityNumber.INFO, the body of 'Navigation event', and the attribute of 'app.screen.id' as the path of navigation when enableBreadcrumbs is true", () => {
+    it("should emit a log record with the severity number of SeverityNumber.INFO, the body of 'Navigation event', and the attribute of 'app.screen.id' as the path of navigation when breadcrumbs() is enabled", () => {
       const urlTemplate = '/users/:id';
       const crashlyticsWithTracing: CrashlyticsInternal = {
         ...fakeCrashlytics,
-        options: { enableBreadcrumbs: true }
+        options: { features: [breadcrumbs()] }
       };
       logViewBoundary(crashlyticsWithTracing, urlTemplate);
 
@@ -300,12 +319,12 @@ describe('Top level API', () => {
       );
     });
 
-    it('should emit a log record with additional attributes if available when enableBreadcrumbs is true', () => {
+    it('should emit a log record with additional attributes if available when breadcrumbs() is enabled', () => {
       const urlTemplate = '/users/:id';
       const additionalAttributes = { 'custom.attr': 'value' };
       const crashlyticsWithTracing: CrashlyticsInternal = {
         ...fakeCrashlytics,
-        options: { enableBreadcrumbs: true }
+        options: { features: [breadcrumbs()] }
       };
       logViewBoundary(
         crashlyticsWithTracing,
@@ -321,11 +340,11 @@ describe('Top level API', () => {
       );
     });
 
-    it('should not emit a log record when enableBreadcrumbs is false or not set', () => {
+    it('should not emit a log record when breadcrumbs() is not in features', () => {
       const urlTemplate = '/users/:id';
       const crashlyticsWithoutTracing: CrashlyticsInternal = {
         ...fakeCrashlytics,
-        options: { enableBreadcrumbs: false }
+        options: { features: [] }
       };
       logViewBoundary(fakeCrashlytics, urlTemplate);
       logViewBoundary(crashlyticsWithoutTracing, urlTemplate);

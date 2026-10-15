@@ -16,10 +16,27 @@
  */
 
 import { SeverityNumber, AnyValueMap } from '@opentelemetry/api-logs';
-import { Crashlytics } from './public-types';
-import { CrashlyticsInternal } from './types';
+import { Crashlytics, CrashlyticsOptions } from './public-types';
+import { CrashlyticsFeatureInternal, CrashlyticsInternal } from './types';
 import { type TimeInput } from '@opentelemetry/api';
 import { hrTimeToMilliseconds, timeInputToHrTime } from '@opentelemetry/core';
+
+/**
+ * Returns the breadcrumbs feature implementation if enabled in options.
+ *
+ * @internal
+ */
+export function getBreadcrumbsFeature(
+  options?: CrashlyticsOptions
+): CrashlyticsFeatureInternal | undefined {
+  return options?.features?.find(
+    (feature): feature is CrashlyticsFeatureInternal =>
+      Boolean(
+        feature &&
+        (feature as CrashlyticsFeatureInternal).name === 'breadcrumbs'
+      )
+  );
+}
 
 /**
  * Converts OpenTelemetry TimeInput to milliseconds since epoch.
@@ -85,7 +102,7 @@ export function registerListeners(crashlytics: Crashlytics): () => void {
   if (typeof window !== 'undefined' && typeof document !== 'undefined') {
     const onVisibilityChange = async (): Promise<void> => {
       if (
-        (crashlytics as CrashlyticsInternal).options?.enableBreadcrumbs &&
+        getBreadcrumbsFeature((crashlytics as CrashlyticsInternal).options) &&
         (document.visibilityState === 'visible' ||
           document.visibilityState === 'hidden')
       ) {

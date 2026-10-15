@@ -24,6 +24,7 @@ import { AnyValueMap, SeverityNumber } from '@opentelemetry/api-logs';
 import { CrashlyticsService } from './service';
 import { deepEqual } from '@firebase/util';
 import { SPAN_ATTR_KEY } from './attributes-store';
+import { flush, getBreadcrumbsFeature } from './helpers';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
@@ -241,7 +242,7 @@ export function logViewBoundary(
 ): void {
   const { loggerProvider, attributesStore, options } =
     crashlytics as CrashlyticsInternal;
-  if (!options?.enableBreadcrumbs) {
+  if (!getBreadcrumbsFeature(options)) {
     return;
   }
   const logger = loggerProvider.getLogger('view-boundary-logger');
@@ -263,4 +264,4 @@ export function logViewBoundary(
   });
 }
 
-export { flush } from './helpers';
+export { flush };

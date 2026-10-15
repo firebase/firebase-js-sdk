@@ -24,17 +24,19 @@ import {
 import { name, version } from '../package.json';
 import { CrashlyticsService } from './service';
 import { createLoggerProvider } from './logging/logger-provider';
-import { createTracingProvider } from './tracing/tracing-provider';
 import { AppCheckProvider } from './logging/appcheck-provider';
 import { CRASHLYTICS_TYPE } from './constants';
-import { registerListeners, startNewSession } from './helpers';
+import {
+  getBreadcrumbsFeature,
+  registerListeners,
+  startNewSession
+} from './helpers';
 import { CrashlyticsOptions } from './public-types';
 
 // We only import types from this package elsewhere in the `telemetry` package, so this
 // explicit import is needed here to prevent this module from being tree-shaken out.
 import '@firebase/installations';
 import { AttributesStore } from './attributes-store';
-import { TelemetryStore } from './telemetry-store';
 
 export function registerCrashlytics(): void {
   _registerComponent(
@@ -54,9 +56,8 @@ export function registerCrashlytics(): void {
           crashlyticsOptions,
           installationsProvider
         );
-        const telemetryStore = crashlyticsOptions.enableBreadcrumbs
-          ? new TelemetryStore()
-          : undefined;
+        const breadcrumbsFeature = getBreadcrumbsFeature(crashlyticsOptions);
+        const telemetryStore = breadcrumbsFeature?.createTelemetryStore();
         const dynamicHeaderProviders = [new AppCheckProvider(appCheckProvider)];
         const { loggerProvider, onErrorLogRecordProcessor } =
           createLoggerProvider(
@@ -67,15 +68,16 @@ export function registerCrashlytics(): void {
             dynamicHeaderProviders
           );
 
-        const { tracingProvider, onErrorSpanProcessor } = telemetryStore
-          ? createTracingProvider(
-              app,
-              crashlyticsOptions,
-              attributesStore,
-              telemetryStore,
-              dynamicHeaderProviders
-            )
-          : { tracingProvider: null, onErrorSpanProcessor: undefined };
+        const { tracingProvider, onErrorSpanProcessor } =
+          breadcrumbsFeature && telemetryStore
+            ? breadcrumbsFeature.createTracingProvider(
+                app,
+                crashlyticsOptions,
+                attributesStore,
+                telemetryStore,
+                dynamicHeaderProviders
+              )
+            : { tracingProvider: null, onErrorSpanProcessor: undefined };
 
         const crashlyticsService = new CrashlyticsService(
           app,

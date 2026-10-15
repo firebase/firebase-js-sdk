@@ -38,6 +38,7 @@ import {
 } from './attributes-store';
 import { TelemetryStore } from './telemetry-store';
 import { FirebaseAttributesLogProcessor } from './logging/attributes-log-processor';
+import { breadcrumbs } from './breadcrumbs';
 
 describe('helpers', () => {
   let originalSessionStorage: Storage | undefined;
@@ -275,8 +276,8 @@ describe('helpers', () => {
         registerListeners(fakeCrashlytics);
       });
     } else {
-      it('should emit a log and flush when the visibility changes to hidden and enableBreadcrumbs is true', async () => {
-        fakeCrashlytics.options = { enableBreadcrumbs: true };
+      it('should emit a log and flush when the visibility changes to hidden and breadcrumbs() is enabled', async () => {
+        fakeCrashlytics.options = { features: [breadcrumbs()] };
         registerListeners(fakeCrashlytics);
 
         expect(flushed).to.be.false;
@@ -293,8 +294,8 @@ describe('helpers', () => {
         expect(emittedLogs).to.have.lengthOf(1);
       });
 
-      it('should emit a log but not flush when the visibility changes to visible and enableBreadcrumbs is true', async () => {
-        fakeCrashlytics.options = { enableBreadcrumbs: true };
+      it('should emit a log but not flush when the visibility changes to visible and breadcrumbs() is enabled', async () => {
+        fakeCrashlytics.options = { features: [breadcrumbs()] };
         registerListeners(fakeCrashlytics);
 
         expect(flushed).to.be.false;
@@ -311,7 +312,7 @@ describe('helpers', () => {
         expect(emittedLogs).to.have.lengthOf(1);
       });
 
-      it('should not emit a visibility log when enableBreadcrumbs is false or not set, but still flush on hidden', async () => {
+      it('should not emit a visibility log when breadcrumbs() is not enabled, but still flush on hidden', async () => {
         registerListeners(fakeCrashlytics);
 
         Object.defineProperty(document, 'visibilityState', {

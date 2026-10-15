@@ -27,5 +27,9 @@ import { registerCrashlytics } from './src/register.node';
 registerCrashlytics();
 
 export * from './src/api';
+export {
+  breadcrumbs,
+  unregisterLoggerInstrumentations
+} from './src/breadcrumbs';
 export * from './src/public-types';
 export * from './src/next';

@@ -28,6 +28,7 @@ https://github.com/firebase/firebase-js-sdk
 |  Interface | Description |
 |  --- | --- |
 |  [Crashlytics](./crashlytics_angular.crashlytics.md#crashlytics_interface) | An instance of the Firebase Crashlytics SDK.<!-- -->Do not create this instance directly. Instead, use [getCrashlytics()](./crashlytics.md#getcrashlytics_a9d22a1)<!-- -->. |
+|  [CrashlyticsFeature](./crashlytics_angular.crashlyticsfeature.md#crashlyticsfeature_interface) | An opaque feature plugin object returned by Crashlytics feature factory functions such as [breadcrumbs()](./crashlytics.md#breadcrumbs)<!-- -->. |
 |  [CrashlyticsOptions](./crashlytics_angular.crashlyticsoptions.md#crashlyticsoptions_interface) | Options for initializing the Crashlytics service using [getCrashlytics()](./crashlytics.md#getcrashlytics_a9d22a1)<!-- -->. |
 
 ## function({ firebaseApp, router, destroyRef, crashlyticsOptions }, ...)
