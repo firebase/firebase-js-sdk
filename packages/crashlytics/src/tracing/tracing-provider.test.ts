@@ -29,6 +29,8 @@ import { resourceFromAttributes } from '@opentelemetry/resources';
 import { WebTracerProvider } from '@opentelemetry/sdk-trace-web';
 import { CompositePropagator } from '@opentelemetry/core';
 import { TelemetryStore } from '../telemetry-store';
+import { FirebaseAttributesSpanProcessor } from './attributes-span-processor';
+import { OnErrorSpanProcessor } from './on-error-span-processor';
 
 describe('createTracingProvider', () => {
   let mockApp: FirebaseApp;
@@ -134,14 +136,43 @@ describe('createTracingProvider', () => {
     expect(provider).to.be.ok;
   });
 
-  it('should register FetchInstrumentation with appropriate config', () => {
+  it('should initialize WebTracerProvider with FirebaseAttributesSpanProcessor and OnErrorSpanProcessor', () => {
     if (typeof window === 'undefined') {
       return;
     }
 
-    mockAttributesStore = {
-      getSpanAttributes: sinon.stub().returns({ 'fetch-key': 'fetch-value' })
-    } as unknown as AttributesStore;
+    const onStartSpy = sinon.spy(
+      FirebaseAttributesSpanProcessor.prototype,
+      'onStart'
+    );
+    const attributesOnEndSpy = sinon.spy(
+      FirebaseAttributesSpanProcessor.prototype,
+      'onEnd'
+    );
+    const onErrorOnEndSpy = sinon.spy(OnErrorSpanProcessor.prototype, 'onEnd');
+
+    const testTelemetryStore = new TelemetryStore();
+    const { tracingProvider } = createTracingProvider(
+      mockApp,
+      {},
+      new AttributesStore({ projectId: 'test-project', appId: 'test-app' }),
+      testTelemetryStore
+    );
+
+    const tracer = tracingProvider.getTracer('test-tracer');
+    const span = tracer.startSpan('root-span');
+    span.end();
+
+    expect(onStartSpy.called).to.be.true;
+    expect(attributesOnEndSpy.called).to.be.true;
+    expect(onErrorOnEndSpy.called).to.be.true;
+    sinon.assert.callOrder(attributesOnEndSpy, onErrorOnEndSpy);
+  });
+
+  it('should register FetchInstrumentation with appropriate config', () => {
+    if (typeof window === 'undefined') {
+      return;
+    }
 
     const fetchInstrumentationSpy = sinon.spy(
       FetchInstrumentation.prototype,
@@ -165,20 +196,13 @@ describe('createTracingProvider', () => {
 
     const fetchPatterns = fetchConfig.ignoreUrls.map((r: RegExp) => r.source);
     expect(fetchPatterns).to.include('my-custom-endpoint\\.url');
-
-    expect(fetchConfig.applyCustomAttributesOnSpan).to.be.a('function');
-    fetchConfig.applyCustomAttributesOnSpan(mockSpan);
-    expect(mockSpan.attributes).to.deep.equal({ 'fetch-key': 'fetch-value' });
+    expect(fetchConfig.semconvStabilityOptIn).to.equal('http');
   });
 
   it('should register XMLHttpRequestInstrumentation with appropriate config', () => {
     if (typeof window === 'undefined') {
       return;
     }
-
-    mockAttributesStore = {
-      getSpanAttributes: sinon.stub().returns({ 'xhr-key': 'xhr-value' })
-    } as unknown as AttributesStore;
 
     const xhrInstrumentationSpy = sinon.spy(
       XMLHttpRequestInstrumentation.prototype,
@@ -202,22 +226,13 @@ describe('createTracingProvider', () => {
 
     const xhrPatterns = xhrConfig.ignoreUrls.map((r: RegExp) => r.source);
     expect(xhrPatterns).to.include('my-custom-endpoint\\.url');
-
-    expect(xhrConfig.applyCustomAttributesOnSpan).to.be.a('function');
-    xhrConfig.applyCustomAttributesOnSpan(mockSpan);
-    expect(mockSpan.attributes).to.deep.equal({ 'xhr-key': 'xhr-value' });
+    expect(xhrConfig.semconvStabilityOptIn).to.equal('http');
   });
 
   it('should register DocumentLoadInstrumentation with appropriate config', () => {
     if (typeof window === 'undefined') {
       return;
     }
-
-    mockAttributesStore = {
-      getSpanAttributes: sinon
-        .stub()
-        .returns({ 'docload-key': 'docload-value' })
-    } as unknown as AttributesStore;
 
     const documentLoadInstrumentationSpy = sinon.spy(
       DocumentLoadInstrumentation.prototype,
@@ -230,19 +245,6 @@ describe('createTracingProvider', () => {
     const documentLoadConfig = documentLoadInstrumentationSpy.lastCall
       .args[0] as any;
     expect(documentLoadConfig.semconvStabilityOptIn).to.equal('http');
-    expect(documentLoadConfig.applyCustomAttributesOnSpan).to.be.an('object');
-
-    const { documentLoad, documentFetch, resourceFetch } =
-      documentLoadConfig.applyCustomAttributesOnSpan;
-
-    for (const fn of [documentLoad, documentFetch, resourceFetch]) {
-      mockSpan.attributes = {};
-      expect(fn).to.be.a('function');
-      fn(mockSpan);
-      expect(mockSpan.attributes).to.deep.equal({
-        'docload-key': 'docload-value'
-      });
-    }
   });
 
   describe('OTLPTraceExporter', () => {

@@ -21,7 +21,7 @@ import {
   W3CTraceContextPropagator,
   ExportResult
 } from '@opentelemetry/core';
-import { TracerProvider, trace, Span } from '@opentelemetry/api';
+import { TracerProvider, trace } from '@opentelemetry/api';
 import {
   WebTracerProvider,
   SimpleSpanProcessor,
@@ -43,6 +43,7 @@ import { FirebaseApp } from '@firebase/app';
 import { AttributesStore } from '../attributes-store';
 import { TelemetryStore } from '../telemetry-store';
 import { OnErrorSpanProcessor } from './on-error-span-processor';
+import { FirebaseAttributesSpanProcessor } from './attributes-span-processor';
 import { JsonTraceSerializer } from '@opentelemetry/otlp-transformer';
 import { FetchTransport } from '../fetch-transport';
 import {
@@ -126,6 +127,7 @@ export function createTracingProvider(
   const tracingProvider = new WebTracerProvider({
     resource,
     spanProcessors: [
+      new FirebaseAttributesSpanProcessor(attributesStore),
       // TODO: Remove console exporter before we ship
       new SimpleSpanProcessor(new ConsoleSpanExporter()),
       onErrorSpanProcessor
@@ -148,14 +150,9 @@ export function createTracingProvider(
     '\\$&'
   );
 
-  const applyCustomAttributesOnSpan = (span: Span): void => {
-    span.setAttributes(attributesStore.getSpanAttributes());
-  };
-
   const networkInstrumentationConfig = {
     ignoreUrls: [new RegExp(cleanedRegexEndpointUrl)],
-    semconvStabilityOptIn: 'http',
-    applyCustomAttributesOnSpan
+    semconvStabilityOptIn: 'http'
   };
 
   if (unregisterInstrumentations) {
@@ -167,12 +164,7 @@ export function createTracingProvider(
       new FetchInstrumentation(networkInstrumentationConfig),
       new XMLHttpRequestInstrumentation(networkInstrumentationConfig),
       new DocumentLoadInstrumentation({
-        semconvStabilityOptIn: 'http',
-        applyCustomAttributesOnSpan: {
-          documentLoad: applyCustomAttributesOnSpan,
-          documentFetch: applyCustomAttributesOnSpan,
-          resourceFetch: applyCustomAttributesOnSpan
-        }
+        semconvStabilityOptIn: 'http'
       })
     ]
   });
