@@ -67,16 +67,15 @@ export function registerCrashlytics(): void {
             dynamicHeaderProviders
           );
 
-        const { tracingProvider, onErrorSpanProcessor } =
-          crashlyticsOptions.enableBreadcrumbs && telemetryStore
-            ? createTracingProvider(
-                app,
-                crashlyticsOptions,
-                attributesStore,
-                telemetryStore,
-                dynamicHeaderProviders
-              )
-            : { tracingProvider: null, onErrorSpanProcessor: undefined };
+        const { tracingProvider, onErrorSpanProcessor } = telemetryStore
+          ? createTracingProvider(
+              app,
+              crashlyticsOptions,
+              attributesStore,
+              telemetryStore,
+              dynamicHeaderProviders
+            )
+          : { tracingProvider: null, onErrorSpanProcessor: undefined };
 
         const crashlyticsService = new CrashlyticsService(
           app,

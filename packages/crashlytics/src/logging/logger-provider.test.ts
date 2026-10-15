@@ -18,6 +18,7 @@
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import { FirebaseApp } from '@firebase/app';
+import * as sdkLogs from '@opentelemetry/sdk-logs';
 import {
   LoggerProvider,
   BatchLogRecordProcessor
@@ -46,27 +47,32 @@ describe('createLoggerProvider', () => {
     telemetryStore = new TelemetryStore();
   });
 
+  afterEach(() => {
+    sinon.restore();
+  });
+
   it('should initialize LoggerProvider with FirebaseAttributesProcessor and BatchLogRecordProcessor by default when enableBreadcrumbs is not set', () => {
     const { loggerProvider: provider, onErrorLogRecordProcessor } =
       createLoggerProvider(app, {}, attributesStore, telemetryStore, []);
     expect(provider).to.be.an.instanceOf(LoggerProvider);
     expect(onErrorLogRecordProcessor).to.be.undefined;
 
-    const sharedState = (
-      provider as unknown as {
-        _sharedState: { registeredLogRecordProcessors: unknown[] };
-      }
-    )._sharedState;
-    expect(sharedState.registeredLogRecordProcessors).to.have.lengthOf(2);
-    expect(sharedState.registeredLogRecordProcessors[0]).to.be.an.instanceOf(
-      FirebaseAttributesProcessor
+    const attributesEmitSpy = sinon.spy(
+      FirebaseAttributesProcessor.prototype,
+      'onEmit'
     );
-    expect(
-      sharedState.registeredLogRecordProcessors[1]
-    ).to.not.be.an.instanceOf(OnErrorLogRecordProcessor);
-    expect(sharedState.registeredLogRecordProcessors[1]).to.be.an.instanceOf(
-      BatchLogRecordProcessor
+    const batchEmitSpy = sinon.spy(BatchLogRecordProcessor.prototype, 'onEmit');
+    const onErrorEmitSpy = sinon.spy(
+      OnErrorLogRecordProcessor.prototype,
+      'onEmit'
     );
+
+    provider.getLogger('test-logger').emit({ body: 'test log' });
+
+    expect(attributesEmitSpy.calledOnce).to.be.true;
+    expect(batchEmitSpy.calledOnce).to.be.true;
+    expect(onErrorEmitSpy.called).to.be.false;
+    sinon.assert.callOrder(attributesEmitSpy, batchEmitSpy);
   });
 
   it('should initialize LoggerProvider with FirebaseAttributesProcessor and OnErrorLogRecordProcessor when enableBreadcrumbs is true', () => {
@@ -83,25 +89,71 @@ describe('createLoggerProvider', () => {
       OnErrorLogRecordProcessor
     );
 
-    const sharedState = (
-      provider as unknown as {
-        _sharedState: { registeredLogRecordProcessors: unknown[] };
-      }
-    )._sharedState;
-    expect(sharedState.registeredLogRecordProcessors).to.have.lengthOf(2);
-    expect(sharedState.registeredLogRecordProcessors[0]).to.be.an.instanceOf(
-      FirebaseAttributesProcessor
+    const attributesEmitSpy = sinon.spy(
+      FirebaseAttributesProcessor.prototype,
+      'onEmit'
     );
-    expect(sharedState.registeredLogRecordProcessors[1]).to.be.an.instanceOf(
-      OnErrorLogRecordProcessor
+    const batchEmitSpy = sinon.spy(BatchLogRecordProcessor.prototype, 'onEmit');
+    const onErrorEmitSpy = sinon.spy(
+      OnErrorLogRecordProcessor.prototype,
+      'onEmit'
     );
-    expect(sharedState.registeredLogRecordProcessors[1]).to.be.an.instanceOf(
-      BatchLogRecordProcessor
-    );
+
+    provider.getLogger('test-logger').emit({ body: 'test log' });
+
+    expect(attributesEmitSpy.calledOnce).to.be.true;
+    expect(onErrorEmitSpy.calledOnce).to.be.true;
+    expect(batchEmitSpy.called).to.be.false;
+    sinon.assert.callOrder(attributesEmitSpy, onErrorEmitSpy);
   });
 
   describe('BatchLogRecordProcessor auto-flush on document hide', () => {
-    it('should pass disableAutoFlushOnDocumentHide: true to OnErrorLogRecordProcessor when enableBreadcrumbs is true', () => {
+    it('should pass disableAutoFlushOnDocumentHide: true to BatchLogRecordProcessor by default when enableBreadcrumbs is not set', () => {
+      if ('_onInit' in BatchLogRecordProcessor.prototype) {
+        // Browser environment (Webpack ES module bundle where namespace exports are non-configurable)
+        const onInitSpy = sinon.spy(
+          BatchLogRecordProcessor.prototype as unknown as {
+            _onInit: (options: unknown) => void;
+          },
+          '_onInit'
+        );
+        try {
+          createLoggerProvider(app, {}, attributesStore, telemetryStore, []);
+          expect(onInitSpy.calledOnce).to.be.true;
+          const args = onInitSpy.firstCall.args[0];
+          expect(args).to.have.property('disableAutoFlushOnDocumentHide', true);
+        } finally {
+          onInitSpy.restore();
+        }
+      } else {
+        // Node environment (CommonJS where exports are configurable)
+        const origDesc = Object.getOwnPropertyDescriptor(
+          sdkLogs,
+          'BatchLogRecordProcessor'
+        );
+        Object.defineProperty(sdkLogs, 'BatchLogRecordProcessor', {
+          value: origDesc?.get
+            ? origDesc.get()
+            : sdkLogs.BatchLogRecordProcessor,
+          configurable: true,
+          writable: true
+        });
+        const batchProcessorSpy = sinon.spy(sdkLogs, 'BatchLogRecordProcessor');
+        try {
+          createLoggerProvider(app, {}, attributesStore, telemetryStore, []);
+          expect(batchProcessorSpy.calledOnce).to.be.true;
+          const args = batchProcessorSpy.firstCall.args[0];
+          expect(args).to.have.property('disableAutoFlushOnDocumentHide', true);
+        } finally {
+          batchProcessorSpy.restore();
+          if (origDesc) {
+            Object.defineProperty(sdkLogs, 'BatchLogRecordProcessor', origDesc);
+          }
+        }
+      }
+    });
+
+    it('should pass disableAutoFlushOnDocumentHide: true to BatchLogRecordProcessor via OnErrorLogRecordProcessor when enableBreadcrumbs is true', () => {
       if ('_onInit' in BatchLogRecordProcessor.prototype) {
         // Browser environment (Webpack ES module bundle where namespace exports are non-configurable)
         const onInitSpy = sinon.spy(

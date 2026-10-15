@@ -52,15 +52,14 @@ export function registerCrashlytics(): void {
             attributesStore,
             telemetryStore
           );
-        const { tracingProvider, onErrorSpanProcessor } =
-          crashlyticsOptions.enableBreadcrumbs && telemetryStore
-            ? createTracingProvider(
-                app,
-                crashlyticsOptions,
-                attributesStore,
-                telemetryStore
-              )
-            : { tracingProvider: null, onErrorSpanProcessor: undefined };
+        const { tracingProvider, onErrorSpanProcessor } = telemetryStore
+          ? createTracingProvider(
+              app,
+              crashlyticsOptions,
+              attributesStore,
+              telemetryStore
+            )
+          : { tracingProvider: null, onErrorSpanProcessor: undefined };
 
         const crashlyticsService = new CrashlyticsService(
           app,
