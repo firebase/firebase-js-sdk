@@ -169,13 +169,19 @@ describe('createLoggerProvider', () => {
         }
       } else {
         // Node environment
-        const BaseClass = Object.getPrototypeOf(BatchLogRecordProcessor);
         const BaseSpy = sinon.spy(function (this: unknown, options: unknown) {
-          return Reflect.construct(BaseClass, [options], new.target);
+          return Reflect.construct(
+            BatchLogRecordProcessor,
+            [options],
+            new.target
+          );
         });
-        Object.setPrototypeOf(BaseSpy, Object.getPrototypeOf(BaseClass));
-        BaseSpy.prototype = BaseClass.prototype;
-        Object.setPrototypeOf(BatchLogRecordProcessor, BaseSpy);
+        Object.setPrototypeOf(
+          BaseSpy,
+          Object.getPrototypeOf(BatchLogRecordProcessor)
+        );
+        BaseSpy.prototype = BatchLogRecordProcessor.prototype;
+        Object.setPrototypeOf(OnErrorLogRecordProcessor, BaseSpy);
         try {
           createLoggerProvider(
             app,
@@ -188,7 +194,10 @@ describe('createLoggerProvider', () => {
           const args = BaseSpy.firstCall.args[0];
           expect(args).to.have.property('disableAutoFlushOnDocumentHide', true);
         } finally {
-          Object.setPrototypeOf(BatchLogRecordProcessor, BaseClass);
+          Object.setPrototypeOf(
+            OnErrorLogRecordProcessor,
+            BatchLogRecordProcessor
+          );
         }
       }
     });
