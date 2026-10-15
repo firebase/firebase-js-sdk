@@ -17,6 +17,8 @@
 
 import {
   LoggerProvider,
+  BatchLogRecordProcessor,
+  BatchLogRecordProcessorBrowserOptions,
   ReadableLogRecord,
   LogRecordExporter,
   LogRecordProcessor
@@ -58,7 +60,7 @@ let unregisterInstrumentations: (() => void) | undefined;
  */
 export interface LoggerProviderResult {
   loggerProvider: LoggerProvider;
-  onErrorLogRecordProcessor: OnErrorLogRecordProcessor;
+  onErrorLogRecordProcessor?: OnErrorLogRecordProcessor;
 }
 
 /**
@@ -70,7 +72,7 @@ export function createLoggerProvider(
   app: FirebaseApp,
   crashlyticsOptions: CrashlyticsOptions = {},
   attributesStore: AttributesStore,
-  telemetryStore: TelemetryStore,
+  telemetryStore?: TelemetryStore,
   dynamicHeaderProviders: DynamicHeaderProvider[] = []
 ): LoggerProviderResult {
   let endpointUrl =
@@ -99,15 +101,25 @@ export function createLoggerProvider(
     attributesStore
   );
 
-  const onErrorLogRecordProcessor = new OnErrorLogRecordProcessor(
-    logExporter,
-    telemetryStore
-  );
-
+  let onErrorLogRecordProcessor: OnErrorLogRecordProcessor | undefined;
   const processors: LogRecordProcessor[] = [
-    new FirebaseAttributesProcessor(attributesStore, projectId),
-    onErrorLogRecordProcessor
+    new FirebaseAttributesProcessor(attributesStore, projectId)
   ];
+
+  if (crashlyticsOptions.enableBreadcrumbs) {
+    onErrorLogRecordProcessor = new OnErrorLogRecordProcessor(
+      logExporter,
+      telemetryStore ?? new TelemetryStore()
+    );
+    processors.push(onErrorLogRecordProcessor);
+  } else {
+    processors.push(
+      new BatchLogRecordProcessor({
+        exporter: logExporter,
+        disableAutoFlushOnDocumentHide: true
+      } as BatchLogRecordProcessorBrowserOptions)
+    );
+  }
 
   const loggerProvider = new LoggerProvider({
     resource,
@@ -119,7 +131,7 @@ export function createLoggerProvider(
     logs.setGlobalLoggerProvider(loggerProvider);
   }
 
-  if (typeof window !== 'undefined') {
+  if (crashlyticsOptions.enableBreadcrumbs && typeof window !== 'undefined') {
     /*
      * Initialize as disabled to prevent the instrumentation from auto-enabling during construction.
      * In SSR frameworks (like Next.js), the page is already loaded when this script executes, so

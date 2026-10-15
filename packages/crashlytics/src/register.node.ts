@@ -37,12 +37,14 @@ export function registerCrashlytics(): void {
       (container, { options }: InstanceFactoryOptions) => {
         // getImmediate for FirebaseApp will always succeed
         const app = container.getProvider('app').getImmediate();
-        const crashlyticsOptions = options as CrashlyticsOptions;
+        const crashlyticsOptions = (options as CrashlyticsOptions) || {};
         const attributesStore = new AttributesStore(
           app.options,
           crashlyticsOptions
         );
-        const telemetryStore = new TelemetryStore();
+        const telemetryStore = crashlyticsOptions.enableBreadcrumbs
+          ? new TelemetryStore()
+          : undefined;
         const { loggerProvider, onErrorLogRecordProcessor } =
           createLoggerProvider(
             app,
@@ -50,14 +52,16 @@ export function registerCrashlytics(): void {
             attributesStore,
             telemetryStore
           );
-        const { tracingProvider, onErrorSpanProcessor } = createTracingProvider(
-          app,
-          crashlyticsOptions,
-          attributesStore,
-          telemetryStore
-        );
+        const { tracingProvider, onErrorSpanProcessor } = telemetryStore
+          ? createTracingProvider(
+              app,
+              crashlyticsOptions,
+              attributesStore,
+              telemetryStore
+            )
+          : { tracingProvider: null, onErrorSpanProcessor: undefined };
 
-        return new CrashlyticsService(
+        const crashlyticsService = new CrashlyticsService(
           app,
           loggerProvider,
           tracingProvider,
@@ -66,6 +70,12 @@ export function registerCrashlytics(): void {
           onErrorLogRecordProcessor,
           onErrorSpanProcessor
         );
+
+        if (options) {
+          crashlyticsService.options = crashlyticsOptions;
+        }
+
+        return crashlyticsService;
       },
       ComponentType.PUBLIC
     ).setMultipleInstances(true)

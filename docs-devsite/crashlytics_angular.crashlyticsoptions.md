@@ -24,6 +24,7 @@ export interface CrashlyticsOptions
 |  --- | --- | --- |
 |  [appVersion](./crashlytics_angular.crashlyticsoptions.md#crashlyticsoptionsappversion) | string | The version of the application. This should be a unique string that identifies the snapshot of code to be deployed, such as "1.0.2". If not specified, other default locations will be checked for an identifier. Setting a value here takes precedence over any other values. |
 |  [customAttributes](./crashlytics_angular.crashlyticsoptions.md#crashlyticsoptionscustomattributes) | AnyValueMap | Base set of custom attributes to send with automatic error collection. Key-value pairs defined here will be sent with all error logs. If custom attributes are also specified in <code>recordError()</code> or <code>log()</code>, those values will take precedence over the base set defined here. |
+|  [enableBreadcrumbs](./crashlytics_angular.crashlyticsoptions.md#crashlyticsoptionsenablebreadcrumbs) | boolean | Whether to enable Crashlytics breadcrumb and trace telemetry collection.<!-- -->When enabled, Crashlytics collects OpenTelemetry spans (such as Fetch, XMLHttpRequest, and Document Load) and breadcrumb logs (such as navigation events, Web Vitals, user actions, and visibility lifecycle events), buffering them in memory and exporting them when an error occurs.<!-- -->Defaults to <code>false</code>. |
 |  [endpointUrl](./crashlytics_angular.crashlyticsoptions.md#crashlyticsoptionsendpointurl) | string | The URL for the endpoint to which Crashlytics data should be sent, in the OpenTelemetry format. By default, data will be sent to Firebase. |
 |  [region](./crashlytics_angular.crashlyticsoptions.md#crashlyticsoptionsregion) | string | The Google Cloud region where the Crashlytics data should be sent.<!-- -->By default, data will be sent to the "global" region.<!-- -->Refer to https://cloud.google.com/logging/docs/regions for the list of available regions. |
 |  [registerGlobalLoggerProvider](./crashlytics_angular.crashlyticsoptions.md#crashlyticsoptionsregistergloballoggerprovider) | boolean | Whether to register the underlying OpenTelemetry LoggerProvider globally with the OpenTelemetry API (<code>logs.setGlobalLoggerProvider()</code>).<!-- -->When enabled, other OpenTelemetry instrumentations (such as Core Web Vitals, Console, or Fetch) and custom application loggers can automatically route logs through Firebase Crashlytics.<!-- -->Defaults to <code>false</code>. |
@@ -46,6 +47,20 @@ Base set of custom attributes to send with automatic error collection. Key-value
 
 ```typescript
 customAttributes?: AnyValueMap;
+```
+
+## CrashlyticsOptions.enableBreadcrumbs
+
+Whether to enable Crashlytics breadcrumb and trace telemetry collection.
+
+When enabled, Crashlytics collects OpenTelemetry spans (such as Fetch, XMLHttpRequest, and Document Load) and breadcrumb logs (such as navigation events, Web Vitals, user actions, and visibility lifecycle events), buffering them in memory and exporting them when an error occurs.
+
+Defaults to `false`<!-- -->.
+
+<b>Signature:</b>
+
+```typescript
+enableBreadcrumbs?: boolean;
 ```
 
 ## CrashlyticsOptions.endpointUrl
