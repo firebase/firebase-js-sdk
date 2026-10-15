@@ -447,7 +447,10 @@ export type DeleteStageOptions = StageOptions;
  * `__name__` or after `.removeFields('__name__')`), the operation fails.
  *
  * The `update` stage does not create documents. If the document at an input
- * document's `__name__` path does not exist, that document is not modified.
+ * document's `__name__` path does not exist, the input document is skipped and
+ * is not counted in `documents_modified`. When the pipeline is executed with
+ * `atomic: true`, the pipeline instead fails with a `NOT_FOUND` error and no
+ * documents are updated.
  */
 export type UpdateStageOptions = StageOptions & {
   /**
