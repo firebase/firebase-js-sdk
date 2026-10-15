@@ -107,66 +107,90 @@ describe('createLoggerProvider', () => {
   });
 
   describe('BatchLogRecordProcessor auto-flush on document hide', () => {
-    for (const options of [{}, { enableBreadcrumbs: true }]) {
-      it(`should pass disableAutoFlushOnDocumentHide: true to BatchLogRecordProcessor when enableBreadcrumbs is ${Boolean(
-        options.enableBreadcrumbs
-      )}`, () => {
-        if ('_onInit' in BatchLogRecordProcessor.prototype) {
-          // Browser environment (Webpack ES module bundle where namespace exports are non-configurable)
-          const onInitSpy = sinon.spy(
-            BatchLogRecordProcessor.prototype as unknown as {
-              _onInit: (options: unknown) => void;
-            },
-            '_onInit'
-          );
-          try {
-            createLoggerProvider(
-              app,
-              options,
-              attributesStore,
-              telemetryStore,
-              []
-            );
-            expect(onInitSpy.calledOnce).to.be.true;
-            const args = onInitSpy.firstCall.args[0];
-            expect(args).to.have.property(
-              'disableAutoFlushOnDocumentHide',
-              true
-            );
-          } finally {
-            onInitSpy.restore();
-          }
-        } else {
-          // Node environment
-          const BaseClass = Object.getPrototypeOf(BatchLogRecordProcessor);
-          const BaseSpy = sinon.spy(function (
-            this: unknown,
-            processorOptions: unknown
-          ) {
-            return Reflect.construct(BaseClass, [processorOptions], new.target);
-          });
-          Object.setPrototypeOf(BaseSpy, Object.getPrototypeOf(BaseClass));
-          BaseSpy.prototype = BaseClass.prototype;
-          Object.setPrototypeOf(BatchLogRecordProcessor, BaseSpy);
-          try {
-            createLoggerProvider(
-              app,
-              options,
-              attributesStore,
-              telemetryStore,
-              []
-            );
-            expect(BaseSpy.calledOnce).to.be.true;
-            const args = BaseSpy.firstCall.args[0];
-            expect(args).to.have.property(
-              'disableAutoFlushOnDocumentHide',
-              true
-            );
-          } finally {
-            Object.setPrototypeOf(BatchLogRecordProcessor, BaseClass);
-          }
+    it('should pass disableAutoFlushOnDocumentHide: true to BatchLogRecordProcessor by default when enableBreadcrumbs is not set', () => {
+      if ('_onInit' in BatchLogRecordProcessor.prototype) {
+        // Browser environment (Webpack ES module bundle where namespace exports are non-configurable)
+        const onInitSpy = sinon.spy(
+          BatchLogRecordProcessor.prototype as unknown as {
+            _onInit: (options: unknown) => void;
+          },
+          '_onInit'
+        );
+        try {
+          createLoggerProvider(app, {}, attributesStore, telemetryStore, []);
+          expect(onInitSpy.calledOnce).to.be.true;
+          const args = onInitSpy.firstCall.args[0];
+          expect(args).to.have.property('disableAutoFlushOnDocumentHide', true);
+        } finally {
+          onInitSpy.restore();
         }
-      });
-    }
+      } else {
+        // Node environment
+        const BaseClass = Object.getPrototypeOf(BatchLogRecordProcessor);
+        const BaseSpy = sinon.spy(function (this: unknown, options: unknown) {
+          return Reflect.construct(BaseClass, [options], new.target);
+        });
+        Object.setPrototypeOf(BaseSpy, Object.getPrototypeOf(BaseClass));
+        BaseSpy.prototype = BaseClass.prototype;
+        Object.setPrototypeOf(BatchLogRecordProcessor, BaseSpy);
+        try {
+          createLoggerProvider(app, {}, attributesStore, telemetryStore, []);
+          expect(BaseSpy.calledOnce).to.be.true;
+          const args = BaseSpy.firstCall.args[0];
+          expect(args).to.have.property('disableAutoFlushOnDocumentHide', true);
+        } finally {
+          Object.setPrototypeOf(BatchLogRecordProcessor, BaseClass);
+        }
+      }
+    });
+
+    it('should pass disableAutoFlushOnDocumentHide: true to BatchLogRecordProcessor when enableBreadcrumbs is true', () => {
+      if ('_onInit' in BatchLogRecordProcessor.prototype) {
+        // Browser environment (Webpack ES module bundle where namespace exports are non-configurable)
+        const onInitSpy = sinon.spy(
+          BatchLogRecordProcessor.prototype as unknown as {
+            _onInit: (options: unknown) => void;
+          },
+          '_onInit'
+        );
+        try {
+          createLoggerProvider(
+            app,
+            { enableBreadcrumbs: true },
+            attributesStore,
+            telemetryStore,
+            []
+          );
+          expect(onInitSpy.calledOnce).to.be.true;
+          const args = onInitSpy.firstCall.args[0];
+          expect(args).to.have.property('disableAutoFlushOnDocumentHide', true);
+        } finally {
+          onInitSpy.restore();
+        }
+      } else {
+        // Node environment
+        const BaseClass = Object.getPrototypeOf(BatchLogRecordProcessor);
+        const BaseSpy = sinon.spy(function (this: unknown, options: unknown) {
+          return Reflect.construct(BaseClass, [options], new.target);
+        });
+        Object.setPrototypeOf(BaseSpy, Object.getPrototypeOf(BaseClass));
+        BaseSpy.prototype = BaseClass.prototype;
+        Object.setPrototypeOf(BatchLogRecordProcessor, BaseSpy);
+        try {
+          createLoggerProvider(
+            app,
+            { enableBreadcrumbs: true },
+            attributesStore,
+            telemetryStore,
+            []
+          );
+          expect(BaseSpy.calledOnce).to.be.true;
+          const args = BaseSpy.firstCall.args[0];
+          expect(args).to.have.property('disableAutoFlushOnDocumentHide', true);
+        } finally {
+          Object.setPrototypeOf(BatchLogRecordProcessor, BaseClass);
+        }
+      }
+    });
   });
 });
