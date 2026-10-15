@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import '../testing/setup';
-
 import {
   V2TokenDetails,
   V3TokenDetails,
@@ -26,14 +24,13 @@ import {
 
 import { FakePushSubscription } from '../testing/fakes/service-worker';
 import { base64ToArray } from './array-base64-translator';
-import { expect } from 'chai';
 import { getFakeTokenDetails } from '../testing/fakes/token-details';
 import { openDB } from 'idb';
 
 describe('migrateOldDb', () => {
   it("does nothing if old DB didn't exist", async () => {
     const tokenDetails = await migrateOldDatabase('1234567890');
-    expect(tokenDetails).to.be.null;
+    expect(tokenDetails).toBeNull();
   });
 
   it('does nothing if old DB was too old', async () => {
@@ -44,7 +41,7 @@ describe('migrateOldDb', () => {
     });
 
     const tokenDetails = await migrateOldDatabase('1234567890');
-    expect(tokenDetails).to.be.null;
+    expect(tokenDetails).toBeNull();
   });
 
   describe('version 2', () => {
@@ -71,19 +68,19 @@ describe('migrateOldDb', () => {
       // Ignore createTime difference.
       expectedTokenDetails.createTime = tokenDetails!.createTime;
 
-      expect(tokenDetails).to.deep.equal(expectedTokenDetails);
+      expect(tokenDetails).toEqual(expectedTokenDetails);
     });
 
     it('only migrates once', async () => {
       await migrateOldDatabase('1234567890');
       const tokenDetails = await migrateOldDatabase('1234567890');
 
-      expect(tokenDetails).to.be.null;
+      expect(tokenDetails).toBeNull();
     });
 
     it('does not get a value that has a different sender ID', async () => {
       const tokenDetails = await migrateOldDatabase('321321321');
-      expect(tokenDetails).to.be.null;
+      expect(tokenDetails).toBeNull();
     });
 
     it('does not migrate an entry with missing optional values', async () => {
@@ -98,7 +95,7 @@ describe('migrateOldDb', () => {
       await put(2, v2TokenDetails);
 
       const tokenDetails = await migrateOldDatabase('1234567890');
-      expect(tokenDetails).to.be.null;
+      expect(tokenDetails).toBeNull();
     });
   });
 
@@ -124,19 +121,19 @@ describe('migrateOldDb', () => {
 
       const expectedTokenDetails = getFakeTokenDetails();
 
-      expect(tokenDetails).to.deep.equal(expectedTokenDetails);
+      expect(tokenDetails).toEqual(expectedTokenDetails);
     });
 
     it('only migrates once', async () => {
       await migrateOldDatabase('1234567890');
       const tokenDetails = await migrateOldDatabase('1234567890');
 
-      expect(tokenDetails).to.be.null;
+      expect(tokenDetails).toBeNull();
     });
 
     it('does not get a value that has a different sender ID', async () => {
       const tokenDetails = await migrateOldDatabase('321321321');
-      expect(tokenDetails).to.be.null;
+      expect(tokenDetails).toBeNull();
     });
   });
 
@@ -161,19 +158,19 @@ describe('migrateOldDb', () => {
 
       const expectedTokenDetails = getFakeTokenDetails();
 
-      expect(tokenDetails).to.deep.equal(expectedTokenDetails);
+      expect(tokenDetails).toEqual(expectedTokenDetails);
     });
 
     it('only migrates once', async () => {
       await migrateOldDatabase('1234567890');
       const tokenDetails = await migrateOldDatabase('1234567890');
 
-      expect(tokenDetails).to.be.null;
+      expect(tokenDetails).toBeNull();
     });
 
     it('does not get a value that has a different sender ID', async () => {
       const tokenDetails = await migrateOldDatabase('321321321');
-      expect(tokenDetails).to.be.null;
+      expect(tokenDetails).toBeNull();
     });
   });
 });

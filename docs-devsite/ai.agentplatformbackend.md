@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # AgentPlatformBackend class
-Configuration class for the Agent Platform Gemini API.
+Configuration class for the Agent Platform Gemini API (formerly known as the Vertex AI Gemini API).
 
 Use this with [AIOptions](./ai.aioptions.md#aioptions_interface) when initializing the AI service via [getAI()](./ai.md#getai_a94a413) to specify the Agent Platform Gemini API as the backend.
 

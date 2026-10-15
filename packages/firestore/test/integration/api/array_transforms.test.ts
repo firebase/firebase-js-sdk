@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import { EventsAccumulator } from '../util/events_accumulator';
@@ -58,16 +56,16 @@ apiDescribe('Array Transforms:', persistence => {
     await setDoc(docRef, initialData);
     await accumulator.awaitLocalEvent();
     const snapshot = await accumulator.awaitRemoteEvent();
-    expect(snapshot.data()).to.deep.equal(initialData);
+    expect(snapshot.data()).toEqual(initialData);
   }
 
   async function expectLocalAndRemoteEvent(
     expected: DocumentData
   ): Promise<void> {
     const localSnap = await accumulator.awaitLocalEvent();
-    expect(localSnap.data()).to.deep.equal(expected);
+    expect(localSnap.data()).toEqual(expected);
     const remoteSnap = await accumulator.awaitRemoteEvent();
-    expect(remoteSnap.data()).to.deep.equal(expected);
+    expect(remoteSnap.data()).toEqual(expected);
   }
 
   /**
@@ -86,7 +84,7 @@ apiDescribe('Array Transforms:', persistence => {
 
       // wait for initial null snapshot to avoid potential races.
       const snapshot = await accumulator.awaitRemoteEvent();
-      expect(snapshot.exists()).to.be.false;
+      expect(snapshot.exists()).toBe(false);
       await test();
       unsubscribe();
     });
@@ -172,7 +170,7 @@ apiDescribe('Array Transforms:', persistence => {
         await withTestDoc(persistence, async docRef => {
           await setDoc(docRef, { array: arrayUnion(1, 2) });
           const snapshot = await getDocFromCache(docRef);
-          expect(snapshot.data()).to.deep.equal({ array: [1, 2] });
+          expect(snapshot.data()).toEqual({ array: [1, 2] });
         });
       });
 
@@ -195,10 +193,10 @@ apiDescribe('Array Transforms:', persistence => {
           try {
             await getDocFromCache(docRef);
           } catch (err) {
-            expect((err as FirestoreError).code).to.equal('unavailable');
+            expect((err as FirestoreError).code).toBe('unavailable');
             errCaught = true;
           }
-          expect(errCaught).to.be.true;
+          expect(errCaught).toBe(true);
         });
       });
 
@@ -217,7 +215,7 @@ apiDescribe('Array Transforms:', persistence => {
 
           // Document will be cached but we'll be missing 42.
           const snapshot = await getDocFromCache(docRef);
-          expect(snapshot.data()).to.deep.equal({ array: [1, 2] });
+          expect(snapshot.data()).toEqual({ array: [1, 2] });
         });
       });
 
@@ -226,7 +224,7 @@ apiDescribe('Array Transforms:', persistence => {
           await setDoc(docRef, { array: [42] });
           await updateDoc(docRef, { array: arrayUnion(1, 2) });
           const snapshot = await getDocFromCache(docRef);
-          expect(snapshot.data()).to.deep.equal({ array: [42, 1, 2] });
+          expect(snapshot.data()).toEqual({ array: [42, 1, 2] });
         });
       });
 
@@ -235,7 +233,7 @@ apiDescribe('Array Transforms:', persistence => {
           await setDoc(docRef, { array: [42, 1, 2] });
           await updateDoc(docRef, { array: arrayRemove(1, 2) });
           const snapshot = await getDocFromCache(docRef);
-          expect(snapshot.data()).to.deep.equal({ array: [42] });
+          expect(snapshot.data()).toEqual({ array: [42] });
         });
       });
     }

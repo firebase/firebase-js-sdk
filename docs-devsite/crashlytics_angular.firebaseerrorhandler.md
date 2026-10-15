@@ -48,7 +48,7 @@ constructor(app: FirebaseApp, crashlyticsOptions?: CrashlyticsOptions);
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  app | [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) |  |
-|  crashlyticsOptions | [CrashlyticsOptions](./crashlytics_.crashlyticsoptions.md#crashlyticsoptions_interface) |  |
+|  crashlyticsOptions | [CrashlyticsOptions](./crashlytics_angular.crashlyticsoptions.md#crashlyticsoptions_interface) |  |
 
 ## FirebaseErrorHandler.handleError()
 

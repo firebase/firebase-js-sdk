@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +15,21 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-
 import {
   arrayRemove,
   arrayUnion,
+  BsonObjectId,
+  BsonTimestamp,
   Bytes,
+  Decimal128Value,
   DocumentReference,
   GeoPoint,
   increment,
+  Int32Value,
+  MaxKey,
+  MinKey,
   refEqual,
+  RegexValue,
   serverTimestamp,
   Timestamp
 } from '../../../src';
@@ -191,7 +196,7 @@ export function serializerTest(
           'verifyFieldValueRoundTrip',
           value
         );
-        expect(actualJsonProto).to.deep.equal({ [valueType]: jsonValue });
+        expect(actualJsonProto).toEqual({ [valueType]: jsonValue });
         const actualReturnFieldValue =
           userDataWriter.convertValue(actualJsonProto);
 
@@ -199,9 +204,9 @@ export function serializerTest(
           actualReturnFieldValue instanceof DocumentReference &&
           value instanceof DocumentReference
         ) {
-          expect(refEqual(actualReturnFieldValue, value)).to.be.true;
+          expect(refEqual(actualReturnFieldValue, value)).toBe(true);
         } else {
-          expect(actualReturnFieldValue).to.deep.equal(value);
+          expect(actualReturnFieldValue).toEqual(value);
         }
 
         // Convert value to ProtoJs and verify.
@@ -210,10 +215,10 @@ export function serializerTest(
           'verifyFieldValueRoundTrip',
           value
         );
-        expect(actualProtoJsProto).to.deep.equal({ [valueType]: protoJsValue });
+        expect(actualProtoJsProto).toEqual({ [valueType]: protoJsValue });
         const actualProtoJsReturnFieldValue =
           userDataWriter.convertValue(actualProtoJsProto);
-        expect(actualProtoJsReturnFieldValue).to.deep.equal(value);
+        expect(actualProtoJsReturnFieldValue).toEqual(value);
 
         // If we're using protobufJs JSON (not Proto3Json), then round-trip through protobufjs.
         if (!opts.useProto3Json && protobufJsVerifier) {
@@ -352,25 +357,25 @@ export function serializerTest(
           userDataWriter.convertValue({
             timestampValue: '2017-03-07T07:42:58.916123456Z'
           })
-        ).to.deep.equal(new Timestamp(1488872578, 916123456));
+        ).toEqual(new Timestamp(1488872578, 916123456));
 
         expect(
           userDataWriter.convertValue({
             timestampValue: '2017-03-07T07:42:58.916123Z'
           })
-        ).to.deep.equal(new Timestamp(1488872578, 916123000));
+        ).toEqual(new Timestamp(1488872578, 916123000));
 
         expect(
           userDataWriter.convertValue({
             timestampValue: '2017-03-07T07:42:58.916Z'
           })
-        ).to.deep.equal(new Timestamp(1488872578, 916000000));
+        ).toEqual(new Timestamp(1488872578, 916000000));
 
         expect(
           userDataWriter.convertValue({
             timestampValue: '2017-03-07T07:42:58Z'
           })
-        ).to.deep.equal(new Timestamp(1488872578, 0));
+        ).toEqual(new Timestamp(1488872578, 0));
       });
 
       it('converts TimestampValue to string (useProto3Json=true)', () => {
@@ -380,7 +385,7 @@ export function serializerTest(
             'timestampConversion',
             new Timestamp(1488872578, 916123000)
           )
-        ).to.deep.equal({ timestampValue: '2017-03-07T07:42:58.916123000Z' });
+        ).toEqual({ timestampValue: '2017-03-07T07:42:58.916123000Z' });
 
         expect(
           parseQueryValue(
@@ -388,7 +393,7 @@ export function serializerTest(
             'timestampConversion',
             new Timestamp(1488872578, 916000000)
           )
-        ).to.deep.equal({ timestampValue: '2017-03-07T07:42:58.916000000Z' });
+        ).toEqual({ timestampValue: '2017-03-07T07:42:58.916000000Z' });
 
         expect(
           parseQueryValue(
@@ -396,7 +401,7 @@ export function serializerTest(
             'timestampConversion',
             new Timestamp(1488872578, 916000)
           )
-        ).to.deep.equal({ timestampValue: '2017-03-07T07:42:58.000916000Z' });
+        ).toEqual({ timestampValue: '2017-03-07T07:42:58.000916000Z' });
 
         expect(
           parseQueryValue(
@@ -404,7 +409,7 @@ export function serializerTest(
             'timestampConversion',
             new Timestamp(1488872578, 0)
           )
-        ).to.deep.equal({ timestampValue: '2017-03-07T07:42:58.000000000Z' });
+        ).toEqual({ timestampValue: '2017-03-07T07:42:58.000000000Z' });
       });
 
       it('converts GeoPointValue', () => {
@@ -477,7 +482,7 @@ export function serializerTest(
           s: 'foo'
         };
         const objValue = wrap(original);
-        expect(userDataWriter.convertValue(objValue)).to.deep.equal(original);
+        expect(userDataWriter.convertValue(objValue)).toEqual(original);
 
         const expectedJson: api.Value = {
           mapValue: {
@@ -540,7 +545,7 @@ export function serializerTest(
       it('converts VectorValue', () => {
         const original = vector([1, 2, 3]);
         const objValue = wrap(original);
-        expect(userDataWriter.convertValue(objValue)).to.deep.equal(original);
+        expect(userDataWriter.convertValue(objValue)).toEqual(original);
 
         const expectedJson: api.Value = {
           mapValue: {
@@ -565,17 +570,67 @@ export function serializerTest(
           jsonValue: expectedJson.mapValue
         });
       });
+
+      it('converts BSON types in mapValue', () => {
+        const examples = [
+          new BsonObjectId('foo'),
+          new BsonTimestamp(1, 2),
+          MinKey.instance(),
+          MaxKey.instance(),
+          new RegexValue('a', 'b'),
+          new Int32Value(1),
+          new Decimal128Value('1.2e3')
+        ];
+
+        for (const example of examples) {
+          expect(userDataWriter.convertValue(wrap(example))).toEqual(example);
+
+          verifyFieldValueRoundTrip({
+            value: example,
+            valueType: 'mapValue',
+            jsonValue: wrap(example).mapValue
+          });
+        }
+
+        // Bytes with subtype will be serialized differently Proto3Json VS. regular Protobuf format
+        const bsonBinary = Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1);
+        const expectedJson: api.Value = {
+          mapValue: {
+            fields: {
+              '__binary__': {
+                'bytesValue': 'AQECAw=='
+              }
+            }
+          }
+        };
+
+        const expectedProtoJson: api.Value = {
+          mapValue: {
+            fields: {
+              '__binary__': {
+                'bytesValue': new Uint8Array([1, 1, 2, 3])
+              }
+            }
+          }
+        };
+        verifyFieldValueRoundTrip({
+          value: bsonBinary,
+          valueType: 'mapValue',
+          jsonValue: expectedJson.mapValue,
+          protoJsValue: expectedProtoJson.mapValue
+        });
+      });
     });
 
     describe('toKey', () => {
       it('converts an empty key', () => {
         const obj = toName(s, key(''));
-        expect(obj).to.deep.equal('projects/p/databases/d/documents');
+        expect(obj).toEqual('projects/p/databases/d/documents');
       });
 
       it('converts a regular key', () => {
         const actual = toName(s, key('docs/1'));
-        expect(actual).to.deep.equal('projects/p/databases/d/documents/docs/1');
+        expect(actual).toEqual('projects/p/databases/d/documents/docs/1');
       });
 
       it('converts a long key', () => {
@@ -583,7 +638,7 @@ export function serializerTest(
           s,
           key('users/' + Number.MAX_SAFE_INTEGER + '/profiles/primary')
         );
-        expect(actual).to.deep.equal(
+        expect(actual).toEqual(
           'projects/p/databases/d/documents/users/' +
             Number.MAX_SAFE_INTEGER.toString() +
             '/profiles/primary'
@@ -597,19 +652,19 @@ export function serializerTest(
       it('converts an empty key', () => {
         const expected = key('');
         const actual = fromName(s, toName(s, expected));
-        expect(actual).to.deep.equal(expected);
+        expect(actual).toEqual(expected);
       });
 
       it('converts a regular key', () => {
         const expected = key('docs/1/part/2');
         const actual = fromName(s, toName(s, expected));
-        expect(actual).to.deep.equal(expected);
+        expect(actual).toEqual(expected);
       });
 
       it('converts default-value containing key', () => {
         const expected = key('docs/1');
         const actual = fromName(s, toName(s, expected));
-        expect(actual).to.deep.equal(expected);
+        expect(actual).toEqual(expected);
       });
     });
 
@@ -626,7 +681,7 @@ export function serializerTest(
           FieldPath.fromServerFormat('foo.bar\\.baz\\\\qux')
         ]);
         const actual = toDocumentMask(mask);
-        expect(actual).to.deep.equal(expected);
+        expect(actual).toEqual(expected);
       });
     });
 
@@ -641,7 +696,7 @@ export function serializerTest(
         ]);
         const proto: api.DocumentMask = { fieldPaths: ['foo.`bar.baz\\qux`'] };
         const actual = fromDocumentMask(proto);
-        expect(actual).to.deep.equal(expected);
+        expect(actual).toEqual(expected);
       });
     });
 
@@ -649,7 +704,7 @@ export function serializerTest(
       it('converts DeleteMutation', () => {
         const mutation = new DeleteMutation(key('docs/1'), Precondition.none());
         const result = toMutation(s, mutation);
-        expect(result).to.deep.equal({
+        expect(result).toEqual({
           delete: 'projects/p/databases/d/documents/docs/1'
         });
       });
@@ -658,7 +713,7 @@ export function serializerTest(
     describe('toMutation / fromMutation', () => {
       function verifyMutation(mutation: Mutation, proto: unknown): void {
         const serialized = toMutation(s, mutation);
-        expect(serialized).to.deep.equal(proto);
+        expect(serialized).toEqual(proto);
         expect(mutationEquals(fromMutation(s, serialized), mutation));
       }
 
@@ -842,8 +897,8 @@ export function serializerTest(
         createTime: toVersion(s, d.createTime)
       };
       const serialized = toDocument(s, d);
-      expect(serialized).to.deep.equal(proto);
-      expect(fromDocument(s, serialized, undefined).isEqual(d)).to.equal(true);
+      expect(serialized).toEqual(proto);
+      expect(fromDocument(s, serialized, undefined).isEqual(d)).toBe(true);
     });
 
     describe('to/from UnaryOrFieldFilter', () => {
@@ -853,7 +908,7 @@ export function serializerTest(
         const path = new FieldPath(['item', 'part', 'top']);
         const input = FieldFilter.create(path, Operator.EQUAL, wrap('food'));
         const actual = toUnaryOrFieldFilter(input);
-        expect(actual).to.deep.equal({
+        expect(actual).toEqual({
           fieldFilter: {
             field: { fieldPath: 'item.part.top' },
             op: 'EQUAL',
@@ -861,14 +916,14 @@ export function serializerTest(
           }
         });
         const roundtripped = fromFieldFilter(actual);
-        expect(roundtripped).to.deep.equal(input);
-        expect(roundtripped).to.be.instanceof(FieldFilter);
+        expect(roundtripped).toEqual(input);
+        expect(roundtripped).toBeInstanceOf(FieldFilter);
       });
 
       it('converts NotEqual', () => {
         const input = filter('field', '!=', 42);
         const actual = toUnaryOrFieldFilter(input);
-        expect(actual).to.deep.equal({
+        expect(actual).toEqual({
           fieldFilter: {
             field: { fieldPath: 'field' },
             op: 'NOT_EQUAL',
@@ -876,14 +931,14 @@ export function serializerTest(
           }
         });
         const roundtripped = fromFieldFilter(actual);
-        expect(roundtripped).to.deep.equal(input);
-        expect(roundtripped).to.be.instanceof(FieldFilter);
+        expect(roundtripped).toEqual(input);
+        expect(roundtripped).toBeInstanceOf(FieldFilter);
       });
 
       it('converts LessThan', () => {
         const input = filter('field', '<', 42);
         const actual = toUnaryOrFieldFilter(input);
-        expect(actual).to.deep.equal({
+        expect(actual).toEqual({
           fieldFilter: {
             field: { fieldPath: 'field' },
             op: 'LESS_THAN',
@@ -891,14 +946,14 @@ export function serializerTest(
           }
         });
         const roundtripped = fromFieldFilter(actual);
-        expect(roundtripped).to.deep.equal(input);
-        expect(roundtripped).to.be.instanceof(FieldFilter);
+        expect(roundtripped).toEqual(input);
+        expect(roundtripped).toBeInstanceOf(FieldFilter);
       });
 
       it('converts LessThanOrEqual', () => {
         const input = filter('field', '<=', 'food');
         const actual = toUnaryOrFieldFilter(input);
-        expect(actual).to.deep.equal({
+        expect(actual).toEqual({
           fieldFilter: {
             field: { fieldPath: 'field' },
             op: 'LESS_THAN_OR_EQUAL',
@@ -906,14 +961,14 @@ export function serializerTest(
           }
         });
         const roundtripped = fromFieldFilter(actual);
-        expect(roundtripped).to.deep.equal(input);
-        expect(roundtripped).to.be.instanceof(FieldFilter);
+        expect(roundtripped).toEqual(input);
+        expect(roundtripped).toBeInstanceOf(FieldFilter);
       });
 
       it('converts GreaterThan', () => {
         const input = filter('field', '>', false);
         const actual = toUnaryOrFieldFilter(input);
-        expect(actual).to.deep.equal({
+        expect(actual).toEqual({
           fieldFilter: {
             field: { fieldPath: 'field' },
             op: 'GREATER_THAN',
@@ -921,14 +976,14 @@ export function serializerTest(
           }
         });
         const roundtripped = fromFieldFilter(actual);
-        expect(roundtripped).to.deep.equal(input);
-        expect(roundtripped).to.be.instanceof(FieldFilter);
+        expect(roundtripped).toEqual(input);
+        expect(roundtripped).toBeInstanceOf(FieldFilter);
       });
 
       it('converts GreaterThanOrEqual', () => {
         const input = filter('field', '>=', 1e100);
         const actual = toUnaryOrFieldFilter(input);
-        expect(actual).to.deep.equal({
+        expect(actual).toEqual({
           fieldFilter: {
             field: { fieldPath: 'field' },
             op: 'GREATER_THAN_OR_EQUAL',
@@ -936,14 +991,14 @@ export function serializerTest(
           }
         });
         const roundtripped = fromFieldFilter(actual);
-        expect(roundtripped).to.deep.equal(input);
-        expect(roundtripped).to.be.instanceof(FieldFilter);
+        expect(roundtripped).toEqual(input);
+        expect(roundtripped).toBeInstanceOf(FieldFilter);
       });
 
       it('converts key field', () => {
         const input = filter(DOCUMENT_KEY_NAME, '==', ref('coll/doc'));
         const actual = toUnaryOrFieldFilter(input);
-        expect(actual).to.deep.equal({
+        expect(actual).toEqual({
           fieldFilter: {
             field: { fieldPath: '__name__' },
             op: 'EQUAL',
@@ -954,14 +1009,14 @@ export function serializerTest(
           }
         });
         const roundtripped = fromFieldFilter(actual);
-        expect(roundtripped).to.deep.equal(input);
-        expect(roundtripped).to.be.instanceof(KeyFieldFilter);
+        expect(roundtripped).toEqual(input);
+        expect(roundtripped).toBeInstanceOf(KeyFieldFilter);
       });
 
       it('converts array-contains', () => {
         const input = filter('field', 'array-contains', 42);
         const actual = toUnaryOrFieldFilter(input);
-        expect(actual).to.deep.equal({
+        expect(actual).toEqual({
           fieldFilter: {
             field: { fieldPath: 'field' },
             op: 'ARRAY_CONTAINS',
@@ -969,14 +1024,14 @@ export function serializerTest(
           }
         });
         const roundtripped = fromFieldFilter(actual);
-        expect(roundtripped).to.deep.equal(input);
-        expect(roundtripped).to.be.instanceof(ArrayContainsFilter);
+        expect(roundtripped).toEqual(input);
+        expect(roundtripped).toBeInstanceOf(ArrayContainsFilter);
       });
 
       it('converts IN', () => {
         const input = filter('field', 'in', [42]);
         const actual = toUnaryOrFieldFilter(input);
-        expect(actual).to.deep.equal({
+        expect(actual).toEqual({
           fieldFilter: {
             field: { fieldPath: 'field' },
             op: 'IN',
@@ -992,14 +1047,14 @@ export function serializerTest(
           }
         });
         const roundtripped = fromFieldFilter(actual);
-        expect(roundtripped).to.deep.equal(input);
-        expect(roundtripped).to.be.instanceof(InFilter);
+        expect(roundtripped).toEqual(input);
+        expect(roundtripped).toBeInstanceOf(InFilter);
       });
 
       it('converts not-in', () => {
         const input = filter('field', 'not-in', [42]);
         const actual = toUnaryOrFieldFilter(input);
-        expect(actual).to.deep.equal({
+        expect(actual).toEqual({
           fieldFilter: {
             field: { fieldPath: 'field' },
             op: 'NOT_IN',
@@ -1015,14 +1070,14 @@ export function serializerTest(
           }
         });
         const roundtripped = fromFieldFilter(actual);
-        expect(roundtripped).to.deep.equal(input);
-        expect(roundtripped).to.be.instanceof(NotInFilter);
+        expect(roundtripped).toEqual(input);
+        expect(roundtripped).toBeInstanceOf(NotInFilter);
       });
 
       it('converts not-in with null', () => {
         const input = filter('field', 'not-in', [null]);
         const actual = toUnaryOrFieldFilter(input);
-        expect(actual).to.deep.equal({
+        expect(actual).toEqual({
           fieldFilter: {
             field: { fieldPath: 'field' },
             op: 'NOT_IN',
@@ -1038,14 +1093,14 @@ export function serializerTest(
           }
         });
         const roundtripped = fromFieldFilter(actual);
-        expect(roundtripped).to.deep.equal(input);
-        expect(roundtripped).to.be.instanceof(NotInFilter);
+        expect(roundtripped).toEqual(input);
+        expect(roundtripped).toBeInstanceOf(NotInFilter);
       });
 
       it('converts array-contains-any', () => {
         const input = filter('field', 'array-contains-any', [42]);
         const actual = toUnaryOrFieldFilter(input);
-        expect(actual).to.deep.equal({
+        expect(actual).toEqual({
           fieldFilter: {
             field: { fieldPath: 'field' },
             op: 'ARRAY_CONTAINS_ANY',
@@ -1061,8 +1116,8 @@ export function serializerTest(
           }
         });
         const roundtripped = fromFieldFilter(actual);
-        expect(roundtripped).to.deep.equal(input);
-        expect(roundtripped).to.be.instanceof(ArrayContainsAnyFilter);
+        expect(roundtripped).toEqual(input);
+        expect(roundtripped).toBeInstanceOf(ArrayContainsAnyFilter);
       });
     });
 
@@ -1072,49 +1127,49 @@ export function serializerTest(
       it('converts null', () => {
         const input = filter('field', '==', null);
         const actual = toUnaryOrFieldFilter(input);
-        expect(actual).to.deep.equal({
+        expect(actual).toEqual({
           unaryFilter: {
             field: { fieldPath: 'field' },
             op: 'IS_NULL'
           }
         });
-        expect(fromUnaryFilter(actual)).to.deep.equal(input);
+        expect(fromUnaryFilter(actual)).toEqual(input);
       });
 
       it('converts Nan', () => {
         const input = filter('field', '==', NaN);
         const actual = toUnaryOrFieldFilter(input);
-        expect(actual).to.deep.equal({
+        expect(actual).toEqual({
           unaryFilter: {
             field: { fieldPath: 'field' },
             op: 'IS_NAN'
           }
         });
-        expect(fromUnaryFilter(actual)).to.deep.equal(input);
+        expect(fromUnaryFilter(actual)).toEqual(input);
       });
 
       it('converts not null', () => {
         const input = filter('field', '!=', null);
         const actual = toUnaryOrFieldFilter(input);
-        expect(actual).to.deep.equal({
+        expect(actual).toEqual({
           unaryFilter: {
             field: { fieldPath: 'field' },
             op: 'IS_NOT_NULL'
           }
         });
-        expect(fromUnaryFilter(actual)).to.deep.equal(input);
+        expect(fromUnaryFilter(actual)).toEqual(input);
       });
 
       it('converts not NaN', () => {
         const input = filter('field', '!=', NaN);
         const actual = toUnaryOrFieldFilter(input);
-        expect(actual).to.deep.equal({
+        expect(actual).toEqual({
           unaryFilter: {
             field: { fieldPath: 'field' },
             op: 'IS_NOT_NAN'
           }
         });
-        expect(fromUnaryFilter(actual)).to.deep.equal(input);
+        expect(fromUnaryFilter(actual)).toEqual(input);
       });
     });
 
@@ -1188,7 +1243,7 @@ export function serializerTest(
           }
         };
 
-        expect(actual).to.deep.equal({
+        expect(actual).toEqual({
           compositeFilter: {
             op: protoCompositeFilterOrOp,
             filters: [propProtoFilter, innerAndProtoFilter]
@@ -1197,8 +1252,8 @@ export function serializerTest(
 
         // Decode
         const roundtripped = fromCompositeFilter(actual);
-        expect(roundtripped).to.deep.equal(input);
-        expect(roundtripped).to.be.instanceof(CompositeFilter);
+        expect(roundtripped).toEqual(input);
+        expect(roundtripped).toBeInstanceOf(CompositeFilter);
       });
     });
 
@@ -1272,7 +1327,7 @@ export function serializerTest(
           }
         };
 
-        expect(actual).to.deep.equal({
+        expect(actual).toEqual({
           compositeFilter: {
             op: protoCompositeFilterOrOp,
             filters: [propProtoFilter, innerAndProtoFilter]
@@ -1281,8 +1336,8 @@ export function serializerTest(
 
         // Decode
         const roundtripped = fromCompositeFilter(actual);
-        expect(roundtripped).to.deep.equal(input);
-        expect(roundtripped).to.be.instanceof(CompositeFilter);
+        expect(roundtripped).toEqual(input);
+        expect(roundtripped).toBeInstanceOf(CompositeFilter);
       });
     });
 
@@ -1291,11 +1346,11 @@ export function serializerTest(
       let targetData = new TargetData(target, 2, TargetPurpose.Listen, 3);
 
       let result = toListenRequestLabels(s, targetData);
-      expect(result).to.be.null;
+      expect(result).toBeNull();
 
       targetData = new TargetData(target, 2, TargetPurpose.LimboResolution, 3);
       result = toListenRequestLabels(s, targetData);
-      expect(result).to.deep.equal({ 'goog-listen-tags': 'limbo-document' });
+      expect(result).toEqual({ 'goog-listen-tags': 'limbo-document' });
 
       targetData = new TargetData(
         target,
@@ -1304,7 +1359,7 @@ export function serializerTest(
         3
       );
       result = toListenRequestLabels(s, targetData);
-      expect(result).to.deep.equal({
+      expect(result).toEqual({
         'goog-listen-tags': 'existence-filter-mismatch'
       });
     });
@@ -1315,18 +1370,18 @@ export function serializerTest(
       it('converts first-level key queries', () => {
         const q = queryToTarget(query('docs/1'));
         const result = toTarget(s, wrapTargetData(q));
-        expect(result).to.deep.equal({
+        expect(result).toEqual({
           documents: { documents: ['projects/p/databases/d/documents/docs/1'] },
           targetId: 1
         });
         const target = fromDocumentsTarget(toDocumentsTarget(s, q));
-        expect(target).to.deep.equal(q);
+        expect(target).toEqual(q);
       });
 
       it('converts first-level ancestor queries', () => {
         const q = queryToTarget(query('messages'));
         const result = toTarget(s, wrapTargetData(q));
-        expect(result).to.deep.equal({
+        expect(result).toEqual({
           query: {
             parent: 'projects/p/databases/d/documents',
             structuredQuery: {
@@ -1341,9 +1396,7 @@ export function serializerTest(
           },
           targetId: 1
         });
-        expect(fromQueryTarget(toQueryTarget(s, q).queryTarget)).to.deep.equal(
-          q
-        );
+        expect(fromQueryTarget(toQueryTarget(s, q).queryTarget)).toEqual(q);
       });
 
       it('converts nested ancestor queries', () => {
@@ -1364,10 +1417,8 @@ export function serializerTest(
           },
           targetId: 1
         };
-        expect(result).to.deep.equal(expected);
-        expect(fromQueryTarget(toQueryTarget(s, q).queryTarget)).to.deep.equal(
-          q
-        );
+        expect(result).toEqual(expected);
+        expect(fromQueryTarget(toQueryTarget(s, q).queryTarget)).toEqual(q);
       });
 
       it('converts single filters at first-level collections', () => {
@@ -1399,10 +1450,8 @@ export function serializerTest(
           },
           targetId: 1
         };
-        expect(result).to.deep.equal(expected);
-        expect(fromQueryTarget(toQueryTarget(s, q).queryTarget)).to.deep.equal(
-          q
-        );
+        expect(result).toEqual(expected);
+        expect(fromQueryTarget(toQueryTarget(s, q).queryTarget)).toEqual(q);
       });
 
       it('converts multiple filters at first-level collections', () => {
@@ -1476,10 +1525,8 @@ export function serializerTest(
           },
           targetId: 1
         };
-        expect(result).to.deep.equal(expected);
-        expect(fromQueryTarget(toQueryTarget(s, q).queryTarget)).to.deep.equal(
-          q
-        );
+        expect(result).toEqual(expected);
+        expect(fromQueryTarget(toQueryTarget(s, q).queryTarget)).toEqual(q);
       });
 
       it('converts single filters on deeper collections', () => {
@@ -1513,10 +1560,8 @@ export function serializerTest(
           },
           targetId: 1
         };
-        expect(result).to.deep.equal(expected);
-        expect(fromQueryTarget(toQueryTarget(s, q).queryTarget)).to.deep.equal(
-          q
-        );
+        expect(result).toEqual(expected);
+        expect(fromQueryTarget(toQueryTarget(s, q).queryTarget)).toEqual(q);
       });
 
       it('converts multi-layer composite filters with OR at the first layer', () => {
@@ -1601,10 +1646,8 @@ export function serializerTest(
           },
           targetId: 1
         };
-        expect(result).to.deep.equal(expected);
-        expect(fromQueryTarget(toQueryTarget(s, q).queryTarget)).to.deep.equal(
-          q
-        );
+        expect(result).toEqual(expected);
+        expect(fromQueryTarget(toQueryTarget(s, q).queryTarget)).toEqual(q);
       });
 
       it('converts multi-layer composite filters with AND at the first layer', () => {
@@ -1689,10 +1732,8 @@ export function serializerTest(
           },
           targetId: 1
         };
-        expect(result).to.deep.equal(expected);
-        expect(fromQueryTarget(toQueryTarget(s, q).queryTarget)).to.deep.equal(
-          q
-        );
+        expect(result).toEqual(expected);
+        expect(fromQueryTarget(toQueryTarget(s, q).queryTarget)).toEqual(q);
       });
 
       it('converts order bys', () => {
@@ -1717,10 +1758,8 @@ export function serializerTest(
           },
           targetId: 1
         };
-        expect(result).to.deep.equal(expected);
-        expect(fromQueryTarget(toQueryTarget(s, q).queryTarget)).to.deep.equal(
-          q
-        );
+        expect(result).toEqual(expected);
+        expect(fromQueryTarget(toQueryTarget(s, q).queryTarget)).toEqual(q);
       });
 
       it('converts limits', () => {
@@ -1744,10 +1783,8 @@ export function serializerTest(
           },
           targetId: 1
         };
-        expect(result).to.deep.equal(expected);
-        expect(fromQueryTarget(toQueryTarget(s, q).queryTarget)).to.deep.equal(
-          q
-        );
+        expect(result).toEqual(expected);
+        expect(fromQueryTarget(toQueryTarget(s, q).queryTarget)).toEqual(q);
       });
 
       it('converts startAt/endAt', () => {
@@ -1794,10 +1831,8 @@ export function serializerTest(
           },
           targetId: 1
         };
-        expect(result).to.deep.equal(expected);
-        expect(fromQueryTarget(toQueryTarget(s, q).queryTarget)).to.deep.equal(
-          q
-        );
+        expect(result).toEqual(expected);
+        expect(fromQueryTarget(toQueryTarget(s, q).queryTarget)).toEqual(q);
       });
 
       it('converts resume tokens', () => {
@@ -1830,7 +1865,7 @@ export function serializerTest(
           resumeToken: new Uint8Array([1, 2, 3]),
           targetId: 1
         };
-        expect(result).to.deep.equal(expected);
+        expect(result).toEqual(expected);
       });
     });
 
@@ -1852,7 +1887,7 @@ export function serializerTest(
         ];
 
         for (const op of allOperators) {
-          expect(fromOperatorName(toOperatorName(op))).to.deep.equal(op);
+          expect(fromOperatorName(toOperatorName(op))).toEqual(op);
         }
       });
     });
@@ -1864,7 +1899,7 @@ export function serializerTest(
         const allDirections = [Direction.ASCENDING, Direction.DESCENDING];
 
         for (const dir of allDirections) {
-          expect(fromDirection(toDirection(dir))).to.deep.equal(dir);
+          expect(fromDirection(toDirection(dir))).toEqual(dir);
         }
       });
     });
@@ -1877,8 +1912,8 @@ export function serializerTest(
           field: { fieldPath: 'a.b' },
           direction: 'ASCENDING'
         };
-        expect(actual).to.deep.equal(expected);
-        expect(fromPropertyOrder(actual)).to.deep.equal(orderBy);
+        expect(actual).toEqual(expected);
+        expect(fromPropertyOrder(actual)).toEqual(orderBy);
       });
 
       it('renders descending', () => {
@@ -1888,8 +1923,8 @@ export function serializerTest(
           field: { fieldPath: 'a.b.c' },
           direction: 'DESCENDING'
         };
-        expect(actual).to.deep.equal(expected);
-        expect(fromPropertyOrder(actual)).to.deep.equal(orderBy);
+        expect(actual).toEqual(expected);
+        expect(fromPropertyOrder(actual)).toEqual(orderBy);
       });
     });
 
@@ -1907,7 +1942,7 @@ export function serializerTest(
         const actual = fromWatchChange(s, {
           targetChange: { targetChangeType: 'ADD', targetIds: [1, 4] }
         });
-        expect(actual).to.deep.equal(expected);
+        expect(actual).toEqual(expected);
       });
 
       it('converts target change with removed', () => {
@@ -1925,7 +1960,7 @@ export function serializerTest(
             cause: { code: 1, message: 'message' }
           }
         });
-        expect(actual).to.deep.equal(expected);
+        expect(actual).toEqual(expected);
       });
 
       it('converts target change with no_change', () => {
@@ -1939,7 +1974,7 @@ export function serializerTest(
             targetIds: [1, 4]
           }
         });
-        expect(actual).to.deep.equal(expected);
+        expect(actual).toEqual(expected);
       });
 
       it('converts target change with no_change (omitted in JSON)', () => {
@@ -1952,7 +1987,7 @@ export function serializerTest(
             targetIds: [1, 4]
           }
         });
-        expect(actual).to.deep.equal(expected);
+        expect(actual).toEqual(expected);
       });
 
       it('converts target change with snapshot version', () => {
@@ -1970,7 +2005,7 @@ export function serializerTest(
             cause: { code: 1, message: 'message' }
           }
         });
-        expect(actual).to.deep.equal(expected);
+        expect(actual).toEqual(expected);
       });
 
       it('converts document change with target ids', () => {
@@ -1990,7 +2025,7 @@ export function serializerTest(
             targetIds: [1, 2]
           }
         });
-        expect(actual).to.deep.equal(expected);
+        expect(actual).toEqual(expected);
       });
 
       it('converts document change with removed target ids', () => {
@@ -2011,7 +2046,7 @@ export function serializerTest(
             removedTargetIds: [1]
           }
         });
-        expect(actual).to.deep.equal(expected);
+        expect(actual).toEqual(expected);
       });
 
       it('converts document change with deletions', () => {
@@ -2028,7 +2063,7 @@ export function serializerTest(
             removedTargetIds: [1, 2]
           }
         });
-        expect(actual).to.deep.equal(expected);
+        expect(actual).toEqual(expected);
       });
 
       it('converts document removes', () => {
@@ -2044,7 +2079,7 @@ export function serializerTest(
             removedTargetIds: [1, 2]
           }
         });
-        expect(actual).to.deep.equal(expected);
+        expect(actual).toEqual(expected);
       });
     });
   });

@@ -16,10 +16,10 @@
  */
 
 import typescriptPlugin from 'rollup-plugin-typescript2';
-import pkg from './package.json';
-import tsconfig from './tsconfig.json';
+import pkg from './package.json' with { type: 'json' };
+import tsconfig from './tsconfig.json' with { type: 'json' };
 import typescript from 'typescript';
-import { emitModulePackageFile } from '../../scripts/build/rollup_emit_module_package_file';
+import { emitModulePackageFile } from '../../scripts/build/rollup_emit_module_package_file.js';
 
 const buildPlugins = [
   typescriptPlugin({

@@ -1,5 +1,64 @@
 # @firebase/ai
 
+## 3.0.0
+
+### Major Changes
+
+- [`42ce99c`](https://github.com/firebase/firebase-js-sdk/commit/42ce99c05df4835054bfc2535afa040a3705247e) [#10380](https://github.com/firebase/firebase-js-sdk/pull/10380) - Refactored `TemplateGenerativeModel.generateContent` and `TemplateGenerativeModel.generateContentStream` to accept a unified `TemplateRequest` object (`{ templateId, templateVariables, toolConfig? }`) as the first parameter.
+  Made `templateVariables` required in both `TemplateRequest` and `StartTemplateChatParams`.
+
+- [`f83cc32`](https://github.com/firebase/firebase-js-sdk/commit/f83cc32a2ea4c12a3bba9ed8de2e2129ca139cb3) [#10392](https://github.com/firebase/firebase-js-sdk/pull/10392) - Removed APIs that were previously deprecated.
+
+  Removed the previously deprecated `VertexAIBackend` (and `BackendType.VERTEX_AI`). Use `AgentPlatformBackend` (and `BackendType.AGENT_PLATFORM`) instead.
+
+  The only difference for `AgentPlatformBackend` is the default
+  [location for accessing the model](https://firebase.google.com/docs/ai-logic/locations?api=vertex).
+  The default location for `AgentPlatformBackend` is `global`, whereas the default location for `VertexAIBackend` was `us-central1`. To use `us-central1` with `AgentPlatformBackend`, specify `getAI(app, { backend: new AgentPlatformBackend('us-central1') })` when initializing the SDK. However, note that most new Gemini models do not support `us-central1`.
+
+  Updated default hybrid-in-cloud model to `gemini-3.5-flash-lite`.
+
+- [`b70fa6f`](https://github.com/firebase/firebase-js-sdk/commit/b70fa6f0134b6d8fad62d724ee2c4d6845b382a5) [#10398](https://github.com/firebase/firebase-js-sdk/pull/10398) - Refactored `Part` into a discriminated union with explicit `type` properties, introduced `UnknownPart` for raw wire and user-provided inputs, stripped `type` discriminators on wire egress, and ensured defensive deep copying for chat history.
+
+### Minor Changes
+
+- [`87adc59`](https://github.com/firebase/firebase-js-sdk/commit/87adc59cae9f3892ae3c475395ad4707510f665e) [#10362](https://github.com/firebase/firebase-js-sdk/pull/10362) - Deprecated `candidateCount`, `temperature`, `topP`, `topK`, `presencePenalty`, and `frequencyPenalty` in both `GenerationConfig` and `LiveGenerationConfig`. These parameters are unsupported in Gemini 3.x and later models.
+
+- [`565da23`](https://github.com/firebase/firebase-js-sdk/commit/565da231ab250b7dfbf8cc99bc62e1b893e3ba9d) [#10334](https://github.com/firebase/firebase-js-sdk/pull/10334) - Exported a `ChatSession` interface instead of the `ChatSession` class.
+
+  Cleaned up AI Logic doc comments.
+
+### Patch Changes
+
+- [`ac44c69`](https://github.com/firebase/firebase-js-sdk/commit/ac44c691708a1a3cd3a16ef3435d50b53fe3ab34) [#10363](https://github.com/firebase/firebase-js-sdk/pull/10363) - Migrate test suite to Vitest and update type-only re-exports.
+
+## 2.16.0
+
+### Minor Changes
+
+- [`6b17ef5`](https://github.com/firebase/firebase-js-sdk/commit/6b17ef50b4db73557e834535656e586d32a2f86a) [#10319](https://github.com/firebase/firebase-js-sdk/pull/10319) - Fixed the issue where the SDK hardcodes invalid 'function' role, causing 400 errors during function calling on gemini-3.6-flash
+
+### Patch Changes
+
+- [`6f86596`](https://github.com/firebase/firebase-js-sdk/commit/6f865964baf5b4bd23b077fecec1028434a7387e) [#10320](https://github.com/firebase/firebase-js-sdk/pull/10320) - Fixed a client-side validation guardrail that incorrectly blocked `text/x.enum` when `responseSchema` or `responseJsonSchema` was provided. The SDK now correctly accepts both `application/json` and `text/x.enum` for structured outputs.
+
+## 2.15.0
+
+### Minor Changes
+
+- [`d4b83fd`](https://github.com/firebase/firebase-js-sdk/commit/d4b83fd9defa8da9207b771ee503e05357826da0) [#10267](https://github.com/firebase/firebase-js-sdk/pull/10267) - Imagen methods and types have been removed due to Imagen models being shut down. As a replacement, you can [migrate your apps to use Gemini Image models (the "Nano Banana" models)](https://firebase.google.com/docs/ai-logic/imagen-models-migration).
+
+### Patch Changes
+
+- [`589b24b`](https://github.com/firebase/firebase-js-sdk/commit/589b24bd9b30ba6b07a76da1eb5c3d1eadc5a9d2) [#10293](https://github.com/firebase/firebase-js-sdk/pull/10293) - Updated many top-level `devDependencies`.
+
+- [`7fc34cb`](https://github.com/firebase/firebase-js-sdk/commit/7fc34cb4213e7d5595e218877f8cb95c207b50ce) [#10248](https://github.com/firebase/firebase-js-sdk/pull/10248) - Fixed incorrect detection of LanguageModel that prevented usage of on-device models in Chrome Extensions.
+
+- Updated dependencies [[`589b24b`](https://github.com/firebase/firebase-js-sdk/commit/589b24bd9b30ba6b07a76da1eb5c3d1eadc5a9d2)]:
+  - @firebase/app-check-interop-types@0.3.5
+  - @firebase/component@0.7.5
+  - @firebase/logger@0.5.2
+  - @firebase/util@1.15.3
+
 ## 2.14.0
 
 ### Minor Changes

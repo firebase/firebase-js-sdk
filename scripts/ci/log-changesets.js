@@ -48,11 +48,19 @@ async function logChangesets() {
     pr: prPayload.pull_request.number
   };
 
+  const headers = {
+    'Content-Type': 'application/json'
+  };
+  if (!process.env.RELEASE_TRACKER_ID_TOKEN) {
+    throw new Error(
+      'RELEASE_TRACKER_ID_TOKEN environment variable is missing.'
+    );
+  }
+  headers['Authorization'] = 'Bearer ' + process.env.RELEASE_TRACKER_ID_TOKEN;
+
   const options = {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    }
+    headers
   };
 
   return new Promise((resolve, reject) => {

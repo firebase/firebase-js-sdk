@@ -16,7 +16,7 @@
  */
 
 import { FirestoreError } from '@firebase/firestore';
-import { SetOptions } from '@firebase/firestore-types';
+import type { SetOptions } from '@firebase/firestore-types';
 
 export function validateSetOptions(
   methodName: string,

@@ -55,6 +55,11 @@ contextWindowCompression?: ContextWindowCompressionConfig;
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
+> Warning: This API is now obsolete.
+> 
+> Not supported in Gemini 3.x and later models. Requests that include this parameter will fail with a 400 error. Omit this parameter.
+> 
+
 Frequency penalties.
 
 <b>Signature:</b>
@@ -111,6 +116,11 @@ outputAudioTranscription?: AudioTranscriptionConfig;
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
+> Warning: This API is now obsolete.
+> 
+> Not supported in Gemini 3.x and later models. Requests that include this parameter will fail with a 400 error. Omit this parameter.
+> 
+
 Positive penalties.
 
 <b>Signature:</b>
@@ -150,6 +160,11 @@ speechConfig?: SpeechConfig;
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
+> Warning: This API is now obsolete.
+> 
+> Not supported in Gemini 3.x and later models. The model will ignore this parameter if it's included in a request. Omit this parameter and let the model manage sampling automatically.
+> 
+
 Controls the degree of randomness in token selection. A `temperature` value of 0 means that the highest probability tokens are always selected. In this case, responses for a given prompt are mostly deterministic, but a small amount of variation is still possible.
 
 <b>Signature:</b>
@@ -163,6 +178,11 @@ temperature?: number;
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
+> Warning: This API is now obsolete.
+> 
+> Not supported in Gemini 3.x and later models. The model will ignore this parameter if it's included in a request. Omit this parameter and let the model manage sampling automatically.
+> 
+
 Changes how the model selects token for output. A `topK` value of 1 means the select token is the most probable among all tokens in the model's vocabulary, while a `topK` value 3 means that the next token is selected from among the 3 most probably using probabilities sampled. Tokens are then further filtered with the highest selected `temperature` sampling. Defaults to 40 if unspecified.
 
 <b>Signature:</b>
@@ -174,6 +194,11 @@ topK?: number;
 ## LiveGenerationConfig.topP
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+> Warning: This API is now obsolete.
+> 
+> Not supported in Gemini 3.x and later models. The model will ignore this parameter if it's included in a request. Omit this parameter and let the model manage sampling automatically.
 > 
 
 Changes how the model selects tokens for output. Tokens are selected from the most to least probable until the sum of their probabilities equals the `topP` value. For example, if tokens A, B, and C have probabilities of 0.3, 0.2, and 0.1 respectively and the `topP` value is 0.5, then the model will select either A or B as the next token by using the `temperature` and exclude C as a candidate. Defaults to 0.95 if unset.

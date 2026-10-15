@@ -92,8 +92,9 @@ export interface ReceiverHandler<
 }
 
 /** Full message sent by Sender  */
-export interface SenderMessageEvent<T extends _SenderRequest>
-  extends MessageEvent {
+export interface SenderMessageEvent<
+  T extends _SenderRequest
+> extends MessageEvent {
   data: T;
 }
 
@@ -102,8 +103,9 @@ export type _ReceiverMessageResponse<T extends _ReceiverResponse> = Array<
 > | null;
 
 /** Full message sent by Receiver */
-export interface ReceiverMessageEvent<T extends _ReceiverResponse>
-  extends MessageEvent {
+export interface ReceiverMessageEvent<
+  T extends _ReceiverResponse
+> extends MessageEvent {
   status: _Status;
   response: _ReceiverMessageResponse<T>;
 }

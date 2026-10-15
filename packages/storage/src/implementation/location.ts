@@ -31,7 +31,10 @@ import { DEFAULT_HOST } from './constants';
 export class Location {
   private path_: string;
 
-  constructor(public readonly bucket: string, path: string) {
+  constructor(
+    public readonly bucket: string,
+    path: string
+  ) {
     this.path_ = path;
   }
 

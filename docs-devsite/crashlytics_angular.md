@@ -15,7 +15,7 @@ https://github.com/firebase/firebase-js-sdk
 
 |  Function | Description |
 |  --- | --- |
-|  [setupCrashlyticsRoutes({ firebaseApp, router, destroyRef, crashlyticsOptions })](./crashlytics_angular.md#setupcrashlyticsroutes_371beb1) | Configures automatic Angular router navigation tracking for Firebase Crashlytics.<!-- -->This function subscribes to router navigation events, keeps the Crashlytics route path attribute updated, and logs view boundary telemetry automatically. |
+|  [setupCrashlyticsRoutes({ firebaseApp, router, destroyRef, crashlyticsOptions }, input)](./crashlytics_angular.md#setupcrashlyticsroutes_650bf60) | Configures automatic Angular router navigation tracking for Firebase Crashlytics.<!-- -->This function subscribes to router navigation events, keeps the Crashlytics route path attribute updated, and logs view boundary telemetry automatically. |
 
 ## Classes
 
@@ -27,12 +27,12 @@ https://github.com/firebase/firebase-js-sdk
 
 |  Interface | Description |
 |  --- | --- |
-|  [Crashlytics](./crashlytics_angular.crashlytics.md#crashlytics_interface) | An instance of the Firebase Crashlytics SDK.<!-- -->Do not create this instance directly. Instead, use [getCrashlytics()](./crashlytics_.md#getcrashlytics_a9d22a1)<!-- -->. |
-|  [CrashlyticsOptions](./crashlytics_angular.crashlyticsoptions.md#crashlyticsoptions_interface) | Options for initializing the Crashlytics service using [getCrashlytics()](./crashlytics_.md#getcrashlytics_a9d22a1)<!-- -->. |
+|  [Crashlytics](./crashlytics_angular.crashlytics.md#crashlytics_interface) | An instance of the Firebase Crashlytics SDK.<!-- -->Do not create this instance directly. Instead, use [getCrashlytics()](./crashlytics.md#getcrashlytics_a9d22a1)<!-- -->. |
+|  [CrashlyticsOptions](./crashlytics_angular.crashlyticsoptions.md#crashlyticsoptions_interface) | Options for initializing the Crashlytics service using [getCrashlytics()](./crashlytics.md#getcrashlytics_a9d22a1)<!-- -->. |
 
 ## function({ firebaseApp, router, destroyRef, crashlyticsOptions }, ...)
 
-### setupCrashlyticsRoutes({ firebaseApp, router, destroyRef, crashlyticsOptions }) {:#setupcrashlyticsroutes_371beb1}
+### setupCrashlyticsRoutes({ firebaseApp, router, destroyRef, crashlyticsOptions }, input) {:#setupcrashlyticsroutes_650bf60}
 
 Configures automatic Angular router navigation tracking for Firebase Crashlytics.
 
@@ -41,7 +41,7 @@ This function subscribes to router navigation events, keeps the Crashlytics rout
 <b>Signature:</b>
 
 ```typescript
-export declare function setupCrashlyticsRoutes({ firebaseApp, router, destroyRef, crashlyticsOptions }: {
+export declare function setupCrashlyticsRoutes(input: {
     firebaseApp: FirebaseApp;
     router: Router;
     destroyRef: DestroyRef;
@@ -53,7 +53,8 @@ export declare function setupCrashlyticsRoutes({ firebaseApp, router, destroyRef
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  { firebaseApp, router, destroyRef, crashlyticsOptions } | { firebaseApp: [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->; router: Router; destroyRef: DestroyRef; crashlyticsOptions?: [CrashlyticsOptions](./crashlytics_.crashlyticsoptions.md#crashlyticsoptions_interface)<!-- -->; } |  |
+|  { firebaseApp, router, destroyRef, crashlyticsOptions } | (not declared) |  |
+|  input | { firebaseApp: [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->; router: Router; destroyRef: DestroyRef; crashlyticsOptions?: [CrashlyticsOptions](./crashlytics_angular.crashlyticsoptions.md#crashlyticsoptions_interface)<!-- -->; } |  |
 
 <b>Returns:</b>
 

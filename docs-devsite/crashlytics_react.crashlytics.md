@@ -12,7 +12,7 @@ https://github.com/firebase/firebase-js-sdk
 # Crashlytics interface
 An instance of the Firebase Crashlytics SDK.
 
-Do not create this instance directly. Instead, use [getCrashlytics()](./crashlytics_.md#getcrashlytics_a9d22a1)<!-- -->.
+Do not create this instance directly. Instead, use [getCrashlytics()](./crashlytics.md#getcrashlytics_a9d22a1)<!-- -->.
 
 <b>Signature:</b>
 
@@ -24,11 +24,11 @@ export interface Crashlytics
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [app](./crashlytics_react.crashlytics.md#crashlyticsapp) | [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | The [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) this [Crashlytics](./crashlytics_.crashlytics.md#crashlytics_interface) instance is associated with. |
+|  [app](./crashlytics_react.crashlytics.md#crashlyticsapp) | [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | The [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) this [Crashlytics](./crashlytics_react.crashlytics.md#crashlytics_interface) instance is associated with. |
 
 ## Crashlytics.app
 
-The [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) this [Crashlytics](./crashlytics_.crashlytics.md#crashlytics_interface) instance is associated with.
+The [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) this [Crashlytics](./crashlytics_react.crashlytics.md#crashlytics_interface) instance is associated with.
 
 <b>Signature:</b>
 

@@ -32,9 +32,9 @@ let textFactoryOverride: (() => Connection<string>) | null = null;
  * This network implementation should not be used in browsers as it does not
  * support progress updates.
  */
-abstract class FetchConnection<T extends ConnectionType>
-  implements Connection<T>
-{
+abstract class FetchConnection<
+  T extends ConnectionType
+> implements Connection<T> {
   protected errorCode_: ErrorCode;
   protected statusCode_: number | undefined;
   protected body_: ArrayBuffer | undefined;

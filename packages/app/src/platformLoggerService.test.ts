@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
+import { expect } from 'vitest';
 import '../test/setup';
 import { PlatformLoggerServiceImpl } from './platformLoggerService';
 import {

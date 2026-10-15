@@ -45,9 +45,7 @@ interface PendingPromise {
  * Popup event manager. Handles the popup's entire lifecycle; listens to auth
  * events
  */
-export abstract class AbstractPopupRedirectOperation
-  implements AuthEventConsumer
-{
+export abstract class AbstractPopupRedirectOperation implements AuthEventConsumer {
   private pendingPromise: PendingPromise | null = null;
   private eventManager: EventManager | null = null;
   readonly filter: AuthEventType[];

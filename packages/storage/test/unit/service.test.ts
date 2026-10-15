@@ -14,8 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { expect, use } from 'chai';
-import * as sinon from 'sinon';
+
 import { TaskEvent } from '../../src/implementation/taskenums';
 import { Headers } from '../../src/implementation/connection';
 import {
@@ -35,21 +34,19 @@ import {
 import { Location } from '../../src/implementation/location';
 import { newTestConnection, TestingConnection } from './connection';
 import { injectTestConnection } from '../../src/platform/connection';
-import sinonChai from 'sinon-chai';
 
 const fakeAppGs = testShared.makeFakeApp('gs://mybucket');
 const fakeAppGsEndingSlash = testShared.makeFakeApp('gs://mybucket/');
 const fakeAppInvalidGs = testShared.makeFakeApp('gs://mybucket/hello');
 const testLocation = new Location('bucket', 'object');
-use(sinonChai);
 
 function makeGsUrl(child: string = ''): string {
   return 'gs://' + testShared.bucket + '/' + child;
 }
 
 describe('Firebase Storage > Service', () => {
-  before(() => injectTestConnection(newTestConnection));
-  after(() => injectTestConnection(null));
+  beforeAll(() => injectTestConnection(newTestConnection));
+  afterAll(() => injectTestConnection(null));
 
   describe('simple constructor', () => {
     const service = new FirebaseStorageImpl(
@@ -59,11 +56,11 @@ describe('Firebase Storage > Service', () => {
     );
     it('Root refs point to the right place', () => {
       const reference = ref(service);
-      expect(reference.toString()).to.equal(makeGsUrl());
+      expect(reference.toString()).toBe(makeGsUrl());
     });
     it('Child refs point to the right place', () => {
       const reference = ref(service, 'path/to/child');
-      expect(reference.toString()).to.equal(makeGsUrl('path/to/child'));
+      expect(reference.toString()).toBe(makeGsUrl('path/to/child'));
     });
   });
   describe('custom bucket constructor', () => {
@@ -75,7 +72,7 @@ describe('Firebase Storage > Service', () => {
         'gs://foo-bar.appspot.com'
       );
       const reference = ref(service);
-      expect(reference.toString()).to.equal('gs://foo-bar.appspot.com/');
+      expect(reference.toString()).toBe('gs://foo-bar.appspot.com/');
     });
     it('http:// custom bucket constructor refs point to the right place', () => {
       const service = new FirebaseStorageImpl(
@@ -85,7 +82,7 @@ describe('Firebase Storage > Service', () => {
         `http://${DEFAULT_HOST}/v1/b/foo-bar.appspot.com/o`
       );
       const reference = ref(service);
-      expect(reference.toString()).to.equal('gs://foo-bar.appspot.com/');
+      expect(reference.toString()).toBe('gs://foo-bar.appspot.com/');
     });
     it('https:// custom bucket constructor refs point to the right place', () => {
       const service = new FirebaseStorageImpl(
@@ -95,7 +92,7 @@ describe('Firebase Storage > Service', () => {
         `https://${DEFAULT_HOST}/v1/b/foo-bar.appspot.com/o`
       );
       const reference = ref(service);
-      expect(reference.toString()).to.equal('gs://foo-bar.appspot.com/');
+      expect(reference.toString()).toBe('gs://foo-bar.appspot.com/');
     });
 
     it('Bare bucket name constructor refs point to the right place', () => {
@@ -106,7 +103,7 @@ describe('Firebase Storage > Service', () => {
         'foo-bar.appspot.com'
       );
       const reference = ref(service);
-      expect(reference.toString()).to.equal('gs://foo-bar.appspot.com/');
+      expect(reference.toString()).toBe('gs://foo-bar.appspot.com/');
     });
     it('Child refs point to the right place', () => {
       const service = new FirebaseStorageImpl(
@@ -116,7 +113,7 @@ describe('Firebase Storage > Service', () => {
         'foo-bar.appspot.com'
       );
       const reference = ref(service, 'path/to/child');
-      expect(reference.toString()).to.equal(
+      expect(reference.toString()).toBe(
         'gs://foo-bar.appspot.com/path/to/child'
       );
     });
@@ -129,7 +126,7 @@ describe('Firebase Storage > Service', () => {
           'gs://bucket/object/'
         );
       }, 'storage/invalid-default-bucket');
-      expect(error.message).to.match(/Invalid default bucket/);
+      expect(error.message).toMatch(/Invalid default bucket/);
     });
   });
   describe('default bucket config', () => {
@@ -139,7 +136,7 @@ describe('Firebase Storage > Service', () => {
         testShared.fakeAuthProvider,
         testShared.fakeAppCheckTokenProvider
       );
-      expect(ref(service)?.toString()).to.equal('gs://mybucket/');
+      expect(ref(service)?.toString()).toBe('gs://mybucket/');
     });
     it('gs:// works with ending slash', () => {
       const service = new FirebaseStorageImpl(
@@ -147,7 +144,7 @@ describe('Firebase Storage > Service', () => {
         testShared.fakeAuthProvider,
         testShared.fakeAppCheckTokenProvider
       );
-      expect(ref(service)?.toString()).to.equal('gs://mybucket/');
+      expect(ref(service)?.toString()).toBe('gs://mybucket/');
     });
     it('Throws when config bucket is gs:// with an object path', () => {
       testShared.assertThrows(() => {
@@ -167,9 +164,7 @@ describe('Firebase Storage > Service', () => {
     );
     it('Works with gs:// URLs', () => {
       const reference = ref(service, 'gs://mybucket/child/path/image.png');
-      expect(reference.toString()).to.equal(
-        'gs://mybucket/child/path/image.png'
-      );
+      expect(reference.toString()).toBe('gs://mybucket/child/path/image.png');
     });
     it('Works with http:// URLs', () => {
       const reference = ref(
@@ -177,9 +172,7 @@ describe('Firebase Storage > Service', () => {
         `http://${DEFAULT_HOST}/v0/b/` +
           'mybucket/o/child%2Fpath%2Fimage.png?downloadToken=hello'
       );
-      expect(reference.toString()).to.equal(
-        'gs://mybucket/child/path/image.png'
-      );
+      expect(reference.toString()).toBe('gs://mybucket/child/path/image.png');
     });
     it('Works with https:// URLs', () => {
       const reference = ref(
@@ -187,16 +180,14 @@ describe('Firebase Storage > Service', () => {
         `https://${DEFAULT_HOST}/v0/b/` +
           'mybucket/o/child%2Fpath%2Fimage.png?downloadToken=hello'
       );
-      expect(reference.toString()).to.equal(
-        'gs://mybucket/child/path/image.png'
-      );
+      expect(reference.toString()).toBe('gs://mybucket/child/path/image.png');
     });
     it('Works with storage.googleapis.com URLs', () => {
       const reference = ref(
         service,
         `https://storage.googleapis.com/mybucket/path%20with%20space/image.png`
       );
-      expect(reference.toString()).to.equal(
+      expect(reference.toString()).toBe(
         'gs://mybucket/path with space/image.png'
       );
     });
@@ -206,7 +197,7 @@ describe('Firebase Storage > Service', () => {
         `https://storage.googleapis.com/mybucket/path%20with%20space/image.png?X-Goog-Algorithm=
 GOOG4-RSA-SHA256`
       );
-      expect(reference.toString()).to.equal(
+      expect(reference.toString()).toBe(
         'gs://mybucket/path with space/image.png'
       );
     });
@@ -215,7 +206,7 @@ GOOG4-RSA-SHA256`
         service,
         `https://storage.cloud.google.com/mybucket/path%20with%20space/image.png`
       );
-      expect(reference.toString()).to.equal(
+      expect(reference.toString()).toBe(
         'gs://mybucket/path with space/image.png'
       );
     });
@@ -224,124 +215,125 @@ GOOG4-RSA-SHA256`
         service,
         `https://storage.cloud.google.com/mybucket/path%20with%20space%2Fimage.png`
       );
-      expect(reference.toString()).to.equal(
+      expect(reference.toString()).toBe(
         'gs://mybucket/path with space/image.png'
       );
     });
   });
   describe('connectStorageEmulator(service, host, port, options)', () => {
-    let sandbox: sinon.SinonSandbox;
-    beforeEach(() => {
-      sandbox = sinon.createSandbox();
-    });
-    afterEach(() => {
-      sandbox.restore();
-    });
-    it('sets emulator host correctly', done => {
-      function newSend(connection: TestingConnection, url: string): void {
-        // Expect emulator host to be in url of storage operations requests,
-        // in this case getDownloadURL.
-        expect(url).to.match(/^http:\/\/test\.host\.org:1234.+/);
-        connection.abort();
-        injectTestConnection(null);
-        done();
-      }
+    it('sets emulator host correctly', () =>
+      new Promise<void>(resolve => {
+        function newSend(connection: TestingConnection, url: string): void {
+          // Expect emulator host to be in url of storage operations requests,
+          // in this case getDownloadURL.
+          expect(url).toMatch(/^http:\/\/localhost:1234.+/);
+          connection.abort();
+          injectTestConnection(null);
+          resolve();
+        }
 
-      injectTestConnection(() => newTestConnection(newSend));
-      const service = new FirebaseStorageImpl(
-        testShared.fakeApp,
-        testShared.fakeAuthProvider,
-        testShared.fakeAppCheckTokenProvider
-      );
-      connectStorageEmulator(service, 'test.host.org', 1234);
-      expect(service.host).to.equal('test.host.org:1234');
-      expect(service._protocol).to.equal('http');
-      void getDownloadURL(ref(service, 'test.png'));
-    });
-    it('sets emulator host correctly with ssl', done => {
-      function newSend(connection: TestingConnection, url: string): void {
-        // Expect emulator host to be in url of storage operations requests,
-        // in this case getDownloadURL.
-        expect(url).to.match(/^https:\/\/test\.cloudworkstations\.dev:1234.+/);
-        connection.abort();
-        injectTestConnection(null);
-        done();
-      }
+        injectTestConnection(() => newTestConnection(newSend));
+        const service = new FirebaseStorageImpl(
+          testShared.fakeApp,
+          testShared.fakeAuthProvider,
+          testShared.fakeAppCheckTokenProvider
+        );
+        connectStorageEmulator(service, 'localhost', 1234);
+        expect(service.host).toBe('localhost:1234');
+        expect(service._protocol).toBe('http');
+        void getDownloadURL(ref(service, 'test.png')).catch(() => {});
+      }));
+    it('sets emulator host correctly with ssl', () =>
+      new Promise<void>(resolve => {
+        function newSend(connection: TestingConnection, url: string): void {
+          // Expect emulator host to be in url of storage operations requests,
+          // in this case getDownloadURL.
+          expect(url).toMatch(/^https:\/\/test\.cloudworkstations\.dev:1234.+/);
+          connection.abort();
+          injectTestConnection(null);
+          resolve();
+        }
 
-      injectTestConnection(() => newTestConnection(newSend));
-      const service = new FirebaseStorageImpl(
-        testShared.fakeApp,
-        testShared.fakeAuthProvider,
-        testShared.fakeAppCheckTokenProvider
-      );
-      const workstationHost = 'test.cloudworkstations.dev';
-      connectStorageEmulator(service, workstationHost, 1234);
-      expect(service.host).to.equal(`${workstationHost}:1234`);
-      expect(service._protocol).to.equal('https');
-      void getDownloadURL(ref(service, 'test.png'));
-    });
-    it('sets mock user token string if specified', done => {
-      const mockUserToken = 'my-mock-user-token';
-      function newSend(
-        connection: TestingConnection,
-        url: string,
-        method: string,
-        body?: ArrayBufferView | Blob | string | null,
-        headers?: Headers
-      ): void {
-        // Expect emulator host to be in url of storage operations requests,
-        // in this case getDownloadURL.
-        expect(url).to.match(/^http:\/\/test\.host\.org:1234.+/);
-        expect(headers?.['Authorization']).to.eql(`Firebase ${mockUserToken}`);
-        connection.abort();
-        injectTestConnection(null);
-        done();
-      }
-      injectTestConnection(() => newTestConnection(newSend));
-      const service = new FirebaseStorageImpl(
-        testShared.fakeApp,
-        testShared.fakeAuthProvider,
-        testShared.fakeAppCheckTokenProvider
-      );
-      connectStorageEmulator(service, 'test.host.org', 1234, { mockUserToken });
-      expect(service.host).to.equal('test.host.org:1234');
-      expect(service._protocol).to.equal('http');
-      expect(service._overrideAuthToken).to.equal(mockUserToken);
-      void getDownloadURL(ref(service, 'test.png'));
-    });
-    it('creates mock user token from object if specified', done => {
-      let token: string | undefined = undefined;
-      function newSend(
-        connection: TestingConnection,
-        url: string,
-        method: string,
-        body?: ArrayBufferView | Blob | string | null,
-        headers?: Headers
-      ): void {
-        // Expect emulator host to be in url of storage operations requests,
-        // in this case getDownloadURL.
-        expect(url).to.match(/^http:\/\/test\.host\.org:1234.+/);
-        expect(headers?.['Authorization']).to.eql(`Firebase ${token}`);
-        connection.abort();
-        injectTestConnection(null);
-        done();
-      }
-      injectTestConnection(() => newTestConnection(newSend));
-      const service = new FirebaseStorageImpl(
-        testShared.fakeApp,
-        testShared.fakeAuthProvider,
-        testShared.fakeAppCheckTokenProvider
-      );
-      connectStorageEmulator(service, 'test.host.org', 1234, {
-        mockUserToken: { sub: 'alice' }
-      });
-      expect(service.host).to.equal('test.host.org:1234');
-      expect(service._protocol).to.equal('http');
-      token = service._overrideAuthToken;
-      // Token should be an unsigned JWT with header { "alg": "none", "type": "JWT" } (base64url):
-      expect(token).to.match(/^eyJhbGciOiJub25lIiwidHlwZSI6IkpXVCJ9\./);
-      void getDownloadURL(ref(service, 'test.png'));
-    });
+        injectTestConnection(() => newTestConnection(newSend));
+        const service = new FirebaseStorageImpl(
+          testShared.fakeApp,
+          testShared.fakeAuthProvider,
+          testShared.fakeAppCheckTokenProvider
+        );
+        const workstationHost = 'test.cloudworkstations.dev';
+        connectStorageEmulator(service, workstationHost, 1234);
+        expect(service.host).toBe(`${workstationHost}:1234`);
+        expect(service._protocol).toBe('https');
+        void getDownloadURL(ref(service, 'test.png')).catch(() => {});
+      }));
+    it('sets mock user token string if specified', () =>
+      new Promise<void>(resolve => {
+        const mockUserToken = 'my-mock-user-token';
+        function newSend(
+          connection: TestingConnection,
+          url: string,
+          method: string,
+          body?: ArrayBufferView | Blob | string | null,
+          headers?: Headers
+        ): void {
+          // Expect emulator host to be in url of storage operations requests,
+          // in this case getDownloadURL.
+          expect(url).toMatch(/^http:\/\/localhost:1234.+/);
+          expect(headers?.['Authorization']).toEqual(
+            `Firebase ${mockUserToken}`
+          );
+          connection.abort();
+          injectTestConnection(null);
+          resolve();
+        }
+        injectTestConnection(() => newTestConnection(newSend));
+        const service = new FirebaseStorageImpl(
+          testShared.fakeApp,
+          testShared.fakeAuthProvider,
+          testShared.fakeAppCheckTokenProvider
+        );
+        connectStorageEmulator(service, 'localhost', 1234, {
+          mockUserToken
+        });
+        expect(service.host).toBe('localhost:1234');
+        expect(service._protocol).toBe('http');
+        expect(service._overrideAuthToken).toBe(mockUserToken);
+        void getDownloadURL(ref(service, 'test.png')).catch(() => {});
+      }));
+    it('creates mock user token from object if specified', () =>
+      new Promise<void>(resolve => {
+        let token: string | undefined = undefined;
+        function newSend(
+          connection: TestingConnection,
+          url: string,
+          method: string,
+          body?: ArrayBufferView | Blob | string | null,
+          headers?: Headers
+        ): void {
+          // Expect emulator host to be in url of storage operations requests,
+          // in this case getDownloadURL.
+          expect(url).toMatch(/^http:\/\/localhost:1234.+/);
+          expect(headers?.['Authorization']).toEqual(`Firebase ${token}`);
+          connection.abort();
+          injectTestConnection(null);
+          resolve();
+        }
+        injectTestConnection(() => newTestConnection(newSend));
+        const service = new FirebaseStorageImpl(
+          testShared.fakeApp,
+          testShared.fakeAuthProvider,
+          testShared.fakeAppCheckTokenProvider
+        );
+        connectStorageEmulator(service, 'localhost', 1234, {
+          mockUserToken: { sub: 'alice' }
+        });
+        expect(service.host).toBe('localhost:1234');
+        expect(service._protocol).toBe('http');
+        token = service._overrideAuthToken;
+        // Token should be an unsigned JWT with header { "alg": "none", "type": "JWT" } (base64url):
+        expect(token).toMatch(/^eyJhbGciOiJub25lIiwidHlwZSI6IkpXVCJ9\./);
+        void getDownloadURL(ref(service, 'test.png')).catch(() => {});
+      }));
   });
   describe('ref(service, path)', () => {
     const service = new FirebaseStorageImpl(
@@ -351,11 +343,11 @@ GOOG4-RSA-SHA256`
     );
     it('Works with non URL paths', () => {
       const newRef = ref(service, 'child/path/image.png');
-      expect(newRef.toString()).to.equal('gs://mybucket/child/path/image.png');
+      expect(newRef.toString()).toBe('gs://mybucket/child/path/image.png');
     });
     it('Works with no path', () => {
       const newRef = ref(service);
-      expect(newRef.toString()).to.equal('gs://mybucket/');
+      expect(newRef.toString()).toBe('gs://mybucket/');
     });
   });
   describe('ref(reference, path)', () => {
@@ -369,29 +361,27 @@ GOOG4-RSA-SHA256`
       const error = testShared.assertThrows(() => {
         ref(reference, 'gs://bucket/object');
       }, 'storage/invalid-argument');
-      expect(error.message).to.match(/url/);
+      expect(error.message).toMatch(/url/);
     });
     it('Throws calling ref(reference, path) with an http:// URL', () => {
       const error = testShared.assertThrows(() => {
         ref(reference, `http://${DEFAULT_HOST}/etc`);
       }, 'storage/invalid-argument');
-      expect(error.message).to.match(/url/);
+      expect(error.message).toMatch(/url/);
     });
     it('Throws calling ref(reference, path) with an https:// URL', () => {
       const error = testShared.assertThrows(() => {
         ref(reference, `https://${DEFAULT_HOST}/etc`);
       }, 'storage/invalid-argument');
-      expect(error.message).to.match(/url/);
+      expect(error.message).toMatch(/url/);
     });
     it('Works with non URL paths', () => {
       const newRef = ref(reference, 'child/path/image.png');
-      expect(newRef.toString()).to.equal(
-        'gs://bucket/object/child/path/image.png'
-      );
+      expect(newRef.toString()).toBe('gs://bucket/object/child/path/image.png');
     });
     it('Works with no path', () => {
       const newRef = ref(reference);
-      expect(newRef.toString()).to.equal('gs://bucket/object');
+      expect(newRef.toString()).toBe('gs://bucket/object');
     });
   });
 
@@ -406,13 +396,13 @@ GOOG4-RSA-SHA256`
       const metadataPromise = getMetadata(reference);
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       service._delete();
-      await expect(metadataPromise).to.be.rejectedWith('storage/app-deleted');
+      await expect(metadataPromise).rejects.toThrow('storage/app-deleted');
     });
     it('Requests fail when started after the service is deleted', async () => {
       const reference = ref(service, 'gs://mybucket/image.jpg');
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       service._delete();
-      await expect(getMetadata(reference)).to.be.rejectedWith(
+      await expect(getMetadata(reference)).rejects.toThrow(
         'storage/app-deleted'
       );
     });
@@ -423,7 +413,7 @@ GOOG4-RSA-SHA256`
           TaskEvent.STATE_CHANGED,
           undefined,
           (err: StorageError | Error) => {
-            expect((err as StorageError).code).to.equal('storage/app-deleted');
+            expect((err as StorageError).code).toBe('storage/app-deleted');
             resolve();
           },
           () => {

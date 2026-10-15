@@ -24,6 +24,7 @@ import sinonChai from 'sinon-chai';
 import { DataConnectOptions } from '../../src/api/DataConnect';
 import { Code, DataConnectError } from '../../src/core/error';
 import { AuthTokenProvider } from '../../src/core/FirebaseAuthProvider';
+import { SDK_VERSION } from '../../src/core/version';
 import * as logger from '../../src/logger';
 import {
   CallerSdkType,
@@ -264,7 +265,8 @@ describe('AbstractDataConnectStreamTransport', () => {
       await promise;
 
       expect(sendMessageSpy).to.have.been.calledOnce;
-      expect(sendMessageSpy).to.have.been.calledAfter(getWithAuthStub);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect(sendMessageSpy).to.have.been.calledAfter(getWithAuthStub as any);
     });
   });
 
@@ -318,7 +320,7 @@ describe('AbstractDataConnectStreamTransport', () => {
             transport.prepareMessage(unpreparedMessage);
           expect(firstPreparedMessage.headers).to.exist;
           expect(
-            firstPreparedMessage.headers?.['X-Firebase-App-Check']
+            firstPreparedMessage.headers?.['X-Firebase-AppCheck']
           ).to.equal(initialAppCheckToken);
         });
 
@@ -326,7 +328,7 @@ describe('AbstractDataConnectStreamTransport', () => {
           transport.prepareMessage(unpreparedMessage);
           const secondPreparedMessage =
             transport.prepareMessage(unpreparedMessage);
-          expect(secondPreparedMessage.headers?.['X-Firebase-App-Check']).to.be
+          expect(secondPreparedMessage.headers?.['X-Firebase-AppCheck']).to.be
             .undefined;
         });
 
@@ -334,12 +336,12 @@ describe('AbstractDataConnectStreamTransport', () => {
           transport.prepareMessage(unpreparedMessage);
           const secondPreparedMessage =
             transport.prepareMessage(unpreparedMessage);
-          expect(secondPreparedMessage.headers?.['X-Firebase-App-Check']).to.be
+          expect(secondPreparedMessage.headers?.['X-Firebase-AppCheck']).to.be
             .undefined;
           transport.setAppCheckToken(newAppCheckToken);
           const thirdPreparedMessage =
             transport.prepareMessage(unpreparedMessage);
-          expect(thirdPreparedMessage.headers?.['X-Firebase-App-Check']).to.be
+          expect(thirdPreparedMessage.headers?.['X-Firebase-AppCheck']).to.be
             .undefined;
         });
       });
@@ -391,6 +393,19 @@ describe('AbstractDataConnectStreamTransport', () => {
           expectedThirdGoogApiClientValue
         );
       });
+
+      it('should add X-Client-Version to only the first message', () => {
+        const firstPreparedMessage =
+          transport.prepareMessage(unpreparedMessage);
+        expect(firstPreparedMessage.headers?.['X-Client-Version']).to.equal(
+          `web/${SDK_VERSION}`
+        );
+
+        const secondPreparedMessage =
+          transport.prepareMessage(unpreparedMessage);
+        expect(secondPreparedMessage.headers?.['X-Client-Version']).to.be
+          .undefined;
+      });
     });
 
     describe('should handle name properly', () => {
@@ -415,8 +430,9 @@ describe('AbstractDataConnectStreamTransport', () => {
       // Second message should not have any of these initial fields
       const secondMessage = transport.prepareMessage(unpreparedMessage);
       expect(secondMessage.name).to.be.undefined;
-      expect(secondMessage.headers?.['X-Firebase-App-Check']).to.be.undefined;
+      expect(secondMessage.headers?.['X-Firebase-AppCheck']).to.be.undefined;
       expect(secondMessage.headers?.['X-Firebase-Auth-Token']).to.be.undefined;
+      expect(secondMessage.headers?.['X-Client-Version']).to.be.undefined;
 
       // Trigger the physical connection reset
       transport.triggerOnConnectionReady();
@@ -424,11 +440,14 @@ describe('AbstractDataConnectStreamTransport', () => {
       // The next message should be treated as a "first" message again
       const thirdMessage = transport.prepareMessage(unpreparedMessage);
       expect(thirdMessage.name).to.equal(expectedName);
-      expect(thirdMessage.headers?.['X-Firebase-App-Check']).to.equal(
+      expect(thirdMessage.headers?.['X-Firebase-AppCheck']).to.equal(
         initialAppCheckToken
       );
       expect(thirdMessage.headers?.['X-Firebase-Auth-Token']).to.equal(
         initialAuthToken
+      );
+      expect(thirdMessage.headers?.['X-Client-Version']).to.equal(
+        `web/${SDK_VERSION}`
       );
     });
   });

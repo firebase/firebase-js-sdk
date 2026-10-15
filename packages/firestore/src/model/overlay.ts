@@ -25,7 +25,10 @@ import { Mutation } from './mutation';
  * the mutation was created.
  */
 export class Overlay {
-  constructor(readonly largestBatchId: number, readonly mutation: Mutation) {}
+  constructor(
+    readonly largestBatchId: number,
+    readonly mutation: Mutation
+  ) {}
 
   getKey(): DocumentKey {
     return this.mutation.key;

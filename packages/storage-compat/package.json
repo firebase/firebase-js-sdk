@@ -1,6 +1,6 @@
 {
   "name": "@firebase/storage-compat",
-  "version": "0.4.4",
+  "version": "0.4.6",
   "description": "The Firebase Firestore compatibility package",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "./dist/index.cjs.js",
@@ -22,13 +22,14 @@
     "build": "rollup -c rollup.config.js",
     "build:deps": "lerna run build --scope @firebase/storage-compat --include-dependencies",
     "dev": "rollup -c -w",
-    "test": "run-p --npm-path npm test:browser test:node lint",
-    "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:browser test:node",
-    "test:browser:unit": "karma start --unit",
-    "test:browser:integration": "karma start --integration",
-    "test:browser": "karma start",
-    "test:node": "TS_NODE_FILES=true TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --file src/index.ts --config ../../config/mocharc.node.js",
-    "test:debug": "karma start --browser=Chrome",
+    "test": "run-p --npm-path npm lint test:all",
+    "test:all": "vitest run",
+    "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all",
+    "test:browser": "vitest run --project=browser",
+    "test:browser:unit": "vitest run --project=browser test/unit",
+    "test:browser:integration": "vitest run --project=browser test/integration",
+    "test:browser:debug": "vitest --project=browser --browser.headless=false",
+    "test:node": "vitest run --project=node",
     "trusted-type-check": "tsec -p tsconfig.json --noEmit",
     "prettier": "prettier --cache --write 'src/**/*.ts' 'test/**/*.ts'",
     "add-compat-overloads": "ts-node-script ../../scripts/build/create-overloads.ts -i ../storage/dist/storage-public.d.ts -o dist/src/index.d.ts -a -r FirebaseStorage:types.FirebaseStorage -r StorageReference:types.Reference -r FirebaseApp:FirebaseAppCompat --moduleToEnhance @firebase/storage"
@@ -38,15 +39,15 @@
     "@firebase/app-compat": "0.x"
   },
   "dependencies": {
-    "@firebase/storage": "0.14.4",
-    "@firebase/storage-types": "0.8.4",
-    "@firebase/util": "1.15.2",
-    "@firebase/component": "0.7.4",
+    "@firebase/storage": "0.14.6",
+    "@firebase/storage-types": "0.8.5",
+    "@firebase/util": "1.15.3",
+    "@firebase/component": "0.7.5",
     "tslib": "^2.1.0"
   },
   "devDependencies": {
-    "@firebase/app-compat": "0.5.16",
-    "@firebase/auth-compat": "0.6.9",
+    "@firebase/app-compat": "0.5.19",
+    "@firebase/auth-compat": "0.6.12",
     "rollup": "4.62.2",
     "@rollup/plugin-json": "6.1.0",
     "rollup-plugin-typescript2": "0.37.0",
@@ -64,6 +65,6 @@
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=24.12.0"
   }
 }

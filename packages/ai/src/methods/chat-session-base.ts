@@ -34,12 +34,14 @@ import {
 } from '../types';
 import { formatNewContent } from '../requests/request-helpers';
 import {
+  assignPartType,
   formatBlockErrorMessage,
   getFunctionCalls
 } from '../requests/response-helpers';
 import { ApiSettings } from '../types/internal';
 import { logger } from '../logger';
 import { AIError } from '../errors';
+import { deepCopy } from '@firebase/util';
 
 /**
  * Used to break the internal promise chain when an error is already handled
@@ -63,8 +65,7 @@ export abstract class ChatSessionBase<
   ParamsType extends StartChatParams | StartTemplateChatParams,
   RequestType,
   FunctionDeclarationsToolType extends
-    | FunctionDeclarationsTool
-    | TemplateFunctionDeclarationsTool
+    FunctionDeclarationsTool | TemplateFunctionDeclarationsTool
 > {
   protected _apiSettings: ApiSettings;
   protected _history: Content[] = [];
@@ -91,7 +92,10 @@ export abstract class ChatSessionBase<
    */
   async getHistory(): Promise<Content[]> {
     await this._sendPromise;
-    return this._history;
+    return deepCopy(this._history).map(content => ({
+      ...content,
+      parts: content.parts ? content.parts.map(assignPartType) : []
+    }));
   }
 
   /**
@@ -156,9 +160,8 @@ export abstract class ChatSessionBase<
 
         if (functionCalls) {
           functionCallTurnCount++;
-          const functionResponseParts = await this._callFunctionsAsNeeded(
-            functionCalls
-          );
+          const functionResponseParts =
+            await this._callFunctionsAsNeeded(functionCalls);
           formattedContent = formatNewContent(functionResponseParts);
         } else {
           formattedContent = formatNewContent(request);
@@ -188,7 +191,7 @@ export abstract class ChatSessionBase<
               // Response seems to come back without a role set.
               role: result.response.candidates?.[0].content.role || 'model'
             };
-            tempHistory.push(responseContent);
+            tempHistory.push(deepCopy(responseContent));
           } else {
             const blockErrorMessage = formatBlockErrorMessage(result.response);
             if (blockErrorMessage) {
@@ -251,9 +254,8 @@ export abstract class ChatSessionBase<
 
           if (functionCalls) {
             functionCallTurnCount++;
-            const functionResponseParts = await this._callFunctionsAsNeeded(
-              functionCalls
-            );
+            const functionResponseParts =
+              await this._callFunctionsAsNeeded(functionCalls);
             formattedContent = formatNewContent(functionResponseParts);
           } else {
             formattedContent = formatNewContent(request);
@@ -322,7 +324,7 @@ export abstract class ChatSessionBase<
           if (!responseContent.role) {
             responseContent.role = 'model';
           }
-          this._history.push(responseContent);
+          this._history.push(deepCopy(responseContent));
         } else {
           const blockErrorMessage = formatBlockErrorMessage(response);
           if (blockErrorMessage) {
@@ -425,7 +427,7 @@ export abstract class ChatSessionBase<
       }
       // Wait for promises to finish.
       await Promise.all(promiseList);
-      const functionResponseParts = [];
+      const functionResponseParts: FunctionResponsePart[] = [];
       for (const { name, id, results } of activeCallList) {
         const functionResponse: FunctionResponse = {
           name,
@@ -435,6 +437,7 @@ export abstract class ChatSessionBase<
           functionResponse.id = id;
         }
         functionResponseParts.push({
+          type: 'functionResponse',
           functionResponse
         });
       }

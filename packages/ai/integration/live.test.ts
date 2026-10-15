@@ -69,12 +69,12 @@ async function nextTurnData(
         const parts = chunk.modelTurn?.parts;
         if (parts) {
           parts.forEach(part => {
-            if (part.text) {
+            if (part.type === 'text') {
               if (part.thought) {
                 hasThinking = true;
               }
               text += part.text;
-            } else if (part.inlineData) {
+            } else if (part.type === 'inlineData') {
               if (part.inlineData.mimeType.startsWith('audio')) {
                 hasAudioData = true;
               }
@@ -226,89 +226,6 @@ describe('Live', function () {
         });
       });
 
-      describe('sendMediaChunks()', () => {
-        it('should send a single audio chunk and receive a response', async () => {
-          const model = getLiveGenerativeModel(testConfig.ai, {
-            model: testConfig.model,
-            generationConfig: textLiveGenerationConfig
-          });
-          const session = await model.connect();
-          const responsePromise = nextTurnData(session.receive());
-
-          await session.sendMediaChunks([
-            {
-              data: HELLO_AUDIO_PCM_BASE64, // "Hey, can you hear me?"
-              mimeType: 'audio/pcm'
-            }
-          ]);
-
-          const responseData = await responsePromise;
-          expect(responseData.hasAudioData).to.be.true;
-
-          await session.close();
-        });
-
-        it('should send multiple audio chunks in a single batch call', async () => {
-          const model = getLiveGenerativeModel(testConfig.ai, {
-            model: testConfig.model,
-            generationConfig: textLiveGenerationConfig
-          });
-          const session = await model.connect();
-          const responsePromise = nextTurnData(session.receive());
-
-          // TODO (dlarocque): Pass two PCM files with different audio, and validate that the model
-          // heard both.
-          await session.sendMediaChunks([
-            { data: HELLO_AUDIO_PCM_BASE64, mimeType: 'audio/pcm' },
-            { data: HELLO_AUDIO_PCM_BASE64, mimeType: 'audio/pcm' }
-          ]);
-
-          const responseData = await responsePromise;
-          // Sometimes it responds with only thinking. Developer API may
-          // have trouble handling the double audio?
-          expect(responseData.hasAudioData || responseData.hasThinking).to.be
-            .true;
-
-          await session.close();
-        });
-      });
-
-      describe('sendMediaStream()', () => {
-        it('should consume a stream with multiple chunks and receive a response', async () => {
-          const model = getLiveGenerativeModel(testConfig.ai, {
-            model: testConfig.model,
-            generationConfig: textLiveGenerationConfig
-          });
-          const session = await model.connect();
-          const responsePromise = nextTurnData(session.receive());
-
-          // TODO (dlarocque): Pass two PCM files with different audio, and validate that the model
-          // heard both.
-          const testStream = new ReadableStream({
-            start(controller) {
-              controller.enqueue({
-                data: HELLO_AUDIO_PCM_BASE64,
-                mimeType: 'audio/pcm'
-              });
-              controller.enqueue({
-                data: HELLO_AUDIO_PCM_BASE64,
-                mimeType: 'audio/pcm'
-              });
-              controller.close();
-            }
-          });
-
-          await session.sendMediaStream(testStream);
-          const responseData = await responsePromise;
-          // Sometimes it responds with only thinking. Developer API may
-          // have trouble handling the double audio?
-          expect(responseData.hasAudioData || responseData.hasThinking).to.be
-            .true;
-
-          await session.close();
-        });
-      });
-
       describe('Transcripts', async () => {
         it('should receive transcript of audio input', async () => {
           const model = getLiveGenerativeModel(testConfig.ai, {
@@ -404,9 +321,9 @@ describe('Live', function () {
               switch (chunk.type) {
                 case 'serverContent':
                   if (chunk.turnComplete) {
-                    // Vertex AI only:
+                    // Agent Platform only:
                     // For some unknown reason, the model's first turn will not be a toolCall, but 
-                    // will instead be an executableCode part in Google AI, and a groundingMetadata in Vertex AI.
+                    // will instead be an executableCode part in Google AI, and a groundingMetadata in Agent Platform.
                     // Let's skip this unexpected first message, waiting until the second turn to resolve with the text. This will definitely break if/when
                     // that bug is fixed.
                     if (turnNum === 0) {

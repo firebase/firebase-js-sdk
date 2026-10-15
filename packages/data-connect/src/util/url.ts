@@ -48,7 +48,7 @@ export function websocketUrlBuilder(
   projectConfig: DataConnectOptions,
   transportOptions: TransportOptions
 ): string {
-  const { location } = projectConfig;
+  const { location, projectId, service } = projectConfig;
   const { host, sslEnabled, port } = transportOptions;
   const protocol = sslEnabled ? 'wss' : 'ws';
   const realHost = host || PROD_HOST;
@@ -62,7 +62,7 @@ export function websocketUrlBuilder(
       'Incorrect type for port passed in!'
     );
   }
-  return `${baseUrl}/${WEBSOCKET_PATH}/Connect/locations/${location}`;
+  return `${baseUrl}/${WEBSOCKET_PATH}.Connect/${projectId}/locations/${location}/services/${service}`;
 }
 
 export function addToken(url: string, apiKey?: string): string {

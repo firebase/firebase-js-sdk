@@ -15,7 +15,11 @@ The results of executing an aggregation query.
 <b>Signature:</b>
 
 ```typescript
-export declare class AggregateQuerySnapshot<AggregateSpecType extends AggregateSpec, AppModelType = DocumentData, DbModelType extends DocumentData = DocumentData> 
+export declare class AggregateQuerySnapshot<
+  AggregateSpecType extends AggregateSpec,
+  AppModelType = DocumentData,
+  DbModelType extends DocumentData = DocumentData
+> 
 ```
 
 ## Properties
@@ -48,7 +52,7 @@ A type string to uniquely identify instances of this class.
 <b>Signature:</b>
 
 ```typescript
-readonly type = "AggregateQuerySnapshot";
+readonly type = 'AggregateQuerySnapshot';
 ```
 
 ## AggregateQuerySnapshot.data()

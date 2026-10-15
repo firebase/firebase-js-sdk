@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { expect } from 'chai';
+
 import { FirebaseApp } from '@firebase/app-types';
 import { StringFormat } from '../../src/implementation/string';
 import { Headers } from '../../src/implementation/connection';
@@ -60,8 +60,7 @@ function makeStorage(url: string): Reference {
 }
 
 function withFakeSend(
-  testFn: (text: string, headers?: Headers) => void,
-  resolveFn: () => void
+  testFn: (text: string, headers?: Headers) => void
 ): Reference {
   function newSend(
     connection: TestingConnection,
@@ -73,14 +72,17 @@ function withFakeSend(
     let text: Promise<string>;
     if (body instanceof Uint8Array) {
       text = Promise.resolve(decodeUint8Array(body));
-    } else {
+    } else if (body && typeof (body as any).text === 'function') {
       text = (body as Blob).text();
+    } else if (typeof body === 'string') {
+      text = Promise.resolve(body);
+    } else {
+      text = Promise.resolve('');
     }
     text.then(text => {
       testFn(text, headers);
-      connection.abort();
+      connection.simulateResponse(200, '{}', {});
       injectTestConnection(null);
-      resolveFn();
     });
   }
   injectTestConnection(() => newTestConnection(newSend));
@@ -97,28 +99,28 @@ describe('Firebase Storage > Reference', () => {
   const child = makeStorage('gs://test-bucket/hello');
   describe('Path constructor', () => {
     it('root', () => {
-      expect(root.toString()).to.equal('gs://test-bucket/');
+      expect(root.toString()).toBe('gs://test-bucket/');
     });
     it('keeps characters after ? on a gs:// string', () => {
       const s = makeStorage('gs://test-bucket/this/ismyobject?hello');
-      expect(s.toString()).to.equal('gs://test-bucket/this/ismyobject?hello');
+      expect(s.toString()).toBe('gs://test-bucket/this/ismyobject?hello');
     });
     it("doesn't URL-decode on a gs:// string", () => {
       const s = makeStorage('gs://test-bucket/%3F');
-      expect(s.toString()).to.equal('gs://test-bucket/%3F');
+      expect(s.toString()).toBe('gs://test-bucket/%3F');
     });
     it('ignores URL params and fragments on an http URL', () => {
       const s = makeStorage(
         `http://${DEFAULT_HOST}/v0/b/test-bucket/o/my/object.txt` +
           '?ignoreme#please'
       );
-      expect(s.toString()).to.equal('gs://test-bucket/my/object.txt');
+      expect(s.toString()).toBe('gs://test-bucket/my/object.txt');
     });
     it('URL-decodes and ignores fragment on an http URL', () => {
       const s = makeStorage(
         `http://${DEFAULT_HOST}/v0/b/test-bucket/o/%3F?ignore`
       );
-      expect(s.toString()).to.equal('gs://test-bucket/?');
+      expect(s.toString()).toBe('gs://test-bucket/?');
     });
 
     it('ignores URL params and fragments on an https URL', () => {
@@ -126,97 +128,96 @@ describe('Firebase Storage > Reference', () => {
         `https://${DEFAULT_HOST}/v0/b/test-bucket/o/my/object.txt` +
           '?ignoreme#please'
       );
-      expect(s.toString()).to.equal('gs://test-bucket/my/object.txt');
+      expect(s.toString()).toBe('gs://test-bucket/my/object.txt');
     });
 
     it('URL-decodes and ignores fragment on an https URL', () => {
       const s = makeStorage(
         `https://${DEFAULT_HOST}/v0/b/test-bucket/o/%3F?ignore`
       );
-      expect(s.toString()).to.equal('gs://test-bucket/?');
+      expect(s.toString()).toBe('gs://test-bucket/?');
     });
   });
 
   describe('toString', () => {
     it("Doesn't add trailing slash", () => {
       const s = makeStorage('gs://test-bucket/foo');
-      expect(s.toString()).to.equal('gs://test-bucket/foo');
+      expect(s.toString()).toBe('gs://test-bucket/foo');
     });
     it('Strips trailing slash', () => {
       const s = makeStorage('gs://test-bucket/foo/');
-      expect(s.toString()).to.equal('gs://test-bucket/foo');
+      expect(s.toString()).toBe('gs://test-bucket/foo');
     });
   });
 
   describe('parentReference', () => {
     it('Returns null at root', () => {
-      expect(root.parent).to.be.null;
+      expect(root.parent).toBeNull();
     });
     it('Returns root one level down', () => {
-      expect(child.parent!.toString()).to.equal('gs://test-bucket/');
+      expect(child.parent!.toString()).toBe('gs://test-bucket/');
     });
     it('Works correctly with empty levels', () => {
       const s = makeStorage('gs://test-bucket/a///');
-      expect(s.parent!.toString()).to.equal('gs://test-bucket/a/');
+      expect(s.parent!.toString()).toBe('gs://test-bucket/a/');
     });
   });
 
   describe('root', () => {
     it('Returns self at root', () => {
-      expect(root.root.toString()).to.equal('gs://test-bucket/');
+      expect(root.root.toString()).toBe('gs://test-bucket/');
     });
 
     it('Returns root multiple levels down', () => {
       const s = makeStorage('gs://test-bucket/a/b/c/d');
-      expect(s.root.toString()).to.equal('gs://test-bucket/');
+      expect(s.root.toString()).toBe('gs://test-bucket/');
     });
   });
 
   describe('bucket', () => {
     it('Returns bucket name', () => {
-      expect(root.bucket).to.equal('test-bucket');
+      expect(root.bucket).toBe('test-bucket');
     });
   });
 
   describe('fullPath', () => {
     it('Returns full path without leading slash', () => {
       const s = makeStorage('gs://test-bucket/full/path');
-      expect(s.fullPath).to.equal('full/path');
+      expect(s.fullPath).toBe('full/path');
     });
   });
 
   describe('name', () => {
     it('Works at top level', () => {
       const s = makeStorage('gs://test-bucket/toplevel.txt');
-      expect(s.name).to.equal('toplevel.txt');
+      expect(s.name).toBe('toplevel.txt');
     });
 
     it('Works at not the top level', () => {
       const s = makeStorage('gs://test-bucket/not/toplevel.txt');
-      expect(s.name).to.equal('toplevel.txt');
+      expect(s.name).toBe('toplevel.txt');
     });
   });
 
   describe('get child with ref()', () => {
     it('works with a simple string', () => {
-      expect(ref(root, 'a').toString()).to.equal('gs://test-bucket/a');
+      expect(ref(root, 'a').toString()).toBe('gs://test-bucket/a');
     });
     it('drops a trailing slash', () => {
-      expect(ref(root, 'ab/').toString()).to.equal('gs://test-bucket/ab');
+      expect(ref(root, 'ab/').toString()).toBe('gs://test-bucket/ab');
     });
     it('compresses repeated slashes', () => {
-      expect(ref(root, '//a///b/////').toString()).to.equal(
-        'gs://test-bucket/a/b'
-      );
+      expect(ref(root, '//a///b/////').toString()).toBe('gs://test-bucket/a/b');
     });
     it('works chained multiple times with leading slashes', () => {
-      expect(
-        ref(ref(ref(ref(root, 'a'), '/b'), 'c'), 'd/e').toString()
-      ).to.equal('gs://test-bucket/a/b/c/d/e');
+      expect(ref(ref(ref(ref(root, 'a'), '/b'), 'c'), 'd/e').toString()).toBe(
+        'gs://test-bucket/a/b/c/d/e'
+      );
     });
   });
 
-  it("Doesn't send Authorization on null auth token", done => {
+  it("Doesn't send Authorization on null auth token", async () => {
+    let checked = false;
     function newSend(
       connection: TestingConnection,
       url: string,
@@ -224,10 +225,11 @@ describe('Firebase Storage > Reference', () => {
       body?: ArrayBufferView | Blob | string | null,
       headers?: Headers
     ): void {
-      expect(headers).to.not.be.undefined;
-      expect(headers!['Authorization']).to.be.undefined;
+      expect(headers).toBeDefined();
+      expect(headers!['Authorization']).toBeUndefined();
+      checked = true;
+      connection.simulateResponse(200, '{}', {});
       injectTestConnection(null);
-      done();
     }
 
     injectTestConnection(() => newTestConnection(newSend));
@@ -237,11 +239,13 @@ describe('Firebase Storage > Reference', () => {
       testShared.fakeAppCheckTokenProvider
     );
     const reference = ref(service, 'gs://test-bucket');
-    getMetadata(ref(reference, 'foo'));
+    await getMetadata(ref(reference, 'foo'));
+    expect(checked).toBe(true);
   });
 
-  it('Works if the user logs in before creating the storage reference', done => {
+  it('Works if the user logs in before creating the storage reference', async () => {
     // Regression test for b/27227221
+    let checked = false;
     function newSend(
       connection: TestingConnection,
       url: string,
@@ -249,12 +253,13 @@ describe('Firebase Storage > Reference', () => {
       body?: ArrayBufferView | Blob | string | null,
       headers?: Headers
     ): void {
-      expect(headers).to.not.be.undefined;
-      expect(headers!['Authorization']).to.equal(
+      expect(headers).toBeDefined();
+      expect(headers!['Authorization']).toBe(
         'Firebase ' + testShared.authToken
       );
+      checked = true;
+      connection.simulateResponse(200, '{}', {});
       injectTestConnection(null);
-      done();
     }
 
     injectTestConnection(() => newTestConnection(newSend));
@@ -264,50 +269,63 @@ describe('Firebase Storage > Reference', () => {
       testShared.fakeAppCheckTokenProvider
     );
     const reference = ref(service, 'gs://test-bucket');
-    getMetadata(ref(reference, 'foo'));
+    await getMetadata(ref(reference, 'foo'));
+    expect(checked).toBe(true);
   });
 
   describe('uploadString', () => {
-    it('Uses metadata.contentType for RAW format', done => {
+    it('Uses metadata.contentType for RAW format', async () => {
       // Regression test for b/30989476
-      const root = withFakeSend((text: string, headers?: Headers) => {
-        expect(text).to.include('"contentType":"lol/wut"');
-      }, done);
-      uploadString(ref(root, 'test'), 'hello', StringFormat.RAW, {
+      let checked = false;
+      const root = withFakeSend((text: string) => {
+        checked = true;
+        expect(text).toContain('"contentType":"lol/wut"');
+      });
+      await uploadString(ref(root, 'test'), 'hello', StringFormat.RAW, {
         contentType: 'lol/wut'
       } as Metadata);
+      expect(checked).toBe(true);
     });
-    it('Uses embedded content type in DATA_URL format', done => {
+    it('Uses embedded content type in DATA_URL format', async () => {
+      let checked = false;
       const root = withFakeSend((text: string) => {
-        expect(text).to.include('"contentType":"lol/wat"');
-      }, done);
-      uploadString(
+        checked = true;
+        expect(text).toContain('"contentType":"lol/wat"');
+      });
+      await uploadString(
         ref(root, 'test'),
         'data:lol/wat;base64,aaaa',
         StringFormat.DATA_URL
       );
+      expect(checked).toBe(true);
     });
-    it('Lets metadata.contentType override embedded content type in DATA_URL format', done => {
+    it('Lets metadata.contentType override embedded content type in DATA_URL format', async () => {
+      let checked = false;
       const root = withFakeSend((text: string) => {
-        expect(text).to.include('"contentType":"tomato/soup"');
-      }, done);
-      uploadString(
+        checked = true;
+        expect(text).toContain('"contentType":"tomato/soup"');
+      });
+      await uploadString(
         ref(root, 'test'),
         'data:ignore/me;base64,aaaa',
         StringFormat.DATA_URL,
         { contentType: 'tomato/soup' } as Metadata
       );
+      expect(checked).toBe(true);
     });
   });
 
   describe('uploadBytes', () => {
-    it('Uses metadata.contentType', done => {
+    it('Uses metadata.contentType', async () => {
+      let checked = false;
       const root = withFakeSend((text: string) => {
-        expect(text).to.include('"contentType":"lol/wut"');
-      }, done);
-      uploadBytes(ref(root, 'hello'), new Uint8Array(), {
+        checked = true;
+        expect(text).toContain('"contentType":"lol/wut"');
+      });
+      await uploadBytes(ref(root, 'hello'), new Uint8Array(), {
         contentType: 'lol/wut'
       } as Metadata);
+      expect(checked).toBe(true);
     });
     it('uploads without error', async () => {
       const storageService = storageServiceWithHandler(fakeServerHandler({}));
@@ -315,20 +333,20 @@ describe('Firebase Storage > Reference', () => {
       const childRef = ref(root, 'child');
       const blob = new Uint8Array([97]);
       const result = await uploadBytes(childRef, blob);
-      expect(result.ref).to.equal(childRef);
+      expect(result.ref).toBe(childRef);
     });
   });
 
   describe('Argument verification', () => {
     describe('list', () => {
       it('throws on invalid maxResults', async () => {
-        expect(() => list(child, { maxResults: 0 })).to.throw(
+        expect(() => list(child, { maxResults: 0 })).toThrow(
           'storage/invalid-argument'
         );
-        expect(() => list(child, { maxResults: -4 })).to.throw(
+        expect(() => list(child, { maxResults: -4 })).toThrow(
           'storage/invalid-argument'
         );
-        expect(() => list(child, { maxResults: 1001 })).to.throw(
+        expect(() => list(child, { maxResults: 1001 })).toThrow(
           'storage/invalid-argument'
         );
       });
@@ -337,37 +355,35 @@ describe('Firebase Storage > Reference', () => {
 
   describe('root operations', () => {
     it('uploadBytesResumable throws', () => {
-      expect(() => uploadBytesResumable(root, new Uint8Array())).to.throw(
+      expect(() => uploadBytesResumable(root, new Uint8Array())).toThrow(
         'storage/invalid-root-operation'
       );
     });
     it('uploadString throws', () => {
-      expect(() => uploadString(root, 'raw', StringFormat.RAW)).to.throw(
+      expect(() => uploadString(root, 'raw', StringFormat.RAW)).toThrow(
         'storage/invalid-root-operation'
       );
     });
     it('uploadBytes throws', () => {
-      expect(() => uploadBytes(root, new Uint8Array())).to.throw(
+      expect(() => uploadBytes(root, new Uint8Array())).toThrow(
         'storage/invalid-root-operation'
       );
     });
     it('deleteObject throws', async () => {
-      expect(() => deleteObject(root)).to.throw(
+      expect(() => deleteObject(root)).toThrow(
         'storage/invalid-root-operation'
       );
     });
     it('getMetadata throws', async () => {
-      expect(() => getMetadata(root)).to.throw(
-        'storage/invalid-root-operation'
-      );
+      expect(() => getMetadata(root)).toThrow('storage/invalid-root-operation');
     });
     it('updateMetadata throws', async () => {
-      expect(() => updateMetadata(root, {} as Metadata)).to.throw(
+      expect(() => updateMetadata(root, {} as Metadata)).toThrow(
         'storage/invalid-root-operation'
       );
     });
     it('getDownloadURL throws', async () => {
-      expect(() => getDownloadURL(root)).to.throw(
+      expect(() => getDownloadURL(root)).toThrow(
         'storage/invalid-root-operation'
       );
     });

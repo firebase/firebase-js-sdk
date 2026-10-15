@@ -8,61 +8,88 @@ import { EmulatorMockTokenOptions } from '@firebase/util';
 import { FirebaseApp } from '@firebase/app';
 
 // @public
-export function child(parent: DatabaseReference, path: string): DatabaseReference;
+export function child(
+  parent: DatabaseReference,
+  path: string
+): DatabaseReference;
 
 // @public
-export function connectDatabaseEmulator(db: Database, host: string, port: number, options?: {
+export function connectDatabaseEmulator(
+  db: Database,
+  host: string,
+  port: number,
+  options?: {
     mockUserToken?: EmulatorMockTokenOptions | string;
-}): void;
+  }
+): void;
 
 // @public
 export class Database {
-    readonly app: FirebaseApp;
-    readonly 'type' = "database";
+  readonly app: FirebaseApp;
+  readonly 'type' = 'database';
 }
 
 // @public
 export interface DatabaseReference extends Query {
-    readonly key: string | null;
-    readonly parent: DatabaseReference | null;
-    readonly root: DatabaseReference;
+  readonly key: string | null;
+  readonly parent: DatabaseReference | null;
+  readonly root: DatabaseReference;
 }
 
 // @public
 export class DataSnapshot {
-    child(path: string): DataSnapshot;
-    exists(): boolean;
-    exportVal(): any;
-    forEach(action: (child: IteratedDataSnapshot) => boolean | void): boolean;
-    hasChild(path: string): boolean;
-    hasChildren(): boolean;
-    get key(): string | null;
-    get priority(): string | number | null;
-    readonly ref: DatabaseReference;
-    get size(): number;
-    toJSON(): object | null;
-    val(): any;
+  child(path: string): DataSnapshot;
+  exists(): boolean;
+  exportVal(): any;
+  forEach(action: (child: IteratedDataSnapshot) => boolean | void): boolean;
+  hasChild(path: string): boolean;
+  hasChildren(): boolean;
+  get key(): string | null;
+  get priority(): string | number | null;
+  readonly ref: DatabaseReference;
+  get size(): number;
+  toJSON(): object | null;
+  val(): any;
 }
 
 export { EmulatorMockTokenOptions }
 
 // @public
-export function enableLogging(enabled: boolean, persistent?: boolean): any;
+export function enableLogging(
+  enabled: boolean,
+  persistent?: boolean
+): any;
 
 // @public
-export function enableLogging(logger: (message: string) => unknown): any;
+export function enableLogging(
+  logger: (message: string) => unknown
+): any;
 
 // @public
-export function endAt(value: number | string | boolean | null, key?: string): QueryConstraint;
+export function endAt(
+  value: number | string | boolean | null,
+  key?: string
+): QueryConstraint;
 
 // @public
-export function endBefore(value: number | string | boolean | null, key?: string): QueryConstraint;
+export function endBefore(
+  value: number | string | boolean | null,
+  key?: string
+): QueryConstraint;
 
 // @public
-export function equalTo(value: number | string | boolean | null, key?: string): QueryConstraint;
+export function equalTo(
+  value: number | string | boolean | null,
+  key?: string
+): QueryConstraint;
 
 // @public
-export type EventType = 'value' | 'child_added' | 'child_changed' | 'child_moved' | 'child_removed';
+export type EventType =
+  | 'value'
+  | 'child_added'
+  | 'child_changed'
+  | 'child_moved'
+  | 'child_removed';
 
 // @public
 export function forceLongPolling(): void;
@@ -87,8 +114,8 @@ export function increment(delta: number): object;
 
 // @public
 export interface IteratedDataSnapshot extends DataSnapshot {
-    // (undocumented)
-    key: string;
+  // (undocumented)
+  key: string;
 }
 
 // @public
@@ -99,68 +126,170 @@ export function limitToLast(limit: number): QueryConstraint;
 
 // @public
 export interface ListenOptions {
-    readonly onlyOnce?: boolean;
+  readonly onlyOnce?: boolean;
 }
 
 // @public
-export function off(query: Query, eventType?: EventType, callback?: (snapshot: DataSnapshot, previousChildName?: string | null) => unknown): void;
+export function off(
+  query: Query,
+  eventType?: EventType,
+  callback?: (
+    snapshot: DataSnapshot,
+    previousChildName?: string | null
+  ) => unknown
+): void;
 
 // @public
-export function onChildAdded(query: Query, callback: (snapshot: DataSnapshot, previousChildName?: string | null) => unknown, cancelCallback?: (error: Error) => unknown): Unsubscribe;
+export function onChildAdded(
+  query: Query,
+  callback: (
+    snapshot: DataSnapshot,
+    previousChildName?: string | null
+  ) => unknown,
+  cancelCallback?: (error: Error) => unknown
+): Unsubscribe;
 
 // @public
-export function onChildAdded(query: Query, callback: (snapshot: DataSnapshot, previousChildName: string | null) => unknown, options: ListenOptions): Unsubscribe;
+export function onChildAdded(
+  query: Query,
+  callback: (
+    snapshot: DataSnapshot,
+    previousChildName: string | null
+  ) => unknown,
+  options: ListenOptions
+): Unsubscribe;
 
 // @public
-export function onChildAdded(query: Query, callback: (snapshot: DataSnapshot, previousChildName: string | null) => unknown, cancelCallback: (error: Error) => unknown, options: ListenOptions): Unsubscribe;
+export function onChildAdded(
+  query: Query,
+  callback: (
+    snapshot: DataSnapshot,
+    previousChildName: string | null
+  ) => unknown,
+  cancelCallback: (error: Error) => unknown,
+  options: ListenOptions
+): Unsubscribe;
 
 // @public
-export function onChildChanged(query: Query, callback: (snapshot: DataSnapshot, previousChildName: string | null) => unknown, cancelCallback?: (error: Error) => unknown): Unsubscribe;
+export function onChildChanged(
+  query: Query,
+  callback: (
+    snapshot: DataSnapshot,
+    previousChildName: string | null
+  ) => unknown,
+  cancelCallback?: (error: Error) => unknown
+): Unsubscribe;
 
 // @public
-export function onChildChanged(query: Query, callback: (snapshot: DataSnapshot, previousChildName: string | null) => unknown, options: ListenOptions): Unsubscribe;
+export function onChildChanged(
+  query: Query,
+  callback: (
+    snapshot: DataSnapshot,
+    previousChildName: string | null
+  ) => unknown,
+  options: ListenOptions
+): Unsubscribe;
 
 // @public
-export function onChildChanged(query: Query, callback: (snapshot: DataSnapshot, previousChildName: string | null) => unknown, cancelCallback: (error: Error) => unknown, options: ListenOptions): Unsubscribe;
+export function onChildChanged(
+  query: Query,
+  callback: (
+    snapshot: DataSnapshot,
+    previousChildName: string | null
+  ) => unknown,
+  cancelCallback: (error: Error) => unknown,
+  options: ListenOptions
+): Unsubscribe;
 
 // @public
-export function onChildMoved(query: Query, callback: (snapshot: DataSnapshot, previousChildName: string | null) => unknown, cancelCallback?: (error: Error) => unknown): Unsubscribe;
+export function onChildMoved(
+  query: Query,
+  callback: (
+    snapshot: DataSnapshot,
+    previousChildName: string | null
+  ) => unknown,
+  cancelCallback?: (error: Error) => unknown
+): Unsubscribe;
 
 // @public
-export function onChildMoved(query: Query, callback: (snapshot: DataSnapshot, previousChildName: string | null) => unknown, options: ListenOptions): Unsubscribe;
+export function onChildMoved(
+  query: Query,
+  callback: (
+    snapshot: DataSnapshot,
+    previousChildName: string | null
+  ) => unknown,
+  options: ListenOptions
+): Unsubscribe;
 
 // @public
-export function onChildMoved(query: Query, callback: (snapshot: DataSnapshot, previousChildName: string | null) => unknown, cancelCallback: (error: Error) => unknown, options: ListenOptions): Unsubscribe;
+export function onChildMoved(
+  query: Query,
+  callback: (
+    snapshot: DataSnapshot,
+    previousChildName: string | null
+  ) => unknown,
+  cancelCallback: (error: Error) => unknown,
+  options: ListenOptions
+): Unsubscribe;
 
 // @public
-export function onChildRemoved(query: Query, callback: (snapshot: DataSnapshot) => unknown, cancelCallback?: (error: Error) => unknown): Unsubscribe;
+export function onChildRemoved(
+  query: Query,
+  callback: (snapshot: DataSnapshot) => unknown,
+  cancelCallback?: (error: Error) => unknown
+): Unsubscribe;
 
 // @public
-export function onChildRemoved(query: Query, callback: (snapshot: DataSnapshot) => unknown, options: ListenOptions): Unsubscribe;
+export function onChildRemoved(
+  query: Query,
+  callback: (snapshot: DataSnapshot) => unknown,
+  options: ListenOptions
+): Unsubscribe;
 
 // @public
-export function onChildRemoved(query: Query, callback: (snapshot: DataSnapshot) => unknown, cancelCallback: (error: Error) => unknown, options: ListenOptions): Unsubscribe;
+export function onChildRemoved(
+  query: Query,
+  callback: (snapshot: DataSnapshot) => unknown,
+  cancelCallback: (error: Error) => unknown,
+  options: ListenOptions
+): Unsubscribe;
 
 // @public
 export class OnDisconnect {
-    cancel(): Promise<void>;
-    remove(): Promise<void>;
-    set(value: unknown): Promise<void>;
-    setWithPriority(value: unknown, priority: number | string | null): Promise<void>;
-    update(values: object): Promise<void>;
+  cancel(): Promise<void>;
+  remove(): Promise<void>;
+  set(value: unknown): Promise<void>;
+  setWithPriority(
+    value: unknown,
+    priority: number | string | null
+  ): Promise<void>;
+  update(values: object): Promise<void>;
 }
 
 // @public
 export function onDisconnect(ref: DatabaseReference): OnDisconnect;
 
 // @public
-export function onValue(query: Query, callback: (snapshot: DataSnapshot) => unknown, cancelCallback?: (error: Error) => unknown): Unsubscribe;
+export function onValue(
+  query: Query,
+  callback: (snapshot: DataSnapshot) => unknown,
+  cancelCallback?: (error: Error) => unknown
+): Unsubscribe;
 
 // @public
-export function onValue(query: Query, callback: (snapshot: DataSnapshot) => unknown, options: ListenOptions): Unsubscribe;
+export function onValue(
+  query: Query,
+  callback: (snapshot: DataSnapshot) => unknown,
+  options: ListenOptions
+): Unsubscribe;
 
 // @public
-export function onValue(query: Query, callback: (snapshot: DataSnapshot) => unknown, cancelCallback: (error: Error) => unknown, options: ListenOptions): Unsubscribe;
+export function onValue(
+  query: Query,
+  callback: (snapshot: DataSnapshot) => unknown,
+  cancelCallback: (error: Error) => unknown,
+  options: ListenOptions
+): Unsubscribe;
 
 // @public
 export function orderByChild(path: string): QueryConstraint;
@@ -175,82 +304,127 @@ export function orderByPriority(): QueryConstraint;
 export function orderByValue(): QueryConstraint;
 
 // @public
-export function push(parent: DatabaseReference, value?: unknown): ThenableReference;
+export function push(
+  parent: DatabaseReference,
+  value?: unknown
+): ThenableReference;
 
 // @public
 export interface Query {
-    isEqual(other: Query | null): boolean;
-    readonly ref: DatabaseReference;
-    toJSON(): string;
-    toString(): string;
+  isEqual(other: Query | null): boolean;
+  readonly ref: DatabaseReference;
+  toJSON(): string;
+  toString(): string;
 }
 
 // @public
-export function query(query: Query, ...queryConstraints: QueryConstraint[]): Query;
+export function query(
+  query: Query,
+  ...queryConstraints: QueryConstraint[]
+): Query;
 
 // @public
 export abstract class QueryConstraint {
-    abstract readonly type: QueryConstraintType;
+  abstract readonly type: QueryConstraintType;
 }
 
 // @public
-export type QueryConstraintType = 'endAt' | 'endBefore' | 'startAt' | 'startAfter' | 'limitToFirst' | 'limitToLast' | 'orderByChild' | 'orderByKey' | 'orderByPriority' | 'orderByValue' | 'equalTo';
+export type QueryConstraintType =
+  | 'endAt'
+  | 'endBefore'
+  | 'startAt'
+  | 'startAfter'
+  | 'limitToFirst'
+  | 'limitToLast'
+  | 'orderByChild'
+  | 'orderByKey'
+  | 'orderByPriority'
+  | 'orderByValue'
+  | 'equalTo';
 
 // @public
 export function ref(db: Database, path?: string): DatabaseReference;
 
 // @public
-export function refFromURL(db: Database, url: string): DatabaseReference;
+export function refFromURL(
+  db: Database,
+  url: string
+): DatabaseReference;
 
 // @public
 export function remove(ref: DatabaseReference): Promise<void>;
 
 // @public
-export function runTransaction(ref: DatabaseReference, transactionUpdate: (currentData: any) => unknown, options?: TransactionOptions): Promise<TransactionResult>;
+export function runTransaction(
+  ref: DatabaseReference,
+  transactionUpdate: (currentData: any) => unknown,
+  options?: TransactionOptions
+): Promise<TransactionResult>;
 
 // @public
 export function serverTimestamp(): object;
 
 // @public
-export function set(ref: DatabaseReference, value: unknown): Promise<void>;
+export function set(
+  ref: DatabaseReference,
+  value: unknown
+): Promise<void>;
 
 // @public
-export function setPriority(ref: DatabaseReference, priority: string | number | null): Promise<void>;
+export function setPriority(
+  ref: DatabaseReference,
+  priority: string | number | null
+): Promise<void>;
 
 // @public
-export function setWithPriority(ref: DatabaseReference, value: unknown, priority: string | number | null): Promise<void>;
+export function setWithPriority(
+  ref: DatabaseReference,
+  value: unknown,
+  priority: string | number | null
+): Promise<void>;
 
 // @public
-export function startAfter(value: number | string | boolean | null, key?: string): QueryConstraint;
+export function startAfter(
+  value: number | string | boolean | null,
+  key?: string
+): QueryConstraint;
 
 // @public
-export function startAt(value?: number | string | boolean | null, key?: string): QueryConstraint;
+export function startAt(
+  value?: number | string | boolean | null,
+  key?: string
+): QueryConstraint;
 
 // @public
-export interface ThenableReference extends DatabaseReference, Pick<Promise<DatabaseReference>, 'then' | 'catch'> {
-    // (undocumented)
-    key: string;
-    // (undocumented)
-    parent: DatabaseReference;
+export interface ThenableReference
+  extends DatabaseReference,
+    Pick<Promise<DatabaseReference>, 'then' | 'catch'> {
+  // (undocumented)
+  key: string;
+  // (undocumented)
+  parent: DatabaseReference;
 }
 
 // @public
 export interface TransactionOptions {
-    readonly applyLocally?: boolean;
+  readonly applyLocally?: boolean;
 }
 
 // @public
 export class TransactionResult {
-    readonly committed: boolean;
-    readonly snapshot: DataSnapshot;
-    toJSON(): object;
+  readonly committed: boolean;
+  readonly snapshot: DataSnapshot;
+  toJSON(): object;
 }
 
 // @public
 export type Unsubscribe = () => void;
 
 // @public
-export function update(ref: DatabaseReference, values: object): Promise<void>;
+export function update(
+  ref: DatabaseReference,
+  values: object
+): Promise<void>;
 
 
 ```

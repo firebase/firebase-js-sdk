@@ -72,13 +72,21 @@ async function notifyTestResults() {
   const logPromise = new Promise((resolve, reject) => {
     const testStatus = status === 'succeeded' ? 'pass' : 'fail';
     console.log(`Sending status to log: ${testStatus}`);
+    const headers = {
+      'Content-Type': 'application/json'
+    };
+    if (!process.env.RELEASE_TRACKER_ID_TOKEN) {
+      throw new Error(
+        'RELEASE_TRACKER_ID_TOKEN environment variable is missing.'
+      );
+    }
+    headers['Authorization'] = 'Bearer ' + process.env.RELEASE_TRACKER_ID_TOKEN;
+
     const req = https.request(
       `${process.env.RELEASE_TRACKER_URL}/logE2EResult`,
       {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        }
+        headers
       },
       res => {
         res.on('data', d => {

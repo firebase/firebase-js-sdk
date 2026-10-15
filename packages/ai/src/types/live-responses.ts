@@ -57,11 +57,6 @@ export interface _LiveClientRealtimeInput {
     text?: string;
     audio?: GenerativeContentBlob;
     video?: GenerativeContentBlob;
-
-    /**
-     * @deprecated Use `text`, `audio`, and `video` instead.
-     */
-    mediaChunks?: GenerativeContentBlob[];
   };
 }
 

@@ -15,9 +15,8 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
+import { expect, vi } from 'vitest';
 import '../test/setup';
-import { match, stub } from 'sinon';
 import {
   readHeartbeatsFromIndexedDB,
   writeHeartbeatsToIndexedDB
@@ -33,28 +32,38 @@ import { HeartbeatsInIndexedDB } from './types';
 
 describe('IndexedDB functions', () => {
   it('readHeartbeatsFromIndexedDB warns if IndexedDB.open() throws', async () => {
-    const warnStub = stub(console, 'warn');
+    const warnStub = vi.spyOn(console, 'warn').mockImplementation(() => {});
     if (typeof window !== 'undefined') {
       // Ensure that indexedDB.open() fails in browser. It will always fail in Node.
-      stub(window.indexedDB, 'open').throws(new Error('abcd'));
+      vi.spyOn(window.indexedDB, 'open').mockImplementation(() => {
+        throw new Error('abcd');
+      });
       await readHeartbeatsFromIndexedDB({
         name: 'testname',
         options: { appId: 'test-app-id' }
       } as FirebaseApp);
-      expect(warnStub).to.be.calledWith(match.any, match(AppError.IDB_GET));
+      expect(warnStub).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.stringContaining(AppError.IDB_GET)
+      );
     } else {
       await readHeartbeatsFromIndexedDB({
         name: 'testname',
         options: { appId: 'test-app-id' }
       } as FirebaseApp);
-      expect(warnStub).to.be.calledWith(match.any, match(AppError.IDB_GET));
+      expect(warnStub).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.stringContaining(AppError.IDB_GET)
+      );
     }
   });
   it('writeHeartbeatsToIndexedDB warns if IndexedDB.open() throws', async () => {
-    const warnStub = stub(console, 'warn');
+    const warnStub = vi.spyOn(console, 'warn').mockImplementation(() => {});
     if (typeof window !== 'undefined') {
       // Ensure that indexedDB.open() fails in browser. It will always fail in Node.
-      stub(window.indexedDB, 'open').throws(new Error('abcd'));
+      vi.spyOn(window.indexedDB, 'open').mockImplementation(() => {
+        throw new Error('abcd');
+      });
       await writeHeartbeatsToIndexedDB(
         {
           name: 'testname',
@@ -62,7 +71,10 @@ describe('IndexedDB functions', () => {
         } as FirebaseApp,
         {} as HeartbeatsInIndexedDB
       );
-      expect(warnStub).to.be.calledWith(match.any, match(AppError.IDB_WRITE));
+      expect(warnStub).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.stringContaining(AppError.IDB_WRITE)
+      );
     } else {
       await writeHeartbeatsToIndexedDB(
         {
@@ -71,7 +83,10 @@ describe('IndexedDB functions', () => {
         } as FirebaseApp,
         {} as HeartbeatsInIndexedDB
       );
-      expect(warnStub).to.be.calledWith(match.any, match(AppError.IDB_WRITE));
+      expect(warnStub).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.stringContaining(AppError.IDB_WRITE)
+      );
     }
   });
 });

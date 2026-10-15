@@ -1,0 +1,94 @@
+/**
+ * @license
+ * Copyright 2020 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import { initializeApp, deleteApp, FirebaseApp } from '@firebase/app';
+import '@firebase/installations';
+import { getAnalytics, initializeAnalytics, logEvent } from '../../src/index';
+import config from '../../../../config/project.json';
+
+const RETRY_INTERVAL = 1000;
+const TIMEOUT_MILLIS = 20000;
+
+async function checkForEventCalls(retryCount = 0): Promise<PerformanceEntry[]> {
+  if (retryCount > TIMEOUT_MILLIS / RETRY_INTERVAL) {
+    return Promise.resolve([]);
+  }
+  await new Promise(resolve => setTimeout(resolve, RETRY_INTERVAL));
+  const resources = performance.getEntriesByType('resource');
+  performance.clearResourceTimings();
+  const callsWithEvent = resources.filter(
+    resource =>
+      resource.name.includes('google-analytics.com') &&
+      resource.name.includes('en=login')
+  );
+  if (callsWithEvent.length === 0) {
+    return checkForEventCalls(retryCount + 1);
+  } else {
+    return callsWithEvent;
+  }
+}
+
+describe('FirebaseAnalytics Integration Smoke Tests', () => {
+  let app: FirebaseApp;
+  describe('Using getAnalytics()', () => {
+    afterEach(async () => {
+      if (app) {
+        await deleteApp(app);
+        app = undefined as any;
+      }
+    });
+    it('logEvent() sends correct network request.', async () => {
+      app = initializeApp(config);
+      logEvent(getAnalytics(app), 'login', { method: 'phone' });
+      const eventCalls = await checkForEventCalls();
+      expect(eventCalls.length).toBe(1);
+      expect(eventCalls[0].name).toContain('method=phone');
+    });
+    it("Warns if measurement ID doesn't match.", () => {
+      return new Promise<void>(resolve => {
+        vi.spyOn(console, 'warn').mockImplementation((...args: unknown[]) => {
+          const hasMatch = args.some(
+            arg => typeof arg === 'string' && arg.includes('does not match')
+          );
+          if (hasMatch) {
+            resolve();
+          }
+        });
+        app = initializeApp({
+          ...config,
+          measurementId: 'wrong-id'
+        });
+        getAnalytics(app);
+      });
+    });
+  });
+  describe('Using initializeAnalytics()', () => {
+    afterEach(async () => {
+      if (app) {
+        await deleteApp(app);
+        app = undefined as any;
+      }
+    });
+    it('logEvent() sends correct network request.', async () => {
+      app = initializeApp(config);
+      logEvent(initializeAnalytics(app), 'login', { method: 'email' });
+      const eventCalls = await checkForEventCalls();
+      expect(eventCalls.length).toBe(1);
+      expect(eventCalls[0].name).toContain('method=email');
+    });
+  });
+});

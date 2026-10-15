@@ -55,14 +55,14 @@ describe('platform_cordova/popup_redirect/popup_redirect', () => {
   let utilsStubs: sinon.SinonStubbedInstance<typeof utils>;
   let eventsStubs: sinon.SinonStubbedInstance<Partial<typeof events>>;
   let universalLinksCb:
-    | ((eventData: Record<string, string> | null) => unknown)
-    | null;
+    ((eventData: Record<string, string> | null) => unknown) | null;
   let tripNoEventTimer: TimerTripFn;
 
   beforeEach(async () => {
     auth = await testAuth();
-    resolver =
-      new (cordovaPopupRedirectResolver as SingletonInstantiator<PopupRedirectResolverInternal>)();
+    resolver = new (
+      cordovaPopupRedirectResolver as SingletonInstantiator<PopupRedirectResolverInternal>
+    )();
     provider = new GoogleAuthProvider();
     utilsStubs = sinon.stub(utils);
     eventsStubs = {

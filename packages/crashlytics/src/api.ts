@@ -20,11 +20,7 @@ import { CrashlyticsInternal, ErrorWithSymbol } from './types';
 import { ALREADY_LOGGED_FLAG, CRASHLYTICS_TYPE } from './constants';
 import { Crashlytics, CrashlyticsOptions } from './public-types';
 import { Provider } from '@firebase/component';
-import {
-  AnyValueMap,
-  SeverityNumber,
-  LoggerProvider
-} from '@opentelemetry/api-logs';
+import { AnyValueMap, SeverityNumber } from '@opentelemetry/api-logs';
 import { CrashlyticsService } from './service';
 import { deepEqual } from '@firebase/util';
 import { SPAN_ATTR_KEY } from './attributes-store';
@@ -81,7 +77,7 @@ export function getCrashlytics(
 }
 
 /**
- * Enqueues an error to be uploaded to the Firebase Crashlytics API.
+ * Queues an error to be uploaded to the Firebase Crashlytics API.
  *
  * @public
  *
@@ -94,6 +90,9 @@ export function recordError(
   error: unknown,
   attributes?: AnyValueMap
 ): void {
+  if (!crashlytics) {
+    return;
+  }
   if (error && typeof error === 'object') {
     try {
       (error as ErrorWithSymbol)[ALREADY_LOGGED_FLAG] = true;
@@ -152,16 +151,32 @@ export function recordError(
 }
 
 /**
- * Retrieves the OpenTelemetry LoggerProvider instance used by Crashlytics.
+ * Queues a log message to be uploaded to the Firebase Crashlytics API.
  *
  * @public
+ *
  * @param crashlytics - The {@link Crashlytics} instance.
- * @returns The underlying OpenTelemetry LoggerProvider.
+ * @param message - The message to log.
+ * @param attributes - Optional, arbitrary attributes to attach to the log.
  */
-export function getOtelLoggerProvider(
-  crashlytics: Crashlytics
-): LoggerProvider {
-  return (crashlytics as CrashlyticsInternal).loggerProvider;
+export function log(
+  crashlytics: Crashlytics,
+  message: string,
+  attributes?: AnyValueMap
+): void {
+  if (!crashlytics) {
+    return;
+  }
+  // Cast to CrashlyticsInternal to access internal loggerProvider
+  const { loggerProvider } = crashlytics as CrashlyticsInternal;
+  const logger = loggerProvider.getLogger('custom-logger');
+  const customAttributes: AnyValueMap = attributes ? { ...attributes } : {};
+
+  logger.emit({
+    severityNumber: SeverityNumber.INFO,
+    body: message,
+    attributes: customAttributes
+  });
 }
 
 /**

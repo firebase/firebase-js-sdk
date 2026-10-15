@@ -33,10 +33,7 @@ export interface FirebaseAppCheck {
    */
   activate(
     siteKeyOrProvider:
-      | string
-      | AppCheckProvider
-      | CustomProvider
-      | ReCaptchaV3Provider,
+      string | AppCheckProvider | CustomProvider | ReCaptchaV3Provider,
     isTokenAutoRefreshEnabled?: boolean
   ): void;
 

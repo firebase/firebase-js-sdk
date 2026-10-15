@@ -1,12 +1,12 @@
 /**
  * @license
- * Copyright 2023 Google LLC
+ * Copyright 2026 Google LLC
  *
- * Licensed under the Apache License, Version 2.0x00 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0x00
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,8 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { expect } from 'chai';
 
+import { deleteField, Firestore, runTransaction } from '../../../lite/index';
 import {
   DocumentData,
   DocumentReference,
@@ -45,6 +45,10 @@ interface MyObjectType {
   nullProperty: null;
   undefinedProperty: undefined;
   unionProperty: MyUnionType;
+  objectProperty: {
+    booleanProperty: boolean;
+    stringProperty: string;
+  };
 }
 
 // v9 tests cover scenarios that worked in
@@ -117,7 +121,7 @@ describe('UpdateData - v9', () => {
       undefinedProperty: 'string'
     };
 
-    expect(true).to.be.true;
+    expect(true).toBe(true);
   });
 
   it('Supports properties with custom types', () => {
@@ -157,7 +161,7 @@ describe('UpdateData - v9', () => {
       }
     };
 
-    expect(true).to.be.true;
+    expect(true).toBe(true);
   });
 
   describe('given properties with dots', () => {
@@ -175,7 +179,7 @@ describe('UpdateData - v9', () => {
         'property.with.dots': 1
       };
 
-      expect(true).to.be.true;
+      expect(true).toBe(true);
     });
 
     it('does not allow matching a sub-string|path', () => {
@@ -184,7 +188,7 @@ describe('UpdateData - v9', () => {
         'property.with': true
       };
 
-      expect(true).to.be.true;
+      expect(true).toBe(true);
     });
   });
 
@@ -227,7 +231,7 @@ describe('UpdateData - v9', () => {
         }
       };
 
-      expect(true).to.be.true;
+      expect(true).toBe(true);
     });
 
     it('errors for unexpected value types at each layer', () => {
@@ -254,7 +258,7 @@ describe('UpdateData - v9', () => {
         }
       };
 
-      expect(true).to.be.true;
+      expect(true).toBe(true);
     });
 
     it('does not allow properties that were not on the original type', () => {
@@ -271,7 +275,7 @@ describe('UpdateData - v9', () => {
         }
       };
 
-      expect(true).to.be.true;
+      expect(true).toBe(true);
     });
 
     it('preserves value types for dot notation', () => {
@@ -349,7 +353,7 @@ describe('UpdateData - v9', () => {
         }
       };
 
-      expect(true).to.be.true;
+      expect(true).toBe(true);
     });
   });
 
@@ -378,7 +382,7 @@ describe('UpdateData - v9', () => {
         }
       };
 
-      expect(true).to.be.true;
+      expect(true).toBe(true);
     });
 
     it('errors for unexpected value types at each layer', () => {
@@ -397,7 +401,7 @@ describe('UpdateData - v9', () => {
         }
       };
 
-      expect(true).to.be.true;
+      expect(true).toBe(true);
     });
 
     it('does not allow properties that were not on the original type', () => {
@@ -415,7 +419,7 @@ describe('UpdateData - v9', () => {
         }
       };
 
-      expect(true).to.be.true;
+      expect(true).toBe(true);
     });
 
     it('preserves value types for dot notation', () => {
@@ -441,7 +445,7 @@ describe('UpdateData - v9', () => {
         }
       };
 
-      expect(true).to.be.true;
+      expect(true).toBe(true);
     });
   });
 
@@ -480,7 +484,7 @@ describe('UpdateData - v9', () => {
           }
         };
 
-        expect(true).to.be.true;
+        expect(true).toBe(true);
       });
 
       it('allows dot notation for nested index types', () => {
@@ -497,21 +501,28 @@ describe('UpdateData - v9', () => {
           'indexed.bar.numberProperty': 1
         };
 
-        // does not enforce type
+        // allows any child property type of the indexed object
         _ = {
-          'indexed.bar.booleanProperty': 'string value is not rejected'
+          'indexed.bar.booleanProperty': 1
+        };
+
+        // rejects types that are not a child property type
+        _ = {
+          // @ts-expect-error Unsupported type
+          'indexed.bar.booleanProperty': 'string value is rejected'
         };
 
         _ = {
-          'indexed.bar.numberProperty': 'string value is not rejected'
+          // @ts-expect-error Unsupported type
+          'indexed.bar.numberProperty': 'string value is rejected'
         };
 
-        // rejects properties that don't exist
         _ = {
-          'indexed.bar.unknown': 'string value is not rejected'
+          // @ts-expect-error Unsupported type
+          'indexed.bar.unknown': 'string value is rejected'
         };
 
-        expect(true).to.be.true;
+        expect(true).toBe(true);
       });
 
       it('allows dot notation for nested index types that are 2 layers deep', () => {
@@ -524,18 +535,363 @@ describe('UpdateData - v9', () => {
           'layer.indexed.bar.booleanProperty': true
         };
 
-        // allows the property, but does not enforce type
+        // allows any child property type of the indexed object
         _ = {
-          'layer.indexed.bar.booleanProperty': 'string value is not rejected'
+          'layer.indexed.bar.booleanProperty': 1
         };
 
-        // Allows unknown properties in sub types
+        // rejects types that are not a child property type
         _ = {
-          'layer.indexed.bar.unknownProperty': 'This just allows anything'
+          // @ts-expect-error Unsupported type
+          'layer.indexed.bar.booleanProperty': 'string value is rejected'
         };
 
-        expect(true).to.be.true;
+        _ = {
+          // @ts-expect-error Unsupported type
+          'layer.indexed.bar.unknownProperty': 'string value is rejected'
+        };
+
+        expect(true).toBe(true);
       });
+    });
+  });
+
+  describe('given Record<string, T>', () => {
+    it('supports primitive type for T', () => {
+      let _: UpdateData<Record<string, number>>;
+
+      _ = {
+        numberProperty: 1
+      };
+
+      _ = {
+        // @ts-expect-error Unsupported type
+        numberProperty: false
+      };
+
+      expect(true).to.be.true;
+    });
+
+    it('supports object type for T', () => {
+      let _: UpdateData<Record<string, Omit<MyObjectType, 'nullProperty'>>>;
+
+      _ = {};
+
+      _ = {
+        indexedProperty: {}
+      };
+
+      _ = {
+        indexedProperty: {
+          numberProperty: 1,
+          booleanProperty: true
+        }
+      };
+
+      _ = {
+        indexedProperty: {
+          objectProperty: {}
+        }
+      };
+
+      _ = {
+        indexedProperty: {
+          objectProperty: {
+            booleanProperty: true
+          }
+        }
+      };
+
+      _ = {
+        indexedProperty: {
+          stringProperty: 'string'
+        }
+      };
+
+      _ = {
+        indexedProperty: {
+          numberProperty: 1,
+          booleanProperty: true,
+          stringProperty: 'string',
+          // @ts-expect-error Unsupported type
+          nullProperty: null,
+          undefinedProperty: undefined,
+          unionProperty: 1,
+          objectProperty: {
+            stringProperty: 'string',
+            booleanProperty: true
+          }
+        }
+      };
+
+      // It allows any child property type
+      // when the property is indexed.
+      _ = {
+        indexedProperty: false
+      };
+
+      // It allows any child property type
+      // when the property is indexed.
+      _ = {
+        indexedProperty: 'string'
+      };
+
+      // It prevents types that are not a
+      // child property type.
+      _ = {
+        // @ts-expect-error Unsupported type
+        indexedProperty: null
+      };
+
+      // It allows dot notation to set nested properties
+      _ = {
+        'indexedProperty.stringProperty': 'string'
+      };
+
+      // It allows dot notation to set nested properties,
+      // but only enforces types to any of the child properties
+      // of the indexed property.
+      _ = {
+        'indexedProperty.stringProperty': true,
+        'indexedProperty.booleanProperty': 'string',
+        // @ts-expect-error Unsupported type
+        'indexedProperty.undefinedProperty': null
+      };
+
+      // But still enforces property types
+      // when the child type is object
+      _ = {
+        objectProperty: {
+          // @ts-expect-error Unsupported type
+          numberProperty: false
+        }
+      };
+
+      _ = {
+        objectProperty: {
+          // @ts-expect-error Unsupported type
+          unknownProperty: false
+        }
+      };
+
+      expect(true).to.be.true;
+    });
+
+    it('supports object with nested index for T', () => {
+      let _: UpdateData<
+        Record<
+          string,
+          {
+            objectWithIndexProperty: {
+              [key: string]: boolean;
+            };
+            deepObjectWithIndexProperty: {
+              [key: string]: {
+                stringProperty: string;
+                numberProperty: number;
+              };
+            };
+          }
+        >
+      >;
+
+      _ = {};
+
+      _ = {
+        indexedProperty: {}
+      };
+
+      _ = {
+        indexedProperty: {
+          objectWithIndexProperty: {},
+          deepObjectWithIndexProperty: {}
+        }
+      };
+
+      _ = {
+        indexedProperty: {
+          objectWithIndexProperty: {}
+        }
+      };
+
+      _ = {
+        indexedProperty: {
+          objectWithIndexProperty: {
+            indexedProperty: true
+          }
+        }
+      };
+
+      _ = {
+        indexedProperty: {
+          deepObjectWithIndexProperty: {
+            indexedProperty: {}
+          }
+        }
+      };
+
+      _ = {
+        indexedProperty: {
+          deepObjectWithIndexProperty: {
+            indexedProperty: {
+              stringProperty: 'string'
+            }
+          }
+        }
+      };
+
+      _ = {
+        indexedProperty: {
+          stringProperty: 'string'
+        }
+      };
+
+      _ = {
+        indexedProperty: {
+          objectWithIndexProperty: {
+            indexedProperty: true
+          },
+          deepObjectWithIndexProperty: {
+            indexedProperty: {
+              stringProperty: 'string',
+              numberProperty: 1
+            }
+          }
+        }
+      };
+
+      // It allows any child property type
+      // when the property is indexed.
+      _ = {
+        indexedProperty: false
+      };
+
+      // It allows any child property type
+      // when the property is indexed.
+      _ = {
+        indexedProperty: 'string'
+      };
+
+      // It prevents types that are not a
+      // child property type.
+      _ = {
+        // @ts-expect-error Unsupported type
+        indexedProperty: null
+      };
+
+      // It allows dot notation to set nested properties
+      _ = {
+        'indexedProperty.stringProperty': 'string'
+      };
+
+      // It allows dot notation to set nested properties,
+      // but only enforces types to any of the child properties
+      // of the indexed property.
+      _ = {
+        'indexedProperty.stringProperty': true,
+        'indexedProperty.booleanProperty': 'string',
+        // @ts-expect-error Unsupported type
+        'indexedProperty.undefinedProperty': null
+      };
+
+      // But still enforces property types
+      // when the child type is object
+      _ = {
+        indexedProperty: {
+          // @ts-expect-error Unsupported type
+          numberProperty: null
+        }
+      };
+
+      expect(true).to.be.true;
+    });
+  });
+
+  describe('Customer reports', () => {
+    it('fixes issues/7813', () => {
+      interface TType {
+        prop: Record<string, { id: string }>;
+      }
+      const update: UpdateData<TType> = {};
+      const value: { [key: string]: { id: string } } = {
+        key: { id: '' }
+      };
+
+      update.prop = value;
+
+      expect(true).to.be.true;
+    });
+
+    it('fixes node issues/1745#issuecomment-1289292949', () => {
+      interface TestType {
+        foo: {
+          [key: string]: {
+            bar: string;
+          };
+        };
+      }
+      // The intent of the function below is to test TypeScript compile and not execute.
+      async function _(docRef: DocumentReference<TestType>): Promise<void> {
+        const key = 'aKey';
+        await updateDoc(docRef, {
+          [`foo.${key}.bar`]: 'test'
+        });
+      }
+
+      expect(true).to.be.true;
+    });
+
+    it('fixes node issues/1890', () => {
+      interface MyDoc {
+        nestedA: Record<string, number>;
+        nestedB: Record<string, string>;
+      }
+
+      async function _(
+        db: Firestore,
+        docRef: DocumentReference<MyDoc>
+      ): Promise<void> {
+        const goodKey = 'nestedA.test';
+        const badKey = 'nestedA.' + 'test';
+
+        await runTransaction(db, async t => {
+          t.update(docRef, {
+            [goodKey]: 3
+          });
+        });
+
+        await runTransaction(db, async t => {
+          t.update(docRef, {
+            [badKey]: 3
+          });
+        });
+      }
+
+      expect(true).to.be.true;
+    });
+
+    it('fixes issues/10283', () => {
+      interface TestDoc {
+        dynamicKeys: Record<string, string>;
+        staticKeys: {
+          staticKey: number;
+        };
+      }
+
+      let update: UpdateData<TestDoc>;
+
+      update = {
+        'dynamicKeys.foo': 'valid string',
+        'dynamicKeys.bar': deleteField(),
+        'staticKeys.staticKey': 42
+      };
+
+      update = {
+        // @ts-expect-error number is not assignable to string | FieldValue | undefined
+        'dynamicKeys.foo': 123
+      };
+
+      expect(update).to.not.be.null;
     });
   });
 });
@@ -563,8 +919,8 @@ describe('FirestoreTypeConverter', () => {
       await updateDoc(newDocRef, { a: 'newFoo', b: 43 });
       const snapshot = await getDoc(newDocRef);
       const data: MyModelType = snapshot.data()!;
-      expect(data.stringProperty).to.equal('newFoo');
-      expect(data.numberProperty).to.equal(43);
+      expect(data.stringProperty).toBe('newFoo');
+      expect(data.numberProperty).toBe(43);
     }
   });
 
@@ -590,8 +946,8 @@ describe('FirestoreTypeConverter', () => {
       await updateDoc(newDocRef, { a: 'newFoo', b: 43 });
       const snapshot = await getDoc(newDocRef);
       const data: MyModelType = snapshot.data()!;
-      expect(data.stringProperty).to.equal('newFoo');
-      expect(data.numberProperty).to.equal(43);
+      expect(data.stringProperty).toBe('newFoo');
+      expect(data.numberProperty).toBe(43);
     }
   });
 
@@ -633,8 +989,8 @@ describe('FirestoreTypeConverter', () => {
       await updateDoc(newDocRef, { a: 'newFoo', b: 43 });
       const snapshot = await getDoc(newDocRef);
       const data: MyModelType = snapshot.data()!;
-      expect(data.stringProperty).to.equal('newFoo');
-      expect(data.numberProperty).to.equal(43);
+      expect(data.stringProperty).toBe('newFoo');
+      expect(data.numberProperty).toBe(43);
     }
   });
 
@@ -660,8 +1016,8 @@ describe('FirestoreTypeConverter', () => {
       await updateDoc(newDocRef, { a: 'newFoo', b: 43 });
       const snapshot = await getDoc(newDocRef);
       const data: MyModelType = snapshot.data()!;
-      expect(data.stringProperty).to.equal('newFoo');
-      expect(data.numberProperty).to.equal(43);
+      expect(data.stringProperty).toBe('newFoo');
+      expect(data.numberProperty).toBe(43);
     }
   });
 
@@ -691,8 +1047,8 @@ describe('FirestoreTypeConverter', () => {
       await updateDoc(newDocRef, { a: 'newFoo', b: 43 });
       const snapshot = await getDoc(newDocRef);
       const data: MyModelType = snapshot.data()!;
-      expect(data.stringProperty).to.equal('newFoo');
-      expect(data.numberProperty).to.equal(43);
+      expect(data.stringProperty).toBe('newFoo');
+      expect(data.numberProperty).toBe(43);
     }
   });
 

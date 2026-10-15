@@ -14,9 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
-
 import { isValidMetricName } from './metric_utils';
 import {
   FIRST_PAINT_COUNTER_NAME,
@@ -28,28 +25,28 @@ import '../../test/setup';
 describe('Firebase Performance > metric_utils', () => {
   describe('#isValidMetricName', () => {
     it('returns true when name is valid', () => {
-      expect(isValidMetricName('validCustom_Metric_Name')).to.be.true;
+      expect(isValidMetricName('validCustom_Metric_Name')).toBe(true);
     });
 
     it('returns false when name is blank', () => {
-      expect(isValidMetricName('')).to.be.false;
+      expect(isValidMetricName('')).toBe(false);
     });
 
     it('returns false when name is too long', () => {
       const longMetricName =
         'too_long_metric_name_over_one_hundred_characters_too_long_metric_name_over_one_' +
         'hundred_characters_too';
-      expect(isValidMetricName(longMetricName)).to.be.false;
+      expect(isValidMetricName(longMetricName)).toBe(false);
     });
 
     it('returns false when name starts with a reserved prefix', () => {
-      expect(isValidMetricName('_invalidMetricName')).to.be.false;
+      expect(isValidMetricName('_invalidMetricName')).toBe(false);
     });
 
     it('returns true for first paint metric', () => {
       expect(
         isValidMetricName(FIRST_PAINT_COUNTER_NAME, '_wt_http://example.com')
-      ).to.be.true;
+      ).toBe(true);
     });
 
     it('returns true for first contentful paint metric', () => {
@@ -58,7 +55,7 @@ describe('Firebase Performance > metric_utils', () => {
           FIRST_CONTENTFUL_PAINT_COUNTER_NAME,
           '_wt_http://example.com'
         )
-      ).to.be.true;
+      ).toBe(true);
     });
 
     it('returns true for first input delay metric', () => {
@@ -67,12 +64,13 @@ describe('Firebase Performance > metric_utils', () => {
           FIRST_INPUT_DELAY_COUNTER_NAME,
           '_wt_http://example.com'
         )
-      ).to.be.true;
+      ).toBe(true);
     });
 
     it('returns false if first paint metric name is used outside of page load traces', () => {
-      expect(isValidMetricName(FIRST_PAINT_COUNTER_NAME, 'some_random_trace'))
-        .to.be.false;
+      expect(
+        isValidMetricName(FIRST_PAINT_COUNTER_NAME, 'some_random_trace')
+      ).toBe(false);
     });
 
     it('returns false if first contentful paint metric name is used outside of page load traces', () => {
@@ -81,13 +79,13 @@ describe('Firebase Performance > metric_utils', () => {
           FIRST_CONTENTFUL_PAINT_COUNTER_NAME,
           'some_random_trace'
         )
-      ).to.be.false;
+      ).toBe(false);
     });
 
     it('returns false if first input delay metric name is used outside of page load traces', () => {
       expect(
         isValidMetricName(FIRST_INPUT_DELAY_COUNTER_NAME, 'some_random_trace')
-      ).to.be.false;
+      ).toBe(false);
     });
   });
 });

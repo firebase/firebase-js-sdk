@@ -1,5 +1,124 @@
 # firebase
 
+## 13.0.0
+
+### Major Changes
+
+- [`42ce99c`](https://github.com/firebase/firebase-js-sdk/commit/42ce99c05df4835054bfc2535afa040a3705247e) [#10380](https://github.com/firebase/firebase-js-sdk/pull/10380) - Refactored `TemplateGenerativeModel.generateContent` and `TemplateGenerativeModel.generateContentStream` to accept a unified `TemplateRequest` object (`{ templateId, templateVariables, toolConfig? }`) as the first parameter.
+  Made `templateVariables` required in both `TemplateRequest` and `StartTemplateChatParams`.
+
+- [`f83cc32`](https://github.com/firebase/firebase-js-sdk/commit/f83cc32a2ea4c12a3bba9ed8de2e2129ca139cb3) [#10392](https://github.com/firebase/firebase-js-sdk/pull/10392) - Removed APIs that were previously deprecated.
+
+  Removed the previously deprecated `VertexAIBackend` (and `BackendType.VERTEX_AI`). Use `AgentPlatformBackend` (and `BackendType.AGENT_PLATFORM`) instead.
+
+  The only difference for `AgentPlatformBackend` is the default
+  [location for accessing the model](https://firebase.google.com/docs/ai-logic/locations?api=vertex).
+  The default location for `AgentPlatformBackend` is `global`, whereas the default location for `VertexAIBackend` was `us-central1`. To use `us-central1` with `AgentPlatformBackend`, specify `getAI(app, { backend: new AgentPlatformBackend('us-central1') })` when initializing the SDK. However, note that most new Gemini models do not support `us-central1`.
+
+  Updated default hybrid-in-cloud model to `gemini-3.5-flash-lite`.
+
+- [`b70fa6f`](https://github.com/firebase/firebase-js-sdk/commit/b70fa6f0134b6d8fad62d724ee2c4d6845b382a5) [#10398](https://github.com/firebase/firebase-js-sdk/pull/10398) - Refactored `Part` into a discriminated union with explicit `type` properties, introduced `UnknownPart` for raw wire and user-provided inputs, stripped `type` discriminators on wire egress, and ensured defensive deep copying for chat history.
+
+### Minor Changes
+
+- [`87adc59`](https://github.com/firebase/firebase-js-sdk/commit/87adc59cae9f3892ae3c475395ad4707510f665e) [#10362](https://github.com/firebase/firebase-js-sdk/pull/10362) - Deprecated `candidateCount`, `temperature`, `topP`, `topK`, `presencePenalty`, and `frequencyPenalty` in both `GenerationConfig` and `LiveGenerationConfig`. These parameters are unsupported in Gemini 3.x and later models.
+
+- [`565da23`](https://github.com/firebase/firebase-js-sdk/commit/565da231ab250b7dfbf8cc99bc62e1b893e3ba9d) [#10334](https://github.com/firebase/firebase-js-sdk/pull/10334) - Exported a `ChatSession` interface instead of the `ChatSession` class.
+
+  Cleaned up AI Logic doc comments.
+
+- [`46ae308`](https://github.com/firebase/firebase-js-sdk/commit/46ae3088ba061c8bb929e7c377237bf0e16bc155) [#10337](https://github.com/firebase/firebase-js-sdk/pull/10337) - Added support for BSON types.
+
+### Patch Changes
+
+- [`a034f68`](https://github.com/firebase/firebase-js-sdk/commit/a034f682b6044f238138453d351c0fe89c07e5fb) [#10384](https://github.com/firebase/firebase-js-sdk/pull/10384) (fixes [#9426](https://github.com/firebase/firebase-js-sdk/issues/9426)) - Suppress false-positive `CONFIG_UPDATE_STREAM_ERROR` events emitted by `onConfigUpdated` when the application enters the background, stop recording a connection backoff penalty for these expected closes, and reconnect if the application returns to the foreground before the connection finishes closing.
+
+- Updated dependencies [[`410d620`](https://github.com/firebase/firebase-js-sdk/commit/410d6208d7f9e150bc5918e72184701229838f8d), [`87adc59`](https://github.com/firebase/firebase-js-sdk/commit/87adc59cae9f3892ae3c475395ad4707510f665e), [`42ce99c`](https://github.com/firebase/firebase-js-sdk/commit/42ce99c05df4835054bfc2535afa040a3705247e), [`f83cc32`](https://github.com/firebase/firebase-js-sdk/commit/f83cc32a2ea4c12a3bba9ed8de2e2129ca139cb3), [`5ab2fc6`](https://github.com/firebase/firebase-js-sdk/commit/5ab2fc6f889be5226f44d2e50c7eb20144f69338), [`a034f68`](https://github.com/firebase/firebase-js-sdk/commit/a034f682b6044f238138453d351c0fe89c07e5fb), [`565da23`](https://github.com/firebase/firebase-js-sdk/commit/565da231ab250b7dfbf8cc99bc62e1b893e3ba9d), [`b70fa6f`](https://github.com/firebase/firebase-js-sdk/commit/b70fa6f0134b6d8fad62d724ee2c4d6845b382a5), [`46ae308`](https://github.com/firebase/firebase-js-sdk/commit/46ae3088ba061c8bb929e7c377237bf0e16bc155), [`142b409`](https://github.com/firebase/firebase-js-sdk/commit/142b40983a0d7e23cf14f3bac78b445b33152c46), [`ac44c69`](https://github.com/firebase/firebase-js-sdk/commit/ac44c691708a1a3cd3a16ef3435d50b53fe3ab34), [`9b3d815`](https://github.com/firebase/firebase-js-sdk/commit/9b3d815198bea1de3d3befb5fc8577611b145357)]:
+  - @firebase/auth@1.13.7
+  - @firebase/app@0.16.3
+  - @firebase/ai@3.0.0
+  - @firebase/firestore@4.18.0
+  - @firebase/remote-config@0.9.3
+  - @firebase/storage@0.14.6
+  - @firebase/auth-compat@0.6.12
+  - @firebase/app-compat@0.5.19
+  - @firebase/firestore-compat@0.4.15
+  - @firebase/remote-config-compat@0.2.30
+  - @firebase/storage-compat@0.4.6
+
+## 12.19.0
+
+### Minor Changes
+
+- [`6b17ef5`](https://github.com/firebase/firebase-js-sdk/commit/6b17ef50b4db73557e834535656e586d32a2f86a) [#10319](https://github.com/firebase/firebase-js-sdk/pull/10319) - Fixed the issue where the SDK hardcodes invalid 'function' role, causing 400 errors during function calling on gemini-3.6-flash
+
+### Patch Changes
+
+- Updated dependencies [[`8676365`](https://github.com/firebase/firebase-js-sdk/commit/8676365bdb4113785b48e5bea5b8a55dfadb3233), [`8316986`](https://github.com/firebase/firebase-js-sdk/commit/831698647c842d4c6f96f6cb73efa694e0425f3a), [`b74b53c`](https://github.com/firebase/firebase-js-sdk/commit/b74b53c02de39cff0a7091faa5eeb059952bb31b), [`0e8554b`](https://github.com/firebase/firebase-js-sdk/commit/0e8554b78acbb2d44d0bbecebc8c66439cf54476), [`50213a1`](https://github.com/firebase/firebase-js-sdk/commit/50213a1cdba8e3b0f029197ec20f47c1110060a6), [`6b17ef5`](https://github.com/firebase/firebase-js-sdk/commit/6b17ef50b4db73557e834535656e586d32a2f86a), [`392bce0`](https://github.com/firebase/firebase-js-sdk/commit/392bce079f376149736311f0017d5863e58c8dff), [`6f86596`](https://github.com/firebase/firebase-js-sdk/commit/6f865964baf5b4bd23b077fecec1028434a7387e)]:
+  - @firebase/auth@1.13.6
+  - @firebase/app@0.16.2
+  - @firebase/firestore@4.17.2
+  - @firebase/analytics@0.10.25
+  - @firebase/messaging@0.13.3
+  - @firebase/ai@2.16.0
+  - @firebase/auth-compat@0.6.11
+  - @firebase/app-compat@0.5.18
+  - @firebase/firestore-compat@0.4.14
+  - @firebase/analytics-compat@0.2.31
+  - @firebase/messaging-compat@0.2.30
+
+## 12.18.0
+
+### Minor Changes
+
+- [`f52201b`](https://github.com/firebase/firebase-js-sdk/commit/f52201b73cc6f1517a55d0b0f0c83c79a000a3be) [#9942](https://github.com/firebase/firebase-js-sdk/pull/9942) (fixes [#9807](https://github.com/firebase/firebase-js-sdk/issues/9807)) - Add more details to `FunctionsError`. Add HTTP status code to the `message` field and add `url` to `customData`.
+
+- [`d4b83fd`](https://github.com/firebase/firebase-js-sdk/commit/d4b83fd9defa8da9207b771ee503e05357826da0) [#10267](https://github.com/firebase/firebase-js-sdk/pull/10267) - Imagen methods and types have been removed due to Imagen models being shut down. As a replacement, you can [migrate your apps to use Gemini Image models (the "Nano Banana" models)](https://firebase.google.com/docs/ai-logic/imagen-models-migration).
+
+### Patch Changes
+
+- [`589b24b`](https://github.com/firebase/firebase-js-sdk/commit/589b24bd9b30ba6b07a76da1eb5c3d1eadc5a9d2) [#10293](https://github.com/firebase/firebase-js-sdk/pull/10293) - Updated many top-level `devDependencies`.
+
+- [`72632ee`](https://github.com/firebase/firebase-js-sdk/commit/72632ee29b8257081cb33c676f2dfebc0cc93221) [#10270](https://github.com/firebase/firebase-js-sdk/pull/10270) - Fix issue preventing App Check tokens from being properly recognized when sent in Firebase SQL Connect Realtime requests
+
+- Updated dependencies [[`d80fb9a`](https://github.com/firebase/firebase-js-sdk/commit/d80fb9aac00722f209f94ea2dddba7427db81c0f), [`589b24b`](https://github.com/firebase/firebase-js-sdk/commit/589b24bd9b30ba6b07a76da1eb5c3d1eadc5a9d2), [`44d336b`](https://github.com/firebase/firebase-js-sdk/commit/44d336bbe7bc52ff1c62e6721f44a441479c0169), [`981204d`](https://github.com/firebase/firebase-js-sdk/commit/981204d8b948c1141559cac434fdee5556fab589), [`f52201b`](https://github.com/firebase/firebase-js-sdk/commit/f52201b73cc6f1517a55d0b0f0c83c79a000a3be), [`d4b83fd`](https://github.com/firebase/firebase-js-sdk/commit/d4b83fd9defa8da9207b771ee503e05357826da0), [`2e22761`](https://github.com/firebase/firebase-js-sdk/commit/2e227618ed351ed4242781ee72b01c7fc0c81fa9), [`72632ee`](https://github.com/firebase/firebase-js-sdk/commit/72632ee29b8257081cb33c676f2dfebc0cc93221), [`7fc34cb`](https://github.com/firebase/firebase-js-sdk/commit/7fc34cb4213e7d5595e218877f8cb95c207b50ce)]:
+  - @firebase/app-check@0.13.1
+  - @firebase/firestore-compat@0.4.13
+  - @firebase/remote-config@0.9.2
+  - @firebase/auth-compat@0.6.10
+  - @firebase/analytics@0.10.24
+  - @firebase/firestore@4.17.1
+  - @firebase/auth@1.13.5
+  - @firebase/app@0.16.1
+  - @firebase/ai@2.15.0
+  - @firebase/analytics-compat@0.2.30
+  - @firebase/app-check-compat@0.4.7
+  - @firebase/app-compat@0.5.17
+  - @firebase/app-types@0.9.6
+  - @firebase/data-connect@0.7.4
+  - @firebase/database@1.1.5
+  - @firebase/database-compat@2.1.7
+  - @firebase/functions@0.14.0
+  - @firebase/functions-compat@0.5.0
+  - @firebase/installations@0.6.24
+  - @firebase/installations-compat@0.2.24
+  - @firebase/messaging@0.13.2
+  - @firebase/messaging-compat@0.2.29
+  - @firebase/performance@0.7.14
+  - @firebase/performance-compat@0.2.27
+  - @firebase/remote-config-compat@0.2.29
+  - @firebase/storage@0.14.5
+  - @firebase/storage-compat@0.4.5
+  - @firebase/util@1.15.3
+
+## 12.17.1
+
+### Patch Changes
+
+- Updated dependencies [[`993e8a6`](https://github.com/firebase/firebase-js-sdk/commit/993e8a635ee94409bdc1ea59fa578a45f8191e12), [`79d7011`](https://github.com/firebase/firebase-js-sdk/commit/79d7011edfe43b793af2c19cee7855cb0d868c18), [`b0e23db`](https://github.com/firebase/firebase-js-sdk/commit/b0e23db212a3b1e4c88469bd0f4293d949107d95)]:
+  - @firebase/database-compat@2.1.6
+  - @firebase/data-connect@0.7.3
+
 ## 12.17.0
 
 ### Minor Changes

@@ -38,7 +38,11 @@ Constructs a new instance of the `AliasedAggregate` class
 <b>Signature:</b>
 
 ```typescript
-constructor(aggregate: AggregateFunction, alias: string, _methodName: string | undefined);
+constructor(
+    aggregate: AggregateFunction,
+    alias: string,
+    _methodName: string | undefined
+  );
 ```
 
 #### Parameters
