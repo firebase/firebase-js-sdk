@@ -2,7 +2,7 @@
 
 This guide covers the incremental steps to enable Session Breadcrumbs & Logs for Next.js App Router applications in the Firebase Crashlytics private preview.
 
-In your existing client-side provider component (e.g., `src/components/CrashlyticsProvider.tsx`), define a `crashlyticsOptions` object with `enableTracing: true` and pass it to `<FirebaseCrashlytics>`:
+In your existing client-side provider component (e.g., `src/components/CrashlyticsProvider.tsx`), define a `crashlyticsOptions` object with `enableBreadcrumbs: true` and pass it to `<FirebaseCrashlytics>`:
 
 ```diff
 // src/components/CrashlyticsProvider.tsx
@@ -12,7 +12,7 @@ import React from 'react';
 import { FirebaseCrashlytics } from '@firebase/crashlytics/react';
 import { app } from '../lib/firebase'; // Your existing Firebase App singleton
 
-+const crashlyticsOptions = { enableTracing: true };
++const crashlyticsOptions = { enableBreadcrumbs: true };
 +
 export function CrashlyticsProvider({ children }: { children: React.ReactNode }) {
   return (

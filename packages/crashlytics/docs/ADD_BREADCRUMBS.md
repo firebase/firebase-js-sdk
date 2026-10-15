@@ -31,8 +31,6 @@ Run the following command using Firebase CLI v15.19.1+:
 firebase experiments:enable crashlyticsWebTrace
 ```
 
-**Note:** This command checks your existing setup, enables `cloudtrace.googleapis.com`, and provisions Cloud Trace storage for your project automatically.
-
 ### Step 2: Update SDK Packages
 
 Update your dependencies to ensure you have the preview build containing the tracing and router modules:
@@ -43,7 +41,7 @@ npm install @firebase/app@eap-crashlytics @firebase/crashlytics@eap-crashlytics
 
 ### Step 3: Add Breadcrumbs to your initialization
 
-Breadcrumbs are off by default. To turn them on, set `enableTracing: true` in the `CrashlyticsOptions` you pass when initializing Crashlytics. Follow the guide for your framework:
+Breadcrumbs are off by default. To turn them on, set `enableBreadcrumbs: true` in the `CrashlyticsOptions` you pass when initializing Crashlytics. Follow the guide for your framework:
 
 - 🔺 [Next.js Setup Guide](../src/next/_enable_breadcrumbs.md)
 - ⚛️ [**React Setup Guide**](../src/react/_enable_breadcrumbs.md)
@@ -55,7 +53,7 @@ If you initialize Crashlytics directly without a framework integration, pass the
 import { getCrashlytics } from '@firebase/crashlytics';
 
 -const crashlytics = getCrashlytics(app);
-+const crashlytics = getCrashlytics(app, { enableTracing: true });
++const crashlytics = getCrashlytics(app, { enableBreadcrumbs: true });
 ```
 
 **Note:** Crashlytics must be initialized with the same options everywhere in your app. Calling `getCrashlytics()` with different options for the same app throws an error.
