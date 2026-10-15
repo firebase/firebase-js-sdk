@@ -35,7 +35,7 @@ export class CrashlyticsService implements Crashlytics, _FirebaseService {
     public loggerProvider: LoggerProvider,
     public tracingProvider: TracerProvider | null,
     public attributesStore: AttributesStore,
-    public telemetryStore: TelemetryStore,
+    public telemetryStore?: TelemetryStore,
     public onErrorLogRecordProcessor?: OnErrorLogRecordProcessor,
     public onErrorSpanProcessor?: OnErrorSpanProcessor
   ) {}

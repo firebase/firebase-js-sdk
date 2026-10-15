@@ -24,11 +24,19 @@ import { FirebaseCrashlytics } from '@firebase/crashlytics/react';
 import { CrashlyticsRoutes } from '@firebase/crashlytics/next-navigation';
 import { app } from '../lib/firebase'; // Shared initialization script
 
+const crashlyticsOptions = { enableBreadcrumbs: true };
+
 export function CrashlyticsProvider({ children }: { children: React.ReactNode }) {
   return (
     <>
-      <FirebaseCrashlytics firebaseApp={app} />
-      <CrashlyticsRoutes firebaseApp={app} />
+      <FirebaseCrashlytics
+        firebaseApp={app}
+        crashlyticsOptions={crashlyticsOptions}
+      />
+      <CrashlyticsRoutes
+        firebaseApp={app}
+        crashlyticsOptions={crashlyticsOptions}
+      />
       {children}
     </>
   );
