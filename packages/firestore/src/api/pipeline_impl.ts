@@ -55,22 +55,22 @@ declare module './database' {
 }
 
 /**
- * Executes a pipeline and returns a Promise to represent the asynchronous operation.
+ * Executes a pipeline and returns a Promise that represents the asynchronous operation.
  *
  * The returned Promise can be used to track the progress of the pipeline execution
  * and retrieve the results (or handle any errors) asynchronously.
  *
  * The pipeline results are returned as a {@link @firebase/firestore/pipelines#PipelineSnapshot} that contains
  * a list of {@link @firebase/firestore/pipelines#PipelineResult} objects. Each {@link @firebase/firestore/pipelines#PipelineResult} typically
- * represents a single key/value map that has passed through all the
- * stages of the pipeline, however this might differ depending on the stages involved in the
+ * represents a single key-value map that has passed through all the
+ * stages of the pipeline; however, this might differ depending on the stages involved in the
  * pipeline. For example:
  *
  * <ul>
  *   <li>If there are no stages or only transformation stages, each {@link @firebase/firestore/pipelines#PipelineResult}
  *       represents a single document.</li>
  *   <li>If there is an aggregation, only a single {@link @firebase/firestore/pipelines#PipelineResult} is returned,
- *       representing the aggregated results over the entire dataset .</li>
+ *       representing the aggregated results over the entire dataset.</li>
  *   <li>If there is an aggregation stage with grouping, each {@link @firebase/firestore/pipelines#PipelineResult} represents a
  *       distinct group and its associated aggregated values.</li>
  * </ul>
@@ -89,36 +89,39 @@ declare module './database' {
  */
 export function execute(pipeline: LitePipeline): Promise<PipelineSnapshot>;
 /**
- * Executes a pipeline and returns a Promise to represent the asynchronous operation.
+ * Executes a pipeline and returns a Promise that represents the asynchronous operation.
  *
  * The returned Promise can be used to track the progress of the pipeline execution
  * and retrieve the results (or handle any errors) asynchronously.
  *
  * The pipeline results are returned as a {@link @firebase/firestore/pipelines#PipelineSnapshot} that contains
  * a list of {@link @firebase/firestore/pipelines#PipelineResult} objects. Each {@link @firebase/firestore/pipelines#PipelineResult} typically
- * represents a single key/value map that has passed through all the
- * stages of the pipeline, however this might differ depending on the stages involved in the
+ * represents a single key-value map that has passed through all the
+ * stages of the pipeline; however, this might differ depending on the stages involved in the
  * pipeline. For example:
  *
  * <ul>
  *   <li>If there are no stages or only transformation stages, each {@link @firebase/firestore/pipelines#PipelineResult}
  *       represents a single document.</li>
  *   <li>If there is an aggregation, only a single {@link @firebase/firestore/pipelines#PipelineResult} is returned,
- *       representing the aggregated results over the entire dataset .</li>
+ *       representing the aggregated results over the entire dataset.</li>
  *   <li>If there is an aggregation stage with grouping, each {@link @firebase/firestore/pipelines#PipelineResult} represents a
  *       distinct group and its associated aggregated values.</li>
  * </ul>
  *
  * @example
  * ```typescript
- * const snapshot: PipelineSnapshot = await execute(firestore.pipeline().collection("books")
- *     .where(greaterThan(field("rating"), 4.5))
- *     .select("title", "author", "rating"));
+ * const snapshot: PipelineSnapshot = await execute({
+ *   pipeline: firestore.pipeline().collection("books")
+ *     .where(lessThan(field("rating"), 2))
+ *     .delete(),
+ *   atomic: true
+ * });
  *
  * const results: PipelineResult[] = snapshot.results;
  * ```
  *
- * @param options - Specifies the pipeline to execute and other options for execute.
+ * @param options - Specifies the pipeline to execute and other execution options.
  * @returns A Promise representing the asynchronous pipeline execution.
  */
 export function execute(
@@ -135,7 +138,7 @@ export function execute(
         pipeline: pipelineOrOptions
       };
 
-  const { pipeline, rawOptions, ...rest } = options;
+  const { pipeline, rawOptions, atomic, ...rest } = options;
 
   if (!pipeline._db) {
     return Promise.reject(
@@ -169,34 +172,34 @@ export function execute(
     structuredPipelineOptions
   );
 
-  return firestoreClientExecutePipeline(client, structuredPipeline).then(
-    result => {
-      // Get the execution time from the first result.
-      // firestoreClientExecutePipeline returns at least one PipelineStreamElement
-      // even if the returned document set is empty.
-      const executionTime =
-        result.length > 0 ? result[0].executionTime?.toTimestamp() : undefined;
+  return firestoreClientExecutePipeline(client, structuredPipeline, {
+    atomic
+  }).then(result => {
+    // Get the execution time from the first result.
+    // firestoreClientExecutePipeline returns at least one PipelineStreamElement
+    // even if the returned document set is empty.
+    const executionTime =
+      result.length > 0 ? result[0].executionTime?.toTimestamp() : undefined;
 
-      const docs = result
-        // Currently ignore any response from ExecutePipeline that does
-        // not contain any document data in the `fields` property.
-        .filter(element => !!element.fields)
-        .map(
-          element =>
-            new PipelineResult(
-              userDataWriter,
-              element.fields!,
-              element.key?.path
-                ? new DocumentReference(firestore, null, element.key)
-                : undefined,
-              element.createTime?.toTimestamp(),
-              element.updateTime?.toTimestamp()
-            )
-        );
+    const docs = result
+      // Currently ignore any response from ExecutePipeline that does
+      // not contain any document data in the `fields` property.
+      .filter(element => !!element.fields)
+      .map(
+        element =>
+          new PipelineResult(
+            userDataWriter,
+            element.fields!,
+            element.key?.path
+              ? new DocumentReference(firestore, null, element.key)
+              : undefined,
+            element.createTime?.toTimestamp(),
+            element.updateTime?.toTimestamp()
+          )
+      );
 
-      return new PipelineSnapshot(pipeline, docs, executionTime);
-    }
-  );
+    return new PipelineSnapshot(pipeline, docs, executionTime);
+  });
 }
 
 /**
