@@ -15,18 +15,18 @@ https://github.com/firebase/firebase-js-sdk
 
 |  Function | Description |
 |  --- | --- |
-|  [CrashlyticsRoutes({ firebaseApp, crashlyticsOptions })](./crashlytics_next-navigation.md#crashlyticsroutes_c141224) | A client-side routing component for Next.js App Router that automatically captures navigation events and updates route attributes.<!-- -->This component should be mounted inside a root Client Component layout. |
+|  [CrashlyticsRoutes({ firebaseApp, crashlyticsOptions }, input)](./crashlytics_next-navigation.md#crashlyticsroutes_097ca29) | A client-side routing component for Next.js App Router that automatically captures navigation events and updates route attributes.<!-- -->This component should be mounted inside a root Client Component layout. |
 
 ## Interfaces
 
 |  Interface | Description |
 |  --- | --- |
-|  [Crashlytics](./crashlytics_next-navigation.crashlytics.md#crashlytics_interface) | An instance of the Firebase Crashlytics SDK.<!-- -->Do not create this instance directly. Instead, use [getCrashlytics()](./crashlytics_.md#getcrashlytics_a9d22a1)<!-- -->. |
-|  [CrashlyticsOptions](./crashlytics_next-navigation.crashlyticsoptions.md#crashlyticsoptions_interface) | Options for initializing the Crashlytics service using [getCrashlytics()](./crashlytics_.md#getcrashlytics_a9d22a1)<!-- -->. |
+|  [Crashlytics](./crashlytics_next-navigation.crashlytics.md#crashlytics_interface) | An instance of the Firebase Crashlytics SDK.<!-- -->Do not create this instance directly. Instead, use [getCrashlytics()](./crashlytics.md#getcrashlytics_a9d22a1)<!-- -->. |
+|  [CrashlyticsOptions](./crashlytics_next-navigation.crashlyticsoptions.md#crashlyticsoptions_interface) | Options for initializing the Crashlytics service using [getCrashlytics()](./crashlytics.md#getcrashlytics_a9d22a1)<!-- -->. |
 
 ## function({ firebaseApp, crashlyticsOptions }, ...)
 
-### CrashlyticsRoutes({ firebaseApp, crashlyticsOptions }) {:#crashlyticsroutes_c141224}
+### CrashlyticsRoutes({ firebaseApp, crashlyticsOptions }, input) {:#crashlyticsroutes_097ca29}
 
 A client-side routing component for Next.js App Router that automatically captures navigation events and updates route attributes.
 
@@ -35,7 +35,7 @@ This component should be mounted inside a root Client Component layout.
 <b>Signature:</b>
 
 ```typescript
-export declare function CrashlyticsRoutes({ firebaseApp, crashlyticsOptions }: {
+export declare function CrashlyticsRoutes(input: {
     firebaseApp: FirebaseApp;
     crashlyticsOptions?: CrashlyticsOptions;
 }): null;
@@ -45,7 +45,8 @@ export declare function CrashlyticsRoutes({ firebaseApp, crashlyticsOptions }: {
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  { firebaseApp, crashlyticsOptions } | { firebaseApp: [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->; crashlyticsOptions?: [CrashlyticsOptions](./crashlytics_.crashlyticsoptions.md#crashlyticsoptions_interface)<!-- -->; } |  |
+|  { firebaseApp, crashlyticsOptions } | (not declared) |  |
+|  input | { firebaseApp: [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->; crashlyticsOptions?: [CrashlyticsOptions](./crashlytics_next-navigation.crashlyticsoptions.md#crashlyticsoptions_interface)<!-- -->; } |  |
 
 <b>Returns:</b>
 

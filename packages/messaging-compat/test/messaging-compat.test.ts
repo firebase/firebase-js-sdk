@@ -21,41 +21,64 @@ import * as messagingModuleInSw from '@firebase/messaging/sw';
 import { getFakeApp, getFakeModularMessaging } from './fakes';
 
 import { MessagingCompatImpl } from '../src/messaging-compat';
-import { expect } from 'chai';
-import { stub } from 'sinon';
+
+vi.mock('@firebase/messaging', { spy: true });
+vi.mock('@firebase/messaging/sw', { spy: true });
 
 describe('messagingCompat', () => {
-  const messagingCompat = new MessagingCompatImpl(
-    getFakeApp(),
-    getFakeModularMessaging()
-  );
+  let messagingCompat: MessagingCompatImpl;
+  let getTokenSpy: any;
+  let deleteTokenSpy: any;
+  let onMessageSpy: any;
+  let onBackgroundMessageSpy: any;
 
-  //Stubs
-  const getTokenStub = stub(messagingModule, 'getToken');
-  const deleteTokenStub = stub(messagingModule, 'deleteToken');
-  const onMessageStub = stub(messagingModule, 'onMessage');
-  const onBackgroundMessageStub = stub(
-    messagingModuleInSw,
-    'onBackgroundMessage'
-  );
-
-  it('routes messagingCompat.getToken to modular SDK', () => {
-    void messagingCompat.getToken();
-    expect(getTokenStub.called).to.be.true;
+  beforeEach(() => {
+    messagingCompat = new MessagingCompatImpl(
+      getFakeApp(),
+      getFakeModularMessaging()
+    );
+    getTokenSpy = vi
+      .spyOn(messagingModule, 'getToken')
+      .mockResolvedValue('fake-token');
+    deleteTokenSpy = vi
+      .spyOn(messagingModule, 'deleteToken')
+      .mockResolvedValue(true);
+    onMessageSpy = vi
+      .spyOn(messagingModule, 'onMessage')
+      .mockReturnValue(() => {});
+    onBackgroundMessageSpy = vi
+      .spyOn(messagingModuleInSw, 'onBackgroundMessage')
+      .mockReturnValue(() => {});
   });
 
-  it('routes messagingCompat.deleteToken to modular SDK', () => {
-    void messagingCompat.deleteToken();
-    expect(deleteTokenStub.called).to.be.true;
+  it('routes messagingCompat.getToken to modular SDK', async () => {
+    await messagingCompat.getToken();
+    expect(getTokenSpy).toHaveBeenCalledWith(
+      messagingCompat._delegate,
+      undefined
+    );
+  });
+
+  it('routes messagingCompat.deleteToken to modular SDK', async () => {
+    await messagingCompat.deleteToken();
+    expect(deleteTokenSpy).toHaveBeenCalledWith(messagingCompat._delegate);
   });
 
   it('routes messagingCompat.onMessage to modular SDK', () => {
-    messagingCompat.onMessage(_ => {});
-    expect(onMessageStub.called).to.be.true;
+    const nextFn = (): void => {};
+    messagingCompat.onMessage(nextFn);
+    expect(onMessageSpy).toHaveBeenCalledWith(
+      messagingCompat._delegate,
+      nextFn
+    );
   });
 
   it('routes messagingCompat.onBackgroundMessage to modular SDK', () => {
-    messagingCompat.onBackgroundMessage(_ => {});
-    expect(onBackgroundMessageStub.called).to.be.true;
+    const nextFn = (): void => {};
+    messagingCompat.onBackgroundMessage(nextFn);
+    expect(onBackgroundMessageSpy).toHaveBeenCalledWith(
+      messagingCompat._delegate,
+      nextFn
+    );
   });
 });

@@ -71,8 +71,7 @@ export interface SignInWithPhoneNumberRequest {
   tenantId?: string;
 }
 
-export interface LinkWithPhoneNumberRequest
-  extends SignInWithPhoneNumberRequest {
+export interface LinkWithPhoneNumberRequest extends SignInWithPhoneNumberRequest {
   idToken: string;
 }
 
@@ -118,8 +117,7 @@ export async function linkWithPhoneNumber(
   return response;
 }
 
-interface VerifyPhoneNumberForExistingRequest
-  extends SignInWithPhoneNumberRequest {
+interface VerifyPhoneNumberForExistingRequest extends SignInWithPhoneNumberRequest {
   operation: 'REAUTH';
 }
 

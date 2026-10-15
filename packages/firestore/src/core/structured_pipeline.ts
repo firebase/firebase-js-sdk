@@ -50,9 +50,7 @@ export class StructuredPipelineOptions implements UserData {
   }
 }
 
-export class StructuredPipeline
-  implements ProtoSerializable<StructuredPipelineProto>
-{
+export class StructuredPipeline implements ProtoSerializable<StructuredPipelineProto> {
   constructor(
     private pipeline: ProtoSerializable<PipelineProto>,
     private options: StructuredPipelineOptions

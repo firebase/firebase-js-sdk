@@ -226,7 +226,10 @@ export interface SnapshotCallback {
  * Since every Firebase reference is a query, Firebase inherits from this object.
  */
 export class Query implements Compat<ExpQuery> {
-  constructor(readonly database: Database, readonly _delegate: ExpQuery) {}
+  constructor(
+    readonly database: Database,
+    readonly _delegate: ExpQuery
+  ) {}
 
   on(
     eventType: string,

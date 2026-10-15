@@ -15,8 +15,7 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-import { stub, spy } from 'sinon';
+import { expect, vi } from 'vitest';
 import '../test/setup';
 import {
   initializeApp,
@@ -417,10 +416,13 @@ describe('API tests', () => {
     });
 
     it('does not throw on a nonexistent App (default name) if a defaults object exists', () => {
-      global.__FIREBASE_DEFAULTS__ = { config: { apiKey: 'abcd' } };
-      const app = getApp();
-      expect(app.options.apiKey).to.equal('abcd');
-      global.__FIREBASE_DEFAULTS__ = undefined;
+      globalThis.__FIREBASE_DEFAULTS__ = { config: { apiKey: 'abcd' } };
+      try {
+        const app = getApp();
+        expect(app.options.apiKey).to.equal('abcd');
+      } finally {
+        globalThis.__FIREBASE_DEFAULTS__ = undefined;
+      }
     });
   });
 
@@ -500,37 +502,39 @@ describe('API tests', () => {
     });
 
     it('will register an official version component without warnings', () => {
-      const warnStub = stub(console, 'warn');
+      const warnStub = vi.spyOn(console, 'warn').mockImplementation(() => {});
       const initialSize = _components.size;
 
       registerVersion('@firebase/analytics', '1.2.3');
       expect(_components.get('fire-analytics-version')).to.exist;
       expect(_components.size).to.equal(initialSize + 1);
 
-      expect(warnStub.called).to.be.false;
+      expect(warnStub).not.toHaveBeenCalled();
     });
 
     it('will register an arbitrary version component without warnings', () => {
-      const warnStub = stub(console, 'warn');
+      const warnStub = vi.spyOn(console, 'warn').mockImplementation(() => {});
       const initialSize = _components.size;
 
       registerVersion('angularfire', '1.2.3');
       expect(_components.get('angularfire-version')).to.exist;
       expect(_components.size).to.equal(initialSize + 1);
 
-      expect(warnStub.called).to.be.false;
+      expect(warnStub).not.toHaveBeenCalled();
     });
 
     it('will do nothing if registerVersion() is given illegal characters', () => {
-      const warnStub = stub(console, 'warn');
+      const warnStub = vi.spyOn(console, 'warn').mockImplementation(() => {});
       const initialSize = _components.size;
 
       registerVersion('remote config', '1.2.3');
-      expect(warnStub.args[0][1]).to.include('library name "remote config"');
+      expect(warnStub.mock.calls[0][1]).to.include(
+        'library name "remote config"'
+      );
       expect(_components.size).to.equal(initialSize);
 
       registerVersion('remote-config', '1.2/3');
-      expect(warnStub.args[1][1]).to.include('version name "1.2/3"');
+      expect(warnStub.mock.calls[1][1]).to.include('version name "1.2/3"');
       expect(_components.size).to.equal(initialSize);
     });
   });
@@ -542,9 +546,9 @@ describe('API tests', () => {
       });
 
       it(`respects log level set through setLogLevel()`, () => {
-        const warnSpy = spy(console, 'warn');
-        const infoSpy = spy(console, 'info');
-        const logSpy = spy(console, 'log');
+        const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+        const infoSpy = vi.spyOn(console, 'info').mockImplementation(() => {});
+        const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
         const app = initializeApp({});
         _registerComponent(
           new Component(
@@ -552,19 +556,19 @@ describe('API tests', () => {
             () => {
               const logger = new Logger('@firebase/logger-test');
               logger.warn('hello');
-              expect(warnSpy.called).to.be.true;
+              expect(warnSpy).toHaveBeenCalled();
               setLogLevel('warn');
               logger.info('hi');
-              expect(infoSpy.called).to.be.false;
+              expect(infoSpy).not.toHaveBeenCalled();
               logger.log('hi');
-              expect(logSpy.called).to.be.false;
-              logSpy.resetHistory();
-              infoSpy.resetHistory();
+              expect(logSpy).not.toHaveBeenCalled();
+              logSpy.mockClear();
+              infoSpy.mockClear();
               setLogLevel('debug');
               logger.info('hi');
-              expect(infoSpy.called).to.be.true;
+              expect(infoSpy).toHaveBeenCalled();
               logger.log('hi');
-              expect(logSpy.called).to.be.true;
+              expect(logSpy).toHaveBeenCalled();
               return {};
             },
             ComponentType.PUBLIC
@@ -575,7 +579,7 @@ describe('API tests', () => {
       });
 
       it(`correctly triggers callback given to onLog()`, () => {
-        const infoSpy = spy(console, 'info');
+        const infoSpy = vi.spyOn(console, 'info').mockImplementation(() => {});
         let result: any = null;
         // Note: default log level is INFO.
         const app = initializeApp({});
@@ -592,7 +596,7 @@ describe('API tests', () => {
               expect(result.message).to.equal('hi');
               expect(result.args).to.deep.equal(['hi']);
               expect(result.type).to.equal('@firebase/logger-test');
-              expect(infoSpy.called).to.be.true;
+              expect(infoSpy).toHaveBeenCalled();
               return {};
             },
             ComponentType.PUBLIC

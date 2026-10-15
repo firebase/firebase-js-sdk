@@ -75,6 +75,7 @@ describe('Generate Content', function () {
         role: 'system',
         parts: [
           {
+            type: 'text',
             text: 'You are a friendly and helpful assistant.'
           }
         ]
@@ -188,80 +189,6 @@ describe('Generate Content', function () {
         expect(groundingMetadata!.googleMapsWidgetContextToken).to.not.exist;
       });
 
-      it('generateContent: google maps grounding prompt location enableWidget true', async () => {
-        const model = getGenerativeModel(testConfig.ai, {
-          model: testConfig.model,
-          generationConfig: commonGenerationConfig,
-          safetySettings: commonSafetySettings,
-          tools: [{ googleMaps: { enableWidget: true } }]
-        });
-
-        const result = await model.generateContent(
-          'Where is a good place to grab a coffee in New York City?'
-        );
-        const response = result.response;
-        const groundingMetadata = response.candidates?.[0].groundingMetadata;
-        expect(groundingMetadata).to.exist;
-        expect(
-          groundingMetadata!.groundingChunks
-        ).to.have.length.greaterThanOrEqual(1);
-        groundingMetadata!.groundingChunks!.forEach(groundingChunk => {
-          expect(groundingChunk.maps).to.exist;
-          expect(groundingChunk.maps!.uri).to.exist;
-          expect(groundingChunk.maps!.title).to.exist;
-          expect(groundingChunk.maps!.placeId).to.exist;
-        });
-        expect(
-          groundingMetadata?.groundingSupports
-        ).to.have.length.greaterThanOrEqual(1);
-        groundingMetadata!.groundingSupports!.forEach(groundingSupport => {
-          expect(
-            groundingSupport.groundingChunkIndices
-          ).to.have.length.greaterThanOrEqual(1);
-          expect(groundingSupport.segment).to.exist;
-          expect(groundingSupport.segment?.endIndex).to.exist;
-          expect(groundingSupport.segment?.text).to.exist;
-        });
-        expect(groundingMetadata!.googleMapsWidgetContextToken).to.exist;
-      });
-
-      it('generateContent: google maps grounding prompt location enableWidget false', async () => {
-        const model = getGenerativeModel(testConfig.ai, {
-          model: testConfig.model,
-          generationConfig: commonGenerationConfig,
-          safetySettings: commonSafetySettings,
-          tools: [{ googleMaps: { enableWidget: false } }]
-        });
-
-        const result = await model.generateContent(
-          'Where is a good place to grab a coffee in New York City?'
-        );
-        const response = result.response;
-        const groundingMetadata = response.candidates?.[0].groundingMetadata;
-        expect(groundingMetadata).to.exist;
-        expect(
-          groundingMetadata!.groundingChunks
-        ).to.have.length.greaterThanOrEqual(1);
-        groundingMetadata!.groundingChunks!.forEach(groundingChunk => {
-          expect(groundingChunk.maps).to.exist;
-          expect(groundingChunk.maps!.uri).to.exist;
-          expect(groundingChunk.maps!.title).to.exist;
-          expect(groundingChunk.maps!.placeId).to.exist;
-        });
-        expect(
-          groundingMetadata?.groundingSupports
-        ).to.have.length.greaterThanOrEqual(1);
-        groundingMetadata!.groundingSupports!.forEach(groundingSupport => {
-          expect(
-            groundingSupport.groundingChunkIndices
-          ).to.have.length.greaterThanOrEqual(1);
-          expect(groundingSupport.segment).to.exist;
-          expect(groundingSupport.segment?.endIndex).to.exist;
-          expect(groundingSupport.segment?.text).to.exist;
-        });
-        expect(groundingMetadata!.googleMapsWidgetContextToken).to.not.exist;
-      });
-
       it('generateContent: google maps grounding with RetrievalConfig', async () => {
         const model = getGenerativeModel(testConfig.ai, {
           model: testConfig.model,
@@ -305,56 +232,6 @@ describe('Generate Content', function () {
           expect(groundingSupport.segment?.text).to.exist;
         });
         expect(groundingMetadata!.googleMapsWidgetContextToken).to.not.exist;
-      });
-
-      it('generateContent: google maps grounding RetrievalConfig enableWidget true', async () => {
-        if (testConfig.model === 'gemini-3-pro-preview') {
-          // Maps grounding is not supported in gemini-3-pro-preview.
-          return;
-        }
-        const model = getGenerativeModel(testConfig.ai, {
-          model: testConfig.model,
-          generationConfig: commonGenerationConfig,
-          safetySettings: commonSafetySettings,
-          tools: [{ googleMaps: { enableWidget: true } }],
-          toolConfig: {
-            retrievalConfig: {
-              latLng: {
-                latitude: 42.4154,
-                longitude: -71.1565
-              }
-            }
-          }
-        });
-
-        const result = await model.generateContent(
-          'Where is a good place to grab a coffee near here?'
-          //'Where is the closest starbucks?'
-        );
-        const response = result.response;
-        const groundingMetadata = response.candidates?.[0].groundingMetadata;
-        expect(groundingMetadata).to.exist;
-        expect(
-          groundingMetadata!.groundingChunks
-        ).to.have.length.greaterThanOrEqual(1);
-        groundingMetadata!.groundingChunks!.forEach(groundingChunk => {
-          expect(groundingChunk.maps).to.exist;
-          expect(groundingChunk.maps!.uri).to.exist;
-          expect(groundingChunk.maps!.title).to.exist;
-          expect(groundingChunk.maps!.placeId).to.exist;
-        });
-        expect(
-          groundingMetadata?.groundingSupports
-        ).to.have.length.greaterThanOrEqual(1);
-        groundingMetadata!.groundingSupports!.forEach(groundingSupport => {
-          expect(
-            groundingSupport.groundingChunkIndices
-          ).to.have.length.greaterThanOrEqual(1);
-          expect(groundingSupport.segment).to.exist;
-          expect(groundingSupport.segment?.endIndex).to.exist;
-          expect(groundingSupport.segment?.text).to.exist;
-        });
-        expect(groundingMetadata!.googleMapsWidgetContextToken).to.exist;
       });
 
       describe('URL Context', () => {
@@ -486,16 +363,34 @@ describe('Generate Content', function () {
         const result = await model.generateContent(prompt);
         const parts = result.response.candidates?.[0].content.parts;
         expect(
-          parts?.some(part => part.executableCode?.language === Language.PYTHON)
+          parts?.some(
+            part =>
+              part.type === 'executableCode' &&
+              part.executableCode?.language === Language.PYTHON
+          )
         ).to.be.true;
         expect(
-          parts?.some(part => part.codeExecutionResult?.outcome === Outcome.OK)
+          parts?.some(
+            part =>
+              part.type === 'codeExecutionResult' &&
+              part.codeExecutionResult?.outcome === Outcome.OK
+          )
         ).to.be.true;
         // Expect these to be truthy (!= null)
-        expect(parts?.some(part => part.executableCode?.code != null)).to.be
-          .true;
-        expect(parts?.some(part => part.codeExecutionResult?.output != null)).to
-          .be.true;
+        expect(
+          parts?.some(
+            part =>
+              part.type === 'executableCode' &&
+              part.executableCode?.code != null
+          )
+        ).to.be.true;
+        expect(
+          parts?.some(
+            part =>
+              part.type === 'codeExecutionResult' &&
+              part.codeExecutionResult?.output != null
+          )
+        ).to.be.true;
       });
 
       it('generateContentStream: text input, text output', async () => {

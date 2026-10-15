@@ -54,8 +54,7 @@ interface NotificationOptionsExperimental extends NotificationOptions {
   readonly vibrate?: VibratePattern;
 }
 
-export interface NotificationPayloadInternal
-  extends NotificationOptionsExperimental {
+export interface NotificationPayloadInternal extends NotificationOptionsExperimental {
   title: string;
   // Supported in the Legacy Send API.
   // See:https://firebase.google.com/docs/cloud-messaging/xmpp-server-ref.

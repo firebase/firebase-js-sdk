@@ -18,6 +18,7 @@
 import { SingleRequestOptions, AIErrorCode, ErrorDetails } from '../types';
 import { AIError } from '../errors';
 import { ApiSettings } from '../types/internal';
+import { AgentPlatformBackend } from '../backend';
 import {
   DEFAULT_DOMAIN,
   DEFAULT_FETCH_TIMEOUT_MS,
@@ -26,7 +27,7 @@ import {
   PACKAGE_VERSION
 } from '../constants';
 import { logger } from '../logger';
-import { BackendType, InferenceMode } from '../public-types';
+import { InferenceMode } from '../public-types';
 
 export const TIMEOUT_EXPIRED_MESSAGE = 'Timeout has expired.';
 export const ABORT_ERROR_NAME = 'AbortError';
@@ -34,14 +35,12 @@ export const ABORT_ERROR_NAME = 'AbortError';
 export const enum Task {
   GENERATE_CONTENT = 'generateContent',
   STREAM_GENERATE_CONTENT = 'streamGenerateContent',
-  COUNT_TOKENS = 'countTokens',
-  PREDICT = 'predict'
+  COUNT_TOKENS = 'countTokens'
 }
 
 export const enum ServerPromptTemplateTask {
   TEMPLATE_GENERATE_CONTENT = 'templateGenerateContent',
-  TEMPLATE_STREAM_GENERATE_CONTENT = 'templateStreamGenerateContent',
-  TEMPLATE_PREDICT = 'templatePredict'
+  TEMPLATE_STREAM_GENERATE_CONTENT = 'templateStreamGenerateContent'
 }
 
 interface BaseRequestURLParams {
@@ -127,10 +126,10 @@ export class WebSocketUrl {
   }
 
   private get pathname(): string {
-    if (this.apiSettings.backend.backendType === BackendType.GOOGLE_AI) {
-      return 'ws/google.firebase.vertexai.v1beta.GenerativeService/BidiGenerateContent';
+    if (this.apiSettings.backend instanceof AgentPlatformBackend) {
+      return `ws/google.firebase.vertexai.v1beta.LlmBidiService/BidiGenerateContent/locations/${this.apiSettings.backend.location}`;
     } else {
-      return `ws/google.firebase.vertexai.v1beta.LlmBidiService/BidiGenerateContent/locations/${this.apiSettings.location}`;
+      return 'ws/google.firebase.vertexai.v1beta.GenerativeService/BidiGenerateContent';
     }
   }
 }

@@ -139,6 +139,44 @@ function cleanup() {
   }
 }
 
+/**
+ * Discovers subpackages by inspecting `exports` in each workspace package's `package.json`.
+ * Matches each export subpath against generated `*.api.json` files in `temp/` and produces
+ * `--subpackage <npmPackageName>=<canonicalName>` arguments for `api-documenter`
+ * (e.g. `--subpackage @firebase/firestore-lite=@firebase/firestore/lite`).
+ */
+async function getSubpackageFlags(): Promise<string[]> {
+  const packageDirectories = (
+    await mapWorkspaceToPackages([`${projectRoot}/packages/*`])
+  ).filter(path => fs.existsSync(path));
+
+  const subpackageFlags: string[] = [];
+  for (const pkgDir of packageDirectories) {
+    const pkgJsonPath = join(pkgDir, 'package.json');
+    if (!fs.existsSync(pkgJsonPath)) continue;
+    const pkgJson = JSON.parse(fs.readFileSync(pkgJsonPath, 'utf8'));
+    const parentPkgName: string | undefined = pkgJson.name;
+    if (!parentPkgName || !pkgJson.exports) continue;
+
+    for (const exportKey of Object.keys(pkgJson.exports)) {
+      if (exportKey === '.' || exportKey === './package.json') continue;
+      const subpath = exportKey.replace(/^\.\//, '');
+      const unscopedParentName = parentPkgName.startsWith('@')
+        ? parentPkgName.split('/')[1]
+        : parentPkgName;
+      const unscopedSubpkgName = `${unscopedParentName}-${subpath.replace(/\//g, '-')}`;
+
+      // Only include subpackages that actually have an .api.json file in temp/
+      if (fs.existsSync(`${projectRoot}/temp/${unscopedSubpkgName}.api.json`)) {
+        const canonicalName = `${parentPkgName}/${subpath}`;
+        const npmPkgName = `${parentPkgName}-${subpath.replace(/\//g, '-')}`;
+        subpackageFlags.push('--subpackage', `${npmPkgName}=${canonicalName}`);
+      }
+    }
+  }
+  return subpackageFlags;
+}
+
 async function generateToc() {
   console.log(`Temporarily renaming excluded packages' json files.`);
   for (const excludedPackage of EXCLUDED_PACKAGES) {
@@ -149,11 +187,12 @@ async function generateToc() {
       );
     }
   }
+  const subpackageFlags = await getSubpackageFlags();
   try {
     await spawn(
       'yarn',
       [
-        'api-documenter-devsite',
+        'api-documenter',
         'toc',
         '--input',
         'temp',
@@ -161,7 +200,8 @@ async function generateToc() {
         'docs-devsite',
         '-p',
         '/docs/reference/js',
-        '-j'
+        '-j',
+        ...subpackageFlags
       ],
       { stdio: 'inherit' }
     );
@@ -180,7 +220,7 @@ async function generateDocs(
   skipBuild: boolean = false
 ) {
   const outputFolder = forDevsite ? 'docs-devsite' : 'docs';
-  const command = forDevsite ? 'api-documenter-devsite' : 'api-documenter';
+  const command = 'api-documenter';
 
   console.log(`Temporarily modifying auth api-extractor.json for docgen.`);
   // Use a special d.ts file for auth for doc gen only.
@@ -263,38 +303,38 @@ async function generateDocs(
     .map(path => join(path, 'temp'))
     .filter(path => fs.existsSync(path));
   for (const dir of apiJsonDirectories) {
-    const paths = await new Promise<string[]>(resolve =>
+    const apiJsonPaths = await new Promise<string[]>(resolve =>
       glob(`${dir}/*.api.json`, (err, paths) => {
         if (err) throw err;
         resolve(paths);
       })
     );
 
-    if (paths.length === 0) {
+    if (apiJsonPaths.length === 0) {
       throw Error(`*.api.json file is missing in ${dir}`);
     }
 
-    // there will be only 1 api.json file
-    const fileName = paths[0].split('/').pop();
-    fs.copyFileSync(paths[0], `${tmpDir}/${fileName}`);
+    for (const apiJsonPath of apiJsonPaths) {
+      const fileName = apiJsonPath.split('/').pop()!;
+      fs.copyFileSync(apiJsonPath, `${tmpDir}/${fileName}`);
+    }
   }
 
-  await spawn(
-    'yarn',
-    [
-      command,
-      'markdown',
-      '--input',
-      'temp',
-      '--output',
-      outputFolder,
-      '--project',
-      'js',
-      '--sort-functions',
-      PREFERRED_PARAMS.join(',')
-    ],
-    { stdio: 'inherit' }
-  );
+  const subpackageFlags = await getSubpackageFlags();
+  const args = [
+    command,
+    'markdown',
+    '--input',
+    'temp',
+    '--output',
+    outputFolder,
+    '--project',
+    'js',
+    '--sort-functions',
+    PREFERRED_PARAMS.join(','),
+    ...subpackageFlags
+  ];
+  await spawn('yarn', args, { stdio: 'inherit' });
 
   if (forDevsite) {
     const mdFiles = fs.readdirSync(join(projectRoot, outputFolder));

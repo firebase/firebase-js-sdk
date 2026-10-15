@@ -197,11 +197,7 @@ function resolveDeferredValue(
   serverValues: Indexable
 ): Node {
   const rawPri = node.getPriority().val() as
-    | Indexable
-    | boolean
-    | null
-    | number
-    | string;
+    Indexable | boolean | null | number | string;
   const priority = resolveDeferredLeafValue(
     rawPri,
     existingVal.getImmediateChild('.priority'),

@@ -14,9 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import '../setup';
-import { expect } from 'chai';
-import * as sinon from 'sinon';
 import { Experiment } from '../../src/abt/experiment';
 import { FirebaseExperimentDescription } from '../../src/public_types';
 import { Storage } from '../../src/storage/storage';
@@ -38,11 +35,11 @@ describe('Experiment', () => {
 
   describe('updateActiveExperiments', () => {
     beforeEach(() => {
-      storage.getActiveExperiments = sinon.stub();
-      storage.setActiveExperiments = sinon.stub();
-      analyticsProvider.getImmediate = sinon.stub().returns({
-        setUserProperties: sinon.stub(),
-        logEvent: sinon.stub()
+      storage.getActiveExperiments = vi.fn();
+      storage.setActiveExperiments = vi.fn();
+      analyticsProvider.getImmediate = vi.fn().mockReturnValue({
+        setUserProperties: vi.fn(),
+        logEvent: vi.fn()
       });
     });
 
@@ -71,17 +68,17 @@ describe('Experiment', () => {
         }
       ];
       const expectedStoredExperiments = new Set(['_exp_3', '_exp_1', '_exp_2']);
-      storage.getActiveExperiments = sinon
-        .stub()
-        .returns(new Set(['_exp_1', '_exp_2']));
+      storage.getActiveExperiments = vi
+        .fn()
+        .mockReturnValue(new Set(['_exp_1', '_exp_2']));
       const analytics = analyticsProvider.getImmediate();
 
       await experiment.updateActiveExperiments(latestExperiments);
 
-      expect(storage.setActiveExperiments).to.have.been.calledWith(
+      expect(storage.setActiveExperiments).toHaveBeenCalledWith(
         expectedStoredExperiments
       );
-      expect(analytics.setUserProperties).to.have.been.calledWith({
+      expect(analytics.setUserProperties).toHaveBeenCalledWith({
         'firebase_exp_3': '1',
         'firebase_exp_1': '2',
         'firebase_exp_2': '1'
@@ -99,17 +96,17 @@ describe('Experiment', () => {
         }
       ];
       const expectedStoredExperiments = new Set(['_exp_1']);
-      storage.getActiveExperiments = sinon
-        .stub()
-        .returns(new Set(['_exp_1', '_exp_2']));
+      storage.getActiveExperiments = vi
+        .fn()
+        .mockReturnValue(new Set(['_exp_1', '_exp_2']));
       const analytics = analyticsProvider.getImmediate();
 
       await experiment.updateActiveExperiments(latestExperiments);
 
-      expect(storage.setActiveExperiments).to.have.been.calledWith(
+      expect(storage.setActiveExperiments).toHaveBeenCalledWith(
         expectedStoredExperiments
       );
-      expect(analytics.setUserProperties).to.have.been.calledWith({
+      expect(analytics.setUserProperties).toHaveBeenCalledWith({
         'firebase_exp_2': null
       });
     });

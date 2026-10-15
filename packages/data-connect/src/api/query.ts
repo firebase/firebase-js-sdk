@@ -33,8 +33,10 @@ import {
 /**
  * QueryRef object
  */
-export interface QueryRef<Data, Variables>
-  extends OperationRef<Data, Variables> {
+export interface QueryRef<Data, Variables> extends OperationRef<
+  Data,
+  Variables
+> {
   refType: typeof QUERY_STR;
 }
 
@@ -52,16 +54,19 @@ export type InternalQueryResult<Data, Variables> = QueryResult<
 /**
  * Result of `executeQuery`
  */
-export interface QueryResult<Data, Variables>
-  extends DataConnectResult<Data, Variables> {
+export interface QueryResult<Data, Variables> extends DataConnectResult<
+  Data,
+  Variables
+> {
   ref: QueryRef<Data, Variables>;
   toJSON: () => SerializedRef<Data, Variables>;
 }
 /**
  * Promise returned from `executeQuery`
  */
-export interface QueryPromise<Data, Variables>
-  extends Promise<QueryResult<Data, Variables>> {
+export interface QueryPromise<Data, Variables> extends Promise<
+  QueryResult<Data, Variables>
+> {
   // reserved for special actions like cancellation
 }
 

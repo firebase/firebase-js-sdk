@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,17 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-
 import {
   arrayRemove,
   arrayUnion,
   increment,
+  minimum,
+  maximum,
   Timestamp,
   serverTimestamp,
-  deleteField
+  deleteField,
+  Int32Value,
+  Decimal128Value
 } from '../../../src';
 import { MutableDocument } from '../../../src/model/document';
 import { FieldMask } from '../../../src/model/field_mask';
@@ -39,8 +41,17 @@ import {
 import { serverTimestamp as serverTimestampInternal } from '../../../src/model/server_timestamps';
 import {
   ArrayRemoveTransformOperation,
-  ArrayUnionTransformOperation
+  ArrayUnionTransformOperation,
+  NumericIncrementTransformOperation,
+  NumericMinimumTransformOperation,
+  NumericMaximumTransformOperation,
+  applyNumericIncrementTransformOperationToLocalView,
+  applyNumericMinimumTransformOperationToLocalView,
+  applyNumericMaximumTransformOperationToLocalView,
+  NumericTransformOperation
 } from '../../../src/model/transform_operation';
+import { Value as ProtoValue } from '../../../src/protos/firestore_proto_api';
+import { Serializer } from '../../../src/remote/number_serializer';
 import { Dict } from '../../../src/util/obj';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import {
@@ -66,6 +77,7 @@ describe('Mutation', () => {
   addEqualityMatcher();
 
   const timestamp = Timestamp.now();
+  const dummySerializer = { useProto3Json: false } as unknown as Serializer;
 
   /**
    * For each document in `docs`, calculate the overlay mutations of each
@@ -137,9 +149,8 @@ describe('Mutation', () => {
       );
     }
 
-    expect(docForOverlay).to.deep.equal(
-      docForMutations,
-      getDescription(doc, mutations, overlay)
+    expect(docForOverlay, getDescription(doc, mutations, overlay)).toEqual(
+      docForMutations
     );
   }
 
@@ -154,7 +165,7 @@ describe('Mutation', () => {
       /* previousMask= */ null,
       timestamp
     );
-    expect(document).to.deep.equal(
+    expect(document).toEqual(
       doc('collection/key', 0, { bar: 'bar-value' }).setHasLocalMutations()
     );
   });
@@ -173,7 +184,7 @@ describe('Mutation', () => {
       /* previousMask= */ null,
       timestamp
     );
-    expect(document).to.deep.equal(
+    expect(document).toEqual(
       doc('collection/key', 0, {
         foo: { bar: 'new-bar-value' },
         baz: 'baz-value'
@@ -197,7 +208,7 @@ describe('Mutation', () => {
       /* previousMask= */ null,
       timestamp
     );
-    expect(document).to.deep.equal(
+    expect(document).toEqual(
       doc('collection/key', 0, {
         foo: { bar: 'new-bar-value' }
       }).setHasLocalMutations()
@@ -220,7 +231,7 @@ describe('Mutation', () => {
       /* previousMask= */ null,
       timestamp
     );
-    expect(document).to.deep.equal(
+    expect(document).toEqual(
       doc('collection/key', 0, {
         foo: { bar: 'new-bar-value' }
       }).setHasLocalMutations()
@@ -241,7 +252,7 @@ describe('Mutation', () => {
       /* previousMask= */ null,
       timestamp
     );
-    expect(document).to.deep.equal(
+    expect(document).toEqual(
       doc('collection/key', 0, {
         foo: { baz: 'baz-value' }
       }).setHasLocalMutations()
@@ -263,7 +274,7 @@ describe('Mutation', () => {
       /* previousMask= */ null,
       timestamp
     );
-    expect(document).to.deep.equal(
+    expect(document).toEqual(
       doc('collection/key', 0, {
         foo: { bar: 'new-bar-value' },
         baz: 'baz-value'
@@ -280,7 +291,7 @@ describe('Mutation', () => {
       /* previousMask= */ null,
       timestamp
     );
-    expect(document).to.deep.equal(deletedDoc('collection/key', 0));
+    expect(document).toEqual(deletedDoc('collection/key', 0));
   });
 
   it('can apply local serverTimestamp transforms to documents', () => {
@@ -306,7 +317,7 @@ describe('Mutation', () => {
     data.set(field('foo.bar'), serverTimestampInternal(timestamp, null));
     const expectedDoc = doc('collection/key', 0, data).setHasLocalMutations();
 
-    expect(document).to.deep.equal(expectedDoc);
+    expect(document).toEqual(expectedDoc);
   });
 
   // NOTE: This is more a test of UserDataReader code than Mutation code but
@@ -317,17 +328,17 @@ describe('Mutation', () => {
       a: arrayUnion('tag'),
       'bar.baz': arrayUnion(true, { nested: { a: [1, 2] } })
     });
-    expect(transform.fieldTransforms).to.have.lengthOf(2);
+    expect(transform.fieldTransforms).toHaveLength(2);
 
     const first = transform.fieldTransforms[0];
-    expect(first.field).to.deep.equal(field('a'));
-    expect(first.transform).to.deep.equal(
+    expect(first.field).toEqual(field('a'));
+    expect(first.transform).toEqual(
       new ArrayUnionTransformOperation([wrap('tag')])
     );
 
     const second = transform.fieldTransforms[1];
-    expect(second.field).to.deep.equal(field('bar.baz'));
-    expect(second.transform).to.deep.equal(
+    expect(second.field).toEqual(field('bar.baz'));
+    expect(second.transform).toEqual(
       new ArrayUnionTransformOperation([
         wrap(true),
         wrap({ nested: { a: [1, 2] } })
@@ -342,11 +353,11 @@ describe('Mutation', () => {
     const transform = patchMutation('collection/key', {
       foo: arrayRemove('tag')
     });
-    expect(transform.fieldTransforms).to.have.lengthOf(1);
+    expect(transform.fieldTransforms).toHaveLength(1);
 
     const first = transform.fieldTransforms[0];
-    expect(first.field).to.deep.equal(field('foo'));
-    expect(first.transform).to.deep.equal(
+    expect(first.field).toEqual(field('foo'));
+    expect(first.transform).toEqual(
       new ArrayRemoveTransformOperation([wrap('tag')])
     );
   });
@@ -474,7 +485,7 @@ describe('Mutation', () => {
       0,
       expectedData
     ).setHasLocalMutations();
-    expect(document).to.deep.equal(expectedDoc);
+    expect(document).toEqual(expectedDoc);
   }
 
   it('can apply server-acked serverTimestamp transform to documents', () => {
@@ -495,7 +506,7 @@ describe('Mutation', () => {
     ]);
     mutationApplyToRemoteDocument(transform, document, mutationResult);
 
-    expect(document).to.deep.equal(
+    expect(document).toEqual(
       doc('collection/key', 1, {
         foo: { bar: timestamp.toDate() },
         baz: 'baz-value'
@@ -515,7 +526,7 @@ describe('Mutation', () => {
     const mutationResult = new MutationResult(version(1), [null, null]);
     mutationApplyToRemoteDocument(transform, document, mutationResult);
 
-    expect(document).to.deep.equal(
+    expect(document).toEqual(
       doc('collection/key', 1, {
         array1: [1, 2, 3],
         array2: ['b']
@@ -564,6 +575,501 @@ describe('Mutation', () => {
     verifyTransform(baseDoc, transform, expected);
   });
 
+  // Although the API restricts increment operands to standard JS numbers (not BSON numbers),
+  // the underlying model class represents a generic Firestore transform where the operand can
+  // be any valid ProtoValue (including BSON Int32Value/Decimal128Value). We test these cases to
+  // ensure the model layer's local evaluation is robust.
+
+  function verifyModelTransform<T extends NumericTransformOperation>(
+    OpClass: new (serializer: Serializer, operand: ProtoValue) => T,
+    applyFn: (op: T, base: ProtoValue | null) => ProtoValue,
+    baseValue: unknown,
+    operandValue: unknown,
+    expectedValue: unknown
+  ): void {
+    const op = new OpClass(dummySerializer, wrap(operandValue));
+    const res = applyFn(op, baseValue === null ? null : wrap(baseValue));
+    expect(res).toEqual(wrap(expectedValue));
+  }
+
+  describe('Model-level increment evaluation', () => {
+    it('increment(Int32Value(10), Int32Value(5)) => Int32Value(15)', () => {
+      verifyModelTransform(
+        NumericIncrementTransformOperation,
+        applyNumericIncrementTransformOperationToLocalView,
+        new Int32Value(10),
+        new Int32Value(5),
+        new Int32Value(15)
+      );
+    });
+
+    it('increment(Int(10), Int32Value(5)) => Int(15)', () => {
+      verifyModelTransform(
+        NumericIncrementTransformOperation,
+        applyNumericIncrementTransformOperationToLocalView,
+        10,
+        new Int32Value(5),
+        15
+      );
+    });
+
+    it('increment(Decimal128Value("10"), Int(5)) => Decimal128Value("15")', () => {
+      verifyModelTransform(
+        NumericIncrementTransformOperation,
+        applyNumericIncrementTransformOperationToLocalView,
+        new Decimal128Value('10'),
+        5,
+        new Decimal128Value('15')
+      );
+    });
+
+    it('increment(Int(10), Decimal128Value("5")) => Decimal128Value("15")', () => {
+      verifyModelTransform(
+        NumericIncrementTransformOperation,
+        applyNumericIncrementTransformOperationToLocalView,
+        10,
+        new Decimal128Value('5'),
+        new Decimal128Value('15')
+      );
+    });
+
+    it('increment(Int32Value(10), Decimal128Value("5")) => Decimal128Value("15")', () => {
+      verifyModelTransform(
+        NumericIncrementTransformOperation,
+        applyNumericIncrementTransformOperationToLocalView,
+        new Int32Value(10),
+        new Decimal128Value('5'),
+        new Decimal128Value('15')
+      );
+    });
+
+    it('increment(Double(10.5), Int32Value(5)) => Double(15.5)', () => {
+      verifyModelTransform(
+        NumericIncrementTransformOperation,
+        applyNumericIncrementTransformOperationToLocalView,
+        10.5,
+        new Int32Value(5),
+        15.5
+      );
+    });
+
+    it('increment(Decimal128Value("10"), Decimal128Value("5")) => Decimal128Value("15")', () => {
+      verifyModelTransform(
+        NumericIncrementTransformOperation,
+        applyNumericIncrementTransformOperationToLocalView,
+        new Decimal128Value('10'),
+        new Decimal128Value('5'),
+        new Decimal128Value('15')
+      );
+    });
+
+    it('increment(Double(10.5), Decimal128Value("5")) => Decimal128Value("15.5")', () => {
+      verifyModelTransform(
+        NumericIncrementTransformOperation,
+        applyNumericIncrementTransformOperationToLocalView,
+        10.5,
+        new Decimal128Value('5'),
+        new Decimal128Value('15.5')
+      );
+    });
+  });
+
+  // Int32Value + Standard int -> Standard int
+  it('correctly adds standard integer to Int32Value base in verifyTransform', () => {
+    const baseDoc = { value: new Int32Value(10) };
+    const transform = { value: increment(5) };
+    const expected = { value: 15 };
+    verifyTransform(baseDoc, transform, expected);
+  });
+
+  // Int32Value + Standard double -> Standard double
+  it('correctly adds standard double to Int32Value base in verifyTransform', () => {
+    const baseDoc = { value: new Int32Value(10) };
+    const transform = { value: increment(1.5) };
+    const expected = { value: 11.5 };
+    verifyTransform(baseDoc, transform, expected);
+  });
+
+  // verifyTransform: Decimal128Value + Standard Int -> Decimal128Value
+  it('retains Decimal128Value type when incrementing by an integer in verifyTransform', () => {
+    const baseDoc = { value: new Decimal128Value('10') };
+    const transform = { value: increment(5) };
+    const expected = { value: new Decimal128Value('15') };
+    verifyTransform(baseDoc, transform, expected);
+  });
+
+  describe('Model-level minimum evaluation', () => {
+    it('minimum(Int32Value(10), Int32Value(5)) => Int32Value(5)', () => {
+      verifyModelTransform(
+        NumericMinimumTransformOperation,
+        applyNumericMinimumTransformOperationToLocalView,
+        new Int32Value(10),
+        new Int32Value(5),
+        new Int32Value(5)
+      );
+    });
+
+    it('minimum(Int32Value(10), Int32Value(15)) => Int32Value(10)', () => {
+      verifyModelTransform(
+        NumericMinimumTransformOperation,
+        applyNumericMinimumTransformOperationToLocalView,
+        new Int32Value(10),
+        new Int32Value(15),
+        new Int32Value(10)
+      );
+    });
+
+    it('minimum(Int(10), Int32Value(5)) => Int32Value(5)', () => {
+      verifyModelTransform(
+        NumericMinimumTransformOperation,
+        applyNumericMinimumTransformOperationToLocalView,
+        10,
+        new Int32Value(5),
+        new Int32Value(5)
+      );
+    });
+
+    it('minimum(Int32Value(10), Int(5)) => Int(5)', () => {
+      verifyModelTransform(
+        NumericMinimumTransformOperation,
+        applyNumericMinimumTransformOperationToLocalView,
+        new Int32Value(10),
+        5,
+        5
+      );
+    });
+
+    it('minimum(Decimal128Value("10"), Int(5)) => Int(5)', () => {
+      verifyModelTransform(
+        NumericMinimumTransformOperation,
+        applyNumericMinimumTransformOperationToLocalView,
+        new Decimal128Value('10'),
+        5,
+        5
+      );
+    });
+
+    it('minimum(Int(10), Decimal128Value("5")) => Decimal128Value("5")', () => {
+      verifyModelTransform(
+        NumericMinimumTransformOperation,
+        applyNumericMinimumTransformOperationToLocalView,
+        10,
+        new Decimal128Value('5'),
+        new Decimal128Value('5')
+      );
+    });
+
+    it('minimum(Int32Value(10), Decimal128Value("5")) => Decimal128Value("5")', () => {
+      verifyModelTransform(
+        NumericMinimumTransformOperation,
+        applyNumericMinimumTransformOperationToLocalView,
+        new Int32Value(10),
+        new Decimal128Value('5'),
+        new Decimal128Value('5')
+      );
+    });
+
+    it('minimum(Double(10.5), Int32Value(5)) => Int32Value(5)', () => {
+      verifyModelTransform(
+        NumericMinimumTransformOperation,
+        applyNumericMinimumTransformOperationToLocalView,
+        10.5,
+        new Int32Value(5),
+        new Int32Value(5)
+      );
+    });
+
+    it('minimum(Decimal128Value("10"), Decimal128Value("5")) => Decimal128Value("5")', () => {
+      verifyModelTransform(
+        NumericMinimumTransformOperation,
+        applyNumericMinimumTransformOperationToLocalView,
+        new Decimal128Value('10'),
+        new Decimal128Value('5'),
+        new Decimal128Value('5')
+      );
+    });
+
+    it('minimum(Double(10.5), Decimal128Value("5")) => Decimal128Value("5")', () => {
+      verifyModelTransform(
+        NumericMinimumTransformOperation,
+        applyNumericMinimumTransformOperationToLocalView,
+        10.5,
+        new Decimal128Value('5'),
+        new Decimal128Value('5')
+      );
+    });
+
+    it('minimum(String("hello"), Int32Value(5)) => Int32Value(5) [non-numeric base selects operand]', () => {
+      verifyModelTransform(
+        NumericMinimumTransformOperation,
+        applyNumericMinimumTransformOperationToLocalView,
+        'hello',
+        new Int32Value(5),
+        new Int32Value(5)
+      );
+    });
+
+    it('minimum(null, Int32Value(5)) => Int32Value(5) [null base selects operand]', () => {
+      verifyModelTransform(
+        NumericMinimumTransformOperation,
+        applyNumericMinimumTransformOperationToLocalView,
+        null,
+        new Int32Value(5),
+        new Int32Value(5)
+      );
+    });
+
+    it('minimum with high-precision Decimal128Value selects smaller operand (operand smaller)', () => {
+      verifyModelTransform(
+        NumericMinimumTransformOperation,
+        applyNumericMinimumTransformOperationToLocalView,
+        new Decimal128Value('1.000000000000000000000000000000002'),
+        new Decimal128Value('1.000000000000000000000000000000001'),
+        new Decimal128Value('1.000000000000000000000000000000001')
+      );
+    });
+
+    it('minimum with high-precision Decimal128Value retains base when base is smaller', () => {
+      verifyModelTransform(
+        NumericMinimumTransformOperation,
+        applyNumericMinimumTransformOperationToLocalView,
+        new Decimal128Value('1.000000000000000000000000000000001'),
+        new Decimal128Value('1.000000000000000000000000000000002'),
+        new Decimal128Value('1.000000000000000000000000000000001')
+      );
+    });
+  });
+
+  describe('Model-level maximum evaluation', () => {
+    it('maximum(Int32Value(10), Int32Value(5)) => Int32Value(10)', () => {
+      verifyModelTransform(
+        NumericMaximumTransformOperation,
+        applyNumericMaximumTransformOperationToLocalView,
+        new Int32Value(10),
+        new Int32Value(5),
+        new Int32Value(10)
+      );
+    });
+
+    it('maximum(Int32Value(10), Int32Value(15)) => Int32Value(15)', () => {
+      verifyModelTransform(
+        NumericMaximumTransformOperation,
+        applyNumericMaximumTransformOperationToLocalView,
+        new Int32Value(10),
+        new Int32Value(15),
+        new Int32Value(15)
+      );
+    });
+
+    it('maximum(Int(10), Int32Value(15)) => Int32Value(15)', () => {
+      verifyModelTransform(
+        NumericMaximumTransformOperation,
+        applyNumericMaximumTransformOperationToLocalView,
+        10,
+        new Int32Value(15),
+        new Int32Value(15)
+      );
+    });
+
+    it('maximum(Int32Value(10), Int(15)) => Int(15)', () => {
+      verifyModelTransform(
+        NumericMaximumTransformOperation,
+        applyNumericMaximumTransformOperationToLocalView,
+        new Int32Value(10),
+        15,
+        15
+      );
+    });
+
+    it('maximum(Decimal128Value("10"), Int(15)) => Int(15)', () => {
+      verifyModelTransform(
+        NumericMaximumTransformOperation,
+        applyNumericMaximumTransformOperationToLocalView,
+        new Decimal128Value('10'),
+        15,
+        15
+      );
+    });
+
+    it('maximum(Int(10), Decimal128Value("15")) => Decimal128Value("15")', () => {
+      verifyModelTransform(
+        NumericMaximumTransformOperation,
+        applyNumericMaximumTransformOperationToLocalView,
+        10,
+        new Decimal128Value('15'),
+        new Decimal128Value('15')
+      );
+    });
+
+    it('maximum(Int32Value(10), Decimal128Value("15")) => Decimal128Value("15")', () => {
+      verifyModelTransform(
+        NumericMaximumTransformOperation,
+        applyNumericMaximumTransformOperationToLocalView,
+        new Int32Value(10),
+        new Decimal128Value('15'),
+        new Decimal128Value('15')
+      );
+    });
+
+    it('maximum(Double(10.5), Int32Value(15)) => Int32Value(15)', () => {
+      verifyModelTransform(
+        NumericMaximumTransformOperation,
+        applyNumericMaximumTransformOperationToLocalView,
+        10.5,
+        new Int32Value(15),
+        new Int32Value(15)
+      );
+    });
+
+    it('maximum(Decimal128Value("10"), Decimal128Value("15")) => Decimal128Value("15")', () => {
+      verifyModelTransform(
+        NumericMaximumTransformOperation,
+        applyNumericMaximumTransformOperationToLocalView,
+        new Decimal128Value('10'),
+        new Decimal128Value('15'),
+        new Decimal128Value('15')
+      );
+    });
+
+    it('maximum(Double(10.5), Decimal128Value("15")) => Decimal128Value("15")', () => {
+      verifyModelTransform(
+        NumericMaximumTransformOperation,
+        applyNumericMaximumTransformOperationToLocalView,
+        10.5,
+        new Decimal128Value('15'),
+        new Decimal128Value('15')
+      );
+    });
+
+    it('maximum(String("hello"), Decimal128Value("10.5")) => Decimal128Value("10.5") [non-numeric base selects operand]', () => {
+      verifyModelTransform(
+        NumericMaximumTransformOperation,
+        applyNumericMaximumTransformOperationToLocalView,
+        'hello',
+        new Decimal128Value('10.5'),
+        new Decimal128Value('10.5')
+      );
+    });
+
+    it('maximum(null, Decimal128Value("10.5")) => Decimal128Value("10.5") [null base selects operand]', () => {
+      verifyModelTransform(
+        NumericMaximumTransformOperation,
+        applyNumericMaximumTransformOperationToLocalView,
+        null,
+        new Decimal128Value('10.5'),
+        new Decimal128Value('10.5')
+      );
+    });
+
+    it('maximum with high-precision Decimal128Value selects larger operand (operand larger)', () => {
+      verifyModelTransform(
+        NumericMaximumTransformOperation,
+        applyNumericMaximumTransformOperationToLocalView,
+        new Decimal128Value('1.000000000000000000000000000000001'),
+        new Decimal128Value('1.000000000000000000000000000000002'),
+        new Decimal128Value('1.000000000000000000000000000000002')
+      );
+    });
+
+    it('maximum with high-precision Decimal128Value retains base when base is larger', () => {
+      verifyModelTransform(
+        NumericMaximumTransformOperation,
+        applyNumericMaximumTransformOperationToLocalView,
+        new Decimal128Value('1.000000000000000000000000000000002'),
+        new Decimal128Value('1.000000000000000000000000000000001'),
+        new Decimal128Value('1.000000000000000000000000000000002')
+      );
+    });
+  });
+
+  describe('Document-level numeric transform evaluation (verifyTransform)', () => {
+    function verifyDocTransform(
+      baseVal: unknown,
+      transformOp: unknown,
+      expectedVal: unknown
+    ): void {
+      if (baseVal === undefined) {
+        verifyTransform({}, { val: transformOp }, { val: expectedVal });
+      } else {
+        verifyTransform(
+          { val: baseVal },
+          { val: transformOp },
+          { val: expectedVal }
+        );
+      }
+    }
+
+    it('correctly evaluates numeric transforms on BSON Int32Value fields', () => {
+      const base = new Int32Value(10);
+      verifyDocTransform(base, increment(5), 15);
+      verifyDocTransform(base, increment(1.5), 11.5);
+      verifyDocTransform(base, minimum(5), 5);
+      verifyDocTransform(base, minimum(15), new Int32Value(10));
+      verifyDocTransform(base, minimum(5.5), 5.5);
+      verifyDocTransform(base, minimum(-5), -5);
+      verifyDocTransform(base, maximum(5), new Int32Value(10));
+      verifyDocTransform(base, maximum(15), 15);
+      verifyDocTransform(base, maximum(5.5), new Int32Value(10));
+      verifyDocTransform(base, maximum(-5), new Int32Value(10));
+    });
+
+    it('correctly evaluates numeric transforms on BSON Decimal128Value fields', () => {
+      const base = new Decimal128Value('10.5');
+      verifyDocTransform(base, increment(5), new Decimal128Value('15.5'));
+      verifyDocTransform(base, minimum(5), 5);
+      verifyDocTransform(base, minimum(15), new Decimal128Value('10.5'));
+      verifyDocTransform(base, minimum(5.5), 5.5);
+      verifyDocTransform(base, minimum(-5), -5);
+      verifyDocTransform(base, maximum(5), new Decimal128Value('10.5'));
+      verifyDocTransform(base, maximum(15), 15);
+      verifyDocTransform(base, maximum(5.5), new Decimal128Value('10.5'));
+      verifyDocTransform(base, maximum(-5), new Decimal128Value('10.5'));
+    });
+
+    it('correctly evaluates numeric transforms on standard integer and double fields', () => {
+      const intBase = 10;
+      verifyDocTransform(intBase, minimum(5), 5);
+      verifyDocTransform(intBase, minimum(5.5), 5.5);
+      verifyDocTransform(intBase, maximum(15), 15);
+      verifyDocTransform(intBase, maximum(15.5), 15.5);
+
+      const doubleBase = 10.5;
+      verifyDocTransform(doubleBase, minimum(5), 5);
+      verifyDocTransform(doubleBase, minimum(5.5), 5.5);
+      verifyDocTransform(doubleBase, maximum(15), 15);
+      verifyDocTransform(doubleBase, maximum(15.5), 15.5);
+    });
+
+    it('correctly evaluates numeric transforms on missing and non-numeric fields', () => {
+      verifyDocTransform(undefined, increment(1), 1);
+      verifyDocTransform(undefined, minimum(10), 10);
+      verifyDocTransform(undefined, maximum(10.5), 10.5);
+
+      const stringBase = 'hello';
+      verifyDocTransform(stringBase, minimum(5), 5);
+      verifyDocTransform(stringBase, maximum(15), 15);
+    });
+
+    it('correctly evaluates consecutive numeric transforms on a document', () => {
+      const baseDoc = { val: new Int32Value(10) };
+      const t1 = { val: minimum(15) }; // retains Int32Value(10)
+      const t2 = { val: minimum(5) }; // selects 5
+      const t3 = { val: maximum(20) }; // selects 20
+      verifyTransform(baseDoc, [t1, t2, t3], { val: 20 });
+
+      const numDoc = { numberVal: 1 };
+      verifyTransform(
+        numDoc,
+        [
+          { numberVal: increment(2) },
+          { numberVal: increment(3) },
+          { numberVal: increment(4) }
+        ],
+        { numberVal: 10 }
+      );
+    });
+  });
+
   it('can apply numeric add transform to missing field', () => {
     const baseDoc = {};
     const transform = { missing: increment(1) };
@@ -596,7 +1102,7 @@ describe('Mutation', () => {
     ]);
     mutationApplyToRemoteDocument(transform, document, mutationResult);
 
-    expect(document).to.deep.equal(
+    expect(document).toEqual(
       doc('collection/key', 1, { sum: 3 }).setHasCommittedMutations()
     );
   });
@@ -611,7 +1117,7 @@ describe('Mutation', () => {
       /* previousMask= */ null,
       Timestamp.now()
     );
-    expect(document).to.deep.equal(
+    expect(document).toEqual(
       deletedDoc('collection/key', 0).setHasLocalMutations()
     );
   });
@@ -622,7 +1128,7 @@ describe('Mutation', () => {
     const docSet = setMutation('collection/key', { foo: 'new-bar' });
     const setResult = mutationResult(4);
     mutationApplyToRemoteDocument(docSet, document, setResult);
-    expect(document).to.deep.equal(
+    expect(document).toEqual(
       doc('collection/key', 4, { foo: 'new-bar' }).setHasCommittedMutations()
     );
   });
@@ -633,7 +1139,7 @@ describe('Mutation', () => {
     const mutation = patchMutation('collection/key', { foo: 'new-bar' });
     const result = mutationResult(5);
     mutationApplyToRemoteDocument(mutation, document, result);
-    expect(document).to.deep.equal(
+    expect(document).toEqual(
       doc('collection/key', 5, { foo: 'new-bar' }).setHasCommittedMutations()
     );
   });
@@ -646,7 +1152,7 @@ describe('Mutation', () => {
   ): void {
     const documentCopy = base.mutableCopy();
     mutationApplyToRemoteDocument(mutation, documentCopy, mutationResult);
-    expect(documentCopy).to.deep.equal(expected);
+    expect(documentCopy).toEqual(expected);
   }
 
   it('transitions versions correctly', () => {
@@ -691,13 +1197,13 @@ describe('Mutation', () => {
     const baseDoc = doc('collection/key', 0, data);
 
     const set = setMutation('collection/key', { foo: 'bar' });
-    expect(mutationExtractBaseValue(set, baseDoc)).to.be.null;
+    expect(mutationExtractBaseValue(set, baseDoc)).toBeNull();
 
     const patch = patchMutation('collection/key', { foo: 'bar' });
-    expect(mutationExtractBaseValue(patch, baseDoc)).to.be.null;
+    expect(mutationExtractBaseValue(patch, baseDoc)).toBeNull();
 
     const deleter = deleteMutation('collection/key');
-    expect(mutationExtractBaseValue(deleter, baseDoc)).to.be.null;
+    expect(mutationExtractBaseValue(deleter, baseDoc)).toBeNull();
   });
 
   it('extracts null base value for ServerTimestamp', () => {
@@ -711,7 +1217,7 @@ describe('Mutation', () => {
 
     // Server timestamps are idempotent and don't have base values.
     const transform = patchMutation('collection/key', allTransforms);
-    expect(mutationExtractBaseValue(transform, baseDoc)).to.be.null;
+    expect(mutationExtractBaseValue(transform, baseDoc)).toBeNull();
   });
 
   it('extracts base value for increment', () => {
@@ -751,7 +1257,7 @@ describe('Mutation', () => {
     });
     const actualBaseValue = mutationExtractBaseValue(transform, baseDoc);
 
-    expect(expectedBaseValue.isEqual(actualBaseValue!)).to.be.true;
+    expect(expectedBaseValue.isEqual(actualBaseValue!)).toBe(true);
   });
 
   it('increment twice', () => {
@@ -773,8 +1279,8 @@ describe('Mutation', () => {
       Timestamp.now()
     );
 
-    expect(document.isFoundDocument()).to.be.true;
-    expect(document.data.field(field('sum'))).to.deep.equal(wrap(2));
+    expect(document.isFoundDocument()).toBe(true);
+    expect(document.data.field(field('sum'))).toEqual(wrap(2));
   });
 
   // Mutation Overlay tests
@@ -972,7 +1478,7 @@ describe('Mutation', () => {
     const testCases = runPermutationTests(docs, mutations);
 
     // There are 4! * 3 cases
-    expect(testCases).to.equal(72);
+    expect(testCases).toBe(72);
   });
 
   it('overlay by combinations and permutations', () => {
@@ -1011,8 +1517,8 @@ describe('Mutation', () => {
     });
 
     // There are (0! + 7*1! + 21*2! + 35*3! + 35*4! + 21*5! + 7*6! + 7!) * 3 = 41100 cases.
-    expect(testCases).to.equal(41100);
-  }).timeout(10000);
+    expect(testCases).toBe(41100);
+  }, 10000);
 
   it('overlay by combinations and permutations for array transforms', () => {
     const docs: MutableDocument[] = [
@@ -1050,7 +1556,7 @@ describe('Mutation', () => {
     });
 
     // There are (0! + 6*1! + 15*2! + 20*3! + 15*4! + 6*5! + 6!) * 3 = 5871 cases.
-    expect(testCases).to.equal(5871);
+    expect(testCases).toBe(5871);
   });
 
   it('overlay by combinations and permutations for increments', () => {
@@ -1087,6 +1593,6 @@ describe('Mutation', () => {
     });
 
     // There are (0! + 6*1! + 15*2! + 20*3! + 15*4! + 6*5! + 6!) * 3 = 5871 cases.
-    expect(testCases).to.equal(5871);
+    expect(testCases).toBe(5871);
   });
 });

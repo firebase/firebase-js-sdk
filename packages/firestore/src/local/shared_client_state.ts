@@ -79,8 +79,7 @@ export type ClientId = string;
 export interface SharedClientState {
   onlineStateHandler: ((onlineState: OnlineState) => void) | null;
   sequenceNumberHandler:
-    | ((sequenceNumber: ListenSequenceNumber) => void)
-    | null;
+    ((sequenceNumber: ListenSequenceNumber) => void) | null;
 
   /** Registers the Mutation Batch ID of a newly pending mutation. */
   addPendingMutation(batchId: BatchId): void;
@@ -410,7 +409,10 @@ class RemoteClientState implements ClientState {
  * used in secondary clients to update their query views.
  */
 export class SharedOnlineState {
-  constructor(readonly clientId: string, readonly onlineState: OnlineState) {}
+  constructor(
+    readonly clientId: string,
+    readonly onlineState: OnlineState
+  ) {}
 
   /**
    * Parses a SharedOnlineState from its JSON representation in WebStorage.
@@ -481,8 +483,7 @@ export class WebStorageSharedClientState implements SharedClientState {
   syncEngine: SharedClientStateSyncer | null = null;
   onlineStateHandler: ((onlineState: OnlineState) => void) | null = null;
   sequenceNumberHandler:
-    | ((sequenceNumber: ListenSequenceNumber) => void)
-    | null = null;
+    ((sequenceNumber: ListenSequenceNumber) => void) | null = null;
 
   private readonly storage: Storage;
   private readonly localClientStorageKey: string;
@@ -1107,8 +1108,7 @@ export class MemorySharedClientState implements SharedClientState {
   private queryState: { [targetId: number]: QueryTargetState } = {};
   onlineStateHandler: ((onlineState: OnlineState) => void) | null = null;
   sequenceNumberHandler:
-    | ((sequenceNumber: ListenSequenceNumber) => void)
-    | null = null;
+    ((sequenceNumber: ListenSequenceNumber) => void) | null = null;
 
   addPendingMutation(batchId: BatchId): void {
     // No op.

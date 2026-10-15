@@ -24,7 +24,10 @@ import {
   AIErrorCode
 } from '../types';
 import { AIError } from '../errors';
-import { createEnhancedContentResponse } from './response-helpers';
+import {
+  assignPartType,
+  createEnhancedContentResponse
+} from './response-helpers';
 import * as GoogleAIMapper from '../googleai-mappers';
 import { GoogleAIGenerateContentResponse } from '../types/googleai';
 import { ApiSettings } from '../types/internal';
@@ -286,17 +289,22 @@ export function aggregateResponses(
             };
           }
           for (const part of candidate.content.parts) {
-            const newPart: Part = { ...part };
             // The backend can send empty text parts. If these are sent back
             // (e.g. in chat history), the backend will respond with an error.
             // To prevent this, ignore empty text parts.
-            if (part.text === '') {
+            if ('text' in part && part.text === '') {
               continue;
             }
-            if (Object.keys(newPart).length > 0) {
-              aggregatedResponse.candidates[i].content.parts.push(
-                newPart as Part
+            if (Object.keys(part).length === 0) {
+              throw new AIError(
+                AIErrorCode.INVALID_CONTENT,
+                'Part should have at least one property, but there are none. This is likely caused ' +
+                  'by a malformed response from the backend.'
               );
+            }
+            const newPart: Part = assignPartType({ ...part });
+            if (Object.keys(newPart).length > 0) {
+              aggregatedResponse.candidates[i].content.parts.push(newPart);
             }
           }
         }

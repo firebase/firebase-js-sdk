@@ -22,6 +22,7 @@ import {
   HarmBlockThreshold,
   HarmCategory,
   SafetySetting,
+  TextPart,
   getGenerativeModel
 } from '../src';
 import { testConfigs } from './constants';
@@ -59,6 +60,7 @@ describe('Chat Session', function () {
         role: 'system',
         parts: [
           {
+            type: 'text',
             text: 'You are a friendly and helpful assistant.'
           }
         ]
@@ -87,15 +89,21 @@ describe('Chat Session', function () {
         expect(response2.usageMetadata).to.not.be.null;
         expect(history.length).to.equal(4);
         expect(history[0].role).to.equal('user');
-        expect(history[0].parts[0].text).to.equal(
+        expect((history[0].parts[0] as TextPart).text).to.equal(
           'What is the capital of France?'
         );
         expect(history[1].role).to.equal('model');
-        expect(history[1].parts[0].text?.toLowerCase()).to.include('paris');
+        expect(
+          (history[1].parts[0] as TextPart).text?.toLowerCase()
+        ).to.include('paris');
         expect(history[2].role).to.equal('user');
-        expect(history[2].parts[0].text).to.equal('And what about Italy?');
+        expect((history[2].parts[0] as TextPart).text).to.equal(
+          'And what about Italy?'
+        );
         expect(history[3].role).to.equal('model');
-        expect(history[3].parts[0].text?.toLowerCase()).to.include('rome');
+        expect(
+          (history[3].parts[0] as TextPart).text?.toLowerCase()
+        ).to.include('rome');
         // Token counts can vary slightly in chat context but are supported by all models
         expect(response1.usageMetadata!.promptTokenCount).to.not.equal(0);
         expect(response1.usageMetadata!.candidatesTokenCount).to.not.equal(0);

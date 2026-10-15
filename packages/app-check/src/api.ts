@@ -72,19 +72,17 @@ export function initializeAppCheck(
 
   // Ensure initializeDebugMode() is only called once.
   if (!getDebugState().initialized) {
-    initializeDebugMode();
+    initializeDebugMode(app);
   }
 
   // Log a message containing the debug token when `initializeAppCheck()`
   // is called in debug mode.
   if (isDebugMode()) {
     // Do not block initialization to get the token for the message.
-    void getDebugToken().then(token =>
+    void getDebugToken().then(token => {
       // Not using logger because I don't think we ever want this accidentally hidden.
-      console.log(
-        `App Check debug token: ${token}. You will need to add it to your app's App Check settings in the Firebase console for it to work.`
-      )
-    );
+      console.log(`Firebase App Check debug token: ${token}`);
+    });
   }
 
   if (provider.isInitialized()) {

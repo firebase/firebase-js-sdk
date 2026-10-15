@@ -17,8 +17,8 @@
 
 import { getPackageInfo, readPackageJson, projectRoot } from './utils';
 import semver from 'semver';
-import fs from 'mz/fs';
-import { exec } from 'child-process-promise';
+import fs from 'fs/promises';
+import { spawn } from 'child-process-promise';
 
 /**
  * Synchronizes dependencies in packages/crashlytics/package.json with other packages.
@@ -123,8 +123,8 @@ async function syncCrashlyticsDeps() {
     console.log('Successfully updated packages/crashlytics/package.json');
     console.log('Running yarn && yarn build... This may take a few minutes.');
     try {
-      await exec('yarn', { cwd: projectRoot });
-      await exec('yarn build', { cwd: projectRoot });
+      await spawn('yarn', [], { cwd: projectRoot, stdio: 'inherit' });
+      await spawn('yarn', ['build'], { cwd: projectRoot, stdio: 'inherit' });
       console.log('Yarn and Build completed successfully.');
     } catch (e) {
       console.error('Error running yarn or yarn build:');

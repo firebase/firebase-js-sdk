@@ -15,9 +15,7 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
 import { getUserLanguage } from '../src/language';
-import './setup';
 
 // Adapts getUserLanguage tests from packages/auth/test/utils_test.js for TypeScript.
 describe('getUserLanguage', () => {
@@ -27,7 +25,7 @@ describe('getUserLanguage', () => {
         languages: ['de', 'en'],
         language: 'en'
       })
-    ).to.eq('de');
+    ).toBe('de');
   });
 
   it('falls back to navigator.language', () => {
@@ -35,10 +33,10 @@ describe('getUserLanguage', () => {
       getUserLanguage({
         language: 'en'
       } as NavigatorLanguage)
-    ).to.eq('en');
+    ).toBe('en');
   });
 
   it('defaults undefined', () => {
-    expect(getUserLanguage({} as NavigatorLanguage)).to.be.undefined;
+    expect(getUserLanguage({} as NavigatorLanguage)).toBeUndefined();
   });
 });

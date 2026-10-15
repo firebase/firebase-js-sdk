@@ -17,8 +17,8 @@
 
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { FirebaseApp } from '@firebase/app-compat';
-import { FirebaseNamespace } from '@firebase/app-types';
-import { _FirebaseNamespace } from '@firebase/app-types/private';
+import type { FirebaseNamespace } from '@firebase/app-types';
+import type { _FirebaseNamespace } from '@firebase/app-types/private';
 import { Component, ComponentType } from '@firebase/component';
 import {
   Firestore as ModularFirestore,

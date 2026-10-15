@@ -55,14 +55,6 @@ export enum Availability {
  */
 export interface LanguageModelCreateCoreOptions {
   /**
-   * @deprecated
-   */
-  topK?: number;
-  /**
-   * @deprecated
-   */
-  temperature?: number;
-  /**
    * Defaults to image input and English text input
    * if not overriden.
    */
@@ -102,8 +94,7 @@ export interface LanguageModelDownloadMonitor {
  * Configures the creation of an on-device language model session.
  * @public
  */
-export interface LanguageModelCreateOptions
-  extends LanguageModelCreateCoreOptions {
+export interface LanguageModelCreateOptions extends LanguageModelCreateCoreOptions {
   signal?: AbortSignal;
   initialPrompts?: LanguageModelMessage[];
 }
@@ -166,7 +157,4 @@ export type LanguageModelMessageType = 'text' | 'image' | 'audio';
  * @public
  */
 export type LanguageModelMessageContentValue =
-  | ImageBitmapSource
-  | AudioBuffer
-  | BufferSource
-  | string;
+  ImageBitmapSource | AudioBuffer | BufferSource | string;

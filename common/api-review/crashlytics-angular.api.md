@@ -29,16 +29,15 @@ export class FirebaseErrorHandler implements ErrorHandler {
     constructor(app: FirebaseApp, crashlyticsOptions?: CrashlyticsOptions);
     // (undocumented)
     handleError(error: unknown): void;
-    }
+}
 
 // @public
-export function setupCrashlyticsRoutes({ firebaseApp, router, destroyRef, crashlyticsOptions }: {
+export function setupCrashlyticsRoutes(input: {
     firebaseApp: FirebaseApp;
     router: Router;
     destroyRef: DestroyRef;
     crashlyticsOptions?: CrashlyticsOptions;
 }): void;
-
 
 // (No @packageDocumentation comment for this package)
 

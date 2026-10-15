@@ -59,8 +59,9 @@ describe('platform_browser/popup_redirect', () => {
 
   beforeEach(async () => {
     auth = await testAuth();
-    resolver =
-      new (browserPopupRedirectResolver as SingletonInstantiator<PopupRedirectResolverInternal>)();
+    resolver = new (
+      browserPopupRedirectResolver as SingletonInstantiator<PopupRedirectResolverInternal>
+    )();
 
     sinon.stub(validateOrigin, '_validateOrigin').returns(Promise.resolve());
     iframeSendStub = sinon.stub();

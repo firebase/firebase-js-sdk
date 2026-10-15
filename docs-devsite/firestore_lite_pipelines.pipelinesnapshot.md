@@ -30,7 +30,7 @@ export declare class PipelineSnapshot
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [executionTime](./firestore_lite_pipelines.pipelinesnapshot.md#pipelinesnapshotexecutiontime) |  | [Timestamp](./firestore_lite.timestamp.md#timestamp_class) | The time at which the pipeline producing this result is executed. |
+|  [executionTime](./firestore_lite_pipelines.pipelinesnapshot.md#pipelinesnapshotexecutiontime) |  | [Timestamp](./firestore.timestamp.md#timestamp_class) | The time at which the pipeline producing this result is executed. |
 |  [results](./firestore_lite_pipelines.pipelinesnapshot.md#pipelinesnapshotresults) |  | [PipelineResult](./firestore_lite_pipelines.pipelineresult.md#pipelineresult_class)<!-- -->\[\] | An array of all the results in the <code>PipelineSnapshot</code>. |
 
 ## PipelineSnapshot.(constructor)
@@ -40,7 +40,11 @@ Constructs a new instance of the `PipelineSnapshot` class
 <b>Signature:</b>
 
 ```typescript
-constructor(pipeline: Pipeline, results: PipelineResult[], executionTime?: Timestamp);
+constructor(
+    pipeline: Pipeline,
+    results: PipelineResult[],
+    executionTime?: Timestamp
+  );
 ```
 
 #### Parameters
@@ -49,7 +53,7 @@ constructor(pipeline: Pipeline, results: PipelineResult[], executionTime?: Times
 |  --- | --- | --- |
 |  pipeline | [Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class) |  |
 |  results | [PipelineResult](./firestore_lite_pipelines.pipelineresult.md#pipelineresult_class)<!-- -->\[\] |  |
-|  executionTime | [Timestamp](./firestore_lite.timestamp.md#timestamp_class) |  |
+|  executionTime | [Timestamp](./firestore.timestamp.md#timestamp_class) |  |
 
 ## PipelineSnapshot.executionTime
 

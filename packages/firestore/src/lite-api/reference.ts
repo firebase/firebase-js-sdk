@@ -41,7 +41,7 @@ import { Firestore } from './database';
 import { FieldPath } from './field_path';
 import { FieldValue } from './field_value';
 import { FirestoreDataConverter } from './snapshot';
-import { NestedUpdateFields, Primitive } from './types';
+import { ChildTypes, NestedUpdateFields, Primitive } from './types';
 
 /**
  * Document data (for use with {@link @firebase/firestore/lite#(setDoc:1)}) consists of fields mapped to
@@ -62,8 +62,8 @@ export type PartialWithFieldValue<T> =
   | (T extends Primitive
       ? T
       : T extends {}
-      ? { [K in keyof T]?: PartialWithFieldValue<T[K]> | FieldValue }
-      : never);
+        ? { [K in keyof T]?: PartialWithFieldValue<T[K]> | FieldValue }
+        : never);
 
 /**
  * Allows FieldValues to be passed in as a property value while maintaining
@@ -74,8 +74,8 @@ export type WithFieldValue<T> =
   | (T extends Primitive
       ? T
       : T extends {}
-      ? { [K in keyof T]: WithFieldValue<T[K]> | FieldValue }
-      : never);
+        ? { [K in keyof T]: WithFieldValue<T[K]> | FieldValue }
+        : never);
 
 /**
  * Update data (for use with {@link (updateDoc:1)}) that consists of field paths
@@ -86,8 +86,15 @@ export type WithFieldValue<T> =
 export type UpdateData<T> = T extends Primitive
   ? T
   : T extends {}
-  ? { [K in keyof T]?: UpdateData<T[K]> | FieldValue } & NestedUpdateFields<T>
-  : Partial<T>;
+    ? {
+        // If `string extends K`, this is an index signature like
+        // `{[key: string]: { foo: bool }}`. In the generated UpdateData
+        // indexed properties can match their type or any child types.
+        [K in keyof T]?: string extends K
+          ? PartialWithFieldValue<ChildTypes<T[K]>> | FieldValue
+          : UpdateData<T[K]> | FieldValue;
+      } & NestedUpdateFields<T>
+    : Partial<T>;
 /**
  * An options object that configures the behavior of {@link @firebase/firestore/lite#(setDoc:1)}, {@link
  * @firebase/firestore/lite#(WriteBatch.set:1)} and {@link @firebase/firestore/lite#(Transaction.set:1)} calls. These calls can be

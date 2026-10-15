@@ -32,13 +32,12 @@ import {
   FirebaseAuthInternal,
   FirebaseAuthInternalName
 } from '@firebase/auth-interop-types';
-import { AgentPlatformBackend, Backend, VertexAIBackend } from './backend';
+import { Backend } from './backend';
 
 export class AIService implements AI, _FirebaseService {
   auth: FirebaseAuthInternal | null;
   appCheck: FirebaseAppCheckInternal | null;
   _options?: Omit<AIOptions, 'backend'>;
-  location: string; // This is here for backwards-compatibility
 
   constructor(
     public app: FirebaseApp,
@@ -55,15 +54,6 @@ export class AIService implements AI, _FirebaseService {
     const auth = authProvider?.getImmediate({ optional: true });
     this.auth = auth || null;
     this.appCheck = appCheck || null;
-
-    if (
-      backend instanceof VertexAIBackend ||
-      backend instanceof AgentPlatformBackend
-    ) {
-      this.location = backend.location;
-    } else {
-      this.location = '';
-    }
   }
 
   _delete(): Promise<void> {
