@@ -695,7 +695,7 @@ describe('core/auth/auth_impl', () => {
       vi.spyOn(
         FAKE_HEARTBEAT_CONTROLLER,
         'getHeartbeatsHeader'
-      ).mockReturnValue(Promise.resolve('heartbeat'));
+      ).mockResolvedValue('heartbeat');
       expect(await auth._getAdditionalHeaders()).toEqual({
         'X-Client-Version': 'v',
         'X-Firebase-Client': 'heartbeat'

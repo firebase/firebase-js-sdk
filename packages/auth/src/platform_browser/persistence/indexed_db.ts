@@ -137,14 +137,13 @@ export async function _putObject(
   return new DBPromise<void>(request).toPromise();
 }
 
-function getObject(
+async function getObject(
   db: IDBDatabase,
   key: string
 ): Promise<PersistedBlob | null> {
   const request = getObjectStore(db, false).get(key);
-  return new DBPromise<DBObject | undefined>(request)
-    .toPromise()
-    .then(data => (data === undefined ? null : data.value));
+  const data = await new DBPromise<DBObject | undefined>(request).toPromise();
+  return data === undefined ? null : data.value;
 }
 
 export function _deleteObject(db: IDBDatabase, key: string): Promise<void> {

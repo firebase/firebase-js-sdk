@@ -18,14 +18,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { FirebaseApp } from '@firebase/app';
-import type {
+import {
   CompleteFn,
   ErrorFn,
+  FirebaseError,
   NextFn,
   Observer,
   Unsubscribe
 } from '@firebase/util';
-import { FirebaseError } from '@firebase/util';
 
 import {
   FactorId as FactorIdMap,

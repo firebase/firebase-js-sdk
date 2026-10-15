@@ -21,9 +21,11 @@ import {
   NextOrObserver,
   Persistence,
   User,
+  CompleteFn,
+  ErrorFn,
+  Unsubscribe,
   PasswordValidationStatus
 } from '../model/public_types';
-import type { CompleteFn, ErrorFn, Unsubscribe } from '../model/public_types';
 import { _initializeRecaptchaConfig } from '../platform_browser/recaptcha/recaptcha_enterprise_verifier';
 import { _castAuth } from '../core/auth/auth_impl';
 

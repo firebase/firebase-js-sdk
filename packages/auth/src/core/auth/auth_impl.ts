@@ -32,13 +32,11 @@ import {
   PopupRedirectResolver,
   User,
   UserCredential,
-  PasswordValidationStatus
-} from '../../model/public_types';
-import type {
   CompleteFn,
   ErrorFn,
   NextFn,
-  Unsubscribe
+  Unsubscribe,
+  PasswordValidationStatus
 } from '../../model/public_types';
 import {
   createSubscribe,
@@ -91,7 +89,7 @@ interface AsyncAction {
   (): Promise<void>;
 }
 
-export enum DefaultConfig {
+export const enum DefaultConfig {
   TOKEN_API_HOST = 'securetoken.googleapis.com',
   API_HOST = 'identitytoolkit.googleapis.com',
   API_SCHEME = 'https'
