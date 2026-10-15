@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-
 import {
   Path,
   pathCompare,
@@ -27,73 +25,69 @@ import {
 
 describe('Path Tests', () => {
   const expectGreater = function (left, right) {
-    expect(pathCompare(new Path(left), new Path(right))).to.be.greaterThan(0);
-    expect(pathCompare(new Path(right), new Path(left))).to.be.lessThan(0);
+    expect(pathCompare(new Path(left), new Path(right))).toBeGreaterThan(0);
+    expect(pathCompare(new Path(right), new Path(left))).toBeLessThan(0);
   };
 
   const expectEqual = function (left, right) {
-    expect(pathCompare(new Path(left), new Path(right))).to.equal(0);
+    expect(pathCompare(new Path(left), new Path(right))).toBe(0);
   };
 
   it('contains() contains the path and any child path.', () => {
-    expect(pathContains(new Path('/'), new Path('/a/b/c'))).to.equal(true);
-    expect(pathContains(new Path('/a'), new Path('/a/b/c'))).to.equal(true);
-    expect(pathContains(new Path('/a/b'), new Path('/a/b/c'))).to.equal(true);
-    expect(pathContains(new Path('/a/b/c'), new Path('/a/b/c'))).to.equal(true);
+    expect(pathContains(new Path('/'), new Path('/a/b/c'))).toBe(true);
+    expect(pathContains(new Path('/a'), new Path('/a/b/c'))).toBe(true);
+    expect(pathContains(new Path('/a/b'), new Path('/a/b/c'))).toBe(true);
+    expect(pathContains(new Path('/a/b/c'), new Path('/a/b/c'))).toBe(true);
 
-    expect(pathContains(new Path('/a/b/c'), new Path('/a/b'))).to.equal(false);
-    expect(pathContains(new Path('/a/b/c'), new Path('/a'))).to.equal(false);
-    expect(pathContains(new Path('/a/b/c'), new Path('/'))).to.equal(false);
+    expect(pathContains(new Path('/a/b/c'), new Path('/a/b'))).toBe(false);
+    expect(pathContains(new Path('/a/b/c'), new Path('/a'))).toBe(false);
+    expect(pathContains(new Path('/a/b/c'), new Path('/'))).toBe(false);
 
     expect(
       pathContains(pathPopFront(new Path('/a/b/c')), new Path('/b/c'))
-    ).to.equal(true);
+    ).toBe(true);
     expect(
       pathContains(pathPopFront(new Path('/a/b/c')), new Path('/b/c/d'))
-    ).to.equal(true);
+    ).toBe(true);
 
-    expect(pathContains(new Path('/a/b/c'), new Path('/b/c'))).to.equal(false);
-    expect(pathContains(new Path('/a/b/c'), new Path('/a/c/b'))).to.equal(
-      false
-    );
+    expect(pathContains(new Path('/a/b/c'), new Path('/b/c'))).toBe(false);
+    expect(pathContains(new Path('/a/b/c'), new Path('/a/c/b'))).toBe(false);
 
     expect(
       pathContains(pathPopFront(new Path('/a/b/c')), new Path('/a/b/c'))
-    ).to.equal(false);
+    ).toBe(false);
     expect(
       pathContains(pathPopFront(new Path('/a/b/c')), new Path('/b/c'))
-    ).to.equal(true);
+    ).toBe(true);
     expect(
       pathContains(pathPopFront(new Path('/a/b/c')), new Path('/b/c/d'))
-    ).to.equal(true);
+    ).toBe(true);
   });
 
   it('popFront() returns the parent', () => {
-    expect(pathPopFront(new Path('/a/b/c')).toString()).to.equal('/b/c');
-    expect(pathPopFront(pathPopFront(new Path('/a/b/c'))).toString()).to.equal(
+    expect(pathPopFront(new Path('/a/b/c')).toString()).toBe('/b/c');
+    expect(pathPopFront(pathPopFront(new Path('/a/b/c'))).toString()).toBe(
       '/c'
     );
     expect(
       pathPopFront(pathPopFront(pathPopFront(new Path('/a/b/c')))).toString()
-    ).to.equal('/');
+    ).toBe('/');
     expect(
       pathPopFront(
         pathPopFront(pathPopFront(pathPopFront(new Path('/a/b/c'))))
       ).toString()
-    ).to.equal('/');
+    ).toBe('/');
   });
 
   it('parent() returns the parent', () => {
-    expect(pathParent(new Path('/a/b/c')).toString()).to.equal('/a/b');
-    expect(pathParent(pathParent(new Path('/a/b/c'))).toString()).to.equal(
-      '/a'
-    );
+    expect(pathParent(new Path('/a/b/c')).toString()).toBe('/a/b');
+    expect(pathParent(pathParent(new Path('/a/b/c'))).toString()).toBe('/a');
     expect(
       pathParent(pathParent(pathParent(new Path('/a/b/c')))).toString()
-    ).to.equal('/');
+    ).toBe('/');
     expect(
       pathParent(pathParent(pathParent(pathParent(new Path('/a/b/c')))))
-    ).to.equal(null);
+    ).toBe(null);
   });
 
   it('comparePaths() works as expected', () => {

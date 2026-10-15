@@ -16,8 +16,8 @@
  */
 
 import { FirebaseApp, initializeApp } from '@firebase/app';
-import { expect } from 'chai';
 
+import TEST_PROJECT from '../../../../config/project.json';
 import {
   Database,
   DatabaseReference,
@@ -31,8 +31,6 @@ import { Path } from '../../src/core/util/Path';
 
 import { EventAccumulator } from './EventAccumulator';
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-export const TEST_PROJECT = require('../../../../config/project.json');
 export const EMULATOR_PORT = process.env.RTDB_EMULATOR_PORT;
 const EMULATOR_NAMESPACE = process.env.RTDB_EMULATOR_NAMESPACE;
 export const USE_EMULATOR = !!EMULATOR_PORT;
@@ -127,7 +125,7 @@ export async function writeAndValidate(
     ec.addEvent(snapshot);
   });
   const [snap] = await ec.promise;
-  expect(snap.val()).to.deep.eq(toWrite);
+  expect(snap.val()).toEqual(toWrite);
 }
 
 // Waits until callback function returns true
