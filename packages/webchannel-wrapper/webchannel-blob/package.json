@@ -1,6 +1,7 @@
 {
   "name": "@firebase/webchannel-wrapper/webchannel-blob",
   "description": "Webchannel related code from the Closure library.",
+  "license": "Apache-2.0",
   "main": "../dist/webchannel-blob/webchannel_blob_es2018.js",
   "browser": "../dist/webchannel-blob/esm/webchannel_blob_es2018.js",
   "module": "../dist/webchannel-blob/esm/webchannel_blob_es2018.js",
