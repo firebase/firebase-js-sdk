@@ -60,7 +60,7 @@ import {
 } from './attributes-store';
 import { TelemetryStore } from './telemetry-store';
 import { OnErrorLogRecordProcessor } from './logging/on-error-log-record-processor';
-import { FirebaseAttributesProcessor } from './logging/attributes-processor';
+import { FirebaseAttributesLogProcessor } from './logging/attributes-log-processor';
 
 const PROJECT_ID = 'my-project';
 const APP_ID = 'my-appid';
@@ -73,7 +73,7 @@ const fakeLoggerProvider = {
   getLogger: (): Logger => {
     return {
       emit: (logRecord: LogRecord) => {
-        const processor = new FirebaseAttributesProcessor(
+        const processor = new FirebaseAttributesLogProcessor(
           fakeAttributesStore,
           PROJECT_ID
         );

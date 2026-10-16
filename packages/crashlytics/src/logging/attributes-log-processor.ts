@@ -25,7 +25,7 @@ import { AttributesStore, LOG_ATTR_KEY } from '../attributes-store';
  *
  * @internal
  */
-export class FirebaseAttributesProcessor implements LogRecordProcessor {
+export class FirebaseAttributesLogProcessor implements LogRecordProcessor {
   constructor(
     private attributesStore: AttributesStore,
     private projectId?: string

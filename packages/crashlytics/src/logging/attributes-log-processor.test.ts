@@ -19,10 +19,10 @@ import { expect } from 'chai';
 import { SdkLogRecord } from '@opentelemetry/sdk-logs';
 import { trace, context, SpanContext, TraceFlags } from '@opentelemetry/api';
 import { WebTracerProvider } from '@opentelemetry/sdk-trace-web';
-import { FirebaseAttributesProcessor } from './attributes-processor';
+import { FirebaseAttributesLogProcessor } from './attributes-log-processor';
 import { AttributesStore, LOG_ATTR_KEY } from '../attributes-store';
 
-describe('FirebaseAttributesProcessor', () => {
+describe('FirebaseAttributesLogProcessor', () => {
   let attributesStore: AttributesStore;
 
   beforeEach(() => {
@@ -33,7 +33,7 @@ describe('FirebaseAttributesProcessor', () => {
   });
 
   it('should enrich log record with dynamic attributes from attributesStore', () => {
-    const processor = new FirebaseAttributesProcessor(
+    const processor = new FirebaseAttributesLogProcessor(
       attributesStore,
       'test-project'
     );
@@ -48,7 +48,7 @@ describe('FirebaseAttributesProcessor', () => {
   });
 
   it('should not overwrite existing attributes on log record', () => {
-    const processor = new FirebaseAttributesProcessor(
+    const processor = new FirebaseAttributesLogProcessor(
       attributesStore,
       'test-project'
     );
@@ -62,7 +62,7 @@ describe('FirebaseAttributesProcessor', () => {
   });
 
   it('should correlate trace and span IDs from logRecord.spanContext', () => {
-    const processor = new FirebaseAttributesProcessor(
+    const processor = new FirebaseAttributesLogProcessor(
       attributesStore,
       'test-project'
     );
@@ -85,7 +85,7 @@ describe('FirebaseAttributesProcessor', () => {
   });
 
   it('should correlate trace and span IDs from explicit context when spanContext is missing on record', () => {
-    const processor = new FirebaseAttributesProcessor(
+    const processor = new FirebaseAttributesLogProcessor(
       attributesStore,
       'test-project'
     );
@@ -114,7 +114,7 @@ describe('FirebaseAttributesProcessor', () => {
     const provider = new WebTracerProvider();
     provider.register();
 
-    const processor = new FirebaseAttributesProcessor(
+    const processor = new FirebaseAttributesLogProcessor(
       attributesStore,
       'test-project'
     );
@@ -144,7 +144,7 @@ describe('FirebaseAttributesProcessor', () => {
   });
 
   it('should gracefully handle flush and shutdown calls', async () => {
-    const processor = new FirebaseAttributesProcessor(
+    const processor = new FirebaseAttributesLogProcessor(
       attributesStore,
       'test-project'
     );

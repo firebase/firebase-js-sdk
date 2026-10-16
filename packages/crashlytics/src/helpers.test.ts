@@ -37,7 +37,7 @@ import {
   SESSION_STORAGE_SESSION_ID_KEY
 } from './attributes-store';
 import { TelemetryStore } from './telemetry-store';
-import { FirebaseAttributesProcessor } from './logging/attributes-processor';
+import { FirebaseAttributesLogProcessor } from './logging/attributes-log-processor';
 
 describe('helpers', () => {
   let originalSessionStorage: Storage | undefined;
@@ -50,7 +50,7 @@ describe('helpers', () => {
     getLogger: (): Logger => {
       return {
         emit: (logRecord: LogRecord) => {
-          const processor = new FirebaseAttributesProcessor(
+          const processor = new FirebaseAttributesLogProcessor(
             fakeAttributesStore,
             'my-project'
           );

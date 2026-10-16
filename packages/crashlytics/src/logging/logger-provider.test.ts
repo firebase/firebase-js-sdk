@@ -24,7 +24,7 @@ import {
 } from '@opentelemetry/sdk-logs';
 import { createLoggerProvider } from './logger-provider';
 import { AttributesStore } from '../attributes-store';
-import { FirebaseAttributesProcessor } from './attributes-processor';
+import { FirebaseAttributesLogProcessor } from './attributes-log-processor';
 import { TelemetryStore } from '../telemetry-store';
 import { OnErrorLogRecordProcessor } from './on-error-log-record-processor';
 
@@ -50,14 +50,14 @@ describe('createLoggerProvider', () => {
     sinon.restore();
   });
 
-  it('should initialize LoggerProvider with FirebaseAttributesProcessor and BatchLogRecordProcessor by default when enableBreadcrumbs is not set', () => {
+  it('should initialize LoggerProvider with FirebaseAttributesLogProcessor and BatchLogRecordProcessor by default when enableBreadcrumbs is not set', () => {
     const { loggerProvider: provider, onErrorLogRecordProcessor } =
       createLoggerProvider(app, {}, attributesStore, telemetryStore, []);
     expect(provider).to.be.an.instanceOf(LoggerProvider);
     expect(onErrorLogRecordProcessor).to.be.undefined;
 
     const attributesEmitSpy = sinon.spy(
-      FirebaseAttributesProcessor.prototype,
+      FirebaseAttributesLogProcessor.prototype,
       'onEmit'
     );
     const batchEmitSpy = sinon.spy(BatchLogRecordProcessor.prototype, 'onEmit');
@@ -74,7 +74,7 @@ describe('createLoggerProvider', () => {
     sinon.assert.callOrder(attributesEmitSpy, batchEmitSpy);
   });
 
-  it('should initialize LoggerProvider with FirebaseAttributesProcessor and OnErrorLogRecordProcessor when enableBreadcrumbs is true', () => {
+  it('should initialize LoggerProvider with FirebaseAttributesLogProcessor and OnErrorLogRecordProcessor when enableBreadcrumbs is true', () => {
     const { loggerProvider: provider, onErrorLogRecordProcessor } =
       createLoggerProvider(
         app,
@@ -89,7 +89,7 @@ describe('createLoggerProvider', () => {
     );
 
     const attributesEmitSpy = sinon.spy(
-      FirebaseAttributesProcessor.prototype,
+      FirebaseAttributesLogProcessor.prototype,
       'onEmit'
     );
     const batchEmitSpy = sinon.spy(BatchLogRecordProcessor.prototype, 'onEmit');
