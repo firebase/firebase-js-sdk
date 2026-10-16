@@ -4,8 +4,11 @@
 
 ```ts
 
-import { default as firebase_2 } from 'firebase/compat/app';
+import { Database } from '@firebase/database';
 import { FirebaseSignInProvider } from '@firebase/util';
+import { FirebaseStorage } from '@firebase/storage';
+import { Firestore } from '@firebase/firestore';
+import { FirestoreSettings } from '@firebase/firestore';
 
 // @public
 export function assertFails(pr: Promise<any>): Promise<any>;
@@ -29,9 +32,9 @@ export function initializeTestEnvironment(config: TestEnvironmentConfig): Promis
 
 // @public
 export interface RulesTestContext {
-    database(databaseURL?: string): firebase_2.database.Database;
-    firestore(settings?: firebase_2.firestore.Settings): firebase_2.firestore.Firestore;
-    storage(bucketUrl?: string): firebase_2.storage.Storage;
+    database(databaseURL?: string): Database;
+    firestore(settings?: FirestoreSettings): Firestore;
+    storage(bucketUrl?: string): FirebaseStorage;
 }
 
 // @public
@@ -94,7 +97,6 @@ export function withFunctionTriggersDisabled<TResult>(hub: {
     host: string;
     port: number;
 }, fn: () => TResult | Promise<TResult>): Promise<TResult>;
-
 
 // (No @packageDocumentation comment for this package)
 
