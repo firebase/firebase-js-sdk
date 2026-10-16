@@ -15,9 +15,7 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-
 // TODO: Real tests (coming in the following PRs).
 it('true should equal to true', () => {
-  expect(true).to.be.true;
+  expect(true).toBe(true);
 });
