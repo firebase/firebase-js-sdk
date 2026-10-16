@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { _errorForResponse } from './error';
+import { _errorForNetworkFailure, _errorForResponse } from './error';
 
 describe('Error handling', () => {
   describe('_errorForResponse()', () => {
@@ -33,6 +33,15 @@ describe('Error handling', () => {
       expect(err?.message).toBe('internal [0]');
       expect(err?.code).toBe('functions/internal');
       expect(err?.customData?.url).toBe('http://wrong-url.com');
+    });
+    it('returns unavailable error with the fetch failure message if no response', () => {
+      const err = _errorForNetworkFailure(
+        new TypeError('Failed to fetch'),
+        'http://wrong-url.com'
+      );
+      expect(err.message).toBe('Failed to fetch [0]');
+      expect(err.code).toBe('functions/unavailable');
+      expect(err.customData?.url).toBe('http://wrong-url.com');
     });
     it('returns internal error and httpStatus if 500', () => {
       const err = _errorForResponse(500, null, 'http://wrong-url.com');
