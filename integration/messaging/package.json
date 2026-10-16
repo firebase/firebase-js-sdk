@@ -4,9 +4,11 @@
   "version": "0.2.1",
   "scripts": {
     "pretest:manual": "node ./download-browsers.js",
-    "test": "mocha --exit",
+    "test": "vitest run",
+    "test:all": "vitest run",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test",
-    "test:manual": "mocha --exit"
+    "test:manual": "vitest run",
+    "test:node": "vitest run"
   },
   "devDependencies": {
     "chromedriver": "151.0.5",

@@ -38,105 +38,108 @@ const WAIT_TIME_BEFORE_RETRIEVING_BACKGROUND_MESSAGES_MILLISECONDS = 60000;
 
 const wait = ms => new Promise(res => setTimeout(res, ms));
 
-// 50% of integration test run time is spent in testing receiving in background. Running these
-// slower tests last so other tests can fail quickly if they do fail.
-require('./test-token-delete');
-require('./test-token-update');
-require('./test-useValidManifest');
-require('./test-useDefaultServiceWorker');
-require('./test-receive-foreground');
+describe(
+  'Firebase Messaging Integration Tests > Test Background Receive',
+  { retry: 2 },
+  () => {
+    let globalWebDriver;
 
-describe('Firebase Messaging Integration Tests > Test Background Receive', function () {
-  this.retries(2);
-  let globalWebDriver;
+    beforeAll(async () => {
+      await testServer.start();
+    });
 
-  before(async function () {
-    await testServer.start();
-  });
+    afterAll(async () => {
+      await testServer.stop();
+    });
 
-  after(async function () {
-    await testServer.stop();
-  });
+    // TODO: enable testing for firefox
+    seleniumAssistant.getLocalBrowsers().forEach(assistantBrowser => {
+      if (assistantBrowser.getId() !== 'chrome') {
+        return;
+      }
 
-  // TODO: enable testing for firefox
-  seleniumAssistant.getLocalBrowsers().forEach(assistantBrowser => {
-    if (assistantBrowser.getId() !== 'chrome') {
-      return;
-    }
+      TEST_DOMAINS.forEach(domain => {
+        describe(`Testing browser: ${assistantBrowser.getPrettyName()} : ${domain}`, () => {
+          beforeAll(async () => {
+            globalWebDriver = createPermittedWebDriver(
+              /* browser= */ assistantBrowser.getId()
+            );
+          });
 
-    TEST_DOMAINS.forEach(domain => {
-      describe(`Testing browser: ${assistantBrowser.getPrettyName()} : ${domain}`, function () {
-        before(async function () {
-          globalWebDriver = createPermittedWebDriver(
-            /* browser= */ assistantBrowser.getId()
-          );
-        });
+          afterAll(async () => {
+            await seleniumAssistant.killWebDriver(globalWebDriver);
+          });
 
-        it('Background app can receive a {} empty message from sw', async function () {
-          this.timeout(TIMEOUT_BACKGROUND_MESSAGE_TEST_UNIT_MILLISECONDS);
+          it(
+            'Background app can receive a {} empty message from sw',
+            async () => {
+              // Clearing the cache and db data by killing the previously instantiated driver. Note that
+              // ideally this call is placed inside the after/before hooks. However, Mocha forbids
+              // operations longer than 2s in hooks. Hence, this clearing call needs to be inside the
+              // test unit.
+              await seleniumAssistant.killWebDriver(globalWebDriver);
 
-          // Clearing the cache and db data by killing the previously instantiated driver. Note that
-          // ideally this call is placed inside the after/before hooks. However, Mocha forbids
-          // operations longer than 2s in hooks. Hence, this clearing call needs to be inside the
-          // test unit.
-          await seleniumAssistant.killWebDriver(globalWebDriver);
+              globalWebDriver = createPermittedWebDriver(
+                /* browser= */ assistantBrowser.getId()
+              );
 
-          globalWebDriver = createPermittedWebDriver(
-            /* browser= */ assistantBrowser.getId()
-          );
+              prepareBackgroundApp(globalWebDriver, domain);
 
-          prepareBackgroundApp(globalWebDriver, domain);
+              checkSendResponse(
+                await sendMessage({
+                  to: await retrieveToken(globalWebDriver)
+                })
+              );
 
-          checkSendResponse(
-            await sendMessage({
-              to: await retrieveToken(globalWebDriver)
-            })
-          );
+              await wait(
+                WAIT_TIME_BEFORE_RETRIEVING_BACKGROUND_MESSAGES_MILLISECONDS
+              );
 
-          await wait(
-            WAIT_TIME_BEFORE_RETRIEVING_BACKGROUND_MESSAGES_MILLISECONDS
-          );
-
-          checkMessageReceived(
-            await getReceivedBackgroundMessages(globalWebDriver),
-            /* expectedNotificationPayload= */ null,
-            /* expectedDataPayload= */ null,
-            /* isLegacyPayload= */ false
-          );
-        });
-
-        it('Background app can receive a {"data"} message frow sw', async function () {
-          this.timeout(TIMEOUT_BACKGROUND_MESSAGE_TEST_UNIT_MILLISECONDS);
-
-          await seleniumAssistant.killWebDriver(globalWebDriver);
-
-          globalWebDriver = createPermittedWebDriver(
-            /* browser= */ assistantBrowser.getId()
+              checkMessageReceived(
+                await getReceivedBackgroundMessages(globalWebDriver),
+                /* expectedNotificationPayload= */ null,
+                /* expectedDataPayload= */ null,
+                /* isLegacyPayload= */ false
+              );
+            },
+            TIMEOUT_BACKGROUND_MESSAGE_TEST_UNIT_MILLISECONDS
           );
 
-          prepareBackgroundApp(globalWebDriver, domain);
+          it(
+            'Background app can receive a {"data"} message frow sw',
+            async () => {
+              await seleniumAssistant.killWebDriver(globalWebDriver);
 
-          checkSendResponse(
-            await sendMessage({
-              to: await retrieveToken(globalWebDriver),
-              data: getTestDataPayload()
-            })
-          );
+              globalWebDriver = createPermittedWebDriver(
+                /* browser= */ assistantBrowser.getId()
+              );
 
-          await wait(
-            WAIT_TIME_BEFORE_RETRIEVING_BACKGROUND_MESSAGES_MILLISECONDS
-          );
+              prepareBackgroundApp(globalWebDriver, domain);
 
-          checkMessageReceived(
-            await getReceivedBackgroundMessages(globalWebDriver),
-            /* expectedNotificationPayload= */ null,
-            /* expectedDataPayload= */ getTestDataPayload()
+              checkSendResponse(
+                await sendMessage({
+                  to: await retrieveToken(globalWebDriver),
+                  data: getTestDataPayload()
+                })
+              );
+
+              await wait(
+                WAIT_TIME_BEFORE_RETRIEVING_BACKGROUND_MESSAGES_MILLISECONDS
+              );
+
+              checkMessageReceived(
+                await getReceivedBackgroundMessages(globalWebDriver),
+                /* expectedNotificationPayload= */ null,
+                /* expectedDataPayload= */ getTestDataPayload()
+              );
+            },
+            TIMEOUT_BACKGROUND_MESSAGE_TEST_UNIT_MILLISECONDS
           );
         });
       });
     });
-  });
-});
+  }
+);
 
 async function prepareBackgroundApp(globalWebDriver, domain) {
   await globalWebDriver.get(`${testServer.serverAddress}/${domain}/`);
