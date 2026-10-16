@@ -31,15 +31,13 @@ import { AttributesStore } from '../attributes-store';
  * @internal
  */
 export class FirebaseAttributesSpanProcessor implements SpanProcessor {
-  constructor(private attributesStore?: AttributesStore) {}
+  constructor(private attributesStore: AttributesStore) {}
 
   onStart(span: Span, _parentContext?: Context): void {
-    if (this.attributesStore) {
-      const dynamicAttributes = this.attributesStore.getSpanAttributes();
-      for (const [key, value] of Object.entries(dynamicAttributes)) {
-        if (value !== undefined) {
-          span.setAttribute(key, value);
-        }
+    const dynamicAttributes = this.attributesStore.getSpanAttributes();
+    for (const [key, value] of Object.entries(dynamicAttributes)) {
+      if (value !== undefined && span.attributes?.[key] === undefined) {
+        span.setAttribute(key, value);
       }
     }
   }

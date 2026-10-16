@@ -48,7 +48,7 @@ import {
 import { AttributesStore } from '../attributes-store';
 import { OnErrorLogRecordProcessor } from './on-error-log-record-processor';
 import { TelemetryStore } from '../telemetry-store';
-import { FirebaseAttributesProcessor } from './attributes-processor';
+import { FirebaseAttributesLogProcessor } from './attributes-log-processor';
 import { isTelemetryUrl } from '../helpers';
 
 let unregisterInstrumentations: (() => void) | undefined;
@@ -103,7 +103,7 @@ export function createLoggerProvider(
 
   let onErrorLogRecordProcessor: OnErrorLogRecordProcessor | undefined;
   const processors: LogRecordProcessor[] = [
-    new FirebaseAttributesProcessor(attributesStore, projectId)
+    new FirebaseAttributesLogProcessor(attributesStore, projectId)
   ];
 
   if (crashlyticsOptions.enableBreadcrumbs) {

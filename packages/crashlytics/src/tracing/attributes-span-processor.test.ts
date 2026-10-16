@@ -33,7 +33,7 @@ describe('FirebaseAttributesSpanProcessor', () => {
   });
 
   it('should only delete user_agent.original from span attributes', () => {
-    const processor = new FirebaseAttributesSpanProcessor();
+    const processor = new FirebaseAttributesSpanProcessor(attributesStore);
     const mockSpan = {
       attributes: {
         [ATTR_USER_AGENT_ORIGINAL]:
@@ -75,6 +75,24 @@ describe('FirebaseAttributesSpanProcessor', () => {
     );
     expect(setAttributesRecord[SPAN_ATTR_KEY.APP_SCREEN_ID]).to.equal(
       '/dashboard'
+    );
+  });
+
+  it('should not overwrite existing attributes on span', () => {
+    const processor = new FirebaseAttributesSpanProcessor(attributesStore);
+    const mockSpan = {
+      attributes: {
+        [SPAN_ATTR_KEY.SERVICE_VERSION]: 'custom-version'
+      },
+      setAttribute: (key: string, value: unknown) => {
+        (mockSpan.attributes as Record<string, unknown>)[key] = value;
+      }
+    } as unknown as Span;
+
+    processor.onStart(mockSpan, ROOT_CONTEXT);
+
+    expect(mockSpan.attributes[SPAN_ATTR_KEY.SERVICE_VERSION]).to.equal(
+      'custom-version'
     );
   });
 
