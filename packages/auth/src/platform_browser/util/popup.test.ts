@@ -23,7 +23,13 @@ import { AuthInternal } from '../../model/auth';
 import { testAuth } from '../../../test/helpers/mock_auth';
 import { MockInstance } from 'vitest';
 
-vi.mock('@firebase/util', { spy: true });
+vi.mock('@firebase/util', async importOriginal => {
+  const actual = await importOriginal<typeof import('@firebase/util')>();
+  return {
+    ...actual,
+    getUA: vi.fn(actual.getUA)
+  };
+});
 
 describe('platform_browser/util/popup', () => {
   let windowOpenStub: MockInstance;
@@ -58,6 +64,7 @@ describe('platform_browser/util/popup', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.resetAllMocks();
   });
 
   it('sets target to name param if not chrome UA', () => {

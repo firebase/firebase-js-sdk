@@ -36,7 +36,13 @@ import { FirebaseError } from '@firebase/util';
 import { InAppBrowserRef, _cordovaWindow } from '../plugins';
 import * as projectConfig from '../../api/project_config/get_project_config';
 
-vi.mock('@firebase/util', { spy: true });
+vi.mock('@firebase/util', async importOriginal => {
+  const actual = await importOriginal<typeof import('@firebase/util')>();
+  return {
+    ...actual,
+    getUA: vi.fn(actual.getUA)
+  };
+});
 vi.mock('../../api/project_config/get_project_config', { spy: true });
 
 const ANDROID_UA = 'UserAgent/5.0 (Linux; Android 0.0.0)';
@@ -55,6 +61,7 @@ describe('platform_cordova/popup_redirect/utils', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.resetAllMocks();
     // Clean up the window object from attachExpectedPlugins()
     removeProp(win, 'cordova');
     removeProp(win, 'BuildInfo');

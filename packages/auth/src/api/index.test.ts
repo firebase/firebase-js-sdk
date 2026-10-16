@@ -18,7 +18,13 @@
 import { FirebaseError, getUA } from '@firebase/util';
 import * as utils from '@firebase/util';
 
-vi.mock('@firebase/util', { spy: true });
+vi.mock('@firebase/util', async importOriginal => {
+  const actual = await importOriginal<typeof import('@firebase/util')>();
+  return {
+    ...actual,
+    isCloudflareWorker: vi.fn(actual.isCloudflareWorker)
+  };
+});
 import { mockEndpoint } from '../../test/helpers/api/helper';
 import { testAuth, TestAuth } from '../../test/helpers/mock_auth';
 import * as mockFetch from '../../test/helpers/mock_fetch';
@@ -53,6 +59,7 @@ describe('api/_performApiRequest', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.resetAllMocks();
   });
 
   describe('with regular requests', () => {
