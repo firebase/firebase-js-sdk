@@ -19,7 +19,14 @@ import * as util from '@firebase/util';
 import { Delay, DelayMin } from './delay';
 import * as navigator from './navigator';
 
-vi.mock('@firebase/util', { spy: true });
+vi.mock('@firebase/util', async importOriginal => {
+  const actual = await importOriginal<typeof import('@firebase/util')>();
+  return {
+    ...actual,
+    isMobileCordova: vi.fn(actual.isMobileCordova),
+    isReactNative: vi.fn(actual.isReactNative)
+  };
+});
 vi.mock('./navigator', { spy: true });
 
 describe('core/util/delay', () => {
@@ -32,6 +39,7 @@ describe('core/util/delay', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.resetAllMocks();
   });
 
   it('should return the short delay in browser environments', () => {
