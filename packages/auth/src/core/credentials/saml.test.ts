@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import { mockEndpoint } from '../../../test/helpers/api/helper';
 import { TEST_ID_TOKEN_RESPONSE } from '../../../test/helpers/id_token_response';
@@ -42,18 +40,18 @@ describe('core/credentials/saml', () => {
     fetch.tearDown();
   });
 
-  context('_create', () => {
+  describe('_create', () => {
     it('sets the provider', () => {
       const cred = SAMLAuthCredential._create('saml.provider', 'pending-token');
-      expect(cred.providerId).to.eq('saml.provider');
+      expect(cred.providerId).toBe('saml.provider');
     });
   });
 
-  context('#toJSON', () => {
+  describe('#toJSON', () => {
     it('packs up everything', () => {
       const cred = SAMLAuthCredential._create('saml.provider', 'pending-token');
 
-      expect(cred.toJSON()).to.eql({
+      expect(cred.toJSON()).toEqual({
         signInMethod: 'saml.provider',
         providerId: 'saml.provider',
         pendingToken: 'pending-token'
@@ -61,7 +59,7 @@ describe('core/credentials/saml', () => {
     });
   });
 
-  context('fromJSON', () => {
+  describe('fromJSON', () => {
     it('builds the new object correctly', () => {
       const cred = SAMLAuthCredential.fromJSON({
         signInMethod: 'saml.provider',
@@ -69,13 +67,13 @@ describe('core/credentials/saml', () => {
         pendingToken: 'pending-token'
       });
 
-      expect(cred).to.be.instanceOf(SAMLAuthCredential);
-      expect(cred!.providerId).to.eq('saml.provider');
-      expect(cred!.signInMethod).to.eq('saml.provider');
+      expect(cred).toBeInstanceOf(SAMLAuthCredential);
+      expect(cred!.providerId).toBe('saml.provider');
+      expect(cred!.signInMethod).toBe('saml.provider');
     });
   });
 
-  context('#makeRequest', () => {
+  describe('#makeRequest', () => {
     it('generates the proper request', async () => {
       await SAMLAuthCredential._create(
         'saml.provider',
@@ -83,14 +81,14 @@ describe('core/credentials/saml', () => {
       )._getIdTokenResponse(auth);
 
       const request = signInWithIdp.calls[0].request as SignInWithIdpRequest;
-      expect(request.requestUri).to.eq('http://localhost');
-      expect(request.returnSecureToken).to.be.true;
-      expect(request.pendingToken).to.eq('pending-token');
-      expect(request.postBody).to.be.undefined;
+      expect(request.requestUri).toBe('http://localhost');
+      expect(request.returnSecureToken).toBe(true);
+      expect(request.pendingToken).toBe('pending-token');
+      expect(request.postBody).toBeUndefined();
     });
   });
 
-  context('internal methods', () => {
+  describe('internal methods', () => {
     let cred: SAMLAuthCredential;
 
     beforeEach(() => {
@@ -101,24 +99,24 @@ describe('core/credentials/saml', () => {
       await cred._getIdTokenResponse(auth);
 
       const request = signInWithIdp.calls[0].request as SignInWithIdpRequest;
-      expect(request.postBody).to.be.undefined;
-      expect(request.pendingToken).to.eq('pending-token');
+      expect(request.postBody).toBeUndefined();
+      expect(request.pendingToken).toBe('pending-token');
     });
 
     it('_linkToIdToken sets the idToken field on the request', async () => {
       await cred._linkToIdToken(auth, 'new-id-token');
       const request = signInWithIdp.calls[0].request as SignInWithIdpRequest;
-      expect(request.postBody).to.be.undefined;
-      expect(request.pendingToken).to.eq('pending-token');
-      expect(request.idToken).to.eq('new-id-token');
+      expect(request.postBody).toBeUndefined();
+      expect(request.pendingToken).toBe('pending-token');
+      expect(request.idToken).toBe('new-id-token');
     });
 
     it('_getReauthenticationResolver sets autoCreate to false', async () => {
       await cred._getReauthenticationResolver(auth);
       const request = signInWithIdp.calls[0].request as SignInWithIdpRequest;
-      expect(request.postBody).to.be.undefined;
-      expect(request.pendingToken).to.eq('pending-token');
-      expect(request.autoCreate).to.be.false;
+      expect(request.postBody).toBeUndefined();
+      expect(request.pendingToken).toBe('pending-token');
+      expect(request.autoCreate).toBe(false);
     });
   });
 });

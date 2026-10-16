@@ -71,16 +71,27 @@ export abstract class AbstractPopupRedirectOperation implements AuthEventConsume
 
         try {
           this.eventManager = await this.resolver._initialize(this.auth);
+          if (!this.pendingPromise) {
+            return;
+          }
           await this.onExecution();
+          if (!this.pendingPromise) {
+            return;
+          }
           this.eventManager.registerConsumer(this);
         } catch (e) {
-          this.reject(e as Error);
+          if (this.pendingPromise) {
+            this.reject(e as Error);
+          }
         }
       }
     );
   }
 
   async onAuthEvent(event: AuthEvent): Promise<void> {
+    if (!this.pendingPromise) {
+      return;
+    }
     const { urlResponse, sessionId, postBody, tenantId, error, type } = event;
     if (error) {
       this.reject(error);

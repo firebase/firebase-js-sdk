@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-import * as sinon from 'sinon';
 
 import { FactorId } from '../model/public_types';
 
@@ -35,8 +31,6 @@ import { multiFactor, MultiFactorUserImpl } from './mfa_user';
 import { MultiFactorAssertionImpl } from './mfa_assertion';
 import { AuthInternal } from '../model/auth';
 import { makeJWT } from '../../test/helpers/jwt';
-
-use(chaiAsPromised);
 
 class MockMultiFactorAssertion extends MultiFactorAssertionImpl {
   constructor(readonly response: FinalizeMfaResponse) {
@@ -73,20 +67,20 @@ describe('core/mfa/mfa_user/MultiFactorUser', () => {
 
   afterEach(() => {
     mockFetch.tearDown();
-    sinon.restore();
+    vi.restoreAllMocks();
   });
 
   describe('getSession', () => {
     it('should return the id token', async () => {
       const mfaSession = (await mfaUser.getSession()) as MultiFactorSessionImpl;
-      expect(mfaSession.type).to.eq(MultiFactorSessionType.ENROLL);
-      expect(mfaSession.credential).to.eq('access-token');
+      expect(mfaSession.type).toBe(MultiFactorSessionType.ENROLL);
+      expect(mfaSession.credential).toBe('access-token');
     });
     it('should contain a reference to auth', async () => {
       const mfaSession = (await mfaUser.getSession()) as MultiFactorSessionImpl;
-      expect(mfaSession.type).to.eq(MultiFactorSessionType.ENROLL);
-      expect(mfaSession.credential).to.eq('access-token');
-      expect(mfaSession.user?.auth).to.eq(auth);
+      expect(mfaSession.type).toBe(MultiFactorSessionType.ENROLL);
+      expect(mfaSession.credential).toBe('access-token');
+      expect(mfaSession.user?.auth).toBe(auth);
     });
   });
 
@@ -128,20 +122,22 @@ describe('core/mfa/mfa_user/MultiFactorUser', () => {
     it('should update the tokens', async () => {
       await mfaUser.enroll(assertion);
 
-      expect(await mfaUser.user.getIdToken()).to.eq(idToken);
-      expect(mfaUser.user.stsTokenManager.expirationTime).to.be.closeTo(
-        Date.now() + 2400 * 1000,
-        1000
-      );
+      expect(await mfaUser.user.getIdToken()).toBe(idToken);
+      expect(
+        Math.abs(
+          mfaUser.user.stsTokenManager.expirationTime! -
+            (Date.now() + 2400 * 1000)
+        )
+      ).toBeLessThan(1000);
     });
 
     it('should update the enrolled Factors', async () => {
       await mfaUser.enroll(assertion);
 
-      expect(mfaUser.enrolledFactors.length).to.eq(1);
+      expect(mfaUser.enrolledFactors.length).toBe(1);
       const enrolledFactor = mfaUser.enrolledFactors[0];
-      expect(enrolledFactor.factorId).to.eq(FactorId.PHONE);
-      expect(enrolledFactor.uid).to.eq('mfa-id');
+      expect(enrolledFactor.factorId).toBe(FactorId.PHONE);
+      expect(enrolledFactor.uid).toBe('mfa-id');
     });
   });
 
@@ -191,7 +187,7 @@ describe('core/mfa/mfa_user/MultiFactorUser', () => {
     it('should withdraw the MFA', async () => {
       await mfaUser.unenroll(mfaInfo);
 
-      expect(withdrawMfaEnrollmentMock.calls[0].request).to.eql({
+      expect(withdrawMfaEnrollmentMock.calls[0].request).toEqual({
         idToken: 'access-token',
         mfaEnrollmentId: mfaInfo.uid
       });
@@ -200,13 +196,13 @@ describe('core/mfa/mfa_user/MultiFactorUser', () => {
     it('should remove matching enrollment factors but leave any others', async () => {
       await mfaUser.unenroll(mfaInfo);
 
-      expect(mfaUser.enrolledFactors).to.eql([otherMfaInfo]);
+      expect(mfaUser.enrolledFactors).toEqual([otherMfaInfo]);
     });
 
     it('should support passing a string instead of MultiFactorInfo', async () => {
       await mfaUser.unenroll(mfaInfo.uid);
 
-      expect(withdrawMfaEnrollmentMock.calls[0].request).to.eql({
+      expect(withdrawMfaEnrollmentMock.calls[0].request).toEqual({
         idToken: 'access-token',
         mfaEnrollmentId: mfaInfo.uid
       });
@@ -215,14 +211,16 @@ describe('core/mfa/mfa_user/MultiFactorUser', () => {
     it('should update the tokens', async () => {
       await mfaUser.unenroll(mfaInfo);
 
-      expect(await mfaUser.user.getIdToken()).to.eq(idToken);
-      expect(mfaUser.user.stsTokenManager.expirationTime).to.be.closeTo(
-        Date.now() + 2400 * 1000,
-        1000
-      );
+      expect(await mfaUser.user.getIdToken()).toBe(idToken);
+      expect(
+        Math.abs(
+          mfaUser.user.stsTokenManager.expirationTime! -
+            (Date.now() + 2400 * 1000)
+        )
+      ).toBeLessThan(1000);
     });
 
-    context('token revoked by backend', () => {
+    describe('token revoked by backend', () => {
       beforeEach(() => {
         mockEndpoint(
           Endpoint.GET_ACCOUNT_INFO,
@@ -236,7 +234,7 @@ describe('core/mfa/mfa_user/MultiFactorUser', () => {
       });
 
       it('should throw TOKEN_EXPIRED error', async () => {
-        await expect(mfaUser.unenroll(mfaInfo)).to.be.rejectedWith(
+        await expect(mfaUser.unenroll(mfaInfo)).rejects.toThrow(
           'auth/user-token-expired'
         );
       });
@@ -255,15 +253,15 @@ describe('core/mfa/mfa_user/multiFactor', () => {
 
   it('can be used to a create a MultiFactorUser', () => {
     const mfaUser = multiFactor(user);
-    expect((mfaUser as MultiFactorUserImpl).user).to.eq(user);
+    expect((mfaUser as MultiFactorUserImpl).user).toBe(user);
   });
 
   it('should only create one instance of an MFA user per User', () => {
     const mfaUser = multiFactor(user);
-    expect(multiFactor(user)).to.eq(mfaUser);
+    expect(multiFactor(user)).toBe(mfaUser);
   });
 
-  context('enrolledFactors', () => {
+  describe('enrolledFactors', () => {
     const serverUser: APIUserInfo = {
       localId: 'local-id',
       mfaInfo: [
@@ -303,21 +301,21 @@ describe('core/mfa/mfa_user/multiFactor', () => {
     it('should initialize the enrolled factors from the last reload', async () => {
       await user.reload();
       const mfaUser = multiFactor(user);
-      expect(mfaUser.enrolledFactors.length).to.eq(1);
+      expect(mfaUser.enrolledFactors.length).toBe(1);
       const mfaInfo = mfaUser.enrolledFactors[0];
-      expect(mfaInfo.uid).to.eq('enrollment-id');
-      expect(mfaInfo.factorId).to.eq(FactorId.PHONE);
+      expect(mfaInfo.uid).toBe('enrollment-id');
+      expect(mfaInfo.factorId).toBe(FactorId.PHONE);
     });
 
     it('should update the enrolled factors if the user is reloaded', async () => {
       await user.reload();
       const mfaUser = multiFactor(user);
-      expect(mfaUser.enrolledFactors.length).to.eq(1);
+      expect(mfaUser.enrolledFactors.length).toBe(1);
       mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {
         users: [updatedServerUser]
       });
       await user.reload();
-      expect(mfaUser.enrolledFactors.length).to.eq(2);
+      expect(mfaUser.enrolledFactors.length).toBe(2);
     });
   });
 });

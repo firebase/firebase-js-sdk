@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import { OperationType } from '../../model/enums';
 
@@ -50,33 +48,33 @@ describe('core/strategies/anonymous', () => {
   describe('signInAnonymously', () => {
     it('should sign in an anonymous user', async () => {
       const { user, operationType } = await signInAnonymously(auth);
-      expect(operationType).to.eq(OperationType.SIGN_IN);
-      expect(user.uid).to.eq(serverUser.localId);
-      expect(user.isAnonymous).to.be.true;
+      expect(operationType).toBe(OperationType.SIGN_IN);
+      expect(user.uid).toBe(serverUser.localId);
+      expect(user.isAnonymous).toBe(true);
     });
 
-    context('already signed in anonymously', () => {
+    describe('already signed in anonymously', () => {
       it('should return the current user', async () => {
         const userCredential = await signInAnonymously(auth);
-        expect(userCredential.user.isAnonymous).to.be.true;
+        expect(userCredential.user.isAnonymous).toBe(true);
 
         const { user, operationType } = await signInAnonymously(auth);
-        expect(operationType).to.eq(OperationType.SIGN_IN);
-        expect(user.uid).to.eq(userCredential.user.uid);
-        expect(user.isAnonymous).to.be.true;
+        expect(operationType).toBe(OperationType.SIGN_IN);
+        expect(user.uid).toBe(userCredential.user.uid);
+        expect(user.isAnonymous).toBe(true);
       });
     });
 
-    context('already signed in with a non-anonymous account', () => {
+    describe('already signed in with a non-anonymous account', () => {
       it('should sign in as a new user user', async () => {
         const fakeUser = testUser(auth, 'other-uid');
         await auth._updateCurrentUser(fakeUser);
-        expect(fakeUser.isAnonymous).to.be.false;
+        expect(fakeUser.isAnonymous).toBe(false);
 
         const { user, operationType } = await signInAnonymously(auth);
-        expect(operationType).to.eq(OperationType.SIGN_IN);
-        expect(user.uid).to.not.eq(fakeUser.uid);
-        expect(user.isAnonymous).to.be.true;
+        expect(operationType).toBe(OperationType.SIGN_IN);
+        expect(user.uid).not.toBe(fakeUser.uid);
+        expect(user.isAnonymous).toBe(true);
       });
     });
   });
