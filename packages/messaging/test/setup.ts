@@ -15,11 +15,15 @@
  * limitations under the License.
  */
 
-const path = require('path');
-const glob = require('glob');
-const Mocha = require('mocha');
+import { deleteDB } from 'idb';
 
-const mocha = new Mocha();
-const testFiles = glob.sync(path.join(__dirname, '../dist/**/*.test.js'));
-testFiles.forEach(file => mocha.addFile(file));
-mocha.run(failures => process.exit(failures));
+afterEach(async () => {
+  vi.useRealTimers();
+  vi.resetAllMocks();
+  vi.restoreAllMocks();
+  // Use deleteDB directly rather than importing dbDelete from idb-manager so
+  // setupFiles does not evaluate and cache idb-manager before test files run
+  // vi.mock('../internals/idb-manager', { spy: true }).
+  await deleteDB('firebase-messaging-database');
+  await deleteDB('fcm_token_details_db');
+});

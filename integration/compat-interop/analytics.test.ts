@@ -16,7 +16,6 @@
  */
 
 import { getModularInstance } from '@firebase/util';
-import { expect } from 'chai';
 import { getAnalytics } from '@firebase/analytics';
 import firebase from '@firebase/app-compat';
 import '@firebase/analytics-compat';
@@ -30,6 +29,6 @@ const modularAnalytics = getAnalytics();
 
 describe('Analytics compat interop', () => {
   it('Analytics compat instance references modular Analytics instance', () => {
-    expect(getModularInstance(compatAnalytics)).to.equal(modularAnalytics);
+    expect(getModularInstance(compatAnalytics)).toBe(modularAnalytics);
   });
 });
