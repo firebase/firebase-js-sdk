@@ -25,13 +25,7 @@ import { connectAuthEmulator } from './emulator';
 import * as Util from '@firebase/util';
 import { MockInstance } from 'vitest';
 
-vi.mock('@firebase/util', async importOriginal => {
-  const actual = await importOriginal<typeof import('@firebase/util')>();
-  return {
-    ...actual,
-    pingServer: vi.fn(actual.pingServer)
-  };
-});
+vi.mock('@firebase/util', { spy: true });
 describe('core/auth/emulator', () => {
   let auth: TestAuth;
   let user: UserInternal;
@@ -57,7 +51,6 @@ describe('core/auth/emulator', () => {
   afterEach(() => {
     fetch.tearDown();
     vi.restoreAllMocks();
-    vi.resetAllMocks();
 
     // The DOM persists through tests; remove the banner if it is attached
     const banner =
