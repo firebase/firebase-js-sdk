@@ -212,6 +212,8 @@ toc:
     path: /docs/reference/js/ai.slidingwindow.md
   - title: SpeakerVoiceConfig
     path: /docs/reference/js/ai.speakervoiceconfig.md
+  - title: SpeechMetadata
+    path: /docs/reference/js/ai.speechmetadata.md
   - title: StartAudioConversationOptions
     path: /docs/reference/js/ai.startaudioconversationoptions.md
   - title: StartChatParams
