@@ -20,11 +20,12 @@ In Next.js App Router, `layout.tsx` is a Server Component by default. Because `F
 'use client';
 
 import React from 'react';
+import { breadcrumbs } from '@firebase/crashlytics';
 import { FirebaseCrashlytics } from '@firebase/crashlytics/react';
 import { CrashlyticsRoutes } from '@firebase/crashlytics/next-navigation';
 import { app } from '../lib/firebase'; // Shared initialization script
 
-const crashlyticsOptions = { enableBreadcrumbs: true };
+const crashlyticsOptions = { features: [breadcrumbs()] };
 
 export function CrashlyticsProvider({ children }: { children: React.ReactNode }) {
   return (

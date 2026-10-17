@@ -41,7 +41,7 @@ npm install @firebase/app@eap-crashlytics @firebase/crashlytics@eap-crashlytics
 
 ### Step 3: Add Breadcrumbs to your initialization
 
-Breadcrumbs are off by default. To turn them on, set `enableBreadcrumbs: true` in the `CrashlyticsOptions` you pass when initializing Crashlytics. Follow the guide for your framework:
+Breadcrumbs are off by default. To turn them on, pass `features: [breadcrumbs()]` in the `CrashlyticsOptions` when initializing Crashlytics. Follow the guide for your framework:
 
 - 🔺 [Next.js Setup Guide](../src/next/_enable_breadcrumbs.md)
 - ⚛️ [**React Setup Guide**](../src/react/_enable_breadcrumbs.md)
@@ -50,10 +50,11 @@ Breadcrumbs are off by default. To turn them on, set `enableBreadcrumbs: true` i
 If you initialize Crashlytics directly without a framework integration, pass the option to `getCrashlytics()`:
 
 ```diff
-import { getCrashlytics } from '@firebase/crashlytics';
+-import { getCrashlytics } from '@firebase/crashlytics';
++import { getCrashlytics, breadcrumbs } from '@firebase/crashlytics';
 
 -const crashlytics = getCrashlytics(app);
-+const crashlytics = getCrashlytics(app, { enableBreadcrumbs: true });
++const crashlytics = getCrashlytics(app, { features: [breadcrumbs()] });
 ```
 
 **Note:** Crashlytics must be initialized with the same options everywhere in your app. Calling `getCrashlytics()` with different options for the same app throws an error.

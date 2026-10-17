@@ -6,6 +6,16 @@
   "main": "dist/index.node.cjs.js",
   "module": "dist/index.esm.js",
   "browser": "dist/index.esm.js",
+  "sideEffects": [
+    "./dist/index.esm.js",
+    "./dist/index.cjs.js",
+    "./dist/index.node.cjs.js",
+    "./dist/node-esm/index.node.esm.js",
+    "./dist/react/*",
+    "./dist/react-router/*",
+    "./dist/angular/*",
+    "./dist/next-navigation/*"
+  ],
   "exports": {
     ".": {
       "types": "./dist/index-public.d.ts",

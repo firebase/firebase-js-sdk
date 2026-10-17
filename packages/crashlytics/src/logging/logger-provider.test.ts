@@ -27,6 +27,7 @@ import { AttributesStore } from '../attributes-store';
 import { FirebaseAttributesLogProcessor } from './attributes-log-processor';
 import { TelemetryStore } from '../telemetry-store';
 import { OnErrorLogRecordProcessor } from './on-error-log-record-processor';
+import { breadcrumbs } from '../breadcrumbs';
 
 describe('createLoggerProvider', () => {
   let app: FirebaseApp;
@@ -50,7 +51,7 @@ describe('createLoggerProvider', () => {
     sinon.restore();
   });
 
-  it('should initialize LoggerProvider with FirebaseAttributesLogProcessor and BatchLogRecordProcessor by default when enableBreadcrumbs is not set', () => {
+  it('should initialize LoggerProvider with FirebaseAttributesLogProcessor and BatchLogRecordProcessor by default when breadcrumbs() is not set', () => {
     const { loggerProvider: provider, onErrorLogRecordProcessor } =
       createLoggerProvider(app, {}, attributesStore, telemetryStore, []);
     expect(provider).to.be.an.instanceOf(LoggerProvider);
@@ -74,11 +75,11 @@ describe('createLoggerProvider', () => {
     sinon.assert.callOrder(attributesEmitSpy, batchEmitSpy);
   });
 
-  it('should initialize LoggerProvider with FirebaseAttributesLogProcessor and OnErrorLogRecordProcessor when enableBreadcrumbs is true', () => {
+  it('should initialize LoggerProvider with FirebaseAttributesLogProcessor and OnErrorLogRecordProcessor when breadcrumbs() is enabled', () => {
     const { loggerProvider: provider, onErrorLogRecordProcessor } =
       createLoggerProvider(
         app,
-        { enableBreadcrumbs: true },
+        { features: [breadcrumbs()] },
         attributesStore,
         telemetryStore,
         []
@@ -107,7 +108,7 @@ describe('createLoggerProvider', () => {
   });
 
   describe('BatchLogRecordProcessor auto-flush on document hide', () => {
-    it('should pass disableAutoFlushOnDocumentHide: true to BatchLogRecordProcessor by default when enableBreadcrumbs is not set', () => {
+    it('should pass disableAutoFlushOnDocumentHide: true to BatchLogRecordProcessor by default when breadcrumbs() is not enabled', () => {
       if ('_onInit' in BatchLogRecordProcessor.prototype) {
         // Browser environment (Webpack ES module bundle where namespace exports are non-configurable)
         const onInitSpy = sinon.spy(
@@ -144,7 +145,7 @@ describe('createLoggerProvider', () => {
       }
     });
 
-    it('should pass disableAutoFlushOnDocumentHide: true to BatchLogRecordProcessor when enableBreadcrumbs is true', () => {
+    it('should pass disableAutoFlushOnDocumentHide: true to BatchLogRecordProcessor when breadcrumbs() is enabled', () => {
       if ('_onInit' in BatchLogRecordProcessor.prototype) {
         // Browser environment (Webpack ES module bundle where namespace exports are non-configurable)
         const onInitSpy = sinon.spy(
@@ -156,7 +157,7 @@ describe('createLoggerProvider', () => {
         try {
           createLoggerProvider(
             app,
-            { enableBreadcrumbs: true },
+            { features: [breadcrumbs()] },
             attributesStore,
             telemetryStore,
             []
@@ -185,7 +186,7 @@ describe('createLoggerProvider', () => {
         try {
           createLoggerProvider(
             app,
-            { enableBreadcrumbs: true },
+            { features: [breadcrumbs()] },
             attributesStore,
             telemetryStore,
             []

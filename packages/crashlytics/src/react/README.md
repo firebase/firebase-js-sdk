@@ -16,6 +16,7 @@ Wrap your root application component (typically `src/App.tsx` or `src/main.tsx`)
 ```tsx
 // src/App.tsx
 import React from 'react';
+import { breadcrumbs } from '@firebase/crashlytics';
 import { FirebaseCrashlytics } from "@firebase/crashlytics/react";
 import { app } from './lib/firebase'; // Shared initialization script
 
@@ -24,7 +25,7 @@ export default function App() {
     <>
       <FirebaseCrashlytics
         firebaseApp={app}
-        crashlyticsOptions={{ enableBreadcrumbs: true }}
+        crashlyticsOptions={{ features: [breadcrumbs()] }}
       />
       {/* Rest of your application components */}
     </>

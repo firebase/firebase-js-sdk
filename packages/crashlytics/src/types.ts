@@ -15,14 +15,48 @@
  * limitations under the License.
  */
 
-import { LoggerProvider } from '@opentelemetry/sdk-logs';
-import { TracerProvider } from '@opentelemetry/api';
-import { Crashlytics, CrashlyticsOptions } from './public-types';
-import { AttributesStore } from './attributes-store';
+import type { FirebaseApp } from '@firebase/app';
+import type {
+  LoggerProvider,
+  LogRecordExporter
+} from '@opentelemetry/sdk-logs';
+import type { TracerProvider } from '@opentelemetry/api';
+import {
+  Crashlytics,
+  CrashlyticsFeature,
+  CrashlyticsOptions
+} from './public-types';
+import type { AttributesStore } from './attributes-store';
 import { ALREADY_LOGGED_FLAG } from './constants';
-import { OnErrorSpanProcessor } from './tracing/on-error-span-processor';
-import { OnErrorLogRecordProcessor } from './logging/on-error-log-record-processor';
-import { TelemetryStore } from './telemetry-store';
+import type { OnErrorSpanProcessor } from './tracing/on-error-span-processor';
+import type { OnErrorLogRecordProcessor } from './logging/on-error-log-record-processor';
+import type { TelemetryStore } from './telemetry-store';
+
+/**
+ * Internal interface implemented by Crashlytics feature plugins (such as {@link breadcrumbs}).
+ *
+ * @internal
+ */
+export interface CrashlyticsFeatureInternal extends CrashlyticsFeature {
+  readonly name: string;
+  createTelemetryStore(): TelemetryStore;
+  createLogRecordProcessor(
+    exporter: LogRecordExporter,
+    telemetryStore: TelemetryStore
+  ): OnErrorLogRecordProcessor;
+  initializeLoggerInstrumentations(loggerProvider: LoggerProvider): void;
+  createTracingProvider(
+    app: FirebaseApp,
+    crashlyticsOptions: CrashlyticsOptions,
+    attributesStore: AttributesStore,
+    telemetryStore: TelemetryStore,
+    dynamicHeaderProviders?: DynamicHeaderProvider[]
+  ): {
+    tracingProvider: TracerProvider;
+    onErrorSpanProcessor?: OnErrorSpanProcessor;
+  };
+  unregisterInstrumentations(): void;
+}
 
 /**
  * An internal interface for the Crashlytics service.

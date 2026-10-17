@@ -15,11 +15,14 @@ export interface Crashlytics {
 }
 
 // @public
+export interface CrashlyticsFeature {}
+
+// @public
 export interface CrashlyticsOptions {
     appVersion?: string;
     customAttributes?: AnyValueMap;
-    enableBreadcrumbs?: boolean;
     endpointUrl?: string;
+    features?: CrashlyticsFeature[];
     region?: string;
     registerGlobalLoggerProvider?: boolean;
 }

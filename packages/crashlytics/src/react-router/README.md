@@ -17,6 +17,7 @@ If you're using React Router (v6+) in your application instead of Next.js-based 
 // src/App.tsx
 import React from 'react';
 import { BrowserRouter, Route } from 'react-router-dom';
+import { breadcrumbs } from '@firebase/crashlytics';
 import { CrashlyticsRoutes } from '@firebase/crashlytics/react-router';
 import { app } from './lib/firebase'; // Shared initialization script
 import Home from './pages/Home';
@@ -28,7 +29,7 @@ export default function App() {
     <BrowserRouter>
       <CrashlyticsRoutes
         firebaseApp={app}
-        crashlyticsOptions={{ enableBreadcrumbs: true }}
+        crashlyticsOptions={{ features: [breadcrumbs()] }}
       >
         <Route path="/" element={<Home />} />
         <Route path="/profile/:userId" element={<Profile />} />

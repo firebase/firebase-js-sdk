@@ -24,10 +24,6 @@ import {
   LogRecordProcessor
 } from '@opentelemetry/sdk-logs';
 import { logs } from '@opentelemetry/api-logs';
-import { registerInstrumentations } from '@opentelemetry/instrumentation';
-import { NavigationTimingInstrumentation } from '@opentelemetry/browser-instrumentation/experimental/navigation-timing';
-import { UserActionInstrumentation } from '@opentelemetry/browser-instrumentation/experimental/user-action';
-import { WebVitalsInstrumentation } from '@opentelemetry/browser-instrumentation/experimental/web-vitals';
 import { ATTR_SERVICE_NAME } from '@opentelemetry/semantic-conventions';
 import { resourceFromAttributes } from '@opentelemetry/resources';
 import { JsonLogsSerializer } from '@opentelemetry/otlp-transformer';
@@ -46,12 +42,10 @@ import {
   DEFAULT_TELEMETRY_REGION
 } from '../constants';
 import { AttributesStore } from '../attributes-store';
-import { OnErrorLogRecordProcessor } from './on-error-log-record-processor';
-import { TelemetryStore } from '../telemetry-store';
+import type { OnErrorLogRecordProcessor } from './on-error-log-record-processor';
+import type { TelemetryStore } from '../telemetry-store';
 import { FirebaseAttributesLogProcessor } from './attributes-log-processor';
-import { isTelemetryUrl } from '../helpers';
-
-let unregisterInstrumentations: (() => void) | undefined;
+import { getBreadcrumbsFeature, isTelemetryUrl } from '../helpers';
 
 /**
  * Result returned by {@link createLoggerProvider}.
@@ -106,10 +100,11 @@ export function createLoggerProvider(
     new FirebaseAttributesLogProcessor(attributesStore, projectId)
   ];
 
-  if (crashlyticsOptions.enableBreadcrumbs) {
-    onErrorLogRecordProcessor = new OnErrorLogRecordProcessor(
+  const breadcrumbsFeature = getBreadcrumbsFeature(crashlyticsOptions);
+  if (breadcrumbsFeature) {
+    onErrorLogRecordProcessor = breadcrumbsFeature.createLogRecordProcessor(
       logExporter,
-      telemetryStore ?? new TelemetryStore()
+      telemetryStore ?? breadcrumbsFeature.createTelemetryStore()
     );
     processors.push(onErrorLogRecordProcessor);
   } else {
@@ -131,38 +126,8 @@ export function createLoggerProvider(
     logs.setGlobalLoggerProvider(loggerProvider);
   }
 
-  if (crashlyticsOptions.enableBreadcrumbs && typeof window !== 'undefined') {
-    /*
-     * Initialize as disabled to prevent the instrumentation from auto-enabling during construction.
-     * In SSR frameworks (like Next.js), the page is already loaded when this script executes, so
-     * it will try to emit the navigation timing immediately. Deferring the enable state ensures
-     * the loggerProvider is fully bound by registerInstrumentations before the event is emitted.
-     * registerInstrumentations will automatically enable it once the provider is set.
-     */
-    const navigationTiming = new NavigationTimingInstrumentation({
-      enabled: false
-    });
-    const webVitals = new WebVitalsInstrumentation({
-      enabled: false,
-      // TODO: Consider making the raw attribution flag configurable in the future. Some customers
-      // may want to disable this for performance or data reasons.
-      includeRawAttribution: true
-    });
-
-    if (unregisterInstrumentations) {
-      unregisterInstrumentations();
-    }
-
-    unregisterInstrumentations = registerInstrumentations({
-      loggerProvider,
-      instrumentations: [
-        navigationTiming,
-        webVitals,
-        new UserActionInstrumentation({
-          autoCapturedActions: ['click']
-        })
-      ]
-    });
+  if (breadcrumbsFeature && typeof window !== 'undefined') {
+    breadcrumbsFeature.initializeLoggerInstrumentations(loggerProvider);
   }
 
   return { loggerProvider, onErrorLogRecordProcessor };
@@ -238,13 +203,5 @@ class OTLPLogExporter
   async forceFlush(): Promise<void> {
     // Basic implementation of forceFlush for interface compliance
     console.log('OTLPLogExporter: forceFlush called');
-  }
-}
-
-/** @internal */
-export function unregisterLoggerInstrumentations(): void {
-  if (unregisterInstrumentations) {
-    unregisterInstrumentations();
-    unregisterInstrumentations = undefined;
   }
 }
