@@ -28,6 +28,7 @@ import { AppCheckProvider } from './logging/appcheck-provider';
 import { CRASHLYTICS_TYPE } from './constants';
 import {
   getBreadcrumbsFeature,
+  registerGlobalErrorListeners,
   registerListeners,
   startNewSession
 } from './helpers';
@@ -100,7 +101,14 @@ export function registerCrashlytics(): void {
 
         // Register relevant event listeners
         const unsubscribeListeners = registerListeners(crashlyticsService);
-        crashlyticsService.unsubscribeListeners(unsubscribeListeners);
+        const unsubscribeGlobalErrorListeners =
+          crashlyticsOptions.captureUnhandledErrors !== false
+            ? registerGlobalErrorListeners(crashlyticsService)
+            : () => {};
+        crashlyticsService.unsubscribeListeners(() => {
+          unsubscribeListeners();
+          unsubscribeGlobalErrorListeners();
+        });
 
         return crashlyticsService;
       },

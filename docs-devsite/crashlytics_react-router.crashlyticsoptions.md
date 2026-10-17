@@ -23,6 +23,7 @@ export interface CrashlyticsOptions
 |  Property | Type | Description |
 |  --- | --- | --- |
 |  [appVersion](./crashlytics_react-router.crashlyticsoptions.md#crashlyticsoptionsappversion) | string | The version of the application. This should be a unique string that identifies the snapshot of code to be deployed, such as "1.0.2". If not specified, other default locations will be checked for an identifier. Setting a value here takes precedence over any other values. |
+|  [captureUnhandledErrors](./crashlytics_react-router.crashlyticsoptions.md#crashlyticsoptionscaptureunhandlederrors) | boolean | Automatically capture uncaught browser exceptions ('error' and 'unhandledrejection' window events).<!-- -->Defaults to <code>true</code>. |
 |  [customAttributes](./crashlytics_react-router.crashlyticsoptions.md#crashlyticsoptionscustomattributes) | AnyValueMap | Base set of custom attributes to send with automatic error collection. Key-value pairs defined here will be sent with all error logs. If custom attributes are also specified in <code>recordError()</code> or <code>log()</code>, those values will take precedence over the base set defined here. |
 |  [endpointUrl](./crashlytics_react-router.crashlyticsoptions.md#crashlyticsoptionsendpointurl) | string | The URL for the endpoint to which Crashlytics data should be sent, in the OpenTelemetry format. By default, data will be sent to Firebase. |
 |  [features](./crashlytics_react-router.crashlyticsoptions.md#crashlyticsoptionsfeatures) | [CrashlyticsFeature](./crashlytics_react-router.crashlyticsfeature.md#crashlyticsfeature_interface)<!-- -->\[\] | Optional list of Crashlytics features (such as [breadcrumbs()](./crashlytics.md#breadcrumbs)<!-- -->) to enable.<!-- -->When [breadcrumbs()](./crashlytics.md#breadcrumbs) is included, Crashlytics collects OpenTelemetry spans (such as Fetch, XMLHttpRequest, and Document Load) and breadcrumb logs (such as navigation events, Web Vitals, user actions, and visibility lifecycle events), buffering them in memory and exporting them when an error occurs. |
@@ -37,6 +38,18 @@ The version of the application. This should be a unique string that identifies t
 
 ```typescript
 appVersion?: string;
+```
+
+## CrashlyticsOptions.captureUnhandledErrors
+
+Automatically capture uncaught browser exceptions ('error' and 'unhandledrejection' window events).
+
+Defaults to `true`<!-- -->.
+
+<b>Signature:</b>
+
+```typescript
+captureUnhandledErrors?: boolean;
 ```
 
 ## CrashlyticsOptions.customAttributes

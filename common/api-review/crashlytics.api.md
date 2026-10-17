@@ -22,6 +22,7 @@ export interface CrashlyticsFeature {}
 // @public
 export interface CrashlyticsOptions {
     appVersion?: string;
+    captureUnhandledErrors?: boolean;
     customAttributes?: AnyValueMap;
     endpointUrl?: string;
     features?: CrashlyticsFeature[];

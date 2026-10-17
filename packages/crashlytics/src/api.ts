@@ -182,52 +182,6 @@ export function log(
 }
 
 /**
- * Registers global event listeners for uncaught errors and promise rejections.
- * Automatically avoids double logging if the error was already logged.
- *
- * @internal
- */
-export function registerGlobalErrorListeners(
-  crashlytics: Crashlytics
-): () => void {
-  if (typeof window === 'undefined') {
-    return () => {};
-  }
-
-  const errorListener = (event: ErrorEvent): void => {
-    if (event.error && (event.error as ErrorWithSymbol)[ALREADY_LOGGED_FLAG]) {
-      return;
-    }
-    recordError(crashlytics, event.error);
-  };
-
-  const unhandledRejectionListener = (event: PromiseRejectionEvent): void => {
-    if (
-      event.reason &&
-      (event.reason as ErrorWithSymbol)[ALREADY_LOGGED_FLAG]
-    ) {
-      return;
-    }
-    recordError(crashlytics, event.reason);
-  };
-
-  try {
-    window.addEventListener('error', errorListener);
-    window.addEventListener('unhandledrejection', unhandledRejectionListener);
-  } catch (error) {
-    console.warn(`Firebase Crashlytics was not initialized:\n`, error);
-  }
-
-  return () => {
-    window.removeEventListener('error', errorListener);
-    window.removeEventListener(
-      'unhandledrejection',
-      unhandledRejectionListener
-    );
-  };
-}
-
-/**
  * Creates a log for view boundary on navigation event
  *
  * @internal

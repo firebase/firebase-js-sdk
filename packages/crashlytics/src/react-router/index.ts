@@ -17,12 +17,7 @@
 
 import { FirebaseApp } from '@firebase/app';
 import { registerCrashlytics } from '../register';
-import {
-  recordError,
-  getCrashlytics,
-  logViewBoundary,
-  registerGlobalErrorListeners
-} from '../api';
+import { recordError, getCrashlytics, logViewBoundary } from '../api';
 import { CrashlyticsOptions } from '../public-types';
 
 import React from 'react';
@@ -117,10 +112,6 @@ export function CrashlyticsRoutes({
       crashlyticsService.attributesStore.setRoutePathProvider(undefined);
     };
   }, [crashlytics, pattern]);
-
-  React.useEffect(() => {
-    return registerGlobalErrorListeners(crashlytics);
-  }, [crashlytics]);
 
   const onError = (error: Error): void => {
     recordError(crashlytics, error);

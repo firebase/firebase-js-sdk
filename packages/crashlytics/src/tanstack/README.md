@@ -11,7 +11,7 @@ This guide details how to integrate Firebase Crashlytics into a React applicatio
 
 ## Automatic Error Capturing
 
-If you are using TanStack Router, register `recordError` in `defaultOnCatch`:
+If you are using TanStack Router, initialize Crashlytics with `getCrashlytics(app)` and register `recordError` in `defaultOnCatch`:
 
 ```typescript
 import { recordError, getCrashlytics } from "@firebase/crashlytics";
@@ -19,16 +19,18 @@ import { app } from "./lib/firebase"; // shared initialization script
 import { createRouter } from "@tanstack/react-router";
 import { routeTree } from "./routeTree.gen";
 
+const crashlytics = getCrashlytics(app);
+
 const router = createRouter({
   routeTree,
   defaultOnCatch: (error, errorInfo) => {
-    recordError(getCrashlytics(app), error, errorInfo);
+    recordError(crashlytics, error, errorInfo);
   },
 });
 ```
 
 > [!TIP]
-> `defaultOnCatch` handles errors caught during routing and component rendering within TanStack Router. If you are using React and also want to capture global uncaught window errors and unhandled promise rejections outside of router lifecycle events, wrap your root component with `<FirebaseCrashlytics firebaseApp={app} />` from `@firebase/crashlytics/react` as described in the [React Setup Guide](../react/README.md).
+> Calling `getCrashlytics(app)` automatically registers global listeners for uncaught window errors and unhandled promise rejections, while `defaultOnCatch` captures errors caught during routing and component rendering within TanStack Router.
 
 ---
 

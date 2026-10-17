@@ -88,6 +88,14 @@ export interface CrashlyticsOptions {
   registerGlobalLoggerProvider?: boolean;
 
   /**
+   * Automatically capture uncaught browser exceptions ('error' and
+   * 'unhandledrejection' window events).
+   *
+   * Defaults to `true`.
+   */
+  captureUnhandledErrors?: boolean;
+
+  /**
    * Optional list of Crashlytics features (such as {@link breadcrumbs}) to enable.
    *
    * When {@link breadcrumbs} is included, Crashlytics collects OpenTelemetry spans (such as Fetch,
