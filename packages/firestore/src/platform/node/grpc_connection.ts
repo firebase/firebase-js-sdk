@@ -23,7 +23,11 @@ import { Token } from '../../api/credentials';
 import { DatabaseInfo } from '../../core/database_info';
 import { SDK_VERSION } from '../../core/version';
 import { ResourcePath } from '../../model/path';
-import { Connection, Stream } from '../../remote/connection';
+import {
+  Connection,
+  isTransactionalRpc,
+  Stream
+} from '../../remote/connection';
 import { mapCodeFromRpcCode } from '../../remote/rpc_error';
 import { StreamBridge } from '../../remote/stream_bridge';
 import { hardAssert } from '../../util/assert';
@@ -46,7 +50,8 @@ function createMetadata(
   appCheckToken: Token | null,
   appId: string,
   apiKey: string | undefined,
-  customHeaders?: Record<string, string>
+  customHeaders?: Record<string, string>,
+  isTransaction = false
 ): grpc.Metadata {
   hardAssert(
     authToken === null || authToken.type === 'OAuth',
@@ -71,6 +76,7 @@ function createMetadata(
   // 11 from Google3.
   metadata.set('Google-Cloud-Resource-Prefix', databasePath);
   metadata.set('x-goog-request-params', databasePath);
+  metadata.set('x-goog-is-transaction', isTransaction ? 'true' : 'false');
   if (apiKey) {
     metadata.set('X-Goog-Api-Key', apiKey);
   }
@@ -140,7 +146,8 @@ export class GrpcConnection implements Connection {
     path: ResourcePath,
     request: Req,
     authToken: Token | null,
-    appCheckToken: Token | null
+    appCheckToken: Token | null,
+    isTransaction?: boolean
   ): Promise<Resp> {
     const streamId = generateUniqueDebugId();
     const stub = this.ensureActiveStub();
@@ -150,7 +157,8 @@ export class GrpcConnection implements Connection {
       appCheckToken,
       this.databaseInfo.appId,
       this.databaseInfo.apiKey,
-      this.databaseInfo._customHeaders
+      this.databaseInfo._customHeaders,
+      isTransactionalRpc(rpcName, request, isTransaction)
     );
     const jsonRequest = { database: this.databasePath, ...request };
 
@@ -195,7 +203,8 @@ export class GrpcConnection implements Connection {
     request: Req,
     authToken: Token | null,
     appCheckToken: Token | null,
-    expectedResponseCount?: number
+    expectedResponseCount?: number,
+    isTransaction?: boolean
   ): Promise<Resp[]> {
     const streamId = generateUniqueDebugId();
     const results: Resp[] = [];
@@ -212,7 +221,8 @@ export class GrpcConnection implements Connection {
       appCheckToken,
       this.databaseInfo.appId,
       this.databaseInfo.apiKey,
-      this.databaseInfo._customHeaders
+      this.databaseInfo._customHeaders,
+      isTransactionalRpc(rpcName, request, isTransaction)
     );
     const jsonRequest = { ...request, database: this.databasePath };
     const stream = stub[rpcName](jsonRequest, metadata);
