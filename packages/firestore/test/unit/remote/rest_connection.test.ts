@@ -102,6 +102,7 @@ describe('RestConnection', () => {
       'X-Firebase-GMPID': 'test-app-id',
       'X-Goog-Api-Client': `gl-js/ fire/${SDK_VERSION}`,
       'x-firebase-appcheck': 'some-app-check-token',
+      'x-goog-is-transaction': 'false',
       'x-goog-request-params': 'project_id=testproject',
       'google-cloud-resource-prefix': 'projects/testproject/databases/(default)'
     });
@@ -121,10 +122,54 @@ describe('RestConnection', () => {
       'Content-Type': 'text/plain',
       'X-Firebase-GMPID': 'test-app-id',
       'X-Goog-Api-Client': `gl-js/ fire/${SDK_VERSION}`,
+      'x-goog-is-transaction': 'false',
       'x-goog-request-params': 'project_id=testproject',
       'google-cloud-resource-prefix': 'projects/testproject/databases/(default)'
       // Note: AppCheck token should not exist here.
     });
+  });
+
+  it('sets x-goog-is-transaction header for transactional and non-transactional RPCs', async () => {
+    const path = new ResourcePath(
+      'projects/testproject/databases/(default)/documents/foo'.split('/')
+    );
+
+    await connection.invokeRPC('Commit', path, {}, null, null, false);
+    expect(connection.lastHeaders['x-goog-is-transaction']).toBe('false');
+
+    await connection.invokeRPC('Commit', path, {}, null, null, true);
+    expect(connection.lastHeaders['x-goog-is-transaction']).toBe('true');
+
+    await connection.invokeStreamingRPC(
+      'BatchGetDocuments',
+      path,
+      {},
+      null,
+      null,
+      1,
+      false
+    );
+    expect(connection.lastHeaders['x-goog-is-transaction']).toBe('false');
+
+    await connection.invokeStreamingRPC(
+      'BatchGetDocuments',
+      path,
+      {},
+      null,
+      null,
+      1,
+      true
+    );
+    expect(connection.lastHeaders['x-goog-is-transaction']).toBe('true');
+
+    await connection.invokeStreamingRPC(
+      'ExecutePipeline',
+      path,
+      { newTransaction: { readWrite: { concurrencyMode: 'OPTIMISTIC' } } },
+      null,
+      null
+    );
+    expect(connection.lastHeaders['x-goog-is-transaction']).toBe('true');
   });
 
   it('adds custom headers when _customHeaders is set', async () => {

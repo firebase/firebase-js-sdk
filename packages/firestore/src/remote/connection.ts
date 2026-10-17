@@ -50,7 +50,8 @@ export interface Connection {
     path: ResourcePath,
     request: Req,
     authToken: Token | null,
-    appCheckToken: Token | null
+    appCheckToken: Token | null,
+    isTransaction?: boolean
   ): Promise<Resp>;
 
   /**
@@ -72,7 +73,8 @@ export interface Connection {
     request: Req,
     authToken: Token | null,
     appCheckToken: Token | null,
-    expectedResponseCount?: number
+    expectedResponseCount?: number,
+    isTransaction?: boolean
   ): Promise<Resp[]>;
 
   /**
@@ -123,4 +125,35 @@ export interface Stream<I, O> {
 
   send(msg: I): void;
   close(): void;
+}
+
+/**
+ * Determines whether the given RPC invocation is part of a transaction.
+ */
+export function isTransactionalRpc(
+  rpcName: string,
+  request?: unknown,
+  isTransaction?: boolean
+): boolean {
+  if (isTransaction) {
+    return true;
+  }
+  if (rpcName === 'BeginTransaction' || rpcName === 'Rollback') {
+    return true;
+  }
+  if (request && typeof request === 'object') {
+    const req = request as {
+      transaction?: string | Uint8Array | null;
+      newTransaction?: unknown;
+      autoCommitTransaction?: boolean;
+    };
+    if (
+      (req.transaction && req.transaction.length > 0) ||
+      Boolean(req.newTransaction) ||
+      Boolean(req.autoCommitTransaction)
+    ) {
+      return true;
+    }
+  }
+  return false;
 }
