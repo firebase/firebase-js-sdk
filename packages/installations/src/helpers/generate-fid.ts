@@ -51,5 +51,5 @@ function encode(fidByteArray: Uint8Array): string {
 
   // Remove the 23rd character that was added because of the extra 4 bits at the
   // end of our 17 byte array, and the '=' padding.
-  return b64String.substr(0, 22);
+  return b64String.slice(0, 22);
 }
