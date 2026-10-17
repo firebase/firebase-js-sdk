@@ -30,7 +30,8 @@ const es2020Plugins = [
     tsconfigOverride: {
       compilerOptions: {
         target: 'es2020'
-      }
+      },
+      exclude: ['test/**']
     },
     transformers: [util.removeAssertTransformer]
   }),

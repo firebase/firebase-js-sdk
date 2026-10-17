@@ -16,7 +16,6 @@
  */
 
 import type * as firestore from '@firebase/firestore-types';
-import { expect } from 'chai';
 
 import { EventsAccumulator } from './util/events_accumulator';
 import * as firebaseExport from './util/firebase_export';
@@ -42,8 +41,8 @@ apiDescribe('Database batch writes', (persistence: boolean) => {
         .commit()
         .then(() => doc.get())
         .then(snapshot => {
-          expect(snapshot.exists).to.equal(true);
-          expect(snapshot.data()).to.deep.equal({ foo: 'bar' });
+          expect(snapshot.exists).toBe(true);
+          expect(snapshot.data()).toEqual({ foo: 'bar' });
         });
     });
   });
@@ -62,8 +61,8 @@ apiDescribe('Database batch writes', (persistence: boolean) => {
         })
         .then(() => doc.get())
         .then(snapshot => {
-          expect(snapshot.exists).to.equal(true);
-          expect(snapshot.data()).to.deep.equal({
+          expect(snapshot.exists).toBe(true);
+          expect(snapshot.data()).toEqual({
             a: 'b',
             c: 'd',
             nested: { a: 'b', c: 'd' }
@@ -79,8 +78,8 @@ apiDescribe('Database batch writes', (persistence: boolean) => {
         .then(() => doc.firestore.batch().update(doc, { baz: 42 }).commit())
         .then(() => doc.get())
         .then(snapshot => {
-          expect(snapshot.exists).to.equal(true);
-          expect(snapshot.data()).to.deep.equal({ foo: 'bar', baz: 42 });
+          expect(snapshot.exists).toBe(true);
+          expect(snapshot.data()).toEqual({ foo: 'bar', baz: 42 });
         });
     });
   });
@@ -106,8 +105,8 @@ apiDescribe('Database batch writes', (persistence: boolean) => {
         .commit()
         .then(() => doc.get())
         .then(docSnapshot => {
-          expect(docSnapshot.exists).to.be.ok;
-          expect(docSnapshot.data()).to.deep.equal(finalData);
+          expect(docSnapshot.exists).toBeTruthy();
+          expect(docSnapshot.data()).toEqual(finalData);
         });
     });
   });
@@ -119,12 +118,12 @@ apiDescribe('Database batch writes', (persistence: boolean) => {
         .set({ foo: 'bar' })
         .then(() => doc.get())
         .then(snapshot => {
-          expect(snapshot.exists).to.equal(true);
+          expect(snapshot.exists).toBe(true);
         })
         .then(() => doc.firestore.batch().delete(doc).commit())
         .then(() => doc.get())
         .then(snapshot => {
-          expect(snapshot.exists).to.equal(false);
+          expect(snapshot.exists).toBe(false);
         });
     });
   });
@@ -144,7 +143,7 @@ apiDescribe('Database batch writes', (persistence: boolean) => {
         return accumulator
           .awaitEvent()
           .then(initialSnap => {
-            expect(initialSnap.docs.length).to.equal(0);
+            expect(initialSnap.docs.length).toBe(0);
 
             // Atomically write two documents.
             // eslint-disable-next-line @typescript-eslint/no-floating-promises
@@ -157,16 +156,16 @@ apiDescribe('Database batch writes', (persistence: boolean) => {
             return accumulator.awaitEvent();
           })
           .then(localSnap => {
-            expect(localSnap.metadata.hasPendingWrites).to.equal(true);
-            expect(integrationHelpers.toDataArray(localSnap)).to.deep.equal([
+            expect(localSnap.metadata.hasPendingWrites).toBe(true);
+            expect(integrationHelpers.toDataArray(localSnap)).toEqual([
               { a: 1 },
               { b: 2 }
             ]);
             return accumulator.awaitEvent();
           })
           .then(serverSnap => {
-            expect(serverSnap.metadata.hasPendingWrites).to.equal(false);
-            expect(integrationHelpers.toDataArray(serverSnap)).to.deep.equal([
+            expect(serverSnap.metadata.hasPendingWrites).toBe(false);
+            expect(integrationHelpers.toDataArray(serverSnap)).toEqual([
               { a: 1 },
               { b: 2 }
             ]);
@@ -192,7 +191,7 @@ apiDescribe('Database batch writes', (persistence: boolean) => {
         return accumulator
           .awaitEvent()
           .then(initialSnap => {
-            expect(initialSnap.docs.length).to.equal(0);
+            expect(initialSnap.docs.length).toBe(0);
 
             // Atomically write 1 document and update a nonexistent
             // document.
@@ -211,8 +210,8 @@ apiDescribe('Database batch writes', (persistence: boolean) => {
           })
           .then(localSnap => {
             // Local event with the set document.
-            expect(localSnap.metadata.hasPendingWrites).to.equal(true);
-            expect(integrationHelpers.toDataArray(localSnap)).to.deep.equal([
+            expect(localSnap.metadata.hasPendingWrites).toBe(true);
+            expect(integrationHelpers.toDataArray(localSnap)).toEqual([
               { a: 1 }
             ]);
 
@@ -220,8 +219,8 @@ apiDescribe('Database batch writes', (persistence: boolean) => {
           })
           .then(serverSnap => {
             // Server event with the set reverted.
-            expect(serverSnap.metadata.hasPendingWrites).to.equal(false);
-            expect(serverSnap.docs.length).to.equal(0);
+            expect(serverSnap.metadata.hasPendingWrites).toBe(false);
+            expect(serverSnap.docs.length).toBe(0);
 
             return batchCommitPromise;
           })
@@ -230,8 +229,8 @@ apiDescribe('Database batch writes', (persistence: boolean) => {
               expect.fail('Batch commit should have failed.');
             },
             err => {
-              expect(err.message).to.exist;
-              expect(err.code).to.equal('not-found');
+              expect(err.message).toBeDefined();
+              expect(err.code).toBe('not-found');
               unsubscribe();
             }
           );
@@ -254,7 +253,7 @@ apiDescribe('Database batch writes', (persistence: boolean) => {
         return accumulator
           .awaitEvent()
           .then(initialSnap => {
-            expect(initialSnap.docs.length).to.equal(0);
+            expect(initialSnap.docs.length).toBe(0);
 
             // Atomically write 2 documents with server timestamps.
             // eslint-disable-next-line @typescript-eslint/no-floating-promises
@@ -271,9 +270,9 @@ apiDescribe('Database batch writes', (persistence: boolean) => {
             return accumulator.awaitEvent();
           })
           .then(localSnap => {
-            expect(localSnap.metadata.hasPendingWrites).to.equal(true);
-            expect(localSnap.docs.length).to.equal(2);
-            expect(integrationHelpers.toDataArray(localSnap)).to.deep.equal([
+            expect(localSnap.metadata.hasPendingWrites).toBe(true);
+            expect(localSnap.docs.length).toBe(2);
+            expect(integrationHelpers.toDataArray(localSnap)).toEqual([
               { when: null },
               { when: null }
             ]);
@@ -281,15 +280,15 @@ apiDescribe('Database batch writes', (persistence: boolean) => {
             return accumulator.awaitEvent();
           })
           .then(serverSnap => {
-            expect(serverSnap.metadata.hasPendingWrites).to.equal(false);
-            expect(serverSnap.docs.length).to.equal(2);
+            expect(serverSnap.metadata.hasPendingWrites).toBe(false);
+            expect(serverSnap.docs.length).toBe(2);
             const when = serverSnap.docs[0].data()['when'];
-            expect(when).to.be.an.instanceof(Timestamp);
-            expect(serverSnap.docs[1].data()['when']).to.deep.equal(when);
+            expect(when).toBeInstanceOf(Timestamp);
+            expect(serverSnap.docs[1].data()['when']).toEqual(when);
             const docChanges = serverSnap.docChanges({
               includeMetadataChanges: true
             });
-            expect(docChanges[0].type).to.equal('modified');
+            expect(docChanges[0].type).toBe('modified');
             unsubscribe();
           });
       }
@@ -306,7 +305,7 @@ apiDescribe('Database batch writes', (persistence: boolean) => {
       return accumulator
         .awaitEvent()
         .then(initialSnap => {
-          expect(initialSnap.exists).to.equal(false);
+          expect(initialSnap.exists).toBe(false);
           // eslint-disable-next-line @typescript-eslint/no-floating-promises
           doc.firestore
             .batch()
@@ -321,16 +320,16 @@ apiDescribe('Database batch writes', (persistence: boolean) => {
           return accumulator.awaitEvent();
         })
         .then(localSnap => {
-          expect(localSnap.metadata.hasPendingWrites).to.equal(true);
-          expect(localSnap.data()).to.deep.equal({ a: 1, b: 2, when: null });
+          expect(localSnap.metadata.hasPendingWrites).toBe(true);
+          expect(localSnap.data()).toEqual({ a: 1, b: 2, when: null });
 
           return accumulator.awaitEvent();
         })
         .then(serverSnap => {
-          expect(serverSnap.metadata.hasPendingWrites).to.equal(false);
+          expect(serverSnap.metadata.hasPendingWrites).toBe(false);
           const when = serverSnap.get('when');
-          expect(when).to.be.an.instanceof(Timestamp);
-          expect(serverSnap.data()).to.deep.equal({ a: 1, b: 2, when });
+          expect(when).toBeInstanceOf(Timestamp);
+          expect(serverSnap.data()).toEqual({ a: 1, b: 2, when });
           unsubscribe();
         });
     });
@@ -372,8 +371,8 @@ apiDescribe('Database batch writes', (persistence: boolean) => {
           .commit()
           .then(() => docRef.get())
           .then(snapshot => {
-            expect(snapshot.exists).to.equal(true);
-            expect(snapshot.data()!.byline()).to.deep.equal('post, by author');
+            expect(snapshot.exists).toBe(true);
+            expect(snapshot.data()!.byline()).toEqual('post, by author');
           });
       });
     });
