@@ -31,7 +31,7 @@ import { FirestoreError } from '../util/error';
 import { logDebug, logWarn } from '../util/log';
 import { StringMap } from '../util/types';
 
-import { Connection, Stream } from './connection';
+import { Connection, isTransactionalRpc, Stream } from './connection';
 
 const LOG_TAG = 'RestConnection';
 
@@ -89,7 +89,8 @@ export abstract class RestConnection implements Connection {
     path: ResourcePath,
     req: Req,
     authToken: Token | null,
-    appCheckToken: Token | null
+    appCheckToken: Token | null,
+    isTransaction?: boolean
   ): Promise<Resp> {
     const streamId = generateUniqueDebugId();
     const url = this.makeUrl(rpcName, path.toUriEncodedString());
@@ -97,7 +98,10 @@ export abstract class RestConnection implements Connection {
 
     const headers: StringMap = {
       'google-cloud-resource-prefix': this.databasePath,
-      'x-goog-request-params': this.requestParams
+      'x-goog-request-params': this.requestParams,
+      'x-goog-is-transaction': isTransactionalRpc(req, isTransaction)
+        ? 'true'
+        : 'false'
     };
     this.modifyHeadersForRequest(headers, authToken, appCheckToken);
 
@@ -135,7 +139,8 @@ export abstract class RestConnection implements Connection {
     request: Req,
     authToken: Token | null,
     appCheckToken: Token | null,
-    expectedResponseCount?: number
+    expectedResponseCount?: number,
+    isTransaction?: boolean
   ): Promise<Resp[]> {
     // The REST API automatically aggregates all of the streamed results, so we
     // can just use the normal invoke() method.
@@ -144,7 +149,8 @@ export abstract class RestConnection implements Connection {
       path,
       request,
       authToken,
-      appCheckToken
+      appCheckToken,
+      isTransaction
     );
   }
 

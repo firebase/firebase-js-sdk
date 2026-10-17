@@ -104,7 +104,8 @@ class DatastoreImpl extends Datastore {
     rpcName: string,
     databaseId: DatabaseId,
     resourcePath: ResourcePath,
-    request: Req
+    request: Req,
+    isTransaction = false
   ): Promise<Resp> {
     this.verifyInitialized();
     return Promise.all([
@@ -117,7 +118,8 @@ class DatastoreImpl extends Datastore {
           toResourcePath(databaseId, resourcePath),
           request,
           authToken,
-          appCheckToken
+          appCheckToken,
+          isTransaction
         );
       })
       .catch((error: FirestoreError) => {
@@ -139,7 +141,8 @@ class DatastoreImpl extends Datastore {
     databaseId: DatabaseId,
     resourcePath: ResourcePath,
     request: Req,
-    expectedResponseCount?: number
+    expectedResponseCount?: number,
+    isTransaction = false
   ): Promise<Resp[]> {
     this.verifyInitialized();
     return Promise.all([
@@ -153,7 +156,8 @@ class DatastoreImpl extends Datastore {
           request,
           authToken,
           appCheckToken,
-          expectedResponseCount
+          expectedResponseCount,
+          isTransaction
         );
       })
       .catch((error: FirestoreError) => {
@@ -193,7 +197,8 @@ export function newDatastore(
 
 export async function invokeCommitRpc(
   datastore: Datastore,
-  mutations: Mutation[]
+  mutations: Mutation[],
+  isTransaction = false
 ): Promise<void> {
   const datastoreImpl = debugCast(datastore, DatastoreImpl);
   const request = {
@@ -203,13 +208,15 @@ export async function invokeCommitRpc(
     'Commit',
     datastoreImpl.serializer.databaseId,
     ResourcePath.emptyPath(),
-    request
+    request,
+    isTransaction
   );
 }
 
 export async function invokeBatchGetDocumentsRpc(
   datastore: Datastore,
-  keys: DocumentKey[]
+  keys: DocumentKey[],
+  isTransaction = false
 ): Promise<Document[]> {
   const datastoreImpl = debugCast(datastore, DatastoreImpl);
   const request = {
@@ -223,7 +230,8 @@ export async function invokeBatchGetDocumentsRpc(
     datastoreImpl.serializer.databaseId,
     ResourcePath.emptyPath(),
     request,
-    keys.length
+    keys.length,
+    isTransaction
   );
 
   const docs = new Map<string, Document>();
@@ -266,7 +274,9 @@ export async function invokeExecutePipeline(
     'ExecutePipeline',
     datastoreImpl.serializer.databaseId,
     ResourcePath.emptyPath(),
-    executePipelineRequest
+    executePipelineRequest,
+    /*expectedResponseCount=*/ undefined,
+    Boolean(options?.atomic)
   );
 
   const result: PipelineStreamElement[] = [];
