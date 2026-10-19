@@ -32,8 +32,6 @@ describe(
   'Firebase Messaging Integration Tests > Test Foreground Receive',
   { retry: 2 },
   () => {
-    let globalWebDriver;
-
     beforeAll(async () => {
       await testServer.start();
     });
@@ -50,6 +48,8 @@ describe(
 
       TEST_DOMAINS.forEach(domain => {
         describe(`Testing browser: ${assistantBrowser.getPrettyName()} : ${domain}`, () => {
+          let globalWebDriver;
+
           beforeAll(async () => {
             globalWebDriver = createPermittedWebDriver(
               /* browser= */ assistantBrowser.getId()

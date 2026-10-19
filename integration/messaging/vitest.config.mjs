@@ -56,6 +56,7 @@ config.test.projects = config.test.projects
     test: {
       ...project.test,
       fileParallelism: false,
+      hookTimeout: 30000,
       include: ['test/test-*.js']
     }
   }));

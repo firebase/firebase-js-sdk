@@ -29,8 +29,6 @@ describe(
   'Firebase Messaging Integration Tests > get and delete token',
   { timeout: TEST_SUITE_TIMEOUT_MS, retry: 2 },
   () => {
-    let globalWebDriver;
-
     beforeAll(async () => {
       await testServer.start();
     });
@@ -47,6 +45,8 @@ describe(
       }
 
       describe(`Testing browser: ${assistantBrowser.getPrettyName()} : ${TEST_DOMAIN}`, () => {
+        let globalWebDriver;
+
         beforeAll(async () => {
           // Use one webDriver per browser instead of one per test to speed up test.
           globalWebDriver = createPermittedWebDriver(
