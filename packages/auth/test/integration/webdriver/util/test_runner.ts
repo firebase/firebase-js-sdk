@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { afterAll, beforeAll, beforeEach, describe } from 'vitest';
 import { AuthDriver } from './auth_driver';
 
 /** The browsers that these tests will run in */

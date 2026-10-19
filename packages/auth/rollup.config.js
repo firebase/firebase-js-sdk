@@ -50,9 +50,7 @@ const buildPlugins = [
   strip({ functions: ['debugAssert.*'] }),
   typescriptPlugin({
     typescript,
-    tsconfigOverride: {
-      exclude: [...tsconfig.exclude, '**/*.test.ts', 'test/**']
-    }
+    tsconfigOverride: { exclude: [...tsconfig.exclude, '**/*.test.ts'] }
   })
 ];
 
@@ -213,16 +211,14 @@ const webWorkerBuild = {
     }),
     typescriptPlugin({
       typescript,
-      tsconfigOverride: {
-        exclude: [...tsconfig.exclude, '**/*.test.*', 'test/**'],
-        compilerOptions: {
-          lib: [
-            // Remove dom after we figure out why navigator stuff doesn't exist
-            'dom',
-            'es2020',
-            'webworker'
-          ]
-        }
+      exclude: [...tsconfig.exclude, '**/*.test.*'],
+      compilerOptions: {
+        lib: [
+          // Remove dom after we figure out why navigator stuff doesn't exist
+          'dom',
+          'es2020',
+          'webworker'
+        ]
       }
     }),
     replace(generateBuildTargetReplaceConfig('esm', 2020))
