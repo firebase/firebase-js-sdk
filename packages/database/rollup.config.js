@@ -40,7 +40,7 @@ const buildPlugins = [
   typescriptPlugin({
     typescript,
     tsconfigOverride: {
-      exclude: [...tsconfig.exclude, '**/*.test.ts', 'test/**']
+      exclude: [...tsconfig.exclude, '**/*.test.ts']
     },
     abortOnError: false
   }),

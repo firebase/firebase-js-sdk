@@ -20,7 +20,16 @@ import createBaseConfig from '../../config/vitest.base.mjs';
 const config = createBaseConfig(import.meta.url);
 
 for (const project of config.test.projects) {
-  if (project.test.name === 'browser') {
+  project.define = {
+    ...(project.define || {}),
+    'process.env.TEST_ENV': JSON.stringify(project.test.name)
+  };
+  if (project.test.name === 'node') {
+    project.test.setupFiles = [
+      ...(project.test.setupFiles || []),
+      'src/index.node.ts'
+    ];
+  } else if (project.test.name === 'browser') {
     project.test.testTimeout = 30000;
     project.test.hookTimeout = 30000;
     project.test.retry = 3;

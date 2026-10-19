@@ -48,12 +48,13 @@ import {
   EMULATOR_PORT,
   getFreshRepo,
   getRWRefs,
-  getUniqueRef,
   USE_EMULATOR,
   waitFor,
   waitUntil,
   writeAndValidate
 } from '../helpers/util';
+
+const TEST_ENV = process.env.TEST_ENV || 'default';
 
 export function createTestApp() {
   return initializeApp({ databaseURL: DATABASE_URL });
@@ -110,19 +111,19 @@ describe('Database@exp Tests', () => {
 
   it('Can set and get ref', async () => {
     const db = getDatabase(defaultApp);
-    await set(ref(db, 'foo/bar'), 'foobar');
-    const snap = await get(ref(db, 'foo/bar'));
+    await set(ref(db, `${TEST_ENV}/foo/bar`), 'foobar');
+    const snap = await get(ref(db, `${TEST_ENV}/foo/bar`));
     expect(snap.val()).toBe('foobar');
   });
 
   it('Can get refFromUrl', async () => {
     const db = getDatabase(defaultApp);
-    await get(refFromURL(db, `${DATABASE_ADDRESS}/foo/bar`));
+    await get(refFromURL(db, `${DATABASE_ADDRESS}/${TEST_ENV}/foo/bar`));
   });
 
   it('Can get updates', async () => {
     const db = getDatabase(defaultApp);
-    const fooRef = ref(db, 'foo');
+    const fooRef = ref(db, `${TEST_ENV}/foo`);
 
     const ea = EventAccumulatorFactory.waitsForExactCount(2);
     const unsubscribe = onValue(fooRef, snap => {
@@ -142,27 +143,27 @@ describe('Database@exp Tests', () => {
     it('can connect to emulator', async () => {
       const db = getDatabase(defaultApp);
       connectDatabaseEmulator(db, 'localhost', parseInt(EMULATOR_PORT, 10));
-      await get(refFromURL(db, `${DATABASE_ADDRESS}/foo/bar`));
+      await get(refFromURL(db, `${DATABASE_ADDRESS}/${TEST_ENV}/foo/bar`));
     });
     it('can change emulator config before network operations', async () => {
       const db = getDatabase(defaultApp);
       const port = parseInt(EMULATOR_PORT, 10);
       connectDatabaseEmulator(db, 'localhost', port + 1);
       connectDatabaseEmulator(db, 'localhost', port);
-      await get(refFromURL(db, `${DATABASE_ADDRESS}/foo/bar`));
+      await get(refFromURL(db, `${DATABASE_ADDRESS}/${TEST_ENV}/foo/bar`));
     });
     it('can connect to emulator after network operations with same parameters', async () => {
       const db = getDatabase(defaultApp);
       const port = parseInt(EMULATOR_PORT, 10);
       connectDatabaseEmulator(db, 'localhost', port);
-      await get(refFromURL(db, `${DATABASE_ADDRESS}/foo/bar`));
+      await get(refFromURL(db, `${DATABASE_ADDRESS}/${TEST_ENV}/foo/bar`));
       connectDatabaseEmulator(db, 'localhost', port);
     });
     it('cannot connect to emulator after network operations with different parameters', async () => {
       const db = getDatabase(defaultApp);
       const port = parseInt(EMULATOR_PORT, 10);
       connectDatabaseEmulator(db, 'localhost', port);
-      await get(refFromURL(db, `${DATABASE_ADDRESS}/foo/bar`));
+      await get(refFromURL(db, `${DATABASE_ADDRESS}/${TEST_ENV}/foo/bar`));
       expect(() => {
         connectDatabaseEmulator(db, 'localhost', 9001);
       }).toThrow();
@@ -173,7 +174,7 @@ describe('Database@exp Tests', () => {
     // Note: This test requires `testIndex` to be added as an index.
     // Please run `yarn test:setup` to ensure that this gets added.
     const database = getDatabase(defaultApp);
-    const root = getUniqueRef(database);
+    const root = ref(database, `testing/${TEST_ENV}`);
     await set(root, {});
 
     const q = query(root, orderByChild('testIndex'), limitToFirst(2));
@@ -356,7 +357,7 @@ describe('Database@exp Tests', () => {
 
   it('Can use onlyOnce', async () => {
     const db = getDatabase(defaultApp);
-    const fooRef = ref(db, 'foo');
+    const fooRef = ref(db, `${TEST_ENV}/foo`);
 
     const ea = EventAccumulatorFactory.waitsForExactCount(1);
     const unsubscribe = onValue(
@@ -377,7 +378,7 @@ describe('Database@exp Tests', () => {
 
   it('Can unsubscribe', async () => {
     const db = getDatabase(defaultApp);
-    const fooRef = ref(db, 'foo');
+    const fooRef = ref(db, `${TEST_ENV}/foo`);
 
     const ea = EventAccumulatorFactory.waitsForExactCount(1);
     const unsubscribe = onValue(fooRef, snap => {
@@ -402,7 +403,7 @@ describe('Database@exp Tests', () => {
 
   it('blocks get requests until the database is online', async () => {
     const db = getDatabase(defaultApp);
-    const r = ref(db, 'foo3');
+    const r = ref(db, `${TEST_ENV}/foo3`);
     const initial = {
       test: 1
     };

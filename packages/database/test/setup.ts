@@ -18,7 +18,3 @@
 if (typeof (globalThis as any).process === 'undefined') {
   (globalThis as any).process = { env: {} };
 }
-
-if (typeof window === 'undefined') {
-  await import('../src/index.node');
-}

@@ -16,6 +16,7 @@
  */
 
 import { FirebaseApp, initializeApp } from '@firebase/app';
+import { expect } from 'vitest';
 
 import TEST_PROJECT from '../../../../config/project.json';
 import {
